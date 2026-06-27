@@ -1,4 +1,4 @@
-# GUI/DeviceWeb
+﻿# GUI/DeviceWeb
 # usage -- GUI about device web for BambuStudio
 # date -- 2025.01.01
 # status -- Building
@@ -10,8 +10,8 @@ function(prepare_node_env)
     set(NODE_VERSION "22.22.2")
     set(PNPM_VERSION "10.12.1")
 
-    # 定义本地缓存目录（放在 build 目录下，clean 后会重下）
-    set(NODE_CACHE_DIR "${CMAKE_CURRENT_BINARY_DIR}/node-cache")
+    # 定义本地缓存目录（放在项目同级目录，clean build 后不会丢失）
+    set(NODE_CACHE_DIR "${CMAKE_SOURCE_DIR}/../node-cache")
 
     # 根据平台确定下载 URL、文件名和 hash 值
     if(WIN32)
@@ -179,28 +179,64 @@ endif()
 set(PNPM_STORE_DIR "${CMAKE_CURRENT_BINARY_DIR}/.pnpm-store")
 file(MAKE_DIRECTORY "${PNPM_STORE_DIR}")
 
-add_custom_target(device_page_build ALL
+set(DEVICE_PAGE_BUILD_STAMP "${CMAKE_CURRENT_BINARY_DIR}/device_page.stamp")
+
+file(GLOB_RECURSE DEVICE_PAGE_SRC_FILES CONFIGURE_DEPENDS
+    "${DEVICE_PAGE_SRC_DIR}/src/*"
+)
+file(GLOB_RECURSE DEVICE_PAGE_LOCALE_FILES CONFIGURE_DEPENDS
+    "${DEVICE_PAGE_SRC_DIR}/locales/*"
+)
+file(GLOB_RECURSE DEVICE_PAGE_PUBLIC_FILES CONFIGURE_DEPENDS
+    "${DEVICE_PAGE_SRC_DIR}/public/*"
+)
+
+set(DEVICE_PAGE_BUILD_INPUTS
+    ${DEVICE_PAGE_SRC_FILES}
+    ${DEVICE_PAGE_LOCALE_FILES}
+    ${DEVICE_PAGE_PUBLIC_FILES}
+    "${DEVICE_PAGE_SRC_DIR}/index.html"
+    "${DEVICE_PAGE_SRC_DIR}/package.json"
+    "${DEVICE_PAGE_SRC_DIR}/pnpm-lock.yaml"
+    "${DEVICE_PAGE_SRC_DIR}/vite.config.ts"
+    "${DEVICE_PAGE_SRC_DIR}/tsconfig.json"
+    "${DEVICE_PAGE_SRC_DIR}/tsconfig.app.json"
+    "${DEVICE_PAGE_SRC_DIR}/tsconfig.node.json"
+    "${DEVICE_PAGE_SRC_DIR}/eslint.config.js"
+    "${DEVICE_PAGE_SRC_DIR}/i18next-parser.config.js"
+)
+
+add_custom_command(
+    OUTPUT "${DEVICE_PAGE_BUILD_STAMP}"
     COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" "PNPM_STORE_DIR=${PNPM_STORE_DIR}" ${PNPM_EXECUTABLE} install
     COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" "PNPM_STORE_DIR=${PNPM_STORE_DIR}" ${PNPM_EXECUTABLE} run build
-    COMMAND  ${CMAKE_COMMAND} -E make_directory "${DEVICE_PAGE_TARGET_DIR}"
-    COMMAND  ${CMAKE_COMMAND} -E copy_directory "${DEVICE_PAGE_DIST_DIR}" "${DEVICE_PAGE_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E remove_directory "${DEVICE_PAGE_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${DEVICE_PAGE_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${DEVICE_PAGE_DIST_DIR}" "${DEVICE_PAGE_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E touch "${DEVICE_PAGE_BUILD_STAMP}"
+    DEPENDS ${DEVICE_PAGE_BUILD_INPUTS}
     WORKING_DIRECTORY ${DEVICE_PAGE_SRC_DIR}
-    COMMENT "Installing dependencies and building device_page..."
+    COMMENT "Building device_page web bundle when sources change..."
     VERBATIM
 )
+
+# Not ALL: rebuilt only when a dependent target (libslic3r_gui / BambuStudio) is built.
+add_custom_target(device_page_build DEPENDS "${DEVICE_PAGE_BUILD_STAMP}")
 
 list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/DeviceHttpServer.cpp
     GUI/DeviceWeb/DeviceHttpServer.hpp
     GUI/DeviceWeb/DeviceWebPage.cpp
     GUI/DeviceWeb/DeviceWebPage.hpp
+    GUI/DeviceWeb/DeviceWebHost.cpp
+    GUI/DeviceWeb/DeviceWebHost.hpp
     GUI/DeviceWeb/DeviceWebBridge.cpp
     GUI/DeviceWeb/DeviceWebBridge.hpp
     GUI/DeviceWeb/DeviceWebModel.hpp
     GUI/DeviceWeb/IViewModel.hpp
     GUI/DeviceWeb/DeviceWebManager.cpp
     GUI/DeviceWeb/DeviceWebManager.hpp
-    GUI/DeviceWeb/FilaManagerVM.cpp
-    GUI/DeviceWeb/FilaManagerVM.hpp
+    GUI/DeviceWeb/ViewModels/FilamentManager/FilamentManagerVM.cpp
+    GUI/DeviceWeb/ViewModels/FilamentManager/FilamentManagerVM.hpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)

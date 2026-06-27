@@ -269,7 +269,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
     m_button_ok = new Button(this, _L("OK"));
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderColor(*wxWHITE);
-    m_button_ok->SetTextColor(wxColour(0xFFFFFE));
+    m_button_ok->SetTextColor(wxColour("#FFFFFE"));
     m_button_ok->SetFont(Label::Body_12);
     m_button_ok->SetSize(BUTTON_SIZE);
     m_button_ok->SetMinSize(BUTTON_SIZE);
@@ -287,6 +287,7 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
             wxGetApp().app_config->set("linear_defletion", float_to_string_decimal_point(get_linear_defletion(), 3));
             wxGetApp().app_config->set("angle_defletion", float_to_string_decimal_point(get_angle_defletion(), 2));
 
+            log_step_tree_structure();
             EndModal(wxID_OK);
         }
         SetFocusIgnoringChildren();
@@ -334,6 +335,11 @@ StepMeshDialog::StepMeshDialog(wxWindow* parent, Slic3r::Step& file, double line
 StepMeshDialog::~StepMeshDialog()
 {
     stop_task();
+}
+
+void StepMeshDialog::log_step_tree_structure()
+{
+    m_file.dump_structure_tree();
 }
 
 void StepMeshDialog::on_task_done(wxCommandEvent& event)

@@ -1093,13 +1093,14 @@ wxSizer* CalibrationPresetPage::create_slot_items_sizer(wxPanel* slot_items_pane
 
         fcb->Bind(EVT_CALI_TRAY_CHANGED, &CalibrationPresetPage::on_select_tray, this);
 
-        radio_btn->Bind(wxEVT_RADIOBUTTON, [this, extuder_role](wxCommandEvent &evt) {
+        radio_btn->Bind(wxEVT_RADIOBUTTON, [this, fcb](wxCommandEvent &evt) {
+            /* Ensure manual calibration uses exactly one selected filament across all nozzle panels. */
+            manage_filament_radio_btn(fcb);
+
             wxCommandEvent event(EVT_CALI_TRAY_CHANGED);
             event.SetEventObject(this);
             wxPostEvent(this, event);
 
-            /* note: radio button is only used for manual cali mode */
-            manage_filament_radio_btn(extuder_role);
         });
 
         check_box->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
@@ -1114,17 +1115,24 @@ wxSizer* CalibrationPresetPage::create_slot_items_sizer(wxPanel* slot_items_pane
     return slot_ams_items_sizer;
 }
 
-/*main radio and deputy radio is incompatible in manual cali mode*/
-void CalibrationPresetPage::manage_filament_radio_btn(ExtruderRole extuder_role){
-    if(extuder_role == ExtruderRole::MAIN_EXTRUDER) {
-        for(auto &fcb : m_deputy_filament_comboBox_list) {
-            fcb->GetRadioBox()->SetValue(false);
+void CalibrationPresetPage::manage_filament_radio_btn(FilamentComboBox* selected_fcb)
+{
+    if (!selected_fcb || !selected_fcb->GetRadioBox())
+        return;
+
+    auto update_radio_list = [selected_fcb](FilamentComboBoxList& list) {
+        for (auto &fcb : list) {
+            if (!fcb || !fcb->GetRadioBox())
+                continue;
+
+            fcb->GetRadioBox()->SetValue(fcb == selected_fcb);
         }
-    } else if(extuder_role == ExtruderRole::DEPUTY_EXTRUDER) {
-        for(auto &fcb : m_main_filament_comboBox_list) {
-            fcb->GetRadioBox()->SetValue(false);
-        }
-    }
+    };
+
+    /* Hidden panels are included deliberately to avoid stale selections after switching printer/nozzle modes. */
+    update_radio_list(m_filament_comboBox_list);
+    update_radio_list(m_main_filament_comboBox_list);
+    update_radio_list(m_deputy_filament_comboBox_list);
 }
 
 void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *parent)
@@ -1873,7 +1881,9 @@ void CalibrationPresetPage::update_show_status()
         show_status(CaliPresetPageStatus::CaliPresetStatusInSystemPrinting);
         return;
     }
-    else if (obj_->is_in_printing()) {
+    else if (obj_->is_in_printing()
+          || obj_->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE
+          || obj_->ams_status_main == AMS_STATUS_MAIN_COLD_PULL) {
         show_status(CaliPresetPageStatus::CaliPresetStatusInPrinting);
         return;
     }
@@ -2615,6 +2625,60 @@ void CalibrationPresetPage::select_default_compatible_filament()
     if (!curr_obj)
         return;
 
+    if (curr_obj->is_multi_extruders()) {
+        auto select_first_compatible_filament = [this](FilamentComboBoxList& filament_list) -> bool {
+            for (auto &fcb : filament_list) {
+                if (!fcb || !fcb->GetRadioBox() || !fcb->GetRadioBox()->IsEnabled()) {
+                    continue;
+                }
+
+                int tray_id = fcb->get_tray_id();
+                if (tray_id < 0) {
+                    fcb->SetValue(false);
+                    continue;
+                }
+
+                Preset* preset = const_cast<Preset*>(fcb->GetComboBox()->get_selected_preset());
+                if (!preset) {
+                    fcb->SetValue(false);
+                    continue;
+                }
+
+                int nozzle_pos_id = fcb->GetNozzleIdCode();
+                std::string nozzle_sn;
+                if (nozzle_pos_id != -1) {
+                    DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(nozzle_pos_id);
+                    nozzle_sn = nozzle.GetSerialNumber().ToStdString();
+                }
+
+                int extruder_id = fcb->GetExtuderRole() == ExtruderRole::DEPUTY_EXTRUDER ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
+                std::vector<CaliFilamentInfo> selected_filament{
+                    CaliFilamentInfo(preset, nozzle_pos_id, nozzle_sn, extruder_id, tray_id)
+                };
+
+                if (is_filaments_compatiable(selected_filament)) {
+                    manage_filament_radio_btn(fcb);
+
+                    wxCommandEvent event(wxEVT_RADIOBUTTON);
+                    event.SetEventObject(this);
+                    wxPostEvent(fcb->GetRadioBox(), event);
+                    Layout();
+                    return true;
+                }
+
+                fcb->SetValue(false);
+            }
+
+            return false;
+        };
+
+        if (!select_first_compatible_filament(m_main_filament_comboBox_list))
+            select_first_compatible_filament(m_deputy_filament_comboBox_list);
+
+        check_filament_compatible();
+        return;
+    }
+
     std::string ams_id;
     for (AMSPreview* ams_perview : m_single_ams_preview_list) {
         if (ams_perview->IsSelected()) {
@@ -2723,41 +2787,63 @@ std::vector<FilamentComboBox*> CalibrationPresetPage::get_selected_filament_comb
 {
     std::vector<FilamentComboBox*> fcb_list;
 
+    auto is_valid_selected_filament = [](FilamentComboBox* fcb) {
+        return fcb
+            && fcb->GetComboBox()
+            && fcb->get_tray_id() >= 0
+            && fcb->GetComboBox()->get_selected_preset();
+    };
+
     if (curr_obj && curr_obj->is_multi_extruders()) {
         if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_MULITI) {
             for (auto &fcb : m_main_filament_comboBox_list) {
                 if (fcb->GetCheckBox()->GetValue()) {
-                    fcb_list.push_back(fcb);
+                    if (is_valid_selected_filament(fcb))
+                        fcb_list.push_back(fcb);
+                    else
+                        fcb->SetValue(false);
                 }
             }
             for (auto &fcb : m_deputy_filament_comboBox_list) {
                 if (fcb->GetCheckBox()->GetValue()) {
-                    fcb_list.push_back(fcb);
+                    if (is_valid_selected_filament(fcb))
+                        fcb_list.push_back(fcb);
+                    else
+                        fcb->SetValue(false);
                 }
             }
         } else if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_SINGLE) {
-            for (auto &fcb : m_main_filament_comboBox_list) {
-                if (fcb->GetRadioBox()->GetValue()) {
-                    fcb_list.push_back(fcb);
+            auto append_selected_radio = [&fcb_list, &is_valid_selected_filament](FilamentComboBoxList& list) {
+                for (auto &fcb : list) {
+                    if (!fcb || !fcb->GetRadioBox() || !fcb->GetRadioBox()->GetValue())
+                        continue;
+
+                    if (!fcb->GetRadioBox()->IsEnabled() || !is_valid_selected_filament(fcb)) {
+                        fcb->SetValue(false);
+                        continue;
+                    }
+
+                    if (fcb_list.empty())
+                        fcb_list.push_back(fcb);
+                    else
+                        fcb->SetValue(false);
                 }
-            }
-            for (auto &fcb : m_deputy_filament_comboBox_list) {
-                if (fcb->GetRadioBox()->GetValue()) {
-                    fcb_list.push_back(fcb);
-                }
-            }
+            };
+
+            append_selected_radio(m_main_filament_comboBox_list);
+            append_selected_radio(m_deputy_filament_comboBox_list);
         }
     }
     else {
         if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_MULITI) {
             for (auto &fcb : m_filament_comboBox_list) {
-                if (fcb->GetCheckBox()->GetValue()) {
+                if (fcb->GetCheckBox()->GetValue() && is_valid_selected_filament(fcb)) {
                     fcb_list.push_back(fcb);
                 }
             }
         } else if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_SINGLE) {
             for (auto &fcb : m_filament_comboBox_list) {
-                if (fcb->GetRadioBox()->GetValue()) {
+                if (fcb->GetRadioBox()->GetValue() && fcb->GetRadioBox()->IsEnabled() && is_valid_selected_filament(fcb)) {
                     fcb_list.push_back(fcb);
                 }
             }
@@ -2799,6 +2885,9 @@ std::vector<CaliFilamentInfo> CalibrationPresetPage::get_selected_filaments()
         if (fcb->get_tray_id() >= 0)
         {
             Preset* preset = const_cast<Preset*>(fcb->GetComboBox()->get_selected_preset());
+            if (!preset)
+                continue;
+
             if (nozzle_pos_id == -1) {//non-O1C printer pos_id == extruder_id
                 if(fcb->GetExtuderRole() == ExtruderRole::MAIN_EXTRUDER || fcb->GetExtuderRole() == ExtruderRole::SINGLE_EXTRUDER)
                     nozzle_pos_id = MAIN_EXTRUDER_ID;
@@ -2835,12 +2924,14 @@ void CalibrationPresetPage::get_cali_stage(CaliPresetStage& stage, float& value)
     if (stage != CaliPresetStage::CALI_MANUAL_STAGE_2) {
         std::vector<CaliFilamentInfo> selected_filaments = get_selected_filaments();
         if (!selected_filaments.empty()) {
-            const ConfigOptionFloatsNullable* flow_ratio_opt = selected_filaments.begin()->filament_preset->config.option<ConfigOptionFloatsNullable>("filament_flow_ratio");
+            Preset* preset = selected_filaments.begin()->filament_preset;
+            const ConfigOptionFloatsNullable* flow_ratio_opt = preset ? preset->config.option<ConfigOptionFloatsNullable>("filament_flow_ratio") : nullptr;
             if (flow_ratio_opt) {
                 m_cali_stage_panel->set_flow_ratio_value(flow_ratio_opt->get_at(0));
                 value = flow_ratio_opt->get_at(0);
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " set flow ratio value:" << value;
-            } else {
+            }
+            else {
                 BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " selected filament preset has no flow ratio option";
             }
         } else {

@@ -11,16 +11,16 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as FilamentImport } from './routes/filament'
+import { Route as FilamentmanagerImport } from './routes/filament_manager'
 import { Route as AppImport } from './routes/app'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
 
-const FilamentRoute = FilamentImport.update({
-  id: '/filament',
-  path: '/filament',
+const FilamentmanagerRoute = FilamentmanagerImport.update({
+  id: '/filament_manager',
+  path: '/filament_manager',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -67,11 +67,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppImport
       parentRoute: typeof rootRoute
     }
-    '/filament': {
-      id: '/filament'
-      path: '/filament'
-      fullPath: '/filament'
-      preLoaderRoute: typeof FilamentImport
+    '/filament_manager': {
+      id: '/filament_manager'
+      path: '/filament_manager'
+      fullPath: '/filament_manager'
+      preLoaderRoute: typeof FilamentmanagerImport
       parentRoute: typeof rootRoute
     }
   }
@@ -83,14 +83,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
-  '/filament': typeof FilamentRoute
+  '/filament_manager': typeof FilamentmanagerRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
-  '/filament': typeof FilamentRoute
+  '/filament_manager': typeof FilamentmanagerRoute
 }
 
 export interface FileRoutesById {
@@ -98,15 +98,15 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
-  '/filament': typeof FilamentRoute
+  '/filament_manager': typeof FilamentmanagerRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/app' | '/filament'
+  fullPaths: '/' | '/about' | '/app' | '/filament_manager'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/app' | '/filament'
-  id: '__root__' | '/' | '/about' | '/app' | '/filament'
+  to: '/' | '/about' | '/app' | '/filament_manager'
+  id: '__root__' | '/' | '/about' | '/app' | '/filament_manager'
   fileRoutesById: FileRoutesById
 }
 
@@ -114,14 +114,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AppRoute: typeof AppRoute
-  FilamentRoute: typeof FilamentRoute
+  FilamentmanagerRoute: typeof FilamentmanagerRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AppRoute: AppRoute,
-  FilamentRoute: FilamentRoute,
+  FilamentmanagerRoute: FilamentmanagerRoute,
 }
 
 export const routeTree = rootRoute
@@ -137,7 +137,7 @@ export const routeTree = rootRoute
         "/",
         "/about",
         "/app",
-        "/filament"
+        "/filament_manager"
       ]
     },
     "/": {
@@ -149,8 +149,8 @@ export const routeTree = rootRoute
     "/app": {
       "filePath": "app.tsx"
     },
-    "/filament": {
-      "filePath": "filament.tsx"
+    "/filament_manager": {
+      "filePath": "filament_manager.tsx"
     }
   }
 }

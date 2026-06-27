@@ -140,7 +140,7 @@ namespace Slic3r {
     {
         int error_code = 0;   // 0 means succeed, 0b 0001 multi extruder printable area error, 0b 0010 multi extruder printable height error,
         // 0b 0100 plate printable area error, 0b 1000 plate printable height error, 0b 10000 wrapping detection area error
-        // (1<<10) filament map error
+        // (1<<10) filament map error , (1<<11) printing mass ouver limit
         std::map<int, std::vector<std::pair<int, int>>> print_area_error_infos;   // printable_area  extruder_id to <filament_id - object_label_id> which cannot printed in this extruder
         std::map<int, std::vector<std::pair<int, int>>> print_height_error_infos;   // printable_height extruder_id to <filament_id - object_label_id> which cannot printed in this extruder
         void reset() {
@@ -324,6 +324,7 @@ namespace Slic3r {
             is_helio_gcode            = other.is_helio_gcode;
             long_retraction_when_cut = other.long_retraction_when_cut;
             timelapse_warning_code = other.timelapse_warning_code;
+            support_traditional_timelapse = other.support_traditional_timelapse;
             printable_height = other.printable_height;
             settings_ids = other.settings_ids;
             filaments_count = other.filaments_count;

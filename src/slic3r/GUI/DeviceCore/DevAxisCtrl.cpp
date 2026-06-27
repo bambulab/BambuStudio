@@ -22,10 +22,16 @@ int DevAxis::Ctrl_GoHome()
 int DevAxis::Ctrl_Axis(std::string axis, double unit, double input_val, int speed)
 {
     if (m_is_support_mqtt_axis_ctrl) {
+        int dir = input_val > 0 ? 1 : -1;
+        if (!IsArchCoreXY()) {
+            if (axis.compare("Y") == 0 || axis.compare("Z") == 0) {
+                dir = -dir;
+            }
+        }
         json j;
         j["print"]["command"] = "xyz_ctrl";
         j["print"]["axis"] = axis;
-        j["print"]["dir"] = input_val > 0 ? 1 : -1;
+        j["print"]["dir"] = dir;
         j["print"]["mode"] = (std::abs(input_val) >= 10) ? 1 : 0;
         j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
         return m_owner->publish_json(j);

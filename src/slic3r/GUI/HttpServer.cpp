@@ -524,34 +524,47 @@ std::optional<std::string> TicketLoginTask::do_request_login_info(const std::str
             BOOST_LOG_TRIVIAL(info) << "third_party_login: get_my_token failed, http_code = " << http_code;
             return std::nullopt;
         }
-        else {
-            auto token_resp = nlohmann::json::parse(http_body);
-            auto token_data = token_resp.get<TokenResp>();
-            if (agent->get_my_profile(token_data.accessToken, &http_code, &http_body) < 0) {
-                BOOST_LOG_TRIVIAL(info) << "third_party_login: get_my_profile failed, http_code = " << http_code;
-                return std::nullopt;
-            }
-            else {
-                auto profile_resp = nlohmann::json::parse(http_body);
-                auto profile_data = profile_resp.get<ProfileResp>();
 
-                json j;
-                j["data"]["refresh_token"]      = token_data.refreshToken;
-                j["data"]["token"]              = token_data.accessToken;
-                j["data"]["expires_in"]         = std::to_string(token_data.expiresIn);
-                j["data"]["refresh_expires_in"] = std::to_string(token_data.refreshExpiresIn);
-                j["data"]["user"]["uid"]        = profile_data.uidStr;
-                j["data"]["user"]["name"]       = profile_data.name;
-                j["data"]["user"]["account"]    = profile_data.account;
-                j["data"]["user"]["avatar"]     = profile_data.avatar;
-                BOOST_LOG_TRIVIAL(info) << "third_party_login: login info ready";
-                return std::string(j.dump());
-            }
+        if (http_body.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "third_party_login: get_my_token response empty, login failed";
+            return std::nullopt;
         }
+
+        auto token_resp = nlohmann::json::parse(http_body);
+        auto token_data = token_resp.get<TokenResp>();
+        if (agent->get_my_profile(token_data.accessToken, &http_code, &http_body) < 0) {
+            BOOST_LOG_TRIVIAL(info) << "third_party_login: get_my_profile failed, http_code = " << http_code;
+            return std::nullopt;
+        }
+
+        auto profile_resp = nlohmann::json::parse(http_body);
+        auto profile_data = profile_resp.get<ProfileResp>();
+
+        json j;
+        j["data"]["refresh_token"]      = token_data.refreshToken;
+        j["data"]["token"]              = token_data.accessToken;
+        j["data"]["expires_in"]         = std::to_string(token_data.expiresIn);
+        j["data"]["refresh_expires_in"] = std::to_string(token_data.refreshExpiresIn);
+        j["data"]["user"]["uid"]        = profile_data.uidStr;
+        j["data"]["user"]["name"]       = profile_data.name;
+        j["data"]["user"]["account"]    = profile_data.account;
+        j["data"]["user"]["avatar"]     = profile_data.avatar;
+        BOOST_LOG_TRIVIAL(info) << "third_party_login: login info ready";
+        return std::string(j.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace));
+    }
+    catch (const nlohmann::json::exception &e)
+    {
+        BOOST_LOG_TRIVIAL(error) << "third_party_login: json exception: " << e.what() << " (id=" << e.id << ")";
+        return std::nullopt;
+    }
+    catch (const std::exception &e)
+    {
+        BOOST_LOG_TRIVIAL(error) << "third_party_login: do_request_login_info exception: " << e.what();
+        return std::nullopt;
     }
     catch (...)
     {
-        BOOST_LOG_TRIVIAL(info) << "third_party_login: do_request_login_info exception";
+        BOOST_LOG_TRIVIAL(error) << "third_party_login: do_request_login_info unknown exception";
         return std::nullopt;
     }
 }

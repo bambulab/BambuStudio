@@ -24,6 +24,9 @@ class Button : public StaticBox
     bool m_left_corner_white = false;
     bool m_right_corner_white = false;
     bool grayed = false;
+    // when true, the button can shrink and the label is truncated 
+    // with an ellipsis (Chrome-style notebook tabs).
+    bool m_allow_shrink = false;
 
     wxTipWindow* tipWindow = nullptr;
 
@@ -47,6 +50,10 @@ public:
 
     void SetMinSize(const wxSize& size) override;
     void SetMaxSize(const wxSize& size) override;
+
+    // BBS: allow the button to shrink below its content width (label truncated with
+    // an ellipsis). Used by the notebook tab bar so the side tools stay visible.
+    void SetAllowShrink(bool allow);
 
     void SetPaddingSize(const wxSize& size);
 

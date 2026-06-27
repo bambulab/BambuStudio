@@ -10,6 +10,7 @@
         "0.4"
     ],
     "printer_model": "Bambu Lab H2C",
+    "farthest_point_timelapse": "1",
     "printer_variant": "0.4",
     "default_filament_profile": [
         "Bambu PLA Basic @BBL H2C"
@@ -142,6 +143,7 @@
     "upward_compatible_machine": [
         "Bambu Lab H2S 0.4 nozzle",
         "Bambu Lab H2D 0.4 nozzle",
-        "Bambu Lab H2D Pro 0.4 nozzle"
+        "Bambu Lab H2D Pro 0.4 nozzle",
+        "Bambu Lab A2L 0.4 nozzle"
     ]
 }

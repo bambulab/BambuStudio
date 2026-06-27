@@ -20,7 +20,11 @@ public:
     {
     }
 
-    int calc_flush_vol(unsigned char src_a, unsigned char src_r, unsigned char src_g, unsigned char src_b,
+    // Calculate the flush volume for a filament-id pair. The result is the color-based
+    // predicted purge volume, raised to the measured purge volume when the given
+    // filament-id pair has test data, i.e. max(predicted, measured), clamped to max.
+    int calc_flush_vol(const std::string& src_filament_id, const std::string& dst_filament_id,
+        unsigned char src_a, unsigned char src_r, unsigned char src_g, unsigned char src_b,
         unsigned char dst_a, unsigned char dst_r, unsigned char dst_g, unsigned char dst_b);
 
     int calc_flush_vol_rgb(unsigned char src_r,unsigned char src_g,unsigned char src_b,

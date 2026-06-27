@@ -280,7 +280,8 @@ void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
 
         Transform3d trafo_matrix;
         if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
-            trafo_matrix = mo->instances[selection.get_instance_idx()]->get_assemble_transformation().get_matrix() * mv->get_matrix();
+            // BBS: assembly view world matrix = instance_assemble * volume_assemble.
+            trafo_matrix = mo->instances[selection.get_instance_idx()]->get_assemble_transformation().get_matrix() * mv->get_assemble_transformation().get_matrix();
             trafo_matrix.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) + mo->instances[selection.get_instance_idx()]->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
         }
         else {
@@ -342,7 +343,8 @@ void GLGizmoMmuSegmentation::render_triangles(const Selection &selection) const
             if (mesh_id != m_rr.mesh_id) { continue; }
             Transform3d trafo_matrix;
             if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
-                trafo_matrix = mo->instances[selection.get_instance_idx()]->get_assemble_transformation().get_matrix() * mv->get_matrix();
+                // BBS: assembly view world matrix = instance_assemble * volume_assemble.
+                trafo_matrix = mo->instances[selection.get_instance_idx()]->get_assemble_transformation().get_matrix() * mv->get_assemble_transformation().get_matrix();
                 trafo_matrix.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) +
                                        mo->instances[selection.get_instance_idx()]->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
             } else {
@@ -816,16 +818,17 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     } else if (m_current_tool == ImGui::FillButtonIcon) {
         m_cursor_type = TriangleSelector::CursorType::POINTER;
         bool is_same_color = m_bucket_fill_mode == BucketFillType::SameColor;
-        ImGuiWrapper::push_radio_style();
-        if (ImGui::RadioButton(m_desc["same_color_connection"].ToUTF8().data(), is_same_color)) {
-            m_bucket_fill_mode = BucketFillType::SameColor;
-            m_smart_fill_angle = -1;// set to negative value to disable edge detection
-        }
-        ImGui::SameLine();
         bool is_detect_geometry_edge = m_bucket_fill_mode == BucketFillType::EdgeDetect;
+        ImGuiWrapper::push_radio_style();
         if (ImGui::RadioButton(m_desc["edge_detection"].ToUTF8().data(), is_detect_geometry_edge)) {
             m_bucket_fill_mode = BucketFillType::EdgeDetect;
             m_smart_fill_angle = m_last_edge_detection_smart_fill_angle;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton(m_desc["same_color_connection"].ToUTF8().data(), is_same_color)) {
+            m_bucket_fill_mode = BucketFillType::SameColor;
+            m_smart_fill_angle = -1; // set to negative value to disable edge detection
+            is_detect_geometry_edge = m_bucket_fill_mode == BucketFillType::EdgeDetect;
         }
         ImGuiWrapper::pop_radio_style();
         m_tool_type = ToolType::BUCKET_FILL;
@@ -1148,7 +1151,6 @@ void GLGizmoMmuSegmentation::on_set_state()
             m_selected_extruder_idx = 1;
         }
         m_non_manifold_edges_model.reset();
-        m_bucket_fill_mode = BucketFillType::SameColor;
         m_smart_fill_angle = -1;
     }
     else if (get_state() == Off) {

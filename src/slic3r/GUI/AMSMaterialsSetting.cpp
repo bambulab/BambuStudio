@@ -503,9 +503,27 @@ void AMSMaterialsSetting::update_filament_editing(bool is_printing)
         m_tip_readonly->Wrap(FromDIP(380));
         m_tip_readonly->Show(is_printing);
     }
+
+    // View-only mode (e.g. 2D laser/cut): keep the dialog inspectable but lock
+    // every editable control and hide the apply/reset buttons so nothing can be
+    // committed, regardless of m_is_third.
+    if (m_view_only) {
+        m_comboBox_filament->Enable(false);
+        m_comboBox_nozzle_type->Enable(false);
+        m_comboBox_cali_result->Enable(false);
+        m_input_k_val->Enable(false);
+        m_input_n_val->Enable(false);
+        m_button_confirm->Hide();
+        m_button_reset->Hide();
+    }
 }
 
 void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
+    // View-only mode never commits changes.
+    if (m_view_only) {
+        return;
+    }
+
     MessageDialog msg_dlg(nullptr, _L("Are you sure you want to clear the filament information?"), wxEmptyString, wxICON_WARNING | wxOK | wxCANCEL);
     auto result = msg_dlg.ShowModal();
     if (result != wxID_OK)
@@ -631,6 +649,11 @@ sCheckFilamentInfo(PresetBundle* preset_bundle,
 void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 {
     if (!obj) {
+        return;
+    }
+
+    // View-only mode never commits changes.
+    if (m_view_only) {
         return;
     }
 
@@ -855,6 +878,9 @@ void AMSMaterialsSetting::on_picker_color(wxCommandEvent& event)
 
 void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event)
 {
+    if (m_view_only)
+        return;
+
     if(!m_is_third)
         return;
 

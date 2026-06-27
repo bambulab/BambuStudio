@@ -136,6 +136,8 @@ enum FilamentStepType {
 #define AMS_LITE_CAN_LIB_SIZE wxSize(FromDIP(49), FromDIP(72))
 #define AMS_CAN_ROAD_SIZE wxSize(FromDIP(264), FromDIP(50))
 #define AMS_ITEMS_PANEL_SIZE wxSize(FromDIP(264), FromDIP(44))
+#define AMS_ITEMS_ARROW_LEFT_PANEL_SIZE wxSize(FromDIP(197), FromDIP(44))
+#define AMS_ITEMS_ARROW_RIGHT_PANEL_SIZE wxSize(FromDIP(60), FromDIP(44))
 //#define AMS_CANS_SIZE wxSize(FromDIP(284), FromDIP(184))
 //#define AMS_CANS_WINDOW_SIZE wxSize(FromDIP(264), FromDIP(196))
 #define AMS_STEP_SIZE wxSize(FromDIP(172), FromDIP(196))
@@ -481,6 +483,9 @@ public:
     void         support_cali(bool sup) { m_support_cali = sup; Refresh(); };
     virtual bool Enable(bool enable = true);
     void         set_disable_mode(bool disable) { m_disable_mode = disable; }
+    // View-only mode (2D laser/cut): show the read-only (eye) icon for every
+    // editable spool while keeping it clickable to open the view-only dialog.
+    void         set_view_only(bool view_only) { if (m_view_only != view_only) { m_view_only = view_only; Refresh(); } }
     void         msw_rescale();
     void         on_pass_road(bool pass);
 
@@ -520,7 +525,8 @@ protected:
     wxColour m_road_def_color;
     wxColour m_lib_color;
     bool m_disable_mode{ false };
-    bool m_pass_road{false};
+    bool m_view_only{ false };
+    bool m_pass_road{ false };
 
     void on_enter_window(wxMouseEvent &evt);
     void on_leave_window(wxMouseEvent &evt);
@@ -653,7 +659,8 @@ public:
     // void                         Update(AMSRoadDownPartMode nozzle, AMSRoadShowMode left_mode, AMSRoadShowMode right_mode, int left_len, int right_len);
     void UpdateLeft(int nozzle_num, AMSRoadShowMode mode);
     void UpdateRight(int nozzle_num, AMSRoadShowMode mode);
-    void UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system);
+
+    void UpdateCenter(int nozzle_num, AMSRoadShowMode mode);    void UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system);
 
     void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
     void SetPassRoadColour(bool left, wxColour col);
@@ -671,6 +678,7 @@ private:
     AMSRoadShowMode m_single_ext_rode_mode = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
     AMSRoadShowMode m_left_rode_mode       = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
     AMSRoadShowMode m_right_rode_mode      = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
+    AMSRoadShowMode m_center_rode_mode     = {AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE};
     bool            m_selected             = {false};
 
     int             m_left_road_length     = {-1};

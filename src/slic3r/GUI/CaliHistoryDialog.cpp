@@ -567,7 +567,9 @@ void HistoryWindow::on_click_new_button(wxCommandEvent& event)
     }
 
     NewCalibrationHistoryDialog dlg(this, m_calib_results_history);
-    dlg.ShowModal();
+    if (dlg.ShowModal() == wxID_OK && m_calib_results_history.empty()) {
+        reqeust_history_result(curr_obj);
+    }
 }
 
 EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow                        *parent,

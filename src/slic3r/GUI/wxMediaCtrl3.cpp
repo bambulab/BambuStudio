@@ -50,11 +50,12 @@ wxMediaCtrl3::~wxMediaCtrl3()
     m_thread.join();
 }
 
-void wxMediaCtrl3::Load(wxURI url)
+void wxMediaCtrl3::Load(wxURI url, std::chrono::system_clock::time_point play_start_time)
 {
     std::unique_lock<std::mutex> lk(m_mutex);
     m_video_size = wxDefaultSize;
     m_error = 0;
+    m_play_start_time = play_start_time;
     m_url.reset(new wxURI(url));
     m_cond.notify_all();
 }
@@ -257,6 +258,59 @@ void wxMediaCtrl3::bambu_log(void *ctx, int level, tchar const *msg2)
     BOOST_LOG_TRIVIAL(info) << msg.ToUTF8().data();
 }
 
+void wxMediaCtrl3::bambu_streaminfo(void *ctx, Bambu_StreamInfo *info)
+{
+    if (ctx == nullptr || info == nullptr)
+        return;
+    wxMediaCtrl3 *self = static_cast<wxMediaCtrl3 *>(ctx);
+    {
+        std::lock_guard<std::mutex> lk(self->m_pending_stream.mutex);
+        self->m_pending_stream.info = *info;
+    }
+    self->m_pending_stream.changed.store(true);
+    BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl3: stream info changed, video "
+                            << info->format.video.width << "x" << info->format.video.height
+                            << " fps=" << info->format.video.frame_rate
+                            << " sub_type=" << info->sub_type;
+}
+
+void wxMediaCtrl3::on_player_track_event(void *ctx, const PlayerEventC *event)
+{
+    if (event == nullptr || event->event_name == nullptr) {
+        return;
+    }
+
+    auto *channel =
+        static_cast<const BambuLiveViewTrack::ChannelInfo *>(ctx);
+
+    BambuLiveViewTrack::EmitParams params;
+    if (event->module)        params.module        = event->module;
+    if (event->phase)         params.phase         = event->phase;
+    if (event->result)        params.result        = event->result;
+    if (event->error_code)    params.error_code    = event->error_code;
+    if (event->error_message) params.error_message = event->error_message;
+    if (event->event_data_body) {
+        params.event_data = nlohmann::json::parse(event->event_data_body, nullptr, false);
+        if (params.event_data.is_discarded())
+            params.event_data = nlohmann::json::object();
+    }
+
+    BambuLiveViewTrack::LiveViewTrackContext::instance()
+        .emit(event->event_name, params, channel);
+}
+
+void wxMediaCtrl3::UpdateSessionStat()
+{
+    auto t = m_tunnel.load();
+    if (t && Bambu_GetSessionStat)
+        Bambu_GetSessionStat(t, &m_session_stat);
+}
+
+void wxMediaCtrl3::SetTrackChannel(const BambuLiveViewTrack::ChannelInfo& info)
+{
+    m_track_channel = info;
+}
+
 void wxMediaCtrl3::PlayThread()
 {
     using namespace std::chrono_literals;
@@ -280,13 +334,36 @@ void wxMediaCtrl3::PlayThread()
         //reset frame
         frameCount     = 0;
         lastSecondTime = std::chrono::system_clock::now();
+        m_first_frame_info = FirstFrameInfo{};
+        m_video_decode_error_count = 0;
+        m_render_error_count       = 0;
+
+        m_pending_stream.changed.store(false);
 
         lk.unlock();
+
         Bambu_Tunnel tunnel = nullptr;
+        auto t0 = std::chrono::steady_clock::now();
         int error = Bambu_Create(&tunnel, m_url->BuildURI().ToUTF8());
+        if (error == 0) m_tunnel.store(tunnel);
         if (error == 0) {
             Bambu_SetLogger(tunnel, &wxMediaCtrl3::bambu_log, this);
+            // Older BambuSource dylibs do not export Bambu_SetStreamInfoCallback;
+            // skip subscribing in that case so a stale plugin still plays video
+            // (only loses dynamic resolution adjustment on camera switch).
+            if (Bambu_SetStreamInfoCallback)
+                Bambu_SetStreamInfoCallback(tunnel, &wxMediaCtrl3::bambu_streaminfo, this);
+            else
+                BOOST_LOG_TRIVIAL(warning) << "wxMediaCtrl3: Bambu_SetStreamInfoCallback not available, dynamic stream-info changes will not be observed";
+            if (Bambu_SetTrackReporter) {
+                Bambu_SetTrackReporter(tunnel,
+                                       &wxMediaCtrl3::on_player_track_event,
+                                       &m_track_channel);
+            }
             error = Bambu_Open(tunnel);
+            auto t1 = std::chrono::steady_clock::now();
+            BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl3: Bambu_Open took "
+                                    << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() << "ms, error=" << error;
             if (error == 0)
                 error = Bambu_would_block;
 
@@ -300,6 +377,7 @@ void wxMediaCtrl3::PlayThread()
             }
         }
         lk.lock();
+        auto t_stream_start = std::chrono::steady_clock::now();
         while (error == int(Bambu_would_block)) {
             m_cond.wait_for(lk, 100ms);
             if (m_url != url) {
@@ -310,6 +388,12 @@ void wxMediaCtrl3::PlayThread()
             error = Bambu_StartStream(tunnel, true);
             lk.lock();
         }
+        {
+            auto t_stream_end = std::chrono::steady_clock::now();
+            BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl3: Bambu_StartStream loop took "
+                                    << std::chrono::duration_cast<std::chrono::milliseconds>(t_stream_end - t_stream_start).count()
+                                    << "ms, error=" << error;
+        }
         Bambu_StreamInfo info;
         if (error == 0)
             error = Bambu_GetStreamInfo(tunnel, 0, &info);
@@ -317,6 +401,9 @@ void wxMediaCtrl3::PlayThread()
         if (error == 0) {
             decoder.open(info);
             m_video_size = { info.format.video.width, info.format.video.height };
+            m_first_frame_info.video_codec      = info.sub_type;
+            m_first_frame_info.resolution_width  = info.format.video.width;
+            m_first_frame_info.resolution_height = info.format.video.height;
             adjust_frame_size(m_frame_size, m_video_size, GetSize());
             NotifyStopped();
             size_t buffer_cap = (size_t) (m_buffer_time * info.format.video.frame_rate / 1000);
@@ -346,17 +433,87 @@ void wxMediaCtrl3::PlayThread()
             }
             if (error == 0) {
                 auto frame_size = m_frame_size;
+                static thread_local int post_reopen_samples = -1;
+                static thread_local std::chrono::steady_clock::time_point reopen_done_time;
+                if (m_pending_stream.changed.exchange(false)) {
+                    Bambu_StreamInfo new_info;
+                    {
+                        std::lock_guard<std::mutex> psk(m_pending_stream.mutex);
+                        new_info = m_pending_stream.info;
+                    }
+                    lk.unlock();
+                    BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl3: reopening decoder for stream change "
+                                            << new_info.format.video.width << "x" << new_info.format.video.height
+                                            << " sub_type=" << new_info.sub_type;
+                    auto reopen_t0 = std::chrono::steady_clock::now();
+                    int reopen_ret = decoder.reopen(new_info);
+                    reopen_done_time = std::chrono::steady_clock::now();
+                    BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl3: reopen done ret=" << reopen_ret
+                                            << " took=" << std::chrono::duration_cast<std::chrono::milliseconds>(reopen_done_time - reopen_t0).count() << "ms";
+                    post_reopen_samples = 0;
+                    lk.lock();
+                    m_video_size = { new_info.format.video.width, new_info.format.video.height };
+                    adjust_frame_size(m_frame_size, m_video_size, GetSize());
+                    frame_size = m_frame_size;
+                }
                 lk.unlock();
+                if (m_first_frame_info.first_packet_time_ms == 0) {
+                    m_first_frame_info.first_packet_time_ms =
+                        std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::system_clock::now().time_since_epoch()).count();
+                }
+                bool is_idr = (sample.flags & f_sync) != 0;
+                int sample_size = sample.size;
+                uint32_t buf_head = 0;
+                if (sample.buffer && sample.size >= 5) {
+                    buf_head = (uint32_t(sample.buffer[0]) << 24) |
+                               (uint32_t(sample.buffer[1]) << 16) |
+                               (uint32_t(sample.buffer[2]) <<  8) |
+                                uint32_t(sample.buffer[3]);
+                }
+                uint8_t first_nal_type = (sample.buffer && sample.size >= 5)
+                                             ? (sample.buffer[4] & 0x1f) : 0;
                 PlayFrame bm;
                 auto start_decode = std::chrono::steady_clock::now();
-                decoder.decode(sample);
+                int decode_ret = decoder.decode(sample);
+                if (decode_ret != 0) ++m_video_decode_error_count;
                 auto end_decode = std::chrono::steady_clock::now();
+                bool got_frame = decoder.got_frame();
 #ifdef _WIN32
                 decoder.toWxBitmap(bm, frame_size);
 #else
                 decoder.toWxImage(bm, frame_size);
 #endif
                 auto end_convert = std::chrono::steady_clock::now();
+                if (post_reopen_samples >= 0 && post_reopen_samples < 8) {
+                    int since_reopen_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_decode - reopen_done_time).count();
+                    BOOST_LOG_TRIVIAL(info)
+                        << "wxMediaCtrl3: post-reopen sample #" << post_reopen_samples
+                        << " is_idr=" << is_idr
+                        << " size=" << sample_size
+                        << " head=0x" << std::hex << buf_head << std::dec
+                        << " nal_type=" << int(first_nal_type)
+                        << " decode_ret=" << decode_ret
+                        << " got_frame=" << got_frame
+                        << " bm_ok=" << bm.IsOk()
+                        << " since_reopen=" << since_reopen_ms << "ms";
+                    if (post_reopen_samples == 0 && !is_idr) {
+                        BOOST_LOG_TRIVIAL(warning)
+                            << "wxMediaCtrl3: post-reopen first sample is NOT IDR, decoder will likely drop frames until next IDR";
+                    }
+                    ++post_reopen_samples;
+                    if (got_frame && bm.IsOk()) {
+                        BOOST_LOG_TRIVIAL(info)
+                            << "wxMediaCtrl3: post-reopen first decoded frame after "
+                            << std::chrono::duration_cast<std::chrono::milliseconds>(end_decode - reopen_done_time).count()
+                            << "ms (samples consumed=" << post_reopen_samples << ")";
+                        post_reopen_samples = -1;
+                    } else if (post_reopen_samples >= 8) {
+                        BOOST_LOG_TRIVIAL(warning)
+                            << "wxMediaCtrl3: post-reopen still no frame after 8 samples, giving up tracking";
+                        post_reopen_samples = -1;
+                    }
+                }
                 int elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_convert - start_decode).count();
                 if (elapsed_ms > decode_warn_thres) {
                     BOOST_LOG_TRIVIAL(warning) << "wxMediaCtrl3: decode + convert too long, decode: "
@@ -367,6 +524,11 @@ void wxMediaCtrl3::PlayThread()
                 if (m_url != url) {
                     error = 1;
                     break;
+                }
+                if (bm.IsOk() && m_first_frame_info.decode_first_frame_time_ms == 0) {
+                    m_first_frame_info.decode_first_frame_time_ms =
+                        std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::system_clock::now().time_since_epoch()).count();
                 }
                 if (bm.IsOk()) {
                     auto now = std::chrono::system_clock::now();
@@ -380,6 +542,8 @@ void wxMediaCtrl3::PlayThread()
                     }
 
                     m_frame_buffer.enqueue(bm);
+                } else if (decode_ret == 0) {
+                    ++m_render_error_count;
                 }
             }
         }
@@ -390,9 +554,20 @@ void wxMediaCtrl3::PlayThread()
         m_frame_buffer.reset();
         if (tunnel) {
             lk.unlock();
+            if (Bambu_GetSessionStat)
+                Bambu_GetSessionStat(tunnel, &m_session_stat);
+            auto t_close_start = std::chrono::steady_clock::now();
             Bambu_Close(tunnel);
             Bambu_Destroy(tunnel);
+            auto t_close_end = std::chrono::steady_clock::now();
+            auto close_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_close_end - t_close_start).count();
+            if (close_ms > 3000) {
+                BOOST_LOG_TRIVIAL(warning) << "wxMediaCtrl3: Bambu_Close+Destroy took " << close_ms << "ms (>3s, potential hang source)";
+            } else {
+                BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl3: Bambu_Close+Destroy took " << close_ms << "ms";
+            }
             tunnel = nullptr;
+            m_tunnel.store(nullptr);
             lk.lock();
         }
         m_render_timer.Stop();
@@ -400,6 +575,15 @@ void wxMediaCtrl3::PlayThread()
             m_error = error;
         m_frame_size = wxDefaultSize;
         m_video_size = wxDefaultSize;
+        {
+            Bambu_SessionStat stat = m_session_stat;
+            CallAfter([this, stat] {
+                wxCommandEvent evt(EVT_MEDIA_CTRL_SESSION_END);
+                evt.SetEventObject(this);
+                evt.SetClientData(new Bambu_SessionStat(stat));
+                wxPostEvent(this, evt);
+            });
+        }
         NotifyStopped();
     }
 }
@@ -418,6 +602,7 @@ void wxMediaCtrl3::GetFrameThread(int frame_rate)
     PlayFrame temp_frame;
     long long frame_count = 0;
     bool pop_success = false;
+    bool first_frame_fired = false;
     std::chrono::system_clock::time_point first_frame_time;
     while (m_get_frame_exit.load() == false) {
         if (m_frame_buffer.try_dequeue(temp_frame) == true) {
@@ -433,6 +618,25 @@ void wxMediaCtrl3::GetFrameThread(int frame_rate)
                 first_frame_time = std::chrono::system_clock::now();
                 pop_success = true;
                 frame_count = 0;
+                if (!first_frame_fired) {
+                    first_frame_fired = true;
+                    auto play_start = m_play_start_time;
+                    if (play_start != std::chrono::system_clock::time_point{}) {
+                        int ms = (int) std::chrono::duration_cast<std::chrono::milliseconds>(first_frame_time - play_start).count();
+                        m_first_frame_info.first_frame_cost_ms        = ms;
+                        m_first_frame_info.render_first_frame_time_ms =
+                            std::chrono::duration_cast<std::chrono::milliseconds>(
+                                first_frame_time.time_since_epoch()).count();
+                        FirstFrameInfo info = m_first_frame_info;
+                        CallAfter([this, info] {
+                            wxCommandEvent evt(EVT_MEDIA_CTRL_FIRST_FRAME);
+                            evt.SetEventObject(this);
+                            evt.SetInt(info.first_frame_cost_ms);
+                            evt.SetClientData(new FirstFrameInfo(info));
+                            wxPostEvent(this, evt);
+                        });
+                    }
+                }
             }
             ++frame_count;
             long long  pts_gap = (frame_count * 1000) / frame_rate;

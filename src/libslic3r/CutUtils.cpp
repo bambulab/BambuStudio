@@ -30,7 +30,13 @@ static EnforcerBlockerType first_painted_leaf(TriangleSelector& sel, int root_id
             if (t.get_state() != EnforcerBlockerType::NONE)
                 return t.get_state();
         } else {
-            for (int c : t.children) if (c >= 0) q.push(c);
+            // Only the first number_of_split_sides()+1 children are valid; the
+            // remaining entries are uninitialized garbage and must not be read.
+            const int n_children = t.number_of_split_sides() + 1;
+            for (int k = 0; k < n_children; ++k) {
+                int c = t.children[k];
+                if (c >= 0 && c < (int)tris.size()) q.push(c);
+            }
         }
     }
     return EnforcerBlockerType::NONE;

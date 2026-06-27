@@ -16,6 +16,7 @@
 #include "MeshUtils.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "Camera.hpp"
+namespace Slic3r { namespace GUI { class AssemblyStepsUtils; } }
 #include "IMToolbar.hpp"
 #include "slic3r/GUI/3DBed.hpp"
 #include "libslic3r/Slicing.hpp"
@@ -405,6 +406,7 @@ class GLCanvas3D
         ToolHeightOutside,
         TPUPrintableError,
         FilamentPrintableError,
+        PrintedWeightOverLimitWarn,
         LeftExtruderPrintableError, // before slice
         RightExtruderPrintableError, // before slice
         MultiExtruderPrintableError,      // after slice
@@ -548,7 +550,10 @@ public:
     {
         Standard,
         Cross,
-        Hand
+        Hand,
+        Move,
+        ResizeNWSE,
+        ResizeNESW
     };
 
     struct ArrangeSettings
@@ -624,12 +629,16 @@ private:
     mutable float              m_sc{1};
     mutable float m_paint_toolbar_width;
 
-    // assembly_view
-    Camera::ViewAngleType m_assembly_view_preview_angle{Camera::ViewAngleType::Iso};
-    bool                  m_show_assembly_view_preview_menu{false};
-    size_t                m_assembly_view_thumbnail_volume_count{static_cast<size_t>(-1)};
-    bool                  m_isolated_volumes_notified{false};
-    //BBS: add canvas type for assemble view usage
+    //assembly_view
+    Camera::ViewAngleType        m_assembly_view_preview_angle{Camera::ViewAngleType::Iso};
+    bool                         m_show_assembly_view_preview_menu{false};
+    size_t                       m_assembly_view_thumbnail_volume_count{static_cast<size_t>(-1)};
+    bool                         m_isolated_volumes_notified{false};
+
+    // Assembly tree view (pointer to decouple header layout from AssemblyStepsUtils size)
+    std::unique_ptr<AssemblyStepsUtils> m_assembly_steps;
+
+    // BBS: add canvas type for assemble view usage
     ECanvasType m_canvas_type;
     std::array<ClippingPlane, 2> m_clipping_planes;
     ClippingPlane m_camera_clipping_plane;
@@ -646,6 +655,10 @@ private:
     mutable std::shared_ptr<gcode::GCodeViewer> m_p_gcode_viewer{ nullptr };
 
     RenderTimer m_render_timer;
+    // macOS-only fallback that keeps the canvas rendering when wxEVT_IDLE is
+    // starved (see _ensure_render_fallback_running / on_render_fallback_timer).
+    wxTimer m_render_fallback_timer;
+    int     m_render_fallback_quiet_ticks{ 0 };
 
     Selection m_selection;
     const DynamicPrintConfig* m_config;
@@ -839,6 +852,11 @@ public:
     void on_change_color_mode(bool is_dark, bool reinit = true);
     const bool get_dark_mode_status() { return m_is_dark; }
     void set_as_dirty();
+    // macOS: arm the render-fallback timer so a freshly shown/reloaded scene
+    // paints promptly even when wxEVT_IDLE is starved by a busy WKWebView tab.
+    // No-op on other platforms. Safe to call from outside the canvas (e.g. when
+    // switching tabs).
+    void kick_render_fallback();
     void requires_check_outside_state() { m_requires_check_outside_state = true; }
 
     bool is_in_same_model_object(const std::vector<int> volume_ids);
@@ -865,6 +883,14 @@ public:
     void set_config(const DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);
     void set_model(Model* model);
+
+    void active_view();
+    bool is_assembly_guide_node_selected() const;
+    // Append a freshly imported STEP hierarchy to the existing assembly tree.
+    void append_step_import_to_assembly_tree(const std::vector<StepImportTreeNode>& step_nodes,
+                                             const std::vector<size_t>&                    loaded_idxs,
+                                             const std::string&                            source_path);
+
     const Model* get_model() const { return m_model; }
     Model&       get_ref_model() const { return *m_model; }
 
@@ -1047,7 +1073,18 @@ public:
     void select_all();
     void deselect_all();
     void exit_gizmo();
-    void set_selected_visible(bool visible);
+
+    void close_project_and_save_assembly_steps_tree();
+    void new_project_clear_assembly_steps_tree_view(bool save);
+    bool prepare_assembly_steps_for_project_save();
+    bool can_add_selected_to_assembly_step() const;
+    bool can_add_selected_to_current_assembly_step() const;
+    std::vector<std::pair<int, std::string>> assembly_step_choices() const;
+    void add_selected_to_new_assembly_step();
+    void add_selected_to_current_assembly_step();
+    void add_selected_to_assembly_step(int folder_idx);
+    void _create_assembly_steps_from_step_import_tree(const std::vector<StepImportTreeNode> &step_nodes, const std::string &source_path);
+
     void delete_selected();
     void ensure_on_bed(unsigned int object_idx, bool allow_negative_z);
 
@@ -1092,6 +1129,7 @@ public:
     void on_mouse_wheel(wxMouseEvent& evt);
     void on_timer(wxTimerEvent& evt);
     void on_render_timer(wxTimerEvent& evt);
+    void on_render_fallback_timer(wxTimerEvent& evt);
     void on_set_color_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
     void on_gesture(wxGestureEvent& evt);
@@ -1260,6 +1298,7 @@ public:
     // Get assembly view button information
     AssemblyViewButtonInfo get_assembly_view_button_info() const;
     std::vector<std::array<float, 4>> get_active_colors();
+    bool is_assembly_play_or_export_mode() const;
 
 private:
     bool _is_shown_on_screen() const;
@@ -1287,6 +1326,14 @@ private:
     void _zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultCameraZoomToBoxMarginFactor);
     void _update_camera_zoom(double zoom);
     void _refresh_if_shown_on_screen();
+    // Shared body of the idle-driven UI-state refresh + render. Returns true if
+    // another frame is wanted (camera/imgui/3d-mouse still animating). Driven by
+    // wxEVT_IDLE normally and by the macOS render-fallback timer when idle is
+    // starved by a busy WKWebView tab.
+    bool _do_idle_work();
+    // macOS: arm the render-fallback timer so the canvas keeps redrawing even
+    // when wxEVT_IDLE is not being delivered. No-op on other platforms.
+    void _ensure_render_fallback_running();
 
     void _picking_pass();
     void _rectangular_selection_picking_pass();
@@ -1317,6 +1364,12 @@ private:
     void _render_imgui_select_plate_toolbar();
     void _render_assembly_view_thumbnail_toolbar();
     void _render_assembly_view_preview_menu(float anchor_x, float anchor_y, float anchor_width, float anchor_height);
+
+    void _render_assembly_steps_view();
+    void _try_update_selected_keyframe();
+    bool _allow_sync_in_assemble_view();
+    void  open_assembly_view();
+
     void _render_return_toolbar();
     void _render_fit_camera_toolbar();
     void _render_collapse_toolbar() const;

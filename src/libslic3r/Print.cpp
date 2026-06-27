@@ -240,6 +240,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "skirt_height"
             || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
+            || opt_key == "skirt_per_object"
             || opt_key == "ooze_prevention"
             || opt_key == "wipe_tower_x"
             || opt_key == "wipe_tower_y"
@@ -268,7 +269,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             // Spiral Vase forces different kind of slicing than the normal model:
             // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
             // Therefore toggling the Spiral Vase on / off requires complete reslicing.
-            || opt_key == "spiral_mode") {
+            || opt_key == "spiral_mode"
+            || opt_key == "enable_order_independent_overlap_carving") {
             osteps.emplace_back(posSlice);
         } else if (
                opt_key == "print_sequence"
@@ -625,6 +627,13 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
 
     bool all_objects_are_short = print.is_all_objects_are_short();
     float obj_distance = all_objects_are_short ? scale_(0.5*MAX_OUTER_NOZZLE_RADIUS-0.1) : scale_(0.5*print.config().extruder_clearance_max_radius.value-0.1);
+    // BBS: Add skirt expansion for sequential print collision detection.
+    // Per side: max(0.5*clearance + 0.5*skirt_extra, skirt_extra), matching the arrange logic.
+    if (print.is_sequential_print()) {
+        float skirt_extra = get_real_skirt_dist(print.config());
+        obj_distance += scale_(0.5f * skirt_extra);
+        obj_distance = std::max(obj_distance, static_cast<float>(scale_(skirt_extra)));
+    }
     {
         // sequential_print_horizontal_clearance_valid
         Polygons convex_hulls_other;
@@ -1362,14 +1371,19 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         // #4043
         if (total_copies_count > 1 && m_config.print_sequence != PrintSequence::ByObject)
             return {L("Please select \"By object\" print sequence to print multiple objects in spiral vase mode."), nullptr, "spiral_mode"};
-        bool SFFF_enabled = false;
+
+        bool multi_material = false;
+        bool multi_region   = false;
         for (const PrintObject *object : m_objects) {
-            auto cfg = object->object_extruders();
-            if (cfg.size() > 1) SFFF_enabled = true;
+            if (object->object_extruders().size() > 1)
+                multi_material = true;
+            if (object->all_regions().size() > 1)
+                multi_region = true;
         }
-        assert(m_objects.size() == 1);
-        if (m_objects.front()->all_regions().size() > 1 || SFFF_enabled)
+        if (multi_material)
             return {L("The spiral vase mode does not work when an object contains more than one materials."), nullptr, "spiral_mode"};
+        if (multi_region)
+            return {L("The spiral vase mode does not work when an object contains regions with different print settings."), nullptr, "spiral_mode"};
     }
 
     // Cache of layer height profiles for checking:
@@ -2516,7 +2530,7 @@ void Print::_make_skirt()
 
     // Initial offset of the brim inner edge from the object (possible with a support & raft).
     // The skirt will touch the brim if the brim is extruded.
-    auto   distance = float(scale_(m_config.skirt_distance.value) - spacing/2.);
+    auto   distance = float(scale_(m_config.skirt_distance.value - spacing / 2.f));
     // Draw outlines from outside to inside.
     // Loop while we have less skirts than required or any extruder hasn't reached the min length if any.
     std::vector<coordf_t> extruded_length(extruders.size(), 0.);
@@ -2571,10 +2585,10 @@ void Print::_make_skirt()
         append(m_skirt_convex_hull, std::move(poly.points));
 
     // BBS: per-object skirt. Sequential (ByObject + multi-object) uses config skirt_loops/skirt_distance; otherwise one loop at 1mm.
-    const bool by_object = is_sequential_print();
+    const bool by_object = is_sequential_print() && m_config.skirt_per_object.value;
     const size_t n_object_skirts = by_object ? std::max(size_t(1), size_t(m_config.skirt_loops.value)) : 1;
     const float object_skirt_initial_offset = by_object
-        ? (float(scale_(m_config.skirt_distance.value)) - spacing / 2.f)
+        ? float(scale_(m_config.skirt_distance.value - spacing / 2.f))
         : float(scale_(1.0));
     for (auto obj_cvx_hull : object_convex_hulls) {
         PrintObject* object = obj_cvx_hull.first;
@@ -2837,7 +2851,8 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps, std::vector<
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%:  extruder_count %2%, extruder_volume_type_count %3%")%__LINE__ %extruder_count %extruder_volume_type_count;
         std::set<std::string> filament_keys = filament_options_with_variant;
         filament_keys.insert("filament_self_index");
-        m_full_print_config.update_values_to_printer_extruders_for_multiple_filaments(m_full_print_config, extruder_count, extruder_volume_type_count, filament_keys,  "filament_self_index", "filament_extruder_variant");
+        if ((extruder_count > 1) || support_multi)
+            m_full_print_config.update_values_to_printer_extruders_for_multiple_filaments(m_full_print_config, extruder_count, extruder_volume_type_count, filament_keys,  "filament_self_index", "filament_extruder_variant");
 
         const std::vector<std::string> &extruder_retract_keys = print_config_def.extruder_retract_keys();
         const std::string               filament_prefix       = "filament_";
@@ -2853,9 +2868,11 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps, std::vector<
                 compute_filament_override_value(opt_key, opt_old_machine, opt_new_machine, opt_new_filament, m_full_print_config, print_diff, filament_overrides, m_config.filament_map_2.values);
         }
 
-        t_config_option_keys keys(filament_options_with_variant.begin(), filament_options_with_variant.end());
-        keys.push_back("filament_self_index");
-        m_config.apply_only(m_full_print_config, keys, true);
+        if ((extruder_count > 1) || support_multi) {
+            t_config_option_keys keys(filament_options_with_variant.begin(), filament_options_with_variant.end());
+            keys.push_back("filament_self_index");
+            m_config.apply_only(m_full_print_config, keys, true);
+        }
         if (!print_diff.empty()) {
             m_placeholder_parser.apply_config(filament_overrides);
             m_config.apply(filament_overrides);
@@ -3254,38 +3271,36 @@ void Print::_make_wipe_tower()
         return;
 
     // Check whether there are any layers in m_tool_ordering, which are marked with has_wipe_tower,
-    // they print neither object, nor support. These layers are above the raft and below the object, and they
-    // shall be added to the support layers to be printed.
-    // see https://github.com/prusa3d/PrusaSlicer/issues/607
+    // they print neither object, nor support. Each such layer needs a virtual support layer
+    // counterpart in m_objects.front() so that GCode::collect_layers_to_print picks it up and the
+    // wipe tower G-code is actually emitted for that z. Such layers appear in two scenarios:
+    //   - above the raft, between raft top and the first real object layer
+    //     (see https://github.com/prusa3d/PrusaSlicer/issues/607);
+    //   - between two real wipe-tower layers, when one object is fully floating above another and
+    //     the support_top_z_distance / support_bottom_z_distance gap leaves interior z values with
+    //     neither object nor support (continuity fill in ToolOrdering::fill_wipe_tower_partitions).
+    // The previous implementation only handled the first contiguous run starting at the first
+    // virtual layer, which made the second scenario silently produce empty wipe-tower layers.
     {
-        size_t idx_begin = size_t(-1);
-        size_t idx_end   = m_wipe_tower_data.tool_ordering.layer_tools().size();
-        // Find the first wipe tower layer, which does not have a counterpart in an object or a support layer.
+        auto &support_layers = m_objects.front()->support_layers();
+        auto it_layer = support_layers.begin();
+        const size_t idx_end = m_wipe_tower_data.tool_ordering.layer_tools().size();
         for (size_t i = 0; i < idx_end; ++ i) {
-            const LayerTools &lt = m_wipe_tower_data.tool_ordering.layer_tools()[i];
-            if (lt.has_wipe_tower && ! lt.has_object && ! lt.has_support) {
-                idx_begin = i;
-                break;
-            }
-        }
-        if (idx_begin != size_t(-1)) {
-            // Find the position in m_objects.first()->support_layers to insert these new support layers.
-            double wipe_tower_new_layer_print_z_first = m_wipe_tower_data.tool_ordering.layer_tools()[idx_begin].print_z;
-            auto it_layer = m_objects.front()->support_layers().begin();
-            auto it_end   = m_objects.front()->support_layers().end();
-            for (; it_layer != it_end && (*it_layer)->print_z - EPSILON < wipe_tower_new_layer_print_z_first; ++ it_layer);
-            // Find the stopper of the sequence of wipe tower layers, which do not have a counterpart in an object or a support layer.
-            for (size_t i = idx_begin; i < idx_end; ++ i) {
-                LayerTools &lt = const_cast<LayerTools&>(m_wipe_tower_data.tool_ordering.layer_tools()[i]);
-                if (! (lt.has_wipe_tower && ! lt.has_object && ! lt.has_support))
-                    break;
-                lt.has_support = true;
-                // Insert the new support layer.
-                double height    = lt.print_z - (i == 0 ? 0. : m_wipe_tower_data.tool_ordering.layer_tools()[i-1].print_z);
-                //FIXME the support layer ID is set to -1, as Vojtech hopes it is not being used anyway.
-                it_layer = m_objects.front()->insert_support_layer(it_layer, -1, 0, height, lt.print_z, lt.print_z - 0.5 * height);
+            LayerTools &lt = const_cast<LayerTools&>(m_wipe_tower_data.tool_ordering.layer_tools()[i]);
+            if (! (lt.has_wipe_tower && ! lt.has_object && ! lt.has_support))
+                continue;
+            while (it_layer != support_layers.end() && (*it_layer)->print_z + EPSILON < lt.print_z)
                 ++ it_layer;
+            if (it_layer != support_layers.end() && std::abs((*it_layer)->print_z - lt.print_z) < EPSILON) {
+                lt.has_support = true;
+                ++ it_layer;
+                continue;
             }
+            lt.has_support = true;
+            double height = lt.print_z - (i == 0 ? 0. : m_wipe_tower_data.tool_ordering.layer_tools()[i-1].print_z);
+            //FIXME the support layer ID is set to -1, as Vojtech hopes it is not being used anyway.
+            it_layer = m_objects.front()->insert_support_layer(it_layer, -1, 0, height, lt.print_z, lt.print_z - 0.5 * height);
+            ++ it_layer;
         }
     }
     this->throw_if_canceled();
@@ -3356,7 +3371,9 @@ void Print::_make_wipe_tower()
 
                 if(!nozzle_recorder.is_nozzle_empty(nozzle_id) && filament_id != prev_nozzle_filament){
                     volume_to_purge = multi_extruder_flush[extruder_id][prev_nozzle_filament][filament_id];
-                    volume_to_purge *= m_config.flush_multiplier.get_at(extruder_id);
+                    float multiplier = (m_config.prime_volume_mode == PrimeVolumeMode::pvmFast) ? m_config.flush_multiplier_fast.get_at(extruder_id) :
+                                                                                                  m_config.flush_multiplier.get_at(extruder_id);
+                    volume_to_purge *= multiplier;
                     volume_to_purge = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, old_filament_id, filament_id, volume_to_purge);
                 }
 
@@ -3404,7 +3421,7 @@ void Print::_make_wipe_tower()
     m_wipe_tower_data.bbx = wipe_tower.get_bbx();
     m_wipe_tower_data.rib_offset = wipe_tower.get_rib_offset();
 
-    // Unload the current filament over the purge tower. 
+    // Unload the current filament over the purge tower.
     coordf_t layer_height = m_objects.front()->config().layer_height.value;
     if (m_wipe_tower_data.tool_ordering.back().wipe_tower_partitions > 0) {
         // The wipe tower goes up to the last layer of the print.

@@ -98,6 +98,8 @@ public:
     void        process_classic();
     void        process_arachne();
 
+    void        process_no_bridge(Surfaces& all_surfaces, coord_t perimeter_spacing, coord_t ext_perimeter_width);
+
     // to save memory, directly modify top
     bool        should_enable_top_one_wall(const ExPolygons& original_expolys, ExPolygons& top);
 

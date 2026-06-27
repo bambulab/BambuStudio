@@ -1174,6 +1174,40 @@ void ObjectList::update_name_in_list(int obj_idx, int vol_idx) const
     m_objects_model->SetName(new_name, item);
 }
 
+void ObjectList::sync_name_from_model(int obj_idx, int vol_idx)
+{
+    // Selection-independent name refresh: resolve the data-view item directly
+    // from (obj_idx, vol_idx) and pull the current model name. Used when a name
+    // is changed outside the list (e.g. renaming a part-number label in the
+    // assembly view) so the sidebar stays in sync.
+    if (m_objects_model == nullptr || obj_idx < 0 || obj_idx >= static_cast<int>(m_objects->size()))
+        return;
+    ModelObject *mo = (*m_objects)[obj_idx];
+    if (mo == nullptr)
+        return;
+
+    wxDataViewItem item;
+    wxString       new_name;
+    if (vol_idx < 0) {
+        item     = m_objects_model->GetItemById(obj_idx);
+        new_name = from_u8(mo->name);
+    } else {
+        if (vol_idx >= static_cast<int>(mo->volumes.size()) || mo->volumes[vol_idx] == nullptr)
+            return;
+        item = m_objects_model->GetItemByVolumeId(obj_idx, vol_idx);
+        // Single-volume objects show no separate volume row; fall back to the
+        // object item so its name still refreshes.
+        if (!item)
+            item = m_objects_model->GetItemById(obj_idx);
+        new_name = from_u8(mo->volumes[vol_idx]->name);
+    }
+
+    if (!item || new_name.IsEmpty() || m_objects_model->GetName(item) == new_name)
+        return;
+
+    m_objects_model->SetName(new_name, item);
+}
+
 void ObjectList::selection_changed()
 {
     if (m_prevent_list_events) return;
@@ -3013,8 +3047,6 @@ void ObjectList::split()
     float scale_det = std::fabs(world_tran.matrix().block(0, 0, 3, 3).determinant());
     volume->split(filament_cnt, scale_det);
 
-
-
     auto parent = m_objects_model->GetObject(item);
     if (parent)
         m_objects_model->DeleteVolumeChildren(parent);
@@ -3215,6 +3247,11 @@ void ObjectList::merge(bool to_multipart_object)
                     }
                 }
                 new_volume->mmu_segmentation_facets.assign(std::move(volume->mmu_segmentation_facets));
+                // BBS: also carry support/seam/fuzzy-skin painting across the merge
+                // (each part keeps its own mesh, so the per-triangle data maps 1:1).
+                new_volume->supported_facets.assign(std::move(volume->supported_facets));
+                new_volume->seam_facets.assign(std::move(volume->seam_facets));
+                new_volume->fuzzy_skin_facets.assign(std::move(volume->fuzzy_skin_facets));
             }
             new_object->sort_volumes(true);
 
@@ -6211,6 +6248,10 @@ void ObjectList::fix_through_netfabb()
     if (!wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::Undefined))
         return;
 
+    // BBS: repair rebuilds the mesh; warn that painting is transferred approximately.
+    if (!wxGetApp().confirm_mesh_paint_warning())
+        return;
+
     //          model_name
     std::vector<std::string>                           succes_models;
     //                   model_name     failing reason
@@ -6268,7 +6309,9 @@ void ObjectList::fix_through_netfabb()
             msg += "\n";
         }
 
-        plater->clear_before_change_mesh(obj_idx);
+        // BBS: do NOT wipe painting here; the repair below re-projects it
+        // (best-effort) via set_mesh_keep_paint instead.
+        // plater->clear_before_change_mesh(obj_idx);
         std::string res;
         if (!fix_model_by_win10_sdk_gui(*(object(obj_idx)), vol_idx, progress_dlg, msg, res))
             return false;

@@ -83,8 +83,8 @@ void wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         // Q7：缺整卷净重的 spool 整条冻结。连本地 percent 都不刷，避免
         // 半残数据漂移导致 UI 越来越离谱。用户在管理器编辑该 spool 补齐
         // total_net_weight 后下次 AMS sync 自动恢复参与。
-        const float total_nw = matched->effective_total_net_weight();
-        if (total_nw <= 0.f) {
+        const double total_nw = matched->effective_total_net_weight();
+        if (total_nw <= 0.0) {
             BOOST_LOG_TRIVIAL(trace)
                 << "[ams-sync] frozen spool, no total_net_weight"
                 << " spool_id=" << matched->spool_id;
@@ -97,9 +97,8 @@ void wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         // 用 double 中间量算完再 round → int64，避开 float 精度丢失，确保
         // 本地 store 与下面 changed 列表里给 throttle 用的数值完全一致。
         const int64_t net_weight_g =
-            static_cast<int64_t>(std::round(static_cast<double>(total_nw)
-                                            * tray.remain / 100.0));
-        updated.net_weight     = static_cast<float>(net_weight_g);
+            static_cast<int64_t>(std::round(total_nw * tray.remain / 100.0));
+        updated.net_weight     = static_cast<double>(net_weight_g);
         updated.remain_percent = tray.remain;
         updated.status         = (tray.remain == 0)  ? "empty"
                               : (tray.remain < 20)   ? "low" : "active";

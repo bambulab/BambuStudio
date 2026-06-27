@@ -970,16 +970,23 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                     if (!blocker.empty()) curr = diff_ex(curr, blocker);
                     if (!enforced_overhangs.empty()) curr = union_ex(curr, enforced_overhangs);
                     // BBS detect sharp tail
-                    for (const ExPolygon& expoly : curr) {
-                        bool  is_sharp_tail = false;
+                    for (const ExPolygon &expoly : curr) {
+                        bool is_sharp_tail = false;
                         // 1. nothing below
                         // this is a sharp tail region if it's floating and non-ignorable
-                        if (!overlaps(offset_ex(expoly, 0.1 * extrusion_width_scaled), lower_polys) && area(expoly)<SQ(m_support_params.thresh_big_overhang)) {
+                        // The (area && bbox) gate excludes "large looped structures" but also catches
+                        // thin-but-wide rings (small area, large bbox), which would otherwise be dropped
+                        // by check_small_overhang and end up unsupported. Rescue them here: if eroding by
+                        // radius_thresh_small_overhang (the same radius small-overhang detection uses)
+                        // makes the polygon vanish, treat it as a sharp tail regardless of bbox.
+                        if (!overlaps(offset_ex(expoly, 0.1 * extrusion_width_scaled), lower_polys) &&
+                            area(expoly) < SQ(m_support_params.thresh_big_overhang) &&
+                            (get_extents(expoly).area() < SQ(m_support_params.thresh_big_overhang) ||
+                             offset_ex(expoly, -radius_thresh_small_overhang).empty())) {
                             is_sharp_tail = !offset_ex(expoly, -0.1 * extrusion_width_scaled).empty();
                         }
                         if (is_sharp_tail && lower_layer->lower_layer) {
-                            if (overlaps(offset_ex(expoly, 0.1 * extrusion_width_scaled), lower_layer->lower_layer->lslices_extrudable))
-                                is_sharp_tail = false;
+                            if (overlaps(offset_ex(expoly, 0.1 * extrusion_width_scaled), lower_layer->lower_layer->lslices_extrudable)) is_sharp_tail = false;
                         }
                         if (is_sharp_tail) {
                             layer->sharp_tails.push_back(expoly);
@@ -987,9 +994,9 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 
                             has_sharp_tails = true;
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
-							SVG::export_expolygons(debug_out_path("sharp_tail_orig_%.02f.svg", layer->print_z), { expoly });
+                            SVG::export_expolygons(debug_out_path("sharp_tail_orig_%.02f.svg", layer->print_z), {expoly});
 #endif
-						}
+                        }
                     }
                 }
 
@@ -2326,6 +2333,7 @@ void TreeSupport::draw_circles()
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
     const coordf_t line_width_scaled                 = scale_(support_extrusion_width);
     const float tree_brim_width = config.raft_first_layer_expansion.value;
+    const bool bottom_expand_enabled = config.tree_support_wall_count > 1 || config.tree_support_wall_count < 0;
 
     if (m_object->support_layer_count() <= m_raft_layers)
         return;
@@ -2460,7 +2468,8 @@ void TreeSupport::draw_circles()
                         }
 
                         if (!area.empty()) has_circle_node = true;
-                        if (node.need_extra_wall) append(extra_wall_area, area);
+                        if (node.need_extra_wall || (bottom_expand_enabled && node.print_z < DO_NOT_MOVER_UNDER_MM && node.dist_mm_to_top > DO_NOT_MOVER_UNDER_MM))
+                            append(extra_wall_area, area);
                         if (node.overhang_degree >= 2) append(cooldown_area, area);
                     }
 
@@ -2866,6 +2875,8 @@ void TreeSupport::drop_nodes()
     const bool support_on_buildplate_only = config.support_on_build_plate_only.value;
     const size_t top_interface_layers = config.support_interface_top_layers.value;
     SupportNode::diameter_angle_scale_factor = diameter_angle_scale_factor;
+    // enabled only when the wall count is set to auto or dual-wall is explicitly enabled by the user.
+    const bool bottom_expand_enabled = config.tree_support_wall_count > 1 || config.tree_support_wall_count < 0;
 
     auto get_max_move_dist = [this, &config, tan_angle, wall_count, support_extrusion_width](const SupportNode *node, int power = 1) {
         if (node->max_move_dist == 0) {
@@ -3243,7 +3254,11 @@ first_pass_next:;
                     ExPolygons overhangs_next{node.overhang};
                     auto       poly_radius   = node.overhang.contour.bounding_box().radius();
                     bool       offseted    = false;
-                    if ((node.print_z < DO_NOT_MOVER_UNDER_MM) || poly_radius < scale_(node.target_radius) || node.overhang.area() < 3. * SQ(scale_(node.target_radius))) {
+                    // polygon support expansion cases:
+                    // 1. bottom expansion is enabled
+                    // 2. large tree supports merge into the region
+                    if ((bottom_expand_enabled && node.print_z < DO_NOT_MOVER_UNDER_MM) ||
+                        (poly_radius < scale_(node.target_radius) || node.overhang.area() < 3. * SQ(scale_(node.target_radius)))) {
                         overhangs_next = offset_ex({node.overhang}, scale_(max_move_distance / 2.));
                         offseted       = true;
                     }
@@ -3458,7 +3473,7 @@ first_pass_next:;
                 to_outside             = projection_onto(next_collision, next_node->position);
                 direction_to_outer     = to_outside - node.position;
                 double dist_to_outer   = unscale_(direction_to_outer.cast<double>().norm());
-                next_node->radius      = (next_node->print_z < DO_NOT_MOVER_UNDER_MM && node.dist_mm_to_top > DO_NOT_MOVER_UNDER_MM) ?
+                next_node->radius      = (bottom_expand_enabled && next_node->print_z < DO_NOT_MOVER_UNDER_MM && node.dist_mm_to_top > DO_NOT_MOVER_UNDER_MM) ?
                                              node.radius + support_extrusion_width / 2. :
                                              std ::max(node.radius, std::min(next_node->radius, dist_to_outer));
                 get_max_move_dist(next_node);
@@ -3576,7 +3591,6 @@ void TreeSupport::smooth_nodes()
     for (int layer_nr = 0; layer_nr< contact_nodes.size(); layer_nr++) {
         std::vector<SupportNode *> &curr_layer_nodes = contact_nodes[layer_nr];
         if (curr_layer_nodes.empty()) continue;
-        if (curr_layer_nodes.front()->print_z < DO_NOT_MOVER_UNDER_MM) continue;
         for (SupportNode *node : curr_layer_nodes) {
             if (!node->is_processed) {
                 std::vector<Point> pts;
@@ -4097,7 +4111,12 @@ void TreeSupport::generate_contact_points()
 
                     // don't add inner supports for sharp tails
                     if (is_sharp_tail) {
-                        SupportNode *contact_node = insert_point(overhang.contour.centroid(), overhang, radius, false, add_interface);
+                        Point cent = overhang.contour.centroid();
+                        // For ring/concave sharp tails the centroid may fall outside the overhang
+                        // (e.g. inside its hole). In that case project it onto the nearest edge of
+                        // the overhang so the sharp tail still gets a contact point.
+                        if (!is_inside_ex({overhang}, cent)) cent = overhang.point_projection(cent);
+                        insert_point(cent, overhang, radius, false, add_interface);
                         continue;
                     }
 

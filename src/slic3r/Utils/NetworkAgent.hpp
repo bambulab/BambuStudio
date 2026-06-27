@@ -57,7 +57,7 @@ typedef int (*func_ping_bind)(void *agent, std::string ping_code);
 typedef int (*func_bind_detect)(void *agent, std::string dev_ip, std::string sec_link, detectResult& detect);
 typedef int (*func_report_consent)(void *agent, std::string expand);
 typedef int (*func_set_server_callback)(void *agent, OnServerErrFn fn);
-typedef int (*func_bind)(void *agent, std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
+typedef int (*func_bind)(void *agent, std::string dev_ip, std::string dev_id, std::string dev_model, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
 typedef int (*func_unbind)(void *agent, std::string dev_id);
 typedef std::string (*func_get_bambulab_host)(void *agent);
 typedef std::string (*func_get_user_selected_machine)(void *agent);
@@ -183,7 +183,7 @@ public:
     int bind_detect(std::string dev_ip, std::string sec_link, detectResult& detect);
     int report_consent(std::string expand);
     int set_server_callback(OnServerErrFn fn);
-    int bind(std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
+    int bind(std::string dev_ip, std::string dev_id, std::string dev_model, std::string sec_link, std::string timezone, bool improved, OnUpdateStatusFn update_fn);
     int unbind(std::string dev_id);
     std::string get_bambulab_host();
     std::string get_user_selected_machine();

@@ -37,6 +37,19 @@ typedef void* Bambu_Tunnel;
 
 typedef void (*Logger)(void * context, int level, tchar const* msg);
 
+typedef struct __PlayerEventC
+{
+    const char* event_name;
+    const char* module;
+    const char* phase;
+    const char* result;
+    const char* error_code;
+    const char* error_message;
+    const char* event_data_body;
+} PlayerEventC;
+
+typedef void (*TrackReporter)(void* context, const PlayerEventC* event);
+
 typedef enum __Bambu_StreamType
 {
     VIDE,
@@ -87,6 +100,8 @@ typedef struct __Bambu_StreamInfo
     unsigned char const * format_buffer;
 } Bambu_StreamInfo;
 
+typedef void (*StreamInfoCallback)(void *context, Bambu_StreamInfo *info);
+
 typedef enum __Bambu_SampleFlag
 {
     f_sync = 1
@@ -109,6 +124,17 @@ typedef enum __Bambu_Error
     Bambu_buffer_limit
 } Bambu_Error;
 
+typedef struct __Bambu_SessionStat
+{
+    long long session_duration_ms;
+    long long freeze_total_duration_ms;
+    int       freeze_count;
+    float     avg_fps;
+    float     avg_bitrate_kbps;
+    float     avg_jitter_ms;
+    float     max_jitter_ms;
+} Bambu_SessionStat;
+
 #ifdef BAMBU_DYNAMIC
 typedef struct __BambuLib {
 #endif
@@ -116,6 +142,10 @@ typedef struct __BambuLib {
 BAMBU_EXPORT int BAMBU_FUNC(Bambu_Create)(Bambu_Tunnel* tunnel, char const* path);
 
 BAMBU_EXPORT void BAMBU_FUNC(Bambu_SetLogger)(Bambu_Tunnel tunnel, Logger logger, void * context);
+
+BAMBU_EXPORT void BAMBU_FUNC(Bambu_SetStreamInfoCallback)(Bambu_Tunnel tunnel, StreamInfoCallback callback, void *context);
+
+BAMBU_EXPORT void BAMBU_FUNC(Bambu_SetTrackReporter)(Bambu_Tunnel tunnel, TrackReporter reporter, void* context);
 
 BAMBU_EXPORT int BAMBU_FUNC(Bambu_Open)(Bambu_Tunnel tunnel);
 
@@ -142,6 +172,8 @@ BAMBU_EXPORT void BAMBU_FUNC(Bambu_Close)(Bambu_Tunnel tunnel);
 BAMBU_EXPORT void BAMBU_FUNC(Bambu_Destroy)(Bambu_Tunnel tunnel);
 
 BAMBU_EXPORT int BAMBU_FUNC(Bambu_Init)();
+
+BAMBU_EXPORT void BAMBU_FUNC(Bambu_GetSessionStat)(Bambu_Tunnel tunnel, Bambu_SessionStat* stat);
 
 BAMBU_EXPORT void BAMBU_FUNC(Bambu_Deinit)();
 

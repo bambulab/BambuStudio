@@ -9,7 +9,6 @@
 #define ImageGrid_h
 
 #include <wx/window.h>
-#include <wx/timer.h>
 #include <boost/shared_ptr.hpp>
 
 #include "Widgets/StateColor.hpp"
@@ -69,6 +68,10 @@ protected:
 
     std::pair<int, size_t> HitTest(wxPoint const &pt);
 
+    // Returns the on-screen rect of the scroll bar handle, or an empty rect
+    // when the content does not overflow the visible area.
+    wxRect scrollBarRect(wxSize const &size) const;
+
 protected:
 
     void changedEvent(wxCommandEvent& evt);
@@ -123,7 +126,6 @@ private:
     bool m_hovered = false;
     bool m_pressed = false;
 
-    wxTimer m_timer;
     wxBitmap m_title_mask;
     wxBitmap m_border_mask;
     wxBitmap m_buttons_background;
@@ -138,10 +140,15 @@ private:
         HIT_ITEM,
         HIT_ACTION, // implicit HTI_ITEM
         HIT_MODE,
-        HIT_STATUS
+        HIT_STATUS,
+        HIT_SCROLLBAR
     };
     int     m_hit_type = HIT_NONE;
     size_t  m_hit_item = size_t(-1);
+
+    bool m_dragging_scroll  = false;
+    int  m_drag_start_y     = 0;
+    int  m_drag_start_offset = 0;
 
     int m_scroll_offset = 0;
     int m_row_offset = 0; // 1/4 row height

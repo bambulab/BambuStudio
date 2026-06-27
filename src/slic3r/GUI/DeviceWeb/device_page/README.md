@@ -29,7 +29,8 @@ device_page/
 │   │   ├── __root.tsx       # Root layout (nav bar, conditional by route)
 │   │   ├── index.tsx        # / (home)
 │   │   ├── calibration.tsx  # /calibration
-│   │   ├── filament.tsx     # /filament
+│   │   ├── filament_manager.tsx     # /filament_manager
+│   │   ├── device_page/             # /device_page/*
 │   │   ├── webcalib.tsx     # /webcalib
 │   │   └── ...
 │   ├── features/            # Feature modules
@@ -64,7 +65,7 @@ device_page/
 ### Install Dependencies
 
 ```bash
-cd resources/web/device_page
+cd src/slic3r/GUI/DeviceWeb/device_page
 pnpm install
 ```
 
@@ -105,7 +106,7 @@ For the best development experience, use the C++ HTTP server + Vite dev server t
 1. **Build & launch the desktop app** (Debug configuration) — the embedded HTTP server starts automatically on `localhost:13628`, serving files from `dist/`
 2. **Run the Vite dev server** in a terminal:
    ```bash
-   cd resources/web/device_page
+   cd src/slic3r/GUI/DeviceWeb/device_page
    pnpm dev
    ```
    Vite runs on `http://localhost:5173` with HMR (Hot Module Replacement).
@@ -136,7 +137,7 @@ One WebView instance serves multiple main app tabs. Tab switching triggers hash 
 ```
 MainFrame Tab Bar
   ├── Web Device     → WebDevicePage → #/calibration
-  ├── Filament Manager → WebDevicePage → #/filament
+  ├── Filament Manager → WebDevicePage → #/filament_manager
   └── Calibration    → WebDevicePage → #/webcalib
 ```
 
@@ -194,7 +195,8 @@ else if (sel == tpMyFeature)
 In `src/routes/__root.tsx`, add the route to `hideNav`:
 
 ```tsx
-const hideNav = pathname === '/filament' || pathname === '/webcalib' || pathname === '/myfeature';
+const embeddedRoutes = new Set(['/filament_manager', '/webcalib', '/myfeature']);
+const hideNav = embeddedRoutes.has(pathname);
 ```
 
 ### 5. Build and verify
@@ -224,7 +226,7 @@ Using "Filament Manager" as an example:
 #### 1. Define types (`types.ts`)
 
 ```ts
-// src/features/filament/types.ts
+// src/features/filament-manager/types.ts
 export interface FilamentItem {
   id: string;
   name: string;
@@ -247,7 +249,7 @@ export interface BridgeResponseBody {
 ```tsx
 import type { StateCreator } from 'zustand';
 import type { RootState } from './AppStore';
-import type { FilamentItem } from '../features/filament/types';
+import type { FilamentItem } from '../features/filament-manager/types';
 
 export interface FilamentSlice {
   filament: {
@@ -286,7 +288,7 @@ export type RootState = ... & FilamentSlice;
 ...createFilamentSlice(set, get, api),
 ```
 
-#### 3. Create bridge hook (`useFilamentBridge.ts`)
+#### 3. Create bridge hook (`useFilamentManagerBridge.ts`)
 
 ```ts
 import { useCallback } from 'react';
@@ -298,7 +300,7 @@ function makeBody(resource: string, action: string, payload?: Record<string, unk
   return { module: 'filament', resource, action, payload: payload ?? {} };
 }
 
-export function useFilamentBridge() {
+export function useFilamentManagerBridge() {
   const request = useDeviceBridge();
   const setItems = useStore((s) => s.filament.setItems);
   const setLoading = useStore((s) => s.filament.setLoading);
@@ -321,17 +323,17 @@ export function useFilamentBridge() {
 }
 ```
 
-#### 4. Build the page component (`FilamentPage.tsx`)
+#### 4. Build the page component (`FilamentManagerPage.tsx`)
 
 ```tsx
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFilamentBridge } from './useFilamentBridge';
+import { useFilamentManagerBridge } from './useFilamentManagerBridge';
 import useStore from '../../store/AppStore';
 
-export function FilamentPage() {
+export function FilamentManagerPage() {
   const { t } = useTranslation();
-  const { fetchList } = useFilamentBridge();
+  const { fetchList } = useFilamentManagerBridge();
   const items = useStore((s) => s.filament.items);
   const isLoading = useStore((s) => s.filament.isLoading);
 

@@ -97,7 +97,8 @@ void GLGizmoPainterBase::render_triangles(const Selection& selection) const
 
         Transform3d trafo_matrix;
         if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
-            trafo_matrix = mo->instances[selection.get_instance_idx()]->get_assemble_transformation().get_matrix() * mv->get_matrix();
+            // BBS: assembly view world matrix = instance_assemble * volume_assemble.
+            trafo_matrix = mo->instances[selection.get_instance_idx()]->get_assemble_transformation().get_matrix() * mv->get_assemble_transformation().get_matrix();
             trafo_matrix.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) + mo->instances[selection.get_instance_idx()]->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
         }
         else {
@@ -156,7 +157,8 @@ void GLGizmoPainterBase::render_cursor() const
         if (mv->is_model_part())
         {
             if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
-                Transform3d temp = mi->get_assemble_transformation().get_matrix() * mv->get_matrix();
+                // BBS: assembly view world matrix = instance_assemble * volume_assemble.
+                Transform3d temp = mi->get_assemble_transformation().get_matrix() * mv->get_assemble_transformation().get_matrix();
                 temp.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) + mi->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
                 trafo_matrices.emplace_back(temp);
             }
@@ -448,7 +450,8 @@ void GLGizmoPainterBase::render_cursor_height_range(const Transform3d& trafo) co
     for (const ModelVolume* mv : model_object->volumes) {
         TriangleMesh vol_mesh = mv->mesh();
         if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
-            Transform3d temp = mi->get_assemble_transformation().get_matrix() * mv->get_matrix();
+            // BBS: assembly view world matrix = instance_assemble * volume_assemble.
+            Transform3d temp = mi->get_assemble_transformation().get_matrix() * mv->get_assemble_transformation().get_matrix();
             temp.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) + mi->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
             vol_mesh.transform(temp);
         }
@@ -807,11 +810,12 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
                     const Selection     &selection                 = m_parent.get_selection();
                     const ModelObject   *mo                        = m_c->selection_info()->model_object();
                     const ModelInstance *mi                        = mo->instances[selection.get_instance_idx()];
+                    // BBS: assembly view world matrix = instance_assemble * volume_assemble.
                     const Transform3d   trafo_matrix_not_translate = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
-                        mi->get_assemble_transformation().get_matrix(true) * mo->volumes[m_rr.mesh_id]->get_matrix(true) :
+                        mi->get_assemble_transformation().get_matrix(true) * mo->volumes[m_rr.mesh_id]->get_assemble_transformation().get_matrix(true) :
                         mi->get_transformation().get_matrix(true) * mo->volumes[m_rr.mesh_id]->get_matrix(true);
                     const Transform3d   trafo_matrix = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView ?
-                        mi->get_assemble_transformation().get_matrix() * mo->volumes[m_rr.mesh_id]->get_matrix() :
+                        mi->get_assemble_transformation().get_matrix() * mo->volumes[m_rr.mesh_id]->get_assemble_transformation().get_matrix() :
                         mi->get_transformation().get_matrix() * mo->volumes[m_rr.mesh_id]->get_matrix();
                     m_triangle_selectors[m_rr.mesh_id]->seed_fill_select_triangles(m_rr.hit, int(m_rr.facet), trafo_matrix_not_translate, this->get_clipping_plane_in_volume_coordinates(trafo_matrix), m_smart_fill_angle,
                                                                                    m_paint_on_overhangs_only ? m_highlight_by_angle_threshold_deg : 0.f, true);
@@ -885,17 +889,20 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         // Precalculate transformations of individual meshes.
         std::vector<Transform3d> trafo_matrices;
         std::vector<Transform3d> trafo_matrices_not_translate;
+        const bool is_assemble_view = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView;
         for (const ModelVolume *mv : mo->volumes)
             if (mv->is_model_part()) {
-                if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
-                    Transform3d temp = instance_trafo * mv->get_matrix();
+                if (is_assemble_view) {
+                    // BBS: assembly view world matrix = instance_assemble * volume_assemble.
+                    Transform3d temp = instance_trafo * mv->get_assemble_transformation().get_matrix();
                     temp.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) + mi->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
                     trafo_matrices.emplace_back(temp);
+                    trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_assemble_transformation().get_matrix(true));
                 }
                 else {
                     trafo_matrices.emplace_back(instance_trafo* mv->get_matrix());
+                    trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_matrix(true));
                 }
-                trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_matrix(true));
                 part_volumes.push_back(mv);
             }
 
@@ -1034,17 +1041,20 @@ bool GLGizmoPainterBase::gizmo_event(SLAGizmoEventType action, const Vec2d& mous
         // Precalculate transformations of individual meshes.
         std::vector<Transform3d> trafo_matrices;
         std::vector<Transform3d> trafo_matrices_not_translate;
+        const bool is_assemble_view = m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView;
         for (const ModelVolume *mv : mo->volumes)
             if (mv->is_model_part()) {
-                if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
-                    Transform3d temp = instance_trafo * mv->get_matrix();
+                if (is_assemble_view) {
+                    // BBS: assembly view world matrix = instance_assemble * volume_assemble.
+                    Transform3d temp = instance_trafo * mv->get_assemble_transformation().get_matrix();
                     temp.translate(mv->get_transformation().get_offset() * (GLVolume::explosion_ratio - 1.0) + mi->get_offset_to_assembly() * (GLVolume::explosion_ratio - 1.0));
                     trafo_matrices.emplace_back(temp);
+                    trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_assemble_transformation().get_matrix(true));
                 }
                 else {
                     trafo_matrices.emplace_back(instance_trafo * mv->get_matrix());
+                    trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_matrix(true));
                 }
-                trafo_matrices_not_translate.emplace_back(instance_trafo_not_translate * mv->get_matrix(true));
             }
 
         // Now "click" into all the prepared points and spill paint around them.

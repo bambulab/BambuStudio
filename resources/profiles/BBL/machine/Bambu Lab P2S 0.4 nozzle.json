@@ -9,6 +9,7 @@
         "0.4"
     ],
     "printer_model": "Bambu Lab P2S",
+    "farthest_point_timelapse": "1",
     "printer_variant": "0.4",
     "bed_exclude_area": [],
     "default_filament_profile": [
@@ -251,6 +252,7 @@
         "Bambu Lab H2D 0.4 nozzle",
         "Bambu Lab H2D Pro 0.4 nozzle",
         "Bambu Lab H2C 0.4 nozzle",
-        "Bambu Lab X2D 0.4 nozzle"
+        "Bambu Lab X2D 0.4 nozzle",
+        "Bambu Lab A2L 0.4 nozzle"
     ]
 }

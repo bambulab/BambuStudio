@@ -13,6 +13,7 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/CheckBox.hpp"
+#include "Widgets/RadioBox.hpp"
 #include "Widgets/Label.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "ConnectPrinter.hpp"
@@ -20,6 +21,7 @@
 #include "slic3r/Utils/BBLUtil.hpp"
 
 #include "DeviceCore/DevConfig.h"
+#include "DeviceCore/DevPrintOptions.h"
 #include "DeviceCore/DevMappingNozzle.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevExtensionTool.h"
@@ -1860,7 +1862,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         for (auto warning : plate->get_slice_result()->warnings) {
             if (warning.msg == NOT_GENERATE_TIMELAPSE) {
                 if (warning.error_code == "10014001") {
-                    msg_text = _L("When enable spiral vase mode, machines with I3 structure will not generate timelapse videos.");
+                    msg_text = _L("When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos.");
                 }
                 else if (warning.error_code == "10014002") {
                     msg_text = _L("The current printer does not support timelapse in Traditional Mode when printing By-Object.");
@@ -1908,6 +1910,10 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     } else if (status == PrintStatusFilamentWarningRemainNotEnough) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
+    } else if (status == PrintStatusSmartNozzleBlobNeedAuto) {
+        // Non-blocking advisory: user can still send the print job.
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     }
@@ -2287,7 +2293,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
             else
             {
-                shown_infos.emplace_back(ConfirmBeforeSendInfo(_L("Please click the confirm button if you still want to proceed with printing.")));
+                shown_infos.emplace_back(ConfirmBeforeSendInfo(_L("Please click the \"Continue printing\"  button if you still want to proceed with printing.")));
             }
 
             confirm_dlg.update_text(shown_infos, has_warning_msg&& has_normal_msg);
@@ -2295,6 +2301,11 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         else
         {
             confirm_dlg.update_text(confirm_text, false);
+        }
+
+        if (!is_printing_block) 
+        {
+            confirm_dlg.update_btn_label(_L("Continue printing"), _L("Return to modify"));
         }
 
         confirm_dlg.on_show();
@@ -2500,10 +2511,43 @@ bool SelectMachineDialog::is_enable_external_change_assist(std::vector<FilamentI
     return (v_ams_map[VIRTUAL_AMS_MAIN_ID_STR] > 1) || (v_ams_map[VIRTUAL_AMS_DEPUTY_ID_STR] > 1);
 }
 
+void SelectMachineDialog::timelapse_button_click()
+{
+    wxDialog dlg(nullptr, wxID_ANY, _L("Timelapse"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE);
+    dlg.SetBackgroundColour(*wxWHITE);
+
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    dlg.SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+
+    auto* message = new Label(&dlg, _L("After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."));
+    message->SetFont(Label::Body_14);
+    message->Wrap(FromDIP(360));
+    main_sizer->Add(message, 0, wxALL, FromDIP(20));
+
+    auto timelapse_url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/Timelapse",
+        wxGetApp().current_language_code_safe() == "zh_CN" ? "zh" : "en");
+    wxHyperlinkCtrl* learn_more = new wxHyperlinkCtrl(&dlg, wxID_ANY, _L("Learn more"),
+        timelapse_url, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    main_sizer->Add(learn_more, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(20));
+
+    wxBoxSizer* button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    button_sizer->AddStretchSpacer();
+    wxButton* ok_button = new wxButton(&dlg, wxID_OK, _L("OK"), wxDefaultPosition, wxDefaultSize);
+    button_sizer->Add(ok_button, 0, wxALL, FromDIP(5));
+    main_sizer->Add(button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(15));
+
+    dlg.SetSizer(main_sizer);
+    dlg.Fit();
+    dlg.CenterOnParent();
+    dlg.ShowModal();
+}
+
 void SelectMachineDialog::update_timelapse_folder_btn_icon()
 {
     if (!m_timelapse_folder_btn) return;
-    // always restore to normal (grey) — active state is managed by popup open/close
+    // always restore to normal (grey) �� active state is managed by popup open/close
     m_timelapse_folder_btn->SetBitmap(create_scaled_bitmap("folder-closed", m_timelapse_folder_btn, 16));
     m_timelapse_folder_btn->Refresh();
 }
@@ -2539,25 +2583,32 @@ void SelectMachineDialog::show_timelapse_folder_popup()
     if (!has_sdcard && m_timelapse_storage == "external")
         m_timelapse_storage = "internal";
 
+    // Reuse the themed RadioBox widget (radio_on / radio_off bitmaps) instead of the
+    // native wxRadioButton: the selected state shows a clear filled dot with good
+    // contrast on every platform, matching the storage selector in SendToPrinter.
     auto make_item = [&](const wxString& label, const std::string& val, bool enabled) {
-        auto* radio = new wxRadioButton(panel, wxID_ANY, label, wxDefaultPosition, wxDefaultSize,
-            val == "internal" ? wxRB_GROUP : 0);
+        auto* radio = new RadioBox(panel);
         radio->SetValue(m_timelapse_storage == val);
-        radio->SetFont(Label::Body_14);
-        radio->Enable(enabled);
-        radio->SetForegroundColour(enabled ? wxColour(0x5C, 0x5C, 0x5C) : wxColour(0xAC, 0xAC, 0xAC));
-        sizer->Add(radio, 0, wxALIGN_CENTER_VERTICAL);
+        if (enabled) radio->Enable(); else radio->Disable();
+
+        auto* text = new Label(panel, Label::Body_14, label);
+        text->SetForegroundColour(enabled ? wxColour(0x5C, 0x5C, 0x5C) : wxColour(0xAC, 0xAC, 0xAC));
 
         if (enabled) {
-            radio->Bind(wxEVT_RADIOBUTTON, [this, val](wxCommandEvent&) {
+            auto on_select = [this, val](wxMouseEvent&) {
                 m_timelapse_storage = val;
                 update_timelapse_folder_btn_icon();
                 if (m_timelapse_storage_popup) m_timelapse_storage_popup->Dismiss();
                 DeviceManager* dev = wxGetApp().getDeviceManager();
                 MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
                 if (obj) check_timelapse_storage_warning(obj);
-            });
+            };
+            radio->Bind(wxEVT_LEFT_DOWN, on_select);
+            text->Bind(wxEVT_LEFT_DOWN, on_select);
         }
+
+        sizer->Add(radio, 0, wxALIGN_CENTER_VERTICAL);
+        sizer->Add(text, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(6));
     };
 
     make_item(_L("Internal"), "internal", true);
@@ -2668,20 +2719,20 @@ void SelectMachineDialog::on_timelapse_storage_check_result()
     MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
     if (!obj) { on_send_print(); return; }
 
-    // query failed → ignore, proceed with print
+    // query failed �� ignore, proceed with print
     if (obj->timelapse_storage_check_result != 0) {
         BOOST_LOG_TRIVIAL(info) << "timelapse storage check failed (result=" << obj->timelapse_storage_check_result << "), proceeding";
         on_send_print();
         return;
     }
 
-    // space is enough → proceed
+    // space is enough �� proceed
     if (obj->timelapse_storage_is_enough) {
         on_send_print();
         return;
     }
 
-    // space not enough → show dialog
+    // space not enough �� show dialog
     show_timelapse_storage_dialog(obj);
 }
 
@@ -2755,8 +2806,8 @@ void SelectMachineDialog::show_timelapse_storage_dialog(MachineObject* obj)
     dlg.Fit();
     dlg.CenterOnParent();
 
-    // ShowModal returns after dialog closes — handle action outside modal stack
-    // wxID_CANCEL is returned when user clicks X (close button) — do nothing in that case
+    // ShowModal returns after dialog closes �� handle action outside modal stack
+    // wxID_CANCEL is returned when user clicks X (close button) �� do nothing in that case
     int result = dlg.ShowModal();
 
     if (result == wxID_OK) {
@@ -2805,7 +2856,7 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
     if (!config) return;
     if (!obj) return;
 
-    // Read saved values from config — only called once on open / switch machine
+    // Read saved values from config �� only called once on open / switch machine
     for (auto item : m_checkbox_list) {
         PrintOption       *opt = item.second;
         const std::string &val = config->get(obj->printer_type, item.first);
@@ -2819,11 +2870,16 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
     }
 
     if (obj->is_multi_extruders()) {
+        const bool has_switcher = obj->GetFilaSwitch() && obj->GetFilaSwitch()->IsInstalled();
         auto used_nozzle_idxes = _get_used_nozzle_idxes();
-        if (used_nozzle_idxes.size() == 1) {
-            m_checkbox_list["nozzle_offset_cali"]->setValue("off");
-        } else if (used_nozzle_idxes.size() >= 2) {
+        if (used_nozzle_idxes.size() >= 2) {
             m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
+        } else if (used_nozzle_idxes.size() == 1) {
+            if (has_switcher) {
+                m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
+            } else {
+                m_checkbox_list["nozzle_offset_cali"]->setValue("off");
+            }
         }
     }
 
@@ -2844,6 +2900,12 @@ void SelectMachineDialog::update_option_dynamic_state(MachineObject *obj)
         m_checkbox_list["timelapse"]->enable(false);
         m_checkbox_list["timelapse"]->setValue("off");
         m_checkbox_list["timelapse"]->update_tooltip(error_messgae);
+    }
+
+    if (obj->is_timelapse_slow_down) {
+        m_checkbox_list["timelapse"]->set_tips_clickable(true, [this]() { timelapse_button_click(); });
+    } else {
+        m_checkbox_list["timelapse"]->set_tips_clickable(false);
     }
 
     if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
@@ -2939,7 +3001,7 @@ void SelectMachineDialog::check_tpu_aero_flow_cali(MachineObject* obj)
     if (has_mapped && all_tpu_or_aero) {
         m_checkbox_list["flow_cali"]->setValue("off");
 
-        // Immediately update pa_panel visibility — same as on_flow_pa_caliation_option_changed
+        // Immediately update pa_panel visibility �� same as on_flow_pa_caliation_option_changed
         if (obj->is_support_pa_mode) {
             m_pa_value_panel->Show();
             Layout();
@@ -3753,7 +3815,7 @@ void SelectMachineDialog::update_filament_change_count()
     auto best  = stats.stats_by_multi_extruder_best;
     auto curr  = stats.stats_by_multi_extruder_curr;
 
-    int hand_changes_count = curr.filament_change_count - best.filament_change_count;
+    int hand_changes_count = curr.flush_filament_change_count - best.flush_filament_change_count;
     int saving_weight      = curr.filament_flush_weight - best.filament_flush_weight;
 
     if (obj->GetExtderSystem()->GetTotalExtderCount() > 1) { m_link_edit_nozzle->Show(true); }
@@ -4154,7 +4216,7 @@ bool SelectMachineDialog::has_timelapse_warning(wxString &msg_text)
     for (auto warning : plate->get_slice_result()->warnings) {
         if (warning.msg == NOT_GENERATE_TIMELAPSE) {
             if (warning.error_code == "10014001") {
-                msg_text = _L("When enable spiral vase mode, machines with I3 structure will not generate timelapse videos.");
+                msg_text = _L("When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos.");
             } else if (warning.error_code == "10014002") {
                 msg_text = _L("The current printer does not support timelapse in Traditional Mode when printing By-Object.");
             }
@@ -4406,6 +4468,7 @@ std::vector<pPresetFilaInfo> sCollectPresetFilamentInfo()
                 if (preset && filament_name.compare(preset->name) == 0) {
                     pPresetFilaInfo fila_info;
                     fila_info.filament_id = preset->filament_id;
+                    fila_info.setting_id = preset->setting_id;
                     fila_info.filament_type = preset->config.get_filament_type(fila_info.filament_display_type);;
                     auto vendor_opt = dynamic_cast<ConfigOptionStrings*>(preset->config.option("filament_vendor"));
                     if (vendor_opt && (vendor_opt->values.size() > 0)) {
@@ -4597,6 +4660,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         info.type = preset_filament.filament_type;
         info.brand = preset_filament.filament_vendor;
         info.filament_id = preset_filament.filament_id;
+        info.setting_id = preset_filament.setting_id;
         info.color = wxString::Format("#%02X%02X%02X%02X", colour_rgb.Red(), colour_rgb.Green(), colour_rgb.Blue(), colour_rgb.Alpha()).ToStdString();
         m_filaments.push_back(info);
     }
@@ -5225,14 +5289,13 @@ bool SelectMachineDialog::Show(bool show)
     m_ams_mapping_result.clear();
     show_status(PrintDialogStatus::PrintStatusInit);
 
-    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
-    const auto& project_config = preset_bundle.project_config;
+    PartPlate* curr_plate = m_plater->get_partplate_list().get_curr_plate();
+    BedType bed_type_value = curr_plate ? curr_plate->get_bed_type(true) : btDefault;
 
     const t_config_enum_values &enum_keys_map = ConfigOptionEnum<BedType>::get_enum_values();
-    const ConfigOptionEnum<BedType>* bed_type=project_config.option<ConfigOptionEnum<BedType>>("curr_bed_type");
     std::string plate_name;
     for (auto& elem : enum_keys_map) {
-        if (elem.second == bed_type->value)
+        if (elem.second == bed_type_value)
             plate_name = elem.first;
     }
 
@@ -6130,7 +6193,20 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
                 }
             }
         }
-    };
+
+        // The hint only applies when Flow Dynamics Calibration is set to Auto/On; skip it when the option is Off or hidden.
+        const bool flow_cali_auto_or_on = m_checkbox_list["flow_cali"]->IsShown() && m_checkbox_list["flow_cali"]->getValue() != "off";
+        if (flow_cali_auto_or_on) {
+            const auto& warning_tpu_filaments = DevPrinterConfigUtil::get_value_from_config<std::vector<std::string>>(obj_->printer_type, "auto_on_cali_warning_tpu_filaments");
+            for (const auto& warning_tpu_filament : warning_tpu_filaments) {
+                if (warning_tpu_filament == check_info.fila_id) {
+                    show_status(PrintDialogStatus::PrintStatusTPUUnsuggestCali,
+                                { _L("If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page.") });
+                    break;
+                }
+            }
+        }
+    }
 
     for (const auto &iter : extruder_ams_ext_status) {
         if (iter.second.has_ams && iter.second.has_vt_slot) {
@@ -6151,6 +6227,16 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         show_status(PrintDialogStatus::PrintStatusFilamentCrossExtruderWarning, { warning_msg });
     }
 
+    // Smart nozzle clumping (wrap) detection: recommend switching to Auto when the project
+    // contains stringing-prone filament and the printer is not already in Auto mode.
+    if (!CheckWarningSmartNozzleBlobAuto(obj_)) {
+        const wxString warning_msg = _L("There is stringing-prone filament in this file. For best print quality, "
+                                        "we recommend switching nozzle clumping detection to Auto mode.");
+        show_status(PrintDialogStatus::PrintStatusSmartNozzleBlobNeedAuto,
+                    {warning_msg}, wxEmptyString,
+                    prePrintInfoStyle::BtnSwitchNozzleBlobAuto);
+    }
+
     return true;
 };
 
@@ -6169,6 +6255,7 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
     // key: ams_id slot_id value: remain
     std::map<std::pair<std::string, std::string>, double> fila_remain_map; //collect fila remain info
     std::map<std::pair<std::string, std::string>, FilamentInfo> fila_used_map;
+    std::map<std::pair<std::string, std::string>, std::vector<int>> fila_ids_in_slot; // all filament ids mapped to the same slot
     {
         for (auto ams_item : obj_->GetFilaSystem()->GetAmsList()) {
             std::string ams_id = ams_item.first;
@@ -6206,10 +6293,17 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
                 auto volumes_map = gcode_result->print_statistics.total_volumes_per_extruder;
                 if (volumes_map.find(fila.id) != volumes_map.end() && fila.id >= 0 && fila.id < densities.size()) {
                     std::pair<std::string, std::string> key{fila.ams_id, fila.slot_id};
-                    FilamentInfo info;
-                    info.id = fila.id;
-                    info.used_g = densities[fila.id] * (volumes_map[fila.id] / 1000); // mm^3 -> cm^3
-                    fila_used_map[key] = info;
+                    double used_g = densities[fila.id] * (volumes_map[fila.id] / 1000); // mm^3 -> cm^3
+                    auto used_it = fila_used_map.find(key);
+                    if (used_it == fila_used_map.end()) {
+                        FilamentInfo info;
+                        info.id = fila.id;
+                        info.used_g = used_g;
+                        fila_used_map[key] = info;
+                    } else {
+                        used_it->second.used_g += used_g;
+                    }
+                    fila_ids_in_slot[key].push_back(fila.id);
                 } else {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "the list of filament densities can't find "<< fila.id;
                     return true;
@@ -6280,7 +6374,8 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
                             }
                         }
                     } else {
-                        filaments_not_enough.push_back(item.second.id);
+                        const auto& slot_ids = fila_ids_in_slot[ams_slot_key];
+                        filaments_not_enough.insert(filaments_not_enough.end(), slot_ids.begin(), slot_ids.end());
                         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "The filament is not enough in ams: "
                                                    << ams_slot_key.first << " slot: " << ams_slot_key.second
                                                    << ", used: " << fila_used << ", available: " << total_remain;
@@ -6290,7 +6385,8 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
                     return true;
                 }
             } else {
-                filaments_not_enough.push_back(item.second.id);
+                const auto& slot_ids = fila_ids_in_slot[ams_slot_key];
+                filaments_not_enough.insert(filaments_not_enough.end(), slot_ids.begin(), slot_ids.end());
                 BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "The filament is not enough in ams slot: "
                                            << ams_slot_key.first << " slot: " << ams_slot_key.second
                                            << ", used: " << fila_used << ", available: " << fila_remain;
@@ -6312,6 +6408,25 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
     }
 
     return filaments_not_enough.empty();
+}
+
+bool SelectMachineDialog::CheckWarningPrintTimeEstimate(MachineObject* obj_, const std::vector<FilamentInfo>& ams_mapping_result)
+{
+    if (!obj_) return true;
+
+    for (const auto& fila : ams_mapping_result) {
+        if (fila.ams_id.empty() || devPrinterUtil::IsVirtualSlot(fila.ams_id))
+            continue;
+
+        if (DevAms* ams = obj_->GetFilaSystem()->GetAmsById(fila.ams_id)) {
+            DevAmsType ams_type = ams->GetAmsType();
+            if (ams_type != DevAmsType::AMS_LITE && ams_type != DevAmsType::AMS_LITE_MIXED) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 bool SelectMachineDialog::CheckWarningFilamentCrossExtruder(MachineObject* obj_, std::set<int>& cross_extruder_filament_ids)
@@ -6336,6 +6451,39 @@ bool SelectMachineDialog::CheckWarningFilamentCrossExtruder(MachineObject* obj_,
     }
 
     return cross_extruder_filament_ids.empty();
+}
+
+bool SelectMachineDialog::CheckWarningSmartNozzleBlobAuto(MachineObject* obj_)
+{
+    if (!obj_ || m_print_type != PrintFromType::FROM_NORMAL) return true;
+
+    // Only relevant when the printer firmware supports the smart wrap detection feature.
+    auto* opts = obj_->GetPrintOptions();
+    if (!opts) return true;
+    const auto* opt = opts->GetDetectionOption(PrintOptionEnum::Smart_Nozzle_Blob_Detection);
+    if (!opt || !opt->is_support_detect) return true;
+
+    // Already in Auto (cfg[43:44] == 2): nothing to recommend.
+    if (opt->current_detect_value == 2) return true;
+
+    // Need at least one stringing-prone filament in the sliced project for any nozzle on
+    // the current printer config. Iterating the cross-product covers single- and
+    // dual-extruder printers without needing per-filament extruder assignment.
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle) return true;
+    const auto* opt_nozzle_diameters =
+        preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (!opt_nozzle_diameters || opt_nozzle_diameters->size() == 0) return true;
+
+    for (const auto& fila : m_filaments) {
+        if (fila.filament_id.empty()) continue;
+        for (size_t i = 0; i < opt_nozzle_diameters->size(); ++i) {
+            const float d = static_cast<float>(opt_nozzle_diameters->get_at(i));
+            if (Slic3r::is_stringing_prone_filament(fila.filament_id, d))
+                return false;
+        }
+    }
+    return true;
 }
 
 ShowType SelectMachineDialog::get_filament_mapping_show_type(MachineObject* obj_, int fila_logic_id) const
@@ -6399,7 +6547,7 @@ bool SelectMachineDialog::slicing_with_fila_switch() const
     }
 
     if (m_print_type == FROM_NORMAL) {
-        auto has_filament_switcher = wxGetApp().preset_bundle->full_config().option<ConfigOptionBool>("has_filament_switcher");
+        auto has_filament_switcher = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("has_filament_switcher");
         if (has_filament_switcher) {
             return has_filament_switcher->value;
         }
@@ -6989,6 +7137,24 @@ void PrintOption::update_tooltip(const wxString &tips)
     m_printoption_tips->Show(!m_printoption_tips->GetToolTipText().IsEmpty());
 }
 
+void PrintOption::set_tips_clickable(bool clickable, std::function<void()> callback)
+{
+    m_tips_clickable = clickable;
+    m_tips_click_callback = callback;
+
+    // Always unbind first to avoid stacking multiple handlers when called repeatedly
+    m_printoption_tips->Unbind(wxEVT_BUTTON, &PrintOption::OnTipsButtonClicked, this);
+
+    if (clickable) {
+        m_printoption_tips->SetCursor(wxCursor(wxCURSOR_HAND));
+        m_printoption_tips->Bind(wxEVT_BUTTON, &PrintOption::OnTipsButtonClicked, this);
+        m_printoption_tips->Show(true);
+    } else {
+        m_printoption_tips->SetCursor(wxNullCursor);
+        m_printoption_tips->Show(!m_printoption_tips->GetToolTipText().IsEmpty());
+    }
+}
+
 void PrintOption::update_tooltip_options_area(const wxString& opt_tips)
 {
     if (m_printoption_item->GetToolTipText() != opt_tips) {
@@ -7038,6 +7204,13 @@ void PrintOption::update_title_display()
     }
 
     m_printoption_title->SetLabel(displayTitle);
+}
+
+void PrintOption::OnTipsButtonClicked(wxCommandEvent &event)
+{
+    if (m_tips_click_callback) {
+        m_tips_click_callback();
+    }
 }
 
 void PrintOption::msw_rescale()

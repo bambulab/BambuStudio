@@ -11,6 +11,7 @@
 #include "Notebook.hpp"
 #include "ReleaseNote.hpp"
 #include "OG_CustomCtrl.hpp"
+#include "fila_manager/wgtFilaManagerFeature.h"
 #include "wx/graphics.h"
 
 #include <wx/listimpl.cpp>
@@ -1360,6 +1361,13 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_auto_flush = create_item_combobox(_L("Auto Flush"), page, _L("Auto calculate flush volumes"), "auto_calculate_flush", FlushOptionLabels, FlushOptionValues);
     //auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
     auto item_multi_machine = create_item_checkbox(_L("Multi-device Management(Take effect after restarting Studio)."), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine");
+    auto item_fila_manager = create_item_checkbox(_L("Filament Manager") + " (" + _L("Take effect after restarting Studio") + ")", page,
+#if __APPLE__
+        _L("The Filament Manager is turned off by default on macOS because compatibility issues on some systems may cause the application to become unresponsive."),
+#else
+        wxEmptyString,
+#endif
+        50, FilaManagerEnabledConfigKey);
     auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
     auto item_beta_version_update = create_item_checkbox(_L("Support beta version update."), page, _L("With this option enabled, you can receive beta version updates."), 50, "enable_beta_version_update");
     auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove the restriction on mixed printing of high and low temperature filaments."), page, _L("With this option enabled, you can print materials with a large temperature difference together."), 50, "enable_high_low_temp_mixed_printing");
@@ -1370,13 +1378,20 @@ wxWindow* PreferencesDialog::create_general_page()
     auto  item_restore_hide_3mf_info = create_item_button(_L("Clear my choice for Load 3mf dialog settings."), _L("Clear"), page, {}, []() {
         wxGetApp().app_config->erase("app", "skip_non_bambu_3mf_warning");
     });
-
+    auto item_restore_post_process_script_choice = create_item_button(_L("Clear my choice for executing post-processing scripts."), _L("Clear"), page, _L("Show the security warning dialog again before slicing when post-processing scripts are configured."), []() {
+        wxGetApp().app_config->erase("app", "post_process_script_choice");
+        if (wxGetApp().plater())
+            wxGetApp().plater()->reset_post_process_script_choice();
+    });
+    auto  item_restore_support_recommend_dlg = create_item_button(_L("Clear my choice for disabling support parameter recommendation."), _L("Clear"), page, {}, []() {
+        wxGetApp().app_config->set("show_support_recommend_dialog", "true");
+    });
     auto _3d_settings    = create_item_title(_L("3D Settings"), page, _L("3D Settings"));
     auto item_mouse_zoom_settings  = create_item_checkbox(_L("Zoom to mouse position"), page,
                                                          _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50,
                                                          "zoom_to_mouse");
     auto  item_show_shells_in_preview_settings = create_item_checkbox(_L("Always show shells in preview"), page,
-                                                         _L("Always show shells or not in preview view tab.If change value,you should reslice."), 50,
+                                                         _L("Always show shells or not in preview view tab. If you change this value, you should reslice."), 50,
                                                          "show_shells_in_preview");
     auto  item_import_single_svg_and_split         = create_item_checkbox(_L("Import a single SVG and split it"), page,
                                                                      _L("Import a single SVG and then split it to several parts."), 50,
@@ -1527,6 +1542,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_bed_type_follow_preset, 0, wxTOP, FromDIP(3));
     //sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_multi_machine, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_fila_manager, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_12h_time_format, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_step_mesh_setting, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_beta_version_update, 0, wxTOP, FromDIP(3));
@@ -1535,6 +1551,8 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_camera_fullscreen_active_monitor_only, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_restore_hide_pop_ups, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_restore_hide_3mf_info, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_restore_support_recommend_dlg, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_restore_post_process_script_choice, 0, wxTOP, FromDIP(3));
     sizer_page->Add(_3d_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_show_shells_in_preview_settings, 0, wxTOP, FromDIP(3));

@@ -321,10 +321,19 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
 {
     auto                     full_print_config             = this->print()->m_ori_full_print_config;
     std::vector<std::string> extruder_variant_list         = this->print()->config().printer_extruder_variant.values;
-    std::vector<std::string> filament_variant_list         = full_print_config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
-    std::vector<int>         filament_self_idx             = full_print_config.option<ConfigOptionInts>("filament_self_index")->values;
-    std::vector<double>      filament_max_volumetric_speed = full_print_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->values;
-    std::vector<double>      filament_flow_ratio           = full_print_config.option<ConfigOptionFloats>("filament_flow_ratio")->values;
+
+    const auto* opt_filament_variant      = full_print_config.option<ConfigOptionStrings>("filament_extruder_variant");
+    const auto* opt_filament_self_idx     = full_print_config.option<ConfigOptionInts>("filament_self_index");
+    const auto* opt_filament_max_vol_spd  = full_print_config.option<ConfigOptionFloats>("filament_max_volumetric_speed");
+    const auto* opt_filament_flow_ratio   = full_print_config.option<ConfigOptionFloats>("filament_flow_ratio");
+    if (!opt_filament_variant || !opt_filament_self_idx || !opt_filament_max_vol_spd || !opt_filament_flow_ratio) {
+        BOOST_LOG_TRIVIAL(warning) << "calc_estimated_filament_print_time: filament_* config option missing, skip estimation";
+        return {};
+    }
+    std::vector<std::string> filament_variant_list         = opt_filament_variant->values;
+    std::vector<int>         filament_self_idx             = opt_filament_self_idx->values;
+    std::vector<double>      filament_max_volumetric_speed = opt_filament_max_vol_spd->values;
+    std::vector<double>      filament_flow_ratio           = opt_filament_flow_ratio->values;
 
     auto get_limit_from_volumetric_speed = [&](int filament_idx, int extruder_idx, double width, double height) {
         std::string extruder_variant = extruder_variant_list[extruder_idx];
@@ -879,14 +888,6 @@ void PrintObject::generate_support_material()
                                                                                      this->model_object()->name, reasons[sntype]);
                 this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
             }
-
-#if 0
-            // Printing without supports. Empty layer means some objects or object parts are levitating,
-            // therefore they cannot be printed without supports.
-            for (const Layer *layer : m_layers)
-                if (layer->empty())
-                    throw Slic3r::SlicingError("Levitating objects cannot be printed without supports.");
-#endif
         }
 
         if ((this->has_support() && m_layers.size() > 1) || (this->has_raft() && !m_layers.empty())) {
@@ -1309,16 +1310,15 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "enable_overhang_speed"
             || opt_key == "detect_thin_wall"
             || opt_key == "precise_outer_wall") {
+            // filament_shrink is applied to slice contours in slice_volumes() (posSlice) using wall_filament.
+            if (opt_key == "wall_filament")
+                steps.emplace_back(posSlice);
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bridge_flow") {
-            if (m_config.support_top_z_distance > 0.) {
-            	// Only invalidate due to bridging if bridging is enabled.
-            	// If later "support_top_z_distance" is modified, the complete PrintObject is invalidated anyway.
-            	steps.emplace_back(posPerimeters);
-            	steps.emplace_back(posInfill);
-	            steps.emplace_back(posSupportMaterial);
-	        }
+            steps.emplace_back(posPerimeters);
+            steps.emplace_back(posInfill);
+	        steps.emplace_back(posSupportMaterial);
         } else if (
                 opt_key == "wall_generator"
             || opt_key == "wall_transition_length"
@@ -1511,14 +1511,22 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
                     bool detect_top = spiral_mode || layerm->region().config().top_shell_layers;
                     bool detect_bottom = spiral_mode || layerm->region().config().bottom_shell_layers;
 
+                    // When counterbore_hole_bridging is set to "Sacrificial Layer" (chbFilled),
+                    // process_no_bridge() may have added extra fill surfaces that extend beyond the original slices.
+                    // We need to union these with the slices to ensure proper top/bottom surface detection.
+                    ExPolygons layerm_slices_surfaces = to_expolygons(layerm->slices.surfaces);
+                    if (layerm->region().config().counterbore_hole_bridging.value == chbFilled) {
+                        layerm_slices_surfaces = union_ex(layerm_slices_surfaces, to_expolygons(layerm->fill_surfaces.surfaces));
+                    }
+
                     // find top surfaces (difference between current surfaces
                     // of current layer and upper one)
                     Surfaces top;
                     if (detect_top) {
                         if (upper_layer) {
                             ExPolygons upper_slices = interface_shells ?
-                                diff_ex(layerm->slices.surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
-                                diff_ex(layerm->slices.surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
+                                diff_ex(layerm_slices_surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
+                                diff_ex(layerm_slices_surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
                             surfaces_append(top, opening_ex(upper_slices, offset), stTop);
                         }
                         else {
@@ -1547,7 +1555,7 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
                             surfaces_append(
                                 bottom,
                                 opening_ex(
-                                    diff_ex(layerm->slices.surfaces, lower_layer->lslices, ApplySafetyOffset::Yes),//完全悬空
+                                    diff_ex(layerm_slices_surfaces, lower_layer->lslices, ApplySafetyOffset::Yes),//完全悬空
                                     offset),
                                 surface_type_bottom_other);
                             // if user requested internal shells, we need to identify surfaces
@@ -1559,7 +1567,7 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
                                     bottom,
                                     opening_ex(
                                         diff_ex(
-                                            intersection(layerm->slices.surfaces, lower_layer->lslices), // 先扣掉完全悬空
+                                            intersection(layerm_slices_surfaces, lower_layer->lslices), // 先扣掉完全悬空
                                             lower_layer->m_regions[region_id]->slices.surfaces,//再扣掉同材料的区域
                                             ApplySafetyOffset::Yes),
                                         offset),

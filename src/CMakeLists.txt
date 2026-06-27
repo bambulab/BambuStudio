@@ -181,6 +181,13 @@ if (WIN32)
     target_link_libraries(BambuStudio_app_gui PRIVATE boost_headeronly)
 endif ()
 
+if (SLIC3R_GUI AND TARGET device_page_build)
+    add_dependencies(BambuStudio device_page_build)
+    if (TARGET BambuStudio_app_gui)
+        add_dependencies(BambuStudio_app_gui device_page_build)
+    endif()
+endif()
+
 # Link the resources dir to where Slic3r GUI expects it
 set(output_dlls_Release "")
 set(output_dlls_Debug "")

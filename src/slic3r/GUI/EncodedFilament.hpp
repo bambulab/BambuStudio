@@ -152,7 +152,13 @@ public:
     FilamentColorCodes* GetFilaInfoMap(const wxString& fila_id) const;
 
     wxString GetFilaColorName(const wxString& fila_id, const FilamentColor& colors) const;
+    wxString GetFilaColorName(const wxString& fila_id,
+                              const std::vector<wxString>& hex_colors,
+                              int color_type) const;
     FilamentColorCode* GetFilaInfo(const wxString& fila_id, const FilamentColor& colors) const;
+    FilamentColorCode* GetFilaInfo(const wxString& fila_id,
+                                   const std::vector<wxString>& hex_colors,
+                                   int color_type) const;
 
 protected:
     void  LoadFromLocal();
@@ -161,6 +167,7 @@ public:
     void  CreateFilaCode(const wxString& fila_id,
                          const wxString& fila_type,
                          const wxString& fila_color_code,
+                         const wxString& color_code,
                          FilamentColor&& fila_color,
                          std::unordered_map<wxString, wxString>&& fila_color_names);
 
@@ -201,7 +208,11 @@ class FilamentColorCode
 {
 public:
     FilamentColorCode() = delete;
-    FilamentColorCode(const wxString& color_code, FilamentColorCodes* owner, FilamentColor&& color, std::unordered_map<wxString, wxString>&& name_map);
+    FilamentColorCode(const wxString& fila_color_code,
+                      const wxString& color_code,
+                      FilamentColorCodes* owner,
+                      FilamentColor&& color,
+                      std::unordered_map<wxString, wxString>&& name_map);
     ~FilamentColorCode() {};
 
 public:
@@ -210,6 +221,7 @@ public:
 
 
     wxString         GetFilaColorCode() const { return m_fila_color_code; } // eg. Q01B00
+    wxString         GetColorCode() const { return m_color_code; } // eg. A0
     FilamentColor    GetFilaColor() const { return m_fila_color; }
     wxString         GetFilaColorName() const;
 
@@ -220,6 +232,7 @@ private:
 
     /* color info*/
     wxString                               m_fila_color_code; // eg. Q01B00
+    wxString                               m_color_code; // eg. A0
     FilamentColor                          m_fila_color;
     std::unordered_map<wxString, wxString> m_fila_color_names; // eg. en -> Red
 };

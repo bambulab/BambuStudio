@@ -246,6 +246,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
     // If clipping is disabled, then ExPolygons produced by different volumes will never be merged, thus they will be allowed to overlap.
     // It is up to the model designer to handle these overlaps.
     const bool                                                clip_multipart_objects,
+    const bool                                                order_independent_overlap_carving,
     const std::function<void()>                              &throw_on_cancel_callback)
 {
     model_volumes_sort_by_id(model_volumes);
@@ -320,7 +321,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
         }
         tbb::parallel_for(
             tbb::blocked_range<size_t>(0, zs_complex.size()),
-            [&slices_by_region, &print_object_regions, &zs_complex, &layer_ranges_regions_to_slices, clip_multipart_objects, &throw_on_cancel_callback]
+            [&slices_by_region, &print_object_regions, &zs_complex, &layer_ranges_regions_to_slices, clip_multipart_objects, order_independent_overlap_carving, &throw_on_cancel_callback]
                 (const tbb::blocked_range<size_t> &range) {
                 float z              = zs_complex[range.begin()].second;
                 auto  it_layer_range = layer_range_first(print_object_regions.layer_ranges, z);
@@ -402,11 +403,6 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                     temp_slices[idx_region + 1].expolygons = std::move(source);
                             } else if ((region.model_volume->is_model_part() && clip_multipart_objects) || region.model_volume->is_negative_volume()) {
                                 // Clip every non-zero region preceding it.
-                                // Order-independent for overlapping MODEL_PARTs: the smaller bbox always
-                                // carves the larger one regardless of vector position. Without this,
-                                // a contained body (e.g. embossed text) listed before its container
-                                // (e.g. plate) gets erased entirely by the container's later carve pass
-                                // and silently drops out of the slice. Negative volumes always carve.
                                 auto bbox_volume = [](const PrintObjectRegions::BoundingBox &b) {
                                     const auto sz = b.sizes();
                                     return double(sz.x()) * double(sz.y()) * double(sz.z());
@@ -419,7 +415,7 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
 #if 1
                                         if (const PrintObjectRegions::VolumeRegion& region2 = layer_range.volume_regions[idx_region2];
                                             !region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox)) {
-                                            const bool current_carves = current_is_negative ||
+                                            const bool current_carves = !order_independent_overlap_carving || current_is_negative ||
                                                 current_vol <= bbox_volume(*region2.bbox);
                                             if (current_carves)
                                                 temp_slices[idx_region2].expolygons = diff_ex(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
@@ -1143,6 +1139,7 @@ void PrintObject::slice_volumes()
     std::vector<std::vector<ExPolygons>> region_slices = slices_to_regions(this->model_object()->volumes, *m_shared_regions, slice_zs,
         std::move(objSliceByVolume),
         PrintObject::clip_multipart_objects,
+        print->config().enable_order_independent_overlap_carving.value,
         throw_on_cancel_callback);
 
     for (size_t region_id = 0; region_id < region_slices.size(); ++ region_id) {
@@ -1205,6 +1202,10 @@ void PrintObject::slice_volumes()
     InterlockingGenerator::generate_embedding_wall(this);
     m_print->throw_if_canceled();
 
+    // TODO(filament-shrink): refactor — apply per role/region in perimeter & infill stages instead of baking
+    //   into posSlice geometry. Current impl scales whole region by the wall_filament's shrink, which:
+    //     (1) forces posSlice invalidation whenever wall_filament changes (see PrintObject::invalidate_state_by_config_options),
+    //     (2) ignores per-role shrink (infill/solid_infill filament may differ from wall_filament).
     // SuperSlicer: filament shrink
     for (Layer *layer : m_layers) {
         for (size_t i = 0; i < layer->region_count(); ++i) {

@@ -3,8 +3,22 @@
 #include "Callbacks.hpp"
 #include "TriMesh.hpp"
 #include "opencv2/core.hpp"
+#include <functional>
+#include <string>
 
 namespace Slic3r { namespace tex2color {
+
+enum class MeshRepairDecision {
+    Ask,
+    ImportWithoutRepair,
+    RepairAndImport
+};
+
+using MeshRepairCallback = std::function<bool(const indexed_triangle_set& mesh,
+                                              indexed_triangle_set&       repaired_mesh,
+                                              std::function<void(const char* message, unsigned progress)> progress_callback,
+                                              std::function<bool()> cancel_callback,
+                                              std::string* error_message)>;
 
 struct TextureToColorSettings {
     std::size_t target_colors_num = 4;  // 目标颜色数量, 为0时, 自适应计算; 否则计算指定数目的颜色聚类
@@ -18,6 +32,13 @@ struct TextureToColorSettings {
 
     double max_color_distance = 25.0;  // 自适应聚类允许的最大簇内半径(CIEDE2000 ΔE)
     std::size_t max_cluster_k = 32;  // 自适应聚类的最大颜色数量上限
+
+    MeshRepairDecision mesh_repair_decision = MeshRepairDecision::ImportWithoutRepair;
+
+    // Set by TextureToColor when Ask is selected and mesh repair needs user confirmation.
+    bool* mesh_repair_decision_required = nullptr;
+
+    MeshRepairCallback mesh_repair_callback;
 };
 
 /**

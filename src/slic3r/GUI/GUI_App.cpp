@@ -34,6 +34,11 @@
 #include <boost/nowide/convert.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
+#include "Printer/LiveViewTrackContext.h"
 
 #include <wx/stdpaths.h>
 #include <wx/imagpng.h>
@@ -70,6 +75,7 @@
 #include "GUI_Utils.hpp"
 #include "3DScene.hpp"
 #include "MainFrame.hpp"
+#include "slic3r/GUI/Widgets/WebView.hpp"
 #include "Plater.hpp"
 #include "GLCanvas3D.hpp"
 #include "EncodedFilament.hpp"
@@ -116,6 +122,7 @@
 #include "ModelMall.hpp"
 #include "HintNotification.hpp"
 #include "BBLUtil.hpp"
+#include "fila_manager/wgtFilaManagerFeature.h"
 
 //#ifdef WIN32
 //#include "BaseException.h"
@@ -1440,8 +1447,25 @@ GUI_App::GUI_App()
     }
     this->init_download_path();
 
+#if defined(__WXOSX__)
+    m_macos_pending_pump_timer.Bind(wxEVT_TIMER, &GUI_App::on_macos_pending_pump, this);
+#endif
+
     reset_to_active();
 }
+
+#if defined(__WXOSX__)
+void GUI_App::on_macos_pending_pump(wxTimerEvent& WXUNUSED(evt))
+{
+    // STUDIO-18472: drain wx pending events ourselves. After the Filament Manager
+    // WKWebView churn the macOS run loop no longer reliably wakes to call
+    // ProcessPendingEvents() from its observer, which strands deferred actions
+    // (project restore, tab-bar page switches posted via wxPostEvent). The
+    // HasPendingEvents() guard makes this a no-op on the common (healthy) path.
+    if (wxTheApp && wxTheApp->HasPendingEvents())
+        wxTheApp->ProcessPendingEvents();
+}
+#endif
 
 void GUI_App::shutdown()
 {
@@ -2059,21 +2083,25 @@ void GUI_App::init_networking_callbacks()
             }
             if (return_code < 0) { //#define MQTTASYNC_SUCCESS 0
                 GUI::wxGetApp().CallAfter([this] {
-                    static bool is_showing = false;
-                    if (is_showing) return;
-                    is_showing = true;
+                    m_homepage_server_connect_failed = true;
+                    sync_left_server_connect_status();
+
+                    static bool s_mqtt_connect_failed_dialog_shown = false;
+                    if (s_mqtt_connect_failed_dialog_shown) return;
+                    s_mqtt_connect_failed_dialog_shown = true;
                     BOOST_LOG_TRIVIAL(trace) << "static: server connection failed";
                     MessageDialog msg_dlg(nullptr, _L("Failed to connect to the cloud device server. Please check your network and firewall."), "", wxOK);
                     msg_dlg.ShowModal();
-                    is_showing = false;
                 });
                 return;
             }
             GUI::wxGetApp().CallAfter([this] {
-                if (is_closing())
-                    return;
-                BOOST_LOG_TRIVIAL(trace) << "static: server connected";
-                m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
+                    if (is_closing())
+                        return;
+                    m_homepage_server_connect_failed = false;
+                    sync_left_server_connect_status();
+                    BOOST_LOG_TRIVIAL(trace) << "static: server connected";
+                    m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
                     if (this->is_enable_multi_machine()) {
                         auto evt = new wxCommandEvent(EVT_UPDATE_MACHINE_LIST);
                         wxQueueEvent(this, evt);
@@ -2470,6 +2498,18 @@ static LogEncOptions s_get_log_enc_opts()
     return enc_options;
 };
 
+bool GUI_App::confirm_mesh_paint_warning()
+{
+    MessageDialog dlg(nullptr,
+        _L("This operation rebuilds the model's mesh. Painted color, supports, seam and "
+           "fuzzy-skin will be transferred to the new mesh by a best-effort approximation, "
+           "so the result may be slightly off and, in rare cases, some painting may be lost.\n\n"
+           "Do you want to continue?"),
+        _L("Painting may change"),
+        wxICON_WARNING | wxYES_NO | wxNO_DEFAULT);
+    return dlg.ShowModal() == wxID_YES;
+}
+
 void GUI_App::init_app_config()
 {
 	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.
@@ -2548,6 +2588,9 @@ void GUI_App::init_app_config()
         }
         // Save orig_version here, so its empty if no app_config existed before this run.
         m_last_config_version = app_config->orig_version();//parse_semver_from_ini(app_config->config_path());
+
+        auto loglevel = wxGetApp().app_config->get("severity_level");
+        Slic3r::set_logging_level(Slic3r::level_string_to_boost(loglevel));
     }
     else {
 #ifdef _WIN32
@@ -2858,6 +2901,41 @@ class wxBoostLog : public wxLog
     }
 };
 
+// Populate process-wide live-view track context (client + session).
+// Called once during GUI_App::OnInit, before any tunnel-using code can emit
+// a track event.
+//
+// Fields filled here are the ones we can know reliably at startup. Other
+// fields (region / network_type / os_version) are intentionally left empty
+// — they can be filled later as the data becomes available; build_envelope
+// just skips empty strings.
+static void init_live_view_track_context(AppConfig* app_config)
+{
+    namespace track = BambuLiveViewTrack;
+
+    track::ClientInfo client;
+    client.client_ver = SLIC3R_VERSION;
+    if (app_config) {
+        client.client_id = app_config->get("slicer_uuid");
+    }
+#if defined(_WIN32)
+    client.platform = "windows";
+#elif defined(__APPLE__)
+    client.platform = "macos";
+#else
+    client.platform = "linux";
+#endif
+
+    track::SessionInfo session;
+    session.session_id = boost::uuids::to_string(boost::uuids::random_generator()());
+    session.start_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+
+    auto& ctx = track::LiveViewTrackContext::instance();
+    ctx.init_client(client);
+    ctx.init_session(session);
+}
+
 std::string get_system_info()
 {
     std::stringstream out;
@@ -2950,6 +3028,8 @@ bool GUI_App::on_init_inner()
 #endif
 
     BOOST_LOG_TRIVIAL(info) << get_system_info();
+
+    init_live_view_track_context(app_config);
 
 // initialize label colors and fonts
     init_label_colours();
@@ -3089,6 +3169,11 @@ bool GUI_App::on_init_inner()
     }
 
     BBLSplashScreen * scrn = nullptr;
+
+    // BBS: ensure the splash screen is torn down on every exit path safely
+    ScopeGuard delete_scrn([&scrn]() {
+        if (scrn) scrn->Destroy();
+    });
     const bool show_splash_screen = true;
     if (show_splash_screen) {
         // make a bitmap with dark grey banner on the left side
@@ -3105,7 +3190,7 @@ bool GUI_App::on_init_inner()
 
         BOOST_LOG_TRIVIAL(info) << "begin to show the splash screen...";
         //BBS use BBL splashScreen
-        scrn = new BBLSplashScreen(bmp, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 10000, splashscreen_pos);
+        scrn = new BBLSplashScreen(bmp, wxSPLASH_CENTRE_ON_SCREEN, 0, splashscreen_pos);
 #ifndef __linux__
         wxYield();
 #endif
@@ -3283,30 +3368,41 @@ bool GUI_App::on_init_inner()
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
 
-    // Initialize Filament Manager store & sync
-    if (!m_fila_manager_store) {
-        m_fila_manager_store = new wgtFilaManagerStore();
-        m_fila_manager_store->load();
-        BOOST_LOG_TRIVIAL(info) << "Filament Manager store initialized";
-    }
-    if (!m_fila_manager_sync) {
-        m_fila_manager_sync = new wgtFilaManagerSync(m_fila_manager_store);
-        BOOST_LOG_TRIVIAL(info) << "Filament Manager sync initialized";
-    }
-    // Cloud layer — owns HTTP client, high-level sync and the serialization dispatcher.
-    if (!m_fila_manager_cloud_client) {
-        m_fila_manager_cloud_client = new wgtFilaManagerCloudClient();
-        BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud client initialized";
-    }
-    if (!m_fila_manager_cloud_sync) {
-        m_fila_manager_cloud_sync = new wgtFilaManagerCloudSync(m_fila_manager_store,
-                                                                m_fila_manager_cloud_client);
-        BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud sync initialized";
-    }
-    if (!m_fila_manager_cloud_disp) {
-        m_fila_manager_cloud_disp = new wgtFilaManagerCloudDispatcher(m_fila_manager_cloud_sync,
-                                                                     m_fila_manager_cloud_client);
-        BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud dispatcher initialized";
+#ifdef __APPLE__
+    constexpr bool is_macos = true;
+#else
+    constexpr bool is_macos = false;
+#endif
+    m_disable_fila_manager = is_fila_manager_disabled_by_config(
+        app_config->get(FilaManagerEnabledConfigKey), is_macos);
+    if (m_disable_fila_manager) {
+        BOOST_LOG_TRIVIAL(info) << "Filament Manager disabled by " << FilaManagerEnabledConfigKey;
+    } else {
+        // Initialize Filament Manager store & sync
+        if (!m_fila_manager_store) {
+            m_fila_manager_store = new wgtFilaManagerStore();
+            m_fila_manager_store->load();
+            BOOST_LOG_TRIVIAL(info) << "Filament Manager store initialized";
+        }
+        if (!m_fila_manager_sync) {
+            m_fila_manager_sync = new wgtFilaManagerSync(m_fila_manager_store);
+            BOOST_LOG_TRIVIAL(info) << "Filament Manager sync initialized";
+        }
+        // Cloud layer — owns HTTP client, high-level sync and the serialization dispatcher.
+        if (!m_fila_manager_cloud_client) {
+            m_fila_manager_cloud_client = new wgtFilaManagerCloudClient();
+            BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud client initialized";
+        }
+        if (!m_fila_manager_cloud_sync) {
+            m_fila_manager_cloud_sync = new wgtFilaManagerCloudSync(m_fila_manager_store,
+                                                                    m_fila_manager_cloud_client);
+            BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud sync initialized";
+        }
+        if (!m_fila_manager_cloud_disp) {
+            m_fila_manager_cloud_disp = new wgtFilaManagerCloudDispatcher(m_fila_manager_cloud_sync,
+                                                                         m_fila_manager_cloud_client);
+            BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud dispatcher initialized";
+        }
     }
 
     BOOST_LOG_TRIVIAL(info) << "create the main window";
@@ -3448,8 +3544,6 @@ bool GUI_App::on_init_inner()
     flush_logs();
 
     BOOST_LOG_TRIVIAL(info) << "finished the gui app init";
-    //BBS: delete splash screen
-    delete scrn;
     return true;
 }
 
@@ -3604,6 +3698,9 @@ __retry:
             m_agent->set_country_code(country_code);
             m_agent->start();
             m_load_last_machine.InnerLoad(m_agent, getDeviceManager());
+            if (auto dev = getDeviceManager()) {
+                dev->restore_local_machines_from_user_access_config();
+            }
         }
     }
     else {
@@ -4081,6 +4178,21 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI enter";
     m_is_recreating_gui = true;
 
+#if defined(__WXOSX__)
+    // macOS root cause (STUDIO-18472): switching language rebuilds the MainFrame and
+    // defers destruction of the old one (old_main_frame->Destroy() below), which only
+    // completes once wxEVT_IDLE fires. If the old frame still hosts a live Filament
+    // Manager WKWebView (e.g. the language was changed while that tab was visible, or
+    // the asynchronous about:blank teardown from a tab switch had not finished yet),
+    // its React app keeps the CFRunLoop busy and starves idle app-wide, so the old
+    // frame is never collected and the new frame cannot render or switch tabs.
+    // Proactively suspend it here so the old frame is guaranteed quiet before its
+    // deferred destruction, independent of which tab was visible or how fast the user
+    // reached Preferences. No-op off macOS.
+    if (mainframe && mainframe->web_device())
+        mainframe->web_device()->Suspend();
+#endif
+
     update_http_extra_header();
 
     mainframe->shutdown();
@@ -4136,6 +4248,17 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     update_publish_status();
 
     m_is_recreating_gui = false;
+
+#if defined(__WXOSX__)
+    // STUDIO-18472: a GUI rebuild just happened (and trigger_restore_project()
+    // queued EVT_RESTORE_PROJECT). From here on the macOS run loop may fail to
+    // wake for wx pending events after the Filament Manager WKWebView churn, so
+    // arm the pending-event pump for the rest of the session. This dispatches
+    // the deferred restore promptly (prepare canvas no longer stays blank) and
+    // keeps later tab-bar page switches (posted via wxPostEvent) responsive.
+    if (!m_macos_pending_pump_timer.IsRunning())
+        m_macos_pending_pump_timer.Start(30);
+#endif
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI exit";
 }
@@ -4445,6 +4568,11 @@ wxString GUI_App::transition_tridid(int trid_id, std::optional<int> total_extrud
         prefix.append(base);
         return prefix;
     }
+    else if (trid_id >= 24 && trid_id <= 27 )
+    {
+        int id_suffix = trid_id - 24 + 1;//ams lite for n9 trid_id start from 24
+        return wxString::Format("Q%d", id_suffix);
+    }
     else {
         int id_index = std::clamp((int)ceil(trid_id / 4), 0, 25);
         int id_suffix = trid_id % 4 + 1;
@@ -4471,12 +4599,25 @@ void GUI_App::get_login_info()
             GUI::wxGetApp().run_script_left(strJS);
         }
         else {
+            m_homepage_server_connect_failed = false;
             m_agent->user_logout();
             std::string logout_cmd = m_agent->build_logout_cmd();
             wxString strJS = wxString::Format("window.postMessage(%s)", logout_cmd);
             GUI::wxGetApp().run_script_left(strJS);
         }
     }
+    sync_left_server_connect_status();
+}
+
+void GUI_App::sync_left_server_connect_status()
+{
+    json msg           = json::object();
+    msg["sequence_id"] = "10001";
+    msg["command"]     = "homepage_server_connect_status";
+    msg["failed"]      = m_homepage_server_connect_failed ? 1 : 0;
+
+    wxString strJS = wxString::Format("window.postMessage(%s)", msg.dump(-1, ' ', false, json::error_handler_t::ignore));
+    GUI::wxGetApp().run_script_left(strJS);
 }
 
 bool GUI_App::is_user_login()
@@ -4517,11 +4658,15 @@ void GUI_App::request_user_login(int online_login)
 
 void GUI_App::request_user_logout()
 {
+    m_homepage_server_connect_failed = false;
+    sync_left_server_connect_status();
+
     if (m_agent && m_agent->is_user_login()) {
         m_load_last_machine.is_list_ok = false;
         m_load_last_machine.is_mqtt_ok = false;
         // Update data first before showing dialogs
         m_agent->user_logout(true);
+        WebView::ClearBambulabTokenCookies();
         if (auto obj = m_device_manager->get_selected_machine();
             obj && obj->is_cloud_mode_printer()) {
             m_device_manager->record_user_last_machine("");
@@ -4543,15 +4688,15 @@ void GUI_App::request_user_logout()
         GUI::wxGetApp().stop_sync_user_preset();
 
         // Drop queued cloud ops so they don't fire against a stale user.
-        if (m_fila_manager_cloud_disp) {
+        if (!m_disable_fila_manager && m_fila_manager_cloud_disp) {
             m_fila_manager_cloud_disp->clear_pending();
         }
         // STUDIO-18155: 清 AMS auto-push 节流账本，避免账号 A 的 cooldown
         // 影响登入账号 B 后第一次 sync 触发 push 的时机。
-        if (m_fila_manager_cloud_sync) {
+        if (!m_disable_fila_manager && m_fila_manager_cloud_sync) {
             m_fila_manager_cloud_sync->throttle().clear_all();
         }
-        if (mainframe && mainframe->web_device()) {
+        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
             mainframe->web_device()->NotifyFilamentSessionState();
         }
     }
@@ -5191,6 +5336,7 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
         dev->update_user_machine_list_info();
         CallAfter([this, dev]() {
             m_load_last_machine.TryLoadFromHttpCB(m_agent, dev);
+            dev->restore_local_machines_from_user_access_config();
         });
     });
 
@@ -5204,10 +5350,10 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 
         // Trigger filament-manager cloud pull on the dispatcher queue; no-op if
         // already pulling.  Runs after login so auth token is available.
-        if (m_fila_manager_cloud_disp) {
+        if (!m_disable_fila_manager && m_fila_manager_cloud_disp) {
             m_fila_manager_cloud_disp->enqueue_pull();
         }
-        if (mainframe && mainframe->web_device()) {
+        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
             mainframe->web_device()->NotifyFilamentSessionState();
         }
     }
@@ -5293,11 +5439,15 @@ void GUI_App::check_update(bool show_tips, int by_user)
     } else {
         wxGetApp().app_config->set("upgrade", "force_upgrade", false);
 
-        if (show_tips) {
+        // When the beta channel is enabled, defer the "newest version" toast to
+        // check_beta_version(): the stable channel says no, but GitHub may still have
+        // a newer beta. Showing the toast now would contradict the beta dialog that
+        // pops up moments later from the async GitHub check.
+        if (show_tips && app_config->get("enable_beta_version_update") != "true") {
             this->no_new_version();
+        } else {
+            check_beta_version(show_tips);
         }
-
-        check_beta_version();
     }
 }
 
@@ -5332,10 +5482,14 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
                 if (j["message"].get<std::string>() == "success") {
                     if (j.contains("software")) {
                         if (j["software"].empty()) {
-                            if (show_tips) {
+                            // Same reasoning as in check_update(): suppress the toast when
+                            // the beta channel is enabled so it cannot contradict the beta
+                            // release dialog raised by the async GitHub check below.
+                            if (show_tips && app_config->get("enable_beta_version_update") != "true") {
                                 this->no_new_version();
+                            } else {
+                                check_beta_version(show_tips);
                             }
-                            check_beta_version();
                         }
                         else {
                             if (j["software"].contains("url")
@@ -5368,8 +5522,10 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
     }).perform();
 }
 
-void GUI_App::check_beta_version()
+void GUI_App::check_beta_version(bool show_tips_when_no_beta)
 {
+    // When the beta channel is off the stable callers have already shown the toast
+    // (see check_update / check_new_version), so we just bail out here.
     if (app_config->get("enable_beta_version_update") != "true") {
         return;
     }
@@ -5396,7 +5552,7 @@ void GUI_App::check_beta_version()
     http.header("accept", "application/json")
         .timeout_connect(TIMEOUT_CONNECT)
         .timeout_max(TIMEOUT_RESPONSE)
-        .on_complete([this, platform](std::string body, unsigned) {
+        .on_complete([this, platform, show_tips_when_no_beta](std::string body, unsigned) {
         try {
             json versions = json::parse(body, nullptr, false);
             for (auto version : versions){
@@ -5422,7 +5578,12 @@ void GUI_App::check_beta_version()
                                     version_info.url = url;
                                     version_info.description = "###" + std::string(version["html_url"]) + "###";
                                     version_info.force_upgrade = false;
-                                    CallAfter([this]() {
+                                    CallAfter([this, show_tips_when_no_beta]() {
+                                        auto fallback_tips = [this, show_tips_when_no_beta]() {
+                                            if (show_tips_when_no_beta) {
+                                                this->no_new_version();
+                                            }
+                                        };
 
                                         if (version_info.version_str.empty() || version_info.url.empty()) {
                                             return;
@@ -5433,6 +5594,7 @@ void GUI_App::check_beta_version()
                                         if (curr_version && remote_version && (*remote_version > *curr_version)) {
                                             std::string skip_ver = app_config->get("app", "skip_version");
                                             if (!skip_ver.empty() && version_info.version_str <= skip_ver) {
+                                                fallback_tips();
                                                 return;
                                             }
 
@@ -5446,23 +5608,42 @@ void GUI_App::check_beta_version()
                                                 GUI::wxGetApp().request_new_version(2);
                                                 break;
                                             case wxID_CANCEL:
+                                                // Triggered only by the explicit
+                                                // "Don't show me Beta updates again" button.
                                                 app_config->set("enable_beta_version_update", "false");
                                                 break;
                                             case wxID_NO:
                                                 wxGetApp().set_skip_version(true);
                                                 break;
+                                            case wxID_CLOSE:
+                                                // Window close (X): dismiss the dialog without
+                                                // touching the beta-channel preference or
+                                                // skip_version. Same as default, listed
+                                                // explicitly to document the intent.
+                                                break;
                                             default:
                                                 break;
                                             }
+                                        } else {
+                                            fallback_tips();
                                         }
                                     });
                                 }
                             }
                         }
+                        // Newest beta located and scheduled; stop scanning older entries.
+                        return;
                     }
                 }
-                return;
             }
+            // No beta release exists across all GitHub releases (e.g. the newest
+            // release is stable). Fall back to the regular "no new version" toast
+            // instead of silently returning after inspecting only the first entry.
+            CallAfter([this, show_tips_when_no_beta]() {
+                if (show_tips_when_no_beta) {
+                    this->no_new_version();
+                }
+            });
         }
         catch (...) {
             ;
@@ -6019,6 +6200,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
     m_user_sync_token.reset(new int(0));
     if (with_progress_dlg) {
         auto dlg = new ProgressDialog(_L("Loading"), "", 100, this->mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+        dlg->EnableYield(false);
         dlg->Update(0, _L("Loading user preset"));
         progressFn = [this, dlg](int percent) {
             CallAfter([=]{

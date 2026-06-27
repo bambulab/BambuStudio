@@ -37,6 +37,12 @@ namespace FlushPredict
 
 class FlushVolPredictor;
 
+// Look up the measured purge volume for a filament-id pair (e.g. "GFA00" + "GFG00").
+// Data comes from resources/flush/flush_data_material_pair.json and is loaded once.
+// Returns true and writes `purge` when the pair is found, false otherwise (caller keeps
+// the color-based predicted volume in that case).
+bool query_measured_purge_volume(const std::string& from_filament_id, const std::string& to_filament_id, float& purge);
+
 class GenericFlushPredictor
 {
     using RGB = FlushPredict::RGBColor;

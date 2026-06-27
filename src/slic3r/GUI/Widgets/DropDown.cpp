@@ -376,16 +376,17 @@ void DropDown::render(wxDC &dc)
             continue;
         }
 
+        const bool is_top_level_group = group.IsEmpty() && !item.group.IsEmpty();
         auto &  icon  = item.icon;
         auto size2 = GetBmpSize(icon);
         if (iconSize.x > 0) {
-            if (icon.IsOk()) {
+            if (!is_top_level_group && icon.IsOk()) {
                 pt.y += (rcContent.height - size2.y) / 2;
                 dc.DrawBitmap(icon, pt);
             }
             pt.x += iconSize.x + 5;
             pt.y = rcContent.y;
-        } else if (icon.IsOk()) {
+        } else if (!is_top_level_group && icon.IsOk()) {
             pt.y += (rcContent.height - size2.y) / 2;
             dc.DrawBitmap(icon, pt);
             pt.x += size2.x + 5;
@@ -510,7 +511,8 @@ void DropDown::messureSize()
             if (group.IsEmpty() && !item.group.IsEmpty())
                 size1.x += 5 + arrow_bitmap.GetBmpWidth();
         }
-        if (item.icon.IsOk()) {
+        const bool is_top_level_group = group.IsEmpty() && !item.group.IsEmpty();
+        if (!is_top_level_group && item.icon.IsOk()) {
             wxSize size2 = GetBmpSize(item.icon);
             if (size2.x > iconSize.x)
                 iconSize = size2;

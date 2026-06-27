@@ -1,0 +1,273 @@
+# makefile for Haru Free PDFLibrary II (Libharu)
+# Copyright (C) 1999-2006 Takeshi Kanno
+# For conditions of distribution and use, see copyright notice in hpdf.h
+#
+# To compile, type:
+#   .\configure; make
+# If you wish to build zlib as a shared library, use: ./configure -s
+# To install /usr/local/lib/libhpdf.* and /usr/local/include/hpdf.h, type:
+#    make install
+# To install in $HOME instead of /usr/local, use:
+#    make install prefix=$HOME
+
+CC=bcc32
+PREFIX=/usr/local
+
+LIBNAME=libhpdf.lib
+SONAME=libhpdf.dll
+SOVER1=.1
+SOVER2=.0.0
+LIBTARGET=libhpdf.lib
+CFLAGS=-WM -O2 -d -q -w-8057 -w-8012 -Iinclude -Iwin32\include -nsrc 
+CFLAGS_DEMO=-WM -O2 -d -q -w-8057 -w-8012 -Iinclude -Iwin32\include -D__WIN32__
+CFLAGS_EXE=-e
+LDFLAGS=/Lwin32\bcc32 libpng.lib zlib.lib 
+LDFLAGS_DEMO1=/L. /Lwin32\bcc32 libhpdf.lib libpng.lib zlib.lib 
+LDFLAGS_DEMO2=
+DEFNAME=
+RESNAME=win32/bcc32/libhpdf.res
+
+OBJS = \
+	src\hpdf_utils.obj \
+	src\hpdf_error.obj \
+	src\hpdf_mmgr.obj \
+	src\hpdf_list.obj \
+	src\hpdf_streams.obj \
+	src\hpdf_objects.obj \
+	src\hpdf_null.obj \
+	src\hpdf_boolean.obj \
+	src\hpdf_number.obj \
+	src\hpdf_real.obj \
+	src\hpdf_name.obj \
+	src\hpdf_array.obj \
+	src\hpdf_dict.obj \
+	src\hpdf_xref.obj \
+	src\hpdf_encoder.obj \
+	src\hpdf_string.obj \
+	src\hpdf_binary.obj \
+	src\hpdf_encrypt.obj \
+	src\hpdf_encryptdict.obj \
+	src\hpdf_fontdef.obj \
+	src\hpdf_fontdef_tt.obj \
+	src\hpdf_fontdef_type1.obj \
+	src\hpdf_fontdef_base14.obj \
+	src\hpdf_fontdef_cid.obj \
+	src\hpdf_font.obj \
+	src\hpdf_font_type1.obj \
+	src\hpdf_font_tt.obj \
+	src\hpdf_font_cid.obj \
+	src\hpdf_doc.obj \
+	src\hpdf_info.obj \
+	src\hpdf_catalog.obj \
+	src\hpdf_page_label.obj\
+	src\hpdf_gstate.obj \
+	src\hpdf_pages.obj \
+	src\hpdf_page_operator.obj \
+	src\hpdf_destination.obj \
+	src\hpdf_annotation.obj \
+	src\hpdf_outline.obj \
+	src\hpdf_image.obj \
+	src\hpdf_encoder_jp.obj \
+	src\hpdf_encoder_kr.obj \
+	src\hpdf_encoder_cns.obj \
+	src\hpdf_encoder_cnt.obj \
+	src\hpdf_fontdef_jp.obj \
+	src\hpdf_fontdef_kr.obj \
+	src\hpdf_fontdef_cns.obj \
+	src\hpdf_fontdef_cnt.obj \
+	src\hpdf_image_png.obj \
+	src\hpdf_image_ccitt.obj \
+	src\hpdf_doc_png.obj \
+	src\hpdf_ext_gstate.obj \
+	src\hpdf_3dmeasure.obj \
+	src\hpdf_namedict.obj \
+	src\hpdf_exdata.obj \
+	src\hpdf_u3d.obj 
+
+PROGRAMS = \
+	demo\encoding_list.exe \
+	demo\font_demo.exe \
+	demo\text_demo.exe \
+	demo\text_demo2.exe \
+	demo\image_demo.exe \
+	demo\jpeg_demo.exe \
+	demo\jpfont_demo.exe \
+	demo\line_demo.exe \
+	demo\link_annotation.exe \
+	demo\outline_demo.exe \
+	demo\png_demo.exe \
+	demo\text_annotation.exe \
+	demo\ttfont_demo.exe \
+	demo\character_map.exe \
+	demo\grid_sheet.exe \
+	demo\arc_demo.exe \
+	demo\raw_image_demo.exe \
+	demo\encryption.exe \
+	demo\permission.exe \
+	demo\slide_show_demo.exe \
+	demo\ext_gstate_demo.exe \
+
+.SUFFIXES:  .c .obj
+
+all: $(LIBTARGET)
+
+$(LIBNAME): $(OBJS)
+	if exist *.lib del *.lib
+	tlib /a $@ +$(OBJS),$@.txt
+
+$(SONAME): $(OBJS)
+	-@if exist libhpdf* del libhpdf*
+	$(CC) -O2 -WD -e$(SONAME) -DHPDF_DLL_MAKE $(LDFLAGS) $(OBJS)
+	implib -f $(LIBNAME) $(SONAME)
+	copy $(SONAME) demo
+	
+
+demo: $(LIBTARGET) $(PROGRAMS)
+
+clean:
+	if exist src\*.obj del src\*.obj 
+	if exist src\*.o del src\*.o 
+	if exist *.lib del *.lib 
+	if exist *.dll del *.dll 
+	if exist demo\*.exe del demo\*.exe 
+	if exist demo\*.tds del demo\*.tds 
+	if exist *.obj del *.obj
+
+install: all installfiles
+
+installfiles:
+	echo target "install" is not supported on windows platforms.
+	
+	
+	
+	
+	
+	
+
+.c.obj:
+	$(CC)  $(CFLAGS) -c $*.c
+
+demo\encoding_list.exe : demo\encoding_list.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\encoding_list.c  $(LDFLAGS_DEMO2)
+	cd demo 
+	.\encoding_list.exe 
+	cd ..
+
+demo\font_demo.exe : demo\font_demo.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\font_demo.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\font_demo.exe 
+	cd ..
+
+demo\text_demo.exe : demo\text_demo.c demo\grid_sheet.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\text_demo.c demo\grid_sheet.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\text_demo.exe 
+	cd ..
+
+demo\text_demo2.exe : demo\text_demo2.c demo\grid_sheet.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\text_demo2.c demo\grid_sheet.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\text_demo2.exe 
+	cd ..
+
+demo\image_demo.exe : demo\image_demo.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\image_demo.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\image_demo.exe 
+	cd ..
+
+demo\jpeg_demo.exe : demo\jpeg_demo.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\jpeg_demo.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\jpeg_demo.exe 
+	cd ..
+
+demo\jpfont_demo.exe : demo\jpfont_demo.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\jpfont_demo.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\jpfont_demo.exe 
+	cd ..
+
+demo\line_demo.exe : demo\line_demo.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\line_demo.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\line_demo.exe 
+	cd ..
+
+demo\link_annotation.exe : demo\link_annotation.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\link_annotation.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\link_annotation.exe 
+	cd ..
+
+demo\outline_demo.exe : demo\outline_demo.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\outline_demo.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\outline_demo.exe 
+	cd ..
+
+demo\png_demo.exe : demo\png_demo.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\png_demo.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\png_demo.exe 
+	cd ..
+
+demo\text_annotation.exe : demo\text_annotation.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\text_annotation.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\text_annotation.exe 
+	cd ..
+
+demo\encryption.exe : demo\encryption.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\encryption.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\encryption.exe 
+	cd ..
+
+demo\permission.exe : demo\permission.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\permission.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\permission.exe 
+	cd ..
+
+demo\ttfont_demo.exe : demo\ttfont_demo.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\ttfont_demo.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\ttfont_demo.exe ttfont\PenguinAttack.ttf -E 
+	cd ..
+
+demo\character_map.exe : demo\character_map.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\character_map.c $(LDFLAGS_DEMO2)
+
+demo\raw_image_demo.exe : demo\raw_image_demo.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\grid_sheet.c demo\raw_image_demo.c $(LDFLAGS_DEMO2)
+	cd demo 
+	.\raw_image_demo.exe 
+	cd ..
+
+demo\arc_demo.exe : demo\arc_demo.c demo\grid_sheet.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\grid_sheet.c demo\arc_demo.c $(LDFLAGS_DEMO2) 
+	cd demo 
+	.\arc_demo.exe 
+	cd ..
+
+demo\grid_sheet.exe : demo\grid_sheet.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) -DSTAND_ALONE $(LDFLAGS_DEMO1) demo\grid_sheet.c $(LDFLAGS_DEMO2) 
+	cd demo 
+	.\grid_sheet.exe 
+	cd ..
+
+demo\slide_show_demo.exe : demo\slide_show_demo.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\slide_show_demo.c $(LDFLAGS_DEMO2) 
+	cd demo 
+	.\slide_show_demo.exe 
+	cd ..
+
+demo\ext_gstate_demo.exe : demo\ext_gstate_demo.c $(LIBTARGET)
+	$(CC) $(CFLAGS_EXE)$@ $(CFLAGS_DEMO) $(LDFLAGS_DEMO1) demo\ext_gstate_demo.c $(LDFLAGS_DEMO2) 
+	cd demo 
+	.\ext_gstate_demo.exe 
+	cd ..
+
+

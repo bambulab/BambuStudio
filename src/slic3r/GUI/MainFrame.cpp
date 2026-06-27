@@ -127,6 +127,12 @@ static bool should_skip_fit_camera_shortcut(Plater *plater)
            is_gizmo_running(plater->get_current_canvas3D());
 }
 
+static bool should_block_window_resize_for_assembly(Plater *plater)
+{
+    GLCanvas3D *canvas = plater ? plater->get_assmeble_canvas3D() : nullptr;
+    return canvas && canvas->is_assembly_play_or_export_mode();
+}
+
 enum class ERescaleTarget
 {
     Mainframe,
@@ -242,7 +248,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
     //reset log level
     auto loglevel = wxGetApp().app_config->get("severity_level");
-    Slic3r::set_logging_level(Slic3r::level_string_to_boost(loglevel));
     std::map<std::string, int> wx_log_levels{{"fatal", wxLOG_FatalError}, {"error", wxLOG_FatalError}, {"warning", wxLOG_Warning},
                                              {"info", wxLOG_Info},        {"debug", wxLOG_Debug},      {"trace", wxLOG_Trace}};
     wxLog::SetLogLevel(wx_log_levels[loglevel]);
@@ -389,6 +394,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 m_topbar->SetMaximizedSize();
             }
 #endif
+        if (should_block_window_resize_for_assembly(m_plater))
+            return;
+
 #ifdef _WIN32
         if (m_is_in_move_or_resize) {
             ULONGLONG now = GetTickCount64();
@@ -520,6 +528,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             event.Veto();
             return;
         }
+        if (GLCanvas3D *canvas = m_plater->get_assmeble_canvas3D()) {
+            canvas->close_project_and_save_assembly_steps_tree();
+        }
 
     #if 0 // BBS
         //if (m_plater != nullptr) {
@@ -571,6 +582,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 j["color_painting"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::MmuSegmentation));
                 j["brimears"]            = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::BrimEars));
                 j["assembly_view"] = get_value("assembly_view");
+                j["assembly_view_export_pdf"] = get_value("assembly_view_export_pdf");
+                j["assembly_view_export_markdown"] = get_value("assembly_view_export_markdown");
+                j["assembly_view_export_mp4"] = get_value("assembly_view_export_mp4");
 
                 agent->track_event("key_func", j.dump());
 
@@ -791,6 +805,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                  m_topbar->EnableUndoItem(m_plater->can_undo());
                  m_topbar->EnableRedoItem(m_plater->can_redo());
              }
+             // Keep the unsaved-changes "*" in the title in sync on all platforms (#9987).
+             if (m_plater)
+                 update_title();
          }));
 #ifdef _MSW_DARK_MODE
     wxGetApp().UpdateDarkUIWin(this);
@@ -904,10 +921,14 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
         break;
     }
     case WM_ENTERSIZEMOVE:
+        if (should_block_window_resize_for_assembly(m_plater))
+            return 0;
         m_is_in_move_or_resize = true;
         break;
     case WM_EXITSIZEMOVE:
         m_is_in_move_or_resize = false;
+        if (should_block_window_resize_for_assembly(m_plater))
+            return 0;
         Refresh();
         Layout();
         wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_NOTICE_CHILDE_SIZE_CHANGED));
@@ -1136,9 +1157,29 @@ void MainFrame::update_filament_tab_ui()
 
 void MainFrame::update_title()
 {
-    // Set the OS window title so screen readers (NVDA, Narrator) announce the app name.
-    // The title bar is custom-drawn by BBLTopbar, so this only affects accessibility.
-    SetTitle("Bambu Studio");
+    if (!m_plater)
+        SetTitle("Bambu Studio");
+    // Prepend "* " while the project has unsaved changes (#9987), on top of the project name
+    // that is already shown: in the custom topbar on Windows, and in the native window title
+    // on macOS/Linux (both set by Plater::priv::set_project_name).
+    const wxString name  = m_plater->get_project_name();
+    const wxString title = (m_plater->is_project_dirty() && !name.IsEmpty()) ? ("* " + name) : name;
+    if (title == m_title_cache)
+        SetTitle("Bambu Studio");
+    m_title_cache = title;
+#ifdef __WINDOWS__
+    if (m_topbar)
+        m_topbar->SetTitle(title);
+    // Also reflect the "*" in the window/taskbar title, which set_project_name builds
+    // as "<name> - BambuStudio".
+    SetTitle(title + " - BambuStudio");
+#else
+    SetTitle(title);
+#ifdef __APPLE__
+    if (!title.IsEmpty())
+        update_title_colour_after_set_title();
+#endif
+#endif
 }
 
 void MainFrame::show_calibration_button(bool show, bool is_BBL)
@@ -1367,12 +1408,22 @@ void MainFrame::init_tabpanel()
             // Defer hash navigation until after the notebook paints (macOS + WKWebView).
             CallAfter([this]() {
                 if (m_web_device && m_tabpanel && m_tabpanel->GetCurrentPage() == m_web_device)
-                    m_web_device->NavigateTo("/filament");
+                    m_web_device->NavigateTo("/filament_manager", /*re_init=*/true);
             });
 #else
-            m_web_device->NavigateTo("/filament");
+            // Switching back to this tab: re-run init() to pick up changes.
+            m_web_device->NavigateTo("/filament_manager", /*re_init=*/true);
 #endif
         }
+#if defined(__WXOSX__)
+        // macOS root cause fix: suspend the Filament Manager WKWebView whenever it
+        // is not the visible tab. Its live React SPA, if left mounted in a hidden
+        // webview, keeps the CFRunLoop busy and starves wxEVT_IDLE app-wide, which
+        // freezes the 3D canvas / tab switching on the prepare page and breaks the
+        // language-switch GUI rebuild. Returning to the tab reloads it (NavigateTo).
+        if (m_web_device && panel != m_web_device)
+            m_web_device->Suspend();
+#endif
 #ifndef __APPLE__
         if (sel == tp3DEditor) {
             m_topbar->EnableUndoRedoItems();
@@ -1427,6 +1478,7 @@ void MainFrame::init_tabpanel()
             m_webview->load_url(url);
         });
         m_tabpanel->AddPage(m_webview, "", "tab_home_active", "tab_home_active", false);
+        m_tabpanel->SetPageToolTip(tpHome, _L("Home"));
         m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     }
 
@@ -1466,8 +1518,10 @@ void MainFrame::init_tabpanel()
     m_calibration->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_calibration, _L("Calibration"), std::string("tab_calibration_active"), std::string("tab_calibration_active"), false);
 
-    m_web_device = new DeviceWebPage(m_tabpanel);
-    m_tabpanel->AddPage(m_web_device, _L("Filament Manager"), std::string("tab_filament_active"), std::string("tab_filament_active"), false);
+    if (!wxGetApp().is_fila_manager_disabled()) {
+        m_web_device = new DeviceWebPage(m_tabpanel);
+        m_tabpanel->AddPage(m_web_device, _L("Filament Manager"), std::string("tab_filament_active"), std::string("tab_filament_active"), false);
+    }
 
     if (m_plater) {
         // load initial config
@@ -1940,12 +1994,11 @@ wxBoxSizer* MainFrame::create_side_tools()
     sizer->Add(expand_program_holder, 0, wxALIGN_CENTER, 0);
     sizer->Add(FromDIP(4), 0, 0, 0, 0);
     sizer->Add(split_line_icon, 0, wxALIGN_CENTER, 0);
-    sizer->Add(FromDIP(10), 0, 0, 0, 0);
+    sizer->Add(FromDIP(6), 0, 0, 0, 0);
     sizer->Add(slice_panel);
-    sizer->Add(FromDIP(15), 0, 0, 0, 0);
+    sizer->Add(FromDIP(8), 0, 0, 0, 0);
     sizer->Add(print_panel);
     sizer->Add(FromDIP(4), 0, 0, 0, 0);
-    sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     sizer->Layout();
 
@@ -2322,7 +2375,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     });
     sizer->Add(aux_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
     */
-    sizer->Add(FromDIP(19), 0, 0, 0, 0);
+    // sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     return sizer;
 }
@@ -3477,10 +3530,10 @@ void MainFrame::init_menubar_as_editor()
             [this]() {return m_plater->is_view3D_shown();; }, this);
         auto flowrate_menu = new wxMenu();
         append_menu_item(
-            flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
+            flowrate_menu, wxID_ANY, _L("Coarse"), _L("Flow rate test - Coarse"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
             [this]() {return m_plater->is_view3D_shown();; }, this);
-        append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
+        append_menu_item(flowrate_menu, wxID_ANY, _L("Fine"), _L("Flow rate test - Fine"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
             [this]() {return m_plater->is_view3D_shown();; }, this);
         m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
@@ -3574,7 +3627,7 @@ void MainFrame::init_menubar_as_editor()
     // Flowrate
     auto flowrate_menu = new wxMenu();
     append_menu_item(
-        flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
+        flowrate_menu, wxID_ANY, _L("Coarse"), _L("Flow rate test - Coarse"),
         [this](wxCommandEvent &) {
             if (m_plater) m_plater->calib_flowrate(1);
         },
@@ -3585,7 +3638,7 @@ void MainFrame::init_menubar_as_editor()
         },
         this);
     append_menu_item(
-        flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
+        flowrate_menu, wxID_ANY, _L("Fine"), _L("Flow rate test - Fine"),
         [this](wxCommandEvent &) {
             if (m_plater) m_plater->calib_flowrate(2);
         },

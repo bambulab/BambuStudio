@@ -1,9 +1,11 @@
 #include "FlushVolPredictor.hpp"
 #include "Utils.hpp"
+#include "nlohmann/json.hpp"
 #include <fstream>
 #include <sstream>
 #include <cmath>
 #include <optional>
+#include <boost/log/trivial.hpp>
 
 namespace FlushPredict
 {
@@ -341,4 +343,78 @@ int GenericFlushPredictor::get_min_flush_volume()
     if (!predictor)
         return std::numeric_limits<int>::max();
     return predictor->get_min_flush_volume();
+}
+
+
+// Measured purge volumes keyed by directional filament-id pairs (From "GFA00" To "GFG00").
+// Loaded once from resources/flush/flush_data_material_pair.json.
+class MaterialPurgeTable
+{
+public:
+    MaterialPurgeTable() = default;
+    explicit MaterialPurgeTable(const std::string& json_file);
+    bool lookup(const std::string& from_id, const std::string& to_id, float& purge) const;
+private:
+    static std::string make_key(const std::string& from_id, const std::string& to_id) { return from_id + "|" + to_id; }
+    std::unordered_map<std::string, float> m_map;
+    bool m_valid{ false };
+};
+
+MaterialPurgeTable::MaterialPurgeTable(const std::string& json_file)
+{
+    std::ifstream in(json_file);
+    if (!in.is_open()) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": measured purge table not found: " << json_file;
+        return;
+    }
+
+    try {
+        nlohmann::json j;
+        in >> j;
+        if (j.contains("pairs")) {
+            for (const auto& item : j["pairs"]) {
+                std::string from_id = item.value("from", std::string());
+                std::string to_id   = item.value("to", std::string());
+                if (from_id.empty() || to_id.empty() || !item.contains("purge"))
+                    continue;
+                m_map[make_key(from_id, to_id)] = item["purge"].get<float>();
+            }
+        }
+        m_valid = true;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": loaded " << m_map.size() << " measured purge pair(s) from " << json_file;
+    }
+    catch (const std::exception& err) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to parse " << json_file << ", reason = " << err.what();
+        m_map.clear();
+        m_valid = false;
+    }
+}
+
+bool MaterialPurgeTable::lookup(const std::string& from_id, const std::string& to_id, float& purge) const
+{
+    if (!m_valid || from_id.empty() || to_id.empty())
+        return false;
+
+    auto iter = m_map.find(make_key(from_id, to_id));
+    if (iter == m_map.end())
+        return false;
+
+    purge = iter->second;
+    return true;
+}
+
+// Cache the parsed table per file path, mirroring FlushVolPredictor's predictor_instances:
+// loaded once on first use and reused afterwards (no per-lookup parsing).
+static std::unordered_map<std::string, MaterialPurgeTable> material_purge_table_instances;
+
+bool query_measured_purge_volume(const std::string& from_filament_id, const std::string& to_filament_id, float& purge)
+{
+    // Build the resource path only once instead of on every lookup.
+    static const std::string path = Slic3r::resources_dir() + "/flush/flush_data_material_pair.json";
+
+    auto iter = material_purge_table_instances.find(path);
+    if (iter == material_purge_table_instances.end())
+        iter = material_purge_table_instances.emplace(path, MaterialPurgeTable(path)).first;
+
+    return iter->second.lookup(from_filament_id, to_filament_id, purge);
 }

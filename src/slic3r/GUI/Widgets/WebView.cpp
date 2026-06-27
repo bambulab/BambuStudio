@@ -20,6 +20,8 @@
 
 #ifdef __WIN32__
 #include <WebView2.h>
+#include <wrl/client.h>
+#include <wrl/event.h>
 #elif defined __linux__
 #include <gtk/gtk.h>
 #define WEBKIT_API
@@ -90,6 +92,20 @@ void enable_default_webview2_cdp_for_internal_builds()
     wxSetEnv("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
              "--remote-debugging-port=9222 --remote-allow-origins=*");
 #endif
+}
+
+// Cookie name to clear and the domain substring it must belong to on logout.
+constexpr wchar_t kLogoutCookieName[]   = L"token";
+constexpr wchar_t kLogoutCookieDomain[] = L"bambulab";
+
+bool domain_matches_bambulab(LPCWSTR domain)
+{
+    if (!domain)
+        return false;
+    std::wstring lower(domain);
+    for (wchar_t &c : lower)
+        c = towlower(c);
+    return lower.find(kLogoutCookieDomain) != std::wstring::npos;
 }
 
 } // namespace
@@ -233,6 +249,12 @@ public:
         assert(iter != g_webviews.end());
         if (iter != g_webviews.end())
             g_webviews.erase(iter);
+        // Also drop it from the delayed list so a pending flush of g_delay_webviews
+        // never calls AddScriptMessageHandler() on an already-destroyed view.
+        // See bambulab/BambuStudio #11004 and #10968.
+        auto diter = std::find(g_delay_webviews.begin(), g_delay_webviews.end(), m_webView);
+        if (diter != g_delay_webviews.end())
+            g_delay_webviews.erase(diter);
     }
     wxWebView *m_webView;
 };
@@ -284,6 +306,10 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     if (edgeFixedDir.DirExists()) {
         wxWebViewEdge::MSWSetBrowserExecutableDir(edgeFixedDir.GetFullPath());
         wxLogMessage("Using fixed edge version");
+    }
+
+    if(!wxWebView::IsBackendAvailable(wxWebViewBackendEdge)) {
+        BOOST_LOG_TRIVIAL(warning) << "WebView2 runtime is not available. WebView based features may not work properly";
     }
 #endif
     auto url2  = url;
@@ -351,6 +377,14 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
         };
 #ifndef __WIN32__
         webView->CallAfter([webView, addScriptMessageHandler] {
+            // This async callback may fire after webView has already been destroyed,
+            // which would call AddScriptMessageHandler() on a dangling pointer
+            // (use-after-free -> pointer-authentication crash on Apple Silicon, or a
+            // long hang during startup on macOS 26.5+). g_webviews lists every live
+            // view, so bail out if this one is already gone.
+            // See bambulab/BambuStudio #11004 and #10968.
+            if (std::find(g_webviews.begin(), g_webviews.end(), webView) == g_webviews.end())
+                return;
 #endif
             if (Slic3r::GUI::wxGetApp().is_adding_script_handler()) {
                 g_delay_webviews.push_back(webView);
@@ -433,6 +467,99 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
     } catch (std::exception &/*e*/) {
         return false;
     }
+}
+
+// Single source of truth for "the active webview backend is CEF/libcef".
+// libcef is built and shipped cross-platform, so when it is enabled BOTH the
+// Windows (WebView2) and macOS (WebKit) cookie paths must be bypassed in favour
+// of the CEF path below. Map this to the real build flag once libcef lands
+// (e.g. wxUSE_WEBVIEW_CHROMIUM or a dedicated define).
+#ifndef BBL_WEBVIEW_USE_CEF
+#  if defined(wxUSE_WEBVIEW_CHROMIUM) && wxUSE_WEBVIEW_CHROMIUM
+#    define BBL_WEBVIEW_USE_CEF 1
+#  else
+#    define BBL_WEBVIEW_USE_CEF 0
+#  endif
+#endif
+
+void WebView::ClearBambulabTokenCookies()
+{
+    // Dispatch on the active webview backend, not the platform: the cookie store
+    // is owned by the backend (WebView2 / WebKit / CEF), so a future backend
+    // switch must land in the matching branch instead of mis-casting the native
+    // pointer returned by GetNativeBackend().
+#if BBL_WEBVIEW_USE_CEF
+    // CEF/Chromium backend (Windows + macOS): cookies live in Chromium's network
+    // context, reachable via CefCookieManager::GetGlobalManager()->
+    // VisitAllCookies(visitor); the visitor sets its deleteCookie out-param for
+    // name=="token" on domains that contain "bambulab". Wire this up once the
+    // libcef headers are part of the build.
+    BOOST_LOG_TRIVIAL(warning)
+        << "WebView: ClearBambulabTokenCookies not yet implemented for the Chromium/CEF backend";
+#elif defined(__WIN32__) && wxUSE_WEBVIEW_EDGE
+    using Microsoft::WRL::ComPtr;
+    using Microsoft::WRL::Callback;
+
+    // Every WebView created via CreateWebView shares one WebView2 profile/cookie
+    // store, so clearing through any live backend covers all of them.
+    ICoreWebView2 *backend = nullptr;
+    for (wxWebView *webView : g_webviews) {
+        if (webView && (backend = static_cast<ICoreWebView2 *>(webView->GetNativeBackend())))
+            break;
+    }
+    if (!backend) {
+        BOOST_LOG_TRIVIAL(warning) << "WebView: ClearBambulabTokenCookies skipped, no WebView2 backend ready";
+        return;
+    }
+
+    ComPtr<ICoreWebView2_2> webView2_2;
+    if (FAILED(backend->QueryInterface(IID_PPV_ARGS(&webView2_2))) || !webView2_2) {
+        BOOST_LOG_TRIVIAL(warning) << "WebView: ClearBambulabTokenCookies failed to get ICoreWebView2_2";
+        return;
+    }
+
+    ComPtr<ICoreWebView2CookieManager> cookieManager;
+    if (FAILED(webView2_2->get_CookieManager(&cookieManager)) || !cookieManager)
+        return;
+
+    // nullptr uri => enumerate all cookies; capturing cookieManager keeps it alive
+    // until the async handler runs. WRL handles the handler's lifetime/refcount.
+    cookieManager->GetCookies(
+        nullptr,
+        Callback<ICoreWebView2GetCookiesCompletedHandler>(
+            [cookieManager](HRESULT result, ICoreWebView2CookieList *list) -> HRESULT {
+                if (FAILED(result) || !list)
+                    return S_OK;
+                UINT count = 0;
+                list->get_Count(&count);
+                for (UINT i = 0; i < count; ++i) {
+                    ComPtr<ICoreWebView2Cookie> cookie;
+                    if (FAILED(list->GetValueAtIndex(i, &cookie)) || !cookie)
+                        continue;
+                    LPWSTR name = nullptr, domain = nullptr;
+                    cookie->get_Name(&name);
+                    cookie->get_Domain(&domain);
+                    if (name && wcscmp(name, kLogoutCookieName) == 0 && domain_matches_bambulab(domain)) {
+                        cookieManager->DeleteCookie(cookie.Get());
+                        BOOST_LOG_TRIVIAL(info) << "WebView: cleared bambulab token cookie";
+                    }
+                    CoTaskMemFree(name);
+                    CoTaskMemFree(domain);
+                }
+                return S_OK;
+            })
+            .Get());
+#elif defined(__WXOSX__)
+    // Native WebKit backend only. Under a macOS CEF build this branch is skipped
+    // because BBL_WEBVIEW_USE_CEF wins above; WKWebsiteDataStore does not own the
+    // CEF cookie store, so it must not run there.
+    // wxWebView WebKit uses the default WKWebsiteDataStore; cookies are process-wide.
+    Slic3r::GUI::WKWebView_clearBambulabTokenCookies();
+    BOOST_LOG_TRIVIAL(info) << "WebView: requested bambulab token cookie cleanup (WebKit)";
+#else
+    BOOST_LOG_TRIVIAL(warning)
+        << "WebView: ClearBambulabTokenCookies has no implementation for the active webview backend";
+#endif
 }
 
 void WebView::RecreateAll()

@@ -19,7 +19,10 @@
 #include "slic3r/GUI/DeviceWeb/DeviceWebPage.hpp"
 #include "slic3r/Utils/BBLUtil.hpp"
 
+#include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Time.hpp"
+
+#include <boost/thread.hpp>
 
 using namespace nlohmann;
 
@@ -318,6 +321,99 @@ namespace Slic3r
         }
 
         return obj;
+    }
+
+    void DeviceManager::restore_local_machines_from_user_access_config()
+    {
+        if (!m_agent || !GUI::wxGetApp().app_config) return;
+
+        AppConfig* config = GUI::wxGetApp().app_config;
+        if (!config->has_section("user_access_code") || !config->has_section("user_access_dev_ip")) return;
+
+        struct LocalAccessInfo
+        {
+            std::string dev_id;
+            std::string dev_ip;
+            std::string access_code;
+        };
+
+        std::vector<LocalAccessInfo> local_access_infos;
+        const auto slicer_uuid = config->get("slicer_uuid");
+        const auto user_access_codes = config->get_section("user_access_code");
+        for (const auto& user_access_code : user_access_codes) {
+            const auto& dev_id = user_access_code.first;
+            const auto& access_code = user_access_code.second;
+            if (dev_id.empty() || access_code.empty() || get_local_machine(dev_id)) continue;
+
+            const auto encoded_dev_ip = config->get("user_access_dev_ip", dev_id);
+            if (encoded_dev_ip.empty()) continue;
+
+            const auto dev_ip = BBLCrossTalk::Decode_DevIp(encoded_dev_ip, slicer_uuid);
+            if (dev_ip.empty()) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Decode_DevIp failed, dev_id=" << BBLCrossTalk::Crosstalk_DevId(dev_id);
+                continue;
+            }
+
+            local_access_infos.push_back({ dev_id, dev_ip, access_code });
+        }
+
+        if (local_access_infos.empty()) return;
+
+        NetworkAgent* agent = m_agent;
+        boost::thread([agent, local_access_infos] {
+            for (const auto& local_access_info : local_access_infos) {
+                if (GUI::wxGetApp().is_closing()) return;
+
+                detectResult detectData;
+                auto result = agent->bind_detect(local_access_info.dev_ip, "secure", detectData);
+                if (result < 0) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": bind_detect failed code=" << result
+                                             << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(local_access_info.dev_id);
+                    continue;
+                }
+
+                if (detectData.dev_id.empty()) {
+                    detectData.dev_id = local_access_info.dev_id;
+                }
+                if (detectData.dev_name.empty()) {
+                    detectData.dev_name = local_access_info.dev_id;
+                }
+                if (detectData.dev_id != local_access_info.dev_id) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": detected dev_id mismatch, config dev_id="
+                                             << BBLCrossTalk::Crosstalk_DevId(local_access_info.dev_id)
+                                             << ", detected dev_id=" << BBLCrossTalk::Crosstalk_DevId(detectData.dev_id);
+                    continue;
+                }
+
+                if (detectData.connect_type != "farm") {
+                    if (detectData.bind_state == "occupied") {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is already occupied, dev_id="
+                                                 << BBLCrossTalk::Crosstalk_DevId(local_access_info.dev_id);
+                        continue;
+                    }
+
+                    if (detectData.connect_type == "cloud") {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is cloud, dev_id="
+                                                 << BBLCrossTalk::Crosstalk_DevId(local_access_info.dev_id);
+                        continue;
+                    }
+                }
+
+                GUI::wxGetApp().CallAfter([detectData, local_access_info]() {
+                    if (GUI::wxGetApp().is_closing()) return;
+                    if (DeviceManager* dev = GUI::wxGetApp().getDeviceManager()) {
+                        if (dev->get_local_machine(local_access_info.dev_id)) return;
+
+                        auto obj = dev->insert_local_device(detectData.dev_name, detectData.dev_id, local_access_info.dev_ip,
+                                                            detectData.connect_type, detectData.bind_state, detectData.version,
+                                                            local_access_info.access_code, detectData.model_id);
+                        if (obj) {
+                            obj->set_user_access_code(local_access_info.access_code);
+                        }
+                    }
+                });
+            }
+        }).detach();
     }
 
     int DeviceManager::query_bind_status(std::string& msg)

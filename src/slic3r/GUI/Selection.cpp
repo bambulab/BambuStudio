@@ -1208,7 +1208,7 @@ void Selection::move_to_center(const Vec3d& displacement, bool local)
             if (local)
                 v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + displacement);
             else {
-                const Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
+                const Vec3d local_displacement = m_cache.volumes_data[i].get_instance_full_matrix().linear().inverse() * displacement;
                 v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
             }
         }
@@ -1217,7 +1217,7 @@ void Selection::move_to_center(const Vec3d& displacement, bool local)
                 v.set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
             }
             else {
-                const Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
+                const Vec3d local_displacement = m_cache.volumes_data[i].get_instance_full_matrix().linear().inverse() * displacement;
                 v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
                 translation_type = Volume;
             }
@@ -1930,13 +1930,18 @@ void Selection::translate(unsigned int object_idx, unsigned int instance_idx, co
     this->set_bounding_boxes_dirty();
 }
 
-void Selection::translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement) {
+void Selection::translate(unsigned int object_idx, unsigned int instance_idx, unsigned int volume_idx, const Vec3d &displacement, bool local)
+{
     if (!m_valid) return;
 
     for (unsigned int i : m_list) {
         GLVolume &v = *(*m_volumes)[i];
-        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx && v.volume_idx() == (int) volume_idx)
-            v.set_volume_offset(v.get_volume_offset() + displacement);
+        if (v.object_idx() == (int) object_idx && v.instance_idx() == (int) instance_idx && v.volume_idx() == (int) volume_idx) {
+            Vec3d local_displacement = displacement;
+            if (!local)
+                local_displacement = v.get_instance_transformation().get_matrix_no_offset().inverse() * displacement;
+            v.set_volume_offset(v.get_volume_offset() + local_displacement);
+        }
     }
 
     this->set_bounding_boxes_dirty();
@@ -2040,6 +2045,12 @@ void Selection::notify_instance_update(int object_idx, int instance_idx)
         else
             plate_list.notify_instance_update(object_idx, instance_idx);
     }
+}
+
+void Selection::set_volume_selection_mode(EMode mode)
+{
+    if (!m_volume_selection_locked)
+        m_volume_selection_mode = mode;
 }
 
 void Selection::erase()
@@ -3356,6 +3367,7 @@ void Selection::paste_volumes_from_clipboard()
         Transform3d src_matrix = src_object->instances[0]->get_transformation().get_matrix_no_offset();
         Transform3d dst_matrix = dst_instance->get_transformation().get_matrix_no_offset();
         bool from_same_object = (src_object->input_file == dst_object->input_file) && src_matrix.isApprox(dst_matrix);
+        const Transform3d vol_linear_correction = dst_matrix.inverse() * src_matrix;
 
         // used to keep relative position of multivolume selections when pasting from another object
         BoundingBoxf3 total_bb;
@@ -3373,9 +3385,11 @@ void Selection::paste_volumes_from_clipboard()
             }
             else
             {
+                // keep the real size/orientation across objects with different instance transforms
+                dst_volume->set_transformation(vol_linear_correction * src_volume->get_matrix());
                 // if the volume comes from another object, apply the offset as done when adding modifiers
                 // see ObjectList::load_generic_subobject()
-                total_bb.merge(dst_volume->mesh().bounding_box().transformed(src_volume->get_matrix()));
+                total_bb.merge(dst_volume->mesh().bounding_box().transformed(dst_volume->get_matrix()));
             }
 
             volumes.push_back(dst_volume);

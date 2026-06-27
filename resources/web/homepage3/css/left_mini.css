@@ -48,6 +48,11 @@
 {
 	display:none!important;
 }
+
+#ServerConnectFailTip
+{
+	display:none!important;
+}
 /*-----Left Menu-------*/
 .JumpIcon
 {

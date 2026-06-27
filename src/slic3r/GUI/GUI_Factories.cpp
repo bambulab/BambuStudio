@@ -465,17 +465,44 @@ std::vector<wxBitmap> MenuFactory::get_svg_volume_bitmaps()
     return volume_bmps;
 }
 
-void MenuFactory::append_menu_item_set_visible(wxMenu* menu)
+void MenuFactory::append_menu_items_assembly_steps(wxMenu* menu)
 {
-    bool has_one_shown = false;
-    const Selection& selection = plater()->canvas3D()->get_selection();
-    for (unsigned int i : selection.get_volume_idxs()) {
-        has_one_shown |= selection.get_volume(i)->visible;
+    GLCanvas3D *canvas = plater()->canvas3D();
+    if (!canvas)
+        return;
+
+    append_menu_item(menu, wxID_ANY, _L("Add to New Step"), "",
+        [](wxCommandEvent&) { plater()->canvas3D()->add_selected_to_new_assembly_step(); }, "", nullptr,
+        []() {
+            GLCanvas3D *canvas = plater()->canvas3D();
+            return canvas && canvas->can_add_selected_to_assembly_step();
+        }, m_parent);
+
+    append_menu_item(menu, wxID_ANY, _L("Add to Current Step"), "",
+        [](wxCommandEvent&) { plater()->canvas3D()->add_selected_to_current_assembly_step(); }, "", nullptr,
+        []() {
+            GLCanvas3D *canvas = plater()->canvas3D();
+            return canvas && canvas->can_add_selected_to_current_assembly_step();
+        }, m_parent);
+
+    wxMenu *step_menu = new wxMenu();
+    for (const auto &[node_idx, label] : canvas->assembly_step_choices()) {
+        // Copy structured-binding fields into ordinary locals before capturing: C++17 forbids capturing structured bindings in lambdas (Clang enforces; MSVC tolerates as an extension).
+        const int         step_node_idx = node_idx;
+        const std::string step_label    = label;
+        append_menu_item(step_menu, wxID_ANY, wxString::FromUTF8(step_label.c_str()), "",
+            [step_node_idx](wxCommandEvent&) { plater()->canvas3D()->add_selected_to_assembly_step(step_node_idx); }, "", step_menu,
+            []() {
+                GLCanvas3D *canvas = plater()->canvas3D();
+                return canvas && canvas->can_add_selected_to_assembly_step();
+            }, m_parent);
     }
 
-    append_menu_item(menu, wxID_ANY, has_one_shown ?_L("Hide") : _L("Show"), "",
-        [has_one_shown](wxCommandEvent&) { plater()->set_selected_visible(!has_one_shown); }, "", nullptr,
-        []() { return true; }, m_parent);
+    append_submenu(menu, step_menu, wxID_ANY, _L("Add to Existing Step"), "", "",
+        []() {
+            GLCanvas3D *canvas = plater()->canvas3D();
+            return canvas && canvas->can_add_selected_to_assembly_step() && !canvas->assembly_step_choices().empty();
+        }, m_parent);
 }
 
 void MenuFactory::append_menu_item_delete(wxMenu* menu)
@@ -1821,7 +1848,7 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
             return nullptr;
 
     wxMenu* menu = new MenuWithSeparators();
-    append_menu_item_set_visible(menu);
+    append_menu_items_assembly_steps(menu);
     //append_menu_item_fix_through_netfabb(menu);
     //append_menu_item_simplify(menu);
     append_menu_item_delete(menu);
@@ -1855,8 +1882,7 @@ wxMenu* MenuFactory::plate_menu()
 wxMenu* MenuFactory::assemble_object_menu()
 {
     wxMenu* menu = new MenuWithSeparators();
-    // Set Visible
-    append_menu_item_set_visible(menu);
+    append_menu_items_assembly_steps(menu);
     // Delete
     append_menu_item_delete(menu);
     //// Object Repair
@@ -1880,7 +1906,6 @@ wxMenu* MenuFactory::assemble_part_menu()
 {
     wxMenu* menu = new MenuWithSeparators();
 
-    append_menu_item_set_visible(menu);
     append_menu_item_delete(menu);
     //append_menu_item_simplify(menu);
     menu->AppendSeparator();

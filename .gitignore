@@ -38,4 +38,7 @@ compile_commands.json
 **/node_modules/
 .worktrees/
 **/dist/
+# Legacy device_page bundle copies (runtime lives in resources/web/device_page/dist/)
+resources/web/device_page/assets/
+resources/web/device_page/index.html
 

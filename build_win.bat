@@ -58,12 +58,13 @@ SET PS_CHOICE_TIMEOUT=30
 SET PS_CUSTOM_RUN_FILE=custom_run.bat
 SET PS_DEPS_PATH_FILE_NAME=.DEPS_PATH.txt
 SET PS_DEPS_PATH_FILE=%~dp0deps\build\%PS_DEPS_PATH_FILE_NAME%
+SET PS_CMAKE_EXE=cmake.exe
 SET PS_CONFIG_LIST="Debug;MinSizeRel;Release;RelWithDebInfo"
 
-REM The officially supported toolchain version is 16 (Visual Studio 2019)
+REM The officially supported toolchain versions are 16-18 (Visual Studio 2019-2026)
 REM TODO: Update versions after Boost gets rolled to 1.78 or later
 SET PS_VERSION_SUPPORTED=16
-SET PS_VERSION_EXCEEDED=17
+SET PS_VERSION_EXCEEDED=19
 SET VSWHERE=%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe
 IF NOT EXIST "%VSWHERE%" SET VSWHERE=%ProgramFiles%\Microsoft Visual Studio\Installer\vswhere.exe
 FOR /F "tokens=4 USEBACKQ delims=." %%I IN (`"%VSWHERE%" -nologo -property productId`) DO SET PS_PRODUCT_DEFAULT=%%I
@@ -157,6 +158,8 @@ IF NOT EXIST "%MSVC_DIR%" (
     @ECHO ERROR: Compatible Visual Studio installation not found. 1>&2
     GOTO :HELP
 )
+CALL :RESOLVE_CMAKE_GENERATOR
+IF "%PS_CMAKE_GENERATOR%" EQU "" GOTO :HELP
 REM Give the user a chance to cancel if we found something odd.
 IF "%PS_ASK_TO_CONTINUE%" EQU "" GOTO :BUILD_ENV
 @ECHO.
@@ -174,6 +177,8 @@ SET PS_CURRENT_STEP=environment
 @ECHO ** Build Steps:  %PS_STEPS%
 @ECHO ** Run App:      %PS_RUN%
 @ECHO ** Deps path:    %PS_DESTDIR%
+@ECHO ** CMake:        %PS_CMAKE_EXE% %PS_CMAKE_VERSION_MAJOR%.%PS_CMAKE_VERSION_MINOR%
+@ECHO ** Generator:    %PS_CMAKE_GENERATOR%
 @ECHO ** Using Microsoft Visual Studio installation found at:
 @ECHO **  %MSVC_DIR%
 CALL "%MSVC_DIR%\Common7\Tools\vsdevcmd.bat" -arch=%PS_ARCH% -host_arch=%PS_ARCH_HOST% -app_platform=Desktop
@@ -195,9 +200,9 @@ IF "%PS_STEPS_DIRTY%" EQU "" (
     CALL :MAKE_OR_CLEAN_DIRECTORY "%PS_DESTDIR%"
 )
 cd deps\build || GOTO :END
-cmake.exe .. -DDESTDIR="%PS_DESTDIR%"
+%PS_CMAKE_EXE% .. %PS_CMAKE_GENERATOR_ARGS% -DDESTDIR="%PS_DESTDIR%"
 IF %ERRORLEVEL% NEQ 0 IF "%PS_STEPS_DIRTY%" NEQ "" (
-    (del CMakeCache.txt && cmake.exe .. -DDESTDIR="%PS_DESTDIR%") || GOTO :END
+    (del CMakeCache.txt && %PS_CMAKE_EXE% .. %PS_CMAKE_GENERATOR_ARGS% -DDESTDIR="%PS_DESTDIR%") || GOTO :END
 ) ELSE GOTO :END
 (echo %PS_DESTDIR%)> "%PS_DEPS_PATH_FILE%"
 msbuild /m ALL_BUILD.vcxproj /p:Configuration=%PS_CONFIG%  /v:quiet || GOTO :END
@@ -218,9 +223,9 @@ SET PS_PROJECT_IS_OPEN=
 FOR /F "tokens=2 delims=," %%I in (
     'tasklist /V /FI "IMAGENAME eq devenv.exe " /NH /FO CSV ^| find "%PS_SOLUTION_NAME%"'
 ) do SET PS_PROJECT_IS_OPEN=%%~I
-cmake.exe .. -DCMAKE_PREFIX_PATH="%PS_DESTDIR%\usr\local" -DCMAKE_CONFIGURATION_TYPES=%PS_CONFIG_LIST%
+%PS_CMAKE_EXE% .. %PS_CMAKE_GENERATOR_ARGS% -DCMAKE_PREFIX_PATH="%PS_DESTDIR%\usr\local" -DCMAKE_CONFIGURATION_TYPES=%PS_CONFIG_LIST%
 IF %ERRORLEVEL% NEQ 0 IF "%PS_STEPS_DIRTY%" NEQ "" (
-    (del CMakeCache.txt && cmake.exe .. -DCMAKE_PREFIX_PATH="%PS_DESTDIR%\usr\local" -DCMAKE_CONFIGURATION_TYPES=%PS_CONFIG_LIST%) || GOTO :END
+    (del CMakeCache.txt && %PS_CMAKE_EXE% .. %PS_CMAKE_GENERATOR_ARGS% -DCMAKE_PREFIX_PATH="%PS_DESTDIR%\usr\local" -DCMAKE_CONFIGURATION_TYPES=%PS_CONFIG_LIST%) || GOTO :END
 ) ELSE GOTO :END
 REM Skip the build step if we're using the undocumented app-cmake to regenerate the full config from inside devenv
 IF "%PS_STEPS%" NEQ "app-cmake" msbuild /m ALL_BUILD.vcxproj /p:Configuration=%PS_CONFIG% /v:quiet || GOTO :END
@@ -264,12 +269,12 @@ IF "%PS_RUN%" EQU "console" (
         @ECHO Preparing to run Visual Studio...
         cd ..\.. || GOTO :END
         REM This hack generates a single config for MSVS, guaranteeing it gets set as the active config.
-        cmake.exe .. -DCMAKE_PREFIX_PATH="%PS_DESTDIR%\usr\local" -DCMAKE_CONFIGURATION_TYPES=%PS_CONFIG% > nul 2> nul || GOTO :END
+        %PS_CMAKE_EXE% .. %PS_CMAKE_GENERATOR_ARGS% -DCMAKE_PREFIX_PATH="%PS_DESTDIR%\usr\local" -DCMAKE_CONFIGURATION_TYPES=%PS_CONFIG% > nul 2> nul || GOTO :END
         REM Now launch devenv with the single config (setting it active) and a /command switch to re-run cmake and generate the full config list
         start devenv.exe %PS_SOLUTION_NAME%.sln /command ^"shell /o ^^^"%~f0^^^" -d ^^^"%PS_DESTDIR%^^^" -c %PS_CONFIG% -a %PS_ARCH% -r none -s app-cmake^"
         REM If devenv fails to launch just directly regenerate the full config list.
         IF %ERRORLEVEL% NEQ 0 (
-            cmake.exe .. -DCMAKE_PREFIX_PATH="%PS_DESTDIR%\usr\local" -DCMAKE_CONFIGURATION_TYPES=%PS_CONFIG_LIST% 2> nul 1> nul || GOTO :END
+            %PS_CMAKE_EXE% .. %PS_CMAKE_GENERATOR_ARGS% -DCMAKE_PREFIX_PATH="%PS_DESTDIR%\usr\local" -DCMAKE_CONFIGURATION_TYPES=%PS_CONFIG_LIST% 2> nul 1> nul || GOTO :END
         )
     )
 )
@@ -397,6 +402,38 @@ endlocal & SET %~2=%OPTION_NAME%
 GOTO :EOF
 :PARSE_OPTION_NAME_FAIL
 endlocal & SET %~2=
+GOTO :EOF
+
+:RESOLVE_CMAKE_GENERATOR
+@REM Resolves the CMake generator for the selected Visual Studio version.
+SET PS_CMAKE_GENERATOR=
+SET PS_CMAKE_GENERATOR_ARGS=
+SET PS_CMAKE_VERSION_MAJOR=
+SET PS_CMAKE_VERSION_MINOR=
+IF "%PS_VERSION%" EQU "16" SET PS_CMAKE_GENERATOR=Visual Studio 16 2019
+IF "%PS_VERSION%" EQU "17" SET PS_CMAKE_GENERATOR=Visual Studio 17 2022
+IF "%PS_VERSION%" EQU "18" SET PS_CMAKE_GENERATOR=Visual Studio 18 2026
+IF "%PS_CMAKE_GENERATOR%" EQU "" (
+    @ECHO ERROR: Unsupported Visual Studio version for CMake generator: %PS_VERSION% 1>&2
+    GOTO :EOF
+)
+FOR /F "tokens=3,4 USEBACKQ delims=. " %%I IN (`^""%PS_CMAKE_EXE%" --version ^| findstr /B /C:"cmake version"^"`) DO (
+    SET PS_CMAKE_VERSION_MAJOR=%%I
+    SET PS_CMAKE_VERSION_MINOR=%%J
+)
+IF "%PS_CMAKE_VERSION_MAJOR%" EQU "" (
+    @ECHO ERROR: Failed to detect CMake version from %PS_CMAKE_EXE%. 1>&2
+    SET PS_CMAKE_GENERATOR=
+    GOTO :EOF
+)
+SET /A PS_CMAKE_VERSION_CODE=%PS_CMAKE_VERSION_MAJOR% * 100 + %PS_CMAKE_VERSION_MINOR%
+IF %PS_VERSION% GEQ 18 IF %PS_CMAKE_VERSION_CODE% LSS 402 (
+    @ECHO ERROR: CMake 4.2 or newer is required for %PS_CMAKE_GENERATOR%. Found %PS_CMAKE_VERSION_MAJOR%.%PS_CMAKE_VERSION_MINOR%. 1>&2
+    @ECHO ERROR: Upgrade CMake or rerun with an older Visual Studio version. 1>&2
+    SET PS_CMAKE_GENERATOR=
+    GOTO :EOF
+)
+SET PS_CMAKE_GENERATOR_ARGS=-G "%PS_CMAKE_GENERATOR%" -A %PS_ARCH% -DCMAKE_GENERATOR_INSTANCE="%MSVC_DIR%"
 GOTO :EOF
 
 :MAKE_OR_CLEAN_DIRECTORY

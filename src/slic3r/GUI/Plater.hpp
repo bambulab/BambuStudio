@@ -344,6 +344,7 @@ public:
     // Helper: returns config indices where filament_is_mixed == false
     std::vector<size_t> physical_filament_config_indices() const;
 
+    void reset_post_process_script_choice();
     void reset_flags_when_new_or_close_project();
     int new_project(bool skip_confirm = false, bool silent = false, const wxString &project_name = wxString());
     // BBS: save & backup
@@ -477,7 +478,6 @@ public:
     void trigger_restore_project(int skip_confirm = 0);
     bool delete_object_from_model(size_t obj_idx, bool refresh_immediately = true); // BBS support refresh immediately
     void delete_all_objects_from_model(); //BBS delete all objects from model
-    void set_selected_visible(bool visible);
     void remove_selected();
     void increase_instances(size_t num = 1);
     void decrease_instances(size_t num = 1);
@@ -756,6 +756,7 @@ public:
 
     const Camera& get_camera() const;
     Camera& get_camera();
+    void mark_assemble_view_requires_zoom_to_volumes();
     const Camera& get_picking_camera() const;
     Camera& get_picking_camera();
 

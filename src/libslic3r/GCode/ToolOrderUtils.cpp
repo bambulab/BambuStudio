@@ -194,15 +194,10 @@ namespace Slic3r
     {
         if (l_nodes[idx_in_left] == -1) {
             return 0;
-            //TODO: test more here
-            int sum = 0;
-            for (int i = 0; i < matrix.size(); ++i)
-                sum += matrix[i][idx_in_right];
-            sum /= matrix.size();
-            return -sum;
         }
 
-        return matrix[l_nodes[idx_in_left]][r_nodes[idx_in_right]];
+        float val = matrix[l_nodes[idx_in_left]][r_nodes[idx_in_right]];
+        return std::min(static_cast<int>(val), MaxFlowGraph::MCMF_MAX_EDGE_COST);
     }
 
 // ==================== MaxFlowSolver ====================
@@ -1097,7 +1092,7 @@ namespace Slic3r
             if (layer + 1 < layer_filaments.size()) next_lf = layer_filaments[layer + 1];
             std::vector<unsigned int> filament_used_next_layer = collect_filaments_in_groups<unsigned int>(filament_sets, next_lf);
 
-            bool                      use_forcast = (filament_used.size() <= max_n_with_forcast && filament_used_next_layer.size() <= max_n_with_forcast);
+            bool                      use_forcast = false;
             float                     tmp_cost = 0;
             std::vector<unsigned int> sequence;
             uint128_t                 hash_key = filament_list_to_hash_key(filament_used, filament_used_next_layer, curr_filament_id, use_forcast);

@@ -8,6 +8,8 @@ set(SLIC3R_GUI_SOURCES
     pchheader.hpp
     GUI/Printer/PrinterFileSystem.cpp
     GUI/Printer/PrinterFileSystem.h
+    GUI/Printer/LiveViewTrackContext.cpp
+    GUI/Printer/LiveViewTrackContext.h
     GUI/Widgets/AnimaController.hpp
     GUI/Widgets/AnimaController.cpp
     GUI/Widgets/AxisCtrlButton.cpp
@@ -84,6 +86,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/MultiNozzleSync.cpp
     GUI/MixedFilamentDialog.cpp
     GUI/MixedFilamentDialog.hpp
+    GUI/GradientCurveEditor.cpp
+    GUI/GradientCurveEditor.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
     GUI/NetworkTestDialog.cpp
@@ -114,6 +118,12 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLCanvas3D.hpp
     GUI/GLCanvas3D.cpp
     GUI/GLEnums.hpp
+    GUI/MP4/PBOReader.hpp
+    GUI/MP4/PBOReader.cpp
+    GUI/MP4/Mp4Recorder.hpp
+    GUI/MP4/Mp4Recorder.cpp
+    GUI/MP4/minimp4_impl.c
+    GUI/MP4/minih264_impl.c
     GUI/OpenGLManager.hpp
     GUI/OpenGLManager.cpp
     GUI/Selection.hpp
@@ -326,6 +336,16 @@ set(SLIC3R_GUI_SOURCES
     GUI/3DBed.hpp
     GUI/Camera.cpp
     GUI/Camera.hpp
+    GUI/Overview/AssemblyPdfExportDialog.cpp
+    GUI/Overview/AssemblyPdfExportDialog.hpp
+    GUI/Overview/AssemblyExportProgressWindow.cpp
+    GUI/Overview/AssemblyExportProgressWindow.hpp
+    GUI/Overview/TinyExportMardDown.cpp
+    GUI/Overview/TinyExportMardDown.hpp
+    GUI/Overview/AssemblyStepsUtils.cpp
+    GUI/Overview/AssemblyStepsUtilsImgui.cpp
+    GUI/Overview/AssemblyStepsUtils.hpp
+    GUI/Overview/AssemblyStepsUtilsInternal.hpp
     GUI/CameraUtils.cpp
     GUI/CameraUtils.hpp
     GUI/wxExtensions.cpp
@@ -690,6 +710,10 @@ endif ()
 
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 
+if (TARGET device_page_build)
+    add_dependencies(libslic3r_gui device_page_build)
+endif()
+
 #if (MSVC)
 #    target_compile_options(libslic3r_gui PRIVATE /Od /Zi)
 #else ()
@@ -697,6 +721,7 @@ add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 #endif ()
 
 target_include_directories(libslic3r_gui PRIVATE Utils)
+target_include_directories(libslic3r_gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../)
 
 if (WIN32)
     target_include_directories(libslic3r_gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/WebView2/include)
@@ -706,7 +731,23 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
+# libharu: hpdf.lib on Windows (separate Debug build under lib/Debug), libhpdf.a
+# on Linux/macOS. Use find_library so every CMAKE_PREFIX_PATH entry is searched
+# and the platform-specific library name is resolved automatically, instead of
+# hardcoding ${CMAKE_PREFIX_PATH}/lib (which breaks when it is a multi-path list).
+if (WIN32)
+    find_library(HPDF_LIBRARY_RELEASE NAMES hpdf)
+    find_library(HPDF_LIBRARY_DEBUG NAMES hpdf PATH_SUFFIXES Debug)
+    set(HPDF_LIBRARY
+        $<$<CONFIG:Debug>:${HPDF_LIBRARY_DEBUG}>
+        $<$<NOT:$<CONFIG:Debug>>:${HPDF_LIBRARY_RELEASE}>)
+else ()
+    find_library(HPDF_LIBRARY NAMES hpdf)
+endif ()
+
+target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi
+    ${HPDF_LIBRARY}
+    ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
 #target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)

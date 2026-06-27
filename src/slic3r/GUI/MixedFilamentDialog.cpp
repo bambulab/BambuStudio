@@ -20,6 +20,7 @@
 #include "GUI.hpp"
 #include "Accessibility.hpp"
 #include "GUI_App.hpp"
+#include "GradientCurveEditor.hpp"
 #include "Tab.hpp"
 #include "libslic3r/Preset.hpp"
 #include "Widgets/Button.hpp"
@@ -55,6 +56,26 @@ static wxColour blend_n_colors(const std::vector<wxColour>& cols, const std::vec
     }
     std::string hex = Slic3r::blend_color_multi(hex_colors, int_weights);
     return wxColour(hex);
+}
+
+// When a swatch color is too close to the surrounding background it becomes invisible.
+// This draws a thin border to restore visibility: light grey for white-ish swatches in
+// light mode, white-ish for near-black swatches in dark mode. The thresholds and border
+// colors match the original make_swatch_bitmap implementation; extracted here so all
+// swatch draw sites share the same logic.
+static void draw_swatch_border_if_needed(wxDC& dc, const wxColour& col,
+                                         int x, int y, int sz, int radius)
+{
+    if (!wxGetApp().dark_mode() && col.Red() > 224 && col.Green() > 224 && col.Blue() > 224) {
+        dc.SetPen(wxPen(wxColour(130, 130, 128), 1));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRoundedRectangle(x, y, sz, sz, radius);
+    }
+    if (wxGetApp().dark_mode() && col.Red() < 45 && col.Green() < 45 && col.Blue() < 45) {
+        dc.SetPen(wxPen(wxColour(207, 207, 207), 1));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRoundedRectangle(x, y, sz, sz, radius);
+    }
 }
 
 // ---- Constructors ----
@@ -179,16 +200,7 @@ wxBitmap MixedFilamentDialog::make_swatch_bitmap(size_t idx)
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.DrawRoundedRectangle(pad_left, 0, swatch_sz, swatch_sz, FromDIP(2));
 
-        if (!wxGetApp().dark_mode() && col.Red() > 224 && col.Green() > 224 && col.Blue() > 224) {
-            dc.SetPen(wxPen(wxColour(130, 130, 128), 1));
-            dc.SetBrush(*wxTRANSPARENT_BRUSH);
-            dc.DrawRoundedRectangle(pad_left, 0, swatch_sz, swatch_sz, FromDIP(2));
-        }
-        if (wxGetApp().dark_mode() && col.Red() < 45 && col.Green() < 45 && col.Blue() < 45) {
-            dc.SetPen(wxPen(wxColour(207, 207, 207), 1));
-            dc.SetBrush(*wxTRANSPARENT_BRUSH);
-            dc.DrawRoundedRectangle(pad_left, 0, swatch_sz, swatch_sz, FromDIP(2));
-        }
+        draw_swatch_border_if_needed(dc, col, pad_left, 0, swatch_sz, FromDIP(2));
 
         wxString num = wxString::Format(wxT("%zu"), idx + 1);
         dc.SetFont(::Label::Body_13);
@@ -273,19 +285,59 @@ wxBoxSizer* MixedFilamentDialog::create_preview_panel()
 
         if (n == 0) return;
 
-        std::vector<wxColour> cols;
-        std::vector<double>   weights;
-        for (size_t i = 0; i < n; ++i) {
-            cols.push_back(comp_colour(i));
-            weights.push_back(ratio(i) / 100.0);
-        }
-
-        wxColour mixed = blend_n_colors(cols, weights);
         int swatch_sz = FromDIP(80);
-        dc.SetBrush(wxBrush(mixed));
-        dc.SetPen(*wxTRANSPARENT_PEN);
-        dc.DrawRoundedRectangle((sz.GetWidth() - swatch_sz) / 2, (sz.GetHeight() - swatch_sz) / 2,
-                                swatch_sz, swatch_sz, FromDIP(6));
+        int x0 = (sz.GetWidth() - swatch_sz) / 2;
+        int y0 = (sz.GetHeight() - swatch_sz) / 2;
+        double radius = FromDIP(6);
+
+        if (m_result.gradient_enabled && n == 2) {
+            Slic3r::GradientCurve curve;
+            if (!m_result.gradient_curve.empty()) {
+                curve.points = m_result.gradient_curve;
+            } else {
+                double yStart = (m_result.gradient_direction == 0) ? kGradientMaxRatio : kGradientMinRatio;
+                double yEnd   = (m_result.gradient_direction == 0) ? kGradientMinRatio : kGradientMaxRatio;
+                curve.points = {{0.0, yStart, NAN, NAN}, {1.0, yEnd, NAN, NAN}};
+            }
+
+            wxColour colA = comp_colour(0);
+            wxColour colB = comp_colour(1);
+            const int bands = std::max(80, swatch_sz);
+            double band_h = static_cast<double>(swatch_sz) / bands;
+            dc.SetPen(*wxTRANSPARENT_PEN);
+            for (int b = 0; b < bands; ++b) {
+                double t = 1.0 - (b + 0.5) / bands;
+                double r1 = Slic3r::sample_gradient_curve(curve, t);
+                double r2 = 1.0 - r1;
+                wxColour band_col = blend_n_colors({colA, colB}, {r1, r2});
+                dc.SetBrush(wxBrush(band_col));
+                int by = y0 + static_cast<int>(b * band_h);
+                int bh = static_cast<int>((b + 1) * band_h) - static_cast<int>(b * band_h) + 1;
+                dc.DrawRectangle(x0, by, swatch_sz, bh);
+            }
+
+            // Mask corners: overdraw a thick background-colored rounded rect frame
+            // so the inner edge forms the desired rounded corners.
+            // Known limitation: this assumes the panel background equals
+            // darkModeColorFor(white).  wxGraphicsContext::Clip(path) is not
+            // available in our wxWidgets build (only Clip(wxRegion) exists).
+            int r = static_cast<int>(radius);
+            wxColour bg = StateColor::darkModeColorFor(*wxWHITE);
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.SetPen(wxPen(bg, r * 2));
+            dc.DrawRoundedRectangle(x0 - r, y0 - r, swatch_sz + r * 2, swatch_sz + r * 2, radius * 2);
+        } else {
+            std::vector<wxColour> cols;
+            std::vector<double>   weights;
+            for (size_t i = 0; i < n; ++i) {
+                cols.push_back(comp_colour(i));
+                weights.push_back(ratio(i) / 100.0);
+            }
+            wxColour mixed = blend_n_colors(cols, weights);
+            dc.SetBrush(wxBrush(mixed));
+            dc.SetPen(*wxTRANSPARENT_PEN);
+            dc.DrawRoundedRectangle(x0, y0, swatch_sz, swatch_sz, radius);
+        }
     });
 
     sizer->Add(m_preview_canvas, 0, wxALIGN_CENTER);
@@ -321,29 +373,46 @@ wxBoxSizer* MixedFilamentDialog::create_material_selection()
 
         dc.SetFont(::Label::Body_13);
 
-        for (size_t i = 0; i < num_components(); ++i) {
-            if (i > 0) {
-                dc.SetTextForeground(sum_text);
-                dc.DrawText(wxT("+"), x, y_center);
-                x += dc.GetTextExtent(wxT("+")).GetWidth() + FromDIP(4);
-            }
-
-            wxColour col = comp_colour(i);
+        auto draw_summary_swatch = [&](size_t comp_idx) {
+            wxColour col = comp_colour(comp_idx);
             dc.SetBrush(wxBrush(col));
             dc.SetPen(*wxTRANSPARENT_PEN);
             dc.DrawRoundedRectangle(x, y_center, swatch_sz, swatch_sz, FromDIP(2));
+            draw_swatch_border_if_needed(dc, col, x, y_center, swatch_sz, FromDIP(2));
 
-            wxString num = wxString::Format(wxT("%u"), comp(i));
+            wxString num = wxString::Format(wxT("%u"), comp(comp_idx));
             wxSize num_sz = dc.GetTextExtent(num);
             dc.SetTextForeground(col.GetLuminance() > 0.5 ? wxColour(50, 58, 61) : *wxWHITE);
             dc.DrawText(num, x + (swatch_sz - num_sz.GetWidth()) / 2,
                              y_center + (swatch_sz - num_sz.GetHeight()) / 2);
             x += swatch_sz + FromDIP(4);
+        };
+
+        if (m_result.gradient_enabled && num_components() == 2) {
+            size_t idx_a = (m_result.gradient_direction == 0) ? 0 : 1;
+            size_t idx_b = 1 - idx_a;
+            draw_summary_swatch(idx_a);
 
             dc.SetTextForeground(sum_text);
-            wxString pct = wxString::Format(wxT("%d%%"), ratio(i));
-            dc.DrawText(pct, x, y_center);
-            x += dc.GetTextExtent(pct).GetWidth() + FromDIP(4);
+            wxString arrow = wxT("\u2192");
+            dc.DrawText(arrow, x, y_center);
+            x += dc.GetTextExtent(arrow).GetWidth() + FromDIP(4);
+
+            draw_summary_swatch(idx_b);
+        } else {
+            for (size_t i = 0; i < num_components(); ++i) {
+                if (i > 0) {
+                    dc.SetTextForeground(sum_text);
+                    dc.DrawText(wxT("+"), x, y_center);
+                    x += dc.GetTextExtent(wxT("+")).GetWidth() + FromDIP(4);
+                }
+                draw_summary_swatch(i);
+
+                dc.SetTextForeground(sum_text);
+                wxString pct = wxString::Format(wxT("%d%%"), ratio(i));
+                dc.DrawText(pct, x, y_center);
+                x += dc.GetTextExtent(pct).GetWidth() + FromDIP(4);
+            }
         }
     });
     sizer->Add(m_summary_panel, 0, wxEXPAND);
@@ -718,6 +787,23 @@ wxBoxSizer* MixedFilamentDialog::create_gradient_section()
     auto* outer = new wxBoxSizer(wxVERTICAL);
     outer->Add(m_gradient_sizer, 0, wxEXPAND);
 
+    // Custom curve editor: visible only when gradient is on and exactly 2 components are mixed.
+    m_curve_sizer = new wxBoxSizer(wxVERTICAL);
+    m_curve_editor = new GradientCurveEditor(this, comp_colour(0), comp_colour(1));
+    if (!m_result.gradient_curve.empty())
+        m_curve_editor->set_points(m_result.gradient_curve);
+    else
+        m_curve_editor->reset_to_linear((m_result.gradient_direction == 0) ? 0.9 : 0.1,
+                                        (m_result.gradient_direction == 0) ? 0.1 : 0.9);
+    m_curve_editor->Bind(wxEVT_GRADIENT_CURVE_CHANGED,
+        [this](wxCommandEvent&) { on_gradient_curve_changed(); });
+    m_curve_sizer->Add(m_curve_editor, 0, wxEXPAND | wxTOP, FromDIP(4));
+
+    outer->Add(m_curve_sizer, 0, wxEXPAND | wxTOP, FromDIP(6));
+    const bool curve_visible = m_result.gradient_enabled && num_components() == 2;
+    m_curve_sizer->ShowItems(curve_visible);
+
+    // Per-part gradient toggle sits BELOW the curve editor.
     m_per_part_gradient_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_chk_per_part_gradient = new ::CheckBox(this);
@@ -957,6 +1043,12 @@ void MixedFilamentDialog::rebuild_all_combos()
     }
 }
 
+void MixedFilamentDialog::refresh_curve_editor_colors()
+{
+    if (m_curve_editor)
+        m_curve_editor->set_colors(comp_colour(0), comp_colour(1));
+}
+
 // ---- Event Handlers ----
 
 void MixedFilamentDialog::on_filament_changed()
@@ -967,6 +1059,7 @@ void MixedFilamentDialog::on_filament_changed()
             m_result.components[i] = m_combo_to_physical[i][sel];
     }
 
+    refresh_curve_editor_colors();
     rebuild_all_combos();
     update_gradient_direction_items();
     update_preview();
@@ -1012,14 +1105,29 @@ void MixedFilamentDialog::on_gradient_toggled()
     m_result.gradient_enabled = m_chk_gradient->GetValue();
 
     if (m_ratio_sizer)
-        m_ratio_sizer->ShowItems(!m_result.gradient_enabled);
+        m_ratio_sizer->ShowItems(!m_result.gradient_enabled && num_components() == 2);
     if (m_combo_gradient_dir)
         m_combo_gradient_dir->Show(m_result.gradient_enabled);
     if (m_per_part_gradient_sizer)
         m_per_part_gradient_sizer->ShowItems(m_result.gradient_enabled);
+    if (m_curve_sizer)
+        m_curve_sizer->ShowItems(m_result.gradient_enabled && num_components() == 2);
     if (!m_result.gradient_enabled) {
         m_result.per_part_gradient = false;
         if (m_chk_per_part_gradient) m_chk_per_part_gradient->SetValue(false);
+    }
+
+    // Toggling the curve editor changes the right column height (and width when
+    // turning gradient on), so the dialog must follow or the recommendation list
+    // gets squeezed off-screen. Same trick as 2-color -> 3-color switching.
+    const wxSize new_size = compute_dialog_size();
+    if (GetSize() != new_size) {
+        const wxRect old_rect = GetRect();
+        const wxPoint center(old_rect.x + old_rect.width / 2,
+                             old_rect.y + old_rect.height / 2);
+        SetSize(new_size);
+        SetPosition(wxPoint(center.x - new_size.x / 2,
+                            center.y - new_size.y / 2));
     }
 
     Layout();
@@ -1028,8 +1136,25 @@ void MixedFilamentDialog::on_gradient_toggled()
 
 void MixedFilamentDialog::on_gradient_direction_changed()
 {
-    if (m_combo_gradient_dir)
-        m_result.gradient_direction = m_combo_gradient_dir->GetSelection();
+    if (!m_combo_gradient_dir) return;
+    m_result.gradient_direction = m_combo_gradient_dir->GetSelection();
+
+    // Mirror the user's custom curve around y=0.5 instead of resetting it, so
+    // shape work (added anchors, bent segments) survives a direction toggle.
+    // reverse() flips y and tangent signs consistently; default two-point
+    // linear curves end up matching the new direction exactly (0.9->0.1 <-> 0.1->0.9).
+    if (m_curve_editor) {
+        m_curve_editor->reverse();
+        m_result.gradient_curve = m_curve_editor->get_points();
+    }
+    update_preview();
+}
+
+void MixedFilamentDialog::on_gradient_curve_changed()
+{
+    if (m_curve_editor)
+        m_result.gradient_curve = m_curve_editor->get_points();
+    update_preview();
 }
 
 void MixedFilamentDialog::on_per_part_gradient_toggled()
@@ -1090,6 +1215,7 @@ void MixedFilamentDialog::on_add_material()
     m_material_rows_sizer->Add(row, 0, wxEXPAND | wxTOP, FromDIP(9));
 
     rebuild_all_combos();
+    refresh_curve_editor_colors();
     update_component_count_ui();
     update_preview();
     update_ok_button_state();
@@ -1126,6 +1252,7 @@ void MixedFilamentDialog::on_remove_material()
         m_combo_to_physical.pop_back();
 
     rebuild_all_combos();
+    refresh_curve_editor_colors();
     update_component_count_ui();
     update_preview();
     update_ok_button_state();
@@ -1155,6 +1282,8 @@ void MixedFilamentDialog::on_recommendation_clicked(unsigned int comp_a, unsigne
     if (m_label_ratio_b) m_label_ratio_b->SetLabel(wxT("50%"));
 
     rebuild_all_combos();
+    refresh_curve_editor_colors();
+    update_gradient_direction_items();
     update_component_count_ui();
     update_preview();
     update_ok_button_state();
@@ -1205,6 +1334,8 @@ void MixedFilamentDialog::on_recommendation_clicked_triple(unsigned int a, unsig
     m_tri_wz = 0.50;
 
     rebuild_all_combos();
+    refresh_curve_editor_colors();
+    update_gradient_direction_items();
     update_component_count_ui();
     update_preview();
     update_ok_button_state();
@@ -1365,9 +1496,10 @@ void MixedFilamentDialog::update_gradient_direction_items()
                 dc.SetBrush(wxBrush(col));
                 dc.SetPen(*wxTRANSPARENT_PEN);
                 dc.DrawRoundedRectangle(x, 0, swatch_sz, swatch_sz, FromDIP(2));
+                draw_swatch_border_if_needed(dc, col, x, 0, swatch_sz, FromDIP(2));
                 wxString num = wxString::Format(wxT("%zu"), idx + 1);
                 wxSize txt_sz = dc.GetTextExtent(num);
-                dc.SetTextForeground(col.GetLuminance() > 0.5 ? dir_text : *wxWHITE);
+                dc.SetTextForeground(col.GetLuminance() > 0.5 ? wxColour(50, 58, 61) : *wxWHITE);
                 dc.DrawText(num, x + (swatch_sz - txt_sz.GetWidth()) / 2,
                                  (swatch_sz - txt_sz.GetHeight()) / 2);
             };
@@ -1399,6 +1531,25 @@ void MixedFilamentDialog::update_gradient_direction_items()
         m_combo_gradient_dir->SetSelection(0);
 }
 
+wxSize MixedFilamentDialog::compute_dialog_size() const
+{
+    const bool is_three      = (num_components() >= 3);
+    const bool curve_visible = !is_three && m_result.gradient_enabled;
+
+    int w = FromDIP(439);
+    int h = FromDIP(580);
+    if (is_three) {
+        h = FromDIP(680);
+    } else if (curve_visible) {
+        // Wider so the gradient editor can show "Material Ratio" intact;
+        // +40 over the 3-color height to fit the curve editor while keeping the
+        // recommendation list visible (it can still scroll if needed).
+        w = FromDIP(470);
+        h = FromDIP(720);
+    }
+    return wxSize(w, h);
+}
+
 void MixedFilamentDialog::update_component_count_ui()
 {
     bool is_two   = (num_components() == 2);
@@ -1418,6 +1569,8 @@ void MixedFilamentDialog::update_component_count_ui()
         m_combo_gradient_dir->Show(show_gradient && m_result.gradient_enabled);
         if (m_per_part_gradient_sizer)
             m_per_part_gradient_sizer->ShowItems(show_gradient && m_result.gradient_enabled);
+        if (m_curve_sizer)
+            m_curve_sizer->ShowItems(show_gradient && m_result.gradient_enabled);
     }
     if (is_three) {
         m_result.gradient_enabled = false;
@@ -1446,12 +1599,13 @@ void MixedFilamentDialog::update_component_count_ui()
         m_btn_remove_material->SetToolTip(is_three ? _L("Remove the third material") : wxString());
     }
 
-    int new_h = is_three ? FromDIP(680) : FromDIP(580);
-    wxRect old_rect = GetRect();
-    wxPoint center(old_rect.x + old_rect.width / 2, old_rect.y + old_rect.height / 2);
-    int new_w = FromDIP(439);
-    SetSize(new_w, new_h);
-    SetPosition(wxPoint(center.x - new_w / 2, center.y - new_h / 2));
+    const wxSize new_size = compute_dialog_size();
+    const wxRect old_rect = GetRect();
+    const wxPoint center(old_rect.x + old_rect.width / 2,
+                         old_rect.y + old_rect.height / 2);
+    SetSize(new_size);
+    SetPosition(wxPoint(center.x - new_size.x / 2,
+                        center.y - new_size.y / 2));
     Layout();
 }
 

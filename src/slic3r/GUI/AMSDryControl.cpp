@@ -1211,11 +1211,22 @@ void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
         warning_text += _L("This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.") + "\n";
         can_enable_button = false;
     } else if (preset.has_value()) {
-        auto limit_temperature = preset.value().filament_dev_ams_drying_heat_distortion_temperature;
-        if (temp_val > limit_temperature) {
-            warning_text += _L("The temperature shall not exceed the filament's heat distortion temperature") + "(" +
-                wxString::Format(wxT("%d"), static_cast<int>(limit_temperature)) + wxString::FromUTF8("°C)\n");
-            can_enable_button = false;
+        // Only check heat distortion temperature when AMS has filament inserted;
+        // empty AMS only needs to respect the device hardware temperature limit.
+        bool has_filament_inserted = false;
+        for (const auto& tray_pair : dev_ams->GetTrays()) {
+            if (tray_pair.second && tray_pair.second->is_exists) {
+                has_filament_inserted = true;
+                break;
+            }
+        }
+        if (has_filament_inserted) {
+            auto limit_temperature = preset.value().filament_dev_ams_drying_heat_distortion_temperature;
+            if (temp_val > limit_temperature) {
+                warning_text += _L("The temperature shall not exceed the filament's heat distortion temperature") + "(" +
+                    wxString::Format(wxT("%d"), static_cast<int>(limit_temperature)) + wxString::FromUTF8("°C)\n");
+                can_enable_button = false;
+            }
         }
     }
 
@@ -1467,8 +1478,8 @@ int AMSDryCtrWin::update_dryness_status(DevAms* dev_ams)
         if (m_ams_info.m_left_dry_time != dev_ams->GetLeftDryTime()) {
             updated += 1;
             m_ams_info.m_left_dry_time = dev_ams->GetLeftDryTime();
-            m_time_data_label->SetLabel(std::to_string(m_ams_info.m_left_dry_time / 60)
-                + " : " + std::to_string(m_ams_info.m_left_dry_time % 60));
+            m_time_data_label->SetLabel(wxString::Format("%02d : %02d",
+                m_ams_info.m_left_dry_time / 60, m_ams_info.m_left_dry_time % 60));
         }
     }
 

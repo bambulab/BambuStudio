@@ -7,9 +7,11 @@
 
 #include <string>
 #include <algorithm>
+#include <map>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
@@ -32,6 +34,7 @@
 #include "TopoDS_Builder.hxx"
 #include "TopoDS.hxx"
 #include "TDataStd_Name.hxx"
+#include "TCollection_AsciiString.hxx"
 #include "BRepBuilderAPI_Transform.hxx"
 #include "TopExp_Explorer.hxx"
 #include "TopExp_Explorer.hxx"
@@ -41,6 +44,144 @@
 
 
 namespace Slic3r {
+
+static const char* step_shape_type_to_string(TopAbs_ShapeEnum type)
+{
+    switch (type) {
+    case TopAbs_COMPOUND:  return "COMPOUND";
+    case TopAbs_COMPSOLID: return "COMPSOLID";
+    case TopAbs_SOLID:     return "SOLID";
+    case TopAbs_SHELL:     return "SHELL";
+    case TopAbs_FACE:      return "FACE";
+    case TopAbs_WIRE:      return "WIRE";
+    case TopAbs_EDGE:      return "EDGE";
+    case TopAbs_VERTEX:    return "VERTEX";
+    case TopAbs_SHAPE:     return "SHAPE";
+    default:               return "UNKNOWN";
+    }
+}
+
+static std::string step_label_name(const Handle(XCAFDoc_ShapeTool)& shapeTool, const TDF_Label& label, const TDF_Label& referredLabel)
+{
+    std::string name;
+    Handle(TDataStd_Name) shapeName;
+    if (referredLabel.FindAttribute(TDataStd_Name::GetID(), shapeName) ||
+        label.FindAttribute(TDataStd_Name::GetID(), shapeName)) {
+        name = TCollection_AsciiString(shapeName->Get()).ToCString();
+    }
+    if (name.empty() || !StepPreProcessor::isUtf8(name))
+        name = "<unnamed>";
+    return name;
+}
+
+static void dump_step_shape_tree_recursive(const Handle(XCAFDoc_ShapeTool)& shapeTool, const TDF_Label& label, int depth)
+{
+    TDF_Label referredLabel{ label };
+    const bool isReference = shapeTool->IsReference(label);
+    if (isReference)
+        shapeTool->GetReferredShape(label, referredLabel);
+
+    TDF_LabelSequence components;
+    const bool hasComponents = shapeTool->GetComponents(referredLabel, components);
+
+    TopoDS_Shape shape;
+    bool hasShape = shapeTool->GetShape(referredLabel, shape);
+    const char* shapeType = (hasShape && !shape.IsNull()) ? step_shape_type_to_string(shape.ShapeType()) : "NO_SHAPE";
+
+    // trace level so this diagnostic dump stays out of normal (info) logs but is
+    // still available in the field by raising the log severity to trace.
+    BOOST_LOG_TRIVIAL(trace)
+        << "STEP tree: " << std::string(depth * 2, ' ')
+        << "- name=\"" << step_label_name(shapeTool, label, referredLabel) << "\""
+        << ", type=" << shapeType
+        << ", reference=" << (isReference ? "true" : "false")
+        << ", components=" << (hasComponents ? components.Length() : 0);
+
+    if (!hasComponents)
+        return;
+
+    for (Standard_Integer compIndex = 1; compIndex <= components.Length(); ++compIndex)
+        dump_step_shape_tree_recursive(shapeTool, components.Value(compIndex), depth + 1);
+}
+
+static std::string step_label_import_name(const Handle(XCAFDoc_ShapeTool)& shapeTool, const TDF_Label& label, const TDF_Label& referredLabel, unsigned int& id)
+{
+    std::string name;
+    Handle(TDataStd_Name) shapeName;
+    if (referredLabel.FindAttribute(TDataStd_Name::GetID(), shapeName) ||
+        label.FindAttribute(TDataStd_Name::GetID(), shapeName))
+        name = TCollection_AsciiString(shapeName->Get()).ToCString();
+
+    if (name.empty() || !StepPreProcessor::isUtf8(name))
+        name = std::to_string(id++);
+    return name;
+}
+
+static void collect_step_import_tree_recursive(const Handle(XCAFDoc_ShapeTool)& shapeTool,
+                                               const TDF_Label& label,
+                                               size_t parent_id,
+                                               const std::string& objectName,
+                                               const std::string& objectKey,
+                                               unsigned int& id,
+                                               unsigned int& objectId,
+                                               std::vector<StepImportTreeNode>& nodes)
+{
+    TDF_Label referredLabel{ label };
+    const bool isReference = shapeTool->IsReference(label);
+    if (isReference)
+        shapeTool->GetReferredShape(label, referredLabel);
+
+    TDF_LabelSequence components;
+    const bool hasComponents = shapeTool->GetComponents(referredLabel, components);
+
+    TopoDS_Shape shape;
+    const bool hasShape = shapeTool->GetShape(referredLabel, shape) && !shape.IsNull();
+    const std::string name = step_label_import_name(shapeTool, label, referredLabel, id);
+
+    StepImportTreeNode node;
+    node.id              = nodes.size() + 1;
+    node.parent_id       = parent_id;
+    node.name            = name;
+    node.shape_type      = hasShape ? step_shape_type_to_string(shape.ShapeType()) : "NO_SHAPE";
+    node.is_reference    = isReference;
+    node.has_shape       = hasShape;
+    node.component_count = hasComponents ? components.Length() : 0;
+
+    if (hasComponents) {
+        node.object_name = name;
+        node.object_key  = (objectKey.empty() ? name : objectKey + "/" + name) + "@" + std::to_string(objectId++);
+    } else {
+        node.object_name = objectName.empty() ? name : objectName;
+        node.object_key  = objectKey.empty() ? node.object_name : objectKey;
+    }
+
+    nodes.emplace_back(std::move(node));
+    if (parent_id > 0 && parent_id <= nodes.size())
+        nodes[parent_id - 1].children.emplace_back(nodes.back().id);
+
+    if (!hasComponents)
+        return;
+
+    const size_t current_id = nodes.back().id;
+    const std::string current_object_key = nodes.back().object_key;
+    for (Standard_Integer compIndex = 1; compIndex <= components.Length(); ++compIndex)
+        collect_step_import_tree_recursive(shapeTool, components.Value(compIndex), current_id, name, current_object_key, id, objectId, nodes);
+}
+
+static std::vector<StepImportTreeNode> collect_step_import_tree(const Handle(XCAFDoc_ShapeTool)& shapeTool)
+{
+    std::vector<StepImportTreeNode> nodes;
+    if (shapeTool.IsNull())
+        return nodes;
+
+    TDF_LabelSequence topLevelShapes;
+    shapeTool->GetFreeShapes(topLevelShapes);
+    unsigned int id{ 1 };
+    unsigned int objectId{ 1 };
+    for (Standard_Integer iLabel = 1; iLabel <= topLevelShapes.Length(); ++iLabel)
+        collect_step_import_tree_recursive(shapeTool, topLevelShapes.Value(iLabel), 0, "", "", id, objectId, nodes);
+    return nodes;
+}
 
 bool StepPreProcessor::preprocess(const char* path, std::string &output_path)
 {
@@ -169,8 +310,10 @@ int StepPreProcessor::preNum(const unsigned char byte) {
 }
 
 static void getNamedSolids(const TopLoc_Location& location,
-                           const std::string& prefix,
+                           const std::string& objectName,
+                           const std::string& objectKey,
                            unsigned int& id,
+                           unsigned int& objectId,
                            const Handle(XCAFDoc_ShapeTool) shapeTool,
                            const TDF_Label label,
                            std::vector<NamedSolid>& namedSolids,
@@ -189,12 +332,15 @@ static void getNamedSolids(const TopLoc_Location& location,
     if (name == "" || !StepPreProcessor::isUtf8(name))
         name = std::to_string(id++);
     std::string fullName{name};
+    std::string solidObjectName = objectName.empty() ? fullName : objectName;
+    std::string solidObjectKey = objectKey.empty() ? solidObjectName : objectKey;
 
     TopLoc_Location localLocation = location * shapeTool->GetLocation(label);
     TDF_LabelSequence components;
     if (shapeTool->GetComponents(referredLabel, components)) {
+        const std::string currentObjectKey = (objectKey.empty() ? fullName : objectKey + "/" + fullName) + "@" + std::to_string(objectId++);
         for (Standard_Integer compIndex = 1; compIndex <= components.Length(); ++compIndex) {
-            getNamedSolids(localLocation, fullName, id, shapeTool, components.Value(compIndex), namedSolids, isSplitCompound, unclosed_shells);
+            getNamedSolids(localLocation, fullName, currentObjectKey, id, objectId, shapeTool, components.Value(compIndex), namedSolids, isSplitCompound, unclosed_shells);
         }
     } else {
         TopoDS_Shape shape;
@@ -206,22 +352,22 @@ static void getNamedSolids(const TopLoc_Location& location,
         switch (shape_type) {
         case TopAbs_COMPOUND:
             if (!isSplitCompound) {
-                namedSolids.emplace_back(TopoDS::Compound(transform.Shape()), fullName);
+                namedSolids.emplace_back(TopoDS::Compound(transform.Shape()), fullName, solidObjectName, solidObjectKey);
                 break;
             }
         case TopAbs_COMPSOLID:
             if (!isSplitCompound) {
-                namedSolids.emplace_back(TopoDS::CompSolid(transform.Shape()), fullName);
+                namedSolids.emplace_back(TopoDS::CompSolid(transform.Shape()), fullName, solidObjectName, solidObjectKey);
             } else {
                 for (explorer.Init(transform.Shape(), TopAbs_SOLID); explorer.More(); explorer.Next()) {
                     i++;
                     const TopoDS_Shape& currentShape = explorer.Current();
-                    namedSolids.emplace_back(TopoDS::Solid(currentShape), fullName + "-SOLID-" + std::to_string(i));
+                    namedSolids.emplace_back(TopoDS::Solid(currentShape), fullName + "-SOLID-" + std::to_string(i), solidObjectName, solidObjectKey);
                 }
             }
             break;
         case TopAbs_SOLID:
-            namedSolids.emplace_back(TopoDS::Solid(transform.Shape()), fullName);
+            namedSolids.emplace_back(TopoDS::Solid(transform.Shape()), fullName, solidObjectName, solidObjectKey);
             break;
         case TopAbs_SHELL: {
             const TopoDS_Shape& shellShape = transform.Shape();
@@ -229,7 +375,7 @@ static void getNamedSolids(const TopLoc_Location& location,
                 if (std::find(unclosed_shells->begin(), unclosed_shells->end(), fullName) == unclosed_shells->end())
                     unclosed_shells->push_back(fullName);
             }
-            namedSolids.emplace_back(TopoDS::Shell(shellShape), fullName);
+            namedSolids.emplace_back(TopoDS::Shell(shellShape), fullName, solidObjectName, solidObjectKey);
             break;
         }
         default:
@@ -480,10 +626,11 @@ Step::Step_Status Step::load()
         TDF_LabelSequence topLevelShapes;
         m_shape_tool->GetFreeShapes(topLevelShapes);
         unsigned int id{ 1 };
+        unsigned int objectId{ 1 };
         Standard_Integer topShapeLength = topLevelShapes.Length() + 1;
         for (Standard_Integer iLabel = 1; iLabel < topShapeLength; ++iLabel) {
             if (cb_cancel) return;
-            getNamedSolids(TopLoc_Location{}, "", id, m_shape_tool, topLevelShapes.Value(iLabel), m_name_solids, false, &m_unclosed_shells);
+            getNamedSolids(TopLoc_Location{}, "", "", id, objectId, m_shape_tool, topLevelShapes.Value(iLabel), m_name_solids, false, &m_unclosed_shells);
         }
         progress = 10;
         load_result = true;
@@ -514,7 +661,21 @@ Step::Step_Status Step::load()
     }else {
         return Step_Status::LOAD_ERROR;
     }
-    
+}
+
+void Step::dump_structure_tree() const
+{
+    if (m_shape_tool.IsNull()) {
+        BOOST_LOG_TRIVIAL(trace) << "STEP tree: shape tool is null, file may not be loaded. path=" << m_path;
+        return;
+    }
+
+    TDF_LabelSequence topLevelShapes;
+    m_shape_tool->GetFreeShapes(topLevelShapes);
+    BOOST_LOG_TRIVIAL(trace) << "STEP tree: begin path=" << m_path << ", top_level_count=" << topLevelShapes.Length();
+    for (Standard_Integer iLabel = 1; iLabel <= topLevelShapes.Length(); ++iLabel)
+        dump_step_shape_tree_recursive(m_shape_tool, topLevelShapes.Value(iLabel), 0);
+    BOOST_LOG_TRIVIAL(trace) << "STEP tree: end path=" << m_path;
 }
 
 Step::Step_Status Step::mesh(Model* model,
@@ -530,23 +691,25 @@ Step::Step_Status Step::mesh(Model* model,
     std::atomic<int> meshed_solid_num = 0;
     std::vector<NamedSolid> namedSolids;
     float progress_2 = .0;
-    ModelObject* new_object = model->add_object();
     const char* last_slash = strrchr(m_path.c_str(), DIR_SEPARATOR);
-    new_object->name.assign((last_slash == nullptr) ? m_path.c_str() : last_slash + 1);
-    new_object->input_file = m_path.c_str();
+    const std::string fallback_object_name = (last_slash == nullptr) ? m_path.c_str() : last_slash + 1;
+    std::vector<ModelObject*> created_objects;
+    std::vector<StepImportTreeNode> step_import_tree_nodes;
 
     auto task = new boost::thread(Slic3r::create_thread([&]() -> void {
         TDF_LabelSequence topLevelShapes;
         m_shape_tool->GetFreeShapes(topLevelShapes);
+        step_import_tree_nodes = collect_step_import_tree(m_shape_tool);
         unsigned int id{ 1 };
+        unsigned int objectId{ 1 };
         Standard_Integer topShapeLength = topLevelShapes.Length() + 1;
-        
+
         for (Standard_Integer iLabel = 1; iLabel < topShapeLength; ++iLabel) {
             progress = static_cast<double>(iLabel) / (topShapeLength-1);
             if (cb_cancel) {
                 return;
             }
-            getNamedSolids(TopLoc_Location{}, "", id, m_shape_tool, topLevelShapes.Value(iLabel), namedSolids, isSplitCompound);
+            getNamedSolids(TopLoc_Location{}, "", "", id, objectId, m_shape_tool, topLevelShapes.Value(iLabel), namedSolids, isSplitCompound);
         }
 
         std::vector<stl_file> stl;
@@ -628,6 +791,10 @@ Step::Step_Status Step::mesh(Model* model,
         });
 
 
+        std::map<std::string, std::vector<size_t>> object_to_solid_indices;
+        std::map<std::string, std::string> object_key_to_name;
+        std::map<std::string, int> object_key_to_model_idx;
+        std::vector<std::string> object_order;
         for (size_t i = 0; i < stl.size(); i++) {
             progress_2 = static_cast<float>(i) / stl.size();
             if (cb_cancel)
@@ -635,14 +802,51 @@ Step::Step_Status Step::mesh(Model* model,
 
             //BBS: maybe mesh is empty from step file. Don't add
             if (stl[i].stats.number_of_facets > 0) {
+                std::string object_name = namedSolids[i].object_name.empty() ? fallback_object_name : namedSolids[i].object_name;
+                std::string object_key = namedSolids[i].object_key.empty() ? object_name : namedSolids[i].object_key;
+                if (object_to_solid_indices.find(object_key) == object_to_solid_indices.end()) {
+                    object_order.emplace_back(object_key);
+                    object_key_to_name[object_key] = object_name;
+                }
+                object_to_solid_indices[object_key].emplace_back(i);
+            }
+        }
+
+        for (const std::string& object_key : object_order) {
+            if (cb_cancel)
+                return;
+
+            ModelObject* new_object = model->add_object();
+            created_objects.emplace_back(new_object);
+            const std::string& object_name = object_key_to_name[object_key];
+            new_object->name = object_name;
+            new_object->input_file = m_path.c_str();
+            const int object_idx = static_cast<int>(model->objects.size()) - 1;
+            object_key_to_model_idx[object_key] = object_idx;
+            BOOST_LOG_TRIVIAL(info) << "STEP mesh: create ModelObject name=\"" << new_object->name
+                                    << "\", volume_count=" << object_to_solid_indices[object_key].size();
+
+            for (size_t solid_idx : object_to_solid_indices[object_key]) {
                 TriangleMesh triangle_mesh;
-                triangle_mesh.from_stl(stl[i]);
+                triangle_mesh.from_stl(stl[solid_idx]);
                 ModelVolume* new_volume = new_object->add_volume(std::move(triangle_mesh));
-                new_volume->name = namedSolids[i].name;
+                new_volume->name = namedSolids[solid_idx].name;
                 new_volume->source.input_file = m_path.c_str();
-                new_volume->source.object_idx = (int)model->objects.size() - 1;
+                new_volume->source.object_idx = object_idx;
                 new_volume->source.volume_idx = (int)new_object->volumes.size() - 1;
             }
+        }
+        if (!created_objects.empty()) {
+            for (StepImportTreeNode& node : step_import_tree_nodes) {
+                auto object_idx_it = object_key_to_model_idx.find(node.object_key);
+                if (object_idx_it != object_key_to_model_idx.end())
+                    node.model_object_idx = object_idx_it->second;
+            }
+            model->step_import_path = m_path;
+            model->step_import_tree_nodes = std::move(step_import_tree_nodes);
+            BOOST_LOG_TRIVIAL(info) << "STEP mesh: record import tree, node_count="
+                                    << model->step_import_tree_nodes.size()
+                                    << ", object_count=" << created_objects.size();
         }
         task_result = true;
     }));
@@ -664,8 +868,7 @@ Step::Step_Status Step::mesh(Model* model,
                 }
             }
         }
-        
-        
+
         if (cb_cancel) {
             if (task) {
                 if (task->joinable()) {
@@ -683,9 +886,8 @@ Step::Step_Status Step::mesh(Model* model,
         }
     }
 
-    //BBS: no valid shape from the step, delete the new object as well
-    if (new_object->volumes.size() == 0) {
-        model->delete_object(new_object);
+    //BBS: no valid shape from the step
+    if (created_objects.empty()) {
         return Step_Status::MESH_ERROR;
     }
     return Step_Status::MESH_SUCCESS;
@@ -724,7 +926,6 @@ unsigned int Step::get_triangle_num(double linear_defletion, double angle_deflet
     } catch(Exception e) {
         return 0;
     }
-    
     return tri_num;
 }
 

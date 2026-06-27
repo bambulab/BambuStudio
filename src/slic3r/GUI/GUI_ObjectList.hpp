@@ -251,6 +251,9 @@ public:
     // update changed name in the object model
     void                update_name_in_model(const wxDataViewItem& item) const;
     void                update_name_in_list(int obj_idx, int vol_idx) const;
+    // Refresh a list item's displayed name from the model, without relying on the
+    // current selection (vol_idx < 0 targets the object row).
+    void                sync_name_from_model(int obj_idx, int vol_idx);
     void                update_filament_values_for_items(const size_t filaments_count);
     void                update_filament_values_for_items_when_delete_filament(const size_t filament_id, const int replace_id = -1);
 

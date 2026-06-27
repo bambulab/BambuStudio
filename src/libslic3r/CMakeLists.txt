@@ -142,6 +142,10 @@ set(lisbslic3r_sources
     format.hpp
     Format/3mf.cpp
     Format/3mf.hpp
+    Format/AssemblyStepsJson.cpp
+    Format/AssemblyStepsJson.hpp
+    Format/AssemblyTreeJson.cpp
+    Format/AssemblyTreeJson.hpp
     Format/bbs_3mf.cpp
     Format/bbs_3mf.hpp
     Format/AMF.cpp
@@ -158,18 +162,15 @@ set(lisbslic3r_sources
     Format/SL1.cpp
 	Format/svg.hpp
     Format/svg.cpp
-    Format/glTF.hpp
-    Format/glTF.cpp
-    Format/FBX.hpp
-    Format/FBX.cpp
+    Format/AssimpImport.hpp
+    Format/AssimpImport.cpp
     TexturePainting.hpp
     TexturePainting.cpp
+    Win10ModelRepair.hpp
     TextureToColor/TextureToColor.hpp
     TextureToColor/TextureToColor.cpp
     TextureToColor/ColorUtils.hpp
     TextureToColor/ColorUtils.cpp
-    TextureToColor/KdTree.hpp
-    TextureToColor/KdTree.cpp
     GCode/ThumbnailData.cpp
     GCode/ThumbnailData.hpp
     GCode/GCodeEditor.cpp
@@ -196,6 +197,8 @@ set(lisbslic3r_sources
     GCode/AvoidCrossingPerimeters.hpp
     GCode/ConflictChecker.cpp
     GCode/ConflictChecker.hpp
+    GCode/BedExcludeChecker.cpp
+    GCode/BedExcludeChecker.hpp
     GCode/Smoothing.cpp
     GCode/Smoothing.hpp
     GCode/CoolingBuffer.cpp
@@ -515,6 +518,12 @@ set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE ON CACHE BOOL "" FORCE)
 cmake_policy(PUSH)
 cmake_policy(SET CMP0011 NEW)
 find_package(CGAL REQUIRED)
+if(MSVC AND MSVC_VERSION GREATER_EQUAL 1950 AND NOT DEFINED OpenCV_RUNTIME)
+    # OpenCV 4.6.0 doesn't recognize MSVC 19.5x (VS2026/v144). Our deps patch builds
+    # and installs OpenCV under the vc17 runtime layout (ABI-compatible), so select it
+    # explicitly here to match what find_package looks for.
+    set(OpenCV_RUNTIME vc17)
+endif()
 find_package(OpenCV REQUIRED core)
 find_package(assimp REQUIRED)
 cmake_policy(POP)

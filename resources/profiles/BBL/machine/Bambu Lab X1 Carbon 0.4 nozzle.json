@@ -9,6 +9,7 @@
         "0.4"
     ],
     "printer_model": "Bambu Lab X1 Carbon",
+    "farthest_point_timelapse": "1",
     "printer_variant": "0.4",
     "bed_exclude_area": [
         "0x0",
@@ -238,6 +239,7 @@
         "Bambu Lab H2S 0.4 nozzle",
         "Bambu Lab P2S 0.4 nozzle",
         "Bambu Lab H2C 0.4 nozzle",
-        "Bambu Lab X2D 0.4 nozzle"
+        "Bambu Lab X2D 0.4 nozzle",
+        "Bambu Lab A2L 0.4 nozzle"
     ]
 }

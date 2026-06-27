@@ -246,6 +246,7 @@ SCENARIO("get_real_skirt_dist calculates the correct boundary including loop wid
         config.set("skirt_loops", 3);
         config.set("initial_layer_line_width", 0.4);
         config.set("draft_shield", "disabled"); // Just to be safe, dsDisabled is 0 usually
+        config.set("skirt_per_object", true);
 
         WHEN("get_real_skirt_dist is called") {
             float dist = Slic3r::get_real_skirt_dist(config);
@@ -253,6 +254,14 @@ SCENARIO("get_real_skirt_dist calculates the correct boundary including loop wid
             THEN("The distance includes the width of the skirt loops") {
                 // 2.0 + 3 * 0.4 = 3.2
                 REQUIRE(dist == Approx(3.2));
+            }
+        }
+
+        WHEN("skirt_per_object is disabled") {
+            config.set("skirt_per_object", false);
+            float dist = Slic3r::get_real_skirt_dist(config);
+            THEN("The distance is not applied") {
+                REQUIRE(dist == 0.0f);
             }
         }
 

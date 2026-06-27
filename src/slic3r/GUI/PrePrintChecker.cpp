@@ -9,6 +9,7 @@
 #include "DeviceManager.hpp"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
+#include "slic3r/GUI/DeviceCore/DevPrintOptions.h"
 #include "slic3r/GUI/DeviceCore/DevUpgrade.h"
 
 #include <set>
@@ -73,6 +74,7 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusFilamentWarningHighChamberTempSoft: return "PrintStatusFilamentWarningHighChamberTempSoft";
     case PrintStatusFilamentWarningUnknownHighChamberTempSoft: return "PrintStatusFilamentWarningUnknownHighChamberTempSoft";
     case PrintStatusFilamentWarningRemainNotEnough: return "PrintStatusFilamentWarningRemainNotEnough";
+    case PrintStatusSmartNozzleBlobNeedAuto: return "PrintStatusSmartNozzleBlobNeedAuto";
     case PrintStatusReadingFinished: return "PrintStatusReadingFinished";
     case PrintStatusSendingCanceled: return "PrintStatusSendingCanceled";
     case PrintStatusAmsMappingSuccess: return "PrintStatusAmsMappingSuccess";
@@ -249,7 +251,19 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
             label->SetFont(::Label::Body_13);
             label->SetForegroundColour(_GetLabelColour(info));
 
-            if (!info.link_callback && info.wiki_url.empty())
+            if (info.testStyle(prePrintInfoStyle::BtnSwitchNozzleBlobAuto))
+            {
+                label->SetLabel(info.msg + " " + _L("Switch"));
+                label->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+                label->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+                label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& event) {
+                    auto obj_ = m_select_dialog ? m_select_dialog->get_current_machine() : nullptr;
+                    if (obj_ && obj_->GetPrintOptions()) {
+                        obj_->GetPrintOptions()->command_smart_nozzle_blob_detect_mode(2);
+                    }
+                });
+            }
+            else if (!info.link_callback && info.wiki_url.empty())
             {
                 // plain text, no link
                 label->SetLabel(info.msg);

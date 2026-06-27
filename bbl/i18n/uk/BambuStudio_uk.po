@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-14 16:05+0800\n"
+"POT-Creation-Date: 2026-06-25 17:06+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -1085,7 +1085,7 @@ msgstr "роз'єми виходять за контур вирізу"
 msgid "connector is out of object"
 msgstr "роз'єм поза об'єктом"
 
-msgid "connectors is out of object"
+msgid "connectors are out of object"
 msgstr "з’єднання відсутні в об'єкті"
 
 msgid "Some connectors are overlapped"
@@ -1273,13 +1273,13 @@ msgstr ""
 "Особливість 1 скинута, \n"
 "Особливість 2 тепер особливість 1"
 
-msgid "Warning:please select Plane's feature."
+msgid "Warning: Please select a Plane feature."
 msgstr "Попередження: будь ласка, виберіть характеристику площини."
 
-msgid "Warning:please select Point's or Circle's feature."
+msgid "Warning: Please select a Point or Circle feature."
 msgstr "Попередження: будь ласка, виберіть характеристику точки або кола."
 
-msgid "Warning:please select two different mesh."
+msgid "Warning: Please select two different meshes."
 msgstr "Попередження: будь ласка, виберіть дві різні сітки."
 
 msgid "Copy to clipboard"
@@ -1323,6 +1323,9 @@ msgstr "Перевернути за Гранню 2"
 
 msgid "Assemble"
 msgstr "Зібрати"
+
+msgid "Please exit the assembly guide before using this tool."
+msgstr ""
 
 msgid "Please confirm explosion ratio = 1 and select at least two volumes."
 msgstr "Будь ласка, підтвердіть коефіцієнт вибуху = 1 та виберіть принаймні два об’єми."
@@ -1525,31 +1528,31 @@ msgstr ""
 msgid "Text Gap"
 msgstr "Пробіл у тексті"
 
-msgid "Warning:There is a mirror in the text matrix, and dragging it will completely regenerate it."
+msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr ""
 
-msgid "Warning:Due to font upgrades,previous font may not necessarily be replaced successfully, and recommend you to modify the font."
+msgid "Warning: Due to font upgrades, previous font may not necessarily be replaced successfully. Please modify the font."
 msgstr ""
 
-msgid "Warning:create text fail."
+msgid "Warning: Text creation failed."
 msgstr "Попередження: не вдалося створити текст."
 
-msgid "Warning:text normal is error."
+msgid "Warning: Text normal has an error."
 msgstr ""
 
-msgid "Warning:text normal has been reset."
+msgid "Warning: Text normal has been reset."
 msgstr ""
 
-msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgid "Warning: Current text spacing is not optimal. If you continue editing, a more reasonable text spacing will be generated."
 msgstr ""
 
-msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
+msgid "Warning: Old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please drag the text or cancel the current pose, save and reedit again."
 msgstr ""
 
-msgid "Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."
+msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr ""
 
-msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
+msgid "Warning: Due to functional upgrade, rotation information cannot be restored. Please drag or modify text, save it and reedit it to fix the issue."
 msgstr ""
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
@@ -1765,7 +1768,7 @@ msgstr "Відсутній файл SVG у формі з рельєфом"
 msgid "Missing data of svg file"
 msgstr "Відсутні дані файлу SVG"
 
-msgid "Tip:If you want to place svg file on another part surface,you should select part first, and then drag svg file to the part surface."
+msgid "Tip: If you want to place an SVG file on another part surface, select the part first, then drag the SVG file to the part surface."
 msgstr "Підказка:Якщо ви хочете розмістити SVG файл на поверхні іншої деталі,спочатку оберіть деталь, а потім перетягнути SVG файл на поверхню деталі."
 
 #. TRN - Preview of filename after clear local filepath.
@@ -2180,11 +2183,14 @@ msgstr "Додати модифікатор SVG"
 msgid "Select settings"
 msgstr "Виберіть налаштування"
 
-msgid "Hide"
-msgstr "Приховати"
+msgid "Add to New Step"
+msgstr ""
 
-msgid "Show"
-msgstr "Показати"
+msgid "Add to Current Step"
+msgstr ""
+
+msgid "Add to Existing Step"
+msgstr ""
 
 msgid "Delete the selected object"
 msgstr "Видалити вибраний об'єкт"
@@ -3119,6 +3125,420 @@ msgstr ""
 msgid "The minmum temperature should not be less than "
 msgstr ""
 
+msgid "Export file Settings"
+msgstr ""
+
+msgid "Homepage  title"
+msgstr ""
+
+msgid "For privacy reasons, image paths are not saved or restored.Just for pdf/md file."
+msgstr ""
+
+msgid "Homepage image"
+msgstr ""
+
+msgid "Second page image"
+msgstr ""
+
+msgid "Browse"
+msgstr "Огляд"
+
+msgid "Image files"
+msgstr ""
+
+msgid "All files"
+msgstr ""
+
+msgid "Open image file"
+msgstr ""
+
+msgid "Step"
+msgstr "Крок"
+
+msgid "Install parts"
+msgstr ""
+
+msgid "Apply the final assembly pose to the objects or parts added in the current step?"
+msgstr ""
+
+msgid "Apply final assembly pose"
+msgstr ""
+
+msgid "Assembly Guide"
+msgstr "Посібник зі збирання"
+
+msgid "PDF files"
+msgstr ""
+
+msgid "Markdown files"
+msgstr ""
+
+msgid "MP4 files"
+msgstr ""
+
+msgid "Export Assembly Guide to PDF"
+msgstr ""
+
+msgid "Export Assembly Guide to Markdown"
+msgstr ""
+
+msgid "Export Assembly Guide to MP4"
+msgstr ""
+
+msgid "Exporting file"
+msgstr ""
+
+msgid "Export"
+msgstr "Експорт"
+
+msgid "Saving project will automatically switch to end frame"
+msgstr ""
+
+msgid "New Step"
+msgstr ""
+
+msgid "Final assembly"
+msgstr ""
+
+msgid "end frame"
+msgstr ""
+
+msgid "Assembly Structure"
+msgstr ""
+
+msgid "Start your assembly journey from Add Step"
+msgstr ""
+
+msgctxt "AssemblyStructure"
+msgid "Default"
+msgstr ""
+
+msgid "Contain"
+msgstr ""
+
+msgid "Assembly Module"
+msgstr ""
+
+msgid "Click to add objects to the current step"
+msgstr ""
+
+msgid "_copy"
+msgstr ""
+
+msgid "Are you sure you want to delete the current step?"
+msgstr ""
+
+msgid "Delete step"
+msgstr ""
+
+msgid "Model"
+msgstr "Модель"
+
+msgid "Volume"
+msgstr ""
+
+msgid "start frame"
+msgstr ""
+
+msgid "transition frame"
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%"
+msgstr ""
+
+msgid "Assembly Step"
+msgstr ""
+
+msgid "Start frame"
+msgstr ""
+
+msgid "End frame"
+msgstr ""
+
+msgid "Transition frame"
+msgstr ""
+
+msgid "Frame"
+msgstr ""
+
+msgid "step"
+msgstr ""
+
+msgid "Play all frames for all steps."
+msgstr ""
+
+msgid "Toggle playback speed."
+msgstr ""
+
+msgid "Play previous frame."
+msgstr ""
+
+msgid "Play next frame."
+msgstr ""
+
+msgid "Set export file parameters"
+msgstr ""
+
+msgid "Camera margin factor for the current frame. The larger the value, the more margin."
+msgstr ""
+
+msgid "Modify camera margin"
+msgstr ""
+
+msgid "Edit step name"
+msgstr ""
+
+msgid "Insert step before"
+msgstr ""
+
+msgid "Insert step after"
+msgstr ""
+
+msgid "Tip"
+msgstr ""
+
+msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
+msgstr ""
+
+msgid "Expand"
+msgstr ""
+
+msgid "Collapse"
+msgstr "Згорнути"
+
+msgid "Options"
+msgstr "Параметри"
+
+msgid "Go to Wiki"
+msgstr ""
+
+msgid "Copy current step"
+msgstr ""
+
+msgid "Delete current step"
+msgstr ""
+
+msgid "Add some objects to current step"
+msgstr ""
+
+msgid "Copy Step"
+msgstr ""
+
+msgid "Add Step"
+msgstr ""
+
+#, boost-format
+msgid "No more than %1% steps are allowed."
+msgstr ""
+
+msgid "Only copy steps. This is independent of the selected objects on the canvas."
+msgstr ""
+
+msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
+msgstr ""
+
+msgid "Exit"
+msgstr ""
+
+msgid "Click to add Cyber Brick"
+msgstr ""
+
+msgid "Delete this keyframe"
+msgstr ""
+
+msgid "Export PDF"
+msgstr ""
+
+msgid "Export Markdown"
+msgstr ""
+
+msgid "Export MP4"
+msgstr ""
+
+msgid "After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF."
+msgstr ""
+
+msgid "Auto recommend"
+msgstr ""
+
+msgid "Model objects only"
+msgstr ""
+
+msgid "Model parts only"
+msgstr ""
+
+msgid "Automatically choose object-or-part-level labels: objects already shown in earlier steps are collapsed into a single object label, while the rest are labeled per individual part."
+msgstr ""
+
+msgid "Show one label per model object."
+msgstr ""
+
+msgid "Show one label per model part."
+msgstr ""
+
+msgid "Label"
+msgstr ""
+
+msgid "Label settings"
+msgstr ""
+
+msgid "Show Object/Part labels"
+msgstr ""
+
+msgid "Show object and part names  on models"
+msgstr ""
+
+msgid "Automatically select the optimal camera perspective and auto-arrange auto recommend labels each time the checkbox is re-ticked."
+msgstr ""
+
+msgid "Auto layout"
+msgstr ""
+
+msgid "Auto-arrange labels in current view"
+msgstr ""
+
+msgid "Current view labels"
+msgstr ""
+
+msgid "Label Settings"
+msgstr ""
+
+msgid "Font size"
+msgstr ""
+
+msgid "Display mode"
+msgstr ""
+
+msgid "Export assembly guide PDF, Markdown or MP4"
+msgstr ""
+
+msgid "Screw"
+msgstr ""
+
+msgid "Note"
+msgstr ""
+
+msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
+msgstr ""
+
+msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
+msgstr ""
+
+msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
+msgstr ""
+
+msgid "undoing these edits is not yet supported and will be added in a later version."
+msgstr ""
+
+msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
+msgstr ""
+
+msgid "Connection Type"
+msgstr ""
+
+msgid "Clip"
+msgstr ""
+
+msgid "Glue"
+msgstr ""
+
+msgid "Add Clip"
+msgstr ""
+
+msgid "Add Glue"
+msgstr ""
+
+msgid "Add Screw"
+msgstr ""
+
+msgid "Add Notes"
+msgstr ""
+
+msgid "Add Rectangle"
+msgstr ""
+
+msgid "Add Circle"
+msgstr ""
+
+msgid "Add Arrow"
+msgstr ""
+
+msgid "Add Text"
+msgstr ""
+
+msgid "Text"
+msgstr ""
+
+msgid "Background"
+msgstr ""
+
+msgid "Timeline"
+msgstr ""
+
+msgid "Play all frames for current step"
+msgstr ""
+
+msgid "At least two keyframes are required to play."
+msgstr ""
+
+msgid "Automatically explode all objects."
+msgstr ""
+
+msgid "Automatically explode all parts."
+msgstr ""
+
+msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
+msgstr ""
+
+msgid "Apply current camera angle to all frames of the current step"
+msgstr ""
+
+msgid "Add keyframe"
+msgstr ""
+
+msgid "Click to select this frame"
+msgstr ""
+
+msgid "Save update"
+msgstr ""
+
+msgid "Save current frame"
+msgstr ""
+
+msgid "Assembly tree"
+msgstr ""
+
+msgid "Search"
+msgstr "Пошук"
+
+msgid "List"
+msgstr ""
+
+msgid "Select all parts in a step"
+msgstr ""
+
+msgid "Red"
+msgstr ""
+
+msgid "Orange"
+msgstr ""
+
+msgid "Green"
+msgstr ""
+
+msgid "Blue"
+msgstr ""
+
+msgid "Black"
+msgstr ""
+
+msgid "Grey"
+msgstr ""
+
+msgid "White"
+msgstr ""
+
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects."
@@ -3210,9 +3630,6 @@ msgstr "Немає дійсної поверхні для проекції те�
 msgid "Text mesh ie empty."
 msgstr ""
 
-msgid "Text"
-msgstr ""
-
 msgid "Error! Unable to create thread!"
 msgstr "Помилка! Неможливо створити тему!"
 
@@ -3270,28 +3687,11 @@ msgstr "Надсилання завдання на друк локальною �
 msgid "Sending print job through cloud service"
 msgstr "Надсилання завдання на друк через хмарний сервіс"
 
-msgid "Print task sending times out."
-msgstr "Час відправлення завдання на друк закінчився."
-
 msgid "Service Unavailable"
 msgstr "Сервіс недоступний"
 
 msgid "Unknown Error."
 msgstr "Невідома помилка."
-
-msgid "Sending print configuration"
-msgstr "Надсилання конфігурації друку"
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Успішно надіслано. Автоматично перейде на сторінку пристрою через %s c"
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the next page in %ss"
-msgstr "Успішно відправлено. Автоматично перейдеться на наступну сторінку через %s с"
-
-msgid "Storage needs to be inserted before printing via LAN."
-msgstr ""
 
 msgid "Sending gcode file over LAN"
 msgstr "Надсилання файлу gcode по локальній мережі"
@@ -3341,7 +3741,10 @@ msgstr ""
 msgid "Multi-Color"
 msgstr ""
 
-msgid "Filament Mapping"
+msgid "Your input texture model"
+msgstr ""
+
+msgid "Processed multi-color model"
 msgstr ""
 
 msgid "Color Count"
@@ -3357,6 +3760,9 @@ msgid "Convert texture to painting using the specified color count and smooth le
 msgstr ""
 
 msgid "Reminder: parameters changed, click Apply to take effect"
+msgstr ""
+
+msgid "Filament Mapping"
 msgstr ""
 
 msgid "Auto-merge same filament"
@@ -3378,6 +3784,27 @@ msgid "Computing texture colors..."
 msgstr ""
 
 msgid "Computation failed. Please adjust parameters and retry."
+msgstr ""
+
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+msgstr ""
+
+msgid "Mesh repair"
+msgstr ""
+
+msgid "Import without repair"
+msgstr ""
+
+msgid "Repair and import"
+msgstr ""
+
+msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+msgstr ""
+
+msgid "Mesh issue"
+msgstr ""
+
+msgid "Continue"
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -3638,9 +4065,6 @@ msgstr "%s не підтримує %s"
 msgid "Dynamic flow Calibration"
 msgstr "Калібрування динамічного потоку"
 
-msgid "Step"
-msgstr "Крок"
-
 msgid "Unmapped"
 msgstr ""
 
@@ -3816,7 +4240,7 @@ msgstr ""
 msgid "Power on update"
 msgstr "Оновлення під час увімкнення"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
 msgstr "AMS автоматично зчитує інформацію про вставлений філамент. Це займе близько 1 хвилини. У процесі зчитування крутиться котушка."
 
 msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
@@ -3871,6 +4295,15 @@ msgstr ""
 
 msgid "File"
 msgstr "Файл"
+
+msgid "Save Project"
+msgstr "Зберегти проєкт"
+
+msgid "Undo"
+msgstr "Скасувати"
+
+msgid "Redo"
+msgstr "Повторити"
 
 msgid "Calibration"
 msgstr "Калібрування"
@@ -3991,9 +4424,6 @@ msgstr "Видалити"
 msgid "Not found:"
 msgstr "Не знайдено:"
 
-msgid "Model"
-msgstr "Модель"
-
 msgid "Choose an STL file to import bed shape from:"
 msgstr "Виберіть файл STL для імпорту форми столу:"
 
@@ -4060,7 +4490,7 @@ msgid ""
 msgstr ""
 
 #, c-format, boost-format
-msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
+msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
 msgstr "Поточна температура камери вища, ніж безпечна температура матеріалу, це може призвести до розм’якшення матеріалу та його забивання. Максимально безпечна температура для цього матеріалу становить %d"
 
 msgid ""
@@ -4208,7 +4638,39 @@ msgid ""
 "Reset to 50%% of skin depth"
 msgstr ""
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
+msgstr ""
+
+msgid "Set ensure vertical shell thickness to Partial."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Set wall loops to %d."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Set sparse infill density to %d%%."
+msgstr ""
+
+msgid "Disable spiral vase mode."
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
+"No  - Don't use alternate extra wall"
+msgstr ""
+
+msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
+msgstr ""
+
+msgid ""
+"Apply these adjustments?\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
+"No  - Keep current settings and alternate extra wall enabled"
+msgstr ""
+
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
 msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -4331,10 +4793,10 @@ msgstr ""
 msgid "Pause (nozzle clog)"
 msgstr ""
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr ""
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr ""
 
 msgid "Measure motion accuracy"
@@ -4480,7 +4942,7 @@ msgstr ""
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Поточна температура камери або цільова температура камери перевищує 45℃. Щоб уникнути забивання екструдера, не дозволяється завантажувати філаменти низької температури (PLA/PETG/TPU)."
 
-msgid "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature."
+msgid "Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order to avoid extruder clogging, it is not allowed to set the chamber temperature."
 msgstr "В екструдері занходиться низькотемпературний філамент(PLA/PETG/TPU).Для уникнення засмічення екструдера не дозволено змінювати температуру камери."
 
 msgid "When you set the chamber temperature below 40℃, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0℃."
@@ -4774,9 +5236,6 @@ msgstr "Зміна філаменту"
 msgid "Wipe"
 msgstr "Протирання"
 
-msgid "Options"
-msgstr "Параметри"
-
 msgid "travel"
 msgstr "переміщення"
 
@@ -5035,6 +5494,9 @@ msgstr ""
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr ""
 
+msgid "Unnamed"
+msgstr ""
+
 msgid "Mirror Object"
 msgstr "Дзеркальний об'єкт"
 
@@ -5133,9 +5595,6 @@ msgstr "Вибір столу"
 msgid "Change camera perspective"
 msgstr ""
 
-msgid "Go to Wiki"
-msgstr ""
-
 #, boost-format
 msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
 msgstr ""
@@ -5172,8 +5631,14 @@ msgstr ""
 msgid "Fit camera to scene or selected object."
 msgstr ""
 
+msgid "Auto recommend camera angle(Only works when the assembly step function is active)"
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr "Панель інструментів малювання"
+
+msgid "This border is used to distinguish it from the background"
+msgstr ""
 
 msgid "Explosion Ratio"
 msgstr "Коефіцієнт вибуху"
@@ -5186,6 +5651,15 @@ msgstr "Складання керування"
 
 msgid "Selection Mode"
 msgstr "Режим вибору"
+
+msgid "Show Current Step Objects Only"
+msgstr ""
+
+msgid "X-Ray Other Objects"
+msgstr ""
+
+msgid "Display Mode"
+msgstr ""
 
 msgid "Total Volume:"
 msgstr "Загальний обсяг:"
@@ -5393,6 +5867,9 @@ msgstr "Попередній перегляд"
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
 msgstr ""
 
+msgid "Home"
+msgstr ""
+
 msgid "Device"
 msgstr "Пристрій"
 
@@ -5561,9 +6038,6 @@ msgstr "Відкрийте файл проєкту"
 msgid "Recent projects"
 msgstr "Недавні проєкти"
 
-msgid "Save Project"
-msgstr "Зберегти проєкт"
-
 msgid "Save current project to file"
 msgstr "Зберегти поточний проєкт у файл"
 
@@ -5621,9 +6095,6 @@ msgstr "Експортувати пакет пресетів"
 msgid "Export current configuration to files"
 msgstr "Експорт поточної конфігурації до файлів"
 
-msgid "Export"
-msgstr "Експорт"
-
 msgid "Publish to MakerWorld"
 msgstr "Опублікувати на MakerWorld"
 
@@ -5632,12 +6103,6 @@ msgstr ""
 
 msgid "Quit"
 msgstr "Вихід"
-
-msgid "Undo"
-msgstr "Скасувати"
-
-msgid "Redo"
-msgstr "Повторити"
 
 msgid "Cut selection to clipboard"
 msgstr "Вирізати виділення в буфер обміну"
@@ -5683,6 +6148,15 @@ msgstr "Прибрати виділення з усього"
 
 msgid "Deselects all objects"
 msgstr "Скасує вибір усіх об'єктів"
+
+msgid "Enter Camera Full Screen"
+msgstr ""
+
+msgid "Show the Device camera in full screen"
+msgstr ""
+
+msgid "Exit Camera Full Screen"
+msgstr ""
 
 msgid "Use Perspective View"
 msgstr "Використовуйте вигляд у перспективі"
@@ -5747,17 +6221,17 @@ msgstr "Допомога"
 msgid "Temperature Calibration"
 msgstr "Калібрування температури"
 
-msgid "Pass 1"
-msgstr "Прохід 1"
+msgid "Coarse"
+msgstr ""
 
-msgid "Flow rate test - Pass 1"
-msgstr "Тест витрати - Пройдено 1"
+msgid "Flow rate test - Coarse"
+msgstr ""
 
-msgid "Pass 2"
-msgstr "Прохід 2"
+msgid "Fine"
+msgstr ""
 
-msgid "Flow rate test - Pass 2"
-msgstr "Тест витрати - Пройдено 2"
+msgid "Flow rate test - Fine"
+msgstr ""
 
 msgid "Flow rate"
 msgstr "Швидкість потоку"
@@ -5925,6 +6399,9 @@ msgstr "Програвач не завантажений, будь ласка, �
 msgid "Plugin library failed to load. Click here to view the solution."
 msgstr ""
 
+msgid "Loading failed. Please check the network and try again."
+msgstr ""
+
 msgid "Temporarily closed because there is no operation for a while."
 msgstr ""
 
@@ -5940,7 +6417,7 @@ msgstr "Принтер зараз зайнятий завантаженням. �
 msgid "Printer camera is malfunctioning."
 msgstr "Камера принтера несправна."
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Виникла проблема. Будь ласка, оновіть прошивку принтера і спробуйте знову."
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
@@ -6221,9 +6698,6 @@ msgstr "Змінити місцями осі Y/Z"
 msgid "(LAN)"
 msgstr "(LAN)"
 
-msgid "Search"
-msgstr "Пошук"
-
 msgid "My Device"
 msgstr "Мої пристрої"
 
@@ -6287,6 +6761,9 @@ msgstr ""
 
 msgid "Go to Login"
 msgstr "Перейти до входу"
+
+msgid "Camera Full Screen"
+msgstr ""
 
 msgctxt "Quit_Switching"
 msgid "Quit"
@@ -6687,9 +7164,6 @@ msgstr "%s попередження"
 msgid "%s has a warning"
 msgstr "%s має попередження"
 
-msgid "Collapse"
-msgstr "Згорнути"
-
 msgid "View details"
 msgstr ""
 
@@ -6925,6 +7399,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Ніз"
 
+msgid "There is stringing-prone filament in the current print job. Enabling nozzle clumping detection now may degrade print quality. Are you sure you want to enable it?"
+msgstr ""
+
+msgid "Enable Nozzle Clumping Detection"
+msgstr ""
+
 msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
 msgstr ""
 
@@ -6943,10 +7423,8 @@ msgstr ""
 msgid "Enable detection of build plate position"
 msgstr "Увімкнути визначення положення робочого столу"
 
-msgid "The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."
+msgid "Pauses printing when build plate misalignment is detected."
 msgstr ""
-"Виявлено тег локалізації робочої пластини, і друк припиняється,якщо\n"
-"тег не знаходиться в певному діапазоні."
 
 msgid "Build Plate Detection"
 msgstr ""
@@ -7011,9 +7489,6 @@ msgstr ""
 msgid "Alignment Detection"
 msgstr ""
 
-msgid "Pauses printing when build plate misalignment is detected."
-msgstr ""
-
 msgid "First Layer Inspection"
 msgstr "Перевірка першого шару"
 
@@ -7041,6 +7516,9 @@ msgstr "Виявлення заплутування філаменту"
 msgid "Checks if the nozzle is clumping by filament or other foreign objects."
 msgstr ""
 
+msgid "On"
+msgstr ""
+
 msgid "Open Door Detection"
 msgstr ""
 
@@ -7057,6 +7535,15 @@ msgid "Print Status Snapshot"
 msgstr ""
 
 msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
+msgstr ""
+
+msgid "Automatically match the corresponding switch strategy for leak-prone filaments (disable blob detection) and regular filaments (enable blob detection)."
+msgstr ""
+
+msgid "Detect whether the nozzle is wrapped by filament or other foreign matter."
+msgstr ""
+
+msgid "After disabling, nozzle wrapping cannot be detected, which may lead to print failure or nozzle damage."
 msgstr ""
 
 msgctxt "Nozzle Type"
@@ -7494,6 +7981,12 @@ msgid "Computing texture colors: %s"
 msgstr ""
 
 msgid "Texture Import Warning"
+msgstr ""
+
+msgid ""
+"The imported STEP file is split by sub-assembly, so some objects may not be placed on the build plate at first.\n"
+"It is expected if they are placed on the build plate later after move,rotate gizmo or similar operations.\n"
+"The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."
 msgstr ""
 
 msgid "Load these files as a single object with multiple parts?\n"
@@ -8221,9 +8714,6 @@ msgid ""
 "Continue with enabling this feature?"
 msgstr ""
 
-msgid "Browse"
-msgstr "Огляд"
-
 msgid "Choose Download Directory"
 msgstr "Виберіть каталог завантаження"
 
@@ -8302,6 +8792,12 @@ msgstr "Керування багато пристроями (набуде чи�
 msgid "With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."
 msgstr "З цією опцією ввімкненою, ви можете відправляти завдання на кілька пристроїв одночасно та керувати декількома пристроями."
 
+msgid "Take effect after restarting Studio"
+msgstr ""
+
+msgid "The Filament Manager is turned off by default on macOS because compatibility issues on some systems may cause the application to become unresponsive."
+msgstr ""
+
 msgid "Show the step mesh parameter setting dialog."
 msgstr ""
 
@@ -8320,10 +8816,25 @@ msgstr "Прибрати обмеження на одночасний друк �
 msgid "With this option enabled, you can print materials with a large temperature difference together."
 msgstr ""
 
+msgid "Open full screen camera view on active monitor only."
+msgstr ""
+
+msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
+msgstr ""
+
 msgid "Clear my choice for synchronizing printer preset after loading the file."
 msgstr ""
 
 msgid "Clear my choice for Load 3mf dialog settings."
+msgstr ""
+
+msgid "Clear my choice for executing post-processing scripts."
+msgstr ""
+
+msgid "Show the security warning dialog again before slicing when post-processing scripts are configured."
+msgstr ""
+
+msgid "Clear my choice for disabling support parameter recommendation."
 msgstr ""
 
 msgid "3D Settings"
@@ -8338,7 +8849,7 @@ msgstr "Наблизьтеся до положення покажчика миш
 msgid "Always show shells in preview"
 msgstr "Завжди показувати оболонки в попередньому перегляді"
 
-msgid "Always show shells or not in preview view tab.If change value,you should reslice."
+msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Завжди показувати оболонки або ні у вкладці попереднього перегляду. Якщо змінити значення, потрібно повторно нарізати."
 
 msgid "Import a single SVG and split it"
@@ -8886,9 +9397,6 @@ msgstr "Bambu Cool Plate SuperTack"
 msgid "Send print job"
 msgstr ""
 
-msgid "On"
-msgstr ""
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr ""
 
@@ -8956,7 +9464,7 @@ msgstr "Філамент не відповідає філаменту в сло�
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr ""
 
-msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
+msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "При увімкненні режиму спіралі для вази машини з I3 структурою не будуть створювати відео в режимі таймлапсу."
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
@@ -8983,8 +9491,14 @@ msgstr "Будь ласка, перевірте наступне:"
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Будь ласка, виправте помилку вище, інакше друк не може продовжитися."
 
-msgid "Please click the confirm button if you still want to proceed with printing."
-msgstr "Натисніть кнопку підтвердження, якщо ви все ще хочете продовжити друк."
+msgid "Please click the \"Continue printing\"  button if you still want to proceed with printing."
+msgstr ""
+
+msgid "Continue printing"
+msgstr ""
+
+msgid "Return to modify"
+msgstr ""
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr ""
@@ -9146,10 +9660,13 @@ msgstr ""
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr ""
 
-msgid "It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process."
+msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
 msgstr ""
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
+msgstr ""
+
+msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
 msgstr ""
 
 msgid "Cool"
@@ -9201,6 +9718,9 @@ msgid "Please do not mix-use the Ext with AMS"
 msgstr ""
 
 msgid "Invalid nozzle information, please refresh or manually set nozzle information."
+msgstr ""
+
+msgid "Storage needs to be inserted before printing via LAN."
 msgstr ""
 
 msgid "Storage is not available or is in read-only mode."
@@ -9365,7 +9885,7 @@ msgstr "Прочитайте і згодьтеся"
 msgid "Terms and Conditions"
 msgstr "Умови використання"
 
-msgid "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab device, please read the termsand conditions.By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use(collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
+msgid "Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab device, please read the terms and conditions. By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use (collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr "Дякуємо за покупку пристрою Bambu Lab. Перед використанням вашого пристрою Bambu Lab, будь ласка, ознайомтесь з умовами користування. Натискаючи на кнопку погодження з використання вашого пристрою Bambu Lab, ви погоджуєтеся дотримуватися Політики конфіденційності та Умов користування (загалом - “Умов”). Якщо ви не виконуєте або не згодні з Політикою конфіденційності Bambu Lab, будь ласка, не використовуйте обладнання та послуги Bambu Lab."
 
 msgid "and"
@@ -9877,6 +10397,12 @@ msgstr "Апаратне витягування"
 msgid "Detached"
 msgstr "Окремий"
 
+msgid "The current preset is embedded in the 3MF project file. Please save changes directly.  'Save as new' is not supported for preset inside project."
+msgstr ""
+
+msgid "Unable to save preset"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."
 msgstr "За цим принтером прикріплено %d налаштувань філаменту та %d налаштувань процесу. Ці налаштування будуть видалені, якщо принтер буде видалено."
@@ -10088,9 +10614,6 @@ msgstr "Малюнки"
 msgid "Bill of Materials"
 msgstr "Відомість матеріалів"
 
-msgid "Assembly Guide"
-msgstr "Посібник зі збирання"
-
 msgid "Author"
 msgstr "Автор"
 
@@ -10191,9 +10714,6 @@ msgstr ""
 msgid " And "
 msgstr ""
 
-msgid "Note"
-msgstr ""
-
 msgid "The color has been selected, you can choose OK to continue or manually adjust it."
 msgstr ""
 
@@ -10268,9 +10788,6 @@ msgstr ""
 
 msgid "Use AMS"
 msgstr "Використовуйте AMS"
-
-msgid "Tip"
-msgstr ""
 
 msgid "Only synchronize filament type and color, not including AMS slot information."
 msgstr ""
@@ -11385,6 +11902,9 @@ msgstr "Відремонтований файл 3mf не містить жодн
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "Відремонтований файл 3mf містить більше одного тома"
 
+msgid "Repaired 3mf file contains more than one instance"
+msgstr ""
+
 msgid "Repair finished"
 msgstr "Ремонт завершено"
 
@@ -11399,6 +11919,20 @@ msgstr "Пакет конфігурації оновлено до "
 
 msgid "Open G-code file:"
 msgstr "Відкрийте файл G-коду:"
+
+msgid "Print task sending times out."
+msgstr "Час відправлення завдання на друк закінчився."
+
+msgid "Sending print configuration"
+msgstr "Надсилання конфігурації друку"
+
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "Успішно надіслано. Автоматично перейде на сторінку пристрою через %s c"
+
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the next page in %ss"
+msgstr "Успішно відправлено. Автоматично перейдеться на наступну сторінку через %s с"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "Наступний(і) об’єкт(и) мають порожній початковий шар і не можуть бути надруковані. Будь ласка, обріжте дно або увімкніть підтримку."
@@ -11679,6 +12213,9 @@ msgstr "Будь ласка, виберіть послідовність дру�
 
 msgid "The spiral vase mode does not work when an object contains more than one materials."
 msgstr "Режим спіральної вази не працює, якщо об'єкт містить більше одногоматеріалу."
+
+msgid "The spiral vase mode does not work when an object contains regions with different print settings."
+msgstr ""
 
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "Змінна висота шару не підтримується з органічними підтримками."
@@ -11995,6 +12532,22 @@ msgstr "Потік мосту"
 
 msgid "Decrease this value slightly(for example 0.9) to reduce the amount of material for bridge, to improve sag"
 msgstr "Трохи зменшіть це значення (наприклад, 0.9), щоб зменшити кількість матеріалу для мосту, щоб покращити провисання"
+
+msgid "Bridge counterbore holes"
+msgstr ""
+
+msgid ""
+"This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
+"1. None: No bridge is created\n"
+"2. Partially Bridged: Only a part of the unsupported area will be bridged\n"
+"3. Sacrificial Layer: A full sacrificial bridge layer is created"
+msgstr ""
+
+msgid "Partially bridged"
+msgstr ""
+
+msgid "Sacrificial layer"
+msgstr ""
 
 msgid "Top surface flow ratio"
 msgstr "Коефіцієнт потоку верхньої поверхні"
@@ -12541,7 +13094,7 @@ msgstr ""
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr ""
 
-msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgid "Flush temperature used in fast purge mode."
 msgstr ""
 
 msgid "Flush volumetric speed"
@@ -12742,6 +13295,12 @@ msgid "Mixed filament gradient range"
 msgstr ""
 
 msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
+msgstr ""
+
+msgid "Mixed filament gradient curve"
+msgstr ""
+
+msgid "Optional Photoshop-style custom curve mapping Z progress to the first component ratio. Encoded as pipe-separated control points, either \"x,y\" (legacy) or \"x,y,m_in,m_out\" when a tangent override is needed (empty token or \"nan\" means use PCHIP default). x in [0,1]; y is clamped to the configured ratio range, e.g. \"0,0.15|0.5,0.50|1,0.85\". When empty, the linear gradient_range is used instead."
 msgstr ""
 
 msgid "Mixed filament per-part gradient"
@@ -13143,6 +13702,12 @@ msgid "Print in clockwise when enabled, or counterclockwise when not enabled, no
 msgstr ""
 
 msgid "Enable clumping detection"
+msgstr ""
+
+msgid "Order-independent overlap carving"
+msgstr ""
+
+msgid "When enabled, overlapping model parts are carved by bounding-box size so smaller embedded parts are not removed by larger parts due to volume order."
 msgstr ""
 
 msgid "Clumping detection layers"
@@ -13700,6 +14265,12 @@ msgstr ""
 msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
 msgstr ""
 
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
+msgstr ""
+
 msgid "Post-processing Scripts"
 msgstr "Сценарії післяобробки"
 
@@ -13945,6 +14516,12 @@ msgstr "Відстань між спідницею/каймою"
 msgid "Distance from skirt to brim or object"
 msgstr "Відстань між спідницею/каймою або моделлю"
 
+msgid "Skirt per object"
+msgstr ""
+
+msgid "Generate independent skirt around each object in sequential printing mode. When disabled, a single skirt is drawn around all objects."
+msgstr ""
+
 msgid "Skirt height"
 msgstr "Шари спідниці"
 
@@ -13998,6 +14575,12 @@ msgstr "Якщо вибрано плавний або традиційний р�
 
 msgid "Traditional"
 msgstr "Традиційний"
+
+msgid "Farthest point timelapse"
+msgstr ""
+
+msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
+msgstr ""
 
 msgid "Temperature variation"
 msgstr "Зміна температури"
@@ -14714,6 +15297,9 @@ msgstr ""
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Наданий файл не вдалося прочитати, оскільки він порожній"
 
+msgid "The file format is incompatible and cannot be parsed."
+msgstr ""
+
 msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."
 msgstr ""
 
@@ -14729,11 +15315,8 @@ msgstr "помилка завантаження файлу OBJ: не вдало�
 msgid "load mtl in obj: failed to parse"
 msgstr "не вдалося розпізнати mtl у файлі obj: помилка парсингу"
 
-msgid "The file contains polygons with more than 4 vertices."
-msgstr "Цей файл містить полігони з більше ніж 4 вершинами."
-
-msgid "The file contains polygons with less than 2 vertices."
-msgstr "У файлі містяться полігони з менш ніж 2 вершинами."
+msgid "The file contains polygons with less than 3 vertices."
+msgstr ""
 
 msgid "The file contains invalid vertex index."
 msgstr "У файлі містяться недійсний індекс вершини."
@@ -16730,9 +17313,6 @@ msgstr ""
 msgid "Skipping objects."
 msgstr ""
 
-msgid "Continue"
-msgstr ""
-
 msgid "Null Color"
 msgstr ""
 
@@ -17108,6 +17688,12 @@ msgstr ""
 msgid "Remove the third material"
 msgstr ""
 
+msgid "Material Ratio"
+msgstr ""
+
+msgid "Model Height"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -17386,6 +17972,38 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Please click the confirm button if you still want to proceed with printing."
+#~ msgstr "Натисніть кнопку підтвердження, якщо ви все ще хочете продовжити друк."
+
+#~ msgid "Hide"
+#~ msgstr "Приховати"
+
+#~ msgid "Show"
+#~ msgstr "Показати"
+
+#~ msgid "Pass 1"
+#~ msgstr "Прохід 1"
+
+#~ msgid "Flow rate test - Pass 1"
+#~ msgstr "Тест витрати - Пройдено 1"
+
+#~ msgid "Pass 2"
+#~ msgstr "Прохід 2"
+
+#~ msgid "Flow rate test - Pass 2"
+#~ msgstr "Тест витрати - Пройдено 2"
+
+#~ msgid "The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."
+#~ msgstr ""
+#~ "Виявлено тег локалізації робочої пластини, і друк припиняється,якщо\n"
+#~ "тег не знаходиться в певному діапазоні."
+
+#~ msgid "The file contains polygons with more than 4 vertices."
+#~ msgstr "Цей файл містить полігони з більше ніж 4 вершинами."
+
+#~ msgid "The file contains polygons with less than 2 vertices."
+#~ msgstr "У файлі містяться полігони з менш ніж 2 вершинами."
 
 #~ msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 #~ msgstr "неманіфольдні ребра можуть бути викликані інструментом різання, ви хочете виправити це зараз?"

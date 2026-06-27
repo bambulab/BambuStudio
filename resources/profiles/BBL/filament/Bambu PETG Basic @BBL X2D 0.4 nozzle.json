@@ -92,11 +92,20 @@
         "245",
         "245"
     ],
+    "overhang_fan_speed": [
+        "50"
+    ],
     "retraction_distances_when_ec": [
         "3",
         "3",
         "4",
         "4"
+    ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
     ],
     "compatible_printers": [
         "Bambu Lab X2D 0.4 nozzle"

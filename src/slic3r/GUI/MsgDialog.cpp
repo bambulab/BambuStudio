@@ -451,6 +451,7 @@ PostProcessScriptDialog::PostProcessScriptDialog(wxWindow* parent, const wxStrin
     });
     content_sizer->Add(m_toggle_details, 0, wxBOTTOM, FromDIP(4));
 
+    show_dsa_button();
     add_button(wxID_YES, false, _L("Execute"));
     add_button(wxID_NO, true, _L("Do not execute"));
     if (Button* execute_btn = get_button(wxID_YES)) {

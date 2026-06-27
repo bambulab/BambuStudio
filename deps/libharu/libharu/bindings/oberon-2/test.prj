@@ -1,0 +1,10 @@
+-IMPLIB+
+-CHANGESYM+
+-USEDLL+
+-GUI-
+-HEAPLIMIT=96000000
+-COMPILERHEAP=48000000
+
+!module hpdf.ob2
+!module test.ob2
+!module libhpdf.lib

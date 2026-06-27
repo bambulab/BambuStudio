@@ -430,8 +430,6 @@ public:
 	    bool                disabled : 1;
 	    // Is this object printable?
 	    bool                printable : 1;
-        // Is this object visible(in assemble view)?
-	    bool                visible : 1;
 	    // Whether or not this volume is active for rendering
 	    bool                is_active : 1;
 	    // Whether or not to use this volume when applying zoom_to_volumes()

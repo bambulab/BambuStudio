@@ -21,7 +21,7 @@ public:
 	bool GetSubmitFlag() const { return m_submit_flag; }
 
 private:
-	static int CalcFlushingVolume(const wxColour& from_, const wxColour& to_, int min_flush_volume, int nozzle_flush_dataset);
+	static int CalcFlushingVolume(const wxColour& from_, const wxColour& to_, int min_flush_volume, int nozzle_flush_dataset, const std::string& from_filament_id = std::string(), const std::string& to_filament_id = std::string());
 	wxString BuildTableObjStr();
 	wxString BuildTextObjStr(bool multi_language = true);
 	void StoreFlushData(int extruder_num, const std::vector<std::vector<double>>& flush_volume_vecs, const std::vector<double>& flush_multipliers);

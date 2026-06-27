@@ -37,6 +37,7 @@ struct VolumeColorInfo;
 #define BBL_DESIGNER_PROFILE_ID_TAG      "DesignProfileId"
 #define BBL_DESIGNER_PROFILE_TITLE_TAG   "ProfileTitle"
 #define BBL_DESIGNER_MODEL_ID_TAG        "DesignModelId"
+#define BBL_SVC_CONTEXT_TAG              "SvcContext"
 
 
 //BBS: define assistant struct to store temporary variable during exporting 3mf

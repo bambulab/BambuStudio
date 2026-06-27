@@ -1,8 +1,12 @@
 import { createRootRoute, Link, Outlet, useRouterState } from '@tanstack/react-router'
 
+const embeddedRoutes = new Set([
+  '/filament_manager',
+])
+
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
-  const hideNav = pathname === '/filament'
+  const hideNav = embeddedRoutes.has(pathname)
 
   return (
     <>

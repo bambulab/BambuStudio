@@ -432,6 +432,7 @@ protected:
     CameraItem *m_camera_fullscreen_button{ nullptr };
     wxBoxSizer *m_camera_media_sizer{ nullptr };
     CameraFullscreenFrame *m_camera_fullscreen_frame{ nullptr };
+    wxPanel *m_camera_placeholder{ nullptr };
 
     wxBitmap m_bitmap_camera;
     ScalableBitmap m_bitmap_sdcard_state_normal;

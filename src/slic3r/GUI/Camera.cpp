@@ -174,6 +174,18 @@ const Transform3d Camera::get_view_matrix_for_billboard() const
 
     return view_matrix_for_billboard;
 }
+void Camera::set_view_projection(const Transform3d &view, const Transform3d &proj, const Vec3d &target, double zoom)
+{
+    m_view_matrix       = view;
+    m_projection_matrix = proj;
+
+    m_view_rotation     = Eigen::Quaterniond(view.matrix().block<3, 3>(0, 0));
+    m_view_rotation.normalize();
+    m_target   = target;
+    m_zoom     = zoom;
+    m_distance = (get_position() - m_target).norm();
+    update_zenit();
+}
 //how to use
 //BoundingBox bbox = mesh.aabb.transform(transform);
 //return camera_->getFrustum().intersects(bbox);
@@ -401,6 +413,15 @@ void Camera::zoom_to_volumes(const GLVolumePtrs& volumes, double margin_factor)
 void Camera::debug_render()
 {
     ImGuiWrapper& imgui = *wxGetApp().imgui();
+
+    // Match the canvas tooltip styling: dark window background with white text,
+    // no rounding/border, compact padding (see GLCanvas3D::Tooltip::render).
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.13f, 0.13f, 0.13f, 0.94f));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+
     imgui.begin(std::string("Camera statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     std::string type = get_type_as_string();
@@ -450,7 +471,11 @@ void Camera::debug_render()
     ImGui::InputInt4("Viewport", viewport.data(), ImGuiInputTextFlags_ReadOnly);
     ImGui::Separator();
     ImGui::InputFloat("GUI scale", &gui_scale, 0.0f, 0.0f, "%.6f", ImGuiInputTextFlags_ReadOnly);
+
     imgui.end();
+
+    ImGui::PopStyleColor(2);
+    ImGui::PopStyleVar(3);
 }
 
 void Camera::rotate_on_sphere_with_target(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits, Vec3d target)

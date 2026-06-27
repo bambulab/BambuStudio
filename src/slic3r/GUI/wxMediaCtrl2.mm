@@ -16,6 +16,7 @@
 
 #include <stdlib.h>
 #include <dlfcn.h>
+#include "Printer/LiveViewTrackContext.h"
 
 wxDEFINE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
 
@@ -141,6 +142,76 @@ void wxMediaCtrl2::bambu_log(void const * ctx, int level, char const * msg)
     BOOST_LOG_TRIVIAL(info) << msg;
 }
 
+static void on_player_track_event(void* ctx, const PlayerEventC* event)
+{
+    if (event == nullptr || event->event_name == nullptr)
+        return;
+
+    auto* channel = static_cast<const BambuLiveViewTrack::ChannelInfo*>(ctx);
+
+    BambuLiveViewTrack::EmitParams params;
+    if (event->module)        params.module        = event->module;
+    if (event->phase)         params.phase         = event->phase;
+    if (event->result)        params.result        = event->result;
+    if (event->error_code)    params.error_code    = event->error_code;
+    if (event->error_message) params.error_message = event->error_message;
+    if (event->event_data_body) {
+        params.event_data = nlohmann::json::parse(event->event_data_body, nullptr, false);
+        if (params.event_data.is_discarded())
+            params.event_data = nlohmann::json::object();
+    }
+
+    BambuLiveViewTrack::LiveViewTrackContext::instance()
+        .emit(event->event_name, params, channel);
+}
+
+static void on_first_frame(void const* ctx, const BambuFirstFrameInfo* ff)
+{
+    wxMediaCtrl2* ctrl = (wxMediaCtrl2*) ctx;
+    FirstFrameInfo& info = ctrl->m_first_frame_info;
+    info.first_packet_time_ms       = ff->first_packet_ms;
+    info.decode_first_frame_time_ms = ff->decode_ms;
+    info.render_first_frame_time_ms = ff->render_ms;
+    info.video_codec                = ff->codec;
+    info.resolution_width           = ff->width;
+    info.resolution_height          = ff->height;
+
+    auto play_start = ctrl->m_play_start_time;
+    if (play_start != std::chrono::system_clock::time_point{}) {
+        auto now = std::chrono::system_clock::now();
+        info.first_frame_cost_ms = (int) std::chrono::duration_cast<std::chrono::milliseconds>(
+            now - play_start).count();
+    }
+
+    ctrl->CallAfter([ctrl] {
+        wxCommandEvent evt(EVT_MEDIA_CTRL_FIRST_FRAME);
+        evt.SetEventObject(ctrl);
+        evt.SetInt(ctrl->m_first_frame_info.first_frame_cost_ms);
+        evt.SetClientData(new FirstFrameInfo(ctrl->m_first_frame_info));
+        wxPostEvent(ctrl, evt);
+    });
+}
+
+static void on_session_end(void const* ctx, const BambuSessionEndInfo* se)
+{
+    wxMediaCtrl2* ctrl = (wxMediaCtrl2*) ctx;
+    ctrl->m_session_stat.session_duration_ms      = se->session_duration_ms;
+    ctrl->m_session_stat.avg_fps                  = se->avg_fps;
+    ctrl->m_session_stat.avg_bitrate_kbps         = se->avg_bitrate_kbps;
+    ctrl->m_session_stat.freeze_count             = se->freeze_count;
+    ctrl->m_session_stat.freeze_total_duration_ms = se->freeze_total_ms;
+    ctrl->m_session_stat.avg_jitter_ms            = se->avg_jitter_ms;
+    ctrl->m_session_stat.max_jitter_ms            = se->max_jitter_ms;
+
+    Bambu_SessionStat stat = ctrl->m_session_stat;
+    ctrl->CallAfter([ctrl, stat] {
+        wxCommandEvent evt(EVT_MEDIA_CTRL_SESSION_END);
+        evt.SetEventObject(ctrl);
+        evt.SetClientData(new Bambu_SessionStat(stat));
+        wxPostEvent(ctrl, evt);
+    });
+}
+
 wxMediaCtrl2::wxMediaCtrl2(wxWindow * parent)
     : wxWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
@@ -188,10 +259,16 @@ void wxMediaCtrl2::create_player()
     BambuPlayer * player = [cls alloc];
     [player initWithImageView: imageView];
     [player setLogger: bambu_log withContext: this];
+    if ([player respondsToSelector:@selector(setTrackReporter:withContext:)])
+        [player setTrackReporter: on_player_track_event withContext: &m_track_channel];
+    if ([player respondsToSelector:@selector(setFirstFrameCallback:withContext:)])
+        [player setFirstFrameCallback: on_first_frame withContext: this];
+    if ([player respondsToSelector:@selector(setSessionEndCallback:withContext:)])
+        [player setSessionEndCallback: on_session_end withContext: this];
     m_player = player;
 }
 
-void wxMediaCtrl2::Load(wxURI url)
+void wxMediaCtrl2::Load(wxURI url, std::chrono::system_clock::time_point play_start_time)
 {
 	if (!m_player) {
 		create_player();
@@ -201,11 +278,24 @@ void wxMediaCtrl2::Load(wxURI url)
 		}
 	}
 
+    m_play_start_time  = play_start_time;
+    m_first_frame_info = FirstFrameInfo{};
+    m_session_stat     = Bambu_SessionStat{};
     BambuPlayer * player = (BambuPlayer *) m_player;
     if (player) {
         [player close];
         m_error = 0;
         m_error = [player open: url.BuildURI().ToUTF8()];
+        if (m_error == 0 && m_play_start_time != std::chrono::system_clock::time_point{}) {
+            auto now = std::chrono::system_clock::now();
+            int ms = (int) std::chrono::duration_cast<std::chrono::milliseconds>(now - m_play_start_time).count();
+            CallAfter([this, ms] {
+                wxCommandEvent evt(EVT_MEDIA_CTRL_FIRST_FRAME);
+                evt.SetEventObject(this);
+                evt.SetInt(ms);
+                wxPostEvent(this, evt);
+            });
+        }
     }
     // Hide idle image when loading video (must run on main thread for CALayer)
     dispatch_async(dispatch_get_main_queue(), ^{ removeIdleLayer(); });
@@ -429,6 +519,11 @@ void wxMediaCtrl2::NotifyStopped()
         event.SetEventObject(this);
         wxPostEvent(this, event);
     }
+}
+
+void wxMediaCtrl2::SetTrackChannel(const BambuLiveViewTrack::ChannelInfo& info)
+{
+    m_track_channel = info;
 }
 
 wxMediaState wxMediaCtrl2::GetState() const

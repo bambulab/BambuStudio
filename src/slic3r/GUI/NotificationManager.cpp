@@ -79,56 +79,6 @@ namespace {
 		auto full_config = wxGetApp().preset_bundle->full_config();
 		return plate->check_high_shrinkage_filament(full_config, filament_names);
 	}
-
-	void open_folder(const std::string& path)
-	{
-		// Code taken from desktop_open_datadir_folder()
-
-		// Execute command to open a file explorer, platform dependent.
-		// FIXME: The const_casts aren't needed in wxWidgets 3.1, remove them when we upgrade.
-
-#ifdef _WIN32
-		const wxString widepath = from_u8(path);
-		const wchar_t* argv[] = { L"explorer", widepath.GetData(), nullptr };
-		::wxExecute(const_cast<wchar_t**>(argv), wxEXEC_ASYNC, nullptr);
-#elif __APPLE__
-		const char* argv[] = { "open", path.data(), nullptr };
-		::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr);
-#else
-		const char* argv[] = { "xdg-open", path.data(), nullptr };
-
-		// Check if we're running in an AppImage container, if so, we need to remove AppImage's env vars,
-		// because they may mess up the environment expected by the file manager.
-		// Mostly this is about LD_LIBRARY_PATH, but we remove a few more too for good measure.
-		if (wxGetEnv("APPIMAGE", nullptr)) {
-			// We're running from AppImage
-			wxEnvVariableHashMap env_vars;
-			wxGetEnvMap(&env_vars);
-
-			env_vars.erase("APPIMAGE");
-			env_vars.erase("APPDIR");
-			env_vars.erase("LD_LIBRARY_PATH");
-			env_vars.erase("LD_PRELOAD");
-			env_vars.erase("UNION_PRELOAD");
-
-			wxExecuteEnv exec_env;
-			exec_env.env = std::move(env_vars);
-
-			wxString owd;
-			if (wxGetEnv("OWD", &owd)) {
-				// This is the original work directory from which the AppImage image was run,
-				// set it as CWD for the child process:
-				exec_env.cwd = std::move(owd);
-			}
-
-			::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, &exec_env);
-		}
-		else {
-			// Looks like we're NOT running from AppImage, we'll make no changes to the environment.
-			::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, nullptr);
-		}
-#endif
-	}
 }
 
 #if 1
@@ -272,12 +222,14 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 
 	if (m_state == EState::Hidden) {
 		m_top_y = initial_y - GAP_WIDTH;
+		m_rendered_this_frame = false;
 		return;
 	}
 
 	if (m_state == EState::ClosePending || m_state == EState::Finished)
 	{
 		m_state = EState::Finished;
+		m_rendered_this_frame = false;
 		return;
 	}
 
@@ -299,6 +251,11 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 	ImVec2 win_pos(1.0f * (float)cnv_size.get_width() - right_gap, 1.0f * (float)cnv_size.get_height() - m_top_y);
 	imgui.set_next_window_pos(win_pos.x, win_pos.y, ImGuiCond_Always, 1.0f, 0.0f);
 	imgui.set_next_window_size(m_window_width, m_window_height, ImGuiCond_Always);
+
+	// Cache the screen-space rect (window is anchored by its top-right corner).
+	m_rendered_win_min   = ImVec2(win_pos.x - m_window_width, win_pos.y);
+	m_rendered_win_max   = ImVec2(win_pos.x, win_pos.y + m_window_height);
+	m_rendered_this_frame = true;
 
 	// find if hovered FIXME:  do it only in update state?
 	if (m_state == EState::Hovered) {
@@ -358,12 +315,14 @@ void NotificationManager::PopNotification::bbl_render_block_notification(GLCanva
 
 	if (m_state == EState::Hidden) {
 		m_top_y = initial_y - GAP_WIDTH;
+		m_rendered_this_frame = false;
 		return;
 	}
 
 	if (m_state == EState::ClosePending || m_state == EState::Finished)
 	{
 		m_state = EState::Finished;
+		m_rendered_this_frame = false;
 		return;
 	}
 
@@ -383,6 +342,11 @@ void NotificationManager::PopNotification::bbl_render_block_notification(GLCanva
     ImVec2 win_pos(1.0f * (float) cnv_size.get_width() - right_gap, 1.0f * (float) cnv_size.get_height() - m_top_y);
     imgui.set_next_window_pos(win_pos.x, win_pos.y, ImGuiCond_Always, 1.0f, 0.0f);
     imgui.set_next_window_size(m_window_width, m_window_height, ImGuiCond_Always);
+
+	// Cache the screen-space rect (window is anchored by its top-right corner).
+	m_rendered_win_min   = ImVec2(win_pos.x - m_window_width, win_pos.y);
+	m_rendered_win_max   = ImVec2(win_pos.x, win_pos.y + m_window_height);
+	m_rendered_this_frame = true;
 
 	// color change based on fading out
 	if (m_state == EState::FadingOut) {
@@ -1259,7 +1223,8 @@ void NotificationManager::ExportFinishedNotification::render_eject_button(ImGuiW
 
 bool NotificationManager::ExportFinishedNotification::on_text_click()
 {
-	open_folder(m_export_dir_path);
+    // Pass the full exported file path so the file explorer opens the containing
+    desktop_open_any_folder(m_export_path);
 	return false;
 }
 void NotificationManager::ExportFinishedNotification::on_eject_click()
@@ -2306,7 +2271,7 @@ void NotificationManager::update_slicing_notif_dailytips(bool need_change)
 				wxGetApp().plater()->get_dailytips()->close();
 				std::string high_shrinkage_filament_names;
 				if (get_high_shrinkage_filament_names(high_shrinkage_filament_names))
-					spn->get_dailytips_panel()->retrieve_data_from_hint_database(HIGH_SHRINKAGE_FILAMENT_HINT_KEY, high_shrinkage_filament_names, true);
+					spn->get_dailytips_panel()->retrieve_data_from_hint_database(HIGH_SHRINKAGE_FILAMENT_HINT_KEY, high_shrinkage_filament_names);
 				else
 					spn->get_dailytips_panel()->retrieve_data_from_hint_database(HintDataNavigation::Random);
 				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
@@ -2569,12 +2534,16 @@ void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay
 
 	int i = 0;
 	for (const auto& notification : m_pop_notifications) {
+        // Reset each frame; render()/bbl_render_block_notification() set it back
+        // to true (with the cached rect) only for notifications actually drawn.
+        notification->set_not_rendered();
         if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
             if (notification->get_type() != NotificationType::AssemblyInfo
                 && notification->get_type() != NotificationType::AssemblyWarning
                 && notification->get_type() != NotificationType::BBLIsolatedVolumeInfo
                 && notification->get_type() != NotificationType::BBLAssemblyFarFromOrigin
-                && notification->get_type() != NotificationType::BBLIntersectsVolumeInfo) {
+                && notification->get_type() != NotificationType::BBLIntersectsVolumeInfo
+                && notification->get_type() != NotificationType::ExportFinished) {
                 continue;
             }
         }
@@ -2782,6 +2751,15 @@ size_t NotificationManager::get_notification_count() const
 			ret++;
 	}
 	return ret;
+}
+
+bool NotificationManager::is_point_over_any_notification(const ImVec2 &point) const
+{
+	for (const std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->contains_point(point))
+			return true;
+	}
+	return false;
 }
 
 void NotificationManager::bbl_show_plateinfo_notification(const std::string &text)

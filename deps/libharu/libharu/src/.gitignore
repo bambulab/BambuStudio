@@ -1,0 +1,9 @@
+Makefile.in
+Makefile
+*.lo
+*.la
+.deps
+.libs
+*.o
+*.a
+stamp-h1

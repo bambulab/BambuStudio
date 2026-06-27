@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 3.13)
 
-# The CMake version on Windows must not be greater than 4.0.
-if ( ((MSVC) OR (WIN32)) AND (${CMAKE_VERSION} VERSION_GREATER_EQUAL "4.0") )
-    message(FATAL_ERROR "Only cmake versions between 3.13.x and 4.0.x is supported on windows. Detected version: ${CMAKE_VERSION}")
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo Release "")
+
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 OLD)
+endif()
+if(POLICY CMP0175)
+  cmake_policy(SET CMP0175 OLD)
+endif()
+
+# The CMake version on Windows: 3.13–4.2 supported (4.2.x is used by VS 2026).
+if ( ((MSVC) OR (WIN32)) AND (${CMAKE_VERSION} VERSION_GREATER_EQUAL "5.0") )
+    message(FATAL_ERROR "Only cmake versions between 3.13.x and 4.2.x is supported on windows. Detected version: ${CMAKE_VERSION}")
 endif()
 
 project(BambuStudio)
@@ -199,7 +209,14 @@ if(WIN32)
        endif()
     endif()
 
-    find_package(PkgConfig)  # optional on Windows - not used for Win10SDK detection
+    if(NOT PKG_CONFIG_EXECUTABLE AND DEFINED ENV{PKG_CONFIG_EXECUTABLE})
+        set(PKG_CONFIG_EXECUTABLE "$ENV{PKG_CONFIG_EXECUTABLE}" CACHE FILEPATH "pkg-config executable")
+    endif()
+    if(NOT PKG_CONFIG_EXECUTABLE)
+        find_program(PKG_CONFIG_EXECUTABLE NAMES pkg-config)
+    endif()
+    find_package(PkgConfig) # optional on Windows - not used for Win10SDK detection
+
     if(NOT DEFINED WIN10SDK_PATH)
         if(DEFINED ENV{WIN10SDK_PATH})
                 set(WIN10SDK_PATH "$ENV{WIN10SDK_PATH}")
@@ -282,8 +299,16 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
         add_compile_options(-Wno-deprecated-declarations)
     endif()
 
-    if((${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang") AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
-        add_compile_options(-Wno-error=enum-constexpr-conversion)
+    # Some Clang versions (e.g. Xcode 16) treat invalid enum constexpr conversions
+    # as a hard error unless this warning is downgraded. However, the warning option
+    # itself does not exist on every Clang (it was removed again in newer toolchains
+    # such as Xcode 26), so probe for it instead of relying on the version number.
+    if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
+        include(CheckCXXCompilerFlag)
+        check_cxx_compiler_flag("-Werror=enum-constexpr-conversion" HAVE_FLAG_ENUM_CONSTEXPR_CONVERSION)
+        if(HAVE_FLAG_ENUM_CONSTEXPR_CONVERSION)
+            add_compile_options(-Wno-error=enum-constexpr-conversion)
+        endif()
     endif()
 
     #GCC generates loads of -Wunknown-pragmas when compiling igl. The fix is not easy due to a bug in gcc, see

@@ -424,10 +424,12 @@ void FilamentMapManualPanel::OnSwitchFilament(wxCommandEvent &)
 bool FilamentMapManualPanel::Show(bool show)
 {
     m_force_validation = show;
-    if (show)
+    if (show) {
         m_timer->Start(500);
-    else
+        SyncPanelHeights();
+    } else {
         m_timer->Stop();
+    }
 
     return FilamentMapPanel::Show(show);
 }
