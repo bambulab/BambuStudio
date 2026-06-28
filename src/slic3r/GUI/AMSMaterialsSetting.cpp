@@ -544,9 +544,22 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
     }
 
     if (obj) {
-        if(m_is_third){
+        if (m_is_third || is_virtual_tray()) {
             obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int,
                                                nozzle_temp_max_int);
+        }
+
+        if (is_virtual_tray()) {
+            int vt_slot_idx = ams_id == VIRTUAL_TRAY_MAIN_ID ? MAIN_EXTRUDER_ID : DEPUTY_EXTRUDER_ID;
+            while (obj->vt_slot.size() <= vt_slot_idx) {
+                obj->vt_slot.push_back(DevAmsTray(std::to_string(obj->vt_slot.size() == MAIN_EXTRUDER_ID ? VIRTUAL_TRAY_MAIN_ID : VIRTUAL_TRAY_DEPUTY_ID)));
+            }
+
+            auto &vt_tray = obj->vt_slot[vt_slot_idx];
+            vt_tray.reset();
+            vt_tray.id = std::to_string(ams_id);
+            vt_tray.color = std::string(col_buf);
+            vt_tray.set_hold_count();
         }
 
         // set k / n value
@@ -727,8 +740,28 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 
 
     // set filament
-    if (m_is_third) {
+    if (m_is_third || is_virtual_tray()) {
         obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, std::string(col_buf), m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int);
+    }
+
+    if (is_virtual_tray()) {
+        int vt_slot_idx = ams_id == VIRTUAL_TRAY_MAIN_ID ? MAIN_EXTRUDER_ID : DEPUTY_EXTRUDER_ID;
+        while (obj->vt_slot.size() <= vt_slot_idx) {
+            obj->vt_slot.push_back(DevAmsTray(std::to_string(obj->vt_slot.size() == MAIN_EXTRUDER_ID ? VIRTUAL_TRAY_MAIN_ID : VIRTUAL_TRAY_DEPUTY_ID)));
+        }
+
+        auto &vt_tray = obj->vt_slot[vt_slot_idx];
+        vt_tray.id = std::to_string(ams_id);
+        vt_tray.setting_id = ams_filament_id;
+        vt_tray.filament_setting_id = ams_setting_id;
+        vt_tray.m_fila_type = m_filament_type;
+        vt_tray.color = std::string(col_buf);
+        vt_tray.nozzle_temp_min = std::to_string(nozzle_temp_min_int);
+        vt_tray.nozzle_temp_max = std::to_string(nozzle_temp_max_int);
+        vt_tray.is_bbl = !m_is_third;
+        vt_tray.set_hold_count();
+        vt_tray.hold_count = HOLD_COUNT_MAX * 5;
+        obj->ams_version = -1;
     }
 
     //reset param

@@ -772,6 +772,9 @@ DevAmsTray *MachineObject::get_curr_tray()
     if (cur_ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
         return &vt_slot[0];
     }
+    if (cur_ams_id.compare(std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) == 0 && vt_slot.size() > DEPUTY_EXTRUDER_ID) {
+        return &vt_slot[DEPUTY_EXTRUDER_ID];
+    }
 
     DevAms* curr_ams = get_curr_Ams();
     if (!curr_ams) return nullptr;
@@ -1671,7 +1674,8 @@ int MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::s
     int tag_slot_id = slot_id;
 
     if (tag_ams_id == VIRTUAL_TRAY_MAIN_ID || tag_ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
-        tag_tray_id = VIRTUAL_TRAY_DEPUTY_ID;
+        tag_slot_id = 0;
+        tag_tray_id = tag_ams_id;
     } else {
         tag_tray_id = tag_slot_id;
     }
@@ -3440,7 +3444,14 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             if (jj.contains("vir_slot") && jj["vir_slot"].is_array()) {
 
                                 for (auto it = jj["vir_slot"].begin(); it != jj["vir_slot"].end(); it++) {
-                                    auto vslot = parse_vt_tray(it.value().get<json>());
+                                    auto parsed_vslot = parse_vt_tray(it.value().get<json>());
+                                    const DevAmsTray *current_vslot = nullptr;
+                                    if (parsed_vslot.id == std::to_string(VIRTUAL_TRAY_MAIN_ID) && vt_slot.size() > MAIN_EXTRUDER_ID) {
+                                        current_vslot = &vt_slot[MAIN_EXTRUDER_ID];
+                                    } else if (parsed_vslot.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID) && vt_slot.size() > DEPUTY_EXTRUDER_ID) {
+                                        current_vslot = &vt_slot[DEPUTY_EXTRUDER_ID];
+                                    }
+                                    auto vslot = parse_vt_tray(it.value().get<json>(), current_vslot);
 
                                     if (vslot.id == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
                                         auto it = std::next(vt_slot.begin(), 0);
@@ -3464,7 +3475,8 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
                             }
                             else if (jj.contains("vt_tray")) {
-                                auto main_slot = parse_vt_tray(jj["vt_tray"].get<json>());
+                                const DevAmsTray *current_vslot = vt_slot.size() > MAIN_EXTRUDER_ID ? &vt_slot[MAIN_EXTRUDER_ID] : nullptr;
+                                auto main_slot = parse_vt_tray(jj["vt_tray"].get<json>(), current_vslot);
                                 main_slot.id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
 
 
@@ -3537,16 +3549,22 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         if (jj.contains("tray_id")) {
                             tray_id = jj["tray_id"].get<int>();
                         }
-                        if (ams_id == 255 && tray_id == VIRTUAL_TRAY_MAIN_ID) {
+                        if ((ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID) && tray_id == ams_id) {
+                            int vt_slot_idx = ams_id == VIRTUAL_TRAY_MAIN_ID ? MAIN_EXTRUDER_ID : DEPUTY_EXTRUDER_ID;
+                            while (vt_slot.size() <= vt_slot_idx) {
+                                vt_slot.push_back(DevAmsTray(std::to_string(vt_slot.size() == MAIN_EXTRUDER_ID ? VIRTUAL_TRAY_MAIN_ID : VIRTUAL_TRAY_DEPUTY_ID)));
+                            }
+
                             BOOST_LOG_TRIVIAL(info) << "ams_filament_setting, parse tray info";
-                            vt_slot[0].nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
-                            vt_slot[0].nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
-                            vt_slot[0].color = jj["tray_color"].get<std::string>();
-                            vt_slot[0].setting_id = jj["tray_info_idx"].get<std::string>();
+                            vt_slot[vt_slot_idx].id = std::to_string(ams_id);
+                            vt_slot[vt_slot_idx].nozzle_temp_max = std::to_string(jj["nozzle_temp_max"].get<int>());
+                            vt_slot[vt_slot_idx].nozzle_temp_min = std::to_string(jj["nozzle_temp_min"].get<int>());
+                            vt_slot[vt_slot_idx].color = jj["tray_color"].get<std::string>();
+                            vt_slot[vt_slot_idx].setting_id = jj["tray_info_idx"].get<std::string>();
                             //vt_tray.type = jj["tray_type"].get<std::string>();
-                            vt_slot[0].m_fila_type = setting_id_to_type(vt_slot[0].setting_id, jj["tray_type"].get<std::string>());
+                            vt_slot[vt_slot_idx].m_fila_type = setting_id_to_type(vt_slot[vt_slot_idx].setting_id, jj["tray_type"].get<std::string>());
                             // delay update
-                            vt_slot[0].set_hold_count();
+                            vt_slot[vt_slot_idx].set_hold_count();
                         } else {
                             auto ams = m_fila_system->GetAmsById(std::to_string(ams_id));
                             if (ams) {
@@ -4068,7 +4086,7 @@ bool MachineObject::is_firmware_info_valid()
 }
 
 
-DevAmsTray MachineObject::parse_vt_tray(json vtray)
+DevAmsTray MachineObject::parse_vt_tray(json vtray, const DevAmsTray *current_tray)
 {
     auto vt_tray = DevAmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID));
     vt_tray.ams_type = DevAmsType::EXT_SPOOL;
@@ -4101,7 +4119,8 @@ DevAmsTray MachineObject::parse_vt_tray(json vtray)
     }
     ams_support_virtual_tray = true;
 
-    if (vt_tray.hold_count > 0) {
+    if (current_tray && current_tray->id == vt_tray.id && current_tray->hold_count > 0) {
+        vt_tray = *current_tray;
         vt_tray.hold_count--;
     }
     else {
