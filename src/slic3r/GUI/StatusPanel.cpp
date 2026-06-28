@@ -4017,14 +4017,7 @@ void sGetSwitchInfo(MachineObject* obj,
         return;
     }
 
-    if (obj->GetFilaSwitch()->IsInstalled()) {
-        if (devPrinterUtil::IsVirtualSlot(ams_id)) {
-            const auto& err_info = _L("\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch.");
-            load_error_info = err_info;
-            unload_error_info = err_info;
-            return;
-        }
-
+    if (obj->GetFilaSwitch()->IsInstalled() && !devPrinterUtil::IsVirtualSlot(ams_id)) {
         if (!obj->GetFilaSwitch()->IsReady()) {
             const auto& err_info = _L("The Filament Track Switch has not been setup. Please setup on printer.");
             load_error_info = err_info;
