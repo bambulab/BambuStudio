@@ -2695,7 +2695,7 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
                 main_ams_info.push_back(info);
             } else if (vt_tray.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
                 deputy_ams_info.push_back(info);
-            } else if (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A) {
+            } else if (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
                 ams_info.push_back(info);
             } else {
                 BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " may be a unknown virtual tray id:" << vt_tray.id;
@@ -2706,8 +2706,9 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
     update_nozzle_id_combox();
 
     auto rack = obj->GetNozzleRack();
-    if (rack->IsSupported() && rack->GetRackType() == DevNozzleRack::RackType_A) {
-        /* RackType_A: refresh statically pre-created rack panel (no widget rebuild) */
+    auto rack_type = rack->GetRackType();
+    if (rack->IsSupported() && (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B)) {
+        /* RackType_A/B: refresh statically pre-created rack panel (no widget rebuild) */
         m_single_nozzle_info_panel->Hide();
         m_single_ams_preview_panel->Hide();
         m_single_ams_items_panel->Hide();
@@ -2961,10 +2962,12 @@ void CalibrationPresetPage::select_default_compatible_filament()
     if (ams_id.empty())
         return;
 
-    FilamentComboBoxList& active_list = curr_obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A ? m_rack_filament_comboBox_list : m_filament_comboBox_list;
+    auto curr_rack_type = curr_obj->GetNozzleRack()->GetRackType();
+    const bool is_rack_panel = (curr_rack_type == DevNozzleRack::RackType_A || curr_rack_type == DevNozzleRack::RackType_B);
+    FilamentComboBoxList& active_list = is_rack_panel ? m_rack_filament_comboBox_list : m_filament_comboBox_list;
     if (!devPrinterUtil::IsVirtualSlot(ams_id)) {
         std::vector<CaliFilamentInfo> selected_filament;
-        size_t loop_n = curr_obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A ? active_list.size() : static_cast<size_t>(MAX_SLOT_NUM);
+        size_t loop_n = is_rack_panel ? active_list.size() : static_cast<size_t>(MAX_SLOT_NUM);
         for (size_t i = 0; i < loop_n; ++i) {
             auto &fcb = active_list[i];
             if (!fcb->GetRadioBox()->IsEnabled())
@@ -3088,7 +3091,8 @@ std::vector<SelectedFilamentInfo> CalibrationPresetPage::get_selected_filament_c
             }
         }
     } else {
-        if (curr_obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A) {
+        auto rack_type = curr_obj->GetNozzleRack()->GetRackType();
+        if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
             for (auto* fcb : m_rack_filament_comboBox_list) {
                 auto* ext_fcb = dynamic_cast<FilamentExtendComboBox*>(fcb);
                 if (!ext_fcb || ext_fcb->get_tray_id() < 0) continue;
@@ -3235,7 +3239,8 @@ void CalibrationPresetPage::update_rack_filament_combobox(MachineObject* obj)
     if (!obj) return;
 
     auto rack = obj->GetNozzleRack();
-    if (rack->GetRackType() != DevNozzleRack::RackType_A) return;
+    auto rack_type = rack->GetRackType();
+    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B) return;
 
     // rack_nozzles is std::map<int, DevNozzle> sorted by nozzle_id ascending,
     // so iterating by index i matches the ui slot order one-to-one.
@@ -3247,9 +3252,10 @@ void CalibrationPresetPage::update_rack_filament_combobox(MachineObject* obj)
 
         // Populate the dropdown like non-rack machines so both inline and popup comboboxes stay selectable.
         fcb->update_from_preset();
-        fcb->set_select_mode(m_cali_filament_mode);
 
         if (i < (int)rack_nozzles.size()) {
+            fcb->set_select_mode(m_cali_filament_mode);
+
             auto it_nozzle = std::next(rack_nozzles.begin(), i);
             const DevNozzle& nozzle = it_nozzle->second;
             fcb->SetNozzleInfo(nozzle, obj);
@@ -3302,6 +3308,8 @@ void CalibrationPresetPage::update_rack_filament_combobox(MachineObject* obj)
         } else {
             fcb->Hide();
             fcb->Enable(false);
+            if (auto* radio = fcb->GetRadioBox()) radio->Hide();
+            if (auto* check = fcb->GetCheckBox()) check->Hide();
         }
     }
 

@@ -281,7 +281,10 @@ void HistoryWindow::on_device_connected(MachineObject* obj)
     }
 
     auto rack = obj->GetNozzleSystem()->GetNozzleRack();
-    if (rack->IsSupported() && rack->GetRackType() == DevNozzleRack::RackType::RackType_A) {
+    auto rack_type = rack->GetRackType();
+    if (rack->IsSupported() &&
+        (rack_type == DevNozzleRack::RackType::RackType_A ||
+         rack_type == DevNozzleRack::RackType::RackType_B)) {
         build_nozzle_tab_panel();
         m_nozzle_tab_panel->Show();
     } else {
