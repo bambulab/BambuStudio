@@ -42,7 +42,7 @@ private:
                                  bool filament_changing,
                                  bool listed_as_changing,
                                  bool loaded_in_nozzle) const;
-    std::string ResolveNozzleState(const std::string& card_state, const std::string& line_state) const;
+    std::string ResolveNozzleState(const std::string& card_state, const std::string& line_state, bool has_tool, bool is_abnormal) const;
     std::string ResolveStatusText(const std::string& card_state) const;
     nlohmann::json BuildFilamentChangeStatus(Slic3r::MachineObject* machine_obj,
                                              const nlohmann::json& running_slot,

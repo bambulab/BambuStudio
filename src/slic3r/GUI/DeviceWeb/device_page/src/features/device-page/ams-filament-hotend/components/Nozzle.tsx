@@ -1,4 +1,4 @@
-import type { AmsFilamentHotendNozzleState } from '../types';
+import type { AmsFilamentHotendNozzleState, HotendToolKind } from '../types';
 
 // Inline nozzle from the Figma export (viewBox 24x48). Rendered as SVG so
 // the dashed filament path through the assembly can take the spool color
@@ -29,6 +29,54 @@ const FILAMENT_UPPER_PATH =
 const FILAMENT_LOWER_PATH =
   'M13.25 136H11.25V133.964H13.25V136ZM13.25 129.893H11.25V125.821H13.25V129.893ZM13.25 121.75H11.25V117.679H13.25V121.75ZM13.25 113.607H11.25V109.536H13.25V113.607ZM13.25 105.464H11.25V101.393H13.25V105.464ZM13.25 97.3213H11.25V93.25H13.25V97.3213ZM13.25 89.1787H11.25V85.1074H13.25V89.1787ZM13.25 81.0361H11.25V76.9639H13.25V81.0361ZM13.25 72.8926H11.25V68.8213H13.25V72.8926ZM13.25 64.75H11.25V60.6787H13.25V64.75ZM13.25 56.6074H11.25V52.5361H13.25V56.6074ZM13.25 48.4639H11.25V44.3926H13.25V48.4639ZM13.25 40.3213H11.25V36.25H13.25V40.3213ZM13.25 32.1787H11.25V28.1074H13.25V32.1787ZM13.25 24.0361H11.25V22H13.25V24.0361Z';
 
+// "No hotend" silhouette (inline from hotend_null.svg, native viewBox 24x48).
+// A dashed rounded-rect frame plus a grey "prohibited" circle, shown when the
+// slot has no nozzle/tool inserted (nozzleState === 'None').
+const NULL_PROHIBIT_PATH =
+  'M12.0005 17.3323C13.7684 17.3324 15.4642 18.0344 16.7144 19.2844C17.9646 20.5347 18.6665 22.2312 18.6665 23.9993C18.6664 25.7673 17.9645 27.463 16.7144 28.7131C15.4642 29.9633 13.7685 30.6652 12.0005 30.6653C10.2324 30.6653 8.53589 29.9634 7.28564 28.7131C6.03558 27.463 5.33358 25.7672 5.3335 23.9993C5.3335 22.2312 6.0354 20.5347 7.28564 19.2844C8.53589 18.0342 10.2324 17.3323 12.0005 17.3323ZM8.67139 28.2698C9.61789 29.0075 10.7878 29.4153 12.0005 29.4153C13.437 29.4152 14.8148 28.8451 15.8306 27.8293C16.8463 26.8136 17.4164 25.4357 17.4165 23.9993C17.4165 22.7866 17.0088 21.6167 16.271 20.6702L8.67139 28.2698ZM12.0005 18.5823C10.5639 18.5823 9.18623 19.1534 8.17041 20.1692C7.15459 21.185 6.5835 22.5627 6.5835 23.9993C6.58357 25.2115 6.99074 26.3811 7.72803 27.3274L15.3286 19.7268C14.3823 18.9895 13.2127 18.5823 12.0005 18.5823Z';
+
+// "Error" silhouette (inline from hotend_error.svg, native viewBox 24x48).
+// Reuses the standard BODY_PATH outline (lighter grey) with a metal nozzle
+// body and a red error badge, shown when nozzleState === 'Error'.
+const ERROR_FILAMENT_PATH =
+  'M13 114H11V111.964H13V114ZM13 107.893H11V103.821H13V107.893ZM13 99.75H11V95.6787H13V99.75ZM13 91.6074H11V87.5361H13V91.6074ZM13 83.4639H11V79.3926H13V83.4639ZM13 75.3213H11V71.25H13V75.3213ZM13 67.1787H11V63.1074H13V67.1787ZM13 59.0361H11V54.9639H13V59.0361ZM13 50.8926H11V46.8213H13V50.8926ZM13 42.75H11V38.6787H13V42.75ZM13 34.6074H11V30.5361H13V34.6074ZM13 26.4639H11V22.3926H13V26.4639ZM13 18.3213H11V14.25H13V18.3213ZM13 10.1787H11V6.10742H13V10.1787ZM13 2.03613H11V0H13V2.03613Z';
+const ERROR_NOZZLE_BODY_PATH =
+  'M12.2568 47.5554H11.7744L11.3887 46.3337H10.874L8.94434 45.1111L9.58789 42.6667H9.55566V32.8894H5.77734V26.1667H18V32.8894H14.4443V42.6667H14.4121L15.0557 45.1111L13.2861 46.3337H12.6113L12.2568 47.5554Z';
+const ERROR_NOZZLE_DETAIL_PATH =
+  'M18.1113 32.8889H5.88867V32.2776H18.1113V32.8889ZM18.1113 31.6663H5.88867V31.0559H18.1113V31.6663ZM18.1113 30.4446H5.88867V29.8333H18.1113V30.4446ZM10.1826 28.4827H8.86133V27.3245H10.1826V28.4827ZM15.1377 28.4827H13.8164V27.3245H15.1377V28.4827Z';
+const ERROR_BADGE_CIRCLE_PATH =
+  'M7.11133 37C7.11133 34.2999 9.30016 32.1111 12.0002 32.1111C14.7003 32.1111 16.8891 34.2999 16.8891 37C16.8891 39.7 14.7003 41.8889 12.0002 41.8889C9.30016 41.8889 7.11133 39.7 7.11133 37Z';
+const ERROR_BADGE_MARK_PATH =
+  'M12 38.2217C12.4219 38.2217 12.7637 38.5644 12.7637 38.9863C12.7635 39.4081 12.4218 39.75 12 39.75C11.5783 39.7499 11.2365 39.408 11.2363 38.9863C11.2363 38.5645 11.5782 38.2218 12 38.2217ZM12 33.9443C12.3375 33.9443 12.6113 34.2182 12.6113 34.5557V37C12.6113 37.3375 12.3375 37.6113 12 37.6113C11.6626 37.6112 11.3887 37.3374 11.3887 37V34.5557C11.3887 34.2182 11.6626 33.9445 12 33.9443Z';
+
+// Cutter / pen tool silhouettes (inline from hotend_blade.svg /
+// hotend_filament_pen.svg, viewBox 24x48). All share the BODY_PATH outline
+// (#DBDBDB) plus the dashed filament; only the tool body below differs.
+const BLADE_BODY_TOP_PATH =
+  'M15.6665 31.9585H8.3335V31.0425H15.6665V31.9585ZM15.6665 30.5835H8.3335V29.8198H15.6665V30.5835ZM15.6665 29.3618H8.3335V26.4585H15.6665V29.3618ZM9.82959 27.3755C9.50976 27.3755 9.25049 27.6348 9.25049 27.9546C9.25066 28.2743 9.50987 28.5337 9.82959 28.5337H9.95557C10.2751 28.5335 10.5345 28.2742 10.5347 27.9546C10.5347 27.6349 10.2752 27.3757 9.95557 27.3755H9.82959ZM13.9546 27.3755C13.6348 27.3755 13.3755 27.6348 13.3755 27.9546C13.3757 28.2743 13.6349 28.5337 13.9546 28.5337H14.0806C14.4001 28.5335 14.6595 28.2742 14.6597 27.9546C14.6597 27.6349 14.4002 27.3757 14.0806 27.3755H13.9546Z';
+const BLADE_BODY_BOTTOM_PATH =
+  'M13.3745 37.9165H13.3755V39.2642H14.3911C14.7387 39.2645 15.0155 39.5528 14.9946 39.8999C14.9577 40.5141 14.7949 40.9727 14.4175 41.8726C14.0398 42.7728 12.6203 45.696 11.6177 46.9292C11.2658 47.3611 10.5981 47.1096 10.5981 46.5522V39.2642H10.6255V31.9585H13.3745V37.9165Z';
+
+const PEN_TIP_PATH =
+  'M13.8325 42.8816C13.8325 43.1441 13.7905 43.405 13.7075 43.6541L12.5796 47.0388C12.3938 47.5958 11.6052 47.5959 11.4194 47.0388L10.2915 43.6541C10.2085 43.405 10.1665 43.1441 10.1665 42.8816V31.6667H13.8325V42.8816Z';
+const PEN_BARREL_BG_PATH = 'M10.1665 31.6667H13.8332V42.6667H10.1665V31.6667Z';
+const PEN_BARREL_FILL_PATH =
+  'M10.7773 31.6667H13.2218V41.4445C13.2218 41.782 12.9482 42.0556 12.6107 42.0556H11.3885C11.0509 42.0556 10.7773 41.782 10.7773 41.4445V31.6667Z';
+const PEN_BODY_TOP_PATH =
+  'M15.5562 29.5286H8.3335V29.9866H15.5562V30.7502H8.3335V31.2092H15.5562V32.1252H8.22217V26.6252H15.5562V29.5286ZM9.82959 27.5422C9.50976 27.5422 9.25049 27.8015 9.25049 28.1213C9.25066 28.441 9.50987 28.7004 9.82959 28.7004H9.95557C10.2752 28.7004 10.5345 28.441 10.5347 28.1213C10.5347 27.8015 10.2753 27.5423 9.95557 27.5422H9.82959ZM13.9546 27.5422C13.6348 27.5422 13.3755 27.8015 13.3755 28.1213C13.3757 28.441 13.6349 28.7004 13.9546 28.7004H14.0806C14.4002 28.7004 14.6595 28.441 14.6597 28.1213C14.6597 27.8015 14.4003 27.5423 14.0806 27.5422H13.9546Z';
+
+// "Racked" tool-changer grip (inline from hotend_racked_blade.svg /
+// hotend_racked_filament_pen.svg). When on_extruder is true the tool is held
+// by the changer: a continuous filament bar, the BODY_PATH redrawn, plus the
+// grip body and its two feet.
+const RACKED_FILAMENT_BAR_PATH = 'M11 0L13 -8.74229e-08L13 64L11 64L11 0Z';
+const RACKED_GRIP_BODY_PATH =
+  'M3.23242 8.2793H20.7676C21.8464 8.27937 22.7206 9.15365 22.7207 10.2324V37.0088H13.2793V32.2451H14.9414C15.4037 32.2451 15.7792 31.8705 15.7793 31.4082V27.0586C15.7793 26.5962 15.4038 26.2207 14.9414 26.2207H8.85059C8.38824 26.2207 8.01367 26.5962 8.01367 27.0586V31.415C8.01374 31.8732 8.38179 32.246 8.83984 32.252L10.7207 32.2754V37.042L1.2793 37.0088V10.2324C1.27937 9.15365 2.15365 8.27937 3.23242 8.2793Z';
+const RACKED_GRIP_FOOT_LEFT_PATH =
+  'M2.11621 39.7207H8.56836C9.03052 39.7205 9.40524 39.346 9.40527 38.8838V35.6924C9.40518 35.2302 9.03048 34.8557 8.56836 34.8555H2.11621C1.65392 34.8555 1.27939 35.2301 1.2793 35.6924V38.8838C1.27933 39.3461 1.65389 39.7207 2.11621 39.7207Z';
+const RACKED_GRIP_FOOT_RIGHT_PATH =
+  'M15.4307 39.7207H21.8828C22.345 39.7205 22.7197 39.346 22.7197 38.8838V35.6924C22.7196 35.2302 22.3449 34.8557 21.8828 34.8555H15.4307C14.9684 34.8555 14.5938 35.2301 14.5938 35.6924V38.8838C14.5938 39.3461 14.9683 39.7207 15.4307 39.7207Z';
+
 const STANDBY_COLOR = '#DBDBDB';
 const FALLBACK_SPOOL_COLOR = '#D9D9D9';
 
@@ -38,6 +86,7 @@ export function Nozzle({
   color,
   hasFilamentInNozzle,
   onExtruder,
+  toolKind,
   solid,
 }: {
   nozzleState: AmsFilamentHotendNozzleState;
@@ -47,6 +96,9 @@ export function Nozzle({
   // True when this rack nozzle is currently mounted on the extruder. Swaps
   // the visual to the "extruder gripping the nozzle" silhouette.
   onExtruder?: boolean;
+  // Tool type in this slot. cutter/pen draw their own silhouette (and a
+  // "racked" variant when onExtruder); everything else falls back to nozzle.
+  toolKind?: HotendToolKind;
   // True when the filament is fully loaded into this slot. Renders the
   // in-nozzle filament as a solid bar instead of the dashed pattern, matching
   // Figma 1477:113586. Loading/unloading keeps the dashed pattern to suggest
@@ -87,6 +139,104 @@ export function Nozzle({
       </g>
     </g>
   );
+
+  if (nozzleState === 'None') {
+    return (
+      <svg
+        className={`nozzle nozzle-${nozzleState.toLowerCase()}`}
+        width={24}
+        height={48}
+        viewBox="0 0 24 48"
+        fill="none"
+        aria-label={`nozzle-${displayIndex}`}
+        data-nozzle-state={nozzleState}
+      >
+        <rect x={2.5} y={2.5} width={19} height={43} rx={1.5} stroke="#C2C2C2" strokeDasharray="4 4" />
+        <path d={NULL_PROHIBIT_PATH} fill="#C2C2C2" />
+      </svg>
+    );
+  }
+
+  if (nozzleState === 'Error') {
+    return (
+      <svg
+        className={`nozzle nozzle-${nozzleState.toLowerCase()}`}
+        width={24}
+        height={48}
+        viewBox="0 0 24 48"
+        fill="none"
+        aria-label={`nozzle-${displayIndex}`}
+        data-nozzle-state={nozzleState}
+      >
+        <defs>
+          <clipPath id="nozzle-error-filament-clip">
+            <rect x={2} y={0} width={20} height={26} />
+          </clipPath>
+        </defs>
+
+        <path d={BODY_PATH} fill="#DBDBDB" />
+        <g clipPath="url(#nozzle-error-filament-clip)">
+          <path d={ERROR_FILAMENT_PATH} fill="#C2C2C2" />
+        </g>
+        <path d={ERROR_NOZZLE_BODY_PATH} fill="#A3A3A3" />
+        <path d={ERROR_NOZZLE_DETAIL_PATH} fill="black" />
+        <path d={ERROR_BADGE_CIRCLE_PATH} fill="#E14747" />
+        <path d={ERROR_BADGE_MARK_PATH} fill="#EBEBEB" />
+      </svg>
+    );
+  }
+
+  if (toolKind === 'cutter' || toolKind === 'pen') {
+    const penBarrelFill = onExtruder ? '#00FF33' : '#B6F34F';
+    return (
+      <svg
+        className={`nozzle nozzle-${nozzleState.toLowerCase()} nozzle-${toolKind}${onExtruder ? ' nozzle-racked' : ''}`}
+        width={24}
+        height={48}
+        viewBox="0 0 24 48"
+        fill="none"
+        aria-label={`nozzle-${displayIndex}-${toolKind}`}
+        data-nozzle-state={nozzleState}
+        data-tool-kind={toolKind}
+        data-on-extruder={onExtruder ? 'true' : undefined}
+      >
+        <defs>
+          <clipPath id="nozzle-tool-filament-clip">
+            <rect x={2} y={0} width={20} height={26} />
+          </clipPath>
+        </defs>
+
+        <path d={BODY_PATH} fill="#DBDBDB" />
+        <g clipPath="url(#nozzle-tool-filament-clip)">
+          {onExtruder
+            ? <path d={RACKED_FILAMENT_BAR_PATH} fill="#C2C2C2" />
+            : <path d={ERROR_FILAMENT_PATH} fill="#C2C2C2" />}
+        </g>
+
+        {onExtruder && (
+          <>
+            <path d={RACKED_GRIP_BODY_PATH}       fill="#DBDBDB" stroke="white" strokeWidth={0.55814} />
+            <path d={RACKED_GRIP_FOOT_LEFT_PATH}  fill={toolKind === 'cutter' ? '#A3A3A3' : '#C2C2C2'} stroke="white" strokeWidth={0.55814} />
+            <path d={RACKED_GRIP_FOOT_RIGHT_PATH} fill={toolKind === 'cutter' ? '#A3A3A3' : '#C2C2C2'} stroke="white" strokeWidth={0.55814} />
+          </>
+        )}
+
+        {toolKind === 'cutter' ? (
+          <>
+            <path d={BLADE_BODY_TOP_PATH}    fill="#A3A3A3" />
+            <path d={BLADE_BODY_BOTTOM_PATH} fill="#A3A3A3" />
+          </>
+        ) : (
+          <>
+            <path d={PEN_TIP_PATH}        fill="#A3A3A3" />
+            <path d={PEN_BARREL_BG_PATH}  fill="#DBDBDB" />
+            <path d={PEN_BARREL_FILL_PATH} fill={penBarrelFill} />
+            <path d={PEN_BODY_TOP_PATH}   fill="#A3A3A3" />
+          </>
+        )}
+      </svg>
+    );
+  }
 
   if (onExtruder) {
     // The Figma asset is 22x32; translate it into the standard 24x48 nozzle

@@ -303,12 +303,17 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     }
 
     const bool has_hotend_slot = true;
+    // An empty hotend slot (no nozzle/tool inserted) drives the "None" nozzle
+    // visual; an inserted-but-abnormal tool drives the "Error" visual.
+    const bool has_tool = rack_nozzle_opt.has_value() && rack_nozzle_opt->IsExist();
+    const bool nozzle_abnormal = has_tool && rack_nozzle_opt->IsAbnormal();
+    const std::string nozzle_tool_kind = has_tool ? tool_kind_for_web(rack_nozzle_opt->GetToolDefs()) : std::string(SV::tool_kind::empty);
     const bool listed_as_changing = IsSlotInFilamentChangeList(machine_obj, ams_id, tray_id);
     const bool filament_changing = IsFilamentChangeActive(machine_obj);
     const bool loaded_in_nozzle = IsSlotLoadedInNozzle(machine_obj, addr_id, ams_id, tray_id);
     const std::string card_state = ResolveCardState(machine_obj, tray, ams_id, tray_id, addr_id);
     const std::string line_state = ResolveLineState(card_state, has_hotend_slot, filament_changing, listed_as_changing, loaded_in_nozzle);
-    const std::string nozzle_state = ResolveNozzleState(card_state, line_state);
+    const std::string nozzle_state = ResolveNozzleState(card_state, line_state, has_tool, nozzle_abnormal);
 
     nlohmann::json bind_ams = nlohmann::json::array();
     nlohmann::json ams_operation_units = nlohmann::json::array();
@@ -491,7 +496,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {SK::filament_nozzle::state, nozzle_state},
         {SK::filament_nozzle::has_filament, nozzle_has_filament},
         {SK::filament_nozzle::filament_color, nozzle_has_filament ? color : std::string()},
-        {SK::filament_nozzle::on_extruder, is_on_extruder}
+        {SK::filament_nozzle::on_extruder, is_on_extruder},
+        {SK::filament_nozzle::tool_kind, nozzle_tool_kind}
     };
 
     return {

@@ -271,10 +271,11 @@ std::string DevicePageAmsFilamentHotendVM::ResolveLineState(const std::string& c
     return SV::line_state::no_filament;
 }
 
-std::string DevicePageAmsFilamentHotendVM::ResolveNozzleState(const std::string& card_state, const std::string& line_state) const
+std::string DevicePageAmsFilamentHotendVM::ResolveNozzleState(const std::string& card_state, const std::string& line_state, bool has_tool, bool is_abnormal) const
 {
     namespace SV = AmsHotendSchema::values;
-    if (card_state == SV::card_state::error) return SV::nozzle_state::error;
+    if (!has_tool) return SV::nozzle_state::none;
+    if (is_abnormal || card_state == SV::card_state::error) return SV::nozzle_state::error;
     if (line_state == SV::line_state::loaded || line_state == SV::line_state::loading || line_state == SV::line_state::unloading) {
         return SV::nozzle_state::active;
     }

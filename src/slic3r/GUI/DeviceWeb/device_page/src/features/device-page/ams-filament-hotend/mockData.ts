@@ -50,8 +50,6 @@ const nozzleFor = (state: AmsFilamentHotendCardState): AmsFilamentHotendNozzleSt
     case 'Unloading':
     case 'ReadyToUse':
       return 'Active';
-    case 'Unknown':
-      return 'Unknown';
     case 'Error':
       return 'Error';
     default:

@@ -20,7 +20,7 @@ export type AmsFilamentHotendLineState =
 export type AmsFilamentHotendNozzleState =
   | 'Normal'    // 普通灰色
   | 'Active'    // 当前正在使用,绿色
-  | 'Unknown'   // 未连接
+  | 'None'      // 未插喷嘴/工具: 虚线框 + 禁止圆
   | 'Error';    // 红色
 
 export type AmsFilamentHotendTab = 'filament' | 'hotend';
@@ -103,6 +103,8 @@ export interface FilamentNozzleInfo {
   filament_color?: string;
   // True when this rack nozzle is the one mounted on the extruder right now.
   on_extruder?: boolean;
+  // Tool type in this slot; picks cutter/pen silhouette over the default nozzle.
+  tool_kind?: HotendToolKind;
 }
 
 /**

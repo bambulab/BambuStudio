@@ -267,6 +267,10 @@ namespace filament_nozzle {
     inline constexpr const char* filament_color = "filament_color";
     // True when this rack nozzle is the one mounted on the extruder right now.
     inline constexpr const char* on_extruder    = "on_extruder";
+    // Tool type in this slot (values::tool_kind). Lets the Filament tab pick a
+    // cutter/pen silhouette instead of the default nozzle; combined with
+    // on_extruder it selects the "racked" (gripped by the tool changer) variant.
+    inline constexpr const char* tool_kind       = "tool_kind";
 }
 
 // slot.select_action — per-mode selection eligibility (batch modes only).
@@ -490,7 +494,7 @@ namespace line_state {
 namespace nozzle_state {
     inline constexpr const char* normal  = "Normal";
     inline constexpr const char* active  = "Active";
-    inline constexpr const char* unknown = "Unknown";
+    inline constexpr const char* none    = "None";
     inline constexpr const char* error   = "Error";
 }
 
