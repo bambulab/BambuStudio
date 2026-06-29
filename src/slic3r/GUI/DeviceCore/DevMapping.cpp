@@ -80,6 +80,7 @@ namespace Slic3r
         result.setting_id = tray.filament_setting_id.empty() ? tray.setting_id : tray.filament_setting_id;
         result.ctype = tray.ctype;
         result.colors = tray.cols;
+        result.remain = tray.remain; // 0~100, -1 when the printer does not report a remain (e.g. non-genuine spools)
 
         /*for new ams mapping*/
         result.ams_id = std::to_string(ams_id);
@@ -322,6 +323,19 @@ namespace Slic3r
                             picked_src_idx = i;
                             picked_tar_idx = j;
                         }
+                        // Same color/type/filament_id and equal distance: prefer the tray with the
+                        // least remaining filament so partially-used spools are consumed first.
+                        // Only applies when both trays report a valid remain (genuine/RFID spools);
+                        // an unknown remain (-1) keeps the previous lowest-slot-first behavior.
+                        else if (min_val == distance_map[i][j].distance
+                                 && filaments[i].filament_id == tray_filaments[j].filament_id
+                                 && tray_filaments[picked_tar_idx].remain >= 0
+                                 && tray_filaments[j].remain >= 0
+                                 && tray_filaments[j].remain < tray_filaments[picked_tar_idx].remain)
+                        {
+                            picked_src_idx = i;
+                            picked_tar_idx = j;
+                        }
                     }
                 }
 
@@ -340,6 +354,16 @@ namespace Slic3r
                                 tray_filaments[picked_tar_idx].distance = min_val;
                             }
                             else if (min_val == distance_map[i][j].distance && filaments[picked_src_idx].filament_id != tray_filaments[picked_tar_idx].filament_id && filaments[i].filament_id == tray_filaments[j].filament_id)
+                            {
+                                picked_src_idx = i;
+                                picked_tar_idx = j;
+                            }
+                            // Prefer the matching tray with the least remaining filament (see above).
+                            else if (min_val == distance_map[i][j].distance
+                                     && filaments[i].filament_id == tray_filaments[j].filament_id
+                                     && tray_filaments[picked_tar_idx].remain >= 0
+                                     && tray_filaments[j].remain >= 0
+                                     && tray_filaments[j].remain < tray_filaments[picked_tar_idx].remain)
                             {
                                 picked_src_idx = i;
                                 picked_tar_idx = j;

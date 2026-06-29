@@ -48,6 +48,7 @@ struct FilamentInfo
     float       used_g{0.f};
     int         tray_id{0}; // start with 0
     float       distance{0.f};
+    int         remain{-1};    // filament remain on the mapped tray: 0~100, -1 = unknown / not reported by the printer
     int         ctype = 0;
     std::vector<std::string> colors = std::vector<std::string>();
     int         mapping_result = 0;
