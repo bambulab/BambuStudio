@@ -1412,6 +1412,12 @@ wxWindow* PreferencesDialog::create_general_page()
                 GLGizmoBase::Grabber::GrabberSizeFactor = d_value;
             }
         });
+
+    auto item_arrow_move_step = create_item_range_input(_L("Object move step"), page,
+        _L("Step in mm that arrow keys nudge the selected object. Hold Shift for a 0.1x step and Alt for a 0.01x step.") +
+            _L("Value range") + ":[0.01,100]",
+        "arrow_move_step", 0.01f, 100.0f, 2, nullptr);
+
     range_min = 0.0f;
     range_max = 150.0f;
     auto item_tooltip_offset_size_settings = create_item_range_two_input(_L("Tooltip offset"), page,
@@ -1535,6 +1541,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(enable_advanced_gcode_viewer, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_toolbar_style, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_grabber_size_settings, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_arrow_move_step, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_tooltip_offset_size_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
