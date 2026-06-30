@@ -8,6 +8,7 @@
 #include "slic3r/GUI/TaskManager.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "format.hpp"
+#include <wx/language.h>
 
 // Localization headers: include libslic3r version first so everything in this file
 // uses the slic3r/GUI version (the macros will take precedence over the functions).
@@ -6571,6 +6572,8 @@ bool GUI_App::load_language(wxString language, bool initial)
             wxLanguage cur_lang = wxLANGUAGE_UNKNOWN;
             auto cur_lang_info = wxLocale::FindLanguageInfo(language);
             if (cur_lang_info) { cur_lang = static_cast<wxLanguage> (cur_lang_info->Language);}
+            // all share zh_TW
+            if(cur_lang == wxLANGUAGE_CHINESE || cur_lang==wxLANGUAGE_CHINESE_TAIWAN) cur_lang = wxLANGUAGE_CHINESE_TRADITIONAL;
             if (std::find(s_supported_languages.begin(), s_supported_languages.end(), cur_lang) == s_supported_languages.end())
             {
                 app_config->set("language", "");
@@ -6582,7 +6585,8 @@ bool GUI_App::load_language(wxString language, bool initial)
         	BOOST_LOG_TRIVIAL(info) << boost::format("language provided by BambuStudio.conf: %1%") % language;
         else {
             // Get the system language.
-            const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
+            wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
+            if(lang_system == wxLANGUAGE_CHINESE || lang_system==wxLANGUAGE_CHINESE_TAIWAN) lang_system = wxLANGUAGE_CHINESE_TRADITIONAL;
             if (std::find(s_supported_languages.begin(), s_supported_languages.end(), lang_system) != s_supported_languages.end()) {
                 m_language_info_system = wxLocale::GetLanguageInfo(lang_system);
 #ifdef __WXMSW__
