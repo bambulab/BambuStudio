@@ -18491,9 +18491,8 @@ void Plater::_calib_pa_tower(const Calib_Params &params)
     //print_config->set_key_value("inner_wall_jerk", new ConfigOptionFloat(1.0f));
     auto full_config = wxGetApp().preset_bundle->full_config();
 
-
-    update_speed_parameter("outer_wall_speed");
-    update_speed_parameter("inner_wall_speed");
+    // Keep the process preset wall speeds untouched. The actual print speed is
+    // still clamped by the filament max volumetric speed during slicing.
     const auto _wall_generator = print_config->option<ConfigOptionEnum<PerimeterGeneratorType>>("wall_generator");
     if (_wall_generator->value == PerimeterGeneratorType::Arachne) print_config->set_key_value("wall_transition_angle", new ConfigOptionFloat(25));
     model().objects[0]->config.set_key_value("seam_position", new ConfigOptionEnum<SeamPosition>(spRear));
