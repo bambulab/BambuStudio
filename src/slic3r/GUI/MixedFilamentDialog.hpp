@@ -1,6 +1,7 @@
 #ifndef slic3r_MixedFilamentDialog_hpp_
 #define slic3r_MixedFilamentDialog_hpp_
 
+#include <array>
 #include <string>
 #include <utility>
 #include <vector>
@@ -15,13 +16,16 @@
 class Button;
 class CheckBox;
 class ComboBox;
+class wxMouseEvent;
 class wxScrolledWindow;
+class wxTextCtrl;
 class wxWrapSizer;
 
 namespace Slic3r {
 namespace GUI {
 
 class GradientCurveEditor;
+class RatioLabelPanel;
 
 struct MixedFilamentResult {
     std::vector<unsigned int> components;   // 1-based physical filament indices
@@ -74,6 +78,14 @@ private:
     void on_remove_material();
     void on_recommendation_clicked(unsigned int comp_a, unsigned int comp_b);
     void on_recommendation_clicked_triple(unsigned int a, unsigned int b, unsigned int c);
+    void apply_manual_ratio(size_t idx, int value);
+    void apply_dragged_triangle_ratio(int r0, int r1, int r2);
+    void reset_manual_ratio_state();
+    void refresh_ratio_labels();
+    void sync_triangle_weights_from_ratios();
+    void start_ratio_editor(size_t idx, wxWindow* anchor, const wxRect& anchor_rect);
+    void commit_ratio_editor(bool apply);
+    void commit_ratio_editor_from_background(wxMouseEvent& e);
     void update_preview();
     void update_ok_button_state();
     void update_gradient_direction_items();
@@ -111,8 +123,10 @@ private:
     wxBoxSizer*                 m_material_rows_sizer{nullptr};
     wxPanel*                    m_ratio_bar{nullptr};
     wxPanel*                    m_triangle_panel{nullptr};
-    wxStaticText*               m_label_ratio_a{nullptr};
-    wxStaticText*               m_label_ratio_b{nullptr};
+    RatioLabelPanel*            m_label_ratio_a{nullptr};
+    RatioLabelPanel*            m_label_ratio_b{nullptr};
+    wxPanel*                    m_ratio_editor_panel{nullptr};
+    wxTextCtrl*                 m_ratio_editor{nullptr};
     CheckBox*                   m_chk_gradient{nullptr};
     wxStaticText*               m_label_gradient{nullptr};
     ComboBox*                   m_combo_gradient_dir{nullptr};
@@ -142,6 +156,11 @@ private:
 
     // Drag state
     bool   m_dragging{false};
+    std::vector<bool> m_ratio_manually_edited;
+    std::vector<size_t> m_ratio_manual_order;
+    size_t m_ratio_editor_idx{0};
+    bool   m_ratio_editor_committing{false};
+    wxWindow* m_ratio_editor_anchor{nullptr};
     // Triangle picker drag point (barycentric weights)
     double m_tri_wx{0.333}, m_tri_wy{0.333}, m_tri_wz{0.334};
 
@@ -149,6 +168,7 @@ private:
     wxBitmap m_tri_cache_bmp;
     wxColour m_tri_cache_c0, m_tri_cache_c1, m_tri_cache_c2;
     wxSize   m_tri_cache_size;
+    std::array<RatioLabelPanel*, 3> m_triangle_ratio_labels{nullptr, nullptr, nullptr};
 };
 
 } // namespace GUI
