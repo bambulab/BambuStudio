@@ -58,6 +58,7 @@ public:
     void OnTitleChanged(wxWebViewEvent &evt);
     void OnNewWindow(wxWebViewEvent& evt);
     void OnScriptMessage(wxWebViewEvent& evt);
+    bool IsAllowedScriptCommand(wxWebViewEvent& evt);
     void OnScriptResponseMessage(wxCommandEvent& evt);
     void OnViewSourceRequest(wxCommandEvent& evt);
     void OnViewTextRequest(wxCommandEvent& evt);

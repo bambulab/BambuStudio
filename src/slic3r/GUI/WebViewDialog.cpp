@@ -8,6 +8,7 @@
 #include "../Utils/Http.hpp"
 
 #include <regex>
+#include <set>
 #include <utility>
 
 #include <boost/property_tree/ptree.hpp>
@@ -1090,7 +1091,12 @@ bool WebViewPanel::SaveBase64ToLocal(std::string Base64Buf, std::string FileName
     std::string separatorStr(1, separator);
 
     download_path = wxString::FromUTF8(wxGetApp().app_config->get("download_path"));
-    download_file = download_path + separatorStr + FileName + "_" + ss.str() + "_" + GenerateRandomString(4) + "."+ FileTail;
+
+    wxString safe_name = boost::filesystem::path(wxString(FileName.c_str(), wxConvLibc).wc_str()).filename().wstring();
+    if (safe_name.empty() || safe_name == "." || safe_name == "..")
+        safe_name = "makerlab";
+
+    download_file = download_path + separatorStr + safe_name + "_" + ss.str() + "_" + GenerateRandomString(4) + "." + FileTail;
 
     std::ofstream outFile(download_file.ToStdString(), std::ios::binary);
     if (!outFile) {
@@ -1613,6 +1619,54 @@ void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
     UpdateState();
 }
 
+bool WebViewPanel::IsAllowedScriptCommand(wxWebViewEvent& evt)
+{
+    const int id = evt.GetId();
+
+    const bool is_local =
+        (m_browser     && id == m_browser->GetId())     ||
+        (m_browserLeft && id == m_browserLeft->GetId()) ||
+        (m_browserWiki && id == m_browserWiki->GetId()) ||
+        (m_browserPH   && id == m_browserPH->GetId());
+    if (is_local)
+        return true;
+
+    const bool is_makerlab   = (m_browserML && id == m_browserML->GetId());
+    const bool is_makerworld = (m_browserMW && id == m_browserMW->GetId());
+
+    static const std::set<std::string> kMakerLabAllowed = {
+        "homepage_makerlab_open_3mf_binary",
+        "homepage_makerlab_stl_download",
+    };
+    static const std::set<std::string> kMakerWorldAllowed = {
+        "makerworld_model_open",
+    };
+
+    std::string command_str;
+    try {
+        std::stringstream ss(std::string(evt.GetString().ToUTF8().data()));
+        pt::ptree root;
+        pt::read_json(ss, root);
+        if (auto c = root.get_optional<std::string>("command"))
+            command_str = c.value();
+    } catch (...) {
+        command_str.clear();
+    }
+
+    const std::set<std::string>* allow = nullptr;
+    const char* src = "unknown";
+    if (is_makerlab)        { allow = &kMakerLabAllowed;   src = "makerlab"; }
+    else if (is_makerworld) { allow = &kMakerWorldAllowed; src = "makerworld"; }
+
+    if (allow && allow->count(command_str))
+        return true;
+
+    BOOST_LOG_TRIVIAL(warning) << "OnScriptMessage: blocked web command from untrusted source"
+                               << " src=" << src
+                               << " cmd=" << (command_str.empty() ? "<none>" : command_str);
+    return false;
+}
+
 void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
 {
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetString().ToUTF8().data();
@@ -1625,6 +1679,10 @@ void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
 
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("Script message received; value = %s, handler = %s", evt.GetString(), evt.GetMessageHandler());
+
+    if (!IsAllowedScriptCommand(evt))
+        return;
+
     std::string response = wxGetApp().handle_web_request(evt.GetString().ToUTF8().data());
     if (response.empty()) return;
 
