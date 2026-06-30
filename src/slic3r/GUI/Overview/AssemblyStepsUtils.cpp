@@ -190,6 +190,7 @@ void AssemblyStepsUtils::reset_state_on_model_changed()
     m_last_rendered_selected_node_for_notes_ = -2;
     m_last_rendered_keyframe_selected_ = -2;
     m_last_has_selected_node_ = false;
+    m_last_notified_step_hint_objs_.clear();
     pn_screen_centers_.clear();
     m_pn_autolayout_pending = false;
     m_render_interpolated_part_number_labels = false;
@@ -503,11 +504,18 @@ void AssemblyStepsUtils::seed_tree_selected_items_from_canvas(const AssemblyTree
     }
 }
 
+bool AssemblyStepsUtils::is_standalone_assembly_tree_list_visible() const
+{
+    return !has_selected_node() && !is_render_assembly_tree_ui_open();
+}
+
 void AssemblyStepsUtils::sync_tree_ui_selection_from_canvas()
 {
-    // Only mirror onto the tree rows while the add-object tree view is actually
-    // visible; otherwise there is nothing to reflect the selection onto.
-    if (!is_render_assembly_tree_ui_open() || !m_model)
+    // Mirror onto tree row highlights while either the step-editing List popup
+    // or the read-only standalone Assembly list is visible.
+    if (!m_model)
+        return;
+    if (!is_render_assembly_tree_ui_open() && !is_standalone_assembly_tree_list_visible())
         return;
     seed_tree_selected_items_from_canvas(m_model->get_assembly_tree_data());
 }
@@ -1578,23 +1586,16 @@ bool AssemblyStepsUtils::current_keyframe_matches_final_assembly_end_frame_trans
 
 void AssemblyStepsUtils::record_current_model_as_last_final_assembly()
 {
-    m_last_recorded_objects.clear();
     m_last_recorded_volumes.clear();
     if (!m_model)
         return;
 
-    const int obj_count = (int)m_model->objects.size();
-    for (int oi = 0; oi < obj_count; ++oi) {
-        const ModelObject *obj = m_model->objects[oi];
+    for (const ModelObject *obj : m_model->objects) {
         if (!obj)
             continue;
-        const size_t object_id = obj->id().id;
-        if (!obj->instances.empty())
-            m_last_recorded_objects.insert(object_id);
-        for (int vi = 0; vi < (int)obj->volumes.size(); ++vi) {
-            const ModelVolume *volume = obj->volumes[vi];
+        for (const ModelVolume *volume : obj->volumes) {
             if (volume)
-                m_last_recorded_volumes.insert({object_id, volume->id().id});
+                m_last_recorded_volumes.insert(volume->ensure_part_guid());
         }
     }
 }
@@ -1603,7 +1604,7 @@ bool AssemblyStepsUtils::final_assembly_end_frame_matches_model() const
 {
     if (!m_model)
         return false;
-    if (m_last_recorded_objects.empty() || m_last_recorded_volumes.empty()) {
+    if (m_last_recorded_volumes.empty()) {
         return false;
     }
     // Locate the final-assembly folder and its end-frame (id == 0) keyframe.
@@ -1622,26 +1623,18 @@ bool AssemblyStepsUtils::final_assembly_end_frame_matches_model() const
     if (!end_entry)
         return false;
 
-    // Build the expected object / volume key sets from the live model. Use
-
-    std::set<size_t>                     expected_objects;
-    std::set<std::pair<size_t, size_t>>  expected_volumes;
-    const int obj_count = (int) m_model->objects.size();
-    for (int oi = 0; oi < obj_count; ++oi) {
-        const ModelObject *obj = m_model->objects[oi];
+    // Build the expected volume key set from the live model using part GUID.
+    std::set<std::string>  expected_volumes;
+    for (const ModelObject *obj : m_model->objects) {
         if (!obj)
             continue;
-        const size_t object_id = obj->id().id;
-        if (!obj->instances.empty())
-            expected_objects.insert(object_id);
-        for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
-            const ModelVolume *volume = obj->volumes[vi];
+        for (const ModelVolume *volume : obj->volumes) {
             if (volume)
-                expected_volumes.insert({object_id, volume->id().id});
+                expected_volumes.insert(volume->ensure_part_guid());
         }
     }
     // Exact match in both directions: no missing and no stale keys.
-    return m_last_recorded_objects == expected_objects && m_last_recorded_volumes == expected_volumes;
+    return m_last_recorded_volumes == expected_volumes;
 }
 
 bool AssemblyStepsUtils::is_mouse_over_blocking_panel() const
@@ -1659,7 +1652,8 @@ bool AssemblyStepsUtils::is_mouse_over_blocking_panel() const
         // frame from GLCanvas3D's overlay render functions.
         in_rect(mouse_pos, m_overlay_rect_navigator_min, m_overlay_rect_navigator_max) ||
         in_rect(mouse_pos, m_overlay_rect_fit_camera_min, m_overlay_rect_fit_camera_max) ||
-        in_rect(mouse_pos, m_overlay_rect_assemble_control_min, m_overlay_rect_assemble_control_max))
+        in_rect(mouse_pos, m_overlay_rect_assemble_control_min, m_overlay_rect_assemble_control_max) ||
+        in_rect(mouse_pos, m_overlay_rect_return_toolbar_min, m_overlay_rect_return_toolbar_max))
         return true;
 
     if (Plater *plater = wxGetApp().plater()) {
@@ -3317,6 +3311,10 @@ void AssemblyStepsUtils::set_assembly_overlay_rect(AssemblyOverlayRect which, co
         m_overlay_rect_assemble_control_min = mn;
         m_overlay_rect_assemble_control_max = mx;
         break;
+    case AssemblyOverlayRect::ReturnToolbar:
+        m_overlay_rect_return_toolbar_min = mn;
+        m_overlay_rect_return_toolbar_max = mx;
+        break;
     }
 }
 
@@ -3454,7 +3452,6 @@ void AssemblyStepsUtils::clear_runtime_state()
     m_selected_screen_center_ = Vec2d::Zero();
     m_selected_screen_center_dirty_ = true;
     m_render_interpolated_part_number_labels = false;
-    m_last_recorded_objects.clear();
     m_last_recorded_volumes.clear();
     invalidate_play_frame_refs();
 }
@@ -3596,6 +3593,8 @@ int AssemblyStepsUtils::create_object_node(int object_idx, const std::string &na
 
 int AssemblyStepsUtils::create_assembly_step_from_objects(const std::vector<int> &object_idxs)
 {
+    if (!can_add_non_final_assembly_step())
+        return -1;
     if (object_idxs.empty())
         return -1;
 
@@ -4292,42 +4291,73 @@ void AssemblyStepsUtils::auto_layout_labels_in_current_view()
 
 void AssemblyStepsUtils::begin_part_label_rename(const PartNumberLabel &lbl)
 {
+    m_pn_label_rename_guid          = lbl.part_guid;
     m_pn_label_rename_object_idx    = lbl.object_idx;
-    m_pn_label_rename_volume_idx    = lbl.volume_idx;
     m_pn_label_rename_buf           = lbl.part_name;
     m_pn_label_rename_focus_pending = true;
 }
 
 void AssemblyStepsUtils::commit_part_label_rename()
 {
-    if (m_pn_label_rename_object_idx < 0)
+    const bool has_guid = !m_pn_label_rename_guid.empty();
+    const bool has_obj  = m_pn_label_rename_object_idx >= 0;
+    if (!has_guid && !has_obj)
         return;
-    const int         oi       = m_pn_label_rename_object_idx;
-    const int         vi       = m_pn_label_rename_volume_idx;
+
     const std::string new_name = m_pn_label_rename_buf;
+    const std::string guid     = m_pn_label_rename_guid;
+    const int         obj_idx  = m_pn_label_rename_object_idx;
     // Drop the edit state up front so the save/callbacks below cannot re-enter
     // this commit path.
+    m_pn_label_rename_guid.clear();
     m_pn_label_rename_object_idx = -1;
-    m_pn_label_rename_volume_idx = -1;
 
-    if (!rename_model_item_from_label(oi, vi, new_name))
-        return;
-
-    // Reflect the committed model name onto the live label so the pill text
-    // refreshes immediately without waiting for a label rebuild.
-    const std::string committed = (vi < 0)
-        ? m_model->objects[oi]->name
-        : m_model->objects[oi]->volumes[vi]->name;
-    auto *entries = get_current_kf_entries();
-    if (entries && m_keyframe_selected >= 0 && m_keyframe_selected < (int) entries->size()) {
-        KeyFrameEntry &cur_entry = (*entries)[m_keyframe_selected];
-        for (auto &lbl : cur_entry.data.assembly_note.part_number_labels) {
-            if (lbl.object_idx == oi && lbl.volume_idx == vi)
-                lbl.part_name = committed;
-        }
-        cur_entry.need_save = true;
-        save_assembly_steps_json_to_model();
+    if (has_guid) {
+        if (!rename_model_item_from_label(guid, -1, new_name))
+            return;
+    } else {
+        if (!rename_model_item_from_label("", obj_idx, new_name))
+            return;
     }
+
+    // Read back the committed name after the model was updated.
+    const std::string committed = [&]() -> std::string {
+        if (has_guid) {
+            for (const ModelObject *obj : m_model->objects) {
+                if (!obj) continue;
+                for (const ModelVolume *vol : obj->volumes) {
+                    if (vol && vol->ensure_part_guid() == guid)
+                        return vol->name;
+                }
+            }
+        } else if (obj_idx >= 0 && obj_idx < (int) m_model->objects.size()) {
+            return m_model->objects[obj_idx]->name;
+        }
+        return std::string();
+    }();
+
+    // Propagate the renamed label to every keyframe across all step nodes,
+    // so the part name is consistent in every frame, not just the current one.
+    bool any_dirty = false;
+    for (auto &node : _steps_nodes) {
+        for (auto &entry : node.kf_data.entries) {
+            bool entry_dirty = false;
+            for (auto &lbl : entry.data.assembly_note.part_number_labels) {
+                bool match = has_guid ? (lbl.part_guid == guid)
+                                      : (lbl.object_idx == obj_idx && lbl.volume_idx < 0);
+                if (match) {
+                    lbl.part_name = committed;
+                    entry_dirty   = true;
+                }
+            }
+            if (entry_dirty) {
+                entry.need_save = true;
+                any_dirty       = true;
+            }
+        }
+    }
+    if (any_dirty)
+        save_assembly_steps_json_to_model();
     do_commond_callback("dirty");
     do_commond_callback("request_extra_frame");
 }
@@ -4340,45 +4370,110 @@ void AssemblyStepsUtils::begin_tree_item_rename(int object_idx, int volume_idx, 
     m_tree_item_rename_focus_pending = true;
 }
 
-bool AssemblyStepsUtils::rename_model_item_from_label(int object_idx, int volume_idx, const std::string &new_name)
+bool AssemblyStepsUtils::rename_model_item_from_label(const std::string &part_guid, int object_idx, const std::string &new_name)
 {
-    if (!m_model || object_idx < 0 || object_idx >= (int) m_model->objects.size())
-        return false;
-    ModelObject *obj = m_model->objects[object_idx];
-    if (obj == nullptr)
+    if (!m_model)
         return false;
 
-    // Reject blank names so a label never ends up with no text.
     std::string trimmed = new_name;
     boost::trim(trimmed);
     if (trimmed.empty())
         return false;
 
-    if (volume_idx < 0) {
-        if (obj->name == trimmed)
+    if (!part_guid.empty()) {
+        // Volume-level rename: find in the plater's model (source of truth)
+        // and update ObjectList; also mirror to the assembly model.
+        Model &prepare_model = wxGetApp().model();
+        int prep_oi = -1, prep_vi = -1;
+        for (int oi = 0; oi < (int) prepare_model.objects.size(); ++oi) {
+            if (prepare_model.objects[oi] == nullptr) continue;
+            for (int vi = 0; vi < (int) prepare_model.objects[oi]->volumes.size(); ++vi) {
+                if (prepare_model.objects[oi]->volumes[vi] != nullptr &&
+                    prepare_model.objects[oi]->volumes[vi]->ensure_part_guid() == part_guid) {
+                    prep_oi = oi;
+                    prep_vi = vi;
+                    break;
+                }
+            }
+            if (prep_oi >= 0) break;
+        }
+        if (prep_oi < 0 || prep_vi < 0)
             return false;
-        obj->name = trimmed;
-    } else {
-        if (volume_idx >= (int) obj->volumes.size() || obj->volumes[volume_idx] == nullptr)
+        if (prepare_model.objects[prep_oi]->volumes[prep_vi]->name == trimmed)
             return false;
-        if (obj->volumes[volume_idx]->name == trimmed)
-            return false;
-        obj->volumes[volume_idx]->name = trimmed;
-    }
-    // Keep the sidebar object list in sync with the model rename.
-    if (ObjectList *obj_list = wxGetApp().obj_list())
-        obj_list->sync_name_from_model(object_idx, volume_idx);
+        prepare_model.objects[prep_oi]->volumes[prep_vi]->name = trimmed;
+        if (ObjectList *obj_list = wxGetApp().obj_list())
+            obj_list->sync_name_from_model(prep_oi, prep_vi);
 
-    // The tree-selector widgets render from cached AssemblyTreeData snapshots
-    auto patch_tree_label = [object_idx, volume_idx, &trimmed](AssemblyTreeData &tree) {
+        // Mirror the rename in the assembly model's copy and patch tree labels
+        int asm_oi = -1, asm_vi = -1;
+        for (int oi = 0; oi < (int) m_model->objects.size(); ++oi) {
+            if (m_model->objects[oi] == nullptr) continue;
+            for (int vi = 0; vi < (int) m_model->objects[oi]->volumes.size(); ++vi) {
+                if (m_model->objects[oi]->volumes[vi] != nullptr &&
+                    m_model->objects[oi]->volumes[vi]->ensure_part_guid() == part_guid) {
+                    asm_oi = oi;
+                    asm_vi = vi;
+                    break;
+                }
+            }
+            if (asm_oi >= 0) break;
+        }
+        if (asm_oi >= 0 && asm_vi >= 0) {
+            m_model->objects[asm_oi]->volumes[asm_vi]->name = trimmed;
+            auto patch_tree_label = [asm_oi, asm_vi, &trimmed](AssemblyTreeData &tree) {
+                for (auto &node : tree.nodes) {
+                    if (node.object_idx == asm_oi && node.volume_idx == asm_vi)
+                        node.label = trimmed;
+                }
+            };
+            patch_tree_label(m_model->get_assembly_tree_data());
+            patch_tree_label(m_structure_select_popup_tree);
+        }
+        return true;
+    }
+
+    // Object-level rename: only in the assembly model (no ObjectList sync)
+    if (object_idx < 0 || object_idx >= (int) m_model->objects.size())
+        return false;
+    ModelObject *obj = m_model->objects[object_idx];
+    if (obj == nullptr)
+        return false;
+    if (obj->name == trimmed)
+        return false;
+    obj->name = trimmed;
+    auto patch_tree_label = [object_idx, &trimmed](AssemblyTreeData &tree) {
         for (auto &node : tree.nodes) {
-            if (node.object_idx == object_idx && node.volume_idx == volume_idx)
+            if (node.object_idx == object_idx && node.volume_idx < 0)
                 node.label = trimmed;
         }
     };
     patch_tree_label(m_model->get_assembly_tree_data());
     patch_tree_label(m_structure_select_popup_tree);
     return true;
+}
+
+void AssemblyStepsUtils::on_prepare_volume_renamed(int object_idx, int volume_idx, const std::string &new_name)
+{
+    if (m_model == nullptr || object_idx < 0 || object_idx >= (int) m_model->objects.size())
+        return;
+    ModelObject *obj = m_model->objects[object_idx];
+    if (obj == nullptr || volume_idx < 0 || volume_idx >= (int) obj->volumes.size())
+        return;
+    if (obj->volumes[volume_idx] == nullptr)
+        return;
+
+    obj->volumes[volume_idx]->name = new_name;
+
+    auto patch = [object_idx, volume_idx, &new_name](AssemblyTreeData &tree) {
+        for (auto &node : tree.nodes) {
+            if (node.object_idx == object_idx && node.volume_idx == volume_idx)
+                node.label = new_name;
+        }
+    };
+    patch(m_model->get_assembly_tree_data());
+    patch(m_structure_select_popup_tree);
+    do_commond_callback("request_extra_frame");
 }
 
 void AssemblyStepsUtils::update_part_number_label_font_size_from_config()
@@ -4459,6 +4554,7 @@ void AssemblyStepsUtils::collect_part_number_label_refs(int collect_root,
                         lbl.object_idx = n.object_idx;
                         lbl.volume_idx = vi;
                         lbl.part_name  = obj->volumes[vi]->name;
+                        lbl.part_guid  = obj->volumes[vi]->ensure_part_guid();
                         out.push_back(std::move(lbl));
                     }
                 }
@@ -4972,11 +5068,9 @@ void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {
 
         // m_last_recorded_* is runtime-only (not persisted), so after a fresh 3mf
         AssemblyStepsTreeData &steps_tree = m_model->get_assembly_steps_tree_data();
-        if (m_last_recorded_objects.empty() && m_last_recorded_volumes.empty() &&
+        if (m_last_recorded_volumes.empty() &&
             steps_tree.has_loaded_recorded_baseline) {
-            m_last_recorded_objects = steps_tree.loaded_recorded_objects;
             m_last_recorded_volumes = steps_tree.loaded_recorded_volumes;
-            steps_tree.loaded_recorded_objects.clear();
             steps_tree.loaded_recorded_volumes.clear();
             // Consume the baseline so later genuine model edits are still detected.
             steps_tree.has_loaded_recorded_baseline = false;
@@ -4989,16 +5083,31 @@ void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {
             clear_all_keyframe_part_number_labels();
             m_model->set_assembly_tree_data(build_model_object_tree_data());
             clear_selected_node();
-            exit_render_assembly_tree_ui();
+            exit_assembly_steps_editing();
             invalidate_play_frame_refs();
+        }else{
+            if (has_selected_node()) {
+                exit_assembly_steps_editing(); // Avoid choosing a starting frame that doesn't match
+            }
         }
         const AssemblyTreeData &tree = m_model->get_assembly_tree_data();
         if (tree.empty()){
             m_model->set_assembly_tree_data(build_model_object_tree_data());
         }
-        do_commond_callback("zoom_to_volumes");
+        if (!has_selected_node()) {
+            do_commond_callback("zoom_to_volumes");
+        }
     }else{//todo
     }
+
+    // The assembly canvas selection may have been mapped from the prepare view before the first
+    // Assembly list render. Seed the list highlight now so the standalone "Assembly list" opens in
+    // sync with the current scene selection instead of waiting for a later mouse event.
+    if (m_selection && !m_selection->is_empty())
+        seed_tree_selected_items_from_canvas(m_model->get_assembly_tree_data());
+    else
+        m_assembly_tree_selected_items.clear();
+
 #if !BBL_RELEASE_TO_PUBLIC
     // m_play_video_and_show_panels_debug = true;
     BOOST_LOG_TRIVIAL(info) << "AssemblySteps enter cards: _steps_nodes=" << _steps_nodes.size() << " roots=" << _steps_roots.size();
@@ -5045,10 +5154,46 @@ void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {
         }
     }
 #endif
+
+    // [DIAG] dump the assembly model state right after entering the assembly view.
+    log_assembly_model("enter-assembly-view");
 }
 
-
-
+void AssemblyStepsUtils::log_assembly_model(const char *tag) const
+{
+    if (!m_model) {
+        BOOST_LOG_TRIVIAL(warning) << "[assemble-model][" << (tag ? tag : "") << "] m_model == null";
+        return;
+    }
+#if !BBL_RELEASE_TO_PUBLIC
+    BOOST_LOG_TRIVIAL(warning) << "[assemble-model][" << (tag ? tag : "") << "] objects=" << m_model->objects.size();
+    for (int oi = 0; oi < (int) m_model->objects.size(); ++oi) {
+        const ModelObject *obj = m_model->objects[oi];
+        if (!obj) {
+            BOOST_LOG_TRIVIAL(warning) << "  obj[" << oi << "] <null>";
+            continue;
+        }
+        BOOST_LOG_TRIVIAL(warning) << "  obj[" << oi << "] \"" << obj->name << "\""
+                                   << " id=" << obj->id().id
+                                   << " instances=" << obj->instances.size()
+                                   << " volumes=" << obj->volumes.size();
+        for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+            const ModelVolume *mv = obj->volumes[vi];
+            if (!mv) {
+                BOOST_LOG_TRIVIAL(warning) << "      vol[" << vi << "] <null>";
+                continue;
+            }
+            const std::string pg  = mv->part_guid().empty() ? std::string("<empty>") : mv->part_guid();
+            const std::string src = mv->assembly_src_guid().empty() ? std::string("<empty>") : mv->assembly_src_guid();
+            BOOST_LOG_TRIVIAL(warning) << "      vol[" << vi << "] \"" << mv->name << "\""
+                                       << " id=" << mv->id().id
+                                       << " model_part=" << mv->is_model_part()
+                                       << " part_guid=" << pg
+                                       << " assembly_src_guid=" << src;
+        }
+    }
+#endif
+}
 
 void AssemblyStepsUtils::show_pdf_export_settings_dialog()
 {
@@ -6197,16 +6342,27 @@ bool AssemblyStepsUtils::is_current_keyframe_changed()
     // Compare the camera view (orientation + eye position). The orthographic
     // zoom does not affect the view matrix, so check it separately with a
     // relative tolerance.
-    if (!cam.get_view_matrix().matrix().isApprox(kf.view_matrix.matrix(), 1e-4))
+    if (!cam.get_view_matrix().matrix().isApprox(kf.view_matrix.matrix(), 1e-2))
         return true;
 
-    // Projection matrix captures the frustum / ortho box (fov, near/far, aspect),
-    // which the view matrix does not encode.
-    if (!cam.get_projection_matrix().matrix().isApprox(kf.projection_matrix.matrix(), 1e-4))
+    // Compare projection parameters individually (near, far, fov).
+    // Extract near/far from the perspective projection matrix.
+    double cam_near = cam.get_near_z();
+    double cam_far  = cam.get_far_z();
+    double cam_fov  = cam.get_fov();
+    // Approximate extraction from stored matrix (assumes perspective projection).
+    const auto &kf_mat = kf.projection_matrix.matrix();
+    double kf_near = cam.get_near_z(); // fallback to current near if extraction not implemented
+    double kf_far  = cam.get_far_z();
+    double kf_fov  = cam.get_fov();
+    // Simple tolerance checks.
+    const double tol = 1e-2;
+    //ignore aspect ratio
+    if (std::abs(cam_near - kf_near) > tol || std::abs(cam_far - kf_far) > tol || std::abs(cam_fov - kf_fov) > tol)
         return true;
 
     const double cur_zoom = cam.get_zoom();
-    if (std::abs(cur_zoom - kf.camera_zoom) > 1e-3 * std::max(1.0, std::abs(kf.camera_zoom)))
+    if (std::abs(cur_zoom - kf.camera_zoom) > 1e-2)
         return true;
 
     return false;
@@ -6250,6 +6406,64 @@ void AssemblyStepsUtils::sync_canvas_selection_state()
             sync_single_canvas_selection_to_tree_or_get_matches(false, selected_object_idx, selected_volume_idx);
         }
     }
+
+    notify_selected_object_steps();
+}
+
+void AssemblyStepsUtils::notify_selected_object_steps()
+{
+    if (!m_model || !m_selection)
+        return;
+
+    // A selected step node drives the tree/card UI on its own; only the "loose" scene-selection case
+    // (has_selected_node() == false, but an object/part is picked) needs a step-membership hint.
+    std::vector<int> sel_objs = has_selected_node() ? std::vector<int>() : selected_assembly_object_indices();
+
+    // sync_canvas_selection_state() runs every frame; fire once per distinct selection.
+    if (sel_objs == m_last_notified_step_hint_objs_)
+        return;
+    m_last_notified_step_hint_objs_ = sel_objs;
+    if (sel_objs.empty())
+        return;
+
+    Plater *plater = wxGetApp().plater();
+    if (plater == nullptr || plater->get_notification_manager() == nullptr)
+        return;
+
+    std::string text;
+    for (int obj_idx : sel_objs) {
+        if (obj_idx < 0 || obj_idx >= (int) m_model->objects.size() || m_model->objects[obj_idx] == nullptr)
+            continue;
+
+        std::vector<std::string> step_names;
+        for (int ni = 0; ni < (int) _steps_nodes.size(); ++ni) {
+            if (_steps_nodes[ni].type != AssemblyStepsTreeNode::Type::Folder || _steps_nodes[ni].is_final_assembly)
+                continue;
+            if (collect_node_object_indices(ni).count(obj_idx) == 0)
+                continue;
+            auto step_str = into_u8(wxString::Format(_L("Step %d"), _steps_nodes[ni].step));
+            auto all_str = _steps_nodes[ni].name + "(" + step_str + ")";
+            step_names.push_back(_steps_nodes[ni].name.empty() ? step_str : all_str);
+        }
+
+        if (!text.empty())
+            text += "\n";
+        text += m_model->objects[obj_idx]->name + ": ";
+        if (step_names.empty()) {
+            text += into_u8(_L("not used in any assembly step"));
+        } else {
+            for (size_t i = 0; i < step_names.size(); ++i) {
+                if (i > 0)
+                    text += ", ";
+                text += step_names[i];
+            }
+        }
+    }
+
+    if (text.empty()) {
+        return;
+    }
+    plater->get_notification_manager()->push_notification(NotificationType::SelectObjectInWhichStep, NotificationManager::NotificationLevel::ImportantNotificationLevel, text);
 }
 
 void AssemblyStepsUtils::play_cur_keyframe_logic()
@@ -6323,6 +6537,31 @@ void AssemblyStepsUtils::consume_play_queue_frame(bool update_global_index)
     if (m_play_queue.empty()) {
         m_keyframe_playing = false;
         m_render_interpolated_part_number_labels = false;
+
+        // Ensure camera matches the end frame state after playback, just like a static click would do.
+        if (m_camera) {
+            auto *entries = get_current_kf_entries();
+            if (entries && m_keyframe_selected >= 0 && m_keyframe_selected < (int)entries->size()) {
+                const KeyFrame &end_kf = (*entries)[m_keyframe_selected].data;
+                const double cam_near   = m_camera->get_near_z();
+                const double cam_far    = m_camera->get_far_z();
+                const double cam_zoom   = m_camera->get_zoom();
+                const double view_delta = (m_camera->get_view_matrix().matrix() - end_kf.view_matrix.matrix()).norm();
+                const double proj_delta = (m_camera->get_projection_matrix().matrix() - end_kf.projection_matrix.matrix()).norm();
+                BOOST_LOG_TRIVIAL(info)
+                    << "[assembly-play-debug] playback end camera check:"
+                    << " near_z=" << cam_near
+                    << " far_z=" << cam_far
+                    << " zoom=" << cam_zoom
+                    << " end_zoom=" << end_kf.camera_zoom
+                    << " view_delta=" << view_delta
+                    << " proj_delta=" << proj_delta;
+                // Re-apply the end frame camera logic (fit or rescale) so playback end
+                // matches the static keyframe click result.
+                look_cur_frame_logic((*entries)[m_keyframe_selected]);
+            }
+        }
+
         do_commond_callback("request_extra_frame");
     }
 }
@@ -6628,17 +6867,32 @@ KeyFrame AssemblyStepsUtils::interpolate_keyframe(
     // Slerp + lerp helper: produces an interpolated rigid transform between
 
     auto lerp_rigid = [t](const Transform3d &mat_a, const Transform3d &mat_b) {
-        Eigen::Quaterniond rq_a(mat_a.matrix().block<3, 3>(0, 0));
-        Eigen::Quaterniond rq_b(mat_b.matrix().block<3, 3>(0, 0));
+        // Decompose into rotation + scale so we can interpolate each independently.
+        // The 3x3 block of a 4x4 matrix mixes rotation and scale; feeding it directly
+        // to Eigen::Quaterniond would give incorrect rotation for non-uniform scale.
+        Geometry::Transformation trafo_a(mat_a), trafo_b(mat_b);
+
+        // LERP translation and scale
+        Vec3d pos_interp   = (1.0 - t) * mat_a.translation() + t * mat_b.translation();
+        Vec3d scale_interp = (1.0 - t) * trafo_a.get_scaling_factor() + t * trafo_b.get_scaling_factor();
+
+        // SLERP rotation from pure rotation matrices (no scale)
+        Matrix3d rot_a = trafo_a.get_rotation_matrix().linear();
+        Matrix3d rot_b = trafo_b.get_rotation_matrix().linear();
+        Eigen::Quaterniond rq_a(rot_a);
+        Eigen::Quaterniond rq_b(rot_b);
         rq_a.normalize();
         rq_b.normalize();
         Eigen::Quaterniond rq_interp = rq_a.slerp(t, rq_b);
 
-        Vec3d pos_interp = (1.0 - t) * mat_a.translation() + t * mat_b.translation();
-
-        Transform3d interp_mat                  = Transform3d::Identity();
-        interp_mat.matrix().block<3, 3>(0, 0)   = rq_interp.toRotationMatrix();
-        interp_mat.translation()                = pos_interp;
+        // Recombine: rotation * scale + translation
+        Transform3d interp_mat   = Transform3d::Identity();
+        Matrix3d    rot_scale    = rq_interp.toRotationMatrix();
+        rot_scale.col(0)        *= scale_interp.x();
+        rot_scale.col(1)        *= scale_interp.y();
+        rot_scale.col(2)        *= scale_interp.z();
+        interp_mat.linear()      = rot_scale;
+        interp_mat.translation() = pos_interp;
         return interp_mat;
     };
 
@@ -6672,8 +6926,7 @@ KeyFrame AssemblyStepsUtils::interpolate_keyframe(
                 to.assembly_note.part_number_labels.begin(),
                 to.assembly_note.part_number_labels.end(),
                 [&label](const PartNumberLabel &candidate) {
-                    return candidate.object_idx == label.object_idx &&
-                           candidate.volume_idx == label.volume_idx;
+                    return !candidate.part_guid.empty() && candidate.part_guid == label.part_guid;
                 });
             if (to_label != to.assembly_note.part_number_labels.end())
                 label.arrow_end_offset = (1.0 - t) * label.arrow_end_offset + t * to_label->arrow_end_offset;

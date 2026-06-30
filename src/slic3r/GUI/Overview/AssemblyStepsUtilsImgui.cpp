@@ -1045,9 +1045,10 @@ void AssemblyStepsUtils::render_part_number_labels_on_canvas(
     for (int i = 0; i < (int)labels.size(); ++i) {
         PartNumberLabel &lbl = labels[i];
 
-        const bool renaming = editable &&
-            lbl.object_idx == m_pn_label_rename_object_idx &&
-            lbl.volume_idx == m_pn_label_rename_volume_idx;
+        const bool renaming = editable && (
+            (!lbl.part_guid.empty() && lbl.part_guid == m_pn_label_rename_guid) ||
+            (lbl.part_guid.empty() && m_pn_label_rename_guid.empty() &&
+             lbl.object_idx == m_pn_label_rename_object_idx));
 
         Vec2d center = pn_screen_centers_.count(i) ? pn_screen_centers_[i]
                      : Vec2d(viewport[2] * 0.5, viewport[3] * 0.5);
@@ -3629,6 +3630,19 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
     m_panel_rect_structure_min = ImVec2(panel_x, panel_y);
     m_panel_rect_structure_max = ImVec2(panel_x + panel_w, panel_y + panel_h);
 
+    // ---- Standalone assembly tree list (canvas right side) ------------------
+    // A read-only mirror of the assembly tree. It is shown only while no step
+    // card row is selected (has_selected_node() == false) and the editable
+    // add-object popup is closed, so it never overlaps the step-editing list.
+    // Reuses render_assembly_tree_ui() with checkboxes / footer disabled.
+    if (!has_selected_node() && !is_render_assembly_tree_ui_open()) {
+        const float list_w = 310.0f * sc;
+        const float list_x = canvas_w - list_w - 12.0f * sc;
+        const float list_y = panel_y;
+        const float list_h = std::max(180.0f * sc, canvas_h - list_y - 12.0f * sc);
+        render_assembly_tree_ui(list_x, list_y, list_w, list_h, sc, /*show_checkbox*/ false);
+    }
+
     if (!m_save_project_tip_text.empty()) {
         if (std::chrono::steady_clock::now() >= m_save_project_tip_until) {
             m_save_project_tip_text.clear();
@@ -4045,7 +4059,16 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
             const bool entered     = ImGui::InputText("##tree_item_rename", &m_tree_item_rename_buf, input_flags);
             const bool deactivated = ImGui::IsItemDeactivated();
             if (entered || deactivated) {
-                rename_model_item_from_label(node.object_idx, node.volume_idx, m_tree_item_rename_buf);
+                std::string guid;
+                if (node.volume_idx >= 0 && m_model && node.object_idx >= 0 && node.object_idx < (int) m_model->objects.size()) {
+                    const ModelObject *obj = m_model->objects[node.object_idx];
+                    if (obj && node.volume_idx < (int) obj->volumes.size() && obj->volumes[node.volume_idx])
+                        guid = obj->volumes[node.volume_idx]->ensure_part_guid();
+                }
+                if (!guid.empty())
+                    rename_model_item_from_label(guid, -1, m_tree_item_rename_buf);
+                else
+                    rename_model_item_from_label("", node.object_idx, m_tree_item_rename_buf);
                 m_tree_item_rename_object_idx = -1;
                 m_tree_item_rename_volume_idx = -1;
             }
@@ -4129,9 +4152,7 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
     const float buttons_y = footer_pos.y - 7.0f * sc;
 
     if (render_footer_button("##assembly_tree_cancel", _u8L("Cancel"), ImVec2(buttons_x, buttons_y), cancel_size, false, sc)) {
-        checked.clear();
         result.cancel = true;
-        result.changed = true;
     }
     if (render_footer_button("##assembly_tree_ok", _u8L("OK"), ImVec2(buttons_x + cancel_size.x + button_gap, buttons_y), ok_size, true, sc))
         result.confirm = true;
@@ -4335,7 +4356,7 @@ int AssemblyStepsUtils::render_timeline_keyframe(
         // "Unsaved view" dot (Figma 4098:10851): a small amber circle in the
         // top-left corner, shown only on the selected keyframe when the live
         // camera no longer matches the camera recorded for that frame.
-        if (selected && m_current_keyframe_changed) {
+        if (selected && m_current_keyframe_changed && !is_play_or_export_mode()) {
             const ImU32  amber = IM_COL32(0xFF, 0xA0, 0x00, 255);
             const float  dot_r = 4.0f * sc;
             const ImVec2 dot_c(slot_min.x + 6.0f * sc, slot_min.y + 6.0f * sc);
@@ -5140,12 +5161,20 @@ bool AssemblyStepsUtils::rects_overlap(const ImVec2 &lhs_min, const ImVec2 &lhs_
 
 bool AssemblyStepsUtils::is_part_number_label_layout_overlapped(const ImVec2 &rect_min, const ImVec2 &rect_max) const
 {
-    return rects_overlap(rect_min, rect_max,
-                         m_part_number_label_forbidden_left_area.min,
-                         m_part_number_label_forbidden_left_area.max) ||
-           rects_overlap(rect_min, rect_max,
-                         m_part_number_label_forbidden_bottom_area.min,
-                         m_part_number_label_forbidden_bottom_area.max);
+    if (rects_overlap(rect_min, rect_max,
+                      m_part_number_label_forbidden_left_area.min,
+                      m_part_number_label_forbidden_left_area.max) ||
+        rects_overlap(rect_min, rect_max,
+                      m_part_number_label_forbidden_bottom_area.min,
+                      m_part_number_label_forbidden_bottom_area.max))
+        return true;
+    if (m_overlay_rect_return_toolbar_max.x > m_overlay_rect_return_toolbar_min.x &&
+        m_overlay_rect_return_toolbar_max.y > m_overlay_rect_return_toolbar_min.y &&
+        rects_overlap(rect_min, rect_max,
+                      m_overlay_rect_return_toolbar_min,
+                      m_overlay_rect_return_toolbar_max))
+        return true;
+    return false;
 }
 
 void AssemblyStepsUtils::render_assembly_guide_export_button(float panel_x, float panel_y, float sc)
@@ -5788,9 +5817,9 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
         const std::string tl_title = _u8L("Timeline");
         ImVec2 card_min = section_begin(tl_title.c_str(), card_h_tl);
         const float thumb_y = card_min.y + title_h;
-
-        m_current_keyframe_changed = is_current_keyframe_changed();
-
+        if (!is_play_or_export_mode()) {
+            m_current_keyframe_changed = is_current_keyframe_changed();
+        }
         // Inline "Play" button to the right of the title text (10px spacing).
         float next_btn_x = 0.f;
         ImTextureID play_icon = m_keyframe_playing ? m_tree_icon_pause : (m_is_dark ? m_tree_icon_play_dark : m_tree_icon_play);
@@ -6335,12 +6364,25 @@ void AssemblyStepsUtils::apply_assembly_tree_checked_to_step(
     apply_keyframe_display_mode();
 }
 
-void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, float panel_w, float panel_h, float sc)
+void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, float panel_w, float panel_h, float sc, bool show_checkbox)
 {
     auto& steps_tree = m_model->get_assembly_steps_tree_data();
     const AssemblyTreeData *tree = nullptr;
     tree                         = &m_model->get_assembly_tree_data();
-
+#if !BBL_RELEASE_TO_PUBLIC
+    // [DIAG] temporary: correlate render-time binding with tree state.
+    {
+        static size_t s_last_log = SIZE_MAX;
+        const size_t key = (m_model->objects.size() << 8) ^ (tree ? tree->nodes.size() : 0);
+        if (key != s_last_log) {
+            s_last_log = key;
+            BOOST_LOG_TRIVIAL(warning) << "[assemble-render] m_model=" << (void *) m_model
+                                       << " objects=" << m_model->objects.size()
+                                       << " tree_nodes=" << (tree ? tree->nodes.size() : 0)
+                                       << " tree_json_len=" << m_model->get_assembly_tree_json_str().size();
+        }
+    }
+#endif
     if (!tree || tree->nodes.empty())
         return;
 
@@ -6361,23 +6403,29 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
     };
 
     clear_active_assembly_tree_checked();
-    int active_step_node = m_structure_add_tree_step_node;
-    if (active_step_node < 0)
-        active_step_node = step_node_from_card(m_structure_add_tree_card);
-    if (active_step_node < 0) {//boost debug_break
-        active_step_node = find_parent_folder(m_selected_node);//temp no use
-    }
+    int active_step_node = -1;
+    // The read-only standalone list (show_checkbox == false) never edits a step,
+    // so skip the step-bound checked-set seeding and render a plain tree with
+    // m_active_assembly_tree_checked left null (the dummy checked map is used).
+    if (show_checkbox) {
+        active_step_node = m_structure_add_tree_step_node;
+        if (active_step_node < 0)
+            active_step_node = step_node_from_card(m_structure_add_tree_card);
+        if (active_step_node < 0) {//boost debug_break
+            active_step_node = find_parent_folder(m_selected_node);//temp no use
+        }
 
-    if (active_step_node >= 0) {
-        auto& checked = steps_tree.nodes[active_step_node].assembly_tree_checked;
-        if (!checked)
-            checked.emplace();
-        m_active_assembly_tree_checked = &*checked;
-    }
+        if (active_step_node >= 0) {
+            auto& checked = steps_tree.nodes[active_step_node].assembly_tree_checked;
+            if (!checked)
+                checked.emplace();
+            m_active_assembly_tree_checked = &*checked;
+        }
 
-    if (m_active_assembly_tree_checked != nullptr &&
-        m_assembly_tree_ui_current_folder_node != active_step_node) {
-        reseed_assembly_tree_checked_from_step(active_step_node, *tree);
+        if (m_active_assembly_tree_checked != nullptr &&
+            m_assembly_tree_ui_current_folder_node != active_step_node) {
+            reseed_assembly_tree_checked_from_step(active_step_node, *tree);
+        }
     }
 
     ImGuiWrapper& imgui = *m_imgui;
@@ -6451,8 +6499,14 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(144 / 255.0f, 144 / 255.0f, 144 / 255.0f, 0.85f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(144 / 255.0f, 144 / 255.0f, 144 / 255.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(120 / 255.0f, 120 / 255.0f, 120 / 255.0f, 1.0f));
-    imgui.begin(_L("Assembly tree"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
-                                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings);
+    const int tree_window_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
+                                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings;
+    // Distinct window id keeps the editable step popup and the read-only list from
+    // sharing ImGui per-window state (scroll position, search input focus, ...).
+    if (show_checkbox)
+        imgui.begin(_L("Assembly tree"), tree_window_flags);
+    else
+        imgui.begin(std::string("##assembly_tree_list"), tree_window_flags);
 
     load_assembly_tree_icons(sc);
 
@@ -6503,10 +6557,37 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
             ImGui::PopStyleVar(2);
             ImGui::PopStyleColor(4);
         } else {
-            const std::string title = _u8L("List");
+            const std::string title      = show_checkbox ? _u8L("List") : _u8L("Assembly list");
             const ImVec2 title_size = ImGui::CalcTextSize(title.c_str());
             draw_list->AddText(ImVec2(header_min.x, header_min.y + (header_h - title_size.y) * 0.5f),
                 m_is_dark ? IM_COL32(0xE0, 0xE0, 0xE0, 255) : IM_COL32(38, 46, 48, 255), title.c_str());
+
+            {
+                const ImVec2 toggle_min(header_min.x + title_size.x + 8.0f * sc, header_min.y + (header_h - icon_sz) * 0.5f);
+                ImTextureID toggle_tex = m_assembly_tree_list_collapsed
+                    ? (m_is_dark && s_assembly_tree_icons.collapse_dark ? s_assembly_tree_icons.collapse_dark : s_assembly_tree_icons.collapse)
+                    : (m_is_dark && s_assembly_tree_icons.expand_dark ? s_assembly_tree_icons.expand_dark : s_assembly_tree_icons.expand);
+                if (toggle_tex)
+                    draw_list->AddImage(toggle_tex, toggle_min, ImVec2(toggle_min.x + icon_sz, toggle_min.y + icon_sz));
+                ImGui::SetCursorScreenPos(toggle_min);
+                ImGui::InvisibleButton("##assembly_tree_collapse_toggle", ImVec2(icon_sz, icon_sz));
+                if (ImGui::IsItemHovered()) {
+                    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f * sc, 6.0f * sc));
+                    m_imgui->tooltip(m_assembly_tree_list_collapsed ? _u8L("Expand all objects") : _u8L("Collapse all objects"),
+                                     20.0f * m_imgui->scaled(1.0f));
+                    ImGui::PopStyleVar();
+                }
+                if (ImGui::IsItemClicked(0)) {
+                    const bool make_open = m_assembly_tree_list_collapsed;
+                    if (tree)
+                        for (const auto &n : tree->nodes)
+                            // Toggle only ModelObject-level nodes (object node = has an object but no
+                            if (n.object_idx >= 0 && n.volume_idx < 0)
+                                s_assembly_tree_open_nodes[n.uid] = make_open;
+                    m_assembly_tree_list_collapsed = !m_assembly_tree_list_collapsed;
+                }
+            }
+
             const ImVec2 icon_min(header_min.x + header_w - icon_sz, header_min.y + (header_h - icon_sz) * 0.5f);
             ImTextureID list_search_tex = m_is_dark && s_assembly_tree_icons.search_dark ? s_assembly_tree_icons.search_dark : s_assembly_tree_icons.search;
             if (list_search_tex)
@@ -6535,7 +6616,7 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
         ? *m_active_assembly_tree_checked
         : dummy_checked;
     bool quick_select_changed = false;
-    if (m_show_assembly_tree_step_quick_select) {
+    if (show_checkbox && m_show_assembly_tree_step_quick_select) {
         ImGui::TextColored(ImVec4(172 / 255.0f, 172 / 255.0f, 172 / 255.0f, 1.0f),
             "%s", _u8L("Select all parts in a step").c_str());
         const float chip_h = 20.0f * sc;
@@ -6602,21 +6683,28 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
             chip_y + chip_h + 12.0f * sc));
     }
     AssemblyTreeRenderOptions render_options;
-    render_options.allow_object_check = true;
+    // The standalone list (show_checkbox == false) drops the checkboxes and the
+    // Confirm/Cancel footer and becomes read-only; it is purely a browsable tree.
+    render_options.allow_object_check = show_checkbox;
     render_options.allow_volume_check = false;
-    render_options.show_footer = true;
-    render_options.readonly = false;
+    render_options.show_footer = show_checkbox;
+    render_options.readonly = !show_checkbox;
     // Rows are individually selectable: clicking a row (away from its checkbox /
     // expander) highlights it and selects the backing object/volume on the canvas,
     // replacing the removed per-step "Select" popup. Hovering fires
     // hover_tree_item_logic().
     render_options.enable_row_select = true;
-    render_options.child_id = "##assembly_tree_nodes";
+    render_options.child_id = show_checkbox ? "##assembly_tree_nodes" : "##assembly_tree_nodes_list";
     AssemblyTreeRenderResult render_result = render_assembly_tree_selector(*tree, checked, render_options, sc);
     if (quick_select_changed)
         render_result.changed = true;
     if (render_result.cancel && m_active_assembly_tree_checked != nullptr) {
-        checked = m_assembly_tree_ui_original_checked;
+        if (checked != m_assembly_tree_ui_original_checked) {
+            checked = m_assembly_tree_ui_original_checked;
+            sync_checked_tree_to_canvas(*tree, checked);
+            apply_tree_checked_display_mode(*tree, checked);
+            do_commond_callback("dirty");
+        }
     }
     if (render_result.changed && !render_result.cancel) {
         // Mirror the select popup: highlight the just-checked objects on the canvas.
@@ -6627,20 +6715,28 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
         apply_tree_checked_display_mode(*tree, checked);
         do_commond_callback("dirty");
     }
-    if (render_result.confirm && active_step_node >= 0 && m_active_assembly_tree_checked != nullptr &&
-        checked != m_assembly_tree_ui_original_checked) {
-        apply_assembly_tree_checked_to_step(active_step_node, *tree, checked);
-        // The step's object/part membership just changed, so the current
-        // keyframe's part-number labels are stale. Rebuild + relayout them in
-        // place (no camera move) when labels are visible.
-        if (m_guide_show_part_numbers) {
-            if (auto *entries = get_current_kf_entries();
-                entries && m_keyframe_selected >= 0 && m_keyframe_selected < (int) entries->size())
-                toggle_part_number_labels_to_keyframe((*entries)[m_keyframe_selected],
-                                                      /*user_initiated*/ true, /*reframe_camera*/ false);
+    if (render_result.confirm) {
+        bool has_checked = std::any_of(checked.begin(), checked.end(),
+            [](const auto& p) { return p.second; });
+        bool step_changed = (active_step_node >= 0 && m_active_assembly_tree_checked != nullptr &&
+                             checked != m_assembly_tree_ui_original_checked);
+        if (step_changed) {
+            bool step_was_empty = is_empty_structure_step(active_step_node);
+            apply_assembly_tree_checked_to_step(active_step_node, *tree, checked);
+            if (step_was_empty) {
+                if (has_checked && m_guide_show_part_numbers)
+                    toggle_part_number_labels();
+            } else {
+                if (m_guide_show_part_numbers) {
+                    if (auto *entries = get_current_kf_entries();
+                        entries && m_keyframe_selected >= 0 && m_keyframe_selected < (int) entries->size())
+                        toggle_part_number_labels_to_keyframe((*entries)[m_keyframe_selected],
+                                                               /*user_initiated*/ true, /*reframe_camera*/ false);
+                }
+            }
+        } else {
+            do_commond_callback("dirty");
         }
-    } else if (render_result.confirm) {
-        do_commond_callback("dirty");
     }
     if (render_result.cancel || render_result.confirm) {
         exit_render_assembly_tree_ui();

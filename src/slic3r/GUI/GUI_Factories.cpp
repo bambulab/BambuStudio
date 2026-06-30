@@ -110,7 +110,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
                     }},
     { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
                     {"enable_overhang_speed", "",6}, {"overhang_1_4_speed", "",7}, {"overhang_2_4_speed", "",8}, {"overhang_3_4_speed", "",9}, {"overhang_4_4_speed", "",10}, {"overhang_totally_speed", "",11},
-                    {"bridge_speed", "",12}, {"gap_infill_speed", "",13}, {"enable_height_slowdown", "", 14}, {"slowdown_start_height", "", 15}, {"slowdown_start_speed", "", 16}, {"slowdown_start_acc", "", 17}, 
+                    {"bridge_speed", "",12}, {"gap_infill_speed", "",13}, {"enable_height_slowdown", "", 14}, {"slowdown_start_height", "", 15}, {"slowdown_start_speed", "", 16}, {"slowdown_start_acc", "", 17},
                     {"slowdown_end_height", "", 18}, {"slowdown_end_speed", "", 19}, {"slowdown_end_acc", "", 20}
                     }}
 };
@@ -939,21 +939,45 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
     if (filaments_cnt <= 1)
         return;
 
-    wxDataViewItemArray sels;
-    obj_list()->GetSelections(sels);
-    if (sels.IsEmpty())
-        return;
+    // In the assembly view the change-filament menu must be driven by the assembly canvas selection
+    // (independent m_assemble_model), not the prepare-side ObjectList.
+    const bool in_assemble = wxGetApp().plater()->get_current_canvas3D() != nullptr &&
+        wxGetApp().plater()->get_current_canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView;
+
+    size_t sel_count      = 0;
+    int    initial_extruder = -1; // negative value for multiple object/part selection
+
+    if (in_assemble) {
+        const Selection &asel = wxGetApp().plater()->get_assmeble_canvas3D()->get_selection();
+        if (asel.is_empty())
+            return;
+        const auto &vol_idxs = asel.get_volume_idxs();
+        sel_count = vol_idxs.size();
+        if (sel_count == 1) {
+            const GLVolume *v = asel.get_volume(*vol_idxs.begin());
+            Model *am = asel.get_model();
+            if (v != nullptr && am != nullptr && v->object_idx() >= 0 && v->object_idx() < (int) am->objects.size()) {
+                const ModelObject *mo = am->objects[v->object_idx()];
+                if (mo != nullptr && v->volume_idx() >= 0 && v->volume_idx() < (int) mo->volumes.size())
+                    initial_extruder = mo->volumes[v->volume_idx()]->extruder_id();
+            }
+        }
+    } else {
+        wxDataViewItemArray sels;
+        obj_list()->GetSelections(sels);
+        if (sels.IsEmpty())
+            return;
+        sel_count = sels.Count();
+        if (sel_count == 1) {
+            const ModelConfig& config = obj_list()->get_item_config(sels[0]);
+            // BBS: set default extruder to 1
+            initial_extruder = config.has("extruder") ? config.extruder() : 1;
+        }
+    }
 
     std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
     wxMenu* extruder_selection_menu = new wxMenu();
-    const wxString& name = sels.Count() == 1 ? names[0] : names[1];
-
-    int initial_extruder = -1; // negative value for multiple object/part selection
-    if (sels.Count() == 1) {
-        const ModelConfig& config = obj_list()->get_item_config(sels[0]);
-        // BBS: set default extruder to 1
-        initial_extruder = config.has("extruder") ? config.extruder() : 1;
-    }
+    const wxString& name = sel_count == 1 ? names[0] : names[1];
 
     for (int i = 0; i <= filaments_cnt; i++)
     {
@@ -975,13 +999,19 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
             item_name << " (" + _L("current") + ")";
         }
 
+        auto on_pick = [i, in_assemble](wxCommandEvent &) {
+            if (in_assemble)
+                wxGetApp().plater()->change_extruder_for_assemble_selection(i);
+            else
+                obj_list()->set_extruder_for_selected_items(i);
+        };
         if (icon_idx >= 0 && icon_idx < (int)icons.size()) {
             append_menu_item(
-                extruder_selection_menu, wxID_ANY, item_name, "", [i](wxCommandEvent &) { obj_list()->set_extruder_for_selected_items(i); }, *icons[icon_idx], menu,
+                extruder_selection_menu, wxID_ANY, item_name, "", on_pick, *icons[icon_idx], menu,
                 [is_active_extruder]() { return !is_active_extruder; }, m_parent);
         } else {
             append_menu_item(
-                extruder_selection_menu, wxID_ANY, item_name, "", [i](wxCommandEvent &) { obj_list()->set_extruder_for_selected_items(i); }, "", menu,
+                extruder_selection_menu, wxID_ANY, item_name, "", on_pick, "", menu,
                 [is_active_extruder]() { return !is_active_extruder; }, m_parent);
         }
     }
@@ -1792,6 +1822,10 @@ wxMenu* MenuFactory::multi_selection_menu()
         }
         append_menu_item_center(menu);
         append_menu_item_align_distribute(menu);
+        // Split every selected object into objects (iterates the selection, splitting each in turn).
+        append_menu_item(menu, wxID_ANY, _L("Split to objects"), _L("Split the selected objects into multiple objects"),
+            [](wxCommandEvent&) { obj_list()->split_objects(); }, "split_objects", menu,
+            []() { return obj_list()->can_split_objects(); }, m_parent);
         append_menu_item_fix_through_netfabb(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
@@ -1858,7 +1892,7 @@ wxMenu* MenuFactory::assemble_multi_selection_menu()
     append_menu_items_assembly_steps(menu);
     //append_menu_item_fix_through_netfabb(menu);
     //append_menu_item_simplify(menu);
-    append_menu_item_delete(menu);
+    //append_menu_item_delete(menu);
     menu->AppendSeparator();
     append_menu_item_change_extruder(menu);
     {
@@ -1891,7 +1925,7 @@ wxMenu* MenuFactory::assemble_object_menu()
     wxMenu* menu = new MenuWithSeparators();
     append_menu_items_assembly_steps(menu);
     // Delete
-    append_menu_item_delete(menu);
+    //append_menu_item_delete(menu);
     //// Object Repair
     //append_menu_item_fix_through_netfabb(menu);
     //// Object Simplify
@@ -1913,9 +1947,9 @@ wxMenu* MenuFactory::assemble_part_menu()
 {
     wxMenu* menu = new MenuWithSeparators();
 
-    append_menu_item_delete(menu);
+    //append_menu_item_delete(menu);
     //append_menu_item_simplify(menu);
-    menu->AppendSeparator();
+    //menu->AppendSeparator();
 
     append_menu_item_change_extruder(menu);
     //append_menu_item_per_object_settings(menu);

@@ -1036,6 +1036,9 @@ public:
     void                calculate_convex_hull();
     const TriangleMesh& get_convex_hull() const;
     const std::shared_ptr<const TriangleMesh>& get_convex_hull_shared_ptr() const { return m_convex_hull; }
+    // Share an already-computed convex hull (e.g. rebind the assembly-view volume to the prepare-side
+    // hull after a prepare-side mesh edit) without recomputing it.
+    void                set_convex_hull_shared_ptr(const std::shared_ptr<const TriangleMesh> &hull) { m_convex_hull = hull; }
     //BBS: add convex_hell_2d related logic
     const Polygon& get_convex_hull_2d(const Transform3d &trafo_instance) const;
     void invalidate_convex_hull_2d()
@@ -1113,6 +1116,15 @@ public:
         m_origin_mesh_or_vertice_render = is_mesh;
     }
     bool get_origin_mesh_or_vertice_render()const {return m_origin_mesh_or_vertice_render;}
+
+    // Stable cross-model logical-part identity (assembly view independent model). Persisted in 3mf.
+    const std::string &part_guid() const { return m_part_guid; }
+    void               set_part_guid(const std::string &guid) { m_part_guid = guid; }
+    // Lazily assign a stable part GUID if none has been set yet, then return it.
+    const std::string &ensure_part_guid(bool force = false) const;
+    // Assembly-side only: the prepare-side part_guid this volume references. Empty in the prepare model.
+    const std::string& assembly_src_guid() const { return m_assembly_src_guid; }
+    void               set_assembly_src_guid(const std::string &guid) { m_assembly_src_guid = guid; }
 protected:
 	friend class Print;
     friend class SLAPrint;
@@ -1146,6 +1158,12 @@ private:
     // BBS: per-volume assemble transformation, mirrors ModelInstance::m_assemble_transformation.
     mutable Geometry::Transformation    m_assemble_transformation;
     bool                                m_assemble_initialized{false};
+
+    // Stable, persisted cross-model logical-part identity (assembly view independent model).
+    // Lazily generated; equal on a prepare-side volume and its assembly-side counterpart.
+    mutable std::string                 m_part_guid;
+    // Assembly-side only: the prepare-side part_guid this volume references. Empty in the prepare model.
+    std::string                         m_assembly_src_guid;
 
     TextInfo m_text_info;
 
@@ -1219,6 +1237,7 @@ private:
         , seam_facets(other.seam_facets)
         , mmu_segmentation_facets(other.mmu_segmentation_facets)
         , m_text_info(other.m_text_info), emboss_shape(other.emboss_shape)
+        , m_part_guid(other.m_part_guid), m_assembly_src_guid(other.m_assembly_src_guid)
     {
 		assert(this->id().valid());
         assert(this->config.id().valid());
@@ -1295,7 +1314,7 @@ private:
         // BBS: add backup, check modify
         bool mesh_changed = false;
         auto tr = m_transformation;
-        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info, m_assemble_transformation, m_assemble_initialized);
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info, m_assemble_transformation, m_assemble_initialized, m_part_guid, m_assembly_src_guid);
         mesh_changed |= !(tr == m_transformation);
         auto t = supported_facets.timestamp();
         cereal::load_by_value(ar, supported_facets);
@@ -1324,7 +1343,7 @@ private:
 	}
 	template<class Archive> void save(Archive &ar) const {
 		bool has_convex_hull = m_convex_hull.get() != nullptr;
-        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info, m_assemble_transformation, m_assemble_initialized);
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info, m_assemble_transformation, m_assemble_initialized, m_part_guid, m_assembly_src_guid);
         cereal::save_by_value(ar, supported_facets);
         cereal::save_by_value(ar, fuzzy_skin_facets);
         cereal::save_by_value(ar, seam_facets);
@@ -1614,6 +1633,8 @@ public:
 
     std::string                         step_import_path;
     std::vector<StepImportTreeNode>     step_import_tree_nodes;
+    // Debug-only marker: true for the independent assembly-view model (a_model), false for the prepare model.
+    bool                                is_assembly_model = false;
     // Wipe tower object.
     ModelWipeTower	wipe_tower;
     // BBS static members store extruder parameters and speed map of all models
@@ -1667,6 +1688,13 @@ public:
     const std::string& get_assembly_steps_json_str() const { return m_assembly_steps_json_str; }
     std::string&       get_assembly_steps_json_str()       { return m_assembly_steps_json_str; }
     void               set_assembly_steps_json_str(std::string json_str) { m_assembly_steps_json_str = std::move(json_str); }
+
+    // Independent assembly-model object graph, serialized as JSON (no geometry: each volume references a
+    // prepare-side part by assembly_src_guid and the mesh is rebound on load). Persisted to 3mf as a
+    // standalone section so assembly-view structural state (deletes / appends / poses) survives reload.
+    const std::string& get_assembly_model_json_str() const { return m_assembly_model_json_str; }
+    std::string&       get_assembly_model_json_str()       { return m_assembly_model_json_str; }
+    void               set_assembly_model_json_str(std::string json_str) { m_assembly_model_json_str = std::move(json_str); }
 
     // Extensions for color print
     // CustomGCode::Info custom_gcode_per_print_z;
@@ -1843,6 +1871,7 @@ private:
     std::string           m_assembly_tree_json_str;
     AssemblyStepsTreeData m_assembly_steps_tree_data;
     std::string           m_assembly_steps_json_str;
+    std::string           m_assembly_model_json_str;
 };
 
 #undef OBJECTBASE_DERIVED_COPY_MOVE_CLONE

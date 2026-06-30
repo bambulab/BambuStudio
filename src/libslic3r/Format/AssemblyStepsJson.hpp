@@ -87,6 +87,7 @@ struct PartNumberLabel
     int         object_idx{-1};
     int         volume_idx{-1};
     std::string part_name;
+    std::string part_guid;
     Vec2d       arrow_start_offset{Vec2d::Zero()};
     Vec2d       arrow_end_offset{Vec2d(60, -50)};
 
@@ -278,8 +279,7 @@ struct AssemblyStepsTreeData
 
     // Runtime-only (NOT serialized): model object/volume id snapshot captured at the
     bool                                has_loaded_recorded_baseline{false};
-    std::set<size_t>                    loaded_recorded_objects;
-    std::set<std::pair<size_t, size_t>> loaded_recorded_volumes;
+    std::set<std::string> loaded_recorded_volumes;
 
     bool empty() const { return nodes.empty(); }
     void clear()
@@ -289,7 +289,6 @@ struct AssemblyStepsTreeData
         camera_ref_viewport_w = 0;
         camera_ref_viewport_h = 0;
         has_loaded_recorded_baseline = false;
-        loaded_recorded_objects.clear();
         loaded_recorded_volumes.clear();
     }
     std::string to_json_string() const;
@@ -339,5 +338,17 @@ private:
     int   m_camera_ref_viewport_w{0};
     int   m_camera_ref_viewport_h{0};
 };
+
+// ---- Independent assembly model (object graph) JSON ----
+// Serialize / restore the assembly-view independent Model. Only the object/volume/instance structure +
+// per-volume part_guid / assembly_src_guid + frozen transforms + assemble transforms are stored; geometry
+// is NOT duplicated. On restore each volume references a prepare-side part via assembly_src_guid and the
+// mesh shared_ptr is rebound from `mesh_source` (matched by part_guid). Backs the standalone
+// Metadata/assembly_model.json 3mf section.
+std::string assembly_model_to_json_string(const Model &assembly_model);
+bool        assembly_model_from_json_string(const std::string &json_str,
+                                            Model             &out_assembly_model,
+                                            const Model       &mesh_source,
+                                            std::string       *error = nullptr);
 } // namespace Slic3r
 #endif // slic3r_OverviewlyJson_hpp_

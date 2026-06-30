@@ -1623,6 +1623,12 @@ void GLCanvas3D::set_type(ECanvasType type)
     }
 }
 
+void GLCanvas3D::on_prepare_volume_renamed(int object_idx, int volume_idx, const std::string &new_name)
+{
+    if (m_assembly_steps)
+        m_assembly_steps->on_prepare_volume_renamed(object_idx, volume_idx, new_name);
+}
+
 void GLCanvas3D::post_event(wxEvent &&event)
 {
     event.SetEventObject(m_canvas);
@@ -2161,6 +2167,14 @@ void GLCanvas3D::set_process(BackgroundSlicingProcess *process)
 
 void GLCanvas3D::set_model(Model* model)
 {
+#if !BBL_RELEASE_TO_PUBLIC
+    // [DIAG] temporary: trace assembly-canvas rebinding (only the assembly canvas owns m_assembly_steps).
+    if (m_assembly_steps)
+        BOOST_LOG_TRIVIAL(warning) << "[assemble-set_model] canvas=" << (void *) this
+                                   << " new_model=" << (void *) model
+                                   << " objects=" << (model ? model->objects.size() : 0)
+                                   << " is_assembly_model=" << (model ? model->is_assembly_model : false);
+#endif
     m_model = model;
     m_selection.set_model(m_model);
 }
@@ -2263,6 +2277,12 @@ void GLCanvas3D::append_step_import_to_assembly_tree(const std::vector<StepImpor
                             << ", input_nodes=" << step_nodes.size()
                             << ", appended_tree_nodes=" << appended_count
                             << ", uid_offset=" << uid_offset;
+}
+
+void GLCanvas3D::notify_step_import()
+{
+    if (m_assembly_steps)
+        m_assembly_steps->clear_last_recorded_volumes();
 }
 
 const Selection& GLCanvas3D::get_selection() const
@@ -4528,8 +4548,13 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 // Map single zero key to filament #10 immediately
                 if (m_timer_set_color.IsRunning())
                     m_timer_set_color.Stop();
-                if (obj_list != nullptr && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation)
-                    obj_list->set_extruder_for_selected_items(10);
+                if (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation) {
+                    // Assembly view owns an independent model; route the shortcut there.
+                    if (m_canvas_type == ECanvasType::CanvasAssembleView)
+                        wxGetApp().plater()->change_extruder_for_assemble_selection(10);
+                    else if (obj_list != nullptr)
+                        obj_list->set_extruder_for_selected_items(10);
+                }
                 m_color_input_value = -1;
                 break;
             }
@@ -5167,7 +5192,13 @@ void GLCanvas3D::on_render_fallback_timer(wxTimerEvent& evt)
 void GLCanvas3D::on_set_color_timer(wxTimerEvent& evt)
 {
     auto obj_list = wxGetApp().obj_list();
-    if (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation && m_color_input_value > 0) { obj_list->set_extruder_for_selected_items(m_color_input_value); }
+    if (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation && m_color_input_value > 0) {
+        // Assembly view owns an independent model; route the shortcut to it instead of the prepare-side list.
+        if (m_canvas_type == ECanvasType::CanvasAssembleView)
+            wxGetApp().plater()->change_extruder_for_assemble_selection(m_color_input_value);
+        else
+            obj_list->set_extruder_for_selected_items(m_color_input_value);
+    }
     m_color_input_value = -1;
     m_timer_set_color.Stop();
 }
@@ -6408,6 +6439,9 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
             }
             else if (selection_mode == Selection::Volume) {
                 auto cur_mv = model_object->volumes[volume_idx];
+                // NOTE: the assembly view has no scale tool, so do_scale only runs on the prepare view.
+                // Keeping the prepare-side behavior; the assembly volume's size is kept in sync separately
+                // (prepare -> assemble scale sync), so a prepare-side scale still shows up in the assembly view.
                 if (cur_mv->get_scaling_factor() != v->get_volume_scaling_factor()) {
                     model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
                     cur_mv->set_transformation(v->get_volume_transformation());
@@ -9901,13 +9935,16 @@ void GLCanvas3D::_try_update_selected_keyframe()
 
 void GLCanvas3D::_render_assembly_steps_view()
 {
+    if (m_canvas_type != ECanvasType::CanvasAssembleView) {
+        if (auto *nm = wxGetApp().plater()->get_notification_manager())
+            nm->close_notification_of_type(NotificationType::SelectObjectInWhichStep);
+        return;
+    }
     if (!m_model || m_model->objects.empty() || !m_assembly_steps)//limit CanvasAssembleView
         return;
     m_assembly_steps->set_in_assembly_view(m_canvas_type == ECanvasType::CanvasAssembleView);
     m_assembly_steps->set_input(wxGetApp().imgui(), m_model, &get_active_camera(), &m_selection, &m_volumes, m_gizmos.get_current_type() != GLGizmosManager::Undefined);
 
-    if (m_canvas_type != ECanvasType::CanvasAssembleView)
-        return;
     m_assembly_steps->set_render_input(m_is_dark, Slic3r::resources_dir() + "/images/", get_scale());
     const Size cnv_sz = get_canvas_size();
     // Feed the top gizmo/main toolbar's on-screen rect (logical px) so the guide
@@ -9951,6 +9988,8 @@ void GLCanvas3D::_render_return_toolbar()
         return;
     if (is_assembly_play_or_export_mode())
         return;
+    if (m_assembly_steps)
+        m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::ReturnToolbar, ImVec2(0, 0), ImVec2(0, 0));
 
     float font_size = ImGui::GetFontSize();
     ImVec2 real_size = ImVec2(font_size * 4, font_size * 1.7);
@@ -10005,6 +10044,12 @@ void GLCanvas3D::_render_return_toolbar()
 
     imgui.begin(_L("Assembly Return"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground
         | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);
+
+    if (m_assembly_steps && m_canvas_type == ECanvasType::CanvasAssembleView) {
+        const ImVec2 wp = ImGui::GetWindowPos();
+        const ImVec2 ws = ImGui::GetWindowSize();
+        m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::ReturnToolbar, wp, ImVec2(wp.x + ws.x, wp.y + ws.y));
+    }
 
     float button_width = 20;
     float button_height = 20;

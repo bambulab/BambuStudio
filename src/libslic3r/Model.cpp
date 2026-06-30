@@ -28,6 +28,9 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/iostream.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include "SVG.hpp"
 #include <Eigen/Dense>
@@ -113,6 +116,7 @@ Model& Model::assign_copy(const Model &rhs)
     this->m_assembly_tree_json_str  = rhs.m_assembly_tree_json_str;
     this->m_assembly_steps_tree_data = rhs.m_assembly_steps_tree_data;
     this->m_assembly_steps_json_str = rhs.m_assembly_steps_json_str;
+    this->m_assembly_model_json_str = rhs.m_assembly_model_json_str;
     this->texture_mesh = rhs.texture_mesh;
 
     return *this;
@@ -169,6 +173,7 @@ Model& Model::assign_copy(Model &&rhs)
     this->m_assembly_tree_json_str   = std::move(rhs.m_assembly_tree_json_str);
     this->m_assembly_steps_tree_data = std::move(rhs.m_assembly_steps_tree_data);
     this->m_assembly_steps_json_str  = std::move(rhs.m_assembly_steps_json_str);
+    this->m_assembly_model_json_str  = std::move(rhs.m_assembly_model_json_str);
 
     return *this;
 }
@@ -1198,7 +1203,9 @@ void Model::load_from(Model& model)
     m_assembly_tree_data       = model.m_assembly_tree_data;
     m_assembly_tree_json_str  = model.m_assembly_tree_json_str;
     m_assembly_steps_tree_data = model.m_assembly_steps_tree_data;
-    m_assembly_steps_json_str = model.m_assembly_steps_json_str;    model.design_info.reset();
+    m_assembly_steps_json_str = model.m_assembly_steps_json_str;
+    m_assembly_model_json_str = model.m_assembly_model_json_str;
+    model.design_info.reset();
     model.model_info.reset();
     model.profile_info.reset();
     model.calib_pa_pattern.reset();
@@ -2139,6 +2146,14 @@ void ModelObject::clone_for_cut(ModelObject **obj)
     (*obj)->input_file.clear();
 }
 
+const std::string &ModelVolume::ensure_part_guid(bool force) const
+{
+    // Lazily assign a stable identity used for cross-model (prepare <-> assembly) part mapping.
+    if (m_part_guid.empty() || force)
+        m_part_guid = boost::uuids::to_string(boost::uuids::random_generator()());
+    return m_part_guid;
+}
+
 bool ModelVolume::is_the_only_one_part() const
 {
     if (m_type != ModelVolumeType::MODEL_PART)
@@ -2722,6 +2737,13 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
                 if (new_vol->mmu_segmentation_facets.timestamp() == volume->mmu_segmentation_facets.timestamp())
                     new_vol->mmu_segmentation_facets.reset(); // BBS: let next assign take effect
                 new_vol->mmu_segmentation_facets.assign(volume->mmu_segmentation_facets);
+
+                // Splitting a multi-volume object is a 1:1 move of each volume into its own object: the
+                // geometry is unchanged, so the part keeps its identity. Carry over the assembly GUIDs
+                // (add_volume's new-mesh ctor does not copy them) so the assembly view, which froze the
+                // pre-split state, still resolves these parts by part_guid and is not disturbed.
+                new_vol->set_part_guid(volume->part_guid());
+                new_vol->set_assembly_src_guid(volume->assembly_src_guid());
             }
 
             // BBS: clear volume's config, as we already set them into object
@@ -3673,6 +3695,7 @@ size_t ModelVolume::split(unsigned int max_extruders, float scale_det)
             this->invalidate_convex_hull_2d();
             // Assign a new unique ID, so that a new GLVolume will be generated.
             this->set_new_unique_id();
+            this->ensure_part_guid(true);
             // reset the source to disable reload from disk
             this->source = ModelVolume::Source();
 

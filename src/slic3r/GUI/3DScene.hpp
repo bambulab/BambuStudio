@@ -787,6 +787,9 @@ public:
 
     void release_volume (GLVolume* volume);
 
+    // Find a scene volume by its (object, volume, instance) composite id; nullptr if none matches.
+    const GLVolume* get_volume_by_composite_id(int obj_id, int vol_id, int instance_id) const;
+
     bool empty() const { return volumes.empty(); }
     void set_range(double low, double high) { for (GLVolume *vol : this->volumes) vol->set_range(low, high); }
 

@@ -6725,8 +6725,11 @@ public:
     void align_selection_z_min();
     void align_selection_z_center();
     void mirror(Axis axis);
-    void split_object();
-    void split_volume();
+    void split_object(ModelObject *mo = nullptr, bool ignore_warning = false);
+    void split_volume(bool ignore_warning = false);
+    // While set, prepare-side object removals are treated as internal restructuring (split / merge) and
+    // are NOT propagated as deletes to the independent assembly model (m_assemble_model).
+    void set_suppress_assemble_delete_propagation(bool suppress) { m_suppress_assemble_delete_propagation = suppress; }
     void scale_selection_to_fit_print_volume();
 
     // Return the active Undo/Redo stack. It may be either the main stack or the Gimzo stack.
@@ -6734,6 +6737,49 @@ public:
     Slic3r::UndoRedo::Stack& undo_redo_stack_main() { return m_undo_redo_stack_main; }
     void enter_gizmos_stack();
     bool leave_gizmos_stack();
+    // Derive the persistent independent assembly model from the prepare model (shared meshes, GUIDs copied).
+    void derive_assemble_model();
+    // On entering the assembly view: append prepare-side objects not yet referenced (by part_guid) in a_model.
+    void sync_assemble_model_on_enter(const std::vector<size_t>& loaded_idxs = {});
+    // Mirror the render-relevant per-part state (filament / MMU color painting) between the prepare model
+    bool sync_assemble_render_state(bool prepare_to_assemble);
+    // Prepare-side delete event: remove a_model objects that reference the about-to-be-deleted object's parts.
+    void propagate_delete_to_assemble(const ModelObject &prepare_object);
+    // Prepare-side per-volume delete event: remove the single assembly volume referencing the deleted
+    // part (by part_guid), leaving the rest of its assembly object intact. Must be called BEFORE the
+    // prepare volume is destroyed. Event-driven on purpose: a volume-split also makes the original GUID
+    // vanish, so a diff on assembly-view entry could not tell delete from split; suppression during
+    // split/combine (m_suppress_assemble_delete_propagation) keeps those structural ops from propagating.
+    void propagate_volume_delete_to_assemble(const ModelVolume &prepare_volume);
+    // Propagate a prepare-side ModelVolume rename to the matching assembly model volume
+    // (matched by part_guid / assembly_src_guid). Called from ObjectList so the assembly
+    // view sees the current name immediately.
+    void sync_assemble_volume_name(const std::string &part_guid, const std::string &new_name);
+    // Change filament for the assembly-canvas selection, operating on m_assemble_model directly.
+    void change_extruder_for_assemble_selection(int extruder);
+    // On assembly-view entry: re-share prepare-side meshes whose shared_ptr changed (e.g. Simplify),
+    // matched by assembly_src_guid. Split / combined parts (GUID gone) keep their frozen mesh.
+    void sync_assemble_mesh_from_prepare();
+    // On assembly-view entry: reproduce each prepare part's world size (instance_scale ⊙ volume_scale,
+    // covering both object-level and part-level prepare scaling) on its assembly counterpart (matched by
+    // assembly_src_guid) by baking it into the assembly volume's assemble scale and dividing out the
+    // assembly instance scale. Only the scale is touched; the assembly offset / rotation stay independent.
+    // The assembly view has no scale tool, so size is always prepare-authoritative (one-way sync).
+    void sync_assemble_scale_from_prepare();
+    // Safety net run at the end of sync_assemble_model_on_enter: drop assembly volumes whose
+    // assembly_src_guid no longer matches any prepare part (a prepare-side delete that did not propagate,
+    // or an inconsistent restored state), then drop any assembly object left with no volumes. Pruned
+    // volumes / objects are logged by name. Prepare-side split/combine keep GUIDs, so they are never pruned.
+    void prune_orphan_assemble_parts();
+    // Mirror the assembly steps / tree authored on m_assemble_model back onto the prepare model so the
+    // existing 3mf export path (which serializes from the prepare model) persists assembly-view edits.
+    void sync_assemble_steps_to_main_model();
+    // Assembly view independent Undo/Redo stack (mirrors the gizmos-stack switching pattern).
+    void enter_assemble_stack();
+    bool leave_assemble_stack();
+    // Slim Undo/Redo path used only while the assembly stack is active: restores m_assemble_model and
+    // reloads the assembly scene, deliberately skipping the prepare-model project machinery in undo_redo_to().
+    void assemble_undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot);
 
     void take_snapshot(const std::string& snapshot_name, UndoRedo::SnapshotType snapshot_type = UndoRedo::SnapshotType::Action);
     /*void take_snapshot(const wxString& snapshot_name, UndoRedo::SnapshotType snapshot_type = UndoRedo::SnapshotType::Action)
@@ -6993,6 +7039,7 @@ public:
     void on_action_send_to_multi_app(SimpleEvent&);
     int update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
 private:
+    friend class Plater;
     bool layers_height_allowed() const;
 
     void update_fff_scene();
@@ -7011,7 +7058,25 @@ private:
 
     Slic3r::UndoRedo::Stack 	m_undo_redo_stack_main;
     Slic3r::UndoRedo::Stack 	m_undo_redo_stack_gizmos;
+    // Assembly view owns an independent Undo/Redo stack, fully decoupled from the prepare view / sidebar.
+    // It serializes m_assemble_model only and never touches the slicing / sidebar / project machinery.
+    Slic3r::UndoRedo::Stack 	m_undo_redo_stack_assemble;
     Slic3r::UndoRedo::Stack    *m_undo_redo_stack_active = &m_undo_redo_stack_main;
+    // Independent assembly model. Shallow clone of `model` (mesh data shared via shared_ptr, ObjectIDs preserved).
+    // Derived once per project and kept persistent across view switches, so structural edits in either view
+    // do not affect the other. Invalidated on project reset / load.
+    Slic3r::Model               m_assemble_model;
+    bool                        m_assemble_model_valid = false;
+    // The assembly undo/redo stack persists across view switches (so assembly-view edits stay undoable
+    // after leaving and re-entering). It must be reset to a fresh baseline whenever a prepare-side
+    // structural change (added / deleted volume or object, or a re-shared mesh) mutates m_assemble_model
+    // outside the assembly stack: the retained snapshots would otherwise no longer match the model and an
+    // undo could resurrect / drop the just-synced parts. This flag requests that reset on next entry.
+    bool                        m_assemble_undo_baseline_dirty = true;
+    // Set while a prepare-side structural restructure (split / combine) destroys and re-creates objects.
+    // Such internal removes are NOT user deletes and must not be propagated to the assembly model:
+    // the split/combine products keep the source part_guid, so the assembly view stays untouched.
+    bool                        m_suppress_assemble_delete_propagation = false;
     int                         m_prevent_snapshots = 0;     /* Used for avoid of excess "snapshoting".
                                                               * Like for "delete selected" or "set numbers of copies"
                                                               * we should call tack_snapshot just ones
@@ -7806,8 +7871,11 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
     }
     else if (name == "Assemble") {
         BOOST_LOG_TRIVIAL(info) << "select assemble view";
-        assemble_view->get_canvas3d()->active_view();
+        // set_current_panel binds the assembly canvas to m_assemble_model (derive / sync on real enter).
+        // active_view() must run AFTER that so deal_once_when_enter_assembly_view() rebuilds the assembly
+        // tree on m_assemble_model, not on the still-bound prepare model (would leave a_model tree empty).
         set_current_panel(assemble_view, no_slice);
+        assemble_view->get_canvas3d()->active_view();
     }
 
     //BBS update selection
@@ -9127,6 +9195,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             const bool steps_json_brought_in = !model.get_assembly_steps_json_str().empty();
             if (steps_json_brought_in)
                 q->model().set_assembly_steps_json_str(model.get_assembly_steps_json_str());
+            // Independent assembly object graph (rebuilt lazily on first assembly-view entry, meshes
+            // rebound from the prepare model by part_guid). Bridge it like the tree / steps json above.
+            if (!model.get_assembly_model_json_str().empty())
+                q->model().set_assembly_model_json_str(model.get_assembly_model_json_str());
 
             TextureImportResult texture_import_result;
             int texture_progress_start = progress_percent;
@@ -9226,21 +9298,41 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         ss << std::fixed << std::setprecision(2) << assembly_part_number_label_font_size;
                         wxGetApp().app_config->set("assembly_part_number_label_font_size", ss.str());
                     }
+                    if (!m_assemble_model_valid)
+                        derive_assemble_model();//reload existed 3mf
                 }
                 const bool step_position_compensated = apply_step_object_position_compensations(loaded_idxs, step_object_position_compensations);
+                bool       need_show_sole_text_notice = false;
                 if (type_step && !model.step_import_tree_nodes.empty() && !loaded_idxs.empty()) {
                     BOOST_LOG_TRIVIAL(info) << "STEP import: forward tree to assemble canvas, node_count=" << model.step_import_tree_nodes.size()
                                             << ", loaded_object_count=" << loaded_idxs.size();
                     if (GLCanvas3D *assemble_canvas = q->get_assmeble_canvas3D()) {
                         assemble_canvas->append_step_import_to_assembly_tree(model.step_import_tree_nodes, loaded_idxs, model.step_import_path);
                     }
+                    // A STEP import establishes an assembly structure up front. Capture it into the
+                    // independent assembly model BEFORE the prepare-side merge below, so the assembly
+                    // model / tree keeps each STEP part as its own object (pre-merge structure).
+                    // First STEP: full derive. Later STEPs: the model already exists, so append the
+                    // just-loaded (still separate) objects instead of skipping -- otherwise a second STEP
+                    // import is never captured and its assembly objects are lost.
+                    if (!m_assemble_model_valid)
+                        derive_assemble_model();//step import first
+                    else
+                        sync_assemble_model_on_enter(loaded_idxs);
+                    if (GLCanvas3D *ac = q->get_assmeble_canvas3D())
+                         ac->notify_step_import();
+                    // Now merge the objects brought in by THIS STEP import into a single multipart object on
+                    auto is_split_compound = wxGetApp().app_config->get_bool("is_split_compound");
+                    need_show_sole_text_notice = is_split_compound;
+                    if (!is_split_compound && loaded_idxs.size() > 1) // Make it more convenient for users
+                        wxGetApp().obj_list()->merge_objects(loaded_idxs);
                 }
                 if (step_position_compensated) {
                     update();
                     for (const size_t idx : loaded_idxs) wxGetApp().obj_list()->update_info_items(idx);
                     object_list_changed();
                 }
-                if (step_subassembly_split && !loaded_idxs.empty()) {
+                if (step_subassembly_split && loaded_idxs.size() > 1 && need_show_sole_text_notice) {
                     q->get_notification_manager()
                         ->bbl_show_sole_text_notification(NotificationType::CustomNotification,
                                                           _u8L("The imported STEP file is split by sub-assembly, so some objects may not be placed on the build plate at first.\n"
@@ -10183,6 +10275,9 @@ void Plater::priv::remove(size_t obj_idx)
         view3D->enable_layers_editing(false);
 
     m_ui_jobs.cancel_all();
+    // Propagate the prepare-side delete to the independent assembly model before destroying the object.
+    if (obj_idx < model.objects.size())
+        propagate_delete_to_assemble(*model.objects[obj_idx]);
     model.delete_object(obj_idx);
     //BBS: notify partplate the instance removed
     partplate_list.notify_instance_removed(obj_idx, -1);
@@ -10218,6 +10313,8 @@ bool Plater::priv::delete_object_from_model(size_t obj_idx, bool refresh_immedia
     if (obj->is_cut())
         sidebar->obj_list()->invalidate_cut_info_for_object(obj_idx);
 
+    // Propagate the prepare-side delete to the independent assembly model before destroying the object.
+    propagate_delete_to_assemble(*obj);
     model.delete_object(obj_idx);
     //BBS: notify partplate the instance removed
     partplate_list.notify_instance_removed(obj_idx, -1);
@@ -10251,6 +10348,9 @@ void Plater::priv::delete_all_objects_from_model()
     //BBS: update partplate
     partplate_list.clear();
 
+    // Propagate the prepare-side delete-all to the independent assembly model before destroying objects.
+    for (ModelObject *po : model.objects)
+        propagate_delete_to_assemble(*po);
     model.clear_objects();
     update();
     // Delete object from Sidebar list. Do it after update, so that the GLScene selection is updated with the modified model.
@@ -10299,6 +10399,14 @@ void Plater::priv::reset(bool apply_presets_change)
     // Stop and reset the Print content.
     this->background_process.reset();
     model.clear_objects();
+    // Invalidate the independent assembly model so it is re-derived for the next project.
+    m_assemble_model.clear_objects();
+    m_assemble_model_valid = false;
+    // Drop any retained assembly undo history and force a fresh baseline for the next project.
+    m_undo_redo_stack_assemble.clear();
+    m_assemble_undo_baseline_dirty = true;
+    // Drop the persisted assembly-model graph so a fresh / next project does not rebuild a stale a_model.
+    model.set_assembly_model_json_str(std::string());
     assemble_view->get_canvas3d()->reset_explosion_ratio();
     update();
 
@@ -10449,9 +10557,20 @@ void Plater::find_new_position(const ModelInstancePtrs &instances)
         m.apply();
 }
 
-void Plater::priv::split_object()
+void Plater::priv::split_object(ModelObject *mo, bool ignore_warning)
 {
-    int obj_idx = get_selected_object_idx();
+    if (mo == nullptr) {
+        int obj_idx = get_selected_object_idx();
+        if (obj_idx == -1 || obj_idx >= model.objects.size())
+            return;
+        mo = model.objects[obj_idx];
+        if (mo == nullptr) return;
+    }
+    // Resolve the object's index by identity instead of the current selection, so this also works while
+    // iterating a multi-object selection (where get_selected_object_idx() returns -1).
+    int obj_idx = -1;
+    for (int i = 0; i < (int) model.objects.size(); ++i)
+        if (model.objects[i] == mo) { obj_idx = i; break; }
     if (obj_idx == -1)
         return;
 
@@ -10462,15 +10581,17 @@ void Plater::priv::split_object()
 
     wxBusyCursor wait;
     if (current_model_object->volumes.size() == 1) {
-        split_volume();//keep color
+        split_volume(ignore_warning); // keep color
         new_model = model;
         current_model_object = new_model.objects[obj_idx];
     }
     ModelObjectPtrs new_objects;
     current_model_object->split(&new_objects);
-    if (new_objects.size() == 1)
-        // #ysFIXME use notification
-        Slic3r::GUI::warning_catcher(q, _L("The selected object couldn't be split."));
+    if (new_objects.size() == 1) {
+        if (!ignore_warning) {
+            Slic3r::GUI::warning_catcher(q, _L("The selected object couldn't be split."));
+        }
+    }
     else
     {
         // BBS no solid parts removed
@@ -10482,7 +10603,14 @@ void Plater::priv::split_object()
 
         Plater::TakeSnapshot snapshot(q, "Split to Objects");
 
-        remove(obj_idx);
+        // split removes the original prepare object and re-adds the per-volume products. That internal
+        // remove must not propagate as a delete to the assembly model: the products keep the source
+        // part_guid (see ModelObject::split), so the assembly view keeps referencing the same parts.
+        {
+            m_suppress_assemble_delete_propagation = true;
+            remove(obj_idx);
+            m_suppress_assemble_delete_propagation = false;
+        }
 
         // load all model objects at once, otherwise the plate would be rearranged after each one
         // causing original positions not to be kept
@@ -10497,9 +10625,8 @@ void Plater::priv::split_object()
     }
 }
 
-void Plater::priv::split_volume()
-{
-    wxGetApp().obj_list()->split();
+void Plater::priv::split_volume(bool ignore_warning) {
+    wxGetApp().obj_list()->split(ignore_warning);
 }
 
 void Plater::priv::scale_selection_to_fit_print_volume()
@@ -11845,13 +11972,25 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             Selection::IndicesList select_idxs = assemble_canvas->get_selection().get_volume_idxs();
             Selection& view3d_selection = view3D->get_canvas3d()->get_selection();
             view3d_selection.clear();
+            // Independent Models: map the assembly selection back to the prepare view by stable part_guid
+            // (an assembly volume references its prepare part via assembly_src_guid), not by index.
+            Model* a_model = assemble_canvas->get_selection().get_model();
             for (unsigned int idx : select_idxs) {
-                auto v = assemble_canvas->get_selection().get_volume(idx);
-                auto real_idx = view3d_selection.query_real_volume_idx_from_other_view(v->object_idx(), v->instance_idx(), v->volume_idx());
-                if (real_idx >= 0) {
+                const GLVolume* v = assemble_canvas->get_selection().get_volume(idx);
+                if (v == nullptr || a_model == nullptr)
+                    continue;
+                const int real_idx = view3d_selection.query_real_volume_idx_from_other_model_volume(v, *a_model, true);
+                if (real_idx >= 0)
                     view3d_selection.add(real_idx, false);
-                }
             }
+            // Close the independent assembly undo/redo stack and rebind the assembly canvas back to the
+            // shared prepare model, so m_assemble_model can be safely rebuilt on the next entry.
+            // leave_assemble_stack() already wrote assembly-view filament / painting edits back onto the
+            // prepare model (via sync_assemble_steps_to_main_model), so refresh the prepare scene to show
+            // the updated colors.
+            leave_assemble_stack();
+            assemble_canvas->set_model(&model);
+            view3D->reload_scene(true);
         }
 
         view3D->get_canvas3d()->bind_event_handlers();
@@ -11880,8 +12019,13 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
         q->invalid_all_plate_thumbnails();
         if (old_panel == view3D)
             view3D->get_canvas3d()->unbind_event_handlers();
-        else if (old_panel == assemble_view)
+        else if (old_panel == assemble_view) {
             assemble_view->get_canvas3d()->unbind_event_handlers();
+            // Close the independent assembly undo/redo stack and rebind the assembly canvas back to the
+            // shared prepare model, so m_assemble_model can be safely rebuilt on the next entry.
+            leave_assemble_stack();
+            assemble_view->get_canvas3d()->set_model(&model);
+        }
 
         preview->get_canvas3d()->bind_event_handlers();
 
@@ -11935,20 +12079,46 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             preview->get_canvas3d()->unbind_event_handlers();
 
         assemble_view->get_canvas3d()->bind_event_handlers();
+        // Only (re)build the independent assembly model + stack when actually entering from another panel,
+        // never when re-selecting the assembly view while already in it (would re-open an already-open stack).
+        const bool real_enter_assemble = (old_panel != assemble_view);
+        if (real_enter_assemble) {
+            // Derive the persistent independent assembly model once per project (shared meshes), then keep
+            // it across view switches so assembly edits and structure survive and stay independent of the
+            // prepare-side structural edits (split / combine). Bind the assembly canvas + its undo/redo
+            // stack to m_assemble_model only.
+            if (!m_assemble_model_valid)
+                derive_assemble_model();//set_current_panel
+            else
+                // Existing assembly model: pull in prepare-side objects added since last entry.
+                sync_assemble_model_on_enter();
+            assemble_view->get_canvas3d()->set_model(&m_assemble_model);
+        }
         assemble_view->reload_scene(true);
         assemble_view->get_canvas3d()->set_ignore_left_up();
+        // Open the independent assembly undo/redo stack (takes the initial snapshot of m_assemble_model).
+        if (real_enter_assemble)
+            enter_assemble_stack();
         if (old_panel == view3D) {
             GLCanvas3D* view3D_canvas = view3D->get_canvas3d();
             Selection::IndicesList select_idxs = view3D_canvas->get_selection().get_volume_idxs();
             Selection& assemble_selection = assemble_view->get_canvas3d()->get_selection();
             assemble_selection.clear();
+            // Prepare and assembly views now own independent Models (prepare may be merged to one object,
+            // assembly keeps the original structure), so object/volume indices no longer line up. Map the
+            // selection across models by stable part_guid instead of by index.
+            std::vector<unsigned int> assembly_volume_idxs;
+            assembly_volume_idxs.reserve(select_idxs.size());
             for (unsigned int idx : select_idxs) {
-                auto v        = view3D_canvas->get_selection().get_volume(idx);
-                auto real_idx = assemble_selection.query_real_volume_idx_from_other_view(v->object_idx(), v->instance_idx(), v->volume_idx());
-                if (real_idx >= 0) {
-                    assemble_selection.add(real_idx, false);
-                }
+                const GLVolume* v = view3D_canvas->get_selection().get_volume(idx);
+                if (v == nullptr)
+                    continue;
+                const int real_idx = assemble_selection.query_real_volume_idx_from_other_model_volume(v, model, false);
+                if (real_idx >= 0)
+                    assembly_volume_idxs.push_back((unsigned int) real_idx);
             }
+            if (!assembly_volume_idxs.empty())
+                assemble_selection.add_volumes(Selection::Volume, assembly_volume_idxs, true);
         }
 
         // Force the pending sidebar-collapse / panel layout to settle synchronously
@@ -17058,6 +17228,618 @@ bool Plater::priv::leave_gizmos_stack()
     return changed;
 }
 
+void Plater::priv::derive_assemble_model()
+{
+    // A freshly derived / restored assembly model has no matching undo history: force a clean baseline.
+    m_assemble_undo_baseline_dirty = true;
+    // Ensure every prepare-side model part has a stable GUID before cloning, so each assembly-side
+    // counterpart can reference it through assembly_src_guid.
+    for (ModelObject *mo : model.objects)
+        for (ModelVolume *mv : mo->volumes)
+            if (mv->is_model_part())
+                mv->ensure_part_guid();
+
+    // Restore the persisted independent assembly model when the project carries one (3mf reload):
+    // rebuild the object graph from JSON and rebind meshes from the prepare model by part_guid, instead
+    // of deriving a fresh 1:1 clone. This keeps assembly-view structural state (deletes / appends / poses)
+    // across save/reload. Falls back to deriving when absent (old files) or on parse failure.
+    if (!model.get_assembly_model_json_str().empty()) {
+        std::string assembly_model_error;
+        if (assembly_model_from_json_string(model.get_assembly_model_json_str(), m_assemble_model, model, &assembly_model_error)) {
+            m_assemble_model.is_assembly_model = true; // debug marker for the assembly-view model
+            // Re-resolve the assembly tree / steps against the rebuilt assembly model so AssemblyStepsUtils
+            // (bound to m_assemble_model) sees a self-consistent typed tree (object_idx / id / name based).
+            m_assemble_model.set_assembly_tree_json_str(model.get_assembly_tree_json_str());
+            m_assemble_model.set_assembly_steps_json_str(model.get_assembly_steps_json_str());
+            if (!m_assemble_model.get_assembly_tree_json_str().empty()) {
+                std::string tree_error;
+                if (!AssemblyTreeData::from_json_string(m_assemble_model.get_assembly_tree_json_str(), m_assemble_model.get_assembly_tree_data(), &tree_error))
+                    BOOST_LOG_TRIVIAL(warning) << "derive_assemble_model: restore assembly tree failed: " << tree_error;
+            }
+            if (!m_assemble_model.get_assembly_steps_json_str().empty()) {
+                std::string steps_error;
+                float steps_font_size = 0.0f;
+                if (!AssemblyStepsTreeData::from_json_string(m_assemble_model.get_assembly_steps_json_str(), m_assemble_model.get_assembly_steps_tree_data(), m_assemble_model, &steps_error, &steps_font_size))
+                    BOOST_LOG_TRIVIAL(warning) << "derive_assemble_model: restore assembly steps failed: " << steps_error;
+            }
+            m_assemble_model_valid = true;
+#if !BBL_RELEASE_TO_PUBLIC
+            // [DIAG] temporary: verify the JSON-rebuilt assembly model actually carries objects/volumes/tree.
+            {
+                size_t vol_count = 0;
+                for (const ModelObject *mo : m_assemble_model.objects) vol_count += mo->volumes.size();
+                BOOST_LOG_TRIVIAL(debug) << "[assemble-derive] path=json objects=" << m_assemble_model.objects.size()
+                                           << " volumes=" << vol_count
+                                           << " tree_nodes=" << m_assemble_model.get_assembly_tree_data().nodes.size()
+                                           << " tree_json_len=" << m_assemble_model.get_assembly_tree_json_str().size()
+                                           << " src_parts=" << [&] { size_t c = 0; for (auto *mo : model.objects) for (auto *mv : mo->volumes) if (!mv->part_guid().empty()) ++c; return c; }();
+            }
+#endif
+            return;
+        }
+        BOOST_LOG_TRIVIAL(warning) << "derive_assemble_model: assembly_model.json parse failed, fall back to derive: " << assembly_model_error;
+    }
+
+    // Independent clone of the object graph; meshes stay shared via shared_ptr, GUIDs are copied.
+    m_assemble_model = model;
+    m_assemble_model.is_assembly_model = true; // debug marker for the assembly-view model
+    // Mark every assembly-side volume as referencing its prepare-side counterpart (same GUID).
+    for (ModelObject *mo : m_assemble_model.objects)
+        for (ModelVolume *mv : mo->volumes)
+            mv->set_assembly_src_guid(mv->part_guid());
+    m_assemble_model_valid = true;
+#if !BBL_RELEASE_TO_PUBLIC
+    // [DIAG] temporary: report the fallback-clone assembly model shape.
+    {
+        size_t vol_count = 0;
+        for (const ModelObject *mo : m_assemble_model.objects) vol_count += mo->volumes.size();
+        BOOST_LOG_TRIVIAL(debug) << "[assemble-derive] path=clone objects=" << m_assemble_model.objects.size()
+                                   << " volumes=" << vol_count
+                                   << " tree_nodes=" << m_assemble_model.get_assembly_tree_data().nodes.size()
+                                   << " model_json_present=" << (!model.get_assembly_model_json_str().empty());
+    }
+#endif
+}
+
+void Plater::priv::sync_assemble_model_on_enter(const std::vector<size_t>& loaded_idxs)
+{
+    if (!m_assemble_model_valid)
+        return;
+
+    // Ensure every prepare-side model part has a stable GUID so it can be matched / referenced.
+    for (ModelObject *po : model.objects)
+        for (ModelVolume *mv : po->volumes)
+            if (mv->is_model_part())
+                mv->ensure_part_guid();
+
+    // Pull the prepare side's latest render state (filament + MMU color painting) into the resident
+    // assembly model, so a prepare-side recolor / repaint made after the first derive shows up here.
+    sync_assemble_render_state(/*prepare_to_assemble*/ true);
+    // Re-share meshes edited on the prepare side (e.g. Simplify) into the resident assembly model.
+    sync_assemble_mesh_from_prepare();
+    // Reflect prepare-side scaling so the assembly part matches the prepare part's size.
+    sync_assemble_scale_from_prepare();
+
+    // Map each already-referenced prepare part_guid -> the assembly object that represents it. This lets
+    // us both (a) tell whether a prepare object is already synced and (b) find WHICH assembly object it
+    // maps to, so a volume newly added to an already-synced object can be appended into that same
+    // assembly object instead of being dropped (object-granular append only handled whole new objects).
+    std::unordered_map<std::string, int> assembly_obj_by_src_guid;
+    for (int ai = 0; ai < (int) m_assemble_model.objects.size(); ++ai) {
+        const ModelObject *ao = m_assemble_model.objects[ai];
+        for (const ModelVolume *mv : ao->volumes)
+            if (!mv->assembly_src_guid().empty())
+                assembly_obj_by_src_guid.emplace(mv->assembly_src_guid(), ai);
+    }
+
+    for (int pi = 0; pi < (int) model.objects.size(); ++pi) {
+        if (!loaded_idxs.empty()) {
+            auto it = std::find(loaded_idxs.begin(), loaded_idxs.end(), (size_t)pi);
+            if (it == loaded_idxs.end())
+                continue;
+        }
+        ModelObject *po = model.objects[pi];
+        int mapped_ai = -1;
+        for (ModelVolume *mv : po->volumes) {
+            if (!mv->is_model_part())
+                continue;
+            auto it = assembly_obj_by_src_guid.find(mv->part_guid());
+            if (it != assembly_obj_by_src_guid.end()) {
+                mapped_ai = it->second;
+                break;
+            }
+        }
+
+        if (mapped_ai < 0) {
+            // Whole object not represented yet: append a clone (shares mesh, copies GUIDs).
+            ModelObject *ao = m_assemble_model.add_object(*po);
+            for (ModelVolume *mv : ao->volumes)
+                mv->set_assembly_src_guid(mv->part_guid());
+            // New object added to m_assemble_model: retained assembly snapshots no longer match, reset baseline.
+            m_assemble_undo_baseline_dirty = true;
+            continue;
+        }
+
+        // Object already represented: append any model-part volume whose GUID is not referenced yet, so
+        // adding a volume to an existing (already-synced) object propagates into its assembly counterpart.
+        ModelObject *ao = m_assemble_model.objects[mapped_ai];
+        for (ModelVolume *mv : po->volumes) {
+            if (!mv->is_model_part())
+                continue;
+            if (assembly_obj_by_src_guid.count(mv->part_guid()))
+                continue; // already referenced by some assembly object
+            ModelVolume *av = ao->add_volume(*mv); // shares mesh, copies config / type / GUID
+            av->set_assembly_src_guid(mv->part_guid());
+            // Keep the map current so a duplicate GUID within this pass is not appended twice.
+            assembly_obj_by_src_guid.emplace(mv->part_guid(), mapped_ai);
+            // New volume added to an existing assembly object: reset the assembly undo baseline.
+            m_assemble_undo_baseline_dirty = true;
+        }
+    }
+
+    // Reconcile the other direction: drop assembly parts whose prepare counterpart is gone.
+    prune_orphan_assemble_parts();
+}
+
+void Plater::priv::prune_orphan_assemble_parts()
+{
+    if (!m_assemble_model_valid)
+        return;
+
+    // Prepare-side part GUIDs still present. An assembly volume whose assembly_src_guid is NOT in here has
+    // lost its prepare counterpart and must be pruned so the two models stay in sync. NOTE: prepare-side
+    // split/combine keep the original part GUIDs, so those parts stay matched and are never pruned (the
+    // "assembly structure is isolated from prepare-side split/merge" contract still holds).
+    std::set<std::string> prepare_guids;
+    for (const ModelObject *po : model.objects)
+        for (const ModelVolume *mv : po->volumes)
+            if (mv->is_model_part() && !mv->part_guid().empty())
+                prepare_guids.insert(mv->part_guid());
+
+    // Iterate back-to-front so index-based deletes do not invalidate the not-yet-visited indices.
+    for (int oi = (int) m_assemble_model.objects.size() - 1; oi >= 0; --oi) {
+        ModelObject *ao = m_assemble_model.objects[oi];
+        for (int vi = (int) ao->volumes.size() - 1; vi >= 0; --vi) {
+            ModelVolume *av = ao->volumes[vi];
+            const std::string &src = av->assembly_src_guid();
+            // Empty src_guid: never linked to a prepare part (e.g. a modifier), so leave it alone.
+            if (src.empty() || prepare_guids.count(src) > 0)
+                continue;
+            BOOST_LOG_TRIVIAL(info) << "[assemble-sync] prune orphan assembly volume '" << av->name
+                                    << "' in object '" << ao->name << "' (src_guid=" << src
+                                    << "): no matching prepare part";
+            ao->delete_volume((size_t) vi);
+            m_assemble_undo_baseline_dirty = true;
+        }
+        if (ao->volumes.empty()) {
+            BOOST_LOG_TRIVIAL(info) << "[assemble-sync] prune empty assembly object '" << ao->name
+                                    << "': no volumes left after orphan pruning";
+            m_assemble_model.delete_object((size_t) oi);
+            m_assemble_undo_baseline_dirty = true;
+        }
+    }
+}
+
+bool Plater::priv::sync_assemble_render_state(bool prepare_to_assemble)
+{
+    if (!m_assemble_model_valid)
+        return false;
+
+    // Index prepare-side model parts by stable part_guid. Both directions key the assembly volume by
+    // assembly_src_guid == prepare part_guid, so a split / combined part (whose guid is gone) is simply
+    // skipped, keeping its frozen render state (matches the "structure is isolated" contract).
+    std::unordered_map<std::string, ModelVolume *> prepare_by_guid;
+    for (ModelObject *po : model.objects)
+        for (ModelVolume *mv : po->volumes)
+            if (mv->is_model_part() && !mv->part_guid().empty())
+                prepare_by_guid.emplace(mv->part_guid(), mv);
+
+    bool changed = false;
+    for (ModelObject *ao : m_assemble_model.objects) {
+        for (ModelVolume *av : ao->volumes) {
+            const std::string &src = av->assembly_src_guid();
+            if (src.empty())
+                continue;
+            auto it = prepare_by_guid.find(src);
+            if (it == prepare_by_guid.end())
+                continue;
+            ModelVolume *pv   = it->second;
+            ModelVolume *dst  = prepare_to_assemble ? av : pv;
+            ModelVolume *from = prepare_to_assemble ? pv : av;
+
+            // Filament: compare resolved extruder ids so an object-level assignment on the prepare side is
+            // honored, and write the value into the destination volume config only when it actually differs
+            // (leaves an untouched prepare-side object-level assignment intact).
+            const int from_extruder = from->extruder_id();
+            if (dst->extruder_id() != from_extruder) {
+                dst->config.set_key_value("extruder", new ConfigOptionInt(from_extruder));
+                changed = true;
+            }
+
+            // MMU color painting. get_data() is a cheap value compare that only fires on a view switch;
+            // FacetsAnnotation::assign() is timestamp-guarded so it copies data + the source timestamp,
+            // keeping both sides' timestamps aligned and avoiding ping-pong on repeated syncs.
+            if (from->mmu_segmentation_facets.get_data() != dst->mmu_segmentation_facets.get_data()) {
+                dst->mmu_segmentation_facets.assign(from->mmu_segmentation_facets);
+                changed = true;
+            }
+        }
+    }
+    return changed;
+}
+
+void Plater::priv::propagate_delete_to_assemble(const ModelObject &prepare_object)
+{
+    if (!m_assemble_model_valid)
+        return;
+    // split / combine re-create prepare objects via remove()+add; that internal remove is not a user
+    // delete and must not tear down the assembly object that froze the pre-split state.
+    if (m_suppress_assemble_delete_propagation)
+        return;
+
+    std::set<std::string> deleted_guids;
+    for (const ModelVolume *mv : prepare_object.volumes)
+        if (mv->is_model_part() && !mv->part_guid().empty())
+            deleted_guids.insert(mv->part_guid());
+    if (deleted_guids.empty())
+        return;
+
+    // Remove every assembly object that references one of the deleted prepare parts. Only genuine user
+    // deletes reach here; split/combine suppress propagation above so the assembly view is unaffected.
+    for (int i = (int) m_assemble_model.objects.size() - 1; i >= 0; --i) {
+        const ModelObject *ao = m_assemble_model.objects[i];
+        bool references_deleted = false;
+        for (const ModelVolume *mv : ao->volumes) {
+            if (!mv->assembly_src_guid().empty() && deleted_guids.count(mv->assembly_src_guid())) {
+                references_deleted = true;
+                break;
+            }
+        }
+        if (references_deleted) {
+            m_assemble_model.delete_object((size_t) i);
+            // m_assemble_model shrank outside the assembly stack: reset its undo baseline on next entry.
+            m_assemble_undo_baseline_dirty = true;
+        }
+    }
+}
+
+void Plater::priv::propagate_volume_delete_to_assemble(const ModelVolume &prepare_volume)
+{
+    if (!m_assemble_model_valid)
+        return;
+    // split / combine tear down and rebuild volumes internally; that is not a user delete and must not
+    // touch the assembly model (which froze the pre-split structure).
+    if (m_suppress_assemble_delete_propagation)
+        return;
+    if (!prepare_volume.is_model_part())
+        return;
+    const std::string guid = prepare_volume.part_guid();
+    if (guid.empty())
+        return;
+
+    // Remove the assembly volume(s) that reference this exact prepare part. Unlike the object-level
+    // propagation, keep the assembly object itself; only drop the matching volume. If that empties the
+    // object, drop the now-empty object as well.
+    for (int oi = (int) m_assemble_model.objects.size() - 1; oi >= 0; --oi) {
+        ModelObject *ao = m_assemble_model.objects[oi];
+        bool removed_any = false;
+        for (int vi = (int) ao->volumes.size() - 1; vi >= 0; --vi) {
+            const ModelVolume *mv = ao->volumes[vi];
+            if (mv != nullptr && mv->assembly_src_guid() == guid) {
+                ao->delete_volume((size_t) vi);
+                removed_any = true;
+            }
+        }
+        if (removed_any) {
+            if (ao->volumes.empty())
+                m_assemble_model.delete_object((size_t) oi);
+            // m_assemble_model changed outside the assembly stack: reset its undo baseline on next entry.
+            m_assemble_undo_baseline_dirty = true;
+        }
+    }
+}
+
+void Plater::priv::sync_assemble_volume_name(const std::string &part_guid, const std::string &new_name)
+{
+    if (!m_assemble_model_valid || part_guid.empty())
+        return;
+    int asm_oi = -1, asm_vi = -1;
+    for (int oi = 0; oi < (int) m_assemble_model.objects.size(); ++oi) {
+        ModelObject *ao = m_assemble_model.objects[oi];
+        for (int vi = 0; vi < (int) ao->volumes.size(); ++vi) {
+            ModelVolume *av = ao->volumes[vi];
+            if (av->assembly_src_guid() == part_guid) {
+                av->name = new_name;
+                asm_oi = oi;
+                asm_vi = vi;
+                break;
+            }
+        }
+        if (asm_oi >= 0) break;
+    }
+    if (asm_oi < 0)
+        return;
+    // Patch assembly view UI trees when the assembly view is active
+    if (assemble_view) {
+        GLCanvas3D *canvas = assemble_view->get_canvas3d();
+        if (canvas)
+            canvas->on_prepare_volume_renamed(asm_oi, asm_vi, new_name);
+    }
+}
+
+void Plater::priv::change_extruder_for_assemble_selection(int extruder)
+{
+    if (!m_assemble_model_valid || assemble_view == nullptr)
+        return;
+    const std::vector<std::string> colors = q->get_extruder_colors_from_plater_config();
+    if (extruder > (int) colors.size())
+        return;
+    GLCanvas3D *canvas = assemble_view->get_canvas3d();
+    if (canvas == nullptr)
+        return;
+    const Selection &sel = canvas->get_selection();
+    if (sel.is_empty())
+        return;
+
+    // Snapshot on the assembly undo stack (active while in the assembly view).
+    take_snapshot("Change Filaments");
+    bool changed = false;
+    for (unsigned int idx : sel.get_volume_idxs()) {
+        const GLVolume *v = sel.get_volume(idx);
+        if (v == nullptr)
+            continue;
+        const int oi = v->object_idx();
+        const int vi = v->volume_idx();
+        if (oi < 0 || oi >= (int) m_assemble_model.objects.size())
+            continue;
+        ModelObject *mo = m_assemble_model.objects[oi];
+        if (mo == nullptr || vi < 0 || vi >= (int) mo->volumes.size())
+            continue;
+        ModelVolume *mv = mo->volumes[vi];
+        if (mv == nullptr || (!mv->is_model_part() && mv->type() != ModelVolumeType::PARAMETER_MODIFIER))
+            continue;
+        // extruder 0 == "Default": a volume then inherits its object's filament, so drop the per-volume
+        // override; otherwise pin the chosen filament on the volume.
+        if (extruder == 0) {
+            if (mv->config.has("extruder"))
+                mv->config.erase("extruder");
+        } else {
+            mv->config.set_key_value("extruder", new ConfigOptionInt(extruder));
+        }
+        changed = true;
+    }
+    if (!changed)
+        return;
+    // reload_scene() re-runs update_volumes_colors_by_extruder(), so the assembly view recolors at once.
+    canvas->reload_scene(true);
+    canvas->set_as_dirty();
+}
+
+void Plater::priv::sync_assemble_mesh_from_prepare()
+{
+    if (!m_assemble_model_valid)
+        return;
+
+    // Prepare-side part_guid -> current prepare ModelVolume (the mesh source of truth).
+    std::unordered_map<std::string, const ModelVolume *> prepare_by_guid;
+    for (const ModelObject *po : model.objects)
+        for (const ModelVolume *mv : po->volumes)
+            if (mv->is_model_part() && !mv->part_guid().empty())
+                prepare_by_guid.emplace(mv->part_guid(), mv);
+
+    for (ModelObject *ao : m_assemble_model.objects) {
+        bool any_remesh = false;
+        for (ModelVolume *av : ao->volumes) {
+            const std::string &src = av->assembly_src_guid();
+            if (src.empty())
+                continue;
+            auto it = prepare_by_guid.find(src);
+            if (it == prepare_by_guid.end())
+                continue; // split / combined on the prepare side: keep the frozen mesh
+            const ModelVolume *pv = it->second;
+            // Meshes are shared_ptr; a prepare-side edit (Simplify, ...) swaps in a NEW shared_ptr while
+            // the assembly clone still points at the old one. Compare the raw pointers and only rebind
+            // when they diverge.
+            if (av->get_mesh_shared_ptr().get() == pv->get_mesh_shared_ptr().get())
+                continue;
+            std::shared_ptr<const TriangleMesh> shared_mesh = pv->get_mesh_shared_ptr();
+            av->set_mesh(shared_mesh);
+            av->set_convex_hull_shared_ptr(pv->get_convex_hull_shared_ptr());
+            // New ObjectID so reload_scene() rebuilds this volume's GLVolume (re-uploads the new mesh)
+            // instead of reusing the cached one keyed by the old geometry id.
+            av->set_new_unique_id();
+            any_remesh = true;
+        }
+        if (any_remesh) {
+            ao->invalidate_bounding_box();
+            // A prepare-side mesh edit re-shared new geometry into m_assemble_model (new ObjectIDs): the
+            // retained assembly snapshots reference the old volume ids, so reset the undo baseline.
+            m_assemble_undo_baseline_dirty = true;
+        }
+    }
+}
+
+void Plater::priv::sync_assemble_scale_from_prepare()
+{
+    if (!m_assemble_model_valid)
+        return;
+
+    // Prepare-side part_guid -> (owning prepare object, prepare volume). A part's displayed size is
+    // instance_scale ⊙ volume_scale, so BOTH object-level (instance) and part-level (volume) prepare
+    // scaling must be reproduced. The assembly view has no scale tool, so size is prepare-authoritative.
+    struct PrepareRef { const ModelObject *po; const ModelVolume *pv; };
+    std::unordered_map<std::string, PrepareRef> prepare_by_guid;
+    for (const ModelObject *po : model.objects)
+        for (const ModelVolume *mv : po->volumes)
+            if (mv->is_model_part() && !mv->part_guid().empty())
+                prepare_by_guid.emplace(mv->part_guid(), PrepareRef{po, mv});
+
+    for (int oi = 0; oi < (int) m_assemble_model.objects.size(); ++oi) {
+        ModelObject *ao = m_assemble_model.objects[oi];
+        // At render the assembly world size = instance.assemble_scale ⊙ volume.assemble_scale. The assembly
+        // object's instance scale need not match the prepare object's (a STEP import merges prepare parts
+        // into one object while the assembly keeps each part as its own object / instance), so read it here
+        // and divide it out below -- the reproduced part size is then exact regardless of the grouping.
+        const Vec3d asm_inst_scale = ao->instances.empty() ? Vec3d::Ones()
+            : ao->instances.front()->get_assemble_transformation().get_scaling_factor();
+        for (int vi = 0; vi < (int) ao->volumes.size(); ++vi) {
+            ModelVolume *av = ao->volumes[vi];
+            const std::string &src = av->assembly_src_guid();
+            if (src.empty())
+                continue;
+            auto it = prepare_by_guid.find(src);
+            if (it == prepare_by_guid.end())
+                continue; // split / combined on the prepare side: keep the frozen pose
+            const ModelObject *po = it->second.po;
+            const ModelVolume *pv = it->second.pv;
+
+            // target assembly volume scale = prepare world size / assembly instance scale, so that
+            //   asm_inst_scale ⊙ target == prepare_instance_scale ⊙ prepare_volume_scale (the prepare size).
+            // Only the scale is rewritten; the assembly-authored offset / rotation / mirror stay intact
+            // (get_assemble_transformation() falls back to the base transform for a not-yet-posed part).
+            // (Instance 0; componentwise, matching the codebase's scaling-factor convention.)
+            const Vec3d prepare_inst_scale = po->instances.empty() ? Vec3d::Ones()
+                : po->instances.front()->get_scaling_factor();
+            const Vec3d target_volume_scale = prepare_inst_scale
+                                                  .cwiseProduct(pv->get_transformation().get_scaling_factor())
+                                                  .cwiseQuotient(asm_inst_scale);
+
+            // set/get round-trips through matrix decomposition, so compare with a tolerance instead of ==
+            // to avoid rewriting (and needlessly resetting the assembly undo baseline) on every entry.
+            if ((av->get_assemble_transformation().get_scaling_factor() - target_volume_scale).cwiseAbs().maxCoeff() > 1e-6) {
+                Geometry::Transformation asm_trafo = av->get_assemble_transformation();
+                asm_trafo.set_scaling_factor(target_volume_scale);
+                av->set_assemble_transformation(asm_trafo);
+                ao->invalidate_bounding_box();
+                // Geometry of m_assemble_model changed outside the assembly stack: reset the undo baseline.
+                m_assemble_undo_baseline_dirty = true;
+
+                // Mirror the new scale to all keyframe entries that reference this volume,
+                // preserving each keyframe's recorded rotation and translation.
+                auto &steps_tree = m_assemble_model.get_assembly_steps_tree_data();
+                if (!steps_tree.nodes.empty()) {
+                    const std::pair<int, int> vol_key{oi, vi};
+                    std::function<void(int)> update_kf;
+                    update_kf = [&](int nid) {
+                        if (nid < 0 || nid >= (int) steps_tree.nodes.size())
+                            return;
+                        auto &node = steps_tree.nodes[nid];
+                        for (auto &entry : node.kf_data.entries) {
+                            auto kit = entry.data.volume_transformations.find(vol_key);
+                            if (kit != entry.data.volume_transformations.end()) {
+                                kit->second.set_scaling_factor(target_volume_scale);
+                                entry.need_save = true;
+                            }
+                        }
+                        for (int child : node.children)
+                            update_kf(child);
+                    };
+                    for (int root : steps_tree.roots)
+                        update_kf(root);
+                }
+            }
+        }
+    }
+}
+
+void Plater::priv::sync_assemble_steps_to_main_model()
+{
+    // Assembly steps / tree are authored on the independent assembly model while in the assembly view
+    // (AssemblyStepsUtils is bound to m_assemble_model there). The 3mf exporter, however, serializes the
+    // assembly artifacts from the prepare model. Mirror them back so assembly edits are persisted.
+    // For objects shared by both models the ObjectIDs match (assign_copy preserves them via copy_id), so
+    // the json/tree node->object_id references resolve correctly against the prepare model on reload.
+    if (!m_assemble_model_valid)
+        return;
+    model.set_assembly_steps_json_str(m_assemble_model.get_assembly_steps_json_str());
+    model.get_assembly_tree_data()       = m_assemble_model.get_assembly_tree_data();
+    model.get_assembly_steps_tree_data() = m_assemble_model.get_assembly_steps_tree_data();
+    // Serialize the independent assembly object graph (structure + poses, no geometry) so the assembly
+    // view's structural state survives reload. On load it is rebuilt by rebinding meshes from the prepare
+    // model by part_guid (see derive_assemble_model).
+    model.set_assembly_model_json_str(assembly_model_to_json_string(m_assemble_model));
+    // Write assembly-side filament / MMU painting edits back to the prepare model ONLY while actually in
+    // the assembly context (leaving the assembly view, or saving from within it: active stack == assemble).
+    // This function also runs from export_3mf() on ordinary prepare-view saves; doing the write-back there
+    // would clobber a fresh prepare-view edit (e.g. painting a stroke, then saving / slicing) with the
+    // assembly model's stale data. The prepare->assembly direction is refreshed on assembly-view entry.
+    if (m_undo_redo_stack_active == &m_undo_redo_stack_assemble)
+        sync_assemble_render_state(/*prepare_to_assemble*/ false);
+}
+
+void Plater::priv::enter_assemble_stack()
+{
+    // The gizmos that open the gizmos stack (SLA supports / brim ears) are prepare-view only, so the
+    // assembly stack can safely take over the active pointer from the main stack here.
+    assert(m_undo_redo_stack_active == &m_undo_redo_stack_main);
+    if (m_undo_redo_stack_active == &m_undo_redo_stack_main) {
+        m_undo_redo_stack_active = &m_undo_redo_stack_assemble;
+        // Keep the assembly undo history across view switches. Only (re)establish a fresh baseline when
+        // there is no history yet, or when a prepare-side structural change invalidated it (the retained
+        // snapshots would no longer match m_assemble_model). Otherwise leave the stack untouched so the
+        // user can keep undoing edits made in earlier assembly-view sessions.
+        if (m_undo_redo_stack_assemble.empty() || m_assemble_undo_baseline_dirty) {
+            m_undo_redo_stack_assemble.clear();
+            // The trailing '!' marks a non-project-modifying baseline snapshot (see snapshot_modifies_project),
+            // so can_undo() reports false until the user actually edits something here -> the toolbar Undo
+            // icon stays greyed out at the baseline. Not localized on purpose, never shown to the user.
+            this->take_snapshot(std::string("Assemble-Initial!"));
+            m_assemble_undo_baseline_dirty = false;
+        }
+    }
+}
+
+bool Plater::priv::leave_assemble_stack()
+{
+    // Mirror assembly-view edits back onto the prepare model on exit so any prepare-side reader (and the
+    // next 3mf export) sees the up-to-date assembly steps / tree.
+    sync_assemble_steps_to_main_model();
+    bool changed = false;
+    assert(m_undo_redo_stack_active == &m_undo_redo_stack_assemble);
+    if (m_undo_redo_stack_active == &m_undo_redo_stack_assemble) {
+        changed = m_undo_redo_stack_assemble.has_undo_snapshot();
+        // Do NOT clear the assembly stack here: it is retained across view switches (see enter_assemble_stack).
+        // It is only reset lazily on the next entry when m_assemble_undo_baseline_dirty is set, or wiped on
+        // project reset. This is what lets the user undo assembly edits after leaving and re-entering.
+        m_undo_redo_stack_active = &m_undo_redo_stack_main;
+    }
+    return changed;
+}
+
+void Plater::priv::assemble_undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot)
+{
+    // Slim, self-contained jump that only touches the assembly model + assembly canvas.
+    // Deliberately does NOT run the prepare-model machinery (wipe tower / presets / sidebar / slicing).
+    SuppressSnapshots snapshot_supressor(q);
+
+    GLCanvas3D* assemble_canvas = assemble_view->get_canvas3d();
+    UndoRedo::SnapshotData top_snapshot_data;
+    top_snapshot_data.printer_technology = this->printer_technology;
+
+    const UndoRedo::Snapshot snapshot_copy = *it_snapshot;
+    const bool jumped = it_snapshot->timestamp < m_undo_redo_stack_assemble.active_snapshot_time() ?
+        m_undo_redo_stack_assemble.undo(m_assemble_model, assemble_canvas->get_selection(), assemble_canvas->get_gizmos_manager(), this->partplate_list, top_snapshot_data, it_snapshot->timestamp) :
+        m_undo_redo_stack_assemble.redo(m_assemble_model, assemble_canvas->get_gizmos_manager(), this->partplate_list, it_snapshot->timestamp);
+    if (jumped) {
+        assemble_canvas->get_selection().clear();
+        assemble_canvas->reload_scene(true);
+        // Restore the selection captured in the target snapshot. The main stack does this in
+        // Plater::priv::update_after_undo_redo; the slim assembly path must mirror it. Without it the assembly
+        // selection stays empty after undo/redo, which crashes selection-driven gizmos (e.g. MMU segmentation's
+        // render_triangles dereferences selection_info()->model_object()).
+        assemble_canvas->get_selection().set_deserialized(
+            GUI::Selection::EMode(m_undo_redo_stack_assemble.selection_deserialized().mode),
+            m_undo_redo_stack_assemble.selection_deserialized().volumes_and_instances);
+        // GLGizmosManager::load() (invoked by the undo/redo above) sets m_serializing = true and relies on
+        // update_after_undo_redo() to clear it again. The main stack does this in Plater::priv::update_after_undo_redo;
+        // the slim assembly path must mirror it, otherwise the manager stays "serializing" forever and
+        // reset_all_states()/exit_gizmo turn into no-ops -> the Move gizmo can no longer be closed on playback
+        // or step switch. Prefer update_after_undo_redo() over a bare update_data() for exactly this reset.
+        assemble_canvas->get_gizmos_manager().update_after_undo_redo(snapshot_copy);
+        assemble_canvas->set_as_dirty();
+    }
+}
+
 int Plater::priv::get_active_snapshot_index()
 {
     const size_t active_snapshot_time = this->undo_redo_stack().active_snapshot_time();
@@ -17071,6 +17853,18 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
     if (m_prevent_snapshots > 0)
         return;
     assert(m_prevent_snapshots >= 0);
+    // Assembly stack: take a slim snapshot of m_assemble_model only, bypassing the prepare-model
+    // project machinery (wipe tower / presets / sidebar). Must run before the m_single project filter.
+    if (m_undo_redo_stack_active == &m_undo_redo_stack_assemble) {
+        UndoRedo::SnapshotData assemble_snapshot_data;
+        assemble_snapshot_data.snapshot_type      = snapshot_type;
+        assemble_snapshot_data.printer_technology = this->printer_technology;
+        GLCanvas3D* assemble_canvas = assemble_view->get_canvas3d();
+        m_undo_redo_stack_assemble.take_snapshot(snapshot_name, m_assemble_model, assemble_canvas->get_selection(), assemble_canvas->get_gizmos_manager(), this->partplate_list, assemble_snapshot_data);
+        m_undo_redo_stack_assemble.release_least_recently_used();
+        BOOST_LOG_TRIVIAL(info) << "Assemble Undo / Redo snapshot taken: " << snapshot_name;
+        return;
+    }
     // BBS: single snapshot
     if (m_single && !m_single->check(snapshot_modifies_project(snapshot_type) && (snapshot_name.empty() || snapshot_name.back() != '!')))
         return;
@@ -17148,6 +17942,11 @@ void Plater::priv::undo()
     while (--it_current != snapshots.begin() && !snapshot_modifies_project(*it_current));
     if (it_current == snapshots.begin())
         return;
+    // Assembly stack: route to the slim, isolated assembly path.
+    if (m_undo_redo_stack_active == &m_undo_redo_stack_assemble) {
+        this->assemble_undo_redo_to(it_current);
+        return;
+    }
     if (get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
         if (it_current->snapshot_data.snapshot_type != UndoRedo::SnapshotType::GizmoAction &&
             it_current->snapshot_data.snapshot_type != UndoRedo::SnapshotType::EnteringGizmo &&
@@ -17166,6 +17965,11 @@ void Plater::priv::redo()
     while (it_current != snapshots.end() && !snapshot_modifies_project(*it_current++));
     if (it_current != snapshots.end()) {
         while (it_current != snapshots.end() && !snapshot_modifies_project(*it_current++));
+        // Assembly stack: route to the slim, isolated assembly path.
+        if (m_undo_redo_stack_active == &m_undo_redo_stack_assemble) {
+            this->assemble_undo_redo_to(--it_current);
+            return;
+        }
         this->undo_redo_to(--it_current);
     }
 }
@@ -17651,6 +18455,8 @@ void Plater::render_project_state_debug_window() const { p->render_project_state
 Sidebar&        Plater::sidebar()           { return *p->sidebar; }
 const Model&    Plater::model() const       { return p->model; }
 Model&          Plater::model()             { return p->model; }
+const Model&    Plater::assemble_model() const { return p->m_assemble_model; }
+Model&          Plater::assemble_model()       { return p->m_assemble_model; }
 Bed3D &         Plater::bed() { return p->bed; }
 BackgroundSlicingProcess &Plater::background_process() { return p->background_process; }
 const Print&    Plater::fff_print() const   { return p->fff_print; }
@@ -21300,6 +22106,10 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
     if (!path.Lower().EndsWith(".3mf"))
         return -1;
+    // Persist assembly-view edits: the assembly steps / tree are authored on the independent assembly
+    // model, so mirror them onto the prepare model before serialization. This covers saving while still
+    // inside the assembly view (the leave_assemble_stack sync only fires when switching panels).
+    p->sync_assemble_steps_to_main_model();
     // take care about private data stored into .3mf
     // modify model
     publish(p->model, strategy);
@@ -23405,7 +24215,11 @@ void Plater::show_seqprintinfo_notification(bool has_error)
     }
 }
 void Plater::mirror(Axis axis)      { p->mirror(axis); }
-void Plater::split_object()         { p->split_object(); }
+void Plater::split_object(ModelObject *mo, bool ignore_warning) { p->split_object(mo, ignore_warning); }
+void Plater::set_suppress_assemble_delete_propagation(bool suppress) { p->set_suppress_assemble_delete_propagation(suppress); }
+void Plater::propagate_volume_delete_to_assemble(const ModelVolume &prepare_volume) { p->propagate_volume_delete_to_assemble(prepare_volume); }
+void Plater::sync_assemble_volume_name(const std::string &part_guid, const std::string &new_name) { p->sync_assemble_volume_name(part_guid, new_name); }
+void Plater::change_extruder_for_assemble_selection(int extruder) { p->change_extruder_for_assemble_selection(extruder); }
 void Plater::split_volume()         { p->split_volume(); }
 void Plater::optimize_rotation()    { if (!p->m_ui_jobs.is_any_running()) p->m_ui_jobs.optimize_rotation(); }
 void Plater::update_menus()         { p->menus.update(); }
@@ -23485,9 +24299,11 @@ bool Plater::is_printer_configed_by_BBL() {
 
 void Plater::fill_color(int extruder_id)
 {
-    if (can_fillcolor()) {
-        p->assemble_view->get_canvas3d()->get_selection().fill_color(extruder_id);
-    }
+    // The paint toolbar (EVT_GLTOOLBAR_FILLCOLOR) is bound only on the assembly canvas, so this always
+    // targets the assembly view. Edit the independent assembly model directly (the old path routed the
+    // assembly selection through the prepare-side ObjectList, which no longer matches m_assemble_model).
+    if (can_fillcolor())
+        change_extruder_for_assemble_selection(extruder_id);
 }
 
 //BBS

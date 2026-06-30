@@ -1442,6 +1442,14 @@ void GLVolumeCollection::release_volume (GLVolume* volume)
     }
 }
 
+const GLVolume* GLVolumeCollection::get_volume_by_composite_id(int obj_id, int vol_id, int instance_id) const
+{
+    for (const GLVolume* v : volumes)
+        if (v->composite_id.object_id == obj_id && v->composite_id.volume_id == vol_id && v->composite_id.instance_id == instance_id)
+            return v;
+    return nullptr;
+}
+
 // Load SLA auxiliary GLVolumes (for support trees or pad).
 // This function produces volumes for multiple instances in a single shot,
 // as some object specific mesh conversions may be expensive.

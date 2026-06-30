@@ -337,6 +337,8 @@ public:
     Sidebar& sidebar();
     const Model& model() const;
     Model& model();
+    const Model& assemble_model() const;
+    Model& assemble_model();
     Bed3D& bed();
     const Print& fff_print() const;
     Print& fff_print();
@@ -696,7 +698,20 @@ public:
     void show_seqprintinfo_notification(bool has_error = false);
     void search(bool plater_is_active, Preset::Type  type, wxWindow *tag, TextInput *etag, wxWindow *stag);
     void mirror(Axis axis);
-    void split_object();
+    void split_object(ModelObject *mo = nullptr, bool ignore_warning = false);
+    // While set, prepare-side object removals are treated as internal restructuring (split / merge) and
+    // are NOT propagated as deletes to the independent assembly model (m_assemble_model).
+    void set_suppress_assemble_delete_propagation(bool suppress);
+    // Prepare-side per-volume delete: drop the assembly volume referencing this part (call before the
+    // prepare ModelVolume is destroyed) so the independent assembly model stays consistent immediately,
+    // and the persisted assembly_model.json does not keep referencing a part that no longer exists.
+    void propagate_volume_delete_to_assemble(const ModelVolume &prepare_volume);
+    // Propagate a prepare-side ModelVolume rename to the matching assembly model volume
+    void sync_assemble_volume_name(const std::string &part_guid, const std::string &new_name);
+    // Change filament for the current assembly-canvas selection. The assembly view owns an independent
+    // model (m_assemble_model), so this edits that model directly and reloads the assembly scene; the
+    // assemble->prepare write-back on assembly-view exit carries the change back to the prepare model.
+    void change_extruder_for_assemble_selection(int extruder);
     void split_volume();
     void optimize_rotation();
     // find all empty cells on the plate and won't overlap with exclusion areas

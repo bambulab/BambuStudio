@@ -1,7 +1,9 @@
 #include "GLGizmoBase.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/Gizmos/GLGizmosManager.hpp"
 
 #include <GL/glew.h>
+#include <algorithm>
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_Colors.hpp"
@@ -803,6 +805,18 @@ unsigned char picking_checksum_alpha_channel(unsigned char red, unsigned char gr
 	return b;
 }
 
+
+bool GLGizmoBase::is_activable() const
+{
+    return can_activable_in_current_canvas() && on_is_activable();
+}
+
+bool GLGizmoBase::can_activable_in_current_canvas() const
+{
+    const auto &mng = m_parent.get_gizmos_manager();
+    const auto selectable = mng.get_selectable_idxs();
+    return std::find(selectable.begin(), selectable.end(), (size_t) get_sprite_id()) != selectable.end();
+}
 
 } // namespace GUI
 } // namespace Slic3r
