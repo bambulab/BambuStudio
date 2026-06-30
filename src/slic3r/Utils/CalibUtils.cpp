@@ -96,6 +96,60 @@ wxString get_nozzle_volume_type_name(NozzleVolumeType type)
     return wxString();
 }
 
+static int get_filament_nozzle_map_value(const MachineObject* obj, int nozzle_pos_id)
+{
+    /* O1C: nozzle_pos_id: 0->0 1->1 rack: 0x10 base -> 2 base */
+    constexpr int RACK_NOZZLE_POS_ID_BASE = 0x10;
+    if (obj && obj->GetNozzleSystem()) {
+        auto rack_type = obj->GetNozzleSystem()->GetNozzleRack()->GetRackType();
+        switch (rack_type) {
+            case DevNozzleRack::RackType_A:     return nozzle_pos_id - RACK_NOZZLE_POS_ID_BASE;
+            case DevNozzleRack::RackType_B:     return nozzle_pos_id - RACK_NOZZLE_POS_ID_BASE;
+            case DevNozzleRack::RackType_AB:    return nozzle_pos_id < RACK_NOZZLE_POS_ID_BASE ? nozzle_pos_id : nozzle_pos_id - RACK_NOZZLE_POS_ID_BASE + 2;
+            default:                            return nozzle_pos_id;
+        }
+    }
+
+    return nozzle_pos_id;
+}
+
+static void sync_calib_per_slot_nozzle_options(DynamicPrintConfig& config, const std::vector<CalibInfo>& calib_infos,
+                                               const std::vector<int>& filament_maps, const std::vector<int>& filament_nozzle_maps)
+{
+    const auto* nozzle_diameters_opt = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
+    const int extruder_count = nozzle_diameters_opt ? static_cast<int>(nozzle_diameters_opt->size()) : 1;
+
+    std::vector<int>    nozzle_counts(extruder_count, 0);
+    std::vector<int>    nozzle_volume_types;
+    std::vector<double> nozzle_diameters;
+    std::vector<int>    nozzle_slots;
+
+    std::map<std::pair<int, int>, const CalibInfo*> unique_nozzles;
+    for (size_t i = 0; i < calib_infos.size() && i < filament_maps.size() && i < filament_nozzle_maps.size(); ++i) {
+        const int extruder_idx = filament_maps[i] - 1;
+        const int nozzle_idx   = filament_nozzle_maps[i];
+        if (extruder_idx < 0 || extruder_idx >= extruder_count || nozzle_idx < 0)
+            continue;
+
+        unique_nozzles.emplace(std::make_pair(extruder_idx, nozzle_idx), &calib_infos[i]);
+    }
+
+    for (const auto& [key, calib_info] : unique_nozzles) {
+        const int extruder_idx = key.first;
+        const int nozzle_idx   = key.second;
+
+        ++nozzle_counts[extruder_idx];
+        nozzle_volume_types.push_back(static_cast<int>(calib_info->nozzle_volume_type));
+        nozzle_diameters.push_back(calib_info->nozzle_diameter);
+        nozzle_slots.push_back(nozzle_idx);
+    }
+
+    config.option<ConfigOptionInts>("extruder_nozzle_count", true)->values               = std::move(nozzle_counts);
+    config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type", true)->values = std::move(nozzle_volume_types);
+    config.option<ConfigOptionFloats>("extruder_nozzle_diameter", true)->values          = std::move(nozzle_diameters);
+    config.option<ConfigOptionInts>("extruder_nozzle_slot", true)->values                = std::move(nozzle_slots);
+}
+
 std::map<int, DynamicPrintConfig> CalibUtils::build_filament_ams_list(MachineObject* obj)
 {
     std::map<int, DynamicPrintConfig> filament_ams_list;
@@ -471,7 +525,8 @@ static void init_multi_extruder_params_for_cali(DynamicPrintConfig& config, cons
         const std::vector<int> nozzle_maps = {nozzle_map};
 
         config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmNozzleManual;
-        config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = {calib_info.nozzle_pos_id};
+        config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = nozzle_maps;
+        sync_calib_per_slot_nozzle_options(config, {calib_info}, {extruder_id}, nozzle_maps);
 
         ExtruderNozzleStat nozzle_stat;
         nozzle_stat.set_extruder_nozzle_count(extruder_id - 1, calib_info.nozzle_volume_type, 1, false);
@@ -1202,17 +1257,19 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
         CalibInfo calib_info = sorted_calib_infos[i];
         calib_info.filament_prest->config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
         filament_presets.emplace_back(*calib_info.filament_prest);
+        int extruder_idx = 0;
         for (size_t index = 0; index < physical_extruder_maps.size(); ++index) {
             if (physical_extruder_maps[index] == calib_info.extruder_id) {
-                filament_map[i] = index;
+                extruder_idx = static_cast<int>(index);
                 break;
             }
         }
+        filament_map[i] = extruder_idx + 1;
 
         f_volume_maps[i] = static_cast<int>(calib_info.nozzle_volume_type);
-        f_nozzle_map[i]  = static_cast<int>(calib_info.nozzle_pos_id);
+        f_nozzle_map[i]  = get_filament_nozzle_map_value(obj_, calib_info.nozzle_pos_id);
 
-        std::pair<int, NozzleVolumeType> key = {filament_map[i], calib_info.nozzle_volume_type};
+        std::pair<int, NozzleVolumeType> key = {extruder_idx, calib_info.nozzle_volume_type};
         if (extruder_nozzle_counts.find(key) != extruder_nozzle_counts.end()) {
             extruder_nozzle_counts[key]++;
         } else {
@@ -1235,6 +1292,7 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
     if (rack->IsSupported()) {
         full_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmNozzleManual;
         full_config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = f_nozzle_map;
+        sync_calib_per_slot_nozzle_options(full_config, sorted_calib_infos, filament_map, f_nozzle_map);
 
         auto str_values = save_extruder_nozzle_stats_to_string(nozzle_stat.get_raw_stat());
         full_config.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = str_values;

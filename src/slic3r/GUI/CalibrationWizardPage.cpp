@@ -310,8 +310,9 @@ void FilamentComboBox::UpdateNozzleCombo(const std::vector<std::pair<wxString, i
     m_nozzle_combo->SetSelection(0);
 }
 
-int FilamentComboBox::GetNozzleIdCode() const
+int FilamentComboBox::GetNozzlePosId() const
 {
+    if (!m_nozzle_combo) return -1;
     auto sel = m_nozzle_combo->GetSelection();
     if (sel != wxNOT_FOUND) return *(reinterpret_cast<int*>(m_nozzle_combo->GetClientData(sel)));
 
@@ -390,6 +391,8 @@ SelectedFilamentInfo FilamentComboBox::get_selected_filament_info() const
     info.extruder_role   = m_extuder_role;
     info.model_index     = m_index;
     info.extruder_id     = m_extuder_role == ExtruderRole::DEPUTY_EXTRUDER ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
+    info.nozzle_pos_id   = GetNozzlePosId();
+    if (info.nozzle_pos_id == -1) info.nozzle_pos_id = info.extruder_id;
     if (m_comboBox) {
         info.preset = const_cast<Preset*>(m_comboBox->get_selected_preset());
     }
@@ -702,17 +705,21 @@ void FilamentExtendComboBox::SetNozzleInfo(const DevNozzle& nozzle, MachineObjec
 {
     m_nozzle_id     = nozzle.GetNozzleId();
     m_nozzle_pos_id = nozzle.GetNozzlePosId();
+    // If the nozzle is on the extruder, we need to adjust the nozzle position ID by adding 0x10 to it.
+    if (!nozzle.IsOnRack() && nozzle.GetAddrId()) {
+        m_nozzle_pos_id = nozzle.GetAddrId().value() + 0x10;
+    }
 
     if (m_id_label)
         m_id_label->SetLabel(wxString::Format("%d", m_nozzle_id + 1));
 
     init_flow_type_combo(obj);
-    if (m_flow_type_combo && nozzle.IsExist()) {
+    if (m_flow_type_combo && (nozzle.IsExist() || nozzle.IsOnRack())) {
         switch_combox_to_target(m_flow_type_combo, nozzle.GetNozzleFlowType());
     }
 
     init_diameter_combo(obj, DevNozzle::ToNozzleVolumeType(nozzle.GetNozzleFlowType()));
-    if (m_diameter_combo && nozzle.IsExist()) {
+    if (m_diameter_combo && (nozzle.IsExist() || nozzle.IsOnRack())) {
         switch_combox_to_target(m_diameter_combo, nozzle.GetNozzleDiameterType());
     }
 }

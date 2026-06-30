@@ -91,7 +91,6 @@ struct SelectedFilamentInfo
 {
     int          tray_id{-1};
     int          extruder_id{-1};
-    int          nozzle_id{-1};        // ext_fcb's nozzle id
     int          nozzle_pos_id{-1};    // matches CaliFilamentInfo::nozzle_pos_id
     Preset*      preset{nullptr};
     std::string  tray_name;
@@ -132,7 +131,7 @@ public:
     void HidePanel();
 
     void UpdateNozzleCombo(const std::vector<std::pair<wxString, int>>& nozzle_list);
-    int  GetNozzleIdCode() const;
+    virtual int GetNozzlePosId() const;
     void ShowNozzleCombo();
     void HideNozzleCombo();
 
@@ -165,8 +164,7 @@ public:
     NozzleDiameterType GetSelectedDiameterType() const;
     NozzleFlowType     GetSelectedFlowType() const;
 
-    int GetNozzleId() const { return m_nozzle_id; }         // 1-n nozzle id for display
-    int GetNozzlePosId() const { return m_nozzle_pos_id; }  // based on 0x10
+    int GetNozzlePosId() const override { return m_nozzle_pos_id; }  // based on 0x10
 
     void SetSubAmsMode(bool enable, const wxString& text = wxEmptyString);
     bool IsSubAmsMode() const { return m_subams_mode; }

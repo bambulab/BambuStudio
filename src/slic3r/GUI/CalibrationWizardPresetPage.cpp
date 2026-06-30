@@ -2916,7 +2916,7 @@ void CalibrationPresetPage::select_default_compatible_filament()
                     continue;
                 }
 
-                int nozzle_pos_id = fcb->GetNozzleIdCode();
+                int nozzle_pos_id = fcb->GetNozzlePosId();
                 std::string nozzle_sn;
                 if (nozzle_pos_id != -1) {
                     DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(nozzle_pos_id);
@@ -2973,7 +2973,7 @@ void CalibrationPresetPage::select_default_compatible_filament()
             if (!fcb->GetRadioBox()->IsEnabled())
                 continue;
             int tray_id = fcb->get_tray_id();
-            int nozzle_pos_id = fcb->GetNozzleIdCode();
+            int nozzle_pos_id = fcb->GetNozzlePosId();
             int extruder_id = fcb->GetExtuderRole() == ExtruderRole::DEPUTY_EXTRUDER ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
             std::string nozzle_sn;
             if (nozzle_pos_id != -1) {
@@ -3030,7 +3030,7 @@ void CalibrationPresetPage::select_default_compatible_filament()
 
         selected_fila_info.tray_id         = tray_id;
         selected_fila_info.filament_preset = preset;
-        selected_fila_info.nozzle_pos_id   = head->GetNozzleIdCode();
+        selected_fila_info.nozzle_pos_id   = head->GetNozzlePosId();
 
         std::string nozzle_sn;
         if (selected_fila_info.nozzle_pos_id == -1) {
@@ -3076,17 +3076,20 @@ std::vector<SelectedFilamentInfo> CalibrationPresetPage::get_selected_filament_c
             if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_MULITI) {
                 for (auto* fcb : *listp) {
                     if (!fcb->GetCheckBox()->GetValue() || fcb->get_tray_id() < 0) continue;
-                    SelectedFilamentInfo info = fcb->get_selected_filament_info();
-                    /* Non-rack fallback: nozzle_pos_id == extruder_id. */
-                    info.nozzle_pos_id = (info.extruder_role == ExtruderRole::DEPUTY_EXTRUDER) ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
-                    fcb_info_list.push_back(info);
+                    fcb_info_list.push_back(fcb->get_selected_filament_info());
                 }
             } else if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_SINGLE) {
                 for (auto* fcb : *listp) {
-                    if (!fcb->GetRadioBox()->GetValue() || fcb->get_tray_id() < 0) continue;
-                    SelectedFilamentInfo info = fcb->get_selected_filament_info();
-                    info.nozzle_pos_id = (info.extruder_role == ExtruderRole::DEPUTY_EXTRUDER) ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
-                    fcb_info_list.push_back(info);
+                    if (!fcb || !fcb->GetRadioBox() || !fcb->GetRadioBox()->GetValue()) continue;
+                    if (!fcb->GetRadioBox()->IsEnabled() || fcb->get_tray_id() < 0) {
+                        fcb->SetValue(false);
+                        continue;
+                    }
+                    if (!fcb_info_list.empty()) {
+                        fcb->SetValue(false);
+                        continue;
+                    }
+                    fcb_info_list.push_back(fcb->get_selected_filament_info());
                 }
             }
         }
@@ -3104,16 +3107,10 @@ std::vector<SelectedFilamentInfo> CalibrationPresetPage::get_selected_filament_c
                 } else {
                     if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_MULITI) {
                         if (!ext_fcb->GetCheckBox()->GetValue()) continue;
-                        SelectedFilamentInfo info = ext_fcb->get_selected_filament_info();
-                        info.nozzle_id            = ext_fcb->GetNozzleId();
-                        info.nozzle_pos_id        = ext_fcb->GetNozzlePosId();
-                        fcb_info_list.push_back(info);
+                        fcb_info_list.push_back(ext_fcb->get_selected_filament_info());
                     } else if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_SINGLE) {
                         if (!ext_fcb->GetRadioBox()->GetValue()) continue;
-                        SelectedFilamentInfo info = ext_fcb->get_selected_filament_info();
-                        info.nozzle_id            = ext_fcb->GetNozzleId();
-                        info.nozzle_pos_id        = ext_fcb->GetNozzlePosId();
-                        fcb_info_list.push_back(info);
+                        fcb_info_list.push_back(ext_fcb->get_selected_filament_info());
                     }
                 }
             }
@@ -3121,16 +3118,13 @@ std::vector<SelectedFilamentInfo> CalibrationPresetPage::get_selected_filament_c
             if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_MULITI) {
                 for (auto* fcb : m_filament_comboBox_list) {
                     if (!fcb->GetCheckBox()->GetValue() || fcb->get_tray_id() < 0) continue;
-                    SelectedFilamentInfo info = fcb->get_selected_filament_info();
-                    info.nozzle_pos_id = (info.extruder_role == ExtruderRole::DEPUTY_EXTRUDER) ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
-                    fcb_info_list.push_back(info);
+                    fcb_info_list.push_back(fcb->get_selected_filament_info());
                 }
             } else if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_SINGLE) {
                 for (auto* fcb : m_filament_comboBox_list) {
                     if (!fcb->GetRadioBox()->GetValue() || fcb->get_tray_id() < 0) continue;
-                    SelectedFilamentInfo info = fcb->get_selected_filament_info();
-                    info.nozzle_pos_id = (info.extruder_role == ExtruderRole::DEPUTY_EXTRUDER) ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
-                    fcb_info_list.push_back(info);
+                    if (!fcb->GetRadioBox()->IsEnabled()) { fcb->SetValue(false); continue; }
+                    fcb_info_list.push_back(fcb->get_selected_filament_info());
                 }
             }
         }
@@ -3298,10 +3292,10 @@ void CalibrationPresetPage::update_rack_filament_combobox(MachineObject* obj)
                 if (auto* popup = fcb->GetSubAmsPopup()) {
                     popup->SetData(curr_obj, m_filament_ams_list, m_cali_filament_mode, fcb, slot_set);
                 }
-                fcb->Enable(nozzle.IsExist());
+                fcb->Enable(nozzle.IsExist() || nozzle.IsOnRack());
             } else {
                 fcb->SetSubAmsMode(false);
-                fcb->Enable(nozzle.IsExist() && fcb->GetComboBox()->is_tray_exist() && fcb->GetComboBox()->is_compatible_with_printer());
+                fcb->Enable((nozzle.IsExist() || nozzle.IsOnRack()) && fcb->GetComboBox()->is_tray_exist() && fcb->GetComboBox()->is_compatible_with_printer());
             }
 
             fcb->Show();
@@ -3533,8 +3527,7 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
             if (tray_id < 0) return;
             /* SINGLE: keep only this snapshot; nozzle_sn resolved later from MachineObject. */
             SelectedFilamentInfo info = fcb->get_selected_filament_info();
-            info.nozzle_id     = m_owner->GetNozzleId();
-            info.nozzle_pos_id = m_owner->GetNozzlePosId();
+            info.nozzle_pos_id = m_owner->GetNozzlePosId();  // row fcb has no combo; pos id comes from the owning ext_fcb
 
             wxBitmap picker_bmp;
             if (auto* combo = fcb->GetComboBox(); combo && combo->clr_picker) picker_bmp = combo->clr_picker->GetBitmap();
@@ -3562,8 +3555,7 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
             if (tray_id < 0) return;
             if (check_box->GetValue()) {
                 SelectedFilamentInfo info = fcb->get_selected_filament_info();
-                info.nozzle_id     = m_owner->GetNozzleId();
-                info.nozzle_pos_id = m_owner->GetNozzlePosId();
+                info.nozzle_pos_id = m_owner->GetNozzlePosId();  // row fcb has no combo; pos id comes from the owning ext_fcb
                 wxBitmap picker_bmp;
                 if (auto* combo = fcb->GetComboBox(); combo && combo->clr_picker) picker_bmp = combo->clr_picker->GetBitmap();
                 m_owner->SetSubAmsSelected(tray_id, info, picker_bmp);
@@ -3582,8 +3574,7 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
             if (tray_id < 0 || !m_owner->GetSubAmsSelected(tray_id)) return;
 
             SelectedFilamentInfo info = fcb->get_selected_filament_info();
-            info.nozzle_id     = m_owner->GetNozzleId();
-            info.nozzle_pos_id = m_owner->GetNozzlePosId();
+            info.nozzle_pos_id = m_owner->GetNozzlePosId();  // row fcb has no combo; pos id comes from the owning ext_fcb
             wxBitmap picker_bmp;
             if (auto* combo = fcb->GetComboBox(); combo && combo->clr_picker) picker_bmp = combo->clr_picker->GetBitmap();
             m_owner->SetSubAmsSelected(tray_id, info, picker_bmp);
