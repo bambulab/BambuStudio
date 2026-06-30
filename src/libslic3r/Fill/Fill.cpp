@@ -79,6 +79,9 @@ struct SurfaceFillParams
     float lattice_angle_1 = -45.0f;
     float lattice_angle_2 = 45.0f;
 
+    // For Gyroid: when true, use the parameterized "optimized" variant.
+    bool gyroid_optimized = false;
+
 	bool operator<(const SurfaceFillParams &rhs) const {
 #define RETURN_COMPARE_NON_EQUAL(KEY) if (this->KEY < rhs.KEY) return true; if (this->KEY > rhs.KEY) return false;
 #define RETURN_COMPARE_NON_EQUAL_TYPED(TYPE, KEY) if (TYPE(this->KEY) < TYPE(rhs.KEY)) return true; if (TYPE(this->KEY) > TYPE(rhs.KEY)) return false;
@@ -114,6 +117,7 @@ struct SurfaceFillParams
         RETURN_COMPARE_NON_EQUAL(lattice_angle_2);
         RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, skin_pattern);
         RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, skeleton_pattern);
+		RETURN_COMPARE_NON_EQUAL(gyroid_optimized);
 		return false;
 	}
 
@@ -143,7 +147,8 @@ struct SurfaceFillParams
 			    this->lattice_angle_1 == rhs.lattice_angle_1 &&
                 this->lattice_angle_2 == rhs.lattice_angle_2&&
 				this-> skin_pattern     == rhs.skin_pattern &&
-				this-> skeleton_pattern == rhs.skeleton_pattern;
+				this-> skeleton_pattern == rhs.skeleton_pattern &&
+				this-> gyroid_optimized == rhs.gyroid_optimized;
 	}
 };
 
@@ -255,6 +260,10 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                                                 params.pattern == ipLightning || params.pattern == ip3DHoneycomb || params.pattern == ipAdaptiveCubic ||
                                                 params.pattern == ipSupportCubic;
                 params.multiline = (params.extrusion_role == erInternalInfill && support_multiline_infill) ? int(region_config.fill_multiline) : 1;
+
+                // Pass gyroid_optimized through only when the effective pattern is Gyroid,
+                // so non-Gyroid fills aren't differentiated by an irrelevant flag.
+                params.gyroid_optimized = (params.pattern == ipGyroid) && region_config.gyroid_optimized;
 
 		        // Calculate the actual flow we'll be using for this infill.
 		        params.bridge = is_bridge || Fill::use_bridge_flow(params.pattern);
@@ -715,6 +724,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		params.resolution        = resolution;
 		params.use_arachne = surface_fill.params.pattern == ipConcentric || surface_fill.params.pattern == ipFloatingConcentric;
 		params.layer_height      = m_regions[surface_fill.region_id]->layer()->height;
+		params.gyroid_optimized  = surface_fill.params.gyroid_optimized;
 
 		// BBS
 		params.flow = surface_fill.params.flow;
@@ -862,6 +872,7 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
 		params.resolution = resolution;
 		params.use_arachne = false;
 		params.layer_height = layerm.layer()->height;
+		params.gyroid_optimized = surface_fill.params.gyroid_optimized;
 
 		// Pass pattern-specific parameters so that anchoring lines match the actual infill.
 		if (surface_fill.params.pattern == ip2DLattice) {

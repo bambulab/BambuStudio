@@ -1055,6 +1055,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent, skin_infill_density))
     ((ConfigOptionPercent, sparse_infill_density))
     ((ConfigOptionInt, fill_multiline))
+    ((ConfigOptionBool, gyroid_optimized))
     ((ConfigOptionFloat, infill_lock_depth))
     ((ConfigOptionFloat, skin_infill_depth))
     ((ConfigOptionEnum<InfillPattern>, sparse_infill_pattern))
