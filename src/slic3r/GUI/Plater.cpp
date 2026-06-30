@@ -170,6 +170,7 @@
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/StaticGroup.hpp"
 #include "Widgets/MultiNozzleSync.hpp"
+#include "Widgets/SyncMachineInfoDialog.hpp"
 
 #include "GUI_ObjectTable.hpp"
 #include "libslic3r/Thread.hpp"
@@ -2511,6 +2512,9 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " check_printer_initialized fail";
         return false;
     }
+
+    // some rack can't auto-read filament info, popup a dialog to give user a change to trigger a read opration
+    if (is_manual) { tryPopUpSyncMachineInfoDialog(obj); }
 
     std::string machine_print_name = obj->get_show_printer_type();
     wxString machine_display_name = obj->get_printer_type_display_str();
