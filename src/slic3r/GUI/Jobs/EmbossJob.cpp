@@ -1774,9 +1774,11 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
 
         return abs(s0 + s1 + s2 - s);
     };
-    bool is_mirrored = (m_model_object_in_world_tran * text_tran_in_object).is_left_handed();
     slice_meshs.transform(text_tran_in_object.get_matrix().inverse());
     TriangleMesh& mesh = slice_meshs;
+    // In text CS, +Z is the emboss / outward direction. Keep per-char surface
+    // normals on that side so glyphs face out of the solid.
+    const Vec3d expected_out = Vec3d::UnitZ();
     std::vector<int> debug_incides;
     debug_incides.resize(m_position_points.size());
     for (int i = 0; i < m_position_points.size(); ++i) {
@@ -1798,9 +1800,8 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
                 Vec3d s2           = point2 - point0;
                 m_normal_points[i] = s1.cross(s2);
                 m_normal_points[i].normalize();
-                if (is_mirrored) {
+                if (m_normal_points[i].dot(expected_out) < 0.0)
                     m_normal_points[i] = -m_normal_points[i];
-                }
             }
             debug_index++;
         }
@@ -1847,7 +1848,6 @@ void GenerateTextJob::get_text_mesh(TriangleMesh &result_mesh, std::vector<Trian
         return;
     }
     TriangleMesh mesh = chars_mesh[i]; // m_cur_font_name
-    auto         box  = mesh.bounding_box();
     mesh.translate(mesh_offset[0], mesh_offset[1], 0);
 
     mesh.transform(local_tran.get_matrix());
