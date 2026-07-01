@@ -123,6 +123,13 @@
       "wiki": "https://e.bambulab.com/t?c=L45sIEpzy1Wz0tsV"
     },
     {
+      "types": ["TPU"],
+      "action": "warning",
+      "model_id":["N10"],
+      "description": "How to feed TPU filament.",
+      "wiki": "https://wiki.bambulab.com/zh/h3c/tpu-printing-guide"
+    },
+    {
       "types": ["TPU", "TPU-AMS"],
       "nozzle_flows": ["Standard", "High Flow", "TPU High Flow", "E3D High Flow"],
       "action": "warning",
@@ -247,7 +254,7 @@
       "type_suffix": "CF",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N10"],
       "action": "warning",
       "slot": "ext",
       "description": "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
@@ -256,7 +263,7 @@
       "name_suffix": "PA6-GF",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
       "action": "warning",
       "slot": "ext",
       "description": "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
@@ -265,7 +272,16 @@
       "type_suffix": "CF",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
+      "action": "warning",
+      "slot": "ams",
+      "description": "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+    },
+    {
+      "type_suffix": "GF",
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [ 0.4 ],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
       "action": "warning",
       "slot": "ams",
       "group": "cf_gf_ams",
@@ -276,7 +292,7 @@
       "name_suffix": "PA6-GF",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
       "action": "warning",
       "slot": "ams",
       "group": "cf_gf_ams",
@@ -287,7 +303,7 @@
       "name_suffix": "TPU 85A",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4, 0.6, 0.8 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
       "action": "warning",
       "slot": "ext",
       "description": "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
@@ -296,7 +312,7 @@
       "name_suffix": "TPU 90A",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4, 0.6, 0.8 ],
-      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6"],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7", "N6", "N10"],
       "action": "warning",
       "slot": "ext",
       "description": "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
