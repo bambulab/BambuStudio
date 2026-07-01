@@ -20,7 +20,6 @@ class FilamentMapManualPanel : public FilamentMapPanel
 {
 public:
     FilamentMapManualPanel(wxWindow                       *parent,
-                           const std::vector<std::string> &color,
                            const std::vector<std::string> &type,
                            const std::vector<int>         &filament_list,
                            const std::vector<int>         &filament_map,
@@ -60,7 +59,6 @@ private:
     std::vector<int>         m_filament_map;
     std::vector<int>         m_filament_volume_map;
     std::vector<int>         m_filament_list;
-    std::vector<std::string> m_filament_color;
     std::vector<std::string> m_filament_type;
     wxTimer* m_timer;
     int m_invalid_id{ -1 };

@@ -23976,7 +23976,6 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     );
 
     FilamentMapDialog filament_dlg(this,
-        filament_colors,
         filament_types,
         plate_filament_maps,
         plate_filament_volume_maps,
