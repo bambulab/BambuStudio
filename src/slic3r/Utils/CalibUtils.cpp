@@ -1172,7 +1172,7 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
     std::string input_file;
     if (obj_->is_multi_extruders())
         input_file = Slic3r::resources_dir() + "/calib/pressure_advance/auto_pa_line_dual.3mf";
-    else if (obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A)
+    else if (obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)
         input_file = Slic3r::resources_dir() + "/calib/pressure_advance/auto_pa_line_single_all.3mf";
     else
         input_file = Slic3r::resources_dir() + "/calib/pressure_advance/auto_pa_line_single.3mf";
