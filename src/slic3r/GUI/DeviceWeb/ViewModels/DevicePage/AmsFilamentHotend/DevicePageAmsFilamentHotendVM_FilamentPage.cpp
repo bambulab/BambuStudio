@@ -453,12 +453,7 @@ bool DevicePageAmsFilamentHotendVM::IsSlotInFilamentChangeList(MachineObject* ma
 
 bool DevicePageAmsFilamentHotendVM::IsFilamentChangeActive(MachineObject* machine_obj) const
 {
-    if (!machine_obj) return false;
-    if (machine_obj->is_enable_np && machine_obj->GetExtderSystem()->IsBusyLoading()) return true;
-    if (machine_obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) return true;
-
-    auto fila_sys = machine_obj->GetFilaSystem();
-    if (machine_obj->ams_status_main == AMS_STATUS_MAIN_ASSIST && !fila_sys->GetFilamentChangeSteps().empty() && !fila_sys->GetFilamentChangingSlots().empty()) {
+    if (machine_obj && machine_obj->is_enable_np && machine_obj->GetExtderSystem()->IsBusyLoading()) {
         return true;
     }
 
