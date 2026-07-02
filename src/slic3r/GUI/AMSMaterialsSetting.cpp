@@ -1509,15 +1509,26 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
             if (!m_comboBox_filament->GetValue().IsEmpty()) {
                 auto filament_item = map_filament_items[into_u8(m_comboBox_filament->GetValue())];
                 std::string filament_id   = filament_item.filament_id;
+
                 if (it->filament_id.compare(filament_id) == 0) {
                     bool has_compatible_printer = false;
-                    std::string preset_name            = it->name;
-                    for (std::string printer_name : printer_names) {
-                        if (preset_name.find(printer_name) != std::string::npos) {
-                            has_compatible_printer = true;
-                            break;
+                    ConfigOption* printer_opt = it->config.option("compatible_printers");
+                    ConfigOptionStrings* fila_compatible_printer_strs = dynamic_cast<ConfigOptionStrings*>(printer_opt);
+                    if (fila_compatible_printer_strs) {
+                        for (const auto& fila_compatible_printer_str : fila_compatible_printer_strs->values) {
+                            for (std::string printer_name : printer_names) {
+                                if (fila_compatible_printer_str.find(printer_name) != std::string::npos) {
+                                    has_compatible_printer = true;
+                                    break;
+                                }
+                            }
+
+                            if (has_compatible_printer) {
+                                break;
+                            }
                         }
                     }
+
                     if (!it->is_system && !has_compatible_printer) continue;
                     // ) if nozzle_temperature_range is found
                     ConfigOption* opt_min = it->config.option("nozzle_temperature_range_low");
