@@ -3041,6 +3041,11 @@ Preset* CalibrationPresetPage::get_printer_preset(MachineObject* obj, float nozz
         }
     }
 
+    if (!printer_preset) {
+        BOOST_LOG_TRIVIAL(warning) << "get_printer_preset: no matching system printer preset, printer_type="
+                                   << obj->printer_type << " nozzle_value=" << nozzle_value;
+    }
+
     return printer_preset;
 }
 
@@ -3065,6 +3070,11 @@ Preset* CalibrationPresetPage::get_print_preset()
                 BOOST_LOG_TRIVIAL(trace) << "CaliPresetPage: get_print_preset = " << print_preset->name;
             }
         }
+    }
+
+    if (!print_preset) {
+        BOOST_LOG_TRIVIAL(warning) << "get_print_preset: null, printer_preset=" << (printer_preset ? "found" : "null")
+                                   << " default_print_profile=\"" << default_print_profile_name << "\"";
     }
 
     return print_preset;
