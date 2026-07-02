@@ -477,7 +477,15 @@ static std::string get_filament_id(std::string vendor_typr_serial)
         }
     }
 
-    std::string user_filament_id = "P" + calculate_md5(vendor_typr_serial).substr(0, 7);
+    // Include user_id in hash to avoid cross-user collision.
+    std::string hash_input = vendor_typr_serial;
+    NetworkAgent *agent = wxGetApp().getAgent();
+    if (agent && agent->is_user_login() && !agent->get_user_id().empty()) {
+        // '@' is used as separator to avoid ambiguity between filament name and user_id,
+        // such as filament name having numbers.
+        hash_input += "@" + agent->get_user_id();
+    }
+    std::string user_filament_id = "P" + calculate_md5(hash_input).substr(0, 7);
 
     while (filament_id_to_filament_name.find(user_filament_id) != filament_id_to_filament_name.end()) {//find same filament id
         bool have_same_filament_name = false;
