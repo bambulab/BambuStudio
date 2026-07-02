@@ -1,4 +1,5 @@
 import type { AmsFilamentHotendLineState } from '../types';
+import { visibleFilamentColor } from '../visibleFilamentColor';
 
 // Standby tube color when no filament is in the line.
 const STANDBY_COLOR = '#DBDBDB';
@@ -26,7 +27,9 @@ export function FeedLine({
   // color (default `#D9D9D9` is treated as "unknown" and falls back to grey).
   const hasRealColor = !!color && color.toLowerCase() !== FALLBACK_SPOOL_COLOR.toLowerCase();
   const isLive = hasFilamentInNozzle ?? (state === 'loaded' || state === 'loading' || state === 'unloading');
-  const stroke = isLive && hasRealColor ? color : STANDBY_COLOR;
+  // Tint only a live, real filament colour; the standby grey tube already
+  // reads fine on the light background.
+  const lineColor = isLive && hasRealColor && color ? visibleFilamentColor(color) : STANDBY_COLOR;
 
   // Per Figma 1477:113586, the feed line is solid when filament is fully
   // loaded; loading / unloading keep the dashed look to convey motion;
@@ -51,7 +54,7 @@ export function FeedLine({
         y1={0}
         x2={12}
         y2={height}
-        stroke={stroke}
+        stroke={lineColor}
         strokeWidth={2}
         strokeDasharray={isSolid ? undefined : '2.025 4.05'}
       />

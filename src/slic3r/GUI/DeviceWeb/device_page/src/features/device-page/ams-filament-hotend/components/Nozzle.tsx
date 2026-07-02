@@ -1,4 +1,5 @@
 import type { AmsFilamentHotendNozzleState, HotendToolKind } from '../types';
+import { visibleFilamentColor } from '../visibleFilamentColor';
 
 // Inline nozzle from the Figma export (viewBox 24x48). Rendered as SVG so
 // the dashed filament path through the assembly can take the spool color
@@ -111,7 +112,9 @@ export function Nozzle({
   // sentinel and renders as the standby grey).
   const hasFilament = hasFilamentInNozzle ?? nozzleState === 'Active';
   const hasRealColor = !!color && color.toLowerCase() !== FALLBACK_SPOOL_COLOR.toLowerCase();
-  const filamentColor = hasFilament && hasRealColor ? color : STANDBY_COLOR;
+  // Tint near-white colours so the in-nozzle filament stays visible against
+  // the light background, matching the FeedLine treatment above.
+  const filamentColor = hasFilament && hasRealColor && color ? visibleFilamentColor(color) : STANDBY_COLOR;
 
   // Shared filament overlay, parameterized on the upper/lower clip bounds so
   // each render branch can reuse it with its own body geometry. Switches
