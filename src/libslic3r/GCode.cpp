@@ -869,12 +869,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         }
         check_add_eol(toolchange_retract_str);
 
-        if (tcr.nozzle_change_result.heater_off_only) {
-            char buf[128];
-            snprintf(buf, sizeof(buf), "M104 I%d S0 N0 C ;Nozzle change heater off\n", tcr.nozzle_change_result.precool_filament_id); // heater off is a cooling action, mark C (aligned with other slicer M104)
-            toolchange_retract_str += buf;
-        }
-
         //BBS: if needed, write the gcode_label_objects_end then priming tower, if the retract, didn't did it.
         std::string object_end_label_temp;
         gcodegen.m_writer.add_object_end_labels(object_end_label_temp);

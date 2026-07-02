@@ -5114,7 +5114,9 @@ void TabFilament::toggle_options()
             toggle_line(el, is_tower_interface_supported);
 
         bool handle_hotend_as_extruder = m_preset_bundle->printers.get_edited_preset().config.opt_bool("handle_hotend_as_extruder");
+        toggle_line("filament_cooling_before_tower", !handle_hotend_as_extruder, 0);
         toggle_line("filament_idle_travel_cooling_enabled", handle_hotend_as_extruder);
+        m_active_page->update_visibility(m_mode, true);
     }
 
     if (m_active_page && m_active_page->title() == "Multi Filament") {
