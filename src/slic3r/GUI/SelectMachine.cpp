@@ -304,6 +304,11 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     timeimg = new wxStaticBitmap(m_basic_panel, wxID_ANY, print_time->bmp(), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
     m_stext_time = new Label(m_basic_panel, wxEmptyString);
     m_stext_time->SetFont(Label::Body_13);
+    m_time_estimate_tip = new Label(m_basic_panel, wxString::FromUTF8("●"));
+    m_time_estimate_tip->SetFont(Label::Body_8);
+    m_time_estimate_tip->SetForegroundColour(wxColour("#FF6F00"));
+    m_time_estimate_tip->SetToolTip(_L("The current estimated time has been recalculated based on the actual filament mapping."));
+    m_time_estimate_tip->Hide();
 
     print_weight   = new ScalableBitmap(m_scroll_area, "print-weight", 18);
     weightimg = new wxStaticBitmap(m_basic_panel, wxID_ANY, print_weight->bmp(), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
@@ -326,6 +331,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_basic_weight_time->Add(timeimg, 0, wxALIGN_CENTER, 0);
     m_sizer_basic_weight_time->Add(m_stext_time, 0, wxALIGN_CENTER|wxLEFT, FromDIP(6));
+    m_sizer_basic_weight_time->Add(m_time_estimate_tip, 0, wxALIGN_TOP | wxLEFT, FromDIP(2));
     m_sizer_basic_weight_time->AddSpacer(FromDIP(30));
     m_sizer_basic_weight_time->Add(weightimg, 0, wxALIGN_CENTER, 0);
     m_sizer_basic_weight_time->Add(m_stext_weight, 0, wxALIGN_CENTER|wxLEFT, FromDIP(6));
@@ -1539,9 +1545,41 @@ void SelectMachineDialog::auto_supply_with_ext(std::vector<DevAmsTray> slots) {
         }
     }
 }
+
+void SelectMachineDialog::update_time_estimate_tip(bool show)
+{
+    if (!m_time_estimate_tip)
+        return;
+
+    // Gate on the preset's own AMS timing config instead of a hard-coded machine
+    // name or nozzle variant: only presets that configure AMS load/unload times
+    // set selected_ams_type to a concrete enum value (>= 0; the default is -1)
+    // and carry non-empty ams_filament_*_time vectors. This keeps the tip in
+    // sync with should_show_ams_time_ui() on the printer settings page.
+    bool allow_tip = false;
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle) {
+        const auto& printer_config = preset_bundle->printers.get_edited_preset().config;
+        const auto* sel_opt        = printer_config.option<ConfigOptionInt>("selected_ams_type");
+        const auto* ams_load_opt   = printer_config.option<ConfigOptionFloats>("ams_filament_load_time");
+        const auto* ams_unload_opt = printer_config.option<ConfigOptionFloats>("ams_filament_unload_time");
+        allow_tip = sel_opt && sel_opt->value >= 0 &&
+                    ams_load_opt && ams_unload_opt &&
+                    (!ams_load_opt->values.empty() || !ams_unload_opt->values.empty());
+    }
+
+    const wxString tip = _L("The current estimated time has been recalculated based on the actual filament mapping.");
+    const bool show_tip = show && allow_tip;
+    m_time_estimate_tip->Show(show_tip);
+    m_time_estimate_tip->SetToolTip(show_tip ? tip : wxString());
+    if (m_basic_panel)
+        m_basic_panel->Layout();
+}
+
 void SelectMachineDialog::refresh_save_time(MachineObject *obj)
 {
     if (m_print_type != FROM_NORMAL) {
+        update_time_estimate_tip(false);
         return;
     }
 
@@ -1552,12 +1590,16 @@ void SelectMachineDialog::refresh_save_time(MachineObject *obj)
         PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
         if (plate && plate->get_slice_result()) {
             float base_time = plate->get_slice_result()->print_statistics.modes[0].time;
+            const wxString sliced_time = wxString::Format("%s", short_time(get_time_dhms(base_time)));
             if (save_time.has_value()) {
                 base_time += save_time.value();
                 if (base_time < 0) base_time = 0;
             }
             print_time = wxString::Format("%s", short_time(get_time_dhms(base_time)));
             m_stext_time->SetLabel(print_time);
+            update_time_estimate_tip(print_time != sliced_time);
+        } else {
+            update_time_estimate_tip(false);
         }
     }
 

@@ -405,6 +405,7 @@ protected:
     wxSimplebook*                       m_simplebook{nullptr};
     wxStaticText*                       m_rename_text{nullptr};
     Label*                              m_stext_time{ nullptr };
+    Label*                              m_time_estimate_tip{ nullptr };
     Label*                              m_stext_weight{ nullptr };
     Label*                              m_saveTimeText{ nullptr };
     PrinterMsgPanel *                   m_statictext_ams_msg{nullptr};
@@ -512,6 +513,7 @@ public:
     void update_best_pos_dialog(wxCommandEvent &evt);
     void update_ams_check(MachineObject* obj);
     void update_filament_change_count();
+    void update_time_estimate_tip(bool show);
     void on_rename_click(wxMouseEvent &event);
     void on_rename_enter();
     void update_printer_combobox(wxCommandEvent& event);
