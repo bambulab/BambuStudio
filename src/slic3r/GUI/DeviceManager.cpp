@@ -1668,7 +1668,8 @@ int MachineObject::command_ams_calibrate(int ams_id)
     return this->publish_gcode(gcode_cmd);
 }
 
-int MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type, int nozzle_temp_min, int nozzle_temp_max)
+int MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type,
+                                                 int nozzle_temp_min, int nozzle_temp_max, const std::vector<std::string>& tray_colors, int tray_ctype)
 {
     int tag_tray_id = 0;
     int tag_ams_id  = ams_id;
@@ -1693,6 +1694,10 @@ int MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::s
     j["print"]["nozzle_temp_min"]   = nozzle_temp_min;
     j["print"]["nozzle_temp_max"]   = nozzle_temp_max;
     j["print"]["tray_type"]         = tray_type;
+    if (!tray_colors.empty()) {
+        j["print"]["cols"]  = tray_colors;
+        j["print"]["ctype"] = tray_ctype;
+    }
 
     return this->publish_json(j);
 }
@@ -4107,8 +4112,7 @@ DevAmsTray MachineObject::parse_vt_tray(json vtray)
 
     if (vt_tray.hold_count > 0) {
         vt_tray.hold_count--;
-    }
-    else {
+    } else {
         if (vtray.contains("tag_uid"))
             vt_tray.tag_uid = vtray["tag_uid"].get<std::string>();
         else
@@ -4409,6 +4413,7 @@ void MachineObject::parse_new_info(json print)
         is_support_model_internal_storage = (get_flag_bits_no_border(fun2, 17) == 1);
         is_support_check_track_switch_match_slice_printer = (get_flag_bits_no_border(fun2, 19) == 1);
         ams_preload_version = static_cast<int>(get_flag_bits_no_border(fun2, 21, 2));
+        is_support_filament_manual_multi_color = (get_flag_bits_no_border(fun2, 23) == 1);
 
         if (DevPrinterConfigUtil::support_print_check_firmware_for_tpu_left(printer_type)) {
             m_firmware_support_print_tpu_left = DevUtil::get_flag_bits_no_border(fun2, 7) == 1;

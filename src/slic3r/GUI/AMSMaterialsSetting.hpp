@@ -44,7 +44,7 @@ public:
     bool            m_selected{false};
     bool            m_show_full{false};
     bool            m_is_empty{false};
-    int             ctype;
+    int             ctype = 0;
 
     bool            transparent_changed{false};
 
@@ -66,24 +66,39 @@ public:
 class ColorPickerPopup : public PopupWindow
 {
 public:
+    struct ColorItem
+    {
+        std::vector<wxColour> colors;
+        int                   ctype = 0;
+        wxString              name;
+    };
+
     ScalableBitmap m_ts_bitmap_custom;
     wxStaticBitmap* m_ts_stbitmap_custom;
     StaticBox* m_custom_cp;
     wxColourData* m_clrData;
     StaticBox* m_def_color_box;
     wxFlexGridSizer* m_ams_fg_sizer;
+    wxFlexGridSizer* m_other_fg_sizer;
     wxColour m_def_col;
+    std::vector<wxColour> m_def_cols;
+    int m_def_ctype = 0;
     std::vector<wxColour> m_def_colors;
-    std::vector<wxColour> m_ams_colors;
+    std::vector<ColorItem> m_ams_color_items;
     std::vector<ColorPicker*> m_color_pickers;
+    std::vector<ColorPicker*> m_default_color_pickers;
     std::vector<ColorPicker*> m_ams_color_pickers;
+    std::vector<ColorPicker*> m_preset_color_pickers;
 
 public:
     ColorPickerPopup(wxWindow* parent);
     ~ColorPickerPopup() {};
     void on_custom_clr_picker(wxMouseEvent& event);
-    void set_ams_colours(std::vector<wxColour> ams);
-    void set_def_colour(wxColour col);
+    void set_ams_colours(const std::vector<ColorItem>& ams);
+    void set_preset_colours(const std::vector<ColorItem>& preset_colors);
+    void set_def_colour(wxColour col, std::vector<wxColour> cols = {}, int ctype = 0);
+    const std::vector<wxColour>& get_selected_colours() const { return m_def_cols; }
+    int get_selected_ctype() const { return m_def_ctype; }
     void paintEvent(wxPaintEvent& evt);
     void Popup();
     virtual void OnDismiss() wxOVERRIDE;
@@ -165,6 +180,7 @@ protected:
     int  get_nozzle_combo_id_code() const;
     int  get_nozzle_sel_by_sn(MachineObject* obj, const std::string& sn);
     int  get_cali_index_by_ams_slot(MachineObject* obj, int ams_id, int slot_id);
+    std::vector<ColorPickerPopup::ColorItem> get_preset_color_items(const std::string& filament_id) const;
 
     void get_filaments_info(const MachineObject*                     obj,
                             const std::string&                       nozzle_diameter_str,
