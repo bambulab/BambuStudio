@@ -9,6 +9,7 @@
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "format.hpp"
 #include <wx/language.h>
+#include <wx/weakref.h>
 
 // Localization headers: include libslic3r version first so everything in this file
 // uses the slic3r/GUI version (the macros will take precedence over the functions).
@@ -3169,7 +3170,7 @@ bool GUI_App::on_init_inner()
         p_ogl_manager->set_advanced_gcode_viewer_enabled(b_advanced_gcode_viewer_enabled);
     }
 
-    BBLSplashScreen * scrn = nullptr;
+    wxWeakRef<BBLSplashScreen> scrn;
 
     // BBS: ensure the splash screen is torn down on every exit path safely
     ScopeGuard delete_scrn([&scrn]() {
