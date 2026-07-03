@@ -2,7 +2,6 @@
 #include "GUI_App.hpp"
 #include "FilamentBitmapUtils.hpp"
 #include <slic3r/GUI/wxExtensions.hpp>
-#include <boost/algorithm/string.hpp>
 
 namespace Slic3r { namespace GUI {
 
@@ -34,46 +33,6 @@ wxColor Hex2Color(const std::string& str)
     if (str.size() == 9)
         a = hexToByte(str.substr(7, 2));
     return wxColor(r, g, b, a);
-}
-
-// Look up a filament's full color set (gradient / dual / multi) from the project config by 1-based
-// filament id. out_colors is the split filament_multi_colour string (falling back to the single
-// filament_colour), out_is_gradient reflects filament_colour_type ("0" == gradient).
-void get_filament_colors_from_config(int filament_id, std::vector<wxColour> &out_colors, bool &out_is_gradient)
-{
-    out_colors.clear();
-    out_is_gradient = false;
-
-    auto preset_bundle = wxGetApp().preset_bundle;
-    if (!preset_bundle) return;
-
-    const int idx = filament_id - 1; // filament ids are 1-based
-    if (idx < 0) return;
-
-    auto &proj_config = preset_bundle->project_config;
-
-    auto *multi_colour_opt = proj_config.option<ConfigOptionStrings>("filament_multi_colour");
-    if (multi_colour_opt && idx < (int) multi_colour_opt->values.size()) {
-        std::vector<std::string> tokens;
-        boost::algorithm::split(tokens, multi_colour_opt->values[idx], boost::algorithm::is_any_of(" "), boost::algorithm::token_compress_on);
-        for (const auto &token : tokens) {
-            if (token.empty()) continue;
-            wxColour c(token);
-            if (c.IsOk()) out_colors.push_back(c);
-        }
-    }
-
-    // Fall back to the single filament_colour when there is no usable multi-color string.
-    if (out_colors.empty()) {
-        auto *colour_opt = proj_config.option<ConfigOptionStrings>("filament_colour");
-        if (colour_opt && idx < (int) colour_opt->values.size()) {
-            wxColour c(colour_opt->values[idx]);
-            if (c.IsOk()) out_colors.push_back(c);
-        }
-    }
-
-    auto *colour_type_opt = proj_config.option<ConfigOptionStrings>("filament_colour_type");
-    if (colour_type_opt && idx < (int) colour_type_opt->values.size()) out_is_gradient = (colour_type_opt->values[idx] == "0");
 }
 
 // Custom data object used to store information that needs to be backed up during drag and drop
@@ -163,7 +122,7 @@ void ColorPanel::OnPaint(wxPaintEvent &event)
     // Derive the filament's color set from its id (the project config is the single source of truth).
     std::vector<wxColour> colors;
     bool                  is_gradient = false;
-    get_filament_colors_from_config(m_filament_id, colors, is_gradient);
+    get_filament_colors_by_id(m_filament_id - 1, colors, is_gradient); // m_filament_id is 1-based
     if (colors.empty()) colors.push_back(*wxBLACK);
 
     if (colors.size() > 1) {

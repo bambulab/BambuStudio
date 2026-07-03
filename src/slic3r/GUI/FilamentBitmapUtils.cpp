@@ -4,7 +4,10 @@
 #include <cmath>
 
 #include "EncodedFilament.hpp"
+#include "FilamentBitmapUtils.hpp"
 #include "GUI_App.hpp"
+#include "libslic3r/Utils.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -243,6 +246,39 @@ wxBitmap create_filament_bitmap(const std::vector<wxColour>& colors, const wxSiz
         case 4: return create_quadruple_filament_bitmap(sorted_colors, size);
         default: return create_gradient_filament_bitmap(sorted_colors, size);
     }
+}
+
+void get_filament_colors_by_id(int filament_index, std::vector<wxColour>& out_colors, bool& out_is_gradient)
+{
+    out_colors.clear();
+    out_is_gradient = false;
+
+    auto preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle || filament_index < 0) return;
+
+    auto& proj_config = preset_bundle->project_config;
+
+    if (auto* multi_colour_opt = proj_config.option<ConfigOptionStrings>("filament_multi_colour");
+        multi_colour_opt && filament_index < (int) multi_colour_opt->values.size()) {
+        for (const std::string& token : Slic3r::split_string(multi_colour_opt->values[filament_index], ' ')) {
+            if (token.empty()) continue;
+            wxColour c(token);
+            if (c.IsOk()) out_colors.push_back(c);
+        }
+    }
+
+    // Fall back to the single filament_colour when there is no usable multi-colour string.
+    if (out_colors.empty()) {
+        if (auto* colour_opt = proj_config.option<ConfigOptionStrings>("filament_colour");
+            colour_opt && filament_index < (int) colour_opt->values.size()) {
+            wxColour c(colour_opt->values[filament_index]);
+            if (c.IsOk()) out_colors.push_back(c);
+        }
+    }
+
+    if (auto* colour_type_opt = proj_config.option<ConfigOptionStrings>("filament_colour_type");
+        colour_type_opt && filament_index < (int) colour_type_opt->values.size())
+        out_is_gradient = (colour_type_opt->values[filament_index] == "0");
 }
 
 }} // namespace Slic3r::GUI
