@@ -7,57 +7,72 @@
  *********************************************************************/
 #include "DevMappingHelpers.h"
 
+#include <set>
+
+#include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "GUI_App.hpp"
+#include "Plater.hpp"
 
-#include "libslic3r/PresetBundle.hpp"
-#include "libslic3r/Config.hpp"
-#include "libslic3r/Utils.hpp"
+#include "libslic3r/MultiNozzleUtils.hpp"
 
 #include "DeviceCore/DevDefs.h"
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevNozzleRack.h"
 #include "DeviceCore/DevNozzleSystem.h"
+#include "DeviceCore/DevUtilBackend.h"
 
 namespace Slic3r { namespace GUI {
 
-ExpectedNozzleSpec ResolveExpectedNozzleSpec(int filament_id)
+ExpectedNozzleSpec ResolveExpectedNozzleSpecFromGroupResult(
+    int filament_id,
+    const MultiNozzleUtils::NozzleGroupResultBase* group_result)
 {
     ExpectedNozzleSpec spec;
+    if (!group_result)
+        return spec;
 
-    auto* preset_bundle = wxGetApp().preset_bundle;
-    if (!preset_bundle) return spec;
+    const auto nozzles = group_result->get_nozzles_for_filament(filament_id);
+    if (nozzles.empty())
+        return spec;
 
-    const auto& project_config = preset_bundle->project_config;
-    const auto& full_config    = preset_bundle->full_config();
-
-    int extruder_idx = filament_id;
-    const auto* opt_fmap = project_config.option<ConfigOptionInts>("filament_map");
-    if (opt_fmap && filament_id >= 0 && (size_t)filament_id < opt_fmap->size()) {
-        extruder_idx = opt_fmap->get_at(filament_id) - 1;
+    std::set<float> diameters;
+    std::set<NozzleFlowType> flows;
+    for (const auto& nozzle : nozzles) {
+        try {
+            diameters.insert(static_cast<float>(boost::lexical_cast<double>(nozzle.diameter)));
+        } catch (const std::exception&) {
+            diameters.insert(static_cast<float>(atof(nozzle.diameter.c_str())));
+        }
+        flows.insert(DevNozzle::ToNozzleFlowType(nozzle.volume_type));
     }
-    if (extruder_idx < 0) return spec;
+    if (diameters.empty())
+        return spec;
 
-    const auto* opt_dia = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    if (!opt_dia || (size_t)extruder_idx >= opt_dia->size()) return spec;
-    spec.diameter = (float)opt_dia->get_at(extruder_idx);
+    spec.diameter = *diameters.begin();
     spec.valid    = true;
 
-    const auto* opt_vol = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-    if (opt_vol && (size_t)extruder_idx < opt_vol->size()) {
-        // Hybrid maps to NONE_FLOWTYPE here, which the per-slot check
-        // treats as "any flow accepted".
-        spec.flow = DevNozzle::ToNozzleFlowType((NozzleVolumeType)opt_vol->get_at(extruder_idx));
-    }
-
-    const auto* opt_nt = full_config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
-    if (opt_nt && (size_t)extruder_idx < opt_nt->size()) {
-        spec.nozzle_type = (NozzleType)opt_nt->get_at(extruder_idx);
-    }
+    // Multiple flow types across layers -> Hybrid: skip strict flow check
+    // (same semantics as DevMapping + existing preset Hybrid -> NONE_FLOWTYPE).
+    if (flows.size() > 1)
+        spec.flow = NozzleFlowType::NONE_FLOWTYPE;
+    else if (!flows.empty())
+        spec.flow = *flows.begin();
 
     return spec;
+}
+
+ExpectedNozzleSpec ResolveExpectedNozzleSpec(int filament_id, Plater* plater)
+{
+    if (!plater)
+        return {};
+
+    auto group_result = DevUtilBackend::GetNozzleGroupResult(plater);
+    if (!group_result)
+        return {};
+
+    return ResolveExpectedNozzleSpecFromGroupResult(filament_id, group_result.get());
 }
 
 std::optional<DevNozzle> QueryRackNozzleAt(MachineObject*  obj,

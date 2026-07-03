@@ -281,11 +281,11 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildState() const
 
     data[SK::root::selected_dev_id] = obj->get_dev_id();
 
-    // Slicing nozzle requirement for the current filament (only resolved when
-    // the device exposes a nozzle rack; matches the legacy popup).
+    // Slicing nozzle requirement for the current filament from NozzleGroupResult
+    // (per-filament slice assignment). When unavailable, nozzle_match is skipped.
     ExpectedNozzleSpec expected_nozzle;
     if (obj->GetNozzleRack()->IsSupported()) {
-        expected_nozzle = ResolveExpectedNozzleSpec(m_current_filament_id);
+        expected_nozzle = ResolveExpectedNozzleSpec(m_current_filament_id, wxGetApp().plater());
     }
 
     // Determine whether a ZMULTI (internal AMS) is present.

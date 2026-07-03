@@ -26,7 +26,10 @@ namespace Slic3r {
 class MachineObject;
 class DevAms;
 class DevAmsTray;
+namespace MultiNozzleUtils { class NozzleGroupResultBase; }
 namespace GUI {
+
+class Plater;
 
 // Slicing nozzle requirement for a specific filament.
 // Used by hotend mapping to flag slots whose physical nozzle (diameter
@@ -86,10 +89,14 @@ struct SubAmsGroup
     bool                  is_preload = false;
 };
 
-// Resolve the slicing's expected nozzle for the given filament id by
-// reading the live preset bundle. Falls back to using filament_id
-// directly when filament_map is missing (works for single-extruder).
-ExpectedNozzleSpec ResolveExpectedNozzleSpec(int filament_id);
+// Resolve per-filament expected nozzle from slice group result only.
+// Returns spec.valid=false when group_result is null or filament has no nozzles.
+ExpectedNozzleSpec ResolveExpectedNozzleSpecFromGroupResult(
+    int filament_id,
+    const MultiNozzleUtils::NozzleGroupResultBase* group_result);
+
+// Unified entry: resolve from slice group result when available.
+ExpectedNozzleSpec ResolveExpectedNozzleSpec(int filament_id, Plater* plater = nullptr);
 
 // Resolve the rack nozzle bound to this tray's slot. Returns std::nullopt
 // when the nozzle cannot be located (no rack, slot not bound to a rack
