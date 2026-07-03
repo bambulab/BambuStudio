@@ -184,7 +184,7 @@ protected:
     int  get_cali_index_by_ams_slot(MachineObject* obj, int ams_id, int slot_id);
     bool support_filament_remain_edit() const;
     bool can_edit_filament_weight() const;
-    bool validate_filament_weight_inputs(int& total_weight, int& remain_weight) const;
+    bool validate_filament_weight_inputs(bool is_target_bbl, int& total_weight, int& remain_weight) const;
     bool filament_weight_changed(int total_weight, int remain_weight) const;
     void update_filament_weight_editing();
     std::vector<ColorPickerPopup::ColorItem> get_preset_color_items(const std::string& filament_id) const;

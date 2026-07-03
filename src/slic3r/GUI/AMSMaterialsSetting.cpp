@@ -633,12 +633,36 @@ bool AMSMaterialsSetting::can_edit_filament_weight() const
     return support_filament_remain_edit() && !m_filament_type.empty();
 }
 
-bool AMSMaterialsSetting::validate_filament_weight_inputs(int& total_weight, int& remain_weight) const
+bool AMSMaterialsSetting::validate_filament_weight_inputs(bool is_target_bbl, int& cmd_total_weight, int& cmd_remain_weight) const
 {
     if (!can_edit_filament_weight()) return true;
 
     wxString total_text = m_input_total_weight->GetTextCtrl()->GetValue();
     wxString remain_text = m_input_remain_weight->GetTextCtrl()->GetValue();
+    if (total_text.IsEmpty() && remain_text.IsEmpty()) {
+        auto* dev_mgr = wxGetApp().getDeviceManager();
+        MachineObject* machine_obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+        if (machine_obj) {
+            auto tray_opt = machine_obj->get_tray(ams_id, slot_id);
+            if (tray_opt.has_value()) {
+                try {
+                    if (is_target_bbl) {
+                        cmd_total_weight = stoi(tray_opt->weight);
+                        cmd_remain_weight = cmd_total_weight;
+                    } else {
+                        cmd_total_weight = 1000;
+                        cmd_remain_weight = -1;
+                    }
+                }
+                catch (const std::exception& e) {
+
+                };
+            }
+        }
+
+        return true;
+    }
+
     long total = 0;
     long remain = 0;
     if (!total_text.ToLong(&total) || !remain_text.ToLong(&remain)) {
@@ -654,8 +678,9 @@ bool AMSMaterialsSetting::validate_filament_weight_inputs(int& total_weight, int
         return false;
     }
 
-    total_weight = static_cast<int>(total);
-    remain_weight = static_cast<int>(remain);
+    cmd_total_weight = static_cast<int>(total);
+    cmd_remain_weight = static_cast<int>(remain);
+
     return true;
 }
 
@@ -791,6 +816,28 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         }
 
         reset_calibration(selected_ams_id);
+
+        if (can_edit_filament_weight()) {
+            auto tray_opt = obj->get_tray(ams_id, slot_id);
+            if (tray_opt.has_value()) {
+                try {
+                    int total_weight;
+                    int remain_weight;
+                    if (DevFilaSystem::IsBBL_Filament(tray_opt->tag_uid)) {
+                        total_weight = stoi(tray_opt->weight);
+                        remain_weight = tray_opt->get_filament_remain_weight().value_or(total_weight);
+                    } else {
+                        total_weight = 1000;
+                        remain_weight = -1;
+                    }
+
+                    obj->GetFilaSystem()->CtrlSetFilamentWeight(ams_id, slot_id, total_weight, remain_weight);
+                }
+                catch (const std::exception& e) {
+
+                };
+            }
+        }
     }
     trigger_select_filament(std::string(), /*from_printer=*/true, wxEmptyString);
 }
@@ -941,7 +988,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
     if (!m_is_third) {
         int total_weight = 0;
         int remain_weight = 0;
-        if (!validate_filament_weight_inputs(total_weight, remain_weight))
+        if (!validate_filament_weight_inputs(/*is_target_bbl=*/true, total_weight, remain_weight))
             return;
         if (!save_pa_profile_selection())
             return;
@@ -1048,7 +1095,9 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 
     int total_weight = 0;
     int remain_weight = 0;
-    if (!validate_filament_weight_inputs(total_weight, remain_weight)) {
+    auto sel_opt = preset_bundle->get_filament_by_filament_id(filament_item.filament_id);
+    bool is_target_bbl = sel_opt && sel_opt->vendor == "Bambu Lab";
+    if (!validate_filament_weight_inputs(is_target_bbl, total_weight, remain_weight)) {
         return;
     }
 
