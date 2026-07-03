@@ -4482,6 +4482,9 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
     // get per-object support extruders
     auto op                 = object->get_config_value<ConfigOptionBool>(config_global, "enable_support");
     bool is_support_enabled = op && op->getBool();
+    auto raft_layers_op     = object->get_config_value<ConfigOptionInt>(config_global, "raft_layers");
+    bool has_raft           = raft_layers_op && raft_layers_op->getInt() > 0;
+    bool has_raft_base      = raft_layers_op && raft_layers_op->getInt() > 1;
     if (is_support_enabled) {
         auto op1 = object->get_config_value<ConfigOptionInt>(config_global, "support_filament");
         auto op2 = object->get_config_value<ConfigOptionInt>(config_global, "support_interface_filament");
@@ -4489,6 +4492,16 @@ void ModelInstance::get_arrange_polygon(void *ap, const Slic3r::DynamicPrintConf
         // id==0 means follow previous material, so need not be recorded
         if (op1 && (extruder_id = op1->getInt()) > 0) ret.extrude_id_filament_types.insert({extruder_id, get_filament_name(extruder_id)});
         if (op2 && (extruder_id = op2->getInt()) > 0) ret.extrude_id_filament_types.insert({extruder_id, get_filament_name(extruder_id)});
+    }
+    if (has_raft) {
+        auto op = object->get_config_value<ConfigOptionInt>(config_global, "raft_filament");
+        int  extruder_id;
+        if (op && (extruder_id = op->getInt()) > 0) ret.extrude_id_filament_types.insert({extruder_id, get_filament_name(extruder_id)});
+    }
+    if (has_raft_base) {
+        auto op = object->get_config_value<ConfigOptionInt>(config_global, "support_interface_filament");
+        int  extruder_id;
+        if (op && (extruder_id = op->getInt()) > 0) ret.extrude_id_filament_types.insert({extruder_id, get_filament_name(extruder_id)});
     }
 
     if (ret.extrude_id_filament_types.empty()) // the default extruder

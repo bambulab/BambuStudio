@@ -1327,8 +1327,12 @@ void TreeSupport::create_tree_support_layers()
     if (m_raft_layers > 0) { //create raft layers
         coordf_t raft_print_z = 0.f;
         coordf_t raft_slice_z = 0.f;
-        if (m_slicing_params.base_raft_layers > 0)
-        {
+        if (m_slicing_params.raft_layers() == 1) {
+            coordf_t height = m_slicing_params.first_print_layer_height;
+            raft_print_z += height;
+            raft_slice_z = raft_print_z - height / 2;
+            m_object->add_tree_support_layer(layer_id++, height, raft_print_z, raft_slice_z);
+        } else if (m_slicing_params.base_raft_layers > 0) {
             // Do not add the raft contact layer, 1st layer should use first_print_layer_height
             coordf_t height = m_slicing_params.first_print_layer_height;
             raft_print_z += height;
@@ -1343,7 +1347,8 @@ void TreeSupport::create_tree_support_layers()
             m_object->add_tree_support_layer(layer_id++, height, raft_print_z, raft_slice_z);
         }
         // Insert the interface layers.
-        for (size_t i = 0; i < m_slicing_params.interface_raft_layers; i++) {
+        size_t first_interface_layer = m_slicing_params.raft_layers() == 1 ? 1 : 0;
+        for (size_t i = first_interface_layer; i < m_slicing_params.interface_raft_layers; i++) {
             coordf_t height = m_slicing_params.interface_raft_layer_height;
             raft_print_z += height;
             raft_slice_z = raft_print_z - height / 2;
@@ -1595,22 +1600,23 @@ void TreeSupport::generate_toolpaths()
         coordf_t expand_offset = (layer_nr == 0 ? m_object_config->raft_first_layer_expansion.value : 0.);
         auto raft_areas1 = offset_ex(raft_areas, scale_(expand_offset));
 
-        Flow support_flow = Flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
+        const Flow &raft_base_flow = layer_nr == 0 ?
+            m_support_params.raft_first_layer_flow : m_support_params.raft_material_flow;
+        Flow support_flow(float(raft_base_flow.width()), ts_layer->height, raft_base_flow.nozzle_diameter());
         Fill* filler_raft = Fill::new_from_type(ipRectilinear);
         filler_raft->angle = layer_nr == 0 ? PI/2 : 0;
         filler_raft->spacing = support_flow.spacing();
 
         FillParams fill_params;
-        coordf_t raft_density = std::min(1., support_flow.spacing() / (object_config.support_base_pattern_spacing.value + support_flow.spacing()));
+        coordf_t raft_density = m_support_params.raft_density;
         fill_params.density = layer_nr == 0 ? object_config.raft_first_layer_density * 0.01 : raft_density;
         fill_params.dont_adjust = true;
 
         // wall of first layer raft
         if (layer_nr == 0) {
-            Flow flow = Flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
             extrusion_entities_append_loops(ts_layer->support_fills.entities, to_polygons(raft_areas1), erSupportMaterial,
-                        float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
-            raft_areas1 = offset_ex(raft_areas1, -flow.scaled_spacing() / 2.);
+                float(support_flow.mm3_per_mm()), float(support_flow.width()), float(support_flow.height()));
+            raft_areas1 = offset_ex(raft_areas1, -support_flow.scaled_spacing() / 2.);
         }
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_areas1,
             filler_raft, fill_params, erSupportMaterial, support_flow);
@@ -1637,17 +1643,20 @@ void TreeSupport::generate_toolpaths()
     {
         SupportLayer *ts_layer = m_object->get_support_layer(layer_nr);
 
-        Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
-        Fill* filler_interface = Fill::new_from_type(ipRectilinear);
-        filler_interface->angle = PI / 2;  // interface should be perpendicular to base
-        filler_interface->spacing = support_flow.spacing();
+        const bool raft_layer_uses_raft_filament = m_slicing_params.raft_layer_uses_raft_filament(layer_nr);
+        const bool  raft_layer_is_first_layer     = raft_layer_uses_raft_filament && layer_nr == 0;
+        const Flow &raft_flow                     = raft_layer_is_first_layer ? m_support_params.raft_first_layer_flow : m_support_params.raft_interface_flow;
+        Flow        support_flow(float(raft_flow.width()), ts_layer->height, raft_flow.nozzle_diameter());
+        Fill       *filler_interface = Fill::new_from_type(ipRectilinear);
+        filler_interface->angle      = PI / 2; // interface should be perpendicular to base
+        filler_interface->spacing    = support_flow.spacing();
 
         FillParams fill_params;
-        fill_params.density = interface_density;
+        fill_params.density     = raft_layer_is_first_layer ? object_config.raft_first_layer_density * 0.01 : m_support_params.raft_interface_density;
         fill_params.dont_adjust = true;
 
-        fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_interface_areas,
-            filler_interface, fill_params, erSupportMaterialInterface, support_flow);
+        fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_interface_areas, filler_interface, fill_params,
+            raft_layer_uses_raft_filament ? erSupportMaterial : erSupportMaterialInterface, support_flow);
 
         if (m_support_params.enable_support_ironing && !raft_interface_areas.empty()
             && layer_nr == m_slicing_params.base_raft_layers + m_slicing_params.interface_raft_layers-1) {

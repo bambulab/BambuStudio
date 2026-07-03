@@ -1138,6 +1138,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "mmu_segmented_region_max_width"
             || opt_key == "mmu_segmented_region_interlocking_depth"
             || opt_key == "raft_layers"
+            || opt_key == "raft_filament"
             || opt_key == "raft_contact_distance"
             || opt_key == "slice_closing_radius"
             || opt_key == "slicing_mode"
@@ -3059,6 +3060,7 @@ PrintObjectConfig PrintObject::object_config_from_model_object(const PrintObject
     }
     // Clamp invalid extruders to the default extruder (with index 1).
     clamp_exturder_to_default(config.support_filament,           num_extruders);
+    clamp_exturder_to_default(config.raft_filament,              num_extruders);
     clamp_exturder_to_default(config.support_interface_filament, num_extruders);
     return config;
 }

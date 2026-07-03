@@ -714,7 +714,7 @@ void ObjectList::update_filament_values_for_items(const size_t filaments_count)
         }
         m_objects_model->SetExtruder(extruder, item);
 
-        static const char *keys[] = {"support_filament", "support_interface_filament"};
+        static const char *keys[] = {"support_filament", "raft_filament", "support_interface_filament"};
         for (auto key : keys)
             if (object->config.has(key) && object->config.opt_int(key) > filaments_count)
                 object->config.erase(key);
@@ -769,7 +769,7 @@ void ObjectList::update_filament_values_for_items_when_delete_filament(const siz
         }
         m_objects_model->SetExtruder(extruder, item);
 
-        static const char *keys[] = {"support_filament", "support_interface_filament",
+        static const char *keys[] = {"support_filament", "raft_filament", "support_interface_filament",
             "sparse_infill_filament", "solid_infill_filament", "wall_filament"};
         for (auto key : keys) {
             if (object->config.has(key)) {

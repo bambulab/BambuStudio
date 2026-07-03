@@ -888,9 +888,14 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             if (er == erSupportMaterialInterface) has_interface = true;
             if (has_support && has_interface) break;
         }
-        unsigned int extruder_support   = object.config().support_filament.value;
-        unsigned int extruder_interface = object.config().support_interface_filament.value;
-        bool         interface_not_for_body = object.config().support_interface_not_for_body;
+        const bool raft_layer_uses_raft_filament = object.slicing_parameters().raft_layer_uses_raft_filament(support_layer->id());
+        unsigned int extruder_support   = raft_layer_uses_raft_filament ?
+            object.config().raft_filament.value :
+            object.config().support_filament.value;
+        unsigned int extruder_interface = raft_layer_uses_raft_filament ?
+            object.config().raft_filament.value :
+            object.config().support_interface_filament.value;
+        bool         interface_not_for_body = !raft_layer_uses_raft_filament && object.config().support_interface_not_for_body;
         if (has_support) {
             auto has_reusable_layer_extruder = [&]() -> bool {
                 for (unsigned int extruder_id : layer_tools.extruders) {
@@ -3045,14 +3050,13 @@ bool WipingExtrusions::is_support_overriddable(const ExtrusionRole role, const P
     if (!object.config().flush_into_support)
         return false;
 
+    const bool has_raft_filament_layer = object.slicing_parameters().raft_layers() > 0;
     if (role == erMixed) {
-        return object.config().support_filament == 0 || object.config().support_interface_filament == 0;
-    }
-    else if (role == erSupportMaterial || role == erSupportTransition) {
-        return object.config().support_filament == 0;
-    }
-    else if (role == erSupportMaterialInterface) {
-        return object.config().support_interface_filament == 0;
+        return object.config().support_filament == 0 || (has_raft_filament_layer && object.config().raft_filament == 0) || object.config().support_interface_filament == 0;
+    } else if (role == erSupportMaterial || role == erSupportTransition) {
+        return object.config().support_filament == 0 || (has_raft_filament_layer && object.config().raft_filament == 0);
+    } else if (role == erSupportMaterialInterface) {
+        return object.config().support_interface_filament == 0 || (has_raft_filament_layer && object.config().raft_filament == 0);
     }
 
     return false;
@@ -3163,8 +3167,13 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
                     if (this_support_layer == nullptr)
                         break;
 
-                    bool support_overriddable = object_config.support_filament == 0;
-                    bool support_intf_overriddable = object_config.support_interface_filament == 0;
+                    const bool raft_layer_uses_raft_filament = object->slicing_parameters().raft_layer_uses_raft_filament(this_support_layer->id());
+                    bool support_overriddable = raft_layer_uses_raft_filament ?
+                        object_config.raft_filament == 0 :
+                        object_config.support_filament == 0;
+                    bool support_intf_overriddable = raft_layer_uses_raft_filament ?
+                        object_config.raft_filament == 0 :
+                        object_config.support_interface_filament == 0;
                     if (!support_overriddable && !support_intf_overriddable)
                         break;
 
