@@ -2023,8 +2023,7 @@ wxString PrinterPartsDialog::GetString(NozzleFlowType nozzle_flow_type) const {
         case Slic3r::S_FLOW: return _L("Standard");
         case Slic3r::H_FLOW: return _L("High flow");
         case Slic3r::U_FLOW: return _L("TPU High flow");
-        case Slic3r::E_FLOW: return _L("E3D High Flow");
-        default: return wxEmptyString;
+        default: break;
     }
 
     return wxEmptyString;

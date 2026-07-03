@@ -5468,7 +5468,7 @@ static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles()
             for (const auto& used_nozzle : used_nozzles) {
                 NozzleDef nozzle_data;
                 nozzle_data.nozzle_diameter = std::stof(used_nozzle.diameter);
-                nozzle_data.nozzle_flow_type = DevNozzle::ToNozzleFlowType(used_nozzle.volume_type);
+                nozzle_data.nozzle_flow_type = (used_nozzle.volume_type == NozzleVolumeType::nvtHighFlow ? NozzleFlowType::H_FLOW : NozzleFlowType::S_FLOW);
                 if (used_nozzle.extruder_id == 0) {
                     used_extuder_nozzles.insert({ DEPUTY_EXTRUDER_ID, nozzle_data });
                 } else if (used_nozzle.extruder_id == 1) {
