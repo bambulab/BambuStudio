@@ -4617,7 +4617,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 class TranslationProcessor
 {
     using UpAction = std::function<void(void)>;
-    using DownAction = std::function<void(const Vec3d&, bool, bool)>;
+    using DownAction = std::function<void(const Vec3d&, bool, bool, bool)>;
 
     UpAction m_up_action{ nullptr };
     DownAction m_down_action{ nullptr };
@@ -4695,7 +4695,7 @@ public:
 
             if (apply) {
                 m_running = true;
-                m_down_action(m_direction, evt.ShiftDown(), evt.CmdDown());
+                m_down_action(m_direction, evt.ShiftDown(), evt.CmdDown(), evt.AltDown());
             }
         }
     }
@@ -4721,12 +4721,24 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
             refresh_camera_scene_box();
             m_dirty = true;
         },
-        [this](const Vec3d& direction, bool slow, bool camera_space) {
+        [this](const Vec3d& direction, bool slow, bool camera_space, bool fine) {
             if (m_gizmos.is_ban_move_glvolume()) {
                 return;
             }
             m_selection.setup_cache();
-            double multiplier = slow ? 1.0 : 10.0;
+            // Base arrow-key move step (mm) is configurable in Preferences ("Object move step");
+            // Shift makes it 0.1x and Alt 0.01x. Default 10 mm keeps the historical behaviour.
+            double base = 10.0;
+            if (auto* cfg = wxGetApp().app_config) {
+                double v = std::atof(cfg->get("arrow_move_step").c_str());
+                if (v > 0.0)
+                    base = v;
+            }
+            double multiplier = base;
+            if (slow)
+                multiplier *= 0.1;
+            if (fine)
+                multiplier *= 0.01;
 
             Vec3d displacement;
             if (camera_space) {

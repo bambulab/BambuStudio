@@ -211,6 +211,8 @@ void AppConfig::set_defaults()
         set("grabber_size_factor", "1.0");
     if (get("assembly_part_number_label_font_size").empty())
         set("assembly_part_number_label_font_size", "0");
+    if (get("arrow_move_step").empty())
+        set("arrow_move_step", "10.0");
     if (get("3d_middle_tooltip_offset_x").empty())
         set("3d_middle_tooltip_offset_x", "0.0");
     if (get("3d_middle_tooltip_offset_y").empty())
