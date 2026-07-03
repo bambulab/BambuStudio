@@ -26,10 +26,6 @@ struct BitmapDC {
     }
 };
 
-static BitmapDC init_bitmap_dc(const wxSize& size) {
-    return BitmapDC(size);
-}
-
 void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const wxColour& from, const wxColour& to)
 {
     if (rect.width <= 0 || rect.height <= 0) return;
@@ -55,41 +51,54 @@ static bool is_transparent_color(const wxColour& color) {
     return color.Alpha() == 0;
 }
 
+// Draw a 1px solid border around the full bitmap rectangle
+static void draw_border(wxDC& dc, const wxSize& size, const wxColour& color) {
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.SetPen(wxPen(color, 1, wxPENSTYLE_SOLID));
+    dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
+}
+
+// Draw checkerboard pattern into dc. inset: pixels reserved on each side for border.
+static void draw_checkerboard(wxDC& dc, const wxSize& size,
+                              const wxColour& color_light, const wxColour& color_dark,
+                              int inset)
+{
+    int x0 = inset, y0 = inset;
+    int x1 = size.GetWidth()  - inset;
+    int y1 = size.GetHeight() - inset;
+    int square_size = std::max(6, std::min(x1 - x0, y1 - y0) / 8);
+
+    for (int x = x0; x < x1; x += square_size) {
+        for (int y = y0; y < y1; y += square_size) {
+            bool is_light = ((x / square_size) + (y / square_size)) % 2 == 0;
+            dc.SetBrush(wxBrush(is_light ? color_light : color_dark));
+            int w = std::min(square_size, x1 - x);
+            int h = std::min(square_size, y1 - y);
+            dc.DrawRectangle(x, y, w, h);
+        }
+    }
+}
+
 // Create transparent bitmap
 static wxBitmap create_transparent_bitmap(const wxSize& size) {
-    BitmapDC bdc = init_bitmap_dc(size);
+    BitmapDC bdc(size);
     if (!bdc.dc.IsOk()) return wxNullBitmap;
 
     // Create checkerboard pattern
-    wxColour light_gray(217, 217, 217);  // #D9D9D9
-    wxColour white(255, 255, 255);
-
     bool is_dark_mode = wxGetApp().dark_mode();
 
     // Calculate parameters based on mode
-    int start_pos = is_dark_mode ? 0 : 1;
-    int end_width = is_dark_mode ? size.GetWidth() : size.GetWidth() - 1;
-    int end_height = is_dark_mode ? size.GetHeight() : size.GetHeight() - 1;
-    int square_size = std::max(6, std::min(end_width - start_pos, end_height - start_pos) / 8);
+    int inset = is_dark_mode ? 0 : 1;
 
     // Draw checkerboard
-    for (int x = start_pos; x < end_width; x += square_size) {
-        for (int y = start_pos; y < end_height; y += square_size) {
-            bool is_light = ((x / square_size) + (y / square_size)) % 2 == 0;
-            bdc.dc.SetBrush(wxBrush(is_light ? white : light_gray));
-
-            int width = std::min(square_size, size.GetWidth() - x);
-            int height = std::min(square_size, size.GetHeight() - y);
-            bdc.dc.DrawRectangle(x, y, width, height);
-        }
-    }
+    draw_checkerboard(bdc.dc, size,
+                      wxColour(255, 255, 255),
+                      wxColour(217, 217, 217),
+                      inset);
 
     // Add border only in light mode
-    if (!is_dark_mode) {
-        bdc.dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxPENSTYLE_SOLID));
-        bdc.dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        bdc.dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
-    }
+    if (!is_dark_mode)
+        draw_border(bdc.dc, size, wxColour(130, 130, 128));
 
     bdc.dc.SelectObject(wxNullBitmap);
     return bdc.bitmap;
@@ -110,12 +119,32 @@ static void sort_colors_by_hsv(std::vector<wxColour>& colors) {
 
 static wxBitmap create_single_filament_bitmap(const wxColour& color, const wxSize& size)
 {
-    // Check if color is transparent
-    if (is_transparent_color(color)) {
+    if (is_transparent_color(color))
         return create_transparent_bitmap(size);
+
+    // Semi-transparent: precompute blended colors (color over white) as solid,
+    // then reuse draw_checkerboard — no wxGraphicsContext needed.
+    // light square = color * 0.45 + white * 0.55, dark square = color * 0.70 + white * 0.30
+    if (color.Alpha() != wxALPHA_OPAQUE) {
+        BitmapDC bdc(size);
+        if (!bdc.dc.IsOk()) return wxNullBitmap;
+
+        auto blend = [](wxByte c, double a) -> wxByte {
+            return (wxByte)(c * a + 255.0 * (1.0 - a) + 0.5);
+        };
+        wxColour light_clr(blend(color.Red(), 0.45), blend(color.Green(), 0.45), blend(color.Blue(), 0.45));
+        wxColour dark_clr (blend(color.Red(), 0.70), blend(color.Green(), 0.70), blend(color.Blue(), 0.70));
+
+        draw_checkerboard(bdc.dc, size, light_clr, dark_clr, 1);
+
+        // Draw border in solid color
+        draw_border(bdc.dc, size, wxColour(color.Red(), color.Green(), color.Blue()));
+
+        bdc.dc.SelectObject(wxNullBitmap);
+        return bdc.bitmap;
     }
 
-    BitmapDC bdc = init_bitmap_dc(size);
+    BitmapDC bdc(size);
     if (!bdc.dc.IsOk()) return wxNullBitmap;
 
     bdc.dc.SetBackground(wxBrush(color));
@@ -124,18 +153,12 @@ static wxBitmap create_single_filament_bitmap(const wxColour& color, const wxSiz
     bdc.dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
 
     // Add gray border for light colors (similar to wxExtensions.cpp logic) - only in light mode
-    if (!wxGetApp().dark_mode() && color.Red() > 224 && color.Blue() > 224 && color.Green() > 224) {
-        bdc.dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxPENSTYLE_SOLID));
-        bdc.dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        bdc.dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
-    }
+    if (!wxGetApp().dark_mode() && color.Red() > 224 && color.Blue() > 224 && color.Green() > 224)
+        draw_border(bdc.dc, size, wxColour(130, 130, 128));
 
     // Add white border for dark colors - only in dark mode
-    if(wxGetApp().dark_mode() && color.Red() < 45 && color.Blue() < 45 && color.Green() < 45) {
-        bdc.dc.SetPen(wxPen(wxColour(207, 207, 207), 1, wxPENSTYLE_SOLID));
-        bdc.dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        bdc.dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
-    }
+    if (wxGetApp().dark_mode() && color.Red() < 45 && color.Blue() < 45 && color.Green() < 45)
+        draw_border(bdc.dc, size, wxColour(207, 207, 207));
 
     bdc.dc.SelectObject(wxNullBitmap);
     return bdc.bitmap;
@@ -143,7 +166,7 @@ static wxBitmap create_single_filament_bitmap(const wxColour& color, const wxSiz
 
 static wxBitmap create_dual_filament_bitmap(const wxColour& color1, const wxColour& color2, const wxSize& size)
 {
-    BitmapDC bdc = init_bitmap_dc(size);
+    BitmapDC bdc(size);
 
     int half_width = size.GetWidth() / 2;
 
@@ -159,7 +182,7 @@ static wxBitmap create_dual_filament_bitmap(const wxColour& color1, const wxColo
 
 static wxBitmap create_triple_filament_bitmap(const std::vector<wxColour>& colors, const wxSize& size)
 {
-    BitmapDC bdc = init_bitmap_dc(size);
+    BitmapDC bdc(size);
 
     int third_width = size.GetWidth() / 3;
     int remaining_width = size.GetWidth() - (third_width * 2);
@@ -180,16 +203,16 @@ static wxBitmap create_triple_filament_bitmap(const std::vector<wxColour>& color
 
 static wxBitmap create_quadruple_filament_bitmap(const std::vector<wxColour>& colors, const wxSize& size)
 {
-    BitmapDC bdc = init_bitmap_dc(size);
+    BitmapDC bdc(size);
 
     int half_width = (size.GetWidth() + 1) / 2;
     int half_height = (size.GetHeight() + 1) / 2;
 
     const int rects[4][4] = {
-        {0, 0, half_width, half_height},                    // Top left
-        {half_width, 0, size.GetWidth() - half_width, half_height},           // Top right
-        {0, half_height, half_width, size.GetHeight() - half_height},         // Bottom left
-        {half_width, half_height, size.GetWidth() - half_width, size.GetHeight() - half_height}  // Bottom right
+        {0, 0, half_width, half_height},                                                            // Top left
+        {half_width, 0, size.GetWidth() - half_width, half_height},                                // Top right
+        {0, half_height, half_width, size.GetHeight() - half_height},                              // Bottom left
+        {half_width, half_height, size.GetWidth() - half_width, size.GetHeight() - half_height}    // Bottom right
     };
 
     for (int i = 0; i < 4; i++) {
@@ -203,19 +226,15 @@ static wxBitmap create_quadruple_filament_bitmap(const std::vector<wxColour>& co
 
 static wxBitmap create_gradient_filament_bitmap(const std::vector<wxColour>& colors, const wxSize& size)
 {
-    BitmapDC bdc = init_bitmap_dc(size);
-
-    if (colors.size() == 1) {
-        return create_single_filament_bitmap(colors[0], size);
-    }
+    BitmapDC bdc(size);
 
     // use segment gradient, make transition more natural
-    wxDC& dc = bdc.dc;
+    wxDC &dc = bdc.dc;
     int total_width = size.GetWidth();
     int height = size.GetHeight();
 
     // calculate segment count
-    int segment_count = colors.size() - 1;
+    int segment_count = (int)colors.size() - 1;
     double segment_width = (double)total_width / segment_count;
 
     int left = 0;
