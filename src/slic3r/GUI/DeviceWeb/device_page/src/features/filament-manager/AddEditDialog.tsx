@@ -1846,7 +1846,8 @@ export function AddEditDialog({
   if (!open) return null;
 
   const currentUnit = amsData?.ams_units.find((u) => u.ams_id === selectedUnit);
-  const slotLabels = ['A1', 'A2', 'A3', 'A4'];
+  const unitLetter = currentUnit ? String.fromCharCode('A'.charCodeAt(0) + parseInt(currentUnit.ams_id, 10)) : 'A';
+  const slotLabels = [1, 2, 3, 4].map((n) => `${unitLetter}${n}`);
   // STUDIO-18344: form lock + form visibility derive from the new selection
   // model. Multi-select (>=2) hides the form entirely, so the lock flags
   // only matter in single-select mode.
@@ -2045,7 +2046,7 @@ export function AddEditDialog({
                   </div>
                   <div className="flex gap-[8px] py-[8px]">
                     {currentUnit.trays.map((tray, i) => {
-                      const label = slotLabels[i] || `A${i + 1}`;
+                      const label = slotLabels[i] || `${unitLetter}${i + 1}`;
                       const slotKey = `${currentUnit.ams_id}:${tray.slot_id}`;
                       const isSelected = selectedSlotKeys.has(slotKey);
                       if (!tray.is_exists) {
