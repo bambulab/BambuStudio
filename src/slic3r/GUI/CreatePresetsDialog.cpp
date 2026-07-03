@@ -1038,8 +1038,8 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         }
         boost::algorithm::trim(vendor_name);
         boost::algorithm::trim(serial_name);
-        if (!serial_str.IsEmpty() && serial_name.empty()) {
-            MessageDialog dlg(this, _L("The filament serial contains only invalid characters or spaces. Please correct it or leave it blank."),
+        if (serial_name.empty()) {
+            MessageDialog dlg(this, _L("The filament serial contains only invalid characters or spaces. Please correct it."),
                               wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return;
