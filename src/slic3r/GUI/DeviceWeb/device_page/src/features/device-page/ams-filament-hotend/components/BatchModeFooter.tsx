@@ -44,7 +44,7 @@ export function BatchModeFooter({
   const allSelected = totalSelectable > 0 && selectedCount === totalSelectable;
   const someSelected = selectedCount > 0 && selectedCount < totalSelectable;
   const canCommit = selectedCount > 0;
-  const showEdit = mode === 'batch_ext_load';
+  const showEdit = mode === 'batch_ext_load' || mode === 'batch_ams_load';
 
   const commitLabel = t(COMMIT_LABEL[mode] || 'Confirm');
 

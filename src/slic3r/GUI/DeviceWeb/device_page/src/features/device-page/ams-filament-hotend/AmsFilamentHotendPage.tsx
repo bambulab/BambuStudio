@@ -167,12 +167,12 @@ export function AmsFilamentHotendPage() {
   // mode is active, refresh on focus and with a light poll so the card grid
   // behind the edit dialog catches up after filament metadata changes.
   useEffect(() => {
-    if (currentMode !== 'batch_ext_load') return;
+    if (currentMode !== 'batch_ext_load' && currentMode !== 'batch_ams_load') return;
     let refreshing = false;
     const refreshExtMode = () => {
       if (refreshing) return;
       refreshing = true;
-      void refresh('batch_ext_load').finally(() => {
+      void refresh(currentMode).finally(() => {
         refreshing = false;
       });
     };
@@ -266,7 +266,7 @@ export function AmsFilamentHotendPage() {
   }, [inBatchMode, selectedSlots, runBatchAction, currentMode]);
 
   const onBatchEdit = useCallback(() => {
-    if (currentMode !== 'batch_ext_load') return;
+    if (currentMode !== 'batch_ext_load' && currentMode !== 'batch_ams_load') return;
     if (selectedSlots.length === 0) return;
     runSlotAction('batch_filament_edit', undefined, {
       intent: 'edit',

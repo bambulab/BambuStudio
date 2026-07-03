@@ -119,6 +119,7 @@ public:
 
     // extruder nozzle
     std::optional<int> get_nozzle_pos_id(MachineObject* obj) const;
+    std::optional<int> get_nozzle_addr_id(MachineObject* obj) const;
 
     // static
     static wxColour decode_color(const std::string& color);

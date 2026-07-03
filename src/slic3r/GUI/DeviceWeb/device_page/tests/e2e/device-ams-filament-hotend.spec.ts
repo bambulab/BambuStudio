@@ -22,14 +22,17 @@ test.describe('AMS filament hotend page', () => {
     await expect(page.getByTestId('ams-hotend-nozzle-8')).toHaveAttribute('data-nozzle-state', 'Active');
   });
 
-  test('keeps primary actions wired through mock bridge', async ({ page }) => {
-    await expect(page.getByTestId('ams-hotend-action-load-auto')).toBeEnabled();
-    await expect(page.getByTestId('ams-hotend-action-load-external')).toBeEnabled();
-    await expect(page.getByTestId('ams-hotend-action-unload')).toBeEnabled();
-    await expect(page.getByTestId('ams-hotend-action-dry')).toBeEnabled();
+  test('renders the icon toolbar and More dropdown wired through mock bridge', async ({ page }) => {
+    // New N1x toolbar: Read All (Rack-B only) + AMS Settings + More icons.
+    await expect(page.getByTestId('ams-hotend-action-read-all')).toBeVisible();
+    await expect(page.getByTestId('ams-hotend-action-settings')).toBeVisible();
+    await expect(page.getByTestId('ams-hotend-action-more')).toBeVisible();
 
-    await page.getByTestId('ams-hotend-action-load-auto').click();
-    await expect(page.getByTestId('ams-hotend-slot-5')).toHaveAttribute('data-card-state', 'ReadyToLoad');
+    // Open the More dropdown; the relocated actions live inside it.
+    await page.getByTestId('ams-hotend-action-more').click();
+    await expect(page.getByTestId('ams-hotend-more-menu')).toBeVisible();
+    await expect(page.getByTestId('ams-hotend-action-unload')).toBeVisible();
+    await expect(page.getByTestId('ams-hotend-action-dry')).toBeVisible();
 
     await page.getByTestId('ams-hotend-tab-hotend').click();
     await expect(page.getByTestId('ams-hotend-tab-hotend')).toHaveClass(/active/);

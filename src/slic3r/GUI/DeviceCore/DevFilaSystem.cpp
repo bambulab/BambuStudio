@@ -226,6 +226,26 @@ std::optional<int> DevAmsTray::get_filament_remain_weight() const
     }
 }
 
+std::optional<int> DevAmsTray::get_nozzle_addr_id(MachineObject* obj) const
+{
+    if (this->id.empty() || !obj) {
+        return std::nullopt;
+    }
+
+    try {
+        if (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A ||
+            obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
+            if (ams_type == DevAmsType::ZMULTI_A || ams_type == DevAmsType::ZMULTI_B) {
+                return std::stoi(this->id);
+            }
+        }
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: exception=" << e.what();
+    };
+
+    return std::nullopt;
+}
+
 std::optional<int> DevAmsTray::get_nozzle_pos_id(MachineObject* obj) const
 {
     if (this->id.empty() || !obj) {

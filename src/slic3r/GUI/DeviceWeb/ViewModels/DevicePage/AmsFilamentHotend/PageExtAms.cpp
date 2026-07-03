@@ -236,7 +236,7 @@ std::string make_ext_edit_slots_param(const nlohmann::json& slots)
     return joined;
 }
 
-void open_ext_filament_edit_dialog(const nlohmann::json& payload)
+int open_ext_filament_edit_dialog(const nlohmann::json& payload)
 {
     wxWindow* parent = wxGetApp().mainframe;
     const std::string intent = payload.value("intent", std::string("edit"));
@@ -258,9 +258,10 @@ void open_ext_filament_edit_dialog(const nlohmann::json& payload)
     sizer->Add(host, 1, wxEXPAND);
     dlg.SetSizer(sizer);
     dlg.Layout();
-    dlg.ShowModal();
+    const int result = dlg.ShowModal();
 
     if (ext_filament_edit_dialog() == &dlg) ext_filament_edit_dialog() = nullptr;
+    return result;
 }
 
 } // namespace
@@ -279,7 +280,16 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildDebugSnapshot(const nlohmann:
 
 void DevicePageAmsFilamentHotendVM::OpenBatchFilamentEditDialog(const nlohmann::json& payload)
 {
-    open_ext_filament_edit_dialog(payload);
+    const int result = open_ext_filament_edit_dialog(payload);
+    // The dialog closed after the user pressed Auto Load (run committed). This
+    // runs on the main-page VM instance, so explicitly push it back to Idle:
+    // arm the one-shot flag (so the next focus/poll state.get returns normal)
+    // and report immediately so the N1x AMS page leaves batch selection.
+    if (result == wxID_APPLY) {
+        m_active_mode = AmsHotendSchema::values::mode::normal;
+        m_pending_exit_batch = true;
+        ReportState("state", "changed");
+    }
 }
 
 nlohmann::json DevicePageAmsFilamentHotendVM::HandleDebug(const std::string& action, const nlohmann::json& payload)
@@ -319,6 +329,15 @@ std::optional<nlohmann::json> DevicePageExtAmsActionHandler::TryHandle(DevicePag
         wxGetApp().CallAfter([]() {
             if (auto* dlg = ext_filament_edit_dialog()) {
                 if (auto* dialog = dynamic_cast<wxDialog*>(dlg)) dialog->EndModal(wxID_OK);
+                else dlg->Close();
+            }
+        });
+    } else if (action == "close_dialog_after_run") {
+        // Close with wxID_APPLY so the opener (main-page VM) knows the user
+        // committed the load and can drop the page back to Idle.
+        wxGetApp().CallAfter([]() {
+            if (auto* dlg = ext_filament_edit_dialog()) {
+                if (auto* dialog = dynamic_cast<wxDialog*>(dlg)) dialog->EndModal(wxID_APPLY);
                 else dlg->Close();
             }
         });

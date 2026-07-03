@@ -162,9 +162,14 @@ export function useAmsFilamentHotendBridge() {
   const runBatchAction = useCallback(async (
     mode: FilamentPageMode,
     slots: Array<Pick<AmsFilamentHotendSlotViewModel, 'ams_id' | 'slot_id' | 'display_index'>>,
+    // `committed` = the caller already resolved every unknown slot in the edit
+    // dialog. C++ then skips its own unknown re-check (which lags device RFID
+    // round-trips) and runs the load directly, exiting batch mode to Idle.
+    committed = false,
   ) => {
     const payload = {
       mode,
+      committed,
       slots: slots.map((s) => ({
         ams_id: s.ams_id,
         slot_id: s.slot_id,

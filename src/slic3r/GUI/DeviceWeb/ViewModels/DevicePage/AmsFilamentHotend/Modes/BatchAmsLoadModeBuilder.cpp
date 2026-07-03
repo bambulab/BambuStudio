@@ -2,6 +2,8 @@
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ViewModel.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Schema.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.hpp"
+
+#include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -21,6 +23,7 @@ nlohmann::json make_select_action(const std::string& card_state)
 {
     const bool is_empty        = (card_state == SV::card_state::empty);
     const bool is_ready_to_load= (card_state == SV::card_state::ready_to_load);
+    const bool is_ready_to_use = (card_state == SV::card_state::ready_to_use);
     const bool is_unknown_type = (card_state == SV::card_state::unknown);
     const bool is_reading      = (card_state == SV::card_state::reading);
     const bool is_loading      = (card_state == SV::card_state::loading);
@@ -38,6 +41,8 @@ nlohmann::json make_select_action(const std::string& card_state)
         reason = _u8L("Filament change in progress");
     } else if (is_error) {
         reason = _u8L("Slot is in error state");
+    } else if (is_ready_to_use) {
+        reason = _u8L("Filament already loaded");
     } else if (is_ready_to_load || is_unknown_type) {
         can_select = true;
     }
@@ -69,11 +74,26 @@ std::string color_type_for_batch_ams(DevFilaColorType color_type)
     return "single";
 }
 
+bool is_ams_slot_loaded_in_hotend(MachineObject* machine_obj, const DevAmsTray* tray)
+{
+    if (machine_obj && tray) {
+        if (auto nozzle_addr_opt = tray->get_nozzle_addr_id(machine_obj); nozzle_addr_opt.has_value()) {
+            auto nozzle_opt = machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(nozzle_addr_opt.value());
+            if (nozzle_opt.has_value() && nozzle_opt->HasFilamentInNozzle() && nozzle_opt->GetFilamentId() == tray->get_filament_id()){
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 std::string resolve_ams_slot_card_state(MachineObject* machine_obj, const DevAmsTray* tray)
 {
     if (!tray || !tray->is_exists) return SV::card_state::empty;
     if (machine_obj && tray->is_reading(machine_obj->tray_reading_bits)) return SV::card_state::reading;
     if (tray->setting_id.empty() || tray->m_fila_type.empty()) return SV::card_state::unknown;
+    if (is_ams_slot_loaded_in_hotend(machine_obj, tray)) return SV::card_state::ready_to_use;
     return SV::card_state::ready_to_load;
 }
 
@@ -81,6 +101,7 @@ std::string resolve_status_text(const std::string& card_state)
 {
     if (card_state == SV::card_state::reading) return _u8L("Reading");
     if (card_state == SV::card_state::ready_to_load) return _u8L("Ready to load");
+    if (card_state == SV::card_state::ready_to_use) return _u8L("Loaded");
     if (card_state == SV::card_state::empty) return "--";
     if (card_state == SV::card_state::unknown) return _u8L("Unknown filament");
     if (card_state == SV::card_state::error) return _u8L("Error");

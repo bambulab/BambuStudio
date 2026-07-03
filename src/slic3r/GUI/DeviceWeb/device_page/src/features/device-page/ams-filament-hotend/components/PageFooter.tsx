@@ -15,24 +15,9 @@ export function PageFooter({
 }) {
   return (
     <footer className="page-footer">
-      {actions.show_ams_settings && (
-        <button
-          type="button"
-          data-testid="ams-hotend-action-settings"
-          onClick={() => onAction('settings')}
-        >
-          AMS Settings
-        </button>
-      )}
-      {actions.show_auto_refill && (
-        <button
-          type="button"
-          data-testid="ams-hotend-action-auto-refill"
-          onClick={() => onAction('auto_refill')}
-        >
-          Auto-refill
-        </button>
-      )}
+      {/* AMS Settings and Auto-refill moved to the top toolbar (icon button /
+          More dropdown) in the new N1x design; the footer now only carries the
+          dev-only Debug button, the inline tip, and the help affordance. */}
       {showDebugButton && (
         <button
           type="button"

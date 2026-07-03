@@ -1,5 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import type { FilamentPageActionState, FilamentPageMode, HotendPageActionState, AmsFilamentHotendTab } from '../types';
+import { ToolbarMoreMenu } from './ToolbarMoreMenu';
+import readAllIconUrl from '../assets/toolbar_read_all.svg';
+import amsSettingsIconUrl from '../assets/toolbar_ams_settings.svg';
 
 // Union of fields PageToolbar needs from either page's actions section. The
 // parent merges filament_page.actions and hotend_page.actions before passing
@@ -67,46 +70,36 @@ function FilamentActions({
   onAction: (action: string) => void;
 }) {
   const { t } = useTranslation();
-  const canLoadExternal = actions.can_load_external ?? actions.can_load ?? false;
-  // can_show_load_auto governs visibility (show/hide), not the disabled state.
-  // Legacy bridges omit it → keep the button visible to preserve old behavior.
-  const showLoadAuto    = actions.can_show_load_auto ?? true;
+  // Rack-B "read all filament slots": visibility from show_read_all, enabled
+  // from can_read_all_slots. Dispatches the dedicated slots-RFID action, not
+  // the hotend-rack read-all.
+  const canReadAllSlots = actions.can_read_all_slots ?? false;
   return (
-    <div className="action-group">
-      <button
-        type="button"
-        data-testid="ams-hotend-action-dry"
-        disabled={!actions.can_dry}
-        onClick={() => onAction('dry')}
-      >
-        {t('Dry')}
-      </button>
-      <span className="action-divider" aria-hidden="true" />
-      <button
-        type="button"
-        data-testid="ams-hotend-action-load-external"
-        disabled={!canLoadExternal}
-        onClick={() => onAction('load_external')}
-      >
-        {t('Load External Spool')}
-      </button>
-      {showLoadAuto && (
+    <div className="action-group action-group-icons">
+      {actions.show_read_all && (
         <button
           type="button"
-          data-testid="ams-hotend-action-load-auto"
-          onClick={() => onAction('load_auto')}
+          className="toolbar-icon-btn"
+          data-testid="ams-hotend-action-read-all"
+          disabled={!canReadAllSlots}
+          title={t('Read All')}
+          onClick={() => onAction('read_all_slots_rfid')}
         >
-          {t('Auto Load')}
+          <img src={readAllIconUrl} alt="" aria-hidden="true" />
         </button>
       )}
-      <button
-        type="button"
-        data-testid="ams-hotend-action-unload"
-        disabled={!actions.can_unload}
-        onClick={() => onAction('unload')}
-      >
-        {t('Unload')}
-      </button>
+      {actions.show_ams_settings && (
+        <button
+          type="button"
+          className="toolbar-icon-btn"
+          data-testid="ams-hotend-action-settings"
+          title={t('AMS Settings')}
+          onClick={() => onAction('settings')}
+        >
+          <img src={amsSettingsIconUrl} alt="" aria-hidden="true" />
+        </button>
+      )}
+      <ToolbarMoreMenu actions={actions} onAction={onAction} />
     </div>
   );
 }

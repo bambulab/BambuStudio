@@ -19,6 +19,8 @@ struct FilamentActions
     bool        can_dry = true;
     bool        show_ams_settings = false;
     bool        show_auto_refill = false;
+    bool        show_read_all = false;
+    bool        can_read_all_slots = false;
     std::string tips;
 };
 
@@ -41,6 +43,8 @@ inline void to_json(nlohmann::json& j, const FilamentActions& v)
         {SK::filament_actions::can_dry,           v.can_dry},
         {SK::filament_actions::show_ams_settings, v.show_ams_settings},
         {SK::filament_actions::show_auto_refill,  v.show_auto_refill},
+        {SK::filament_actions::show_read_all,     v.show_read_all},
+        {SK::filament_actions::can_read_all_slots, v.can_read_all_slots},
         {SK::filament_actions::tips,              v.tips}
     };
 }

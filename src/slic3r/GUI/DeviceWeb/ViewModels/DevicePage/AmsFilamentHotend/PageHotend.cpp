@@ -377,11 +377,12 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
                              (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);
     bool can_unload_filament = line_state == SV::line_state::loaded && (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);;
     const char* filament_read_label = (card_state == SV::card_state::unknown) ? SV::read_label::read : SV::read_label::reread;// Unknown filament type shows "Read"; known type shows "Reread".
+    bool can_read_filament = card_state != SV::card_state::reading && card_state != SV::card_state::empty && machine_obj && !machine_obj->GetFilaSystem()->GetAmsList().empty();
     const nlohmann::json menu_actions = {
         {SK::menu_actions::can_edit, can_edit_filament},
         {SK::menu_actions::can_load, can_load_filament },
         {SK::menu_actions::can_unload, can_unload_filament},
-        {SK::menu_actions::can_read, card_state != SV::card_state::reading && card_state != SV::card_state::empty},
+        {SK::menu_actions::can_read, can_read_filament },
         {SK::menu_actions::read_label, filament_read_label},
         {SK::menu_actions::can_ams_operation, bind_ams_slot_count > 0}
     };

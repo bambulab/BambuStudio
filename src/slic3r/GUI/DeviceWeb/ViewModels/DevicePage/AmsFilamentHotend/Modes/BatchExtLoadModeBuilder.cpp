@@ -45,16 +45,17 @@ std::string normalize_ext_hex_for_web(const std::string& raw)
     return hex;
 }
 
-bool is_ext_slot_loaded(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id)
+bool is_ext_slot_loaded(MachineObject* machine_obj, std::optional<DevAmsTray> ext_tray_opt)
 {
-    if (!machine_obj || !machine_obj->GetExtderSystem()) {
-        return false;
-    }
-    for (const auto& ext : machine_obj->GetExtderSystem()->GetExtruders()) {
-        if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id && ext.HasFilamentInExt()) {
-            return true;
+    if (machine_obj && ext_tray_opt.has_value()) {
+        if (auto nozzle_addr_opt = ext_tray_opt->get_nozzle_addr_id(machine_obj); nozzle_addr_opt.has_value()) {
+            auto nozzle_opt = machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(nozzle_addr_opt.value());
+            if (nozzle_opt.has_value() && nozzle_opt->HasFilamentInNozzle() && nozzle_opt->GetFilamentId() == ext_tray_opt->get_filament_id()){
+                return true;
+            }
         }
     }
+
     return false;
 }
 
@@ -117,7 +118,7 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
         if (fila_system) {
             ext_tray_opt = fila_system->GetVirtualTray(ext_tray_id);
         }
-        const bool is_loaded = is_ext_slot_loaded(machine_obj, ext_ams_id, ext_slot_id);
+        const bool is_loaded = is_ext_slot_loaded(machine_obj, ext_tray_opt);
 
         std::string card_state = SV::card_state::unknown;
         std::string color = "#D9D9D9";

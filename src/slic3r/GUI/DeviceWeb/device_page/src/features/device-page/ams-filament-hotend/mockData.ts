@@ -207,6 +207,8 @@ export const mockAmsFilamentHotendState: AmsFilamentHotendViewModel = {
       can_dry: true,
       show_ams_settings: true,
       show_auto_refill: true,
+      show_read_all: true,
+      can_read_all_slots: true,
       tips: 'Slot 1 loading/unloading filament in progress',
     },
     filament_change_status: {

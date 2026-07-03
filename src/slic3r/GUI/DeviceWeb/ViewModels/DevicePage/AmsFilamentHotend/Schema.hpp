@@ -83,6 +83,13 @@ namespace filament_actions {
     inline constexpr const char* can_show_load_auto = "can_show_load_auto";
     inline constexpr const char* show_ams_settings = "show_ams_settings";
     inline constexpr const char* show_auto_refill  = "show_auto_refill";
+    // Whether the toolbar's "read all" icon button is shown. Rack-B only
+    // (N1x ZMULTI_B); Rack-A never exposes it. Enabled state still comes from
+    // hotend_actions::can_read_all_hotends.
+    inline constexpr const char* show_read_all     = "show_read_all";
+    // Enabled state of the Rack-B "read all" icon: a connected ZMULTI_B AMS
+    // exists and the printer is neither printing nor upgrading.
+    inline constexpr const char* can_read_all_slots = "can_read_all_slots";
     inline constexpr const char* tips              = "tips";
 }
 

@@ -106,12 +106,6 @@ void open_ams_materials_setting(const std::string& ams_id, const std::string& sl
     }
 
     dlg.m_is_third = !DevFilaSystem::IsBBL_Filament(tray.tag_uid);
-#if !BBL_RELEASE_TO_PUBLIC
-    if (machine_obj && (machine_obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A ||
-                        machine_obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) {
-        dlg.m_is_third = true;
-    }
-#endif
     if (tray.tag_uid.size() == 16 && tray.tag_uid.substr(12, 2) == "01") {
         sn_number = tray.uuid;
     }
@@ -122,7 +116,7 @@ void open_ams_materials_setting(const std::string& ams_id, const std::string& sl
     }
 
     if (!tray.setting_id.empty()) {
-        if (tray.weight != "-1") {
+        if (tray.weight != "-1" && tray.weight != "0") {
             total_weight = wxString::FromUTF8(tray.weight.c_str());
         }
 
@@ -320,6 +314,20 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
         wxGetApp().CallAfter([]() { open_ams_settings(); });
     } else if (action == "auto_refill") {
         wxGetApp().CallAfter([]() { open_auto_refill(); });
+    } else if (action == "read_all_slots_rfid") {
+        // N1x Rack-B "read all": refresh every slot's RFID on each connected
+        // ZMULTI_B AMS. mode=1 (active, all slots); no slot_bits.
+        if (machine_obj->is_in_printing() || machine_obj->is_in_upgrading()) {
+            return MakeResponse(GetModule(), "action", action, 3,
+                _u8L("Cannot read all while printing or upgrading"), BuildState());
+        }
+        if (fila_system) {
+            for (const auto& [_, ams_unit] : fila_system->GetAmsList()) {
+                if (ams_unit && ams_unit->GetAmsType() == DevAmsType::ZMULTI_B) {
+                    machine_obj->command_ams_read_all(ams_unit->GetAmdIdInt(), 1);
+                }
+            }
+        }
     } else if (action == "read" && fila_system && !ams_id.empty() && !slot_id.empty()) {
         if (const auto& ams_item = fila_system->GetAmsById(ams_id)) {
             try {
@@ -416,6 +424,10 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
         namespace SV = AmsHotendSchema::values;
         const std::string batch_mode = payload.value("mode", std::string());
         const auto& slots_array = payload.value("slots", nlohmann::json::array());
+        // `committed` is set by the edit dialog's Auto Load: the user already
+        // resolved every unknown slot there, so we must NOT bounce back into the
+        // edit dialog on the still-lagging device tray identity — run directly.
+        const bool committed = payload.value("committed", false);
         if (slots_array.empty()) {
             return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("No slots selected for batch run"), vm.BuildState());
         }
@@ -454,7 +466,7 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
         if (slot_pairs.empty()) {
             return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("All selected slots are invalid"), vm.BuildState());
         }
-        if (!unknown_slots.empty()) {
+        if (!committed && !unknown_slots.empty()) {
             nlohmann::json edit_payload = {
                 {"intent",    "run"},
                 {"mode",      batch_mode},
@@ -468,6 +480,10 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
         if (rc != 0) {
             return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("MQTT publish failed for multi_slot_ams_change_filament"), vm.BuildState());
         }
+        // Command dispatched. This runs on the (separate) edit-dialog VM
+        // instance, so resetting mode here only affects the dialog. The main
+        // page is switched back to Idle by OpenBatchFilamentEditDialog once the
+        // modal closes with the "run committed" result code.
         vm.m_active_mode = SV::mode::normal;
         return vm.MakeResponse(vm.GetModule(), "action", action, 0, "", vm.BuildState());
     } else {

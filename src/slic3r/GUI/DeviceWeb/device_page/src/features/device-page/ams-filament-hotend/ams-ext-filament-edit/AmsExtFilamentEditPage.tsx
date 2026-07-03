@@ -135,8 +135,12 @@ export function AmsExtFilamentEditPage() {
 
   const confirmRun = () => {
     if (slots.some((slot) => slot.filament_card.state === 'Unknown')) return;
-    void runBatchAction(query.mode, query.runSlots.length ? query.runSlots : slots);
-    closeDialog();
+    // Slots were just edited here, so tell C++ to run without re-checking the
+    // (still-lagging) device tray identity: issue the load and exit batch mode.
+    void runBatchAction(query.mode, query.runSlots.length ? query.runSlots : slots, true);
+    // Close with the "run committed" signal so the main N1x AMS page is asked
+    // to leave batch selection and return to Idle (see close_dialog_after_run).
+    void runSlotAction('close_dialog_after_run');
   };
 
   return (

@@ -320,6 +320,11 @@ export interface FilamentPageActionState {
   can_show_load_auto?: boolean;
   show_ams_settings: boolean;
   show_auto_refill: boolean;
+  // Rack-B-only: whether the toolbar "read all" icon button is shown.
+  show_read_all?: boolean;
+  // Rack-B-only: enabled state of the "read all" icon (connected ZMULTI_B AMS
+  // and printer not printing/upgrading).
+  can_read_all_slots?: boolean;
   tips: string;
 }
 

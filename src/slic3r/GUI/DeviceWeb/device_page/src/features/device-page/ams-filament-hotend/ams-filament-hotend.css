@@ -101,6 +101,90 @@
   cursor: not-allowed;
 }
 
+/* New N1x toolbar: icon buttons (Read All / AMS Settings / More) + dropdown.
+   Scoped under .action-group-icons so they win over the base `.action-group
+   button` bordered style. */
+.action-group-icons {
+  gap: 8px;
+}
+
+.action-group-icons .toolbar-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ams-text-primary);
+  cursor: pointer;
+}
+
+.action-group-icons .toolbar-icon-btn img {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
+.action-group-icons .toolbar-icon-btn:hover:not(:disabled) {
+  background: var(--ams-popover-hover-bg);
+}
+
+.action-group-icons .toolbar-icon-btn:disabled {
+  color: var(--ams-text-muted);
+  background: transparent;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.toolbar-more {
+  position: relative;
+  display: inline-flex;
+}
+
+.toolbar-more-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 1100;
+  min-width: 120px;
+  width: max-content;
+  padding: 6px 0;
+  border: 1px solid var(--ams-popover-border);
+  border-radius: 4px;
+  background: var(--ams-popover-bg);
+  box-shadow: var(--ams-popover-shadow);
+}
+
+.action-group-icons .toolbar-more-menu button {
+  display: block;
+  width: 100%;
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ams-text-strong);
+  font: inherit;
+  font-size: 13px;
+  line-height: 28px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.action-group-icons .toolbar-more-menu button:hover:not(:disabled) {
+  background: var(--ams-popover-hover-bg);
+}
+
+.action-group-icons .toolbar-more-menu button:disabled {
+  color: var(--ams-text-disabled);
+  background: transparent;
+  cursor: default;
+}
+
 .page-error {
   margin: 4px 12px 0;
   padding: 4px 8px;

@@ -149,7 +149,13 @@ nlohmann::json DevicePageAmsFilamentHotendVM::OnCommand(const std::string& submo
             // refuse a state request. The chosen mode sticks across
             // subsequent ReportState() pushes until Web sends a new get.
             const std::string requested_mode = payload.value("mode", std::string(SV::mode::normal));
-            if (requested_mode == SV::mode::normal
+            if (m_pending_exit_batch) {
+                // A batch run just dispatched its command; force the page out of
+                // batch selection regardless of the (stale) mode the caller
+                // requested, then clear the one-shot flag.
+                m_active_mode = SV::mode::normal;
+                m_pending_exit_batch = false;
+            } else if (requested_mode == SV::mode::normal
              || requested_mode == SV::mode::batch_ams_load
              || requested_mode == SV::mode::batch_ext_load
              || requested_mode == SV::mode::batch_unload) {
@@ -281,6 +287,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
     AmsHotendSchema::format::AmsExtOperationPage ext_operation_page;
 
     BuildHotendRackStatus(machine_obj, hp);
+
     const bool filament_changing = IsFilamentChangeActive(machine_obj);
     if (filament_changing) {
         fp[SK::filament_page::actions][SK::filament_actions::can_load]          = false;
@@ -288,6 +295,10 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
         fp[SK::filament_page::actions][SK::filament_actions::can_show_load_auto] = false;
         fp[SK::filament_page::actions][SK::filament_actions::can_unload]        = false;
     }
+
+    const bool is_rack_b = machine_obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B;
+    fp[SK::filament_page::actions][SK::filament_actions::show_read_all] = is_rack_b && !filament_changing;
+    fp[SK::filament_page::actions][SK::filament_actions::can_read_all_slots] = is_rack_b && !filament_changing && !machine_obj->is_in_printing() && !machine_obj->is_in_upgrading();
 
     if (auto fila_system = machine_obj->GetFilaSystem()) {
         const bool has_connected_ams = !fila_system->GetAmsList().empty() && machine_obj->ams_exist_bits != 0;

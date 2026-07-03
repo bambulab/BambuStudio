@@ -714,6 +714,10 @@ public:
     int command_ams_select_tray(std::string tray_id);
     int command_ams_refresh_rfid(std::string tray_id);
     int command_ams_refresh_rfid2(int ams_id, int slot_id);
+    // Read all slots' RFID for one AMS (N1x Rack-B "read all"). mode: 0 =
+    // indirect (only un-fed slots), 1 = active (all slots). slot_bits is
+    // omitted so mode drives the selection.
+    int command_ams_read_all(int ams_id, int mode);
     int command_ams_control(std::string action);
     int command_ams_drying_stop();
     int command_start_extrusion_cali(int tray_index, int nozzle_temp, int bed_temp, float max_volumetric_speed, std::string setting_id = "");

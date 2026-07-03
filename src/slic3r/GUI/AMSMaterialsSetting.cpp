@@ -625,12 +625,12 @@ void AMSMaterialsSetting::update_filament_editing(bool is_printing)
 
 bool AMSMaterialsSetting::support_filament_remain_edit() const
 {
-    return obj && obj->GetConfig() && obj->GetConfig()->SupportFilamentRemainEdit() && !m_view_only;
+    return obj && obj->GetConfig() && obj->GetConfig()->SupportFilamentRemainEdit();
 }
 
 bool AMSMaterialsSetting::can_edit_filament_weight() const
 {
-    return support_filament_remain_edit() && !m_filament_type.empty();
+    return support_filament_remain_edit() && !m_filament_type.empty() && !m_view_only && m_is_third;
 }
 
 bool AMSMaterialsSetting::validate_filament_weight_inputs(bool is_target_bbl, int& cmd_total_weight, int& cmd_remain_weight) const

@@ -68,6 +68,10 @@ private:
     // Web re-fetching. Defaults to normal so first paint matches today's
     // behaviour exactly.
     std::string m_active_mode = "normal";
+    // Set after a batch run dispatches its MQTT command so the NEXT state.get
+    // forces the page back to "normal", even if the (separate) main-page WebView
+    // re-requests its stale batch mode via focus/poll refresh. Consumed once.
+    bool m_pending_exit_batch = false;
 };
 
 }} // namespace Slic3r::GUI
