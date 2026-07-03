@@ -1326,6 +1326,12 @@ wxWindow* PreferencesDialog::create_general_page()
     std::vector<wxString> FlushOptionLabels = {_L("All"),_L("Color change"),_L("Disabled")};
     std::vector<std::string> FlushOptionValues = { "all","color change","disabled" };
     auto item_auto_flush = create_item_combobox(_L("Auto Flush"), page, _L("Auto calculate flush volumes"), "auto_calculate_flush", FlushOptionLabels, FlushOptionValues);
+
+    std::vector<wxString> DefaultPrintActionLabels = {_L("Print plate"), _L("Print all"), _L("Send"), _L("Send all")};
+    std::vector<std::string> DefaultPrintActionValues = {"print_plate", "print_all", "send", "send_all"};
+    auto item_default_print_action = create_item_combobox(_L("Default print action"), page,
+        _L("Action selected by default on the print button. You can still change it from the button's dropdown."),
+        "default_print_action", DefaultPrintActionLabels, DefaultPrintActionValues);
     //auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
     auto item_multi_machine = create_item_checkbox(_L("Multi-device Management(Take effect after restarting Studio)."), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine");
     auto item_fila_manager = create_item_checkbox(_L("Filament Manager") + " (" + _L("Take effect after restarting Studio") + ")", page,
@@ -1505,6 +1511,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_auto_flush, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_default_print_action, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_single_instance, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_bed_type_follow_preset, 0, wxTOP, FromDIP(3));
     //sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
