@@ -14,6 +14,7 @@
 #include "OptionsGroup.hpp"
 #include "Tab.hpp"
 #include "wxExtensions.hpp"
+#include "ExtraRenderers.hpp"
 #include "libslic3r/Model.hpp"
 #include "GLCanvas3D.hpp"
 #include "Selection.hpp"
@@ -389,7 +390,7 @@ void ObjectList::create_objects_ctrl()
     m_columns_width[colName] = 22;
     m_columns_width[colHeight] = 3;
     m_columns_width[colPrint] = 3;
-    m_columns_width[colFilament] = 5;
+    m_columns_width[colFilament] = 14;
     m_columns_width[colSupportPaint] = 3;
     m_columns_width[colFuzzySkin]    = 3;
     m_columns_width[colSinking] = 3;
@@ -431,7 +432,7 @@ void ObjectList::create_objects_ctrl()
                m_objects_model->GetItemType(GetSelection()) == itLayer;
     });
     AppendColumn(new wxDataViewColumn(_L("Fila."), bmp_choice_renderer,
-        colFilament, m_columns_width[colFilament] * em, wxALIGN_CENTER_HORIZONTAL, 0));
+        colFilament, m_columns_width[colFilament] * em, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 
     // BBS
     AppendBitmapColumn(" ", colSupportPaint, wxOSX ? wxDATAVIEW_CELL_EDITABLE : wxDATAVIEW_CELL_INERT, m_columns_width[colSupportPaint] * em,
@@ -655,6 +656,11 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
     else if (col->GetModelColumn() == (unsigned int)colSinking) {
         if (node->HasSinking())
             tooltip = _(L("Click the icon to shift this object to the bed"));
+    }
+    // BBS: show the filament name + nozzle side + readable color name instead of the
+    // raw internal cell value (which otherwise leaks as "<wxCustomRendererObject ...>").
+    else if (col->GetModelColumn() == (unsigned int)colFilament) {
+        tooltip = get_filament_column_tooltip(node->GetExtruder());
     }
     else if (col->GetModelColumn() == (unsigned int)colName && (pt.x >= 2 * wxGetApp().em_unit() && pt.x <= 4 * wxGetApp().em_unit()))
     {

@@ -75,6 +75,8 @@ public:
     wxString GetItemTooltip(unsigned int n) const;
     void     SetItemTooltip(unsigned int n, wxString const &value);
 
+    void     SetItemRightText(unsigned int n, wxString const &value);
+
     wxString GetItemAlias(unsigned int n) const;
     void     SetItemAlias(unsigned int n, wxString const &value);
 
