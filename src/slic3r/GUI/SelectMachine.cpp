@@ -3516,6 +3516,7 @@ void SelectMachineDialog::update_user_printer()
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
+    update_by_obj(get_current_machine());
 }
 
 void SelectMachineDialog::on_rename_click(wxMouseEvent& event)
@@ -3630,7 +3631,11 @@ Slic3r::MachineObject* SelectMachineDialog::get_current_machine() const
 
 void SelectMachineDialog::on_timer(wxTimerEvent &event)
 {
-    MachineObject* obj_ = get_current_machine();
+    update_by_obj(get_current_machine());
+}
+
+void SelectMachineDialog::update_by_obj(MachineObject* obj_)
+{
     if(!obj_) return;
 
     if (obj_->GetExtderSystem()->GetTotalExtderCount() > 1) {
@@ -3727,6 +3732,9 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     show_status(PrintDialogStatus::PrintStatusInit);
     update_show_status();
     update_print_status_msg();
+
+    // update
+    update_by_obj(get_current_machine());
 }
 
 void SelectMachineDialog::update_ams_check(MachineObject *obj)
@@ -5294,6 +5302,7 @@ bool SelectMachineDialog::Show(bool show)
     wxGetApp().reset_to_active();
     set_default();
     update_user_machine_list();
+    update_by_obj(get_current_machine());
 
     Layout();
     Fit();
@@ -5975,12 +5984,15 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResultV0(MachineObject* obj
         return true; // use V1 nozzle mapping
     }
 
+    const auto& obj_nozzle_mapping_ptr = obj_->get_nozzle_mapping_result();
     auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
     if (nozzle_group_res && nozzle_group_res->get_used_nozzles_in_extruder(LOGIC_R_EXTRUDER_ID).empty()) {
+        if (obj_nozzle_mapping_ptr->HasResult()) {
+            clear_nozzle_mapping();
+        }
         return true;// no need to check if no right nozzles used in slicing
     }
 
-    const auto& obj_nozzle_mapping_ptr = obj_->get_nozzle_mapping_result();
     if (!obj_nozzle_mapping_ptr->HasResult()) {
         if (time(nullptr) - s_nozzle_mapping_last_request_time > 10) { // avoid too many requests
             int rtn = obj_nozzle_mapping_ptr->CtrlGetAutoNozzleMappingV0(m_plater, m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt(), m_pa_value_switch->GetValue() ? 0 : 1);

@@ -485,6 +485,8 @@ public:
     void reset_timeout();
     void update_user_printer();
     void reset_ams_material();
+
+    void update_by_obj(MachineObject* obj_ = nullptr);
     void update_show_status(MachineObject* obj_ = nullptr);
 
     bool CheckErrorRackStatus(MachineObject* obj_);//return true if no errors
