@@ -432,6 +432,7 @@ void Tab::create_preset_tab()
         });
         m_top_sizer->Add( m_static_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 8 );
         m_mode_view = new SwitchButton(m_top_panel, wxID_ABOUT);
+        m_mode_view->SetAccessibleName(_L("View mode: Advanced"));
         m_top_sizer->AddSpacer(4);
         m_top_sizer->Add( m_mode_view, 0, wxALIGN_CENTER_VERTICAL);
     }

@@ -15,6 +15,10 @@ public:
 
 	void SetHalfChecked(bool value = true);
 
+    // Set the name announced by screen readers (NVDA, Narrator, VoiceOver).
+    // Call this after construction whenever the checkbox has no visible label.
+    void SetAccessibleName(const wxString& name) { wxWindow::SetLabel(name); }
+
 	void Rescale();
 
 #ifdef __WXOSX__

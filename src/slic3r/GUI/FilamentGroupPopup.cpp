@@ -585,6 +585,7 @@ void FilamentGroupPopup::MakeSmartFilamentSection(wxSizer *top_sizer, int horizo
     label->Wrap(FromDIP(240));
 
     m_smart_filament_switch = new SwitchButton(m_smart_filament_panel);
+    m_smart_filament_switch->SetAccessibleName(_L("Smart Filament Assign"));
     m_smart_filament_switch->Bind(wxEVT_TOGGLEBUTTON, &FilamentGroupPopup::OnSmartFilamentToggle, this);
 #ifdef __WXOSX__
     // wxEVT_TOGGLEBUTTON event not handled well by PopupWindow on MacOS

@@ -89,6 +89,7 @@ public:
 protected:
 #ifdef __WIN32__
     WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
+    WXDWORD MSWGetStyle(long style, WXDWORD* exstyle) const override;
 #endif
 
     bool AcceptsFocus() const override;
@@ -109,6 +110,10 @@ private:
 
     // 
     void sendButtonEvent();
+
+    // focus events (accessibility)
+    void onSetFocus(wxFocusEvent& event);
+    void onKillFocus(wxFocusEvent& event);
 
     // parent motion
     void OnParentMotion(wxMouseEvent& event);

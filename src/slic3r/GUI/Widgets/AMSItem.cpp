@@ -2,6 +2,7 @@
 #include "Label.hpp"
 #include "../BitmapCache.hpp"
 #include "../I18N.hpp"
+#include "../Accessibility.hpp"
 #include "../GUI_App.hpp"
 #include "../Utils/WxFontUtils.hpp"
 
@@ -372,6 +373,11 @@ void AMSrefresh::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, con
     Bind(wxEVT_ENTER_WINDOW, &AMSrefresh::OnEnterWindow, this);
     Bind(wxEVT_LEAVE_WINDOW, &AMSrefresh::OnLeaveWindow, this);
     Bind(wxEVT_LEFT_DOWN, &AMSrefresh::OnClick, this);
+
+    SetToolTip(_L("Refresh RFID"));
+#if wxUSE_ACCESSIBILITY
+    SetAccessible(new ButtonAccessible(this));
+#endif
 
     m_bitmap_normal   = ScalableBitmap(this, "ams_refresh_normal", 32);
     m_bitmap_selected = ScalableBitmap(this, "ams_refresh_selected", 32);
@@ -1002,6 +1008,9 @@ void AMSLib::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     m_sizer_body->Add(0, 0, 0, wxBOTTOM, GetSize().y * 0.12);
     SetSizer(m_sizer_body);
     Layout();
+#if wxUSE_ACCESSIBILITY
+    SetAccessible(new ButtonAccessible(this));
+#endif
 }
 
 void AMSLib::on_enter_window(wxMouseEvent &evt)
@@ -1785,6 +1794,22 @@ void AMSLib::Update(Caninfo info, std::string ams_idx, bool refresh)
     m_info = info;
     m_ams_id = ams_idx;
     m_slot_id = info.can_id;
+
+    // Build accessible name so NVDA announces slot identity and filament.
+    wxString acc_name;
+    if (!info.material_name.empty()) {
+        acc_name = wxString::Format(_L("AMS %s Slot %d: %s, %d%% remaining"),
+                                    wxString::FromUTF8(ams_idx),
+                                    m_can_index + 1,
+                                    info.material_name,
+                                    info.material_remain);
+    } else {
+        acc_name = wxString::Format(_L("AMS %s Slot %d: empty"),
+                                    wxString::FromUTF8(ams_idx),
+                                    m_can_index + 1);
+    }
+    SetToolTip(acc_name);
+
     if (refresh) Refresh();
 }
 

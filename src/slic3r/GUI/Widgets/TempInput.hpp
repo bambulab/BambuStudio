@@ -107,6 +107,7 @@ public:
     wxString GetCurrTemp() { return GetLabel(); }
     int get_max_temp() { return max_temp; }
     void SetLabel(const wxString &label);
+    void SetAccessibleName(const wxString &name);
 
     void SetTextColor(StateColor const &color);
 

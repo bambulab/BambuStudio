@@ -2,6 +2,7 @@
 #include "Label.hpp"
 #include "Button.hpp"
 #include "TextCtrl.h"
+#include "../Accessibility.hpp"
 
 #include <wx/dcgraph.h>
 
@@ -65,6 +66,9 @@ void SpinInput::Create(wxWindow *parent,
     text_ctrl->SetBackgroundColour(background_color.colorForStates(state_handler.states()));
     text_ctrl->SetForegroundColour(text_color.colorForStates(state_handler.states()));
     text_ctrl->SetInitialSize(text_ctrl->GetBestSize());
+#if wxUSE_ACCESSIBILITY
+    if (!label.IsEmpty()) text_ctrl->SetAccessible(new TextCtrlLabelAccessible(text_ctrl, label));
+#endif
     state_handler.attach_child(text_ctrl);
     text_ctrl->Bind(wxEVT_TEXT, &SpinInput::onTextChanged, this);
     text_ctrl->Bind(wxEVT_KILL_FOCUS, &SpinInput::onTextLostFocus, this);
@@ -99,6 +103,13 @@ void SpinInput::SetCornerRadius(double radius)
 void SpinInput::SetLabel(const wxString &label)
 {
     wxWindow::SetLabel(label);
+#if wxUSE_ACCESSIBILITY
+    if (text_ctrl && !label.IsEmpty()) {
+        auto* acc = dynamic_cast<TextCtrlLabelAccessible*>(text_ctrl->GetAccessible());
+        if (acc) acc->SetFieldLabel(label);
+        else text_ctrl->SetAccessible(new TextCtrlLabelAccessible(text_ctrl, label));
+    }
+#endif
     messureSize();
     Refresh();
 }

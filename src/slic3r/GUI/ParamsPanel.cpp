@@ -282,6 +282,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
         //int width, height;
         // BBS: new layout
         m_mode_region = new SwitchButton(m_top_panel);
+        m_mode_region->SetAccessibleName(_L("Process mode: Global / Objects"));
         m_mode_region->SetMaxSize({em_unit(this) * 12, -1});
         m_mode_region->SetLabels(_L("Global"), _L("Objects"));
         //m_mode_region->GetSize(&width, &height);
@@ -290,6 +291,7 @@ ParamsPanel::ParamsPanel( wxWindow* parent, wxWindowID id, const wxPoint& pos, c
 
         m_title_view = new Label(m_top_panel, _L("Advance"));
         m_mode_view = new SwitchButton(m_top_panel, wxID_ABOUT);
+        m_mode_view->SetAccessibleName(_L("View mode: Advanced"));
 
         // BBS: new layout
         //m_search_btn = new ScalableButton(m_top_panel, wxID_ANY, "search", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);

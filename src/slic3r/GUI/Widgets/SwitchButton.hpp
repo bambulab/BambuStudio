@@ -21,6 +21,9 @@ public:
 public:
 	void SetLabels(wxString const & lbl_on, wxString const & lbl_off);
 
+    // Set the name announced by screen readers when there is no visible text label.
+    void SetAccessibleName(const wxString& name) { wxWindow::SetLabel(name); }
+
 	void SetTextColor(StateColor const &color);
 
 	void SetTextColor2(StateColor const &color);
