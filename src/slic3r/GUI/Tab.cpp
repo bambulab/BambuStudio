@@ -3254,6 +3254,12 @@ void TabPrint::build()
         optgroup->append_single_option_line("fuzzy_skin_persistence");
         optgroup->append_single_option_line("fuzzy_skin_first_layer");
 
+        optgroup = page->new_optgroup(L("AUX filtration override"), L"param_special");
+        m_auxiliary_fan_filtration_group = optgroup;
+        optgroup->append_single_option_line("enable_auxiliary_fan_filtration");
+        optgroup->append_single_option_line("auxiliary_fan_filtration_speed");
+        optgroup->append_single_option_line("auxiliary_fan_filtration_post_time");
+
         optgroup = page->new_optgroup(L("Advanced"), L"advanced");
         optgroup->append_single_option_line("enable_wrapping_detection", "nozzle-clumping-detection-by-probing");
         optgroup->append_single_option_line("enable_order_independent_overlap_carving");
@@ -3345,6 +3351,20 @@ void TabPrint::toggle_options()
 
     m_config_manipulation.toggle_print_fff_options(m_config, int(intptr_t(m_extruder_switch->GetClientData())), m_type < Preset::TYPE_COUNT);
 
+    if (m_auxiliary_fan_filtration_group != nullptr && m_preset_bundle != nullptr) {
+        const DynamicPrintConfig &printer_config = m_preset_bundle->printers.get_edited_preset().config;
+        const bool supported = supports_auxiliary_fan_filtration(
+            printer_config.opt_string("printer_model"),
+            printer_config.opt_bool("auxiliary_fan"),
+            printer_config.opt_bool("support_cooling_filter"));
+        for (const std::string &key : {"enable_auxiliary_fan_filtration", "auxiliary_fan_filtration_speed", "auxiliary_fan_filtration_post_time"})
+            if (Line *line = m_auxiliary_fan_filtration_group->get_line(key))
+                line->toggle_visible = supported;
+        m_auxiliary_fan_filtration_group->update_visibility(m_mode);
+        toggle_option("auxiliary_fan_filtration_speed", supported && m_config->opt_bool("enable_auxiliary_fan_filtration"));
+        toggle_option("auxiliary_fan_filtration_post_time", supported && m_config->opt_bool("enable_auxiliary_fan_filtration"));
+    }
+
     Field *field = m_active_page->get_field("support_style");
     auto   support_type = m_config->opt_enum<SupportType>("support_type");
     if (auto choice = dynamic_cast<Choice*>(field)) {
@@ -3401,6 +3421,7 @@ void TabPrint::clear_pages()
 
     m_recommended_thin_wall_thickness_description_line = nullptr;
     m_top_bottom_shell_thickness_explanation = nullptr;
+    m_auxiliary_fan_filtration_group = nullptr;
 }
 
 //BBS: GUI refactor

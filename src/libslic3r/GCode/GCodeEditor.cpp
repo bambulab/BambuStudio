@@ -384,6 +384,8 @@ std::string GCodeEditor::write_layer_gcode(
     // Second generate the adjusted G-code.
     std::string new_gcode;
     new_gcode.reserve(gcode.size() * 2);
+    const bool auxiliary_fan_filtration_active = m_config.enable_auxiliary_fan_filtration.value &&
+        supports_auxiliary_fan_filtration(m_config.printer_model.value, m_config.auxiliary_fan.value, m_config.support_cooling_filter.value);
     bool overhang_fan_control= false;
     int  overhang_fan_speed   = 0;
     bool ironing_fan_control  = false;
@@ -396,7 +398,7 @@ std::string GCodeEditor::write_layer_gcode(
         sfImmediatelyApply
     };
 
-    auto change_extruder_set_fan = [this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed, &ironing_fan_control, &ironing_fan_speed, &pre_start_overhang_fan_time, not_set_additional_fan](SetFanType type) {
+    auto change_extruder_set_fan = [this, layer_id, layer_time, &new_gcode, &overhang_fan_control, &overhang_fan_speed, &ironing_fan_control, &ironing_fan_speed, &pre_start_overhang_fan_time, not_set_additional_fan, auxiliary_fan_filtration_active](SetFanType type) {
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_current_extruder)
         int fan_min_speed = EXTRUDER_CONFIG(fan_min_speed);
         int fan_speed_new = EXTRUDER_CONFIG(reduce_fan_stop_start_freq) ? fan_min_speed : 0;
@@ -456,6 +458,8 @@ std::string GCodeEditor::write_layer_gcode(
             float factor = float(int(layer_id + 1) - close_additional_fan_first_x_layers) / float(additional_fan_full_speed_layer - close_additional_fan_first_x_layers);
             additional_fan_speed_new = std::clamp(int(float(first_x_layer_fan_speed) * (1.0f - factor) + float(additional_fan_speed_new) * factor + 0.5f), 0, 100);
         }
+        additional_fan_speed_new = auxiliary_fan_speed_with_filtration(
+            additional_fan_speed_new, auxiliary_fan_filtration_active, m_config.auxiliary_fan_filtration_speed.value);
 
 #undef EXTRUDER_CONFIG
         if (fan_speed_new != m_fan_speed) {
@@ -557,7 +561,7 @@ std::string GCodeEditor::write_layer_gcode(
             //BBS: force to write a fan speed command again
             if (m_current_fan_speed != -1)
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
-            if (m_additional_fan_speed != -1 && m_set_fan_changing_filament_start && m_config.auxiliary_fan.value)
+            if (m_additional_fan_speed != -1 && (m_set_fan_changing_filament_start || auxiliary_fan_filtration_active) && m_config.auxiliary_fan.value)
                 new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
         } else if (line->type & CoolingLine::TYPE_SET_FAN_CHANGING_LAYER) {
             //BBS: check whether fan speed need to changed when change layer
@@ -565,7 +569,7 @@ std::string GCodeEditor::write_layer_gcode(
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
                 m_set_fan_changing_layer = false;
             }
-            if (m_additional_fan_speed != -1 && m_set_addition_fan_changing_layer && m_config.auxiliary_fan.value) {
+            if (m_additional_fan_speed != -1 && (m_set_addition_fan_changing_layer || auxiliary_fan_filtration_active) && m_config.auxiliary_fan.value) {
                 new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
                 m_set_addition_fan_changing_layer = false;
             }

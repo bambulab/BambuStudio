@@ -238,6 +238,43 @@ SCENARIO("DynamicPrintConfig serialization", "[Config]") {
     }
 }
 
+SCENARIO("AUX filtration override options and printer support gate", "[Config][AuxFiltration]") {
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+
+    SECTION("process options have conservative defaults and bounds") {
+        REQUIRE_FALSE(config.opt_bool("enable_auxiliary_fan_filtration"));
+        REQUIRE(config.opt_int("auxiliary_fan_filtration_speed") == 70);
+        REQUIRE(config.opt_int("auxiliary_fan_filtration_post_time") == 60);
+
+        const ConfigOptionDef *speed = print_config_def.get("auxiliary_fan_filtration_speed");
+        REQUIRE(speed != nullptr);
+        CHECK(speed->min == 1);
+        CHECK(speed->max == 100);
+
+        const ConfigOptionDef *post_time = print_config_def.get("auxiliary_fan_filtration_post_time");
+        REQUIRE(post_time != nullptr);
+        CHECK(post_time->min == 0);
+        CHECK(post_time->max == 180);
+    }
+
+    SECTION("only the supported H2 models pass the shared capability gate") {
+        for (const std::string &model : {"Bambu Lab H2C", "Bambu Lab H2D", "Bambu Lab H2S"})
+            CHECK(supports_auxiliary_fan_filtration(model, true, true));
+
+        CHECK_FALSE(supports_auxiliary_fan_filtration("Bambu Lab H2D Pro", true, true));
+        CHECK_FALSE(supports_auxiliary_fan_filtration("Bambu Lab X1 Carbon", true, true));
+        CHECK_FALSE(supports_auxiliary_fan_filtration("Bambu Lab H2C", false, true));
+        CHECK_FALSE(supports_auxiliary_fan_filtration("Bambu Lab H2C", true, false));
+    }
+
+    SECTION("filtration is a minimum and never lowers the stock AUX speed") {
+        CHECK(auxiliary_fan_speed_with_filtration(0, false, 70) == 0);
+        CHECK(auxiliary_fan_speed_with_filtration(0, true, 70) == 70);
+        CHECK(auxiliary_fan_speed_with_filtration(40, true, 70) == 70);
+        CHECK(auxiliary_fan_speed_with_filtration(90, true, 70) == 90);
+    }
+}
+
 SCENARIO("get_real_skirt_dist calculates the correct boundary including loop width", "[Config]") {
     GIVEN("A DynamicPrintConfig with skirt loops and spacing") {
         Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();

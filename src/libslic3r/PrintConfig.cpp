@@ -4223,6 +4223,30 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 0 });
 
+    def = this->add("enable_auxiliary_fan_filtration", coBool);
+    def->label = L("Enable AUX filtration override");
+    def->tooltip = L("Requires a user-modified AUX fan path that recirculates chamber air through a filter. Do not enable on an unmodified printer.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("auxiliary_fan_filtration_speed", coInt);
+    def->label = L("AUX filtration speed");
+    def->tooltip = L("Minimum auxiliary fan speed used by the modified filtration path during startup, printing, filament changes, and the final post-print dwell.");
+    def->sidetext = "%";
+    def->min = 1;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(70));
+
+    def = this->add("auxiliary_fan_filtration_post_time", coInt);
+    def->label = L("Post-print filtration time");
+    def->tooltip = L("Final filtration dwell after the normal shutdown and stock purification sequence. Set to 0 to skip the dwell; the AUX fan will still be turned off.");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->max = 180;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(60));
+
     def = this->add("min_layer_height", coFloats);
     def->label = L("Min");
     def->tooltip = L("The lowest printable layer height for extruder. Used to limit "
@@ -10125,6 +10149,19 @@ float get_real_skirt_dist(const ConfigBase& cfg)
     // Outermost skirt centerline = skirt_distance + (N-0.5)*spacing,
     // plus half extrusion width for the physical outer edge.
     return skirt_distance + (skirt_loops - 0.5f) * spacing + 0.5f * flow_width;
+}
+
+bool supports_auxiliary_fan_filtration(const std::string &printer_model, bool auxiliary_fan, bool support_cooling_filter)
+{
+    if (!auxiliary_fan || !support_cooling_filter)
+        return false;
+
+    return printer_model == "Bambu Lab H2C" || printer_model == "Bambu Lab H2D" || printer_model == "Bambu Lab H2S";
+}
+
+int auxiliary_fan_speed_with_filtration(int stock_speed, bool filtration_enabled, int filtration_speed)
+{
+    return filtration_enabled ? std::max(stock_speed, filtration_speed) : stock_speed;
 }
 } // namespace Slic3r
 

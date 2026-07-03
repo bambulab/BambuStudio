@@ -2474,6 +2474,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser_context.rng = std::mt19937(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     print.update_object_placeholders(m_placeholder_parser.config_writable(), ".gcode");
 
+    const bool auxiliary_fan_filtration_active = m_config.enable_auxiliary_fan_filtration.value &&
+        supports_auxiliary_fan_filtration(m_config.printer_model.value, m_config.auxiliary_fan.value, m_config.support_cooling_filter.value);
+    m_placeholder_parser.set("auxiliary_fan_filtration_active", new ConfigOptionBool(auxiliary_fan_filtration_active));
+    m_placeholder_parser.set("auxiliary_fan_filtration_speed_num", new ConfigOptionInt(
+        static_cast<int>(255.0 * m_config.auxiliary_fan_filtration_speed.value / 100.0)));
+
     // Get optimal tool ordering to minimize tool switches of a multi-exruder print.
     // For a print by objects, find the 1st printing object.
     ToolOrdering tool_ordering;
@@ -3249,8 +3255,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
 
     file.write(m_writer.set_fan(0));
-    //BBS: make sure the additional fan is closed when end
-    if (m_config.auxiliary_fan.value)
+    //BBS: let supported machine-end templates own the final filtration dwell and P2 shutdown
+    if (m_config.auxiliary_fan.value && !auxiliary_fan_filtration_active)
         file.write(m_writer.set_additional_fan(0));
     //BBS: close spaghetti detector
     //Note: M981 is also used to tell xcam the last layer is finished, so we need always send it even if spaghetti option is disabled.
