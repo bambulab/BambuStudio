@@ -342,6 +342,7 @@ public:
     void         set_current_filament_id(int id) { m_current_filament_id = id; };
     int          get_current_filament_id(){return m_current_filament_id;};
     bool         is_match_material(std::string material) const;
+    bool         is_ext_slot_compatible_with_current_filament(int ams_id) const;
     void         on_left_down(wxMouseEvent &evt);
     virtual void OnDismiss() wxOVERRIDE;
     virtual bool ProcessLeftDown(wxMouseEvent &event) wxOVERRIDE;

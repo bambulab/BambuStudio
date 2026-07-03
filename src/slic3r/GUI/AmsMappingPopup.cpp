@@ -29,6 +29,7 @@
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevFilaSwitch.h"
 #include "DeviceCore/DevMappingNozzle.h"
+#include "DeviceCore/DevUtilBackend.h"
 
 #include "DeviceTab/wgtDeviceNozzleSelect.h"
 #include "DeviceTab/wgtMsgPanel.h"
@@ -1120,6 +1121,28 @@ bool AmsMapingPopup::is_match_material(std::string material) const
     return m_tag_material == material ? true : false;
 }
 
+bool AmsMapingPopup::is_ext_slot_compatible_with_current_filament(int ams_id) const
+{
+    if (!devPrinterUtil::IsVirtualSlot(ams_id)) {
+        return true;
+    }
+
+    auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(wxGetApp().plater());
+    if (!nozzle_group_res) {
+        return true;
+    }
+
+    const auto& nozzle_infos = nozzle_group_res->get_nozzles_for_filament(m_current_filament_id);
+    if (nozzle_infos.empty()) {
+        return true;
+    }
+
+    const int required_logic_extruder = (ams_id == VIRTUAL_TRAY_MAIN_ID) ? LOGIC_R_EXTRUDER_ID : LOGIC_L_EXTRUDER_ID;
+    return std::any_of(nozzle_infos.begin(), nozzle_infos.end(), [required_logic_extruder](const auto& nozzle_info) {
+        return nozzle_info.extruder_id == required_logic_extruder;
+    });
+}
+
 
 void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
 {
@@ -1148,8 +1171,7 @@ void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
             }
 
             if (item->m_tray_data.type == TrayType::EMPTY) return;
-            if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC && devPrinterUtil::IsVirtualSlot(item->m_ams_id)) return;
-
+            if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC && !is_ext_slot_compatible_with_current_filament(item->m_ams_id)) return;
             if ((m_show_type == ShowType::LEFT && item->GetParent()->GetName() == "left") ||
                 (m_show_type == ShowType::RIGHT && item->GetParent()->GetName() == "right") ||
                 m_show_type == ShowType::LEFT_AND_RIGHT ||

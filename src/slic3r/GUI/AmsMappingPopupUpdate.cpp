@@ -40,6 +40,18 @@
 
 namespace Slic3r::GUI {
 
+static wxString s_external_spool_with_switcher_tip()
+{
+    return _L("External spool can be selected while Filament Track Switch is installed. "
+              "Route the filament through the external buffer or bypass the Filament Track Switch directly to the selected toolhead. "
+              "Printer firmware may still reject unsupported routes.");
+}
+
+static wxString s_external_spool_wrong_nozzle_tip()
+{
+    return _L("This external spool is connected to the other nozzle. Select the external spool for the nozzle used by this filament.");
+}
+
 
 static void _add_containers(const AmsMapingPopup* win,
                             std::list<MappingContainer*>& one_slot_containers,
@@ -486,8 +498,7 @@ void AmsMapingPopup::update_ams_tips(MachineObject* obj)
         }
 
         if (obj && obj->GetFilaSwitch()->IsInstalled()) {
-            const auto& msg = _L("External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it.");
-            m_ams_tips_msg_panel->AddMessage(msg, "#FF6F00", "");
+            m_ams_tips_msg_panel->AddMessage(s_external_spool_with_switcher_tip(), "#FF6F00", "");
         }
 
         m_ams_tips_msg_panel->Layout();
@@ -580,10 +591,13 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data,
         if (m_use_in_sync_dialog) {
             if (can_pick_the_item) {
                 if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
-                    can_pick_the_item = !devPrinterUtil::IsVirtualSlot(m_mapping_item->m_ams_id);
-                    if (!can_pick_the_item) {
-                        item_tooltip_msg = _L(
-                            "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it.");
+                    if (devPrinterUtil::IsVirtualSlot(m_mapping_item->m_ams_id)) {
+                        if (is_ext_slot_compatible_with_current_filament(m_mapping_item->m_ams_id)) {
+                            item_tooltip_msg = s_external_spool_with_switcher_tip();
+                        } else {
+                            can_pick_the_item = false;
+                            item_tooltip_msg = s_external_spool_wrong_nozzle_tip();
+                        }
                     }
                 }
             }
@@ -595,10 +609,13 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data,
                     can_pick_the_item = (m_show_type == ShowType::LEFT);
                 } else if (parent == m_right_marea_panel) {
                     if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
-                        can_pick_the_item = !devPrinterUtil::IsVirtualSlot(m_mapping_item->m_ams_id);
-                        if (!can_pick_the_item) {
-                            item_tooltip_msg = _L(
-                                "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it.");
+                        if (devPrinterUtil::IsVirtualSlot(m_mapping_item->m_ams_id)) {
+                            if (is_ext_slot_compatible_with_current_filament(m_mapping_item->m_ams_id)) {
+                                item_tooltip_msg = s_external_spool_with_switcher_tip();
+                            } else {
+                                can_pick_the_item = false;
+                                item_tooltip_msg = s_external_spool_wrong_nozzle_tip();
+                            }
                         }
                     } else if (m_show_type != ShowType::RIGHT) {
                         can_pick_the_item = false;
