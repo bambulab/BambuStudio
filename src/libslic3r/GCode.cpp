@@ -1414,7 +1414,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
 // Collect pairs of object_layer + support_layer sorted by print_z.
 // object_layer & support_layer are considered to be on the same print_z, if they are not further than EPSILON.
-std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object)
+std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object, std::string* out_empty_layer_warning)
 {
     std::vector<GCode::LayerToPrint> layers_to_print;
     layers_to_print.reserve(object.layers().size() + object.support_layers().size());
@@ -1518,11 +1518,18 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         for (i = 0; i < std::min(warning_ranges.size(), size_t(5)); ++i)
             warning += Slic3r::format(_(L("Object can't be printed for empty layer between %1% and %2%.")),
                                       warning_ranges[i].first, warning_ranges[i].second) + "\n";
-        warning += Slic3r::format(_(L("Object: %1%")), object.model_object()->name) + "\n"
-            + _(L("Maybe parts of the object at these height are too thin, or the object has faulty mesh"));
+        warning += Slic3r::format(_(L("Object: %1%")), object.model_object()->name);
 
-        const_cast<Print*>(object.print())->active_step_add_warning(
-            PrintStateBase::WarningLevel::CRITICAL, warning, PrintStateBase::SlicingEmptyGcodeLayers);
+        if (out_empty_layer_warning) {
+            // Defer emission so the caller can aggregate warnings from all objects into a single
+            // notification (this warning is Print-level and shares one message_id, so per-object
+            // emission would otherwise overwrite and keep only the last object).
+            *out_empty_layer_warning = warning;
+        } else {
+            warning += "\n" + _(L("Maybe parts of the object at these height are too thin, or the object has faulty mesh"));
+            const_cast<Print*>(object.print())->active_step_add_warning(
+                PrintStateBase::WarningLevel::CRITICAL, warning, PrintStateBase::SlicingEmptyGcodeLayers);
+        }
     }
 
     return layers_to_print;
@@ -1543,13 +1550,22 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
     std::vector<OrderingItem>               ordering;
 
     std::vector<Slic3r::SlicingError> errors;
+    // Aggregate the empty-layer warning across all objects into a single notification, so the message
+    // lists every affected object instead of only the last one.
+    std::string empty_layer_warning;
 
     for (size_t i = 0; i < print.objects().size(); ++i) {
+        std::string object_empty_layer_warning;
         try {
-            per_object[i] = collect_layers_to_print(*print.objects()[i]);
+            per_object[i] = collect_layers_to_print(*print.objects()[i], &object_empty_layer_warning);
         } catch (const Slic3r::SlicingError &e) {
             errors.push_back(e);
             continue;
+        }
+        if (!object_empty_layer_warning.empty()) {
+            if (!empty_layer_warning.empty())
+                empty_layer_warning += "\n";
+            empty_layer_warning += object_empty_layer_warning;
         }
         OrderingItem ordering_item;
         ordering_item.object_idx = i;
@@ -1563,6 +1579,12 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
     }
 
     if (!errors.empty()) { throw Slic3r::SlicingErrors(errors); }
+
+    if (!empty_layer_warning.empty()) {
+        empty_layer_warning += "\n" + _(L("Maybe parts of the object at these height are too thin, or the object has faulty mesh"));
+        const_cast<Print&>(print).active_step_add_warning(
+            PrintStateBase::WarningLevel::CRITICAL, empty_layer_warning, PrintStateBase::SlicingEmptyGcodeLayers);
+    }
 
     std::sort(ordering.begin(), ordering.end(), [](const OrderingItem& oi1, const OrderingItem& oi2) { return oi1.print_z < oi2.print_z; });
 
@@ -3129,7 +3151,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // and export G-code into file.
                 m_printed_objects.emplace_back(object);
                 m_cur_print_object = object;
-                this->process_layers(print, tool_ordering, collect_layers_to_print(*object), instance - object->instances().data(), file,
+                // Suppress per-object emission of the empty-layer warning here; it was already
+                // aggregated across all objects and emitted from collect_layers_to_print(print).
+                std::string ignored_empty_layer_warning;
+                this->process_layers(print, tool_ordering, collect_layers_to_print(*object, &ignored_empty_layer_warning), instance - object->instances().data(), file,
                                      prime_extruder);
                 {
                     // save the flush statitics stored in tool ordering by object

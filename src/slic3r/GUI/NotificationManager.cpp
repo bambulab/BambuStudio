@@ -2483,11 +2483,10 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
     const bool ui_ready = m_initialized && wxGetApp().initialized();
 	if (this->activate_existing(notification.get())) {
 		if (ui_ready) { // ignore update action until both notification manager and GUI/ImGui are ready
-			if (notification->get_type() == NotificationType::SlicingWarning) {
-				m_pop_notifications.back()->append(notification->get_data().ori_text);
-			} else {
+			// SlicingWarning duplicates are suppressed in activate_existing(): one notification
+			// per warning category; the jump-to hyperlink can only target one object.
+			if (notification->get_type() != NotificationType::SlicingWarning)
                 m_pop_notifications.back()->update(notification->get_data());
-            }
 		}
 	} else {
 		m_pop_notifications.emplace_back(std::move(notification));

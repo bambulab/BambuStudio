@@ -314,7 +314,10 @@ private:
     };
     void            _do_export(Print &print, GCodeOutputStream &file, ThumbnailsGeneratorCallback thumbnail_cb);
 
-    static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object);
+    // When out_empty_layer_warning is provided, the empty-layer warning text is written there instead
+    // of being pushed to the Print step immediately, so the caller can aggregate warnings from all
+    // objects into a single notification.
+    static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object, std::string *out_empty_layer_warning = nullptr);
     static std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> collect_layers_to_print(const Print &print);
 
     struct LayerResult {
