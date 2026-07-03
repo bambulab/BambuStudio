@@ -16205,44 +16205,41 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
             is_same_as_printer = is_extruder_stat_synced();
         }
 
-        std::vector<std::map<int, int>> ams_count_info;
-        ams_count_info.resize(2);
-
-        std::map<std::pair<int, int>, int> ams_cnt_map{
-            {{MAIN_EXTRUDER_ID, 1}, 0},
-            {{DEPUTY_EXTRUDER_ID, 1}, 0},
-            {{MAIN_EXTRUDER_ID, 4}, 0},
-            {{DEPUTY_EXTRUDER_ID, 4}, 0},
-        };
-        for (const auto &ams : obj->GetFilaSystem()->GetAmsList()) {
-            for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
-                if (sidebar->is_fila_switch_ready()) {
-                    auto switcher_pos = ams.second->GetSwitcherPos();
-                    if (!switcher_pos) { continue; }
-                    auto switcher_id = obj->is_main_extruder_on_left() ? (1 - static_cast<int>(switcher_pos.value())) : static_cast<int>(switcher_pos.value());
-                    if (extruder_id != switcher_id) { continue; }
+        if (is_same_as_printer && !preset_bundle->extruder_ams_counts.empty() && !preset_bundle->extruder_ams_counts.front().empty()) {
+            std::map<std::pair<int, int>, int> ams_cnt_map{
+                {{MAIN_EXTRUDER_ID, 1}, 0},
+                {{DEPUTY_EXTRUDER_ID, 1}, 0},
+                {{MAIN_EXTRUDER_ID, 4}, 0},
+                {{DEPUTY_EXTRUDER_ID, 4}, 0},
+            };
+            for (const auto &ams : obj->GetFilaSystem()->GetAmsList()) {
+                for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
+                    if (sidebar->is_fila_switch_ready()) {
+                        auto switcher_pos = ams.second->GetSwitcherPos();
+                        if (!switcher_pos) { continue; }
+                        auto switcher_id = obj->is_main_extruder_on_left() ? (1 - static_cast<int>(switcher_pos.value())) : static_cast<int>(switcher_pos.value());
+                        if (extruder_id != switcher_id) { continue; }
+                    }
+                    std::pair<int, int> key = {extruder_id, ams.second->GetAmsType() == DevAmsType::N3S ? 1 : 4};
+                    ams_cnt_map[key]++;
                 }
-                std::pair<int, int> key = {extruder_id, ams.second->GetAmsType() == DevAmsType::N3S ? 1 : 4};
-                ams_cnt_map[key]++;
             }
-        }
 
-        int left_4  = ams_cnt_map[{MAIN_EXTRUDER_ID, 4}];
-        int left_1  = ams_cnt_map[{MAIN_EXTRUDER_ID, 1}];
-        int right_4 = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}];
-        int right_1 = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}];
-        if (!obj->is_main_extruder_on_left()) {
-            left_4  = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}];
-            left_1  = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}];
-            right_4 = ams_cnt_map[{MAIN_EXTRUDER_ID, 4}];
-            right_1 = ams_cnt_map[{MAIN_EXTRUDER_ID, 1}];
-        }
+            int left_4  = ams_cnt_map[{MAIN_EXTRUDER_ID, 4}];
+            int left_1  = ams_cnt_map[{MAIN_EXTRUDER_ID, 1}];
+            int right_4 = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}];
+            int right_1 = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}];
+            if (!obj->is_main_extruder_on_left()) {
+                left_4  = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}];
+                left_1  = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}];
+                right_4 = ams_cnt_map[{MAIN_EXTRUDER_ID, 4}];
+                right_1 = ams_cnt_map[{MAIN_EXTRUDER_ID, 1}];
+            }
 
-        if (!preset_bundle->extruder_ams_counts.empty() && !preset_bundle->extruder_ams_counts.front().empty()) {
-            is_same_as_printer &= preset_bundle->extruder_ams_counts[0][4] == left_4
-            && preset_bundle->extruder_ams_counts[0][1] == left_1
-            && preset_bundle->extruder_ams_counts[1][4] == right_4
-            && preset_bundle->extruder_ams_counts[1][1] == right_1;
+            is_same_as_printer = preset_bundle->extruder_ams_counts[0][4] == left_4
+                && preset_bundle->extruder_ams_counts[0][1] == left_1
+                && preset_bundle->extruder_ams_counts[1][4] == right_4
+                && preset_bundle->extruder_ams_counts[1][1] == right_1;
         }
 
         if (!is_same_as_printer) {
@@ -16257,10 +16254,15 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
                 {
                     add_button(wxID_YES, true, _L("Sync now"));
                     add_button(wxID_NO, true, _L("Later"));
+                    if (wxGetApp().get_mode() >= ConfigOptionMode::comAdvanced)
+                        show_dsa_button(_L("Don't warn me again (may cause unsynced settings; can be reset in Preferences).") + "  ");
                 }
             } dlg(q);
             dlg.Fit();
-            if (dlg.ShowModal() == wxID_YES) {
+            const auto result = dlg.ShowModal();
+            if (wxGetApp().get_mode() >= ConfigOptionMode::comAdvanced && dlg.get_checkbox_state())
+                wxGetApp().app_config->set_bool("show_sync_before_slice_warning", false);
+            if (result == wxID_YES) {
                 if (GUI::wxGetApp().sidebar().sync_extruder_list()) {
                     if (is_slice_all)
                         wxPostEvent(q, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
@@ -24671,16 +24673,13 @@ void Plater::update_objects_position_when_select_preset(const std::function<void
 
 bool Plater::check_ams_status(bool is_slice_all)
 {
-    if (m_check_status == 0) {
-        if (!p->check_ams_status_impl(is_slice_all)) {
-            m_check_status = 0;
-            return false;
-        }
-        else {
-            m_check_status = 1;
-        }
-    }
+    if (m_check_status != 0 || (wxGetApp().get_mode() >= ConfigOptionMode::comAdvanced && !wxGetApp().app_config->get_bool("show_sync_before_slice_warning")))
+        return true;
 
+    if (!p->check_ams_status_impl(is_slice_all))
+        return false;
+
+    m_check_status = 1;
     return true;
 }
 
