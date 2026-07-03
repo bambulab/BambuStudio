@@ -51,7 +51,7 @@ public:
     void OnReload(wxCommandEvent& evt);
     void OnOnlineBack(wxCommandEvent& evt);
     void OnOnlineReload(wxCommandEvent& evt);
-    void OnOpenInBrowser(wxCommandEvent& evt);
+    void OnShareCurrent(wxCommandEvent& evt);
     void OnNavigationRequest(wxWebViewEvent& evt);
     void OnNavigationComplete(wxWebViewEvent& evt);
     void OnDocumentLoaded(wxWebViewEvent& evt);
@@ -111,6 +111,13 @@ public:
     
     //DisconnectPage
     wxString MakeDisconnectUrl(std::string MenuName);
+
+    // Translate the slicer-embedded MakerWorld view URL
+    // (https://makerworld.com/<lang>/studio/webview?modelid=N&from=bambustudio
+    // and friends) to the equivalent public-web URL the user can open in their
+    // default browser to see comments, designer profile, hyperlinks etc.
+    // Returns the input unchanged if no translation applies.
+    wxString TranslateMakerWorldEmbeddedUrl(const wxString &embedded_url);
 
     //LeftMenu
     std::string m_contentname; // CurrentMenu
@@ -204,10 +211,21 @@ private:
     wxBoxSizer *    m_online_toolbar_sizer { nullptr };
     wxBitmapButton *m_online_back_btn { nullptr };
     wxBitmapButton *m_online_refresh_btn { nullptr };
-    wxBitmapButton *m_online_open_browser_btn { nullptr };
+    // Share toolbar button. Replaces the previous Open-in-browser button:
+    // clicking pops a 3-item menu (Open Link / Copy Link / Share...) so the
+    // open-in-browser flow is preserved as the menu's first item, plus
+    // copy/share are now reachable from the same surface. Tinted Bambu
+    // green to read as the primary action on the Online Models toolbar.
+    wxBitmapButton *m_online_share_btn { nullptr };
     wxPanel *       m_online_container { nullptr };
     wxBoxSizer *    m_online_container_sizer { nullptr };
     int             m_online_toolbar_icon_px { 16 };
+
+    // Most recent document title from m_browserMW, captured via
+    // wxEVT_WEBVIEW_TITLE_CHANGED. Used as the title item passed to the
+    // system share menu so targets like Mail/Messages can prefill subject
+    // lines or link previews.
+    wxString m_online_last_title;
 
     wxMenu* m_tools_menu;
     wxMenuItem* m_tools_handle_navigation;
