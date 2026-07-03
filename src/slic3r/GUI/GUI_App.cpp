@@ -2088,10 +2088,14 @@ void GUI_App::init_networking_callbacks()
 
                     static bool s_mqtt_connect_failed_dialog_shown = false;
                     if (s_mqtt_connect_failed_dialog_shown) return;
+                    if (app_config && app_config->get("suppress_cloud_device_server_warning") == "1") return;
                     s_mqtt_connect_failed_dialog_shown = true;
                     BOOST_LOG_TRIVIAL(trace) << "static: server connection failed";
-                    MessageDialog msg_dlg(nullptr, _L("Failed to connect to the cloud device server. Please check your network and firewall."), "", wxOK);
+                    RichMessageDialog msg_dlg(nullptr, _L("Failed to connect to the cloud device server. Please check your network and firewall."), "", wxOK);
+                    msg_dlg.ShowCheckBox(_L("Don't show this warning again"));
                     msg_dlg.ShowModal();
+                    if (msg_dlg.IsCheckBoxChecked() && app_config)
+                        app_config->set("suppress_cloud_device_server_warning", "1");
                 });
                 return;
             }
