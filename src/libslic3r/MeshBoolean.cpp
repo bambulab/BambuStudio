@@ -854,12 +854,31 @@ bool do_boolean(McutMesh& srcMesh, const McutMesh& cutMesh, const std::string& b
         if (boolean_opts == "UNION" || boolean_opts == "A_NOT_B") {
             for (size_t i = 0; i < src_parts.size(); i++) {
                 auto src_part = triangle_mesh_to_mcut(src_parts[i]);
+                // TriangleMesh-domain accumulator so a failed mcut difference can fall back to CGAL.
+                indexed_triangle_set acc = src_parts[i];
                 for (size_t j = 0; j < cut_parts.size(); j++) {
                     if (cancel_cb && cancel_cb()) {
                         return false;
                     }
                     auto cut_part = triangle_mesh_to_mcut(cut_parts[j]);
-                    do_boolean_single(*src_part, *cut_part, boolean_opts, cancel_cb, temp_progress_cb);
+                    bool ok = do_boolean_single(*src_part, *cut_part, boolean_opts, cancel_cb, temp_progress_cb);
+                    if (boolean_opts == "A_NOT_B") {
+                        if (!ok) {
+                            // mcut produced no fragment for this difference. This happens for
+                            // near-coplanar / step cuts where its LOCATION_ABOVE fragment filter
+                            // selects zero connected components (issue #11410); until now the
+                            // subtraction was silently dropped, leaving the model unchanged.
+                            // Fall back to the more robust CGAL corefinement so the cut still applies.
+                            try {
+                                cgal::minus(acc, cut_parts[j]);
+                                src_part = triangle_mesh_to_mcut(acc);
+                            } catch (const std::exception &e) {
+                                BOOST_LOG_TRIVIAL(error) << "MCUT A_NOT_B produced nothing, CGAL fallback failed: " << e.what();
+                            }
+                        } else {
+                            acc = mcut_to_triangle_mesh(*src_part).its;
+                        }
+                    }
                     ++count_index;
                 }
                 TriangleMesh tri_part = mcut_to_triangle_mesh(*src_part);
