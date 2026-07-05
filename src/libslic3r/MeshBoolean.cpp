@@ -620,8 +620,11 @@ MCAPI_ATTR void MCAPI_CALL mcDebugOutput(McDebugSource source,
 }
 
 
-bool do_boolean_single(McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &boolean_opts, const BooleanCancelCB& cancel_cb, const BooleanProgressCB& progress_cb)
+static bool do_boolean_single_impl(McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &boolean_opts, const BooleanCancelCB& cancel_cb, const BooleanProgressCB& progress_cb, bool *dispatch_failed)
 {
+    if (dispatch_failed)
+        *dispatch_failed = false;
+
     // create context
     McContext context = MC_NULL_HANDLE;
     McResult  err     = mcCreateContext(&context, 0);
@@ -671,6 +674,9 @@ bool do_boolean_single(McutMesh &srcMesh, const McutMesh &cutMesh, const std::st
         progress_cb(10.0f);
     }
     if (err != MC_NO_ERROR) {
+        if (dispatch_failed)
+            *dispatch_failed = true;
+
         BOOST_LOG_TRIVIAL(debug) << "MCUT mcDispatch fails! err=" << err;
         mcReleaseContext(context);
         if (boolean_opts == "UNION") {
@@ -821,6 +827,17 @@ bool do_boolean_single(McutMesh &srcMesh, const McutMesh &cutMesh, const std::st
     return true;
 }
 
+bool do_boolean_single(McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &boolean_opts, const BooleanCancelCB& cancel_cb, const BooleanProgressCB& progress_cb)
+{
+    return do_boolean_single_impl(
+        srcMesh,
+        cutMesh,
+        boolean_opts,
+        cancel_cb,
+        progress_cb,
+        nullptr);
+}
+
 bool do_boolean(McutMesh& srcMesh, const McutMesh& cutMesh, const std::string& boolean_opts, const BooleanCancelCB& cancel_cb, const BooleanProgressCB& progress_cb, const BooleanFailedCB& failed_cb)
 {
     try {
@@ -854,12 +871,110 @@ bool do_boolean(McutMesh& srcMesh, const McutMesh& cutMesh, const std::string& b
         if (boolean_opts == "UNION" || boolean_opts == "A_NOT_B") {
             for (size_t i = 0; i < src_parts.size(); i++) {
                 auto src_part = triangle_mesh_to_mcut(src_parts[i]);
+                indexed_triangle_set acc = src_parts[i];
                 for (size_t j = 0; j < cut_parts.size(); j++) {
                     if (cancel_cb && cancel_cb()) {
                         return false;
                     }
+
                     auto cut_part = triangle_mesh_to_mcut(cut_parts[j]);
-                    do_boolean_single(*src_part, *cut_part, boolean_opts, cancel_cb, temp_progress_cb);
+                    bool dispatch_failed = false;
+                    bool ok = do_boolean_single_impl(
+                        *src_part,
+                        *cut_part,
+                        boolean_opts,
+                        cancel_cb,
+                        temp_progress_cb,
+                        &dispatch_failed);
+
+                    // do_boolean_single_impl() also returns false on cancellation.
+                    // Never reinterpret a user cancel as a geometric mcut failure.
+                    if (cancel_cb && cancel_cb()) {
+                        return false;
+                    }
+
+                    if (boolean_opts == "A_NOT_B") {
+                        if (!ok && dispatch_failed) {
+                            // #11410: the reporter's model fails in mcDispatch and contains
+                            // self-intersecting geometry. Feeding the same input directly into
+                            // CGAL PMP corefinement is not a valid fallback because that path
+                            // deliberately rejects self-intersections.
+                            //
+                            // Try to normalize only the offending geometry with the existing
+                            // libigl/CGAL self-union path, then retry the original mcut operation.
+                            TriangleMesh repaired_src(acc);
+                            TriangleMesh repaired_cut(cut_parts[j]);
+
+                            const bool src_self_intersects = cgal::does_self_intersect(repaired_src);
+                            const bool cut_self_intersects = cgal::does_self_intersect(repaired_cut);
+
+                            BOOST_LOG_TRIVIAL(info)
+                                << "MCUT A_NOT_B failed; self-intersection check: src="
+                                << src_self_intersects
+                                << ", cut=" << cut_self_intersects;
+
+                            bool repaired = false;
+
+                            if (src_self_intersects) {
+                                MeshBoolean::self_union(repaired_src);
+                                repaired = true;
+                            }
+
+                            if (cut_self_intersects) {
+                                MeshBoolean::self_union(repaired_cut);
+                                repaired = true;
+                            }
+
+                            if (cancel_cb && cancel_cb()) {
+                                return false;
+                            }
+
+                            if (!repaired) {
+                                throw Slic3r::RuntimeError(
+                                    "MCUT mesh boolean failed and no self-intersection was found.");
+                            }
+
+                            const bool src_still_self_intersects =
+                                cgal::does_self_intersect(repaired_src);
+                            const bool cut_still_self_intersects =
+                                cgal::does_self_intersect(repaired_cut);
+
+                            BOOST_LOG_TRIVIAL(info)
+                                << "MCUT A_NOT_B after repair: src self-intersection="
+                                << src_still_self_intersects
+                                << ", cut self-intersection="
+                                << cut_still_self_intersects;
+
+                            if (src_still_self_intersects || cut_still_self_intersects) {
+                                throw Slic3r::RuntimeError(
+                                    "Mesh self-intersection repair failed.");
+                            }
+
+                            src_part = triangle_mesh_to_mcut(repaired_src.its);
+                            cut_part = triangle_mesh_to_mcut(repaired_cut.its);
+
+                            dispatch_failed = false;
+                            ok = do_boolean_single_impl(
+                                *src_part,
+                                *cut_part,
+                                boolean_opts,
+                                cancel_cb,
+                                temp_progress_cb,
+                                &dispatch_failed);
+
+                            if (cancel_cb && cancel_cb()) {
+                                return false;
+                            }
+
+                            if (!ok) {
+                                throw Slic3r::RuntimeError(
+                                    "MCUT mesh boolean failed after self-intersection repair.");
+                            }
+                        }
+
+                        acc = mcut_to_triangle_mesh(*src_part).its;
+                    }
+
                     ++count_index;
                 }
                 TriangleMesh tri_part = mcut_to_triangle_mesh(*src_part);
