@@ -1983,6 +1983,14 @@ void TreeSupport::generate()
 {
     if (!is_tree(m_object_config->support_type.value)) return;
 
+    // support_style enum: 0=Default,1=Grid,2=Snug,3=TreeSlim,4=TreeStrong,5=TreeHybrid,6=TreeOrganic
+    BOOST_LOG_TRIVIAL(info) << "TreeSupport::generate support_style=" << m_support_params.support_style
+        << (m_support_params.support_style == smsTreeOrganic ? "(organic)" : "(non-organic)")
+        << " independent_layer_height=" << m_support_params.independent_layer_height
+        << " config.layer_height=" << m_object_config->layer_height.value
+        << " slicing_params.layer_height=" << m_slicing_params.layer_height
+        << " top_z_distance=" << this->top_z_distance;
+
     if (m_support_params.support_style == smsTreeOrganic) {
         generate_tree_support_3D(*m_object, this, this->throw_on_cancel);
         return;
@@ -3782,6 +3790,11 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
 {
     std::vector<LayerHeightData> layer_heights;
     std::map<coordf_t, coordf_t> z_heights; // print_z:height
+    BOOST_LOG_TRIVIAL(info) << "plan_layer_heights: independent_layer_height=" << m_support_params.independent_layer_height
+        << " obj_layer_count=" << m_object->layer_count()
+        << " layer[0].height=" << (m_object->layer_count() > 0 ? m_object->get_layer(0)->height : -1)
+        << " layer[1].height=" << (m_object->layer_count() > 1 ? m_object->get_layer(1)->height : -1)
+        << " max_suport_layer_height=" << m_slicing_params.max_suport_layer_height;
     if (!m_support_params.independent_layer_height) {
         layer_heights.resize(m_object->layer_count());
         for (int layer_nr = 0; layer_nr < m_object->layer_count(); layer_nr++) {
@@ -3954,7 +3967,13 @@ void TreeSupport::generate_contact_points()
         if (z_distance_top < EPSILON && this->top_z_distance > EPSILON)
             z_distance_top = layer_height;
     }
-    const int z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1; //Support must always be 1 layer below overhang.
+    const int z_distance_top_layers = round_up_divide(scale_(z_distance_top), scale_(layer_height)) + 1;
+    BOOST_LOG_TRIVIAL(info) << "generate_contact_points: layer_height=" << layer_height
+        << " z_distance_top(raw)=" << this->top_z_distance
+        << " z_distance_top(snapped)=" << z_distance_top
+        << " z_distance_top_layers=" << z_distance_top_layers
+        << " independent_layer_height=" << m_support_params.independent_layer_height
+        << " first_obj_layer_height=" << (m_object->layer_count() > 0 ? m_object->get_layer(0)->height : -1); //Support must always be 1 layer below overhang.
     int gap_layers = z_distance_top == 0 ? 0 : 1;
 
     size_t support_roof_layers = config.support_interface_top_layers.value;
