@@ -2101,7 +2101,6 @@ void GUI_App::init_networking_callbacks()
                     m_homepage_server_connect_failed = false;
                     sync_left_server_connect_status();
                     BOOST_LOG_TRIVIAL(trace) << "static: server connected";
-                    m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
                     if (this->is_enable_multi_machine()) {
                         auto evt = new wxCommandEvent(EVT_UPDATE_MACHINE_LIST);
                         wxQueueEvent(this, evt);
