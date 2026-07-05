@@ -12,13 +12,6 @@
     "printer_model": "Bambu Lab X2D",
     "farthest_point_timelapse": "1",
     "printer_variant": "0.4",
-    "include": [
-        "Bambu Lab X2D 0.4 nozzle template change_filament_gcode",
-        "Bambu Lab X2D 0.4 nozzle template layer_change_gcode",
-        "Bambu Lab X2D 0.4 nozzle template machine_end_gcode",
-        "Bambu Lab X2D 0.4 nozzle template machine_start_gcode",
-        "Bambu Lab X2D 0.4 nozzle template time_lapse_gcode"
-    ],
     "default_filament_profile": [
         "Bambu PLA Basic @BBL X2D 0.4 nozzle"
     ],
@@ -26,12 +19,16 @@
     "deretract_speed_extruder_change": [
         "30",
         "30",
+        "30",
+        "90",
         "90",
         "90"
     ],
     "deretraction_speed": [
         "30",
         "30",
+        "30",
+        "20",
         "20",
         "20"
     ],
@@ -54,8 +51,8 @@
         "Bowden"
     ],
     "extruder_variant_list": [
-        "Direct Drive Standard,Direct Drive High Flow",
-        "Bowden Standard,Bowden High Flow"
+        "Direct Drive Standard,Direct Drive High Flow,Direct Drive E3D High Flow",
+        "Bowden Standard,Bowden High Flow,Bowden E3D High Flow"
     ],
     "fan_direction": "both",
     "group_algo_with_time": "1",
@@ -63,12 +60,25 @@
         "1.5",
         "1.5",
         "1.5",
+        "1.5",
+        "1.5",
         "1.5"
+    ],
+    "include": [
+        "Bambu Lab X2D 0.4 nozzle template machine_start_gcode",
+        "Bambu Lab X2D 0.4 nozzle template machine_end_gcode",
+        "Bambu Lab X2D 0.4 nozzle template layer_change_gcode",
+        "Bambu Lab X2D 0.4 nozzle template time_lapse_gcode",
+        "Bambu Lab X2D 0.4 nozzle template change_filament_gcode"
     ],
     "machine_max_acceleration_e": [
         "30000",
         "5000",
         "30000",
+        "5000",
+        "30000",
+        "5000",
+        "5000",
         "5000",
         "5000",
         "5000",
@@ -83,6 +93,10 @@
         "30000",
         "5000",
         "30000",
+        "5000",
+        "30000",
+        "5000",
+        "30000",
         "5000"
     ],
     "machine_max_speed_e": [
@@ -90,12 +104,20 @@
         "30",
         "30",
         "30",
+        "30",
+        "30",
+        "120",
+        "120",
         "120",
         "120",
         "120",
         "120"
     ],
     "machine_max_speed_x": [
+        "1000",
+        "1000",
+        "1000",
+        "1000",
         "1000",
         "1000",
         "1000",
@@ -113,6 +135,10 @@
         "1000",
         "1000",
         "1000",
+        "1000",
+        "1000",
+        "1000",
+        "1000",
         "1000"
     ],
     "printable_area": [
@@ -123,13 +149,25 @@
     ],
     "print_in_clockwise": "1",
     "printable_height": "261",
+    "printer_extruder_id": [
+        "1",
+        "1",
+        "1",
+        "2",
+        "2",
+        "2"
+    ],
     "printer_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow",
+        "Direct Drive E3D High Flow",
         "Bowden Standard",
-        "Bowden High Flow"
+        "Bowden High Flow",
+        "Bowden E3D High Flow"
     ],
     "retract_lift_below": [
+        "254",
+        "254",
         "254",
         "254",
         "254",
@@ -138,12 +176,16 @@
     "retraction_length": [
         "0.8",
         "0.8",
+        "0.8",
+        "2",
         "2",
         "2"
     ],
     "retraction_speed": [
         "30",
         "30",
+        "30",
+        "20",
         "20",
         "20"
     ],
@@ -156,5 +198,281 @@
         "Bambu Lab H2D Pro 0.4 nozzle",
         "Bambu Lab H2C 0.4 nozzle",
         "Bambu Lab A2L 0.4 nozzle"
+    ],
+    "machine_max_acceleration_extruding": [
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000"
+    ],
+    "machine_max_acceleration_travel": [
+        "9000",
+        "9000",
+        "9000",
+        "9000",
+        "9000",
+        "9000",
+        "9000",
+        "9000",
+        "9000",
+        "9000",
+        "9000",
+        "9000"
+    ],
+    "machine_max_acceleration_x": [
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000"
+    ],
+    "machine_max_acceleration_y": [
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000"
+    ],
+    "machine_max_acceleration_z": [
+        "500",
+        "500",
+        "500",
+        "500",
+        "500",
+        "500",
+        "500",
+        "500",
+        "500",
+        "500",
+        "500",
+        "500"
+    ],
+    "machine_max_jerk_e": [
+        "2.5",
+        "2.5",
+        "2.5",
+        "2.5",
+        "2.5",
+        "2.5",
+        "2.5",
+        "2.5",
+        "2.5",
+        "2.5",
+        "2.5",
+        "2.5"
+    ],
+    "machine_max_jerk_x": [
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9"
+    ],
+    "machine_max_jerk_y": [
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9",
+        "9"
+    ],
+    "machine_max_jerk_z": [
+        "3",
+        "3",
+        "3",
+        "3",
+        "3",
+        "3",
+        "3",
+        "3",
+        "3",
+        "3",
+        "3",
+        "3"
+    ],
+    "z_hop_types": [
+        "Auto Lift",
+        "Auto Lift",
+        "Auto Lift",
+        "Auto Lift",
+        "Auto Lift",
+        "Auto Lift"
+    ],
+    "z_hop": [
+        "0.4",
+        "0.4",
+        "0.4",
+        "0.4",
+        "0.4",
+        "0.4"
+    ],
+    "wipe_distance": [
+        "2",
+        "2",
+        "2",
+        "2",
+        "2",
+        "2"
+    ],
+    "wipe": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+    ],
+    "retraction_minimum_travel": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+    ],
+    "retraction_distances_when_cut": [
+        "18",
+        "18",
+        "18",
+        "18",
+        "18",
+        "18"
+    ],
+    "retract_when_changing_layer": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+    ],
+    "retract_restart_extra_toolchange": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+    ],
+    "retract_restart_extra": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+    ],
+    "retract_lift_above": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+    ],
+    "retract_length_toolchange": [
+        "2",
+        "2",
+        "2",
+        "2",
+        "2",
+        "2"
+    ],
+    "retract_before_wipe": [
+        "0%",
+        "0%",
+        "0%",
+        "0%",
+        "0%",
+        "0%"
+    ],
+    "nozzle_volume": [
+        "92",
+        "92",
+        "92",
+        "92",
+        "92",
+        "92"
+    ],
+    "nozzle_type": [
+        "hardened_steel",
+        "hardened_steel",
+        "hardened_steel",
+        "hardened_steel",
+        "hardened_steel",
+        "hardened_steel"
+    ],
+    "nozzle_flush_dataset": [
+        "1",
+        "2",
+        "2",
+        "1",
+        "2",
+        "2"
+    ],
+    "long_retractions_when_cut": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+    ],
+    "machine_max_speed_z": [
+        "20",
+        "20",
+        "20",
+        "20",
+        "20",
+        "20",
+        "20",
+        "20",
+        "20",
+        "20",
+        "20",
+        "20"
+    ],
+    "hotend_cooling_rate": [
+        "2",
+        "2",
+        "2",
+        "2",
+        "2",
+        "2"
     ]
 }

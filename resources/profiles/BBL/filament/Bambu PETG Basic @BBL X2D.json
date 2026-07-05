@@ -15,6 +15,8 @@
         "10",
         "10",
         "10",
+        "10",
+        "10",
         "10"
     ],
     "filament_extruder_compatibility": [
@@ -24,15 +26,21 @@
         "0.95",
         "0.95",
         "0.95",
+        "0.95",
+        "0.95",
         "0.95"
     ],
     "filament_max_volumetric_speed": [
-        "16",
+        "21",
         "23",
-        "16",
-        "16"
+        "23",
+        "21",
+        "21",
+        "21"
     ],
     "filament_ramming_travel_time": [
+        "0",
+        "0",
         "0",
         "0",
         "0",
@@ -42,10 +50,14 @@
         "10",
         "10",
         "10",
+        "10",
+        "10",
         "10"
     ],
     "filament_retraction_length": [
         "0.4",
+        "nil",
+        "nil",
         "nil",
         "nil",
         "nil"
@@ -59,28 +71,36 @@
     "filament_wipe": [
         "1",
         "nil",
+        "nil",
         "1",
+        "nil",
         "nil"
     ],
     "filament_wipe_distance": [
         "1",
         "nil",
+        "nil",
         "1",
+        "nil",
         "nil"
     ],
     "filament_z_hop_types": [
         "Spiral Lift",
         "nil",
+        "nil",
         "Spiral Lift",
+        "nil",
         "nil"
     ],
     "first_x_layer_fan_speed": [
         "40"
     ],
     "include": [
-        "fdm_filament_template_direct_bowden"
+        "fdm_filament_template_direct_bowden_e3d"
     ],
     "nozzle_temperature": [
+        "250",
+        "250",
         "250",
         "250",
         "250",
@@ -90,11 +110,15 @@
         "245",
         "245",
         "245",
+        "245",
+        "245",
         "245"
     ],
     "retraction_distances_when_ec": [
         "3",
         "3",
+        "3",
+        "4",
         "4",
         "4"
     ],
@@ -105,8 +129,7 @@
         "60"
     ],
     "compatible_printers": [
-        "Bambu Lab X2D 0.6 nozzle",
-        "Bambu Lab X2D 0.8 nozzle"
+        "Bambu Lab X2D 0.6 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"

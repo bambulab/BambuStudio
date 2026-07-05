@@ -24,6 +24,8 @@
         "10",
         "10",
         "10",
+        "10",
+        "10",
         "10"
     ],
     "filament_extruder_compatibility": [
@@ -33,15 +35,21 @@
         "0.95",
         "0.95",
         "0.95",
+        "0.95",
+        "0.95",
         "0.95"
     ],
     "filament_max_volumetric_speed": [
         "18",
         "25",
+        "25",
         "18",
+        "20",
         "20"
     ],
     "filament_ramming_travel_time": [
+        "0",
+        "0",
         "0",
         "0",
         "0",
@@ -51,34 +59,36 @@
         "10",
         "10",
         "10",
+        "10",
+        "10",
         "10"
-    ],
-    "filament_retraction_length": [
-        "0.4",
-        "0.4",
-        "nil",
-        "nil"
     ],
     "filament_tower_interface_print_temp": [
         "270"
     ],
     "filament_wipe": [
+        "nil",
+        "nil",
+        "nil",
         "1",
-        "1",
-        "1",
-        "1"
+        "nil",
+        "nil"
     ],
     "filament_wipe_distance": [
+        "nil",
+        "nil",
+        "nil",
         "1",
-        "1",
-        "1",
-        "1"
+        "nil",
+        "nil"
     ],
     "filament_z_hop_types": [
+        "nil",
+        "nil",
+        "nil",
         "Spiral Lift",
-        "Spiral Lift",
-        "Spiral Lift",
-        "Spiral Lift"
+        "nil",
+        "nil"
     ],
     "hole_coef_2": [
         "0.0013"
@@ -93,9 +103,11 @@
         "0.1261"
     ],
     "include": [
-        "fdm_filament_template_direct_bowden"
+        "fdm_filament_template_direct_bowden_e3d"
     ],
     "nozzle_temperature": [
+        "270",
+        "270",
         "270",
         "270",
         "270",
@@ -105,11 +117,15 @@
         "270",
         "270",
         "270",
+        "270",
+        "270",
         "270"
     ],
     "retraction_distances_when_ec": [
         "3",
         "3",
+        "3",
+        "4",
         "4",
         "4"
     ],
@@ -117,7 +133,12 @@
         "20",
         "20",
         "20",
+        "20",
+        "20",
         "20"
+    ],
+    "temperature_vitrification": [
+        "100"
     ],
     "compatible_printers": [
         "Bambu Lab X2D 0.4 nozzle"

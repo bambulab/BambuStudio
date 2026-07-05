@@ -26,39 +26,51 @@
     "fan_min_speed": [
         "20"
     ],
+    "filament_change_length": [
+        "4"
+    ],
     "filament_cooling_before_tower": [
         "10",
+        "10",
         "10"
+    ],
+    "filament_max_volumetric_speed": [
+        "25",
+        "40",
+        "40"
+    ],
+    "filament_preheat_temperature_delta": [
+        "20",
+        "20",
+        "20"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0",
+        "0"
+    ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4",
+        "0.4"
     ],
     "filament_tower_ironing_area": [
         "8"
     ],
-    "filament_max_volumetric_speed": [
-        "25",
-        "40"
-    ],
-    "filament_retraction_length": [
-        "0.4",
-        "0.4"
-    ],
     "filament_wipe": [
+        "1",
         "1",
         "1"
     ],
     "filament_wipe_distance": [
         "1",
+        "1",
         "1"
     ],
     "filament_z_hop_types": [
         "Spiral Lift",
+        "Spiral Lift",
         "Spiral Lift"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
-    ],
-    "filament_change_length": [
-        "4"
     ],
     "hole_coef_2": [
         "-0.0042"
@@ -73,13 +85,15 @@
         "0.09"
     ],
     "include": [
-        "fdm_filament_template_direct_dual"
+        "fdm_filament_template_direct_dual_e3d"
     ],
     "nozzle_temperature": [
+        "245",
         "245",
         "245"
     ],
     "nozzle_temperature_initial_layer": [
+        "245",
         "245",
         "245"
     ],
@@ -89,18 +103,19 @@
     "pre_start_fan_time": [
         "2"
     ],
-    "supertack_plate_temp": [
-        "60"
-    ],
-    "supertack_plate_temp_initial_layer": [
-        "60"
-    ],
     "slow_down_layer_time": [
         "10"
     ],
     "slow_down_min_speed": [
         "20",
+        "20",
         "20"
+    ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle"

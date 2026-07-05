@@ -21,12 +21,11 @@
         "0.0183"
     ],
     "fan_max_speed": [
-        "55"
-    ],
-    "fan_min_speed": [
-        "25"
+        "40"
     ],
     "filament_cooling_before_tower": [
+        "10",
+        "10",
         "10",
         "10",
         "10",
@@ -36,46 +35,28 @@
         "0.94",
         "0.94",
         "0.94",
+        "0.94",
+        "0.94",
         "0.94"
     ],
     "filament_max_volumetric_speed": [
         "18",
         "30",
+        "30",
         "18",
+        "20",
         "20"
     ],
     "filament_ramming_travel_time": [
         "0",
         "0",
         "0",
+        "0",
+        "0",
         "0"
-    ],
-    "filament_retraction_length": [
-        "0.4",
-        "0.4",
-        "nil",
-        "nil"
     ],
     "filament_tower_interface_print_temp": [
         "280"
-    ],
-    "filament_wipe": [
-        "1",
-        "1",
-        "1",
-        "1"
-    ],
-    "filament_wipe_distance": [
-        "1",
-        "1",
-        "1",
-        "1"
-    ],
-    "filament_z_hop_types": [
-        "Spiral Lift",
-        "Spiral Lift",
-        "Spiral Lift",
-        "Spiral Lift"
     ],
     "hole_coef_2": [
         "0.0009"
@@ -90,9 +71,11 @@
         "0.0725"
     ],
     "include": [
-        "fdm_filament_template_direct_bowden"
+        "fdm_filament_template_direct_bowden_e3d"
     ],
     "nozzle_temperature": [
+        "280",
+        "280",
         "280",
         "280",
         "280",
@@ -102,14 +85,15 @@
         "270",
         "270",
         "270",
+        "270",
+        "270",
         "270"
-    ],
-    "overhang_fan_speed": [
-        "75"
     ],
     "retraction_distances_when_ec": [
         "3",
         "3",
+        "3",
+        "4",
         "4",
         "4"
     ],
@@ -120,7 +104,12 @@
         "20",
         "20",
         "20",
+        "20",
+        "20",
         "20"
+    ],
+    "temperature_vitrification": [
+        "120"
     ],
     "compatible_printers": [
         "Bambu Lab X2D 0.4 nozzle"

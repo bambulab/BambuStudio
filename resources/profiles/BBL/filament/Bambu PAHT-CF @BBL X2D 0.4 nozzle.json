@@ -30,9 +30,13 @@
         "10",
         "10",
         "10",
+        "10",
+        "10",
         "10"
     ],
     "filament_flow_ratio": [
+        "0.96",
+        "0.96",
         "0.96",
         "0.96",
         "0.96",
@@ -42,9 +46,13 @@
         "8",
         "8",
         "8",
+        "8",
+        "8",
         "8"
     ],
     "filament_ramming_travel_time": [
+        "0",
+        "0",
         "0",
         "0",
         "0",
@@ -66,15 +74,19 @@
         "0.1686"
     ],
     "include": [
-        "fdm_filament_template_direct_bowden"
+        "fdm_filament_template_direct_bowden_e3d"
     ],
     "nozzle_temperature": [
+        "290",
+        "290",
         "290",
         "290",
         "290",
         "290"
     ],
     "nozzle_temperature_initial_layer": [
+        "290",
+        "290",
         "290",
         "290",
         "290",
@@ -86,10 +98,14 @@
     "retraction_distances_when_ec": [
         "3",
         "3",
+        "3",
+        "4",
         "4",
         "4"
     ],
     "slow_down_min_speed": [
+        "20",
+        "20",
         "20",
         "20",
         "20",

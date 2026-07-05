@@ -14,33 +14,31 @@
     "counter_coef_3": [
         "0.0031"
     ],
-    "counter_limit_min": [
-        "-0.038"
-    ],
     "counter_limit_max": [
         "0.0031"
     ],
+    "counter_limit_min": [
+        "-0.038"
+    ],
     "filament_cooling_before_tower": [
+        "10",
         "10",
         "10"
     ],
     "filament_flow_ratio": [
         "0.96",
+        "0.96",
         "0.96"
     ],
     "filament_max_volumetric_speed": [
         "8",
+        "8",
         "8"
-    ],
-    "filament_prime_volume": [
-        "30"
     ],
     "filament_ramming_travel_time": [
         "0",
+        "0",
         "0"
-    ],
-    "filament_change_length": [
-        "4"
     ],
     "hole_coef_2": [
         "-0.0051"
@@ -48,39 +46,42 @@
     "hole_coef_3": [
         "0.2194"
     ],
-    "hole_limit_min": [
-        "0.092"
-    ],
     "hole_limit_max": [
         "0.2194"
     ],
+    "hole_limit_min": [
+        "0.092"
+    ],
     "include": [
-        "fdm_filament_template_direct_dual"
+        "fdm_filament_template_direct_dual_e3d"
     ],
     "long_retractions_when_ec": [
+        "0",
         "0",
         "0"
     ],
     "nozzle_temperature": [
         "275",
+        "275",
         "275"
     ],
     "nozzle_temperature_initial_layer": [
+        "275",
         "275",
         "275"
     ],
     "retraction_distances_when_ec": [
         "0",
+        "0",
         "0"
     ],
     "slow_down_min_speed": [
         "20",
+        "20",
         "20"
     ],
     "compatible_printers": [
-        "Bambu Lab H2S 0.4 nozzle",
-        "Bambu Lab H2S 0.6 nozzle",
-        "Bambu Lab H2S 0.8 nozzle"
+        "Bambu Lab H2S 0.4 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"

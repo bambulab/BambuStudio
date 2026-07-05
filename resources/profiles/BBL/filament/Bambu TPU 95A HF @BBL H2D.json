@@ -14,6 +14,16 @@
     "eng_plate_temp_initial_layer": [
         "35"
     ],
+    "filament_adaptive_volumetric_speed": [
+        "0",
+        "0",
+        "0"
+    ],
+    "filament_bridge_speed": [
+        "25",
+        "25",
+        "25"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10",
@@ -23,6 +33,16 @@
         "10",
         "10",
         "40"
+    ],
+    "filament_enable_overhang_speed": [
+        "1",
+        "1",
+        "1"
+    ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow",
+        "Direct Drive TPU High Flow"
     ],
     "filament_flow_ratio": [
         "1",
@@ -49,6 +69,56 @@
         "12",
         "16"
     ],
+    "filament_overhang_1_4_speed": [
+        "0",
+        "0",
+        "0"
+    ],
+    "filament_overhang_2_4_speed": [
+        "50",
+        "50",
+        "25"
+    ],
+    "filament_overhang_3_4_speed": [
+        "30",
+        "30",
+        "25"
+    ],
+    "filament_overhang_4_4_speed": [
+        "10",
+        "10",
+        "25"
+    ],
+    "filament_overhang_totally_speed": [
+        "10",
+        "10",
+        "25"
+    ],
+    "filament_pre_cooling_temperature": [
+        "200",
+        "200",
+        "200"
+    ],
+    "filament_pre_cooling_temperature_nc": [
+        "0",
+        "0",
+        "0"
+    ],
+    "filament_preheat_temperature_delta": [
+        "20",
+        "20",
+        "20"
+    ],
+    "filament_ramming_travel_time": [
+        "20",
+        "20",
+        "20"
+    ],
+    "filament_ramming_travel_time_nc": [
+        "0",
+        "0",
+        "0"
+    ],
     "filament_ramming_volumetric_speed": [
         "3.0",
         "3.0",
@@ -63,6 +133,11 @@
         "nil",
         "nil",
         "nil"
+    ],
+    "filament_retract_length_nc": [
+        "14",
+        "14",
+        "14"
     ],
     "filament_retract_restart_extra": [
         "nil",
@@ -114,83 +189,8 @@
         "nil",
         "Spiral Lift"
     ],
-    "filament_extruder_variant": [
-        "Direct Drive Standard",
-        "Direct Drive High Flow",
-        "Direct Drive TPU High Flow"
-    ],
-    "filament_pre_cooling_temperature": [
-        "200",
-        "200",
-        "200"
-    ],
-    "filament_pre_cooling_temperature_nc": [
-        "0",
-        "0",
-        "0"
-    ],
-    "filament_ramming_travel_time": [
-        "20",
-        "20",
-        "20"
-    ],
-    "filament_ramming_travel_time_nc": [
-        "0",
-        "0",
-        "0"
-    ],
-    "filament_retract_length_nc": [
-        "14",
-        "14",
-        "14"
-    ],
-    "filament_enable_overhang_speed": [
-        "1",
-        "1",
-        "1"
-    ],
-    "filament_overhang_1_4_speed": [
-        "0",
-        "0",
-        "0"
-    ],
-    "filament_overhang_2_4_speed": [
-        "50",
-        "50",
-        "25"
-    ],
-    "filament_overhang_3_4_speed": [
-        "30",
-        "30",
-        "25"
-    ],
-    "filament_overhang_4_4_speed": [
-        "10",
-        "10",
-        "25"
-    ],
-    "filament_overhang_totally_speed": [
-        "10",
-        "10",
-        "25"
-    ],
-    "filament_bridge_speed": [
-        "25",
-        "25",
-        "25"
-    ],
-    "filament_adaptive_volumetric_speed": [
-        "0",
-        "0",
-        "0"
-    ],
-    "filament_preheat_temperature_delta": [
-        "10",
-        "10",
-        "10"
-    ],
     "include": [
-        "fdm_filament_template_direct_dual"
+        "fdm_filament_template_direct_dual_e3d"
     ],
     "long_retractions_when_ec": [
         "1",
@@ -228,8 +228,7 @@
         "0 0 0 0 0 0"
     ],
     "compatible_printers": [
-        "Bambu Lab H2D 0.6 nozzle",
-        "Bambu Lab H2D 0.8 nozzle"
+        "Bambu Lab H2D 0.6 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"

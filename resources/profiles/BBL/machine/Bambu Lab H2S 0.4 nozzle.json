@@ -16,25 +16,33 @@
         "Bambu PLA Basic @BBL H2S"
     ],
     "default_print_profile": "0.20mm Standard @BBL H2S",
+    "deretract_speed_extruder_change": [
+        "30",
+        "30",
+        "30"
+    ],
     "deretraction_speed": [
+        "30",
         "30",
         "30"
     ],
     "enable_long_retraction_when_cut": "2",
-    "extruder_variant_list": [
-        "Direct Drive Standard,Direct Drive High Flow"
-    ],
     "extruder_clearance_dist_to_rod": "56",
     "extruder_clearance_height_to_lid": "187",
     "extruder_clearance_height_to_rod": "33",
     "extruder_clearance_max_radius": "81",
     "extruder_clearance_radius": "30",
+    "extruder_variant_list": [
+        "Direct Drive Standard,Direct Drive High Flow,Direct Drive E3D High Flow"
+    ],
     "fan_direction": "left",
     "hotend_cooling_rate": [
+        "2",
         "2",
         "2"
     ],
     "hotend_heating_rate": [
+        "2",
         "2",
         "2"
     ],
@@ -48,34 +56,12 @@
     ],
     "long_retractions_when_cut": [
         "0",
+        "0",
         "0"
     ],
-    "machine_max_acceleration_z": [
-        "500",
-        "500",
-        "500",
-        "500"
-    ],
-    "machine_max_speed_x": [
-        "1000",
-        "1000",
-        "1000",
-        "1000"
-    ],
-    "machine_max_speed_y": [
-        "1000",
-        "1000",
-        "1000",
-        "1000"
-    ],
-    "machine_max_speed_z": [
-        "30",
-        "30",
-        "30",
-        "30"
-    ],
-    "machine_unload_filament_time": "28",
     "machine_max_acceleration_e": [
+        "5000",
+        "5000",
         "5000",
         "5000",
         "5000",
@@ -85,9 +71,13 @@
         "20000",
         "20000",
         "20000",
+        "20000",
+        "20000",
         "20000"
     ],
     "machine_max_acceleration_retracting": [
+        "5000",
+        "5000",
         "5000",
         "5000",
         "5000",
@@ -97,9 +87,13 @@
         "9000",
         "9000",
         "9000",
+        "9000",
+        "9000",
         "9000"
     ],
     "machine_max_acceleration_x": [
+        "20000",
+        "20000",
         "20000",
         "20000",
         "20000",
@@ -109,9 +103,21 @@
         "20000",
         "20000",
         "20000",
+        "20000",
+        "20000",
         "20000"
     ],
+    "machine_max_acceleration_z": [
+        "500",
+        "500",
+        "500",
+        "500",
+        "500",
+        "500"
+    ],
     "machine_max_jerk_e": [
+        "2.5",
+        "2.5",
         "2.5",
         "2.5",
         "2.5",
@@ -121,9 +127,13 @@
         "9",
         "9",
         "9",
+        "9",
+        "9",
         "9"
     ],
     "machine_max_jerk_y": [
+        "9",
+        "9",
         "9",
         "9",
         "9",
@@ -133,9 +143,37 @@
         "3",
         "3",
         "3",
+        "3",
+        "3",
         "3"
     ],
     "machine_max_speed_e": [
+        "30",
+        "30",
+        "30",
+        "30",
+        "30",
+        "30"
+    ],
+    "machine_max_speed_x": [
+        "1000",
+        "1000",
+        "1000",
+        "1000",
+        "1000",
+        "1000"
+    ],
+    "machine_max_speed_y": [
+        "1000",
+        "1000",
+        "1000",
+        "1000",
+        "1000",
+        "1000"
+    ],
+    "machine_max_speed_z": [
+        "30",
+        "30",
         "30",
         "30",
         "30",
@@ -147,17 +185,21 @@
     "machine_min_travel_rate": [
         "0"
     ],
-    "nozzle_volume": [
-        "145",
-        "148"
-    ],
+    "machine_unload_filament_time": "28",
     "nozzle_flush_dataset": [
         "1",
+        "2",
         "2"
     ],
     "nozzle_type": [
         "hardened_steel",
+        "hardened_steel",
         "hardened_steel"
+    ],
+    "nozzle_volume": [
+        "32",
+        "32",
+        "32"
     ],
     "printable_area": [
         "0x0",
@@ -168,66 +210,81 @@
     "printable_height": "340",
     "printer_extruder_id": [
         "1",
+        "1",
         "1"
     ],
     "printer_extruder_variant": [
         "Direct Drive Standard",
-        "Direct Drive High Flow"
-    ],
-    "retract_lift_below": [
-        "339",
-        "339"
+        "Direct Drive High Flow",
+        "Direct Drive E3D High Flow"
     ],
     "retract_before_wipe": [
+        "0%",
         "0%",
         "0%"
     ],
     "retract_length_toolchange": [
         "2",
+        "2",
         "2"
     ],
     "retract_lift_above": [
         "0",
+        "0",
         "0"
     ],
-    "retraction_length": [
-        "0.8",
-        "0.8"
-    ],
-    "retraction_minimum_travel": [
-        "1",
-        "1"
-    ],
-    "retraction_speed": [
-        "30",
-        "30"
+    "retract_lift_below": [
+        "339",
+        "339",
+        "339"
     ],
     "retract_restart_extra": [
+        "0",
         "0",
         "0"
     ],
     "retract_restart_extra_toolchange": [
         "0",
+        "0",
         "0"
     ],
     "retract_when_changing_layer": [
+        "1",
         "1",
         "1"
     ],
     "retraction_distances_when_cut": [
         "18",
+        "18",
         "18"
+    ],
+    "retraction_length": [
+        "0.8",
+        "0.8",
+        "0.8"
+    ],
+    "retraction_minimum_travel": [
+        "1",
+        "1",
+        "1"
+    ],
+    "retraction_speed": [
+        "30",
+        "30",
+        "30"
     ],
     "support_chamber_temp_control": "1",
     "support_cooling_filter": "1",
     "support_object_skip_flush": "1",
-    "wipe_distance": [
-        "2",
-        "2"
-    ],
     "wipe": [
         "1",
+        "1",
         "1"
+    ],
+    "wipe_distance": [
+        "2",
+        "2",
+        "2"
     ],
     "wrapping_exclude_area": [
         "172.3x302",
@@ -237,9 +294,11 @@
     ],
     "z_hop": [
         "0.4",
+        "0.4",
         "0.4"
     ],
     "z_hop_types": [
+        "Auto Lift",
         "Auto Lift",
         "Auto Lift"
     ]

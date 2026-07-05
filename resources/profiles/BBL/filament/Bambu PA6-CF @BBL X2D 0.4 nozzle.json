@@ -30,6 +30,8 @@
         "10",
         "10",
         "10",
+        "10",
+        "10",
         "10"
     ],
     "filament_extruder_compatibility": [
@@ -39,9 +41,13 @@
         "0.96",
         "0.96",
         "0.96",
+        "0.96",
+        "0.96",
         "0.96"
     ],
     "filament_max_volumetric_speed": [
+        "8",
+        "8",
         "8",
         "8",
         "8",
@@ -51,11 +57,15 @@
         "0",
         "0",
         "0",
+        "0",
+        "0",
         "0"
     ],
     "filament_retraction_length": [
         "1",
         "1",
+        "1",
+        "nil",
         "nil",
         "nil"
     ],
@@ -66,9 +76,13 @@
         "1",
         "1",
         "1",
+        "1",
+        "1",
         "1"
     ],
     "filament_wipe_distance": [
+        "1",
+        "1",
         "1",
         "1",
         "1",
@@ -87,15 +101,19 @@
         "0.092"
     ],
     "include": [
-        "fdm_filament_template_direct_bowden"
+        "fdm_filament_template_direct_bowden_e3d"
     ],
     "nozzle_temperature": [
+        "275",
+        "275",
         "275",
         "275",
         "275",
         "275"
     ],
     "nozzle_temperature_initial_layer": [
+        "275",
+        "275",
         "275",
         "275",
         "275",
@@ -107,10 +125,14 @@
     "retraction_distances_when_ec": [
         "3",
         "3",
+        "3",
+        "4",
         "4",
         "4"
     ],
     "slow_down_min_speed": [
+        "20",
+        "20",
         "20",
         "20",
         "20",
