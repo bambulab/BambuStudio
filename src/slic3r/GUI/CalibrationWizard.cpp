@@ -791,6 +791,7 @@ void PressureAdvanceWizard::on_cali_start()
             calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(selected_filaments.begin()->nozzle_pos_id);
             calib_info.select_ams         = std::to_string(selected_tray_id);
             calib_info.nozzle_pos_id      = selected_filaments.begin()->nozzle_pos_id;
+            calib_info.nozzle_diameter    = preset_page->get_nozzle_diameter(calib_info.nozzle_pos_id);
             calib_info.nozzle_sn          = selected_filaments.begin()->nozzle_sn;
             Preset *preset                = selected_filaments.begin()->filament_preset;
             Preset * temp_filament_preset = new Preset(preset->type, preset->name + "_temp");
@@ -800,7 +801,7 @@ void PressureAdvanceWizard::on_cali_start()
 
             calib_info.bed_type      = plate_type;
             calib_info.process_bar   = preset_page->get_sending_progress_bar();
-            calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(calib_info.extruder_id));
+            calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, calib_info.nozzle_diameter);
             calib_info.print_prest   = preset_page->get_print_preset();
             calib_info.filament_prest = temp_filament_preset;
 
@@ -1348,6 +1349,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
             calib_info.extruder_type      = preset_page->get_extruder_type(calib_info.extruder_id);
             calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(selected_filaments.begin()->nozzle_pos_id);
             calib_info.nozzle_pos_id      = selected_filaments.begin()->nozzle_pos_id;
+            calib_info.nozzle_diameter    = preset_page->get_nozzle_diameter(calib_info.nozzle_pos_id);
             calib_info.nozzle_sn          = selected_filaments.begin()->nozzle_sn;
             Preset* preset = selected_filaments.begin()->filament_preset;
             temp_filament_preset = new Preset(preset->type, preset->name + "_temp");
@@ -1356,7 +1358,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
                 temp_filament_preset->filament_id = preset->filament_id;
 
             calib_info.bed_type = plate_type;
-            calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(calib_info.extruder_id));
+            calib_info.printer_prest = preset_page->get_printer_preset(curr_obj, calib_info.nozzle_diameter);
             calib_info.print_prest = preset_page->get_print_preset();
             calib_info.params.mode = CalibMode::Calib_Flow_Rate;
 

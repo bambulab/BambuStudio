@@ -2062,18 +2062,16 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
             print, layer_filaments, physical_unprintables, geometric_unprintables, unprintable_volumes, mode, nozzle_status);
 
         std::vector<int> ret;
-        if (single_ext_multi_nozzle) {
-            ret = build_manual_map_or_throw(context);
-        } else {
-
-            const auto& user_nozzle_map = print_config.filament_nozzle_map.values;
-            const int   nozzle_cnt      = static_cast<int>(context.nozzle_info.nozzle_list.size());
-            ret.assign(filament_nums, 0);
-            for (auto fil : used_filaments) {
-                if (fil >= user_nozzle_map.size() || user_nozzle_map[fil] < 0 || user_nozzle_map[fil] >= nozzle_cnt)
-                    throw Slic3r::RuntimeError(_L("Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."));
-                ret[fil] = user_nozzle_map[fil];
-            }
+        const auto& user_nozzle_map = print_config.filament_nozzle_map.values;
+        const int   nozzle_cnt      = static_cast<int>(context.nozzle_info.nozzle_list.size());
+        ret.assign(filament_nums, 0);
+        for (auto fil : used_filaments) {
+            if (fil >= user_nozzle_map.size() || user_nozzle_map[fil] < 0 || user_nozzle_map[fil] >= nozzle_cnt)
+                throw Slic3r::RuntimeError(_L("Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."));
+            const int nozzle_id = user_nozzle_map[fil];
+            if (single_ext_multi_nozzle && !context.nozzle_info.nozzle_list[nozzle_id].installed)
+                throw Slic3r::RuntimeError(_L("Nozzle assignment error: per-filament nozzle map points to an empty or unavailable nozzle."));
+            ret[fil] = nozzle_id;
         }
         auto result_opt = LayeredNozzleGroupResult::create(ret, context.nozzle_info.nozzle_list, used_filaments, print_config.handle_hotend_as_extruder);
         if (result_opt)

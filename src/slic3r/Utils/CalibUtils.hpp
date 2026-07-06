@@ -19,7 +19,7 @@ public:
     int                                extruder_id = 0;
     int                                ams_id = 0;
     int                                slot_id = 0;
-    float                              nozzle_diameter;
+    float                              nozzle_diameter = -1.f;
     int                                nozzle_pos_id = -1;  //-1 means no nozzle pos;   0:right extruder, 1:left extruder, 0x10~0x15: nozzle pos
     std::string                        nozzle_sn;
     ExtruderType                       extruder_type{ExtruderType::etDirectDrive};
