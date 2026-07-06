@@ -6240,6 +6240,18 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
     return true;
 };
 
+bool SelectMachineDialog::IsAllAmsSupportAccurateRemain(MachineObject* obj_) const
+{
+    if (!obj_) return false;
+    const auto& ams_list = obj_->GetFilaSystem()->GetAmsList();
+    if (ams_list.empty()) return false;
+    for (const auto& [ams_id, ams] : ams_list) {
+        if (!ams || ams->GetRemainEstimateVersion() != DevAms::RemainEstimateVersion::Accurate)
+            return false;
+    }
+    return true;
+}
+
 // return true don't warning
 bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
 {
@@ -6248,6 +6260,8 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
     if (!obj_) return true;
 
     if (!obj_->GetFilaSystem()->IsDetectRemainEnabled() || m_print_type != PrintFromType::FROM_NORMAL) return true;
+
+    if (!IsAllAmsSupportAccurateRemain(obj_)) return true;
 
     auto full_config = wxGetApp().preset_bundle->full_config();
     auto filament_densities = full_config.option<ConfigOptionFloats>("filament_density");
@@ -6269,18 +6283,6 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
                         }
                     }
                 }
-            }
-        }
-
-        for (int extruder_id = 0; extruder_id < obj_->vt_slot.size(); extruder_id++) {
-            std::pair<std::string, std::string> key;
-            if (extruder_id == MAIN_EXTRUDER_ID) {
-                key = {VIRTUAL_AMS_MAIN_ID_STR, "0"};
-            } else if (extruder_id == DEPUTY_EXTRUDER_ID){
-                key = {VIRTUAL_AMS_DEPUTY_ID_STR, "0"};
-            }
-            if (auto weight =obj_->vt_slot[extruder_id].get_filament_remain_weight()) {
-                fila_remain_map[key] = weight.value();
             }
         }
     }

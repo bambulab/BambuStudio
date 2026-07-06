@@ -499,6 +499,7 @@ public:
     void CheckWarningRackStatus(MachineObject* obj_);
 
     bool CheckErrorWarningFilamentMapping(MachineObject* obj_);//return true if no errors
+    bool IsAllAmsSupportAccurateRemain(MachineObject* obj_) const; // all AMS report accurate remain version
     bool CheckWarningFilamentRemain(MachineObject* obj_); // return true if no errors
     bool CheckWarningFilamentCrossExtruder(MachineObject* obj_, std::set<int>& cross_extruder_filament_ids); // return true if no warning
     bool CheckWarningPrintTimeEstimate(MachineObject* obj_, const std::vector<FilamentInfo>& ams_mapping_result); // return true if no warning
