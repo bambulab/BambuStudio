@@ -6,10 +6,9 @@
 #include "MsgDialog.hpp"
 #include "I18N.hpp"
 #include "UxProgramTermsDialog.hpp"
+#include "Widgets/StateColor.hpp"
 #include "libslic3r/AppConfig.hpp"
-#include <wx/notebook.h>
-#include "Notebook.hpp"
-#include "ReleaseNote.hpp"
+#include <wx/simplebook.h>
 #include "OG_CustomCtrl.hpp"
 #include "fila_manager/wgtFilaManagerFeature.h"
 #include "wx/graphics.h"
@@ -27,33 +26,61 @@
 namespace Slic3r { namespace GUI {
 
 WX_DEFINE_LIST(RadioSelectorList);
-wxDEFINE_EVENT(EVT_PREFERENCES_SELECT_TAB, wxCommandEvent);
 
-#define PreferenceBtnSize wxSize(FromDIP(58), FromDIP(22))
-class MyscrolledWindow : public wxScrolledWindow {
+// Raw (pre-DPI) control widths for Preferences rows. Height is -1 (auto) unless
+// noted. Wrap in FromDIP(...) at each use site, e.g. wxSize(FromDIP(TITLE_WIDTH), -1).
+static constexpr int TITLE_WIDTH          = 100; // row label column
+static constexpr int COMBOBOX_WIDTH       = 140;
+static constexpr int LARGE_COMBOBOX_WIDTH = 160;
+static constexpr int INPUT_WIDTH          = 100;
+static constexpr int BTN_WIDTH            = 58; // small action button (reset / browse)
+static constexpr int BTN_HEIGHT           = 22;
+
+// Scrolled panel used for every Preferences tab. wxScrolledWindow's default
+// behavior is to scroll to whatever child receives focus, which makes the
+// dialog jump around when the user tabs between combobox/checkbox rows.
+// Suppressing that and presetting a sensible scroll rate keeps tab pages stable.
+class ScrollPanel : public wxScrolledWindow
+{
 public:
-    MyscrolledWindow(wxWindow* parent,
-        wxWindowID id = wxID_ANY,
-        const wxPoint& pos = wxDefaultPosition,
-        const wxSize& size = wxDefaultSize,
-        long style = wxVSCROLL) : wxScrolledWindow(parent, id, pos, size, style) {}
+    explicit ScrollPanel(wxWindow *parent) : wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL)
+    {
+        SetScrollRate(5, 5);
+        SetBackgroundColour(*wxWHITE);
+    }
 
     bool ShouldScrollToChildOnFocus(wxWindow* child) override { return false; }
 };
 
+// Confirm dialog for "Reset all warning dialogs". A "Check details" button
+// expands a panel listing the warning settings that get cleared
+class ResetWarningsDialog : public DPIDialog
+{
+public:
+    explicit ResetWarningsDialog(wxWindow *parent);
+    ~ResetWarningsDialog() override = default;
+    void on_dpi_changed(const wxRect &suggested_rect) override {}
+
+private:
+    void toggle_details();
+
+    Button   *m_details_btn   = nullptr;
+    wxWindow *m_details_panel = nullptr;
+    bool      m_expanded      = false;
+};
 
 wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *parent, wxString tooltip)
 {
     wxBoxSizer *m_sizer_title = new wxBoxSizer(wxHORIZONTAL);
 
     auto m_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    m_title->SetForegroundColour(DESIGN_GRAY800_COLOR);
+    m_title->SetForegroundColour(ThemeColor::TextSecondary);
     m_title->SetFont(::Label::Head_13);
     m_title->Wrap(-1);
     //m_title->SetToolTip(tooltip);
 
     auto m_line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-    m_line->SetBackgroundColour(DESIGN_GRAY400_COLOR);
+    m_line->SetBackgroundColour(ThemeColor::Grey450);
 
     m_sizer_title->Add(m_title, 0, wxALIGN_CENTER | wxALL, 3);
     m_sizer_title->Add(0, 0, 0,  wxLEFT, 9);
@@ -80,14 +107,15 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
-    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, title_width == 0?DESIGN_TITLE_SIZE:wxSize(title_width, -1), 0);
-    combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, title_width == 0 ? wxSize(FromDIP(TITLE_WIDTH), -1) : wxSize(title_width, -1), 0);
+    combo_title->SetForegroundColour(ThemeColor::TextPrimary);
     combo_title->SetFont(::Label::Body_13);
     combo_title->SetToolTip(tooltip);
     combo_title->Wrap(-1);
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
-    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, combox_width == 0?DESIGN_LARGE_COMBOBOX_SIZE:wxSize(combox_width, -1), 0, nullptr, wxCB_READONLY);
+    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, combox_width == 0 ? wxSize(FromDIP(LARGE_COMBOBOX_WIDTH), -1) : wxSize(combox_width, -1),
+                                   0, nullptr, wxCB_READONLY);
     m_combobox_list[m_combobox_list.size()] = combobox;
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
@@ -124,15 +152,14 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
-    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
-    combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxSize(FromDIP(TITLE_WIDTH), -1), 0);
+    combo_title->SetForegroundColour(ThemeColor::TextPrimary);
     combo_title->SetFont(::Label::Body_13);
     combo_title->SetToolTip(tooltip);
     combo_title->Wrap(-1);
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
-
-    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(LARGE_COMBOBOX_WIDTH), -1), 0, nullptr, wxCB_READONLY);
     m_combobox_list[m_combobox_list.size()] = combobox;
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
@@ -289,14 +316,14 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
-    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
-    combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxSize(FromDIP(TITLE_WIDTH), -1), 0);
+    combo_title->SetForegroundColour(ThemeColor::TextPrimary);
     combo_title->SetFont(::Label::Body_13);
     combo_title->SetToolTip(tooltip);
     combo_title->Wrap(-1);
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
-    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(LARGE_COMBOBOX_WIDTH), -1), 0, nullptr, wxCB_READONLY);
     m_combobox_list[m_combobox_list.size()] = combobox;
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
@@ -357,14 +384,14 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxW
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
-    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
-    combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxSize(FromDIP(TITLE_WIDTH), -1), 0);
+    combo_title->SetForegroundColour(ThemeColor::TextPrimary);
     combo_title->SetFont(::Label::Body_13);
     combo_title->SetToolTip(tooltip);
     combo_title->Wrap(-1);
     m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
-    auto                            combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    auto combobox                           = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(COMBOBOX_WIDTH), -1), 0, nullptr, wxCB_READONLY);
     m_combobox_list[m_combobox_list.size()] = combobox;
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
@@ -400,14 +427,14 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
    wxBoxSizer *m_sizer_tcombox= new wxBoxSizer(wxHORIZONTAL);
    m_sizer_tcombox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
-   auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
+   auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxSize(FromDIP(TITLE_WIDTH), -1), 0);
    combo_title->SetToolTip(tooltip);
    combo_title->Wrap(-1);
-   combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+   combo_title->SetForegroundColour(ThemeColor::TextPrimary);
    combo_title->SetFont(::Label::Body_13);
    m_sizer_tcombox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
-   auto combobox_left = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+   auto combobox_left                      = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(COMBOBOX_WIDTH), -1), 0, nullptr, wxCB_READONLY);
    m_combobox_list[m_combobox_list.size()] = combobox_left;
    combobox_left->SetFont(::Label::Body_13);
    combobox_left->GetDropDown().SetFont(::Label::Body_13);
@@ -418,12 +445,12 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
    m_sizer_tcombox->Add(combobox_left, 0, wxALIGN_CENTER, 0);
 
    auto combo_title_add = new wxStaticText(parent, wxID_ANY, wxT("+"), wxDefaultPosition, wxDefaultSize, 0);
-   combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+   combo_title->SetForegroundColour(ThemeColor::TextPrimary);
    combo_title->SetFont(::Label::Body_13);
    combo_title_add->Wrap(-1);
    m_sizer_tcombox->Add(combo_title_add, 0, wxALIGN_CENTER | wxALL, 3);
 
-   auto combobox_right = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+   auto combobox_right                     = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(COMBOBOX_WIDTH), -1), 0, nullptr, wxCB_READONLY);
    m_combobox_list[m_combobox_list.size()] = combobox_right;
    combobox_right->SetFont(::Label::Body_13);
    combobox_right->GetDropDown().SetFont(::Label::Body_13);
@@ -454,20 +481,20 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
 {
     wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
     auto        input_title   = new wxStaticText(parent, wxID_ANY, title);
-    input_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    input_title->SetForegroundColour(ThemeColor::TextPrimary);
     input_title->SetFont(::Label::Body_13);
     input_title->SetToolTip(tooltip);
     input_title->Wrap(-1);
 
-    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(INPUT_WIDTH), -1), wxTE_PROCESS_ENTER);
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
     wxTextValidator validator(wxFILTER_DIGITS);
     input->GetTextCtrl()->SetValidator(validator);
 
-    auto second_title = new wxStaticText(parent, wxID_ANY, title2, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
-    second_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    auto second_title = new wxStaticText(parent, wxID_ANY, title2, wxDefaultPosition, wxSize(FromDIP(TITLE_WIDTH), -1), 0);
+    second_title->SetForegroundColour(ThemeColor::TextPrimary);
     second_title->SetFont(::Label::Body_13);
     second_title->SetToolTip(tooltip);
     second_title->Wrap(-1);
@@ -502,7 +529,7 @@ wxBoxSizer *PreferencesDialog::create_item_range_input(
 {
     wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
     auto        input_title = new wxStaticText(parent, wxID_ANY, title);
-    input_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    input_title->SetForegroundColour(ThemeColor::TextPrimary);
     input_title->SetFont(::Label::Body_13);
     input_title->SetToolTip(tooltip);
     input_title->Wrap(-1);
@@ -513,7 +540,7 @@ wxBoxSizer *PreferencesDialog::create_item_range_input(
         app_config->set(param, std::to_string(range_min));
         app_config->save();
     }
-    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(INPUT_WIDTH), -1), wxTE_PROCESS_ENTER);
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
@@ -567,7 +594,7 @@ wxBoxSizer *PreferencesDialog::create_item_range_two_input(wxString             
 {
     wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
     auto        input_title = new wxStaticText(parent, wxID_ANY, title);
-    input_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    input_title->SetForegroundColour(ThemeColor::TextPrimary);
     input_title->SetFont(::Label::Body_13);
     input_title->SetToolTip(tooltip);
     input_title->Wrap(-1);
@@ -584,14 +611,14 @@ wxBoxSizer *PreferencesDialog::create_item_range_two_input(wxString             
         app_config->set(param1, std::to_string(range_min));
         app_config->save();
     }
-    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(INPUT_WIDTH), -1), wxTE_PROCESS_ENTER);
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
     wxTextValidator validator(wxFILTER_NUMERIC);
     input->GetTextCtrl()->SetValidator(validator);
 
-     auto       input1 = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    auto input1 = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(INPUT_WIDTH), -1), wxTE_PROCESS_ENTER);
     input1->SetBackgroundColor(input_bg);
     input1->GetTextCtrl()->SetValue(app_config->get(param1));
     input1->GetTextCtrl()->SetValidator(validator);
@@ -656,21 +683,20 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
 {
     wxBoxSizer *m_sizer_input = new wxBoxSizer(wxHORIZONTAL);
     auto input_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    input_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    input_title->SetForegroundColour(ThemeColor::TextPrimary);
     input_title->SetFont(::Label::Body_13);
     input_title->SetToolTip(tooltip);
     input_title->Wrap(-1);
 
-    auto input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
+    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(INPUT_WIDTH), -1), wxTE_PROCESS_ENTER);
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
     wxTextValidator validator(wxFILTER_DIGITS);
     input->GetTextCtrl()->SetValidator(validator);
 
-
-    auto second_title = new wxStaticText(parent, wxID_ANY, _L("Second"), wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
-    second_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    auto second_title = new wxStaticText(parent, wxID_ANY, _L("Second"), wxDefaultPosition, wxSize(FromDIP(TITLE_WIDTH), -1), 0);
+    second_title->SetForegroundColour(ThemeColor::TextPrimary);
     second_title->SetFont(::Label::Body_13);
     second_title->SetToolTip(tooltip);
     second_title->Wrap(-1);
@@ -722,8 +748,8 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
 wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxWindow *parent, wxString tooltip ,std::string param)
 {
     wxBoxSizer *m_sizer_switch = new wxBoxSizer(wxHORIZONTAL);
-    auto switch_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
-    switch_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    auto        switch_title   = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxSize(FromDIP(TITLE_WIDTH), -1), 0);
+    switch_title->SetForegroundColour(ThemeColor::TextPrimary);
     switch_title->SetFont(::Label::Body_13);
     switch_title->SetToolTip(tooltip);
     switch_title->Wrap(-1);
@@ -762,7 +788,7 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
 
     auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    checkbox_title->SetForegroundColour(ThemeColor::TextPrimary);
     checkbox_title->SetFont(::Label::Body_13);
 
     auto size = checkbox_title->GetTextExtent(title);
@@ -825,7 +851,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
 
     auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    checkbox_title->SetForegroundColour(ThemeColor::TextPrimary);
     checkbox_title->SetFont(::Label::Body_13);
 
     auto size = checkbox_title->GetTextExtent(title);
@@ -1022,7 +1048,7 @@ wxBoxSizer *PreferencesDialog::create_item_button(wxString title, wxString title
     m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
     auto m_staticTextPath = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     // m_staticTextPath->SetMaxSize(wxSize(FromDIP(440), -1));
-    m_staticTextPath->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    m_staticTextPath->SetForegroundColour(ThemeColor::TextPrimary);
     m_staticTextPath->SetFont(::Label::Body_13);
     m_staticTextPath->Wrap(-1);
 
@@ -1041,7 +1067,7 @@ wxBoxSizer *PreferencesDialog::create_item_button(wxString title, wxString title
 
     temp_button->SetTextColor(abort_text);
     temp_button->SetFont(Label::Body_10);
-    temp_button->SetMinSize(PreferenceBtnSize);
+    temp_button->SetMinSize(wxSize(FromDIP(BTN_WIDTH), FromDIP(BTN_HEIGHT)));
     temp_button->SetSize(wxSize(FromDIP(58), FromDIP(22)));
     temp_button->SetCornerRadius(FromDIP(12));
     if(!tooltip.empty()) temp_button->SetToolTip(tooltip);
@@ -1060,12 +1086,18 @@ wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding
     wxString download_path = wxString::FromUTF8(app_config->get("download_path"));
     auto item_panel = new wxWindow(parent, wxID_ANY);
     item_panel->SetBackgroundColour(*wxWHITE);
-    wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
 
-    m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+    wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+
+    auto m_staticTextTitle = new wxStaticText(item_panel, wxID_ANY, _L("Download path"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticTextTitle->SetForegroundColour(ThemeColor::TextPrimary);
+    m_staticTextTitle->SetFont(::Label::Body_13);
+    m_staticTextTitle->Wrap(-1);
+
     auto m_staticTextPath = new wxStaticText(item_panel, wxID_ANY, download_path, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     //m_staticTextPath->SetMaxSize(wxSize(FromDIP(440), -1));
-    m_staticTextPath->SetForegroundColour(DESIGN_GRAY600_COLOR);
+    m_staticTextPath->SetForegroundColour(ThemeColor::TextDisabled);
     m_staticTextPath->SetFont(::Label::Body_13);
     m_staticTextPath->Wrap(-1);
 
@@ -1080,7 +1112,7 @@ wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding
     StateColor abort_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
     m_button_download->SetTextColor(abort_text);
     m_button_download->SetFont(Label::Body_10);
-    m_button_download->SetMinSize(PreferenceBtnSize);
+    m_button_download->SetMinSize(wxSize(FromDIP(BTN_WIDTH), FromDIP(BTN_HEIGHT)));
     m_button_download->SetSize(wxSize(FromDIP(58), FromDIP(22)));
     m_button_download->SetCornerRadius(FromDIP(12));
 
@@ -1097,10 +1129,12 @@ wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding
         }
         });
 
-    m_sizer_checkbox->Add(m_staticTextPath, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
-    m_sizer_checkbox->Add(m_button_download, 0, wxALL, FromDIP(5));
+    sizer->Add(m_staticTextTitle, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    sizer->Add(m_staticTextPath, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    sizer->AddStretchSpacer(1);
+    sizer->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
 
-    item_panel->SetSizer(m_sizer_checkbox);
+    item_panel->SetSizer(sizer);
     item_panel->Layout();
 
     return item_panel;
@@ -1158,6 +1192,104 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
         });
 }
 
+//  PreferenceTabbar — plain-text top tabs matching the Preferences Figma:
+//  a horizontal row of labels (active = bold dark, inactive = regular grey) with
+//  a green underline under the selected tab, over a 1px divider line. Emits the
+//  standard wxEVT_CHOICE (int = selected index) when the user clicks a tab.
+class PreferenceTabbar : public wxControl
+{
+public:
+    PreferenceTabbar(wxWindow *parent);
+    void AddTab(const wxString &label);
+    void SetSelection(int sel);
+    int  GetSelection() const { return m_selection; }
+    void Rescale();
+
+private:
+    void                        render();
+    std::vector<wxStaticText *> m_labels;
+    std::vector<wxWindow *>     m_underlines; // green indicator under each tab
+    wxBoxSizer                 *m_row       = nullptr;
+    int                         m_selection = -1;
+};
+
+PreferenceTabbar::PreferenceTabbar(wxWindow *parent) : wxControl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+{
+    SetBackgroundColour(*wxWHITE);
+    auto *outer = new wxBoxSizer(wxVERTICAL);
+    m_row       = new wxBoxSizer(wxHORIZONTAL);
+    outer->Add(m_row, 0, wxLEFT, FromDIP(8));
+    // 1px divider under the tab row (Figma: thin grey line).
+    auto *line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
+    line->SetBackgroundColour(ThemeColor::Grey450);
+    outer->AddSpacer(FromDIP(8));
+    outer->Add(line, 0, wxEXPAND);
+    SetSizer(outer);
+}
+
+void PreferenceTabbar::AddTab(const wxString &label)
+{
+    const int index = (int) m_labels.size();
+
+    // Each tab is a column: the label on top and a 2px underline below it that
+    // turns ThemeColor::BrandGreen when the tab is selected.
+    auto *col  = new wxBoxSizer(wxVERTICAL);
+    auto *text = new wxStaticText(this, wxID_ANY, label);
+    text->SetFont(::Label::Body_14);
+    text->SetForegroundColour(ThemeColor::TextPrimary);
+
+    auto *underline = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(2)));
+    underline->SetBackgroundColour(*wxWHITE);
+
+    auto on_click = [this, index](wxMouseEvent &) {
+        SetSelection(index);
+        // Reuse the standard "one of N selected" command event; int payload is
+        // the selected tab index.
+        wxCommandEvent evt(wxEVT_CHOICE, GetId());
+        evt.SetEventObject(this);
+        evt.SetInt(index);
+        wxPostEvent(this, evt);
+    };
+    text->Bind(wxEVT_LEFT_DOWN, on_click);
+    underline->Bind(wxEVT_LEFT_DOWN, on_click);
+    text->Bind(wxEVT_ENTER_WINDOW, [text](wxMouseEvent &e) {
+        text->SetCursor(wxCURSOR_HAND);
+        e.Skip();
+    });
+
+    col->Add(text, 0, wxALIGN_CENTER_HORIZONTAL);
+    col->AddSpacer(FromDIP(6));
+    col->Add(underline, 0, wxEXPAND);
+
+    m_labels.push_back(text);
+    m_underlines.push_back(underline);
+    m_row->Add(col, 0, wxRIGHT | wxALIGN_BOTTOM, FromDIP(48));
+    if (m_selection < 0) SetSelection(0);
+}
+
+void PreferenceTabbar::SetSelection(int sel)
+{
+    if (sel < 0 || sel >= (int) m_labels.size()) return;
+
+    m_selection = sel;
+    render();
+}
+
+void PreferenceTabbar::render()
+{
+    for (int i = 0; i < (int) m_labels.size(); ++i) {
+        const bool active = (i == m_selection);
+        m_labels[i]->SetFont(active ? ::Label::Head_14 : ::Label::Body_14);
+        m_labels[i]->SetForegroundColour(active ? ThemeColor::TextPrimary : ThemeColor::TextDisabled);
+        m_underlines[i]->SetBackgroundColour(active ? ThemeColor::BrandGreen : *wxWHITE);
+        m_underlines[i]->Refresh();
+    }
+    Layout();
+    Refresh();
+}
+
+void PreferenceTabbar::Rescale() { render(); }
+
 void PreferencesDialog::create()
 {
     app_config             = get_app_config();
@@ -1170,54 +1302,54 @@ void PreferencesDialog::create()
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_scrolledWindow = new MyscrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
-    m_scrolledWindow->SetScrollRate(5, 5);
+    m_tabbar = new PreferenceTabbar(this);
+    m_book   = new wxSimplebook(this, wxID_ANY);
 
-    m_sizer_body = new wxBoxSizer(wxVERTICAL);
+    auto add_tab = [this](const wxString &label, wxWindow *page) {
+        m_tabbar->AddTab(label);
+        m_book->AddPage(page, label);
+    };
+    add_tab(_L("General"), create_general_tab());
+    add_tab(_L("User"), create_user_tab());
+    add_tab(_L("3D"), create_3d_tab());
+    add_tab(_L("Other"), create_other_tab());
 
-    auto m_top_line = new wxPanel(m_scrolledWindow, wxID_ANY, wxDefaultPosition, wxSize(DESIGN_RESOUTION_PREFERENCES.x, 1), wxTAB_TRAVERSAL);
-    m_top_line->SetBackgroundColour(DESIGN_GRAY400_COLOR);
-
-    m_sizer_body->Add(m_top_line, 0, wxEXPAND, 0);
-
-    auto general_page = create_general_page();
 #if !BBL_RELEASE_TO_PUBLIC
-    auto debug_page   = create_debug_page();
+    add_tab(_L("Developer Tools"), create_developer_tab());
 #endif
 
-    m_sizer_body->Add(0, 0, 0, wxTOP, FromDIP(28));
-    m_sizer_body->Add(general_page, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(38));
-#if !BBL_RELEASE_TO_PUBLIC
-    m_sizer_body->Add(debug_page, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(38));
-#endif
-    m_sizer_body->Add(0, 0, 0, wxBOTTOM, FromDIP(28));
-    m_scrolledWindow->SetSizerAndFit(m_sizer_body);
+    m_tabbar->SetSelection(0);
+    m_book->SetSelection(0);
+    m_tabbar->Bind(wxEVT_CHOICE, [this](wxCommandEvent &e) { m_book->SetSelection(e.GetInt()); });
 
-    main_sizer->Add(m_scrolledWindow, 1, wxEXPAND);
+    main_sizer->Add(m_tabbar, 0, wxEXPAND | wxTOP, FromDIP(4));
+    main_sizer->Add(m_book, 1, wxEXPAND);
+    main_sizer->Add(create_bottom_buttons(), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(12));
 
     SetSizer(main_sizer);
     Layout();
     Fit();
-    int m_screen_height = std::numeric_limits<int>::max();
+
+    // Fixed dialog size matching the Figma panel (~640x640). The multi-tab layout
+    // makes each page short, so we no longer stretch the dialog to a fraction of
+    // the screen (the old single-scroll-page behavior). Tabs are scrollable, so a
+    // tab taller than this simply scrolls. Cap the height to the screen so it
+    // still fits on small displays.
+    int screen_height = std::numeric_limits<int>::max();
     int count = wxDisplay::GetCount();
     for (int i = 0; i < count; ++i) {
         wxDisplay display(i);
         wxRect rect = display.GetGeometry();
-        m_screen_height = std::min(m_screen_height, rect.GetHeight());
+        screen_height  = std::min(screen_height, rect.GetHeight());
     }
-    if (m_screen_height == std::numeric_limits<int>::max())
-        m_screen_height = wxGetDisplaySize().GetY();
-    this->SetSize(this->GetSize().GetX() + FromDIP(40), m_screen_height * 0.7);
+    if (screen_height == std::numeric_limits<int>::max()) screen_height = wxGetDisplaySize().GetY();
+
+    const int max_height = int(screen_height * 0.7); // never exceed most of the screen
+    this->SetSize(FromDIP(640), std::min(FromDIP(640), max_height));
 
     CenterOnParent();
     wxPoint start_pos = this->GetPosition();
     if (start_pos.y < 0) { this->SetPosition(wxPoint(start_pos.x, 0)); }
-
-    //select first
-    auto event = wxCommandEvent(EVT_PREFERENCES_SELECT_TAB);
-    event.SetInt(0);
-    event.SetEventObject(this);
-    wxPostEvent(this, event);
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -1229,7 +1361,7 @@ PreferencesDialog::~PreferencesDialog()
 void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect) {
     for (auto item : m_button_list) {
         item.second->Rescale();
-        item.second->SetMinSize(PreferenceBtnSize);
+        item.second->SetMinSize(wxSize(FromDIP(BTN_WIDTH), FromDIP(BTN_HEIGHT)));
         item.second->SetCornerRadius(FromDIP(12));
     }
     for (auto item : m_checkbox_list) {
@@ -1241,6 +1373,7 @@ void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect) {
     for (auto item : m_combobox_list) {
         item.second->Rescale();
     }
+    if (m_tabbar) m_tabbar->Rescale();
     this->Refresh();
     Layout();
     Fit();
@@ -1250,7 +1383,9 @@ void PreferencesDialog::on_dpi_changed(const wxRect &suggested_rect) {
         wxRect    screenRect = display.GetGeometry();
         if (m_screen_height != screenRect.GetHeight()) {
             m_screen_height = screenRect.GetHeight();
-            this->SetSize(this->GetSize().GetX() + FromDIP(40), m_screen_height * 0.7);
+            // Keep the fixed Figma-matched size (capped to the screen) on a
+            // DPI/monitor switch instead of stretching to a fraction of the screen.
+            this->SetSize(FromDIP(640), std::min(FromDIP(640), int(m_screen_height * 0.7)));
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " The display screen has switched";
         }
     }
@@ -1277,20 +1412,20 @@ void PreferencesDialog::Split(const std::string &src, const std::string &separat
     dest.push_back(substring);
 }
 
-wxWindow* PreferencesDialog::create_general_page()
+wxWindow *PreferencesDialog::create_general_tab()
 {
-    auto page = new wxWindow(m_scrolledWindow, wxID_ANY);
-    page->SetBackgroundColour(*wxWHITE);
-    wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
+    auto        scrolled = new ScrollPanel(m_book);
+    wxBoxSizer *sizer    = new wxBoxSizer(wxVERTICAL);
 
-    auto title_general_settings = create_item_title(_L("General Settings"), page, _L("General Settings"));
+    auto title_basic = create_item_title(_L("General Settings"), scrolled, _L("General Settings"));
+
+    // Language list (same source as before).
     auto available_translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo *> language_infos;
     language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH));
     for (size_t i = 0; i < available_translations.GetCount(); ++i) {
         const wxLanguageInfo *available_lan = wxLocale::FindLanguageInfo(available_translations[i]);
         if (available_lan == nullptr) continue;
-
         for (auto si = 0; si < s_supported_languages.size(); si++) {
             auto* supported_lan = wxLocale::GetLanguageInfo(s_supported_languages[si]);
             if (available_lan->CanonicalName == supported_lan->CanonicalName) {
@@ -1298,407 +1433,343 @@ wxWindow* PreferencesDialog::create_general_page()
                 break;
             }
         }
-        //if (langinfo != nullptr) language_infos.emplace_back(langinfo);
     }
     sort_remove_duplicates(language_infos);
     std::sort(language_infos.begin(), language_infos.end(), [](const wxLanguageInfo *l, const wxLanguageInfo *r) { return l->Description < r->Description; });
-    auto item_language = create_item_language_combobox(_L("Language"), page, _L("Language"), 50, "language", language_infos);
+    auto item_language = create_item_language_combobox(_L("Language"), scrolled, _L("Language"), 50, "language", language_infos);
 
-    std::vector<wxString> Regions         = {_L("Asia-Pacific"), _L("Chinese Mainland"), _L("Europe"), _L("North America"), _L("Others")};
-    auto                  item_region= create_item_region_combobox(_L("Login Region"), page, _L("Login Region"), Regions);
+    std::vector<wxString> Regions     = {_L("Asia-Pacific"), _L("Chinese Mainland"), _L("Europe"), _L("North America"), _L("Others")};
+    auto                  item_region = create_item_region_combobox(_L("Login Region"), scrolled, _L("Login Region"), Regions);
 
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
-    auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units,{"0","1"});
-    auto item_12h_time_format = create_item_checkbox(_L("Use 12-hour time format"), page, _L("Display time in 12-hour format with AM/PM instead of 24-hour format"), 50, "use_12h_time_format");
-    auto item_single_instance = create_item_checkbox(_L("Keep only one Bambu Studio instance"), page,
-#if __APPLE__
-        _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
-			  "of same app from the command line. In such case this settings will allow only one instance."),
-#else
-        _L("If this is enabled, when starting Bambu Studio and another instance of the same Bambu Studio is already running, that instance will be reactivated instead."),
-#endif
-        50, "single_instance");
+    auto                  item_currency = create_item_combobox(_L("Units"), scrolled, _L("Units"), "use_inches", Units, {"0", "1"});
 
-    auto item_auto_transfer_when_switch_preset = create_item_checkbox(_L("Automatically transfer modified value when switching process and filament presets"), page,_L("After closing, a popup will appear to ask each time"), 50, "auto_transfer_when_switch_preset");
-    auto item_bed_type_follow_preset = create_item_checkbox(_L("Auto plate type"), page,
-                                                         _L("Studio will remember build plate selected last time for certain printer model."), 50,
-                                                         "user_bed_type");
-    std::vector<wxString> FlushOptionLabels = {_L("All"),_L("Color change"),_L("Disabled")};
-    std::vector<std::string> FlushOptionValues = { "all","color change","disabled" };
-    auto item_auto_flush = create_item_combobox(_L("Auto Flush"), page, _L("Auto calculate flush volumes"), "auto_calculate_flush", FlushOptionLabels, FlushOptionValues);
-    //auto item_hints = create_item_checkbox(_L("Show \"Tip of the day\" notification after start"), page, _L("If enabled, useful hints are displayed at startup."), 50, "show_hints");
-    auto item_multi_machine = create_item_checkbox(_L("Multi-device Management(Take effect after restarting Studio)."), page, _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50, "enable_multi_machine");
-    auto item_fila_manager = create_item_checkbox(_L("Filament Manager") + " (" + _L("Take effect after restarting Studio") + ")", page,
+#ifdef _WIN32
+    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable dark mode"), scrolled, _L("Enable dark mode"), 50, "dark_color_mode");
+#endif
+
+    std::vector<wxString>    FlushOptionLabels = {_L("All"), _L("Color change"), _L("Disabled")};
+    std::vector<std::string> FlushOptionValues = {"all", "color change", "disabled"};
+    auto item_auto_flush = create_item_combobox(_L("Auto Flush"), scrolled, _L("Auto calculate flush volumes"), "auto_calculate_flush", FlushOptionLabels, FlushOptionValues);
+
+    auto item_single_instance = create_item_checkbox(_L("Keep only one Bambu Studio instance"), scrolled,
+#if __APPLE__
+                                                     _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
+                                                        "of same app from the command line. In such case this settings will allow only one instance."),
+#else
+                                                     _L("If this is enabled, when starting Bambu Studio and another instance of the same Bambu Studio is already running, that "
+                                                        "instance will be reactivated instead."),
+#endif
+                                                     50, "single_instance");
+
+    auto item_fila_manager = create_item_checkbox(
+        _L("Filament Manager") + " (" + _L("Take effect after restarting Studio") + ")", scrolled,
 #if __APPLE__
         _L("The Filament Manager is turned off by default on macOS because compatibility issues on some systems may cause the application to become unresponsive."),
 #else
         wxEmptyString,
 #endif
         50, FilaManagerEnabledConfigKey);
-    auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
-    auto item_beta_version_update = create_item_checkbox(_L("Support beta version update."), page, _L("With this option enabled, you can receive beta version updates."), 50, "enable_beta_version_update");
-    auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove the restriction on mixed printing of high and low temperature filaments."), page, _L("With this option enabled, you can print materials with a large temperature difference together."), 50, "enable_high_low_temp_mixed_printing");
-    auto item_camera_fullscreen_active_monitor_only = create_item_checkbox(_L("Open full screen camera view on active monitor only."), page, _L("When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."), 50, "camera_fullscreen_active_monitor_only");
-    auto item_restore_hide_pop_ups = create_item_button(_L("Clear my choice for synchronizing printer preset after loading the file."), _L("Clear"), page, {}, []() {
-        wxGetApp().app_config->erase("app", "sync_after_load_file_show_flag");
-    });
-    auto  item_restore_hide_3mf_info = create_item_button(_L("Clear my choice for Load 3mf dialog settings."), _L("Clear"), page, {}, []() {
-        wxGetApp().app_config->erase("app", "skip_non_bambu_3mf_warning");
-    });
-    auto item_restore_post_process_script_choice = create_item_button(_L("Clear my choice for executing post-processing scripts."), _L("Clear"), page, _L("Show the security warning dialog again before slicing when post-processing scripts are configured."), []() {
-        wxGetApp().app_config->erase("app", "post_process_script_choice");
-        if (wxGetApp().plater())
-            wxGetApp().plater()->reset_post_process_script_choice();
-    });
-    auto  item_restore_support_recommend_dlg = create_item_button(_L("Clear my choice for disabling support parameter recommendation."), _L("Clear"), page, {}, []() {
-        wxGetApp().app_config->set("show_support_recommend_dialog", "true");
-    });
-    auto _3d_settings    = create_item_title(_L("3D Settings"), page, _L("3D Settings"));
-    auto item_mouse_zoom_settings  = create_item_checkbox(_L("Zoom to mouse position"), page,
-                                                         _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50,
-                                                         "zoom_to_mouse");
-    auto  item_show_shells_in_preview_settings = create_item_checkbox(_L("Always show shells in preview"), page,
-                                                         _L("Always show shells or not in preview view tab. If you change this value, you should reslice."), 50,
-                                                         "show_shells_in_preview");
-    auto  item_import_single_svg_and_split         = create_item_checkbox(_L("Import a single SVG and split it"), page,
-                                                                     _L("Import a single SVG and then split it to several parts."), 50,
-                                                                     "import_single_svg_and_split");
-    auto  item_gamma_correct_in_import_obj = create_item_checkbox(_L("Enable gamma correction for the imported obj file"), page,
-                                                                 _L("Perform gamma correction on color after importing the obj model."), 50,
-                                                                 "gamma_correct_in_import_obj");
-    auto  item_enable_record_gcodeviewer_option_item = create_item_checkbox(_L("Remember last used color scheme"), page,
-                                                                 _L("When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."), 50,
-                                                                 "enable_record_gcodeviewer_option_item");
 
-    std::vector<wxString> assemble_view_preview_options = { _L("Auto"), _L("Open"), _L("Close") };
-    auto enable_assemble_view_preview_settings = create_item_combobox(_L("Display overview"), page,
-        _L("Display overview"), "enable_assemble_view_preview",
-        assemble_view_preview_options, { "Auto", "Open", "Close" },
-        [](int idx) {
-            wxGetApp().app_config->set("enable_assemble_view_preview", idx == 0 ? "Auto" : idx == 1 ? "Open" : "Close");
-            if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Auto") {
-                wxGetApp().app_config->set_bool("enable_bvh", true);
-            } else if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Open") {
-                wxGetApp().app_config->set_bool("enable_bvh", false);
-            }
-        },FromDIP(150), FromDIP(120));
-#if !BBL_RELEASE_TO_PUBLIC
-    auto  show_assembly_bvh_bounds_settings = create_item_checkbox(_L("Show assembly BVH primary bounds"), page,
-                                                        _L("Display the BVH primary bounding box wireframe in assembly view."), 50,
-                                                        "show_assembly_bvh_bounds");
-#endif
-    auto  enable_lod_settings       = create_item_checkbox(_L("Improve rendering performance by lod"), page,
-                                                         _L("Improved rendering performance under the scene of multiple plates and many models."), 50,
-                                                         "enable_lod");
+    auto item_multi_machine = create_item_checkbox(_L("Multi-device Management(Take effect after restarting Studio)."), scrolled,
+                                                   _L("With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."), 50,
+                                                   "enable_multi_machine");
 
-    std::vector<wxString> toolbar_style = { _L("Collapsible"), _L("Uncollapsible") };
-    auto item_toolbar_style = create_item_combobox(_L("Toolbar Style"), page, _L("Toolbar Style"), "toolbar_style", toolbar_style, { "0","1" }, [](int idx)->void {
-        const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
-        p_ogl_manager->set_toolbar_rendering_style(idx);
-    });
+    auto item_beta_version_update = create_item_checkbox(_L("Support beta version update."), scrolled, _L("With this option enabled, you can receive beta version updates."), 50,
+                                                         "enable_beta_version_update");
 
-    auto  enable_advanced_gcode_viewer = create_item_checkbox(_L("Enable advanced gcode viewer"), page,
-        _L("Enable advanced gcode viewer."), 50,
-        "enable_advanced_gcode_viewer_");
-
-    float range_min = 1.0, range_max = 2.5;
-    auto item_grabber_size_settings = create_item_range_input(_L("Grabber scale"), page,
-                                                              _L("Set grabber size for move,rotate,scale tool.") + _L("Value range") + ":[" + std::to_string(range_min) + "," +
-                                                                  std::to_string(range_max) +
-                                                                  "]","grabber_size_factor", range_min, range_max, 1,
-        [](wxString value) {
-            double d_value = 0;
-            if (value.ToDouble(&d_value)) {
-                GLGizmoBase::Grabber::GrabberSizeFactor = d_value;
-            }
-        });
-    range_min = 0.0f;
-    range_max = 150.0f;
-    auto item_tooltip_offset_size_settings = create_item_range_two_input(_L("Tooltip offset"), page,
-                                                              _L("Set tooltip offset for different mouse size.") + _L("Value range") + ":[" + std::to_string(range_min) + "," +
-                                                                  std::to_string(range_max) + "]",
-                                                                         "3d_middle_tooltip_offset_x", "3d_middle_tooltip_offset_y", range_min, range_max, 1, nullptr, nullptr);
-    auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
-    auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."), 50, "sync_user_preset");
-    auto item_system_sync        = create_item_checkbox(_L("Auto check for system presets updates"), page, _L("If enabled, auto check whether there are system presets updates after Bambu Studio startup."), 50, "sync_system_preset");
-
-#ifdef _WIN32
-    auto title_associate_file = create_item_title(_L("Associate Files To Bambu Studio"), page, _L("Associate Files To Bambu Studio"));
-
-    // associate file
-    auto item_associate_3mf  = create_item_checkbox(_L("Associate .3mf files to Bambu Studio"), page,
-                                                        _L("If enabled, sets Bambu Studio as default application to open .3mf files"), 50, "associate_3mf");
-    auto item_associate_stl  = create_item_checkbox(_L("Associate .stl files to Bambu Studio"), page,
-                                                        _L("If enabled, sets Bambu Studio as default application to open .stl files"), 50, "associate_stl");
-    auto item_associate_step = create_item_checkbox(_L("Associate .step/.stp files to Bambu Studio"), page,
-                                                         _L("If enabled, sets Bambu Studio as default application to open .step files"), 50, "associate_step");
-#endif // _WIN32
-
-    auto title_modelmall = create_item_title(_L("Online Models"), page, _L("Online Models"));
-    // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
-    auto item_modelmall = create_item_checkbox(_L("Show online staff-picked models on the home page"), page, _L("Show online staff-picked models on the home page"), 50, "staff_pick_switch");
-
-    auto item_show_history = create_item_checkbox(_L("Show history on the home page"), page, _L("Show history on the home page"), 50, "show_print_history");
-
-    std::vector<wxString>  air_temp_timing_list = {_L("Reminder During Slicing"), _L("Automatic mode")};
-    std::vector<std::string> air_temp_timing_value_list = {"slicing", "auto"};
-
-    auto title_project = create_item_title(_L("Project"), page, "");
-    auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", page, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
-        long max = 0;
-        if (value.ToLong(&max))
-            wxGetApp().mainframe->set_max_recent_count(max);
-    });
-    auto item_save_choise = create_item_button(_L("Clear my choice on the unsaved projects."), _L("Clear"), page, {}, []() {
-        wxGetApp().app_config->set("save_project_choise", "");
-    });
-    // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
-    auto item_gcodes_warning = create_item_checkbox(_L("No warnings when loading 3MF with modified G-codes"), page,_L("No warnings when loading 3MF with modified G-codes"), 50, "no_warn_when_modified_gcodes");
-    auto item_backup  = create_item_checkbox(_L("Auto-Backup"), page,_L("Backup your project periodically for restoring from the occasional crash."), 50, "backup_switch");
-    auto item_backup_interval = create_item_backup_input(_L("every"), page, _L("The peroid of backup in seconds."), "backup_interval");
-
-    //downloads
-    auto title_downloads = create_item_title(_L("Downloads"), page, _L("Downloads"));
-    auto item_downloads = create_item_downloads(page,50,"download_path");
-
-    auto title_media = create_item_title(_L("Media"), page, _L("Media"));
-    auto item_auto_stop_liveview = create_item_checkbox(_L("Keep liveview when printing."), page, _L("By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."), 50, "auto_stop_liveview");
-
-    //dark mode
-#ifdef _WIN32
-    auto title_darkmode = create_item_title(_L("Dark Mode"), page, _L("Dark Mode"));
-    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable dark mode"), page,_L("Enable dark mode"), 50, "dark_color_mode");
-#endif
-
-#if 0
-    auto title_filament_group = create_item_title(_L("Filament Grouping"), page, _L("Filament Grouping"));
-    //temporarily disable it
-    //auto item_ignore_ext_filament = create_item_checkbox(_L("Ignore ext filament when auto grouping"), page, _L("Ignore ext filament when auto grouping"), 50, "ignore_ext_filament_when_group");
-    auto item_pop_up_filament_map_dialog = create_item_checkbox(_L("Pop up to select filament grouping mode"), page, _L("Pop up to select filament grouping mode"), 50, "pop_up_filament_map_dialog");
-#endif
-
-    auto title_user_experience = create_item_title(_L("User Experience"), page, _L("User Experience"));
-    auto item_priv_policy = create_item_checkbox(_L("Join the User Experience Improvement Program."), page, "", 50, "privacyuse");
-    auto* hyperlink = new Label(page, wxString::FromUTF8(_CTX_utf8(L_CONTEXT("Learn more", "Preferences"), "Preferences")));
+    // User Experience Improvement Program + "what data" hyperlink.
+    auto  item_priv_policy = create_item_checkbox(_L("Join the User Experience Improvement Program."), scrolled, "", 50, "privacyuse");
+    auto *hyperlink        = new Label(scrolled, wxString::FromUTF8(_CTX_utf8(L_CONTEXT("Learn more", "Preferences"), "Preferences")));
     hyperlink->SetFont(Label::Head_13);
     hyperlink->SetForegroundColour(wxColour("#0078D4"));
     hyperlink->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     hyperlink->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-    hyperlink->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+    hyperlink->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
         UxProgramTermsDialog dlg(this);
         dlg.ShowModal();
     });
     item_priv_policy->Add(hyperlink, 0, wxALIGN_CENTER, 0);
 
+    // Download path row lives inside the General Settings section (Figma:
+    // "下载地址" as a plain row, no separate "Downloads" section title).
+    auto item_downloads = create_item_downloads(scrolled, 50, "download_path");
+
+    sizer->Add(title_basic, 0, wxEXPAND | wxTOP, FromDIP(12));
+    sizer->Add(item_language, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_region, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_currency, 0, wxTOP, FromDIP(3));
 #ifdef _WIN32
-    auto item_webview_auto_fill = create_item_checkbox(_L("Auto-fill previously logged-in accounts."), page,
-                                                        _L(""), 50,
-                                                        "webview_auto_fill");
+    sizer->Add(item_darkmode, 0, wxTOP, FromDIP(3));
+#endif
+    sizer->Add(item_auto_flush, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_single_instance, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_fila_manager, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_multi_machine, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_beta_version_update, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_priv_policy, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_downloads, 0, wxEXPAND | wxTOP, FromDIP(3));
+
+    sizer->AddSpacer(FromDIP(20));
+    scrolled->SetSizer(sizer);
+    scrolled->FitInside();
+    return scrolled;
+}
+
+wxWindow *PreferencesDialog::create_user_tab()
+{
+    auto        scrolled = new ScrollPanel(m_book);
+    wxBoxSizer *sizer    = new wxBoxSizer(wxVERTICAL);
+
+    auto title_user = create_item_title(_L("User Settings"), scrolled, _L("User Settings"));
+
+    auto item_bed_type_follow_preset = create_item_checkbox(_L("Auto plate type"), scrolled, _L("Studio will remember build plate selected last time for certain printer model."),
+                                                            50, "user_bed_type");
+
+    // 打印进度计时方式 — 2-option select (12h / 24h) over use_12h_time_format.
+    std::vector<wxString>    time_labels = {_L("12-hour"), _L("24-hour")};
+    std::vector<std::string> time_values = {"1", "0"};
+    auto item_time_format                = create_item_combobox(_L("time format for print progress"), scrolled, _L("Display time in 12-hour format with AM/PM instead of 24-hour format"),
+                                                                "use_12h_time_format", time_labels, time_values);
+
+    auto item_auto_stop_liveview =
+        create_item_checkbox(_L("Keep liveview when printing."), scrolled,
+                             _L("By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."), 50,
+                             "auto_stop_liveview");
+
+    auto item_auto_transfer = create_item_checkbox(_L("Automatically transfer modified value when switching process and filament presets"), scrolled,
+                                                   _L("After closing, a popup will appear to ask each time"), 50, "auto_transfer_when_switch_preset");
+
+    auto item_mix_print_high_low_temp = create_item_checkbox(_L("Remove the restriction on mixed printing of high and low temperature filaments."), scrolled,
+                                                             _L("With this option enabled, you can print materials with a large temperature difference together."), 50,
+                                                             "enable_high_low_temp_mixed_printing");
+
+    auto item_user_sync = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), scrolled,
+                                               _L("If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."), 50, "sync_user_preset");
+
+    auto item_system_sync = create_item_checkbox(_L("Auto check for system presets updates"), scrolled,
+                                                 _L("If enabled, auto check whether there are system presets updates after Bambu Studio startup."), 50, "sync_system_preset");
+
+#ifdef _WIN32
+    auto item_webview_auto_fill = create_item_checkbox(_L("Auto-fill previously logged-in accounts."), scrolled, _L(""), 50, "webview_auto_fill");
 #endif
 
-    auto title_develop_mode = create_item_title(_L("Develop Mode"), page, _L("Develop Mode"));
-    auto item_develop_mode  = create_item_checkbox(_L("Develop mode"), page, _L("Develop mode"), 50, "developer_mode");
-    auto item_skip_ams_blacklist_check  = create_item_checkbox(_L("Skip AMS blacklist check"), page, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
+    sizer->Add(title_user, 0, wxEXPAND | wxTOP, FromDIP(12));
+    sizer->Add(item_bed_type_follow_preset, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_time_format, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_auto_stop_liveview, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_auto_transfer, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_mix_print_high_low_temp, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_user_sync, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_system_sync, 0, wxTOP, FromDIP(3));
+#ifdef _WIN32
+    sizer->Add(item_webview_auto_fill, 0, wxTOP, FromDIP(3));
+#endif
 
-    sizer_page->Add(title_general_settings, 0, wxEXPAND, 0);
-    sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_auto_flush, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_single_instance, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_bed_type_follow_preset, 0, wxTOP, FromDIP(3));
-    //sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_multi_machine, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_fila_manager, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_12h_time_format, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_step_mesh_setting, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_beta_version_update, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_auto_transfer_when_switch_preset, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_mix_print_high_low_temperature, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_camera_fullscreen_active_monitor_only, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_restore_hide_pop_ups, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_restore_hide_3mf_info, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_restore_support_recommend_dlg, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_restore_post_process_script_choice, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(_3d_settings, 0, wxTOP | wxEXPAND, FromDIP(20));
-    sizer_page->Add(item_mouse_zoom_settings, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_show_shells_in_preview_settings, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_import_single_svg_and_split, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_gamma_correct_in_import_obj, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_enable_record_gcodeviewer_option_item, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(enable_assemble_view_preview_settings, 0, wxTOP, FromDIP(3));
+    // [refactor-review] Not in Figma v2; kept here (user-facing print behavior).
+    auto item_disable_fins_safe_temp = create_item_checkbox(
+        _L("Disable fin extrude safe temperature"), scrolled,
+        _L("When enabled, the fin extrude safe temperature constraint is bypassed. The value is exposed to custom G-code as disable_fins_extrude_safe_temp."), 50,
+        "disable_fins_extrude_safe_temp");
+    sizer->Add(item_disable_fins_safe_temp, 0, wxTOP, FromDIP(3)); // [refactor-review]
+
+    sizer->AddSpacer(FromDIP(20));
+    scrolled->SetSizer(sizer);
+    scrolled->FitInside();
+    return scrolled;
+}
+
+wxWindow *PreferencesDialog::create_3d_tab()
+{
+    auto        scrolled = new ScrollPanel(m_book);
+    wxBoxSizer *sizer    = new wxBoxSizer(wxVERTICAL);
+
+    auto title_3d = create_item_title(_L("3D Settings"), scrolled, _L("3D Settings"));
+
+    auto item_zoom_to_mouse = create_item_checkbox(_L("Zoom to mouse position"), scrolled,
+                                                   _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
+
+    std::vector<wxString> assemble_view_preview_options = {_L("Auto"), _L("Open"), _L("Close")};
+    auto                  enable_assemble_view_preview  = create_item_combobox(
+        _L("Display overview"), scrolled, _L("Display overview"), "enable_assemble_view_preview", assemble_view_preview_options, {"Auto", "Open", "Close"},
+        [](int idx) {
+            wxGetApp().app_config->set("enable_assemble_view_preview", idx == 0 ? "Auto" : idx == 1 ? "Open" : "Close");
+            if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Auto")
+                wxGetApp().app_config->set_bool("enable_bvh", true);
+            else if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Open")
+                wxGetApp().app_config->set_bool("enable_bvh", false);
+        },
+        FromDIP(150), FromDIP(120));
+
+    float range_min = 1.0f, range_max = 2.5f;
+    auto  item_grabber_size = create_item_range_input(_L("Grabber scale"), scrolled,
+                                                      _L("Set grabber size for move,rotate,scale tool.") + _L("Value range") + ":[" + std::to_string(range_min) + "," +
+                                                          std::to_string(range_max) + "]",
+                                                      "grabber_size_factor", range_min, range_max, 1, [](wxString value) {
+                                                         double d_value = 0;
+                                                         if (value.ToDouble(&d_value)) GLGizmoBase::Grabber::GrabberSizeFactor = d_value;
+                                                     });
+
+    range_min                = 0.0f;
+    range_max                = 150.0f;
+    auto item_tooltip_offset = create_item_range_two_input(_L("Tooltip offset"), scrolled,
+                                                           _L("Set tooltip offset for different mouse size.") + _L("Value range") + ":[" + std::to_string(range_min) + "," +
+                                                               std::to_string(range_max) + "]",
+                                                           "3d_middle_tooltip_offset_x", "3d_middle_tooltip_offset_y", range_min, range_max, 1, nullptr, nullptr);
+
+    std::vector<wxString> toolbar_style = {_L("Collapsible"), _L("Uncollapsible")};
+    auto item_toolbar_style = create_item_combobox(_L("Toolbar Style"), scrolled, _L("Toolbar Style"), "toolbar_style", toolbar_style, {"0", "1"}, [](int idx) -> void {
+        const auto &p_ogl_manager = wxGetApp().get_opengl_manager();
+        p_ogl_manager->set_toolbar_rendering_style(idx);
+    });
+
+    auto item_show_shells = create_item_checkbox(_L("Always show shells in preview"), scrolled,
+                                                 _L("Always show shells or not in preview view tab. If you change this value, you should reslice."), 50,
+                                                 "show_shells_in_preview");
+
+    auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), scrolled,
+                                                       _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
+
+    auto item_import_svg = create_item_checkbox(_L("Import a single SVG and split it"), scrolled, _L("Import a single SVG and then split it to several parts."), 50,
+                                                "import_single_svg_and_split");
+
+    auto item_gamma_obj = create_item_checkbox(_L("Enable gamma correction for the imported obj file"), scrolled,
+                                               _L("Perform gamma correction on color after importing the obj model."), 50, "gamma_correct_in_import_obj");
+
+    auto item_enable_lod = create_item_checkbox(_L("Improve rendering performance by lod"), scrolled,
+                                                _L("Improved rendering performance under the scene of multiple plates and many models."), 50, "enable_lod");
+
+    auto item_advanced_gcode = create_item_checkbox(_L("Enable advanced gcode viewer"), scrolled, _L("Enable advanced gcode viewer."), 50, "enable_advanced_gcode_viewer_");
+
+    sizer->Add(title_3d, 0, wxEXPAND | wxTOP, FromDIP(12));
+    sizer->Add(item_zoom_to_mouse, 0, wxTOP, FromDIP(3));
+    sizer->Add(enable_assemble_view_preview, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_grabber_size, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_tooltip_offset, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_toolbar_style, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_show_shells, 0, wxTOP, FromDIP(3));
 #if !BBL_RELEASE_TO_PUBLIC
-    sizer_page->Add(show_assembly_bvh_bounds_settings, 0, wxTOP, FromDIP(3));
+    auto item_show_bvh_bounds = create_item_checkbox(_L("Show assembly BVH primary bounds"), scrolled, _L("Display the BVH primary bounding box wireframe in assembly view."), 50,
+                                                     "show_assembly_bvh_bounds");
+    sizer->Add(item_show_bvh_bounds, 0, wxTOP, FromDIP(3));
 #endif
+    sizer->Add(item_step_mesh_setting, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_import_svg, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_gamma_obj, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_enable_lod, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_advanced_gcode, 0, wxTOP, FromDIP(3));
 
-    sizer_page->Add(enable_lod_settings, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(enable_advanced_gcode_viewer, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_toolbar_style, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_grabber_size_settings, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_tooltip_offset_size_settings, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
-    sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_system_sync, 0, wxTOP, FromDIP(3));
-#ifdef _WIN32
-    sizer_page->Add(title_associate_file, 0, wxTOP| wxEXPAND, FromDIP(20));
-    sizer_page->Add(item_associate_3mf, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_associate_stl, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_associate_step, 0, wxTOP, FromDIP(3));
-#endif // _WIN32
-    auto item_title_modelmall   = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
-    auto item_item_modelmall    = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
-    auto item_item_show_history = sizer_page->Add(item_show_history, 0, wxTOP, FromDIP(3));
+    // [refactor-review] Not in Figma v2 3D tab; camera-fullscreen kept here (a 3D/
+    // viewport-adjacent toggle). Reviewer: confirm placement.
+    auto item_camera_fullscreen = create_item_checkbox(_L("Open full screen camera view on active monitor only."), scrolled,
+                                                       _L("When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."), 50,
+                                                       "camera_fullscreen_active_monitor_only");
+    sizer->Add(item_camera_fullscreen, 0, wxTOP, FromDIP(3)); // [refactor-review]
 
-    auto update_modelmall = [this, item_title_modelmall, item_item_modelmall, item_item_show_history](wxEvent &e) {
-        bool has_model_mall = wxGetApp().has_model_mall();
-        item_title_modelmall->Show(has_model_mall);
-        item_item_modelmall->Show(has_model_mall);
-        item_item_show_history->Show(has_model_mall);
-        Layout();
-        Fit();
-    };
-    wxCommandEvent eee(wxEVT_COMBOBOX);
-    update_modelmall(eee);
-    item_region->GetItem(size_t(2))->GetWindow()->Bind(wxEVT_COMBOBOX, update_modelmall);
+    sizer->AddSpacer(FromDIP(20));
+    scrolled->SetSizer(sizer);
+    scrolled->FitInside();
+    return scrolled;
+}
 
+wxWindow *PreferencesDialog::create_other_tab()
+{
+    auto        scrolled = new ScrollPanel(m_book);
+    wxBoxSizer *sizer    = new wxBoxSizer(wxVERTICAL);
 
-    sizer_page->Add(0, 0, 0, wxTOP, FromDIP(20));
-    sizer_page->Add(title_project, 0, wxTOP| wxEXPAND, FromDIP(20));
-    sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_gcodes_warning, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
+    // ---- Project ----
+    auto title_project         = create_item_title(_L("Project"), scrolled, "");
+    auto item_max_recent_count = create_item_input(_L("Maximum recent projects"), "", scrolled, _L("Maximum count of recent projects"), "max_recent_count", [](wxString value) {
+        long max = 0;
+        if (value.ToLong(&max)) wxGetApp().mainframe->set_max_recent_count(max);
+    });
+    auto item_gcodes_warning = create_item_checkbox(_L("No warnings when loading 3MF with modified G-codes"), scrolled, _L("No warnings when loading 3MF with modified G-codes"),
+                                                    50, "no_warn_when_modified_gcodes");
+    auto item_backup = create_item_checkbox(_L("Auto-Backup"), scrolled, _L("Backup your project periodically for restoring from the occasional crash."), 50, "backup_switch");
+    auto item_backup_interval = create_item_backup_input(_L("every"), scrolled, _L("The peroid of backup in seconds."), "backup_interval");
+
+    sizer->Add(title_project, 0, wxEXPAND | wxTOP, FromDIP(12));
+    sizer->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_gcodes_warning, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_backup, 0, wxTOP, FromDIP(3));
     item_backup->Add(item_backup_interval, 0, wxLEFT, 0);
 
-    sizer_page->Add(title_downloads, 0, wxTOP | wxEXPAND, FromDIP(20));
-    sizer_page->Add(item_downloads, 0, wxEXPAND, FromDIP(3));
+    // ---- Online Models (visible only when has_model_mall()) ----
+    auto title_modelmall   = create_item_title(_L("Online Models"), scrolled, _L("Online Models"));
+    auto item_modelmall    = create_item_checkbox(_L("Show online staff-picked models on the home page"), scrolled, _L("Show online staff-picked models on the home page"), 50,
+                                                  "staff_pick_switch");
+    auto item_show_history = create_item_checkbox(_L("Show history on the home page"), scrolled, _L("Show history on the home page"), 50, "show_print_history");
 
-    sizer_page->Add(title_media, 0, wxTOP| wxEXPAND, FromDIP(20));
-    sizer_page->Add(item_auto_stop_liveview, 0, wxEXPAND, FromDIP(3));
+    auto title_modelmall_item   = sizer->Add(title_modelmall, 0, wxEXPAND | wxTOP, FromDIP(20));
+    auto item_modelmall_item    = sizer->Add(item_modelmall, 0, wxTOP, FromDIP(3));
+    auto item_show_history_item = sizer->Add(item_show_history, 0, wxTOP, FromDIP(3));
+
+    auto update_modelmall = [scrolled, title_modelmall_item, item_modelmall_item, item_show_history_item](wxEvent &) {
+        bool has_model_mall = wxGetApp().has_model_mall();
+        title_modelmall_item->Show(has_model_mall);
+        item_modelmall_item->Show(has_model_mall);
+        item_show_history_item->Show(has_model_mall);
+        scrolled->Layout();
+        scrolled->FitInside();
+    };
+    wxCommandEvent dummy(wxEVT_COMBOBOX);
+    update_modelmall(dummy);
+
+    // ---- Developer Mode (Figma keeps these two here, in the Other tab) ----
+    auto title_dev           = create_item_title(_L("Developer Mode"), scrolled, _L("Developer Mode"));
+    auto item_dev_mode       = create_item_checkbox(_L("Develop mode"), scrolled, _L("Develop mode"), 50, "developer_mode");
+    auto item_skip_blacklist = create_item_checkbox(_L("Skip AMS blacklist check"), scrolled, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
+    sizer->Add(title_dev, 0, wxEXPAND | wxTOP, FromDIP(20));
+    sizer->Add(item_dev_mode, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_skip_blacklist, 0, wxTOP, FromDIP(3));
+
+    // ---- Log ----
+    auto title_log  = create_item_title(_L("Log"), scrolled, _L("Log"));
+    auto log_levels = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
+    auto item_log   = create_item_loglevel_combobox(_L("Log Level"), scrolled, _L("Log Level"), log_levels);
+    sizer->Add(title_log, 0, wxEXPAND | wxTOP, FromDIP(20));
+    sizer->Add(item_log, 0, wxTOP, FromDIP(3));
 
 #ifdef _WIN32
-    sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));
-    sizer_page->Add(item_darkmode, 0, wxEXPAND, FromDIP(3));
+    // ---- Associate Files To Bambu Studio (Windows only) ----
+    auto title_associate_file = create_item_title(_L("Associate Files To Bambu Studio"), scrolled, _L("Associate Files To Bambu Studio"));
+    auto item_associate_3mf   = create_item_checkbox(_L("Associate .3mf files to Bambu Studio"), scrolled,
+                                                     _L("If enabled, sets Bambu Studio as default application to open .3mf files"), 50, "associate_3mf");
+    auto item_associate_stl   = create_item_checkbox(_L("Associate .stl files to Bambu Studio"), scrolled,
+                                                     _L("If enabled, sets Bambu Studio as default application to open .stl files"), 50, "associate_stl");
+    auto item_associate_step  = create_item_checkbox(_L("Associate .step/.stp files to Bambu Studio"), scrolled,
+                                                     _L("If enabled, sets Bambu Studio as default application to open .step files"), 50, "associate_step");
+    sizer->Add(title_associate_file, 0, wxEXPAND | wxTOP, FromDIP(20));
+    sizer->Add(item_associate_3mf, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_associate_stl, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_associate_step, 0, wxTOP, FromDIP(3));
 #endif
 
-#if 0
-    sizer_page->Add(title_filament_group, 0, wxTOP | wxEXPAND, FromDIP(20));
-    //sizer_page->Add(item_ignore_ext_filament, 0, wxEXPAND, FromDIP(3));
-    sizer_page->Add(item_pop_up_filament_map_dialog, 0, wxEXPAND, FromDIP(3));
-#endif
-
-    sizer_page->Add(title_user_experience, 0, wxTOP | wxEXPAND, FromDIP(20));
-    sizer_page->Add(item_priv_policy, 0, wxTOP, FromDIP(3));
-#ifdef _WIN32
-    sizer_page->Add(item_webview_auto_fill, 0, wxTOP, FromDIP(3));
-#endif
-
-    sizer_page->Add(title_develop_mode, 0, wxTOP | wxEXPAND, FromDIP(20));
-    sizer_page->Add(item_develop_mode, 0, wxTOP, FromDIP(3));
-    sizer_page->Add(item_skip_ams_blacklist_check, 0, wxTOP, FromDIP(3));
-
-    page->SetSizer(sizer_page);
-    page->Layout();
-    sizer_page->Fit(page);
-    return page;
+    sizer->AddSpacer(FromDIP(20));
+    scrolled->SetSizer(sizer);
+    scrolled->FitInside();
+    return scrolled;
 }
 
-void PreferencesDialog::create_gui_page()
+wxWindow *PreferencesDialog::create_developer_tab()
 {
-    auto page = new wxWindow(this, wxID_ANY);
-    wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
-
-    auto title_index_and_tip = create_item_title(_L("Home page and daily tips"), page, _L("Home page and daily tips"));
-    auto item_home_page      = create_item_checkbox(_L("Show home page on startup"), page, _L("Show home page on startup"), 50, "show_home_page");
-    //auto item_daily_tip      = create_item_checkbox(_L("Show daily tip on startup"), page, _L("Show daily tip on startup"), 50, "show_daily_tips");
-
-    sizer_page->Add(title_index_and_tip, 0, wxTOP, 26);
-    sizer_page->Add(item_home_page, 0, wxTOP, 6);
-    //sizer_page->Add(item_daily_tip, 0, wxTOP, 6);
-
-    page->SetSizer(sizer_page);
-    page->Layout();
-    sizer_page->Fit(page);
-}
-
-void PreferencesDialog::create_sync_page()
-{
-    auto page = new wxWindow(this, wxID_ANY);
-    wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
-
-     auto title_sync_settingy   = create_item_title(_L("Sync settings"), page, _L("Sync settings"));
-    auto item_user_sync        = create_item_checkbox(_L("User sync"), page, _L("User sync"), 50, "user_sync_switch");
-    auto item_preset_sync      = create_item_checkbox(_L("Preset sync"), page, _L("Preset sync"), 50, "preset_sync_switch");
-    auto item_preferences_sync = create_item_checkbox(_L("Preferences sync"), page, _L("Preferences sync"), 50, "preferences_sync_switch");
-
-    sizer_page->Add(title_sync_settingy, 0, wxTOP, 26);
-    sizer_page->Add(item_user_sync, 0, wxTOP, 6);
-    sizer_page->Add(item_preset_sync, 0, wxTOP, 6);
-    sizer_page->Add(item_preferences_sync, 0, wxTOP, 6);
-
-    page->SetSizer(sizer_page);
-    page->Layout();
-    sizer_page->Fit(page);
-}
-
-void PreferencesDialog::create_shortcuts_page()
-{
-    auto page = new wxWindow(this, wxID_ANY);
-    wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
-
-    auto title_view_control = create_item_title(_L("View control settings"), page, _L("View control settings"));
-    std::vector<wxString> keyboard_supported;
-    Split(app_config->get("keyboard_supported"), "/", keyboard_supported);
-
-    std::vector<wxString> mouse_supported;
-    Split(app_config->get("mouse_supported"), "/", mouse_supported);
-
-    auto item_rotate_view = create_item_multiple_combobox(_L("Rotate of view"), page, _L("Rotate of view"), 10, "rotate_view", keyboard_supported,
-                                                               mouse_supported);
-    auto item_move_view   = create_item_multiple_combobox(_L("Move of view"), page, _L("Move of view"), 10, "move_view", keyboard_supported, mouse_supported);
-    auto item_zoom_view   = create_item_multiple_combobox(_L("Zoom of view"), page, _L("Zoom of view"), 10, "rotate_view", keyboard_supported, mouse_supported);
-
-    auto title_other = create_item_title(_L("Other"), page, _L("Other"));
-    auto item_other  = create_item_checkbox(_L("Mouse wheel reverses when zooming"), page, _L("Mouse wheel reverses when zooming"), 50, "mouse_wheel");
-
-    sizer_page->Add(title_view_control, 0, wxTOP, 26);
-    sizer_page->Add(item_rotate_view, 0, wxTOP, 8);
-    sizer_page->Add(item_move_view, 0, wxTOP, 8);
-    sizer_page->Add(item_zoom_view, 0, wxTOP, 8);
-    // sizer_page->Add(item_precise_control, 0, wxTOP, 0);
-    sizer_page->Add(title_other, 0, wxTOP, 20);
-    sizer_page->Add(item_other, 0, wxTOP, 5);
-
-    page->SetSizer(sizer_page);
-    page->Layout();
-    sizer_page->Fit(page);
-}
-
-wxWindow* PreferencesDialog::create_debug_page()
-{
-    auto page = new wxWindow(m_scrolledWindow, wxID_ANY);
-    page->SetBackgroundColour(*wxWHITE);
+    auto        scrolled = new ScrollPanel(m_book);
+    wxBoxSizer *sizer    = new wxBoxSizer(wxVERTICAL);
 
     m_internal_developer_mode_def = app_config->get("internal_developer_mode");
-    m_backup_interval_def = app_config->get("backup_interval");
-    m_iot_environment_def = app_config->get("iot_environment");
+    m_backup_interval_def         = app_config->get("backup_interval");
+    m_iot_environment_def         = app_config->get("iot_environment");
 
-    wxBoxSizer *bSizer = new wxBoxSizer(wxVERTICAL);
+    auto title_dev         = create_item_title(_L("Developer Tools"), scrolled, _L("Developer Tools"));
+    auto item_internal_dev = create_item_checkbox(_L("Internal developer mode"), scrolled, _L("Internal developer mode"), 50, "internal_developer_mode");
+    auto item_ssl_mqtt     = create_item_checkbox(_L("Enable SSL(MQTT)"), scrolled, _L("Enable SSL(MQTT)"), 50, "enable_ssl_for_mqtt");
+    auto item_ssl_ftp      = create_item_checkbox(_L("Enable SSL(FTP)"), scrolled, _L("Enable SSL(FTP)"), 50, "enable_ssl_for_ftp");
 
-
-    auto enable_ssl_for_mqtt = create_item_checkbox(_L("Enable SSL(MQTT)"), page, _L("Enable SSL(MQTT)"), 50, "enable_ssl_for_mqtt");
-    auto enable_ssl_for_ftp = create_item_checkbox(_L("Enable SSL(FTP)"), page, _L("Enable SSL(MQTT)"), 50, "enable_ssl_for_ftp");
-    auto item_internal_developer = create_item_checkbox(_L("Internal developer mode"), page, _L("Internal developer mode"), 50, "internal_developer_mode");
-
-    auto title_log_level = create_item_title(_L("Log Level"), page, _L("Log Level"));
-    auto log_level_list  = std::vector<wxString>{_L("fatal"), _L("error"), _L("warning"), _L("info"), _L("debug"), _L("trace")};
-    auto loglevel_combox = create_item_loglevel_combobox(_L("Log Level"), page, _L("Log Level"), log_level_list);
-
-    auto title_host = create_item_title(_L("Host Setting"), page, _L("Host Setting"));
-    auto radio1     = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "dev_host");
-    auto radio2     = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "qa_host");
-    auto radio3     = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), page, wxEmptyString, 50, 1, "pre_host");
-    auto radio4     = create_item_radiobox(_L("Product host"), page, wxEmptyString, 50, 1, "product_host");
+    auto title_host = create_item_title(_L("Host Setting"), scrolled, _L("Host Setting"));
+    auto radio1     = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), scrolled, wxEmptyString, 50, 1, "dev_host");
+    auto radio2     = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), scrolled, wxEmptyString, 50, 1, "qa_host");
+    auto radio3     = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), scrolled, wxEmptyString, 50, 1, "pre_host");
+    auto radio4     = create_item_radiobox(_L("Product host"), scrolled, wxEmptyString, 50, 1, "product_host");
 
     if (m_iot_environment_def == ENV_DEV_HOST) {
         on_select_radio("dev_host");
@@ -1710,19 +1781,16 @@ wxWindow* PreferencesDialog::create_debug_page()
         on_select_radio("product_host");
     }
 
-
     StateColor btn_bg_white(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Pressed),
-        std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
-        std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
+                            std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
+                            std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
     StateColor btn_bd_white(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
-    Button* debug_button = new Button(page, _L("debug save button"));
+    Button *debug_button                = new Button(scrolled, _L("debug save button"));
     m_button_list[m_button_list.size()] = debug_button;
     debug_button->SetBackgroundColor(btn_bg_white);
     debug_button->SetBorderColor(btn_bd_white);
     debug_button->SetFont(Label::Body_13);
-
-
     debug_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         // success message box
         MessageDialog dialog(this, _L("save debug settings"), _L("DEBUG settings have saved successfully!"), wxNO_DEFAULT | wxYES_NO | wxICON_INFORMATION);
@@ -1804,23 +1872,221 @@ wxWindow* PreferencesDialog::create_debug_page()
         }
     });
 
+    sizer->Add(title_dev, 0, wxEXPAND | wxTOP, FromDIP(12));
+    sizer->Add(item_internal_dev, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_ssl_mqtt, 0, wxTOP, FromDIP(3));
+    sizer->Add(item_ssl_ftp, 0, wxTOP, FromDIP(3));
+    sizer->Add(title_host, 0, wxEXPAND | wxTOP, FromDIP(20));
+    sizer->Add(radio1, 0, wxEXPAND | wxTOP, FromDIP(3));
+    sizer->Add(radio2, 0, wxEXPAND | wxTOP, FromDIP(3));
+    sizer->Add(radio3, 0, wxEXPAND | wxTOP, FromDIP(3));
+    sizer->Add(radio4, 0, wxEXPAND | wxTOP, FromDIP(3));
+    sizer->Add(debug_button, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(15));
 
-    bSizer->Add(enable_ssl_for_mqtt, 0, wxTOP, FromDIP(3));
-    bSizer->Add(enable_ssl_for_ftp, 0, wxTOP, FromDIP(3));
-    bSizer->Add(item_internal_developer, 0, wxTOP, FromDIP(3));
-    bSizer->Add(title_log_level, 0, wxTOP| wxEXPAND, FromDIP(20));
-    bSizer->Add(loglevel_combox, 0, wxTOP, FromDIP(3));
-    bSizer->Add(title_host, 0, wxTOP| wxEXPAND, FromDIP(20));
-    bSizer->Add(radio1, 0, wxEXPAND | wxTOP, FromDIP(3));
-    bSizer->Add(radio2, 0, wxEXPAND | wxTOP, FromDIP(3));
-    bSizer->Add(radio3, 0, wxEXPAND | wxTOP, FromDIP(3));
-    bSizer->Add(radio4, 0, wxEXPAND | wxTOP, FromDIP(3));
-    bSizer->Add(debug_button, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(15));
+    sizer->AddSpacer(FromDIP(20));
+    scrolled->SetSizer(sizer);
+    scrolled->FitInside();
+    return scrolled;
+}
 
-    page->SetSizer(bSizer);
-    page->Layout();
-    bSizer->Fit(page);
-    return page;
+// ============================================================================
+//  Bottom actions: Reset all warning dialogs / Reset preferences.
+// ============================================================================
+wxBoxSizer *PreferencesDialog::create_bottom_buttons()
+{
+    auto *row = new wxBoxSizer(wxHORIZONTAL);
+
+    auto *btn_reset_warnings            = new Button(this, _L("Reset all warning dialogs"));
+    auto *btn_reset_prefs               = new Button(this, _L("Reset preferences"));
+    m_button_list[m_button_list.size()] = btn_reset_warnings;
+    m_button_list[m_button_list.size()] = btn_reset_prefs;
+
+    StateColor btn_bg(std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
+                      std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
+    StateColor btn_bd(std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled), std::pair<wxColour, int>(ThemeColor::Grey450, StateColor::Enabled));
+    for (Button *b : {btn_reset_warnings, btn_reset_prefs}) {
+        b->SetBackgroundColor(btn_bg);
+        b->SetBorderColor(btn_bd);
+        b->SetFont(Label::Body_13);
+        b->SetCornerRadius(FromDIP(6));
+    }
+
+    btn_reset_warnings->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { on_reset_all_warnings(); });
+    btn_reset_prefs->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { on_reset_preferences(); });
+
+    row->AddStretchSpacer(1);
+    row->Add(btn_reset_warnings, 0, wxRIGHT, FromDIP(8));
+    row->Add(btn_reset_prefs, 0, 0, 0);
+    return row;
+}
+
+ResetWarningsDialog::ResetWarningsDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY, _L("Reset"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+    SetBackgroundColour(*wxWHITE);
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    const int content_width = FromDIP(417);
+
+    auto *main_sizer = new wxBoxSizer(wxVERTICAL);
+
+    // Body text.
+    auto *msg = new wxStaticText(this, wxID_ANY,
+                                 _L("All warning dialogs that you have disabled by checking \"Don't show again\" "
+                                    "are now re-enabled and will show next time they apply."));
+    msg->SetForegroundColour(ThemeColor::TextPrimary);
+    msg->SetFont(::Label::Body_14);
+    msg->Wrap(content_width);
+    msg->SetMinSize(wxSize(content_width, -1));
+    main_sizer->Add(msg, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
+
+    StateColor btn_bg_gray(std::pair<wxColour, int>(ThemeColor::Grey400, StateColor::Pressed), std::pair<wxColour, int>(ThemeColor::Grey200, StateColor::Hovered),
+                           std::pair<wxColour, int>(ThemeColor::White, StateColor::Normal));
+    m_details_btn = new Button(this, _L("Check details"));
+    m_details_btn->SetBackgroundColor(btn_bg_gray);
+    m_details_btn->SetBorderColor(ThemeColor::Grey450);
+    m_details_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    m_details_btn->SetFont(::Label::Body_12);
+    m_details_btn->SetCornerRadius(FromDIP(6));
+    m_details_btn->SetCanFocus(false);
+    m_details_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { toggle_details(); });
+    main_sizer->Add(m_details_btn, 0, wxLEFT | wxTOP, FromDIP(16));
+
+    // Collapsible grey details panel (hidden initially).
+    m_details_panel = new wxPanel(this, wxID_ANY);
+    m_details_panel->SetBackgroundColour(ThemeColor::Grey300);
+    auto *det_sizer = new wxBoxSizer(wxVERTICAL);
+    auto *det_text  = new wxStaticText(m_details_panel, wxID_ANY,
+                                       _L("- Sync printer presets after loading a file\n"
+                                          "- \"Load 3MF\" dialog settings\n"
+                                          "- Executing post-processing scripts\n"
+                                          "- Support structure recommendation prompt\n"
+                                          "- Unsaved projects."));
+    det_text->SetForegroundColour(ThemeColor::TextSecondary);
+    det_text->SetFont(::Label::Body_13);
+    det_sizer->Add(det_text, 0, wxALL, FromDIP(12));
+    m_details_panel->SetSizer(det_sizer);
+    m_details_panel->Hide();
+    main_sizer->Add(m_details_panel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
+
+    // Footer buttons.
+    auto *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+    btn_sizer->AddStretchSpacer(1);
+    auto      *cancel_btn = new Button(this, _L("Cancel"));
+    cancel_btn->SetBackgroundColor(btn_bg_gray);
+    cancel_btn->SetBorderColor(ThemeColor::Grey450);
+    cancel_btn->SetTextColor(ThemeColor::TextPrimary);
+    cancel_btn->SetFont(::Label::Body_12);
+    cancel_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    cancel_btn->SetCornerRadius(FromDIP(6));
+    cancel_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { EndModal(wxID_CANCEL); });
+    btn_sizer->Add(cancel_btn, 0, wxRIGHT, FromDIP(8));
+
+    StateColor btn_bg_green(std::pair<wxColour, int>(ThemeColor::BrandGreenPressed, StateColor::Pressed),
+                            std::pair<wxColour, int>(ThemeColor::BrandGreenHovered, StateColor::Hovered), std::pair<wxColour, int>(ThemeColor::BrandGreen, StateColor::Normal));
+    auto      *confirm_btn = new Button(this, _L("Confirm"));
+    confirm_btn->SetBackgroundColor(btn_bg_green);
+    confirm_btn->SetBorderColor(ThemeColor::BrandGreen);
+    confirm_btn->SetTextColor(*wxWHITE);
+    confirm_btn->SetFont(::Label::Body_12);
+    confirm_btn->SetMinSize(wxSize(FromDIP(58), FromDIP(24)));
+    confirm_btn->SetCornerRadius(FromDIP(6));
+    confirm_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { EndModal(wxID_OK); });
+    btn_sizer->Add(confirm_btn, 0, 0, 0);
+
+    main_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, FromDIP(20));
+
+    SetSizer(main_sizer);
+    Layout();
+    Fit();
+    CentreOnParent();
+    wxGetApp().UpdateDlgDarkUI(this);
+}
+
+void ResetWarningsDialog::toggle_details()
+{
+    m_expanded = !m_expanded;
+    m_details_panel->Show(m_expanded);
+    m_details_btn->SetLabel(m_expanded ? _L("Collapse") : _L("Check details"));
+    Layout();
+    Fit();
+}
+
+void PreferencesDialog::on_reset_all_warnings()
+{
+    // Expandable confirm dialog (Figma 4293-4971 collapsed / 4293-4972 expanded):
+    // "Check details" reveals the list of settings that get cleared.
+    ResetWarningsDialog dlg(this);
+    if (dlg.ShowModal() != wxID_OK) return;
+
+    // Keys that the various "Don't show again"-style dialogs persist their
+    // dismissal choice under. Erasing them re-enables the corresponding dialog.
+    app_config->erase("app", "sync_after_load_file_show_flag");
+    app_config->erase("app", "skip_non_bambu_3mf_warning");
+    app_config->erase("app", "post_process_script_choice");
+    app_config->set("show_support_recommend_dialog", "true");
+    app_config->set("save_project_choise", "");
+    if (wxGetApp().plater()) wxGetApp().plater()->reset_post_process_script_choice();
+    app_config->save();
+}
+
+void PreferencesDialog::on_reset_preferences()
+{
+    MessageDialog dlg(this, _L("Are you sure you want to reset all preferences? Changes will take effect after restart."), _L("Reset"), wxICON_QUESTION | wxOK | wxCANCEL);
+    if (dlg.ShowModal() != wxID_OK) return;
+
+    // Reset to factory defaults. Touch only UI preference keys — keep vendor /
+    // printer / preset state intact, which AppConfig::reset() would also clear.
+    static const char *kPrefKeys[] = {
+        "language",
+        "region",
+        "use_inches",
+        "dark_color_mode",
+        "auto_calculate_flush",
+        "single_instance",
+        FilaManagerEnabledConfigKey,
+        "enable_multi_machine",
+        "enable_beta_version_update",
+        "privacyuse",
+        "download_path",
+        "webview_auto_fill",
+        "associate_3mf",
+        "associate_stl",
+        "associate_step",
+        "user_bed_type",
+        "use_12h_time_format",
+        "auto_stop_liveview",
+        "auto_transfer_when_switch_preset",
+        "enable_high_low_temp_mixed_printing",
+        "sync_user_preset",
+        "sync_system_preset",
+        "disable_fins_extrude_safe_temp",
+        "zoom_to_mouse",
+        "enable_assemble_view_preview",
+        "grabber_size_factor",
+        "3d_middle_tooltip_offset_x",
+        "3d_middle_tooltip_offset_y",
+        "toolbar_style",
+        "show_shells_in_preview",
+        "enable_step_mesh_setting",
+        "import_single_svg_and_split",
+        "gamma_correct_in_import_obj",
+        "enable_lod",
+        "enable_advanced_gcode_viewer_",
+        "camera_fullscreen_active_monitor_only",
+        "max_recent_count",
+        "no_warn_when_modified_gcodes",
+        "backup_switch",
+        "backup_interval",
+        "staff_pick_switch",
+        "show_print_history",
+        "developer_mode",
+        "skip_ams_blacklist_check",
+        "severity_level",
+    };
+    for (const char *k : kPrefKeys) app_config->erase("app", k);
+    app_config->set_defaults();
+    app_config->save();
 }
 
 void PreferencesDialog::on_select_radio(std::string param)

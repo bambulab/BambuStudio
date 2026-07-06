@@ -7037,14 +7037,14 @@ void  GUI_App::show_ip_address_enter_dialog_handler(wxCommandEvent& evt)
 //    menu->AppendSubMenu(local_menu, _L("Configuration"));
 //}
 
-void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_option)
+void GUI_App::open_preferences()
 {
     bool app_layout_changed = false;
     {
         // the dialog needs to be destroyed before the call to recreate_GUI()
         // or sometimes the application crashes into wxDialogBase() destructor
         // so we put it into an inner scope
-        PreferencesDialog dlg(mainframe, open_on_tab, highlight_option);
+        PreferencesDialog dlg(mainframe);
         dlg.ShowModal();
 
         // BBS

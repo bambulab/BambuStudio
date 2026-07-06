@@ -455,9 +455,7 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path, std
 					// open preferences
 				}
 				else if (dict["hypertext_type"] == "preferences") {
-					std::string	page = dict["hypertext_preferences_page"];
-					std::string	item = dict["hypertext_preferences_item"];
-					HintData	hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url, internal_only, [page, item]() { wxGetApp().open_preferences(1, page); } };// 1 is to modify
+					HintData	hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url, internal_only, []() { wxGetApp().open_preferences(); } };
 					hints_vector.emplace_back(hint_data);
 				}
 				else if (dict["hypertext_type"] == "plater") {

@@ -18,13 +18,6 @@
 #include "Widgets/LinkLabel.hpp"
 namespace Slic3r { namespace GUI {
 
-
-#define DESIGN_SELECTOR_NOMORE_COLOR wxColour(248, 248, 248)
-#define DESIGN_GRAY900_COLOR wxColour(38, 46, 48)
-#define DESIGN_GRAY800_COLOR wxColour(50, 58, 61)
-#define DESIGN_GRAY600_COLOR wxColour(144, 144, 144)
-#define DESIGN_GRAY400_COLOR wxColour(166, 169, 170)
-
 class Selector
 {
 public:
@@ -47,15 +40,7 @@ public:
 WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
 class CheckBox;
 class TextInput;
-
-
-
-#define DESIGN_RESOUTION_PREFERENCES wxSize(FromDIP(540), -1)
-#define DESIGN_TITLE_SIZE wxSize(FromDIP(100), -1)
-#define DESIGN_COMBOBOX_SIZE wxSize(FromDIP(140), -1)
-#define DESIGN_LARGE_COMBOBOX_SIZE wxSize(FromDIP(160), -1)
-#define DESIGN_INPUT_SIZE wxSize(FromDIP(100), -1)
-
+class PreferenceTabbar;
 
 class PreferencesDialog : public DPIDialog
 {
@@ -63,10 +48,9 @@ private:
     AppConfig *app_config;
 
 protected:
-    wxBoxSizer *  m_sizer_body;
-    wxScrolledWindow* m_scrolledWindow;
+    PreferenceTabbar *m_tabbar = nullptr;
+    wxSimplebook *    m_book   = nullptr;
 
-    // bool								m_settings_layout_changed {false};
     bool m_seq_top_layer_only_changed{false};
     bool m_recreate_GUI{false};
     bool m_use_12h_time_format_changed{false};
@@ -136,11 +120,14 @@ public:
     wxBoxSizer *create_item_switch(wxString title, wxWindow *parent, wxString tooltip, std::string param);
     wxWindow *  create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param);
 
-    wxWindow* create_general_page();
-    void create_gui_page();
-    void create_sync_page();
-    void create_shortcuts_page();
-    wxWindow* create_debug_page();
+    wxWindow* create_general_tab();
+    wxWindow* create_user_tab();
+    wxWindow* create_3d_tab();
+    wxWindow* create_other_tab();
+    wxWindow* create_developer_tab();
+    wxBoxSizer *create_bottom_buttons();
+    void on_reset_all_warnings();
+    void on_reset_preferences();
 
     void     on_select_radio(std::string param);
     wxString get_select_radio(int groupid);
@@ -157,11 +144,8 @@ public:
     int                                   m_screen_height;
 
 protected:
-    void OnSelectTabel(wxCommandEvent &event);
     void OnSelectRadio(wxMouseEvent &event);
 };
-
-wxDECLARE_EVENT(EVT_PREFERENCES_SELECT_TAB, wxCommandEvent);
 
 }} // namespace Slic3r::GUI
 
