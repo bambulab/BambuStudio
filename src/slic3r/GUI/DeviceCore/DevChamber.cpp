@@ -37,7 +37,6 @@ void DevChamber::ParseChamberV2_0(const json &print_json)
         const json &device_jj = print_json["device"];
         if (device_jj.contains("ctc")) {
             const json &ctc   = device_jj["ctc"];
-            int         state = DevUtil::get_flag_bits(ctc["state"].get<int>(), 0, 4);
             if (ctc.contains("info")) {
                 const json &info = ctc["info"];
                 m_temp           = DevUtil::get_flag_bits(info["temp"].get<int>(), 0, 16);

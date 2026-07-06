@@ -34,7 +34,8 @@ export type HotendOpState =
   | 'Taking'      // 取用中:    工具头正在取用
   | 'Placing'     // 放置中:    工具头正在装上
   | 'Removing'    // 取下中:    工具头正在卸下
-  | 'Error';      // 错误态
+  | 'Error'       // 错误态
+  | 'Lost';       // 工具有连接但已掉落: 喷嘴体叠加灰色 "!" 徽标
 
 export type HotendToolKind =
   | 'nozzle'   // 普通喷嘴

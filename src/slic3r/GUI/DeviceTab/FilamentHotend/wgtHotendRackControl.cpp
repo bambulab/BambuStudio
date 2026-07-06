@@ -129,7 +129,6 @@ void wgtHotendRackControl::SetControlEnabled(bool enabled)
     if (m_label && m_label->GetForegroundColour() != (enabled ? kLabelNormal : kTextDisabled)) {
         m_label->SetForegroundColour(enabled ? kLabelNormal : kTextDisabled);
     }
-    update_state();
 }
 
 void wgtHotendRackControl::Rescale()

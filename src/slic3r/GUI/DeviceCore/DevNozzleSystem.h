@@ -108,6 +108,11 @@ public:
     bool     IsExist() const { return m_is_exist && m_nozzle_id > -1; }
     bool     IsEmpty() const { return !IsExist(); }
 
+    // for RackA/RackB
+    bool     IsToolConnected() const { return m_hc_state; }
+    bool     IsToolLostInHolder() const { return m_hc_state && !m_is_exist && m_nozzle_id > -1;}
+    bool     GetHcState() const { return m_hc_state; };
+
     /**/
     void       SetRack(const std::weak_ptr<DevNozzleRack>& rack) { m_nozzle_rack = rack; };
 
@@ -185,6 +190,8 @@ private:
 
 private:
     bool m_is_exist = true;
+    bool m_hc_state = true;
+
     bool m_on_rack = false;
 
     int m_stat = 0;
@@ -279,7 +286,6 @@ private:
 private:
     MachineObject* m_owner = nullptr;
 
-    int m_extder_exist = 0;  //0- none exist 1-exist, unused
     int m_state_0_4 = 0;
 
     std::optional<int> m_replace_nozzle_src; // replace nozzle source position

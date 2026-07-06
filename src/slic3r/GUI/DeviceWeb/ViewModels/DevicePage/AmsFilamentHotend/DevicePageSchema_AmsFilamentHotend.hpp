@@ -525,6 +525,7 @@ namespace hotend_op_state {
     inline constexpr const char* placing  = "Placing";
     inline constexpr const char* removing = "Removing";
     inline constexpr const char* error    = "Error";
+    inline constexpr const char* lost_in_holder  = "Lost";
 }
 
 } // namespace values

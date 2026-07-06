@@ -220,8 +220,11 @@ std::string DevicePageAmsFilamentHotendVM::ResolveFilamentCardText(const DevAmsT
 
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
-        auto fila_item = preset_bundle->get_filament_by_filament_id(tray->get_filament_id());
-        if (fila_item) {
+        if (auto fila_item = preset_bundle->get_filament_by_filament_id(tray->get_filament_id(), "", true); fila_item.has_value()) {
+            return StripFilamentVendorPrefix(fila_item->filament_name, fila_item->vendor, fallback_type);
+        }
+
+        if (auto fila_item = preset_bundle->get_filament_by_filament_id(tray->get_filament_id(), "", false); fila_item.has_value()) {
             return StripFilamentVendorPrefix(fila_item->filament_name, fila_item->vendor, fallback_type);
         }
     }

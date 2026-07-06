@@ -262,7 +262,10 @@ void DevicePageAmsFilamentHotendVM::BuildHotendRackStatus(MachineObject* machine
         {SK::rack_status::current_step, rack_busy ? static_cast<int>(rack_status) : 0},
         {SK::rack_status::steps, nozzle_rack ? build_rack_steps(nozzle_rack->GetSteps(), rack_status) : nlohmann::json::array()},
         {SK::rack_status::can_stop, rack_busy},
-        {SK::rack_status::can_retry, rack_failed}
+        // Retry (resume the rack job) is offered throughout an active job, not
+        // only after a failure, so the button stays clickable during the
+        // operation per the N1x design.
+        {SK::rack_status::can_retry, rack_busy}
     };
 
     const bool can_read_all = nozzle_rack && nozzle_rack->CtrlCanReadAll() && !rack_busy;
@@ -355,7 +358,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     nlohmann::json hotend = nlohmann::json::object();
     nlohmann::json hotend_detail_dialog;
     if (rack_nozzle_opt.has_value()) {
-        const bool has_tool = has_hotend_slot && rack_nozzle_opt->IsExist();
+        const bool has_tool = has_hotend_slot && rack_nozzle_opt->IsToolConnected();
         const auto tool_defs = has_tool ? rack_nozzle_opt->GetToolDefs() : DevNozzleToolDefs();
         const bool is_nozzle_tool = tool_defs.tool_type == DevNozzleToolType::Nozzle;
         const bool is_on_extruder = IsNozzleOnExtruder(machine_obj, addr_id);
@@ -369,6 +372,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         std::string op_state = SV::hotend_op_state::idle;
         if (has_tool && rack_nozzle_opt->IsAbnormal()) {
             op_state = SV::hotend_op_state::error;
+        } else if (has_tool && rack_nozzle_opt->IsToolLostInHolder()) {
+            op_state = SV::hotend_op_state::lost_in_holder;
         } else if (auto temp_status = rack_nozzle_opt->GetSetRackNozzleTempStatus()) {
             switch (*temp_status) {
             case DevNozzle::NozzleTempStatus::Heating: op_state = SV::hotend_op_state::heating; break;

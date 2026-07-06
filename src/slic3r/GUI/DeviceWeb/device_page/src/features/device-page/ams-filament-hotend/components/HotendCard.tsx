@@ -14,6 +14,8 @@ import hotendCutterUrl        from '../assets/hotend_cutter.svg';
 import hotendPenUrl           from '../assets/hotend_pen.svg';
 import hotendPlacingArrowUrl  from '../assets/hotend_placing_arrow.svg';
 import hotendErrorBadgeUrl    from '../assets/hotend_error_badge.svg';
+import hotendLostBadgeUrl     from '../assets/hotend_lost_badge.svg';
+import hotendForbiddenUrl     from '../assets/hotend_forbidden.svg';
 import hotendReadingArcUrl    from '../assets/hotend_reading_arc.png';
 
 export function HotendCard({
@@ -35,6 +37,7 @@ export function HotendCard({
   const op: HotendOpState = hot.op_state ?? 'Idle';
   const isTaken = !!slot.taken;
   const isSelected = isTaken || !!hot.selected;
+  const isEmpty = (hot.tool_kind ?? 'empty') === 'empty';
   const isStatusReplaced = op === 'Reading' || op === 'Taking' || op === 'Placing' || op === 'Removing' || op === 'Error';
   const [menuOpen, setMenuOpen] = useState(false);
   const [editingTemp, setEditingTemp] = useState(false);
@@ -167,6 +170,8 @@ export function HotendCard({
             onSkipBlurCommit={(skip) => { skipBlurCommitRef.current = skip; }}
             shouldSkipBlurCommit={() => skipBlurCommitRef.current}
           />
+        ) : isEmpty ? (
+          <EmptyReadout />
         ) : (
           <div className="hotend-readout hotend-readout-empty" aria-hidden="true" />
         )}
@@ -275,6 +280,17 @@ function TempReadout({
   );
 }
 
+// Empty rack position (tool_kind === 'empty'): grey "Empty" text where the
+// temperature normally is, per Figma 1882:112071.
+function EmptyReadout() {
+  const { t } = useTranslation();
+  return (
+    <div className="hotend-readout status status-empty" data-testid="ams-hotend-empty">
+      <span className="hotend-readout-text">{t('Empty')}</span>
+    </div>
+  );
+}
+
 // Overlay for the nozzle currently mounted on the extruder.
 function TakenReadout() {
   const { t } = useTranslation();
@@ -347,7 +363,7 @@ function ToolIcon({
   if (kind === 'empty') {
     return (
       <div className="hotend-tool-icon-wrap">
-        <div className="hotend-tool-icon-empty" aria-hidden="true" />
+        <img className="hotend-icon-forbidden" src={hotendForbiddenUrl} width={20} height={20} alt="empty" />
       </div>
     );
   }
@@ -380,6 +396,9 @@ function ToolIcon({
       <img className="hotend-icon-nozzle" src={nozzleSrc} width={20} height={36} alt="nozzle" />
       {withError && (
         <img className="hotend-icon-error-badge" src={hotendErrorBadgeUrl} width={16} height={16} alt="error" />
+      )}
+      {op === 'Lost' && (
+        <img className="hotend-icon-lost-badge" src={hotendLostBadgeUrl} width={16} height={16} alt="lost" />
       )}
       {(op === 'Placing' || op === 'Taking') && (
         <img className="hotend-placing-arrow" src={hotendPlacingArrowUrl} width={9} height={32} alt="placing" />

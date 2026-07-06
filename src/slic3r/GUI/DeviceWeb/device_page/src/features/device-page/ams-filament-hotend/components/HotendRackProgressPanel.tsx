@@ -64,7 +64,6 @@ export function HotendRackProgressPanel({
   }
 
   const steps = status.steps ?? [];
-  const failed = status.state === 'failed';
 
   return (
     <section className="hotend-rack-progress" data-testid="ams-hotend-rack-progress">
@@ -90,15 +89,17 @@ export function HotendRackProgressPanel({
       </div>
 
       <div className="hotend-rack-progress-actions">
-        {failed && (
-          <button
-            type="button"
-            disabled={!status.can_retry}
-            onClick={() => onAction?.('retry_hotend_operation')}
-          >
-            {t('Retry')}
-          </button>
-        )}
+        {/* Retry (resume the rack job -> CtrlRetryHotendRackJob) is shown
+            throughout the operation per Figma 1890:145839, not only on failure;
+            its enabled state follows can_retry. */}
+        <button
+          type="button"
+          className="primary"
+          disabled={!status.can_retry}
+          onClick={() => onAction?.('retry_hotend_operation')}
+        >
+          {t('Retry')}
+        </button>
         <button
           type="button"
           disabled={!status.can_stop}

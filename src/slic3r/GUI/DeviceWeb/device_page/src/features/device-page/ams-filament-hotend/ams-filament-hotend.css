@@ -1461,6 +1461,12 @@
   cursor: pointer;
 }
 
+.hotend-rack-progress-actions button.primary {
+  border-color: var(--ams-brand);
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+}
+
 .hotend-rack-progress-actions button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
@@ -1765,6 +1771,15 @@
   position: absolute;
   left: 0;
   top: 5px;
+}
+
+/* "Lost" badge: grey "!" circle overlaid near the top of the hotend body,
+   matching Figma 1882:112113 (tool connected but dropped off the rack). */
+.hotend-icon-lost-badge {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .hotend-tool-label {

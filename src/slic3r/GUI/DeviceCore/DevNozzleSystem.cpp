@@ -537,7 +537,6 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> DevNozzleSystem::GetNozzleGroups(
 void DevNozzleSystem::Reset()
 {
     m_ext_nozzles.clear();
-    m_extder_exist = 0;
     m_state_0_4 = 0;
     m_reading_idx = 0;
     m_reading_count = 0;
@@ -976,9 +975,15 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
     if (device_json.contains("nozzle"))
     {
         const json& nozzle_json = device_json["nozzle"];
-        if (nozzle_json.contains("exist"))
-        {
-            system->m_extder_exist = DevUtil::get_flag_bits(nozzle_json["exist"].get<int>(), 0, 16);
+
+        std::optional<int> nozzle_exist_bits_opt;
+        if (nozzle_json.contains("exist")) {
+            nozzle_exist_bits_opt = nozzle_json["exist"].get<int>();
+        }
+
+        std::optional<int> hc_bits_opt;
+        if (nozzle_json.contains("hc")) {
+            hc_bits_opt = nozzle_json["hc"].get<int>();
         }
 
         if (nozzle_json.contains("state"))
@@ -1013,13 +1018,17 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
         {
             DevNozzle nozzle_obj;
             nozzle_obj.SetRack(system->GetNozzleRack());
-            nozzle_obj.m_is_exist = true;
 
             const auto& njon = it.value();
             nozzle_obj.m_nozzle_id = DevUtil::get_hex_bits(njon["id"].get<int>(), 0);
             if (njon.contains("addr_id")) {
                 nozzle_obj.m_addr_id = njon["addr_id"].get<int>();
             }
+
+            if (nozzle_exist_bits_opt.has_value()) {
+                nozzle_obj.m_is_exist = DevUtil::get_flag_bits(nozzle_exist_bits_opt.value(), njon["id"].get<int>());
+            }
+
             if (njon.contains("diameter")) {
                 if (njon["diameter"].is_number()) {
                     nozzle_obj.m_diameter = njon["diameter"].get<float>();
@@ -1084,6 +1093,14 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
                     nozzle_obj.m_slot_now.reset();
                 }
             }
+
+            if (njon.contains("addr_id")) {
+                nozzle_obj.m_addr_id = njon["addr_id"].get<int>();
+                if (hc_bits_opt.has_value()) {
+                    nozzle_obj.m_hc_state = DevUtil::get_flag_bits(hc_bits_opt.value(),  nozzle_obj.m_addr_id.value());
+                }
+            }
+
             if (njon.contains("bind_ams")) {
                 nozzle_obj.m_bind_ams.clear();
                 auto bind_ams_list = njon["bind_ams"].get<std::vector<int>>();
@@ -1113,13 +1130,20 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
     // fill none-exist nozzles
     const auto& rack_nozzle_pos_set = system->m_nozzle_rack->GetTotalRackNozzlePosSet();
     for (const auto& rack_nozzle_pos : rack_nozzle_pos_set) {
+        int traverse_addr_id = rack_nozzle_pos - 0x10;
+        if (system->GetNozzleOptByAddrId(traverse_addr_id).has_value()) {
+            continue;
+        }
+
         const auto& nozzle_opt = system->GetNozzleOptByPosId(rack_nozzle_pos);
         if (!nozzle_opt.has_value()) {
             DevNozzle nozzle_obj;
             nozzle_obj.SetRack(system->GetNozzleRack());
             nozzle_obj.SetOnRack(true);
             nozzle_obj.m_is_exist = false;
+            nozzle_obj.m_hc_state = false;
             nozzle_obj.m_nozzle_id = rack_nozzle_pos - 0x10;
+            nozzle_obj.m_addr_id = rack_nozzle_pos - 0x10;
             DevNozzleSystemParser::sTraverseBindAmsSlot(system, nozzle_obj);
             DevNozzleSystemParser::sTraversePreloadBindAmsSlot(system, nozzle_obj);
             system->m_nozzle_rack->AddRackNozzle(nozzle_obj);
