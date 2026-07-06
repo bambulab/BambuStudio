@@ -1491,8 +1491,15 @@ void MenuFactory::create_filament_action_menu(bool init, int active_filament_men
     if (init) {
         append_menu_item(
             menu, wxID_ANY, _L("Delete"), _L("Delete this filament"), [](wxCommandEvent&) {
-                plater()->sidebar().delete_filament(-2); }, "", nullptr,
+                plater()->sidebar().delete_filament(kSidebarContextMenuFilamentId); }, "", nullptr,
             []() { return plater()->sidebar().combos_filament().size() > 1; }, m_parent);
+    }
+
+    if (init) {
+        append_menu_item(
+            menu, wxID_ANY, _L("Decompose Color"), "", [](wxCommandEvent&) {
+                plater()->sidebar().decompose_filament_color(kSidebarContextMenuFilamentId); }, "", nullptr,
+            []() { return plater()->sidebar().combos_filament().size() >= 2; }, m_parent);
     }
 
     const int item_id = menu->FindItem(_L("Merge with"));
@@ -1510,7 +1517,7 @@ void MenuFactory::create_filament_action_menu(bool init, int active_filament_men
         wxString item_name = preset ? from_u8(preset->label(false)) : wxString::Format(_L("Filament %d"), i + 1);
 
         append_menu_item(sub_menu, wxID_ANY, item_name, "",
-            [i](wxCommandEvent&) { plater()->sidebar().change_filament(-2, i); }, *icons[i], menu,
+            [i](wxCommandEvent&) { plater()->sidebar().change_filament(kSidebarContextMenuFilamentId, i); }, *icons[i], menu,
             []() { return true; }, m_parent);
     }
     append_submenu(menu, sub_menu, wxID_ANY, _L("Merge with"), "", "",

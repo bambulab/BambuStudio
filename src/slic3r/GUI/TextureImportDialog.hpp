@@ -43,6 +43,37 @@ enum class TextureImportState {
     Error
 };
 
+enum class TextureAutoMixMode {
+    CMYW,
+    RYBW
+};
+
+enum class TextureFilamentKind {
+    ExistingPhysical,
+    ExistingMixed,
+    NewPhysical,
+    NewMixed
+};
+
+struct TextureFilamentEntry {
+    TextureFilamentKind kind{TextureFilamentKind::ExistingPhysical};
+    int                 dialog_index{-1};
+    size_t              project_config_index{size_t(-1)};
+    std::string         color_hex;
+    std::string         name;
+    std::string         type;
+    std::string         preset_name;
+    std::vector<unsigned int> mixed_components;
+    std::vector<int>          mixed_ratios;
+};
+
+struct TextureNewMixedFilament {
+    int                       dialog_index{-1};
+    std::string               color_hex;
+    std::vector<int>          component_dialog_indices;
+    std::vector<int>          ratios;
+};
+
 struct FilamentMappingRow {
     int                        cluster_id    = -1;
     std::array<std::size_t, 3> source_color  = {0, 0, 0};
@@ -53,6 +84,7 @@ struct FilamentMappingRow {
 };
 
 class FilamentSelectPopup;
+class AutoMixSelectPopup;
 // Lightweight 3D preview panel using wxGLCanvas.
 // Renders: original textured, multi-color, or filament-mapped.
 class TexturePreviewCanvas : public wxGLCanvas
@@ -164,8 +196,7 @@ class TextureImportDialog : public DPIDialog
 public:
     TextureImportDialog(wxWindow*                        parent,
                         const Slic3r::TexturedMesh&      textured_mesh,
-                        const std::vector<std::string>&  filament_color_strs,
-                        const std::vector<std::string>&  filament_names,
+                        const std::vector<TextureFilamentEntry>& filament_entries,
                         std::function<bool()>            initial_cancel_callback = {},
                         std::function<bool(int)>         initial_progress_callback = {});
     ~TextureImportDialog();
@@ -181,6 +212,8 @@ public:
     // Index i corresponds to filament index (m_existing_filament_count + i).
     const std::vector<std::array<float, 4>>& get_new_filament_colors() const { return m_new_filament_colors; }
     const std::vector<std::string>& get_new_filament_preset_names() const { return m_new_filament_preset_names; }
+    const std::vector<TextureNewMixedFilament>& get_new_mixed_filaments() const { return m_new_mixed_filaments; }
+    const std::vector<TextureFilamentEntry>& get_filament_entries() const { return m_filament_entries; }
     size_t get_existing_filament_count() const { return m_existing_filament_count; }
 
 private:
@@ -220,8 +253,16 @@ private:
     void show_filament_popup(size_t row_index);
     void dismiss_filament_popup();
     void dismiss_filament_popup_on_wheel(wxMouseEvent& evt);
+    void show_auto_mix_popup();
+    void dismiss_auto_mix_popup();
+    void set_auto_mix_mode(TextureAutoMixMode mode);
+    void apply_auto_standard_mix(TextureAutoMixMode mode);
+    bool add_decomposed_mixed_filament(size_t row_index);
     int  add_virtual_filament(const std::array<float, 4>& rgba, const std::string& hex,
                               const std::string& preset_name = std::string());
+    int  add_virtual_mixed_filament(const std::string& color_hex,
+                                    const std::vector<int>& component_dialog_indices,
+                                    const std::vector<int>& ratios);
     size_t max_filament_count() const;
     bool can_add_virtual_filament() const;
     // Recomputes m_drop_warning_label visibility from m_filaments_dropped and
@@ -261,9 +302,11 @@ private:
     std::vector<std::string>           m_filament_color_strs;   // existing + virtual
     std::vector<std::string>           m_filament_names;        // existing + virtual
     std::vector<std::array<float, 4>>  m_filament_colors_rgba;  // existing + virtual
+    std::vector<TextureFilamentEntry>  m_filament_entries;      // aligned with m_filament_colors_rgba
     size_t                             m_existing_filament_count = 0;
     std::vector<std::array<float, 4>>  m_new_filament_colors;   // only virtual (to be created)
     std::vector<std::string>           m_new_filament_preset_names; // only virtual, aligned with m_new_filament_colors
+    std::vector<TextureNewMixedFilament> m_new_mixed_filaments;
     std::string                        m_default_virtual_filament_preset_name;
 
     TextureImportState                 m_state = TextureImportState::Idle;
@@ -277,6 +320,8 @@ private:
     // bottom buttons; never affects the mapping itself.
     bool                               m_filaments_dropped = false;
     bool                               m_auto_merge_enabled = true;
+    TextureAutoMixMode                 m_auto_mix_mode = TextureAutoMixMode::CMYW;
+    int                                m_auto_mix_font_point_size = 10;
 
     Slic3r::PaintedMesh               m_painted;
     std::vector<Slic3r::FilamentMatch> m_current_matches;
@@ -307,6 +352,8 @@ private:
     Button*      m_btn_apply      = nullptr;
 
     wxCheckBox*           m_auto_merge_cb = nullptr;
+    Button*               m_btn_auto_mix  = nullptr;
+    AutoMixSelectPopup*   m_auto_mix_popup = nullptr;
     wxScrolledWindow*     m_mapping_scroll = nullptr;
     wxBoxSizer*           m_mapping_sizer  = nullptr;
     std::vector<FilamentMappingRow> m_mapping_rows;
