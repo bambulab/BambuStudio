@@ -1210,7 +1210,6 @@ wxSizer* CalibrationPresetPage::create_rack_items_sizer(wxPanel* rack_items_pane
         fcb->SetCheckBox(check_box);
         fcb->SetExtuderRole(ExtruderRole::SINGLE_EXTRUDER);
         fcb->set_select_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
-        fcb->SetSubAmsPopup(new SubAmsPopup(this));
 
         row_sizer->Add(radio_btn, 0, wxALIGN_CENTER);
         row_sizer->Add(check_box, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
@@ -1221,18 +1220,15 @@ wxSizer* CalibrationPresetPage::create_rack_items_sizer(wxPanel* rack_items_pane
         radio_btn->Bind(wxEVT_TOGGLEBUTTON, [this, fcb](wxCommandEvent& evt) {
             manage_filament_radio_btn(fcb);
 
-            // SINGLE: clear every sub-AMS selection (data) + popup radios (visual; SetValue(false) on group is no-op on Win32).
+            // SINGLE: clear every sub-AMS selection (data). With a single shared popup, only that one
+            // popup can hold live radio visuals, so a single ClearAllRadioVisuals() covers all slots.
             if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_SINGLE) {
                 for (auto* other : m_rack_filament_comboBox_list) {
                     if (auto* ext = dynamic_cast<FilamentExtendComboBox*>(other)) {
                         ext->ClearSubAmsSelection();
                     }
                 }
-                for (auto* other : m_rack_filament_comboBox_list) {
-                    if (auto* ext = dynamic_cast<FilamentExtendComboBox*>(other)) {
-                        if (auto* popup = ext->GetSubAmsPopup()) popup->ClearAllRadioVisuals();
-                    }
-                }
+                if (m_shared_subams_popup) m_shared_subams_popup->ClearAllRadioVisuals();
             }
             wxCommandEvent event(EVT_CALI_TRAY_CHANGED);
             event.SetEventObject(this);
@@ -1438,7 +1434,6 @@ void CalibrationPresetPage::create_page(wxWindow* parent)
 
     m_rack_nozzle_panel = new wxPanel(parent);
     m_rack_nozzle_panel->SetBackgroundColour(*wxWHITE);
-    m_rack_nozzle_panel->SetSizer(create_rack_items_sizer(m_rack_nozzle_panel, m_rack_filament_comboBox_list));
     m_rack_nozzle_panel->Hide();
 
     m_multi_exutrder_filament_list_panel = new wxPanel(parent);
@@ -1501,14 +1496,20 @@ void CalibrationPresetPage::on_subams_click(wxCommandEvent& event)
     auto* fcb = dynamic_cast<FilamentExtendComboBox*>(event.GetEventObject());
     if (!fcb || !curr_obj) return;
 
-    auto* popup = fcb->GetSubAmsPopup();
-    if (!popup) return;
+    /* Lazily create the one shared popup on first use; subsequent clicks just re-target it. */
+    if (!m_shared_subams_popup)
+        m_shared_subams_popup = new SubAmsPopup(this);
+
+    /* Re-target the shared popup at the clicked slot: fill rows for this nozzle's slot set and
+       restore the owner's saved selection + per-tray model index. */
+    m_shared_subams_popup->SetData(curr_obj, m_filament_ams_list, m_cali_filament_mode, fcb,
+                                   fcb->GetSubAmsSlotSet());
 
     /* anchor on the subams panel itself so popup width/position matches that area. */
     wxWindow* anchor = fcb->GetSubAmsPanel();
     if (!anchor) anchor = fcb;
 
-    popup->PopupAt(anchor);
+    m_shared_subams_popup->PopupAt(anchor);
 }
 
 void CalibrationPresetPage::on_subams_radio_selected(wxCommandEvent& event)
@@ -2714,6 +2715,10 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         m_single_ams_items_panel->Hide();
         m_filament_list_panel->Hide();
 
+        if (!m_rack_nozzle_panel->GetSizer()) {
+            m_rack_nozzle_panel->SetSizer(create_rack_items_sizer(m_rack_nozzle_panel, m_rack_filament_comboBox_list));
+        }
+
         update_rack_filament_combobox(obj);
 
         m_rack_nozzle_panel->Show();
@@ -3251,7 +3256,16 @@ void CalibrationPresetPage::update_rack_filament_combobox(MachineObject* obj)
             fcb->set_select_mode(m_cali_filament_mode);
 
             auto it_nozzle = std::next(rack_nozzles.begin(), i);
-            const DevNozzle& nozzle = it_nozzle->second;
+            DevNozzle nozzle = it_nozzle->second;
+            if (auto addr_id = it_nozzle->second.GetAddrId(); addr_id.has_value()) {
+                auto opt_nozzle =obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id.value());
+                if (opt_nozzle.has_value()) {
+                    nozzle = opt_nozzle.value();
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " nozzle addr_id:" << addr_id.value() << " not found in nozzle system";
+                }
+            }
+
             fcb->SetNozzleInfo(nozzle, obj);
 
             /* use nozzole first ams_slot if multiple ams_slot binded, as they share the same filament config */
@@ -3289,12 +3303,12 @@ void CalibrationPresetPage::update_rack_filament_combobox(MachineObject* obj)
                 // Rack data refreshed: drop stale sub-AMS picks; user must re-select.
                 fcb->ClearSubAmsSelection();
                 fcb->SetSubAmsMode(true, _L("Not Selected"));
-                if (auto* popup = fcb->GetSubAmsPopup()) {
-                    popup->SetData(curr_obj, m_filament_ams_list, m_cali_filament_mode, fcb, slot_set);
-                }
+                /* Cache the slot set on the owner; the shared popup is filled lazily on click. */
+                fcb->SetSubAmsSlotSet(slot_set);
                 fcb->Enable(nozzle.IsExist() || nozzle.IsOnRack());
             } else {
                 fcb->SetSubAmsMode(false);
+                fcb->SetSubAmsSlotSet({});  // no popup for this slot; drop any stale cache
                 fcb->Enable((nozzle.IsExist() || nozzle.IsOnRack()) && fcb->GetComboBox()->is_tray_exist() && fcb->GetComboBox()->is_compatible_with_printer());
             }
 
@@ -3318,16 +3332,26 @@ void CalibrationPresetPage::update_rack_filament_combobox(MachineObject* obj)
 void CalibrationPresetPage::assign_rack_model_indices()
 {
     /* Walk rack nozzles in order with one shared running counter so model indices stay
-       continuous across direct slots and every per-nozzle sub-AMS popup. Indices are stored
-       on the fcbs (direct: ext_fcb; sub-AMS: each popup row). Beyond the template capacity
-       they are set to -1 (unusable). */
+       continuous across direct slots and every per-nozzle sub-AMS group. Indices are computed
+       purely from data (no live popup rows needed): direct slots store the index on the ext_fcb;
+       sub-AMS slots store a per-tray index on the owner, which SubAmsPopup::SetData() reads back
+       onto the row when the shared popup is opened. Beyond the template capacity indices are -1. */
+    auto fila_sys = curr_obj ? curr_obj->GetFilaSystem() : nullptr;
     int running = 0;
     for (auto* fcb : m_rack_filament_comboBox_list) {
         auto* ext = dynamic_cast<FilamentExtendComboBox*>(fcb);
         if (!ext || !ext->IsShown()) continue;
         if (ext->IsSubAmsMode()) {
-            if (auto* popup = ext->GetSubAmsPopup())
-                popup->AssignModelIndices(running, MAX_AUTO_PA_CALI_OBJECTS);
+            /* Mirror SubAmsPopup::SetData row order/filter: iterate the cached slot set (sorted by
+               (ams_id, slot_id)); only slots whose tray_id exists in m_filament_ams_list become rows,
+               and only those advance the counter. */
+            ext->ClearSubAmsModelIndex();
+            if (!fila_sys) continue;
+            for (const auto& [ams_id, slot_id] : ext->GetSubAmsSlotSet()) {
+                int tray_id = fila_sys->GetTrayIdByAmsSlotId(ams_id, slot_id);
+                if (m_filament_ams_list.find(tray_id) == m_filament_ams_list.end()) continue;
+                ext->SetSubAmsModelIndex(tray_id, running < MAX_AUTO_PA_CALI_OBJECTS ? running++ : -1);
+            }
         } else if (ext->get_tray_id() >= 0) {
             ext->set_index(running < MAX_AUTO_PA_CALI_OBJECTS ? running++ : -1);
         }
@@ -3604,6 +3628,8 @@ void SubAmsPopup::Dismiss()
         return;
 
     PopupWindow::Dismiss();
+    /* Shared popup: drop the owner link so a stale pointer can't leak into the next open. */
+    m_owner = nullptr;
 }
 
 void SubAmsPopup::SetData(MachineObject* obj,
@@ -3640,6 +3666,9 @@ void SubAmsPopup::SetData(MachineObject* obj,
             fcb->load_tray_from_ams(tray_id, *rows[i].second);
             /* set_select_mode toggles the radio/checkbox visibility per mode. */
             fcb->set_select_mode(mode);
+            /* Restore the data-side model index (assigned by assign_rack_model_indices) onto the row
+               so write-back callbacks embed the correct index. */
+            fcb->set_index(m_owner ? m_owner->GetSubAmsModelIndex(tray_id) : -1);
             /* Restore previous selection from the owner (per-nozzle memory). */
             const bool prev_sel = m_owner ? m_owner->GetSubAmsSelected(tray_id) : false;
             fcb->SetValue(prev_sel, /*send_event=*/false);
@@ -3656,16 +3685,6 @@ void SubAmsPopup::SetData(MachineObject* obj,
     m_scroll->FitInside();
     m_scroll->Layout();
     Layout();
-}
-
-void SubAmsPopup::AssignModelIndices(int& running, int cap)
-{
-    /* Address only currently selectable rows (active ones have tray_id >= 0). The running
-       counter is shared with the rack-level pass so indices stay globally continuous. */
-    for (auto* fcb : m_fcb_list) {
-        if (!fcb || fcb->get_tray_id() < 0) continue;
-        fcb->set_index(running < cap ? running++ : -1);
-    }
 }
 
 void SubAmsPopup::ClearAllRadioVisuals()

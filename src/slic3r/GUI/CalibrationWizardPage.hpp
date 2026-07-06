@@ -1,6 +1,10 @@
 #ifndef slic3r_GUI_CalibrationWizardPage_hpp_
 #define slic3r_GUI_CalibrationWizardPage_hpp_
 
+#include <set>
+#include <map>
+#include <utility>
+
 #include "wx/event.h"
 #include "Widgets/Button.hpp"
 #include "Widgets/ComboBox.hpp"
@@ -170,17 +174,28 @@ public:
     bool IsSubAmsMode() const { return m_subams_mode; }
     wxWindow* GetSubAmsPanel() const { return m_subams_panel; }
 
-    /* The popup is owned (lifetime-wise) by its wx parent; this ext_fcb just holds a
-       reference so each rack slot drives its own independent sub-AMS list. */
-    void        SetSubAmsPopup(SubAmsPopup* popup) { m_subams_popup = popup; }
-    SubAmsPopup* GetSubAmsPopup() const { return m_subams_popup; }
-
     /* SubAms selection state — owned per ext_fcb so popup can restore last picks and the page can collect them at calibration start.*/
     bool GetSubAmsSelected(int tray_id) const;
     void SetSubAmsSelected(int tray_id, const SelectedFilamentInfo& info, const wxBitmap& picker_bmp = wxNullBitmap);
     void ClearSubAmsSelected(int tray_id);
     void ClearSubAmsSelection(bool refresh = true);
     const std::map<int, SelectedFilamentInfo>& GetSubAmsSelection() const { return m_subams_selection; }
+
+    /* Cached slot set for this nozzle (union of bound/preload/external AMS slots), computed in
+       update_rack_filament_combobox() and consumed lazily by on_subams_click() to feed the shared
+       popup. Uses std::pair<int,int> == DevAmsSlotId (ams_id, slot_id) to avoid a header dependency. */
+    void SetSubAmsSlotSet(const std::set<std::pair<int, int>>& slots) { m_subams_slot_set = slots; }
+    const std::set<std::pair<int, int>>& GetSubAmsSlotSet() const { return m_subams_slot_set; }
+
+    /* Per-tray model index (index of model objects in 3mf), assigned by
+       CalibrationPresetPage::assign_rack_model_indices() purely from data so it no longer depends on
+       any live popup row. SetData() reads it back onto the row before the user picks. */
+    void SetSubAmsModelIndex(int tray_id, int index) { m_subams_model_index[tray_id] = index; }
+    int  GetSubAmsModelIndex(int tray_id) const {
+        auto it = m_subams_model_index.find(tray_id);
+        return it != m_subams_model_index.end() ? it->second : -1;
+    }
+    void ClearSubAmsModelIndex() { m_subams_model_index.clear(); }
 
     // Refresh the SubAms summary from current selection; empty -> fallback label.
     void RefreshSubAmsLabel(const wxString& empty_fallback = wxEmptyString);
@@ -211,9 +226,10 @@ private:
     bool      m_subams_mode{false};
     bool      m_subams_enabled{true};
     bool      m_subams_hover{false};
-    SubAmsPopup* m_subams_popup{nullptr};
     std::map<int, SelectedFilamentInfo> m_subams_selection;
     std::map<int, wxBitmap> m_subams_picker_bitmaps;
+    std::set<DevAmsSlotId> m_subams_slot_set;  // cached (ams_id, slot_id) union for the shared popup
+    std::map<int, int> m_subams_model_index;          // tray_id -> model index (data-side, popup-independent)
 };
 
 typedef std::vector<FilamentComboBox*> FilamentComboBoxList;

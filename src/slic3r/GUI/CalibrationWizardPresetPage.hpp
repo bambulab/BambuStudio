@@ -40,11 +40,6 @@ public:
     /* Page-driven visual sync used when another fcb claims the radio under SINGLE mode. */
     void ClearAllRadioVisuals();
 
-    /* Assign model indices to currently selectable rows (tray_id >= 0), advancing `running`;
-       rows beyond `cap` get -1 (unusable). Shares the global counter with
-       CalibrationPresetPage::assign_rack_model_indices() to keep indices continuous. */
-    void AssignModelIndices(int& running, int cap);
-
 protected:
     void Dismiss() override;
 
@@ -430,6 +425,11 @@ protected:
     ScalableButton*      m_ams_sync_button;
     FilamentComboBoxList m_filament_comboBox_list;
     FilamentComboBoxList m_rack_filament_comboBox_list;
+
+    /* One SubAmsPopup shared by all rack slots (only one popup is ever visible). Lazily created on
+       first on_subams_click; each click re-targets it via SetData(owner=clicked slot). Lifetime is
+       owned by its wx parent (the page). Replaces the old per-slot popups to cut popup/HWND count. */
+    SubAmsPopup*         m_shared_subams_popup{nullptr};
 
     // for update filament combobox, key : tray_id
     std::map<int, DynamicPrintConfig> m_filament_ams_list;
