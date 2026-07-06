@@ -374,6 +374,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
             op_state = SV::hotend_op_state::error;
         } else if (has_tool && rack_nozzle_opt->IsToolLostInHolder()) {
             op_state = SV::hotend_op_state::lost_in_holder;
+        } else if (has_tool && rack_nozzle_opt->IsUnknown()) {
+            op_state = SV::hotend_op_state::unknown;
         } else if (auto temp_status = rack_nozzle_opt->GetSetRackNozzleTempStatus()) {
             switch (*temp_status) {
             case DevNozzle::NozzleTempStatus::Heating: op_state = SV::hotend_op_state::heating; break;

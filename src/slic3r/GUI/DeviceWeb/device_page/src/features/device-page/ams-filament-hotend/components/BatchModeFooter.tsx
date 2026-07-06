@@ -20,6 +20,7 @@ export function BatchModeFooter({
   onClearSelection,
   onCommit,
   onEdit,
+  onExit,
 }: {
   mode: FilamentPageMode;
   selectableSlots: AmsFilamentHotendSlotViewModel[];
@@ -30,6 +31,8 @@ export function BatchModeFooter({
   onClearSelection: () => void;
   onCommit: () => void;
   onEdit?: () => void;
+  // Leave batch selection and return to the normal page.
+  onExit: () => void;
 }) {
   const { t } = useTranslation();
   if (mode === 'normal') return null;
@@ -51,65 +54,78 @@ export function BatchModeFooter({
       data-testid="ams-hotend-batch-footer"
       data-mode={mode}
     >
-      <button
-        type="button"
-        role="checkbox"
-        aria-checked={allSelected ? 'true' : (someSelected ? 'mixed' : 'false')}
-        className={`batch-select-all${allSelected ? ' checked' : ''}${someSelected ? ' indeterminate' : ''}`}
-        data-testid="ams-hotend-batch-select-all"
-        // No selectable slots → toggling does nothing; keep the control
-        // visible but disabled so the layout stays stable.
-        disabled={totalSelectable === 0}
-        onClick={() => {
-          if (totalSelectable === 0) return;
-          if (allSelected) {
-            onClearSelection();
-          } else {
-            onSelectAll();
-          }
-        }}
-      >
-        <span className="batch-select-all-box" aria-hidden="true">
-          {allSelected && (
-            <svg width={12} height={12} viewBox="0 0 12 12">
-              <path d="M2.5 6.2 5 8.7 9.5 3.6" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          )}
-          {someSelected && <span className="batch-select-all-dash" />}
-        </span>
-        <span className="batch-select-all-label">{t('Select All')}</span>
-      </button>
-
-      <span className="batch-select-count" data-testid="ams-hotend-batch-count">
-        {t('{{n}} selected', { n: selectedCount })}
-      </span>
-
-      <button
-        type="button"
-        className={`batch-commit${canCommit ? ' active' : ''}`}
-        data-testid="ams-hotend-batch-commit"
-        disabled={!canCommit}
-        onClick={() => {
-          if (!canCommit) return;
-          onCommit();
-        }}
-      >
-        {commitLabel}
-      </button>
-      {showEdit && (
+      {/* Left group: select-all + count + commit (进料) + edit (编辑耗材).
+          Exit (退出) sits on the right, per Figma 1871:15750. */}
+      <div className="batch-mode-footer-main">
         <button
           type="button"
-          className={`batch-edit${selectedCount > 0 ? ' active' : ''}`}
-          data-testid="ams-hotend-batch-edit"
-          disabled={selectedCount === 0}
+          role="checkbox"
+          aria-checked={allSelected ? 'true' : (someSelected ? 'mixed' : 'false')}
+          className={`batch-select-all${allSelected ? ' checked' : ''}${someSelected ? ' indeterminate' : ''}`}
+          data-testid="ams-hotend-batch-select-all"
+          // No selectable slots → toggling does nothing; keep the control
+          // visible but disabled so the layout stays stable.
+          disabled={totalSelectable === 0}
           onClick={() => {
-            if (selectedCount === 0) return;
-            onEdit?.();
+            if (totalSelectable === 0) return;
+            if (allSelected) {
+              onClearSelection();
+            } else {
+              onSelectAll();
+            }
           }}
         >
-          {t('Edit Filament')}
+          <span className="batch-select-all-box" aria-hidden="true">
+            {allSelected && (
+              <svg width={12} height={12} viewBox="0 0 12 12">
+                <path d="M2.5 6.2 5 8.7 9.5 3.6" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+            {someSelected && <span className="batch-select-all-dash" />}
+          </span>
+          <span className="batch-select-all-label">{t('Select All')}</span>
         </button>
-      )}
+
+        <span className="batch-select-count" data-testid="ams-hotend-batch-count">
+          {t('{{n}} selected', { n: selectedCount })}
+        </span>
+
+        <button
+          type="button"
+          className={`batch-commit${canCommit ? ' active' : ''}`}
+          data-testid="ams-hotend-batch-commit"
+          disabled={!canCommit}
+          onClick={() => {
+            if (!canCommit) return;
+            onCommit();
+          }}
+        >
+          {commitLabel}
+        </button>
+        {showEdit && (
+          <button
+            type="button"
+            className="batch-edit"
+            data-testid="ams-hotend-batch-edit"
+            disabled={selectedCount === 0}
+            onClick={() => {
+              if (selectedCount === 0) return;
+              onEdit?.();
+            }}
+          >
+            {t('Edit Filament')}
+          </button>
+        )}
+      </div>
+
+      <button
+        type="button"
+        className="batch-exit"
+        data-testid="ams-hotend-batch-exit"
+        onClick={onExit}
+      >
+        {t('Exit')}
+      </button>
     </footer>
   );
 }

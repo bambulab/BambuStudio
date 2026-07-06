@@ -284,7 +284,6 @@ export function AmsFilamentHotendPage() {
         actions={toolbarActions}
         mode={currentMode}
         onAction={handleToolbarAction}
-        onExitBatchMode={exitBatchMode}
       />
 
       {error && <div className="page-error">{error}</div>}
@@ -323,6 +322,7 @@ export function AmsFilamentHotendPage() {
           onClearSelection={onClearSelection}
           onCommit={onBatchCommit}
           onEdit={onBatchEdit}
+          onExit={exitBatchMode}
         />
       ) : (
         <PageFooter

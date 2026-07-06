@@ -12,14 +12,12 @@ export function PageToolbar({
   actions,
   mode,
   onAction,
-  onExitBatchMode,
 }: {
   selectedTab: AmsFilamentHotendTab;
   onTabChange: (tab: AmsFilamentHotendTab) => void;
   actions: ToolbarActions;
   mode: FilamentPageMode;
   onAction: (action: string) => void;
-  onExitBatchMode: () => void;
 }) {
   const { t } = useTranslation();
   const inBatchMode = mode !== 'normal';
@@ -50,8 +48,10 @@ export function PageToolbar({
 
       {selectedTab === 'filament'
         ? (
+          // In batch (load/unload) selection mode the top toolbar shows no
+          // actions — Dry/commit/edit/exit all live on the BatchModeFooter.
           inBatchMode
-            ? <BatchModeActions actions={actions} onAction={onAction} onExit={onExitBatchMode} />
+            ? null
             : <FilamentActions actions={actions} onAction={onAction} />
         )
         : <HotendActions actions={actions} onAction={onAction} />}
@@ -103,42 +103,6 @@ function FilamentActions({
         onClick={() => onAction('unload')}
       >
         {t('Unload')}
-      </button>
-    </div>
-  );
-}
-
-// Batch-mode toolbar: collapses to `Dry | Exit`. The mode-specific commit
-// action (Auto Load / External Load / Unload) lives on the BatchModeFooter
-// at the bottom of the page, not here.
-function BatchModeActions({
-  actions,
-  onAction,
-  onExit,
-}: {
-  actions: ToolbarActions;
-  onAction: (action: string) => void;
-  onExit: () => void;
-}) {
-  const { t } = useTranslation();
-  return (
-    <div className="action-group" data-testid="ams-hotend-batch-toolbar">
-      <button
-        type="button"
-        data-testid="ams-hotend-action-dry"
-        disabled={!actions.can_dry}
-        onClick={() => onAction('dry')}
-      >
-        {t('Dry')}
-      </button>
-      <span className="action-divider" aria-hidden="true" />
-      <button
-        type="button"
-        className="primary"
-        data-testid="ams-hotend-batch-exit"
-        onClick={onExit}
-      >
-        {t('Exit')}
       </button>
     </div>
   );

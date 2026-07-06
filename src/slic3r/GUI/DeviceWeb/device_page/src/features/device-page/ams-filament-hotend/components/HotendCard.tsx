@@ -15,6 +15,7 @@ import hotendPenUrl           from '../assets/hotend_pen.svg';
 import hotendPlacingArrowUrl  from '../assets/hotend_placing_arrow.svg';
 import hotendErrorBadgeUrl    from '../assets/hotend_error_badge.svg';
 import hotendLostBadgeUrl     from '../assets/hotend_lost_badge.svg';
+import hotendUnknownBadgeUrl  from '../assets/hotend_unknown_badge.svg';
 import hotendForbiddenUrl     from '../assets/hotend_forbidden.svg';
 import hotendReadingArcUrl    from '../assets/hotend_reading_arc.png';
 
@@ -360,6 +361,16 @@ function ToolIcon({
       </div>
     );
   }
+  if (op === 'Unknown') {
+    // Unknown nozzle type: show the nozzle body with a grey "?" badge,
+    // regardless of the (unresolved) tool_kind (Figma 1882:112143).
+    return (
+      <div className="hotend-tool-icon-wrap hotend-icon-nozzle-wrap">
+        <img className="hotend-icon-nozzle" src={hotendNozzleUrl} width={20} height={36} alt="nozzle" />
+        <img className="hotend-icon-unknown-badge" src={hotendUnknownBadgeUrl} width={16} height={16} alt="unknown" />
+      </div>
+    );
+  }
   if (kind === 'empty') {
     return (
       <div className="hotend-tool-icon-wrap">
@@ -418,9 +429,10 @@ function ToolLabel({
   subtext?: string;
   op: HotendOpState;
 }) {
-  const isMuted = kind === 'empty' || kind === 'unknown' || op === 'Reading';
-  const primary = label ?? (isMuted ? '--' : '');
-  const secondary = subtext ?? (isMuted ? '--' : '');
+  const isMuted = kind === 'empty' || kind === 'unknown' || op === 'Reading' || op === 'Unknown';
+  // Unknown nozzle type has no reliable label — always show "--/--".
+  const primary = op === 'Unknown' ? '--' : (label ?? (isMuted ? '--' : ''));
+  const secondary = op === 'Unknown' ? '--' : (subtext ?? (isMuted ? '--' : ''));
   return (
     <div className={`hotend-tool-label${isMuted ? ' muted' : ''}`}>
       <div className="hotend-tool-name">{primary || '\u00A0'}</div>

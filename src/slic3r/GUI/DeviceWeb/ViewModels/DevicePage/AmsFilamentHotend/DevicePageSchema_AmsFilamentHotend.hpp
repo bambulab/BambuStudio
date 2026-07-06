@@ -410,34 +410,9 @@ namespace running_slot {
 
 namespace values {
 
-namespace rack_mode {
-    inline constexpr const char* idle   = "idle";
-    inline constexpr const char* single = "single";
-    inline constexpr const char* all    = "all";
-}
-
-namespace rack_operation {
-    inline constexpr const char* idle        = "idle";
-    inline constexpr const char* take        = "take";
-    inline constexpr const char* place       = "place";
-    inline constexpr const char* exchange    = "exchange";
-    inline constexpr const char* read_all    = "read_all";
-    inline constexpr const char* read_single = "read_single";
-    inline constexpr const char* move        = "move";
-}
-
-namespace rack_state {
-    inline constexpr const char* idle    = "idle";
-    inline constexpr const char* running = "running";
-    inline constexpr const char* failed  = "failed";
-}
-
-namespace rack_step_state {
-    inline constexpr const char* done    = "done";
-    inline constexpr const char* active  = "active";
-    inline constexpr const char* pending = "pending";
-    inline constexpr const char* failed  = "failed";
-}
+// NOTE: value candidates for the Hotend-page fields (rack_mode / rack_operation
+// / rack_state / rack_step_state / tool_kind / hotend_op_state) live next to the
+// hotend page format structs in DevicePageSchema_AmsHotendPage.hpp.
 
 namespace filament_change_mode {
     inline constexpr const char* idle           = "idle";
@@ -504,28 +479,6 @@ namespace tray_state {
     inline constexpr const char* ready   = "ready";
     inline constexpr const char* unknown = "unknown";
     inline constexpr const char* error   = "error";
-}
-
-namespace tool_kind {
-    inline constexpr const char* nozzle  = "nozzle";
-    inline constexpr const char* cutter  = "cutter";
-    inline constexpr const char* laser   = "laser";
-    inline constexpr const char* fan     = "fan";
-    inline constexpr const char* pen     = "pen";
-    inline constexpr const char* unknown = "unknown";
-    inline constexpr const char* empty   = "empty";
-}
-
-namespace hotend_op_state {
-    inline constexpr const char* idle     = "Idle";
-    inline constexpr const char* heating  = "Heating";
-    inline constexpr const char* cooling  = "Cooling";
-    inline constexpr const char* reading  = "Reading";
-    inline constexpr const char* taking   = "Taking";
-    inline constexpr const char* placing  = "Placing";
-    inline constexpr const char* removing = "Removing";
-    inline constexpr const char* error    = "Error";
-    inline constexpr const char* lost_in_holder  = "Lost";
 }
 
 } // namespace values
