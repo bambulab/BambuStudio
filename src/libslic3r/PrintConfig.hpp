@@ -1322,6 +1322,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_chamber_temp_control))
     ((ConfigOptionBool,                support_air_filtration))
     ((ConfigOptionBool,                support_cooling_filter))
+    ((ConfigOptionBool,                support_auxiliary_fan_filtration))
     ((ConfigOptionBool,                cooling_filter_enabled))
     ((ConfigOptionIntsNullable,        extruder_max_nozzle_count))
     ((ConfigOptionBool,                support_fast_purge_mode))
@@ -1972,7 +1973,7 @@ size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id);
 size_t get_process_config_idx(const GCodeConfig &config, unsigned int filament_id);
 size_t get_filament_config_idx(const GCodeConfig& config, unsigned int filament_id);
 
-bool supports_auxiliary_fan_filtration(const std::string &printer_model, bool auxiliary_fan, bool support_cooling_filter);
+bool supports_auxiliary_fan_filtration(bool auxiliary_fan, bool support_cooling_filter, bool support_auxiliary_fan_filtration);
 int auxiliary_fan_speed_with_filtration(int stock_speed, bool filtration_enabled, int filtration_speed);
 
 } // namespace Slic3r

@@ -3354,9 +3354,9 @@ void TabPrint::toggle_options()
     if (m_auxiliary_fan_filtration_group != nullptr && m_preset_bundle != nullptr) {
         const DynamicPrintConfig &printer_config = m_preset_bundle->printers.get_edited_preset().config;
         const bool supported = supports_auxiliary_fan_filtration(
-            printer_config.opt_string("printer_model"),
             printer_config.opt_bool("auxiliary_fan"),
-            printer_config.opt_bool("support_cooling_filter"));
+            printer_config.opt_bool("support_cooling_filter"),
+            printer_config.opt_bool("support_auxiliary_fan_filtration"));
         for (const std::string &key : {"enable_auxiliary_fan_filtration", "auxiliary_fan_filtration_speed", "auxiliary_fan_filtration_post_time"})
             if (Line *line = m_auxiliary_fan_filtration_group->get_line(key))
                 line->toggle_visible = supported;

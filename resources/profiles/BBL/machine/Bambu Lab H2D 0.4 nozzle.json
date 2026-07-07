@@ -381,6 +381,7 @@
         "319"
     ],
     "support_cooling_filter": "1",
+    "support_auxiliary_fan_filtration": "1",
     "support_chamber_temp_control": "1",
     "support_object_skip_flush": "0",
     "wipe": [

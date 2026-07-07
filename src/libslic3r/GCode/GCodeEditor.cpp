@@ -385,7 +385,10 @@ std::string GCodeEditor::write_layer_gcode(
     std::string new_gcode;
     new_gcode.reserve(gcode.size() * 2);
     const bool auxiliary_fan_filtration_active = m_config.enable_auxiliary_fan_filtration.value &&
-        supports_auxiliary_fan_filtration(m_config.printer_model.value, m_config.auxiliary_fan.value, m_config.support_cooling_filter.value);
+        supports_auxiliary_fan_filtration(
+            m_config.auxiliary_fan.value,
+            m_config.support_cooling_filter.value,
+            m_config.support_auxiliary_fan_filtration.value);
     bool overhang_fan_control= false;
     int  overhang_fan_speed   = 0;
     bool ironing_fan_control  = false;

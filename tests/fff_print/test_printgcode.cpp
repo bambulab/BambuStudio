@@ -275,6 +275,7 @@ SCENARIO("H2 AUX filtration override is layered onto generated G-code", "[PrintG
     config.set("printer_model", std::string("Bambu Lab H2C"));
     config.set("auxiliary_fan", true);
     config.set("support_cooling_filter", true);
+    config.set("support_auxiliary_fan_filtration", true);
     config.set("enable_auxiliary_fan_filtration", true);
     config.set("auxiliary_fan_filtration_speed", 70);
     config.set("auxiliary_fan_filtration_post_time", 12);
@@ -360,6 +361,7 @@ SCENARIO("Disabled H2 AUX filtration preserves stock shutdown behavior", "[Print
     config.set("printer_model", std::string("Bambu Lab H2C"));
     config.set("auxiliary_fan", true);
     config.set("support_cooling_filter", true);
+    config.set("support_auxiliary_fan_filtration", true);
     config.set("enable_auxiliary_fan_filtration", false);
     config.set("machine_start_gcode", std::string(
         "{if auxiliary_fan_filtration_active}\n"

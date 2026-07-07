@@ -149,6 +149,7 @@
     "single_extruder_multi_material": "1",
     "support_air_filtration": "0",
     "support_cooling_filter": "0",
+    "support_auxiliary_fan_filtration": "0",
     "support_fast_purge_mode": "0",
     "cooling_filter_enabled": "0",
     "support_chamber_temp_control": "0",

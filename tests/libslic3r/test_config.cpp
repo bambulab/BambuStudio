@@ -257,14 +257,15 @@ SCENARIO("AUX filtration override options and printer support gate", "[Config][A
         CHECK(post_time->max == 180);
     }
 
-    SECTION("only the supported H2 models pass the shared capability gate") {
-        for (const std::string &model : {"Bambu Lab H2C", "Bambu Lab H2D", "Bambu Lab H2S"})
-            CHECK(supports_auxiliary_fan_filtration(model, true, true));
+    SECTION("the shared capability gate is profile-driven") {
+        const ConfigOptionDef *support = print_config_def.get("support_auxiliary_fan_filtration");
+        REQUIRE(support != nullptr);
+        REQUIRE_FALSE(config.opt_bool("support_auxiliary_fan_filtration"));
 
-        CHECK_FALSE(supports_auxiliary_fan_filtration("Bambu Lab H2D Pro", true, true));
-        CHECK_FALSE(supports_auxiliary_fan_filtration("Bambu Lab X1 Carbon", true, true));
-        CHECK_FALSE(supports_auxiliary_fan_filtration("Bambu Lab H2C", false, true));
-        CHECK_FALSE(supports_auxiliary_fan_filtration("Bambu Lab H2C", true, false));
+        CHECK(supports_auxiliary_fan_filtration(true, true, true));
+        CHECK_FALSE(supports_auxiliary_fan_filtration(false, true, true));
+        CHECK_FALSE(supports_auxiliary_fan_filtration(true, false, true));
+        CHECK_FALSE(supports_auxiliary_fan_filtration(true, true, false));
     }
 
     SECTION("filtration is a minimum and never lowers the stock AUX speed") {

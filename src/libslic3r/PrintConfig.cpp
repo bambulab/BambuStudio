@@ -3496,6 +3496,12 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("support_auxiliary_fan_filtration", coBool);
+    def->label = L("Support AUX filtration override");
+    def->tooltip = L("Machine-profile capability for AUX filtration override. Enable only for printer profiles whose P2 AUX fan semantics and stock G-code templates include the required filtration hooks.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("cooling_filter_enabled", coBool);
     def->label = L("Use cooling filter");
     def->tooltip = L("Enable this if printer support cooling filter");
@@ -10151,12 +10157,12 @@ float get_real_skirt_dist(const ConfigBase& cfg)
     return skirt_distance + (skirt_loops - 0.5f) * spacing + 0.5f * flow_width;
 }
 
-bool supports_auxiliary_fan_filtration(const std::string &printer_model, bool auxiliary_fan, bool support_cooling_filter)
+// support_auxiliary_fan_filtration is a machine-profile capability. Enable it only
+// for profiles whose P2 AUX fan semantics and stock templates contain the required
+// startup, filament-change, and machine-end filtration hooks.
+bool supports_auxiliary_fan_filtration(bool auxiliary_fan, bool support_cooling_filter, bool support_auxiliary_fan_filtration)
 {
-    if (!auxiliary_fan || !support_cooling_filter)
-        return false;
-
-    return printer_model == "Bambu Lab H2C" || printer_model == "Bambu Lab H2D" || printer_model == "Bambu Lab H2S";
+    return auxiliary_fan && support_cooling_filter && support_auxiliary_fan_filtration;
 }
 
 int auxiliary_fan_speed_with_filtration(int stock_speed, bool filtration_enabled, int filtration_speed)
