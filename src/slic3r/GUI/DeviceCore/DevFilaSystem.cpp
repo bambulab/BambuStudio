@@ -237,6 +237,8 @@ std::optional<int> DevAmsTray::get_nozzle_addr_id(MachineObject* obj) const
             obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
             if (ams_type == DevAmsType::ZMULTI_A || ams_type == DevAmsType::ZMULTI_B) {
                 return std::stoi(this->id);
+            } else if (ams_type == DevAmsType::EXT_SPOOL) {
+                return 255 - std::stoi(this->id);
             }
         }
     } catch (const std::exception& e) {
@@ -691,6 +693,19 @@ DevFilaSystem::GetZoneBySlot(int ams_id, int slot_id) const
     return std::nullopt;
 }
 
+std::optional<DevAmsTray> DevFilaSystem::GetTray(int ams_id, int slot_id) const
+{
+    if (auto item = GetAmsTray(std::to_string(ams_id), std::to_string(slot_id))) {
+        return *item;
+    }
+
+    if (auto item = GetVirtualTray(ams_id)) {
+        return item;
+    }
+
+    return GetVirtualTray(slot_id);
+}
+
 DevAmsTray* DevFilaSystem::GetAmsTray(const std::string& ams_id, const std::string& tray_id) const
 {
     auto it = amsList.find(ams_id);
@@ -1057,11 +1072,32 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                     system->m_filament_changing_slots.clear();
                     const auto changing_slots = DevJsonValParser::GetVal<std::vector<int>>(jj["ams"], changing_slot_key);
                     for (const int encoded_slot : changing_slots) {
-                        if (encoded_slot < 0) continue;
-                        system->m_filament_changing_slots.push_back({
-                            DevUtil::get_flag_bits(encoded_slot, 8, 8),
-                            DevUtil::get_flag_bits(encoded_slot, 0, 8)
-                        });
+                        if (encoded_slot < 0) {
+                            continue;
+                        };
+
+                        try {
+                            // traverse the changing slots
+                            int tar_first = DevUtil::get_flag_bits(encoded_slot, 8, 8);
+                            int tar_second = DevUtil::get_flag_bits(encoded_slot, 0, 8);
+                            if (system->GetAmsById(std::to_string(tar_first))) {
+                                auto tray = system->GetTray(tar_first, tar_second);
+                                if (!tray) {
+                                    tray = system->GetTray(tar_second, tar_first);
+                                }
+
+                                if (tray) {
+                                    auto addr_id_opt = tray->get_nozzle_addr_id(obj);
+                                    if (addr_id_opt.has_value()) {
+                                        system->m_filament_changing_slots.push_back({ tar_first, addr_id_opt.value() });
+                                    }
+                                }
+                            } else if (system->GetVirtualTray(std::to_string(tar_first))) {
+                                system->m_filament_changing_slots.push_back({ tar_first, 0 });
+                            };
+                        }  catch(const std::exception& e){
+                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[exception]:" << e.what();
+                        }
                     }
                 } else {
                     system->m_filament_changing_slots.clear();

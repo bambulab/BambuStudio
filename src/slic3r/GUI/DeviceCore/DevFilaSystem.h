@@ -357,7 +357,10 @@ public:
     /* zone */
     std::optional<DevAmsZone> GetZoneBySlot(int ams_id, int slot_id) const;
 
-    /* tray*/
+    /* all tray */
+    std::optional<DevAmsTray> GetTray(int ams_id, int slot_id) const;
+
+    /* ams tray*/
     DevAmsTray* GetAmsTray(const std::string& ams_id, const std::string& tray_id) const;
     void        CollectAmsColors(std::vector<wxColour>& ams_colors) const;
 

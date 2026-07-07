@@ -50,7 +50,7 @@ bool is_ext_slot_loaded(MachineObject* machine_obj, std::optional<DevAmsTray> ex
     if (machine_obj && ext_tray_opt.has_value()) {
         if (auto nozzle_addr_opt = ext_tray_opt->get_nozzle_addr_id(machine_obj); nozzle_addr_opt.has_value()) {
             auto nozzle_opt = machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(nozzle_addr_opt.value());
-            if (nozzle_opt.has_value() && nozzle_opt->HasFilamentInNozzle() && nozzle_opt->GetFilamentId() == ext_tray_opt->get_filament_id()){
+            if (nozzle_opt.has_value() && nozzle_opt->HasFilamentInNozzle()){
                 return true;
             }
         }
