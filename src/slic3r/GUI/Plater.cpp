@@ -1941,7 +1941,7 @@ std::vector<NozzleConfig> Sidebar::priv::collect_nozzle_configs_from_machine(Mac
     // remove duplicated nozzle, total number of nozzle is no more than the number on the rack
     // if rack not exist, use the number on the extruder
     std::vector<const DevNozzle *> nozzles;
-    nozzles.resize(std::max(nozzle_system->GetExtNozzles().size(), nozzle_system->GetRackNozzles().size()));
+    nozzles.resize(extruder_nozzle_count);
 
     // addr_id is more robust
     auto get_id = [](const DevNozzle &nozzle) {
@@ -4222,6 +4222,53 @@ void Sidebar::update_presets(Preset::Type preset_type)
             extruder.combo_diameter->SetSelection(select);
             extruder.diameter = diameter;
         };
+        auto get_diameter_choices = [diameters, diameter, extruders]() {
+            std::vector<wxString> diameter_choices;
+            for (size_t i = 0; i < diameters.size(); ++i) {
+                diameter_choices.push_back(diameters[i]);
+            }
+            return diameter_choices;
+        };
+
+        auto extruder_full_stat     = wxGetApp().preset_bundle->extruder_full_stat;
+        auto update_extruder_config = [extruder_full_stat, diameter, extruder_max_nozzle_count](std::vector<NozzleConfig> &cfg, int index) {
+            std::map<int, NozzleConfig> saved_statuses;
+            for (size_t i = 0; i < cfg.size(); ++i) { saved_statuses[i] = cfg[i]; }
+
+            cfg.clear();
+            auto raw_stats = extruder_full_stat.get_raw_stat();
+
+            if (index >= raw_stats.size()) {
+                int total = extruder_max_nozzle_count->values[index];
+                for (int i = 0; i < total; ++i) {
+                    NozzleConfig nc;
+                    nc.volume   = nvtStandard;
+                    nc.diameter = wxString(diameter);
+                    if (saved_statuses.count(i)) { nc.status = saved_statuses[i].status; }
+                    cfg.push_back(nc);
+                }
+                return;
+            }
+
+            const auto &extruder_stats = raw_stats[index];
+            for (int i = 0; i < extruder_stats.size(); ++i) {
+                auto stat = extruder_stats[i];
+                NozzleConfig nc   = saved_statuses[i];
+                nc.diameter       = wxString::FromUTF8(stat.first);
+                nc.volume         = DevNozzle::ToNozzleVolumeType(stat.second);
+                cfg.push_back(nc);
+            }
+
+            int total = extruder_max_nozzle_count->values[index];
+            while (cfg.size() < total) {
+                NozzleConfig nc;
+                nc.volume   = nvtStandard;
+                nc.diameter = wxString(diameter);
+                nc.status   = NozzleStatus::nsNormal;
+                cfg.push_back(nc);
+            }
+        };
+
         bool exist;
         auto image_path = get_cur_select_bed_image(exist);
         if (exist) {
@@ -4240,7 +4287,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
                 update_extruder_variant(*p->single_extruder, 0);
                 // if (!p->is_switching_diameter)
                 update_extruder_diameter(*p->single_extruder);
-                if (p->s_ext_cfg.empty()) update_extruder_config(p->s_ext_cfg, 0);
+                update_extruder_config(p->s_ext_cfg, 0);
                 update_bed_thumbnail(image_path);
             }
         }
