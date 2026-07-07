@@ -166,7 +166,6 @@ private:
 
     std::shared_ptr<FileTransferObject> m_image_transfer;
 
-    MachineObject* m_obj = nullptr;
     int m_last_camera = -2;  // Track last camera value to avoid redundant tooltip updates
 };
 

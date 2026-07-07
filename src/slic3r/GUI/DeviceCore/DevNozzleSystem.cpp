@@ -353,6 +353,16 @@ int DevNozzle::GetTotalExtruderCount() const
     return 1;
 }
 
+wxString DevNozzle::GetSerialNumber() const
+{
+    if (!m_sn.empty())
+    {
+        return m_sn;
+    }
+
+    return GetFirmwareInfo().sn;
+}
+
 DevNozzleSystem::DevNozzleSystem(MachineObject* owner)
     : m_owner(owner), m_nozzle_rack(std::make_shared<DevNozzleRack> (this))
 {

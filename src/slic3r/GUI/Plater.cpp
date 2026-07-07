@@ -2250,8 +2250,10 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         int   nozzle_volue_type{0};
         int   ams_4{0};
         int   ams_1{0};
+        int   ext{0};
         std::vector<DevAms *> ams_v4;
         std::vector<DevAms *> ams_v1;
+        std::vector<DevAmsTray> ext_v;
 
         bool operator==(const ExtruderInfo &other) const
         {
