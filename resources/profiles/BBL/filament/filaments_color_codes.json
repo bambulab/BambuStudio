@@ -381,8 +381,8 @@
             },
             "color_code": "M0",
             "fila_color": [
-                "#FFFFFFFF",
-                "#9CDBD9FF"
+                "#9CDBD9FF",
+                "#FFFFFFFF"
             ]
         },
         {
@@ -481,8 +481,8 @@
             },
             "color_code": "M4",
             "fila_color": [
-                "#4EC939FF",
-                "#B6FF43FF"
+                "#B6FF43FF",
+                "#4EC939FF"
             ]
         },
         {
@@ -556,8 +556,8 @@
             },
             "color_code": "M7",
             "fila_color": [
-                "#8EC9E9FF",
-                "#E7C1D5FF"
+                "#E7C1D5FF",
+                "#8EC9E9FF"
             ]
         },
         {
@@ -1735,8 +1735,8 @@
             },
             "color_code": "T3",
             "fila_color": [
-                "#BB22A3FF",
-                "#0047BBFF"
+                "#0047BBFF",
+                "#BB22A3FF"
             ]
         },
         {
@@ -1760,8 +1760,8 @@
             },
             "color_code": "T4",
             "fila_color": [
-                "#70C884FF",
-                "#418FDEFF"
+                "#418FDEFF",
+                "#70C884FF"
             ]
         },
         {
@@ -4018,7 +4018,7 @@
             },
             "color_code": "C1",
             "fila_color": [
-                "#FFFFFF00"
+                "#00000000"
             ]
         },
         {
@@ -4210,7 +4210,7 @@
             },
             "color_code": "C0",
             "fila_color": [
-                "#FFFFFF00"
+                "#00000000"
             ]
         },
         {
@@ -6034,8 +6034,8 @@
             },
             "color_code": "M1",
             "fila_color": [
-                "#00918BFF",
-                "#F772A4FF"
+                "#F772A4FF",
+                "#00918BFF"
             ]
         },
         {
@@ -6207,8 +6207,8 @@
             },
             "color_code": "M0",
             "fila_color": [
-                "#FFFFFFFF",
-                "#40B6E4FF"
+                "#40B6E4FF",
+                "#FFFFFFFF"
             ]
         },
         {
@@ -6762,8 +6762,8 @@
             },
             "color_code": "T9",
             "fila_color": [
-                "#000000FF",
-                "#00629bFF"
+                "#00629bFF",
+                "#000000FF"
             ]
         },
         {
@@ -6825,7 +6825,7 @@
                 "pt": "",
                 "ko": "",
                 "ja": "",
-                "en": "Rose Beige(Flesh)",
+                "en": "Rose Beige/Flesh",
                 "it": "",
                 "fr": "",
                 "hu": "",
