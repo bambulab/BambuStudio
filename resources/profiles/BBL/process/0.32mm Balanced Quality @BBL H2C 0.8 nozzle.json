@@ -1,4 +1,4 @@
-﻿{
+{
     "type": "process",
     "name": "0.32mm Balanced Quality @BBL H2C 0.8 nozzle",
     "inherits": "fdm_process_dual_0.32_nozzle_0.8",
