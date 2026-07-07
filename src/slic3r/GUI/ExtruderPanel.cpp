@@ -33,6 +33,20 @@ static const wxColour FlowNormalColor     = wxColour("#999999");
 static const wxColour DiameterDisabledColor = wxColour("#CECECE");
 static const wxColour FlowDisabledColor     = wxColour("#DCDCDC");
 
+// Extract the leading numeric part of a diameter label (e.g. "0.4 mm" -> "0.4"),
+// stopping at the first character that is not a digit or decimal point.
+static wxString parse_diameter_value(const wxString &label)
+{
+    wxString value;
+    for (const auto &ch : label) {
+        if (wxIsdigit(ch) || ch == '.')
+            value += ch;
+        else
+            break;
+    }
+    return value;
+}
+
 DiameterButtonPanel::DiameterButtonPanel(wxWindow *parent, const std::vector<wxString> &diameter_choices, bool show_title)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), m_choices(diameter_choices), m_show_title(show_title)
 {
@@ -855,14 +869,27 @@ ExtruderDialogPanel::ExtruderDialogPanel(wxWindow *parent, GroupType type, std::
         warning_icon->Hide();
 
         nozzle_internal.diameter_combo       = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(110), FromDIP(24)), 0, nullptr, wxCB_READONLY);
-        int select = -1;
-        for (int j = 0; j < diameters.size(); ++j) {
-            nozzle_internal.diameter_combo->Append(diameters[j] + " mm", {});
-            if (diameters[j] == m_nozzle_configs[i].diameter.ToStdString()) { select = j; }
-        }
-        nozzle_internal.diameter_combo->Append(_L("Empty"), {});
-        if (select == -1) select = nozzle_internal.diameter_combo->GetCount() - 1;
-        nozzle_internal.diameter_combo->SetSelection(select);
+        // Rebuild the diameter list for the given volume type. 0.2 nozzle only exists as Standard,
+        // so it is removed whenever a non-Standard volume type is selected.
+        auto update_diameter_combo = [this, nozzle_internal, diameters, i](NozzleVolumeType volume_type) {
+            wxString prev = nozzle_internal.diameter_combo->GetValue();
+            nozzle_internal.diameter_combo->Clear();
+            int select = -1;
+            for (int j = 0; j < diameters.size(); ++j) {
+                if (diameters[j] == "0.2" && volume_type != NozzleVolumeType::nvtStandard)
+                    continue;
+                nozzle_internal.diameter_combo->Append(diameters[j] + " mm", {});
+                if (diameters[j] == m_nozzle_configs[i].diameter.ToStdString()) { select = nozzle_internal.diameter_combo->GetCount() - 1; }
+            }
+            nozzle_internal.diameter_combo->Append(_L("Empty"), {});
+            if (select == -1) {
+                // Prefer keeping the previous selection, otherwise fall back to the first diameter.
+                int prev_idx = nozzle_internal.diameter_combo->FindString(prev);
+                select = prev_idx != wxNOT_FOUND ? prev_idx : 0;
+            }
+            nozzle_internal.diameter_combo->SetSelection(select);
+        };
+        update_diameter_combo(m_nozzle_configs[i].volume);
 
         nozzle_internal.flow_combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(110), FromDIP(24)), 0, nullptr, wxCB_READONLY);
         auto flow = m_nozzle_configs[i].volume;
@@ -901,16 +928,30 @@ ExtruderDialogPanel::ExtruderDialogPanel(wxWindow *parent, GroupType type, std::
         };
 
         update_flow_combo(m_nozzle_configs[i].diameter);
-        nozzle_internal.diameter_combo->Bind(wxEVT_COMBOBOX, [this, nozzle_internal, update_flow_combo, diameters, has_multiple_nozzles, is_single](wxCommandEvent &event) {
+        nozzle_internal.diameter_combo->Bind(wxEVT_COMBOBOX, [nozzle_internal, update_flow_combo, has_multiple_nozzles](wxCommandEvent &event) {
             int select = nozzle_internal.diameter_combo->GetSelection();
             wxString diameter;
             if (has_multiple_nozzles && select == nozzle_internal.diameter_combo->GetCount() - 1) {
                 // Empty selected
                 diameter = _L("Empty");
             } else {
-                diameter = wxString::FromUTF8(diameters[select]);
+                diameter = parse_diameter_value(nozzle_internal.diameter_combo->GetValue());
             }
             update_flow_combo(diameter);
+            event.Skip();
+        });
+
+        // Non-Standard volume types are incompatible with the 0.2 nozzle, so rebuild the diameter
+        // list whenever the volume type changes.
+        nozzle_internal.flow_combo->Bind(wxEVT_COMBOBOX, [nozzle_internal, update_diameter_combo](wxCommandEvent &event) {
+            int sel = nozzle_internal.flow_combo->GetSelection();
+            if (sel != wxNOT_FOUND) {
+                void *data = nozzle_internal.flow_combo->GetClientData(sel);
+                if (data) {
+                    intptr_t index = reinterpret_cast<intptr_t>(data) - 1;
+                    update_diameter_combo(static_cast<NozzleVolumeType>(index));
+                }
+            }
             event.Skip();
         });
 
