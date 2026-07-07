@@ -21,6 +21,7 @@
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GradientCurveEditor.hpp"
+#include "wxExtensions.hpp"
 #include "Tab.hpp"
 #include "libslic3r/Preset.hpp"
 #include "Widgets/Button.hpp"
@@ -126,26 +127,6 @@ static wxColour blend_n_colors(const std::vector<wxColour>& cols, const std::vec
     }
     std::string hex = Slic3r::blend_color_multi(hex_colors, int_weights);
     return wxColour(hex);
-}
-
-// When a swatch color is too close to the surrounding background it becomes invisible.
-// This draws a thin border to restore visibility: light grey for white-ish swatches in
-// light mode, white-ish for near-black swatches in dark mode. The thresholds and border
-// colors match the original make_swatch_bitmap implementation; extracted here so all
-// swatch draw sites share the same logic.
-static void draw_swatch_border_if_needed(wxDC& dc, const wxColour& col,
-                                         int x, int y, int sz, int radius)
-{
-    if (!wxGetApp().dark_mode() && col.Red() > 224 && col.Green() > 224 && col.Blue() > 224) {
-        dc.SetPen(wxPen(wxColour(130, 130, 128), 1));
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(x, y, sz, sz, radius);
-    }
-    if (wxGetApp().dark_mode() && col.Red() < 45 && col.Green() < 45 && col.Blue() < 45) {
-        dc.SetPen(wxPen(wxColour(207, 207, 207), 1));
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(x, y, sz, sz, radius);
-    }
 }
 
 // ---- Constructors ----
@@ -255,35 +236,30 @@ static wxBitmap make_alpha_bitmap(int w, int h,
 
 wxBitmap MixedFilamentDialog::make_swatch_bitmap(size_t idx)
 {
-    int swatch_sz = FromDIP(16);
+    int swatch_sz = FromDIP(20);
     int pad_left  = FromDIP(2);
     int pad_right = FromDIP(6);
     int bmp_w = pad_left + swatch_sz + pad_right;
     int bmp_h = swatch_sz;
 
-    wxColour col("#D9D9D9");
+    // Reuse the sidebar clr_picker swatch (get_extruder_color_icon) so the
+    // checkerboard (transparent.svg tiling), border and label style match the
+    // sidebar exactly, instead of a self-drawn rounded rect / programmatic grid.
+    std::string color_hex = "#D9D9D9";
     if (idx < m_physical_colors.size())
-        col = wxColour(m_physical_colors[idx]);
+        color_hex = m_physical_colors[idx];
+    std::string label = std::to_string(idx + 1);
+
+    wxBitmap* icon = get_extruder_color_icon(color_hex, label, swatch_sz, swatch_sz);
 
     return make_alpha_bitmap(bmp_w, bmp_h, [&](wxDC& dc) {
-        dc.SetBrush(wxBrush(col));
-        dc.SetPen(*wxTRANSPARENT_PEN);
-        dc.DrawRoundedRectangle(pad_left, 0, swatch_sz, swatch_sz, FromDIP(2));
-
-        draw_swatch_border_if_needed(dc, col, pad_left, 0, swatch_sz, FromDIP(2));
-
-        wxString num = wxString::Format(wxT("%zu"), idx + 1);
-        dc.SetFont(::Label::Body_13);
-        wxSize txt_sz = dc.GetTextExtent(num);
-        dc.SetTextForeground(col.GetLuminance() > 0.5 ? wxColour(50, 58, 61) : *wxWHITE);
-        dc.DrawText(num, pad_left + (swatch_sz - txt_sz.GetWidth()) / 2,
-                         (swatch_sz - txt_sz.GetHeight()) / 2);
+        if (icon && icon->IsOk())
+            dc.DrawBitmap(*icon, pad_left, 0);
     });
 }
 
 void MixedFilamentDialog::reset_manual_ratio_state()
 {
-    m_ratio_manually_edited.assign(num_components(), false);
     m_ratio_manual_order.clear();
     if (m_ratio_editor_panel)
         m_ratio_editor_panel->Hide();
@@ -330,7 +306,11 @@ void MixedFilamentDialog::apply_manual_ratio(size_t idx, int value)
         return;
     if (m_result.ratios.size() != n)
         m_result.ratios.assign(n, n > 0 ? 100 / (int)n : 0);
-    if (m_ratio_manually_edited.size() != n)
+    bool manual_stale = false;
+    for (size_t o : m_ratio_manual_order) {
+        if (o >= n) { manual_stale = true; break; }
+    }
+    if (manual_stale)
         reset_manual_ratio_state();
 
     int max_value = (int)(100 - (n - 1) * MIN_COMPONENT_RATIO);
@@ -346,20 +326,12 @@ void MixedFilamentDialog::apply_manual_ratio(size_t idx, int value)
         }
         m_result.ratios[0] = std::clamp(m_result.ratios[0], MIN_COMPONENT_RATIO, 100 - MIN_COMPONENT_RATIO);
         m_result.ratios[1] = 100 - m_result.ratios[0];
-        m_ratio_manually_edited.assign(n, false);
-        m_ratio_manually_edited[idx] = true;
     } else if (n >= 3) {
         m_ratio_manual_order.erase(std::remove(m_ratio_manual_order.begin(), m_ratio_manual_order.end(), idx),
                                    m_ratio_manual_order.end());
         m_ratio_manual_order.push_back(idx);
         while (m_ratio_manual_order.size() > 2)
             m_ratio_manual_order.erase(m_ratio_manual_order.begin());
-
-        m_ratio_manually_edited.assign(n, false);
-        for (size_t edited_idx : m_ratio_manual_order) {
-            if (edited_idx < n)
-                m_ratio_manually_edited[edited_idx] = true;
-        }
 
         if (m_ratio_manual_order.size() == 1) {
             m_result.ratios[idx] = value;
@@ -377,19 +349,74 @@ void MixedFilamentDialog::apply_manual_ratio(size_t idx, int value)
             if (last_other != idx)
                 m_result.ratios[last_other] += 100 - assigned;
         } else {
-            size_t other_locked = (m_ratio_manual_order[0] == idx) ? m_ratio_manual_order[1] : m_ratio_manual_order[0];
-            int other_value = (other_locked < m_result.ratios.size()) ? m_result.ratios[other_locked] : 0;
-            other_value = std::clamp(other_value, MIN_COMPONENT_RATIO, max_value);
-            value = std::clamp(value, MIN_COMPONENT_RATIO, std::max(MIN_COMPONENT_RATIO, 100 - other_value - MIN_COMPONENT_RATIO));
-
+            // Hybrid: honor the previously-edited (locked) component and let the
+            // never-touched components absorb the remainder. Only when that would
+            // push a never-touched component below MIN_COMPONENT_RATIO do we fall
+            // back to proportional redistribution across ALL other components
+            // (new input still wins, the locked one yields proportionally).
             m_result.ratios[idx] = value;
-            int remaining = 100 - value - other_value;
-            m_result.ratios[other_locked] = other_value;
-            for (size_t i = 0; i < n; ++i) {
-                if (i == idx || i == other_locked)
-                    continue;
-                m_result.ratios[i] = remaining;
-                break;
+            int remaining = 100 - value;
+
+            size_t other_locked = (m_ratio_manual_order[0] == idx)
+                ? m_ratio_manual_order[1] : m_ratio_manual_order[0];
+            int locked_val = (other_locked < n) ? m_result.ratios[other_locked] : 0;
+
+            std::vector<size_t> rest;
+            for (size_t i = 0; i < n; ++i)
+                if (i != idx && i != other_locked) rest.push_back(i);
+
+            int rest_min_total = (int)rest.size() * MIN_COMPONENT_RATIO;
+            int rest_share = remaining - locked_val;
+            bool lock_holds = (locked_val >= MIN_COMPONENT_RATIO) && (rest_share >= rest_min_total);
+
+            if (lock_holds) {
+                m_result.ratios[other_locked] = locked_val;
+                if (!rest.empty()) {
+                    // n==3 (MAX_COMPONENTS): single never-touched component absorbs
+                    // the whole remainder exactly. n>3 equal-splits it (theoretical).
+                    int base = rest_share / (int)rest.size();
+                    for (size_t r : rest) m_result.ratios[r] = base;
+                    m_result.ratios[rest.back()] += rest_share - base * (int)rest.size();
+                }
+            } else {
+                // Conflict: new input wins, redistribute proportionally among ALL
+                // other components, min-clamped and rounded to sum 100.
+                std::vector<size_t> others;
+                int others_sum = 0;
+                for (size_t i = 0; i < n; ++i) {
+                    if (i == idx) continue;
+                    others.push_back(i);
+                    others_sum += m_result.ratios[i];
+                }
+                if (!others.empty()) {
+                    std::vector<int> news(others.size(), 0);
+                    int assigned = 0;
+                    for (size_t k = 0; k < others.size(); ++k) {
+                        int nv = (others_sum > 0)
+                            ? (int)((double)remaining * m_result.ratios[others[k]] / others_sum + 0.5)
+                            : remaining / (int)others.size();
+                        news[k] = std::max(nv, MIN_COMPONENT_RATIO);
+                        assigned += news[k];
+                    }
+                    while (assigned != remaining) {
+                        if (assigned > remaining) {
+                            int pick = -1;
+                            for (size_t k = 0; k < others.size(); ++k)
+                                if (news[k] > MIN_COMPONENT_RATIO && (pick < 0 || news[k] > news[pick]))
+                                    pick = (int)k;
+                            if (pick < 0) break;
+                            --news[pick]; --assigned;
+                        } else {
+                            int pick = 0;
+                            for (size_t k = 1; k < others.size(); ++k)
+                                if (m_result.ratios[others[k]] > m_result.ratios[others[pick]])
+                                    pick = (int)k;
+                            ++news[pick]; ++assigned;
+                        }
+                    }
+                    for (size_t k = 0; k < others.size(); ++k)
+                        m_result.ratios[others[k]] = news[k];
+                }
             }
         }
     }
@@ -730,24 +757,21 @@ wxBoxSizer* MixedFilamentDialog::create_material_selection()
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
 
-        int swatch_sz = FromDIP(16);
+        int swatch_sz = FromDIP(20);
         int y_center = (sz.GetHeight() - swatch_sz) / 2;
         int x = FromDIP(13);
 
         dc.SetFont(::Label::Body_13);
 
         auto draw_summary_swatch = [&](size_t comp_idx) {
-            wxColour col = comp_colour(comp_idx);
-            dc.SetBrush(wxBrush(col));
-            dc.SetPen(*wxTRANSPARENT_PEN);
-            dc.DrawRoundedRectangle(x, y_center, swatch_sz, swatch_sz, FromDIP(2));
-            draw_swatch_border_if_needed(dc, col, x, y_center, swatch_sz, FromDIP(2));
-
-            wxString num = wxString::Format(wxT("%u"), comp(comp_idx));
-            wxSize num_sz = dc.GetTextExtent(num);
-            dc.SetTextForeground(col.GetLuminance() > 0.5 ? wxColour(50, 58, 61) : *wxWHITE);
-            dc.DrawText(num, x + (swatch_sz - num_sz.GetWidth()) / 2,
-                             y_center + (swatch_sz - num_sz.GetHeight()) / 2);
+            unsigned int c = comp(comp_idx);
+            std::string color_hex = "#D9D9D9";
+            if (c >= 1 && c <= m_physical_colors.size())
+                color_hex = m_physical_colors[c - 1];
+            std::string label = std::to_string(c);
+            wxBitmap* icon = get_extruder_color_icon(color_hex, label, swatch_sz, swatch_sz);
+            if (icon && icon->IsOk())
+                dc.DrawBitmap(*icon, x, y_center);
             x += swatch_sz + FromDIP(4);
         };
 
@@ -758,23 +782,27 @@ wxBoxSizer* MixedFilamentDialog::create_material_selection()
 
             dc.SetTextForeground(sum_text);
             wxString arrow = wxT("\u2192");
-            dc.DrawText(arrow, x, y_center);
-            x += dc.GetTextExtent(arrow).GetWidth() + FromDIP(4);
+            wxSize arrow_sz = dc.GetTextExtent(arrow);
+            dc.DrawText(arrow, x, y_center + (swatch_sz - arrow_sz.GetHeight()) / 2);
+            x += arrow_sz.GetWidth() + FromDIP(4);
 
             draw_summary_swatch(idx_b);
         } else {
             for (size_t i = 0; i < num_components(); ++i) {
                 if (i > 0) {
                     dc.SetTextForeground(sum_text);
-                    dc.DrawText(wxT("+"), x, y_center);
-                    x += dc.GetTextExtent(wxT("+")).GetWidth() + FromDIP(4);
+                    wxString plus = wxT("+");
+                    wxSize plus_sz = dc.GetTextExtent(plus);
+                    dc.DrawText(plus, x, y_center + (swatch_sz - plus_sz.GetHeight()) / 2);
+                    x += plus_sz.GetWidth() + FromDIP(4);
                 }
                 draw_summary_swatch(i);
 
                 dc.SetTextForeground(sum_text);
                 wxString pct = wxString::Format(wxT("%d%%"), ratio(i));
-                dc.DrawText(pct, x, y_center);
-                x += dc.GetTextExtent(pct).GetWidth() + FromDIP(4);
+                wxSize pct_sz = dc.GetTextExtent(pct);
+                dc.DrawText(pct, x, y_center + (swatch_sz - pct_sz.GetHeight()) / 2);
+                x += pct_sz.GetWidth() + FromDIP(4);
             }
         }
     });
@@ -1098,6 +1126,10 @@ wxBoxSizer* MixedFilamentDialog::create_triangle_picker()
         TriPoint p = {(double)e.GetX(), (double)e.GetY()};
 
         if (is_down) {
+            // Only start dragging when the press lands inside the triangle;
+            // clicks outside the triangle must not change the mix ratio.
+            if (!tri_contains(p, v0, v1, v2))
+                return;
             m_dragging = true;
             m_triangle_panel->CaptureMouse();
         }
@@ -1869,7 +1901,7 @@ void MixedFilamentDialog::update_gradient_direction_items()
     if (num_components() < 2) return;
 
     auto make_direction_bitmap = [this](size_t idx_from, size_t idx_to) -> wxBitmap {
-        int swatch_sz = FromDIP(16);
+        int swatch_sz = FromDIP(20);
         int arrow_w   = FromDIP(16);
         int gap       = FromDIP(4);
         int bmp_w = swatch_sz + gap + arrow_w + gap + swatch_sz;
@@ -1881,18 +1913,13 @@ void MixedFilamentDialog::update_gradient_direction_items()
             dc.SetFont(::Label::Body_13);
 
             auto draw_swatch = [&](int x, size_t idx) {
-                wxColour col("#D9D9D9");
+                std::string color_hex = "#D9D9D9";
                 if (idx < m_physical_colors.size())
-                    col = wxColour(m_physical_colors[idx]);
-                dc.SetBrush(wxBrush(col));
-                dc.SetPen(*wxTRANSPARENT_PEN);
-                dc.DrawRoundedRectangle(x, 0, swatch_sz, swatch_sz, FromDIP(2));
-                draw_swatch_border_if_needed(dc, col, x, 0, swatch_sz, FromDIP(2));
-                wxString num = wxString::Format(wxT("%zu"), idx + 1);
-                wxSize txt_sz = dc.GetTextExtent(num);
-                dc.SetTextForeground(col.GetLuminance() > 0.5 ? wxColour(50, 58, 61) : *wxWHITE);
-                dc.DrawText(num, x + (swatch_sz - txt_sz.GetWidth()) / 2,
-                                 (swatch_sz - txt_sz.GetHeight()) / 2);
+                    color_hex = m_physical_colors[idx];
+                std::string label = std::to_string(idx + 1);
+                wxBitmap* icon = get_extruder_color_icon(color_hex, label, swatch_sz, swatch_sz);
+                if (icon && icon->IsOk())
+                    dc.DrawBitmap(*icon, x, 0);
             };
 
             int x = 0;

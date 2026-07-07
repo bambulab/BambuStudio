@@ -156,7 +156,6 @@ private:
 
     // Drag state
     bool   m_dragging{false};
-    std::vector<bool> m_ratio_manually_edited;
     std::vector<size_t> m_ratio_manual_order;
     size_t m_ratio_editor_idx{0};
     bool   m_ratio_editor_committing{false};
