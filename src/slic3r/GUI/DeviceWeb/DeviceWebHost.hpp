@@ -22,6 +22,7 @@ enum class DeviceWebHostMode {
 
 class DeviceWebHost : public wxPanel {
 public:
+    using ContentSizeChangedHandler = std::function<void(const wxSize&)>;
     // allow_lazy: if true, webview/bridge/manager construction is deferred until
     // the panel is first shown, avoiding startup cost for hidden tabs.
     explicit DeviceWebHost(wxWindow* parent, DeviceWebHostMode mode,
@@ -42,6 +43,13 @@ public:
 
     void NotifyFilamentSessionState();
     void NotifyFilamentMachineChanged();
+    void NotifyDeviceFilamentChanged();
+    void NotifyAmsMappingChanged();
+    // Dispatch a JSON-RPC command directly to the matching ViewModel (fire-and-forget).
+    // body must contain: module, submod, action, payload.
+    void DispatchCommand(const nlohmann::json& body);
+    void SetContentSizeChangedHandler(ContentSizeChangedHandler handler) { m_content_size_changed_handler = std::move(handler); }
+
 
     void on_sys_color_changed();
     void msw_rescale();
@@ -69,6 +77,7 @@ private:
     std::unique_ptr<DeviceHttpServer> m_device_http_server;
     std::unique_ptr<DeviceWebBridge>  m_device_web_bridge;
     std::unique_ptr<DeviceWebManager> m_device_web_mgr;
+    ContentSizeChangedHandler         m_content_size_changed_handler;
 };
 
 } // namespace GUI

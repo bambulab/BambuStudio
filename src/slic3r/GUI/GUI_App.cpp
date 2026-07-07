@@ -2258,7 +2258,14 @@ void GUI_App::init_networking_callbacks()
                         obj->parse_json("cloud", msg);
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
                         // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
-                        if (auto* sync = wxGetApp().fila_manager_sync()) sync->on_device_update(obj);
+                        // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
+                        bool fila_mount_changed = false;
+                        if (auto* sync = wxGetApp().fila_manager_sync())
+                            fila_mount_changed = sync->on_device_update(obj);
+                        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
+                            if (fila_mount_changed)
+                                mainframe->web_device()->NotifyFilamentSessionState();
+                        }
                     } else {
                         obj->parse_json("cloud", msg, true);
                     }
@@ -2307,7 +2314,14 @@ void GUI_App::init_networking_callbacks()
                     if (this->m_device_manager->get_selected_machine() == obj) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
                         // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
-                        if (auto* sync = wxGetApp().fila_manager_sync()) sync->on_device_update(obj);
+                        // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
+                        bool fila_mount_changed = false;
+                        if (auto* sync = wxGetApp().fila_manager_sync())
+                            fila_mount_changed = sync->on_device_update(obj);
+                        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
+                            if (fila_mount_changed)
+                                mainframe->web_device()->NotifyFilamentSessionState();
+                        }
                     }
                 }
 
@@ -2823,7 +2837,6 @@ int GUI_App::OnExit()
     }
 
     if (m_fila_manager_store) {
-        m_fila_manager_store->save();
         delete m_fila_manager_store;
         m_fila_manager_store = nullptr;
     }
@@ -3383,7 +3396,6 @@ bool GUI_App::on_init_inner()
         // Initialize Filament Manager store & sync
         if (!m_fila_manager_store) {
             m_fila_manager_store = new wgtFilaManagerStore();
-            m_fila_manager_store->load();
             BOOST_LOG_TRIVIAL(info) << "Filament Manager store initialized";
         }
         if (!m_fila_manager_sync) {

@@ -30,6 +30,14 @@ export interface Spool {
   setting_id?: string;
   bound_ams_id?: string;
   bound_dev_id?: string;
+  // 运行时在位快照（C++ AMS MQTT 同步后填写，不持久化到 spools.json）
+  in_printer?: boolean;
+  dev_id?: string;
+  ams_sn?: string;
+  ams_id?: number;      // -1 = 未挂载
+  ams_type?: number;    // -1 = 未挂载
+  slot_id?: string;
+  device_name?: string;
 }
 
 // Preset data for brand/type/series cascading selectors

@@ -157,6 +157,8 @@
   "Not signed in": "账号未登录",
   "Not signed in — no data available": "账号未登录，暂无数据",
   "All": "全部",
+  "In Printer": "机内耗材",
+  "Slot {{n}}": "第{{n}}槽",
   "General": "通用",
   "Group": "分组",
   "Loading...": "加载中…",

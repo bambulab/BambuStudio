@@ -297,7 +297,6 @@ void wgtFilaManagerCloudDispatcher::run_push_create_op(const FilamentSpool& spoo
                         local.spool_id = spool_id;
                         local.cloud_synced = true;
                         store->add_spool(local);
-                        store->save();
                     }
                 }
                 update_last_synced_now();
@@ -349,7 +348,7 @@ void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_
         // patch 里没有任何云端认识的字段（比如用户只改了 favorite 这种仅本地字段）
         // — 不打扰云端，直接把本条标记已同步即可。
         BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_update skipped (empty cloud patch) " << spool_id;
-        if (store->mark_synced(spool_id, true)) store->save();
+        store->mark_synced(spool_id, true);
         update_last_synced_now();
         if (m_on_push_done) m_on_push_done(spool_id, "update");
         on_op_done();
@@ -362,10 +361,7 @@ void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_
                 BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_update ok " << spool_id;
                 if (auto* store = wxGetApp().fila_manager_store()) {
                     store->apply_patch(spool_id, local_patch);
-                    if (store->mark_synced(spool_id, true))
-                        store->save();
-                    else
-                        store->save();
+                    store->mark_synced(spool_id, true);
                 }
                 update_last_synced_now();
                 wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher push_update finished",
@@ -386,8 +382,7 @@ void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_
                         wxTheApp->CallAfter([this, spool_id]() {
                             BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_update fallback create ok " << spool_id;
                             if (auto* store = wxGetApp().fila_manager_store()) {
-                                if (store->mark_synced(spool_id, true))
-                                    store->save();
+                                store->mark_synced(spool_id, true);
                             }
                             update_last_synced_now();
                             wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher push_update fallback create finished",
@@ -448,7 +443,6 @@ void wgtFilaManagerCloudDispatcher::run_push_delete_op(const std::vector<std::st
                 if (auto* store = wxGetApp().fila_manager_store()) {
                     for (const auto& spool_id : spool_ids)
                         store->remove_spool(spool_id);
-                    store->save();
                 }
                 update_last_synced_now();
                 wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher push_delete finished",

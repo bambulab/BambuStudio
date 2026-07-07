@@ -486,6 +486,7 @@ public:
     // View-only mode (2D laser/cut): show the read-only (eye) icon for every
     // editable spool while keeping it clickable to open the view-only dialog.
     void         set_view_only(bool view_only) { if (m_view_only != view_only) { m_view_only = view_only; Refresh(); } }
+    void         set_new_filament_hint(bool show) { if (m_show_new_filament_hint != show) { m_show_new_filament_hint = show; Refresh(); } }
     void         msw_rescale();
     void         on_pass_road(bool pass);
 
@@ -527,6 +528,9 @@ protected:
     bool m_disable_mode{ false };
     bool m_view_only{ false };
     bool m_pass_road{ false };
+    bool m_show_new_filament_hint{ false };
+    bool m_slot_was_empty{ false };
+    ScalableBitmap  m_bitmap_new_filament_hint;
 
     void on_enter_window(wxMouseEvent &evt);
     void on_leave_window(wxMouseEvent &evt);
@@ -987,6 +991,7 @@ wxDECLARE_EVENT(EVT_AMS_UNSELETED_VAMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_UNSELETED_AMS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_VAMS_ON_FILAMENT_EDIT, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_SWITCH, SimpleEvent);
+wxDECLARE_EVENT(EVT_AMS_NEW_FILAMENT_HINT, wxCommandEvent);
 
 }} // namespace Slic3r::GUI
 

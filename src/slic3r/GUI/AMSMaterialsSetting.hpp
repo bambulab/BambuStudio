@@ -16,6 +16,7 @@
 #include "Widgets/TextInput.hpp"
 #include "../slic3r/Utils/CalibUtils.hpp"
 #include "DeviceCore/DevNozzleRack.h"
+#include "fila_manager/wgtFilaManagerStore.h"
 
 #define AMS_MATERIALS_SETTING_DEF_COLOUR wxColour(255, 255, 255)
 #define AMS_MATERIALS_SETTING_GREY900 wxColour(38, 46, 48)
@@ -157,6 +158,7 @@ public:
     struct FilamentInfos {
         std::string filament_id;
         std::string setting_id;
+        std::string spool_id;   // non-empty only when entry comes from Filament Manager
     };
 
 protected:
@@ -237,9 +239,66 @@ protected:
     TextInput*       m_readonly_filament;
 
     std::map<std::string, FilamentInfos> map_filament_items;
+    // Maps combobox item index → spool_id for Filament Manager entries.
+    // Set by update_widgets(); empty for System Preset selections.
+    std::map<int, std::string>           m_combo_idx_to_spool_id;
+    // spool_id selected by the user in on_select_filament(); empty if a System
+    // Preset was selected instead of a Filament Manager spool.
+    std::string                          m_selected_spool_id;
 };
 
 wxDECLARE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
+
+// ---- AMSNewOfficialFilamentDlg ------------------------------------------
+// Shown when an AMS slot detects a new official filament that is not yet in
+// the Filament Manager. The user can choose how to handle it.
+class AMSNewOfficialFilamentDlg : public DPIDialog
+{
+public:
+    enum class Choice { RecordNew, LinkExisting, Skip };
+
+    AMSNewOfficialFilamentDlg(wxWindow* parent);
+    Choice GetChoice() const { return m_choice; }
+
+    // Set the AMS tray context before each ShowModal() call so the
+    // "Link to existing filament" dropdown can be populated with candidates.
+    void SetTrayContext(MachineObject* obj,
+                        const std::string& ams_id,
+                        const std::string& slot_id);
+    std::string GetSelectedLinkSpoolId() const { return m_selected_link_spool_id; }
+
+    void on_dpi_changed(const wxRect&) override {
+        m_btn_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+        m_btn_confirm->SetCornerRadius(FromDIP(12));
+        m_btn_cancel->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+        m_btn_cancel->SetCornerRadius(FromDIP(12));
+        Fit();
+    }
+
+private:
+    void create();
+    void populate_link_combo();
+    void on_combo_selected(wxCommandEvent&);
+    void on_confirm(wxCommandEvent&);
+    void on_cancel(wxCommandEvent&);
+
+    Choice    m_choice{ Choice::RecordNew };
+    RadioBox* m_radio_record_new{ nullptr };
+    RadioBox* m_radio_link_existing{ nullptr };
+    RadioBox* m_radio_skip{ nullptr };
+    Button*   m_btn_confirm{ nullptr };
+    Button*   m_btn_cancel{ nullptr };
+
+    ::ComboBox*                m_combo_link{ nullptr };
+    wxSizer*                   m_combo_row{ nullptr };
+    std::map<int, std::string> m_combo_idx_to_spool_id;
+    std::map<int, wxString>    m_combo_header_texts;
+    std::string                m_selected_link_spool_id;
+
+    MachineObject* m_obj    { nullptr };
+    std::string    m_ams_id;
+    std::string    m_slot_id;
+};
 
 }} // namespace Slic3r::GUI
 

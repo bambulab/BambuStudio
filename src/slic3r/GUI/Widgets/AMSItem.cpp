@@ -40,6 +40,7 @@ namespace Slic3r { namespace GUI {
     wxDEFINE_EVENT(EVT_AMS_SHOW_HUMIDITY_TIPS, wxCommandEvent);
     wxDEFINE_EVENT(EVT_AMS_UNSELETED_VAMS, wxCommandEvent);
     wxDEFINE_EVENT(EVT_AMS_SWITCH, SimpleEvent);
+    wxDEFINE_EVENT(EVT_AMS_NEW_FILAMENT_HINT, wxCommandEvent);
 
 
 #define AMS_CANS_SIZE wxSize(FromDIP(284), -1)
@@ -980,6 +981,7 @@ void AMSLib::create(wxWindow *parent, wxWindowID id, const wxPoint &pos, const w
     m_bitmap_editable_light = ScalableBitmap(this, "ams_editable_light", 14);
     m_bitmap_readonly       = ScalableBitmap(this, "ams_readonly", 14);
     m_bitmap_readonly_light = ScalableBitmap(this, "ams_readonly_light", 14);
+    m_bitmap_new_filament_hint = ScalableBitmap(this, "ams_filament_hint", 14);
     m_bitmap_transparent    = ScalableBitmap(this, "transparent_ams_lib", 76);
     m_bitmap_transparent_def    = ScalableBitmap(this, "transparent_ams_lib", 76);
     m_bitmap_transparent_lite = ScalableBitmap(this, "transparent_ams_lib", 56);
@@ -1018,6 +1020,22 @@ void AMSLib::on_leave_window(wxMouseEvent &evt)
 
 void AMSLib::on_left_down(wxMouseEvent &evt)
 {
+    // Check click on new-filament hint icon (top-right corner) first.
+    if (m_show_new_filament_hint) {
+        auto size     = GetSize();
+        auto pos      = evt.GetPosition();
+        auto hint_sz  = m_bitmap_new_filament_hint.GetBmpSize();
+        int  icon_x   = size.x - hint_sz.x;
+        int  icon_y   = 0;
+        if (pos.x >= icon_x && pos.x <= icon_x + hint_sz.x && pos.y >= icon_y && pos.y <= icon_y + hint_sz.y) {
+            wxCommandEvent hint_evt(EVT_AMS_NEW_FILAMENT_HINT);
+            hint_evt.SetInt(std::stoi(m_ams_id));
+            hint_evt.SetString(m_slot_id);
+            post_event(std::move(hint_evt));
+            return;
+        }
+    }
+
     if (m_info.material_state != AMSCanType::AMS_CAN_TYPE_EMPTY && m_info.material_state != AMSCanType::AMS_CAN_TYPE_NONE) {
         auto size = GetSize();
         auto pos  = evt.GetPosition();
@@ -1461,6 +1479,40 @@ void AMSLib::render_lite_lib(wxDC& dc)
 
 void AMSLib::render_generic_lib(wxDC &dc)
 {
+    const AMSCanType cur_state = m_info.material_state;
+    const bool is_reading = (cur_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND &&
+                             m_info.material_name.IsEmpty());
+    if (cur_state == AMSCanType::AMS_CAN_TYPE_EMPTY) {
+        m_slot_was_empty = true;
+        m_show_new_filament_hint = false;
+    } else if (cur_state == AMSCanType::AMS_CAN_TYPE_BRAND) {
+        if (m_slot_was_empty) {
+            bool rfid_not_in_manager = true;
+            if (m_obj) {
+                auto* tray = m_obj->get_ams_tray(m_ams_id, m_slot_id);
+                if (tray) {
+                    // The store's tag_uid is tray->uuid (not tray->tag_uid): the
+                    // panel normalizes the raw RFID before sending it to the
+                    // frontend, which then writes tray->uuid into the spool record.
+                    // Mirror that same normalization here so the lookup key matches.
+                    std::string lookup_uid;
+                    if (tray->tag_uid.size() == 16 && tray->tag_uid.substr(12, 2) == "01")
+                        lookup_uid = tray->uuid;
+                    if (!lookup_uid.empty()) {
+                        auto* store = wxGetApp().fila_manager_store();
+                        if (store && store->find_by_tag_uid(lookup_uid) != nullptr)
+                            rfid_not_in_manager = false;
+                    }
+                }
+            }
+            m_show_new_filament_hint = rfid_not_in_manager;
+        }
+        m_slot_was_empty = false;
+    } else if (!is_reading) {
+        m_slot_was_empty = false;
+        m_show_new_filament_hint = false;
+    }
+
     wxSize size = GetSize();
     auto   tmp_lib_colour = m_info.material_colour;
     change_the_opacity(tmp_lib_colour);
@@ -1775,6 +1827,13 @@ void AMSLib::render_generic_lib(wxDC &dc)
             if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_BRAND)
                 dc.DrawBitmap(temp_bitmap_brand.bmp(), (size.x - temp_bitmap_brand.GetBmpSize().x) / 2, (size.y - FromDIP(10) - temp_bitmap_brand.GetBmpSize().y));
         }
+    }
+
+    // new official filament hint icon (top-right corner)
+    if (m_show_new_filament_hint) {
+        auto hint_bmp = m_bitmap_new_filament_hint.bmp();
+        auto hint_sz  = m_bitmap_new_filament_hint.GetBmpSize();
+        dc.DrawBitmap(hint_bmp, size.x - hint_sz.x, 0);
     }
 }
 

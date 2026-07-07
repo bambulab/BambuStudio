@@ -2,13 +2,14 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CandidateColor, Spool } from './types';
 import { SpoolColorChip } from './SpoolColorChip';
-import { PAGE_SIZES, DEFAULT_PAGE_SIZE, formatSpoolDisplayName } from './constants';
+import { PAGE_SIZES, DEFAULT_PAGE_SIZE, formatSpoolDisplayName, formatSlotLocation } from './constants';
 import useStore from '../../store/AppStore';
 import {
   cssBackgroundFor,
   hexLabelFor,
   resolveCandidateForSpool,
 } from './colors';
+
 
 function getDisplayedRemainWeight(s: Spool) {
   if (typeof s.net_weight === 'number' && s.net_weight > 0) {
@@ -305,6 +306,7 @@ export function SpoolTable({
                           colorCode={displayColor.colorCode}
                           colors={displayColor.colors}
                           colorType={displayColor.colorType}
+                          amsBadge={s.in_printer === true}
                         />
                       </div>
                       <div className="flex flex-col gap-[2px] min-w-0">
@@ -381,6 +383,21 @@ export function SpoolTable({
                                 {hexLabel && (
                                   <span data-testid="filament-row-color-hex" className="font-mono tracking-wider truncate">{hexLabel}</span>
                                 )}
+                                {s.in_printer === true && (() => {
+                                  const loc = formatSlotLocation(s.device_name, s.ams_type, s.slot_id, t);
+                                  if (!loc) return null;
+                                  return (
+                                    <>
+                                      <span className="shrink-0">|</span>
+                                      <span
+                                        data-testid="filament-row-location"
+                                        className="text-fm-text-detail shrink-0 font-mono text-[11px]"
+                                      >
+                                        {loc}
+                                      </span>
+                                    </>
+                                  );
+                                })()}
                               </>
                             );
                           })()}

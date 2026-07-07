@@ -53,3 +53,31 @@ export function formatSpoolDisplayName(s: { brand?: string; material_type?: stri
   const namePart = series || type;
   return [brand, namePart].filter(Boolean).join(' ');
 }
+
+// Maps numeric ams_type (C++ DevAmsType enum) to product display names.
+export const AMS_TYPE_NAMES: Record<number, string> = {
+  0: 'External Spool',
+  1: 'AMS',
+  2: 'AMS Lite',
+  3: 'AMS 2 Pro',
+  4: 'AMS HT',
+  5: 'AMS Lite',
+  6: 'AMS',
+  7: 'AMS',
+};
+
+export function formatSlotLocation(
+  deviceName: string | undefined,
+  amsType: number | undefined,
+  slotId: string | undefined,
+  t: (key: string, opts?: Record<string, unknown>) => string
+): string | null {
+  if (!deviceName) return null;
+  const amsTypeName = amsType != null && amsType >= 0
+    ? (AMS_TYPE_NAMES[amsType] ?? `AMS(${amsType})`)
+    : null;
+  const slotLabel = slotId != null && slotId !== ''
+    ? t('Slot {{n}}', { n: Number(slotId) + 1 })
+    : null;
+  return [deviceName, amsTypeName, slotLabel].filter(Boolean).join(' · ');
+}

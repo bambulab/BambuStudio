@@ -6,6 +6,8 @@
 
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/DeviceManager.hpp"
+#include "../DeviceCore/DevManager.h"
 
 #include <wx/app.h>
 #include <boost/log/trivial.hpp>
@@ -258,6 +260,18 @@ FilamentSpool wgtFilaManagerCloudSync::cloud_json_to_spool(const nlohmann::json&
 
     s.favorite        = j.contains("favorite") && j["favorite"].is_boolean() && j["favorite"].get<bool>();
 
+    // 在位挂载状态（云端 camelCase → 本地 snake_case）。
+    // 机器在线时这些字段由 MQTT apply_mount_diff 维护，优先级高于云端值；
+    // 未连接机器时以云端历史数据兜底（pull_from_cloud 落地时处理优先级）。
+    s.in_printer  = j.contains("inPrinter") && j["inPrinter"].is_boolean()
+                        && j["inPrinter"].get<bool>();
+    s.dev_id      = str_any({"devId",      "dev_id"});
+    s.ams_sn      = str_any({"amsSn",      "ams_sn"});
+    s.ams_id      = num_i_any({"amsId",    "ams_id"},   -1);
+    s.ams_type    = num_i_any({"amsType",  "ams_type"}, -1);
+    s.slot_id     = str_any({"slotId",     "slot_id"});
+    s.device_name = str_any({"deviceName", "device_name"});
+
     return s;
 }
 
@@ -319,6 +333,15 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_json(const FilamentSpool&
     if (!s.note.empty())
         j["note"] = s.note;
 
+    // 在位字段：新建时若 spool 已挂载（如从 AMS 读取），一并写入 CREATE body。
+    j["inPrinter"] = s.in_printer;
+    if (!s.dev_id.empty())      j["devId"]      = s.dev_id;
+    if (!s.ams_sn.empty())      j["amsSn"]      = s.ams_sn;
+    if (s.ams_id   != -1)       j["amsId"]      = s.ams_id;
+    if (s.ams_type != -1)       j["amsType"]    = s.ams_type;
+    if (!s.slot_id.empty())     j["slotId"]     = s.slot_id;
+    if (!s.device_name.empty()) j["deviceName"] = s.device_name;
+
     return j;
 }
 
@@ -360,16 +383,44 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                     std::set<std::string> cloud_ids;
                     int dropped_local_only = 0;
 
-                    for (const auto& item : list) {
-                        FilamentSpool spool = cloud_json_to_spool(item);
-                        if (spool.spool_id.empty()) continue;
-                        spool.cloud_synced = true;
-                        cloud_ids.insert(spool.spool_id);
+                    // 判断某台机器当前是否在线（有实时 MQTT 数据）。
+                    // 用 get_my_machine 而非 get_user_machine，避免跨账号误判。
+                    auto machine_is_online = [](const std::string& dev_id) -> bool {
+                        if (dev_id.empty()) return false;
+                        auto* mgr = wxGetApp().getDeviceManager();
+                        if (!mgr) return false;
+                        MachineObject* obj = mgr->get_my_machine(dev_id);
+                        return obj && obj->is_online();
+                    };
 
-                        if (m_store->get_spool(spool.spool_id))
-                            m_store->update_spool(spool);
-                        else
-                            m_store->add_spool(spool);
+                    for (const auto& item : list) {
+                        FilamentSpool cloud_spool = cloud_json_to_spool(item);
+                        if (cloud_spool.spool_id.empty()) continue;
+                        cloud_spool.cloud_synced = true;
+                        cloud_ids.insert(cloud_spool.spool_id);
+
+                        if (const FilamentSpool* existing = m_store->get_spool(cloud_spool.spool_id)) {
+                            // 判断本地是否有来自该机器的实时 MQTT 数据。
+                            // 条件：existing->dev_id 对应的机器当前在线。
+                            // 不单独判断 in_printer==true，因为断连后该值仍可能为 true。
+                            const bool local_is_live = machine_is_online(existing->dev_id);
+                            if (local_is_live) {
+                                // 机器在线时以本地为准，保留本地在位字段，不用云端值覆盖。
+                                // 不在 pull 里反向 push 修正——下次 MQTT 到来时
+                                // notify_ams_synced 会把最新在位字段推上云端。
+                                cloud_spool.in_printer  = existing->in_printer;
+                                cloud_spool.dev_id      = existing->dev_id;
+                                cloud_spool.ams_sn      = existing->ams_sn;
+                                cloud_spool.ams_id      = existing->ams_id;
+                                cloud_spool.ams_type    = existing->ams_type;
+                                cloud_spool.slot_id     = existing->slot_id;
+                                cloud_spool.device_name = existing->device_name;
+                            }
+                            // local_is_live==false：云端在位字段直接作为历史数据落地
+                            m_store->update_spool(cloud_spool);
+                        } else {
+                            m_store->add_spool(cloud_spool);
+                        }
                     }
 
                     for (const auto& existing : m_store->spools_to_json()) {
@@ -381,7 +432,6 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                         }
                     }
 
-                    m_store->save();
                     m_last_pull_succeeded = true;
                     BOOST_LOG_TRIVIAL(info) << "[FilaCloudSync] pull_from_cloud completed, "
                                             << list.size() << " items kept, "
@@ -538,6 +588,24 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_patch(const nlohma
     take_int("net_weight",      "netWeight");
     take_int("total_net_weight","totalNetWeight");
     take_str("note",            "note");
+
+    // 在位挂载状态字段（随 AMS sync / pull 冲突修正一起上行）。
+    // ams_id / ams_type 的哨兵值为 -1（未挂载），需透传负数，用 get<int64_t> 而非
+    // get<double>+0.5 避免符号丢失。
+    take_bool("in_printer",  "inPrinter");
+    take_str ("dev_id",      "devId");
+    take_str ("ams_sn",      "amsSn");
+    take_str ("slot_id",     "slotId");
+    take_str ("device_name", "deviceName");
+    // ams_id / ams_type 单独处理以保留 -1 哨兵值
+    auto take_int_signed = [&](const char* local_key, const char* cloud_key) {
+        if (!p.contains(local_key)) return;
+        const auto& v = p.at(local_key);
+        if (v.is_null()) return;
+        if (v.is_number()) j[cloud_key] = v.get<int64_t>();
+    };
+    take_int_signed("ams_id",   "amsId");
+    take_int_signed("ams_type", "amsType");
 
     // swagger 白名单之外的常见本地字段（series / color_name / initial_weight /
     // spool_weight / diameter / status / remain_percent / favorite ...）不映射，
@@ -742,12 +810,20 @@ void wgtFilaManagerCloudSync::notify_ams_synced(
 
         switch (decision) {
         case AmsAutoPushThrottle::Decision::Push: {
-            // PUT body 只放 net_weight，其余字段留给 spool_to_cloud_update_json
-            // 兜底（filamentName 防 STUDIO-18117 重现）。其余 sync 关心字段
-            // (status / bound_*) 云端 PUT 不接受 → 不放进 patch。
+            // PUT body 放 net_weight + 在位字段。在位字段随 AMS sync 一起上行，
+            // 保证云端始终持有最新的挂载快照，供未连接该机器的其他端 pull 后展示。
             nlohmann::json patch = {
                 {"net_weight", static_cast<double>(item.net_weight)}
             };
+            if (const FilamentSpool* persisted = m_store->get_spool(item.spool_id)) {
+                patch["in_printer"]  = persisted->in_printer;
+                patch["dev_id"]      = persisted->dev_id;
+                patch["ams_sn"]      = persisted->ams_sn;
+                patch["ams_id"]      = persisted->ams_id;
+                patch["ams_type"]    = persisted->ams_type;
+                patch["slot_id"]     = persisted->slot_id;
+                patch["device_name"] = persisted->device_name;
+            }
             disp->enqueue_push_update(item.spool_id, patch);
             // 乐观 record：先记 cooldown 起点。设计权衡：失败时下次 sync 仍
             // 等 10 min cooldown 才重试，把"网络抽风时无意义请求"的攻击面

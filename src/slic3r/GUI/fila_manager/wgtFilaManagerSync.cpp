@@ -1,6 +1,7 @@
 #include "wgtFilaManagerSync.h"
 #include "wgtFilaManagerStore.h"
 #include "wgtFilaManagerCloudSync.h"
+#include "wgtFilaManagerCloudDispatcher.h"
 #include "AmsAutoPushThrottle.h"
 
 #include "slic3r/GUI/GUI_App.hpp"
@@ -12,6 +13,7 @@
 #include <boost/log/trivial.hpp>
 
 #include <cmath>
+#include <set>
 
 namespace Slic3r { namespace GUI {
 
@@ -42,22 +44,38 @@ wgtFilaManagerSync::wgtFilaManagerSync(wgtFilaManagerStore* store)
     : m_store(store)
 {}
 
-void wgtFilaManagerSync::on_device_update(MachineObject* obj)
+bool wgtFilaManagerSync::on_device_update(MachineObject* obj)
 {
-    if (!obj || !m_store) return;
-    sync_all_trays(obj);
+    if (!obj || !m_store) return false;
+    if (!obj->is_online()) return false;  // 离线不处理，保留在位字段
+    return sync_all_trays(obj);
 }
 
-void wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
+bool wgtFilaManagerSync::on_device_disconnect(const std::string& dev_id,
+                                              const std::string& dev_name)
 {
-    if (!obj || !m_store) return;
+    if (!m_store) return false;
+    // 空 present_now → was_our_hold 的 spool 全部清字段
+    const std::map<std::string, MountUpdate> empty;
+    return m_store->apply_mount_diff(dev_id, dev_name, empty);
+}
+
+bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
+{
+    if (!obj || !m_store) return false;
 
     auto fila_sys = obj->GetFilaSystem();
-    if (!fila_sys) return;
+    if (!fila_sys) return false;
 
-    const std::string dev_id = obj->get_dev_id();
-    bool any_changed         = false;
+    const std::string dev_id   = obj->get_dev_id();
+    const std::string dev_name = obj->get_dev_name();
+
+    bool any_changed           = false;
     std::vector<wgtFilaManagerCloudSync::AmsChangedSpool> changed;
+
+    // 本轮观察到"在本机 AMS 上"的 spool 集合。收集完再一次性交给 store 做 diff apply，
+    // 避免"清空 → 重填"过程中前端观察到中间态导致跳变。
+    std::map<std::string, MountUpdate> present_now;
 
     // STUDIO-18155 / openspec 20260506 单 tray 处理逻辑：
     //   1. 过滤无 setting_id / tag_uid 的空槽
@@ -66,19 +84,36 @@ void wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
     //   4. percent → 克数换算（Q6），仅写 net_weight / remain_percent / status
     //      / bound_dev_id / bound_ams_id 这五个 sync 关心字段；identity/display
     //      字段由 update_spool_if_changed 在 store 层防御覆盖，不可被 sync 改写
-    auto handle_tray = [&](const DevAmsTray& tray, const std::string& ams_id) {
+    auto handle_tray = [&](const DevAmsTray& tray, const std::string& ams_id,
+                           int ams_type_int) {
         if (tray.setting_id.empty() && tray.tag_uid.empty()) return;
 
         const FilamentSpool* matched = match_tray(tray);
         if (!matched) {
             // Q5：未匹配 → 不再 add_spool。新增料卷只走 UI "添加耗材-从 AMS
             // 读取" 入口，避免 AMS 现场快照污染长期库存账本。
-            BOOST_LOG_TRIVIAL(trace)
-                << "[ams-sync] unmatched tray, skip auto-add"
+            BOOST_LOG_TRIVIAL(info)
+                << "[ams-sync] unmatched tray, skip"
+                << " ams_id=" << ams_id
+                << " slot_id=" << tray.id
                 << " setting_id=" << tray.setting_id
-                << " tag_uid="    << tray.tag_uid;
+                << " tag_uid=" << tray.tag_uid
+                << " color=" << tray.color;
             return;
         }
+
+        BOOST_LOG_TRIVIAL(info)
+            << "[ams-sync] matched tray -> spool_id=" << matched->spool_id
+            << " ams_id=" << ams_id << " slot_id=" << tray.id;
+
+        // 登记"本轮在位"，供后续 apply_mount_diff 使用。
+        int ams_id_int = -1;
+        try { ams_id_int = std::stoi(ams_id); } catch (...) {}
+        MountUpdate mu;
+        mu.ams_id   = ams_id_int;
+        mu.ams_type = ams_type_int;
+        mu.slot_id  = tray.id;
+        present_now[matched->spool_id] = mu;
 
         // Q7：缺整卷净重的 spool 整条冻结。连本地 percent 都不刷，避免
         // 半残数据漂移导致 UI 越来越离谱。用户在管理器编辑该 spool 补齐
@@ -126,15 +161,23 @@ void wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
 
     for (auto& [ams_id, ams] : fila_sys->GetAmsList()) {
         if (!ams) continue;
+        int ams_type_int = static_cast<int>(ams->GetAmsType());
         for (auto& [slot_id, tray] : ams->GetTrays()) {
-            if (tray) handle_tray(*tray, ams_id);
+            if (tray) handle_tray(*tray, ams_id, ams_type_int);
         }
     }
     for (auto& vt_tray : obj->vt_slot) {
-        handle_tray(vt_tray, "ext");
+        handle_tray(vt_tray, "ext", static_cast<int>(DevAmsType::EXT_SPOOL));
     }
 
-    if (any_changed) m_store->set_dirty();
+    // 一次性 diff apply：本机拥有权范围内做增/删/改，
+    // 未变化的 spool 字段保持原值 → 前端看到稳定值不跳变。
+    // out_changed_ids 收集本轮在位字段发生变化的 spool id，供后续单独推云端。
+    std::vector<std::string> mount_changed_ids;
+    const bool mount_changed = m_store->apply_mount_diff(
+        dev_id, dev_name, present_now, &mount_changed_ids);
+
+    if (any_changed || mount_changed) m_store->set_dirty();
 
     // STUDIO-18155：sync 完成本地写入后联动云端 push。
     //   1. device_state 一次 sync 算一次，整批共用（design § 2.3）
@@ -147,12 +190,41 @@ void wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
             cloud->notify_ams_synced(changed, device_state);
         }
     }
+
+    // 在位字段单独变化（余量未变）的 spool → 单独推云端在位字段。
+    // 过滤掉已经在 changed 里的 spool（它们已随 notify_ams_synced 的 patch 一起推了）。
+    if (!mount_changed_ids.empty()) {
+        if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
+            std::set<std::string> already_pushed;
+            for (const auto& c : changed) already_pushed.insert(c.spool_id);
+
+            for (const auto& sid : mount_changed_ids) {
+                if (already_pushed.count(sid)) continue;
+                const FilamentSpool* s = m_store->get_spool(sid);
+                if (!s) continue;
+                nlohmann::json patch = {
+                    {"in_printer",  s->in_printer},
+                    {"dev_id",      s->dev_id},
+                    {"ams_sn",      s->ams_sn},
+                    {"ams_id",      s->ams_id},
+                    {"ams_type",    s->ams_type},
+                    {"slot_id",     s->slot_id},
+                    {"device_name", s->device_name}
+                };
+                disp->enqueue_push_update(sid, patch);
+            }
+        }
+    }
+
+    return mount_changed;
 }
 
 const FilamentSpool* wgtFilaManagerSync::match_tray(const DevAmsTray& tray)
 {
-    if (!tray.tag_uid.empty()) {
-        auto* sp = m_store->find_by_tag_uid(tray.tag_uid);
+    // tray.uuid 是云端分配的 UUID（32字符），与耗材入库时存储的 spool.tag_uid 格式一致。
+    // tray.tag_uid 是 NFC 芯片硬件 ID（16字符），两者不同，不能混用。
+    if (!tray.uuid.empty()) {
+        auto* sp = m_store->find_by_tag_uid(tray.uuid);
         if (sp) return sp;
     }
     if (!tray.setting_id.empty()) {

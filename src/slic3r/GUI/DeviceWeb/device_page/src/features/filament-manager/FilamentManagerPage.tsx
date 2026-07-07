@@ -153,7 +153,7 @@ export function FilamentManagerPage() {
     let list = spools.filter((s) => s.status !== 'archived');
 
     // Tab filter
-    if (tab === 'ams') list = list.filter((s) => s.entry_method === 'ams_sync');
+    if (tab === 'ams') list = list.filter((s) => s.in_printer === true);
 
     // Search
     if (search.trim()) {
@@ -356,7 +356,7 @@ export function FilamentManagerPage() {
                       className={`px-[10px] py-1 h-7 rounded-md cursor-pointer text-xs text-fm-text-secondary flex items-center transition-colors duration-150 hover:bg-fm-hover ${tab === tb ? 'bg-fm-input text-fm-text-strong' : ''}`}
                       onClick={() => setTab(tb)}
                     >
-                      {tb === 'all' ? t('All') : 'AMS'}
+                      {tb === 'all' ? t('All') : t('In Printer')}
                     </div>
                   ))}
                 </div>

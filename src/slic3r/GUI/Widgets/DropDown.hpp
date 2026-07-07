@@ -50,6 +50,7 @@ private:
     bool   limit_max_content_width = false;
     bool   align_icon        = false;
     bool   text_off          = false;
+    int    max_visible_rows  = 15;
 
     wxSize textSize;
     wxSize iconSize;

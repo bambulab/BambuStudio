@@ -156,6 +156,8 @@
   "Not signed in": "Not signed in",
   "Not signed in — no data available": "Not signed in — no data available",
   "All": "All",
+  "In Printer": "In Printer",
+  "Slot {{n}}": "Slot {{n}}",
   "General": "General",
   "Group": "Group",
   "Loading...": "Loading...",

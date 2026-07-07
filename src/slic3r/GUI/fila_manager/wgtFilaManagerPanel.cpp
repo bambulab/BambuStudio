@@ -262,7 +262,7 @@ void wgtFilaManagerPanel::register_handlers()
 
     m_handlers["add_spool"] = [this, respond_spool_list](int seq, const nlohmann::json& data) {
         auto* store = wxGetApp().fila_manager_store();
-        if (store) { store->add_spool(FilamentSpool::from_json(data)); store->save(); }
+        if (store) { store->add_spool(FilamentSpool::from_json(data)); }
         respond_spool_list(seq);
     };
 
@@ -272,20 +272,19 @@ void wgtFilaManagerPanel::register_handlers()
             int qty = data.value("quantity", 1);
             nlohmann::json sd = data.contains("spool") ? data["spool"] : nlohmann::json::object();
             for (int i = 0; i < qty; ++i) store->add_spool(FilamentSpool::from_json(sd));
-            store->save();
         }
         respond_spool_list(seq);
     };
 
     m_handlers["update_spool"] = [this, respond_spool_list](int seq, const nlohmann::json& data) {
         auto* store = wxGetApp().fila_manager_store();
-        if (store) { store->update_spool(FilamentSpool::from_json(data)); store->save(); }
+        if (store) { store->update_spool(FilamentSpool::from_json(data)); }
         respond_spool_list(seq);
     };
 
     m_handlers["remove_spool"] = [this, respond_spool_list](int seq, const nlohmann::json& data) {
         auto* store = wxGetApp().fila_manager_store();
-        if (store) { store->remove_spool(data.value("spool_id", "")); store->save(); }
+        if (store) { store->remove_spool(data.value("spool_id", "")); }
         respond_spool_list(seq);
     };
 
@@ -293,7 +292,6 @@ void wgtFilaManagerPanel::register_handlers()
         auto* store = wxGetApp().fila_manager_store();
         if (store && data.contains("spool_ids")) {
             for (auto& sid : data["spool_ids"]) store->remove_spool(sid.get<std::string>());
-            store->save();
         }
         respond_spool_list(seq);
     };
@@ -305,7 +303,7 @@ void wgtFilaManagerPanel::register_handlers()
             if (sp) {
                 FilamentSpool u = *sp;
                 u.status = "empty"; u.remain_percent = 0;
-                store->update_spool(u); store->save();
+                store->update_spool(u);
             }
         }
         respond_spool_list(seq);
@@ -318,7 +316,7 @@ void wgtFilaManagerPanel::register_handlers()
             if (sp) {
                 FilamentSpool u = *sp;
                 u.favorite = !u.favorite;
-                store->update_spool(u); store->save();
+                store->update_spool(u);
             }
         }
         respond_spool_list(seq);
@@ -331,7 +329,7 @@ void wgtFilaManagerPanel::register_handlers()
             if (sp) {
                 FilamentSpool u = *sp;
                 u.status = "archived";
-                store->update_spool(u); store->save();
+                store->update_spool(u);
             }
         }
         respond_spool_list(seq);

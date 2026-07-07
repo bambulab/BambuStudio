@@ -3,6 +3,24 @@
 // AMS slot card, AMS slot mini, AddEditDialog candidate panel / preview
 // bar / custom swatch. Single source of truth for the rendering rules.
 //
+// `amsBadge` opt-in renders a small brand-green dot at the top-right
+// corner to mark "this spool was synced from AMS". The dot must live in
+// an OUTER relative wrapper, not inside the chip span: the chip's
+// `overflow: hidden` is load-bearing for the multicolor strips and the
+// gradient mode (see the long block below), so anything we paint at the
+// corner would either be clipped or force the strips to inset — and the
+// no-inset decision is itself documented further down. Wrapping only
+// when `amsBadge` is set keeps every existing single-element call site
+// (StatsView, AddEditDialog candidates) byte-identical.
+//
+// The dot only renders when `size >= 32`. Smaller chips (row-tail
+// 14 px, AddEditDialog 22 px candidate squares, etc.) are visually
+// part of "this is the colour value" composition next to the hex /
+// colour name, not the "which spool" icon — a dot there is redundant
+// with the same row's 40 px primary chip and adds clutter. The
+// threshold lives inside this component so a stray `amsBadge` at a
+// call site cannot regress that decision.
+//
 // Why not a CSS-only `linear-gradient` swatch?
 //   - For multicolor (colorType === 1) intent, we want a hard pixel
 //     boundary between adjacent colours.  A linear-gradient with two
@@ -27,7 +45,7 @@
 //     near-white chip fill therefore still keeps a visible outline on the
 //     light-theme white surface without darkening the dark-theme look.
 
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 import { canonicalizeHex, canonicalizeHexList } from './colors';
 
 export interface SpoolColorChipProps {
@@ -48,6 +66,10 @@ export interface SpoolColorChipProps {
    * `size` so a 40 px chip is clearly rounded and a 12 px mini stays a
    * tight squarelet. */
   radius?: number;
+  /** Render a brand-green dot at the top-right corner marking "synced
+   * from AMS". Defaults to false so existing inline call sites keep
+   * their single-element DOM. */
+  amsBadge?: boolean;
 }
 
 export function SpoolColorChip({
@@ -57,6 +79,7 @@ export function SpoolColorChip({
   size = 40,
   border = true,
   radius,
+  amsBadge = false,
 }: SpoolColorChipProps) {
   const hexList = canonicalizeHexList(colors);
   const fallback = canonicalizeHex(colorCode) || '#888';
@@ -94,13 +117,14 @@ export function SpoolColorChip({
   // ring and strips on small chips, so the cleaner fix is to drop the
   // inset entirely. The corner anti-alias loss is negligible at the
   // sizes we render (14-40 px).
+  let chipEl: ReactElement;
   if (hexList.length > 1 && colorType === 1) {
     const n = hexList.length;
     const baseStrip = Math.floor(size / n);
     const widths = hexList.map((_, i) =>
       i === n - 1 ? size - baseStrip * (n - 1) : baseStrip,
     );
-    return (
+    chipEl = (
       <span
         className="inline-flex shrink-0 align-middle"
         style={{
@@ -124,14 +148,12 @@ export function SpoolColorChip({
         ))}
       </span>
     );
-  }
-
-  // Multi-hex with gradient intent (or unspecified): smooth CSS gradient.
-  // CSS handles smooth interpolation cleanly so no seam workaround is
-  // required here.
-  if (hexList.length > 1) {
+  } else if (hexList.length > 1) {
+    // Multi-hex with gradient intent (or unspecified): smooth CSS gradient.
+    // CSS handles smooth interpolation cleanly so no seam workaround is
+    // required here.
     const stops = hexList.join(', ');
-    return (
+    chipEl = (
       <span
         className="inline-block shrink-0"
         style={{
@@ -140,17 +162,57 @@ export function SpoolColorChip({
         }}
       />
     );
+  } else {
+    // Single colour.
+    const single = hexList[0] || fallback;
+    chipEl = (
+      <span
+        className="inline-block shrink-0"
+        style={{
+          ...chipStyle,
+          background: single,
+        }}
+      />
+    );
   }
 
-  // Single colour.
-  const single = hexList[0] || fallback;
+  // The dot is a "spool came from AMS" marker, not a colour-sample
+  // adornment, so we only render it on chips that read as the spool's
+  // primary icon (size >= 32: list row 40×40, detail dialog 40×40).
+  // Small chips (row-tail 14×14, AddEditDialog 22 px candidates, etc.)
+  // visually belong to the "this is the colour value" expression next
+  // to the hex / colour name, where a green dot is redundant with the
+  // primary chip on the same row and just adds clutter. Guard inside
+  // the component so a misuse at the call site cannot regress this.
+  if (!amsBadge || size < 32) return chipEl;
+
+  // Ring matches the panel background (`--color-fm-base`) so the dot
+  // reads as detached from the chip on any spool colour, in both
+  // light and dark themes. Anchored to the outer wrapper, not the
+  // chip, so the chip's `overflow: hidden` does not clip it.
   return (
     <span
-      className="inline-block shrink-0"
       style={{
-        ...chipStyle,
-        background: single,
+        position: 'relative',
+        display: 'inline-flex',
+        verticalAlign: 'middle',
       }}
-    />
+    >
+      {chipEl}
+      <span
+        data-testid="spool-chip-ams-badge"
+        style={{
+          position: 'absolute',
+          top: -2,
+          right: -2,
+          width: 8,
+          height: 8,
+          borderRadius: '50%',
+          background: 'var(--color-fm-brand)',
+          boxShadow: '0 0 0 1.5px var(--color-fm-base)',
+          pointerEvents: 'none',
+        }}
+      />
+    </span>
   );
 }

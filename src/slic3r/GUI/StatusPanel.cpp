@@ -44,6 +44,7 @@
 
 #include "DeviceCore/DevStatus.h"
 
+#include "DeviceWeb/DeviceWebPage.hpp"
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevInfo.h"
@@ -3030,6 +3031,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     Bind(EVT_AMS_REFRESH_RFID, &StatusPanel::on_ams_refresh_rfid, this);
     Bind(EVT_AMS_ON_SELECTED, &StatusPanel::on_ams_selected, this);
     Bind(EVT_AMS_ON_FILAMENT_EDIT, &StatusPanel::on_filament_edit, this);
+    Bind(EVT_AMS_NEW_FILAMENT_HINT, &StatusPanel::on_new_official_filament_hint, this);
     Bind(EVT_VAMS_ON_FILAMENT_EDIT, &StatusPanel::on_ext_spool_edit, this);
     // Bind(EVT_VAMS_ON_FILAMENT_EDIT, &StatusPanel::on_filament_edit, this);
     Bind(EVT_AMS_GUIDE_WIKI, &StatusPanel::on_ams_guide, this);
@@ -5069,6 +5071,86 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
             m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
         } catch (...) {
             ;
+        }
+    }
+}
+
+static nlohmann::json build_ams_tray_batch_create(DevAmsTray* tray,
+                                                   const std::string& ams_id,
+                                                   MachineObject* obj)
+{
+    nlohmann::json spool = nlohmann::json::object();
+    // Mirror normalize_ams_rfid_for_web: official BBL RFID uses uuid
+    if (tray->tag_uid.size() == 16 && tray->tag_uid.substr(12, 2) == "01")
+        spool["tag_uid"] = tray->uuid;
+    spool["setting_id"]    = tray->setting_id;
+    spool["tray_id_name"]  = tray->tray_id_name;
+    std::string color = tray->color;
+    if (!color.empty() && color[0] != '#') color = "#" + color;
+    spool["color_code"]    = color;
+    if (!tray->cols.empty()) spool["colors"] = tray->cols;
+    spool["color_type"]    = static_cast<int>(tray->ctype);
+    spool["material_type"] = tray->m_fila_type;
+    spool["brand"]         = tray->sub_brands;
+    spool["entry_method"]  = "ams_sync";
+    spool["bound_dev_id"]  = obj->get_dev_id();
+    spool["bound_ams_id"]  = ams_id;
+    if (!tray->diameter.empty()) {
+        try { spool["diameter"] = std::stof(tray->diameter); } catch (...) {}
+    }
+    if (!tray->weight.empty()) {
+        try { spool["initial_weight"] = std::stod(tray->weight); } catch (...) {}
+    }
+    nlohmann::json body;
+    body["module"]  = "filament";
+    body["submod"]  = "spool";
+    body["action"]  = "batch_create";
+    body["payload"] = {{"creates", nlohmann::json::array({spool})},
+                       {"updates", nlohmann::json::array()}};
+    return body;
+}
+
+void StatusPanel::on_new_official_filament_hint(wxCommandEvent &event)
+{
+    std::string ams_id  = std::to_string(event.GetInt());
+    std::string slot_id = event.GetString().ToStdString();
+
+    if (!m_new_official_filament_dlg)
+        m_new_official_filament_dlg = new AMSNewOfficialFilamentDlg(this);
+    m_new_official_filament_dlg->SetTrayContext(obj, ams_id, slot_id);
+
+    int rc = m_new_official_filament_dlg->ShowModal();
+    if (rc == wxID_OK) {
+        auto choice = m_new_official_filament_dlg->GetChoice();
+        if (choice == AMSNewOfficialFilamentDlg::Choice::RecordNew ||
+            choice == AMSNewOfficialFilamentDlg::Choice::LinkExisting) {
+            m_ams_control->dismiss_filament_hint(ams_id, slot_id);
+
+            auto* mf = wxGetApp().mainframe;
+            if (mf && mf->web_device() && obj) {
+                DevAmsTray* tray = obj->get_ams_tray(ams_id, slot_id);
+                if (tray) {
+                    if (choice == AMSNewOfficialFilamentDlg::Choice::RecordNew) {
+                        mf->web_device()->DispatchCommand(
+                            build_ams_tray_batch_create(tray, ams_id, obj));
+                    } else {
+                        const std::string old_id =
+                            m_new_official_filament_dlg->GetSelectedLinkSpoolId();
+                        if (!old_id.empty()) {
+                            // Delete the old no-RFID spool
+                            nlohmann::json del_body;
+                            del_body["module"]  = "filament";
+                            del_body["submod"]  = "spool";
+                            del_body["action"]  = "remove";
+                            del_body["payload"] = {{"spool_id", old_id}};
+                            mf->web_device()->DispatchCommand(del_body);
+                            // Re-add with RFID from AMS tray
+                            mf->web_device()->DispatchCommand(
+                                build_ams_tray_batch_create(tray, ams_id, obj));
+                        }
+                    }
+                }
+            }
         }
     }
 }

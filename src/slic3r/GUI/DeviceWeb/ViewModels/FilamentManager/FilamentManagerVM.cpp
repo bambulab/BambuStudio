@@ -396,7 +396,7 @@ nlohmann::json FilamentManagerVM::HandleSpool(const std::string& action, const n
                 FilamentSpool u = *sp;
                 u.status = "empty"; u.remain_percent = 0;
                 u.cloud_synced = false;
-                store->update_spool(u); store->save();
+                store->update_spool(u);
                 sid = u.spool_id;
                 publish_debug_log("data", "info", "Spool marked empty",
                                   "A spool was marked empty in the local store",
@@ -417,7 +417,7 @@ nlohmann::json FilamentManagerVM::HandleSpool(const std::string& action, const n
                 FilamentSpool u = *sp;
                 u.favorite = !u.favorite;
                 u.cloud_synced = false;
-                store->update_spool(u); store->save();
+                store->update_spool(u);
                 sid = u.spool_id;
                 publish_debug_log("data", "info", "Spool favorite toggled",
                                   "A spool favorite flag changed in the local store",
@@ -437,7 +437,7 @@ nlohmann::json FilamentManagerVM::HandleSpool(const std::string& action, const n
                 FilamentSpool u = *sp;
                 u.status = "archived";
                 u.cloud_synced = false;
-                store->update_spool(u); store->save();
+                store->update_spool(u);
                 sid = u.spool_id;
                 publish_debug_log("data", "info", "Spool archived",
                                   "A spool was archived in the local store",
