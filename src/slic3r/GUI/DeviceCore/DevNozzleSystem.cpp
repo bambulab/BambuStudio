@@ -1021,8 +1021,15 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
 
             const auto& njon = it.value();
             nozzle_obj.m_nozzle_id = DevUtil::get_hex_bits(njon["id"].get<int>(), 0);
+            if (DevUtil::get_hex_bits(njon["id"].get<int>(), 1) == 1) {
+                nozzle_obj.SetOnRack(true);
+            }
+
             if (njon.contains("addr_id")) {
                 nozzle_obj.m_addr_id = njon["addr_id"].get<int>();
+                if (hc_bits_opt.has_value()) {
+                    nozzle_obj.m_hc_state = DevUtil::get_flag_bits(hc_bits_opt.value(),  nozzle_obj.m_addr_id.value());
+                }
             }
 
             if (nozzle_exist_bits_opt.has_value()) {
@@ -1082,6 +1089,10 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
             if (njon.contains("sn"))/*maybe not contains*/
             {
                 nozzle_obj.m_sn = njon["sn"].get<std::string>();
+                auto firm_info = system->GetNozzleRack()->GetNozzleFirmwareInfo(nozzle_obj.m_addr_id.value_or(-1));
+                if (!firm_info.sn.empty()) {
+                    nozzle_obj.m_sn = firm_info.sn;
+                }
             }
             if (njon.contains("snow")) {
                 if (DevUtil::get_flag_bits(njon["snow"].get<int>(), 0, 8) != 0xff) {
@@ -1094,13 +1105,6 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
                 }
             }
 
-            if (njon.contains("addr_id")) {
-                nozzle_obj.m_addr_id = njon["addr_id"].get<int>();
-                if (hc_bits_opt.has_value()) {
-                    nozzle_obj.m_hc_state = DevUtil::get_flag_bits(hc_bits_opt.value(),  nozzle_obj.m_addr_id.value());
-                }
-            }
-
             if (njon.contains("bind_ams")) {
                 nozzle_obj.m_bind_ams.clear();
                 auto bind_ams_list = njon["bind_ams"].get<std::vector<int>>();
@@ -1109,10 +1113,6 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
                         nozzle_obj.m_bind_ams.push_back(ams_id);
                     }
                 }
-            }
-
-            if (DevUtil::get_hex_bits(njon["id"].get<int>(), 1) == 1) {
-                nozzle_obj.SetOnRack(true);
             }
 
             // traverse bind ams slot after parse

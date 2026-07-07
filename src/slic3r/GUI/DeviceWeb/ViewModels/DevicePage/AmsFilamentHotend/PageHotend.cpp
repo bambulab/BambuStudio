@@ -15,6 +15,8 @@
 
 #include <algorithm>
 #include <boost/format.hpp>
+#include <iomanip>
+#include <sstream>
 #include <vector>
 #include <wx/sizer.h>
 
@@ -50,6 +52,17 @@ std::string nozzle_flow_short_name(NozzleFlowType flow_type)
     case NozzleFlowType::T_FLOW: return "TF";
     default: return "";
     }
+}
+
+std::string format_nozzle_used_time(int print_time_seconds)
+{
+    const int safe_seconds = std::max(0, print_time_seconds);
+    if (safe_seconds < 3600) return "<1h";
+
+    const double hours = safe_seconds / 3600.0;
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(1) << hours << "h";
+    return oss.str();
 }
 
 bool is_pen_tool(const DevNozzleToolDefs& tool_defs)
@@ -425,7 +438,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         hotend_detail_dialog[SK::hotend_detail_dialog::firmware_version] = firmware.has_value() && !firmware->sw_ver.empty() ? firmware->sw_ver : "--";
         hotend_detail_dialog[SK::hotend_detail_dialog::serial_number] = has_read_detail ? serial_number : "--";
         hotend_detail_dialog[SK::hotend_detail_dialog::used_time_hours] = has_read_detail
-            ? nlohmann::json(std::max(0, rack_nozzle_opt->GetNozzlePrintTime()) / 60)
+            ? nlohmann::json(format_nozzle_used_time(rack_nozzle_opt->GetNozzlePrintTime()))
             : nlohmann::json(nullptr);
         hotend[SK::hotend::current_temp] = is_nozzle_tool ? nlohmann::json(rack_nozzle_opt->GetCurrentTemp()) : nlohmann::json(nullptr);
         hotend[SK::hotend::target_temp] = is_nozzle_tool ? rack_nozzle_opt->GetTargetTemp() : 0;

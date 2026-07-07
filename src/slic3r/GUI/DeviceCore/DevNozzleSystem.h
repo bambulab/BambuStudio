@@ -215,7 +215,7 @@ private:
     std::optional<DevAmsSlotId> m_slot_now;
 
     std::weak_ptr<DevNozzleRack> m_nozzle_rack; // weak pointer to the nozzle rack
-    int m_nozzle_print_time = 0;
+    int m_nozzle_print_time = 0; // seconds
 };
 
 class DevNozzleSystem

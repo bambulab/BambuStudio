@@ -35,8 +35,8 @@ function textOrDash(value?: string | null) {
   return value && value.trim() ? value : '--';
 }
 
-function formatUsedTime(hours?: number | null) {
-  return typeof hours === 'number' && Number.isFinite(hours) ? `${Math.max(0, Math.floor(hours))} h` : '--';
+function formatUsedTime(usedTimeText?: string | null) {
+  return textOrDash(usedTimeText);
 }
 
 function toolImageSrc(imageName?: string | null) {

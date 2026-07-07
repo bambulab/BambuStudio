@@ -66,7 +66,7 @@ export interface HotendDetailDialogInfo {
   nozzle_type?: string;      // detail dialog: diameter + flow + material/type
   firmware_version?: string;
   serial_number?: string;
-  used_time_hours?: number | null;
+  used_time_hours?: string | null;
 }
 
 // Filament card render group (spool disc + labels). Mirrors C++ keys::filament_card.

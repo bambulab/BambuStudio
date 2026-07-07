@@ -137,7 +137,7 @@ const mockDetail = {
   nozzle_type: '0.4mm Standard Hardened',
   firmware_version: '10.10.10.10',
   serial_number: '1234567890',
-  used_time_hours: 2057,
+  used_time_hours: '2057.0h',
 };
 
 const buildHotendDetail = (hotend?: HotendSlotInfo) => {
