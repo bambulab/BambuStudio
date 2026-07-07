@@ -71,6 +71,16 @@ static wxColour mix_colour(const wxColour& left, const wxColour& right, double r
                     mix_channel(left.Alpha(), right.Alpha()));
 }
 
+static bool is_light_colour_for_border(const wxColour& c)
+{
+    return c.Red() > 224 && c.Green() > 224 && c.Blue() > 224;
+}
+
+static bool is_dark_colour_for_border(const wxColour& c)
+{
+    return c.Red() < 45 && c.Green() < 45 && c.Blue() < 45;
+}
+
 static std::vector<ColorPickerPopup::ColorItem> collect_ams_color_items(DevFilaSystem* fila_system)
 {
     std::vector<ColorPickerPopup::ColorItem> items;
@@ -2546,6 +2556,19 @@ void ColorPicker::doRender(wxDC& dc)
         dc.SetPen(wxPen(m_colour));
         dc.SetBrush(wxBrush(m_colour));
         dc.DrawCircle(size.x / 2, size.y / 2, radius);
+
+        if (!m_show_full) {
+            bool is_dark_mode = wxGetApp().dark_mode();
+            if (!is_dark_mode && is_light_colour_for_border(m_colour)) {
+                dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxPENSTYLE_SOLID));
+                dc.SetBrush(*wxTRANSPARENT_BRUSH);
+                dc.DrawCircle(size.x / 2, size.y / 2, radius);
+            } else if (is_dark_mode && is_dark_colour_for_border(m_colour)) {
+                dc.SetPen(wxPen(wxColour(207, 207, 207), 1, wxPENSTYLE_SOLID));
+                dc.SetBrush(*wxTRANSPARENT_BRUSH);
+                dc.DrawCircle(size.x / 2, size.y / 2, radius);
+            }
+        }
     }
 
     draw_state();
