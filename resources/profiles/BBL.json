@@ -2460,6 +2460,158 @@
             "sub_path": "filament/Bambu PETG Basic @BBL X2D 0.8 nozzle.json"
         },
         {
+            "name": "Bambu PETG Matte @base",
+            "sub_path": "filament/Bambu PETG Matte @base.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL A1",
+            "sub_path": "filament/Bambu PETG Matte @BBL A1.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL A1 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL A1 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL A1 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL A1M 0.4 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL A1M 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL A1M 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL A1M 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL A2L 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL A2L 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL A2L 0.4 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL A2L 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL A2L 0.6 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL A2L 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL A2L 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL A2L 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2C",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2C.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2C 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2C 0.4 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2C 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2C 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2D 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2D 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2D 0.6 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2D 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2D 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2D 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2DP 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2DP 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2DP 0.4 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2DP 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2DP 0.6 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2DP 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2DP 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2DP 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2S",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2S.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2S 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2S 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2S 0.6 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2S 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H2S 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H2S 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL P2S 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL P2S 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL P2S 0.4 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL P2S 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL P2S 0.6 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL P2S 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL P2S 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL P2S 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL X1C",
+            "sub_path": "filament/Bambu PETG Matte @BBL X1C.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL X1C 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL X1C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL X2D",
+            "sub_path": "filament/Bambu PETG Matte @BBL X2D.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL X2D 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL X2D 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL X2D 0.4 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL X2D 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL X2D 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL X2D 0.8 nozzle.json"
+        },
+        {
             "name": "Bambu PETG HF @base",
             "sub_path": "filament/Bambu PETG HF @base.json"
         },
