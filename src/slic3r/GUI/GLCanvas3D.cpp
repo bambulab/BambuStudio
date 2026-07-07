@@ -6072,9 +6072,12 @@ void GLCanvas3D::on_kill_focus(wxFocusEvent &evt)
 {
 #ifdef __APPLE__
     // Drop the IME target if it points at this canvas, so the imgui IME-position
-    // callback never dereferences a stale native view handle.
-    if (m_canvas != nullptr && ImGui::GetIO().ImeWindowHandle == m_canvas->GetHandle())
+    // callback never dereferences a stale native view handle. Deactivate the
+    // context first (the per-frame sync stops running once the handle is gone).
+    if (m_canvas != nullptr && ImGui::GetIO().ImeWindowHandle == m_canvas->GetHandle()) {
+        mac_ime_sync_active(m_canvas->GetHandle(), false);
         ImGui::GetIO().ImeWindowHandle = nullptr;
+    }
 #endif
     ImGui::SetWindowFocus(nullptr);
     render();

@@ -32,6 +32,18 @@ void mac_ime_install(void *ns_view, std::function<bool()> is_active);
 // Hooked from imgui's io.ImeSetInputScreenPosFn.
 void mac_ime_set_caret(void *ns_view, int x, int y, int height);
 
+// Keep the view's text input context activated (i.e. the system's *current*
+// input context) for the whole time an imgui text field is focused, and
+// deactivate it otherwise. Call once per frame with want == io.WantTextInput.
+//
+// This is what makes the macOS Chinese/English toggle (Caps Lock, or the IME's
+// internal 中/英 mode) and other modifier-only events reach the field: those
+// events are delivered to the current input context, not through keyDown:, so a
+// context that is only activated transiently during interpretKeyEvents: never
+// receives them (a native text field / browser input keeps its context current
+// while focused, which is why the toggle works there).
+void mac_ime_sync_active(void *ns_view, bool want);
+
 } } // namespace Slic3r::GUI
 
 #endif // __APPLE__

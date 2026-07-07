@@ -560,6 +560,13 @@ void ImGuiWrapper::new_frame()
 
 void ImGuiWrapper::render()
 {
+#ifdef __APPLE__
+    // Keep the focused canvas's IME context current for the whole time a text
+    // field wants input, so the macOS Chinese/English toggle and other
+    // modifier-only events reach it (see MacIME.hpp).
+    if (void *view = ImGui::GetIO().ImeWindowHandle)
+        mac_ime_sync_active(view, ImGui::GetIO().WantTextInput);
+#endif
     ImGui::Render();
     render_draw_data(ImGui::GetDrawData());
     m_new_frame_open = false;

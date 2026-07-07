@@ -39,6 +39,7 @@ char kMarkedTextKey;   // NSString*           : composition string (nil == none)
 char kSelRangeKey;     // NSValue*            : selected range inside marked text
 char kCaretRectKey;    // NSValue*            : caret rect in screen coordinates
 char kInputCtxKey;     // NSTextInputContext* : our own text input context
+char kActivatedKey;    // NSNumber(BOOL)      : is our context currently active?
 
 inline NSString *get_marked(id self)
 {
@@ -62,44 +63,62 @@ inline NSString *string_from(id aString)
     return nil;
 }
 
-// ---- gate ------------------------------------------------------------------
+// ---- context lifetime ------------------------------------------------------
 
-// Return a text input context only while an imgui text field is active, so that
-// outside of text editing the view behaves exactly as before (nil context ==
-// no composition, legacy ASCII path only).
+// Lazily create and own a per-view NSTextInputContext bound to this view.
 //
 // We do NOT defer to [super inputContext]: AppKit decides whether a view is a
 // text-input client when the view is created, and adding NSTextInputClient
 // conformance at runtime afterwards does not flip that decision, so the
 // inherited NSOpenGLView/NSView -inputContext keeps returning nil and no
-// composition session ever starts. Instead we lazily create and own our own
-// NSTextInputContext bound to this view (the standard pattern for custom
-// NSTextInputClient views, e.g. GLFW / the Dear ImGui macOS backend). The
-// context is cached per-view via an associated object so the IME keeps a
-// stable session across keystrokes.
-NSTextInputContext *bbl_inputContext(id self, SEL)
+// composition session ever starts. Owning our own context is the standard
+// pattern for custom NSTextInputClient views (e.g. GLFW / the Dear ImGui macOS
+// backend). It is cached via an associated object so the IME keeps a stable
+// session across keystrokes.
+NSTextInputContext *ensure_ctx(id self)
 {
     NSTextInputContext *ctx = (NSTextInputContext *) objc_getAssociatedObject(self, &kInputCtxKey);
-
-    if (!ime_active()) {
-        // Editing ended (or never started): make sure the IME is not capturing
-        // plain keystrokes over the 3D canvas, then behave like a non-text view.
-        if (ctx)
-            [ctx deactivate];
-        return nil;
-    }
-
     if (ctx == nil) {
         ctx = [[NSTextInputContext alloc] initWithClient:(id<NSTextInputClient>) self];
         // The associated object takes its own +1 retain; release our alloc ref.
         objc_setAssociatedObject(self, &kInputCtxKey, ctx, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         [ctx release];
     }
-    // The canvas is already first responder before editing begins, so AppKit
-    // never activated this lazily-created context for us; do it explicitly so
-    // -[NSTextInputContext handleEvent:] (driven by wx's interpretKeyEvents:)
-    // routes keystrokes into the current input source. activate is idempotent.
-    [ctx activate];
+    return ctx;
+}
+
+// Make our context the system's *current* input context (or drop it), tracking
+// the state so we only call activate/deactivate on an actual transition. Being
+// current is what lets modifier-only events -- notably the Chinese/English
+// toggle (Caps Lock / the IME's 中英 mode) -- reach this field; those are not
+// delivered through keyDown:/interpretKeyEvents:, so activating the context only
+// while handling a keyDown is not enough.
+void set_activated(id self, NSTextInputContext *ctx, bool on)
+{
+    NSNumber *cur = (NSNumber *) objc_getAssociatedObject(self, &kActivatedKey);
+    bool was = cur ? [cur boolValue] : false;
+    if (on == was)
+        return;
+    if (on)
+        [ctx activate];
+    else
+        [ctx deactivate];
+    objc_setAssociatedObject(self, &kActivatedKey, on ? @YES : @NO, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+// ---- gate ------------------------------------------------------------------
+
+// Return a text input context only while an imgui text field is active, so that
+// outside of text editing the view behaves exactly as before (nil context ==
+// no composition, legacy ASCII path only). Activation is owned by
+// mac_ime_sync_active() (called every frame); here we just make sure the
+// context exists and is current for the keyDown -> interpretKeyEvents path.
+NSTextInputContext *bbl_inputContext(id self, SEL)
+{
+    if (!ime_active())
+        return nil;
+    NSTextInputContext *ctx = ensure_ctx(self);
+    set_activated(self, ctx, true);
     return ctx;
 }
 
@@ -291,6 +310,25 @@ void mac_ime_set_caret(void *ns_view, int x, int y, int height)
     NSRect inWin    = [view convertRect:NSMakeRect(px, py, 1.0, h) toView:nil];
     NSRect inScreen = [win convertRectToScreen:inWin];
     objc_setAssociatedObject(view, &kCaretRectKey, [NSValue valueWithRect:inScreen], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+void mac_ime_sync_active(void *ns_view, bool want)
+{
+    if (ns_view == nullptr)
+        return;
+    id self = (id) ns_view;
+    // Only touch views the bridge was actually installed on.
+    if (![self respondsToSelector:@selector(setMarkedText:selectedRange:replacementRange:)])
+        return;
+
+    if (want) {
+        NSTextInputContext *ctx = ensure_ctx(self);
+        set_activated(self, ctx, true);
+    } else {
+        NSTextInputContext *ctx = (NSTextInputContext *) objc_getAssociatedObject(self, &kInputCtxKey);
+        if (ctx)
+            set_activated(self, ctx, false);
+    }
 }
 
 } } // namespace Slic3r::GUI
