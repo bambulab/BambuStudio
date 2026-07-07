@@ -115,6 +115,14 @@ const paginationButtonActive = 'border-fm-border-focus bg-fm-selected text-fm-te
 const tableHeaderCellClass = 'text-left px-6 pt-2 pb-[9px] align-middle text-sm font-normal text-fm-text-strong h-12 sticky top-0 bg-[#141414] [html[data-theme=light]_&]:bg-white z-10 select-none border-b border-fm-border';
 const tableBodyCellClass = 'text-left px-6 pt-2 pb-[9px] border-b border-fm-border align-middle h-[60px]';
 
+// Compare strings: put non-letter initial characters AFTER 'Z'
+function compareFilamentStr(a: string, b: string): number {
+  const aLetter = /^[A-Za-z]/.test(a);
+  const bLetter = /^[A-Za-z]/.test(b);
+  if (aLetter !== bLetter) return aLetter ? -1 : 1;
+  return a.localeCompare(b, undefined, { sensitivity: 'base' });
+}
+
 /* ===== Sort header ===== */
 type SortKey = 'brand' | 'remain_percent';
 // Sort key + direction live in a single state so toggling stays atomic. The
@@ -166,6 +174,15 @@ export function SpoolTable({
     const { key: sortKey, asc: sortAsc } = sort;
     if (!sortKey) return spools;
     return [...spools].sort((a, b) => {
+      if (sortKey === 'brand') {
+        const brandCmp = compareFilamentStr(String(a.brand || ''), String(b.brand || ''));
+        if (brandCmp !== 0) return sortAsc ? brandCmp : -brandCmp;
+        const typeCmp = compareFilamentStr(
+          String(a.series || a.material_type || ''),
+          String(b.series || b.material_type || ''),
+        );
+        return sortAsc ? typeCmp : -typeCmp;
+      }
       const va = (a as any)[sortKey];
       const vb = (b as any)[sortKey];
       if (typeof va === 'number' && typeof vb === 'number') return sortAsc ? va - vb : vb - va;

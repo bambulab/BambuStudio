@@ -9,15 +9,6 @@ export const BAMBU_COLORS = [
   '#66CCCC','#6699FF','#CC99FF','#FFCC99',
 ];
 
-// i18n source strings — localized via en/zh_CN locale files. Previously used
-// placeholder keys ("entry_manual" / "entry_ams_sync" / "entry_rfid") which
-// had no translations, so the raw key leaked through to the UI (F3.1).
-export const ENTRY_METHOD_LABELS: Record<string, string> = {
-  manual: 'Manual Entry',
-  ams_sync: 'AMS Sync',
-  rfid: 'RFID',
-};
-
 export const PAGE_SIZES = [20, 50, 100] as const;
 export const DEFAULT_PAGE_SIZE = 50;
 
