@@ -1,4 +1,6 @@
-#include "DevicePageAmsFilamentHotendVM.hpp"
+#include "ViewModel.hpp"
+#include "ActionHandlerFilament.hpp"
+#include "BuilderFilamentChangeStatus.hpp"
 
 #include "slic3r/GUI/AMSDryControl.hpp"
 #include "slic3r/GUI/AMSMaterialsSetting.hpp"
@@ -16,10 +18,8 @@
 
 #include <algorithm>
 #include <cstdlib>
-#include <map>
 #include <vector>
 #include <boost/format.hpp>
-#include <boost/log/trivial.hpp>
 
 namespace Slic3r { namespace GUI {
 
@@ -57,28 +57,6 @@ const char* dry_status_short_name(Slic3r::DevAms::DryStatus status)
     case Slic3r::DevAms::DryStatus::PrdTesting:                  return "Self test";
     }
     return "Idle";
-}
-
-std::string filament_step_label(DevFilamentStep step)
-{
-    switch (step) {
-    case DevFilamentStep::STEP_IDLE:               return _u8L("Idling...");
-    case DevFilamentStep::STEP_PAUSE:              return _u8L("Pause");
-    case DevFilamentStep::STEP_HEAT_NOZZLE:        return _u8L("Heat the nozzle");
-    case DevFilamentStep::STEP_CUT_FILAMENT:       return _u8L("Cut filament");
-    case DevFilamentStep::STEP_PULL_CURR_FILAMENT: return _u8L("Pull back current filament");
-    case DevFilamentStep::STEP_PUSH_NEW_FILAMENT:  return _u8L("Push new filament into extruder");
-    case DevFilamentStep::STEP_GRAB_NEW_FILAMENT:  return _u8L("Grab new filament");
-    case DevFilamentStep::STEP_PURGE_OLD_FILAMENT: return _u8L("Purge old filament");
-    case DevFilamentStep::STEP_CHECK_POSITION:     return _u8L("Check filament location");
-    case DevFilamentStep::STEP_SWITCH_EXTRUDER:    return _u8L("Switch extruder");
-    case DevFilamentStep::STEP_SWITCH_HOTEND:      return _u8L("Switch hotend");
-    case DevFilamentStep::STEP_AMS_FILA_COOLING:   return _u8L("Wait for AMS cooling");
-    case DevFilamentStep::STEP_PUSH_SWITCHER_FILA: return _u8L("Switch current filament at Filament Track Switch");
-    case DevFilamentStep::STEP_PULL_SWITCHER_FILA: return _u8L("Pull back current filament at Filament Track Switch");
-    case DevFilamentStep::STEP_SWITCHER_SWITCH:    return _u8L("Switch track at Filament Track Switch");
-    }
-    return "";
 }
 
 int addr_id_to_display_idx(int addr_id) { return addr_id + 1; }
@@ -231,178 +209,6 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildAmsUnitJson(MachineObject* ma
     };
 }
 
-std::string DevicePageAmsFilamentHotendVM::ResolveCardState(MachineObject* machine_obj,
-                                                            const DevAmsTray* tray,
-                                                            const std::string& ams_id,
-                                                            const std::string& slot_id,
-                                                            int addr_id) const
-{
-    namespace SV = AmsHotendSchema::values;
-    if (!tray || !tray->is_exists) return SV::card_state::empty;
-    if (machine_obj && tray->is_reading(machine_obj->tray_reading_bits)) return SV::card_state::reading;
-    if (tray->setting_id.empty() || tray->m_fila_type.empty()) return SV::card_state::unknown;
-
-    const bool listed_as_changing = IsSlotInFilamentChangeList(machine_obj, ams_id, slot_id);
-    const bool is_filament_change = IsFilamentChangeActive(machine_obj);
-    if (is_filament_change && listed_as_changing) {
-        const bool loaded_in_extruder = IsSlotLoadedInExtruder(machine_obj, ams_id, slot_id);
-        return loaded_in_extruder ? SV::card_state::unloading : SV::card_state::loading;
-    }
-
-    if (auto nozzle_opt = machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id); nozzle_opt.has_value() && nozzle_opt->HasFilamentInNozzle()) {
-        return SV::card_state::ready_to_use;
-    }
-    return SV::card_state::ready_to_load;
-}
-
-std::string DevicePageAmsFilamentHotendVM::ResolveLineState(const std::string& card_state,
-                                                            bool has_hotend_slot,
-                                                            bool filament_changing,
-                                                            bool listed_as_changing,
-                                                            bool loaded_in_nozzle) const
-{
-    namespace SV = AmsHotendSchema::values;
-    if (!has_hotend_slot) return SV::line_state::no_hotend;
-    if (filament_changing && listed_as_changing) return loaded_in_nozzle ? SV::line_state::unloading : SV::line_state::loading;
-    if (card_state == SV::card_state::loading) return SV::line_state::loading;
-    if (card_state == SV::card_state::unloading) return SV::line_state::unloading;
-    if (card_state == SV::card_state::ready_to_use) return SV::line_state::loaded;
-    if (card_state == SV::card_state::unknown) return loaded_in_nozzle ? SV::line_state::loaded : SV::line_state::no_filament;
-    return SV::line_state::no_filament;
-}
-
-std::string DevicePageAmsFilamentHotendVM::ResolveNozzleState(const std::string& card_state, const std::string& line_state, bool has_tool, bool is_abnormal) const
-{
-    namespace SV = AmsHotendSchema::values;
-    if (!has_tool) return SV::nozzle_state::none;
-    if (is_abnormal || card_state == SV::card_state::error) return SV::nozzle_state::error;
-    if (line_state == SV::line_state::loaded || line_state == SV::line_state::loading || line_state == SV::line_state::unloading) {
-        return SV::nozzle_state::active;
-    }
-    return SV::nozzle_state::normal;
-}
-
-std::string DevicePageAmsFilamentHotendVM::ResolveStatusText(const std::string& card_state) const
-{
-    namespace SV = AmsHotendSchema::values;
-    if (card_state == SV::card_state::reading) return _u8L("Reading");
-    if (card_state == SV::card_state::loading || card_state == SV::card_state::unloading) return _u8L("Loading/Unloading");
-    if (card_state == SV::card_state::ready_to_load) return _u8L("Ready to load");
-    if (card_state == SV::card_state::ready_to_use) return _u8L("Loaded");
-    if (card_state == SV::card_state::empty) return "--";
-    if (card_state == SV::card_state::unknown) return _u8L("Unknown filament");
-    if (card_state == SV::card_state::error) return _u8L("Error");
-    return "";
-}
-
-nlohmann::json DevicePageAmsFilamentHotendVM::BuildFilamentChangeStatus(MachineObject* machine_obj,
-                                                                         const nlohmann::json& running_slot,
-                                                                         const std::string& operation,
-                                                                         const std::string& message) const
-{
-    namespace SK = AmsHotendSchema::keys;
-    namespace SV = AmsHotendSchema::values;
-
-    const bool change_active = IsFilamentChangeActive(machine_obj);
-    // Stopping a filament change is only safe while the machine is idle. Block
-    // it whenever a print job (RUNNING/PAUSE/SLICING/PREPARE) or a calibration
-    // routine is in progress, so the user cannot abort mid print/calibration.
-    const bool can_stop = change_active && machine_obj && !machine_obj->is_in_printing() && !machine_obj->is_in_calibration();
-
-    nlohmann::json status = {
-        {SK::filament_change::active,             change_active},
-        {SK::filament_change::mode,               SV::filament_change_mode::single},
-        {SK::filament_change::operation,          operation.empty() ? std::string(SV::filament_change_operation::unknown) : operation},
-        {SK::filament_change::running_slot,       running_slot},
-        {SK::filament_change::current_step,       nullptr},
-        {SK::filament_change::current_step_name,  ""},
-        {SK::filament_change::steps,              nlohmann::json::array()},
-        {SK::filament_change::step_labels,        nlohmann::json::array()},
-        {SK::filament_change::current_step_index, 0},
-        {SK::filament_change::current_step_total, 0},
-        {SK::filament_change::message,            message},
-        {SK::filament_change::tips,               _u8L("Other filaments are info-only")},
-        {SK::filament_change::can_stop,           can_stop}
-    };
-    if (!machine_obj || !machine_obj->GetFilaSystem()) return status;
-
-    auto fila_system = machine_obj->GetFilaSystem();
-    const auto current_step = fila_system->GetCurrentFilamentChangeStep();
-    if (current_step.has_value()) {
-        status[SK::filament_change::current_step] = static_cast<int>(*current_step);
-        status[SK::filament_change::current_step_name] = filament_step_label(*current_step);
-    }
-
-    const auto steps = fila_system->GetFilamentChangeSteps();
-    int current_index = 0;
-    for (size_t i = 0; i < steps.size(); ++i) {
-        const auto step = steps[i];
-        const std::string label = filament_step_label(step);
-        if (label.empty()) {
-            BOOST_LOG_TRIVIAL(warning) << "Unknown filament change step for web: " << static_cast<int>(step);
-            continue;
-        }
-        status[SK::filament_change::steps].push_back(static_cast<int>(step));
-        status[SK::filament_change::step_labels].push_back(label);
-        if (current_step.has_value() && step == *current_step) {
-            current_index = static_cast<int>(status[SK::filament_change::steps].size());
-        }
-    }
-    status[SK::filament_change::current_step_index] = current_index;
-    status[SK::filament_change::current_step_total] = static_cast<int>(status[SK::filament_change::steps].size());
-
-    const auto& changing_slots = fila_system->GetFilamentChangingSlots();
-    if (changing_slots.size() >= 2) {
-        status[SK::filament_change::mode] = SV::filament_change_mode::batch_running;
-        const std::string running_ams_id = running_slot.is_object() ? running_slot.value(SK::running_slot::ams_id, std::string()) : std::string();
-        const std::string running_slot_id = running_slot.is_object() ? running_slot.value(SK::running_slot::slot_id, std::string()) : std::string();
-
-        nlohmann::json items = nlohmann::json::array();
-        int running_index_1based = 0;
-        std::map<std::pair<int, int>, int> slot_to_display_index;
-        if (machine_obj && machine_obj->GetNozzleRack() && machine_obj->GetNozzleSystem()) {
-            const auto& rack_type = machine_obj->GetNozzleRack()->GetRackType();
-            if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
-                const int rack_count = machine_obj->GetNozzleRack()->GetTotalRackNozzleCount();
-                for (int addr_id = 0; addr_id < rack_count; ++addr_id) {
-                    const auto& rack_nozzle_opt = machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id);
-                    if (!rack_nozzle_opt.has_value()) continue;
-                    const auto& ams_slots = rack_nozzle_opt->GetBindAmsSlots();
-                    if (ams_slots.empty()) continue;
-                    int ams_id = ams_slots[0].first;
-                    int slot_id = ams_slots[0].second;
-                    if (auto fila = machine_obj->GetFilaSystem(); fila && fila->GetVirtualTray(ams_id).has_value()) slot_id = 0;
-                    slot_to_display_index[{ams_id, slot_id}] = addr_id_to_display_idx(addr_id);
-                }
-            }
-        }
-
-        for (size_t i = 0; i < changing_slots.size(); ++i) {
-            const auto& s = changing_slots[i];
-            const std::string ams_str = std::to_string(s.first);
-            const std::string slot_str = std::to_string(s.second);
-            int display_idx = static_cast<int>(i) + 1;
-            if (auto it = slot_to_display_index.find({s.first, s.second}); it != slot_to_display_index.end()) display_idx = it->second;
-            const bool is_running = (!running_ams_id.empty() && ams_str == running_ams_id && !running_slot_id.empty() && slot_str == running_slot_id);
-            const std::string item_state = is_running ? std::string(SV::batch_item_state::running) : std::string(SV::batch_item_state::pending);
-            if (is_running) running_index_1based = static_cast<int>(i) + 1;
-            items.push_back({
-                {SK::batch_progress_item::display_index, display_idx},
-                {SK::batch_progress_item::state,         item_state},
-                {SK::batch_progress_item::reason,        ""}
-            });
-        }
-        status[SK::filament_change::batch_running] = {
-            {SK::batch_progress::operation, operation.empty() ? std::string(SV::filament_change_operation::unknown) : operation},
-            {SK::batch_progress::current,   running_index_1based},
-            {SK::batch_progress::total,     static_cast<int>(changing_slots.size())},
-            {SK::batch_progress::items,     items}
-        };
-    }
-
-    return status;
-}
-
 bool DevicePageAmsFilamentHotendVM::IsSlotLoadedInExtruder(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const
 {
     if (!machine_obj || ams_id.empty() || slot_id.empty()) return false;
@@ -453,11 +259,7 @@ bool DevicePageAmsFilamentHotendVM::IsSlotInFilamentChangeList(MachineObject* ma
 
 bool DevicePageAmsFilamentHotendVM::IsFilamentChangeActive(MachineObject* machine_obj) const
 {
-    if (machine_obj && machine_obj->is_enable_np && machine_obj->GetExtderSystem()->IsBusyLoading()) {
-        return true;
-    }
-
-    return false;
+    return DevicePageFilamentChangeStatusBuilder::IsActive(machine_obj);
 }
 
 static void s_command_unload_filament(MachineObject* obj_, const std::string& ams_id, const std::string& slot_id, int old_temp, int new_temp, std::optional<int> extruder_id)
@@ -490,9 +292,10 @@ static void s_command_unload_filament(MachineObject* obj_, const std::string& am
     }
 }
 
-std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentAction(const std::string& action,
-                                                                                  const nlohmann::json& payload,
-                                                                                  MachineObject* machine_obj)
+std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DevicePageAmsFilamentHotendVM& vm,
+                                                                         const std::string& action,
+                                                                         const nlohmann::json& payload,
+                                                                         MachineObject* machine_obj)
 {
     const std::string ams_id = payload.value("ams_id", "");
     const std::string slot_id = payload.value("slot_id", "");
@@ -511,13 +314,13 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentActio
                     machine_obj->command_ams_refresh_rfid(std::to_string(ams_item->GetTrayId(std::stoi(slot_id))));
                 }
             } catch (const std::exception& e) {
-                return MakeResponse(GetModule(), "action", action, 2, e.what(), BuildState());
+                return vm.MakeResponse(vm.GetModule(), "action", action, 2, e.what(), vm.BuildState());
             }
         }
     } else if (action == "edit" && fila_system && !ams_id.empty() && !slot_id.empty()) {
-        wxGetApp().CallAfter([this, ams_id, slot_id]() {
+        wxGetApp().CallAfter([vm_ptr = &vm, ams_id, slot_id]() {
             open_ams_materials_setting(ams_id, slot_id);
-            ReportState("state", "changed");
+            vm_ptr->ReportState("state", "changed");
         });
     } else if (action == "load" && fila_system && !ams_id.empty() && !slot_id.empty()) {
         try {
@@ -534,7 +337,7 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentActio
             }
             machine_obj->command_ams_change_filament(true, ams_id, slot_id, old_temp, new_temp, 0);
         } catch (const std::exception& e) {
-            return MakeResponse(GetModule(), "action", action, 2, e.what(), BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, e.what(), vm.BuildState());
         }
     } else if (action == "unload" && fila_system && !ams_id.empty() && !slot_id.empty()) {
         try {
@@ -552,7 +355,7 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentActio
 
             s_command_unload_filament(machine_obj, ams_id, slot_id, old_temp, new_temp, 0);
         } catch (const std::exception& e) {
-            return MakeResponse(GetModule(), "action", action, 2, e.what(), BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, e.what(), vm.BuildState());
         }
     } else if (action == "dry") {
         std::string dry_ams_id = ams_id;
@@ -565,7 +368,7 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentActio
             }
         }
         if (dry_ams_id.empty()) {
-            return MakeResponse(GetModule(), "action", action, 2, "No dryable AMS unit found", BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, "No dryable AMS unit found", vm.BuildState());
         }
         wxGetApp().CallAfter([dry_ams_id]() {
             AMSDryCtrWin::RunModal(wxGetApp().mainframe, dry_ams_id);
@@ -575,12 +378,12 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentActio
         // print job or calibration is running, even if a stale Web button or a
         // direct bridge call slips through.
         if (machine_obj->is_in_printing() || machine_obj->is_in_calibration()) {
-            return MakeResponse(GetModule(), "action", action, 3,
-                _u8L("Cannot stop filament change while printing or calibrating"), BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 3,
+                _u8L("Cannot stop filament change while printing or calibrating"), vm.BuildState());
         }
         const int result = machine_obj->command_ams_control("abort");
         if (result != 0) {
-            return MakeResponse(GetModule(), "action", action, 2, "AMS filament change abort failed", BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, "AMS filament change abort failed", vm.BuildState());
         }
     } else if (action == "batch_run") {
         namespace SK = AmsHotendSchema::keys;
@@ -588,7 +391,7 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentActio
         const std::string batch_mode = payload.value("mode", std::string());
         const auto& slots_array = payload.value("slots", nlohmann::json::array());
         if (slots_array.empty()) {
-            return MakeResponse(GetModule(), "action", action, 2, _u8L("No slots selected for batch run"), BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("No slots selected for batch run"), vm.BuildState());
         }
         const bool is_load = (batch_mode == SV::mode::batch_ams_load || batch_mode == SV::mode::batch_ext_load);
         std::vector<std::pair<int, int>> slot_pairs;
@@ -623,7 +426,7 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentActio
             } catch (const std::exception&) {}
         }
         if (slot_pairs.empty()) {
-            return MakeResponse(GetModule(), "action", action, 2, _u8L("All selected slots are invalid"), BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("All selected slots are invalid"), vm.BuildState());
         }
         if (!unknown_slots.empty()) {
             nlohmann::json edit_payload = {
@@ -632,20 +435,20 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentActio
                 {"slots",     unknown_slots},
                 {"run_slots", run_slots}
             };
-            wxGetApp().CallAfter([this, edit_payload]() { OpenBatchFilamentEditDialog(edit_payload); });
-            return MakeResponse(GetModule(), "action", action, 0, "", BuildState());
+            wxGetApp().CallAfter([vm_ptr = &vm, edit_payload]() { vm_ptr->OpenBatchFilamentEditDialog(edit_payload); });
+            return vm.MakeResponse(vm.GetModule(), "action", action, 0, "", vm.BuildState());
         }
         const int rc = machine_obj->command_multi_slot_ams_change_filament(is_load, slot_pairs);
         if (rc != 0) {
-            return MakeResponse(GetModule(), "action", action, 2, _u8L("MQTT publish failed for multi_slot_ams_change_filament"), BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("MQTT publish failed for multi_slot_ams_change_filament"), vm.BuildState());
         }
-        m_active_mode = SV::mode::normal;
-        return MakeResponse(GetModule(), "action", action, 0, "", BuildState());
+        vm.m_active_mode = SV::mode::normal;
+        return vm.MakeResponse(vm.GetModule(), "action", action, 0, "", vm.BuildState());
     } else {
         return std::nullopt;
     }
 
-    return MakeResponse(GetModule(), "action", action, 0, "", BuildState());
+    return vm.MakeResponse(vm.GetModule(), "action", action, 0, "", vm.BuildState());
 }
 
 }} // namespace Slic3r::GUI

@@ -1,5 +1,5 @@
 #include "BatchUnloadModeBuilder.hpp"
-#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageSchema_AmsFilamentHotend.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Schema.hpp"
 #include "slic3r/GUI/I18N.hpp"
 
 namespace Slic3r { namespace GUI {

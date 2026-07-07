@@ -8,7 +8,7 @@
 // `filament_page` block in the BuildState() output.
 //
 // Builders take the VM as a friend reference so they can reuse expensive
-// helpers (BuildSlot, ResolveCardState, IsFilamentChangeActive, ...) without
+// helpers (BuildSlot, IsFilamentChangeActive, ...) without
 // duplicating logic. They MUST NOT mutate VM state.
 
 #include <nlohmann/json.hpp>
@@ -25,7 +25,7 @@ public:
 
     // Build the full `state.filament_page` JSON object for this mode.
     // `prebuilt_normal_page` is the default normal-shape filament_page already
-    // assembled by BuildState() — builders may reuse parts of it (e.g. the
+    // assembled by BuildState() - builders may reuse parts of it (e.g. the
     // shared filament_change_status) or ignore it entirely.
     virtual nlohmann::json BuildFilamentPage(
         const DevicePageAmsFilamentHotendVM& vm,

@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const cardTextSource = readFileSync(new URL('../src/features/device-page/ams-filament-hotend/components/CardText.tsx', import.meta.url), 'utf8');
-const vmHeaderSource = readFileSync(new URL('../../ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM.hpp', import.meta.url), 'utf8');
-const vmSource = readFileSync(new URL('../../ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM.cpp', import.meta.url), 'utf8');
-const hotendPageSource = readFileSync(new URL('../../ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM_HotendPage.cpp', import.meta.url), 'utf8');
-const schemaSource = readFileSync(new URL('../../ViewModels/DevicePage/AmsFilamentHotend/DevicePageSchema_AmsFilamentHotend.hpp', import.meta.url), 'utf8');
+const vmHeaderSource = readFileSync(new URL('../../ViewModels/DevicePage/AmsFilamentHotend/ViewModel.hpp', import.meta.url), 'utf8');
+const vmSource = readFileSync(new URL('../../ViewModels/DevicePage/AmsFilamentHotend/ViewModel.cpp', import.meta.url), 'utf8');
+const hotendPageSource = readFileSync(new URL('../../ViewModels/DevicePage/AmsFilamentHotend/PageHotend.cpp', import.meta.url), 'utf8');
+const schemaSource = readFileSync(new URL('../../ViewModels/DevicePage/AmsFilamentHotend/Schema.hpp', import.meta.url), 'utf8');
 
 assert.match(
   cardTextSource,

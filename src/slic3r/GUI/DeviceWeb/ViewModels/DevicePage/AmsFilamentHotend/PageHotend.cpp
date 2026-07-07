@@ -1,4 +1,6 @@
-#include "DevicePageAmsFilamentHotendVM.hpp"
+#include "ViewModel.hpp"
+#include "ResolverSlotState.hpp"
+#include "ActionHandlerHotend.hpp"
 
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
@@ -314,9 +316,12 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     const bool listed_as_changing = IsSlotInFilamentChangeList(machine_obj, ams_id, tray_id);
     const bool filament_changing = IsFilamentChangeActive(machine_obj);
     const bool loaded_in_nozzle = IsSlotLoadedInNozzle(machine_obj, addr_id, ams_id, tray_id);
-    const std::string card_state = ResolveCardState(machine_obj, tray, ams_id, tray_id, addr_id);
-    const std::string line_state = ResolveLineState(card_state, has_hotend_slot, filament_changing, listed_as_changing, loaded_in_nozzle);
-    const std::string nozzle_state = ResolveNozzleState(card_state, line_state, has_tool, nozzle_abnormal);
+    const bool loaded_in_extruder = IsSlotLoadedInExtruder(machine_obj, ams_id, tray_id);
+    const bool nozzle_has_filament = rack_nozzle_opt.has_value() && rack_nozzle_opt->HasFilamentInNozzle();
+    const bool tray_reading = tray && machine_obj && tray->is_reading(machine_obj->tray_reading_bits);
+    const std::string card_state = DevicePageFilamentSlotStateResolver::ResolveCardState(tray, filament_changing, listed_as_changing, loaded_in_extruder, nozzle_has_filament, tray_reading);
+    const std::string line_state = DevicePageFilamentSlotStateResolver::ResolveLineState(card_state, has_hotend_slot, filament_changing, listed_as_changing, loaded_in_nozzle);
+    const std::string nozzle_state = DevicePageFilamentSlotStateResolver::ResolveNozzleState(card_state, line_state, has_tool, nozzle_abnormal);
 
     nlohmann::json bind_ams = nlohmann::json::array();
     nlohmann::json ams_operation_units = nlohmann::json::array();
@@ -427,7 +432,6 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         hotend[SK::hotend::selected] = is_on_extruder;
     }
 
-    const bool nozzle_has_filament = rack_nozzle_opt.has_value() && rack_nozzle_opt->HasFilamentInNozzle();
     bool is_external_spool = false;
     if (machine_obj && slot_id.has_value()) {
         if (auto fila_system = machine_obj->GetFilaSystem()) is_external_spool = fila_system->GetVirtualTray(slot_id->first).has_value();
@@ -490,7 +494,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {SK::filament_card::type, filament_type},
         {SK::filament_card::remain, filament_remain},
         {SK::filament_card::prefeed_indicator, prefeed_indicator},
-        {SK::filament_card::status_text, ResolveStatusText(card_state)}
+        {SK::filament_card::status_text, DevicePageFilamentSlotStateResolver::ResolveStatusText(card_state)}
     };
 
     const nlohmann::json line_section = {
@@ -544,14 +548,15 @@ bool DevicePageAmsFilamentHotendVM::IsNozzleOnExtruder(MachineObject* machine_ob
     return false;
 }
 
-std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleHotendAction(const std::string& action,
-                                                                                const nlohmann::json& payload,
-                                                                                MachineObject* machine_obj)
+std::optional<nlohmann::json> DevicePageHotendActionHandler::TryHandle(DevicePageAmsFilamentHotendVM& vm,
+                                                                       const std::string& action,
+                                                                       const nlohmann::json& payload,
+                                                                       MachineObject* machine_obj)
 {
     if (action == "hotend_detail") {
         const int display_index = payload.value("display_index", 0);
         if (display_index <= 0) {
-            return MakeResponse(GetModule(), "action", action, 2, _u8L("Invalid hotend display_index"), BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("Invalid hotend display_index"), vm.BuildState());
         }
         const nlohmann::json action_payload = payload;
         wxGetApp().CallAfter([action_payload]() { open_hotend_detail_dialog(action_payload); });
@@ -565,7 +570,7 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleHotendAction(
     } else if (action == "read_hotend") {
         const int display_index = payload.value("display_index", 0);
         if (display_index <= 0) {
-            return MakeResponse(GetModule(), "action", action, 2, _u8L("Invalid hotend display_index"), BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("Invalid hotend display_index"), vm.BuildState());
         }
         wxGetApp().CallAfter([display_index]() {
             auto* dev_mgr = wxGetApp().getDeviceManager();
@@ -576,7 +581,7 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleHotendAction(
     } else if (action == "take_hotend" || action == "place_hotend") {
         const int display_index = payload.value("display_index", 0);
         if (display_index <= 0) {
-            return MakeResponse(GetModule(), "action", action, 2, _u8L("Invalid hotend display_index"), BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("Invalid hotend display_index"), vm.BuildState());
         }
         wxGetApp().CallAfter([display_index, action]() {
             auto* dev_mgr = wxGetApp().getDeviceManager();
@@ -603,24 +608,24 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleHotendAction(
         const int addr_id = payload.value("addr_id", -1);
         const int target_temp = payload.value("target_temp", -1);
         if (addr_id < 0 || target_temp < 0 || target_temp > 350) {
-            return MakeResponse(GetModule(), "action", action, 2, _u8L("Invalid hotend temperature payload"), BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("Invalid hotend temperature payload"), vm.BuildState());
         }
         auto nozzle_system = machine_obj->GetNozzleSystem();
         auto nozzle_rack = nozzle_system ? nozzle_system->GetNozzleRack() : nullptr;
         if (!nozzle_system || !nozzle_rack) {
-            return MakeResponse(GetModule(), "action", action, 2, _u8L("No hotend rack"), BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("No hotend rack"), vm.BuildState());
         }
         const int rack_pos_id = rack_pos_id_from_addr_id(addr_id);
         const auto rack_nozzle = nozzle_system->GetNozzleByPosId(rack_pos_id);
         if (!rack_nozzle.IsExist() || rack_nozzle.IsAbnormal()) {
-            return MakeResponse(GetModule(), "action", action, 2, _u8L("Hotend cannot set temperature"), BuildState());
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("Hotend cannot set temperature"), vm.BuildState());
         }
         nozzle_rack->SetNozzleTargetTemp(rack_pos_id, target_temp);
     } else {
         return std::nullopt;
     }
 
-    return MakeResponse(GetModule(), "action", action, 0, "", BuildState());
+    return vm.MakeResponse(vm.GetModule(), "action", action, 0, "", vm.BuildState());
 }
 
 }} // namespace Slic3r::GUI

@@ -5,7 +5,7 @@
 
 namespace Slic3r { namespace GUI {
 
-// Default mode builder — returns the prebuilt normal-shape filament_page
+// Default mode builder - returns the prebuilt normal-shape filament_page
 // unchanged (just stamps `mode = "normal"`). The heavy lifting still lives in
 // DevicePageAmsFilamentHotendVM::BuildState() until a future refactor moves
 // the normal-shape assembly here too; that change is intentionally deferred

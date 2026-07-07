@@ -1,6 +1,6 @@
 #include "BatchExtLoadModeBuilder.hpp"
-#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM.hpp"
-#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageSchema_AmsFilamentHotend.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ViewModel.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Schema.hpp"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"

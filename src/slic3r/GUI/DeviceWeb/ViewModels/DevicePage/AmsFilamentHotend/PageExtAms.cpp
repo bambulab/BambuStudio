@@ -1,4 +1,5 @@
-#include "DevicePageAmsFilamentHotendVM.hpp"
+#include "ViewModel.hpp"
+#include "ActionHandlerExtAms.hpp"
 
 #include "slic3r/GUI/DeviceWeb/DeviceWebHost.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -302,16 +303,17 @@ nlohmann::json DevicePageAmsFilamentHotendVM::HandleDebug(const std::string& act
     return MakeResponse(GetModule(), "debug", action, 1, "unknown debug action", nlohmann::json::object());
 }
 
-std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleExtAmsAction(const std::string& action,
-                                                                                const nlohmann::json& payload,
-                                                                                MachineObject* /*machine_obj*/)
+std::optional<nlohmann::json> DevicePageExtAmsActionHandler::TryHandle(DevicePageAmsFilamentHotendVM& vm,
+                                                                       const std::string& action,
+                                                                       const nlohmann::json& payload,
+                                                                       MachineObject* /*machine_obj*/)
 {
     if (action == "ams_operation") {
         const nlohmann::json action_payload = payload;
         wxGetApp().CallAfter([action_payload]() { open_ext_ams_operation(action_payload); });
     } else if (action == "batch_filament_edit" || action == "batch_ext_edit") {
         const nlohmann::json action_payload = payload;
-        wxGetApp().CallAfter([this, action_payload]() { OpenBatchFilamentEditDialog(action_payload); });
+        wxGetApp().CallAfter([vm_ptr = &vm, action_payload]() { vm_ptr->OpenBatchFilamentEditDialog(action_payload); });
     } else if (action == "close_dialog") {
         wxGetApp().CallAfter([]() {
             if (auto* dlg = ext_filament_edit_dialog()) {
@@ -323,7 +325,7 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleExtAmsAction(
         return std::nullopt;
     }
 
-    return MakeResponse(GetModule(), "action", action, 0, "", BuildState());
+    return vm.MakeResponse(vm.GetModule(), "action", action, 0, "", vm.BuildState());
 }
 
 }} // namespace Slic3r::GUI

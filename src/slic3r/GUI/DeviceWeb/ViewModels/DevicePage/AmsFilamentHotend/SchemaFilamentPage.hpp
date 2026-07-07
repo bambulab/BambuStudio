@@ -1,7 +1,8 @@
 #ifndef DEVICEPAGESCHEMA_AMSFILAMENTPAGE_HPP
 #define DEVICEPAGESCHEMA_AMSFILAMENTPAGE_HPP
 
-#include "DevicePageSchema_AmsFilamentHotend.hpp"
+#include "Schema.hpp"
+#include "SchemaFilamentChangeStatus.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -18,14 +19,6 @@ struct FilamentActions
     bool        can_dry = true;
     bool        show_ams_settings = false;
     bool        show_auto_refill = false;
-    std::string tips;
-};
-
-struct FilamentChangeStatus
-{
-    bool        active = false;
-    std::string mode = values::filament_change_mode::idle;
-    std::string message;
     std::string tips;
 };
 
@@ -49,17 +42,6 @@ inline void to_json(nlohmann::json& j, const FilamentActions& v)
         {SK::filament_actions::show_ams_settings, v.show_ams_settings},
         {SK::filament_actions::show_auto_refill,  v.show_auto_refill},
         {SK::filament_actions::tips,              v.tips}
-    };
-}
-
-inline void to_json(nlohmann::json& j, const FilamentChangeStatus& v)
-{
-    namespace SK = AmsHotendSchema::keys;
-    j = {
-        {SK::filament_change::active,  v.active},
-        {SK::filament_change::mode,    v.mode},
-        {SK::filament_change::message, v.message},
-        {SK::filament_change::tips,    v.tips}
     };
 }
 

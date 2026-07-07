@@ -1,5 +1,5 @@
 #include "NormalModeBuilder.hpp"
-#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageSchema_AmsFilamentHotend.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Schema.hpp"
 
 namespace Slic3r { namespace GUI {
 

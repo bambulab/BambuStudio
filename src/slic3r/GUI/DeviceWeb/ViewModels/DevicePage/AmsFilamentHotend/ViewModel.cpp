@@ -1,5 +1,9 @@
-#include "DevicePageAmsFilamentHotendVM.hpp"
-#include "DevicePageSchema_AmsFilamentHotend.hpp"
+#include "ViewModel.hpp"
+#include "Schema.hpp"
+#include "ActionHandlerExtAms.hpp"
+#include "ActionHandlerFilament.hpp"
+#include "BuilderFilamentChangeStatus.hpp"
+#include "ActionHandlerHotend.hpp"
 #include "Modes/NormalModeBuilder.hpp"
 #include "Modes/BatchAmsLoadModeBuilder.hpp"
 #include "Modes/BatchExtLoadModeBuilder.hpp"
@@ -199,7 +203,7 @@ void DevicePageAmsFilamentHotendVM::ReportState(const std::string& submod, const
 
 void DevicePageAmsFilamentHotendVM::OnSysColorChanged()
 {
-    // Theme is global UI state â€” it must NOT be routed through
+    // Theme is global UI state â€?it must NOT be routed through
     // ReportState("state", ...) because that path is de-duped against the
     // last BuildState() snapshot; when the device payload is unchanged
     // (e.g. the user just toggled dark mode without touching the AMS) the
@@ -240,13 +244,13 @@ nlohmann::json DevicePageAmsFilamentHotendVM::HandleAction(const std::string& ac
         return MakeResponse(GetModule(), "action", action, 1, _u8L("No selected machine"), BuildState());
     }
 
-    if (auto result = HandleExtAmsAction(action, payload, machine_obj)) {
+    if (auto result = DevicePageExtAmsActionHandler::TryHandle(*this, action, payload, machine_obj)) {
         return *result;
     }
-    if (auto result = HandleHotendAction(action, payload, machine_obj)) {
+    if (auto result = DevicePageHotendActionHandler::TryHandle(*this, action, payload, machine_obj)) {
         return *result;
     }
-    if (auto result = HandleFilamentAction(action, payload, machine_obj)) {
+    if (auto result = DevicePageFilamentActionHandler::TryHandle(*this, action, payload, machine_obj)) {
         return *result;
     }
 
@@ -295,7 +299,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
         fp[SK::filament_page::actions][SK::filament_actions::show_auto_refill]  = has_connected_ams;
         // Per-slot ams_operation.units is the canonical source for AMS-unit
         // detail (the AMS Operation dialog reads from there). The Filament tab
-        // reads dryer chamber data from `ams_dry_zones` instead â€” slots no
+        // reads dryer chamber data from `ams_dry_zones` instead â€?slots no
         // longer carry their own dryer fields.
         //
         // Only zones whose physical layout actually supports drying are
@@ -399,7 +403,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
             const auto& line_section = full_slot.value(SK::filament_slot::filament_line, nlohmann::json::object());
             const std::string line_state = line_section.value(SK::filament_line::state, std::string());
             auto& tips = fp[SK::filament_page::actions][SK::filament_actions::tips];
-            // "Slot N filament loading/unloading in progress" â€” translated on
+            // "Slot N filament loading/unloading in progress" â€?translated on
             // the C++ side so the Web only prints the localized string.
             const std::string change_op = _u8L("loading/unloading");
             if (line_state == SV::line_state::loading) {
@@ -480,7 +484,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
         if (running_change_message.empty()) {
             running_change_message = fp_tips.get<std::string>();
         }
-        fp[SK::filament_page::filament_change_status] = BuildFilamentChangeStatus(machine_obj, running_change_slot, running_change_operation, running_change_message);
+        fp[SK::filament_page::filament_change_status] = DevicePageFilamentChangeStatusBuilder::Build(machine_obj, running_change_slot, running_change_operation, running_change_message);
     }
 
     // Mode dispatch: for non-normal modes, hand the prebuilt normal-shape

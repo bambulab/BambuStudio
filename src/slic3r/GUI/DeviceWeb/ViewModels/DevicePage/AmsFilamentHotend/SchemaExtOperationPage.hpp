@@ -1,7 +1,7 @@
 #ifndef DEVICEPAGESCHEMA_AMSEXTOPERATIONPAGE_HPP
 #define DEVICEPAGESCHEMA_AMSEXTOPERATIONPAGE_HPP
 
-#include "DevicePageSchema_AmsFilamentHotend.hpp"
+#include "Schema.hpp"
 
 #include <nlohmann/json.hpp>
 

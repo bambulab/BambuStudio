@@ -21,7 +21,7 @@ namespace Slic3r { namespace GUI { namespace AmsHotendSchema {
 
 namespace keys {
 
-// Top-level state payload — split per page so each tab/component only sees
+// Top-level state payload - split per page so each tab/component only sees
 // the data it actually renders.
 namespace root {
     inline constexpr const char* filament_page          = "filament_page";
@@ -29,15 +29,15 @@ namespace root {
     inline constexpr const char* ams_ext_operation_page = "ams_ext_operation_page";
 }
 
-// state.filament_page — everything the Filament tab renders.
+// state.filament_page - everything the Filament tab renders.
 //
 // AMS units used to live under `ams.units`, but every consumer now reads the
 // per-slot `hotend_slots[].ams_operation.units` instead, so the top-level
 // units array was dropped. Dryer-chamber state is lifted to
 // `ams_dry_zones` (a flat array of drying-capable zones only) so the
-// Filament tab can map zone → dryer slot without an intermediate object.
+// Filament tab can map zone to dryer slot without an intermediate object.
 //
-// `mode` is the UI mode the payload is targeted at — one of values::mode::*.
+// `mode` is the UI mode the payload is targeted at - one of values::mode::*.
 // Per-mode payload shape is in `design.md` section 7.3: normal mode carries
 // full slot render data (filament_card/line/nozzle), batch modes only the
 // slot identity + select_action.
@@ -49,14 +49,14 @@ namespace filament_page {
     inline constexpr const char* hotend_slots           = "hotend_slots";
 }
 
-// state.hotend_page — Hotend tab only.
+// state.hotend_page - Hotend tab only.
 namespace hotend_page {
     inline constexpr const char* actions            = "actions";
     inline constexpr const char* hotend_rack_status = "hotend_rack_status";
     inline constexpr const char* hotend_slots       = "hotend_slots";
 }
 
-// state.ams_ext_operation_page — data source for the Ext AMS operation dialog.
+// state.ams_ext_operation_page - data source for the Ext AMS operation dialog.
 // It mirrors the visible hotend slots that can open the dialog, but carries the
 // complete AMS-unit payload directly so Web does not need to reconstruct it
 // from slot.bind_ams or URL query fallbacks.
@@ -74,7 +74,7 @@ namespace ams_ext_operation_slot {
     inline constexpr const char* units               = "units";
 }
 
-// state.filament_page.actions — filament tab toolbar.
+// state.filament_page.actions - filament tab toolbar.
 namespace filament_actions {
     inline constexpr const char* can_dry           = "can_dry";
     inline constexpr const char* can_unload        = "can_unload";
@@ -94,7 +94,7 @@ namespace action_state {
     inline constexpr const char* reason  = "reason";
 }
 
-// state.hotend_page.actions — hotend tab toolbar.
+// state.hotend_page.actions - hotend tab toolbar.
 namespace hotend_actions {
     inline constexpr const char* can_read_all_hotends     = "can_read_all_hotends";
     inline constexpr const char* read_all_disabled_reason = "read_all_disabled_reason";
@@ -126,53 +126,7 @@ namespace rack_step {
     inline constexpr const char* state = "state"; // values::rack_step_state
 }
 
-// state.filament_change_status
-namespace filament_change {
-    inline constexpr const char* active             = "active";
-    inline constexpr const char* mode               = "mode";       // "idle" | "single" | "batch_reserved" | "batch_running"
-    inline constexpr const char* operation          = "operation";  // "change" | "unknown"
-    inline constexpr const char* running_slot       = "running_slot";
-    inline constexpr const char* current_step       = "current_step";
-    inline constexpr const char* current_step_name  = "current_step_name";
-    inline constexpr const char* steps              = "steps";
-    inline constexpr const char* step_labels        = "step_labels";
-    inline constexpr const char* current_step_index = "current_step_index";
-    inline constexpr const char* current_step_total = "current_step_total";
-    inline constexpr const char* message            = "message";
-    inline constexpr const char* tips               = "tips";
-    // Whether the user is allowed to abort the running filament change. Only
-    // true while the panel is active AND the printer is neither printing nor
-    // calibrating; Web binds the Stop button's disabled state to it.
-    inline constexpr const char* can_stop           = "can_stop";
-    // Per-slot batch progress info (mode == "batch_running"). Same shape as
-    // the pre-run `batch_reserved` payload — Web reuses the same item list
-    // type but renders a horizontal step strip instead of the reservation
-    // pills. See `batch_progress` below for the field names.
-    inline constexpr const char* batch_running      = "batch_running";
-}
-
-// state.filament_change_status.batch_running (and batch_reserved) shape.
-// `current` is the 1-based index of the slot currently being processed,
-// `total` mirrors items.size().
-namespace batch_progress {
-    inline constexpr const char* operation = "operation";
-    inline constexpr const char* current   = "current";
-    inline constexpr const char* total     = "total";
-    inline constexpr const char* items     = "items";
-}
-
-// state.filament_change_status.batch_running.items[] entry.
-// `state` enumerates the per-slot completion status. Until the firmware
-// `cfs2[]` push is wired in, the C++ producer only emits `running` for the
-// single active slot and `pending` for the rest; future firmware integration
-// will fill in `done` / `failed`.
-namespace batch_progress_item {
-    inline constexpr const char* display_index = "display_index";
-    inline constexpr const char* state         = "state";
-    inline constexpr const char* reason        = "reason";
-}
-
-// state.filament_page.hotend_slots[] — what the Filament tab renders for a slot.
+// state.filament_page.hotend_slots[] - what the Filament tab renders for a slot.
 //
 // NOTE: `is_on_extruder` and `hotend` are not part of the Filament tab API; the
 // BuildSlot helper still emits them in its full-slot object so that BuildState
@@ -211,7 +165,7 @@ namespace filament_slot {
     inline constexpr const char* hotend_detail_dialog = "hotend_detail_dialog";
 }
 
-// state.hotend_page.hotend_slots[] — Hotend tab cards only.
+// state.hotend_page.hotend_slots[] - Hotend tab cards only.
 namespace hotend_slot {
     inline constexpr const char* addr_id       = "addr_id";
     inline constexpr const char* display_index = "display_index";
@@ -226,7 +180,7 @@ namespace hotend_slot {
     inline constexpr const char* hotend_detail_dialog = "hotend_detail_dialog";
 }
 
-// slot.filament_card — everything the spool card needs to render.
+// slot.filament_card - everything the spool card needs to render.
 namespace filament_card {
     inline constexpr const char* state         = "state";          // values::card_state
     inline constexpr const char* color         = "color";
@@ -240,7 +194,7 @@ namespace filament_card {
     inline constexpr const char* status_text   = "status_text";
 }
 
-// slot.filament_card.prefeed_indicator — top-right color marker for AMS
+// slot.filament_card.prefeed_indicator - top-right color marker for AMS
 // pre-feed while the hotend card itself is currently sourced from Ext.
 namespace prefeed_indicator {
     inline constexpr const char* visible    = "visible";
@@ -248,7 +202,7 @@ namespace prefeed_indicator {
     inline constexpr const char* color_type = "color_type";
 }
 
-// slot.filament_line — feed-line state from the spool to the hotend.
+// slot.filament_line - feed-line state from the spool to the hotend.
 namespace filament_line {
     inline constexpr const char* state          = "state";          // values::line_state
     inline constexpr const char* has_filament   = "has_filament";
@@ -258,7 +212,7 @@ namespace filament_line {
     inline constexpr const char* filament_color = "filament_color";
 }
 
-// slot.filament_nozzle — what the nozzle component needs to render.
+// slot.filament_nozzle - what the nozzle component needs to render.
 namespace filament_nozzle {
     inline constexpr const char* state          = "state";          // values::nozzle_state
     inline constexpr const char* has_filament   = "has_filament";
@@ -273,7 +227,7 @@ namespace filament_nozzle {
     inline constexpr const char* tool_kind       = "tool_kind";
 }
 
-// slot.select_action — per-mode selection eligibility (batch modes only).
+// slot.select_action - per-mode selection eligibility (batch modes only).
 // Single object per slot (not a per-mode matrix); the active mode is carried
 // by `filament_page.mode`. `ext_label` is true for slots that should show the
 // "EXT" badge on the card head (only meaningful in `batch_ext_load`).
@@ -348,7 +302,7 @@ namespace tray_actions {
     inline constexpr const char* can_read   = "can_read";
 }
 
-// state.filament_page.ams_dry_zones[] — drives the DryerChamber decoration.
+// state.filament_page.ams_dry_zones[] - drives the DryerChamber decoration.
 //
 // Only zones whose physical layout actually supports drying are emitted
 // here (today `DevAms::Zone::SupportDrying()` == `zone_slots.size() == 2`).
@@ -386,7 +340,7 @@ namespace hotend {
     inline constexpr const char* selected       = "selected";
 }
 
-// slot.hotend_detail_dialog — data used only by the hotend detail modal.
+// slot.hotend_detail_dialog - data used only by the hotend detail modal.
 namespace hotend_detail_dialog {
     inline constexpr const char* filament_name  = "filament_name";
     inline constexpr const char* filament_color = "filament_color";
@@ -399,52 +353,21 @@ namespace hotend_detail_dialog {
     inline constexpr const char* used_time_hours = "used_time_hours";
 }
 
-// state.filament_change_status.running_slot
-namespace running_slot {
-    inline constexpr const char* ams_id        = "ams_id";
-    inline constexpr const char* slot_id       = "slot_id";
-    inline constexpr const char* display_index = "display_index";
-}
-
 } // namespace keys
 
 namespace values {
 
-// NOTE: value candidates for the Hotend-page fields (rack_mode / rack_operation
-// / rack_state / rack_step_state / tool_kind / hotend_op_state) live next to the
-// hotend page format structs in DevicePageSchema_AmsHotendPage.hpp.
-
-namespace filament_change_mode {
-    inline constexpr const char* idle           = "idle";
-    inline constexpr const char* single         = "single";
-    inline constexpr const char* batch_reserved = "batch_reserved";
-    inline constexpr const char* batch_running  = "batch_running";
-}
-
-// values for batch_progress_item::state
-namespace batch_item_state {
-    inline constexpr const char* pending = "pending";
-    inline constexpr const char* running = "running";
-    inline constexpr const char* success = "success";
-    inline constexpr const char* failed  = "failed";
-}
-
-// values for filament_page::mode — the four UI modes the page can render.
-//   * normal           — default page (IDLE or single-slot 进/退料中)
-//   * batch_ams_load   — entered by clicking the toolbar Auto Load button
-//   * batch_ext_load   — entered by clicking the toolbar Load External Spool
-//   * batch_unload     — entered by clicking the toolbar Unload button
-// `Dry` is not a mode — it opens AMSDryCtrWin directly as a single-step dialog.
+// values for filament_page::mode - the four UI modes the page can render.
+//   * normal           - default page (IDLE or single-slot filament change running)
+//   * batch_ams_load   - entered by clicking the toolbar Auto Load button
+//   * batch_ext_load   - entered by clicking the toolbar Load External Spool
+//   * batch_unload     - entered by clicking the toolbar Unload button
+// `Dry` is not a mode - it opens AMSDryCtrWin directly as a single-step dialog.
 namespace mode {
     inline constexpr const char* normal         = "normal";
     inline constexpr const char* batch_ams_load = "batch_ams_load";
     inline constexpr const char* batch_ext_load = "batch_ext_load";
     inline constexpr const char* batch_unload   = "batch_unload";
-}
-
-namespace filament_change_operation {
-    inline constexpr const char* change  = "change";
-    inline constexpr const char* unknown = "unknown";
 }
 
 namespace card_state {
@@ -481,13 +404,68 @@ namespace tray_state {
     inline constexpr const char* error   = "error";
 }
 
+namespace rack_mode {
+    inline constexpr const char* idle   = "idle";
+    inline constexpr const char* single = "single";
+    inline constexpr const char* all    = "all";
+}
+
+namespace rack_operation {
+    inline constexpr const char* idle        = "idle";
+    inline constexpr const char* take        = "take";
+    inline constexpr const char* place       = "place";
+    inline constexpr const char* exchange    = "exchange";
+    inline constexpr const char* read_all    = "read_all";
+    inline constexpr const char* read_single = "read_single";
+    inline constexpr const char* move        = "move";
+}
+
+namespace rack_state {
+    inline constexpr const char* idle    = "idle";
+    inline constexpr const char* running = "running";
+    inline constexpr const char* failed  = "failed";
+}
+
+namespace rack_step_state {
+    inline constexpr const char* done    = "done";
+    inline constexpr const char* active  = "active";
+    inline constexpr const char* pending = "pending";
+    inline constexpr const char* failed  = "failed";
+}
+
+namespace tool_kind {
+    inline constexpr const char* nozzle  = "nozzle";
+    inline constexpr const char* cutter  = "cutter";
+    inline constexpr const char* laser   = "laser";
+    inline constexpr const char* fan     = "fan";
+    inline constexpr const char* pen     = "pen";
+    inline constexpr const char* unknown = "unknown";
+    inline constexpr const char* empty   = "empty";
+}
+
+namespace hotend_op_state {
+    inline constexpr const char* idle     = "Idle";
+    inline constexpr const char* heating  = "Heating";
+    inline constexpr const char* cooling  = "Cooling";
+    inline constexpr const char* reading  = "Reading";
+    inline constexpr const char* taking   = "Taking";
+    inline constexpr const char* placing  = "Placing";
+    inline constexpr const char* removing = "Removing";
+    inline constexpr const char* error    = "Error";
+    inline constexpr const char* lost_in_holder  = "Lost";
+    // Tool present but its nozzle type is unknown (not yet read): card shows a
+    // "?" badge, still displays temperature, and mutes the label to "--".
+    inline constexpr const char* unknown  = "Unknown";
+}
+
 } // namespace values
 
 }}} // namespace Slic3r::GUI::AmsHotendSchema
 
-#include "DevicePageSchema_AmsFilamentPage.hpp"
-#include "DevicePageSchema_AmsHotendPage.hpp"
-#include "DevicePageSchema_AmsExtOperationPage.hpp"
+#include "SchemaFilamentChangeStatus.hpp"
+#include "SchemaFilamentPage.hpp"
+#include "SchemaHotendPage.hpp"
+#include "SchemaExtOperationPage.hpp"
 
 namespace Slic3r { namespace GUI { namespace AmsHotendSchema { namespace format {
 

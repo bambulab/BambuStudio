@@ -16,7 +16,7 @@
 #include "DeviceWebBridge.hpp"
 #include "DeviceWebManager.hpp"
 #include "ViewModels/FilamentManager/FilamentManagerVM.hpp"
-#include "ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM.hpp"
+#include "ViewModels/DevicePage/AmsFilamentHotend/ViewModel.hpp"
 #include "ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.hpp"
 #include "slic3r/GUI/PrinterWebView.hpp"
 #include "slic3r/GUI/Widgets/WebViewWatcher.hpp"
