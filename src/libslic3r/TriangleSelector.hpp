@@ -5,6 +5,7 @@
 
 
 #include <cfloat>
+#include <functional>
 #include "Point.hpp"
 #include "TriangleMesh.hpp"
 #include "libslic3r/Model.hpp"
@@ -264,6 +265,22 @@ public:
     // Set facet of the mesh to a given state. Only works for original triangles.
     void set_facet(int facet_idx, EnforcerBlockerType state);
 
+    // Sample the painted state at a point that lies on original facet `facet_idx`,
+    // walking the subdivision tree down to the leaf that contains the point. Returns
+    // NONE if the facet is out of range or the point maps to no leaf. Full resolution
+    // (does NOT flatten sub-face paint), used to transfer paint across mesh rebuilds.
+    EnforcerBlockerType state_at(const Vec3f &hit, int facet_idx) const;
+
+    // Build a subdivided painting by sampling `sampler(point)` (point in this mesh's
+    // local coordinates) across every face, subdividing ONLY where the sampled state
+    // varies, down to `edge_limit`. Clears any existing paint first. This lets a coarse
+    // boolean-result mesh carry fine per-triangle paint without bloating uniform areas.
+    // `progress(done, total)`, if set, is called periodically over the original faces so a
+    // caller can drive a progress bar (and keep the UI thread's message queue serviced).
+    // If it returns false the sampling stops early (leaving remaining faces unpainted).
+    void paint_by_sampler(const std::function<EnforcerBlockerType(const Vec3f &)> &sampler, float edge_limit,
+                          const std::function<bool(int, int)> &progress = {});
+
     // Clear everything and make the tree empty.
     void reset();
 
@@ -391,6 +408,11 @@ protected:
 private:
     bool select_triangle(int facet_idx, EnforcerBlockerType type, bool triangle_splitting);
     bool select_triangle_recursive(int facet_idx, const Vec3i &neighbors, EnforcerBlockerType type, bool triangle_splitting);
+    // Recursive worker for paint_by_sampler(): subdivide facet where the sampler's
+    // state varies across it, then assign leaf states. `depth` bounds the recursion.
+    void paint_triangle_by_sampler(int facet_idx, const Vec3i &neighbors,
+                                   const std::function<EnforcerBlockerType(const Vec3f &)> &sampler,
+                                   int depth);
     void undivide_triangle(int facet_idx);
     void split_triangle(int facet_idx, const Vec3i &neighbors);
     void remove_useless_children(int facet_idx); // No hidden meaning. Triangles are meant.

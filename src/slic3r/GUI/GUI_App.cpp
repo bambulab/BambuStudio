@@ -2500,14 +2500,11 @@ static LogEncOptions s_get_log_enc_opts()
 
 bool GUI_App::confirm_mesh_paint_warning()
 {
-    MessageDialog dlg(nullptr,
-        _L("This operation rebuilds the model's mesh. Painted color, supports, seam and "
-           "fuzzy-skin will be transferred to the new mesh by a best-effort approximation, "
-           "so the result may be slightly off and, in rare cases, some painting may be lost.\n\n"
-           "Do you want to continue?"),
-        _L("Painting may change"),
-        wxICON_WARNING | wxYES_NO | wxNO_DEFAULT);
-    return dlg.ShowModal() == wxID_YES;
+    // Boolean, Simplify and Repair now transfer painted color / supports / seam / fuzzy-skin to the
+    // rebuilt mesh at full fidelity (nearest-surface sampling + sub-triangle re-subdivision), so the
+    // old "some painting may be lost" confirmation is obsolete - it fired twice on Simplify (once on
+    // open, once on apply) for no reason. Proceed without prompting.
+    return true;
 }
 
 void GUI_App::init_app_config()

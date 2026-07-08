@@ -1,6 +1,13 @@
 #include "TriangleSelector.hpp"
 #include "Model.hpp"
 
+#include <algorithm>
+#include <atomic>
+#include <cmath>
+#include <functional>
+#include <thread>
+#include <tbb/parallel_for.h>
+#include <tbb/blocked_range.h>
 #include <boost/container/small_vector.hpp>
 #include <boost/log/trivial.hpp>
 
@@ -993,6 +1000,154 @@ void TriangleSelector::set_facet(int facet_idx, EnforcerBlockerType state)
     m_triangles[facet_idx].set_state(state);
 }
 
+EnforcerBlockerType TriangleSelector::state_at(const Vec3f &hit, int facet_idx) const
+{
+    if (facet_idx < 0 || facet_idx >= m_orig_size_indices)
+        return EnforcerBlockerType::NONE;
+    const int leaf = this->select_unsplit_triangle(hit, facet_idx);
+    if (leaf < 0 || leaf >= int(m_triangles.size()) || !m_triangles[leaf].valid() || m_triangles[leaf].is_split())
+        return EnforcerBlockerType::NONE;
+    return m_triangles[leaf].get_state();
+}
+
+void TriangleSelector::paint_by_sampler(const std::function<EnforcerBlockerType(const Vec3f &)> &sampler, float edge_limit,
+                                        const std::function<bool(int, int)> &progress)
+{
+    this->reset();
+    this->set_edge_limit(edge_limit);
+    const int n = m_orig_size_indices;
+    if (n <= 0) { if (progress) progress(0, 0); return; }
+
+    // Parallel: each original face's subdivision is independent (the sampler only READS the
+    // source), so split the faces into chunks and paint each chunk on its OWN TriangleSelector.
+    // serialize() only emits data for split/painted faces, so a chunk's serialization contains
+    // just that chunk's faces -> the results merge by simple concatenation (adjusting bit
+    // offsets). Building N base trees is cheap; the AABB sampling is the cost, and it scales
+    // across cores. (Minor: adjacent chunks don't share edge midpoints, leaving benign coplanar
+    // T-junctions that don't affect the print.)
+    int hw = int(std::thread::hardware_concurrency());
+    if (hw <= 0) hw = 4;
+    const int num_chunks = std::clamp(hw * 2, 1, n);
+
+    using SerData = std::pair<std::vector<std::pair<int, int>>, std::vector<bool>>;
+    std::vector<SerData> parts(num_chunks);
+
+    // Per-chunk progress. NOTE: `progress` is invoked concurrently from worker threads here,
+    // so the caller's callback must be thread-safe (the boolean caller sets atomics).
+    std::atomic<int>  done_faces{0};
+    std::atomic<bool> cancelled{false};
+    tbb::parallel_for(tbb::blocked_range<int>(0, num_chunks), [&](const tbb::blocked_range<int> &r) {
+        for (int c = r.begin(); c < r.end(); ++c) {
+            if (cancelled.load(std::memory_order_relaxed))
+                continue;
+            const int lo = int(int64_t(c)     * n / num_chunks);
+            const int hi = int(int64_t(c + 1) * n / num_chunks);
+            TriangleSelector local(m_mesh, edge_limit);
+            local.set_edge_limit(edge_limit);
+            for (int i = lo; i < hi; ++i) {
+                if (!local.m_triangles[i].valid())
+                    continue;
+                local.paint_triangle_by_sampler(i, local.m_neighbors[i], sampler, 0);
+                local.remove_useless_children(i);
+            }
+            parts[c] = local.serialize();
+            const int d = done_faces.fetch_add(hi - lo) + (hi - lo);
+            if (progress && !progress(d, n))
+                cancelled.store(true, std::memory_order_relaxed);
+        }
+    });
+
+    // Concatenate the disjoint per-chunk serializations, fixing up bit offsets, then rebuild
+    // this selector from the merged stream.
+    SerData merged;
+    size_t bits = 0, entries = 0;
+    for (const auto &p : parts) { bits += p.second.size(); entries += p.first.size(); }
+    merged.first.reserve(entries);
+    merged.second.reserve(bits);
+    for (const auto &p : parts) {
+        const int base = int(merged.second.size());
+        for (const auto &e : p.first)
+            merged.first.emplace_back(e.first, e.second + base);
+        merged.second.insert(merged.second.end(), p.second.begin(), p.second.end());
+    }
+    this->deserialize(merged, /*needs_reset=*/true);
+
+    if (progress) progress(n, n);
+}
+
+void TriangleSelector::paint_triangle_by_sampler(int facet_idx, const Vec3i &neighbors,
+                                                 const std::function<EnforcerBlockerType(const Vec3f &)> &sampler,
+                                                 int depth)
+{
+    // Hard cap on subdivision depth. log2(largest_edge / edge_limit) is well under this
+    // for any real mesh; the cap only guards against a pathological (e.g. sliver) triangle
+    // that never reaches the edge limit, which would otherwise overflow the stack.
+    static const int MAX_DEPTH = 14;
+    if (facet_idx < 0 || facet_idx >= int(m_triangles.size()))
+        return;
+    Triangle *tr = &m_triangles[facet_idx];
+    if (!tr->valid())
+        return;
+
+    const Vec3f a = m_vertices[tr->verts_idxs[0]].v;
+    const Vec3f b = m_vertices[tr->verts_idxs[1]].v;
+    const Vec3f c = m_vertices[tr->verts_idxs[2]].v;
+    const float max_edge2  = std::max({(a - b).squaredNorm(), (b - c).squaredNorm(), (c - a).squaredNorm()});
+    const float edge_limit = std::sqrt(m_edge_limit_sqr);
+    const bool  can_split  = max_edge2 > m_edge_limit_sqr && depth < MAX_DEPTH;
+    const Vec3f centroid   = (a + b + c) * (1.f / 3.f);
+
+    // Fast path: a triangle we can't (or won't) subdivide is small enough that a single
+    // centroid sample represents it. At a fine edge limit the finest triangles vastly dominate
+    // the count, so sampling them ONCE (instead of on a full grid) is the main cost saver.
+    if (!can_split) {
+        this->undivide_triangle(facet_idx);
+        m_triangles[facet_idx].set_state(sampler(centroid));
+        return;
+    }
+
+    // Splittable: sample a detection grid (spacing ~= edge_limit) and bail on the FIRST colour
+    // change - one mismatch is enough to know we must subdivide.
+    const int res = std::clamp(int(std::ceil(std::sqrt(max_edge2) / std::max(edge_limit, 1e-3f))), 2, 24);
+    auto point_at = [&](int u, int v) {
+        const float bu = float(u) / float(res), bv = float(v) / float(res);
+        return bu * a + bv * b + (1.f - bu - bv) * c;
+    };
+    bool have_first = false, uniform = true;
+    EnforcerBlockerType first = EnforcerBlockerType::NONE;
+    for (int u = 0; u <= res && uniform; ++u)
+        for (int v = 0; u + v <= res; ++v) {
+            const EnforcerBlockerType s = sampler(point_at(u, v));
+            if (!have_first) { first = s; have_first = true; }
+            else if (s != first) { uniform = false; break; }
+        }
+
+    // Uniform across the whole (still large) triangle: assign one colour, no subdivision.
+    if (uniform) {
+        this->undivide_triangle(facet_idx);
+        m_triangles[facet_idx].set_state(first);
+        return;
+    }
+
+    // Mixed: subdivide and recurse into the children.
+    if (!tr->is_split())
+        this->split_triangle(facet_idx, neighbors);
+    tr = &m_triangles[facet_idx]; // split_triangle may have reallocated m_triangles
+    // split_triangle() can DECLINE (degenerate/sliver): the triangle stays a leaf with
+    // uninitialized children[] - recursing would read garbage and crash. Only recurse when it
+    // actually split; otherwise assign it as a leaf from the centroid.
+    if (tr->is_split()) {
+        const int num_children = tr->number_of_split_sides() + 1;
+        for (int i = 0; i < num_children; ++i) {
+            this->paint_triangle_by_sampler(tr->children[i], this->child_neighbors(*tr, neighbors, i), sampler, depth + 1);
+            tr = &m_triangles[facet_idx];
+        }
+        return;
+    }
+    this->undivide_triangle(facet_idx);
+    m_triangles[facet_idx].set_state(sampler(centroid));
+}
+
 // called by select_patch()->select_triangle()...select_triangle()
 // to decide which sides of the triangle to split and to actually split it calling set_division() and perform_split().
 void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
@@ -1016,9 +1171,10 @@ void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
                                              &m_vertices[facet[2]].v};
     std::array<stl_vertex, 3> pts_transformed; // must stay in scope of pts !!!
 
-    // In case the object is non-uniformly scaled, transform the
-    // points to world coords.
-    if (! m_cursor->uniform_scaling) {
+    // In case the object is non-uniformly scaled, transform the points to world coords.
+    // paint_by_sampler() drives splits without a brush cursor (m_cursor is null) and works
+    // directly in the mesh's local frame, so skip the world transform when there is no cursor.
+    if (m_cursor && ! m_cursor->uniform_scaling) {
         for (size_t i=0; i<pts.size(); ++i) {
             pts_transformed[i] = m_cursor->trafo * (*pts[i]);
             pts[i] = &pts_transformed[i];

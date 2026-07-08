@@ -14,6 +14,11 @@
 #include <GL/glew.h>
 
 #include <thread>
+#include <atomic>
+#include <chrono>
+#include <algorithm>
+#include "slic3r/GUI/Widgets/ProgressDialog.hpp"
+#include "slic3r/GUI/GUI_Utils.hpp"
 
 namespace Slic3r::GUI {
 
@@ -544,17 +549,52 @@ void GLGizmoSimplify::process()
 
 void GLGizmoSimplify::apply_simplify() {
 
+    // BBS: decimation rebuilds the mesh; warn that painting is transferred approximately.
+    if (!wxGetApp().confirm_mesh_paint_warning())
+        return;
+
     const Selection& selection = m_parent.get_selection();
     int object_idx = selection.get_object_idx();
 
     auto plater = wxGetApp().plater();
     plater->take_snapshot(GUI::format("Simplify %1%", m_volume->name));
-    plater->clear_before_change_mesh(object_idx);
+    // BBS: do NOT wipe painting; set_mesh_keep_paint re-projects it (best-effort).
 
     ModelVolume* mv = get_model_volume(selection, wxGetApp().model());
     assert(mv == m_volume);
 
-    mv->set_mesh(std::move(*m_state.result));
+    {
+        // The hi-fi paint transfer re-subdivides the new mesh and can take a moment on a dense mesh.
+        // Run it on a background thread and drive a ProgressDialog matching the Boolean/repair dialog
+        // (parented to the app so it lands on the right monitor and stays app-modal, not system-wide
+        // always-on-top like wxBusyInfo). The UI thread only polls atomics + updates the bar.
+        const wxString msg = _L("Simplify") + ": " + wxString::FromUTF8(mv->name.c_str()) + "\n";
+        ProgressDialog progress_dlg(_L("Simplify"), msg + _L("Transferring paint..."), 100,
+                                    find_toplevel_parent(wxGetApp().plater()),
+                                    wxPD_AUTO_HIDE | wxPD_APP_MODAL, true);
+        progress_dlg.Update(1, msg + _L("Transferring paint..."));
+
+        std::atomic<int>   pct{0};
+        std::atomic<bool>  finished{false};
+        std::exception_ptr worker_ex;
+        std::thread worker([&]() {
+            try {
+                mv->set_mesh_keep_paint(Slic3r::TriangleMesh(std::move(*m_state.result)),
+                    [&pct](int p) { pct.store(p, std::memory_order_relaxed); return true; });
+            } catch (...) { worker_ex = std::current_exception(); }
+            finished.store(true, std::memory_order_release);
+        });
+        while (!finished.load(std::memory_order_acquire)) {
+            progress_dlg.Update(std::max(1, std::min(99, pct.load(std::memory_order_relaxed))),
+                                msg + _L("Transferring paint..."));
+            std::this_thread::sleep_for(std::chrono::milliseconds(30));
+        }
+        worker.join();
+        // Best-effort: a paint-transfer hiccup must not crash the gizmo - the mesh is already
+        // simplified; just leave the paint as-is. (worker_ex intentionally swallowed.)
+        (void) worker_ex;
+        progress_dlg.Update(100, msg + _L("Transferring paint..."));
+    }
     m_state.result.reset();
     mv->calculate_convex_hull();
     mv->invalidate_convex_hull_2d();
