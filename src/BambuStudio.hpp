@@ -129,6 +129,7 @@ private:
     std::vector<std::string>    m_input_files;
     std::vector<std::string>    m_actions;
     std::vector<std::string>    m_transforms;
+    std::vector<std::string>    m_cli_option_order;
     std::vector<Model>          m_models;
 
     bool setup(int argc, char **argv);

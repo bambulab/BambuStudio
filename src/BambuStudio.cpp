@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <string>
 #include <cstring>
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <math.h>
@@ -80,6 +81,7 @@ using namespace nlohmann;
 //#include "BaseException.h"
 #endif
 #include "slic3r/GUI/PartPlate.hpp"
+#include "slic3r/GUI/PositionConfigImport.hpp"
 #include "slic3r/GUI/BitmapCache.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
@@ -1871,7 +1873,7 @@ int CLI::run(int argc, char **argv)
     std::vector<plate_obj_size_info_t> plate_obj_size_infos;
     //int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0, current_extruder_count = 1, new_extruder_count = 1, current_printer_variant_count = 1, current_print_variant_count = 1, new_printer_variant_count = 1;
-    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false, has_support = false, estimate_mode = false, check_preset = false;
+    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false, has_support = false, estimate_mode = false, check_preset = false, imported_positions = false;
     bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false, allow_mix_temp = false, enable_wrapping_detect = false;
     bool switch_process = false, process_switched = false;
     double current_layer_height = 0.;
@@ -1895,6 +1897,8 @@ int CLI::run(int argc, char **argv)
         record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
         flush_and_exit(CLI_INVALID_PARAMS);
     }
+
+    const std::string import_positions_file = m_config.opt_string("import_positions");
 
     // Read input file(s) if any.
     BOOST_LOG_TRIVIAL(info) << "Will start to read model file now, file count :" << m_input_files.size() << "\n";
@@ -2439,6 +2443,34 @@ int CLI::run(int argc, char **argv)
         m_models.push_back(std::move(model));
         sliced_info.import_time +=
             (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - import_begin_time);
+    }
+
+    if (!import_positions_file.empty()) {
+        if (!is_bbl_3mf) {
+            BOOST_LOG_TRIVIAL(error) << "Invalid params: --import-positions only supports BBL 3mf files.";
+            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            flush_and_exit(CLI_INVALID_PARAMS);
+        }
+        static const std::vector<std::string> import_positions_conflict_opts = {
+            "arrange", "orient", "rotate", "rotate_x", "rotate_y", "scale",
+            "repetitions", "convert_unit", "assemble", "ensure_on_bed",
+            "clone_objects", "load_assemble_list",
+            "allow_rotations", "allow_multicolor_oneplate", "avoid_extrusion_cali_region"
+        };
+        for (const auto& opt : m_cli_option_order) {
+            for (const auto& conflict : import_positions_conflict_opts) {
+                if (opt == conflict) {
+                    BOOST_LOG_TRIVIAL(error) << boost::format("Invalid params: --import-positions cannot be used together with --%1%.") % opt;
+                    record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                    flush_and_exit(CLI_INVALID_PARAMS);
+                }
+            }
+        }
+        if (!boost::filesystem::exists(import_positions_file)) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("Positions file not found: %1%") % import_positions_file;
+            record_exit_reson(outfile_dir, CLI_FILE_NOTFOUND, 0, cli_errors[CLI_FILE_NOTFOUND], sliced_info);
+            flush_and_exit(CLI_FILE_NOTFOUND);
+        }
     }
 
     if (!is_bbl_3mf && plate_to_slice > 0)
@@ -5210,6 +5242,30 @@ int CLI::run(int argc, char **argv)
         }
     }
 
+    if (!import_positions_file.empty()) {
+        if (m_models.empty() || m_models[0].objects.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "Invalid params: no model objects to apply imported positions.";
+            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            flush_and_exit(CLI_INVALID_PARAMS);
+        }
+
+        const std::string current_printer_model_str = m_print_config.opt_string("printer_model");
+        Slic3r::GUI::PositionConfigImportResult import_result = Slic3r::GUI::import_position_config_from_file(
+            m_models[0], partplate_list, m_print_config, import_positions_file, current_printer_model_str);
+        if (import_result.error != Slic3r::GUI::PositionConfigImportError::NoError) {
+            BOOST_LOG_TRIVIAL(error) << import_result.message;
+            const int exit_code = (import_result.error == Slic3r::GUI::PositionConfigImportError::PrinterModelMismatch)
+                ? CLI_INVALID_PARAMS : CLI_DATA_FILE_ERROR;
+            record_exit_reson(outfile_dir, exit_code, 0,
+                import_result.message.empty() ? cli_errors[exit_code] : import_result.message, sliced_info);
+            flush_and_exit(exit_code);
+        }
+        BOOST_LOG_TRIVIAL(info) << boost::format("import_positions: applied %1% instances, %2% entries could not be matched.")
+            % import_result.applied % import_result.missing;
+        imported_positions = true;
+        need_arrange       = false;
+    }
+
     /*for (ModelObject *model_object : m_models[0].objects)
         for (ModelInstance *model_instance : model_object->instances)
         {
@@ -5516,217 +5572,194 @@ int CLI::run(int argc, char **argv)
         sliced_info.upward_compatibility_taint.push_back("MultiNozzleDiameters");
 
     // Loop through transform options.
-    bool user_center_specified = false;
-    Points beds = get_bed_shape(m_print_config);
-    ArrangeParams arrange_cfg;
+    bool oriented_or_arranged = false;
+    if (!imported_positions) {
+        bool          user_center_specified = false;
+        Points        beds                  = get_bed_shape(m_print_config);
+        ArrangeParams arrange_cfg;
 
-    BOOST_LOG_TRIVIAL(info) << "will start transforms, commands count " << m_transforms.size() << "\n";
+        BOOST_LOG_TRIVIAL(info) << "will start transforms, commands count " << m_transforms.size() << "\n";
 #if defined(__linux__) || defined(__LINUX__)
-    if (g_cli_callback_mgr.is_started()) {
-        PrintBase::SlicingStatus slicing_status{2, "Loading files finished"};
-        cli_status_callback(slicing_status);
-    }
+        if (g_cli_callback_mgr.is_started()) {
+            PrintBase::SlicingStatus slicing_status{2, "Loading files finished"};
+            cli_status_callback(slicing_status);
+        }
 #endif
 
-    for (auto const &opt_key : m_transforms) {
-        BOOST_LOG_TRIVIAL(info) << "process transform " << opt_key << "\n";
-        if (opt_key == "assemble") {
-            if (clone_objects.size() > 0) { 
-                BOOST_LOG_TRIVIAL(error) << "Invalid params: can not set assemble and clone_objects together." << std::endl;
-                record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
-                flush_and_exit(CLI_INVALID_PARAMS);
-            }
-            Model m;
-            ModelObject* new_object = m.add_object();
-            new_object->name = _u8L("Assembly");
-            new_object->add_instance();
-            int idx = 0;
-            for (auto& model : m_models)
-                for (ModelObject* o : model.objects) {
-                    for (auto volume : o->volumes) {
-                        ModelVolume* new_volume = new_object->add_volume(*volume);
-                        // set extruder id
-                        new_volume->config.set_key_value("extruder", new ConfigOptionInt(o->config.extruder()));
-                    }
-                }
-            m_models.clear();
-            m_models.emplace_back(std::move(m));
-        }
-        else if (opt_key == "repetitions") {
-            int repetitions_count = m_config.option<ConfigOptionInt>("repetitions")->value;
-            if (repetitions_count <= 1)
-            {
-                BOOST_LOG_TRIVIAL(info) << "invalid repetitions value " << repetitions_count << ", just skip\n";
-            }
-            else {
-                if (plate_to_slice == 0) {
-                    BOOST_LOG_TRIVIAL(error) << "Invalid params: can not set repetitions when slice all." << std::endl;
+        for (auto const &opt_key : m_transforms) {
+            BOOST_LOG_TRIVIAL(info) << "process transform " << opt_key << "\n";
+            if (opt_key == "assemble") {
+                if (clone_objects.size() > 0) {
+                    BOOST_LOG_TRIVIAL(error) << "Invalid params: can not set assemble and clone_objects together." << std::endl;
                     record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                     flush_and_exit(CLI_INVALID_PARAMS);
                 }
-                else if (plate_to_slice > partplate_list.get_plate_count()) {
-                    BOOST_LOG_TRIVIAL(error) << boost::format("Invalid params:invalid plate %1% to slice, total %2%")%plate_to_slice %partplate_list.get_plate_count();
+                Model        m;
+                ModelObject *new_object = m.add_object();
+                new_object->name        = _u8L("Assembly");
+                new_object->add_instance();
+                int idx = 0;
+                for (auto &model : m_models)
+                    for (ModelObject *o : model.objects) {
+                        for (auto volume : o->volumes) {
+                            ModelVolume *new_volume = new_object->add_volume(*volume);
+                            // set extruder id
+                            new_volume->config.set_key_value("extruder", new ConfigOptionInt(o->config.extruder()));
+                        }
+                    }
+                m_models.clear();
+                m_models.emplace_back(std::move(m));
+            } else if (opt_key == "repetitions") {
+                int repetitions_count = m_config.option<ConfigOptionInt>("repetitions")->value;
+                if (repetitions_count <= 1) {
+                    BOOST_LOG_TRIVIAL(info) << "invalid repetitions value " << repetitions_count << ", just skip\n";
+                } else {
+                    if (plate_to_slice == 0) {
+                        BOOST_LOG_TRIVIAL(error) << "Invalid params: can not set repetitions when slice all." << std::endl;
+                        record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                        flush_and_exit(CLI_INVALID_PARAMS);
+                    } else if (plate_to_slice > partplate_list.get_plate_count()) {
+                        BOOST_LOG_TRIVIAL(error) << boost::format("Invalid params:invalid plate %1% to slice, total %2%") % plate_to_slice % partplate_list.get_plate_count();
+                        record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                        flush_and_exit(CLI_INVALID_PARAMS);
+                    }
+
+                    BOOST_LOG_TRIVIAL(info) << "repetitions value " << repetitions_count << std::endl;
+
+                    duplicate_count = repetitions_count - 1;
+                }
+            } else if (opt_key == "convert_unit") {
+                for (auto &model : m_models) {
+                    if (model.looks_like_saved_in_meters()) {
+                        BOOST_LOG_TRIVIAL(info) << "convert from meter to millimeter\n";
+                        model.convert_from_meters(true);
+                    } else if (model.looks_like_imperial_units()) {
+                        BOOST_LOG_TRIVIAL(info) << "convert from inch to millimeter\n";
+                        model.convert_from_imperial_units(true);
+                    }
+                }
+            } else if (opt_key == "orient") {
+                // BBS: orient 0 means disable, 1 means force orient, others means auto
+                int orient_option = m_config.option<ConfigOptionInt>("orient")->value;
+
+                if (orient_option == 0) {
+                    // orients_requirement.clear();
+                    for (auto &model : m_models)
+                        for (ModelObject *o : model.objects) {
+                            orients_requirement.insert(std::pair<size_t, bool>(o->id().id, false));
+                            BOOST_LOG_TRIVIAL(info) << "object " << o->name << ", id :" << o->id().id << ", no need to orient when setting orient to 0\n";
+                        }
+                } else if (orient_option == 1) {
+                    // force orient
+                    // orients_requirement.clear();
+                    for (auto &model : m_models)
+                        for (ModelObject *o : model.objects) {
+                            orients_requirement.insert(std::pair<size_t, bool>(o->id().id, true));
+                            BOOST_LOG_TRIVIAL(info) << "object " << o->name << ", id :" << o->id().id << ", need to orient when setting orient to 1\n";
+                        }
+                } else {
+                    // auto arrange, keep the original logic
+                }
+                BOOST_LOG_TRIVIAL(info) << boost::format("orient_option %1%") % orient_option;
+            } else if (opt_key == "copy") {
+                for (auto &model : m_models) {
+                    const bool all_objects_have_instances = std::none_of(model.objects.begin(), model.objects.end(), [](ModelObject *o) { return o->instances.empty(); });
+
+                    int dups = m_config.opt_int("copy");
+                    if (!all_objects_have_instances) model.add_default_instances();
+
+                    try {
+                        if (dups > 1) {
+                            // if all input objects have defined position(s) apply duplication to the whole model
+                            duplicate(model, size_t(dups), beds, arrange_cfg);
+                        } else {
+                            arrange_objects(model, beds, arrange_cfg);
+                        }
+                    } catch (std::exception &ex) {
+                        boost::nowide::cerr << "error: " << ex.what() << std::endl;
+                        record_exit_reson(outfile_dir, CLI_COPY_OBJECTS_ERROR, 0, cli_errors[CLI_COPY_OBJECTS_ERROR], sliced_info);
+                        flush_and_exit(CLI_COPY_OBJECTS_ERROR);
+                    }
+                }
+            } else if (opt_key == "center") {
+                user_center_specified = true;
+                for (auto &model : m_models) {
+                    model.add_default_instances();
+                    // this affects instances:
+                    model.center_instances_around_point(m_config.option<ConfigOptionPoint>("center")->value);
+                    // this affects volumes:
+                    // FIXME Vojtech: Who knows why the complete model should be aligned with Z as a single rigid body?
+                    // model.align_to_ground();
+                    BoundingBoxf3 bbox;
+                    for (ModelObject *model_object : model.objects)
+                        // We are interested into the Z span only, therefore it is sufficient to measure the bounding box of the 1st instance only.
+                        bbox.merge(model_object->instance_bounding_box(0, false));
+                    for (ModelObject *model_object : model.objects)
+                        for (ModelInstance *model_instance : model_object->instances) model_instance->set_offset(Z, model_instance->get_offset(Z) - bbox.min.z());
+                }
+            } else if (opt_key == "align_xy") {
+                const Vec2d &p = m_config.option<ConfigOptionPoint>("align_xy")->value;
+                for (auto &model : m_models) {
+                    BoundingBoxf3 bb = model.bounding_box();
+                    // this affects volumes:
+                    model.translate(-(bb.min.x() - p.x()), -(bb.min.y() - p.y()), -bb.min.z());
+                }
+            } else if (opt_key == "arrange") {
+                // BBS: arrange 0 means disable, 1 means force arrange, others means auto
+                int arrange_option = m_config.option<ConfigOptionInt>("arrange")->value;
+
+                if (arrange_option == 0) {
+                    need_arrange = false;
+                } else if (arrange_option == 1) {
+                    need_arrange = true;
+                } else {
+                    // auto arrange, keep the original logic
+                }
+            } else if (opt_key == "ensure_on_bed") {
+                // do nothing, the value is used later
+            } else if (opt_key == "rotate") {
+                for (auto &model : m_models)
+                    for (auto &o : model.objects)
+                        // this affects volumes:
+                        o->rotate(Geometry::deg2rad(m_config.opt_float(opt_key)), Z);
+            } else if (opt_key == "rotate_x") {
+                for (auto &model : m_models)
+                    for (auto &o : model.objects)
+                        // this affects volumes:
+                        o->rotate(Geometry::deg2rad(m_config.opt_float(opt_key)), X);
+            } else if (opt_key == "rotate_y") {
+                for (auto &model : m_models)
+                    for (auto &o : model.objects)
+                        // this affects volumes:
+                        o->rotate(Geometry::deg2rad(m_config.opt_float(opt_key)), Y);
+            } else if (opt_key == "scale") {
+                float ratio = m_config.opt_float(opt_key);
+                if (ratio <= 0.f) {
+                    BOOST_LOG_TRIVIAL(error) << boost::format("Invalid params:invalid scale ratio %1%") % ratio;
                     record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                     flush_and_exit(CLI_INVALID_PARAMS);
                 }
-
-                BOOST_LOG_TRIVIAL(info) << "repetitions value " << repetitions_count << std::endl;
-
-                duplicate_count = repetitions_count - 1;
-            }
-        }
-        else if (opt_key == "convert_unit") {
-            for (auto& model : m_models) {
-                if (model.looks_like_saved_in_meters()) {
-                    BOOST_LOG_TRIVIAL(info) << "convert from meter to millimeter\n";
-                    model.convert_from_meters(true);
+                for (auto &model : m_models)
+                    for (auto &o : model.objects)
+                        // this affects volumes:
+                        o->scale(ratio);
+            } else if (opt_key == "scale_to_fit") {
+                const Vec3d &opt = m_config.opt<ConfigOptionPoint3>(opt_key)->value;
+                if (opt.x() <= 0 || opt.y() <= 0 || opt.z() <= 0) {
+                    boost::nowide::cerr << "--scale-to-fit requires a positive volume" << std::endl;
+                    record_exit_reson(outfile_dir, CLI_SCALE_TO_FIT_ERROR, 0, cli_errors[CLI_SCALE_TO_FIT_ERROR], sliced_info);
+                    flush_and_exit(CLI_SCALE_TO_FIT_ERROR);
                 }
-                else if (model.looks_like_imperial_units()) {
-                    BOOST_LOG_TRIVIAL(info) << "convert from inch to millimeter\n";
-                    model.convert_from_imperial_units(true);
-                }
-            }
-        }
-        else if (opt_key == "orient") {
-            //BBS: orient 0 means disable, 1 means force orient, others means auto
-            int orient_option = m_config.option<ConfigOptionInt>("orient")->value;
-
-            if (orient_option == 0)
-            {
-                //orients_requirement.clear();
-                for (auto& model : m_models)
-                    for (ModelObject* o : model.objects)
-                    {
-                        orients_requirement.insert(std::pair<size_t, bool>(o->id().id, false));
-                        BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :"  << o->id().id << ", no need to orient when setting orient to 0\n";
-                    }
-            }
-            else if (orient_option == 1)
-            {
-                //force orient
-                //orients_requirement.clear();
-                for (auto& model : m_models)
-                    for (ModelObject* o : model.objects)
-                    {
-                        orients_requirement.insert(std::pair<size_t, bool>(o->id().id, true));
-                        BOOST_LOG_TRIVIAL(info) << "object "<<o->name <<", id :"  << o->id().id << ", need to orient when setting orient to 1\n";
-                    }
-            }
-            else
-            {
-                //auto arrange, keep the original logic
-            }
-            BOOST_LOG_TRIVIAL(info) << boost::format("orient_option %1%")%orient_option;
-        }
-        else if (opt_key == "copy") {
-            for (auto &model : m_models) {
-                const bool all_objects_have_instances = std::none_of(
-                    model.objects.begin(), model.objects.end(),
-                    [](ModelObject* o){ return o->instances.empty(); }
-                );
-
-                int dups = m_config.opt_int("copy");
-                if (!all_objects_have_instances) model.add_default_instances();
-
-                try {
-                    if (dups > 1) {
-                        // if all input objects have defined position(s) apply duplication to the whole model
-                        duplicate(model, size_t(dups), beds, arrange_cfg);
-                    } else {
-                        arrange_objects(model, beds, arrange_cfg);
-                    }
-                } catch (std::exception &ex) {
-                    boost::nowide::cerr << "error: " << ex.what() << std::endl;
-                    record_exit_reson(outfile_dir, CLI_COPY_OBJECTS_ERROR, 0, cli_errors[CLI_COPY_OBJECTS_ERROR], sliced_info);
-                    flush_and_exit(CLI_COPY_OBJECTS_ERROR);
-                }
-            }
-        } else if (opt_key == "center") {
-        	user_center_specified = true;
-            for (auto &model : m_models) {
-                model.add_default_instances();
-                // this affects instances:
-                model.center_instances_around_point(m_config.option<ConfigOptionPoint>("center")->value);
-                // this affects volumes:
-                //FIXME Vojtech: Who knows why the complete model should be aligned with Z as a single rigid body?
-                //model.align_to_ground();
-                BoundingBoxf3 bbox;
-                for (ModelObject *model_object : model.objects)
-                    // We are interested into the Z span only, therefore it is sufficient to measure the bounding box of the 1st instance only.
-                    bbox.merge(model_object->instance_bounding_box(0, false));
-                for (ModelObject *model_object : model.objects)
-                    for (ModelInstance *model_instance : model_object->instances)
-                        model_instance->set_offset(Z, model_instance->get_offset(Z) - bbox.min.z());
-            }
-        } else if (opt_key == "align_xy") {
-            const Vec2d &p = m_config.option<ConfigOptionPoint>("align_xy")->value;
-            for (auto &model : m_models) {
-                BoundingBoxf3 bb = model.bounding_box();
-                // this affects volumes:
-                model.translate(-(bb.min.x() - p.x()), -(bb.min.y() - p.y()), -bb.min.z());
-            }
-        } else if (opt_key == "arrange") {
-            //BBS: arrange 0 means disable, 1 means force arrange, others means auto
-            int arrange_option = m_config.option<ConfigOptionInt>("arrange")->value;
-
-            if (arrange_option == 0)
-            {
-                need_arrange = false;
-            }
-            else if (arrange_option == 1)
-            {
-                need_arrange = true;
-            }
-            else
-            {
-                //auto arrange, keep the original logic
-            }
-        } else if (opt_key == "ensure_on_bed") {
-            // do nothing, the value is used later
-        } else if (opt_key == "rotate") {
-            for (auto &model : m_models)
-                for (auto &o : model.objects)
-                    // this affects volumes:
-                    o->rotate(Geometry::deg2rad(m_config.opt_float(opt_key)), Z);
-        } else if (opt_key == "rotate_x") {
-            for (auto &model : m_models)
-                for (auto &o : model.objects)
-                    // this affects volumes:
-                    o->rotate(Geometry::deg2rad(m_config.opt_float(opt_key)), X);
-        } else if (opt_key == "rotate_y") {
-            for (auto &model : m_models)
-                for (auto &o : model.objects)
-                    // this affects volumes:
-                    o->rotate(Geometry::deg2rad(m_config.opt_float(opt_key)), Y);
-        } else if (opt_key == "scale") {
-            float ratio = m_config.opt_float(opt_key);
-            if (ratio <= 0.f) {
-                BOOST_LOG_TRIVIAL(error) << boost::format("Invalid params:invalid scale ratio %1%")%ratio;
-                record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
-                flush_and_exit(CLI_INVALID_PARAMS);
-            }
-            for (auto &model : m_models)
-                for (auto &o : model.objects)
-                    // this affects volumes:
-                    o->scale(ratio);
-        } else if (opt_key == "scale_to_fit") {
-            const Vec3d &opt = m_config.opt<ConfigOptionPoint3>(opt_key)->value;
-            if (opt.x() <= 0 || opt.y() <= 0 || opt.z() <= 0) {
-                boost::nowide::cerr << "--scale-to-fit requires a positive volume" << std::endl;
-                record_exit_reson(outfile_dir, CLI_SCALE_TO_FIT_ERROR, 0, cli_errors[CLI_SCALE_TO_FIT_ERROR], sliced_info);
-                flush_and_exit(CLI_SCALE_TO_FIT_ERROR);
-            }
-            for (auto &model : m_models)
-                for (auto &o : model.objects)
-                    // this affects volumes:
-                    o->scale_to_fit(opt);
-        } else if (opt_key == "cut" || opt_key == "cut_x" || opt_key == "cut_y") {
-            std::vector<Model> new_models;
-            for (auto &model : m_models) {
-                model.translate(0, 0, -model.bounding_box().min.z());  // align to z = 0
-                size_t num_objects = model.objects.size();
-                for (size_t i = 0; i < num_objects; ++ i) {
-
+                for (auto &model : m_models)
+                    for (auto &o : model.objects)
+                        // this affects volumes:
+                        o->scale_to_fit(opt);
+            } else if (opt_key == "cut" || opt_key == "cut_x" || opt_key == "cut_y") {
+                std::vector<Model> new_models;
+                for (auto &model : m_models) {
+                    model.translate(0, 0, -model.bounding_box().min.z()); // align to z = 0
+                    size_t num_objects = model.objects.size();
+                    for (size_t i = 0; i < num_objects; ++i) {
 #if 0
                     if (opt_key == "cut_x") {
                         o->cut(X, m_config.opt_float("cut_x"), &out);
@@ -5736,34 +5769,31 @@ int CLI::run(int argc, char **argv)
                         o->cut(Z, m_config.opt_float("cut"), &out);
                     }
 #else
-                    ModelObject* object = model.objects.front();
-                    const BoundingBoxf3& box = object->bounding_box();
-                    const float Margin = 20.0;
-                    const float max_x = box.size()(0) / 2.0 + Margin;
-                    const float min_x = -max_x;
-                    const float max_y = box.size()(1) / 2.0 + Margin;
-                    const float min_y = -max_y;
+                        ModelObject         *object = model.objects.front();
+                        const BoundingBoxf3 &box    = object->bounding_box();
+                        const float          Margin = 20.0;
+                        const float          max_x  = box.size()(0) / 2.0 + Margin;
+                        const float          min_x  = -max_x;
+                        const float          max_y  = box.size()(1) / 2.0 + Margin;
+                        const float          min_y  = -max_y;
 
-                    std::array<Vec3d, 4> plane_points;
-                    plane_points[0] = { min_x, min_y, 0 };
-                    plane_points[1] = { max_x, min_y, 0 };
-                    plane_points[2] = { max_x, max_y, 0 };
-                    plane_points[3] = { min_x, max_y, 0 };
-                    for (Vec3d& point : plane_points) {
-                        point += box.center();
-                    }
-                    model.objects.front()->cut(0, plane_points, ModelObjectCutAttribute::KeepUpper | ModelObjectCutAttribute::KeepLower);
+                        std::array<Vec3d, 4> plane_points;
+                        plane_points[0] = {min_x, min_y, 0};
+                        plane_points[1] = {max_x, min_y, 0};
+                        plane_points[2] = {max_x, max_y, 0};
+                        plane_points[3] = {min_x, max_y, 0};
+                        for (Vec3d &point : plane_points) { point += box.center(); }
+                        model.objects.front()->cut(0, plane_points, ModelObjectCutAttribute::KeepUpper | ModelObjectCutAttribute::KeepLower);
 #endif
-                    model.delete_object(size_t(0));
+                        model.delete_object(size_t(0));
+                    }
                 }
+
+                // TODO: copy less stuff around using pointers
+                m_models = new_models;
+
+                if (m_actions.empty()) m_actions.push_back("export_stl");
             }
-
-            // TODO: copy less stuff around using pointers
-            m_models = new_models;
-
-            if (m_actions.empty())
-                m_actions.push_back("export_stl");
-        }
 #if 0
         else if (opt_key == "cut_grid") {
             std::vector<Model> new_models;
@@ -5789,958 +5819,877 @@ int CLI::run(int argc, char **argv)
                 m_actions.push_back("export_stl");
         }
 #endif
-        else if (opt_key == "split") {
-            for (Model &model : m_models) {
-                size_t num_objects = model.objects.size();
-                for (size_t i = 0; i < num_objects; ++ i) {
-                    ModelObjectPtrs new_objects;
-                    model.objects.front()->split(&new_objects);
-                    model.delete_object(size_t(0));
+            else if (opt_key == "split") {
+                for (Model &model : m_models) {
+                    size_t num_objects = model.objects.size();
+                    for (size_t i = 0; i < num_objects; ++i) {
+                        ModelObjectPtrs new_objects;
+                        model.objects.front()->split(&new_objects);
+                        model.delete_object(size_t(0));
+                    }
                 }
-            }
-        } else if (opt_key == "repair") {
-            // Models are repaired by default.
-            //for (auto &model : m_models)
-            //    model.repair();
-        } else {
-            boost::nowide::cerr << "error: option not implemented yet: " << opt_key << std::endl;
-            record_exit_reson(outfile_dir, CLI_UNSUPPORTED_OPERATION, 0, cli_errors[CLI_UNSUPPORTED_OPERATION], sliced_info);
-            flush_and_exit(CLI_UNSUPPORTED_OPERATION);
-        }
-    }
-
-    BOOST_LOG_TRIVIAL(info) << "finished model pre-process commands\n";
-    bool oriented_or_arranged = false;
-    //BBS: add orient and arrange logic here
-    for (auto& model : m_models)
-    {
-        for (ModelObject* o : model.objects)
-        {
-            if (orients_requirement[o->id().id])
-            {
-                BOOST_LOG_TRIVIAL(info) << "Before process command, Orient object, name=" << o->name <<",id="<<o->id().id<<std::endl;
-                if (!load_process_config.empty())
-                {
-                    o->config.assign_config(load_process_config);
-                }
-                orientation::orient(o);
-                oriented_or_arranged = true;
-            }
-            else
-            {
-                BOOST_LOG_TRIVIAL(debug) << "Before process command, no need to orient, object id :" << o->id().id<<std::endl;
-            }
-        }
-    }
-    //BBS: clear the orient objects lists
-    orients_requirement.clear();
-
-    bool is_seq_print_for_curr_plate = false;
-    if ((plate_to_slice < 0) || (plate_to_slice > partplate_list.get_plate_count()))
-    {
-        BOOST_LOG_TRIVIAL(error) << boost::format("invalid plate id %1%, total %2%")%plate_to_slice %partplate_list.get_plate_count();
-        record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
-        flush_and_exit(CLI_INVALID_PARAMS);
-    }
-    else if (plate_to_slice > 0){
-        Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
-        PrintSequence curr_plate_seq = cur_plate->get_print_seq();
-
-        if (curr_plate_seq == PrintSequence::ByDefault) {
-            auto seq_print  = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-            if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
-                BOOST_LOG_TRIVIAL(info) << boost::format("Check whether need to arrange by print_sequence: plate %1% print by object, set from global")%plate_to_slice;
-                is_seq_print_for_curr_plate = true;
-            }
-        }
-        else if (curr_plate_seq == PrintSequence::ByObject) {
-            BOOST_LOG_TRIVIAL(info) << boost::format("Check whether need to arrange by print_sequence: plate %1% print by object, set from plate self")%plate_to_slice;
-            is_seq_print_for_curr_plate = true;
-        }
-
-        if (duplicate_count > 0) {
-            const ConfigOptionBool* spiral_vase = m_print_config.option<ConfigOptionBool>("spiral_mode");
-            if ((spiral_vase != nullptr) && spiral_vase->value)
-            {
-                //spiral mode can only be duplicated with by-object
-                if (!is_seq_print_for_curr_plate) {
-                    BOOST_LOG_TRIVIAL(warning) << boost::format("Spiral mode can not be duplicated under by-object print, skip duplicate");
-                    duplicate_count = 0;
-                }
+            } else if (opt_key == "repair") {
+                // Models are repaired by default.
+                // for (auto &model : m_models)
+                //    model.repair();
+            } else {
+                boost::nowide::cerr << "error: option not implemented yet: " << opt_key << std::endl;
+                record_exit_reson(outfile_dir, CLI_UNSUPPORTED_OPERATION, 0, cli_errors[CLI_UNSUPPORTED_OPERATION], sliced_info);
+                flush_and_exit(CLI_UNSUPPORTED_OPERATION);
             }
         }
 
-        if (duplicate_count > 0)
-            need_arrange = true;
-    }
-
-    if ((!need_arrange) && is_bbl_3mf && !shrink_to_new_bed && (plate_to_slice > 0) && !new_printer_system_name.empty() && (new_printer_system_name!= current_printer_system_name))
-    {
-        if (((old_height_to_rod != 0.f) && (old_height_to_rod != height_to_rod))
-            || ((old_height_to_lid != 0.f) && (old_height_to_lid != height_to_lid))
-            || ((old_max_radius != 0.f) && (old_max_radius != cleareance_radius))
-            || ((old_distance_to_rod != 0.f) && (old_distance_to_rod != distance_to_rod)))
-        {
-            if (is_seq_print_for_curr_plate) {
-                need_arrange = true;
-                BOOST_LOG_TRIVIAL(info) << boost::format("old_height_to_rod %1%, old_height_to_lid %2%,  old_max_radius %3%, old_distance_to_rod %4%, current height_to_rod %5%, height_to_lid %6%, cleareance_radius %7%, distance_to_rod %8%, need arrange!")
-                    %old_height_to_rod %old_height_to_lid %old_max_radius %old_distance_to_rod %height_to_rod %height_to_lid %cleareance_radius %distance_to_rod;
-            }
-        }
-    }
-
-    oriented_or_arranged |= need_arrange;
-
-    BOOST_LOG_TRIVIAL(info) << boost::format("before arrange, need_arrange=%1%, duplicate_count %2%, filament_color_changed %3%")%need_arrange %duplicate_count %filament_color_changed;
-    // if (!assemble_plate_info_list.empty() || need_arrange)
-    BOOST_LOG_TRIVIAL(debug) << "filament_count: " << filament_count;
-    Model::setExtruderParams(m_print_config, filament_count);
-
-    if (need_arrange || filament_color_changed)
-    {
-        for (int index = 0; index < partplate_list.get_plate_count(); index ++)
-        {
-            if ((plate_to_slice != 0) && (plate_to_slice != (index + 1))) {
-                continue;
-            }
-
-            if (plate_data_src.size() > index) {
-                if (!plate_data_src[index]->thumbnail_file.empty()) {
-                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded thumbnail %2%.")%(index+1)%plate_data_src[index]->thumbnail_file;
-                    plate_data_src[index]->thumbnail_file.clear();
-                }
-                if (!plate_data_src[index]->no_light_thumbnail_file.empty()) {
-                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded no_light_thumbnail %2%.")%(index+1)%plate_data_src[index]->no_light_thumbnail_file;
-                    plate_data_src[index]->no_light_thumbnail_file.clear();
-                }
-                if (!plate_data_src[index]->top_file.empty()) {
-                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded top_thumbnail %2%.")%(index+1)%plate_data_src[index]->top_file;
-                    plate_data_src[index]->top_file.clear();
-                }
-                if (!plate_data_src[index]->pick_file.empty()) {
-                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded pick_thumbnail %2%.")%(index+1)%plate_data_src[index]->pick_file;
-                    plate_data_src[index]->pick_file.clear();
+        BOOST_LOG_TRIVIAL(info) << "finished model pre-process commands\n";
+        // BBS: add orient and arrange logic here
+        for (auto &model : m_models) {
+            for (ModelObject *o : model.objects) {
+                if (orients_requirement[o->id().id]) {
+                    BOOST_LOG_TRIVIAL(info) << "Before process command, Orient object, name=" << o->name << ",id=" << o->id().id << std::endl;
+                    if (!load_process_config.empty()) { o->config.assign_config(load_process_config); }
+                    orientation::orient(o);
+                    oriented_or_arranged = true;
+                } else {
+                    BOOST_LOG_TRIVIAL(debug) << "Before process command, no need to orient, object id :" << o->id().id << std::endl;
                 }
             }
         }
-    }
+        // BBS: clear the orient objects lists
+        orients_requirement.clear();
 
-    if (!assemble_plate_info_list.empty())
-    {
-        //need to arrange for assemble cases
-        int plate_count = assemble_plate_info_list.size();
-        if (plate_count != partplate_list.get_plate_count())
-        {
-            BOOST_LOG_TRIVIAL(error) << boost::format("mismatch plate count, to_assemble %1%, generated %2%") % plate_count % partplate_list.get_plate_count();
+        bool is_seq_print_for_curr_plate = false;
+        if ((plate_to_slice < 0) || (plate_to_slice > partplate_list.get_plate_count())) {
+            BOOST_LOG_TRIVIAL(error) << boost::format("invalid plate id %1%, total %2%") % plate_to_slice % partplate_list.get_plate_count();
             record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
             flush_and_exit(CLI_INVALID_PARAMS);
-        }
+        } else if (plate_to_slice > 0) {
+            Slic3r::GUI::PartPlate *cur_plate      = (Slic3r::GUI::PartPlate *) partplate_list.get_plate(plate_to_slice - 1);
+            PrintSequence           curr_plate_seq = cur_plate->get_print_seq();
 
-        for (size_t i = 0; i < plate_count; i++)
-        {
-            Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate*)partplate_list.get_plate(i);
-            //lock those plates no need to arrange
-            if (!assemble_plate_info_list[i].need_arrange)
-                cur_plate->lock(true);
-        }
-
-        const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_full_config(m_print_config);
-        for (size_t i = 0; i < plate_count; i++)
-        {
-            assemble_plate_info_t& assemble_plate = assemble_plate_info_list[i];
-            Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate*)partplate_list.get_plate(i);
-            std::set<int> plate_filaments = assemble_plate.used_filaments;
-            for (const ModelObject *mo : assemble_plate.loaded_obj_list)
-                for (const ModelVolume *mv : mo->volumes) {
-                    std::vector<int> volume_filaments = mv->get_extruders(global_features);
-                    plate_filaments.insert(volume_filaments.begin(), volume_filaments.end());
+            if (curr_plate_seq == PrintSequence::ByDefault) {
+                auto seq_print = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+                if (seq_print && (seq_print->value == PrintSequence::ByObject)) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("Check whether need to arrange by print_sequence: plate %1% print by object, set from global") % plate_to_slice;
+                    is_seq_print_for_curr_plate = true;
                 }
-            assemble_plate.filaments_count = plate_filaments.size();
-            BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, need arrange %2%, filaments_count %3%") % (i+1) % assemble_plate.need_arrange % assemble_plate.filaments_count;
-            if (assemble_plate.need_arrange)
-            {
-                //do arrange for plate
-                ArrangePolygons selected, unselected;
-                Model& model = m_models[0];
-                arrange_cfg = ArrangeParams();  // reset all params
-                get_print_sequence(cur_plate, m_print_config, arrange_cfg.is_seq_print);
-
-                //Step-1: prepare the arranged data
-                partplate_list.lock_plate(i, false);
-                partplate_list.select_plate(i);
-                BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% set to selected") % i;
-                size_t plate_obj_count = assemble_plate.loaded_obj_list.size();
-                for (size_t oidx = 0; oidx < plate_obj_count; ++oidx)
-                {
-                    ModelObject* mo = assemble_plate.loaded_obj_list[oidx];
-
-                    for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
-                    {
-                        ModelInstance* minst = mo->instances[inst_idx];
-                        ArrangePolygon   ap = get_instance_arrange_poly(minst, m_print_config);
-                        ap.itemid = selected.size();
-                        selected.emplace_back(std::move(ap));
-                        BOOST_LOG_TRIVIAL(debug) << boost::format("plate %1%: add object %2%  object index %3%, into selected") % (i+1) % ap.name %(oidx+1);
-                    }
-                }
-
-                if (!arrange_cfg.is_seq_print && (assemble_plate.filaments_count > 1)||(enable_wrapping_detect && !current_wrapping_exclude_area.empty()))
-                {
-                    //prepare the wipe tower
-                    int plate_count = partplate_list.get_plate_count();
-                    int plate_w, plate_d, plate_h;
-                    partplate_list.get_plate_size(plate_w, plate_d, plate_h);
-
-                    //create the options using default if neccessary
-                    ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
-                    ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
-                    ConfigOptionFloat* width_option = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true);
-                    ConfigOptionFloat* rotation_angle_option = m_print_config.option<ConfigOptionFloat>("wipe_tower_rotation_angle", true);
-                    ConfigOptionFloats *volume_option = m_print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
-                    ConfigOptionBool *prime_tower_rib_wall_option = m_print_config.option<ConfigOptionBool>("prime_tower_rib_wall", true);
-                    std::vector<double> wipe_volume   = volume_option->values;
-
-                    BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%, rib_wall %4%") % width_option->value % rotation_angle_option->value % get_max_element(wipe_volume) %prime_tower_rib_wall_option->value;
-
-                    ArrangePolygon wipe_tower_ap = Slic3r::init_clamped_wipe_tower_pos(
-                        m_print_config, cur_plate, i, plate_w, plate_d,
-                        new_extruder_count, assemble_plate.filaments_count, true);
-                    wipe_tower_ap.bed_idx = i;
-                    unselected.emplace_back(wipe_tower_ap);
-                }
-
-                // add the virtual object into unselect list if has
-                partplate_list.preprocess_exclude_areas(unselected, enable_wrapping_detect, i + 1);
-                if (avoid_extrusion_cali_region)
-                    partplate_list.preprocess_nonprefered_areas(unselected, i + 1);
-
-                //Step-2:prepare the arrange params
-                arrange_cfg.allow_rotations = allow_rotations;
-                arrange_cfg.allow_multi_materials_on_same_plate = allow_multicolor_oneplate;
-                arrange_cfg.avoid_extrusion_cali_region = avoid_extrusion_cali_region;
-                arrange_cfg.clearance_height_to_rod = height_to_rod;
-                arrange_cfg.clearance_height_to_lid = height_to_lid;
-                arrange_cfg.cleareance_radius = cleareance_radius;
-                arrange_cfg.printable_height = print_height;
-                arrange_cfg.min_obj_distance = 0;
-                if (arrange_cfg.is_seq_print) {
-                    arrange_cfg.bed_shrink_x = BED_SHRINK_SEQ_PRINT;
-                    arrange_cfg.bed_shrink_y = BED_SHRINK_SEQ_PRINT;
-                }
-                if (auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
-                    arrange_cfg.align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
-                }
-
-                arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
-                arrangement::update_selected_items_inflation(selected, m_print_config, arrange_cfg);
-                arrangement::update_unselected_items_inflation(unselected, m_print_config, arrange_cfg);
-
-                beds = get_shrink_bedpts(m_print_config, arrange_cfg);
-
-                partplate_list.preprocess_exclude_areas(arrange_cfg.excluded_regions, enable_wrapping_detect, 1, scale_(1));
-
-                {
-                    BOOST_LOG_TRIVIAL(debug) << "arrange bedpts:" << beds[0].transpose() << ", " << beds[1].transpose() << ", " << beds[2].transpose() << ", " << beds[3].transpose();
-                    BOOST_LOG_TRIVIAL(info) << "Arrange full params: " << arrange_cfg.to_json();
-                    BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%") % selected.size();
-                    for (auto item : selected)
-                        BOOST_LOG_TRIVIAL(trace) << item.name << ", extruder: " << item.extrude_id_filament_types.begin()->first << ", bed: " << item.bed_idx
-                        << ", trans: " << item.translation.transpose();
-                    BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items unselected before arranging: %1%") % unselected.size();
-                    for (auto item : unselected)
-                        BOOST_LOG_TRIVIAL(trace) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
-                }
-                arrange_cfg.progressind = [](unsigned st, std::string str = "") {
-                    //boost::nowide::cout << "st=" << st << ", " << str << std::endl;
-                };
-
-                //Step-3:do the arrange
-                BOOST_LOG_TRIVIAL(info) << boost::format("start plate %1%'s arranging...") % (i + 1);
-                arrangement::arrange(selected, unselected, beds, arrange_cfg);
-                //arrangement::arrange(unprintable, {}, beds, arrange_cfg);
-                BOOST_LOG_TRIVIAL(info) << boost::format("finished plate %1%'s arranging") % (i + 1);
-
-                //step-4: postprocess the bed index and result
-                partplate_list.clear(false, false, true, i);
-
-                for (ArrangePolygon& ap : selected) {
-                    partplate_list.postprocess_bed_index_for_current_plate(ap);
-                    if (ap.bed_idx != i)
-                    {
-                        BOOST_LOG_TRIVIAL(error) << boost::format("arrange failed: ap.name %1% ap.bed_idx %2%, plate index %3%") % ap.name % ap.bed_idx % i;
-                        record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED], sliced_info);
-                        flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
-                    }
-                }
-
-                // Apply the arrange result to all selected objects
-                for (ArrangePolygon& ap : selected) {
-                    //BBS: partplate postprocess
-                    partplate_list.postprocess_arrange_polygon(ap, true);
-
-                    ap.apply();
-                }
-                //lock here
-                cur_plate->lock(true);
+            } else if (curr_plate_seq == PrintSequence::ByObject) {
+                BOOST_LOG_TRIVIAL(info) << boost::format("Check whether need to arrange by print_sequence: plate %1% print by object, set from plate self") % plate_to_slice;
+                is_seq_print_for_curr_plate = true;
             }
-            else {
-                size_t plate_obj_count = assemble_plate.loaded_obj_list.size();
-                Vec3d plate_origin = cur_plate->get_origin();
-
-                for (size_t oidx = 0; oidx < plate_obj_count; ++oidx)
-                {
-                    ModelObject* mo = assemble_plate.loaded_obj_list[oidx];
-
-                    mo->translate_instances(plate_origin);
-
-                    BOOST_LOG_TRIVIAL(debug) << boost::format("plate %1%: no arrange, directly translate object %2%  by {%3%, %4%}") % (i+1) % mo->name %plate_origin(0) %plate_origin(1);
-                }
-
-                bool is_seq_print = false;
-                get_print_sequence(cur_plate, m_print_config, is_seq_print);
-
-                if (!is_seq_print && (assemble_plate.filaments_count > 1) && !has_wipe_tower_position)
-                {
-                    int plate_w, plate_d, plate_h;
-                    partplate_list.get_plate_size(plate_w, plate_d, plate_h);
-                    Slic3r::init_clamped_wipe_tower_pos(
-                        m_print_config, cur_plate, i, plate_w, plate_d,
-                        new_extruder_count, assemble_plate.filaments_count, true);
-                }
-            }
-        }
-
-        for (size_t i = 0; i < plate_count; i++)
-        {
-            //unlock all the plates
-            Slic3r::GUI::PartPlate* cur_plate = (Slic3r::GUI::PartPlate*)partplate_list.get_plate(i);
-            cur_plate->lock(false);
-        }
-
-        partplate_list.reload_all_objects(false, -1);
-    }
-    else if (need_arrange)
-    {
-        ArrangePolygons selected, unselected, unprintable, locked_aps;
-
-        //for (Model &model : m_models)
-        if (m_models.size() > 0)
-        {
-            Model &model = m_models[0];
-            Model original_model;
-            std::set<std::pair<int, int>> backup_set;
-            bool finished_arrange = false, first_run = true;
-            Slic3r::GUI::PartPlate* cur_plate = nullptr;
-            int low_duplicate_count = 0, up_duplicate_count = duplicate_count, arrange_count = 0;
-            float orig_wipe_x = 0.f, orig_wipe_y = 0.f;
 
             if (duplicate_count > 0) {
-                original_model = model;
+                const ConfigOptionBool *spiral_vase = m_print_config.option<ConfigOptionBool>("spiral_mode");
+                if ((spiral_vase != nullptr) && spiral_vase->value) {
+                    // spiral mode can only be duplicated with by-object
+                    if (!is_seq_print_for_curr_plate) {
+                        BOOST_LOG_TRIVIAL(warning) << boost::format("Spiral mode can not be duplicated under by-object print, skip duplicate");
+                        duplicate_count = 0;
+                    }
+                }
             }
 
-            while(!finished_arrange)
-            {
-                arrange_cfg = ArrangeParams();  // reset all params
-                arrange_count++;
-                //step-0: duplicate model
-                if (duplicate_count > 0)
-                {
-                    //copy model objects and instances on plate
-                    if (!first_run) {
-                        BOOST_LOG_TRIVIAL(info) << boost::format("restore model object and plate, new duplicate_count %1%, arrange_count=%2%")%duplicate_count%arrange_count;
-                        beds = get_bed_shape(m_print_config);
-                        model.clear_objects();
-                        model.clear_materials();
-                        model = original_model;
-                        partplate_list.load_from_3mf_structure(plate_data_src);
+            if (duplicate_count > 0) need_arrange = true;
+        }
 
-                        selected.clear();
-                        unselected.clear();
-                        unprintable.clear();
-                        locked_aps.clear();
-                    }
-                    else {
-                        first_run = false;
-                        if (plate_to_slice > 0) {
-                            ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x");
-                            ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y");
-
-                            if (wipe_x_option && (wipe_x_option->size() > (plate_to_slice-1))) {
-                                orig_wipe_x = wipe_x_option->get_at(plate_to_slice-1);
-                                BOOST_LOG_TRIVIAL(info) << boost::format("plate_to_slice %1%, orig_wipe_x=%2%")%plate_to_slice%orig_wipe_x;
-                            }
-                            if (wipe_y_option && (wipe_y_option->size() > (plate_to_slice-1))) {
-                                orig_wipe_y = wipe_y_option->get_at(plate_to_slice-1);
-                                BOOST_LOG_TRIVIAL(info) << boost::format("plate_to_slice %1%, orig_wipe_y=%2%")%plate_to_slice%orig_wipe_y;
-                            }
-                        }
-                    }
-
-                    cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
-                    cur_plate->duplicate_all_instance(duplicate_count, need_skip, skip_maps);
+        if ((!need_arrange) && is_bbl_3mf && !shrink_to_new_bed && (plate_to_slice > 0) && !new_printer_system_name.empty() &&
+            (new_printer_system_name != current_printer_system_name)) {
+            if (((old_height_to_rod != 0.f) && (old_height_to_rod != height_to_rod)) || ((old_height_to_lid != 0.f) && (old_height_to_lid != height_to_lid)) ||
+                ((old_max_radius != 0.f) && (old_max_radius != cleareance_radius)) || ((old_distance_to_rod != 0.f) && (old_distance_to_rod != distance_to_rod))) {
+                if (is_seq_print_for_curr_plate) {
+                    need_arrange = true;
+                    BOOST_LOG_TRIVIAL(info) << boost::format("old_height_to_rod %1%, old_height_to_lid %2%,  old_max_radius %3%, old_distance_to_rod %4%, current height_to_rod "
+                                                             "%5%, height_to_lid %6%, cleareance_radius %7%, distance_to_rod %8%, need arrange!") %
+                                                   old_height_to_rod % old_height_to_lid % old_max_radius % old_distance_to_rod % height_to_rod % height_to_lid %
+                                                   cleareance_radius % distance_to_rod;
                 }
-                else if (plate_to_slice > 0)
-                {
-                    cur_plate = (Slic3r::GUI::PartPlate *)partplate_list.get_plate(plate_to_slice-1);
-                }
+            }
+        }
 
-                if (cur_plate) {
+        oriented_or_arranged |= need_arrange;
+
+        BOOST_LOG_TRIVIAL(info) << boost::format("before arrange, need_arrange=%1%, duplicate_count %2%, filament_color_changed %3%") % need_arrange % duplicate_count %
+                                       filament_color_changed;
+        // if (!assemble_plate_info_list.empty() || need_arrange)
+        BOOST_LOG_TRIVIAL(debug) << "filament_count: " << filament_count;
+        Model::setExtruderParams(m_print_config, filament_count);
+
+        if (need_arrange || filament_color_changed) {
+            for (int index = 0; index < partplate_list.get_plate_count(); index++) {
+                if ((plate_to_slice != 0) && (plate_to_slice != (index + 1))) { continue; }
+
+                if (plate_data_src.size() > index) {
+                    if (!plate_data_src[index]->thumbnail_file.empty()) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded thumbnail %2%.") % (index + 1) % plate_data_src[index]->thumbnail_file;
+                        plate_data_src[index]->thumbnail_file.clear();
+                    }
+                    if (!plate_data_src[index]->no_light_thumbnail_file.empty()) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded no_light_thumbnail %2%.") % (index + 1) %
+                                                       plate_data_src[index]->no_light_thumbnail_file;
+                        plate_data_src[index]->no_light_thumbnail_file.clear();
+                    }
+                    if (!plate_data_src[index]->top_file.empty()) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded top_thumbnail %2%.") % (index + 1) % plate_data_src[index]->top_file;
+                        plate_data_src[index]->top_file.clear();
+                    }
+                    if (!plate_data_src[index]->pick_file.empty()) {
+                        BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: clear loaded pick_thumbnail %2%.") % (index + 1) % plate_data_src[index]->pick_file;
+                        plate_data_src[index]->pick_file.clear();
+                    }
+                }
+            }
+        }
+
+        if (!assemble_plate_info_list.empty()) {
+            // need to arrange for assemble cases
+            int plate_count = assemble_plate_info_list.size();
+            if (plate_count != partplate_list.get_plate_count()) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("mismatch plate count, to_assemble %1%, generated %2%") % plate_count % partplate_list.get_plate_count();
+                record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                flush_and_exit(CLI_INVALID_PARAMS);
+            }
+
+            for (size_t i = 0; i < plate_count; i++) {
+                Slic3r::GUI::PartPlate *cur_plate = (Slic3r::GUI::PartPlate *) partplate_list.get_plate(i);
+                // lock those plates no need to arrange
+                if (!assemble_plate_info_list[i].need_arrange) cur_plate->lock(true);
+            }
+
+            const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_full_config(m_print_config);
+            for (size_t i = 0; i < plate_count; i++) {
+                assemble_plate_info_t  &assemble_plate  = assemble_plate_info_list[i];
+                Slic3r::GUI::PartPlate *cur_plate       = (Slic3r::GUI::PartPlate *) partplate_list.get_plate(i);
+                std::set<int>           plate_filaments = assemble_plate.used_filaments;
+                for (const ModelObject *mo : assemble_plate.loaded_obj_list)
+                    for (const ModelVolume *mv : mo->volumes) {
+                        std::vector<int> volume_filaments = mv->get_extruders(global_features);
+                        plate_filaments.insert(volume_filaments.begin(), volume_filaments.end());
+                    }
+                assemble_plate.filaments_count = plate_filaments.size();
+                BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, need arrange %2%, filaments_count %3%") % (i + 1) % assemble_plate.need_arrange %
+                                               assemble_plate.filaments_count;
+                if (assemble_plate.need_arrange) {
+                    // do arrange for plate
+                    ArrangePolygons selected, unselected;
+                    Model          &model = m_models[0];
+                    arrange_cfg           = ArrangeParams(); // reset all params
                     get_print_sequence(cur_plate, m_print_config, arrange_cfg.is_seq_print);
-                }
 
-                //Step-1: prepare arrange polygons
-                if ((duplicate_count == 0) && (plate_to_slice == 0))
-                {
-                    //global arrange
-                    for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
-                    {
-                        ModelObject* mo = model.objects[oidx];
-                        for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
-                        {
-                            ModelInstance* minst = mo->instances[inst_idx];
-                            ArrangePolygon ap = get_instance_arrange_poly(minst, m_print_config);
+                    // Step-1: prepare the arranged data
+                    partplate_list.lock_plate(i, false);
+                    partplate_list.select_plate(i);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% set to selected") % i;
+                    size_t plate_obj_count = assemble_plate.loaded_obj_list.size();
+                    for (size_t oidx = 0; oidx < plate_obj_count; ++oidx) {
+                        ModelObject *mo = assemble_plate.loaded_obj_list[oidx];
 
-                            //preprocess by partplate list
-                            //remove the locked plate's instances, neither in selected, nor in un-selected
-                            bool locked = partplate_list.preprocess_arrange_polygon(oidx, inst_idx, ap, true);
-                            if (!locked)
-                            {
-                                ap.itemid = selected.size();
-                                if (minst->printable)
-                                    selected.emplace_back(ap);
-                                else
-                                    unprintable.emplace_back(ap);
-                            }
-                            else
-                            {
-                                //skip this object due to be locked in plate
-                                ap.itemid = locked_aps.size();
-                                locked_aps.emplace_back(ap);
-                                boost::nowide::cout <<__FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
-                            }
+                        for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx) {
+                            ModelInstance *minst = mo->instances[inst_idx];
+                            ArrangePolygon ap    = get_instance_arrange_poly(minst, m_print_config);
+                            ap.itemid            = selected.size();
+                            selected.emplace_back(std::move(ap));
+                            BOOST_LOG_TRIVIAL(debug) << boost::format("plate %1%: add object %2%  object index %3%, into selected") % (i + 1) % ap.name % (oidx + 1);
                         }
                     }
 
-                    if (m_print_config.has("print_sequence")) {
-                        PrintSequence seq = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
-                        arrange_cfg.is_seq_print = (seq == PrintSequence::ByObject);
-                    }
-
-                    //add the virtual object into unselect list if has
-                    partplate_list.preprocess_exclude_areas(unselected, enable_wrapping_detect);
-
-                    // used_filament_set only holds the object filaments from the input; global feature filaments add extra ones.
-                    const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_full_config(m_print_config);
-                    if (global_features.wall_filament > 0 || global_features.sparse_infill_filament > 0 || global_features.solid_infill_filament > 0) {
-                        for (const ModelObject *mo : model.objects)
-                            for (const ModelVolume *mv : mo->volumes) {
-                                if (!mv->is_model_part())
-                                    continue;
-                                std::vector<int> volume_filaments = mv->get_extruders(global_features);
-                                used_filament_set.insert(volume_filaments.begin(), volume_filaments.end());
-                                if (mv->extruder_id() <= 0)
-                                    used_filament_set.insert(1);
-                            }
-                    }
-
-                    if (used_filament_set.size() > 0)
-                    {
-                        //prepare the wipe tower
+                    if (!arrange_cfg.is_seq_print && (assemble_plate.filaments_count > 1) || (enable_wrapping_detect && !current_wrapping_exclude_area.empty())) {
+                        // prepare the wipe tower
                         int plate_count = partplate_list.get_plate_count();
-                        int extruder_size = used_filament_set.size();
                         int plate_w, plate_d, plate_h;
                         partplate_list.get_plate_size(plate_w, plate_d, plate_h);
 
-                        //create the options using default if neccessary
-                        ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
-                        ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
-                        ConfigOptionFloat* width_option = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true);
-                        ConfigOptionFloat* rotation_angle_option = m_print_config.option<ConfigOptionFloat>("wipe_tower_rotation_angle", true);
-                        ConfigOptionFloats *volume_option         = m_print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
-                        std::vector<double> wipe_volume           = volume_option->values;
+                        // create the options using default if neccessary
+                        ConfigOptionFloats *wipe_x_option               = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
+                        ConfigOptionFloats *wipe_y_option               = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
+                        ConfigOptionFloat  *width_option                = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true);
+                        ConfigOptionFloat  *rotation_angle_option       = m_print_config.option<ConfigOptionFloat>("wipe_tower_rotation_angle", true);
+                        ConfigOptionFloats *volume_option               = m_print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
+                        ConfigOptionBool   *prime_tower_rib_wall_option = m_print_config.option<ConfigOptionBool>("prime_tower_rib_wall", true);
+                        std::vector<double> wipe_volume                 = volume_option->values;
 
-                        BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%")%width_option->value %rotation_angle_option->value %get_max_element(wipe_volume);
+                        BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%, rib_wall %4%") % width_option->value %
+                                                       rotation_angle_option->value % get_max_element(wipe_volume) % prime_tower_rib_wall_option->value;
 
-                        for (int bedid = 0; bedid < MAX_PLATE_COUNT; bedid++) {
-                            int plate_index_valid = std::min(bedid, plate_count - 1);
-                            ArrangePolygon wipe_tower_ap;
-                            if (bedid < plate_count) {
-                                wipe_tower_ap = Slic3r::init_clamped_wipe_tower_pos(
-                                    m_print_config, partplate_list.get_plate(plate_index_valid),
-                                    plate_index_valid, plate_w, plate_d,
-                                    new_extruder_count, extruder_size, true);
-                            } else {
-                                Vec3d wipe_tower_size, wipe_tower_pos;
-                                wipe_tower_ap = partplate_list.get_plate(plate_index_valid)->estimate_wipe_tower_polygon(
-                                    m_print_config, plate_index_valid, wipe_tower_pos, wipe_tower_size,
-                                    new_extruder_count, extruder_size, true, true);
-                            }
-                            wipe_tower_ap.bed_idx = bedid;
-                            unselected.emplace_back(wipe_tower_ap);
-                        }
-                    }
-                }
-                else {
-                    //only arrange current plate
-                    partplate_list.lock_plate(plate_to_slice - 1, false);
-                    partplate_list.select_plate(plate_to_slice-1);
-                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% set to selected")%plate_to_slice;
-
-                    for (size_t oidx = 0; oidx < model.objects.size(); ++oidx)
-                    {
-                        ModelObject* mo = model.objects[oidx];
-
-                        for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx)
-                        {
-                            ModelInstance*   minst = mo->instances[inst_idx];
-                            bool             in_plate = cur_plate->contain_instance(oidx, inst_idx) || cur_plate->intersect_instance(oidx, inst_idx);
-                            ArrangePolygon   ap = get_instance_arrange_poly(minst, m_print_config);
-
-                            ArrangePolygons& cont = mo->instances[inst_idx]->printable ?
-                                (in_plate ? selected : unselected) :
-                                unprintable;
-                            bool locked = partplate_list.preprocess_arrange_polygon_other_locked(oidx, inst_idx, ap, in_plate);
-                            BOOST_LOG_TRIVIAL(info) << boost::format("name %4% in_plate %1% printable %2%, locked %3%")%in_plate %mo->instances[inst_idx]->printable %locked % ap.name ;
-                            if (!locked)
-                            {
-                                ap.itemid = cont.size();
-                                cont.emplace_back(std::move(ap));
-                            }
-                            else
-                            {
-                                //skip this object due to be not in current plate, treated as locked
-                                ap.itemid = locked_aps.size();
-                                locked_aps.emplace_back(std::move(ap));
-                                BOOST_LOG_TRIVIAL(debug) << boost::format("arrange: skip locked instance, obj_id %1%, name %2%") % oidx % mo->name;
-                            }
-                        }
-                    }
-                    if ((duplicate_count > 0)&&(selected.size() == (duplicate_count + 1)))
-                    {
-                        duplicate_single_object = true;
-                        BOOST_LOG_TRIVIAL(info) << boost::format("found single object mode");
-                    }
-
-                    if (m_print_config.has("wipe_tower_x") && (is_smooth_timelapse || !arrange_cfg.is_seq_print || (selected.size() <= 1))) {
-                        float x;
-                        float y;
-                        if (duplicate_count > 0) {
-                            int plate_w, plate_d, plate_h;
-                            partplate_list.get_plate_size(plate_w, plate_d, plate_h);
-                            std::tie(x, y) = Slic3r::get_wipe_tower_default_pos(m_print_config, plate_w, plate_d);
-                        }
-                        else {
-                            //keep the original
-                            x = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("wipe_tower_x"))->get_at(plate_to_slice-1);
-                            y = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("wipe_tower_y"))->get_at(plate_to_slice-1);
-                        }
-                        float w = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_tower_width"))->value;
-                        float a = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("wipe_tower_rotation_angle"))->value;
-                        std::vector<double> v = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("filament_prime_volume"))->values;
-                        if (m_print_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode", true)->value == pvmSaving) {
-                            for (auto& val : v)
-                                val = 15.f;
-                        }
-                        unsigned int filaments_cnt = plate_data_src[plate_to_slice-1]->slice_filaments_info.size();
-                        if ((filaments_cnt == 0) || need_skip)
-                        {
-                            // slice filaments info invalid
-                            std::vector<int> extruders = cur_plate->get_extruders_under_cli(true, m_print_config);
-                            filaments_cnt = extruders.size();
-                            BOOST_LOG_TRIVIAL(info) << boost::format("arrange: slice filaments info invalid or need_skip, get from partplate: filament_count %1%")%filaments_cnt;
-                        }
-
-                        if ((filaments_cnt <= 1) && !is_smooth_timelapse && (!enable_wrapping_detect || current_wrapping_exclude_area.empty()))
-                        {
-                            BOOST_LOG_TRIVIAL(warning) << boost::format("arrange: not a multi-color object anymore, drop the wipe tower before arrange.");
-                        }
-                        else
-                        {
-                            float layer_height = 0.2;
-                            ConfigOption* layer_height_opt = m_print_config.option("layer_height");
-                            if (layer_height_opt)
-                                layer_height = layer_height_opt->getFloat();
-
-                            //float depth = v * (filaments_cnt - 1) / (layer_height * w);
-
-                            const ConfigOptionBool *wrapping_detection = m_print_config.option<ConfigOptionBool>("enable_wrapping_detection");
-                            bool   enable_wrapping    = (wrapping_detection != nullptr) && wrapping_detection->value;
-
-                            Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, get_max_element(v), new_extruder_count, filaments_cnt, false, enable_wrapping, true);
-                            Vec3d plate_origin = cur_plate->get_origin();
-                            int plate_width, plate_depth, plate_height;
-                            partplate_list.get_plate_size(plate_width, plate_depth, plate_height);
-                            float depth = wipe_tower_size(1);
-                            float margin = 15.f, wp_brim_width = 0.f;
-                            ConfigOption *wipe_tower_brim_width_opt = m_print_config.option("prime_tower_brim_width");
-                            if (wipe_tower_brim_width_opt ) {
-                                wp_brim_width = wipe_tower_brim_width_opt->getFloat();
-                                if (wp_brim_width < 0) wp_brim_width = WipeTower::get_auto_brim_by_height((float) wipe_tower_size.z());
-                                BOOST_LOG_TRIVIAL(info) << boost::format("arrange wipe_tower: wp_brim_width %1%")%wp_brim_width;
-                            }
-                            w = wipe_tower_size(0);
-
-                            BOOST_LOG_TRIVIAL(info) << boost::format("arrange wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, filaments_cnt=%7%, layer_height=%8%, plate_width=%9%, plate_depth=%10%") %
-                                                           x % y % w % depth % a % get_max_element(v) % filaments_cnt % layer_height % plate_width % plate_depth;
-                            if ((y + depth + margin + wp_brim_width) > (float)plate_depth) {
-                                y = (float)plate_depth - depth - margin - wp_brim_width;
-                                BOOST_LOG_TRIVIAL(info) << boost::format("arrange wipe_tower: exceeds the border, change y to %1%, plate_depth=%2%")%y %plate_depth;
-                            }
-
-                            if ((x + w + margin + wp_brim_width) > (float)plate_width) {
-                                x = (float)plate_width - w - margin - wp_brim_width;
-                                BOOST_LOG_TRIVIAL(info) << boost::format("arrange wipe_tower: exceeds the border, change x to %1%, plate_width=%2%")%y %plate_width;
-                            }
-                            if (x < margin) {
-                                x = margin;
-                            }
-                            if (y < margin) {
-                                y = margin;
-                            }
-                            //update wipe_tower_x and wipe_tower_y
-                            ConfigOptionFloat wt_x_opt(x);
-                            ConfigOptionFloat wt_y_opt(y);
-                            ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
-                            ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
-
-                            wipe_x_option->set_at(&wt_x_opt, plate_to_slice-1, 0);
-                            wipe_y_option->set_at(&wt_y_opt, plate_to_slice-1, 0);
-
-                            ArrangePolygon wipe_tower_ap;
-
-                            Polygon ap({
-                                {scaled(x - wp_brim_width), scaled(y - wp_brim_width)},
-                                {scaled(x + w + wp_brim_width), scaled(y - wp_brim_width)},
-                                {scaled(x + w + wp_brim_width), scaled(y + depth + wp_brim_width)},
-                                {scaled(x - wp_brim_width), scaled(y + depth + wp_brim_width)}
-                                });
-                            wipe_tower_ap.bed_idx = 0;
-                            wipe_tower_ap.setter = NULL; // do not move wipe tower
-
-                            wipe_tower_ap.poly.contour = std::move(ap);
-                            wipe_tower_ap.translation  = {scaled(0.f), scaled(0.f)};
-                            wipe_tower_ap.rotation     = a;
-                            wipe_tower_ap.name = "WipeTower";
-                            wipe_tower_ap.is_virt_object = true;
-                            wipe_tower_ap.is_wipe_tower = true;
-                            ++wipe_tower_ap.priority;
-                            unselected.emplace_back(std::move(wipe_tower_ap));
-                        }
+                        ArrangePolygon wipe_tower_ap = Slic3r::init_clamped_wipe_tower_pos(m_print_config, cur_plate, i, plate_w, plate_d, new_extruder_count,
+                                                                                           assemble_plate.filaments_count, true);
+                        wipe_tower_ap.bed_idx        = i;
+                        unselected.emplace_back(wipe_tower_ap);
                     }
 
                     // add the virtual object into unselect list if has
-                    partplate_list.preprocess_exclude_areas(unselected, enable_wrapping_detect, plate_to_slice);
-                }
+                    partplate_list.preprocess_exclude_areas(unselected, enable_wrapping_detect, i + 1);
+                    if (avoid_extrusion_cali_region) partplate_list.preprocess_nonprefered_areas(unselected, i + 1);
 
-
-                //Step-2:prepare the arrange params
-                arrange_cfg.allow_rotations  = allow_rotations;
-                arrange_cfg.allow_multi_materials_on_same_plate = allow_multicolor_oneplate;
-                arrange_cfg.avoid_extrusion_cali_region         = avoid_extrusion_cali_region;
-                arrange_cfg.clearance_height_to_rod             = height_to_rod;
-                arrange_cfg.clearance_height_to_lid             = height_to_lid;
-                arrange_cfg.cleareance_radius                   = cleareance_radius;
-                arrange_cfg.printable_height                    = print_height;
-                arrange_cfg.min_obj_distance = 0;
-                if (arrange_cfg.is_seq_print) {
-                    arrange_cfg.bed_shrink_x = BED_SHRINK_SEQ_PRINT;
-                    arrange_cfg.bed_shrink_y = BED_SHRINK_SEQ_PRINT;
-                }
-                if (auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
-                    arrange_cfg.align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
-                }
-
-                arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
-                arrangement::update_selected_items_inflation(selected, m_print_config, arrange_cfg);
-                arrangement::update_unselected_items_inflation(unselected, m_print_config, arrange_cfg);
-
-                beds=get_shrink_bedpts(m_print_config, arrange_cfg);
-
-                partplate_list.preprocess_exclude_areas(arrange_cfg.excluded_regions, enable_wrapping_detect, 1, scale_(1));
-
-                {
-                    BOOST_LOG_TRIVIAL(debug) << "arrange bedpts:" << beds[0].transpose() << ", " << beds[1].transpose() << ", " << beds[2].transpose() << ", " << beds[3].transpose();
-                    BOOST_LOG_TRIVIAL(info)<< "Arrange full params: "<< arrange_cfg.to_json();
-                    BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%")%selected.size();
-                    for (auto item : selected) BOOST_LOG_TRIVIAL(trace) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
-                    BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items unselected before arranging: %1%") % unselected.size();
-                    for (auto item : unselected) BOOST_LOG_TRIVIAL(trace) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
-                }
-                arrange_cfg.progressind= [](unsigned st, std::string str = "") {
-                    //boost::nowide::cout << "st=" << st << ", " << str << std::endl;
-                };
-
-                //Step-3:do the arrange
-                BOOST_LOG_TRIVIAL(info) << boost::format("start %1% th arranging...")%arrange_count;
-                arrangement::arrange(selected, unselected, beds, arrange_cfg);
-                arrangement::arrange(unprintable, {}, beds, arrange_cfg);
-                BOOST_LOG_TRIVIAL(info) << boost::format("finished %1% th arranging...")%arrange_count;
-
-                //Step-4:postprocess by partplate list&&apply the result
-                int bed_idx_max = 0;
-                if (duplicate_count == 0)
-                {
-                    if (plate_to_slice > 0)
-                    {
-                        //only for partplate case
-                        partplate_list.clear(false, false, true, plate_to_slice-1);
-
-                        for (ArrangePolygon& ap : selected) {
-                            partplate_list.postprocess_bed_index_for_current_plate(ap);
-                            if (ap.bed_idx != (plate_to_slice-1))
-                            {
-                                BOOST_LOG_TRIVIAL(error) << boost::format("arrange failed: ap.name %1% ap.bed_idx %2%, plate index %3%")% ap.name % ap.bed_idx % (plate_to_slice-1);
-                                record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED], sliced_info);
-                                flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
-                            }
-                            bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
-                        }
+                    // Step-2:prepare the arrange params
+                    arrange_cfg.allow_rotations                     = allow_rotations;
+                    arrange_cfg.allow_multi_materials_on_same_plate = allow_multicolor_oneplate;
+                    arrange_cfg.avoid_extrusion_cali_region         = avoid_extrusion_cali_region;
+                    arrange_cfg.clearance_height_to_rod             = height_to_rod;
+                    arrange_cfg.clearance_height_to_lid             = height_to_lid;
+                    arrange_cfg.cleareance_radius                   = cleareance_radius;
+                    arrange_cfg.printable_height                    = print_height;
+                    arrange_cfg.min_obj_distance                    = 0;
+                    if (arrange_cfg.is_seq_print) {
+                        arrange_cfg.bed_shrink_x = BED_SHRINK_SEQ_PRINT;
+                        arrange_cfg.bed_shrink_y = BED_SHRINK_SEQ_PRINT;
                     }
-                    else
-                    {
-                        //clear all the relations before apply the arrangement results
-                        partplate_list.clear();
-
-                        // Apply the arrange result to all selected objects
-                        for (ArrangePolygon &ap : selected) {
-                            //BBS: partplate postprocess
-                            partplate_list.postprocess_bed_index_for_selected(ap);
-
-                            bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
-                            BOOST_LOG_TRIVIAL(trace)<< "after arrange: name=" << ap.name << boost::format(",bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) << "\n";
-                        }
+                    if (auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
+                        arrange_cfg.align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
                     }
-                    for (ArrangePolygon &ap : locked_aps) {
-                        bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
 
-                        partplate_list.postprocess_arrange_polygon(ap, false);
+                    arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
+                    arrangement::update_selected_items_inflation(selected, m_print_config, arrange_cfg);
+                    arrangement::update_unselected_items_inflation(unselected, m_print_config, arrange_cfg);
 
-                        ap.apply();
+                    beds = get_shrink_bedpts(m_print_config, arrange_cfg);
+
+                    partplate_list.preprocess_exclude_areas(arrange_cfg.excluded_regions, enable_wrapping_detect, 1, scale_(1));
+
+                    {
+                        BOOST_LOG_TRIVIAL(debug) << "arrange bedpts:" << beds[0].transpose() << ", " << beds[1].transpose() << ", " << beds[2].transpose() << ", "
+                                                 << beds[3].transpose();
+                        BOOST_LOG_TRIVIAL(info) << "Arrange full params: " << arrange_cfg.to_json();
+                        BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%") % selected.size();
+                        for (auto item : selected)
+                            BOOST_LOG_TRIVIAL(trace) << item.name << ", extruder: " << item.extrude_id_filament_types.begin()->first << ", bed: " << item.bed_idx
+                                                     << ", trans: " << item.translation.transpose();
+                        BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items unselected before arranging: %1%") % unselected.size();
+                        for (auto item : unselected) BOOST_LOG_TRIVIAL(trace) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
+                    }
+                    arrange_cfg.progressind = [](unsigned st, std::string str = "") {
+                        // boost::nowide::cout << "st=" << st << ", " << str << std::endl;
+                    };
+
+                    // Step-3:do the arrange
+                    BOOST_LOG_TRIVIAL(info) << boost::format("start plate %1%'s arranging...") % (i + 1);
+                    arrangement::arrange(selected, unselected, beds, arrange_cfg);
+                    // arrangement::arrange(unprintable, {}, beds, arrange_cfg);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("finished plate %1%'s arranging") % (i + 1);
+
+                    // step-4: postprocess the bed index and result
+                    partplate_list.clear(false, false, true, i);
+
+                    for (ArrangePolygon &ap : selected) {
+                        partplate_list.postprocess_bed_index_for_current_plate(ap);
+                        if (ap.bed_idx != i) {
+                            BOOST_LOG_TRIVIAL(error) << boost::format("arrange failed: ap.name %1% ap.bed_idx %2%, plate index %3%") % ap.name % ap.bed_idx % i;
+                            record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED], sliced_info);
+                            flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
+                        }
                     }
 
                     // Apply the arrange result to all selected objects
                     for (ArrangePolygon &ap : selected) {
-                        //BBS: partplate postprocess
+                        // BBS: partplate postprocess
                         partplate_list.postprocess_arrange_polygon(ap, true);
 
                         ap.apply();
                     }
+                    // lock here
+                    cur_plate->lock(true);
+                } else {
+                    size_t plate_obj_count = assemble_plate.loaded_obj_list.size();
+                    Vec3d  plate_origin    = cur_plate->get_origin();
 
-                    // Apply the arrange result to unselected objects(due to the sukodu-style column changes, the position of unselected may also be modified)
-                    for (ArrangePolygon& ap : unselected)
-                    {
-                        if (ap.is_virt_object)
-                            continue;
+                    for (size_t oidx = 0; oidx < plate_obj_count; ++oidx) {
+                        ModelObject *mo = assemble_plate.loaded_obj_list[oidx];
 
-                        //BBS: partplate postprocess
-                        partplate_list.postprocess_arrange_polygon(ap, false);
+                        mo->translate_instances(plate_origin);
 
-                        ap.apply();
+                        BOOST_LOG_TRIVIAL(debug) << boost::format("plate %1%: no arrange, directly translate object %2%  by {%3%, %4%}") % (i + 1) % mo->name % plate_origin(0) %
+                                                        plate_origin(1);
                     }
 
-                    // Move the unprintable items to the last virtual bed.
-                    // Note ap.apply() moves relatively according to bed_idx, so we need to subtract the orignal bed_idx
-                    for (ArrangePolygon& ap : unprintable)
-                    {
-                        ap.bed_idx = bed_idx_max + 1;
-                        partplate_list.postprocess_arrange_polygon(ap, true);
+                    bool is_seq_print = false;
+                    get_print_sequence(cur_plate, m_print_config, is_seq_print);
 
-                        ap.apply();
-                        BOOST_LOG_TRIVIAL(debug) << boost::format("arrange m_unprintable: name: %4%, bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+                    if (!is_seq_print && (assemble_plate.filaments_count > 1) && !has_wipe_tower_position) {
+                        int plate_w, plate_d, plate_h;
+                        partplate_list.get_plate_size(plate_w, plate_d, plate_h);
+                        Slic3r::init_clamped_wipe_tower_pos(m_print_config, cur_plate, i, plate_w, plate_d, new_extruder_count, assemble_plate.filaments_count, true);
                     }
-
-                    //BBS: reload all objects due to arrange
-                    if (plate_to_slice > 0)
-                        partplate_list.rebuild_plates_after_arrangement(false, true, plate_to_slice-1);
-                    else
-                        partplate_list.rebuild_plates_after_arrangement();
                 }
-                else {
-                    //only for partplate case
-                    partplate_list.clear(false, false, true, plate_to_slice-1);
-
-                    //BBS: adjust the bed_index, create new plates, get the max bed_index
-                    bool failed_this_time = false;
-                    for (ArrangePolygon& ap : selected) {
-                        partplate_list.postprocess_bed_index_for_current_plate(ap);
-                        if (ap.bed_idx != (plate_to_slice-1))
-                        {
-                            //
-                            BOOST_LOG_TRIVIAL(warning) << boost::format("arrange failed: ap.name %1% ap.bed_idx %2%, plate index %3%")% ap.name % ap.bed_idx % (plate_to_slice-1);
-                            if (!duplicate_single_object)
-                            {
-                                BOOST_LOG_TRIVIAL(warning) << boost::format("arrange failed when duplicate multiple objects at count %1%, low_duplicate_count %2%, up_duplicate_count %3%")%duplicate_count %low_duplicate_count %up_duplicate_count;
-
-                                if (duplicate_count == 1)
-                                {
-                                    BOOST_LOG_TRIVIAL(warning) << boost::format("failed even on duplicate 1 copy, just print one original model");
-                                    duplicate_count = 0;
-                                }
-                                else
-                                {
-                                    if (duplicate_count == low_duplicate_count)
-                                    {
-                                        BOOST_LOG_TRIVIAL(warning) << boost::format("previous success, but currently failed count %1%!!!")%duplicate_count;
-                                        up_duplicate_count = duplicate_count;
-                                        low_duplicate_count --;
-                                        duplicate_count --;
-                                    }
-                                    else {
-                                        up_duplicate_count = duplicate_count;
-                                        duplicate_count = (up_duplicate_count + low_duplicate_count)/2;
-                                    }
-                                    BOOST_LOG_TRIVIAL(warning) << boost::format("try new count %1%, low_duplicate_count %2%, up_duplicate_count %3%")%duplicate_count %low_duplicate_count %up_duplicate_count;
-                                }
-                                //record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED], sliced_info);
-                                //flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
-                                failed_this_time = true;
-                                break;
-                            }
-                        }
-                        else {
-                            BOOST_LOG_TRIVIAL(info) << boost::format("arrange success: ap.name %1% ap.bed_idx %2%, plate index %3%")% ap.name % ap.bed_idx % (plate_to_slice-1);
-                            real_duplicate_count ++;
-                        }
-
-                        bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
-                        BOOST_LOG_TRIVIAL(debug) << boost::format("arrange selected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
-                    }
-
-                    if (failed_this_time) {
-                        if (duplicate_count == 0)
-                        {
-                            //restore to the original
-                            BOOST_LOG_TRIVIAL(info) << boost::format("restore to the original model and plates, orig_wipe_x %1%, orig_wipe_y %2%")%orig_wipe_x %orig_wipe_y;
-                            finished_arrange = true;
-                            model = original_model;
-                            partplate_list.load_from_3mf_structure(plate_data_src);
-                            partplate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
-                            if ((orig_wipe_x > 0.f) && (orig_wipe_y > 0.f))
-                            {
-                                ConfigOptionFloat wt_x_opt(orig_wipe_x);
-                                ConfigOptionFloat wt_y_opt(orig_wipe_y);
-                                ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
-                                ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
-
-                                wipe_x_option->set_at(&wt_x_opt, plate_to_slice-1, 0);
-                                wipe_y_option->set_at(&wt_y_opt, plate_to_slice-1, 0);
-                                BOOST_LOG_TRIVIAL(info) << boost::format("restore wipe_tower position to {%1%, %2%}")%orig_wipe_x %orig_wipe_y;
-                            }
-                            BOOST_LOG_TRIVIAL(info) << boost::format("exit arrange process");
-                        }
-                        continue;
-                    }
-
-                    if (duplicate_single_object)
-                    {
-                        if (real_duplicate_count <= 1) {
-                            BOOST_LOG_TRIVIAL(warning) << boost::format("no object can be placed under single object mode, restore to the original model and plates also, orig_wipe_x %1%, orig_wipe_y %2%")%orig_wipe_x %orig_wipe_y;
-                            //record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED], sliced_info);
-                            //flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
-                            finished_arrange = true;
-                            model = original_model;
-                            partplate_list.load_from_3mf_structure(plate_data_src);
-                            partplate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
-                            duplicate_count = 0;
-                            if ((orig_wipe_x > 0.f) && (orig_wipe_y > 0.f))
-                            {
-                                ConfigOptionFloat wt_x_opt(orig_wipe_x);
-                                ConfigOptionFloat wt_y_opt(orig_wipe_y);
-                                ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
-                                ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
-
-                                wipe_x_option->set_at(&wt_x_opt, plate_to_slice-1, 0);
-                                wipe_y_option->set_at(&wt_y_opt, plate_to_slice-1, 0);
-                                BOOST_LOG_TRIVIAL(info) << boost::format("restore wipe_tower position to {%1%, %2%}")%orig_wipe_x %orig_wipe_y;
-                            }
-                            BOOST_LOG_TRIVIAL(info) << boost::format("exit arrange process");
-                            continue;
-                        }
-                        duplicate_count = real_duplicate_count - 1;
-                    }
-                    else {
-                        //multiple objects case
-                        BOOST_LOG_TRIVIAL(info) << boost::format("multiple objects mode, arrange success on count %1%, low_duplicate_count %2%, up_duplicate_count %3%")%duplicate_count %low_duplicate_count %up_duplicate_count;
-                        if ((duplicate_count == up_duplicate_count) || (duplicate_count == (up_duplicate_count - 1)))
-                        {
-                            BOOST_LOG_TRIVIAL(info) << boost::format("found the max arrangeable count %1%")%duplicate_count;
-                        }
-                        else {
-                            low_duplicate_count = duplicate_count;
-                            duplicate_count = (up_duplicate_count + low_duplicate_count)/2;
-                            BOOST_LOG_TRIVIAL(info) << boost::format("try new count %1%, low_duplicate_count %2%, up_duplicate_count %3%")%duplicate_count %low_duplicate_count %up_duplicate_count;
-                            continue;
-                        }
-                    }
-
-                    //BBS: adjust the bed_index, create new plates, get the max bed_index
-                    for (ArrangePolygon& ap : unselected)
-                    {
-                        if (ap.is_virt_object)
-                            continue;
-
-                        bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
-                        BOOST_LOG_TRIVIAL(debug) << boost::format("arrange unselected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
-                    }
-
-                    for (ArrangePolygon& ap : locked_aps)
-                    {
-                        bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
-
-                        partplate_list.postprocess_arrange_polygon(ap, false);
-
-                        ap.apply();
-                    }
-
-                    // Apply the arrange result to all selected objects
-                    for (ArrangePolygon& ap : selected) {
-                        //BBS: partplate postprocess
-                        partplate_list.postprocess_arrange_polygon(ap, true);
-
-                        ap.apply();
-                    }
-
-                    // Apply the arrange result to unselected objects(due to the sukodu-style column changes, the position of unselected may also be modified)
-                    for (ArrangePolygon& ap : unselected)
-                    {
-                        if (ap.is_virt_object)
-                            continue;
-
-                        //BBS: partplate postprocess
-                        partplate_list.postprocess_arrange_polygon(ap, false);
-
-                        ap.apply();
-                    }
-
-                    // Move the unprintable items to the last virtual bed.
-                    // Note ap.apply() moves relatively according to bed_idx, so we need to subtract the orignal bed_idx
-                    for (ArrangePolygon& ap : unprintable)
-                    {
-                        ap.bed_idx = bed_idx_max + 1;
-                        partplate_list.postprocess_arrange_polygon(ap, true);
-
-                        ap.apply();
-                        BOOST_LOG_TRIVIAL(debug) << boost::format("arrange m_unprintable: name: %4%, bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
-                    }
-
-                    partplate_list.rebuild_plates_after_arrangement(false, true, plate_to_slice-1);
-                }
-                finished_arrange = true;
             }
-            original_model.clear_objects();
-            original_model.clear_materials();
-        }
-    }
 
-    // All transforms have been dealt with. Now ensure that the objects are on bed.
-    // (Unless the user said otherwise.)
-    //BBS: current only support models on bed, 0407 sinking supported
-    if (m_config.opt_bool("ensure_on_bed"))
-    {
-        BOOST_LOG_TRIVIAL(info) << "ensure_on_bed: need to ensure each object on beds";
-        for (auto &model : m_models)
-            for (auto &o : model.objects)
-                o->ensure_on_bed();
+            for (size_t i = 0; i < plate_count; i++) {
+                // unlock all the plates
+                Slic3r::GUI::PartPlate *cur_plate = (Slic3r::GUI::PartPlate *) partplate_list.get_plate(i);
+                cur_plate->lock(false);
+            }
+
+            partplate_list.reload_all_objects(false, -1);
+        } else if (need_arrange) {
+            ArrangePolygons selected, unselected, unprintable, locked_aps;
+
+            // for (Model &model : m_models)
+            if (m_models.size() > 0) {
+                Model                        &model = m_models[0];
+                Model                         original_model;
+                std::set<std::pair<int, int>> backup_set;
+                bool                          finished_arrange = false, first_run = true;
+                Slic3r::GUI::PartPlate       *cur_plate           = nullptr;
+                int                           low_duplicate_count = 0, up_duplicate_count = duplicate_count, arrange_count = 0;
+                float                         orig_wipe_x = 0.f, orig_wipe_y = 0.f;
+
+                if (duplicate_count > 0) { original_model = model; }
+
+                while (!finished_arrange) {
+                    arrange_cfg = ArrangeParams(); // reset all params
+                    arrange_count++;
+                    // step-0: duplicate model
+                    if (duplicate_count > 0) {
+                        // copy model objects and instances on plate
+                        if (!first_run) {
+                            BOOST_LOG_TRIVIAL(info) << boost::format("restore model object and plate, new duplicate_count %1%, arrange_count=%2%") % duplicate_count %
+                                                           arrange_count;
+                            beds = get_bed_shape(m_print_config);
+                            model.clear_objects();
+                            model.clear_materials();
+                            model = original_model;
+                            partplate_list.load_from_3mf_structure(plate_data_src);
+
+                            selected.clear();
+                            unselected.clear();
+                            unprintable.clear();
+                            locked_aps.clear();
+                        } else {
+                            first_run = false;
+                            if (plate_to_slice > 0) {
+                                ConfigOptionFloats *wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x");
+                                ConfigOptionFloats *wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y");
+
+                                if (wipe_x_option && (wipe_x_option->size() > (plate_to_slice - 1))) {
+                                    orig_wipe_x = wipe_x_option->get_at(plate_to_slice - 1);
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate_to_slice %1%, orig_wipe_x=%2%") % plate_to_slice % orig_wipe_x;
+                                }
+                                if (wipe_y_option && (wipe_y_option->size() > (plate_to_slice - 1))) {
+                                    orig_wipe_y = wipe_y_option->get_at(plate_to_slice - 1);
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("plate_to_slice %1%, orig_wipe_y=%2%") % plate_to_slice % orig_wipe_y;
+                                }
+                            }
+                        }
+
+                        cur_plate = (Slic3r::GUI::PartPlate *) partplate_list.get_plate(plate_to_slice - 1);
+                        cur_plate->duplicate_all_instance(duplicate_count, need_skip, skip_maps);
+                    } else if (plate_to_slice > 0) {
+                        cur_plate = (Slic3r::GUI::PartPlate *) partplate_list.get_plate(plate_to_slice - 1);
+                    }
+
+                    if (cur_plate) { get_print_sequence(cur_plate, m_print_config, arrange_cfg.is_seq_print); }
+
+                    // Step-1: prepare arrange polygons
+                    if ((duplicate_count == 0) && (plate_to_slice == 0)) {
+                        // global arrange
+                        for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
+                            ModelObject *mo = model.objects[oidx];
+                            for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx) {
+                                ModelInstance *minst = mo->instances[inst_idx];
+                                ArrangePolygon ap    = get_instance_arrange_poly(minst, m_print_config);
+
+                                // preprocess by partplate list
+                                // remove the locked plate's instances, neither in selected, nor in un-selected
+                                bool locked = partplate_list.preprocess_arrange_polygon(oidx, inst_idx, ap, true);
+                                if (!locked) {
+                                    ap.itemid = selected.size();
+                                    if (minst->printable)
+                                        selected.emplace_back(ap);
+                                    else
+                                        unprintable.emplace_back(ap);
+                                } else {
+                                    // skip this object due to be locked in plate
+                                    ap.itemid = locked_aps.size();
+                                    locked_aps.emplace_back(ap);
+                                    boost::nowide::cout << __FUNCTION__ << boost::format(": skip locked instance, obj_id %1%, instance_id %2%") % oidx % inst_idx;
+                                }
+                            }
+                        }
+
+                        if (m_print_config.has("print_sequence")) {
+                            PrintSequence seq        = m_print_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value;
+                            arrange_cfg.is_seq_print = (seq == PrintSequence::ByObject);
+                        }
+
+                        // add the virtual object into unselect list if has
+                        partplate_list.preprocess_exclude_areas(unselected, enable_wrapping_detect);
+
+                        // used_filament_set only holds the object filaments from the input; global feature filaments add extra ones.
+                        const GlobalFeatureFilaments global_features = GlobalFeatureFilaments::from_full_config(m_print_config);
+                        if (global_features.wall_filament > 0 || global_features.sparse_infill_filament > 0 || global_features.solid_infill_filament > 0) {
+                            for (const ModelObject *mo : model.objects)
+                                for (const ModelVolume *mv : mo->volumes) {
+                                    if (!mv->is_model_part()) continue;
+                                    std::vector<int> volume_filaments = mv->get_extruders(global_features);
+                                    used_filament_set.insert(volume_filaments.begin(), volume_filaments.end());
+                                    if (mv->extruder_id() <= 0) used_filament_set.insert(1);
+                                }
+                        }
+
+                        if (used_filament_set.size() > 0) {
+                            // prepare the wipe tower
+                            int plate_count   = partplate_list.get_plate_count();
+                            int extruder_size = used_filament_set.size();
+                            int plate_w, plate_d, plate_h;
+                            partplate_list.get_plate_size(plate_w, plate_d, plate_h);
+
+                            // create the options using default if neccessary
+                            ConfigOptionFloats *wipe_x_option         = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
+                            ConfigOptionFloats *wipe_y_option         = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
+                            ConfigOptionFloat  *width_option          = m_print_config.option<ConfigOptionFloat>("prime_tower_width", true);
+                            ConfigOptionFloat  *rotation_angle_option = m_print_config.option<ConfigOptionFloat>("wipe_tower_rotation_angle", true);
+                            ConfigOptionFloats *volume_option         = m_print_config.option<ConfigOptionFloats>("filament_prime_volume", true);
+                            std::vector<double> wipe_volume           = volume_option->values;
+
+                            BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%") % width_option->value %
+                                                           rotation_angle_option->value % get_max_element(wipe_volume);
+
+                            for (int bedid = 0; bedid < MAX_PLATE_COUNT; bedid++) {
+                                int            plate_index_valid = std::min(bedid, plate_count - 1);
+                                ArrangePolygon wipe_tower_ap;
+                                if (bedid < plate_count) {
+                                    wipe_tower_ap = Slic3r::init_clamped_wipe_tower_pos(m_print_config, partplate_list.get_plate(plate_index_valid), plate_index_valid, plate_w,
+                                                                                        plate_d, new_extruder_count, extruder_size, true);
+                                } else {
+                                    Vec3d wipe_tower_size, wipe_tower_pos;
+                                    wipe_tower_ap = partplate_list.get_plate(plate_index_valid)
+                                                        ->estimate_wipe_tower_polygon(m_print_config, plate_index_valid, wipe_tower_pos, wipe_tower_size, new_extruder_count,
+                                                                                      extruder_size, true, true);
+                                }
+                                wipe_tower_ap.bed_idx = bedid;
+                                unselected.emplace_back(wipe_tower_ap);
+                            }
+                        }
+                    } else {
+                        // only arrange current plate
+                        partplate_list.lock_plate(plate_to_slice - 1, false);
+                        partplate_list.select_plate(plate_to_slice - 1);
+                        BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% set to selected") % plate_to_slice;
+
+                        for (size_t oidx = 0; oidx < model.objects.size(); ++oidx) {
+                            ModelObject *mo = model.objects[oidx];
+
+                            for (size_t inst_idx = 0; inst_idx < mo->instances.size(); ++inst_idx) {
+                                ModelInstance *minst    = mo->instances[inst_idx];
+                                bool           in_plate = cur_plate->contain_instance(oidx, inst_idx) || cur_plate->intersect_instance(oidx, inst_idx);
+                                ArrangePolygon ap       = get_instance_arrange_poly(minst, m_print_config);
+
+                                ArrangePolygons &cont   = mo->instances[inst_idx]->printable ? (in_plate ? selected : unselected) : unprintable;
+                                bool             locked = partplate_list.preprocess_arrange_polygon_other_locked(oidx, inst_idx, ap, in_plate);
+                                BOOST_LOG_TRIVIAL(info) << boost::format("name %4% in_plate %1% printable %2%, locked %3%") % in_plate % mo->instances[inst_idx]->printable %
+                                                               locked % ap.name;
+                                if (!locked) {
+                                    ap.itemid = cont.size();
+                                    cont.emplace_back(std::move(ap));
+                                } else {
+                                    // skip this object due to be not in current plate, treated as locked
+                                    ap.itemid = locked_aps.size();
+                                    locked_aps.emplace_back(std::move(ap));
+                                    BOOST_LOG_TRIVIAL(debug) << boost::format("arrange: skip locked instance, obj_id %1%, name %2%") % oidx % mo->name;
+                                }
+                            }
+                        }
+                        if ((duplicate_count > 0) && (selected.size() == (duplicate_count + 1))) {
+                            duplicate_single_object = true;
+                            BOOST_LOG_TRIVIAL(info) << boost::format("found single object mode");
+                        }
+
+                        if (m_print_config.has("wipe_tower_x") && (is_smooth_timelapse || !arrange_cfg.is_seq_print || (selected.size() <= 1))) {
+                            float x;
+                            float y;
+                            if (duplicate_count > 0) {
+                                int plate_w, plate_d, plate_h;
+                                partplate_list.get_plate_size(plate_w, plate_d, plate_h);
+                                std::tie(x, y) = Slic3r::get_wipe_tower_default_pos(m_print_config, plate_w, plate_d);
+                            } else {
+                                // keep the original
+                                x = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("wipe_tower_x"))->get_at(plate_to_slice - 1);
+                                y = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("wipe_tower_y"))->get_at(plate_to_slice - 1);
+                            }
+                            float               w = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("prime_tower_width"))->value;
+                            float               a = dynamic_cast<const ConfigOptionFloat *>(m_print_config.option("wipe_tower_rotation_angle"))->value;
+                            std::vector<double> v = dynamic_cast<const ConfigOptionFloats *>(m_print_config.option("filament_prime_volume"))->values;
+                            if (m_print_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode", true)->value == pvmSaving) {
+                                for (auto &val : v) val = 15.f;
+                            }
+                            unsigned int filaments_cnt = plate_data_src[plate_to_slice - 1]->slice_filaments_info.size();
+                            if ((filaments_cnt == 0) || need_skip) {
+                                // slice filaments info invalid
+                                std::vector<int> extruders = cur_plate->get_extruders_under_cli(true, m_print_config);
+                                filaments_cnt              = extruders.size();
+                                BOOST_LOG_TRIVIAL(info) << boost::format("arrange: slice filaments info invalid or need_skip, get from partplate: filament_count %1%") %
+                                                               filaments_cnt;
+                            }
+
+                            if ((filaments_cnt <= 1) && !is_smooth_timelapse && (!enable_wrapping_detect || current_wrapping_exclude_area.empty())) {
+                                BOOST_LOG_TRIVIAL(warning) << boost::format("arrange: not a multi-color object anymore, drop the wipe tower before arrange.");
+                            } else {
+                                float         layer_height     = 0.2;
+                                ConfigOption *layer_height_opt = m_print_config.option("layer_height");
+                                if (layer_height_opt) layer_height = layer_height_opt->getFloat();
+
+                                // float depth = v * (filaments_cnt - 1) / (layer_height * w);
+
+                                const ConfigOptionBool *wrapping_detection = m_print_config.option<ConfigOptionBool>("enable_wrapping_detection");
+                                bool                    enable_wrapping    = (wrapping_detection != nullptr) && wrapping_detection->value;
+
+                                Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, get_max_element(v), new_extruder_count, filaments_cnt, false,
+                                                                                            enable_wrapping, true);
+                                Vec3d plate_origin    = cur_plate->get_origin();
+                                int   plate_width, plate_depth, plate_height;
+                                partplate_list.get_plate_size(plate_width, plate_depth, plate_height);
+                                float         depth  = wipe_tower_size(1);
+                                float         margin = 15.f, wp_brim_width = 0.f;
+                                ConfigOption *wipe_tower_brim_width_opt = m_print_config.option("prime_tower_brim_width");
+                                if (wipe_tower_brim_width_opt) {
+                                    wp_brim_width = wipe_tower_brim_width_opt->getFloat();
+                                    if (wp_brim_width < 0) wp_brim_width = WipeTower::get_auto_brim_by_height((float) wipe_tower_size.z());
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("arrange wipe_tower: wp_brim_width %1%") % wp_brim_width;
+                                }
+                                w = wipe_tower_size(0);
+
+                                BOOST_LOG_TRIVIAL(info) << boost::format("arrange wipe_tower: x=%1%, y=%2%, width=%3%, depth=%4%, angle=%5%, prime_volume=%6%, "
+                                                                         "filaments_cnt=%7%, layer_height=%8%, plate_width=%9%, plate_depth=%10%") %
+                                                               x % y % w % depth % a % get_max_element(v) % filaments_cnt % layer_height % plate_width % plate_depth;
+                                if ((y + depth + margin + wp_brim_width) > (float) plate_depth) {
+                                    y = (float) plate_depth - depth - margin - wp_brim_width;
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("arrange wipe_tower: exceeds the border, change y to %1%, plate_depth=%2%") % y % plate_depth;
+                                }
+
+                                if ((x + w + margin + wp_brim_width) > (float) plate_width) {
+                                    x = (float) plate_width - w - margin - wp_brim_width;
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("arrange wipe_tower: exceeds the border, change x to %1%, plate_width=%2%") % y % plate_width;
+                                }
+                                if (x < margin) { x = margin; }
+                                if (y < margin) { y = margin; }
+                                // update wipe_tower_x and wipe_tower_y
+                                ConfigOptionFloat   wt_x_opt(x);
+                                ConfigOptionFloat   wt_y_opt(y);
+                                ConfigOptionFloats *wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
+                                ConfigOptionFloats *wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
+
+                                wipe_x_option->set_at(&wt_x_opt, plate_to_slice - 1, 0);
+                                wipe_y_option->set_at(&wt_y_opt, plate_to_slice - 1, 0);
+
+                                ArrangePolygon wipe_tower_ap;
+
+                                Polygon ap({{scaled(x - wp_brim_width), scaled(y - wp_brim_width)},
+                                            {scaled(x + w + wp_brim_width), scaled(y - wp_brim_width)},
+                                            {scaled(x + w + wp_brim_width), scaled(y + depth + wp_brim_width)},
+                                            {scaled(x - wp_brim_width), scaled(y + depth + wp_brim_width)}});
+                                wipe_tower_ap.bed_idx = 0;
+                                wipe_tower_ap.setter  = NULL; // do not move wipe tower
+
+                                wipe_tower_ap.poly.contour   = std::move(ap);
+                                wipe_tower_ap.translation    = {scaled(0.f), scaled(0.f)};
+                                wipe_tower_ap.rotation       = a;
+                                wipe_tower_ap.name           = "WipeTower";
+                                wipe_tower_ap.is_virt_object = true;
+                                wipe_tower_ap.is_wipe_tower  = true;
+                                ++wipe_tower_ap.priority;
+                                unselected.emplace_back(std::move(wipe_tower_ap));
+                            }
+                        }
+
+                        // add the virtual object into unselect list if has
+                        partplate_list.preprocess_exclude_areas(unselected, enable_wrapping_detect, plate_to_slice);
+                    }
+
+                    // Step-2:prepare the arrange params
+                    arrange_cfg.allow_rotations                     = allow_rotations;
+                    arrange_cfg.allow_multi_materials_on_same_plate = allow_multicolor_oneplate;
+                    arrange_cfg.avoid_extrusion_cali_region         = avoid_extrusion_cali_region;
+                    arrange_cfg.clearance_height_to_rod             = height_to_rod;
+                    arrange_cfg.clearance_height_to_lid             = height_to_lid;
+                    arrange_cfg.cleareance_radius                   = cleareance_radius;
+                    arrange_cfg.printable_height                    = print_height;
+                    arrange_cfg.min_obj_distance                    = 0;
+                    if (arrange_cfg.is_seq_print) {
+                        arrange_cfg.bed_shrink_x = BED_SHRINK_SEQ_PRINT;
+                        arrange_cfg.bed_shrink_y = BED_SHRINK_SEQ_PRINT;
+                    }
+                    if (auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure")) {
+                        arrange_cfg.align_to_y_axis = (printer_structure_opt->value == PrinterStructure::psI3);
+                    }
+
+                    arrangement::update_arrange_params(arrange_cfg, m_print_config, selected);
+                    arrangement::update_selected_items_inflation(selected, m_print_config, arrange_cfg);
+                    arrangement::update_unselected_items_inflation(unselected, m_print_config, arrange_cfg);
+
+                    beds = get_shrink_bedpts(m_print_config, arrange_cfg);
+
+                    partplate_list.preprocess_exclude_areas(arrange_cfg.excluded_regions, enable_wrapping_detect, 1, scale_(1));
+
+                    {
+                        BOOST_LOG_TRIVIAL(debug) << "arrange bedpts:" << beds[0].transpose() << ", " << beds[1].transpose() << ", " << beds[2].transpose() << ", "
+                                                 << beds[3].transpose();
+                        BOOST_LOG_TRIVIAL(info) << "Arrange full params: " << arrange_cfg.to_json();
+                        BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items selected before arranging: %1%") % selected.size();
+                        for (auto item : selected) BOOST_LOG_TRIVIAL(trace) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
+                        BOOST_LOG_TRIVIAL(info) << boost::format("arrange: items unselected before arranging: %1%") % unselected.size();
+                        for (auto item : unselected) BOOST_LOG_TRIVIAL(trace) << item.name << ", bed: " << item.bed_idx << ", trans: " << item.translation.transpose();
+                    }
+                    arrange_cfg.progressind = [](unsigned st, std::string str = "") {
+                        // boost::nowide::cout << "st=" << st << ", " << str << std::endl;
+                    };
+
+                    // Step-3:do the arrange
+                    BOOST_LOG_TRIVIAL(info) << boost::format("start %1% th arranging...") % arrange_count;
+                    arrangement::arrange(selected, unselected, beds, arrange_cfg);
+                    arrangement::arrange(unprintable, {}, beds, arrange_cfg);
+                    BOOST_LOG_TRIVIAL(info) << boost::format("finished %1% th arranging...") % arrange_count;
+
+                    // Step-4:postprocess by partplate list&&apply the result
+                    int bed_idx_max = 0;
+                    if (duplicate_count == 0) {
+                        if (plate_to_slice > 0) {
+                            // only for partplate case
+                            partplate_list.clear(false, false, true, plate_to_slice - 1);
+
+                            for (ArrangePolygon &ap : selected) {
+                                partplate_list.postprocess_bed_index_for_current_plate(ap);
+                                if (ap.bed_idx != (plate_to_slice - 1)) {
+                                    BOOST_LOG_TRIVIAL(error)
+                                        << boost::format("arrange failed: ap.name %1% ap.bed_idx %2%, plate index %3%") % ap.name % ap.bed_idx % (plate_to_slice - 1);
+                                    record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED], sliced_info);
+                                    flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
+                                }
+                                bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
+                            }
+                        } else {
+                            // clear all the relations before apply the arrangement results
+                            partplate_list.clear();
+
+                            // Apply the arrange result to all selected objects
+                            for (ArrangePolygon &ap : selected) {
+                                // BBS: partplate postprocess
+                                partplate_list.postprocess_bed_index_for_selected(ap);
+
+                                bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
+                                BOOST_LOG_TRIVIAL(trace) << "after arrange: name=" << ap.name
+                                                         << boost::format(",bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) %
+                                                                unscale<double>(ap.translation(Y))
+                                                         << "\n";
+                            }
+                        }
+                        for (ArrangePolygon &ap : locked_aps) {
+                            bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
+
+                            partplate_list.postprocess_arrange_polygon(ap, false);
+
+                            ap.apply();
+                        }
+
+                        // Apply the arrange result to all selected objects
+                        for (ArrangePolygon &ap : selected) {
+                            // BBS: partplate postprocess
+                            partplate_list.postprocess_arrange_polygon(ap, true);
+
+                            ap.apply();
+                        }
+
+                        // Apply the arrange result to unselected objects(due to the sukodu-style column changes, the position of unselected may also be modified)
+                        for (ArrangePolygon &ap : unselected) {
+                            if (ap.is_virt_object) continue;
+
+                            // BBS: partplate postprocess
+                            partplate_list.postprocess_arrange_polygon(ap, false);
+
+                            ap.apply();
+                        }
+
+                        // Move the unprintable items to the last virtual bed.
+                        // Note ap.apply() moves relatively according to bed_idx, so we need to subtract the orignal bed_idx
+                        for (ArrangePolygon &ap : unprintable) {
+                            ap.bed_idx = bed_idx_max + 1;
+                            partplate_list.postprocess_arrange_polygon(ap, true);
+
+                            ap.apply();
+                            BOOST_LOG_TRIVIAL(debug) << boost::format("arrange m_unprintable: name: %4%, bed_id %1%, trans {%2%,%3%}") % ap.bed_idx %
+                                                            unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+                        }
+
+                        // BBS: reload all objects due to arrange
+                        if (plate_to_slice > 0)
+                            partplate_list.rebuild_plates_after_arrangement(false, true, plate_to_slice - 1);
+                        else
+                            partplate_list.rebuild_plates_after_arrangement();
+                    } else {
+                        // only for partplate case
+                        partplate_list.clear(false, false, true, plate_to_slice - 1);
+
+                        // BBS: adjust the bed_index, create new plates, get the max bed_index
+                        bool failed_this_time = false;
+                        for (ArrangePolygon &ap : selected) {
+                            partplate_list.postprocess_bed_index_for_current_plate(ap);
+                            if (ap.bed_idx != (plate_to_slice - 1)) {
+                                //
+                                BOOST_LOG_TRIVIAL(warning) << boost::format("arrange failed: ap.name %1% ap.bed_idx %2%, plate index %3%") % ap.name % ap.bed_idx %
+                                                                  (plate_to_slice - 1);
+                                if (!duplicate_single_object) {
+                                    BOOST_LOG_TRIVIAL(warning)
+                                        << boost::format("arrange failed when duplicate multiple objects at count %1%, low_duplicate_count %2%, up_duplicate_count %3%") %
+                                               duplicate_count % low_duplicate_count % up_duplicate_count;
+
+                                    if (duplicate_count == 1) {
+                                        BOOST_LOG_TRIVIAL(warning) << boost::format("failed even on duplicate 1 copy, just print one original model");
+                                        duplicate_count = 0;
+                                    } else {
+                                        if (duplicate_count == low_duplicate_count) {
+                                            BOOST_LOG_TRIVIAL(warning) << boost::format("previous success, but currently failed count %1%!!!") % duplicate_count;
+                                            up_duplicate_count = duplicate_count;
+                                            low_duplicate_count--;
+                                            duplicate_count--;
+                                        } else {
+                                            up_duplicate_count = duplicate_count;
+                                            duplicate_count    = (up_duplicate_count + low_duplicate_count) / 2;
+                                        }
+                                        BOOST_LOG_TRIVIAL(warning) << boost::format("try new count %1%, low_duplicate_count %2%, up_duplicate_count %3%") % duplicate_count %
+                                                                          low_duplicate_count % up_duplicate_count;
+                                    }
+                                    // record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED], sliced_info);
+                                    // flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
+                                    failed_this_time = true;
+                                    break;
+                                }
+                            } else {
+                                BOOST_LOG_TRIVIAL(info) << boost::format("arrange success: ap.name %1% ap.bed_idx %2%, plate index %3%") % ap.name % ap.bed_idx %
+                                                               (plate_to_slice - 1);
+                                real_duplicate_count++;
+                            }
+
+                            bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
+                            BOOST_LOG_TRIVIAL(debug) << boost::format("arrange selected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) %
+                                                            unscale<double>(ap.translation(Y)) % ap.name;
+                        }
+
+                        if (failed_this_time) {
+                            if (duplicate_count == 0) {
+                                // restore to the original
+                                BOOST_LOG_TRIVIAL(info) << boost::format("restore to the original model and plates, orig_wipe_x %1%, orig_wipe_y %2%") % orig_wipe_x %
+                                                               orig_wipe_y;
+                                finished_arrange = true;
+                                model            = original_model;
+                                partplate_list.load_from_3mf_structure(plate_data_src);
+                                partplate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
+                                if ((orig_wipe_x > 0.f) && (orig_wipe_y > 0.f)) {
+                                    ConfigOptionFloat   wt_x_opt(orig_wipe_x);
+                                    ConfigOptionFloat   wt_y_opt(orig_wipe_y);
+                                    ConfigOptionFloats *wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
+                                    ConfigOptionFloats *wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
+
+                                    wipe_x_option->set_at(&wt_x_opt, plate_to_slice - 1, 0);
+                                    wipe_y_option->set_at(&wt_y_opt, plate_to_slice - 1, 0);
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("restore wipe_tower position to {%1%, %2%}") % orig_wipe_x % orig_wipe_y;
+                                }
+                                BOOST_LOG_TRIVIAL(info) << boost::format("exit arrange process");
+                            }
+                            continue;
+                        }
+
+                        if (duplicate_single_object) {
+                            if (real_duplicate_count <= 1) {
+                                BOOST_LOG_TRIVIAL(warning)
+                                    << boost::format(
+                                           "no object can be placed under single object mode, restore to the original model and plates also, orig_wipe_x %1%, orig_wipe_y %2%") %
+                                           orig_wipe_x % orig_wipe_y;
+                                // record_exit_reson(outfile_dir, CLI_OBJECT_ARRANGE_FAILED, 0, cli_errors[CLI_OBJECT_ARRANGE_FAILED], sliced_info);
+                                // flush_and_exit(CLI_OBJECT_ARRANGE_FAILED);
+                                finished_arrange = true;
+                                model            = original_model;
+                                partplate_list.load_from_3mf_structure(plate_data_src);
+                                partplate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
+                                duplicate_count = 0;
+                                if ((orig_wipe_x > 0.f) && (orig_wipe_y > 0.f)) {
+                                    ConfigOptionFloat   wt_x_opt(orig_wipe_x);
+                                    ConfigOptionFloat   wt_y_opt(orig_wipe_y);
+                                    ConfigOptionFloats *wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
+                                    ConfigOptionFloats *wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
+
+                                    wipe_x_option->set_at(&wt_x_opt, plate_to_slice - 1, 0);
+                                    wipe_y_option->set_at(&wt_y_opt, plate_to_slice - 1, 0);
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("restore wipe_tower position to {%1%, %2%}") % orig_wipe_x % orig_wipe_y;
+                                }
+                                BOOST_LOG_TRIVIAL(info) << boost::format("exit arrange process");
+                                continue;
+                            }
+                            duplicate_count = real_duplicate_count - 1;
+                        } else {
+                            // multiple objects case
+                            BOOST_LOG_TRIVIAL(info) << boost::format("multiple objects mode, arrange success on count %1%, low_duplicate_count %2%, up_duplicate_count %3%") %
+                                                           duplicate_count % low_duplicate_count % up_duplicate_count;
+                            if ((duplicate_count == up_duplicate_count) || (duplicate_count == (up_duplicate_count - 1))) {
+                                BOOST_LOG_TRIVIAL(info) << boost::format("found the max arrangeable count %1%") % duplicate_count;
+                            } else {
+                                low_duplicate_count = duplicate_count;
+                                duplicate_count     = (up_duplicate_count + low_duplicate_count) / 2;
+                                BOOST_LOG_TRIVIAL(info) << boost::format("try new count %1%, low_duplicate_count %2%, up_duplicate_count %3%") % duplicate_count %
+                                                               low_duplicate_count % up_duplicate_count;
+                                continue;
+                            }
+                        }
+
+                        // BBS: adjust the bed_index, create new plates, get the max bed_index
+                        for (ArrangePolygon &ap : unselected) {
+                            if (ap.is_virt_object) continue;
+
+                            bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
+                            BOOST_LOG_TRIVIAL(debug) << boost::format("arrange unselected %4%: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) %
+                                                            unscale<double>(ap.translation(Y)) % ap.name;
+                        }
+
+                        for (ArrangePolygon &ap : locked_aps) {
+                            bed_idx_max = std::max(ap.bed_idx, bed_idx_max);
+
+                            partplate_list.postprocess_arrange_polygon(ap, false);
+
+                            ap.apply();
+                        }
+
+                        // Apply the arrange result to all selected objects
+                        for (ArrangePolygon &ap : selected) {
+                            // BBS: partplate postprocess
+                            partplate_list.postprocess_arrange_polygon(ap, true);
+
+                            ap.apply();
+                        }
+
+                        // Apply the arrange result to unselected objects(due to the sukodu-style column changes, the position of unselected may also be modified)
+                        for (ArrangePolygon &ap : unselected) {
+                            if (ap.is_virt_object) continue;
+
+                            // BBS: partplate postprocess
+                            partplate_list.postprocess_arrange_polygon(ap, false);
+
+                            ap.apply();
+                        }
+
+                        // Move the unprintable items to the last virtual bed.
+                        // Note ap.apply() moves relatively according to bed_idx, so we need to subtract the orignal bed_idx
+                        for (ArrangePolygon &ap : unprintable) {
+                            ap.bed_idx = bed_idx_max + 1;
+                            partplate_list.postprocess_arrange_polygon(ap, true);
+
+                            ap.apply();
+                            BOOST_LOG_TRIVIAL(debug) << boost::format("arrange m_unprintable: name: %4%, bed_id %1%, trans {%2%,%3%}") % ap.bed_idx %
+                                                            unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y)) % ap.name;
+                        }
+
+                        partplate_list.rebuild_plates_after_arrangement(false, true, plate_to_slice - 1);
+                    }
+                    finished_arrange = true;
+                }
+                original_model.clear_objects();
+                original_model.clear_materials();
+            }
+        }
+
+        // All transforms have been dealt with. Now ensure that the objects are on bed.
+        // (Unless the user said otherwise.)
+        // BBS: current only support models on bed, 0407 sinking supported
+        if (m_config.opt_bool("ensure_on_bed")) {
+            BOOST_LOG_TRIVIAL(info) << "ensure_on_bed: need to ensure each object on beds";
+            for (auto &model : m_models)
+                for (auto &o : model.objects) o->ensure_on_bed();
+        }
+    } else {
+        oriented_or_arranged = true;
     }
 
     // loop through action options
@@ -9067,6 +9016,7 @@ bool CLI::setup(int argc, char **argv)
         return false;
     }
     // Parse actions and transform options.
+    m_cli_option_order = opt_order;
     for (auto const &opt_key : opt_order) {
         if (cli_actions_config_def.has(opt_key))
             m_actions.emplace_back(opt_key);

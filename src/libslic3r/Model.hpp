@@ -1470,6 +1470,10 @@ public:
     bool use_loaded_id_for_label {false};
     int arrange_order = 0; // BBS
     size_t loaded_id = 0; // BBS
+    // BBS: build-item p:UUID as read from the 3MF on load (e.g.
+    // "0000000e-b1ec-4553-aec9-835e5b724bb4"). Identifies the source object for
+    // arrange-config matching. Empty for instances not loaded from a Bambu 3MF.
+    std::string uuid;
 
     size_t get_labeled_id() const
     {
@@ -1582,6 +1586,7 @@ private:
         , m_offset_to_assembly(other.m_offset_to_assembly)
         , print_volume_state(ModelInstancePVS_Inside)
         , printable(other.printable)
+        , uuid(other.uuid)
         , object(object)
         , m_assemble_initialized(false) { assert(this->id().valid() && this->id() != other.id()); }
 
@@ -1595,7 +1600,7 @@ private:
 	ModelInstance() : ObjectBase(-1), object(nullptr) { assert(this->id().invalid()); }
     // BBS. Add added members to archive.
     template<class Archive> void serialize(Archive& ar) {
-        ar(m_transformation, print_volume_state, printable, m_assemble_transformation, m_offset_to_assembly, m_assemble_initialized);
+        ar(m_transformation, print_volume_state, printable, m_assemble_transformation, m_offset_to_assembly, m_assemble_initialized, uuid);
     }
 };
 

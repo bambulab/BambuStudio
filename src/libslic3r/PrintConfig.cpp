@@ -11406,6 +11406,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "assemble_list.json";
     def->set_default_value(new ConfigOptionString());
 
+    def = this->add("import_positions", coString);
+    def->label = "Import arrange positions";
+    def->tooltip = "Import model instance positions from a JSON file produced by arrange export";
+    def->cli_params = "positions.json";
+    def->set_default_value(new ConfigOptionString());
+
     /*def = this->add("output", coString);
     def->label = L("Output File");
     def->tooltip = L("The file where the output will be written (if not specified, it will be based on the input file).");

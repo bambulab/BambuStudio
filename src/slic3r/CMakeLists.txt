@@ -296,6 +296,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/BedShapeDialog.hpp
     GUI/Plater.cpp
     GUI/Plater.hpp
+    GUI/PositionConfigImport.cpp
+    GUI/PositionConfigImport.hpp
     GUI/PartPlate.cpp
     GUI/PartPlate.hpp
     GUI/WipeTowerPlacement.cpp
