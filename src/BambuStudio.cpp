@@ -70,7 +70,6 @@ using namespace nlohmann;
 #include "libslic3r/Orient.hpp"
 #include "libslic3r/PNGReadWrite.hpp"
 #include "libslic3r/ObjColorUtils.hpp"
-#include "libslic3r/FilamentMixer.hpp"
 
 #include "BambuStudio.hpp"
 //BBS: add exception handler for win32
@@ -1957,13 +1956,6 @@ int CLI::run(int argc, char **argv)
                                 record_exit_reson(outfile_dir, CLI_POSTPROCESS_NOT_SUPPORTED, 0, cli_errors[CLI_POSTPROCESS_NOT_SUPPORTED], sliced_info);
                                 flush_and_exit(CLI_POSTPROCESS_NOT_SUPPORTED);
                             }
-                        }
-
-                        ConfigOptionBools* filament_is_mixed = config.option<ConfigOptionBools>("filament_is_mixed");
-                        if (filament_is_mixed && has_any_mixed_filament(filament_is_mixed->values)) {
-                            BOOST_LOG_TRIVIAL(error) << "normative_check: mixed filament is not supported";
-                            record_exit_reson(outfile_dir, CLI_3MF_FEATURE_NOT_SUPPORTED, 0, cli_errors[CLI_3MF_FEATURE_NOT_SUPPORTED], sliced_info);
-                            flush_and_exit(CLI_3MF_FEATURE_NOT_SUPPORTED);
                         }
                     }
 

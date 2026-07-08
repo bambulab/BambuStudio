@@ -9598,6 +9598,24 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
         }
     }
 
+    // Mixed-color (混色) parameter validation.
+    {
+        const auto &is_mixed       = cfg.filament_is_mixed.values;
+        const auto &comp_strs      = cfg.filament_mixed_components.values;
+        const auto &ratio_strs     = cfg.filament_mixed_sublayer_ratios.values;
+        const auto &gradient_flags = cfg.filament_mixed_gradient.values;
+        const auto &range_strs     = cfg.filament_mixed_gradient_range.values;
+        const auto &curve_strs     = cfg.filament_mixed_gradient_curve.values;
+        const bool  sublayer_on    = cfg.enable_mixed_color_sublayer.value;
+
+        std::map<std::string, std::string> mixed_errors = validate_mixed_filament_params(
+            is_mixed, comp_strs, ratio_strs, gradient_flags,
+            range_strs, curve_strs, sublayer_on);
+        for (const auto &kv : mixed_errors)
+            if (error_message.find(kv.first) == error_message.end())
+                error_message.emplace(kv.first, kv.second);
+    }
+
     // The configuration is valid.
     return error_message;
 }

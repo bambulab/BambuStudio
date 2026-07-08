@@ -147,6 +147,17 @@ void expand_mixed_slots_in_unprintables(
 // "curve needs >= 2 points" check. Clearing them falls back to the linear range.
 void sanitize_mixed_gradient_curve_array(std::vector<std::string>& vals);
 
+// Validate mixed-color (混色) parameters. Returns error messages keyed by option name.
+// Slot details are included in the message text (1-based slot index).
+std::map<std::string, std::string> validate_mixed_filament_params(
+    const std::vector<unsigned char> &is_mixed,
+    const std::vector<std::string>   &comp_strs,
+    const std::vector<std::string>   &ratio_strs,
+    const std::vector<unsigned char> &gradient_flags,
+    const std::vector<std::string>   &gradient_range_strs,
+    const std::vector<std::string>   &gradient_curve_strs,
+    bool                              enable_mixed_color_sublayer);
+
 } // namespace Slic3r
 
 #endif // SLIC3R_FILAMENT_MIXER_HPP
