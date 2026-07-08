@@ -36,6 +36,7 @@ public:
 
     bool SupportPrintWithoutSD() const { return m_support_print_without_sd; }
     bool SupportPrintAllPlates() const { return m_support_print_all; }
+    bool SupportFdmCutModeCompat() const { return m_support_fdm_cut_mode_compat; }
 
     // filament
     bool SupportFilamentRemainEdit() const { return m_support_filament_remain_edit; }
@@ -77,6 +78,7 @@ private:
 
     bool m_support_print_without_sd = false;
     bool m_support_print_all = false;
+    bool m_support_fdm_cut_mode_compat = false;
     bool m_support_filament_remain_edit = false;
 
     // calibration options

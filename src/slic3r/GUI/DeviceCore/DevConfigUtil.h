@@ -91,6 +91,7 @@ public:
     static std::string get_printer_ext_img(const std::string& type_str, int pos);//printer_ext_image
     static bool        support_ams_fila_change_abort(std::string type_str) { return get_value_from_config<bool>(type_str, "print", "support_ams_filament_change_abort"); }
     static std::string get_filament_load_img(const std::string &type_str, int ext_id, bool has_nozzle_rack = false);
+    static std::string get_hotend_ams_type_string(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "hotend_ams_type_string"); }
     // Built-in AMS handles insertion / power-on detection automatically, so the two AMS-setting
     // switches are hidden by default and only revealed once an external sub-AMS is connected.
     static bool        support_ams_settings_hide_insert_power(const std::string& type_str) { return get_value_from_config<bool>(type_str, "support_ams_settings_hide_insert_power"); }

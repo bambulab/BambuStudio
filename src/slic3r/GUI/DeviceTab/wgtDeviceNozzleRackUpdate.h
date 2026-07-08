@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 // Previous definitions
 class Button;
@@ -68,6 +69,9 @@ public:
 
 private:
     void CreateGui();
+    void RebuildHotendRows(const std::shared_ptr<DevNozzleRack>& rack);
+    void ClearHotendRows();
+    void AddRowSeparator();
 
     void OnBtnReadAll(wxCommandEvent& e);
 
@@ -75,8 +79,11 @@ private:
     std::weak_ptr<DevNozzleRack> m_nozzle_rack;
 
     // GUI
-    wgtDeviceNozzleRackHotendUpdate* m_extruder_nozzle_item;
-    std::unordered_map<int, wgtDeviceNozzleRackHotendUpdate*> m_nozzle_items;
+    wxBoxSizer* m_content_sizer{nullptr};
+    wgtDeviceNozzleRackHotendUpdate* m_extruder_nozzle_item{nullptr};
+    std::vector<wgtDeviceNozzleRackHotendUpdate*> m_rack_nozzle_items;
+    DevNozzleRack::RackType m_built_rack_type{DevNozzleRack::None};
+    int m_built_rack_count{-1};
 };
 
 // Using for rack nozzle id or extruder nozzle id

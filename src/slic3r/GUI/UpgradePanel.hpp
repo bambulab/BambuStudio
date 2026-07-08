@@ -116,6 +116,12 @@ protected:
     bool           m_last_extra_ams_show = true;
     wxBoxSizer*    m_extra_ams_sizer;
 
+    /* hotend integrated ams info */
+    wxBoxSizer*            m_hotend_ams_sizer = nullptr;
+    wxStaticBitmap*        m_hotend_ams_img = nullptr;
+    wxStaticLine*          m_hotend_ams_line_above = nullptr;
+    uiDeviceUpdateVersion* m_hotend_ams_version = nullptr;
+
     /* air_pump info*/
     wxBoxSizer*            m_air_pump_sizer = nullptr;
     wxStaticBitmap*        m_air_pump_img   = nullptr;
@@ -207,6 +213,7 @@ protected:
     ScalableBitmap m_img_nozzle_rack;
     ScalableBitmap m_img_amshub;
     ScalableBitmap m_img_exhaustfan;
+    ScalableBitmap m_img_hotend_ams;
 
     int last_status = -1;
     std::string last_status_str = "";
@@ -266,6 +273,7 @@ public:
     }panel_type;
 
 private:
+    void createHotendAmsWidgets(wxBoxSizer* main_left_sizer);
     void createAirPumpWidgets(wxBoxSizer* main_left_sizer);
     void createCuttingWidgets(wxBoxSizer* main_left_sizer);
     void createLaserWidgets(wxBoxSizer* main_left_sizer);
@@ -276,6 +284,7 @@ private:
     void createExhaustFan(wxBoxSizer *main_left_sizer);
     void createAmshubWidgets(wxBoxSizer *main_left_sizer);
 
+    void update_hotend_ams(MachineObject* obj);
     void update_air_pump(MachineObject* obj);
     void update_cut(MachineObject* obj);
     void update_laszer(MachineObject* obj);
@@ -287,6 +296,7 @@ private:
     void update_exhaustfan(MachineObject *obj);
     void on_nozzle_rack_update(wxCommandEvent &event);
 
+    void show_hotend_ams(bool show = true);
     void show_air_pump(bool show = true);
     void show_cut(bool show = true);
     void show_laszer(bool show = true);

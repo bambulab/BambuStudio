@@ -413,6 +413,7 @@ public:
     DevFirmwareVersionInfo exhaustfan_version_info;
     DevFirmwareVersionInfo amshub_version_info;
     DevFirmwareVersionInfo filatrack_version_info;
+    DevFirmwareVersionInfo hotend_ams_version_info;
     std::map<std::string, DevFirmwareVersionInfo> module_vers;
     std::vector<FirmwareInfo> firmware_list;
 

@@ -3,7 +3,7 @@ import type {
   AmsMappingHotendSlotViewModel,
   AmsMappingHotendSubSlotViewModel,
 } from '../types';
-import { resolveSlotTooltip } from '../slotTooltip';
+import { resolvePreloadLockedTooltip, resolveSlotTooltip } from '../slotTooltip';
 import { SpoolRing } from './SpoolRing';
 import { BottomWikiTip } from './BottomWikiTip';
 
@@ -20,17 +20,23 @@ interface SubAmsPageProps {
 function SubCard({
   sub,
   materialIndex,
+  isPreload = false,
   onSelect,
   onEdit,
 }: {
   sub: AmsMappingHotendSubSlotViewModel;
   materialIndex: string;
+  isPreload?: boolean;
   onSelect: (sub: AmsMappingHotendSubSlotViewModel) => void;
   onEdit: (sub: AmsMappingHotendSubSlotViewModel) => void;
 }) {
   const { t } = useTranslation();
   const disabled = !sub.is_pickable;
-  const tooltip = resolveSlotTooltip(t, sub.state, sub.is_pickable, sub.filament_type, materialIndex);
+  // A locked preload card (pre-fed AMS behind an external spool feed) uses a
+  // dedicated hint telling the user to unload the external spool first.
+  const tooltip = isPreload && !sub.is_pickable
+    ? resolvePreloadLockedTooltip(t)
+    : resolveSlotTooltip(t, sub.state, sub.is_pickable, sub.filament_type, materialIndex);
   const multiColors = sub.multi_colors && sub.multi_colors.length > 1 ? sub.multi_colors : undefined;
   const isEmpty = !sub.has_filament;
   const isThird = sub.filament_name === '?';
@@ -41,6 +47,7 @@ function SubCard({
       className="ams-map-hotend__sub-card"
       data-state={sub.state}
       data-checked={sub.checked}
+      data-pickable={sub.is_pickable}
       title={tooltip || undefined}
       onClick={() => { if (!disabled) onSelect(sub); }}
       role="button"
@@ -183,6 +190,7 @@ export function SubAmsPage({ slot, materialIndex, onSelect, onEdit, onBack, onOp
                 key={`${sub.ams_id}-${sub.slot_id}`}
                 sub={sub}
                 materialIndex={materialIndex}
+                isPreload={group.is_preload}
                 onSelect={onSelect}
                 onEdit={onEdit}
               />
@@ -283,6 +291,7 @@ export function SubAmsPage({ slot, materialIndex, onSelect, onEdit, onBack, onOp
                     key={`${sub.ams_id}-${sub.slot_id}`}
                     sub={sub}
                     materialIndex={materialIndex}
+                    isPreload={group.is_preload}
                     onSelect={onSelect}
                     onEdit={onEdit}
                   />

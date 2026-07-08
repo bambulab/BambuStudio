@@ -47,6 +47,10 @@ public:
     bool isExhaustFan() const { return product_name.Contains("Exhaust Fan"); }
     bool isHmshub() const { return product_name.find("Filament Buffer") != string::npos; }
     bool isFilaTrackSwitch() const { return product_name.find("Filament Track") != string::npos; }
+    bool isHotendAms(const std::string& hotend_ams_type_string) const
+    {
+        return !hotend_ams_type_string.empty() && name.rfind(hotend_ams_type_string, 0) == 0;
+    }
 
 };
 

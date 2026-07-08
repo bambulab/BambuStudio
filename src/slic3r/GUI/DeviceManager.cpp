@@ -947,6 +947,7 @@ void MachineObject::clear_version_info()
     rotary_version_info = DevFirmwareVersionInfo();
     amshub_version_info = DevFirmwareVersionInfo();
     filatrack_version_info = DevFirmwareVersionInfo();
+    hotend_ams_version_info = DevFirmwareVersionInfo();
     module_vers.clear();
     m_nozzle_system->ClearFirmwareInfoWTM();
     extinguish_version_info = DevFirmwareVersionInfo();
@@ -972,6 +973,8 @@ void MachineObject::store_version_info(const DevFirmwareVersionInfo& info)
         amshub_version_info = info;
     }else if (info.isFilaTrackSwitch()){
         filatrack_version_info = info;
+    } else if (info.isHotendAms(DevPrinterConfigUtil::get_hotend_ams_type_string(printer_type))) {
+        hotend_ams_version_info = info;
     } else if(info.isHE()){
         m_nozzle_system->AddFirmwareInfoHE(info);
     }

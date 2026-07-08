@@ -158,8 +158,9 @@ namespace Slic3r
     // via DevNozzle::GetBindAmsSlots(). That slot is the single coordinate
     // (ams_id, slot_id) the device reports as the active feed for the nozzle and
     // is naturally either an external spool or an internal AMS (ZMULTI / N3S /
-    // N3F). A nozzle with no filament reports an empty bind list, so empty
-    // external spools never become candidates. At most one candidate per nozzle
+    // N3F). Rack positions without a physical nozzle, and external spools with no
+    // filament loaded in the nozzle, are excluded from auto-match candidates.
+    // At most one candidate per nozzle
     // (so at most 7/9 total). ext_tray_keys records which candidate keys are
     // external spools so the matcher can prefer them on a same-color tie.
     static void _collect_mapping_hotend_item_candidates(const MachineObject*                     obj,
@@ -179,6 +180,8 @@ namespace Slic3r
         // needs them to compute the color distance.
         auto try_add = [&](int ams_id, int slot_id, DevAmsType type, const DevAmsTray* tray,
                            const std::optional<DevNozzle>& nz, bool is_ext) {
+            if (!nz.has_value() || !nz->IsExist())
+                return;
             if (!tray || !tray->is_tray_info_ready())
                 return;
             FilamentInfo info;
@@ -215,6 +218,173 @@ namespace Slic3r
                     DevAmsTray tray_copy = *t;
                     try_add(ams_id, slot_id, tray_copy.ams_type, &tray_copy, nz, /*is_ext*/ false);
                 }
+            }
+        }
+    }
+
+    static bool _prefer_mapping_tie_break(bool cur_ext, bool new_ext, bool cur_id_match, bool new_id_match)
+    {
+        return (!cur_ext && new_ext) || (cur_ext == new_ext && !cur_id_match && new_id_match);
+    }
+
+    static void _assign_mapping_result_from_tray(FilamentInfo&                              dst,
+                                                 const std::map<int, FilamentInfo>::iterator& tray,
+                                                 float                                        distance)
+    {
+        dst.tray_id     = tray->first;
+        dst.color       = tray->second.color;
+        dst.type        = tray->second.type;
+        dst.distance    = distance;
+        dst.filament_id = tray->second.filament_id;
+        dst.setting_id  = tray->second.setting_id;
+        dst.ctype       = tray->second.ctype;
+        dst.colors      = tray->second.colors;
+        dst.ams_id      = tray->second.ams_id;
+        dst.slot_id     = tray->second.slot_id;
+    }
+
+    static void _log_mapping_pick(int fila_idx, int tray_col_idx, float distance)
+    {
+        char buffer[256];
+        ::sprintf(buffer, "ams_mapping, picked F(%02d) AMS(%02d), distance=%6.0f", fila_idx + 1, tray_col_idx + 1, distance);
+        BOOST_LOG_TRIVIAL(info) << std::string(buffer);
+    }
+
+    // Hotend-rack (N1X): each slicing filament independently picks the closest-color
+    // slot. Slots may be shared across filaments.
+    static void _run_hotend_rack_color_mapping(const std::vector<FilamentInfo>&           filaments,
+                                               std::map<int, FilamentInfo>&               tray_filaments,
+                                               const std::vector<std::vector<DisValue>>&   distance_map,
+                                               std::vector<FilamentInfo>&                 result)
+    {
+        for (int i = 0; i < (int) distance_map.size(); i++) {
+            float min_val = INT_MAX;
+            int   best_j  = -1;
+            for (int j = 0; j < (int) distance_map[i].size(); j++) {
+                const auto& dv = distance_map[i][j];
+                if (!dv.is_type_match || !dv.is_nozzle_match)
+                    continue;
+                if (min_val > dv.distance) {
+                    min_val = dv.distance;
+                    best_j  = j;
+                } else if (best_j >= 0 && min_val == dv.distance) {
+                    const bool cur_ext = distance_map[i][best_j].is_ext;
+                    const bool new_ext = dv.is_ext;
+                    auto       cur_tray = tray_filaments.find(distance_map[i][best_j].tray_id);
+                    auto       new_tray = tray_filaments.find(dv.tray_id);
+                    const bool cur_id_match = cur_tray != tray_filaments.end()
+                        && filaments[i].filament_id == cur_tray->second.filament_id;
+                    const bool new_id_match = new_tray != tray_filaments.end()
+                        && filaments[i].filament_id == new_tray->second.filament_id;
+                    if (_prefer_mapping_tie_break(cur_ext, new_ext, cur_id_match, new_id_match)
+                        || (cur_ext == new_ext
+                            && cur_tray != tray_filaments.end() && new_tray != tray_filaments.end()
+                            && _prefer_tray_by_remain(filaments[i], new_tray->second, cur_tray->second)))
+                        best_j = j;
+                }
+            }
+            if (best_j < 0)
+                continue;
+
+            auto tray = tray_filaments.find(distance_map[i][best_j].tray_id);
+            if (tray == tray_filaments.end())
+                continue;
+
+            _assign_mapping_result_from_tray(result[i], tray, min_val);
+            _log_mapping_pick(i, best_j, min_val);
+        }
+    }
+
+    // Legacy AMS: greedy bipartite matching; a tray is reserved per round unless an
+    // exact color match allows reuse.
+    static void _run_legacy_greedy_ams_mapping(const std::vector<FilamentInfo>&           filaments,
+                                               std::map<int, FilamentInfo>&               tray_filaments,
+                                               const std::vector<std::vector<DisValue>>&   distance_map,
+                                               std::vector<FilamentInfo>&                 result)
+    {
+        std::set<int> picked_src;
+        std::set<int> picked_tar;
+        for (int k = 0; k < (int) distance_map.size(); k++) {
+            float min_val        = INT_MAX;
+            int   picked_src_idx = -1;
+            int   picked_tar_idx = -1;
+            for (int i = 0; i < (int) distance_map.size(); i++) {
+                if (picked_src.find(i) != picked_src.end())
+                    continue;
+
+                // try to mapping to different tray
+                for (int j = 0; j < (int) distance_map[i].size(); j++) {
+                    if (picked_tar.find(j) != picked_tar.end()) {
+                        if (distance_map[i][j].is_same_color
+                            && distance_map[i][j].is_type_match
+                            && distance_map[i][j].is_nozzle_match
+                            && distance_map[i][j].distance < (float) 0.0001) {
+                            min_val        = distance_map[i][j].distance;
+                            picked_src_idx = i;
+                            picked_tar_idx = j;
+                            tray_filaments[picked_tar_idx].distance = min_val;
+                        }
+                        continue;
+                    }
+
+                    if (distance_map[i][j].is_same_color
+                        && distance_map[i][j].is_type_match
+                        && distance_map[i][j].is_nozzle_match) {
+                        if (min_val > distance_map[i][j].distance) {
+                            min_val        = distance_map[i][j].distance;
+                            picked_src_idx = i;
+                            picked_tar_idx = j;
+                            tray_filaments[picked_tar_idx].distance = min_val;
+                        } else if (min_val == distance_map[i][j].distance) {
+                            const bool cur_ext      = distance_map[picked_src_idx][picked_tar_idx].is_ext;
+                            const bool new_ext      = distance_map[i][j].is_ext;
+                            const bool cur_id_match = filaments[picked_src_idx].filament_id == tray_filaments[picked_tar_idx].filament_id;
+                            const bool new_id_match = filaments[i].filament_id == tray_filaments[j].filament_id;
+                            if (_prefer_mapping_tie_break(cur_ext, new_ext, cur_id_match, new_id_match)
+                                || (cur_ext == new_ext
+                                    && _prefer_tray_by_remain(filaments[i], tray_filaments[j], tray_filaments[picked_tar_idx]))) {
+                                picked_src_idx = i;
+                                picked_tar_idx = j;
+                            }
+                        }
+                    }
+                }
+
+                // take a retry to mapping to used tray
+                if (picked_src_idx < 0 || picked_tar_idx < 0) {
+                    for (int j = 0; j < (int) distance_map[i].size(); j++) {
+                        if (distance_map[i][j].is_same_color && distance_map[i][j].is_type_match && distance_map[i][j].is_nozzle_match) {
+                            if (min_val > distance_map[i][j].distance) {
+                                min_val        = distance_map[i][j].distance;
+                                picked_src_idx = i;
+                                picked_tar_idx = j;
+                                tray_filaments[picked_tar_idx].distance = min_val;
+                            } else if (min_val == distance_map[i][j].distance) {
+                                const bool cur_ext      = distance_map[picked_src_idx][picked_tar_idx].is_ext;
+                                const bool new_ext      = distance_map[i][j].is_ext;
+                                const bool cur_id_match = filaments[picked_src_idx].filament_id == tray_filaments[picked_tar_idx].filament_id;
+                                const bool new_id_match = filaments[i].filament_id == tray_filaments[j].filament_id;
+                                if (_prefer_mapping_tie_break(cur_ext, new_ext, cur_id_match, new_id_match)
+                                    || (cur_ext == new_ext
+                                        && _prefer_tray_by_remain(filaments[i], tray_filaments[j], tray_filaments[picked_tar_idx]))) {
+                                    picked_src_idx = i;
+                                    picked_tar_idx = j;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (picked_src_idx >= 0 && picked_tar_idx >= 0) {
+                auto tray = tray_filaments.find(distance_map[k][picked_tar_idx].tray_id);
+
+                if (tray != tray_filaments.end())
+                    _assign_mapping_result_from_tray(result[picked_src_idx], tray, tray->second.distance);
+
+                _log_mapping_pick(picked_src_idx, picked_tar_idx, distance_map[picked_src_idx][picked_tar_idx].distance);
+                picked_src.insert(picked_src_idx);
+                picked_tar.insert(picked_tar_idx);
             }
         }
     }
@@ -417,146 +587,10 @@ namespace Slic3r
             result.push_back(info);
         }
 
-
-
-        // traverse the mapping
-        std::set<int> picked_src;
-        std::set<int> picked_tar;
-        for (int k = 0; k < distance_map.size(); k++)
-        {
-            float min_val = INT_MAX;
-            int picked_src_idx = -1;
-            int picked_tar_idx = -1;
-            for (int i = 0; i < distance_map.size(); i++)
-            {
-                if (picked_src.find(i) != picked_src.end())
-                    continue;
-
-                // try to mapping to different tray
-                for (int j = 0; j < distance_map[i].size(); j++)
-                {
-                    if (picked_tar.find(j) != picked_tar.end())
-                    {
-                        if (distance_map[i][j].is_same_color
-                            && distance_map[i][j].is_type_match
-                            && distance_map[i][j].is_nozzle_match
-                            && distance_map[i][j].distance < (float)0.0001)
-                        {
-                            min_val = distance_map[i][j].distance;
-                            picked_src_idx = i;
-                            picked_tar_idx = j;
-                            tray_filaments[picked_tar_idx].distance = min_val;
-                        }
-                        continue;
-                    }
-
-                    if (distance_map[i][j].is_same_color
-                        && distance_map[i][j].is_type_match
-                        && distance_map[i][j].is_nozzle_match)
-                    {
-                        if (min_val > distance_map[i][j].distance)
-                        {
-                            min_val = distance_map[i][j].distance;
-                            picked_src_idx = i;
-                            picked_tar_idx = j;
-                            tray_filaments[picked_tar_idx].distance = min_val;
-                        }
-                        else if (min_val == distance_map[i][j].distance)
-                        {
-                            // Same-color (equal-distance) tie-break: prefer an
-                            // external spool first (hotend-rack requirement), then
-                            // fall back to preferring an exact filament_id match.
-                            const bool cur_ext      = distance_map[picked_src_idx][picked_tar_idx].is_ext;
-                            const bool new_ext      = distance_map[i][j].is_ext;
-                            const bool cur_id_match = filaments[picked_src_idx].filament_id == tray_filaments[picked_tar_idx].filament_id;
-                            const bool new_id_match = filaments[i].filament_id == tray_filaments[j].filament_id;
-                            if ((!cur_ext && new_ext) ||
-                                (cur_ext == new_ext && !cur_id_match && new_id_match))
-                            {
-                                picked_src_idx = i;
-                                picked_tar_idx = j;
-                            }
-                        }
-                        // Same color/type and equal distance: prefer the matching tray with the
-                        // least remaining filament, see _prefer_tray_by_remain() for the rules.
-                        else if (min_val == distance_map[i][j].distance
-                                 && _prefer_tray_by_remain(filaments[i], tray_filaments[j], tray_filaments[picked_tar_idx]))
-                        {
-                            picked_src_idx = i;
-                            picked_tar_idx = j;
-                        }
-                    }
-                }
-
-                // take a retry to mapping to used tray
-                if (picked_src_idx < 0 || picked_tar_idx < 0)
-                {
-                    for (int j = 0; j < distance_map[i].size(); j++)
-                    {
-                        if (distance_map[i][j].is_same_color && distance_map[i][j].is_type_match && distance_map[i][j].is_nozzle_match)
-                        {
-                            if (min_val > distance_map[i][j].distance)
-                            {
-                                min_val = distance_map[i][j].distance;
-                                picked_src_idx = i;
-                                picked_tar_idx = j;
-                                tray_filaments[picked_tar_idx].distance = min_val;
-                            }
-                            else if (min_val == distance_map[i][j].distance)
-                            {
-                                // Same-color tie-break (retry-to-used-tray branch):
-                                // prefer external spool, then exact filament_id.
-                                const bool cur_ext      = distance_map[picked_src_idx][picked_tar_idx].is_ext;
-                                const bool new_ext      = distance_map[i][j].is_ext;
-                                const bool cur_id_match = filaments[picked_src_idx].filament_id == tray_filaments[picked_tar_idx].filament_id;
-                                const bool new_id_match = filaments[i].filament_id == tray_filaments[j].filament_id;
-                                if ((!cur_ext && new_ext) ||
-                                    (cur_ext == new_ext && !cur_id_match && new_id_match))
-                                {
-                                    picked_src_idx = i;
-                                    picked_tar_idx = j;
-                                }
-                            }
-                            // Prefer the matching tray with the least remaining filament (see above).
-                            else if (min_val == distance_map[i][j].distance
-                                     && _prefer_tray_by_remain(filaments[i], tray_filaments[j], tray_filaments[picked_tar_idx]))
-                            {
-                                picked_src_idx = i;
-                                picked_tar_idx = j;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (picked_src_idx >= 0 && picked_tar_idx >= 0)
-            {
-                auto tray = tray_filaments.find(distance_map[k][picked_tar_idx].tray_id);
-
-                if (tray != tray_filaments.end())
-                {
-                    result[picked_src_idx].tray_id = tray->first;
-
-                    result[picked_src_idx].color = tray->second.color;
-                    result[picked_src_idx].type = tray->second.type;
-                    result[picked_src_idx].distance = tray->second.distance;
-                    result[picked_src_idx].filament_id = tray->second.filament_id;
-                    result[picked_src_idx].setting_id = tray->second.setting_id;
-                    result[picked_src_idx].ctype = tray->second.ctype;
-                    result[picked_src_idx].colors = tray->second.colors;
-
-                    /*for new ams mapping*/
-                    result[picked_src_idx].ams_id = tray->second.ams_id;
-                    result[picked_src_idx].slot_id = tray->second.slot_id;
-                }
-
-                ::sprintf(buffer, "ams_mapping, picked F(%02d) AMS(%02d), distance=%6.0f", picked_src_idx + 1, picked_tar_idx + 1,
-                    distance_map[picked_src_idx][picked_tar_idx].distance);
-                BOOST_LOG_TRIVIAL(info) << std::string(buffer);
-                picked_src.insert(picked_src_idx);
-                picked_tar.insert(picked_tar_idx);
-            }
-        }
+        if (is_mapping_hotend_item)
+            _run_hotend_rack_color_mapping(filaments, tray_filaments, distance_map, result);
+        else
+            _run_legacy_greedy_ams_mapping(filaments, tray_filaments, distance_map, result);
 
 
 

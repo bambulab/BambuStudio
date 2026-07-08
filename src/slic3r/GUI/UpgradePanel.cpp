@@ -188,6 +188,9 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
 
     m_main_left_sizer->Add(m_ota_sizer, 0, wxEXPAND, 0);
 
+    createHotendAmsWidgets(m_main_left_sizer);
+    show_hotend_ams(false);
+
     m_staticline = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
     m_staticline->SetBackgroundColour(wxColour(206,206,206));
     m_staticline->Show(false);
@@ -535,6 +538,31 @@ wxString MachineInfoPanel::get_device_info_text() const
     return text;
 }
 
+void MachineInfoPanel::createHotendAmsWidgets(wxBoxSizer* main_left_sizer)
+{
+    m_hotend_ams_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_hotend_ams_line_above->SetBackgroundColour(wxColour(206, 206, 206));
+
+    m_hotend_ams_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_hotend_ams_img->SetBitmap(m_img_hotend_ams.bmp());
+
+    auto        panel_hotend_ams    = new wxPanel(this);
+    wxBoxSizer* content_sizer_v = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* content_sizer_h = new wxBoxSizer(wxHORIZONTAL);
+
+    m_hotend_ams_version = new uiDeviceUpdateVersion(panel_hotend_ams, wxID_ANY);
+    content_sizer_h->Add(m_hotend_ams_version, 0, wxALIGN_CENTER, 0);
+    content_sizer_v->Add(content_sizer_h, 1, wxLEFT, 0);
+    panel_hotend_ams->SetSizer(content_sizer_v);
+
+    m_hotend_ams_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_hotend_ams_sizer->Add(m_hotend_ams_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_hotend_ams_sizer->Add(panel_hotend_ams, 1, wxEXPAND, 0);
+
+    main_left_sizer->Add(m_hotend_ams_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
+    main_left_sizer->Add(m_hotend_ams_sizer, 0, wxEXPAND, 0);
+}
+
 void MachineInfoPanel::createAirPumpWidgets(wxBoxSizer* main_left_sizer)
 {
     m_air_pump_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
@@ -752,6 +780,7 @@ void MachineInfoPanel::init_bitmaps()
     try {
         m_img_printer     = ScalableBitmap(this, "printer_thumbnail_png", 160);
         m_img_monitor_ams = ScalableBitmap(this, "monitor_upgrade_ams_png", 150);
+        m_img_hotend_ams  = ScalableBitmap(this, "monitor_upgrade_ams_png", 150);
         m_img_ext         = ScalableBitmap(this, "monitor_upgrade_ext", 160);
         m_img_air_pump    = ScalableBitmap(this, "air_pump", 160);
         m_img_extra_ams   = ScalableBitmap(this, "extra_icon_png", 160);
@@ -905,6 +934,8 @@ void MachineInfoPanel::update(MachineObject* obj)
 
         // update version
         update_version_text(obj);
+
+        update_hotend_ams(obj);
 
         // update ams and extension
         update_ams_ext(obj);
@@ -1351,6 +1382,16 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
     this->Fit();
 }
 
+void MachineInfoPanel::update_hotend_ams(MachineObject* obj)
+{
+    if (obj && obj->hotend_ams_version_info.isValid()) {
+        m_hotend_ams_version->UpdateInfo(obj->hotend_ams_version_info);
+        show_hotend_ams(true);
+    } else {
+        show_hotend_ams(false);
+    }
+}
+
 void MachineInfoPanel::update_air_pump(MachineObject* obj)
 {
     if (obj && obj->air_pump_version_info.isValid())
@@ -1564,6 +1605,15 @@ void MachineInfoPanel::show_extra_ams(bool show, bool force_update) {
         BOOST_LOG_TRIVIAL(trace) << "upgrade: show_extra_ams = " << show;
     }
     m_last_extra_ams_show = show;
+}
+
+void MachineInfoPanel::show_hotend_ams(bool show)
+{
+    if (m_hotend_ams_version->IsShown() != show) {
+        m_hotend_ams_img->Show(show);
+        m_hotend_ams_line_above->Show(show);
+        m_hotend_ams_version->Show(show);
+    }
 }
 
 void MachineInfoPanel::show_air_pump(bool show)

@@ -579,6 +579,26 @@
   opacity: 0.5;
 }
 
+/* Locked preload card (scenario 3): a valid-material AMS slot that is only
+   display-only because the hotend still feeds from the external spool. State
+   stays Normal, so key the dim off data-pickable and keep the edit pencil
+   legible like the state-based dim above. */
+.ams-map-hotend__sub-card[data-pickable="false"] {
+  cursor: default;
+}
+
+.ams-map-hotend__sub-card[data-pickable="false"]:hover:not(.ams-map-hotend__sub-card--parent) {
+  border-color: transparent;
+}
+
+.ams-map-hotend__sub-card[data-pickable="false"] :is(
+  .ams-map-hotend__sub-card__head,
+  .ams-map-hotend__sub-card__name,
+  .spool-ring
+) {
+  opacity: 0.5;
+}
+
 .ams-map-hotend__sub-card[data-checked="true"] {
   border-color: var(--color-card-border-active);
 }

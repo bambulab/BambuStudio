@@ -640,9 +640,16 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
     std::vector<SubAmsGroup> sub_groups = CollectSubAmsGroups(obj, td, parent_nz);
 
     // Preload (pre-feed) AMS slot: when it differs from the current bind,
-    // expose the AMS slot as a synthetic sub-AMS group so the sub-page lets
-    // the user pick between the current Ext source (parent) and the preloaded
-    // AMS slot (sub card).
+    // expose the AMS slot as a synthetic sub-AMS group so the sub-page shows
+    // both the current feed source (parent) and the preloaded AMS slot.
+    //
+    // Selectability of the preload card follows four feed scenarios (see the
+    // sub-slot loop below where `is_pickable` is finalized):
+    //   1. Ext feed only              -> no preload card.
+    //   2. N1X AMS feed only          -> preload card, unchanged (pickable).
+    //   3. Ext feed + N1X AMS preload -> preload card is display-only; the user
+    //      must manually unload the external spool before it becomes selectable.
+    //   4. Bound sub-AMS present      -> unrestricted, preload stays pickable.
     if (obj && preload_slot.has_value() &&
         *preload_slot != std::make_pair(td.ams_id, td.slot_id)) {
         auto preload_tray = obj->get_tray(preload_slot->first, preload_slot->second);
@@ -763,6 +770,20 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
             SlotJudgement sj = ResolveSlotJudgement(obj, sub_td, expected_nozzle, parent_nz);
             sj.is_pickable = (sj.state == HotendSlotState::Normal);
 
+            // Scenario 3: external feed (main card is Ext) with an N1X AMS
+            // preload and no bound sub-AMS. The preloaded AMS slot is display-
+            // only until the user manually unloads the external spool. Leaving
+            // it non-pickable also drops any stale checked mark on it.
+            // Scenarios 1/2 (no preload card / main card is AMS) and scenario 4
+            // (GetBindAms() non-empty) don't hit this branch, so preload stays
+            // pickable there as before.
+            bool preload_locked = false;
+            if (g.is_preload && td.ams_type == DevAmsType::EXT_SPOOL &&
+                parent_nz.has_value() && parent_nz->GetBindAms().empty()) {
+                sj.is_pickable  = false;
+                preload_locked  = true;
+            }
+
             wxColour sub_col = (sub_td.type == NORMAL) ? sub_td.colour : wxColour(0xCE, 0xCE, 0xCE);
             wxString sub_name;
             if (sub_td.type == THIRD)      sub_name = "?";
@@ -786,12 +807,14 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
             sub_slot[SK::slot::is_pickable]    = sj.is_pickable;
             sub_slot[SK::slot::can_edit]       = ComputeCanEdit(obj, sub_td);
             sub_slot[SK::slot::checked]        = false;
-            for (const auto& mapping_res : m_mapping_result) {
-                if (mapping_res.id == m_current_filament_id &&
-                    mapping_res.ams_id == std::to_string(sub_td.ams_id) &&
-                    mapping_res.slot_id == std::to_string(sub_td.slot_id)) {
-                    sub_slot[SK::slot::checked] = true;
-                    break;
+            if (!preload_locked) {
+                for (const auto& mapping_res : m_mapping_result) {
+                    if (mapping_res.id == m_current_filament_id &&
+                        mapping_res.ams_id == std::to_string(sub_td.ams_id) &&
+                        mapping_res.slot_id == std::to_string(sub_td.slot_id)) {
+                        sub_slot[SK::slot::checked] = true;
+                        break;
+                    }
                 }
             }
             nlohmann::json sub_multi = nlohmann::json::array();

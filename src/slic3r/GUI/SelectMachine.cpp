@@ -1336,15 +1336,14 @@ void SelectMachineDialog::sync_ams_mapping_result(const std::vector<FilamentInfo
                 m->set_nozzle_info(get_mapped_nozzle_str(id));
 
 
-                // Set mapped tray's filament type name (e.g. "PLA", "ABS-CF")
+                // Set mapped tray's filament type name (e.g. "PLA", "ABS-CF").
+                // Read from the mapping snapshot (same source as the color above)
+                // so a user-edited type shows immediately, before the device
+                // echoes the new tray info. A mapped slot with no known type
+                // (third-party / unread) renders "?".
                 wxString ams_filament_type;
-                if (obj_ && f->tray_id >= 0) {
-                    auto tray_opt = obj_->get_tray(f->ams_id, f->slot_id);
-                    if (tray_opt.has_value()) {
-                        // Third-party / unknown trays carry no type; show "?" to mirror
-                        // the slot popup (BuildSlotJson renders TrayType::THIRD as "?").
-                        ams_filament_type = tray_opt->is_tray_info_ready() ? tray_opt->get_display_filament_type() : "?";
-                    }
+                if (f->tray_id >= 0) {
+                    ams_filament_type = f->type.empty() ? "?" : wxString::FromUTF8(f->get_display_filament_type().c_str());
                 }
                 m->set_ams_filament_type(ams_filament_type);
 
@@ -3644,6 +3643,16 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
                 m_ams_mapping_result[i].ams_id = selection_data_arr[6].ToStdString();
                 m_ams_mapping_result[i].slot_id = selection_data_arr[7].ToStdString();
 
+                // Mirror the color update above: store the selected slot's type in
+                // the snapshot. Unreadable / third-party slots have no type, so
+                // clear it and let it render "?" until the user edits the slot.
+                if (auto obj_ = get_current_machine()) {
+                    auto tray_opt = obj_->get_tray(m_ams_mapping_result[i].ams_id, m_ams_mapping_result[i].slot_id);
+                    m_ams_mapping_result[i].type = (tray_opt.has_value() && tray_opt->is_tray_info_ready())
+                                                       ? tray_opt->get_filament_type()
+                                                       : std::string();
+                }
+
                 if (m_ams_mapping_result[i].ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || m_ams_mapping_result[i].ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
                 }else if (m_ams_mapping_result[i].ams_id >= std::to_string(0)) {
                 }
@@ -3666,13 +3675,16 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
                     std::string ams_id = selection_data_arr[6].ToStdString();
                     std::string slot_id = selection_data_arr[7].ToStdString();
 
-                    // Set mapped tray's filament type
+                    // Set mapped tray's filament type from the snapshot (kept in
+                    // sync above), same source as the color; renders "?" when the
+                    // mapped slot has no known type.
                     wxString ams_filament_type;
-                    auto tray_opt = obj_->get_tray(ams_id, slot_id);
-                    if (tray_opt.has_value()) {
-                        // Third-party / unknown trays carry no type; show "?" to mirror
-                        // the slot popup (BuildSlotJson renders TrayType::THIRD as "?").
-                        ams_filament_type = tray_opt->is_tray_info_ready() ? tray_opt->get_display_filament_type() : "?";
+                    for (const auto& mr : m_ams_mapping_result) {
+                        if (mr.id == item->id) {
+                            if (mr.tray_id >= 0)
+                                ams_filament_type = mr.type.empty() ? "?" : wxString::FromUTF8(mr.get_display_filament_type().c_str());
+                            break;
+                        }
                     }
                     m->set_ams_filament_type(ams_filament_type);
 
@@ -4430,7 +4442,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         }
     }
 
-    if (!obj_->GetInfo()->IsFdmMode()) {
+    if (!obj_->GetInfo()->IsFdmMode() && !obj_->GetConfig()->SupportFdmCutModeCompat()) {
         show_status(PrintDialogStatus::PrintStatusModeNotFDM);
         return;
     }
@@ -5942,15 +5954,15 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
         if (need_nozzle.second > installed_count) {
             if (nozzle_sys->GetNozzleRack()->GetCaliStatus() != DevNozzleRack::Rack_CALI_OK) {
                 show_status(PrintStatusRackNozzleNumUnmeetWarning,
-                            { (S_RACK_NOZZLE_NOT_ENOUGH + " " + S_RACK_NOZZLE_SUGEEST_CALI) },
+                            { (S_RACK_NOZZLE_NOT_ENOUGH + _L(" ") + S_RACK_NOZZLE_SUGEEST_CALI) },
                             wxEmptyString, prePrintInfoStyle::NozzleState);
             } else if (nozzle_sys->HasUnknownNozzles()) {
                 show_status(PrintStatusRackNozzleNumUnmeetWarning,
-                            { (S_RACK_NOZZLE_NOT_ENOUGH + " " + S_RACK_NOZZLE_SUGEEST_REFRESH) },
+                            { (S_RACK_NOZZLE_NOT_ENOUGH + _L(" ") + S_RACK_NOZZLE_SUGEEST_REFRESH) },
                             wxEmptyString, prePrintInfoStyle::NozzleState | prePrintInfoStyle::BtnNozzleRefresh);
             } else {
                 show_status(PrintStatusRackNozzleNumUnmeetWarning,
-                            { (S_RACK_NOZZLE_NOT_ENOUGH + " " + S_RACK_NOZZLE_SUGEEST_RESLICE_FILA) },
+                            { (S_RACK_NOZZLE_NOT_ENOUGH + _L(" ") + S_RACK_NOZZLE_SUGEEST_RESLICE_FILA) },
                             wxEmptyString, prePrintInfoStyle::NozzleState);
             }
 
@@ -6073,15 +6085,15 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
                 if (nozzle_sys->CollectNozzles(MAIN_EXTRUDER_ID, slicing_ext.nozzle_flow_type, slicing_ext.nozzle_diameter).empty()) {
                     if (nozzle_sys->GetNozzleRack()->GetCaliStatus() != DevNozzleRack::Rack_CALI_OK) {
                         show_status(PrintDialogStatus::PrintStatusNozzleNoMatchedHotends,
-                                    { (S_RACK_NOZZLE_NO_MATCHED + " " + S_RACK_NOZZLE_SUGEEST_CALI) },
+                                    { (S_RACK_NOZZLE_NO_MATCHED + _L(" ") + S_RACK_NOZZLE_SUGEEST_CALI) },
                                     wxEmptyString, prePrintInfoStyle::NozzleState);
                     } else if (nozzle_sys->HasUnknownNozzles() || nozzle_sys->HasUnreliableNozzles()) {
                         show_status(PrintDialogStatus::PrintStatusNozzleNoMatchedHotends,
-                                    { (S_RACK_NOZZLE_NO_MATCHED + " " + S_RACK_NOZZLE_SUGEEST_REFRESH) },
+                                    { (S_RACK_NOZZLE_NO_MATCHED + _L(" ") + S_RACK_NOZZLE_SUGEEST_REFRESH) },
                                     wxEmptyString, prePrintInfoStyle::NozzleState | prePrintInfoStyle::BtnNozzleRefresh);
                     } else {
                         show_status(PrintDialogStatus::PrintStatusNozzleNoMatchedHotends,
-                                    { (S_RACK_NOZZLE_NO_MATCHED + " " + S_RACK_NOZZLE_SUGEEST_RESLICE) },
+                                    { (S_RACK_NOZZLE_NO_MATCHED + _L(" ") + S_RACK_NOZZLE_SUGEEST_RESLICE) },
                                     wxEmptyString, prePrintInfoStyle::NozzleState);
                     }
 
@@ -6430,10 +6442,17 @@ wxString SelectMachineDialog::get_nozzle_dia_and_type(const std::string &ams_id,
     // which is empty / a placeholder once the nozzle has been mounted.
     std::optional<DevNozzle> nozzle;
 
-    // 1) Normal binding still resolvable through the tray's own nozzle pos.
+    // 1) Normal binding resolvable through the tray's own nozzle pos. This item
+    //    (MaterialItemHotend) is only built for the multi-slot hotend rack
+    //    (RackType_A/B, see is_hotend_rack in the material-item factory), so
+    //    pos_id is always a rack position. Mirror get_mapped_nozzles(): resolve by
+    //    the stable addr id (= slot index) so a hotend picked up onto the extruder
+    //    is still found (its rack slot now only holds a non-exist placeholder),
+    //    falling back to the pos-based lookup for machines that don't push addr id.
     if (auto tray_opt = obj_->get_tray(ams_id, slot_id); tray_opt.has_value()) {
         if (auto pos = tray_opt->get_nozzle_pos_id(obj_); pos.has_value()) {
-            nozzle = obj_->GetNozzleSystem()->GetNozzleOptByPosId(pos.value());
+            const int pos_id = pos.value();
+            nozzle = obj_->GetNozzleSystem()->GetNozzleOptByAddrId(pos_id - HOTEND_RACK_INTERNAL_ID_OFFSET);
         }
     }
 
@@ -6455,6 +6474,23 @@ wxString SelectMachineDialog::get_nozzle_dia_and_type(const std::string &ams_id,
     }
 
     if (!nozzle.has_value()) return wxEmptyString;
+
+    // A rack position can hold an explicit non-printing tool (cutter / pen /
+    // laser / fan) instead of a hotend. Those carry no meaningful nozzle
+    // diameter, so formatting them as "0.0 <flow>" is wrong; show the tool label
+    // instead. Only relabel the known non-printing tools -- Nozzle and the
+    // unclassified None (e.g. a rack placeholder for a hotend currently mounted
+    // on the extruder) must fall through to the diameter display as before.
+    const auto& tool_defs = nozzle->GetToolDefs();
+    switch (tool_defs.tool_type) {
+    case DevNozzleToolType::Cut:
+        return (tool_defs.cut_info.has_value() && tool_defs.cut_info->type == CutType::Pen)
+                   ? _L("Pen")
+                   : _L("Cutter");
+    case DevNozzleToolType::Laser: return _L("Laser");
+    case DevNozzleToolType::Fan:   return _L("Fan");
+    default:                       break; // Nozzle / None -> diameter display
+    }
 
     auto nozzle_type = wxString::FromUTF8(
         DevNozzle::ToNozzleVolumeShortString(

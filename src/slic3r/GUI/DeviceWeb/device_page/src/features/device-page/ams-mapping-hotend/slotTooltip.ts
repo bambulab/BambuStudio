@@ -56,3 +56,10 @@ export function resolveSlotTooltip(
       return '';
   }
 }
+
+// Tooltip for a locked preload (pre-fed) AMS card: the hotend currently feeds
+// from the external spool, so the pre-fed AMS slot is display-only until the
+// user manually unloads the external filament and feeds the AMS instead.
+export function resolvePreloadLockedTooltip(t: TFunction): string {
+  return t('Unload the external filament manually before feeding to enable selection.');
+}

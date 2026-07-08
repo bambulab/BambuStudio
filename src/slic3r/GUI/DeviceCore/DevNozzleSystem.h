@@ -61,10 +61,10 @@ public:
         Cooling = 3
     };
 
-    // Tool mounted on this rack position. Derived from the device tool-id
-    // string's first character (see s_parse_nozzle_type): H = hotend (printing
-    // nozzle), C = cross cutter (sub type 'E' is a pen/marker), others (L/F/J)
-    // are not printing nozzles. Only Hotend can be matched to a filament.
+    // Coarse classification of the tool mounted on this rack position. This is
+    // a projection of m_tool_defs (the single source of truth, filled by the
+    // parser): Nozzle -> Hotend, Cut -> Cutter/Pen (pen == CutType::Pen), and
+    // anything else -> Unknown. Only Hotend can be matched to a filament.
     enum class NozzleToolKind: int
     {
         Hotend = 0,
@@ -86,7 +86,6 @@ public:
     std::optional<int> m_addr_id;
     NozzleFlowType  m_nozzle_flow = NozzleFlowType::S_FLOW;// 0-common 1-high flow
     NozzleType      m_nozzle_type = NozzleType::ntUndefine;// 0-stainless_steel 1-hardened_steel 5-tungsten_carbide
-    NozzleToolKind  m_tool_kind = NozzleToolKind::Hotend;
     float           m_diameter = 0.4f;// 0.2mm  0.4mm  0.6mm 0.8mm
     DevNozzleToolDefs m_tool_defs;
 
@@ -132,8 +131,19 @@ public:
     DevNozzleToolDefs GetToolDefs() const { return m_tool_defs; }
     NozzleType     GetNozzleType() const { return m_nozzle_type; }
     NozzleFlowType GetNozzleFlowType() const { return m_nozzle_flow; }
-    NozzleToolKind GetToolKind() const { return m_tool_kind; }
-    bool           IsHotend() const { return m_tool_kind == NozzleToolKind::Hotend; }
+    // Derived from m_tool_defs so it can never drift from the parsed tool type.
+    NozzleToolKind GetToolKind() const
+    {
+        switch (m_tool_defs.tool_type) {
+        case DevNozzleToolType::Nozzle: return NozzleToolKind::Hotend;
+        case DevNozzleToolType::Cut:
+            return (m_tool_defs.cut_info.has_value() && m_tool_defs.cut_info->type == CutType::Pen)
+                       ? NozzleToolKind::Pen
+                       : NozzleToolKind::Cutter;
+        default: return NozzleToolKind::Unknown;
+        }
+    }
+    bool           IsHotend() const { return m_tool_defs.tool_type == DevNozzleToolType::Nozzle; }
     NozzleDiameterType GetNozzleDiameterType() const;
     float          GetNozzleDiameter() const { return m_diameter; }
     float          GetNozzleWear() const { return m_wear; }

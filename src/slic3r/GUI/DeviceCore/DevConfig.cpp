@@ -55,6 +55,7 @@ void DevConfig::ParsePrintOptionsConfig(const json& print_json)
     DevJsonValParser::ParseVal(print_json, "support_ai_monitoring", m_support_ai_monitor);
     DevJsonValParser::ParseVal(print_json, "support_print_without_sd", m_support_print_without_sd);
     DevJsonValParser::ParseVal(print_json, "support_print_all", m_support_print_all);
+    DevJsonValParser::ParseVal(print_json, "support_fdm_cut_mode_compat", m_support_fdm_cut_mode_compat);
     DevJsonValParser::ParseVal(print_json, "support_filament_remain_edit", m_support_filament_remain_edit);
 }
 
