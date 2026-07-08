@@ -1780,7 +1780,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Set special auxiliary cooling fan for the first certain layers.");
     def->sidetext = L("layers");
     def->min = 0;
-    def->max = 1000;
+    def->max = 100000;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 1 });
 
@@ -1788,7 +1788,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Full fan speed at layer");
     def->tooltip = L("Auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1.");
     def->min = 0;
-    def->max = 1000;
+    def->max = 100000;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 0 });
 
@@ -1798,7 +1798,7 @@ void PrintConfigDef::init_fff_params()
                      "to get better build plate adhesion and used for auto cooling function");
     def->sidetext = L("layers");
     def->min = 0;
-    def->max = 1000;
+    def->max = 100000;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 1 });
 
@@ -3196,7 +3196,7 @@ void PrintConfigDef::init_fff_params()
     //               "\"full_fan_speed_layer\" will be ignored if lower than \"close_fan_the_first_x_layers\", in which case "
     //               "the fan will be running at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1.");
     def->min = 0;
-    def->max = 1000;
+    def->max = 100000;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 0 });
 
