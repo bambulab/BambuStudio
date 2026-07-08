@@ -24003,26 +24003,9 @@ Preset *get_printer_preset(const MachineObject *obj)
 
 bool Plater::check_printer_initialized(MachineObject *obj, bool only_warning, bool popup_warning)
 {
-    if (!obj)
-        return false;
+    if (!obj) return false;
 
-    bool has_been_initialized = true;
-
-    const auto& extruders = obj->GetExtderSystem()->GetExtruders();
-    for (const DevExtder& extruder : extruders) {
-        if (obj->is_multi_extruders()) {
-            if (extruder.GetNozzleFlowType() == NozzleFlowType::NONE_FLOWTYPE) {
-                has_been_initialized = false;
-                break;
-            }
-        }
-        if (extruder.GetNozzleFlowType() == NozzleType::ntUndefine) {
-            has_been_initialized = false;
-            break;
-        }
-    }
-
-    if (!has_been_initialized) {
+    if (!obj->is_info_ready()) {
         if (popup_warning) {
             if (!only_warning) {
                 if (DevPrinterConfigUtil::get_printer_can_set_nozzle(obj->get_show_printer_type())) {
