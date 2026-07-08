@@ -811,17 +811,19 @@ std::string DevFilaSystem::GetTrayNameByTrayId(int tray_id)
 
 int DevFilaSystem::GetExtruderIdByAmsId(const std::string& ams_id) const
 {
+    auto rack_type = GetOwner()->GetNozzleRack()->GetRackType();
     auto it = amsList.find(ams_id);
     if (it != amsList.end()) {
         if (it->second->GetBindedExtruderSet().size() == 1) {
             return *it->second->GetBindedExtruderSet().begin();
         }
+    } else if(IsVirtualTrayId(ams_id) && (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B)) {
+        return MAIN_EXTRUDER_ID;
     } else if (ams_id == VIRTUAL_AMS_MAIN_ID_STR) {
         return MAIN_EXTRUDER_ID;
     } else if (ams_id == VIRTUAL_AMS_DEPUTY_ID_STR) {
         return DEPUTY_EXTRUDER_ID;
     }
-
     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": ams_id " << ams_id << " not found";
     return -1; // not found
 }

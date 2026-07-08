@@ -45,6 +45,8 @@ public:
 
     bool SupportCalibrationPA_FlowAuto() const { return m_support_calibration_pa_flow_auto; }
 
+    bool SupportNozzlePosToNozzleAddr() const { return m_support_nozzle_pos_to_nozzle_addr; }
+
 public:
     /*Setters*/
     void ParseConfig(const json& print_json);
@@ -80,6 +82,7 @@ private:
     bool m_support_calibration_clump_pos     = false; // clump position calibration
 
     bool m_support_calibration_pa_flow_auto = false;// PA flow calibration. used in SendPrint
+    bool m_support_nozzle_pos_to_nozzle_addr = false;// map firmware nozzle_pos (0/1) to rack address on rack machines
 };
 
 };

@@ -15,6 +15,7 @@
 #include "DevCalib.h"
 #include "DevDefs.h"
 #include "DevFilaSystem.h"
+#include "DevNozzleSystem.h"
 #include "DevConfig.h"
 #include "DevExtruderSystem.h"
 #include "DevNozzleSystem.h"
@@ -227,6 +228,17 @@ void from_json(const json& j, PACalibResult& cali) {
     cali.k_value            = get_number_flexible(j, "k_value", 0.0f);
     cali.n_coef             = get_number_flexible(j, "n_coef", 0.0f);
     cali.confidence         = j.value("confidence", 0);
+}
+static void normalize_nozzle_pos_to_addr(std::vector<PACalibResult>& items, DevNozzleSystem* nsys)
+{
+    if (!nsys) return;
+    for (auto& r : items) {
+        if (r.nozzle_pos_id != MAIN_EXTRUDER_ID && r.nozzle_pos_id != DEPUTY_EXTRUDER_ID)
+            continue;
+        auto nozzle = nsys->GetNozzleOptByPosId(r.nozzle_pos_id);
+        if (nozzle && nozzle->GetAddrId())
+            r.nozzle_pos_id = 0x10 | *nozzle->GetAddrId();
+    }
 }
 
 void from_json(const json& j, FlowRatioCalibResult& cali)
@@ -477,6 +489,10 @@ void DevCalib::ExtrusionCalibGetTableParse(const json &jj){
 
             std::vector<PACalibResult> new_rows = filaments_json.get<std::vector<PACalibResult>>();
 
+            if (m_owner && m_owner->GetConfig() && m_owner->GetConfig()->SupportNozzlePosToNozzleAddr()) {
+                normalize_nozzle_pos_to_addr(m_pa_calib_tab, m_owner->GetNozzleSystem());
+            }
+
             /* filter invalid pa_calib_tab */
             new_rows.erase(std::remove_if(new_rows.begin(), new_rows.end(), [](auto &res) { return res.k_value < 0.0f || res.k_value > 10.0f; }), new_rows.end());
 
@@ -535,6 +551,10 @@ void DevCalib::ExtrusionCalibGetResultParse(const json &jj)
         }
 
         m_pa_calib_results = filaments_json.get<std::vector<PACalibResult>>();
+
+        if (m_owner && m_owner->GetConfig() && m_owner->GetConfig()->SupportNozzlePosToNozzleAddr()) {
+            normalize_nozzle_pos_to_addr(m_pa_calib_results, m_owner->GetNozzleSystem());
+        }
 
         m_pa_calib_results.erase(std::remove_if(m_pa_calib_results.begin(), m_pa_calib_results.end(), [](auto &res) { return res.k_value < 0.0f || res.k_value > 10.0f; }), m_pa_calib_results.end());
 

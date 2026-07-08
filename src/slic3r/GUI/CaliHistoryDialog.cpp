@@ -994,9 +994,28 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
         if(r_nozzle.IsNormal()){
             m_comboBox_nozzle_id->Append("R", wxNullBitmap, new int{0});
         }
-        for (auto nozzle_item : rack->GetRackNozzles()) {
-            if(nozzle_item.second.IsNormal()){
-                m_comboBox_nozzle_id->Append(wxString::Format("%d", nozzle_item.first + 1), wxNullBitmap, new int{0x10 | nozzle_item.first});
+
+        if (rack->GetRackType() == DevNozzleRack::RackType::RackType_A ||
+            rack->GetRackType() == DevNozzleRack::RackType::RackType_B) {
+            int head_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
+            auto head_nozzle = obj->GetNozzleSystem()->GetExtNozzle(head_nozzle_id);
+            int head_home_slot = head_nozzle.GetAddrId().value_or(head_nozzle_id);
+            const auto& rack_map = rack->GetRackNozzles();
+            for (int idx = 0; idx < rack->GetTotalRackNozzleCount(); ++idx) {
+                auto rack_it = rack_map.find(idx);
+                if (rack_it != rack_map.end() && rack_it->second.IsNormal()) {
+                    m_comboBox_nozzle_id->Append(wxString::Format("%d", idx + 1), wxNullBitmap, new int{0x10 | idx});
+                    continue;
+                }
+                if (idx == head_home_slot && head_nozzle.IsNormal()) {
+                    m_comboBox_nozzle_id->Append(wxString::Format("%d", idx + 1), wxNullBitmap, new int{0x10 | idx});
+                }
+            }
+        } else {
+            for (auto nozzle_item : rack->GetRackNozzles()) {
+                if(nozzle_item.second.IsNormal()){
+                    m_comboBox_nozzle_id->Append(wxString::Format("%d", nozzle_item.first + 1), wxNullBitmap, new int{0x10 | nozzle_item.first});
+                }
             }
         }
 
