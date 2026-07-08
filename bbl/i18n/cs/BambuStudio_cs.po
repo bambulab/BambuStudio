@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-25 17:06+0800\n"
+"POT-Creation-Date: 2026-07-08 18:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -287,6 +287,9 @@ msgstr "Běžné"
 
 msgid "TPU High Flow"
 msgstr "TPU vysoký průtok"
+
+msgid "E3D High Flow"
+msgstr ""
 
 msgid "Unknown"
 msgstr "Neznámé"
@@ -1330,9 +1333,6 @@ msgstr "Překlopit podle plochy 2"
 msgid "Assemble"
 msgstr "Sestavit"
 
-msgid "Please exit the assembly guide before using this tool."
-msgstr ""
-
 msgid "Please confirm explosion ratio = 1 and select at least two volumes."
 msgstr "Potvrďte prosím, že poměr rozložení = 1, a vyberte alespoň dva objemy."
 
@@ -1957,6 +1957,15 @@ msgstr "Nesprávné heslo"
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "Připojení %s selhalo! [SN:%s, kód=%s]"
 
+msgid ""
+"This operation rebuilds the model's mesh. Painted color, supports, seam and fuzzy-skin will be transferred to the new mesh by a best-effort approximation, so the result may be slightly off and, in rare cases, some painting may be lost.\n"
+"\n"
+"Do you want to continue?"
+msgstr ""
+
+msgid "Painting may change"
+msgstr ""
+
 msgid "BambuStudio configuration file read failed. Please manually backup and delete it, and then restart BambuStudio software."
 msgstr "Čtení konfiguračního souboru BambuStudio selhalo. Proveďte ruční zálohování a poté soubor odstraňte. Restartujte software BambuStudio."
 
@@ -2451,6 +2460,9 @@ msgstr "Upravit"
 
 msgid "Delete this filament"
 msgstr "Smazat tento filament"
+
+msgid "Decompose Color"
+msgstr ""
 
 msgid "Merge with"
 msgstr "Sloučit s"
@@ -2971,8 +2983,8 @@ msgstr "AMS nebyl inicializován. Před použitím jej prosím inicializujte."
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Vyberte slot AMS a poté stiskněte tlačítko „Načíst“ nebo „Vysunout“, aby se filament automaticky načetl nebo vysunul."
 
-msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
-msgstr "Typ filamentu není znám, což je pro provedení této akce vyžadováno. Nastavte prosím údaje o cílovém filamentu."
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
+msgstr ""
 
 msgid "/"
 msgstr "/"
@@ -3184,6 +3196,12 @@ msgstr ""
 msgid "Apply final assembly pose"
 msgstr ""
 
+msgid "The export file is in use by the system. Please close it or export with a different file name, then try again."
+msgstr ""
+
+msgid "Export"
+msgstr "Exportovat"
+
 msgid "Assembly Guide"
 msgstr "Průvodce sestavou"
 
@@ -3207,9 +3225,6 @@ msgstr ""
 
 msgid "Exporting file"
 msgstr ""
-
-msgid "Export"
-msgstr "Exportovat"
 
 msgid "Saving project will automatically switch to end frame"
 msgstr ""
@@ -3743,14 +3758,26 @@ msgstr "Tepelná předkondicionace vyhřívané podložky pomáhá optimalizovat
 msgid "Remaining time: %dmin%ds"
 msgstr "Zbývající čas: %dmin%ds"
 
-msgid "Project Filaments"
-msgstr "Filamenty projektu"
-
-msgid "New Filaments"
+msgid "One-click CMYW auto-mix"
 msgstr ""
 
-msgid "Add Material"
+msgid "One-click RYBW auto-mix"
 msgstr ""
+
+msgid "Project Physical Filaments"
+msgstr ""
+
+msgid "Project Mixed Filaments"
+msgstr ""
+
+msgid "New Physical Filaments"
+msgstr ""
+
+msgid "New Mixed Filaments"
+msgstr ""
+
+msgid "+ Add Material"
+msgstr "+ Přidat materiál"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
@@ -3787,6 +3814,9 @@ msgid "Reminder: parameters changed, click Apply to take effect"
 msgstr ""
 
 msgid "Filament Mapping"
+msgstr ""
+
+msgid "Choose the one-click auto-mix mode for texture color import"
 msgstr ""
 
 msgid "Auto-merge same filament"
@@ -4002,6 +4032,36 @@ msgstr "Zadejte platnou hodnotu (K v %.1f~%.1f)"
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Zadejte platnou hodnotu (K v %.1f~%.1f, N v %.1f~%.1f)"
 
+msgid "Remark"
+msgstr ""
+
+msgid "Other"
+msgstr "Ostatní"
+
+msgid "Filament Manager"
+msgstr "Filament Manager"
+
+msgid "In printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "In printer: %s"
+msgstr ""
+
+msgctxt "Filament Manager"
+msgid "Note"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr ""
+
+msgctxt "Unsupported Filaments"
+msgid "Note"
+msgstr ""
+
+msgid "System presets"
+msgstr "Systémová přednastavení"
+
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 msgstr "Poznámka: Číslo hotendu na %s je přiřazeno k držáku. Když je hotend přesunut do nového držáku, jeho číslo se automaticky aktualizuje."
@@ -4022,6 +4082,21 @@ msgstr "Jiná barva"
 
 msgid "Custom Color"
 msgstr "Vlastní barva"
+
+msgid "AMS detected a new official filament. Add it to Filament Manager?"
+msgstr ""
+
+msgid "Add as new filament"
+msgstr ""
+
+msgid "Link to existing filament"
+msgstr ""
+
+msgid "Not now"
+msgstr ""
+
+msgid "Please select"
+msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "Kalibrace dynamiky toku"
@@ -4514,11 +4589,8 @@ msgstr ""
 
 msgid ""
 "Should not large than 100%.\n"
-"Reset to defualt"
+"Reset to default"
 msgstr ""
-"Nemělo by být více než 100 %.\n"
-"Obnoveno na výchozí hodnotuHodnota nesmí být větší než 100 %.\n"
-"Obnoveno na výchozí"
 
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
@@ -5393,28 +5465,28 @@ msgid "Current grouping of slice result is not optimal."
 msgstr "Aktuální seskupení ve výsledku řezání není optimální."
 
 #, boost-format
-msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
-msgstr "V porovnání s optimálním seskupením zvyšte množství filamentu o %1%g a počet změn o %2%."
+msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
-msgstr "Spotřeba filamentu se zvýší o %1%g a ušetříte %2% výměn oproti optimálnímu seskupení."
+msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
-msgstr "Ušetříte %1%g filamentu, ale počet výměn se zvýší o %2% oproti optimálnímu seskupení."
+msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
-msgstr "Ušetříte %1%g filamentu a %2% výměn oproti tiskárně s jednou tryskou."
+msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+msgstr ""
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
-msgstr "Ušetříte %1%g filamentu, ale počet výměn se zvýší o %2% oproti tiskárně s jednou tryskou."
+msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+msgstr ""
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
-msgstr "Spotřeba filamentu se zvýší o %1%g a ušetříte %2% výměn oproti tiskárně s jednou tryskou."
+msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+msgstr ""
 
 msgid "Set to Optimal"
 msgstr "Nastavit na optimální"
@@ -5964,9 +6036,6 @@ msgstr "Více zařízení"
 
 msgid "Project"
 msgstr "Projekt"
-
-msgid "Filament Manager"
-msgstr "Filament Manager"
 
 msgid "Yes"
 msgstr "Ano"
@@ -7855,8 +7924,8 @@ msgstr "Synchronizovat nyní"
 msgid "There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."
 msgstr "Jsou zde nenastavené typy trysky. Před synchronizací nastavte typy trysky u všech extruderů."
 
-msgid "Sync extruder infomation"
-msgstr "Synchronizovat informace o extruderu"
+msgid "Sync extruder information"
+msgstr ""
 
 msgid ""
 "Tips:\n"
@@ -7879,6 +7948,9 @@ msgstr "Informace o synchronizaci"
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synchronizovat informace o trysce a počtu AMS"
+
+msgid "Project Filaments"
+msgstr "Filamenty projektu"
 
 msgid "Purge mode"
 msgstr "Režim pročištění"
@@ -8876,8 +8948,23 @@ msgstr ""
 "\n"
 "Chcete tuto funkci přesto povolit?"
 
+msgid "Download path"
+msgstr ""
+
 msgid "Choose Download Directory"
 msgstr "Vyberte adresář pro stahování"
+
+msgid "General"
+msgstr "Obecné"
+
+msgid "User"
+msgstr "Uživatel"
+
+msgid "3D"
+msgstr ""
+
+msgid "Developer Tools"
+msgstr ""
 
 msgid "General Settings"
 msgstr "Obecná nastavení"
@@ -8909,32 +8996,8 @@ msgstr "Imperiální"
 msgid "Units"
 msgstr "Jednotky"
 
-msgid "Use 12-hour time format"
-msgstr "Používat 12hodinový formát času"
-
-msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr "Zobrazovat čas ve 12hodinovém formátu s AM/PM místo 24hodinového formátu"
-
-msgid "Keep only one Bambu Studio instance"
-msgstr "Ponechat pouze jednu instanci aplikace Bambu Studio"
-
-msgid "On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances of same app from the command line. In such case this settings will allow only one instance."
-msgstr "V systému OSX je ve výchozím nastavení vždy spuštěna pouze jedna instance aplikace. Je však možné spustit více instancí stejné aplikace z příkazového řádku. V takovém případě toto nastavení povolí pouze jednu instanci."
-
-msgid "If this is enabled, when starting Bambu Studio and another instance of the same Bambu Studio is already running, that instance will be reactivated instead."
-msgstr "Pokud je tato možnost povolena a při spuštění Bambu Studio již běží jiná instance, bude místo spuštění nové instance aktivována ta stávající."
-
-msgid "Automatically transfer modified value when switching process and filament presets"
-msgstr "Při přepínání procesů a předvoleb filamentu automaticky přenést upravenou hodnotu"
-
-msgid "After closing, a popup will appear to ask each time"
-msgstr "Po zavření se při každém použití zobrazí vyskakovací okno s dotazem"
-
-msgid "Auto plate type"
-msgstr "Automatický typ podložky"
-
-msgid "Studio will remember build plate selected last time for certain printer model."
-msgstr "Studio si bude pamatovat naposledy zvolenou tiskovou podložku pro konkrétní model tiskárny."
+msgid "Enable dark mode"
+msgstr "Povolit tmavý režim"
 
 msgid "All"
 msgstr "Vše"
@@ -8948,11 +9011,14 @@ msgstr "Automatické proplachování"
 msgid "Auto calculate flush volumes"
 msgstr "Automatický výpočet objemů pro proplach"
 
-msgid "Multi-device Management(Take effect after restarting Studio)."
-msgstr "Správa více zařízení (projeví se po restartování Studia)."
+msgid "Keep only one Bambu Studio instance"
+msgstr "Ponechat pouze jednu instanci aplikace Bambu Studio"
 
-msgid "With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."
-msgstr "Pokud je tato volba povolena, můžete odesílat úlohu na více zařízení současně a spravovat více zařízení."
+msgid "On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances of same app from the command line. In such case this settings will allow only one instance."
+msgstr "V systému OSX je ve výchozím nastavení vždy spuštěna pouze jedna instance aplikace. Je však možné spustit více instancí stejné aplikace z příkazového řádku. V takovém případě toto nastavení povolí pouze jednu instanci."
+
+msgid "If this is enabled, when starting Bambu Studio and another instance of the same Bambu Studio is already running, that instance will be reactivated instead."
+msgstr "Pokud je tato možnost povolena a při spuštění Bambu Studio již běží jiná instance, bude místo spuštění nové instance aktivována ta stávající."
 
 msgid "Take effect after restarting Studio"
 msgstr ""
@@ -8960,11 +9026,11 @@ msgstr ""
 msgid "The Filament Manager is turned off by default on macOS because compatibility issues on some systems may cause the application to become unresponsive."
 msgstr ""
 
-msgid "Show the step mesh parameter setting dialog."
-msgstr "Zobrazit dialog nastavení parametru kroku sítě."
+msgid "Multi-device Management(Take effect after restarting Studio)."
+msgstr "Správa více zařízení (projeví se po restartování Studia)."
 
-msgid "If enabled,a parameter settings dialog will appear during STEP file import."
-msgstr "Pokud je tato volba povolena, během importu souboru STEP se zobrazí dialog nastavení parametrů."
+msgid "With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."
+msgstr "Pokud je tato volba povolena, můžete odesílat úlohu na více zařízení současně a spravovat více zařízení."
 
 msgid "Support beta version update."
 msgstr "Podpora aktualizací beta verze."
@@ -8972,31 +9038,71 @@ msgstr "Podpora aktualizací beta verze."
 msgid "With this option enabled, you can receive beta version updates."
 msgstr "Pokud je tato volba povolena, můžete přijímat aktualizace beta verze."
 
+msgid "Join the User Experience Improvement Program."
+msgstr "Zapojte se do programu pro zlepšování uživatelského prostředí."
+
+msgctxt "Preferences"
+msgid "Learn more"
+msgstr "Další informace"
+
+msgid "User Settings"
+msgstr ""
+
+msgid "Auto plate type"
+msgstr "Automatický typ podložky"
+
+msgid "Studio will remember build plate selected last time for certain printer model."
+msgstr "Studio si bude pamatovat naposledy zvolenou tiskovou podložku pro konkrétní model tiskárny."
+
+msgid "12-hour"
+msgstr ""
+
+msgid "24-hour"
+msgstr ""
+
+msgid "time format for print progress"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr "Zobrazovat čas ve 12hodinovém formátu s AM/PM místo 24hodinového formátu"
+
+msgid "Keep liveview when printing."
+msgstr "Ponechat živý náhled při tisku."
+
+msgid "By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."
+msgstr "Ve výchozím nastavení se živý náhled pozastaví po 15 minutách nečinnosti na počítači. Zaškrtněte toto políčko pro deaktivaci této funkce během tisku."
+
+msgid "Automatically transfer modified value when switching process and filament presets"
+msgstr "Při přepínání procesů a předvoleb filamentu automaticky přenést upravenou hodnotu"
+
+msgid "After closing, a popup will appear to ask each time"
+msgstr "Po zavření se při každém použití zobrazí vyskakovací okno s dotazem"
+
 msgid "Remove the restriction on mixed printing of high and low temperature filaments."
 msgstr "Odstranit omezení smíšeného tisku filamentů s vysokou a nízkou teplotou."
 
 msgid "With this option enabled, you can print materials with a large temperature difference together."
 msgstr "Pokud je tato volba povolena, můžete současně tisknout materiály s velkým rozdílem teplot."
 
-msgid "Open full screen camera view on active monitor only."
+msgid "Auto sync user presets(Printer/Filament/Process)"
+msgstr "Automatická synchronizace uživatelských přednastavení (tiskárna/filament/proces)"
+
+msgid "If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."
+msgstr "Je-li tato možnost povolena, uživatelská přednastavení se po spuštění aplikace Bambu Studio nebo po jejich úpravě automaticky synchronizují s cloudem."
+
+msgid "Auto check for system presets updates"
+msgstr "Automatická kontrola aktualizací systémových přednastavení"
+
+msgid "If enabled, auto check whether there are system presets updates after Bambu Studio startup."
+msgstr "Pokud je povoleno, po spuštění Bambu Studio se automaticky zkontrolují aktualizace systémových přednastavení."
+
+msgid "Auto-fill previously logged-in accounts."
+msgstr "Automatické vyplnění dříve přihlášených účtů."
+
+msgid "Disable fin extrude safe temperature"
 msgstr ""
 
-msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
-msgstr ""
-
-msgid "Clear my choice for synchronizing printer preset after loading the file."
-msgstr "Vymazat mou volbu pro synchronizaci přednastavení tiskárny po načtení souboru."
-
-msgid "Clear my choice for Load 3mf dialog settings."
-msgstr "Vymazat mou volbu pro nastavení dialogu Načíst 3MF."
-
-msgid "Clear my choice for executing post-processing scripts."
-msgstr ""
-
-msgid "Show the security warning dialog again before slicing when post-processing scripts are configured."
-msgstr ""
-
-msgid "Clear my choice for disabling support parameter recommendation."
+msgid "When enabled, the fin extrude safe temperature constraint is bypassed. The value is exposed to custom G-code as disable_fins_extrude_safe_temp."
 msgstr ""
 
 msgid "3D Settings"
@@ -9008,59 +9114,8 @@ msgstr "Přiblížit na pozici myši"
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr "Přibližovat k pozici kurzoru myši ve 3D zobrazení namísto středu 2D okna."
 
-msgid "Always show shells in preview"
-msgstr "Vždy zobrazovat stěny v náhledu"
-
-msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
-msgstr "Určuje, zda se mají stěny v záložce Náhled zobrazovat vždy. Pokud hodnotu změníte, je nutné model znovu rozřezat."
-
-msgid "Import a single SVG and split it"
-msgstr "Importovat jedno SVG a rozdělit"
-
-msgid "Import a single SVG and then split it to several parts."
-msgstr "Importovat jedno SVG a poté jej rozdělit na několik částí."
-
-msgid "Enable gamma correction for the imported obj file"
-msgstr "Povolit gama korekci pro importovaný soubor OBJ"
-
-msgid "Perform gamma correction on color after importing the obj model."
-msgstr "Po importu modelu OBJ použít gama korekci na barvy."
-
-msgid "Remember last used color scheme"
-msgstr "Zapamatovat naposledy použité barevné schéma"
-
-msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-msgstr "Je-li tato možnost povolena, naposledy použité barevné schéma (např. typ čáry, rychlost) se při příštím spuštění použije automaticky."
-
 msgid "Display overview"
 msgstr "Přehled zobrazení"
-
-msgid "Show assembly BVH primary bounds"
-msgstr "Zobrazit primární hranice BVH sestavy"
-
-msgid "Display the BVH primary bounding box wireframe in assembly view."
-msgstr "V zobrazení sestavy zobrazit drátový model primárního ohraničujícího rámečku BVH."
-
-msgid "Improve rendering performance by lod"
-msgstr "Zlepšit výkon vykreslování pomocí LOD"
-
-msgid "Improved rendering performance under the scene of multiple plates and many models."
-msgstr "Vyšší výkon vykreslování ve scénách s více podložkami a mnoha modely."
-
-msgid "Collapsible"
-msgstr "Sbalitelné"
-
-msgid "Uncollapsible"
-msgstr "Nelze sbalit"
-
-msgid "Toolbar Style"
-msgstr "Styl panelu nástrojů"
-
-msgid "Enable advanced gcode viewer"
-msgstr "Povolit pokročilý prohlížeč G-kódu"
-
-msgid "Enable advanced gcode viewer."
-msgstr "Povolit pokročilý prohlížeč G-kódu."
 
 msgid "Grabber scale"
 msgstr "Měřítko podavače"
@@ -9077,20 +9132,122 @@ msgstr "Posun popisku"
 msgid "Set tooltip offset for different mouse size."
 msgstr "Nastavte posun popisku pro různé velikosti kurzoru myši."
 
-msgid "Presets"
-msgstr "Přednastavení"
+msgid "Collapsible"
+msgstr "Sbalitelné"
 
-msgid "Auto sync user presets(Printer/Filament/Process)"
-msgstr "Automatická synchronizace uživatelských přednastavení (tiskárna/filament/proces)"
+msgid "Uncollapsible"
+msgstr "Nelze sbalit"
 
-msgid "If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."
-msgstr "Je-li tato možnost povolena, uživatelská přednastavení se po spuštění aplikace Bambu Studio nebo po jejich úpravě automaticky synchronizují s cloudem."
+msgid "Toolbar Style"
+msgstr "Styl panelu nástrojů"
 
-msgid "Auto check for system presets updates"
-msgstr "Automatická kontrola aktualizací systémových přednastavení"
+msgid "Always show shells in preview"
+msgstr "Vždy zobrazovat stěny v náhledu"
 
-msgid "If enabled, auto check whether there are system presets updates after Bambu Studio startup."
-msgstr "Pokud je povoleno, po spuštění Bambu Studio se automaticky zkontrolují aktualizace systémových přednastavení."
+msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
+msgstr "Určuje, zda se mají stěny v záložce Náhled zobrazovat vždy. Pokud hodnotu změníte, je nutné model znovu rozřezat."
+
+msgid "Show the step mesh parameter setting dialog."
+msgstr "Zobrazit dialog nastavení parametru kroku sítě."
+
+msgid "If enabled,a parameter settings dialog will appear during STEP file import."
+msgstr "Pokud je tato volba povolena, během importu souboru STEP se zobrazí dialog nastavení parametrů."
+
+msgid "Import a single SVG and split it"
+msgstr "Importovat jedno SVG a rozdělit"
+
+msgid "Import a single SVG and then split it to several parts."
+msgstr "Importovat jedno SVG a poté jej rozdělit na několik částí."
+
+msgid "Enable gamma correction for the imported obj file"
+msgstr "Povolit gama korekci pro importovaný soubor OBJ"
+
+msgid "Perform gamma correction on color after importing the obj model."
+msgstr "Po importu modelu OBJ použít gama korekci na barvy."
+
+msgid "Improve rendering performance by lod"
+msgstr "Zlepšit výkon vykreslování pomocí LOD"
+
+msgid "Improved rendering performance under the scene of multiple plates and many models."
+msgstr "Vyšší výkon vykreslování ve scénách s více podložkami a mnoha modely."
+
+msgid "Enable advanced gcode viewer"
+msgstr "Povolit pokročilý prohlížeč G-kódu"
+
+msgid "Enable advanced gcode viewer."
+msgstr "Povolit pokročilý prohlížeč G-kódu."
+
+msgid "Show assembly BVH primary bounds"
+msgstr "Zobrazit primární hranice BVH sestavy"
+
+msgid "Display the BVH primary bounding box wireframe in assembly view."
+msgstr "V zobrazení sestavy zobrazit drátový model primárního ohraničujícího rámečku BVH."
+
+msgid "Open full screen camera view on active monitor only."
+msgstr ""
+
+msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
+msgstr ""
+
+msgid "Maximum recent projects"
+msgstr "Maximální počet posledních projektů"
+
+msgid "Maximum count of recent projects"
+msgstr "Maximální počet posledních projektů"
+
+msgid "No warnings when loading 3MF with modified G-codes"
+msgstr "Při načítání 3MF s upravenými G-kódy se nezobrazují žádná varování"
+
+msgid "Auto-Backup"
+msgstr "Automatické zálohování"
+
+msgid "Backup your project periodically for restoring from the occasional crash."
+msgstr "Pravidelně zálohujte svůj projekt pro možnost obnovení v případě neočekávaného pádu aplikace."
+
+msgid "every"
+msgstr "každý"
+
+msgid "The peroid of backup in seconds."
+msgstr "Interval zálohování v sekundách."
+
+msgid "Online Models"
+msgstr "Online modely"
+
+msgid "Show online staff-picked models on the home page"
+msgstr "Zobrazit online modely vybrané týmem na domovské stránce"
+
+msgid "Show history on the home page"
+msgstr "Zobrazit historii na domovské stránce"
+
+msgid "Developer Mode"
+msgstr ""
+
+msgid "Develop mode"
+msgstr "Vývojářský režim"
+
+msgid "Skip AMS blacklist check"
+msgstr "Přeskočit kontrolu blacklistu AMS"
+
+msgid "Log"
+msgstr ""
+
+msgid "fatal"
+msgstr "fatální"
+
+msgid "error"
+msgstr "chyba"
+
+msgid "warning"
+msgstr "varování"
+
+msgid "debug"
+msgstr "ladění"
+
+msgid "trace"
+msgstr "trasování"
+
+msgid "Log Level"
+msgstr "Úroveň protokolu"
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Přidružit soubory k Bambu Studio"
@@ -9113,150 +9270,14 @@ msgstr "Přidružit soubory .step/.stp k Bambu Studio"
 msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "Pokud je povoleno, Bambu Studio se nastaví jako výchozí aplikace pro otevírání souborů STEP"
 
-msgid "Online Models"
-msgstr "Online modely"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "Zobrazit online modely vybrané týmem na domovské stránce"
-
-msgid "Show history on the home page"
-msgstr "Zobrazit historii na domovské stránce"
-
-msgid "Reminder During Slicing"
-msgstr "Připomenutí během řezání"
-
-msgid "Automatic mode"
-msgstr "Automatický režim"
-
-msgid "Maximum recent projects"
-msgstr "Maximální počet posledních projektů"
-
-msgid "Maximum count of recent projects"
-msgstr "Maximální počet posledních projektů"
-
-msgid "Clear my choice on the unsaved projects."
-msgstr "Vymazat mou volbu u neuložených projektů."
-
-msgid "No warnings when loading 3MF with modified G-codes"
-msgstr "Při načítání 3MF s upravenými G-kódy se nezobrazují žádná varování"
-
-msgid "Auto-Backup"
-msgstr "Automatické zálohování"
-
-msgid "Backup your project periodically for restoring from the occasional crash."
-msgstr "Pravidelně zálohujte svůj projekt pro možnost obnovení v případě neočekávaného pádu aplikace."
-
-msgid "every"
-msgstr "každý"
-
-msgid "The peroid of backup in seconds."
-msgstr "Interval zálohování v sekundách."
-
-msgid "Downloads"
-msgstr "Stažené soubory"
-
-msgid "Media"
-msgstr "Média"
-
-msgid "Keep liveview when printing."
-msgstr "Ponechat živý náhled při tisku."
-
-msgid "By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."
-msgstr "Ve výchozím nastavení se živý náhled pozastaví po 15 minutách nečinnosti na počítači. Zaškrtněte toto políčko pro deaktivaci této funkce během tisku."
-
-msgid "Dark Mode"
-msgstr "Tmavý režim"
-
-msgid "Enable dark mode"
-msgstr "Povolit tmavý režim"
-
-msgid "Pop up to select filament grouping mode"
-msgstr "Zobrazit výběr režimu seskupení filamentu"
-
-msgid "User Experience"
-msgstr "Uživatelské prostředí"
-
-msgid "Join the User Experience Improvement Program."
-msgstr "Zapojte se do programu pro zlepšování uživatelského prostředí."
-
-msgctxt "Preferences"
-msgid "Learn more"
-msgstr "Další informace"
-
-msgid "Auto-fill previously logged-in accounts."
-msgstr "Automatické vyplnění dříve přihlášených účtů."
-
-msgid "Develop Mode"
-msgstr "Vývojářský režim"
-
-msgid "Develop mode"
-msgstr "Vývojářský režim"
-
-msgid "Skip AMS blacklist check"
-msgstr "Přeskočit kontrolu blacklistu AMS"
-
-msgid "Home page and daily tips"
-msgstr "Domovská stránka a denní tipy"
-
-msgid "Show home page on startup"
-msgstr "Zobrazit domovskou stránku při spuštění"
-
-msgid "Sync settings"
-msgstr "Synchronizovat nastavení"
-
-msgid "User sync"
-msgstr "Synchronizace uživatele"
-
-msgid "Preset sync"
-msgstr "Synchronizace přednastavení"
-
-msgid "Preferences sync"
-msgstr "Synchronizace předvoleb"
-
-msgid "View control settings"
-msgstr "Zobrazit ovládací nastavení"
-
-msgid "Rotate of view"
-msgstr "Otočení pohledu"
-
-msgid "Move of view"
-msgstr "Pohyb pohledu"
-
-msgid "Zoom of view"
-msgstr "Přiblížení zobrazení"
-
-msgid "Other"
-msgstr "Ostatní"
-
-msgid "Mouse wheel reverses when zooming"
-msgstr "Kolečko myši se při přibližování otáčí opačně"
+msgid "Internal developer mode"
+msgstr "Vnitřní režim vývojáře"
 
 msgid "Enable SSL(MQTT)"
 msgstr "Povolit SSL (MQTT)"
 
 msgid "Enable SSL(FTP)"
 msgstr "Povolit SSL (FTP)"
-
-msgid "Internal developer mode"
-msgstr "Vnitřní režim vývojáře"
-
-msgid "Log Level"
-msgstr "Úroveň protokolu"
-
-msgid "fatal"
-msgstr "fatální"
-
-msgid "error"
-msgstr "chyba"
-
-msgid "warning"
-msgstr "varování"
-
-msgid "debug"
-msgstr "ladění"
-
-msgid "trace"
-msgstr "trasování"
 
 msgid "Host Setting"
 msgstr "Nastavení hostitele"
@@ -9285,8 +9306,28 @@ msgstr "Nastavení DEBUG byla úspěšně uložena!"
 msgid "Switch cloud environment, Please login again!"
 msgstr "Cloudové prostředí bylo přepnuto, přihlaste se prosím znovu!"
 
-msgid "System presets"
-msgstr "Systémová přednastavení"
+msgid "Reset all warning dialogs"
+msgstr ""
+
+msgid "Reset preferences"
+msgstr ""
+
+msgid "All warning dialogs that you have disabled by checking \"Don't show again\" are now re-enabled and will show next time they apply."
+msgstr ""
+
+msgid "Check details"
+msgstr ""
+
+msgid ""
+"- Sync printer presets after loading a file\n"
+"- \"Load 3MF\" dialog settings\n"
+"- Executing post-processing scripts\n"
+"- Support structure recommendation prompt\n"
+"- Unsaved projects."
+msgstr ""
+
+msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
+msgstr ""
 
 msgid "User presets"
 msgstr "Uživatelská přednastavení"
@@ -9566,6 +9607,9 @@ msgstr "Bambu Cool Plate SuperTack"
 msgid "Send print job"
 msgstr "Odeslat tiskovou úlohu"
 
+msgid "The current estimated time has been recalculated based on the actual filament mapping."
+msgstr ""
+
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Nejste spokojeni se seskupením filamentů? Přeskupte a proveďte řez ->"
 
@@ -9843,6 +9887,9 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It
 msgstr "Tvrdost aktuálního materiálu (%s) převyšuje tvrdost %s (%s). Může to způsobit opotřebení trysky, což vede k úniku materiálu a nestabilnímu toku. Při používání buďte prosím opatrní."
 
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
+msgstr ""
+
+msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
 msgstr ""
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
@@ -10506,6 +10553,18 @@ msgstr ""
 msgid "Printable space"
 msgstr "Tisknutelný prostor"
 
+msgid "AMS filament load/unload"
+msgstr ""
+
+msgid "s"
+msgstr "s"
+
+msgid "Filament load time"
+msgstr "Doba zavedení filamentu"
+
+msgid "Filament unload time"
+msgstr "Doba vysunutí filamentu"
+
 msgid "Extruder Clearance"
 msgstr "Vzdálenost extruderu"
 
@@ -10639,12 +10698,12 @@ msgstr "%s: %s"
 msgid "No modifications need to be copied."
 msgstr "Není třeba kopírovat žádné úpravy."
 
-msgid "Copy paramters"
-msgstr "Kopírovat parametry"
+msgid "Copy parameters"
+msgstr ""
 
 #, c-format, boost-format
-msgid "Modify paramters of %s"
-msgstr "Upravit parametry objektu %s"
+msgid "Modify parameters of %s"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Do you want to modify the following parameters of the %s to that of the %s?"
@@ -10774,9 +10833,6 @@ msgstr ""
 
 msgid "Extruders count"
 msgstr "Počet extruderů"
-
-msgid "General"
-msgstr "Obecné"
 
 msgid "Capabilities"
 msgstr "Schopnosti"
@@ -12579,9 +12635,6 @@ msgstr "Soubor CA pro HTTPS"
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "Pro připojení k OctoPrint přes HTTPS lze zadat vlastní soubor certifikátu CA ve formátu crt/pem. Pokud pole zůstane prázdné, použije se výchozí úložiště certifikátů CA v operačním systému."
 
-msgid "User"
-msgstr "Uživatel"
-
 msgid "Password"
 msgstr "Heslo"
 
@@ -12719,9 +12772,6 @@ msgstr "Doba před spuštěním ventilátoru"
 
 msgid "Force fan start early(0-5 second) when encountering overhangs. This is because the fan needs time to physically increase its speed."
 msgstr "Vynutit předčasné spuštění ventilátoru (0–5 sekund) při detekci převisů. Je to proto, že ventilátor potřebuje čas na fyzické navýšení své rychlosti."
-
-msgid "s"
-msgstr "s"
 
 msgid "Cooling overhang threshold"
 msgstr "Prahová hodnota chlazení převisů"
@@ -13264,8 +13314,8 @@ msgstr "Průtok nastavený podle objektu, význam je stejný jako u poměru prů
 msgid "Enable pressure advance"
 msgstr "Povolit kompenzaci tlaku"
 
-msgid "Enable pressure advance, auto calibration result will be overwriten once enabled. Useless for Bambu Printer"
-msgstr "Povolením kompenzace tlaku budou výsledky automatické kalibrace přepsány. Neplatí pro tiskárny Bambu"
+msgid "Enable pressure advance, auto calibration result will be overwritten once enabled. Useless for Bambu Printer"
+msgstr ""
 
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for Bambu Printer"
 msgstr "Kompenzace tlaku (Klipper), také známá jako lineární faktor pokroku (Marlin). Neplatí pro tiskárny Bambu"
@@ -13372,17 +13422,29 @@ msgstr "Minimální vytlačení na čisticí věži"
 msgid "mm³"
 msgstr "mm³"
 
-msgid "Filament load time"
-msgstr "Doba zavedení filamentu"
-
 msgid "Time to load new filament when switch filament. For statistics only"
 msgstr "Čas potřebný k zavedení nového filamentu při výměně filamentu. Pouze pro statistické účely"
 
-msgid "Filament unload time"
-msgstr "Doba vysunutí filamentu"
-
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "Čas potřebný k vysunutí starého filamentu při výměně filamentu. Pouze pro statistické účely"
+
+msgid "AMS filament load time"
+msgstr ""
+
+msgid "Filament load time of each AMS type, indexed by the AMS type enum value. For statistics only"
+msgstr ""
+
+msgid "AMS filament unload time"
+msgstr ""
+
+msgid "Filament unload time of each AMS type, indexed by the AMS type enum value. For statistics only"
+msgstr ""
+
+msgid "Selected AMS type"
+msgstr ""
+
+msgid "The AMS type used for the current load/unload time estimation, stored as the AMS type enum value."
+msgstr ""
 
 msgid "Extruder switch time"
 msgstr "Čas přepnutí extruderu"
@@ -16633,6 +16695,9 @@ msgstr "Přednastavení tiskárny nebylo nalezeno, prosím vyberte znovu."
 msgid "Printer Preset"
 msgstr "Přednastavení tiskárny"
 
+msgid "Presets"
+msgstr "Přednastavení"
+
 msgid "Filament Preset Template"
 msgstr "Šablona přednastavení filamentu"
 
@@ -16960,6 +17025,9 @@ msgstr "Tisk materiálu %1s s tryskou %2s může vést k poškození trysky."
 msgid "Need select printer"
 msgstr "Je nutné vybrat tiskárnu"
 
+msgid "Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid."
+msgstr ""
+
 msgid "The start, end or step is not valid value."
 msgstr "Počáteční, koncová nebo krok není platná hodnota."
 
@@ -17063,8 +17131,8 @@ msgstr "Připojení k Duet funguje správně."
 msgid "Could not connect to Duet"
 msgstr "Nepodařilo se připojit k Duet"
 
-msgid "Unknown error occured"
-msgstr "Došlo k neznámé chybě"
+msgid "Unknown error occurred"
+msgstr ""
 
 msgid "Wrong password"
 msgstr "Nesprávné heslo"
@@ -17333,8 +17401,8 @@ msgstr "Osobní přístupový token je prázdný, zadejte prosím správný toke
 msgid "Helio: Presigned URL Created"
 msgstr "Helio: Předsignovaná URL byla vytvořena"
 
-msgid "Helio: file succesfully uploaded"
-msgstr "Helio: Soubor byl úspěšně nahrán"
+msgid "Helio: file successfully uploaded"
+msgstr ""
 
 msgid "Helio: file upload failed"
 msgstr "Helio: Nahrání souboru selhalo"
@@ -17519,16 +17587,16 @@ msgid "No content"
 msgstr "Žádný obsah"
 
 #, c-format, boost-format
-msgid "Printer presets (%d/%d)"
-msgstr "Předvolby tiskárny (%d/%d)"
+msgid "Printer presets (%d)"
+msgstr ""
 
 #, c-format, boost-format
-msgid "Filament presets (%d/%d)"
-msgstr "Předvolby filamentu (%d/%d)"
+msgid "Filament presets (%d)"
+msgstr ""
 
 #, c-format, boost-format
-msgid "Process presets (%d/%d)"
-msgstr "Přednastavení procesu (%d/%d)"
+msgid "Process presets (%d)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%u Selected"
@@ -17984,6 +18052,9 @@ msgstr "Výsledek tisku: LIKELY_FAIL"
 msgid "Print Outcome: "
 msgstr "Výsledek tisku: "
 
+msgid "Click to edit ratio"
+msgstr ""
+
 msgid "Edit Mixed Filament"
 msgstr "Upravit smíšený filament"
 
@@ -17992,9 +18063,6 @@ msgstr "Náhled efektu"
 
 msgid "Select Mixed Materials"
 msgstr "Vybrat smíšené materiály"
-
-msgid "+ Add Material"
-msgstr "+ Přidat materiál"
 
 msgid "- Delete Material"
 msgstr "- Smazat materiál"
@@ -18368,6 +18436,147 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+#~ msgstr "Typ filamentu není znám, což je pro provedení této akce vyžadováno. Nastavte prosím údaje o cílovém filamentu."
+
+#~ msgid ""
+#~ "Should not large than 100%.\n"
+#~ "Reset to defualt"
+#~ msgstr ""
+#~ "Nemělo by být více než 100 %.\n"
+#~ "Obnoveno na výchozí hodnotuHodnota nesmí být větší než 100 %.\n"
+#~ "Obnoveno na výchozí"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
+#~ msgstr "V porovnání s optimálním seskupením zvyšte množství filamentu o %1%g a počet změn o %2%."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
+#~ msgstr "Spotřeba filamentu se zvýší o %1%g a ušetříte %2% výměn oproti optimálnímu seskupení."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
+#~ msgstr "Ušetříte %1%g filamentu, ale počet výměn se zvýší o %2% oproti optimálnímu seskupení."
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
+#~ msgstr "Ušetříte %1%g filamentu a %2% výměn oproti tiskárně s jednou tryskou."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
+#~ msgstr "Ušetříte %1%g filamentu, ale počet výměn se zvýší o %2% oproti tiskárně s jednou tryskou."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
+#~ msgstr "Spotřeba filamentu se zvýší o %1%g a ušetříte %2% výměn oproti tiskárně s jednou tryskou."
+
+#~ msgid "Sync extruder infomation"
+#~ msgstr "Synchronizovat informace o extruderu"
+
+#~ msgid "Use 12-hour time format"
+#~ msgstr "Používat 12hodinový formát času"
+
+#~ msgid "Clear my choice for synchronizing printer preset after loading the file."
+#~ msgstr "Vymazat mou volbu pro synchronizaci přednastavení tiskárny po načtení souboru."
+
+#~ msgid "Clear my choice for Load 3mf dialog settings."
+#~ msgstr "Vymazat mou volbu pro nastavení dialogu Načíst 3MF."
+
+#~ msgid "Remember last used color scheme"
+#~ msgstr "Zapamatovat naposledy použité barevné schéma"
+
+#~ msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+#~ msgstr "Je-li tato možnost povolena, naposledy použité barevné schéma (např. typ čáry, rychlost) se při příštím spuštění použije automaticky."
+
+#~ msgid "Reminder During Slicing"
+#~ msgstr "Připomenutí během řezání"
+
+#~ msgid "Automatic mode"
+#~ msgstr "Automatický režim"
+
+#~ msgid "Clear my choice on the unsaved projects."
+#~ msgstr "Vymazat mou volbu u neuložených projektů."
+
+#~ msgid "Downloads"
+#~ msgstr "Stažené soubory"
+
+#~ msgid "Media"
+#~ msgstr "Média"
+
+#~ msgid "Dark Mode"
+#~ msgstr "Tmavý režim"
+
+#~ msgid "Pop up to select filament grouping mode"
+#~ msgstr "Zobrazit výběr režimu seskupení filamentu"
+
+#~ msgid "User Experience"
+#~ msgstr "Uživatelské prostředí"
+
+#~ msgid "Develop Mode"
+#~ msgstr "Vývojářský režim"
+
+#~ msgid "Home page and daily tips"
+#~ msgstr "Domovská stránka a denní tipy"
+
+#~ msgid "Show home page on startup"
+#~ msgstr "Zobrazit domovskou stránku při spuštění"
+
+#~ msgid "Sync settings"
+#~ msgstr "Synchronizovat nastavení"
+
+#~ msgid "User sync"
+#~ msgstr "Synchronizace uživatele"
+
+#~ msgid "Preset sync"
+#~ msgstr "Synchronizace přednastavení"
+
+#~ msgid "Preferences sync"
+#~ msgstr "Synchronizace předvoleb"
+
+#~ msgid "View control settings"
+#~ msgstr "Zobrazit ovládací nastavení"
+
+#~ msgid "Rotate of view"
+#~ msgstr "Otočení pohledu"
+
+#~ msgid "Move of view"
+#~ msgstr "Pohyb pohledu"
+
+#~ msgid "Zoom of view"
+#~ msgstr "Přiblížení zobrazení"
+
+#~ msgid "Mouse wheel reverses when zooming"
+#~ msgstr "Kolečko myši se při přibližování otáčí opačně"
+
+#~ msgid "Copy paramters"
+#~ msgstr "Kopírovat parametry"
+
+#, c-format, boost-format
+#~ msgid "Modify paramters of %s"
+#~ msgstr "Upravit parametry objektu %s"
+
+#~ msgid "Enable pressure advance, auto calibration result will be overwriten once enabled. Useless for Bambu Printer"
+#~ msgstr "Povolením kompenzace tlaku budou výsledky automatické kalibrace přepsány. Neplatí pro tiskárny Bambu"
+
+#~ msgid "Unknown error occured"
+#~ msgstr "Došlo k neznámé chybě"
+
+#~ msgid "Helio: file succesfully uploaded"
+#~ msgstr "Helio: Soubor byl úspěšně nahrán"
+
+#, c-format, boost-format
+#~ msgid "Printer presets (%d/%d)"
+#~ msgstr "Předvolby tiskárny (%d/%d)"
+
+#, c-format, boost-format
+#~ msgid "Filament presets (%d/%d)"
+#~ msgstr "Předvolby filamentu (%d/%d)"
+
+#, c-format, boost-format
+#~ msgid "Process presets (%d/%d)"
+#~ msgstr "Přednastavení procesu (%d/%d)"
 
 #~ msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 #~ msgstr "Varování: Stará matice obsahuje alespoň dva parametry: zrcadlení, škálování a rotaci. Pokud budete pokračovat v úpravách, výsledek nemusí být správný. Přetáhněte text nebo zrušte použití aktuální polohy, uložte změny a poté upravujte znovu."
