@@ -751,9 +751,16 @@ void PartPlate::render_plate_name_texture()
 void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool render_name_edit_icon)
 {
     if (!only_body) {
-        if (hover_id == 1) {
+        // The delete button is disabled when only one plate is left: at least one plate must remain.
+        const bool del_disabled = m_partplate_list->get_plate_count() <= 1;
+        if (del_disabled) {
+            render_icon_texture(m_partplate_list->m_del_icon, m_partplate_list->m_del_ban_texture);
+            if (hover_id == 1)
+                show_tooltip(_u8L("At least one plate is required"));
+        }
+        else if (hover_id == 1) {
             render_icon_texture(m_partplate_list->m_del_icon, m_partplate_list->m_del_hovered_texture);
-            show_tooltip(_u8L("Remove current plate (if not last one)"));
+            show_tooltip(_u8L("Remove current plate"));
         }
         else
             render_icon_texture(m_partplate_list->m_del_icon, m_partplate_list->m_del_texture);
@@ -4299,6 +4306,14 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
+	//if (m_del_ban_texture.get_id() == 0)
+	{
+		file_name = path + (m_is_dark ? "plate_close_ban_dark.svg" : "plate_close_ban.svg");
+		if (!m_del_ban_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		}
+	}
+
 	//if (m_arrange_texture.get_id() == 0)
 	{
 		file_name = path + (m_is_dark ? "plate_arrange_dark.svg" : "plate_arrange.svg");
@@ -4471,6 +4486,7 @@ void PartPlateList::release_icon_textures()
 	m_logo_texture.reset();
 	m_del_texture.reset();
 	m_del_hovered_texture.reset();
+	m_del_ban_texture.reset();
 	m_arrange_texture.reset();
 	m_arrange_hovered_texture.reset();
 	m_orient_texture.reset();
