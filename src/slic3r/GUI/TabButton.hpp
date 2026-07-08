@@ -7,38 +7,35 @@
 class TabButton : public StaticBox
 {
     wxSize   textSize;
-    wxSize   minSize;
+    wxSize   minSize { wxDefaultSize };
     wxSize   paddingSize;
     ScalableBitmap icon;
     ScalableBitmap newtag_img;
 
     StateColor   text_color;
-    StateColor   border_color;
     bool pressedDown = false;
     bool show_new_tag = false;
 
 public:
     TabButton();
 
-    TabButton(wxWindow *parent, wxString text, ScalableBitmap &icon, long style = 0, int iconSize = 0);
+    TabButton(wxWindow *parent, wxString text, const ScalableBitmap &icon, long style = 0, int iconSize = 0);
 
-    bool Create(wxWindow *parent, wxString text, ScalableBitmap &icon, long style = 0, int iconSize = 0);
+    bool Create(wxWindow *parent, wxString text, const ScalableBitmap &icon, long style = 0, int iconSize = 0);
 
     void SetLabel(const wxString& label) override;
 
     void SetMinSize(const wxSize& size) override;
-    
-    void SetPaddingSize(const wxSize& size);
 
-    const wxSize& GetPaddingSize();
-    
+    void SetPaddingSize(const wxSize& size);
+    const wxSize& GetPaddingSize() const { return paddingSize; }
+
     void SetTextColor(StateColor const &color);
 
-    void SetBorderColor(StateColor const &color);
-
-    void SetBGColor(StateColor const &color);
-
     void SetBitmap(ScalableBitmap &bitmap);
+
+    void SetSelected(bool selected = true);
+    bool GetSelected() const { return (state_handler.states() & StateHandler::State::Checked) > 0; }
 
     bool Enable(bool enable = true);
 

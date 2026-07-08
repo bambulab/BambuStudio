@@ -6,6 +6,7 @@
 #include <wx/bookctrl.h>
 #include <wx/sizer.h>
 #include "wxExtensions.hpp"
+#include "Widgets/StateColor.hpp"
 
 
 class ScalableButton;
@@ -14,35 +15,58 @@ class TabButton;
 // custom message the ButtonsListCtrl sends to its parent (Notebook) to notify a selection change:
 wxDECLARE_EVENT(wxCUSTOMEVT_TABBOOK_SEL_CHANGED, wxCommandEvent);
 
-class TabButtonsListCtrl : public wxControl
+class TabButtonsListCtrl : public wxScrolled<wxControl>
 {
 public:
     // BBS
     TabButtonsListCtrl(wxWindow *parent, wxBoxSizer *side_tools = NULL);
     ~TabButtonsListCtrl() {}
 
-    void OnPaint(wxPaintEvent&);
     void SetSelection(int sel);
     void showNewTag(int sel, bool show = false);
     void Rescale();
-    bool InsertPage(size_t n, const wxString& text, bool bSelect = false, const std::string& bmp_name = "");
+    /// An empty bmp_name will use the default arrow image instead
+    bool InsertPage(size_t n, const wxString& text, const std::string& bmp_name, const wxString &tooltip = wxEmptyString);
+    bool InsertPage(size_t n, const wxString& text, const ScalableBitmap &bmp, const wxString &tooltip = wxEmptyString);
     void RemovePage(size_t n);
     bool SetPageImage(size_t n, const std::string& bmp_name);
-    void SetPageText(size_t n, const wxString& strText);
+    bool SetPageText(size_t n, const wxString& strText);
     wxString GetPageText(size_t n) const;
-    const wxSize& GetPaddingSize(size_t n);
+    bool SetPageToolTip(size_t n, const wxString& tooltip);
+    wxString GetPageToolTip(size_t n) const;
+    /// Sets button padding around text label + icon.
     void SetPaddingSize(const wxSize& size);
-    TabButton*                      pageButton;
+    /// Gets current button padding for button at given index. All buttons have the same padding.
+    const wxSize& GetPaddingSize(size_t n = 0) const;
+    void SetButtonBGColors(const StateColor &stateColor);
+    StateColor GetButtonBGColors() const { return m_btn_bg_colors; }
+    void SetButtonBorderWidth(int width);
+    int GetButtonBorderWidth() const { return m_btn_border_width; }
+    void SetButtonBorderColors(const StateColor &stateColor);
+    /// Sets minimum size for all buttons, which affects the overall width and height of this list control.
+    /// Setting either dimension to `-1` means that dimension is unconstrained (as per wxWidgets convention).
+    void SetButtonSize(const wxSize& size);
+    wxSize GetButtonSize() const { return m_btn_size; }
+    /// Sets padding at top of button list. Default is no padding.
+    void SetListTopPadding(int padding);
+    int Count() const { return (int)m_pageButtons.size(); }
+    /// When `enable == true`, a vertical scrollbar will use existing client area instead of expanding the overall control width
+    /// Disabled by default. Only relevant when the control is set to be scrollable, with `SetScrollRate()`.
+    void SetUseClientAreaForScrollbar(bool enable = true);
 
 private:
-    wxWindow*                       m_parent;
-    wxFlexGridSizer*                m_buttons_sizer;
-    wxBoxSizer*                     m_sizer;
+    wxSizer*                        m_buttons_sizer;
     ScalableBitmap                  m_arrow_img;
+    wxSize                          m_btn_size;
+    wxSize                          m_btn_padding { -1, -1 };  // use default TabButton padding unless explicitly set
+    StateColor                      m_btn_bg_colors;
+    StateColor                      m_btn_border_colors;  // use default TabButton colors unless explicitly set
     std::vector<TabButton*>         m_pageButtons;
     int                             m_selection {-1};
-    int                             m_btn_margin;
-    int                             m_line_margin;
+    int                             m_btn_border_width { 1 };
+    bool                            m_scrollbar_in_client_area { false };  // see SetUseClientAreaForScrollbar()
+
+    void update_client_size(bool layout = true);
 };
 
 class Tabbook: public wxBookCtrlBase
@@ -79,13 +103,8 @@ public:
             mainSizer->Add(0, 0, 1, wxEXPAND, 0);
 
         m_controlSizer = new wxBoxSizer(IsVertical() ? wxHORIZONTAL : wxVERTICAL);
-        m_controlSizer->Add(m_bookctrl, wxSizerFlags(0).Expand());
-        wxSizerFlags flags;
-        if (IsVertical())
-            flags.Expand();
-        else
-            flags.Expand();
-        mainSizer->Add(m_controlSizer, flags.Border(wxALL, m_controlMargin));
+        m_controlSizer->Add(m_bookctrl, wxSizerFlags(1).Expand());
+        mainSizer->Add(m_controlSizer, wxSizerFlags(0).Expand().Border(wxALL, m_controlMargin));
         SetSizer(mainSizer);
 
         this->Bind(wxCUSTOMEVT_TABBOOK_SEL_CHANGED, [this](wxCommandEvent& evt)
@@ -134,61 +153,97 @@ public:
         SetEffectsTimeouts(timeout, timeout);
     }
 
+    //// Page management
 
-    // Implement base class pure virtual methods.
-
-    // adds a new page to the control
+    /// Adds a new page to the control with a named icon.
+    /// Note that an empty `bmp_name` will use a default arrow image instead.
     bool AddPage(wxWindow* page,
                  const wxString& text,
                  const std::string& bmp_name,
                  bool bSelect = false)
     {
-        DoInvalidateBestSize();
-        return InsertNewPage(GetPageCount(), page, text, bmp_name, bSelect);
+        return DoInsertPage(GetPageCount(), page, text, bSelect, wxEmptyString, true, bmp_name);
     }
 
-    //// Page management
+    /// Adds a new page to the control with a named icon and tooltip.
+    /// Note that an empty `bmp_name` will use a default arrow image instead.
+    bool AddPage(wxWindow* page,
+                 const wxString& text,
+                 const std::string& bmp_name,
+                 const wxString& tooltip,
+                 bool bSelect = false)
+    {
+        return DoInsertPage(GetPageCount(), page, text, bSelect, tooltip, true, bmp_name);
+    }
+
+    /// Adds a new page to the control w/out any image.
+    /// Note that `wxImageList` images are not supported and `imageId` is ignored.
+    bool AddPage(wxWindow* page,
+                 const wxString& text,
+                 bool bSelect = false,
+                 int WXUNUSED(imageId) = NO_IMAGE) override
+    {
+        return DoInsertPage(GetPageCount(), page, text, bSelect);
+    }
+
+    /// Adds a new page to the control with tooltip but w/out any image.
+    bool Add(wxWindow* page,
+             const wxString& text,
+             const wxString& tooltip,
+             bool bSelect = false)
+    {
+        return DoInsertPage(GetPageCount(), page, text, bSelect, tooltip);
+    }
+
+    /// Specialized handler for existing legacy code relying on default icon. Do not use in new code.
+    bool AddPage(wxWindow* page,
+                 const wxString& text,
+                 const char bmp_name[1],
+                 bool bSelect = false)
+    {
+        return DoInsertPage(GetPageCount(), page, text, bSelect, wxEmptyString, true, "");
+    }
+
+    /// Insert a new page w/out any image.
+    /// Note that `wxImageList` images are not supported and `imageId` is ignored.
     virtual bool InsertPage(size_t n,
                             wxWindow * page,
                             const wxString & text,
                             bool bSelect = false,
-                            int imageId = NO_IMAGE) override
+                            int WXUNUSED(imageId) = NO_IMAGE) override
     {
-        if (!wxBookCtrlBase::InsertPage(n, page, text, bSelect, imageId))
-            return false;
-
-        GetBtnsListCtrl()->InsertPage(n, text, bSelect);
-
-        if (!DoSetSelectionAfterInsertion(n, bSelect))
-            page->Hide();
-
-        return true;
+        return DoInsertPage(n, page, text, bSelect);
     }
 
-    bool InsertNewPage(size_t n,
+    /// Note that an empty `bmp_name` will use a default arrow image instead.
+    bool InsertPage(size_t n,
                     wxWindow * page,
                     const wxString & text,
-                    const std::string& bmp_name = "",
+                    const std::string & bmp_name,
                     bool bSelect = false)
     {
-        if (!wxBookCtrlBase::InsertPage(n, page, text, bSelect))
-            return false;
-
-        GetBtnsListCtrl()->InsertPage(n, text, bSelect, bmp_name);
-
-        if (bSelect)
-            SetSelection(n);
-
-        return true;
+        return DoInsertPage(n, page, text, bSelect, wxEmptyString, true, bmp_name);
     }
 
-    bool RemovePage(size_t n)
+    /// Note that an empty `bmp_name` will use a default arrow image instead.
+    bool InsertPage(size_t n,
+                    wxWindow * page,
+                    const wxString & text,
+                    const std::string & bmp_name,
+                    const wxString & tooltip,
+                    bool bSelect = false)
     {
-        if (!wxBookCtrlBase::RemovePage(n))
-            return false;
+        return DoInsertPage(n, page, text, bSelect, tooltip, true, bmp_name);
+    }
 
-        SetSelection(0);
-        return true;
+    /// Insert a new page with tooltip but w/out any image.
+    bool Insert(size_t n,
+                wxWindow * page,
+                const wxString & text,
+                const wxString & tooltip,
+                bool bSelect = false)
+    {
+        return DoInsertPage(n, page, text, bSelect, tooltip);
     }
 
     virtual int SetSelection(size_t n) override
@@ -197,10 +252,9 @@ public:
         int ret = DoSetSelection(n, SetSelection_SendEvent);
 
         // check that only the selected page is visible and others are hidden:
+        wxWindow* sel_pg = GetPage(n);
         for (size_t page = 0; page < m_pages.size(); page++) {
-            wxWindow* win_a = GetPage(page);
-            wxWindow* win_b = GetPage(n);
-            if (page != n && GetPage(page) != GetPage(n)) {
+            if (page != n && GetPage(page) != sel_pg) {
                 m_pages[page]->Hide();
             }
         }
@@ -214,28 +268,33 @@ public:
         return DoSetSelection(n);
     }
 
-    // Neither labels nor images are supported but we still store the labels
-    // just in case the user code attaches some importance to them.
     virtual bool SetPageText(size_t n, const wxString & strText) override
     {
-        wxCHECK_MSG(n < GetPageCount(), false, wxS("Invalid page"));
-
-        GetBtnsListCtrl()->SetPageText(n, strText);
-
-        return true;
+        return GetBtnsListCtrl()->SetPageText(n, strText);
     }
 
     virtual wxString GetPageText(size_t n) const override
     {
-        wxCHECK_MSG(n < GetPageCount(), wxString(), wxS("Invalid page"));
         return GetBtnsListCtrl()->GetPageText(n);
     }
 
+    virtual bool SetPageToolTip(size_t n, const wxString & tooltip)
+    {
+        return GetBtnsListCtrl()->SetPageToolTip(n, tooltip);
+    }
+
+    virtual wxString GetPageToolTip(size_t n) const
+    {
+        return GetBtnsListCtrl()->GetPageToolTip(n);
+    }
+
+    /// `wxImageList` indexed images are not supported
     virtual bool SetPageImage(size_t WXUNUSED(n), int WXUNUSED(imageId)) override
     {
         return false;
     }
 
+    /// `wxImageList` indexed images are not supported
     virtual int GetPageImage(size_t WXUNUSED(n)) const override
     {
         return NO_IMAGE;
@@ -256,12 +315,36 @@ public:
 
     TabButtonsListCtrl *GetBtnsListCtrl() const { return static_cast<TabButtonsListCtrl *>(m_bookctrl); }
 
-    void Rescale()
-    {
-        GetBtnsListCtrl()->Rescale();
+    void Rescale() { GetBtnsListCtrl()->Rescale(); }
+
+protected:
+    virtual bool DoInsertPage(
+        size_t n,
+        wxWindow *page,
+        const wxString &text,
+        bool bSelect,
+        const wxString &tooltip = wxEmptyString,
+        bool use_bmp = false,
+        const std::string& bmp_name = ""
+    ) {
+        if (!wxBookCtrlBase::InsertPage(n, page, text, bSelect))
+            return false;
+
+        bool res;
+        if (use_bmp)
+            res = GetBtnsListCtrl()->InsertPage(n, text, bmp_name, tooltip);
+        else
+            res = GetBtnsListCtrl()->InsertPage(n, text, ScalableBitmap(), tooltip);
+
+        if (!res)  // unlikely
+            RemovePage(n);
+        else if (!DoSetSelectionAfterInsertion(n, bSelect))
+            page->Hide();
+
+        return res;
     }
 
-    void OnNavigationKey(wxNavigationKeyEvent& event)
+    virtual void OnNavigationKey(wxNavigationKeyEvent& event)
     {
         if (event.IsWindowChange()) {
             // change pages
@@ -345,7 +428,6 @@ public:
         }
     }
 
-protected:
     virtual void UpdateSelectedPage(size_t WXUNUSED(newsel)) override
     {
         // Nothing to do here, but must be overridden to avoid the assert in
@@ -373,13 +455,6 @@ protected:
         }
 
         return win;
-    }
-
-    virtual void DoSize() override
-    {
-        wxWindow* const page = GetCurrentPage();
-        if (page)
-            page->SetSize(GetPageRect());
     }
 
     virtual void DoShowPage(wxWindow * page, bool show) override
@@ -410,8 +485,6 @@ private:
 
     unsigned m_showTimeout,
              m_hideTimeout;
-
-    TabButtonsListCtrl *m_ctrl{nullptr};
 
 };
 //#endif // _WIN32

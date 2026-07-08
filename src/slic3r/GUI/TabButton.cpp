@@ -14,14 +14,16 @@ EVT_PAINT(TabButton::paintEvent)
 
 END_EVENT_TABLE()
 
-static wxColour BORDER_HOVER_COL = wxColour(0, 174, 66);
-
-const static wxColour TAB_BUTTON_BG    = wxColour("#FEFFFF");
-const static wxColour TAB_BUTTON_SEL   = wxColour(219, 253, 213, 255);
+static const wxColour BORDER_HOVER_COL = wxColour(0, 174, 66);  // BBL green
+static const wxColour TAB_BUTTON_BG    = wxColour("#FEFFFF");
+static const wxColour TAB_BUTTON_SEL   = wxColour(219, 253, 213, 255);
+static const int TAB_BUTTON_PAD_H      = 43;
+static const int TAB_BUTTON_PAD_V      = 16;
 
 TabButton::TabButton()
-    : paddingSize(43, 16)
+    : paddingSize(TAB_BUTTON_PAD_H, TAB_BUTTON_PAD_V)
     , text_color(*wxBLACK)
+    , StaticBox()
 {
     background_color = StateColor(
         std::make_pair(TAB_BUTTON_SEL, (int) StateColor::Checked),
@@ -34,17 +36,17 @@ TabButton::TabButton()
         std::make_pair(wxColour("#FEFFFF"), (int)StateColor::Normal));
 }
 
-TabButton::TabButton(wxWindow *parent, wxString text, ScalableBitmap &bmp, long style, int iconSize)
+TabButton::TabButton(wxWindow *parent, wxString text, const ScalableBitmap &bmp, long style, int iconSize)
     : TabButton()
 {
     Create(parent, text, bmp, style, iconSize);
 }
 
-bool TabButton::Create(wxWindow *parent, wxString text, ScalableBitmap &bmp, long style, int iconSize)
+bool TabButton::Create(wxWindow *parent, wxString text, const ScalableBitmap &bmp, long style, int iconSize)
 {
     StaticBox::Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
     newtag_img = ScalableBitmap(this, "monitor_hms_new",7);
-    state_handler.attach({&text_color, &border_color});
+    state_handler.attach(text_color);
     state_handler.update_binds();
     //BBS set default font
     SetFont(Label::Body_14);
@@ -70,12 +72,12 @@ void TabButton::SetMinSize(const wxSize &size)
 void TabButton::SetPaddingSize(const wxSize &size)
 {
     paddingSize = size;
+    // use defaults for any unspecified dimention
+    if (paddingSize.x < 0)
+        paddingSize.SetWidth(TAB_BUTTON_PAD_H);
+    if (paddingSize.y < 0)
+        paddingSize.SetHeight(TAB_BUTTON_PAD_V);
     messureSize();
-}
-
-const wxSize& TabButton::GetPaddingSize() 
-{
-    return paddingSize;
 }
 
 void TabButton::SetTextColor(StateColor const &color)
@@ -85,23 +87,15 @@ void TabButton::SetTextColor(StateColor const &color)
     Refresh();
 }
 
-void TabButton::SetBorderColor(StateColor const &color)
-{
-    border_color = color;
-    state_handler.update_binds();
-    Refresh();
-}
-
-void TabButton::SetBGColor(StateColor const &color)
-{
-    background_color = color;
-    state_handler.update_binds();
-    Refresh();
-}
-
 void TabButton::SetBitmap(ScalableBitmap &bitmap)
 {
     this->icon = bitmap;
+}
+
+void TabButton::SetSelected(bool selected /* = true */)
+{
+    const int state = selected ? StateHandler::State::Checked : 0;
+    state_handler.set_state(state, StateHandler::State::Checked);
 }
 
 bool TabButton::Enable(bool enable)
@@ -117,6 +111,7 @@ bool TabButton::Enable(bool enable)
 
 void TabButton::Rescale()
 {
+    icon.msw_rescale();
     messureSize();
 }
 
@@ -137,16 +132,13 @@ void TabButton::render(wxDC &dc)
     StaticBox::render(dc);
     int    states = state_handler.states();
     wxSize size   = GetSize();
-
-    dc.SetPen(wxPen(border_color.colorForStates(states)));
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRectangle(0, 0, size.x, size.y);
+    const wxString &text = GetLabel();
 
     // calc content size
     wxSize szIcon;
     wxSize szContent = textSize;
     if (icon.bmp().IsOk()) {
-        if (szContent.y > 0) {
+        if (!text.IsEmpty()) {
             // BBS norrow size between text and icon
             szContent.x += 5;
         }
@@ -161,7 +153,6 @@ void TabButton::render(wxDC &dc)
     // start draw
     wxPoint pt = rcContent.GetLeftTop();
 
-    auto text = GetLabel();
     if (!text.IsEmpty()) {
         pt.x = paddingSize.x;
         pt.y = rcContent.y + (rcContent.height - textSize.y) / 2;
@@ -188,21 +179,25 @@ void TabButton::messureSize()
 {
     wxClientDC dc(this);
     textSize = dc.GetTextExtent(GetLabel());
-    if (minSize.GetWidth() > 0) {
-        wxWindow::SetMinSize(minSize);
-        return;
-    }
-    wxSize szContent = textSize;
+
+    wxSize szContent = minSize;
+    if (szContent.x < 1)
+        szContent.SetWidth(textSize.x + paddingSize.x);
+    if (szContent.y < 1)
+        szContent.SetHeight(textSize.y + paddingSize.y);
+
     if (this->icon.bmp().IsOk()) {
-        if (szContent.y > 0) {
+        const wxSize szIcon = this->icon.GetBmpSize();
+        if (minSize.x < 1) {
+            szContent.IncBy(szIcon.x, 0);
             // BBS norrow size between text and icon
-            szContent.x += 5;
+            if (!GetLabel().IsEmpty())
+                szContent.IncBy(5, 0);
         }
-        wxSize szIcon = this->icon.GetBmpSize();
-        szContent.x += szIcon.x;
-        if (szIcon.y > szContent.y) szContent.y = szIcon.y;
+        if (minSize.y < 1 && szIcon.y > szContent.y)
+            szContent.SetHeight(szIcon.y);
     }
-    wxWindow::SetMinSize(szContent + paddingSize);
+    StaticBox::SetMinSize(szContent);
 }
 
 void TabButton::mouseDown(wxMouseEvent &event)

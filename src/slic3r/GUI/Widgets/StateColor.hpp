@@ -15,7 +15,7 @@ class StateColor
 {
 public:
     enum State {
-        Normal = 0, 
+        Normal = 0,
         Enabled = 1,
         Checked = 2,
         Focused = 4,
@@ -80,11 +80,11 @@ public:
 public:
     wxColour defaultColor();
 
-    wxColour colorForStates(int states);
+    wxColour colorForStates(int states) const;
 
-    wxColour colorForStatesNoDark(int states);
+    wxColour colorForStatesNoDark(int states) const;
 
-    int colorIndexForStates(int states);
+    int colorIndexForStates(int states) const;
 
     bool setColorForStates(wxColour const & color, int states);
 

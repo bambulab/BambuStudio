@@ -125,7 +125,7 @@ wxColour StateColor::defaultColor() {
     return colorForStates(0);
 }
 
-wxColour StateColor::colorForStates(int states)
+wxColour StateColor::colorForStates(int states) const
 {
     bool focused = takeFocusedAsHovered_ && (states & Focused);
     for (int i = 0; i < statesList_.size(); ++i) {
@@ -146,7 +146,7 @@ wxColour StateColor::colorForStates(int states)
     return wxColour(0, 0, 0, 0);
 }
 
-wxColour StateColor::colorForStatesNoDark(int states)
+wxColour StateColor::colorForStatesNoDark(int states) const
 {
     bool focused = takeFocusedAsHovered_ && (states & Focused);
     for (int i = 0; i < statesList_.size(); ++i) {
@@ -167,7 +167,7 @@ wxColour StateColor::colorForStatesNoDark(int states)
     return wxColour(0, 0, 0, 0);
 }
 
-int StateColor::colorIndexForStates(int states)
+int StateColor::colorIndexForStates(int states) const
 {
     for (int i = 0; i < statesList_.size(); ++i) {
         int s   = statesList_[i];
