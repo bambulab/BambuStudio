@@ -46,6 +46,11 @@
         "0",
         "0"
     ],
+    "filament_retraction_length": [
+        "nil",
+        "nil",
+        "0.8"
+    ],
     "hole_coef_2": [
         "-0.0014"
     ],

@@ -48,7 +48,7 @@
     "filament_max_volumetric_speed": [
         "25",
         "40",
-        "40"
+        "31"
     ],
     "filament_preheat_temperature_delta": [
         "20",
@@ -66,7 +66,7 @@
     "filament_retraction_length": [
         "0.4",
         "0.4",
-        "0.4"
+        "1"
     ],
     "filament_wipe": [
         "1",
