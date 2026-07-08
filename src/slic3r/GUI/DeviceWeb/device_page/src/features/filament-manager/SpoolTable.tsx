@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CandidateColor, Spool } from './types';
 import { SpoolColorChip } from './SpoolColorChip';
@@ -149,11 +149,13 @@ interface Props {
   onEmptyAdd: () => void;
   /** Delete semantics are uniform: confirm -> remove from store -> cloud DELETE. */
   onDelete: (id: string) => void;
+  /** Called whenever the sorted list changes, to sync parent-level navigation. */
+  onSortedChange?: (sorted: Spool[]) => void;
 }
 
 export function SpoolTable({
   spools, selected, onToggleSelect, onSelectAll, grouped,
-  onDetail, onAddSimilar, onEmptyAdd, onDelete,
+  onDetail, onAddSimilar, onEmptyAdd, onDelete, onSortedChange,
 }: Props) {
   const { t } = useTranslation();
   const [sort, setSort] = useState<SortState>({ key: '', asc: true });
@@ -197,21 +199,50 @@ export function SpoolTable({
   // Build rows (flat or grouped)
   type FlatRow = { type: 'spool'; spool: Spool } | { type: 'group'; group: SpoolGroup };
 
-  const flatRows = useMemo<FlatRow[]>(() => {
-    if (!grouped) return sorted.map((s) => ({ type: 'spool' as const, spool: s }));
+  // Full grouping + spool order used for pagination. Independent of `collapsed`
+  // so that folding a group never shifts which spools live on which page.
+  const { allGroups, spoolsInGroupOrder } = useMemo(() => {
+    if (!grouped) {
+      return { allGroups: [] as SpoolGroup[], spoolsInGroupOrder: sorted };
+    }
     const groups = groupSpools(sorted);
+    const flat: Spool[] = [];
+    groups.forEach((g) => g.spools.forEach((s) => flat.push(s)));
+    return { allGroups: groups, spoolsInGroupOrder: flat };
+  }, [sorted, grouped]);
+
+  // Notify parent of the actual rendered order, for detail dialog navigation
+  useEffect(() => {
+    onSortedChange?.(spoolsInGroupOrder);
+  }, [spoolsInGroupOrder, onSortedChange]);
+
+  // Pagination is always driven by spool count. Group headers never consume
+  // page slots.
+  const totalSpoolCount = spoolsInGroupOrder.length;
+  const pages = Math.max(1, Math.ceil(totalSpoolCount / pageSize));
+  const safePage = Math.min(page, pages);
+  const startIdx = (safePage - 1) * pageSize;
+  const endIdx = Math.min(startIdx + pageSize, totalSpoolCount);
+
+  const pageRows = useMemo<FlatRow[]>(() => {
+    if (!grouped) {
+      return spoolsInGroupOrder
+        .slice(startIdx, endIdx)
+        .map((s) => ({ type: 'spool' as const, spool: s }));
+    }
+    const inPageIds = new Set<string>();
+    for (let i = startIdx; i < endIdx; i++) inPageIds.add(spoolsInGroupOrder[i].spool_id);
     const rows: FlatRow[] = [];
-    groups.forEach((g) => {
+    allGroups.forEach((g) => {
+      const inPageSpools = g.spools.filter((s) => inPageIds.has(s.spool_id));
+      if (inPageSpools.length === 0) return;
       rows.push({ type: 'group', group: g });
-      if (!collapsed[g.key]) g.spools.forEach((s) => rows.push({ type: 'spool', spool: s }));
+      if (!collapsed[g.key]) {
+        inPageSpools.forEach((s) => rows.push({ type: 'spool', spool: s }));
+      }
     });
     return rows;
-  }, [sorted, grouped, collapsed]);
-
-  const totalRows = flatRows.length;
-  const pages = Math.max(1, Math.ceil(totalRows / pageSize));
-  const safePage = Math.min(page, pages);
-  const pageRows = flatRows.slice((safePage - 1) * pageSize, safePage * pageSize);
+  }, [allGroups, spoolsInGroupOrder, grouped, collapsed, startIdx, endIdx]);
 
   const handleSort = useCallback((key: SortKey) => {
     setSort((prev) => (prev.key === key ? { key, asc: !prev.asc } : { key, asc: true }));
@@ -470,39 +501,37 @@ export function SpoolTable({
         </div>
       </div>
 
-      {/* Pagination */}
-      {totalRows > pageSize && (
-        <div className="flex items-center justify-end gap-1 py-3 shrink-0">
-          <button
-            className={`${paginationButtonBase} ${paginationButtonIdle}`}
-            disabled={safePage <= 1}
-            onClick={() => setPage((p) => Math.max(1, Math.min(p, pages) - 1))}
-          >‹</button>
-          {buildPageRange(safePage, pages).map((p, i) =>
-            p === '...'
-              ? <span key={`d${i}`} className="text-fm-text-detail text-xs px-[2px]">…</span>
-              : <button
-                  key={p}
-                  className={`${paginationButtonBase} ${p === safePage ? paginationButtonActive : paginationButtonIdle}`}
-                  onClick={() => setPage(p)}
-                >{p}</button>
-          )}
-          <button
-            className={`${paginationButtonBase} ${paginationButtonIdle}`}
-            disabled={safePage >= pages}
-            onClick={() => setPage((p) => Math.min(pages, Math.min(p, pages) + 1))}
-          >›</button>
-          <select
-            className="ml-3 bg-fm-inner2 border-none rounded-sm text-fm-text-primary text-xs px-1 py-[2px] cursor-pointer outline-none"
-            value={pageSize}
-            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-          >
-            {PAGE_SIZES.map((s) => (
-              <option key={s} value={s}>{s}{t('per page')}</option>
-            ))}
-          </select>
-        </div>
-      )}
+      {/* Pagination — always visible below the list (empty state returned earlier) */}
+      <div className="flex items-center justify-end gap-1 py-3 shrink-0">
+        <button
+          className={`${paginationButtonBase} ${paginationButtonIdle}`}
+          disabled={safePage <= 1}
+          onClick={() => setPage((p) => Math.max(1, Math.min(p, pages) - 1))}
+        >‹</button>
+        {buildPageRange(safePage, pages).map((p, i) =>
+          p === '...'
+            ? <span key={`d${i}`} className="text-fm-text-detail text-xs px-[2px]">…</span>
+            : <button
+                key={p}
+                className={`${paginationButtonBase} ${p === safePage ? paginationButtonActive : paginationButtonIdle}`}
+                onClick={() => setPage(p)}
+              >{p}</button>
+        )}
+        <button
+          className={`${paginationButtonBase} ${paginationButtonIdle}`}
+          disabled={safePage >= pages}
+          onClick={() => setPage((p) => Math.min(pages, Math.min(p, pages) + 1))}
+        >›</button>
+        <select
+          className="ml-3 bg-fm-inner2 border-none rounded-sm text-fm-text-primary text-xs px-1 py-[2px] cursor-pointer outline-none"
+          value={pageSize}
+          onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+        >
+          {PAGE_SIZES.map((s) => (
+            <option key={s} value={s}>{s}{t('per page')}</option>
+          ))}
+        </select>
+      </div>
     </>
   );
 }

@@ -1487,7 +1487,7 @@ static void _populate_filament_combobox_grouped(
                     }
                     if (note_truncated && !sp.note.empty()) {
                         if (!tip.empty()) tip += "\n";
-                        tip += wxString(L_CONTEXT("Note","Filament Manager")) + ": " + wxString::FromUTF8(sp.note);
+                        tip += wxString(_CTX_utf8(L_CONTEXT("Note","Filament Manager"),"Filament Manager")) + ": " + wxString::FromUTF8(sp.note);
                     }
                     if (!tip.empty())
                         combo->SetItemTooltip(static_cast<unsigned int>(idx), tip);
@@ -1521,7 +1521,7 @@ static void _populate_filament_combobox_grouped(
                 }
                 if (note_truncated && !sp.note.empty()) {
                     if (!tip.empty()) tip += "\n";
-                    tip += wxString(L_CONTEXT("Note","Unsupported Filaments")) + ": " + wxString::FromUTF8(sp.note);
+                    tip += wxString(_CTX_utf8(L_CONTEXT("Note","Unsupported Filaments"),"Unsupported Filaments")) + ": " + wxString::FromUTF8(sp.note);
                 }
                 if (!tip.empty())
                     combo->SetItemTooltip(static_cast<unsigned int>(idx), tip);

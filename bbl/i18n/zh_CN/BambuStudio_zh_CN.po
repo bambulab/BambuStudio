@@ -5885,12 +5885,6 @@ msgstr "项目"
 msgid "Filament Manager"
 msgstr "耗材管理"
 
-msgid "Unsupported Filaments"
-msgstr "不支持的耗材"
-
-msgid "Debug"
-msgstr "调试"
-
 msgid "Yes"
 msgstr "是"
 
@@ -7185,18 +7179,6 @@ msgstr "%s 信息"
 
 msgid "Skip"
 msgstr "跳过"
-
-msgid "AMS detected a new official filament. Add it to Filament Manager?"
-msgstr "AMS识别到新的官方耗材，是否录入耗材管理？"
-
-msgid "Add as new filament"
-msgstr "作为新耗材录入"
-
-msgid "Link to existing filament"
-msgstr "关联已录入的耗材"
-
-msgid "Not now"
-msgstr "暂不录入"
 
 msgid "Newer 3mf version"
 msgstr "较新的3mf版本"
@@ -10774,15 +10756,6 @@ msgstr "纹理导入暂时不可用，部分着色将自动替换为默认颜色
 
 msgid " And "
 msgstr " 并且"
-
-msgid "Note"
-msgstr "提示"
-
-msgid "Remark"
-msgstr "备注"
-
-msgid "Please select"
-msgstr "请选择"
 
 msgid "The color has been selected, you can choose OK to continue or manually adjust it."
 msgstr "颜色已经默认匹配好了，您可以选中确认继续或手动修改它。"
