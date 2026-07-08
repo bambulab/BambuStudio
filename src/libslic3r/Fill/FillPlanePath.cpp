@@ -1,8 +1,12 @@
 #include "../ClipperUtils.hpp"
 #include "../ShortestPath.hpp"
 #include "../Surface.hpp"
+#include "../EdgeGrid.hpp"
 
 #include "FillPlanePath.hpp"
+
+#include <unordered_set>
+#include <cstdint>
 
 namespace Slic3r {
 
@@ -119,6 +123,69 @@ void FillPlanePath::_fill_surface_single(
 
     if (polyline.size() >= 2) {
         Polylines polylines = intersection_pl(polyline, expolygon);
+
+        // Drop the tiny tangency slivers the spiral leaves along the faceted rim.
+        // A clipped piece is a sliver iff it holds no original spiral vertex and stays
+        // shallow. Scope: top/solid surfaces, Archimedean spiral only.
+        if (params.full_infill() &&
+            dynamic_cast<FillArchimedeanChords *>(this) != nullptr &&
+            polylines.size() > 1) {
+            auto vertex_key = [](const Point &p) {
+                return (int64_t(p.x()) << 32) ^ int64_t(uint32_t(p.y()));
+            };
+
+            // Set of the original (pre-clip) spiral sample vertices.
+            std::unordered_set<int64_t> spiral_vertices;
+            spiral_vertices.reserve(polyline.size() * 2);
+            for (const Point &p : polyline.points)
+                spiral_vertices.insert(vertex_key(p));
+
+            // Max distance to the boundary a no-vertex piece may keep and still be a sliver. A deeper
+            // one crosses a real thin feature (e.g. a narrow spur) and must be kept.
+            const coord_t search_radius = coord_t(std::ceil(scaled<double>(this->spacing) * 0.4));
+
+            // Grid-accelerated point-to-boundary distance (EdgeGrid::signed_distance_edges), built
+            // lazily on the first ambiguous piece so surfaces without slivers pay nothing.
+            EdgeGrid::Grid boundary_grid;
+            bool           grid_ready = false;
+            coord_t        grid_resolution = coord_t(scaled<double>(this->spacing));
+            if (grid_resolution < 1) grid_resolution = 1;
+
+            Polylines kept;
+            kept.reserve(polylines.size());
+            for (Polyline &pl : polylines) {
+                int original_vertex_count = 0;
+                for (const Point &p : pl.points)
+                    if (spiral_vertices.count(vertex_key(p))) ++original_vertex_count;
+
+                bool is_sliver = false;
+                if (original_vertex_count == 0) {
+                    if (!grid_ready) {
+                        boundary_grid.create(expolygon, grid_resolution);
+                        grid_ready = true;
+                    }
+                    // Endpoints lie on the boundary, so probe depth at the segment midpoints. The piece
+                    // is a sliver only if every midpoint hugs the boundary (an edge sits within
+                    // search_radius); a midpoint with no edge nearby means it dives into a real feature.
+                    is_sliver = true;
+                    for (size_t k = 0; k + 1 < pl.points.size(); ++k) {
+                        const Point mid  = (pl.points[k] + pl.points[k + 1]) / 2;
+                        coordf_t    dist = 0.0;
+                        if (! boundary_grid.signed_distance_edges(mid, search_radius, dist)) {
+                            is_sliver = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (!is_sliver)
+                    kept.push_back(std::move(pl));
+            }
+
+            if (!kept.empty())
+                polylines = std::move(kept);
+        }
+
         Polylines chained;
         if (params.dont_connect() || params.density > 0.5 || polylines.size() <= 1)
             chained = chain_polylines(std::move(polylines));
