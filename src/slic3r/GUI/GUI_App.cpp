@@ -3471,6 +3471,24 @@ bool GUI_App::on_init_inner()
             std::tie(init_params->preset_substitutions, errors_cummulative) = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
             if (!errors_cummulative.empty())
                 show_error(nullptr, errors_cummulative);
+<<<<<<< HEAD   (b352a5 FIX: organic tree floating face columns under model intrusio)
+=======
+            // AppConfig-restored filament colors may predate the JSON primary-color alignment
+            // (see the analogous fix at 3mf project load); re-align once at startup and persist
+            // the corrected order back so stale data doesn't linger in AppConfig.
+            Slic3r::align_project_filament_primary_colors_with_json(preset_bundle);
+            preset_bundle->export_selections(*app_config);
+#if !BBL_RELEASE_TO_PUBLIC
+            const auto &damage_presets = preset_bundle->filaments.m_damage_preset;
+            if (!damage_presets.empty()) {
+                std::string damage = "There are damaged presets. Please send the last log to DanBao. The damaged presets:\n";
+                for (const auto &name : damage_presets) {
+                    damage += name + "\n";
+                }
+                show_error(nullptr, damage);
+            }
+#endif
+>>>>>>> CHANGE (948c72 ﻿FIX: Preserve JSON-defined primary filament color order)
         }
         catch (const std::exception& ex) {
             show_error(nullptr, ex.what());

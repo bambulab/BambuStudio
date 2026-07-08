@@ -26,6 +26,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/EncodedFilament.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/UpdateDialogs.hpp"
 #include "slic3r/GUI/ConfigWizard.hpp"
@@ -1717,6 +1718,7 @@ static bool reload_configs_update_gui()
 	if (!GUI::wxGetApp().check_and_save_current_preset_changes(_L("Configuration updates"), header, false ))
 		return false;
 
+<<<<<<< HEAD   (b352a5 FIX: organic tree floating face columns under model intrusio)
 	// Reload global configuration
 	auto* app_config = GUI::wxGetApp().app_config;
 	// System profiles should not trigger any substitutions, user profiles may trigger substitutions, but these substitutions
@@ -1725,6 +1727,18 @@ static bool reload_configs_update_gui()
 	GUI::wxGetApp().preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem);
 	GUI::wxGetApp().load_current_presets();
 	GUI::wxGetApp().plater()->set_bed_shape();
+=======
+    // Reload global configuration
+    auto *app_config = GUI::wxGetApp().app_config;
+    // System profiles should not trigger any substitutions, user profiles may trigger substitutions, but these substitutions
+    // were already presented to the user on application start up. Just do substitutions now and keep quiet about it.
+    // However throw on substitutions in system profiles, those shall never happen with system profiles installed over the air.
+    GUI::wxGetApp().preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem);
+    // AppConfig-restored filament colors may predate the JSON primary-color alignment.
+    Slic3r::align_project_filament_primary_colors_with_json(GUI::wxGetApp().preset_bundle);
+    GUI::wxGetApp().load_current_presets();
+    GUI::wxGetApp().plater()->set_bed_shape();
+>>>>>>> CHANGE (948c72 ﻿FIX: Preserve JSON-defined primary filament color order)
 
 	return true;
 }

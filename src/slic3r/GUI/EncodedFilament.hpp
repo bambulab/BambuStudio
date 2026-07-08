@@ -20,6 +20,14 @@ namespace Slic3r
 class FilamentColorCode;
 class FilamentColorCodes;
 class FilamentColorCodeQuery;
+class PresetBundle;
+
+// Re-align filament_colour / filament_multi_colour[0] in preset_bundle->project_config to the
+// primary color defined by filaments_color_codes.json, for multi-color / gradient filaments.
+// Needed wherever project_config's filament colors may come from data saved before this
+// alignment existed (old 3mf projects, or an AppConfig-restored session), since such data may
+// carry a primary color derived from HSV-sorted order instead of the JSON-defined order.
+void align_project_filament_primary_colors_with_json(PresetBundle* preset_bundle);
 
 // Represents a color in HSV format
 struct ColourHSV

@@ -6,6 +6,7 @@
 #include "libslic3r/AppConfig.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/EncodedFilament.hpp"
 #include "libslic3r_version.h"
 
 #include <wx/sizer.h>
@@ -971,9 +972,16 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
         std::string errors_cummulative;
         PresetsConfigSubstitutions preset_substitutions;
         std::tie(preset_substitutions, errors_cummulative) = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem,
+<<<<<<< HEAD   (b352a5 FIX: organic tree floating face columns under model intrusio)
             { preferred_model, preferred_variant, first_added_filament, std::string() });
         if (!errors_cummulative.empty())
             show_error(nullptr, errors_cummulative);
+=======
+                                                                                         {preferred_model, preferred_variant, first_added_filament, std::string()});
+        if (!errors_cummulative.empty()) show_error(nullptr, errors_cummulative);
+        // AppConfig-restored filament colors may predate the JSON primary-color alignment.
+        Slic3r::align_project_filament_primary_colors_with_json(preset_bundle);
+>>>>>>> CHANGE (948c72 ﻿FIX: Preserve JSON-defined primary filament color order)
     }
 
     // Update the selections from the compatibilty.
@@ -1032,7 +1040,14 @@ bool GuideFrame::run(bool& config_applied)
             app.app_config->set_variant(PresetBundle::BBL_BUNDLE,
                 PresetBundle::BBL_DEFAULT_PRINTER_MODEL, PresetBundle::BBL_DEFAULT_PRINTER_VARIANT, "true");
             app.app_config->clear_section(AppConfig::SECTION_FILAMENTS);
+<<<<<<< HEAD   (b352a5 FIX: organic tree floating face columns under model intrusio)
             app.preset_bundle->load_selections(*app.app_config, {PresetBundle::BBL_DEFAULT_PRINTER_MODEL, PresetBundle::BBL_DEFAULT_PRINTER_VARIANT, PresetBundle::BBL_DEFAULT_FILAMENT, std::string()});
+=======
+            app.preset_bundle->load_selections(*app.app_config, {PresetBundle::BBL_DEFAULT_PRINTER_MODEL, PresetBundle::BBL_DEFAULT_PRINTER_VARIANT,
+                                                                 PresetBundle::BBL_DEFAULT_FILAMENT, std::string()});
+            // AppConfig-restored filament colors may predate the JSON primary-color alignment.
+            Slic3r::align_project_filament_primary_colors_with_json(app.preset_bundle);
+>>>>>>> CHANGE (948c72 ﻿FIX: Preserve JSON-defined primary filament color order)
 
             app.app_config->set_legacy_datadir(false);
             app.update_mode();
