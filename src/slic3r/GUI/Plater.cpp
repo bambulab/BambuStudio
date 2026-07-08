@@ -5678,17 +5678,11 @@ void Sidebar::collect_physical_filament_info(std::vector<std::string>& color_str
 
     auto& preset_bundle = *wxGetApp().preset_bundle;
     for (size_t i = 0; i < num_physical; ++i) {
-        std::string ft;
         const size_t cfg_idx = physical_indices[i];
-        if (cfg_idx < preset_bundle.filament_presets.size()) {
-            auto* preset = preset_bundle.filaments.find_preset(preset_bundle.filament_presets[cfg_idx]);
-            if (preset) {
-                std::string display_type;
-                ft = preset->config.get_filament_type(display_type);
-            }
-        }
-        if (ft.empty()) ft = "PLA";
-        types.push_back(ft);
+        Preset* preset = nullptr;
+        if (cfg_idx < preset_bundle.filament_presets.size())
+            preset = preset_bundle.filaments.find_preset(preset_bundle.filament_presets[cfg_idx]);
+        types.push_back(filament_type_for_color_decompose(preset));
     }
 }
 

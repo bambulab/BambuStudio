@@ -4,6 +4,7 @@
 #include <cmath>
 #include <functional>
 #include <memory>
+#include <set>
 #include <wx/sizer.h>
 #include <wx/dcclient.h>
 #include <wx/dcbuffer.h>
@@ -13,10 +14,12 @@
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "Widgets/ComboBox.hpp"
+#include "Widgets/DropDown.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/Label.hpp"
 #include "wxExtensions.hpp"
+#include "ColorDecomposeSupport.hpp"
 #include "libslic3r/ColorDecomposeRecipe.hpp"
 
 namespace Slic3r {
@@ -27,7 +30,6 @@ static const wxColour COLOR_BORDER_NORMAL("#EEEEEE");
 static const wxColour COLOR_BG_CARD("#F8F8F8");
 static const wxColour COLOR_LABEL_GREY("#ACACAC");
 static const wxColour COLOR_TEXT_DARK("#262E30");
-static const wxColour COLOR_TITLE_TEXT("#2B3436");
 static const wxColour COLOR_DIVIDER("#EEEEEE");
 
 // Standard CMYW base colors
@@ -139,6 +141,13 @@ static void match_parent_bg(wxWindow* w, const wxColour& bg)
     w->SetBackgroundColour(bg);
 }
 
+static bool material_type_matches(const std::string& a, const std::string& b)
+{
+    if (a.empty() || b.empty())
+        return false;
+    return a == b || a == b + " Basic" || b == a + " Basic";
+}
+
 
 ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
                                            int filament_idx,
@@ -146,8 +155,8 @@ ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
                                            const std::vector<std::string>& physical_colors,
                                            const std::vector<std::string>& filament_names,
                                            const std::vector<std::string>& filament_types)
-    : DPIDialog(parent, wxID_ANY, wxEmptyString, wxDefaultPosition,
-                wxDefaultSize, wxBORDER_SIMPLE)
+    : DPIDialog(parent, wxID_ANY, _L("Decompose Color"), wxDefaultPosition,
+                wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_filament_idx(filament_idx)
     , m_target_color(target_color)
     , m_physical_colors(physical_colors)
@@ -167,14 +176,11 @@ ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
     build_ui();
     wxGetApp().UpdateDlgDarkUI(this);
 
-    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
-        if (m_title_panel && m_title_panel->HasCapture())
-            m_title_panel->ReleaseMouse();
-        event.Skip();
-    });
-
+    update_card_visibility();
+    Fit();
     compute_decomposition();
     update_matched_color_display();
+    update_ok_button_state();
 }
 
 void ColorDecomposeDialog::on_dpi_changed(const wxRect& suggested_rect)
@@ -182,33 +188,6 @@ void ColorDecomposeDialog::on_dpi_changed(const wxRect& suggested_rect)
     (void)suggested_rect;
     Fit();
     Refresh();
-}
-
-wxBoxSizer* ColorDecomposeDialog::create_title_bar()
-{
-    m_title_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(36)));
-    m_title_panel->SetMinSize(wxSize(-1, FromDIP(36)));
-    m_title_panel->SetMaxSize(wxSize(-1, FromDIP(36)));
-    m_title_panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
-    m_title_text = _L("Decompose Color");
-    m_title_panel->Bind(wxEVT_PAINT, [this](wxPaintEvent&) {
-        wxBufferedPaintDC dc(m_title_panel);
-        wxSize sz = m_title_panel->GetClientSize();
-        wxColour grad_start = StateColor::darkModeColorFor(wxColour(255, 255, 255));
-        wxColour grad_end   = StateColor::darkModeColorFor(wxColour(0xE9, 0xE9, 0xE9));
-        dc.GradientFillLinear(wxRect(0, 0, sz.x, sz.y), grad_start, grad_end, wxBOTTOM);
-        dc.SetFont(Label::Body_14);
-        dc.SetTextForeground(StateColor::darkModeColorFor(COLOR_TITLE_TEXT));
-        dc.SetBackgroundMode(wxTRANSPARENT);
-        dc.DrawText(m_title_text, FromDIP(19), (sz.y - dc.GetTextExtent(m_title_text).y) / 2);
-    });
-    m_title_panel->Bind(wxEVT_LEFT_DOWN, &ColorDecomposeDialog::on_title_mouse_down, this);
-    m_title_panel->Bind(wxEVT_MOTION, &ColorDecomposeDialog::on_title_mouse_move, this);
-    m_title_panel->Bind(wxEVT_LEFT_UP, &ColorDecomposeDialog::on_title_mouse_up, this);
-
-    auto* outer = new wxBoxSizer(wxVERTICAL);
-    outer->Add(m_title_panel, 0, wxEXPAND);
-    return outer;
 }
 
 void ColorDecomposeDialog::build_ui()
@@ -222,7 +201,6 @@ void ColorDecomposeDialog::build_ui()
     const int content_side_margin = FromDIP(30);
     const int target_section_top_gap = FromDIP(18);
 
-    main_sizer->Add(create_title_bar(), 0, wxEXPAND);
     main_sizer->AddSpacer(selector_top_gap);
     main_sizer->Add(create_filament_selector(), 0, wxEXPAND | wxLEFT | wxRIGHT, selector_side_margin);
     main_sizer->AddSpacer(target_section_top_gap);
@@ -248,22 +226,68 @@ wxBoxSizer* ColorDecomposeDialog::create_filament_selector()
                                 wxSize(-1, FromDIP(36)), 0, nullptr, wxCB_READONLY);
     m_type_combo->SetFont(Label::Body_13);
 
-    int default_sel = 0;
-    for (size_t i = 0; i < m_project_types.size(); ++i) {
-        m_type_combo->Append(wxString::FromUTF8(m_project_types[i]));
-        if (m_project_types[i] == m_preferred_type)
-            default_sel = static_cast<int>(i);
+    m_combo_item_types.clear();
+    int default_sel = -1;
+
+    // --- Group 1: Project filament list (deduplicated by type) ---
+    m_type_combo->Append(_L("Project Filament List"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM | DD_ITEM_STYLE_DISABLED);
+    m_combo_item_types.push_back(std::string());
+
+    std::set<std::string> seen_types;
+    for (size_t i = 0; i < m_filament_names.size(); ++i) {
+        const std::string& type = (i < m_filament_types.size()) ? m_filament_types[i] : "PLA";
+        if (!seen_types.insert(type).second)
+            continue;
+        int idx = m_type_combo->Append(wxString::FromUTF8(m_filament_names[i]));
+        m_combo_item_types.push_back(type);
+        if (type == m_preferred_type && default_sel < 0)
+            default_sel = idx;
     }
-    if (!m_project_types.empty())
+
+    // --- Group 2: Standard mode material recommendations ---
+    static const char* kStandardTypes[] = {
+        kDecomposePlaBasicType, kDecomposePetgBasicType
+    };
+
+    m_type_combo->Append(_L("Standard Mode Recommendations"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM | DD_ITEM_STYLE_DISABLED);
+    m_combo_item_types.push_back(std::string());
+
+    for (size_t s = 0; s < sizeof(kStandardTypes) / sizeof(kStandardTypes[0]); ++s) {
+        if (seen_types.count(kStandardTypes[s]))
+            continue;
+        const std::string label = std::string(kDecomposeBambuPresetPrefix) + kStandardTypes[s];
+        int idx = m_type_combo->Append(wxString::FromUTF8(label));
+        m_combo_item_types.push_back(kStandardTypes[s]);
+        if (kStandardTypes[s] == m_preferred_type && default_sel < 0)
+            default_sel = idx;
+    }
+
+    if (default_sel < 0) {
+        for (int i = 0; i < static_cast<int>(m_combo_item_types.size()); ++i) {
+            if (!m_combo_item_types[i].empty()) {
+                default_sel = i;
+                break;
+            }
+        }
+    }
+
+    if (default_sel >= 0) {
         m_type_combo->SetSelection(default_sel);
+        if (!m_combo_item_types[default_sel].empty())
+            m_preferred_type = m_combo_item_types[default_sel];
+    }
 
     m_type_combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt) {
         evt.StopPropagation();
         int sel = m_type_combo->GetSelection();
-        if (sel >= 0 && static_cast<size_t>(sel) < m_project_types.size())
-            m_preferred_type = m_project_types[sel];
+        if (sel >= 0 && static_cast<size_t>(sel) < m_combo_item_types.size()
+            && !m_combo_item_types[sel].empty()) {
+            m_preferred_type = m_combo_item_types[sel];
+        }
+        update_card_visibility();
         compute_decomposition();
         update_matched_color_display();
+        update_ok_button_state();
     });
 
     sizer->Add(m_type_combo, 1, wxEXPAND);
@@ -404,25 +428,28 @@ wxBoxSizer* ColorDecomposeDialog::create_mode_selection_section()
 
     auto* section_label = new wxStaticText(this, wxID_ANY, _L("Select Color Decomposition"));
     section_label->SetFont(Label::Head_14);
-    section_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#1F1F1F")));
+    section_label->SetForegroundColour(StateColor::darkModeColorFor(COLOR_TEXT_DARK));
     sizer->Add(section_label, 0, wxBOTTOM, FromDIP(4));
 
     auto* modes_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    // --- Arbitrary mode column ---
+    // --- Arbitrary mode column (wrapped in a panel so the whole column hides together) ---
+    m_arb_column_panel = new wxPanel(this, wxID_ANY);
+    m_arb_column_panel->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     auto* arb_col = new wxBoxSizer(wxVERTICAL);
     {
         auto* arb_header_sizer = new wxBoxSizer(wxHORIZONTAL);
-        arb_header_sizer->Add(create_mode_group_label(this, _L("Arbitrary Mode")),
+        arb_header_sizer->Add(create_mode_group_label(m_arb_column_panel, _L("Arbitrary Mode")),
                               0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(5));
-        arb_header_sizer->Add(create_h_divider(this, FromDIP(88)), 0, wxALIGN_CENTER_VERTICAL);
+        arb_header_sizer->Add(create_h_divider(m_arb_column_panel, FromDIP(88)), 0, wxALIGN_CENTER_VERTICAL);
         arb_col->Add(arb_header_sizer, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
 
-        m_card_material_list = create_mode_card(this, DecomposeMode::MaterialList,
+        m_card_material_list = create_mode_card(m_arb_column_panel, DecomposeMode::MaterialList,
             _L("Material List"));
         arb_col->Add(m_card_material_list, 0, wxEXPAND);
     }
-    modes_sizer->Add(arb_col, 0, wxEXPAND | wxRIGHT, FromDIP(16));
+    m_arb_column_panel->SetSizer(arb_col);
+    modes_sizer->Add(m_arb_column_panel, 0, wxEXPAND | wxRIGHT, FromDIP(16));
 
     // --- Standard mode column ---
     auto* std_col = new wxBoxSizer(wxVERTICAL);
@@ -446,6 +473,15 @@ wxBoxSizer* ColorDecomposeDialog::create_mode_selection_section()
     modes_sizer->Add(std_col, 0, wxEXPAND);
 
     sizer->Add(modes_sizer, 0, wxEXPAND);
+
+    m_no_card_hint = new wxStaticText(this, wxID_ANY,
+        _L("At least two filaments of the same material type are required for decomposition"));
+    m_no_card_hint->SetFont(Label::Body_13);
+    m_no_card_hint->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#909090")));
+    m_no_card_hint->Wrap(FromDIP(400));
+    m_no_card_hint->Hide();
+    sizer->Add(m_no_card_hint, 0, wxTOP, FromDIP(8));
+
     return sizer;
 }
 
@@ -456,8 +492,8 @@ wxBoxSizer* ColorDecomposeDialog::create_button_panel()
 
     m_btn_cancel = new Button(this, _L("Cancel"));
     m_btn_cancel->SetBackgroundColor(StateColor::darkModeColorFor(*wxWHITE));
-    m_btn_cancel->SetBorderColor(wxColour("#CECECE"));
-    m_btn_cancel->SetTextColor(wxColour("#262E30"));
+    m_btn_cancel->SetBorderColor(StateColor::darkModeColorFor(wxColour("#CECECE")));
+    m_btn_cancel->SetTextColor(StateColor::darkModeColorFor(wxColour("#262E30")));
     m_btn_cancel->SetMinSize(wxSize(FromDIP(55), FromDIP(24)));
     m_btn_cancel->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_CANCEL); });
 
@@ -496,6 +532,56 @@ void ColorDecomposeDialog::update_card_styles()
         m_chk_cmyw->SetValue(m_selected_mode == DecomposeMode::CMYW);
     if (m_chk_rybw)
         m_chk_rybw->SetValue(m_selected_mode == DecomposeMode::RYBW);
+}
+
+void ColorDecomposeDialog::update_card_visibility()
+{
+    // Count physical filaments of the same type (excluding the source filament)
+    int same_type_count = 0;
+    for (size_t i = 0; i < m_filament_types.size(); ++i) {
+        if (static_cast<int>(i) == m_filament_idx)
+            continue;
+        if (material_type_matches(m_filament_types[i], m_preferred_type))
+            ++same_type_count;
+    }
+
+    bool show_arb  = (same_type_count >= 2);
+    bool show_cmyw = (m_preferred_type == kDecomposePlaBasicType);
+    bool show_rybw = (m_preferred_type == kDecomposePlaBasicType)
+                  || (m_preferred_type == kDecomposePetgBasicType);
+
+    if (m_arb_column_panel)   m_arb_column_panel->Show(show_arb);
+    if (m_card_material_list) m_card_material_list->Show(show_arb);
+    if (m_card_cmyw)          m_card_cmyw->Show(show_cmyw);
+    if (m_card_rybw)          m_card_rybw->Show(show_rybw);
+
+    bool any_visible = show_arb || show_cmyw || show_rybw;
+    if (m_no_card_hint)
+        m_no_card_hint->Show(!any_visible);
+
+    // Auto-select a visible mode when current selection becomes hidden
+    if (any_visible) {
+        bool cur_visible = false;
+        if (m_selected_mode == DecomposeMode::MaterialList && show_arb)  cur_visible = true;
+        if (m_selected_mode == DecomposeMode::CMYW && show_cmyw)         cur_visible = true;
+        if (m_selected_mode == DecomposeMode::RYBW && show_rybw)         cur_visible = true;
+        if (!cur_visible) {
+            if (show_arb)       select_mode(DecomposeMode::MaterialList);
+            else if (show_cmyw) select_mode(DecomposeMode::CMYW);
+            else                select_mode(DecomposeMode::RYBW);
+        }
+    }
+
+    Layout();
+}
+
+void ColorDecomposeDialog::update_ok_button_state()
+{
+    if (!m_btn_ok) return;
+    bool any_card_visible = (m_card_material_list && m_card_material_list->IsShown())
+                         || (m_card_cmyw && m_card_cmyw->IsShown())
+                         || (m_card_rybw && m_card_rybw->IsShown());
+    m_btn_ok->Enable(any_card_visible);
 }
 
 void ColorDecomposeDialog::update_mode_card_content(DecomposeMode mode)
@@ -673,33 +759,6 @@ void ColorDecomposeDialog::compute_decomposition()
 
     m_result = m_mode_results[mode_index(m_selected_mode)];
     update_mode_card_contents();
-}
-
-void ColorDecomposeDialog::on_title_mouse_down(wxMouseEvent& event)
-{
-    if (m_title_panel->HasCapture())
-        m_title_panel->ReleaseMouse();
-
-    m_title_panel->CaptureMouse();
-    wxPoint pt = m_title_panel->ClientToScreen(event.GetPosition());
-    wxPoint origin = GetPosition();
-    m_drag_delta = wxPoint(pt.x - origin.x, pt.y - origin.y);
-}
-
-void ColorDecomposeDialog::on_title_mouse_move(wxMouseEvent& event)
-{
-    if (event.Dragging() && event.LeftIsDown() && m_title_panel->HasCapture()) {
-        wxPoint pt = m_title_panel->ClientToScreen(event.GetPosition());
-        Move(wxPoint(pt.x - m_drag_delta.x, pt.y - m_drag_delta.y));
-    }
-    event.Skip();
-}
-
-void ColorDecomposeDialog::on_title_mouse_up(wxMouseEvent& event)
-{
-    if (m_title_panel->HasCapture())
-        m_title_panel->ReleaseMouse();
-    event.Skip();
 }
 
 } // namespace GUI

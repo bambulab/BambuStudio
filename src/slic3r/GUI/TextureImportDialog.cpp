@@ -377,6 +377,21 @@ static bool texture_entry_is_pla_basic(const TextureFilamentEntry& entry)
            entry.preset_name.find(DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE) != std::string::npos;
 }
 
+static bool texture_entry_official_basic(const TextureFilamentEntry& entry)
+{
+    if (!texture_entry_is_physical(entry.kind))
+        return false;
+    // NewPhysical entries are created by add_virtual_filament with a fixed Bambu Basic name.
+    if (entry.kind == TextureFilamentKind::NewPhysical)
+        return !official_basic_type_from_preset_name(entry.name).empty();
+    // ExistingPhysical: resolve the filament preset name from project_config_index.
+    auto& pb = *wxGetApp().preset_bundle;
+    const size_t cfg = entry.project_config_index;
+    if (cfg < pb.filament_presets.size())
+        return !official_basic_type_from_preset_name(pb.filament_presets[cfg]).empty();
+    return false;
+}
+
 static Slic3r::ColorDecomposeRecipeMode texture_recipe_mode(TextureAutoMixMode mode)
 {
     return mode == TextureAutoMixMode::CMYW ? Slic3r::ColorDecomposeRecipeMode::CMYW :
@@ -3195,15 +3210,20 @@ bool TextureImportDialog::add_decomposed_mixed_filament(size_t row_index)
     std::vector<std::string> physical_names;
     std::vector<std::string> physical_types;
     std::vector<int> physical_dialog_indices;
+    auto& preset_bundle = *wxGetApp().preset_bundle;
     for (const auto& entry : m_filament_entries) {
-        if (!texture_entry_is_physical(entry.kind))
+        if (entry.kind != TextureFilamentKind::ExistingPhysical)
             continue;
         physical_colors.push_back(entry.color_hex);
         physical_names.push_back(entry.name);
-        physical_types.push_back(entry.type);
+        const size_t cfg_idx = entry.project_config_index;
+        Preset* preset = nullptr;
+        if (cfg_idx < preset_bundle.filament_presets.size())
+            preset = preset_bundle.filaments.find_preset(preset_bundle.filament_presets[cfg_idx]);
+        physical_types.push_back(filament_type_for_color_decompose(preset));
         physical_dialog_indices.push_back(entry.dialog_index);
     }
-    if (physical_colors.size() < 2)
+    if (physical_colors.empty())
         return false;
 
     wxColour target(m_mapping_rows[row_index].source_hex);
@@ -3227,7 +3247,11 @@ bool TextureImportDialog::add_decomposed_mixed_filament(size_t row_index)
         const std::string comp_hex = texture_normalize_color_hex(comp.colour.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
         int existing_idx = -1;
         for (const auto& entry : m_filament_entries) {
-            if (texture_entry_is_physical(entry.kind) && texture_normalize_color_hex(entry.color_hex) == comp_hex) {
+            if (!texture_entry_is_physical(entry.kind))
+                continue;
+            if (texture_normalize_color_hex(entry.color_hex) != comp_hex)
+                continue;
+            if (texture_entry_official_basic(entry)) {
                 existing_idx = entry.dialog_index;
                 break;
             }

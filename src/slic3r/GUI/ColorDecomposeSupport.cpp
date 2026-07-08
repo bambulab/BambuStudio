@@ -165,6 +165,30 @@ std::string find_decompose_standard_preset_name(size_t source_config_idx, const 
     return {};
 }
 
+std::string official_basic_type_from_preset_name(const std::string& preset_name)
+{
+    if (preset_name.find(std::string(kDecomposeBambuPresetPrefix) + kDecomposePlaBasicType) != std::string::npos)
+        return kDecomposePlaBasicType;
+    if (preset_name.find(std::string(kDecomposeBambuPresetPrefix) + kDecomposePetgBasicType) != std::string::npos)
+        return kDecomposePetgBasicType;
+    return {};
+}
+
+std::string filament_type_for_color_decompose(Preset* preset)
+{
+    if (!preset)
+        return kDecomposePlaShortType;
+
+    std::string display_type;
+    std::string ft = preset->config.get_filament_type(display_type);
+    const std::string basic = official_basic_type_from_preset_name(preset->name);
+    if (!basic.empty())
+        ft = basic;
+    if (ft.empty())
+        ft = kDecomposePlaShortType;
+    return ft;
+}
+
 int find_existing_decompose_component(
     const DecomposeOfficialComponent& component,
     const std::vector<std::string>& physical_colors,

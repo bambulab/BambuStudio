@@ -9,7 +9,9 @@
 
 class wxWindow;
 
-namespace Slic3r { namespace GUI {
+namespace Slic3r {
+class Preset;
+namespace GUI {
 
 // ---- Constants ----
 
@@ -60,6 +62,14 @@ DecomposeOfficialComponent lookup_decompose_official_component(
     const wxColour& fallback);
 
 std::string find_decompose_standard_preset_name(size_t source_config_idx, const std::string& basic_type);
+
+// Returns "PLA Basic" / "PETG Basic" when preset_name names an official Bambu
+// basic filament, else an empty string.
+std::string official_basic_type_from_preset_name(const std::string& preset_name);
+
+// Resolve display type for color-decompose: official Bambu Basic overrides
+// get_filament_type when preset name matches; empty/missing -> "PLA".
+std::string filament_type_for_color_decompose(Preset* preset);
 
 int find_existing_decompose_component(
     const DecomposeOfficialComponent& component,

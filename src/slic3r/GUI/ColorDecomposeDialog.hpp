@@ -62,7 +62,6 @@ protected:
 
 private:
     void build_ui();
-    wxBoxSizer* create_title_bar();
     wxBoxSizer* create_filament_selector();
     wxBoxSizer* create_target_color_section();
     wxBoxSizer* create_mode_selection_section();
@@ -71,13 +70,11 @@ private:
 
     void select_mode(DecomposeMode mode);
     void update_card_styles();
+    void update_card_visibility();
     void update_mode_card_content(DecomposeMode mode);
     void update_mode_card_contents();
     void update_matched_color_display();
-
-    void on_title_mouse_down(wxMouseEvent& e);
-    void on_title_mouse_move(wxMouseEvent& e);
-    void on_title_mouse_up(wxMouseEvent& e);
+    void update_ok_button_state();
 
     void compute_decomposition();
 
@@ -96,6 +93,8 @@ private:
     std::vector<std::string>    m_filament_types;
     std::vector<std::string>    m_project_types;
     std::string                 m_preferred_type;
+    // Dropdown selectable item index -> material type string
+    std::vector<std::string>    m_combo_item_types;
 
     // UI controls
     ComboBox*                   m_type_combo{nullptr};
@@ -108,14 +107,14 @@ private:
     wxPanel*                    m_card_material_list{nullptr};
     wxPanel*                    m_card_cmyw{nullptr};
     wxPanel*                    m_card_rybw{nullptr};
+    wxPanel*                    m_arb_column_panel{nullptr};
     CheckBox*                   m_chk_material_list{nullptr};
     CheckBox*                   m_chk_cmyw{nullptr};
     CheckBox*                   m_chk_rybw{nullptr};
     DecomposeMode               m_selected_mode{DecomposeMode::MaterialList};
 
-    wxPanel*                    m_title_panel{nullptr};
-    wxString                    m_title_text;
-    wxPoint                     m_drag_delta;
+    // Hint shown when no mode card is visible
+    wxStaticText*               m_no_card_hint{nullptr};
 
     Button*                     m_btn_ok{nullptr};
     Button*                     m_btn_cancel{nullptr};
