@@ -775,6 +775,8 @@ namespace Slic3r
                 ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.42f, 0.42f, 0.42f, 1.00f));
                 ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
                 ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.93f, 0.93f, 0.93f, 1.00f));
+                ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(69.0f / 255.0f, 69.0f / 255.0f, 67.0f / 255.0f, 0.94f));
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(340.f * m_scale * imgui.scaled(1.0f / 15.0f), 0));
                 ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), 0, ImVec2(0.5f, 0.5f));
                 ImGui::Begin(_L("Statistics of All Plates").c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
@@ -1150,7 +1152,7 @@ namespace Slic3r
                     }
                 }
                 ImGui::End();
-                ImGui::PopStyleColor(6);
+                ImGui::PopStyleColor(8);
                 ImGui::PopStyleVar(3);
                 return;
             }

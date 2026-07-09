@@ -1376,6 +1376,7 @@ private:
     void _try_update_selected_keyframe();
     bool _allow_sync_in_assemble_view();
     void  open_assembly_view();
+    void  _exit_assembly_to_3d_view();
 
     void _render_return_toolbar();
     void _render_fit_camera_toolbar();

@@ -607,7 +607,7 @@ void GLGizmoMeasure::on_render()
                 Vec3f  normal                       = Vec3f::Zero();
                 Vec3f  hit                          = Vec3f::Zero();
                 size_t facet                        = 0;
-                if (raycaster->unproject_on_mesh(mouse_position, world_tran.get_matrix(), camera, hit, normal, nullptr, &facet)) {
+                if (raycaster->unproject_on_mesh(mouse_position, world_tran.get_matrix(), camera, hit, normal, nullptr, &facet, false)) {
                     // Is this hit the closest to the camera so far?
                     double hit_squared_distance = (camera.get_position() - world_tran.get_matrix() * hit.cast<double>()).norm();
                     if (hit_squared_distance < closest_hit_distance) {
@@ -664,7 +664,6 @@ void GLGizmoMeasure::on_render()
             }
         }
     }
-    //const bool mouse_on_object = m_raycaster->unproject_on_mesh(mouse_position, Transform3d::Identity(), camera, position_on_model, normal_on_model, nullptr, &model_facet_idx);
     const bool is_hovering_on_feature = m_mode == EMode::PointSelection && m_hover_id != -1;
 
     if (m_mode == EMode::FeatureSelection || m_mode == EMode::PointSelection) {

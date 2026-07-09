@@ -99,7 +99,9 @@ void GLGizmoAssembly::on_render_input_window(float x, float y, float bottom_limi
     init_render_input_window();
 
     float moving_size = m_imgui->calc_text_size(_L("(Moving)")).x;
-    float combox_content_size = m_imgui->calc_text_size(_L("Point and point assembly")).x*1.1 + ImGui::GetStyle().FramePadding.x * 18.0f;
+    float combo_text_width = std::max(m_imgui->calc_text_size(_L("Face and face assembly")).x,
+                                      m_imgui->calc_text_size(_L("Point and point assembly")).x);
+    float combox_content_size = combo_text_width * 1.2f + m_imgui->calc_text_size("xxx").x + m_imgui->scaled(3.0f);
     float caption_size = moving_size + 2 * m_space_size;
     if (render_assembly_mode_combo(caption_size + 0.5 * m_space_size,  combox_content_size)) {
         ;

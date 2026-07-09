@@ -3604,7 +3604,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                 exit_assembly_steps_editing();
             if (ImGui::IsItemHovered()) {
                 dl->AddRectFilled(exit_min, exit_max, IM_COL32(38, 46, 48, 18), 3.0f * sc);
-                render_panel_tooltip(_u8L("Exit"));
+                render_panel_tooltip(_u8L("Exit the assembly step editing, you can also press the Esc button to exit"));
             }
             ImGui::PopID();
         }

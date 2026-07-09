@@ -482,6 +482,9 @@ public://logic
     // by the exit button in the assembly structure panel (previously this was
     // done by double-clicking a blank area of the assembly view).
     void            exit_assembly_steps_editing();
+    // Handle ESC key: if a step node is selected, drop into tree editing mode;
+    // otherwise exit assembly view and return to the 3D/prepare view.
+    void            on_escape_key();
     void            update_model_object_tree();
     // Returns true when the two trees differ in structure/labels/selection
     void save_assembly_steps_json_to_model();
@@ -565,6 +568,7 @@ public://logic
     // Patch the final-assembly folder's end-frame with the current canvas
     void                     update_final_assembly_end_keyframe_from_current_selection();
     void                     record_selected_gl_volume_transforms_to_current_keyframe();
+    void                     record_all_glvolumes_in_cur_step__to_current_keyframe();
     void                     show_all_volumes(bool show);
     void                     show_volume(int object_id, bool show);
     void                     apply_camera(const KeyFrame &frame);

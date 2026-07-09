@@ -1601,6 +1601,9 @@ void GLCanvas3D::set_type(ECanvasType type)
                 } else if (cmd == "deselect_all") {
                     deselect_all();
                     m_dirty = true;
+                } else if (cmd == "return_to_3d_view") {
+                    _exit_assembly_to_3d_view();
+                    m_dirty = true;
                 } else if (parts.size() > 1) {
                     if (cmd == "set_cursor") {
                         const std::string &cursor_name = parts[1];
@@ -2484,6 +2487,35 @@ void GLCanvas3D::reset_select_plate_toolbar_selection() {
 void GLCanvas3D::enable_select_plate_toolbar(bool enable)
 {
     m_sel_plate_toolbar.set_enabled(enable);
+}
+
+void GLCanvas3D::_exit_assembly_to_3d_view()
+{
+    if (m_canvas != nullptr)
+        wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
+    const_cast<GLGizmosManager *>(&m_gizmos)->reset_all_states();
+    wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().reset_all_states();
+    GLVolume::explosion_ratio  = 1.0;
+    wxGetApp().plater()->get_view3D_canvas3D()->reload_scene(true);
+    {
+        GLCanvas3D *                          view_3d       = wxGetApp().plater()->get_view3D_canvas3D();
+        const auto& p_main_toolbar = view_3d->get_main_toolbar();
+        if (!p_main_toolbar) { return; }
+        std::shared_ptr<GLToolbarItem> assembly_item = p_main_toolbar->get_item("assembly_view");
+        std::chrono::system_clock::time_point end           = std::chrono::system_clock::now();
+        std::chrono::duration<int>            duration      = std::chrono::duration_cast<std::chrono::duration<int>>(end - assembly_item->get_start_time_point());
+        int                                   times         = duration.count();
+        NetworkAgent *agent = GUI::wxGetApp().getAgent();
+        if (agent) {
+            std::string name          = assembly_item->get_name() + "_duration";
+            std::string value         = "";
+            int         existing_time = 0;
+            agent->track_get_property(name, value);
+            try { if (value != "") { existing_time = std::stoi(value); } } catch (...) {}
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " tool name:" << name << " duration: " << times + existing_time;
+            agent->track_update_property(name, std::to_string(times + existing_time));
+        }
+    }
 }
 
 void GLCanvas3D::enable_return_toolbar(bool enable)
@@ -4334,6 +4366,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 
     if (m_gizmos.on_char(evt))
         return;
+
+    if (keyCode == WXK_ESCAPE && m_assembly_steps && m_canvas_type == CanvasAssembleView) {
+        m_assembly_steps->on_escape_key();
+        return;
+    }
 
     if ((evt.GetModifiers() & ctrlMask) != 0) {
         if ((evt.GetModifiers() & shiftMask) != 0) {
@@ -10065,38 +10102,7 @@ void GLCanvas3D::_render_return_toolbar()
         if (m_canvas_type == ECanvasType::CanvasView3D) {
             deselect_all();
         } else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
-            if (m_canvas != nullptr)
-                wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
-            const_cast<GLGizmosManager *>(&m_gizmos)->reset_all_states();
-            wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().reset_all_states();
-            GLVolume::explosion_ratio  = 1.0;//in 3D view  GLVolume::explosion_ratio  = 1.0
-            wxGetApp().plater()->get_view3D_canvas3D()->reload_scene(true);
-            {
-                GLCanvas3D *                          view_3d       = wxGetApp().plater()->get_view3D_canvas3D();
-                const auto& p_main_toolbar = view_3d->get_main_toolbar();
-                if (!p_main_toolbar) {
-                    return;
-                }
-                std::shared_ptr<GLToolbarItem> assembly_item = p_main_toolbar->get_item("assembly_view");
-                std::chrono::system_clock::time_point end           = std::chrono::system_clock::now();
-                std::chrono::duration<int>            duration      = std::chrono::duration_cast<std::chrono::duration<int>>(end - assembly_item->get_start_time_point());
-                int                                   times         = duration.count();
-
-                NetworkAgent *agent = GUI::wxGetApp().getAgent();
-                if (agent) {
-                    std::string name          = assembly_item->get_name() + "_duration";
-                    std::string value         = "";
-                    int         existing_time = 0;
-
-                    agent->track_get_property(name, value);
-                    try {
-                        if (value != "") { existing_time = std::stoi(value); }
-                    } catch (...) {}
-
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " tool name:" << name << " duration: " << times + existing_time;
-                    agent->track_update_property(name, std::to_string(times + existing_time));
-                }
-            }
+            _exit_assembly_to_3d_view();
         }
     }
     ImGui::PopStyleColor(5);

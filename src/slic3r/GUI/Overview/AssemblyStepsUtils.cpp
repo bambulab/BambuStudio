@@ -135,6 +135,15 @@ void AssemblyStepsUtils::exit_assembly_steps_editing()
     do_commond_callback("request_extra_frame");
 }
 
+void AssemblyStepsUtils::on_escape_key()
+{
+    if (has_selected_node()) {
+        exit_assembly_steps_editing();
+    } else {
+        do_commond_callback("return_to_3d_view");
+    }
+}
+
 void AssemblyStepsUtils::update_model_object_tree() {
     m_model->set_assembly_tree_data(build_model_object_tree_data());
 }
@@ -1131,6 +1140,56 @@ void AssemblyStepsUtils::record_selected_gl_volume_transforms_to_current_keyfram
     entry.need_save = true;
     record_camera(kf);
     // Explicit user edit (gizmo move on a regular step, or re-record): the camera
+    kf.camera_user_defined = true;
+    save_assembly_steps_json_to_model();
+}
+
+void AssemblyStepsUtils::record_all_glvolumes_in_cur_step__to_current_keyframe()
+{
+    auto *entries = get_current_kf_entries();
+    if (!entries || m_keyframe_selected < 0 || m_keyframe_selected >= (int)entries->size())
+        return;
+    if (!m_model || !m_volumes)
+        return;
+
+    KeyFrameEntry &entry = (*entries)[m_keyframe_selected];
+    KeyFrame      &kf    = entry.data;
+
+    std::set<int> step_objs = collect_node_object_indices(m_selected_node);
+
+    bool any_patched = false;
+    for (const GLVolume *gv : m_volumes->volumes) {
+        if (!gv)
+            continue;
+        const int oi = gv->object_idx();
+        if (oi < 0 || oi >= (int)m_model->objects.size())
+            continue;
+        if (step_objs.count(oi) == 0)
+            continue;
+        const int vi = gv->volume_idx();
+
+        const ModelObject *obj = m_model->objects[oi];
+        if (!obj)
+            continue;
+
+        if (!obj->instances.empty()) {
+            kf.object_transformations[oi] = gv->get_instance_transformation();
+            any_patched                   = true;
+        }
+        if (vi >= 0 && vi < (int)obj->volumes.size()) {
+            const ModelVolume        *mv = obj->volumes[vi];
+            const std::pair<int, int> key{oi, vi};
+            kf.volume_transformations[key] = gv->get_volume_transformation();
+            if (mv)
+                kf.volume_names[key] = !mv->name.empty() ? mv->name : obj->name;
+            any_patched = true;
+        }
+    }
+    if (!any_patched)
+        return;
+
+    entry.need_save = true;
+    record_camera(kf);
     kf.camera_user_defined = true;
     save_assembly_steps_json_to_model();
 }
@@ -6318,7 +6377,7 @@ void AssemblyStepsUtils::record_keyframe_at(int idx)
 
     m_keyframe_selected = idx;
     if (m_only_final_assembly_endframe_effect_real_assembly) {
-        record_selected_gl_volume_transforms_to_current_keyframe();
+        record_all_glvolumes_in_cur_step__to_current_keyframe();
     } else {
         record_keyframe_logic(entries[idx]);
     }
