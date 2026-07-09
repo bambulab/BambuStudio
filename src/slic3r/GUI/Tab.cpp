@@ -46,7 +46,6 @@
 
 #include "Widgets/Label.hpp"
 #include "Widgets/TabCtrl.hpp"
-#include "Widgets/TextInput.hpp"
 #include "MarkdownTip.hpp"
 #include "Search.hpp"
 #include "BedShapeDialog.hpp"
@@ -5020,198 +5019,6 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("use_firmware_retraction");
         optgroup->append_single_option_line("bed_temperature_formula");
         // optgroup->append_single_option_line("spaghetti_detector");
-        struct AmsTimeItem {
-            int         type;
-            std::string name;
-            double      load_time;
-            double      unload_time;
-        };
-        struct AmsTimeCtx {
-            wxChoice*   choice       = nullptr;
-            wxTextCtrl* load_value   = nullptr;
-            wxTextCtrl* unload_value = nullptr;
-            std::shared_ptr<std::vector<AmsTimeItem>> items;
-        };
-        auto ams_ctx = std::make_shared<AmsTimeCtx>();
-        ams_ctx->items = std::make_shared<std::vector<AmsTimeItem>>();
-
-        auto ams_refresh_values = [ams_ctx](int selected_idx) {
-            if (!ams_ctx->load_value || !ams_ctx->unload_value)
-                return;
-            const auto& items = *ams_ctx->items;
-            if (selected_idx < 0 || selected_idx >= static_cast<int>(items.size())) {
-                ams_ctx->load_value->ChangeValue(wxEmptyString);
-                ams_ctx->unload_value->ChangeValue(wxEmptyString);
-                return;
-            }
-            ams_ctx->load_value->ChangeValue(wxString::Format("%.0f", items[selected_idx].load_time));
-            ams_ctx->unload_value->ChangeValue(wxString::Format("%.0f", items[selected_idx].unload_time));
-        };
-        auto change_ams_value = [this](const std::string& opt_key, const boost::any& value, int opt_index = -1) {
-            if (opt_index >= 0) {
-                if (auto* opt = m_config->option<ConfigOptionFloats>(opt_key)) {
-                    if (opt_index >= static_cast<int>(opt->values.size()))
-                        opt->values.resize(opt_index + 1, 0.0);
-                }
-                change_opt_value(*m_config, opt_key, value, opt_index);
-            } else {
-                change_opt_value(*m_config, opt_key, value);
-            }
-            update_dirty();
-            on_value_change(opt_key, value);
-            update();
-        };
-        auto ams_refresh_items = [this, ams_ctx, ams_refresh_values]() {
-            auto& items = *ams_ctx->items;
-            items.clear();
-            const auto* load_opt   = m_config->option<ConfigOptionFloats>("ams_filament_load_time");
-            const auto* unload_opt = m_config->option<ConfigOptionFloats>("ams_filament_unload_time");
-            auto get_time = [](const ConfigOptionFloats* opt, int ams_type) {
-                const size_t idx = static_cast<size_t>(ams_type);
-                return opt && idx < opt->values.size() ? opt->values[idx] : 0.0;
-            };
-            const int ams_types[] = { atAms, atAmsLite, atN3f };
-            for (const int ams_type : ams_types) {
-                const double load_time   = get_time(load_opt, ams_type);
-                const double unload_time = get_time(unload_opt, ams_type);
-                if (load_time <= 0.0 && unload_time <= 0.0)
-                    continue;
-
-                std::string name = get_ams_type_name(ams_type);
-                if (name.empty())
-                    continue;
-
-                items.push_back({ ams_type, name, load_time, unload_time });
-            }
-
-            int selected_ams_type = -1;
-            if (auto* selected_opt = m_config->option<ConfigOptionInt>("selected_ams_type"))
-                selected_ams_type = selected_opt->value;
-
-            int selected_item = 0;
-            if (ams_ctx->choice) {
-                ams_ctx->choice->Clear();
-                for (int i = 0; i < static_cast<int>(items.size()); ++i) {
-                    ams_ctx->choice->Append(wxString::FromUTF8(items[i].name.c_str()));
-                    if (items[i].type == selected_ams_type)
-                        selected_item = i;
-                }
-                if (!items.empty())
-                    ams_ctx->choice->SetSelection(selected_item);
-            }
-            ams_refresh_values(items.empty() ? wxNOT_FOUND : selected_item);
-        };
-
-        // line 1: label + dropdown
-        Line ams_choice_line{ _L("AMS filament load/unload"), wxString() };
-        Option ams_choice_marker = optgroup->get_option("selected_ams_type");
-        ams_choice_marker.opt.mode = comSimple;
-        ams_choice_line.append_option(ams_choice_marker);
-        ams_choice_line.widget = [this, ams_ctx, ams_refresh_items, ams_refresh_values, change_ams_value](wxWindow* parent) -> wxSizer* {
-            const auto normal_font          = wxGetApp().normal_font();
-            const int  standard_field_width = Field::def_width_wider() * m_em_unit;
-            auto* choice = new wxChoice(parent, wxID_ANY, wxDefaultPosition, wxSize(standard_field_width, wxDefaultCoord));
-            choice->SetMinSize(wxSize(standard_field_width, wxDefaultCoord));
-            choice->SetFont(normal_font);
-            ams_ctx->choice = choice;
-
-            ams_refresh_items();
-
-            choice->Bind(wxEVT_SHOW, [ams_refresh_items](wxShowEvent& event) {
-                if (event.IsShown())
-                    ams_refresh_items();
-                event.Skip();
-            });
-            choice->Bind(wxEVT_CHOICE, [ams_ctx, ams_refresh_values, change_ams_value](wxCommandEvent&) {
-                const int selection = ams_ctx->choice->GetSelection();
-                if (selection == wxNOT_FOUND || selection >= static_cast<int>(ams_ctx->items->size()))
-                    return;
-                const int ams_type = (*ams_ctx->items)[selection].type;
-                change_ams_value("selected_ams_type", ams_type);
-                ams_refresh_values(selection);
-            });
-
-            auto* sizer = new wxBoxSizer(wxHORIZONTAL);
-            sizer->Add(choice, 0, wxALIGN_CENTER_VERTICAL);
-            return static_cast<wxSizer*>(sizer);
-        };
-        optgroup->append_line(ams_choice_line);
-
-
-        auto add_ams_time_line = [&, this](const wxString& label, const std::string& marker_key, bool is_load) {
-            Line time_line{ label, wxString() };
-            time_line.subline = true;
-            ConfigOptionDef time_def;
-            time_def.type = coString;
-            time_def.mode = comSimple;
-            Option time_marker(time_def, marker_key);
-            time_line.append_option(time_marker);
-            time_line.widget = [this, ams_ctx, ams_refresh_items, ams_refresh_values, change_ams_value, is_load](wxWindow* parent) -> wxSizer* {
-                const int standard_field_width = Field::def_width_wider() * m_em_unit;
-
-                // Reuse the standard rounded TextInput so the box matches the plain
-                // numeric fields below (e.g. machine_switch_extruder_time). The unit
-                // "s" is rendered inside the box on the right via the sidetext label.
-                auto* box = new ::TextInput(parent, wxEmptyString, _L("s"), wxEmptyString,
-                                            wxDefaultPosition, wxSize(standard_field_width, -1),
-                                            wxTE_PROCESS_ENTER);
-                wxGetApp().UpdateDarkUI(box);
-                box->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
-
-                auto* value = box->GetTextCtrl();
-
-                // OG_CustomCtrl positions this by hand via GetSize(), so pin the width.
-                const int box_height = box->GetSize().GetHeight();
-                box->SetMinSize(wxSize(standard_field_width, box_height));
-                box->SetSize(wxSize(standard_field_width, box_height));
-
-                if (is_load)
-                    ams_ctx->load_value = value;
-                else
-                    ams_ctx->unload_value = value;
-
-                // Commit the edited value back to the config vector at the selected
-                // AMS index and mark the preset dirty. Other machines' load/unload
-                // times are editable too, so keep the same behaviour here.
-                auto commit_value = [this, ams_ctx, ams_refresh_values, change_ams_value, is_load]() {
-                    if (!ams_ctx->choice || !ams_ctx->load_value || !ams_ctx->unload_value)
-                        return;
-                    const int sel = ams_ctx->choice->GetSelection();
-                    if (sel == wxNOT_FOUND || sel >= static_cast<int>(ams_ctx->items->size()))
-                        return;
-                    const int ams_idx = (*ams_ctx->items)[sel].type;
-                    wxTextCtrl* field  = is_load ? ams_ctx->load_value : ams_ctx->unload_value;
-                    double val = 0.0;
-                    if (!field->GetValue().ToDouble(&val) || val < 0.0) {
-                        ams_refresh_values(sel); // revert invalid input
-                        return;
-                    }
-                    const std::string key = is_load ? "ams_filament_load_time" : "ams_filament_unload_time";
-                    if (auto* opt = m_config->option<ConfigOptionFloats>(key)) {
-                        const double old_val = ams_idx < static_cast<int>(opt->values.size()) ? opt->values[ams_idx] : 0.0;
-                        if (old_val == val)
-                            return; // no real change
-                        change_ams_value(key, val, ams_idx);
-                        if (is_load)
-                            (*ams_ctx->items)[sel].load_time = val;
-                        else
-                            (*ams_ctx->items)[sel].unload_time = val;
-                    }
-                };
-                value->Bind(wxEVT_KILL_FOCUS, [commit_value](wxFocusEvent& event) { commit_value(); event.Skip(); });
-                value->Bind(wxEVT_TEXT_ENTER, [commit_value](wxCommandEvent&) { commit_value(); });
-
-                // Fill from the current preset now that this value field exists.
-                ams_refresh_items();
-
-                auto* sizer = new wxBoxSizer(wxHORIZONTAL);
-                sizer->Add(box, 0, wxALIGN_CENTER_VERTICAL);
-                return static_cast<wxSizer*>(sizer);
-            };
-            optgroup->append_line(time_line);
-        };
-        add_ams_time_line(_L("Filament load time"),   "ams_filament_load_time_row",   true);
-        add_ams_time_line(_L("Filament unload time"), "ams_filament_unload_time_row", false);
         optgroup->append_single_option_line("machine_load_filament_time");
         optgroup->append_single_option_line("machine_unload_filament_time");
         optgroup->append_single_option_line("machine_switch_extruder_time");
@@ -5919,23 +5726,6 @@ void TabPrinter::clear_pages()
     m_reset_to_filament_color = nullptr;
 }
 
-bool TabPrinter::should_show_ams_time_ui() const
-{
-    // Gate on the preset's own AMS timing config instead of a hard-coded machine
-    // name or nozzle variant. Only presets that actually configure AMS
-    // load/unload times set selected_ams_type to a concrete enum value (>= 0;
-    // the default is -1) and carry non-empty ams_filament_*_time vectors. The
-    // feature is a machine-level capability, so every nozzle variant that
-    // inherits this config (e.g. the A2L family, which inherits the 0.4 preset)
-    // shows the UI.
-    const auto* sel_opt        = m_config->option<ConfigOptionInt>("selected_ams_type");
-    const auto* ams_load_opt   = m_config->option<ConfigOptionFloats>("ams_filament_load_time");
-    const auto* ams_unload_opt = m_config->option<ConfigOptionFloats>("ams_filament_unload_time");
-    return sel_opt && sel_opt->value >= 0 &&
-           ams_load_opt && ams_unload_opt &&
-           (!ams_load_opt->values.empty() || !ams_unload_opt->values.empty());
-}
-
 void TabPrinter::toggle_options()
 {
     if (!m_active_page || m_presets->get_edited_preset().printer_technology() == ptSLA)
@@ -5972,12 +5762,6 @@ void TabPrinter::toggle_options()
         toggle_option("use_firmware_retraction", !is_BBL_printer);
         toggle_line("support_air_filtration", !m_config->opt_bool("support_cooling_filter") && is_BBL_printer);
         toggle_line("cooling_filter_enabled", m_config->opt_bool("support_cooling_filter") && is_BBL_printer);
-        const bool show_ams_time_ui = should_show_ams_time_ui();
-        toggle_line("selected_ams_type", show_ams_time_ui);              // AMS dropdown line
-        toggle_line("ams_filament_load_time_row", show_ams_time_ui);     // AMS load time row
-        toggle_line("ams_filament_unload_time_row", show_ams_time_ui);   // AMS unload time row
-        toggle_line("machine_load_filament_time", !show_ams_time_ui);
-        toggle_line("machine_unload_filament_time", !show_ams_time_ui);
         toggle_option("print_in_clockwise", !is_BBL_printer);
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
@@ -6115,8 +5899,6 @@ void TabPrinter::update_fff()
     }
 
     toggle_options();
-    if (m_active_page)
-        m_active_page->update_visibility(m_mode, true);
 }
 
 void TabPrinter::update_sla()

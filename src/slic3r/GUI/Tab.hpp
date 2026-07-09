@@ -628,7 +628,6 @@ private:
 	bool		m_has_single_extruder_MM_page = false;
 	bool		m_use_silent_mode = false;
 	void		append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key);
-	bool		should_show_ams_time_ui() const;
 	bool		m_rebuild_kinematics_page = false;
 
 	ogStaticText*	m_fff_print_host_upload_description_line {nullptr};
