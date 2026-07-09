@@ -1404,6 +1404,7 @@ void MenuFactory::create_part_menu()
     wxMenu* menu = &m_part_menu;
     append_menu_item_rename(menu);
     append_menu_item_delete(menu);
+    append_menu_item_clone(menu);
     append_menu_item_reload_from_disk(menu);
     append_menu_item_export_stl(menu);
     append_menu_item_fix_through_netfabb(menu);
@@ -1461,6 +1462,7 @@ void MenuFactory::create_bbl_part_menu()
 {
     wxMenu* menu = &m_part_menu;
 
+    append_menu_item_clone(menu);
     append_menu_item_delete(menu);
     append_menu_item_edit_text(menu);
     append_menu_item_fix_through_netfabb(menu);

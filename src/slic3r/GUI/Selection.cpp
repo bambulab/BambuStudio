@@ -119,11 +119,13 @@ bool Selection::Clipboard::is_sla_compliant() const
 Selection::Clipboard::Clipboard()
 {
     m_model.reset(new Model);
+    m_copy_volume_step = 0;
 }
 
 void Selection::Clipboard::reset()
 {
     m_model->clear_objects();
+    m_copy_volume_step = 0;
 }
 
 bool Selection::Clipboard::is_empty() const
@@ -607,6 +609,7 @@ void Selection::clone(int numbers)
     wxGetApp().plater()->take_snapshot(std::string("Selection-clone"));
     copy_to_clipboard();
     for (int i = 0; i < numbers; i++) {
+        m_clipboard.copy_volume_step_up();
         paste_from_clipboard();
     }
 }
@@ -3409,6 +3412,16 @@ void Selection::paste_volumes_from_clipboard()
         Transform3d src_matrix = src_object->instances[0]->get_transformation().get_matrix_no_offset();
         Transform3d dst_matrix = dst_instance->get_transformation().get_matrix_no_offset();
         bool from_same_object = (src_object->input_file == dst_object->input_file) && src_matrix.isApprox(dst_matrix);
+        BoundingBoxf3 sel_bb;
+        if (from_same_object) {
+            for (unsigned int i : m_list) {
+                const GLVolume &gl_vol = *(*m_volumes)[i];
+                if (gl_vol.object_idx() == dst_obj_idx && gl_vol.instance_idx() == dst_inst_idx) {
+                    BoundingBoxf3 vol_bb = gl_vol.transformed_convex_hull_bounding_box();
+                    sel_bb.merge(vol_bb);
+                }
+            }
+        }
         const Transform3d vol_linear_correction = dst_matrix.inverse() * src_matrix;
 
         // used to keep relative position of multivolume selections when pasting from another object
@@ -3422,9 +3435,16 @@ void Selection::paste_volumes_from_clipboard()
             dst_volume->ensure_part_guid(true);
             if (from_same_object)
             {
-//                // if the volume comes from the same object, apply the offset in world system
-//                double offset = wxGetApp().plater()->canvas3D()->get_size_proportional_to_max_bed_size(0.05);
-//                dst_volume->translate(dst_matrix.inverse() * Vec3d(offset, offset, 0.0));
+                int step = m_clipboard.copy_volume_step();
+                if (step > 0) {
+                    double offset = sel_bb.size().x() * step;
+                    const Vec3d displacement = dst_matrix.inverse() * Vec3d(offset, -0.5 * offset, 0.0);
+                    dst_volume->translate(displacement);
+                    // translate() only updates m_transformation; keep per-volume assemble pose in sync
+                    // so the paste offset also shows in assembly view (add_volume copies assemble_*).
+                    if (dst_volume->is_assemble_initialized())
+                        dst_volume->set_assemble_offset(dst_volume->get_assemble_transformation().get_offset() + displacement);
+                }
             }
             else
             {
