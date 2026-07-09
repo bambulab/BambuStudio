@@ -16,6 +16,9 @@
         "10",
         "10"
     ],
+    "filament_density": [
+        "1.37"
+    ],
     "filament_long_retractions_when_cut": [
         "0",
         "0",

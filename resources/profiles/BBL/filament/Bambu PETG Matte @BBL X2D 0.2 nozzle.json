@@ -17,6 +17,9 @@
         "10",
         "10"
     ],
+    "filament_density": [
+        "1.37"
+    ],
     "filament_deretraction_speed": [
         "nil",
         "nil",
@@ -39,7 +42,7 @@
         "3"
     ],
     "filament_max_volumetric_speed": [
-        "2",
+        "1",
         "2",
         "0.5",
         "0.5"
@@ -57,10 +60,10 @@
         "10"
     ],
     "filament_retraction_length": [
+        "0.8",
         "nil",
         "nil",
-        "3",
-        "3"
+        "nil"
     ],
     "filament_retraction_speed": [
         "nil",
@@ -96,7 +99,7 @@
         "fdm_filament_template_direct_bowden"
     ],
     "nozzle_temperature": [
-        "250",
+        "245",
         "270",
         "250",
         "270"

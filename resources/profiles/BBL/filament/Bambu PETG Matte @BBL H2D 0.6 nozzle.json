@@ -16,6 +16,9 @@
         "10",
         "10"
     ],
+    "filament_density": [
+        "1.37"
+    ],
     "filament_max_volumetric_speed": [
         "21",
         "28",
@@ -35,9 +38,14 @@
         "0"
     ],
     "filament_retraction_length": [
-        "0.4",
+        "0.8",
         "0.4",
         "0.4"
+    ],
+    "filament_retraction_minimum_travel": [
+        "30",
+        "nil",
+        "nil"
     ],
     "filament_tower_ironing_area": [
         "8"
@@ -66,7 +74,7 @@
         "fdm_filament_template_direct_dual_e3d"
     ],
     "nozzle_temperature": [
-        "250",
+        "245",
         "255",
         "255"
     ],

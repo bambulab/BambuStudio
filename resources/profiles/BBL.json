@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "02.08.00.03",
+    "version": "02.08.00.04",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -2610,6 +2610,18 @@
         {
             "name": "Bambu PETG Matte @BBL X2D 0.8 nozzle",
             "sub_path": "filament/Bambu PETG Matte @BBL X2D 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL P1P 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL P1P 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL P1P 0.4 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL P1P 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL P1P 0.6 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL P1P 0.6 nozzle.json"
         },
         {
             "name": "Bambu PETG HF @base",

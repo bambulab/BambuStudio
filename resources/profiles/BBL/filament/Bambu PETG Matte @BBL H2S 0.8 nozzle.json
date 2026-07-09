@@ -15,6 +15,9 @@
         "10",
         "10"
     ],
+    "filament_density": [
+        "1.37"
+    ],
     "filament_dev_ams_drying_temperature": [
         "65",
         "65",

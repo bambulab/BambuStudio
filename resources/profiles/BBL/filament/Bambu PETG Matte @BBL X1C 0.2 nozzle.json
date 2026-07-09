@@ -11,6 +11,9 @@
     "fan_min_speed": [
         "20"
     ],
+    "filament_density": [
+        "1.37"
+    ],
     "filament_long_retractions_when_cut": [
         "1",
         "1"
@@ -27,6 +30,10 @@
         "18",
         "18"
     ],
+    "filament_retraction_length": [
+        "0.8",
+        "nil"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
@@ -35,7 +42,7 @@
         "0"
     ],
     "nozzle_temperature": [
-        "255",
+        "250",
         "255"
     ],
     "nozzle_temperature_initial_layer": [
@@ -52,8 +59,6 @@
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.2 nozzle",
         "Bambu Lab X1 0.2 nozzle",
-        "Bambu Lab P1P 0.2 nozzle",
-        "Bambu Lab P1S 0.2 nozzle",
         "Bambu Lab X1E 0.2 nozzle"
     ]
 }

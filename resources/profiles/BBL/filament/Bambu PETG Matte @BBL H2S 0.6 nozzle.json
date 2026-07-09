@@ -16,6 +16,9 @@
         "10",
         "10"
     ],
+    "filament_density": [
+        "1.37"
+    ],
     "filament_max_volumetric_speed": [
         "21",
         "28",
