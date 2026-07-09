@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-08 18:42+0800\n"
+"POT-Creation-Date: 2026-07-09 22:02+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -2542,6 +2542,12 @@ msgstr "Удалить выбранный стол"
 msgid "Move Plate"
 msgstr ""
 
+msgid "Split to objects"
+msgstr "Разделить на модели"
+
+msgid "Split the selected objects into multiple objects"
+msgstr ""
+
 msgid "Clone"
 msgstr "Сделать копию"
 
@@ -3327,6 +3333,13 @@ msgstr ""
 msgid "transition frame"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Step %d"
+msgstr ""
+
+msgid "not used in any assembly step"
+msgstr ""
+
 #, boost-format
 msgid "Plate %1%"
 msgstr ""
@@ -3597,6 +3610,15 @@ msgid "Search"
 msgstr "Поиск"
 
 msgid "List"
+msgstr ""
+
+msgid "Assembly list"
+msgstr ""
+
+msgid "Expand all objects"
+msgstr ""
+
+msgid "Collapse all objects"
 msgstr ""
 
 msgid "Select all parts in a step"
@@ -5736,9 +5758,6 @@ msgstr "Расставить все модели"
 msgid "Arrange objects on selected plates"
 msgstr "Расставить выбранные модели на выбранных столах"
 
-msgid "Split to objects"
-msgstr "Разделить на модели"
-
 msgid "And it is valid when there are at least two parts in object or stl has at least two meshes."
 msgstr "Это работает, когда модель состоит хотя бы из двух частей или в stl имеются две полигональными сетки."
 
@@ -7812,7 +7831,10 @@ msgstr "Настройки материала"
 msgid "Printer settings"
 msgstr "Настройки принтера"
 
-msgid "Remove current plate (if not last one)"
+msgid "At least one plate is required"
+msgstr ""
+
+msgid "Remove current plate"
 msgstr ""
 
 msgid "Auto orient objects on current plate"
@@ -9622,9 +9644,6 @@ msgstr "Не нагрев. пластина Bambu SuperTack"
 msgid "Send print job"
 msgstr "Отправка задания на печать"
 
-msgid "The current estimated time has been recalculated based on the actual filament mapping."
-msgstr ""
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Не нравится, как сгруппированы материалы? Перегруппируйте и нарежьте ->"
 
@@ -10571,18 +10590,6 @@ msgstr ""
 
 msgid "Printable space"
 msgstr "Область печати"
-
-msgid "AMS filament load/unload"
-msgstr ""
-
-msgid "s"
-msgstr "с"
-
-msgid "Filament load time"
-msgstr "Время загрузки прутка"
-
-msgid "Filament unload time"
-msgstr "Время выгрузки прутка"
 
 msgid "Extruder Clearance"
 msgstr "Радиус безопасной зоны экструдера"
@@ -12802,6 +12809,9 @@ msgstr "Смещение времени запуска вентилятора"
 msgid "Force fan start early(0-5 second) when encountering overhangs. This is because the fan needs time to physically increase its speed."
 msgstr "Принудительный запуск вентилятора раньше на заданное количество секунд при печати нависающих участков. Это нужно, потому что вентилятору требуется время, чтобы набрать нужную скорость."
 
+msgid "s"
+msgstr "с"
+
 msgid "Cooling overhang threshold"
 msgstr "Порог нависания для включения обдува"
 
@@ -13440,29 +13450,17 @@ msgstr "Мин. объём сброса на черновой башне"
 msgid "mm³"
 msgstr "мм³"
 
+msgid "Filament load time"
+msgstr "Время загрузки прутка"
+
 msgid "Time to load new filament when switch filament. For statistics only"
 msgstr "Время загрузки новой пластиковой нити при её смене. Это необходимо только для отображения статистической информации."
 
+msgid "Filament unload time"
+msgstr "Время выгрузки прутка"
+
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "Время выгрузки старой пластиковой нити при её смене. Это необходимо только для отображения статистической информации."
-
-msgid "AMS filament load time"
-msgstr ""
-
-msgid "Filament load time of each AMS type, indexed by the AMS type enum value. For statistics only"
-msgstr ""
-
-msgid "AMS filament unload time"
-msgstr ""
-
-msgid "Filament unload time of each AMS type, indexed by the AMS type enum value. For statistics only"
-msgstr ""
-
-msgid "Selected AMS type"
-msgstr ""
-
-msgid "The AMS type used for the current load/unload time estimation, stored as the AMS type enum value."
-msgstr ""
 
 msgid "Extruder switch time"
 msgstr "Время переключения экструдера"

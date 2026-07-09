@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-08 18:42+0800\n"
+"POT-Creation-Date: 2026-07-09 22:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -288,7 +288,7 @@ msgid "TPU High Flow"
 msgstr "TPUハイフロー"
 
 msgid "E3D High Flow"
-msgstr ""
+msgstr "E3Dハイフロー"
 
 msgid "Unknown"
 msgstr "不明"
@@ -1950,9 +1950,12 @@ msgid ""
 "\n"
 "Do you want to continue?"
 msgstr ""
+"この操作ではモデルのメッシュを再構築します。塗装した色、サポート、シーム、ファジースキンは、可能な限り近似して新しいメッシュに転送されるため、結果に多少のずれが生じたり、まれに一部の塗装が失われたりする場合があります。\n"
+"\n"
+"続行しますか？"
 
 msgid "Painting may change"
-msgstr ""
+msgstr "塗装が変わる可能性があります"
 
 msgid "BambuStudio configuration file read failed. Please manually backup and delete it, and then restart BambuStudio software."
 msgstr "BambuStudioの設定ファイルの読み取りに失敗しました。バックアップと削除を行い、手動でBambuStudioソフトウェアを再起動してください。"
@@ -2499,6 +2502,12 @@ msgstr "選択したプレートを削除"
 msgid "Move Plate"
 msgstr "プレートを移動"
 
+msgid "Split to objects"
+msgstr "オブジェクトに分割"
+
+msgid "Split the selected objects into multiple objects"
+msgstr ""
+
 msgid "Clone"
 msgstr "複製"
 
@@ -2962,7 +2971,7 @@ msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatica
 msgstr "AMSスロットを選択し、「ロード」または「アンロード」ボタンを押すと、フィラメントを自動で装填または取り外します。"
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
-msgstr ""
+msgstr "この操作を実行するために必要なフィラメントの種類が不明です。対象フィラメントの情報を設定してください。"
 
 msgid "/"
 msgstr "/"
@@ -3175,7 +3184,7 @@ msgid "Apply final assembly pose"
 msgstr "最終アセンブリポーズを適用"
 
 msgid "The export file is in use by the system. Please close it or export with a different file name, then try again."
-msgstr ""
+msgstr "エクスポート先のファイルがシステムで使用中です。ファイルを閉じるか、別のファイル名でエクスポートしてから、再試行してください。"
 
 msgid "Export"
 msgstr "エクスポート"
@@ -3255,6 +3264,13 @@ msgstr "開始フレーム"
 
 msgid "transition frame"
 msgstr "トランジションフレーム"
+
+#, c-format, boost-format
+msgid "Step %d"
+msgstr ""
+
+msgid "not used in any assembly step"
+msgstr ""
 
 #, boost-format
 msgid "Plate %1%"
@@ -3527,6 +3543,15 @@ msgstr "検索"
 
 msgid "List"
 msgstr "リスト"
+
+msgid "Assembly list"
+msgstr ""
+
+msgid "Expand all objects"
+msgstr ""
+
+msgid "Collapse all objects"
+msgstr ""
 
 msgid "Select all parts in a step"
 msgstr "ステップ内のすべてのパーツを選択"
@@ -4547,6 +4572,8 @@ msgid ""
 "Should not large than 100%.\n"
 "Reset to default"
 msgstr ""
+"100%を超えることはできません。\n"
+"デフォルトに戻す"
 
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
@@ -5390,27 +5417,27 @@ msgstr "現在のスライス結果のグルーピングは最適ではありま
 
 #, boost-format
 msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr ""
+msgstr "最適なグループ化と比べて、%1%gのフィラメントを増加させ、%2%回のノズルパージを増加させます。"
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr ""
+msgstr "最適なグループ化と比べて、%1%gのフィラメントを増加させ、%2%回のノズルパージを節約します。"
 
 #, boost-format
 msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr ""
+msgstr "最適なグループ化と比べて、%1%gのフィラメントを節約し、%2%回のノズルパージを増加させます。"
 
 #, boost-format
 msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr ""
+msgstr "単一ノズルプリンターと比べて、%1%gのフィラメントを節約し、%2%回のノズルパージを節約します。"
 
 #, boost-format
 msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr ""
+msgstr "単一ノズルプリンターと比べて、%1%gのフィラメントを節約し、%2%回のノズルパージを増加させます。"
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr ""
+msgstr "単一ノズルプリンターと比べて、%1%gのフィラメントを増加させ、%2%回のノズルパージを節約します。"
 
 msgid "Set to Optimal"
 msgstr "最適に設定"
@@ -5646,9 +5673,6 @@ msgstr "全てをレイアウト"
 
 msgid "Arrange objects on selected plates"
 msgstr "選択したプレートをレイアウト"
-
-msgid "Split to objects"
-msgstr "オブジェクトに分割"
 
 msgid "And it is valid when there are at least two parts in object or stl has at least two meshes."
 msgstr "また、オブジェクトに2つ以上のパーツがあるか、またはSTLファイルに2つ以上のメッシュが含まれている場合に有効です。"
@@ -7669,8 +7693,11 @@ msgstr "フィラメント設定"
 msgid "Printer settings"
 msgstr "プリンター設定"
 
-msgid "Remove current plate (if not last one)"
-msgstr "現在のプレートを削除（最後の1枚を除く）"
+msgid "At least one plate is required"
+msgstr ""
+
+msgid "Remove current plate"
+msgstr ""
 
 msgid "Auto orient objects on current plate"
 msgstr "現在のプレート上のオブジェクトを自動で向き調整"
@@ -7814,7 +7841,7 @@ msgid "There are unset nozzle types. Please set the nozzle types of all extruder
 msgstr "ノズルの種類が未設定です。同期前にすべての押出機のノズルタイプを設定してください。"
 
 msgid "Sync extruder information"
-msgstr ""
+msgstr "押出機情報の同期"
 
 msgid ""
 "Tips:\n"
@@ -9473,9 +9500,6 @@ msgstr "常温プレート SuperTack"
 msgid "Send print job"
 msgstr "印刷ジョブを送信"
 
-msgid "The current estimated time has been recalculated based on the actual filament mapping."
-msgstr ""
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "フィラメントのグループ分けに満足していませんか？再グループ化してスライスしてください。->"
 
@@ -10417,18 +10441,6 @@ msgstr "パージモード：高速"
 msgid "Printable space"
 msgstr "造形可能領域"
 
-msgid "AMS filament load/unload"
-msgstr ""
-
-msgid "s"
-msgstr "s"
-
-msgid "Filament load time"
-msgstr "フィラメントロード時間"
-
-msgid "Filament unload time"
-msgstr "フィラメントアンロード時間"
-
 msgid "Extruder Clearance"
 msgstr "押出機クリアランス"
 
@@ -10558,11 +10570,11 @@ msgid "No modifications need to be copied."
 msgstr "コピーする必要のある変更はありません。"
 
 msgid "Copy parameters"
-msgstr ""
+msgstr "パラメータをコピー"
 
 #, c-format, boost-format
 msgid "Modify parameters of %s"
-msgstr ""
+msgstr "%sのパラメーターを変更"
 
 #, c-format, boost-format
 msgid "Do you want to modify the following parameters of the %s to that of the %s?"
@@ -12619,6 +12631,9 @@ msgstr "プリスタートファン時間"
 msgid "Force fan start early(0-5 second) when encountering overhangs. This is because the fan needs time to physically increase its speed."
 msgstr "オーバーハングに遭遇した際に、ファンを早めに起動（0～5秒）させます。これは、ファンが物理的に回転速度を上げるのに時間がかかるためです。"
 
+msgid "s"
+msgstr "s"
+
 msgid "Cooling overhang threshold"
 msgstr "オーバーハングの冷却閾値"
 
@@ -13156,7 +13171,7 @@ msgid "Enable pressure advance"
 msgstr "圧力進行を有効にする"
 
 msgid "Enable pressure advance, auto calibration result will be overwritten once enabled. Useless for Bambu Printer"
-msgstr ""
+msgstr "プレッシャーアドバンスを有効にします。有効にすると、自動キャリブレーション結果が上書きされます。Bambuプリンターでは無効です"
 
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for Bambu Printer"
 msgstr "圧力進行（Klipper）、別名リニアアドバンスファクター（Marlin）。Bambuプリンタには無効です。"
@@ -13263,29 +13278,17 @@ msgstr "プライムタワー上最小フラッシュ量"
 msgid "mm³"
 msgstr "mm³"
 
+msgid "Filament load time"
+msgstr "フィラメントロード時間"
+
 msgid "Time to load new filament when switch filament. For statistics only"
 msgstr "フィラメント切り替え時の新しいフィラメントのロード時間です（統計用のみ）。"
 
+msgid "Filament unload time"
+msgstr "フィラメントアンロード時間"
+
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "フィラメント切り替え時の古いフィラメントのアンロード時間です（統計用のみ）。"
-
-msgid "AMS filament load time"
-msgstr ""
-
-msgid "Filament load time of each AMS type, indexed by the AMS type enum value. For statistics only"
-msgstr ""
-
-msgid "AMS filament unload time"
-msgstr ""
-
-msgid "Filament unload time of each AMS type, indexed by the AMS type enum value. For statistics only"
-msgstr ""
-
-msgid "Selected AMS type"
-msgstr ""
-
-msgid "The AMS type used for the current load/unload time estimation, stored as the AMS type enum value."
-msgstr ""
 
 msgid "Extruder switch time"
 msgstr "エクストルーダーの切り替え時間"
@@ -16933,7 +16936,7 @@ msgid "Could not connect to Duet"
 msgstr "Duetに接続できませんでした"
 
 msgid "Unknown error occurred"
-msgstr ""
+msgstr "不明なエラーが発生しました"
 
 msgid "Wrong password"
 msgstr "パスワードが正しくありません"
@@ -17198,7 +17201,7 @@ msgid "Helio: Presigned URL Created"
 msgstr "Helio：署名付きURLを作成しました"
 
 msgid "Helio: file successfully uploaded"
-msgstr ""
+msgstr "Helio：ファイルを正常にアップロード"
 
 msgid "Helio: file upload failed"
 msgstr "Helio：ファイルのアップロードに失敗しました"
@@ -17384,15 +17387,15 @@ msgstr "コンテンツなし"
 
 #, c-format, boost-format
 msgid "Printer presets (%d)"
-msgstr ""
+msgstr "プリンタープリセット（%d）"
 
 #, c-format, boost-format
 msgid "Filament presets (%d)"
-msgstr ""
+msgstr "フィラメントプリセット（%d）"
 
 #, c-format, boost-format
 msgid "Process presets (%d)"
-msgstr ""
+msgstr "プロセスプリセット（%d）"
 
 #, c-format, boost-format
 msgid "%u Selected"
@@ -17849,7 +17852,7 @@ msgid "Print Outcome: "
 msgstr "造形結果："
 
 msgid "Click to edit ratio"
-msgstr ""
+msgstr "クリックして比率を編集"
 
 msgid "Edit Mixed Filament"
 msgstr "混合フィラメントを編集"
@@ -18204,6 +18207,9 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Remove current plate (if not last one)"
+#~ msgstr "現在のプレートを削除（最後の1枚を除く）"
 
 #~ msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 #~ msgstr "この操作にはフィラメントの種類が必要です。対象フィラメントの情報を設定してください。"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-08 18:42+0800\n"
+"POT-Creation-Date: 2026-07-09 22:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -288,7 +288,7 @@ msgid "TPU High Flow"
 msgstr ""
 
 msgid "E3D High Flow"
-msgstr ""
+msgstr "E3D Haut Débit"
 
 msgid "Unknown"
 msgstr "Inconnu"
@@ -755,7 +755,7 @@ msgid "Keep holding down Ctrl"
 msgstr "Maintenir Ctrl enfoncé"
 
 msgid "Select multiple objects"
-msgstr "sélectionnez tous les objets sur la plaque actuelle"
+msgstr "Sélectionner plusieurs objets"
 
 msgid "Keep holding down Alt"
 msgstr "Maintenir Alt enfoncé"
@@ -875,7 +875,7 @@ msgid "Rotate (absolute)"
 msgstr "Rotation (absolue)"
 
 msgid "Reset current rotation to real zeros."
-msgstr "Réinitialisez la rotation actuelle à zéro"
+msgstr "Réinitialise la rotation actuelle à des zéros réels."
 
 msgid "Part coordinates"
 msgstr "Coordonnées de la pièce"
@@ -890,7 +890,7 @@ msgid "Size"
 msgstr "Taille"
 
 msgid "uniform scale"
-msgstr "Échelle uniforme"
+msgstr "échelle uniforme"
 
 msgid "Part"
 msgstr "Pièce"
@@ -942,7 +942,7 @@ msgid "Plot cut plane"
 msgstr "Tracer plan de coupe"
 
 msgid "right click"
-msgstr "Clic droit"
+msgstr "clic droit"
 
 msgid "Assign the part to the other side"
 msgstr "Assignez la pièce à l'autre côté"
@@ -1819,10 +1819,10 @@ msgid "Scale also changes amount of curve samples (%1%)"
 msgstr "L’échelle modifie également la quantité d’échantillons de la courbe (%1%)."
 
 msgid "set width and height keep ratio with width"
-msgstr "Définissez la largeur et la hauteur pour conserver le rapport avec la largeur."
+msgstr "définir la largeur et la hauteur conserver le rapport avec la largeur"
 
 msgid "Width of SVG."
-msgstr "Largeur du SVG"
+msgstr "Largeur du SVG."
 
 msgid "Height of SVG."
 msgstr "Hauteur du SVG."
@@ -1884,7 +1884,7 @@ msgid "Some values have been replaced. Please check them:"
 msgstr "Certaines valeurs ont été remplacées. Veuillez les vérifier :"
 
 msgid "Process"
-msgstr "Traiter"
+msgstr "Processus"
 
 msgid "Filament"
 msgstr "Filament"
@@ -1951,9 +1951,12 @@ msgid ""
 "\n"
 "Do you want to continue?"
 msgstr ""
+"Cette opération reconstruit le maillage du modèle. La couleur, les supports, les coutures et la peau floue seront transférés au nouveau maillage par une approximation, ce qui peut entraîner de légères différences et, dans de rares cas, la perte de certaines couleurs.\n"
+"\n"
+"Voulez-vous continuer ?"
 
 msgid "Painting may change"
-msgstr ""
+msgstr "La peinture peut être différente"
 
 msgid "BambuStudio configuration file read failed. Please manually backup and delete it, and then restart BambuStudio software."
 msgstr "La lecture du fichier de configuration de BambuStudio a échoué. Veuillez le sauvegarder et le supprimer manuellement, puis redémarrer le logiciel BambuStudio."
@@ -2501,6 +2504,12 @@ msgstr "Supprimer la plaque sélectionnée"
 msgid "Move Plate"
 msgstr "Déplacer la Plaque"
 
+msgid "Split to objects"
+msgstr "Diviser en objets individuels"
+
+msgid "Split the selected objects into multiple objects"
+msgstr ""
+
 msgid "Clone"
 msgstr "Cloner"
 
@@ -2880,7 +2889,7 @@ msgid "Jump to Layer"
 msgstr "Aller à la couche"
 
 msgid "Please enter the layer number"
-msgstr "Veuillez entrer le numéro de couche."
+msgstr "Veuillez saisir le numéro de la couche"
 
 msgid "Add Pause"
 msgstr "Ajouter une Pause"
@@ -2970,7 +2979,7 @@ msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatica
 msgstr "Sélectionner un slot AMS, puis appuyez sur l'option choisi pour « Charger » ou « Décharger » le filament automatiquement."
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
-msgstr ""
+msgstr "Le type de filament est inconnu, information pourtant nécessaire pour effectuer cette action. Veuillez indiquer les informations du filament cible."
 
 msgid "/"
 msgstr "/"
@@ -3183,7 +3192,7 @@ msgid "Apply final assembly pose"
 msgstr "Appliquer la pose d'assemblage finale"
 
 msgid "The export file is in use by the system. Please close it or export with a different file name, then try again."
-msgstr ""
+msgstr "Le fichier d'exportation est en cours d'utilisation par le système. Veuillez le fermer ou exporter sous un autre nom, puis réessayer."
 
 msgid "Export"
 msgstr "Exporter"
@@ -3263,6 +3272,13 @@ msgstr "image initiale"
 
 msgid "transition frame"
 msgstr "image de transition"
+
+#, c-format, boost-format
+msgid "Step %d"
+msgstr ""
+
+msgid "not used in any assembly step"
+msgstr ""
 
 #, boost-format
 msgid "Plate %1%"
@@ -3535,6 +3551,15 @@ msgstr "Rechercher"
 
 msgid "List"
 msgstr "Liste"
+
+msgid "Assembly list"
+msgstr ""
+
+msgid "Expand all objects"
+msgstr ""
+
+msgid "Collapse all objects"
+msgstr ""
 
 msgid "Select all parts in a step"
 msgstr "Sélectionnez toutes les pièces d'une étape"
@@ -4556,6 +4581,8 @@ msgid ""
 "Should not large than 100%.\n"
 "Reset to default"
 msgstr ""
+"Ne doit pas dépasser 100 %.\n"
+"Réinitialiser"
 
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
@@ -5404,27 +5431,27 @@ msgstr "Le regroupement actuel du résultat de découpe n'est pas optimal."
 
 #, boost-format
 msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr ""
+msgstr "Augmentation de %1% g de filament et de %2% de purges de buse par rapport au regroupement optimal."
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr ""
+msgstr "Augmentation de %1% g de filament et économie de %2% de purges de buse par rapport au regroupement optimal."
 
 #, boost-format
 msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr ""
+msgstr "Économie de %1% g de filament et augmentation de %2% de purges de buse par rapport au regroupement optimal."
 
 #, boost-format
 msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr ""
+msgstr "Économie de %1% g de filament et de %2% de purges de buse par rapport à une imprimante à une seule buse."
 
 #, boost-format
 msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr ""
+msgstr "Économie de %1% g de filament et augmentation de %2% de purges de buse par rapport à une imprimante à une seule buse."
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr ""
+msgstr "Augmentation de %1% g de filament et économie de %2% de purges de buse par rapport à une imprimante à une seule buse."
 
 msgid "Set to Optimal"
 msgstr "Définir sur Optimal"
@@ -5658,9 +5685,6 @@ msgstr "Agencer tous les objets"
 
 msgid "Arrange objects on selected plates"
 msgstr "Agencer les objets sur les plaques sélectionnées"
-
-msgid "Split to objects"
-msgstr "Diviser en objets individuels"
 
 msgid "And it is valid when there are at least two parts in object or stl has at least two meshes."
 msgstr "Et il est valide lorsqu'il y a au moins deux parties dans l'objet ou que stl a au moins deux maillages."
@@ -7701,8 +7725,11 @@ msgstr "Réglages du filament"
 msgid "Printer settings"
 msgstr "Paramètres de l'imprimante"
 
-msgid "Remove current plate (if not last one)"
-msgstr "Retirer la plaque actuelle (si ce n'est pas la dernière)"
+msgid "At least one plate is required"
+msgstr ""
+
+msgid "Remove current plate"
+msgstr ""
 
 msgid "Auto orient objects on current plate"
 msgstr "Orientation automatique des objets sur la plaque actuelle"
@@ -7846,7 +7873,7 @@ msgid "There are unset nozzle types. Please set the nozzle types of all extruder
 msgstr "Les types de buse ne sont pas réglés. Veuillez régler les types de buse de toutes les extrudeuses avant de procéder à la synchronisation."
 
 msgid "Sync extruder information"
-msgstr ""
+msgstr "Synchroniser les informations de l'extrudeur"
 
 msgid ""
 "Tips:\n"
@@ -9510,9 +9537,6 @@ msgstr ""
 msgid "Send print job"
 msgstr "Envoi impression"
 
-msgid "The current estimated time has been recalculated based on the actual filament mapping."
-msgstr ""
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Regroupement des filaments insatisfaisant? Réorganisez et tranchez ->"
 
@@ -10456,18 +10480,6 @@ msgstr "Mode de purge : Rapide"
 msgid "Printable space"
 msgstr "Espace imprimable"
 
-msgid "AMS filament load/unload"
-msgstr ""
-
-msgid "s"
-msgstr "s"
-
-msgid "Filament load time"
-msgstr "Temps de chargement du filament"
-
-msgid "Filament unload time"
-msgstr "Temps de déchargement du filament"
-
 msgid "Extruder Clearance"
 msgstr "Dégagement de l'extrudeur"
 
@@ -10599,11 +10611,11 @@ msgid "No modifications need to be copied."
 msgstr "Aucune modification ne doit être copiée."
 
 msgid "Copy parameters"
-msgstr ""
+msgstr "Copier les paramètres"
 
 #, c-format, boost-format
 msgid "Modify parameters of %s"
-msgstr ""
+msgstr "Modifier les paramètres de %s"
 
 #, c-format, boost-format
 msgid "Do you want to modify the following parameters of the %s to that of the %s?"
@@ -12664,6 +12676,9 @@ msgstr "Temps de pré-démarrage du ventilateur"
 msgid "Force fan start early(0-5 second) when encountering overhangs. This is because the fan needs time to physically increase its speed."
 msgstr "Forcer le ventilateur à démarrer plus tôt (0-5 secondes) lorsqu'il rencontre des surplombs. En effet, le ventilateur a besoin de temps pour augmenter physiquement sa vitesse."
 
+msgid "s"
+msgstr "s"
+
 msgid "Cooling overhang threshold"
 msgstr "Ventiler les surplombs dépassant"
 
@@ -13130,7 +13145,7 @@ msgid "inner/outer"
 msgstr "int/ ext"
 
 msgid "outer/inner"
-msgstr "ext./int."
+msgstr "ext/ int"
 
 msgid "inner wall/outer wall/inner wall"
 msgstr "int/ ext/ int"
@@ -13199,7 +13214,7 @@ msgid "Enable pressure advance"
 msgstr "Activer l'avance à la pression"
 
 msgid "Enable pressure advance, auto calibration result will be overwritten once enabled. Useless for Bambu Printer"
-msgstr ""
+msgstr "Activez l'avance de pression, le résultat de l'étalonnage automatique sera remplacé une fois activé. Inutile pour les Imprimantes Bambu"
 
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for Bambu Printer"
 msgstr "Pressure advance (Klipper) ou Linear advance factor (Marlin). Inutile pour les imprimantes Bambu"
@@ -13306,29 +13321,17 @@ msgstr "Purge minimale sur la tour d'essuyage"
 msgid "mm³"
 msgstr "mm³"
 
+msgid "Filament load time"
+msgstr "Temps de chargement du filament"
+
 msgid "Time to load new filament when switch filament. For statistics only"
 msgstr "Temps de chargement d'un nouveau filament. À des fins statistiques uniquement"
 
+msgid "Filament unload time"
+msgstr "Temps de déchargement du filament"
+
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "Temps de déchargement d'un filament. À des fins statistiques uniquement"
-
-msgid "AMS filament load time"
-msgstr ""
-
-msgid "Filament load time of each AMS type, indexed by the AMS type enum value. For statistics only"
-msgstr ""
-
-msgid "AMS filament unload time"
-msgstr ""
-
-msgid "Filament unload time of each AMS type, indexed by the AMS type enum value. For statistics only"
-msgstr ""
-
-msgid "Selected AMS type"
-msgstr ""
-
-msgid "The AMS type used for the current load/unload time estimation, stored as the AMS type enum value."
-msgstr ""
 
 msgid "Extruder switch time"
 msgstr "Temps de commutation de l'extrudeuse"
@@ -16964,7 +16967,7 @@ msgid "Could not connect to Duet"
 msgstr "Impossible de se connecter à Duet"
 
 msgid "Unknown error occurred"
-msgstr ""
+msgstr "Une erreur inconnue s'est produite"
 
 msgid "Wrong password"
 msgstr "Mot de passe incorrect"
@@ -17229,7 +17232,7 @@ msgid "Helio: Presigned URL Created"
 msgstr "Helio : URL pré-signée créée"
 
 msgid "Helio: file successfully uploaded"
-msgstr ""
+msgstr "Helio : fichier envoyé avec succès"
 
 msgid "Helio: file upload failed"
 msgstr "Helio : échec de l'envoi"
@@ -17415,15 +17418,15 @@ msgstr "Aucun contenu"
 
 #, c-format, boost-format
 msgid "Printer presets (%d)"
-msgstr ""
+msgstr "Préréglages d'imprimante (%d)"
 
 #, c-format, boost-format
 msgid "Filament presets (%d)"
-msgstr ""
+msgstr "Préréglages de filament (%d)"
 
 #, c-format, boost-format
 msgid "Process presets (%d)"
-msgstr ""
+msgstr "Préréglages de processus (%d)"
 
 #, c-format, boost-format
 msgid "%u Selected"
@@ -17880,7 +17883,7 @@ msgid "Print Outcome: "
 msgstr "Résultat d'Impression : "
 
 msgid "Click to edit ratio"
-msgstr ""
+msgstr "Cliquez pour éditer le ratio"
 
 msgid "Edit Mixed Filament"
 msgstr "Modifier le Mélange de Filaments"
@@ -18238,6 +18241,9 @@ msgid ""
 msgstr ""
 "Fiabilité Garantie du Premier Coup\n"
 "Moins de surveillance, une production plus prévisible. Exemple : une petite exploitation agricole produisant des pièces en PETG évite les mauvaises surprises \"panne au bout de 6 h\" et respecte les délais de production."
+
+#~ msgid "Remove current plate (if not last one)"
+#~ msgstr "Retirer la plaque actuelle (si ce n'est pas la dernière)"
 
 #~ msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 #~ msgstr "Le type de filament requis pour effectuer cette action est inconnu. Veuillez définir les informations du filament cible."

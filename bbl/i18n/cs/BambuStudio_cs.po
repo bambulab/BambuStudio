@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-08 18:42+0800\n"
+"POT-Creation-Date: 2026-07-09 22:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -2512,6 +2512,12 @@ msgstr "Odstranit vybranou podložku"
 msgid "Move Plate"
 msgstr "Přesunout podložku"
 
+msgid "Split to objects"
+msgstr "Rozdělit na objekty"
+
+msgid "Split the selected objects into multiple objects"
+msgstr ""
+
 msgid "Clone"
 msgstr "Klonovat"
 
@@ -3278,6 +3284,13 @@ msgstr ""
 msgid "transition frame"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Step %d"
+msgstr ""
+
+msgid "not used in any assembly step"
+msgstr ""
+
 #, boost-format
 msgid "Plate %1%"
 msgstr ""
@@ -3548,6 +3561,15 @@ msgid "Search"
 msgstr "Hledat"
 
 msgid "List"
+msgstr ""
+
+msgid "Assembly list"
+msgstr ""
+
+msgid "Expand all objects"
+msgstr ""
+
+msgid "Collapse all objects"
 msgstr ""
 
 msgid "Select all parts in a step"
@@ -5725,9 +5747,6 @@ msgstr "Uspořádat všechny objekty"
 msgid "Arrange objects on selected plates"
 msgstr "Uspořádat objekty na vybraných podložkách"
 
-msgid "Split to objects"
-msgstr "Rozdělit na objekty"
-
 msgid "And it is valid when there are at least two parts in object or stl has at least two meshes."
 msgstr "A je to platné, pokud jsou v objektu alespoň dvě části nebo má STL alespoň dvě sítě."
 
@@ -7778,8 +7797,11 @@ msgstr "Nastavení filamentu"
 msgid "Printer settings"
 msgstr "Nastavení tiskárny"
 
-msgid "Remove current plate (if not last one)"
-msgstr "Odebrat aktuální podložku (pokud není poslední)"
+msgid "At least one plate is required"
+msgstr ""
+
+msgid "Remove current plate"
+msgstr ""
 
 msgid "Auto orient objects on current plate"
 msgstr "Automaticky orientovat objekty na aktuální podložce"
@@ -9607,9 +9629,6 @@ msgstr "Bambu Cool Plate SuperTack"
 msgid "Send print job"
 msgstr "Odeslat tiskovou úlohu"
 
-msgid "The current estimated time has been recalculated based on the actual filament mapping."
-msgstr ""
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Nejste spokojeni se seskupením filamentů? Přeskupte a proveďte řez ->"
 
@@ -10552,18 +10571,6 @@ msgstr ""
 
 msgid "Printable space"
 msgstr "Tisknutelný prostor"
-
-msgid "AMS filament load/unload"
-msgstr ""
-
-msgid "s"
-msgstr "s"
-
-msgid "Filament load time"
-msgstr "Doba zavedení filamentu"
-
-msgid "Filament unload time"
-msgstr "Doba vysunutí filamentu"
 
 msgid "Extruder Clearance"
 msgstr "Vzdálenost extruderu"
@@ -12773,6 +12780,9 @@ msgstr "Doba před spuštěním ventilátoru"
 msgid "Force fan start early(0-5 second) when encountering overhangs. This is because the fan needs time to physically increase its speed."
 msgstr "Vynutit předčasné spuštění ventilátoru (0–5 sekund) při detekci převisů. Je to proto, že ventilátor potřebuje čas na fyzické navýšení své rychlosti."
 
+msgid "s"
+msgstr "s"
+
 msgid "Cooling overhang threshold"
 msgstr "Prahová hodnota chlazení převisů"
 
@@ -13422,29 +13432,17 @@ msgstr "Minimální vytlačení na čisticí věži"
 msgid "mm³"
 msgstr "mm³"
 
+msgid "Filament load time"
+msgstr "Doba zavedení filamentu"
+
 msgid "Time to load new filament when switch filament. For statistics only"
 msgstr "Čas potřebný k zavedení nového filamentu při výměně filamentu. Pouze pro statistické účely"
 
+msgid "Filament unload time"
+msgstr "Doba vysunutí filamentu"
+
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "Čas potřebný k vysunutí starého filamentu při výměně filamentu. Pouze pro statistické účely"
-
-msgid "AMS filament load time"
-msgstr ""
-
-msgid "Filament load time of each AMS type, indexed by the AMS type enum value. For statistics only"
-msgstr ""
-
-msgid "AMS filament unload time"
-msgstr ""
-
-msgid "Filament unload time of each AMS type, indexed by the AMS type enum value. For statistics only"
-msgstr ""
-
-msgid "Selected AMS type"
-msgstr ""
-
-msgid "The AMS type used for the current load/unload time estimation, stored as the AMS type enum value."
-msgstr ""
 
 msgid "Extruder switch time"
 msgstr "Čas přepnutí extruderu"
@@ -18436,6 +18434,9 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid "Remove current plate (if not last one)"
+#~ msgstr "Odebrat aktuální podložku (pokud není poslední)"
 
 #~ msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 #~ msgstr "Typ filamentu není znám, což je pro provedení této akce vyžadováno. Nastavte prosím údaje o cílovém filamentu."

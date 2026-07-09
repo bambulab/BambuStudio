@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-08 18:42+0800\n"
+"POT-Creation-Date: 2026-07-09 22:02+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2497,6 +2497,12 @@ msgstr "刪除所選盤"
 msgid "Move Plate"
 msgstr "移動盤"
 
+msgid "Split to objects"
+msgstr "拆分為物件"
+
+msgid "Split the selected objects into multiple objects"
+msgstr ""
+
 msgid "Clone"
 msgstr "克隆"
 
@@ -3253,6 +3259,13 @@ msgstr ""
 msgid "transition frame"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Step %d"
+msgstr ""
+
+msgid "not used in any assembly step"
+msgstr ""
+
 #, boost-format
 msgid "Plate %1%"
 msgstr ""
@@ -3523,6 +3536,15 @@ msgid "Search"
 msgstr "搜尋"
 
 msgid "List"
+msgstr ""
+
+msgid "Assembly list"
+msgstr ""
+
+msgid "Expand all objects"
+msgstr ""
+
+msgid "Collapse all objects"
 msgstr ""
 
 msgid "Select all parts in a step"
@@ -5635,9 +5657,6 @@ msgstr "全域性整理"
 msgid "Arrange objects on selected plates"
 msgstr "單盤整理"
 
-msgid "Split to objects"
-msgstr "拆分為物件"
-
 msgid "And it is valid when there are at least two parts in object or stl has at least two meshes."
 msgstr "並且當物件中存在至少兩個零件或者stl中存在至少兩個面網格，這個功能是有效的。"
 
@@ -7661,8 +7680,11 @@ msgstr "耗材絲設定"
 msgid "Printer settings"
 msgstr "印表機設定"
 
-msgid "Remove current plate (if not last one)"
-msgstr "刪除當前盤(如果不是最後一個)"
+msgid "At least one plate is required"
+msgstr ""
+
+msgid "Remove current plate"
+msgstr ""
 
 msgid "Auto orient objects on current plate"
 msgstr "自動調整當前盤上的物件方向"
@@ -9464,9 +9486,6 @@ msgstr "增穩低溫列印板"
 msgid "Send print job"
 msgstr "傳送列印任務"
 
-msgid "The current estimated time has been recalculated based on the actual filament mapping."
-msgstr ""
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "對耗材左右分組不滿意？重新分組並切片 ->"
 
@@ -10398,18 +10417,6 @@ msgstr ""
 
 msgid "Printable space"
 msgstr "可列印區域"
-
-msgid "AMS filament load/unload"
-msgstr ""
-
-msgid "s"
-msgstr "秒"
-
-msgid "Filament load time"
-msgstr "載入耗材絲的時間"
-
-msgid "Filament unload time"
-msgstr "解除安裝耗材絲的時間"
 
 msgid "Extruder Clearance"
 msgstr "擠出機避讓空間"
@@ -12602,6 +12609,9 @@ msgstr "風扇預啟動時間"
 msgid "Force fan start early(0-5 second) when encountering overhangs. This is because the fan needs time to physically increase its speed."
 msgstr "遇到懸垂結構時，因為風扇需要時間來提升轉速，提前啟動風扇（0-5秒）。"
 
+msgid "s"
+msgstr "秒"
+
 msgid "Cooling overhang threshold"
 msgstr "冷卻懸空閾值"
 
@@ -13240,29 +13250,17 @@ msgstr "擦料塔上的最小清理量"
 msgid "mm³"
 msgstr "mm³"
 
+msgid "Filament load time"
+msgstr "載入耗材絲的時間"
+
 msgid "Time to load new filament when switch filament. For statistics only"
 msgstr "切換耗材絲時，載入新耗材絲所需的時間。只用於統計資訊。"
 
+msgid "Filament unload time"
+msgstr "解除安裝耗材絲的時間"
+
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "切換耗材絲時，解除安裝舊的耗材絲所需時間。只用於統計資訊。"
-
-msgid "AMS filament load time"
-msgstr ""
-
-msgid "Filament load time of each AMS type, indexed by the AMS type enum value. For statistics only"
-msgstr ""
-
-msgid "AMS filament unload time"
-msgstr ""
-
-msgid "Filament unload time of each AMS type, indexed by the AMS type enum value. For statistics only"
-msgstr ""
-
-msgid "Selected AMS type"
-msgstr ""
-
-msgid "The AMS type used for the current load/unload time estimation, stored as the AMS type enum value."
-msgstr ""
 
 msgid "Extruder switch time"
 msgstr "擠出機切換時間"
@@ -18152,6 +18150,9 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#~ msgid "Remove current plate (if not last one)"
+#~ msgstr "刪除當前盤(如果不是最後一個)"
 
 #~ msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 #~ msgstr "執行此操作的耗材型別未知。請設定槽位資訊。"

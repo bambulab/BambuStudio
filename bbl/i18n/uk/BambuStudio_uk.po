@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-08 18:42+0800\n"
+"POT-Creation-Date: 2026-07-09 22:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -2493,6 +2493,12 @@ msgstr "Видалити вибрану пластину"
 msgid "Move Plate"
 msgstr ""
 
+msgid "Split to objects"
+msgstr "Розділити на об'єкти"
+
+msgid "Split the selected objects into multiple objects"
+msgstr ""
+
 msgid "Clone"
 msgstr "Клонування"
 
@@ -3258,6 +3264,13 @@ msgstr ""
 msgid "transition frame"
 msgstr ""
 
+#, c-format, boost-format
+msgid "Step %d"
+msgstr ""
+
+msgid "not used in any assembly step"
+msgstr ""
+
 #, boost-format
 msgid "Plate %1%"
 msgstr ""
@@ -3528,6 +3541,15 @@ msgid "Search"
 msgstr "Пошук"
 
 msgid "List"
+msgstr ""
+
+msgid "Assembly list"
+msgstr ""
+
+msgid "Expand all objects"
+msgstr ""
+
+msgid "Collapse all objects"
 msgstr ""
 
 msgid "Select all parts in a step"
@@ -5643,9 +5665,6 @@ msgstr "Упорядкувати всі об'єкти"
 msgid "Arrange objects on selected plates"
 msgstr "Розставити об'єкти на столі"
 
-msgid "Split to objects"
-msgstr "Розділити на об'єкти"
-
 msgid "And it is valid when there are at least two parts in object or stl has at least two meshes."
 msgstr "Це дійсно, коли є принаймні дві частини в об’єкті або STL має принаймні дві сітки."
 
@@ -7678,7 +7697,10 @@ msgstr "Налаштування філаменту"
 msgid "Printer settings"
 msgstr "Налаштування принтера"
 
-msgid "Remove current plate (if not last one)"
+msgid "At least one plate is required"
+msgstr ""
+
+msgid "Remove current plate"
 msgstr ""
 
 msgid "Auto orient objects on current plate"
@@ -9441,9 +9463,6 @@ msgstr "Bambu Cool Plate SuperTack"
 msgid "Send print job"
 msgstr ""
 
-msgid "The current estimated time has been recalculated based on the actual filament mapping."
-msgstr ""
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr ""
 
@@ -10365,18 +10384,6 @@ msgstr ""
 
 msgid "Printable space"
 msgstr "Місце для друку"
-
-msgid "AMS filament load/unload"
-msgstr ""
-
-msgid "s"
-msgstr "c"
-
-msgid "Filament load time"
-msgstr "Час завантаження філаменту"
-
-msgid "Filament unload time"
-msgstr "Час вивантаження філаменту"
 
 msgid "Extruder Clearance"
 msgstr "Очищення екструдера"
@@ -12560,6 +12567,9 @@ msgstr ""
 msgid "Force fan start early(0-5 second) when encountering overhangs. This is because the fan needs time to physically increase its speed."
 msgstr "Запустити вентилятор на 0-5 секунд раніше перед звисами. Вентилятору фізично потрібно більше часу щоб набрати швидкість."
 
+msgid "s"
+msgstr "c"
+
 msgid "Cooling overhang threshold"
 msgstr "Поріг охолоджувального звису"
 
@@ -13180,29 +13190,17 @@ msgstr "Мінімальна очистка на вежу очищення"
 msgid "mm³"
 msgstr "мм³"
 
+msgid "Filament load time"
+msgstr "Час завантаження філаменту"
+
 msgid "Time to load new filament when switch filament. For statistics only"
 msgstr "Час завантаження нового філаменту при перемиканні філаменту. Тільки для статистики"
 
+msgid "Filament unload time"
+msgstr "Час вивантаження філаменту"
+
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "Час вивантаження нового філаменту при перемиканні філаменту. Тільки для статистики"
-
-msgid "AMS filament load time"
-msgstr ""
-
-msgid "Filament load time of each AMS type, indexed by the AMS type enum value. For statistics only"
-msgstr ""
-
-msgid "AMS filament unload time"
-msgstr ""
-
-msgid "Filament unload time of each AMS type, indexed by the AMS type enum value. For statistics only"
-msgstr ""
-
-msgid "Selected AMS type"
-msgstr ""
-
-msgid "The AMS type used for the current load/unload time estimation, stored as the AMS type enum value."
-msgstr ""
 
 msgid "Extruder switch time"
 msgstr ""
