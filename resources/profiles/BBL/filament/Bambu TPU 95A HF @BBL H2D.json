@@ -17,9 +17,11 @@
     "filament_adaptive_volumetric_speed": [
         "0",
         "0",
+        "0",
         "0"
     ],
     "filament_bridge_speed": [
+        "25",
         "25",
         "25",
         "25"
@@ -27,14 +29,17 @@
     "filament_cooling_before_tower": [
         "10",
         "10",
+        "10",
         "10"
     ],
     "filament_deretraction_speed": [
         "10",
         "10",
-        "40"
+        "40",
+        "10"
     ],
     "filament_enable_overhang_speed": [
+        "1",
         "1",
         "1",
         "1"
@@ -42,14 +47,17 @@
     "filament_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow",
-        "Direct Drive TPU High Flow"
+        "Direct Drive TPU High Flow",
+        "Direct Drive E3D High Flow"
     ],
     "filament_flow_ratio": [
         "1",
         "1",
-        "0.99"
+        "0.99",
+        "1"
     ],
     "filament_flush_temp": [
+        "0",
         "0",
         "0",
         "0"
@@ -57,9 +65,11 @@
     "filament_flush_volumetric_speed": [
         "0",
         "0",
+        "0",
         "0"
     ],
     "filament_long_retractions_when_cut": [
+        "nil",
         "nil",
         "nil",
         "nil"
@@ -67,9 +77,11 @@
     "filament_max_volumetric_speed": [
         "12",
         "12",
-        "16"
+        "16",
+        "12"
     ],
     "filament_overhang_1_4_speed": [
+        "0",
         "0",
         "0",
         "0"
@@ -77,24 +89,29 @@
     "filament_overhang_2_4_speed": [
         "50",
         "50",
-        "25"
+        "25",
+        "50"
     ],
     "filament_overhang_3_4_speed": [
         "30",
         "30",
-        "25"
+        "25",
+        "30"
     ],
     "filament_overhang_4_4_speed": [
         "10",
         "10",
-        "25"
+        "25",
+        "10"
     ],
     "filament_overhang_totally_speed": [
         "10",
         "10",
-        "25"
+        "25",
+        "10"
     ],
     "filament_pre_cooling_temperature": [
+        "200",
         "200",
         "200",
         "200"
@@ -102,9 +119,11 @@
     "filament_pre_cooling_temperature_nc": [
         "0",
         "0",
+        "0",
         "0"
     ],
     "filament_preheat_temperature_delta": [
+        "20",
         "20",
         "20",
         "20"
@@ -112,9 +131,11 @@
     "filament_ramming_travel_time": [
         "20",
         "20",
+        "20",
         "20"
     ],
     "filament_ramming_travel_time_nc": [
+        "0",
         "0",
         "0",
         "0"
@@ -122,9 +143,11 @@
     "filament_ramming_volumetric_speed": [
         "3.0",
         "3.0",
+        "3.0",
         "3.0"
     ],
     "filament_ramming_volumetric_speed_nc": [
+        "-1",
         "-1",
         "-1",
         "-1"
@@ -132,9 +155,11 @@
     "filament_retract_before_wipe": [
         "nil",
         "nil",
+        "nil",
         "nil"
     ],
     "filament_retract_length_nc": [
+        "14",
         "14",
         "14",
         "14"
@@ -142,9 +167,11 @@
     "filament_retract_restart_extra": [
         "nil",
         "nil",
+        "nil",
         "nil"
     ],
     "filament_retract_when_changing_layer": [
+        "nil",
         "nil",
         "nil",
         "nil"
@@ -152,14 +179,17 @@
     "filament_retraction_distances_when_cut": [
         "nil",
         "nil",
+        "nil",
         "nil"
     ],
     "filament_retraction_length": [
         "2",
         "2",
-        "0.4"
+        "0.4",
+        "2"
     ],
     "filament_retraction_minimum_travel": [
+        "nil",
         "nil",
         "nil",
         "nil"
@@ -167,19 +197,23 @@
     "filament_retraction_speed": [
         "10",
         "10",
-        "40"
+        "40",
+        "10"
     ],
     "filament_wipe": [
         "nil",
         "nil",
-        "1"
+        "1",
+        "nil"
     ],
     "filament_wipe_distance": [
         "nil",
         "nil",
-        "1"
+        "1",
+        "nil"
     ],
     "filament_z_hop": [
+        "nil",
         "nil",
         "nil",
         "nil"
@@ -187,7 +221,8 @@
     "filament_z_hop_types": [
         "nil",
         "nil",
-        "Spiral Lift"
+        "Spiral Lift",
+        "nil"
     ],
     "include": [
         "fdm_filament_template_direct_dual_e3d"
@@ -195,24 +230,29 @@
     "long_retractions_when_ec": [
         "1",
         "1",
+        "1",
         "1"
     ],
     "nozzle_temperature": [
         "230",
         "230",
-        "235"
+        "235",
+        "230"
     ],
     "nozzle_temperature_initial_layer": [
         "230",
         "230",
-        "235"
+        "235",
+        "230"
     ],
     "override_process_overhang_speed": [
         "0",
         "0",
-        "1"
+        "1",
+        "0"
     ],
     "retraction_distances_when_ec": [
+        "0",
         "0",
         "0",
         "0"
@@ -220,9 +260,11 @@
     "slow_down_min_speed": [
         "10",
         "10",
-        "30"
+        "30",
+        "10"
     ],
     "volumetric_speed_coefficients": [
+        "0 0 0 0 0 0",
         "0 0 0 0 0 0",
         "0 0 0 0 0 0",
         "0 0 0 0 0 0"
