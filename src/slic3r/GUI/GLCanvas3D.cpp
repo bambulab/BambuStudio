@@ -1715,10 +1715,10 @@ void GLCanvas3D::on_change_color_mode(bool is_dark, bool reinit) {
     // DailyTips Window
     wxGetApp().plater()->get_dailytips()->on_change_color_mode(is_dark);
     // Preview Slider
-    IMSlider* m_layers_slider = get_gcode_viewer().get_layers_slider();
-    IMSlider* m_moves_slider = get_gcode_viewer().get_moves_slider();
-    m_layers_slider->on_change_color_mode(is_dark);
-    m_moves_slider->on_change_color_mode(is_dark);
+    IMSlider *layers_slider = get_gcode_viewer().get_layers_slider();
+    IMSlider *moves_slider  = get_gcode_viewer().get_moves_slider();
+    if (layers_slider) layers_slider->on_change_color_mode(is_dark);
+    if (moves_slider) moves_slider->on_change_color_mode(is_dark);
     // Partplate
     wxGetApp().plater()->get_partplate_list().on_change_color_mode(is_dark);
 
