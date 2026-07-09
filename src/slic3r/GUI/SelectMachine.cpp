@@ -68,6 +68,11 @@
 
 #define S_RACK_NOZZLE_NOT_ENOUGH   _L("There are not enough available hotends currently.")
 #define S_RACK_NOZZLE_NO_MATCHED   _L("No hotends available.")
+#define S_RACK_NO_AVAILABLE_HOTEND _L("No PrintTool available. Please install a compatible tool and try again.")
+#define S_RACK_HOTEND_LOST         _L("PrintTool detached. Please install before printing.")
+#define S_RACK_CUTTER_LOST         _L("CutTool detached. Please install before printing.")
+#define S_RACK_PEN_LOST            _L("DrawTool detached. Please install before printing.")
+#define S_RACK_DOCKING_CALI_NOT    _L("None of the current tools have completed Docking Calibration. Please calibrate and try again.")
 
 #define S_RACK_NOZZLE_SUGEEST_CALI         _L("Please complete the hotend rack setup and try again.")
 #define S_RACK_NOZZLE_SUGEEST_REFRESH      _L("Please refresh the nozzle information and try again.")
@@ -2142,6 +2147,12 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     } else if (status == PrintDialogStatus::PrintStatusRackReading ||
+               status == PrintDialogStatus::PrintStatusRackMoving ||
+               status == PrintDialogStatus::PrintStatusNoAvailableHotend ||
+               status == PrintDialogStatus::PrintStatusHotendLost ||
+               status == PrintDialogStatus::PrintStatusCutterLost ||
+               status == PrintDialogStatus::PrintStatusPenLost ||
+               status == PrintDialogStatus::PrintStatusNoneHotendDockingCali ||
                status == PrintDialogStatus::PrintStatusNozzleNoMatchedHotends ||
                status == PrintDialogStatus::PrintStatusNozzleRackMaximumInstalled ||
                status == PrintDialogStatus::PrintStatusRackNozzleMappingWaiting) {
@@ -5774,7 +5785,8 @@ bool SelectMachineDialog::CheckErrorRackStatus(MachineObject* obj_)
         return true;
     }
 
-    auto rack = obj_->GetNozzleSystem()->GetNozzleRack();
+    const auto& nozzle_sys = obj_->GetNozzleSystem();
+    const auto& rack = nozzle_sys->GetNozzleRack();
     if (!rack->IsSupported()) {
         return true;
     }
@@ -5782,6 +5794,91 @@ bool SelectMachineDialog::CheckErrorRackStatus(MachineObject* obj_)
     if (rack->GetReadingCount() > 0) {
         const wxString& msg = wxString::Format(_L("Refreshing information of hotends(%d/%d)."), rack->GetReadingIdx(), rack->GetReadingCount());
         show_status(PrintStatusRackReading, { msg + " " + _L("Please wait a moment...")});
+        return false;
+    }
+
+    // Block printing while the tool rack is in an auto tool-change / moving state.
+    // Only busy states (1..11) are treated as such; UNKNOWN(-1) is skipped so a
+    // machine that has not reported its rack status yet is not blocked forever.
+    if (rack->GetStatus() > DevNozzleRack::RACK_STATUS_IDLE) {
+        show_status(PrintStatusRackMoving, { _L("PrintToolRack moving, please wait.") });
+        return false;
+    }
+
+    const auto rack_type = rack->GetRackType();
+    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B) {
+        return true;
+    }
+
+    // Block printing when the whole machine has no usable hotend at all: neither the
+    // toolhead (extruder) nor any rack slot holds a Nozzle-kind tool (a rack full of
+    // cutter/pen/laser tools would otherwise pass the slicing-based checks with a
+    // confusing message). RackType_AB machines already cover this via
+    // CheckErrorExtruderNozzleWithSlicing.
+    auto has_hotend = [](const std::map<int, DevNozzle>& nozzles) {
+        for (const auto& item : nozzles) {
+            if (item.second.IsExist() && item.second.IsHotend()) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    if (!has_hotend(nozzle_sys->GetExtNozzles()) && !has_hotend(nozzle_sys->GetRackNozzles())) {
+        show_status(PrintDialogStatus::PrintStatusNoAvailableHotend, { S_RACK_NO_AVAILABLE_HOTEND }, wxEmptyString, prePrintInfoStyle::NozzleState);
+        return false;
+    }
+
+    // Block printing when any rack slot reports a detached tool
+    // (hc connected but exist=false). Hotend / cutter / pen are reported as
+    // three separate errors when multiple kinds are lost at once.
+    bool hotend_lost = false;
+    bool cutter_lost = false;
+    bool pen_lost = false;
+
+    for (const auto& item : nozzle_sys->GetRackNozzles()) {
+        if (!item.second.IsToolLostInHolder()) {
+            continue;
+        }
+        switch (item.second.GetToolKind()) {
+        case DevNozzle::NozzleToolKind::Hotend:
+            hotend_lost = true;
+            break;
+        case DevNozzle::NozzleToolKind::Cutter:
+            cutter_lost = true;
+            break;
+        case DevNozzle::NozzleToolKind::Pen:
+            pen_lost = true;
+            break;
+        default:
+            // Unknown lost tool still needs to block print; treat as hotend.
+            hotend_lost = true;
+            break;
+        }
+    }
+
+    if (hotend_lost) {
+        show_status(PrintDialogStatus::PrintStatusHotendLost, { S_RACK_HOTEND_LOST },
+                    wxEmptyString, prePrintInfoStyle::NozzleState);
+    }
+    if (cutter_lost) {
+        show_status(PrintDialogStatus::PrintStatusCutterLost, { S_RACK_CUTTER_LOST },
+                    wxEmptyString, prePrintInfoStyle::NozzleState);
+    }
+    if (pen_lost) {
+        show_status(PrintDialogStatus::PrintStatusPenLost, { S_RACK_PEN_LOST },
+                    wxEmptyString, prePrintInfoStyle::NozzleState);
+    }
+    if (hotend_lost || cutter_lost || pen_lost) {
+        return false;
+    }
+
+    // Block printing when no rack slot has completed docking calibration.
+    // holder.info2 bit0 is "any slot uncalibrated"; bits[5..20] are per-slot detail
+    // and are used here so we only block when ALL slots are uncalibrated.
+    if (!rack->HasHotendSlotDockingCalibrated()) {
+        show_status(PrintDialogStatus::PrintStatusNoneHotendDockingCali, { S_RACK_DOCKING_CALI_NOT },
+                    wxEmptyString, prePrintInfoStyle::NozzleState);
         return false;
     }
 

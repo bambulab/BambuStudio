@@ -20,6 +20,8 @@ void DevNozzleRack::Reset()
 {
     m_position = RACK_POS_UNKNOWN;
     m_status = RACK_STATUS_UNKNOWN;
+    m_cali_status = Rack_CALI_UNKNOWN;
+    m_rack_cali_detail_bits = 0;
     m_job = 0;
     m_steps.clear();
     m_rack_type = RackType::None;
@@ -141,6 +143,25 @@ std::set<int> DevNozzleRack::GetTotalRackNozzlePosSet() const
     return rack_nozzle_pos_set;
 }
 
+bool DevNozzleRack::IsHotendDockingCalibrated(int addr_id) const
+{
+    if (addr_id < 0) {
+        return false;
+    }
+    return DevUtil::get_flag_bits(m_rack_cali_detail_bits, 5 + addr_id, 1) == 1;
+}
+
+bool DevNozzleRack::HasHotendSlotDockingCalibrated() const
+{
+    const int slot_count = GetTotalRackNozzleCount();
+    for (int addr_id = 0; addr_id < slot_count; ++addr_id) {
+        if (IsHotendDockingCalibrated(addr_id)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void DevNozzleRack::ParseRackInfo(const nlohmann::json& rack_info)
 {
     ParseRackInfoV1_0(rack_info);
@@ -170,6 +191,7 @@ void DevNozzleRack::ParseRackInfoV1_0(const nlohmann::json& rack_info)
     m_rack_type = RackType_AB; // default to RackType_AB
     if (rack_info.contains("info2")) {
         const auto& info2 = rack_info["info2"].get<int>();
+        m_rack_cali_detail_bits = info2;
         m_cali_status = (RackCaliStatus)DevUtil::get_flag_bits(info2, 0, 1);
         m_rack_type = (RackType)DevUtil::get_flag_bits(info2, 1, 4);
     }

@@ -51,6 +51,12 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusColorQuantityExceed: return "PrintStatusColorQuantityExceed";
     // Handle filament errors
     case PrintStatusRackReading: return "PrintStatusRackReading";
+    case PrintStatusRackMoving: return "PrintStatusRackMoving";
+    case PrintStatusNoAvailableHotend: return "PrintStatusNoAvailableHotend";
+    case PrintStatusHotendLost: return "PrintStatusHotendLost";
+    case PrintStatusCutterLost: return "PrintStatusCutterLost";
+    case PrintStatusPenLost: return "PrintStatusPenLost";
+    case PrintStatusNoneHotendDockingCali: return "PrintStatusNoneHotendDockingCali";
     case PrintStatusRackNozzleMappingWaiting: return "PrintStatusRackNozzleMappingWaiting";
     case PrintStatusRackNozzleMappingError: return "PrintStatusRackNozzleMappingError";
     case PrintStatusInvalidMapping: return "PrintStatusInvalidMapping";

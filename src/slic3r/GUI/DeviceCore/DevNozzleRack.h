@@ -100,6 +100,8 @@ public:
 
     RackStatus  GetStatus() const { return m_status; }
     RackCaliStatus GetCaliStatus() const { return m_cali_status; }
+    bool IsHotendDockingCalibrated(int addr_id) const;
+    bool HasHotendSlotDockingCalibrated() const;
     int GetJob() const { return m_job; }
     const std::vector<int>& GetSteps() const { return m_steps; }
 
@@ -176,6 +178,7 @@ private:
     int m_position = RACK_POS_UNKNOWN;
     RackStatus m_status = RACK_STATUS_UNKNOWN;
     RackCaliStatus m_cali_status = Rack_CALI_UNKNOWN;
+    int m_rack_cali_detail_bits = 0;
     int m_job = 0;
     std::vector<int> m_steps;
 
