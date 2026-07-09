@@ -42,6 +42,21 @@ namespace GUI {
         wxString lower = url.Lower();
         return lower.StartsWith("about:blank");
     }
+
+    std::string ExtractMakerworldModelId(const wxString &url)
+    {
+        std::string value = url.ToStdString();
+        std::smatch match;
+        const std::regex studio_model_pattern("[?&]modelid=([A-Za-z0-9_-]+)");
+        if (std::regex_search(value, match, studio_model_pattern))
+            return match[1].str();
+
+        const std::regex model_page_pattern("/models/([0-9]+)(?:[-/?#]|$)");
+        if (std::regex_search(value, match, model_page_pattern))
+            return match[1].str();
+
+        return {};
+    }
     }
 
     BEGIN_EVENT_TABLE(WebViewPanel, wxPanel)
@@ -159,6 +174,9 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     left_group->Add(m_online_back_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
     left_group->Add(m_online_refresh_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
 
+    m_online_comments_btn = make_online_toolbar_button("makerworld_comments", _L("View comments"));
+    right_group->Add(m_online_comments_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
+
     m_online_open_browser_btn = make_online_toolbar_button("open_in_browser", _L("Open in browser"));
     right_group->Add(m_online_open_browser_btn, 0, wxALIGN_CENTER_VERTICAL);
 
@@ -168,6 +186,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
 
     m_online_back_btn->Enable(false);
     m_online_refresh_btn->Enable(false);
+    m_online_comments_btn->Enable(false);
     m_online_open_browser_btn->Enable(false);
 
     m_online_toolbar_panel->Hide();
@@ -319,6 +338,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
 #endif //BBL_RELEASE_TO_PUBLIC
     Bind(wxEVT_BUTTON, &WebViewPanel::OnOnlineBack, this, m_online_back_btn->GetId());
     Bind(wxEVT_BUTTON, &WebViewPanel::OnOnlineReload, this, m_online_refresh_btn->GetId());
+    Bind(wxEVT_BUTTON, &WebViewPanel::OnOpenComments, this, m_online_comments_btn->GetId());
     Bind(wxEVT_BUTTON, &WebViewPanel::OnOpenInBrowser, this, m_online_open_browser_btn->GetId());
 
     // Connect the menu events
@@ -568,6 +588,73 @@ void WebViewPanel::OnOnlineReload(wxCommandEvent& WXUNUSED(evt))
 
     if (target)
         target->Reload();
+    UpdateOnlineToolbarState();
+}
+
+wxString WebViewPanel::MakeMakerworldModelUrl(const std::string &model_id)
+{
+    auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+    wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
+    return (boost::format("%1%%2%/models/%3%?from=bambustudio") % host % language_code.mb_str() % model_id).str();
+}
+
+void WebViewPanel::ScrollMakerworldComments()
+{
+    if (!m_browserMW)
+        return;
+
+    static const wxString scroll_script = R"JS(
+(function () {
+  function findCommentsHeading() {
+    var nodes = document.querySelectorAll('h1,h2,h3,h4,h5,[id],[class]');
+    for (var i = 0; i < nodes.length; i += 1) {
+      var text = (nodes[i].innerText || nodes[i].textContent || '').replace(/\s+/g, ' ').trim();
+      if (text.length > 0 && text.length < 90 && /comment\s*&\s*rating/i.test(text)) {
+        return nodes[i];
+      }
+    }
+    return null;
+  }
+
+  function scrollToComments() {
+    var target = findCommentsHeading();
+    if (!target) {
+      return false;
+    }
+    target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    return true;
+  }
+
+  if (!scrollToComments()) {
+    setTimeout(scrollToComments, 600);
+    setTimeout(scrollToComments, 1600);
+  }
+}());
+)JS";
+
+    WebView::RunScript(m_browserMW, scroll_script);
+}
+
+void WebViewPanel::OnOpenComments(wxCommandEvent& WXUNUSED(evt))
+{
+    if (!m_browserMW)
+        return;
+
+    std::string model_id = ExtractMakerworldModelId(m_browserMW->GetCurrentURL());
+    if (model_id.empty() && !m_online_LastUrl.empty())
+        model_id = ExtractMakerworldModelId(m_online_LastUrl);
+    if (model_id.empty())
+        return;
+
+    wxString current_url = m_browserMW->GetCurrentURL();
+    wxString model_path = wxString::Format("/models/%s", wxString::FromUTF8(model_id));
+    if (!IsBlankWebUrl(current_url) && current_url.Find(model_path) != wxNOT_FOUND) {
+        ScrollMakerworldComments();
+        return;
+    }
+
+    m_scroll_makerworld_comments_on_load = true;
+    m_browserMW->LoadURL(MakeMakerworldModelUrl(model_id));
     UpdateOnlineToolbarState();
 }
 
@@ -1578,6 +1665,14 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
     {
         m_leftfirst = true;
     }
+    else if (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId())
+    {
+        if (m_scroll_makerworld_comments_on_load) {
+            m_scroll_makerworld_comments_on_load = false;
+            ScrollMakerworldComments();
+        }
+        UpdateOnlineToolbarState();
+    }
 
     UpdateState();
 }
@@ -2266,6 +2361,7 @@ void WebViewPanel::SetOnlineToolbarVisible(bool visible)
     if (!visible) {
         if (m_online_back_btn) m_online_back_btn->Enable(false);
         if (m_online_refresh_btn) m_online_refresh_btn->Enable(false);
+        if (m_online_comments_btn) m_online_comments_btn->Enable(false);
         if (m_online_open_browser_btn) m_online_open_browser_btn->Enable(false);
     } else {
         UpdateOnlineToolbarState();
@@ -2304,9 +2400,17 @@ void WebViewPanel::UpdateOnlineToolbarState()
     bool can_go_back = false;
     if (can_show_open_button)
         can_go_back = active_webview->CanGoBack();
+    bool can_open_comments = false;
+    if (on_online_tab && has_webview) {
+        std::string model_id = ExtractMakerworldModelId(active_webview->GetCurrentURL());
+        if (model_id.empty() && !m_online_LastUrl.empty())
+            model_id = ExtractMakerworldModelId(m_online_LastUrl);
+        can_open_comments = !model_id.empty();
+    }
 
     update_btn_state(m_online_back_btn, can_go_back, "mall_control_back");
     update_btn_state(m_online_refresh_btn, can_show_open_button, "mall_control_refresh");
+    update_btn_state(m_online_comments_btn, can_open_comments, "makerworld_comments");
     if (m_online_open_browser_btn) {
         bool has_url = false;
         if (can_show_open_button) {

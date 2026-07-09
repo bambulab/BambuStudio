@@ -51,6 +51,7 @@ public:
     void OnReload(wxCommandEvent& evt);
     void OnOnlineBack(wxCommandEvent& evt);
     void OnOnlineReload(wxCommandEvent& evt);
+    void OnOpenComments(wxCommandEvent& evt);
     void OnOpenInBrowser(wxCommandEvent& evt);
     void OnNavigationRequest(wxWebViewEvent& evt);
     void OnNavigationComplete(wxWebViewEvent& evt);
@@ -161,6 +162,8 @@ public:
     void SetWebviewShow(wxString name, bool show);
     void SetOnlineToolbarVisible(bool visible);
     void UpdateOnlineToolbarState();
+    wxString MakeMakerworldModelUrl(const std::string &model_id);
+    void ScrollMakerworldComments();
     std::string GetStudioLanguage();
 
     //PrintHistory
@@ -204,10 +207,12 @@ private:
     wxBoxSizer *    m_online_toolbar_sizer { nullptr };
     wxBitmapButton *m_online_back_btn { nullptr };
     wxBitmapButton *m_online_refresh_btn { nullptr };
+    wxBitmapButton *m_online_comments_btn { nullptr };
     wxBitmapButton *m_online_open_browser_btn { nullptr };
     wxPanel *       m_online_container { nullptr };
     wxBoxSizer *    m_online_container_sizer { nullptr };
     int             m_online_toolbar_icon_px { 16 };
+    bool            m_scroll_makerworld_comments_on_load { false };
 
     wxMenu* m_tools_menu;
     wxMenuItem* m_tools_handle_navigation;
