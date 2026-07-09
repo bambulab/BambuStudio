@@ -230,6 +230,7 @@
   "Reading ({{current}} / {{total}})": "读取中（{{current}} / {{total}}）",
   "Reading hotend": "热端读取中",
   "Reading hotend {{n}}": "{{n}}号热端读取中",
+  "Refreshing Hotend Info": "刷新热端信息",
   "Retry": "重试",
   "Set Temperature": "设置温度",
   "Stop": "停止",

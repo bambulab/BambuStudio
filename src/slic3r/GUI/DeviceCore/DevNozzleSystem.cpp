@@ -540,6 +540,7 @@ void DevNozzleSystem::Reset()
     m_state_0_4 = 0;
     m_reading_idx = 0;
     m_reading_count = 0;
+    m_reading_nozzle_id_flag = 0;
 
     m_replace_nozzle_src = std::nullopt;
     m_replace_nozzle_tar = std::nullopt;
@@ -1001,6 +1002,8 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
                     system->m_nozzle_rack->SendReadingFinished();
                 }
             }
+
+            system->m_reading_nozzle_id_flag = DevUtil::get_flag_bits(nozzle_json["state"].get<int>(), 13, 8);
         }
 
         if (nozzle_json.contains("src_id"))

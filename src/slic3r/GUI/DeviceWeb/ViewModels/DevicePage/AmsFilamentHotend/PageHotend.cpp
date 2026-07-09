@@ -1,6 +1,7 @@
 #include "ViewModel.hpp"
 #include "ResolverSlotState.hpp"
 #include "ActionHandlerHotend.hpp"
+#include "BuilderHotendRackProgressStatus.hpp"
 
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
@@ -111,98 +112,6 @@ int addr_id_to_display_idx(int addr_id) { return addr_id + 1; }
 
 int rack_pos_id_from_addr_id(int addr_id) { return addr_id + 0x10; }
 
-std::string rack_operation_for_job(int job, int reading_count)
-{
-    namespace SV = AmsHotendSchema::values;
-    switch (job) {
-    case 1: return SV::rack_operation::take;
-    case 2: return SV::rack_operation::place;
-    case 3: return SV::rack_operation::exchange;
-    case 4: return SV::rack_operation::read_all;
-    case 5: return SV::rack_operation::move;
-    case 6: return SV::rack_operation::read_single;
-    default:
-        if (reading_count > 1) return SV::rack_operation::read_all;
-        if (reading_count == 1) return SV::rack_operation::read_single;
-        return SV::rack_operation::idle;
-    }
-}
-
-int rack_target_display_index(MachineObject* machine_obj, int job, int reading_idx)
-{
-    if (!machine_obj || !machine_obj->GetNozzleSystem()) return reading_idx;
-    const int rack_count = machine_obj->GetNozzleSystem()->GetNozzleRack()
-        ? machine_obj->GetNozzleSystem()->GetNozzleRack()->GetTotalRackNozzleCount()
-        : 0;
-    auto id_to_display = [rack_count](int id) {
-        if (id == 0xff || id < 0x10) return 0;
-        const int display = id - 0x10 + 1;
-        return rack_count <= 0 || display <= rack_count ? display : 0;
-    };
-
-    const auto src = machine_obj->GetNozzleSystem()->GetReplaceNozzleSrc();
-    const auto tar = machine_obj->GetNozzleSystem()->GetReplaceNozzleTar();
-    if (job == 1 || job == 3) {
-        if (src) { const int d = id_to_display(*src); if (d > 0) return d; }
-        if (tar) { const int d = id_to_display(*tar); if (d > 0) return d; }
-    } else if (job == 2) {
-        if (tar) { const int d = id_to_display(*tar); if (d > 0) return d; }
-        if (src) { const int d = id_to_display(*src); if (d > 0) return d; }
-    }
-    return reading_idx;
-}
-
-std::string rack_step_label(DevNozzleRack::RackStatus step)
-{
-    switch (step) {
-    case DevNozzleRack::RACK_STATUS_HOTEND_CENTRE:         return _u8L("Homing Induction Hotend Rack");
-    case DevNozzleRack::RACK_STATUS_TOOLHEAD_CENTRE:       return _u8L("Homing Toolhead");
-    case DevNozzleRack::RACK_STATUS_CALIBRATE_HOTEND_RACK: return _u8L("Calibrating Hotend Rack");
-    case DevNozzleRack::RACK_STATUS_WAIT_HOTEND_HEATING:   return _u8L("Waiting for hotend to heat");
-    case DevNozzleRack::RACK_STATUS_CUT_MATERIAL:          return _u8L("Cutting Filament");
-    case DevNozzleRack::RACK_STATUS_UNLOCK_HOTEND:         return _u8L("Unlocking Hotend");
-    case DevNozzleRack::RACK_STATUS_LIFT_HOTEND_RACK:      return _u8L("Lifting Hotend Rack");
-    case DevNozzleRack::RACK_STATUS_PLACE_HOTEND:          return _u8L("Placing Hotend");
-    case DevNozzleRack::RACK_STATUS_PICK_HOTEND:           return _u8L("Taking Hotend");
-    case DevNozzleRack::RACK_STATUS_LOCK_HOTEND:           return _u8L("Locking Hotend");
-    case DevNozzleRack::RACK_STATUS_MOVE:                  return _u8L("Moving Hotend Rack");
-    case DevNozzleRack::RACK_STATUS_IDLE:                  return _u8L("Idle");
-    case DevNozzleRack::RACK_STATUS_UNKNOWN:
-    case DevNozzleRack::RACK_STATUS_END:
-    default:                                               return _u8L("Hotend rack moving");
-    }
-}
-
-nlohmann::json build_rack_steps(const std::vector<int>& raw_steps, DevNozzleRack::RackStatus current_status)
-{
-    namespace SK = AmsHotendSchema::keys;
-    namespace SV = AmsHotendSchema::values;
-
-    std::vector<int> steps = raw_steps;
-    if (steps.empty() && current_status > DevNozzleRack::RACK_STATUS_IDLE && current_status < DevNozzleRack::RACK_STATUS_END) {
-        steps.push_back(static_cast<int>(current_status));
-    }
-
-    const auto active_it = std::find(steps.begin(), steps.end(), static_cast<int>(current_status));
-    const int active_index = active_it == steps.end() ? -1 : static_cast<int>(std::distance(steps.begin(), active_it));
-
-    nlohmann::json result = nlohmann::json::array();
-    for (int i = 0; i < static_cast<int>(steps.size()); ++i) {
-        const int step = steps[i];
-        std::string state = SV::rack_step_state::pending;
-        if (active_index >= 0) {
-            if (i < active_index) state = SV::rack_step_state::done;
-            else if (i == active_index) state = SV::rack_step_state::active;
-        }
-        result.push_back({
-            {SK::rack_step::id, step},
-            {SK::rack_step::label, rack_step_label(static_cast<DevNozzleRack::RackStatus>(step))},
-            {SK::rack_step::state, state}
-        });
-    }
-    return result;
-}
-
 class HotendDetailDialog : public DPIDialog
 {
 public:
@@ -245,44 +154,12 @@ void open_hotend_detail_dialog(const nlohmann::json& payload)
 void DevicePageAmsFilamentHotendVM::BuildHotendRackStatus(MachineObject* machine_obj, nlohmann::json& hotend_page) const
 {
     namespace SK = AmsHotendSchema::keys;
-    namespace SV = AmsHotendSchema::values;
 
     auto nozzle_system = machine_obj ? machine_obj->GetNozzleSystem() : nullptr;
     auto nozzle_rack = nozzle_system ? nozzle_system->GetNozzleRack() : nullptr;
-    const int reading_idx = nozzle_rack ? nozzle_rack->GetReadingIdx() : 0;
-    const int reading_count = nozzle_rack ? nozzle_rack->GetReadingCount() : 0;
-    const int rack_job = nozzle_rack ? nozzle_rack->GetJob() : 0;
-    const auto rack_status = nozzle_rack ? nozzle_rack->GetStatus() : DevNozzleRack::RACK_STATUS_UNKNOWN;
-    const auto rack_operation = rack_operation_for_job(rack_job, reading_count);
-    const bool rack_reading = reading_count > 0;
-    const bool rack_busy = rack_job != 0 || rack_reading;
-    const bool rack_failed = rack_status == DevNozzleRack::RACK_STATUS_UNKNOWN && rack_busy;
-    const int target_display_index = rack_target_display_index(machine_obj, rack_job, reading_idx);
+    hotend_page[SK::hotend_page::hotend_rack_status] = DevicePageHotendRackProgressStatusBuilder::Build(machine_obj);
 
-    hotend_page[SK::hotend_page::hotend_rack_status] = {
-        {SK::rack_status::active, rack_busy},
-        {SK::rack_status::mode,   rack_busy ? ((rack_operation == SV::rack_operation::read_all || reading_count > 1) ? SV::rack_mode::all : SV::rack_mode::single)
-                                            : SV::rack_mode::idle},
-        {SK::rack_status::display_index, rack_busy ? target_display_index : 0},
-        {SK::rack_status::current,       rack_reading ? reading_idx : 0},
-        {SK::rack_status::total,         rack_reading ? reading_count : static_cast<int>((nozzle_rack ? nozzle_rack->GetSteps().size() : 0))},
-        {SK::rack_status::message, rack_reading ? (reading_count > 1
-            ? (boost::format(_u8L("Reading (%1% / %2%)")) % reading_idx % reading_count).str()
-            : (boost::format(_u8L("Reading hotend %1%")) % reading_idx).str()) : ""},
-        {SK::rack_status::tips, rack_busy ? _u8L("Please wait...") : std::string()},
-        {SK::rack_status::job, rack_job},
-        {SK::rack_status::operation, rack_operation},
-        {SK::rack_status::state, rack_failed ? SV::rack_state::failed : (rack_busy ? SV::rack_state::running : SV::rack_state::idle)},
-        {SK::rack_status::target_display_index, rack_busy ? target_display_index : 0},
-        {SK::rack_status::current_step, rack_busy ? static_cast<int>(rack_status) : 0},
-        {SK::rack_status::steps, nozzle_rack ? build_rack_steps(nozzle_rack->GetSteps(), rack_status) : nlohmann::json::array()},
-        {SK::rack_status::can_stop, rack_busy},
-        // Retry (resume the rack job) is offered throughout an active job, not
-        // only after a failure, so the button stays clickable during the
-        // operation per the N1x design.
-        {SK::rack_status::can_retry, rack_busy}
-    };
-
+    const bool rack_busy = hotend_page[SK::hotend_page::hotend_rack_status].value(SK::rack_status::active, false);
     const bool can_read_all = nozzle_rack && nozzle_rack->CtrlCanReadAll() && !rack_busy;
     hotend_page[SK::hotend_page::actions][SK::hotend_actions::can_read_all_hotends] = can_read_all;
     if (!can_read_all) {
@@ -370,7 +247,10 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         filament_name = ResolveFilamentCardText(tray, filament_type);
         color = normalize_hex_for_web(tray->color);
         color_type = color_type_for_web(tray->ctype);
-        if (tray->remain >= 0 && tray->remain <= 100) filament_remain = tray->remain;
+        colors = tray->cols;
+        if (colors.empty() && !tray->color.empty()) colors.push_back(tray->color);
+        for (auto& c : colors) c = normalize_hex_for_web(c);
+        filament_remain = DevicePageFilamentSlotStateResolver::ResolveDisplayRemain(tray);
     }
 
     nlohmann::json hotend = nlohmann::json::object();
@@ -405,10 +285,10 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         } else if (rack_nozzle_opt->GetCurrentTemp() > rack_nozzle_opt->GetTargetTemp() && rack_nozzle_opt->GetTargetTemp() > 0) {
             op_state = SV::hotend_op_state::cooling;
         }
-        if (auto rack = machine_obj->GetNozzleSystem()->GetNozzleRack(); rack && rack->GetReadingCount() == 1 && rack->GetReadingIdx() == display_idx) {
+        if (machine_obj && (machine_obj->GetNozzleSystem()->GetReadingNozzleIdFlag() == 0xff || machine_obj->GetNozzleSystem()->GetReadingNozzleIdFlag() == rack_nozzle_opt->GetNozzlePosId())) {
             op_state = SV::hotend_op_state::reading;
         } else if (auto rack = machine_obj->GetNozzleSystem()->GetNozzleRack(); rack && rack->GetJob() != 0) {
-            const int target_display_index = rack_target_display_index(machine_obj, rack->GetJob(), rack->GetReadingIdx());
+            const int target_display_index = DevicePageHotendRackProgressStatusBuilder::TargetDisplayIndex(machine_obj, rack->GetJob(), rack->GetReadingIdx());
             if (target_display_index == display_idx) {
                 if (rack->GetJob() == 1 || rack->GetJob() == 3) op_state = SV::hotend_op_state::taking;
                 else if (rack->GetJob() == 2) op_state = SV::hotend_op_state::placing;

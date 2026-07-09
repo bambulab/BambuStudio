@@ -1,6 +1,7 @@
 #include "BatchExtLoadModeBuilder.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ViewModel.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Schema.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.hpp"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
@@ -138,9 +139,7 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
             for (auto& c : colors) {
                 c = normalize_ext_hex_for_web(c);
             }
-            if (ext_tray_opt->remain >= 0 && ext_tray_opt->remain <= 100) {
-                remain = ext_tray_opt->remain;
-            }
+            remain = DevicePageFilamentSlotStateResolver::ResolveDisplayRemain(&*ext_tray_opt);
             card_state = is_loaded ? SV::card_state::ready_to_use : SV::card_state::ready_to_load;
         }
 

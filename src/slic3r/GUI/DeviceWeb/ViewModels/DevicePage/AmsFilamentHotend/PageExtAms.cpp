@@ -1,5 +1,6 @@
 #include "ViewModel.hpp"
 #include "ActionHandlerExtAms.hpp"
+#include "ResolverSlotState.hpp"
 
 #include "slic3r/GUI/DeviceWeb/DeviceWebHost.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -131,7 +132,7 @@ nlohmann::json build_ext_dialog_slot(const DevicePageAmsFilamentHotendVM& vm, Ma
         colors = tray->cols;
         if (colors.empty() && !tray->color.empty()) colors.push_back(tray->color);
         for (auto& c : colors) c = normalize_hex_for_web(c);
-        if (tray->remain >= 0 && tray->remain <= 100) remain = tray->remain;
+        remain = DevicePageFilamentSlotStateResolver::ResolveDisplayRemain(&*tray);
         state = loaded ? SV::card_state::ready_to_use : SV::card_state::ready_to_load;
     }
 

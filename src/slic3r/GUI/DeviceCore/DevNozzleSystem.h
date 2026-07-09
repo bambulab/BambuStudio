@@ -268,6 +268,7 @@ public:
     /* reading*/
     int GetReadingIdx() const { return m_reading_idx; };
     int GetReadingCount() const { return m_reading_count; };
+    int GetReadingNozzleIdFlag() const { return m_reading_nozzle_id_flag; };
 
     /* firmware*/
     void AddFirmwareInfoWTM(const DevFirmwareVersionInfo& info);
@@ -294,6 +295,7 @@ private:
     /* refreshing */
     int m_reading_idx = 0;
     int m_reading_count = 0;
+    int m_reading_nozzle_id_flag; // 0: not read 0xff: read all
 
     // nozzles on extruder
     std::map<int, DevNozzle> m_ext_nozzles;

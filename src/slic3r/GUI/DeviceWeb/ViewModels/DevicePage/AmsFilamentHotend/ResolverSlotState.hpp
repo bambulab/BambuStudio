@@ -27,6 +27,7 @@ public:
                                           const std::string& line_state,
                                           bool has_tool,
                                           bool is_abnormal);
+    static int ResolveDisplayRemain(const DevAmsTray* tray);
     static std::string ResolveStatusText(const std::string& card_state);
 };
 

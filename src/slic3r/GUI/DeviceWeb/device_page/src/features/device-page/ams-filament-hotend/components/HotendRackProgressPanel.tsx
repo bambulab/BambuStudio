@@ -35,6 +35,7 @@ function stepLabel(step: { id: number; label: string }, t: TFunction) {
     case 9: return t('Taking Hotend');
     case 10: return t('Locking Hotend');
     case 11: return t('Moving Hotend Rack');
+    case 12: return t('Refreshing Hotend Info');
     default: return step.label ? t(step.label) : t('Step {{n}}', { n: step.id });
   }
 }

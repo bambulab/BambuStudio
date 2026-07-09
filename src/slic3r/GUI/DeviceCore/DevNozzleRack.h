@@ -39,6 +39,7 @@ public:
         RACK_STATUS_PICK_HOTEND = 9,
         RACK_STATUS_LOCK_HOTEND = 10,
         RACK_STATUS_MOVE = 11,
+        RACK_STATUS_HOTEND_INFO_REFRESH = 12,
         RACK_STATUS_END,
     };
 

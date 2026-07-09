@@ -1,6 +1,7 @@
 #include "ViewModel.hpp"
 #include "ActionHandlerFilament.hpp"
 #include "BuilderFilamentChangeStatus.hpp"
+#include "ResolverSlotState.hpp"
 
 #include "slic3r/GUI/AMSDryControl.hpp"
 #include "slic3r/GUI/AMSMaterialsSetting.hpp"
@@ -194,7 +195,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildAmsUnitJson(MachineObject* ma
             {SK::ams_tray::color,         normalize_hex_for_web(tray->color)},
             {SK::ams_tray::color_type,    color_type_for_web(tray->ctype)},
             {SK::ams_tray::colors,        colors},
-            {SK::ams_tray::remain,        tray->remain},
+            {SK::ams_tray::remain,        DevicePageFilamentSlotStateResolver::ResolveDisplayRemain(tray)},
             {SK::ams_tray::actions,       tray_actions}
         });
     }

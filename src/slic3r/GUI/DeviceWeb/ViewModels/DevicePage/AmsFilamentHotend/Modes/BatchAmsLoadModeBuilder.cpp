@@ -1,6 +1,7 @@
 #include "BatchAmsLoadModeBuilder.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ViewModel.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Schema.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.hpp"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -150,6 +151,8 @@ nlohmann::json BatchAmsLoadModeBuilder::BuildFilamentPage(
             const int display_index = fallback_display_index++;
             const bool is_top_tier = (display_index % 2) == 0;
 
+            const int display_remain = DevicePageFilamentSlotStateResolver::ResolveDisplayRemain(tray);
+
             const nlohmann::json card_section = {
                 {SK::filament_card::state,       card_state},
                 {SK::filament_card::color,       color},
@@ -158,7 +161,7 @@ nlohmann::json BatchAmsLoadModeBuilder::BuildFilamentPage(
                 {SK::filament_card::text,        filament_name},
                 {SK::filament_card::name,        filament_name},
                 {SK::filament_card::type,        filament_type},
-                {SK::filament_card::remain,      tray->remain},
+                {SK::filament_card::remain,      display_remain},
                 {SK::filament_card::status_text, resolve_status_text(card_state)}
             };
 

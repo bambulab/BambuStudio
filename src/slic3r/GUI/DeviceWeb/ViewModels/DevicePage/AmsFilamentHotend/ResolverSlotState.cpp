@@ -56,6 +56,14 @@ std::string DevicePageFilamentSlotStateResolver::ResolveNozzleState(const std::s
     return SV::nozzle_state::normal;
 }
 
+int DevicePageFilamentSlotStateResolver::ResolveDisplayRemain(const DevAmsTray* tray)
+{
+    if (!tray) return 100;
+    if (tray->remain_g > 0 && tray->remain < 5) return 5;
+    if (tray->remain >= 5 && tray->remain <= 100) return tray->remain;
+    return 100;
+}
+
 std::string DevicePageFilamentSlotStateResolver::ResolveStatusText(const std::string& card_state)
 {
     namespace SV = AmsHotendSchema::values;

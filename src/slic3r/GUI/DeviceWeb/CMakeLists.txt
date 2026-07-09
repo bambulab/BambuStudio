@@ -3,17 +3,17 @@
 # date -- 2025.01.01
 # status -- Building
 
-# ==================== Node.js/pnpm 环境准备（仅用于 deviceweb 构建�?===================
+# ==================== Node.js/pnpm ???????? deviceweb ????===================
 
 function(prepare_node_env)
-    # 定义版本�?
+    # ??????
     set(NODE_VERSION "22.22.2")
     set(PNPM_VERSION "10.12.1")
 
-    # 定义本地缓存目录（放在项目同级目录，clean build 后不会丢失）
+    # ??????????????????clean build ??????
     set(NODE_CACHE_DIR "${CMAKE_SOURCE_DIR}/../node-cache")
 
-    # 根据平台确定下载 URL、文件名�?hash �?
+    # ???????? URL??????hash ??
     if(WIN32)
         set(NODE_URL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-win-x64.zip")
         set(NODE_ARCHIVE_NAME "node-v${NODE_VERSION}-win-x64.zip")
@@ -67,9 +67,9 @@ function(prepare_node_env)
         endif()
     endif()
 
-    # 定义最终的可执行文件路�?
+    # ?????????????
     set(NODE_EXECUTABLE "${NODE_CACHE_DIR}/${NODE_BIN_DIR}/${NODE_EXEC}")
-    # pnpm 放到 node 同目录，这样执行 pnpm �?PATH 中天然能找到 node
+    # pnpm ?? node ???????? pnpm ??PATH ?????? node
     set(PNPM_EXECUTABLE "${NODE_CACHE_DIR}/${NODE_BIN_DIR}/${PNPM_EXEC_NAME}")
 
     message(STATUS "Checking for node binary at ${NODE_EXECUTABLE}")
@@ -119,7 +119,7 @@ function(prepare_node_env)
             message(FATAL_ERROR "Failed to extract Node.js archive: ${extract_error}")
         endif()
 
-        # 清理压缩包（节省空间�?
+        # ????????????
         file(REMOVE "${NODE_CACHE_DIR}/${NODE_ARCHIVE_NAME}")
 
         if(NOT EXISTS "${NODE_EXECUTABLE}")
@@ -131,7 +131,7 @@ function(prepare_node_env)
         message(STATUS "Found cached Node.js: ${NODE_EXECUTABLE}")
     endif()
 
-    # ============ pnpm 独立二进制下�?============
+    # ============ pnpm ????????============
     if(NOT EXISTS "${PNPM_EXECUTABLE}")
         message(STATUS "Downloading pnpm v${PNPM_VERSION} from ${PNPM_URL}")
 
@@ -166,15 +166,15 @@ function(prepare_node_env)
         message(STATUS "Found cached pnpm: ${PNPM_EXECUTABLE}")
     endif()
 
-    # 设置输出变量（使用绝对路径）
+    # ??????????????
     set(NODE_EXECUTABLE "${NODE_EXECUTABLE}" PARENT_SCOPE)
     set(PNPM_EXECUTABLE "${PNPM_EXECUTABLE}" PARENT_SCOPE)
 endfunction()
 
-# 执行环境准备（在 config 阶段执行�?
+# ???????? config ??????
 prepare_node_env()
 
-# ==================== 前端工程构建 ====================
+# ==================== ?????? ====================
 
 set(DEVICE_PAGE_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/device_page")
 set(DEVICE_PAGE_DIST_DIR "${DEVICE_PAGE_SRC_DIR}/dist")
@@ -183,11 +183,11 @@ set(DEVICE_PAGE_TARGET_DIR "${CMAKE_SOURCE_DIR}/resources/web/device_page/dist")
 get_filename_component(NODE_BIN_PATH "${NODE_EXECUTABLE}" DIRECTORY)
 
 if(WIN32)
-    # 原本PATH末尾的\会影响后续的分隔符，需要处�?
+    # ??PATH???\???????????????
     set(DEVICE_PAGE_PATH_UNESCAPED "${NODE_BIN_PATH};$ENV{PATH}")
     string(REPLACE "\;" ";" DEVICE_PAGE_PATH "${DEVICE_PAGE_PATH_UNESCAPED}")
 else()
-    # Unix PATH 分隔符是 :
+    # Unix PATH ???? :
     set(DEVICE_PAGE_PATH "${NODE_BIN_PATH}:$ENV{PATH}")
 endif()
 
@@ -281,14 +281,19 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ViewModel.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ActionHandlerExtAms.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ActionHandlerFilament.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderHotendRackProgressStatus.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderHotendRackProgressStatus.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderFilamentChangeStatus.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderFilamentChangeStatus.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ActionHandlerHotend.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaExtOperationPage.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaFilamentSlot.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaFilamentPage.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaFilamentChangeStatus.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaHotendRackProgress.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaHotendSlot.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaHotendPage.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Schema.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/IFilamentPageModeBuilder.hpp
