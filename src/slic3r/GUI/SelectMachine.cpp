@@ -2172,6 +2172,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         // Non-blocking advisory: user can still send the print job.
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
+    } else if (status == PrintStatusFilamentSuspectEngagementWarning) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
     }
 
     /*enter perpare mode*/
@@ -6845,8 +6848,20 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
                     prePrintInfoStyle::BtnSwitchNozzleBlobAuto);
     }
 
+    wxString suspect_engagement_warning_msg;
+    if (!CheckWarningFilamentSuspectEngagement(obj_, suspect_engagement_warning_msg)) {
+        show_status(PrintDialogStatus::PrintStatusFilamentSuspectEngagementWarning,
+                    {suspect_engagement_warning_msg});
+    }
+
+    wxString suspect_engagement_warning_msg;
+    if (!CheckWarningFilamentSuspectEngagement(obj_, suspect_engagement_warning_msg)) {
+        show_status(PrintDialogStatus::PrintStatusFilamentSuspectEngagementWarning,
+                    {suspect_engagement_warning_msg});
+    }
+
     return true;
-};
+}
 
 bool SelectMachineDialog::IsAllAmsSupportAccurateRemain(MachineObject* obj_) const
 {
@@ -7188,6 +7203,54 @@ bool SelectMachineDialog::CheckWarningSmartNozzleBlobAuto(MachineObject* obj_)
         }
     }
     return true;
+}
+
+bool SelectMachineDialog::CheckWarningFilamentSuspectEngagement(MachineObject* obj_, wxString& warning_msg)
+{
+    warning_msg.clear();
+
+    if (!obj_ || m_print_type != PrintFromType::FROM_NORMAL) {
+        return true;
+    }
+
+    const auto& rack = obj_->GetNozzleRack();
+    if (!rack || !rack->IsSupported()) {
+        return true;
+    }
+
+    const auto rack_type = rack->GetRackType();
+    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B) {
+        return true;
+    }
+
+    std::vector<int> suspect_slot_ids;
+    for (const auto& [_, nozzle] : rack->GetRackNozzles()) {
+        if (nozzle.GetFilamentEngagementStatus() != DevNozzle::FilamentEngagementStatus::Suspect) {
+            continue;
+        }
+        if (!nozzle.GetAddrId().has_value()) {
+            continue;
+        }
+        suspect_slot_ids.push_back(nozzle.GetAddrId().value() + 1);
+    }
+
+    if (suspect_slot_ids.empty()) {
+        return true;
+    }
+
+    std::sort(suspect_slot_ids.begin(), suspect_slot_ids.end());
+
+    wxString slots_str;
+    for (int slot_id : suspect_slot_ids) {
+        if (!slots_str.empty()) {
+            slots_str += ", ";
+        }
+        slots_str += wxString::Format("%d", slot_id);
+    }
+    warning_msg = wxString::Format(
+        _L("Filament in slots %s may not have been properly loaded to the PrintTool. Please see the loading guide."),
+        slots_str);
+    return false;
 }
 
 ShowType SelectMachineDialog::get_filament_mapping_show_type(MachineObject* obj_, int fila_logic_id) const

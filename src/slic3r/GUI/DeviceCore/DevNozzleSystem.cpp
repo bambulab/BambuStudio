@@ -217,6 +217,21 @@ bool DevNozzle::IsUnknown() const
     return DevUtil::get_flag_bits(m_stat, 1, 2) == (1 << 1);
 }
 
+DevNozzle::FilamentEngagementStatus DevNozzle::GetFilamentEngagementStatus() const
+{
+    if (IsEmpty()) {
+        return FilamentEngagementStatus::None;
+    }
+    const int status = DevUtil::get_flag_bits(m_stat, 6, 3);
+    if (status == static_cast<int>(FilamentEngagementStatus::Suspect)) {
+        return FilamentEngagementStatus::Suspect;
+    }
+    if (status == static_cast<int>(FilamentEngagementStatus::Engaged)) {
+        return FilamentEngagementStatus::Engaged;
+    }
+    return FilamentEngagementStatus::None;
+}
+
 int DevNozzle::GetNozzlePosId() const
 {
     return IsOnRack() ? (m_nozzle_id + 0x10) : m_nozzle_id;

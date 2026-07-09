@@ -518,6 +518,10 @@ public:
     // recommend switching to Auto. Returns true if no warning. See figma N1-9 #10100-23113.
     bool CheckWarningSmartNozzleBlobAuto(MachineObject* obj_);
 
+    // Hotend rack filament suspect engagement (nozzle info.stat bits [6:8] == 1).
+    // Returns true if no warning; otherwise fills warning_msg.
+    bool CheckWarningFilamentSuspectEngagement(MachineObject* obj_, wxString& warning_msg);
+
     void update_best_pos_dialog(wxCommandEvent &evt);
     void update_ams_check(MachineObject* obj);
     void update_filament_change_count();

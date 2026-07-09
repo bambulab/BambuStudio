@@ -73,6 +73,14 @@ public:
         Unknown = 3
     };
 
+    // nozzle info.stat bits [6:8]: 0 = no filament, 1 = suspect engagement, 2 = engaged
+    enum class FilamentEngagementStatus : int
+    {
+        None = 0,
+        Suspect = 1,
+        Engaged = 2,
+    };
+
 
     int             m_nozzle_id = -1;
     std::optional<int> m_addr_id;
@@ -172,6 +180,8 @@ public:
     std::optional<NozzleTempStatus> GetSetRackNozzleTempStatus() const { return m_temp_status; }
 
     bool HasFilamentInNozzle() const { return m_has_filament_in_nozzle; }
+
+    FilamentEngagementStatus GetFilamentEngagementStatus() const;
 
     // direct bind ams slots. eg. ZMULTI_A
     std::vector<DevAmsSlotId> GetBindAmsSlots() const { return m_bind_ams_slots; };
