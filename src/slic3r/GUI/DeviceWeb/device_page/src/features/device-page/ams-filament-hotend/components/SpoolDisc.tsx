@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import type { AmsFilamentHotendSlotViewModel } from '../types';
 import filamentTagUrl from '../assets/spool_filament_tag_figma.svg';
 import unknownSpoolUrl from '../assets/spool_unknown_figma.svg';
@@ -16,10 +17,11 @@ export function SpoolDisc({
   // batch-mode card whose select_action.can_select is false.
   notAllowed?: boolean;
 }) {
-  const { state, color } = slot.filament_card;
+  const { state, color, color_type } = slot.filament_card;
+  const reactId = useId().replace(/:/g, '');
   const display_index = slot.display_index;
   const cardColors = slot.filament_card.colors;
-  const colors = cardColors && cardColors.length > 1 ? cardColors : [color];
+  const colors = normalizeColors(cardColors && cardColors.length ? cardColors : [color]);
   // Loading/Unloading slots still show the spool body in its loaded shape
   // (filled donut + tag); the rotating progress mark moves to the card-head
   // top-right slot instead of obscuring the disc centre. Per the firmware
@@ -33,9 +35,8 @@ export function SpoolDisc({
   const showFilamentTag = isFilled;
   const center = SIZE / 2;
 
-  // Show a partial ring only for single-color spools with known remaining percent.
   const remain = typeof slot.filament_card.remain === 'number' ? slot.filament_card.remain : 100;
-  const showPartialRing = isFilled && colors.length === 1 && remain > 0 && remain < 100;
+  const materialId = `spool-material-${reactId}-${display_index}`;
 
   return (
     <svg
@@ -47,12 +48,14 @@ export function SpoolDisc({
       <circle cx={center} cy={center} r={OUTER} fill="var(--ams-overlay-bg)" />
       <circle cx={center} cy={center} r={OUTER - 0.5} fill="none" stroke="var(--ams-border)" strokeWidth={1} />
 
-      {isFilled && !showPartialRing && (
-        <FilledDonut center={center} colors={colors} />
-      )}
-
-      {showPartialRing && (
-        <PartialDonut center={center} color={colors[0]} pct={remain} />
+      {isFilled && (
+        <MaterialDonut
+          center={center}
+          colors={colors}
+          colorType={color_type}
+          pct={remain}
+          idPrefix={materialId}
+        />
       )}
 
       {isError && (
@@ -120,29 +123,57 @@ function NotAllowedOverlay({ center }: { center: number }) {
   );
 }
 
-function FilledDonut({ center, colors }: { center: number; colors: string[] }) {
-  if (colors.length === 1) {
-    return (
-      <>
-        <circle cx={center} cy={center} r={RING} fill={colors[0]} />
-        <circle cx={center} cy={center} r={RING} fill="none" stroke="var(--color-fm-chip-ring)" strokeWidth={1} />
-        <circle cx={center} cy={center} r={HOLE} fill="var(--ams-card-text-bg)" />
-        <circle cx={center} cy={center} r={HOLE} fill="none" stroke="var(--ams-border)" strokeWidth={1} />
-      </>
-    );
-  }
-
-  const slices = colors.map((_, i) => {
-    const start = (i / colors.length) * Math.PI * 2 - Math.PI / 2;
-    const end = ((i + 1) / colors.length) * Math.PI * 2 - Math.PI / 2;
-    return wedgePath(center, center, RING, HOLE, start, end);
-  });
+function MaterialDonut({
+  center,
+  colors,
+  colorType,
+  pct,
+  idPrefix,
+}: {
+  center: number;
+  colors: string[];
+  colorType?: 'single' | 'multi' | 'gradient';
+  pct: number;
+  idPrefix: string;
+}) {
+  const maskId = `${idPrefix}-remain`;
+  const gradientId = `${idPrefix}-gradient`;
+  const checkerId = `${idPrefix}-checker`;
+  const transparent = colors.some(isTransparentColor);
+  const safePct = Math.max(0, Math.min(100, pct));
 
   return (
     <>
-      {slices.map((d, i) => (
-        <path key={i} d={d} fill={colors[i]} />
-      ))}
+      <defs>
+        <RemainMask id={maskId} center={center} pct={safePct} />
+        {colorType === 'gradient' && (
+          <radialGradient
+            id={gradientId}
+            cx={center}
+            cy={center}
+            r={RING}
+            fx={center}
+            fy={center}
+            gradientUnits="userSpaceOnUse"
+          >
+            {colors.map((c, i) => (
+              <stop
+                key={`${c}-${i}`}
+                offset={`${gradientStopOffset(i, colors.length)}%`}
+                stopColor={opaqueColor(c)}
+                stopOpacity={colorOpacity(c)}
+              />
+            ))}
+          </radialGradient>
+        )}
+        {transparent && <CheckerPattern id={checkerId} />}
+      </defs>
+
+      <circle cx={center} cy={center} r={RING} fill="var(--ams-overlay-bg)" />
+      <g mask={`url(#${maskId})`}>
+        {transparent && <circle cx={center} cy={center} r={RING} fill={`url(#${checkerId})`} />}
+        <MaterialFill center={center} colors={colors} colorType={colorType} gradientId={gradientId} />
+      </g>
       <circle cx={center} cy={center} r={RING} fill="none" stroke="var(--color-fm-chip-ring)" strokeWidth={1} />
       <circle cx={center} cy={center} r={HOLE} fill="var(--ams-card-text-bg)" />
       <circle cx={center} cy={center} r={HOLE} fill="none" stroke="var(--ams-border)" strokeWidth={1} />
@@ -150,35 +181,85 @@ function FilledDonut({ center, colors }: { center: number; colors: string[] }) {
   );
 }
 
-// Partial fill arc from 12 o'clock clockwise.
-function PartialDonut({ center, color, pct }: { center: number; color: string; pct: number }) {
+function MaterialFill({
+  center,
+  colors,
+  colorType,
+  gradientId,
+}: {
+  center: number;
+  colors: string[];
+  colorType?: 'single' | 'multi' | 'gradient';
+  gradientId: string;
+}) {
+  if (colorType === 'gradient') {
+    return <circle cx={center} cy={center} r={RING} fill={`url(#${gradientId})`} />;
+  }
+  if (colors.length > 1) {
+    return <ConcentricRings center={center} colors={colors} />;
+  }
+  return (
+    <circle cx={center} cy={center} r={RING} fill={opaqueColor(colors[0])} fillOpacity={colorOpacity(colors[0])} />
+  );
+}
+
+function ConcentricRings({ center, colors }: { center: number; colors: string[] }) {
+  const band = (RING - HOLE) / colors.length;
+  return (
+    <>
+      {colors.map((color, index) => {
+        const radius = RING - band * index;
+        return (
+          <circle
+            key={`${color}-${index}`}
+            cx={center}
+            cy={center}
+            r={radius}
+            fill={opaqueColor(color)}
+            fillOpacity={colorOpacity(color)}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+function RemainMask({ id, center, pct }: { id: string; center: number; pct: number }) {
   const ringRadius = (RING + HOLE) / 2;
   const stroke = RING - HOLE;
   const circumference = 2 * Math.PI * ringRadius;
   const filled = (pct / 100) * circumference;
   const gap = circumference - filled;
   return (
-    <g transform={`rotate(-90 ${center} ${center})`}>
-      <circle
-        cx={center}
-        cy={center}
-        r={ringRadius}
-        fill="none"
-        stroke="var(--ams-overlay-bg)"
-        strokeWidth={stroke}
-      />
-      <circle
-        cx={center}
-        cy={center}
-        r={ringRadius}
-        fill="none"
-        stroke={color}
-        strokeWidth={stroke}
-        strokeDasharray={`${filled} ${gap}`}
-      />
-      <circle cx={center} cy={center} r={HOLE} fill="var(--ams-card-text-bg)" />
-      <circle cx={center} cy={center} r={HOLE} fill="none" stroke="var(--ams-border)" strokeWidth={1} />
-    </g>
+    <mask id={id} maskUnits="userSpaceOnUse">
+      <rect x={0} y={0} width={SIZE} height={SIZE} fill="black" />
+      {pct >= 100 ? (
+        <circle cx={center} cy={center} r={RING} fill="white" />
+      ) : (
+        <g transform={`rotate(-90 ${center} ${center})`}>
+          <circle
+            cx={center}
+            cy={center}
+            r={ringRadius}
+            fill="none"
+            stroke="white"
+            strokeWidth={stroke}
+            strokeDasharray={`${filled} ${gap}`}
+          />
+        </g>
+      )}
+    </mask>
+  );
+}
+
+function CheckerPattern({ id }: { id: string }) {
+  const tile = 6;
+  return (
+    <pattern id={id} width={tile} height={tile} patternUnits="userSpaceOnUse">
+      <rect width={tile} height={tile} fill="#dfeee4" />
+      <rect width={tile / 2} height={tile / 2} fill="#9ed3ae" />
+      <rect x={tile / 2} y={tile / 2} width={tile / 2} height={tile / 2} fill="#9ed3ae" />
+    </pattern>
   );
 }
 
@@ -202,21 +283,39 @@ function ReadingArc({ center }: { center: number }) {
   );
 }
 
-function wedgePath(cx: number, cy: number, r1: number, r0: number, a0: number, a1: number) {
-  const x0o = cx + r1 * Math.cos(a0);
-  const y0o = cy + r1 * Math.sin(a0);
-  const x1o = cx + r1 * Math.cos(a1);
-  const y1o = cy + r1 * Math.sin(a1);
-  const x0i = cx + r0 * Math.cos(a1);
-  const y0i = cy + r0 * Math.sin(a1);
-  const x1i = cx + r0 * Math.cos(a0);
-  const y1i = cy + r0 * Math.sin(a0);
-  const large = a1 - a0 > Math.PI ? 1 : 0;
-  return [
-    `M ${x0o} ${y0o}`,
-    `A ${r1} ${r1} 0 ${large} 1 ${x1o} ${y1o}`,
-    `L ${x0i} ${y0i}`,
-    `A ${r0} ${r0} 0 ${large} 0 ${x1i} ${y1i}`,
-    'Z',
-  ].join(' ');
+function normalizeColors(colors: string[]) {
+  return colors.length ? colors.map(normalizeColor) : ['#D9D9D9'];
+}
+
+function normalizeColor(raw: string) {
+  if (!raw) return '#D9D9D9';
+  if (raw === 'transparent') return raw;
+  return raw[0] === '#' ? raw : `#${raw}`;
+}
+
+function isTransparentColor(color: string) {
+  if (color === 'transparent') return true;
+  const alpha = alphaFromHex(color);
+  return alpha !== null && alpha < 255;
+}
+
+function opaqueColor(color: string) {
+  if (color === 'transparent') return '#9ed3ae';
+  if (/^#[0-9a-fA-F]{8}$/.test(color)) return color.slice(0, 7);
+  return color;
+}
+
+function colorOpacity(color: string) {
+  const alpha = alphaFromHex(color);
+  return alpha === null ? 1 : Math.max(0.2, alpha / 255);
+}
+
+function gradientStopOffset(index: number, total: number) {
+  if (total <= 1) return 100;
+  return (index / (total - 1)) * 100;
+}
+
+function alphaFromHex(color: string) {
+  if (!/^#[0-9a-fA-F]{8}$/.test(color)) return null;
+  return Number.parseInt(color.slice(7, 9), 16);
 }

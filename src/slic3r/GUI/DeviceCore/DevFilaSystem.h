@@ -27,8 +27,8 @@ struct DevFilamentDryingPreset;
 
 enum DevFilaColorType : int
 {
-    CTYPE_MULTI = 0,
-    CTYPE_GRADIANT = 1,
+    CTYPE_GRADIANT = 0,
+    CTYPE_MULTI = 1,
     CTYPE_SINGLE = 2,
 };
 

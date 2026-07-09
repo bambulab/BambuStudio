@@ -39,7 +39,7 @@ export function HotendCard({
   const isTaken = !!slot.taken;
   const isSelected = isTaken || !!hot.selected;
   const isEmpty = (hot.tool_kind ?? 'empty') === 'empty';
-  const isStatusReplaced = op === 'Reading' || op === 'Taking' || op === 'Placing' || op === 'Removing' || op === 'Error';
+  const isStatusReplaced = op === 'Reading' || op === 'Taking' || op === 'Placing' || op === 'Removing' || op === 'Error' || op === 'Unknown';
   const [menuOpen, setMenuOpen] = useState(false);
   const [editingTemp, setEditingTemp] = useState(false);
   const [draftTemp, setDraftTemp] = useState('');
@@ -151,10 +151,10 @@ export function HotendCard({
       </div>
 
       <div className="hotend-card-body">
-        {isTaken ? (
-          <TakenReadout />
-        ) : isStatusReplaced ? (
+        {isStatusReplaced ? (
           <StatusReadout op={op} />
+        ) : isTaken ? (
+          <TakenReadout />
         ) : isNozzleTool ? (
           <TempReadout
             op={op}
@@ -309,7 +309,8 @@ function StatusReadout({ op }: { op: HotendOpState }) {
     op === 'Taking'   ? t('Taking') :
     op === 'Placing'  ? t('Placing') :
     op === 'Removing' ? t('Removing') :
-    op === 'Error'    ? t('Error') : '';
+    op === 'Error'    ? t('Error') :
+    op === 'Unknown'  ? t('Unknown') : '';
   return (
     <div className={`hotend-readout status status-${op.toLowerCase()}`}>
       <span className="hotend-readout-text">{text}</span>

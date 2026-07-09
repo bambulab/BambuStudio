@@ -41,7 +41,7 @@ std::string normalize_ext_hex_for_web(const std::string& raw)
     if (raw.empty()) return "#D9D9D9";
     std::string hex = raw;
     if (hex[0] != '#') hex = "#" + hex;
-    if (hex.size() >= 7) hex = hex.substr(0, 7);
+    if (hex.size() > 9) hex = hex.substr(0, 9);
     return hex;
 }
 
