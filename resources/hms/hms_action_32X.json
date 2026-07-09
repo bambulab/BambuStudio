@@ -1,8 +1,664 @@
 {
     "result": 0,
-    "t": 1783483414,
-    "ver": 202511162200,
+    "t": 1783586910,
+    "ver": 202607091000,
     "data": [
+        {
+            "ecode": "2A008047",
+            "image": "c42d811f5cb343b6682cb743a3670c0e.png",
+            "actions": [
+                39,
+                34,
+                51
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A228046",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A188046",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07F98007",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03148032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FD8007",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A238046",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03258032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03158032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A258032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03278032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03218032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FE8007",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07F78007",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A218046",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A128032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03248032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07F68007",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03268032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03108032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03188032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A248032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03208032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A288046",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03138032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03118032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A288032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03178032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FB8007",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A278032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A218032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A168046",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "0300800A",
+            "image": "7cabcc06b59d48a52a7115f8c6bfe206.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A268032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A228032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A208046",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A118046",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A168032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A278046",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A178032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03228032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03288032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A258046",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A138046",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A128046",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03238032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A208032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A158032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FA8007",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03168032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A148032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A178046",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A158046",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03008024",
+            "image": "c42d811f5cb343b6682cb743a3670c0e.png",
+            "actions": [
+                4
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A118032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A238032",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A138032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A108046",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A108032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A268046",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A188032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07F88007",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A148046",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03128032",
+            "image": "67d5e9ed77c303e719b0bd9aa1a6b109.png",
+            "actions": [
+                28,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A248046",
+            "image": "455c0e2b79f4b398b95df7b70d01ecb6.png",
+            "actions": [
+                34,
+                51,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "1A008002",
+            "image": "c42d811f5cb343b6682cb743a3670c0e.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FC8007",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FF8007",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "0500C045",
+            "image": "",
+            "actions": [
+                11
+            ],
+            "device": "32X"
+        },
         {
             "ecode": "2A28804A",
             "image": "",
@@ -42,29 +698,8 @@
             "device": "32X"
         },
         {
-            "ecode": "2A008047",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6,
-                39
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A048046",
             "image": "1f5a05445c2a79e48b119a798cbcd78a.png",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A228046",
-            "image": "",
             "actions": [
                 34,
                 51,
@@ -104,16 +739,6 @@
         {
             "ecode": "2A008046",
             "image": "1f5a05445c2a79e48b119a798cbcd78a.png",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A188046",
-            "image": "",
             "actions": [
                 34,
                 51,
@@ -182,15 +807,6 @@
             "device": "32X"
         },
         {
-            "ecode": "03148032",
-            "image": "",
-            "actions": [
-                28,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "03028032",
             "image": "1f5a05445c2a79e48b119a798cbcd78a.png",
             "actions": [
@@ -214,25 +830,6 @@
             "image": "",
             "actions": [
                 11
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A238046",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "03258032",
-            "image": "",
-            "actions": [
-                28,
-                6
             ],
             "device": "32X"
         },
@@ -306,43 +903,6 @@
             "device": "32X"
         },
         {
-            "ecode": "03158032",
-            "image": "",
-            "actions": [
-                28,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A258032",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "03278032",
-            "image": "",
-            "actions": [
-                28,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "03218032",
-            "image": "",
-            "actions": [
-                28,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A128041",
             "image": "",
             "actions": [
@@ -383,35 +943,6 @@
             "device": "32X"
         },
         {
-            "ecode": "2A218046",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A128032",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "03248032",
-            "image": "",
-            "actions": [
-                28,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A018041",
             "image": "",
             "actions": [
@@ -427,15 +958,6 @@
             "actions": [
                 51,
                 34,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "03268032",
-            "image": "",
-            "actions": [
-                28,
                 6
             ],
             "device": "32X"
@@ -461,29 +983,11 @@
             "device": "32X"
         },
         {
-            "ecode": "03108032",
-            "image": "",
-            "actions": [
-                28,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A188041",
             "image": "",
             "actions": [
                 34,
                 51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "03188032",
-            "image": "",
-            "actions": [
-                28,
                 6
             ],
             "device": "32X"
@@ -529,30 +1033,11 @@
             "device": "32X"
         },
         {
-            "ecode": "2A248032",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A00804A",
             "image": "",
             "actions": [
                 34,
                 51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "03208032",
-            "image": "",
-            "actions": [
-                28,
                 6
             ],
             "device": "32X"
@@ -588,16 +1073,6 @@
             "device": "32X"
         },
         {
-            "ecode": "2A288046",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A148040",
             "image": "",
             "actions": [
@@ -613,15 +1088,6 @@
             "actions": [
                 34,
                 51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "03138032",
-            "image": "",
-            "actions": [
-                28,
                 6
             ],
             "device": "32X"
@@ -677,15 +1143,6 @@
             "device": "32X"
         },
         {
-            "ecode": "03118032",
-            "image": "",
-            "actions": [
-                28,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A22804A",
             "image": "",
             "actions": [
@@ -706,27 +1163,8 @@
             "device": "32X"
         },
         {
-            "ecode": "2A288032",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "03008032",
             "image": "1f5a05445c2a79e48b119a798cbcd78a.png",
-            "actions": [
-                28,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "03178032",
-            "image": "",
             "actions": [
                 28,
                 6
@@ -759,26 +1197,6 @@
             "actions": [
                 51,
                 34,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A218032",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A278032",
-            "image": "",
-            "actions": [
-                34,
-                51,
                 6
             ],
             "device": "32X"
@@ -853,26 +1271,6 @@
             "device": "32X"
         },
         {
-            "ecode": "2A168046",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A268032",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A068041",
             "image": "",
             "actions": [
@@ -893,47 +1291,7 @@
             "device": "32X"
         },
         {
-            "ecode": "2A228032",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A208046",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A158040",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A118046",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A168032",
             "image": "",
             "actions": [
                 34,
@@ -1020,16 +1378,6 @@
             "device": "32X"
         },
         {
-            "ecode": "2A278046",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A088032",
             "image": "1f5a05445c2a79e48b119a798cbcd78a.png",
             "actions": [
@@ -1060,30 +1408,11 @@
             "device": "32X"
         },
         {
-            "ecode": "2A178032",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A168041",
             "image": "",
             "actions": [
                 34,
                 51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "03228032",
-            "image": "",
-            "actions": [
-                28,
                 6
             ],
             "device": "32X"
@@ -1100,25 +1429,6 @@
         },
         {
             "ecode": "2A118041",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "03288032",
-            "image": "",
-            "actions": [
-                28,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A258046",
             "image": "",
             "actions": [
                 34,
@@ -1148,26 +1458,6 @@
             "device": "32X"
         },
         {
-            "ecode": "2A138046",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A128046",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "03048032",
             "image": "1f5a05445c2a79e48b119a798cbcd78a.png",
             "actions": [
@@ -1187,39 +1477,10 @@
             "device": "32X"
         },
         {
-            "ecode": "03238032",
-            "image": "",
-            "actions": [
-                28,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "03058032",
             "image": "1f5a05445c2a79e48b119a798cbcd78a.png",
             "actions": [
                 28,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A158032",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A208032",
-            "image": "",
-            "actions": [
-                34,
-                51,
                 6
             ],
             "device": "32X"
@@ -1305,15 +1566,6 @@
             "device": "32X"
         },
         {
-            "ecode": "03168032",
-            "image": "",
-            "actions": [
-                28,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A278041",
             "image": "",
             "actions": [
@@ -1325,16 +1577,6 @@
         },
         {
             "ecode": "2A23804A",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A148032",
             "image": "",
             "actions": [
                 34,
@@ -1364,16 +1606,6 @@
             "device": "32X"
         },
         {
-            "ecode": "2A178046",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A158041",
             "image": "",
             "actions": [
@@ -1394,16 +1626,6 @@
             "device": "32X"
         },
         {
-            "ecode": "2A118032",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A128040",
             "image": "",
             "actions": [
@@ -1415,16 +1637,6 @@
         },
         {
             "ecode": "2A108042",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A158046",
             "image": "",
             "actions": [
                 34,
@@ -1473,47 +1685,7 @@
             "device": "32X"
         },
         {
-            "ecode": "2A238032",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A138032",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A25804A",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A108046",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A108032",
             "image": "",
             "actions": [
                 34,
@@ -1533,27 +1705,7 @@
             "device": "32X"
         },
         {
-            "ecode": "2A268046",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A208042",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A188032",
             "image": "",
             "actions": [
                 34,
@@ -1594,35 +1746,6 @@
         },
         {
             "ecode": "2A24804A",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A148046",
-            "image": "",
-            "actions": [
-                34,
-                51,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "03128032",
-            "image": "",
-            "actions": [
-                28,
-                6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A248046",
             "image": "",
             "actions": [
                 34,
@@ -3451,12 +3574,6 @@
             "device": "32X"
         },
         {
-            "ecode": "0500C045",
-            "image": "",
-            "actions": [],
-            "device": "32X"
-        },
-        {
             "ecode": "07FAC012",
             "image": "e7218d04000596639c47be15e0ba11fc.png",
             "actions": [
@@ -4351,15 +4468,6 @@
             "device": "32X"
         },
         {
-            "ecode": "07F98007",
-            "image": "",
-            "actions": [
-                7,
-                8
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A068013",
             "image": "",
             "actions": [
@@ -4373,33 +4481,6 @@
             "image": "",
             "actions": [
                 2
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "07FD8007",
-            "image": "",
-            "actions": [
-                7,
-                8
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "07FE8007",
-            "image": "",
-            "actions": [
-                7,
-                8
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "07F78007",
-            "image": "",
-            "actions": [
-                7,
-                8
             ],
             "device": "32X"
         },
@@ -4434,15 +4515,6 @@
             "actions": [
                 4,
                 6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "07F68007",
-            "image": "",
-            "actions": [
-                7,
-                8
             ],
             "device": "32X"
         },
@@ -4486,15 +4558,6 @@
             "image": "",
             "actions": [
                 2
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "07FB8007",
-            "image": "",
-            "actions": [
-                7,
-                8
             ],
             "device": "32X"
         },
@@ -4661,15 +4724,6 @@
             "device": "32X"
         },
         {
-            "ecode": "07FA8007",
-            "image": "",
-            "actions": [
-                7,
-                8
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A058013",
             "image": "",
             "actions": [
@@ -4692,15 +4746,6 @@
             "actions": [
                 4,
                 6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "07F88007",
-            "image": "",
-            "actions": [
-                7,
-                8
             ],
             "device": "32X"
         },
@@ -4730,15 +4775,6 @@
             "device": "32X"
         },
         {
-            "ecode": "07FC8007",
-            "image": "",
-            "actions": [
-                7,
-                8
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A038013",
             "image": "",
             "actions": [
@@ -4752,15 +4788,6 @@
             "image": "",
             "actions": [
                 2
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "07FF8007",
-            "image": "",
-            "actions": [
-                7,
-                8
             ],
             "device": "32X"
         },
@@ -4813,15 +4840,6 @@
             "image": "",
             "actions": [
                 4
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "0300800A",
-            "image": "",
-            "actions": [
-                4,
-                6
             ],
             "device": "32X"
         },
@@ -5195,14 +5213,6 @@
             "actions": [
                 9,
                 6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "03008024",
-            "image": "",
-            "actions": [
-                4
             ],
             "device": "32X"
         },
@@ -5727,15 +5737,6 @@
             "image": "",
             "actions": [
                 4
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "1A008002",
-            "image": "",
-            "actions": [
-                4,
-                6
             ],
             "device": "32X"
         },
