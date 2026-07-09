@@ -460,6 +460,7 @@ namespace Slic3r {
             Last_Line_M73_Placeholder,
             Estimated_Printing_Time_Placeholder,
             Total_Layer_Number_Placeholder,
+            Pause_Printing_Placeholder,
             Wipe_Tower_Start,
             Wipe_Tower_End,
             Used_Filament_Weight_Placeholder,
@@ -651,6 +652,7 @@ namespace Slic3r {
                 float elapsed_time;
             };
             std::vector<StopTime> stop_times;
+            std::vector<StopTime> pause_times;
             std::string line_m73_main_mask;
             std::string line_m73_stop_mask;
             State curr;

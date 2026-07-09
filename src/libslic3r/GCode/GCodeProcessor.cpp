@@ -60,6 +60,7 @@ const std::vector<std::string> GCodeProcessor::ReservedTags = {
     "_GP_LAST_LINE_M73_PLACEHOLDER",
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
     "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER",
+    "_GP_PAUSE_PRINTING_PLACEHOLDER",
     " WIPE_TOWER_START",
     " WIPE_TOWER_END",
     "_GP_FILAMENT_USED_WEIGHT_PLACEHOLDER",
@@ -315,6 +316,7 @@ void GCodeProcessor::TimeMachine::reset()
     extrude_factor_override_percentage = 1.0f;
     time = 0.0f;
     stop_times = std::vector<StopTime>();
+    pause_times = std::vector<StopTime>();
     curr.reset();
     prev.reset();
     gcode_time.reset();
@@ -503,10 +505,35 @@ void GCodeProcessor::TimeMachine::calculate_time(size_t keep_last_n_blocks, floa
         else
             g1_times_cache.push_back({ block.g1_line_id, time });
         // update times for remaining time to printer stop placeholders
-        auto it_stop_time = std::lower_bound(stop_times.begin(), stop_times.end(), block.g1_line_id,
-            [](const StopTime& t, unsigned int value) { return t.g1_line_id < value; });
-        if (it_stop_time != stop_times.end() && it_stop_time->g1_line_id == block.g1_line_id)
-            it_stop_time->elapsed_time = time;
+        const float elapsed_time = time;
+        auto update_elapsed_time = [block, elapsed_time](std::vector<StopTime>& times) {
+            auto it_stop_time = std::lower_bound(times.begin(), times.end(), block.g1_line_id,
+                [](const StopTime& t, unsigned int value) { return t.g1_line_id < value; });
+            if (it_stop_time != times.end() && it_stop_time->g1_line_id == block.g1_line_id)
+                it_stop_time->elapsed_time = elapsed_time;
+        };
+        update_elapsed_time(stop_times);
+        update_elapsed_time(pause_times);
+    }
+
+    for (StopTime& pause_time : pause_times) {
+        if (g1_times_cache.empty())
+            break;
+
+        auto it = std::lower_bound(g1_times_cache.begin(), g1_times_cache.end(), pause_time.g1_line_id,
+            [](const G1LinesCacheItem& item, unsigned int value) { return item.id < value; });
+        if (it == g1_times_cache.end()) {
+            pause_time.elapsed_time = g1_times_cache.back().elapsed_time;
+        }
+        else if (it == g1_times_cache.begin()) {
+            pause_time.elapsed_time = it->elapsed_time;
+        }
+        else {
+            auto prev_it = std::prev(it);
+            pause_time.elapsed_time = (pause_time.g1_line_id - prev_it->id <= it->id - pause_time.g1_line_id) ?
+                prev_it->elapsed_time :
+                it->elapsed_time;
+        }
     }
 
     m_additional_time_buffer.clear();
@@ -693,6 +720,20 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 char buf[128];
                 sprintf(buf, "; total layer number: %zd\n", context.total_layer_num);
                 ret += buf;
+            }
+            else if (line == reserved_tag(ETags::Pause_Printing_Placeholder)) {
+                const TimeMachine& machine = machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)];
+                const int total_time = time_in_minutes(machine.time);
+                ret += "; pause_printing: [";
+                for (size_t i = 0; i < machine.pause_times.size(); ++i) {
+                    const int percent = machine.time > 0.0f ? int(100.0f * machine.pause_times[i].elapsed_time / machine.time) : 0;
+                    const int remaining_time = time_in_minutes(std::max(0.0f, machine.time - machine.pause_times[i].elapsed_time));
+                    const int elapsed_time = std::max(0, total_time - remaining_time);
+                    char buf[128];
+                    sprintf(buf, "%s{\"percent\":%d,\"time\":%d}", i == 0 ? "" : ",", percent, elapsed_time);
+                    ret += buf;
+                }
+                ret += "]\n";
             }
             else if (line == reserved_tag(ETags::Used_Filament_Weight_Placeholder)) {
                 std::map<size_t, double>total_weight_per_extruder;
@@ -5627,6 +5668,16 @@ void GCodeProcessor::process_M400(const GCodeReader::GCodeLine& line)
 {
     float value_s = 0.0;
     float value_p = 0.0;
+    float value_u = 0.0;
+    if (line.has_value('U', value_u) && std::round(value_u) == 1.0f) {
+        for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
+            TimeMachine& machine = m_time_processor.machines[i];
+            if (!machine.enabled)
+                continue;
+
+            machine.pause_times.push_back({ m_g1_line_id, 0.0f });
+        }
+    }
     if (line.has_value('S', value_s) || line.has_value('P', value_p)) {
         value_s += value_p * 0.001;
         simulate_st_synchronize(value_s);
