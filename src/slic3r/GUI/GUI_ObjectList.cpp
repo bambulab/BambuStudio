@@ -3454,10 +3454,15 @@ void ObjectList::layers_editing()
 {
     const auto& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     if (print_config.opt_bool("enable_mixed_color_sublayer")) {
-        MessageDialog dlg(nullptr,
-            _L("Using variable layer height together with mixed color sublayer may result in poor color mixing quality."),
-            _L("Warning"), wxICON_WARNING | wxOK);
-        dlg.ShowModal();
+        if (wxGetApp().app_config->get("no_warn_mixed_sublayer_variable_layer") != "1") {
+            MessageDialog dlg(nullptr,
+                _L("Using variable layer height together with mixed color sublayer may result in poor color mixing quality."),
+                _L("Warning"), wxICON_WARNING | wxOK);
+            dlg.show_dsa_button();
+            dlg.ShowModal();
+            if (dlg.get_checkbox_state())
+                wxGetApp().app_config->set("no_warn_mixed_sublayer_variable_layer", "1");
+        }
     }
 
     const Selection& selection = scene_selection();

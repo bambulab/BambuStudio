@@ -13,6 +13,7 @@
 #include "I18N.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "format.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/DropDown.hpp"
 #include "Widgets/Button.hpp"
@@ -79,6 +80,19 @@ static DecomposeBaseColor standard_base_color_from_key(const std::string& key)
     if (key == "Green")   return DecomposeBaseColor::Green;
     if (key == "Blue")    return DecomposeBaseColor::Blue;
     return DecomposeBaseColor::None;
+}
+
+static wxColour pure_color_for_base(DecomposeBaseColor base)
+{
+    switch (base) {
+    case DecomposeBaseColor::Cyan:    return CMYW_CYAN;
+    case DecomposeBaseColor::Magenta: return CMYW_MAGENTA;
+    case DecomposeBaseColor::Yellow:  return CMYW_YELLOW;
+    case DecomposeBaseColor::White:   return CMYW_WHITE;
+    case DecomposeBaseColor::Red:     return RYBW_RED;
+    case DecomposeBaseColor::Blue:    return RYBW_BLUE;
+    default:                          return *wxBLACK;
+    }
 }
 
 static DecomposeBaseColor standard_base_color_for(DecomposeMode mode, const wxColour& color)
@@ -154,7 +168,10 @@ ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
                                            const wxColour& target_color,
                                            const std::vector<std::string>& physical_colors,
                                            const std::vector<std::string>& filament_names,
-                                           const std::vector<std::string>& filament_types)
+                                           const std::vector<std::string>& filament_types,
+                                           size_t current_filament_count,
+                                           size_t max_filament_count,
+                                           std::vector<size_t> physical_config_indices)
     : DPIDialog(parent, wxID_ANY, _L("Decompose Color"), wxDefaultPosition,
                 wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_filament_idx(filament_idx)
@@ -162,6 +179,9 @@ ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
     , m_physical_colors(physical_colors)
     , m_filament_names(filament_names)
     , m_filament_types(filament_types)
+    , m_current_filament_count(current_filament_count)
+    , m_max_filament_count(max_filament_count)
+    , m_physical_config_indices(std::move(physical_config_indices))
 {
     for (const auto& t : m_filament_types) {
         if (std::find(m_project_types.begin(), m_project_types.end(), t) == m_project_types.end())
@@ -253,8 +273,8 @@ wxBoxSizer* ColorDecomposeDialog::create_filament_selector()
     m_combo_item_types.push_back(std::string());
 
     for (size_t s = 0; s < sizeof(kStandardTypes) / sizeof(kStandardTypes[0]); ++s) {
-        if (seen_types.count(kStandardTypes[s]))
-            continue;
+        // Always show standard recommendations, even if the same type already
+        // appears in the project filament list above.
         const std::string label = std::string(kDecomposeBambuPresetPrefix) + kStandardTypes[s];
         int idx = m_type_combo->Append(wxString::FromUTF8(label));
         m_combo_item_types.push_back(kStandardTypes[s]);
@@ -361,8 +381,9 @@ wxPanel* ColorDecomposeDialog::create_mode_card(wxWindow* parent, DecomposeMode 
     case DecomposeMode::CMYW:         m_chk_cmyw = chk; break;
     case DecomposeMode::RYBW:         m_chk_rybw = chk; break;
     }
-    chk->Bind(wxEVT_TOGGLEBUTTON, [this, mode](wxCommandEvent&) {
+    chk->Bind(wxEVT_TOGGLEBUTTON, [this, mode](wxCommandEvent& e) {
         select_mode(mode);
+        e.Skip();  // let CheckBox::update() re-sync its bitmap to GetValue()
     });
     title_sizer->Add(chk, 0, wxALIGN_CENTER_VERTICAL);
 
@@ -482,6 +503,22 @@ wxBoxSizer* ColorDecomposeDialog::create_mode_selection_section()
     m_no_card_hint->Hide();
     sizer->Add(m_no_card_hint, 0, wxTOP, FromDIP(8));
 
+    m_limit_warning_panel = new wxPanel(this, wxID_ANY);
+    m_limit_warning_panel->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    auto* warning_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto* warn_bmp = new wxStaticBitmap(m_limit_warning_panel, wxID_ANY,
+        create_scaled_bitmap("obj_warning", m_limit_warning_panel, 16),
+        wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
+    m_limit_warning_text = new wxStaticText(m_limit_warning_panel, wxID_ANY, wxEmptyString);
+    m_limit_warning_text->SetFont(Label::Body_13);
+    m_limit_warning_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#D32F2F")));
+    m_limit_warning_text->Wrap(FromDIP(400));
+    warning_sizer->Add(warn_bmp, 0, wxALIGN_TOP | wxRIGHT, FromDIP(6));
+    warning_sizer->Add(m_limit_warning_text, 1, wxEXPAND);
+    m_limit_warning_panel->SetSizer(warning_sizer);
+    m_limit_warning_panel->Hide();
+    sizer->Add(m_limit_warning_panel, 0, wxEXPAND | wxTOP, FromDIP(8));
+
     return sizer;
 }
 
@@ -498,9 +535,15 @@ wxBoxSizer* ColorDecomposeDialog::create_button_panel()
     m_btn_cancel->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_CANCEL); });
 
     m_btn_ok = new Button(this, _L("OK"));
-    m_btn_ok->SetBackgroundColor(wxColour("#00AE42"));
-    m_btn_ok->SetBorderColor(wxColour("#00AE42"));
-    m_btn_ok->SetTextColor(*wxWHITE);
+    m_btn_ok->SetBackgroundColor(StateColor(
+        std::make_pair(wxColour("#C2C2C2"), (int) StateColor::Disabled),
+        std::make_pair(wxColour("#00AE42"), (int) StateColor::Normal)));
+    m_btn_ok->SetBorderColor(StateColor(
+        std::make_pair(wxColour("#C2C2C2"), (int) StateColor::Disabled),
+        std::make_pair(wxColour("#00AE42"), (int) StateColor::Normal)));
+    m_btn_ok->SetTextColor(StateColor(
+        std::make_pair(*wxWHITE, (int) StateColor::Disabled),
+        std::make_pair(*wxWHITE, (int) StateColor::Normal)));
     m_btn_ok->SetMinSize(wxSize(FromDIP(55), FromDIP(24)));
     m_btn_ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
         EndModal(wxID_OK);
@@ -518,6 +561,7 @@ void ColorDecomposeDialog::select_mode(DecomposeMode mode)
     m_result = m_mode_results[mode_index(mode)];
     update_card_styles();
     update_matched_color_display();
+    update_ok_button_state();
 }
 
 void ColorDecomposeDialog::update_card_styles()
@@ -573,15 +617,90 @@ void ColorDecomposeDialog::update_card_visibility()
     }
 
     Layout();
+    update_ok_button_state();
+}
+
+void ColorDecomposeDialog::update_filament_limit_warning()
+{
+    if (!m_limit_warning_panel || !m_limit_warning_text)
+        return;
+
+    size_t missing_new = 0;
+    if (m_missing_calculator) {
+        missing_new = m_missing_calculator(m_result);
+    } else {
+        const size_t source_physical_idx = m_filament_idx >= 0 ? static_cast<size_t>(m_filament_idx) : size_t(-1);
+        const std::vector<size_t>* indices =
+            m_physical_config_indices.empty() ? nullptr : &m_physical_config_indices;
+        missing_new = count_decompose_new_physical_filaments(
+            m_result, m_physical_colors, m_filament_types, source_physical_idx, indices);
+    }
+    // A result with fewer than 2 components (e.g. target color is already a
+    // standard base color shown as "100%") creates no mixed filament and no new
+    // physical filament, so it can never exceed the limit.
+    const bool creates_mixed = m_result.components.size() >= 2;
+    // +1 for the mixed filament slot that will be created after decomposition.
+    const size_t needed = m_current_filament_count + missing_new + 1;
+    const bool blocked = creates_mixed && needed > m_max_filament_count;
+
+    const bool was_shown = m_limit_warning_panel->IsShown();
+
+    if (!blocked) {
+        if (was_shown) {
+            m_limit_warning_panel->Hide();
+            Layout();
+            Fit();
+            CenterOnParent();
+        }
+        return;
+    }
+
+    wxString mode_name;
+    switch (m_selected_mode) {
+    case DecomposeMode::CMYW:         mode_name = "CMYW"; break;
+    case DecomposeMode::RYBW:         mode_name = "RYBW"; break;
+    case DecomposeMode::MaterialList: mode_name = _L("Material List"); break;
+    }
+
+    const wxString warning_text = format_wxstr(
+        _L("The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."),
+        m_max_filament_count, mode_name);
+
+    // Show first so the panel is laid out and the text control gets its real
+    // width, then wrap to that width so the paragraph fills the content area.
+    m_limit_warning_panel->Show();
+    Layout();
+    const int avail = m_limit_warning_text->GetClientSize().x;
+    m_limit_warning_text->SetLabel(warning_text);
+    if (avail > FromDIP(50))
+        m_limit_warning_text->Wrap(avail);
+
+    Layout();
+    // Only resize/recenter when the warning panel actually toggled from hidden
+    // to shown. While already visible, switching modes must not re-Fit/recenter
+    // the dialog, which would make it jump on every card switch.
+    if (!was_shown) {
+        Fit();
+        CenterOnParent();
+    }
+}
+
+void ColorDecomposeDialog::set_missing_physical_calculator(std::function<size_t(const ColorDecomposeResult&)> fn)
+{
+    m_missing_calculator = std::move(fn);
+    update_ok_button_state();
 }
 
 void ColorDecomposeDialog::update_ok_button_state()
 {
     if (!m_btn_ok) return;
+    update_filament_limit_warning();
     bool any_card_visible = (m_card_material_list && m_card_material_list->IsShown())
                          || (m_card_cmyw && m_card_cmyw->IsShown())
                          || (m_card_rybw && m_card_rybw->IsShown());
-    m_btn_ok->Enable(any_card_visible);
+    const bool blocked = m_limit_warning_panel && m_limit_warning_panel->IsShown();
+    m_btn_ok->Enable(any_card_visible && !blocked);
+    Layout();
 }
 
 void ColorDecomposeDialog::update_mode_card_content(DecomposeMode mode)
@@ -678,6 +797,57 @@ void ColorDecomposeDialog::update_matched_color_display()
     }
 }
 
+bool ColorDecomposeDialog::try_build_single_base_result(DecomposeMode mode, ColorDecomposeResult& out) const
+{
+    // Gate by preferred type, matching card visibility: CMYW only for PLA Basic,
+    // RYBW for PLA Basic / PETG Basic.
+    if (mode == DecomposeMode::CMYW) {
+        if (m_preferred_type != kDecomposePlaBasicType)
+            return false;
+    } else if (mode == DecomposeMode::RYBW) {
+        if (m_preferred_type != kDecomposePlaBasicType && m_preferred_type != kDecomposePetgBasicType)
+            return false;
+    } else {
+        return false;
+    }
+
+    static const DecomposeBaseColor cmyw_bases[] = {
+        DecomposeBaseColor::Cyan, DecomposeBaseColor::Magenta,
+        DecomposeBaseColor::Yellow, DecomposeBaseColor::White
+    };
+    static const DecomposeBaseColor rybw_bases[] = {
+        DecomposeBaseColor::Red, DecomposeBaseColor::Yellow,
+        DecomposeBaseColor::Blue, DecomposeBaseColor::White
+    };
+    const DecomposeBaseColor* bases = (mode == DecomposeMode::CMYW) ? cmyw_bases : rybw_bases;
+    const size_t base_count = (mode == DecomposeMode::CMYW)
+        ? sizeof(cmyw_bases) / sizeof(cmyw_bases[0])
+        : sizeof(rybw_bases) / sizeof(rybw_bases[0]);
+
+    const std::string target_hex = decompose_normalize_color_hex(
+        m_target_color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
+
+    for (size_t i = 0; i < base_count; ++i) {
+        const DecomposeBaseColor base = bases[i];
+        DecomposeOfficialComponent official =
+            lookup_decompose_official_component(m_preferred_type, base, pure_color_for_base(base));
+        if (decompose_normalize_color_hex(official.color_hex) != target_hex)
+            continue;
+
+        out = ColorDecomposeResult{};
+        out.mode = mode;
+        out.matched_color = hex_to_wx_colour(official.color_hex, m_target_color);
+        DecomposeComponent comp;
+        comp.colour = out.matched_color;
+        comp.ratio = 100;
+        comp.filament_index = -1;
+        comp.base_color = base;
+        out.components.push_back(comp);
+        return true;
+    }
+    return false;
+}
+
 void ColorDecomposeDialog::compute_decomposition()
 {
     auto fallback_result = [this](DecomposeMode mode, const std::vector<DecomposeComponent>& components) {
@@ -741,24 +911,34 @@ void ColorDecomposeDialog::compute_decomposition()
             fallback_result(DecomposeMode::MaterialList, components);
     }
 
-    auto cmyw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::CMYW, m_preferred_type);
-    m_mode_results[mode_index(DecomposeMode::CMYW)] = cmyw_recipe.valid
-        ? to_dialog_result(cmyw_recipe, m_target_color)
-        : fallback_result(DecomposeMode::CMYW, {
-            {CMYW_YELLOW, 50, -1, DecomposeBaseColor::Yellow},
-            {CMYW_CYAN,   50, -1, DecomposeBaseColor::Cyan}
-        });
+    ColorDecomposeResult single_base;
+    if (try_build_single_base_result(DecomposeMode::CMYW, single_base)) {
+        m_mode_results[mode_index(DecomposeMode::CMYW)] = single_base;
+    } else {
+        auto cmyw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::CMYW, m_preferred_type);
+        m_mode_results[mode_index(DecomposeMode::CMYW)] = cmyw_recipe.valid
+            ? to_dialog_result(cmyw_recipe, m_target_color)
+            : fallback_result(DecomposeMode::CMYW, {
+                {CMYW_YELLOW, 50, -1, DecomposeBaseColor::Yellow},
+                {CMYW_CYAN,   50, -1, DecomposeBaseColor::Cyan}
+            });
+    }
 
-    auto rybw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::RYBW, m_preferred_type);
-    m_mode_results[mode_index(DecomposeMode::RYBW)] = rybw_recipe.valid
-        ? to_dialog_result(rybw_recipe, m_target_color)
-        : fallback_result(DecomposeMode::RYBW, {
-            {RYBW_YELLOW, 50, -1, DecomposeBaseColor::Yellow},
-            {RYBW_BLUE,   50, -1, DecomposeBaseColor::Blue}
-        });
+    if (try_build_single_base_result(DecomposeMode::RYBW, single_base)) {
+        m_mode_results[mode_index(DecomposeMode::RYBW)] = single_base;
+    } else {
+        auto rybw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::RYBW, m_preferred_type);
+        m_mode_results[mode_index(DecomposeMode::RYBW)] = rybw_recipe.valid
+            ? to_dialog_result(rybw_recipe, m_target_color)
+            : fallback_result(DecomposeMode::RYBW, {
+                {RYBW_YELLOW, 50, -1, DecomposeBaseColor::Yellow},
+                {RYBW_BLUE,   50, -1, DecomposeBaseColor::Blue}
+            });
+    }
 
     m_result = m_mode_results[mode_index(m_selected_mode)];
     update_mode_card_contents();
+    update_ok_button_state();
 }
 
 } // namespace GUI

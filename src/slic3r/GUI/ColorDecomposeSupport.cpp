@@ -123,6 +123,15 @@ DecomposeOfficialComponent lookup_decompose_official_component(
     if (color_name[0] == '\0')
         return result;
 
+    // Some materials name a standard base color differently in the color-code
+    // table. PETG Basic's RYBW blue base is "Reflex Blue" (deep blue, B00,
+    // #001489), not "Blue". Match by an ordered list of exact English names so
+    // "Navy Blue" (B01, #0086D6) is never picked up by mistake.
+    std::vector<std::string> candidate_names;
+    candidate_names.emplace_back(color_name);
+    if (base_color == DecomposeBaseColor::Blue && basic_type == kDecomposePetgBasicType)
+        candidate_names.emplace_back("Reflex Blue");
+
     std::ifstream ifs(resources_dir() + "/profiles/BBL/filament/filaments_color_codes.json");
     if (!ifs)
         return result;
@@ -131,18 +140,20 @@ DecomposeOfficialComponent lookup_decompose_official_component(
     if (root.is_discarded() || !root.contains("data") || !root["data"].is_array())
         return result;
 
-    for (const auto& item : root["data"]) {
-        if (!item.is_object() || item.value("fila_type", "") != basic_type)
-            continue;
-        if (!item.contains("fila_color_name"))
-            continue;
-        const auto& names = item["fila_color_name"];
-        if (!names.is_object() || names.value("en", "") != color_name)
-            continue;
-        if (item.contains("fila_color") && item["fila_color"].is_array() && !item["fila_color"].empty())
-            result.color_hex = decompose_normalize_color_hex(item["fila_color"][0].get<std::string>());
-        result.filament_id = item.value("fila_id", result.filament_id);
-        return result;
+    for (const std::string& candidate : candidate_names) {
+        for (const auto& item : root["data"]) {
+            if (!item.is_object() || item.value("fila_type", "") != basic_type)
+                continue;
+            if (!item.contains("fila_color_name"))
+                continue;
+            const auto& names = item["fila_color_name"];
+            if (!names.is_object() || names.value("en", "") != candidate)
+                continue;
+            if (item.contains("fila_color") && item["fila_color"].is_array() && !item["fila_color"].empty())
+                result.color_hex = decompose_normalize_color_hex(item["fila_color"][0].get<std::string>());
+            result.filament_id = item.value("fila_id", result.filament_id);
+            return result;
+        }
     }
     return result;
 }
@@ -302,6 +313,46 @@ bool prepare_decompose_mixed_result(
 
     const bool ok = out_result.components.size() == out_result.ratios.size() && out_result.components.size() >= 2;
     return ok;
+}
+
+size_t count_decompose_new_physical_filaments(
+    const ColorDecomposeResult& result,
+    const std::vector<std::string>& physical_colors,
+    const std::vector<std::string>& physical_types,
+    size_t source_physical_idx,
+    const std::vector<size_t>* physical_config_indices)
+{
+    if (result.mode != DecomposeMode::CMYW && result.mode != DecomposeMode::RYBW)
+        return 0;
+
+    std::vector<size_t> fallback_indices;
+    const std::vector<size_t>* indices = physical_config_indices;
+    if (!indices) {
+        fallback_indices.resize(physical_colors.size());
+        for (size_t i = 0; i < fallback_indices.size(); ++i)
+            fallback_indices[i] = i;
+        indices = &fallback_indices;
+    }
+
+    size_t source_config_idx = size_t(-1);
+    if (source_physical_idx < indices->size())
+        source_config_idx = (*indices)[source_physical_idx];
+
+    const std::string basic_type =
+        decompose_basic_type_from_source(source_config_idx, source_physical_idx, physical_types);
+
+    size_t missing_count = 0;
+    for (const DecomposeComponent& comp : result.components) {
+        if (comp.base_color == DecomposeBaseColor::None)
+            continue;
+        DecomposeOfficialComponent official_component =
+            lookup_decompose_official_component(basic_type, comp.base_color, comp.colour);
+        int existing_idx = find_existing_decompose_component(official_component, physical_colors,
+                                                             *indices, source_config_idx);
+        if (existing_idx <= 0)
+            ++missing_count;
+    }
+    return missing_count;
 }
 
 bool confirm_create_decompose_missing_components(wxWindow* parent, const std::vector<DecomposeMissingComponent>& missing)

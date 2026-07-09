@@ -2162,6 +2162,25 @@ void TextureImportDialog::build_mapping_panel(wxWindow* parent, wxSizer* sizer)
     m_auto_mix_font_point_size = lbl_mapping->GetFont().GetPointSize();
     header_sizer->Add(lbl_mapping, 0, wxALIGN_CENTER_VERTICAL);
 
+    m_btn_mix_reset = new Button(parent, "", "revert_btn", wxBORDER_NONE, 16);
+    m_btn_mix_reset->SetCanFocus(false);
+    m_btn_mix_reset->SetPaddingSize(wxSize(FromDIP(2), FromDIP(2)));
+    {
+        StateColor reset_bg(
+            std::pair<wxColour, int>(dark_or(wxColour(245, 245, 245), wxColour(0x3C, 0x3C, 0x42)), StateColor::Pressed),
+            std::pair<wxColour, int>(dark_or(wxColour(248, 248, 248), wxColour(0x35, 0x35, 0x3A)), StateColor::Hovered),
+            std::pair<wxColour, int>(dark_or(*wxWHITE, wxColour(0x2D, 0x2D, 0x31)), StateColor::Normal));
+        m_btn_mix_reset->SetBackgroundColor(reset_bg);
+        m_btn_mix_reset->SetBorderColor(StateColor());
+    }
+    m_btn_mix_reset->SetToolTip(_L("Reset filament mapping to the state before one-click mixing"));
+    m_btn_mix_reset->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        reset_auto_mix();
+        evt.Skip();
+    });
+    m_btn_mix_reset->Hide();
+    header_sizer->Add(m_btn_mix_reset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(6));
+
     header_sizer->AddStretchSpacer();
 
     m_btn_auto_mix = new Button(parent, auto_mix_mode_label(m_auto_mix_mode));
@@ -2302,6 +2321,8 @@ void TextureImportDialog::update_ui_for_state()
     m_btn_color_auto->Enable(!computing);
     if (m_btn_auto_mix)
         m_btn_auto_mix->Enable(!computing);
+    if (m_btn_mix_reset)
+        m_btn_mix_reset->Enable(!computing);
     if (computing)
         dismiss_auto_mix_popup();
 
@@ -2515,6 +2536,7 @@ void TextureImportDialog::on_computation_complete(wxCommandEvent&)
 
     set_state(TextureImportState::Ready);
     update_drop_warning_visibility();
+    update_auto_mix_reset_visibility();
 
     m_btn_view_multicolor->Show();
     if (m_tab_panel) {
@@ -3195,10 +3217,42 @@ void TextureImportDialog::apply_auto_standard_mix(TextureAutoMixMode mode)
     if (!changed)
         return;
 
+    m_auto_mix_applied = true;
     compact_used_virtual_filaments();
     update_filament_color_map();
     rebuild_mapping_rows();
     update_drop_warning_visibility();
+    update_auto_mix_reset_visibility();
+}
+
+void TextureImportDialog::reset_auto_mix()
+{
+    if (m_state != TextureImportState::Ready || !m_auto_mix_applied)
+        return;
+
+    dismiss_auto_mix_popup();
+
+    // Re-run the baseline auto-match (same flow as the auto-merge toggle) so the
+    // mapping reverts to the pre-mix state: every colour matches an existing
+    // physical filament or a virtual physical filament, with no mixed filaments.
+    const auto previous_matches = m_current_matches;
+    do_auto_match();
+    restore_current_match_order(previous_matches);
+    compact_used_virtual_filaments();
+    update_filament_color_map();
+    rebuild_mapping_rows();
+    update_drop_warning_visibility();
+    update_auto_mix_reset_visibility();
+}
+
+void TextureImportDialog::update_auto_mix_reset_visibility()
+{
+    if (!m_btn_mix_reset)
+        return;
+    if (m_btn_mix_reset->Show(m_auto_mix_applied)) {
+        if (wxWindow* parent = m_btn_mix_reset->GetParent())
+            parent->Layout();
+    }
 }
 
 bool TextureImportDialog::add_decomposed_mixed_filament(size_t row_index)
@@ -3210,6 +3264,7 @@ bool TextureImportDialog::add_decomposed_mixed_filament(size_t row_index)
     std::vector<std::string> physical_names;
     std::vector<std::string> physical_types;
     std::vector<int> physical_dialog_indices;
+    std::vector<size_t> physical_config_indices;
     auto& preset_bundle = *wxGetApp().preset_bundle;
     for (const auto& entry : m_filament_entries) {
         if (entry.kind != TextureFilamentKind::ExistingPhysical)
@@ -3222,12 +3277,44 @@ bool TextureImportDialog::add_decomposed_mixed_filament(size_t row_index)
             preset = preset_bundle.filaments.find_preset(preset_bundle.filament_presets[cfg_idx]);
         physical_types.push_back(filament_type_for_color_decompose(preset));
         physical_dialog_indices.push_back(entry.dialog_index);
+        physical_config_indices.push_back(cfg_idx);
     }
     if (physical_colors.empty())
         return false;
 
     wxColour target(m_mapping_rows[row_index].source_hex);
-    ColorDecomposeDialog dlg(this, -1, target, physical_colors, physical_names, physical_types);
+    ColorDecomposeDialog dlg(this, -1, target, physical_colors, physical_names, physical_types,
+                             m_filament_entries.size(), max_filament_count(),
+                             std::move(physical_config_indices));
+    // Count "new physical filaments" with the exact reuse rule of the write-back
+    // loop below: a base color is only new if no existing OR virtual official
+    // Bambu Basic filament already carries that color. This keeps the dialog's
+    // filament-limit pre-check consistent with what add_decomposed_mixed_filament
+    // will actually create, so already-present virtual base colors are not
+    // double counted (which previously could wrongly disable OK).
+    dlg.set_missing_physical_calculator([this](const ColorDecomposeResult& result) -> size_t {
+        size_t missing = 0;
+        for (const DecomposeComponent& comp : result.components) {
+            if (comp.filament_index > 0)
+                continue; // reuses a physical slot passed to the dialog, no new filament
+            const std::string comp_hex = texture_normalize_color_hex(
+                comp.colour.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
+            bool found = false;
+            for (const auto& entry : m_filament_entries) {
+                if (!texture_entry_is_physical(entry.kind))
+                    continue;
+                if (texture_normalize_color_hex(entry.color_hex) != comp_hex)
+                    continue;
+                if (texture_entry_official_basic(entry)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                ++missing;
+        }
+        return missing;
+    });
     if (dlg.ShowModal() != wxID_OK)
         return false;
 
@@ -3394,6 +3481,11 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
 void TextureImportDialog::do_auto_match()
 {
     if (m_painted.cluster_colors.empty()) return;
+
+    // do_auto_match() always rebuilds the baseline mapping without any mixed
+    // filaments, so it is the common entry for every "revert one-click mix"
+    // path. Clear the applied flag here; callers refresh the reset button.
+    m_auto_mix_applied = false;
 
     // Reset the "filaments were dropped" flag at the start of every run, so it
     // strictly reflects what happens during *this* match (no historical
@@ -3965,6 +4057,7 @@ void TextureImportDialog::on_auto_merge_toggled(wxCommandEvent&)
         update_filament_color_map();
         rebuild_mapping_rows();
         update_drop_warning_visibility();
+        update_auto_mix_reset_visibility();
     }
 }
 
@@ -4166,6 +4259,8 @@ void TextureImportDialog::on_dpi_changed(const wxRect&)
         m_btn_auto_mix->SetCornerRadius(FromDIP(14));
         m_btn_auto_mix->SetMinSize(wxSize(FromDIP(178), FromDIP(28)));
     }
+    if (m_btn_mix_reset)
+        m_btn_mix_reset->SetPaddingSize(wxSize(FromDIP(2), FromDIP(2)));
 
     if (m_color_spin)
         m_color_spin->SetMinSize(wxSize(FromDIP(60), FromDIP(28)));

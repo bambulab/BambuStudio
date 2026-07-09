@@ -6038,7 +6038,10 @@ void Sidebar::decompose_filament_color(int filament_idx)
 
     ColorDecomposeDialog dlg(this,
                              source_physical_idx == size_t(-1) ? -1 : static_cast<int>(source_physical_idx),
-                             target_color, color_strs, names, types);
+                             target_color, color_strs, names, types,
+                             wxGetApp().preset_bundle->filament_presets.size(),
+                             static_cast<size_t>(EnforcerBlockerType::ExtruderMax),
+                             physical_config_indices);
     int modal_res = dlg.ShowModal();
     if (modal_res == wxID_OK) {
         ColorDecomposeResult dialog_result = dlg.get_result();
@@ -17122,10 +17125,15 @@ void Plater::priv::on_action_layersediting(SimpleEvent&)
     if (!view3D->is_layers_editing_enabled()) {
         const auto& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
         if (print_config.opt_bool("enable_mixed_color_sublayer")) {
-            MessageDialog dlg(q,
-                _L("Using variable layer height together with mixed color sublayer may result in poor color mixing quality."),
-                _L("Warning"), wxICON_WARNING | wxOK);
-            dlg.ShowModal();
+            if (wxGetApp().app_config->get("no_warn_mixed_sublayer_variable_layer") != "1") {
+                MessageDialog dlg(q,
+                    _L("Using variable layer height together with mixed color sublayer may result in poor color mixing quality."),
+                    _L("Warning"), wxICON_WARNING | wxOK);
+                dlg.show_dsa_button();
+                dlg.ShowModal();
+                if (dlg.get_checkbox_state())
+                    wxGetApp().app_config->set("no_warn_mixed_sublayer_variable_layer", "1");
+            }
         }
     }
     view3D->enable_layers_editing(!view3D->is_layers_editing_enabled());

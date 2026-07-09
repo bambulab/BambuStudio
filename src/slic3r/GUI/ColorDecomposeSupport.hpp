@@ -87,6 +87,15 @@ bool prepare_decompose_mixed_result(
     MixedFilamentResult& out_result,
     std::vector<DecomposeMissingComponent>& missing);
 
+// For standard modes: how many base colors are not reusable from physical list.
+// MaterialList returns 0. When physical_config_indices is null, indices are 0..n-1.
+size_t count_decompose_new_physical_filaments(
+    const ColorDecomposeResult& result,
+    const std::vector<std::string>& physical_colors,
+    const std::vector<std::string>& physical_types,
+    size_t source_physical_idx,
+    const std::vector<size_t>* physical_config_indices);
+
 bool confirm_create_decompose_missing_components(wxWindow* parent,
     const std::vector<DecomposeMissingComponent>& missing);
 

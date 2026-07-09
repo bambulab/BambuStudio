@@ -1879,7 +1879,8 @@ ResetWarningsDialog::ResetWarningsDialog(wxWindow *parent) : DPIDialog(parent, w
                                           "- \"Load 3MF\" dialog settings\n"
                                           "- Executing post-processing scripts\n"
                                           "- Support structure recommendation prompt\n"
-                                          "- Unsaved projects."));
+                                          "- Unsaved projects.\n"
+                                          "- Mixed color sublayer with variable layer height warning"));
     det_text->SetForegroundColour(ThemeColor::TextSecondary);
     det_text->SetFont(::Label::Body_13);
     det_sizer->Add(det_text, 0, wxALL, FromDIP(12));
@@ -1942,6 +1943,7 @@ void PreferencesDialog::on_reset_all_warnings()
     app_config->erase("app", "sync_after_load_file_show_flag");
     app_config->erase("app", "skip_non_bambu_3mf_warning");
     app_config->erase("app", "post_process_script_choice");
+    app_config->erase("app", "no_warn_mixed_sublayer_variable_layer");
     app_config->set("show_support_recommend_dialog", "true");
     app_config->set("save_project_choise", "");
     if (wxGetApp().plater()) wxGetApp().plater()->reset_post_process_script_choice();

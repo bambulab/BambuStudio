@@ -257,6 +257,8 @@ private:
     void dismiss_auto_mix_popup();
     void set_auto_mix_mode(TextureAutoMixMode mode);
     void apply_auto_standard_mix(TextureAutoMixMode mode);
+    void reset_auto_mix();
+    void update_auto_mix_reset_visibility();
     bool add_decomposed_mixed_filament(size_t row_index);
     int  add_virtual_filament(const std::array<float, 4>& rgba, const std::string& hex,
                               const std::string& preset_name = std::string());
@@ -353,6 +355,8 @@ private:
 
     wxCheckBox*           m_auto_merge_cb = nullptr;
     Button*               m_btn_auto_mix  = nullptr;
+    Button*               m_btn_mix_reset = nullptr;
+    bool                  m_auto_mix_applied = false;
     AutoMixSelectPopup*   m_auto_mix_popup = nullptr;
     wxScrolledWindow*     m_mapping_scroll = nullptr;
     wxBoxSizer*           m_mapping_sizer  = nullptr;

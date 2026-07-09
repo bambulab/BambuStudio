@@ -2,11 +2,13 @@
 #define slic3r_ColorDecomposeDialog_hpp_
 
 #include <array>
+#include <functional>
 #include <string>
 #include <vector>
 #include <utility>
 #include <wx/colour.h>
 #include <wx/panel.h>
+#include <wx/statbmp.h>
 #include <wx/stattext.h>
 
 #include "GUI_Utils.hpp"
@@ -53,9 +55,19 @@ public:
                          const wxColour& target_color,
                          const std::vector<std::string>& physical_colors,
                          const std::vector<std::string>& filament_names,
-                         const std::vector<std::string>& filament_types);
+                         const std::vector<std::string>& filament_types,
+                         size_t current_filament_count = 0,
+                         size_t max_filament_count = 32,
+                         std::vector<size_t> physical_config_indices = {});
 
     ColorDecomposeResult get_result() const { return m_result; }
+
+    // Override the "new physical filaments" count used by the filament-limit
+    // warning. The Texture import path supplies its own calculator so the
+    // pre-check shares the exact reuse rule as its write-back (existing +
+    // virtual physical filaments), instead of the project-config based default
+    // that cannot see not-yet-committed virtual base colors.
+    void set_missing_physical_calculator(std::function<size_t(const ColorDecomposeResult&)> fn);
 
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
@@ -75,8 +87,14 @@ private:
     void update_mode_card_contents();
     void update_matched_color_display();
     void update_ok_button_state();
+    void update_filament_limit_warning();
 
     void compute_decomposition();
+
+    // When the target color is exactly one of the standard base colors for the
+    // preferred type, the standard card should show that base at 100% instead of
+    // a mix. PLA Basic covers CMYW and RYBW; PETG Basic covers RYBW only.
+    bool try_build_single_base_result(DecomposeMode mode, ColorDecomposeResult& out) const;
 
     struct ModeCardControls {
         wxPanel*    card{nullptr};
@@ -95,6 +113,10 @@ private:
     std::string                 m_preferred_type;
     // Dropdown selectable item index -> material type string
     std::vector<std::string>    m_combo_item_types;
+    size_t                      m_current_filament_count{0};
+    size_t                      m_max_filament_count{32};
+    std::vector<size_t>         m_physical_config_indices;
+    std::function<size_t(const ColorDecomposeResult&)> m_missing_calculator;
 
     // UI controls
     ComboBox*                   m_type_combo{nullptr};
@@ -115,6 +137,10 @@ private:
 
     // Hint shown when no mode card is visible
     wxStaticText*               m_no_card_hint{nullptr};
+
+    // Warning shown when decomposition would exceed filament limit
+    wxPanel*                    m_limit_warning_panel{nullptr};
+    wxStaticText*               m_limit_warning_text{nullptr};
 
     Button*                     m_btn_ok{nullptr};
     Button*                     m_btn_cancel{nullptr};
