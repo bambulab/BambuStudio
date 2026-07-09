@@ -29,6 +29,7 @@ class SmartFilamentPanel;
 */
 bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref, bool force_pop_up = false);
 std::vector<FilamentMapMode> resolve_available_auto_modes(Print *print_obj, const std::vector<FilamentMapMode> &requested_modes, bool machine_synced);
+bool convert_multi_nozzle_manual_maps(const ConfigBase& config, std::vector<int>& filament_maps, size_t filament_count, std::vector<int>& nozzle_maps);
 
 class FilamentMapDialog : public wxDialog
 {

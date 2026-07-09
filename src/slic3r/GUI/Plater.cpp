@@ -27464,29 +27464,22 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 
         std::vector<int> new_filament_volume_maps = filament_dlg.get_filament_volume_maps();
         std::vector<int> old_filament_volume_maps = curr_plate->get_real_filament_volume_maps(project_config);
+        std::vector<int> old_nozzle_maps = curr_plate->get_filament_nozzle_maps();
+        std::vector<int> new_nozzle_maps;
 
         if (new_map_mode != old_map_mode) {
             curr_plate->set_filament_map_mode(new_map_mode);
         }
 
         if (new_map_mode == fmmManual) {
-            // For single-extruder multi-nozzle without AMS: convert to fmmNozzleManual
+            if (new_filament_volume_maps.empty())
+                new_filament_volume_maps.assign(filament_colors.size(), 0);
+
             auto full_cfg = preset_bundle->full_config();
-            auto opt_hotend = full_cfg.option<ConfigOptionBool>("handle_hotend_as_extruder");
-            auto ext_nozzle_cnt = full_cfg.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-            bool has_multi = ext_nozzle_cnt && std::any_of(ext_nozzle_cnt->values.begin(), ext_nozzle_cnt->values.end(), [](int v){return v>1;});
-            int ams_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_cfg);
-            bool is_fixed_multi = opt_hotend && opt_hotend->value && has_multi && ams_idx < 0;
-
-            if (is_fixed_multi) {
-
-                std::vector<int> nozzle_maps(new_filament_maps.size(), 0);
-                new_map_mode = fmmNozzleManual;
-                std::fill(new_filament_maps.begin(), new_filament_maps.end(), 1);
-                curr_plate->set_filament_map_mode(new_map_mode);
+            if (convert_multi_nozzle_manual_maps(full_cfg, new_filament_maps, filament_colors.size(), new_nozzle_maps)) {
                 curr_plate->set_filament_maps(new_filament_maps);
                 curr_plate->set_filament_volume_maps(new_filament_volume_maps);
-                curr_plate->set_filament_nozzle_maps(nozzle_maps);
+                curr_plate->set_filament_nozzle_maps(new_nozzle_maps);
             } else {
                 curr_plate->set_filament_maps(new_filament_maps);
                 curr_plate->set_filament_volume_maps(new_filament_volume_maps);

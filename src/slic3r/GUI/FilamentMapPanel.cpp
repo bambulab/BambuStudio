@@ -12,6 +12,7 @@
 #include <set>
 #include <algorithm>
 #include <cstdlib>
+#include <optional>
 
 namespace Slic3r::GUI {
 
@@ -111,6 +112,15 @@ static std::map<NozzleVolumeType, int> get_fixed_nozzle_counts_from_full_stat(in
         }
     }
     return ret;
+}
+
+static std::optional<NozzleVolumeType> get_single_fixed_nozzle_volume_from_full_stat(int ams_nozzle_idx, bool has_ams, const std::string& active_diameter)
+{
+    bool has_full_stat = false;
+    std::map<NozzleVolumeType, int> fixed_counts = get_fixed_nozzle_counts_from_full_stat(ams_nozzle_idx, has_ams, active_diameter, has_full_stat);
+    if (!has_full_stat || fixed_counts.size() != 1)
+        return std::nullopt;
+    return fixed_counts.begin()->first;
 }
 
 static int get_ams_slot_count_from_config(const ConfigBase& config)
@@ -512,7 +522,7 @@ void FilamentMapManualPanel::UpdateNozzleCountDisplay()
                       + preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtTPU285);
         wxString right_title;
         if (tpu_count > 0)
-            right_title = wxString::Format(main_ext_name + "(Std: %d, HF: %d, TPU: %d)", standard_count, highflow_count, tpu_count);
+            right_title = wxString::Format(main_ext_name + "(Std: %d, HF: %d, TPU285: %d)", standard_count, highflow_count, tpu_count);
         else
             right_title = wxString::Format(main_ext_name + "(Std: %d, HF: %d)", standard_count, highflow_count);
         m_right_panel->UpdateLabel(right_title);
@@ -706,6 +716,14 @@ std::vector<int> FilamentMapMultiNozzlePanel::GetFilamentVolumeMaps() const
     std::vector<int> right_hf  = this->GetRightHighFlowFilaments();
     std::vector<int> right_std = this->GetRightStandardFilaments();
     std::vector<int> right_tpu = this->GetRightTPUHighFlowFilaments();
+    std::optional<NozzleVolumeType> single_fixed_volume_type;
+    if (!m_right_panel->IsUseSeparation()) {
+        auto full_cfg = wxGetApp().preset_bundle->full_config();
+        auto nozzle_diameters = full_cfg.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+        const std::string active_diameter = (nozzle_diameters && !nozzle_diameters->values.empty())
+            ? format_diameter_to_str(nozzle_diameters->values.front()) : std::string();
+        single_fixed_volume_type = get_single_fixed_nozzle_volume_from_full_stat(m_ams_nozzle_idx, m_left_panel != nullptr, active_diameter);
+    }
 
     if (m_left_panel) {
         std::vector<int> left_filaments = this->GetLeftFilaments();
@@ -718,6 +736,8 @@ std::vector<int> FilamentMapMultiNozzlePanel::GetFilamentVolumeMaps() const
             if (find_in(left_filaments, fid)) {
                 volume_map[i] = ams_vol;
             }
+            else if (single_fixed_volume_type)
+                volume_map[i] = static_cast<int>(*single_fixed_volume_type);
             else if (find_in(right_hf, fid))
                 volume_map[i] = static_cast<int>(NozzleVolumeType::nvtHighFlow);
             else if (find_in(right_std, fid))
@@ -728,7 +748,9 @@ std::vector<int> FilamentMapMultiNozzlePanel::GetFilamentVolumeMaps() const
     } else {
         for (int i = 0; i < (int)volume_map.size(); ++i) {
             int fid = i + 1;
-            if (find_in(right_hf, fid))
+            if (single_fixed_volume_type)
+                volume_map[i] = static_cast<int>(*single_fixed_volume_type);
+            else if (find_in(right_hf, fid))
                 volume_map[i] = static_cast<int>(NozzleVolumeType::nvtHighFlow);
             else if (find_in(right_std, fid))
                 volume_map[i] = static_cast<int>(NozzleVolumeType::nvtStandard);
@@ -818,8 +840,8 @@ static wxString get_volume_type_label(NozzleVolumeType type)
     switch (type) {
     case nvtStandard:    return _L("Standard");
     case nvtHighFlow:    return _L("High Flow");
-    case nvtTPUHighFlow: return _L("TPU");
-    case nvtTPU285:      return _L("TPU");
+    case nvtTPUHighFlow: return _L("TPU285");
+    case nvtTPU285:      return _L("TPU285");
     default:             return _L("Standard");
     }
 }
@@ -902,14 +924,14 @@ void FilamentMapMultiNozzlePanel::UpdateNozzleCountDisplay()
 
             wxString right_title;
             if (tpu_count > 0)
-                right_title = wxString::Format(fixed_label + "(Std: %d, HF: %d, TPU: %d)", right_std, right_hf, right_tpu);
+                right_title = wxString::Format(fixed_label + "(Std: %d, HF: %d, TPU285: %d)", right_std, right_hf, right_tpu);
             else
                 right_title = wxString::Format(fixed_label + "(Std: %d, HF: %d)", right_std, right_hf);
             m_right_panel->UpdateLabel(right_title);
         } else {
             wxString title;
             if (tpu_count > 0)
-                title = wxString::Format(_L("Nozzle (%d) - Std: %d, HF: %d, TPU: %d"), m_total_nozzle_count, standard_count, highflow_count, tpu_count);
+                title = wxString::Format(_L("Nozzle (%d) - Std: %d, HF: %d, TPU285: %d"), m_total_nozzle_count, standard_count, highflow_count, tpu_count);
             else
                 title = wxString::Format(_L("Nozzle (%d) - Std: %d, HF: %d"), m_total_nozzle_count, standard_count, highflow_count);
             m_right_panel->UpdateLabel(title);

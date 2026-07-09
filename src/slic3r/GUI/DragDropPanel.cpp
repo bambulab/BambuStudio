@@ -381,7 +381,7 @@ SeparatedDragDropPanel::SeparatedDragDropPanel(wxWindow *parent, const wxString 
 
     m_high_flow_panel = new DragDropPanel(m_content_panel, _L("High Flow"), false, true, true);
     m_standard_panel  = new DragDropPanel(m_content_panel, _L("Standard"), false, true, true);
-    m_tpu_panel       = new DragDropPanel(m_content_panel, _L("TPU"), false, true, true);
+    m_tpu_panel       = new DragDropPanel(m_content_panel, _L("TPU285"), false, true, true);
     m_unified_panel   = new DragDropPanel(m_content_panel, wxEmptyString, false, false);
 
     m_high_flow_panel->SetBackgroundColour(0xF8F8F8);

@@ -128,6 +128,35 @@ std::vector<FilamentMapMode> resolve_available_auto_modes(Print* print_obj, cons
     return result;
 }
 
+bool convert_multi_nozzle_manual_maps(const ConfigBase& config, std::vector<int>& filament_maps, size_t filament_count, std::vector<int>& nozzle_maps)
+{
+    auto opt_hotend = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+    auto ext_nozzle_cnt = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    bool is_multi_nozzle_style = opt_hotend && opt_hotend->value && ext_nozzle_cnt &&
+        std::any_of(ext_nozzle_cnt->values.begin(), ext_nozzle_cnt->values.end(), [](int v) { return v > 1; });
+    if (!is_multi_nozzle_style)
+        return false;
+
+    if (filament_maps.empty())
+        filament_maps.assign(filament_count, 1);
+
+    int total_nozzles = ext_nozzle_cnt->values.empty() ? 0 : ext_nozzle_cnt->values[0];
+    int ams_idx = get_effective_ams_nozzle_idx_for_active_diameter(config);
+    bool has_ams = (ams_idx >= 0);
+
+    nozzle_maps.assign(filament_maps.size(), 0);
+    if (has_ams) {
+        const std::vector<int> fixed_nozzle_ids = get_fixed_nozzle_indices(total_nozzles, ams_idx);
+        const int fixed_marker = fixed_nozzle_ids.empty() ? 0 : fixed_nozzle_ids.front();
+        for (size_t i = 0; i < filament_maps.size(); ++i)
+            nozzle_maps[i] = (filament_maps[i] == 1) ? ams_idx : fixed_marker;
+    }
+
+    // Single-extruder multi-nozzle machines keep one real extruder; group choice lives in filament_nozzle_map.
+    std::fill(filament_maps.begin(), filament_maps.end(), 1);
+    return true;
+}
+
 static FilamentMapMode get_applied_map_mode(DynamicConfig& proj_config, const Plater* plater_ref, const PartPlate* partplate_ref, const bool sync_plate)
 {
     if (sync_plate)
@@ -233,35 +262,8 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
         std::vector<int> new_maps = map_dlg.get_filament_maps();
         std::vector<int> new_volume_maps = map_dlg.get_filament_volume_maps();
 
-        auto opt_hotend_slice = full_config.option<ConfigOptionBool>("handle_hotend_as_extruder");
-        bool is_multi_nozzle_style = opt_hotend_slice && opt_hotend_slice->value
-                                  && nozzle_diameters->size() == 1 && support_multi_nozzle;
-
-        if (is_multi_nozzle_style && new_mode == fmmManual && !new_maps.empty()) {
-            int total_nozzles = extruder_max_nozzle_count->values[0];
-            int ams_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_config);
-            bool has_ams = (ams_idx >= 0);
-
-            // The dialog only lets the user pick a group (AMS group vs fixed group). Persist just that
-            // group choice into filament_nozzle_map and let the backend (build_manual_nozzle_map) be the
-            // single authority that assigns the concrete, volume-compatible physical fixed nozzle:
-            //   AMS-group filament   -> the AMS nozzle slot (ams_idx)
-            //   fixed-group filament -> a fixed-group marker (the backend reassigns the real nozzle)
-            std::vector<int> new_nozzle_maps(new_maps.size(), 0);
-            if (has_ams) {
-                const std::vector<int> fixed_nozzle_ids = get_fixed_nozzle_indices(total_nozzles, ams_idx);
-                const int fixed_marker = fixed_nozzle_ids.empty() ? 0 : fixed_nozzle_ids.front();
-                for (size_t i = 0; i < new_maps.size(); ++i)
-                    new_nozzle_maps[i] = (new_maps[i] == 1) ? ams_idx : fixed_marker;
-            }
-            // No AMS: every filament is a fixed-group filament; the marker stays 0 and the backend
-            // assigns each one a distinct volume-compatible nozzle.
-
-            // filament_map stays all 1 for single extruder
-            std::fill(new_maps.begin(), new_maps.end(), 1);
-            // Use fmmNozzleManual so slicing engine reads filament_nozzle_map
-            new_mode = fmmNozzleManual;
-
+        std::vector<int> new_nozzle_maps;
+        if (new_mode == fmmManual && convert_multi_nozzle_manual_maps(full_config, new_maps, filament_colors.size(), new_nozzle_maps)) {
             auto apply_to_plate = [&](PartPlate* plate) {
                 plate->set_filament_map_mode(new_mode);
                 plate->set_filament_maps(new_maps);

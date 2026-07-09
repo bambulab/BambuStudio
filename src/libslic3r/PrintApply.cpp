@@ -1425,8 +1425,20 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         else {
             print_diff_set.erase("extruder_ams_count");
             if (map_mode == fmmManual) {
-                // this param is not used in gui studio
-                print_diff_set.erase("filament_nozzle_map");
+                auto handle_hotend_as_extruder = new_full_config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+                auto extruder_max_nozzle_count = new_full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+                bool single_ext_multi_nozzle = handle_hotend_as_extruder && handle_hotend_as_extruder->value &&
+                    extruder_max_nozzle_count &&
+                    std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int v) { return v > 1; });
+                if (single_ext_multi_nozzle && print_diff_set.find("filament_nozzle_map") != print_diff_set.end()) {
+                    print_diff_set.erase("filament_nozzle_map");
+                    ConfigOptionInts* old_opt = m_full_print_config.option<ConfigOptionInts>("filament_nozzle_map", true);
+                    ConfigOptionInts* new_opt = new_full_config.option<ConfigOptionInts>("filament_nozzle_map", true);
+                    old_opt->set(new_opt);
+                    m_config.filament_nozzle_map = *new_opt;
+                } else if (!single_ext_multi_nozzle) {
+                    print_diff_set.erase("filament_nozzle_map");
+                }
             }
             std::vector<int> old_filament_map = m_config.filament_map.values;
             std::vector<int> new_filament_map = new_full_config.option<ConfigOptionInts>("filament_map", true)->values;

@@ -1165,6 +1165,7 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
         if (sorted_calib_infos[i].filament_prest)
             sorted_filament_ids[i] = sorted_calib_infos[i].filament_prest->filament_id;
     }
+    full_config.option<ConfigOptionStrings>("filament_ids", true)->values = sorted_filament_ids;
     auto get_calib_filament_id = [&sorted_filament_ids](size_t idx) -> std::string {
         return (idx < sorted_filament_ids.size()) ? sorted_filament_ids[idx] : std::string();
     };
