@@ -53,8 +53,6 @@ struct FilamentInfo
     int         mapping_result = 0;
     bool        used_for_support{false};
     bool        used_for_object{false};
-    double      total_load_time{0.0};
-    double      total_unload_time{0.0};
 
     /*for multi nozzle*/
     std::vector<int> group_id;

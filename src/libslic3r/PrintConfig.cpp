@@ -589,21 +589,6 @@ std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type)
     return s_keys_names_NozzleVolumeType[nozzle_volume_type];
 }
 
-std::string get_ams_type_name(int ams_type)
-{
-    switch (ams_type) {
-    case atExtSpool:     return "EXT_SPOOL";
-    case atAms:          return "AMS";
-    case atAmsLite:      return "AMS_LITE";
-    case atN3f:
-    case atN3s:          return "N3F_S"; // N3F and N3S share one load/unload time group
-    case atAmsLiteMixed: return "AMS_LITE_MIXED";
-    case atZMultiA:      return "ZMULTI_A";
-    case atZMultiB:      return "ZMULTI_B";
-    default:             return std::string();
-    }
-}
-
 void sync_nozzle_volume_type_to_extruder_count(DynamicPrintConfig &cfg, bool cli_specified_nozzle_volume_type)
 {
     auto *nd = cfg.option<ConfigOptionFloatsNullable>("nozzle_diameter");
@@ -2409,28 +2394,6 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.0));
-
-    def = this->add("ams_filament_load_time", coFloats);
-    def->label = L("AMS filament load time");
-    def->tooltip = L("Filament load time of each AMS type, indexed by the AMS type enum value. For statistics only");
-    def->sidetext = L("s");
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats{});
-
-    def = this->add("ams_filament_unload_time", coFloats);
-    def->label = L("AMS filament unload time");
-    def->tooltip = L("Filament unload time of each AMS type, indexed by the AMS type enum value. For statistics only");
-    def->sidetext = L("s");
-    def->min = 0;
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloats{});
-
-    def = this->add("selected_ams_type", coInt);
-    def->label = L("Selected AMS type");
-    def->tooltip = L("The AMS type used for the current load/unload time estimation, stored as the AMS type enum value.");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionInt(-1));
 
     def = this->add("machine_switch_extruder_time", coFloat);
     def->label = L("Extruder switch time");

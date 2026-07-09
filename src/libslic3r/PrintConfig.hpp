@@ -43,18 +43,6 @@ enum FilamentUsageType {
     Hybrid
 };
 
-// Mirror of DevAmsType in src/slic3r/GUI/DeviceCore/DevDefs.h. Keep both in sync.
-enum AmsType : int {
-    atExtSpool      = 0, // EXT
-    atAms           = 1, // AMS1
-    atAmsLite       = 2, // AMS-Lite
-    atN3f           = 3, // N3F, AMS 2PRO
-    atN3s           = 4, // N3S, AMS HT
-    atAmsLiteMixed  = 5, // AMS-Lite for N9
-    atZMultiA       = 6,
-    atZMultiB       = 7,
-};
-
 enum class FuzzySkinType {
     None,
     External,
@@ -416,9 +404,6 @@ static std::set<NozzleVolumeType> get_valid_nozzle_volume_type() {
 }
 
 std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type);
-
-// Canonical AMS type name (see AmsType) used in slice_info (selected_ams_type / ams_type).
-extern std::string get_ams_type_name(int ams_type);
 
 static std::string bed_type_to_gcode_string(const BedType type)
 {
@@ -1267,9 +1252,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             print_extruder_variant))
     ((ConfigOptionFloat,               machine_load_filament_time))
     ((ConfigOptionFloat,               machine_unload_filament_time))
-    ((ConfigOptionFloats,              ams_filament_load_time))
-    ((ConfigOptionFloats,              ams_filament_unload_time))
-    ((ConfigOptionInt,                 selected_ams_type))
     ((ConfigOptionFloat,               machine_switch_extruder_time))
     ((ConfigOptionFloat,               machine_hotend_change_time))
     ((ConfigOptionBool,                group_algo_with_time))

@@ -96,8 +96,6 @@ namespace Slic3r {
         //BBS: the flush amount of every filament
         std::map<size_t, double>                            flush_per_filament;
         std::map<ExtrusionRole, std::pair<double, double>>  used_filaments_per_role;
-        std::map<size_t, double>                            load_time_per_filament;
-        std::map<size_t, double>                            unload_time_per_filament;
 
         std::array<Mode, static_cast<size_t>(ETimeMode::Count)> modes;
         unsigned int                                        total_flush_filament_changes;
@@ -117,8 +115,6 @@ namespace Slic3r {
             total_volumes_per_extruder.clear();
             flush_per_filament.clear();
             used_filaments_per_role.clear();
-            load_time_per_filament.clear();
-            unload_time_per_filament.clear();
             total_flush_filament_changes = 0;
             total_filament_changes = 0;
         }

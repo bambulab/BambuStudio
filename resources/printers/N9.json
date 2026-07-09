@@ -51,8 +51,7 @@
 			"support_ams_settings_reorder": true,
 			"support_ams_settings_hide_image": true,
 			"support_high_tempbed_calibration": true,
-			"support_print_time_estimate_warning": true,
-			"support_ams_list": [ "AMS", "AMS_LITE", "N3F_S" ]
+			"support_print_time_estimate_warning": true
 		},
 		"model_id": "N9",
 		"compatible_machine": [],
