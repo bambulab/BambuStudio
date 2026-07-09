@@ -300,6 +300,12 @@ struct CurFacenames
     // check when new font was installed
     size_t hash = 0;
 
+    // per-face flag: can the face render the current text?
+    // parallel to faces, recomputed by update_text_support(), not cached to disk
+    std::vector<uint8_t> supports_text = {};
+    // distinct characters supports_text was computed for
+    std::wstring support_key = {};
+
     // filtration pattern
     // std::string       search = "";
     // std::vector<bool> hide; // result of filtration
@@ -310,6 +316,9 @@ struct GLGizmoText::Facenames : public CurFacenames
 bool                    store(const CurFacenames &facenames);
 bool                    load(CurFacenames &facenames,const std::vector<wxString>& delete_bad_font_list);
 void                    init_face_names(CurFacenames &face_names);
+#ifdef __APPLE__
+void                    update_text_support(CurFacenames &face_names, const std::string &text);
+#endif
 void                    init_truncated_names(CurFacenames &face_names, float max_width);
 std::optional<wxString> get_installed_face_name(const std::optional<std::string> &face_name_opt, CurFacenames &face_names);
 void                    draw_font_preview(FaceName &face, const std::string &text, CurFacenames &faces, const CurGuiCfg &cfg, bool is_visible);
@@ -431,6 +440,7 @@ GLGizmoText::GLGizmoText(GLCanvas3D& parent, unsigned int sprite_id)
     if (GUI::wxGetApp().app_config->get_bool("support_backup_fonts")) {
         Slic3r::GUI::BackupFonts::generate_backup_fonts();
     }
+    m_only_supported_fonts = GUI::wxGetApp().app_config->get_bool("text_only_supported_fonts");
 }
 
 GLGizmoText::~GLGizmoText()
@@ -2708,6 +2718,11 @@ void GLGizmoText::draw_font_list()
         if (m_face_names->texture_id == 0)
             init_font_name_texture();
 
+#ifdef __APPLE__
+        if (m_only_supported_fonts)
+            update_text_support(*m_face_names, m_text);
+#endif
+
         int show_items_count = is_filtered ? filtered_items_idx.size() : m_face_names->faces.size();
 
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
@@ -2716,6 +2731,10 @@ void GLGizmoText::draw_font_list()
 
         for (int i = 0; i < show_items_count; i++) {
             int             idx          = is_filtered ? filtered_items_idx[i] : i;
+#ifdef __APPLE__
+            if (m_only_supported_fonts && idx < (int) m_face_names->supports_text.size() && !m_face_names->supports_text[idx])
+                continue;
+#endif
             FaceName &      face         = m_face_names->faces[idx];
             const wxString &wx_face_name = face.wx_name;
 
@@ -2771,9 +2790,18 @@ void GLGizmoText::draw_font_list()
         bad.insert(it, face->wx_name);
         m_face_names->faces.erase(face);
         m_face_names->faces_names.erase(m_face_names->faces_names.begin() + (*del_index));
+        // also drop the parallel support flag to keep indices aligned
+        if (*del_index < m_face_names->supports_text.size())
+            m_face_names->supports_text.erase(m_face_names->supports_text.begin() + (*del_index));
         // update cached file
         store(*m_face_names);
     }
+
+#ifdef __APPLE__
+    // filter for the long face list: hide fonts unable to render current text
+    if (m_imgui->bbl_checkbox(_L("Only fonts for current text"), m_only_supported_fonts))
+        wxGetApp().app_config->set_bool("text_only_supported_fonts", m_only_supported_fonts);
+#endif
 
 #ifdef ALLOW_ADD_FONT_BY_FILE
     ImGui::SameLine();
@@ -3628,6 +3656,42 @@ void append_macos_face_fullnames(wxArrayString &facenames)
         facenames.Add(full);
     }
     CFRelease(descriptors);
+}
+
+// Recompute which faces can render the given text, using each font's
+// character set (the cmap coverage - the same table the emboss engine
+// reads glyph outlines from). No font file is opened. Recomputes only
+// when the set of distinct characters in the text changes.
+void update_text_support(CurFacenames &face_names, const std::string &text)
+{
+    // sample of distinct characters, whitespace ignored, capped for speed
+    std::wstring ws = boost::nowide::widen(text);
+    std::wstring key;
+    for (wchar_t wc : ws) {
+        if (wc == ' ' || wc == '\n' || wc == '\r' || wc == '\t') continue;
+        if (key.find(wc) == std::wstring::npos) key.push_back(wc);
+        if (key.size() >= 16) break;
+    }
+    std::sort(key.begin(), key.end());
+    if (key == face_names.support_key && face_names.supports_text.size() == face_names.faces.size()) return;
+    face_names.support_key = key;
+    face_names.supports_text.assign(face_names.faces.size(), 1);
+    if (key.empty()) return; // nothing to check, all faces pass
+
+    for (size_t i = 0; i < face_names.faces.size(); ++i) {
+        uint8_t &supported = face_names.supports_text[i];
+        CFStringRef name = CFStringCreateWithCString(kCFAllocatorDefault, face_names.faces[i].wx_name.utf8_str(), kCFStringEncodingUTF8);
+        if (name == NULL) { supported = 0; continue; }
+        CTFontRef font = CTFontCreateWithName(name, 0.0, nullptr);
+        CFRelease(name);
+        if (font == NULL) { supported = 0; continue; }
+        CFCharacterSetRef charset = CTFontCopyCharacterSet(font);
+        CFRelease(font);
+        if (charset == NULL) { supported = 0; continue; }
+        for (wchar_t wc : key)
+            if (!CFCharacterSetIsLongCharacterMember(charset, (UTF32Char) wc)) { supported = 0; break; }
+        CFRelease(charset);
+    }
 }
 #endif // __APPLE__
 
