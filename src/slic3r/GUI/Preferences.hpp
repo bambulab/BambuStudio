@@ -4,37 +4,21 @@
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
 
-#include <wx/simplebook.h>
-#include <wx/dialog.h>
-#include <wx/timer.h>
+#include <wx/list.h>
 #include <vector>
-#include <list>
-#include <map>
-#include "Widgets/ComboBox.hpp"
-#include "Widgets/CheckBox.hpp"
-#include "Widgets/TextInput.hpp"
-#include "Widgets/Button.hpp"
-#include "Widgets/RadioBox.hpp"
-#include "Widgets/LinkLabel.hpp"
+
+class Button;
+class CheckBox;
+class ComboBox;
+class Tabbook;
+class TextInput;
+class wxBookCtrlEvent;
+
 namespace Slic3r { namespace GUI {
 
-
-#define DESIGN_SELECTOR_NOMORE_COLOR wxColour(248, 248, 248)
-#define DESIGN_GRAY900_COLOR wxColour(38, 46, 48)
-#define DESIGN_GRAY800_COLOR wxColour(50, 58, 61)
-#define DESIGN_GRAY600_COLOR wxColour(144, 144, 144)
-#define DESIGN_GRAY400_COLOR wxColour(166, 169, 170)
-
-class Selector
-{
-public:
-    int       m_index;
-    wxWindow *m_tab_button;
-    wxWindow *m_tab_text;
-};
-WX_DECLARE_HASH_MAP(int, Selector *, wxIntegerHash, wxIntegerEqual, SelectorHash);
-
+class ScrolledPanel;
 class RadioBox;
+
 class RadioSelector
 {
 public:
@@ -45,123 +29,106 @@ public:
 };
 
 WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
-class CheckBox;
-class TextInput;
-
-
-
-#define DESIGN_RESOUTION_PREFERENCES wxSize(FromDIP(540), -1)
-#define DESIGN_TITLE_SIZE wxSize(FromDIP(100), -1)
-#define DESIGN_COMBOBOX_SIZE wxSize(FromDIP(140), -1)
-#define DESIGN_LARGE_COMBOBOX_SIZE wxSize(FromDIP(160), -1)
-#define DESIGN_INPUT_SIZE wxSize(FromDIP(100), -1)
-
 
 class PreferencesDialog : public DPIDialog
 {
-private:
-    AppConfig *app_config;
-
-protected:
-    wxBoxSizer *  m_sizer_body;
-    wxScrolledWindow* m_scrolledWindow;
-
-    // bool								m_settings_layout_changed {false};
-    bool m_seq_top_layer_only_changed{false};
-    bool m_recreate_GUI{false};
-    bool m_use_12h_time_format_changed{false};
-    std::string m_original_use_12h_time_format;
-
-public:
-    bool seq_top_layer_only_changed() const { return m_seq_top_layer_only_changed; }
-    bool recreate_GUI() const { return m_recreate_GUI; }
-    bool use_12h_time_format_changed() const { return m_use_12h_time_format_changed; }
-    void on_dpi_changed(const wxRect &suggested_rect) override;
-
 public:
     PreferencesDialog(wxWindow *      parent,
                       wxWindowID      id    = wxID_ANY,
                       const wxString &title = wxT(""),
                       const wxPoint & pos   = wxDefaultPosition,
                       const wxSize &  size  = wxDefaultSize,
-                      long            style = wxSYSTEM_MENU | wxCAPTION | wxCLOSE_BOX);
+                      long            style = wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
 
     ~PreferencesDialog();
 
-    wxString m_backup_interval_time;
+    bool use_12h_time_format_changed() const;
+    // TODO: legacy use, remove
+    bool seq_top_layer_only_changed() const { return false; }
+    bool seq_seq_top_gcode_indices_changed() const { return false; }
 
-    void      create();
+private:
+    AppConfig *app_config;
+    Tabbook *m_page_book { nullptr };
+
+    int m_current_language_selected = { 0 };
+    bool m_original_use_12h_time_format;
+
+    std::vector<Button *> m_button_list;
+    std::vector<CheckBox *> m_checkbox_list;
+    std::vector<ComboBox *> m_combobox_list;
+    RadioSelectorList m_radio_group;
+
+    static int m_last_selected_page;
 
     // debug mode
+    wxString m_backup_interval_time;
     ::CheckBox * m_developer_mode_ckeckbox   = {nullptr};
     ::CheckBox * m_internal_developer_mode_ckeckbox = {nullptr};
     ::CheckBox * m_dark_mode_ckeckbox        = {nullptr};
     ::TextInput *m_backup_interval_textinput = {nullptr};
 
-    wxString m_developer_mode_def;
-    wxString m_internal_developer_mode_def;
+    bool m_developer_mode_def;
+    bool m_internal_developer_mode_def;
     wxString m_backup_interval_def;
     wxString m_iot_environment_def;
 
-    SelectorHash      m_hash_selector;
-    RadioSelectorList m_radio_group;
-    // ComboBoxSelectorList    m_comxbo_group;
 
-    wxBoxSizer *create_item_title(wxString title, wxWindow *parent, wxString tooltip);
-    wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param,const std::vector<wxString>& label_list, const std::vector<std::string>& value_list, std::function<void(int)> callback = nullptr, int title_width = 0, int combox_width = 0);
-    wxBoxSizer *create_item_region_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
-    wxBoxSizer *create_item_language_combobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<const wxLanguageInfo *> vlist);
-    wxBoxSizer *create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
-    wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
-    wxBoxSizer *create_item_darkmode_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
-    void set_dark_mode();
-    wxBoxSizer *create_item_button(wxString title, wxString title2, wxWindow *parent, wxString tooltip, std::function<void()> onclick);
-    wxWindow* create_item_downloads(wxWindow* parent, int padding_left, std::string param);
-    wxBoxSizer *create_item_input(wxString title, wxString title2, wxWindow *parent, wxString tooltip, std::string param, std::function<void(wxString)> onchange = {});
+private:
+    wxBoxSizer *create_item_combobox(
+        const wxString &title, wxWindow *parent, const wxString &tooltip, const std::string &param,
+        const std::vector<wxString> &label_list, const std::vector<std::string> &value_list,
+        std::function<void(int)> callback = nullptr, int label_width = 0, int combo_width = 0
+    );
+    wxBoxSizer *create_item_region_combobox(const wxString &title, wxWindow *parent, const wxString &tooltip, const std::vector<wxString> &vlist);
+    wxBoxSizer *create_item_language_combobox(const wxString &title, wxWindow *parent, const wxString &tooltip, const std::string &param, const std::vector<const wxLanguageInfo *> &vlist);
+    wxBoxSizer *create_item_checkbox(const wxString &title, wxWindow *parent, const wxString &tooltip, const std::string &param, std::function<void(int)> callback = nullptr);
+    wxBoxSizer *create_item_darkmode_checkbox(const wxString &title, wxWindow *parent, const wxString &tooltip, const std::string &param);
+    wxWindow   *create_item_downloads(wxWindow* parent, const std::string &param);
+    wxBoxSizer *create_item_input(
+        const wxString &title, const wxString &title2, wxWindow *parent, const wxString &tooltip, const std::string &param,
+        std::function<void(const wxString&)> onchange = nullptr, int label_width = 0
+    );
+    TextInput *create_range_input(
+        wxWindow *parent, const wxString &tooltip, const std::string &param, float range_min, float range_max, int precision, std::function<void(const wxString&)> onchange = nullptr
+    );
     wxBoxSizer *create_item_range_input(
-        wxString title, wxWindow *parent, wxString tooltip, std::string param, float range_min, float range_max, int keep_digital,std::function<void(wxString)> onchange = {});
-    wxBoxSizer *create_item_range_two_input(wxString                      title,
-                                            wxWindow *                    parent,
-                                            wxString                      tooltip,
-                                            std::string                   param,
-                                            std::string                   param1,
-                                            float                         range_min,
-                                            float                         range_max,
-                                            int                           keep_digital,
-                                            std::function<void(wxString)> onchange = {},
-                                            std::function<void(wxString)> onchange1 = {});
-    wxBoxSizer *create_item_backup_input(wxString title, wxWindow *parent, wxString tooltip, std::string param);
-    wxBoxSizer *create_item_multiple_combobox(
-        wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string parama, std::vector<wxString> vlista, std::vector<wxString> vlistb);
-    wxBoxSizer *create_item_switch(wxString title, wxWindow *parent, wxString tooltip, std::string param);
-    wxWindow *  create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param);
+        const wxString &title, wxWindow *parent, const wxString &tooltip, const std::string &param, float range_min, float range_max, int precision,
+        std::function<void(const wxString&)> onchange = nullptr, int label_width = 0
+    );
+    wxBoxSizer *create_item_range_two_input(
+        const wxString &title, wxWindow *parent, const wxString &tooltip,
+        const std::string &param, const std::string &param1,
+        float range_min, float range_max, int precision,
+        std::function<void(const wxString&)> onchange = nullptr,
+        std::function<void(const wxString&)> onchange1 = nullptr,
+        int label_width = 0
+    );
+    wxBoxSizer *create_item_backup_input(const wxString &title, wxWindow *parent, const wxString &tooltip);
+    /// Radio boxes are only used for debug mode page and have no inherent property saving functionality;
+    /// TODO: convert host options to selectors, or make radios more generally useful.
+    wxWindow   *create_item_radiobox(const wxString &title, wxWindow *parent, const wxString &tooltip, int groupid, const std::string &param, bool select = false);
 
-    wxWindow* create_general_page();
-    void create_gui_page();
-    void create_sync_page();
-    void create_shortcuts_page();
-    wxWindow* create_debug_page();
+    void create();
+    void set_window_size();
+    void on_menu_item_selected(wxBookCtrlEvent &ev);
+    void on_dpi_changed(const wxRect &suggested_rect) override;
 
-    void     on_select_radio(std::string param);
-    wxString get_select_radio(int groupid);
-    // BBS
-    void create_select_domain_widget();
+    /// Passing a non-null parent that != m_page_book to the page creation methods will create a non-scrollable pane which can be embedded in another page (the given parent).
+    ScrolledPanel* create_book_page(wxWindow *parent = nullptr) const;
+    wxWindow* create_general_page(wxWindow *parent = nullptr);
+    wxWindow* create_device_page(wxWindow *parent = nullptr);
+    wxWindow* create_online_page(wxWindow *parent = nullptr);
+    wxWindow* create_projects_page(wxWindow *parent = nullptr);
+    wxWindow* create_files_page(wxWindow *parent = nullptr);
+    wxWindow* create_3Dview_page(wxWindow *parent = nullptr);
+    wxWindow* create_advanced_page(wxWindow *parent = nullptr);
 
-    void Split(const std::string &src, const std::string &separator, std::vector<wxString> &dest);
-    int m_current_language_selected = {0};
-
-    std::unordered_map<int, Button *> m_button_list;
-    std::unordered_map<int, ::CheckBox *> m_checkbox_list;
-    std::unordered_map<int, RadioBox *>   m_radiobox_list;
-    std::unordered_map<int, ::ComboBox *> m_combobox_list;
-    int                                   m_screen_height;
-
-protected:
-    void OnSelectTabel(wxCommandEvent &event);
-    void OnSelectRadio(wxMouseEvent &event);
+    // debug mode
+    wxWindow* create_debug_page(wxWindow *parent = nullptr);
+    void     select_radio_by_param(const wxString &param);
+    wxString get_selected_radio_param_by_group(int groupid);
 };
-
-wxDECLARE_EVENT(EVT_PREFERENCES_SELECT_TAB, wxCommandEvent);
 
 }} // namespace Slic3r::GUI
 
