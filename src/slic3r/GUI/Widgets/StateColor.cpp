@@ -12,6 +12,7 @@ static std::map<wxColour, wxColour> gDarkColors{
     // {"#1F8EEA", "#2778D2"},/*blue*/ -- dead, only used by disabled Notebook.cpp:80 OnPaint
     {ThemeColor::Warning,     "#D15B00"},
     {ThemeColor::Danger,      "#BB2A3A"},/*red*/
+    {ThemeColor::Link,        "#479EF5"},/*blue*/
     {ThemeColor::TextPrimary, "#EFEFF0"},/*black*/
     {"#2C2C2E", "#B3B3B4"},/*black*/
     {"#E5E7EB", "#374151"},/*gray200 -> gray800*/

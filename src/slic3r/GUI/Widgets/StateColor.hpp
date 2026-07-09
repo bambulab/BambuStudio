@@ -21,6 +21,9 @@ inline const wxColour BrandGreenPressed{"#1B8844"}; // BrandGreen button pressed
 inline const wxColour Warning{"#FF6F00"}; // attention / needs-action — orange. 14+ raw-hex consumers.
 inline const wxColour Danger{"#D01B1B"};  // error / destructive — red
 
+// Hyperlink / clickable text — blue.
+inline const wxColour Link{"#0078D4"};
+
 // Text
 inline const wxColour TextPrimary{"#262E30"};   // default body text on light surfaces (== DESIGN_GRAY900)
 inline const wxColour TextSecondary{"#323A3D"}; // slightly softer heading/label text (== DESIGN_GRAY800)
