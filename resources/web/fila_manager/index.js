@@ -229,6 +229,19 @@ onPush("theme_changed", function(data) {
 });
 
 /* ===== Filtering & Sorting ===== */
+function getSpoolSortValue(s, key) {
+    if (key === "filament") {
+        return [
+            s.brand,
+            s.material_type,
+            s.series,
+            s.color_name,
+            s.color_code
+        ].map(function(v) { return v || ""; }).join(" ");
+    }
+    return s[key];
+}
+
 function getFilteredSpools() {
     var keyword = (document.getElementById("search-input").value || "").toLowerCase();
     var list = g_spools.filter(function(s) {
@@ -247,7 +260,7 @@ function getFilteredSpools() {
     });
     if (g_sort_key) {
         list.sort(function(a, b) {
-            var va = a[g_sort_key], vb = b[g_sort_key];
+            var va = getSpoolSortValue(a, g_sort_key), vb = getSpoolSortValue(b, g_sort_key);
             if (typeof va === "number" && typeof vb === "number") return g_sort_asc ? va - vb : vb - va;
             va = String(va || ""); vb = String(vb || "");
             return g_sort_asc ? va.localeCompare(vb) : vb.localeCompare(va);
