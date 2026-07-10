@@ -1,4 +1,7 @@
 #include "wgtFilaManagerStore.h"
+#include <tuple>
+#include <cctype>
+#include <algorithm>
 #include "libslic3r/Utils.hpp"
 
 #include <boost/filesystem.hpp>
@@ -14,6 +17,43 @@
 #include <sstream>
 
 namespace Slic3r { namespace GUI {
+
+
+namespace {
+
+std::string spool_display_sort_key(const std::string& value)
+{
+    std::string key = value;
+    std::transform(key.begin(), key.end(), key.begin(),
+        [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return key;
+}
+
+bool spool_display_less(const FilamentSpool* left, const FilamentSpool* right)
+{
+    if (!left || !right)
+        return left < right;
+
+    return std::make_tuple(
+        spool_display_sort_key(left->brand),
+        spool_display_sort_key(left->material_type),
+        spool_display_sort_key(left->series),
+        spool_display_sort_key(left->color_name),
+        spool_display_sort_key(left->color_code),
+        left->created_at,
+        left->spool_id
+    ) < std::make_tuple(
+        spool_display_sort_key(right->brand),
+        spool_display_sort_key(right->material_type),
+        spool_display_sort_key(right->series),
+        spool_display_sort_key(right->color_name),
+        spool_display_sort_key(right->color_code),
+        right->created_at,
+        right->spool_id
+    );
+}
+
+} // namespace
 
 namespace fs = boost::filesystem;
 
@@ -352,9 +392,16 @@ const FilamentSpool* wgtFilaManagerStore::find_by_setting_and_color(
 
 nlohmann::json wgtFilaManagerStore::spools_to_json() const
 {
+    std::vector<const FilamentSpool*> spools;
+    spools.reserve(m_spools.size());
+    for (const auto& [id, spool] : m_spools)
+        spools.push_back(&spool);
+
+    std::sort(spools.begin(), spools.end(), spool_display_less);
+
     nlohmann::json arr = nlohmann::json::array();
-    for (auto& [id, spool] : m_spools)
-        arr.push_back(spool.to_json());
+    for (const FilamentSpool* spool : spools)
+        arr.push_back(spool->to_json());
     return arr;
 }
 
