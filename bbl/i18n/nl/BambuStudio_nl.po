@@ -10326,7 +10326,7 @@ msgid "This is the speed for various overhang degrees. Overhang degrees are expr
 msgstr "Dit is de snelheid voor diverse overhanggraden. Overhanggraden worden uitgedrukt als een percentage van de laag breedte. 0 betekend dat er niet afgeremd wordt voor overhanggraden en dat dezelfde snelheid als voor wanden gebruikt wordt."
 
 msgid "Travel speed"
-msgstr "Verplaatsing-sneleheid"
+msgstr "Verplaatsing-snelheid"
 
 msgid "Acceleration"
 msgstr "Versnelling"
