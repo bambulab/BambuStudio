@@ -1192,13 +1192,15 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     if (obj->GetCalib()->IsVersionInited() && !obj->GetCalib()->IsPAHistoryReady()) {
         PACalibExtruderInfo cali_info;
         int ext_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
-        if (ext_id > 0) {
-            cali_info.nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(ext_id);
-            cali_info.use_extruder_id = false;
-            cali_info.use_nozzle_volume_type = false;
-            CalibUtils::emit_get_PA_calib_infos(cali_info);
-            m_pa_data_pending = true;
+        if (!obj->GetExtderSystem()->GetExtderById(ext_id)) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " get extruder id failed when requesting PA history";
+            ext_id = 0;
         }
+        cali_info.nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(ext_id);
+        cali_info.use_extruder_id = false;
+        cali_info.use_nozzle_volume_type = false;
+        CalibUtils::emit_get_PA_calib_infos(cali_info);
+        m_pa_data_pending = true;
     } else {
         m_pa_data_pending = false;
     }
