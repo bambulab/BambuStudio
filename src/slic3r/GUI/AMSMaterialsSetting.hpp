@@ -150,6 +150,7 @@ protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_select_nozzle_id(wxCommandEvent &evt);
     void on_select_filament(wxCommandEvent& evt);
+    void on_filament_filter_changed(wxCommandEvent& evt);
     void on_select_cali_result(wxCommandEvent &evt);
     void on_select_nozzle_pos_id(wxCommandEvent &evt);
     void on_select_ok(wxCommandEvent &event);
@@ -219,7 +220,9 @@ protected:
     ComboBox * m_comboBox_nozzle_type;
     ComboBox * m_comboBox_cali_result;
     TextInput*       m_readonly_filament;
+    TextInput*       m_input_filament_filter;
 
+    wxArrayString    m_filament_items;
     std::map<std::string, FilamentInfos> map_filament_items;
 };
 

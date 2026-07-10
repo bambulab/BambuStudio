@@ -160,7 +160,17 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_comboBox_filament = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
 #endif
 
-    m_sizer_filament->Add(m_comboBox_filament, 1, wxALIGN_CENTER, 0);
+    wxBoxSizer* filament_ctrl_sizer = new wxBoxSizer(wxVERTICAL);
+    m_input_filament_filter = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, wxTE_PROCESS_ENTER);
+    m_input_filament_filter->SetBorderColor(StateColor(std::make_pair(0xDBDBDB, (int)StateColor::Focused), std::make_pair(0x00AE42, (int)StateColor::Hovered),
+        std::make_pair(0xDBDBDB, (int)StateColor::Normal)));
+    m_input_filament_filter->SetFont(::Label::Body_14);
+    m_input_filament_filter->SetLabelColor(AMS_MATERIALS_SETTING_GREY800);
+    m_input_filament_filter->GetTextCtrl()->SetHint(_L("Search filament"));
+    m_input_filament_filter->GetTextCtrl()->Bind(wxEVT_TEXT, &AMSMaterialsSetting::on_filament_filter_changed, this);
+    filament_ctrl_sizer->Add(m_input_filament_filter, 0, wxEXPAND | wxBOTTOM, FromDIP(4));
+    filament_ctrl_sizer->Add(m_comboBox_filament, 0, wxEXPAND, 0);
+    m_sizer_filament->Add(filament_ctrl_sizer, 1, wxALIGN_CENTER, 0);
 
     // make the style the same with disable m_input_k_val, FIXME
     m_readonly_filament = new TextInput(parent, wxEmptyString, "", "", wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, wxTE_CENTRE | wxTE_PROCESS_ENTER);
@@ -1177,7 +1187,11 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         }
     }
 
-    m_comboBox_filament->Set(filament_items);
+    m_filament_items = filament_items;
+    if (m_input_filament_filter) {
+        m_input_filament_filter->GetTextCtrl()->ChangeValue(wxEmptyString);
+    }
+    m_comboBox_filament->Set(m_filament_items);
     m_comboBox_filament->SetSelection(selection_idx);
     post_select_event(selection_idx);
 
@@ -1214,6 +1228,36 @@ void AMSMaterialsSetting::post_select_event(int index) {
     event.SetInt(index);
     event.SetEventObject(m_comboBox_filament);
     wxPostEvent(m_comboBox_filament, event);
+}
+
+void AMSMaterialsSetting::on_filament_filter_changed(wxCommandEvent& evt)
+{
+    wxString current = m_comboBox_filament->GetValue();
+    wxString filter;
+    if (m_input_filament_filter) {
+        filter = m_input_filament_filter->GetTextCtrl()->GetValue().Lower();
+    }
+
+    wxArrayString filtered_items;
+    for (size_t i = 0; i < m_filament_items.size(); ++i) {
+        wxString item = m_filament_items[i];
+        if (filter.IsEmpty() || item.Lower().Find(filter) != wxNOT_FOUND) {
+            filtered_items.Add(item);
+        }
+    }
+
+    m_comboBox_filament->Set(filtered_items);
+    int selection_idx = filtered_items.Index(current);
+    if (selection_idx != wxNOT_FOUND) {
+        m_comboBox_filament->SetSelection(selection_idx);
+    }
+    else if (!current.IsEmpty()) {
+        m_comboBox_filament->SetSelection(wxNOT_FOUND);
+        m_comboBox_filament->SetValue(wxEmptyString);
+        post_select_event(-1);
+    }
+
+    evt.Skip();
 }
 
 void AMSMaterialsSetting::TryRefreshPAProfiles()
