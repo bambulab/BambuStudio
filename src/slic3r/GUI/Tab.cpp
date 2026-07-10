@@ -369,6 +369,36 @@ void Tab::create_preset_tab()
     search_sizer->Fit(m_search_item);
 
     m_search_item->Hide();
+
+    m_override_dashboard = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_override_dashboard->SetBackgroundColour(wxColour(248, 248, 248));
+
+    wxBoxSizer* override_outer_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* override_header_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* override_details_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_override_title = new Label(m_override_dashboard, Label::Body_12, _L("No modified settings"));
+    m_override_title->SetFont(wxGetApp().bold_font());
+
+    m_override_summary = new Label(m_override_dashboard, Label::Body_10, wxEmptyString);
+    m_override_scope = new Label(m_override_dashboard, Label::Body_10, wxEmptyString);
+
+    add_scaled_button(m_override_dashboard, &m_override_review_btn, "compare", _L("Review"));
+    m_override_review_btn->SetToolTip(_L("Open Compare presets to review the current modifications"));
+    m_override_review_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { compare_preset(); });
+
+    override_header_sizer->Add(m_override_title, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
+    override_header_sizer->Add(m_override_review_btn, 0, wxALIGN_CENTER_VERTICAL);
+
+    override_details_sizer->Add(m_override_summary, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
+    override_details_sizer->Add(m_override_scope, 0, wxALIGN_CENTER_VERTICAL);
+
+    override_outer_sizer->Add(override_header_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(10));
+    override_outer_sizer->Add(override_details_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(10));
+
+    m_override_dashboard->SetSizer(override_outer_sizer);
+    m_override_dashboard->Hide();
+
     //m_btn_search->SetId(wxID_FIND_PROCESS);
 
     m_btn_search->Bind(
@@ -444,6 +474,8 @@ void Tab::create_preset_tab()
         m_main_sizer->Add(m_top_panel, 0, wxEXPAND | wxUP | wxDOWN, m_em_unit);
     else
         m_top_panel->Hide();
+
+    m_main_sizer->Add(m_override_dashboard, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(10));
 
 #if 0
 #ifdef _MSW_DARK_MODE
@@ -1081,6 +1113,51 @@ void Tab::filter_diff_option(std::vector<std::string> &options)
     options.erase(std::remove(options.begin(), options.end(), ""), options.end());
 }
 
+
+wxString Tab::override_scope_label() const
+{
+    switch (m_type) {
+    case Preset::TYPE_PRINT:        return _L("Process");
+    case Preset::TYPE_FILAMENT:     return _L("Filament");
+    case Preset::TYPE_PRINTER:      return _L("Printer");
+    case Preset::TYPE_SLA_PRINT:    return _L("SLA print");
+    case Preset::TYPE_SLA_MATERIAL: return _L("SLA material");
+    case Preset::TYPE_MODEL:        return _L("Object");
+    default:                        return _L("Settings");
+    }
+}
+
+void Tab::update_override_dashboard(const std::vector<std::string>& dirty_options,
+                                    const std::vector<std::string>& nonsys_options)
+{
+    if (!m_override_dashboard || !m_override_title || !m_override_summary || !m_override_scope)
+        return;
+
+    std::set<std::string> unique_dirty_options(dirty_options.begin(), dirty_options.end());
+    std::set<std::string> unique_nonsys_options(nonsys_options.begin(), nonsys_options.end());
+
+    const int dirty_count = int(unique_dirty_options.size());
+    const int nonsys_count = int(unique_nonsys_options.size());
+    const bool has_changes = dirty_count > 0 || nonsys_count > 0;
+
+    m_override_title->SetLabel(has_changes ?
+        wxString::Format(_L("%d modified setting(s)"), dirty_count) :
+        _L("No modified settings"));
+
+    m_override_summary->SetLabel(wxString::Format(_L("%d setting(s) differ from the selected preset"), dirty_count));
+    m_override_scope->SetLabel(_L("Scope") + ": " + override_scope_label() + "  |  " +
+                               wxString::Format(_L("%d system override(s)"), nonsys_count));
+
+    if (m_override_review_btn)
+        m_override_review_btn->Enable(has_changes && m_presets_choice);
+
+    const bool was_shown = m_override_dashboard->IsShown();
+    m_override_dashboard->Show(has_changes);
+
+    if (was_shown != has_changes && m_main_sizer)
+        Layout();
+}
+
 // Update UI according to changes
 void Tab::update_changed_ui()
 {
@@ -1120,6 +1197,8 @@ void Tab::update_changed_ui()
 
     filter_diff_option(dirty_options);
     filter_diff_option(nonsys_options);
+
+    update_override_dashboard(dirty_options, nonsys_options);
 
     for (auto& it : m_options_list)
         it.second = m_opt_status_value;
