@@ -15482,17 +15482,67 @@ wxString Plater::priv::get_export_gcode_filename(const wxString& extension, bool
 {
     wxString curr_project_name = m_project_name;
 
-    std::string plate_index_str = "";
+    std::string plate_index_str;
     std::string plate_name = partplate_list.get_curr_plate()->get_plate_name();
 
-    // remove unsupported characters in filename
+    // Remove unsupported characters before using the project name as the
+    // input_filename_base placeholder.
     curr_project_name = from_u8(filter_characters(curr_project_name.ToUTF8().data(), "<>[]:/\\|?*\""));
     plate_name = filter_characters(plate_name, "<>[]:/\\|?*\"");
 
-    if (!plate_name.empty())
-        plate_index_str = (boost::format("_%1%") % plate_name).str();
-    else if (partplate_list.get_plate_count() > 1)
-        plate_index_str = (boost::format("_plate_%1%") % std::to_string(partplate_list.get_curr_plate_index() + 1)).str();
+    bool filename_format_has_plate_name = false;
+
+    // Use filename_format as the default print-job name. For an all-plates
+    // operation, retain the project name because the active Print represents
+    // only the currently selected plate.
+    if (!export_all) {
+        try {
+            const Print& print = partplate_list.get_current_fff_print();
+
+            const std::string filename_format = print.config().filename_format.value;
+            const std::string formatted_output =
+                print.output_filename(curr_project_name.utf8_string());
+
+            wxString formatted_name = from_u8(
+                boost::filesystem::path(formatted_output).filename().string());
+
+            const wxString lower_name = formatted_name.Lower();
+
+            if (lower_name.EndsWith(".gcode.3mf"))
+                formatted_name.RemoveLast(10);
+            else if (lower_name.EndsWith(".gcode"))
+                formatted_name.RemoveLast(6);
+            else if (lower_name.EndsWith(".3mf"))
+                formatted_name.RemoveLast(4);
+
+            if (!formatted_name.empty())
+                curr_project_name = formatted_name;
+
+            filename_format_has_plate_name =
+                !plate_name.empty() &&
+                filename_format.find("[plate_name]") != std::string::npos;
+        }
+        catch (const Slic3r::PlaceholderParserError& ex) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Failed to apply filename_format to print-job name; "
+                   "using the legacy project name instead: "
+                << ex.what();
+        }
+    }
+
+    // Placeholder expansion may introduce characters unsupported by the
+    // printer or the local filesystem.
+    curr_project_name = from_u8(
+        filter_characters(curr_project_name.ToUTF8().data(), "<>[]:/\\|?*\""));
+
+    if (!filename_format_has_plate_name) {
+        if (!plate_name.empty())
+            plate_index_str = (boost::format("_%1%") % plate_name).str();
+        else if (partplate_list.get_plate_count() > 1)
+            plate_index_str =
+                (boost::format("_plate_%1%") %
+                 std::to_string(partplate_list.get_curr_plate_index() + 1)).str();
+    }
 
     if (!m_project_folder.empty()) {
         if (!only_filename) {
