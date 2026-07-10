@@ -23,7 +23,8 @@ class FillBedJob : public PlaterJob
 
     arrangement::ArrangeParams params;
 
-    int m_status_range = 0;
+    int  m_status_range = 0;
+    bool m_instances    = false;
 
 protected:
 
@@ -31,8 +32,12 @@ protected:
     void process() override;
 
 public:
-    FillBedJob(std::shared_ptr<ProgressIndicator> pri, Plater *plater)
+    FillBedJob(
+        std::shared_ptr<ProgressIndicator> pri,
+        Plater                            *plater,
+        bool                               instances = false)
         : PlaterJob{std::move(pri), plater}
+        , m_instances{instances}
     {}
 
     int status_range() const override

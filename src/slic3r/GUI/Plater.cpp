@@ -6349,7 +6349,12 @@ public:
     class Jobs: public ExclusiveJobGroup
     {
         priv *m;
-        size_t m_arrange_id, m_fill_bed_id, m_rotoptimize_id, m_sla_import_id, m_orient_id;
+        size_t m_arrange_id;
+        size_t m_fill_bed_id;
+        size_t m_fill_bed_instances_id;
+        size_t m_rotoptimize_id;
+        size_t m_sla_import_id;
+        size_t m_orient_id;
         std::shared_ptr<NotificationProgressIndicator> m_pri;
         //BBS
         size_t m_print_id;
@@ -6363,7 +6368,11 @@ public:
         {
             m_arrange_id = add_job(std::make_unique<ArrangeJob>(m_pri, m->q));
             m_orient_id = add_job(std::make_unique<OrientJob>(m_pri, m->q));
-            m_fill_bed_id = add_job(std::make_unique<FillBedJob>(m_pri, m->q));
+            m_fill_bed_id =
+                add_job(std::make_unique<FillBedJob>(m_pri, m->q));
+
+            m_fill_bed_instances_id =
+                add_job(std::make_unique<FillBedJob>(m_pri, m->q, true));
             m_rotoptimize_id = add_job(std::make_unique<RotoptimizeJob>(m_pri, m->q));
             m_sla_import_id = add_job(std::make_unique<SLAImportJob>(m_pri, m->q));
             //BBS add print id
@@ -6386,6 +6395,12 @@ public:
         {
             m->take_snapshot("Fill bed");
             start(m_fill_bed_id);
+        }
+
+        void fill_bed_with_instances()
+        {
+            m->take_snapshot("Fill bed with instances");
+            start(m_fill_bed_instances_id);
         }
 
         void optimize_rotation()
@@ -20280,10 +20295,16 @@ void Plater::set_number_of_copies(/*size_t num*/)
         decrease_instances(-diff);
 }
 
-void Plater::fill_bed_with_instances()
+void Plater::fill_bed_with_copies()
 {
     if (!p->m_ui_jobs.is_any_running())
         p->m_ui_jobs.fill_bed();
+}
+
+void Plater::fill_bed_with_instances()
+{
+    if (!p->m_ui_jobs.is_any_running())
+        p->m_ui_jobs.fill_bed_with_instances();
 }
 
 bool Plater::is_selection_empty() const
