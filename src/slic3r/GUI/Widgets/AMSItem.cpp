@@ -1090,6 +1090,32 @@ void AMSLib::render(wxDC &dc)
     }
 }
 
+wxString AMSLib::get_filament_color_tooltip() const
+{
+    wxString color_text;
+    // External / virtual trays with no colour fall back to the white default
+    // (AMS_TRAY_DEFAULT_COL); report that as "no colour" instead of white.
+    const bool skip_default = (m_info.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL);
+    auto append_color = [&color_text, skip_default](const wxColour& color) {
+        if (!color.IsOk()) return;
+        if (color.Alpha() == 0) {
+            if (!color_text.empty()) color_text += ", ";
+            color_text += _L("Transparent");
+            return;
+        }
+        if (skip_default && color == AMS_TRAY_DEFAULT_COL) return;
+        if (!color_text.empty()) color_text += ", ";
+        color_text += color.GetAsString(wxC2S_HTML_SYNTAX);
+    };
+    if (!m_info.material_cols.empty()) {
+        for (const wxColour& color : m_info.material_cols)
+            append_color(color);
+    } else {
+        append_color(m_info.material_colour);
+    }
+    return color_text;
+}
+
 void AMSLib::render_lite_text(wxDC& dc)
 {
     auto tmp_lib_colour = m_info.material_colour;
@@ -1171,6 +1197,17 @@ void AMSLib::render_lite_text(wxDC& dc)
         auto pot = wxPoint((libsize.x - tsize.x) / 2 + FromDIP(2), (libsize.y - tsize.y) / 2 + FromDIP(3));
         dc.DrawText(_L("/"), pot);
     }
+
+    // Tooltip parity with render_generic_text so AMS Lite and Lite external
+    // spools also show the filament name and colour.
+    wxString tooltip_text = m_info.material_name;
+    wxString color_text   = get_filament_color_tooltip();
+    if (!color_text.empty() && !m_info.material_name.empty()) {
+        if (!tooltip_text.empty()) tooltip_text += "\n";
+        tooltip_text += _L("Color") + ": " + color_text;
+    }
+    if (GetToolTipText() != tooltip_text)
+        SetToolTip(tooltip_text);
 }
 
 void AMSLib::render_generic_text(wxDC &dc)
@@ -1292,6 +1329,18 @@ void AMSLib::render_generic_text(wxDC &dc)
                 dc.DrawText(m_info.material_name, pot);
             }
             tooltip_text += m_info.material_name;
+        }
+
+        auto append_tooltip_line = [&tooltip_text](const wxString& line) {
+            if (line.empty()) return;
+            if (!tooltip_text.empty()) tooltip_text += "\n";
+            tooltip_text += line;
+        };
+
+        wxString color_text = get_filament_color_tooltip();
+        if (!color_text.empty() && !m_info.material_name.empty()) {
+            wxString color_label = _L("Color");
+            append_tooltip_line(color_label + ": " + color_text);
         }
 
         //draw k&n
