@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 22:02+0800\n"
+"POT-Creation-Date: 2026-07-10 15:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1336,6 +1336,9 @@ msgstr "ネットワークを最低2つ選択してください。"
 msgid "(Moving)"
 msgstr "(移動中)"
 
+msgid "Face and face assembly"
+msgstr "面および面アセンブリ"
+
 msgid "Point and point assembly"
 msgstr "点と点の組み立て"
 
@@ -1347,9 +1350,6 @@ msgstr ""
 "オブジェクトはベッド上に固定され、\n"
 "パーツのみが持ち上げ可能なため、\n"
 "先にオブジェクトを組み立てることを推奨します。"
-
-msgid "Face and face assembly"
-msgstr "面および面アセンブリ"
 
 msgid "Brush size"
 msgstr "サイズ"
@@ -3367,8 +3367,8 @@ msgstr "ステップのみをコピーします。キャンバス上で選択さ
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr "空のステップのみを追加します。キャンバス上で選択されているオブジェクトとは関係ありません。"
 
-msgid "Exit"
-msgstr "終了"
+msgid "Exit the assembly step editing, you can also press the Esc button to exit"
+msgstr ""
 
 msgid "Click to add Cyber Brick"
 msgstr "クリックしてCyber Brickを追加"
@@ -8813,9 +8813,6 @@ msgstr "地域を変更すると、アカウントからログアウトされま
 msgid "Region selection"
 msgstr "地域選択"
 
-msgid "Second"
-msgstr "秒"
-
 msgid ""
 "Please note that the model show will undergo certain changes at small pixels case.\n"
 "Enabled LOD requires application restart."
@@ -8850,14 +8847,21 @@ msgstr ""
 msgid "Choose Download Directory"
 msgstr "ダウンロードフォルドを選択"
 
+msgctxt "Preference"
 msgid "General"
 msgstr "一般"
 
+msgctxt "Preference"
 msgid "User"
 msgstr "ユーザ"
 
+msgctxt "Preference"
 msgid "3D"
 msgstr ""
+
+msgctxt "Preference"
+msgid "Other"
+msgstr "その他"
 
 msgid "Developer Tools"
 msgstr ""
@@ -9061,6 +9065,12 @@ msgstr "インポートしたOBJファイルにガンマ補正を適用する"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "OBJモデルのインポート後に、色にガンマ補正を適用します。"
 
+msgid "Remember last used color scheme"
+msgstr "最後に使用したカラースキームを記憶する"
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+msgstr "有効にすると、前回使用したカラースキーム（例：ラインタイプ、速度）が次回起動時に自動で適用されます。"
+
 msgid "Improve rendering performance by lod"
 msgstr "LODによってレンダリング性能を向上させる"
 
@@ -9094,14 +9104,35 @@ msgstr "最近のプロジェクトの最大数"
 msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "修正されたG-codeを含む3MFファイルの読み込み時に警告は表示されません。"
 
+msgid "10 seconds"
+msgstr ""
+
+msgid "20 seconds"
+msgstr ""
+
+msgid "30 seconds"
+msgstr ""
+
+msgid "1 minute"
+msgstr ""
+
+msgid "2 minutes"
+msgstr ""
+
+msgid "5 minutes"
+msgstr ""
+
+msgid "10 minutes"
+msgstr ""
+
+msgid "30 minutes"
+msgstr ""
+
+msgid "never"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr "自動バックアップ"
-
-msgid "Backup your project periodically for restoring from the occasional crash."
-msgstr "予期しないクラッシュに備え、プロジェクトを定期的にバックアップしてください。"
-
-msgid "every"
-msgstr "毎"
 
 msgid "The peroid of backup in seconds."
 msgstr "バックアップの間隔（秒単位）"
@@ -9124,27 +9155,6 @@ msgstr "開発者モード"
 msgid "Skip AMS blacklist check"
 msgstr "AMSブラックリストチェックをスキップ"
 
-msgid "Log"
-msgstr ""
-
-msgid "fatal"
-msgstr "重大的"
-
-msgid "error"
-msgstr "エラー"
-
-msgid "warning"
-msgstr "警告"
-
-msgid "debug"
-msgstr "デバッグ"
-
-msgid "trace"
-msgstr "トレース"
-
-msgid "Log Level"
-msgstr "Log Level"
-
 msgid "Associate Files To Bambu Studio"
 msgstr "ファイルを Bambu Studio に関連付ける"
 
@@ -9165,6 +9175,27 @@ msgstr ".step/.stp ファイルを Bambu Studio に関連付ける"
 
 msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "これを有効にすると、.step ファイルを開くためのデフォルトアプリケーションに Bambu Studio が設定されます。"
+
+msgid "Log"
+msgstr ""
+
+msgid "fatal"
+msgstr "重大的"
+
+msgid "error"
+msgstr "エラー"
+
+msgid "warning"
+msgstr "警告"
+
+msgid "debug"
+msgstr "デバッグ"
+
+msgid "trace"
+msgstr "トレース"
+
+msgid "Log Level"
+msgstr "Log Level"
 
 msgid "Internal developer mode"
 msgstr "内部開発者モード"
@@ -10696,6 +10727,9 @@ msgstr ""
 
 msgid "Extruders count"
 msgstr "押出機台数"
+
+msgid "General"
+msgstr "一般"
 
 msgid "Capabilities"
 msgstr "能力"
@@ -12492,6 +12526,9 @@ msgstr "CA証書ファイル"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "カスタムCA証書を指定できます（フォーマット:CRT/PEM）"
+
+msgid "User"
+msgstr "ユーザ"
 
 msgid "Password"
 msgstr "パスワード"
@@ -18208,6 +18245,18 @@ msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
 
+#~ msgid "Exit"
+#~ msgstr "終了"
+
+#~ msgid "Second"
+#~ msgstr "秒"
+
+#~ msgid "Backup your project periodically for restoring from the occasional crash."
+#~ msgstr "予期しないクラッシュに備え、プロジェクトを定期的にバックアップしてください。"
+
+#~ msgid "every"
+#~ msgstr "毎"
+
 #~ msgid "Remove current plate (if not last one)"
 #~ msgstr "現在のプレートを削除（最後の1枚を除く）"
 
@@ -18271,12 +18320,6 @@ msgstr ""
 
 #~ msgid "Clear my choice for disabling support parameter recommendation."
 #~ msgstr "サポートパラメータの推奨を無効にする選択をクリアします。"
-
-#~ msgid "Remember last used color scheme"
-#~ msgstr "最後に使用したカラースキームを記憶する"
-
-#~ msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-#~ msgstr "有効にすると、前回使用したカラースキーム（例：ラインタイプ、速度）が次回起動時に自動で適用されます。"
 
 #~ msgid "Reminder During Slicing"
 #~ msgstr "スライス処理中の注意事項"

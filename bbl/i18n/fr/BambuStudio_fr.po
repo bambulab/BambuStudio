@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 22:02+0800\n"
+"POT-Creation-Date: 2026-07-10 15:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1336,6 +1336,9 @@ msgstr "Veuillez sélectionner au moins deux volumes."
 msgid "(Moving)"
 msgstr "(En mouvement)"
 
+msgid "Face and face assembly"
+msgstr "Assemblage face à face"
+
 msgid "Point and point assembly"
 msgstr "Assemblage point par point"
 
@@ -1347,9 +1350,6 @@ msgstr ""
 "Il est recommandé d'assembler d'abord les objets,\n"
 "car les objets sont limités au lit\n"
 "et que seules les parties peuvent être soulevées."
-
-msgid "Face and face assembly"
-msgstr "Assemblage face à face"
 
 msgid "Brush size"
 msgstr "Taille du pinceau"
@@ -3375,8 +3375,8 @@ msgstr "Copiez uniquement les étapes. Ceci est indépendant des objets sélecti
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr "Ajoutez uniquement des étapes vides. Cela n'a rien à voir avec les objets sélectionnés sur le canevas."
 
-msgid "Exit"
-msgstr "Quitter"
+msgid "Exit the assembly step editing, you can also press the Esc button to exit"
+msgstr ""
 
 msgid "Click to add Cyber Brick"
 msgstr "Cliquez pour ajouter un Cyber Brick"
@@ -8850,9 +8850,6 @@ msgstr "Si vous changez de région, vous serez déconnecté de votre compte.\n"
 msgid "Region selection"
 msgstr "Choix de la région"
 
-msgid "Second"
-msgstr "Seconde"
-
 msgid ""
 "Please note that the model show will undergo certain changes at small pixels case.\n"
 "Enabled LOD requires application restart."
@@ -8887,14 +8884,21 @@ msgstr ""
 msgid "Choose Download Directory"
 msgstr "Choisissez le répertoire de téléchargement"
 
+msgctxt "Preference"
 msgid "General"
 msgstr "Général"
 
+msgctxt "Preference"
 msgid "User"
 msgstr "Utilisateur"
 
+msgctxt "Preference"
 msgid "3D"
 msgstr ""
+
+msgctxt "Preference"
+msgid "Other"
+msgstr "Autre"
 
 msgid "Developer Tools"
 msgstr ""
@@ -9098,6 +9102,12 @@ msgstr "Activer la correction gamma pour le fichier obj importé"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Effectuer la correction gamma sur la couleur après avoir importé le modèle obj."
 
+msgid "Remember last used color scheme"
+msgstr "Se souvenir du dernier Mode d'Affichage utilisé"
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+msgstr "Une fois activé, le dernier Mode d'Affichage utilisé (par exemple, Type de ligne, Vitesse) sera automatiquement appliqué au prochain démarrage."
+
 msgid "Improve rendering performance by lod"
 msgstr "Amélioration des performances de rendu par logement"
 
@@ -9131,14 +9141,35 @@ msgstr "Nombre maximal de projets récents"
 msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "No warnings when loading 3MF with modified G-code"
 
+msgid "10 seconds"
+msgstr ""
+
+msgid "20 seconds"
+msgstr ""
+
+msgid "30 seconds"
+msgstr ""
+
+msgid "1 minute"
+msgstr ""
+
+msgid "2 minutes"
+msgstr ""
+
+msgid "5 minutes"
+msgstr ""
+
+msgid "10 minutes"
+msgstr ""
+
+msgid "30 minutes"
+msgstr ""
+
+msgid "never"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr "Sauvegarde Auo"
-
-msgid "Backup your project periodically for restoring from the occasional crash."
-msgstr "Sauvegardez votre projet périodiquement pour faciliter la restauration après un plantage occasionnel."
-
-msgid "every"
-msgstr "chaque"
 
 msgid "The peroid of backup in seconds."
 msgstr "Fréquence de sauvegarde en secondes."
@@ -9161,27 +9192,6 @@ msgstr "Mode Développeur"
 msgid "Skip AMS blacklist check"
 msgstr "Ignorer la vérification de la liste noire AMS"
 
-msgid "Log"
-msgstr ""
-
-msgid "fatal"
-msgstr "mortel"
-
-msgid "error"
-msgstr "erreur"
-
-msgid "warning"
-msgstr "Attention"
-
-msgid "debug"
-msgstr "déboguer"
-
-msgid "trace"
-msgstr "Tracé"
-
-msgid "Log Level"
-msgstr "Niveau de journalisation"
-
 msgid "Associate Files To Bambu Studio"
 msgstr "Associer les Fichiers à Bambu Studio"
 
@@ -9202,6 +9212,27 @@ msgstr "Associez les fichiers .step/.stp à Bambu Studio"
 
 msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "Si cette option est activée, définit Bambu Studio comme application par défaut pour ouvrir les fichiers .step"
+
+msgid "Log"
+msgstr ""
+
+msgid "fatal"
+msgstr "mortel"
+
+msgid "error"
+msgstr "erreur"
+
+msgid "warning"
+msgstr "Attention"
+
+msgid "debug"
+msgstr "déboguer"
+
+msgid "trace"
+msgstr "Tracé"
+
+msgid "Log Level"
+msgstr "Niveau de journalisation"
 
 msgid "Internal developer mode"
 msgstr "Mode développeur interne"
@@ -10737,6 +10768,9 @@ msgstr ""
 
 msgid "Extruders count"
 msgstr "Nombre d'extrudeurs"
+
+msgid "General"
+msgstr "Général"
 
 msgid "Capabilities"
 msgstr "Fonctionnalités"
@@ -12537,6 +12571,9 @@ msgstr "Fichier HTTPS CA"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "Un fichier de certificat CA personnalisé peut être spécifié pour les connexions HTTPS OctoPrint, au format crt/pem. Si ce champ est laissé vide, le référentiel de certificats OS CA par défaut est utilisé."
+
+msgid "User"
+msgstr "Utilisateur"
 
 msgid "Password"
 msgstr "Mot de passe"
@@ -18242,6 +18279,18 @@ msgstr ""
 "Fiabilité Garantie du Premier Coup\n"
 "Moins de surveillance, une production plus prévisible. Exemple : une petite exploitation agricole produisant des pièces en PETG évite les mauvaises surprises \"panne au bout de 6 h\" et respecte les délais de production."
 
+#~ msgid "Exit"
+#~ msgstr "Quitter"
+
+#~ msgid "Second"
+#~ msgstr "Seconde"
+
+#~ msgid "Backup your project periodically for restoring from the occasional crash."
+#~ msgstr "Sauvegardez votre projet périodiquement pour faciliter la restauration après un plantage occasionnel."
+
+#~ msgid "every"
+#~ msgstr "chaque"
+
 #~ msgid "Remove current plate (if not last one)"
 #~ msgstr "Retirer la plaque actuelle (si ce n'est pas la dernière)"
 
@@ -18305,12 +18354,6 @@ msgstr ""
 
 #~ msgid "Clear my choice for disabling support parameter recommendation."
 #~ msgstr "Effacer mon choix concernant la désactivation de la recommandation du paramètre de support."
-
-#~ msgid "Remember last used color scheme"
-#~ msgstr "Se souvenir du dernier Mode d'Affichage utilisé"
-
-#~ msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-#~ msgstr "Une fois activé, le dernier Mode d'Affichage utilisé (par exemple, Type de ligne, Vitesse) sera automatiquement appliqué au prochain démarrage."
 
 #~ msgid "Reminder During Slicing"
 #~ msgstr "Rappeler durant le tranchage"

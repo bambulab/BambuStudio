@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 22:02+0800\n"
+"POT-Creation-Date: 2026-07-10 15:51+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -292,7 +292,7 @@ msgid "TPU High Flow"
 msgstr "TPU高流量"
 
 msgid "E3D High Flow"
-msgstr ""
+msgstr "E3D 高流量"
 
 msgid "Unknown"
 msgstr "未知"
@@ -1336,6 +1336,9 @@ msgstr "请至少选择两个网格。"
 msgid "(Moving)"
 msgstr "(活动的)"
 
+msgid "Face and face assembly"
+msgstr "面和面装配"
+
 msgid "Point and point assembly"
 msgstr "点和点装配"
 
@@ -1344,9 +1347,6 @@ msgid ""
 "because the objects is restriced to bed \n"
 "and only parts can be lifted."
 msgstr "建议先组装零件，因为零件受到热床的限制，只有部件可以抬起。"
-
-msgid "Face and face assembly"
-msgstr "面和面装配"
 
 msgid "Brush size"
 msgstr "画刷尺寸"
@@ -1948,9 +1948,12 @@ msgid ""
 "\n"
 "Do you want to continue?"
 msgstr ""
+"此操作将重建模型的网格。绘画颜色、支撑、接缝和模糊蒙皮将通过尽力逼近的方式转移到新网格上，因此结果可能略有偏差，在极少数情况下，部分涂色可能会丢失。\n"
+"\n"
+"您想继续吗？"
 
 msgid "Painting may change"
-msgstr ""
+msgstr "涂色可能会发生变化"
 
 msgid "BambuStudio configuration file read failed. Please manually backup and delete it, and then restart BambuStudio software."
 msgstr "BambuStudio配置文件读取失败。请手动备份并删除它，然后重新启动BambuStudio软件。"
@@ -2500,7 +2503,7 @@ msgid "Split to objects"
 msgstr "拆分为对象"
 
 msgid "Split the selected objects into multiple objects"
-msgstr ""
+msgstr "将选定的对象拆分为多个对象"
 
 msgid "Clone"
 msgstr "克隆"
@@ -3260,10 +3263,10 @@ msgstr "过渡帧"
 
 #, c-format, boost-format
 msgid "Step %d"
-msgstr ""
+msgstr "第 %d 步"
 
 msgid "not used in any assembly step"
-msgstr ""
+msgstr "未在任何组装步骤中使用"
 
 #, boost-format
 msgid "Plate %1%"
@@ -3360,8 +3363,8 @@ msgstr "仅复制步骤。此操作与画布上选定的对象无关。"
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr "仅添加空步骤。这与画布上的选定对象无关。"
 
-msgid "Exit"
-msgstr "退出"
+msgid "Exit the assembly step editing, you can also press the Esc button to exit"
+msgstr "退出装配步骤编辑，您也可以按 Esc 键退出"
 
 msgid "Click to add Cyber Brick"
 msgstr "点击添加 Cyber Brick"
@@ -3538,13 +3541,13 @@ msgid "List"
 msgstr "列表"
 
 msgid "Assembly list"
-msgstr ""
+msgstr "装配列表"
 
 msgid "Expand all objects"
-msgstr ""
+msgstr "展开所有对象"
 
 msgid "Collapse all objects"
-msgstr ""
+msgstr "折叠所有对象"
 
 msgid "Select all parts in a step"
 msgstr "选择步骤中的所有零件"
@@ -4082,10 +4085,10 @@ msgid "Link to existing filament"
 msgstr ""
 
 msgid "Not now"
-msgstr ""
+msgstr "暂时不"
 
 msgid "Please select"
-msgstr ""
+msgstr "请选择"
 
 msgid "Dynamic flow calibration"
 msgstr "动态流量校准"
@@ -8807,9 +8810,6 @@ msgstr "修改区域会自动登出您的账号。\n"
 msgid "Region selection"
 msgstr "区域选择"
 
-msgid "Second"
-msgstr "秒"
-
 msgid ""
 "Please note that the model show will undergo certain changes at small pixels case.\n"
 "Enabled LOD requires application restart."
@@ -8839,19 +8839,26 @@ msgstr ""
 "仍要启用此功能？"
 
 msgid "Download path"
-msgstr ""
+msgstr "下载路径"
 
 msgid "Choose Download Directory"
 msgstr "选择下载文件夹"
 
+msgctxt "Preference"
 msgid "General"
-msgstr "常规"
+msgstr "通用设置"
 
+msgctxt "Preference"
 msgid "User"
-msgstr "用户名"
+msgstr "用户"
 
+msgctxt "Preference"
 msgid "3D"
 msgstr ""
+
+msgctxt "Preference"
+msgid "Other"
+msgstr "其他"
 
 msgid "Developer Tools"
 msgstr ""
@@ -8951,7 +8958,7 @@ msgid "24-hour"
 msgstr ""
 
 msgid "time format for print progress"
-msgstr ""
+msgstr "打印进度计时方式"
 
 msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
 msgstr "以 12 小时制（上午/下午）而非 24 小时制显示时间"
@@ -8990,7 +8997,7 @@ msgid "Auto-fill previously logged-in accounts."
 msgstr "自动填充历史账户信息"
 
 msgid "Disable fin extrude safe temperature"
-msgstr ""
+msgstr "禁用鳍片挤出安全温度"
 
 msgid "When enabled, the fin extrude safe temperature constraint is bypassed. The value is exposed to custom G-code as disable_fins_extrude_safe_temp."
 msgstr ""
@@ -9055,6 +9062,12 @@ msgstr "为导入的obj文件启用gamma校正"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "导入obj模型后，对颜色进行伽玛校正。"
 
+msgid "Remember last used color scheme"
+msgstr "记住上次使用的颜色方案"
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+msgstr "启用后，将在下次启动Studio后切片自动应用上次切片时使用的颜色方案（如走线类型、速度）。"
+
 msgid "Improve rendering performance by lod"
 msgstr "通过lod提高渲染性能"
 
@@ -9088,14 +9101,35 @@ msgstr "近期项目的最大计数"
 msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "加载具有修改的 G-Code 的 3MF 时不会出现警告"
 
+msgid "10 seconds"
+msgstr ""
+
+msgid "20 seconds"
+msgstr ""
+
+msgid "30 seconds"
+msgstr ""
+
+msgid "1 minute"
+msgstr ""
+
+msgid "2 minutes"
+msgstr ""
+
+msgid "5 minutes"
+msgstr ""
+
+msgid "10 minutes"
+msgstr ""
+
+msgid "30 minutes"
+msgstr ""
+
+msgid "never"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr "自动备份"
-
-msgid "Backup your project periodically for restoring from the occasional crash."
-msgstr "定期备份您的项目，以便从偶尔的崩溃中恢复过来。"
-
-msgid "every"
-msgstr "每"
 
 msgid "The peroid of backup in seconds."
 msgstr "备份的周期。"
@@ -9118,27 +9152,6 @@ msgstr "开发者模式"
 msgid "Skip AMS blacklist check"
 msgstr "跳过AMS黑名单检查"
 
-msgid "Log"
-msgstr ""
-
-msgid "fatal"
-msgstr "致命"
-
-msgid "error"
-msgstr "错误"
-
-msgid "warning"
-msgstr "警告"
-
-msgid "debug"
-msgstr "调试"
-
-msgid "trace"
-msgstr "跟踪"
-
-msgid "Log Level"
-msgstr "日志级别"
-
 msgid "Associate Files To Bambu Studio"
 msgstr "Bambu Studio文件关联"
 
@@ -9159,6 +9172,27 @@ msgstr "使用Bambu Studio打开.step/.stp文件"
 
 msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "开启后，将默认使用Bambu Studio打开.step文件"
+
+msgid "Log"
+msgstr ""
+
+msgid "fatal"
+msgstr "致命"
+
+msgid "error"
+msgstr "错误"
+
+msgid "warning"
+msgstr "警告"
+
+msgid "debug"
+msgstr "调试"
+
+msgid "trace"
+msgstr "跟踪"
+
+msgid "Log Level"
+msgstr "日志级别"
 
 msgid "Internal developer mode"
 msgstr "内部开发者模式"
@@ -9197,16 +9231,16 @@ msgid "Switch cloud environment, Please login again!"
 msgstr "切换云环境，请重新登录!"
 
 msgid "Reset all warning dialogs"
-msgstr ""
+msgstr "重置所有警告对话框"
 
 msgid "Reset preferences"
-msgstr ""
+msgstr "重置偏好设置"
 
 msgid "All warning dialogs that you have disabled by checking \"Don't show again\" are now re-enabled and will show next time they apply."
-msgstr ""
+msgstr "可以通过选中“不再显示”而停用的所有警告对话框现在均已启用，并在下次适用时显示"
 
 msgid "Check details"
-msgstr ""
+msgstr "查看详情"
 
 msgid ""
 "- Sync printer presets after loading a file\n"
@@ -9217,7 +9251,7 @@ msgid ""
 msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
-msgstr ""
+msgstr "确定重置所有首选项设置吗?下次重新启动之后生效。"
 
 msgid "User presets"
 msgstr "用户配置"
@@ -10686,6 +10720,9 @@ msgstr ""
 msgid "Extruders count"
 msgstr "挤出机数量"
 
+msgid "General"
+msgstr "常规"
+
 msgid "Capabilities"
 msgstr "能力"
 
@@ -10764,7 +10801,7 @@ msgid "Exit %s"
 msgstr "退出 %s"
 
 msgid "the Configuration package is incompatible with current APP."
-msgstr "the Configuration package is incompatible with current APP."
+msgstr "配置文件与当前应用程序不兼容。"
 
 msgid "Configuration updates"
 msgstr "配置更新"
@@ -12481,6 +12518,9 @@ msgstr "HTTPS CA文件"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "可以为HTTPS OctoPrint连接指定自定义CA证书文件，格式为crt/pem。如果留空，则使用默认的操作系统CA证书存储库。"
+
+msgid "User"
+msgstr "用户名"
 
 msgid "Password"
 msgstr "密码"
@@ -18169,6 +18209,18 @@ msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
 
+#~ msgid "Exit"
+#~ msgstr "退出"
+
+#~ msgid "Second"
+#~ msgstr "秒"
+
+#~ msgid "Backup your project periodically for restoring from the occasional crash."
+#~ msgstr "定期备份您的项目，以便从偶尔的崩溃中恢复过来。"
+
+#~ msgid "every"
+#~ msgstr "每"
+
 #~ msgid "Remove current plate (if not last one)"
 #~ msgstr "删除当前盘(如果不是最后一个)"
 
@@ -18230,12 +18282,6 @@ msgstr ""
 
 #~ msgid "Clear my choice for disabling support parameter recommendation."
 #~ msgstr "清除禁用支撑参数推荐的设置"
-
-#~ msgid "Remember last used color scheme"
-#~ msgstr "记住上次使用的颜色方案"
-
-#~ msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-#~ msgstr "启用后，将在下次启动Studio后切片自动应用上次切片时使用的颜色方案（如走线类型、速度）。"
 
 #~ msgid "Reminder During Slicing"
 #~ msgstr "切片时提醒"

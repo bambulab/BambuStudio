@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 22:02+0800\n"
+"POT-Creation-Date: 2026-07-10 15:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1336,6 +1336,9 @@ msgstr "Selecteer ten minste twee delen."
 msgid "(Moving)"
 msgstr " (Bewegen)"
 
+msgid "Face and face assembly"
+msgstr "Montage van zijdes"
+
 msgid "Point and point assembly"
 msgstr "Punt en punt assemblage"
 
@@ -1347,9 +1350,6 @@ msgstr ""
 "Het wordt aanbevolen om de objecten eerst in elkaar te zetten\n"
 "omdat de objecten beperkt zijn tot bed, \n"
 "En alleen onderdelen kunnen worden opgetild."
-
-msgid "Face and face assembly"
-msgstr "Montage van zijdes"
 
 msgid "Brush size"
 msgstr "Penseelgrootte"
@@ -3375,8 +3375,8 @@ msgstr "Alleen stappen kopiëren. Dit is onafhankelijk van de geselecteerde obje
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr "Alleen lege stappen toevoegen. Dit heeft niets te maken met de geselecteerde objecten op het canvas."
 
-msgid "Exit"
-msgstr "Afsluiten"
+msgid "Exit the assembly step editing, you can also press the Esc button to exit"
+msgstr ""
 
 msgid "Click to add Cyber Brick"
 msgstr "Klik om Cyber Brick toe te voegen"
@@ -8857,9 +8857,6 @@ msgstr "Als u de regio wijzigt, wordt u afgemeld bij uw account.\n"
 msgid "Region selection"
 msgstr "Regio selectie"
 
-msgid "Second"
-msgstr "Seconde"
-
 msgid ""
 "Please note that the model show will undergo certain changes at small pixels case.\n"
 "Enabled LOD requires application restart."
@@ -8894,14 +8891,21 @@ msgstr ""
 msgid "Choose Download Directory"
 msgstr "Kies Downloadmap"
 
+msgctxt "Preference"
 msgid "General"
 msgstr "Algemeen"
 
+msgctxt "Preference"
 msgid "User"
 msgstr "Gebruiker"
 
+msgctxt "Preference"
 msgid "3D"
 msgstr ""
+
+msgctxt "Preference"
+msgid "Other"
+msgstr "Anders"
 
 msgid "Developer Tools"
 msgstr ""
@@ -9105,6 +9109,12 @@ msgstr "Gammacorrectie inschakelen voor het geïmporteerde obj-bestand"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Voer een gammacorrectie uit op kleur na het importeren van het obj-model."
 
+msgid "Remember last used color scheme"
+msgstr "Laat laatste gebruikte kleurenschema onthouden"
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+msgstr "Wanneer ingeschakeld, wordt het laatst gebruikte kleurenschema (bijv. Lijntype, Snelheid) automatisch toegepast bij de volgende opstart."
+
 msgid "Improve rendering performance by lod"
 msgstr "Verbeter de renderprestaties met LOD"
 
@@ -9138,14 +9148,35 @@ msgstr "Maximaal aantal recente projecten"
 msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "No warnings when loading 3MF with modified G-code"
 
+msgid "10 seconds"
+msgstr ""
+
+msgid "20 seconds"
+msgstr ""
+
+msgid "30 seconds"
+msgstr ""
+
+msgid "1 minute"
+msgstr ""
+
+msgid "2 minutes"
+msgstr ""
+
+msgid "5 minutes"
+msgstr ""
+
+msgid "10 minutes"
+msgstr ""
+
+msgid "30 minutes"
+msgstr ""
+
+msgid "never"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr "Automatisch backup maken"
-
-msgid "Backup your project periodically for restoring from the occasional crash."
-msgstr "Maak regelmatig een back-up van je project om het te herstellen van een incidentele crash."
-
-msgid "every"
-msgstr "Elke"
 
 msgid "The peroid of backup in seconds."
 msgstr "De periode van de back-up in seconden."
@@ -9168,27 +9199,6 @@ msgstr "Ontwikkelmodus"
 msgid "Skip AMS blacklist check"
 msgstr "De controle op de zwarte lijst van AMS overslaan"
 
-msgid "Log"
-msgstr ""
-
-msgid "fatal"
-msgstr "Fataal"
-
-msgid "error"
-msgstr "Fout"
-
-msgid "warning"
-msgstr "waarschuwing"
-
-msgid "debug"
-msgstr "Debuggen"
-
-msgid "trace"
-msgstr "traceren"
-
-msgid "Log Level"
-msgstr "Log level"
-
 msgid "Associate Files To Bambu Studio"
 msgstr "Bestanden koppelen aan Bambu Studio"
 
@@ -9209,6 +9219,27 @@ msgstr "Koppel .step/.stp bestanden aan Bambu Studio"
 
 msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "Indien ingeschakeld, wordt Bambu Studio ingesteld als standaardtoepassing voor het openen van .step-bestanden"
+
+msgid "Log"
+msgstr ""
+
+msgid "fatal"
+msgstr "Fataal"
+
+msgid "error"
+msgstr "Fout"
+
+msgid "warning"
+msgstr "waarschuwing"
+
+msgid "debug"
+msgstr "Debuggen"
+
+msgid "trace"
+msgstr "traceren"
+
+msgid "Log Level"
+msgstr "Log level"
 
 msgid "Internal developer mode"
 msgstr "Interne ontwikkelaarsmodus"
@@ -10747,6 +10778,9 @@ msgstr ""
 
 msgid "Extruders count"
 msgstr "Extruder aantal"
+
+msgid "General"
+msgstr "Algemeen"
 
 msgid "Capabilities"
 msgstr "Mogelijkheden"
@@ -12546,6 +12580,9 @@ msgstr "HTTPS CA Bestand"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "Een aangepast CA-certificaatbestand kan worden gespecificeerd voor HTTPS OctoPrint-verbindingen, in crt/pem-formaat. Indien leeg gelaten, wordt de standaard opslagplaats voor OS CA-certificaten gebruikt."
+
+msgid "User"
+msgstr "Gebruiker"
 
 msgid "Password"
 msgstr "Wachtwoord"
@@ -18249,6 +18286,18 @@ msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
 
+#~ msgid "Exit"
+#~ msgstr "Afsluiten"
+
+#~ msgid "Second"
+#~ msgstr "Seconde"
+
+#~ msgid "Backup your project periodically for restoring from the occasional crash."
+#~ msgstr "Maak regelmatig een back-up van je project om het te herstellen van een incidentele crash."
+
+#~ msgid "every"
+#~ msgstr "Elke"
+
 #~ msgid "Remove current plate (if not last one)"
 #~ msgstr "Huidige plaat verwijderen (als dit niet de laatste is)"
 
@@ -18312,12 +18361,6 @@ msgstr ""
 
 #~ msgid "Clear my choice for disabling support parameter recommendation."
 #~ msgstr "Wis mijn keuze om de aanbeveling van ondersteuningsparameters uit te schakelen."
-
-#~ msgid "Remember last used color scheme"
-#~ msgstr "Laat laatste gebruikte kleurenschema onthouden"
-
-#~ msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-#~ msgstr "Wanneer ingeschakeld, wordt het laatst gebruikte kleurenschema (bijv. Lijntype, Snelheid) automatisch toegepast bij de volgende opstart."
 
 #~ msgid "Reminder During Slicing"
 #~ msgstr "Herinnering tijdens het slicen"

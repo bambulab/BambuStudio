@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 22:02+0800\n"
+"POT-Creation-Date: 2026-07-10 15:51+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1333,6 +1333,9 @@ msgstr "Please select at least two volumes."
 msgid "(Moving)"
 msgstr "(Moving)"
 
+msgid "Face and face assembly"
+msgstr "Face and face assembly"
+
 msgid "Point and point assembly"
 msgstr "Point and point assembly"
 
@@ -1341,9 +1344,6 @@ msgid ""
 "because the objects is restriced to bed \n"
 "and only parts can be lifted."
 msgstr ""
-
-msgid "Face and face assembly"
-msgstr "Face and face assembly"
 
 msgid "Brush size"
 msgstr "Brush size"
@@ -3358,7 +3358,7 @@ msgstr ""
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr ""
 
-msgid "Exit"
+msgid "Exit the assembly step editing, you can also press the Esc button to exit"
 msgstr ""
 
 msgid "Click to add Cyber Brick"
@@ -8753,9 +8753,6 @@ msgstr "Changing the region will log you out of your account.\n"
 msgid "Region selection"
 msgstr "Region selection"
 
-msgid "Second"
-msgstr "Second"
-
 msgid ""
 "Please note that the model show will undergo certain changes at small pixels case.\n"
 "Enabled LOD requires application restart."
@@ -8784,13 +8781,20 @@ msgstr ""
 msgid "Choose Download Directory"
 msgstr "Choose Download Directory"
 
+msgctxt "Preference"
 msgid "General"
-msgstr "General"
+msgstr ""
 
+msgctxt "Preference"
 msgid "User"
-msgstr "User"
+msgstr ""
 
+msgctxt "Preference"
 msgid "3D"
+msgstr ""
+
+msgctxt "Preference"
+msgid "Other"
 msgstr ""
 
 msgid "Developer Tools"
@@ -8995,6 +8999,12 @@ msgstr ""
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr ""
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr ""
 
@@ -9028,14 +9038,35 @@ msgstr "Maximum count of recent projects"
 msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "No warnings when loading 3MF with modified G-code"
 
+msgid "10 seconds"
+msgstr ""
+
+msgid "20 seconds"
+msgstr ""
+
+msgid "30 seconds"
+msgstr ""
+
+msgid "1 minute"
+msgstr ""
+
+msgid "2 minutes"
+msgstr ""
+
+msgid "5 minutes"
+msgstr ""
+
+msgid "10 minutes"
+msgstr ""
+
+msgid "30 minutes"
+msgstr ""
+
+msgid "never"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr "Auto-Backup"
-
-msgid "Backup your project periodically for restoring from the occasional crash."
-msgstr "Backup your project periodically to help with restoring from an occasional crash."
-
-msgid "every"
-msgstr "every"
 
 msgid "The peroid of backup in seconds."
 msgstr "The peroid of backup in seconds."
@@ -9058,27 +9089,6 @@ msgstr "Develop mode"
 msgid "Skip AMS blacklist check"
 msgstr "Skip AMS blacklist check"
 
-msgid "Log"
-msgstr ""
-
-msgid "fatal"
-msgstr "fatal"
-
-msgid "error"
-msgstr "error"
-
-msgid "warning"
-msgstr "warning"
-
-msgid "debug"
-msgstr "debug"
-
-msgid "trace"
-msgstr "trace"
-
-msgid "Log Level"
-msgstr "Log Level"
-
 msgid "Associate Files To Bambu Studio"
 msgstr "Associate Files To Bambu Studio"
 
@@ -9099,6 +9109,27 @@ msgstr "Associate .step/.stp files to Bambu Studio"
 
 msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "If enabled, sets Bambu Studio as default application to open .step files"
+
+msgid "Log"
+msgstr ""
+
+msgid "fatal"
+msgstr "fatal"
+
+msgid "error"
+msgstr "error"
+
+msgid "warning"
+msgstr "warning"
+
+msgid "debug"
+msgstr "debug"
+
+msgid "trace"
+msgstr "trace"
+
+msgid "Log Level"
+msgstr "Log Level"
 
 msgid "Internal developer mode"
 msgstr "Internal developer mode"
@@ -10605,6 +10636,9 @@ msgstr ""
 
 msgid "Extruders count"
 msgstr "Extruder count"
+
+msgid "General"
+msgstr "General"
 
 msgid "Capabilities"
 msgstr "Capabilities"
@@ -12379,6 +12413,9 @@ msgstr "HTTPS CA File"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
+
+msgid "User"
+msgstr "User"
 
 msgid "Password"
 msgstr "Password"
@@ -17977,6 +18014,15 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Second"
+#~ msgstr "Second"
+
+#~ msgid "Backup your project periodically for restoring from the occasional crash."
+#~ msgstr "Backup your project periodically to help with restoring from an occasional crash."
+
+#~ msgid "every"
+#~ msgstr "every"
 
 #~ msgid ""
 #~ "Should not large than 100%.\n"

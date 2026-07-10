@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 22:02+0800\n"
+"POT-Creation-Date: 2026-07-10 15:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1336,6 +1336,9 @@ msgstr "Kérjük, válassz ki legalább két térfogatot."
 msgid "(Moving)"
 msgstr "(Mozgó)"
 
+msgid "Face and face assembly"
+msgstr "Felület és felület összeillesztés"
+
 msgid "Point and point assembly"
 msgstr "Pont és pont összeillesztés"
 
@@ -1347,9 +1350,6 @@ msgstr ""
 "Javasoljuk, hogy először szereld össze az objektumokat,\n"
 "mert az objektumok az asztalhoz vannak kötve \n"
 "és csak az alkatrészeket lehet mozgatni."
-
-msgid "Face and face assembly"
-msgstr "Felület és felület összeillesztés"
 
 msgid "Brush size"
 msgstr "Ecset mérete"
@@ -3375,8 +3375,8 @@ msgstr "Csak a lépéseket másolja. Ez független a vásznon kijelölt objektum
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr "Csak üres lépéseket adjon hozzá. Ennek semmi köze a vásznon kijelölt objektumokhoz."
 
-msgid "Exit"
-msgstr "Kilépés"
+msgid "Exit the assembly step editing, you can also press the Esc button to exit"
+msgstr ""
 
 msgid "Click to add Cyber Brick"
 msgstr "Kattintson ide a Cyber Brick hozzáadásához"
@@ -8860,9 +8860,6 @@ msgstr "A régió megváltoztatásával a fiókod kijelentkezik.\n"
 msgid "Region selection"
 msgstr "Régió kiválasztása"
 
-msgid "Second"
-msgstr "Másodperc"
-
 msgid ""
 "Please note that the model show will undergo certain changes at small pixels case.\n"
 "Enabled LOD requires application restart."
@@ -8897,14 +8894,21 @@ msgstr ""
 msgid "Choose Download Directory"
 msgstr "Válassz letöltési mappát"
 
+msgctxt "Preference"
 msgid "General"
 msgstr "Általános"
 
+msgctxt "Preference"
 msgid "User"
 msgstr "Felhasználó"
 
+msgctxt "Preference"
 msgid "3D"
 msgstr ""
+
+msgctxt "Preference"
+msgid "Other"
+msgstr "Egyéb"
 
 msgid "Developer Tools"
 msgstr ""
@@ -9108,6 +9112,12 @@ msgstr "Gamma korrekció engedélyezése az importált obj fájlon"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Gammakorrekció elvégzése a színeken az obj modell importálása után."
 
+msgid "Remember last used color scheme"
+msgstr "Emlékezzen az utoljára használt színsémára"
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+msgstr "Ha engedélyezve van, a legutóbb használt színséma (pl. vonaltípus, sebesség) kerül automatikusan alkalmazásra a következő indításkor."
+
 msgid "Improve rendering performance by lod"
 msgstr "Renderelési teljesítmény javítása lod szerint"
 
@@ -9141,14 +9151,35 @@ msgstr "Legutóbbi projektek maximális száma"
 msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "No warnings when loading 3MF with modified G-code"
 
+msgid "10 seconds"
+msgstr ""
+
+msgid "20 seconds"
+msgstr ""
+
+msgid "30 seconds"
+msgstr ""
+
+msgid "1 minute"
+msgstr ""
+
+msgid "2 minutes"
+msgstr ""
+
+msgid "5 minutes"
+msgstr ""
+
+msgid "10 minutes"
+msgstr ""
+
+msgid "30 minutes"
+msgstr ""
+
+msgid "never"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr "Automatikus biztonsági mentés"
-
-msgid "Backup your project periodically for restoring from the occasional crash."
-msgstr "Rendszeres időközönként biztonsági másolatot készít a projektről, hogy vissza tudd állítani egy esetleges összeomlást követően."
-
-msgid "every"
-msgstr "minden"
 
 msgid "The peroid of backup in seconds."
 msgstr "A biztonsági mentés időköze másodpercben."
@@ -9171,27 +9202,6 @@ msgstr "Fejlesztői mód"
 msgid "Skip AMS blacklist check"
 msgstr "Az AMS feketelista-ellenőrzések kihagyása"
 
-msgid "Log"
-msgstr ""
-
-msgid "fatal"
-msgstr "súlyos"
-
-msgid "error"
-msgstr "hiba"
-
-msgid "warning"
-msgstr "figyelmeztetés"
-
-msgid "debug"
-msgstr "debug"
-
-msgid "trace"
-msgstr "követés"
-
-msgid "Log Level"
-msgstr "Naplózási szint"
-
 msgid "Associate Files To Bambu Studio"
 msgstr "Fájlok társítása a Bambu Studióhoz"
 
@@ -9212,6 +9222,27 @@ msgstr ".step/.stp fájlok társítása a Bambu Studióhoz"
 
 msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "Ha engedélyezve van, alapértelmezett alkalmazásként a Bambu Studio fogja megnyitni a .step fájlokat"
+
+msgid "Log"
+msgstr ""
+
+msgid "fatal"
+msgstr "súlyos"
+
+msgid "error"
+msgstr "hiba"
+
+msgid "warning"
+msgstr "figyelmeztetés"
+
+msgid "debug"
+msgstr "debug"
+
+msgid "trace"
+msgstr "követés"
+
+msgid "Log Level"
+msgstr "Naplózási szint"
 
 msgid "Internal developer mode"
 msgstr "Belső fejlesztői mód"
@@ -10747,6 +10778,9 @@ msgstr ""
 
 msgid "Extruders count"
 msgstr "Extruderek száma"
+
+msgid "General"
+msgstr "Általános"
 
 msgid "Capabilities"
 msgstr "Képességek"
@@ -12548,6 +12582,9 @@ msgstr "HTTPS CA fájl"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "A HTTP-alapú OctoPrint kapcsolatokhoz megadható egy egyedi CA-tanúsítvány, crt/pem formátumban. Ha üresen hagyod, az alapértelmezett OS CA tanúsítvány lesz használva."
+
+msgid "User"
+msgstr "Felhasználó"
 
 msgid "Password"
 msgstr "Jelszó"
@@ -18250,6 +18287,18 @@ msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
 
+#~ msgid "Exit"
+#~ msgstr "Kilépés"
+
+#~ msgid "Second"
+#~ msgstr "Másodperc"
+
+#~ msgid "Backup your project periodically for restoring from the occasional crash."
+#~ msgstr "Rendszeres időközönként biztonsági másolatot készít a projektről, hogy vissza tudd állítani egy esetleges összeomlást követően."
+
+#~ msgid "every"
+#~ msgstr "minden"
+
 #~ msgid "Remove current plate (if not last one)"
 #~ msgstr "Tálca eltávolítása (ha nem ez az utolsó)"
 
@@ -18313,12 +18362,6 @@ msgstr ""
 
 #~ msgid "Clear my choice for disabling support parameter recommendation."
 #~ msgstr "Törölje a támogatási paraméterek ajánlásának letiltására vonatkozó választásomat."
-
-#~ msgid "Remember last used color scheme"
-#~ msgstr "Emlékezzen az utoljára használt színsémára"
-
-#~ msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-#~ msgstr "Ha engedélyezve van, a legutóbb használt színséma (pl. vonaltípus, sebesség) kerül automatikusan alkalmazásra a következő indításkor."
 
 #~ msgid "Reminder During Slicing"
 #~ msgstr "Emlékeztető szeletelés közben"

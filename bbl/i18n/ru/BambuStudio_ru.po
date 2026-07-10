@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 22:02+0800\n"
+"POT-Creation-Date: 2026-07-10 15:51+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -1363,6 +1363,10 @@ msgstr "Выберите хотя бы две модели."
 msgid "(Moving)"
 msgstr "(подвижная)"
 
+# если нужно короче то Грань-грань
+msgid "Face and face assembly"
+msgstr "Сборка по граням"
+
 # если нужно короче то Точка-точка
 msgid "Point and point assembly"
 msgstr "Сборка по точкам"
@@ -1375,10 +1379,6 @@ msgstr ""
 "рекомендует сначала объединить \n"
 "объекты в сборку, чтобы избежать ограничений \n"
 "и облегчить дальнейшие действия с объектами."
-
-# если нужно короче то Грань-грань
-msgid "Face and face assembly"
-msgstr "Сборка по граням"
 
 msgid "Brush size"
 msgstr "Размер кисти"
@@ -3435,7 +3435,7 @@ msgstr ""
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr ""
 
-msgid "Exit"
+msgid "Exit the assembly step editing, you can also press the Esc button to exit"
 msgstr ""
 
 msgid "Click to add Cyber Brick"
@@ -8944,9 +8944,6 @@ msgstr "Смена региона приведёт к выходу из ваше
 msgid "Region selection"
 msgstr "Выделение области"
 
-msgid "Second"
-msgstr "секунд"
-
 msgid ""
 "Please note that the model show will undergo certain changes at small pixels case.\n"
 "Enabled LOD requires application restart."
@@ -8985,13 +8982,20 @@ msgstr ""
 msgid "Choose Download Directory"
 msgstr "Выбор папки загрузки"
 
+msgctxt "Preference"
 msgid "General"
-msgstr "Общие"
+msgstr ""
 
+msgctxt "Preference"
 msgid "User"
-msgstr "Пользователь"
+msgstr ""
 
+msgctxt "Preference"
 msgid "3D"
+msgstr ""
+
+msgctxt "Preference"
+msgid "Other"
 msgstr ""
 
 msgid "Developer Tools"
@@ -9205,6 +9209,12 @@ msgstr "Включить гамма-коррекцию для импортиро
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Выполнять гамма-коррекцию цвета после импорта obj модели."
 
+msgid "Remember last used color scheme"
+msgstr ""
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "Повысить производительность рендеринга с помощью LOD"
 
@@ -9238,14 +9248,35 @@ msgstr "Максимальное количество проектов, отоб
 msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "Отключить предупреждения при загрузке 3MF-файла с модифицированным G-кодом"
 
+msgid "10 seconds"
+msgstr ""
+
+msgid "20 seconds"
+msgstr ""
+
+msgid "30 seconds"
+msgstr ""
+
+msgid "1 minute"
+msgstr ""
+
+msgid "2 minutes"
+msgstr ""
+
+msgid "5 minutes"
+msgstr ""
+
+msgid "10 minutes"
+msgstr ""
+
+msgid "30 minutes"
+msgstr ""
+
+msgid "never"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr "Автосоздание резервной копии"
-
-msgid "Backup your project periodically for restoring from the occasional crash."
-msgstr "Периодическое создание резервной копии проекта для восстановления после непредвиденного сбоя программы."
-
-msgid "every"
-msgstr "каждые"
 
 msgid "The peroid of backup in seconds."
 msgstr "Время резервного копирования в секундах."
@@ -9268,27 +9299,6 @@ msgstr "Режим разработчика"
 msgid "Skip AMS blacklist check"
 msgstr "Пропуск проверки материалов в АСПП из файла чёрного списка"
 
-msgid "Log"
-msgstr ""
-
-msgid "fatal"
-msgstr "критическая ошибка"
-
-msgid "error"
-msgstr "ошибка"
-
-msgid "warning"
-msgstr "предупреждение"
-
-msgid "debug"
-msgstr "отладка"
-
-msgid "trace"
-msgstr "трассировка"
-
-msgid "Log Level"
-msgstr "Уровень ведения журнала"
-
 msgid "Associate Files To Bambu Studio"
 msgstr "Сопоставление типов файлов с Bambu Studio"
 
@@ -9309,6 +9319,27 @@ msgstr "Ассоциировать файлы .step/.stp с Bambu Studio"
 
 msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "Если включено, назначает Bambu Studio в качестве приложения по умолчанию для открытия .step файлов."
+
+msgid "Log"
+msgstr ""
+
+msgid "fatal"
+msgstr "критическая ошибка"
+
+msgid "error"
+msgstr "ошибка"
+
+msgid "warning"
+msgstr "предупреждение"
+
+msgid "debug"
+msgstr "отладка"
+
+msgid "trace"
+msgstr "трассировка"
+
+msgid "Log Level"
+msgstr "Уровень ведения журнала"
 
 msgid "Internal developer mode"
 msgstr "Режим внутреннего разработчика"
@@ -10862,6 +10893,9 @@ msgstr ""
 
 msgid "Extruders count"
 msgstr "Количество экструдеров"
+
+msgid "General"
+msgstr "Общие"
 
 msgid "Capabilities"
 msgstr "Характеристики принтера"
@@ -12668,6 +12702,9 @@ msgstr "Файл корневого сертификата HTTPS"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "Для подключений по HTTPS к OctoPrint укажите пользовательский файл корневого сертификата в формате crt/pem. Если оставить поле пустым, будет использоваться хранилище сертификатов ОС по умолчанию."
+
+msgid "User"
+msgstr "Пользователь"
 
 msgid "Password"
 msgstr "Пароль"
@@ -18411,6 +18448,15 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Second"
+#~ msgstr "секунд"
+
+#~ msgid "Backup your project periodically for restoring from the occasional crash."
+#~ msgstr "Периодическое создание резервной копии проекта для восстановления после непредвиденного сбоя программы."
+
+#~ msgid "every"
+#~ msgstr "каждые"
 
 #, boost-format
 #~ msgid "Increase %1%g filament and %2% changes compared to optimal grouping."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 22:02+0800\n"
+"POT-Creation-Date: 2026-07-10 15:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1336,6 +1336,9 @@ msgstr "최소 두 권을 선택해 주세요."
 msgid "(Moving)"
 msgstr "(이동)"
 
+msgid "Face and face assembly"
+msgstr "얼굴 및 얼굴 조립"
+
 msgid "Point and point assembly"
 msgstr "포인트 및 포인트 어셈블리"
 
@@ -1347,9 +1350,6 @@ msgstr ""
 "먼저 물건을 조립하는 것이 좋습니다,\n"
 "물건이 침대에 고정되어 있고\n"
 "부분만 들어 올릴 수 있으므로 먼저 조립하는 것이 좋습니다."
-
-msgid "Face and face assembly"
-msgstr "얼굴 및 얼굴 조립"
 
 msgid "Brush size"
 msgstr "브러시 크기"
@@ -3369,8 +3369,8 @@ msgstr "단계만 복사합니다. 이는 캔버스에서 선택된 개체와는
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr "빈 단계만 추가합니다. 이는 캔버스에서 선택된 개체와는 무관합니다."
 
-msgid "Exit"
-msgstr "종료"
+msgid "Exit the assembly step editing, you can also press the Esc button to exit"
+msgstr ""
 
 msgid "Click to add Cyber Brick"
 msgstr "클릭하여 Cyber Brick을 추가하세요."
@@ -8856,9 +8856,6 @@ msgstr "지역을 변경하면 계정에서 로그아웃됩니다.\n"
 msgid "Region selection"
 msgstr "지역 선택"
 
-msgid "Second"
-msgstr "초"
-
 msgid ""
 "Please note that the model show will undergo certain changes at small pixels case.\n"
 "Enabled LOD requires application restart."
@@ -8893,14 +8890,21 @@ msgstr ""
 msgid "Choose Download Directory"
 msgstr "다운로드 디렉터리 선택"
 
+msgctxt "Preference"
 msgid "General"
 msgstr "일반"
 
+msgctxt "Preference"
 msgid "User"
 msgstr "사용자"
 
+msgctxt "Preference"
 msgid "3D"
 msgstr ""
+
+msgctxt "Preference"
+msgid "Other"
+msgstr "기타"
 
 msgid "Developer Tools"
 msgstr ""
@@ -9104,6 +9108,12 @@ msgstr "가져온 obj 파일에 감마 보정 활성화."
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "obj 모델을 가져온 후 색상에 대한 감마 보정을 수행합니다."
 
+msgid "Remember last used color scheme"
+msgstr "마지막으로 사용한 색상 구성 기억하기"
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+msgstr "활성화하면 마지막으로 사용한 색상 구성(예: Line Type, 속도)이 다음 시작 시 자동으로 적용됩니다."
+
 msgid "Improve rendering performance by lod"
 msgstr "로드별 렌더링 성능 향상"
 
@@ -9137,14 +9147,35 @@ msgstr "최근 프로젝트의 최대 개수"
 msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "수정된 G-코드로 3MF를 로드할 때 경고 없음"
 
+msgid "10 seconds"
+msgstr ""
+
+msgid "20 seconds"
+msgstr ""
+
+msgid "30 seconds"
+msgstr ""
+
+msgid "1 minute"
+msgstr ""
+
+msgid "2 minutes"
+msgstr ""
+
+msgid "5 minutes"
+msgstr ""
+
+msgid "10 minutes"
+msgstr ""
+
+msgid "30 minutes"
+msgstr ""
+
+msgid "never"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr "자동 백업"
-
-msgid "Backup your project periodically for restoring from the occasional crash."
-msgstr "간헐적인 충돌로부터 복원하는 데 도움이 되도록 프로젝트를 주기적으로 백업하십시오."
-
-msgid "every"
-msgstr "매"
 
 msgid "The peroid of backup in seconds."
 msgstr "백업주기(초)."
@@ -9167,27 +9198,6 @@ msgstr "개발자 모드"
 msgid "Skip AMS blacklist check"
 msgstr "AMS 블랙리스트 확인 건너뛰기"
 
-msgid "Log"
-msgstr ""
-
-msgid "fatal"
-msgstr "치명적인"
-
-msgid "error"
-msgstr "오류"
-
-msgid "warning"
-msgstr "경고"
-
-msgid "debug"
-msgstr "디버그"
-
-msgid "trace"
-msgstr "추적하다"
-
-msgid "Log Level"
-msgstr "로그 수준"
-
 msgid "Associate Files To Bambu Studio"
 msgstr "Bambu Studio에 파일 연결"
 
@@ -9208,6 +9218,27 @@ msgstr ".step/.stp 파일을 Bambu Studio에 연결하기"
 
 msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "활성화된 경우, .step 파일을 여는 기본 애플리케이션으로 Bambu Studio를 설정합니다"
+
+msgid "Log"
+msgstr ""
+
+msgid "fatal"
+msgstr "치명적인"
+
+msgid "error"
+msgstr "오류"
+
+msgid "warning"
+msgstr "경고"
+
+msgid "debug"
+msgstr "디버그"
+
+msgid "trace"
+msgstr "추적하다"
+
+msgid "Log Level"
+msgstr "로그 수준"
 
 msgid "Internal developer mode"
 msgstr "내부 개발자 모드"
@@ -10741,6 +10772,9 @@ msgstr ""
 
 msgid "Extruders count"
 msgstr "압출기 수"
+
+msgid "General"
+msgstr "일반"
 
 msgid "Capabilities"
 msgstr "기능"
@@ -12542,6 +12576,9 @@ msgstr "HTTPS CA 파일"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "HTTPS OctoPrint 연결에 crt/pem 형식으로 사용자 지정 CA 인증서 파일을 지정할 수 있습니다. 비워 두면 기본 OS CA 인증서 저장소가 사용됩니다."
+
+msgid "User"
+msgstr "사용자"
 
 msgid "Password"
 msgstr "비밀번호"
@@ -18247,6 +18284,18 @@ msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
 
+#~ msgid "Exit"
+#~ msgstr "종료"
+
+#~ msgid "Second"
+#~ msgstr "초"
+
+#~ msgid "Backup your project periodically for restoring from the occasional crash."
+#~ msgstr "간헐적인 충돌로부터 복원하는 데 도움이 되도록 프로젝트를 주기적으로 백업하십시오."
+
+#~ msgid "every"
+#~ msgstr "매"
+
 #~ msgid "Remove current plate (if not last one)"
 #~ msgstr "현재 플레이트 제거 (마지막 플레이트가 아닌 경우)"
 
@@ -18310,12 +18359,6 @@ msgstr ""
 
 #~ msgid "Clear my choice for disabling support parameter recommendation."
 #~ msgstr "지원 매개변수 권장 사항 비활성화에 대한 선택 항목을 지웁니다."
-
-#~ msgid "Remember last used color scheme"
-#~ msgstr "마지막으로 사용한 색상 구성 기억하기"
-
-#~ msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-#~ msgstr "활성화하면 마지막으로 사용한 색상 구성(예: Line Type, 속도)이 다음 시작 시 자동으로 적용됩니다."
 
 #~ msgid "Reminder During Slicing"
 #~ msgstr "슬라이싱 중 알림"

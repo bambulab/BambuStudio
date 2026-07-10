@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 22:02+0800\n"
+"POT-Creation-Date: 2026-07-10 15:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -1342,6 +1342,9 @@ msgstr "Vyberte alespoň dva objemy."
 msgid "(Moving)"
 msgstr "(Pohyb)"
 
+msgid "Face and face assembly"
+msgstr "Plocha a sestavení ploch"
+
 msgid "Point and point assembly"
 msgstr "Sestavení bod-bod"
 
@@ -1355,9 +1358,6 @@ msgstr ""
 "a zvedat lze pouze jejich části.Doporučuje se nejprve sestavit objekty,\n"
 "protože objekt je omezen na podložku\n"
 "a pouze části lze zvednout."
-
-msgid "Face and face assembly"
-msgstr "Plocha a sestavení ploch"
 
 msgid "Brush size"
 msgstr "Velikost štětce"
@@ -3386,7 +3386,7 @@ msgstr ""
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr ""
 
-msgid "Exit"
+msgid "Exit the assembly step editing, you can also press the Esc button to exit"
 msgstr ""
 
 msgid "Click to add Cyber Brick"
@@ -8933,9 +8933,6 @@ msgstr "Změna regionu způsobí odhlášení vašeho účtu.\n"
 msgid "Region selection"
 msgstr "Výběr oblasti"
 
-msgid "Second"
-msgstr "Sekunda"
-
 msgid ""
 "Please note that the model show will undergo certain changes at small pixels case.\n"
 "Enabled LOD requires application restart."
@@ -8976,13 +8973,20 @@ msgstr ""
 msgid "Choose Download Directory"
 msgstr "Vyberte adresář pro stahování"
 
+msgctxt "Preference"
 msgid "General"
-msgstr "Obecné"
+msgstr ""
 
+msgctxt "Preference"
 msgid "User"
-msgstr "Uživatel"
+msgstr ""
 
+msgctxt "Preference"
 msgid "3D"
+msgstr ""
+
+msgctxt "Preference"
+msgid "Other"
 msgstr ""
 
 msgid "Developer Tools"
@@ -9187,6 +9191,12 @@ msgstr "Povolit gama korekci pro importovaný soubor OBJ"
 msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Po importu modelu OBJ použít gama korekci na barvy."
 
+msgid "Remember last used color scheme"
+msgstr "Zapamatovat naposledy použité barevné schéma"
+
+msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+msgstr "Je-li tato možnost povolena, naposledy použité barevné schéma (např. typ čáry, rychlost) se při příštím spuštění použije automaticky."
+
 msgid "Improve rendering performance by lod"
 msgstr "Zlepšit výkon vykreslování pomocí LOD"
 
@@ -9220,14 +9230,35 @@ msgstr "Maximální počet posledních projektů"
 msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "Při načítání 3MF s upravenými G-kódy se nezobrazují žádná varování"
 
+msgid "10 seconds"
+msgstr ""
+
+msgid "20 seconds"
+msgstr ""
+
+msgid "30 seconds"
+msgstr ""
+
+msgid "1 minute"
+msgstr ""
+
+msgid "2 minutes"
+msgstr ""
+
+msgid "5 minutes"
+msgstr ""
+
+msgid "10 minutes"
+msgstr ""
+
+msgid "30 minutes"
+msgstr ""
+
+msgid "never"
+msgstr ""
+
 msgid "Auto-Backup"
 msgstr "Automatické zálohování"
-
-msgid "Backup your project periodically for restoring from the occasional crash."
-msgstr "Pravidelně zálohujte svůj projekt pro možnost obnovení v případě neočekávaného pádu aplikace."
-
-msgid "every"
-msgstr "každý"
 
 msgid "The peroid of backup in seconds."
 msgstr "Interval zálohování v sekundách."
@@ -9250,27 +9281,6 @@ msgstr "Vývojářský režim"
 msgid "Skip AMS blacklist check"
 msgstr "Přeskočit kontrolu blacklistu AMS"
 
-msgid "Log"
-msgstr ""
-
-msgid "fatal"
-msgstr "fatální"
-
-msgid "error"
-msgstr "chyba"
-
-msgid "warning"
-msgstr "varování"
-
-msgid "debug"
-msgstr "ladění"
-
-msgid "trace"
-msgstr "trasování"
-
-msgid "Log Level"
-msgstr "Úroveň protokolu"
-
 msgid "Associate Files To Bambu Studio"
 msgstr "Přidružit soubory k Bambu Studio"
 
@@ -9291,6 +9301,27 @@ msgstr "Přidružit soubory .step/.stp k Bambu Studio"
 
 msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "Pokud je povoleno, Bambu Studio se nastaví jako výchozí aplikace pro otevírání souborů STEP"
+
+msgid "Log"
+msgstr ""
+
+msgid "fatal"
+msgstr "fatální"
+
+msgid "error"
+msgstr "chyba"
+
+msgid "warning"
+msgstr "varování"
+
+msgid "debug"
+msgstr "ladění"
+
+msgid "trace"
+msgstr "trasování"
+
+msgid "Log Level"
+msgstr "Úroveň protokolu"
 
 msgid "Internal developer mode"
 msgstr "Vnitřní režim vývojáře"
@@ -10840,6 +10871,9 @@ msgstr ""
 
 msgid "Extruders count"
 msgstr "Počet extruderů"
+
+msgid "General"
+msgstr "Obecné"
 
 msgid "Capabilities"
 msgstr "Schopnosti"
@@ -12641,6 +12675,9 @@ msgstr "Soubor CA pro HTTPS"
 
 msgid "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. If left blank, the default OS CA certificate repository is used."
 msgstr "Pro připojení k OctoPrint přes HTTPS lze zadat vlastní soubor certifikátu CA ve formátu crt/pem. Pokud pole zůstane prázdné, použije se výchozí úložiště certifikátů CA v operačním systému."
+
+msgid "User"
+msgstr "Uživatel"
 
 msgid "Password"
 msgstr "Heslo"
@@ -18435,6 +18472,15 @@ msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
 
+#~ msgid "Second"
+#~ msgstr "Sekunda"
+
+#~ msgid "Backup your project periodically for restoring from the occasional crash."
+#~ msgstr "Pravidelně zálohujte svůj projekt pro možnost obnovení v případě neočekávaného pádu aplikace."
+
+#~ msgid "every"
+#~ msgstr "každý"
+
 #~ msgid "Remove current plate (if not last one)"
 #~ msgstr "Odebrat aktuální podložku (pokud není poslední)"
 
@@ -18484,12 +18530,6 @@ msgstr ""
 
 #~ msgid "Clear my choice for Load 3mf dialog settings."
 #~ msgstr "Vymazat mou volbu pro nastavení dialogu Načíst 3MF."
-
-#~ msgid "Remember last used color scheme"
-#~ msgstr "Zapamatovat naposledy použité barevné schéma"
-
-#~ msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-#~ msgstr "Je-li tato možnost povolena, naposledy použité barevné schéma (např. typ čáry, rychlost) se při příštím spuštění použije automaticky."
 
 #~ msgid "Reminder During Slicing"
 #~ msgstr "Připomenutí během řezání"
