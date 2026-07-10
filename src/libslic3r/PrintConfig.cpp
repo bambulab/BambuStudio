@@ -3725,7 +3725,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Extruders");
     def->tooltip = L("Filament to print internal sparse infill.");
     def->min = 0;
-    def->mode     = comDevelop;
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("sparse_infill_line_width", coFloat);
@@ -4357,7 +4357,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Extruders");
     def->tooltip = L("Filament to print walls");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("inner_wall_line_width", coFloat);
@@ -5037,7 +5037,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Extruders");
     def->tooltip = L("Filament to print solid infill");
     def->min = 0;
-    def->mode = comDevelop;
+    def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
     def = this->add("internal_solid_infill_line_width", coFloat);
