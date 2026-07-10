@@ -58,6 +58,7 @@ public:
         DBL_CHECK_RETRY = 10002,
         DBL_CHECK_RESUME = 10003,
         DBL_CHECK_OK = 10004,
+        COPY_ERROR_DETAILS = 10005,
     };
     /* action params json */
     nlohmann::json m_action_json;
@@ -86,6 +87,7 @@ protected:
     void update_contents(const wxString& title, const wxString& text, const wxString& error_code,const wxString& image_url, const std::vector<int>& btns);
 
     void on_button_click(ActionButton btn_id);
+    void copy_error_details_to_clipboard() const;
     void on_request_timeout(wxTimerEvent& event);
     void on_webrequest_state(wxWebRequestEvent& evt);
     void on_dpi_changed(const wxRect& suggested_rect);
@@ -99,6 +101,9 @@ private:
     MachineObject* m_obj;
 
     int m_error_code = 0;
+    wxString m_error_title;
+    wxString m_error_text;
+    wxString m_error_code_text;
     std::unordered_set<Button*> m_used_button;
 
     wxWebRequest web_request;
