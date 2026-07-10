@@ -85,14 +85,24 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     auto m_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
     m_title->SetForegroundColour(ThemeColor::TextSecondary);
     m_title->SetFont(::Label::Head_13);
-    m_title->Wrap(-1);
+
+    // The Preferences dialog has no native default push button (every visible button
+    // is a custom-drawn ::Button, i.e. a plain wxWindow, not a Win32 BUTTON control).
+    // Without a designated default button the Win32 dialog manager's xxxRemoveDefaultButton
+    // walk (run on every WM_ACTIVATE / focus save) has no fixed target and enumerates the
+    // child windows probing them with SendMessage(WM_GETDLGCODE). With an endpoint-DLP / IME
+    // DLL injected into the process, that probe can be redirected cross-thread to a
+    // non-pumping injected window and deadlock the UI thread. Give the dialog one real,
+    // hidden, zero-size native button as a stable in-thread default so the walk finds its
+    // target immediately and never leaves our own windows.
+    // The hang is first found on windows, but keep it on other platforms is no harm
+    auto line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
 
     m_sizer_title->AddSpacer(FromDIP(TITLE_PADDING));
     m_sizer_title->Add(m_title, wxSizerFlags().CenterVertical());
 
     return m_sizer_title;
 }
-
 
 wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, const std::vector<wxString>& label_list, const std::vector<std::string>& value_list, std::function<void(int)> callback, int title_width, int combox_width)
 {
@@ -1404,8 +1414,6 @@ wxWindow *PreferencesDialog::create_general_tab()
     sizer->Add(item_beta_version_update, flags);
     sizer->Add(item_priv_policy, flags);
     sizer->Add(item_downloads, flags);
-
-    sizer->AddSpacer(FromDIP(20));
     scrolled->SetSizer(sizer);
     scrolled->FitInside();
     return scrolled;
