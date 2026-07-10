@@ -13,6 +13,7 @@
 #include "Widgets/Label.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
+#include <wx/checkbox.h>
 #include "Widgets/TextInput.hpp"
 #include "../slic3r/Utils/CalibUtils.hpp"
 #include "DeviceCore/DevNozzleRack.h"
@@ -142,6 +143,7 @@ public:
     struct FilamentInfos {
         std::string filament_id;
         std::string setting_id;
+        bool        is_user_preset { false };
     };
 
 protected:
@@ -150,6 +152,7 @@ protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_select_nozzle_id(wxCommandEvent &evt);
     void on_select_filament(wxCommandEvent& evt);
+    void apply_filament_profile_filter();
     void on_select_cali_result(wxCommandEvent &evt);
     void on_select_nozzle_pos_id(wxCommandEvent &evt);
     void on_select_ok(wxCommandEvent &event);
@@ -182,6 +185,7 @@ protected:
     wxPanel *           m_panel_SN;
     wxStaticText *      m_sn_number;
     wxStaticText *      warning_text;
+    wxCheckBox *         m_show_only_user_presets { nullptr };
     //wxPanel *           m_panel_body;
     wxStaticText *      m_title_filament;
     wxStaticText *      m_title_nozzle_type;
@@ -220,6 +224,7 @@ protected:
     ComboBox * m_comboBox_cali_result;
     TextInput*       m_readonly_filament;
 
+    wxArrayString                         m_all_filament_items;
     std::map<std::string, FilamentInfos> map_filament_items;
 };
 
