@@ -2931,6 +2931,21 @@ void MainFrame::init_menubar_as_editor()
             [this](){return m_plater != nullptr && can_save_as(); }, this);
 #endif
 
+        append_menu_item(fileMenu, wxID_ANY, _L("Show Project in Folder"), _L("Show current project in folder"),
+            [this](wxCommandEvent&) {
+                if (m_plater) {
+                    const wxString filename = m_plater->get_project_filename(".3mf");
+                    if (!filename.IsEmpty() && wxFileExists(filename))
+                        Slic3r::GUI::desktop_open_any_folder(into_u8(filename));
+                }
+            }, "", nullptr,
+            [this]() {
+                if (m_plater == nullptr)
+                    return false;
+                const wxString filename = m_plater->get_project_filename(".3mf");
+                return !filename.IsEmpty() && wxFileExists(filename);
+            }, this);
+
 
         fileMenu->AppendSeparator();
 
