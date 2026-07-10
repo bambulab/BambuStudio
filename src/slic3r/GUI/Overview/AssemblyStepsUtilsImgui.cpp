@@ -3139,6 +3139,8 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                 return clicked && c.node_idx >= 0;
             };
 
+            const bool step_actions_enabled = c.selected && c.node_idx >= 0;
+            m_imgui->disabled_begin(!step_actions_enabled);
             if (step_icon_button(cpy_x, pick_step_icon(m_structure_step_copy_icon, m_structure_step_copy_icon_dark),
                                  "copy_", _u8L("Copy current step"))) {
                 select_steps_tree_node_for_canvas(c.node_idx);
@@ -3153,6 +3155,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                 open_structure_add_tree(static_cast<int>(ci), c.node_idx,
                                         ImVec2(obj_x + step_icon_sz + 8.0f * sc, icon_cy));
             }
+            m_imgui->disabled_end();
             // Deferred auto-open requested right after this step was created.
             if (c.node_idx >= 0 && c.node_idx == m_structure_add_tree_pending_node) {
                 open_structure_add_tree(static_cast<int>(ci), c.node_idx,
@@ -3945,13 +3948,47 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
     const ImU32 row_select_col       = m_is_dark ? IM_COL32(40, 64, 48, 255)  : IM_COL32(0xD6, 0xF0, 0xDC, 255);
     const ImU32 row_hover_border_col = m_is_dark ? IM_COL32(0x4C, 0x8F, 0x66, 255) : IM_COL32(0x9F, 0xD9, 0xB4, 255);
     bool any_row_hovered = false;
-    std::function<void(int, int, bool)> render_node;
-    render_node = [this, &tree, &checked, &node_checkable, &set_subtree_checked, &get_subtree_state, &render_node,
-                   &node_matches_search, &has_only_collapsible_child, &any_row_hovered, search_text_lc, row_h, indent_step, checkbox_size, arrow_size, line_col, text_col, row_select_col, row_hover_border_col, draw_checkbox, sc, options, &result]
-                  (int node_id, int depth, bool is_last) {
+    struct VisibleAssemblyTreeRow
+    {
+        int  node_id{-1};
+        int  depth{0};
+        bool is_last{false};
+    };
+
+    std::vector<VisibleAssemblyTreeRow> visible_rows;
+    visible_rows.reserve(tree.nodes.size());
+    std::function<void(int, int, bool)> collect_visible_row;
+    collect_visible_row = [&tree, &node_matches_search, &has_only_collapsible_child,
+                           &collect_visible_row, &visible_rows, search_text_lc]
+                          (int node_id, int depth, bool is_last) {
         if (node_id < 0 || node_id >= static_cast<int>(tree.nodes.size()))
             return;
         if (!node_matches_search(node_id))
+            return;
+        const auto& node = tree.nodes[node_id];
+        visible_rows.push_back({node_id, depth, is_last});
+
+        const bool collapse_single_leaf = search_text_lc.empty() && has_only_collapsible_child(node_id);
+        const bool has_children = !node.children.empty() && !collapse_single_leaf;
+        auto open_it = s_assembly_tree_open_nodes.find(node.uid);
+        const bool open = open_it == s_assembly_tree_open_nodes.end() ? true : open_it->second;
+        if ((open || !search_text_lc.empty()) && has_children) {
+            for (size_t child_idx = 0; child_idx < node.children.size(); ++child_idx)
+                collect_visible_row(node.children[child_idx], depth + 1, child_idx + 1 == node.children.size());
+        }
+    };
+    for (size_t root_idx = 0; root_idx < tree.roots.size(); ++root_idx)
+        collect_visible_row(tree.roots[root_idx], 0, root_idx + 1 == tree.roots.size());
+
+    auto render_row = [this, &tree, &checked, &node_checkable, &set_subtree_checked, &get_subtree_state,
+                       &has_only_collapsible_child, &any_row_hovered, search_text_lc, row_h, indent_step,
+                       checkbox_size, arrow_size, line_col, text_col, row_select_col, row_hover_border_col,
+                       draw_checkbox, sc, options, &result]
+                      (const VisibleAssemblyTreeRow& row) {
+        const int node_id = row.node_id;
+        const int depth = row.depth;
+        const bool is_last = row.is_last;
+        if (node_id < 0 || node_id >= static_cast<int>(tree.nodes.size()))
             return;
         const auto& node = tree.nodes[node_id];
         ImGui::PushID(node.uid.c_str());
@@ -4117,15 +4154,16 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
             }
         }
 
-        if ((open || !search_text_lc.empty()) && has_children) {
-            for (size_t child_idx = 0; child_idx < node.children.size(); ++child_idx)
-                render_node(node.children[child_idx], depth + 1, child_idx + 1 == node.children.size());
-        }
-
         ImGui::PopID();
     };
-    for (size_t root_idx = 0; root_idx < tree.roots.size(); ++root_idx)
-        render_node(tree.roots[root_idx], 0, root_idx + 1 == tree.roots.size());
+    ImGuiListClipper clipper;
+    const int row_count = static_cast<int>(visible_rows.size());
+    const float row_stride = row_h + ImGui::GetStyle().ItemSpacing.y;
+    clipper.Begin(row_count, row_stride);
+    while (clipper.Step()) {
+        for (int row_idx = clipper.DisplayStart; row_idx < clipper.DisplayEnd; ++row_idx)
+            render_row(visible_rows[row_idx]);
+    }
     // No row hovered this frame: clear the cached hover target once.
     if (options.enable_row_select && !any_row_hovered && m_assembly_tree_hover_id != -1)
         hover_tree_item_logic(-1);

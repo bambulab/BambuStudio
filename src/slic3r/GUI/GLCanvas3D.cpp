@@ -12471,12 +12471,24 @@ bool GLCanvas3D::_reset_assembly_to_origin(wxEvtHandler*)
 
     plater->take_snapshot("reset all volumes to assembly origin", UndoRedo::SnapshotType::GizmoAction);
 
-    for (ModelObject* obj : model.objects) {
-        for (ModelInstance* inst : obj->instances) {
-            Geometry::Transformation trafo = inst->get_assemble_transformation();
-            trafo.set_offset(Vec3d::Zero());
-            inst->set_assemble_transformation(trafo);
+    auto reset_assembly_instance_offsets = [](Model& target_model) {
+        for (ModelObject* obj : target_model.objects) {
+            for (ModelInstance* inst : obj->instances) {
+                Geometry::Transformation trafo = inst->get_assemble_transformation();
+                trafo.set_offset(Vec3d::Zero());
+                inst->set_assemble_transformation(trafo);
+            }
         }
+    };
+    reset_assembly_instance_offsets(model);
+    reset_assembly_instance_offsets(plater->assemble_model());
+    GLCanvas3D* canvas = plater->get_current_canvas3D();
+    if (canvas) {
+        for (GLVolume* gv : canvas->get_volumes().volumes) {
+            gv->set_instance_offset(Vec3d::Zero());
+        }
+        if (canvas->get_canvas_type() == ECanvasType::CanvasAssembleView)
+            canvas->zoom_to_fit();
     }
     s_bvh_primary_bounds.reset();
     s_far_from_origin_notification_shown = false;

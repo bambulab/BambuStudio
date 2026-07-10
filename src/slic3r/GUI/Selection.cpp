@@ -2352,6 +2352,7 @@ void Selection::copy_to_clipboard()
                     ModelVolume* src_volume = src_object->volumes[volume_idx];
                     ModelVolume* dst_volume = dst_object->add_volume(*src_volume);
                     dst_volume->set_new_unique_id();
+                    dst_volume->ensure_part_guid(true);
                 } else {
                     assert(false);
                 }
