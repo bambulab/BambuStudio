@@ -182,6 +182,7 @@ private:
     void change_size_value(int axis, double value);
     void do_scale(int axis, const Vec3d &scale) const;
     void reset_position_value();
+    void drop_to_bed();
     void reset_rotation_value(bool reset_relative);
     void reset_scale_value();
 
