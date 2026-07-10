@@ -951,7 +951,8 @@ void AMSMaterialsSetting::get_filaments_info(const MachineObject*               
                                              wxArrayString&                           filament_items,
                                              std::map<std::string, FilamentInfos>&    map_filament_items,
                                              std::unordered_map<wxString, wxString>&  query_filament_vendors,
-                                             std::unordered_map<wxString, wxString>&  query_filament_types)
+                                             std::unordered_map<wxString, wxString>&  query_filament_types,
+                                             std::unordered_map<wxString, bool>&      query_filament_is_user_preset)
 {
     if (!obj) return;
 
@@ -992,6 +993,7 @@ void AMSMaterialsSetting::get_filaments_info(const MachineObject*               
 
                 filament_items.push_back(from_u8(fialment_alias));
                 _collect_filament_info(fialment_alias, preset, query_filament_vendors, query_filament_types);
+                query_filament_is_user_preset[from_u8(fialment_alias)] = !preset.is_system;
 
                 FilamentInfos filament_infos;
                 filament_infos.filament_id         = filament_it->filament_id;
@@ -1044,6 +1046,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     wxString hint_filament_name; // the hint type to be selected
     std::unordered_map<wxString, wxString> query_filament_vendors;// some information for sort
     std::unordered_map<wxString, wxString> query_filament_types;  //
+    std::unordered_map<wxString, bool> query_filament_is_user_preset;
 
     PresetBundle *        preset_bundle = wxGetApp().preset_bundle;
     std::ostringstream    stream;
@@ -1057,7 +1060,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     stream << std::fixed << std::setprecision(1) << obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
     std::string nozzle_diameter_str = stream.str();
 
-    get_filaments_info(obj, nozzle_diameter_str, filament_items, map_filament_items, query_filament_vendors, query_filament_types);
+    get_filaments_info(obj, nozzle_diameter_str, filament_items, map_filament_items, query_filament_vendors, query_filament_types, query_filament_is_user_preset);
 
     if (Preset* ams_fila_it = get_filament_by_id(ams_filament_id, !m_is_third)) {
         auto fialment_alias = preset_bundle->filaments.get_preset_alias(*ams_fila_it, true);
@@ -1129,8 +1132,17 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     {
         static std::vector<wxString> sorted_vendors { "Bambu Lab", "Generic" };
         static std::vector<wxString> sorted_types { "PLA", "PETG", "ABS", "TPU" };
-        auto _filament_sorter = [&query_filament_vendors, &query_filament_types](const wxString& left, const wxString& right) -> bool
+        auto _filament_sorter = [&query_filament_vendors, &query_filament_types, &query_filament_is_user_preset](const wxString& left, const wxString& right) -> bool
         {
+            auto is_user_preset = [&query_filament_is_user_preset](const wxString& item) {
+                auto it = query_filament_is_user_preset.find(item);
+                return it != query_filament_is_user_preset.end() && it->second;
+            };
+            bool left_is_user = is_user_preset(left);
+            bool right_is_user = is_user_preset(right);
+            if (left_is_user != right_is_user) {
+                return left_is_user;
+            }
             {   // Compare name order
                 const std::vector<std::string>& sorted_names = get_filament_orders();
                 const auto begin = sorted_names.cbegin();

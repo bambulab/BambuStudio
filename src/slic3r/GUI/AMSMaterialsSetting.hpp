@@ -171,7 +171,8 @@ protected:
                             wxArrayString&                           filament_items,
                             std::map<std::string, FilamentInfos>&    map_filament_items,
                             std::unordered_map<wxString, wxString>&  query_filament_vendors,
-                            std::unordered_map<wxString, wxString>&  query_filament_types);
+                            std::unordered_map<wxString, wxString>&  query_filament_types,
+                            std::unordered_map<wxString, bool>&      query_filament_is_user_preset);
 
     Preset* get_filament_by_id(const std::string& filament_id, bool is_system);
 
