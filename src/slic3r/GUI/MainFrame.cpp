@@ -4390,20 +4390,12 @@ void MainFrame::open_recent_project(size_t file_id, wxString const & filename)
     }
     else
     {
-        MessageDialog msg(this, _L("The project is no longer available."), _L("Error"), wxOK | wxYES_DEFAULT);
+        MessageDialog msg(this,
+            _L("The project is no longer available. Do you want to remove it from the recent projects list?"),
+            _L("Error"),
+            wxYES_NO | wxYES_DEFAULT | wxICON_WARNING);
         if (msg.ShowModal() == wxID_YES)
-        {
-            m_recent_projects.RemoveFileFromHistory(file_id);
-            std::vector<std::string> recent_projects;
-            size_t count = m_recent_projects.GetCount();
-            for (size_t i = 0; i < count; ++i)
-            {
-                recent_projects.push_back(into_u8(m_recent_projects.GetHistoryFile(i)));
-            }
-            wxGetApp().app_config->set_recent_projects(recent_projects);
-            wxGetApp().app_config->save();
-            m_webview->SendRecentList(-1);
-        }
+            remove_recent_project(file_id, filename);
     }
 }
 
