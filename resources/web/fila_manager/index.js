@@ -237,7 +237,15 @@ function getFilteredSpools() {
         if (g_tab === "favorite" && !s.favorite) return false;
         if (g_tab === "ams" && s.entry_method !== "ams_sync") return false;
         if (keyword) {
-            var hay = ((s.brand||"")+" "+(s.material_type||"")+" "+(s.series||"")+" "+(s.color_name||"")).toLowerCase();
+            var hay = [
+                s.brand,
+                s.material_type,
+                s.series,
+                s.color_name,
+                s.note,
+                s.notes,
+                s.spool_id
+            ].map(function(v) { return v || ""; }).join(" ").toLowerCase();
             if (hay.indexOf(keyword) === -1) return false;
         }
         for (var k in g_filters) {
