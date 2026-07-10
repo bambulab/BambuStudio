@@ -131,6 +131,7 @@ public:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void update_layout();
     bool Show(bool show) override;
+    bool apply_default_mapping();
 
 private:
     ObjColorPanel*  m_panel_ObjColor  = nullptr;

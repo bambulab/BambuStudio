@@ -168,6 +168,16 @@ bool ObjColorDialog::Show(bool show) {
     }
 };
 
+bool ObjColorDialog::apply_default_mapping()
+{
+    if (!m_panel_ObjColor || !m_panel_ObjColor->is_ok())
+        return false;
+
+    m_panel_ObjColor->clear_instance_and_revert_offset();
+    m_panel_ObjColor->send_new_filament_to_ui();
+    return true;
+}
+
 ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, const std::vector<std::string> &extruder_colours)
     : DPIDialog(parent ? parent : static_cast<wxWindow *>(wxGetApp().mainframe),
                 wxID_ANY,
@@ -244,9 +254,8 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
                   EndModal(wxCANCEL);
                   return;
               }
-              m_panel_ObjColor->clear_instance_and_revert_offset();
-              m_panel_ObjColor->send_new_filament_to_ui();
-              EndModal(wxID_OK);
+              if (apply_default_mapping())
+                  EndModal(wxID_OK);
             }, wxID_OK);
     }
     if (this->FindWindowById(wxID_CANCEL, this)) {

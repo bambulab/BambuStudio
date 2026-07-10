@@ -111,6 +111,9 @@ void AppConfig::set_defaults()
         if (get("drop_project_action").empty())
             set_bool("drop_project_action", true);
 
+        if (get("standard_3mf_color_import_mode").empty())
+            set("standard_3mf_color_import_mode", "ask");
+
 #ifdef _WIN32
         if (get("associate_3mf").empty())
             set_bool("associate_3mf", false);
