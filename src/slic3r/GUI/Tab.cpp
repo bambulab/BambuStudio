@@ -1969,6 +1969,21 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
+    if (opt_key == "make_overhang_printable" && m_config->opt_bool("make_overhang_printable")) {
+        wxString message = _L("Enabling this option will modify the model's shape. If your print requires precise dimensions or is part of an assembly, double-check that the "
+                              "geometry change does not affect its function.");
+        message += "\n\n" + _L("Are you sure you want to enable this option?");
+        MessageDialog dialog(wxGetApp().plater(), message, "", wxICON_WARNING | wxYES | wxNO);
+        dialog.SetButtonLabel(wxID_YES, _L("Enable"));
+        dialog.SetButtonLabel(wxID_NO, _L("Cancel"));
+        if (dialog.ShowModal() == wxID_NO) {
+            DynamicPrintConfig new_config = *m_config;
+            new_config.set_key_value("make_overhang_printable", new ConfigOptionBool(false));
+            m_config_manipulation.apply(m_config, &new_config);
+            wxGetApp().plater()->update();
+        }
+    }
+
     // BBS: 用户在 UI 上主动开启支撑时，联动开启识别悬空外墙（辅助体验，配合支撑可改善打印效果）。
     // preset 切换 / 3MF 加载走 Field::set_value(value, false) 不会进入本回调，已存值不会被覆盖。
     if (opt_key == "enable_support" && boost::any_cast<bool>(value)) {
@@ -3016,6 +3031,9 @@ void TabPrint::build()
         optgroup->append_single_option_line("top_area_threshold","parameter/quality-advance-settings");
         optgroup->append_single_option_line("only_one_wall_first_layer","parameter/quality-advance-settings");
         optgroup->append_single_option_line("detect_overhang_wall","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("make_overhang_printable");
+        optgroup->append_single_option_line("make_overhang_printable_angle");
+        optgroup->append_single_option_line("make_overhang_printable_hole_size");
         optgroup->append_single_option_line("smooth_speed_discontinuity_area","parameter/quality-advance-settings");
         optgroup->append_single_option_line("smooth_coefficient","parameter/quality-advance-settings");
         optgroup->append_single_option_line("reduce_crossing_wall","parameter/quality-advance-settings");

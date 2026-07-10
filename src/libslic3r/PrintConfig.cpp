@@ -4332,6 +4332,34 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(true));
 
+    def           = this->add("make_overhang_printable", coBool);
+    def->label    = L("Make overhang printable");
+    def->category = L("Quality");
+    def->tooltip  = L("Modify the geometry to print overhangs without support material.");
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("make_overhang_printable_angle", coFloat);
+    def->label    = L("Make overhang printable maximum angle");
+    def->category = L("Quality");
+    def->tooltip  = L("Maximum angle of overhangs to allow after making steeper overhangs printable. "
+                       "90\u00b0 will not change the model, while 0\u00b0 will replace all overhangs with conical material.");
+    def->sidetext = L("\u00b0");
+    def->mode     = comAdvanced;
+    def->min      = 0.;
+    def->max      = 90.;
+    def->set_default_value(new ConfigOptionFloat(55.));
+
+    def           = this->add("make_overhang_printable_hole_size", coFloat);
+    def->label    = L("Make overhang printable hole area");
+    def->category = L("Quality");
+    def->tooltip  = L("Maximum area of a hole in the model base to preserve from conical material. "
+                       "A value of 0 will fill all holes in the model base.");
+    def->sidetext = L("mm\u00b2");
+    def->mode     = comAdvanced;
+    def->min      = 0.;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
     def = this->add("smooth_speed_discontinuity_area", coBool);
     def->label = L("Smooth speed discontinuity area");
     def->category = L("Quality");
