@@ -1941,7 +1941,7 @@ std::vector<NozzleConfig> Sidebar::priv::collect_nozzle_configs_from_machine(Mac
     // remove duplicated nozzle, total number of nozzle is no more than the number on the rack
     // if rack not exist, use the number on the extruder
     std::vector<const DevNozzle *> nozzles;
-    nozzles.resize(extruder_nozzle_count);
+    nozzles.resize(std::max({nozzle_system->GetExtNozzles().size(), nozzle_system->GetRackNozzles().size(), size_t(extruder_nozzle_count)}));
 
     // addr_id is more robust
     auto get_id = [](const DevNozzle &nozzle) {
@@ -2582,10 +2582,12 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         {{MAIN_EXTRUDER_ID, 4}, 0},
         {{DEPUTY_EXTRUDER_ID, 4}, 0},
     };
-    for (const auto& ams : obj->GetFilaSystem()->GetAmsList()) {
-        for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
+    for (const auto &[id, ams] : obj->GetFilaSystem()->GetAmsList()) {
+        for (auto extruder_id : ams->GetBindedExtruderSet()) {
+            const auto ams_type = ams->GetAmsType();
+            if (ams_type == ZMULTI_A || ams_type == ZMULTI_B) continue;
             if (is_fila_switch_ready()) {
-                auto switcher_pos = ams.second->GetSwitcherPos();
+                auto switcher_pos = ams->GetSwitcherPos();
                 if (!switcher_pos) {
                     continue;
                 }
@@ -2594,7 +2596,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
                     continue;
                 }
             }
-            std::pair<int, int> key = {extruder_id, ams.second->GetAmsType() == DevAmsType::N3S ? 1 : 4};
+            std::pair<int, int> key = {extruder_id, ams_type == DevAmsType::N3S ? 1 : 4};
             ams_cnt_map[key]++;
         }
     }

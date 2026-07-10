@@ -19,6 +19,7 @@
 #include <wx/gdicmn.h>
 #include <wx/graphics.h>
 #include <wx/sizer.h>
+#include <wx/string.h>
 #include <wx/timer.h>
 
 namespace Slic3r ::GUI {
@@ -26,7 +27,7 @@ namespace Slic3r ::GUI {
 // Data needed to render a single rack hotend column.
 struct HotendEntry
 {
-    wxString                 index; // "1", "2", ... (1-indexed nozzle id)
+    int                      index;
     bool                     filament_loaded{false};
     std::vector<std::string> filament_colors;      // hex "#RRGGBB" per stop. 0 → unknown, 1 → single, 2+ → multi/gradient
     bool                     is_gradient{false};   // CTYPE_MULTI (linear blend) vs CTYPE_GRADIANT (pie wedges) — enum names are misleading
@@ -56,11 +57,17 @@ inline wxColour C(const wxColour &light) { return StateColor::darkModeColorFor(l
 
 const wxString kColorFallbackSentinel("#D9D9D9"); // firmware "unknown filament color" sentinel
 
+int nozzle_id(const DevNozzle &n)
+{
+    if (auto a = n.GetAddrId()) return a.value();
+    return n.GetNozzleId();
+}
+
 // Resolve a HotendEntry from the live device model
 HotendEntry make_hotend(MachineObject *obj, const DevNozzle &n)
 {
     HotendEntry e;
-    e.index            = n.GetDisplayId();
+    e.index            = nozzle_id(n);
     e.filament_loaded  = n.HasFilamentInNozzle();
     e.nozzle_diameter  = n.GetNozzleDiameterStr();
     e.nozzle_flow_type = (n.GetNozzleFlowType() == NozzleFlowType::H_FLOW) ? _L("High Flow") : _L("Standard");
@@ -115,13 +122,9 @@ std::vector<HotendEntry> CollectHotendEntries(MachineObject *obj)
     auto rack = nozzle_sys->GetNozzleRack();
     if (!rack || rack->GetRackType() != DevNozzleRack::RackType_B) return entries;
 
-    auto nozzle_key = [](const DevNozzle &n) {
-        if (auto a = n.GetAddrId()) return a.value();
-        return n.GetNozzleId();
-    };
     std::map<int, const DevNozzle *> nozzles_by_id;
-    for (const auto &kv : nozzle_sys->GetRackNozzles()) nozzles_by_id[nozzle_key(kv.second)] = &kv.second;
-    for (const auto &kv : nozzle_sys->GetExtNozzles()) nozzles_by_id.emplace(nozzle_key(kv.second), &kv.second);
+    for (const auto &kv : nozzle_sys->GetRackNozzles()) nozzles_by_id[nozzle_id(kv.second)] = &kv.second;
+    for (const auto &kv : nozzle_sys->GetExtNozzles()) nozzles_by_id.emplace(nozzle_id(kv.second), &kv.second);
 
     entries.reserve(nozzles_by_id.size());
     for (const auto &[_, np] : nozzles_by_id) {
@@ -389,8 +392,10 @@ void HotendColumn::PaintHeader(wxGraphicsContext *gc, const wxRect &r)
     f.SetWeight(wxFONTWEIGHT_BOLD);
     f.SetPointSize(f.GetPointSize() - 1);
     gc->SetFont(f, C(ThemeColor::TextPrimary));
+
+    wxString index = wxString::FromDouble(m_entry.index + 1);
     double tw = 0, th = 0, descent = 0, leading = 0;
-    gc->GetTextExtent(m_entry.index, &tw, &th, &descent, &leading);
+    gc->GetTextExtent(index, &tw, &th, &descent, &leading);
 
     const int    pad_x  = FromDIP(5);
     const int    pill_h = FromDIP(14);
@@ -401,7 +406,7 @@ void HotendColumn::PaintHeader(wxGraphicsContext *gc, const wxRect &r)
     gc->SetBrush(wxBrush(C(ThemeColor::Grey300)));
     gc->SetPen(*wxTRANSPARENT_PEN);
     gc->DrawRoundedRectangle(pill_x, pill_y, pill_w, pill_h, radius);
-    gc->DrawText(m_entry.index, pill_x + (pill_w - tw) / 2.0, pill_y + (pill_h - th) / 2.0);
+    gc->DrawText(index, pill_x + (pill_w - tw) / 2.0, pill_y + (pill_h - th) / 2.0);
 
     // Upper-right load indicator: filled brand-green dot when loaded,
     // filled dark-grey dot when empty.
@@ -588,17 +593,15 @@ void SyncMachineInfoDialog::BuildCardGrid(const std::vector<HotendEntry> &hotend
 
     std::vector<size_t> evens, odds;
     for (size_t i = 0; i < hotends.size(); ++i) {
-        // Card "index" is the 1-based display id; even-indexed cards go up top.
-        long id = 0;
-        if (hotends[i].index.ToLong(&id) && (id % 2 == 0))
+        if (hotends[i].index % 2 == 0)
             evens.push_back(i);
         else
             odds.push_back(i);
     }
 
-    if (!evens.empty()) add_row(evens);
-    if (!evens.empty() && !odds.empty()) root->AddSpacer(FromDIP(12));
     if (!odds.empty()) add_row(odds);
+    if (!evens.empty() && !odds.empty()) root->AddSpacer(FromDIP(12));
+    if (!evens.empty()) add_row(evens);
 
     root->AddSpacer(FromDIP(16));
 }
@@ -654,14 +657,9 @@ std::vector<std::vector<DevAmsSlotId>> CollectUnloadedSlotGroups(MachineObject *
     DevNozzleSystem *nozzle_sys = obj->GetNozzleSystem();
     if (!nozzle_sys) return {};
 
-    auto nozzle_key = [](const DevNozzle &n) {
-        if (auto a = n.GetAddrId()) return a.value();
-        return n.GetNozzleId();
-    };
-
     std::map<int, const DevNozzle *> nozzles_by_id;
-    for (const auto &[_, nozzle] : nozzle_sys->GetRackNozzles()) nozzles_by_id[nozzle_key(nozzle)] = &nozzle;
-    for (const auto &[_, nozzle] : nozzle_sys->GetExtNozzles()) nozzles_by_id.emplace(nozzle_key(nozzle), &nozzle);
+    for (const auto &[_, nozzle] : nozzle_sys->GetRackNozzles()) nozzles_by_id[nozzle_id(nozzle)] = &nozzle;
+    for (const auto &[_, nozzle] : nozzle_sys->GetExtNozzles()) nozzles_by_id.emplace(nozzle_id(nozzle), &nozzle);
 
     std::vector<std::vector<DevAmsSlotId>> groups;
     for (const auto &[_, nozzle] : nozzles_by_id) {
