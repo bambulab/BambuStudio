@@ -24,6 +24,19 @@ const FILTER_LABEL_KEYS: Record<FilterKey, string> = {
   brand: 'Brand', material_type: 'Filament Type', series: 'Material Type',
 };
 
+function spoolSearchText(spool: Spool): string {
+  return [
+    spool.brand,
+    spool.material_type,
+    spool.series,
+    spool.color_name,
+    spool.note,
+  ]
+    .filter((value): value is string => typeof value === 'string' && value.length > 0)
+    .join(' ')
+    .toLowerCase();
+}
+
 export function FilamentManagerPage() {
   const { t } = useTranslation();
   const {
@@ -157,10 +170,8 @@ export function FilamentManagerPage() {
 
     // Search
     if (search.trim()) {
-      const kw = search.toLowerCase();
-      list = list.filter((s) =>
-        `${s.brand} ${s.material_type} ${s.series} ${s.color_name}`.toLowerCase().includes(kw)
-      );
+      const kw = search.trim().toLowerCase();
+      list = list.filter((s) => spoolSearchText(s).includes(kw));
     }
 
     // Filters
