@@ -3,6 +3,7 @@
 
 #include <wx/dataview.h>
 #include <map>
+#include <string>
 #include <vector>
 
 #include "GUI_Utils.hpp"
@@ -424,6 +425,7 @@ class DiffPresetDialog : public DPIDialog
     wxStaticText*           m_top_info_line     { nullptr };
     wxStaticText*           m_bottom_info_line  { nullptr };
     wxCheckBox*             m_show_all_presets  { nullptr };
+    Button*                 m_copy_differences_btn { nullptr };
 
     Preset::Type            m_view_type         { Preset::TYPE_INVALID };
     PrinterTechnology       m_pr_technology;
@@ -431,6 +433,10 @@ class DiffPresetDialog : public DPIDialog
     std::unique_ptr<PresetBundle>   m_preset_bundle_right;
 
     void                    update_tree();
+    void                    append_diff_export_row(Preset::Type type, const wxString& preset_name,
+                                                   const wxString& option_name, const wxString& left_value,
+                                                   const wxString& right_value);
+    void                    copy_differences_to_clipboard() const;
     void                    update_bundles_from_app();
     void                    update_controls_visibility(Preset::Type type = Preset::TYPE_INVALID);
     void                    update_compatibility(const std::string& preset_name, Preset::Type type, PresetBundle* preset_bundle);
@@ -443,6 +449,7 @@ class DiffPresetDialog : public DPIDialog
     };
 
     std::vector<DiffPresets> m_preset_combos;
+    std::string              m_diff_export_text;
 
 public:
     DiffPresetDialog(MainFrame* mainframe);

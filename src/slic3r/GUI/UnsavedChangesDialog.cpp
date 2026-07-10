@@ -8,6 +8,8 @@
 #include <boost/nowide/convert.hpp>
 
 #include <wx/tokenzr.h>
+#include <wx/clipbrd.h>
+#include <wx/dataobj.h>
 
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -1952,6 +1954,27 @@ static std::string get_selection(PresetComboBox* preset_combo)
     return into_u8(preset_combo->GetString(preset_combo->GetSelection()));
 }
 
+static wxString diff_preset_type_name(Preset::Type type)
+{
+    switch (type) {
+    case Preset::TYPE_PRINT:        return _L("Print");
+    case Preset::TYPE_FILAMENT:     return _L("Filament");
+    case Preset::TYPE_SLA_PRINT:    return _L("SLA print");
+    case Preset::TYPE_SLA_MATERIAL: return _L("SLA material");
+    case Preset::TYPE_PRINTER:      return _L("Printer");
+    default:                        return _L("Preset");
+    }
+}
+
+static std::string markdown_table_cell(wxString value)
+{
+    value.Replace("\r\n", "\n");
+    value.Replace("\r", "\n");
+    value.Replace("\n", "<br>");
+    value.Replace("|", "\\|");
+    return into_u8(value);
+}
+
 DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     : DPIDialog(mainframe, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
     m_pr_technology(wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology())
@@ -2040,12 +2063,22 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     m_tree->AppendBmpTextColumn("Right Preset Value",DiffModel::colNewValue, 15);
     m_tree->Hide();
 
+    m_copy_differences_btn = new Button(this, _L("Copy differences"));
+    m_copy_differences_btn->SetToolTip(_L("Copy the preset differences as a Markdown table"));
+    m_copy_differences_btn->Enable(false);
+    m_copy_differences_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { copy_differences_to_clipboard(); });
+
+    wxBoxSizer* copy_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+    copy_btn_sizer->AddStretchSpacer();
+    copy_btn_sizer->Add(m_copy_differences_btn, 0, wxALIGN_CENTER_VERTICAL);
+
     wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
 
     topSizer->Add(m_top_info_line, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 2 * border);
     topSizer->Add(presets_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
     topSizer->Add(m_show_all_presets, 0, wxEXPAND | wxALL, border);
     topSizer->Add(m_bottom_info_line, 0, wxEXPAND | wxALL, 2 * border);
+    topSizer->Add(copy_btn_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, border);
     topSizer->Add(m_tree, 1, wxEXPAND | wxALL, border);
 
     this->SetMinSize(wxSize(80 * em, 30 * em));
@@ -2127,12 +2160,40 @@ void DiffPresetDialog::update_presets(Preset::Type type)
     update_tree();
 }
 
+void DiffPresetDialog::append_diff_export_row(Preset::Type type, const wxString& preset_name,
+                                               const wxString& option_name, const wxString& left_value,
+                                               const wxString& right_value)
+{
+    if (m_diff_export_text.empty())
+        m_diff_export_text =
+            "| Preset type | Presets | Setting | Left value | Right value |\n"
+            "| --- | --- | --- | --- | --- |\n";
+
+    m_diff_export_text += "| " + markdown_table_cell(diff_preset_type_name(type)) +
+                          " | " + markdown_table_cell(preset_name) +
+                          " | " + markdown_table_cell(option_name) +
+                          " | " + markdown_table_cell(left_value) +
+                          " | " + markdown_table_cell(right_value) + " |\n";
+}
+
+void DiffPresetDialog::copy_differences_to_clipboard() const
+{
+    if (m_diff_export_text.empty())
+        return;
+
+    if (wxTheClipboard->Open()) {
+        wxTheClipboard->SetData(new wxTextDataObject(from_u8(m_diff_export_text)));
+        wxTheClipboard->Close();
+    }
+}
+
 void DiffPresetDialog::update_tree()
 {
     Search::OptionsSearcher& searcher = wxGetApp().sidebar().get_searcher();
     searcher.sort_options_by_key();
 
     m_tree->Clear();
+    m_diff_export_text.clear();
     wxString bottom_info = "";
     bool show_tree = false;
 
@@ -2185,7 +2246,8 @@ void DiffPresetDialog::update_tree()
 
         preset_combos.equal_bmp->SetToolTip(wxEmptyString);
 
-        m_tree->model->AddPreset(type, "\"" + from_u8(left_preset->name) + "\" vs \"" + from_u8(right_preset->name) + "\"", left_pt);
+        const wxString preset_label = "\"" + from_u8(left_preset->name) + "\" vs \"" + from_u8(right_preset->name) + "\"";
+        m_tree->model->AddPreset(type, preset_label, left_pt);
 
         const std::map<wxString, std::string>& category_icon_map = wxGetApp().get_tab(type)->get_category_icon_map();
 
@@ -2197,6 +2259,7 @@ void DiffPresetDialog::update_tree()
             wxString right_val = from_u8((boost::format("%1%") % right_congig.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
 
             m_tree->Append("extruders_count", type, "General", "Capabilities", local_label, left_val, right_val, category_icon_map.at("Basic information"));
+            append_diff_export_row(type, preset_label, local_label, left_val, right_val);
         }
 
         for (const std::string& opt_key : dirty_options) {
@@ -2207,6 +2270,7 @@ void DiffPresetDialog::update_tree()
             if (option.opt_key() != opt_key || (option.category.empty() && option.group.empty())) {
                 // temporary solution, just for testing
                 m_tree->Append(opt_key, type, "Undef category", "Undef group", opt_key, left_val, right_val, "question");
+                append_diff_export_row(type, preset_label, from_u8(opt_key), left_val, right_val);
                 // When founded option isn't the correct one.
                 // It can be for dirty_options: "default_print_profile", "printer_model", "printer_settings_id",
                 // because of they don't exist in searcher
@@ -2214,8 +2278,12 @@ void DiffPresetDialog::update_tree()
             }
             m_tree->Append(opt_key, type, option.category_local, option.group_local, option.label_local,
                 left_val, right_val, category_icon_map.at(option.category));
+            append_diff_export_row(type, preset_label, option.label_local, left_val, right_val);
         }
     }
+
+    if (m_copy_differences_btn)
+        m_copy_differences_btn->Enable(show_tree && !m_diff_export_text.empty());
 
     bool tree_was_shown = m_tree->IsShown();
     m_tree->Show(show_tree);
