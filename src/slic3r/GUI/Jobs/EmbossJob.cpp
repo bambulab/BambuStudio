@@ -147,7 +147,7 @@ void _update_volume(TriangleMesh &&mesh, const DataUpdate &data, const Transform
         if (emboss_shape.has_value() && emboss_shape->fix_3mf_tr.has_value()) volume->set_transformation(volume->get_matrix() * emboss_shape->fix_3mf_tr->inverse());
     }
 
-    UpdateJob::update_volume(volume, std::move(mesh), *data.base);
+    UpdateJob::update_volume(volume, std::move(mesh), *data.base, tr == nullptr);
 }
 
 std::vector<BoundingBoxes> create_line_bounds(const ExPolygonsWithIds &shapes, size_t count_lines = 0)
@@ -374,17 +374,29 @@ void UpdateJob::finalize(bool canceled, std::exception_ptr &eptr)
     _update_volume(std::move(m_result), m_input);
 }
 
-void UpdateJob::update_volume(ModelVolume *volume, TriangleMesh &&mesh, const DataBase &base)
+void UpdateJob::update_volume(ModelVolume *volume, TriangleMesh &&mesh, const DataBase &base, bool preserve_center)
 { // check inputs
     bool is_valid_input = volume != nullptr && !mesh.empty() && !base.volume_name.empty();
     assert(is_valid_input);
     if (!is_valid_input) return;
+
+    const bool keep_center = preserve_center && !volume->mesh().empty();
+    const Vec3d old_center = keep_center ?
+        volume->get_matrix() * volume->mesh().bounding_box().center() :
+        Vec3d::Zero();
 
     // update volume
     volume->set_mesh(std::move(mesh));
     volume->calculate_convex_hull();
     volume->set_new_unique_id();
     volume->calculate_convex_hull();
+
+    if (keep_center) {
+        const Vec3d new_center = volume->get_matrix() * volume->mesh().bounding_box().center();
+        Transform3d transform = volume->get_matrix();
+        transform.pretranslate(old_center - new_center);
+        volume->set_transformation(transform);
+    }
 
     // write data from base into volume
     base.write(*volume);
