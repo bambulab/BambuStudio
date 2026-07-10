@@ -349,7 +349,7 @@ enum NozzleVolumeType {
     nvtHighFlow,
     nvtHybrid,
     nvtTPUHighFlow,
-    nvtE3DHighFlow,
+    nvtE3DHighFlow = 5,
     nvtMaxNozzleVolumeType = nvtE3DHighFlow
 };
 
@@ -398,6 +398,8 @@ static std::set<NozzleVolumeType> get_valid_nozzle_volume_type() {
     for (int i = 0; i <= nvtMaxNozzleVolumeType; ++i) {
         auto t = static_cast<NozzleVolumeType>(i);
         if (t == nvtHybrid) continue;
+        // Skip the reserved gap between nvtTPUHighFlow (3) and nvtE3DHighFlow (5).
+        if (i > nvtTPUHighFlow && i < nvtE3DHighFlow) continue;
         type.insert(t);
     }
     return type;
