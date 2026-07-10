@@ -1246,11 +1246,53 @@ void MenuFactory::create_default_menu()
         []() { return plater()->is_view3D_shown(); }, [this]() { return plater()->are_view3D_object_labels_shown(); }, m_parent);
 }
 
+void MenuFactory::append_menu_items_instance_manipulation(wxMenu* menu)
+{
+    const MenuType type = menu == &m_object_menu ? mtObjectFFF : mtObjectSLA;
+
+    items_increase[type] = append_menu_item(
+        menu,
+        wxID_ANY,
+        _L("Add instance"),
+        _L("Add one more instance of the selected object"),
+        [](wxCommandEvent&) { plater()->increase_instances(); },
+        "",
+        nullptr,
+        []() { return plater()->can_increase_instances(); },
+        m_parent);
+
+    items_decrease[type] = append_menu_item(
+        menu,
+        wxID_ANY,
+        _L("Remove instance"),
+        _L("Remove one instance of the selected object"),
+        [](wxCommandEvent&) { plater()->decrease_instances(); },
+        "",
+        nullptr,
+        []() { return plater()->can_decrease_instances(); },
+        m_parent);
+
+    items_set_number_of_copies[type] = append_menu_item(
+        menu,
+        wxID_ANY,
+        _L("Set number of instances") + dots,
+        _L("Change the number of instances of the selected object"),
+        [](wxCommandEvent&) { plater()->set_number_of_copies(); },
+        "",
+        nullptr,
+        []() {
+            return plater()->can_increase_instances() ||
+                   plater()->can_decrease_instances();
+        },
+        m_parent);
+
+    menu->AppendSeparator();
+}
+
 void MenuFactory::create_common_object_menu(wxMenu* menu)
 {
     append_menu_item_rename(menu);
-    // BBS
-    //append_menu_items_instance_manipulation(menu);
+    append_menu_items_instance_manipulation(menu);
     // Delete menu was moved to be after +/- instace to make it more difficult to be selected by mistake.
     append_menu_item_delete(menu);
     //append_menu_item_instance_to_object(menu);
@@ -1292,6 +1334,7 @@ void MenuFactory::create_object_menu()
 
 void MenuFactory::create_bbl_object_menu()
 {
+    append_menu_items_instance_manipulation(&m_object_menu);
     append_menu_item_fill_bed(&m_object_menu);
     // Object Clone
     append_menu_item_clone(&m_object_menu);
