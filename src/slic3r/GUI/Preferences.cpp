@@ -1366,6 +1366,28 @@ wxWindow* PreferencesDialog::create_general_page()
     auto  item_gamma_correct_in_import_obj = create_item_checkbox(_L("Enable gamma correction for the imported obj file"), page,
                                                                  _L("Perform gamma correction on color after importing the obj model."), 50,
                                                                  "gamma_correct_in_import_obj");
+
+    std::vector<wxString> standard_3mf_color_import_labels = {
+        _L("Ask every time"),
+        _L("Apply automatic color mapping"),
+        _L("Import geometry only")
+    };
+    std::vector<std::string> standard_3mf_color_import_values = {
+        "ask",
+        "auto",
+        "geometry_only"
+    };
+    auto item_standard_3mf_color_import = create_item_combobox(
+        _L("Standard 3MF color import"),
+        page,
+        _L("Choose how color information from standard 3MF files is handled during import."),
+        "standard_3mf_color_import_mode",
+        standard_3mf_color_import_labels,
+        standard_3mf_color_import_values,
+        nullptr,
+        FromDIP(180),
+        FromDIP(190));
+
     auto  item_enable_record_gcodeviewer_option_item = create_item_checkbox(_L("Remember last used color scheme"), page,
                                                                  _L("When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."), 50,
                                                                  "enable_record_gcodeviewer_option_item");
@@ -1525,6 +1547,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_show_shells_in_preview_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_import_single_svg_and_split, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_gamma_correct_in_import_obj, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_standard_3mf_color_import, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_enable_record_gcodeviewer_option_item, 0, wxTOP, FromDIP(3));
     sizer_page->Add(enable_assemble_view_preview_settings, 0, wxTOP, FromDIP(3));
 #if !BBL_RELEASE_TO_PUBLIC

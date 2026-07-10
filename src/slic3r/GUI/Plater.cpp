@@ -8341,9 +8341,37 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             color_dialog_in_out.model = &model;
                             color_dialog_in_out.input_type = ObjDialogInOut::FormatType::Standard3mf;
                             color_dialog_in_out.volume_colors = volume_color_data;
-                            ObjColorDialog color_dlg(nullptr, color_dialog_in_out, extruder_colours);
-                            if (color_dlg.ShowModal() == wxID_OK) {
-                                color_dialog_in_out.filament_ids.clear();
+
+                            const std::string color_import_mode =
+                                wxGetApp().app_config->get("standard_3mf_color_import_mode");
+
+                            if (color_import_mode != "geometry_only") {
+                                ObjColorDialog color_dlg(
+                                    nullptr,
+                                    color_dialog_in_out,
+                                    extruder_colours);
+
+                                bool colors_accepted = false;
+
+                                if (color_import_mode == "auto") {
+                                    colors_accepted =
+                                        color_dlg.apply_default_mapping();
+
+                                    if (!colors_accepted) {
+                                        BOOST_LOG_TRIVIAL(warning)
+                                            << "Standard 3MF automatic color mapping "
+                                               "was incomplete; showing the import dialog";
+                                    }
+                                }
+
+                                if (color_import_mode != "auto" ||
+                                    !colors_accepted) {
+                                    colors_accepted =
+                                        color_dlg.ShowModal() == wxID_OK;
+                                }
+
+                                if (colors_accepted)
+                                    color_dialog_in_out.filament_ids.clear();
                             }
                         }
                     }
