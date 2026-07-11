@@ -3077,6 +3077,99 @@ void ObjectList::split()
     update_info_items(obj_idx);
 }
 
+void ObjectList::link_selected_copies_as_instances()
+{
+    if (!can_link_selected_copies_as_instances())
+        return;
+
+    wxDataViewItemArray selections;
+    GetSelections(selections);
+
+    std::vector<int> object_indices;
+    object_indices.reserve(selections.size());
+
+    for (const wxDataViewItem &item : selections)
+        object_indices.emplace_back(
+            m_objects_model->GetIdByItem(item));
+
+    std::sort(object_indices.begin(), object_indices.end());
+    object_indices.erase(
+        std::unique(object_indices.begin(), object_indices.end()),
+        object_indices.end());
+
+    const size_t master_idx =
+        static_cast<size_t>(object_indices.front());
+
+    ModelObject *master = (*m_objects)[master_idx];
+    Model       *model  = master->get_model();
+
+    Plater::TakeSnapshot snapshot(
+        wxGetApp().plater(),
+        "Link Copies as Instances");
+
+    wxBusyCursor wait;
+
+    for (size_t idx = 1; idx < object_indices.size(); ++idx) {
+        const ModelObject *source =
+            (*m_objects)[object_indices[idx]];
+
+        master->add_instance(*source->instances.front());
+    }
+
+    PartPlateList &partplate_list =
+        wxGetApp().plater()->get_partplate_list();
+
+    const bool previous_prevent_list_events =
+        m_prevent_list_events;
+    m_prevent_list_events = true;
+
+    // Remove sources from highest to lowest index so the master index and all
+    // remaining source indices stay valid throughout the operation.
+    for (auto it = object_indices.rbegin();
+         it != object_indices.rend();
+         ++it) {
+        const size_t source_idx = static_cast<size_t>(*it);
+
+        if (source_idx == master_idx)
+            continue;
+
+        model->delete_object(source_idx);
+        partplate_list.notify_instance_removed(source_idx, -1);
+    }
+
+    // Register every instance on its current plate before the scene reload.
+    notify_instance_updated(static_cast<int>(master_idx));
+
+    // Reload the scene while the sidebar still contains the old object rows.
+    // This follows the existing object-deletion path and lets the GL selection
+    // synchronize with the modified model before the rows are removed.
+    wxGetApp().plater()->update();
+
+    for (auto it = object_indices.rbegin();
+         it != object_indices.rend();
+         ++it) {
+        const size_t source_idx = static_cast<size_t>(*it);
+
+        if (source_idx != master_idx)
+            delete_object_from_list(source_idx);
+    }
+
+    m_prevent_list_events = previous_prevent_list_events;
+
+    // A single-instance object has no instance children in the sidebar.
+    // Create entries for the original instance and every converted copy.
+    increase_object_instances(
+        master_idx,
+        master->instances.size());
+
+    wxGetApp().plater()
+        ->get_view3D_canvas3D()
+        ->update_instance_printable_state_for_object(master_idx);
+
+    wxGetApp().plater()->object_list_changed();
+    update_info_items(master_idx);
+}
+
 void ObjectList::merge(bool to_multipart_object)
 {
     wxBusyCursor wait;
@@ -3599,6 +3692,179 @@ bool ObjectList::can_split_instances()
 {
     const Selection& selection = scene_selection();
     return selection.is_multiple_full_instance() || selection.is_single_full_instance();
+}
+
+static bool can_link_model_objects_as_instances(
+    const ModelObject &master,
+    const ModelObject &candidate)
+{
+    if (master.instances.size() != 1 ||
+        candidate.instances.size() != 1)
+        return false;
+
+    if (master.is_cut() || candidate.is_cut())
+        return false;
+
+    if (master.volumes.size() != candidate.volumes.size())
+        return false;
+
+    if (master.module_name != candidate.module_name)
+        return false;
+
+    if (master.printable != candidate.printable)
+        return false;
+
+    if (!master.origin_translation.isApprox(
+            candidate.origin_translation))
+        return false;
+
+    if (master.config.get() != candidate.config.get())
+        return false;
+
+    if (master.layer_config_ranges !=
+        candidate.layer_config_ranges)
+        return false;
+
+    if (master.layer_height_profile.get() !=
+        candidate.layer_height_profile.get())
+        return false;
+
+    // These object-specific structures cannot be represented independently
+    // after the objects have been converted into instances.
+    if (!master.brim_points.empty() ||
+        !candidate.brim_points.empty() ||
+        !master.cut_connectors.empty() ||
+        !candidate.cut_connectors.empty() ||
+        !master.sla_support_points.empty() ||
+        !candidate.sla_support_points.empty() ||
+        !master.sla_drain_holes.empty() ||
+        !candidate.sla_drain_holes.empty())
+        return false;
+
+    for (size_t volume_idx = 0;
+         volume_idx < master.volumes.size();
+         ++volume_idx) {
+        const ModelVolume &master_volume =
+            *master.volumes[volume_idx];
+        const ModelVolume &candidate_volume =
+            *candidate.volumes[volume_idx];
+
+        // Editable text and SVG metadata is object-specific and must not be
+        // silently discarded when the source object is removed.
+        if (master_volume.is_text() ||
+            candidate_volume.is_text() ||
+            master_volume.is_svg() ||
+            candidate_volume.is_svg())
+            return false;
+
+        if (master_volume.name != candidate_volume.name)
+            return false;
+
+        if (master_volume.type() != candidate_volume.type())
+            return false;
+
+        if (master_volume.material_id() !=
+            candidate_volume.material_id())
+            return false;
+
+        // Bambu object copies share the immutable TriangleMesh allocation.
+        // Pointer equality intentionally avoids treating separately imported,
+        // merely similar meshes as linked copies.
+        if (master_volume.mesh_ptr() != candidate_volume.mesh_ptr())
+            return false;
+
+        if (!(master_volume.get_transformation() ==
+              candidate_volume.get_transformation()))
+            return false;
+
+        if (master_volume.is_assemble_initialized() !=
+            candidate_volume.is_assemble_initialized())
+            return false;
+
+        if (master_volume.is_assemble_initialized() &&
+            !(master_volume.get_assemble_transformation() ==
+              candidate_volume.get_assemble_transformation()))
+            return false;
+
+        if (master_volume.get_origin_mesh_or_vertice_render() !=
+            candidate_volume.get_origin_mesh_or_vertice_render())
+            return false;
+
+        if (master_volume.config.get() !=
+            candidate_volume.config.get())
+            return false;
+
+        if (!master_volume.supported_facets.equals(
+                candidate_volume.supported_facets))
+            return false;
+
+        if (!master_volume.fuzzy_skin_facets.equals(
+                candidate_volume.fuzzy_skin_facets))
+            return false;
+
+        if (!master_volume.seam_facets.equals(
+                candidate_volume.seam_facets))
+            return false;
+
+        if (!master_volume.mmu_segmentation_facets.equals(
+                candidate_volume.mmu_segmentation_facets))
+            return false;
+
+        if (!master_volume.exterior_facets.equals(
+                candidate_volume.exterior_facets))
+            return false;
+    }
+
+    return true;
+}
+
+bool ObjectList::can_link_selected_copies_as_instances() const
+{
+    if (printer_technology() == ptSLA)
+        return false;
+
+    wxDataViewItemArray selections;
+    GetSelections(selections);
+
+    if (selections.size() < 2)
+        return false;
+
+    std::vector<int> object_indices;
+    object_indices.reserve(selections.size());
+
+    for (const wxDataViewItem &item : selections) {
+        if (m_objects_model->GetItemType(item) != itObject)
+            return false;
+
+        const int object_idx = m_objects_model->GetIdByItem(item);
+
+        if (object_idx < 0 ||
+            object_idx >= static_cast<int>(m_objects->size()))
+            return false;
+
+        object_indices.emplace_back(object_idx);
+    }
+
+    std::sort(object_indices.begin(), object_indices.end());
+    object_indices.erase(
+        std::unique(object_indices.begin(), object_indices.end()),
+        object_indices.end());
+
+    if (object_indices.size() < 2)
+        return false;
+
+    const ModelObject &master =
+        *(*m_objects)[object_indices.front()];
+
+    for (size_t idx = 1; idx < object_indices.size(); ++idx) {
+        const ModelObject &candidate =
+            *(*m_objects)[object_indices[idx]];
+
+        if (!can_link_model_objects_as_instances(master, candidate))
+            return false;
+    }
+
+    return true;
 }
 
 bool ObjectList::can_merge_to_multipart_object() const
