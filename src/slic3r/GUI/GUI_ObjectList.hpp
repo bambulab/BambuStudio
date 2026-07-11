@@ -319,6 +319,7 @@ public:
     bool                del_subobject_from_object(const int obj_idx, const int idx, const int type);
     void                del_info_item(const int obj_idx, InfoItemType type);
     void                split();
+    void                link_selected_copies_as_instances();
     void                merge(bool to_multipart_object);
     void                merge_volumes(); // BBS: merge parts to single part
     void                layers_editing();
@@ -332,6 +333,7 @@ public:
     bool                is_splittable(bool to_objects);
     bool                selected_instances_of_same_object();
     bool                can_split_instances();
+    bool                can_link_selected_copies_as_instances() const;
     bool                can_merge_to_multipart_object() const;
     bool                can_merge_to_single_object() const;
     bool                can_mesh_boolean() const;

@@ -1144,6 +1144,24 @@ void MenuFactory::append_menu_items_convert_unit(wxMenu* menu)
     }
 }
 
+void MenuFactory::append_menu_item_link_copies_as_instances(wxMenu *menu)
+{
+    append_menu_item(
+        menu,
+        wxID_ANY,
+        _L("Link selected copies as instances"),
+        _L("Convert the selected identical object copies into linked instances"),
+        [](wxCommandEvent &) {
+            obj_list()->link_selected_copies_as_instances();
+        },
+        "",
+        menu,
+        []() {
+            return obj_list()->can_link_selected_copies_as_instances();
+        },
+        m_parent);
+}
+
 void MenuFactory::append_menu_item_merge_to_multipart_object(wxMenu* menu)
 {
     append_menu_item(menu, wxID_ANY, _L("Merge"), _L("Assemble the selected objects to an object with multiple parts"),
@@ -1779,6 +1797,10 @@ wxMenu* MenuFactory::multi_selection_menu()
     wxMenu* menu = new MenuWithSeparators();
     if (!multi_volume) {
         int index = 0;
+        if (obj_list()->can_link_selected_copies_as_instances()) {
+            append_menu_item_link_copies_as_instances(menu);
+            index++;
+        }
         if (obj_list()->can_merge_to_multipart_object()) {
             append_menu_item_merge_to_multipart_object(menu);
             index++;
