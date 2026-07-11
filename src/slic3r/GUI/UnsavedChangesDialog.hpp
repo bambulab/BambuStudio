@@ -433,9 +433,16 @@ class DiffPresetDialog : public DPIDialog
     std::unique_ptr<PresetBundle>   m_preset_bundle_right;
 
     void                    update_tree();
-    void                    append_diff_export_row(Preset::Type type, const wxString& preset_name,
-                                                   const wxString& option_name, const wxString& left_value,
-                                                   const wxString& right_value);
+    struct DiffExportValue {
+        wxString label;
+        wxString value;
+    };
+
+    void append_diff_export_rows(
+        Preset::Type type,
+        const wxString& option_name,
+        const std::vector<DiffExportValue>& values);
+
     void                    copy_differences_to_clipboard() const;
     void                    update_bundles_from_app();
     void                    update_controls_visibility(Preset::Type type = Preset::TYPE_INVALID);

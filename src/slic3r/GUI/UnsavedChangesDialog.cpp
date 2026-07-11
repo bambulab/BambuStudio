@@ -2160,20 +2160,26 @@ void DiffPresetDialog::update_presets(Preset::Type type)
     update_tree();
 }
 
-void DiffPresetDialog::append_diff_export_row(Preset::Type type, const wxString& preset_name,
-                                               const wxString& option_name, const wxString& left_value,
-                                               const wxString& right_value)
+void DiffPresetDialog::append_diff_export_rows(
+    Preset::Type type,
+    const wxString& option_name,
+    const std::vector<DiffPresetDialog::DiffExportValue>& values)
 {
+    if (values.empty())
+        return;
+
     if (m_diff_export_text.empty())
         m_diff_export_text =
-            "| Preset type | Presets | Setting | Left value | Right value |\n"
-            "| --- | --- | --- | --- | --- |\n";
+            "| Preset type | Setting | Preset / variant | Value |\n"
+            "| --- | --- | --- | --- |\n";
 
-    m_diff_export_text += "| " + markdown_table_cell(diff_preset_type_name(type)) +
-                          " | " + markdown_table_cell(preset_name) +
-                          " | " + markdown_table_cell(option_name) +
-                          " | " + markdown_table_cell(left_value) +
-                          " | " + markdown_table_cell(right_value) + " |\n";
+    for (const DiffExportValue& entry : values) {
+        m_diff_export_text +=
+            "| " + markdown_table_cell(diff_preset_type_name(type)) +
+            " | " + markdown_table_cell(option_name) +
+            " | " + markdown_table_cell(entry.label) +
+            " | " + markdown_table_cell(entry.value) + " |\n";
+    }
 }
 
 void DiffPresetDialog::copy_differences_to_clipboard() const
@@ -2259,7 +2265,10 @@ void DiffPresetDialog::update_tree()
             wxString right_val = from_u8((boost::format("%1%") % right_congig.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
 
             m_tree->Append("extruders_count", type, "General", "Capabilities", local_label, left_val, right_val, category_icon_map.at("Basic information"));
-            append_diff_export_row(type, preset_label, local_label, left_val, right_val);
+            append_diff_export_rows(type, local_label, {
+                {from_u8(left_preset->name), left_val},
+                {from_u8(right_preset->name), right_val},
+            });
         }
 
         for (const std::string& opt_key : dirty_options) {
@@ -2270,7 +2279,10 @@ void DiffPresetDialog::update_tree()
             if (option.opt_key() != opt_key || (option.category.empty() && option.group.empty())) {
                 // temporary solution, just for testing
                 m_tree->Append(opt_key, type, "Undef category", "Undef group", opt_key, left_val, right_val, "question");
-                append_diff_export_row(type, preset_label, from_u8(opt_key), left_val, right_val);
+                append_diff_export_rows(type, from_u8(opt_key), {
+                    {from_u8(left_preset->name), left_val},
+                    {from_u8(right_preset->name), right_val},
+                });
                 // When founded option isn't the correct one.
                 // It can be for dirty_options: "default_print_profile", "printer_model", "printer_settings_id",
                 // because of they don't exist in searcher
@@ -2278,7 +2290,10 @@ void DiffPresetDialog::update_tree()
             }
             m_tree->Append(opt_key, type, option.category_local, option.group_local, option.label_local,
                 left_val, right_val, category_icon_map.at(option.category));
-            append_diff_export_row(type, preset_label, option.label_local, left_val, right_val);
+            append_diff_export_rows(type, option.label_local, {
+                {from_u8(left_preset->name), left_val},
+                {from_u8(right_preset->name), right_val},
+            });
         }
     }
 
