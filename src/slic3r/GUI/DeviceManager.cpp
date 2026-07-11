@@ -3428,6 +3428,23 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     catch (...) {
                         ;
                     }
+
+                    // Proactively fetch the PA calibration (K-factor) history as soon as the
+                    // printer reports a (new) calibration version.
+                    if (m_calib && m_calib->IsVersionInited() && m_calib->IsVersionExpired() &&
+                        m_calib->GetPAHistoryStatus() != CalibStatus::REQUEST &&
+                        m_calib->GetPAHistoryStatus() != CalibStatus::WAITING) {
+                        // Mark the version as synced up front so subsequent pushes don't enqueue
+                        // duplicate requests before the deferred call below runs.
+                        m_calib->SyncCalibVersion();
+                        GUI::wxGetApp().CallAfter([this] {
+                            PACalibExtruderInfo cali_info;
+                            cali_info.nozzle_diameter        = GetExtderSystem()->GetNozzleDiameter(0);
+                            cali_info.use_extruder_id        = false;
+                            cali_info.use_nozzle_volume_type = false;
+                            m_calib->RequestPAHistory(cali_info);
+                        });
+                    }
                     update_printer_preset_name();
                     update_filament_list();
                     if (jj.contains("ams")) {
