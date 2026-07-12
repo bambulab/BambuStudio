@@ -46,6 +46,6 @@ else ()
         CONFIGURE_COMMAND env "CFLAGS=${_gmp_ccflags}" "CXXFLAGS=${_gmp_ccflags}" ./configure ${_cross_compile_arg} --prefix=${DESTDIR}/usr/local --enable-shared=no --enable-static=yes --with-gmp=${DESTDIR}/usr/local ${_gmp_build_tgt}
         BUILD_COMMAND make -j
         INSTALL_COMMAND make install
-        DEPENDS dep_GMP
+        DEPENDS ${GMP_PKG}
     )
 endif ()

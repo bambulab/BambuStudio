@@ -1985,7 +1985,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         if (obj->is_nozzle_flow_type_supported()) {
             if (obj->GetExtderSystem()->GetNozzleFlowType(index) == NozzleFlowType::NONE_FLOWTYPE) {
                 MessageDialog dlg(this->plater, _L("There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."),
-                                  _L("Sync extruder infomation"), wxICON_WARNING | wxOK);
+                                  _L("Sync extruder information"), wxICON_WARNING | wxOK);
                 dlg.ShowModal();
                 continue;
             }
@@ -10984,7 +10984,11 @@ void Plater::priv::replace_with_stl()
 
     wxString title = _L("Select a new file");
     title += ":";
-    wxFileDialog dialog(q, title, "", from_u8(input_path.filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    // Open the dialog in the original file's folder (falling back to the last
+    // used directory) instead of the current working directory.
+    const wxString start_dir = input_path.has_parent_path() ? from_u8(input_path.parent_path().string())
+                                                            : from_u8(wxGetApp().app_config->get_last_dir());
+    wxFileDialog dialog(q, title, start_dir, from_u8(input_path.filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dialog.ShowModal() != wxID_OK)
         return;
 
@@ -11150,7 +11154,11 @@ void Plater::priv::reload_from_disk()
         title += " (" + from_u8(search.filename().string()) + ")";
 #endif // __APPLE__
         title += ":";
-        wxFileDialog dialog(q, title, "", from_u8(search.filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+        // Open the dialog in the folder where the file was expected (falling
+        // back to the last used directory) instead of the working directory.
+        const wxString start_dir = search.has_parent_path() ? from_u8(search.parent_path().string())
+                                                            : from_u8(wxGetApp().app_config->get_last_dir());
+        wxFileDialog dialog(q, title, start_dir, from_u8(search.filename().string()), file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dialog.ShowModal() != wxID_OK)
             return;
 
@@ -15523,15 +15531,9 @@ void Plater::priv::set_project_name(const wxString& project_name)
 {
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << __LINE__ << " project is:" << project_name;
     m_project_name = project_name;
-    //update topbar title
-#ifdef __WINDOWS__
-    wxGetApp().mainframe->SetTitle(m_project_name + " - BambuStudio");
-    wxGetApp().mainframe->topbar()->SetTitle(m_project_name);
-#else
-    wxGetApp().mainframe->SetTitle(m_project_name);
-    if (!m_project_name.IsEmpty())
-        wxGetApp().mainframe->update_title_colour_after_set_title();
-#endif
+    // Update the window/topbar title. The platform-specific logic (and the
+    // unsaved-changes "*" prefix) lives in MainFrame::update_title().
+    wxGetApp().mainframe->update_title();
 }
 
 void Plater::priv::set_project_filename(const wxString& filename)

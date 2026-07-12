@@ -2165,7 +2165,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("enable_pressure_advance", coBools);
     def->label = L("Enable pressure advance");
-    def->tooltip = L("Enable pressure advance, auto calibration result will be overwriten once enabled. Useless for Bambu Printer");
+    def->tooltip = L("Enable pressure advance, auto calibration result will be overwritten once enabled. Useless for Bambu Printer");
     def->set_default_value(new ConfigOptionBools{ false });
 
     def = this->add("pressure_advance", coFloats);
@@ -9838,6 +9838,11 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->label = L("Autosave");
     def->tooltip = L("Automatically export current configuration to the specified file.");
 */
+
+    def = this->add("datadir", coString);
+    def->label = "Configuration data directory";
+    def->tooltip = "Use and store all program settings at the given directory instead of the default location.";
+    def->cli_params = "dir";
 
     def = this->add("outputdir", coString);
     def->label = "Output directory";

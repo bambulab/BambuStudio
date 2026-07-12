@@ -20,8 +20,8 @@
 # therefore, unfortunately, the installation cannot be copied/moved elsewhere without re-installing wxWidgets.
 #
 
+cmake_minimum_required(VERSION 3.5)
 project(BambuStudio-deps)
-cmake_minimum_required(VERSION 3.2)
 
 include(ExternalProject)
 include(ProcessorCount)
@@ -43,6 +43,8 @@ option(DEP_BUILD_GLFW "Compile GLFW" ON)
 option(DEP_BUILD_BLOSC "Compile Blosc" ON)
 option(DEP_BUILD_FREETYPE "Compile freetype" ON)
 option(DEP_BUILD_WXWIDGETS "Compile wxWidgets" ON)
+option(DEP_BUILD_GMP "Compile GMP" ON)
+option(DEP_BUILD_MPFR "Compile MPFR" ON)
 option(DEP_BUILD_FFMPEG "Compile ffmpeg" ON)
 option(DEP_BUILD_LIBHARU "Compile libharu" ON)
 
@@ -256,8 +258,16 @@ endif ()
 include(OpenEXR/OpenEXR.cmake)
 include(OpenVDB/OpenVDB.cmake)
 
-include(GMP/GMP.cmake)
-include(MPFR/MPFR.cmake)
+set(GMP_PKG "")
+if (DEP_BUILD_GMP)
+    include(GMP/GMP.cmake)
+    set(GMP_PKG dep_GMP)
+endif ()
+set(MPFR_PKG "")
+if (DEP_BUILD_MPFR)
+    include(MPFR/MPFR.cmake)
+    set(MPFR_PKG dep_MPFR)
+endif ()
 include(CGAL/CGAL.cmake)
 
 include(NLopt/NLopt.cmake)

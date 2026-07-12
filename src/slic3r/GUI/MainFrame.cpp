@@ -805,6 +805,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                  m_topbar->EnableUndoItem(m_plater->can_undo());
                  m_topbar->EnableRedoItem(m_plater->can_redo());
              }
+             // Keep the unsaved-changes "*" in the title in sync on all platforms (#9987).
+             if (m_plater)
+                 update_title();
          }));
 #ifdef _MSW_DARK_MODE
     wxGetApp().UpdateDarkUIWin(this);
@@ -1154,7 +1157,29 @@ void MainFrame::update_filament_tab_ui()
 
 void MainFrame::update_title()
 {
-    return;
+    if (!m_plater)
+        return;
+    // Prepend "* " while the project has unsaved changes (#9987), on top of the project name
+    // that is already shown: in the custom topbar on Windows, and in the native window title
+    // on macOS/Linux (both set by Plater::priv::set_project_name).
+    const wxString name  = m_plater->get_project_name();
+    const wxString title = (m_plater->is_project_dirty() && !name.IsEmpty()) ? ("* " + name) : name;
+    if (title == m_title_cache)
+        return;
+    m_title_cache = title;
+#ifdef __WINDOWS__
+    if (m_topbar)
+        m_topbar->SetTitle(title);
+    // Also reflect the "*" in the window/taskbar title, which set_project_name builds
+    // as "<name> - BambuStudio".
+    SetTitle(title + " - BambuStudio");
+#else
+    SetTitle(title);
+#ifdef __APPLE__
+    if (!title.IsEmpty())
+        update_title_colour_after_set_title();
+#endif
+#endif
 }
 
 void MainFrame::show_calibration_button(bool show, bool is_BBL)

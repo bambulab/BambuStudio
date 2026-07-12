@@ -486,7 +486,7 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 				meshes_repaired.emplace_back(std::move(repaired_its));
 			}
 			for (size_t i = 0; i < volumes.size(); ++ i) {
-				volumes[i]->set_mesh(std::move(meshes_repaired[i]));
+				volumes[i]->set_mesh_keep_paint(std::move(meshes_repaired[i])); // BBS: best-effort paint transfer
 				volumes[i]->calculate_convex_hull();
 				volumes[i]->invalidate_convex_hull_2d();
 				volumes[i]->set_new_unique_id();

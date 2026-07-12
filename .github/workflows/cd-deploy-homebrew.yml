@@ -1,0 +1,110 @@
+name: 'CD: Homebrew Cask'
+run-name: "Homebrew update — ${{ github.event.release.tag_name || inputs.version || 'latest' }}"
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g. 2.6.1)'
+        required: false
+        type: string
+
+permissions: read-all
+
+concurrency:
+  group: cd-deploy-homebrew
+  cancel-in-progress: false
+
+jobs:
+  homebrew-update:
+    name: Update Homebrew Cask
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        with:
+          # audit (not block) to match the other deploy workflows — block mode
+          # rejected the checkout connection to github.com even though it was
+          # allow-listed, failing the deploy at the checkout step.
+          egress-policy: audit
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+
+      - name: Determine version
+        id: version
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            VERSION="${VERSION#v}"
+          else
+            VERSION="${{ inputs.version }}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+
+      - name: Get macOS asset checksums
+        id: checksums
+        timeout-minutes: 20
+        run: |
+          set -euo pipefail
+          TAG="v${{ steps.version.outputs.version }}"
+          VER="${TAG#v}"
+          UPSTREAM_VER="${VER%-bj.*}"    # strip distributor suffix for filename
+          BASE="https://github.com/${{ github.repository }}/releases/download/${TAG}"
+
+          # This fork ships universal macOS .dmg assets (not the upstream arm64/x86_64
+          # .zip). The universal dmg covers both architectures; use it as the cask URL.
+          URL_ARM="${BASE}/BambuStudio_macos-15_universal_V${UPSTREAM_VER}.dmg"
+          URL_INTEL="${BASE}/BambuStudio_macos-15-intel_x86_64_V${UPSTREAM_VER}.dmg"
+
+          echo "URL_ARM=$URL_ARM" >> $GITHUB_ENV
+          echo "URL_INTEL=$URL_INTEL" >> $GITHUB_ENV
+
+          # Function to fetch asset with retries
+          fetch_with_retry() {
+            local url="$1"
+            local desc="$2"
+            local timeout=$((20*60)) # 20 minutes in seconds
+            local interval=30
+            local elapsed=0
+            while true; do
+              if output=$(curl -sLf "$url" 2>/dev/null) && [ -n "$output" ]; then
+                echo "$output"
+                return 0
+              fi
+              if (( elapsed >= timeout )); then
+                echo "::error::Timeout downloading $desc from $url after ${timeout}s" >&2
+                return 1
+              fi
+              echo "Waiting for $desc to become available... (elapsed ${elapsed}s)"
+              sleep $interval
+              (( elapsed += interval ))
+            done
+          }
+
+          # Download and hash
+          ARM_DATA=$(fetch_with_retry "$URL_ARM" "universal macOS DMG")
+          INTEL_DATA=$(fetch_with_retry "$URL_INTEL" "intel macOS DMG")
+
+          SHA_ARM=$(echo "$ARM_DATA" | sha256sum | cut -d' ' -f1)
+          SHA_INTEL=$(echo "$INTEL_DATA" | sha256sum | cut -d' ' -f1)
+
+          echo "url_arm=$URL_ARM" >> "$GITHUB_OUTPUT"
+          echo "sha_arm=$SHA_ARM" >> "$GITHUB_OUTPUT"
+          echo "url_intel=$URL_INTEL" >> "$GITHUB_OUTPUT"
+          echo "sha_intel=$SHA_INTEL" >> "$GITHUB_OUTPUT"
+      - name: Update Homebrew Cask via PR
+        uses: mislav/bump-homebrew-formula-action@ccf2332299a883f6af50a1d2d41e5df7904dd769  # v4
+        with:
+          formula-name: bambu-studio
+          formula-path: Casks/bambu-studio.rb
+          homebrew-tap: ${{ github.repository_owner }}/homebrew-tap
+          tag-name: v${{ steps.version.outputs.version }}
+          download-url: ${{ steps.checksums.outputs.url_arm }}
+          commit-message: "update bambu-studio to {{version}}"
+        env:
+          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}

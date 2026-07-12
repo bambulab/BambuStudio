@@ -298,8 +298,16 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
         add_compile_options(-Wno-deprecated-declarations)
     endif()
 
-    if((${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang") AND ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 15)
-        add_compile_options(-Wno-error=enum-constexpr-conversion)
+    # Some Clang versions (e.g. Xcode 16) treat invalid enum constexpr conversions
+    # as a hard error unless this warning is downgraded. However, the warning option
+    # itself does not exist on every Clang (it was removed again in newer toolchains
+    # such as Xcode 26), so probe for it instead of relying on the version number.
+    if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
+        include(CheckCXXCompilerFlag)
+        check_cxx_compiler_flag("-Werror=enum-constexpr-conversion" HAVE_FLAG_ENUM_CONSTEXPR_CONVERSION)
+        if(HAVE_FLAG_ENUM_CONSTEXPR_CONVERSION)
+            add_compile_options(-Wno-error=enum-constexpr-conversion)
+        endif()
     endif()
 
     #GCC generates loads of -Wunknown-pragmas when compiling igl. The fix is not easy due to a bug in gcc, see

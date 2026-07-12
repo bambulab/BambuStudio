@@ -3247,6 +3247,11 @@ void ObjectList::merge(bool to_multipart_object)
                     }
                 }
                 new_volume->mmu_segmentation_facets.assign(std::move(volume->mmu_segmentation_facets));
+                // BBS: also carry support/seam/fuzzy-skin painting across the merge
+                // (each part keeps its own mesh, so the per-triangle data maps 1:1).
+                new_volume->supported_facets.assign(std::move(volume->supported_facets));
+                new_volume->seam_facets.assign(std::move(volume->seam_facets));
+                new_volume->fuzzy_skin_facets.assign(std::move(volume->fuzzy_skin_facets));
             }
             new_object->sort_volumes(true);
 
@@ -6243,6 +6248,10 @@ void ObjectList::fix_through_netfabb()
     if (!wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::Undefined))
         return;
 
+    // BBS: repair rebuilds the mesh; warn that painting is transferred approximately.
+    if (!wxGetApp().confirm_mesh_paint_warning())
+        return;
+
     //          model_name
     std::vector<std::string>                           succes_models;
     //                   model_name     failing reason
@@ -6300,7 +6309,9 @@ void ObjectList::fix_through_netfabb()
             msg += "\n";
         }
 
-        plater->clear_before_change_mesh(obj_idx);
+        // BBS: do NOT wipe painting here; the repair below re-projects it
+        // (best-effort) via set_mesh_keep_paint instead.
+        // plater->clear_before_change_mesh(obj_idx);
         std::string res;
         if (!fix_model_by_win10_sdk_gui(*(object(obj_idx)), vol_idx, progress_dlg, msg, res))
             return false;
