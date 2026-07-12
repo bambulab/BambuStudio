@@ -27,7 +27,7 @@ namespace Slic3r ::GUI {
 // Data needed to render a single rack hotend column.
 struct HotendEntry
 {
-    int                      index;
+    int                      index{};
     bool                     filament_loaded{false};
     std::vector<std::string> filament_colors;      // hex "#RRGGBB" per stop. 0 → unknown, 1 → single, 2+ → multi/gradient
     bool                     is_gradient{false};   // CTYPE_MULTI (linear blend) vs CTYPE_GRADIANT (pie wedges) — enum names are misleading
@@ -36,6 +36,7 @@ struct HotendEntry
     wxString                 nozzle_diameter;      // "0.4 mm"
     wxString                 nozzle_flow_type;     // "Standard" / "High Flow"
     bool                     syncing{false};       // drives the rotating arc in the card header
+    bool                     is_hotend{true};
 };
 
 namespace {
@@ -71,6 +72,7 @@ HotendEntry make_hotend(MachineObject *obj, const DevNozzle &n)
     e.filament_loaded  = n.HasFilamentInNozzle();
     e.nozzle_diameter  = n.GetNozzleDiameterStr();
     e.nozzle_flow_type = (n.GetNozzleFlowType() == NozzleFlowType::H_FLOW) ? _L("High Flow") : _L("Standard");
+    e.is_hotend        = n.IsHotend();
 
     const auto &slots = n.GetBindAmsSlots();
     if (!slots.empty() && obj) {
@@ -126,12 +128,8 @@ std::vector<HotendEntry> CollectHotendEntries(MachineObject *obj)
     for (const auto &kv : nozzle_sys->GetRackNozzles()) nozzles_by_id[nozzle_id(kv.second)] = &kv.second;
     for (const auto &kv : nozzle_sys->GetExtNozzles()) nozzles_by_id.emplace(nozzle_id(kv.second), &kv.second);
 
-    entries.reserve(nozzles_by_id.size());
-    for (const auto &[_, np] : nozzles_by_id) {
-        const DevNozzle &n = *np;
-        if (!n.IsHotend()) continue;
-        entries.push_back(make_hotend(obj, n));
-    }
+    entries.resize(nozzles_by_id.size());
+    for (const auto &[id, np] : nozzles_by_id) { entries[id] = make_hotend(obj, *np); }
     return entries;
 }
 
@@ -375,14 +373,14 @@ void HotendColumn::OnPaint(wxPaintEvent &)
     PaintHeader(gc.get(), wxRect(card_rect.x, y, card_rect.width, FromDIP(kHeaderH)));
     y += FromDIP(kHeaderH);
 
-    PaintSpool(gc.get(), wxRect(card_rect.x, y, card_rect.width, FromDIP(kSpoolZoneH)), palette);
-    y += FromDIP(kSpoolZoneH);
+        PaintSpool(gc.get(), wxRect(card_rect.x, y, card_rect.width, FromDIP(kSpoolZoneH)), palette);
+        y += FromDIP(kSpoolZoneH);
 
-    // Separator between spool and hotend zones
-    gc->SetPen(wxPen(C(ThemeColor::Grey350), 1));
-    gc->StrokeLine(card_rect.x + FromDIP(4), y, card_rect.GetRight() - FromDIP(4), y);
+        // Separator between spool and hotend zones
+        gc->SetPen(wxPen(C(ThemeColor::Grey350), 1));
+        gc->StrokeLine(card_rect.x + FromDIP(4), y, card_rect.GetRight() - FromDIP(4), y);
 
-    PaintHotend(gc.get(), wxRect(card_rect.x, y, card_rect.width, FromDIP(kHotendZoneH)));
+        if (m_entry.is_hotend) PaintHotend(gc.get(), wxRect(card_rect.x, y, card_rect.width, FromDIP(kHotendZoneH)));
 }
 
 void HotendColumn::PaintHeader(wxGraphicsContext *gc, const wxRect &r)

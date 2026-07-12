@@ -1971,10 +1971,8 @@ std::vector<NozzleConfig> Sidebar::priv::collect_nozzle_configs_from_machine(Mac
     std::vector<NozzleConfig> nozzle_configs;
     nozzle_configs.reserve(extruder_nozzle_count);
     for (const auto *nozzle : nozzles) {
-        if (!nozzle) continue;
-
         auto &nozzle_config = nozzle_configs.emplace_back();
-        if (!nozzle->IsExist() || nozzle->IsUnknown() || nozzle->IsAbnormal()) continue;
+        if (!nozzle->IsExist() || nozzle->IsUnknown() || nozzle->IsAbnormal() || !nozzle->IsHotend()) continue;
 
         nozzle_config.diameter = get_diameter_string(nozzle->GetNozzleDiameter());
         nozzle_config.volume   = DevNozzle::ToNozzleVolumeType(nozzle->GetNozzleFlowType());
@@ -23979,11 +23977,25 @@ void Plater::export_core_3mf()
 
 Preset *get_printer_preset(const MachineObject *obj)
 {
-    if (!obj)
-        return nullptr;
+    if (!obj) return nullptr;
 
     Preset       *printer_preset = nullptr;
-    float machine_nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(0);
+    float         machine_nozzle_diameter{};
+
+    // find first usable nozzle
+    auto *nozzle_sys = obj->GetNozzleSystem();
+    for (const auto &nozzles : {nozzle_sys->GetExtNozzles(), nozzle_sys->GetRackNozzles()}) {
+        bool found{false};
+        for (const auto &[_, nozzle] : nozzles) {
+            if (nozzle.GetLogicExtruderId() == 0 && nozzle.IsHotend() && nozzle.IsNormal()) {
+                machine_nozzle_diameter = nozzle.GetNozzleDiameter();
+                found                   = true;
+                break;
+            }
+        }
+        if (found) break;
+    }
+
     PresetBundle *preset_bundle  = wxGetApp().preset_bundle;
     for (auto printer_it = preset_bundle->printers.begin(); printer_it != preset_bundle->printers.end(); printer_it++) {
         // only use system printer preset
