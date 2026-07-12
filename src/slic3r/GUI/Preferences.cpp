@@ -9,6 +9,8 @@
 #include "Widgets/StateColor.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include <cassert>
+#include <string>
+#include <vector>
 #include <wx/event.h>
 #include <wx/gdicmn.h>
 #include <wx/simplebook.h>
@@ -107,13 +109,26 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
 wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, const std::vector<wxString>& label_list, const std::vector<std::string>& value_list, std::function<void(int)> callback, int title_width, int combox_width)
 {
     assert(label_list.size() == value_list.size());
-    auto get_value_idx = [value_list](const std::string value) {
-        size_t idx = 0;
+
+    auto find_nearst_by_value = [value_list](const std::string value) -> int {
+        try {
+            std::vector<int> values;
+            for (const auto &v : value_list) values.push_back(stoi(v));
+            int target = stoi(value);
+
+            auto it = std::min_element(values.begin(), values.end(), [target](int a, int b) { return std::abs(a - target) < std::abs(b - target); });
+            return std::distance(values.begin(), it);
+
+        } catch (...) {
+            return 0;
+        }
+    };
+
+    auto get_value_idx = [value_list, find_nearst_by_value](const std::string value) -> int {
         auto iter = std::find(value_list.begin(), value_list.end(), value);
-        if (iter != value_list.end())
-            idx = std::distance(value_list.begin(), iter);
-        return idx;
-        };
+        if (iter != value_list.end()) return std::distance(value_list.begin(), iter);
+        return find_nearst_by_value(value);
+    };
 
     wxBoxSizer *m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_combox->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
@@ -1194,6 +1209,12 @@ void PreferenceTabbar::Rescale() { render(); }
 void PreferencesDialog::create()
 {
     app_config             = get_app_config();
+
+    // backup switch has two option in the old versions:
+    // 1. switch to turn on/off
+    // 2. interval
+    // in the new verison we use 0 for `not backup`
+    if (app_config->get("backup_switch") != "true") { app_config->set("backup_interval", "0"); }
     m_backup_interval_time = app_config->get("backup_interval");
 
     // set icon for dialog
