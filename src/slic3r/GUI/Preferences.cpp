@@ -1473,13 +1473,6 @@ wxWindow *PreferencesDialog::create_user_tab()
     sizer->Add(item_webview_auto_fill, flags);
 #endif
 
-    // [refactor-review] Not in Figma v2; kept here (user-facing print behavior).
-    auto item_disable_fins_safe_temp = create_item_checkbox(
-        _L("Disable fin extrude safe temperature"), scrolled,
-        _L("When enabled, the fin extrude safe temperature constraint is bypassed. The value is exposed to custom G-code as disable_fins_extrude_safe_temp."), 50,
-        "disable_fins_extrude_safe_temp");
-    sizer->Add(item_disable_fins_safe_temp, flags); // [refactor-review]
-
     scrolled->SetSizer(sizer);
     scrolled->FitInside();
     return scrolled;
