@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-10 15:51+0800\n"
+"POT-Creation-Date: 2026-07-12 18:22+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3819,6 +3819,9 @@ msgstr "Påminnelse: parametrar ändrade, klicka på Verkställ för att det ska
 
 msgid "Filament Mapping"
 msgstr "Filamentmappning"
+
+msgid "Reset filament mapping to the state before one-click mixing"
+msgstr ""
 
 msgid "Choose the one-click auto-mix mode for texture color import"
 msgstr ""
@@ -9284,7 +9287,8 @@ msgid ""
 "- \"Load 3MF\" dialog settings\n"
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
-"- Unsaved projects."
+"- Unsaved projects.\n"
+"- Mixed color sublayer with variable layer height warning"
 msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
