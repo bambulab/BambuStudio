@@ -56,7 +56,7 @@ void DropDown::Create(wxWindow *parent, long style)
 {
     PopupWindow::Create(parent, wxPU_CONTAINS_CONTROLS);
     SetBackgroundStyle(wxBG_STYLE_PAINT);
-    SetBackgroundColour(*wxWHITE);
+    SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     state_handler.attach({&border_color, &text_color, &selector_border_color, &selector_background_color});
     state_handler.update_binds();
     if ((style & DD_NO_CHECK_ICON) == 0)
@@ -206,8 +206,8 @@ static void _DrawSplitItem(const wxWindow* w, wxDC& dc, wxString split_text, wxP
     // save dc
     auto pre_clr = dc.GetTextForeground();
     auto pre_pen = dc.GetPen();
-    dc.SetTextForeground(wxColour(172, 172, 172));//GRAY 500
-    dc.SetPen(wxColour(166, 169, 170));//GRAY 400
+    dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(172, 172, 172)));
+    dc.SetPen(StateColor::darkModeColorFor(wxColour(166, 169, 170)));
     // miner font
     auto font = w->GetFont();
     font.SetPointSize(font.GetPointSize() - 3);
@@ -384,10 +384,14 @@ void DropDown::render(wxDC &dc)
             pt.x += size2.x + 5;
             pt.y = rcContent.y;
         }
+        // When the icon is a full-row pre-rendered bitmap (height >= row height),
+        // it already contains all text; skip drawing text on top to avoid duplicates.
+        const bool icon_fills_row = !is_top_level_group && icon.IsOk()
+                                    && size2.y >= rowSize.y - 10;
         auto text = group.IsEmpty()
                         ? (item.group.IsEmpty() ? item.text : item.group)
                         : (item.text.StartsWith(group) && !group.EndsWith(' ') ? item.text.substr(group.size()).Trim(false) : item.text);
-        if (!text_off && !text.IsEmpty()) {
+        if (!text_off && !text.IsEmpty() && !icon_fills_row) {
             wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > rcContent.GetRight()) {
                 if (is_hover && item.tip.IsEmpty())
@@ -509,7 +513,11 @@ void DropDown::messureSize()
             if (size2.x > iconSize.x)
                 iconSize = size2;
             if (!align_icon) {
-                size1.x += size2.x + (text_off ? 0 : 5);
+                // Full-row bitmap (icon height >> text height): width = bitmap width only.
+                if (size2.y > size1.y * 2)
+                    size1.x = size2.x;
+                else
+                    size1.x += size2.x + (text_off ? 0 : 5);
             }
         }
         if (size1.x > textSize.x) textSize = size1;

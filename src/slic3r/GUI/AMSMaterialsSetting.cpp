@@ -19,15 +19,14 @@
 #include "DeviceCore/DevFilaBlackList.h"
 #include "DeviceCore/DevFilaSystem.h"
 
-#include <algorithm>
-#include <cmath>
-
 #include "fila_manager/wgtFilaManagerStore.h"
 #include "fila_manager/wgtFilaManagerCloudDispatcher.h"
 #include "Widgets/Label.hpp"
 
 #include <wx/dcmemory.h>
 #include <wx/graphics.h>
+#include <algorithm>
+#include <cmath>
 
 #define FILAMENT_MAX_TEMP       300
 #define FILAMENT_MIN_TEMP       120
@@ -229,11 +228,7 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 
     m_sizer_filament->Add(0, 0, 0, wxEXPAND, 0);
 
-#ifdef __APPLE__
-    m_comboBox_filament = new wxComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
-#else
     m_comboBox_filament = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
-#endif
 
     m_sizer_filament->Add(m_comboBox_filament, 1, wxALIGN_CENTER, 0);
 
@@ -866,6 +861,29 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
                                            tray_colors, tray_ctype);
     }
 
+    // Optimistic local update: write the new color into the tray object immediately
+    // so the AMS view refreshes on the next 1-second timer tick without waiting for
+    // the MQTT ACK round-trip (typically 1–3 s on cloud connections).
+    if (ams_id != 255) {
+        if (auto* ams_obj = obj->GetFilaSystem()->GetAmsById(std::to_string(ams_id))) {
+            auto tray_it = ams_obj->GetTrays().find(std::to_string(slot_id));
+            if (tray_it != ams_obj->GetTrays().end() && tray_it->second) {
+                DevAmsTray* tray = tray_it->second;
+                tray->color = tray_color;
+                tray->cols  = tray_colors;
+                tray->ctype = static_cast<DevFilaColorType>(tray_ctype);
+                tray->set_hold_count();
+            }
+        }
+    } else if (!obj->vt_slot.empty()) {
+        // virtual tray (ams_id == 255)
+        DevAmsTray& vt = obj->vt_slot[0];
+        vt.color = tray_color;
+        vt.cols  = tray_colors;
+        vt.ctype = static_cast<DevFilaColorType>(tray_ctype);
+        vt.set_hold_count();
+    }
+
     //reset param
     wxString k_text = m_input_k_val->GetTextCtrl()->GetValue();
     wxString n_text = m_input_n_val->GetTextCtrl()->GetValue();
@@ -1047,6 +1065,9 @@ void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event)
     if(!m_is_third)
         return;
 
+    if (!m_selected_spool_id.empty())
+        return;
+
     if (obj->is_in_printing() || obj->can_resume()) {
         if (!obj->is_support_filament_setting_inprinting) {
             return;
@@ -1125,6 +1146,11 @@ static wxColour _parse_hex_color(const std::string& hex)
     return c.IsOk() ? c : wxColour(0x63, 0x63, 0x63);
 }
 
+// ---------------------------------------------------------------------------
+// Helpers for the two-section grouped ComboBox (Filament Manager + System
+// presets).
+// ---------------------------------------------------------------------------
+
 // colors[] with precedence over single color_code.
 static std::vector<wxColour> _spool_colors(const Slic3r::GUI::FilamentSpool& sp)
 {
@@ -1151,11 +1177,13 @@ static wxBitmap _make_spool_color_chip(wxWindow* ctx, const Slic3r::GUI::Filamen
     const double radius = std::max(2.0, std::round(size_px / 6.0));
 
     wxBitmap bmp(size_px, size_px);
-#ifdef __WXOSX__
+    
+#if defined(__WXMSW__) || defined(__WXOSX__)
     bmp.UseAlpha();
 #endif
+
     wxMemoryDC dc(bmp);
-    dc.SetBackground(wxBrush(*wxWHITE));
+    dc.SetBackground(*wxTRANSPARENT_BRUSH);
     dc.Clear();
 
     wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
@@ -1273,7 +1301,8 @@ static wxBitmap _render_spool_row_bitmap(wxWindow* ctx,
     bmp.UseAlpha();
 #endif
     wxMemoryDC dc(bmp);
-    dc.SetBackground(wxBrush(*wxWHITE));
+    const bool dark_row = wxGetApp().dark_mode();
+    dc.SetBackground(wxBrush(dark_row ? wxColour(0x2D, 0x2D, 0x31) : *wxWHITE));
     dc.Clear();
     dc.SetPen(*wxTRANSPARENT_PEN);
 
@@ -1302,7 +1331,8 @@ static wxBitmap _render_spool_row_bitmap(wxWindow* ctx,
 
     // Name
     dc.SetFont(name_font);
-    dc.SetTextForeground(dimmed ? wxColour(0xB0, 0xB0, 0xB0) : wxColour(0x26, 0x2E, 0x30));
+    dc.SetTextForeground(dimmed ? wxColour(0xB0, 0xB0, 0xB0)
+                                : (dark_row ? wxColour(0xE5, 0xE5, 0xE6) : wxColour(0x26, 0x2E, 0x30)));
     wxString name = _spool_display_name(sp);
     if (dc.GetTextExtent(name).GetWidth() > text_max_w)
         name = wxControl::Ellipsize(name, dc, wxELLIPSIZE_END, text_max_w);
@@ -1329,7 +1359,7 @@ static wxBitmap _render_spool_row_bitmap(wxWindow* ctx,
     if (dimmed) {
         if (wxGraphicsContext* gc = wxGraphicsContext::Create(dc)) {
             gc->SetPen(*wxTRANSPARENT_PEN);
-            gc->SetBrush(wxBrush(wxColour(255, 255, 255, 140)));
+            gc->SetBrush(wxBrush(dark_row ? wxColour(0, 0, 0, 100) : wxColour(255, 255, 255, 140)));
             gc->DrawRectangle(0, 0, total_w, total_h);
             delete gc;
         }
@@ -1339,7 +1369,6 @@ static wxBitmap _render_spool_row_bitmap(wxWindow* ctx,
     return bmp;
 }
 
-#ifndef __APPLE__
 
 // Fill `combo` with a two-section grouped layout:
 //
@@ -1414,6 +1443,7 @@ static void _populate_filament_combobox_grouped(
     std::map<wxString, std::vector<Slic3r::GUI::FilamentSpool>> lib_brand_to_spools;
     std::vector<Slic3r::GUI::FilamentSpool> unsupported_spools;
     if (auto* store = wxGetApp().fila_manager_store()) {
+        BOOST_LOG_TRIVIAL(info) << "[AMSMaterialsSetting] fila_manager_store spool count=" << store->all_spool_ids().size();
         const auto* bundle = wxGetApp().preset_bundle;
         for (const auto& spool_id : store->all_spool_ids()) {
             const Slic3r::GUI::FilamentSpool* sp = store->get_spool(spool_id);
@@ -1450,8 +1480,8 @@ static void _populate_filament_combobox_grouped(
     combo->Clear();
 
     // Section 1
-    if (!ordered_lib_brands.empty()) {
-        combo->Append(_L("Filament Manager"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM);
+    combo->Append(_L("Filament Manager"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM);
+    if (!ordered_lib_brands.empty() || !unsupported_spools.empty()) {
         const int row_width = std::min(
             std::max(combo->GetSize().GetWidth(), combo->FromDIP(260)),
             combo->FromDIP(360)
@@ -1464,7 +1494,10 @@ static void _populate_filament_combobox_grouped(
                 bool note_truncated = false;
                 wxBitmap row_bmp = _render_spool_row_bitmap(combo, sp, row_width, sp.in_printer, &note_truncated);
                 const int spool_style = sp.in_printer ? DD_ITEM_STYLE_DISABLED : 0;
-                int idx = combo->Append(wxEmptyString, row_bmp, group_key, nullptr, spool_style);
+                wxString spool_display_text = _spool_display_name(sp);
+                if (!sp.color_name.empty())
+                    spool_display_text += " " + wxString::FromUTF8(sp.color_name);
+                int idx = combo->Append(spool_display_text, row_bmp, group_key, nullptr, spool_style);
                 if (idx >= 0) {
                     if (out_idx_to_spool_id)
                         (*out_idx_to_spool_id)[idx] = sp.spool_id;
@@ -1482,8 +1515,18 @@ static void _populate_filament_combobox_grouped(
                         tip = dev_display.empty()
                             ? _L("In printer")
                             : wxString::Format(_L("In printer: %s"), dev_display);
-                        if (!sp.slot_id.empty())
-                            tip += wxString::Format(", Slot %s", wxString::FromUTF8(sp.slot_id));
+                        if (!sp.slot_id.empty()) {
+                            wxString slot_label;
+                            if (sp.ams_id >= 0) {
+                                try {
+                                    int tray_id = sp.ams_id * 4 + std::stoi(sp.slot_id);
+                                    slot_label = wxGetApp().transition_tridid(tray_id);
+                                } catch (...) {}
+                            }
+                            if (slot_label.empty())
+                                slot_label = wxString::FromUTF8(sp.slot_id);
+                            tip += wxString::Format(", %s", slot_label);
+                        }
                     }
                     if (note_truncated && !sp.note.empty()) {
                         if (!tip.empty()) tip += "\n";
@@ -1500,7 +1543,10 @@ static void _populate_filament_combobox_grouped(
             const bool is_unsupported = true;
             wxBitmap row_bmp = _render_spool_row_bitmap(combo, sp, row_width, sp.in_printer || is_unsupported, &note_truncated);
             const int spool_style = DD_ITEM_STYLE_DISABLED;
-            int idx = combo->Append(wxEmptyString, row_bmp, unsupported_group, nullptr, spool_style);
+            wxString unsupported_display_text = _spool_display_name(sp);
+            if (!sp.color_name.empty())
+                unsupported_display_text += " " + wxString::FromUTF8(sp.color_name);
+            int idx = combo->Append(unsupported_display_text, row_bmp, unsupported_group, nullptr, spool_style);
             if (idx >= 0) {
                 wxString tip;
                 if (sp.in_printer) {
@@ -1516,8 +1562,18 @@ static void _populate_filament_combobox_grouped(
                     tip = dev_display.empty()
                         ? _L("In printer")
                         : wxString::Format(_L("In printer: %s"), dev_display);
-                    if (!sp.slot_id.empty())
-                        tip += wxString::Format(", Slot %s", wxString::FromUTF8(sp.slot_id));
+                    if (!sp.slot_id.empty()) {
+                        wxString slot_label;
+                        if (sp.ams_id >= 0) {
+                            try {
+                                int tray_id = sp.ams_id * 4 + std::stoi(sp.slot_id);
+                                slot_label = wxGetApp().transition_tridid(tray_id);
+                            } catch (...) {}
+                        }
+                        if (slot_label.empty())
+                            slot_label = wxString::FromUTF8(sp.slot_id);
+                        tip += wxString::Format(", %s", slot_label);
+                    }
                 }
                 if (note_truncated && !sp.note.empty()) {
                     if (!tip.empty()) tip += "\n";
@@ -1528,7 +1584,11 @@ static void _populate_filament_combobox_grouped(
             }
         }
         if (unsupported_spools.empty())
-            combo->Append(wxEmptyString, wxNullBitmap, unsupported_group, nullptr, 0);
+            combo->Append(_L("No unsupported filaments"),
+                          wxNullBitmap, unsupported_group, nullptr, DD_ITEM_STYLE_DISABLED);
+    } else {
+        combo->Append(_L("No filaments"),
+                      wxNullBitmap, wxEmptyString, nullptr, DD_ITEM_STYLE_DISABLED);
     }
 
     // Section 2
@@ -1541,12 +1601,11 @@ static void _populate_filament_combobox_grouped(
                 }
             }
 }
-#endif // !__APPLE__
 
 static void _collect_filament_info(const wxString& shown_name,
                                    const Preset& filament,
-                                   unordered_map<wxString, wxString>& query_filament_vendors,
-                                   unordered_map<wxString, wxString>& query_filament_types)
+                                   std::unordered_map<wxString, wxString>& query_filament_vendors,
+                                   std::unordered_map<wxString, wxString>& query_filament_types)
 {
     query_filament_vendors[shown_name] = filament.config.get_filament_vendor();
     query_filament_types[shown_name] = filament.config.get_filament_type();
@@ -1731,42 +1790,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         //m_button_confirm->Show();
     }
 
-#ifdef __APPLE__
-    // macOS uses native wxComboBox — keep the original flat sorted list.
-    {
-        static std::vector<wxString> sorted_vendors { "Bambu Lab", "Generic" };
-        static std::vector<wxString> sorted_types { "PLA", "PETG", "ABS", "TPU" };
-        auto _filament_sorter = [&query_filament_vendors, &query_filament_types](const wxString& left, const wxString& right) -> bool
-        {
-            {
-                const std::vector<std::string>& sorted_names = get_filament_orders();
-                const auto& iter1 = std::find(sorted_names.cbegin(), sorted_names.cend(), left);
-                const auto& iter2 = std::find(sorted_names.cbegin(), sorted_names.cend(), right);
-                if (iter1 != iter2) return std::distance(iter1, iter2) > 0;
-            }
-            {
-                auto iter1 = std::find(sorted_vendors.begin(), sorted_vendors.end(), query_filament_vendors[left]);
-                auto iter2 = std::find(sorted_vendors.begin(), sorted_vendors.end(), query_filament_vendors[right]);
-                if (iter1 != iter2) return iter1 < iter2;
-            }
-            {
-                auto iter1 = std::find(sorted_types.begin(), sorted_types.end(), query_filament_types[left]);
-                auto iter2 = std::find(sorted_types.begin(), sorted_types.end(), query_filament_types[right]);
-                if (iter1 != iter2) return iter1 < iter2;
-            }
-            return left < right;
-        };
-        std::sort(filament_items.begin(), filament_items.end(), _filament_sorter);
-    }
 
-    int selection_idx = -1;
-    for (int i = 0; i < (int)filament_items.size(); i++) {
-        if (hint_filament_name == filament_items[i]) { selection_idx = i; break; }
-    }
-
-    m_comboBox_filament->Set(filament_items);
-    m_comboBox_filament->SetSelection(selection_idx);
-#else
     // Windows/Linux: two-section grouped layout ── Filament Manager / System presets.
     // _populate_filament_combobox_grouped fills the ComboBox directly; the
     // caller (on_select_filament) uses map_filament_items[GetValue()] to look
@@ -1787,16 +1811,18 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     // back to -1 and the color picker is never updated from the spool data.
     int selection_idx = -1;
     if (auto tray_opt = obj->get_tray(std::to_string(ams_id), std::to_string(slot_id))) {
-        const std::string& tag_uid = tray_opt->tag_uid;
-        if (!tag_uid.empty()) {
-            auto* store = wxGetApp().fila_manager_store();
-            const FilamentSpool* sp = store ? store->find_by_tag_uid(tag_uid) : nullptr;
-            if (sp) {
-                for (const auto& kv : m_combo_idx_to_spool_id) {
-                    if (kv.second == sp->spool_id) {
-                        selection_idx = kv.first;
-                        break;
-                    }
+        auto* store = wxGetApp().fila_manager_store();
+        const FilamentSpool* sp = nullptr;
+        // Prefer exact RFID match; fall back to setting_id+color for cloud-only spools.
+        if (!tray_opt->tag_uid.empty() && store)
+            sp = store->find_by_tag_uid(tray_opt->tag_uid);
+        if (!sp && store && !tray_opt->setting_id.empty())
+            sp = store->find_by_setting_and_color(tray_opt->setting_id, tray_opt->color);
+        if (sp) {
+            for (const auto& kv : m_combo_idx_to_spool_id) {
+                if (kv.second == sp->spool_id) {
+                    selection_idx = kv.first;
+                    break;
                 }
             }
         }
@@ -1811,11 +1837,19 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         }
     }
     m_comboBox_filament->SetSelection(selection_idx);
-#endif
+
     post_select_event(selection_idx);
 
     if (selection_idx < 0) {
         m_comboBox_filament->SetValue(wxEmptyString);
+    }
+
+    // Synchronously set the colour picker's editable state so it is correct
+    // before ShowModal() paints the dialog — don't rely on the async posted event.
+    {
+        const bool is_spool = (selection_idx >= 0 &&
+                               m_combo_idx_to_spool_id.count(selection_idx) > 0);
+        m_clr_picker->Enable(!is_spool);
     }
 
     // Set the flag whether to open the filament setting dialog from the device page
@@ -2213,6 +2247,8 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         auto it = m_combo_idx_to_spool_id.find(m_filament_selection);
         m_selected_spool_id = (it != m_combo_idx_to_spool_id.end()) ? it->second : std::string{};
     }
+    // Color is owned by the filament manager spool — disable editing.
+    m_clr_picker->Enable(m_selected_spool_id.empty());
 
     //reset cali
     int cali_select_idx = -1;
@@ -2262,18 +2298,17 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                 m_filament_type = fila_info->filament_type;
             }
             // Use spool's stored color (user-recorded), not preset default.
-            // FilamentSpool stores colors as "#RRGGBB" (with leading #); wxColour
-            // accepts that directly. DevAmsTray::decode_color expects bare hex and
-            // would prepend another '#', producing invalid "##RRGGBB" — don't use it.
+            // Use _parse_hex_color to tolerate both "#RRGGBB" and bare "RRGGBB"
+            // storage formats, since cloud/AMS sync paths may omit the '#' prefix.
             set_ctype(sp->color_type);
             if (!sp->colors.empty()) {
                 std::vector<wxColour> cols;
                 cols.reserve(sp->colors.size());
                 for (const auto& hex : sp->colors)
-                    cols.push_back(wxColour(wxString::FromUTF8(hex)));
+                    cols.push_back(_parse_hex_color(hex));
                 set_colors(cols);
             } else if (!sp->color_code.empty()) {
-                set_color(wxColour(wxString::FromUTF8(sp->color_code)));
+                set_color(_parse_hex_color(sp->color_code));
             }
         }
         // Skip the generic GetValue()-keyed lookup below — it won't find anything
@@ -2420,6 +2455,9 @@ void ColorPicker::set_color(wxColour col)
         transparent_changed = true;
     }
     m_colour = col;
+    // Keep m_cols in sync so doRender's `m_cols.size() > 1` branch does not
+    // paint a stale multi-color pie after switching to a single-color spool.
+    m_cols = { col };
     Refresh();
 }
 
@@ -2979,9 +3017,9 @@ void AMSNewOfficialFilamentDlg::create()
         m_radio_skip         ->SetValue(chosen == m_radio_skip);
         const bool show_combo = (chosen == m_radio_link_existing);
         GetSizer()->Show(m_combo_row, show_combo, true);
-        // Confirm is enabled only when: not in link mode, or a spool is selected
+        // Confirm is enabled only when: not in link mode, or a real spool is selected
         m_btn_confirm->Enable(chosen != m_radio_link_existing ||
-                              m_combo_link->GetSelection() >= 0);
+                              m_combo_idx_to_spool_id.count(m_combo_link->GetSelection()) > 0);
         Layout();
         Fit();
     };
@@ -3130,6 +3168,11 @@ void AMSNewOfficialFilamentDlg::populate_link_combo()
     const int row_width = std::max(
         m_combo_link->GetSize().GetWidth() - check_reserve,
         m_combo_link->FromDIP(230));
+
+    if (candidates.empty()) {
+        m_combo_link->Append(_L("No matching filament"), wxNullBitmap, DD_ITEM_STYLE_DISABLED);
+        return;
+    }
 
     for (const auto& sp : candidates) {
         bool note_truncated = false;

@@ -645,7 +645,7 @@ nlohmann::json FilamentManagerVM::HandleColors(const std::string& action, const 
             nlohmann::json hex_arr = nlohmann::json::array();
             for (const auto& c : fc.m_colors) {
                 hex_arr.push_back(
-                    wxString::Format("#%02X%02X%02X", c.Red(), c.Green(), c.Blue()).utf8_string());
+                    wxString::Format("#%02X%02X%02X%02X", c.Red(), c.Green(), c.Blue(), c.Alpha()).utf8_string());
             }
             item["colors"] = hex_arr;
             arr.push_back(item);
@@ -950,6 +950,10 @@ nlohmann::json FilamentManagerVM::build_ams_data()
                     for (auto& [slot_id, tray] : ams->GetTrays()) {
                         nlohmann::json t;
                         t["slot_id"]   = slot_id;
+                        {
+                            int tray_id = std::stoi(ams_id) * 4 + std::stoi(slot_id);
+                            t["tray_label"] = wxGetApp().transition_tridid(tray_id).ToStdString();
+                        }
                         t["is_exists"] = tray && tray->is_exists;
                         if (tray && tray->is_exists) {
                             t["tag_uid"]    = normalize_ams_rfid_for_web(tray->uuid, tray->tag_uid);

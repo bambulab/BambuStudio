@@ -229,11 +229,7 @@ protected:
     int m_pa_cali_select_id = 0;
     bool m_pa_data_pending{false};
 
-#ifdef __APPLE__
-    wxComboBox *m_comboBox_filament;
-#else
     ComboBox *m_comboBox_filament;
-#endif
     ComboBox * m_comboBox_nozzle_type;
     ComboBox * m_comboBox_cali_result;
     TextInput*       m_readonly_filament;

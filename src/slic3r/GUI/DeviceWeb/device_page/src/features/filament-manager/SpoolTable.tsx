@@ -432,7 +432,7 @@ export function SpoolTable({
                                   <span data-testid="filament-row-color-hex" className="font-mono tracking-wider truncate">{hexLabel}</span>
                                 )}
                                 {s.in_printer === true && (() => {
-                                  const loc = formatSlotLocation(s.device_name, s.ams_type, s.slot_id, t);
+                                  const loc = formatSlotLocation(s.device_name, s.ams_type, s.slot_id, t, s.tray_label);
                                   if (!loc) return null;
                                   return (
                                     <>

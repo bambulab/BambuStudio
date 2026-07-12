@@ -1,5 +1,6 @@
 #include "wgtFilaManagerStore.h"
 #include "libslic3r/Utils.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
@@ -74,7 +75,14 @@ nlohmann::json FilamentSpool::to_json() const
         {"ams_id",          ams_id},
         {"ams_type",        ams_type},
         {"slot_id",         slot_id},
-        {"device_name",     device_name}
+        {"device_name",     device_name},
+        {"tray_label",      [this]() -> std::string {
+            if (ams_id < 0 || slot_id.empty()) return {};
+            try {
+                int tray_id = ams_id * 4 + std::stoi(slot_id);
+                return wxGetApp().transition_tridid(tray_id).ToStdString();
+            } catch (...) { return {}; }
+        }()}
     };
 }
 
@@ -384,6 +392,7 @@ bool wgtFilaManagerStore::apply_mount_diff(
                 && s.ams_id      == u.ams_id
                 && s.ams_type    == u.ams_type
                 && s.slot_id     == u.slot_id
+                && s.ams_sn      == u.ams_sn
                 && s.device_name == dev_name;
             if (!same_state) {
                 s.in_printer  = true;
@@ -392,7 +401,7 @@ bool wgtFilaManagerStore::apply_mount_diff(
                 s.ams_id      = u.ams_id;
                 s.ams_type    = u.ams_type;
                 s.slot_id     = u.slot_id;
-                // ams_sn: 本期留空串，后续 PR 从 get_version 响应接入
+                s.ams_sn      = u.ams_sn;
                 changed = true;
                 if (out_changed_ids) out_changed_ids->push_back(id);
             }

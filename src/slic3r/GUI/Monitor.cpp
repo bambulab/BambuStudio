@@ -30,6 +30,7 @@
 #include "BindDialog.hpp"
 
 #include "DeviceCore/DevManager.h"
+#include "fila_manager/wgtFilaManagerCloudDispatcher.h"
 
 namespace Slic3r {
 namespace GUI {
@@ -468,6 +469,13 @@ bool MonitorPanel::Show(bool show)
                 dev->load_last_machine();
             } else {
                 obj->reset_update_time();
+            }
+        }
+
+        if (m_first_enter) {
+            m_first_enter = false;
+            if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
+                disp->enqueue_pull();
             }
         }
     } else {

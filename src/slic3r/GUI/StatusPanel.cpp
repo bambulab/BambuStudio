@@ -5091,7 +5091,20 @@ static nlohmann::json build_ams_tray_batch_create(DevAmsTray* tray,
     if (!tray->cols.empty()) spool["colors"] = tray->cols;
     spool["color_type"]    = static_cast<int>(tray->ctype);
     spool["material_type"] = tray->m_fila_type;
-    spool["brand"]         = tray->sub_brands;
+    // tray->sub_brands holds the SERIES name (e.g. "PLA Silk"), not the brand.
+    // Resolve the actual vendor name from the preset bundle via filament_id.
+    {
+        std::string brand;
+        if (!tray->setting_id.empty()) {
+            if (auto* bundle = wxGetApp().preset_bundle) {
+                auto info = bundle->get_filament_by_filament_id(tray->setting_id);
+                if (info.has_value())
+                    brand = info->vendor;
+            }
+        }
+        spool["brand"]  = brand;
+        spool["series"] = tray->sub_brands;
+    }
     spool["entry_method"]  = "ams_sync";
     spool["bound_dev_id"]  = obj->get_dev_id();
     spool["bound_ams_id"]  = ams_id;
@@ -5121,10 +5134,10 @@ void StatusPanel::on_new_official_filament_hint(wxCommandEvent &event)
 
     int rc = m_new_official_filament_dlg->ShowModal();
     if (rc == wxID_OK) {
+        m_ams_control->dismiss_filament_hint(ams_id, slot_id);
         auto choice = m_new_official_filament_dlg->GetChoice();
         if (choice == AMSNewOfficialFilamentDlg::Choice::RecordNew ||
             choice == AMSNewOfficialFilamentDlg::Choice::LinkExisting) {
-            m_ams_control->dismiss_filament_hint(ams_id, slot_id);
 
             auto* mf = wxGetApp().mainframe;
             if (mf && mf->web_device() && obj) {

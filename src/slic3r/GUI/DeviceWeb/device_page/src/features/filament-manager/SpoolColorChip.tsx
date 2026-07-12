@@ -46,7 +46,12 @@
 //     light-theme white surface without darkening the dark-theme look.
 
 import type { CSSProperties, ReactElement } from 'react';
-import { canonicalizeHex, canonicalizeHexList } from './colors';
+import {
+  canonicalizeHex,
+  canonicalizeHexList,
+  isTransparentRenderInput,
+  TRANSPARENT_CHECKERED_BG,
+} from './colors';
 
 export interface SpoolColorChipProps {
   /** Single-color fallback hex (matches FilamentSpool.color_code). */
@@ -163,8 +168,21 @@ export function SpoolColorChip({
       />
     );
   } else {
-    // Single colour.
-    const single = hexList[0] || fallback;
+    // Single colour. When the colour is fully transparent (alpha byte == 0
+    // in `#RRGGBBAA`, e.g. Bambu PC "Transparent" / PETG "Clear"
+    // `#00000000`), render a checkered pattern so the chip reads as "no
+    // colour / clear" rather than as solid black (which is what #000000
+    // would display after canonicalisation drops the alpha byte).
+    //
+    // A single-colour spool carries its hex in `colorCode` with an EMPTY
+    // `colors` array, so the check must consult both sources — earlier it
+    // only looked at `colors[0]` and transparent single spools fell through
+    // to `#000000` (black).
+    const transparent = isTransparentRenderInput({
+      hexes: colors,
+      primaryHex: colorCode,
+    });
+    const single = transparent ? TRANSPARENT_CHECKERED_BG : (hexList[0] || fallback);
     chipEl = (
       <span
         className="inline-block shrink-0"

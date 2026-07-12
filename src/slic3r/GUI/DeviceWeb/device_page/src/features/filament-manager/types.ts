@@ -37,6 +37,7 @@ export interface Spool {
   ams_id?: number;      // -1 = 未挂载
   ams_type?: number;    // -1 = 未挂载
   slot_id?: string;
+  tray_label?: string;
   device_name?: string;
 }
 

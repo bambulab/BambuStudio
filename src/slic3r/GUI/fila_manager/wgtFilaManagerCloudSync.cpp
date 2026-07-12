@@ -939,4 +939,70 @@ void wgtFilaManagerCloudSync::fetch_filament_config(
         });
 }
 
+void wgtFilaManagerCloudSync::sync_ams_to_cloud(
+    const std::string& dev_id, const std::vector<std::string>& spool_ids)
+{
+    if (spool_ids.empty() || !m_client) {
+        BOOST_LOG_TRIVIAL(info)
+            << "[FilaCloudSync] sync_ams_to_cloud early-return: dev=" << dev_id
+            << " spool_ids_empty=" << spool_ids.empty()
+            << " client_null=" << (!m_client);
+        return;
+    }
+
+    BBL::AmsSyncParams params;
+    params.devId = dev_id;
+
+    for (const auto& sid : spool_ids) {
+        const FilamentSpool* s = m_store->get_spool(sid);
+        if (!s) {
+            BOOST_LOG_TRIVIAL(info)
+                << "[FilaCloudSync] sync_ams_to_cloud: skip sid=" << sid
+                << " reason=spool_not_found";
+            continue;
+        }
+
+        BBL::AmsSyncItem item;
+        item.RFID           = s->tag_uid;
+        item.filamentVendor = s->brand;
+        item.filamentType   = s->material_type;
+        item.filamentName   = s->series;
+        item.filamentId     = s->setting_id;
+        item.trayIdName     = s->tray_id_name;
+        item.color          = s->color_code;
+        item.colorType      = s->color_type >= 0 ? s->color_type : 0;
+        item.colors         = s->colors;
+        item.netWeight      = static_cast<int>(std::round(s->net_weight));
+        item.totalNetWeight = static_cast<int>(s->effective_total_net_weight());
+        item.note           = s->note;
+
+        if (s->in_printer) {
+            item.amsSn   = s->ams_sn;
+            item.slotId  = s->slot_id;
+            item.amsId   = s->ams_id   >= 0 ? s->ams_id   : 0;
+            item.amsType = s->ams_type >= 0 ? s->ams_type : 0;
+        } else {
+            BOOST_LOG_TRIVIAL(trace)
+                << "[FilaCloudSync] sync_ams_to_cloud: unplug event, sid=" << sid;
+            item.amsSn   = "";
+            item.slotId  = "";
+            item.amsId   = 0;
+            item.amsType = 0;
+        }
+
+        item.createNew = false;
+        params.items.push_back(std::move(item));
+    }
+
+    if (params.items.empty()) return;
+
+    m_client->sync_ams(std::move(params),
+        [](const nlohmann::json&) {},
+        [dev_id](int code, const std::string& msg) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "[FilaCloudSync] sync_ams_to_cloud failed: dev=" << dev_id
+                << " code=" << code << " msg=" << msg;
+        });
+}
+
 }} // namespace Slic3r::GUI

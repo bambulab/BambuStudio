@@ -14,6 +14,7 @@ struct MountUpdate {
     int         ams_id   = -1;
     int         ams_type = -1;
     std::string slot_id;
+    std::string ams_sn;
 };
 
 struct FilamentSpool {

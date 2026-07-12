@@ -13,12 +13,15 @@ export {
   canonicalizeHexList,
   hexEqual,
   hexMultisetKey,
+  isTransparentHex,
 } from './hex';
 
 export {
   cssBackgroundFor,
   hexLabelFor,
   colorNameWithHexLabel,
+  TRANSPARENT_CHECKERED_BG,
+  isTransparentRenderInput,
 } from './render';
 export type { ColorRenderInput } from './render';
 

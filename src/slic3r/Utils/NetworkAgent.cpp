@@ -138,6 +138,7 @@ func_get_model_mall_rating_result   NetworkAgent::get_model_mall_rating_result_p
 func_get_mw_user_preference         NetworkAgent::get_mw_user_preference_ptr = nullptr;
 func_get_mw_user_4ulist             NetworkAgent::get_mw_user_4ulist_ptr     = nullptr;
 func_get_hms_snapshot               NetworkAgent::get_hms_snapshot_ptr       = nullptr;
+func_sync_ams_filaments             NetworkAgent::sync_ams_filaments_ptr     = nullptr;
 
 NetworkAgent::NetworkAgent(std::string log_dir)
 {
@@ -389,7 +390,8 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
 
     get_mw_user_preference_ptr = reinterpret_cast<func_get_mw_user_preference>(get_network_function("bambu_network_get_mw_user_preference"));
     get_mw_user_4ulist_ptr     = reinterpret_cast<func_get_mw_user_4ulist>(get_network_function("bambu_network_get_mw_user_4ulist"));
-    get_hms_snapshot_ptr              = reinterpret_cast<func_get_hms_snapshot>(get_network_function("bambu_network_get_hms_snapshot"));
+    get_hms_snapshot_ptr       = reinterpret_cast<func_get_hms_snapshot>(get_network_function("bambu_network_get_hms_snapshot"));
+    sync_ams_filaments_ptr     = reinterpret_cast<func_sync_ams_filaments>(get_network_function("bambu_network_sync_ams_filaments"));
 
     return 0;
 }
@@ -518,6 +520,7 @@ int NetworkAgent::unload_network_module()
 
     get_mw_user_preference_ptr        = nullptr;
     get_mw_user_4ulist_ptr            = nullptr;
+    sync_ams_filaments_ptr            = nullptr;
 
     return 0;
 }
@@ -1536,6 +1539,18 @@ int NetworkAgent::get_hms_snapshot(std::string dev_id, std::string file_name, st
         ret = get_hms_snapshot_ptr(network_agent, dev_id, file_name, callback);
         if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
     }
+    return ret;
+}
+
+int NetworkAgent::sync_ams_filaments(AmsSyncParams params, std::string* http_body)
+{
+    if (!network_agent || !sync_ams_filaments_ptr) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
+            << network_agent << " func_ptr=" << (void*)sync_ams_filaments_ptr << ")";
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    }
+    int ret = sync_ams_filaments_ptr(network_agent, params, http_body);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") % network_agent % ret;
     return ret;
 }
 

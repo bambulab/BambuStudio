@@ -61,14 +61,17 @@ export function formatSlotLocation(
   deviceName: string | undefined,
   amsType: number | undefined,
   slotId: string | undefined,
-  t: (key: string, opts?: Record<string, unknown>) => string
+  t: (key: string, opts?: Record<string, unknown>) => string,
+  trayLabel?: string
 ): string | null {
   if (!deviceName) return null;
   const amsTypeName = amsType != null && amsType >= 0
     ? (AMS_TYPE_NAMES[amsType] ?? `AMS(${amsType})`)
     : null;
-  const slotLabel = slotId != null && slotId !== ''
-    ? t('Slot {{n}}', { n: Number(slotId) + 1 })
-    : null;
+  const slotLabel = trayLabel
+    ? trayLabel
+    : (slotId != null && slotId !== ''
+      ? t('Slot {{n}}', { n: Number(slotId) + 1 })
+      : null);
   return [deviceName, amsTypeName, slotLabel].filter(Boolean).join(' · ');
 }

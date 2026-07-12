@@ -245,4 +245,19 @@ void wgtFilaManagerCloudClient::get_filament_config(SuccessFn on_ok, ErrorFn on_
                            std::move(on_err));
 }
 
+void wgtFilaManagerCloudClient::sync_ams(
+    BBL::AmsSyncParams params, SuccessFn on_ok, ErrorFn on_err)
+{
+    if (!check_login(on_err)) return;
+
+    dispatch_agent_request("sync_ams",
+                           {{"method", "POST"}, {"dev_id", params.devId},
+                            {"item_count", (int) params.items.size()}},
+                           [params = std::move(params)](NetworkAgent* agent,
+                                                        std::string& response_body) mutable {
+                               return agent->sync_ams_filaments(params, &response_body);
+                           },
+                           std::move(on_ok), std::move(on_err));
+}
+
 }} // namespace Slic3r::GUI

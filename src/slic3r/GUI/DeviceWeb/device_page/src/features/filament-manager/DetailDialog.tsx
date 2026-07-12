@@ -146,7 +146,7 @@ export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onN
             <div className="text-xs text-fm-text-secondary opacity-70 leading-[19px]">
               {spool.diameter || 1.75} mm｜{spool.color_name || '—'}
               {spool.in_printer === true && (() => {
-                const loc = formatSlotLocation(spool.device_name, spool.ams_type, spool.slot_id, t);
+                const loc = formatSlotLocation(spool.device_name, spool.ams_type, spool.slot_id, t, spool.tray_label);
                 return loc ? <>｜{loc}</> : null;
               })()}
             </div>

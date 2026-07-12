@@ -77,6 +77,9 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
     // 避免"清空 → 重填"过程中前端观察到中间态导致跳变。
     std::map<std::string, MountUpdate> present_now;
 
+    // 从 get_version 报文缓存中取各 AMS 单元的序列号，key 为 ams_id 整数。
+    const auto ams_ver_map = obj->get_ams_version();
+
     // STUDIO-18155 / openspec 20260506 单 tray 处理逻辑：
     //   1. 过滤无 setting_id / tag_uid 的空槽
     //   2. match → 命中既有 store spool；未命中 → trace log 跳过（Q5）
@@ -113,6 +116,10 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         mu.ams_id   = ams_id_int;
         mu.ams_type = ams_type_int;
         mu.slot_id  = tray.id;
+        {
+            auto ver_it = ams_ver_map.find(ams_id_int);
+            mu.ams_sn = (ver_it != ams_ver_map.end()) ? ver_it->second.sn : "";
+        }
         present_now[matched->spool_id] = mu;
 
         // Q7：缺整卷净重的 spool 整条冻结。连本地 percent 都不刷，避免
@@ -191,28 +198,17 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         }
     }
 
-    // 在位字段单独变化（余量未变）的 spool → 单独推云端在位字段。
-    // 过滤掉已经在 changed 里的 spool（它们已随 notify_ams_synced 的 patch 一起推了）。
+    // 在位字段单独变化（余量未变）的 spool → 批量同步到云端（路径 B）。
+    // 路径 B 独立负责在位字段的云端同步，不被路径 A 过滤；两路允许并发推送
+    // 同一 spool（云端幂等，最后到达者覆盖）。
     if (!mount_changed_ids.empty()) {
-        if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
-            std::set<std::string> already_pushed;
-            for (const auto& c : changed) already_pushed.insert(c.spool_id);
+        if (auto* cloud = wxGetApp().fila_manager_cloud_sync()) {
+            BOOST_LOG_TRIVIAL(info)
+                << "[ams-sync] path B: dev=" << obj->get_dev_id()
+                << " mount_changed=" << mount_changed_ids.size()
+                << " -> CALL sync_ams_to_cloud";
 
-            for (const auto& sid : mount_changed_ids) {
-                if (already_pushed.count(sid)) continue;
-                const FilamentSpool* s = m_store->get_spool(sid);
-                if (!s) continue;
-                nlohmann::json patch = {
-                    {"in_printer",  s->in_printer},
-                    {"dev_id",      s->dev_id},
-                    {"ams_sn",      s->ams_sn},
-                    {"ams_id",      s->ams_id},
-                    {"ams_type",    s->ams_type},
-                    {"slot_id",     s->slot_id},
-                    {"device_name", s->device_name}
-                };
-                disp->enqueue_push_update(sid, patch);
-            }
+            cloud->sync_ams_to_cloud(obj->get_dev_id(), mount_changed_ids);
         }
     }
 
@@ -226,6 +222,9 @@ const FilamentSpool* wgtFilaManagerSync::match_tray(const DevAmsTray& tray)
     if (!tray.uuid.empty()) {
         auto* sp = m_store->find_by_tag_uid(tray.uuid);
         if (sp) return sp;
+        // 有效 UUID 但库里无匹配记录：该耗材未录入，不降级到 setting+color 模糊匹配，
+        // 避免将官方 RFID 耗材的在位信息错误写到仅类型/颜色相同的手动录入耗材上。
+        if (FilamentSpool::is_valid_tag_uid(tray.uuid)) return nullptr;
     }
     if (!tray.setting_id.empty()) {
         auto* sp = m_store->find_by_setting_and_color(tray.setting_id, tray.color);
