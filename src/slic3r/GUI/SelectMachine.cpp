@@ -6854,12 +6854,6 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
                     {suspect_engagement_warning_msg});
     }
 
-    wxString suspect_engagement_warning_msg;
-    if (!CheckWarningFilamentSuspectEngagement(obj_, suspect_engagement_warning_msg)) {
-        show_status(PrintDialogStatus::PrintStatusFilamentSuspectEngagementWarning,
-                    {suspect_engagement_warning_msg});
-    }
-
     return true;
 }
 
@@ -7127,25 +7121,6 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
     }
 
     return filaments_not_enough.empty();
-}
-
-bool SelectMachineDialog::CheckWarningPrintTimeEstimate(MachineObject* obj_, const std::vector<FilamentInfo>& ams_mapping_result)
-{
-    if (!obj_) return true;
-
-    for (const auto& fila : ams_mapping_result) {
-        if (fila.ams_id.empty() || devPrinterUtil::IsVirtualSlot(fila.ams_id))
-            continue;
-
-        if (DevAms* ams = obj_->GetFilaSystem()->GetAmsById(fila.ams_id)) {
-            DevAmsType ams_type = ams->GetAmsType();
-            if (ams_type != DevAmsType::AMS_LITE && ams_type != DevAmsType::AMS_LITE_MIXED) {
-                return false;
-            }
-        }
-    }
-
-    return true;
 }
 
 bool SelectMachineDialog::CheckWarningFilamentCrossExtruder(MachineObject* obj_, std::set<int>& cross_extruder_filament_ids)

@@ -164,6 +164,7 @@ public:
     int CtrlRackUpgradeRackNozzle(int rack_nozzle_id) const;;
     int CtrlRackUpgradeAll() const;;
     bool CtrlCanUpdateAll() const;
+#endif
 
 private:
     void ParseRackInfoV1_0(const nlohmann::json& rack_info);

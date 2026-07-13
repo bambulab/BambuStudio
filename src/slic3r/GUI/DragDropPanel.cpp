@@ -350,7 +350,7 @@ wxDragResult SeparatedColorDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult
 {
     if (!GetData()) return wxDragNone;
 
-    m_panel->AddColorBlock(m_data->GetColor(), m_data->GetType(), m_data->GetFilament(), nvtStandard);
+    m_panel->AddColorBlock(m_data->GetType(), m_data->GetFilament(), nvtStandard);
     return wxDragCopy;
 }
 
@@ -516,7 +516,7 @@ void SeparatedDragDropPanel::SetUseSeparation(bool use_separation)
             }
 
             for (auto &block : tpu_blocks) {
-                m_unified_panel->AddColorBlock(block->GetColor(), block->GetType(), block->GetFilamentId(), false);
+                m_unified_panel->AddColorBlock(block->GetType(), block->GetFilamentId(), false);
                 m_tpu_panel->RemoveColorBlock(block, false);
             }
         }
@@ -525,13 +525,13 @@ void SeparatedDragDropPanel::SetUseSeparation(bool use_separation)
     }
 }
 
-void SeparatedDragDropPanel::AddColorBlock(const wxColour &color, const std::string &type, int filament_id, NozzleVolumeType volume_type, bool update_ui)
+void SeparatedDragDropPanel::AddColorBlock(const std::string &type, int filament_id, NozzleVolumeType volume_type, bool update_ui)
 {
     if (m_use_separation) {
         if (volume_type == NozzleVolumeType::nvtHighFlow) {
-            m_high_flow_panel->AddColorBlock(color, type, filament_id, update_ui);
+            m_high_flow_panel->AddColorBlock(type, filament_id, update_ui);
         } else if (volume_type == NozzleVolumeType::nvtTPUHighFlow || volume_type == NozzleVolumeType::nvtTPU285) {
-            m_tpu_panel->AddColorBlock(color, type, filament_id, update_ui);
+            m_tpu_panel->AddColorBlock(type, filament_id, update_ui);
         } else {
             m_standard_panel->AddColorBlock(type, filament_id, update_ui);
         }

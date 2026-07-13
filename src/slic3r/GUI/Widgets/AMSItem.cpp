@@ -83,6 +83,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
         info.can_pannel_name = it->second->get_slot_name(obj);
         // tray is exists
         if (it != ams->GetTrays().end() && it->second->is_exists) {
+            info.is_exist = true;
             if (it->second->is_tray_info_ready()) {
                 info.can_id        = it->second->id;
                 info.ctype         = it->second->ctype;

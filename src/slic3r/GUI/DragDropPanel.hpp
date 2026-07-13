@@ -76,7 +76,7 @@ class SeparatedDragDropPanel : public wxPanel
 public:
     SeparatedDragDropPanel(wxWindow *parent, const wxString &label, bool use_separation = false);
 
-    void AddColorBlock(const wxColour &color, const std::string &type, int filament_id, NozzleVolumeType volume_type = nvtStandard, bool update_ui = true);
+    void AddColorBlock(const std::string &type, int filament_id, NozzleVolumeType volume_type = nvtStandard, bool update_ui = true);
     void RemoveColorBlock(ColorPanel *panel, bool update_ui = true);
 
     std::vector<int> GetAllFilaments() const;

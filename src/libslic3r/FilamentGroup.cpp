@@ -1099,7 +1099,7 @@ namespace Slic3r
             if (FGMode::MatchMode == ctx.group_info.mode)
                 return calc_filament_group_for_match(cost);
         }
-        catch (const FilamentGroupException& e) {
+        catch (const FilamentGroupException&) {
         }
 
         return calc_filament_group_for_flush(cost);
@@ -1426,8 +1426,8 @@ namespace Slic3r
         // overflows have_enough_size() and disables the per-nozzle capacity that spreads fixed nozzles.
         int group_cap = std::max(1, new_ctx.group_info.total_filament_num);
         new_ctx.machine_info.max_group_size.assign(new_ctx.machine_info.max_group_size.size(), group_cap);
-        FilamentGroupMultiNozzle fg(new_ctx);
-        return fg.calc_filament_group_by_pam();
+        FilamentGroup fg(new_ctx);
+        return fg.calc_filament_group_for_flush();
     }
 
     std::vector<FilamentPlanRes> plan_filament_nozzle_mapping_and_order(const FilamentGroupContext &ctx)

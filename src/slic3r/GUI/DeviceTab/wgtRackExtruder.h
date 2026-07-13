@@ -61,6 +61,7 @@ private:
     Label*          m_nozzle_diameter_label{ nullptr };
     Label*          m_nozzle_flowtype_label{ nullptr };
     wxStaticBitmap* m_toolhead_image{ nullptr };
+    wxString        m_toolhead_image_name;
 };
 
 } // namespace Slic3r::GUI

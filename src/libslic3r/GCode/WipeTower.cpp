@@ -1393,7 +1393,7 @@ public:
         return *this;
     }
 
-    WipeTowerWriter &format_line_M109(int target_temp, int target_extruder, const std::string &comment = std::string())
+    WipeTowerWriter &format_line_M109(int target_temp,int tool,const std::string &comment = std::string())
     {
         std::string buffer = "M109";
         if (!m_multi_nozzle_group_result)
@@ -3983,8 +3983,10 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
 
 WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block, int filament_id, bool extrude_fill)
 {
+    float filament_e_flow = m_layer_height * (m_perimeter_width - m_layer_height * (1.f - float(M_PI) / 4.f)) / m_filpar[filament_id].filament_area;
+
     WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
-    writer.set_extrusion_flow(m_extrusion_flow)
+    writer.set_extrusion_flow(filament_e_flow)
         .set_z(m_z_pos)
         .set_initial_tool(filament_id)
         .set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f));

@@ -118,6 +118,7 @@ enum NozzleFlowType : int
     S_FLOW,
     H_FLOW,
     U_FLOW, // TPU 1.75 High Flow
+    T_FLOW, // TPU 2.85
     E_FLOW, // E3D High Flow
 };
 /* 0.2mm  0.4mm  0.6mm 0.8mm */

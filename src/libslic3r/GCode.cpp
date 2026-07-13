@@ -1834,6 +1834,11 @@ bool GCode::is_BBL_Printer()
     return false;
 }
 
+std::string GCode::unretract(float extra_retract)
+{
+    return m_writer.unlift() + m_writer.unretract(extra_retract);
+}
+
 //BBS : get the plate model's projection on first layer, contain plate offset,unscaled data
 BoundingBoxf GCode::first_layer_projection(const Print& print) const
 {

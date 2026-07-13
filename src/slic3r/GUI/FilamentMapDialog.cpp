@@ -417,10 +417,10 @@ void FilamentMapDialog::make_body(
         default_auto_mode = modes_to_use.front();
 
     if (is_multi_nozzle_mode) {
-        m_manual_panel = new FilamentMapMultiNozzlePanel(this, m_filament_color, m_filament_type, filaments, m_filament_map, m_filament_volume_map);
+        m_manual_panel = new FilamentMapMultiNozzlePanel(this, m_filament_type, filaments, m_filament_map, m_filament_volume_map);
         SetTitle(_L("Set filament placement"));
     } else {
-        m_manual_panel = new FilamentMapManualPanel(this, m_filament_color, m_filament_type, filaments, m_filament_map, m_filament_volume_map);
+        m_manual_panel = new FilamentMapManualPanel(this, m_filament_type, filaments, m_filament_map, m_filament_volume_map);
     }
     m_manual_panel->Bind(wxEVT_INVALID_MANUAL_MAP, [this](wxCommandEvent &event) {
         if (m_page_type != PageType::ptManual) {

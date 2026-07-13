@@ -2099,9 +2099,9 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
                 if (mode == FilamentMapMode::fmmManual) {
                     ret = build_manual_map_or_throw(context);
                 } else {
-                    // Single-extruder multi-nozzle auto: single real extruder PAM with explicit per-nozzle capacity.
-                    FilamentGroupMultiNozzle fg(context);
-                    ret = fg.calc_filament_group_by_pam();
+                    // Single-extruder multi-nozzle auto: unified FilamentGroup with per-nozzle capacity.
+                    FilamentGroup fg(context);
+                    ret = fg.calc_filament_group();
                 }
             }
             else if(mode == FilamentMapMode::fmmManual){
@@ -2113,8 +2113,8 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
                 ret = calc_filament_group_for_match_multi_nozzle(context);
             }
             else{
-                FilamentGroupMultiNozzle fg(context);
-                ret = fg.calc_filament_group_by_pam();
+                FilamentGroup fg(context);
+                ret = fg.calc_filament_group();
             }
             auto result_opt = LayeredNozzleGroupResult::create(ret, context.nozzle_info.nozzle_list, used_filaments, print_config.handle_hotend_as_extruder);
             if (!result_opt) return LayeredNozzleGroupResult();

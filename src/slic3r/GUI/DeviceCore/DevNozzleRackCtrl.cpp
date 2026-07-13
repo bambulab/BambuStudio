@@ -269,6 +269,7 @@ void DevNozzleRack::CtrlRetryHotendRackJob() const
 }
 
 
+#if 0
 bool DevNozzleRack::CtrlCanUpdateAll() const
 {
     if (m_nozzle_system->GetOwner()->is_in_printing())
@@ -354,5 +355,6 @@ int DevNozzleRack::CtrlRackUpgrade(const std::string& module_str) const
     j["upgrade"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     return m_nozzle_system->GetOwner()->publish_json(j);
 }
+#endif
 
 };

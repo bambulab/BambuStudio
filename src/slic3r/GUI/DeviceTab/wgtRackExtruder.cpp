@@ -132,7 +132,8 @@ void wgtRackExtruder::create_ui()
     // Toolhead — PNG asset matches the Figma "工具头" instance (72x110).
     // Bambu's create_scaled_bitmap rescales by the longer edge in px, so we
     // pass the natural height to keep the design's aspect ratio.
-    wxBitmap toolhead_bmp = create_scaled_bitmap("dev_rack_toolhead.png", this,
+    m_toolhead_image_name = "dev_rack_toolhead.png";
+    wxBitmap toolhead_bmp = create_scaled_bitmap(m_toolhead_image_name.ToStdString(), this,
                                                   FromDIP(kToolheadHeightDip));
     m_toolhead_image = new wxStaticBitmap(this, wxID_ANY, toolhead_bmp);
     m_toolhead_image->SetBackgroundColour(*wxWHITE);
@@ -192,6 +193,9 @@ void wgtRackExtruder::update_nozzle_info(MachineObject* obj)
     auto* extder_system = obj->GetExtderSystem();
     if (!extder_system) return;
 
+    // Only re-layout when a label text or a control's visibility actually changed.
+    bool changed = false;
+
     int  pick_nozzle_pos_id = 0xE;
     const auto current = extder_system->GetCurrentExtder();
     if (current && current->GetPickedNozzleAddrId().has_value()) {
@@ -201,9 +205,13 @@ void wgtRackExtruder::update_nozzle_info(MachineObject* obj)
     // Nozzle index (green circle)
     if (auto label = decode_active_nozzle_label(pick_nozzle_pos_id)) {
         m_nozzle_idx->SetValue(*label);
-        if (!m_nozzle_idx->IsShown()) m_nozzle_idx->Show();
+        if (m_nozzle_idx->Show()) {
+            changed = true;
+        }
     } else {
-        m_nozzle_idx->Hide();
+        if (m_nozzle_idx->Hide()) {
+            changed = true;
+        }
     }
 
     // Resolve the target tool label + visibility once.
@@ -230,9 +238,29 @@ void wgtRackExtruder::update_nozzle_info(MachineObject* obj)
     } else if (!tool_label(tool_defs).empty()) {
         flowtype_label = tool_label(tool_defs);
     } else {
-        m_nozzle_diameter_label->Hide();
-        m_nozzle_flowtype_label->SetLabel(_L("Empty"));
-        m_nozzle_flowtype_label->Show();
+        flowtype_label = _L("Empty");
+    }
+
+    if (diameter_show) {
+        if (m_nozzle_diameter_label->GetLabel() != diameter_label) {
+            m_nozzle_diameter_label->SetLabel(diameter_label);
+            changed = true;
+        }
+        if (m_nozzle_diameter_label->Show()) {
+            changed = true;
+        }
+    } else {
+        if (m_nozzle_diameter_label->Hide()) {
+            changed = true;
+        }
+    }
+
+    if (m_nozzle_flowtype_label->GetLabel() != flowtype_label) {
+        m_nozzle_flowtype_label->SetLabel(flowtype_label);
+        changed = true;
+    }
+    if (m_nozzle_flowtype_label->Show()) {
+        changed = true;
     }
 
     // Toolhead PNG: only re-apply and repaint when its resource path changes.

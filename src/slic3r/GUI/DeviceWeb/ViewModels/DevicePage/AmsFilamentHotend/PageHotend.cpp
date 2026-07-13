@@ -238,6 +238,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     std::string filament_type;
     std::string color = "#D9D9D9";
     std::string color_type = "single";
+    std::vector<std::string> colors;
     int filament_remain = 100;
     if (tray && tray->is_exists) {
         if (tray->m_fila_type == "PLA-S") filament_type = "Sup.PLA";
@@ -382,6 +383,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {SK::filament_card::state, card_state},
         {SK::filament_card::color, color},
         {SK::filament_card::color_type, color_type},
+        {SK::filament_card::colors, colors},
         {SK::filament_card::text, filament_name},
         {SK::filament_card::name, filament_name},
         {SK::filament_card::type, filament_type},

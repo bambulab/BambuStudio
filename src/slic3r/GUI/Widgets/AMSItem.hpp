@@ -187,6 +187,7 @@ struct Caninfo
     float           k = 0.0f;
     float           n = 0.0f;
     std::vector<wxColour> material_cols;
+    bool            is_exist = false;
 
 public:
     bool operator==(const Caninfo& other) const

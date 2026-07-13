@@ -1248,65 +1248,6 @@ wxSizer* CalibrationPresetPage::create_rack_items_sizer(wxPanel* rack_items_pane
     return rack_sizer;
 }
 
-/* Fixed maximum slots for RackType_A panel; controls are statically pre-created. */
-static constexpr int MAX_RACK_SLOT_NUM = 9;
-
-wxSizer* CalibrationPresetPage::create_rack_items_sizer(wxPanel* rack_items_panel, FilamentComboBoxList& rack_filament_comboBox_list)
-{
-    auto rack_sizer = new wxBoxSizer(wxVERTICAL);
-
-    for (int i = 0; i < MAX_RACK_SLOT_NUM; ++i) {
-        auto row_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-        RadioBox* radio_btn = new RadioBox(rack_items_panel);
-        CheckBox* check_box = new CheckBox(rack_items_panel);
-        check_box->SetBackgroundColour(*wxWHITE);
-
-        FilamentExtendComboBox* fcb = new FilamentExtendComboBox(rack_items_panel, i);
-        fcb->set_index(i);
-        fcb->SetRadioBox(radio_btn);
-        fcb->SetCheckBox(check_box);
-        fcb->SetExtuderRole(ExtruderRole::SINGLE_EXTRUDER);
-        fcb->set_select_mode(CalibrationFilamentMode::CALI_MODEL_SINGLE);
-
-        row_sizer->Add(radio_btn, 0, wxALIGN_CENTER);
-        row_sizer->Add(check_box, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
-        row_sizer->Add(fcb, 0, wxALIGN_CENTER);
-        rack_sizer->Add(row_sizer, 0, wxBOTTOM, FromDIP(5));
-
-        fcb->Bind(EVT_CALI_TRAY_CHANGED, &CalibrationPresetPage::on_select_tray, this);
-        radio_btn->Bind(wxEVT_TOGGLEBUTTON, [this, fcb](wxCommandEvent& evt) {
-            manage_filament_radio_btn(fcb);
-
-            // SINGLE: clear every sub-AMS selection (data) + popup radios (visual; SetValue(false) on group is no-op on Win32).
-            if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_SINGLE) {
-                for (auto* other : m_rack_filament_comboBox_list) {
-                    if (auto* ext = dynamic_cast<FilamentExtendComboBox*>(other)) {
-                        ext->ClearSubAmsSelection();
-                    }
-                }
-                if (m_subams_popup) {
-                    m_subams_popup->ClearAllRadioVisuals();
-                }
-            }
-            wxCommandEvent event(EVT_CALI_TRAY_CHANGED);
-            event.SetEventObject(this);
-            wxPostEvent(this, event);
-            evt.Skip();
-        });
-        check_box->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
-            wxCommandEvent event(EVT_CALI_TRAY_CHANGED);
-            event.SetEventObject(this);
-            wxPostEvent(this, event);
-            evt.Skip();
-        });
-
-        rack_filament_comboBox_list.push_back(fcb);
-    }
-
-    return rack_sizer;
-}
-
 void CalibrationPresetPage::manage_filament_radio_btn(FilamentComboBox* selected_fcb)
 {
     if (!selected_fcb || !selected_fcb->GetRadioBox())

@@ -422,7 +422,7 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
         } else {
             assert(m_filament_map[idx] == 2);
             NozzleVolumeType vol_type = (idx < m_filament_volume_map.size()) ? NozzleVolumeType(m_filament_volume_map[idx]) : nvtStandard;
-            m_right_panel->AddColorBlock(color, type, idx + 1, vol_type);
+            m_right_panel->AddColorBlock(type, idx + 1, vol_type);
         }
     }
     m_left_panel->SetMinSize({FromDIP(260), FromDIP(110)});
@@ -544,7 +544,7 @@ void FilamentMapManualPanel::OnSwitchFilament(wxCommandEvent &)
     auto right_blocks = m_right_panel->get_filament_blocks();
 
     for (auto &block : left_blocks) {
-        m_right_panel->AddColorBlock(block->GetColor(), block->GetType(), block->GetFilamentId(), nvtStandard, false);
+        m_right_panel->AddColorBlock(block->GetType(), block->GetFilamentId(), nvtStandard, false);
         m_left_panel->RemoveColorBlock(block, false);
     }
 
@@ -580,7 +580,6 @@ bool FilamentMapManualPanel::Show(bool show)
 // ===================== FilamentMapMultiNozzlePanel =====================
 
 FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow                       *parent,
-                                         const std::vector<std::string> &color,
                                          const std::vector<std::string> &type,
                                          const std::vector<int>         &filament_list,
                                          const std::vector<int>         &filament_map,
@@ -589,7 +588,6 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
     , m_filament_map(filament_map)
     , m_filament_volume_map(filament_volume_map)
     , m_filament_list(filament_list)
-    , m_filament_color(color)
     , m_filament_type(type)
 {
     SetName(wxT("FilamentMapMultiNozzlePanel"));
@@ -626,13 +624,12 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
     for (size_t idx = 0; idx < m_filament_map.size(); ++idx) {
         auto iter = std::find(m_filament_list.begin(), m_filament_list.end(), idx + 1);
         if (iter == m_filament_list.end()) continue;
-        wxColor clr = Hex2Color(m_filament_color[idx]);
         std::string tp = m_filament_type[idx];
         NozzleVolumeType vol_type = (idx < m_filament_volume_map.size()) ? NozzleVolumeType(m_filament_volume_map[idx]) : nvtStandard;
         if (has_ams && m_filament_map[idx] == 1) {
-            m_left_panel->AddColorBlock(clr, tp, idx + 1, vol_type);
+            m_left_panel->AddColorBlock(tp, idx + 1, vol_type);
         } else {
-            m_right_panel->AddColorBlock(clr, tp, idx + 1, vol_type);
+            m_right_panel->AddColorBlock(tp, idx + 1, vol_type);
         }
     }
 
