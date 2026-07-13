@@ -240,7 +240,7 @@ void AMSSetting::create()
 
 
     // panel img
-    wxPanel* m_panel_img = new wxPanel(m_panel_body, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    m_panel_img = new wxPanel(m_panel_body, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_panel_img->SetBackgroundColour(AMS_SETTING_GREY200);
     wxBoxSizer *m_sizer_img = new wxBoxSizer(wxVERTICAL);
     m_am_img = new wxStaticBitmap(m_panel_img, wxID_ANY, create_scaled_bitmap("ams_icon", nullptr, 126), wxDefaultPosition, wxDefaultSize);
@@ -418,7 +418,12 @@ void AMSSetting::update_ams_img(MachineObject* obj_)
 
     const auto& print_jj = DevPrinterConfigUtil::get_json_from_config(obj_->printer_type, "print");
     if (print_jj.contains("support_ams_settings_hide_image") && DevJsonValParser::GetVal<bool>(print_jj, "support_ams_settings_hide_image", false)) {
+        // Hide the whole image panel; hiding only m_am_img leaves an empty grey
+        // panel that still fills the remaining space (added with proportion 1).
         m_am_img->Hide();
+        m_panel_img->Hide();
+        Layout();
+        Fit();
         return;
     }
 
@@ -440,6 +445,7 @@ void AMSSetting::update_ams_img(MachineObject* obj_)
     }
 
     m_am_img->Show();
+    m_panel_img->Show();
 }
 
 void AMSSetting::update_starting_read_mode(bool selected)

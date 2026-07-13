@@ -67,6 +67,7 @@ protected:
     AMSSettingArrangeAMSOrder* m_ams_arrange_order;
 
     wxStaticBitmap* m_am_img;
+    wxPanel*        m_panel_img = nullptr;
     std::string     m_ams_img_name;
 
     wxPanel *     m_panel_body;
