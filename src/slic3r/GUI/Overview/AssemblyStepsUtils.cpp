@@ -348,6 +348,30 @@ void AssemblyStepsUtils::save_assembly_steps_json_to_model_and_request_extra_fra
     }
 }
 
+void AssemblyStepsUtils::clear_selection_and_lock_volume_mode()
+{
+    if (!m_selection)
+        return;
+    set_selection_origin(SelectionOrigin::TreeNode);
+    clear_selection();
+    m_selection->unlock_volume_selection_mode();
+    m_selection->set_volume_selection_mode(Selection::Volume);
+    m_selection->set_mode(Selection::Volume);
+    m_selection->lock_volume_selection_mode();
+}
+
+void AssemblyStepsUtils::add_volumes_and_lock_volume_mode(const std::vector<unsigned int> &gl_volume_idxs)
+{
+    if (!m_selection || gl_volume_idxs.empty())
+        return;
+    // Lock Part mode so the next LeftDown does not reset to Instance
+    // (GLCanvas3D sets Instance unless Alt is held when unlocked).
+    m_selection->unlock_volume_selection_mode();
+    m_selection->set_volume_selection_mode(Selection::Volume);
+    m_selection->add_volumes(Selection::Volume, gl_volume_idxs, true);
+    m_selection->lock_volume_selection_mode();
+}
+
 void AssemblyStepsUtils::select_steps_tree_node_for_canvas(int node_idx)
 {
     if (m_model == nullptr || m_selection == nullptr)
@@ -362,9 +386,7 @@ void AssemblyStepsUtils::select_steps_tree_node_for_canvas(int node_idx)
 
     // Reset interaction state: this is a click-from-tree, not a click-from-canvas.
     set_selection_origin(SelectionOrigin::TreeNode);
-    int prev_folder = find_parent_folder(m_selected_node);
     m_selected_node            = node_idx;
-    int cur_folder = find_parent_folder(node_idx);
     clear_selection();
     // Collect every distinct ModelObject reachable from the clicked node so a
     std::vector<unsigned int> obj_idxs;
@@ -385,16 +407,28 @@ void AssemblyStepsUtils::select_steps_tree_node_for_canvas(int node_idx)
     };
 
     if (node.type == AssemblyStepsTreeNode::Type::Folder) {
-        collect(node_idx);
+        // Prefer the step's volume-level membership (from List OK confirm) so
+        // switching cards keeps Selection::Volume / part mode instead of
+        // collapsing back to whole-object Instance selection.
+        select_folder_volumes_on_canvas(node_idx);
+        on_selected_node_changed();
+        do_commond_callback("dirty");
+        return;
     } else if (node.type == AssemblyStepsTreeNode::Type::Object &&
                node.object_idx >= 0 && node.object_idx < object_count) {
         obj_idxs.push_back((unsigned int) node.object_idx);
+    } else {
+        collect(node_idx);
     }
 
-    // Single batch add: as_single_selection=false so successive calls APPEND
-    // to the current selection instead of resetting it to a single object.
-    for (unsigned int oid : obj_idxs)
-        m_selection->add_object(oid, false);
+    // Object-row click: still select in Volume (part) mode.
+    std::vector<unsigned int> gl_volume_idxs;
+    for (unsigned int oid : obj_idxs) {
+        const auto idxs = m_selection->get_volume_idxs_from_object(oid);
+        gl_volume_idxs.insert(gl_volume_idxs.end(), idxs.begin(), idxs.end());
+    }
+    if (!gl_volume_idxs.empty())
+        m_selection->add_volumes(Selection::Volume, gl_volume_idxs, true);
 
     on_selected_node_changed();
     do_commond_callback("dirty");
@@ -429,15 +463,36 @@ void AssemblyStepsUtils::apply_tree_items_selection_to_canvas()
     // Same UI-driven selection path as a part-number label click: treat it as a
     set_selection_origin(SelectionOrigin::TreeNode);
     clear_selection();
+
+    // Collect GLVolume indices first, then apply in one shot. Mixing add_volume
+    // (Volume mode) with add_object (Instance mode) would flip m_mode mid-way and
+    // break multi-object + multi-volume selections.
+    std::vector<unsigned int> gl_volume_idxs;
+    bool                      any_volume_row = false;
     for (const auto &item : m_assembly_tree_selected_items) {
         const int object_idx = item.first;
         const int volume_idx = item.second;
         if (object_idx < 0 || object_idx >= (int) m_model->objects.size())
             continue;
-        if (volume_idx >= 0)
-            m_selection->add_volume((unsigned int) object_idx, (unsigned int) volume_idx, 0, false);
-        else
-            m_selection->add_object((unsigned int) object_idx, false);
+        if (volume_idx >= 0) {
+            any_volume_row = true;
+            const auto idxs = m_selection->get_volume_idxs_from_volume(
+                (unsigned int) object_idx, 0, (unsigned int) volume_idx);
+            gl_volume_idxs.insert(gl_volume_idxs.end(), idxs.begin(), idxs.end());
+        } else {
+            const auto idxs = m_selection->get_volume_idxs_from_object((unsigned int) object_idx);
+            gl_volume_idxs.insert(gl_volume_idxs.end(), idxs.begin(), idxs.end());
+        }
+    }
+    if (!gl_volume_idxs.empty()) {
+        if (any_volume_row) {
+            add_volumes_and_lock_volume_mode(gl_volume_idxs);
+        } else {
+            for (const auto &item : m_assembly_tree_selected_items) {
+                if (item.first >= 0 && item.first < (int) m_model->objects.size() && item.second < 0)
+                    m_selection->add_object((unsigned int) item.first, false);
+            }
+        }
     }
 
     do_commond_callback("dirty");
@@ -934,9 +989,6 @@ std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
  bool AssemblyStepsUtils::can_add_selected_to_current_assembly_step() const
  {
      if (!m_selection) { return false; }
-     if (m_selection->get_mode() == Selection::Volume) {
-         return false;
-     }
      const int folder_idx = const_cast<AssemblyStepsUtils*>(this)->find_parent_folder(m_selected_node);
      if (folder_idx < 0 || folder_idx >= (int) _steps_nodes.size() || _steps_nodes[folder_idx].type != AssemblyStepsTreeNode::Type::Folder ||
          _steps_nodes[folder_idx].is_final_assembly)
@@ -944,16 +996,17 @@ std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
      if (is_empty_structure_step(folder_idx)) {
          return true;
      }
-     return can_add_objects_to_step(m_selection->is_single_volume() || m_selection->is_multiple_volume(), selected_assembly_object_indices());
+     // Volume / Part selection is allowed: membership is recorded per ModelVolume.
+     return can_add_objects_to_step(selected_assembly_object_indices());
  }
 
  bool AssemblyStepsUtils::can_add_selected_to_assembly_step() const
  {
-     if (!m_selection || m_selection->get_mode() == Selection::Volume) {
+     if (!m_selection)
          return false;
-     }
      if (has_selected_node()) { return false; }
-     return can_add_objects_to_step(m_selection->is_single_volume() || m_selection->is_multiple_volume(),selected_assembly_object_indices());
+     // Volume / Part selection is allowed: same path as the List UI part checks.
+     return can_add_objects_to_step(selected_assembly_object_indices());
  }
 
  void AssemblyStepsUtils::record_camera(KeyFrame &kf)
@@ -1792,15 +1845,95 @@ void AssemblyStepsUtils::apply_object_state(int object_idx, const KeyframeObject
     for (GLVolume *vol : m_volumes->volumes) {
         if (!vol || vol->composite_id.object_id != object_idx)
             continue;
-        vol->is_active          = state.active;
-        if (vol->printable) {
-            vol->color[3]           = state.active ? state.alpha : GLVolume::MODEL_HIDDEN_COL[3];
-            vol->render_color[3]    = vol->color[3];
-            vol->force_native_color = state.force_native_color;
-        }else{
-            vol->render_color = GLVolume::UNPRINTABLE_COLOR;
+        apply_glvolume_state(vol, state);
+    }
+}
+
+void AssemblyStepsUtils::apply_glvolume_state(GLVolume *vol, const KeyframeObjectDisplayState &state)
+{
+    if (!vol)
+        return;
+    vol->is_active = state.active;
+    if (vol->printable) {
+        vol->color[3]           = state.active ? state.alpha : GLVolume::MODEL_HIDDEN_COL[3];
+        vol->render_color[3]    = vol->color[3];
+        vol->force_native_color = state.force_native_color;
+    } else {
+        vol->render_color = GLVolume::UNPRINTABLE_COLOR;
+    }
+}
+
+std::set<std::pair<int, int>> AssemblyStepsUtils::collect_folder_volume_pairs(int folder_idx) const
+{
+    std::set<std::pair<int, int>> out;
+    if (!m_model || folder_idx < 0 || folder_idx >= (int) _steps_nodes.size())
+        return out;
+
+    const auto &folder = _steps_nodes[folder_idx];
+
+    // Final assembly is always the whole model. A leftover / partial
+    // assembly_tree_checked (List UI, sync lag after new objects) would make
+    // OnlyCurrentStep hide parts and X-Ray dim them to 0.15 — wrong for Final assembly.
+    if (folder.is_final_assembly) {
+        for (int oi = 0; oi < (int) m_model->objects.size(); ++oi) {
+            const ModelObject *obj = m_model->objects[oi];
+            if (!obj)
+                continue;
+            for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+                if (obj->volumes[vi])
+                    out.emplace(oi, vi);
+            }
+        }
+        return out;
+    }
+
+    const AssemblyTreeData &tree = m_model->get_assembly_tree_data();
+
+    if (folder.assembly_tree_checked) {
+        std::set<int> objects_with_vol_checks;
+        for (const auto &node : tree.nodes) {
+            if (node.volume_idx < 0 || node.object_idx < 0)
+                continue;
+            auto it = folder.assembly_tree_checked->find(node.uid);
+            if (it == folder.assembly_tree_checked->end() || !it->second)
+                continue;
+            out.emplace(node.object_idx, node.volume_idx);
+            objects_with_vol_checks.insert(node.object_idx);
+        }
+        for (const auto &node : tree.nodes) {
+            if (node.volume_idx >= 0 || node.object_idx < 0)
+                continue;
+            auto it = folder.assembly_tree_checked->find(node.uid);
+            if (it == folder.assembly_tree_checked->end() || !it->second)
+                continue;
+            if (objects_with_vol_checks.count(node.object_idx) > 0)
+                continue;
+            if (node.object_idx >= (int) m_model->objects.size())
+                continue;
+            const ModelObject *obj = m_model->objects[node.object_idx];
+            if (!obj)
+                continue;
+            for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+                if (obj->volumes[vi])
+                    out.emplace(node.object_idx, vi);
+            }
+        }
+        if (!out.empty())
+            return out;
+    }
+
+    for (int object_idx : collect_node_object_indices(folder_idx)) {
+        if (object_idx < 0 || object_idx >= (int) m_model->objects.size())
+            continue;
+        const ModelObject *obj = m_model->objects[object_idx];
+        if (!obj)
+            continue;
+        for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+            if (obj->volumes[vi])
+                out.emplace(object_idx, vi);
         }
     }
+    return out;
 }
 
 void AssemblyStepsUtils::look_cur_frame_logic(const KeyFrameEntry &entry)
@@ -1852,11 +1985,8 @@ bool AssemblyStepsUtils::goto_global_frame(int global_idx)
         m_selected_node = folder_idx;
         //todo scroll listview
         clear_selection();
-        if (!is_play_or_export_mode()) {
-            for (int object_idx : collect_node_object_indices(folder_idx)) {
-                if (object_idx >= 0 && m_model && object_idx < (int) m_model->objects.size() && m_selection) m_selection->add_object((unsigned int) object_idx, false);
-            }
-        }
+        if (!is_play_or_export_mode())
+            select_folder_volumes_on_canvas(folder_idx);
         on_selected_node_changed();
         // Apply the target keyframe LAST. The selection switch above
         auto &entries = _steps_nodes[ref.node_idx].kf_data.entries;
@@ -3719,6 +3849,78 @@ int AssemblyStepsUtils::create_assembly_step_from_objects(const std::vector<int>
     return folder_idx;
 }
 
+bool AssemblyStepsUtils::merge_selected_volumes_into_folder_checked(int folder_idx)
+{
+    if (!m_model || !m_selection || folder_idx < 0 || folder_idx >= (int) _steps_nodes.size())
+        return false;
+    if (_steps_nodes[folder_idx].type != AssemblyStepsTreeNode::Type::Folder)
+        return false;
+    if (m_selection->get_volume_idxs().empty())
+        return false;
+
+    std::set<int> existing_obj_idxs;
+    for (int child_idx : _steps_nodes[folder_idx].children) {
+        if (child_idx < 0 || child_idx >= (int) _steps_nodes.size())
+            continue;
+        const auto &child = _steps_nodes[child_idx];
+        if (child.type == AssemblyStepsTreeNode::Type::Object && child.object_idx >= 0)
+            existing_obj_idxs.insert(child.object_idx);
+    }
+
+    auto &opt_checked = _steps_nodes[folder_idx].assembly_tree_checked;
+    if (!opt_checked)
+        opt_checked.emplace();
+
+    bool has_any_checked = false;
+    for (const auto &p : *opt_checked) {
+        if (p.second) {
+            has_any_checked = true;
+            break;
+        }
+    }
+    bool changed = false;
+    // Preserve prior full-object membership before a partial volume merge.
+    // Only bootstrap objects already in the step so newly selected parts of a
+    // new object are not expanded to the whole ModelObject.
+    if (!has_any_checked) {
+        for (int oi : existing_obj_idxs) {
+            if (oi < 0 || oi >= (int) m_model->objects.size() || !m_model->objects[oi])
+                continue;
+            (*opt_checked)["object:" + std::to_string(oi)] = true;
+            const ModelObject *obj = m_model->objects[oi];
+            for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+                if (!obj->volumes[vi])
+                    continue;
+                (*opt_checked)["object:" + std::to_string(oi) + ":volume:" + std::to_string(vi)] = true;
+            }
+            changed = true;
+        }
+    }
+
+    for (unsigned int idx : m_selection->get_volume_idxs()) {
+        const GLVolume *v = m_selection->get_volume(idx);
+        if (!v)
+            continue;
+        const int oi = v->object_idx();
+        const int vi = v->volume_idx();
+        if (oi < 0)
+            continue;
+        const std::string obj_uid = "object:" + std::to_string(oi);
+        if (!(*opt_checked)[obj_uid]) {
+            (*opt_checked)[obj_uid] = true;
+            changed = true;
+        }
+        if (vi >= 0) {
+            const std::string vol_uid = obj_uid + ":volume:" + std::to_string(vi);
+            if (!(*opt_checked)[vol_uid]) {
+                (*opt_checked)[vol_uid] = true;
+                changed = true;
+            }
+        }
+    }
+    return changed;
+}
+
 bool AssemblyStepsUtils::add_objects_to_assembly_step(int folder_idx, const std::vector<int> &object_idxs)
 {
     if (folder_idx < 0 || folder_idx >= (int) _steps_nodes.size())
@@ -3738,7 +3940,10 @@ bool AssemblyStepsUtils::add_objects_to_assembly_step(int folder_idx, const std:
             existing_obj_idxs.insert(child.object_idx);
     }
 
-    bool changed = false;
+    // Record part-level membership before creating new object nodes so bootstrap
+    // only covers objects already in the step.
+    bool changed = merge_selected_volumes_into_folder_checked(folder_idx);
+
     for (int object_idx : object_idxs) {
         if (object_idx < 0 || object_idx >= object_count)
             continue;
@@ -3796,9 +4001,9 @@ std::vector<int> AssemblyStepsUtils::sorted_step_nodes() const
     return step_nodes;
 }
 
-bool AssemblyStepsUtils::can_add_objects_to_step(bool has_volume_selection, const std::vector<int> &object_idxs) const
+bool AssemblyStepsUtils::can_add_objects_to_step(const std::vector<int> &object_idxs) const
 {
-    return !has_volume_selection && !object_idxs.empty();
+    return !object_idxs.empty();
 }
 
 std::vector<std::pair<int, std::string>> AssemblyStepsUtils::assembly_step_choices() const
@@ -4631,42 +4836,50 @@ void AssemblyStepsUtils::collect_part_number_label_refs(int collect_root,
 {
     if (!m_model)
         return;
-    const int     object_count = (int) m_model->objects.size();
-    std::set<int> visited;
-    std::set<int> seen_objs; // object-level dedup across nested nodes
 
-    std::function<void(int)> collect = [&](int idx) {
-        if (idx < 0 || idx >= (int) _steps_nodes.size()) return;
-        if (!visited.insert(idx).second) return;
-        const auto &n = _steps_nodes[idx];
-        if (n.type == AssemblyStepsTreeNode::Type::Object &&
-            n.object_idx >= 0 && n.object_idx < object_count) {
-            const auto *obj = m_model->objects[n.object_idx];
-            if (obj) {
-                if (as_object_label(n.object_idx)) {
-                    if (seen_objs.insert(n.object_idx).second) {
-                        PartNumberLabel lbl;
-                        lbl.object_idx = n.object_idx;
-                        lbl.volume_idx = -1;
-                        lbl.part_name  = obj->name;
-                        out.push_back(std::move(lbl));
-                    }
-                } else {
-                    for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
-                        PartNumberLabel lbl;
-                        lbl.object_idx = n.object_idx;
-                        lbl.volume_idx = vi;
-                        lbl.part_name  = obj->volumes[vi]->name;
-                        lbl.part_guid  = obj->volumes[vi]->ensure_part_guid();
-                        out.push_back(std::move(lbl));
-                    }
-                }
+    // Prefer the step's volume-level membership (assembly_tree_checked). Falls
+    // back to every volume of the folder's object children when unchecked.
+    const std::set<std::pair<int, int>> vol_pairs = collect_folder_volume_pairs(collect_root);
+    if (vol_pairs.empty())
+        return;
+
+    std::map<int, std::vector<int>> vols_by_obj;
+    std::vector<int>                obj_order;
+    for (const auto &p : vol_pairs) {
+        if (vols_by_obj.find(p.first) == vols_by_obj.end())
+            obj_order.push_back(p.first);
+        vols_by_obj[p.first].push_back(p.second);
+    }
+
+    std::set<int> seen_objs;
+    const int     object_count = (int) m_model->objects.size();
+    for (int object_idx : obj_order) {
+        if (object_idx < 0 || object_idx >= object_count)
+            continue;
+        const ModelObject *obj = m_model->objects[object_idx];
+        if (!obj)
+            continue;
+        if (as_object_label(object_idx)) {
+            if (seen_objs.insert(object_idx).second) {
+                PartNumberLabel lbl;
+                lbl.object_idx = object_idx;
+                lbl.volume_idx = -1;
+                lbl.part_name  = obj->name;
+                out.push_back(std::move(lbl));
+            }
+        } else {
+            for (int vi : vols_by_obj[object_idx]) {
+                if (vi < 0 || vi >= (int) obj->volumes.size() || !obj->volumes[vi])
+                    continue;
+                PartNumberLabel lbl;
+                lbl.object_idx = object_idx;
+                lbl.volume_idx = vi;
+                lbl.part_name  = obj->volumes[vi]->name;
+                lbl.part_guid  = obj->volumes[vi]->ensure_part_guid();
+                out.push_back(std::move(lbl));
             }
         }
-        for (int ci : n.children)
-            collect(ci);
-    };
-    collect(collect_root);
+    }
 }
 
 void AssemblyStepsUtils::build_part_number_labels_object_only(int collect_root, std::vector<PartNumberLabel> &out) const
@@ -4681,13 +4894,51 @@ void AssemblyStepsUtils::build_part_number_labels_volume_only(int collect_root, 
 
 void AssemblyStepsUtils::build_part_number_labels_auto(int collect_root, bool object_level_only, std::vector<PartNumberLabel> &out) const
 {
-    // In a multi-frame step a model object that already appeared earlier is
-    // collapsed to a single object-level label; otherwise label per volume.
+    // Collapse to one object label only when the object is fully present in this
+    // step. Partial ModelVolume membership must stay at part-level labels — never
+    // show a single Object label for a handful of volumes.
     const bool collapse_repeated_objects = m_show_modelobject_name_when_modelobject_has_occur_before;
+    const std::set<std::pair<int, int>> cur_pairs = collect_folder_volume_pairs(collect_root);
+
+    auto object_fully_in_pairs = [&](int object_idx, const std::set<std::pair<int, int>> &pairs) -> bool {
+        if (!m_model || object_idx < 0 || object_idx >= (int) m_model->objects.size())
+            return false;
+        const ModelObject *obj = m_model->objects[object_idx];
+        if (!obj)
+            return false;
+        int selectable = 0;
+        for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+            if (!obj->volumes[vi])
+                continue;
+            ++selectable;
+            if (pairs.count({object_idx, vi}) == 0)
+                return false;
+        }
+        return selectable > 0;
+    };
+
+    // "Already used" for Auto collapse means fully used in an earlier step, not
+    // merely present as a few volumes under an Object node.
+    auto object_fully_used_before = [&](int object_idx) -> bool {
+        for (int root_idx : _steps_roots) {
+            if (root_idx == collect_root)
+                break;
+            if (root_idx < 0 || root_idx >= (int) _steps_nodes.size())
+                continue;
+            if (_steps_nodes[root_idx].is_final_assembly)
+                continue;
+            if (object_fully_in_pairs(object_idx, collect_folder_volume_pairs(root_idx)))
+                return true;
+        }
+        return false;
+    };
+
     collect_part_number_label_refs(collect_root,
         [&](int object_idx) {
+            if (!object_fully_in_pairs(object_idx, cur_pairs))
+                return false;
             return object_level_only ||
-                   (collapse_repeated_objects && is_object_used_in_previous_steps(object_idx, collect_root));
+                   (collapse_repeated_objects && object_fully_used_before(object_idx));
         },
         out);
 }
@@ -5153,13 +5404,24 @@ Vec2d AssemblyStepsUtils::compute_arrow_svg_anchor_center(const ArrowSvgNote &ar
 void AssemblyStepsUtils::bind_current_selection_volumes(std::vector<std::pair<int, int>> &bound_volumes) const
 {
     bound_volumes.clear();
-    if (m_selection == nullptr)
-        return;
-    for (unsigned int idx : m_selection->get_volume_idxs()) {
-        const GLVolume *v = m_selection->get_volume(idx);
-        if (v != nullptr)
-            bound_volumes.emplace_back(v->object_idx(), v->volume_idx());
+    if (m_selection != nullptr) {
+        for (unsigned int idx : m_selection->get_volume_idxs()) {
+            const GLVolume *v = m_selection->get_volume(idx);
+            if (v != nullptr)
+                bound_volumes.emplace_back(v->object_idx(), v->volume_idx());
+        }
     }
+    if (!bound_volumes.empty())
+        return;
+
+    // Canvas selection is often empty after List OK (m_select_all_when_click_in_step_card
+    // defaults to false). Fall back to the current step's volume membership so
+    // clip/glue/screw/text notes still anchor to the parts in this step.
+    const int folder = find_parent_folder(m_selected_node);
+    if (folder < 0)
+        return;
+    for (const auto &key : collect_folder_volume_pairs(folder))
+        bound_volumes.push_back(key);
 }
 
 void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {
@@ -5527,16 +5789,57 @@ AssemblyStructurePanelData AssemblyStepsUtils::build_assembly_structure_panel_da
             for (int ci : node.children) collect(ci);
         };
         collect(root_idx);
-        step.count = (int) obj_set.size();
+
+        // Prefer volume-level membership from assembly_tree_checked so a partially
+        // checked ModelObject shows its ModelVolume chips instead of the object name.
+        const auto *checked_map = n.assembly_tree_checked ? &*n.assembly_tree_checked : nullptr;
+        auto is_uid_checked = [checked_map](const std::string &uid) {
+            if (!checked_map)
+                return false;
+            auto it = checked_map->find(uid);
+            return it != checked_map->end() && it->second;
+        };
 
         for (int obj_idx : obj_set) {
             if (obj_idx < 0 || obj_idx >= (int) m_model->objects.size()) continue;
             const ModelObject *obj = m_model->objects[obj_idx];
             if (!obj) continue;
-            AssemblyStructureChip chip;
-            chip.label = obj->name.empty() ? (_u8L("Part") + " " + std::to_string(obj_idx + 1)) : obj->name;
-            step.chips.push_back(std::move(chip));
+
+            std::vector<int> checked_volume_idxs;
+            int              selectable_volume_count = 0;
+            if (checked_map) {
+                for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+                    const ModelVolume *vol = obj->volumes[vi];
+                    if (!vol)
+                        continue;
+                    ++selectable_volume_count;
+                    const std::string vol_uid = "object:" + std::to_string(obj_idx) + ":volume:" + std::to_string(vi);
+                    if (is_uid_checked(vol_uid))
+                        checked_volume_idxs.push_back(vi);
+                }
+            }
+
+            const bool all_volumes_checked = selectable_volume_count > 0 &&
+                (int) checked_volume_idxs.size() == selectable_volume_count;
+            // No volume-level detail (or every volume checked) → keep the object chip.
+            if (!checked_map || checked_volume_idxs.empty() || all_volumes_checked) {
+                AssemblyStructureChip chip;
+                chip.label = obj->name.empty() ? (_u8L("Part") + " " + std::to_string(obj_idx + 1)) : obj->name;
+                step.chips.push_back(std::move(chip));
+            } else {
+                for (int vi : checked_volume_idxs) {
+                    const ModelVolume *vol = obj->volumes[vi];
+                    if (!vol)
+                        continue;
+                    AssemblyStructureChip chip;
+                    chip.label = vol->name.empty()
+                        ? (_u8L("Volume") + " " + std::to_string(vi + 1))
+                        : vol->name;
+                    step.chips.push_back(std::move(chip));
+                }
+            }
         }
+        step.count = (int) step.chips.size();
         if (!step.chips.empty())
             step.prefix_text = _u8L("Contain");
         else
@@ -6226,17 +6529,23 @@ void AssemblyStepsUtils::sync_checked_tree_to_canvas(const AssemblyTreeData& tre
     set_selection_origin(SelectionOrigin::TreeNode);
     clear_selection();
 
-    std::set<int> objects_with_checked_volumes;
+    // Build one GLVolume index list so multi-object + multi-volume check sets can
+    // be applied in Volume mode (same pattern as Plater prepare→assemble selection).
+    std::vector<unsigned int> gl_volume_idxs;
+    std::set<int>             objects_with_checked_volumes;
+
     for (const auto& node : tree.nodes) {
         if (node.volume_idx < 0)
             continue;
         auto it = checked.find(node.uid);
         if (it == checked.end() || !it->second)
             continue;
-        if (node.object_idx >= 0 && node.object_idx < static_cast<int>(m_model->objects.size())) {
-            m_selection->add_volume(node.object_idx, node.volume_idx, 0, false);
-            objects_with_checked_volumes.insert(node.object_idx);
-        }
+        if (node.object_idx < 0 || node.object_idx >= static_cast<int>(m_model->objects.size()))
+            continue;
+        const auto idxs = m_selection->get_volume_idxs_from_volume(
+            (unsigned int) node.object_idx, 0, (unsigned int) node.volume_idx);
+        gl_volume_idxs.insert(gl_volume_idxs.end(), idxs.begin(), idxs.end());
+        objects_with_checked_volumes.insert(node.object_idx);
     }
 
     for (const auto& node : tree.nodes) {
@@ -6247,9 +6556,40 @@ void AssemblyStepsUtils::sync_checked_tree_to_canvas(const AssemblyTreeData& tre
             continue;
         if (objects_with_checked_volumes.find(node.object_idx) != objects_with_checked_volumes.end())
             continue;
-        if (node.object_idx >= 0 && node.object_idx < static_cast<int>(m_model->objects.size()))
-            m_selection->add_object(static_cast<unsigned int>(node.object_idx), false);
+        if (node.object_idx < 0 || node.object_idx >= static_cast<int>(m_model->objects.size()))
+            continue;
+        const auto idxs = m_selection->get_volume_idxs_from_object((unsigned int) node.object_idx);
+        gl_volume_idxs.insert(gl_volume_idxs.end(), idxs.begin(), idxs.end());
     }
+
+    if (!gl_volume_idxs.empty())
+        add_volumes_and_lock_volume_mode(gl_volume_idxs);
+    do_commond_callback("dirty");
+}
+
+void AssemblyStepsUtils::select_folder_volumes_on_canvas(int folder_idx)
+{
+    if (!m_selection || !m_model || folder_idx < 0 || folder_idx >= (int) _steps_nodes.size())
+        return;
+
+    // Switching step cards always enters Volume (part) selection mode, even when
+    // nothing is selected (m_select_all_when_change_step_card == false).
+    clear_selection_and_lock_volume_mode();
+
+    if (!m_select_all_when_change_step_card) {
+        do_commond_callback("dirty");
+        return;
+    }
+
+    std::vector<unsigned int> gl_volume_idxs;
+    for (const auto &key : collect_folder_volume_pairs(folder_idx)) {
+        if (key.first < 0 || key.second < 0)
+            continue;
+        const auto idxs = m_selection->get_volume_idxs_from_volume(
+            (unsigned int) key.first, 0, (unsigned int) key.second);
+        gl_volume_idxs.insert(gl_volume_idxs.end(), idxs.begin(), idxs.end());
+    }
+    add_volumes_and_lock_volume_mode(gl_volume_idxs);
     do_commond_callback("dirty");
 }
 void AssemblyStepsUtils::record_keyframe_logic(KeyFrameEntry &entry)
@@ -6822,17 +7162,19 @@ void AssemblyStepsUtils::show_volumes_as_step_candidates()
 
     // Parts that already belong to the current step stay fully opaque; everything else
     // is dimmed as a selectable candidate (mirrors the Highlight display-mode style).
-    std::set<int> current_objs;
-    if (has_selected_node() && m_selected_node >= 0 && m_selected_node < (int) _steps_nodes.size())
-        current_objs = collect_node_object_indices(m_selected_node);
+    std::set<std::pair<int, int>> current_vols;
+    if (has_selected_node() && m_selected_node >= 0 && m_selected_node < (int) _steps_nodes.size()) {
+        const int folder = find_parent_folder(m_selected_node);
+        if (folder >= 0)
+            current_vols = collect_folder_volume_pairs(folder);
+    }
 
-    auto &step_nodes = m_model->get_assembly_steps_tree_data().nodes;
-    bool  visible    = m_keyframe_display_mode != KeyframeDisplayMode::OnlyCurrentStep;
-    for (const auto &node : step_nodes) {
-        if (node.type != AssemblyStepsTreeNode::Type::Object || node.object_idx < 0)
+    const bool visible = m_keyframe_display_mode != KeyframeDisplayMode::OnlyCurrentStep;
+    for (GLVolume *vol : m_volumes->volumes) {
+        if (!vol)
             continue;
-        const bool is_current = current_objs.count(node.object_idx) > 0;
-        apply_object_state(node.object_idx, {visible, is_current ? 1.f : 0.15f, !is_current});
+        const bool is_current = current_vols.count({vol->object_idx(), vol->volume_idx()}) > 0;
+        apply_glvolume_state(vol, {visible, is_current ? 1.f : 0.15f, !is_current});
     }
     do_commond_callback("dirty");
 }
@@ -6843,7 +7185,6 @@ void AssemblyStepsUtils::apply_keyframe_display_mode()
         return;
 
     auto &step_nodes = m_model->get_assembly_steps_tree_data().nodes;
-    auto &step_roots = m_model->get_assembly_steps_tree_data().roots;
     if (is_empty_structure_step(m_selected_node)) {
         show_volumes_as_step_candidates();
         return;
@@ -6852,19 +7193,28 @@ void AssemblyStepsUtils::apply_keyframe_display_mode()
         show_all_volume_normal_render();
     } else if (m_keyframe_display_mode == KeyframeDisplayMode::OnlyCurrentStep) {
         if (has_selected_node()) {
-            std::set<int> current_objs;
-            int           target = m_selected_node;
+            int target = find_parent_folder(m_selected_node);
+            std::set<std::pair<int, int>> current_vols;
             if (target >= 0 && target < (int) step_nodes.size())
-                current_objs = collect_node_object_indices(target);
+                current_vols = collect_folder_volume_pairs(target);
 
+            // Keep Object-node.visible in sync for any callers that still read it:
+            // true when any of that object's volumes belong to the current step.
+            std::set<int> objects_with_current_vol;
+            for (const auto &key : current_vols)
+                objects_with_current_vol.insert(key.first);
             for (auto &node : step_nodes) {
                 if (node.type == AssemblyStepsTreeNode::Type::Object && node.object_idx >= 0)
-                    node.visible = current_objs.count(node.object_idx) > 0;
+                    node.visible = objects_with_current_vol.count(node.object_idx) > 0;
             }
 
-            for (int oi = 0; oi < (int) m_model->objects.size(); ++oi) {
-                bool is_current = current_objs.count(oi) > 0;
-                apply_object_state(oi, {is_current, is_current ? 1.f : 0.f, !is_current});
+            if (m_volumes) {
+                for (GLVolume *vol : m_volumes->volumes) {
+                    if (!vol)
+                        continue;
+                    const bool is_current = current_vols.count({vol->object_idx(), vol->volume_idx()}) > 0;
+                    apply_glvolume_state(vol, {is_current, is_current ? 1.f : 0.f, !is_current});
+                }
             }
         } else {
             for (auto &node : step_nodes) {
@@ -6876,16 +7226,20 @@ void AssemblyStepsUtils::apply_keyframe_display_mode()
         }
     } else if (m_keyframe_display_mode == KeyframeDisplayMode::Highlight) {
         if (has_selected_node()) {
-            std::set<int> current_objs;
-            int           target = m_selected_node;
+            int target = find_parent_folder(m_selected_node);
+            std::set<std::pair<int, int>> current_vols;
             if (target >= 0 && target < (int) step_nodes.size())
-                current_objs = collect_node_object_indices(target);
+                current_vols = collect_folder_volume_pairs(target);
 
-            for (int oi = 0; oi < (int) m_model->objects.size(); ++oi) {
-                bool is_current = current_objs.count(oi) > 0;
-                apply_object_state(oi, {true, is_current ? 1.f : 0.15f, !is_current});
+            if (m_volumes) {
+                for (GLVolume *vol : m_volumes->volumes) {
+                    if (!vol)
+                        continue;
+                    const bool is_current = current_vols.count({vol->object_idx(), vol->volume_idx()}) > 0;
+                    apply_glvolume_state(vol, {true, is_current ? 1.f : 0.15f, !is_current});
+                }
             }
-        }else{
+        } else {
             show_all_volume_normal_render();
         }
     }
@@ -6895,7 +7249,7 @@ void AssemblyStepsUtils::apply_keyframe_display_mode()
 void AssemblyStepsUtils::apply_tree_checked_display_mode(const AssemblyTreeData& tree,
     const std::unordered_map<std::string, bool>& checked)
 {
-    if (!m_model)
+    if (!m_model || !m_volumes)
         return;
     if (m_keyframe_display_mode == KeyframeDisplayMode::All) {
         show_all_volume_normal_render();
@@ -6903,27 +7257,47 @@ void AssemblyStepsUtils::apply_tree_checked_display_mode(const AssemblyTreeData&
         return;
     }
 
-    std::set<int> checked_objs;
-    for (const auto& node : tree.nodes) {
+    // Build volume membership from the live checkbox map (volume leaves first;
+    // object-only checks expand to every volume of that object).
+    std::set<std::pair<int, int>> checked_vols;
+    std::set<int>                 objects_with_vol_checks;
+    for (const auto &node : tree.nodes) {
+        if (!node.selectable || node.object_idx < 0 || node.volume_idx < 0)
+            continue;
+        auto it = checked.find(node.uid);
+        if (it == checked.end() || !it->second)
+            continue;
+        checked_vols.emplace(node.object_idx, node.volume_idx);
+        objects_with_vol_checks.insert(node.object_idx);
+    }
+    for (const auto &node : tree.nodes) {
         if (!node.selectable || node.object_idx < 0 || node.volume_idx >= 0)
             continue;
         auto it = checked.find(node.uid);
-        if (it != checked.end() && it->second)
-            checked_objs.insert(node.object_idx);
+        if (it == checked.end() || !it->second)
+            continue;
+        if (objects_with_vol_checks.count(node.object_idx) > 0)
+            continue;
+        if (node.object_idx >= (int) m_model->objects.size())
+            continue;
+        const ModelObject *obj = m_model->objects[node.object_idx];
+        if (!obj)
+            continue;
+        for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+            if (obj->volumes[vi])
+                checked_vols.emplace(node.object_idx, vi);
+        }
     }
 
     const bool highlight = m_keyframe_display_mode == KeyframeDisplayMode::Highlight;
-    std::set<int> handled;
-    for (const auto& node : tree.nodes) {
-        if (node.object_idx < 0 || node.volume_idx >= 0)
+    for (GLVolume *vol : m_volumes->volumes) {
+        if (!vol)
             continue;
-        if (!handled.insert(node.object_idx).second)
-            continue;
-        const bool is_current = checked_objs.count(node.object_idx) > 0;
+        const bool is_current = checked_vols.count({vol->object_idx(), vol->volume_idx()}) > 0;
         if (highlight)
-            apply_object_state(node.object_idx, {true, is_current ? 1.f : 0.15f, !is_current});
+            apply_glvolume_state(vol, {true, is_current ? 1.f : 0.15f, !is_current});
         else // OnlyCurrentStep
-            apply_object_state(node.object_idx, {is_current, is_current ? 1.f : 0.f, !is_current});
+            apply_glvolume_state(vol, {is_current, is_current ? 1.f : 0.f, !is_current});
     }
     do_commond_callback("dirty");
 }
@@ -7644,24 +8018,38 @@ void AssemblyStepsUtils::reseed_assembly_tree_checked_from_step(int step_node_id
     if (!checked)
         checked.emplace();
 
-    std::set<int> step_objects;
-    std::function<void(int)> collect_step_objects = [&](int node_idx) {
-        if (node_idx < 0 || node_idx >= static_cast<int>(steps_tree.nodes.size()))
-            return;
-        const auto &step_node = steps_tree.nodes[node_idx];
-        if (step_node.type == AssemblyStepsTreeNode::Type::Object && step_node.object_idx >= 0)
-            step_objects.insert(step_node.object_idx);
-        for (int child_idx : step_node.children)
-            collect_step_objects(child_idx);
-    };
-    collect_step_objects(step_node_idx);
+    // assembly_tree_checked is the source of truth for volume-level membership.
+    // Keep it when it already records any checked leaf; only bootstrap from the
+    // step's Object children when the map is empty (legacy steps / first open).
+    bool has_any_checked = false;
+    for (const auto &p : *checked) {
+        if (p.second) {
+            has_any_checked = true;
+            break;
+        }
+    }
+    if (!has_any_checked) {
+        std::set<int> step_objects;
+        std::function<void(int)> collect_step_objects = [&](int node_idx) {
+            if (node_idx < 0 || node_idx >= static_cast<int>(steps_tree.nodes.size()))
+                return;
+            const auto &step_node = steps_tree.nodes[node_idx];
+            if (step_node.type == AssemblyStepsTreeNode::Type::Object && step_node.object_idx >= 0)
+                step_objects.insert(step_node.object_idx);
+            for (int child_idx : step_node.children)
+                collect_step_objects(child_idx);
+        };
+        collect_step_objects(step_node_idx);
 
-    checked->clear();
-    for (const auto &node : tree.nodes) {
-        if (!node.selectable || node.object_idx < 0 || node.volume_idx >= 0)
-            continue;
-        if (step_objects.find(node.object_idx) != step_objects.end())
+        checked->clear();
+        for (const auto &node : tree.nodes) {
+            if (!node.selectable || node.object_idx < 0)
+                continue;
+            if (step_objects.find(node.object_idx) == step_objects.end())
+                continue;
+            // Mark both object and volume rows so the subtree checkbox shows All.
             (*checked)[node.uid] = true;
+        }
     }
 
     m_active_assembly_tree_checked = &*checked;

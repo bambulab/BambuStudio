@@ -10441,7 +10441,7 @@ void GLCanvas3D::_render_assemble_control()
         m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::AssembleControl, ImVec2(0, 0), ImVec2(0, 0));
     if (is_assembly_play_or_export_mode())
         return;
-    if (m_gizmos.get_current_type() == GLGizmosManager::EType::MmuSegmentation) {
+    if (m_gizmos.get_current_type() == GLGizmosManager::EType::MmuSegmentation || m_assembly_steps && m_assembly_steps->has_selected_step_node()) {
         m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(0.0, true);
         return;
     }
@@ -10586,45 +10586,6 @@ void GLCanvas3D::_render_assemble_control()
             if (selection_out == 1) { m_selection.lock_volume_selection_mode(); }
         }
         same_line_width += (combo_visible_width + combo_group_gap);
-    }
-    if (m_assembly_steps) {
-        // Display Mode combo: mirrors the Selection Mode block above so the
-        const bool disable_display_mode = !m_assembly_steps->has_selected_node();
-        ImGui::SameLine(same_line_width);
-        imgui->disabled_begin(disable_display_mode);
-        std::vector<std::string> modes = {_u8L("Show Current Step Objects Only"), _u8L("X-Ray Other Objects")};//, _u8L("All")
-        int display_idx = static_cast<int>(m_assembly_steps->keyframe_display_mode());
-        auto label       = _u8L("Display Mode") + ":";
-        auto label_width = imgui->calc_text_size(label).x;
-        const char *selected_str = (display_idx >= 0 && display_idx < int(modes.size())) ? modes[display_idx].c_str() : "";
-        const auto combo_widths = calc_bbl_combo_widths(modes);
-        const float combo_item_width = combo_widths.first;
-        const float combo_visible_width = combo_widths.second;
-
-        ImGui::AlignTextToFramePadding();
-        imgui->text(label);
-        same_line_width = ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x + label_combo_gap;
-        ImGui::SameLine(same_line_width);
-        ImGui::SetNextItemWidth(combo_item_width);
-        size_t display_out = (display_idx >= 0) ? size_t(display_idx) : 0;
-        ImGuiWrapper::push_combo_style(get_scale());
-        if (ImGui::BBLBeginCombo(("##" + label).c_str(), selected_str, 0)) {
-            for (size_t line_idx = 0; line_idx < modes.size(); ++line_idx) {
-                ImGui::PushID(int(line_idx));
-                if (ImGui::Selectable("", int(line_idx) == display_idx))
-                    display_out = line_idx;
-                ImGui::SameLine();
-                ImGui::Text("%s", modes[line_idx].c_str());
-                ImGui::PopID();
-            }
-            ImGui::EndCombo();
-        }
-        ImGuiWrapper::pop_combo_style();
-        if (int(display_out) != display_idx && m_assembly_steps) {
-            m_assembly_steps->apply_keyframe_display_mode(static_cast<KeyframeDisplayMode>(display_out));
-        }
-        imgui->disabled_end();
-        same_line_width += (combo_visible_width + item_spacing);
     }
     imgui->end();
 

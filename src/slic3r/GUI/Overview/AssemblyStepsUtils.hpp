@@ -321,6 +321,10 @@ class AssemblyStepsUtils
     bool m_only_final_assembly_endframe_effect_real_assembly{true};//very important
     bool m_play_video_and_show_panels_debug{false};
 
+    bool m_select_all_when_change_step_card{false};
+    // When true, List OK selects the checked ModelVolumes on the canvas; when false
+    // (default), OK commits membership but clears selection (Volume mode kept locked).
+    bool m_select_all_when_click_in_step_card{false};
     struct AssemblyTreeIcons {
         bool        loaded{false};
         ImTextureID expand{0};
@@ -521,6 +525,11 @@ public://logic
     std::string              assembly_step_display_name(const Slic3r::AssemblyStepsTreeNode &node) const;
     int                      get_object_id_id(size_t object_id);
     void                     clear_selection();
+    // Clear canvas selection, then lock Part (Volume) mode so the next LeftDown
+    // does not reset to Instance (same lock the Selection Mode combo uses).
+    void                     clear_selection_and_lock_volume_mode();
+    // Select GLVolumes in Part mode and lock it (prevents LeftDown → Instance).
+    void                     add_volumes_and_lock_volume_mode(const std::vector<unsigned int> &gl_volume_idxs);
     // Apply the canvas selection that corresponds to the user clicking the steps-tree
     void                     select_steps_tree_node_for_canvas(int node_idx);
     // Double-clicking a part-number label clears the current selection
@@ -611,6 +620,12 @@ public://logic
     const float              get_imgui_scale() const;
     void          set_imgui_scale(float scale);
     void                     apply_object_state(int object_idx, const KeyframeObjectDisplayState &state);
+    // Apply display state to a single GLVolume (volume-level OnlyCurrentStep / Highlight).
+    void                     apply_glvolume_state(GLVolume *vol, const KeyframeObjectDisplayState &state);
+    // Volume membership of a step folder: prefers assembly_tree_checked leaves,
+    // falls back to every volume of the folder's object children. Final assembly
+    // always returns every ModelVolume in the model (ignores checked map).
+    std::set<std::pair<int, int>> collect_folder_volume_pairs(int folder_idx) const;
     void                     look_cur_frame_logic(const KeyFrameEntry &entry);
     int                      get_object_volume_count(int object_idx);
     std::string              get_object_volume_name(int object_idx, int volume_idx);
@@ -676,8 +691,13 @@ public://logic
     int              create_object_node(int object_idx, const std::string &name, size_t obj_id);
     int              create_assembly_step_from_objects(const std::vector<int> &object_idxs);
     bool             add_objects_to_assembly_step(int folder_idx, const std::vector<int> &object_idxs);
+    // Merge canvas-selected ModelVolumes into folder.assembly_tree_checked (part-level).
+    // When the map has no true entries, bootstraps existing object children as fully checked
+    // first so a partial add does not erase prior full-object membership.
+    bool             merge_selected_volumes_into_folder_checked(int folder_idx);
     std::vector<int> sorted_step_nodes() const;
-    bool                                     can_add_objects_to_step(bool has_volume_selection, const std::vector<int> &object_idxs) const;
+    // has_volume_selection is kept for call-site compatibility; part selection is allowed.
+    bool                                     can_add_objects_to_step(const std::vector<int> &object_idxs) const;
     std::vector<std::pair<int, std::string>> assembly_step_choices() const;
     std::string                              build_steps_json_string();
     void                                     sync_steps_objects_with_model();
@@ -826,6 +846,10 @@ public://logic
     // Highlight the canvas from an arbitrary tree + checked map (shared by the select popup and the "List" add-object tree).
     void                                    sync_checked_tree_to_canvas(const AssemblyTreeData &tree,
                                                                         const std::unordered_map<std::string, bool> &checked);
+    // Select a step folder's membership on the canvas in Volume (part) mode:
+    // prefers assembly_tree_checked volume leaves when present, otherwise all
+    // volumes of the folder's object children.
+    void                                    select_folder_volumes_on_canvas(int folder_idx);
     void                                    begin_structure_step_rename(int node_idx, const std::string &fallback_title = std::string());
     void                                    open_structure_add_tree(int card_idx, int step_node_idx, const ImVec2 &pos);
     // Queue the currently-selected step folder so its add-object tree auto-opens

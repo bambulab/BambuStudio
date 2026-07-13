@@ -96,6 +96,39 @@ std::string utf8_fit_with_ellipsis(const std::string &s, float max_width)
 
     return best.empty() ? ellipsis : best;
 }
+
+// Shared vertical scrollbar thumb. grab_w is the visible thumb thickness
+// (callers pass their own design width; structure panel and tree list differ).
+static void draw_assembly_scrollbar_y_thumb(ImGuiWindow *child, float sc, bool is_dark, float grab_w)
+{
+    if (!child || !child->ScrollbarY || child->ScrollMax.y <= 0.0f)
+        return;
+    const ImRect sb = ImGui::GetWindowScrollbarRect(child, ImGuiAxis_Y);
+    if (sb.GetWidth() <= 0.5f || sb.GetHeight() <= 0.5f)
+        return;
+
+    const float track_w = sb.GetWidth();
+    grab_w = std::min(track_w, std::max(1.0f * sc, grab_w));
+    const float gap    = std::max(0.0f, (track_w - grab_w) * 0.5f);
+    const float win_h  = child->InnerRect.GetHeight();
+    const float scroll_max = child->ScrollMax.y;
+    const float content_h  = win_h + scroll_max;
+    float grab_h = (content_h > 1.0f) ? (win_h / content_h) * sb.GetHeight() : sb.GetHeight();
+    grab_h = std::max(grab_h, ImGui::GetStyle().GrabMinSize);
+    grab_h = std::min(grab_h, sb.GetHeight());
+    const float scroll_t = (scroll_max > 0.0f) ? (child->Scroll.y / scroll_max) : 0.0f;
+    const float grab_y = sb.Min.y + (sb.GetHeight() - grab_h) * scroll_t;
+    const float grab_x = sb.Min.x + gap;
+    const bool  hovered = sb.Contains(ImGui::GetIO().MousePos);
+    const ImU32 grab_col = hovered
+        ? (is_dark ? IM_COL32(0x4C, 0x8F, 0x66, 255) : IM_COL32(0x9F, 0xD9, 0xB4, 255))
+        : (is_dark ? IM_COL32(144, 144, 144, 220) : IM_COL32(144, 144, 144, 217));
+    child->DrawList->AddRectFilled(
+        ImVec2(grab_x, grab_y), ImVec2(grab_x + grab_w, grab_y + grab_h),
+        grab_col, 2.0f * sc);
+    if (hovered)
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+}
 } // namespace
 
 // ---- AssemblyLargeFontCache: crisp big-text glyph cache (see Internal.hpp) ----
@@ -361,7 +394,7 @@ void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
     // Bottom-centered play bar (Figma node 732:22413). Keep it visible for
     // normal playback, including "play all frames"; hide it only for exports.
     if (!is_export_mode()) {
-        const float assemble_control_clearance = 95.0f * sc;
+        const float assemble_control_clearance = (has_selected_step_node() ? 30.0f : 95.0f) * sc;
         const float play_bar_bottom_y          = canvas_h - assemble_control_clearance;
         render_assemble_play_bar(canvas_w, play_bar_bottom_y);
     } else {
@@ -541,6 +574,20 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     const float NAV_ICON_SZ      = 16.0f * sc;
     const float NAV_BTN_ROUND    = 5.333f * sc;
     const float NAV_GAP          = 8.0f * sc;
+    // Display Mode combo after nav (no visible label; tip on hover).
+    const float DM_GAP           = NAV_GAP;
+    const std::vector<std::string> display_modes = {
+        _u8L("Show Current Step Parts Only"),
+        _u8L("X-Ray Other Parts")
+    };
+    float display_mode_max_text_w = 0.0f;
+    for (const std::string &item : display_modes)
+        display_mode_max_text_w = std::max(display_mode_max_text_w, m_imgui->calc_text_size(item).x);
+    // BBLBeginCombo visible frame = CalcItemWidth() - 2 * arrow_size (same as
+    // GLCanvas3D::_render_assemble_control Display Mode combo).
+    const float dm_arrow_sz        = ImGui::GetFrameHeight();
+    const float dm_combo_visible_w = dm_arrow_sz + display_mode_max_text_w + 2.0f * ImGui::GetStyle().FramePadding.x;
+    const float dm_combo_item_w    = dm_combo_visible_w + 2.0f * dm_arrow_sz;
 
     // Pre-measure speed badge so total width is correct.
     ImFont *font = ImGui::GetFont();
@@ -551,10 +598,11 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
 
     const float TOTAL_W = PLAY_BTN_SZ + GAP_SECTION1 + SPEED_BADGE_W
                         + GAP_S1_TO_BAR + PROGRESS_W
-                        + GAP_BAR_TO_NAV + NAV_BTN_SZ + NAV_GAP + NAV_BTN_SZ;
+                        + GAP_BAR_TO_NAV + NAV_BTN_SZ + NAV_GAP + NAV_BTN_SZ
+                        + DM_GAP + dm_combo_visible_w;
     // main_cy is the vertical center of the top row (play, speed, progress, nav).
     // It must be at least half the tallest element so nothing clips above the window.
-    const float top_half = std::max({PLAY_BTN_SZ * 0.5f, SPEED_BADGE_H * 0.5f, CIRCLE_D * 0.5f});
+    const float top_half = std::max({PLAY_BTN_SZ * 0.5f, SPEED_BADGE_H * 0.5f, CIRCLE_D * 0.5f, dm_arrow_sz * 0.5f});
     // 21.74 (was 15.74) widens the gap between the step circle and the label below
     // it; keep this in sync with the label_top offset further down.
     const float TOTAL_H = top_half + std::max(top_half + 4.0f * sc, 21.74f * sc + LABEL_FONT_PX + 4.0f * sc);
@@ -837,6 +885,71 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
             goto_global_frame(cur_global + 1);
         }
         m_imgui->disabled_end();
+        cursor_x += NAV_BTN_SZ + DM_GAP;
+    }
+
+    // ====== Display Mode combo (label hidden; tip on hover) ======
+    // Match the speed-pill dark translucent mask so light/dark canvas both read well.
+    {
+        const int display_idx = static_cast<int>(keyframe_display_mode());
+        const char *selected_str =
+            (display_idx >= 0 && display_idx < (int) display_modes.size())
+                ? display_modes[display_idx].c_str() : "";
+
+        // Same recipe as the "1.0x" speed pill above: dark mask + white text.
+        const ImVec4 frame_bg    = ImVec4(0.00f, 0.00f, 0.00f, 128 / 255.0f);
+        const ImVec4 frame_hover = ImVec4(0.00f, 0.00f, 0.00f, 180 / 255.0f);
+        const ImVec4 text_col    = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+        const ImVec4 popup_bg    = ImVec4(0.00f, 0.00f, 0.00f, 200 / 255.0f);
+
+        const ImVec2 p0(base.x + cursor_x, base.y + main_cy - dm_arrow_sz * 0.5f);
+        ImGui::SetCursorScreenPos(p0);
+        ImGui::SetNextItemWidth(dm_combo_item_w);
+        size_t display_out = (display_idx >= 0) ? size_t(display_idx) : 0;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, dm_arrow_sz * 0.5f);
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.0f * sc);
+        ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
+        // Play-bar window padding is 0; restore padding for the dropdown list.
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f * sc, 6.0f * sc));
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, frame_bg);
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, frame_hover);
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, frame_hover);
+        ImGui::PushStyleColor(ImGuiCol_Text, text_col);
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.00f, 0.00f, 0.00f, 0.00f));
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, popup_bg);
+        ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.00f, 0.68f, 0.26f, 0.50f));
+        ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+        // Arrow button must share the same dark mask as the text frame (not transparent).
+        ImGui::PushStyleColor(ImGuiCol_Button, frame_bg);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, frame_hover);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, frame_hover);
+        ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, popup_bg);
+
+        if (ImGui::BBLBeginCombo("##playbar_display_mode", selected_str, 0)) {
+            for (size_t line_idx = 0; line_idx < display_modes.size(); ++line_idx) {
+                ImGui::PushID(int(line_idx));
+                if (ImGui::Selectable("", int(line_idx) == display_idx))
+                    display_out = line_idx;
+                ImGui::SameLine();
+                ImGui::Text("%s", display_modes[line_idx].c_str());
+                ImGui::PopID();
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::PopStyleColor(14);
+        ImGui::PopStyleVar(5);
+
+        if (int(display_out) != display_idx)
+            apply_keyframe_display_mode(static_cast<KeyframeDisplayMode>(display_out));
+        if (ImGui::IsItemHovered()) {
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f * sc, 6.0f * sc));
+            m_imgui->tooltip(_u8L("Display Mode"), 20.0f * m_imgui->scaled(1.0f));
+            ImGui::PopStyleVar();
+        }
     }
 
     m_imgui->end();
@@ -3039,14 +3152,17 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
     const float scroll_region_y = win_min.y + header_h;
     const float scroll_region_h = scroll_region_h_target;
     ImGui::SetCursorScreenPos(ImVec2(win_min.x, scroll_region_y));
+    // Show Y scrollbar only when content overflows (no AlwaysVerticalScrollbar).
     ImGuiWindowFlags scroll_flags = ImGuiWindowFlags_NoBackground;
-    if (data.always_show_scrollbar || scroll_content_h > scroll_region_h)
-        scroll_flags |= ImGuiWindowFlags_AlwaysVerticalScrollbar;
-    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 6.0f * sc);
+    // Same scrollbar metrics as render_assembly_tree_ui / draw_assembly_scrollbar_y_thumb.
+    const float scrollbar_track_w = 14.0f * sc;
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbar_track_w);
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, 2.0f * sc);
     ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(144 / 255.f, 144 / 255.f, 144 / 255.f, 0.85f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(144 / 255.f, 144 / 255.f, 144 / 255.f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(120 / 255.f, 120 / 255.f, 120 / 255.f, 1.0f));
+    // Hide stock grab; draw_assembly_scrollbar_y_thumb redraws the centered thumb.
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(38 / 255.f, 46 / 255.f, 48 / 255.f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(245 / 255.f, 247 / 255.f, 248 / 255.f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(236 / 255.f, 240 / 255.f, 242 / 255.f, 1.0f));
@@ -3518,11 +3634,17 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         m_structure_drag_insert_before = -1;
     }
 
-    ImGui::SetCursorPosY(scroll_content_h);
-    ImGui::Dummy(ImVec2(1.0f, 1.0f));
+    // Stretch content height only when it overflows — otherwise a Dummy at
+    // scroll_content_h can create a 1px ScrollMax and flash an empty scrollbar.
+    if (scroll_content_h > scroll_region_h + 0.5f) {
+        ImGui::SetCursorPosY(scroll_content_h);
+        ImGui::Dummy(ImVec2(1.0f, 1.0f));
+    }
+    ImGuiWindow *cards_child = ImGui::GetCurrentWindow();
     ImGui::EndChild();
-    ImGui::PopStyleColor(4);
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleColor(8);
+    ImGui::PopStyleVar(2);
+    draw_assembly_scrollbar_y_thumb(cards_child, sc, m_is_dark, 6.0f * sc);
 
     if (m_structure_add_tree_card >= 0 &&
         m_structure_add_tree_card < static_cast<int>(data.cards.size())) {
@@ -3966,7 +4088,14 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    ImGui::BeginChild(options.child_id, ImVec2(0, options.show_footer ? -footer_h : 0), false, ImGuiWindowFlags_NoBackground);
+    // Flush the child to the parent window's right edge so the scrollbar track
+    // sits on the right. Zero the child's own WindowPadding — inherited 14px
+    // padding would leave a dead strip to the right of the scrollbar.
+    const float child_left = ImGui::GetCursorScreenPos().x;
+    const float win_right  = ImGui::GetWindowPos().x + ImGui::GetWindowSize().x;
+    const float child_w    = std::max(0.0f, win_right - child_left);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::BeginChild(options.child_id, ImVec2(child_w, options.show_footer ? -footer_h : 0), false, ImGuiWindowFlags_NoBackground);
     // A node whose only child is a leaf duplicates that child (e.g. an object
     // with a single volume, or a group with a single object), so the lone child
     // is not shown - the parent row represents it. This collapses the redundant
@@ -4206,7 +4335,17 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
     // No row hovered this frame: clear the cached hover target once.
     if (options.enable_row_select && !any_row_hovered && m_assembly_tree_hover_id != -1)
         hover_tree_item_logic(-1);
+    ImGuiWindow *tree_child = ImGui::GetCurrentWindow();
     ImGui::EndChild();
+    ImGui::PopStyleVar(); // WindowPadding
+    // Restore prior tree thumb width: 1px gap each side of the track (was OK before
+    // the shared 6px token thinned this list). Structure panel keeps 6*sc.
+    float tree_sb_grab_w = 12.0f * sc;
+    if (tree_child && tree_child->ScrollbarY) {
+        const float track_w = ImGui::GetWindowScrollbarRect(tree_child, ImGuiAxis_Y).GetWidth();
+        tree_sb_grab_w = std::max(1.0f * sc, track_w - 2.0f * sc);
+    }
+    draw_assembly_scrollbar_y_thumb(tree_child, sc, m_is_dark, tree_sb_grab_w);
 
     if (!options.show_footer)
         return result;
@@ -5203,7 +5342,7 @@ void AssemblyStepsUtils::render_assembly_label_settings_popup(const char *popup_
             if (ImGui::RadioButton(_u8L("Auto").c_str(), cur == LabelsShowType::AutoRecommend))
                 set_labels_show_type(LabelsShowType::AutoRecommend);
             if (ImGui::IsItemHovered())
-                render_panel_tooltip(_u8L("Automatically choose object-or-part-level labels: objects already shown in earlier steps are collapsed into a single object label, while the rest are labeled per individual part."));
+                render_panel_tooltip(_u8L("Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."));
             ImGui::SameLine();
             if (ImGui::RadioButton(_u8L("Object").c_str(), cur == LabelsShowType::OnlyModelObject))
                 set_labels_show_type(LabelsShowType::OnlyModelObject);
@@ -6429,10 +6568,13 @@ void AssemblyStepsUtils::apply_assembly_tree_checked_to_step(
     }
 
     if (m_selection) {
-        set_selection_origin(SelectionOrigin::TreeNode);
-        clear_selection();
-        for (int object_idx : checked_objects) {
-            m_selection->add_object(static_cast<unsigned int>(object_idx), false);
+        // OK confirm selection visibility is gated by m_select_all_when_click_in_step_card
+        // (default false: keep Volume mode but show no selection highlight).
+        if (m_select_all_when_click_in_step_card) {
+            sync_checked_tree_to_canvas(tree, checked_snapshot);
+        } else {
+            clear_selection_and_lock_volume_mode();
+            do_commond_callback("dirty");
         }
     }
     m_assembly_tree_ui_original_checked = checked_snapshot;
@@ -6568,14 +6710,18 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f * sc);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14.0f * sc, 14.0f * sc));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 6.0f * sc);
+    // Same scrollbar metrics as render_assembly_structure_panel / draw_assembly_scrollbar_y_thumb.
+    const float scrollbar_track_w = 14.0f * sc;
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbar_track_w);
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, 2.0f * sc);
     ImGui::PushStyleColor(ImGuiCol_WindowBg, m_is_dark ? ImVec4(45 / 255.0f, 45 / 255.0f, 49 / 255.0f, 0.98f) : ImVec4(1.0f, 1.0f, 1.0f, 0.98f));
     ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark ? ImVec4(0xE0 / 255.0f, 0xE0 / 255.0f, 0xE0 / 255.0f, 1.0f) : ImVec4(38 / 255.0f, 46 / 255.0f, 48 / 255.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(144 / 255.0f, 144 / 255.0f, 144 / 255.0f, 0.85f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(144 / 255.0f, 144 / 255.0f, 144 / 255.0f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(120 / 255.0f, 120 / 255.0f, 120 / 255.0f, 1.0f));
+    // Hide stock grab; draw_assembly_scrollbar_y_thumb redraws the centered thumb.
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0, 0, 0, 0));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0, 0, 0, 0));
     const int tree_window_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
                                   ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings;
     // Distinct window id keeps the editable step popup and the read-only list from
@@ -6763,7 +6909,7 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
     // The standalone list (show_checkbox == false) drops the checkboxes and the
     // Confirm/Cancel footer and becomes read-only; it is purely a browsable tree.
     render_options.allow_object_check = show_checkbox;
-    render_options.allow_volume_check = false;
+    render_options.allow_volume_check = show_checkbox;
     render_options.show_footer = show_checkbox;
     render_options.readonly = !show_checkbox;
     // Rows are individually selectable: clicking a row (away from its checkbox /
@@ -6812,6 +6958,11 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
                 }
             }
         } else {
+            // Membership unchanged, but OK still clears the preview selection when
+            // m_select_all_when_click_in_step_card is false (default).
+            if (m_selection && !m_select_all_when_click_in_step_card) {
+                clear_selection_and_lock_volume_mode();
+            }
             do_commond_callback("dirty");
         }
     }
@@ -6821,7 +6972,7 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
 
     imgui.end();
     ImGui::PopStyleColor(7);
-    ImGui::PopStyleVar(4);
+    ImGui::PopStyleVar(5);
     m_structure_add_tree_opened_this_frame = false;
 }
 

@@ -11974,15 +11974,22 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             view3d_selection.clear();
             // Independent Models: map the assembly selection back to the prepare view by stable part_guid
             // (an assembly volume references its prepare part via assembly_src_guid), not by index.
+            // Same batch add_volumes pattern as prepare → assemble below.
             Model* a_model = assemble_canvas->get_selection().get_model();
-            for (unsigned int idx : select_idxs) {
-                const GLVolume* v = assemble_canvas->get_selection().get_volume(idx);
-                if (v == nullptr || a_model == nullptr)
-                    continue;
-                const int real_idx = view3d_selection.query_real_volume_idx_from_other_model_volume(v, *a_model, true);
-                if (real_idx >= 0)
-                    view3d_selection.add(real_idx, false);
+            std::vector<unsigned int> view3d_volume_idxs;
+            view3d_volume_idxs.reserve(select_idxs.size());
+            if (a_model != nullptr) {
+                for (unsigned int idx : select_idxs) {
+                    const GLVolume* v = assemble_canvas->get_selection().get_volume(idx);
+                    if (v == nullptr)
+                        continue;
+                    const int real_idx = view3d_selection.query_real_volume_idx_from_other_model_volume(v, *a_model, true);
+                    if (real_idx >= 0)
+                        view3d_volume_idxs.push_back((unsigned int) real_idx);
+                }
             }
+            if (!view3d_volume_idxs.empty())
+                view3d_selection.add_volumes(Selection::Volume, view3d_volume_idxs, true);
             // Close the independent assembly undo/redo stack and rebind the assembly canvas back to the
             // shared prepare model, so m_assemble_model can be safely rebuilt on the next entry.
             // leave_assemble_stack() already wrote assembly-view filament / painting edits back onto the
