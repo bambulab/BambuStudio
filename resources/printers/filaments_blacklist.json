@@ -123,6 +123,7 @@
     },
     {
       "types": ["TPU", "TPU-AMS"],
+      "nozzle_flows": ["Standard", "High Flow", "TPU High Flow", "E3D High Flow"],
       "action": "warning",
       "description": "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
     },
