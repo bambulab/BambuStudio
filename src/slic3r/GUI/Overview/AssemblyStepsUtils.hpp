@@ -211,6 +211,8 @@ class AssemblyStepsUtils
     ImTextureID         m_play_left_icon{nullptr};
     ImTextureID         m_play_right_icon{nullptr};
     // Exit icon shown to the right of the Copy/Add step button row (tree_exit.svg).
+    ImTextureID         m_structure_clear_all_icon{nullptr};
+    ImTextureID         m_structure_clear_all_icon_dark{nullptr};
     ImTextureID         m_structure_exit_icon{nullptr};
     ImTextureID         m_structure_exit_icon_dark{nullptr};
 
@@ -630,6 +632,7 @@ public://logic
     void                     pause_playback();
     void                     resume_playback();
     void                     clear_playback_pause_state();
+    void                     clear_global_playback_state();
     // If playback is paused on the video-intro/title overlay, leave that title mode
     void                     exit_title_mode_if_paused();
     void                     play_different_folder_logic();
@@ -662,6 +665,7 @@ public://logic
     void clear_runtime_state();
     bool prepare_project_save_end_frame();
     void clear_steps_all();
+    void clear_non_final_assembly_steps();
     void new_project_clear_assembly_steps_tree_view();
     bool             has_pending_play_frames() const;
     std::vector<int> selected_object_indices(int object_count, const std::vector<int> &selection_object_indices) const;

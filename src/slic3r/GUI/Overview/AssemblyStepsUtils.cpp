@@ -949,7 +949,9 @@ std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
 
  bool AssemblyStepsUtils::can_add_selected_to_assembly_step() const
  {
-     if (!m_selection || m_selection->get_mode() == Selection::Volume) { return false; }
+     if (!m_selection || m_selection->get_mode() == Selection::Volume) {
+         return false;
+     }
      if (has_selected_node()) { return false; }
      return can_add_objects_to_step(m_selection->is_single_volume() || m_selection->is_multiple_volume(),selected_assembly_object_indices());
  }
@@ -1896,9 +1898,20 @@ bool AssemblyStepsUtils::seek_global_frame_from_mouse_x(float mouse_x, float pro
 
 void AssemblyStepsUtils::pause_global_frame()
 {
-    m_play_global = false;
     m_keyframe_playing = false;
     clear_playback_pause_state();
+    clear_global_playback_state();
+}
+
+void AssemblyStepsUtils::clear_playback_pause_state()
+{
+    m_playback_paused = false;
+    m_playback_pause_started_at = 0.0;
+}
+
+void AssemblyStepsUtils::clear_global_playback_state()
+{
+    m_play_global = false;
     m_play_different_folder_waiting = false;
     m_play_different_folder_phase = 0;
     m_play_end_waiting = false;
@@ -1912,12 +1925,6 @@ void AssemblyStepsUtils::pause_global_frame()
     m_pending_global_frame_index = -1;
     m_play_transition_duration = m_play_transition_expect_duration;
     m_play_interval_step_to_step = m_play_interval_step_to_step_expect;
-}
-
-void AssemblyStepsUtils::clear_playback_pause_state()
-{
-    m_playback_paused = false;
-    m_playback_pause_started_at = 0.0;
 }
 
 void AssemblyStepsUtils::exit_title_mode_if_paused()
@@ -3497,16 +3504,8 @@ void AssemblyStepsUtils::clear_runtime_state()
     m_play_queue.clear();
     m_assembly_play_index = 1;
     m_assembly_play_count = 0;
-    m_play_global = false;
-    m_play_different_folder_waiting = false;
-    m_play_different_folder_phase = 0;
-    m_play_end_waiting = false;
+    clear_global_playback_state();
     m_play_different_folder_start_time = 0.0;
-    m_pending_global_frame_index = -1;
-    m_show_video_title_mode = false;
-    m_video_intro_active = false;
-    m_video_intro_phase = 0;
-    m_video_intro_start_time = 0.0;
 
     m_selected_screen_center_ = Vec2d::Zero();
     m_selected_screen_center_dirty_ = true;
@@ -3523,6 +3522,51 @@ void AssemblyStepsUtils::clear_steps_all()
     _steps_nodes.clear();
     _steps_roots.clear();
     clear_runtime_state();
+}
+
+void AssemblyStepsUtils::clear_non_final_assembly_steps()
+{
+    if (m_model == nullptr)
+        return;
+
+    MessageDialog msg_dlg(nullptr,
+        _L("Are you sure you want to delete all assembly steps?"),
+        _L("Delete all steps"),
+        wxICON_QUESTION | wxYES_NO);
+    if (msg_dlg.ShowModal() != wxID_YES)
+        return;
+
+    const int final_folder = ensure_final_assembly_folder();
+    _steps_roots.erase(std::remove_if(_steps_roots.begin(), _steps_roots.end(), [&](int root_idx) {
+        if (root_idx < 0 || root_idx >= (int)_steps_nodes.size())
+            return true;
+        const auto &root = _steps_nodes[root_idx];
+        return root.type != AssemblyStepsTreeNode::Type::Folder || !root.is_final_assembly;
+    }), _steps_roots.end());
+
+    for (auto it = m_structure_select_labels.begin(); it != m_structure_select_labels.end();) {
+        const int node_idx = it->first;
+        if (node_idx < 0 || node_idx >= (int)_steps_nodes.size() || !_steps_nodes[node_idx].is_final_assembly)
+            it = m_structure_select_labels.erase(it);
+        else
+            ++it;
+    }
+    for (auto it = m_structure_select_show_default.begin(); it != m_structure_select_show_default.end();) {
+        const int node_idx = *it;
+        if (node_idx < 0 || node_idx >= (int)_steps_nodes.size() || !_steps_nodes[node_idx].is_final_assembly)
+            it = m_structure_select_show_default.erase(it);
+        else
+            ++it;
+    }
+
+    clear_selection();
+    m_selected_node = final_folder;
+    m_structure_scroll_to_node = final_folder;
+    if (final_folder >= 0)
+        select_steps_tree_node_for_canvas(final_folder);
+    renumber_structure_step_roots();
+    reschedule_play_bar_after_structure_change();//clear_non_final_assembly_steps
+    save_assembly_steps_json_to_model();
 }
 
 void AssemblyStepsUtils::new_project_clear_assembly_steps_tree_view()
@@ -6312,6 +6356,9 @@ void AssemblyStepsUtils::insert_keyframe_after_selected()
     new_entry.need_save = true;
     entries.insert(entries.begin() + insert_pos, new_entry);
     invalidate_play_frame_refs();//insert_keyframe_after_selected
+    // Editing the timeline invalidates any paused global playback session. Otherwise the next inline
+    // "play current step" click may resume the old global state instead of starting a fresh local queue.
+    pause_global_frame();
     m_keyframe_selected = insert_pos;
     refresh_guide_show_part_numbers_from_current();
 }
@@ -6319,6 +6366,7 @@ void AssemblyStepsUtils::insert_keyframe_after_selected()
 void AssemblyStepsUtils::play_all_keyframes_for_current_node()
 {
     clear_playback_pause_state();
+    clear_global_playback_state();
     m_keyframe_playing = true;
     build_local_play_queue();
     do_commond_callback("exit_gizmo");
@@ -6328,8 +6376,9 @@ void AssemblyStepsUtils::play_all_keyframes_for_current_node()
 bool AssemblyStepsUtils::should_show_panels()
 {
     // Hide the assembly chrome (Structure / Guide panels, play bar, part-label
+    const bool active_playback = !m_playback_paused && (m_video_intro_active || m_keyframe_playing);
     const bool exporting = m_is_export_mode || m_steps_export_active ||
-                           m_steps_video_export_active || m_video_intro_active || m_keyframe_playing;
+                           m_steps_video_export_active || active_playback;
     if (exporting) {
         if (m_play_video_and_show_panels_debug) {
             return true;

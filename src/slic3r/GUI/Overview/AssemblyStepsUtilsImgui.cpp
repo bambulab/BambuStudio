@@ -3546,10 +3546,20 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         const float copy_w = std::max(btn_w, ImGui::CalcTextSize(_u8L("Copy Step").c_str()).x + 2.0f * btn_pad_x);
         const float add_w  = std::max(btn_w, ImGui::CalcTextSize(_u8L("Add Step").c_str()).x + 2.0f * btn_pad_x);
         const float total_w = copy_w + btn_gap + add_w;
-        // Center the whole group (Copy + Add buttons + exit icon) within the
+        bool has_non_final_steps = false;
+        for (int root_idx : _steps_roots) {
+            if (root_idx >= 0 && root_idx < (int)_steps_nodes.size() &&
+                _steps_nodes[root_idx].type == AssemblyStepsTreeNode::Type::Folder &&
+                !_steps_nodes[root_idx].is_final_assembly) {
+                has_non_final_steps = true;
+                break;
+            }
+        }
+        // Center the whole group (Copy + Add buttons + clear-all + exit icons) within the
         // panel window width (panel_w), matching the Figma layout where the row
         // is centered as a single flex container.
-        const float group_w = total_w + exit_gap + exit_sz;
+        const float clear_all_slot_w = has_non_final_steps ? (exit_gap + exit_sz) : 0.0f;
+        const float group_w = total_w + clear_all_slot_w + exit_gap + exit_sz;
         const float bx0     = win_min.x + (panel_w - group_w) * 0.5f;
         // Anchor the button row to the bottom of the scrollable card region
         const float by      = scroll_region_y + scroll_region_h + card_gap;
@@ -3590,10 +3600,37 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         }
         imgui.disabled_end();
 
+        // Clear-all icon (tree_clear_all.svg) deletes all regular steps while keeping the final assembly.
+        if (has_non_final_steps) {
+            const ImVec2 clear_min(bx0 + total_w + exit_gap,
+                                   by + (action_h - exit_sz) * 0.5f);
+            const ImVec2 clear_max(clear_min.x + exit_sz, clear_min.y + exit_sz);
+            // tree_clear_all.svg is authored as 16x16 while tree_exit.svg is 20x20. Draw it a bit
+            // larger inside the same 24px button box so the visible icon matches the exit icon size.
+            const float clear_icon_sz = exit_sz * 20.0f / 16.0f;
+            const ImVec2 clear_icon_min(clear_min.x + (exit_sz - clear_icon_sz) * 0.5f,
+                                        clear_min.y + (exit_sz - clear_icon_sz) * 0.5f);
+            const ImVec2 clear_icon_max(clear_icon_min.x + clear_icon_sz, clear_icon_min.y + clear_icon_sz);
+            ImTextureID clear_icon = (m_is_dark && m_structure_clear_all_icon_dark) ?
+                m_structure_clear_all_icon_dark : m_structure_clear_all_icon;
+            if (clear_icon)
+                dl->AddImage(clear_icon, clear_icon_min, clear_icon_max);
+            ImGui::SetCursorScreenPos(clear_min);
+            ImGui::PushID("##asp_btn_clear_all");
+            ImGui::InvisibleButton("##clear", ImVec2(exit_sz, exit_sz));
+            if (ImGui::IsItemClicked(0))
+                clear_non_final_assembly_steps();
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+                dl->AddRectFilled(clear_min, clear_max, IM_COL32(38, 46, 48, 18), 3.0f * sc);
+                render_panel_tooltip(_u8L("Delete all assembly steps except the final assembly."));
+            }
+            ImGui::PopID();
+        }
+
         // Exit icon (tree_exit.svg) drawn to the right of the Add Step button,
         // vertically centered with the button row. Part of the centered group.
         {
-            const ImVec2 exit_min(bx0 + total_w + exit_gap,
+            const ImVec2 exit_min(bx0 + total_w + clear_all_slot_w + exit_gap,
                                   by + (action_h - exit_sz) * 0.5f);
             const ImVec2 exit_max(exit_min.x + exit_sz, exit_min.y + exit_sz);
             ImTextureID exit_icon = (m_is_dark && m_structure_exit_icon_dark) ?
@@ -3731,6 +3768,8 @@ void AssemblyStepsUtils::init_tree_icons()
     IMTexture::load_from_svg_file(m_images_dir + "tree_export.svg", icon_sz, icon_sz, m_btn_icon_export);
     IMTexture::load_from_svg_file(m_images_dir + "play_left.svg",   icon_sz, icon_sz, m_play_left_icon);
     IMTexture::load_from_svg_file(m_images_dir + "play_right.svg",  icon_sz, icon_sz, m_play_right_icon);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_clear_all.svg",      icon_sz, icon_sz, m_structure_clear_all_icon);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_clear_all_dark.svg", icon_sz, icon_sz, m_structure_clear_all_icon_dark);
     IMTexture::load_from_svg_file(m_images_dir + "tree_exit.svg",      icon_sz, icon_sz, m_structure_exit_icon);
     IMTexture::load_from_svg_file(m_images_dir + "tree_exit_dark.svg", icon_sz, icon_sz, m_structure_exit_icon_dark);
     load_assembly_tree_icons(m_imgui_scale > 0.0f ? m_imgui_scale : 1.0f);
