@@ -6502,6 +6502,23 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 {
     if (presets == nullptr) presets = m_presets;
 
+    // The unsaved-changes dialog builds its list of modified options from the options searcher,
+    // which is filtered to the current view mode. In Simple mode that hides modified advanced
+    // options, so they would be silently dropped when transferring changes to another preset.
+    // Temporarily rebuild the searcher at comAdvanced so all modified options are compared and
+    // transferable, then restore it to the current view mode on the way out.
+    //
+    // We reuse the global (sidebar) searcher on purpose rather than a local instance: the
+    // searcher only turns a config option into a displayable row if it has a group/category,
+    // and that group/category map is filled incrementally by the live settings tabs (see
+    // OptionsSearcher::add_key). A freshly constructed local searcher would have an empty map
+    // and therefore build an empty tree. The RAII guard guarantees the view-mode searcher is
+    // restored on every exit path (cancel / save / transfer / force).
+    struct SearcherModeGuard {
+        ~SearcherModeGuard() { wxGetApp().sidebar().update_searcher(); }
+    } searcher_mode_guard;
+    wxGetApp().sidebar().update_searcher(comAdvanced);
+
     UnsavedChangesDialog dlg(m_type, presets, new_printer_name, no_transfer);
 
     auto handle_save_action = [&dlg, this, presets]() {

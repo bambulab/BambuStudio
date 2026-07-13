@@ -2,6 +2,7 @@
 #define slic3r_Plater_hpp_
 
 #include <memory>
+#include <optional>
 #include <vector>
 #include <boost/filesystem/path.hpp>
 
@@ -243,7 +244,10 @@ public:
     bool                    is_collapsed();
     void                    collapse(bool collapse);
     bool                    is_fila_switch_ready();
-    void                    update_searcher();
+    // Rebuild the options searcher. Pass a mode to include options up to that mode regardless
+    // of the current view mode (e.g. comAdvanced when transferring modified options between
+    // presets, so options hidden in Simple mode are still compared); omit to use the view mode.
+    void                    update_searcher(std::optional<ConfigOptionMode> mode = std::nullopt);
     void                    update_ui_from_settings();
 	bool                    show_object_list(bool show) const;
     void                    finish_param_edit();

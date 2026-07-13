@@ -4882,9 +4882,9 @@ static std::vector<Search::InputInfo> get_search_inputs(ConfigOptionMode mode)
     return ret;
 }
 
-void Sidebar::update_searcher()
+void Sidebar::update_searcher(std::optional<ConfigOptionMode> mode)
 {
-    p->searcher.init(get_search_inputs(m_mode));
+    p->searcher.init(get_search_inputs(mode.value_or(m_mode)));
 }
 
 void Sidebar::update_mode()
