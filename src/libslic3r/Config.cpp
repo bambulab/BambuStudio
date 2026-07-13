@@ -5,6 +5,7 @@
 #include "Preset.hpp"
 
 #include <assert.h>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
@@ -522,11 +523,51 @@ t_config_option_keys ConfigBase::equal(const ConfigBase &other) const
     return equal;
 }
 
+// Best-effort, never-throwing diagnostic dump of an option's raw values, used to record the
+// "crime scene" when serialization fails (e.g. a NaN in a non-nullable float vector). It bypasses
+// serialize() on purpose so it works even for the very values that make serialize() throw.
+static std::string describe_option_values(const ConfigOption *opt)
+{
+    if (opt == nullptr)
+        return "<null option>";
+    std::ostringstream ss;
+    ss << "type=" << int(opt->type()) << " nullable=" << (opt->nullable() ? 1 : 0);
+    // The failing options are float / float-or-percent vectors; dump their doubles directly and
+    // flag which entries are non-finite so the offending index is obvious in the log.
+    if (const auto *fv = dynamic_cast<const ConfigOptionVector<double>*>(opt)) {
+        ss << " size=" << fv->values.size() << " values=[";
+        for (size_t i = 0; i < fv->values.size(); ++i) {
+            const double v = fv->values[i];
+            if (i) ss << ",";
+            if (std::isnan(v))       ss << "#" << i << ":NaN";
+            else if (! std::isfinite(v)) ss << "#" << i << ":Inf";
+            else                     ss << v;
+        }
+        ss << "]";
+    } else {
+        // For any other type, serialize() is what threw; fall back to a size hint if it is a vector.
+        if (const auto *vb = dynamic_cast<const ConfigOptionVectorBase*>(opt))
+            ss << " size=" << vb->size();
+    }
+    return ss.str();
+}
+
 std::string ConfigBase::opt_serialize(const t_config_option_key &opt_key) const
 {
     const ConfigOption* opt = this->option(opt_key);
     assert(opt != nullptr);
-    return opt->serialize();
+    try {
+        return opt->serialize();
+    } catch (const ConfigurationError &err) {
+        // Record the crime scene: which option, its type, and every raw value (NaN/Inf indices
+        // marked). serialize()'s own message never carries the key, so we log it here where the key
+        // is known, then rethrow an enriched error so the caller can name the setting to the user.
+        std::string details = describe_option_values(opt);
+        BOOST_LOG_TRIVIAL(error) << "opt_serialize failed for option \"" << opt_key << "\": "
+                                 << err.what() << " | " << details;
+        throw ConfigurationError(std::string("Failed to serialize option \"") + opt_key + "\": "
+                                 + err.what() + " (" + details + ")");
+    }
 }
 
 void ConfigBase::set(const std::string &opt_key, int value, bool create)

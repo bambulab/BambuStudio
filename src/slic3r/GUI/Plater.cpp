@@ -22108,6 +22108,13 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
     if (!path.Lower().EndsWith(".3mf"))
         return -1;
+
+    // Serializing the project config can throw (e.g. a non-nullable float option holding a NaN,
+    // which throws Slic3r::ConfigurationError "Serializing NaN" deep inside store_bbs_3mf). Such a
+    // ConfigurationError is a CriticalException and must never reach the wx main loop: if it does,
+    // wx tears down the app and null-derefs wxTheApp during shutdown -> hard crash. Contain it here:
+    // fail the save, tell the user which setting is bad, and let them fix it and try again.
+    try {
     // Persist assembly-view edits: the assembly steps / tree are authored on the independent assembly
     // model, so mirror them onto the prepare model before serialization. This covers saving while still
     // inside the assembly view (the leave_assemble_stack sync only fires when switching panels).
@@ -22335,6 +22342,19 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     picking_thumbnails.clear();
 
     return ret;
+    } catch (const std::exception &ex) {
+        // A config option could not be serialized (or another error escaped the store). Do NOT let
+        // it propagate to the wx main loop. Log the crime scene (opt_serialize already logged the
+        // exact option key + values), fail the save, and prompt the user for interactive saves.
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": save failed with exception: " << ex.what();
+        if (!(strategy & SaveStrategy::Silence)) {
+            wxString msg = _L("Failed to save the project: an invalid setting value was found while writing the file.") + "\n\n"
+                         + from_u8(ex.what()) + "\n\n"
+                         + _L("Please check your settings and try again.");
+            GUI::show_error(this, msg);
+        }
+        return -1;
+    }
 }
 
 void Plater::publish_project()
