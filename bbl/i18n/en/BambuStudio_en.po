@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-12 18:22+0800\n"
+"POT-Creation-Date: 2026-07-13 23:11+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3207,6 +3207,12 @@ msgstr ""
 msgid "Saving project will automatically switch to end frame"
 msgstr ""
 
+msgid "Are you sure you want to delete all assembly steps?"
+msgstr ""
+
+msgid "Delete all steps"
+msgstr ""
+
 msgid "New Step"
 msgstr ""
 
@@ -3356,6 +3362,9 @@ msgid "Only copy steps. This is independent of the selected objects on the canva
 msgstr ""
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
+msgstr ""
+
+msgid "Delete all assembly steps except the final assembly."
 msgstr ""
 
 msgid "Exit the assembly step editing, you can also press the Esc button to exit"
@@ -4054,6 +4063,12 @@ msgctxt "Unsupported Filaments"
 msgid "Note"
 msgstr ""
 
+msgid "No unsupported filaments"
+msgstr "暂无不支持的耗材"
+
+msgid "No filaments"
+msgstr "暂无耗材"
+
 msgid "System presets"
 msgstr "System presets"
 
@@ -4076,18 +4091,21 @@ msgid "Custom Color"
 msgstr "Custom Color"
 
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS识别到新的官方耗材，是否录入到耗材管理？"
 
 msgid "Add as new filament"
-msgstr ""
+msgstr "作为新耗材录入"
 
 msgid "Link to existing filament"
-msgstr ""
+msgstr "关联已录入的耗材"
 
 msgid "Not now"
 msgstr ""
 
 msgid "Please select"
+msgstr ""
+
+msgid "No matching filament"
 msgstr ""
 
 msgid "Dynamic flow calibration"
@@ -8594,6 +8612,12 @@ msgstr "Reason: \"%1%\" and another part have no intersection."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 
+msgid "Failed to save the project: an invalid setting value was found while writing the file."
+msgstr ""
+
+msgid "Please check your settings and try again."
+msgstr ""
+
 msgid ""
 "Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
 "Please verify the file source and script contents before continuing."
@@ -8934,12 +8958,6 @@ msgid "If enabled, auto check whether there are system presets updates after Bam
 msgstr ""
 
 msgid "Auto-fill previously logged-in accounts."
-msgstr ""
-
-msgid "Disable fin extrude safe temperature"
-msgstr ""
-
-msgid "When enabled, the fin extrude safe temperature constraint is bypassed. The value is exposed to custom G-code as disable_fins_extrude_safe_temp."
 msgstr ""
 
 msgid "3D Settings"

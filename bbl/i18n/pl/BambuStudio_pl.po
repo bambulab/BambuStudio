@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-12 18:22+0800\n"
+"POT-Creation-Date: 2026-07-13 23:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3230,6 +3230,12 @@ msgstr "Eksportowanie pliku"
 msgid "Saving project will automatically switch to end frame"
 msgstr "Zapisanie projektu spowoduje automatyczne przełączenie na ramkę końcową"
 
+msgid "Are you sure you want to delete all assembly steps?"
+msgstr ""
+
+msgid "Delete all steps"
+msgstr ""
+
 msgid "New Step"
 msgstr "Nowy krok"
 
@@ -3380,6 +3386,9 @@ msgstr "Kopiuj tylko kroki. Jest to niezależne od zaznaczonych obiektów na pł
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr "Dodawaj tylko puste kroki. Nie ma to nic wspólnego z zaznaczonymi obiektami na płótnie."
+
+msgid "Delete all assembly steps except the final assembly."
+msgstr ""
 
 msgid "Exit the assembly step editing, you can also press the Esc button to exit"
 msgstr ""
@@ -4077,6 +4086,12 @@ msgctxt "Unsupported Filaments"
 msgid "Note"
 msgstr "Uwaga"
 
+msgid "No unsupported filaments"
+msgstr ""
+
+msgid "No filaments"
+msgstr ""
+
 msgid "System presets"
 msgstr "Profile systemowe"
 
@@ -4113,6 +4128,9 @@ msgid "Not now"
 msgstr ""
 
 msgid "Please select"
+msgstr ""
+
+msgid "No matching filament"
 msgstr ""
 
 msgid "Dynamic flow calibration"
@@ -8714,6 +8732,12 @@ msgstr "Przyczyna: \"%1%\" i inna  nie mają wspólnego przecięcia."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Wykryto części ujemne. Czy chcesz przeprowadzić operacje boole'owskie na siatce przed eksportem?"
 
+msgid "Failed to save the project: an invalid setting value was found while writing the file."
+msgstr ""
+
+msgid "Please check your settings and try again."
+msgstr ""
+
 msgid ""
 "Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
 "Please verify the file source and script contents before continuing."
@@ -9065,12 +9089,6 @@ msgstr "Jeśli opcja ta jest włączona, po uruchomieniu Bambu Studio automatycz
 
 msgid "Auto-fill previously logged-in accounts."
 msgstr "Wypełniaj automatycznie dane kont, na które wcześniej się logowano."
-
-msgid "Disable fin extrude safe temperature"
-msgstr ""
-
-msgid "When enabled, the fin extrude safe temperature constraint is bypassed. The value is exposed to custom G-code as disable_fins_extrude_safe_temp."
-msgstr ""
 
 msgid "3D Settings"
 msgstr "Ustawienia 3D"

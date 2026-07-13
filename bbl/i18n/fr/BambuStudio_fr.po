@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-12 18:22+0800\n"
+"POT-Creation-Date: 2026-07-13 23:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3224,6 +3224,12 @@ msgstr "Exportation du fichier"
 msgid "Saving project will automatically switch to end frame"
 msgstr "L'enregistrement du projet passera automatiquement à l'image finale"
 
+msgid "Are you sure you want to delete all assembly steps?"
+msgstr ""
+
+msgid "Delete all steps"
+msgstr ""
+
 msgid "New Step"
 msgstr "Nouvelle étape"
 
@@ -3374,6 +3380,9 @@ msgstr "Copiez uniquement les étapes. Ceci est indépendant des objets sélecti
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr "Ajoutez uniquement des étapes vides. Cela n'a rien à voir avec les objets sélectionnés sur le canevas."
+
+msgid "Delete all assembly steps except the final assembly."
+msgstr ""
 
 msgid "Exit the assembly step editing, you can also press the Esc button to exit"
 msgstr ""
@@ -4065,6 +4074,12 @@ msgctxt "Unsupported Filaments"
 msgid "Note"
 msgstr ""
 
+msgid "No unsupported filaments"
+msgstr ""
+
+msgid "No filaments"
+msgstr ""
+
 msgid "System presets"
 msgstr "Configurations système"
 
@@ -4101,6 +4116,9 @@ msgid "Not now"
 msgstr ""
 
 msgid "Please select"
+msgstr ""
+
+msgid "No matching filament"
 msgstr ""
 
 msgid "Dynamic flow calibration"
@@ -8689,6 +8707,12 @@ msgstr "Raison : « %1% » et une autre partie n’ont pas d’intersection."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Parties négatives détectées. Souhaitez-vous effectuer un maillage booléen avant d'exporter ?"
 
+msgid "Failed to save the project: an invalid setting value was found while writing the file."
+msgstr ""
+
+msgid "Please check your settings and try again."
+msgstr ""
+
 msgid ""
 "Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
 "Please verify the file source and script contents before continuing."
@@ -9038,12 +9062,6 @@ msgstr "Si cette option est activée, le système vérifie automatiquement s'il 
 
 msgid "Auto-fill previously logged-in accounts."
 msgstr "Remplissage automatique des comptes précédemment connectés."
-
-msgid "Disable fin extrude safe temperature"
-msgstr ""
-
-msgid "When enabled, the fin extrude safe temperature constraint is bypassed. The value is exposed to custom G-code as disable_fins_extrude_safe_temp."
-msgstr ""
 
 msgid "3D Settings"
 msgstr "Réglages 3D"
