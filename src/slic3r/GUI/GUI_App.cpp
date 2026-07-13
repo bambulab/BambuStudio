@@ -2864,6 +2864,17 @@ int GUI_App::OnExit()
     m_fila_debug_sink = nullptr;
 #endif
 
+    // Keep filaments that were auto-enabled during AMS sync (machine-used but not
+    // ticked in preferences) installed across restarts. Done once here instead of on
+    // every sync so it stays off the hot sync path.
+    if (preset_bundle && app_config) {
+        for (const auto &preset_name : preset_bundle->filament_presets) {
+            const Preset *preset = preset_bundle->filaments.find_preset(preset_name, false, true);
+            if (preset && preset->is_system && preset->is_visible)
+                app_config->set(AppConfig::SECTION_FILAMENTS, preset->name, "true");
+        }
+    }
+
     // Flush any config changes that were deferred by the idle-handler debounce.
     if (app_config && app_config->dirty())
         app_config->save();

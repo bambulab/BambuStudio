@@ -2662,6 +2662,10 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                                                         L("The filament model is unknown. A random filament preset will be used.")));
             filament_id = iter->filament_id;
         }
+        // A filament that the machine actually uses should be enabled (installed)
+        // in Studio even if the user never ticked it in the filament preferences,
+        // otherwise it stays hidden in the filament settings dropdown after sync.
+        iter->is_visible = true;
         ams_filament_presets.push_back(iter->name);
         ams_filament_colors.push_back(filament_color);
         ams_filament_color_types.push_back(filament_color_type);
