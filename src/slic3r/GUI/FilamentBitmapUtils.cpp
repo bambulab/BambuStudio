@@ -30,6 +30,26 @@ static BitmapDC init_bitmap_dc(const wxSize& size) {
     return BitmapDC(size);
 }
 
+void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const wxColour& from, const wxColour& to)
+{
+    if (rect.width <= 0 || rect.height <= 0) return;
+
+    auto mix_channel = [](unsigned char a, unsigned char b, double t) {
+        return static_cast<unsigned char>(a + (b - a) * t + 0.5);
+    };
+
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    for (int x = 0; x < rect.width; ++x) {
+        const double t = rect.width > 1 ? static_cast<double>(x) / (rect.width - 1) : 0.0;
+        const wxColour col(mix_channel(from.Red(), to.Red(), t),
+                           mix_channel(from.Green(), to.Green(), t),
+                           mix_channel(from.Blue(), to.Blue(), t),
+                           mix_channel(from.Alpha(), to.Alpha(), t));
+        dc.SetBrush(wxBrush(col));
+        dc.DrawRectangle(rect.x + x, rect.y, 1, rect.height);
+    }
+}
+
 // Check if a color is transparent (alpha == 0)
 static bool is_transparent_color(const wxColour& color) {
     return color.Alpha() == 0;
@@ -214,7 +234,7 @@ static wxBitmap create_gradient_filament_bitmap(const std::vector<wxColour>& col
 
         if (current_width > 0) {
             auto rect = wxRect(left, 0, current_width, height);
-            dc.GradientFillLinear(rect, colors[i], colors[i + 1], wxEAST);
+            fill_gradient_rect_east(dc, rect, colors[i], colors[i + 1]);
             left += current_width;
         }
     }

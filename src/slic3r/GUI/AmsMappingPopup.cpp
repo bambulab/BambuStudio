@@ -25,6 +25,7 @@
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
 #include "BindDialog.hpp"
+#include "FilamentBitmapUtils.hpp"
 
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevFilaSwitch.h"
@@ -348,7 +349,7 @@ void MaterialItem::doRender(wxDC& dc)
                 for (int i = 0; i < seg; i++) {
                     int x0 = gw * i;
                     int w  = (i == seg - 1) ? (size.x - x0) : gw;
-                    dc.GradientFillLinear(wxRect(x0, 0, w, top_h), m_material_cols[i], m_material_cols[i + 1], wxEAST);
+                    fill_gradient_rect_east(dc, wxRect(x0, 0, w, top_h), m_material_cols[i], m_material_cols[i + 1]);
                 }
             } else {
                 int cols_size = m_material_cols.size();
@@ -405,7 +406,7 @@ void MaterialItem::doRender(wxDC& dc)
             for (int i = 0; i < m_ams_cols.size() - 1; i++)
             {
                 auto rect = wxRect(left, paint_recty, right - left, MATERIAL_REC_WHEEL_SIZE.y);
-                dc.GradientFillLinear(rect, m_ams_cols[i], m_ams_cols[i + 1], wxEAST);
+                fill_gradient_rect_east(dc, rect, m_ams_cols[i], m_ams_cols[i + 1]);
                 left += gwidth;
             }
         }
@@ -709,7 +710,7 @@ void MaterialSyncItem::doRender(wxDC &dc)
                 }
                 for (int i = 0; i < m_ams_cols.size() - 1; i++) {
                     auto rect = wxRect(left, up, right - left, MATERIAL_REC_WHEEL_SIZE.y);
-                    dc.GradientFillLinear(rect, m_ams_cols[i], m_ams_cols[i + 1], wxEAST);
+                    fill_gradient_rect_east(dc, rect, m_ams_cols[i], m_ams_cols[i + 1]);
                     left += gwidth;
                 }
             } else {
@@ -1498,7 +1499,7 @@ void MappingItem::doRender(wxDC &dc)
         if (m_tray_data.ctype == 0) {
             for (int i = 0; i < m_tray_data.material_cols.size() - 1; i++) {
                 auto rect = wxRect(left, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2 + get_remain_area_height(), MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
-                dc.GradientFillLinear(rect, m_tray_data.material_cols[i], m_tray_data.material_cols[i + 1], wxEAST);
+                fill_gradient_rect_east(dc, rect, m_tray_data.material_cols[i], m_tray_data.material_cols[i + 1]);
                 left += gwidth;
             }
         }

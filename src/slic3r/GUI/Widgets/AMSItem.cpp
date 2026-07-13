@@ -3,6 +3,7 @@
 #include "../BitmapCache.hpp"
 #include "../I18N.hpp"
 #include "../GUI_App.hpp"
+#include "../FilamentBitmapUtils.hpp"
 #include "../Utils/WxFontUtils.hpp"
 
 #include "slic3r/GUI/DeviceTab/uiAmsHumidityPopup.h"
@@ -1428,7 +1429,7 @@ void AMSLib::render_lite_lib(wxDC& dc)
     if (m_info.material_cols.size() > 1) {
         wxRect color_rect(FromDIP(10), FromDIP(10), libsize.x - FromDIP(18), libsize.y - FromDIP(18));
         if (m_info.ctype == DevFilaColorType::CTYPE_MULTI) {
-            dc.GradientFillLinear(color_rect, m_info.material_cols.front(), m_info.material_cols.back(), wxEAST);
+            fill_gradient_rect_east(dc, color_rect, m_info.material_cols.front(), m_info.material_cols.back());
         }
         else {
             int cols_size = m_info.material_cols.size();
@@ -1568,7 +1569,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
         wxRect color_rect(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1));
         if (m_info.ctype != DevFilaColorType::CTYPE_SINGLE && m_info.material_cols.size() > 1 && alpha != 0) {
             if (m_info.ctype == DevFilaColorType::CTYPE_MULTI) {
-                dc.GradientFillLinear(color_rect, m_info.material_cols.front(), m_info.material_cols.back(), wxEAST);
+                fill_gradient_rect_east(dc, color_rect, m_info.material_cols.front(), m_info.material_cols.back());
             }
             else {
                 int cols_size = m_info.material_cols.size();
@@ -1694,7 +1695,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
                     }
 
                     auto rect = wxRect(left, height - curr_height, gwidth, curr_height);
-                    dc.GradientFillLinear(rect, m_info.material_cols[i], m_info.material_cols[i + 1], wxEAST);
+                    fill_gradient_rect_east(dc, rect, m_info.material_cols[i], m_info.material_cols[i + 1]);
                     left += gwidth;
                 }
             }
@@ -3003,7 +3004,7 @@ void AMSPreview::doRender(wxDC &dc)
                         }
 
                         auto rect = wxRect(fleft, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, gwidth, AMS_ITEM_CUBE_SIZE.y);
-                        dc.GradientFillLinear(rect, iter->material_cols[i], iter->material_cols[i + 1], wxEAST);
+                        fill_gradient_rect_east(dc, rect, iter->material_cols[i], iter->material_cols[i + 1]);
                         fleft += gwidth;
                     }
                 }
@@ -3082,7 +3083,7 @@ void AMSPreview::doRender(wxDC &dc)
                     }
 
                     auto rect = wxRect(fleft, (size.y - AMS_ITEM_CUBE_SIZE.y) / 2, gwidth, AMS_ITEM_CUBE_SIZE.y);
-                    dc.GradientFillLinear(rect, iter.material_cols[i], iter.material_cols[i + 1], wxEAST);
+                    fill_gradient_rect_east(dc, rect, iter.material_cols[i], iter.material_cols[i + 1]);
                     fleft += gwidth;
                 }
             }

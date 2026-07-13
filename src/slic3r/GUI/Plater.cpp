@@ -149,6 +149,7 @@
 #include "BitmapCache.hpp"
 #include "ParamsDialog.hpp"
 #include "ImageDPIFrame.hpp"
+#include "FilamentBitmapUtils.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/RadioBox.hpp"
@@ -5228,8 +5229,7 @@ void Sidebar::update_mixed_filament_list()
                 grad_panel->Bind(wxEVT_PAINT, [grad_panel, col_from, col_to, mix_num, mc_text](wxPaintEvent&) {
                     wxBufferedPaintDC dc(grad_panel);
                     wxSize sz = grad_panel->GetClientSize();
-                    dc.GradientFillLinear(wxRect(0, 0, sz.GetWidth(), sz.GetHeight()),
-                                          col_from, col_to, wxRIGHT);
+                    fill_gradient_rect_east(dc, wxRect(0, 0, sz.GetWidth(), sz.GetHeight()), col_from, col_to);
                     wxString txt = wxString::Format("%u", mix_num);
                     dc.SetFont(::Label::Body_14);
                     wxSize txt_sz = dc.GetTextExtent(txt);
