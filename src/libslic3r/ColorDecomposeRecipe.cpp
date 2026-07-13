@@ -23,6 +23,7 @@ struct LabColor {
 struct StandardRecipeEntry {
     ColorDecomposeRecipeMode mode{ColorDecomposeRecipeMode::CMYW};
     std::string material;
+    std::string source;
     std::vector<std::string> component_keys;
     std::vector<std::string> component_hexes;
     std::vector<int> ratios;
@@ -114,6 +115,7 @@ static std::vector<StandardRecipeEntry> load_standard_entries()
         StandardRecipeEntry entry;
         entry.mode = parse_mode(item.value("mode", "CMYW"));
         entry.material = item.value("material", "");
+        entry.source = item.value("source", "");
         entry.measured_hex = item.value("measured_rgb", "");
 
         if (item.contains("components") && item["components"].is_array()) {
@@ -309,6 +311,51 @@ ColorDecomposeRecipeResult lookup_standard_recipe(
     if (!best.valid)
         consider(false);
     return best;
+}
+
+std::string lookup_measured_blend_color(const std::vector<std::string>& component_hexes,
+                                       const std::vector<int>& ratios)
+{
+    if (component_hexes.size() < 2 || component_hexes.size() != ratios.size())
+        return {};
+
+    auto normalize_hex = [](const std::string& hex) -> std::string {
+        ColorDecomposeRgb rgb;
+        if (!color_decompose_hex_to_rgb(hex, rgb))
+            return {};
+        char buf[8];
+        std::snprintf(buf, sizeof(buf), "#%02X%02X%02X", rgb.r, rgb.g, rgb.b);
+        return std::string(buf);
+    };
+
+    std::vector<std::string> norm_hexes;
+    norm_hexes.reserve(component_hexes.size());
+    for (const auto& h : component_hexes) {
+        std::string n = normalize_hex(h);
+        if (n.empty())
+            return {};
+        norm_hexes.push_back(std::move(n));
+    }
+
+    for (const StandardRecipeEntry& entry : standard_entries()) {
+        if (entry.source != "measured" && entry.source != "interpolated")
+            continue;
+        if (entry.component_hexes.size() != norm_hexes.size())
+            continue;
+        if (entry.ratios != ratios)
+            continue;
+
+        bool match = true;
+        for (size_t i = 0; i < norm_hexes.size(); ++i) {
+            if (normalize_hex(entry.component_hexes[i]) != norm_hexes[i]) {
+                match = false;
+                break;
+            }
+        }
+        if (match)
+            return entry.measured_hex;
+    }
+    return {};
 }
 
 } // namespace Slic3r

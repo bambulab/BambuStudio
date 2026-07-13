@@ -3232,6 +3232,16 @@ void TextureImportDialog::reset_auto_mix()
 
     dismiss_auto_mix_popup();
 
+    // Clear mixed filament references so the compact inside do_auto_match()
+    // removes them (and their exclusively-owned base physicals) from the
+    // filament arrays, giving the baseline matching a clean starting state.
+    for (auto& m : m_current_matches) {
+        if (m.filament_index >= 0 && m.filament_index < (int)m_filament_entries.size() &&
+            texture_entry_is_mixed(m_filament_entries[m.filament_index].kind)) {
+            m.filament_index = -1;
+        }
+    }
+
     // Re-run the baseline auto-match (same flow as the auto-merge toggle) so the
     // mapping reverts to the pre-mix state: every colour matches an existing
     // physical filament or a virtual physical filament, with no mixed filaments.
@@ -3507,7 +3517,8 @@ void TextureImportDialog::do_auto_match()
     std::map<std::array<std::size_t, 3>, int> previous_virtual_by_cluster;
     for (const auto& match : previous_matches) {
         if (match.filament_index >= (int)m_existing_filament_count &&
-            match.filament_index < (int)m_filament_colors_rgba.size()) {
+            match.filament_index < (int)m_filament_entries.size() &&
+            texture_entry_is_physical(m_filament_entries[match.filament_index].kind)) {
             previous_virtual_by_cluster[match.cluster_color] = match.filament_index;
         }
     }
@@ -3515,7 +3526,8 @@ void TextureImportDialog::do_auto_match()
     auto find_virtual_filament_by_color = [this](const std::array<std::size_t, 3>& color) -> int {
         std::string hex = rgb_to_hex(color).ToStdString();
         for (size_t i = m_existing_filament_count; i < m_filament_color_strs.size(); ++i) {
-            if (m_filament_color_strs[i] == hex)
+            if (m_filament_color_strs[i] == hex &&
+                i < m_filament_entries.size() && texture_entry_is_physical(m_filament_entries[i].kind))
                 return (int)i;
         }
         return -1;

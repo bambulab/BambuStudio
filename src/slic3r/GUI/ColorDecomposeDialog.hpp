@@ -93,7 +93,7 @@ private:
 
     // When the target color is exactly one of the standard base colors for the
     // preferred type, the standard card should show that base at 100% instead of
-    // a mix. PLA Basic covers CMYW and RYBW; PETG Basic covers RYBW only.
+    // a mix. PLA Basic covers CMYW and RYBW.
     bool try_build_single_base_result(DecomposeMode mode, ColorDecomposeResult& out) const;
 
     struct ModeCardControls {

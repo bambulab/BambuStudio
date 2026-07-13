@@ -384,10 +384,10 @@ void DropDown::render(wxDC &dc)
             pt.x += size2.x + 5;
             pt.y = rcContent.y;
         }
-        // When the icon is a full-row pre-rendered bitmap (height >= row height),
+        // When the icon is a full-row pre-rendered bitmap (height >> text height),
         // it already contains all text; skip drawing text on top to avoid duplicates.
         const bool icon_fills_row = !is_top_level_group && icon.IsOk()
-                                    && size2.y >= rowSize.y - 10;
+                                    && size2.y > textSize.y * 2;
         auto text = group.IsEmpty()
                         ? (item.group.IsEmpty() ? item.text : item.group)
                         : (item.text.StartsWith(group) && !group.EndsWith(' ') ? item.text.substr(group.size()).Trim(false) : item.text);

@@ -53,6 +53,12 @@ ColorDecomposeRecipeResult lookup_standard_recipe(
     ColorDecomposeRecipeMode mode,
     const std::string& preferred_material_type);
 
+// Look up the measured blend color for an exact (component_hexes, ratios) match
+// in the standard color recipe table. Returns the measured hex color if found
+// with reliable source data ("measured" or "interpolated"), empty string otherwise.
+std::string lookup_measured_blend_color(const std::vector<std::string>& component_hexes,
+                                       const std::vector<int>& ratios);
+
 } // namespace Slic3r
 
 #endif // SLIC3R_COLOR_DECOMPOSE_RECIPE_HPP

@@ -195,6 +195,9 @@ ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
 
     build_ui();
     wxGetApp().UpdateDlgDarkUI(this);
+    // Restore target swatch after dark mode color remapping
+    if (m_target_swatch)
+        m_target_swatch->SetBackgroundColour(m_target_color);
 
     update_card_visibility();
     Fit();
@@ -266,7 +269,7 @@ wxBoxSizer* ColorDecomposeDialog::create_filament_selector()
 
     // --- Group 2: Standard mode material recommendations ---
     static const char* kStandardTypes[] = {
-        kDecomposePlaBasicType, kDecomposePetgBasicType
+        kDecomposePlaBasicType
     };
 
     m_type_combo->Append(_L("Standard Mode Recommendations"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM | DD_ITEM_STYLE_DISABLED);
@@ -591,8 +594,7 @@ void ColorDecomposeDialog::update_card_visibility()
 
     bool show_arb  = (same_type_count >= 2);
     bool show_cmyw = (m_preferred_type == kDecomposePlaBasicType);
-    bool show_rybw = (m_preferred_type == kDecomposePlaBasicType)
-                  || (m_preferred_type == kDecomposePetgBasicType);
+    bool show_rybw = (m_preferred_type == kDecomposePlaBasicType);
 
     if (m_arb_column_panel)   m_arb_column_panel->Show(show_arb);
     if (m_card_material_list) m_card_material_list->Show(show_arb);
@@ -799,13 +801,9 @@ void ColorDecomposeDialog::update_matched_color_display()
 
 bool ColorDecomposeDialog::try_build_single_base_result(DecomposeMode mode, ColorDecomposeResult& out) const
 {
-    // Gate by preferred type, matching card visibility: CMYW only for PLA Basic,
-    // RYBW for PLA Basic / PETG Basic.
-    if (mode == DecomposeMode::CMYW) {
+    // Gate by preferred type, matching card visibility: CMYW and RYBW only for PLA Basic.
+    if (mode == DecomposeMode::CMYW || mode == DecomposeMode::RYBW) {
         if (m_preferred_type != kDecomposePlaBasicType)
-            return false;
-    } else if (mode == DecomposeMode::RYBW) {
-        if (m_preferred_type != kDecomposePlaBasicType && m_preferred_type != kDecomposePetgBasicType)
             return false;
     } else {
         return false;
