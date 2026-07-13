@@ -3550,9 +3550,12 @@ void Sidebar::update_presets(Preset::Type preset_type)
                     if (cur_volume_type == NozzleVolumeType::nvtHighFlow && (diameter == "0.2" ||
                         is_skip_high_flow_printer(printer_model)))
                         continue;
-                    if (nozzle_volumes->values[index] == i)
+                    // ClientData must be the enum value (e.g. nvtE3DHighFlow=5), not the
+                    // enum_labels index. After nvtE3DHighFlow was pinned to 5 with a gap at 4,
+                    // storing the label index wrote an invalid type and broke variant lookup.
+                    if (nozzle_volumes->values[index] == cur_volume_type)
                         select = extruder.combo_flow->GetCount();
-                    extruder.combo_flow->Append(_L(nozzle_volumes_def->enum_labels[i]), {}, (void*)i);
+                    extruder.combo_flow->Append(_L(nozzle_volumes_def->enum_labels[i]), {}, (void *) (intptr_t) cur_volume_type);
                 }
             }
             if (select == -1)
