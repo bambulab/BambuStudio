@@ -1191,7 +1191,11 @@ void AmsMapingPopup::on_mouse_move(wxMouseEvent &evt)
             m_tip_popup = new wxPopupWindow(this);
             m_tip_popup->SetBackgroundColour(wxColour(255, 255, 255));
             auto *sizer = new wxBoxSizer(wxVERTICAL);
-            m_tip_label = new wxStaticText(m_tip_popup, wxID_ANY, wxEmptyString) ;
+            // Use the project Label with pixel-width, CJK-aware wrapping instead
+            // of a bare wxStaticText, whose Wrap() only breaks at spaces and so
+            // leaves space-less Chinese text on a single overflowing line.
+            m_tip_label = new Label(m_tip_popup, wxEmptyString, LB_AUTO_WRAP);
+            m_tip_label->SetMaxSize(wxSize(FromDIP(400), -1));
             m_tip_label->SetForegroundColour(*wxBLACK);
             sizer->Add(m_tip_label, 0, wxALL, 4);
             m_tip_popup->SetSizer(sizer);

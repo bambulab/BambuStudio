@@ -352,7 +352,7 @@ public:
 #ifdef __APPLE__
     void on_mouse_move(wxMouseEvent &evt);
     wxPopupWindow * m_tip_popup{nullptr};
-    wxStaticText* m_tip_label{nullptr};
+    Label* m_tip_label{nullptr};
 #endif
 
     using ResetCallback = std::function<void(const std::string&)>;
