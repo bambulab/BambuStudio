@@ -294,5 +294,6 @@ src/slic3r/GUI/HelioHistoryDialog.cpp
 src/slic3r/GUI/MixedFilamentDialog.cpp
 src/slic3r/GUI/MixedFilamentDialog.hpp
 src/slic3r/GUI/ColorDecomposeDialog.cpp
+src/slic3r/GUI/ColorDecomposeSupport.cpp
 src/slic3r/GUI/GradientCurveEditor.cpp
 src/slic3r/GUI/GradientCurveEditor.hpp
