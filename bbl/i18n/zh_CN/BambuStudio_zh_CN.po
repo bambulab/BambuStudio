@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-13 23:11+0800\n"
+"POT-Creation-Date: 2026-07-14 12:00+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2449,7 +2449,7 @@ msgid "Delete this filament"
 msgstr "删除此耗材丝"
 
 msgid "Decompose Color"
-msgstr ""
+msgstr "拆解颜色"
 
 msgid "Merge with"
 msgstr "合并到"
@@ -2967,7 +2967,7 @@ msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatica
 msgstr "选择1个AMS槽位，然后点击进料/退料按钮以自动进料/退料。"
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
-msgstr ""
+msgstr "执行此操作的耗材类型未知。请设置槽位信息。"
 
 msgid "/"
 msgstr ""
@@ -3761,22 +3761,22 @@ msgid "Remaining time: %dmin%ds"
 msgstr "剩余时间：%d分%d秒"
 
 msgid "One-click CMYW auto-mix"
-msgstr ""
+msgstr "一键CMYW自动混色"
 
 msgid "One-click RYBW auto-mix"
-msgstr ""
+msgstr "一键RYBW自动混色"
 
 msgid "Project Physical Filaments"
-msgstr ""
+msgstr "项目耗材列表"
 
 msgid "Project Mixed Filaments"
-msgstr ""
+msgstr "项目混色列表"
 
 msgid "New Physical Filaments"
-msgstr ""
+msgstr "新增耗材"
 
 msgid "New Mixed Filaments"
-msgstr ""
+msgstr "新增混色耗材"
 
 msgid "+ Add Material"
 msgstr "添加耗材"
@@ -3819,10 +3819,10 @@ msgid "Filament Mapping"
 msgstr "耗材映射"
 
 msgid "Reset filament mapping to the state before one-click mixing"
-msgstr ""
+msgstr "重置耗材映射至一键混色前的状态"
 
 msgid "Choose the one-click auto-mix mode for texture color import"
-msgstr ""
+msgstr "选择纹理颜色导入的一键自动混色模式"
 
 msgid "Auto-merge same filament"
 msgstr "自动合并相同的耗材"
@@ -4594,7 +4594,7 @@ msgstr ""
 msgid ""
 "Should not large than 100%.\n"
 "Reset to default"
-msgstr ""
+msgstr "起始高度不应大于100%。将重置为默认值"
 
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
@@ -5430,11 +5430,11 @@ msgstr "当前材料分组不是最优结果。"
 
 #, boost-format
 msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr ""
+msgstr "如果使用最优分组可多节省%1%g耗材和%2%次冲刷。"
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr ""
+msgstr "相较于最优分组，多使用%1%g耗材，减少%2%次换料。"
 
 #, boost-format
 msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
@@ -5442,15 +5442,15 @@ msgstr "相较于最优分组，节省%1%g耗材，增加%2%次冲刷。"
 
 #, boost-format
 msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr ""
+msgstr "相较于单头打印机可节省%1%g耗材和%2%次冲刷。"
 
 #, boost-format
 msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr ""
+msgstr "相较于单头打印机，节省%1%g耗材，增加%2%次冲刷。"
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr ""
+msgstr "相较于单头打印机，多使用%1%g耗材，减少%2%次冲刷。"
 
 msgid "Set to Optimal"
 msgstr "设置为最优"
@@ -6537,7 +6537,7 @@ msgid "Printer camera is malfunctioning."
 msgstr "打印机摄像头异常。"
 
 msgid "Problem occurred. Please update the printer firmware and try again."
-msgstr "出现了一些问题。请更新打印机固件后重试。"
+msgstr "遇到问题，请更新打印机固件并重试"
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
 msgstr "局域网模式直播未开启，请前往打印机屏幕开启。"
@@ -7859,7 +7859,7 @@ msgid "There are unset nozzle types. Please set the nozzle types of all extruder
 msgstr "有未设置的喷嘴类型。请在同步之前设置所有挤出机的喷嘴类型"
 
 msgid "Sync extruder information"
-msgstr ""
+msgstr "同步挤出机信息"
 
 msgid ""
 "Tips:\n"
@@ -8054,7 +8054,7 @@ msgid "The following shells are not closed and may cause issues:"
 msgstr "以下壳体模型未闭合，可能会导致问题："
 
 msgid "Unclosed Shell Warning"
-msgstr ""
+msgstr "未闭合壳体警告"
 
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
@@ -8132,7 +8132,7 @@ msgid "Updating 3D view..."
 msgstr "正在更新3D视图……"
 
 msgid "Model imported."
-msgstr ""
+msgstr "模型已导入。"
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
 msgstr "纹理导入失败。模型似乎包含纹理数据，但未能完成纹理导入过程。模型将仅作为几何体导入。"
@@ -8671,7 +8671,7 @@ msgid "Failed to save the project: an invalid setting value was found while writ
 msgstr ""
 
 msgid "Please check your settings and try again."
-msgstr ""
+msgstr "请检查您的设置并重试."
 
 msgid ""
 "Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
@@ -8744,7 +8744,7 @@ msgstr "盘参数设置"
 msgid ""
 "While printing by Object, the extruder may collide skirt.\n"
 "Thus, it is recommended to reset the skirt layer to 1 to avoid that."
-msgstr ""
+msgstr "逐件打印时，挤出机可能与裙边碰撞。因此将裙边的层数重置为1。"
 
 msgid "Prime Tower:"
 msgstr "擦料塔："
@@ -8888,7 +8888,7 @@ msgid "Other"
 msgstr "其他"
 
 msgid "Developer Tools"
-msgstr ""
+msgstr "开发者模式"
 
 msgid "General Settings"
 msgstr "通用设置"
@@ -9271,6 +9271,12 @@ msgid ""
 "- Unsaved projects.\n"
 "- Mixed color sublayer with variable layer height warning"
 msgstr ""
+"- 清除加载文件后同步打印机预设的设置\n"
+"- 清除”加载3mf“对话框设置\n"
+"- 清除执行后处理脚本的设置\n"
+"- 清除禁用支撑参数推荐的设置\n"
+"- 清除对未保存的项目的选择\n"
+"- 带有可变层高的混合颜色子层警告"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "确定重置所有首选项设置吗?下次重新启动之后生效。"
