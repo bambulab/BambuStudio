@@ -1706,51 +1706,56 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
         return true;
     }
 
-    if (!used_filaments.empty()) {
-        for (auto filament_idx : used_filaments) {
-            int              filament_id               = filament_idx - 1;
-            if (filament_id < 0 || filament_id >= (int)fil_preset_names.size())
-                continue;
-            auto filament_type_opt = config.option<ConfigOptionStrings>("filament_type");
-            auto filament_printable_opt = config.option<ConfigOptionInts>("filament_printable");
-            if (!filament_type_opt || filament_id >= (int)filament_type_opt->values.size() ||
-                !filament_printable_opt || filament_id >= (int)filament_printable_opt->values.size())
-                continue;
-            std::string      filament_type             = filament_type_opt->values.at(filament_id);
-            int              filament_printable_status = filament_printable_opt->values.at(filament_id);
-            std::vector<int> filament_map              = get_real_filament_maps(config);
-            if (filament_id >= (int)filament_map.size())
-                continue;
-            int              extruder_idx              = filament_map[filament_id] - 1;
+    auto filament_map = get_real_filament_maps(config);
+    auto filament_volume_map = get_real_filament_volume_maps(config);
+    auto hotend_as_extruder_opt = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+    bool single_ext_multi_nozzle = hotend_as_extruder_opt && hotend_as_extruder_opt->value;
 
-            auto fil_preset = wxGetApp().preset_bundle->filaments.find_preset(fil_preset_names[filament_id]);
-            std::string fil_name = fil_preset->alias;
+    for (auto filament_idx : used_filaments) {
+        int              filament_id               = filament_idx - 1;
+        if (filament_id < 0 || filament_id >= (int)fil_preset_names.size())
+            continue;
+        auto filament_printable_opt = config.option<ConfigOptionInts>("filament_printable");
+        if (!filament_printable_opt || filament_id >= (int)filament_printable_opt->values.size())
+            continue;
+        int              filament_printable_status = filament_printable_opt->values.at(filament_id);
+        if (filament_id >= (int)filament_map.size())
+            continue;
+        int              extruder_idx              = filament_map[filament_id] - 1;
 
-            if (extruder_idx >= 0 && !(filament_printable_status >> extruder_idx & 1)) {
-                std::string pp_pt         = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-                int         pp_ext_id     = (extruder_idx == 0) ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
-                wxString    extruder_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(pp_pt, pp_ext_id, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase, true));
-                error_message          = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, fil_name);
-                return false;
-            }
+        auto        fil_preset = wxGetApp().preset_bundle->filaments.find_preset(fil_preset_names[filament_id]);
+        std::string fil_name   = fil_preset->alias;
 
-            std::vector<std::string> filament_variants;
-            if (fil_preset->config.has("filament_extruder_variant"))
-                filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
-            else
-                filament_variants = {"Direct Drive Standard"};
+        if (extruder_idx >= 0 && !(filament_printable_status >> extruder_idx & 1)) {
+            std::string pp_pt         = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+            int         pp_ext_id     = (extruder_idx == 0) ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
+            wxString    extruder_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(pp_pt, pp_ext_id, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase, true));
+            error_message          = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, fil_name);
+            return false;
+        }
 
-            auto extruder_variant_opt = config.option<ConfigOptionStrings>("printer_extruder_variant");
-            if (!extruder_variant_opt || extruder_idx < 0 || extruder_idx >= (int)extruder_variant_opt->values.size())
-                continue;
-            std::string      extruder_variant = extruder_variant_opt->values.at(extruder_idx);
-            NozzleVolumeType variant_name     = convert_to_nvt_type(extruder_variant);
-            if (!is_nozzle_printable_for_filament(variant_name, filament_variants, fil_collection.is_bbl_brand_filament(*fil_preset))) {
-                auto             volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
-                std::string      volume       = volume_names.at(variant_name);
-                error_message                 = wxString::Format(_L("The %s nozzle can not print %s."), _L(volume), fil_name);
-                return false;
-            }
+        std::vector<std::string> filament_variants;
+        if (fil_preset->config.has("filament_extruder_variant"))
+            filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+        else
+            filament_variants = {"Direct Drive Standard"};
+
+        auto extruder_variant_opt = config.option<ConfigOptionStrings>("printer_extruder_variant");
+        if (!extruder_variant_opt || extruder_idx < 0 || extruder_idx >= (int)extruder_variant_opt->values.size())
+            continue;
+
+        std::string      extruder_variant = extruder_variant_opt->values.at(extruder_idx);
+        NozzleVolumeType variant_name     = convert_to_nvt_type(extruder_variant);
+        // In single-extruder multi-nozzle mode the filament carries its own nozzle selection, which
+        // takes precedence over the extruder-level variant.
+        if (single_ext_multi_nozzle && extruder_idx == 0 && filament_id < (int) filament_volume_map.size())
+            variant_name = (NozzleVolumeType) filament_volume_map[filament_id];
+
+        if (!is_nozzle_printable_for_filament(variant_name, filament_variants, fil_collection.is_bbl_brand_filament(*fil_preset))) {
+            auto             volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
+            std::string      volume       = volume_names.at(variant_name);
+            error_message                 = wxString::Format(_L("The %s nozzle can not print %s."), _L(volume), fil_name);
+            return false;
         }
     }
     return true;
