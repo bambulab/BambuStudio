@@ -327,96 +327,48 @@ void MixedFilamentDialog::apply_manual_ratio(size_t idx, int value)
         m_result.ratios[0] = std::clamp(m_result.ratios[0], MIN_COMPONENT_RATIO, 100 - MIN_COMPONENT_RATIO);
         m_result.ratios[1] = 100 - m_result.ratios[0];
     } else if (n >= 3) {
-        m_ratio_manual_order.erase(std::remove(m_ratio_manual_order.begin(), m_ratio_manual_order.end(), idx),
-                                   m_ratio_manual_order.end());
-        m_ratio_manual_order.push_back(idx);
-        while (m_ratio_manual_order.size() > 2)
-            m_ratio_manual_order.erase(m_ratio_manual_order.begin());
+        m_result.ratios[idx] = value;
+        int remaining = 100 - value;
 
-        if (m_ratio_manual_order.size() == 1) {
-            m_result.ratios[idx] = value;
-            int remaining = 100 - value;
-            int other_count = (int)n - 1;
-            int base = other_count > 0 ? remaining / other_count : 0;
-            int assigned = value;
-            size_t last_other = idx;
-            for (size_t i = 0; i < n; ++i) {
-                if (i == idx) continue;
-                m_result.ratios[i] = base;
-                assigned += base;
-                last_other = i;
-            }
-            if (last_other != idx)
-                m_result.ratios[last_other] += 100 - assigned;
-        } else {
-            // Hybrid: honor the previously-edited (locked) component and let the
-            // never-touched components absorb the remainder. Only when that would
-            // push a never-touched component below MIN_COMPONENT_RATIO do we fall
-            // back to proportional redistribution across ALL other components
-            // (new input still wins, the locked one yields proportionally).
-            m_result.ratios[idx] = value;
-            int remaining = 100 - value;
+        std::vector<size_t> others;
+        int others_sum = 0;
+        for (size_t i = 0; i < n; ++i) {
+            if (i == idx) continue;
+            others.push_back(i);
+            others_sum += m_result.ratios[i];
+        }
 
-            size_t other_locked = (m_ratio_manual_order[0] == idx)
-                ? m_ratio_manual_order[1] : m_ratio_manual_order[0];
-            int locked_val = (other_locked < n) ? m_result.ratios[other_locked] : 0;
-
-            std::vector<size_t> rest;
-            for (size_t i = 0; i < n; ++i)
-                if (i != idx && i != other_locked) rest.push_back(i);
-
-            int rest_min_total = (int)rest.size() * MIN_COMPONENT_RATIO;
-            int rest_share = remaining - locked_val;
-            bool lock_holds = (locked_val >= MIN_COMPONENT_RATIO) && (rest_share >= rest_min_total);
-
-            if (lock_holds) {
-                m_result.ratios[other_locked] = locked_val;
-                if (!rest.empty()) {
-                    // n==3 (MAX_COMPONENTS): single never-touched component absorbs
-                    // the whole remainder exactly. n>3 equal-splits it (theoretical).
-                    int base = rest_share / (int)rest.size();
-                    for (size_t r : rest) m_result.ratios[r] = base;
-                    m_result.ratios[rest.back()] += rest_share - base * (int)rest.size();
+        if (!others.empty()) {
+            if (others_sum > 0) {
+                int assigned = 0;
+                for (size_t k = 0; k < others.size(); ++k) {
+                    int nv = (int)((double)remaining * m_result.ratios[others[k]] / others_sum + 0.5);
+                    nv = std::max(nv, MIN_COMPONENT_RATIO);
+                    m_result.ratios[others[k]] = nv;
+                    assigned += nv;
+                }
+                while (assigned != remaining) {
+                    if (assigned > remaining) {
+                        int pick = -1;
+                        for (size_t k = 0; k < others.size(); ++k)
+                            if (m_result.ratios[others[k]] > MIN_COMPONENT_RATIO
+                                && (pick < 0 || m_result.ratios[others[k]] > m_result.ratios[others[pick]]))
+                                pick = (int)k;
+                        if (pick < 0) break;
+                        --m_result.ratios[others[pick]]; --assigned;
+                    } else {
+                        int pick = 0;
+                        for (size_t k = 1; k < others.size(); ++k)
+                            if (m_result.ratios[others[k]] > m_result.ratios[others[pick]])
+                                pick = (int)k;
+                        ++m_result.ratios[others[pick]]; ++assigned;
+                    }
                 }
             } else {
-                // Conflict: new input wins, redistribute proportionally among ALL
-                // other components, min-clamped and rounded to sum 100.
-                std::vector<size_t> others;
-                int others_sum = 0;
-                for (size_t i = 0; i < n; ++i) {
-                    if (i == idx) continue;
-                    others.push_back(i);
-                    others_sum += m_result.ratios[i];
-                }
-                if (!others.empty()) {
-                    std::vector<int> news(others.size(), 0);
-                    int assigned = 0;
-                    for (size_t k = 0; k < others.size(); ++k) {
-                        int nv = (others_sum > 0)
-                            ? (int)((double)remaining * m_result.ratios[others[k]] / others_sum + 0.5)
-                            : remaining / (int)others.size();
-                        news[k] = std::max(nv, MIN_COMPONENT_RATIO);
-                        assigned += news[k];
-                    }
-                    while (assigned != remaining) {
-                        if (assigned > remaining) {
-                            int pick = -1;
-                            for (size_t k = 0; k < others.size(); ++k)
-                                if (news[k] > MIN_COMPONENT_RATIO && (pick < 0 || news[k] > news[pick]))
-                                    pick = (int)k;
-                            if (pick < 0) break;
-                            --news[pick]; --assigned;
-                        } else {
-                            int pick = 0;
-                            for (size_t k = 1; k < others.size(); ++k)
-                                if (m_result.ratios[others[k]] > m_result.ratios[others[pick]])
-                                    pick = (int)k;
-                            ++news[pick]; ++assigned;
-                        }
-                    }
-                    for (size_t k = 0; k < others.size(); ++k)
-                        m_result.ratios[others[k]] = news[k];
-                }
+                int base = remaining / (int)others.size();
+                for (size_t k = 0; k < others.size(); ++k)
+                    m_result.ratios[others[k]] = base;
+                m_result.ratios[others.back()] += remaining - base * (int)others.size();
             }
         }
     }
