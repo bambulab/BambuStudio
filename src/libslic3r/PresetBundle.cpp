@@ -3486,6 +3486,10 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     }
     different_settings.emplace_back(different_print_settings);
 
+    // Write the real-time nozzle rack stats into out *before* variant expansion so that
+    out.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values =
+        save_extruder_nozzle_stats_to_string(this->extruder_nozzle_stat.get_raw_stat());
+
     //BBS: update printer config related with variants
     std::vector<std::vector<NozzleVolumeType>> nozzle_volume_types;
     int extruder_count = 1, extruder_volume_type_count = 1;
@@ -3719,7 +3723,6 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     add_if_some_non_empty(std::move(different_settings),            "different_settings_to_system");
     add_if_some_non_empty(std::move(print_compatible_printers),     "print_compatible_printers");
     out.option<ConfigOptionStrings>("extruder_ams_count", true)->values   = save_extruder_ams_count_to_string(this->extruder_ams_counts);
-    out.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = save_extruder_nozzle_stats_to_string(this->extruder_nozzle_stat.get_raw_stat());
 
     // Per-slot nozzle params for the grouping backend, derived from extruder_full_stat.
     sync_per_slot_nozzle_options_from_full_stat(out, this->extruder_full_stat);
