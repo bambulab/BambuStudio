@@ -5423,7 +5423,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     auto *preset_bundle = wxGetApp().preset_bundle;
     assert(preset_bundle);
 
-    // for machines like N10, which treat hotends as logical extruders
+    // for machines like N1X, which treat hotends as logical extruders
     const auto rack_type = obj->GetNozzleRack()->GetRackType();
     if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) { return build_filament_ams_list_for_n1x(obj); }
 

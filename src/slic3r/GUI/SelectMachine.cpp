@@ -2486,7 +2486,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
         // External spools are excluded from the unknown-filament confirmation
         // (STUDIO-16294). Legacy machines tag them with the virtual ams id
-        // (254/255), but hotend-rack machines (N1X/N10) give ext spools their
+        // (254/255), but hotend-rack machines (N1X) give ext spools their
         // own tray ids, so also match on the tray ams_type == EXT_SPOOL.
         if (devPrinterUtil::IsVirtualSlot(fila.ams_id) ||
             (tray_opt.has_value() && tray_opt->ams_type == DevAmsType::EXT_SPOOL)) {

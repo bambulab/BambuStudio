@@ -2291,7 +2291,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     double volume = wipe_volume * filament_depth_count;
     if (extruder_count == 2) volume += filament_change_volume * (int) (plate_extruder_size / 2);
 
-    // For single extruder treating hotends as extruders (e.g. N10),
+    // For single extruder treating hotends as extruders (e.g. N1X),
     // every nozzle change needs ramming. Add ramming volume analogous to
     // the filament_change_volume addition for dual-extruder machines above.
     auto hotend_as_ext_opt = config.option<ConfigOptionBool>("handle_hotend_as_extruder");

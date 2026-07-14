@@ -614,7 +614,7 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
         return {};
     }
 
-    // for machines like N10, which treat hotends as logical extruders
+    // for machines like N1X, which treat hotends as logical extruders
     if (auto *obj = wxGetApp().getDeviceManager()->get_selected_machine()) {
         const auto rack_type = obj->GetNozzleRack()->GetRackType();
         if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) { return add_ams_filaments_grouped_by_nozzle(selected, alias_name); }

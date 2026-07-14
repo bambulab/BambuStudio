@@ -81,7 +81,7 @@ public:
 
     // BBS: ams
     bool add_ams_filaments(std::string selected, bool alias_name = false);
-    // N10 (handle_hotend_as_extruder): group AMS items by nozzle compatibility.
+    // N1X (handle_hotend_as_extruder): group AMS items by nozzle compatibility.
     bool add_ams_filaments_grouped_by_nozzle(std::string selected, bool alias_name = false);
     int  selected_ams_filament() const;
 

@@ -1227,7 +1227,7 @@ void Tab::check_extruder_options_status(int index, bool &sys_extruder, bool &mod
         auto extruders = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnumsGeneric>("extruder_type");
         // Clamp extruder_id against the new printer preset. The switcher's
         // stored options can still reflect the previous printer (e.g. H2D had
-        // 2 extruders → idx 1 valid; N10 has 1 → idx 1 OOB) when this runs
+        // 2 extruders → idx 1 valid; N1X has 1 → idx 1 OOB) when this runs
         // before update_extruder_variants refreshes the switcher.
         if (!extruders || extruders->values.empty()) return;
         if (extruder_id < 0 || extruder_id >= int(extruders->values.size())) extruder_id = 0;

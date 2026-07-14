@@ -1,0 +1,19 @@
+{
+    "type": "machine_model",
+    "name": "Bambu Lab H3C",
+    "nozzle_diameter": "0.4;0.2;0.6;0.8",
+    "url": "http://www.bambulab.com/Parameters/printer_model/Bambu Lab X1.json",
+    "bed_model": "bbl-3dp-O1S.stl",
+    "bed_texture": "bbl-3dp-logo.svg",
+    "use_double_extruder_default_texture": "true",
+    "bottom_texture_rect": "40,-14.5,70,8",
+    "bottom_texture_rect_longer": "40,-14.5,260,8",
+    "default_bed_type": "Textured PEI Plate",
+    "image_bed_type": "o",
+    "not_support_bed_type": "Cool Plate",
+    "right_icon_offset_bed": "10;-5",
+    "family": "BBL-3DP",
+    "machine_tech": "FFF",
+    "model_id": "n10",
+    "default_materials": "Bambu PLA Matte @BBL H3C;Bambu PLA Basic @BBL H3C;Bambu PLA Silk @BBL H3C;Bambu PLA Marble @BBL H3C;Bambu PLA Sparkle @BBL H3C;Generic PLA @BBL H3C;Bambu TPU 95A @BBL H3C;Bambu ABS @BBL H3C;Bambu PC @BBL H3C 0.4 nozzle;Bambu PLA Pure @BBL H3C"
+}

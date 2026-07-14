@@ -1,0 +1,10 @@
+{
+    "type": "filament",
+    "name": "fdm_filament_template_h3c",
+    "from": "system",
+    "instantiation": "false",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ]
+}

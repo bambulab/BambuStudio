@@ -597,7 +597,7 @@ wxPanel* AMSDryCtrWin::create_m2y_pill(wxPanel* parent)
         gc->DrawRoundedRectangle(0, 0, sz.GetWidth(), sz.GetHeight(), pill->FromDIP(12));
 
         wxBitmap icon = ScalableBitmap(pill, "dev_ams_dry_ctr_plugedin", 20).bmp();
-        wxString text("N10-AMS");
+        wxString text("AMS 3H");
         wxFont font = Label::Body_14;
         gc->SetFont(font, fg);
         wxDouble tw, th, td, te;
@@ -619,7 +619,7 @@ wxPanel* AMSDryCtrWin::create_m2y_pill(wxPanel* parent)
     int icon_w = ScalableBitmap(pill, "dev_ams_dry_ctr_plugedin", 20).bmp().GetWidth();
     wxClientDC dc(pill);
     dc.SetFont(Label::Body_14);
-    wxSize text_size = dc.GetTextExtent("N10-AMS");
+    wxSize text_size = dc.GetTextExtent("AMS 3H");
     int width = text_size.GetWidth() + icon_w + pill->FromDIP(6) + 2 * pill->FromDIP(14);
     int height = pill->FromDIP(28);
     pill->SetMinSize(wxSize(width, height));
@@ -1589,7 +1589,7 @@ void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
     static const AmsTempLimit ams_limits[] = {
         { DevAmsType::N3F, 45, 65, "AMS2" },
         { DevAmsType::N3S, 45, 85, "AMS-S" },
-        { DevAmsType::ZMULTI_A, 45, 85, "N10-AMS" }
+        { DevAmsType::ZMULTI_A, 45, 85, "AMS 3H" }
     };
 
     for (const auto& lim : ams_limits) {
