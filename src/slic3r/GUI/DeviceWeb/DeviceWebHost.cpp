@@ -674,6 +674,11 @@ AutoRefillRefillInfoVM* DeviceWebHost::GetAutoRefillRefillInfoVM() const
         m_device_web_mgr->Find("device_page_auto_refill_refill_info"));
 }
 
+// Design width (in DIP/logical px) of the AMS mapping hotend popup. The page is
+// laid out width:100%, so its reported width only echoes the container; we drive
+// the width from this fixed design value at the current DPI instead.
+static constexpr int kAmsMappingHotendDesignWidthDip = 660;
+
 void DeviceWebHost::OnWebContentSizeChanged(int width, int height)
 {
     // StatusPanel-embedded AmsControlWeb: width is locked because the page is
@@ -694,12 +699,25 @@ void DeviceWebHost::OnWebContentSizeChanged(int width, int height)
     height = std::clamp(height, min_height, max_height);
 
     // Cache the DPI-independent (CSS px) size so the min size can be rebuilt at
-    // the current DPI on show.
+    // the current DPI on show (see ReapplyContentSizeForDpi).
     m_last_logical_content_size = wxSize(width, height);
 
     // The web page reports its size in DIP/CSS pixels, so FromDIP() is the
     // correct conversion to the physical pixels wxWindow::SetMinSize() expects.
+    // But the AMS mapping hotend page is laid out width:100%, so its reported
+    // *width* merely echoes back whatever container width the host last gave it.
+    // Feeding that width back through the popup's Fit() forms a non-converging
+    // loop on fractional-DPI displays: the width ping-pongs by the DPI factor
+    // and saturates the UI thread until the app freezes. The *height* is the
+    // only content-driven dimension we actually need from the web, so for this
+    // popup mode we keep the host's fixed design width and take only the height
+    // from the web signal. Other hosts keep the historical behaviour.
     wxSize content_size(FromDIP(width), FromDIP(height));
+    if (m_mode == DeviceWebHostMode::DevicePageAmsMappingHotend) {
+        // Latch to the design width at the *current* DPI (not GetMinSize(), which
+        // can be a stale physical value cached from a previous DPI).
+        content_size.SetWidth(FromDIP(kAmsMappingHotendDesignWidthDip));
+    }
 
     // Hysteresis dead-band against size ping-pong, scoped to the AMS mapping
     // popup. That popup re-Fit()s itself on every content-size signal, and its
@@ -743,6 +761,26 @@ void DeviceWebHost::OnWebContentSizeChanged(int width, int height)
         parent->Layout();
         parent->SendSizeEvent();
     }
+}
+
+void DeviceWebHost::ReapplyContentSizeForDpi()
+{
+    if (m_last_logical_content_size == wxDefaultSize)
+        return; // web has not reported yet; keep the construction-time min size
+
+    wxSize content_size(FromDIP(m_last_logical_content_size.GetWidth()),
+                        FromDIP(m_last_logical_content_size.GetHeight()));
+    if (m_mode == DeviceWebHostMode::DevicePageAmsMappingHotend)
+        content_size.SetWidth(FromDIP(kAmsMappingHotendDesignWidthDip));
+
+    if (content_size == m_last_reported_content_size && content_size == GetMinSize())
+        return; // already correct for this DPI
+
+    m_last_reported_content_size = content_size;
+    SetMinSize(content_size);
+    if (m_device_webview)
+        m_device_webview->SetMinSize(content_size);
+    // The caller (popup show path) drives the enclosing Layout()/Fit().
 }
 
 void DeviceWebHost::on_sys_color_changed()

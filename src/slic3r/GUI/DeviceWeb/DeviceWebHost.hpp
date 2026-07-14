@@ -77,6 +77,14 @@ public:
     void on_sys_color_changed();
     void msw_rescale();
 
+    // Recompute the physical min size from the last web-reported *logical* (CSS
+    // px) content size at the current DPI. The reused AMS-mapping popup caches a
+    // FromDIP()-scaled physical size; after a DPI change while it was hidden that
+    // cache is stale, so the first shown frame is wrong until the async
+    // ResizeObserver re-measures. Callers invoke this right before showing so the
+    // first frame is already correct-for-DPI. No-op until the web has reported once.
+    void ReapplyContentSizeForDpi();
+
     wxWebView* GetWebView() const {
         if (m_device_webview) return m_device_webview->GetWebView();
         return nullptr;

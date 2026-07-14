@@ -1024,6 +1024,16 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
 
          if (e.IsShown() && m_parent_item)
          {
+             // Rebuild the WebView host min size from the last web-reported logical
+             // (CSS px) size at the *current* DPI. This popup is reused across
+             // opens, so after a DPI/monitor switch its cached physical min size is
+             // stale; refreshing it here (now that the popup is on the target
+             // display) makes the Fit() below produce a correct first frame instead
+             // of showing the previous DPI's size until the async ResizeObserver
+             // re-measures.
+             if (m_hotend_web_host && m_hotend_web_host->IsShown())
+                 m_hotend_web_host->ReapplyContentSizeForDpi();
+
              auto show_pos = m_parent_item->ClientToScreen(wxPoint(0, 0));
              int  display_idx = wxDisplay::GetFromWindow(m_parent_item);
 
@@ -1165,6 +1175,12 @@ void AmsMapingPopup::msw_rescale()
 
     m_flush_warning_panel->Rescale();
     m_rack_nozzle_select->Rescale();
+
+    // The WebView host is sized from async web reports, so wx's own rescale does
+    // not fix its cached (previous-DPI) min size. Rebuild it from the last logical
+    // size at the new DPI before the Fit() below.
+    if (m_hotend_web_host)
+        m_hotend_web_host->ReapplyContentSizeForDpi();
 
     Fit();
     Refresh();
