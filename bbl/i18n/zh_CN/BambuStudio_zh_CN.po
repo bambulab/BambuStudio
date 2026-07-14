@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:15+0800\n"
+"POT-Creation-Date: 2026-07-14 15:53+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3243,6 +3243,9 @@ msgstr "包含"
 msgid "Assembly Module"
 msgstr "装配模块"
 
+msgid "Volume"
+msgstr "体积"
+
 msgid "Click to add objects to the current step"
 msgstr "单击将对象添加到当前步骤"
 
@@ -3257,9 +3260,6 @@ msgstr "删除步骤"
 
 msgid "Model"
 msgstr "模型"
-
-msgid "Volume"
-msgstr "体积"
 
 msgid "start frame"
 msgstr "起始帧"
@@ -3296,6 +3296,12 @@ msgstr "帧"
 msgid "step"
 msgstr "步骤"
 
+msgid "Show Current Step Parts Only"
+msgstr "仅显示当前步骤零件"
+
+msgid "X-Ray Other Parts"
+msgstr "X-Ray其它零件"
+
 msgid "Play all frames for all steps."
 msgstr "播放所有步骤的所有帧。"
 
@@ -3307,6 +3313,9 @@ msgstr "播放上一帧"
 
 msgid "Play next frame."
 msgstr "播放下一帧"
+
+msgid "Display Mode"
+msgstr "显示模式"
 
 msgid "Set export file parameters"
 msgstr "设置导出文件参数"
@@ -3443,6 +3452,9 @@ msgstr "字体大小"
 
 msgid "Display mode"
 msgstr "显示模式"
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
+msgstr "自动选择对象或零件级别的标签：在先前步骤中已完全使用的对象将折叠为单个对象标签；部分对象和首次出现的对象将按单个零件进行标记。"
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "导出装配指南 PDF、Markdown 或 MP4"
@@ -4038,7 +4050,7 @@ msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "请输入有效的数值（K的范围为%.1f~%.1f，N的范围为%.1f~%.1f）"
 
 msgid "Remark"
-msgstr ""
+msgstr "备注"
 
 msgid "Other"
 msgstr "其他"
@@ -5768,15 +5780,6 @@ msgstr "拼装视图控制"
 
 msgid "Selection Mode"
 msgstr "选择模式"
-
-msgid "Show Current Step Objects Only"
-msgstr "仅显示当前步骤对象"
-
-msgid "X-Ray Other Objects"
-msgstr "X 射线其他对象"
-
-msgid "Display Mode"
-msgstr "显示模式"
 
 msgid "Total Volume:"
 msgstr "总体积："
@@ -9199,7 +9202,7 @@ msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "开启后，将默认使用Bambu Studio打开.step文件"
 
 msgid "Log"
-msgstr ""
+msgstr "日志"
 
 msgid "fatal"
 msgstr "致命"
@@ -11098,7 +11101,7 @@ msgid "View Source"
 msgstr ""
 
 msgid "View Text"
-msgstr ""
+msgstr "查看文本"
 
 msgid "Handle Navigation"
 msgstr ""
@@ -18268,6 +18271,12 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Show Current Step Objects Only"
+#~ msgstr "仅显示当前步骤对象"
+
+#~ msgid "X-Ray Other Objects"
+#~ msgstr "X 射线其他对象"
 
 #~ msgid "Disable fin extrude safe temperature"
 #~ msgstr "禁用鳍片挤出安全温度"

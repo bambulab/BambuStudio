@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:15+0800\n"
+"POT-Creation-Date: 2026-07-14 15:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3249,6 +3249,9 @@ msgstr "포함"
 msgid "Assembly Module"
 msgstr "조립 모듈"
 
+msgid "Volume"
+msgstr "볼륨"
+
 msgid "Click to add objects to the current step"
 msgstr "클릭하여 현재 단계에 개체 추가"
 
@@ -3263,9 +3266,6 @@ msgstr "단계 삭제"
 
 msgid "Model"
 msgstr "모델"
-
-msgid "Volume"
-msgstr "볼륨"
 
 msgid "start frame"
 msgstr "시작 프레임"
@@ -3302,6 +3302,12 @@ msgstr "프레임"
 msgid "step"
 msgstr "단계"
 
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr "모든 단계에 대해 모든 프레임을 재생합니다."
 
@@ -3313,6 +3319,9 @@ msgstr "이전 프레임을 재생합니다."
 
 msgid "Play next frame."
 msgstr "다음 프레임을 재생합니다."
+
+msgid "Display Mode"
+msgstr "표시 모드"
 
 msgid "Set export file parameters"
 msgstr "파일 내보내기 매개변수 설정"
@@ -3449,6 +3458,9 @@ msgstr "글꼴 크기"
 
 msgid "Display mode"
 msgstr "표시 모드"
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
+msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "조립 설명서를 PDF, Markdown 또는 MP4로 내보내기"
@@ -5792,15 +5804,6 @@ msgstr "어셈블리 컨트롤"
 
 msgid "Selection Mode"
 msgstr "선택 모드"
-
-msgid "Show Current Step Objects Only"
-msgstr "현재 단계 객체만 표시"
-
-msgid "X-Ray Other Objects"
-msgstr "X선 기타 객체"
-
-msgid "Display Mode"
-msgstr "표시 모드"
 
 msgid "Total Volume:"
 msgstr "총 체적:"
@@ -18337,6 +18340,12 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#~ msgid "Show Current Step Objects Only"
+#~ msgstr "현재 단계 객체만 표시"
+
+#~ msgid "X-Ray Other Objects"
+#~ msgstr "X선 기타 객체"
 
 #~ msgid "Exit"
 #~ msgstr "종료"

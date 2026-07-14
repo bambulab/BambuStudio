@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:15+0800\n"
+"POT-Creation-Date: 2026-07-14 15:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3255,6 +3255,9 @@ msgstr "Contiene"
 msgid "Assembly Module"
 msgstr "Modulo di montaggio"
 
+msgid "Volume"
+msgstr ""
+
 msgid "Click to add objects to the current step"
 msgstr "Fare clic per aggiungere oggetti al passaggio corrente"
 
@@ -3269,9 +3272,6 @@ msgstr "Elimina il passaggio"
 
 msgid "Model"
 msgstr "Modello"
-
-msgid "Volume"
-msgstr ""
 
 msgid "start frame"
 msgstr "fotogramma iniziale"
@@ -3308,6 +3308,12 @@ msgstr "Fotogramma"
 msgid "step"
 msgstr "passaggio"
 
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr "Riprodurre tutti i fotogrammi per ogni passaggio."
 
@@ -3319,6 +3325,9 @@ msgstr "Riprodurre il fotogramma precedente."
 
 msgid "Play next frame."
 msgstr "Riprodurre il fotogramma successivo."
+
+msgid "Display Mode"
+msgstr "Modalità di visualizzazione"
 
 msgid "Set export file parameters"
 msgstr "Imposta parametri file di esportazione"
@@ -3455,6 +3464,9 @@ msgstr "Dimensione del carattere"
 
 msgid "Display mode"
 msgstr "Modalità di visualizzazione"
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
+msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "Esportare la guida al montaggio in formato PDF, Markdown o MP4"
@@ -5795,15 +5807,6 @@ msgstr "Controllo assemblaggio"
 
 msgid "Selection Mode"
 msgstr "Modalità di selezione"
-
-msgid "Show Current Step Objects Only"
-msgstr "Mostra solo gli oggetti del passaggio corrente"
-
-msgid "X-Ray Other Objects"
-msgstr "Altri oggetti ai raggi X"
-
-msgid "Display Mode"
-msgstr "Modalità di visualizzazione"
 
 msgid "Total Volume:"
 msgstr "Volume totale:"
@@ -18337,6 +18340,12 @@ msgid ""
 msgstr ""
 "Affidabilità al Primo Tentativo\n"
 "Meno supervisione, risultati più prevedibili. Ad esempio: una piccola produzione che stampa parti in PETG evita sorprese tipo \"fallimento alla sesta ora\" e mantiene i lotti nei tempi previsti."
+
+#~ msgid "Show Current Step Objects Only"
+#~ msgstr "Mostra solo gli oggetti del passaggio corrente"
+
+#~ msgid "X-Ray Other Objects"
+#~ msgstr "Altri oggetti ai raggi X"
 
 #~ msgid "Exit"
 #~ msgstr "Esci"

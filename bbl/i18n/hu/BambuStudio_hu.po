@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:15+0800\n"
+"POT-Creation-Date: 2026-07-14 15:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3255,6 +3255,9 @@ msgstr "Tartalmazás"
 msgid "Assembly Module"
 msgstr "Összeszerelő modul"
 
+msgid "Volume"
+msgstr "Térfogat"
+
 msgid "Click to add objects to the current step"
 msgstr "Kattintson ide objektumok hozzáadásához az aktuális lépéshez"
 
@@ -3269,9 +3272,6 @@ msgstr "Lépés törlése"
 
 msgid "Model"
 msgstr "Modell"
-
-msgid "Volume"
-msgstr "Térfogat"
 
 msgid "start frame"
 msgstr "kezdő képkocka"
@@ -3308,6 +3308,12 @@ msgstr "Képkocka"
 msgid "step"
 msgstr "lépés"
 
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr "Játssza le az összes képkockát az összes lépéshez."
 
@@ -3319,6 +3325,9 @@ msgstr "Előző képkocka lejátszása."
 
 msgid "Play next frame."
 msgstr "Következő képkocka lejátszása."
+
+msgid "Display Mode"
+msgstr "Kijelző mód"
 
 msgid "Set export file parameters"
 msgstr "Exportfájl paramétereinek beállítása"
@@ -3455,6 +3464,9 @@ msgstr "Betűméret"
 
 msgid "Display mode"
 msgstr "Kijelző mód"
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
+msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "Összeszerelési útmutató exportálása PDF, Markdown vagy MP4 formátumban"
@@ -5798,15 +5810,6 @@ msgstr "Összeszerelés vezérlői"
 
 msgid "Selection Mode"
 msgstr "Kijelölési mód"
-
-msgid "Show Current Step Objects Only"
-msgstr "Csak az aktuális lépés objektumainak megjelenítése"
-
-msgid "X-Ray Other Objects"
-msgstr "Egyéb objektumok röntgenezése"
-
-msgid "Display Mode"
-msgstr "Kijelző mód"
 
 msgid "Total Volume:"
 msgstr "Teljes térfogat:"
@@ -18340,6 +18343,12 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "Show Current Step Objects Only"
+#~ msgstr "Csak az aktuális lépés objektumainak megjelenítése"
+
+#~ msgid "X-Ray Other Objects"
+#~ msgstr "Egyéb objektumok röntgenezése"
 
 #~ msgid "Exit"
 #~ msgstr "Kilépés"

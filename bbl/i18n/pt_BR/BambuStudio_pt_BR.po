@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:15+0800\n"
+"POT-Creation-Date: 2026-07-14 15:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3259,6 +3259,9 @@ msgstr "Contém"
 msgid "Assembly Module"
 msgstr "Módulo de montagem"
 
+msgid "Volume"
+msgstr ""
+
 msgid "Click to add objects to the current step"
 msgstr "Clique para adicionar objetos à etapa atual"
 
@@ -3273,9 +3276,6 @@ msgstr "Excluir etapa"
 
 msgid "Model"
 msgstr "Modelo"
-
-msgid "Volume"
-msgstr ""
 
 msgid "start frame"
 msgstr "quadro inicial"
@@ -3312,6 +3312,12 @@ msgstr "Quadro"
 msgid "step"
 msgstr "etapa"
 
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr "Reproduzir todos os quadros de todas as etapas."
 
@@ -3323,6 +3329,9 @@ msgstr "Reproduzir o quadro anterior."
 
 msgid "Play next frame."
 msgstr "Reproduzir o próximo quadro."
+
+msgid "Display Mode"
+msgstr "Modo de exibição"
 
 msgid "Set export file parameters"
 msgstr "Definir parâmetros de exportação do arquivo"
@@ -3459,6 +3468,9 @@ msgstr "Tamanho da fonte"
 
 msgid "Display mode"
 msgstr "Modo de exibição"
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
+msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "Exportar guia de montagem para PDF, Markdown ou MP4"
@@ -5801,15 +5813,6 @@ msgstr "Controle de montagem"
 
 msgid "Selection Mode"
 msgstr "Modo de seleção"
-
-msgid "Show Current Step Objects Only"
-msgstr "Mostrar apenas os objetos da etapa atual"
-
-msgid "X-Ray Other Objects"
-msgstr "Exibir outros objetos em raio X"
-
-msgid "Display Mode"
-msgstr "Modo de exibição"
 
 msgid "Total Volume:"
 msgstr "Volume total:"
@@ -18355,6 +18358,12 @@ msgid ""
 msgstr ""
 "Confiabilidade na Primeira Tentativa\n"
 "Menos supervisão, saída mais previsível. Exemplo: uma pequena fazenda produzindo peças de PETG evita surpresas de \"falha na hora 6\" e mantém os lotes no cronograma."
+
+#~ msgid "Show Current Step Objects Only"
+#~ msgstr "Mostrar apenas os objetos da etapa atual"
+
+#~ msgid "X-Ray Other Objects"
+#~ msgstr "Exibir outros objetos em raio X"
 
 #~ msgid "Exit"
 #~ msgstr "Sair"

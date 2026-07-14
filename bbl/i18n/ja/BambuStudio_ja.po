@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:15+0800\n"
+"POT-Creation-Date: 2026-07-14 15:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3247,6 +3247,9 @@ msgstr "含む"
 msgid "Assembly Module"
 msgstr "アセンブリモジュール"
 
+msgid "Volume"
+msgstr "体積"
+
 msgid "Click to add objects to the current step"
 msgstr "クリックして現在のステップにオブジェクトを追加"
 
@@ -3261,9 +3264,6 @@ msgstr "ステップを削除"
 
 msgid "Model"
 msgstr "モデル"
-
-msgid "Volume"
-msgstr "体積"
 
 msgid "start frame"
 msgstr "開始フレーム"
@@ -3300,6 +3300,12 @@ msgstr "フレーム"
 msgid "step"
 msgstr "ステップ"
 
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr "すべてのステップの全フレームを再生します。"
 
@@ -3311,6 +3317,9 @@ msgstr "前のフレームを再生します。"
 
 msgid "Play next frame."
 msgstr "次のフレームを再生します。"
+
+msgid "Display Mode"
+msgstr "表示モード"
 
 msgid "Set export file parameters"
 msgstr "エクスポートファイルのパラメーターを設定"
@@ -3447,6 +3456,9 @@ msgstr "フォントサイズ"
 
 msgid "Display mode"
 msgstr "表示モード"
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
+msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "アセンブリガイドをPDF、Markdown、MP4にエクスポート"
@@ -5775,15 +5787,6 @@ msgstr "組み立て制御"
 
 msgid "Selection Mode"
 msgstr "選択モード"
-
-msgid "Show Current Step Objects Only"
-msgstr "現在のステップのオブジェクトのみ表示"
-
-msgid "X-Ray Other Objects"
-msgstr "他のオブジェクトをX線表示"
-
-msgid "Display Mode"
-msgstr "表示モード"
 
 msgid "Total Volume:"
 msgstr "消費量"
@@ -18298,6 +18301,12 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Show Current Step Objects Only"
+#~ msgstr "現在のステップのオブジェクトのみ表示"
+
+#~ msgid "X-Ray Other Objects"
+#~ msgstr "他のオブジェクトをX線表示"
 
 #~ msgid "Exit"
 #~ msgstr "終了"

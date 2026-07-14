@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:15+0800\n"
+"POT-Creation-Date: 2026-07-14 15:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3255,6 +3255,9 @@ msgstr "Contener"
 msgid "Assembly Module"
 msgstr "Módulo de ensamblaje"
 
+msgid "Volume"
+msgstr "Volumen"
+
 msgid "Click to add objects to the current step"
 msgstr "Haga clic para añadir objetos al paso actual"
 
@@ -3269,9 +3272,6 @@ msgstr "Eliminar paso"
 
 msgid "Model"
 msgstr "Modelo"
-
-msgid "Volume"
-msgstr "Volumen"
 
 msgid "start frame"
 msgstr "fotograma inicial"
@@ -3308,6 +3308,12 @@ msgstr "Fotograma"
 msgid "step"
 msgstr "paso"
 
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr "Reproducir todos los fotogramas de todos los pasos."
 
@@ -3319,6 +3325,9 @@ msgstr "Reproducir fotograma anterior."
 
 msgid "Play next frame."
 msgstr "Reproducir fotograma siguiente."
+
+msgid "Display Mode"
+msgstr "Modo de visualización"
 
 msgid "Set export file parameters"
 msgstr "Establecer parámetros del archivo de exportación"
@@ -3455,6 +3464,9 @@ msgstr "Tamaño de fuente"
 
 msgid "Display mode"
 msgstr "Modo de visualización"
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
+msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "Exportar guía de ensamblaje a PDF, Markdown o MP4"
@@ -5798,15 +5810,6 @@ msgstr "Control de ensamblaje"
 
 msgid "Selection Mode"
 msgstr "Modo de selección"
-
-msgid "Show Current Step Objects Only"
-msgstr "Mostrar solo los objetos del paso actual"
-
-msgid "X-Ray Other Objects"
-msgstr "Otros objetos en rayos X"
-
-msgid "Display Mode"
-msgstr "Modo de visualización"
 
 msgid "Total Volume:"
 msgstr "Volumen total:"
@@ -18352,6 +18355,12 @@ msgid ""
 msgstr ""
 "Fiabilidad a la primera\n"
 "Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
+
+#~ msgid "Show Current Step Objects Only"
+#~ msgstr "Mostrar solo los objetos del paso actual"
+
+#~ msgid "X-Ray Other Objects"
+#~ msgstr "Otros objetos en rayos X"
 
 #~ msgid "Exit"
 #~ msgstr "Salir"

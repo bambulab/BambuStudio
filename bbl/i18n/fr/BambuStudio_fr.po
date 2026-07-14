@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:15+0800\n"
+"POT-Creation-Date: 2026-07-14 15:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3255,6 +3255,9 @@ msgstr "Contient"
 msgid "Assembly Module"
 msgstr "Module d'assemblage"
 
+msgid "Volume"
+msgstr ""
+
 msgid "Click to add objects to the current step"
 msgstr "Cliquez pour ajouter des objets à l'étape actuelle"
 
@@ -3269,9 +3272,6 @@ msgstr "Supprimer l'étape"
 
 msgid "Model"
 msgstr "Modèle"
-
-msgid "Volume"
-msgstr ""
 
 msgid "start frame"
 msgstr "image initiale"
@@ -3308,6 +3308,12 @@ msgstr "Image"
 msgid "step"
 msgstr "étape"
 
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr "Lire toutes les images pour toutes les étapes."
 
@@ -3319,6 +3325,9 @@ msgstr "Lire l'image précédente."
 
 msgid "Play next frame."
 msgstr "Lire l'image suivante."
+
+msgid "Display Mode"
+msgstr "Mode d'affichage"
 
 msgid "Set export file parameters"
 msgstr "Définir les paramètres du fichier d'exportation"
@@ -3455,6 +3464,9 @@ msgstr "Taille de la police"
 
 msgid "Display mode"
 msgstr "Mode d'affichage"
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
+msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "Exporter le guide d’assemblage en PDF, Markdown ou MP4"
@@ -5787,15 +5799,6 @@ msgstr "Contrôle de l'Assemblage"
 
 msgid "Selection Mode"
 msgstr "Mode de Sélection"
-
-msgid "Show Current Step Objects Only"
-msgstr "Afficher uniquement les objets de l'étape actuelle"
-
-msgid "X-Ray Other Objects"
-msgstr "Afficher les autres objets en mode Rayons X"
-
-msgid "Display Mode"
-msgstr "Mode d'affichage"
 
 msgid "Total Volume:"
 msgstr "Volume total:"
@@ -18332,6 +18335,12 @@ msgid ""
 msgstr ""
 "Fiabilité Garantie du Premier Coup\n"
 "Moins de surveillance, une production plus prévisible. Exemple : une petite exploitation agricole produisant des pièces en PETG évite les mauvaises surprises \"panne au bout de 6 h\" et respecte les délais de production."
+
+#~ msgid "Show Current Step Objects Only"
+#~ msgstr "Afficher uniquement les objets de l'étape actuelle"
+
+#~ msgid "X-Ray Other Objects"
+#~ msgstr "Afficher les autres objets en mode Rayons X"
 
 #~ msgid "Exit"
 #~ msgstr "Quitter"

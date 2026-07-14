@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:15+0800\n"
+"POT-Creation-Date: 2026-07-14 15:53+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3241,6 +3241,9 @@ msgstr ""
 msgid "Assembly Module"
 msgstr ""
 
+msgid "Volume"
+msgstr ""
+
 msgid "Click to add objects to the current step"
 msgstr ""
 
@@ -3255,9 +3258,6 @@ msgstr ""
 
 msgid "Model"
 msgstr "模型"
-
-msgid "Volume"
-msgstr ""
 
 msgid "start frame"
 msgstr ""
@@ -3294,6 +3294,12 @@ msgstr ""
 msgid "step"
 msgstr ""
 
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr ""
 
@@ -3304,6 +3310,9 @@ msgid "Play previous frame."
 msgstr ""
 
 msgid "Play next frame."
+msgstr ""
+
+msgid "Display Mode"
 msgstr ""
 
 msgid "Set export file parameters"
@@ -3440,6 +3449,9 @@ msgid "Font size"
 msgstr ""
 
 msgid "Display mode"
+msgstr ""
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
 msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
@@ -5758,15 +5770,6 @@ msgstr "拼裝檢視控制"
 
 msgid "Selection Mode"
 msgstr "選擇模式"
-
-msgid "Show Current Step Objects Only"
-msgstr ""
-
-msgid "X-Ray Other Objects"
-msgstr ""
-
-msgid "Display Mode"
-msgstr ""
 
 msgid "Total Volume:"
 msgstr "總體積："

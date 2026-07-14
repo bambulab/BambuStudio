@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:15+0800\n"
+"POT-Creation-Date: 2026-07-14 15:53+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3252,6 +3252,9 @@ msgstr "Innehålla"
 msgid "Assembly Module"
 msgstr "Monteringsmodul"
 
+msgid "Volume"
+msgstr "Volym"
+
 msgid "Click to add objects to the current step"
 msgstr "Klicka för att lägga till objekt i det aktuella steget"
 
@@ -3266,9 +3269,6 @@ msgstr "Ta bort steg"
 
 msgid "Model"
 msgstr "Modell"
-
-msgid "Volume"
-msgstr "Volym"
 
 msgid "start frame"
 msgstr "startram"
@@ -3305,6 +3305,12 @@ msgstr "Ram"
 msgid "step"
 msgstr "steg"
 
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr "Spela upp alla ramar för alla steg."
 
@@ -3316,6 +3322,9 @@ msgstr "Spela upp föregående ram."
 
 msgid "Play next frame."
 msgstr "Spela upp nästa ram."
+
+msgid "Display Mode"
+msgstr "Visningsläge"
 
 msgid "Set export file parameters"
 msgstr "Ange parametrar för exportfil"
@@ -3452,6 +3461,9 @@ msgstr "Fontstorlek"
 
 msgid "Display mode"
 msgstr "Visningsläge"
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
+msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "Exportera monteringsguide PDF, Markdown eller MP4"
@@ -5787,15 +5799,6 @@ msgstr "Monterings Kontroll"
 
 msgid "Selection Mode"
 msgstr "Val av läge"
-
-msgid "Show Current Step Objects Only"
-msgstr "Visa endast aktuella stegobjekt"
-
-msgid "X-Ray Other Objects"
-msgstr "Röntga andra objekt"
-
-msgid "Display Mode"
-msgstr "Visningsläge"
 
 msgid "Total Volume:"
 msgstr "Total Volym:"
@@ -18328,6 +18331,12 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid "Show Current Step Objects Only"
+#~ msgstr "Visa endast aktuella stegobjekt"
+
+#~ msgid "X-Ray Other Objects"
+#~ msgstr "Röntga andra objekt"
 
 #~ msgid "Exit"
 #~ msgstr "Avsluta"

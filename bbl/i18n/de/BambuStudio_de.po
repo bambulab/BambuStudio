@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:15+0800\n"
+"POT-Creation-Date: 2026-07-14 15:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3255,6 +3255,9 @@ msgstr "Enthalten"
 msgid "Assembly Module"
 msgstr "Baugruppenmodul"
 
+msgid "Volume"
+msgstr "Volumen"
+
 msgid "Click to add objects to the current step"
 msgstr "Klicken Sie hier, um Objekte zum aktuellen Schritt hinzuzufügen."
 
@@ -3269,9 +3272,6 @@ msgstr "Schritt löschen"
 
 msgid "Model"
 msgstr "Modell"
-
-msgid "Volume"
-msgstr "Volumen"
 
 msgid "start frame"
 msgstr "Start-Frame"
@@ -3308,6 +3308,12 @@ msgstr ""
 msgid "step"
 msgstr "Schritt"
 
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr "Alle Frames für alle Schritte abspielen."
 
@@ -3319,6 +3325,9 @@ msgstr "Vorherigen Frame abspielen."
 
 msgid "Play next frame."
 msgstr "Nächsten Frame abspielen."
+
+msgid "Display Mode"
+msgstr "Anzeigemodus"
 
 msgid "Set export file parameters"
 msgstr "Exportdateiparameter festlegen"
@@ -3455,6 +3464,9 @@ msgstr "Schriftgröße"
 
 msgid "Display mode"
 msgstr "Anzeigemodus"
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
+msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "Montageanleitung als PDF, Markdown oder MP4 exportieren"
@@ -5802,15 +5814,6 @@ msgstr "Montagekontrolle"
 
 msgid "Selection Mode"
 msgstr "Auswahlmodus"
-
-msgid "Show Current Step Objects Only"
-msgstr "Nur Objekte des aktuellen Schritts anzeigen"
-
-msgid "X-Ray Other Objects"
-msgstr "Andere Objekte durchleuchten"
-
-msgid "Display Mode"
-msgstr "Anzeigemodus"
 
 msgid "Total Volume:"
 msgstr "Gesamtvolumen:"
@@ -18349,6 +18352,12 @@ msgid ""
 msgstr ""
 "Zuverlässigkeit auf Anhieb\n"
 "Weniger Überwachung, vorhersagbarere Ausgabe. Beispiel: Eine kleine Farm, die PETG-Teile druckt, vermeidet Überraschungen wie \"Ausfall in Stunde 6\" und hält Chargen im Zeitplan."
+
+#~ msgid "Show Current Step Objects Only"
+#~ msgstr "Nur Objekte des aktuellen Schritts anzeigen"
+
+#~ msgid "X-Ray Other Objects"
+#~ msgstr "Andere Objekte durchleuchten"
 
 #~ msgid "Exit"
 #~ msgstr "Beenden"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:15+0800\n"
+"POT-Creation-Date: 2026-07-14 15:53+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3230,6 +3230,9 @@ msgstr ""
 msgid "Assembly Module"
 msgstr ""
 
+msgid "Volume"
+msgstr ""
+
 msgid "Click to add objects to the current step"
 msgstr ""
 
@@ -3243,9 +3246,6 @@ msgid "Delete step"
 msgstr ""
 
 msgid "Model"
-msgstr ""
-
-msgid "Volume"
 msgstr ""
 
 msgid "start frame"
@@ -3283,6 +3283,12 @@ msgstr ""
 msgid "step"
 msgstr ""
 
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr ""
 
@@ -3293,6 +3299,9 @@ msgid "Play previous frame."
 msgstr ""
 
 msgid "Play next frame."
+msgstr ""
+
+msgid "Display Mode"
 msgstr ""
 
 msgid "Set export file parameters"
@@ -3429,6 +3438,9 @@ msgid "Font size"
 msgstr ""
 
 msgid "Display mode"
+msgstr ""
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
 msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
@@ -5668,15 +5680,6 @@ msgid "Assemble Control"
 msgstr ""
 
 msgid "Selection Mode"
-msgstr ""
-
-msgid "Show Current Step Objects Only"
-msgstr ""
-
-msgid "X-Ray Other Objects"
-msgstr ""
-
-msgid "Display Mode"
 msgstr ""
 
 msgid "Total Volume:"

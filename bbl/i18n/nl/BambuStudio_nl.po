@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:15+0800\n"
+"POT-Creation-Date: 2026-07-14 15:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3255,6 +3255,9 @@ msgstr "Bevat"
 msgid "Assembly Module"
 msgstr "Montagemodule"
 
+msgid "Volume"
+msgstr ""
+
 msgid "Click to add objects to the current step"
 msgstr "Klik om objecten aan de huidige stap toe te voegen"
 
@@ -3269,9 +3272,6 @@ msgstr "Stap verwijderen"
 
 msgid "Model"
 msgstr "Model"
-
-msgid "Volume"
-msgstr ""
 
 msgid "start frame"
 msgstr ""
@@ -3308,6 +3308,12 @@ msgstr ""
 msgid "step"
 msgstr "stap"
 
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr "Speel alle frames af voor alle stappen."
 
@@ -3319,6 +3325,9 @@ msgstr "Speel het vorige frame af."
 
 msgid "Play next frame."
 msgstr "Speel het volgende frame af."
+
+msgid "Display Mode"
+msgstr "Weergavemodus"
 
 msgid "Set export file parameters"
 msgstr "Exportbestandsparameters instellen"
@@ -3455,6 +3464,9 @@ msgstr "Lettergrootte"
 
 msgid "Display mode"
 msgstr "Weergavemodus"
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
+msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "Montagehandleiding exporteren als PDF, Markdown of MP4"
@@ -5792,15 +5804,6 @@ msgstr "Besturing monteren"
 
 msgid "Selection Mode"
 msgstr "Selectie modus"
-
-msgid "Show Current Step Objects Only"
-msgstr "Alleen de objecten van de huidige stap weergeven"
-
-msgid "X-Ray Other Objects"
-msgstr "X-ray van andere objecten"
-
-msgid "Display Mode"
-msgstr "Weergavemodus"
 
 msgid "Total Volume:"
 msgstr "Totaal Volume:"
@@ -18339,6 +18342,12 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#~ msgid "Show Current Step Objects Only"
+#~ msgstr "Alleen de objecten van de huidige stap weergeven"
+
+#~ msgid "X-Ray Other Objects"
+#~ msgstr "X-ray van andere objecten"
 
 #~ msgid "Exit"
 #~ msgstr "Afsluiten"

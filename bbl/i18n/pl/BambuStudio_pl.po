@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:15+0800\n"
+"POT-Creation-Date: 2026-07-14 15:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3261,6 +3261,9 @@ msgstr "Utrzymuj"
 msgid "Assembly Module"
 msgstr "Moduł montażowy"
 
+msgid "Volume"
+msgstr "Objętość"
+
 msgid "Click to add objects to the current step"
 msgstr "Kliknij, aby dodać obiekty do bieżącego kroku"
 
@@ -3275,9 +3278,6 @@ msgstr "Usuń krok"
 
 msgid "Model"
 msgstr "Model"
-
-msgid "Volume"
-msgstr "Objętość"
 
 msgid "start frame"
 msgstr "rama początkowa"
@@ -3314,6 +3314,12 @@ msgstr "Rama"
 msgid "step"
 msgstr "krok"
 
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr "Odtwórz wszystkie ramy dla wszystkich kroków."
 
@@ -3325,6 +3331,9 @@ msgstr "Odtwórz poprzednią ramę."
 
 msgid "Play next frame."
 msgstr "Odtwórz następną ramę."
+
+msgid "Display Mode"
+msgstr "Tryb wyświetlania"
 
 msgid "Set export file parameters"
 msgstr "Ustaw parametry pliku eksportowego"
@@ -3461,6 +3470,9 @@ msgstr "Rozmiar czcionki"
 
 msgid "Display mode"
 msgstr "Tryb wyświetlania"
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
+msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "Eksportuj instrukcję montażu w formacie PDF, Markdown lub MP4"
@@ -5803,15 +5815,6 @@ msgstr "Kontrola montażu"
 
 msgid "Selection Mode"
 msgstr "Tryb wyboru"
-
-msgid "Show Current Step Objects Only"
-msgstr "Pokaż tylko obiekty bieżącego kroku"
-
-msgid "X-Ray Other Objects"
-msgstr "Prześwietl inne obiekty"
-
-msgid "Display Mode"
-msgstr "Tryb wyświetlania"
 
 msgid "Total Volume:"
 msgstr "Całkowita objętość:"
@@ -18379,6 +18382,12 @@ msgid ""
 msgstr ""
 "Niezawodność od pierwszego razu\n"
 "Mniej nadzoru, bardziej przewidywalne wyniki. Przykład: mała farma drukarek 3D produkująca części z PETG unika niespodzianek typu „awaria po 6 godzinach” i utrzymuje harmonogram partii."
+
+#~ msgid "Show Current Step Objects Only"
+#~ msgstr "Pokaż tylko obiekty bieżącego kroku"
+
+#~ msgid "X-Ray Other Objects"
+#~ msgstr "Prześwietl inne obiekty"
 
 #~ msgid "Exit"
 #~ msgstr "Wyjdź"
