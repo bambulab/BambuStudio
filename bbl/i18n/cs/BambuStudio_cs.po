@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:53+0800\n"
+"POT-Creation-Date: 2026-07-14 19:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -18200,6 +18200,24 @@ msgstr ""
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr ""
+
+msgid "Cyan"
+msgstr ""
+
+msgid "Magenta"
+msgstr ""
+
+msgid "Yellow"
+msgstr ""
+
+msgid ", "
+msgstr ""
+
+msgid "The current filament list does not contain "
+msgstr ""
+
+msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
 msgstr ""
 
 msgid "Material Ratio"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 15:53+0800\n"
+"POT-Creation-Date: 2026-07-14 19:14+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4115,13 +4115,13 @@ msgid "Link to existing filament"
 msgstr "关联已录入的耗材"
 
 msgid "Not now"
-msgstr "暂时不"
+msgstr "暂不录入"
 
 msgid "Please select"
 msgstr "请选择"
 
 msgid "No matching filament"
-msgstr ""
+msgstr "暂无匹配的耗材"
 
 msgid "Dynamic flow calibration"
 msgstr "动态流量校准"
@@ -9840,7 +9840,7 @@ msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the 
 msgstr "若动态流量校准设置为自动/打开，系统将使用您的手动校准值或默认值，并跳过流量校准过程。可以在'校准'页面对TPU耗材进行手动流量校准。"
 
 msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-msgstr ""
+msgstr "AMS 中的耗材可能不足以完成本次打印，请补充或更换耗材。"
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "某些耗材在打印过程中可能会在挤出机之间切换。手动 K 值校准无法在整个打印过程中应用，这可能会影响打印质量。建议启用动态校准。"
@@ -17943,7 +17943,7 @@ msgid "Remove the third material"
 msgstr "移除第三种材料"
 
 msgid "Project Filament List"
-msgstr ""
+msgstr "项目耗材列表"
 
 msgid "Standard Mode Recommendations"
 msgstr "标准模式推荐"
@@ -17969,6 +17969,24 @@ msgstr ""
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr ""
+
+msgid "Cyan"
+msgstr ""
+
+msgid "Magenta"
+msgstr ""
+
+msgid "Yellow"
+msgstr ""
+
+msgid ", "
+msgstr ""
+
+msgid "The current filament list does not contain "
+msgstr "当前耗材列表中不包含 "
+
+msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
+msgstr "。拆色完成后将自动创建混色耗材所需的项目耗材。"
 
 msgid "Material Ratio"
 msgstr "耗材比例"
