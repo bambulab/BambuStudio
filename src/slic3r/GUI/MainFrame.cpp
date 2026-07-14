@@ -1443,6 +1443,7 @@ void MainFrame::init_tabpanel()
             NetworkAgent* agent = GUI::wxGetApp().getAgent();
             if (agent)
                 agent->track_update_property("select_device_page", std::to_string(++select_device_page_count));
+            m_monitor->on_activate();
         }
         else if (panel == m_web_device) {
 #if defined(__WXOSX__)
@@ -4271,10 +4272,10 @@ void MainFrame::select_tab(wxPanel* panel)
 //BBS
 void MainFrame::jump_to_monitor(std::string dev_id)
 {
-    m_tabpanel->SetSelection(tpMonitor);
     if (!dev_id.empty()) {
         ((MonitorPanel*)m_monitor)->select_machine(dev_id);
     }
+    m_tabpanel->SetSelection(tpMonitor);
 }
 
 void MainFrame::jump_to_multipage()

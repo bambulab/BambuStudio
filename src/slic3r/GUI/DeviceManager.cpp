@@ -1693,7 +1693,8 @@ int MachineObject::command_multi_slot_ams_change_filament(bool is_load, const st
     return this->publish_json(j);
 }
 
-int MachineObject::command_ams_user_settings(bool start_read_opt, bool tray_read_opt, bool remain_flag)
+int MachineObject::command_ams_user_settings(bool start_read_opt, bool tray_read_opt, bool remain_flag,
+                                             std::optional<bool> filament_tab_auto_read_rfid)
 {
     json j;
     j["print"]["command"] = "ams_user_setting";
@@ -1702,12 +1703,16 @@ int MachineObject::command_ams_user_settings(bool start_read_opt, bool tray_read
     j["print"]["startup_read_option"]   = start_read_opt;
     j["print"]["tray_read_option"]      = tray_read_opt;
     j["print"]["calibrate_remain_flag"] = remain_flag;
+    if (filament_tab_auto_read_rfid.has_value())
+        j["print"]["filament_tab_auto_read_rfid"] = filament_tab_auto_read_rfid.value();
 
     BOOST_LOG_TRIVIAL(info) << "Ams User Settings: startup_read_option=" << start_read_opt << ", tray_read_option=" << tray_read_opt
                             << ", calibrate_remain_flag=" << remain_flag;
     m_fila_system->GetAmsSystemSetting().SetDetectOnInsertEnabled(tray_read_opt);
     m_fila_system->GetAmsSystemSetting().SetDetectOnPowerupEnabled(start_read_opt);
     m_fila_system->GetAmsSystemSetting().SetDetectRemainEnabled(remain_flag);
+    if (filament_tab_auto_read_rfid.has_value())
+        m_fila_system->GetAmsSystemSetting().SetFilamentTabAutoReadRfidEnabled(filament_tab_auto_read_rfid.value());
     ams_user_setting_start = time(nullptr);
 
     return this->publish_json(j);
@@ -2409,6 +2414,9 @@ void MachineObject::reset()
     device_cert_installed = false;
     clear_auto_nozzle_mapping();// reset nozzle mapping
     m_printTaskInfo.reset();
+    m_ctrl_token_mgr.Reset();
+    if (m_fila_system)
+        m_fila_system->reset();
     support_liveview_cams.clear();
 
     // reset print_json
@@ -3064,6 +3072,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
             }
 
             if (jj.contains("command")) {
+                m_ctrl_token_mgr.DispatchReply(jj);
                 m_nozzle_mapping_ptr->ParseAutoNozzleMapping(jj);
 
                 if (jj["command"].get<std::string>() == "ams_change_filament") {
@@ -4546,6 +4555,7 @@ void MachineObject::parse_new_info(json print)
         {
             m_fila_system->GetAmsSystemSetting().SetDetectOnInsertEnabled(get_flag_bits(cfg, 0));
             m_fila_system->GetAmsSystemSetting().SetDetectOnPowerupEnabled(get_flag_bits(cfg, 1));
+            m_fila_system->GetAmsSystemSetting().SetFilamentTabAutoReadRfidEnabled(get_flag_bits(cfg, 54));
         }
 
         if (time(nullptr) - camera_recording_ctl_start > HOLD_COUNT_MAX)

@@ -155,6 +155,37 @@ void AMSSetting::create()
     m_sizer_main_starting->Add(m_sizer_starting_tip, 0, wxEXPAND | wxTOP, FromDIP(12));
     m_panel_starting->SetSizer(m_sizer_main_starting);
 
+    // checkbox area: automatically read unloaded filament when entering the device page
+    m_sizer_filament_tab_auto_read_rfid_block = new wxBoxSizer(wxVERTICAL);
+    auto* sizer_filament_tab_auto_read_rfid = new wxBoxSizer(wxHORIZONTAL);
+    m_checkbox_filament_tab_auto_read_rfid = new ::CheckBox(m_panel_body);
+    m_checkbox_filament_tab_auto_read_rfid->Bind(wxEVT_TOGGLEBUTTON, &AMSSetting::on_filament_tab_auto_read_rfid, this);
+    sizer_filament_tab_auto_read_rfid->Add(m_checkbox_filament_tab_auto_read_rfid, 0, wxALIGN_CENTER_VERTICAL);
+    sizer_filament_tab_auto_read_rfid->Add(0, 0, 0, wxLEFT, FromDIP(12));
+
+    m_title_filament_tab_auto_read_rfid = new wxStaticText(
+        m_panel_body, wxID_ANY, _L("Automatically refresh unloaded filaments"), wxDefaultPosition, wxDefaultSize, 0);
+    m_title_filament_tab_auto_read_rfid->SetFont(::Label::Head_13);
+    m_title_filament_tab_auto_read_rfid->SetForegroundColour(AMS_SETTING_GREY800);
+    m_title_filament_tab_auto_read_rfid->Wrap(AMS_SETTING_BODY_WIDTH);
+    sizer_filament_tab_auto_read_rfid->Add(m_title_filament_tab_auto_read_rfid, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT, 0);
+
+    auto* sizer_filament_tab_auto_read_rfid_tip = new wxBoxSizer(wxHORIZONTAL);
+    sizer_filament_tab_auto_read_rfid_tip->Add(0, 0, 0, wxLEFT, FromDIP(30));
+    m_tip_filament_tab_auto_read_rfid = new Label(
+        m_panel_body,
+        _L("For official filaments, the filament type is automatically refreshed when entering the Device page. To avoid frequent refreshes, automatic refreshes occur no more than once per minute."));
+    m_tip_filament_tab_auto_read_rfid->SetFont(::Label::Body_13);
+    m_tip_filament_tab_auto_read_rfid->SetForegroundColour(AMS_SETTING_GREY700);
+    m_tip_filament_tab_auto_read_rfid->SetSize(wxSize(AMS_SETTING_BODY_WIDTH, -1));
+    m_tip_filament_tab_auto_read_rfid->Wrap(AMS_SETTING_BODY_WIDTH);
+    sizer_filament_tab_auto_read_rfid_tip->Add(m_tip_filament_tab_auto_read_rfid, 1, wxEXPAND, 0);
+
+    m_sizer_filament_tab_auto_read_rfid_block->Add(sizer_filament_tab_auto_read_rfid, 0, wxEXPAND | wxTOP, FromDIP(8));
+    m_sizer_filament_tab_auto_read_rfid_block->Add(0, 0, 0, wxTOP, FromDIP(8));
+    m_sizer_filament_tab_auto_read_rfid_block->Add(sizer_filament_tab_auto_read_rfid_tip, 0, wxEXPAND, 0);
+    m_sizer_filament_tab_auto_read_rfid_block->Add(0, 0, 0, wxTOP, FromDIP(15));
+
     // checkbox area 3
     wxBoxSizer* m_sizer_remain = new wxBoxSizer(wxHORIZONTAL);
     m_checkbox_remain = new ::CheckBox(m_panel_body);
@@ -270,6 +301,8 @@ void AMSSetting::create()
     //m_sizerl_body->Add(m_ams_arrange_order, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(12));
     m_sizerl_body->Add(m_panel_Insert_material, 0, wxEXPAND | wxTOP, FromDIP(12));
     m_sizerl_body->Add(m_panel_starting, 0, wxEXPAND | wxTOP, FromDIP(12));
+    m_sizerl_body->Add(m_sizer_filament_tab_auto_read_rfid_block, 0, wxEXPAND | wxTOP, FromDIP(12));
+    m_sizer_filament_tab_auto_read_rfid_block->Show(false);
     m_sizerl_body->Add(m_sizer_remain_block, 0, wxEXPAND | wxTOP, FromDIP(12));
     m_sizerl_body->Add(m_sizer_switch_filament, 0, wxEXPAND | wxTOP, FromDIP(12));
     m_sizerl_body->Add(m_sizer_switch_filament_tip, 0, wxEXPAND | wxTOP, FromDIP(12));
@@ -311,6 +344,7 @@ void AMSSetting::UpdateByObj(MachineObject* obj)
     update_remain_mode(obj->GetFilaSystem()->IsDetectRemainEnabled());
     update_switch_filament(obj->GetFilaSystem()->GetAutoRefillMgr().IsEnabled());
     update_air_printing_detection(obj);
+    update_filament_tab_auto_read_rfid(obj);
 
     update_firmware_switching_status();// on fila_firmware_switch
 
@@ -553,6 +587,20 @@ void AMSSetting::update_air_printing_detection(MachineObject* obj)
     m_checkbox_air_print->SetValue(obj->ams_air_print_status);
 }
 
+void AMSSetting::update_filament_tab_auto_read_rfid(MachineObject* obj)
+{
+    if (const auto fila_system = obj ? obj->GetFilaSystem() : nullptr) {
+        const bool supported = fila_system->GetAmsSystemSetting().SupportsFilamentTabAutoReadRfid();
+        m_sizer_filament_tab_auto_read_rfid_block->Show(supported);
+        if (supported) {
+            m_checkbox_filament_tab_auto_read_rfid->SetValue(fila_system->GetAmsSystemSetting().IsFilamentTabAutoReadRfidEnabled());
+        }
+
+        Layout();
+        Fit();
+    }
+}
+
 void AMSSetting::on_insert_material_read(wxCommandEvent &event)
 {
     // send command
@@ -628,6 +676,18 @@ void AMSSetting::on_air_print_detect(wxCommandEvent& event)
 {
     bool air_print_detect = m_checkbox_air_print->GetValue();
     m_obj->command_ams_air_print_detect(air_print_detect);
+    event.Skip();
+}
+
+void AMSSetting::on_filament_tab_auto_read_rfid(wxCommandEvent& event)
+{
+    if (m_obj) {
+        const auto fila_system = m_obj->GetFilaSystem();
+        const auto& settings = fila_system->GetAmsSystemSetting();
+        m_obj->command_ams_user_settings(settings.IsDetectOnPowerupEnabled(),
+                                         settings.IsDetectOnInsertEnabled().value_or(false),
+                                         settings.IsDetectRemainEnabled(), m_checkbox_filament_tab_auto_read_rfid->GetValue());
+    }
     event.Skip();
 }
 

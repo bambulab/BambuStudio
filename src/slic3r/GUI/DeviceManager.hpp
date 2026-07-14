@@ -21,6 +21,7 @@
 
 #include "DeviceCore/DevDefs.h"
 #include "DeviceCore/DevConfigUtil.h"
+#include "DeviceCore/DevCtrlTokenMgr.h"
 #include "DeviceCore/DevFirmware.h"
 #include "DeviceCore/DevPrintTaskInfo.h"
 #include "DeviceCore/DevUtil.h"
@@ -174,6 +175,9 @@ private:
 
     /*Config*/
     DevConfig* m_config;
+
+    /* tokens keyed by sequence_id */
+    DevCtrlTokenMgr m_ctrl_token_mgr;
 
 public:
     MachineObject(DeviceManager* manager, NetworkAgent* agent, std::string name, std::string id, std::string ip);
@@ -706,7 +710,8 @@ public:
     int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210, std::optional<int> extruder_id = std::nullopt);
 
     int command_multi_slot_ams_change_filament(bool is_load, const std::vector<std::pair<int, int>>& slots);
-    int command_ams_user_settings(bool start_read_opt, bool tray_read_opt, bool remain_flag = false);
+    int command_ams_user_settings(bool start_read_opt, bool tray_read_opt, bool remain_flag = false,
+                                  std::optional<bool> filament_tab_auto_read_rfid = std::nullopt);
     int command_ams_switch_filament(bool switch_filament);
     int command_ams_air_print_detect(bool air_print_detect);
     int command_ams_calibrate(int ams_id);
@@ -789,6 +794,12 @@ public:
     typedef std::function<void(std::string topic, std::string payload)> MsgFn;
     int publish_json(const json& json_item, int qos = 0, int flag = 0) ;
     int publish_json(const std::string& json_str, int qos = 0, int flag = 0) = delete;
+
+    // Command reply tokens: build one keyed by the command's sequence_id before
+    // publishing. The manager matches incoming replies (in parse_json) and drops a
+    // token once no other owner keeps a reference.
+    DevCtrlTokenMgr& GetCtrlTokenMgr() { return m_ctrl_token_mgr; }
+
     int cloud_publish_json(std::string json_str, int qos = 0, int flag = 0);
     int local_publish_json(std::string json_str, int qos = 0, int flag = 0);
     int parse_json(std::string tunnel, std::string payload, bool key_filed_only = false);

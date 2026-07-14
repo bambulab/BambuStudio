@@ -29,6 +29,7 @@
 #include "Plater.hpp"
 #include "BindDialog.hpp"
 
+#include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevHMSQuery.h"
 #include "fila_manager/wgtFilaManagerCloudDispatcher.h"
@@ -268,6 +269,25 @@ void MonitorPanel::msw_rescale()
     Refresh();
 }
 
+void MonitorPanel::on_activate()
+{
+    DeviceManager* device_manager = wxGetApp().getDeviceManager();
+    MachineObject* machine = device_manager ? device_manager->get_selected_machine() : nullptr;
+    if (!machine || !machine->GetFilaSystem())
+        return;
+
+    const auto fila_system = machine->GetFilaSystem();
+    const auto& settings = fila_system->GetAmsSystemSetting();
+    if (!settings.SupportsFilamentTabAutoReadRfid() || !settings.HasFilamentTabAutoReadRfidState())
+        return;
+
+    const auto rfid_refresh_ctrl = fila_system->GetAmsRfidRefreshCtrl();
+    if (!rfid_refresh_ctrl)
+        return;
+
+    rfid_refresh_ctrl->TriggerRefresh();
+}
+
 void MonitorPanel::select_machine(std::string machine_sn)
 {
     wxCommandEvent *event = new wxCommandEvent(wxEVT_COMMAND_CHOICE_SELECTED);
@@ -287,13 +307,15 @@ void MonitorPanel::on_timer(wxTimerEvent& event)
 void MonitorPanel::on_select_printer(wxCommandEvent& event)
 {
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return;
+    if (!dev)
+        return;
 
-    if ( dev->get_selected_machine() && (dev->get_selected_machine()->get_dev_id() != event.GetString().ToStdString()) && m_hms_panel) {
+    const std::string target_machine = event.GetString().ToStdString();
+    if (dev->get_selected_machine() && (dev->get_selected_machine()->get_dev_id() != target_machine) && m_hms_panel) {
         m_hms_panel->clear_hms_tag();
     }
 
-    if (!dev->set_selected_machine(event.GetString().ToStdString()))
+    if (!dev->set_selected_machine(target_machine))
         return;
 
     set_default();
@@ -308,6 +330,9 @@ void MonitorPanel::on_select_printer(wxCommandEvent& event)
         sidebar.update_sync_status(obj_);
         sidebar.set_need_auto_sync_after_connect_printer(sidebar.need_auto_sync_extruder_list_after_connect_priner(obj_));
     }
+
+    if (IsShownOnScreen())
+        on_activate();
 
     Layout();
 }

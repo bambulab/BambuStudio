@@ -3,6 +3,7 @@
 #include "slic3r/Utils/json_diff.hpp"
 
 #include "DevDefs.h"
+#include "DevAmsRfidRefreshCtrl.h"
 #include "DevFilaAmsSetting.h"
 #include "DevFilaAutoRefillMgr.h"
 #include "DevFilaSwitch.h"
@@ -289,6 +290,7 @@ public:
     bool AmsIsDrying();
 
     RemainEstimateVersion GetRemainEstimateVersion() const { return m_remain_estimate_version; }
+    bool SupportsFilamentTabAutoReadRfid() const { return m_enable_filament_tab_auto_read_rfid; }
 
 private:
     std::weak_ptr<DevFilaSystem> m_fila_system;
@@ -325,6 +327,7 @@ private:
     std::map<int, DevAmsZone> m_zones; // zone_id -> zones
     
     RemainEstimateVersion m_remain_estimate_version = RemainEstimateVersion::Legacy;
+    bool m_enable_filament_tab_auto_read_rfid = false;
 };
 
 using DevAmsZone = DevAms::DevAmsZone;
@@ -338,6 +341,7 @@ public:
 
 public:
     MachineObject* GetOwner() const { return m_owner; }
+    void reset();
 
     bool        HasAms() const { return !amsList.empty(); }
     bool        IsAmsSettingUp() const;
@@ -405,6 +409,7 @@ public:
     const DevFilaAutoRefillMgr& GetAutoRefillMgr() const { return m_auto_refill_mgr; }
 
     std::weak_ptr<DevAmsSystemFirmwareSwitch> GetAmsFirmwareSwitch() const { return m_ams_firmware_switch;}
+    std::shared_ptr<DevAmsRfidRefreshCtrl> GetAmsRfidRefreshCtrl() const { return m_ams_rfid_refresh_ctrl; }
 
 public:
     // ctrls
@@ -440,6 +445,7 @@ private:
     DevAmsSystemSetting m_ams_system_setting{ this };
     DevFilaAutoRefillMgr m_auto_refill_mgr{ this };
     std::shared_ptr<DevAmsSystemFirmwareSwitch> m_ams_firmware_switch = DevAmsSystemFirmwareSwitch::Create(this);
+    std::shared_ptr<DevAmsRfidRefreshCtrl> m_ams_rfid_refresh_ctrl = DevAmsRfidRefreshCtrl::Create(this);
 };// class DevFilaSystem
 
 

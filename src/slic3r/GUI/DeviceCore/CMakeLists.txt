@@ -20,6 +20,10 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevConfigUtil.cpp
     GUI/DeviceCore/DevCtrl.h
     GUI/DeviceCore/DevCtrl.cpp
+    GUI/DeviceCore/DevCtrlToken.h
+    GUI/DeviceCore/DevCtrlToken.cpp
+    GUI/DeviceCore/DevCtrlTokenMgr.h
+    GUI/DeviceCore/DevCtrlTokenMgr.cpp
     GUI/DeviceCore/DevDefs.h
     GUI/DeviceCore/DevExtensionTool.h
     GUI/DeviceCore/DevExtensionTool.cpp
@@ -30,6 +34,8 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevFan.h
     GUI/DeviceCore/DevFilaAutoRefillMgr.h
     GUI/DeviceCore/DevFilaAutoRefillMgr.cpp
+    GUI/DeviceCore/DevAmsRfidRefreshCtrl.h
+    GUI/DeviceCore/DevAmsRfidRefreshCtrl.cpp
     GUI/DeviceCore/DevFilaAmsSetting.h
     GUI/DeviceCore/DevFilaAmsSetting.cpp
     GUI/DeviceCore/DevFilaAmsSettingCtrl.cpp

@@ -19,12 +19,18 @@ public:
     bool IsDetectRemainEnabled() const { return m_enable_detect_remain; }
     bool IsAutoRefillEnabled() const { return m_enable_auto_refill; }
 
+    bool SupportsFilamentTabAutoReadRfid() const;
+    bool IsFilamentTabAutoReadRfidEnabled() const { return m_enable_filament_tab_auto_read_rfid.value_or(false); }
+    bool HasFilamentTabAutoReadRfidState() const { return m_enable_filament_tab_auto_read_rfid.has_value(); }
+
     // setters
     void Reset();
+    void ResetFilamentTabAutoReadRfidState() { m_enable_filament_tab_auto_read_rfid.reset(); }
     void SetDetectOnInsertEnabled(bool enable) { m_enable_detect_on_insert = enable; }
     void SetDetectOnPowerupEnabled(bool enable) { m_enable_detect_on_powerup = enable; }
     void SetDetectRemainEnabled(bool enable) { m_enable_detect_remain = enable; }
     void SetAutoRefillEnabled(bool enable) { m_enable_auto_refill = enable; }
+    void SetFilamentTabAutoReadRfidEnabled(bool enable) { m_enable_filament_tab_auto_read_rfid = enable; }
 
 private:
     DevFilaSystem* m_owner = nullptr;
@@ -33,6 +39,7 @@ private:
     bool m_enable_detect_on_powerup = false;
     bool m_enable_detect_remain = false;
     bool m_enable_auto_refill = false;
+    std::optional<bool> m_enable_filament_tab_auto_read_rfid;
 };
 
 class DevAmsSystemFirmwareSwitch

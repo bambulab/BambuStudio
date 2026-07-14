@@ -46,6 +46,7 @@ protected:
     void update_insert_material_read_mode(MachineObject* obj);
     void update_insert_material_read_mode(bool selected, std::string version);
     void update_air_printing_detection(MachineObject* obj);
+    void update_filament_tab_auto_read_rfid(MachineObject* obj);
 
     void update_firmware_switching_status();
     bool should_hide_insert_power_settings(MachineObject *obj) const;
@@ -56,6 +57,7 @@ protected:
     void on_remain(wxCommandEvent& event);
     void on_switch_filament(wxCommandEvent& event);
     void on_air_print_detect(wxCommandEvent& event);
+    void on_filament_tab_auto_read_rfid(wxCommandEvent& event);
     void on_dpi_changed(const wxRect &suggested_rect) override;
 
 protected:
@@ -97,6 +99,10 @@ protected:
     wxStaticText* m_title_air_print;
     Label* m_tip_air_print_line;
 
+    CheckBox* m_checkbox_filament_tab_auto_read_rfid;
+    wxStaticText* m_title_filament_tab_auto_read_rfid;
+    Label* m_tip_filament_tab_auto_read_rfid;
+
     wxStaticText *m_tip_ams_img;
     Button *     m_button_auto_demarcate;
 
@@ -105,6 +111,7 @@ protected:
     wxBoxSizer *m_sizer_remain_inline;
     wxBoxSizer *m_sizer_switch_filament_inline;
     wxBoxSizer *m_sizer_remain_block;
+    wxBoxSizer *m_sizer_filament_tab_auto_read_rfid_block;
 };
 
 class AMSSettingTypePanel : public wxPanel

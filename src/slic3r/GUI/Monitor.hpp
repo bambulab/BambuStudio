@@ -133,6 +133,7 @@ public:
 
     void on_sys_color_changed();
     void msw_rescale();
+    void on_activate();
 
     StatusPanel* get_status_panel() {return m_status_info_panel;};
 	void select_machine(std::string machine_sn);
