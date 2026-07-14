@@ -4076,10 +4076,10 @@ msgid "Note"
 msgstr ""
 
 msgid "No unsupported filaments"
-msgstr "暂无不支持的耗材"
+msgstr "No unsupported filaments"
 
 msgid "No filaments"
-msgstr "暂无耗材"
+msgstr "No filaments"
 
 msgid "System presets"
 msgstr "System presets"
@@ -4103,13 +4103,13 @@ msgid "Custom Color"
 msgstr "Custom Color"
 
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
-msgstr "AMS识别到新的官方耗材，是否录入到耗材管理？"
+msgstr "AMS detected a new official filament. Add it to Filament Manager?"
 
 msgid "Add as new filament"
-msgstr "作为新耗材录入"
+msgstr "Add as new filament"
 
 msgid "Link to existing filament"
-msgstr "关联已录入的耗材"
+msgstr "Link to existing filament"
 
 msgid "Not now"
 msgstr ""
