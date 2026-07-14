@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 12:00+0800\n"
+"POT-Creation-Date: 2026-07-14 15:15+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7774,6 +7774,10 @@ msgstr "Redigera nuvarande plattans namn"
 
 msgid "Customize current plate"
 msgstr "Anpassa nuvarande platta"
+
+#, c-format, boost-format
+msgid "%s is not compatible with %s nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
@@ -17997,6 +18001,34 @@ msgstr "Max antal komponenter uppnått"
 msgid "Remove the third material"
 msgstr "Ta bort det tredje materialet"
 
+msgid "Project Filament List"
+msgstr ""
+
+msgid "Standard Mode Recommendations"
+msgstr ""
+
+msgid "Target Color"
+msgstr ""
+
+msgid "Select Color Decomposition"
+msgstr ""
+
+msgid "Arbitrary Mode"
+msgstr ""
+
+msgid "Material List"
+msgstr ""
+
+msgid "Standard Mode"
+msgstr "Standard läge"
+
+msgid "At least two filaments of the same material type are required for decomposition"
+msgstr ""
+
+#, boost-format
+msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr ""
+
 msgid "Material Ratio"
 msgstr "Materialförhållande"
 
@@ -18497,9 +18529,6 @@ msgstr ""
 
 #~ msgid "The file contains polygons with less than 2 vertices."
 #~ msgstr "Filen innehåller polygoner med mindre än 2 hörn."
-
-#~ msgid "Standard Mode"
-#~ msgstr "Standard läge"
 
 #~ msgid "Performs full priming for the best print quality. Requires more material and time."
 #~ msgstr "Utför full rensning för bästa utskrifts kvalitet. Kräver mer material och tid."

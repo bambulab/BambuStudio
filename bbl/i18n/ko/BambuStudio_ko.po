@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 12:00+0800\n"
+"POT-Creation-Date: 2026-07-14 15:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7772,6 +7772,10 @@ msgstr "현재 플레이트 이름 편집"
 
 msgid "Customize current plate"
 msgstr "현재 플레이트 사용자 정의"
+
+#, c-format, boost-format
+msgid "%s is not compatible with %s nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
@@ -18004,6 +18008,34 @@ msgstr "최대 구성 요소 수에 도달했습니다."
 msgid "Remove the third material"
 msgstr "세 번째 재료를 제거하세요"
 
+msgid "Project Filament List"
+msgstr ""
+
+msgid "Standard Mode Recommendations"
+msgstr ""
+
+msgid "Target Color"
+msgstr ""
+
+msgid "Select Color Decomposition"
+msgstr ""
+
+msgid "Arbitrary Mode"
+msgstr ""
+
+msgid "Material List"
+msgstr ""
+
+msgid "Standard Mode"
+msgstr "표준 모드"
+
+msgid "At least two filaments of the same material type are required for decomposition"
+msgstr ""
+
+#, boost-format
+msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr ""
+
 msgid "Material Ratio"
 msgstr "재료 비율"
 
@@ -18518,9 +18550,6 @@ msgstr ""
 
 #~ msgid "The file contains polygons with less than 2 vertices."
 #~ msgstr "이 파일에는 꼭짓점이 2개 미만인 다각형이 포함되어 있습니다."
-
-#~ msgid "Standard Mode"
-#~ msgstr "표준 모드"
 
 #~ msgid "Performs full priming for the best print quality. Requires more material and time."
 #~ msgstr "최고의 출력 품질을 위해 완전한 프라이밍을 수행합니다. 더 많은 재료와 시간이 필요합니다."

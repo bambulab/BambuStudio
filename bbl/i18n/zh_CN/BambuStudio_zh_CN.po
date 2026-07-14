@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 12:00+0800\n"
+"POT-Creation-Date: 2026-07-14 15:15+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4047,18 +4047,18 @@ msgid "Filament Manager"
 msgstr "耗材管理"
 
 msgid "In printer"
-msgstr ""
+msgstr "机内耗材"
 
 #, c-format, boost-format
 msgid "In printer: %s"
-msgstr ""
+msgstr "机内耗材：%s"
 
 msgctxt "Filament Manager"
 msgid "Note"
 msgstr "提示"
 
 msgid "Unsupported Filaments"
-msgstr ""
+msgstr "暂无不支持的耗材"
 
 msgctxt "Unsupported Filaments"
 msgid "Note"
@@ -4068,7 +4068,7 @@ msgid "No unsupported filaments"
 msgstr ""
 
 msgid "No filaments"
-msgstr ""
+msgstr "暂无耗材"
 
 msgid "System presets"
 msgstr "系统配置"
@@ -4094,13 +4094,13 @@ msgid "Custom Color"
 msgstr "自定义颜色"
 
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS识别到新的官方耗材，是否录入到耗材管理？"
 
 msgid "Add as new filament"
-msgstr ""
+msgstr "作为新耗材录入"
 
 msgid "Link to existing filament"
-msgstr ""
+msgstr "关联已录入的耗材"
 
 msgid "Not now"
 msgstr "暂时不"
@@ -7737,6 +7737,10 @@ msgstr "编辑当前盘名称"
 
 msgid "Customize current plate"
 msgstr "自定义当前盘"
+
+#, c-format, boost-format
+msgid "%s is not compatible with %s nozzle."
+msgstr "%s耗材不支持使用%s类型喷嘴打印"
 
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
@@ -17935,6 +17939,34 @@ msgstr "已达到最大组分数量"
 msgid "Remove the third material"
 msgstr "移除第三种材料"
 
+msgid "Project Filament List"
+msgstr ""
+
+msgid "Standard Mode Recommendations"
+msgstr "标准模式推荐"
+
+msgid "Target Color"
+msgstr "目标色"
+
+msgid "Select Color Decomposition"
+msgstr "请选择拆色组合"
+
+msgid "Arbitrary Mode"
+msgstr "任意模式"
+
+msgid "Material List"
+msgstr "材料列表"
+
+msgid "Standard Mode"
+msgstr "标准模式"
+
+msgid "At least two filaments of the same material type are required for decomposition"
+msgstr ""
+
+#, boost-format
+msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr ""
+
 msgid "Material Ratio"
 msgstr "耗材比例"
 
@@ -18558,9 +18590,6 @@ msgstr ""
 
 #~ msgid "The file contains polygons with less than 2 vertices."
 #~ msgstr "该文件包含顶点少于2个的多边形。"
-
-#~ msgid "Standard Mode"
-#~ msgstr "标准模式"
 
 #~ msgid "Performs full priming for the best print quality. Requires more material and time."
 #~ msgstr "执行完整的冲刷流程以获得最佳打印质量，需要更多材料和时间。"

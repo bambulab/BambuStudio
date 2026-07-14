@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 12:00+0800\n"
+"POT-Creation-Date: 2026-07-14 15:15+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7715,6 +7715,10 @@ msgid "Edit current plate name"
 msgstr ""
 
 msgid "Customize current plate"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s is not compatible with %s nozzle."
 msgstr ""
 
 #, c-format, boost-format
@@ -17753,6 +17757,34 @@ msgstr ""
 msgid "Remove the third material"
 msgstr ""
 
+msgid "Project Filament List"
+msgstr ""
+
+msgid "Standard Mode Recommendations"
+msgstr ""
+
+msgid "Target Color"
+msgstr ""
+
+msgid "Select Color Decomposition"
+msgstr ""
+
+msgid "Arbitrary Mode"
+msgstr ""
+
+msgid "Material List"
+msgstr ""
+
+msgid "Standard Mode"
+msgstr "Standard"
+
+msgid "At least two filaments of the same material type are required for decomposition"
+msgstr ""
+
+#, boost-format
+msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr ""
+
 msgid "Material Ratio"
 msgstr ""
 
@@ -18145,9 +18177,6 @@ msgstr ""
 
 #~ msgid "The file contains polygons with less than 2 vertices."
 #~ msgstr "The file contains polygons with less than 2 vertices."
-
-#~ msgid "Standard Mode"
-#~ msgstr "Standard"
 
 #~ msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 #~ msgstr "Non-manifold edges be caused by cut tool: do you want to fix now?"
