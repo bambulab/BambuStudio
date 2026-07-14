@@ -274,9 +274,9 @@ class AssemblyStepsUtils
     int m_last_rendered_selected_node_for_notes_{-2};
     int m_last_rendered_keyframe_selected_{-2};
     bool m_last_has_selected_node_{false};
-    // Last object-index set a "which steps does this belong to" toast was pushed for. Selection is
-    // polled every frame, so this collapses the poll to a single notification per selection change.
-    std::vector<int> m_last_notified_step_hint_objs_;
+    // Last (object_idx, volume_idx) set a "which steps does this belong to" toast was pushed for.
+    // Selection is polled every frame, so this collapses the poll to one notification per change.
+    std::vector<std::pair<int, int>> m_last_notified_step_hint_vols_;
     // Assembly tree UI state (migrated from GLCanvas3D)
     std::unordered_map<std::string, bool>* m_active_assembly_tree_checked{nullptr};
     int m_assembly_tree_ui_current_folder_node{-1};
@@ -335,6 +335,11 @@ class AssemblyStepsUtils
         ImTextureID expand_dark{0};
         ImTextureID collapse_dark{0};
         ImTextureID search_dark{0};
+        // External resource tree expand/collapse icons
+        ImTextureID expand_external{0};
+        ImTextureID collapse_external{0};
+        ImTextureID expand_external_dark{0};
+        ImTextureID collapse_external_dark{0};
     };
     static AssemblyTreeIcons s_assembly_tree_icons;
 
@@ -809,7 +814,8 @@ public://logic
     void  play_cur_keyframe_logic();
     void  sync_canvas_selection_state();
     // When no step node is active but the scene has an object/part selected, toast which assembly
-    // steps that object belongs to. Self-deduping (see m_last_notified_step_hint_objs_); no callback.
+    // steps that selection belongs to. Whole-object selection keeps object-level text; partial
+    // volume selection reports per part. Self-deduping (see m_last_notified_step_hint_vols_).
     void  notify_selected_object_steps();
     // Each operates on the current node's keyframe entries via get_current_kf_entries(),
     void delete_selected_keyframe();

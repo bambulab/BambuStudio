@@ -12,9 +12,12 @@
 #include "GUI_App.hpp"
 #include "GUI_Colors.hpp"
 #include "GLCanvas3D.hpp"
+#include "OpenGLManager.hpp"
+#include "PartPlate.hpp"
 
 #include <GL/glew.h>
 
+#include <cmath>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/log/trivial.hpp>
@@ -760,6 +763,162 @@ void Bed3D::release_VBOs()
         glsafe(::glDeleteBuffers(1, &m_vbo_id));
         m_vbo_id = 0;
     }
+}
+
+void WorldXYGrid::set_from_aabb(const BoundingBoxf3 &aabb)
+{
+    if (!aabb.defined) {
+        if (m_valid) {
+            m_gridlines.reset();
+            m_gridlines_bolder.reset();
+            m_valid = false;
+            m_xy_bb.reset();
+        }
+        return;
+    }
+
+    // Project AABB onto XOY, expand by one cell, snap outward to the 10mm lattice.
+    double min_x = std::floor((aabb.min.x() - ExpandMm) / CellSizeMm) * CellSizeMm;
+    double max_x = std::ceil((aabb.max.x() + ExpandMm) / CellSizeMm) * CellSizeMm;
+    double min_y = std::floor((aabb.min.y() - ExpandMm) / CellSizeMm) * CellSizeMm;
+    double max_y = std::ceil((aabb.max.y() + ExpandMm) / CellSizeMm) * CellSizeMm;
+    if (max_x <= min_x)
+        max_x = min_x + CellSizeMm;
+    if (max_y <= min_y)
+        max_y = min_y + CellSizeMm;
+
+    // Cap each axis at MaxExtentMm. Prefer the slice closest to the world origin
+    // (do not track the AABB center — that would keep sliding as the model moves).
+    auto clamp_extent_near_origin = [](double &a, double &b) {
+        if (b - a <= MaxExtentMm)
+            return;
+        // Feasible window starts s in [a, b - MaxExtentMm]; pick the one nearest to 0.
+        double s;
+        if (b <= 0.0) {
+            // Entirely on the negative side: keep the rightmost MaxExtentMm (toward 0).
+            s = b - MaxExtentMm;
+        } else if (a >= 0.0) {
+            // Entirely on the positive side: keep the leftmost MaxExtentMm (toward 0).
+            s = a;
+        } else {
+            // Straddles origin: prefer a window centered on 0 when possible.
+            s = std::clamp(-0.5 * MaxExtentMm, a, b - MaxExtentMm);
+        }
+        a = s;
+        b = s + MaxExtentMm;
+    };
+    clamp_extent_near_origin(min_x, max_x);
+    clamp_extent_near_origin(min_y, max_y);
+
+    const BoundingBoxf xy(Vec2d(min_x, min_y), Vec2d(max_x, max_y));
+    if (m_valid && m_xy_bb.defined && m_xy_bb.min == xy.min && m_xy_bb.max == xy.max)
+        return;
+
+    update_geometry(xy);
+}
+
+void WorldXYGrid::update_geometry(const BoundingBoxf &xy_mm)
+{
+    m_xy_bb = xy_mm;
+    m_valid = false;
+    m_gridlines.reset();
+    m_gridlines_bolder.reset();
+    if (!xy_mm.defined)
+        return;
+
+    // Same scaled-line scheme as PartPlateList::calc_gridlines (10mm / bold every 5).
+    const BoundingBox bb(Point(scale_(xy_mm.min.x()), scale_(xy_mm.min.y())),
+                         Point(scale_(xy_mm.max.x()), scale_(xy_mm.max.y())));
+
+    Lines axes_lines;
+    Lines axes_lines_bolder;
+    // Major every 5 cells, counted from the small end (min), same as PartPlate.
+    // Borders are always major regardless of the cell index.
+    int count = 0;
+    for (coord_t x = bb.min(0); x <= bb.max(0); x += scale_(CellSizeMm)) {
+        Line line(Point(x, bb.min(1)), Point(x, bb.max(1)));
+        const bool on_border = (x == bb.min(0) || x == bb.max(0));
+        if (on_border || (count % 5) == 0)
+            axes_lines_bolder.push_back(line);
+        else
+            axes_lines.push_back(line);
+        ++count;
+    }
+    count = 0;
+    for (coord_t y = bb.min(1); y <= bb.max(1); y += scale_(CellSizeMm)) {
+        Line line(Point(bb.min(0), y), Point(bb.max(0), y));
+        const bool on_border = (y == bb.min(1) || y == bb.max(1));
+        if (on_border || (count % 5) == 0)
+            axes_lines_bolder.push_back(line);
+        else
+            axes_lines.push_back(line);
+        ++count;
+    }
+
+    // Rectangle contour as bold so every edge reads as a major boundary
+    // even if max is not on a 5-cell mark (and to thicken corners).
+    ExPolygon poly;
+    poly.contour.append(bb.min);
+    poly.contour.append({bb.max(0), bb.min(1)});
+    poly.contour.append(bb.max);
+    poly.contour.append({bb.min(0), bb.max(1)});
+    Lines contour_lines = to_lines(poly);
+    axes_lines_bolder.insert(axes_lines_bolder.end(), contour_lines.begin(), contour_lines.end());
+
+    if (!m_gridlines.init_model_from_lines(axes_lines, GROUND_Z))
+        BOOST_LOG_TRIVIAL(error) << "WorldXYGrid: unable to create grid lines";
+    if (!m_gridlines_bolder.init_model_from_lines(axes_lines_bolder, GROUND_Z))
+        BOOST_LOG_TRIVIAL(error) << "WorldXYGrid: unable to create bold grid lines";
+
+    m_valid = m_gridlines.is_initialized() || m_gridlines_bolder.is_initialized();
+}
+
+void WorldXYGrid::render()
+{
+    if (!m_valid)
+        return;
+
+    Plater *plater = wxGetApp().plater();
+    if (!plater)
+        return;
+
+    const auto &shader = wxGetApp().get_shader("flat");
+    if (!shader)
+        return;
+
+    const auto cur_shader = wxGetApp().get_current_shader();
+    if (cur_shader)
+        wxGetApp().unbind_shader();
+
+    const Camera &camera = plater->get_camera();
+    wxGetApp().bind_shader(shader);
+    shader->set_uniform("view_model_matrix", camera.get_view_matrix());
+    shader->set_uniform("projection_matrix", camera.get_projection_matrix());
+
+    const auto &p_ogl_manager = wxGetApp().get_opengl_manager();
+    // Reuse PartPlate prepare-view line palette. Same color for fine/bold is not
+    // enough when glLineWidth>1 is ignored, so pick the two SEL / TOP tones that
+    // read clearly on the assemble canvas background (~0.9 light / ~0.33 dark).
+    const std::array<float, 4> color_regular = m_is_dark
+        ? PartPlate::LINE_TOP_DARK_COLOR       // prepare unselected dark
+        : PartPlate::LINE_TOP_SEL_COLOR;       // prepare selected (visible on light canvas)
+    const std::array<float, 4> color_major = m_is_dark
+        ? PartPlate::LINE_TOP_SEL_COLOR        // brighter major on dark canvas
+        : PartPlate::LINE_TOP_SEL_DARK_COLOR;  // stronger major on light canvas
+
+    if (p_ogl_manager) {
+        p_ogl_manager->set_line_width(1.0f * m_scale_factor);
+        m_gridlines.set_color(-1, color_regular);
+        m_gridlines.render_geometry();
+
+        p_ogl_manager->set_line_width(2.0f * m_scale_factor);
+        m_gridlines_bolder.set_color(-1, color_major);
+        m_gridlines_bolder.render_geometry();
+    }
+
+    wxGetApp().unbind_shader();
+    if (cur_shader)
+        wxGetApp().bind_shader(cur_shader);
 }
 
 } // GUI

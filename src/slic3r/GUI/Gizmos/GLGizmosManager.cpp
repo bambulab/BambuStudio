@@ -677,6 +677,14 @@ bool GLGizmosManager::is_paint_gizmo() const
            m_current == EType::Seam;
 }
 
+bool GLGizmosManager::is_allow_x_ray_in_assembly() const
+{
+    if (m_current == Undefined || m_current == EType::Move || m_current == EType::Rotate || m_current == EType::Scale) {
+        return true;
+    }
+    return false;
+}
+
 bool GLGizmosManager::is_allow_select_all() const {
     if (m_current == Undefined || m_current == EType::Move||
         m_current == EType::Rotate ||
@@ -1584,6 +1592,9 @@ bool GLGizmosManager::activate_gizmo(EType type)
             }
         }
         catch (...) {}
+    } else {
+        // Gizmo closed (type -> Undefined): restore assembly display mode when X-Ray is allowed.
+        m_parent.do_something_after_gizmo_exit();
     }
     return true;
 }

@@ -725,7 +725,9 @@ private:
     PrinterTechnology current_printer_technology() const;
 
     bool        m_show_world_axes{false};
+    bool        m_show_world_grid{false};//The maximum size is 500 * 500,Display under all object boxes
     Bed3D::Axes m_axes;
+    WorldXYGrid m_world_grid;
     //BBS:record key botton frequency
     int auto_orient_count = 0;
     int auto_arrange_count = 0;
@@ -939,6 +941,7 @@ public:
     void set_color_by(const std::string& value);
 
     void set_show_world_axes(bool flag) { m_show_world_axes = flag; }
+    void set_show_world_grid(bool flag) { m_show_world_grid = flag; }
     void refresh_camera_scene_box();
 
     BoundingBoxf3 assembly_view_cur_bounding_box() const;
@@ -1080,6 +1083,8 @@ public:
     void select_all();
     void deselect_all();
     void exit_gizmo();
+    // Re-apply assembly keyframe display mode when the current gizmo allows X-Ray.
+    void do_something_after_gizmo_exit();
 
     void close_project_and_save_assembly_steps_tree();
     void new_project_clear_assembly_steps_tree_view(bool save);

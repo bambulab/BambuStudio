@@ -1575,6 +1575,9 @@ void GLCanvas3D::set_type(ECanvasType type)
     if (type != m_canvas_type) {
         m_canvas_type = type;
         if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+            set_show_world_axes(true);
+            set_show_world_grid(true);
+
             m_assembly_steps = std::make_unique<AssemblyStepsUtils>();
             m_assembly_steps->set_commond_callback([this](std::string commond) {
                 std::vector<std::string> parts;
@@ -2917,8 +2920,16 @@ void GLCanvas3D::render(bool only_init)
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
         //BBS: add outline logic
-        if (m_show_world_axes) {
+        bool hide_axes_in_assembly = m_assembly_steps && (m_assembly_steps->has_selected_step_node() || m_assembly_steps->is_play_or_export_mode());
+        if (m_show_world_axes && !hide_axes_in_assembly) {
             m_axes.render();
+        }
+        if (m_show_world_grid && !hide_axes_in_assembly) {
+            // Grid covers the XY projection of all GLVolumes (slightly expanded, capped at 500mm).
+            m_world_grid.set_from_aabb(volumes_bounding_box(/*limit_to_expand_plate=*/false));
+            m_world_grid.set_dark(m_is_dark);
+            m_world_grid.set_scale_factor(get_scale());
+            m_world_grid.render();
         }
         _render_objects(m_volumes, GLVolumeCollection::ERenderType::Opaque, b_with_stencil_outline);
         //_render_bed(!camera.is_looking_downward(), show_axes);
@@ -3184,6 +3195,12 @@ void GLCanvas3D::exit_gizmo() {
         m_gizmos.reset_all_states();
         m_gizmos.update_data();
     }
+}
+
+void GLCanvas3D::do_something_after_gizmo_exit()
+{
+    if (m_assembly_steps && get_gizmos_manager().is_allow_x_ray_in_assembly())
+        m_assembly_steps->apply_keyframe_display_mode();
 }
 
 void GLCanvas3D::close_project_and_save_assembly_steps_tree()//dont delete
@@ -8003,10 +8020,11 @@ bool GLCanvas3D::_update_imgui_select_plate_toolbar()
 bool GLCanvas3D::_update_assembly_view_thumbnail()
 {
     if (!m_assembly_view_thumbnail.is_enabled()) { return false; }
-    if (!wxGetApp().plater()) { return false; }
+    Plater *plater = wxGetApp().plater();
+    if (!plater) { return false; }
 
-    PartPlateList &partplate_list = wxGetApp().plater()->get_partplate_list();
-    auto          curr_plate      = partplate_list.get_curr_plate();
+    PartPlateList &partplate_list               = plater->get_partplate_list();
+    auto           curr_plate                   = partplate_list.get_curr_plate();
     ThumbnailData &thumbnail_assembly_view_data = partplate_list.get_thumbnail_assembly_view_data();
     const size_t   volume_count                 = m_volumes.volumes.size();
     if (m_assembly_view_thumbnail_volume_count != volume_count) {
@@ -8033,9 +8051,16 @@ bool GLCanvas3D::_update_assembly_view_thumbnail()
         glsafe(::glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prev_fbo));
         glsafe(::glGetIntegerv(GL_VIEWPORT, prev_viewport));
 
+        // Feed assemble_model objects when available so assemble poses come from there;
+        // GLVolumes stay on this (prepare) canvas — meshes are shared.
+        Model &am = plater->assemble_model();
+        ModelObjectPtrs &model_objects = !am.objects.empty() ? am.objects : plater->model().objects;
+        std::vector<std::array<float, 4>> colors = plater->get_extruders_colors();
+
         const auto render_thumbnail_begin = std::chrono::steady_clock::now();
-        render_thumbnail(thumbnail_assembly_view_data, curr_plate->plate_thumbnail_width, curr_plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho,
-                         m_assembly_view_preview_angle, false, false, {ThumbnailRenderRype::GLVolumes, ECanvasType::CanvasAssembleView, true});
+        render_thumbnail(thumbnail_assembly_view_data, colors, curr_plate->plate_thumbnail_width, curr_plate->plate_thumbnail_height,
+                         thumbnail_params, model_objects, m_volumes, Camera::EType::Ortho, m_assembly_view_preview_angle, false, false,
+                         {ThumbnailRenderRype::GLVolumes, ECanvasType::CanvasAssembleView, true});
         const auto render_thumbnail_end = std::chrono::steady_clock::now();
 
         glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, prev_fbo));
@@ -10102,8 +10127,25 @@ void GLCanvas3D::_render_return_toolbar()
         if (m_canvas_type == ECanvasType::CanvasView3D) {
             deselect_all();
         } else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
-            _exit_assembly_to_3d_view();
+            if (m_gizmos.get_current_type() != GLGizmosManager::Undefined) {
+                exit_gizmo();
+            } else {
+                _exit_assembly_to_3d_view();
+            }
         }
+    }
+    if (ImGui::IsItemHovered()) {
+        wxString tip;
+        if (m_canvas_type == ECanvasType::CanvasView3D) {
+            tip = _L("Exit current gizmo editing");
+        } else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+            if (m_gizmos.get_current_type() != GLGizmosManager::Undefined)
+                tip = _L("Exit current gizmo editing");
+            else
+                tip = _L("Return to prepare view");
+        }
+        auto width = ImGui::CalcTextSize(tip.c_str()).x + imgui.scaled(2.0f);
+        imgui.tooltip(tip, width);
     }
     ImGui::PopStyleColor(5);
     ImGui::PopStyleVar(1);
@@ -13006,7 +13048,7 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
                     assemble_volume_backups.emplace_back(
                         VolumeTransformBackup{vol, vol->get_instance_transformation(), vol->get_volume_transformation(), vol->get_offset_to_assembly()});
                     vol->set_instance_transformation(model_object->instances[inst_idx]->get_assemble_transformation());
-                    // BBS: thumbnail render in assembly view uses per-volume assemble matrix (falls back to volume->get_transformation() when not initialized).
+                    // Assembly thumbnail uses per-volume assemble matrix (falls back when not initialized).
                     vol->set_volume_transformation(model_object->volumes[vol_idx]->get_assemble_transformation());
                     vol->set_offset_to_assembly(model_object->instances[inst_idx]->get_offset_to_assembly());
                 }

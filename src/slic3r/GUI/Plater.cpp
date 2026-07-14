@@ -17568,6 +17568,41 @@ void Plater::priv::sync_assemble_model_on_enter(const std::vector<size_t>& loade
                 assembly_obj_by_src_guid.emplace(mv->assembly_src_guid(), ai);
     }
 
+    // STEP re-import: one shared extra assemble offset for every newly appended object.
+    // Computed before the loop from the existing assembly-view bbox, then ADDED onto each
+    // clone's existing assemble_offset (do not replace via set_assembly_pos).
+    Vec3d step_reimport_extra_offset = Vec3d::Zero();
+    if (!loaded_idxs.empty()) {
+        const BoundingBoxf3 existing_box = m_assemble_model.bounding_box_in_assembly_view();
+        if (existing_box.defined) {
+            BoundingBoxf3 incoming_box;
+            for (size_t pi : loaded_idxs) {
+                if (pi >= model.objects.size())
+                    continue;
+                ModelObject *po = model.objects[pi];
+                bool mapped = false;
+                for (ModelVolume *mv : po->volumes) {
+                    if (!mv->is_model_part())
+                        continue;
+                    if (assembly_obj_by_src_guid.count(mv->part_guid())) {
+                        mapped = true;
+                        break;
+                    }
+                }
+                if (mapped)
+                    continue;
+                // Clone keeps prepare assemble_offset, so this bbox predicts the batch layout.
+                incoming_box.merge(po->bounding_box_in_assembly_view());
+            }
+            // Place the whole incoming batch to the right of the existing scene (+10mm gap),
+            // same idea as Model::set_assembly_pos but as a uniform additive delta.
+            if (incoming_box.defined)
+                step_reimport_extra_offset.x() = existing_box.max.x() + 10.0 - incoming_box.min.x();
+            else
+                step_reimport_extra_offset.x() = existing_box.size().x() + 10.0;
+        }
+    }
+
     for (int pi = 0; pi < (int) model.objects.size(); ++pi) {
         if (!loaded_idxs.empty()) {
             auto it = std::find(loaded_idxs.begin(), loaded_idxs.end(), (size_t)pi);
@@ -17591,6 +17626,17 @@ void Plater::priv::sync_assemble_model_on_enter(const std::vector<size_t>& loade
             ModelObject *ao = m_assemble_model.add_object(*po);
             for (ModelVolume *mv : ao->volumes)
                 mv->set_assembly_src_guid(mv->part_guid());
+            // STEP re-import: keep cloned assemble_offset, then apply the shared extra shift.
+            // Otherwise place like a fresh import via set_assembly_pos.
+            // Prepare-side po always mirrors ao so the assembly-view thumbnail stays in sync.
+            if (!loaded_idxs.empty()) {
+                for (ModelInstance *inst : ao->instances)
+                    inst->set_assemble_offset(inst->get_assemble_offset() + step_reimport_extra_offset);
+            } else {
+                m_assemble_model.set_assembly_pos(ao);
+            }
+            for (size_t i = 0; i < ao->instances.size() && i < po->instances.size(); ++i)
+                po->instances[i]->set_assemble_offset(ao->instances[i]->get_assemble_offset());
             // New object added to m_assemble_model: retained assembly snapshots no longer match, reset baseline.
             m_assemble_undo_baseline_dirty = true;
             continue;
@@ -17612,6 +17658,10 @@ void Plater::priv::sync_assemble_model_on_enter(const std::vector<size_t>& loade
             m_assemble_undo_baseline_dirty = true;
         }
     }
+
+    // Prepare-side assemble_offset changed: force assembly-view thumbnail rebuild.
+    if (!loaded_idxs.empty() && step_reimport_extra_offset != Vec3d::Zero())
+        partplate_list.reset_thumbnail_assembly_view_data();
 
     // Reconcile the other direction: drop assembly parts whose prepare counterpart is gone.
     prune_orphan_assemble_parts();

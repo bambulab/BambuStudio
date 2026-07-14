@@ -199,7 +199,7 @@ void AssemblyStepsUtils::reset_state_on_model_changed()
     m_last_rendered_selected_node_for_notes_ = -2;
     m_last_rendered_keyframe_selected_ = -2;
     m_last_has_selected_node_ = false;
-    m_last_notified_step_hint_objs_.clear();
+    m_last_notified_step_hint_vols_.clear();
     pn_screen_centers_.clear();
     m_pn_autolayout_pending = false;
     m_render_interpolated_part_number_labels = false;
@@ -6865,38 +6865,99 @@ void AssemblyStepsUtils::notify_selected_object_steps()
 
     // A selected step node drives the tree/card UI on its own; only the "loose" scene-selection case
     // (has_selected_node() == false, but an object/part is picked) needs a step-membership hint.
-    std::vector<int> sel_objs = has_selected_node() ? std::vector<int>() : selected_assembly_object_indices();
+    std::vector<std::pair<int, int>> sel_vols;
+    if (!has_selected_node()) {
+        for (unsigned int idx : m_selection->get_volume_idxs()) {
+            const GLVolume *gv = m_selection->get_volume(idx);
+            if (!gv)
+                continue;
+            const int oi = gv->object_idx();
+            const int vi = gv->volume_idx();
+            if (oi < 0 || vi < 0)
+                continue;
+            sel_vols.emplace_back(oi, vi);
+        }
+        std::sort(sel_vols.begin(), sel_vols.end());
+        sel_vols.erase(std::unique(sel_vols.begin(), sel_vols.end()), sel_vols.end());
+    }
 
     // sync_canvas_selection_state() runs every frame; fire once per distinct selection.
-    if (sel_objs == m_last_notified_step_hint_objs_)
+    if (sel_vols == m_last_notified_step_hint_vols_)
         return;
-    m_last_notified_step_hint_objs_ = sel_objs;
-    if (sel_objs.empty())
-        return;
+    m_last_notified_step_hint_vols_ = sel_vols;
 
     Plater *plater = wxGetApp().plater();
     if (plater == nullptr || plater->get_notification_manager() == nullptr)
         return;
+    // Deselect-all (or step-node takes over): dismiss the membership toast immediately.
+    if (sel_vols.empty()) {
+        plater->get_notification_manager()->close_notification_of_type(NotificationType::SelectObjectInWhichStep);
+        return;
+    }
 
-    std::string text;
-    for (int obj_idx : sel_objs) {
-        if (obj_idx < 0 || obj_idx >= (int) m_model->objects.size() || m_model->objects[obj_idx] == nullptr)
+    std::map<int, std::vector<int>> vols_by_obj;
+    for (const auto &p : sel_vols)
+        vols_by_obj[p.first].push_back(p.second);
+
+    // One membership pass per folder for this notification (selection already deduped above).
+    // Avoids re-running collect_* for every selected object/volume × every step.
+    struct FolderMembership {
+        std::string                  name;
+        std::set<int>                object_idxs;
+        std::set<std::pair<int, int>> volume_pairs;
+    };
+    std::vector<FolderMembership> folders;
+    folders.reserve(_steps_nodes.size());
+    for (int ni = 0; ni < (int) _steps_nodes.size(); ++ni) {
+        if (_steps_nodes[ni].type != AssemblyStepsTreeNode::Type::Folder || _steps_nodes[ni].is_final_assembly)
             continue;
+        FolderMembership fm;
+        auto step_str = into_u8(wxString::Format(_L("Step %d"), _steps_nodes[ni].step));
+        fm.name          = _steps_nodes[ni].name.empty() ? step_str : (_steps_nodes[ni].name + "(" + step_str + ")");
+        fm.object_idxs   = collect_node_object_indices(ni);
+        fm.volume_pairs  = collect_folder_volume_pairs(ni);
+        folders.push_back(std::move(fm));
+    }
 
+    auto step_names_for_object = [&](int obj_idx) -> std::vector<std::string> {
         std::vector<std::string> step_names;
-        for (int ni = 0; ni < (int) _steps_nodes.size(); ++ni) {
-            if (_steps_nodes[ni].type != AssemblyStepsTreeNode::Type::Folder || _steps_nodes[ni].is_final_assembly)
+        for (const auto &fm : folders) {
+            if (fm.object_idxs.count(obj_idx) == 0)
                 continue;
-            if (collect_node_object_indices(ni).count(obj_idx) == 0)
-                continue;
-            auto step_str = into_u8(wxString::Format(_L("Step %d"), _steps_nodes[ni].step));
-            auto all_str = _steps_nodes[ni].name + "(" + step_str + ")";
-            step_names.push_back(_steps_nodes[ni].name.empty() ? step_str : all_str);
+            step_names.push_back(fm.name);
         }
+        return step_names;
+    };
 
+    auto step_names_for_volume = [&](int obj_idx, int volume_idx) -> std::vector<std::string> {
+        std::vector<std::string> step_names;
+        for (const auto &fm : folders) {
+            if (fm.volume_pairs.count({obj_idx, volume_idx}) == 0)
+                continue;
+            step_names.push_back(fm.name);
+        }
+        return step_names;
+    };
+
+    // Match object_fully_in_pairs: every non-null volume of the object is selected.
+    auto all_volumes_selected = [&](const ModelObject *obj, const std::vector<int> &selected_vis) -> bool {
+        if (!obj)
+            return false;
+        int selectable = 0;
+        for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+            if (!obj->volumes[vi])
+                continue;
+            ++selectable;
+            if (std::find(selected_vis.begin(), selected_vis.end(), vi) == selected_vis.end())
+                return false;
+        }
+        return selectable > 0;
+    };
+
+    auto append_hint = [&](const std::string &name, const std::vector<std::string> &step_names, std::string &text) {
         if (!text.empty())
             text += "\n";
-        text += m_model->objects[obj_idx]->name + ": ";
+        text += name + ": ";
         if (step_names.empty()) {
             text += into_u8(_L("not used in any assembly step"));
         } else {
@@ -6906,11 +6967,31 @@ void AssemblyStepsUtils::notify_selected_object_steps()
                 text += step_names[i];
             }
         }
+    };
+
+    std::string text;
+    for (const auto &kv : vols_by_obj) {
+        const int obj_idx = kv.first;
+        if (obj_idx < 0 || obj_idx >= (int) m_model->objects.size() || m_model->objects[obj_idx] == nullptr)
+            continue;
+        const ModelObject *obj = m_model->objects[obj_idx];
+
+        if (all_volumes_selected(obj, kv.second)) {
+            append_hint(obj->name, step_names_for_object(obj_idx), text);
+        } else {
+            for (int volume_idx : kv.second) {
+                if (volume_idx < 0 || volume_idx >= (int) obj->volumes.size() || !obj->volumes[volume_idx])
+                    continue;
+                std::string name = get_volume_name(obj_idx, volume_idx);
+                if (name.empty())
+                    name = obj->name;
+                append_hint(name, step_names_for_volume(obj_idx, volume_idx), text);
+            }
+        }
     }
 
-    if (text.empty()) {
+    if (text.empty())
         return;
-    }
     plater->get_notification_manager()->push_notification(NotificationType::SelectObjectInWhichStep, NotificationManager::NotificationLevel::ImportantNotificationLevel, text);
 }
 
@@ -7615,6 +7696,15 @@ bool AssemblyStepsUtils::load_assembly_tree_icons(float sc)
                                   s_assembly_tree_icons.collapse_dark);
     IMTexture::load_from_svg_file(image_path + "tree_search_dark.svg", select_icon_texture_size, select_icon_texture_size,
                                   s_assembly_tree_icons.search_dark);
+    // External view icons (expand/collapse for external resource tree)
+    IMTexture::load_from_svg_file(image_path + "tree_external_expand.svg", tree_icon_texture_size, tree_icon_texture_size,
+                                  s_assembly_tree_icons.expand_external);
+    IMTexture::load_from_svg_file(image_path + "tree_external_collapse.svg", tree_icon_texture_size, tree_icon_texture_size,
+                                  s_assembly_tree_icons.collapse_external);
+    IMTexture::load_from_svg_file(image_path + "tree_external_expand_dark.svg", tree_icon_texture_size, tree_icon_texture_size,
+                                  s_assembly_tree_icons.expand_external_dark);
+    IMTexture::load_from_svg_file(image_path + "tree_external_collapse_dark.svg", tree_icon_texture_size, tree_icon_texture_size,
+                                  s_assembly_tree_icons.collapse_external_dark);
     return s_assembly_tree_icons.loaded;
 }
 

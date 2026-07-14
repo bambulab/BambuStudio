@@ -2352,6 +2352,9 @@ void Selection::copy_to_clipboard()
                     ModelVolume* src_volume = src_object->volumes[volume_idx];
                     ModelVolume* dst_volume = dst_object->add_volume(*src_volume);
                     dst_volume->set_new_unique_id();
+                    // New identity for prepare<->assembly sync; shared part_guid would make
+                    // sync_assemble_model_on_enter treat the paste as already mapped.
+                    dst_volume->ensure_part_guid(true);
                 } else {
                     assert(false);
                 }
@@ -3487,6 +3490,11 @@ void Selection::paste_objects_from_clipboard()
     {
         const ModelObject *src_object = src_objects[i];
         ModelObject* dst_object = m_model->add_object(*src_object);
+        // add_object copies part_guid; force new GUIDs so assembly sync does not collapse
+        // the paste into the source object (STEP multi-volume copies hit this hard).
+        for (ModelVolume *mv : dst_object->volumes)
+            if (mv->is_model_part())
+                mv->ensure_part_guid(true);
         normalize_pasted_object_filament_config(*dst_object, filaments_count);
 
         // BBS: find an empty cell to put the copied object

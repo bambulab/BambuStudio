@@ -286,6 +286,7 @@ public:
     bool get_object_located_outside_plate() const { return m_object_located_outside_plate; }
     bool gizmo_event(SLAGizmoEventType action, const Vec2d& mouse_position = Vec2d::Zero(), bool shift_down = false, bool alt_down = false, bool control_down = false);
     bool is_paint_gizmo()const;
+    bool is_allow_x_ray_in_assembly() const;
     bool is_allow_select_all() const;
     bool is_allow_multi_select_parts_or_objects() const;
     bool is_allow_show_volume_highlight_outline() const;

@@ -575,7 +575,13 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     const float NAV_BTN_ROUND    = 5.333f * sc;
     const float NAV_GAP          = 8.0f * sc;
     // Display Mode combo after nav (no visible label; tip on hover).
+    // Hidden while a gizmo that disallows X-Ray is active (see is_allow_x_ray_in_assembly).
     const float DM_GAP           = NAV_GAP;
+    bool show_display_mode = true;
+    if (wxGetApp().plater()) {
+        if (GLCanvas3D *ac = wxGetApp().plater()->get_assmeble_canvas3D())
+            show_display_mode = ac->get_gizmos_manager().is_allow_x_ray_in_assembly();
+    }
     const std::vector<std::string> display_modes = {
         _u8L("Show Current Step Parts Only"),
         _u8L("X-Ray Other Parts")
@@ -588,6 +594,7 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     const float dm_arrow_sz        = ImGui::GetFrameHeight();
     const float dm_combo_visible_w = dm_arrow_sz + display_mode_max_text_w + 2.0f * ImGui::GetStyle().FramePadding.x;
     const float dm_combo_item_w    = dm_combo_visible_w + 2.0f * dm_arrow_sz;
+    const float dm_slot_w          = show_display_mode ? (DM_GAP + dm_combo_visible_w) : 0.0f;
 
     // Pre-measure speed badge so total width is correct.
     ImFont *font = ImGui::GetFont();
@@ -599,7 +606,7 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     const float TOTAL_W = PLAY_BTN_SZ + GAP_SECTION1 + SPEED_BADGE_W
                         + GAP_S1_TO_BAR + PROGRESS_W
                         + GAP_BAR_TO_NAV + NAV_BTN_SZ + NAV_GAP + NAV_BTN_SZ
-                        + DM_GAP + dm_combo_visible_w;
+                        + dm_slot_w;
     // main_cy is the vertical center of the top row (play, speed, progress, nav).
     // It must be at least half the tallest element so nothing clips above the window.
     const float top_half = std::max({PLAY_BTN_SZ * 0.5f, SPEED_BADGE_H * 0.5f, CIRCLE_D * 0.5f, dm_arrow_sz * 0.5f});
@@ -885,12 +892,14 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
             goto_global_frame(cur_global + 1);
         }
         m_imgui->disabled_end();
-        cursor_x += NAV_BTN_SZ + DM_GAP;
+        cursor_x += NAV_BTN_SZ;
     }
 
     // ====== Display Mode combo (label hidden; tip on hover) ======
     // Match the speed-pill dark translucent mask so light/dark canvas both read well.
+    if (show_display_mode)
     {
+        cursor_x += DM_GAP;
         const int display_idx = static_cast<int>(keyframe_display_mode());
         const char *selected_str =
             (display_idx >= 0 && display_idx < (int) display_modes.size())
@@ -3766,7 +3775,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                 exit_assembly_steps_editing();
             if (ImGui::IsItemHovered()) {
                 dl->AddRectFilled(exit_min, exit_max, IM_COL32(38, 46, 48, 18), 3.0f * sc);
-                render_panel_tooltip(_u8L("Exit the assembly step editing, you can also press the Esc button to exit"));
+                render_panel_tooltip(_u8L("Click to exit assembly step editing, or press Esc."));
             }
             ImGui::PopID();
         }
@@ -6788,8 +6797,8 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
             {
                 const ImVec2 toggle_min(header_min.x + title_size.x + 8.0f * sc, header_min.y + (header_h - icon_sz) * 0.5f);
                 ImTextureID toggle_tex = m_assembly_tree_list_collapsed
-                    ? (m_is_dark && s_assembly_tree_icons.collapse_dark ? s_assembly_tree_icons.collapse_dark : s_assembly_tree_icons.collapse)
-                    : (m_is_dark && s_assembly_tree_icons.expand_dark ? s_assembly_tree_icons.expand_dark : s_assembly_tree_icons.expand);
+                    ? (m_is_dark && s_assembly_tree_icons.collapse_external_dark ? s_assembly_tree_icons.collapse_external_dark : s_assembly_tree_icons.collapse_external)
+                    : (m_is_dark && s_assembly_tree_icons.expand_external_dark ? s_assembly_tree_icons.expand_external_dark : s_assembly_tree_icons.expand_external);
                 if (toggle_tex)
                     draw_list->AddImage(toggle_tex, toggle_min, ImVec2(toggle_min.x + icon_sz, toggle_min.y + icon_sz));
                 ImGui::SetCursorScreenPos(toggle_min);
