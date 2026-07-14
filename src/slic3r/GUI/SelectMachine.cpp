@@ -6438,7 +6438,7 @@ wxString SelectMachineDialog::get_nozzle_dia_and_type(const std::string &ams_id,
 
     // Resolve the bound nozzle object. It can be parked on the rack or currently
     // mounted on the extruder (then it lives in m_ext_nozzles), so dia/flow must
-    // be read from whichever container actually holds it — not only the rack map,
+    // be read from whichever container actually holds it 鈥?not only the rack map,
     // which is empty / a placeholder once the nozzle has been mounted.
     std::optional<DevNozzle> nozzle;
 
@@ -6890,6 +6890,10 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
                     {suspect_engagement_warning_msg});
     }
 
+    if (!CheckWarningExtSpoolNotLoaded(obj_)) {
+        show_status(PrintDialogStatus::PrintStatusExtSpoolNotLoadedWarning);
+    }
+
     return true;
 }
 
@@ -7271,6 +7275,40 @@ bool SelectMachineDialog::CheckWarningFilamentSuspectEngagement(MachineObject* o
         _L("Filament in slots %s may not have been properly loaded to the PrintTool. Please see the loading guide."),
         slots_str);
     return false;
+}
+
+bool SelectMachineDialog::CheckWarningExtSpoolNotLoaded(MachineObject* obj_)
+{
+    if (!obj_) return true;
+
+    if (!(obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A
+        || obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) 
+        return true;
+
+    for (const auto& [ams_id, ams] : obj_->GetFilaSystem()->GetAmsList()) {
+        if (ams && (ams->GetAmsType() == DevAmsType::ZMULTI_A ||
+                    ams->GetAmsType() == DevAmsType::ZMULTI_B)) {
+            return true;
+        }
+    }
+
+    for (const auto& fila : m_ams_mapping_result) {
+        // Only inspect filaments that were actually mapped to a slot.
+        if (fila.tray_id < 0 || fila.ams_id.empty()) continue;
+
+        auto       tray_opt    = obj_->get_tray(fila.ams_id, fila.slot_id);
+        const bool is_external = devPrinterUtil::IsVirtualSlot(fila.ams_id) ||
+            (tray_opt.has_value() && tray_opt->ams_type == DevAmsType::EXT_SPOOL);
+        if (!is_external || !tray_opt.has_value()) continue;
+
+        auto addr_opt = tray_opt->get_nozzle_addr_id(obj_);
+        if (!addr_opt.has_value()) continue; // cannot resolve the nozzle -> avoid false positive
+        auto nozzle_opt = obj_->GetNozzleSystem()->GetNozzleOptByAddrId(addr_opt.value());
+        if (nozzle_opt.has_value() && !nozzle_opt->HasFilamentInNozzle()) {
+            return false; // mapped to external spool but the nozzle is not loaded
+        }
+    }
+    return true;
 }
 
 ShowType SelectMachineDialog::get_filament_mapping_show_type(MachineObject* obj_, int fila_logic_id) const

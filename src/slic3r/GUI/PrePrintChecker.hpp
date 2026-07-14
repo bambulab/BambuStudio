@@ -173,6 +173,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusPrintTimeEstimateWarning,
     PrintStatusSmartNozzleBlobNeedAuto,
     PrintStatusFilamentSuspectEngagementWarning,
+    PrintStatusExtSpoolNotLoadedWarning,
     PrintStatusFilamentWarningEnd,
 
     PrintStatusWarningEnd,//->end error<-

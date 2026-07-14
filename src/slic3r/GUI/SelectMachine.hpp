@@ -522,6 +522,10 @@ public:
     // Returns true if no warning; otherwise fills warning_msg.
     bool CheckWarningFilamentSuspectEngagement(MachineObject* obj_, wxString& warning_msg);
 
+    //(RackType_A/B) without  AMS: a filament mapped to the external
+    // spool whose nozzle is not loaded yet. Returns true if no warning.
+    bool CheckWarningExtSpoolNotLoaded(MachineObject* obj_);
+
     void update_best_pos_dialog(wxCommandEvent &evt);
     void update_ams_check(MachineObject* obj);
     void update_filament_change_count();
