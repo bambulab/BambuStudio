@@ -1975,6 +1975,29 @@ bool PartPlate::check_flow_compatible_of_nozzle_and_filament(const DynamicPrintC
 
     const PresetCollection &fil_collection = wxGetApp().preset_bundle->filaments;
 
+    auto hotend_as_extruder_opt  = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+    bool single_ext_multi_nozzle = hotend_as_extruder_opt && hotend_as_extruder_opt->value;
+
+    // Collect the nozzle volume types actually installed on a single-extruder multi-nozzle rack.
+    // Such a filament is printable as long as the rack has at least one compatible nozzle,
+    // regardless of which nozzle it is currently mapped to (the firmware picks the nozzle).
+    auto collect_volume_types = [](const ConfigOptionEnumsGeneric *opt, std::set<NozzleVolumeType> &out) {
+        if (!opt)
+            return;
+        for (int v : opt->values) {
+            auto nvt = static_cast<NozzleVolumeType>(v);
+            if (nvt != nvtHybrid && nvt < nvtCount)
+                out.insert(nvt);
+        }
+    };
+
+    std::set<NozzleVolumeType> rack_volume_types;
+    if (single_ext_multi_nozzle) {
+        collect_volume_types(config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type"), rack_volume_types);
+        if (rack_volume_types.empty())
+            collect_volume_types(config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type"), rack_volume_types);
+    }
+
     std::string extruder_variant = extruder_variants[0];
     for (auto fil_idx : used_filaments){
         int fil_id = fil_idx - 1;
@@ -1989,6 +2012,14 @@ bool PartPlate::check_flow_compatible_of_nozzle_and_filament(const DynamicPrintC
             filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
         else
             filament_variants = {"Direct Drive Standard"};
+
+        // Multi-nozzle rack: pass if any installed nozzle type supports this filament.
+        if (single_ext_multi_nozzle && !rack_volume_types.empty()) {
+            bool compatible = std::any_of(filament_variants.begin(), filament_variants.end(),
+                [&](const std::string &v) { return rack_volume_types.count(convert_to_nvt_type(v)) > 0; });
+            if (compatible)
+                continue;
+        }
 
         NozzleVolumeType variant_name = convert_to_nvt_type(extruder_variant);
         if (!is_nozzle_printable_for_filament(variant_name, filament_variants, fil_collection.is_bbl_brand_filament(*fil_preset))) {
