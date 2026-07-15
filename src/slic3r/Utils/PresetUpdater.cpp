@@ -1,6 +1,7 @@
 #include "PresetUpdater.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <thread>
 #include <unordered_map>
 #include <ostream>
@@ -269,11 +270,13 @@ struct PresetUpdater::priv
 	fs::path rsrc_path;
 	fs::path vendor_path;
 
-	bool cancel;
-	std::thread thread;
+    // Written by the main thread (in ~PresetUpdater) and polled by the sync worker
+    // thread, so it must be atomic to avoid a data race / cached read.
+    std::atomic<bool> cancel;
+    std::thread       thread;
 
-	bool has_waiting_updates { false };
-	Updates waiting_updates;
+    bool    has_waiting_updates{false};
+    Updates waiting_updates;
 	bool has_waiting_printer_updates { false };
     Updates waiting_printer_updates;
 
@@ -306,7 +309,9 @@ struct PresetUpdater::priv
 
     bool sync_config(std::string http_url, const VendorMap vendors);
     void sync_tooltip(std::string http_url, std::string language);
-    void sync_plugins(std::string http_url, std::string plugin_version);
+    // is_arm64 is captured on the main thread before the sync worker starts, so the
+    // worker never has to call GUI::wxGetApp() (which can be null during shutdown).
+    void sync_plugins(std::string http_url, std::string plugin_version, bool is_arm64);
     void sync_printer_config(std::string http_url);
     bool get_cached_plugins_version(std::string &cached_version, bool& force);
 
@@ -1162,8 +1167,10 @@ bool PresetUpdater::priv::get_cached_plugins_version(std::string& cached_version
     return has_plugins;
 }
 
-void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_version)
+void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_version, bool is_arm64)
 {
+    if (cancel) return;
+
     if (plugin_version == "00.00.00.00") {
         BOOST_LOG_TRIVIAL(info) << "non need to sync plugins for there is no plugins currently.";
         return;
@@ -1207,7 +1214,7 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
     }
 
 #if defined(__WINDOWS__)
-    if (GUI::wxGetApp().is_running_on_arm64()) {
+    if (is_arm64) {
         //set to arm64 for plugins
         std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
         current_headers["X-BBL-OS-Type"] = "windows_arm";
@@ -1227,7 +1234,7 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
         BOOST_LOG_TRIVIAL(warning) << format("[BBL Updater] sync_plugins: %1%", e.what());
     }
 #if defined(__WINDOWS__)
-    if (GUI::wxGetApp().is_running_on_arm64()) {
+    if (is_arm64) {
         //set back
         std::map<std::string, std::string> current_headers = Slic3r::Http::get_extra_headers();
         current_headers["X-BBL-OS-Type"] = "windows";
@@ -1236,6 +1243,10 @@ void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_
         BOOST_LOG_TRIVIAL(info) << boost::format("set X-BBL-OS-Type back to windows");
     }
 #endif
+
+    // The remaining work touches the GUI (wxGetApp().plater(), notifications), which
+    // is unsafe once shutdown has begun; bail out if cancellation was requested.
+    if (cancel) return;
 
     bool result = get_cached_plugins_version(cached_version, force_upgrade);
     if (result) {
@@ -1316,6 +1327,10 @@ void PresetUpdater::priv::sync_printer_config(std::string http_url)
             result = true;
         }
     } catch (...) {}
+    // The notification below touches the GUI, which is unsafe once shutdown has
+    // begun; bail out if cancellation was requested.
+    if (cancel) return;
+
     if (result) {
         BOOST_LOG_TRIVIAL(info) << format("[BBL Updater] found new printer config: %1%, prompt to update", cached_version);
         waiting_printer_updates = get_printer_config_updates(true);
@@ -1644,7 +1659,16 @@ void PresetUpdater::sync(std::string http_url, std::string language, std::string
     // into the closure (but perhaps the compiler can elide this).
     VendorMap vendors = preset_bundle ? preset_bundle->vendors : VendorMap{};
 
-    p->thread = std::thread([this, vendors, http_url, language, plugin_version]() {
+    // Capture this on the main thread: the background thread must not call
+    // GUI::wxGetApp(), which is null once the app starts shutting down (the app
+    // pointer is cleared before ~GUI_App runs, and ~GUI_App joins this thread).
+#if defined(__WINDOWS__)
+    bool is_arm64 = GUI::wxGetApp().is_running_on_arm64();
+#else
+    bool is_arm64 = false;
+#endif
+  
+    p->thread = std::thread([this, vendors, http_url, language, plugin_version, is_arm64]() {
         this->p->prune_tmps();
         if (p->cancel)
             return;
@@ -1664,7 +1688,7 @@ void PresetUpdater::sync(std::string http_url, std::string language, std::string
         }
         if (p->cancel)
             return;
-        this->p->sync_plugins(http_url, plugin_version);
+        this->p->sync_plugins(http_url, plugin_version, is_arm64);
         this->p->sync_printer_config(http_url);
         //if (p->cancel)
         //  return;
