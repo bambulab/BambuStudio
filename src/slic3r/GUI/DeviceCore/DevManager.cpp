@@ -631,8 +631,14 @@ namespace Slic3r
     {
         if (selected_machine.empty()) return nullptr;
 
-        MachineObject* obj = get_user_machine(selected_machine);
-        if (obj)
+        // Prefer the canonical object from get_my_machine_list().
+        // When the same device exists in both userMachineList and localMachineList
+        // (logged-in account + LAN discovery), LAN MQTT / publish_json use the local
+        // object while the old path returned the user object — leaving UI state empty.
+        if (MachineObject* obj = get_my_machine(selected_machine))
+            return obj;
+
+        if (MachineObject* obj = get_user_machine(selected_machine))
             return obj;
 
         // return local machine has access code
@@ -704,22 +710,25 @@ namespace Slic3r
     {
         std::map<std::string, MachineObject*> result;
 
-        for (auto it = userMachineList.begin(); it != userMachineList.end(); it++)
-        {
-            if (it->second && !it->second->is_lan_mode_printer())
-            {
-                result.insert(std::make_pair(it->first, it->second));
-            }
-        }
-
+        // Prefer LAN machines with a direct connection path. When the same device also
+        // appears in userMachineList (account login), the printer may have no Internet
+        // access, so cloud MQTT is unreachable while local MQTT still works.
         for (auto it = localMachineList.begin(); it != localMachineList.end(); it++)
         {
             if (it->second && it->second->has_access_right() && it->second->is_avaliable() && it->second->is_lan_mode_printer())
             {
-                // remove redundant in userMachineList
+                result.emplace(std::make_pair(it->first, it->second));
+            }
+        }
+
+        for (auto it = userMachineList.begin(); it != userMachineList.end(); it++)
+        {
+            if (it->second && !it->second->is_lan_mode_printer())
+            {
+                // Do not override an active LAN entry for the same device
                 if (result.find(it->first) == result.end())
                 {
-                    result.emplace(std::make_pair(it->first, it->second));
+                    result.insert(std::make_pair(it->first, it->second));
                 }
             }
         }
