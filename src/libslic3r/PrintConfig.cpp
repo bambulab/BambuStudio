@@ -5649,6 +5649,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(-1));
 
+    def = this->add("tree_support_lightning_backfill", coBool);
+    def->label = L("Lightning backfill for organic support");
+    def->category = L("Support");
+    def->tooltip  = L("When enabled, after organic tree branches are drawn, an extra lightning-infill style pass "
+                      "detects internal onset voids (holes that first open over a solid support column below) and "
+                      "fills them with interior support extrusions grounded on the surrounding support wall. "
+                      "Only affects the organic tree support style.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("chamber_temperatures", coInts);
     def->label = L("Chamber temperature");
     def->tooltip = L("Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on."

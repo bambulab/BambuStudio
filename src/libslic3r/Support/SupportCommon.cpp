@@ -1477,7 +1477,8 @@ void generate_support_toolpaths(
     const SupportGeneratorLayersPtr     &intermediate_layers,
     const SupportGeneratorLayersPtr     &interface_layers,
     const SupportGeneratorLayersPtr     &base_interface_layers,
-    const std::vector<ExPolygons>       &cooldown_areas)
+    const std::vector<ExPolygons>       &cooldown_areas,
+    const std::vector<ExPolygons>       &lightning_fill_areas)
 {
     // loop_interface_processor with a given circle radius.
     LoopInterfaceProcessor loop_interface_processor(1.5 * support_params.support_material_interface_flow.scaled_width());
@@ -1606,7 +1607,7 @@ void generate_support_toolpaths(
     std::vector<LayerCache>             layer_caches(support_layers.size());
 
     tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, support_layers.size()),
-        [&config, &slicing_params, &support_params, &support_layers, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &base_interface_layers, &cooldown_areas, &layer_caches, &loop_interface_processor,
+        [&config, &slicing_params, &support_params, &support_layers, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &base_interface_layers, &cooldown_areas, &lightning_fill_areas, &layer_caches, &loop_interface_processor,
             &bbox_object, &angles, n_raft_layers, link_max_length_factor]
             (const tbb::blocked_range<size_t>& range) {
         // Indices of the 1st layer in their respective container at the support layer height.
@@ -1825,6 +1826,23 @@ void generate_support_toolpaths(
                     if (support_layer.print_z > 100.0)
                         support_params2.tree_branch_diameter_double_wall_area_scaled = 0.1;
                     tree_supports_generate_paths(base_layer.extrusions, base_layer.polygons_to_extrude(), flow, support_params2);
+                    // Close internal floating voids. The organic tree base above is printed sheath-only
+                    // (hollow), so a ceiling over an internal hole gets no support. Emit the pre-computed
+                    // lightning-grounded fill regions as solid rectilinear support.
+                    if (support_layer_id < lightning_fill_areas.size() && ! lightning_fill_areas[support_layer_id].empty()) {
+                        ExPolygons lf_regions = intersection_ex(to_polygons(lightning_fill_areas[support_layer_id]), base_layer.polygons_to_extrude());
+                        if (! lf_regions.empty()) {
+                            auto lf_filler = std::unique_ptr<Fill>(Fill::new_from_type(ipRectilinear));
+                            lf_filler->set_bounding_box(bbox_object);
+                            lf_filler->angle   = angles[support_layer_id % angles.size()];
+                            lf_filler->spacing = flow.spacing();
+                            fill_expolygons_generate_paths(
+                                base_layer.extrusions,
+                                std::move(lf_regions),
+                                lf_filler.get(), 1.0f,
+                                ExtrusionRole::erSupportMaterial, flow);
+                        }
+                    }
                     done = true;
                 }
                 if (! done)

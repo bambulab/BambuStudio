@@ -484,6 +484,14 @@ public:
     InterfacePreference interface_preference;
 
     /*
+     * \brief When enabled, run a lightning-infill style pass after the organic tree branches
+     * are drawn, to backfill internal onset voids (holes that first open over a solid column
+     * below) left by the hollow sheath-only tree. Driven by tree_support_lightning_backfill;
+     * default enabled.
+     */
+    bool enable_lightning_backfill = true;
+
+    /*
      * \brief The infill class wants a settings object. This one will be the correct one for all settings it uses.
      */
     TreeSupportMeshGroupSettings settings;
@@ -509,6 +517,7 @@ public:
                //support_infill_angles == other.support_infill_angles &&
                increase_radius_until_radius == other.increase_radius_until_radius && support_bottom_layers == other.support_bottom_layers && layer_height == other.layer_height && z_distance_top_layers == other.z_distance_top_layers && resolution == other.resolution && // Infill generation depends on deviation and resolution.
                support_roof_line_distance == other.support_roof_line_distance && interface_preference == other.interface_preference
+               && enable_lightning_backfill == other.enable_lightning_backfill
                && min_feature_size == other.min_feature_size // interface_preference should be identical to ensure the tree will correctly interact with the roof.
                // The infill class now wants the settings object and reads a lot of settings, and as the infill class is used to calculate support roof lines for interface-preference. Not all of these may be required to be identical, but as I am not sure, better safe than sorry
 #if 0
