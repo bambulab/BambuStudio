@@ -72,11 +72,13 @@ nlohmann::json DevicePageFilamentChangeStatusBuilder::Build(MachineObject* machi
         {SK::filament_change::current_step_total, 0},
         {SK::filament_change::message,            message},
         {SK::filament_change::tips,               _u8L("Other filaments are info-only")},
-        {SK::filament_change::can_stop,           can_stop}
+        {SK::filament_change::can_stop,           can_stop},
+        {SK::filament_change::can_retry,          false}
     };
     if (!machine_obj || !machine_obj->GetFilaSystem()) return status;
 
     auto fila_system = machine_obj->GetFilaSystem();
+    status[SK::filament_change::can_retry] = change_active && fila_system->GetAmsTaskRunStatus() == AMS_TASK_RUN_ABNORMAL;
     const auto current_step = fila_system->GetCurrentFilamentChangeStep();
     if (current_step.has_value()) {
         status[SK::filament_change::current_step] = static_cast<int>(*current_step);

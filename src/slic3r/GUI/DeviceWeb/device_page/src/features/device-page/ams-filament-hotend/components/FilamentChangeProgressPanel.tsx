@@ -185,14 +185,24 @@ export function FilamentChangeProgressPanel({
         </div>
       </div>
 
-      <button
-        type="button"
-        className="filament-change-stop"
-        disabled={status.can_stop === false}
-        onClick={() => onAction?.('stop_filament_change')}
-      >
-        {t('Stop')}
-      </button>
+      <div className="filament-change-actions">
+        {status.can_retry && (
+          <button
+            type="button"
+            className="primary"
+            onClick={() => onAction?.('retry_filament_change')}
+          >
+            {t('Retry')}
+          </button>
+        )}
+        <button
+          type="button"
+          disabled={status.can_stop === false}
+          onClick={() => onAction?.('stop_filament_change')}
+        >
+          {t('Stop')}
+        </button>
+      </div>
     </section>
   );
 }

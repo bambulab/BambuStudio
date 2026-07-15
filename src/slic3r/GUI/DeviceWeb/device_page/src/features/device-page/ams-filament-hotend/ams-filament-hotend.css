@@ -1212,12 +1212,19 @@
   height: 128px;
 }
 
-.filament-change-stop {
+.filament-change-actions {
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 76px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.filament-change-actions button {
   height: 32px;
+  min-width: 76px;
+  padding: 0 16px;
   border: 1px solid var(--ams-footer-btn-border);
   border-radius: 4px;
   background: var(--ams-card-text-bg);
@@ -1228,7 +1235,13 @@
   cursor: pointer;
 }
 
-.filament-change-stop:disabled {
+.filament-change-actions button.primary {
+  border-color: var(--ams-brand);
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+}
+
+.filament-change-actions button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }

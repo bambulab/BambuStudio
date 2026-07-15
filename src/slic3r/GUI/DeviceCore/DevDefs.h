@@ -52,6 +52,13 @@ enum AmsStatusMain
     AMS_STATUS_MAIN_UNKNOWN = 0xFF,
 };
 
+// ams.stat bits[0:3]: current AMS task running status
+enum DevAmsTaskRunStatus
+{
+    AMS_TASK_RUN_NORMAL = 0,
+    AMS_TASK_RUN_ABNORMAL = 1,
+};
+
 enum DevAmsType : int
 {
     EXT_SPOOL = 0,      // EXT

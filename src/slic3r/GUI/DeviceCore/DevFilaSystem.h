@@ -347,6 +347,9 @@ public:
     bool        HasAms() const { return !amsList.empty(); }
     bool        IsAmsSettingUp() const;
 
+    /* ams task*/
+    DevAmsTaskRunStatus GetAmsTaskRunStatus() const;
+
     /* ams */
     DevAms*                         GetAmsById(const std::string& ams_id) const;
     std::map<std::string, DevAms*, NumericStrCompare>& GetAmsList() { return amsList; }
@@ -414,6 +417,7 @@ private:
 
     /* ams properties */
     int  m_ams_cali_stat = 0;
+    int  m_ams_stat = 0;
 
     /* filament change step*/
     std::vector<DevFilamentStep> m_filament_change_steps; // some firmwares support this

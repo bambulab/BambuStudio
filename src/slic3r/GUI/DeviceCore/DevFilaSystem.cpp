@@ -845,6 +845,11 @@ bool DevFilaSystem::IsAmsSettingUp() const
     return false;
 }
 
+DevAmsTaskRunStatus DevFilaSystem::GetAmsTaskRunStatus() const
+{
+    return static_cast<DevAmsTaskRunStatus>(DevUtil::get_flag_bits(m_ams_stat, 0, 4));
+}
+
 bool DevFilaSystem::IsBBL_Filament(std::string tag_uid)
 {
     if (tag_uid.empty()) {
@@ -908,6 +913,7 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
             }
 
             if (jj["ams"].contains("cali_stat")) { system->m_ams_cali_stat = jj["ams"]["cali_stat"].get<int>(); }
+            if (jj["ams"].contains("stat")) { system->m_ams_stat = jj["ams"]["stat"].get<int>(); }
 
             if (!key_field_only) {
                 if (jj["ams"].contains("cfs")) {

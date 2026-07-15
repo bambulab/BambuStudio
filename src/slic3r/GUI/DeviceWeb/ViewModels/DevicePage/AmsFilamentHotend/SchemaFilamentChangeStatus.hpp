@@ -27,6 +27,8 @@ namespace filament_change {
     // true while the panel is active AND the printer is neither printing nor
     // calibrating; Web binds the Stop button's disabled state to it.
     inline constexpr const char* can_stop           = "can_stop";
+    // Whether the Retry button should be shown. True only while the filament
+    inline constexpr const char* can_retry          = "can_retry";
     // Per-slot batch progress info (mode == "batch_running"). Same shape as
     // the pre-run `batch_reserved` payload; Web reuses the same item list type.
     inline constexpr const char* batch_running      = "batch_running";

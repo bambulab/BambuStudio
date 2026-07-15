@@ -227,6 +227,7 @@ export interface HotendRackStatus {
     state: 'done' | 'active' | 'pending' | 'failed';
   }>;
   can_stop?: boolean;
+  // Gate for Retry visibility: Web renders the button only when true.
   can_retry?: boolean;
 }
 
@@ -270,6 +271,9 @@ export interface FilamentChangeStatus {
   // printing/calibrating. Absent on legacy bridges, so treat undefined as
   // "stoppable" to preserve the previous always-enabled behavior.
   can_stop?: boolean;
+  // Gate for the Retry button: only true while active AND ams.stat reports
+  // abnormal AMS task status. Web shows the button only when this is true.
+  can_retry?: boolean;
   batch_reserved?: FilamentChangeBatchReserved;
   batch_running?: FilamentChangeBatchReserved;
 }

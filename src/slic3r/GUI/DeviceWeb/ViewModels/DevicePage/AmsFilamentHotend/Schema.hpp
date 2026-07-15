@@ -116,6 +116,7 @@ namespace rack_status {
     inline constexpr const char* current_step  = "current_step";
     inline constexpr const char* steps         = "steps";
     inline constexpr const char* can_stop      = "can_stop";
+    // Whether the Retry button should be shown (not merely enabled).
     inline constexpr const char* can_retry     = "can_retry";
 }
 

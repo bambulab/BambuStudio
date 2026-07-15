@@ -386,6 +386,11 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
         if (result != 0) {
             return vm.MakeResponse(vm.GetModule(), "action", action, 2, "AMS filament change abort failed", vm.BuildState());
         }
+    } else if (action == "retry_filament_change") {
+        const int result = machine_obj->command_ams_control("resume");
+        if (result != 0) {
+            return vm.MakeResponse(vm.GetModule(), "action", action, 2, "AMS filament change resume failed", vm.BuildState());
+        }
     } else if (action == "batch_run") {
         namespace SK = AmsHotendSchema::keys;
         namespace SV = AmsHotendSchema::values;

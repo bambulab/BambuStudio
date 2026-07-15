@@ -462,6 +462,8 @@ function handleRequest(pkt: RequestPacket) {
         setMockHotendTemperature(payload as Record<string, unknown>);
       } else if (action === 'stop_filament_change') {
         stopMockFilamentChange();
+      } else if (action === 'retry_filament_change') {
+        // Keep the mock panel active; resume is a no-op in browser dev mode.
       }
       dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, AMS_FILAMENT_HOTEND_STATE));
       dispatchReport(makeModuleOk(module, 'state', 'changed', AMS_FILAMENT_HOTEND_STATE));

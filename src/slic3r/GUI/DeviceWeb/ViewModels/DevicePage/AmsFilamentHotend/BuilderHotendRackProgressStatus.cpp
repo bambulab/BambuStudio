@@ -2,6 +2,7 @@
 #include "Schema.hpp"
 #include "SchemaHotendRackProgress.hpp"
 
+#include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -134,7 +135,7 @@ nlohmann::json DevicePageHotendRackProgressStatusBuilder::Build(MachineObject* m
     const bool rack_busy = rack_job != 0 || rack_reading;
     const bool rack_failed = rack_status == DevNozzleRack::RACK_STATUS_UNKNOWN && rack_busy;
     const bool can_stop = rack_busy;
-    const bool can_retry = rack_busy;
+    const bool can_retry = machine_obj && machine_obj->GetExtderSystem()->IsSwitchingFailed();
 
     std::string mode = SV::rack_mode::idle;
     if (rack_busy) {
