@@ -250,18 +250,45 @@ export interface FilamentChangeBatchReserved {
   items?: FilamentChangeBatchReservedItem[];
 }
 
+export interface FilamentManualPullItem {
+  ams_id: string;
+  slot_id: string;
+  display_index: number;
+  filament_name?: string;
+  filament_type?: string;
+  color?: string;
+  color_type?: AmsFilamentHotendColorType;
+  state: 'pending' | 'success' | 'failed';
+  reason?: string;
+}
+
+export interface FilamentManualPullStatus {
+  title?: string;
+  items?: FilamentManualPullItem[];
+  can_exit?: boolean;
+  can_close?: boolean;
+}
+
+export interface FilamentChangeStep {
+  id: number;
+  label?: string;
+  step_style?: 'manual_load' | 'maunal_unload' | string;
+  step_style_text?: string;
+  step_text?: string;
+}
+
 export interface FilamentChangeStatus {
   active: boolean;
   // `batch_reserved` is the pre-run state (queue listed, nothing started yet);
   // `batch_running` is the live multi-slot run with the same item shape but
   // a horizontal step strip rendering. Single-slot runs (or batches that the
   // firmware reports as a 1-element queue) keep `single`.
-  mode: 'idle' | 'single' | 'batch_reserved' | 'batch_running';
+  mode: 'idle' | 'single' | 'batch_reserved' | 'batch_running' | 'batch_manual_pull';
   operation?: 'change' | 'unknown';
   running_slot?: FilamentChangeSlotRef | null;
   current_step?: number | null;
   current_step_name?: string;
-  steps?: number[];
+  steps?: Array<number | FilamentChangeStep>;
   step_labels?: string[];
   current_step_index?: number;
   current_step_total?: number;
@@ -276,6 +303,7 @@ export interface FilamentChangeStatus {
   can_retry?: boolean;
   batch_reserved?: FilamentChangeBatchReserved;
   batch_running?: FilamentChangeBatchReserved;
+  manual_pull?: FilamentManualPullStatus;
 }
 
 /** state.filament_page.actions */

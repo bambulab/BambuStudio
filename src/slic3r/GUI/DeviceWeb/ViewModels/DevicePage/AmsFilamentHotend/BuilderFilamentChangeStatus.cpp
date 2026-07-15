@@ -1,4 +1,5 @@
 #include "BuilderFilamentChangeStatus.hpp"
+#include "BuilderFilamentManualPullStatus.hpp"
 #include "Schema.hpp"
 
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
@@ -19,7 +20,11 @@ namespace Slic3r { namespace GUI {
 
 namespace {
 
-int addr_id_to_display_idx(int addr_id) { return addr_id + 1; }
+struct FilamentStepStyleInfo
+{
+    std::string style;
+    std::string text;
+};
 
 std::string filament_step_label(DevFilamentStep step)
 {
@@ -39,8 +44,82 @@ std::string filament_step_label(DevFilamentStep step)
     case DevFilamentStep::STEP_PUSH_SWITCHER_FILA: return _u8L("Switch current filament at Filament Track Switch");
     case DevFilamentStep::STEP_PULL_SWITCHER_FILA: return _u8L("Pull back current filament at Filament Track Switch");
     case DevFilamentStep::STEP_SWITCHER_SWITCH:    return _u8L("Switch track at Filament Track Switch");
+    case DevFilamentStep::STEP_BATCH_PULL_FILA:    return _u8L("Batch pull back the filaments");
     }
-    return "";
+    return {};
+}
+
+int filament_step_display_index(MachineObject* machine_obj, const DevAmsSlotId& slot)
+{
+    if (!machine_obj || !machine_obj->GetFilaSystem()) return slot.second + 1;
+
+    DevAmsSlotId key = slot;
+    if (machine_obj->GetFilaSystem()->IsVirtualTrayId(std::to_string(key.first))) key.second = 0;
+    const auto slot_to_display_index = machine_obj->GetFilaSystem()->GetSlot2NozzleDisplayIdx();
+    if (auto it = slot_to_display_index.find(key); it != slot_to_display_index.end()) {
+        return it->second;
+    }
+
+    return slot.second + 1;
+}
+
+std::string slot_unload_style_text(int display_index)
+{
+    return (boost::format(_u8L("Please manually pull out the filament from slot %1%.")) % display_index).str();
+}
+
+std::string hotend_unload_style_text(int display_index)
+{
+    return (boost::format(_u8L("Please manually pull out the filament from hotend %1% on the toolhead.")) % display_index).str();
+}
+
+std::string hotend_load_style_text(int display_index)
+{
+    return (boost::format(_u8L("Please manually insert the filament into the loading port of hotend %1% on the toolhead until it cannot be pushed any further.")) % display_index).str();
+}
+
+std::string slot_load_style_text(int display_index)
+{
+    return (boost::format(_u8L("Please manually insert the filament from slot %1% into the extruder loading port until it cannot be pushed any further.")) % display_index).str();
+}
+
+FilamentStepStyleInfo filament_step_style(MachineObject* machine_obj, std::optional<DevAmsSlotId> changing_slot, DevFilamentStep step)
+{
+    if (!machine_obj || !machine_obj->GetFilaSystem() || !machine_obj->GetNozzleRack() || !changing_slot.has_value()) {
+        return {};
+    }
+
+    DevAmsType ams_type = DevAmsType::EXT_SPOOL;
+    if (auto ams_item = machine_obj->GetFilaSystem()->GetAmsById(std::to_string(changing_slot->first)); ams_item) {
+        ams_type = ams_item->GetAmsType();
+    }
+
+    namespace SV = AmsHotendSchema::values;
+    const auto rack_type = machine_obj->GetNozzleRack()->GetRackType();
+    const int display_index = filament_step_display_index(machine_obj, *changing_slot);
+
+    if (step == DevFilamentStep::STEP_PULL_CURR_FILAMENT) {
+        if ((rack_type == DevNozzleRack::RackType_A && ams_type == DevAmsType::ZMULTI_A) ||
+            (rack_type == DevNozzleRack::RackType_B && ams_type == DevAmsType::ZMULTI_B)) {
+            return { SV::filament_change_step_style::maunal_unload, slot_unload_style_text(display_index) };
+        }
+        if ((rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) &&
+            ams_type == DevAmsType::EXT_SPOOL) {
+            return { SV::filament_change_step_style::maunal_unload, hotend_unload_style_text(display_index) };
+        }
+    }
+
+    if (step == DevFilamentStep::STEP_PUSH_NEW_FILAMENT) {
+        if ((rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) &&
+            ams_type == DevAmsType::EXT_SPOOL) {
+            return { SV::filament_change_step_style::manual_load, hotend_load_style_text(display_index) };
+        }
+        if (rack_type == DevNozzleRack::RackType_B && ams_type == DevAmsType::ZMULTI_B) {
+            return { SV::filament_change_step_style::manual_load, slot_load_style_text(display_index) };
+        }
+    }
+
+    return {};
 }
 
 } // namespace
@@ -79,14 +158,23 @@ nlohmann::json DevicePageFilamentChangeStatusBuilder::Build(MachineObject* machi
 
     auto fila_system = machine_obj->GetFilaSystem();
     status[SK::filament_change::can_retry] = change_active && fila_system->GetAmsTaskRunStatus() == AMS_TASK_RUN_ABNORMAL;
-    const auto current_step = fila_system->GetCurrentFilamentChangeStep();
+
+    auto current_step = fila_system->GetCurrentFilamentChangeStep();
     if (current_step.has_value()) {
+        // fix the AP problem
+        if (current_step.value() == DevFilamentStep::STEP_PULL_CURR_FILAMENT && fila_system->GetFilamentChangingSlots().size() == 1) {
+            auto steps = fila_system->GetCurrentFilamentChangeSteps();
+            if (!steps.empty() && steps.back() == DevFilamentStep::STEP_BATCH_PULL_FILA) {
+                current_step = std::optional<DevFilamentStep>(DevFilamentStep::STEP_BATCH_PULL_FILA);
+            };
+        };
+
         status[SK::filament_change::current_step] = static_cast<int>(*current_step);
         status[SK::filament_change::current_step_name] = filament_step_label(*current_step);
     }
 
-    const auto steps = fila_system->GetFilamentChangeSteps();
     int current_index = 0;
+    auto steps = fila_system->GetCurrentFilamentChangeSteps();
     for (size_t i = 0; i < steps.size(); ++i) {
         const auto step = steps[i];
         const std::string label = filament_step_label(step);
@@ -94,7 +182,14 @@ nlohmann::json DevicePageFilamentChangeStatusBuilder::Build(MachineObject* machi
             BOOST_LOG_TRIVIAL(warning) << "Unknown filament change step for web: " << static_cast<int>(step);
             continue;
         }
-        status[SK::filament_change::steps].push_back(static_cast<int>(step));
+        const FilamentStepStyleInfo style_info = filament_step_style(machine_obj, fila_system->GetCurrentChangingSlot(), step);
+        status[SK::filament_change::steps].push_back({
+            {SK::filament_change_step::id,         static_cast<int>(step)},
+            {SK::filament_change_step::label,      label},
+            {SK::filament_change_step::step_style, style_info.style},
+            {SK::filament_change_step::step_style_text, style_info.text},
+            {SK::filament_change_step::step_text,  ""}
+        });
         status[SK::filament_change::step_labels].push_back(label);
         if (current_step.has_value() && step == *current_step) {
             current_index = static_cast<int>(status[SK::filament_change::steps].size());
@@ -102,6 +197,12 @@ nlohmann::json DevicePageFilamentChangeStatusBuilder::Build(MachineObject* machi
     }
     status[SK::filament_change::current_step_index] = current_index;
     status[SK::filament_change::current_step_total] = static_cast<int>(status[SK::filament_change::steps].size());
+
+    if (current_step.has_value() && *current_step == DevFilamentStep::STEP_BATCH_PULL_FILA) {
+        status[SK::filament_change::mode] = SV::filament_change_mode::batch_manual_pull;
+        status[SK::filament_change::manual_pull] = DevicePageFilamentManualPullStatusBuilder::Build(machine_obj);
+        return status;
+    }
 
     const auto& changing_slots = fila_system->GetFilamentChangingSlots();
     if (changing_slots.size() >= 2) {
@@ -111,23 +212,7 @@ nlohmann::json DevicePageFilamentChangeStatusBuilder::Build(MachineObject* machi
 
         nlohmann::json items = nlohmann::json::array();
         int running_index_1based = 0;
-        std::map<std::pair<int, int>, int> slot_to_display_index;
-        if (machine_obj && machine_obj->GetNozzleRack() && machine_obj->GetNozzleSystem()) {
-            const auto& rack_type = machine_obj->GetNozzleRack()->GetRackType();
-            if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
-                const int rack_count = machine_obj->GetNozzleRack()->GetTotalRackNozzleCount();
-                for (int addr_id = 0; addr_id < rack_count; ++addr_id) {
-                    const auto& rack_nozzle_opt = machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id);
-                    if (!rack_nozzle_opt.has_value()) continue;
-                    const auto& ams_slots = rack_nozzle_opt->GetBindAmsSlots();
-                    if (ams_slots.empty()) continue;
-                    int ams_id = ams_slots[0].first;
-                    int slot_id = ams_slots[0].second;
-                    if (auto fila = machine_obj->GetFilaSystem(); fila && fila->GetVirtualTray(ams_id).has_value()) slot_id = 0;
-                    slot_to_display_index[{ams_id, slot_id}] = addr_id_to_display_idx(addr_id);
-                }
-            }
-        }
+        const auto slot_to_display_index = fila_system->GetSlot2NozzleDisplayIdx();
 
         for (size_t i = 0; i < changing_slots.size(); ++i) {
             const auto& s = changing_slots[i];

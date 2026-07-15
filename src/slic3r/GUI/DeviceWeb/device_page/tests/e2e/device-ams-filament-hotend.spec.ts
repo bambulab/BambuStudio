@@ -182,6 +182,209 @@ test.describe('AMS filament hotend page', () => {
     await expect(page.getByTestId('ams-hotend-card-loading')).toBeVisible();
   });
 
+  test('shows manual card from filament step style', async ({ page }) => {
+    await page.evaluate(() => {
+      document.dispatchEvent(new CustomEvent('cpp:device', {
+        detail: {
+          head: { version: '1.0', type: 'report', seq: 9004, ts: Date.now() },
+          body: {
+            module: 'device_page_ams_filament_hotend',
+            submod: 'state',
+            action: 'changed',
+            error_code: 0,
+            message: '',
+            payload: {
+              filament_page: {
+                actions: {},
+                filament_change_status: {
+                  active: true,
+                  mode: 'single',
+                  operation: 'change',
+                  running_slot: { ams_id: '0', slot_id: '0', display_index: 1 },
+                  current_step: 99,
+                  current_step_name: 'Manual load',
+                  steps: [{ id: 99, label: 'Manual load', step_style: 'manual_load', step_style_text: 'Custom manual load text' }],
+                  current_step_index: 1,
+                  current_step_total: 1,
+                  message: 'Slot 1 loading/unloading filament in progress',
+                  tips: '',
+                },
+                hotend_slots: [],
+              },
+              hotend_page: {
+                actions: {},
+                hotend_slots: [],
+              },
+            },
+          },
+        },
+      }));
+    });
+
+    await expect(page.getByTestId('ams-filament-change-step')).toContainText('Manual load');
+    await expect(page.getByText('Manual action required')).toBeVisible();
+    await expect(page.getByText('Custom manual load text')).toBeVisible();
+  });
+
+  test('shows manual card from unload step style', async ({ page }) => {
+    await page.evaluate(() => {
+      document.dispatchEvent(new CustomEvent('cpp:device', {
+        detail: {
+          head: { version: '1.0', type: 'report', seq: 9005, ts: Date.now() },
+          body: {
+            module: 'device_page_ams_filament_hotend',
+            submod: 'state',
+            action: 'changed',
+            error_code: 0,
+            message: '',
+            payload: {
+              filament_page: {
+                actions: {},
+                filament_change_status: {
+                  active: true,
+                  mode: 'single',
+                  operation: 'change',
+                  running_slot: { ams_id: '0', slot_id: '0', display_index: 1 },
+                  current_step: 98,
+                  current_step_name: 'Manual unload',
+                  steps: [{ id: 98, label: 'Manual unload', step_style: 'maunal_unload', step_style_text: 'Custom manual unload text' }],
+                  current_step_index: 1,
+                  current_step_total: 1,
+                  message: 'Slot 1 loading/unloading filament in progress',
+                  tips: '',
+                },
+                hotend_slots: [],
+              },
+              hotend_page: {
+                actions: {},
+                hotend_slots: [],
+              },
+            },
+          },
+        },
+      }));
+    });
+
+    await expect(page.getByTestId('ams-filament-change-step')).toContainText('Manual unload');
+    await expect(page.getByText('Manual action required')).toBeVisible();
+    await expect(page.getByText('Custom manual unload text')).toBeVisible();
+  });
+
+  test('shows manual pull banner for batch pull step', async ({ page }) => {
+    await page.evaluate(() => {
+      document.dispatchEvent(new CustomEvent('cpp:device', {
+        detail: {
+          head: { version: '1.0', type: 'report', seq: 9006, ts: Date.now() },
+          body: {
+            module: 'device_page_ams_filament_hotend',
+            submod: 'state',
+            action: 'changed',
+            error_code: 0,
+            message: '',
+            payload: {
+              filament_page: {
+                actions: {},
+                filament_change_status: {
+                  active: true,
+                  mode: 'batch_manual_pull',
+                  operation: 'change',
+                  current_step: 15,
+                  current_step_name: 'Pull back current filament',
+                  steps: [],
+                  current_step_index: 0,
+                  current_step_total: 0,
+                  message: '',
+                  tips: '',
+                  manual_pull: {
+                    title: '有耗材未拔出',
+                    can_exit: false,
+                    can_close: true,
+                    items: [{
+                      ams_id: '0',
+                      slot_id: '0',
+                      display_index: 1,
+                      filament_name: 'PLA Basic',
+                      filament_type: 'PLA',
+                      color: '#00CC44',
+                      color_type: 'single',
+                      state: 'pending',
+                      reason: '',
+                    }],
+                  },
+                },
+                hotend_slots: [],
+              },
+              hotend_page: {
+                actions: {},
+                hotend_slots: [],
+              },
+            },
+          },
+        },
+      }));
+    });
+
+    await expect(page.getByTestId('ams-filament-change-panel')).toBeHidden();
+    await expect(page.getByTestId('ams-filament-manual-pull-banner')).toContainText('有耗材未拔出');
+  });
+
+  test('shows manual pull dialog route for batch pull step', async ({ page }) => {
+    await page.goto('/#/device_page/filament_manual_pull');
+    await expect(page.getByTestId('ams-filament-manual-pull-page')).toBeVisible();
+
+    await page.evaluate(() => {
+      document.dispatchEvent(new CustomEvent('cpp:device', {
+        detail: {
+          head: { version: '1.0', type: 'report', seq: 9007, ts: Date.now() },
+          body: {
+            module: 'device_page_ams_filament_hotend',
+            submod: 'state',
+            action: 'changed',
+            error_code: 0,
+            message: '',
+            payload: {
+              filament_page: {
+                actions: {},
+                filament_change_status: {
+                  active: true,
+                  mode: 'batch_manual_pull',
+                  operation: 'change',
+                  manual_pull: {
+                    title: '有耗材未拔出',
+                    can_exit: false,
+                    can_close: true,
+                    items: [{
+                      ams_id: '0',
+                      slot_id: '0',
+                      display_index: 1,
+                      filament_name: 'PLA Basic',
+                      filament_type: 'PLA',
+                      color: '#00CC44',
+                      color_type: 'single',
+                      state: 'pending',
+                      reason: '',
+                    }],
+                  },
+                },
+                hotend_slots: [],
+              },
+              hotend_page: {
+                actions: {},
+                hotend_slots: [],
+              },
+            },
+          },
+        },
+      }));
+    });
+
+    await expect(page.getByTestId('ams-filament-manual-pull-dialog')).toBeVisible();
+    await expect(page.getByTestId('ams-filament-manual-pull-dialog')).toContainText('Please pull out all selected filaments for this unload.');
+    await expect(page.getByTestId('ams-filament-manual-pull-dialog')).toContainText('Completed: 0/1');
+    await expect(page.getByTestId('ams-filament-manual-pull-dialog')).toContainText('1');
+    await expect(page.getByTestId('ams-filament-manual-pull-result-1')).toHaveAttribute('alt', 'Not removed');
+  });
+
   test('shows prefeed color marker only outside batch mode', async ({ page }) => {
     const dispatchPrefeedState = async (mode: 'normal' | 'batch_ams_load') => {
       await page.evaluate((nextMode) => {

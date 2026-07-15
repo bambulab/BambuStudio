@@ -9,11 +9,22 @@
 */
 
 #pragma once
+#include <cassert>
+#include <atomic>
 #include <string>
 #include <nlohmann/json.hpp>
+#include <boost/log/trivial.hpp>
 
 // Reserved for future usage
 #define DEV_RESERVED_FOR_FUTURE(...) /* stripped */
+
+#define DEV_ASSERT_ONCE(level, message_expr) do { \
+    static std::atomic_bool dev_assert_once_fired{ false }; \
+    if (!dev_assert_once_fired.exchange(true)) { \
+        BOOST_LOG_TRIVIAL(level) << message_expr; \
+        assert(false); \
+    } \
+} while (false)
 
 // Previous definitions
 namespace Slic3r
@@ -71,7 +82,7 @@ enum DevAmsType : int
     ZMULTI_B = 7,
 };
 
-enum DevFilamentStep
+enum DevFilamentStep : int
 {
     STEP_IDLE = 0x00,
     STEP_PAUSE = 0x01,
@@ -81,15 +92,15 @@ enum DevFilamentStep
     STEP_PUSH_NEW_FILAMENT = 0x05,
     STEP_GRAB_NEW_FILAMENT = 0x06,
     STEP_PURGE_OLD_FILAMENT = 0x07,
-    STEP_CHECK_POSITION = 0x08,
+    STEP_CHECK_POSITION = 0x08, // STEP_CONFIRM_EXTRUDED
     STEP_SWITCH_EXTRUDER = 0x09,
     STEP_SWITCH_HOTEND = 0x0A,
     STEP_AMS_FILA_COOLING = 0x0B,
     STEP_PUSH_SWITCHER_FILA = 0x0C,
     STEP_PULL_SWITCHER_FILA = 0x0D,
     STEP_SWITCHER_SWITCH = 0x0E,
-    STEP_CONFIRM_EXTRUDED = 0x08,
-    STEP_COUNT,
+    STEP_BATCH_PULL_FILA = 0x0F,
+    STEP_COUNT
 };
 
 // Slots and Tray

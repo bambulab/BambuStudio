@@ -2,6 +2,7 @@
 #include "DevExtruderSystem.h"
 #include "DevFilaSystem.h"
 #include "DevFilaSwitch.h"
+#include "DevMcTask.hpp"
 
 // TODO: remove this include
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -10,6 +11,7 @@
 #include "DevUtil.h"
 #include "DevNozzleSystem.h"
 #include "DevNozzleRack.h"
+#include "DevMcTask.hpp"
 
 #include "DevUtilBackend.h"
 
@@ -877,13 +879,98 @@ std::optional<DevFilamentStep> DevFilaSystem::GetCurrentFilamentChangeStep() con
 
     return std::nullopt;
 }
+std::vector<DevFilamentStep> DevFilaSystem::GetCurrentFilamentChangeSteps() const
+{
+    if (m_owner->GetMcTask().IsValid() && m_filament_change_steps_multi.size() > m_owner->GetMcTask().GetSubStep()) {
+        return m_filament_change_steps_multi[m_owner->GetMcTask().GetSubStep()];
+    };
+
+    return m_filament_change_steps;
+}
 
 bool DevFilaSystem::IsFilamentChangingSlot(int ams_id, int slot_id) const
 {
     return std::any_of(m_filament_changing_slots.begin(), m_filament_changing_slots.end(),
-        [ams_id, slot_id](const DevAmsSlotId& item) {
-            return item.first == ams_id && item.second == slot_id;
-        });
+                       [ams_id, slot_id](const DevAmsSlotId& item) {
+        return item.first == ams_id && item.second == slot_id;
+    });
+};
+
+std::optional<DevAmsSlotId> dev_ams_slot_info_to_id(const DevAmsSlotInfo& slot_info, bool normalize_virtual_slot)
+{
+    if (slot_info.ams_id.empty() || slot_info.slot_id.empty()) return std::nullopt;
+    try {
+        const int ams_id = std::stoi(slot_info.ams_id);
+        const int slot_id = normalize_virtual_slot ? 0 : std::stoi(slot_info.slot_id);
+        return DevAmsSlotId{ams_id, slot_id};
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
+std::optional<DevAmsSlotId> DevFilaSystem::GetCurrentChangingSlot() const
+{
+    if (m_owner->GetMcTask().IsValid()) {
+        int sub_step = m_owner->GetMcTask().GetSubStep();
+        if (m_filament_changing_slots.size() > sub_step) {
+            return m_filament_changing_slots[sub_step];
+        }
+    }
+
+    auto extder_sys = m_owner->GetExtderSystem();
+    const auto& extder = extder_sys->GetLoadingExtder();
+    if (extder.has_value()) {
+        const auto& slot_target = extder->GetSlotTarget();
+        if (slot_target.slot_id == "255")/*unload*/ {
+            const auto& slot_now = extder->GetSlotNow();
+            return dev_ams_slot_info_to_id(slot_now, IsVirtualTrayId(slot_now.ams_id));
+        } else {
+            return dev_ams_slot_info_to_id(slot_target, IsVirtualTrayId(slot_target.ams_id));
+        }
+    }
+
+    return std::nullopt;
+}
+
+bool DevFilaSystem::IsCurrentFilamentChangingSlot(int ams_id, int slot_id) const
+{
+    auto changing_slot_opt = GetCurrentChangingSlot();
+    if (changing_slot_opt.has_value()) {
+        return changing_slot_opt->first == ams_id && changing_slot_opt->second == slot_id;
+    }
+
+    return false;
+}
+
+
+std::map<DevAmsSlotId, int> DevFilaSystem::GetSlot2NozzleDisplayIdx() const
+{
+    std::map<DevAmsSlotId, int> slot_to_display_index;
+    if (!m_owner || !m_owner->GetNozzleRack() || !m_owner->GetNozzleSystem()) {
+        assert(0);
+        return slot_to_display_index;
+    }
+
+    const auto& rack_type = m_owner->GetNozzleRack()->GetRackType();
+    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B) {
+        return slot_to_display_index;
+    }
+
+    const int rack_count = m_owner->GetNozzleRack()->GetTotalRackNozzleCount();
+    for (int addr_id = 0; addr_id < rack_count; ++addr_id) {
+        const auto& rack_nozzle_opt = m_owner->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id);
+        if (!rack_nozzle_opt.has_value()) continue;
+
+        const auto& ams_slots = rack_nozzle_opt->GetBindAmsSlots();
+        if (ams_slots.empty()) continue;
+
+        int ams_id = ams_slots[0].first;
+        int mapped_slot_id = ams_slots[0].second;
+        if (GetVirtualTray(ams_id).has_value()) mapped_slot_id = 0;
+        slot_to_display_index[{ams_id, mapped_slot_id}] = addr_id + 1;
+    }
+
+    return slot_to_display_index;
 }
 
 void DevFilaSystem::ParseVirtualTrayInfos(const json& jj)
@@ -921,6 +1008,13 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                 } else {
                     system->m_filament_change_steps.clear();
                 }
+
+                if (jj["ams"].contains("cfs_m")) {
+                    system->m_filament_change_steps_multi = DevJsonValParser::GetVal<std::vector<std::vector<DevFilamentStep>>>(jj["ams"], "cfs_m");
+                } else {
+                    system->m_filament_change_steps_multi.clear();
+                }
+
                 const char* changing_slot_key = jj["ams"].contains("csl") ? "csl" : (jj["ams"].contains("cs") ? "cs" : nullptr);
                 if (changing_slot_key) {
                     system->m_filament_changing_slots.clear();

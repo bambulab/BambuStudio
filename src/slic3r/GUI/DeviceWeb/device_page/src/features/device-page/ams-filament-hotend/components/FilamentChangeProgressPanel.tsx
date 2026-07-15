@@ -19,9 +19,14 @@ const STEP_PUSH_SWITCHER_FILA = 0x0C;
 const STEP_PULL_SWITCHER_FILA = 0x0D;
 const STEP_SWITCHER_SWITCH = 0x0E;
 
+const MANUAL_CARD_STEP_STYLES = new Set(['manual_load', 'maunal_unload']);
+
 interface DisplayStep {
   id: number;
   label: string;
+  step_style?: string;
+  step_style_text?: string;
+  step_text?: string;
 }
 
 // Step label keys in English; resolved via t() at render time so the
@@ -63,13 +68,22 @@ function resolveSteps(t: TFunction, status: FilamentChangeStatus): DisplayStep[]
     : (typeof status.current_step === 'number' ? [status.current_step] : []);
 
   return sourceSteps.map((step, index) => {
-    const key = STEP_LABEL_KEYS[step];
+    const stepId = typeof step === 'number' ? step : step.id;
+    const stepLabel = typeof step === 'number' ? '' : (step.label ?? '');
+    const stepStyle = typeof step === 'number' ? undefined : step.step_style;
+    const stepStyleText = typeof step === 'number' ? undefined : step.step_style_text;
+    const stepText = typeof step === 'number' ? undefined : step.step_text;
+    const key = STEP_LABEL_KEYS[stepId];
     return {
-      id: step,
+      id: stepId,
       label: (key ? t(key) : '')
         || status.step_labels?.[index]
-        || (step === status.current_step ? status.current_step_name : '')
-        || t('Step {{n}}', { n: step }),
+        || stepLabel
+        || (stepId === status.current_step ? status.current_step_name : '')
+        || t('Step {{n}}', { n: stepId }),
+      step_style: stepStyle,
+      step_style_text: stepStyleText,
+      step_text: stepText,
     };
   });
 }
@@ -94,6 +108,7 @@ export function FilamentChangeProgressPanel({
 }) {
   const { t } = useTranslation();
   if (!status?.active && status?.mode !== 'batch_reserved') return null;
+  if (status.mode === 'batch_manual_pull') return null;
 
   if (status.mode === 'batch_reserved') {
     const items = status.batch_reserved?.items ?? [];
@@ -167,11 +182,11 @@ export function FilamentChangeProgressPanel({
                   {state === 'done' ? '✓' : index + 1}
                 </span>
                 <span className="filament-change-task-label">{step.label}</span>
-                {step.id === STEP_PULL_CURR_FILAMENT && (
+                {step.step_style && MANUAL_CARD_STEP_STYLES.has(step.step_style) && (
                   <div className="filament-change-manual-card">
                     <div className="filament-change-manual-title">{t('Manual action required')}</div>
                     <div className="filament-change-manual-text">
-                      {t("Insert the filament into the slot's loading port. Push gently until it stops or you hear a soft click.")}
+                      {step.step_style_text || step.step_text || t("Insert the filament into the slot's loading port. Push gently until it stops or you hear a soft click.")}
                     </div>
                   </div>
                 )}

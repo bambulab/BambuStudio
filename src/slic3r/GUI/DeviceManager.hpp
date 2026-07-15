@@ -25,6 +25,7 @@
 #include "DeviceCore/DevPrintTaskInfo.h"
 #include "DeviceCore/DevUtil.h"
 #include "DeviceCore/DevCalib.h"
+#include "DeviceCore/DevMcTask.hpp"
 
 #include "DeviceErrorDialog.hpp"
 
@@ -96,6 +97,7 @@ class DeviceManager;
 class DevStatus;
 class DevStorage;
 class DevUpgrade;
+class DevMcTask;
 struct DevPrintTaskRatingInfo;
 struct DevNozzle;
 
@@ -160,6 +162,9 @@ private:
 
     /* Print task information */
     DevPrintTaskInfo m_printTaskInfo;
+
+    /* Machine controller task */
+    DevMcTask m_mc_task;
 
     /*Status*/
     DevStatus* m_status;
@@ -393,6 +398,7 @@ public:
     DevPrintingSpeedLevel GetPrintingSpeedLevel() const; /* print speed */
 
     std::weak_ptr<DevUpgrade> GetUpgrade() const { return m_upgrade;}
+    const DevMcTask GetMcTask() const { return m_mc_task; }
 
     /* upgrade */
     std::string ams_new_version_number;

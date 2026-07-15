@@ -1,6 +1,7 @@
 #include "ViewModel.hpp"
 #include "ActionHandlerFilament.hpp"
 #include "BuilderFilamentChangeStatus.hpp"
+#include "FilamentManualPullDialog.hpp"
 #include "ResolverSlotState.hpp"
 
 #include "slic3r/GUI/AMSDryControl.hpp"
@@ -59,8 +60,6 @@ const char* dry_status_short_name(Slic3r::DevAms::DryStatus status)
     }
     return "Idle";
 }
-
-int addr_id_to_display_idx(int addr_id) { return addr_id + 1; }
 
 void open_ams_materials_setting(const std::string& ams_id, const std::string& slot_id)
 {
@@ -246,13 +245,13 @@ bool DevicePageAmsFilamentHotendVM::IsSlotTargetForExtruder(MachineObject* machi
     return false;
 }
 
-bool DevicePageAmsFilamentHotendVM::IsSlotInFilamentChangeList(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const
+bool DevicePageAmsFilamentHotendVM::IsCurrentFilamentChangingSlot(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const
 {
     if (!machine_obj || ams_id.empty() || slot_id.empty()) return false;
     auto fila_system = machine_obj->GetFilaSystem();
     if (!fila_system) return false;
     try {
-        return fila_system->IsFilamentChangingSlot(std::stoi(ams_id), std::stoi(slot_id));
+        return fila_system->IsCurrentFilamentChangingSlot(std::stoi(ams_id), std::stoi(slot_id));
     } catch (...) {
         return false;
     }
@@ -391,6 +390,12 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
         if (result != 0) {
             return vm.MakeResponse(vm.GetModule(), "action", action, 2, "AMS filament change resume failed", vm.BuildState());
         }
+    } else if (action == "manual_pull_detail") {
+        wxGetApp().CallAfter([]() { open_filament_manual_pull_dialog(); });
+    } else if (action == "manual_pull_close") {
+        wxGetApp().CallAfter([]() { close_filament_manual_pull_dialog(); });
+    } else if (action == "manual_pull_exit") {
+        wxGetApp().CallAfter([machine_obj]() { confirm_exit_filament_manual_pull(machine_obj); });
     } else if (action == "batch_run") {
         namespace SK = AmsHotendSchema::keys;
         namespace SV = AmsHotendSchema::values;

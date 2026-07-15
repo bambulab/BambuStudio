@@ -6657,7 +6657,7 @@ void StatusPanel::update_filament_loading_panel(MachineObject *obj)
             } else if (ams_status_sub == 0x05) {
                 m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_VT_LOAD);
             } else if (ams_status_sub == 0x06) {
-                m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_CONFIRM_EXTRUDED, FilamentStepType::STEP_TYPE_VT_LOAD);
+                m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_VT_LOAD);
             } else if (ams_status_sub == 0x07) {
                 m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_VT_LOAD);
             } else {

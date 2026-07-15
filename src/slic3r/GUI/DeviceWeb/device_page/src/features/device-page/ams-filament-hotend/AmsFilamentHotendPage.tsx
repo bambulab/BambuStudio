@@ -17,6 +17,7 @@ import { HotendPanel } from './components/HotendPanel';
 import { PageFooter } from './components/PageFooter';
 import { BatchModeFooter } from './components/BatchModeFooter';
 import { FilamentChangeProgressPanel } from './components/FilamentChangeProgressPanel';
+import { FilamentManualPullBanner } from './components/FilamentManualPullDialog';
 import { resolveHostContentSize } from './hostContentSize';
 import './ams-filament-hotend.css';
 
@@ -105,6 +106,9 @@ export function AmsFilamentHotendPage() {
 
   const fp = state.filament_page;
   const hp = state.hotend_page;
+  const manualPullStatus = fp.filament_change_status?.mode === 'batch_manual_pull'
+    ? fp.filament_change_status.manual_pull
+    : undefined;
 
   const filamentSlots = useMemo(
     () => [...fp.hotend_slots].sort((a, b) => a.display_index - b.display_index),
@@ -303,6 +307,10 @@ export function AmsFilamentHotendPage() {
           <FilamentChangeProgressPanel
             status={fp.filament_change_status}
             onAction={handleToolbarAction}
+          />
+          <FilamentManualPullBanner
+            status={manualPullStatus}
+            onOpen={() => runSlotAction('manual_pull_detail')}
           />
         </>
       ) : (

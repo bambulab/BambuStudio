@@ -219,7 +219,12 @@ export const mockAmsFilamentHotendState: AmsFilamentHotendViewModel = {
       },
       current_step: 6,
       current_step_name: 'Grab new filament',
-      steps: [2, 5, 6, 7],
+      steps: [
+        { id: 2, label: 'Heat the nozzle', step_style: '', step_style_text: '', step_text: '' },
+        { id: 5, label: 'Push new filament into extruder', step_style: '', step_style_text: '', step_text: '' },
+        { id: 6, label: 'Grab new filament', step_style: '', step_style_text: '', step_text: '' },
+        { id: 7, label: 'Purge old filament', step_style: '', step_style_text: '', step_text: '' },
+      ],
       step_labels: ['Heat the nozzle', 'Push new filament into extruder', 'Grab new filament', 'Purge old filament'],
       current_step_index: 3,
       current_step_total: 4,

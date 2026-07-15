@@ -378,15 +378,19 @@ public:
 
     // nozzle
     std::string GetNozzleFlowStringByAmsId(const std::string& ams_id) const;
+    std::map<DevAmsSlotId, int> GetSlot2NozzleDisplayIdx() const;
 
     // filament backup
     bool CanShowFilamentBackup() const;
 
     // filament change steps
     std::optional<DevFilamentStep> GetCurrentFilamentChangeStep() const;
-    std::vector<DevFilamentStep> GetFilamentChangeSteps() const { return m_filament_change_steps; }// some firmwares support this, RackType_A or RackType_B
-    const std::vector<DevAmsSlotId>& GetFilamentChangingSlots() const { return m_filament_changing_slots; }// some firmwares support this, RackType_A or RackType_B
+    std::vector<DevFilamentStep> GetCurrentFilamentChangeSteps() const;// some firmwares support this, RackType_A or RackType_B
+
     bool IsFilamentChangingSlot(int ams_id, int slot_id) const;
+    bool IsCurrentFilamentChangingSlot(int ams_id, int slot_id) const;
+    std::optional<DevAmsSlotId> GetCurrentChangingSlot() const;
+    const std::vector<DevAmsSlotId>& GetFilamentChangingSlots() const { return m_filament_changing_slots; }// some firmwares support this, RackType_A or RackType_B
 
     /* AMS settings*/
     DevAmsSystemSetting& GetAmsSystemSetting() { return m_ams_system_setting; }
@@ -421,6 +425,7 @@ private:
 
     /* filament change step*/
     std::vector<DevFilamentStep> m_filament_change_steps; // some firmwares support this
+    std::vector<std::vector<DevFilamentStep>> m_filament_change_steps_multi; // some firmwares support this
     std::vector<DevAmsSlotId> m_filament_changing_slots; // some firmwares support this
 
     std::map<std::string, DevAms*, NumericStrCompare> amsList;// key: ams[id], start with 0

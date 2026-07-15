@@ -8,7 +8,7 @@ namespace Slic3r { namespace GUI {
 
 std::string DevicePageFilamentSlotStateResolver::ResolveCardState(const DevAmsTray* tray,
                                                                   bool filament_changing,
-                                                                  bool listed_as_changing,
+                                                                  bool current_filament_changing,
                                                                   bool loaded_in_extruder,
                                                                   bool nozzle_has_filament,
                                                                   bool tray_reading)
@@ -18,7 +18,7 @@ std::string DevicePageFilamentSlotStateResolver::ResolveCardState(const DevAmsTr
     if (tray_reading) return SV::card_state::reading;
     if (tray->setting_id.empty() || tray->m_fila_type.empty()) return SV::card_state::unknown;
 
-    if (filament_changing && listed_as_changing) {
+    if (filament_changing && current_filament_changing) {
         return loaded_in_extruder ? SV::card_state::unloading : SV::card_state::loading;
     }
 
@@ -29,12 +29,12 @@ std::string DevicePageFilamentSlotStateResolver::ResolveCardState(const DevAmsTr
 std::string DevicePageFilamentSlotStateResolver::ResolveLineState(const std::string& card_state,
                                                                   bool has_hotend_slot,
                                                                   bool filament_changing,
-                                                                  bool listed_as_changing,
+                                                                  bool current_filament_changing,
                                                                   bool loaded_in_nozzle)
 {
     namespace SV = AmsHotendSchema::values;
     if (!has_hotend_slot) return SV::line_state::no_hotend;
-    if (filament_changing && listed_as_changing) return loaded_in_nozzle ? SV::line_state::unloading : SV::line_state::loading;
+    if (filament_changing && current_filament_changing) return loaded_in_nozzle ? SV::line_state::unloading : SV::line_state::loading;
     if (card_state == SV::card_state::loading) return SV::line_state::loading;
     if (card_state == SV::card_state::unloading) return SV::line_state::unloading;
     if (card_state == SV::card_state::ready_to_use) return SV::line_state::loaded;

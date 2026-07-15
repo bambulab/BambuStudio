@@ -285,6 +285,10 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderHotendRackProgressStatus.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderFilamentChangeStatus.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderFilamentChangeStatus.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderFilamentManualPullStatus.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderFilamentManualPullStatus.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/FilamentManualPullDialog.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/FilamentManualPullDialog.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ActionHandlerHotend.hpp
@@ -292,6 +296,7 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaFilamentSlot.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaFilamentPage.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaFilamentChangeStatus.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaFilamentManualPull.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaHotendRackProgress.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaHotendSlot.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaHotendPage.hpp

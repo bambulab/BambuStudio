@@ -60,6 +60,7 @@
 
 #include "DeviceCore/DevMapping.h"
 #include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevMcTask.hpp"
 #include "DeviceCore/DevUtil.h"
 
 
@@ -1676,7 +1677,7 @@ int MachineObject::command_multi_slot_ams_change_filament(bool is_load, const st
             int encoded_slot_id = slot_id;
             if (!is_load) {
                 // Per-slot unload encoding (see header doc).
-                if (ams_id == 0x20) {
+                if (ams_id == 0x20 || ams_id == 0x21) {
                     encoded_slot_id = 0xff - slot_id;
                 } else {
                     encoded_slot_id = 0xff;
@@ -3344,6 +3345,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         }
 
                         ExtderSystemParser::ParseV1_0(jj, m_extder_system);
+                        m_mc_task.ParseV1_0(jj);
 
                         /* signals */
                         if (jj.contains("link_th_state"))

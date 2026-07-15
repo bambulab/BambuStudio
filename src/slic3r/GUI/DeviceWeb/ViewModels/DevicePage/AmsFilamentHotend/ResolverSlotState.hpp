@@ -14,14 +14,14 @@ class DevicePageFilamentSlotStateResolver
 public:
     static std::string ResolveCardState(const DevAmsTray* tray,
                                         bool filament_changing,
-                                        bool listed_as_changing,
+                                        bool current_filament_changing,
                                         bool loaded_in_extruder,
                                         bool nozzle_has_filament,
                                         bool tray_reading);
     static std::string ResolveLineState(const std::string& card_state,
                                         bool has_hotend_slot,
                                         bool filament_changing,
-                                        bool listed_as_changing,
+                                        bool current_filament_changing,
                                         bool loaded_in_nozzle);
     static std::string ResolveNozzleState(const std::string& card_state,
                                           const std::string& line_state,

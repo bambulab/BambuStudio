@@ -397,7 +397,7 @@ void check_filaments_printable(const DevFilaBlacklist::CheckFilamentInfo &check_
         auto exrtuder_type_opt = dynamic_cast<const ConfigOptionEnumsGeneric*>(printer_preset->config.option("extruder_type"));
         if (exrtuder_type_opt && exrtuder_type_opt->values.size() > extruder_idx) {
             ExtruderType extruder_type = (ExtruderType)exrtuder_type_opt->values[extruder_idx];
-            is_bowden_extruder == (extruder_type == ExtruderType::etBowden);
+            is_bowden_extruder = (extruder_type == ExtruderType::etBowden);
         }
 
         // Compatibility levels: 0 = printable, 1 = error, 2 = critical warning, 3 = warning (4-7 reserved)

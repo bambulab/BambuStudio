@@ -10,6 +10,10 @@ namespace Slic3r {
 
 int DevUpgrade::GetUpgradeProgressInt() const
 {
+    if (m_upgrade_progress.empty()) {
+        return 0;
+    }
+
     try {
         return std::stoi(m_upgrade_progress);
     } catch (const std::exception &e) {

@@ -622,6 +622,240 @@
   box-shadow: none;
 }
 
+.filament-manual-pull-banner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: calc(100% - 24px);
+  height: 32px;
+  margin: 0 12px 8px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 4px;
+  background: rgba(240, 154, 23, 0.2);
+  color: var(--ams-text-strong);
+  font: inherit;
+  font-size: 14px;
+  line-height: 22px;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
+.filament-manual-pull-warning {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ff9d00;
+  border-radius: 50%;
+  color: #ff9d00;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 14px;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
+.filament-manual-pull-banner-text {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filament-manual-pull-chevron {
+  color: var(--ams-text-muted);
+  font-size: 24px;
+  line-height: 20px;
+  flex: 0 0 auto;
+}
+
+.filament-manual-pull-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.filament-manual-pull-page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-strong);
+}
+
+.filament-manual-pull-dialog {
+  width: min(636px, calc(100vw - 32px));
+  height: min(358px, calc(100vh - 32px));
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ams-border);
+  border-radius: 8px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-strong);
+  box-shadow: var(--ams-popover-shadow);
+  overflow: hidden;
+}
+
+.filament-manual-pull-dialog.embedded {
+  width: 100%;
+  height: 100vh;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.filament-manual-pull-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--ams-border);
+  background: linear-gradient(180deg, #fff 0%, #e9e9e9 100%);
+  box-sizing: border-box;
+}
+
+.filament-manual-pull-header h3 {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  color: #000;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.filament-manual-pull-window-dots,
+.filament-manual-pull-window-spacer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 44px;
+  height: 12px;
+  flex: 0 0 44px;
+}
+
+.filament-manual-pull-window-dots span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #d9d9d9;
+}
+
+.filament-manual-pull-window-dots .red {
+  background: #d01b1b;
+}
+
+.filament-manual-pull-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 16px 0;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+}
+
+.filament-manual-pull-message,
+.filament-manual-pull-progress {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: #000;
+}
+
+.filament-manual-pull-progress {
+  color: var(--ams-text-muted);
+}
+
+.filament-manual-pull-status-card {
+  min-height: 155px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #f2f2f2;
+  box-sizing: border-box;
+}
+
+.filament-manual-pull-status-list {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 12px;
+}
+
+.filament-manual-pull-status-item {
+  width: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.filament-manual-pull-slot-index {
+  min-width: 36px;
+  color: var(--ams-text-strong);
+  font-size: 18px;
+  line-height: 24px;
+  text-align: center;
+}
+
+.filament-manual-pull-nozzle-img {
+  width: 36px;
+  height: 76px;
+  display: block;
+}
+
+.filament-manual-pull-result-img {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.filament-manual-pull-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px;
+  border-top: 0;
+}
+
+.filament-manual-pull-actions button {
+  height: 36px;
+  min-width: 92px;
+  padding: 0 16px;
+  border: 1px solid var(--ams-footer-btn-border);
+  border-radius: 4px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-button);
+  font: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.filament-manual-pull-confirm {
+  border-color: var(--ams-brand) !important;
+  background: var(--ams-brand) !important;
+  color: var(--ams-text-on-brand) !important;
+}
+
 .batch-ext-dialog-titlebar {
   display: none;
 }

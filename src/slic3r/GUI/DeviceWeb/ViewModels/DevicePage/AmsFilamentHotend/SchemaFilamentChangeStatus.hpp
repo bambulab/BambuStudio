@@ -3,6 +3,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include "SchemaFilamentManualPull.hpp"
+
 #include <string>
 
 namespace Slic3r { namespace GUI { namespace AmsHotendSchema {
@@ -32,6 +34,16 @@ namespace filament_change {
     // Per-slot batch progress info (mode == "batch_running"). Same shape as
     // the pre-run `batch_reserved` payload; Web reuses the same item list type.
     inline constexpr const char* batch_running      = "batch_running";
+    inline constexpr const char* manual_pull        = "manual_pull";
+}
+
+// state.filament_change_status.steps[] entry.
+namespace filament_change_step {
+    inline constexpr const char* id         = "id";
+    inline constexpr const char* label      = "label";
+    inline constexpr const char* step_style = "step_style";
+    inline constexpr const char* step_style_text = "step_style_text";
+    inline constexpr const char* step_text  = "step_text";
 }
 
 // state.filament_change_status.batch_running (and batch_reserved) shape.
@@ -65,11 +77,17 @@ namespace filament_change_mode {
     inline constexpr const char* single         = "single";
     inline constexpr const char* batch_reserved = "batch_reserved";
     inline constexpr const char* batch_running  = "batch_running";
+    inline constexpr const char* batch_manual_pull = "batch_manual_pull";
 }
 
 namespace filament_change_operation {
     inline constexpr const char* change  = "change";
     inline constexpr const char* unknown = "unknown";
+}
+
+namespace filament_change_step_style {
+    inline constexpr const char* manual_load   = "manual_load";
+    inline constexpr const char* maunal_unload = "maunal_unload";
 }
 
 // values for batch_progress_item::state

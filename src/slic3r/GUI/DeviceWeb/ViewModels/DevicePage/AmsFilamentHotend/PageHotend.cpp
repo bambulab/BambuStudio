@@ -203,14 +203,14 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     const bool has_tool = rack_nozzle_opt.has_value() && rack_nozzle_opt->IsExist();
     const bool nozzle_abnormal = has_tool && rack_nozzle_opt->IsAbnormal();
     const std::string nozzle_tool_kind = has_tool ? tool_kind_for_web(rack_nozzle_opt->GetToolDefs()) : std::string(SV::tool_kind::empty);
-    const bool listed_as_changing = IsSlotInFilamentChangeList(machine_obj, ams_id, tray_id);
+    const bool current_filament_changing = IsCurrentFilamentChangingSlot(machine_obj, ams_id, tray_id);
     const bool filament_changing = IsFilamentChangeActive(machine_obj);
     const bool loaded_in_nozzle = IsSlotLoadedInNozzle(machine_obj, addr_id, ams_id, tray_id);
     const bool loaded_in_extruder = IsSlotLoadedInExtruder(machine_obj, ams_id, tray_id);
     const bool nozzle_has_filament = rack_nozzle_opt.has_value() && rack_nozzle_opt->HasFilamentInNozzle();
     const bool tray_reading = tray && machine_obj && tray->is_reading(machine_obj->tray_reading_bits);
-    const std::string card_state = DevicePageFilamentSlotStateResolver::ResolveCardState(tray, filament_changing, listed_as_changing, loaded_in_extruder, nozzle_has_filament, tray_reading);
-    const std::string line_state = DevicePageFilamentSlotStateResolver::ResolveLineState(card_state, has_hotend_slot, filament_changing, listed_as_changing, loaded_in_nozzle);
+    const std::string card_state = DevicePageFilamentSlotStateResolver::ResolveCardState(tray, filament_changing, current_filament_changing, loaded_in_extruder, nozzle_has_filament, tray_reading);
+    const std::string line_state = DevicePageFilamentSlotStateResolver::ResolveLineState(card_state, has_hotend_slot, filament_changing, current_filament_changing, loaded_in_nozzle);
     const std::string nozzle_state = DevicePageFilamentSlotStateResolver::ResolveNozzleState(card_state, line_state, has_tool, nozzle_abnormal);
 
     nlohmann::json bind_ams = nlohmann::json::array();

@@ -459,7 +459,7 @@ namespace Slic3r
             extder_obj.m_rfid_stat = DevUtil::get_flag_bits(njon["stat"].get<int>(), 16, 16);
 
             extder_obj.m_current_filament_change_step = static_cast<DevFilamentStep> (DevUtil::get_flag_bits(njon["stat"].get<int>(), 0, 8));
-            if (extder_obj.m_current_filament_change_step >= DevFilamentStep::STEP_COUNT) {
+            if (extder_obj.m_current_filament_change_step.has_value() &&  extder_obj.m_current_filament_change_step.value() >= DevFilamentStep::STEP_COUNT) {
                 extder_obj.m_current_filament_change_step.reset();
             }
 

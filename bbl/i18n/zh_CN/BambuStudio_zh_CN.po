@@ -3169,6 +3169,18 @@ msgstr "退变轨器处当前使用料"
 msgid "Switch track at Filament Track Switch"
 msgstr "变轨器开关切换"
 
+msgid "Please manually pull out the filament from slot %1%."
+msgstr "请将%1%号槽耗材手动拉出。"
+
+msgid "Please manually pull out the filament from hotend %1% on the toolhead."
+msgstr "请将工具头上%1%号热端内耗材手动拉出。"
+
+msgid "Please manually insert the filament into the loading port of hotend %1% on the toolhead until it cannot be pushed any further."
+msgstr "请将耗材手动插入工具头上%1%号热端进料口，直到推不动为止。"
+
+msgid "Please manually insert the filament from slot %1% into the extruder loading port until it cannot be pushed any further."
+msgstr "请将%1%号槽耗材手动插入挤出机进料口，直到推不动为止。"
+
 msgid "Confirm extruded"
 msgstr "确认挤出"
 
