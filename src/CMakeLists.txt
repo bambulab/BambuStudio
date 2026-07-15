@@ -18,6 +18,19 @@ add_subdirectory(libigl)
 add_subdirectory(hints)
 add_subdirectory(mcut)
 
+set(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN FALSE CACHE INTERNAL "")
+if(SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN)
+    # Prefer the Config installed by deps/OpenMeshCraft into the dependency
+    # prefix (same pattern as CGAL / TBB). No Find module under cmake/modules.
+    find_package(OpenMeshCraft QUIET CONFIG)
+    if(OpenMeshCraft_FOUND)
+        set(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN TRUE CACHE INTERNAL "" FORCE)
+        message(STATUS "OpenMeshCraft boolean backend enabled.")
+    else()
+        message(STATUS "OpenMeshCraft package is unavailable for this platform; using MCUT.")
+    endif()
+endif()
+
 # Adding libnest2d project for bin packing...
 add_subdirectory(libnest2d)
 

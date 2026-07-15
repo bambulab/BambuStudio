@@ -1,0 +1,127 @@
+# Studio deps overlay for OpenMeshCraft (root CMakeLists).
+# Builds upstream + C ABI wrapper and installs lib/headers/Config.
+
+cmake_minimum_required(VERSION 3.11)
+cmake_policy(SET CMP0074 NEW)
+
+project(OpenMeshCraft VERSION 1.0.0)
+
+if(NOT DEFINED OMC_MASTER_PROJECT)
+  set(OMC_MASTER_PROJECT OFF)
+  if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(OMC_MASTER_PROJECT ON)
+  endif()
+endif()
+
+option(OMC_CMAKE_ENABLE_EXCEPTION "Enable exception in OpenMeshCraft" ON)
+option(OMC_CMAKE_ENABLE_ASSERT "Enable assertion in OpenMeshCraft" ON)
+option(OMC_CMAKE_ENABLE_EXPENSIVE_ASSERT "Enable expensive assertion in OpenMeshCraft" OFF)
+# x86 SIMD is not meaningful for Apple Silicon; default OFF on APPLE so the
+# overlay matches OpenMeshCraft.cmake (-DOMC_CMAKE_ENABLE_*=OFF) and does not
+# mislead readers into thinking SSE/AVX is active on macOS.
+if(APPLE)
+  set(_OMC_SIMD_DEFAULT OFF)
+else()
+  set(_OMC_SIMD_DEFAULT ON)
+endif()
+option(OMC_CMAKE_ENABLE_SSE2 "Enable SSE2 instruction set in OpenMeshCraft" ${_OMC_SIMD_DEFAULT})
+option(OMC_CMAKE_ENABLE_AVX "Enable AVX instruction set in OpenMeshCraft" ${_OMC_SIMD_DEFAULT})
+option(OMC_CMAKE_ENABLE_AVX2 "Enable AVX2 instruction set in OpenMeshCraft" ${_OMC_SIMD_DEFAULT})
+option(OMC_CMAKE_ENABLE_FMA "Enable FMA instruction set in OpenMeshCraft" ${_OMC_SIMD_DEFAULT})
+option(OMC_CMAKE_ENABLE_DEBUG_INFO "Generate debug information for OpenMeshCraft" ON)
+option(OMC_CMAKE_LOG_TRACE "Log runtime trace messages." OFF)
+option(OMC_CMAKE_LOG_DEBUG "Log runtime debug messages." OFF)
+option(OMC_CMAKE_LOG_INFO "Log runtime info messages." ON)
+option(OMC_CMAKE_LOG_WARN "Log runtime warn messages." ON)
+option(OMC_CMAKE_LOG_FATAL "Log runtime fatal messages." ON)
+option(OMC_CMAKE_PRED_PROFILE "Enable profiling predicates in OpenMeshCraft." OFF)
+option(OMC_CMAKE_INTER_PROFILE "Enable profiling intersection in OpenMeshCraft." OFF)
+option(OMC_CMAKE_ARR_PROFILE "Enable profiling arrangements in OpenMeshCraft." OFF)
+option(OMC_BUILD_TEST "Build test project of OpenMeshCraft" OFF)
+option(OMC_BUILD_PREDICATES_GENERATOR "Build PredicatesGenerator" OFF)
+
+if(OMC_MASTER_PROJECT)
+  macro(set_dir_with_configs _DIR_NAME _DIR_PATH)
+    set(${_DIR_NAME} ${_DIR_PATH})
+    set(${_DIR_NAME}_RELEASE ${_DIR_PATH}/Release)
+    set(${_DIR_NAME}_DEBUG ${_DIR_PATH}/Debug)
+  endmacro()
+  set_dir_with_configs(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+  set_dir_with_configs(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+  set_dir_with_configs(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+endif()
+
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  add_compile_options("/wd 4819")
+endif()
+
+# Studio TBB::tbb PUBLIC-links Threads::Threads; find it project-wide.
+find_package(Threads REQUIRED)
+
+add_subdirectory(external)
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  add_compile_definitions(_USE_MATH_DEFINES)
+  add_compile_definitions(NOMINMAX)
+endif()
+
+add_subdirectory(src)
+
+# ---- C ABI wrapper + install package (was bambu_studio_package.cmake) ----
+if(NOT TARGET OpenMeshCraft)
+  message(FATAL_ERROR "OpenMeshCraft target is missing; cannot package boolean backend.")
+endif()
+if(NOT TARGET shewchuk_predicates)
+  message(FATAL_ERROR "shewchuk_predicates target is missing; cannot package boolean backend.")
+endif()
+
+add_library(OpenMeshCraftBoolean STATIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/bambu_wrapper/OpenMeshCraftBoolean.cpp
+)
+target_compile_features(OpenMeshCraftBoolean PRIVATE cxx_std_20)
+target_include_directories(OpenMeshCraftBoolean
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/bambu_wrapper>
+    $<INSTALL_INTERFACE:include>
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/parallel-hashmap
+)
+target_link_libraries(OpenMeshCraftBoolean PRIVATE OpenMeshCraft)
+if(MSVC)
+  target_compile_options(OpenMeshCraftBoolean PRIVATE /W4)
+endif()
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+# Use install(TARGETS) for all archives. Do not use install(CODE) with
+# $<TARGET_FILE:...>: that genex is not expanded in install(CODE) scripts and
+# Windows CI fails looking for a literal "$<TARGET_FILE:OpenMeshCraft>" path.
+install(TARGETS OpenMeshCraft OpenMeshCraftBoolean shewchuk_predicates
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+install(FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/bambu_wrapper/OpenMeshCraftBoolean.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/OpenMeshCraft
+)
+
+set(OpenMeshCraft_INSTALL_CMAKEDIR ${CMAKE_INSTALL_LIBDIR}/cmake/OpenMeshCraft)
+
+configure_package_config_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/OpenMeshCraftConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/OpenMeshCraftConfig.cmake
+  INSTALL_DESTINATION ${OpenMeshCraft_INSTALL_CMAKEDIR}
+)
+
+# No ConfigVersion.cmake: Studio uses find_package(OpenMeshCraft QUIET CONFIG)
+# without a version request, so a version file is unnecessary.
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/OpenMeshCraftConfig.cmake
+  DESTINATION ${OpenMeshCraft_INSTALL_CMAKEDIR}
+)

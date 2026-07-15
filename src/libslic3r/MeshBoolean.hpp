@@ -99,6 +99,16 @@ bool do_boolean(McutMesh &srcMesh, const McutMesh &cutMesh, const std::string &b
 void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const BooleanCancelCB& calcen_cb = nullptr, const BooleanProgressCB& progress_cb = nullptr, const BooleanFailedCB& failed_cb = nullptr);
 } // namespace mcut
 
+namespace openmeshcraft {
+using BooleanCancelCB = mcut::BooleanCancelCB;
+using BooleanProgressCB = mcut::BooleanProgressCB;
+using BooleanFailedCB = mcut::BooleanFailedCB;
+
+// Compile-time switch (SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN), not a runtime env-var check.
+bool is_enabled();
+void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const BooleanCancelCB& cancel_cb = nullptr, const BooleanProgressCB& progress_cb = nullptr, const BooleanFailedCB& failed_cb = nullptr);
+} // namespace openmeshcraft
+
 } // namespace MeshBoolean
 } // namespace Slic3r
 #endif // libslic3r_MeshBoolean_hpp_

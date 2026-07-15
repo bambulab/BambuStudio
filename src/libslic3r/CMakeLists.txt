@@ -550,7 +550,7 @@ add_library(libslic3r_cgal STATIC
     MeshBoolean.hpp MeshBoolean.cpp
     TryCatchSignal.hpp TryCatchSignal.cpp
     Triangulation.hpp Triangulation.cpp)
-target_include_directories(libslic3r_cgal PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r_cgal PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 # Reset compile options of libslic3r_cgal. Despite it being linked privately, CGAL options
 # (-frounding-math) still propagate to dependent libs which is not desired.
@@ -576,6 +576,37 @@ if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14.1)
 endif()
 
 target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl mcut)
+if(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN)
+    # GMP/MPFR usually come with CGAL/DEP, but may not be visible to find_library
+    # in non-standard layouts. Never REQUIRED here: missing deps must fall back to MCUT.
+    if(NOT GMP_LIBRARIES)
+        if(GMP_LIBRARY_RELEASE)
+            set(GMP_LIBRARIES ${GMP_LIBRARY_RELEASE})
+        else()
+            find_library(GMP_LIBRARIES NAMES libgmp-10 gmp)
+        endif()
+    endif()
+    if(NOT MPFR_LIBRARIES)
+        if(MPFR_LIBRARY_RELEASE)
+            set(MPFR_LIBRARIES ${MPFR_LIBRARY_RELEASE})
+        else()
+            find_library(MPFR_LIBRARIES NAMES libmpfr-4 mpfr)
+        endif()
+    endif()
+    if(GMP_LIBRARIES AND MPFR_LIBRARIES)
+        # Define must be visible to MeshBoolean.cpp in libslic3r (dispatch + stub guard).
+        target_compile_definitions(libslic3r PUBLIC SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN=1)
+        target_sources(libslic3r_cgal PRIVATE MeshBooleanOpenMeshCraft.cpp)
+        target_link_libraries(libslic3r_cgal PRIVATE
+            OpenMeshCraftBoolean
+            ${GMP_LIBRARIES}
+            ${MPFR_LIBRARIES}
+        )
+    else()
+        set(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN FALSE CACHE INTERNAL "" FORCE)
+        message(STATUS "OpenMeshCraft boolean disabled: GMP/MPFR not found; using MCUT.")
+    endif()
+endif()
 
 if (MSVC AND "${CMAKE_SIZEOF_VOID_P}" STREQUAL "4") # 32 bit MSVC workaround
     target_compile_definitions(libslic3r_cgal PRIVATE CGAL_DO_NOT_USE_MPZF)
@@ -587,8 +618,18 @@ target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTI
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/TextureToColor PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
 
-# Find the OCCT and related libraries
-set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
+# Find the OCCT and related libraries.
+# CMAKE_PREFIX_PATH may be a list (e.g. after sibling dep probes); do not
+# concatenate "/lib/cmake/occt" onto the whole list string.
+if(NOT OpenCASCADE_DIR)
+    foreach(_occt_prefix IN LISTS CMAKE_PREFIX_PATH)
+        if(EXISTS "${_occt_prefix}/lib/cmake/occt")
+            set(OpenCASCADE_DIR "${_occt_prefix}/lib/cmake/occt")
+            break()
+        endif()
+    endforeach()
+    unset(_occt_prefix)
+endif()
 find_package(OpenCASCADE REQUIRED)
 target_include_directories(libslic3r PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 
