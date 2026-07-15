@@ -1538,6 +1538,7 @@ void GCodeProcessorResult::reset() {
     time = 0;
     optimal_assignment.clear();
     pause_printing.clear();
+    used_mixed_filaments.clear();
 
     //BBS: add mutex for protection of gcode result
     unlock();
@@ -1580,6 +1581,7 @@ void GCodeProcessorResult::reset() {
     pause_printing.clear();
     skippable_part_time.clear();
     warnings.clear();
+    used_mixed_filaments.clear();
 
     //BBS: add mutex for protection of gcode result
     unlock();

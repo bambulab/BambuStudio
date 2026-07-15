@@ -1002,6 +1002,12 @@ public:
     }
     std::vector<unsigned int> get_slice_used_filaments(bool first_layer) const { return first_layer ? m_slice_used_filaments_first_layer : m_slice_used_filaments;}
 
+    // 0-based mixed (virtual) filament slots actually used by this plate after slicing.
+    void set_slice_used_mixed_filaments(const std::vector<unsigned int> &used_mixed_filaments) {
+        m_slice_used_mixed_filaments = used_mixed_filaments;
+    }
+    const std::vector<unsigned int>& get_slice_used_mixed_filaments() const { return m_slice_used_mixed_filaments; }
+
     /**
     * @brief Determines the unprintable filaments for each extruder based on its physical attributes
     *
@@ -1210,6 +1216,7 @@ private:
 
     std::vector<unsigned int> m_slice_used_filaments;
     std::vector<unsigned int> m_slice_used_filaments_first_layer;
+    std::vector<unsigned int> m_slice_used_mixed_filaments;
 
     //BBS: plate's origin
     Vec3d   m_origin;

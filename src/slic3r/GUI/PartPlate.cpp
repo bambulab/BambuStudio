@@ -6997,6 +6997,31 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 					}
 					//parse filament info
 					plate_data_item->parse_filament_info(m_plate_list[i]->get_slice_result());
+
+					// Record mixed (virtual) filaments actually used on this plate.
+					// Source is ToolOrdering::used_mixed_filaments (slots that appeared in
+					// layer tools before resolve), persisted on GCodeProcessorResult / Print —
+					// not print->extruders() which only reflects assignment.
+					{
+						std::vector<unsigned int> used_mixed;
+						if (auto *slice_result = m_plate_list[i]->get_slice_result())
+							used_mixed = slice_result->used_mixed_filaments;
+						if (used_mixed.empty() && print)
+							used_mixed = print->get_slice_used_mixed_filaments();
+						if (!used_mixed.empty() && print) {
+							const auto &fila_types  = print->config().filament_type.values;
+							const auto &fila_colors = print->config().filament_colour.values;
+							const auto &fila_comps  = print->config().filament_mixed_components.values;
+							for (unsigned int fid : used_mixed) {
+								PlateMixedFilamentInfo mixed_info;
+								mixed_info.id = (int) fid + 1;
+								if (fid < fila_types.size())  mixed_info.type       = fila_types[fid];
+								if (fid < fila_colors.size()) mixed_info.color      = fila_colors[fid];
+								if (fid < fila_comps.size())  mixed_info.components = fila_comps[fid];
+								plate_data_item->mixed_filaments_info.push_back(mixed_info);
+							}
+						}
+					}
 				} else {
 					BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "slice result = " << m_plate_list[i]->get_slice_result()
 										<< ", result valid = " << m_plate_list[i]->is_slice_result_valid();
@@ -7099,6 +7124,13 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 		m_plate_list[index]->slice_filaments_info = plate_data_list[i]->slice_filaments_info;
 		gcode_result->warnings = plate_data_list[i]->warnings;
         gcode_result->filament_maps = plate_data_list[i]->filament_maps;
+		gcode_result->used_mixed_filaments.clear();
+		for (const auto &mixed_info : plate_data_list[i]->mixed_filaments_info) {
+			if (mixed_info.id > 0)
+				gcode_result->used_mixed_filaments.push_back(static_cast<unsigned int>(mixed_info.id - 1));
+		}
+		if (Print *print = dynamic_cast<Print*>(fff_print))
+			print->set_slice_used_mixed_filaments(gcode_result->used_mixed_filaments);
 
 		std::vector<int> nozzle_volume_type_values = parse_values(
 			plate_data_list[i]->nozzle_volume_types,

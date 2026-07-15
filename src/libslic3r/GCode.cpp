@@ -3481,6 +3481,7 @@ void GCode::export_layer_filaments(GCodeProcessorResult* result)
             if (group_result)
                 result->nozzle_change_sequence.emplace_back(group_result->get_nozzle_id(fidx, 0));
         }
+        result->used_mixed_filaments = m_print->get_slice_used_mixed_filaments();
 
         std::vector<int> optimal_assignment;
         if (group_result) {

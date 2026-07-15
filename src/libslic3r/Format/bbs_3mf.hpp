@@ -61,6 +61,18 @@ struct AmsLoadUnloadTimeInfo
     double      unload_time{0.0};
 };
 
+// Mixed (virtual) filament used by a plate. Mixed filaments are virtual slots that get
+// resolved to their physical components before g-code statistics, so they never appear in
+// slice_filaments_info. They are recorded here separately so a plate's mixed-color usage
+// can be recovered from slice_info.
+struct PlateMixedFilamentInfo
+{
+    int         id{0};         // 1-based virtual filament slot id
+    std::string type;
+    std::string color;         // blended display color, "#RRGGBB"
+    std::string components;    // 1-based physical component ids, comma separated, e.g. "1,3"
+};
+
 //BBS: define plate data list related structures
 struct PlateData
 {
@@ -102,6 +114,8 @@ struct PlateData
     std::string     first_layer_time;
     std::string     plate_name;
     std::vector<FilamentInfo> slice_filaments_info;
+    // Mixed (virtual) filaments used by this plate; empty when no mixed filament is used.
+    std::vector<PlateMixedFilamentInfo> mixed_filaments_info;
     std::vector<size_t> skipped_objects;
     // AMS type used for the load/unload time estimation, and the full per-AMS time matrix of this machine.
     std::string                       default_ams_type;

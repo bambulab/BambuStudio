@@ -210,6 +210,8 @@ static constexpr const char* BUILD_TAG = "build";
 static constexpr const char* ITEM_TAG = "item";
 static constexpr const char* METADATA_TAG = "metadata";
 static constexpr const char* FILAMENT_TAG = "filament";
+static constexpr const char* MIXED_FILAMENT_TAG = "mixed_filament";
+static constexpr const char* MIXED_FILAMENT_COMPONENTS_TAG = "components";
 static constexpr const char* PAUSE_LIST_TAG = "pause_list";
 static constexpr const char* PAUSE_TAG = "pause";
 static constexpr const char* PAUSE_INDEX_ATTR = "index";
@@ -1360,6 +1362,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _handle_end_config_filament();
 
         bool _handle_start_config_pause(const char** attributes, unsigned int num_attributes);
+
+        bool _handle_start_config_mixed_filament(const char** attributes, unsigned int num_attributes);
 
         bool _handle_start_config_warning(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_warning();
@@ -3663,6 +3667,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_start_config_filament(attributes, num_attributes);
         else if (::strcmp(PAUSE_TAG, name) == 0)
             res = _handle_start_config_pause(attributes, num_attributes);
+        else if (::strcmp(MIXED_FILAMENT_TAG, name) == 0)
+            res = _handle_start_config_mixed_filament(attributes, num_attributes);
         else if (::strcmp(SLICE_WARNING_TAG, name) == 0)
             res = _handle_start_config_warning(attributes, num_attributes);
         else if (::strcmp(NOZZLE_TAG, name) == 0)
@@ -4852,6 +4858,23 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             pause_info.remaining_time = atoi(bbs_get_attribute_value_string(attributes, num_attributes, PAUSE_REMAINING_TIME_ATTR).c_str());
             pause_info.layer_id = atoi(bbs_get_attribute_value_string(attributes, num_attributes, PAUSE_LAYER_ATTR).c_str());
             m_curr_plater->pause_printing.push_back(pause_info);
+        }
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_config_mixed_filament(const char** attributes, unsigned int num_attributes)
+    {
+        if (m_curr_plater) {
+            std::string id         = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_ID_TAG);
+            std::string type       = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_TYPE_TAG);
+            std::string color      = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_COLOR_TAG);
+            std::string components = bbs_get_attribute_value_string(attributes, num_attributes, MIXED_FILAMENT_COMPONENTS_TAG);
+            PlateMixedFilamentInfo mixed_info;
+            mixed_info.id         = atoi(id.c_str());
+            mixed_info.type       = type;
+            mixed_info.color      = color;
+            mixed_info.components = components;
+            m_curr_plater->mixed_filaments_info.push_back(mixed_info);
         }
         return true;
     }
@@ -8733,6 +8756,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                            << FILAMENT_USED_FOR_SUPPORT << "=\"" << it->used_for_support << "\" "
                            << FILAMENT_TOTAL_LOAD_TIME_TAG << "=\"" << it->total_load_time << "\" "
                            << FILAMENT_TOTAL_UNLOAD_TIME_TAG << "=\"" << it->total_unload_time << "\"/>\n";
+                }
+
+                // Mixed (virtual) filaments used by this plate. These are resolved to physical
+                // components before g-code statistics, so they are not present in the <filament>
+                // list above and are recorded separately here.
+                for (auto it = plate_data->mixed_filaments_info.begin(); it != plate_data->mixed_filaments_info.end(); it++)
+                {
+                    stream << "    <" << MIXED_FILAMENT_TAG << " " << FILAMENT_ID_TAG << "=\"" << std::to_string(it->id) << "\" "
+                           << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
+                           << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
+                           << MIXED_FILAMENT_COMPONENTS_TAG << "=\"" << it->components << "\"/>\n";
                 }
 
                 for (auto it = plate_data->warnings.begin(); it != plate_data->warnings.end(); it++) {

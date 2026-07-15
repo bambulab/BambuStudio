@@ -2253,6 +2253,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
 
             std::vector<unsigned int> first_layer_filaments;
             std::vector<unsigned int> used_filaments;
+            std::vector<unsigned int> used_mixed_filaments;
 
             for(auto [object,ordering] : m_sequential_print_data->object_tool_ordering_map){
                 auto& layer_tools = ordering.layer_tools();
@@ -2262,13 +2263,17 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                 auto object_first_layer_filaments = layer_tools.front().extruders;
                 first_layer_filaments.insert(first_layer_filaments.end(),object_first_layer_filaments.begin(),object_first_layer_filaments.end());
                 used_filaments.insert(used_filaments.end(), ordering.all_extruders().begin(), ordering.all_extruders().end());
+                used_mixed_filaments.insert(used_mixed_filaments.end(),
+                    ordering.used_mixed_filaments().begin(), ordering.used_mixed_filaments().end());
             }
             sort_remove_duplicates(first_layer_filaments);
             sort_remove_duplicates(used_filaments);
+            sort_remove_duplicates(used_mixed_filaments);
 
             printExtruders = first_layer_filaments;
 
             this->set_slice_used_filaments(first_layer_filaments, used_filaments);
+            this->set_slice_used_mixed_filaments(used_mixed_filaments);
 
             // BBS: build instance ordering so objPrintVec and make_brim get all objects; otherwise m_brimMap stays empty and m_objsWithBrim is never populated in GCode export.
             print_object_instances_ordering = chain_print_object_instances(*this);
@@ -2282,6 +2287,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                 first_layer_used_filaments = tool_ordering.layer_tools().front().extruders;
 
             this->set_slice_used_filaments(first_layer_used_filaments, tool_ordering.all_extruders());
+            this->set_slice_used_mixed_filaments(tool_ordering.used_mixed_filaments());
             has_wipe_tower = this->has_wipe_tower() && tool_ordering.has_wipe_tower();
             print_object_instances_ordering = chain_print_object_instances(*this);
             append(printExtruders, tool_ordering.tools_for_layer(layers_to_print.front().first).extruders);
