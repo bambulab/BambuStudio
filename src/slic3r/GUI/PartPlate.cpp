@@ -7260,7 +7260,57 @@ void PartPlateList::BedTextureInfo::reset()
         parts[i].reset();
 }
 
-void PartPlateList::init_bed_type_info()
+void PartPlateList::BedTextureInfo::apply_bottom_texture(
+    TexturePart &               part,
+    const std::string &         left_bottom_base,
+    const std::string &         bottom_base,
+    const std::string &         bind_name,
+    const std::string &         bottom_texture_end_name,
+    const std::array<float, 4> &bottom_rect,
+    const std::array<float, 4> &bottom_rect_longer,
+    BedType                     bed_type,
+    const std::vector<std::string> &longer_ignore_list)
+{
+    bool ignore_longer = false; //  Skip bottom_texture_rect_longer when current bed type is in the ignore list.
+    if (!longer_ignore_list.empty()) {
+        const t_config_enum_values &enum_keys_map = ConfigOptionEnum<BedType>::get_enum_values();
+        std::string                 plate_name;
+        for (const auto &elem : enum_keys_map) {
+            if (elem.second == bed_type) {
+                plate_name = elem.first;
+                break;
+            }
+        }
+        if (!plate_name.empty())
+            ignore_longer = std::find(longer_ignore_list.begin(), longer_ignore_list.end(), plate_name) != longer_ignore_list.end();
+    }
+    if (!bind_name.empty()) {//bind machine logic
+        // Highest priority: independent SVG keyed by resource_bind_name.
+        std::string name = left_bottom_base + "_" + bind_name + ".svg";
+        if (!ignore_longer && bottom_rect_longer[2] > 0.f) {
+            part = TexturePart(bottom_rect_longer[0], bottom_rect_longer[1],
+                               bottom_rect_longer[2], bottom_rect_longer[3], name);
+        } else if (bottom_rect[2] > 0.f) {
+            part = TexturePart(bottom_rect[0], bottom_rect[1],
+                               bottom_rect[2], bottom_rect[3], name);
+        } else {
+            part.update_file(name);
+        }
+        return;
+    }
+    //old logic
+    if (!bottom_texture_end_name.empty() && bottom_rect[2] > 0.f) {
+        std::string name = bottom_base + "_" + bottom_texture_end_name + ".svg";
+        part = TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], name);
+    } else if (!ignore_longer && bottom_rect_longer[2] > 0.f) {
+        part.update_pos(bottom_rect_longer[0], bottom_rect_longer[1],
+                        bottom_rect_longer[2], bottom_rect_longer[3]);
+    } else if (bottom_rect[2] > 0.f) {
+        part.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
+    }
+}
+
+void PartPlateList::init_bed_type_info(const VendorProfile::PrinterModel *printer_model, int current_extruder_count)
 {
     BedTextureInfo::TexturePart st_part1(10, 52, 8.393f, 192, "bbl_bed_st_left.svg");
     BedTextureInfo::TexturePart st_part2(74, -10, 148, 12, "bbl_bed_st_bottom.svg");
@@ -7272,7 +7322,7 @@ void PartPlateList::init_bed_type_info()
     BedTextureInfo::TexturePart pei_part2(74, -10, 148, 12, "bbl_bed_pei_bottom.svg");
     BedTextureInfo::TexturePart pte_part1(10, 52, 8.393f, 192, "bbl_bed_pte_left.svg");
     BedTextureInfo::TexturePart pte_part2(74, -10, 148, 12, "bbl_bed_pte_bottom.svg");
-    auto bed_texture_maps        = wxGetApp().plater()->get_bed_texture_maps();
+    auto bed_texture_maps = printer_model ? printer_model->get_bed_texture_maps() : wxGetApp().plater()->get_bed_texture_maps();
     std::string bottom_texture_end_name = bed_texture_maps.find("bottom_texture_end_name") != bed_texture_maps.end() ? bed_texture_maps["bottom_texture_end_name"] : "";
     std::string bottom_texture_rect_str = bed_texture_maps.find("bottom_texture_rect") != bed_texture_maps.end() ? bed_texture_maps["bottom_texture_rect"] : "";
     std::string bottom_texture_rect_longer_str = bed_texture_maps.find("bottom_texture_rect_longer") != bed_texture_maps.end() ? bed_texture_maps["bottom_texture_rect_longer"] : "";
@@ -7309,74 +7359,63 @@ void PartPlateList::init_bed_type_info()
             }
         }
     }
-    auto is_single_extruder = wxGetApp().preset_bundle->get_printer_extruder_count() == 1;
+    auto is_single_extruder = current_extruder_count > 0 ? current_extruder_count == 1 : wxGetApp().preset_bundle->get_printer_extruder_count() == 1;
     bool use_double_extruder_texture = !is_single_extruder || use_double_extruder_default_texture == "true";
     if (use_double_extruder_texture) {
+        const VendorProfile::PrinterModel *pm_for_bind = printer_model;
+        if (!pm_for_bind && wxGetApp().plater())
+            pm_for_bind = wxGetApp().plater()->get_curr_printer_model();
+        const std::string bind_name = pm_for_bind ? pm_for_bind->resource_bind_name : std::string();
+        static const std::vector<std::string> empty_longer_ignore_list;
+        const std::vector<std::string> &longer_ignore_list =
+            pm_for_bind ? pm_for_bind->bottom_texture_rect_longer_ignore_list : empty_longer_ignore_list;
+        auto &bottom_rect        = bottom_texture_rect;
+        auto &bottom_rect_longer = bottom_texture_rect_longer;
+        auto &middle_rect        = middle_texture_rect;
+
         pte_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pte_middle.svg");
-        auto &middle_rect = middle_texture_rect;
         if (middle_rect[2] > 0.f) {
             pte_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_pte_middle.svg");
         }
         pte_part2 = BedTextureInfo::TexturePart(45, -14.5, 70, 8, "bbl_bed_pte_left_bottom.svg");
-        auto &bottom_rect = bottom_texture_rect;
-        auto &bottom_rect_longer = bottom_texture_rect_longer;
-        if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
-            std::string pte_part2_name = "bbl_bed_pte_bottom_" + bottom_texture_end_name + ".svg";
-            pte_part2 = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], pte_part2_name);
-        } else if (bottom_rect[2] > 0.f) {
-            pte_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
-        }
+        BedTextureInfo::apply_bottom_texture(pte_part2, "bbl_bed_pte_left_bottom", "bbl_bed_pte_bottom",
+                                             bind_name, bottom_texture_end_name, bottom_rect, bottom_rect_longer,
+                                             btPTE, longer_ignore_list);
 
         pei_part1  = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pei_middle.svg");
         if (middle_rect[2] > 0.f) {
             pei_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_pei_middle.svg");
         }
         pei_part2  = BedTextureInfo::TexturePart(45, -14.5, 70, 8, "bbl_bed_pei_left_bottom.svg");
-        if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
-            std::string pei_part2_name = "bbl_bed_pei_bottom_" + bottom_texture_end_name + ".svg";
-            pei_part2                  = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], pei_part2_name);
-        } else if (bottom_rect[2] > 0.f) {
-            pei_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
-        }
+        BedTextureInfo::apply_bottom_texture(pei_part2, "bbl_bed_pei_left_bottom", "bbl_bed_pei_bottom",
+                                             bind_name, bottom_texture_end_name, bottom_rect, bottom_rect_longer,
+                                             btPEI, longer_ignore_list);
 
         st_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_st_middle.svg");
         if (middle_rect[2] > 0.f) {
             st_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_st_middle.svg");
         }
         st_part2 = BedTextureInfo::TexturePart(45, -14.5, 260, 8, "bbl_bed_st_left_bottom.svg");
-        if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
-            std::string st_part2_name = "bbl_bed_st_bottom_" + bottom_texture_end_name + ".svg";
-            st_part2                   = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], st_part2_name);
-        } else if (bottom_rect_longer[2] > 0.f) {
-            st_part2.update_pos(bottom_rect_longer[0], bottom_rect_longer[1], bottom_rect_longer[2], bottom_rect_longer[3]);
-        } else if (bottom_rect[2] > 0.f) {
-            st_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
-        }
+        BedTextureInfo::apply_bottom_texture(st_part2, "bbl_bed_st_left_bottom", "bbl_bed_st_bottom",
+                                             bind_name, bottom_texture_end_name, bottom_rect, bottom_rect_longer,
+                                             btSuperTack, longer_ignore_list);
 
         ep_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_ep_middle.svg");
         if (middle_rect[2] > 0.f) {
             ep_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_ep_middle.svg");
         }
         ep_part2 = BedTextureInfo::TexturePart(45, -14.5, 260, 8, "bbl_bed_ep_left_bottom.svg");
-        if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
-            std::string ep_part2_name = "bbl_bed_ep_bottom_" + bottom_texture_end_name + ".svg";
-            ep_part2                   = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], ep_part2_name);
-        } else if (bottom_rect_longer[2] > 0.f) {
-            ep_part2.update_pos(bottom_rect_longer[0], bottom_rect_longer[1], bottom_rect_longer[2], bottom_rect_longer[3]);
-        } else if (bottom_rect[2] > 0.f) {
-            ep_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
-        }
+        BedTextureInfo::apply_bottom_texture(ep_part2, "bbl_bed_ep_left_bottom", "bbl_bed_ep_bottom",
+                                             bind_name, bottom_texture_end_name, bottom_rect, bottom_rect_longer,
+                                             btEP, longer_ignore_list);
 
         pc_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pc_middle.svg");
         if (middle_rect[2] > 0.f) {
             pc_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_pc_middle.svg"); }
         pc_part2 = BedTextureInfo::TexturePart(45, -14.5, 70, 8, "bbl_bed_pc_left_bottom.svg");
-        if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
-            std::string pc_part2_name = "bbl_bed_pc_bottom_" + bottom_texture_end_name + ".svg";
-            pc_part2                  = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], pc_part2_name);
-        } else if (bottom_rect[2] > 0.f) {
-            pc_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
-        }
+        BedTextureInfo::apply_bottom_texture(pc_part2, "bbl_bed_pc_left_bottom", "bbl_bed_pc_bottom",
+                                             bind_name, bottom_texture_end_name, bottom_rect, bottom_rect_longer,
+                                             btPC, longer_ignore_list);
 
         m_allow_bed_type_in_double_nozzle.clear();
         auto bed_types = wxGetApp().plater()->sidebar().get_cur_combox_bed_types();
@@ -7523,11 +7562,11 @@ bool PartPlateList::init_extruder_only_area_info()
     return true;
 }
 
-void PartPlateList::load_bedtype_textures()
+void PartPlateList::load_bedtype_textures(const VendorProfile::PrinterModel *printer_model, int current_extruder_count)
 {
 	if (PartPlateList::is_load_bedtype_textures) return;
 
-	init_bed_type_info();
+    init_bed_type_info(printer_model, current_extruder_count);
 	GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
 	GLint logo_tex_size = (max_tex_size < 2048) ? max_tex_size : 2048;
 	for (int i = 0; i < (unsigned int)btCount; ++i) {

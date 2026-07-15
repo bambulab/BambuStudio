@@ -357,7 +357,7 @@ static std::map<BedType, std::string> bed_type_thumbnails = {
     {BedType::btPC, "bed_cool"},
     {BedType::btEP, "bed_engineering"},
     {BedType::btPEI, "bed_high_templ"},
-    {BedType::btPTE, "bed_pei"},
+    {BedType::btPTE, "bed_texture"},
     {BedType::btSuperTack, "bed_cool_supertack"}
 };
 
@@ -3689,8 +3689,15 @@ BedType Sidebar::get_cur_select_bed_type() {
 std::string Sidebar::get_cur_select_bed_image(bool &exist)
 {
     auto select_bed_type   = get_cur_select_bed_type();
-    auto series_suffix_str = m_cur_image_bed_type.empty() ? "" : ("_" + m_cur_image_bed_type);
-    auto image_name        = bed_type_thumbnails[select_bed_type] + series_suffix_str;
+    auto image_name        = bed_type_thumbnails[select_bed_type];
+    // Highest priority: if the current printer model declares a resource-binding
+    auto pm = p->plater->get_curr_printer_model();
+    if (pm && !pm->resource_bind_name.empty()) {
+        image_name             +=  "_" + pm->resource_bind_name;
+    } else {
+        auto series_suffix_str = m_cur_image_bed_type.empty() ? "" : ("_" + m_cur_image_bed_type);
+        image_name += series_suffix_str;
+    }
     auto full_path         = into_u8(Slic3r::GUI::from_u8(Slic3r::var(image_name + ".png")));
     if (boost::filesystem::exists(full_path)) {
         exist = true;

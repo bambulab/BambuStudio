@@ -68,6 +68,7 @@
 #define BBL_JSON_KEY_USE_DOUBLE_EXTRUDER_DEFAULT_TEXTURE  "use_double_extruder_default_texture"
 #define BBL_JSON_KEY_BOTTOM_TEXTURE_RECT        "bottom_texture_rect"
 #define BBL_JSON_KEY_BOTTOM_TEXTURE_RECT_LONGER  "bottom_texture_rect_longer"
+#define BBL_JSON_KEY_BOTTOM_TEXTURE_RECT_LONGER_IGNORE_LIST  "bottom_texture_rect_longer_ignore_list"
 #define BBL_JSON_KEY_MIDDLE_TEXTURE_RECT        "middle_texture_rect"
 #define BBL_JSON_KEY_RIGHT_ICON_OFFSET_BED      "right_icon_offset_bed"
 
@@ -76,6 +77,7 @@
 #define BBL_JSON_KEY_NOT_SUPPORT_BED_TYPE       "not_support_bed_type"
 #define BBL_JSON_KEY_MODEL_ID                   "model_id"
 #define BBL_JSON_KEY_SUPPORT_SIDE_PANEL_FAN     "support_side_panel_fan"
+#define BBL_JSON_KEY_RESOURCE_BIND_NAME          "resource_bind_name"
 
 //BBL: json path
 
@@ -130,6 +132,9 @@ public:
         std::vector<PrinterVariant> variants;
         std::vector<std::string>	default_materials;
         std::vector<std::string>    not_support_bed_types;
+        // Bed types that should keep default bottom texture position
+        // instead of applying bottom_texture_rect_longer.
+        std::vector<std::string>    bottom_texture_rect_longer_ignore_list;
         // Vendor & Printer Model specific print bed model & texture.
         std::string 			 	bed_model;
         std::string 				bed_texture;
@@ -144,6 +149,10 @@ public:
         std::string                 right_icon_offset_bed;
         std::string                 hotend_model;
         std::string                 support_side_panel_fan{ "true" };
+        // Optional per-printer-model suffix appended to the base thumbnail image
+        // name when looking up bed thumbnails (see Sidebar::get_cur_select_bed_image).
+        // Empty means "no override" and the default image name is used as-is.
+        std::string                 resource_bind_name;
         PrinterVariant*       variant(const std::string &name) {
             for (auto &v : this->variants)
                 if (v.name == name)

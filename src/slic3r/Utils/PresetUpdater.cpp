@@ -102,6 +102,12 @@ int copy_directory_fix(const fs::path &source, const fs::path &target, std::stri
         fs::path target_file = target / dir_entry.path().filename();
 
         std::string name = dir_entry.path().filename().string();
+        // Skip IDE / VCS junk that may land under resources/profiles (e.g. Visual
+        // Studio's ".vs" cache with locked sqlite / vsidx files). Copying those
+        // into the user system/ preset tree fails with "Error: open src file"
+        // and aborts the whole GuideFrame install.
+        if (!name.empty() && name[0] == '.')
+            continue;
 
         if (fs::is_directory(dir_entry)) {
             ret = copy_directory_fix(source_file, target_file, error_message, files);
@@ -138,7 +144,9 @@ int copy_directory_inner(const fs::path &source, const fs::path &target, std::st
             // CopyFileResult cfr = Slic3r::GUI::copy_file_gui(source_file, target_file, error_message, false);
             CopyFileResult cfr = copy_file(pair.first.string(), pair.second.string(), error_message, false);
             if (cfr != CopyFileResult::SUCCESS) {
-                BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
+                BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message
+                                        << ", src=" << PathSanitizer::sanitize(pair.first)
+                                        << ", dst=" << PathSanitizer::sanitize(pair.second);
                 retVal.store(-3);
             }
         }

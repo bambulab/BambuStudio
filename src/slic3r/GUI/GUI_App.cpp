@@ -7934,7 +7934,7 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
         // BBS: remove SLA related message
     }
     else if (config_applied){
-        MessageDialog msg_dlg(mainframe, m_install_preset_fail_text, _L("Install presets failed"), wxAPPLY | wxOK);
+        MessageDialog msg_dlg(mainframe, m_install_preset_fail_text, _L("Install presets failed"), wxOK | wxICON_WARNING);
         msg_dlg.ShowModal();
     }
 
@@ -8147,7 +8147,7 @@ void GUI_App::check_updates(const bool verbose)
         //updater_result = preset_updater->config_update(app_config->orig_version(), verbose ? PresetUpdater::UpdateParams::SHOW_TEXT_BOX : PresetUpdater::UpdateParams::SHOW_NOTIFICATION);
         updater_result = preset_updater->config_update(app_config->orig_version(), PresetUpdater::UpdateParams::SHOW_TEXT_BOX);
         if (updater_result == PresetUpdater::R_INCOMPAT_EXIT) {
-            MessageDialog msg_dlg(mainframe, m_install_preset_fail_text, _L("Install presets failed"), wxAPPLY | wxOK);
+            MessageDialog msg_dlg(mainframe, m_install_preset_fail_text, _L("Install presets failed"), wxOK | wxICON_WARNING);
             msg_dlg.ShowModal();
         }
         else if (updater_result == PresetUpdater::R_INCOMPAT_CONFIGURED) {

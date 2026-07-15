@@ -161,7 +161,7 @@ private:
     void calc_bounding_boxes() const;
     void calc_height_limit();
 
-    int get_right_icon_offset_bed(int i = 0);
+    int get_right_icon_offset_bed(int i = 0);//such as delete and lock icons
     void calc_vertex_for_plate_name(GLTexture &texture, GLModel &buffer);
     void calc_vertex_for_plate_name_edit_icon(GLTexture *texture, int index, GLModel &buffer);
     bool calc_bed_3d_boundingbox(BoundingBoxf3 & box_in_plate_origin);
@@ -753,6 +753,24 @@ public:
         };
         std::vector<TexturePart> parts;
         void                     reset();
+
+        // Resolve SVG + position for double-extruder bottom texture parts.
+        // Priority:
+        //   1) bind_name  -> "<left_bottom_base>_<bind>.svg", pos prefers longer then rect
+        //   2) end_name   -> "<bottom_base>_<end>.svg" at bottom_rect
+        //   3) longer rect / bottom_rect -> update_pos only
+        // left_bottom_base / bottom_base are filenames without ".svg".
+        // bed_type + longer_ignore_list: skip bottom_rect_longer when bed type is listed.
+        static void apply_bottom_texture(
+            TexturePart &               part,
+            const std::string &         left_bottom_base,
+            const std::string &         bottom_base,
+            const std::string &         bind_name,
+            const std::string &         bottom_texture_end_name,
+            const std::array<float, 4> &bottom_rect,
+            const std::array<float, 4> &bottom_rect_longer,
+            BedType                     bed_type,
+            const std::vector<std::string> &longer_ignore_list);
     };
 
     static const unsigned int MAX_PLATES_COUNT = MAX_PLATE_COUNT;
@@ -1015,9 +1033,9 @@ public:
         int h;
     };
     bool calc_extruder_only_area(Rect &left_only_rect, Rect &right_only_rect);
-    void init_bed_type_info();
+    void init_bed_type_info(const VendorProfile::PrinterModel *printer_model = nullptr, int current_extruder_count = 0);
     bool init_extruder_only_area_info();
-    void load_bedtype_textures();
+    void load_bedtype_textures(const VendorProfile::PrinterModel *printer_model = nullptr, int current_extruder_count = 0);
     void load_extruder_only_area_textures();
 
     void show_cali_texture(bool show = true);

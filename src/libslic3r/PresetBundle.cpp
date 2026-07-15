@@ -5466,6 +5466,15 @@ VendorProfile::PrinterModel PresetBundle::load_vendor_configs_from_json(const st
                 model.bottom_texture_rect = it.value();
             } else if (boost::iequals(it.key(), BBL_JSON_KEY_BOTTOM_TEXTURE_RECT_LONGER)) {
                 model.bottom_texture_rect_longer = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_BOTTOM_TEXTURE_RECT_LONGER_IGNORE_LIST)) {
+                std::string longer_ignore_field = it.value();
+                if (Slic3r::unescape_strings_cstyle(longer_ignore_field, model.bottom_texture_rect_longer_ignore_list)) {
+                    Slic3r::sort_remove_duplicates(model.bottom_texture_rect_longer_ignore_list);
+                    if (!model.bottom_texture_rect_longer_ignore_list.empty() && model.bottom_texture_rect_longer_ignore_list.front().empty())
+                        model.bottom_texture_rect_longer_ignore_list.erase(model.bottom_texture_rect_longer_ignore_list.begin());
+                } else {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": invalid bottom_texture_rect_longer_ignore_list %1% for Vendor") % longer_ignore_field;
+                }
             } else if (boost::iequals(it.key(), BBL_JSON_KEY_MIDDLE_TEXTURE_RECT)) {
                 model.middle_texture_rect = it.value();
             } else if (boost::iequals(it.key(), BBL_JSON_KEY_USE_RECT_GRID)) {
@@ -5499,6 +5508,8 @@ VendorProfile::PrinterModel PresetBundle::load_vendor_configs_from_json(const st
                 }
             } else if (boost::iequals(it.key(), BBL_JSON_KEY_SUPPORT_SIDE_PANEL_FAN)) {
                 model.support_side_panel_fan = it.value();
+            } else if (boost::iequals(it.key(), BBL_JSON_KEY_RESOURCE_BIND_NAME)) {
+                model.resource_bind_name = it.value();
             }
         }
     } catch (nlohmann::detail::parse_error &err) {
