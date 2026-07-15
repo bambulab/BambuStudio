@@ -1941,33 +1941,40 @@ std::vector<NozzleConfig> Sidebar::priv::collect_nozzle_configs_from_machine(Mac
     if (!obj || !obj->GetNozzleSystem()) { return {}; }
     auto *nozzle_system = obj->GetNozzleSystem();
 
-    // remove duplicated nozzle, total number of nozzle is no more than the number on the rack
-    // if rack not exist, use the number on the extruder
+    // remove duplicated nozzle, total number of nozzle is no more than `extruder_nozzle_count`
     std::vector<const DevNozzle *> nozzles;
-    nozzles.resize(std::max({nozzle_system->GetExtNozzles().size(), nozzle_system->GetRackNozzles().size(), size_t(extruder_nozzle_count)}));
+    nozzles.resize(extruder_nozzle_count);
 
     // addr_id is more robust
-    auto get_id = [](const DevNozzle &nozzle) {
+    auto id_from_rack = [](const DevNozzle &nozzle) {
         auto addr_id = nozzle.GetAddrId();
         if (addr_id) return addr_id.value();
         return nozzle.GetNozzleId();
     };
 
-    // check nozzles on the extruder first
-    for (const auto &[_, nozzle] : nozzle_system->GetExtNozzles()) {
-        if (nozzle.GetLogicExtruderId() != extruder_idx) continue;
-        nozzles[get_id(nozzle)] = &nozzle;
-    }
+    // where the slot should the nozzle on the extuder be in
+    auto id_from_ext = [&nozzles](const DevNozzle &nozzle) -> int {
+        auto addr_id = nozzle.GetAddrId();
+        if (addr_id) return addr_id.value();
+
+        // the first empty slot
+        for (size_t i = 0; i < nozzles.size(); ++i) {
+            if (!nozzles[i]) return i;
+        }
+        return 0;
+    };
 
     // check nozzle on the rack
     for (const auto &[_, nozzle] : nozzle_system->GetRackNozzles()) {
         if (nozzle.GetLogicExtruderId() != extruder_idx) continue;
+        nozzles[id_from_rack(nozzle)] = &nozzle;
+    }
 
-        auto id = get_id(nozzle);
-        if (nozzles[id]) {
-            BOOST_LOG_TRIVIAL(warning) << "duplicated nozzle discared: " << id;
-            continue;
-        }
+    // check nozzles on the extruder
+    for (const auto &[_, nozzle] : nozzle_system->GetExtNozzles()) {
+        if (nozzle.GetLogicExtruderId() != extruder_idx) continue;
+        auto id = id_from_ext(nozzle);
+        if (nozzles[id]) continue;
         nozzles[id] = &nozzle;
     }
 
