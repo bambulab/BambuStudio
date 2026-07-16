@@ -87,6 +87,23 @@ static std::string get_dry_status_img_path(DevAmsType type, DevAms::DryStatus st
     return "";
 }
 
+static std::string get_drying_filament_type_for_command(const FilamentBaseInfo& filament)
+{
+    if (filament.filament_id.rfind("GFS02", 0) == 0) {
+        return "Support for PLA";
+    }
+    if (filament.filament_id.rfind("GFS03", 0) == 0) {
+        return "Support for PA/PET";
+    }
+    if (filament.filament_id.rfind("GFS05", 0) == 0) {
+        return "Support for PLA/PETG";
+    }
+    if (filament.filament_id.rfind("GFS06", 0) == 0) {
+        return "Support for ABS";
+    }
+    return filament.filament_type;
+}
+
 FilamentItemPanel::FilamentItemPanel(wxWindow* parent, const wxString& text, const std::string& icon_name, wxWindowID id)
     : wxPanel(parent, id)
     , m_icon_name(icon_name)
@@ -1006,6 +1023,11 @@ wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
     m_rotate_spool_toggle = new wxCheckBox(parent, wxID_ANY, "");
     m_rotate_spool_toggle->SetValue(false);
 
+#if !BBL_RELEASE_TO_PUBLIC
+    m_rotate_spool_toggle->SetValue(false);
+    m_rotate_spool_toggle->Show(false);
+#endif
+
     m_rotate_spool_toggle->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) {
         bool is_checked = event.IsChecked();
         // Add toggle behavior logic here
@@ -1017,6 +1039,9 @@ wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
     Label* toggle_description = new Label(parent, _L("Rotate spool when drying"), LB_AUTO_WRAP);
     toggle_description->SetForegroundColour(*wxBLACK);
     toggle_description->SetFont(Label::Body_12);
+#if !BBL_RELEASE_TO_PUBLIC
+    toggle_description->Show(false);
+#endif
     toggle_section->Add(toggle_description, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, 0);
 
     info_section->Add(toggle_section, 0, wxEXPAND | wxALL, FromDIP(5));
@@ -1128,8 +1153,13 @@ void AMSDryCtrWin::start_sending_drying_command()
         cooling_temp = static_cast<int>(preset.value().filament_dev_drying_softening_temperature);
     }
 
-    fila_system->CtrlAmsStartDryingHour(std::stoi(m_ams_info.m_ams_id), 0, m_tray_ids[tray_index].filament_type,
-        temperature, time, m_rotate_spool_toggle->GetValue(), cooling_temp, false);
+    bool rotate_spool = false;
+#if BBL_RELEASE_TO_PUBLIC
+    rotate_spool = m_rotate_spool_toggle->GetValue();
+#endif
+
+    fila_system->CtrlAmsStartDryingHour(std::stoi(m_ams_info.m_ams_id), 0, get_drying_filament_type_for_command(m_tray_ids[tray_index]),
+        temperature, time, rotate_spool, cooling_temp, false);
 
     m_dry_setting.m_filament_names[m_ams_info.m_ams_id] = m_tray_ids[tray_index].filament_name;
     m_dry_setting.m_filament_type[m_ams_info.m_ams_id] = m_tray_ids[tray_index].filament_type;
@@ -2128,7 +2158,13 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
             const auto& settings = settings_opt.value();
             m_temperature_input->SetValue(std::to_string(settings.dry_temp));
             m_time_input->SetValue(std::to_string(settings.dry_hour));
-            set_filament_label_by_type(settings.dry_filament);
+            if (!settings.dry_filament.empty()) {
+                m_trays_combo->SetLabel(wxString::FromUTF8(settings.dry_filament));
+            } else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                    << ": dry_settings.dry_filament is empty, fallback to local filament list";
+                set_filament_label_by_type(settings.dry_filament);
+            }
         } else {
             auto it_name = m_dry_setting.m_filament_names.find(ams_id);
             if (it_name != m_dry_setting.m_filament_names.end()) {
