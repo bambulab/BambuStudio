@@ -255,10 +255,13 @@ class AssemblyStepsUtils
     std::string  m_pn_label_rename_buf;
     // Row selection / hover state for the assembly tree view (render_assembly_tree_ui).
     // m_assembly_tree_selected_items holds the (object_idx, volume_idx) of every
-    // selected row (green fill highlight; volume_idx < 0 = object-level). Multiple
-    // rows can be selected; m_assembly_tree_hover_id caches the last hovered item's
-    // ObjectID so hover_tree_item_logic() only fires when the hovered row changes.
+    // selected row (green fill highlight; volume_idx < 0 = object-level).
+    // Plain click = exclusive single select; Ctrl/Cmd = toggle multi-select;
+    // Shift = range-select between m_assembly_tree_selection_anchor and the clicked row.
+    // m_assembly_tree_hover_id caches the last hovered item's ObjectID so
+    // hover_tree_item_logic() only fires when the hovered row changes.
     std::set<std::pair<int, int>> m_assembly_tree_selected_items;
+    std::pair<int, int>           m_assembly_tree_selection_anchor{-1, -1};
     int          m_assembly_tree_hover_id{-1};
     // Inline rename of a tree-view row, keyed by (object_idx, volume_idx) of the
     // backing ModelObject / ModelVolume (volume_idx < 0 = object-level). Mirrors
@@ -384,6 +387,8 @@ class AssemblyStepsUtils
     double                m_play_end_start_time{0.0};
     int                   m_pending_global_frame_index{-1};
     bool                  m_show_video_title_mode{false};
+    // When true, keep world axes/grid visible even in play/export mode.
+    bool                  m_force_show_world_axes{true};
     // MP4-export-only intro: phase 0 displays the cover title for
     bool                  m_video_intro_active{false};
     int                   m_video_intro_phase{0};
@@ -677,6 +682,8 @@ public://logic
     // True whenever the canvas should render the centred title overlay instead
     bool is_show_video_title_mode() const { return m_show_video_title_mode || m_video_intro_active; }
     bool is_play_or_export_mode() const { return is_show_video_title_mode() || is_export_mode() || m_keyframe_playing; }
+    // Hide world axes/grid during play/export. m_force_show_world_axes overrides this.
+    bool should_hide_world_axes() const;
 
     // Drains a frame from the GL pipeline into the MP4 encoder. Must be invoked
     void process_video_capture_per_frame();
@@ -776,8 +783,8 @@ public://logic
                                         float sc);
     // Compute the on-screen (pixel) coordinates of the merged bounding-box center of
     static Vec2d compute_selected_volumes_screen_center(const Camera &camera, const std::vector<GLVolume *> &volumes);
-    // Screen-space anchor center for an arrow-svg note: the bbox center of the
-    Vec2d compute_arrow_svg_anchor_center(const ArrowSvgNote &arrow, const Vec2d &fallback_center);
+    // Screen-space anchor center for an arrow-svg ray: the bbox center of the
+    Vec2d compute_arrow_svg_anchor_center(const ArrowSvgRay &ray, const Vec2d &fallback_center);
     // Screen-space anchor center for any note bound to a set of ModelVolumes: the
     Vec2d compute_note_anchor_center(const std::vector<std::pair<int, int>> &bound_volumes, const Vec2d &fallback_center);
     // Fill bound_volumes with the (object_idx, volume_idx) of the currently selected
@@ -975,6 +982,11 @@ public://imgui
 private://logic
     bool          is_part_number_label_layout_overlapped(const ImVec2 &rect_min, const ImVec2 &rect_max) const;
     static ImVec2 nearest_rect_anchor(const ImVec2 &rect_min, const ImVec2 &rect_max, const ImVec2 &from, bool include_corners = false);
+    // Assign each `from` point a distinct edge/corner on the rect (min total distance).
+    // Falls back to independent nearest when there are more rays than candidate anchors.
+    static void assign_rect_anchors(const ImVec2 &rect_min, const ImVec2 &rect_max,
+                                    const std::vector<ImVec2> &from_pts, bool include_corners,
+                                    std::vector<ImVec2> &out_anchors);
     static bool   rects_overlap(const ImVec2 &lhs_min, const ImVec2 &lhs_max, const ImVec2 &rhs_min, const ImVec2 &rhs_max);
     void update_part_number_label_forbidden_layout_areas(float canvas_w, float canvas_h);
     bool capture_assembly_screenshot_to_png(const std::string &filename);

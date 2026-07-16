@@ -16,16 +16,31 @@
 #include "libslic3r/Geometry.hpp"
 
 namespace Slic3r {
-// ---- ArrowSvgNote: one arrow + icon group ----
+// One SVG arrow ray: tip anchors to bound volumes' on-screen bbox center.
+// Multi-ray notes share one SVG icon: each ray's start+arrow_end_offset equals the
+// same absolute icon center; line tips attach to optimal points on that icon rect.
+struct ArrowSvgRay
+{
+    // The ModelVolumes this ray points at, recorded as (object_idx, volume_idx).
+    std::vector<std::pair<int, int>> bound_volumes{};
+    Vec2d arrow_start_offset{Vec2d::Zero()}; // offset from bound-volumes (or step) bbox screen center
+    Vec2d arrow_end_offset{Vec2d(80, -60)};  // offset from arrow start → shared SVG icon center
+
+    void to_json(nlohmann::json &j) const;
+    void from_json(const nlohmann::json &j);
+};
+
+// ---- ArrowSvgNote: one shared SVG icon + one or more rays (multi-part → multi-arrow) ----
 struct ArrowSvgNote
 {
     std::string svg_name{};
-    // The ModelVolumes this arrow is bound to, recorded as (object_idx, volume_idx)
-    std::vector<std::pair<int, int>> bound_volumes{};
-    Vec2d       arrow_start_offset{Vec2d::Zero()};   // offset from bound-volumes (or step) bbox screen center
-    Vec2d       arrow_end_offset{Vec2d(80, -60)};    // offset from arrow start position
-    Vec2d       label_size{Vec2d(56, 56)};
+    // Shared icon size / tint for every ray of this note.
+    Vec2d              label_size{Vec2d(56, 56)};
     std::array<int, 4> color{0, 200, 80, 230};
+    // One ray per pointed part when created from a multi-selection. Always non-empty
+    // after from_json() (legacy single-arrow JSON is expanded into rays[0]).
+    // All rays share one SVG; rays[0] is the canonical icon-position owner.
+    std::vector<ArrowSvgRay> rays;
 
     void to_json(nlohmann::json &j) const;
     void from_json(const nlohmann::json &j);

@@ -6778,6 +6778,11 @@ public:
     // or an inconsistent restored state), then drop any assembly object left with no volumes. Pruned
     // volumes / objects are logged by name. Prepare-side split/combine keep GUIDs, so they are never pruned.
     void prune_orphan_assemble_parts();
+    // Pull prepare-side ModelObject / ModelInstance printable flags onto the matching assembly objects
+    // (matched by assembly_src_guid). Re-enter must refresh this: add_object() only copies printable at
+    // first clone time, so a later prepare-side "set unprintable" would otherwise leave assembly parts
+    // still looking printable (and skew the assembly thumbnail filter).
+    void sync_assemble_printable_from_prepare();
     // Mirror the assembly steps / tree authored on m_assemble_model back onto the prepare model so the
     // existing 3mf export path (which serializes from the prepare model) persists assembly-view edits.
     void sync_assemble_steps_to_main_model();
@@ -12001,13 +12006,13 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             }
             if (!view3d_volume_idxs.empty())
                 view3d_selection.add_volumes(Selection::Volume, view3d_volume_idxs, true);
-            // Close the independent assembly undo/redo stack and rebind the assembly canvas back to the
-            // shared prepare model, so m_assemble_model can be safely rebuilt on the next entry.
+            // Leave the independent assembly undo/redo stack, but keep the hidden assembly canvas
+            // bound to m_assemble_model. Rebinding it to the prepare model breaks the independent
+            // assembly-view model contract and makes prepare-side preview code lose assembly GLVolumes.
             // leave_assemble_stack() already wrote assembly-view filament / painting edits back onto the
             // prepare model (via sync_assemble_steps_to_main_model), so refresh the prepare scene to show
             // the updated colors.
             leave_assemble_stack();
-            assemble_canvas->set_model(&model);
             view3D->reload_scene(true);
         }
 
@@ -12039,10 +12044,9 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             view3D->get_canvas3d()->unbind_event_handlers();
         else if (old_panel == assemble_view) {
             assemble_view->get_canvas3d()->unbind_event_handlers();
-            // Close the independent assembly undo/redo stack and rebind the assembly canvas back to the
-            // shared prepare model, so m_assemble_model can be safely rebuilt on the next entry.
+            // Leave the independent assembly undo/redo stack, but keep the hidden assembly canvas
+            // bound to m_assemble_model for the same reason as the view3D path above.
             leave_assemble_stack();
-            assemble_view->get_canvas3d()->set_model(&model);
         }
 
         preview->get_canvas3d()->bind_event_handlers();
@@ -17672,6 +17676,48 @@ void Plater::priv::sync_assemble_model_on_enter(const std::vector<size_t>& loade
 
     // Reconcile the other direction: drop assembly parts whose prepare counterpart is gone.
     prune_orphan_assemble_parts();
+    // Refresh printable flags from prepare (clone-time copy alone is stale on re-enter).
+    sync_assemble_printable_from_prepare();
+}
+
+void Plater::priv::sync_assemble_printable_from_prepare()
+{
+    if (!m_assemble_model_valid)
+        return;
+
+    // part_guid -> prepare ModelObject that owns it.
+    std::unordered_map<std::string, ModelObject *> prepare_obj_by_guid;
+    for (ModelObject *po : model.objects)
+        for (ModelVolume *mv : po->volumes)
+            if (mv->is_model_part() && !mv->part_guid().empty())
+                prepare_obj_by_guid.emplace(mv->part_guid(), po);
+
+    for (ModelObject *ao : m_assemble_model.objects) {
+        // Distinct prepare objects referenced by this assembly object's parts.
+        std::set<ModelObject *> sources;
+        for (const ModelVolume *av : ao->volumes) {
+            const std::string &src = av->assembly_src_guid();
+            if (src.empty())
+                continue;
+            auto it = prepare_obj_by_guid.find(src);
+            if (it != prepare_obj_by_guid.end())
+                sources.insert(it->second);
+        }
+        if (sources.empty())
+            continue;
+
+        // AND across prepare sources: any unprintable source makes the assembly object unprintable.
+        bool obj_printable  = true;
+        bool inst_printable = true;
+        for (const ModelObject *po : sources) {
+            obj_printable = obj_printable && po->printable;
+            for (const ModelInstance *inst : po->instances)
+                inst_printable = inst_printable && inst->printable;
+        }
+        ao->printable = obj_printable;
+        for (ModelInstance *inst : ao->instances)
+            inst->printable = inst_printable;
+    }
 }
 
 void Plater::priv::prune_orphan_assemble_parts()

@@ -33,6 +33,8 @@
 #include <wx/filedlg.h>
 #include <wx/glcanvas.h>
 #include <imgui/imgui_internal.h>
+#include <cfloat>
+#include <vector>
 
 #define _steps_nodes m_model->get_assembly_steps_tree_data().nodes
 #define _steps_roots m_model->get_assembly_steps_tree_data().roots
@@ -1372,6 +1374,67 @@ ImVec2 AssemblyStepsUtils::nearest_rect_anchor(const ImVec2 &rect_min, const ImV
     return best;
 }
 
+void AssemblyStepsUtils::assign_rect_anchors(const ImVec2 &rect_min, const ImVec2 &rect_max,
+                                             const std::vector<ImVec2> &from_pts, bool include_corners,
+                                             std::vector<ImVec2> &out_anchors)
+{
+    out_anchors.assign(from_pts.size(), ImVec2(0, 0));
+    if (from_pts.empty())
+        return;
+
+    float cx = (rect_min.x + rect_max.x) * 0.5f;
+    float cy = (rect_min.y + rect_max.y) * 0.5f;
+    std::vector<ImVec2> candidates = {
+        {cx, rect_min.y}, {cx, rect_max.y},
+        {rect_min.x, cy}, {rect_max.x, cy},
+    };
+    if (include_corners) {
+        candidates.push_back({rect_min.x, rect_min.y});
+        candidates.push_back({rect_max.x, rect_min.y});
+        candidates.push_back({rect_min.x, rect_max.y});
+        candidates.push_back({rect_max.x, rect_max.y});
+    }
+
+    const size_t n = from_pts.size();
+    const size_t k = candidates.size();
+    if (n == 1 || n > k) {
+        for (size_t i = 0; i < n; ++i)
+            out_anchors[i] = nearest_rect_anchor(rect_min, rect_max, from_pts[i], include_corners);
+        return;
+    }
+
+    // Brute-force injection: pick distinct candidates minimizing sum of squared distances.
+    // K<=8 and N<=K keeps the search small (P(8,4)=1680).
+    std::vector<int> best_assign(n, -1);
+    float            best_cost = FLT_MAX;
+    std::vector<int> cur(n, -1);
+    std::vector<char> used(k, 0);
+    auto dist2 = [](const ImVec2 &a, const ImVec2 &b) {
+        float dx = a.x - b.x, dy = a.y - b.y;
+        return dx * dx + dy * dy;
+    };
+    auto dfs = [&](auto &&self, size_t depth, float cost) -> void {
+        if (cost >= best_cost)
+            return;
+        if (depth == n) {
+            best_cost   = cost;
+            best_assign = cur;
+            return;
+        }
+        for (size_t c = 0; c < k; ++c) {
+            if (used[c])
+                continue;
+            used[c]    = 1;
+            cur[depth] = (int)c;
+            self(self, depth + 1, cost + dist2(from_pts[depth], candidates[c]));
+            used[c] = 0;
+        }
+    };
+    dfs(dfs, 0, 0.0f);
+    for (size_t i = 0; i < n; ++i)
+        out_anchors[i] = candidates[best_assign[i]];
+}
+
 void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_screen_center)
 {
     if (!m_camera || is_show_video_title_mode()) {
@@ -1442,9 +1505,14 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     // --- Pass 1: collect screen positions & batch-draw all arrow lines ---
     struct ArrowScreenData { ImVec2 start; ImVec2 end; };
     struct ColoredLine { std::pair<ImVec2, ImVec2> line; std::array<float, 4> color; bool draw_arrowhead{false}; };
-    std::vector<ArrowScreenData> screen_data(count);
+    std::vector<std::vector<ArrowScreenData>> screen_data(count);
     std::vector<ColoredLine> line_pairs;
-    line_pairs.reserve(count + plain_arrow_count + (has_pn ? (int)pn_labels.size() : 0));
+    {
+        size_t ray_total = 0;
+        for (const auto &a : arrow_svgs)
+            ray_total += std::max<size_t>(1, a.rays.size());
+        line_pairs.reserve(ray_total + plain_arrow_count + (has_pn ? (int)pn_labels.size() : 0));
+    }
 
     for (int ni = 0; ni < count; ++ni) {
         ArrowSvgNote &arrow = arrow_svgs[ni];
@@ -1452,23 +1520,48 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
         const double svg_min_dim = 32.0 * sc;
         arrow.label_size.x() = std::max(arrow.label_size.x(), svg_min_dim);
         arrow.label_size.y() = std::max(arrow.label_size.y(), svg_min_dim);
-        // Anchor to the bound volumes' on-screen bbox center (falls back to the.
-        const Vec2d arrow_center = compute_arrow_svg_anchor_center(arrow, obj_center);
-        Vec2d start_pos = arrow_center + arrow.arrow_start_offset;
-        Vec2d end_pos   = start_pos  + arrow.arrow_end_offset;
-        screen_data[ni].start = ImVec2((float)start_pos.x(), (float)start_pos.y());
-        screen_data[ni].end   = ImVec2((float)end_pos.x(),   (float)end_pos.y());
-        // Anchor the line tip to the SVG icon's bbox edge (same trick used by
-        ImVec2 icon_min((float)(end_pos.x() - arrow.label_size.x() * 0.5),
-                        (float)(end_pos.y() - arrow.label_size.y() * 0.5));
-        ImVec2 icon_max((float)(end_pos.x() + arrow.label_size.x() * 0.5),
-                        (float)(end_pos.y() + arrow.label_size.y() * 0.5));
-        ImVec2 from_pt((float)start_pos.x(), (float)start_pos.y());
-        ImVec2 anchor  = nearest_rect_anchor(icon_min, icon_max, from_pt,true);
-        line_pairs.push_back({{
-            ImVec2((float)start_pos.x(), vp_height - (float)start_pos.y()),
-            ImVec2(anchor.x,             vp_height - anchor.y)},
-            note_color_to_float_array(arrow.color)});
+        if (arrow.rays.empty())
+            arrow.rays.emplace_back();
+
+        // Shared SVG icon: rays[0] owns the absolute icon center; every ray's
+        // line tip attaches to an optimally assigned point on that one rect.
+        std::vector<ImVec2> ray_starts;
+        ray_starts.reserve(arrow.rays.size());
+        for (ArrowSvgRay &ray : arrow.rays) {
+            const Vec2d arrow_center = compute_arrow_svg_anchor_center(ray, obj_center);
+            const Vec2d start_pos    = arrow_center + ray.arrow_start_offset;
+            ray_starts.emplace_back((float)start_pos.x(), (float)start_pos.y());
+        }
+        const Vec2d icon_center_v =
+            Vec2d(ray_starts.front().x, ray_starts.front().y) + arrow.rays.front().arrow_end_offset;
+        const ImVec2 icon_center((float)icon_center_v.x(), (float)icon_center_v.y());
+        const ImVec2 icon_min((float)(icon_center_v.x() - arrow.label_size.x() * 0.5),
+                              (float)(icon_center_v.y() - arrow.label_size.y() * 0.5));
+        const ImVec2 icon_max((float)(icon_center_v.x() + arrow.label_size.x() * 0.5),
+                              (float)(icon_center_v.y() + arrow.label_size.y() * 0.5));
+
+        // Keep secondary rays' end offsets aligned to the shared absolute icon center
+        // (legacy fanned multi-icon notes + start-drag of other rays stay consistent).
+        for (size_t ri = 1; ri < arrow.rays.size(); ++ri) {
+            arrow.rays[ri].arrow_end_offset =
+                icon_center_v - Vec2d(ray_starts[ri].x, ray_starts[ri].y);
+        }
+
+        std::vector<ImVec2> anchors;
+        assign_rect_anchors(icon_min, icon_max, ray_starts, /*include_corners=*/true, anchors);
+
+        screen_data[ni].reserve(arrow.rays.size());
+        for (size_t ri = 0; ri < arrow.rays.size(); ++ri) {
+            ArrowScreenData sd;
+            sd.start = ray_starts[ri];
+            sd.end   = icon_center; // shared icon center for hit-test / drag
+            screen_data[ni].push_back(sd);
+            const ImVec2 &anchor = anchors[ri];
+            line_pairs.push_back({{
+                ImVec2(ray_starts[ri].x, vp_height - ray_starts[ri].y),
+                ImVec2(anchor.x,         vp_height - anchor.y)},
+                note_color_to_float_array(arrow.color)});
+        }
     }
     std::vector<ArrowScreenData> plain_arrow_screen_data(plain_arrow_count);
     for (int ni = 0; ni < plain_arrow_count; ++ni) {
@@ -1754,63 +1847,80 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     for (int ni = 0; ni < count; ++ni) {
         ArrowSvgNote &arrow = arrow_svgs[ni];
         clamp_note_size(arrow.label_size, 32.0 * sc, 32.0 * sc);
-        const ImVec2 &arrow_start = screen_data[ni].start;
-        const ImVec2 &arrow_end   = screen_data[ni].end;
+        if (arrow.rays.empty())
+            arrow.rays.emplace_back();
+        if (screen_data[ni].size() != arrow.rays.size())
+            continue;
+
         ImVec2 icon_box_sz((float)arrow.label_size.x(), (float)arrow.label_size.y());
         bool arrow_selected = is_note_selected(AssemblyNoteSelectionType::ArrowSvg, ni);
-
         ImTextureID tex = get_arrow_svg_icon(arrow.svg_name);
-        draw_arrow_svg_icon(ni, arrow_end, icon_box_sz, tex, arrow_selected);
 
-        // Draggable handle for arrow start (transparent ImGui window)
-        if (arrow_selected) {
-            char start_win[64];
-            snprintf(start_win, sizeof(start_win), "##arrow_start_%d", ni);
-            float drag_sz = handle_sz * 2;
-            ImGui::SetNextWindowPos(ImVec2(arrow_start.x - handle_sz, arrow_start.y - handle_sz), ImGuiCond_Always);
-            ImGui::SetNextWindowSize(ImVec2(drag_sz, drag_sz));
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-            ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
-            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-            if (ImGui::Begin(start_win, nullptr, drag_flags)) {
-                ImGui::PushID(ni * 2);
-                ImGui::InvisibleButton("##sd", ImVec2(drag_sz, drag_sz));
-                if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
-                    set_cursor(AssemblyNoteCursorType::Move);
-                    note_cursor_requested = true;
-                }
-                if (ImGui::IsItemClicked(0))
-                    activate_note_edit_controls(AssemblyNoteSelectionType::ArrowSvg, ni);
-                if (ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
-                    ImVec2 delta = ImGui::GetIO().MouseDelta;
-                    // Move only the start anchor; keep the SVG icon (end) in place
-                    arrow.arrow_start_offset.x() += delta.x;
-                    arrow.arrow_start_offset.y() += delta.y;
-                    arrow.arrow_end_offset.x()   -= delta.x;
-                    arrow.arrow_end_offset.y()   -= delta.y;
-                    any_changed = true;
-                }
-                ImGui::PopID();
+        // One shared SVG icon (screen_data[*].end is the shared icon center).
+        const ImVec2 &icon_center = screen_data[ni].front().end;
+        draw_arrow_svg_icon(ni, icon_center, icon_box_sz, tex, arrow_selected);
+
+        auto apply_icon_delta = [&](float dx, float dy) {
+            for (ArrowSvgRay &r : arrow.rays) {
+                r.arrow_end_offset.x() += dx;
+                r.arrow_end_offset.y() += dy;
             }
-            ImGui::End();
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar(2);
-            draw_list->AddCircleFilled(arrow_start, handle_sz * 0.6f, IM_COL32(0, 200, 80, 150));
+        };
+
+        for (int ri = 0; ri < (int)arrow.rays.size(); ++ri) {
+            ArrowSvgRay &ray = arrow.rays[ri];
+            const ImVec2 &arrow_start = screen_data[ni][ri].start;
+
+            // Draggable handle for arrow start (transparent ImGui window)
+            if (arrow_selected) {
+                char start_win[64];
+                snprintf(start_win, sizeof(start_win), "##arrow_start_%d_%d", ni, ri);
+                float drag_sz = handle_sz * 2;
+                ImGui::SetNextWindowPos(ImVec2(arrow_start.x - handle_sz, arrow_start.y - handle_sz), ImGuiCond_Always);
+                ImGui::SetNextWindowSize(ImVec2(drag_sz, drag_sz));
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+                ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+                if (ImGui::Begin(start_win, nullptr, drag_flags)) {
+                    ImGui::PushID(ni * 128 + ri * 2);
+                    ImGui::InvisibleButton("##sd", ImVec2(drag_sz, drag_sz));
+                    if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
+                        set_cursor(AssemblyNoteCursorType::Move);
+                        note_cursor_requested = true;
+                    }
+                    if (ImGui::IsItemClicked(0))
+                        activate_note_edit_controls(AssemblyNoteSelectionType::ArrowSvg, ni);
+                    if (ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
+                        ImVec2 delta = ImGui::GetIO().MouseDelta;
+                        // Move only this ray's start; keep the shared SVG icon fixed.
+                        ray.arrow_start_offset.x() += delta.x;
+                        ray.arrow_start_offset.y() += delta.y;
+                        ray.arrow_end_offset.x()   -= delta.x;
+                        ray.arrow_end_offset.y()   -= delta.y;
+                        any_changed = true;
+                    }
+                    ImGui::PopID();
+                }
+                ImGui::End();
+                ImGui::PopStyleColor(2);
+                ImGui::PopStyleVar(2);
+                draw_list->AddCircleFilled(arrow_start, handle_sz * 0.6f, IM_COL32(0, 200, 80, 150));
+            }
         }
 
-        // Draggable for arrow end (icon area, transparent ImGui window)
+        // Shared icon drag / resize / close (once per note).
         {
             char end_win[64];
             snprintf(end_win, sizeof(end_win), "##arrow_end_%d", ni);
-            ImGui::SetNextWindowPos(ImVec2(arrow_end.x - icon_box_sz.x * 0.5f, arrow_end.y - icon_box_sz.y * 0.5f), ImGuiCond_Always);
+            ImGui::SetNextWindowPos(ImVec2(icon_center.x - icon_box_sz.x * 0.5f, icon_center.y - icon_box_sz.y * 0.5f), ImGuiCond_Always);
             ImGui::SetNextWindowSize(icon_box_sz);
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             if (ImGui::Begin(end_win, nullptr, drag_flags)) {
-                ImGui::PushID(ni * 2 + 1);
+                ImGui::PushID(ni * 128 + 1);
                 ImGui::InvisibleButton("##ed", icon_box_sz);
                 if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
                     set_cursor(AssemblyNoteCursorType::Move);
@@ -1820,8 +1930,7 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
                     activate_note_edit_controls(AssemblyNoteSelectionType::ArrowSvg, ni);
                 if (arrow_selected && ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
                     ImVec2 delta = ImGui::GetIO().MouseDelta;
-                    arrow.arrow_end_offset.x() += delta.x;
-                    arrow.arrow_end_offset.y() += delta.y;
+                    apply_icon_delta(delta.x, delta.y);
                     any_changed = true;
                 }
                 ImGui::PopID();
@@ -1832,16 +1941,9 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
         }
 
         if (arrow_selected) {
-            ImVec2 box_min(arrow_end.x - icon_box_sz.x * 0.5f, arrow_end.y - icon_box_sz.y * 0.5f);
-            ImVec2 box_max(arrow_end.x + icon_box_sz.x * 0.5f, arrow_end.y + icon_box_sz.y * 0.5f);
+            ImVec2 box_min(icon_center.x - icon_box_sz.x * 0.5f, icon_center.y - icon_box_sz.y * 0.5f);
+            ImVec2 box_max(icon_center.x + icon_box_sz.x * 0.5f, icon_center.y + icon_box_sz.y * 0.5f);
 
-            // 4 corner resize handles in the same layout as TextLabelNote
-            // (corner index: 0=tl, 1=tr, 2=bl, 3=br). The icon stays centered
-            // on arrow_end, so dragging any corner shifts arrow_end_offset by
-            // half the mouse delta (the box center moves half of the corner
-            // movement when the opposite corner is anchored) while label_size
-            // changes by the full delta with per-axis sign:
-            //   tl: -dx, -dy   tr: +dx, -dy   bl: -dx, +dy   br: +dx, +dy
             auto drag_svg_resize_handle = [&](const char *id, const ImVec2 &handle_center, int corner) {
                 ImVec2 handle_min = draw_note_resize_handle(handle_center);
                 ImGui::SetNextWindowPos(handle_min, ImGuiCond_Always);
@@ -1859,8 +1961,7 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
                     }
                     if (ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
                         ImVec2 delta = ImGui::GetIO().MouseDelta;
-                        arrow.arrow_end_offset.x() += delta.x * 0.5;
-                        arrow.arrow_end_offset.y() += delta.y * 0.5;
+                        apply_icon_delta(delta.x * 0.5f, delta.y * 0.5f);
                         const float sx = (corner == 1 || corner == 3) ? 1.0f : -1.0f;
                         const float sy = (corner == 2 || corner == 3) ? 1.0f : -1.0f;
                         arrow.label_size.x() += sx * delta.x;
@@ -1883,9 +1984,6 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
             snprintf(resize_win_id, sizeof(resize_win_id), "##arrow_svg_resize_br_%d", ni);
             drag_svg_resize_handle(resize_win_id, box_max, 3);
 
-            // Close button sits OUTSIDE the tr resize handle (matches
-            // TextLabelNote's layout: tr-handle | gap | close-button) so it
-            // never overlaps with the newly-added tr handle.
             ImVec2 close_center(box_max.x + resize_sz + close_r + 2.0f * sc, box_min.y);
             char close_win_id[64];
             snprintf(close_win_id, sizeof(close_win_id), "##arrow_svg_close_win_%d", ni);
@@ -2726,6 +2824,7 @@ void AssemblyStepsUtils::render_assembly_structure_option_menu(
 
         if (ImGui::MenuItem(_u8L("Set export file parameters").c_str()))
             show_pdf_export_settings_dialog();
+        ImGui::MenuItem(_u8L("Force show world axes").c_str(), nullptr, &m_force_show_world_axes);
 #if !BBL_RELEASE_TO_PUBLIC
         ImGui::Separator();
         {
@@ -4158,7 +4257,7 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
         collect_visible_row(tree.roots[root_idx], 0, root_idx + 1 == tree.roots.size());
 
     auto render_row = [this, &tree, &checked, &node_checkable, &set_subtree_checked, &get_subtree_state,
-                       &has_only_collapsible_child, &any_row_hovered, search_text_lc, row_h, indent_step,
+                       &has_only_collapsible_child, &any_row_hovered, &visible_rows, search_text_lc, row_h, indent_step,
                        checkbox_size, arrow_size, line_col, text_col, row_select_col, row_hover_border_col,
                        draw_checkbox, sc, options, &result]
                       (const VisibleAssemblyTreeRow& row) {
@@ -4311,22 +4410,71 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
             } else if (options.enable_row_select && node.object_idx >= 0) {
                 const std::pair<int, int> key(node.object_idx, node.volume_idx);
                 if (row_double_clicked) {
-                    // Double-click: keep the row selected (undo the first click's
-                    // toggle if needed) and enter inline rename.
+                    // Double-click: keep the row selected and enter inline rename.
                     m_assembly_tree_selected_items.insert(key);
+                    m_assembly_tree_selection_anchor = key;
                     apply_tree_items_selection_to_canvas();
                     begin_tree_item_rename(node.object_idx, node.volume_idx, node.label);
                     ImGui::PopID();
                     return;
                 }
-                // Plain click toggles selection (green highlight) and mirrors it
-                // onto the canvas. Several objects/parts can be selected with
-                // plain clicks; clicking an already selected row deselects it.
-                auto it = m_assembly_tree_selected_items.find(key);
-                if (it != m_assembly_tree_selected_items.end())
-                    m_assembly_tree_selected_items.erase(it);
-                else
+
+                const ImGuiIO &io    = ImGui::GetIO();
+                const bool     ctrl  = io.KeyCtrl || io.KeySuper;
+                const bool     shift = io.KeyShift;
+
+                if (shift && m_assembly_tree_selection_anchor.first >= 0) {
+                    // Shift+click: select the contiguous visible-row range from the
+                    // selection anchor to this row. Without Ctrl the previous
+                    // selection is replaced; with Ctrl the range is added.
+                    int idx_a = -1;
+                    int idx_b = -1;
+                    for (int i = 0; i < (int) visible_rows.size(); ++i) {
+                        const int nid = visible_rows[i].node_id;
+                        if (nid < 0 || nid >= (int) tree.nodes.size())
+                            continue;
+                        const auto &n = tree.nodes[nid];
+                        if (n.object_idx < 0)
+                            continue;
+                        const std::pair<int, int> k(n.object_idx, n.volume_idx);
+                        if (k == m_assembly_tree_selection_anchor)
+                            idx_a = i;
+                        if (k == key)
+                            idx_b = i;
+                    }
+                    if (idx_a >= 0 && idx_b >= 0) {
+                        if (!ctrl)
+                            m_assembly_tree_selected_items.clear();
+                        const int lo = std::min(idx_a, idx_b);
+                        const int hi = std::max(idx_a, idx_b);
+                        for (int i = lo; i <= hi; ++i) {
+                            const int nid = visible_rows[i].node_id;
+                            if (nid < 0 || nid >= (int) tree.nodes.size())
+                                continue;
+                            const auto &n = tree.nodes[nid];
+                            if (n.object_idx >= 0)
+                                m_assembly_tree_selected_items.emplace(n.object_idx, n.volume_idx);
+                        }
+                    } else {
+                        // Anchor not in the current visible list: fall back to exclusive select.
+                        m_assembly_tree_selected_items.clear();
+                        m_assembly_tree_selected_items.insert(key);
+                        m_assembly_tree_selection_anchor = key;
+                    }
+                } else if (ctrl) {
+                    // Ctrl/Cmd+click: toggle this row in/out of the multi-selection.
+                    auto it = m_assembly_tree_selected_items.find(key);
+                    if (it != m_assembly_tree_selected_items.end())
+                        m_assembly_tree_selected_items.erase(it);
+                    else
+                        m_assembly_tree_selected_items.insert(key);
+                    m_assembly_tree_selection_anchor = key;
+                } else {
+                    // Plain click: exclusive single select (deselect all others).
+                    m_assembly_tree_selected_items.clear();
                     m_assembly_tree_selected_items.insert(key);
+                    m_assembly_tree_selection_anchor = key;
+                }
                 apply_tree_items_selection_to_canvas();
             }
         }

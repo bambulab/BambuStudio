@@ -502,6 +502,7 @@ void AssemblyStepsUtils::apply_tree_items_selection_to_canvas()
 void AssemblyStepsUtils::seed_tree_selected_items_from_canvas(const AssemblyTreeData &tree)
 {
     m_assembly_tree_selected_items.clear();
+    m_assembly_tree_selection_anchor = {-1, -1};
     if (!m_selection || !m_model || tree.nodes.empty())
         return;
 
@@ -566,6 +567,8 @@ void AssemblyStepsUtils::seed_tree_selected_items_from_canvas(const AssemblyTree
         if (sel_pairs.count({n.object_idx, n.volume_idx}) > 0)
             m_assembly_tree_selected_items.emplace(n.object_idx, n.volume_idx);
     }
+    if (!m_assembly_tree_selected_items.empty())
+        m_assembly_tree_selection_anchor = *m_assembly_tree_selected_items.begin();
 }
 
 bool AssemblyStepsUtils::is_standalone_assembly_tree_list_visible() const
@@ -4441,8 +4444,35 @@ bool AssemblyStepsUtils::add_arrow_svg_note(const std::string &svg_name)
     ArrowSvgNote arrow;
     arrow.svg_name = svg_name;
     arrow.color    = note_color_from_palette_index(m_guide_note_color_selected);
-    // Bind the arrow to the ModelVolumes currently selected, so its start point can anchor to their on-screen bbox center (computed at render time).
-    bind_current_selection_volumes(arrow.bound_volumes);
+
+    // One ray per selected volume so multi-select creates multiple arrows at once,
+    // all sharing a single SVG icon (one icon, N leader lines).
+    // No selection → a single unbound ray (anchors to the step screen center).
+    std::vector<std::pair<int, int>> selected;
+    bind_current_selection_volumes(selected);
+    if (selected.empty()) {
+        arrow.rays.emplace_back();
+    } else {
+        const Vec2d base_end(80.0, -60.0);
+        arrow.rays.reserve(selected.size());
+        std::vector<Vec2d> starts;
+        starts.reserve(selected.size());
+        Vec2d icon_sum = Vec2d::Zero();
+        for (const auto &key : selected) {
+            const Vec2d start = compute_note_anchor_center({key}, m_selected_screen_center_);
+            starts.push_back(start);
+            icon_sum += start;
+        }
+        // Shared icon sits at the average of part centers + default end offset.
+        const Vec2d icon = icon_sum / static_cast<double>(starts.size()) + base_end;
+        for (size_t i = 0; i < selected.size(); ++i) {
+            ArrowSvgRay ray;
+            ray.bound_volumes    = {selected[i]};
+            ray.arrow_end_offset = icon - starts[i];
+            arrow.rays.push_back(std::move(ray));
+        }
+    }
+
     cur_entry.data.assembly_note.arrow_svgs.push_back(std::move(arrow));
     m_note_selected_type = AssemblyNoteSelectionType::ArrowSvg;
     m_note_selected_idx = (int)cur_entry.data.assembly_note.arrow_svgs.size() - 1;
@@ -5396,9 +5426,9 @@ Vec2d AssemblyStepsUtils::compute_note_anchor_center(const std::vector<std::pair
     return compute_selected_volumes_screen_center(*m_camera, bound);
 }
 
-Vec2d AssemblyStepsUtils::compute_arrow_svg_anchor_center(const ArrowSvgNote &arrow, const Vec2d &fallback_center)
+Vec2d AssemblyStepsUtils::compute_arrow_svg_anchor_center(const ArrowSvgRay &ray, const Vec2d &fallback_center)
 {
-    return compute_note_anchor_center(arrow.bound_volumes, fallback_center);
+    return compute_note_anchor_center(ray.bound_volumes, fallback_center);
 }
 
 void AssemblyStepsUtils::bind_current_selection_volumes(std::vector<std::pair<int, int>> &bound_volumes) const
@@ -5411,17 +5441,6 @@ void AssemblyStepsUtils::bind_current_selection_volumes(std::vector<std::pair<in
                 bound_volumes.emplace_back(v->object_idx(), v->volume_idx());
         }
     }
-    if (!bound_volumes.empty())
-        return;
-
-    // Canvas selection is often empty after List OK (m_select_all_when_click_in_step_card
-    // defaults to false). Fall back to the current step's volume membership so
-    // clip/glue/screw/text notes still anchor to the parts in this step.
-    const int folder = find_parent_folder(m_selected_node);
-    if (folder < 0)
-        return;
-    for (const auto &key : collect_folder_volume_pairs(folder))
-        bound_volumes.push_back(key);
 }
 
 void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {
@@ -5470,8 +5489,10 @@ void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {
     // sync with the current scene selection instead of waiting for a later mouse event.
     if (m_selection && !m_selection->is_empty())
         seed_tree_selected_items_from_canvas(m_model->get_assembly_tree_data());
-    else
+    else {
         m_assembly_tree_selected_items.clear();
+        m_assembly_tree_selection_anchor = {-1, -1};
+    }
 
 #if !BBL_RELEASE_TO_PUBLIC
     // m_play_video_and_show_panels_debug = true;
@@ -5895,6 +5916,7 @@ void AssemblyStepsUtils::exit_render_assembly_tree_ui()
     m_structure_add_tree_opened_this_frame = false;
     // Drop panel-local row state so a reopened tree starts clean.
     m_assembly_tree_selected_items.clear();
+    m_assembly_tree_selection_anchor = {-1, -1};
     m_assembly_tree_hover_id = -1;
     m_tree_item_rename_object_idx = -1;
     m_tree_item_rename_volume_idx = -1;
@@ -8172,6 +8194,10 @@ bool AssemblyStepsUtils::capture_assembly_screenshot_to_png(const std::string &f
     const bool ok = Slic3r::png::write_gl_rgba_to_file(filename.c_str(), w, h, pixels.data());
     BOOST_LOG_TRIVIAL(info) << "capture_assembly_screenshot_to_png: screenshot saved to " << filename << ", ok=" << ok;
     return ok;
+}
+
+bool AssemblyStepsUtils::should_hide_world_axes() const {
+    return !m_force_show_world_axes || is_play_or_export_mode();
 }
 
 void AssemblyStepsUtils::process_video_capture_per_frame()

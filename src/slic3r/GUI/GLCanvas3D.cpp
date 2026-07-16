@@ -2920,7 +2920,7 @@ void GLCanvas3D::render(bool only_init)
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
         //BBS: add outline logic
-        bool hide_axes_in_assembly = m_assembly_steps && (m_assembly_steps->has_selected_step_node() || m_assembly_steps->is_play_or_export_mode());
+        bool hide_axes_in_assembly = m_assembly_steps && m_assembly_steps->should_hide_world_axes();
         if (m_show_world_axes && !hide_axes_in_assembly) {
             m_axes.render();
         }
@@ -5417,8 +5417,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.ignore_left_up = true;
     m_tooltip.set_in_imgui(false);
     if (imgui->update_mouse_data(evt)) {
-        if (evt.LeftDown() && m_canvas != nullptr)
+        if (evt.LeftDown() && m_canvas != nullptr) {
             m_canvas->SetFocus();
+            // SetFocus may no-op when the canvas already has focus (no SET_FOCUS
+            // event). Always bind the IME HWND/NSView here so CJK candidate UI
+            // can follow the ImGui caret on the first click into InputText.
+            ImGui::GetIO().ImeWindowHandle = m_canvas->GetHandle();
+        }
         m_mouse.position = evt.Leaving() ? Vec2d(-1.0, -1.0) : pos.cast<double>();
         m_tooltip.set_in_imgui(true);
         render();
@@ -6155,15 +6160,14 @@ void GLCanvas3D::on_paint(wxPaintEvent& evt)
 
 void GLCanvas3D::on_kill_focus(wxFocusEvent &evt)
 {
-#ifdef __APPLE__
-    // Drop the IME target if it points at this canvas, so the imgui IME-position
-    // callback never dereferences a stale native view handle. Deactivate the
-    // context first (the per-frame sync stops running once the handle is gone).
+    // Drop the IME target if it points at this canvas so the OS IME is not left
+    // anchored to a stale HWND/NSView (Windows Imm* / macOS NSTextInputClient).
     if (m_canvas != nullptr && ImGui::GetIO().ImeWindowHandle == m_canvas->GetHandle()) {
+#ifdef __APPLE__
         mac_ime_sync_active(m_canvas->GetHandle(), false);
+#endif
         ImGui::GetIO().ImeWindowHandle = nullptr;
     }
-#endif
     ImGui::SetWindowFocus(nullptr);
     render();
     evt.Skip();
@@ -6175,15 +6179,17 @@ void GLCanvas3D::force_set_focus() {
 
 void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
 {
-#ifdef __APPLE__
-    // Enable CJK IME composition over this canvas (wxWidgets ships only stub
-    // NSTextInputClient methods for custom views, which blocks IME on macOS).
-    // Also route imgui's IME cursor position to this canvas' native view.
+    // Route imgui IME caret position to this canvas' native handle.
+    // Required on Windows so ImmSetCompositionWindow/ImmSetCandidateWindow can
+    // place the CJK candidate UI near the InputText caret (was Apple-only before).
     if (m_canvas != nullptr) {
+#ifdef __APPLE__
+        // Enable CJK IME composition over this canvas (wxWidgets ships only stub
+        // NSTextInputClient methods for custom views, which blocks IME on macOS).
         mac_ime_install(m_canvas->GetHandle(), []() { return ImGui::GetIO().WantTextInput; });
+#endif
         ImGui::GetIO().ImeWindowHandle = m_canvas->GetHandle();
     }
-#endif
     m_tooltip_enabled = false;
     _refresh_if_shown_on_screen();
     m_tooltip_enabled = true;
@@ -12422,14 +12428,15 @@ void GLCanvas3D::_show_isolated_volumes_notification()
             names += "...";
             break;
         }
+        if (!iv.vol) {
+            continue;
+        }
         if (!names.empty()) names += ", ";
         names += iv.vol->name;
         ++count;
     }
     std::string info_text = _u8L("Overview") + ": " + _u8L("Isolated objects detected") + ": " + names + "\n"
                           + _u8L("Click to move them closer to the main body.");
-
-
 
     NotificationManager* notify_mgr = plater->get_notification_manager();
     notify_mgr->push_notification(NotificationType::BBLIsolatedVolumeInfo,
@@ -13033,25 +13040,90 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
         assemble_candidate_volumes.reserve(volumes.volumes.size());
         assemble_candidate_boxes.reserve(volumes.volumes.size());
 
+        struct AssemblyVolumeRef {
+            ModelObject *object{nullptr};
+            ModelVolume *volume{nullptr};
+        };
+        std::unordered_map<size_t, AssemblyVolumeRef> target_by_volume_id;
+        std::unordered_map<std::string, AssemblyVolumeRef> target_by_guid;
+        for (ModelObject *object : model_objects) {
+            if (object == nullptr)
+                continue;
+            for (ModelVolume *volume : object->volumes) {
+                if (volume == nullptr || !volume->is_model_part())
+                    continue;
+                AssemblyVolumeRef ref{object, volume};
+                target_by_volume_id.emplace(volume->id().id, ref);
+                if (!volume->assembly_src_guid().empty())
+                    target_by_guid.emplace(volume->assembly_src_guid(), ref);
+                if (!volume->part_guid().empty())
+                    target_by_guid.emplace(volume->part_guid(), ref);
+            }
+        }
+
+        std::unordered_map<size_t, ModelVolume *> prepare_by_volume_id;
+        for (ModelObject *object : wxGetApp().plater()->model().objects) {
+            if (object == nullptr)
+                continue;
+            for (ModelVolume *volume : object->volumes)
+                if (volume != nullptr && volume->is_model_part())
+                    prepare_by_volume_id.emplace(volume->id().id, volume);
+        }
+
+        auto instance_for_volume = [](ModelObject *object, const GLVolume *vol) -> ModelInstance * {
+            if (object == nullptr || object->instances.empty())
+                return nullptr;
+            for (ModelInstance *instance : object->instances)
+                if (instance != nullptr && instance->id().id == vol->geometry_id.second)
+                    return instance;
+            const int inst_idx = vol->instance_idx();
+            if (inst_idx >= 0 && inst_idx < (int) object->instances.size())
+                return object->instances[inst_idx];
+            return object->instances.front();
+        };
+
+        auto resolve_assembly_volume_ref = [&](const GLVolume *vol) -> AssemblyVolumeRef {
+            auto prepare_it = prepare_by_volume_id.find(vol->geometry_id.first);
+            if (prepare_it != prepare_by_volume_id.end()) {
+                const ModelVolume *prepare_volume = prepare_it->second;
+                const std::string &guid = !prepare_volume->assembly_src_guid().empty() ?
+                    prepare_volume->assembly_src_guid() : prepare_volume->part_guid();
+                auto target_by_guid_it = target_by_guid.find(guid);
+                if (target_by_guid_it != target_by_guid.end())
+                    return target_by_guid_it->second;
+            }
+
+            auto target_by_id_it = target_by_volume_id.find(vol->geometry_id.first);
+            if (target_by_id_it != target_by_volume_id.end())
+                return target_by_id_it->second;
+
+            // Last-resort index fallback for malformed legacy data without GUIDs.
+            const int obj_idx = vol->object_idx();
+            const int vol_idx = vol->volume_idx();
+            if (obj_idx >= 0 && obj_idx < (int) model_objects.size()) {
+                ModelObject *object = model_objects[obj_idx];
+                if (object != nullptr && vol_idx >= 0 && vol_idx < (int) object->volumes.size())
+                    return AssemblyVolumeRef{object, object->volumes[vol_idx]};
+            }
+            return {};
+        };
+
         for (GLVolume *vol : volumes.volumes) {
-            if (vol->is_modifier || vol->is_wipe_tower) {
+            // Match plate-thumbnail path (is_volume_in_plate_boundingbox): skip unprintable
+            // instances so they neither render nor skew BVH / assemble-ratio.
+            if (vol->is_modifier || vol->is_wipe_tower || !vol->printable) {
                 continue;
             }
 
-            const int obj_idx  = vol->object_idx();
-            const int inst_idx = vol->instance_idx();
-            const int vol_idx  = vol->volume_idx();
-            if (obj_idx >= 0 && obj_idx < (int) model_objects.size()) {
-                ModelObject *model_object = model_objects[obj_idx];
-                if (model_object != nullptr && inst_idx >= 0 && inst_idx < (int) model_object->instances.size() && vol_idx >= 0 &&
-                    vol_idx < (int) model_object->volumes.size()) {
-                    assemble_volume_backups.emplace_back(
-                        VolumeTransformBackup{vol, vol->get_instance_transformation(), vol->get_volume_transformation(), vol->get_offset_to_assembly()});
-                    vol->set_instance_transformation(model_object->instances[inst_idx]->get_assemble_transformation());
-                    // Assembly thumbnail uses per-volume assemble matrix (falls back when not initialized).
-                    vol->set_volume_transformation(model_object->volumes[vol_idx]->get_assemble_transformation());
-                    vol->set_offset_to_assembly(model_object->instances[inst_idx]->get_offset_to_assembly());
-                }
+            const AssemblyVolumeRef ref = resolve_assembly_volume_ref(vol);
+            ModelInstance *instance = instance_for_volume(ref.object, vol);
+            if (ref.volume != nullptr && instance != nullptr) {
+                assemble_volume_backups.emplace_back(
+                    VolumeTransformBackup{vol, vol->get_instance_transformation(), vol->get_volume_transformation(), vol->get_offset_to_assembly()});
+                vol->set_instance_transformation(instance->get_assemble_transformation());
+                // Assembly thumbnail uses per-volume assemble matrix (falls back when not initialized).
+                vol->set_volume_transformation(ref.volume->get_assemble_transformation());
+                vol->set_offset_to_assembly(instance->get_offset_to_assembly());
             }
             assemble_candidate_volumes.emplace_back(vol);
             assemble_candidate_boxes.emplace_back(vol->transformed_bounding_box());

@@ -2925,6 +2925,8 @@ void ImGuiWrapper::init_input()
             mac_ime_set_caret(view, x, y, 0);
     };
 #endif
+    // Windows: keep imgui's default ImeSetInputScreenPosFn (ImmSetCompositionWindow).
+    // It needs io.ImeWindowHandle = canvas HWND, set in GLCanvas3D focus / ImGui click.
 
     // Setup clipboard interaction callbacks
     io.SetClipboardTextFn = clipboard_set;

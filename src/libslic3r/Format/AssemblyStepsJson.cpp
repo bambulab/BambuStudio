@@ -145,34 +145,66 @@ static Transform3d transform3d_from_json(const nlohmann::json &j)
     }
     return t;
 }
+// ---- ArrowSvgRay ----
+void ArrowSvgRay::to_json(nlohmann::json &j) const
+{
+    bound_volumes_to_json(j, "bound_volumes", bound_volumes);
+    j["arrow_start_offset"] = {arrow_start_offset.x(), arrow_start_offset.y()};
+    j["arrow_end_offset"]   = {arrow_end_offset.x(), arrow_end_offset.y()};
+}
+
+void ArrowSvgRay::from_json(const nlohmann::json &j)
+{
+    bound_volumes_from_json(j, "bound_volumes", bound_volumes);
+    json_get_vec2d(j, "arrow_start_offset", arrow_start_offset);
+    json_get_vec2d(j, "arrow_end_offset", arrow_end_offset);
+}
+
 // ---- ArrowSvgNote ----
 void ArrowSvgNote::to_json(nlohmann::json &j) const
 {
-    j["svg_name"]           = svg_name;
-    nlohmann::json bv = nlohmann::json::array();
-    for (const auto &p : bound_volumes)
-        bv.push_back({p.first, p.second});
-    j["bound_volumes"]      = bv;
-    j["arrow_start_offset"] = {arrow_start_offset.x(), arrow_start_offset.y()};
-    j["arrow_end_offset"]   = {arrow_end_offset.x(), arrow_end_offset.y()};
-    j["label_size"]         = {label_size.x(), label_size.y()};
+    j["svg_name"] = svg_name;
+    j["label_size"] = {label_size.x(), label_size.y()};
     color_to_json(j, "color", color);
+
+    nlohmann::json rays_arr = nlohmann::json::array();
+    for (const auto &ray : rays) {
+        nlohmann::json rj;
+        ray.to_json(rj);
+        rays_arr.push_back(std::move(rj));
+    }
+    j["rays"] = std::move(rays_arr);
+
+    // Mirror the first ray into the legacy flat fields so older readers that
+    // only know bound_volumes / arrow_*_offset still get a usable single arrow.
+    if (!rays.empty()) {
+        bound_volumes_to_json(j, "bound_volumes", rays.front().bound_volumes);
+        j["arrow_start_offset"] = {rays.front().arrow_start_offset.x(), rays.front().arrow_start_offset.y()};
+        j["arrow_end_offset"]   = {rays.front().arrow_end_offset.x(), rays.front().arrow_end_offset.y()};
+    }
 }
 
 void ArrowSvgNote::from_json(const nlohmann::json &j)
 {
     json_get_string(j, "svg_name", svg_name);
-    bound_volumes.clear();
-    if (j.contains("bound_volumes") && j["bound_volumes"].is_array()) {
-        for (const auto &item : j["bound_volumes"]) {
-            if (item.is_array() && item.size() == 2 && item[0].is_number_integer() && item[1].is_number_integer())
-                bound_volumes.emplace_back(item[0].get<int>(), item[1].get<int>());
-        }
-    }
-    json_get_vec2d(j, "arrow_start_offset", arrow_start_offset);
-    json_get_vec2d(j, "arrow_end_offset", arrow_end_offset);
     json_get_vec2d(j, "label_size", label_size);
     color_from_json(j, "color", color);
+
+    rays.clear();
+    if (j.contains("rays") && j["rays"].is_array() && !j["rays"].empty()) {
+        for (const auto &rj : j["rays"]) {
+            ArrowSvgRay ray;
+            ray.from_json(rj);
+            rays.push_back(std::move(ray));
+        }
+    } else {
+        // Legacy single-arrow JSON: one combined ray from flat fields.
+        ArrowSvgRay ray;
+        bound_volumes_from_json(j, "bound_volumes", ray.bound_volumes);
+        json_get_vec2d(j, "arrow_start_offset", ray.arrow_start_offset);
+        json_get_vec2d(j, "arrow_end_offset", ray.arrow_end_offset);
+        rays.push_back(std::move(ray));
+    }
 }
 
 // ---- TextLabelNote ----
