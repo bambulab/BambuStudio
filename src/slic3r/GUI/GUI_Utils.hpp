@@ -97,6 +97,7 @@ bool check_dark_mode();
 void update_dark_config();
 #ifdef _WIN32
 void update_dark_ui(wxWindow* window);
+bool should_follow_system_theme();
 #endif
 
 #if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
@@ -333,12 +334,7 @@ private:
         const bool handled =
             P::HandleSettingChange(wParam, lParam);
 
-        if (
-            GUI::wxGetApp().app_config &&
-            GUI::wxGetApp().app_config->get(
-                "dark_color_mode"
-            ) == "2"
-        ) {
+        if (should_follow_system_theme()) {
             update_dark_config();
             update_dark_ui(this);
             on_sys_color_changed();

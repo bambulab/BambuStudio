@@ -279,6 +279,14 @@ void update_dark_ui(wxWindow* window)
 }
 #endif
 
+#ifdef _WIN32
+bool should_follow_system_theme()
+{
+    return wxGetApp().app_config &&
+           wxGetApp().app_config->get("dark_color_mode") == "2";
+}
+#endif
+
 void update_dark_config()
 {
 #ifdef __WINDOWS__
