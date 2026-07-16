@@ -1647,7 +1647,7 @@ bool GLCanvas3D::init()
         return false;
 
     // init dark mode status
-    on_change_color_mode(wxGetApp().app_config->get("dark_color_mode") == "1", false);
+    on_change_color_mode(wxGetApp().dark_mode(), false);
 
     BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< " enter";
     glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));

@@ -797,13 +797,14 @@ wxBoxSizer *PreferencesDialog::create_item_darkmode_combobox(
     for (const wxString &label : labels)
         combobox->Append(label);
 
-    // Initial selection priority: Follow system, Dark, Light.
-    if (app_config->get("dark_mode_follow_system") == "1")
-        combobox->SetSelection(2);
-    else if (app_config->get("dark_color_mode") == "1")
-        combobox->SetSelection(1);
-    else
-        combobox->SetSelection(0);
+    const std::string color_mode =
+        app_config->get("dark_color_mode");
+
+    combobox->SetSelection(
+        color_mode == "2" ? 2 :
+        color_mode == "1" ? 1 :
+        0
+    );
 
     sizer->Add(
         combobox,
@@ -818,16 +819,9 @@ wxBoxSizer *PreferencesDialog::create_item_darkmode_combobox(
             const int selection = event.GetSelection();
 
             app_config->set(
-                "dark_mode_follow_system",
-                selection == 2 ? "1" : "0"
+                "dark_color_mode",
+                std::to_string(selection)
             );
-
-            if (selection != 2) {
-                app_config->set(
-                    "dark_color_mode",
-                    selection == 1 ? "1" : "0"
-                );
-            }
 
             app_config->save();
             wxGetApp().Update_dark_mode_flag();
@@ -1435,7 +1429,7 @@ wxWindow *PreferencesDialog::create_general_tab()
     auto                  item_currency = create_item_combobox(_L("Units"), scrolled, _L("Units"), "use_inches", Units, {"0", "1"});
 
 #ifdef _WIN32
-    auto item_darkmode = create_item_darkmode_combobox(_L("Dark mode"), scrolled, _L("Choose the interface theme: light, dark, or follow the system setting."));
+    auto item_darkmode = create_item_darkmode_combobox(_L("Theme"), scrolled, _L("Choose the interface theme: light, dark, or follow the system setting."));
 #endif
 
     std::vector<wxString>    FlushOptionLabels = {_L("All"), _L("Color change"), _L("Disabled")};

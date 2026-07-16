@@ -201,16 +201,10 @@ public:
 
         this->Bind(wxEVT_SYS_COLOUR_CHANGED, [this](wxSysColourChangedEvent& event)
         {
-#ifdef __WINDOWS__
-            if (GUI::wxGetApp().app_config &&
-                GUI::wxGetApp().app_config->get("dark_mode_follow_system") == "1") {
-                update_dark_config();
-                on_sys_color_changed();
-            }
-#else
+#ifndef __WINDOWS__
             update_dark_config();
             on_sys_color_changed();
-#endif
+#endif // !__WINDOWS__
             event.Skip();
         });
 
@@ -330,16 +324,29 @@ private:
         m_prev_scale_factor = m_scale_factor;
     }
 
-#if 0 //#ifdef _WIN32  // #ysDarkMSW - Allow it when we deside to support the sustem colors for application
-    bool HandleSettingChange(WXWPARAM wParam, WXLPARAM lParam) override
+#ifdef _WIN32
+    bool HandleSettingChange(
+        WXWPARAM wParam,
+        WXLPARAM lParam
+    ) override
     {
-        update_dark_ui(this);
-        on_sys_color_changed();
+        const bool handled =
+            P::HandleSettingChange(wParam, lParam);
 
-        // let the system handle it
-        return false;
+        if (
+            GUI::wxGetApp().app_config &&
+            GUI::wxGetApp().app_config->get(
+                "dark_color_mode"
+            ) == "2"
+        ) {
+            update_dark_config();
+            update_dark_ui(this);
+            on_sys_color_changed();
+        }
+
+        return handled;
     }
-#endif
+#endif // _WIN32
 
 };
 

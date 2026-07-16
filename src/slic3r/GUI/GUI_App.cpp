@@ -3122,26 +3122,18 @@ bool GUI_App::on_init_inner()
     load_language(wxString(), true);
 #ifdef _MSW_DARK_MODE
 
-    // One-time migration to the Light/Dark/Follow-system selector. Before it existed,
-    // dark_mode() followed the OS appearance whenever dark_color_mode was not "1". Run this
-    // after the config has been loaded so it sees the user's real dark_color_mode (and an
-    // absent dark_mode_follow_system), and only an explicit "Dark" opts out of following the OS.
-    if (app_config->get("dark_mode_follow_system").empty())
-        app_config->set("dark_mode_follow_system", app_config->get("dark_color_mode") == "1" ? "0" : "1");
-
+#ifndef __WINDOWS__
     {
-        wxSystemAppearance app = wxSystemSettings::GetAppearance();
-#ifdef __WINDOWS__
-        if (app_config->get("dark_mode_follow_system") == "1") {
-            app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
-            app_config->save();
-        }
-#else
-        GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
-        GUI::wxGetApp().app_config->save();
-#endif
-    }
+        wxSystemAppearance app =
+            wxSystemSettings::GetAppearance();
 
+        app_config->set(
+            "dark_color_mode",
+            app.IsDark() ? "1" : "0"
+        );
+        app_config->save();
+    }
+#endif // !__WINDOWS__
 
     bool init_dark_color_mode = dark_mode();
     bool init_sys_menu_enabled = app_config->get("sys_menu_enabled") == "1";
@@ -3778,10 +3770,17 @@ bool GUI_App::dark_mode()
     // is detected as dark mode. We must run on at least 10.14 where the
     // proper dark mode was first introduced.
     return wxPlatformInfo::Get().CheckOSVersion(10, 14) && mac_dark_mode();
+#elif defined(__WINDOWS__)
+    const std::string color_mode =
+        wxGetApp().app_config->get("dark_color_mode");
+
+    return color_mode == "2" ?
+        check_dark_mode() :
+        color_mode == "1";
 #else
-    if (wxGetApp().app_config->get("dark_mode_follow_system") == "1")
-        return check_dark_mode();
-    return wxGetApp().app_config->get("dark_color_mode") == "1";
+    return wxGetApp().app_config->get("dark_color_mode") == "1" ?
+        true :
+        check_dark_mode();
     //const unsigned luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
     //return luma < 128;
 #endif
