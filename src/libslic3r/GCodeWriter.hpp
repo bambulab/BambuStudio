@@ -131,6 +131,8 @@ public:
     static const double slope_threshold;
 
 private:
+    // BBS: check whether a full spiral-lift circle stays inside the bed printable area.
+    bool        spiral_arc_within_bed(const Vec2d &center, double radius) const;
     std::string set_extrude_acceleration();
     std::string set_travel_acceleration();
     std::string set_travel_acceleration(bool use_short_travel_acceleration);
@@ -165,6 +167,16 @@ private:
     //BBS: x, y offset for gcode generated
     double          m_x_offset{ 0 };
     double          m_y_offset{ 0 };
+    //BBS: bed printable-area bounding box (in plate/gcode coordinates) for spiral-lift boundary check
+    Vec2d           m_bed_min{ 0., 0. };
+    Vec2d           m_bed_max{ 0., 0. };
+    bool            m_bed_bbox_valid{ false };
+    //BBS: per-extruder printable-area bounding boxes (indexed by physical nozzle id). On multi-nozzle
+    // machines the left/right heads can reach different regions, so the spiral must stay inside the
+    // area of the head that performs the lift. Falls back to the whole-bed box above when missing.
+    std::vector<Vec2d> m_extruder_bed_min;
+    std::vector<Vec2d> m_extruder_bed_max;
+    std::vector<char>  m_extruder_bed_valid;
     double           m_current_speed{ 0 };
     bool            m_is_bbl_printer = false;
 

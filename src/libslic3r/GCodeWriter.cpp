@@ -21,6 +21,43 @@ const double GCodeWriter::slope_threshold = 3 * PI / 180;
 void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 {
     this->config.apply(print_config, true);
+    // BBS: cache the bed printable-area bounding box so spiral lift can keep its arc inside the bed.
+    m_bed_bbox_valid = false;
+    const std::vector<Vec2d> &bed_pts = print_config.printable_area.values;
+    if (bed_pts.size() >= 3) {
+        Vec2d bmin = bed_pts.front();
+        Vec2d bmax = bed_pts.front();
+        for (const Vec2d &p : bed_pts) {
+            bmin = bmin.cwiseMin(p);
+            bmax = bmax.cwiseMax(p);
+        }
+        m_bed_min        = bmin;
+        m_bed_max        = bmax;
+        m_bed_bbox_valid = true;
+    }
+    // BBS: cache each physical nozzle's own printable-area bounding box. On multi-nozzle machines the
+    // left/right heads reach different regions, so the spiral must be bounded by the head that lifts.
+    m_extruder_bed_min.clear();
+    m_extruder_bed_max.clear();
+    m_extruder_bed_valid.clear();
+    const std::vector<Vec2ds> &ext_areas = print_config.extruder_printable_area.values;
+    m_extruder_bed_min.resize(ext_areas.size());
+    m_extruder_bed_max.resize(ext_areas.size());
+    m_extruder_bed_valid.resize(ext_areas.size(), 0);
+    for (size_t i = 0; i < ext_areas.size(); ++i) {
+        const Vec2ds &pts = ext_areas[i];
+        if (pts.size() < 3)
+            continue;
+        Vec2d bmin = pts.front();
+        Vec2d bmax = pts.front();
+        for (const Vec2d &p : pts) {
+            bmin = bmin.cwiseMin(p);
+            bmax = bmax.cwiseMax(p);
+        }
+        m_extruder_bed_min[i]   = bmin;
+        m_extruder_bed_max[i]   = bmax;
+        m_extruder_bed_valid[i] = 1;
+    }
     m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
     bool is_marlin = print_config.gcode_flavor.value == gcfMarlinLegacy
                   || print_config.gcode_flavor.value == gcfMarlinFirmware
@@ -453,6 +490,30 @@ std::string GCodeWriter::lazy_lift(LiftType lift_type, bool spiral_vase, bool to
     return "";
 }
 
+// BBS: return true if the full spiral-lift circle (centre, radius) stays inside the bed
+// printable area. When the bed bounding box is unknown, keep the legacy behavior (no block).
+bool GCodeWriter::spiral_arc_within_bed(const Vec2d &center, double radius) const
+{
+    // Prefer the printable area of the head that performs the lift (multi-nozzle machines have
+    // different left/right reachable regions). Fall back to the whole-bed box when the per-extruder
+    // area is unavailable, and keep the legacy no-block behavior when nothing is known.
+    Vec2d     bmin  = m_bed_min;
+    Vec2d     bmax  = m_bed_max;
+    bool      valid = m_bed_bbox_valid;
+    const int eid   = m_curr_extruder_id;
+    if (eid >= 0 && eid < (int) m_extruder_bed_valid.size() && m_extruder_bed_valid[eid]) {
+        bmin  = m_extruder_bed_min[eid];
+        bmax  = m_extruder_bed_max[eid];
+        valid = true;
+    }
+    if (!valid)
+        return true;
+    return center.x() - radius >= bmin.x() &&
+           center.x() + radius <= bmax.x() &&
+           center.y() - radius >= bmin.y() &&
+           center.y() + radius <= bmax.y();
+}
+
 // BBS: immediately execute an undelayed lift move with a spiral lift pattern
 // designed specifically for subsequent gcode injection (e.g. timelapse)
 std::string GCodeWriter::eager_lift(const LiftType type, bool tool_change)
@@ -476,14 +537,32 @@ std::string GCodeWriter::eager_lift(const LiftType type, bool tool_change)
         return lift_move;
 
     // BBS: spiral lift only safe with known position
-    // TODO: check the arc will move within bed area
     if (type == LiftType::SpiralLift && this->is_current_position_clear()) {
         if (to_lift > 0) {
             double radius = to_lift / (2 * PI * atan(GCodeWriter::slope_threshold));
             // static spiral alignment when no move in x,y plane.
-            // spiral centra is a radius distance to the right (y=0)
+            // The spiral centre sits a radius away from the current point; the resulting full
+            // circle spans [centre - radius, centre + radius] on both axes. When the current
+            // point is on the bed boundary the legacy +X centre pushes the arc off the bed, so
+            // try the opposite / orthogonal directions first and fall back to a plain lift when
+            // none of them keeps the whole circle inside the printable area.
+            const Vec2d cur_xy = { m_pos(0) - m_x_offset, m_pos(1) - m_y_offset };
+            const Vec2d dirs[4] = { Vec2d(1, 0), Vec2d(-1, 0), Vec2d(0, 1), Vec2d(0, -1) };
+            bool  found = false;
             Vec2d ij_offset = { radius, 0 };
-            lift_move = this->_spiral_travel_to_z(m_pos(2) + to_lift, ij_offset, "spiral lift Z",tool_change);
+            for (const Vec2d &d : dirs) {
+                const Vec2d off = radius * d;
+                if (this->spiral_arc_within_bed(cur_xy + off, radius)) {
+                    ij_offset = off;
+                    found     = true;
+                    break;
+                }
+            }
+            if (found)
+                lift_move = this->_spiral_travel_to_z(m_pos(2) + to_lift, ij_offset, "spiral lift Z", tool_change);
+            else
+                // no in-bed spiral direction, fall back to a plain vertical lift
+                lift_move = _travel_to_z(m_pos(2) + to_lift, "normal lift Z", tool_change);
         }
     }
     //BBS: if position is unknown use normal lift
@@ -537,11 +616,28 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         if (delta(2) > 0 && delta_no_z.norm() != 0.0f)    {
             //BBS: SpiralLift
             if (m_to_lift_type == LiftType::SpiralLift && this->is_current_position_clear()) {
-                //BBS: todo: check the arc move all in bed area, if not, then use lazy lift
                 double radius = delta(2) / (2 * PI * atan(GCodeWriter::slope_threshold));
-                Vec2d ij_offset = radius * delta_no_z.normalized();
-                ij_offset = { -ij_offset(1), ij_offset(0) };
-                slop_move = this->_spiral_travel_to_z(target(2), ij_offset, "spiral lift Z");
+                // The spiral centre sits perpendicular to the travel direction; the resulting full
+                // circle spans [centre - radius, centre + radius] on both axes. Keep the arc inside
+                // the bed: try the perpendicular side, then the opposite side, otherwise fall back
+                // to a plain vertical lift.
+                Vec2d perp = radius * delta_no_z.normalized();
+                perp = { -perp(1), perp(0) };
+                const Vec2d source_xy = { source(0), source(1) };
+                bool  found = false;
+                Vec2d ij_offset = perp;
+                if (this->spiral_arc_within_bed(source_xy + perp, radius)) {
+                    ij_offset = perp;
+                    found     = true;
+                } else if (this->spiral_arc_within_bed(source_xy - perp, radius)) {
+                    ij_offset = { -perp(0), -perp(1) };
+                    found     = true;
+                }
+                if (found)
+                    slop_move = this->_spiral_travel_to_z(target(2), ij_offset, "spiral lift Z");
+                else
+                    // no in-bed spiral direction, fall back to a plain vertical lift
+                    slop_move = _travel_to_z(target(2), "normal lift Z");
             }
             //BBS: SlopeLift
             else if (m_to_lift_type == LiftType::SlopeLift &&
