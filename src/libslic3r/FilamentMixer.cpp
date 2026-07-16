@@ -11,6 +11,7 @@
 
 #include <boost/log/trivial.hpp>
 
+#include "ColorDecomposeRecipe.hpp"
 #include "FilamentMixerModel.hpp"
 #include "LocalesUtils.hpp"
 
@@ -114,6 +115,12 @@ std::string blend_color(const std::string& hex_a, const std::string& hex_b, floa
 std::string blend_color_multi(const std::vector<std::string> &hex_colors,
                               const std::vector<int> &weights)
 {
+    if (hex_colors.size() >= 2 && hex_colors.size() == weights.size()) {
+        std::string measured = lookup_measured_blend_color(hex_colors, weights);
+        if (!measured.empty())
+            return measured;
+    }
+
     if (hex_colors.empty())
         return "#000000";
     if (hex_colors.size() == 1) {

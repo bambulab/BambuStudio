@@ -17,12 +17,18 @@
     "counter_limit_max": [
         "0.1"
     ],
+    "filament_change_length": [
+        "4"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10"
     ],
     "filament_max_volumetric_speed": [
         "20",
+        "35"
+    ],
+    "filament_prime_volume": [
         "30"
     ],
     "filament_ramming_travel_time": [

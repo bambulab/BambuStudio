@@ -402,7 +402,8 @@ public:
         float extrusion_width,
         PolysType* overhang_regions,
         float max_bridge_length = scale_(10),
-        bool break_bridge=false);
+        bool break_bridge=false,
+        std::vector<std::pair<ExPolygon, int>>* overhang_regions_with_type = nullptr);
 
     // Bounding box is used to align the object infill patterns, and to calculate attractor for the rear seam.
     // The bounding box may not be quite snug.

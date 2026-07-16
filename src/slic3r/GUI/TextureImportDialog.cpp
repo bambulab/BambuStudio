@@ -4,8 +4,11 @@
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
+#include "ColorDecomposeDialog.hpp"
+#include "ColorDecomposeSupport.hpp"
 #include "Widgets/StateColor.hpp"
 #include "Widgets/StaticLine.hpp"
+#include "libslic3r/ColorDecomposeRecipe.hpp"
 #include "libslic3r/Win10ModelRepair.hpp"
 
 #include <wx/button.h>
@@ -22,15 +25,19 @@
 #include <wx/valtext.h>
 
 #include <algorithm>
+#include <cctype>
 #include <cstring>
 #include <cmath>
 #include <limits>
 #include <map>
 #include <set>
+#include <sstream>
 
 #include <boost/log/trivial.hpp>
 
-static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_NAME = "Bambu PLA Basic";
+static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE = "PLA Basic";
+static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_SHORT_TYPE = "PLA";
+static constexpr const char* DEFAULT_VIRTUAL_FILAMENT_NAME       = "Bambu PLA Basic";
 
 static bool is_dark() { return Slic3r::GUI::wxGetApp().dark_mode(); }
 
@@ -336,6 +343,61 @@ static wxString filament_name_to_wx_string(const std::string& name)
     return wxString(name);
 }
 
+static std::string texture_normalize_color_hex(std::string hex)
+{
+    if (hex.empty())
+        return "#808080";
+    if (hex.front() != '#')
+        hex = "#" + hex;
+    return decompose_normalize_color_hex(std::move(hex));
+}
+
+static std::string texture_rgba_to_hex(const std::array<float, 4>& rgba)
+{
+    return wxString::Format("#%02X%02X%02X",
+        (unsigned char)std::clamp(rgba[0] * 255.f, 0.f, 255.f),
+        (unsigned char)std::clamp(rgba[1] * 255.f, 0.f, 255.f),
+        (unsigned char)std::clamp(rgba[2] * 255.f, 0.f, 255.f)).ToStdString();
+}
+
+static bool texture_entry_is_physical(TextureFilamentKind kind)
+{
+    return kind == TextureFilamentKind::ExistingPhysical || kind == TextureFilamentKind::NewPhysical;
+}
+
+static bool texture_entry_is_mixed(TextureFilamentKind kind)
+{
+    return kind == TextureFilamentKind::ExistingMixed || kind == TextureFilamentKind::NewMixed;
+}
+
+static bool texture_entry_is_pla_basic(const TextureFilamentEntry& entry)
+{
+    return entry.type == DEFAULT_VIRTUAL_FILAMENT_SHORT_TYPE || entry.type == DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE ||
+           entry.name.find(DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE) != std::string::npos ||
+           entry.preset_name.find(DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE) != std::string::npos;
+}
+
+static bool texture_entry_official_basic(const TextureFilamentEntry& entry)
+{
+    if (!texture_entry_is_physical(entry.kind))
+        return false;
+    // NewPhysical entries are created by add_virtual_filament with a fixed Bambu Basic name.
+    if (entry.kind == TextureFilamentKind::NewPhysical)
+        return !official_basic_type_from_preset_name(entry.name).empty();
+    // ExistingPhysical: resolve the filament preset name from project_config_index.
+    auto& pb = *wxGetApp().preset_bundle;
+    const size_t cfg = entry.project_config_index;
+    if (cfg < pb.filament_presets.size())
+        return !official_basic_type_from_preset_name(pb.filament_presets[cfg]).empty();
+    return false;
+}
+
+static Slic3r::ColorDecomposeRecipeMode texture_recipe_mode(TextureAutoMixMode mode)
+{
+    return mode == TextureAutoMixMode::CMYW ? Slic3r::ColorDecomposeRecipeMode::CMYW :
+                                             Slic3r::ColorDecomposeRecipeMode::RYBW;
+}
+
 static bool starts_with_preset_name(const std::string& name, const char* prefix)
 {
     const size_t prefix_len = std::strlen(prefix);
@@ -379,6 +441,12 @@ static std::string resolve_default_virtual_filament_preset_name()
     return valid_preset_name(selected) ? selected : std::string();
 }
 
+static wxString auto_mix_mode_label(TextureAutoMixMode mode)
+{
+    return mode == TextureAutoMixMode::CMYW ? _L("One-click CMYW auto-mix") :
+                                             _L("One-click RYBW auto-mix");
+}
+
 static wxPoint constrained_dialog_position(wxWindow* anchor, const wxSize& dialog_size)
 {
     if (!anchor)
@@ -411,6 +479,7 @@ class FilamentSelectPopup : public PopupWindow
 {
 public:
     FilamentSelectPopup(wxWindow* parent,
+                        const std::vector<TextureFilamentEntry>& entries,
                         const std::vector<std::array<float, 4>>& colors_rgba,
                         const std::vector<std::string>&          names,
                         size_t                                   existing_count,
@@ -418,15 +487,18 @@ public:
                         wxWindow*                                dialog_anchor,
                         std::function<void(int)>                 on_select,
                         std::function<void(wxColour)>            on_add_filament,
+                        std::function<void()>                    on_decompose_color,
                         std::function<bool()>                    can_add_filament,
                         std::function<void(bool)>                on_close)
         : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
+        , m_entries(entries)
         , m_colors_rgba(colors_rgba)
         , m_names(names)
         , m_existing_count(existing_count)
         , m_dialog_anchor(dialog_anchor)
         , m_on_select(std::move(on_select))
         , m_on_add_filament(std::move(on_add_filament))
+        , m_on_decompose_color(std::move(on_decompose_color))
         , m_can_add_filament(std::move(can_add_filament))
         , m_on_close(std::move(on_close))
     {
@@ -456,27 +528,55 @@ public:
             outer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, pad);
         };
 
-        // Section 1: project filaments
-        add_section_header(_L("Project Filaments"));
-        for (size_t i = 0; i < m_colors_rgba.size(); ++i) {
-            if (i == m_existing_count && m_existing_count < m_colors_rgba.size()) {
-                add_section_header(_L("New Filaments"));
+        auto add_section = [&](const wxString& label, TextureFilamentKind kind) {
+            bool has_any = false;
+            for (const auto& entry : m_entries) {
+                if (entry.kind == kind) {
+                    has_any = true;
+                    break;
+                }
             }
-            wxPanel* row = create_item_row(i, row_h);
-            outer->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT, pad);
-        }
+            if (!has_any)
+                return;
+            add_section_header(label);
+            for (const auto& entry : m_entries) {
+                if (entry.kind != kind)
+                    continue;
+                wxPanel* row = texture_entry_is_mixed(entry.kind) ? create_mixed_item_row(entry, row_h)
+                                                                  : create_item_row((size_t)entry.dialog_index, row_h);
+                outer->Add(row, 0, wxEXPAND | wxLEFT | wxRIGHT, pad);
+            }
+        };
 
-        auto* add_label = new wxStaticText(this, wxID_ANY, _L("Add Material"));
+        add_section(_L("Project Physical Filaments"), TextureFilamentKind::ExistingPhysical);
+        add_section(_L("Project Mixed Filaments"), TextureFilamentKind::ExistingMixed);
+        add_section(_L("New Physical Filaments"), TextureFilamentKind::NewPhysical);
+        add_section(_L("New Mixed Filaments"), TextureFilamentKind::NewMixed);
+
+        auto* decompose_label = new wxStaticText(this, wxID_ANY, _L("Decompose Color"));
+        auto* add_label = new wxStaticText(this, wxID_ANY, _L("+ Add Material"));
         wxFont af = add_label->GetFont();
         af.SetPointSize(10);
         add_label->SetFont(af);
+        decompose_label->SetFont(af);
         const bool add_enabled = !m_can_add_filament || m_can_add_filament();
         add_label->SetForegroundColour(add_enabled ? wxColour(0x00, 0xAE, 0x42) : header_clr);
+        decompose_label->SetForegroundColour(add_enabled ? wxColour(0x00, 0xAE, 0x42) : header_clr);
         add_label->SetCursor(wxCursor(add_enabled ? wxCURSOR_HAND : wxCURSOR_ARROW));
+        decompose_label->SetCursor(wxCursor(add_enabled ? wxCURSOR_HAND : wxCURSOR_ARROW));
         if (!add_enabled)
             add_label->SetToolTip(wxString::Format(
                 _L("The project supports up to %d filaments. Extra filaments will be discarded."),
                 (int)EnforcerBlockerType::ExtruderMax));
+        decompose_label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
+            if (m_can_add_filament && !m_can_add_filament())
+                return;
+            auto on_decompose_color = m_on_decompose_color;
+            m_closing_from_action = true;
+            Dismiss();
+            if (on_decompose_color)
+                on_decompose_color();
+        });
         add_label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent&) {
             if (m_can_add_filament && !m_can_add_filament()) {
                 return;
@@ -519,7 +619,11 @@ public:
         auto* sep_line = new StaticLine(this);
         sep_line->SetLineColour(texture_import_separator_colour());
         top_sizer->Add(sep_line, 0, wxEXPAND | wxLEFT | wxRIGHT, pad);
-        top_sizer->Add(add_label, 0, wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, pad);
+        top_sizer->Add(decompose_label, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, pad);
+        auto* sep_line2 = new StaticLine(this);
+        sep_line2->SetLineColour(texture_import_separator_colour());
+        top_sizer->Add(sep_line2, 0, wxEXPAND | wxLEFT | wxRIGHT, pad);
+        top_sizer->Add(add_label, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, pad);
         SetSizerAndFit(top_sizer);
 
         SetSize(pop_w, top_sizer->GetMinSize().y);
@@ -649,18 +753,234 @@ private:
         return row;
     }
 
+    wxPanel* create_mixed_item_row(const TextureFilamentEntry& entry, int row_h)
+    {
+        wxColour row_bg    = dark_or(*wxWHITE, wxColour(0x2D, 0x2D, 0x31));
+        wxColour hover_bg  = dark_or(wxColour(245, 245, 245), wxColour(0x3C, 0x3C, 0x42));
+        wxColour name_fg   = texture_import_text_colour();
+        wxColour plus_fg   = dark_or(wxColour(38, 46, 48), wxColour(0xE6, 0xE6, 0xE8));
+        const int idx = entry.dialog_index;
+
+        wxPanel* row = new wxPanel(m_content, wxID_ANY, wxDefaultPosition, wxSize(-1, row_h));
+        row->SetBackgroundColour(row_bg);
+        row->SetBackgroundStyle(wxBG_STYLE_PAINT);
+        row->SetCursor(wxCursor(wxCURSOR_HAND));
+        row->SetToolTip(entry.name.empty() ? wxString::Format("Filament %d", idx + 1) : filament_name_to_wx_string(entry.name));
+
+        row->Bind(wxEVT_PAINT, [this, entry, idx, row_bg, hover_bg, name_fg, plus_fg](wxPaintEvent& e) {
+            auto* p = static_cast<wxPanel*>(e.GetEventObject());
+            wxAutoBufferedPaintDC dc(p);
+            wxSize sz = p->GetClientSize();
+            const bool hovered = (m_hover_idx == idx);
+            dc.SetBrush(wxBrush(hovered ? hover_bg : row_bg));
+            dc.SetPen(*wxTRANSPARENT_PEN);
+            dc.DrawRectangle(0, 0, sz.x, sz.y);
+
+            wxFont font = p->GetFont();
+            font.SetPointSize(9);
+            dc.SetFont(font);
+            int x = p->FromDIP(2);
+            const int sw = p->FromDIP(22);
+            const int sw_r = p->FromDIP(2);
+            const int y = (sz.y - sw) / 2;
+
+            for (size_t ci = 0; ci < entry.mixed_components.size() && ci < entry.mixed_ratios.size(); ++ci) {
+                if (ci > 0) {
+                    dc.SetTextForeground(plus_fg);
+                    wxString plus = "+";
+                    wxSize psz = dc.GetTextExtent(plus);
+                    dc.DrawText(plus, x, (sz.y - psz.y) / 2);
+                    x += psz.x + p->FromDIP(4);
+                }
+
+                const unsigned int comp_id = entry.mixed_components[ci];
+                const int comp_dialog_idx = comp_id >= 1 ? (int)comp_id - 1 : -1;
+                wxColour comp_clr("#D9D9D9");
+                if (comp_dialog_idx >= 0 && comp_dialog_idx < (int)m_colors_rgba.size()) {
+                    const auto& c = m_colors_rgba[comp_dialog_idx];
+                    comp_clr = wxColour((unsigned char)(c[0] * 255.f),
+                                        (unsigned char)(c[1] * 255.f),
+                                        (unsigned char)(c[2] * 255.f));
+                }
+
+                dc.SetBrush(wxBrush(comp_clr));
+                dc.SetPen(*wxTRANSPARENT_PEN);
+                dc.DrawRoundedRectangle(x, y, sw, sw, sw_r);
+                draw_filament_swatch_border(dc, comp_clr, x, y, sw, sw, sw_r);
+
+                wxString num = wxString::Format("%u", comp_id);
+                wxSize nsz = dc.GetTextExtent(num);
+                dc.SetTextForeground(comp_clr.GetLuminance() < 0.6 ? *wxWHITE : texture_import_gray9000());
+                dc.DrawText(num, x + (sw - nsz.x) / 2, y + (sw - nsz.y) / 2);
+                x += sw + p->FromDIP(4);
+
+                dc.SetTextForeground(name_fg);
+                wxString pct = wxString::Format("%d%%", entry.mixed_ratios[ci]);
+                wxSize psz = dc.GetTextExtent(pct);
+                dc.DrawText(pct, x, (sz.y - psz.y) / 2);
+                x += psz.x + p->FromDIP(4);
+            }
+        });
+
+        row->Bind(wxEVT_MOTION, [this, idx](wxMouseEvent& evt) {
+            if (m_hover_idx != idx) {
+                m_hover_idx = idx;
+                m_content->Refresh();
+            }
+            evt.Skip();
+        });
+        row->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& evt) {
+            if (m_hover_idx != -1) {
+                m_hover_idx = -1;
+                m_content->Refresh();
+            }
+            evt.Skip();
+        });
+        row->Bind(wxEVT_LEFT_DOWN, [this, idx](wxMouseEvent&) {
+            if (m_on_select) m_on_select(idx);
+            m_closing_from_action = true;
+            Dismiss();
+        });
+
+        return row;
+    }
+
     wxScrolledWindow*                         m_content = nullptr;
+    std::vector<TextureFilamentEntry>          m_entries;
     std::vector<std::array<float, 4>>          m_colors_rgba;
     std::vector<std::string>                   m_names;
     size_t                                     m_existing_count = 0;
     wxWindow*                                  m_dialog_anchor = nullptr;
     std::function<void(int)>                   m_on_select;
     std::function<void(wxColour)>              m_on_add_filament;
+    std::function<void()>                      m_on_decompose_color;
     std::function<bool()>                      m_can_add_filament;
     std::function<void(bool)>                  m_on_close;
     int                                        m_hover_idx = -1;
     bool                                       m_closing_from_action = false;
     bool                                       m_destroy_scheduled = false;
+};
+
+// ============================================================
+// AutoMixSelectPopup
+// ============================================================
+
+class AutoMixSelectPopup : public PopupWindow
+{
+public:
+    AutoMixSelectPopup(wxWindow* parent,
+                       TextureAutoMixMode current_mode,
+                       int popup_width,
+                       int font_point_size,
+                       std::function<void(TextureAutoMixMode)> on_select,
+                       std::function<void()> on_close)
+        : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
+        , m_current_mode(current_mode)
+        , m_font_point_size(font_point_size)
+        , m_on_select(std::move(on_select))
+        , m_on_close(std::move(on_close))
+    {
+        wxColour pop_bg = dark_or(*wxWHITE, wxColour(0x2D, 0x2D, 0x31));
+        SetBackgroundColour(pop_bg);
+
+        auto* content = new wxPanel(this, wxID_ANY);
+        content->SetBackgroundColour(pop_bg);
+        content->SetBackgroundStyle(wxBG_STYLE_PAINT);
+
+        auto* sizer = new wxBoxSizer(wxVERTICAL);
+        const int row_h = FromDIP(36);
+        const int pop_w = std::max(FromDIP(216), popup_width);
+        sizer->Add(create_item_row(content, TextureAutoMixMode::CMYW, row_h), 0, wxEXPAND);
+        sizer->Add(create_item_row(content, TextureAutoMixMode::RYBW, row_h), 0, wxEXPAND);
+        content->SetSizer(sizer);
+        content->SetMinSize(wxSize(pop_w, row_h * 2));
+
+        auto* top_sizer = new wxBoxSizer(wxVERTICAL);
+        top_sizer->Add(content, 0, wxEXPAND | wxALL, FromDIP(4));
+        SetSizerAndFit(top_sizer);
+        SetSize(pop_w, top_sizer->GetMinSize().y);
+    }
+
+private:
+    void OnDismiss() override
+    {
+        if (m_on_close)
+            m_on_close();
+        wxPopupTransientWindow::OnDismiss();
+        CallAfter([this]() { Destroy(); });
+    }
+
+    wxPanel* create_item_row(wxWindow* parent, TextureAutoMixMode mode, int row_h)
+    {
+        wxColour row_bg   = dark_or(*wxWHITE, wxColour(0x2D, 0x2D, 0x31));
+        wxColour hover_bg = dark_or(wxColour(245, 245, 245), wxColour(0x3C, 0x3C, 0x42));
+        wxColour text_fg  = texture_import_text_colour();
+        wxColour green    = wxColour(0, 174, 66);
+
+        wxPanel* row = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, row_h),
+                                   wxTAB_TRAVERSAL | wxFULL_REPAINT_ON_RESIZE);
+        row->SetBackgroundColour(row_bg);
+        row->SetBackgroundStyle(wxBG_STYLE_PAINT);
+        row->SetCursor(wxCursor(wxCURSOR_HAND));
+
+        const int row_idx = mode == TextureAutoMixMode::CMYW ? 0 : 1;
+        row->Bind(wxEVT_PAINT, [this, row_bg, hover_bg, text_fg, green, mode, row_idx](wxPaintEvent& e) {
+            auto* p = static_cast<wxPanel*>(e.GetEventObject());
+            wxAutoBufferedPaintDC dc(p);
+            wxSize sz = p->GetClientSize();
+            const bool hovered = (m_hover_idx == row_idx);
+            const bool selected = (m_current_mode == mode);
+
+            dc.SetBrush(wxBrush(hovered ? hover_bg : row_bg));
+            dc.SetPen(*wxTRANSPARENT_PEN);
+            dc.DrawRectangle(0, 0, sz.x, sz.y);
+
+            wxFont font = p->GetFont();
+            font.SetPointSize(m_font_point_size);
+            dc.SetFont(font);
+            dc.SetTextForeground(text_fg);
+            wxString label = auto_mix_mode_label(mode);
+            wxSize tsz = dc.GetTextExtent(label);
+            dc.DrawText(label, p->FromDIP(12), (sz.y - tsz.y) / 2);
+
+            if (selected) {
+                wxFont check_font = p->GetFont();
+                check_font.SetPointSize(12);
+                check_font.MakeBold();
+                dc.SetFont(check_font);
+                dc.SetTextForeground(green);
+                wxString check = wxString::FromUTF8("✓");
+                wxSize csz = dc.GetTextExtent(check);
+                dc.DrawText(check, sz.x - p->FromDIP(16) - csz.x, (sz.y - csz.y) / 2);
+            }
+        });
+
+        row->Bind(wxEVT_MOTION, [this, row, row_idx](wxMouseEvent& evt) {
+            if (m_hover_idx != row_idx) {
+                m_hover_idx = row_idx;
+                row->Refresh();
+            }
+            evt.Skip();
+        });
+        row->Bind(wxEVT_LEAVE_WINDOW, [this, row](wxMouseEvent& evt) {
+            m_hover_idx = -1;
+            row->Refresh();
+            evt.Skip();
+        });
+        row->Bind(wxEVT_LEFT_DOWN, [this, mode](wxMouseEvent&) {
+            if (m_on_select)
+                m_on_select(mode);
+            Dismiss();
+        });
+
+        return row;
+    }
+
+    TextureAutoMixMode m_current_mode;
+    int m_font_point_size = 10;
+    int m_hover_idx = -1;
+    std::function<void(TextureAutoMixMode)> m_on_select;
+    std::function<void()> m_on_close;
 };
 
 // ============================================================
@@ -1369,32 +1689,35 @@ wxEND_EVENT_TABLE()
 TextureImportDialog::TextureImportDialog(
     wxWindow*                        parent,
     const Slic3r::TexturedMesh&      textured_mesh,
-    const std::vector<std::string>&  filament_color_strs,
-    const std::vector<std::string>&  filament_names,
+    const std::vector<TextureFilamentEntry>& filament_entries,
     std::function<bool()>            initial_cancel_callback,
     std::function<bool(int)>         initial_progress_callback)
     : DPIDialog(parent, wxID_ANY, _L("Import Model"),
                 wxDefaultPosition, wxDefaultSize,
                 (wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) & ~(wxMINIMIZE_BOX | wxMAXIMIZE_BOX))
     , m_textured_mesh(textured_mesh)
-    , m_filament_color_strs(filament_color_strs)
-    , m_filament_names(filament_names)
+    , m_filament_entries(filament_entries)
     , m_initial_cancel_callback(std::move(initial_cancel_callback))
     , m_initial_progress_callback(std::move(initial_progress_callback))
 {
     SetSize(wxSize(FromDIP(960), FromDIP(640)));
 
-    m_filament_colors_rgba.reserve(filament_color_strs.size());
-    for (const auto& s : filament_color_strs)
-        m_filament_colors_rgba.push_back(parse_color_string(s));
+    m_filament_colors_rgba.reserve(m_filament_entries.size());
+    m_filament_color_strs.reserve(m_filament_entries.size());
+    m_filament_names.reserve(m_filament_entries.size());
+    for (size_t i = 0; i < m_filament_entries.size(); ++i) {
+        auto& entry = m_filament_entries[i];
+        entry.dialog_index = (int)i;
+        entry.color_hex = texture_normalize_color_hex(entry.color_hex);
+        if (entry.name.empty())
+            entry.name = "Filament " + std::to_string(i + 1);
+        m_filament_color_strs.push_back(entry.color_hex);
+        m_filament_names.push_back(entry.name);
+        m_filament_colors_rgba.push_back(parse_color_string(entry.color_hex));
+    }
 
     m_existing_filament_count = m_filament_colors_rgba.size();
     m_default_virtual_filament_preset_name = resolve_default_virtual_filament_preset_name();
-
-    if (m_filament_names.empty()) {
-        for (size_t i = 0; i < filament_color_strs.size(); ++i)
-            m_filament_names.push_back("Filament " + std::to_string(i + 1));
-    }
 
     Bind(EVT_TEXTURE_COMPUTE_DONE,     &TextureImportDialog::on_computation_complete, this);
     Bind(EVT_TEXTURE_COMPUTE_PROGRESS, &TextureImportDialog::on_computation_progress, this);
@@ -1486,6 +1809,8 @@ TextureImportDialog::TextureImportDialog(
 
 TextureImportDialog::~TextureImportDialog()
 {
+    dismiss_auto_mix_popup();
+    dismiss_filament_popup();
     m_cancel_flag = true;
     if (m_worker && m_worker->joinable())
         m_worker->join();
@@ -1834,18 +2159,73 @@ void TextureImportDialog::build_mapping_panel(wxWindow* parent, wxSizer* sizer)
     wxStaticText* lbl_mapping = new wxStaticText(parent, wxID_ANY, _L("Filament Mapping"));
     lbl_mapping->SetForegroundColour(secondary_fg);
     lbl_mapping->SetFont(texture_import_section_title_font(parent));
+    m_auto_mix_font_point_size = lbl_mapping->GetFont().GetPointSize();
     header_sizer->Add(lbl_mapping, 0, wxALIGN_CENTER_VERTICAL);
+
+    m_btn_mix_reset = new Button(parent, "", "revert_btn", wxBORDER_NONE, 16);
+    m_btn_mix_reset->SetCanFocus(false);
+    m_btn_mix_reset->SetPaddingSize(wxSize(FromDIP(2), FromDIP(2)));
+    {
+        StateColor reset_bg(
+            std::pair<wxColour, int>(dark_or(wxColour(245, 245, 245), wxColour(0x3C, 0x3C, 0x42)), StateColor::Pressed),
+            std::pair<wxColour, int>(dark_or(wxColour(248, 248, 248), wxColour(0x35, 0x35, 0x3A)), StateColor::Hovered),
+            std::pair<wxColour, int>(dark_or(*wxWHITE, wxColour(0x2D, 0x2D, 0x31)), StateColor::Normal));
+        m_btn_mix_reset->SetBackgroundColor(reset_bg);
+        m_btn_mix_reset->SetBorderColor(StateColor());
+    }
+    m_btn_mix_reset->SetToolTip(_L("Reset filament mapping to the state before one-click mixing"));
+    m_btn_mix_reset->Bind(wxEVT_BUTTON, [this](wxCommandEvent& evt) {
+        reset_auto_mix();
+        evt.Skip();
+    });
+    m_btn_mix_reset->Hide();
+    header_sizer->Add(m_btn_mix_reset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(6));
 
     header_sizer->AddStretchSpacer();
 
+    m_btn_auto_mix = new Button(parent, auto_mix_mode_label(m_auto_mix_mode));
+    {
+        wxFont btn_font = m_btn_auto_mix->GetFont();
+        btn_font.SetPointSize(m_auto_mix_font_point_size);
+        m_btn_auto_mix->SetFont(btn_font);
+    }
+    m_btn_auto_mix->SetCornerRadius(FromDIP(14));
+    m_btn_auto_mix->SetMinSize(wxSize(FromDIP(178), FromDIP(28)));
+    {
+        StateColor btn_bg(
+            std::pair<wxColour, int>(dark_or(wxColour(245, 245, 245), wxColour(0x3C, 0x3C, 0x42)), StateColor::Pressed),
+            std::pair<wxColour, int>(dark_or(wxColour(248, 248, 248), wxColour(0x35, 0x35, 0x3A)), StateColor::Hovered),
+            std::pair<wxColour, int>(dark_or(*wxWHITE, wxColour(0x2D, 0x2D, 0x31)), StateColor::Normal));
+        StateColor btn_bd(
+            std::pair<wxColour, int>(dark_or(wxColour(206, 206, 206), wxColour(0x54, 0x54, 0x5B)), StateColor::Normal));
+        StateColor btn_text(
+            std::pair<wxColour, int>(texture_import_text_colour(), StateColor::Normal));
+        m_btn_auto_mix->SetBackgroundColor(btn_bg);
+        m_btn_auto_mix->SetBorderColor(btn_bd);
+        m_btn_auto_mix->SetTextColor(btn_text);
+    }
+    m_btn_auto_mix->SetToolTip(_L("Choose the one-click auto-mix mode for texture color import"));
+    m_btn_auto_mix->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& evt) {
+        show_auto_mix_popup();
+        evt.Skip();
+    });
+    m_btn_auto_mix->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
+        show_auto_mix_popup();
+        evt.Skip();
+    });
+    header_sizer->Add(m_btn_auto_mix, 0, wxALIGN_CENTER_VERTICAL);
+
+    sizer->Add(header_sizer, 0, wxEXPAND | wxBOTTOM, FromDIP(4));
+
+    wxBoxSizer* merge_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_auto_merge_cb = new wxCheckBox(parent, wxID_ANY, _L("Auto-merge same filament"));
     m_auto_merge_cb->SetToolTip(_L("Automatically merge identical filaments into existing filaments in the project"));
     m_auto_merge_cb->SetForegroundColour(secondary_fg);
     m_auto_merge_cb->SetValue(true);
     m_auto_merge_cb->Bind(wxEVT_CHECKBOX, &TextureImportDialog::on_auto_merge_toggled, this);
-    header_sizer->Add(m_auto_merge_cb, 0, wxALIGN_CENTER_VERTICAL);
+    merge_sizer->Add(m_auto_merge_cb, 0, wxALIGN_CENTER_VERTICAL);
 
-    sizer->Add(header_sizer, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
+    sizer->Add(merge_sizer, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
 
     m_mapping_scroll = new wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition,
                                              wxSize(-1, FromDIP(300)));
@@ -1939,6 +2319,12 @@ void TextureImportDialog::update_ui_for_state()
     m_btn_color_8->Enable(!computing);
     m_btn_color_16->Enable(!computing);
     m_btn_color_auto->Enable(!computing);
+    if (m_btn_auto_mix)
+        m_btn_auto_mix->Enable(!computing);
+    if (m_btn_mix_reset)
+        m_btn_mix_reset->Enable(!computing);
+    if (computing)
+        dismiss_auto_mix_popup();
 
     m_btn_ok->Enable(ready && valid);
     m_btn_skip->Enable(ready || idle);
@@ -2119,8 +2505,25 @@ void TextureImportDialog::on_computation_complete(wxCommandEvent&)
         m_filament_color_strs.resize(m_existing_filament_count);
     if (m_filament_names.size() > m_existing_filament_count)
         m_filament_names.resize(m_existing_filament_count);
+    if (m_filament_entries.size() > m_existing_filament_count)
+        m_filament_entries.resize(m_existing_filament_count);
+    while (m_filament_entries.size() < m_existing_filament_count) {
+        TextureFilamentEntry entry;
+        entry.kind = TextureFilamentKind::ExistingPhysical;
+        entry.dialog_index = (int)m_filament_entries.size();
+        entry.project_config_index = m_filament_entries.size();
+        m_filament_entries.push_back(entry);
+    }
+    for (size_t i = 0; i < m_filament_entries.size(); ++i) {
+        m_filament_entries[i].dialog_index = (int)i;
+        m_filament_entries[i].color_hex = i < m_filament_color_strs.size() ?
+            texture_normalize_color_hex(m_filament_color_strs[i]) : "#808080";
+        m_filament_entries[i].name = i < m_filament_names.size() ?
+            m_filament_names[i] : "Filament " + std::to_string(i + 1);
+    }
     m_new_filament_colors.clear();
     m_new_filament_preset_names.clear();
+    m_new_mixed_filaments.clear();
 
     do_auto_match();
     compact_used_virtual_filaments();
@@ -2133,6 +2536,7 @@ void TextureImportDialog::on_computation_complete(wxCommandEvent&)
 
     set_state(TextureImportState::Ready);
     update_drop_warning_visibility();
+    update_auto_mix_reset_visibility();
 
     m_btn_view_multicolor->Show();
     if (m_tab_panel) {
@@ -2385,6 +2789,11 @@ int TextureImportDialog::find_closest_filament_index(const std::array<std::size_
 int TextureImportDialog::add_virtual_filament(const std::array<float, 4>& rgba, const std::string& hex,
                                               const std::string& preset_name)
 {
+    if (m_filament_color_strs.size() != m_filament_colors_rgba.size() ||
+        m_filament_names.size() != m_filament_colors_rgba.size() ||
+        m_filament_entries.size() != m_filament_colors_rgba.size()) {
+        return -1;
+    }
     if (!can_add_virtual_filament()) {
         // Mark that this do_auto_match() run hit the filament cap and had to
         // drop at least one cluster. The mapping itself still falls back via
@@ -2397,12 +2806,68 @@ int TextureImportDialog::add_virtual_filament(const std::array<float, 4>& rgba, 
         return -1;
     }
 
+    const int new_idx = (int)m_filament_colors_rgba.size();
     m_filament_colors_rgba.push_back(rgba);
     m_filament_color_strs.push_back(hex);
     m_filament_names.push_back(DEFAULT_VIRTUAL_FILAMENT_NAME);
+    TextureFilamentEntry entry;
+    entry.kind = TextureFilamentKind::NewPhysical;
+    entry.dialog_index = new_idx;
+    entry.project_config_index = size_t(-1);
+    entry.color_hex = texture_normalize_color_hex(hex);
+    entry.name = DEFAULT_VIRTUAL_FILAMENT_NAME;
+    entry.preset_name = preset_name.empty() ? m_default_virtual_filament_preset_name : preset_name;
+    m_filament_entries.push_back(entry);
     m_new_filament_colors.push_back(rgba);
     m_new_filament_preset_names.push_back(preset_name.empty() ? m_default_virtual_filament_preset_name : preset_name);
-    return (int)m_filament_colors_rgba.size() - 1;
+    return new_idx;
+}
+
+int TextureImportDialog::add_virtual_mixed_filament(const std::string& color_hex,
+                                                    const std::vector<int>& component_dialog_indices,
+                                                    const std::vector<int>& ratios)
+{
+    if (m_filament_color_strs.size() != m_filament_colors_rgba.size() ||
+        m_filament_names.size() != m_filament_colors_rgba.size() ||
+        m_filament_entries.size() != m_filament_colors_rgba.size()) {
+        return -1;
+    }
+    if (component_dialog_indices.size() < 2 || component_dialog_indices.size() != ratios.size())
+        return -1;
+    for (int idx : component_dialog_indices) {
+        if (idx < 0 || idx >= (int)m_filament_entries.size() ||
+            !texture_entry_is_physical(m_filament_entries[idx].kind)) {
+            return -1;
+        }
+    }
+    if (!can_add_virtual_filament()) {
+        m_filaments_dropped = true;
+        return -1;
+    }
+
+    const int new_idx = (int)m_filament_colors_rgba.size();
+    TextureFilamentEntry entry;
+    entry.kind = TextureFilamentKind::NewMixed;
+    entry.dialog_index = new_idx;
+    entry.project_config_index = size_t(-1);
+    entry.color_hex = texture_normalize_color_hex(color_hex);
+    entry.name = DEFAULT_VIRTUAL_FILAMENT_NAME;
+    entry.mixed_ratios = ratios;
+    for (int idx : component_dialog_indices)
+        entry.mixed_components.push_back((unsigned int)(idx + 1));
+
+    TextureNewMixedFilament mixed;
+    mixed.dialog_index = entry.dialog_index;
+    mixed.color_hex = entry.color_hex;
+    mixed.component_dialog_indices = component_dialog_indices;
+    mixed.ratios = ratios;
+
+    m_filament_entries.push_back(entry);
+    m_filament_color_strs.push_back(entry.color_hex);
+    m_filament_names.push_back(entry.name);
+    m_filament_colors_rgba.push_back(parse_color_string(entry.color_hex));
+    m_new_mixed_filaments.push_back(mixed);
+    return entry.dialog_index;
 }
 
 void TextureImportDialog::compact_used_virtual_filaments()
@@ -2413,28 +2878,73 @@ void TextureImportDialog::compact_used_virtual_filaments()
     const std::vector<std::array<float, 4>> old_colors = m_filament_colors_rgba;
     const std::vector<std::string> old_color_strs = m_filament_color_strs;
     const std::vector<std::string> old_names = m_filament_names;
-    const std::vector<std::string> old_preset_names = m_new_filament_preset_names;
+    const std::vector<TextureFilamentEntry> old_entries = m_filament_entries;
+
+    auto old_new_mixed_has_valid_components = [&old_entries, &old_colors](const TextureFilamentEntry& entry) {
+        if (entry.kind != TextureFilamentKind::NewMixed)
+            return true;
+        if (entry.mixed_components.size() < 2 || entry.mixed_components.size() != entry.mixed_ratios.size())
+            return false;
+        for (unsigned int comp : entry.mixed_components) {
+            int comp_idx = comp >= 1 ? (int)comp - 1 : -1;
+            if (comp_idx < 0 || comp_idx >= (int)old_entries.size() || comp_idx >= (int)old_colors.size() ||
+                !texture_entry_is_physical(old_entries[comp_idx].kind)) {
+                return false;
+            }
+        }
+        return true;
+    };
 
     std::set<int> used_virtual_indices;
     for (const auto& m : m_current_matches) {
         if (m.filament_index >= (int)m_existing_filament_count &&
             m.filament_index < (int)old_colors.size()) {
+            if (m.filament_index < (int)old_entries.size() &&
+                old_entries[m.filament_index].kind == TextureFilamentKind::NewMixed &&
+                !old_new_mixed_has_valid_components(old_entries[m.filament_index])) {
+                continue;
+            }
             used_virtual_indices.insert(m.filament_index);
+        }
+    }
+    bool added_dependency = true;
+    while (added_dependency) {
+        added_dependency = false;
+        std::vector<int> current_used(used_virtual_indices.begin(), used_virtual_indices.end());
+        for (int used_idx : current_used) {
+            if (used_idx < 0 || used_idx >= (int)old_entries.size() ||
+                old_entries[used_idx].kind != TextureFilamentKind::NewMixed ||
+                !old_new_mixed_has_valid_components(old_entries[used_idx]))
+                continue;
+            for (unsigned int comp : old_entries[used_idx].mixed_components) {
+                int comp_idx = comp >= 1 ? (int)comp - 1 : -1;
+                if (comp_idx >= (int)m_existing_filament_count && comp_idx < (int)old_entries.size() &&
+                    used_virtual_indices.insert(comp_idx).second) {
+                    added_dependency = true;
+                }
+            }
         }
     }
 
     std::vector<std::array<float, 4>> compact_colors;
     std::vector<std::string> compact_color_strs;
     std::vector<std::string> compact_names;
+    std::vector<TextureFilamentEntry> compact_entries;
     compact_colors.reserve(m_existing_filament_count + used_virtual_indices.size());
     compact_color_strs.reserve(m_existing_filament_count + used_virtual_indices.size());
     compact_names.reserve(m_existing_filament_count + used_virtual_indices.size());
+    compact_entries.reserve(m_existing_filament_count + used_virtual_indices.size());
 
     const size_t existing_count = std::min(m_existing_filament_count, old_colors.size());
     for (size_t i = 0; i < existing_count; ++i) {
         compact_colors.push_back(old_colors[i]);
         compact_color_strs.push_back(i < old_color_strs.size() ? old_color_strs[i] : "");
         compact_names.push_back(i < old_names.size() ? old_names[i] : "Filament " + std::to_string(i + 1));
+        TextureFilamentEntry entry = i < old_entries.size() ? old_entries[i] : TextureFilamentEntry{};
+        entry.dialog_index = (int)i;
+        entry.color_hex = texture_normalize_color_hex(compact_color_strs.back());
+        entry.name = compact_names.back();
+        compact_entries.push_back(entry);
     }
 
     std::map<int, int> old_to_new;
@@ -2448,19 +2958,75 @@ void TextureImportDialog::compact_used_virtual_filaments()
         compact_colors.push_back(old_colors[old_idx]);
         compact_color_strs.push_back(old_idx < (int)old_color_strs.size() ? old_color_strs[old_idx] : "");
         compact_names.push_back(old_idx < (int)old_names.size() ? old_names[old_idx] : DEFAULT_VIRTUAL_FILAMENT_NAME);
-        compact_new_colors.push_back(old_colors[old_idx]);
-
-        size_t vi = (size_t)(old_idx - (int)m_existing_filament_count);
-        compact_new_preset_names.push_back(vi < old_preset_names.size()
-            ? old_preset_names[vi]
-            : m_default_virtual_filament_preset_name);
+        TextureFilamentEntry entry = old_idx < (int)old_entries.size() ? old_entries[old_idx] : TextureFilamentEntry{};
+        entry.dialog_index = (int)compact_entries.size();
+        entry.color_hex = texture_normalize_color_hex(compact_color_strs.back());
+        entry.name = compact_names.back();
+        if (entry.kind == TextureFilamentKind::NewPhysical) {
+            compact_new_colors.push_back(old_colors[old_idx]);
+            compact_new_preset_names.push_back(entry.preset_name.empty() ? m_default_virtual_filament_preset_name : entry.preset_name);
+        }
+        compact_entries.push_back(entry);
     }
 
     m_filament_colors_rgba = std::move(compact_colors);
     m_filament_color_strs = std::move(compact_color_strs);
     m_filament_names = std::move(compact_names);
+    m_filament_entries = std::move(compact_entries);
     m_new_filament_colors = std::move(compact_new_colors);
     m_new_filament_preset_names = std::move(compact_new_preset_names);
+    m_new_mixed_filaments.clear();
+    std::set<int> invalid_compacted_mixed_indices;
+    for (auto& entry : m_filament_entries) {
+        if (entry.kind != TextureFilamentKind::NewMixed)
+            continue;
+        TextureNewMixedFilament mixed;
+        mixed.dialog_index = entry.dialog_index;
+        mixed.color_hex = entry.color_hex;
+        mixed.ratios = entry.mixed_ratios;
+        mixed.component_dialog_indices.reserve(entry.mixed_components.size());
+        bool valid_components = entry.mixed_components.size() >= 2 &&
+            entry.mixed_components.size() == entry.mixed_ratios.size();
+        for (unsigned int comp : entry.mixed_components) {
+            int old_comp_idx = comp >= 1 ? (int)comp - 1 : -1;
+            if (old_comp_idx < 0) {
+                valid_components = false;
+                break;
+            }
+            auto remap_it = old_to_new.find(old_comp_idx);
+            int new_comp_idx = remap_it != old_to_new.end() ? remap_it->second : old_comp_idx;
+            if (new_comp_idx < 0 || new_comp_idx >= (int)m_filament_entries.size() ||
+                !texture_entry_is_physical(m_filament_entries[new_comp_idx].kind)) {
+                valid_components = false;
+                break;
+            }
+            mixed.component_dialog_indices.push_back(new_comp_idx);
+        }
+        if (!valid_components) {
+            invalid_compacted_mixed_indices.insert(entry.dialog_index);
+            continue;
+        }
+        entry.mixed_components.clear();
+        for (int comp_idx : mixed.component_dialog_indices)
+            entry.mixed_components.push_back((unsigned int)(comp_idx + 1));
+        m_new_mixed_filaments.push_back(mixed);
+    }
+
+    auto find_closest_physical_filament_index = [this](const std::array<std::size_t, 3>& color) {
+        int best_idx = -1;
+        double best_delta = std::numeric_limits<double>::max();
+        const size_t filament_count = std::min(m_filament_colors_rgba.size(), max_filament_count());
+        for (size_t i = 0; i < filament_count && i < m_filament_entries.size(); ++i) {
+            if (!texture_entry_is_physical(m_filament_entries[i].kind))
+                continue;
+            const double delta = Slic3r::compute_delta_e(color, m_filament_colors_rgba[i]);
+            if (delta < best_delta) {
+                best_delta = delta;
+                best_idx = (int)i;
+            }
+        }
+        return best_idx;
+    };
 
     for (auto& m : m_current_matches) {
         auto it = old_to_new.find(m.filament_index);
@@ -2468,6 +3034,10 @@ void TextureImportDialog::compact_used_virtual_filaments()
             m.filament_index = it->second;
         } else if (m.filament_index >= (int)m_existing_filament_count) {
             m.filament_index = find_closest_filament_index(m.cluster_color);
+        }
+        if (invalid_compacted_mixed_indices.count(m.filament_index) > 0) {
+            int fallback_idx = find_closest_physical_filament_index(m.cluster_color);
+            m.filament_index = fallback_idx >= 0 ? fallback_idx : find_closest_filament_index(m.cluster_color);
         }
 
         if (m.filament_index >= 0 && m.filament_index < (int)m_filament_colors_rgba.size()) {
@@ -2495,9 +3065,324 @@ void TextureImportDialog::dismiss_filament_popup()
         popup->Destroy();
 }
 
+void TextureImportDialog::show_auto_mix_popup()
+{
+    if (!m_btn_auto_mix || !m_btn_auto_mix->IsEnabled())
+        return;
+
+    if (m_auto_mix_popup && m_auto_mix_popup->IsShown())
+        return;
+    dismiss_auto_mix_popup();
+
+    auto on_select = [this](TextureAutoMixMode mode) {
+        set_auto_mix_mode(mode);
+    };
+    auto on_close = [this]() {
+        m_auto_mix_popup = nullptr;
+    };
+
+    auto* popup = new AutoMixSelectPopup(this, m_auto_mix_mode, m_btn_auto_mix->GetSize().x,
+                                         m_auto_mix_font_point_size,
+                                         on_select, on_close);
+    wxPoint pos = m_btn_auto_mix->ClientToScreen(wxPoint(0, m_btn_auto_mix->GetSize().y));
+    wxRect display_rect;
+    int display_idx = wxDisplay::GetFromPoint(pos);
+    if (display_idx != wxNOT_FOUND)
+        display_rect = wxDisplay(display_idx).GetClientArea();
+    else
+        display_rect = wxDisplay().GetClientArea();
+    pos.x = std::clamp(pos.x, display_rect.GetLeft(),
+                       std::max(display_rect.GetLeft(), display_rect.GetRight() - popup->GetSize().x));
+    popup->Position(pos, wxSize(0, 0));
+    popup->Bind(wxEVT_DESTROY, [this, popup](wxWindowDestroyEvent& e) {
+        e.Skip();
+        if (m_auto_mix_popup == popup)
+            m_auto_mix_popup = nullptr;
+    });
+    m_auto_mix_popup = popup;
+    popup->Popup();
+}
+
+void TextureImportDialog::dismiss_auto_mix_popup()
+{
+    if (!m_auto_mix_popup)
+        return;
+
+    AutoMixSelectPopup* popup = m_auto_mix_popup;
+    m_auto_mix_popup = nullptr;
+    if (popup->IsShown())
+        popup->Dismiss();
+    else
+        popup->Destroy();
+}
+
+void TextureImportDialog::set_auto_mix_mode(TextureAutoMixMode mode)
+{
+    m_auto_mix_mode = mode;
+    if (m_btn_auto_mix) {
+        m_btn_auto_mix->SetLabel(auto_mix_mode_label(mode));
+        m_btn_auto_mix->Refresh();
+    }
+    apply_auto_standard_mix(mode);
+}
+
+void TextureImportDialog::apply_auto_standard_mix(TextureAutoMixMode mode)
+{
+    if (m_mapping_rows.empty())
+        return;
+    m_filaments_dropped = false;
+
+    auto find_or_add_base_physical = [this](const std::string& color_hex) -> int {
+        const std::string normalized = texture_normalize_color_hex(color_hex);
+        for (const auto& entry : m_filament_entries) {
+            if (!texture_entry_is_physical(entry.kind))
+                continue;
+            if (texture_normalize_color_hex(entry.color_hex) != normalized)
+                continue;
+            if (texture_entry_is_pla_basic(entry))
+                return entry.dialog_index;
+        }
+
+        std::array<float, 4> rgba = parse_color_string(normalized);
+        int idx = add_virtual_filament(rgba, normalized, m_default_virtual_filament_preset_name);
+        if (idx >= 0 && idx < (int)m_filament_entries.size()) {
+            m_filament_entries[idx].type = DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE;
+            m_filament_entries[idx].name = DEFAULT_VIRTUAL_FILAMENT_NAME;
+        }
+        return idx;
+    };
+
+    auto find_existing_mixed = [this](const std::vector<int>& component_indices, const std::vector<int>& ratios) -> int {
+        for (const auto& entry : m_filament_entries) {
+            if (!texture_entry_is_mixed(entry.kind) || entry.mixed_components.size() != component_indices.size() ||
+                entry.mixed_ratios.size() != ratios.size())
+                continue;
+            bool same = true;
+            for (size_t i = 0; i < component_indices.size(); ++i) {
+                if (entry.mixed_components[i] != (unsigned int)(component_indices[i] + 1) ||
+                    entry.mixed_ratios[i] != ratios[i]) {
+                    same = false;
+                    break;
+                }
+            }
+            if (same)
+                return entry.dialog_index;
+        }
+        return -1;
+    };
+
+    bool changed = false;
+    const auto recipe_mode = texture_recipe_mode(mode);
+    for (size_t row_index = 0; row_index < m_mapping_rows.size(); ++row_index) {
+        Slic3r::ColorDecomposeRgb target_rgb;
+        if (!Slic3r::color_decompose_hex_to_rgb(m_mapping_rows[row_index].source_hex, target_rgb))
+            continue;
+
+        auto recipe = Slic3r::lookup_standard_recipe(target_rgb, recipe_mode, DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE);
+        if (!recipe.valid || recipe.components.size() < 2)
+            continue;
+
+        std::vector<int> component_dialog_indices;
+        std::vector<int> ratios;
+        for (const auto& comp : recipe.components) {
+            int component_idx = find_or_add_base_physical(comp.color_hex);
+            if (component_idx < 0) {
+                component_dialog_indices.clear();
+                break;
+            }
+            component_dialog_indices.push_back(component_idx);
+            ratios.push_back(comp.ratio);
+        }
+        if (component_dialog_indices.size() < 2 || component_dialog_indices.size() != ratios.size())
+            continue;
+
+        int mixed_idx = find_existing_mixed(component_dialog_indices, ratios);
+        if (mixed_idx < 0)
+            mixed_idx = add_virtual_mixed_filament(recipe.matched_color_hex, component_dialog_indices, ratios);
+        if (mixed_idx < 0)
+            continue;
+
+        m_mapping_rows[row_index].target_filament_idx = mixed_idx;
+        if (row_index < m_current_matches.size()) {
+            m_current_matches[row_index].filament_index = mixed_idx;
+            m_current_matches[row_index].filament_color = m_filament_colors_rgba[mixed_idx];
+            m_current_matches[row_index].delta_e = Slic3r::compute_delta_e(
+                m_current_matches[row_index].cluster_color, m_current_matches[row_index].filament_color);
+            if (mixed_idx >= (int)m_existing_filament_count)
+                m_current_matches[row_index].delta_e = 0.0;
+        }
+        changed = true;
+    }
+
+    if (!changed)
+        return;
+
+    m_auto_mix_applied = true;
+    compact_used_virtual_filaments();
+    update_filament_color_map();
+    rebuild_mapping_rows();
+    update_drop_warning_visibility();
+    update_auto_mix_reset_visibility();
+}
+
+void TextureImportDialog::reset_auto_mix()
+{
+    if (m_state != TextureImportState::Ready || !m_auto_mix_applied)
+        return;
+
+    dismiss_auto_mix_popup();
+
+    // Clear mixed filament references so the compact inside do_auto_match()
+    // removes them (and their exclusively-owned base physicals) from the
+    // filament arrays, giving the baseline matching a clean starting state.
+    for (auto& m : m_current_matches) {
+        if (m.filament_index >= 0 && m.filament_index < (int)m_filament_entries.size() &&
+            texture_entry_is_mixed(m_filament_entries[m.filament_index].kind)) {
+            m.filament_index = -1;
+        }
+    }
+
+    // Re-run the baseline auto-match (same flow as the auto-merge toggle) so the
+    // mapping reverts to the pre-mix state: every colour matches an existing
+    // physical filament or a virtual physical filament, with no mixed filaments.
+    const auto previous_matches = m_current_matches;
+    do_auto_match();
+    restore_current_match_order(previous_matches);
+    compact_used_virtual_filaments();
+    update_filament_color_map();
+    rebuild_mapping_rows();
+    update_drop_warning_visibility();
+    update_auto_mix_reset_visibility();
+}
+
+void TextureImportDialog::update_auto_mix_reset_visibility()
+{
+    if (!m_btn_mix_reset)
+        return;
+    if (m_btn_mix_reset->Show(m_auto_mix_applied)) {
+        if (wxWindow* parent = m_btn_mix_reset->GetParent())
+            parent->Layout();
+    }
+}
+
+bool TextureImportDialog::add_decomposed_mixed_filament(size_t row_index)
+{
+    if (row_index >= m_mapping_rows.size())
+        return false;
+
+    std::vector<std::string> physical_colors;
+    std::vector<std::string> physical_names;
+    std::vector<std::string> physical_types;
+    std::vector<int> physical_dialog_indices;
+    std::vector<size_t> physical_config_indices;
+    auto& preset_bundle = *wxGetApp().preset_bundle;
+    for (const auto& entry : m_filament_entries) {
+        if (entry.kind != TextureFilamentKind::ExistingPhysical)
+            continue;
+        physical_colors.push_back(entry.color_hex);
+        physical_names.push_back(entry.name);
+        const size_t cfg_idx = entry.project_config_index;
+        Preset* preset = nullptr;
+        if (cfg_idx < preset_bundle.filament_presets.size())
+            preset = preset_bundle.filaments.find_preset(preset_bundle.filament_presets[cfg_idx]);
+        physical_types.push_back(filament_type_for_color_decompose(preset));
+        physical_dialog_indices.push_back(entry.dialog_index);
+        physical_config_indices.push_back(cfg_idx);
+    }
+    if (physical_colors.empty())
+        return false;
+
+    wxColour target(m_mapping_rows[row_index].source_hex);
+    ColorDecomposeDialog dlg(this, -1, target, physical_colors, physical_names, physical_types,
+                             m_filament_entries.size(), max_filament_count(),
+                             std::move(physical_config_indices));
+    // Count "new physical filaments" with the exact reuse rule of the write-back
+    // loop below: a base color is only new if no existing OR virtual official
+    // Bambu Basic filament already carries that color. This keeps the dialog's
+    // filament-limit pre-check consistent with what add_decomposed_mixed_filament
+    // will actually create, so already-present virtual base colors are not
+    // double counted (which previously could wrongly disable OK).
+    dlg.set_missing_physical_calculator([this](const ColorDecomposeResult& result) -> size_t {
+        size_t missing = 0;
+        for (const DecomposeComponent& comp : result.components) {
+            if (comp.filament_index > 0)
+                continue; // reuses a physical slot passed to the dialog, no new filament
+            const std::string comp_hex = texture_normalize_color_hex(
+                comp.colour.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
+            bool found = false;
+            for (const auto& entry : m_filament_entries) {
+                if (!texture_entry_is_physical(entry.kind))
+                    continue;
+                if (texture_normalize_color_hex(entry.color_hex) != comp_hex)
+                    continue;
+                if (texture_entry_official_basic(entry)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                ++missing;
+        }
+        return missing;
+    });
+    if (dlg.ShowModal() != wxID_OK)
+        return false;
+
+    ColorDecomposeResult result = dlg.get_result();
+    std::vector<int> component_dialog_indices;
+    std::vector<int> ratios;
+    for (const DecomposeComponent& comp : result.components) {
+        ratios.push_back(comp.ratio);
+        if (comp.filament_index > 0) {
+            const size_t physical_idx = (size_t)(comp.filament_index - 1);
+            if (physical_idx >= physical_dialog_indices.size())
+                return false;
+            component_dialog_indices.push_back(physical_dialog_indices[physical_idx]);
+            continue;
+        }
+
+        const std::string comp_hex = texture_normalize_color_hex(comp.colour.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
+        int existing_idx = -1;
+        for (const auto& entry : m_filament_entries) {
+            if (!texture_entry_is_physical(entry.kind))
+                continue;
+            if (texture_normalize_color_hex(entry.color_hex) != comp_hex)
+                continue;
+            if (texture_entry_official_basic(entry)) {
+                existing_idx = entry.dialog_index;
+                break;
+            }
+        }
+        if (existing_idx < 0) {
+            std::array<float, 4> rgba = parse_color_string(comp_hex);
+            existing_idx = add_virtual_filament(rgba, comp_hex);
+            if (existing_idx < 0)
+                return false;
+        }
+        component_dialog_indices.push_back(existing_idx);
+    }
+
+    if (component_dialog_indices.size() < 2 || component_dialog_indices.size() != ratios.size())
+        return false;
+
+    const std::string mixed_hex = texture_normalize_color_hex(
+        result.matched_color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
+    int mixed_idx = add_virtual_mixed_filament(mixed_hex, component_dialog_indices, ratios);
+    if (mixed_idx < 0)
+        return false;
+
+    m_mapping_rows[row_index].target_filament_idx = mixed_idx;
+    if (row_index < m_current_matches.size())
+        m_current_matches[row_index].filament_index = mixed_idx;
+    rebuild_mapping_rows();
+    update_filament_color_map();
+    return true;
+}
+
 void TextureImportDialog::dismiss_filament_popup_on_wheel(wxMouseEvent& evt)
 {
     dismiss_filament_popup();
+    dismiss_auto_mix_popup();
     evt.Skip();
 }
 
@@ -2551,6 +3436,12 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
         update_filament_color_map();
     };
 
+    auto on_decompose_color = [this, row_index]() {
+        CallAfter([this, row_index]() {
+            add_decomposed_mixed_filament(row_index);
+        });
+    };
+
     wxPanel* tp = m_mapping_rows[row_index].target_panel;
     if (!tp) return;
 
@@ -2569,8 +3460,9 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
     };
 
     auto* popup = new FilamentSelectPopup(
-        this, m_filament_colors_rgba, m_filament_names,
+        this, m_filament_entries, m_filament_colors_rgba, m_filament_names,
         m_existing_filament_count, tp->GetSize().x, tp, on_select, on_add_filament,
+        on_decompose_color,
         [this]() { return can_add_virtual_filament(); },
         on_close);
 
@@ -2600,6 +3492,11 @@ void TextureImportDialog::do_auto_match()
 {
     if (m_painted.cluster_colors.empty()) return;
 
+    // do_auto_match() always rebuilds the baseline mapping without any mixed
+    // filaments, so it is the common entry for every "revert one-click mix"
+    // path. Clear the applied flag here; callers refresh the reset button.
+    m_auto_mix_applied = false;
+
     // Reset the "filaments were dropped" flag at the start of every run, so it
     // strictly reflects what happens during *this* match (no historical
     // accumulation). add_virtual_filament() will flip it back to true if and
@@ -2620,7 +3517,8 @@ void TextureImportDialog::do_auto_match()
     std::map<std::array<std::size_t, 3>, int> previous_virtual_by_cluster;
     for (const auto& match : previous_matches) {
         if (match.filament_index >= (int)m_existing_filament_count &&
-            match.filament_index < (int)m_filament_colors_rgba.size()) {
+            match.filament_index < (int)m_filament_entries.size() &&
+            texture_entry_is_physical(m_filament_entries[match.filament_index].kind)) {
             previous_virtual_by_cluster[match.cluster_color] = match.filament_index;
         }
     }
@@ -2628,7 +3526,8 @@ void TextureImportDialog::do_auto_match()
     auto find_virtual_filament_by_color = [this](const std::array<std::size_t, 3>& color) -> int {
         std::string hex = rgb_to_hex(color).ToStdString();
         for (size_t i = m_existing_filament_count; i < m_filament_color_strs.size(); ++i) {
-            if (m_filament_color_strs[i] == hex)
+            if (m_filament_color_strs[i] == hex &&
+                i < m_filament_entries.size() && texture_entry_is_physical(m_filament_entries[i].kind))
                 return (int)i;
         }
         return -1;
@@ -2896,6 +3795,66 @@ void TextureImportDialog::rebuild_mapping_rows()
             dc.SetPen(wxPen(card_bd, 1));
             dc.DrawRoundedRectangle(0, 0, sz.x, sz.y, r);
 
+            if (fil_idx >= 0 && fil_idx < (int)m_filament_entries.size() &&
+                texture_entry_is_mixed(m_filament_entries[fil_idx].kind)) {
+                const TextureFilamentEntry& entry = m_filament_entries[fil_idx];
+                wxFont mixed_font = p->GetFont();
+                mixed_font.SetPointSize(10);
+                dc.SetFont(mixed_font);
+
+                int x = p->FromDIP(10);
+                const int sw = p->FromDIP(28);
+                const int sw_r = p->FromDIP(6);
+                const int sw_y = (sz.y - sw) / 2;
+                for (size_t mi = 0; mi < entry.mixed_components.size() && mi < entry.mixed_ratios.size(); ++mi) {
+                    if (mi > 0) {
+                        dc.SetTextForeground(name_fg);
+                        wxString plus = "+";
+                        wxSize psz = dc.GetTextExtent(plus);
+                        dc.DrawText(plus, x, (sz.y - psz.y) / 2);
+                        x += psz.x + p->FromDIP(4);
+                    }
+
+                    const unsigned int comp_id = entry.mixed_components[mi];
+                    const int comp_idx = comp_id >= 1 ? (int)comp_id - 1 : -1;
+                    wxColour comp_clr("#D9D9D9");
+                    if (comp_idx >= 0 && comp_idx < (int)m_filament_colors_rgba.size()) {
+                        const auto& c = m_filament_colors_rgba[comp_idx];
+                        comp_clr = wxColour((unsigned char)(c[0] * 255.f),
+                                            (unsigned char)(c[1] * 255.f),
+                                            (unsigned char)(c[2] * 255.f));
+                    }
+
+                    dc.SetPen(*wxTRANSPARENT_PEN);
+                    dc.SetBrush(wxBrush(comp_clr));
+                    dc.DrawRoundedRectangle(x, sw_y, sw, sw, sw_r);
+                    draw_filament_swatch_border(dc, comp_clr, x, sw_y, sw, sw, sw_r);
+
+                    wxString num_str = wxString::Format("%u", comp_id);
+                    wxSize nsz = dc.GetTextExtent(num_str);
+                    dc.SetTextForeground(comp_clr.GetLuminance() < 0.6 ? *wxWHITE : texture_import_gray9000());
+                    dc.DrawText(num_str, x + (sw - nsz.x) / 2, sw_y + (sw - nsz.y) / 2);
+                    x += sw + p->FromDIP(5);
+
+                    dc.SetTextForeground(name_fg);
+                    wxString pct = wxString::Format("%d%%", entry.mixed_ratios[mi]);
+                    wxSize pct_sz = dc.GetTextExtent(pct);
+                    dc.DrawText(pct, x, (sz.y - pct_sz.y) / 2);
+                    x += pct_sz.x + p->FromDIP(5);
+                    if (x > sz.x - p->FromDIP(34))
+                        break;
+                }
+
+                int chev_cx = sz.x - p->FromDIP(14);
+                int chev_cy = sz.y / 2;
+                int hw = p->FromDIP(3);
+                int hh = p->FromDIP(2);
+                dc.SetPen(wxPen(chev_clr, p->FromDIP(1) > 0 ? p->FromDIP(1) : 1));
+                dc.DrawLine(chev_cx - hw, chev_cy - hh, chev_cx, chev_cy + hh);
+                dc.DrawLine(chev_cx, chev_cy + hh, chev_cx + hw, chev_cy - hh);
+                return;
+            }
+
             // Numbered color square 32x32, rounded 6px
             int sq = p->FromDIP(32);
             int sq_x = p->FromDIP(6);
@@ -3110,6 +4069,7 @@ void TextureImportDialog::on_auto_merge_toggled(wxCommandEvent&)
         update_filament_color_map();
         rebuild_mapping_rows();
         update_drop_warning_visibility();
+        update_auto_mix_reset_visibility();
     }
 }
 
@@ -3155,6 +4115,7 @@ void TextureImportDialog::on_skip_clicked(wxCommandEvent&)
     m_skipped = true;
     m_new_filament_colors.clear();
     m_new_filament_preset_names.clear();
+    m_new_mixed_filaments.clear();
     m_current_matches.clear();
     cancel_computation();
     EndModal(wxID_CANCEL);
@@ -3306,6 +4267,12 @@ void TextureImportDialog::on_dpi_changed(const wxRect&)
         m_btn_apply->SetCornerRadius(FromDIP(12));
         m_btn_apply->SetMinSize(wxSize(FromDIP(60), FromDIP(28)));
     }
+    if (m_btn_auto_mix) {
+        m_btn_auto_mix->SetCornerRadius(FromDIP(14));
+        m_btn_auto_mix->SetMinSize(wxSize(FromDIP(178), FromDIP(28)));
+    }
+    if (m_btn_mix_reset)
+        m_btn_mix_reset->SetPaddingSize(wxSize(FromDIP(2), FromDIP(2)));
 
     if (m_color_spin)
         m_color_spin->SetMinSize(wxSize(FromDIP(60), FromDIP(28)));

@@ -15,7 +15,7 @@
 //   - otherwise → flat single hex (fallback to `'#888'` only when no hex
 //     is available at all, never to obscure a bad input silently).
 
-import { canonicalizeHex, canonicalizeHexList } from './hex';
+import { canonicalizeHex, canonicalizeHexList, isTransparentHex } from './hex';
 
 export interface ColorRenderInput {
   /**
@@ -52,12 +52,38 @@ function normalise(input: ColorRenderInput): NormalisedRenderInput {
 }
 
 /**
+ * CSS checkered pattern painted for fully-transparent colours (alpha byte
+ * == 0x00 in `#RRGGBBAA`). A transparent spool (e.g. Bambu PC
+ * "Transparent" `#00000000`, PETG "Clear" `#00000000`) must NOT render as
+ * solid black — the checkered pattern reads as "clear / no colour".
+ * Exported so SpoolColorChip (which builds its own DOM) reuses the exact
+ * same expression and the two paths can never drift out of sync.
+ */
+export const TRANSPARENT_CHECKERED_BG =
+  'repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 0 0 / 8px 8px';
+
+/**
+ * True when the colour to render is fully transparent. A single-colour
+ * spool carries its hex in `primaryHex` (cloud `color_code`) with an EMPTY
+ * `hexes`/`colors` array, so both sources must be checked — checking only
+ * `hexes[0]` was the bug that left transparent single spools rendering as
+ * `#000000` (black) after canonicalisation dropped the alpha byte.
+ */
+export function isTransparentRenderInput(input: ColorRenderInput): boolean {
+  return isTransparentHex(input.hexes?.[0]) || isTransparentHex(input.primaryHex);
+}
+
+/**
  * CSS `background` expression for a colour swatch / chip / preview bar.
  * Always returns a non-empty string so the caller can safely set
  * `style={{ background: cssBackgroundFor(...) }}` without conditional
  * fallback elsewhere.
  */
 export function cssBackgroundFor(input: ColorRenderInput): string {
+  // Fully-transparent colour → checkered pattern instead of solid black.
+  // Checked before canonicalisation because canonicalise drops the alpha
+  // byte (#00000000 → #000000), hiding the transparency.
+  if (isTransparentRenderInput(input)) return TRANSPARENT_CHECKERED_BG;
   const { hexes, primary, colorType } = normalise(input);
   if (hexes.length > 1) {
     if (colorType === 1) {

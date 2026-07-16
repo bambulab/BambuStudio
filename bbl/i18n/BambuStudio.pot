@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-25 17:06+0800\n"
+"POT-Creation-Date: 2026-07-14 20:35+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -290,6 +290,9 @@ msgid "Standard"
 msgstr ""
 
 msgid "TPU High Flow"
+msgstr ""
+
+msgid "E3D High Flow"
 msgstr ""
 
 msgid "Unknown"
@@ -1319,9 +1322,6 @@ msgstr ""
 msgid "Assemble"
 msgstr ""
 
-msgid "Please exit the assembly guide before using this tool."
-msgstr ""
-
 msgid "Please confirm explosion ratio = 1 and select at least two volumes."
 msgstr ""
 
@@ -1331,6 +1331,9 @@ msgstr ""
 msgid "(Moving)"
 msgstr ""
 
+msgid "Face and face assembly"
+msgstr ""
+
 msgid "Point and point assembly"
 msgstr ""
 
@@ -1338,9 +1341,6 @@ msgid ""
 "It is recommended to assemble the objects first,\n"
 "because the objects is restriced to bed \n"
 "and only parts can be lifted."
-msgstr ""
-
-msgid "Face and face assembly"
 msgstr ""
 
 msgid "Brush size"
@@ -1933,6 +1933,15 @@ msgstr ""
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr ""
 
+msgid ""
+"This operation rebuilds the model's mesh. Painted color, supports, seam and fuzzy-skin will be transferred to the new mesh by a best-effort approximation, so the result may be slightly off and, in rare cases, some painting may be lost.\n"
+"\n"
+"Do you want to continue?"
+msgstr ""
+
+msgid "Painting may change"
+msgstr ""
+
 msgid "BambuStudio configuration file read failed. Please manually backup and delete it, and then restart BambuStudio software."
 msgstr ""
 
@@ -2423,6 +2432,9 @@ msgstr ""
 msgid "Delete this filament"
 msgstr ""
 
+msgid "Decompose Color"
+msgstr ""
+
 msgid "Merge with"
 msgstr ""
 
@@ -2469,6 +2481,12 @@ msgid "Remove the selected plate"
 msgstr ""
 
 msgid "Move Plate"
+msgstr ""
+
+msgid "Split to objects"
+msgstr ""
+
+msgid "Split the selected objects into multiple objects"
 msgstr ""
 
 msgid "Clone"
@@ -2935,7 +2953,7 @@ msgstr ""
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr ""
 
-msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
 msgstr ""
 
 msgid "/"
@@ -3148,6 +3166,12 @@ msgstr ""
 msgid "Apply final assembly pose"
 msgstr ""
 
+msgid "The export file is in use by the system. Please close it or export with a different file name, then try again."
+msgstr ""
+
+msgid "Export"
+msgstr ""
+
 msgid "Assembly Guide"
 msgstr ""
 
@@ -3172,10 +3196,13 @@ msgstr ""
 msgid "Exporting file"
 msgstr ""
 
-msgid "Export"
+msgid "Saving project will automatically switch to end frame"
 msgstr ""
 
-msgid "Saving project will automatically switch to end frame"
+msgid "Are you sure you want to delete all assembly steps?"
+msgstr ""
+
+msgid "Delete all steps"
 msgstr ""
 
 msgid "New Step"
@@ -3203,6 +3230,9 @@ msgstr ""
 msgid "Assembly Module"
 msgstr ""
 
+msgid "Volume"
+msgstr ""
+
 msgid "Click to add objects to the current step"
 msgstr ""
 
@@ -3218,13 +3248,17 @@ msgstr ""
 msgid "Model"
 msgstr ""
 
-msgid "Volume"
-msgstr ""
-
 msgid "start frame"
 msgstr ""
 
 msgid "transition frame"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Step %d"
+msgstr ""
+
+msgid "not used in any assembly step"
 msgstr ""
 
 #, possible-boost-format
@@ -3249,6 +3283,12 @@ msgstr ""
 msgid "step"
 msgstr ""
 
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr ""
 
@@ -3259,6 +3299,9 @@ msgid "Play previous frame."
 msgstr ""
 
 msgid "Play next frame."
+msgstr ""
+
+msgid "Display Mode"
 msgstr ""
 
 msgid "Set export file parameters"
@@ -3322,7 +3365,10 @@ msgstr ""
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr ""
 
-msgid "Exit"
+msgid "Delete all assembly steps except the final assembly."
+msgstr ""
+
+msgid "Exit the assembly step editing, you can also press the Esc button to exit"
 msgstr ""
 
 msgid "Click to add Cyber Brick"
@@ -3392,6 +3438,9 @@ msgid "Font size"
 msgstr ""
 
 msgid "Display mode"
+msgstr ""
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
 msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
@@ -3497,6 +3546,15 @@ msgid "Search"
 msgstr ""
 
 msgid "List"
+msgstr ""
+
+msgid "Assembly list"
+msgstr ""
+
+msgid "Expand all objects"
+msgstr ""
+
+msgid "Collapse all objects"
 msgstr ""
 
 msgid "Select all parts in a step"
@@ -3695,13 +3753,25 @@ msgstr ""
 msgid "Remaining time: %dmin%ds"
 msgstr ""
 
-msgid "Project Filaments"
+msgid "One-click CMYW auto-mix"
 msgstr ""
 
-msgid "New Filaments"
+msgid "One-click RYBW auto-mix"
 msgstr ""
 
-msgid "Add Material"
+msgid "Project Physical Filaments"
+msgstr ""
+
+msgid "Project Mixed Filaments"
+msgstr ""
+
+msgid "New Physical Filaments"
+msgstr ""
+
+msgid "New Mixed Filaments"
+msgstr ""
+
+msgid "+ Add Material"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -3739,6 +3809,12 @@ msgid "Reminder: parameters changed, click Apply to take effect"
 msgstr ""
 
 msgid "Filament Mapping"
+msgstr ""
+
+msgid "Reset filament mapping to the state before one-click mixing"
+msgstr ""
+
+msgid "Choose the one-click auto-mix mode for texture color import"
 msgstr ""
 
 msgid "Auto-merge same filament"
@@ -3954,6 +4030,42 @@ msgstr ""
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
 
+msgid "Remark"
+msgstr ""
+
+msgid "Other"
+msgstr ""
+
+msgid "Filament Manager"
+msgstr ""
+
+msgid "In printer"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "In printer: %s"
+msgstr ""
+
+msgctxt "Filament Manager"
+msgid "Note"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr ""
+
+msgctxt "Unsupported Filaments"
+msgid "Note"
+msgstr ""
+
+msgid "No unsupported filaments"
+msgstr ""
+
+msgid "No filaments"
+msgstr ""
+
+msgid "System presets"
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 msgstr ""
@@ -3970,6 +4082,24 @@ msgid "Other Color"
 msgstr ""
 
 msgid "Custom Color"
+msgstr ""
+
+msgid "AMS detected a new official filament. Add it to Filament Manager?"
+msgstr ""
+
+msgid "Add as new filament"
+msgstr ""
+
+msgid "Link to existing filament"
+msgstr ""
+
+msgid "Not now"
+msgstr ""
+
+msgid "Please select"
+msgstr ""
+
+msgid "No matching filament"
 msgstr ""
 
 msgid "Dynamic flow calibration"
@@ -4433,7 +4563,7 @@ msgstr ""
 
 msgid ""
 "Should not large than 100%.\n"
-"Reset to defualt"
+"Reset to default"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -5217,27 +5347,27 @@ msgid "Current grouping of slice result is not optimal."
 msgstr ""
 
 #, possible-boost-format
-msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
+msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
 msgstr ""
 
 #, possible-boost-format
-msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
+msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
 msgstr ""
 
 #, possible-boost-format
-msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
+msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
 msgstr ""
 
 #, possible-boost-format
-msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
+msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
 msgstr ""
 
 #, possible-boost-format
-msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
+msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
 msgstr ""
 
 #, possible-boost-format
-msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
+msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
 msgstr ""
 
 msgid "Set to Optimal"
@@ -5471,9 +5601,6 @@ msgstr ""
 msgid "Arrange objects on selected plates"
 msgstr ""
 
-msgid "Split to objects"
-msgstr ""
-
 msgid "And it is valid when there are at least two parts in object or stl has at least two meshes."
 msgstr ""
 
@@ -5553,15 +5680,6 @@ msgid "Assemble Control"
 msgstr ""
 
 msgid "Selection Mode"
-msgstr ""
-
-msgid "Show Current Step Objects Only"
-msgstr ""
-
-msgid "X-Ray Other Objects"
-msgstr ""
-
-msgid "Display Mode"
 msgstr ""
 
 msgid "Total Volume:"
@@ -5778,9 +5896,6 @@ msgid "Multi-device"
 msgstr ""
 
 msgid "Project"
-msgstr ""
-
-msgid "Filament Manager"
 msgstr ""
 
 msgid "Yes"
@@ -7476,7 +7591,10 @@ msgstr ""
 msgid "Printer settings"
 msgstr ""
 
-msgid "Remove current plate (if not last one)"
+msgid "At least one plate is required"
+msgstr ""
+
+msgid "Remove current plate"
 msgstr ""
 
 msgid "Auto orient objects on current plate"
@@ -7498,6 +7616,10 @@ msgid "Edit current plate name"
 msgstr ""
 
 msgid "Customize current plate"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "%s is not compatible with %s nozzle."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -7617,7 +7739,7 @@ msgstr ""
 msgid "There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."
 msgstr ""
 
-msgid "Sync extruder infomation"
+msgid "Sync extruder information"
 msgstr ""
 
 msgid ""
@@ -7638,6 +7760,9 @@ msgid "Sync info"
 msgstr ""
 
 msgid "Synchronize nozzle information and the number of AMS"
+msgstr ""
+
+msgid "Project Filaments"
 msgstr ""
 
 msgid "Purge mode"
@@ -8376,6 +8501,12 @@ msgstr ""
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr ""
 
+msgid "Failed to save the project: an invalid setting value was found while writing the file."
+msgstr ""
+
+msgid "Please check your settings and try again."
+msgstr ""
+
 msgid ""
 "Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
 "Please verify the file source and script contents before continuing."
@@ -8536,9 +8667,6 @@ msgstr ""
 msgid "Region selection"
 msgstr ""
 
-msgid "Second"
-msgstr ""
-
 msgid ""
 "Please note that the model show will undergo certain changes at small pixels case.\n"
 "Enabled LOD requires application restart."
@@ -8559,7 +8687,29 @@ msgid ""
 "Continue with enabling this feature?"
 msgstr ""
 
+msgid "Download path"
+msgstr ""
+
 msgid "Choose Download Directory"
+msgstr ""
+
+msgctxt "Preference"
+msgid "General"
+msgstr ""
+
+msgctxt "Preference"
+msgid "User"
+msgstr ""
+
+msgctxt "Preference"
+msgid "3D"
+msgstr ""
+
+msgctxt "Preference"
+msgid "Other"
+msgstr ""
+
+msgid "Developer Tools"
 msgstr ""
 
 msgid "General Settings"
@@ -8592,31 +8742,7 @@ msgstr ""
 msgid "Units"
 msgstr ""
 
-msgid "Use 12-hour time format"
-msgstr ""
-
-msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
-
-msgid "Keep only one Bambu Studio instance"
-msgstr ""
-
-msgid "On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances of same app from the command line. In such case this settings will allow only one instance."
-msgstr ""
-
-msgid "If this is enabled, when starting Bambu Studio and another instance of the same Bambu Studio is already running, that instance will be reactivated instead."
-msgstr ""
-
-msgid "Automatically transfer modified value when switching process and filament presets"
-msgstr ""
-
-msgid "After closing, a popup will appear to ask each time"
-msgstr ""
-
-msgid "Auto plate type"
-msgstr ""
-
-msgid "Studio will remember build plate selected last time for certain printer model."
+msgid "Enable dark mode"
 msgstr ""
 
 msgid "All"
@@ -8631,10 +8757,13 @@ msgstr ""
 msgid "Auto calculate flush volumes"
 msgstr ""
 
-msgid "Multi-device Management(Take effect after restarting Studio)."
+msgid "Keep only one Bambu Studio instance"
 msgstr ""
 
-msgid "With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."
+msgid "On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances of same app from the command line. In such case this settings will allow only one instance."
+msgstr ""
+
+msgid "If this is enabled, when starting Bambu Studio and another instance of the same Bambu Studio is already running, that instance will be reactivated instead."
 msgstr ""
 
 msgid "Take effect after restarting Studio"
@@ -8643,10 +8772,10 @@ msgstr ""
 msgid "The Filament Manager is turned off by default on macOS because compatibility issues on some systems may cause the application to become unresponsive."
 msgstr ""
 
-msgid "Show the step mesh parameter setting dialog."
+msgid "Multi-device Management(Take effect after restarting Studio)."
 msgstr ""
 
-msgid "If enabled,a parameter settings dialog will appear during STEP file import."
+msgid "With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."
 msgstr ""
 
 msgid "Support beta version update."
@@ -8655,31 +8784,65 @@ msgstr ""
 msgid "With this option enabled, you can receive beta version updates."
 msgstr ""
 
+msgid "Join the User Experience Improvement Program."
+msgstr ""
+
+msgctxt "Preferences"
+msgid "Learn more"
+msgstr ""
+
+msgid "User Settings"
+msgstr ""
+
+msgid "Auto plate type"
+msgstr ""
+
+msgid "Studio will remember build plate selected last time for certain printer model."
+msgstr ""
+
+msgid "12-hour"
+msgstr ""
+
+msgid "24-hour"
+msgstr ""
+
+msgid "time format for print progress"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr ""
+
+msgid "Keep liveview when printing."
+msgstr ""
+
+msgid "By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."
+msgstr ""
+
+msgid "Automatically transfer modified value when switching process and filament presets"
+msgstr ""
+
+msgid "After closing, a popup will appear to ask each time"
+msgstr ""
+
 msgid "Remove the restriction on mixed printing of high and low temperature filaments."
 msgstr ""
 
 msgid "With this option enabled, you can print materials with a large temperature difference together."
 msgstr ""
 
-msgid "Open full screen camera view on active monitor only."
+msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
 
-msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
+msgid "If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."
 msgstr ""
 
-msgid "Clear my choice for synchronizing printer preset after loading the file."
+msgid "Auto check for system presets updates"
 msgstr ""
 
-msgid "Clear my choice for Load 3mf dialog settings."
+msgid "If enabled, auto check whether there are system presets updates after Bambu Studio startup."
 msgstr ""
 
-msgid "Clear my choice for executing post-processing scripts."
-msgstr ""
-
-msgid "Show the security warning dialog again before slicing when post-processing scripts are configured."
-msgstr ""
-
-msgid "Clear my choice for disabling support parameter recommendation."
+msgid "Auto-fill previously logged-in accounts."
 msgstr ""
 
 msgid "3D Settings"
@@ -8691,10 +8854,43 @@ msgstr ""
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr ""
 
+msgid "Display overview"
+msgstr ""
+
+msgid "Grabber scale"
+msgstr ""
+
+msgid "Set grabber size for move,rotate,scale tool."
+msgstr ""
+
+msgid "Value range"
+msgstr ""
+
+msgid "Tooltip offset"
+msgstr ""
+
+msgid "Set tooltip offset for different mouse size."
+msgstr ""
+
+msgid "Collapsible"
+msgstr ""
+
+msgid "Uncollapsible"
+msgstr ""
+
+msgid "Toolbar Style"
+msgstr ""
+
 msgid "Always show shells in preview"
 msgstr ""
 
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
+msgstr ""
+
+msgid "Show the step mesh parameter setting dialog."
+msgstr ""
+
+msgid "If enabled,a parameter settings dialog will appear during STEP file import."
 msgstr ""
 
 msgid "Import a single SVG and split it"
@@ -8715,28 +8911,10 @@ msgstr ""
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr ""
 
-msgid "Display overview"
-msgstr ""
-
-msgid "Show assembly BVH primary bounds"
-msgstr ""
-
-msgid "Display the BVH primary bounding box wireframe in assembly view."
-msgstr ""
-
 msgid "Improve rendering performance by lod"
 msgstr ""
 
 msgid "Improved rendering performance under the scene of multiple plates and many models."
-msgstr ""
-
-msgid "Collapsible"
-msgstr ""
-
-msgid "Uncollapsible"
-msgstr ""
-
-msgid "Toolbar Style"
 msgstr ""
 
 msgid "Enable advanced gcode viewer"
@@ -8745,34 +8923,76 @@ msgstr ""
 msgid "Enable advanced gcode viewer."
 msgstr ""
 
-msgid "Grabber scale"
+msgid "Show assembly BVH primary bounds"
 msgstr ""
 
-msgid "Set grabber size for move,rotate,scale tool."
+msgid "Display the BVH primary bounding box wireframe in assembly view."
 msgstr ""
 
-msgid "Value range"
+msgid "Open full screen camera view on active monitor only."
 msgstr ""
 
-msgid "Tooltip offset"
+msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
 msgstr ""
 
-msgid "Set tooltip offset for different mouse size."
+msgid "Maximum recent projects"
 msgstr ""
 
-msgid "Presets"
+msgid "Maximum count of recent projects"
 msgstr ""
 
-msgid "Auto sync user presets(Printer/Filament/Process)"
+msgid "No warnings when loading 3MF with modified G-codes"
 msgstr ""
 
-msgid "If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."
+msgid "10 seconds"
 msgstr ""
 
-msgid "Auto check for system presets updates"
+msgid "20 seconds"
 msgstr ""
 
-msgid "If enabled, auto check whether there are system presets updates after Bambu Studio startup."
+msgid "30 seconds"
+msgstr ""
+
+msgid "1 minute"
+msgstr ""
+
+msgid "2 minutes"
+msgstr ""
+
+msgid "5 minutes"
+msgstr ""
+
+msgid "10 minutes"
+msgstr ""
+
+msgid "30 minutes"
+msgstr ""
+
+msgid "never"
+msgstr ""
+
+msgid "Auto-Backup"
+msgstr ""
+
+msgid "The peroid of backup in seconds."
+msgstr ""
+
+msgid "Online Models"
+msgstr ""
+
+msgid "Show online staff-picked models on the home page"
+msgstr ""
+
+msgid "Show history on the home page"
+msgstr ""
+
+msgid "Developer Mode"
+msgstr ""
+
+msgid "Develop mode"
+msgstr ""
+
+msgid "Skip AMS blacklist check"
 msgstr ""
 
 msgid "Associate Files To Bambu Studio"
@@ -8796,134 +9016,7 @@ msgstr ""
 msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr ""
 
-msgid "Online Models"
-msgstr ""
-
-msgid "Show online staff-picked models on the home page"
-msgstr ""
-
-msgid "Show history on the home page"
-msgstr ""
-
-msgid "Reminder During Slicing"
-msgstr ""
-
-msgid "Automatic mode"
-msgstr ""
-
-msgid "Maximum recent projects"
-msgstr ""
-
-msgid "Maximum count of recent projects"
-msgstr ""
-
-msgid "Clear my choice on the unsaved projects."
-msgstr ""
-
-msgid "No warnings when loading 3MF with modified G-codes"
-msgstr ""
-
-msgid "Auto-Backup"
-msgstr ""
-
-msgid "Backup your project periodically for restoring from the occasional crash."
-msgstr ""
-
-msgid "every"
-msgstr ""
-
-msgid "The peroid of backup in seconds."
-msgstr ""
-
-msgid "Downloads"
-msgstr ""
-
-msgid "Media"
-msgstr ""
-
-msgid "Keep liveview when printing."
-msgstr ""
-
-msgid "By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."
-msgstr ""
-
-msgid "Dark Mode"
-msgstr ""
-
-msgid "Enable dark mode"
-msgstr ""
-
-msgid "Pop up to select filament grouping mode"
-msgstr ""
-
-msgid "User Experience"
-msgstr ""
-
-msgid "Join the User Experience Improvement Program."
-msgstr ""
-
-msgctxt "Preferences"
-msgid "Learn more"
-msgstr ""
-
-msgid "Auto-fill previously logged-in accounts."
-msgstr ""
-
-msgid "Develop Mode"
-msgstr ""
-
-msgid "Develop mode"
-msgstr ""
-
-msgid "Skip AMS blacklist check"
-msgstr ""
-
-msgid "Home page and daily tips"
-msgstr ""
-
-msgid "Show home page on startup"
-msgstr ""
-
-msgid "Sync settings"
-msgstr ""
-
-msgid "User sync"
-msgstr ""
-
-msgid "Preset sync"
-msgstr ""
-
-msgid "Preferences sync"
-msgstr ""
-
-msgid "View control settings"
-msgstr ""
-
-msgid "Rotate of view"
-msgstr ""
-
-msgid "Move of view"
-msgstr ""
-
-msgid "Zoom of view"
-msgstr ""
-
-msgid "Other"
-msgstr ""
-
-msgid "Mouse wheel reverses when zooming"
-msgstr ""
-
-msgid "Enable SSL(MQTT)"
-msgstr ""
-
-msgid "Enable SSL(FTP)"
-msgstr ""
-
-msgid "Internal developer mode"
-msgstr ""
-
-msgid "Log Level"
+msgid "Log"
 msgstr ""
 
 msgid "fatal"
@@ -8939,6 +9032,18 @@ msgid "debug"
 msgstr ""
 
 msgid "trace"
+msgstr ""
+
+msgid "Log Level"
+msgstr ""
+
+msgid "Internal developer mode"
+msgstr ""
+
+msgid "Enable SSL(MQTT)"
+msgstr ""
+
+msgid "Enable SSL(FTP)"
 msgstr ""
 
 msgid "Host Setting"
@@ -8968,7 +9073,28 @@ msgstr ""
 msgid "Switch cloud environment, Please login again!"
 msgstr ""
 
-msgid "System presets"
+msgid "Reset all warning dialogs"
+msgstr ""
+
+msgid "Reset preferences"
+msgstr ""
+
+msgid "All warning dialogs that you have disabled by checking \"Don't show again\" are now re-enabled and will show next time they apply."
+msgstr ""
+
+msgid "Check details"
+msgstr ""
+
+msgid ""
+"- Sync printer presets after loading a file\n"
+"- \"Load 3MF\" dialog settings\n"
+"- Executing post-processing scripts\n"
+"- Support structure recommendation prompt\n"
+"- Unsaved projects.\n"
+"- Mixed color sublayer with variable layer height warning"
+msgstr ""
+
+msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr ""
 
 msgid "User presets"
@@ -9506,6 +9632,9 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It
 msgstr ""
 
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
+msgstr ""
+
+msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
 msgstr ""
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
@@ -10269,11 +10398,11 @@ msgstr ""
 msgid "No modifications need to be copied."
 msgstr ""
 
-msgid "Copy paramters"
+msgid "Copy parameters"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Modify paramters of %s"
+msgid "Modify parameters of %s"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -12820,7 +12949,7 @@ msgstr ""
 msgid "Enable pressure advance"
 msgstr ""
 
-msgid "Enable pressure advance, auto calibration result will be overwriten once enabled. Useless for Bambu Printer"
+msgid "Enable pressure advance, auto calibration result will be overwritten once enabled. Useless for Bambu Printer"
 msgstr ""
 
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for Bambu Printer"
@@ -16072,6 +16201,9 @@ msgstr ""
 msgid "Printer Preset"
 msgstr ""
 
+msgid "Presets"
+msgstr ""
+
 msgid "Filament Preset Template"
 msgstr ""
 
@@ -16355,6 +16487,9 @@ msgstr ""
 msgid "Need select printer"
 msgstr ""
 
+msgid "Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid."
+msgstr ""
+
 msgid "The start, end or step is not valid value."
 msgstr ""
 
@@ -16451,7 +16586,7 @@ msgstr ""
 msgid "Could not connect to Duet"
 msgstr ""
 
-msgid "Unknown error occured"
+msgid "Unknown error occurred"
 msgstr ""
 
 msgid "Wrong password"
@@ -16708,7 +16843,7 @@ msgstr ""
 msgid "Helio: Presigned URL Created"
 msgstr ""
 
-msgid "Helio: file succesfully uploaded"
+msgid "Helio: file successfully uploaded"
 msgstr ""
 
 msgid "Helio: file upload failed"
@@ -16894,15 +17029,15 @@ msgid "No content"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Printer presets (%d/%d)"
+msgid "Printer presets (%d)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Filament presets (%d/%d)"
+msgid "Filament presets (%d)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Process presets (%d/%d)"
+msgid "Process presets (%d)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -17351,6 +17486,9 @@ msgstr ""
 msgid "Print Outcome: "
 msgstr ""
 
+msgid "Click to edit ratio"
+msgstr ""
+
 msgid "Edit Mixed Filament"
 msgstr ""
 
@@ -17358,9 +17496,6 @@ msgid "Effect Preview"
 msgstr ""
 
 msgid "Select Mixed Materials"
-msgstr ""
-
-msgid "+ Add Material"
 msgstr ""
 
 msgid "- Delete Material"
@@ -17407,6 +17542,52 @@ msgid "Maximum number of components reached"
 msgstr ""
 
 msgid "Remove the third material"
+msgstr ""
+
+msgid "Project Filament List"
+msgstr ""
+
+msgid "Standard Mode Recommendations"
+msgstr ""
+
+msgid "Target Color"
+msgstr ""
+
+msgid "Select Color Decomposition"
+msgstr ""
+
+msgid "Arbitrary Mode"
+msgstr ""
+
+msgid "Material List"
+msgstr ""
+
+msgid "Standard Mode"
+msgstr ""
+
+msgid "At least two filaments of the same material type are required for decomposition"
+msgstr ""
+
+#, possible-boost-format
+msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr ""
+
+msgid "Cyan"
+msgstr ""
+
+msgid "Magenta"
+msgstr ""
+
+msgid "Yellow"
+msgstr ""
+
+msgid ", "
+msgstr ""
+
+msgid "The current filament list does not contain "
+msgstr ""
+
+msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
 msgstr ""
 
 msgid "Material Ratio"

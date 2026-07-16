@@ -89,6 +89,8 @@ wxString get_nozzle_volume_type_name(NozzleVolumeType type)
         return _L("Hybrid");
     } else if (NozzleVolumeType::nvtTPUHighFlow == type) {
         return _L("TPU High Flow");
+    } else if (NozzleVolumeType::nvtE3DHighFlow == type) {
+        return _L("E3D High Flow");
     }
     return wxString();
 }
@@ -822,6 +824,14 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
 
     read_model_from_file(input_file, model);
 
+    if (calib_info.print_prest == nullptr || calib_info.printer_prest == nullptr || calib_info.filament_prest == nullptr) {
+        error_message = _L("Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid.");
+        BOOST_LOG_TRIVIAL(error) << "calib_flowrate: null preset, print_prest=" << calib_info.print_prest
+                                 << " printer_prest=" << calib_info.printer_prest
+                                 << " filament_prest=" << calib_info.filament_prest;
+        return false;
+    }
+
     DynamicPrintConfig print_config    = calib_info.print_prest->config;
     DynamicPrintConfig filament_config = calib_info.filament_prest->config;
     DynamicPrintConfig printer_config  = calib_info.printer_prest->config;
@@ -1275,6 +1285,14 @@ bool CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_m
 
     read_model_from_file(input_file, model);
 
+    if (calib_info.print_prest == nullptr || calib_info.printer_prest == nullptr || calib_info.filament_prest == nullptr) {
+        error_message = _L("Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid.");
+        BOOST_LOG_TRIVIAL(error) << "calib_generic_PA: null preset, print_prest=" << calib_info.print_prest
+                                 << " printer_prest=" << calib_info.printer_prest
+                                 << " filament_prest=" << calib_info.filament_prest;
+        return false;
+    }
+
     DynamicPrintConfig print_config    = calib_info.print_prest->config;
     DynamicPrintConfig filament_config = calib_info.filament_prest->config;
     DynamicPrintConfig printer_config  = calib_info.printer_prest->config;
@@ -1362,6 +1380,14 @@ void CalibUtils::calib_temptue(const CalibInfo &calib_info, wxString &error_mess
         }
     }
 
+    if (calib_info.print_prest == nullptr || calib_info.printer_prest == nullptr || calib_info.filament_prest == nullptr) {
+        error_message = _L("Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid.");
+        BOOST_LOG_TRIVIAL(error) << "calib_temptue: null preset, print_prest=" << calib_info.print_prest
+                                 << " printer_prest=" << calib_info.printer_prest
+                                 << " filament_prest=" << calib_info.filament_prest;
+        return;
+    }
+
     // edit preset
     DynamicPrintConfig print_config    = calib_info.print_prest->config;
     DynamicPrintConfig filament_config = calib_info.filament_prest->config;
@@ -1402,6 +1428,14 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
     Model       model;
     std::string input_file = Slic3r::resources_dir() + "/calib/volumetric_speed/SpeedTestStructure.step";
     read_model_from_file(input_file, model);
+
+    if (calib_info.print_prest == nullptr || calib_info.printer_prest == nullptr || calib_info.filament_prest == nullptr) {
+        error_message = _L("Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid.");
+        BOOST_LOG_TRIVIAL(error) << "calib_max_vol_speed: null preset, print_prest=" << calib_info.print_prest
+                                 << " printer_prest=" << calib_info.printer_prest
+                                 << " filament_prest=" << calib_info.filament_prest;
+        return;
+    }
 
     DynamicPrintConfig print_config    = calib_info.print_prest->config;
     DynamicPrintConfig filament_config = calib_info.filament_prest->config;
@@ -1498,6 +1532,14 @@ void CalibUtils::calib_VFA(const CalibInfo &calib_info, wxString &error_message)
     std::string input_file = Slic3r::resources_dir() + "/calib/vfa/VFA.stl";
     read_model_from_file(input_file, model);
 
+    if (calib_info.print_prest == nullptr || calib_info.printer_prest == nullptr || calib_info.filament_prest == nullptr) {
+        error_message = _L("Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid.");
+        BOOST_LOG_TRIVIAL(error) << "calib_VFA: null preset, print_prest=" << calib_info.print_prest
+                                 << " printer_prest=" << calib_info.printer_prest
+                                 << " filament_prest=" << calib_info.filament_prest;
+        return;
+    }
+
     DynamicPrintConfig print_config    = calib_info.print_prest->config;
     DynamicPrintConfig filament_config = calib_info.filament_prest->config;
     DynamicPrintConfig printer_config  = calib_info.printer_prest->config;
@@ -1571,6 +1613,14 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, wxString &error_m
     Model model;
     std::string input_file = Slic3r::resources_dir() + "/calib/retraction/retraction_tower.stl";
     read_model_from_file(input_file, model);
+
+    if (calib_info.print_prest == nullptr || calib_info.printer_prest == nullptr || calib_info.filament_prest == nullptr) {
+        error_message = _L("Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid.");
+        BOOST_LOG_TRIVIAL(error) << "calib_retraction: null preset, print_prest=" << calib_info.print_prest
+                                 << " printer_prest=" << calib_info.printer_prest
+                                 << " filament_prest=" << calib_info.filament_prest;
+        return;
+    }
 
     DynamicPrintConfig print_config    = calib_info.print_prest->config;
     DynamicPrintConfig filament_config = calib_info.filament_prest->config;

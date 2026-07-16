@@ -50,6 +50,9 @@ public:
     void notify_ams_synced(const std::vector<AmsChangedSpool>& changed,
                            AmsAutoPushThrottle::DeviceState   device_state);
 
+    void sync_ams_to_cloud(const std::string& dev_id,
+                           const std::vector<std::string>& spool_ids);
+
     // 用户手动覆盖入口：忽略 throttle 把所有"有 RFID + 有整卷净重"的 spool
     // 全部入 push 队列。即便都 enqueue 也会 record_success 保持 cooldown
     // 状态一致（避免下一次 sync 立刻又触发 push）。

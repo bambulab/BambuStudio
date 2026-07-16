@@ -110,6 +110,8 @@ enum class ExportType {
     MP4
 };
 
+class AssemblyLargeFontCache; // crisp big-text glyph cache (defined in Internal.hpp)
+
 class AssemblyStepsUtils
 {
     ImTextureID         m_tree_icon_play{nullptr};
@@ -209,6 +211,8 @@ class AssemblyStepsUtils
     ImTextureID         m_play_left_icon{nullptr};
     ImTextureID         m_play_right_icon{nullptr};
     // Exit icon shown to the right of the Copy/Add step button row (tree_exit.svg).
+    ImTextureID         m_structure_clear_all_icon{nullptr};
+    ImTextureID         m_structure_clear_all_icon_dark{nullptr};
     ImTextureID         m_structure_exit_icon{nullptr};
     ImTextureID         m_structure_exit_icon_dark{nullptr};
 
@@ -245,8 +249,8 @@ class AssemblyStepsUtils
     // shows an ImGui InputText; committing renames the backing ModelObject /
     // ModelVolume. The target is keyed by (object_idx, volume_idx) so it survives
     // label-vector reordering. volume_idx < 0 means an object-level label.
+    std::string  m_pn_label_rename_guid;
     int          m_pn_label_rename_object_idx{-1};
-    int          m_pn_label_rename_volume_idx{-1};
     bool         m_pn_label_rename_focus_pending{false};
     std::string  m_pn_label_rename_buf;
     // Row selection / hover state for the assembly tree view (render_assembly_tree_ui).
@@ -270,6 +274,9 @@ class AssemblyStepsUtils
     int m_last_rendered_selected_node_for_notes_{-2};
     int m_last_rendered_keyframe_selected_{-2};
     bool m_last_has_selected_node_{false};
+    // Last object-index set a "which steps does this belong to" toast was pushed for. Selection is
+    // polled every frame, so this collapses the poll to a single notification per selection change.
+    std::vector<int> m_last_notified_step_hint_objs_;
     // Assembly tree UI state (migrated from GLCanvas3D)
     std::unordered_map<std::string, bool>* m_active_assembly_tree_checked{nullptr};
     int m_assembly_tree_ui_current_folder_node{-1};
@@ -278,6 +285,9 @@ class AssemblyStepsUtils
     bool m_assembly_tree_search_active{false};
     bool m_assembly_tree_search_focus_pending{false};
     bool m_show_assembly_tree_step_quick_select{false};
+    // Standalone assembly tree list: collapse-all / expand-all toggle state.
+    // false == tree is currently expanded (button offers "collapse all").
+    bool m_assembly_tree_list_collapsed{false};
     static std::unordered_map<std::string, bool> s_assembly_tree_open_nodes;
     // Assembly view capture (screenshot / video recording)
     std::unique_ptr<PBOReader>          m_pbo_reader;
@@ -311,6 +321,10 @@ class AssemblyStepsUtils
     bool m_only_final_assembly_endframe_effect_real_assembly{true};//very important
     bool m_play_video_and_show_panels_debug{false};
 
+    bool m_select_all_when_change_step_card{false};
+    // When true, List OK selects the checked ModelVolumes on the canvas; when false
+    // (default), OK commits membership but clears selection (Volume mode kept locked).
+    bool m_select_all_when_click_in_step_card{false};
     struct AssemblyTreeIcons {
         bool        loaded{false};
         ImTextureID expand{0};
@@ -392,6 +406,8 @@ class AssemblyStepsUtils
     ImVec2                m_overlay_rect_fit_camera_max{0, 0};
     ImVec2                m_overlay_rect_assemble_control_min{0, 0};
     ImVec2                m_overlay_rect_assemble_control_max{0, 0};
+    ImVec2                m_overlay_rect_return_toolbar_min{0, 0};
+    ImVec2                m_overlay_rect_return_toolbar_max{0, 0};
     struct LabelLayoutForbiddenRect {
         ImVec2 min{0, 0};
         ImVec2 max{0, 0};
@@ -409,10 +425,13 @@ class AssemblyStepsUtils
     bool m_select_good_camera_layout_laber_after_auto_explode{true};
     // Deadline after which the "kept whole" tip auto-hides (shown for ~2s).
     std::chrono::steady_clock::time_point m_explode_collapsed_note_until{};
+    // On-demand large-glyph atlas so the title overlay / part-number labels render
+    // crisply instead of upscaling the small shared UI font. Built lazily on the GL
+    // thread during render; released when leaving the assembly view.
+    std::unique_ptr<AssemblyLargeFontCache> m_large_font_cache;
     std::vector<PlayFrameRef> m_play_frame_refs;
     bool                      m_play_frame_refs_dirty{true};
-    std::set<size_t>                    m_last_recorded_objects;
-    std::set<std::pair<size_t, size_t>> m_last_recorded_volumes;
+    std::set<std::string> m_last_recorded_volumes;
     int                       m_assembly_play_index{1};
     int                       m_assembly_play_count{0}; // 0 mean dirty
     float                     m_margin_factor_camera_for_not_last_frame{1.4f};
@@ -469,6 +488,9 @@ public://logic
     // by the exit button in the assembly structure panel (previously this was
     // done by double-clicking a blank area of the assembly view).
     void            exit_assembly_steps_editing();
+    // Handle ESC key: if a step node is selected, drop into tree editing mode;
+    // otherwise exit assembly view and return to the 3D/prepare view.
+    void            on_escape_key();
     void            update_model_object_tree();
     // Returns true when the two trees differ in structure/labels/selection
     void save_assembly_steps_json_to_model();
@@ -503,6 +525,11 @@ public://logic
     std::string              assembly_step_display_name(const Slic3r::AssemblyStepsTreeNode &node) const;
     int                      get_object_id_id(size_t object_id);
     void                     clear_selection();
+    // Clear canvas selection, then lock Part (Volume) mode so the next LeftDown
+    // does not reset to Instance (same lock the Selection Mode combo uses).
+    void                     clear_selection_and_lock_volume_mode();
+    // Select GLVolumes in Part mode and lock it (prevents LeftDown → Instance).
+    void                     add_volumes_and_lock_volume_mode(const std::vector<unsigned int> &gl_volume_idxs);
     // Apply the canvas selection that corresponds to the user clicking the steps-tree
     void                     select_steps_tree_node_for_canvas(int node_idx);
     // Double-clicking a part-number label clears the current selection
@@ -515,6 +542,13 @@ public://logic
     // what is selected on the canvas. Whole-object selections map to the object
     // row; partial selections map to the individual volume rows.
     void                     seed_tree_selected_items_from_canvas(const AssemblyTreeData &tree);
+    // True while the add-object assembly tree view (render_assembly_tree_ui) is open on the canvas.
+    bool                     is_render_assembly_tree_ui_open() const { return m_structure_add_tree_card >= 0; }
+    // True while the read-only standalone "Assembly list" is shown on the canvas
+    // (no step card selected and the step-editing List popup is closed).
+    bool                     is_standalone_assembly_tree_list_visible() const;
+    // Re-map the current canvas selection (m_selection) onto the assembly tree
+    void                     sync_tree_ui_selection_from_canvas();
     // Hover callback for a tree-view row. The argument is the unique ObjectID of
     // the hovered ModelObject / ModelVolume (-1 when no row is hovered). The
     // concrete canvas-hover effect is wired up separately.
@@ -545,6 +579,7 @@ public://logic
     // Patch the final-assembly folder's end-frame with the current canvas
     void                     update_final_assembly_end_keyframe_from_current_selection();
     void                     record_selected_gl_volume_transforms_to_current_keyframe();
+    void                     record_all_glvolumes_in_cur_step__to_current_keyframe();
     void                     show_all_volumes(bool show);
     void                     show_volume(int object_id, bool show);
     void                     apply_camera(const KeyFrame &frame);
@@ -579,11 +614,18 @@ public://logic
     bool                     current_keyframe_matches_final_assembly_end_frame_transforms() const;
     // Returns true when the final-assembly end frame recorded exactly the same
     bool                     final_assembly_end_frame_matches_model() const;
+    void                     clear_last_recorded_volumes() { m_last_recorded_volumes.clear(); }
     void                     set_cursor(AssemblyNoteCursorType);
     void                     reset_cursor_if_note_cursor();
     const float              get_imgui_scale() const;
     void          set_imgui_scale(float scale);
     void                     apply_object_state(int object_idx, const KeyframeObjectDisplayState &state);
+    // Apply display state to a single GLVolume (volume-level OnlyCurrentStep / Highlight).
+    void                     apply_glvolume_state(GLVolume *vol, const KeyframeObjectDisplayState &state);
+    // Volume membership of a step folder: prefers assembly_tree_checked leaves,
+    // falls back to every volume of the folder's object children. Final assembly
+    // always returns every ModelVolume in the model (ignores checked map).
+    std::set<std::pair<int, int>> collect_folder_volume_pairs(int folder_idx) const;
     void                     look_cur_frame_logic(const KeyFrameEntry &entry);
     int                      get_object_volume_count(int object_idx);
     std::string              get_object_volume_name(int object_idx, int volume_idx);
@@ -605,6 +647,7 @@ public://logic
     void                     pause_playback();
     void                     resume_playback();
     void                     clear_playback_pause_state();
+    void                     clear_global_playback_state();
     // If playback is paused on the video-intro/title overlay, leave that title mode
     void                     exit_title_mode_if_paused();
     void                     play_different_folder_logic();
@@ -613,6 +656,7 @@ public://logic
     void                     auto_explode_current_keyframe();
     void                     on_export(ExportType type);
     std::string generate_output_path(ExportType type);
+    bool                     is_export_target_locked(const std::string &path);
 
     void                     on_export_pdf(std::string path);
     void                     on_export_markdown(std::string path);
@@ -636,6 +680,7 @@ public://logic
     void clear_runtime_state();
     bool prepare_project_save_end_frame();
     void clear_steps_all();
+    void clear_non_final_assembly_steps();
     void new_project_clear_assembly_steps_tree_view();
     bool             has_pending_play_frames() const;
     std::vector<int> selected_object_indices(int object_count, const std::vector<int> &selection_object_indices) const;
@@ -646,8 +691,13 @@ public://logic
     int              create_object_node(int object_idx, const std::string &name, size_t obj_id);
     int              create_assembly_step_from_objects(const std::vector<int> &object_idxs);
     bool             add_objects_to_assembly_step(int folder_idx, const std::vector<int> &object_idxs);
+    // Merge canvas-selected ModelVolumes into folder.assembly_tree_checked (part-level).
+    // When the map has no true entries, bootstraps existing object children as fully checked
+    // first so a partial add does not erase prior full-object membership.
+    bool             merge_selected_volumes_into_folder_checked(int folder_idx);
     std::vector<int> sorted_step_nodes() const;
-    bool                                     can_add_objects_to_step(bool has_volume_selection, const std::vector<int> &object_idxs) const;
+    // has_volume_selection is kept for call-site compatibility; part selection is allowed.
+    bool                                     can_add_objects_to_step(const std::vector<int> &object_idxs) const;
     std::vector<std::pair<int, std::string>> assembly_step_choices() const;
     std::string                              build_steps_json_string();
     void                                     sync_steps_objects_with_model();
@@ -681,19 +731,30 @@ public://logic
     // Enter inline-rename mode for the given part-number label (its text becomes
     // an editable field). Committing renames the backing ModelObject/ModelVolume.
     void begin_part_label_rename(const PartNumberLabel &lbl);
+    // Confirm any pending part-label inline rename (Enter, ImGui focus loss, or a
+    // canvas click that clears the selection). No-op when not renaming.
+    void commit_part_label_rename();
     // Enter inline-rename mode for a tree-view row backed by the given
     // ModelObject (volume_idx < 0) / ModelVolume; committing reuses
     // rename_model_item_from_label.
     void begin_tree_item_rename(int object_idx, int volume_idx, const std::string &name);
-    // Apply a new name to the ModelObject (volume_idx < 0) or ModelVolume the
-    // label points at. Returns true when the model name actually changed.
-    bool rename_model_item_from_label(int object_idx, int volume_idx, const std::string &new_name);
+    // Apply a new name to a ModelVolume (identified by part_guid) or,
+    // when part_guid is empty, to the ModelObject at object_idx.
+    // Returns true when the model name actually changed.
+    bool rename_model_item_from_label(const std::string &part_guid, int object_idx, const std::string &new_name);
+    // Called from Plater when a prepare-side volume rename is synced to the
+    // assembly model. Patches the assembly tree/select-popup labels to match.
+    void on_prepare_volume_renamed(int object_idx, int volume_idx, const std::string &new_name);
     // Reframe + persist the recommended camera angle for the current keyframe
     // only, without rebuilding or auto-arranging the part-number labels.
     void auto_recommend_camera_for_current_view();
     void update_part_number_label_font_size_from_config();
     float part_number_label_font_size() const;
     void save_part_number_label_font_size_to_config(float font_size, bool save_now = false);
+   // Draws single-line text crisply via the on-demand large-glyph atlas, falling
+    // back to fallback_font (or the current UI font) if the atlas can't be built.
+    void draw_crisp_large_text(ImDrawList *dl, ImFont *fallback_font, float px,
+                               const ImVec2 &pos, ImU32 col, const std::string &text);
     // Rebuild the given keyframe entry's part-number labels (and optionally
     void toggle_part_number_labels_to_keyframe(KeyFrameEntry &src, bool user_initiated = true, bool reframe_camera = true);
     // --- Part-number label data generators (one per LabelsShowType) ---
@@ -719,6 +780,11 @@ public://logic
 
     void deal_once_when_enter_assembly_view();
 
+    // [DIAG] Dump the bound assembly model (m_model == a_model in the assembly view) to the log:
+    // per object name / ObjectID / instance count, and per volume type / ObjectID / part_guid /
+    // assembly_src_guid. Used to debug prepare-side split/combine propagation into the assembly view.
+    void log_assembly_model(const char *tag = "") const;
+
     // Build a temporary object -> volume tree for the Assembly Structure card
     AssemblyTreeData build_structure_card_select_tree_data(int step_node_idx) const;
     AssemblyTreeData build_model_object_tree_data(bool include_model_root_node = true) const;
@@ -729,7 +795,7 @@ public://logic
     float get_assembly_structure_right_x() const { return m_assembly_structure_right_x; }
     void  set_gizmo_toolbar_rect(float x0, float y0, float x1, float y1);
     // Overlay regions (rendered by GLCanvas3D) that part-number labels
-    enum class AssemblyOverlayRect { Navigator, FitCamera, AssembleControl };
+    enum class AssemblyOverlayRect { Navigator, FitCamera, AssembleControl, ReturnToolbar };
     void  set_assembly_overlay_rect(AssemblyOverlayRect which, const ImVec2 &mn, const ImVec2 &mx);
     // Rendered footprint (w, h) of the floating export button, shared by the renderer
     // and the toolbar collision tests so both use the exact same rect.
@@ -742,6 +808,9 @@ public://logic
     void  apply_keyframe_to_canvas(const KeyFrame &kf, bool apply_camera_view = true);
     void  play_cur_keyframe_logic();
     void  sync_canvas_selection_state();
+    // When no step node is active but the scene has an object/part selected, toast which assembly
+    // steps that object belongs to. Self-deduping (see m_last_notified_step_hint_objs_); no callback.
+    void  notify_selected_object_steps();
     // Each operates on the current node's keyframe entries via get_current_kf_entries(),
     void delete_selected_keyframe();
     // Insert a new keyframe right after the selection, clamped before the "last" frame.
@@ -777,6 +846,10 @@ public://logic
     // Highlight the canvas from an arbitrary tree + checked map (shared by the select popup and the "List" add-object tree).
     void                                    sync_checked_tree_to_canvas(const AssemblyTreeData &tree,
                                                                         const std::unordered_map<std::string, bool> &checked);
+    // Select a step folder's membership on the canvas in Volume (part) mode:
+    // prefers assembly_tree_checked volume leaves when present, otherwise all
+    // volumes of the folder's object children.
+    void                                    select_folder_volumes_on_canvas(int folder_idx);
     void                                    begin_structure_step_rename(int node_idx, const std::string &fallback_title = std::string());
     void                                    open_structure_add_tree(int card_idx, int step_node_idx, const ImVec2 &pos);
     // Queue the currently-selected step folder so its add-object tree auto-opens
@@ -834,8 +907,12 @@ public://imgui
     void render_structure_step_option_menu(int card_idx, const AssemblyStructureCard& card,
                                            const ImVec2& anchor, float sc, bool is_dark);
     ImTextureID get_arrow_svg_icon(const std::string &svg_name);
-    // Assembly tree UI (left-side part list with checkboxes)
-    void render_assembly_tree_ui(float panel_x, float panel_y, float panel_w, float panel_h, float sc);
+    // Assembly tree UI (left-side part list with checkboxes).
+    // show_checkbox == true  : editable, step-bound list with checkboxes + footer
+    //                          (Copy/Confirm) used while adding objects to a step.
+    // show_checkbox == false : read-only, standalone tree list (no checkboxes,
+    //                          no footer) rendered on the canvas right side.
+    void render_assembly_tree_ui(float panel_x, float panel_y, float panel_w, float panel_h, float sc, bool show_checkbox = true);
     // Apply the "List" tree checkbox state to a single step: drop unchecked
     // object children and add step-owned nodes for newly checked objects. Only
     // touches the given step folder, so an object may belong to several steps.

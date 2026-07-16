@@ -8,6 +8,15 @@
 
 namespace Slic3r { namespace GUI {
 
+// AMS 同步时用于描述"某 spool 当前在哪台设备的哪个 AMS 槽位"的快照。
+// 由 sync 层遍历 tray 时组装好，一次性交给 store 做 diff apply。
+struct MountUpdate {
+    int         ams_id   = -1;
+    int         ams_type = -1;
+    std::string slot_id;
+    std::string ams_sn;
+};
+
 struct FilamentSpool {
     std::string spool_id;
     std::string setting_id;
@@ -43,6 +52,22 @@ struct FilamentSpool {
     std::string bound_dev_id;
     std::string bound_ams_id;
 
+    // ---- 在位挂载状态。字段对应云端 inPrinter / devId / amsSn /
+    // amsId / amsType / slotId / deviceName。
+    // 来源：① MQTT push_status → apply_mount_diff 写入；
+    //       ② 云端 pull → cloud_json_to_spool 解析（无实时机器数据时兜底）。
+    // 持久化到 spools.json，进程重启后历史在位信息不丢。
+    // 与 bound_dev_id / bound_ams_id 的区别：bound_* 是本地手动绑定（持久化、
+    // 进入 sync 比较），这一组是实时挂载快照（随 AMS sync 和云端 pull 更新）。
+    // 哨兵值：string 字段空串 = 未挂载；ams_id / ams_type 用 -1 表示未挂载。
+    bool        in_printer  = false;
+    std::string dev_id;
+    std::string ams_sn;
+    int         ams_id      = -1;
+    int         ams_type    = -1;
+    std::string slot_id;
+    std::string device_name;
+
     std::string note;
 
     bool        favorite          = false;
@@ -53,6 +78,9 @@ struct FilamentSpool {
     bool        cloud_synced      = false;
 
     nlohmann::json to_json() const;
+    // to_json_with_runtime: 持久化字段 + 运行时在位快照，供 spools_to_json() 推送前端。
+    // 运行时字段**不**经 from_json / load / save 路径，仅存活于本次进程内存。
+    nlohmann::json to_json_with_runtime() const;
     static FilamentSpool from_json(const nlohmann::json& j);
 
     static bool is_valid_tag_uid(const std::string& tag_uid);
@@ -83,6 +111,7 @@ public:
     // STUDIO-18155：AMS 自动同步专用入口。仅当"sync 关心字段"
     //   (net_weight / remain_percent / status / bound_dev_id / bound_ams_id)
     // 实际发生变化时才写入；返回 true 表示有变化、应入云端 push 列表。
+    //
     //
     // 为防御 sync 路径污染 identity 字段（设计 Q5 + STUDIO-18117 教训），
     // 该方法**强制**用 store 既有 spool 的 identity 字段（spool_id / tag_uid /
@@ -119,6 +148,32 @@ public:
     void clear_dirty()    { m_dirty = false; }
 
     nlohmann::json spools_to_json() const;
+
+    // Immediately mount a spool to a specific tray slot.  Unlike the MQTT-driven
+    // apply_mount_diff path, this is called when the user explicitly picks a
+    // Filament Manager spool in AMSMaterialsSetting and clicks OK — we want the
+    // in-printer snapshot to be up-to-date before the next MQTT push_status
+    // arrives.  Sets in_printer + all snapshot fields, marks the store dirty,
+    // and returns true when the spool existed.
+    bool force_mount_spool(const std::string& spool_id,
+                           const std::string& dev_id,
+                           const std::string& dev_name,
+                           int                ams_id,
+                           int                ams_type,
+                           const std::string& slot_id);
+
+    // 运行时在位快照 diff apply（不 set_dirty，不写 spools.json）。
+    // 语义："在 dev_id 这台机器的视角下，本轮 sync 观察到 present_now 里
+    //       的 spool 在位；其余 spool 若之前挂在本机上，视为拔出，清字段"。
+    // 所有权规则：
+    //   - now_present  → 写入/刷新在位字段（同时抢占别机所有权）
+    //   - was_our_hold → 清字段（本机拔出事件）
+    //   - 其他情况    → 不动（别机所有 / 从未在位）
+    // 这样两次 MQTT 之间"没变动"的 spool，字段值稳定，前端不跳变。
+    bool apply_mount_diff(const std::string& dev_id,
+                          const std::string& dev_name,
+                          const std::map<std::string, MountUpdate>& present_now,
+                          std::vector<std::string>* out_changed_ids = nullptr);
 
 private:
     std::string get_storage_path() const;

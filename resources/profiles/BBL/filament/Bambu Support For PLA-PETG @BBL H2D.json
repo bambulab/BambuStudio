@@ -13,45 +13,55 @@
     ],
     "filament_cooling_before_tower": [
         "10",
+        "10",
         "10"
     ],
     "filament_flow_ratio": [
+        "1",
         "1",
         "1"
     ],
     "filament_max_volumetric_speed": [
         "6",
+        "6",
         "6"
     ],
+    "filament_preheat_temperature_delta": [
+        "20",
+        "20",
+        "20"
+    ],
     "filament_ramming_travel_time": [
+        "0",
         "0",
         "0"
     ],
     "include": [
-        "fdm_filament_template_direct_dual"
+        "fdm_filament_template_direct_dual_e3d"
     ],
     "nozzle_temperature": [
+        "210",
         "210",
         "210"
     ],
     "nozzle_temperature_initial_layer": [
+        "210",
         "210",
         "210"
     ],
     "pre_start_fan_time": [
         "2"
     ],
-    "supertack_plate_temp": [
-        "0"
-    ],
     "slow_down_min_speed": [
+        "20",
         "20",
         "20"
     ],
+    "supertack_plate_temp": [
+        "0"
+    ],
     "compatible_printers": [
-        "Bambu Lab H2D 0.4 nozzle",
-        "Bambu Lab H2D 0.6 nozzle",
-        "Bambu Lab H2D 0.8 nozzle"
+        "Bambu Lab H2D 0.4 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"

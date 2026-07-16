@@ -104,8 +104,6 @@ private:
     //BBS: GUI refactor: add object manipulation
     GizmoObjectManipulation m_object_manipulation;
 
-    std::vector<size_t> get_selectable_idxs() const;
-
     bool activate_gizmo(EType type);
 
     bool m_serializing;
@@ -315,6 +313,7 @@ public:
 
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot);
 
+    std::vector<size_t> get_selectable_idxs() const;
     int get_selectable_icons_cnt() const { return get_selectable_idxs().size(); }
     int get_shortcut_key(GLGizmosManager::EType) const;
 

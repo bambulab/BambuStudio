@@ -6,21 +6,25 @@ static bool gDarkMode = false;
 static bool operator<(wxColour const &l, wxColour const &r) { return l.GetRGBA() < r.GetRGBA(); }
 
 static std::map<wxColour, wxColour> gDarkColors{
-    {"#00AE42", "#21A452"},/*green*/
-    {"#1F8EEA", "#2778D2"},/*blue*/
-    {"#FF6F00", "#D15B00"},
-    {"#D01B1B", "#BB2A3A"},/*red*/
-    {"#262E30", "#EFEFF0"},/*black*/
+    {ThemeColor::BrandGreen,  "#21A452"},/*green*/
+    {ThemeColor::BrandGreenPressed, "#1C8A46"},
+    {ThemeColor::BrandGreenHovered, "#37B865"},
+    // {"#1F8EEA", "#2778D2"},/*blue*/ -- dead, only used by disabled Notebook.cpp:80 OnPaint
+    {ThemeColor::Warning,     "#D15B00"},
+    {ThemeColor::Danger,      "#BB2A3A"},/*red*/
+    {ThemeColor::Link,        "#479EF5"},/*blue*/
+    {ThemeColor::TextPrimary, "#EFEFF0"},/*black*/
     {"#2C2C2E", "#B3B3B4"},/*black*/
     {"#E5E7EB", "#374151"},/*gray200 -> gray800*/
     {"#6B6B6B", "#818183"},/*gray -> */
     {"#ACACAC", "#54545A"},/*gray -> */
-    {"#EEEEEE", "#4C4C55"},/*gray -> */
-    {"#E8E8E8", "#3E3E45"},
-    {"#323A3D", "#E5E5E4"},
-    {"#FFFFFF", "#2D2D31"},
-    {"#F8F8F8", "#36363C"},
-    {"#F1F1F1", "#36363B"},
+    {ThemeColor::Grey300,     "#4C4C55"},/*gray -> */
+    {ThemeColor::Grey350,     "#3E3E45"},
+    {ThemeColor::TextSecondary, "#E5E5E4"}, // #323A3D
+    {ThemeColor::TextDisabled,  "#5A5A5A"}, // #909090
+    {ThemeColor::White,       "#2D2D31"},
+    {ThemeColor::Grey200,     "#36363C"},
+    {ThemeColor::Grey250,     "#36363B"},
     {"#3B4446", "#2D2D30"},
     {"#CECECE", "#54545B"},
     {"#DBFDD5", "#3B3B40"},
@@ -33,7 +37,7 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#6B6B6A", "#B3B3B5"},
     {"#303A3C", "#E5E5E5"},
     {"#FEFFFF", "#242428"},
-    {"#A6A9AA", "#2D2D29"},
+    {ThemeColor::Grey450,     "#2D2D29"}, // #A6A9AA
     {"#363636", "#B2B3B5"},
     {"#F0F0F1", "#404040"},
     {"#9E9E9E", "#53545A"},

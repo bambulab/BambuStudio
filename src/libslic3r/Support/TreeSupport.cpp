@@ -1271,7 +1271,8 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
         if (max_bridge_length > 0 && layer->loverhangs.size() > 0 && lower_layer) {
             // do not break bridge as the interface will be poor, see #4318
             bool break_bridge = false;
-            m_object->remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, &layer->loverhangs, max_bridge_length, break_bridge);
+            m_object->remove_bridges_from_contacts(lower_layer, layer, extrusion_width_scaled, &layer->loverhangs,
+                max_bridge_length, break_bridge, &layer->loverhangs_with_type);
         }
 
 		int nDetected = layer->loverhangs.size();

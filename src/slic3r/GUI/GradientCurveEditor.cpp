@@ -420,7 +420,12 @@ void GradientCurveEditor::on_paint(wxPaintEvent& /*evt*/)
         return;
 
     auto color_for_curve = [&](int curve_idx) -> wxColour {
-        return (curve_idx == 0) ? m_color_low : m_color_high;
+        wxColour c = (curve_idx == 0) ? m_color_low : m_color_high;
+        // Transparent filaments (alpha == 0, e.g. #FFFFFF00) would be invisible.
+        // Lift alpha so the curve stays visible while still hinting at transparency.
+        if (c.Alpha() == 0)
+            c.Set(c.Red(), c.Green(), c.Blue(), 150);
+        return c;
     };
 
     auto build_polyline = [&](int curve_idx) -> std::vector<wxPoint> {

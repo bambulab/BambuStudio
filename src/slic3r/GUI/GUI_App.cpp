@@ -8,6 +8,8 @@
 #include "slic3r/GUI/TaskManager.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "format.hpp"
+#include <wx/language.h>
+#include <wx/weakref.h>
 
 // Localization headers: include libslic3r version first so everything in this file
 // uses the slic3r/GUI version (the macros will take precedence over the functions).
@@ -2256,7 +2258,14 @@ void GUI_App::init_networking_callbacks()
                         obj->parse_json("cloud", msg);
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
                         // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
-                        if (auto* sync = wxGetApp().fila_manager_sync()) sync->on_device_update(obj);
+                        // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
+                        bool fila_mount_changed = false;
+                        if (auto* sync = wxGetApp().fila_manager_sync())
+                            fila_mount_changed = sync->on_device_update(obj);
+                        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
+                            if (fila_mount_changed)
+                                mainframe->web_device()->NotifyFilamentSessionState();
+                        }
                     } else {
                         obj->parse_json("cloud", msg, true);
                     }
@@ -2305,7 +2314,14 @@ void GUI_App::init_networking_callbacks()
                     if (this->m_device_manager->get_selected_machine() == obj) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
                         // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
-                        if (auto* sync = wxGetApp().fila_manager_sync()) sync->on_device_update(obj);
+                        // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
+                        bool fila_mount_changed = false;
+                        if (auto* sync = wxGetApp().fila_manager_sync())
+                            fila_mount_changed = sync->on_device_update(obj);
+                        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
+                            if (fila_mount_changed)
+                                mainframe->web_device()->NotifyFilamentSessionState();
+                        }
                     }
                 }
 
@@ -2821,7 +2837,6 @@ int GUI_App::OnExit()
     }
 
     if (m_fila_manager_store) {
-        m_fila_manager_store->save();
         delete m_fila_manager_store;
         m_fila_manager_store = nullptr;
     }
@@ -2848,6 +2863,17 @@ int GUI_App::OnExit()
 #if !BBL_RELEASE_TO_PUBLIC
     m_fila_debug_sink = nullptr;
 #endif
+
+    // Keep filaments that were auto-enabled during AMS sync (machine-used but not
+    // ticked in preferences) installed across restarts. Done once here instead of on
+    // every sync so it stays off the hot sync path.
+    if (preset_bundle && app_config) {
+        for (const auto &preset_name : preset_bundle->filament_presets) {
+            const Preset *preset = preset_bundle->filaments.find_preset(preset_name, false, true);
+            if (preset && preset->is_system && preset->is_visible)
+                app_config->set(AppConfig::SECTION_FILAMENTS, preset->name, "true");
+        }
+    }
 
     // Flush any config changes that were deferred by the idle-handler debounce.
     if (app_config && app_config->dirty())
@@ -3168,7 +3194,7 @@ bool GUI_App::on_init_inner()
         p_ogl_manager->set_advanced_gcode_viewer_enabled(b_advanced_gcode_viewer_enabled);
     }
 
-    BBLSplashScreen * scrn = nullptr;
+    wxWeakRef<BBLSplashScreen> scrn;
 
     // BBS: ensure the splash screen is torn down on every exit path safely
     ScopeGuard delete_scrn([&scrn]() {
@@ -3381,7 +3407,6 @@ bool GUI_App::on_init_inner()
         // Initialize Filament Manager store & sync
         if (!m_fila_manager_store) {
             m_fila_manager_store = new wgtFilaManagerStore();
-            m_fila_manager_store->load();
             BOOST_LOG_TRIVIAL(info) << "Filament Manager store initialized";
         }
         if (!m_fila_manager_sync) {
@@ -6571,6 +6596,8 @@ bool GUI_App::load_language(wxString language, bool initial)
             wxLanguage cur_lang = wxLANGUAGE_UNKNOWN;
             auto cur_lang_info = wxLocale::FindLanguageInfo(language);
             if (cur_lang_info) { cur_lang = static_cast<wxLanguage> (cur_lang_info->Language);}
+            // all share zh_TW
+            if(cur_lang == wxLANGUAGE_CHINESE || cur_lang==wxLANGUAGE_CHINESE_TAIWAN) cur_lang = wxLANGUAGE_CHINESE_TRADITIONAL;
             if (std::find(s_supported_languages.begin(), s_supported_languages.end(), cur_lang) == s_supported_languages.end())
             {
                 app_config->set("language", "");
@@ -6582,7 +6609,8 @@ bool GUI_App::load_language(wxString language, bool initial)
         	BOOST_LOG_TRIVIAL(info) << boost::format("language provided by BambuStudio.conf: %1%") % language;
         else {
             // Get the system language.
-            const wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
+            wxLanguage lang_system = wxLanguage(wxLocale::GetSystemLanguage());
+            if(lang_system == wxLANGUAGE_CHINESE || lang_system==wxLANGUAGE_CHINESE_TAIWAN) lang_system = wxLANGUAGE_CHINESE_TRADITIONAL;
             if (std::find(s_supported_languages.begin(), s_supported_languages.end(), lang_system) != s_supported_languages.end()) {
                 m_language_info_system = wxLocale::GetLanguageInfo(lang_system);
 #ifdef __WXMSW__
@@ -7032,14 +7060,14 @@ void  GUI_App::show_ip_address_enter_dialog_handler(wxCommandEvent& evt)
 //    menu->AppendSubMenu(local_menu, _L("Configuration"));
 //}
 
-void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_option)
+void GUI_App::open_preferences()
 {
     bool app_layout_changed = false;
     {
         // the dialog needs to be destroyed before the call to recreate_GUI()
         // or sometimes the application crashes into wxDialogBase() destructor
         // so we put it into an inner scope
-        PreferencesDialog dlg(mainframe, open_on_tab, highlight_option);
+        PreferencesDialog dlg(mainframe);
         dlg.ShowModal();
 
         // BBS
@@ -7931,7 +7959,7 @@ void GUI_App::gcode_thumbnails_debug()
     unsigned int width = 0;
     unsigned int height = 0;
 
-    wxFileDialog dialog(GetTopWindow(), _L("Select a G-code file:"), "", "", "G-code files (*.gcode)|*.gcode;*.GCODE;", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    wxFileDialog dialog(GetTopWindow(), _L("Select a G-code file:"), from_u8(wxGetApp().app_config->get_last_dir()), "", "G-code files (*.gcode)|*.gcode;*.GCODE;", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dialog.ShowModal() != wxID_OK)
         return;
 

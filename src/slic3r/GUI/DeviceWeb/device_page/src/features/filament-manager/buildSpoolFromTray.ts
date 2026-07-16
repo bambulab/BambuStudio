@@ -55,16 +55,15 @@ function normalizePresetFilamentName(
   return value || fallback;
 }
 
-// Mirrors AddEditDialog.getTrayCurrentNetWeight so callers that want the
-// "current grams" reading (rather than initial * remain%) can pull from one
-// place. Kept here so consumers do not need to import private helpers from
-// AddEditDialog.
+// Read an AMS tray's current net weight in grams. The rule lives in C++
+// DevAmsTray::get_filament_remain_weight() (prefer firmware-reported
+// per-gram `remain_g`, fall back to `weight * remain%`); the result is
+// serialized as `remain_weight` by FilamentManagerVM::build_ams_data. This
+// helper is a thin accessor over that field. `null` / `undefined` /
+// non-positive values mean "no weight to show" and the caller paints `—`.
 export function getTrayCurrentNetWeight(tray: AmsTray): number {
-  const init = parseInt(String(tray.weight ?? '0'), 10) || 0;
-  const remain = typeof tray.remain === 'number' ? tray.remain : 0;
-  if (init <= 0) return 0;
-  if (remain <= 0) return init;
-  return Math.round(init * remain / 100);
+  const rw = tray.remain_weight;
+  return typeof rw === 'number' && rw > 0 ? rw : 0;
 }
 
 export interface TrayResolution {

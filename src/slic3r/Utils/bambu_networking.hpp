@@ -43,6 +43,7 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_UPDATE_FILAMENT_FAILED        -29
 #define BAMBU_NETWORK_ERR_DELETE_FILAMENT_FAILED        -30
 #define BAMBU_NETWORK_ERR_GET_FILAMENT_CONFIG_FAILED    -31
+#define BAMBU_NETWORK_ERR_AMS_SYNC_FAILED               -32
 
 //bind error
 #define BAMBU_NETWORK_ERR_BIND_CREATE_SOCKET_FAILED          -1010 //failed to create socket
@@ -103,7 +104,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "02.08.00.53"
+#define BAMBU_NETWORK_AGENT_VERSION         "02.08.01.52"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -245,6 +246,7 @@ struct PrintParams {
     bool            task_ext_change_assist;
     bool            try_emmc_print;
     std::string     svc_context;
+    std::string     slicer_uid;
 };
 
 struct TaskQueryParams
@@ -269,6 +271,32 @@ struct FilamentDeleteParams
 {
     std::vector<std::string> ids;
     std::vector<std::string> rfids;
+};
+
+struct AmsSyncItem {
+    std::string RFID;
+    std::string filamentVendor;
+    std::string filamentType;
+    std::string filamentName;
+    std::string filamentId;
+    bool        isSupport      = false;
+    std::string color;
+    int         colorType      = 0;
+    std::vector<std::string> colors;
+    int         netWeight      = 0;
+    int         totalNetWeight = 0;
+    std::string trayIdName;
+    std::string note;
+    std::string amsSn;
+    std::string slotId;
+    int         amsId          = 0;
+    int         amsType        = 0;
+    bool        createNew      = false;
+};
+
+struct AmsSyncParams {
+    std::string              devId;
+    std::vector<AmsSyncItem> items;
 };
 
 struct PublishParams {

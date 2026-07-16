@@ -79,18 +79,18 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent, PurgeModeDialogType dialog_ty
 
     options_sizer->Add(panels_sizer, 0, wxEXPAND | wxALL, FromDIP(20));
 
-    if (!is_fast_mode) {
-        // Learn more text (only for multi-nozzle printers)
-        auto wiki_sizer      = new wxBoxSizer(wxHORIZONTAL);
-        auto learn_more_text = new wxStaticText(options_panel, wxID_ANY, _L("Learn more about prime mode"));
-        learn_more_text->SetFont(Label::Body_12);
-        learn_more_text->SetForegroundColour(wxColour("#6B6B6A"));
-        wiki_sizer->Add(learn_more_text, 0, wxALIGN_CENTER_VERTICAL);
-        auto wiki = new WikiPanel(options_panel);
+    auto wiki_sizer      = new wxBoxSizer(wxHORIZONTAL);
+    auto learn_more_text = new wxStaticText(options_panel, wxID_ANY, _L("Learn more about prime mode"));
+    learn_more_text->SetFont(Label::Body_12);
+    learn_more_text->SetForegroundColour(wxColour("#6B6B6A"));
+    wiki_sizer->Add(learn_more_text, 0, wxALIGN_CENTER_VERTICAL);
+    auto wiki = new WikiPanel(options_panel);
+    if (is_fast_mode)
+        wiki->SetWikiUrl("https://e.bambulab.com/t?c=hAKapVo084CyLBEV");
+     else
         wiki->SetWikiUrl("https://e.bambulab.com/t?c=whk9cGnoWcJbji1F");
-        wiki_sizer->Add(wiki, 0, wxLEFT, FromDIP(2));
-        options_sizer->Add(wiki_sizer, 0, wxLEFT | wxRIGHT, FromDIP(20));
-    }
+    wiki_sizer->Add(wiki, 0, wxLEFT, FromDIP(2));
+    options_sizer->Add(wiki_sizer, 0, wxLEFT | wxRIGHT, FromDIP(20));
 
     options_panel->SetSizer(options_sizer);
     main_sizer->Add(options_panel, 1, wxEXPAND);

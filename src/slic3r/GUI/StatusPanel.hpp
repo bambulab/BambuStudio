@@ -660,6 +660,7 @@ protected:
     SafetyOptionsDialog* safety_options_dlg { nullptr };
     CalibrationDialog*   calibration_dlg {nullptr};
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
+    AMSNewOfficialFilamentDlg *m_new_official_filament_dlg{nullptr};
 
     DeviceErrorDialog* m_print_error_dlg = nullptr;
     SecondaryCheckDialog* abort_dlg = nullptr;
@@ -751,6 +752,7 @@ protected:
     void on_ams_filament_backup(SimpleEvent& event);
     void on_ams_setting_click(SimpleEvent& event);
     void on_filament_edit(wxCommandEvent &event);
+    void on_new_official_filament_hint(wxCommandEvent &event);
     void on_ext_spool_edit(wxCommandEvent &event);
     void on_filament_extrusion_cali(wxCommandEvent &event);
     void on_ams_refresh_rfid(wxCommandEvent &event);

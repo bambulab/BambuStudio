@@ -547,7 +547,7 @@ void BedShapePanel::update_shape()
 // Loads an stl file, projects it to the XY plane and calculates a polygon.
 void BedShapePanel::load_stl()
 {
-    wxFileDialog dialog(this, _L("Choose an STL file to import bed shape from:"), "", "", file_wildcards(FT_STL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    wxFileDialog dialog(this, _L("Choose an STL file to import bed shape from:"), from_u8(wxGetApp().app_config->get_last_dir()), "", file_wildcards(FT_STL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (dialog.ShowModal() != wxID_OK)
         return;
 
@@ -591,7 +591,7 @@ void BedShapePanel::load_stl()
 
 void BedShapePanel::load_texture()
 {
-    wxFileDialog dialog(this, _L("Choose a file to import bed texture from (PNG/SVG):"), "", "",
+    wxFileDialog dialog(this, _L("Choose a file to import bed texture from (PNG/SVG):"), from_u8(wxGetApp().app_config->get_last_dir()), "",
         file_wildcards(FT_TEX), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
     if (dialog.ShowModal() != wxID_OK)
@@ -622,7 +622,7 @@ void BedShapePanel::load_texture()
 
 void BedShapePanel::load_model()
 {
-    wxFileDialog dialog(this, _L("Choose an STL file to import bed model from:"), "", "",
+    wxFileDialog dialog(this, _L("Choose an STL file to import bed model from:"), from_u8(wxGetApp().app_config->get_last_dir()), "",
         file_wildcards(FT_STL), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
     if (dialog.ShowModal() != wxID_OK)

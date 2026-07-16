@@ -495,6 +495,8 @@ set(lisbslic3r_sources
     FilamentMixer.hpp
     FilamentMixer.cpp
     FilamentMixerModel.hpp
+    ColorDecomposeRecipe.hpp
+    ColorDecomposeRecipe.cpp
 )
 
 if (APPLE)

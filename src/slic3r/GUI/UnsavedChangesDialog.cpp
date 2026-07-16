@@ -1793,11 +1793,18 @@ void UnsavedChangesDialog::update_tree(Preset::Type type, PresetCollection* pres
                     variant_index /= 2;
                 if (boost::nowide::narrow(category).find("Extruder ") == 0)
                     category = category.substr(0, 8);
-                if (extruder_id)
-                    category = category + (wxString(" {") + (extruder_id->values[variant_index] == 1 ? _L("Left: ") : _L("Right: "))
-                            + L(extruder_variant->values[variant_index]) + "}");
-                else
-                    category = category + (" {" + L(extruder_variant->values[variant_index]) + "}");
+
+                if (variant_index >= (int) extruder_variant->values.size()) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": variant_index " << variant_index
+                            << " out of range for extruder_variant (size=" << extruder_variant->values.size()
+                            << ") on opt_key=" << opt_key << "; skip variant suffix";
+                } else {
+                    if (extruder_id)
+                        category = category + (wxString(" {") + (extruder_id->values[variant_index] == 1 ? _L("Left: ") : _L("Right: "))
+                                + L(extruder_variant->values[variant_index]) + "}");
+                    else
+                        category = category + (" {" + L(extruder_variant->values[variant_index]) + "}");
+                    }
             }
 
             /*m_tree->Append(opt_key, type, option.category_local, option.group_local, option.label_local,

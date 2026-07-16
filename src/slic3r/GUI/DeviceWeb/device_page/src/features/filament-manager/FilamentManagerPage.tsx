@@ -79,6 +79,7 @@ export function FilamentManagerPage() {
   const [prefilledSpool, setPrefilledSpool] = useState<Partial<Spool> | null>(null);
   const [detailSpool, setDetailSpool]     = useState<Spool | null>(null);
   const [detailOpen, setDetailOpen]       = useState(false);
+  const [sortedSpools, setSortedSpools]   = useState<Spool[]>([]);
 
   // Custom confirm modal (replaces native `window.confirm()` which leaks the
   // page URL in its title bar when running inside a WebView2 host).
@@ -153,7 +154,7 @@ export function FilamentManagerPage() {
     let list = spools.filter((s) => s.status !== 'archived');
 
     // Tab filter
-    if (tab === 'ams') list = list.filter((s) => s.entry_method === 'ams_sync');
+    if (tab === 'ams') list = list.filter((s) => s.in_printer === true);
 
     // Search
     if (search.trim()) {
@@ -356,7 +357,7 @@ export function FilamentManagerPage() {
                       className={`px-[10px] py-1 h-7 rounded-md cursor-pointer text-xs text-fm-text-secondary flex items-center transition-colors duration-150 hover:bg-fm-hover ${tab === tb ? 'bg-fm-input text-fm-text-strong' : ''}`}
                       onClick={() => setTab(tb)}
                     >
-                      {tb === 'all' ? t('All') : 'AMS'}
+                      {tb === 'all' ? t('All') : t('In Printer')}
                     </div>
                   ))}
                 </div>
@@ -533,6 +534,7 @@ export function FilamentManagerPage() {
                   onAddSimilar={handleAddSimilar}
                   onEmptyAdd={handleOpenAddDialog}
                   onDelete={handleDelete}
+                  onSortedChange={setSortedSpools}
                 />
               )}
           </>
@@ -568,7 +570,7 @@ export function FilamentManagerPage() {
       <DetailDialog
         open={detailOpen}
         spool={detailSpool}
-        filteredSpools={filtered}
+        filteredSpools={sortedSpools.length > 0 ? sortedSpools : filtered}
         onClose={() => setDetailOpen(false)}
         onEdit={handleEditFromDetail}
         onNavigate={(id) => {

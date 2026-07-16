@@ -1,6 +1,7 @@
 #include "../ClipperUtils.hpp"
 #include "../ShortestPath.hpp"
 #include "../Surface.hpp"
+#include "../EdgeGrid.hpp"
 
 #include "FillPlanePath.hpp"
 
@@ -119,6 +120,57 @@ void FillPlanePath::_fill_surface_single(
 
     if (polyline.size() >= 2) {
         Polylines polylines = intersection_pl(polyline, expolygon);
+
+        // Drop the tiny tangency slivers the spiral leaves along the faceted rim. Clipping the spiral
+        // against the surface makes every clipped piece start and end on a fresh boundary crossing, so a
+        // piece is a sliver purely when its representative midpoint hugs the boundary; a piece that dives
+        // inside (interior fill, D-cut arc, narrow spur) has a deep midpoint and is kept. Scope:
+        // top/solid surfaces, Archimedean spiral only.
+        if (params.full_infill() &&
+            dynamic_cast<FillArchimedeanChords *>(this) != nullptr &&
+            polylines.size() > 1) {
+            // Max distance to the boundary a piece may keep and still be a sliver. A deeper midpoint
+            const double  max_sliver_depth = scaled<double>(this->spacing) * 0.1;
+            const coord_t search_radius    = coord_t(std::ceil(max_sliver_depth));
+            const size_t  min_protected_vertex_count = 5;
+
+            coord_t grid_resolution = coord_t(scaled<double>(this->spacing));
+            if (grid_resolution < 1) grid_resolution = 1;
+            EdgeGrid::Grid boundary_grid;
+            boundary_grid.create(expolygon, grid_resolution);
+
+            Polylines kept;
+            kept.reserve(polylines.size());
+            for (Polyline &pl : polylines) {
+                // Representative midpoint: for an even vertex count take the midpoint of the two central
+                // vertices, for an odd count take the central vertex. It sits at the arc's deepest bulge,
+                // so a piece that dives inside keeps a deep midpoint, while a true sliver stays next to
+                // the boundary.
+                const size_t n = pl.points.size();
+                Point        mid;
+                if (n == 3)
+                    // Special case: the lone middle vertex may sit almost on an endpoint, which would
+                    // bias the probe. Blend the chord midpoint with the middle vertex instead.
+                    mid = ((pl.points.front() + pl.points.back()) / 2 + pl.points[1]) / 2;
+                else if (n % 2 == 0)
+                    mid = (pl.points[n / 2 - 1] + pl.points[n / 2]) / 2;
+                else
+                    mid = pl.points[n / 2];
+                coordf_t dist = 0.0;
+                // Keep the piece when its midpoint is deep: either no edge lies within search_radius, or
+                // the exact distance to the nearest edge still exceeds max_sliver_depth. Only a midpoint
+                // strictly closer than max_sliver_depth marks a boundary-hugging sliver to drop.
+                const bool is_sliver = pl.points.size() < min_protected_vertex_count
+                                       && boundary_grid.signed_distance_edges(mid, search_radius, dist)
+                                       && std::abs(dist) < max_sliver_depth;
+                if (! is_sliver)
+                    kept.push_back(std::move(pl));
+            }
+
+            if (!kept.empty())
+                polylines = std::move(kept);
+        }
+
         Polylines chained;
         if (params.dont_connect() || params.density > 0.5 || polylines.size() <= 1)
             chained = chain_polylines(std::move(polylines));

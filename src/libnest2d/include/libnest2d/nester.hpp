@@ -11,7 +11,8 @@
 #include <libnest2d/geometry_traits.hpp>
 #define LARGE_COST_TO_REJECT 1e7
 #define COST_OF_NEW_PLATE 0.1
-#define MIN_SEPARATION scale_(0.5) // ensure minimal separation between items
+// Avoid slight object collisions caused by polygon simplification error and NFP sampling point accuracy.
+#define MIN_SEPARATION scale_(1.0) // ensure minimal separation between items
 
 namespace libnest2d {
 

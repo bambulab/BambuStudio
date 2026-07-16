@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-25 17:06+0800\n"
+"POT-Creation-Date: 2026-07-14 20:35+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -283,6 +283,9 @@ msgstr "Standard"
 
 msgid "TPU High Flow"
 msgstr "TPU Hög Flöde"
+
+msgid "E3D High Flow"
+msgstr "E3D Högt flöde"
 
 msgid "Unknown"
 msgstr "Okänd"
@@ -1083,7 +1086,7 @@ msgid "connector is out of object"
 msgstr "kontakten är utanför objektet"
 
 msgid "connectors are out of object"
-msgstr "Kontakterna måste vara på objektets yta."
+msgstr "kontakterna ligger utanför objektet"
 
 msgid "Some connectors are overlapped"
 msgstr "Vissa kontakter är överlappande"
@@ -1271,13 +1274,13 @@ msgstr ""
 "funktion 2 har varit funktion 1"
 
 msgid "Warning: Please select a Plane feature."
-msgstr "Varning: välj Planets funktion."
+msgstr "Varning: Välj en planfunktion."
 
 msgid "Warning: Please select a Point or Circle feature."
-msgstr "Varning: välj Punktens eller Cirkelns funktion."
+msgstr "Varning: Välj en punkt- eller cirkelfunktion."
 
 msgid "Warning: Please select two different meshes."
-msgstr "Varning: välj två olika meshes."
+msgstr "Varning: Välj två olika nät."
 
 msgid "Copy to clipboard"
 msgstr "Kopiera till urklipp"
@@ -1321,9 +1324,6 @@ msgstr "Vänd efter yta 2"
 msgid "Assemble"
 msgstr "Montera"
 
-msgid "Please exit the assembly guide before using this tool."
-msgstr ""
-
 msgid "Please confirm explosion ratio = 1 and select at least two volumes."
 msgstr "Bekräfta delnings förhållandet = 1 och välj minst två volymer."
 
@@ -1332,6 +1332,9 @@ msgstr "Välj minst två volymer."
 
 msgid "(Moving)"
 msgstr "(Flyttar)"
+
+msgid "Face and face assembly"
+msgstr "Montering av yta mot yta"
 
 msgid "Point and point assembly"
 msgstr "Punkt och punkt montering"
@@ -1344,9 +1347,6 @@ msgstr ""
 "Det rekommenderas att montera föremålen först\n"
 "eftersom föremålen är begränsade till bädden, \n"
 "och endast delar kan lyftas."
-
-msgid "Face and face assembly"
-msgstr "Montering av yta mot yta"
 
 msgid "Brush size"
 msgstr "Pensel storlek"
@@ -1529,31 +1529,31 @@ msgid "Text Gap"
 msgstr "Text mellanrum"
 
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
-msgstr "Varning:Det finns en spegling i textmatrisen, och om du drar i den kommer den att återskapas helt."
+msgstr "Varning: Det finns en spegelbild i textmatrisen, och om du drar den kommer den att återskapas helt."
 
 msgid "Warning: Due to font upgrades, previous font may not necessarily be replaced successfully. Please modify the font."
-msgstr "Varning: På grund av uppgraderingar av teckensnitt kan tidigare teckensnitt inte nödvändigtvis ersättas framgångsrikt och rekommenderar att du ändrar teckensnittet."
+msgstr "Varning: På grund av uppgraderingar av teckensnitt kan det tidigare teckensnittet inte nödvändigtvis ersättas. Ändra teckensnittet."
 
 msgid "Warning: Text creation failed."
-msgstr "Varning: Det gick inte att skapa text."
+msgstr "Varning: Det gick inte att skapa texten."
 
 msgid "Warning: Text normal has an error."
-msgstr "Varning: Normal text är fel."
+msgstr "Varning: Normal text innehåller ett fel."
 
 msgid "Warning: Text normal has been reset."
-msgstr "Varning: Normal text har återställts."
+msgstr "Varning: Textens normalitet har återställts."
 
 msgid "Warning: Current text spacing is not optimal. If you continue editing, a more reasonable text spacing will be generated."
-msgstr "Varning: nuvarande textavstånd är inte rimligt. Om du fortsätter redigera, kommer ett mer rimligt textavstånd att genereras."
+msgstr "Varning: Nuvarande textavstånd är inte optimalt. Om du fortsätter att redigera kommer ett mer rimligt textavstånd att genereras."
 
 msgid "Warning: Old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please drag the text or cancel the current pose, save and reedit again."
-msgstr ""
+msgstr "Varning: Den gamla matrisen har minst två parametrar: spegling, skalning och rotation. Om du fortsätter att redigera kan det bli fel. Dra texten eller avbryt den aktuella positionen, spara och redigera igen."
 
 msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
-msgstr "Fel:Om du upptäcker ett felaktigt nät-ID eller ett okänt fel kan återgenerering av text resultera i felaktiga resultat. Dra texten, spara den och redigera den sedan igen."
+msgstr "Fel: Felaktigt mesh-ID eller okänt fel upptäcks, och omgenerering av text kan resultera i felaktiga resultat. Dra texten, spara den och redigera den sedan igen."
 
 msgid "Warning: Due to functional upgrade, rotation information cannot be restored. Please drag or modify text, save it and reedit it to fix the issue."
-msgstr "Varning: På grund av funktionell uppgradering kan rotations information inte återställas. Vänligen dra eller ändra text, spara den och redigera om."
+msgstr "Varning: På grund av funktionell uppgradering kan rotationsinformationen inte återställas. Dra eller ändra text, spara den och redigera den igen för att åtgärda problemet."
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
 msgstr "Upptäckte att texten inte fäster vid nätytan. Dra den gula rutan manuellt till nätytan som måste vidhäftas."
@@ -1771,7 +1771,7 @@ msgid "Missing data of svg file"
 msgstr "Saknar data för svg filen"
 
 msgid "Tip: If you want to place an SVG file on another part surface, select the part first, then drag the SVG file to the part surface."
-msgstr "Tips:Om du vill placera en svg fil på en annan delyta, bör du välja del först och sedan dra svg filen till delytan."
+msgstr "Tips: Om du vill placera en SVG-fil på en annan delyta, markera först delen och dra sedan SVG-filen till delytan."
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
@@ -1942,6 +1942,18 @@ msgstr "Felaktigt lösenord"
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "Det gick inte att ansluta %s! [SN: %s, kod=%s]"
+
+msgid ""
+"This operation rebuilds the model's mesh. Painted color, supports, seam and fuzzy-skin will be transferred to the new mesh by a best-effort approximation, so the result may be slightly off and, in rare cases, some painting may be lost.\n"
+"\n"
+"Do you want to continue?"
+msgstr ""
+"Denna åtgärd bygger om modellens mesh. Färgläggning, stöd, söm och fuzzy-skin kommer att överföras till den nya meshen efter bästa förmåga. Resultatet kan därför avvika något och i sällsynta fall kan viss färgläggning gå förlorad.\n"
+"\n"
+"Vill du fortsätta?"
+
+msgid "Painting may change"
+msgstr "Målningen kan ändras"
 
 msgid "BambuStudio configuration file read failed. Please manually backup and delete it, and then restart BambuStudio software."
 msgstr "Det gick inte att läsa konfigurations filen för BambuStudio. Säkerhetskopiera och ta bort den manuellt och starta sedan om BambuStudio programvaran."
@@ -2189,13 +2201,13 @@ msgid "Select settings"
 msgstr "Välj inställningar"
 
 msgid "Add to New Step"
-msgstr ""
+msgstr "Lägg till i nytt steg"
 
 msgid "Add to Current Step"
-msgstr ""
+msgstr "Lägg till i aktuellt steg"
 
 msgid "Add to Existing Step"
-msgstr ""
+msgstr "Lägg till i befintligt steg"
 
 msgid "Delete the selected object"
 msgstr "Radera det valda objektet"
@@ -2438,6 +2450,9 @@ msgstr "Redigera"
 msgid "Delete this filament"
 msgstr "Radera detta filament"
 
+msgid "Decompose Color"
+msgstr ""
+
 msgid "Merge with"
 msgstr "Sammanfoga med"
 
@@ -2485,6 +2500,12 @@ msgstr "Radera den valda plattan"
 
 msgid "Move Plate"
 msgstr "Flytta plattan"
+
+msgid "Split to objects"
+msgstr "Dela upp till objekt"
+
+msgid "Split the selected objects into multiple objects"
+msgstr ""
 
 msgid "Clone"
 msgstr "Klona"
@@ -2954,8 +2975,8 @@ msgstr "AMS har inte initialiserats. Initiera den före användning."
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Välj ett AMS fack och tryck sedan på knappen \"Ladda\" eller \"Mata ut\" för att automatiskt ladda eller mata ut filament."
 
-msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
-msgstr "Filament typ är okänd vilket krävs för att utföra denna åtgärd. Ställ in filamentets information."
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
+msgstr "Filamenttyp är okänd vilket krävs för att utföra denna åtgärd. Ange information för målfilamentet."
 
 msgid "/"
 msgstr "/"
@@ -3129,183 +3150,208 @@ msgid "The minmum temperature should not be less than "
 msgstr "Minimi temperaturen bör vara inte vara lägre än "
 
 msgid "Export file Settings"
-msgstr ""
+msgstr "Exportera filinställningar"
 
 msgid "Homepage  title"
-msgstr ""
+msgstr "Startsidans titel"
 
 msgid "For privacy reasons, image paths are not saved or restored.Just for pdf/md file."
-msgstr ""
+msgstr "Av integritetsskäl sparas eller återställs inte bildsökvägar. Endast för pdf- och md-filer."
 
 msgid "Homepage image"
-msgstr ""
+msgstr "Bild på startsidan"
 
 msgid "Second page image"
-msgstr ""
+msgstr "Bild på andra sidan"
 
 msgid "Browse"
 msgstr "Sök"
 
 msgid "Image files"
-msgstr ""
+msgstr "Bildfiler"
 
 msgid "All files"
-msgstr ""
+msgstr "Alla filer"
 
 msgid "Open image file"
-msgstr ""
+msgstr "Öppna bildfilen"
 
 msgid "Step"
 msgstr "Steg"
 
 msgid "Install parts"
-msgstr ""
+msgstr "Installera delar"
 
 msgid "Apply the final assembly pose to the objects or parts added in the current step?"
-msgstr ""
+msgstr "Tillämpa den slutliga monteringspositionen på objekten eller delarna som lagts till i det aktuella steget?"
 
 msgid "Apply final assembly pose"
-msgstr ""
+msgstr "Tillämpa slutmonteringsposition"
+
+msgid "The export file is in use by the system. Please close it or export with a different file name, then try again."
+msgstr "Exportfilen används av systemet. Stäng den eller exportera den med ett annat filnamn och försök sedan igen."
+
+msgid "Export"
+msgstr "Exportera"
 
 msgid "Assembly Guide"
 msgstr "Monterings Guide"
 
 msgid "PDF files"
-msgstr ""
+msgstr "PDF-filer"
 
 msgid "Markdown files"
-msgstr ""
+msgstr "Markdown-filer"
 
 msgid "MP4 files"
-msgstr ""
+msgstr "MP4-filer"
 
 msgid "Export Assembly Guide to PDF"
-msgstr ""
+msgstr "Exportera monteringsguide till PDF"
 
 msgid "Export Assembly Guide to Markdown"
-msgstr ""
+msgstr "Exportera monteringsguide till Markdown"
 
 msgid "Export Assembly Guide to MP4"
-msgstr ""
+msgstr "Exportera monteringsguide till MP4"
 
 msgid "Exporting file"
-msgstr ""
-
-msgid "Export"
-msgstr "Exportera"
+msgstr "Exporterar fil"
 
 msgid "Saving project will automatically switch to end frame"
+msgstr "När du sparar projektet växlar programmet automatiskt till slutsteg"
+
+msgid "Are you sure you want to delete all assembly steps?"
+msgstr ""
+
+msgid "Delete all steps"
 msgstr ""
 
 msgid "New Step"
-msgstr ""
+msgstr "Nytt steg"
 
 msgid "Final assembly"
-msgstr ""
+msgstr "Slutmontering"
 
 msgid "end frame"
-msgstr ""
+msgstr "slutsteg"
 
 msgid "Assembly Structure"
-msgstr ""
+msgstr "Monteringsstruktur"
 
 msgid "Start your assembly journey from Add Step"
-msgstr ""
+msgstr "Börja din monteringsresa från Lägg till steg"
 
 msgctxt "AssemblyStructure"
 msgid "Default"
 msgstr "Standard"
 
 msgid "Contain"
-msgstr ""
+msgstr "Innehålla"
 
 msgid "Assembly Module"
-msgstr ""
+msgstr "Monteringsmodul"
+
+msgid "Volume"
+msgstr "Volym"
 
 msgid "Click to add objects to the current step"
-msgstr ""
+msgstr "Klicka för att lägga till objekt i det aktuella steget"
 
 msgid "_copy"
-msgstr ""
+msgstr "_kopia"
 
 msgid "Are you sure you want to delete the current step?"
-msgstr ""
+msgstr "Är du säker på att du vill ta bort det aktuella steget?"
 
 msgid "Delete step"
-msgstr ""
+msgstr "Ta bort steg"
 
 msgid "Model"
 msgstr "Modell"
 
-msgid "Volume"
-msgstr ""
-
 msgid "start frame"
-msgstr ""
+msgstr "startram"
 
 msgid "transition frame"
+msgstr "övergångsram"
+
+#, c-format, boost-format
+msgid "Step %d"
+msgstr ""
+
+msgid "not used in any assembly step"
 msgstr ""
 
 #, boost-format
 msgid "Plate %1%"
-msgstr ""
+msgstr "Platta %1%"
 
 msgid "Assembly Step"
-msgstr ""
+msgstr "Monteringssteg"
 
 msgid "Start frame"
-msgstr ""
+msgstr "Startram"
 
 msgid "End frame"
-msgstr ""
+msgstr "Slutsteg"
 
 msgid "Transition frame"
-msgstr ""
+msgstr "Övergångsram"
 
 msgid "Frame"
-msgstr ""
+msgstr "Ram"
 
 msgid "step"
+msgstr "steg"
+
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
 msgstr ""
 
 msgid "Play all frames for all steps."
-msgstr ""
+msgstr "Spela upp alla ramar för alla steg."
 
 msgid "Toggle playback speed."
-msgstr ""
+msgstr "Växla uppspelningshastighet."
 
 msgid "Play previous frame."
-msgstr ""
+msgstr "Spela upp föregående ram."
 
 msgid "Play next frame."
-msgstr ""
+msgstr "Spela upp nästa ram."
+
+msgid "Display Mode"
+msgstr "Visningsläge"
 
 msgid "Set export file parameters"
-msgstr ""
+msgstr "Ange parametrar för exportfil"
 
 msgid "Camera margin factor for the current frame. The larger the value, the more margin."
-msgstr ""
+msgstr "Kameramarginalfaktor för den aktuella ramen. Ju högre värde, desto större marginal."
 
 msgid "Modify camera margin"
-msgstr ""
+msgstr "Ändra kameramarginal"
 
 msgid "Edit step name"
-msgstr ""
+msgstr "Redigera stegnamn"
 
 msgid "Insert step before"
-msgstr ""
+msgstr "Infoga steg före"
 
 msgid "Insert step after"
-msgstr ""
+msgstr "Infoga steg efter"
 
 msgid "Tip"
 msgstr "Tips"
 
 msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
-msgstr ""
+msgstr "Inget stegkort är valt för närvarande. Poseändringar, som att flytta en gizmo, kommer att påverka den faktiska slutmonteringsvyn."
 
 msgid "Expand"
-msgstr ""
+msgstr "Expandera"
 
 msgid "Collapse"
 msgstr "Komprimera"
@@ -3317,230 +3363,245 @@ msgid "Go to Wiki"
 msgstr "Gå till Wiki"
 
 msgid "Copy current step"
-msgstr ""
+msgstr "Kopiera aktuellt steg"
 
 msgid "Delete current step"
-msgstr ""
+msgstr "Ta bort aktuellt steg"
 
 msgid "Add some objects to current step"
-msgstr ""
+msgstr "Lägg till några objekt i aktuellt steg"
 
 msgid "Copy Step"
-msgstr ""
+msgstr "Kopiera steg"
 
 msgid "Add Step"
-msgstr ""
+msgstr "Lägg till steg"
 
 #, boost-format
 msgid "No more than %1% steps are allowed."
-msgstr ""
+msgstr "Inte mer än %1% steg är tillåtna."
 
 msgid "Only copy steps. This is independent of the selected objects on the canvas."
-msgstr ""
+msgstr "Kopiera endast steg. Detta är oberoende av de markerade objekten på arbetsytan."
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
+msgstr "Lägg endast till tomma steg. Detta har ingenting att göra med de markerade objekten på arbetsytan."
+
+msgid "Delete all assembly steps except the final assembly."
 msgstr ""
 
-msgid "Exit"
+msgid "Exit the assembly step editing, you can also press the Esc button to exit"
 msgstr ""
 
 msgid "Click to add Cyber Brick"
-msgstr ""
+msgstr "Klicka för att lägga till Cyber Brick"
 
 msgid "Delete this keyframe"
-msgstr ""
+msgstr "Ta bort den här nyckelbildrutan"
 
 msgid "Export PDF"
-msgstr ""
+msgstr "Exportera PDF"
 
 msgid "Export Markdown"
-msgstr ""
+msgstr "Exportera Markdown"
 
 msgid "Export MP4"
-msgstr ""
+msgstr "Exportera MP4"
 
 msgid "After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF."
-msgstr ""
+msgstr "Efter att du har exporterat Markdown-dokumentet kan du redigera det i tredjepartsprogramvara som Zettlr och sedan exportera det till PDF."
 
 msgid "Auto recommend"
-msgstr ""
+msgstr "Autorekommendation"
 
 msgid "Model objects only"
-msgstr ""
+msgstr "Endast modellobjekt"
 
 msgid "Model parts only"
-msgstr ""
+msgstr "Endast modelldelar"
 
 msgid "Automatically choose object-or-part-level labels: objects already shown in earlier steps are collapsed into a single object label, while the rest are labeled per individual part."
-msgstr ""
+msgstr "Välj automatiskt etiketter på objekt- eller delnivå: objekt som redan har visats i tidigare steg komprimeras till en enda objektetikett, medan resten är märkta per individuell del."
 
 msgid "Show one label per model object."
-msgstr ""
+msgstr "Visa en etikett per modellobjekt."
 
 msgid "Show one label per model part."
-msgstr ""
+msgstr "Visa en etikett per modelldel."
 
 msgid "Label"
-msgstr ""
+msgstr "Etikett"
 
 msgid "Label settings"
-msgstr ""
+msgstr "Etikettinställningar"
 
 msgid "Show Object/Part labels"
-msgstr ""
+msgstr "Visa objekt eller deletiketter"
 
 msgid "Show object and part names  on models"
-msgstr ""
+msgstr "Visa objekt- och delnamn på modeller"
 
 msgid "Automatically select the optimal camera perspective and auto-arrange auto recommend labels each time the checkbox is re-ticked."
-msgstr ""
+msgstr "Välj automatiskt det optimala kameraperspektivet och ordna automatiskt rekommenderade etiketter varje gång kryssrutan markeras igen."
 
 msgid "Auto layout"
-msgstr ""
+msgstr "Automatisk layout"
 
 msgid "Auto-arrange labels in current view"
-msgstr ""
+msgstr "Ordna etiketter automatiskt i aktuell vy"
 
 msgid "Current view labels"
-msgstr ""
+msgstr "Etiketter för aktuell vy"
 
 msgid "Label Settings"
-msgstr ""
+msgstr "Etikettinställningar"
 
 msgid "Font size"
-msgstr ""
+msgstr "Fontstorlek"
 
 msgid "Display mode"
+msgstr "Visningsläge"
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
 msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
-msgstr ""
+msgstr "Exportera monteringsguide PDF, Markdown eller MP4"
 
 msgid "Screw"
-msgstr ""
+msgstr "Skruva"
 
 msgid "Note"
 msgstr "Notera"
 
 msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
-msgstr ""
+msgstr "Poseändringar (t.ex. att flytta en gizmo) som görs i nyckelbildrutan i det sista monteringssteget påverkar den faktiska monteringsvyn."
 
 msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
-msgstr ""
+msgstr "Poseändringar (t.ex. att flytta en gizmo) som görs i det här stegets nyckelbildruta påverkar inte den faktiska monteringsvyn."
 
 msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
-msgstr ""
+msgstr "Vid behov kan en relativt bra position återställas genom att trycka på knappen \"tillämpa faktisk monteringsposition\" just nu."
 
 msgid "undoing these edits is not yet supported and will be added in a later version."
-msgstr ""
+msgstr "det finns ännu inget stöd för att ångra dessa redigeringar och det kommer att läggas till i en senare version."
 
 msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
-msgstr ""
+msgstr "Vissa objekt användes i en tidigare nyckelbildruta i det aktuella steget och är inte exploderade här. Du kan explodera dem manuellt med flyttverktyget."
 
 msgid "Connection Type"
-msgstr ""
+msgstr "Anslutningstyp"
 
 msgid "Clip"
-msgstr ""
+msgstr "Klipp"
 
 msgid "Glue"
-msgstr ""
+msgstr "Lim"
 
 msgid "Add Clip"
-msgstr ""
+msgstr "Lägg till klipp"
 
 msgid "Add Glue"
-msgstr ""
+msgstr "Lägg till lim"
 
 msgid "Add Screw"
-msgstr ""
+msgstr "Lägg till skruv"
 
 msgid "Add Notes"
-msgstr ""
+msgstr "Lägg till anteckningar"
 
 msgid "Add Rectangle"
-msgstr ""
+msgstr "Lägg till rektangel"
 
 msgid "Add Circle"
-msgstr ""
+msgstr "Lägg till cirkel"
 
 msgid "Add Arrow"
-msgstr ""
+msgstr "Lägg till pil"
 
 msgid "Add Text"
-msgstr ""
+msgstr "Lägg till text"
 
 msgid "Text"
 msgstr ""
 
 msgid "Background"
-msgstr ""
+msgstr "Bakgrund"
 
 msgid "Timeline"
-msgstr ""
+msgstr "Tidslinje"
 
 msgid "Play all frames for current step"
-msgstr ""
+msgstr "Spela alla ramar för aktuellt steg"
 
 msgid "At least two keyframes are required to play."
-msgstr ""
+msgstr "Minst två nyckelbilder krävs för att spela upp."
 
 msgid "Automatically explode all objects."
-msgstr ""
+msgstr "Spräng automatiskt alla objekt."
 
 msgid "Automatically explode all parts."
-msgstr ""
+msgstr "Spräng automatiskt alla delar."
 
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
-msgstr ""
+msgstr "Tillämpa den slutliga monteringspositionen på det valda objektet eller den valda delen (om inget är valt, tillämpa det på alla objekt som läggs till i den aktuella ramen)"
 
 msgid "Apply current camera angle to all frames of the current step"
-msgstr ""
+msgstr "Tillämpa aktuell kameravinkel på alla ramar i det aktuella steget"
 
 msgid "Add keyframe"
-msgstr ""
+msgstr "Lägg till nyckelbildruta"
 
 msgid "Click to select this frame"
-msgstr ""
+msgstr "Klicka för att välja den här ramen"
 
 msgid "Save update"
-msgstr ""
+msgstr "Spara uppdatering"
 
 msgid "Save current frame"
-msgstr ""
+msgstr "Spara den aktuella ramen"
 
 msgid "Assembly tree"
-msgstr ""
+msgstr "Monteringsträd"
 
 msgid "Search"
 msgstr "Sök"
 
 msgid "List"
+msgstr "Lista"
+
+msgid "Assembly list"
+msgstr ""
+
+msgid "Expand all objects"
+msgstr ""
+
+msgid "Collapse all objects"
 msgstr ""
 
 msgid "Select all parts in a step"
-msgstr ""
+msgstr "Markera alla delar i ett steg"
 
 msgid "Red"
-msgstr ""
+msgstr "Röd"
 
 msgid "Orange"
 msgstr ""
 
 msgid "Green"
-msgstr ""
+msgstr "Grön"
 
 msgid "Blue"
-msgstr ""
+msgstr "Blå"
 
 msgid "Black"
-msgstr ""
+msgstr "Svart"
 
 msgid "Grey"
-msgstr ""
+msgstr "Grå"
 
 msgid "White"
-msgstr ""
+msgstr "Vit"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -3722,14 +3783,26 @@ msgstr "Den uppvärmda bäddens termiska förberedning hjälper till att optimer
 msgid "Remaining time: %dmin%ds"
 msgstr "Återstående tid: %dmin%ds"
 
-msgid "Project Filaments"
-msgstr "Projekt Filament"
+msgid "One-click CMYW auto-mix"
+msgstr ""
 
-msgid "New Filaments"
-msgstr "Nya filament"
+msgid "One-click RYBW auto-mix"
+msgstr ""
 
-msgid "Add Material"
-msgstr "Lägg till material"
+msgid "Project Physical Filaments"
+msgstr ""
+
+msgid "Project Mixed Filaments"
+msgstr ""
+
+msgid "New Physical Filaments"
+msgstr ""
+
+msgid "New Mixed Filaments"
+msgstr ""
+
+msgid "+ Add Material"
+msgstr "+ Lägg till material"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
@@ -3767,6 +3840,12 @@ msgstr "Påminnelse: parametrar ändrade, klicka på Verkställ för att det ska
 
 msgid "Filament Mapping"
 msgstr "Filamentmappning"
+
+msgid "Reset filament mapping to the state before one-click mixing"
+msgstr ""
+
+msgid "Choose the one-click auto-mix mode for texture color import"
+msgstr ""
 
 msgid "Auto-merge same filament"
 msgstr "Automatiskt sammanfoga samma filament"
@@ -3983,6 +4062,42 @@ msgstr "Ange ett giltigt värde (K i %.1f~%.1f)"
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Ange ett giltigt värde (K i %.1f~%.1f, N i %.1f~%.1f)"
 
+msgid "Remark"
+msgstr ""
+
+msgid "Other"
+msgstr "Andra"
+
+msgid "Filament Manager"
+msgstr "Filamenthanterare"
+
+msgid "In printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "In printer: %s"
+msgstr ""
+
+msgctxt "Filament Manager"
+msgid "Note"
+msgstr "Notera"
+
+msgid "Unsupported Filaments"
+msgstr ""
+
+msgctxt "Unsupported Filaments"
+msgid "Note"
+msgstr "Notera"
+
+msgid "No unsupported filaments"
+msgstr ""
+
+msgid "No filaments"
+msgstr ""
+
+msgid "System presets"
+msgstr "Systemets förinställningar"
+
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 msgstr "Obs: Hotend numret på %s är kopplat till hållaren. När hotend flyttas till en ny hållare uppdateras dess nummer automatiskt."
@@ -4002,6 +4117,24 @@ msgstr "Annan färg"
 
 msgid "Custom Color"
 msgstr "Anpassa färg"
+
+msgid "AMS detected a new official filament. Add it to Filament Manager?"
+msgstr ""
+
+msgid "Add as new filament"
+msgstr ""
+
+msgid "Link to existing filament"
+msgstr ""
+
+msgid "Not now"
+msgstr ""
+
+msgid "Please select"
+msgstr ""
+
+msgid "No matching filament"
+msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "Dynamisk flödeskalibrering"
@@ -4244,7 +4377,7 @@ msgid "Power on update"
 msgstr "Slå på uppdatering"
 
 msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "AMS läser automatiskt informationen om insatt Bambu Lab filament vid uppstart. Det tar cirka 1 minut. Läsprocessen kommer att rulla filamentspolarna."
+msgstr "AMS läser automatiskt informationen om isatt filament vid uppstart. Det tar cirka 1 minut. Avläsningsprocessen rullar filamentspolarna."
 
 msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
 msgstr "AMS kommer inte att automatiskt läsa informationen ifrån imatat filament under uppstart och senast använd information kommer att användas."
@@ -4483,14 +4616,14 @@ msgstr ""
 
 msgid ""
 "Should not large than 100%.\n"
-"Reset to defualt"
+"Reset to default"
 msgstr ""
-"Borde inte vara större än 100%.\n"
+"Bör inte vara större än 100 %.\n"
 "Återställ till standard"
 
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
-msgstr "Nuvarande kammar temperatur är högre än materialets säkra temperatur, det kan resultera i material mjukgörande och igensättning. Den maximala säkra temperaturen för materialet är %d"
+msgstr "Kammarens aktuella temperatur är högre än materialets säkra temperatur, vilket kan leda till att materialet mjuknar och till clogging. Den maximala säkra temperaturen för materialet är %d"
 
 msgid ""
 "Too small layer height.\n"
@@ -4810,10 +4943,10 @@ msgid "Pause (nozzle clog)"
 msgstr "Paus (igensatt nozzle)"
 
 msgid "Measuring motion precision"
-msgstr "Mäter rörelse precision"
+msgstr "Mätning av rörelseprecision"
 
 msgid "Enhancing motion precision"
-msgstr "Förbättra rörelseprecisionen"
+msgstr "Förbättrad rörelseprecision"
 
 msgid "Measure motion accuracy"
 msgstr "Mät rörelsens noggrannhet"
@@ -4959,7 +5092,7 @@ msgid "The current chamber temperature or the target chamber temperature exceeds
 msgstr "Den aktuella kammar temperaturen eller den önskade kammar temperaturen överstiger 45 ℃. För att undvika igensättning av extrudern är det inte tillåtet att ladda filament med låg temperatur (PLA/PETG/TPU)."
 
 msgid "Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order to avoid extruder clogging, it is not allowed to set the chamber temperature."
-msgstr "Filament med låg temperatur (PLA/PETG/TPU) laddas i extrudern. För att undvika igensättning av extrudern är det inte tillåtet att ställa in kammartemperaturen."
+msgstr "Lågtemperaturfilament (PLA/PETG/TPU) är laddat i extrudern. För att undvika clogging av extrudern är det inte tillåtet att ställa in kammarens temperatur."
 
 msgid "When you set the chamber temperature below 40℃, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0℃."
 msgstr "När du ställer in kammartemperaturen under 40 ℃ kommer kammartemperaturkontrollen inte att aktiveras och kammarens måltemperatur ställs automatiskt in på 0 ℃."
@@ -5328,28 +5461,28 @@ msgid "Current grouping of slice result is not optimal."
 msgstr "Nuvarande gruppering av berednings resultat är inte optimal."
 
 #, boost-format
-msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
-msgstr "Öka %1%g filament och %2% förändringar jämfört med optimal gruppering."
+msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+msgstr "Öka %1% g filament och %2% nozzle-rensningar jämfört med optimal gruppering."
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
-msgstr "Öka %1%g filament och spara %2% förändringar jämfört med optimal gruppering."
+msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+msgstr "Öka %1% g filament och spara %2% nozzle-rensningar jämfört med optimal gruppering."
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
-msgstr "Spara %1%g filament och öka %2% förändringar jämfört med optimal gruppering."
+msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+msgstr "Spara %1% g filament och öka %2% nozzle-rensningar jämfört med optimal gruppering."
 
 #, boost-format
-msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
-msgstr "Spara %1%g filament och %2% ändringar jämfört med en printer med en nozzle."
+msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+msgstr "Spara %1% g filament och %2% nozzle-rensningar jämfört med en skrivare med en nozzle."
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
-msgstr "Spara %1%g filament och öka %2% förändringar jämfört med en printer med en nozzle."
+msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+msgstr "Spara %1% g filament och öka %2% nozzle-rensningar jämfört med en skrivare med en nozzle."
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
-msgstr "Öka %1%g filament och spara %2% ändringar jämfört med en printer med en nozzle."
+msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+msgstr "Öka %1% g filament och spara %2% nozzle-rensningar jämfört med en skrivare med en nozzle."
 
 msgid "Set to Optimal"
 msgstr "Ställ in på Optimal"
@@ -5513,7 +5646,7 @@ msgid " Please check and adjust the part's position or size to fit the printable
 msgstr " Kontrollera och justera delens position eller storlek så att den passar det utskrivbara området:\n"
 
 msgid "Unnamed"
-msgstr ""
+msgstr "Namnlös"
 
 msgid "Mirror Object"
 msgstr "Spegelvänd objektet"
@@ -5586,9 +5719,6 @@ msgstr "Ordna alla objekt"
 msgid "Arrange objects on selected plates"
 msgstr "Ordna alla objekt på vald platta"
 
-msgid "Split to objects"
-msgstr "Dela upp till objekt"
-
 msgid "And it is valid when there are at least two parts in object or stl has at least two meshes."
 msgstr "Och det är giltigt när det finns minst två delar i objektet eller stl har minst två meshes."
 
@@ -5650,7 +5780,7 @@ msgid "Fit camera to scene or selected object."
 msgstr "Anpassa kameran till en scen eller ett valt objekt."
 
 msgid "Auto recommend camera angle(Only works when the assembly step function is active)"
-msgstr ""
+msgstr "Automatisk rekommenderad kameravinkel (fungerar endast när monteringssteget är aktivt)"
 
 msgid "Paint Toolbar"
 msgstr "Färgläggningsverktyg"
@@ -5669,15 +5799,6 @@ msgstr "Monterings Kontroll"
 
 msgid "Selection Mode"
 msgstr "Val av läge"
-
-msgid "Show Current Step Objects Only"
-msgstr ""
-
-msgid "X-Ray Other Objects"
-msgstr ""
-
-msgid "Display Mode"
-msgstr ""
 
 msgid "Total Volume:"
 msgstr "Total Volym:"
@@ -5890,7 +6011,7 @@ msgid "The current page has unsaved changes. You can continue editing or choose 
 msgstr "Den aktuella sidan har osparade ändringar. Du kan fortsätta redigera eller välja att spara/ignorera innan du lämnar."
 
 msgid "Home"
-msgstr ""
+msgstr "Hem"
 
 msgid "Device"
 msgstr "Enhet"
@@ -5900,9 +6021,6 @@ msgstr "Flera enheter"
 
 msgid "Project"
 msgstr "Projekt"
-
-msgid "Filament Manager"
-msgstr "Filamenthanterare"
 
 msgid "Yes"
 msgstr "Ja"
@@ -6444,7 +6562,7 @@ msgid "Printer camera is malfunctioning."
 msgstr "Printerns kamera fungerar inte som den ska."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
-msgstr "Ett problem har uppstått. Uppdatera printerns programvara och försök igen."
+msgstr "Problem har uppstått. Uppdatera skrivarens firmware och försök igen."
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
 msgstr "Endast LAN Liveview är avstängd. Vänligen slå på Liveview på printer skärmen."
@@ -7633,8 +7751,11 @@ msgstr "Filament inställningar"
 msgid "Printer settings"
 msgstr "Skrivarens inställningar"
 
-msgid "Remove current plate (if not last one)"
-msgstr "Ta bort den nuvarande plattan (om det inte är den sista)"
+msgid "At least one plate is required"
+msgstr ""
+
+msgid "Remove current plate"
+msgstr ""
 
 msgid "Auto orient objects on current plate"
 msgstr "Orientera objekt automatiskt på aktuell platta"
@@ -7656,6 +7777,10 @@ msgstr "Redigera nuvarande plattans namn"
 
 msgid "Customize current plate"
 msgstr "Anpassa nuvarande platta"
+
+#, c-format, boost-format
+msgid "%s is not compatible with %s nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
@@ -7777,8 +7902,8 @@ msgstr "Synkronisera nu"
 msgid "There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."
 msgstr "Det finns oinställda nozzle typer. Ställ in nozzle typerna för alla extruders innan du synkroniserar."
 
-msgid "Sync extruder infomation"
-msgstr "Synkronisera extruder information"
+msgid "Sync extruder information"
+msgstr "Synkronisera extruderinformation"
 
 msgid ""
 "Tips:\n"
@@ -7801,6 +7926,9 @@ msgstr "Synkroniserings information"
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synkronisera nozzle information och antalet AMS"
+
+msgid "Project Filaments"
+msgstr "Projekt Filament"
 
 msgid "Purge mode"
 msgstr "Rensnings läge"
@@ -8014,7 +8142,7 @@ msgid ""
 "The imported STEP file is split by sub-assembly, so some objects may not be placed on the build plate at first.\n"
 "It is expected if they are placed on the build plate later after move,rotate gizmo or similar operations.\n"
 "The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."
-msgstr ""
+msgstr "Den importerade STEP-filen är uppdelad efter undermontering, så vissa objekt kanske inte placeras på byggplattan från början. Det är förväntat att de placeras på byggplattan senare efter att ha flyttats, roterats eller genomgått liknande åtgärder. Den övergripande monteringen kan kontrolleras från monteringsminiatyren eller genom att öppna monteringsvyn."
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Ladda dessa filer som ett enkelt objekt med multipla delar?\n"
@@ -8585,6 +8713,12 @@ msgstr "Orsak: \"%1%\" och en annan del har ingen korsning."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negativa delar upptäckta. Vill du utföra boolean av mesh före export?"
 
+msgid "Failed to save the project: an invalid setting value was found while writing the file."
+msgstr ""
+
+msgid "Please check your settings and try again."
+msgstr ""
+
 msgid ""
 "Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
 "Please verify the file source and script contents before continuing."
@@ -8747,9 +8881,6 @@ msgstr "Om du ändrar regionen loggas du ut från ditt konto.\n"
 msgid "Region selection"
 msgstr "Val av region"
 
-msgid "Second"
-msgstr "Andra"
-
 msgid ""
 "Please note that the model show will undergo certain changes at small pixels case.\n"
 "Enabled LOD requires application restart."
@@ -8778,8 +8909,30 @@ msgstr ""
 "\n"
 "Fortsätta med att aktivera den här funktionen?"
 
+msgid "Download path"
+msgstr ""
+
 msgid "Choose Download Directory"
 msgstr "Välj Nedladdnings Register"
+
+msgctxt "Preference"
+msgid "General"
+msgstr "Allmän"
+
+msgctxt "Preference"
+msgid "User"
+msgstr "Användare"
+
+msgctxt "Preference"
+msgid "3D"
+msgstr ""
+
+msgctxt "Preference"
+msgid "Other"
+msgstr "Andra"
+
+msgid "Developer Tools"
+msgstr ""
 
 msgid "General Settings"
 msgstr "Allmänna inställningar"
@@ -8811,32 +8964,8 @@ msgstr "Brittisk standard"
 msgid "Units"
 msgstr "Enheter"
 
-msgid "Use 12-hour time format"
-msgstr "Använd 12-timmars tidsformat"
-
-msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr "Visa tid i 12-timmars format med AM/PM istället för 24-timmars format"
-
-msgid "Keep only one Bambu Studio instance"
-msgstr "Behåll endast en Bambu Studio instans"
-
-msgid "On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances of same app from the command line. In such case this settings will allow only one instance."
-msgstr "På OSX körs alltid bara en instans av appen som standard. Det är dock tillåtet att köra flera instanser av samma app från kommandoraden. I sådana fall tillåter denna inställning endast en instans."
-
-msgid "If this is enabled, when starting Bambu Studio and another instance of the same Bambu Studio is already running, that instance will be reactivated instead."
-msgstr "Om detta är aktiverat, när Bambu Studio startas och en annan instans av samma Bambu Studio redan körs, kommer den instansen att återaktiveras istället."
-
-msgid "Automatically transfer modified value when switching process and filament presets"
-msgstr "Överför automatiskt ändrat värde vid byte av process- och filament inställningar"
-
-msgid "After closing, a popup will appear to ask each time"
-msgstr "Efter stängning kommer en popup att visas för att fråga varje gång"
-
-msgid "Auto plate type"
-msgstr "Automatisk platta"
-
-msgid "Studio will remember build plate selected last time for certain printer model."
-msgstr "Studio will remember build plate selected last time for certain printer models."
+msgid "Enable dark mode"
+msgstr "Aktivera mörkt läge"
 
 msgid "All"
 msgstr "Allt"
@@ -8850,23 +8979,26 @@ msgstr "Auto rensa"
 msgid "Auto calculate flush volumes"
 msgstr "Beräkna tömnings volymer automatiskt"
 
+msgid "Keep only one Bambu Studio instance"
+msgstr "Behåll endast en Bambu Studio instans"
+
+msgid "On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances of same app from the command line. In such case this settings will allow only one instance."
+msgstr "På OSX körs alltid bara en instans av appen som standard. Det är dock tillåtet att köra flera instanser av samma app från kommandoraden. I sådana fall tillåter denna inställning endast en instans."
+
+msgid "If this is enabled, when starting Bambu Studio and another instance of the same Bambu Studio is already running, that instance will be reactivated instead."
+msgstr "Om detta är aktiverat, när Bambu Studio startas och en annan instans av samma Bambu Studio redan körs, kommer den instansen att återaktiveras istället."
+
+msgid "Take effect after restarting Studio"
+msgstr "Träder i kraft efter att Studio har startats om"
+
+msgid "The Filament Manager is turned off by default on macOS because compatibility issues on some systems may cause the application to become unresponsive."
+msgstr "Filamenthanteraren är avstängd som standard på macOS eftersom kompatibilitetsproblem på vissa system kan göra att programmet slutar svara."
+
 msgid "Multi-device Management(Take effect after restarting Studio)."
 msgstr "Hantering av flera enheter (träder i kraft efter omstart av Studio)."
 
 msgid "With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."
 msgstr "När det här alternativet är aktiverat kan du skicka en uppgift till flera enheter samtidigt och hantera flera enheter."
-
-msgid "Take effect after restarting Studio"
-msgstr ""
-
-msgid "The Filament Manager is turned off by default on macOS because compatibility issues on some systems may cause the application to become unresponsive."
-msgstr ""
-
-msgid "Show the step mesh parameter setting dialog."
-msgstr "Visa dialogrutan för inställning av steg mesh parametrar."
-
-msgid "If enabled,a parameter settings dialog will appear during STEP file import."
-msgstr "Om den är aktiverad visas en dialogruta för parameterinställningar vid import av STEP filer."
 
 msgid "Support beta version update."
 msgstr "Support för uppdatering av betaversion."
@@ -8874,32 +9006,66 @@ msgstr "Support för uppdatering av betaversion."
 msgid "With this option enabled, you can receive beta version updates."
 msgstr "Med det här alternativet aktiverat kan du få uppdateringar av betaversioner."
 
+msgid "Join the User Experience Improvement Program."
+msgstr "Gå med i programmet för förbättring av användarupplevelsen."
+
+msgctxt "Preferences"
+msgid "Learn more"
+msgstr "Läs mer"
+
+msgid "User Settings"
+msgstr ""
+
+msgid "Auto plate type"
+msgstr "Automatisk platta"
+
+msgid "Studio will remember build plate selected last time for certain printer model."
+msgstr "Studio will remember build plate selected last time for certain printer models."
+
+msgid "12-hour"
+msgstr ""
+
+msgid "24-hour"
+msgstr ""
+
+msgid "time format for print progress"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr "Visa tid i 12-timmars format med AM/PM istället för 24-timmars format"
+
+msgid "Keep liveview when printing."
+msgstr "Behåll liveview när du skriver ut."
+
+msgid "By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."
+msgstr "Som standard pausar Liveview efter 15 minuters inaktivitet på datorn. Markera den här rutan om du vill inaktivera den här funktionen under utskrift."
+
+msgid "Automatically transfer modified value when switching process and filament presets"
+msgstr "Överför automatiskt ändrat värde vid byte av process- och filament inställningar"
+
+msgid "After closing, a popup will appear to ask each time"
+msgstr "Efter stängning kommer en popup att visas för att fråga varje gång"
+
 msgid "Remove the restriction on mixed printing of high and low temperature filaments."
 msgstr "Ta bort begränsningen för blandad utskrift av filament med hög och låg temperatur."
 
 msgid "With this option enabled, you can print materials with a large temperature difference together."
 msgstr "Med detta alternativet aktiverat kan du skriva ut material med stor temperaturskillnad tillsammans."
 
-msgid "Open full screen camera view on active monitor only."
-msgstr "Öppna kameravyn i helskärm endast på aktiv bildskärm."
+msgid "Auto sync user presets(Printer/Filament/Process)"
+msgstr "Automatisk synkronisering av användarens förinställningar (skrivare/filament/process)"
 
-msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
-msgstr "När den är aktiverad öppnas kamerans helskärmsvy endast på skärmen som innehåller Bambu Studio."
+msgid "If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."
+msgstr "Om den är aktiverad synkroniseras användarens inställningar automatiskt med molnet när Bambu Studio startas eller inställningarna ändras."
 
-msgid "Clear my choice for synchronizing printer preset after loading the file."
-msgstr "Rensa mitt val för synkronisering av printerns inställning efter laddning av filen."
+msgid "Auto check for system presets updates"
+msgstr "Automatisk sökning efter uppdateringar av systeminställningar"
 
-msgid "Clear my choice for Load 3mf dialog settings."
-msgstr "Rensa mitt val för Inställningar för dialogrutan Ladda 3mf."
+msgid "If enabled, auto check whether there are system presets updates after Bambu Studio startup."
+msgstr "Om aktiverat, kontrollera automatiskt om det finns uppdateringar av systemets inställningar efter att Bambu Studio har startats."
 
-msgid "Clear my choice for executing post-processing scripts."
-msgstr "Ta bort mitt val för att köra post – processingskript."
-
-msgid "Show the security warning dialog again before slicing when post-processing scripts are configured."
-msgstr "Visa dialogrutan med säkerhetsvarningen igen innan beredning när efter-processingskripter är konfigurerade."
-
-msgid "Clear my choice for disabling support parameter recommendation."
-msgstr "Ta bort mitt val för att inaktivera rekommendation av supportparametrar."
+msgid "Auto-fill previously logged-in accounts."
+msgstr "Fyll automatiskt i tidigare inloggade konton."
 
 msgid "3D Settings"
 msgstr "3D inställningar"
@@ -8910,11 +9076,44 @@ msgstr "Zooma till musens position"
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr "Zooma in mot muspekarens position i 3D-vyn, istället för mot 2D-fönstrets mitt."
 
+msgid "Display overview"
+msgstr "Visa översikt"
+
+msgid "Grabber scale"
+msgstr "Grip skala"
+
+msgid "Set grabber size for move,rotate,scale tool."
+msgstr "Ställ in grip storlek för verktyg för att flytta, rotera och skala."
+
+msgid "Value range"
+msgstr "Värde intervall"
+
+msgid "Tooltip offset"
+msgstr "Offset för verktygs spets"
+
+msgid "Set tooltip offset for different mouse size."
+msgstr "Ställ in verktygs spets offset för olika mus storlekar."
+
+msgid "Collapsible"
+msgstr "Hopfällbar"
+
+msgid "Uncollapsible"
+msgstr "Ohopfällbar"
+
+msgid "Toolbar Style"
+msgstr "Verktygsfältets stil"
+
 msgid "Always show shells in preview"
 msgstr "Visa alltid skal i förhandsgranskningen"
 
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
-msgstr "Växlar som visar skal i förhandsgranskningsvyn: om du ändrar värdet bör du bereda om."
+msgstr "Visa alltid skal eller inte i förhandsgranskningsvyn. Om du ändrar det här värdet bör du slicera om."
+
+msgid "Show the step mesh parameter setting dialog."
+msgstr "Visa dialogrutan för inställning av steg mesh parametrar."
+
+msgid "If enabled,a parameter settings dialog will appear during STEP file import."
+msgstr "Om den är aktiverad visas en dialogruta för parameterinställningar vid import av STEP filer."
 
 msgid "Import a single SVG and split it"
 msgstr "Importera en enskild SVG och dela upp den"
@@ -8934,29 +9133,11 @@ msgstr "Kom ihåg det senast använda färgschemat"
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "När aktiverad, kommer den senast använda färgschemat (t.ex., linjetyp, hastighet) att tillämpas automatiskt vid nästa start."
 
-msgid "Display overview"
-msgstr "Visa översikt"
-
-msgid "Show assembly BVH primary bounds"
-msgstr "Visa BVH primär gränser för montering"
-
-msgid "Display the BVH primary bounding box wireframe in assembly view."
-msgstr "Visa BVH primära avgränsnings ram i sammanställnings vyn."
-
 msgid "Improve rendering performance by lod"
 msgstr "Förbättra renderingsprestandan med lod"
 
 msgid "Improved rendering performance under the scene of multiple plates and many models."
 msgstr "Förbättrad renderingsprestanda under scenen med flera plattor och många modeller."
-
-msgid "Collapsible"
-msgstr "Hopfällbar"
-
-msgid "Uncollapsible"
-msgstr "Ohopfällbar"
-
-msgid "Toolbar Style"
-msgstr "Verktygsfältets stil"
 
 msgid "Enable advanced gcode viewer"
 msgstr "Aktivera avancerad visning av g kod"
@@ -8964,35 +9145,77 @@ msgstr "Aktivera avancerad visning av g kod"
 msgid "Enable advanced gcode viewer."
 msgstr "Aktivera avancerad visning av g kod."
 
-msgid "Grabber scale"
-msgstr "Grip skala"
+msgid "Show assembly BVH primary bounds"
+msgstr "Visa BVH primär gränser för montering"
 
-msgid "Set grabber size for move,rotate,scale tool."
-msgstr "Ställ in grip storlek för verktyg för att flytta, rotera och skala."
+msgid "Display the BVH primary bounding box wireframe in assembly view."
+msgstr "Visa BVH primära avgränsnings ram i sammanställnings vyn."
 
-msgid "Value range"
-msgstr "Värde intervall"
+msgid "Open full screen camera view on active monitor only."
+msgstr "Öppna kameravyn i helskärm endast på aktiv bildskärm."
 
-msgid "Tooltip offset"
-msgstr "Offset för verktygs spets"
+msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
+msgstr "När den är aktiverad öppnas kamerans helskärmsvy endast på skärmen som innehåller Bambu Studio."
 
-msgid "Set tooltip offset for different mouse size."
-msgstr "Ställ in verktygs spets offset för olika mus storlekar."
+msgid "Maximum recent projects"
+msgstr "Maximalt antal nyligen genomförda projekt"
 
-msgid "Presets"
-msgstr "Förinställningar"
+msgid "Maximum count of recent projects"
+msgstr "Maximalt antal nyligen genomförda projekt"
 
-msgid "Auto sync user presets(Printer/Filament/Process)"
-msgstr "Automatisk synkronisering av användarens förinställningar (skrivare/filament/process)"
+msgid "No warnings when loading 3MF with modified G-codes"
+msgstr "No warnings when loading 3MF with modified G-code"
 
-msgid "If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."
-msgstr "Om den är aktiverad synkroniseras användarens inställningar automatiskt med molnet när Bambu Studio startas eller inställningarna ändras."
+msgid "10 seconds"
+msgstr ""
 
-msgid "Auto check for system presets updates"
-msgstr "Automatisk sökning efter uppdateringar av systeminställningar"
+msgid "20 seconds"
+msgstr ""
 
-msgid "If enabled, auto check whether there are system presets updates after Bambu Studio startup."
-msgstr "Om aktiverat, kontrollera automatiskt om det finns uppdateringar av systemets inställningar efter att Bambu Studio har startats."
+msgid "30 seconds"
+msgstr ""
+
+msgid "1 minute"
+msgstr ""
+
+msgid "2 minutes"
+msgstr ""
+
+msgid "5 minutes"
+msgstr ""
+
+msgid "10 minutes"
+msgstr ""
+
+msgid "30 minutes"
+msgstr ""
+
+msgid "never"
+msgstr ""
+
+msgid "Auto-Backup"
+msgstr "Auto Säkerhetskopiera"
+
+msgid "The peroid of backup in seconds."
+msgstr "Säkerhetskopieringens varaktighet i sekunder."
+
+msgid "Online Models"
+msgstr "Online modeller"
+
+msgid "Show online staff-picked models on the home page"
+msgstr "Visa personalens utvalda modeller online på startsidan"
+
+msgid "Show history on the home page"
+msgstr "Visa historik på startsidan"
+
+msgid "Developer Mode"
+msgstr ""
+
+msgid "Develop mode"
+msgstr "Utvecklingsläge"
+
+msgid "Skip AMS blacklist check"
+msgstr "Hoppa över kontrollen av AMS svarta lista"
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Associera filer till Bambu Studio"
@@ -9015,135 +9238,8 @@ msgstr "Associera .step/.stp filer till Bambu Studio"
 msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "Om aktiverat, anger Bambu Studio som standard applikation för att öppna .step-filer"
 
-msgid "Online Models"
-msgstr "Online modeller"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "Visa personalens utvalda modeller online på startsidan"
-
-msgid "Show history on the home page"
-msgstr "Visa historik på startsidan"
-
-msgid "Reminder During Slicing"
-msgstr "Påminnelse under beredning"
-
-msgid "Automatic mode"
-msgstr "Automatiskt läge"
-
-msgid "Maximum recent projects"
-msgstr "Maximalt antal nyligen genomförda projekt"
-
-msgid "Maximum count of recent projects"
-msgstr "Maximalt antal nyligen genomförda projekt"
-
-msgid "Clear my choice on the unsaved projects."
-msgstr "Rensa mitt val för de osparade projekten."
-
-msgid "No warnings when loading 3MF with modified G-codes"
-msgstr "No warnings when loading 3MF with modified G-code"
-
-msgid "Auto-Backup"
-msgstr "Auto Säkerhetskopiera"
-
-msgid "Backup your project periodically for restoring from the occasional crash."
-msgstr "Säkerhetskopiera ditt projekt regelbundet för att återställa från en tillfällig krasch."
-
-msgid "every"
-msgstr "varje"
-
-msgid "The peroid of backup in seconds."
-msgstr "Säkerhetskopieringens varaktighet i sekunder."
-
-msgid "Downloads"
-msgstr "Nedladdningar"
-
-msgid "Media"
-msgstr "Media"
-
-msgid "Keep liveview when printing."
-msgstr "Behåll liveview när du skriver ut."
-
-msgid "By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."
-msgstr "Som standard pausar Liveview efter 15 minuters inaktivitet på datorn. Markera den här rutan om du vill inaktivera den här funktionen under utskrift."
-
-msgid "Dark Mode"
-msgstr "Mörkt Läge"
-
-msgid "Enable dark mode"
-msgstr "Aktivera mörkt läge"
-
-msgid "Pop up to select filament grouping mode"
-msgstr "Pop up för att välja filament grupperings läge"
-
-msgid "User Experience"
-msgstr "Användarupplevelse"
-
-msgid "Join the User Experience Improvement Program."
-msgstr "Gå med i programmet för förbättring av användarupplevelsen."
-
-msgctxt "Preferences"
-msgid "Learn more"
-msgstr "Läs mer"
-
-msgid "Auto-fill previously logged-in accounts."
-msgstr "Fyll automatiskt i tidigare inloggade konton."
-
-msgid "Develop Mode"
-msgstr "Utvecklingsläge"
-
-msgid "Develop mode"
-msgstr "Utvecklingsläge"
-
-msgid "Skip AMS blacklist check"
-msgstr "Hoppa över kontrollen av AMS svarta lista"
-
-msgid "Home page and daily tips"
-msgstr "Hemsida och dagliga förslag"
-
-msgid "Show home page on startup"
-msgstr "Visa hemsida vid uppstart"
-
-msgid "Sync settings"
-msgstr "Sync inställningar"
-
-msgid "User sync"
-msgstr "Användar synkronisering"
-
-msgid "Preset sync"
-msgstr "Förinställd synkronisering"
-
-msgid "Preferences sync"
-msgstr "Synkronisera inställningar"
-
-msgid "View control settings"
-msgstr "Kontroll inställningar"
-
-msgid "Rotate of view"
-msgstr "Rotation av vy"
-
-msgid "Move of view"
-msgstr "Flyttning av vy"
-
-msgid "Zoom of view"
-msgstr "Zoom av vy"
-
-msgid "Other"
-msgstr "Andra"
-
-msgid "Mouse wheel reverses when zooming"
-msgstr "Mushjulet reverserar vid zoomning"
-
-msgid "Enable SSL(MQTT)"
-msgstr "Aktivera SSL(MQTT)"
-
-msgid "Enable SSL(FTP)"
-msgstr "Aktivera SSL(FTP)"
-
-msgid "Internal developer mode"
-msgstr "Internt utvecklarläge"
-
-msgid "Log Level"
-msgstr "Logg Nivå"
+msgid "Log"
+msgstr ""
 
 msgid "fatal"
 msgstr "allvarlig"
@@ -9159,6 +9255,18 @@ msgstr "felsök"
 
 msgid "trace"
 msgstr "spåra"
+
+msgid "Log Level"
+msgstr "Logg Nivå"
+
+msgid "Internal developer mode"
+msgstr "Internt utvecklarläge"
+
+msgid "Enable SSL(MQTT)"
+msgstr "Aktivera SSL(MQTT)"
+
+msgid "Enable SSL(FTP)"
+msgstr "Aktivera SSL(FTP)"
 
 msgid "Host Setting"
 msgstr "Värd Inställning"
@@ -9187,8 +9295,29 @@ msgstr "FELSÖKNINGS inställningarna har sparats!"
 msgid "Switch cloud environment, Please login again!"
 msgstr "Byt moln miljö, Logga in igen!"
 
-msgid "System presets"
-msgstr "Systemets förinställningar"
+msgid "Reset all warning dialogs"
+msgstr ""
+
+msgid "Reset preferences"
+msgstr ""
+
+msgid "All warning dialogs that you have disabled by checking \"Don't show again\" are now re-enabled and will show next time they apply."
+msgstr ""
+
+msgid "Check details"
+msgstr ""
+
+msgid ""
+"- Sync printer presets after loading a file\n"
+"- \"Load 3MF\" dialog settings\n"
+"- Executing post-processing scripts\n"
+"- Support structure recommendation prompt\n"
+"- Unsaved projects.\n"
+"- Mixed color sublayer with variable layer height warning"
+msgstr ""
+
+msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
+msgstr ""
 
 msgid "User presets"
 msgstr "Användarens förinställningar"
@@ -9539,7 +9668,7 @@ msgid "The selected printer (%s) is incompatible with the print file configurati
 msgstr "Den valda printern (%s) är inte kompatibel med konfigurationen av utskrifts filen (%s). Vänligen justera printer inställningen på sidan Förbered eller välj en kompatibel skrivare på den här sidan."
 
 msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
-msgstr "When spiral vase mode is enabled, machines with I3 structure will not generate timelapse videos."
+msgstr "När spiral vas-läget aktiveras genererar maskiner med I3-struktur inte timelapse-videor."
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
 msgstr "Den aktuella printern stöder inte timelapse i traditionellt läge vid Per Objekt utskrift."
@@ -9568,13 +9697,13 @@ msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Fixa felet ovan, annars kan utskriften inte fortsätta."
 
 msgid "Please click the \"Continue printing\"  button if you still want to proceed with printing."
-msgstr ""
+msgstr "Klicka på knappen \"Fortsätt utskrift\" om du fortfarande vill fortsätta med utskriften."
 
 msgid "Continue printing"
-msgstr ""
+msgstr "Fortsätt utskrift"
 
 msgid "Return to modify"
-msgstr ""
+msgstr "Återgå för att ändra"
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Detta kontrollerar värmebäddens planhet. Utjämning gör den extruderade höjden enhetlig."
@@ -9742,6 +9871,9 @@ msgstr "Hårdheten hos aktuellt material (%s) överskrider hårdheten hos %s(%s)
 
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
 msgstr "Om \"Dynamisk flödeskalibrering\" är inställd på Auto/På, kommer systemet att använda det manuella kalibreringsvärdet eller standardvärdet och hoppa över flödeskalibreringsprocessen. Du kan utföra en manuell flödeskalibrering för TPU-filament på sidan \"Kalibrering\"."
+
+msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
+msgstr ""
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Vissa filament kan växla mellan extruders under utskrift. Manuell K-värdes kalibrering kan inte appliceras under hela utskriften, vilket kan påverka utskrifts kvaliteten. Aktivering av Kalibrering av flödesdynamik rekommenderas."
@@ -9969,7 +10101,7 @@ msgid "Terms and Conditions"
 msgstr "Villkor och bestämmelser"
 
 msgid "Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab device, please read the terms and conditions. By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use (collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
-msgstr "Tack för att du har köpt en Bambu Lab enhet. Innan du använder din Bambu Lab enhet ska du läsa villkoren. Genom att klicka för att godkänna användningen av din Bambu Lab enhet godkänner du att följa sekretesspolicyn och användningsvillkoren (gemensamt kallade \"villkoren\"). Om du inte följer eller samtycker till Bambu Labs integritetspolicy ska du inte använda Bambu Labs utrustning och tjänster."
+msgstr "Tack för att du har köpt en Bambu Lab-enhet. Innan du använder din Bambu Lab-enhet, vänligen läs igenom villkoren. Genom att klicka för att godkänna användningen av din Bambu Lab-enhet godkänner du att följa integritetspolicyn och användarvillkoren (gemensamt kallade \"Villkoren\"). Om du inte godkänner eller följer Bambu Labs integritetspolicy, vänligen använd inte Bambu Labs utrustning och tjänster."
 
 msgid "and"
 msgstr "och"
@@ -10485,10 +10617,10 @@ msgid "Detached"
 msgstr "Fristående"
 
 msgid "The current preset is embedded in the 3MF project file. Please save changes directly.  'Save as new' is not supported for preset inside project."
-msgstr ""
+msgstr "Den aktuella förinställningen är inbäddad i 3MF-projektfilen. Spara ändringarna direkt. 'Spara som ny' stöds inte för förinställning inuti projektet."
 
 msgid "Unable to save preset"
-msgstr ""
+msgstr "Det gick inte att spara förinställningen"
 
 #, c-format, boost-format
 msgid "%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."
@@ -10533,11 +10665,11 @@ msgstr ""
 msgid "No modifications need to be copied."
 msgstr "Inga ändringar behöver kopieras."
 
-msgid "Copy paramters"
+msgid "Copy parameters"
 msgstr "Kopiera parametrar"
 
 #, c-format, boost-format
-msgid "Modify paramters of %s"
+msgid "Modify parameters of %s"
 msgstr "Ändra parametrar för %s"
 
 #, c-format, boost-format
@@ -12328,7 +12460,7 @@ msgid "The spiral vase mode does not work when an object contains more than one 
 msgstr "Spiral Vase läge fungerar inte när objektet innehåller mer än ett material."
 
 msgid "The spiral vase mode does not work when an object contains regions with different print settings."
-msgstr ""
+msgstr "Spiral vas-läget fungerar inte när ett objekt innehåller regioner med olika utskriftsinställningar."
 
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "Variabel lagerhöjd stöds inte med organiska support."
@@ -12637,7 +12769,7 @@ msgid "Decrease this value slightly(for example 0.9) to reduce the amount of mat
 msgstr "Minska detta värde något (tex 0.9) för att minska material åtgång för bridges/bryggor, detta för att förbättra kvaliteten"
 
 msgid "Bridge counterbore holes"
-msgstr ""
+msgstr "Överbrygga försänkta hål"
 
 msgid ""
 "This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
@@ -12645,12 +12777,16 @@ msgid ""
 "2. Partially Bridged: Only a part of the unsupported area will be bridged\n"
 "3. Sacrificial Layer: A full sacrificial bridge layer is created"
 msgstr ""
+"Detta alternativ skapar bryggor för försänkta hål, vilket gör att de kan skrivas ut utan stöd. Tillgängliga lägen är:\n"
+"1. Ingen: Ingen brygga skapas\n"
+"2. Delvis bryggad: Endast en del av det ostödda området bryggas\n"
+"3. Offerlager: Ett helt offerbrygglager skapas"
 
 msgid "Partially bridged"
-msgstr ""
+msgstr "Delvis överbryggad"
 
 msgid "Sacrificial layer"
-msgstr ""
+msgstr "Offerlager"
 
 msgid "Top surface flow ratio"
 msgstr "Flödesförhållande för övre ytan"
@@ -13140,8 +13276,8 @@ msgstr "Flödes förhållandet fastställs av objektet, betydelsen är densamma 
 msgid "Enable pressure advance"
 msgstr "Aktivera pressure advance"
 
-msgid "Enable pressure advance, auto calibration result will be overwriten once enabled. Useless for Bambu Printer"
-msgstr "Aktivera pressure advance? Auto kalibrerings resultat kommer att skrivas över när de har aktiverats. Värdelöst för Bambu printer."
+msgid "Enable pressure advance, auto calibration result will be overwritten once enabled. Useless for Bambu Printer"
+msgstr "Aktivera pressure advance. Det automatiska kalibreringsresultatet kommer att skrivas över när detta aktiveras. Krävs ej för Bambu-skrivare"
 
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for Bambu Printer"
 msgstr "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Oanvändbar för Bambu printer"
@@ -16474,6 +16610,9 @@ msgstr "The printer preset was not found; please reselect."
 msgid "Printer Preset"
 msgstr "Printer inställningar"
 
+msgid "Presets"
+msgstr "Förinställningar"
+
 msgid "Filament Preset Template"
 msgstr "Filament inställnings mall"
 
@@ -16786,6 +16925,9 @@ msgstr "Utskrift %1s material med %2s nozzle kan orsaka skador på nozzle."
 msgid "Need select printer"
 msgstr "Välj printer"
 
+msgid "Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid."
+msgstr ""
+
 msgid "The start, end or step is not valid value."
 msgstr "Start, slut eller steg är inte giltigt värde."
 
@@ -16888,7 +17030,7 @@ msgstr "Connection to Duet is working correctly."
 msgid "Could not connect to Duet"
 msgstr "Kunde inte ansluta till Duet"
 
-msgid "Unknown error occured"
+msgid "Unknown error occurred"
 msgstr "Okänt fel uppstod"
 
 msgid "Wrong password"
@@ -17153,7 +17295,7 @@ msgstr "Personlig assecc token är tom, fyll i rätt token."
 msgid "Helio: Presigned URL Created"
 msgstr "Helio: Försignerad URL skapad"
 
-msgid "Helio: file succesfully uploaded"
+msgid "Helio: file successfully uploaded"
 msgstr "Helio: filen laddades upp"
 
 msgid "Helio: file upload failed"
@@ -17339,16 +17481,16 @@ msgid "No content"
 msgstr "Inget innehåll"
 
 #, c-format, boost-format
-msgid "Printer presets (%d/%d)"
-msgstr ""
+msgid "Printer presets (%d)"
+msgstr "Inställningar för skrivare (%d)"
 
 #, c-format, boost-format
-msgid "Filament presets (%d/%d)"
-msgstr ""
+msgid "Filament presets (%d)"
+msgstr "Inställningar för filament (%d)"
 
 #, c-format, boost-format
-msgid "Process presets (%d/%d)"
-msgstr ""
+msgid "Process presets (%d)"
+msgstr "Inställningar för process (%d)"
 
 #, c-format, boost-format
 msgid "%u Selected"
@@ -17804,6 +17946,9 @@ msgstr "Utskriftsresultat: LIKELY_FAIL"
 msgid "Print Outcome: "
 msgstr "Utskrifts resultat: "
 
+msgid "Click to edit ratio"
+msgstr "Klicka för att redigera förhållandet"
+
 msgid "Edit Mixed Filament"
 msgstr "Redigera blandat filament"
 
@@ -17812,9 +17957,6 @@ msgstr "Förhandsgranska effekt"
 
 msgid "Select Mixed Materials"
 msgstr "Välj blandade material"
-
-msgid "+ Add Material"
-msgstr "+ Lägg till material"
 
 msgid "- Delete Material"
 msgstr "- Ta bort material"
@@ -17861,6 +18003,52 @@ msgstr "Max antal komponenter uppnått"
 
 msgid "Remove the third material"
 msgstr "Ta bort det tredje materialet"
+
+msgid "Project Filament List"
+msgstr ""
+
+msgid "Standard Mode Recommendations"
+msgstr ""
+
+msgid "Target Color"
+msgstr ""
+
+msgid "Select Color Decomposition"
+msgstr ""
+
+msgid "Arbitrary Mode"
+msgstr ""
+
+msgid "Material List"
+msgstr ""
+
+msgid "Standard Mode"
+msgstr "Standard läge"
+
+msgid "At least two filaments of the same material type are required for decomposition"
+msgstr ""
+
+#, boost-format
+msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr ""
+
+msgid "Cyan"
+msgstr ""
+
+msgid "Magenta"
+msgstr ""
+
+msgid "Yellow"
+msgstr ""
+
+msgid ", "
+msgstr ""
+
+msgid "The current filament list does not contain "
+msgstr ""
+
+msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
+msgstr ""
 
 msgid "Material Ratio"
 msgstr "Materialförhållande"
@@ -18162,6 +18350,164 @@ msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
 
+#~ msgid "Show Current Step Objects Only"
+#~ msgstr "Visa endast aktuella stegobjekt"
+
+#~ msgid "X-Ray Other Objects"
+#~ msgstr "Röntga andra objekt"
+
+#~ msgid "Exit"
+#~ msgstr "Avsluta"
+
+#~ msgid "Second"
+#~ msgstr "Andra"
+
+#~ msgid "Backup your project periodically for restoring from the occasional crash."
+#~ msgstr "Säkerhetskopiera ditt projekt regelbundet för att återställa från en tillfällig krasch."
+
+#~ msgid "every"
+#~ msgstr "varje"
+
+#~ msgid "Remove current plate (if not last one)"
+#~ msgstr "Ta bort den nuvarande plattan (om det inte är den sista)"
+
+#~ msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+#~ msgstr "Filament typ är okänd vilket krävs för att utföra denna åtgärd. Ställ in filamentets information."
+
+#~ msgid "New Filaments"
+#~ msgstr "Nya filament"
+
+#~ msgid "Add Material"
+#~ msgstr "Lägg till material"
+
+#~ msgid ""
+#~ "Should not large than 100%.\n"
+#~ "Reset to defualt"
+#~ msgstr ""
+#~ "Borde inte vara större än 100%.\n"
+#~ "Återställ till standard"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
+#~ msgstr "Öka %1%g filament och %2% förändringar jämfört med optimal gruppering."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
+#~ msgstr "Öka %1%g filament och spara %2% förändringar jämfört med optimal gruppering."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
+#~ msgstr "Spara %1%g filament och öka %2% förändringar jämfört med optimal gruppering."
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
+#~ msgstr "Spara %1%g filament och %2% ändringar jämfört med en printer med en nozzle."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
+#~ msgstr "Spara %1%g filament och öka %2% förändringar jämfört med en printer med en nozzle."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
+#~ msgstr "Öka %1%g filament och spara %2% ändringar jämfört med en printer med en nozzle."
+
+#~ msgid "Sync extruder infomation"
+#~ msgstr "Synkronisera extruder information"
+
+#~ msgid "Use 12-hour time format"
+#~ msgstr "Använd 12-timmars tidsformat"
+
+#~ msgid "Clear my choice for synchronizing printer preset after loading the file."
+#~ msgstr "Rensa mitt val för synkronisering av printerns inställning efter laddning av filen."
+
+#~ msgid "Clear my choice for Load 3mf dialog settings."
+#~ msgstr "Rensa mitt val för Inställningar för dialogrutan Ladda 3mf."
+
+#~ msgid "Clear my choice for executing post-processing scripts."
+#~ msgstr "Ta bort mitt val för att köra post – processingskript."
+
+#~ msgid "Show the security warning dialog again before slicing when post-processing scripts are configured."
+#~ msgstr "Visa dialogrutan med säkerhetsvarningen igen innan beredning när efter-processingskripter är konfigurerade."
+
+#~ msgid "Clear my choice for disabling support parameter recommendation."
+#~ msgstr "Ta bort mitt val för att inaktivera rekommendation av supportparametrar."
+
+#~ msgid "Reminder During Slicing"
+#~ msgstr "Påminnelse under beredning"
+
+#~ msgid "Automatic mode"
+#~ msgstr "Automatiskt läge"
+
+#~ msgid "Clear my choice on the unsaved projects."
+#~ msgstr "Rensa mitt val för de osparade projekten."
+
+#~ msgid "Downloads"
+#~ msgstr "Nedladdningar"
+
+#~ msgid "Media"
+#~ msgstr "Media"
+
+#~ msgid "Dark Mode"
+#~ msgstr "Mörkt Läge"
+
+#~ msgid "Pop up to select filament grouping mode"
+#~ msgstr "Pop up för att välja filament grupperings läge"
+
+#~ msgid "User Experience"
+#~ msgstr "Användarupplevelse"
+
+#~ msgid "Develop Mode"
+#~ msgstr "Utvecklingsläge"
+
+#~ msgid "Home page and daily tips"
+#~ msgstr "Hemsida och dagliga förslag"
+
+#~ msgid "Show home page on startup"
+#~ msgstr "Visa hemsida vid uppstart"
+
+#~ msgid "Sync settings"
+#~ msgstr "Sync inställningar"
+
+#~ msgid "User sync"
+#~ msgstr "Användar synkronisering"
+
+#~ msgid "Preset sync"
+#~ msgstr "Förinställd synkronisering"
+
+#~ msgid "Preferences sync"
+#~ msgstr "Synkronisera inställningar"
+
+#~ msgid "View control settings"
+#~ msgstr "Kontroll inställningar"
+
+#~ msgid "Rotate of view"
+#~ msgstr "Rotation av vy"
+
+#~ msgid "Move of view"
+#~ msgstr "Flyttning av vy"
+
+#~ msgid "Zoom of view"
+#~ msgstr "Zoom av vy"
+
+#~ msgid "Mouse wheel reverses when zooming"
+#~ msgstr "Mushjulet reverserar vid zoomning"
+
+#~ msgid "Copy paramters"
+#~ msgstr "Kopiera parametrar"
+
+#, c-format, boost-format
+#~ msgid "Modify paramters of %s"
+#~ msgstr "Ändra parametrar för %s"
+
+#~ msgid "Enable pressure advance, auto calibration result will be overwriten once enabled. Useless for Bambu Printer"
+#~ msgstr "Aktivera pressure advance? Auto kalibrerings resultat kommer att skrivas över när de har aktiverats. Värdelöst för Bambu printer."
+
+#~ msgid "Unknown error occured"
+#~ msgstr "Okänt fel uppstod"
+
+#~ msgid "Helio: file succesfully uploaded"
+#~ msgstr "Helio: filen laddades upp"
+
 #~ msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 #~ msgstr "Varning:gammal matris har minst två parametrar: spegling, skalning och rotation. Om du fortsätter att redigera kanske det inte är korrekt. Dra text eller avbryt med den aktuella ställningen, spara och redigera om igen."
 
@@ -18210,9 +18556,6 @@ msgstr ""
 
 #~ msgid "The file contains polygons with less than 2 vertices."
 #~ msgstr "Filen innehåller polygoner med mindre än 2 hörn."
-
-#~ msgid "Standard Mode"
-#~ msgstr "Standard läge"
 
 #~ msgid "Performs full priming for the best print quality. Requires more material and time."
 #~ msgstr "Utför full rensning för bästa utskrifts kvalitet. Kräver mer material och tid."

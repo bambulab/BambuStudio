@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-25 17:06+0800\n"
+"POT-Creation-Date: 2026-07-14 20:35+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -286,6 +286,9 @@ msgstr "Normál"
 
 msgid "TPU High Flow"
 msgstr "TPU nagy áramlású"
+
+msgid "E3D High Flow"
+msgstr "Nagy áramlású E3D"
 
 msgid "Unknown"
 msgstr "Ismeretlen"
@@ -1086,7 +1089,7 @@ msgid "connector is out of object"
 msgstr "az összekötő tárgyon kívül van"
 
 msgid "connectors are out of object"
-msgstr "az összekötők a tárgyon kívül vannak"
+msgstr "a csatlakozók az objektumon kívül vannak"
 
 msgid "Some connectors are overlapped"
 msgstr "Egyes összekötők átfedésben vannak"
@@ -1274,13 +1277,13 @@ msgstr ""
 "a 2. jellemző az 1. jellemző volt"
 
 msgid "Warning: Please select a Plane feature."
-msgstr "Figyelem: kérjük, válassz egy síkhoz tartozó jellemzőt."
+msgstr "Figyelmeztetés: válasszon egy Sík elemet."
 
 msgid "Warning: Please select a Point or Circle feature."
-msgstr "Figyelem: kérjük, válassz egy ponthoz vagy körhöz tartozó jellemzőt."
+msgstr "Figyelmeztetés: válasszon egy Pont vagy Kör elemet."
 
 msgid "Warning: Please select two different meshes."
-msgstr "Figyelem: válassz ki két különböző hálót."
+msgstr "Figyelmeztetés: válasszon két különböző hálót."
 
 msgid "Copy to clipboard"
 msgstr "Másolás a vágólapra"
@@ -1324,9 +1327,6 @@ msgstr "Tükrözés a 2. felület körül"
 msgid "Assemble"
 msgstr "Összeállítás"
 
-msgid "Please exit the assembly guide before using this tool."
-msgstr ""
-
 msgid "Please confirm explosion ratio = 1 and select at least two volumes."
 msgstr "Kérjük ellenőrizd hogy a robbantási arány = 1 és válassz ki legalább két térfogatot."
 
@@ -1335,6 +1335,9 @@ msgstr "Kérjük, válassz ki legalább két térfogatot."
 
 msgid "(Moving)"
 msgstr "(Mozgó)"
+
+msgid "Face and face assembly"
+msgstr "Felület és felület összeillesztés"
 
 msgid "Point and point assembly"
 msgstr "Pont és pont összeillesztés"
@@ -1347,9 +1350,6 @@ msgstr ""
 "Javasoljuk, hogy először szereld össze az objektumokat,\n"
 "mert az objektumok az asztalhoz vannak kötve \n"
 "és csak az alkatrészeket lehet mozgatni."
-
-msgid "Face and face assembly"
-msgstr "Felület és felület összeillesztés"
 
 msgid "Brush size"
 msgstr "Ecset mérete"
@@ -1532,31 +1532,31 @@ msgid "Text Gap"
 msgstr "Szövegköz"
 
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
-msgstr "Figyelmeztetés: A szövegmátrixban tükrözés található, amelyet elhúzva teljesen újragenerálódik."
+msgstr "Figyelmeztetés: a szövegmátrixban van egy tükör, és annak húzása teljesen újragenerálja azt."
 
 msgid "Warning: Due to font upgrades, previous font may not necessarily be replaced successfully. Please modify the font."
-msgstr "Figyelmeztetés: A betűtípus frissítése miatt a korábbi betűtípus nem feltétlenül cserélhető ki megfelelően, javasoljuk, hogy módosítsd a betűtípust."
+msgstr "Figyelmeztetés: a betűtípus-frissítések miatt előfordulhat, hogy az előző betűtípus nem feltétlenül cserélhető le sikeresen. Módosítsa a betűtípust."
 
 msgid "Warning: Text creation failed."
-msgstr "Figyelmeztetés: A szöveg létrehozása nem sikerült."
+msgstr "Figyelmeztetés: a szöveg létrehozása sikertelen."
 
 msgid "Warning: Text normal has an error."
-msgstr "Figyelmeztetés: A szöveg síkja hibás."
+msgstr "Figyelmeztetés: a szöveg normál beállításai hibát tartalmaznak."
 
 msgid "Warning: Text normal has been reset."
-msgstr "Figyelmeztetés: A szöveg síkja alaphelyzetbe állt."
+msgstr "Figyelmeztetés: a szöveg normál beállításai visszaálltak."
 
 msgid "Warning: Current text spacing is not optimal. If you continue editing, a more reasonable text spacing will be generated."
-msgstr "Figyelmeztetés: a jelenlegi betűköz nem túl megfelelő. Ha folytatod a szerkesztést, egy ésszerűbb betűköz lesz használva."
+msgstr "Figyelmeztetés: a szöveg jelenlegi sorközének beállítása nem optimális. Ha folytatja a szerkesztést, a rendszer észszerűbb sorközbeállítást fog generálni."
 
 msgid "Warning: Old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please drag the text or cancel the current pose, save and reedit again."
-msgstr ""
+msgstr "Figyelmeztetés: a régi mátrix legalább két paraméterrel rendelkezik: tükrözés, méretezés és forgatás. Ha folytatja a szerkesztést, előfordulhat, hogy nem lesz helyes. Húzza a szöveget a kívánt helyre, vagy törölje a jelenlegi beállítást, mentse el, és szerkessze újra."
 
 msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
-msgstr "Hiba: Helytelen hálóazonosító vagy ismeretlen hiba esetén a szöveg újraszerkesztése hibás eredményt eredményezhet. Kérjük, húzd odébb a szöveget, mentsd el, majd szerkeszd újra."
+msgstr "Hiba: helytelen hálóazonosító vagy ismeretlen hiba észlelése esetén a szöveg újragenerálása helytelen eredményeket eredményezhet. Húzza a szöveget, mentse el, majd szerkessze újra."
 
 msgid "Warning: Due to functional upgrade, rotation information cannot be restored. Please drag or modify text, save it and reedit it to fix the issue."
-msgstr "Figyelmeztetés: A funkcionális frissítés miatt a forgási információk nem állíthatók vissza. Kérjük, húzd odébb vagy módosítsd a szöveget, mentsd el és próbáld meg újra."
+msgstr "Figyelmeztetés: funkcionális frissítés miatt az elforgatási információk nem állíthatók vissza. Húzza el vagy módosítsa a szöveget, mentse el, majd szerkessze újra a probléma megoldásához."
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
 msgstr "Megállapítottuk, hogy a szöveg nem tapad a háló felületéhez. Kérjük, húzd kézzel a sárga négyzetet az illesztendő háló felületére."
@@ -1592,7 +1592,7 @@ msgid "Boldness"
 msgstr "Félkövérség"
 
 msgid "Skew"
-msgstr "Dőlés"
+msgstr "Dőléss"
 
 msgid "No symbol"
 msgstr "Nincs szimbólum"
@@ -1774,7 +1774,7 @@ msgid "Missing data of svg file"
 msgstr "Hiányzó adatok az svg fájlban"
 
 msgid "Tip: If you want to place an SVG file on another part surface, select the part first, then drag the SVG file to the part surface."
-msgstr "Tipp: Ha SVG fájlt szeretnél elhelyezni egy másik tárgy felületén, akkor először ki kell választanod a tárgyat, majd az SVG fájlt rá kell húznod a tárgy felületére."
+msgstr "Tipp: ha egy SVG-fájlt egy másik alkatrész felületére szeretne helyezni, először jelölje ki az alkatrészt, majd húzza az SVG-fájlt az alkatrész felületére."
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
@@ -1945,6 +1945,18 @@ msgstr "Helytelen jelszó"
 #, c-format, boost-format
 msgid "Connect %s failed! [SN:%s, code=%s]"
 msgstr "A következőhöz való csatlakozás sikertelen: %s! [SN:%s, code=%s]"
+
+msgid ""
+"This operation rebuilds the model's mesh. Painted color, supports, seam and fuzzy-skin will be transferred to the new mesh by a best-effort approximation, so the result may be slightly off and, in rare cases, some painting may be lost.\n"
+"\n"
+"Do you want to continue?"
+msgstr ""
+"Ez a művelet újraépíti a modell hálóját. A festett szín, a támaszok, a varrat és a bolyhos bőr a lehető legjobb megközelítéssel kerül át az új hálóra, így az eredmény kissé eltérő lehet, és ritka esetekben némi festés elveszhet.\n"
+"\n"
+"Szeretné folytatni?"
+
+msgid "Painting may change"
+msgstr "A festés változhat"
 
 msgid "BambuStudio configuration file read failed. Please manually backup and delete it, and then restart BambuStudio software."
 msgstr "A Bambu Studio konfigurációs fájl olvasása sikertelen. Kérjük, manuálisan készíts biztonsági mentést és töröld a régi fájlt, majd indítsd újra a Bambu Studio szoftvert."
@@ -2192,13 +2204,13 @@ msgid "Select settings"
 msgstr "Beállítások kiválasztása"
 
 msgid "Add to New Step"
-msgstr ""
+msgstr "Hozzáadás új lépéshez"
 
 msgid "Add to Current Step"
-msgstr ""
+msgstr "Hozzáadás a jelenlegi lépéshez"
 
 msgid "Add to Existing Step"
-msgstr ""
+msgstr "Hozzáadás meglévő lépéshez"
 
 msgid "Delete the selected object"
 msgstr "Kiválasztott objektum törlése"
@@ -2441,6 +2453,9 @@ msgstr "Szerkesztés"
 msgid "Delete this filament"
 msgstr "Törölje ezt a filamentet"
 
+msgid "Decompose Color"
+msgstr ""
+
 msgid "Merge with"
 msgstr "Összevonás ezzel"
 
@@ -2488,6 +2503,12 @@ msgstr "Kiválasztott tálca eltávolítása"
 
 msgid "Move Plate"
 msgstr "Tálca mozgatása"
+
+msgid "Split to objects"
+msgstr "Felosztás objektumokra"
+
+msgid "Split the selected objects into multiple objects"
+msgstr ""
 
 msgid "Clone"
 msgstr "Klónozás"
@@ -2957,8 +2978,8 @@ msgstr "Az AMS nincs inicializálva. Kérjük, használat előtt inicializáld."
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Válassz ki egy AMS-helyet, majd nyomd meg a „Betöltés” vagy a „Kitöltés” gombot az filament automatikus betöltéséhez vagy eltávolításához."
 
-msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
-msgstr "A művelet végrehajtásához szükséges filament típusa ismeretlen. Kérjük, állítsd be a filament adatait."
+msgid "Filament type is unknown which is required to perform this action. Please set target filament's information."
+msgstr "A művelet végrehajtásához szükséges filament típusa ismeretlen. Állítsa be a célfilament adatait."
 
 msgid "/"
 msgstr "/"
@@ -3132,183 +3153,208 @@ msgid "The minmum temperature should not be less than "
 msgstr "A minimális hőmérséklet nem lehet ennél kevesebb "
 
 msgid "Export file Settings"
-msgstr ""
+msgstr "Fájlexportálási beállítások"
 
 msgid "Homepage  title"
-msgstr ""
+msgstr "Kezdőlap címe"
 
 msgid "For privacy reasons, image paths are not saved or restored.Just for pdf/md file."
-msgstr ""
+msgstr "Adatvédelmi okokból a képútvonalakat nem mentik vagy állítják vissza. Csak pdf/md fájlok esetén."
 
 msgid "Homepage image"
-msgstr ""
+msgstr "Kezdőlap képe"
 
 msgid "Second page image"
-msgstr ""
+msgstr "Második oldal képe"
 
 msgid "Browse"
 msgstr "Tallózás"
 
 msgid "Image files"
-msgstr ""
+msgstr "Képfájlok"
 
 msgid "All files"
-msgstr ""
+msgstr "Minden fájl"
 
 msgid "Open image file"
-msgstr ""
+msgstr "Képfájl megnyitása"
 
 msgid "Step"
 msgstr "Lépés"
 
 msgid "Install parts"
-msgstr ""
+msgstr "Alkatrészek telepítése"
 
 msgid "Apply the final assembly pose to the objects or parts added in the current step?"
-msgstr ""
+msgstr "Alkalmazza a végső összeszerelési pozíciót az aktuális lépésben hozzáadott objektumokra vagy alkatrészekre?"
 
 msgid "Apply final assembly pose"
-msgstr ""
+msgstr "Végső összeszerelési pozíció alkalmazása"
+
+msgid "The export file is in use by the system. Please close it or export with a different file name, then try again."
+msgstr "A rendszer használja az exportfájlt. Zárja be, vagy exportálja más fájlnévvel, majd próbálja újra."
+
+msgid "Export"
+msgstr "Exportálás"
 
 msgid "Assembly Guide"
 msgstr "Összeszerelési útmutató"
 
 msgid "PDF files"
-msgstr ""
+msgstr "PDF-fájlok"
 
 msgid "Markdown files"
-msgstr ""
+msgstr "Markdown-fájlok"
 
 msgid "MP4 files"
-msgstr ""
+msgstr "MP4-fájlok"
 
 msgid "Export Assembly Guide to PDF"
-msgstr ""
+msgstr "Összeszerelési útmutató exportálása PDF-fájlba"
 
 msgid "Export Assembly Guide to Markdown"
-msgstr ""
+msgstr "Összeszerelési útmutató exportálása Markdown-fájlba"
 
 msgid "Export Assembly Guide to MP4"
-msgstr ""
+msgstr "Összeszerelési útmutató exportálása MP4-fájlba"
 
 msgid "Exporting file"
-msgstr ""
-
-msgid "Export"
-msgstr "Exportálás"
+msgstr "Fájl exportálása"
 
 msgid "Saving project will automatically switch to end frame"
+msgstr "A projekt mentése automatikusan a befejező képkockára vált"
+
+msgid "Are you sure you want to delete all assembly steps?"
+msgstr ""
+
+msgid "Delete all steps"
 msgstr ""
 
 msgid "New Step"
-msgstr ""
+msgstr "Új lépés"
 
 msgid "Final assembly"
-msgstr ""
+msgstr "Végső összeszerelés"
 
 msgid "end frame"
-msgstr ""
+msgstr "befejező képkocka"
 
 msgid "Assembly Structure"
-msgstr ""
+msgstr "Összeszerelési szerkezet"
 
 msgid "Start your assembly journey from Add Step"
-msgstr ""
+msgstr "Kezdje az összeszerelési folyamatot a Lépés hozzáadása lehetőséggel"
 
 msgctxt "AssemblyStructure"
 msgid "Default"
 msgstr "Alapértelmezett"
 
 msgid "Contain"
-msgstr ""
+msgstr "Tartalmazás"
 
 msgid "Assembly Module"
-msgstr ""
+msgstr "Összeszerelő modul"
+
+msgid "Volume"
+msgstr "Térfogat"
 
 msgid "Click to add objects to the current step"
-msgstr ""
+msgstr "Kattintson ide objektumok hozzáadásához az aktuális lépéshez"
 
 msgid "_copy"
-msgstr ""
+msgstr "_másolat"
 
 msgid "Are you sure you want to delete the current step?"
-msgstr ""
+msgstr "Biztosan törölni szeretné az aktuális lépést?"
 
 msgid "Delete step"
-msgstr ""
+msgstr "Lépés törlése"
 
 msgid "Model"
 msgstr "Modell"
 
-msgid "Volume"
-msgstr ""
-
 msgid "start frame"
-msgstr ""
+msgstr "kezdő képkocka"
 
 msgid "transition frame"
+msgstr "átmeneti képkocka"
+
+#, c-format, boost-format
+msgid "Step %d"
+msgstr ""
+
+msgid "not used in any assembly step"
 msgstr ""
 
 #, boost-format
 msgid "Plate %1%"
-msgstr ""
+msgstr "%1% lemez"
 
 msgid "Assembly Step"
-msgstr ""
+msgstr "Összeszerelési lépés"
 
 msgid "Start frame"
-msgstr ""
+msgstr "Kezdő képkocka"
 
 msgid "End frame"
-msgstr ""
+msgstr "Befejező képkocka"
 
 msgid "Transition frame"
-msgstr ""
+msgstr "Átmeneti képkocka"
 
 msgid "Frame"
-msgstr ""
+msgstr "Képkocka"
 
 msgid "step"
+msgstr "lépés"
+
+msgid "Show Current Step Parts Only"
+msgstr ""
+
+msgid "X-Ray Other Parts"
 msgstr ""
 
 msgid "Play all frames for all steps."
-msgstr ""
+msgstr "Játssza le az összes képkockát az összes lépéshez."
 
 msgid "Toggle playback speed."
-msgstr ""
+msgstr "Lejátszási sebesség váltása."
 
 msgid "Play previous frame."
-msgstr ""
+msgstr "Előző képkocka lejátszása."
 
 msgid "Play next frame."
-msgstr ""
+msgstr "Következő képkocka lejátszása."
+
+msgid "Display Mode"
+msgstr "Kijelző mód"
 
 msgid "Set export file parameters"
-msgstr ""
+msgstr "Exportfájl paramétereinek beállítása"
 
 msgid "Camera margin factor for the current frame. The larger the value, the more margin."
-msgstr ""
+msgstr "Kameramargó-faktor az aktuális képkockához. Minél nagyobb az érték, annál nagyobb a margó."
 
 msgid "Modify camera margin"
-msgstr ""
+msgstr "Kameramargó módosítása"
 
 msgid "Edit step name"
-msgstr ""
+msgstr "Lépés nevének szerkesztése"
 
 msgid "Insert step before"
-msgstr ""
+msgstr "Lépés beszúrása előtte"
 
 msgid "Insert step after"
-msgstr ""
+msgstr "Lépés beszúrása utána"
 
 msgid "Tip"
 msgstr "Tipp"
 
 msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
-msgstr ""
+msgstr "Jelenleg nincs kiválasztva lépéskártya. A pózváltoztató műveletek, mint például a minialkalmazás mozgatása, befolyásolják a tényleges végső összeszerelési nézetet."
 
 msgid "Expand"
-msgstr ""
+msgstr "Kibontás"
 
 msgid "Collapse"
 msgstr "Összecsuk"
@@ -3320,230 +3366,245 @@ msgid "Go to Wiki"
 msgstr "Tovább a Wikihez"
 
 msgid "Copy current step"
-msgstr ""
+msgstr "Aktuális lépés másolása"
 
 msgid "Delete current step"
-msgstr ""
+msgstr "Aktuális lépés törlése"
 
 msgid "Add some objects to current step"
-msgstr ""
+msgstr "Néhány objektum hozzáadása az aktuális lépéshez"
 
 msgid "Copy Step"
-msgstr ""
+msgstr "Lépés másolása"
 
 msgid "Add Step"
-msgstr ""
+msgstr "Lépés hozzáadása"
 
 #, boost-format
 msgid "No more than %1% steps are allowed."
-msgstr ""
+msgstr "Legfeljebb %1% lépés engedélyezett."
 
 msgid "Only copy steps. This is independent of the selected objects on the canvas."
-msgstr ""
+msgstr "Csak a lépéseket másolja. Ez független a vásznon kijelölt objektumoktól."
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
+msgstr "Csak üres lépéseket adjon hozzá. Ennek semmi köze a vásznon kijelölt objektumokhoz."
+
+msgid "Delete all assembly steps except the final assembly."
 msgstr ""
 
-msgid "Exit"
+msgid "Exit the assembly step editing, you can also press the Esc button to exit"
 msgstr ""
 
 msgid "Click to add Cyber Brick"
-msgstr ""
+msgstr "Kattintson ide a Cyber Brick hozzáadásához"
 
 msgid "Delete this keyframe"
-msgstr ""
+msgstr "Kulcsképkocka törlése"
 
 msgid "Export PDF"
-msgstr ""
+msgstr "PDF exportálása"
 
 msgid "Export Markdown"
-msgstr ""
+msgstr "Markdown exportálása"
 
 msgid "Export MP4"
-msgstr ""
+msgstr "MP4 exportálása"
 
 msgid "After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF."
-msgstr ""
+msgstr "A Markdown-dokumentum exportálása után szerkesztheti azt külső féltől származó szoftverben, például a Zettlr megoldásban, majd exportálhatja PDF-be."
 
 msgid "Auto recommend"
-msgstr ""
+msgstr "Automatikus ajánlás"
 
 msgid "Model objects only"
-msgstr ""
+msgstr "Csak modellobjektumok"
 
 msgid "Model parts only"
-msgstr ""
+msgstr "Csak modellalkatrészek"
 
 msgid "Automatically choose object-or-part-level labels: objects already shown in earlier steps are collapsed into a single object label, while the rest are labeled per individual part."
-msgstr ""
+msgstr "Objektum- vagy alkatrészszintű címkék automatikus kiválasztása: a korábbi lépésekben már megjelenített objektumok egyetlen objektumcímkévé omlanak össze, míg a többi egyedi alkatrészekenként van címkézve."
 
 msgid "Show one label per model object."
-msgstr ""
+msgstr "Modellobjektumonként egy címke megjelenítése."
 
 msgid "Show one label per model part."
-msgstr ""
+msgstr "Modellalkatrészenként egy címke megjelenítése."
 
 msgid "Label"
-msgstr ""
+msgstr "Címke"
 
 msgid "Label settings"
-msgstr ""
+msgstr "Címkebeállítások"
 
 msgid "Show Object/Part labels"
-msgstr ""
+msgstr "Objektum/alkatrész címkék megjelenítése"
 
 msgid "Show object and part names  on models"
-msgstr ""
+msgstr "Objektumok és alkatrészek nevének megjelenítése a modelleken"
 
 msgid "Automatically select the optimal camera perspective and auto-arrange auto recommend labels each time the checkbox is re-ticked."
-msgstr ""
+msgstr "Automatikusan kiválasztja az optimális kameraperspektívát, és automatikusan elrendezi az automatikus ajánlási címkéket minden alkalommal, amikor a jelölőnégyzetet újra bejelöli."
 
 msgid "Auto layout"
-msgstr ""
+msgstr "Automatikus elrendezés"
 
 msgid "Auto-arrange labels in current view"
-msgstr ""
+msgstr "Címkék automatikus elrendezése az aktuális nézetben"
 
 msgid "Current view labels"
-msgstr ""
+msgstr "Aktuális nézet címkéi"
 
 msgid "Label Settings"
-msgstr ""
+msgstr "Címkebeállítások"
 
 msgid "Font size"
-msgstr ""
+msgstr "Betűméret"
 
 msgid "Display mode"
+msgstr "Kijelző mód"
+
+msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
 msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
-msgstr ""
+msgstr "Összeszerelési útmutató exportálása PDF, Markdown vagy MP4 formátumban"
 
 msgid "Screw"
-msgstr ""
+msgstr "Csavar"
 
 msgid "Note"
 msgstr "Megjegyzés"
 
 msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
-msgstr ""
+msgstr "Az összeszerelés utolsó lépésének kulcsképkockáján végrehajtott pózmódosítások (pl. mozgatási gizmo) befolyásolják a tényleges összeszerelési megjelenítést."
 
 msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
-msgstr ""
+msgstr "Az ebben a lépésben található kulcsképkockán végrehajtott pózmódosítások (pl. mozgatási gizmo) nem befolyásolják a tényleges összeállítási megjelenítést."
 
 msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
-msgstr ""
+msgstr "Szükség esetén jelenleg egy viszonylag jó pozíció visszaállítható a „tényleges összeszerelési pozíció alkalmazása” gomb megnyomásával."
 
 msgid "undoing these edits is not yet supported and will be added in a later version."
-msgstr ""
+msgstr "A szerkesztések visszavonása még nem támogatott, egy későbbi verzióban lesz elérhető."
 
 msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
-msgstr ""
+msgstr "Néhány objektumot az aktuális lépés egy korábbi kulcsképkockáján használtak, és itt nincsenek szétrobbantva. Manuálisan szétrobbanthatja őket a mozgató eszközzel."
 
 msgid "Connection Type"
-msgstr ""
+msgstr "Kapcsolat típusa"
 
 msgid "Clip"
-msgstr ""
+msgstr "Rögzítés"
 
 msgid "Glue"
-msgstr ""
+msgstr "Ragasztó"
 
 msgid "Add Clip"
-msgstr ""
+msgstr "Rögzítés hozzáadása"
 
 msgid "Add Glue"
-msgstr ""
+msgstr "Ragasztó hozzáadása"
 
 msgid "Add Screw"
-msgstr ""
+msgstr "Csavar hozzáadása"
 
 msgid "Add Notes"
-msgstr ""
+msgstr "Megjegyzések hozzáadása"
 
 msgid "Add Rectangle"
-msgstr ""
+msgstr "Téglalap hozzáadása"
 
 msgid "Add Circle"
-msgstr ""
+msgstr "Kör hozzáadása"
 
 msgid "Add Arrow"
-msgstr ""
+msgstr "Nyíl hozzáadása"
 
 msgid "Add Text"
-msgstr ""
+msgstr "Szöveg hozzáadása"
 
 msgid "Text"
 msgstr "Szöveg"
 
 msgid "Background"
-msgstr ""
+msgstr "Háttér"
 
 msgid "Timeline"
-msgstr ""
+msgstr "Idővonal"
 
 msgid "Play all frames for current step"
-msgstr ""
+msgstr "Az aktuális lépés összes képkockájának lejátszása"
 
 msgid "At least two keyframes are required to play."
-msgstr ""
+msgstr "Legalább két kulcsképkocka szükséges a lejátszáshoz."
 
 msgid "Automatically explode all objects."
-msgstr ""
+msgstr "Automatikusan szétrobbantja az összes objektumot."
 
 msgid "Automatically explode all parts."
-msgstr ""
+msgstr "Automatikusan szétrobbantja az összes alkatrészt."
 
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
-msgstr ""
+msgstr "A végső összeszerelési pozíció alkalmazása az aktuálisan kiválasztott objektumra vagy alkatrészre (ha nincs kijelölve, akkor az aktuális képkockában hozzáadott összes objektumra alkalmazza)"
 
 msgid "Apply current camera angle to all frames of the current step"
-msgstr ""
+msgstr "Az aktuális kameraszög alkalmazása az aktuális lépés összes képkockájára"
 
 msgid "Add keyframe"
-msgstr ""
+msgstr "Kulcsképkocka hozzáadása"
 
 msgid "Click to select this frame"
-msgstr ""
+msgstr "Kattintson a képkocka kiválasztásához"
 
 msgid "Save update"
-msgstr ""
+msgstr "Frissítés mentése"
 
 msgid "Save current frame"
-msgstr ""
+msgstr "Aktuális képkocka mentése"
 
 msgid "Assembly tree"
-msgstr ""
+msgstr "Összeszerelési fa"
 
 msgid "Search"
 msgstr "Keresés"
 
 msgid "List"
+msgstr "Lista"
+
+msgid "Assembly list"
+msgstr ""
+
+msgid "Expand all objects"
+msgstr ""
+
+msgid "Collapse all objects"
 msgstr ""
 
 msgid "Select all parts in a step"
-msgstr ""
+msgstr "Egy lépés összes részének kijelölése"
 
 msgid "Red"
-msgstr ""
+msgstr "Piros"
 
 msgid "Orange"
-msgstr ""
+msgstr "Narancssárga"
 
 msgid "Green"
-msgstr ""
+msgstr "Zöld"
 
 msgid "Blue"
-msgstr ""
+msgstr "Kék"
 
 msgid "Black"
-msgstr ""
+msgstr "Fekete"
 
 msgid "Grey"
-msgstr ""
+msgstr "Szürke"
 
 msgid "White"
-msgstr ""
+msgstr "Fehér"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -3725,14 +3786,26 @@ msgstr "Az tárgyasztal termikus előfűtése segít optimalizálni az első ré
 msgid "Remaining time: %dmin%ds"
 msgstr "Hátralévő idő: %dp%dmp"
 
-msgid "Project Filaments"
-msgstr "Projekt filamentek"
+msgid "One-click CMYW auto-mix"
+msgstr ""
 
-msgid "New Filaments"
-msgstr "Új filamentek"
+msgid "One-click RYBW auto-mix"
+msgstr ""
 
-msgid "Add Material"
-msgstr "Anyag hozzáadása"
+msgid "Project Physical Filaments"
+msgstr ""
+
+msgid "Project Mixed Filaments"
+msgstr ""
+
+msgid "New Physical Filaments"
+msgstr ""
+
+msgid "New Mixed Filaments"
+msgstr ""
+
+msgid "+ Add Material"
+msgstr "+ Anyag hozzáadása"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
@@ -3770,6 +3843,12 @@ msgstr "Emlékeztető: a paraméterek megváltoztak, a hatályba lépéshez katt
 
 msgid "Filament Mapping"
 msgstr "Filamentleképezés"
+
+msgid "Reset filament mapping to the state before one-click mixing"
+msgstr ""
+
+msgid "Choose the one-click auto-mix mode for texture color import"
+msgstr ""
 
 msgid "Auto-merge same filament"
 msgstr "Ugyanazon filament automatikus egyesítése"
@@ -3986,6 +4065,42 @@ msgstr "Kérjük, adj meg egy érvényes értéket (K %.1f ~%.1f)"
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Kérjük, adj meg egy érvényes értéket (K %.1f ~%.1f, N %.1f ~%.1f)"
 
+msgid "Remark"
+msgstr ""
+
+msgid "Other"
+msgstr "Egyéb"
+
+msgid "Filament Manager"
+msgstr "Filamentkezelő"
+
+msgid "In printer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "In printer: %s"
+msgstr ""
+
+msgctxt "Filament Manager"
+msgid "Note"
+msgstr "Megjegyzés"
+
+msgid "Unsupported Filaments"
+msgstr ""
+
+msgctxt "Unsupported Filaments"
+msgid "Note"
+msgstr "Megjegyzés"
+
+msgid "No unsupported filaments"
+msgstr ""
+
+msgid "No filaments"
+msgstr ""
+
+msgid "System presets"
+msgstr "Rendszer beállítások"
+
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 msgstr "Megjegyzés: A hotend száma a tartóhoz van rendelve ezen: %s. Amikor a hotendet áthelyezed egy új tartóra, a száma automatikusan frissül."
@@ -4005,6 +4120,24 @@ msgstr "Más szín"
 
 msgid "Custom Color"
 msgstr "Egyéni szín"
+
+msgid "AMS detected a new official filament. Add it to Filament Manager?"
+msgstr ""
+
+msgid "Add as new filament"
+msgstr ""
+
+msgid "Link to existing filament"
+msgstr ""
+
+msgid "Not now"
+msgstr ""
+
+msgid "Please select"
+msgstr ""
+
+msgid "No matching filament"
+msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "Dinamikus anyagáramlás kalibráció"
@@ -4247,7 +4380,7 @@ msgid "Power on update"
 msgstr "Frissítés bekapcsoláskor"
 
 msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
-msgstr "Az AMS indításkor automatikusan kiolvassa a behelyezett filament adatait. Ez körülbelül 1 percet vesz igénybe. A leolvasási folyamat során a filamenttekercsek feltekercselésre kerülnek."
+msgstr "Az AMS indításkor automatikusan leolvassa a behelyezett filament adatait. Ez körülbelül 1 percet vesz igénybe. Az olvasási folyamat megforgatja a filamenttekercseket."
 
 msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
 msgstr "Az AMS indításkor nem olvassa ki automatikusan az információkat a behelyezett filamentről, és továbbra is a legutóbbi leállítás előtt rögzített információkat használja."
@@ -4283,7 +4416,7 @@ msgid "Please unload all filament before switching."
 msgstr "Kérjük, a váltás előtt távolítsd el a filamentet."
 
 msgid "AMS type switching needs firmware update, taking about 30s. Switch now ?"
-msgstr "Az AMS típusváltás firmware frissítést igényel, ami körülbelül 30 másodpercet vesz igénybe. Most váltasz ?"
+msgstr "Az AMS típusváltás firmware frissítést igényel, ami körülbelül 30 másodpercet vesz igénybe. Most váltasz?"
 
 msgid "Arrange AMS Order"
 msgstr "AMS-kiosztás megváltoztatása"
@@ -4488,14 +4621,14 @@ msgstr ""
 
 msgid ""
 "Should not large than 100%.\n"
-"Reset to defualt"
+"Reset to default"
 msgstr ""
-"Nem lehet nagyobb, mint a 100%.\n"
-"Visszaállítás alapértelmezettre"
+"Nem lehet 100%-nál nagyobb.\n"
+"Visszaállítás az alapértelmezettre"
 
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
-msgstr "Current chamber temperature is higher than the material's safe temperature; this may result in material softening and nozzle clogs.The maximum safe temperature for the material is %d"
+msgstr "A kamra aktuális hőmérséklete magasabb, mint az anyag biztonságos hőmérséklete, ami az anyag lágyulását és eltömődését okozhatja. Az anyag maximális biztonságos hőmérséklete %d"
 
 msgid ""
 "Too small layer height.\n"
@@ -4821,10 +4954,10 @@ msgid "Pause (nozzle clog)"
 msgstr "Szünet (fúvóka eltömődése)"
 
 msgid "Measuring motion precision"
-msgstr "Mozgás pontosságának mérése"
+msgstr "Mozgáspontosság mérése"
 
 msgid "Enhancing motion precision"
-msgstr "Mozgás pontosságának javítása"
+msgstr "Mozgáspontosság javítása"
 
 msgid "Measure motion accuracy"
 msgstr "Mozgás pontosságának mérése"
@@ -4970,7 +5103,7 @@ msgid "The current chamber temperature or the target chamber temperature exceeds
 msgstr "A kamra aktuális hőmérséklete vagy a kamra célhőmérséklete meghaladja a 45 ℃-ot. Az extruder eltömődésének elkerülése érdekében ne tölts be alacsony hőmérsékletű filamentet (PLA/PETG/TPU)."
 
 msgid "Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order to avoid extruder clogging, it is not allowed to set the chamber temperature."
-msgstr "Az alacsony hőmérsékletű filament (PLA/PETG/TPU) kerül betöltésre az extruderbe. Az extruder eltömődésének elkerülése érdekében a kamrahőmérséklet megváltoztatása nem engedélyezett."
+msgstr "Alacsony hőmérsékletű filament (PLA/PETG/TPU) van betöltve az extruderbe. Az extruder eltömődésének elkerülése érdekében a kamra hőmérsékletének beállítása nem engedélyezett."
 
 msgid "When you set the chamber temperature below 40℃, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0℃."
 msgstr "Ha a kamra hőmérsékletét 40 ℃-nál alacsonyabbra állítod, a kamra hőmérséklet-szabályozása nem fog működni. A kamra célhőmérséklete automatikusan 0 ℃ -ra lesz állítva."
@@ -5339,28 +5472,28 @@ msgid "Current grouping of slice result is not optimal."
 msgstr "A szeletelés jelenlegi csoportosítása nem optimális."
 
 #, boost-format
-msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
-msgstr "%1%g filamenttel és %2% váltással több, mint az optimális csoportosítás esetén."
+msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
+msgstr "%1% g filament és %2% fúvókatisztítás növelése az optimális csoportosításhoz képest."
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
-msgstr "%1%g filamenttel több és %2% váltással kevesebb, mint az optimális csoportosítás esetén."
+msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
+msgstr "%1%g filament növelése és %2% fúvókatisztítás megtakarítása az optimális csoportosításhoz képest."
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
-msgstr "%1%g filamenttel kevesebb és %2% váltással több, mint az optimális csoportosítás esetén."
+msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
+msgstr "%1%g filament megtakarítása és %2% fúvókatisztítás növelése az optimális csoportosításhoz képest."
 
 #, boost-format
-msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
-msgstr "%1%g filamenttel és %2% váltással kevesebb az egyfúvókás nyomtatáshoz képest."
+msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
+msgstr "%1%g filament és %2% fúvókatisztítás megtakarítása egy egyfúvókás nyomtatóhoz képest."
 
 #, boost-format
-msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
-msgstr "%1%g filamenttel kevesebb és %2% váltással több az egyfúvókás nyomtatáshoz képest."
+msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
+msgstr "%1%g filament megtakarítása és %2% fúvókatisztítás növelése egy egyfúvókás nyomtatóhoz képest."
 
 #, boost-format
-msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
-msgstr "%1%g filamenttel több és %2% váltással kevesebb az egyfúvókás nyomtatáshoz képest."
+msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
+msgstr "%1%g filament növelése és %2% fúvókatisztítás megtakarítása egy egyfúvókás nyomtatóhoz képest."
 
 msgid "Set to Optimal"
 msgstr "Optimálisra állítva"
@@ -5524,7 +5657,7 @@ msgid " Please check and adjust the part's position or size to fit the printable
 msgstr " Kérjük, ellenőrizd és igazítsd a tárgy pozícióját vagy méretét a nyomtatható tartományhoz:\n"
 
 msgid "Unnamed"
-msgstr ""
+msgstr "Névtelen"
 
 msgid "Mirror Object"
 msgstr "Objektum tükrözése"
@@ -5597,9 +5730,6 @@ msgstr "Összes objektum elrendezése"
 msgid "Arrange objects on selected plates"
 msgstr "Objektumok elrendezése a kiválasztott tálcákon"
 
-msgid "Split to objects"
-msgstr "Felosztás objektumokra"
-
 msgid "And it is valid when there are at least two parts in object or stl has at least two meshes."
 msgstr "És csak akkor érvényes, ha az objektum legalább két részből áll, vagy az STL legalább két hálót tartalmaz."
 
@@ -5661,7 +5791,7 @@ msgid "Fit camera to scene or selected object."
 msgstr "A kamera jelenethez vagy a kiválasztott objektumhoz illesztése."
 
 msgid "Auto recommend camera angle(Only works when the assembly step function is active)"
-msgstr ""
+msgstr "Kameraszög automatikus ajánlása (csak akkor működik, ha az összeszerelési lépés funkció aktív)"
 
 msgid "Paint Toolbar"
 msgstr "Festés eszköztár"
@@ -5680,15 +5810,6 @@ msgstr "Összeszerelés vezérlői"
 
 msgid "Selection Mode"
 msgstr "Kijelölési mód"
-
-msgid "Show Current Step Objects Only"
-msgstr ""
-
-msgid "X-Ray Other Objects"
-msgstr ""
-
-msgid "Display Mode"
-msgstr ""
 
 msgid "Total Volume:"
 msgstr "Teljes térfogat:"
@@ -5901,7 +6022,7 @@ msgid "The current page has unsaved changes. You can continue editing or choose 
 msgstr "A jelenlegi oldalon mentetlen változtatások vannak. Folytathatod a szerkesztést, vagy elmentheted/elvetheted a módosításokat kilépés előtt."
 
 msgid "Home"
-msgstr ""
+msgstr "Kezdőlap"
 
 msgid "Device"
 msgstr "Nyomtató"
@@ -5911,9 +6032,6 @@ msgstr "Multi-eszköz"
 
 msgid "Project"
 msgstr "Projekt"
-
-msgid "Filament Manager"
-msgstr "Filamentkezelő"
 
 msgid "Yes"
 msgstr "Igen"
@@ -6455,7 +6573,7 @@ msgid "Printer camera is malfunctioning."
 msgstr "A nyomtató kamerája hibásan működik."
 
 msgid "Problem occurred. Please update the printer firmware and try again."
-msgstr "Probléma merült fel. Kérjük, frissítsd a nyomtató firmware-ét, és próbáld meg újra."
+msgstr "Probléma történt. Frissítse a nyomtató firmware-ét, és próbálja újra."
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
 msgstr "A LAN élő nézet ki van kapcsolva. Kérjük, kapcsold be az élő nézetet a nyomtató képernyőjén."
@@ -7644,8 +7762,11 @@ msgstr "Filament beállítások"
 msgid "Printer settings"
 msgstr "Nyomtatóbeállítások"
 
-msgid "Remove current plate (if not last one)"
-msgstr "Tálca eltávolítása (ha nem ez az utolsó)"
+msgid "At least one plate is required"
+msgstr ""
+
+msgid "Remove current plate"
+msgstr ""
 
 msgid "Auto orient objects on current plate"
 msgstr "Objektumok automatikus tájolása a tálcán"
@@ -7667,6 +7788,10 @@ msgstr "Tálca nevének szerkesztése"
 
 msgid "Customize current plate"
 msgstr "Tálca testreszabása"
+
+#, c-format, boost-format
+msgid "%s is not compatible with %s nozzle."
+msgstr ""
 
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
@@ -7788,7 +7913,7 @@ msgstr "Szinkronizálás most"
 msgid "There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."
 msgstr "Nem beállított fúvókatípusokat észleltünk. Szinkronizálás előtt állítsd be az összes extruder fúvókatípusát."
 
-msgid "Sync extruder infomation"
+msgid "Sync extruder information"
 msgstr "Extruderinformációk szinkronizálása"
 
 msgid ""
@@ -7812,6 +7937,9 @@ msgstr "Szinkronizálási információ"
 
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Fúvókainformációk és az AMS-ek számának szinkronizálása"
+
+msgid "Project Filaments"
+msgstr "Projekt filamentek"
 
 msgid "Purge mode"
 msgstr "Átöblítési mód"
@@ -8025,6 +8153,9 @@ msgid ""
 "It is expected if they are placed on the build plate later after move,rotate gizmo or similar operations.\n"
 "The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."
 msgstr ""
+"Az importált STEP-fájl alegységekre van osztva, így előfordulhat, hogy egyes objektumok nem kerülnek először a nyomtatótálcára.\n"
+"Ez várható, ha később, mozgatás, forgatás vagy hasonló műveletek után kerülnek a nyomtatótálcára.\n"
+"A teljes összeállítás ellenőrizhető az összeállítás miniatűrképéről vagy az összeállítás nézetbe való belépéssel."
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Betöltöd ezeket a fájlokat több részből álló egyetlen objektumként?\n"
@@ -8595,6 +8726,12 @@ msgstr "Ok: %1% és egy másik tárgy nem metszik egymást."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negatív tárgyakat észleltünk. Exportálás előtt szeretnéd végrehajtani a logikai műveletet a hálón?"
 
+msgid "Failed to save the project: an invalid setting value was found while writing the file."
+msgstr ""
+
+msgid "Please check your settings and try again."
+msgstr ""
+
 msgid ""
 "Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
 "Please verify the file source and script contents before continuing."
@@ -8757,9 +8894,6 @@ msgstr "A régió megváltoztatásával a fiókod kijelentkezik.\n"
 msgid "Region selection"
 msgstr "Régió kiválasztása"
 
-msgid "Second"
-msgstr "Másodperc"
-
 msgid ""
 "Please note that the model show will undergo certain changes at small pixels case.\n"
 "Enabled LOD requires application restart."
@@ -8788,8 +8922,30 @@ msgstr ""
 "\n"
 "Biztos, hogy engedélyezed ezt az opciót?"
 
+msgid "Download path"
+msgstr ""
+
 msgid "Choose Download Directory"
 msgstr "Válassz letöltési mappát"
+
+msgctxt "Preference"
+msgid "General"
+msgstr "Általános"
+
+msgctxt "Preference"
+msgid "User"
+msgstr "Felhasználó"
+
+msgctxt "Preference"
+msgid "3D"
+msgstr ""
+
+msgctxt "Preference"
+msgid "Other"
+msgstr "Egyéb"
+
+msgid "Developer Tools"
+msgstr ""
 
 msgid "General Settings"
 msgstr "Általános beállítások"
@@ -8821,32 +8977,8 @@ msgstr "Angolszász"
 msgid "Units"
 msgstr "Mértékegység"
 
-msgid "Use 12-hour time format"
-msgstr "12 órás időformátum használata"
-
-msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr "Az idő megjelenítése 12 órás formátumban AM/PM jelöléssel a 24 órás formátum helyett"
-
-msgid "Keep only one Bambu Studio instance"
-msgstr "Csak egy Bambu Studio-példány megtartása"
-
-msgid "On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances of same app from the command line. In such case this settings will allow only one instance."
-msgstr "OSX rendszeren alapértelmezés szerint mindig csak egy példány fut az alkalmazásból. Ugyanakkor ugyanaz az alkalmazás több példánya is futtatható a parancssorból. Ebben az esetben ez a beállítás csak egy példányt engedélyez."
-
-msgid "If this is enabled, when starting Bambu Studio and another instance of the same Bambu Studio is already running, that instance will be reactivated instead."
-msgstr "Ha ez engedélyezve van, akkor a Bambu Studio indításakor, ha már fut egy másik példány, akkor az kerül újra aktiválásra egy új példány indítása helyett."
-
-msgid "Automatically transfer modified value when switching process and filament presets"
-msgstr "Automatikusan átveszi a módosított értéket a folyamat- és az filamentbeállítások váltásakor"
-
-msgid "After closing, a popup will appear to ask each time"
-msgstr "Bezárás után minden alkalommal megjelenik egy felugró ablak"
-
-msgid "Auto plate type"
-msgstr "Automatikus tálcatípus"
-
-msgid "Studio will remember build plate selected last time for certain printer model."
-msgstr "Studio will remember build plate selected last time for certain printer models."
+msgid "Enable dark mode"
+msgstr "Sötét mód engedélyezése"
 
 msgid "All"
 msgstr "Összes"
@@ -8860,23 +8992,26 @@ msgstr "Automatikus öblítés"
 msgid "Auto calculate flush volumes"
 msgstr "Öblítési mennyiségek automatikus kiszámítása"
 
+msgid "Keep only one Bambu Studio instance"
+msgstr "Csak egy Bambu Studio-példány megtartása"
+
+msgid "On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances of same app from the command line. In such case this settings will allow only one instance."
+msgstr "OSX rendszeren alapértelmezés szerint mindig csak egy példány fut az alkalmazásból. Ugyanakkor ugyanaz az alkalmazás több példánya is futtatható a parancssorból. Ebben az esetben ez a beállítás csak egy példányt engedélyez."
+
+msgid "If this is enabled, when starting Bambu Studio and another instance of the same Bambu Studio is already running, that instance will be reactivated instead."
+msgstr "Ha ez engedélyezve van, akkor a Bambu Studio indításakor, ha már fut egy másik példány, akkor az kerül újra aktiválásra egy új példány indítása helyett."
+
+msgid "Take effect after restarting Studio"
+msgstr "A Studio újraindítása után lép életbe"
+
+msgid "The Filament Manager is turned off by default on macOS because compatibility issues on some systems may cause the application to become unresponsive."
+msgstr "A Filamentkezelő alapértelmezés szerint ki van kapcsolva macOS rendszeren, mivel egyes rendszereken a kompatibilitási problémák miatt az alkalmazás válaszképtelenné válhat."
+
 msgid "Multi-device Management(Take effect after restarting Studio)."
 msgstr "Többeszközös felügyelet (Studio újraindítása szükséges)."
 
 msgid "With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."
 msgstr "Ha ez az opció engedélyezve van, egyszerre több eszközre is küldhetsz nyomtatási feladatot, és kezelheted mindegyiket."
-
-msgid "Take effect after restarting Studio"
-msgstr ""
-
-msgid "The Filament Manager is turned off by default on macOS because compatibility issues on some systems may cause the application to become unresponsive."
-msgstr ""
-
-msgid "Show the step mesh parameter setting dialog."
-msgstr "STEP-háló paraméterbeállítási párbeszédpaneljének megjelenítése."
-
-msgid "If enabled,a parameter settings dialog will appear during STEP file import."
-msgstr "Ha engedélyezve van, a STEP fájl importálása során egy paraméterbeállítási párbeszédablak jelenik meg."
 
 msgid "Support beta version update."
 msgstr "Béta verzió frissítés támogatása."
@@ -8884,32 +9019,66 @@ msgstr "Béta verzió frissítés támogatása."
 msgid "With this option enabled, you can receive beta version updates."
 msgstr "Ha ez az opció engedélyezve van, bétaverziós frissítéseket is kaphatsz."
 
+msgid "Join the User Experience Improvement Program."
+msgstr "Csatlakozz a Felhasználói élményt javító programhoz."
+
+msgctxt "Preferences"
+msgid "Learn more"
+msgstr "Tudj meg többet"
+
+msgid "User Settings"
+msgstr ""
+
+msgid "Auto plate type"
+msgstr "Automatikus tálcatípus"
+
+msgid "Studio will remember build plate selected last time for certain printer model."
+msgstr "Studio will remember build plate selected last time for certain printer models."
+
+msgid "12-hour"
+msgstr ""
+
+msgid "24-hour"
+msgstr ""
+
+msgid "time format for print progress"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr "Az idő megjelenítése 12 órás formátumban AM/PM jelöléssel a 24 órás formátum helyett"
+
+msgid "Keep liveview when printing."
+msgstr "Videó lejátszásának folytatása nyomtatás közben."
+
+msgid "By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."
+msgstr "Alapértelmezés szerint az élő videó szünetel 15 perc inaktivitás után. A négyzet bejelölésével letilthatod ezt a funkciót."
+
+msgid "Automatically transfer modified value when switching process and filament presets"
+msgstr "Automatikusan átveszi a módosított értéket a folyamat- és az filamentbeállítások váltásakor"
+
+msgid "After closing, a popup will appear to ask each time"
+msgstr "Bezárás után minden alkalommal megjelenik egy felugró ablak"
+
 msgid "Remove the restriction on mixed printing of high and low temperature filaments."
 msgstr "Megszünteti a magas és alacsony hőmérsékletű filamentek vegyes nyomtatására vonatkozó korlátozást."
 
 msgid "With this option enabled, you can print materials with a large temperature difference together."
 msgstr "Ha ez az opció be van kapcsolva, akkor nagy hőmérsékletkülönbségű anyagokat is nyomtathatsz egyszerre."
 
-msgid "Open full screen camera view on active monitor only."
-msgstr "Teljes kijelzős kameranézet megnyitása csak az aktív monitoron."
+msgid "Auto sync user presets(Printer/Filament/Process)"
+msgstr "Felhasználói beállítások automatikus szinkronizálása (Nyomtató/Filament/Folyamat)"
 
-msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
-msgstr "Ha engedélyezve van, a kamera teljes kijelzős nézete csak azon a monitoron nyílik meg, amelyen a Bambu Studio található."
+msgid "If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."
+msgstr "Ha engedélyezve van, automatikusan szinkronizálja a felhasználói beállításokat a felhővel a Bambu Studio indítása vagy a beállítások módosítása után."
 
-msgid "Clear my choice for synchronizing printer preset after loading the file."
-msgstr "Törölje a nyomtatóbeállítás szinkronizálására vonatkozó választásomat a fájl betöltése után."
+msgid "Auto check for system presets updates"
+msgstr "Rendszerbeállítások frissítéseinek automatikus ellenőrzése"
 
-msgid "Clear my choice for Load 3mf dialog settings."
-msgstr "Törölje a választásomat a 3mf betöltése párbeszédpanelen."
+msgid "If enabled, auto check whether there are system presets updates after Bambu Studio startup."
+msgstr "Ha engedélyezve van, automatikusan ellenőrzi a rendszerbeállítások frissítéseit a Bambu Studio indítása után."
 
-msgid "Clear my choice for executing post-processing scripts."
-msgstr "Törölje a kijelölést az utófeldolgozási szkriptek végrehajtásához."
-
-msgid "Show the security warning dialog again before slicing when post-processing scripts are configured."
-msgstr "A biztonsági figyelmeztető párbeszédpanel ismételt megjelenítése szeletelés előtt, ha utófeldolgozási szkriptek vannak konfigurálva."
-
-msgid "Clear my choice for disabling support parameter recommendation."
-msgstr "Törölje a támogatási paraméterek ajánlásának letiltására vonatkozó választásomat."
+msgid "Auto-fill previously logged-in accounts."
+msgstr "Korábban már bejelentkezett fiókok adatainak automatikus kitöltése."
 
 msgid "3D Settings"
 msgstr "3D-beállítások"
@@ -8920,11 +9089,44 @@ msgstr "Nagyítás az egér pozíciójára"
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr "Az egérmutatóra nagyít a 3D-nézetben, a 2D-ablak középpontja helyett."
 
+msgid "Display overview"
+msgstr "Megjelenítés áttekintése"
+
+msgid "Grabber scale"
+msgstr ""
+
+msgid "Set grabber size for move,rotate,scale tool."
+msgstr ""
+
+msgid "Value range"
+msgstr "Értéktartomány"
+
+msgid "Tooltip offset"
+msgstr "Eszköztipp eltolás"
+
+msgid "Set tooltip offset for different mouse size."
+msgstr "Eszköztipp eltolásának beállítása különböző egérméretekhez."
+
+msgid "Collapsible"
+msgstr "Összecsukható"
+
+msgid "Uncollapsible"
+msgstr "Összecsukhatatlan"
+
+msgid "Toolbar Style"
+msgstr "Eszköztár stílusa"
+
 msgid "Always show shells in preview"
 msgstr "Mindig jelenítse meg a héjakat az előnézetben"
 
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
-msgstr "Mindig jelenítse/rejtse el a héjakat az előnézeti lapon. Az érték megváltoztatásakor a tárgyat újra kell szeletelni."
+msgstr "Az előnézeti nézet lapon mindig jelenítse meg a héjakat, vagy ne jelenítse meg őket. Ha ezt az értéket módosítja, újra kell szeletelnie."
+
+msgid "Show the step mesh parameter setting dialog."
+msgstr "STEP-háló paraméterbeállítási párbeszédpaneljének megjelenítése."
+
+msgid "If enabled,a parameter settings dialog will appear during STEP file import."
+msgstr "Ha engedélyezve van, a STEP fájl importálása során egy paraméterbeállítási párbeszédablak jelenik meg."
 
 msgid "Import a single SVG and split it"
 msgstr "Egyetlen SVG importálása és felosztása"
@@ -8944,29 +9146,11 @@ msgstr "Emlékezzen az utoljára használt színsémára"
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "Ha engedélyezve van, a legutóbb használt színséma (pl. vonaltípus, sebesség) kerül automatikusan alkalmazásra a következő indításkor."
 
-msgid "Display overview"
-msgstr "Megjelenítés áttekintése"
-
-msgid "Show assembly BVH primary bounds"
-msgstr "Térfogat hierarchia megjelenítése"
-
-msgid "Display the BVH primary bounding box wireframe in assembly view."
-msgstr "Megjeleníti a térfogat hierarchia drótvázát az összeszerelési nézetben."
-
 msgid "Improve rendering performance by lod"
 msgstr "Renderelési teljesítmény javítása lod szerint"
 
 msgid "Improved rendering performance under the scene of multiple plates and many models."
 msgstr "Javított renderelési teljesítmény több tálca és modell esetén."
-
-msgid "Collapsible"
-msgstr "Összecsukható"
-
-msgid "Uncollapsible"
-msgstr "Összecsukhatatlan"
-
-msgid "Toolbar Style"
-msgstr "Eszköztár stílusa"
 
 msgid "Enable advanced gcode viewer"
 msgstr "Speciális G-kód-megjelenítő engedélyezése"
@@ -8974,35 +9158,77 @@ msgstr "Speciális G-kód-megjelenítő engedélyezése"
 msgid "Enable advanced gcode viewer."
 msgstr "Speciális G-kód-megjelenítő engedélyezése."
 
-msgid "Grabber scale"
+msgid "Show assembly BVH primary bounds"
+msgstr "Térfogat hierarchia megjelenítése"
+
+msgid "Display the BVH primary bounding box wireframe in assembly view."
+msgstr "Megjeleníti a térfogat hierarchia drótvázát az összeszerelési nézetben."
+
+msgid "Open full screen camera view on active monitor only."
+msgstr "Teljes kijelzős kameranézet megnyitása csak az aktív monitoron."
+
+msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
+msgstr "Ha engedélyezve van, a kamera teljes kijelzős nézete csak azon a monitoron nyílik meg, amelyen a Bambu Studio található."
+
+msgid "Maximum recent projects"
+msgstr "Legutóbbi projektek maximális száma"
+
+msgid "Maximum count of recent projects"
+msgstr "Legutóbbi projektek maximális száma"
+
+msgid "No warnings when loading 3MF with modified G-codes"
+msgstr "No warnings when loading 3MF with modified G-code"
+
+msgid "10 seconds"
 msgstr ""
 
-msgid "Set grabber size for move,rotate,scale tool."
+msgid "20 seconds"
 msgstr ""
 
-msgid "Value range"
-msgstr "Értéktartomány"
+msgid "30 seconds"
+msgstr ""
 
-msgid "Tooltip offset"
-msgstr "Eszköztipp eltolás"
+msgid "1 minute"
+msgstr ""
 
-msgid "Set tooltip offset for different mouse size."
-msgstr "Eszköztipp eltolásának beállítása különböző egérméretekhez."
+msgid "2 minutes"
+msgstr ""
 
-msgid "Presets"
-msgstr "Beállítások"
+msgid "5 minutes"
+msgstr ""
 
-msgid "Auto sync user presets(Printer/Filament/Process)"
-msgstr "Felhasználói beállítások automatikus szinkronizálása (Nyomtató/Filament/Folyamat)"
+msgid "10 minutes"
+msgstr ""
 
-msgid "If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."
-msgstr "Ha engedélyezve van, automatikusan szinkronizálja a felhasználói beállításokat a felhővel a Bambu Studio indítása vagy a beállítások módosítása után."
+msgid "30 minutes"
+msgstr ""
 
-msgid "Auto check for system presets updates"
-msgstr "Rendszerbeállítások frissítéseinek automatikus ellenőrzése"
+msgid "never"
+msgstr ""
 
-msgid "If enabled, auto check whether there are system presets updates after Bambu Studio startup."
-msgstr "Ha engedélyezve van, automatikusan ellenőrzi a rendszerbeállítások frissítéseit a Bambu Studio indítása után."
+msgid "Auto-Backup"
+msgstr "Automatikus biztonsági mentés"
+
+msgid "The peroid of backup in seconds."
+msgstr "A biztonsági mentés időköze másodpercben."
+
+msgid "Online Models"
+msgstr "Online modellek"
+
+msgid "Show online staff-picked models on the home page"
+msgstr "Mutassa a munkatársaink által kiválasztott online modelleket a kezdőlapon"
+
+msgid "Show history on the home page"
+msgstr "Előzmények megjelenítése a kezdőlapon"
+
+msgid "Developer Mode"
+msgstr ""
+
+msgid "Develop mode"
+msgstr "Fejlesztői mód"
+
+msgid "Skip AMS blacklist check"
+msgstr "Az AMS feketelista-ellenőrzések kihagyása"
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Fájlok társítása a Bambu Studióhoz"
@@ -9025,135 +9251,8 @@ msgstr ".step/.stp fájlok társítása a Bambu Studióhoz"
 msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "Ha engedélyezve van, alapértelmezett alkalmazásként a Bambu Studio fogja megnyitni a .step fájlokat"
 
-msgid "Online Models"
-msgstr "Online modellek"
-
-msgid "Show online staff-picked models on the home page"
-msgstr "Mutassa a munkatársaink által kiválasztott online modelleket a kezdőlapon"
-
-msgid "Show history on the home page"
-msgstr "Előzmények megjelenítése a kezdőlapon"
-
-msgid "Reminder During Slicing"
-msgstr "Emlékeztető szeletelés közben"
-
-msgid "Automatic mode"
-msgstr "Automatikus mód"
-
-msgid "Maximum recent projects"
-msgstr "Legutóbbi projektek maximális száma"
-
-msgid "Maximum count of recent projects"
-msgstr "Legutóbbi projektek maximális száma"
-
-msgid "Clear my choice on the unsaved projects."
-msgstr "Változtatások törlése a nem mentett projekteken."
-
-msgid "No warnings when loading 3MF with modified G-codes"
-msgstr "No warnings when loading 3MF with modified G-code"
-
-msgid "Auto-Backup"
-msgstr "Automatikus biztonsági mentés"
-
-msgid "Backup your project periodically for restoring from the occasional crash."
-msgstr "Rendszeres időközönként biztonsági másolatot készít a projektről, hogy vissza tudd állítani egy esetleges összeomlást követően."
-
-msgid "every"
-msgstr "minden"
-
-msgid "The peroid of backup in seconds."
-msgstr "A biztonsági mentés időköze másodpercben."
-
-msgid "Downloads"
-msgstr "Letöltések"
-
-msgid "Media"
-msgstr "Média"
-
-msgid "Keep liveview when printing."
-msgstr "Videó lejátszásának folytatása nyomtatás közben."
-
-msgid "By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."
-msgstr "Alapértelmezés szerint az élő videó szünetel 15 perc inaktivitás után. A négyzet bejelölésével letilthatod ezt a funkciót."
-
-msgid "Dark Mode"
-msgstr "Sötét mód"
-
-msgid "Enable dark mode"
-msgstr "Sötét mód engedélyezése"
-
-msgid "Pop up to select filament grouping mode"
-msgstr "Felugró ablak a filamentek csoportosításinak kiválasztásához"
-
-msgid "User Experience"
-msgstr "Felhasználói élmény"
-
-msgid "Join the User Experience Improvement Program."
-msgstr "Csatlakozz a Felhasználói élményt javító programhoz."
-
-msgctxt "Preferences"
-msgid "Learn more"
-msgstr "Tudj meg többet"
-
-msgid "Auto-fill previously logged-in accounts."
-msgstr "Korábban már bejelentkezett fiókok adatainak automatikus kitöltése."
-
-msgid "Develop Mode"
-msgstr "Fejlesztői mód"
-
-msgid "Develop mode"
-msgstr "Fejlesztői mód"
-
-msgid "Skip AMS blacklist check"
-msgstr "Az AMS feketelista-ellenőrzések kihagyása"
-
-msgid "Home page and daily tips"
-msgstr "Kezdőoldal és napi tippek"
-
-msgid "Show home page on startup"
-msgstr "Kezdőlap megjelenítése indításkor"
-
-msgid "Sync settings"
-msgstr "Szinkronizálási beállítások"
-
-msgid "User sync"
-msgstr "Felhasználói szinkronizálás"
-
-msgid "Preset sync"
-msgstr "Beállítások szinkronizálása"
-
-msgid "Preferences sync"
-msgstr "Beállítások szinkronizálása"
-
-msgid "View control settings"
-msgstr "Vezérlési beállítások megtekintése"
-
-msgid "Rotate of view"
-msgstr "Nézet elforgatása"
-
-msgid "Move of view"
-msgstr "Pásztázó nézet"
-
-msgid "Zoom of view"
-msgstr "Nagyítás nézet"
-
-msgid "Other"
-msgstr "Egyéb"
-
-msgid "Mouse wheel reverses when zooming"
-msgstr "Görgetési irány megfordítása nagyítás közben"
-
-msgid "Enable SSL(MQTT)"
-msgstr "SSL engedélyezése (MQTT)"
-
-msgid "Enable SSL(FTP)"
-msgstr "SSL engedélyezése (FTP)"
-
-msgid "Internal developer mode"
-msgstr "Belső fejlesztői mód"
-
-msgid "Log Level"
-msgstr "Naplózási szint"
+msgid "Log"
+msgstr ""
 
 msgid "fatal"
 msgstr "súlyos"
@@ -9169,6 +9268,18 @@ msgstr "debug"
 
 msgid "trace"
 msgstr "követés"
+
+msgid "Log Level"
+msgstr "Naplózási szint"
+
+msgid "Internal developer mode"
+msgstr "Belső fejlesztői mód"
+
+msgid "Enable SSL(MQTT)"
+msgstr "SSL engedélyezése (MQTT)"
+
+msgid "Enable SSL(FTP)"
+msgstr "SSL engedélyezése (FTP)"
 
 msgid "Host Setting"
 msgstr "Host beállítás"
@@ -9197,8 +9308,29 @@ msgstr "DEBUG beállítások sikeresen elmentve!"
 msgid "Switch cloud environment, Please login again!"
 msgstr "A felhőkörnyezet megváltozott, kérjük, jelentkezz be újra!"
 
-msgid "System presets"
-msgstr "Rendszer beállítások"
+msgid "Reset all warning dialogs"
+msgstr ""
+
+msgid "Reset preferences"
+msgstr ""
+
+msgid "All warning dialogs that you have disabled by checking \"Don't show again\" are now re-enabled and will show next time they apply."
+msgstr ""
+
+msgid "Check details"
+msgstr ""
+
+msgid ""
+"- Sync printer presets after loading a file\n"
+"- \"Load 3MF\" dialog settings\n"
+"- Executing post-processing scripts\n"
+"- Support structure recommendation prompt\n"
+"- Unsaved projects.\n"
+"- Mixed color sublayer with variable layer height warning"
+msgstr ""
+
+msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
+msgstr ""
 
 msgid "User presets"
 msgstr "Felhasználói beállítások"
@@ -9549,7 +9681,7 @@ msgid "The selected printer (%s) is incompatible with the print file configurati
 msgstr "A kiválasztott nyomtató (%s) nem kompatibilis a nyomtatási fájl konfigurációjával (%s). Kérjük, válaszd ki a megfelel nyomtatóbeállítást az előkészítés oldalon, vagy válassz egy kompatibilis nyomtatót ezen az oldalon."
 
 msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
-msgstr "When spiral vase mode is enabled, machines with I3 structure will not generate timelapse videos."
+msgstr "Spirál (váza) mód engedélyezésekor az I3 szerkezetű gépek nem készítenek timelapse videókat."
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
 msgstr "A jelenlegi nyomtató nem támogatja a hagyományos timelapse módot, amikor tárgyankénti nyomtatási módban nyomtat."
@@ -9578,13 +9710,13 @@ msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Kérjük, hárítsd el a fenti hibát, különben a nyomtatás nem folytatható."
 
 msgid "Please click the \"Continue printing\"  button if you still want to proceed with printing."
-msgstr ""
+msgstr "Kattintson a „Nyomtatás folytatása” gombra, ha továbbra is folytatni szeretné a nyomtatást."
 
 msgid "Continue printing"
-msgstr ""
+msgstr "Nyomtatás folytatása"
 
 msgid "Return to modify"
-msgstr ""
+msgstr "Vissza a módosításhoz"
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Ellenőrzi az asztal szintjét. A szintezés egyenletessé teszi az extrudált magasságot."
@@ -9752,6 +9884,9 @@ msgstr "A jelenlegi anyag keménysége (%s) meghaladja a(z) %s (%s) keménység�
 
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
 msgstr "Ha a „Dinamikus áramláskalibrálás” beállítása Automatikus/Be, a rendszer a manuális kalibrálási értéket vagy az alapértelmezett értéket használja, és kihagyja az áramláskalibrálási folyamatot. A TPU filament manuális áramláskalibrálását a „Kalibrálás” oldalon végezheti el."
+
+msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
+msgstr ""
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Előfordulhat, hogy nyomtatás közben egyes filamentek váltanak az extruderek között. A manuális K-érték kalibrálás nem alkalmazható a teljes nyomtatás során, ami befolyásolhatja a nyomtatási minőséget. Az áramlásdinamikai kalibrálás engedélyezése ajánlott."
@@ -9979,7 +10114,7 @@ msgid "Terms and Conditions"
 msgstr "Felhasználási feltételek"
 
 msgid "Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab device, please read the terms and conditions. By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use (collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
-msgstr "Köszönjük, hogy Bambu Lab készüléket vásároltál. Mielőtt használnád az új Bambu Lab készülékedet, kérjük, olvasd el a felhasználási feltételeket. A lenti gombra kattintva elfogadod az Adatvédelmi irányelveket és a Felhasználási feltételeket (együttesen: „Feltételek“). Ha nem fogadod el a Bambu Lab Adatvédelmi szabályzatát, vagy nem értesz egyet azzal, kérjük, ne használd a Bambu Lab készüléket és szolgáltatásait."
+msgstr "Köszönjük, hogy Bambu Lab eszközt vásárolt. A Bambu Lab eszköz használata előtt olvassa el az általános szerződési feltételeket. A Bambu Lab eszköz használatának elfogadására kattintva Ön elfogadja az adatvédelmi szabályzatot és a felhasználási feltételeket (együttesen „Feltételek”). Ha nem tartja be vagy nem ért egyet a Bambu Lab adatvédelmi szabályzatával, ne használja a Bambu Lab eszközöket és szolgáltatásokat."
 
 msgid "and"
 msgstr "és"
@@ -10493,10 +10628,10 @@ msgid "Detached"
 msgstr "Különálló"
 
 msgid "The current preset is embedded in the 3MF project file. Please save changes directly.  'Save as new' is not supported for preset inside project."
-msgstr ""
+msgstr "Az aktuális előbeállítás be van ágyazva a 3MF projektfájlba. Mentse el közvetlenül a módosításokat. A „Mentés újként” funkció nem támogatott a projekten belüli előbeállítások esetében."
 
 msgid "Unable to save preset"
-msgstr ""
+msgstr "Az előbeállítás mentése sikertelen"
 
 #, c-format, boost-format
 msgid "%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."
@@ -10541,12 +10676,12 @@ msgstr ""
 msgid "No modifications need to be copied."
 msgstr "Nincs szükség módosítások másolására."
 
-msgid "Copy paramters"
+msgid "Copy parameters"
 msgstr "Paraméterek másolása"
 
 #, c-format, boost-format
-msgid "Modify paramters of %s"
-msgstr "%s paraméter módosítása"
+msgid "Modify parameters of %s"
+msgstr "Módosítsa a következő paramétereit: %s"
 
 #, c-format, boost-format
 msgid "Do you want to modify the following parameters of the %s to that of the %s?"
@@ -12339,7 +12474,7 @@ msgid "The spiral vase mode does not work when an object contains more than one 
 msgstr "A spirál (váza) mód nem működik, ha egy objektum egynél több anyagot tartalmaz."
 
 msgid "The spiral vase mode does not work when an object contains regions with different print settings."
-msgstr ""
+msgstr "A spirál (váza) mód nem működik, ha egy objektum eltérő nyomtatási beállításokkal rendelkező területeket tartalmaz."
 
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "A változó rétegmagasság nem működik az organikus támaszokkal."
@@ -12648,7 +12783,7 @@ msgid "Decrease this value slightly(for example 0.9) to reduce the amount of mat
 msgstr "Használj kisebb értéket (például 0,9-et), hogy ezzel csökkentsd az áthidaláshoz használt anyag mennyiségét, és a megereszkedést"
 
 msgid "Bridge counterbore holes"
-msgstr ""
+msgstr "Süllyesztett furatok áthidalása"
 
 msgid ""
 "This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
@@ -12656,12 +12791,16 @@ msgid ""
 "2. Partially Bridged: Only a part of the unsupported area will be bridged\n"
 "3. Sacrificial Layer: A full sacrificial bridge layer is created"
 msgstr ""
+"Ez a lehetőség áthidalásokat hoz létre a süllyesztett furatokhoz, lehetővé téve azok alátámasztás nélküli nyomtatását. Az elérhető módok a következők:\n"
+"1. Nincs: nem jön létre áthidaló réteg\n"
+"2. Részben áthidalt réteg: csak az alátámasztás nélküli terület egy része kerül áthidalásra\n"
+"3. Feláldozható réteg: egy teljes feláldozható áthidaló réteg jön létre"
 
 msgid "Partially bridged"
-msgstr ""
+msgstr "Részben áthidalva"
 
 msgid "Sacrificial layer"
-msgstr ""
+msgstr "Feláldozható réteg"
 
 msgid "Top surface flow ratio"
 msgstr "Felső felület anyagáramlása"
@@ -13151,8 +13290,8 @@ msgstr "Az objektumhoz beállított anyagáramlás."
 msgid "Enable pressure advance"
 msgstr "Nyomáselőtolás engedélyezése"
 
-msgid "Enable pressure advance, auto calibration result will be overwriten once enabled. Useless for Bambu Printer"
-msgstr "Engedélyezed a nyomáselőtolást? Az automatikus kalibrálási eredmények az engedélyezés után felülíródnak. Megjegyzés: a Bambu nyomtatók számára ez a funkció haszontalan"
+msgid "Enable pressure advance, auto calibration result will be overwritten once enabled. Useless for Bambu Printer"
+msgstr "Engedélyezze a nyomásnövelést, és az automatikus kalibrálás eredménye felülírásra kerül az engedélyezés után. Nem használható a Bambu nyomtató esetében"
 
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for Bambu Printer"
 msgstr "Nyomáselőtolás (Klipper) vagy más néven lineáris előtolási tényező (Marlin). A Bambu nyomtatók számára ez a funkció haszontalan"
@@ -16482,6 +16621,9 @@ msgstr "The printer preset was not found; please reselect."
 msgid "Printer Preset"
 msgstr "Nyomtatóbeállítás"
 
+msgid "Presets"
+msgstr "Beállítások"
+
 msgid "Filament Preset Template"
 msgstr "Filamentbeállítás sablon"
 
@@ -16792,6 +16934,9 @@ msgstr "A(z) %1s anyag nyomtatása a(z) %2s fúvókával a fúvóka sérülésé
 msgid "Need select printer"
 msgstr "Ki kell választanod a nyomtatót"
 
+msgid "Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid."
+msgstr ""
+
 msgid "The start, end or step is not valid value."
 msgstr "A kezdő-, vég- vagy lépésérték nem érvényes."
 
@@ -16894,7 +17039,7 @@ msgstr "Connection to Duet is working correctly."
 msgid "Could not connect to Duet"
 msgstr "Nem sikerült csatlakozni a Duethez"
 
-msgid "Unknown error occured"
+msgid "Unknown error occurred"
 msgstr "Ismeretlen hiba történt"
 
 msgid "Wrong password"
@@ -17159,8 +17304,8 @@ msgstr "A személyes hozzáférési token üres, kérjük, töltsd ki a helyes t
 msgid "Helio: Presigned URL Created"
 msgstr "Helio: Előre aláírt URL létrehozva"
 
-msgid "Helio: file succesfully uploaded"
-msgstr "Helio: a fájl sikeresen feltöltve"
+msgid "Helio: file successfully uploaded"
+msgstr "Helio: a fájl feltöltése sikeres"
 
 msgid "Helio: file upload failed"
 msgstr "Helio: fájl feltöltése sikertelen"
@@ -17345,16 +17490,16 @@ msgid "No content"
 msgstr "Nincs tartalom"
 
 #, c-format, boost-format
-msgid "Printer presets (%d/%d)"
-msgstr "Nyomtatóbeállítások(%d/%d)"
+msgid "Printer presets (%d)"
+msgstr "Nyomtató-előbeállítások (%d)"
 
 #, c-format, boost-format
-msgid "Filament presets (%d/%d)"
-msgstr "Filamentbeállítások(%d/%d)"
+msgid "Filament presets (%d)"
+msgstr "Filament-előbeállítások (%d)"
 
 #, c-format, boost-format
-msgid "Process presets (%d/%d)"
-msgstr "Folyamatbeállítások(%d/%d)"
+msgid "Process presets (%d)"
+msgstr "Folyamat-előbeállítások (%d)"
 
 #, c-format, boost-format
 msgid "%u Selected"
@@ -17810,6 +17955,9 @@ msgstr "Nyomtatási eredmény: VALÓSZÍNŰLEG SIKERTELEN"
 msgid "Print Outcome: "
 msgstr "Nyomtatási eredmény: "
 
+msgid "Click to edit ratio"
+msgstr "Kattintson az arány szerkesztéséhez"
+
 msgid "Edit Mixed Filament"
 msgstr "Vegyes filament szerkesztése"
 
@@ -17818,9 +17966,6 @@ msgstr "Effekt előnézet"
 
 msgid "Select Mixed Materials"
 msgstr "Vegyes anyagok kiválasztása"
-
-msgid "+ Add Material"
-msgstr "+ Anyag hozzáadása"
 
 msgid "- Delete Material"
 msgstr "- Anyag törlése"
@@ -17867,6 +18012,52 @@ msgstr "Elérted a komponensek maximális számát"
 
 msgid "Remove the third material"
 msgstr "Harmadik anyag eltávolítása"
+
+msgid "Project Filament List"
+msgstr ""
+
+msgid "Standard Mode Recommendations"
+msgstr ""
+
+msgid "Target Color"
+msgstr ""
+
+msgid "Select Color Decomposition"
+msgstr ""
+
+msgid "Arbitrary Mode"
+msgstr ""
+
+msgid "Material List"
+msgstr ""
+
+msgid "Standard Mode"
+msgstr "Normál mód"
+
+msgid "At least two filaments of the same material type are required for decomposition"
+msgstr ""
+
+#, boost-format
+msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr ""
+
+msgid "Cyan"
+msgstr ""
+
+msgid "Magenta"
+msgstr ""
+
+msgid "Yellow"
+msgstr ""
+
+msgid ", "
+msgstr ""
+
+msgid "The current filament list does not contain "
+msgstr ""
+
+msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
+msgstr ""
 
 msgid "Material Ratio"
 msgstr "Anyagarány"
@@ -18171,6 +18362,176 @@ msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
 
+#~ msgid "Show Current Step Objects Only"
+#~ msgstr "Csak az aktuális lépés objektumainak megjelenítése"
+
+#~ msgid "X-Ray Other Objects"
+#~ msgstr "Egyéb objektumok röntgenezése"
+
+#~ msgid "Exit"
+#~ msgstr "Kilépés"
+
+#~ msgid "Second"
+#~ msgstr "Másodperc"
+
+#~ msgid "Backup your project periodically for restoring from the occasional crash."
+#~ msgstr "Rendszeres időközönként biztonsági másolatot készít a projektről, hogy vissza tudd állítani egy esetleges összeomlást követően."
+
+#~ msgid "every"
+#~ msgstr "minden"
+
+#~ msgid "Remove current plate (if not last one)"
+#~ msgstr "Tálca eltávolítása (ha nem ez az utolsó)"
+
+#~ msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+#~ msgstr "A művelet végrehajtásához szükséges filament típusa ismeretlen. Kérjük, állítsd be a filament adatait."
+
+#~ msgid "New Filaments"
+#~ msgstr "Új filamentek"
+
+#~ msgid "Add Material"
+#~ msgstr "Anyag hozzáadása"
+
+#~ msgid ""
+#~ "Should not large than 100%.\n"
+#~ "Reset to defualt"
+#~ msgstr ""
+#~ "Nem lehet nagyobb, mint a 100%.\n"
+#~ "Visszaállítás alapértelmezettre"
+
+#, boost-format
+#~ msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
+#~ msgstr "%1%g filamenttel és %2% váltással több, mint az optimális csoportosítás esetén."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
+#~ msgstr "%1%g filamenttel több és %2% váltással kevesebb, mint az optimális csoportosítás esetén."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
+#~ msgstr "%1%g filamenttel kevesebb és %2% váltással több, mint az optimális csoportosítás esetén."
+
+#, boost-format
+#~ msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
+#~ msgstr "%1%g filamenttel és %2% váltással kevesebb az egyfúvókás nyomtatáshoz képest."
+
+#, boost-format
+#~ msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
+#~ msgstr "%1%g filamenttel kevesebb és %2% váltással több az egyfúvókás nyomtatáshoz képest."
+
+#, boost-format
+#~ msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
+#~ msgstr "%1%g filamenttel több és %2% váltással kevesebb az egyfúvókás nyomtatáshoz képest."
+
+#~ msgid "Sync extruder infomation"
+#~ msgstr "Extruderinformációk szinkronizálása"
+
+#~ msgid "Use 12-hour time format"
+#~ msgstr "12 órás időformátum használata"
+
+#~ msgid "Clear my choice for synchronizing printer preset after loading the file."
+#~ msgstr "Törölje a nyomtatóbeállítás szinkronizálására vonatkozó választásomat a fájl betöltése után."
+
+#~ msgid "Clear my choice for Load 3mf dialog settings."
+#~ msgstr "Törölje a választásomat a 3mf betöltése párbeszédpanelen."
+
+#~ msgid "Clear my choice for executing post-processing scripts."
+#~ msgstr "Törölje a kijelölést az utófeldolgozási szkriptek végrehajtásához."
+
+#~ msgid "Show the security warning dialog again before slicing when post-processing scripts are configured."
+#~ msgstr "A biztonsági figyelmeztető párbeszédpanel ismételt megjelenítése szeletelés előtt, ha utófeldolgozási szkriptek vannak konfigurálva."
+
+#~ msgid "Clear my choice for disabling support parameter recommendation."
+#~ msgstr "Törölje a támogatási paraméterek ajánlásának letiltására vonatkozó választásomat."
+
+#~ msgid "Reminder During Slicing"
+#~ msgstr "Emlékeztető szeletelés közben"
+
+#~ msgid "Automatic mode"
+#~ msgstr "Automatikus mód"
+
+#~ msgid "Clear my choice on the unsaved projects."
+#~ msgstr "Változtatások törlése a nem mentett projekteken."
+
+#~ msgid "Downloads"
+#~ msgstr "Letöltések"
+
+#~ msgid "Media"
+#~ msgstr "Média"
+
+#~ msgid "Dark Mode"
+#~ msgstr "Sötét mód"
+
+#~ msgid "Pop up to select filament grouping mode"
+#~ msgstr "Felugró ablak a filamentek csoportosításinak kiválasztásához"
+
+#~ msgid "User Experience"
+#~ msgstr "Felhasználói élmény"
+
+#~ msgid "Develop Mode"
+#~ msgstr "Fejlesztői mód"
+
+#~ msgid "Home page and daily tips"
+#~ msgstr "Kezdőoldal és napi tippek"
+
+#~ msgid "Show home page on startup"
+#~ msgstr "Kezdőlap megjelenítése indításkor"
+
+#~ msgid "Sync settings"
+#~ msgstr "Szinkronizálási beállítások"
+
+#~ msgid "User sync"
+#~ msgstr "Felhasználói szinkronizálás"
+
+#~ msgid "Preset sync"
+#~ msgstr "Beállítások szinkronizálása"
+
+#~ msgid "Preferences sync"
+#~ msgstr "Beállítások szinkronizálása"
+
+#~ msgid "View control settings"
+#~ msgstr "Vezérlési beállítások megtekintése"
+
+#~ msgid "Rotate of view"
+#~ msgstr "Nézet elforgatása"
+
+#~ msgid "Move of view"
+#~ msgstr "Pásztázó nézet"
+
+#~ msgid "Zoom of view"
+#~ msgstr "Nagyítás nézet"
+
+#~ msgid "Mouse wheel reverses when zooming"
+#~ msgstr "Görgetési irány megfordítása nagyítás közben"
+
+#~ msgid "Copy paramters"
+#~ msgstr "Paraméterek másolása"
+
+#, c-format, boost-format
+#~ msgid "Modify paramters of %s"
+#~ msgstr "%s paraméter módosítása"
+
+#~ msgid "Enable pressure advance, auto calibration result will be overwriten once enabled. Useless for Bambu Printer"
+#~ msgstr "Engedélyezed a nyomáselőtolást? Az automatikus kalibrálási eredmények az engedélyezés után felülíródnak. Megjegyzés: a Bambu nyomtatók számára ez a funkció haszontalan"
+
+#~ msgid "Unknown error occured"
+#~ msgstr "Ismeretlen hiba történt"
+
+#~ msgid "Helio: file succesfully uploaded"
+#~ msgstr "Helio: a fájl sikeresen feltöltve"
+
+#, c-format, boost-format
+#~ msgid "Printer presets (%d/%d)"
+#~ msgstr "Nyomtatóbeállítások(%d/%d)"
+
+#, c-format, boost-format
+#~ msgid "Filament presets (%d/%d)"
+#~ msgstr "Filamentbeállítások(%d/%d)"
+
+#, c-format, boost-format
+#~ msgid "Process presets (%d/%d)"
+#~ msgstr "Folyamatbeállítások(%d/%d)"
+
 #~ msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 #~ msgstr "Figyelmeztetés: a régi mátrixnak legalább két paramétere van: tükrözés, skálázás és forgatás. Ha folytatod a szerkesztést, lehet, hogy nem lesz helyes. Kérjük, húzd odébb a szöveget vagy töröld az aktuális beállítás, mentsd és szerkeszd újra."
 
@@ -18219,9 +18580,6 @@ msgstr ""
 
 #~ msgid "The file contains polygons with less than 2 vertices."
 #~ msgstr "A fájl 2-nél kevesebb csúccsal rendelkező poligonokat tartalmaz."
-
-#~ msgid "Standard Mode"
-#~ msgstr "Normál mód"
 
 #~ msgid "Performs full priming for the best print quality. Requires more material and time."
 #~ msgstr "Teljes átöblítést végez a legjobb nyomtatási minőség érdekében. Több anyagot és időt igényel."

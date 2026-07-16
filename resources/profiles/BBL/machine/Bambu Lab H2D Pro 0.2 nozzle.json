@@ -21,6 +21,12 @@
         "30",
         "30"
     ],
+    "deretract_speed_extruder_change": [
+        "15",
+        "15",
+        "15",
+        "15"
+    ],
     "extruder_variant_list": [
         "Direct Drive Standard,Direct Drive High Flow",
         "Direct Drive Standard,Direct Drive High Flow"

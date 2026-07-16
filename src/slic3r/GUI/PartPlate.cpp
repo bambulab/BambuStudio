@@ -751,9 +751,16 @@ void PartPlate::render_plate_name_texture()
 void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool render_name_edit_icon)
 {
     if (!only_body) {
-        if (hover_id == 1) {
+        // The delete button is disabled when only one plate is left: at least one plate must remain.
+        const bool del_disabled = m_partplate_list->get_plate_count() <= 1;
+        if (del_disabled) {
+            render_icon_texture(m_partplate_list->m_del_icon, m_partplate_list->m_del_ban_texture);
+            if (hover_id == 1)
+                show_tooltip(_u8L("At least one plate is required"));
+        }
+        else if (hover_id == 1) {
             render_icon_texture(m_partplate_list->m_del_icon, m_partplate_list->m_del_hovered_texture);
-            show_tooltip(_u8L("Remove current plate (if not last one)"));
+            show_tooltip(_u8L("Remove current plate"));
         }
         else
             render_icon_texture(m_partplate_list->m_del_icon, m_partplate_list->m_del_texture);
@@ -1564,12 +1571,86 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
 {
     error_message.clear();
     FilamentMapMode mode = this->get_real_filament_map_mode(config);
-    // only check printablity if we have explicit map result
-    if (mode != fmmManual) return true;
 
     std::vector<int> used_filaments = get_extruders(true);  // 1 base
-    std::unordered_map<std::string, int> nozzle_fils;
     auto fil_preset_names = wxGetApp().preset_bundle->filament_presets;
+
+    // Non-manual modes: only auto filament-map modes need an extra gate below.
+    if (mode != fmmManual) {
+        if (!is_auto_filament_map_mode(mode))
+            return true;
+
+        // Auto modes: each used filament must support at least one configured machine nozzle volume type.
+        if (used_filaments.empty())
+            return true;
+
+        std::set<NozzleVolumeType> machine_volume_types;
+        auto collect_machine_volume_types = [&](const ConfigOptionEnumsGeneric *opt) {
+            if (!opt)
+                return;
+            for (int v : opt->values) {
+                auto nvt = static_cast<NozzleVolumeType>(v);
+                // nvtMaxNozzleVolumeType is the sentinel end of NozzleVolumeType; keep this filter in sync if the enum changes.
+                if (nvt != nvtHybrid && nvt <= nvtMaxNozzleVolumeType)
+                    machine_volume_types.insert(nvt);
+            }
+        };
+        collect_machine_volume_types(config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type"));
+        if (machine_volume_types.empty())
+            collect_machine_volume_types(config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type"));
+        if (machine_volume_types.empty())
+            return true;
+
+        auto volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
+        for (auto filament_idx : used_filaments) {
+            int filament_id = filament_idx - 1;
+            if (filament_id < 0 || filament_id >= (int)fil_preset_names.size())
+                continue;
+
+            auto fil_preset = wxGetApp().preset_bundle->filaments.find_preset(fil_preset_names[filament_id]);
+            if (!fil_preset)
+                continue;
+            std::string fil_name = fil_preset->alias;
+
+            std::set<NozzleVolumeType> filament_volume_types;
+            std::vector<std::string>   filament_variants;
+            if (fil_preset->config.has("filament_extruder_variant"))
+                filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+            else
+                filament_variants = {"Direct Drive Standard"};
+            for (const auto &variant : filament_variants) {
+                NozzleVolumeType nvt = convert_to_nvt_type(variant);
+                if (nvt != nvtHybrid && nvt <= nvtMaxNozzleVolumeType)
+                    filament_volume_types.insert(nvt);
+            }
+
+            bool compatible = false;
+            for (NozzleVolumeType machine_nvt : machine_volume_types) {
+                if (filament_volume_types.count(machine_nvt) > 0) {
+                    compatible = true;
+                    break;
+                }
+            }
+            if (compatible)
+                continue;
+
+            // List all configured machine nozzle types that are incompatible with this filament.
+            wxString incompatible_nozzles;
+            for (NozzleVolumeType machine_nvt : machine_volume_types) {
+                if (filament_volume_types.count(machine_nvt) > 0)
+                    continue;
+                if (machine_nvt >= (NozzleVolumeType) volume_names.size())
+                    continue;
+                if (!incompatible_nozzles.empty())
+                    incompatible_nozzles += "/";
+                incompatible_nozzles += _L(volume_names.at(machine_nvt));
+            }
+            error_message = wxString::Format(_L("%s is not compatible with %s nozzle."), fil_name, incompatible_nozzles);
+            return false;
+        }
+
+        return true;
+    }
 
     if (!used_filaments.empty()) {
         for (auto filament_idx : used_filaments) {
@@ -4299,6 +4380,14 @@ void PartPlateList::generate_icon_textures()
 		}
 	}
 
+	//if (m_del_ban_texture.get_id() == 0)
+	{
+		file_name = path + (m_is_dark ? "plate_close_ban_dark.svg" : "plate_close_ban.svg");
+		if (!m_del_ban_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+		}
+	}
+
 	//if (m_arrange_texture.get_id() == 0)
 	{
 		file_name = path + (m_is_dark ? "plate_arrange_dark.svg" : "plate_arrange.svg");
@@ -4471,6 +4560,7 @@ void PartPlateList::release_icon_textures()
 	m_logo_texture.reset();
 	m_del_texture.reset();
 	m_del_hovered_texture.reset();
+	m_del_ban_texture.reset();
 	m_arrange_texture.reset();
 	m_arrange_hovered_texture.reset();
 	m_orient_texture.reset();

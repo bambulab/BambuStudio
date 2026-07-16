@@ -191,7 +191,6 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     );
 
     FilamentMapDialog map_dlg(plater_ref,
-        filament_colors,
         filament_types,
         applied_maps,
         applied_volume_maps,
@@ -265,7 +264,6 @@ static const StateColor btn_bd_white(std::pair<wxColour, int>(wxColour(38, 46, 4
 static const StateColor btn_text_white(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal));
 
 FilamentMapDialog::FilamentMapDialog(wxWindow                           *parent,
-                                     const std::vector<std::string>     &filament_color,
                                      const std::vector<std::string>     &filament_type,
                                      const std::vector<int>             &filament_map,
                                      const std::vector<int>             &filament_volume_map,
@@ -278,7 +276,6 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                           *parent,
     : wxDialog(parent, wxID_ANY, _L("Filament grouping"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_filament_map(filament_map)
     , m_filament_volume_map(filament_volume_map)
-    , m_filament_color(filament_color)
     , m_filament_type(filament_type)
 {
     SetBackgroundColour(*wxWHITE);
@@ -340,7 +337,7 @@ void FilamentMapDialog::make_body(
     if (std::find(modes_to_use.begin(), modes_to_use.end(), default_auto_mode) == modes_to_use.end())
         default_auto_mode = modes_to_use.front();
 
-    m_manual_panel = new FilamentMapManualPanel(this, m_filament_color, m_filament_type, filaments, m_filament_map, m_filament_volume_map);
+    m_manual_panel = new FilamentMapManualPanel(this, m_filament_type, filaments, m_filament_map, m_filament_volume_map);
     m_manual_panel->Bind(wxEVT_INVALID_MANUAL_MAP, [this](wxCommandEvent &event) {
         if (m_page_type != PageType::ptManual) {
             if (!m_ok_btn->IsEnabled()) { m_ok_btn->Enable(); }

@@ -26,9 +26,9 @@ class DragDropPanel : public wxPanel
 public:
     DragDropPanel(wxWindow *parent, const wxString &label, bool is_auto, bool has_title = true, bool is_sub = false);
 
-    void AddColorBlock(const wxColour &color, const std::string &type, int filament_id, bool update_ui = true);
+    void AddColorBlock(const std::string &type, int filament_id, bool update_ui = true);
     void RemoveColorBlock(ColorPanel *panel, bool update_ui = true);
-    void DoDragDrop(ColorPanel *panel, const wxColour &color, const std::string &type, int filament_id);
+    void DoDragDrop(ColorPanel *panel, const std::string &type, int filament_id);
     void UpdateLabel(const wxString &label);
 
     std::vector<int> GetAllFilaments() const;
@@ -56,9 +56,8 @@ private:
 class ColorPanel : public wxPanel
 {
 public:
-    ColorPanel(DragDropPanel *parent, const wxColour &color, int filament_id, const std::string& type);
+    ColorPanel(DragDropPanel *parent, int filament_id, const std::string& type);
 
-    wxColour GetColor() const { return m_color; }
     int      GetFilamentId() const { return m_filament_id; }
     std::string GetType() const { return m_type; }
 
@@ -68,10 +67,8 @@ private:
     void OnPaint(wxPaintEvent &event);
 
     DragDropPanel *m_parent;
-    wxColor        m_color;
     std::string    m_type;
     int            m_filament_id;
-
 };
 
 class SeparatedDragDropPanel : public wxPanel
@@ -79,7 +76,7 @@ class SeparatedDragDropPanel : public wxPanel
 public:
     SeparatedDragDropPanel(wxWindow *parent, const wxString &label, bool use_separation = false);
 
-    void AddColorBlock(const wxColour &color, const std::string &type, int filament_id, bool is_high_flow = false, bool update_ui = true);
+    void AddColorBlock(const std::string &type, int filament_id, bool is_high_flow = false, bool update_ui = true);
     void RemoveColorBlock(ColorPanel *panel, bool update_ui = true);
 
     std::vector<int> GetAllFilaments() const;

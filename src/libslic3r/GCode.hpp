@@ -286,6 +286,10 @@ private:
 
         bool is_open() const { return f; }
         bool is_error() const;
+        // Human-readable description of the first write/flush failure (errno-based),
+        // or an empty string if no OS-level error was recorded. Lets the caller report
+        // the real cause (e.g. "No space left on device") instead of guessing.
+        std::string get_last_error() const;
 
         void flush();
         void close();
@@ -305,10 +309,15 @@ private:
     private:
         FILE *f = nullptr;
         GCodeProcessor &m_processor;
+        // errno captured at the first failed fwrite/fflush, 0 if none.
+        int  m_write_errno = 0;
     };
     void            _do_export(Print &print, GCodeOutputStream &file, ThumbnailsGeneratorCallback thumbnail_cb);
 
-    static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object);
+    // When out_empty_layer_warning is provided, the empty-layer warning text is written there instead
+    // of being pushed to the Print step immediately, so the caller can aggregate warnings from all
+    // objects into a single notification.
+    static std::vector<LayerToPrint>        		                   collect_layers_to_print(const PrintObject &object, std::string *out_empty_layer_warning = nullptr);
     static std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> collect_layers_to_print(const Print &print);
 
     struct LayerResult {

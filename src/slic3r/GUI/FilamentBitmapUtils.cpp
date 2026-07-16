@@ -4,7 +4,10 @@
 #include <cmath>
 
 #include "EncodedFilament.hpp"
+#include "FilamentBitmapUtils.hpp"
 #include "GUI_App.hpp"
+#include "libslic3r/Utils.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -25,6 +28,26 @@ struct BitmapDC {
 
 static BitmapDC init_bitmap_dc(const wxSize& size) {
     return BitmapDC(size);
+}
+
+void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const wxColour& from, const wxColour& to)
+{
+    if (rect.width <= 0 || rect.height <= 0) return;
+
+    auto mix_channel = [](unsigned char a, unsigned char b, double t) {
+        return static_cast<unsigned char>(a + (b - a) * t + 0.5);
+    };
+
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    for (int x = 0; x < rect.width; ++x) {
+        const double t = rect.width > 1 ? static_cast<double>(x) / (rect.width - 1) : 0.0;
+        const wxColour col(mix_channel(from.Red(), to.Red(), t),
+                           mix_channel(from.Green(), to.Green(), t),
+                           mix_channel(from.Blue(), to.Blue(), t),
+                           mix_channel(from.Alpha(), to.Alpha(), t));
+        dc.SetBrush(wxBrush(col));
+        dc.DrawRectangle(rect.x + x, rect.y, 1, rect.height);
+    }
 }
 
 // Check if a color is transparent (alpha == 0)
@@ -211,7 +234,7 @@ static wxBitmap create_gradient_filament_bitmap(const std::vector<wxColour>& col
 
         if (current_width > 0) {
             auto rect = wxRect(left, 0, current_width, height);
-            dc.GradientFillLinear(rect, colors[i], colors[i + 1], wxEAST);
+            fill_gradient_rect_east(dc, rect, colors[i], colors[i + 1]);
             left += current_width;
         }
     }
@@ -243,6 +266,39 @@ wxBitmap create_filament_bitmap(const std::vector<wxColour>& colors, const wxSiz
         case 4: return create_quadruple_filament_bitmap(sorted_colors, size);
         default: return create_gradient_filament_bitmap(sorted_colors, size);
     }
+}
+
+void get_filament_colors_by_id(int filament_index, std::vector<wxColour>& out_colors, bool& out_is_gradient)
+{
+    out_colors.clear();
+    out_is_gradient = false;
+
+    auto preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle || filament_index < 0) return;
+
+    auto& proj_config = preset_bundle->project_config;
+
+    if (auto* multi_colour_opt = proj_config.option<ConfigOptionStrings>("filament_multi_colour");
+        multi_colour_opt && filament_index < (int) multi_colour_opt->values.size()) {
+        for (const std::string& token : Slic3r::split_string(multi_colour_opt->values[filament_index], ' ')) {
+            if (token.empty()) continue;
+            wxColour c(token);
+            if (c.IsOk()) out_colors.push_back(c);
+        }
+    }
+
+    // Fall back to the single filament_colour when there is no usable multi-colour string.
+    if (out_colors.empty()) {
+        if (auto* colour_opt = proj_config.option<ConfigOptionStrings>("filament_colour");
+            colour_opt && filament_index < (int) colour_opt->values.size()) {
+            wxColour c(colour_opt->values[filament_index]);
+            if (c.IsOk()) out_colors.push_back(c);
+        }
+    }
+
+    if (auto* colour_type_opt = proj_config.option<ConfigOptionStrings>("filament_colour_type");
+        colour_type_opt && filament_index < (int) colour_type_opt->values.size())
+        out_is_gradient = (colour_type_opt->values[filament_index] == "0");
 }
 
 }} // namespace Slic3r::GUI

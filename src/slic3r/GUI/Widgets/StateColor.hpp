@@ -5,11 +5,54 @@
 
 #include <map>
 
-#define WXCOLOUR_GREY700 wxColour(107, 107, 107)
-#define WXCOLOUR_GREY500 wxColour(158, 158, 158)
-#define WXCOLOUR_GREY400 wxColour("#CECECE")
-#define WXCOLOUR_GREY300 wxColour(238, 238, 238)
-#define WXCOLOUR_GREY200 wxColour(248, 248, 248)
+// Semantic light-mode color tokens. Same hex values as the literals
+// scattered across the codebase — this is just a vocabulary that makes
+// intent obvious at call sites
+// The light→dark pairs themselves live in gDarkColors (StateColor.cpp).
+// That table accepts raw hex too, so unmigrated callers stay unaffected.
+namespace ThemeColor {
+
+// Brand
+inline const wxColour BrandGreen{"#00AE42"};        // primary accent — buttons, selected borders, focus rings
+inline const wxColour BrandGreenHovered{"#3DCB73"}; // BrandGreen button hover state (== rgb 61,203,115)
+inline const wxColour BrandGreenPressed{"#1B8844"}; // BrandGreen button pressed state (== rgb 27,136,68)
+
+// Feedback / status — pre-declared because their meaning is obvious.
+inline const wxColour Warning{"#FF6F00"}; // attention / needs-action — orange. 14+ raw-hex consumers.
+inline const wxColour Danger{"#D01B1B"};  // error / destructive — red
+
+// Hyperlink / clickable text — blue.
+inline const wxColour Link{"#0078D4"};
+
+// Text
+inline const wxColour TextPrimary{"#262E30"};   // default body text on light surfaces (== DESIGN_GRAY900)
+inline const wxColour TextSecondary{"#323A3D"}; // slightly softer heading/label text (== DESIGN_GRAY800)
+inline const wxColour TextMuted{"#6B6B6B"};     // secondary / placeholder (same hex as Grey700 below)
+inline const wxColour TextDisabled{"#909090"};  // disabled / inactive text (== DESIGN_GRAY600)
+
+// Pure white (card / dialog / hub fill)
+inline const wxColour White{"#FFFFFF"};
+
+// Neutral grey scale — lightest (200) → darkest (700). Suffixes follow the
+// legacy WXCOLOUR_GREY* macro numbering (which skips 600); 250 and 350 are
+// half-steps for shades that sit between the macro rungs.
+inline const wxColour Grey200{"#F8F8F8"};
+inline const wxColour Grey250{"#F1F1F1"}; // panel wrap bg
+inline const wxColour Grey300{"#EEEEEE"};
+inline const wxColour Grey350{"#E8E8E8"}; // borders / dividers
+inline const wxColour Grey400{"#CECECE"};
+inline const wxColour Grey450{"#A6A9AA"}; // dividers / disabled borders (== DESIGN_GRAY400)
+inline const wxColour Grey500{"#9E9E9E"};
+inline const wxColour Grey700{"#6B6B6B"}; // same hex as TextMuted
+
+} // namespace ThemeColor
+
+// Legacy macros. Prefer ThemeColor::GreyNNN directly in new code
+#define WXCOLOUR_GREY200 ThemeColor::Grey200
+#define WXCOLOUR_GREY300 ThemeColor::Grey300
+#define WXCOLOUR_GREY400 ThemeColor::Grey400
+#define WXCOLOUR_GREY500 ThemeColor::Grey500
+#define WXCOLOUR_GREY700 ThemeColor::Grey700
 
 class StateColor
 {

@@ -4,6 +4,7 @@
 #include "../I18N.hpp"
 #include "../Widgets/Button.hpp"
 #include "../Widgets/Label.hpp"
+#include "../Widgets/StateColor.hpp"
 
 #include <wx/filedlg.h>
 #include <wx/sizer.h>
@@ -21,6 +22,9 @@ static wxString single_line_value(wxString value)
     value.Replace("\n", " ");
     return value;
 }
+
+static wxColour dlg_bg()  { return StateColor::darkModeColorFor(*wxWHITE); }
+static wxColour label_fg() { return StateColor::darkModeColorFor(wxColour("#262E30")); }
 }
 
 AssemblyPdfExportDialog::AssemblyPdfExportDialog(wxWindow *parent, const AssemblyPdfExportParams &params)
@@ -35,6 +39,7 @@ AssemblyPdfExportDialog::AssemblyPdfExportDialog(wxWindow *parent, const Assembl
     auto add_text_row = [this, top_sizer](const wxString &label, const wxString &value) {
         auto *row = new wxBoxSizer(wxHORIZONTAL);
         auto *label_ctrl = new wxStaticText(this, wxID_ANY, label);
+        label_ctrl->SetForegroundColour(label_fg());
         m_title_ctrl = new wxTextCtrl(this, wxID_ANY, value, wxDefaultPosition, FromDIP(wxSize(360, -1)));
         m_title_ctrl->SetMaxLength(kPdfCoverTitleMaxLength);
         row->Add(label_ctrl, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
@@ -57,7 +62,7 @@ AssemblyPdfExportDialog::AssemblyPdfExportDialog(wxWindow *parent, const Assembl
                          std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     StateColor ok_btn_bd(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Disabled),
                          std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
-    StateColor ok_btn_text(std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
+    StateColor ok_btn_text(std::pair<wxColour, int>(wxColour(128, 128, 128), StateColor::Disabled),
                            std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
     StateColor cancel_btn_bg(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
                              std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
@@ -141,10 +146,20 @@ wxTextCtrl *AssemblyPdfExportDialog::create_path_row(wxWindow *parent, wxBoxSize
 {
     auto *row = new wxBoxSizer(wxHORIZONTAL);
     auto *label_ctrl = new wxStaticText(parent, wxID_ANY, label);
+    label_ctrl->SetForegroundColour(label_fg());
     auto *text_ctrl = new wxTextCtrl(parent, wxID_ANY, value, wxDefaultPosition, FromDIP(wxSize(360, -1)));
-    auto *browse_btn = new wxButton(parent, wxID_ANY, _L("Browse"));
 
-    browse_btn->Bind(wxEVT_BUTTON, [this, text_ctrl](wxCommandEvent &) { browse_image(text_ctrl); });
+    StateColor browse_bg(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+                         std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    StateColor browse_fg(std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Normal));
+    auto *browse_btn = new Button(parent, _L("Browse"));
+    browse_btn->SetBackgroundColor(browse_bg);
+    browse_btn->SetTextColor(browse_fg);
+    browse_btn->SetMinSize(wxSize(FromDIP(48), FromDIP(20)));
+    browse_btn->SetCornerRadius(FromDIP(4));
+
+    browse_btn->Bind(wxEVT_LEFT_DOWN, [this, text_ctrl](wxMouseEvent &) { browse_image(text_ctrl); });
 
     if (!tooltip.IsEmpty()) {
         label_ctrl->SetToolTip(tooltip);

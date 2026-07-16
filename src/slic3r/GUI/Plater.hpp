@@ -2,6 +2,7 @@
 #define slic3r_Plater_hpp_
 
 #include <memory>
+#include <optional>
 #include <vector>
 #include <boost/filesystem/path.hpp>
 
@@ -78,6 +79,8 @@ class ObjectList;
 class GLCanvas3D;
 class Mouse3DController;
 class NotificationManager;
+
+inline constexpr int kSidebarContextMenuFilamentId = -2;
 class DailyTipsWindow;
 struct Camera;
 class GLToolbar;
@@ -192,7 +195,7 @@ public:
     void delete_filament(size_t filament_id = size_t(-1), int replace_filament_id = -1);  // 0 base, -1 means default
     void change_filament(size_t from_id, size_t to_id);  // 0 base
     void edit_filament();
-    void add_custom_filament(wxColour new_col, const std::string& preset_name = std::string());
+    void add_custom_filament(wxColour new_col, const std::string& preset_name = std::string(), bool skip_preset_validation = false);
     bool is_new_project_in_gcode3mf();
     // BBS
     void on_bed_type_change(BedType bed_type);
@@ -241,7 +244,10 @@ public:
     bool                    is_collapsed();
     void                    collapse(bool collapse);
     bool                    is_fila_switch_ready();
-    void                    update_searcher();
+    // Rebuild the options searcher. Pass a mode to include options up to that mode regardless
+    // of the current view mode (e.g. comAdvanced when transferring modified options between
+    // presets, so options hidden in Simple mode are still compared); omit to use the view mode.
+    void                    update_searcher(std::optional<ConfigOptionMode> mode = std::nullopt);
     void                    update_ui_from_settings();
 	bool                    show_object_list(bool show) const;
     void                    finish_param_edit();
@@ -266,6 +272,7 @@ public:
     void add_mixed_filament();
     void edit_mixed_filament(size_t idx);
     void delete_mixed_filament_at(size_t idx);
+    void decompose_filament_color(int filament_idx);
     void recalc_filament_scroll_sizes();
     void update_mixed_filament_list();
     bool has_broken_mixed_filament() const;
@@ -282,9 +289,11 @@ public:
     void set_need_auto_sync_after_connect_printer(bool need_auto_sync) { m_need_auto_sync_after_connect_printer = need_auto_sync; }
 
 private:
+    // Clears and rebuilds the output vectors with physical filament slots only.
     void  collect_physical_filament_info(std::vector<std::string>& colors,
                                          std::vector<std::string>& names,
-                                         std::vector<std::string>& types);
+                                         std::vector<std::string>& types,
+                                         std::vector<size_t>* config_indices = nullptr);
     void  auto_calc_flushing_volumes_internal(const int filament_id, const int extruder_id);
     void  update_bed_thumbnail(std::string path);
 
@@ -332,6 +341,8 @@ public:
     Sidebar& sidebar();
     const Model& model() const;
     Model& model();
+    const Model& assemble_model() const;
+    Model& assemble_model();
     Bed3D& bed();
     const Print& fff_print() const;
     Print& fff_print();
@@ -691,7 +702,20 @@ public:
     void show_seqprintinfo_notification(bool has_error = false);
     void search(bool plater_is_active, Preset::Type  type, wxWindow *tag, TextInput *etag, wxWindow *stag);
     void mirror(Axis axis);
-    void split_object();
+    void split_object(ModelObject *mo = nullptr, bool ignore_warning = false);
+    // While set, prepare-side object removals are treated as internal restructuring (split / merge) and
+    // are NOT propagated as deletes to the independent assembly model (m_assemble_model).
+    void set_suppress_assemble_delete_propagation(bool suppress);
+    // Prepare-side per-volume delete: drop the assembly volume referencing this part (call before the
+    // prepare ModelVolume is destroyed) so the independent assembly model stays consistent immediately,
+    // and the persisted assembly_model.json does not keep referencing a part that no longer exists.
+    void propagate_volume_delete_to_assemble(const ModelVolume &prepare_volume);
+    // Propagate a prepare-side ModelVolume rename to the matching assembly model volume
+    void sync_assemble_volume_name(const std::string &part_guid, const std::string &new_name);
+    // Change filament for the current assembly-canvas selection. The assembly view owns an independent
+    // model (m_assemble_model), so this edits that model directly and reloads the assembly scene; the
+    // assemble->prepare write-back on assembly-view exit carries the change back to the prepare model.
+    void change_extruder_for_assemble_selection(int extruder);
     void split_volume();
     void optimize_rotation();
     // find all empty cells on the plate and won't overlap with exclusion areas

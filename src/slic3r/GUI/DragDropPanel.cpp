@@ -1,5 +1,6 @@
 #include "DragDropPanel.hpp"
 #include "GUI_App.hpp"
+#include "FilamentBitmapUtils.hpp"
 #include <slic3r/GUI/wxExtensions.hpp>
 
 namespace Slic3r { namespace GUI {
@@ -92,8 +93,8 @@ private:
 
 ///////////////   ColorPanel  start ////////////////////////
 // The UI panel of drag item
-ColorPanel::ColorPanel(DragDropPanel *parent, const wxColour &color, int filament_id, const std::string &type)
-    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(32, 40), wxBORDER_NONE), m_parent(parent), m_color(color), m_filament_id(filament_id), m_type(type)
+ColorPanel::ColorPanel(DragDropPanel *parent, int filament_id, const std::string &type)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(32, 40), wxBORDER_NONE), m_parent(parent), m_type(type), m_filament_id(filament_id)
 {
     Bind(wxEVT_LEFT_DOWN, &ColorPanel::OnLeftDown, this);
     Bind(wxEVT_LEFT_UP, &ColorPanel::OnLeftUp, this);
@@ -103,7 +104,7 @@ ColorPanel::ColorPanel(DragDropPanel *parent, const wxColour &color, int filamen
 void ColorPanel::OnLeftDown(wxMouseEvent &event)
 {
     m_parent->set_is_draging(true);
-    m_parent->DoDragDrop(this, GetColor(), GetType(), GetFilamentId());
+    m_parent->DoDragDrop(this, GetType(), GetFilamentId());
 }
 
 void ColorPanel::OnLeftUp(wxMouseEvent &event) { m_parent->set_is_draging(false); }
@@ -118,22 +119,32 @@ void ColorPanel::OnPaint(wxPaintEvent &event)
     wxString type_label(m_type);
     int type_label_margin = FromDIP(3);
 
-    std::string replace_color = m_color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-    std::string svg_name = "outlined_rect";
-    if (replace_color == "#FFFFFF00") {
-        svg_name = "outlined_rect_transparent";
+    // Derive the filament's color set from its id (the project config is the single source of truth).
+    std::vector<wxColour> colors;
+    bool                  is_gradient = false;
+    get_filament_colors_by_id(m_filament_id - 1, colors, is_gradient); // m_filament_id is 1-based
+    if (colors.empty()) colors.push_back(*wxBLACK);
+
+    if (colors.size() > 1) {
+        // Gradient / dual / multi-color filament: render the full swatch.
+        wxBitmap swatch = create_filament_bitmap(colors, wxSize(svg_size, svg_size), is_gradient);
+        if (swatch.IsOk()) dc.DrawBitmap(swatch, wxPoint(0, 0));
+    } else {
+        std::string replace_color = colors.front().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+        std::string svg_name      = "outlined_rect";
+        if (replace_color == "#FFFFFF00") { svg_name = "outlined_rect_transparent"; }
+        static Slic3r::GUI::BitmapCache cache;
+        wxBitmap                       *bmp = cache.load_svg(svg_name, 0, svg_size, false, false, replace_color, 0.f);
+        // wxBitmap bmp = ScalableBitmap(this, svg_name, svg_size, false, false, false, { replace_color }).bmp();
+        //  ScalableBitmap is not drawn at position (0, 0) by default, why?
+        dc.DrawBitmap(*bmp, wxPoint(0, 0));
     }
-    static Slic3r::GUI::BitmapCache cache;
-    wxBitmap* bmp = cache.load_svg(svg_name, 0, svg_size, false, false, replace_color, 0.f);
-    //wxBitmap bmp = ScalableBitmap(this, svg_name, svg_size, false, false, false, { replace_color }).bmp();
-    // ScalableBitmap is not drawn at position (0, 0) by default, why?
-    dc.DrawBitmap(*bmp, wxPoint(0,0));
 
     //dc.SetPen(wxPen(*wxBLACK, 1));
     //dc.DrawRectangle(0, 0, svg_size, svg_size);
 
     wxString label = wxString::Format(wxT("%d"), m_filament_id);
-    dc.SetTextForeground(m_color.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);  // set text color
+    dc.SetTextForeground(colors.front().GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK); // set text color
     dc.DrawLabel(label, wxRect(0, 0, svg_size, svg_size), wxALIGN_CENTER);
 
     if(m_parent)
@@ -157,9 +168,8 @@ void ColorPanel::OnPaint(wxPaintEvent &event)
 class ColorDropSource : public wxDropSource
 {
 public:
-    ColorDropSource(wxPanel *parent, wxPanel *color_block, const wxColour &color, const std::string& type, int filament_id) : wxDropSource(parent)
+    ColorDropSource(wxPanel *parent, wxPanel *color_block, const std::string& type, int filament_id) : wxDropSource(parent)
     {
-        m_data.SetColor(color);
         m_data.SetFilament(filament_id);
         m_data.SetType(type);
         SetData(m_data);  // Set drag source data
@@ -195,8 +205,7 @@ wxDragResult ColorDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
     if (!GetData())
         return wxDragNone;
 
-    ColorDataObject *dataObject = dynamic_cast<ColorDataObject *>(GetDataObject());
-    m_panel->AddColorBlock(m_data->GetColor(), m_data->GetType(), m_data->GetFilament());
+    m_panel->AddColorBlock(m_data->GetType(), m_data->GetFilament());
 
     return wxDragCopy;
 }
@@ -245,9 +254,9 @@ DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_au
     Fit();
 }
 
-void DragDropPanel::AddColorBlock(const wxColour &color, const std::string &type, int filament_id, bool update_ui)
+void DragDropPanel::AddColorBlock(const std::string &type, int filament_id, bool update_ui)
 {
-    ColorPanel *panel = new ColorPanel(this, color, filament_id, type);
+    ColorPanel *panel = new ColorPanel(this, filament_id, type);
     panel->SetMinSize(wxSize(FromDIP(30), FromDIP(60)));
     m_grid_item_sizer->Add(panel, 0);
     m_filament_blocks.push_back(panel);
@@ -284,12 +293,12 @@ void DragDropPanel::RemoveColorBlock(ColorPanel *panel, bool update_ui)
     }
 }
 
-void DragDropPanel::DoDragDrop(ColorPanel *panel, const wxColour &color, const std::string &type, int filament_id)
+void DragDropPanel::DoDragDrop(ColorPanel *panel, const std::string &type, int filament_id)
 {
     if (m_is_auto)
         return;
 
-    ColorDropSource source(this, panel, color, type, filament_id);
+    ColorDropSource source(this, panel, type, filament_id);
     if (source.DoDragDrop(wxDrag_CopyOnly) == wxDragResult::wxDragCopy) {
         this->RemoveColorBlock(panel);
     }
@@ -358,7 +367,7 @@ wxDragResult SeparatedColorDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult
 {
     if (!GetData()) return wxDragNone;
 
-    m_panel->AddColorBlock(m_data->GetColor(), m_data->GetType(), m_data->GetFilament(), false);
+    m_panel->AddColorBlock(m_data->GetType(), m_data->GetFilament(), false);
     return wxDragCopy;
 }
 
@@ -467,7 +476,7 @@ void SeparatedDragDropPanel::SetUseSeparation(bool use_separation)
         if (use_separation) {
             auto blocks = m_unified_panel->get_filament_blocks();
             for (auto &block : blocks) {
-                m_standard_panel->AddColorBlock(block->GetColor(), block->GetType(), block->GetFilamentId(), false);
+                m_standard_panel->AddColorBlock(block->GetType(), block->GetFilamentId(), false);
                 m_unified_panel->RemoveColorBlock(block, false);
             }
         } else {
@@ -475,12 +484,12 @@ void SeparatedDragDropPanel::SetUseSeparation(bool use_separation)
             auto standard_blocks  = m_standard_panel->get_filament_blocks();
 
             for (auto &block : high_flow_blocks) {
-                m_unified_panel->AddColorBlock(block->GetColor(), block->GetType(), block->GetFilamentId(), false);
+                m_unified_panel->AddColorBlock(block->GetType(), block->GetFilamentId(), false);
                 m_high_flow_panel->RemoveColorBlock(block, false);
             }
 
             for (auto &block : standard_blocks) {
-                m_unified_panel->AddColorBlock(block->GetColor(), block->GetType(), block->GetFilamentId(), false);
+                m_unified_panel->AddColorBlock(block->GetType(), block->GetFilamentId(), false);
                 m_standard_panel->RemoveColorBlock(block, false);
             }
         }
@@ -489,13 +498,13 @@ void SeparatedDragDropPanel::SetUseSeparation(bool use_separation)
     }
 }
 
-void SeparatedDragDropPanel::AddColorBlock(const wxColour &color, const std::string &type, int filament_id, bool is_high_flow, bool update_ui)
+void SeparatedDragDropPanel::AddColorBlock(const std::string &type, int filament_id, bool is_high_flow, bool update_ui)
 {
     if (m_use_separation) {
         if (is_high_flow) {
-            m_high_flow_panel->AddColorBlock(color, type, filament_id, update_ui);
+            m_high_flow_panel->AddColorBlock(type, filament_id, update_ui);
         } else {
-            m_standard_panel->AddColorBlock(color, type, filament_id, update_ui);
+            m_standard_panel->AddColorBlock(type, filament_id, update_ui);
         }
 
         if (update_ui) {
@@ -505,7 +514,7 @@ void SeparatedDragDropPanel::AddColorBlock(const wxColour &color, const std::str
             });
         }
     } else {
-        m_unified_panel->AddColorBlock(color, type, filament_id, update_ui);
+        m_unified_panel->AddColorBlock(type, filament_id, update_ui);
     }
 }
 
@@ -555,7 +564,8 @@ std::vector<int> SeparatedDragDropPanel::GetHighFlowFilaments() const
     const int right_eid = 1;
     if (nozzle_volumes->values.size() > right_eid) {
         int volume_type = nozzle_volumes->values[right_eid];
-        if (volume_type == static_cast<int>(NozzleVolumeType::nvtHighFlow)) {
+        if (volume_type == static_cast<int>(NozzleVolumeType::nvtHighFlow) ||
+            volume_type == static_cast<int>(NozzleVolumeType::nvtE3DHighFlow)) {
             return m_unified_panel->GetAllFilaments();
         }
     }

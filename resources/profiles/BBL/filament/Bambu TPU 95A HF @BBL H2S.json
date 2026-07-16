@@ -16,48 +16,59 @@
     ],
     "filament_cooling_before_tower": [
         "10",
+        "10",
         "10"
     ],
     "filament_deretraction_speed": [
+        "10",
         "10",
         "10"
     ],
     "filament_flow_ratio": [
         "1",
+        "1",
         "1"
     ],
     "filament_max_volumetric_speed": [
         "12",
+        "12",
         "12"
     ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0",
+        "0"
+    ],
     "filament_ramming_volumetric_speed": [
+        "3",
         "3",
         "3"
     ],
     "filament_retraction_length": [
         "2",
+        "2",
         "2"
     ],
     "filament_retraction_speed": [
         "10",
+        "10",
         "10"
     ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
-    ],
     "include": [
-        "fdm_filament_template_direct_dual"
+        "fdm_filament_template_direct_dual_e3d"
     ],
     "long_retractions_when_ec": [
+        "0",
         "0",
         "0"
     ],
     "nozzle_temperature": [
         "230",
+        "230",
         "230"
     ],
     "nozzle_temperature_initial_layer": [
+        "230",
         "230",
         "230"
     ],
@@ -66,16 +77,16 @@
     ],
     "retraction_distances_when_ec": [
         "0",
+        "0",
         "0"
     ],
     "slow_down_min_speed": [
         "20",
+        "20",
         "20"
     ],
     "compatible_printers": [
-        "Bambu Lab H2S 0.4 nozzle",
-        "Bambu Lab H2S 0.6 nozzle",
-        "Bambu Lab H2S 0.8 nozzle"
+        "Bambu Lab H2S 0.4 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"

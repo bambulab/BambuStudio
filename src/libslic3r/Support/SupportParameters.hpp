@@ -309,6 +309,13 @@ struct SupportParameters {
     float 					raft_interface_angle(size_t interface_id) const
     	{ return this->raft_angle_interface + ((interface_id & 1) ? float(- M_PI / 4.) : float(+ M_PI / 4.)); }
 
+    // Produce a support interface angle for a given SupportLayer::interface_id()
+    float                   support_interface_angle(size_t interface_id, SupportMaterialInterfacePattern interface_pattenn) const {
+        if (this->support_style == smsGrid || interface_pattenn == smipRectilinear)
+            return this->interface_angle;
+        return this->interface_angle + ((interface_id & 1) ? float(-M_PI / 4.) : float(+M_PI / 4.));
+    }
+
     bool independent_layer_height = false;
     const double thresh_big_overhang = /*Slic3r::sqr(scale_(10))*/scale_(10);
 

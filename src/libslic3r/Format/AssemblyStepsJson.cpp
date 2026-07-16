@@ -253,6 +253,7 @@ void PartNumberLabel::to_json(nlohmann::json &j) const
     j["object_idx"]         = object_idx;
     j["volume_idx"]         = volume_idx;
     j["part_name"]          = part_name;
+    j["uuid"]          = part_guid;
     j["arrow_start_offset"] = {arrow_start_offset.x(), arrow_start_offset.y()};
     j["arrow_end_offset"]   = {arrow_end_offset.x(), arrow_end_offset.y()};
 }
@@ -262,6 +263,7 @@ void PartNumberLabel::from_json(const nlohmann::json &j)
     json_get_int(j, "object_idx", object_idx);
     json_get_int(j, "volume_idx", volume_idx);
     json_get_string(j, "part_name", part_name);
+    json_get_string(j, "uuid", part_guid);
     json_get_vec2d(j, "arrow_start_offset", arrow_start_offset);
     json_get_vec2d(j, "arrow_end_offset", arrow_end_offset);
 }
@@ -693,7 +695,7 @@ std::string AssemblyStepJson::to_json_string() const
 {
     try {
         nlohmann::json root;
-        root["version"] = 1;//V1.0 2020610
+        root["version"] = 1.1;//V1.0 2020610 //V1.1 2020715
         root["assembly_part_number_label_font_size"] = m_assembly_part_number_label_font_size;
         root["camera_ref_viewport_w"] = m_camera_ref_viewport_w;
         root["camera_ref_viewport_h"] = m_camera_ref_viewport_h;
@@ -1005,25 +1007,21 @@ bool AssemblyStepsTreeData::from_json_string(
         // Capture the load-time model snapshot as the baseline for the assembly view.
         // The 3mf was saved with model and steps data consistent, so this snapshot
         // represents "the model state the loaded steps data matches". Runtime-only.
-        parsed.loaded_recorded_objects.clear();
         parsed.loaded_recorded_volumes.clear();
         for (int oi = 0; oi < object_count; ++oi) {
             const ModelObject *obj = model.objects[oi];
             if (!obj)
                 continue;
-            const size_t object_id = obj->id().id;
-            if (!obj->instances.empty())
-                parsed.loaded_recorded_objects.insert(object_id);
             for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
                 const ModelVolume *volume = obj->volumes[vi];
                 if (volume)
-                    parsed.loaded_recorded_volumes.insert({object_id, volume->id().id});
+                    parsed.loaded_recorded_volumes.insert(volume->ensure_part_guid());
             }
         }
         // Only trust the snapshot as a baseline when the final-assembly step's end
-        // frame actually covers the same objects/volumes as the loaded model. If
-        // they don't line up (stale steps data vs model), leave the flag false so
-        // the runtime re-syncs instead of skipping it on this loaded baseline.
+        // frame actually covers the same volumes as the loaded model. If they don't
+        // line up (stale steps data vs model), leave the flag false so the runtime
+        // re-syncs instead of skipping it on this loaded baseline.
         bool baseline_matches_end_frame = false;
         {
             const KeyFrame *end_kf = nullptr;
@@ -1039,22 +1037,10 @@ bool AssemblyStepsTreeData::from_json_string(
                 break;
             }
             if (end_kf != nullptr) {
-                // Convert the end frame's index-keyed pose maps into the same
-                // (object_id) / (object_id, volume_id) space as the snapshot above.
-                std::set<size_t>                    end_objects;
-                std::set<std::pair<size_t, size_t>> end_volumes;
+                // Resolve the end frame's index-keyed pose maps into part GUIDs.
+                std::set<std::string> end_volumes;
                 bool keys_valid = true;
-                for (const auto &p : end_kf->object_transformations) {
-                    const int oi = p.first;
-                    if (oi < 0 || oi >= object_count || model.objects[oi] == nullptr) {
-                        keys_valid = false;
-                        break;
-                    }
-                    end_objects.insert(model.objects[oi]->id().id);
-                }
                 for (const auto &p : end_kf->volume_transformations) {
-                    if (!keys_valid)
-                        break;
                     const int oi = p.first.first;
                     const int vi = p.first.second;
                     if (oi < 0 || oi >= object_count || model.objects[oi] == nullptr ||
@@ -1063,10 +1049,9 @@ bool AssemblyStepsTreeData::from_json_string(
                         keys_valid = false;
                         break;
                     }
-                    end_volumes.insert({model.objects[oi]->id().id, model.objects[oi]->volumes[vi]->id().id});
+                    end_volumes.insert(model.objects[oi]->volumes[vi]->ensure_part_guid());
                 }
                 if (keys_valid &&
-                    end_objects == parsed.loaded_recorded_objects &&
                     end_volumes == parsed.loaded_recorded_volumes) {
                     baseline_matches_end_frame = true;
                 }
@@ -1081,6 +1066,180 @@ bool AssemblyStepsTreeData::from_json_string(
             *error = e.what();
         return false;
     }
+}
+
+// ---- Independent assembly model (object graph) JSON ----
+namespace {
+static void matrix4_to_json(nlohmann::json &arr, const Transform3d &t)
+{
+    arr = nlohmann::json::array();
+    const auto &m = t.matrix();
+    for (int r = 0; r < 4; ++r)
+        for (int c = 0; c < 4; ++c)
+            arr.push_back(m(r, c));
+}
+static bool json_to_matrix4(const nlohmann::json &j, const char *key, Transform3d &out)
+{
+    if (!j.contains(key) || !j[key].is_array() || j[key].size() != 16)
+        return false;
+    Transform3d t = Transform3d::Identity();
+    int idx = 0;
+    for (int r = 0; r < 4; ++r)
+        for (int c = 0; c < 4; ++c)
+            t.matrix()(r, c) = j[key][idx++].get<double>();
+    out = t;
+    return true;
+}
+} // namespace
+
+std::string assembly_model_to_json_string(const Model &assembly_model)
+{
+    nlohmann::json root;
+    root["version"] = 1;
+    nlohmann::json jobjects = nlohmann::json::array();
+    for (const ModelObject *mo : assembly_model.objects) {
+        if (mo == nullptr)
+            continue;
+        nlohmann::json jobj;
+        jobj["id"]   = (int) mo->id().id;
+        jobj["type"] = "group";
+        jobj["name"] = mo->name;
+        nlohmann::json jvols = nlohmann::json::array();
+            for (const ModelVolume *mv : mo->volumes) {
+                if (mv == nullptr)
+                    continue;
+                nlohmann::json jv;
+                jv["id"]     = (int) mv->id().id;
+                jv["type"]   = "leaf";
+                jv["volume"] = mv->assembly_src_guid();
+                jv["name"]   = mv->name;
+                // keep the assemble_transform which defines the part's pose in the assembly coordinate system.
+                matrix4_to_json(jv["assemble_transform"], mv->get_assemble_transformation().get_matrix());
+                // The local transform ("transform") and type/uuid are omitted because they are not required in the assembly view.
+                jvols.push_back(std::move(jv));
+            }
+        jobj["nodes"] = std::move(jvols);
+
+        if (mo->instances.size() == 1 && mo->instances.front() != nullptr) {
+            const ModelInstance *mi = mo->instances.front();
+            // Only the assemble_transform is needed for the assembly model.
+            matrix4_to_json(jobj["assemble_transform"], mi->get_assemble_transformation().get_matrix());
+            const Vec3d off = mi->get_offset_to_assembly();
+            jobj["offset_to_assembly"] = {off.x(), off.y(), off.z()};
+        } else {
+            nlohmann::json jinsts = nlohmann::json::array();
+            for (const ModelInstance *mi : mo->instances) {
+                if (mi == nullptr)
+                    continue;
+                nlohmann::json ji;
+                // Only the assemble_transform is needed for the assembly model.
+                matrix4_to_json(ji["assemble_transform"], mi->get_assemble_transformation().get_matrix());
+                const Vec3d off       = mi->get_offset_to_assembly();
+                ji["offset_to_assembly"] = {off.x(), off.y(), off.z()};
+                jinsts.push_back(std::move(ji));
+            }
+            jobj["instances"] = std::move(jinsts);
+        }
+        jobjects.push_back(std::move(jobj));
+    }
+    root["nodes"] = std::move(jobjects);
+    return root.dump(2);
+}
+
+bool assembly_model_from_json_string(const std::string &json_str, Model &out_assembly_model, const Model &mesh_source, std::string *error)
+{
+    out_assembly_model.clear_objects();
+    if (json_str.empty()) {
+        if (error != nullptr)
+            *error = "empty assembly model json";
+        return false;
+    }
+
+    nlohmann::json root;
+    try {
+        root = nlohmann::json::parse(json_str);
+    } catch (const std::exception &e) {
+        if (error != nullptr)
+            *error = e.what();
+        return false;
+    }
+    int version = 0;
+    json_get_int(root, "version", version);
+
+    if (!root.contains("nodes") || !root["nodes"].is_array()) {
+        if (error != nullptr)
+            *error = "missing objects array";
+        return false;
+    }
+
+    // Index prepare-side parts by part_guid so each assembly volume can rebind its mesh shared_ptr.
+    std::unordered_map<std::string, const ModelVolume *> src_by_guid;
+    for (const ModelObject *mo : mesh_source.objects)
+        for (const ModelVolume *mv : mo->volumes)
+            if (mv != nullptr && !mv->part_guid().empty())
+                src_by_guid.emplace(mv->part_guid(), mv);
+
+    for (const auto &jobj : root["nodes"]) {
+        ModelObject *ao = out_assembly_model.add_object();
+        if (jobj.contains("name") && jobj["name"].is_string())
+            ao->name = jobj["name"].get<std::string>();
+
+        if (jobj.contains("nodes") && jobj["nodes"].is_array()) {
+            for (const auto &jv : jobj["nodes"]) {
+                std::string src_guid;
+                // The source GUID is now stored under the alias "volume".
+                json_get_string(jv, "volume", src_guid);
+                auto it = src_guid.empty() ? src_by_guid.end() : src_by_guid.find(src_guid);
+                if (it == src_by_guid.end())
+                    continue; // prepare-side part gone -> drop this volume (delete already propagated)
+
+                // Clone shares the mesh shared_ptr and copies config/type; then override identity + poses.
+                ModelVolume *av = ao->add_volume(*it->second);
+                // Preserve extruder configuration as before.
+                const ConfigOption *vol_extruder_opt = av->config.option("extruder");
+                if (vol_extruder_opt == nullptr || vol_extruder_opt->getInt() == 0)
+                    av->config.set_key_value("extruder", new ConfigOptionInt(it->second->extruder_id()));
+                // The part GUID is no longer stored separately; it will be derived from the source volume when needed.
+                av->set_assembly_src_guid(src_guid);
+                // If the part GUID is missing (new format), fall back to the assembly source GUID.
+                if (av->part_guid().empty())
+                    av->set_part_guid(src_guid);
+                if (jv.contains("name") && jv["name"].is_string())
+                    av->name = jv["name"].get<std::string>();
+                // The type, local transform and explicit UUID are omitted in the new JSON format.
+                Transform3d t;
+                if (json_to_matrix4(jv, "assemble_transform", t))
+                    av->set_assemble_from_transform(t);
+            }
+        }
+
+        if (jobj.contains("instances") && jobj["instances"].is_array()) {
+            for (const auto &ji : jobj["instances"]) {
+                ModelInstance *ai = ao->add_instance();
+                Transform3d t;
+                // The local transform is not needed for the assembly model.
+                if (json_to_matrix4(ji, "assemble_transform", t))
+                    ai->set_assemble_from_transform(t);
+                if (ji.contains("offset_to_assembly") && ji["offset_to_assembly"].is_array() && ji["offset_to_assembly"].size() == 3)
+                    ai->set_offset_to_assembly(Vec3d(ji["offset_to_assembly"][0].get<double>(),
+                                                     ji["offset_to_assembly"][1].get<double>(),
+                                                     ji["offset_to_assembly"][2].get<double>()));
+            }
+        } else if (jobj.contains("assemble_transform") || jobj.contains("offset_to_assembly")) {
+            ModelInstance *ai = ao->add_instance();
+            Transform3d t;
+            if (json_to_matrix4(jobj, "assemble_transform", t))
+                ai->set_assemble_from_transform(t);
+            if (jobj.contains("offset_to_assembly") && jobj["offset_to_assembly"].is_array() && jobj["offset_to_assembly"].size() == 3)
+                ai->set_offset_to_assembly(Vec3d(jobj["offset_to_assembly"][0].get<double>(),
+                                                 jobj["offset_to_assembly"][1].get<double>(),
+                                                 jobj["offset_to_assembly"][2].get<double>()));
+        }
+        // Every renderable object needs at least one instance.
+        if (ao->instances.empty())
+            ao->add_instance();
+    }
+    return true;
 }
 
 } // namespace Slic3r

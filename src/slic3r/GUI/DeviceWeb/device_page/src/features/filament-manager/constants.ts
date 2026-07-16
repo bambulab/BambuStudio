@@ -9,15 +9,6 @@ export const BAMBU_COLORS = [
   '#66CCCC','#6699FF','#CC99FF','#FFCC99',
 ];
 
-// i18n source strings — localized via en/zh_CN locale files. Previously used
-// placeholder keys ("entry_manual" / "entry_ams_sync" / "entry_rfid") which
-// had no translations, so the raw key leaked through to the UI (F3.1).
-export const ENTRY_METHOD_LABELS: Record<string, string> = {
-  manual: 'Manual Entry',
-  ams_sync: 'AMS Sync',
-  rfid: 'RFID',
-};
-
 export const PAGE_SIZES = [20, 50, 100] as const;
 export const DEFAULT_PAGE_SIZE = 50;
 
@@ -52,4 +43,35 @@ export function formatSpoolDisplayName(s: { brand?: string; material_type?: stri
   const type = (s.material_type || '').trim();
   const namePart = series || type;
   return [brand, namePart].filter(Boolean).join(' ');
+}
+
+// Maps numeric ams_type (C++ DevAmsType enum) to product display names.
+export const AMS_TYPE_NAMES: Record<number, string> = {
+  0: 'External Spool',
+  1: 'AMS',
+  2: 'AMS Lite',
+  3: 'AMS 2 Pro',
+  4: 'AMS HT',
+  5: 'AMS Lite',
+  6: 'AMS',
+  7: 'AMS',
+};
+
+export function formatSlotLocation(
+  deviceName: string | undefined,
+  amsType: number | undefined,
+  slotId: string | undefined,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+  trayLabel?: string
+): string | null {
+  if (!deviceName) return null;
+  const amsTypeName = amsType != null && amsType >= 0
+    ? (AMS_TYPE_NAMES[amsType] ?? `AMS(${amsType})`)
+    : null;
+  const slotLabel = trayLabel
+    ? trayLabel
+    : (slotId != null && slotId !== ''
+      ? t('Slot {{n}}', { n: Number(slotId) + 1 })
+      : null);
+  return [deviceName, amsTypeName, slotLabel].filter(Boolean).join(' · ');
 }

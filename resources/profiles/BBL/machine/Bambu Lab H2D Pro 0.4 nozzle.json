@@ -23,6 +23,13 @@
         "30",
         "30"
     ],
+    "deretract_speed_extruder_change": [
+        "15",
+        "15",
+        "15",
+        "15",
+        "15"
+    ],
     "extruder_clearance_height_to_lid": "201",
     "extruder_clearance_height_to_rod": "47.4",
     "extruder_clearance_max_radius": "96",
@@ -31,6 +38,7 @@
         "2"
     ],
     "enable_pre_heating": "1",
+    "extruder_height_gap": "5",
     "extruder_clearance_radius": "49",
     "extruder_printable_area": [
         "0x0,325x0,325x320,0x320",
@@ -372,8 +380,9 @@
         "319",
         "319"
     ],
-    "support_chamber_temp_control": "1",
     "support_cooling_filter": "1",
+    "support_chamber_temp_control": "1",
+    "support_object_skip_flush": "0",
     "wipe": [
         "1",
         "1",

@@ -12,11 +12,9 @@
     "printer_model": "Bambu Lab H2D",
     "farthest_point_timelapse": "1",
     "printer_variant": "0.4",
-    "default_filament_profile": [
-        "Bambu PLA Basic @BBL H2D"
-    ],
-    "default_print_profile": "0.20mm Standard @BBL H2D",
     "deretraction_speed": [
+        "30",
+        "30",
         "30",
         "30",
         "30",
@@ -24,6 +22,8 @@
         "30"
     ],
     "deretract_speed_extruder_change": [
+        "15",
+        "15",
         "15",
         "15",
         "15",
@@ -45,8 +45,8 @@
         "25x0,350x0,350x320,25x320"
     ],
     "extruder_variant_list": [
-        "Direct Drive Standard,Direct Drive High Flow",
-        "Direct Drive Standard,Direct Drive High Flow,Direct Drive TPU High Flow"
+        "Direct Drive Standard,Direct Drive High Flow,Direct Drive E3D High Flow",
+        "Direct Drive Standard,Direct Drive High Flow,Direct Drive TPU High Flow,Direct Drive E3D High Flow"
     ],
     "fan_direction": "left",
     "hotend_cooling_rate": [
@@ -54,9 +54,13 @@
         "2",
         "2",
         "2",
+        "2",
+        "2",
         "2"
     ],
     "hotend_heating_rate": [
+        "3.6",
+        "3.6",
         "3.6",
         "3.6",
         "3.6",
@@ -76,10 +80,16 @@
         "0",
         "0",
         "0",
+        "0",
+        "0",
         "0"
     ],
-    "machine_load_filament_time": "30",
+    "machine_load_filament_time": "26",
     "machine_max_acceleration_e": [
+        "5000",
+        "5000",
+        "5000",
+        "5000",
         "5000",
         "5000",
         "5000",
@@ -101,9 +111,17 @@
         "20000",
         "20000",
         "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
         "20000"
     ],
     "machine_max_acceleration_retracting": [
+        "5000",
+        "5000",
+        "5000",
+        "5000",
         "5000",
         "5000",
         "5000",
@@ -125,9 +143,17 @@
         "20000",
         "20000",
         "20000",
+        "20000",
+        "20000",
+        "20000",
+        "20000",
         "20000"
     ],
     "machine_max_acceleration_y": [
+        "20000",
+        "20000",
+        "20000",
+        "20000",
         "20000",
         "20000",
         "20000",
@@ -149,9 +175,17 @@
         "500",
         "500",
         "500",
+        "500",
+        "500",
+        "500",
+        "500",
         "500"
     ],
     "machine_max_jerk_e": [
+        "2.5",
+        "2.5",
+        "2.5",
+        "2.5",
         "2.5",
         "2.5",
         "2.5",
@@ -173,9 +207,17 @@
         "9",
         "9",
         "9",
+        "9",
+        "9",
+        "9",
+        "9",
         "9"
     ],
     "machine_max_jerk_y": [
+        "9",
+        "9",
+        "9",
+        "9",
         "9",
         "9",
         "9",
@@ -197,9 +239,17 @@
         "3",
         "3",
         "3",
+        "3",
+        "3",
+        "3",
+        "3",
         "3"
     ],
     "machine_max_speed_e": [
+        "50",
+        "50",
+        "50",
+        "50",
         "50",
         "50",
         "50",
@@ -221,9 +271,17 @@
         "1000",
         "1000",
         "1000",
+        "1000",
+        "1000",
+        "1000",
+        "1000",
         "1000"
     ],
     "machine_max_speed_y": [
+        "1000",
+        "1000",
+        "1000",
+        "1000",
         "1000",
         "1000",
         "1000",
@@ -245,12 +303,20 @@
         "30",
         "30",
         "30",
+        "30",
+        "30",
+        "30",
+        "30",
         "30"
     ],
     "machine_switch_extruder_time": "5.6",
-    "machine_unload_filament_time": "30",
+    "machine_unload_filament_time": "26",
     "master_extruder_id": "2",
     "machine_max_acceleration_travel": [
+        "9000",
+        "9000",
+        "9000",
+        "9000",
         "9000",
         "9000",
         "9000",
@@ -265,11 +331,15 @@
     "nozzle_flush_dataset": [
         "1",
         "2",
+        "2",
         "1",
+        "2",
         "2",
         "2"
     ],
     "nozzle_type": [
+        "hardened_steel",
+        "hardened_steel",
         "hardened_steel",
         "hardened_steel",
         "hardened_steel",
@@ -279,7 +349,9 @@
     "nozzle_volume": [
         "130",
         "133",
+        "133",
         "145",
+        "148",
         "148",
         "148"
     ],
@@ -292,6 +364,8 @@
     "printer_extruder_id": [
         "1",
         "1",
+        "1",
+        "2",
         "2",
         "2",
         "2"
@@ -299,11 +373,15 @@
     "printer_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow",
+        "Direct Drive E3D High Flow",
         "Direct Drive Standard",
         "Direct Drive High Flow",
-        "Direct Drive TPU High Flow"
+        "Direct Drive TPU High Flow",
+        "Direct Drive E3D High Flow"
     ],
     "retract_before_wipe": [
+        "0%",
+        "0%",
         "0%",
         "0%",
         "0%",
@@ -315,9 +393,13 @@
         "2",
         "2",
         "2",
+        "2",
+        "2",
         "2"
     ],
     "retract_restart_extra": [
+        "0",
+        "0",
         "0",
         "0",
         "0",
@@ -329,9 +411,13 @@
         "0",
         "0",
         "0",
+        "0",
+        "0",
         "0"
     ],
     "retract_when_changing_layer": [
+        "1",
+        "1",
         "1",
         "1",
         "1",
@@ -343,9 +429,13 @@
         "10",
         "10",
         "10",
+        "10",
+        "10",
         "10"
     ],
     "retraction_length": [
+        "0.8",
+        "0.8",
         "0.8",
         "0.8",
         "0.8",
@@ -357,9 +447,13 @@
         "1",
         "1",
         "1",
+        "1",
+        "1",
         "1"
     ],
     "retraction_speed": [
+        "30",
+        "30",
         "30",
         "30",
         "30",
@@ -371,9 +465,13 @@
         "0",
         "0",
         "0",
+        "0",
+        "0",
         "0"
     ],
     "retract_lift_below": [
+        "319",
+        "319",
         "319",
         "319",
         "319",
@@ -385,6 +483,8 @@
     "support_chamber_temp_control": "1",
     "support_object_skip_flush": "0",
     "wipe": [
+        "1",
+        "1",
         "1",
         "1",
         "1",
@@ -402,6 +502,8 @@
         "2",
         "2",
         "2",
+        "2",
+        "2",
         "2"
     ],
     "z_hop": [
@@ -409,9 +511,13 @@
         "0.4",
         "0.4",
         "0.4",
+        "0.4",
+        "0.4",
         "0.4"
     ],
     "z_hop_types": [
+        "Auto Lift",
+        "Auto Lift",
         "Auto Lift",
         "Auto Lift",
         "Auto Lift",

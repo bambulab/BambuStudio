@@ -206,6 +206,13 @@ void DeviceWebHost::NotifyFilamentSessionState()
     m_device_web_mgr->NotifyState("filament", "spool", "list");
 }
 
+void DeviceWebHost::DispatchCommand(const nlohmann::json& body)
+{
+    EnsureBuilt();
+    if (m_device_web_mgr)
+        m_device_web_mgr->Dispatch(body);
+}
+
 void DeviceWebHost::NotifyFilamentMachineChanged()
 {
     if (!m_device_web_mgr || !CanReportToWeb())

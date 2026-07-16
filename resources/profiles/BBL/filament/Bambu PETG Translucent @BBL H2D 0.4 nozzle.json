@@ -5,46 +5,61 @@
     "from": "system",
     "setting_id": "GFSG01_06",
     "instantiation": "true",
+    "filament_change_length": [
+        "4"
+    ],
     "filament_cooling_before_tower": [
+        "10",
         "10",
         "10"
     ],
     "filament_max_volumetric_speed": [
         "6",
+        "6",
         "6"
     ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
+    "filament_preheat_temperature_delta": [
+        "20",
+        "20",
+        "20"
     ],
     "filament_prime_volume": [
         "30"
     ],
-    "filament_change_length": [
-        "4"
+    "filament_ramming_travel_time": [
+        "0",
+        "0",
+        "0"
+    ],
+    "filament_retraction_length": [
+        "nil",
+        "nil",
+        "1"
     ],
     "include": [
-        "fdm_filament_template_direct_dual"
+        "fdm_filament_template_direct_dual_e3d"
     ],
     "nozzle_temperature": [
+        "245",
         "245",
         "245"
     ],
     "nozzle_temperature_initial_layer": [
+        "250",
         "250",
         "250"
     ],
     "pre_start_fan_time": [
         "2"
     ],
+    "slow_down_layer_time": [
+        "8"
+    ],
     "supertack_plate_temp": [
         "60"
     ],
     "supertack_plate_temp_initial_layer": [
         "60"
-    ],
-    "slow_down_layer_time": [
-        "8"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle"

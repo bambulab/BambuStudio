@@ -1,14 +1,15 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CandidateColor, Spool } from './types';
 import { SpoolColorChip } from './SpoolColorChip';
-import { PAGE_SIZES, DEFAULT_PAGE_SIZE, formatSpoolDisplayName } from './constants';
+import { PAGE_SIZES, DEFAULT_PAGE_SIZE, formatSpoolDisplayName, formatSlotLocation } from './constants';
 import useStore from '../../store/AppStore';
 import {
   cssBackgroundFor,
   hexLabelFor,
   resolveCandidateForSpool,
 } from './colors';
+
 
 function getDisplayedRemainWeight(s: Spool) {
   if (typeof s.net_weight === 'number' && s.net_weight > 0) {
@@ -114,6 +115,14 @@ const paginationButtonActive = 'border-fm-border-focus bg-fm-selected text-fm-te
 const tableHeaderCellClass = 'text-left px-6 pt-2 pb-[9px] align-middle text-sm font-normal text-fm-text-strong h-12 sticky top-0 bg-[#141414] [html[data-theme=light]_&]:bg-white z-10 select-none border-b border-fm-border';
 const tableBodyCellClass = 'text-left px-6 pt-2 pb-[9px] border-b border-fm-border align-middle h-[60px]';
 
+// Compare strings: put non-letter initial characters AFTER 'Z'
+function compareFilamentStr(a: string, b: string): number {
+  const aLetter = /^[A-Za-z]/.test(a);
+  const bLetter = /^[A-Za-z]/.test(b);
+  if (aLetter !== bLetter) return aLetter ? -1 : 1;
+  return a.localeCompare(b, undefined, { sensitivity: 'base' });
+}
+
 /* ===== Sort header ===== */
 type SortKey = 'brand' | 'remain_percent';
 // Sort key + direction live in a single state so toggling stays atomic. The
@@ -140,11 +149,13 @@ interface Props {
   onEmptyAdd: () => void;
   /** Delete semantics are uniform: confirm -> remove from store -> cloud DELETE. */
   onDelete: (id: string) => void;
+  /** Called whenever the sorted list changes, to sync parent-level navigation. */
+  onSortedChange?: (sorted: Spool[]) => void;
 }
 
 export function SpoolTable({
   spools, selected, onToggleSelect, onSelectAll, grouped,
-  onDetail, onAddSimilar, onEmptyAdd, onDelete,
+  onDetail, onAddSimilar, onEmptyAdd, onDelete, onSortedChange,
 }: Props) {
   const { t } = useTranslation();
   const [sort, setSort] = useState<SortState>({ key: '', asc: true });
@@ -165,6 +176,15 @@ export function SpoolTable({
     const { key: sortKey, asc: sortAsc } = sort;
     if (!sortKey) return spools;
     return [...spools].sort((a, b) => {
+      if (sortKey === 'brand') {
+        const brandCmp = compareFilamentStr(String(a.brand || ''), String(b.brand || ''));
+        if (brandCmp !== 0) return sortAsc ? brandCmp : -brandCmp;
+        const typeCmp = compareFilamentStr(
+          String(a.series || a.material_type || ''),
+          String(b.series || b.material_type || ''),
+        );
+        return sortAsc ? typeCmp : -typeCmp;
+      }
       const va = (a as any)[sortKey];
       const vb = (b as any)[sortKey];
       if (typeof va === 'number' && typeof vb === 'number') return sortAsc ? va - vb : vb - va;
@@ -179,21 +199,50 @@ export function SpoolTable({
   // Build rows (flat or grouped)
   type FlatRow = { type: 'spool'; spool: Spool } | { type: 'group'; group: SpoolGroup };
 
-  const flatRows = useMemo<FlatRow[]>(() => {
-    if (!grouped) return sorted.map((s) => ({ type: 'spool' as const, spool: s }));
+  // Full grouping + spool order used for pagination. Independent of `collapsed`
+  // so that folding a group never shifts which spools live on which page.
+  const { allGroups, spoolsInGroupOrder } = useMemo(() => {
+    if (!grouped) {
+      return { allGroups: [] as SpoolGroup[], spoolsInGroupOrder: sorted };
+    }
     const groups = groupSpools(sorted);
+    const flat: Spool[] = [];
+    groups.forEach((g) => g.spools.forEach((s) => flat.push(s)));
+    return { allGroups: groups, spoolsInGroupOrder: flat };
+  }, [sorted, grouped]);
+
+  // Notify parent of the actual rendered order, for detail dialog navigation
+  useEffect(() => {
+    onSortedChange?.(spoolsInGroupOrder);
+  }, [spoolsInGroupOrder, onSortedChange]);
+
+  // Pagination is always driven by spool count. Group headers never consume
+  // page slots.
+  const totalSpoolCount = spoolsInGroupOrder.length;
+  const pages = Math.max(1, Math.ceil(totalSpoolCount / pageSize));
+  const safePage = Math.min(page, pages);
+  const startIdx = (safePage - 1) * pageSize;
+  const endIdx = Math.min(startIdx + pageSize, totalSpoolCount);
+
+  const pageRows = useMemo<FlatRow[]>(() => {
+    if (!grouped) {
+      return spoolsInGroupOrder
+        .slice(startIdx, endIdx)
+        .map((s) => ({ type: 'spool' as const, spool: s }));
+    }
+    const inPageIds = new Set<string>();
+    for (let i = startIdx; i < endIdx; i++) inPageIds.add(spoolsInGroupOrder[i].spool_id);
     const rows: FlatRow[] = [];
-    groups.forEach((g) => {
+    allGroups.forEach((g) => {
+      const inPageSpools = g.spools.filter((s) => inPageIds.has(s.spool_id));
+      if (inPageSpools.length === 0) return;
       rows.push({ type: 'group', group: g });
-      if (!collapsed[g.key]) g.spools.forEach((s) => rows.push({ type: 'spool', spool: s }));
+      if (!collapsed[g.key]) {
+        inPageSpools.forEach((s) => rows.push({ type: 'spool', spool: s }));
+      }
     });
     return rows;
-  }, [sorted, grouped, collapsed]);
-
-  const totalRows = flatRows.length;
-  const pages = Math.max(1, Math.ceil(totalRows / pageSize));
-  const safePage = Math.min(page, pages);
-  const pageRows = flatRows.slice((safePage - 1) * pageSize, safePage * pageSize);
+  }, [allGroups, spoolsInGroupOrder, grouped, collapsed, startIdx, endIdx]);
 
   const handleSort = useCallback((key: SortKey) => {
     setSort((prev) => (prev.key === key ? { key, asc: !prev.asc } : { key, asc: true }));
@@ -305,6 +354,7 @@ export function SpoolTable({
                           colorCode={displayColor.colorCode}
                           colors={displayColor.colors}
                           colorType={displayColor.colorType}
+                          amsBadge={s.in_printer === true}
                         />
                       </div>
                       <div className="flex flex-col gap-[2px] min-w-0">
@@ -381,6 +431,21 @@ export function SpoolTable({
                                 {hexLabel && (
                                   <span data-testid="filament-row-color-hex" className="font-mono tracking-wider truncate">{hexLabel}</span>
                                 )}
+                                {s.in_printer === true && (() => {
+                                  const loc = formatSlotLocation(s.device_name, s.ams_type, s.slot_id, t, s.tray_label);
+                                  if (!loc) return null;
+                                  return (
+                                    <>
+                                      <span className="shrink-0">|</span>
+                                      <span
+                                        data-testid="filament-row-location"
+                                        className="text-fm-text-detail shrink-0 font-mono text-[11px]"
+                                      >
+                                        {loc}
+                                      </span>
+                                    </>
+                                  );
+                                })()}
                               </>
                             );
                           })()}
@@ -436,39 +501,37 @@ export function SpoolTable({
         </div>
       </div>
 
-      {/* Pagination */}
-      {totalRows > pageSize && (
-        <div className="flex items-center justify-end gap-1 py-3 shrink-0">
-          <button
-            className={`${paginationButtonBase} ${paginationButtonIdle}`}
-            disabled={safePage <= 1}
-            onClick={() => setPage((p) => Math.max(1, Math.min(p, pages) - 1))}
-          >‹</button>
-          {buildPageRange(safePage, pages).map((p, i) =>
-            p === '...'
-              ? <span key={`d${i}`} className="text-fm-text-detail text-xs px-[2px]">…</span>
-              : <button
-                  key={p}
-                  className={`${paginationButtonBase} ${p === safePage ? paginationButtonActive : paginationButtonIdle}`}
-                  onClick={() => setPage(p)}
-                >{p}</button>
-          )}
-          <button
-            className={`${paginationButtonBase} ${paginationButtonIdle}`}
-            disabled={safePage >= pages}
-            onClick={() => setPage((p) => Math.min(pages, Math.min(p, pages) + 1))}
-          >›</button>
-          <select
-            className="ml-3 bg-fm-inner2 border-none rounded-sm text-fm-text-primary text-xs px-1 py-[2px] cursor-pointer outline-none"
-            value={pageSize}
-            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
-          >
-            {PAGE_SIZES.map((s) => (
-              <option key={s} value={s}>{s}{t('per page')}</option>
-            ))}
-          </select>
-        </div>
-      )}
+      {/* Pagination — always visible below the list (empty state returned earlier) */}
+      <div className="flex items-center justify-end gap-1 py-3 shrink-0">
+        <button
+          className={`${paginationButtonBase} ${paginationButtonIdle}`}
+          disabled={safePage <= 1}
+          onClick={() => setPage((p) => Math.max(1, Math.min(p, pages) - 1))}
+        >‹</button>
+        {buildPageRange(safePage, pages).map((p, i) =>
+          p === '...'
+            ? <span key={`d${i}`} className="text-fm-text-detail text-xs px-[2px]">…</span>
+            : <button
+                key={p}
+                className={`${paginationButtonBase} ${p === safePage ? paginationButtonActive : paginationButtonIdle}`}
+                onClick={() => setPage(p)}
+              >{p}</button>
+        )}
+        <button
+          className={`${paginationButtonBase} ${paginationButtonIdle}`}
+          disabled={safePage >= pages}
+          onClick={() => setPage((p) => Math.min(pages, Math.min(p, pages) + 1))}
+        >›</button>
+        <select
+          className="ml-3 bg-fm-inner2 border-none rounded-sm text-fm-text-primary text-xs px-1 py-[2px] cursor-pointer outline-none"
+          value={pageSize}
+          onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+        >
+          {PAGE_SIZES.map((s) => (
+            <option key={s} value={s}>{s}{t('per page')}</option>
+          ))}
+        </select>
+      </div>
     </>
   );
 }

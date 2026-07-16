@@ -19,6 +19,8 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <cerrno>
+#include <cstring>
 #include <chrono>
 #include <math.h>
 #include <utility>
@@ -1412,7 +1414,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
 // Collect pairs of object_layer + support_layer sorted by print_z.
 // object_layer & support_layer are considered to be on the same print_z, if they are not further than EPSILON.
-std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object)
+std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object, std::string* out_empty_layer_warning)
 {
     std::vector<GCode::LayerToPrint> layers_to_print;
     layers_to_print.reserve(object.layers().size() + object.support_layers().size());
@@ -1516,11 +1518,18 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
         for (i = 0; i < std::min(warning_ranges.size(), size_t(5)); ++i)
             warning += Slic3r::format(_(L("Object can't be printed for empty layer between %1% and %2%.")),
                                       warning_ranges[i].first, warning_ranges[i].second) + "\n";
-        warning += Slic3r::format(_(L("Object: %1%")), object.model_object()->name) + "\n"
-            + _(L("Maybe parts of the object at these height are too thin, or the object has faulty mesh"));
+        warning += Slic3r::format(_(L("Object: %1%")), object.model_object()->name);
 
-        const_cast<Print*>(object.print())->active_step_add_warning(
-            PrintStateBase::WarningLevel::CRITICAL, warning, PrintStateBase::SlicingEmptyGcodeLayers);
+        if (out_empty_layer_warning) {
+            // Defer emission so the caller can aggregate warnings from all objects into a single
+            // notification (this warning is Print-level and shares one message_id, so per-object
+            // emission would otherwise overwrite and keep only the last object).
+            *out_empty_layer_warning = warning;
+        } else {
+            warning += "\n" + _(L("Maybe parts of the object at these height are too thin, or the object has faulty mesh"));
+            const_cast<Print*>(object.print())->active_step_add_warning(
+                PrintStateBase::WarningLevel::CRITICAL, warning, PrintStateBase::SlicingEmptyGcodeLayers);
+        }
     }
 
     return layers_to_print;
@@ -1541,13 +1550,22 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
     std::vector<OrderingItem>               ordering;
 
     std::vector<Slic3r::SlicingError> errors;
+    // Aggregate the empty-layer warning across all objects into a single notification, so the message
+    // lists every affected object instead of only the last one.
+    std::string empty_layer_warning;
 
     for (size_t i = 0; i < print.objects().size(); ++i) {
+        std::string object_empty_layer_warning;
         try {
-            per_object[i] = collect_layers_to_print(*print.objects()[i]);
+            per_object[i] = collect_layers_to_print(*print.objects()[i], &object_empty_layer_warning);
         } catch (const Slic3r::SlicingError &e) {
             errors.push_back(e);
             continue;
+        }
+        if (!object_empty_layer_warning.empty()) {
+            if (!empty_layer_warning.empty())
+                empty_layer_warning += "\n";
+            empty_layer_warning += object_empty_layer_warning;
         }
         OrderingItem ordering_item;
         ordering_item.object_idx = i;
@@ -1561,6 +1579,12 @@ std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> GCode::collec
     }
 
     if (!errors.empty()) { throw Slic3r::SlicingErrors(errors); }
+
+    if (!empty_layer_warning.empty()) {
+        empty_layer_warning += "\n" + _(L("Maybe parts of the object at these height are too thin, or the object has faulty mesh"));
+        const_cast<Print&>(print).active_step_add_warning(
+            PrintStateBase::WarningLevel::CRITICAL, empty_layer_warning, PrintStateBase::SlicingEmptyGcodeLayers);
+    }
 
     std::sort(ordering.begin(), ordering.end(), [](const OrderingItem& oi1, const OrderingItem& oi2) { return oi1.print_z < oi2.print_z; });
 
@@ -1792,9 +1816,15 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         this->_do_export(*print, file, thumbnail_cb);
         file.flush();
         if (file.is_error()) {
+            // Report the real OS error (e.g. "No space left on device", "Permission
+            // denied") instead of always guessing "disk full" — the write can also
+            // fail on a full temp volume, a read-only path, antivirus locks, etc.
+            std::string os_error = file.get_last_error();
             file.close();
             boost::nowide::remove(path_tmp.c_str());
-            throw Slic3r::RuntimeError(std::string("G-code export to ") + PathSanitizer::sanitize(path) + " failed\nIs the disk full?\n");
+            throw Slic3r::RuntimeError(std::string("G-code export to ") + PathSanitizer::sanitize(path) +
+                (os_error.empty() ? " failed\nIs the disk full?\n"
+                                  : " failed: " + os_error + "\nIs the disk full?\n"));
         }
     } catch (std::exception & /* ex */) {
         // Rethrow on any exception. std::runtime_exception and CanceledException are expected to be thrown.
@@ -3130,7 +3160,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // and export G-code into file.
                 m_printed_objects.emplace_back(object);
                 m_cur_print_object = object;
-                this->process_layers(print, tool_ordering, collect_layers_to_print(*object), instance - object->instances().data(), file,
+                // Suppress per-object emission of the empty-layer warning here; it was already
+                // aggregated across all objects and emitted from collect_layers_to_print(print).
+                std::string ignored_empty_layer_warning;
+                this->process_layers(print, tool_ordering, collect_layers_to_print(*object, &ignored_empty_layer_warning), instance - object->instances().data(), file,
                                      prime_extruder);
                 {
                     // save the flush statitics stored in tool ordering by object
@@ -6498,9 +6531,15 @@ bool GCode::GCodeOutputStream::is_error() const
     return ::ferror(this->f);
 }
 
+std::string GCode::GCodeOutputStream::get_last_error() const
+{
+    return m_write_errno == 0 ? std::string() : std::string(::strerror(m_write_errno));
+}
+
 void GCode::GCodeOutputStream::flush()
 {
-    ::fflush(this->f);
+    if (::fflush(this->f) != 0 && m_write_errno == 0)
+        m_write_errno = errno;
 }
 
 void GCode::GCodeOutputStream::close()
@@ -6516,7 +6555,9 @@ void GCode::GCodeOutputStream::write(const char *what)
     if (what != nullptr) {
         const char* gcode = what;
         // writes string to file
-        fwrite(gcode, 1, ::strlen(gcode), this->f);
+        const size_t len = ::strlen(gcode);
+        if (::fwrite(gcode, 1, len, this->f) != len && m_write_errno == 0)
+            m_write_errno = errno;
         //FIXME don't allocate a string, maybe process a batch of lines?
         m_processor.process_buffer(std::string(gcode));
     }
@@ -7156,7 +7197,38 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else if (path.role() == erSupportIroning) {
             speed = m_config.get_abs_value("support_ironing_speed");
         } else if (path.role() == erBottomSurface) {
-            speed = NOZZLE_CONFIG(initial_layer_infill_speed);
+            // Gate the first-layer infill speed by on_first_layer() so it only applies to the
+            // layer that actually touches the bed, matching the wall side where
+            // initial_layer_speed is also on_first_layer()-gated.
+            //
+            // A bottom hanging over a void is classified as stBottomBridge and already
+            // dispatched to erBridgeInfill (bridge speed) before reaching this branch, so it
+            // is not handled here. This includes overhangs held by ordinary support towers:
+            // the support is not part of the object's own lower-layer slices, so such bottoms
+            // are stBottomBridge (also forced for soluble support, see #3507) and never reach
+            // this erBottomSurface branch.
+            //
+            // What can still arrive here as erBottomSurface on a non-bed layer is stBottom,
+            // which has two physically different sub-cases:
+            //   1. The first object layer printed over a raft with a Z gap
+            //      (gap_raft_object > 0): it actually bridges the air gap above the raft
+            //      interface, so it needs bridge speed.
+            //   2. A bottom resting on solid below with no gap: the first object layer sitting
+            //      directly on a gapless (soluble) raft interface, or, with interface_shells,
+            //      a region bottom lying on another region's solid. It should print at the
+            //      regular solid-infill speed; using bridge speed here would needlessly slow
+            //      down well-supported bottoms. Note: stacked bottom-shell layers above the
+            //      contact layer are stInternalSolid (erSolidInfill), not erBottomSurface, so
+            //      they are unaffected by this branch.
+            if (on_first_layer()) {
+                speed = NOZZLE_CONFIG(initial_layer_infill_speed);
+            } else if (object_layer_over_raft() && m_layer != nullptr &&
+                       m_layer->object()->slicing_parameters().gap_raft_object > 0) {
+                bool use_filament_bridge_speed = FILAMENT_CONFIG(override_process_overhang_speed);
+                speed = use_filament_bridge_speed ? FILAMENT_CONFIG(filament_bridge_speed) : NOZZLE_CONFIG(bridge_speed);
+            } else {
+                speed = NOZZLE_CONFIG(internal_solid_infill_speed);
+            }
         } else if (path.role() == erGapFill) {
             speed = NOZZLE_CONFIG(gap_infill_speed);
         }

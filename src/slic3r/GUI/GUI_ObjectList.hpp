@@ -24,10 +24,12 @@ class MenuWithSeparators;
 namespace Slic3r {
 class ConfigOptionsGroup;
 class DynamicPrintConfig;
+class Model;
 class ModelConfig;
 class ModelObject;
 class ModelVolume;
 class TriangleMesh;
+class GLVolume;
 struct TextInfo;
 enum class ModelVolumeType : int;
 
@@ -46,6 +48,8 @@ struct ObjectVolumeID {
     ModelObject* object{ nullptr };
     ModelVolume* volume{ nullptr };
 };
+
+class Selection;
 
 typedef Event<ObjectVolumeID> ObjectSettingEvent;
 
@@ -318,8 +322,16 @@ public:
     bool                del_from_cut_object(bool is_connector, bool is_model_part = false, bool is_negative_volume = false);
     bool                del_subobject_from_object(const int obj_idx, const int idx, const int type);
     void                del_info_item(const int obj_idx, InfoItemType type);
-    void                split();
+    void                split(bool ignore_warning = false);
+    // Split every selected whole object into objects, reusing the single-object "To objects" path.
+    void                split_objects();
+    // Enabled when at least two objects are selected and at least one of them is splittable to objects.
+    bool                can_split_objects();
+    // Distinct whole-object indices in the current selection (volume / instance sub-items ignored).
+    std::vector<int>    selected_object_idxs() const;
     void                merge(bool to_multipart_object);
+    // Merge the given whole objects (indices into the plater model) into one multipart object.
+    void                merge_objects(const std::vector<size_t>& obj_idxs);
     void                merge_volumes(); // BBS: merge parts to single part
     void                layers_editing();
 
@@ -487,6 +499,11 @@ public:
     void selected_object(ObjectDataViewModelNode* item);
 
 private:
+    // Map assembly-canvas (object_idx, volume_idx) to the prepare model via part_guid /
+    // assembly_src_guid. On success overwrites obj_idx / vol_idx and returns true.
+    bool resolve_prepare_object_volume_idx(int& obj_idx, int& vol_idx, const GLVolume* assembly_gl_volume,
+                                           const Model& assemble_model, Selection& prepare_selection) const;
+
 #ifdef __WXOSX__
 //    void OnChar(wxKeyEvent& event);
     wxAcceleratorTable m_accel;

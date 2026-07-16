@@ -24,6 +24,8 @@
         "10",
         "10",
         "10",
+        "10",
+        "10",
         "10"
     ],
     "filament_extruder_compatibility": [
@@ -33,9 +35,13 @@
         "0.96",
         "0.96",
         "0.96",
+        "0.96",
+        "0.96",
         "0.96"
     ],
     "filament_max_volumetric_speed": [
+        "8",
+        "8",
         "8",
         "8",
         "8",
@@ -45,10 +51,14 @@
         "0",
         "0",
         "0",
+        "0",
+        "0",
         "0"
     ],
     "filament_retraction_length": [
         "1",
+        "nil",
+        "nil",
         "nil",
         "nil",
         "nil"
@@ -59,13 +69,17 @@
     "filament_wipe": [
         "1",
         "nil",
+        "nil",
         "1",
+        "nil",
         "nil"
     ],
     "filament_wipe_distance": [
         "1",
         "nil",
+        "nil",
         "1",
+        "nil",
         "nil"
     ],
     "hole_coef_2": [
@@ -81,9 +95,11 @@
         "0.092"
     ],
     "include": [
-        "fdm_filament_template_direct_bowden"
+        "fdm_filament_template_direct_bowden_e3d"
     ],
     "nozzle_temperature": [
+        "275",
+        "275",
         "275",
         "275",
         "275",
@@ -93,11 +109,15 @@
         "275",
         "275",
         "275",
+        "275",
+        "275",
         "275"
     ],
     "retraction_distances_when_ec": [
         "3",
         "3",
+        "3",
+        "4",
         "4",
         "4"
     ],
@@ -105,11 +125,12 @@
         "20",
         "20",
         "20",
+        "20",
+        "20",
         "20"
     ],
     "compatible_printers": [
-        "Bambu Lab X2D 0.6 nozzle",
-        "Bambu Lab X2D 0.8 nozzle"
+        "Bambu Lab X2D 0.6 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"

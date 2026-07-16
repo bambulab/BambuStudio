@@ -56,7 +56,7 @@ void DropDown::Create(wxWindow *parent, long style)
 {
     PopupWindow::Create(parent, wxPU_CONTAINS_CONTROLS);
     SetBackgroundStyle(wxBG_STYLE_PAINT);
-    SetBackgroundColour(*wxWHITE);
+    SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     state_handler.attach({&border_color, &text_color, &selector_border_color, &selector_background_color});
     state_handler.update_binds();
     if ((style & DD_NO_CHECK_ICON) == 0)
@@ -206,8 +206,8 @@ static void _DrawSplitItem(const wxWindow* w, wxDC& dc, wxString split_text, wxP
     // save dc
     auto pre_clr = dc.GetTextForeground();
     auto pre_pen = dc.GetPen();
-    dc.SetTextForeground(wxColour(172, 172, 172));//GRAY 500
-    dc.SetPen(wxColour(166, 169, 170));//GRAY 400
+    dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(172, 172, 172)));
+    dc.SetPen(StateColor::darkModeColorFor(wxColour(166, 169, 170)));
     // miner font
     auto font = w->GetFont();
     font.SetPointSize(font.GetPointSize() - 3);
@@ -273,7 +273,7 @@ void DropDown::render(wxDC &dc)
 
     // draw hover rectangle
     wxRect rcContent = {{0, offset.y}, rowSize};
-    if (hover_item >= 0 && (states & StateColor::Hovered) && (hover_index < 0 || !(items[hover_index].style & DD_ITEM_STYLE_SPLIT_ITEM))) {
+    if (hover_item >= 0 && (states & StateColor::Hovered) && (hover_index < 0 || !(items[hover_index].style & (DD_ITEM_STYLE_SPLIT_ITEM | DD_ITEM_STYLE_DISABLED)))) {
         rcContent.y += rowSize.y * hover_item;
         if (rcContent.GetBottom() > 0 && rcContent.y < size.y) {
             if (selected_item == hover_item)
@@ -346,15 +346,7 @@ void DropDown::render(wxDC &dc)
                     continue;
                 groups.insert(item.group);
                 if (!item.group.IsEmpty()) {
-                    bool disabled = true;
-                    for (int j = i + 1; j < items.size(); ++j) {
-                        if (items[i].group != item.group && (items[j].style & DD_ITEM_STYLE_DISABLED) == 0) {
-                            disabled = false;
-                            break;
-                        }
-                    }
-                    if (!disabled)
-                        states2 |= StateColor::Enabled;
+                    states2 |= StateColor::Enabled;
                 }
             }
         } else {
@@ -392,10 +384,14 @@ void DropDown::render(wxDC &dc)
             pt.x += size2.x + 5;
             pt.y = rcContent.y;
         }
+        // When the icon is a full-row pre-rendered bitmap (height >> text height),
+        // it already contains all text; skip drawing text on top to avoid duplicates.
+        const bool icon_fills_row = !is_top_level_group && icon.IsOk()
+                                    && size2.y > textSize.y * 2;
         auto text = group.IsEmpty()
                         ? (item.group.IsEmpty() ? item.text : item.group)
                         : (item.text.StartsWith(group) && !group.EndsWith(' ') ? item.text.substr(group.size()).Trim(false) : item.text);
-        if (!text_off && !text.IsEmpty()) {
+        if (!text_off && !text.IsEmpty() && !icon_fills_row) {
             wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > rcContent.GetRight()) {
                 if (is_hover && item.tip.IsEmpty())
@@ -517,7 +513,11 @@ void DropDown::messureSize()
             if (size2.x > iconSize.x)
                 iconSize = size2;
             if (!align_icon) {
-                size1.x += size2.x + (text_off ? 0 : 5);
+                // Full-row bitmap (icon height >> text height): width = bitmap width only.
+                if (size2.y > size1.y * 2)
+                    size1.x = size2.x;
+                else
+                    size1.x += size2.x + (text_off ? 0 : 5);
             }
         }
         if (size1.x > textSize.x) textSize = size1;
@@ -534,7 +534,7 @@ void DropDown::messureSize()
     if (iconSize.x > 0) szContent.x += iconSize.x + (text_off ? 0 : 5);
     if (iconSize.y > szContent.y) szContent.y = iconSize.y;
     szContent.y += 10;
-    if (count > 15) szContent.x += 6;
+    if (count > (size_t)max_visible_rows) szContent.x += 6;
     if (GetParent() && group.IsEmpty()) {
         auto x = GetParent()->GetSize().x;
         if (x > 0 && (!use_content_width || x > szContent.x))
@@ -543,13 +543,17 @@ void DropDown::messureSize()
     rowSize = szContent;
     if (limit_max_content_width) {
         wxSize parent_size = GetParent()->GetSize();
-        if (rowSize.x > parent_size.x * 2) {
-            rowSize.x = 2 * parent_size.x;
-            szContent = rowSize;
+        const int max_w = std::min(
+            static_cast<int>(parent_size.x * 1.5),
+            GetParent()->FromDIP(400)
+        );
+        if (rowSize.x > max_w) {
+            rowSize.x = max_w;
+            szContent  = rowSize;
         }
     }
-    szContent.y *= std::min((size_t) 15, std::max(count, (size_t) 1));
-    szContent.y += items.size() > 15 ? rowSize.y / 2 : 0;
+    szContent.y *= std::min((size_t)max_visible_rows, std::max(count, (size_t) 1));
+    szContent.y += items.size() > (size_t)max_visible_rows ? rowSize.y / 2 : 0;
     wxWindow::SetSize(szContent);
 #ifdef __WXGTK__
     // Gtk has a wrapper window for popup widget
@@ -560,7 +564,9 @@ void DropDown::messureSize()
         subDropDown->mainDropDown = this;
         subDropDown->check_bitmap      = check_bitmap;
         subDropDown->text_off          = text_off;
-        subDropDown->use_content_width = true;
+        subDropDown->use_content_width       = true;
+        subDropDown->limit_max_content_width = true;
+        subDropDown->max_visible_rows        = 8;
         subDropDown->Create(GetParent());
         subDropDown->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
             e.SetEventObject(this);
@@ -596,9 +602,9 @@ void DropDown::autoPosition()
         pos = mainDropDown->ClientToScreen(wxPoint(0, 0));
         off = mainDropDown->GetSize();
         pos.x += 6;
-        pos.y += mainDropDown->hover_item * rowSize.y + rowSize.y + mainDropDown->offset.y;
+        pos.y += mainDropDown->hover_item * mainDropDown->rowSize.y + mainDropDown->offset.y;
         off.x -= 12;
-        off.y = -rowSize.y;
+        off.y = 0;
     } else {
         pos = GetParent()->ClientToScreen(wxPoint(0, 0));
         off = GetParent()->GetSize();
@@ -611,8 +617,8 @@ void DropDown::autoPosition()
     Position(pos, off);
     if (old != GetPosition()) {
         size = rowSize;
-        size.y *= std::min((size_t) 15, count);
-        size.y += count > 15 ? rowSize.y / 2 : 0;
+        size.y *= std::min((size_t)max_visible_rows, count);
+        size.y += count > (size_t)max_visible_rows ? rowSize.y / 2 : 0;
         if (size != GetSize()) {
             wxWindow::SetSize(size);
             offset = wxPoint();
@@ -623,7 +629,7 @@ void DropDown::autoPosition()
         // may exceed
         auto drect = wxDisplay(GetParent()).GetGeometry();
         if (GetPosition().y + size.y + 10 > drect.GetBottom()) {
-            if (use_content_width && count <= 15) size.x += 6;
+            if (use_content_width && count <= (size_t)max_visible_rows) size.x += 6;
             size.y = drect.GetBottom() - GetPosition().y - 10;
             wxWindow::SetSize(size);
             if (selection >= 0) {

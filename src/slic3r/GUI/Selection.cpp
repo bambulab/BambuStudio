@@ -190,15 +190,54 @@ void Selection::set_mode(EMode mode) {
     m_mode = mode;
 }
 
-int Selection::query_real_volume_idx_from_other_view(unsigned int object_idx, unsigned int instance_idx, unsigned int model_volume_idx)
+int Selection::query_real_volume_idx_by_part_guid(const std::string& part_guid, unsigned int instance_idx)
 {
-    for (int i = 0; i < m_volumes->size(); i++) {
-        auto v = (*m_volumes)[i];
-        if (v->object_idx() == object_idx && instance_idx == v->instance_idx() && model_volume_idx == v->volume_idx()) {
+    if (part_guid.empty() || m_model == nullptr)
+        return -1;
+    // First try to honor the requested instance; fall back to the first matching volume of any instance.
+    int fallback = -1;
+    for (int i = 0; i < (int) m_volumes->size(); i++) {
+        const GLVolume* v = (*m_volumes)[i];
+        const int obj_idx = v->object_idx();
+        const int vol_idx = v->volume_idx();
+        if (obj_idx < 0 || vol_idx < 0 || obj_idx >= (int) m_model->objects.size())
+            continue;
+        const ModelObject* mo = m_model->objects[obj_idx];
+        if (mo == nullptr || vol_idx >= (int) mo->volumes.size())
+            continue;
+        const ModelVolume* mv = mo->volumes[vol_idx];
+        if (mv == nullptr)
+            continue;
+        // A GLVolume in the assembly view matches when its backing ModelVolume shares identity with the
+        // prepare-side part: same part_guid, or it references that prepare part via assembly_src_guid.
+        if (mv->part_guid() != part_guid && mv->assembly_src_guid() != part_guid)
+            continue;
+        if ((unsigned int) v->instance_idx() == instance_idx)
             return i;
-        }
+        if (fallback < 0)
+            fallback = i;
     }
-    return -1;
+    return fallback;
+}
+
+int Selection::query_real_volume_idx_from_other_model_volume(const GLVolume* source_volume, const Model& source_model, bool use_assembly_src_guid)
+{
+    if (source_volume == nullptr)
+        return -1;
+    const int obj_idx = source_volume->object_idx();
+    const int vol_idx = source_volume->volume_idx();
+    if (obj_idx < 0 || vol_idx < 0 || obj_idx >= (int) source_model.objects.size())
+        return -1;
+    const ModelObject* mo = source_model.objects[obj_idx];
+    if (mo == nullptr || vol_idx >= (int) mo->volumes.size())
+        return -1;
+    const ModelVolume* mv = mo->volumes[vol_idx];
+    if (mv == nullptr)
+        return -1;
+    const std::string& guid = use_assembly_src_guid && !mv->assembly_src_guid().empty() ? mv->assembly_src_guid() : mv->part_guid();
+    if (guid.empty())
+        return -1;
+    return query_real_volume_idx_by_part_guid(guid, (unsigned int) source_volume->instance_idx());
 }
 
 void Selection::add(unsigned int volume_idx, bool as_single_selection, bool check_for_already_contained)
@@ -3377,6 +3416,7 @@ void Selection::paste_volumes_from_clipboard()
         {
             ModelVolume* dst_volume = dst_object->add_volume(*src_volume);
             dst_volume->set_new_unique_id();
+            dst_volume->ensure_part_guid(true);
             if (from_same_object)
             {
 //                // if the volume comes from the same object, apply the offset in world system

@@ -16,6 +16,7 @@
 #include "Widgets/TextInput.hpp"
 #include "../slic3r/Utils/CalibUtils.hpp"
 #include "DeviceCore/DevNozzleRack.h"
+#include "fila_manager/wgtFilaManagerStore.h"
 
 #define AMS_MATERIALS_SETTING_DEF_COLOUR wxColour(255, 255, 255)
 #define AMS_MATERIALS_SETTING_GREY900 wxColour(38, 46, 48)
@@ -44,7 +45,7 @@ public:
     bool            m_selected{false};
     bool            m_show_full{false};
     bool            m_is_empty{false};
-    int             ctype;
+    int             ctype = 0;
 
     bool            transparent_changed{false};
 
@@ -66,24 +67,39 @@ public:
 class ColorPickerPopup : public PopupWindow
 {
 public:
+    struct ColorItem
+    {
+        std::vector<wxColour> colors;
+        int                   ctype = 0;
+        wxString              name;
+    };
+
     ScalableBitmap m_ts_bitmap_custom;
     wxStaticBitmap* m_ts_stbitmap_custom;
     StaticBox* m_custom_cp;
     wxColourData* m_clrData;
     StaticBox* m_def_color_box;
     wxFlexGridSizer* m_ams_fg_sizer;
+    wxFlexGridSizer* m_other_fg_sizer;
     wxColour m_def_col;
+    std::vector<wxColour> m_def_cols;
+    int m_def_ctype = 0;
     std::vector<wxColour> m_def_colors;
-    std::vector<wxColour> m_ams_colors;
+    std::vector<ColorItem> m_ams_color_items;
     std::vector<ColorPicker*> m_color_pickers;
+    std::vector<ColorPicker*> m_default_color_pickers;
     std::vector<ColorPicker*> m_ams_color_pickers;
+    std::vector<ColorPicker*> m_preset_color_pickers;
 
 public:
     ColorPickerPopup(wxWindow* parent);
     ~ColorPickerPopup() {};
     void on_custom_clr_picker(wxMouseEvent& event);
-    void set_ams_colours(std::vector<wxColour> ams);
-    void set_def_colour(wxColour col);
+    void set_ams_colours(const std::vector<ColorItem>& ams);
+    void set_preset_colours(const std::vector<ColorItem>& preset_colors);
+    void set_def_colour(wxColour col, std::vector<wxColour> cols = {}, int ctype = 0);
+    const std::vector<wxColour>& get_selected_colours() const { return m_def_cols; }
+    int get_selected_ctype() const { return m_def_ctype; }
     void paintEvent(wxPaintEvent& evt);
     void Popup();
     virtual void OnDismiss() wxOVERRIDE;
@@ -142,6 +158,7 @@ public:
     struct FilamentInfos {
         std::string filament_id;
         std::string setting_id;
+        std::string spool_id;   // non-empty only when entry comes from Filament Manager
     };
 
 protected:
@@ -165,6 +182,7 @@ protected:
     int  get_nozzle_combo_id_code() const;
     int  get_nozzle_sel_by_sn(MachineObject* obj, const std::string& sn);
     int  get_cali_index_by_ams_slot(MachineObject* obj, int ams_id, int slot_id);
+    std::vector<ColorPickerPopup::ColorItem> get_preset_color_items(const std::string& filament_id) const;
 
     void get_filaments_info(const MachineObject*                     obj,
                             const std::string&                       nozzle_diameter_str,
@@ -211,19 +229,72 @@ protected:
     int m_pa_cali_select_id = 0;
     bool m_pa_data_pending{false};
 
-#ifdef __APPLE__
-    wxComboBox *m_comboBox_filament;
-#else
     ComboBox *m_comboBox_filament;
-#endif
     ComboBox * m_comboBox_nozzle_type;
     ComboBox * m_comboBox_cali_result;
     TextInput*       m_readonly_filament;
 
     std::map<std::string, FilamentInfos> map_filament_items;
+    // Maps combobox item index → spool_id for Filament Manager entries.
+    // Set by update_widgets(); empty for System Preset selections.
+    std::map<int, std::string>           m_combo_idx_to_spool_id;
+    // spool_id selected by the user in on_select_filament(); empty if a System
+    // Preset was selected instead of a Filament Manager spool.
+    std::string                          m_selected_spool_id;
 };
 
 wxDECLARE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
+
+// ---- AMSNewOfficialFilamentDlg ------------------------------------------
+// Shown when an AMS slot detects a new official filament that is not yet in
+// the Filament Manager. The user can choose how to handle it.
+class AMSNewOfficialFilamentDlg : public DPIDialog
+{
+public:
+    enum class Choice { RecordNew, LinkExisting, Skip };
+
+    AMSNewOfficialFilamentDlg(wxWindow* parent);
+    Choice GetChoice() const { return m_choice; }
+
+    // Set the AMS tray context before each ShowModal() call so the
+    // "Link to existing filament" dropdown can be populated with candidates.
+    void SetTrayContext(MachineObject* obj,
+                        const std::string& ams_id,
+                        const std::string& slot_id);
+    std::string GetSelectedLinkSpoolId() const { return m_selected_link_spool_id; }
+
+    void on_dpi_changed(const wxRect&) override {
+        m_btn_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+        m_btn_confirm->SetCornerRadius(FromDIP(12));
+        m_btn_cancel->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+        m_btn_cancel->SetCornerRadius(FromDIP(12));
+        Fit();
+    }
+
+private:
+    void create();
+    void populate_link_combo();
+    void on_combo_selected(wxCommandEvent&);
+    void on_confirm(wxCommandEvent&);
+    void on_cancel(wxCommandEvent&);
+
+    Choice    m_choice{ Choice::RecordNew };
+    RadioBox* m_radio_record_new{ nullptr };
+    RadioBox* m_radio_link_existing{ nullptr };
+    RadioBox* m_radio_skip{ nullptr };
+    Button*   m_btn_confirm{ nullptr };
+    Button*   m_btn_cancel{ nullptr };
+
+    ::ComboBox*                m_combo_link{ nullptr };
+    wxSizer*                   m_combo_row{ nullptr };
+    std::map<int, std::string> m_combo_idx_to_spool_id;
+    std::map<int, wxString>    m_combo_header_texts;
+    std::string                m_selected_link_spool_id;
+
+    MachineObject* m_obj    { nullptr };
+    std::string    m_ams_id;
+    std::string    m_slot_id;
+};
 
 }} // namespace Slic3r::GUI
 

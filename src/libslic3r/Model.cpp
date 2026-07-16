@@ -28,6 +28,9 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/iostream.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include "SVG.hpp"
 #include <Eigen/Dense>
@@ -113,6 +116,7 @@ Model& Model::assign_copy(const Model &rhs)
     this->m_assembly_tree_json_str  = rhs.m_assembly_tree_json_str;
     this->m_assembly_steps_tree_data = rhs.m_assembly_steps_tree_data;
     this->m_assembly_steps_json_str = rhs.m_assembly_steps_json_str;
+    this->m_assembly_model_json_str = rhs.m_assembly_model_json_str;
     this->texture_mesh = rhs.texture_mesh;
 
     return *this;
@@ -169,6 +173,7 @@ Model& Model::assign_copy(Model &&rhs)
     this->m_assembly_tree_json_str   = std::move(rhs.m_assembly_tree_json_str);
     this->m_assembly_steps_tree_data = std::move(rhs.m_assembly_steps_tree_data);
     this->m_assembly_steps_json_str  = std::move(rhs.m_assembly_steps_json_str);
+    this->m_assembly_model_json_str  = std::move(rhs.m_assembly_model_json_str);
 
     return *this;
 }
@@ -232,7 +237,7 @@ Model Model::read_from_step(const std::string&                                  
             goto _finished;
         }
     }
-    
+
     status = step_file.mesh(&model, is_cb_cancel, is_split_compound, linear_defletion, angle_defletion);
 
 _finished:
@@ -1198,7 +1203,9 @@ void Model::load_from(Model& model)
     m_assembly_tree_data       = model.m_assembly_tree_data;
     m_assembly_tree_json_str  = model.m_assembly_tree_json_str;
     m_assembly_steps_tree_data = model.m_assembly_steps_tree_data;
-    m_assembly_steps_json_str = model.m_assembly_steps_json_str;    model.design_info.reset();
+    m_assembly_steps_json_str = model.m_assembly_steps_json_str;
+    m_assembly_model_json_str = model.m_assembly_model_json_str;
+    model.design_info.reset();
     model.model_info.reset();
     model.profile_info.reset();
     model.calib_pa_pattern.reset();
@@ -2139,6 +2146,14 @@ void ModelObject::clone_for_cut(ModelObject **obj)
     (*obj)->input_file.clear();
 }
 
+const std::string &ModelVolume::ensure_part_guid(bool force) const
+{
+    // Lazily assign a stable identity used for cross-model (prepare <-> assembly) part mapping.
+    if (m_part_guid.empty() || force)
+        m_part_guid = boost::uuids::to_string(boost::uuids::random_generator()());
+    return m_part_guid;
+}
+
 bool ModelVolume::is_the_only_one_part() const
 {
     if (m_type != ModelVolumeType::MODEL_PART)
@@ -2722,6 +2737,13 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
                 if (new_vol->mmu_segmentation_facets.timestamp() == volume->mmu_segmentation_facets.timestamp())
                     new_vol->mmu_segmentation_facets.reset(); // BBS: let next assign take effect
                 new_vol->mmu_segmentation_facets.assign(volume->mmu_segmentation_facets);
+
+                // Splitting a multi-volume object is a 1:1 move of each volume into its own object: the
+                // geometry is unchanged, so the part keeps its identity. Carry over the assembly GUIDs
+                // (add_volume's new-mesh ctor does not copy them) so the assembly view, which froze the
+                // pre-split state, still resolves these parts by part_guid and is not disturbed.
+                new_vol->set_part_guid(volume->part_guid());
+                new_vol->set_assembly_src_guid(volume->assembly_src_guid());
             }
 
             // BBS: clear volume's config, as we already set them into object
@@ -3373,7 +3395,10 @@ std::vector<int> ModelVolume::get_extruders() const
 
     std::vector<int> volume_extruders = mmuseg_extruders;
     int volume_extruder_id = this->extruder_id();
-    if (m_mmuseg_extruders_has_0_extruder && volume_extruder_id > 0) {
+    // Slicing ignores MMU paint on non-model-part volumes (modifiers, etc.),
+    // so their volume extruder is always effective regardless of paint coverage.
+    bool paint_affects_slicing = this->is_model_part();
+    if ((!paint_affects_slicing || m_mmuseg_extruders_has_0_extruder) && volume_extruder_id > 0) {
         volume_extruders.push_back(volume_extruder_id);
     }
 
@@ -3670,6 +3695,7 @@ size_t ModelVolume::split(unsigned int max_extruders, float scale_det)
             this->invalidate_convex_hull_2d();
             // Assign a new unique ID, so that a new GLVolume will be generated.
             this->set_new_unique_id();
+            this->ensure_part_guid(true);
             // reset the source to disable reload from disk
             this->source = ModelVolume::Source();
 
@@ -3709,7 +3735,11 @@ size_t ModelVolume::split(unsigned int max_extruders, float scale_det)
                 }
             }
         }
-        ModelVolume *cur_vol = this->object->volumes[ivolume];
+        ModelVolume *cur_vol = nullptr;
+        if (ivolume >= 0 && ivolume < this->object->volumes.size()) {
+            cur_vol = this->object->volumes[ivolume];
+        }
+        if (!cur_vol) { continue; }
         cur_vol->set_offset(Vec3d::Zero());
         // center_geometry_after_creation() recenters the sub-mesh's local origin by
         // its bbox center. Capture that shift so the inherited assemble transform can
@@ -3720,13 +3750,13 @@ size_t ModelVolume::split(unsigned int max_extruders, float scale_det)
         cur_vol->translate(offset);
         if (src_assemble_initialized)
             cur_vol->set_assemble_from_transform(src_assemble_matrix * Geometry::translation_transform(center_shift));
-        this->object->volumes[ivolume]->name = name + "_" + std::to_string(idx + 1);
+        cur_vol->name = name + "_" + std::to_string(idx + 1);
         //BBS: always set the extruder id the same as original
-        this->object->volumes[ivolume]->config.set("extruder", this->extruder_id());
-        //this->object->volumes[ivolume]->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
-        this->object->volumes[ivolume]->m_is_splittable = 0;
+        cur_vol->config.set("extruder", this->extruder_id());
+        //cur_vol->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
+        cur_vol->m_is_splittable = 0;
         if (this->is_text()) {
-            this->object->volumes[ivolume]->clear_text_info();
+            cur_vol->clear_text_info();
         }
         ++ idx;
         last_all_mesh_face_count += cur_face_count;

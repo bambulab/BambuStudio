@@ -477,7 +477,15 @@ static std::string get_filament_id(std::string vendor_typr_serial)
         }
     }
 
-    std::string user_filament_id = "P" + calculate_md5(vendor_typr_serial).substr(0, 7);
+    // Include user_id in hash to avoid cross-user collision.
+    std::string hash_input = vendor_typr_serial;
+    NetworkAgent *agent = wxGetApp().getAgent();
+    if (agent && agent->is_user_login() && !agent->get_user_id().empty()) {
+        // '@' is used as separator to avoid ambiguity between filament name and user_id,
+        // such as filament name having numbers.
+        hash_input += "@" + agent->get_user_id();
+    }
+    std::string user_filament_id = "P" + calculate_md5(hash_input).substr(0, 7);
 
     while (filament_id_to_filament_name.find(user_filament_id) != filament_id_to_filament_name.end()) {//find same filament id
         bool have_same_filament_name = false;
@@ -822,7 +830,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
             m_filament_preset_combobox->Set(filament_preset_choice);
             m_filament_preset_combobox->SetLabel(_L("Select Filament Preset"));
             m_filament_preset_combobox->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
-
+            m_filament_preset_combobox->Enable(!filament_preset_choice.empty());
         } else if (curr_create_type == m_create_type.base_filament_preset) {
             get_filament_presets_by_machine();
         }
@@ -1249,6 +1257,7 @@ void CreateFilamentPresetDialog::select_curr_radiobox(std::vector<std::pair<Radi
                     m_filament_preset_combobox->Set(filament_preset_choice);
                     m_filament_preset_combobox->SetLabel(_L("Select Filament Preset"));
                     m_filament_preset_combobox->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
+                    m_filament_preset_combobox->Enable(!filament_preset_choice.empty());
                 }
             } else if (curr_selected_type == m_create_type.base_filament_preset) {
                 m_filament_preset_text->SetLabel(_L("We would rename the presets as \"Vendor Type Serial @printer you selected\". \nTo add preset for more prinetrs, Please go to printer selection"));

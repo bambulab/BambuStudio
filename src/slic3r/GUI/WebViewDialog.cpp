@@ -8,7 +8,9 @@
 #include "../Utils/Http.hpp"
 
 #include <regex>
+#include <set>
 #include <utility>
+#include <algorithm>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -25,6 +27,35 @@
 #include "slic3r/GUI/Widgets/StateColor.hpp"
 
 namespace pt = boost::property_tree;
+
+namespace {
+
+// Extract "command" without parsing the full JSON payload (STL/3mf base64 can be huge).
+// Only scan the leading key region so a forged "command" inside base64 cannot bypass the
+// MakerLab/MakerWorld allowlist (IsAllowedScriptCommand uses this; handle_web_request still
+// parses real JSON and would otherwise execute the true top-level command).
+std::string extract_web_command(const std::string &payload)
+{
+    constexpr size_t k_max_scan = 512;
+    size_t           scan_end   = std::min(payload.size(), k_max_scan);
+
+    // Do not scan into large binary fields where base64 could embed a fake "command" key.
+    static const char *k_payload_keys[] = {"\"file_data\"", "\"3mf\"", "\"data\""};
+    for (const char *key : k_payload_keys) {
+        const size_t pos = payload.find(key);
+        if (pos != std::string::npos && pos < scan_end)
+            scan_end = pos;
+    }
+
+    const std::string   head = payload.substr(0, scan_end);
+    static const std::regex re("\"command\"\\s*:\\s*\"([^\"]+)\"");
+    std::smatch             m;
+    if (std::regex_search(head, m, re) && m.size() > 1)
+        return m[1].str();
+    return {};
+}
+
+} // namespace
 
 namespace Slic3r {
 namespace GUI {
@@ -1090,7 +1121,12 @@ bool WebViewPanel::SaveBase64ToLocal(std::string Base64Buf, std::string FileName
     std::string separatorStr(1, separator);
 
     download_path = wxString::FromUTF8(wxGetApp().app_config->get("download_path"));
-    download_file = download_path + separatorStr + FileName + "_" + ss.str() + "_" + GenerateRandomString(4) + "."+ FileTail;
+
+    wxString safe_name = boost::filesystem::path(wxString(FileName.c_str(), wxConvLibc).wc_str()).filename().wstring();
+    if (safe_name.empty() || safe_name == "." || safe_name == "..")
+        safe_name = "makerlab";
+
+    download_file = download_path + separatorStr + safe_name + "_" + ss.str() + "_" + GenerateRandomString(4) + "." + FileTail;
 
     std::ofstream outFile(download_file.ToStdString(), std::ios::binary);
     if (!outFile) {
@@ -1134,14 +1170,15 @@ void WebViewPanel::SaveMakerlabStl(int SequenceID, std::string Base64Buf, std::s
     wxString SavePath, SaveFile;
     bool     bRet = SaveBase64ToLocal(Base64Buf, FileName, "stl", SavePath, SaveFile);
 
-    // Response
+    // Response — must use window.postMessage like other homepage bridges
     json JFile;
     JFile["sequence_id"] = SequenceID;
     JFile["command"]     = "homepage_makerlab_stl_download";
     JFile["file_name"]   = FileName;
     JFile["result"]      = bRet ? "success" : "fail";
 
-    std::string strJS = JFile.dump(-1, ' ', false, json::error_handler_t::ignore);
+    wxString strJS = wxString::Format("window.postMessage(%s)",
+                                      JFile.dump(-1, ' ', false, json::error_handler_t::ignore));
 
     wxGetApp().CallAfter([this, strJS] {
         if (!m_browserML) return;
@@ -1423,10 +1460,76 @@ void WebViewPanel::update_mode()
     * Callback invoked when there is a request to load a new page (for instance
     * when the user clicks a link)
     */
+void WebViewPanel::HandleBlobDownload(wxWebView *browser, const wxString &blob_url)
+{
+    if (!browser || blob_url.empty())
+        return;
+
+    // Only accept WebKit-controlled blob: URLs; never treat arbitrary strings as script args.
+    if (!blob_url.StartsWith("blob:")) {
+        BOOST_LOG_TRIVIAL(warning) << "HandleBlobDownload: rejected non-blob url";
+        return;
+    }
+
+    // Escape blob URL as a JSON string literal for safe JS embedding.
+    // nlohmann::json::dump() quotes and escapes the string so it is safe as a JS argument.
+    const std::string blob_url_js = json(std::string(blob_url.ToUTF8().data())).dump();
+
+    // WKWebView rejects <a download href="blob:...">. Read the blob in-page and reuse the
+    // existing homepage_makerlab_stl_download / open_3mf_binary bridge.
+    const wxString js = wxString::Format(
+        "(function(blobUrl){"
+        "function toBase64(buffer){"
+        "var bytes=new Uint8Array(buffer),binary='',chunk=0x8000;"
+        "for(var i=0;i<bytes.length;i+=chunk)"
+        "binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));"
+        "return btoa(binary);"
+        "}"
+        "function stripExt(name){return String(name||'makerlab').replace(/\\.(stl|3mf)$/i,'');}"
+        "var fileName='makerlab.stl';"
+        "try{"
+        "var anchors=document.querySelectorAll('a[download]');"
+        "for(var i=0;i<anchors.length;i++){"
+        "if(anchors[i].href===blobUrl&&anchors[i].download){fileName=anchors[i].download;break;}"
+        "}"
+        "}catch(e){}"
+        "fetch(blobUrl).then(function(r){return r.arrayBuffer();}).then(function(buf){"
+        "var lower=fileName.toLowerCase();"
+        "var is3mf=lower.indexOf('.3mf')>=0;"
+        "var msg;"
+        "if(is3mf){"
+        "msg={sequence_id:1,command:'homepage_makerlab_open_3mf_binary','3mf':toBase64(buf),'3mf_name':stripExt(fileName)};"
+        "}else{"
+        "msg={sequence_id:1,command:'homepage_makerlab_stl_download',file_data:toBase64(buf),file_name:stripExt(fileName)};"
+        "}"
+        "if(window.wx&&typeof window.wx.postMessage==='function')"
+        "window.wx.postMessage(JSON.stringify(msg));"
+        "}).catch(function(err){console.error('studio blob download failed',err);});"
+        "})(%s);",
+        wxString::FromUTF8(blob_url_js));
+
+    WebView::RunScript(browser, js);
+}
+
 void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
 {
     //BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
     const wxString &url = evt.GetURL();
+
+#ifdef __WXOSX__
+    // MakerLab STL download uses blob: object URLs. WebView2 on Windows handles this as a
+    // file download; WKWebView treats it as navigation and fails with "Frame load interrupted".
+    if (url.StartsWith("blob:")) {
+        const bool is_ml = m_browserML && evt.GetId() == m_browserML->GetId();
+        const bool is_mw = m_browserMW && evt.GetId() == m_browserMW->GetId();
+        if (is_ml || is_mw) {
+            evt.Veto();
+            HandleBlobDownload(is_ml ? m_browserML : m_browserMW, url);
+            return;
+        }
+    }
+#endif
+
     if (url.StartsWith("File://") || url.StartsWith("file://")) {
         if (!url.Contains("/web/homepage3/")) {
             auto file = wxURL::Unescape(wxURL(url).GetPath());
@@ -1613,6 +1716,47 @@ void WebViewPanel::OnNewWindow(wxWebViewEvent& evt)
     UpdateState();
 }
 
+bool WebViewPanel::IsAllowedScriptCommand(wxWebViewEvent& evt)
+{
+    const int id = evt.GetId();
+
+    const bool is_local =
+        (m_browser     && id == m_browser->GetId())     ||
+        (m_browserLeft && id == m_browserLeft->GetId()) ||
+        (m_browserWiki && id == m_browserWiki->GetId()) ||
+        (m_browserPH   && id == m_browserPH->GetId());
+    if (is_local)
+        return true;
+
+    const bool is_makerlab   = (m_browserML && id == m_browserML->GetId());
+    const bool is_makerworld = (m_browserMW && id == m_browserMW->GetId());
+
+    static const std::set<std::string> kMakerLabAllowed = {
+        "homepage_makerlab_open_3mf_binary",
+        "homepage_makerlab_stl_download",
+    };
+    static const std::set<std::string> kMakerWorldAllowed = {
+        "makerworld_model_open",
+    };
+
+    // Avoid full JSON parse here — MakerLab STL/3mf payloads can be multi-MB base64.
+    const std::string payload     = std::string(evt.GetString().ToUTF8().data());
+    const std::string command_str = extract_web_command(payload);
+
+    const std::set<std::string>* allow = nullptr;
+    const char* src = "unknown";
+    if (is_makerlab)        { allow = &kMakerLabAllowed;   src = "makerlab"; }
+    else if (is_makerworld) { allow = &kMakerWorldAllowed; src = "makerworld"; }
+
+    if (allow && allow->count(command_str))
+        return true;
+
+    BOOST_LOG_TRIVIAL(warning) << "OnScriptMessage: blocked web command from untrusted source"
+                               << " src=" << src
+                               << " cmd=" << (command_str.empty() ? "<none>" : command_str);
+    return false;
+}
+
 void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
 {
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetString().ToUTF8().data();
@@ -1625,6 +1769,10 @@ void WebViewPanel::OnScriptMessage(wxWebViewEvent& evt)
 
     if (wxGetApp().get_mode() == comDevelop)
         wxLogMessage("Script message received; value = %s, handler = %s", evt.GetString(), evt.GetMessageHandler());
+
+    if (!IsAllowedScriptCommand(evt))
+        return;
+
     std::string response = wxGetApp().handle_web_request(evt.GetString().ToUTF8().data());
     if (response.empty()) return;
 

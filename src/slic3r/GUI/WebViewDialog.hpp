@@ -58,6 +58,7 @@ public:
     void OnTitleChanged(wxWebViewEvent &evt);
     void OnNewWindow(wxWebViewEvent& evt);
     void OnScriptMessage(wxWebViewEvent& evt);
+    bool IsAllowedScriptCommand(wxWebViewEvent& evt);
     void OnScriptResponseMessage(wxCommandEvent& evt);
     void OnViewSourceRequest(wxCommandEvent& evt);
     void OnViewTextRequest(wxCommandEvent& evt);
@@ -152,6 +153,8 @@ public:
     bool     SaveBase64ToLocal(std::string Base64Buf, std::string FileName,std::string FileTail, wxString &download_path, wxString &download_file);
     void     SaveMakerlabStl(int SequenceID,std::string Base64Buf, std::string FileName);
     void     UpdateMakerlabStatus();
+    // macOS WKWebView cannot download blob: URLs; convert via JS to existing save bridge.
+    void     HandleBlobDownload(wxWebView *browser, const wxString &blob_url);
 
     //wiki
     bool m_WikiFirst;

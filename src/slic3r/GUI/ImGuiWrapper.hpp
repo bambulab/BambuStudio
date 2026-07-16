@@ -80,6 +80,9 @@ public:
     ImGuiWrapper();
     ~ImGuiWrapper();
 
+    // True when the UI font set was loaded for Korean (NanumGothic instead of HarmonyOS).
+    bool is_korean() const { return m_is_korean; }
+
     void read_glsl_version();
 
     void set_language(const std::string &language);

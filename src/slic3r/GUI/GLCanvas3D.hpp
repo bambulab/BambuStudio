@@ -841,6 +841,10 @@ public:
     void set_type(ECanvasType type);
     ECanvasType get_canvas_type() { return m_canvas_type; }
 
+    // Propagate a prepare-side ModelVolume rename into the assembly view's UI
+    // (tree labels, popup labels). Called from Plater on volume-rename events.
+    void on_prepare_volume_renamed(int object_idx, int volume_idx, const std::string &new_name);
+
     wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 	const wxGLCanvas* get_wxglcanvas() const { return m_canvas; }
 
@@ -890,6 +894,9 @@ public:
     void append_step_import_to_assembly_tree(const std::vector<StepImportTreeNode>& step_nodes,
                                              const std::vector<size_t>&                    loaded_idxs,
                                              const std::string&                            source_path);
+
+    // Notify the assembly steps that the just-imported STEP objects have been
+    void notify_step_import();
 
     const Model* get_model() const { return m_model; }
     Model&       get_ref_model() const { return *m_model; }
@@ -1369,6 +1376,7 @@ private:
     void _try_update_selected_keyframe();
     bool _allow_sync_in_assemble_view();
     void  open_assembly_view();
+    void  _exit_assembly_to_3d_view();
 
     void _render_return_toolbar();
     void _render_fit_camera_toolbar();

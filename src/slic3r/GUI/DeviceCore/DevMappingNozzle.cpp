@@ -29,30 +29,6 @@ void MachineObject::clear_auto_nozzle_mapping()
     }
 }
 
-static std::string  s_get_diameter_str(float diameter)
-{
-    return (boost::format("%.2f") % diameter).str();
-}
-
-static std::string s_get_diameter_str(const std::string& diameter)
-{
-    try {
-        float dia = boost::lexical_cast<float>(diameter);
-        return s_get_diameter_str(dia);
-    } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed to boost::lexical_cast: " << diameter;
-        return diameter;
-    }
-
-    try {
-        float dia = std::stof(diameter);
-        return s_get_diameter_str(dia);
-    } catch (...) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " std::stof: " << diameter;
-        return diameter;
-    }
-}
-
 
 // get auto nozzle mapping through AP
 // warnings:

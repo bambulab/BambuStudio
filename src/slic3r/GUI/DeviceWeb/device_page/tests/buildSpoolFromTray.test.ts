@@ -35,6 +35,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
   buildSpoolFromTray,
+  getTrayCurrentNetWeight,
   partitionTraysForBatchCreate,
   resolveTrayPreset,
 } from '../src/features/filament-manager/buildSpoolFromTray.ts';
@@ -86,6 +87,10 @@ const rfidTray: AmsTray = {
   color: '#FF8800',
   weight: '1000',
   remain: 60,
+  // C++ DevAmsTray::get_filament_remain_weight() returns weight * remain / 100
+  // = 600 when firmware did not report remain_g; mirror that here so the
+  // spool payload's net_weight assertion below exercises the helper output.
+  remain_weight: 600,
   diameter: 1.75,
 };
 
@@ -295,5 +300,32 @@ const builtMin = buildSpoolFromTray({
 assert.equal(builtMin.payload.entry_method, 'ams_sync');
 assert.equal(builtMin.payload.initial_weight, 1000, 'defaults to 1000g when tray.weight missing');
 assert.equal(builtMin.payload.color_code, '#888888', 'falls back to neutral grey hex');
+
+// ---- 6. getTrayCurrentNetWeight is a thin accessor over the C++-serialized
+// `remain_weight` field (DevAmsTray::get_filament_remain_weight()). The
+// remain_g / weight*remain priority lives entirely in C++ now; the TS helper
+// just returns `remain_weight` (or 0 when it is absent / null / non-positive
+// so the caller paints "—"). ----
+
+assert.equal(
+  getTrayCurrentNetWeight({ slot_id: '0', is_exists: true, weight: 1000, remain: 50, remain_g: 612, remain_weight: 612 }),
+  612,
+  'positive remain_weight is returned as-is',
+);
+assert.equal(
+  getTrayCurrentNetWeight({ slot_id: '0', is_exists: true, weight: 1000, remain: 50, remain_g: -1, remain_weight: null }),
+  0,
+  'null remain_weight (helper returned std::nullopt) reads as 0',
+);
+assert.equal(
+  getTrayCurrentNetWeight({ slot_id: '0', is_exists: true, weight: 1000, remain: 50 }),
+  0,
+  'absent remain_weight reads as 0 — no TS-side fallback computation',
+);
+assert.equal(
+  getTrayCurrentNetWeight({ slot_id: '0', is_exists: true, weight: 1000, remain: 0, remain_weight: 0 }),
+  0,
+  'remain_weight = 0 reads as 0 (firmware-confirmed empty)',
+);
 
 console.log('buildSpoolFromTray.test ok');

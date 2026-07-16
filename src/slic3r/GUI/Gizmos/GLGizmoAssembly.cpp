@@ -42,9 +42,6 @@ std::string GLGizmoAssembly::on_get_name() const
 {
     if (!on_is_activable() && m_state == EState::Off) {
         if (wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
-            if (m_parent.is_assembly_guide_node_selected()) {
-                return _u8L("Assemble") + ":\n" + _u8L("Please exit the assembly guide before using this tool.");
-            }
             return _u8L("Assemble") + ":\n" + _u8L("Please confirm explosion ratio = 1 and select at least two volumes.");
         }
         else {
@@ -63,10 +60,6 @@ bool GLGizmoAssembly::on_is_activable() const
     }
     const int    selection_volumes_count = 2;
     if (wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
-        // While the assembly guide has a node selected the user is editing assembly steps,
-        if (m_parent.is_assembly_guide_node_selected()) {
-            return false;
-        }
         if (abs(m_parent.get_explosion_ratio() - 1.0f) < 1e-2 && selection.volumes_count() >= selection_volumes_count) {
             return true;
         }
@@ -106,7 +99,9 @@ void GLGizmoAssembly::on_render_input_window(float x, float y, float bottom_limi
     init_render_input_window();
 
     float moving_size = m_imgui->calc_text_size(_L("(Moving)")).x;
-    float combox_content_size = m_imgui->calc_text_size(_L("Point and point assembly")).x*1.1 + ImGui::GetStyle().FramePadding.x * 18.0f;
+    float combo_text_width = std::max(m_imgui->calc_text_size(_L("Face and face assembly")).x,
+                                      m_imgui->calc_text_size(_L("Point and point assembly")).x);
+    float combox_content_size = combo_text_width * 1.2f + m_imgui->calc_text_size("xxx").x + m_imgui->scaled(3.0f);
     float caption_size = moving_size + 2 * m_space_size;
     if (render_assembly_mode_combo(caption_size + 0.5 * m_space_size,  combox_content_size)) {
         ;

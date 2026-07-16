@@ -15,9 +15,13 @@
         "10",
         "10",
         "10",
+        "10",
+        "10",
         "10"
     ],
     "filament_flow_ratio": [
+        "0.98",
+        "0.98",
         "0.98",
         "0.98",
         "0.98",
@@ -27,9 +31,13 @@
         "200",
         "200",
         "200",
+        "200",
+        "200",
         "200"
     ],
     "filament_max_volumetric_speed": [
+        "12",
+        "12",
         "12",
         "12",
         "12",
@@ -39,11 +47,15 @@
         "0",
         "0",
         "0",
+        "0",
+        "0",
         "0"
     ],
     "filament_retraction_length": [
-        "0.4",
-        "0.4",
+        "nil",
+        "nil",
+        "nil",
+        "3",
         "3",
         "3"
     ],
@@ -51,30 +63,38 @@
         "230"
     ],
     "filament_wipe": [
+        "nil",
+        "nil",
+        "nil",
         "1",
-        "1",
-        "1",
-        "1"
+        "nil",
+        "nil"
     ],
     "filament_wipe_distance": [
+        "nil",
+        "nil",
+        "nil",
         "1",
-        "1",
-        "1",
-        "1"
+        "nil",
+        "nil"
     ],
     "filament_z_hop_types": [
+        "nil",
+        "nil",
+        "nil",
         "Spiral Lift",
-        "Spiral Lift",
-        "Spiral Lift",
-        "Spiral Lift"
+        "nil",
+        "nil"
     ],
     "first_x_layer_fan_speed": [
         "40"
     ],
     "include": [
-        "fdm_filament_template_direct_bowden"
+        "fdm_filament_template_direct_bowden_e3d"
     ],
     "nozzle_temperature": [
+        "230",
+        "230",
         "230",
         "230",
         "230",
@@ -84,18 +104,24 @@
         "230",
         "230",
         "230",
+        "230",
+        "230",
         "230"
     ],
     "retraction_distances_when_ec": [
         "3",
         "3",
+        "3",
+        "4",
         "4",
         "4"
     ],
     "slow_down_layer_time": [
-        "6"
+        "10"
     ],
     "slow_down_min_speed": [
+        "20",
+        "20",
         "20",
         "20",
         "20",

@@ -17,7 +17,7 @@ Slic3r::MultiNozzleUtils::NozzleInfo DevUtilBackend::GetNozzleInfo(const DevNozz
 {
     MultiNozzleUtils::NozzleInfo info;
     info.diameter = dev_nozzle.GetNozzleDiameterStr().ToStdString();
-    info.volume_type = (dev_nozzle.GetNozzleFlowType() == NozzleFlowType::H_FLOW ? NozzleVolumeType::nvtHighFlow : NozzleVolumeType::nvtStandard);
+    info.volume_type = DevNozzle::ToNozzleVolumeType(dev_nozzle.GetNozzleFlowType());
     info.extruder_id = dev_nozzle.GetLogicExtruderId();
 
     return info;

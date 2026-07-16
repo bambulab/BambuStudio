@@ -61,6 +61,18 @@ export function canonicalizeHexList(input: readonly (string | undefined | null)[
 }
 
 /**
+ * Returns true when the hex value represents a fully transparent colour
+ * (alpha byte == 0x00 in 8-char RRGGBBAA form). Used by SpoolColorChip to
+ * render a checkered pattern instead of a solid black chip.
+ */
+export function isTransparentHex(value: string | undefined | null): boolean {
+  const raw = (value ?? '').trim();
+  const withHash = raw.startsWith('#') ? raw : `#${raw}`;
+  if (!/^#[0-9A-Fa-f]{8}$/.test(withHash)) return false;
+  return withHash.slice(7, 9).toUpperCase() === '00';
+}
+
+/**
  * Multiset key used by reverse-lookup matchers. Order-independent and
  * case-independent (canonicalises first), so two SKUs that share a hex pair
  * but persist them in different orders compare equal.

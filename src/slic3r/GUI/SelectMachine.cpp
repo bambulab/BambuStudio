@@ -93,6 +93,8 @@ std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_t
         return "high_flow";
     } else if (nozzle_volume_type == NozzleVolumeType::nvtTPUHighFlow) {
         return "tpu_high_flow";
+    } else if (nozzle_volume_type == NozzleVolumeType::nvtE3DHighFlow) {
+        return "e3d_high_flow";
     } else if(nozzle_volume_type == NozzleVolumeType::nvtHybrid) {
         // to be supported
         return "hybrid_flow";
@@ -2289,7 +2291,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             confirm_dlg.update_text(confirm_text, false);
         }
 
-        if (!is_printing_block) 
+        if (!is_printing_block)
         {
             confirm_dlg.update_btn_label(_L("Continue printing"), _L("Return to modify"));
         }
@@ -3514,6 +3516,7 @@ void SelectMachineDialog::update_user_printer()
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
+    update_by_obj(get_current_machine());
 }
 
 void SelectMachineDialog::on_rename_click(wxMouseEvent& event)
@@ -3628,7 +3631,11 @@ Slic3r::MachineObject* SelectMachineDialog::get_current_machine() const
 
 void SelectMachineDialog::on_timer(wxTimerEvent &event)
 {
-    MachineObject* obj_ = get_current_machine();
+    update_by_obj(get_current_machine());
+}
+
+void SelectMachineDialog::update_by_obj(MachineObject* obj_)
+{
     if(!obj_) return;
 
     if (obj_->GetExtderSystem()->GetTotalExtderCount() > 1) {
@@ -3725,6 +3732,9 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     show_status(PrintDialogStatus::PrintStatusInit);
     update_show_status();
     update_print_status_msg();
+
+    // update
+    update_by_obj(get_current_machine());
 }
 
 void SelectMachineDialog::update_ams_check(MachineObject *obj)
@@ -5292,6 +5302,7 @@ bool SelectMachineDialog::Show(bool show)
     wxGetApp().reset_to_active();
     set_default();
     update_user_machine_list();
+    update_by_obj(get_current_machine());
 
     Layout();
     Fit();
@@ -5467,8 +5478,8 @@ static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles()
             const auto& used_nozzles = nozzle_group_res->get_used_nozzles_in_extruder();
             for (const auto& used_nozzle : used_nozzles) {
                 NozzleDef nozzle_data;
-                nozzle_data.nozzle_diameter = std::stof(used_nozzle.diameter);
-                nozzle_data.nozzle_flow_type = (used_nozzle.volume_type == NozzleVolumeType::nvtHighFlow ? NozzleFlowType::H_FLOW : NozzleFlowType::S_FLOW);
+                nozzle_data.nozzle_diameter = s_get_diameter(used_nozzle.diameter);
+                nozzle_data.nozzle_flow_type = DevNozzle::ToNozzleFlowType(used_nozzle.volume_type);
                 if (used_nozzle.extruder_id == 0) {
                     used_extuder_nozzles.insert({ DEPUTY_EXTRUDER_ID, nozzle_data });
                 } else if (used_nozzle.extruder_id == 1) {
@@ -5973,12 +5984,15 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResultV0(MachineObject* obj
         return true; // use V1 nozzle mapping
     }
 
+    const auto& obj_nozzle_mapping_ptr = obj_->get_nozzle_mapping_result();
     auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
     if (nozzle_group_res && nozzle_group_res->get_used_nozzles_in_extruder(LOGIC_R_EXTRUDER_ID).empty()) {
+        if (obj_nozzle_mapping_ptr->HasResult()) {
+            clear_nozzle_mapping();
+        }
         return true;// no need to check if no right nozzles used in slicing
     }
 
-    const auto& obj_nozzle_mapping_ptr = obj_->get_nozzle_mapping_result();
     if (!obj_nozzle_mapping_ptr->HasResult()) {
         if (time(nullptr) - s_nozzle_mapping_last_request_time > 10) { // avoid too many requests
             int rtn = obj_nozzle_mapping_ptr->CtrlGetAutoNozzleMappingV0(m_plater, m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt(), m_pa_value_switch->GetValue() ? 0 : 1);
@@ -6201,10 +6215,10 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         }
     }
 
-    // if (!CheckWarningFilamentRemain(obj_)) {
-    //     wxString warning_msg = wxString::Format(_L("The filament in the AMS may be insufficient for this print. Please refill or replace it."));
-    //     show_status(PrintDialogStatus::PrintStatusFilamentWarningRemainNotEnough, {warning_msg});
-    // }
+    if (!CheckWarningFilamentRemain(obj_)) {
+        wxString warning_msg = wxString::Format(_L("The filament in the AMS may be insufficient for this print. Please refill or replace it."));
+        show_status(PrintDialogStatus::PrintStatusFilamentWarningRemainNotEnough, {warning_msg});
+    }
 
     std::set<int> cross_extruder_filament_ids;
     if (!CheckWarningFilamentCrossExtruder(obj_, cross_extruder_filament_ids)) {
@@ -6226,6 +6240,18 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
     return true;
 };
 
+bool SelectMachineDialog::IsAllAmsSupportAccurateRemain(MachineObject* obj_) const
+{
+    if (!obj_) return false;
+    const auto& ams_list = obj_->GetFilaSystem()->GetAmsList();
+    if (ams_list.empty()) return false;
+    for (const auto& [ams_id, ams] : ams_list) {
+        if (!ams || ams->GetRemainEstimateVersion() != DevAms::RemainEstimateVersion::Accurate)
+            return false;
+    }
+    return true;
+}
+
 // return true don't warning
 bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
 {
@@ -6234,6 +6260,8 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
     if (!obj_) return true;
 
     if (!obj_->GetFilaSystem()->IsDetectRemainEnabled() || m_print_type != PrintFromType::FROM_NORMAL) return true;
+
+    if (!IsAllAmsSupportAccurateRemain(obj_)) return true;
 
     auto full_config = wxGetApp().preset_bundle->full_config();
     auto filament_densities = full_config.option<ConfigOptionFloats>("filament_density");
@@ -6255,18 +6283,6 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
                         }
                     }
                 }
-            }
-        }
-
-        for (int extruder_id = 0; extruder_id < obj_->vt_slot.size(); extruder_id++) {
-            std::pair<std::string, std::string> key;
-            if (extruder_id == MAIN_EXTRUDER_ID) {
-                key = {VIRTUAL_AMS_MAIN_ID_STR, "0"};
-            } else if (extruder_id == DEPUTY_EXTRUDER_ID){
-                key = {VIRTUAL_AMS_DEPUTY_ID_STR, "0"};
-            }
-            if (auto weight =obj_->vt_slot[extruder_id].get_filament_remain_weight()) {
-                fila_remain_map[key] = weight.value();
             }
         }
     }

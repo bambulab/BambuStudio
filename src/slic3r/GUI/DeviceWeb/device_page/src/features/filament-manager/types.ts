@@ -30,6 +30,15 @@ export interface Spool {
   setting_id?: string;
   bound_ams_id?: string;
   bound_dev_id?: string;
+  // 运行时在位快照（C++ AMS MQTT 同步后填写，不持久化到 spools.json）
+  in_printer?: boolean;
+  dev_id?: string;
+  ams_sn?: string;
+  ams_id?: number;      // -1 = 未挂载
+  ams_type?: number;    // -1 = 未挂载
+  slot_id?: string;
+  tray_label?: string;
+  device_name?: string;
 }
 
 // Preset data for brand/type/series cascading selectors
@@ -90,6 +99,17 @@ export interface AmsTray {
   fila_color_code?: string;
   weight?: number | string;
   remain?: number;
+  // Device-reported remaining net weight in grams. Preferred over `remain%`
+  // when present. -1 (or undefined) means the firmware did not report it,
+  // fall back to weight * remain / 100. Mirrors DevAmsTray::remain_g and the
+  // priority used by DevAmsTray::get_filament_remain_weight().
+  remain_g?: number;
+  // Authoritative current net weight in grams, computed by C++
+  // DevAmsTray::get_filament_remain_weight() and serialized by
+  // FilamentManagerVM::build_ams_data. `null` (or undefined) means the helper
+  // returned std::nullopt — firmware confirmed empty or no value could be
+  // derived, display as "—".
+  remain_weight?: number | null;
   diameter?: number | string;
   is_bbl?: boolean;
   tray_id_name?: string;

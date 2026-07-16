@@ -170,6 +170,11 @@ std::vector<int> FilamentMapManualPanel::GetFilamentVolumeMaps() const
     auto preset_bundle = wxGetApp().preset_bundle;
     auto proj_config = preset_bundle->project_config;
     auto nozzle_volume_values = proj_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
+    const int right_extruder_id = 1;
+    const bool right_e3d_high_flow = nozzle_volume_values.size() > right_extruder_id &&
+        nozzle_volume_values[right_extruder_id] == static_cast<int>(NozzleVolumeType::nvtE3DHighFlow);
+    const int right_high_flow_volume = static_cast<int>(right_e3d_high_flow ?
+        NozzleVolumeType::nvtE3DHighFlow : NozzleVolumeType::nvtHighFlow);
 
     for (int i = 0; i < volume_map.size(); ++i) {
         int filament_id = i + 1;
@@ -180,13 +185,13 @@ std::vector<int> FilamentMapManualPanel::GetFilamentVolumeMaps() const
             }
         }
         else if (std::find(right_high_flow_filaments.begin(), right_high_flow_filaments.end(), filament_id) != right_high_flow_filaments.end()) {
-            volume_map[i] = 1;
+            volume_map[i] = right_high_flow_volume;
         }
         else if (std::find(right_standard_filaments.begin(), right_standard_filaments.end(), filament_id) != right_standard_filaments.end()) {
-            volume_map[i] = 0;
+            volume_map[i] = static_cast<int>(NozzleVolumeType::nvtStandard);
         }
         else if (std::find(right_tpu_high_flow_filaments.begin(), right_tpu_high_flow_filaments.end(), filament_id) != right_tpu_high_flow_filaments.end()) {
-            volume_map[i] = 3;
+            volume_map[i] = static_cast<int>(NozzleVolumeType::nvtTPUHighFlow);
         }
     }
 
@@ -244,7 +249,6 @@ void FilamentMapManualPanel::OnDragDropCompleted(wxCommandEvent& event)
 }
 
 FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *parent,
-                                               const std::vector<std::string> &color,
                                                const std::vector<std::string> &type,
                                                const std::vector<int>         &filament_list,
                                                const std::vector<int>         &filament_map,
@@ -253,7 +257,6 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
     , m_filament_map(filament_map)
     , m_filament_volume_map(filament_volume_map)
     , m_filament_list(filament_list)
-    , m_filament_color(color)
     , m_filament_type(type)
 {
     SetName(wxT("FilamentMapManualPanel"));
@@ -278,14 +281,13 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
     for (size_t idx = 0; idx < m_filament_map.size(); ++idx) {
         auto iter = std::find(m_filament_list.begin(), m_filament_list.end(), idx + 1);
         if (iter == m_filament_list.end()) continue;
-        wxColor color = Hex2Color(m_filament_color[idx]);
         std::string type = m_filament_type[idx];
         if (m_filament_map[idx] == 1) {
-            m_left_panel->AddColorBlock(color, type, idx + 1);
+            m_left_panel->AddColorBlock(type, idx + 1);
         } else {
             assert(m_filament_map[idx] == 2);
             bool is_high_flow = (idx < m_filament_volume_map.size()) && (m_filament_volume_map[idx] == 1);
-            m_right_panel->AddColorBlock(color, type, idx + 1, is_high_flow);
+            m_right_panel->AddColorBlock(type, idx + 1, is_high_flow);
         }
     }
     m_left_panel->SetMinSize({FromDIP(260), FromDIP(110)});
@@ -401,12 +403,12 @@ void FilamentMapManualPanel::OnSwitchFilament(wxCommandEvent &)
     auto right_blocks = m_right_panel->get_filament_blocks();
 
     for (auto &block : left_blocks) {
-        m_right_panel->AddColorBlock(block->GetColor(), block->GetType(), block->GetFilamentId(), false, false);
+        m_right_panel->AddColorBlock(block->GetType(), block->GetFilamentId(), false, false);
         m_left_panel->RemoveColorBlock(block, false);
     }
 
     for (auto &block : right_blocks) {
-        m_left_panel->AddColorBlock(block->GetColor(), block->GetType(), block->GetFilamentId(), false);
+        m_left_panel->AddColorBlock(block->GetType(), block->GetFilamentId(), false);
         m_right_panel->RemoveColorBlock(block, false);
     }
     this->GetParent()->Layout();

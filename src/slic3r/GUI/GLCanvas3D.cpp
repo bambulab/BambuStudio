@@ -101,6 +101,9 @@
 #endif
 #include <imgui/imgui_internal.h>
 #include <imguizmo/ImGuizmo.h>
+#ifdef __APPLE__
+#include "MacIME.hpp"
+#endif
 static constexpr const float TRACKBALLSIZE = 0.8f;
 
 static const float SLIDER_DEFAULT_RIGHT_MARGIN  = 10.0f;
@@ -1537,7 +1540,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     m_assembly_view_desc["object_selection"]         = _L("object selection");
     m_assembly_view_desc["part_selection_caption"]   = alt  + _L("Left mouse button");
     m_assembly_view_desc["part_selection"]         = _L("part selection");
-    m_assembly_view_desc["number_key_caption"]       = "1~16 " + _L("number keys");
+    m_assembly_view_desc["number_key_caption"]       = wxString::Format("1~%d ", (int) EnforcerBlockerType::ExtruderMax) + _L("number keys");
     m_assembly_view_desc["number_key"]       = _L("number keys can quickly change the color of objects");
 
     m_render_pipeline_stage_stack.push(ERenderPipelineStage::Normal);
@@ -1598,6 +1601,9 @@ void GLCanvas3D::set_type(ECanvasType type)
                 } else if (cmd == "deselect_all") {
                     deselect_all();
                     m_dirty = true;
+                } else if (cmd == "return_to_3d_view") {
+                    _exit_assembly_to_3d_view();
+                    m_dirty = true;
                 } else if (parts.size() > 1) {
                     if (cmd == "set_cursor") {
                         const std::string &cursor_name = parts[1];
@@ -1618,6 +1624,12 @@ void GLCanvas3D::set_type(ECanvasType type)
             });
         }
     }
+}
+
+void GLCanvas3D::on_prepare_volume_renamed(int object_idx, int volume_idx, const std::string &new_name)
+{
+    if (m_assembly_steps)
+        m_assembly_steps->on_prepare_volume_renamed(object_idx, volume_idx, new_name);
 }
 
 void GLCanvas3D::post_event(wxEvent &&event)
@@ -1706,10 +1718,10 @@ void GLCanvas3D::on_change_color_mode(bool is_dark, bool reinit) {
     // DailyTips Window
     wxGetApp().plater()->get_dailytips()->on_change_color_mode(is_dark);
     // Preview Slider
-    IMSlider* m_layers_slider = get_gcode_viewer().get_layers_slider();
-    IMSlider* m_moves_slider = get_gcode_viewer().get_moves_slider();
-    m_layers_slider->on_change_color_mode(is_dark);
-    m_moves_slider->on_change_color_mode(is_dark);
+    IMSlider *layers_slider = get_gcode_viewer().get_layers_slider();
+    IMSlider *moves_slider  = get_gcode_viewer().get_moves_slider();
+    if (layers_slider) layers_slider->on_change_color_mode(is_dark);
+    if (moves_slider) moves_slider->on_change_color_mode(is_dark);
     // Partplate
     wxGetApp().plater()->get_partplate_list().on_change_color_mode(is_dark);
 
@@ -2158,6 +2170,14 @@ void GLCanvas3D::set_process(BackgroundSlicingProcess *process)
 
 void GLCanvas3D::set_model(Model* model)
 {
+#if !BBL_RELEASE_TO_PUBLIC
+    // [DIAG] temporary: trace assembly-canvas rebinding (only the assembly canvas owns m_assembly_steps).
+    if (m_assembly_steps)
+        BOOST_LOG_TRIVIAL(warning) << "[assemble-set_model] canvas=" << (void *) this
+                                   << " new_model=" << (void *) model
+                                   << " objects=" << (model ? model->objects.size() : 0)
+                                   << " is_assembly_model=" << (model ? model->is_assembly_model : false);
+#endif
     m_model = model;
     m_selection.set_model(m_model);
 }
@@ -2260,6 +2280,12 @@ void GLCanvas3D::append_step_import_to_assembly_tree(const std::vector<StepImpor
                             << ", input_nodes=" << step_nodes.size()
                             << ", appended_tree_nodes=" << appended_count
                             << ", uid_offset=" << uid_offset;
+}
+
+void GLCanvas3D::notify_step_import()
+{
+    if (m_assembly_steps)
+        m_assembly_steps->clear_last_recorded_volumes();
 }
 
 const Selection& GLCanvas3D::get_selection() const
@@ -2461,6 +2487,35 @@ void GLCanvas3D::reset_select_plate_toolbar_selection() {
 void GLCanvas3D::enable_select_plate_toolbar(bool enable)
 {
     m_sel_plate_toolbar.set_enabled(enable);
+}
+
+void GLCanvas3D::_exit_assembly_to_3d_view()
+{
+    if (m_canvas != nullptr)
+        wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
+    const_cast<GLGizmosManager *>(&m_gizmos)->reset_all_states();
+    wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().reset_all_states();
+    GLVolume::explosion_ratio  = 1.0;
+    wxGetApp().plater()->get_view3D_canvas3D()->reload_scene(true);
+    {
+        GLCanvas3D *                          view_3d       = wxGetApp().plater()->get_view3D_canvas3D();
+        const auto& p_main_toolbar = view_3d->get_main_toolbar();
+        if (!p_main_toolbar) { return; }
+        std::shared_ptr<GLToolbarItem> assembly_item = p_main_toolbar->get_item("assembly_view");
+        std::chrono::system_clock::time_point end           = std::chrono::system_clock::now();
+        std::chrono::duration<int>            duration      = std::chrono::duration_cast<std::chrono::duration<int>>(end - assembly_item->get_start_time_point());
+        int                                   times         = duration.count();
+        NetworkAgent *agent = GUI::wxGetApp().getAgent();
+        if (agent) {
+            std::string name          = assembly_item->get_name() + "_duration";
+            std::string value         = "";
+            int         existing_time = 0;
+            agent->track_get_property(name, value);
+            try { if (value != "") { existing_time = std::stoi(value); } } catch (...) {}
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " tool name:" << name << " duration: " << times + existing_time;
+            agent->track_update_property(name, std::to_string(times + existing_time));
+        }
+    }
 }
 
 void GLCanvas3D::enable_return_toolbar(bool enable)
@@ -3106,6 +3161,12 @@ void GLCanvas3D::select_all()
     }
     m_selection.add_all();
     m_dirty = true;
+    // In the assembly view keep the step/tree state in sync with the selection,
+    // mirroring what a manual volume pick does.
+    if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps) {
+        m_assembly_steps->set_selection_origin(SelectionOrigin::GLVolume);
+        m_assembly_steps->sync_tree_ui_selection_from_canvas();
+    }
 }
 
 void GLCanvas3D::deselect_all()
@@ -4306,6 +4367,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     if (m_gizmos.on_char(evt))
         return;
 
+    if (keyCode == WXK_ESCAPE && m_assembly_steps && m_canvas_type == CanvasAssembleView) {
+        m_assembly_steps->on_escape_key();
+        return;
+    }
+
     if ((evt.GetModifiers() & ctrlMask) != 0) {
         if ((evt.GetModifiers() & shiftMask) != 0) {
             switch (keyCode) {
@@ -4519,8 +4585,13 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 // Map single zero key to filament #10 immediately
                 if (m_timer_set_color.IsRunning())
                     m_timer_set_color.Stop();
-                if (obj_list != nullptr && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation)
-                    obj_list->set_extruder_for_selected_items(10);
+                if (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation) {
+                    // Assembly view owns an independent model; route the shortcut there.
+                    if (m_canvas_type == ECanvasType::CanvasAssembleView)
+                        wxGetApp().plater()->change_extruder_for_assemble_selection(10);
+                    else if (obj_list != nullptr)
+                        obj_list->set_extruder_for_selected_items(10);
+                }
                 m_color_input_value = -1;
                 break;
             }
@@ -5158,7 +5229,13 @@ void GLCanvas3D::on_render_fallback_timer(wxTimerEvent& evt)
 void GLCanvas3D::on_set_color_timer(wxTimerEvent& evt)
 {
     auto obj_list = wxGetApp().obj_list();
-    if (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation && m_color_input_value > 0) { obj_list->set_extruder_for_selected_items(m_color_input_value); }
+    if (m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation && m_color_input_value > 0) {
+        // Assembly view owns an independent model; route the shortcut to it instead of the prepare-side list.
+        if (m_canvas_type == ECanvasType::CanvasAssembleView)
+            wxGetApp().plater()->change_extruder_for_assemble_selection(m_color_input_value);
+        else
+            obj_list->set_extruder_for_selected_items(m_color_input_value);
+    }
     m_color_input_value = -1;
     m_timer_set_color.Stop();
 }
@@ -5502,6 +5579,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // the double-click no longer calls clear_when_no_selection() here.
         if (m_hover_volume_idxs.empty() && !m_selection.is_empty()) {
             deselect_all();
+            // Mirror the now-empty canvas selection onto the assembly tree view
+            // rows (clears their highlight) while that tree view is open.
+            if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps)
+                m_assembly_steps->sync_tree_ui_selection_from_canvas();
             m_dirty = true;
             return;
         }
@@ -5613,6 +5694,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                                     m_mouse.drag.move_start_threshold_position_2D = pos;
                             }
                         }
+
+                        // Mirror the freshly-updated canvas selection onto the
+                        // assembly tree view rows while that tree view is open.
+                        if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps)
+                            m_assembly_steps->sync_tree_ui_selection_from_canvas();
 
                         // propagate event through callback
                         if (curr_idxs != m_selection.get_volume_idxs()) {
@@ -6052,6 +6138,15 @@ void GLCanvas3D::on_paint(wxPaintEvent& evt)
 
 void GLCanvas3D::on_kill_focus(wxFocusEvent &evt)
 {
+#ifdef __APPLE__
+    // Drop the IME target if it points at this canvas, so the imgui IME-position
+    // callback never dereferences a stale native view handle. Deactivate the
+    // context first (the per-frame sync stops running once the handle is gone).
+    if (m_canvas != nullptr && ImGui::GetIO().ImeWindowHandle == m_canvas->GetHandle()) {
+        mac_ime_sync_active(m_canvas->GetHandle(), false);
+        ImGui::GetIO().ImeWindowHandle = nullptr;
+    }
+#endif
     ImGui::SetWindowFocus(nullptr);
     render();
     evt.Skip();
@@ -6063,6 +6158,15 @@ void GLCanvas3D::force_set_focus() {
 
 void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
 {
+#ifdef __APPLE__
+    // Enable CJK IME composition over this canvas (wxWidgets ships only stub
+    // NSTextInputClient methods for custom views, which blocks IME on macOS).
+    // Also route imgui's IME cursor position to this canvas' native view.
+    if (m_canvas != nullptr) {
+        mac_ime_install(m_canvas->GetHandle(), []() { return ImGui::GetIO().WantTextInput; });
+        ImGui::GetIO().ImeWindowHandle = m_canvas->GetHandle();
+    }
+#endif
     m_tooltip_enabled = false;
     _refresh_if_shown_on_screen();
     m_tooltip_enabled = true;
@@ -6372,6 +6476,9 @@ void GLCanvas3D::do_scale(const std::string& snapshot_type)
             }
             else if (selection_mode == Selection::Volume) {
                 auto cur_mv = model_object->volumes[volume_idx];
+                // NOTE: the assembly view has no scale tool, so do_scale only runs on the prepare view.
+                // Keeping the prepare-side behavior; the assembly volume's size is kept in sync separately
+                // (prepare -> assemble scale sync), so a prepare-side scale still shows up in the assembly view.
                 if (cur_mv->get_scaling_factor() != v->get_volume_scaling_factor()) {
                     model_object->instances[instance_idx]->set_transformation(v->get_instance_transformation());
                     cur_mv->set_transformation(v->get_volume_transformation());
@@ -9865,13 +9972,16 @@ void GLCanvas3D::_try_update_selected_keyframe()
 
 void GLCanvas3D::_render_assembly_steps_view()
 {
+    if (m_canvas_type != ECanvasType::CanvasAssembleView) {
+        if (auto *nm = wxGetApp().plater()->get_notification_manager())
+            nm->close_notification_of_type(NotificationType::SelectObjectInWhichStep);
+        return;
+    }
     if (!m_model || m_model->objects.empty() || !m_assembly_steps)//limit CanvasAssembleView
         return;
     m_assembly_steps->set_in_assembly_view(m_canvas_type == ECanvasType::CanvasAssembleView);
     m_assembly_steps->set_input(wxGetApp().imgui(), m_model, &get_active_camera(), &m_selection, &m_volumes, m_gizmos.get_current_type() != GLGizmosManager::Undefined);
 
-    if (m_canvas_type != ECanvasType::CanvasAssembleView)
-        return;
     m_assembly_steps->set_render_input(m_is_dark, Slic3r::resources_dir() + "/images/", get_scale());
     const Size cnv_sz = get_canvas_size();
     // Feed the top gizmo/main toolbar's on-screen rect (logical px) so the guide
@@ -9915,6 +10025,8 @@ void GLCanvas3D::_render_return_toolbar()
         return;
     if (is_assembly_play_or_export_mode())
         return;
+    if (m_assembly_steps)
+        m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::ReturnToolbar, ImVec2(0, 0), ImVec2(0, 0));
 
     float font_size = ImGui::GetFontSize();
     ImVec2 real_size = ImVec2(font_size * 4, font_size * 1.7);
@@ -9970,6 +10082,12 @@ void GLCanvas3D::_render_return_toolbar()
     imgui.begin(_L("Assembly Return"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground
         | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);
 
+    if (m_assembly_steps && m_canvas_type == ECanvasType::CanvasAssembleView) {
+        const ImVec2 wp = ImGui::GetWindowPos();
+        const ImVec2 ws = ImGui::GetWindowSize();
+        m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::ReturnToolbar, wp, ImVec2(wp.x + ws.x, wp.y + ws.y));
+    }
+
     float button_width = 20;
     float button_height = 20;
     ImVec2 size = ImVec2(button_width, button_height); // Size of the image we want to make visible
@@ -9984,38 +10102,7 @@ void GLCanvas3D::_render_return_toolbar()
         if (m_canvas_type == ECanvasType::CanvasView3D) {
             deselect_all();
         } else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
-            if (m_canvas != nullptr)
-                wxPostEvent(m_canvas, SimpleEvent(EVT_GLVIEWTOOLBAR_3D));
-            const_cast<GLGizmosManager *>(&m_gizmos)->reset_all_states();
-            wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().reset_all_states();
-            GLVolume::explosion_ratio  = 1.0;//in 3D view  GLVolume::explosion_ratio  = 1.0
-            wxGetApp().plater()->get_view3D_canvas3D()->reload_scene(true);
-            {
-                GLCanvas3D *                          view_3d       = wxGetApp().plater()->get_view3D_canvas3D();
-                const auto& p_main_toolbar = view_3d->get_main_toolbar();
-                if (!p_main_toolbar) {
-                    return;
-                }
-                std::shared_ptr<GLToolbarItem> assembly_item = p_main_toolbar->get_item("assembly_view");
-                std::chrono::system_clock::time_point end           = std::chrono::system_clock::now();
-                std::chrono::duration<int>            duration      = std::chrono::duration_cast<std::chrono::duration<int>>(end - assembly_item->get_start_time_point());
-                int                                   times         = duration.count();
-
-                NetworkAgent *agent = GUI::wxGetApp().getAgent();
-                if (agent) {
-                    std::string name          = assembly_item->get_name() + "_duration";
-                    std::string value         = "";
-                    int         existing_time = 0;
-
-                    agent->track_get_property(name, value);
-                    try {
-                        if (value != "") { existing_time = std::stoi(value); }
-                    } catch (...) {}
-
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " tool name:" << name << " duration: " << times + existing_time;
-                    agent->track_update_property(name, std::to_string(times + existing_time));
-                }
-            }
+            _exit_assembly_to_3d_view();
         }
     }
     ImGui::PopStyleColor(5);
@@ -10354,7 +10441,7 @@ void GLCanvas3D::_render_assemble_control()
         m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::AssembleControl, ImVec2(0, 0), ImVec2(0, 0));
     if (is_assembly_play_or_export_mode())
         return;
-    if (m_gizmos.get_current_type() == GLGizmosManager::EType::MmuSegmentation) {
+    if (m_gizmos.get_current_type() == GLGizmosManager::EType::MmuSegmentation || m_assembly_steps && m_assembly_steps->has_selected_step_node()) {
         m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(0.0, true);
         return;
     }
@@ -10499,45 +10586,6 @@ void GLCanvas3D::_render_assemble_control()
             if (selection_out == 1) { m_selection.lock_volume_selection_mode(); }
         }
         same_line_width += (combo_visible_width + combo_group_gap);
-    }
-    if (m_assembly_steps) {
-        // Display Mode combo: mirrors the Selection Mode block above so the
-        const bool disable_display_mode = !m_assembly_steps->has_selected_node();
-        ImGui::SameLine(same_line_width);
-        imgui->disabled_begin(disable_display_mode);
-        std::vector<std::string> modes = {_u8L("Show Current Step Objects Only"), _u8L("X-Ray Other Objects")};//, _u8L("All")
-        int display_idx = static_cast<int>(m_assembly_steps->keyframe_display_mode());
-        auto label       = _u8L("Display Mode") + ":";
-        auto label_width = imgui->calc_text_size(label).x;
-        const char *selected_str = (display_idx >= 0 && display_idx < int(modes.size())) ? modes[display_idx].c_str() : "";
-        const auto combo_widths = calc_bbl_combo_widths(modes);
-        const float combo_item_width = combo_widths.first;
-        const float combo_visible_width = combo_widths.second;
-
-        ImGui::AlignTextToFramePadding();
-        imgui->text(label);
-        same_line_width = ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x + label_combo_gap;
-        ImGui::SameLine(same_line_width);
-        ImGui::SetNextItemWidth(combo_item_width);
-        size_t display_out = (display_idx >= 0) ? size_t(display_idx) : 0;
-        ImGuiWrapper::push_combo_style(get_scale());
-        if (ImGui::BBLBeginCombo(("##" + label).c_str(), selected_str, 0)) {
-            for (size_t line_idx = 0; line_idx < modes.size(); ++line_idx) {
-                ImGui::PushID(int(line_idx));
-                if (ImGui::Selectable("", int(line_idx) == display_idx))
-                    display_out = line_idx;
-                ImGui::SameLine();
-                ImGui::Text("%s", modes[line_idx].c_str());
-                ImGui::PopID();
-            }
-            ImGui::EndCombo();
-        }
-        ImGuiWrapper::pop_combo_style();
-        if (int(display_out) != display_idx && m_assembly_steps) {
-            m_assembly_steps->apply_keyframe_display_mode(static_cast<KeyframeDisplayMode>(display_out));
-        }
-        imgui->disabled_end();
-        same_line_width += (combo_visible_width + item_spacing);
     }
     imgui->end();
 
@@ -12384,12 +12432,24 @@ bool GLCanvas3D::_reset_assembly_to_origin(wxEvtHandler*)
 
     plater->take_snapshot("reset all volumes to assembly origin", UndoRedo::SnapshotType::GizmoAction);
 
-    for (ModelObject* obj : model.objects) {
-        for (ModelInstance* inst : obj->instances) {
-            Geometry::Transformation trafo = inst->get_assemble_transformation();
-            trafo.set_offset(Vec3d::Zero());
-            inst->set_assemble_transformation(trafo);
+    auto reset_assembly_instance_offsets = [](Model& target_model) {
+        for (ModelObject* obj : target_model.objects) {
+            for (ModelInstance* inst : obj->instances) {
+                Geometry::Transformation trafo = inst->get_assemble_transformation();
+                trafo.set_offset(Vec3d::Zero());
+                inst->set_assemble_transformation(trafo);
+            }
         }
+    };
+    reset_assembly_instance_offsets(model);
+    reset_assembly_instance_offsets(plater->assemble_model());
+    GLCanvas3D* canvas = plater->get_current_canvas3D();
+    if (canvas) {
+        for (GLVolume* gv : canvas->get_volumes().volumes) {
+            gv->set_instance_offset(Vec3d::Zero());
+        }
+        if (canvas->get_canvas_type() == ECanvasType::CanvasAssembleView)
+            canvas->zoom_to_fit();
     }
     s_bvh_primary_bounds.reset();
     s_far_from_origin_notification_shown = false;
