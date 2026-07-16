@@ -931,28 +931,20 @@ bool MachineObject::check_version_valid()
 
 std::map<int, DevFirmwareVersionInfo> MachineObject::get_ams_version()
 {
-    std::vector<std::string> multi_tray_ams_type = {"ams", "n3f"};
     std::map<int, DevFirmwareVersionInfo> result;
-    for (int i = 0; i < 8; i++) {
-        std::string ams_id;
-        for (auto type : multi_tray_ams_type)
-        {
-            ams_id = type + "/" + std::to_string(i);
-            auto it = module_vers.find(ams_id);
-            if (it != module_vers.end()) {
-                result.emplace(std::pair(i, it->second));
-            }
-        }
-    }
+    for (const auto &module : module_vers) {
+        const std::string &key       = module.first;
+        auto               slash_pos = key.find('/');
+        if (slash_pos == std::string::npos) continue;
 
-    std::string single_tray_ams_type = "n3s";
-    int n3s_start_id = 128;
-    for (int i = n3s_start_id; i < n3s_start_id + 8; i++) {
-        std::string ams_id;
-        ams_id = single_tray_ams_type + "/" + std::to_string(i);
-        auto it = module_vers.find(ams_id);
-        if (it != module_vers.end()) {
-            result.emplace(std::pair(i, it->second));
+        std::string type = key.substr(0, slash_pos);
+        if (type != "ams" && type != "ams_f1" && type != "n3f" && type != "n3s") continue;
+
+        try {
+            int ams_id = std::stoi(key.substr(slash_pos + 1));
+            result.emplace(ams_id, module.second);
+        } catch (...) {
+            continue;
         }
     }
     return result;
