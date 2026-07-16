@@ -1081,6 +1081,12 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual, bool isMultiNozzle)
         vsizer_printer->AddSpacer(FromDIP(4));
         // Printer - extruder
 
+        // double
+        // hsizer_extruder = new wxBoxSizer(wxHORIZONTAL);
+        //hsizer_extruder->Add(left_extruder->sizer, 1, wxEXPAND, 0);
+        //hsizer_extruder->AddSpacer(FromDIP(4));
+        //hsizer_extruder->Add(right_extruder->sizer, 1, wxEXPAND, 0);
+
         // single
         vsizer_printer->Add(single_extruder->sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
 
