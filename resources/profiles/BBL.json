@@ -2920,6 +2920,18 @@
             "sub_path": "filament/Bambu PETG HF @BBL H3C 0.8 nozzle.json"
         },
         {
+            "name": "Bambu PETG Matte @BBL H3C",
+            "sub_path": "filament/Bambu PETG Matte @BBL H3C.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL H3C 0.6 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL H3C 0.6 nozzle.json"
+        },
+        {
             "name": "Bambu PETG HF @BBL P1P 0.4 nozzle",
             "sub_path": "filament/Bambu PETG HF @BBL P1P 0.4 nozzle.json"
         },
@@ -3634,14 +3646,6 @@
         {
             "name": "PolyLite PETG @BBL H2S 0.2 nozzle",
             "sub_path": "filament/PolyLite PETG @BBL H2S 0.2 nozzle.json"
-        },
-        {
-            "name": "PolyLite PETG @BBL H3C",
-            "sub_path": "filament/PolyLite PETG @BBL H3C.json"
-        },
-        {
-            "name": "PolyLite PETG @BBL H3C 0.2 nozzle",
-            "sub_path": "filament/PolyLite PETG @BBL H3C 0.2 nozzle.json"
         },
         {
             "name": "PolyLite PETG @BBL P1P",
@@ -7036,14 +7040,6 @@
             "sub_path": "filament/Overture Matte PLA @BBL H2S 0.2 nozzle.json"
         },
         {
-            "name": "Overture Matte PLA @BBL H3C",
-            "sub_path": "filament/Overture Matte PLA @BBL H3C.json"
-        },
-        {
-            "name": "Overture Matte PLA @BBL H3C 0.2 nozzle",
-            "sub_path": "filament/Overture Matte PLA @BBL H3C 0.2 nozzle.json"
-        },
-        {
             "name": "Overture Matte PLA @BBL P1P",
             "sub_path": "filament/Overture Matte PLA @BBL P1P.json"
         },
@@ -7106,14 +7102,6 @@
         {
             "name": "Overture PLA @BBL H2S 0.2 nozzle",
             "sub_path": "filament/Overture PLA @BBL H2S 0.2 nozzle.json"
-        },
-        {
-            "name": "Overture PLA @BBL H3C",
-            "sub_path": "filament/Overture PLA @BBL H3C.json"
-        },
-        {
-            "name": "Overture PLA @BBL H3C 0.2 nozzle",
-            "sub_path": "filament/Overture PLA @BBL H3C 0.2 nozzle.json"
         },
         {
             "name": "Overture PLA @BBL P1P",
@@ -7180,14 +7168,6 @@
             "sub_path": "filament/PolyLite PLA @BBL H2S 0.2 nozzle.json"
         },
         {
-            "name": "PolyLite PLA @BBL H3C",
-            "sub_path": "filament/PolyLite PLA @BBL H3C.json"
-        },
-        {
-            "name": "PolyLite PLA @BBL H3C 0.2 nozzle",
-            "sub_path": "filament/PolyLite PLA @BBL H3C 0.2 nozzle.json"
-        },
-        {
             "name": "PolyLite PLA @BBL P1P",
             "sub_path": "filament/P1P/PolyLite PLA @BBL P1P.json"
         },
@@ -7250,14 +7230,6 @@
         {
             "name": "PolyTerra PLA @BBL H2S 0.2 nozzle",
             "sub_path": "filament/PolyTerra PLA @BBL H2S 0.2 nozzle.json"
-        },
-        {
-            "name": "PolyTerra PLA @BBL H3C",
-            "sub_path": "filament/PolyTerra PLA @BBL H3C.json"
-        },
-        {
-            "name": "PolyTerra PLA @BBL H3C 0.2 nozzle",
-            "sub_path": "filament/PolyTerra PLA @BBL H3C 0.2 nozzle.json"
         },
         {
             "name": "PolyTerra PLA @BBL P1P",
@@ -7530,14 +7502,6 @@
         {
             "name": "eSUN PLA+ @BBL H2S 0.2 nozzle",
             "sub_path": "filament/eSUN PLA+ @BBL H2S 0.2 nozzle.json"
-        },
-        {
-            "name": "eSUN PLA+ @BBL H3C",
-            "sub_path": "filament/eSUN PLA+ @BBL H3C.json"
-        },
-        {
-            "name": "eSUN PLA+ @BBL H3C 0.2 nozzle",
-            "sub_path": "filament/eSUN PLA+ @BBL H3C 0.2 nozzle.json"
         },
         {
             "name": "eSUN PLA+ @BBL P1P",
@@ -8426,14 +8390,6 @@
         {
             "name": "Bambu TPU 95A @BBL H2S",
             "sub_path": "filament/Bambu TPU 95A @BBL H2S.json"
-        },
-        {
-            "name": "Bambu TPU 95A @BBL H3C 0.6 nozzle",
-            "sub_path": "filament/Bambu TPU 95A @BBL H3C 0.6 nozzle.json"
-        },
-        {
-            "name": "Bambu TPU 95A @BBL H3C 0.8 nozzle",
-            "sub_path": "filament/Bambu TPU 95A @BBL H3C 0.8 nozzle.json"
         },
         {
             "name": "Bambu TPU 95A @BBL P1P",

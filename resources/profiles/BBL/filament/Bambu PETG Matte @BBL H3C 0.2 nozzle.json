@@ -1,18 +1,12 @@
 {
     "type": "filament",
-    "name": "Overture PLA @BBL H3C",
-    "inherits": "Overture PLA @base",
+    "name": "Bambu PETG Matte @BBL H3C 0.2 nozzle",
+    "inherits": "Bambu PETG Matte @base",
     "from": "system",
-    "setting_id": "GFSL04_18",
+    "setting_id": "GFSG03_26",
     "instantiation": "true",
-    "additional_cooling_fan_speed": [
-        "75"
-    ],
-    "eng_plate_temp": [
-        "55"
-    ],
-    "eng_plate_temp_initial_layer": [
-        "55"
+    "fan_min_speed": [
+        "20"
     ],
     "filament_change_length": [
         "0"
@@ -20,18 +14,17 @@
     "filament_change_length_nc": [
         "0"
     ],
-    "filament_flow_ratio": [
-        "0.98",
-        "0.98"
-    ],
-    "filament_idle_travel_cooling_enabled": "0",
-    "filament_long_retractions_when_cut": [
+    "filament_cooling_before_tower": [
         "0",
         "0"
     ],
+    "filament_flush_volumetric_speed": [
+        "3",
+        "3"
+    ],
     "filament_max_volumetric_speed": [
-        "15",
-        "15"
+        "1",
+        "1"
     ],
     "filament_prime_tower_speed_factor_curve": [
         "1"
@@ -44,33 +37,25 @@
         "fdm_filament_template_direct_dual",
         "fdm_filament_template_h3c"
     ],
-    "long_retractions_when_ec": [
-        "1",
-        "1"
-    ],
     "max_temperature_drop_when_ec": [
         "-1"
     ],
     "nozzle_temperature": [
-        "220",
-        "220"
+        "250",
+        "250"
     ],
     "nozzle_temperature_initial_layer": [
-        "220",
-        "220"
+        "245",
+        "245"
     ],
-    "retraction_distances_when_ec": [
-        "10",
-        "10"
+    "overhang_fan_threshold": [
+        "25%"
     ],
-    "slow_down_min_speed": [
-        "20",
-        "20"
+    "pre_start_fan_time": [
+        "0"
     ],
     "compatible_printers": [
-        "Bambu Lab H3C 0.4 nozzle",
-        "Bambu Lab H3C 0.6 nozzle",
-        "Bambu Lab H3C 0.8 nozzle"
+        "Bambu Lab H3C 0.2 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"

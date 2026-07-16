@@ -59,13 +59,15 @@
     "inner_wall_speed": [
         "300",
         "600",
-        "600"
+        "300"
     ],
     "internal_solid_infill_speed": [
         "250",
         "600",
-        "600"
+        "250"
     ],
+    "ironing_flow": "25%",
+    "monotonic_travel_into_wall": "45.0",
     "outer_wall_acceleration": [
         "5000",
         "5000",
@@ -74,7 +76,7 @@
     "outer_wall_speed": [
         "200",
         "500",
-        "500"
+        "200"
     ],
     "overhang_1_4_speed": [
         "0",
@@ -164,7 +166,7 @@
     "sparse_infill_speed": [
         "350",
         "600",
-        "600"
+        "350"
     ],
     "support_interface_speed": [
         "80",
@@ -216,9 +218,7 @@
         "80%",
         "80%"
     ],
-    "monotonic_travel_into_wall": "45.0",
     "compatible_printers": [
         "Bambu Lab H3C 0.4 nozzle"
-    ],
-    "ironing_flow": "25%"
+    ]
 }

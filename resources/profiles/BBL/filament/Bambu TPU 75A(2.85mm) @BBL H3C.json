@@ -69,20 +69,13 @@
         "50"
     ],
     "filament_overhang_totally_speed": [
-        "70"
+        "50"
     ],
     "filament_pre_cooling_temperature": [
-        "195",
-        "0",
-        "0"
+        "195"
     ],
     "filament_pre_cooling_temperature_nc": [
-        "195",
-        "0",
-        "0"
-    ],
-    "filament_preheat_temperature_delta": [
-        "10"
+        "195"
     ],
     "filament_prime_tower_speed_factor_curve": [
         "0.28,0.35,0.7"
@@ -91,19 +84,13 @@
         "60"
     ],
     "filament_ramming_travel_time": [
-        "20",
-        "0",
-        "0"
+        "20"
     ],
     "filament_ramming_travel_time_nc": [
-        "20",
-        "0",
-        "0"
+        "20"
     ],
     "filament_ramming_volumetric_speed": [
-        "0.7",
-        "0.55",
-        "0.55"
+        "0.7"
     ],
     "filament_ramming_volumetric_speed_nc": [
         "-1"
@@ -124,7 +111,7 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "2"
+        "1"
     ],
     "filament_retraction_minimum_travel": [
         "nil"
@@ -142,14 +129,14 @@
         "nil"
     ],
     "filament_z_hop_types": [
-        "Normal Lift"
+        "Auto Lift"
     ],
     "include": [
         "fdm_filament_template_direct_dual",
         "fdm_filament_template_h3c"
     ],
     "long_retractions_when_ec": [
-        "1"
+        "0"
     ],
     "max_temperature_drop_when_ec": [
         "-1"
@@ -173,9 +160,7 @@
         "14"
     ],
     "slow_down_min_speed": [
-        "60",
-        "100",
-        "100"
+        "70"
     ],
     "volumetric_speed_coefficients": [
         "-72.1736 -8.8086 10.6201 29.6592 9.9286 -3.3920"

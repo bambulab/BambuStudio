@@ -77,9 +77,6 @@
     "filament_pre_cooling_temperature_nc": [
         "195"
     ],
-    "filament_preheat_temperature_delta": [
-        "10"
-    ],
     "filament_prime_tower_speed_factor_curve": [
         "0.28,0.35,0.7"
     ],
@@ -139,7 +136,7 @@
         "fdm_filament_template_h3c"
     ],
     "long_retractions_when_ec": [
-        "1"
+        "0"
     ],
     "nozzle_temperature": [
         "230"

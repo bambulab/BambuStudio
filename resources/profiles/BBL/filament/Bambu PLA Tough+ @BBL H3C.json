@@ -31,7 +31,7 @@
         "21"
     ],
     "filament_prime_tower_speed_factor_curve": [
-        "1"
+        "0.5,1,1,0.5,0.5"
     ],
     "filament_prime_volume": [
         "20"
@@ -61,8 +61,8 @@
         "fdm_filament_template_h3c"
     ],
     "long_retractions_when_ec": [
-        "1",
-        "1"
+        "0",
+        "0"
     ],
     "max_temperature_drop_when_ec": [
         "-1"
@@ -77,10 +77,6 @@
     ],
     "pre_start_fan_time": [
         "2"
-    ],
-    "retraction_distances_when_ec": [
-        "10",
-        "10"
     ],
     "slow_down_min_speed": [
         "20",
