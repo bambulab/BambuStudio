@@ -74,10 +74,9 @@ void generate_support_toolpaths(
 	const SupportGeneratorLayersPtr   	&interface_layers,
     const SupportGeneratorLayersPtr   	&base_interface_layers,
     const std::vector<ExPolygons>       &cooldown_areas = {},
-    // Organic tree only: per-layer regions to fill with real infill extrusions to close internal
-    // "floating" voids (organic tree base is otherwise printed sheath-only / hollow). Indexed like
-    // intermediate_layers / cooldown_areas.
-    const std::vector<ExPolygons>       &lightning_fill_areas = {});
+    // Organic tree only: per-layer lightning infill regions for newly opened internal voids (organic tree
+    // base is otherwise printed sheath-only / hollow). Indexed like intermediate_layers / cooldown_areas.
+    const std::vector<ExPolygons>       &lightning_infill_areas = {});
 
 // FN_HIGHER_EQUAL: the provided object pointer has a Z value >= of an internal threshold.
 // Find the first item with Z value >= of an internal threshold of fn_higher_equal.
