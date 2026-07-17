@@ -60,7 +60,9 @@
 			"support_ams_ext_mix_print": true,
 			"support_ams_filament_change_abort": true,
 			"support_filament_remain_edit": true,
-			"support_fdm_cut_mode_compat": true
+			"support_fdm_cut_mode_compat": true,
+			"support_ams_settings_reorder": true,
+			"support_ams_settings_hide_image": true
 		},
 		"fan" : {
 			"0" :
@@ -97,6 +99,7 @@
 		"enable_set_nozzle_info": false,
 		"support_safety_options": true,
 		"filament_load_image": ["filament_load_o_series_ext0"],
-		"hotend_ams_type_string":"n10a"
+		"hotend_ams_type_string":"n10a",
+		"support_ams_settings_hide_insert_power": true
 	}
 }

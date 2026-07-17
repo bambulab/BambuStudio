@@ -4,6 +4,7 @@
 
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceCore/DevUpgrade.h"
 
 #include "slic3r/GUI/DeviceCore/DevManager.h"
@@ -110,12 +111,15 @@ void AMSSetting::create()
     m_panel_Insert_material->SetSizer(m_sizer_main_Insert_material);
 
     // checkbox area 2
+    m_panel_starting = new wxPanel(m_panel_body, wxID_ANY, wxDefaultPosition, wxSize(-1, -1), wxTAB_TRAVERSAL);
+    m_panel_starting->SetBackgroundColour(*wxWHITE);
+
     wxBoxSizer *m_sizer_starting = new wxBoxSizer(wxHORIZONTAL);
-    m_checkbox_starting_auto_read = new ::CheckBox(m_panel_body);
+    m_checkbox_starting_auto_read = new ::CheckBox(m_panel_starting);
     m_checkbox_starting_auto_read->Bind(wxEVT_TOGGLEBUTTON, &AMSSetting::on_starting_read, this);
     m_sizer_starting->Add(m_checkbox_starting_auto_read, 0, wxALIGN_CENTER_VERTICAL);
     m_sizer_starting->Add(0, 0, 0, wxLEFT, FromDIP(12));
-    m_title_starting_auto_read = new wxStaticText(m_panel_body, wxID_ANY, _L("Power on update"), wxDefaultPosition,wxDefaultSize, 0);
+    m_title_starting_auto_read = new wxStaticText(m_panel_starting, wxID_ANY, _L("Power on update"), wxDefaultPosition,wxDefaultSize, 0);
     m_title_starting_auto_read->SetFont(::Label::Head_13);
     m_title_starting_auto_read->SetForegroundColour(AMS_SETTING_GREY800);
     m_title_starting_auto_read->Wrap(AMS_SETTING_BODY_WIDTH);
@@ -127,7 +131,7 @@ void AMSSetting::create()
     // tip line
     m_sizer_starting_tip_inline = new wxBoxSizer(wxVERTICAL);
 
-    m_tip_starting_line1 = new Label(m_panel_body,
+    m_tip_starting_line1 = new Label(m_panel_starting,
         _L("The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools.")
     );
     m_tip_starting_line1->SetFont(::Label::Body_13);
@@ -136,7 +140,7 @@ void AMSSetting::create()
     m_tip_starting_line1->Wrap(AMS_SETTING_BODY_WIDTH);
     m_sizer_starting_tip_inline->Add(m_tip_starting_line1, 0, wxEXPAND, 0);
 
-    m_tip_starting_line2 = new Label(m_panel_body,
+    m_tip_starting_line2 = new Label(m_panel_starting,
         _L("The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown.")
     );
     m_tip_starting_line2->SetFont(::Label::Body_13);
@@ -145,6 +149,11 @@ void AMSSetting::create()
     m_tip_starting_line2->Wrap(AMS_SETTING_BODY_WIDTH);
     m_sizer_starting_tip_inline->Add(m_tip_starting_line2, 0, wxEXPAND,0);
     m_sizer_starting_tip->Add(m_sizer_starting_tip_inline, 1, wxALIGN_CENTER, 0);
+
+    wxBoxSizer* m_sizer_main_starting = new wxBoxSizer(wxVERTICAL);
+    m_sizer_main_starting->Add(m_sizer_starting, 0, wxEXPAND, 0);
+    m_sizer_main_starting->Add(m_sizer_starting_tip, 0, wxEXPAND | wxTOP, FromDIP(12));
+    m_panel_starting->SetSizer(m_sizer_main_starting);
 
     // checkbox area 3
     wxBoxSizer* m_sizer_remain = new wxBoxSizer(wxHORIZONTAL);
@@ -260,8 +269,7 @@ void AMSSetting::create()
     m_sizerl_body->Add(m_ams_type, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(12));
     //m_sizerl_body->Add(m_ams_arrange_order, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(12));
     m_sizerl_body->Add(m_panel_Insert_material, 0, wxEXPAND | wxTOP, FromDIP(12));
-    m_sizerl_body->Add(m_sizer_starting, 0, wxEXPAND | wxTOP, FromDIP(12));
-    m_sizerl_body->Add(m_sizer_starting_tip, 0, wxEXPAND | wxTOP, FromDIP(12));
+    m_sizerl_body->Add(m_panel_starting, 0, wxEXPAND | wxTOP, FromDIP(12));
     m_sizerl_body->Add(m_sizer_remain_block, 0, wxEXPAND | wxTOP, FromDIP(12));
     m_sizerl_body->Add(m_sizer_switch_filament, 0, wxEXPAND | wxTOP, FromDIP(12));
     m_sizerl_body->Add(m_sizer_switch_filament_tip, 0, wxEXPAND | wxTOP, FromDIP(12));
@@ -347,9 +355,30 @@ void AMSSetting::update_firmware_switching_status()
     }
 }
 
+bool AMSSetting::should_hide_insert_power_settings(MachineObject* obj) const
+{
+    if (!obj) {
+        return false;
+    }
+
+    // Machines that opt in via config keep the built-in AMS detection always on,
+    // so the manual switches are unnecessary unless an external sub-AMS is present.
+    if (!DevPrinterConfigUtil::support_ams_settings_hide_insert_power(obj->printer_type)) {
+        return false;
+    }
+
+    // Reveal the switches once an external sub-AMS (N3S / N3F / AMS) is connected.
+    return !obj->GetFilaSystem()->HasSubAms();
+}
+
 void AMSSetting::update_insert_material_read_mode(MachineObject* obj)
 {
     if (obj) {
+        if (should_hide_insert_power_settings(obj)) {
+            m_panel_Insert_material->Show(false);
+            return;
+        }
+
         auto setting = obj->GetFilaSystem()->GetAmsSystemSetting().IsDetectOnInsertEnabled();
         if (!setting.has_value()) {
             m_panel_Insert_material->Show(false);
@@ -450,6 +479,15 @@ void AMSSetting::update_ams_img(MachineObject* obj_)
 
 void AMSSetting::update_starting_read_mode(bool selected)
 {
+    if (should_hide_insert_power_settings(m_obj)) {
+        m_panel_starting->Show(false);
+        Layout();
+        Fit();
+        return;
+    }
+
+    m_panel_starting->Show(true);
+
     m_checkbox_starting_auto_read->SetValue(selected);
     if (selected) { // selected
         m_tip_starting_line1->Show();
@@ -800,7 +838,19 @@ void AMSSettingArrangeAMSOrder::Update(const MachineObject* obj)
         m_ams_firmware_switch = obj->GetFilaSystem()->GetAmsFirmwareSwitch();
         const auto& print_jj = DevPrinterConfigUtil::get_json_from_config(obj->printer_type, "print");
         if (print_jj.contains("support_ams_settings_reorder")) {
-            Show(DevJsonValParser::GetVal<bool>(print_jj, "support_ams_settings_reorder", false));
+            bool show = DevJsonValParser::GetVal<bool>(print_jj, "support_ams_settings_reorder", false);
+
+            // N1x hotend-rack machines: the built-in rack AMS is fixed and does not
+            // take part in ID reordering, so only expose this once an external
+            // sub-AMS is connected. Other machines (e.g. N9) keep config-only behavior.
+            auto rack = obj->GetNozzleRack();
+            const bool is_n1x = rack && (rack->GetRackType() == DevNozzleRack::RackType_A ||
+                                         rack->GetRackType() == DevNozzleRack::RackType_B);
+            if (show && is_n1x && !obj->GetFilaSystem()->HasSubAms()) {
+                show = false;
+            }
+
+            Show(show);
             return;
         }
     }

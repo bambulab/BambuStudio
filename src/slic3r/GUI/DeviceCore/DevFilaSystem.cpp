@@ -870,6 +870,23 @@ bool DevFilaSystem::CanShowFilamentBackup() const
     return m_owner->is_support_filament_backup && IsAutoRefillEnabled() && HasAms() && m_owner->GetExtderSystem()->HasFilamentBackup();
 }
 
+bool DevFilaSystem::HasSubAms() const
+{
+    // A "sub AMS" is an external unit (N3S / N3F / AMS). The N1x built-in rack
+    // AMS (ZMULTI_A/B) is excluded on purpose.
+    for (const auto& kv : amsList) {
+        const DevAms* ams = kv.second;
+        if (!ams || !ams->IsExist()) {
+            continue;
+        }
+        const DevAmsType type = ams->GetAmsType();
+        if (type == DevAmsType::N3S || type == DevAmsType::N3F || type == DevAmsType::AMS) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 std::optional<DevFilamentStep> DevFilaSystem::GetCurrentFilamentChangeStep() const
 {

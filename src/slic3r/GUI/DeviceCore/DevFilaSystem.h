@@ -355,6 +355,10 @@ public:
     std::map<std::string, DevAms*, NumericStrCompare>& GetAmsList() { return amsList; }
     int                             GetAmsCount() const { return amsList.size(); }
 
+    // Whether an external sub-AMS (N3S / N3F / AMS) is connected. The N1x
+    // built-in rack AMS (ZMULTI_A/B) is intentionally excluded.
+    bool                            HasSubAms() const;
+
     /* zone */
     std::optional<DevAmsZone> GetZoneBySlot(int ams_id, int slot_id) const;
 

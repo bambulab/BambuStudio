@@ -48,6 +48,7 @@ protected:
     void update_air_printing_detection(MachineObject* obj);
 
     void update_firmware_switching_status();
+    bool should_hide_insert_power_settings(MachineObject *obj) const;
 
     // event handlers
     void on_insert_material_read(wxCommandEvent& event);
@@ -78,6 +79,7 @@ protected:
     Label* m_tip_Insert_material_line2;
     Label* m_tip_Insert_material_line3;
 
+    wxPanel*      m_panel_starting = nullptr;
     CheckBox *    m_checkbox_starting_auto_read;
     wxStaticText *m_title_starting_auto_read;
     Label* m_tip_starting_line1;
