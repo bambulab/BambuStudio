@@ -13,6 +13,7 @@
 #include "Widgets/Label.hpp"
 
 #include <wx/dcgraph.h>
+#include <wx/image.h>
 
 namespace Slic3r { namespace GUI {
 
@@ -96,7 +97,20 @@ void MaterialItemHotend::doRender(wxDC& dc)
     auto   acolor = m_ams_coloul;
     change_the_opacity(acolor);
 
-    if (mcolor.Alpha() == 0) { dc.DrawBitmap(m_transparent_mitem.bmp(), FromDIP(1), FromDIP(1)); }
+    if (mcolor.Alpha() == 0) {
+        // "transparent_material_up" is authored 65px wide for the base card;
+        // this hotend card is wider (80px), so stretch the checkerboard to the
+        // full width, otherwise the right part of the color bar stays blank.
+        wxImage transparent_img = m_transparent_mitem.bmp().ConvertToImage();
+        if (transparent_img.IsOk()) {
+            const int bar_w = size.x - FromDIP(2);
+            const int bar_h = m_transparent_mitem.GetBmpHeight();
+            transparent_img.Rescale(bar_w, bar_h, wxIMAGE_QUALITY_HIGH);
+            dc.DrawBitmap(wxBitmap(std::move(transparent_img)), FromDIP(1), FromDIP(1));
+        } else {
+            dc.DrawBitmap(m_transparent_mitem.bmp(), FromDIP(1), FromDIP(1));
+        }
+    }
 
     if (!IsEnabled()) {
         mcolor = wxColour(0x90, 0x90, 0x90);

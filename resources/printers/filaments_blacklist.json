@@ -6,6 +6,7 @@
       "type": "TPU",
       "action": "prohibition",
       "slot": "ams",
+      "ams_type_id": [1, 2, 3, 4, 6],
       "description": "TPU is not supported by AMS."
     },
     {

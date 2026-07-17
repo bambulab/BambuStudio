@@ -32,6 +32,7 @@ public:
         std::optional<int> extruder_id;// optional
         std::optional<std::string> nozzle_flow;// optional
         std::optional<float> nozzle_diameter;// optional
+        std::optional<int> ams_type;// optional, DevAmsType id of the slot's AMS
     };
 
     struct CheckResultItem

@@ -86,6 +86,35 @@ static std::string _get_filament_name_from_ams(const std::string& dev_id, int am
     return name;
 }
 
+// Resolve the AMS type(DevAmsType id) of the slot being checked.
+// Caller-provided check_info.ams_type wins; otherwise look it up from the device by ams_id.
+static std::optional<int> _resolve_ams_type(const DevFilaBlacklist::CheckFilamentInfo& info)
+{
+    if (info.ams_type.has_value()) {
+        return info.ams_type;
+    }
+
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) {
+        return std::nullopt;
+    }
+
+    MachineObject* obj = dev->get_my_machine(info.dev_id);
+    if (obj == nullptr) {
+        obj = dev->get_selected_machine();
+    }
+    if (obj == nullptr) {
+        return std::nullopt;
+    }
+
+    DevAms* ams = obj->GetFilaSystem()->GetAmsById(std::to_string(info.ams_id));
+    if (ams == nullptr) {
+        return std::nullopt;
+    }
+
+    return (int) ams->GetAmsType();
+}
+
 // moved from tao.wang and zhimin.zeng
 void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevFilaBlacklist::CheckResult &result)
 {
@@ -97,6 +126,8 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
     std::transform(tag_type.begin(), tag_type.end(), tag_type.begin(), ::tolower);
     std::transform(tag_name.begin(), tag_name.end(), tag_name.begin(), ::tolower);
     std::transform(tag_calib_mode.begin(), tag_calib_mode.end(), tag_calib_mode.begin(), ::tolower);
+
+    const std::optional<int> tag_ams_type = _resolve_ams_type(check_info);// DevAmsType id of the slot's AMS
 
     DevFilaBlacklist::load_filaments_blacklist_config();
     if (DevFilaBlacklist::filaments_blacklist.contains("blacklist"))
@@ -137,6 +168,13 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             const std::vector<float> nozzle_diameters = filament_item.contains("nozzle_diameters") ? filament_item["nozzle_diameters"].get<std::vector<float>>() : std::vector<float>();
             if (!nozzle_diameters.empty() && check_info.nozzle_diameter.has_value() &&
                 std::find(nozzle_diameters.begin(), nozzle_diameters.end(), check_info.nozzle_diameter.value()) == nozzle_diameters.end()) {
+                continue;
+            }
+
+            // check ams type id (DevAmsType: 0 ext, 1 ams, 2 ams-lite, 3 n3f/ams2pro, 4 n3s/ams-ht, ...)
+            const std::vector<int> ams_type_ids = filament_item.contains("ams_type_id") ? filament_item["ams_type_id"].get<std::vector<int>>() : std::vector<int>();
+            if (!ams_type_ids.empty() && tag_ams_type.has_value() &&
+                std::find(ams_type_ids.begin(), ams_type_ids.end(), tag_ams_type.value()) == ams_type_ids.end()) {
                 continue;
             }
 
