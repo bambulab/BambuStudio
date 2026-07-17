@@ -18,6 +18,7 @@
 #include "ViewModels/FilamentManager/FilamentManagerVM.hpp"
 #include "ViewModels/DevicePage/AmsFilamentHotend/ViewModel.hpp"
 #include "ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.hpp"
+#include "ViewModels/DevicePage/AutoRefill_RefillInfo/ViewModel.hpp"
 #include "slic3r/GUI/PrinterWebView.hpp"
 #include "slic3r/GUI/Widgets/WebViewWatcher.hpp"
 
@@ -29,6 +30,7 @@ enum class DeviceWebHostMode {
     DevicePageAmsControlWeb,
     DevicePageAmsFilamentHotend,
     DevicePageAmsMappingHotend,
+    DevicePageAutoRefillRefillInfo,
     AllForDebug
 };
 
@@ -67,6 +69,10 @@ public:
     // snapshot of (machine, mapping_result, current_filament_id, ...) before
     // the Web side requests state/get.
     DevicePageAmsMappingHotendVM* GetAmsMappingHotendVM() const;
+
+    // Access the registered RefillInfo auto-refill VM so the host dialog can
+    // push a fresh snapshot before the Web side requests state/get.
+    AutoRefillRefillInfoVM* GetAutoRefillRefillInfoVM() const;
 
     void on_sys_color_changed();
     void msw_rescale();

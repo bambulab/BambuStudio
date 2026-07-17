@@ -82,6 +82,13 @@ enum DevAmsType : int
     ZMULTI_B = 7,
 };
 
+enum DevFilaColorType : int
+{
+    CTYPE_GRADIANT = 0,
+    CTYPE_MULTI = 1,
+    CTYPE_SINGLE = 2,
+};
+
 enum DevFilamentStep : int
 {
     STEP_IDLE = 0x00,

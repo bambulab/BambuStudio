@@ -4017,7 +4017,7 @@ void SelectMachineDialog::update_printer_combobox(wxCommandEvent &event)
 
 void SelectMachineDialog::update_ams_backup(MachineObject* obj_)
 {
-    bool to_show = obj_ && obj_->GetFilaSystem()->CanShowFilamentBackup() && _HasAms(m_ams_mapping_result);
+    bool to_show = obj_ && obj_->GetFilaSystem()->GetAutoRefillMgr().CanShow() && _HasAms(m_ams_mapping_result);
     if (to_show != m_ams_backup_tip->IsShown() || to_show != img_ams_backup->IsShown()) {
         m_ams_backup_tip->Show(to_show);
         img_ams_backup->Show(to_show);
@@ -6980,8 +6980,17 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
 
             // When auto refill is on, sum up the remain of the whole refill group before warning.
             bool checked_refill_group = false;
-            if (obj_->GetFilaSystem()->IsAutoRefillEnabled() && obj_->GetExtderSystem()->HasFilamentBackup()) {
-                auto ams_slot_list = obj_->GetExtderSystem()->GetBackupAmsSlotInGroup(ams_slot_id);
+            const auto& auto_refill = obj_->GetFilaSystem()->GetAutoRefillMgr();
+            if (auto_refill.IsEnabled() && auto_refill.HasRelation()) {
+                std::vector<DevAmsSlotId> ams_slot_list;
+                for (const auto& group : auto_refill.GetGroupsBySlot(ams_slot_id).groups) {
+                    for (const auto& refill_slot : group.fila_refill_slots) {
+                        const auto& group_slot_id = refill_slot.slot_id;
+                        if (group_slot_id != ams_slot_id) {
+                            ams_slot_list.emplace_back(group_slot_id);
+                        }
+                    }
+                }
 
                 if (!ams_slot_list.empty()) {
                     checked_refill_group = true;

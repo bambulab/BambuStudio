@@ -2219,8 +2219,8 @@ void SyncAmsInfoDialog::on_timer(wxTimerEvent &event)
         m_check_flag = true;
     }
 
-    if (!obj_ || !obj_->GetFilaSystem()->HasAms() || obj_->ams_exist_bits == 0 || !obj_->is_support_filament_backup || !obj_->GetExtderSystem()->HasFilamentBackup() ||
-        !obj_->GetFilaSystem()->IsAutoRefillEnabled() || m_checkbox_list["use_ams"]->getValue() != "on") {
+    if (!obj_ || obj_->ams_exist_bits == 0 || !obj_->GetFilaSystem()->GetAutoRefillMgr().CanShow() ||
+        m_checkbox_list["use_ams"]->getValue() != "on") {
         if (m_ams_backup_tip && m_ams_backup_tip->IsShown()) {
             m_ams_backup_tip->Hide();
             img_ams_backup->Hide();

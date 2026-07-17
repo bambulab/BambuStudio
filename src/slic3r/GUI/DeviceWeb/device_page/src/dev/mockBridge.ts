@@ -28,6 +28,7 @@ import type { AmsControlWebViewModel } from '../features/device-page/ams-control
 import type { AmsFilamentHotendViewModel } from '../features/device-page/ams-filament-hotend/types';
 import { mockAmsFilamentHotendState } from '../features/device-page/ams-filament-hotend/mockData';
 import { mockAmsMappingHotendState } from '../features/device-page/ams-mapping-hotend/mockData';
+import { mockAutoRefillRefillInfoState } from '../features/device-page/auto-refill-refill-info/mockData';
 
 interface RequestPacket {
   head: { version: string; type: string; seq: number; ts: number };
@@ -519,6 +520,16 @@ function handleRequest(pkt: RequestPacket) {
       // follow-up state report when the popup is real.
       dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAmsMappingHotendState));
       dispatchReport(makeModuleOk(module, 'state', 'changed', mockAmsMappingHotendState));
+      return;
+    }
+  }
+  if (module === 'device_page_auto_refill_refill_info') {
+    if (submod === 'state' && (action === 'get' || action === 'init')) {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAutoRefillRefillInfoState));
+      return;
+    }
+    if (submod === 'action' && action === 'rendered') {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAutoRefillRefillInfoState));
       return;
     }
   }

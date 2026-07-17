@@ -168,6 +168,9 @@ void DeviceWebHost::EnsureBuilt()
     if (m_mode == DeviceWebHostMode::DevicePageAmsMappingHotend || m_mode == DeviceWebHostMode::AllForDebug) {
         m_device_web_mgr->Register(std::make_unique<DevicePageAmsMappingHotendVM>());
     }
+    if (m_mode == DeviceWebHostMode::DevicePageAutoRefillRefillInfo || m_mode == DeviceWebHostMode::AllForDebug) {
+        m_device_web_mgr->Register(std::make_unique<AutoRefillRefillInfoVM>());
+    }
     m_device_web_mgr->SetBridge(m_device_web_bridge.get());
     m_device_web_bridge->SetManager(m_device_web_mgr.get());
     m_host_hidden = !IsShownOnScreen();
@@ -662,6 +665,13 @@ DevicePageAmsMappingHotendVM* DeviceWebHost::GetAmsMappingHotendVM() const
     if (!m_device_web_mgr) return nullptr;
     return dynamic_cast<DevicePageAmsMappingHotendVM*>(
         m_device_web_mgr->Find("device_page_ams_mapping_hotend"));
+}
+
+AutoRefillRefillInfoVM* DeviceWebHost::GetAutoRefillRefillInfoVM() const
+{
+    if (!m_device_web_mgr) return nullptr;
+    return dynamic_cast<AutoRefillRefillInfoVM*>(
+        m_device_web_mgr->Find("device_page_auto_refill_refill_info"));
 }
 
 void DeviceWebHost::OnWebContentSizeChanged(int width, int height)

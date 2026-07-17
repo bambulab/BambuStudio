@@ -1,0 +1,304 @@
+.refill-page {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-weight: 400;
+  color: var(--ams-text-strong, #1f1f1f);
+}
+
+.refill-page__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.refill-page__title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.refill-page__desc {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: pre-line;
+  color: var(--ams-text-strong, #1f1f1f);
+}
+
+.refill-page__error {
+  font-size: 12px;
+  line-height: 20px;
+  color: #d0021b;
+}
+
+.refill-page__empty {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--ams-surface-subtle, #f7f7f7);
+}
+
+.refill-page__empty-image {
+  display: block;
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
+.refill-page__empty-label {
+  width: min(448px, 100%);
+  color: var(--ams-text-strong, #1f1f1f);
+  font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 22px;
+  text-align: center;
+}
+
+.refill-page__columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: stretch;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.refill-group {
+  box-sizing: border-box;
+  width: 184px;
+  flex: 0 0 184px;
+  align-self: stretch;
+  border: 1px solid var(--ams-border, #dbdbdb);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.refill-group__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.refill-group__header > .spool {
+  display: block;
+  flex: 0 0 52px;
+}
+
+.refill-group__caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 22px;
+}
+
+.refill-group__type {
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 22px;
+  white-space: nowrap;
+}
+
+.refill-group__nozzle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei UI', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 19px;
+  color: var(--ams-text-button, #323a3d);
+  white-space: nowrap;
+}
+
+.refill-group__nozzle-icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.refill-group__slots {
+  box-sizing: border-box;
+  width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.refill-slot {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 60px;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 8px;
+  background: var(--ams-surface-subtle, #f7f7f7);
+}
+
+.refill-slot--divider {
+  border-bottom: 1px solid var(--ams-divider, #ebebeb);
+}
+
+.refill-slot__handle {
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  object-fit: contain;
+  cursor: grab;
+}
+
+.refill-slot__info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.refill-slot__brand-row,
+.refill-slot__meta-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 20px;
+}
+
+.refill-slot__swatch {
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+}
+
+.refill-slot__brand {
+  min-width: 0;
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.refill-slot__tag {
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 14px;
+  padding: 1px 5px;
+  border-radius: 8px;
+  color: var(--ams-brand, #00ae42);
+  background: rgba(0, 174, 66, 0.1);
+}
+
+.refill-slot__pill {
+  min-width: 28px;
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  padding: 0 8px;
+  border-radius: 20px;
+  background: var(--ams-divider, #ebebeb);
+  color: var(--ams-text-primary, #333333);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 20px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.refill-slot__weight {
+  color: var(--ams-text-primary, #333333);
+  font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.refill-group__footer {
+  box-sizing: border-box;
+  width: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.refill-group__add,
+.refill-group__reset {
+  box-sizing: border-box;
+  height: 28px;
+  border: 1px solid var(--ams-border, #dbdbdb);
+  border-radius: 4px;
+  background: var(--ams-card-text-bg, #ffffff);
+  color: var(--ams-text-strong, #1f1f1f);
+  cursor: pointer;
+}
+
+.refill-group__add {
+  min-width: 0;
+  flex: 1;
+  padding: 4px 8px;
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.refill-group__reset {
+  width: 28px;
+  flex: 0 0 28px;
+  padding: 4px;
+}
+
+.refill-group__reset img {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.refill-page__actions {
+  display: flex;
+}
+
+.refill-page__add-group {
+  height: 32px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--ams-brand, #00ae42);
+  color: #ffffff;
+  font-family: 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+  cursor: pointer;
+}

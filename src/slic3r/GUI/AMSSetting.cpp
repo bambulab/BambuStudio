@@ -309,7 +309,7 @@ void AMSSetting::UpdateByObj(MachineObject* obj)
     update_insert_material_read_mode(obj);
     update_starting_read_mode(obj->GetFilaSystem()->IsDetectOnPowerupEnabled());
     update_remain_mode(obj->GetFilaSystem()->IsDetectRemainEnabled());
-    update_switch_filament(obj->GetFilaSystem()->IsAutoRefillEnabled());
+    update_switch_filament(obj->GetFilaSystem()->GetAutoRefillMgr().IsEnabled());
     update_air_printing_detection(obj);
 
     update_firmware_switching_status();// on fila_firmware_switch
@@ -518,7 +518,7 @@ void AMSSetting::update_remain_mode(bool selected)
 
 void AMSSetting::update_switch_filament(bool selected)
 {
-    if (m_obj->is_support_filament_backup) {
+    if (m_obj->GetFilaSystem()->GetAutoRefillMgr().IsSupported()) {
         m_checkbox_switch_filament->Show();
         m_title_switch_filament->Show();
         m_tip_switch_filament_line1->Show();

@@ -11,6 +11,7 @@ const embeddedRoutes = new Set([
   '/device_page/hotend_detail',
   '/device_page/filament_manual_pull',
   '/device_page/ams_mapping_hotend',
+  '/device_page/auto_refill_refill_info',
 ])
 
 function RootComponent() {

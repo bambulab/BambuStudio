@@ -12,7 +12,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'pnpm run dev -- --host 127.0.0.1 --port 13629',
+    command: 'pnpm run dev --host 127.0.0.1 --port 13629',
     url: 'http://127.0.0.1:13629',
     reuseExistingServer: true,
     timeout: 60_000,

@@ -23,6 +23,8 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceTab/AmsControl/AmsControlWebEnable.hpp
     GUI/DeviceTab/AmsControl/wgtAmsControlWebPanel.h
     GUI/DeviceTab/AmsControl/wgtAmsControlWebPanel.cpp
+    GUI/DeviceTab/wgtDeviceAutoRefillWebDialog.h
+    GUI/DeviceTab/wgtDeviceAutoRefillWebDialog.cpp
     GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWebPanel.h
     GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWebPanel.cpp
     GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWebDialog.h

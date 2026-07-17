@@ -4627,11 +4627,14 @@ void MachineObject::parse_new_info(json print)
         is_support_check_track_switch_match_slice_printer = (get_flag_bits_no_border(fun2, 19) == 1);
         ams_preload_version = static_cast<int>(get_flag_bits_no_border(fun2, 21, 2));
         is_support_filament_manual_multi_color = (get_flag_bits_no_border(fun2, 23) == 1);
+        m_fila_system->GetAutoRefillMgr().SetVersion(get_flag_bits_no_border(fun2, 25) == 1 ? DevFilaAutoRefillMgr::RefillVersion::RefillInfo : DevFilaAutoRefillMgr::RefillVersion::FilaBackup);
+        m_fila_system->GetAutoRefillMgr().SetSupportManualEdit(get_flag_bits_no_border(fun2, 26) == 1);
 
         if (DevPrinterConfigUtil::support_print_check_firmware_for_tpu_left(printer_type)) {
             m_firmware_support_print_tpu_left = DevUtil::get_flag_bits_no_border(fun2, 7) == 1;
         }
     }
+    m_fila_system->GetAutoRefillMgr().ParseRefillInfo(print);
 
     /* mapping: per-filament-index AMS slot mapping (task-level state). */
     if (print.contains("mapping") && print["mapping"].is_array()) {

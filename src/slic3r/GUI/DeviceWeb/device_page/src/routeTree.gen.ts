@@ -19,6 +19,7 @@ import { Route as DevicepageAmscontrolwebdebugImport } from './routes/device_pag
 import { Route as DevicepageAmscontrolwebImport } from './routes/device_page/ams_control_web'
 import { Route as DevicepageHotenddetailImport } from './routes/device_page/hotend_detail'
 import { Route as DevicepageFilamentmanualpullImport } from './routes/device_page/filament_manual_pull'
+import { Route as DevicepageAutorefillrefillinfoImport } from './routes/device_page/auto_refill_refill_info'
 import { Route as DevicepageAmsmappinghotendImport } from './routes/device_page/ams_mapping_hotend'
 import { Route as DevicepageAmsfilamenthotendImport } from './routes/device_page/ams_filament_hotend'
 import { Route as DevicepageAmsextoperationImport } from './routes/device_page/ams_ext_operation'
@@ -74,6 +75,13 @@ const DevicepageFilamentmanualpullRoute =
   DevicepageFilamentmanualpullImport.update({
     id: '/device_page/filament_manual_pull',
     path: '/device_page/filament_manual_pull',
+    getParentRoute: () => rootRoute,
+  } as any)
+
+const DevicepageAutorefillrefillinfoRoute =
+  DevicepageAutorefillrefillinfoImport.update({
+    id: '/device_page/auto_refill_refill_info',
+    path: '/device_page/auto_refill_refill_info',
     getParentRoute: () => rootRoute,
   } as any)
 
@@ -192,6 +200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevicepageAmsmappinghotendImport
       parentRoute: typeof rootRoute
     }
+    '/device_page/auto_refill_refill_info': {
+      id: '/device_page/auto_refill_refill_info'
+      path: '/device_page/auto_refill_refill_info'
+      fullPath: '/device_page/auto_refill_refill_info'
+      preLoaderRoute: typeof DevicepageAutorefillrefillinfoImport
+      parentRoute: typeof rootRoute
+    }
     '/device_page/filament_manual_pull': {
       id: '/device_page/filament_manual_pull'
       path: '/device_page/filament_manual_pull'
@@ -223,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/device_page/ams_ext_operation': typeof DevicepageAmsextoperationRoute
   '/device_page/ams_filament_hotend': typeof DevicepageAmsfilamenthotendRoute
   '/device_page/ams_mapping_hotend': typeof DevicepageAmsmappinghotendRoute
+  '/device_page/auto_refill_refill_info': typeof DevicepageAutorefillrefillinfoRoute
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
 }
@@ -239,6 +255,7 @@ export interface FileRoutesByTo {
   '/device_page/ams_ext_operation': typeof DevicepageAmsextoperationRoute
   '/device_page/ams_filament_hotend': typeof DevicepageAmsfilamenthotendRoute
   '/device_page/ams_mapping_hotend': typeof DevicepageAmsmappinghotendRoute
+  '/device_page/auto_refill_refill_info': typeof DevicepageAutorefillrefillinfoRoute
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
 }
@@ -256,6 +273,7 @@ export interface FileRoutesById {
   '/device_page/ams_ext_operation': typeof DevicepageAmsextoperationRoute
   '/device_page/ams_filament_hotend': typeof DevicepageAmsfilamenthotendRoute
   '/device_page/ams_mapping_hotend': typeof DevicepageAmsmappinghotendRoute
+  '/device_page/auto_refill_refill_info': typeof DevicepageAutorefillrefillinfoRoute
   '/device_page/filament_manual_pull': typeof DevicepageFilamentmanualpullRoute
   '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
 }
@@ -274,6 +292,7 @@ export interface FileRouteTypes {
     | '/device_page/ams_ext_operation'
     | '/device_page/ams_filament_hotend'
     | '/device_page/ams_mapping_hotend'
+    | '/device_page/auto_refill_refill_info'
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
   fileRoutesByTo: FileRoutesByTo
@@ -289,6 +308,7 @@ export interface FileRouteTypes {
     | '/device_page/ams_ext_operation'
     | '/device_page/ams_filament_hotend'
     | '/device_page/ams_mapping_hotend'
+    | '/device_page/auto_refill_refill_info'
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
   id:
@@ -304,6 +324,7 @@ export interface FileRouteTypes {
     | '/device_page/ams_ext_operation'
     | '/device_page/ams_filament_hotend'
     | '/device_page/ams_mapping_hotend'
+    | '/device_page/auto_refill_refill_info'
     | '/device_page/filament_manual_pull'
     | '/device_page/hotend_detail'
   fileRoutesById: FileRoutesById
@@ -321,6 +342,7 @@ export interface RootRouteChildren {
   DevicepageAmsextoperationRoute: typeof DevicepageAmsextoperationRoute
   DevicepageAmsfilamenthotendRoute: typeof DevicepageAmsfilamenthotendRoute
   DevicepageAmsmappinghotendRoute: typeof DevicepageAmsmappinghotendRoute
+  DevicepageAutorefillrefillinfoRoute: typeof DevicepageAutorefillrefillinfoRoute
   DevicepageFilamentmanualpullRoute: typeof DevicepageFilamentmanualpullRoute
   DevicepageHotenddetailRoute: typeof DevicepageHotenddetailRoute
 }
@@ -337,6 +359,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevicepageAmsextoperationRoute: DevicepageAmsextoperationRoute,
   DevicepageAmsfilamenthotendRoute: DevicepageAmsfilamenthotendRoute,
   DevicepageAmsmappinghotendRoute: DevicepageAmsmappinghotendRoute,
+  DevicepageAutorefillrefillinfoRoute: DevicepageAutorefillrefillinfoRoute,
   DevicepageFilamentmanualpullRoute: DevicepageFilamentmanualpullRoute,
   DevicepageHotenddetailRoute: DevicepageHotenddetailRoute,
 }
@@ -362,6 +385,7 @@ export const routeTree = rootRoute
         "/device_page/ams_ext_operation",
         "/device_page/ams_filament_hotend",
         "/device_page/ams_mapping_hotend",
+        "/device_page/auto_refill_refill_info",
         "/device_page/filament_manual_pull",
         "/device_page/hotend_detail"
       ]
@@ -398,6 +422,9 @@ export const routeTree = rootRoute
     },
     "/device_page/ams_mapping_hotend": {
       "filePath": "device_page/ams_mapping_hotend.tsx"
+    },
+    "/device_page/auto_refill_refill_info": {
+      "filePath": "device_page/auto_refill_refill_info.tsx"
     },
     "/device_page/filament_manual_pull": {
       "filePath": "device_page/filament_manual_pull.tsx"

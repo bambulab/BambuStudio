@@ -4,6 +4,7 @@
 
 #include "DevDefs.h"
 #include "DevFilaAmsSetting.h"
+#include "DevFilaAutoRefillMgr.h"
 #include "DevFilaSwitch.h"
 #include "DevUtil.h"
 
@@ -24,13 +25,6 @@ namespace Slic3r
 class MachineObject;
 class DevFilaSystem;
 struct DevFilamentDryingPreset;
-
-enum DevFilaColorType : int
-{
-    CTYPE_GRADIANT = 0,
-    CTYPE_MULTI = 1,
-    CTYPE_SINGLE = 2,
-};
 
 class DevAmsTray
 {
@@ -401,7 +395,10 @@ public:
     std::optional<bool>  IsDetectOnInsertEnabled() const { return m_ams_system_setting.IsDetectOnInsertEnabled(); };
     bool                 IsDetectOnPowerupEnabled() const { return m_ams_system_setting.IsDetectOnPowerupEnabled(); }
     bool                 IsDetectRemainEnabled() const { return m_ams_system_setting.IsDetectRemainEnabled(); }
-    bool                 IsAutoRefillEnabled() const { return m_ams_system_setting.IsAutoRefillEnabled(); }
+    bool                 IsAutoRefillEnabled() const { return m_auto_refill_mgr.IsEnabled(); }
+
+    DevFilaAutoRefillMgr&       GetAutoRefillMgr() { return m_auto_refill_mgr; }
+    const DevFilaAutoRefillMgr& GetAutoRefillMgr() const { return m_auto_refill_mgr; }
 
     std::weak_ptr<DevAmsSystemFirmwareSwitch> GetAmsFirmwareSwitch() const { return m_ams_firmware_switch;}
 
@@ -436,6 +433,7 @@ private:
     std::map<std::string, DevAmsTray> m_vt_trays; // virutal tray info
 
     DevAmsSystemSetting m_ams_system_setting{ this };
+    DevFilaAutoRefillMgr m_auto_refill_mgr{ this };
     std::shared_ptr<DevAmsSystemFirmwareSwitch> m_ams_firmware_switch = DevAmsSystemFirmwareSwitch::Create(this);
 };// class DevFilaSystem
 

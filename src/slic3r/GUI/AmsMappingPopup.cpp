@@ -2297,37 +2297,35 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
     //update group
     int group_index = 0;
     m_groups_sizer->Clear(true);
-    if (m_obj->is_support_filament_backup && m_obj->GetFilaSystem()->IsAutoRefillEnabled())
+    const auto& auto_refill = m_obj->GetFilaSystem()->GetAutoRefillMgr();
+    if (auto_refill.IsSupported() && auto_refill.IsEnabled())
     {
-        const auto& extder = m_obj->GetExtderSystem()->GetExtderById(nozzle_id);
-        if (extder)
+        const auto groups = auto_refill.GetGroups(nozzle_id);
+        for (const auto& group : groups.groups)
         {
-            const auto& groups = extder->GetBackupSlots();
-            for (const auto& group : groups)
+            std::string    group_material;
+            std::map<std::string, wxColour> group_info;
+            for (const auto& refill_slot : group.fila_refill_slots)
             {
-                std::string    group_material;
-                std::map<std::string, wxColour> group_info;
-                for (const auto& item : group)
+                const auto& item = refill_slot.slot_id;
+                const auto& ams_item = m_obj->GetFilaSystem()->GetAmsById(std::to_string(item.first));
+                const auto& slot_item = m_obj->GetFilaSystem()->GetAmsTray(std::to_string(item.first), std::to_string(item.second));
+                if (ams_item && slot_item)
                 {
-                    const auto& ams_item = m_obj->GetFilaSystem()->GetAmsById(std::to_string(item.first));
-                    const auto& slot_item = m_obj->GetFilaSystem()->GetAmsTray(std::to_string(item.first), std::to_string(item.second));
-                    if (ams_item && slot_item)
-                    {
-                        const auto& tray_id = m_obj->GetFilaSystem()->GetTrayIdByAmsSlotId(item.first, item.second);
-                        auto tray_name = wxGetApp().transition_tridid(tray_id, m_obj->GetExtderSystem()->GetTotalExtderCount()).ToStdString();
-                        group_info[tray_name] = DevAmsTray::decode_color(slot_item->color);
-                        group_material = slot_item->get_display_filament_type();
-                    }
+                    const auto& tray_id = m_obj->GetFilaSystem()->GetTrayIdByAmsSlotId(item.first, item.second);
+                    auto tray_name = wxGetApp().transition_tridid(tray_id, m_obj->GetExtderSystem()->GetTotalExtderCount()).ToStdString();
+                    group_info[tray_name] = DevAmsTray::decode_color(slot_item->color);
+                    group_material = slot_item->get_display_filament_type();
                 }
-
-                if (group_info.size() < 2) /* do not show refill if there is one tray*/
-                {
-                    continue;
-                }
-
-                m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material), 0, wxALL, FromDIP(10));
-                group_index++;
             }
+
+            if (group_info.size() < 2) /* do not show refill if there is one tray*/
+            {
+                continue;
+            }
+
+            m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material), 0, wxALL, FromDIP(10));
+            group_index++;
         }
     }
 
@@ -2360,11 +2358,11 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
     }
     else
     {
-        if (!m_obj->is_support_filament_backup)
+        if (!auto_refill.IsSupported())
         {
             label_txt->SetLabel(_L("The printer does not currently support auto refill."));
         }
-        else if (!m_obj->GetFilaSystem()->IsAutoRefillEnabled())
+        else if (!auto_refill.IsEnabled())
         {
             label_txt->SetLabelText(_L("AMS filament backup is not enabled, please enable it in the AMS settings."));
         }

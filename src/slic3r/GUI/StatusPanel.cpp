@@ -63,6 +63,7 @@
 #include "DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWebPanel.h"
 #include "DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWebDialog.h"
 #include "DeviceTab/FilamentHotend/wgtHotendRackControl.h"
+#include "DeviceTab/wgtDeviceAutoRefillWebDialog.h"
 #include "DeviceTab/wgtRackExtruder.h"
 #if BBL_ENABLE_AMS_CONTROL_WEB
 #include "DeviceTab/AmsControl/wgtAmsControlWebPanel.h"
@@ -5395,9 +5396,7 @@ void StatusPanel::on_ams_unload(SimpleEvent &event)
 void StatusPanel::on_ams_filament_backup(SimpleEvent &event)
 {
     if (obj) {
-        AmsReplaceMaterialDialog *m_replace_material_popup = new AmsReplaceMaterialDialog(this);
-        m_replace_material_popup->update_machine_obj(obj);
-        m_replace_material_popup->ShowModal();
+        ShowAutoRefillDialog(this, obj);
     }
 }
 

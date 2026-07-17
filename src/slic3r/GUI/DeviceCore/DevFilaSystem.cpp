@@ -867,7 +867,7 @@ bool DevFilaSystem::IsBBL_Filament(std::string tag_uid)
 
 bool DevFilaSystem::CanShowFilamentBackup() const
 {
-    return m_owner->is_support_filament_backup && IsAutoRefillEnabled() && HasAms() && m_owner->GetExtderSystem()->HasFilamentBackup();
+    return m_auto_refill_mgr.CanShow();
 }
 
 bool DevFilaSystem::HasSubAms() const

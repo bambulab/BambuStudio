@@ -8,6 +8,7 @@
 #include "slic3r/GUI/AMSMaterialsSetting.hpp"
 #include "slic3r/GUI/AMSSetting.hpp"
 #include "slic3r/GUI/AmsMappingPopup.hpp"
+#include "slic3r/GUI/DeviceTab/wgtDeviceAutoRefillWebDialog.h"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
@@ -138,9 +139,7 @@ void open_auto_refill()
     if (!machine_obj) return;
 
     wxWindow* parent = wxGetApp().mainframe;
-    AmsReplaceMaterialDialog dlg(parent);
-    dlg.update_machine_obj(machine_obj);
-    dlg.ShowModal();
+    ShowAutoRefillDialog(parent, machine_obj);
 }
 
 } // namespace

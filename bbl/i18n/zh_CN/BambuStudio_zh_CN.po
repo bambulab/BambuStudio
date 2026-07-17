@@ -2991,6 +2991,15 @@ msgstr "连接中..."
 msgid "Auto-refill"
 msgstr "自动续料"
 
+msgid "The system has created auto-refill groups based on material type, color, and brand."
+msgstr "系统已根据材料类型、颜色和品牌为您创建自动续料组。"
+
+msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
+msgstr "打印时，当前耗材用完后，将按组内顺序自动切换到下一卷兼容耗材，列表末尾会自动回到开头继续。"
+
+msgid "Drag spools to adjust their priority."
+msgstr "您可以拖动耗材调整使用优先级。"
+
 msgid "Load"
 msgstr "进料"
 
