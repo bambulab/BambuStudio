@@ -1365,7 +1365,12 @@ void GLGizmoAdvancedCut::update_clipper()
 void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
 {
     // plane points is in object coordinate
-    // draw plane
+    const auto& ogl_manager = wxGetApp().get_opengl_manager();
+    if (!ogl_manager) {
+        return;
+    }
+    // Draw cut plane above PartPlate / scene geometry (same idea as grabbers below).
+    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_CULL_FACE));
     glsafe(::glEnable(GL_BLEND));
@@ -1443,12 +1448,11 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
 
         p_flat_shader->set_uniform("projection_matrix", proj_matrix);
 
-        const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
-        p_ogl_manager->set_line_width(m_hover_id != -1 ? 2.0f : 1.5f);
+        ogl_manager->set_line_width(m_hover_id != -1 ? 2.0f : 1.5f);
 
         // to do: remove deprecated api: glLineStipple
 #ifdef __APPLE__
-        const auto& gl_info = p_ogl_manager->get_gl_info();
+        const auto &gl_info            = ogl_manager->get_gl_info();
         const auto formated_gl_version = gl_info.get_formated_gl_version();
         if (formated_gl_version < 30)
 #endif
@@ -1669,8 +1673,11 @@ void GLGizmoAdvancedCut::render_cut_line()
     m_cut_line_model.set_color({ 0.0f, 1.0f, 0.0f, 1.0f});
 
 #ifdef __APPLE__
-    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
-    const auto& gl_info = p_ogl_manager->get_gl_info();
+    const auto &ogl_manager = wxGetApp().get_opengl_manager();
+    if (!ogl_manager) {
+        return;
+    }
+    const auto &gl_info            = ogl_manager->get_gl_info();
     const auto formated_gl_version = gl_info.get_formated_gl_version();
     if (formated_gl_version < 30)
 #endif
