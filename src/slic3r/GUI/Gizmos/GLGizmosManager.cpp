@@ -56,7 +56,7 @@ GLGizmosManager::GLGizmosManager(GLCanvas3D& parent)
     m_timer_set_color.Bind(wxEVT_TIMER, &GLGizmosManager::on_set_color_timer, this);
 }
 
-std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
+std::vector<size_t> GLGizmosManager::get_selectable_idxs(bool ignore_selectable_include_right_click_trigger) const
 {
     std::vector<size_t> out;
     if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
@@ -69,9 +69,14 @@ std::vector<size_t> GLGizmosManager::get_selectable_idxs() const
                 out.push_back(i);
     }
     else {
-        for (size_t i = 0; i < m_gizmos.size(); ++i)
-            if (m_gizmos[i]->is_selectable())
+        for (size_t i = 0; i < m_gizmos.size(); ++i){
+            if (ignore_selectable_include_right_click_trigger) {
                 out.push_back(i);
+            }else{
+                if (m_gizmos[i]->is_selectable())
+                    out.push_back(i);
+            }
+        }
     }
     return out;
 }

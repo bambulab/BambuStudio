@@ -314,7 +314,7 @@ public:
 
     void update_after_undo_redo(const UndoRedo::Snapshot& snapshot);
 
-    std::vector<size_t> get_selectable_idxs() const;
+    std::vector<size_t> get_selectable_idxs(bool ignore_selectable_include_right_click_trigger = false) const;
     int get_selectable_icons_cnt() const { return get_selectable_idxs().size(); }
     int get_shortcut_key(GLGizmosManager::EType) const;
 

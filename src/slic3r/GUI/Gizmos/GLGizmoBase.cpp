@@ -814,7 +814,7 @@ bool GLGizmoBase::is_activable() const
 bool GLGizmoBase::can_activable_in_current_canvas() const
 {
     const auto &mng = m_parent.get_gizmos_manager();
-    const auto selectable = mng.get_selectable_idxs();
+    const auto selectable = mng.get_selectable_idxs(true);
     return std::find(selectable.begin(), selectable.end(), (size_t) get_sprite_id()) != selectable.end();
 }
 
