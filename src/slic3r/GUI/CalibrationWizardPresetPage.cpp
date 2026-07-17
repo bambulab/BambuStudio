@@ -3182,10 +3182,6 @@ void CalibrationPresetPage::update_rack_filament_combobox(MachineObject* obj)
     auto rack_type = rack->GetRackType();
     if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B) return;
 
-    // rack_nozzles is std::map<int, DevNozzle> sorted by nozzle_id ascending,
-    // so iterating by index i matches the ui slot order one-to-one.
-    const auto& rack_nozzles = rack->GetRackNozzles();
-
     for (int i = 0; i < (int)m_rack_filament_comboBox_list.size(); ++i) {
         auto* fcb = dynamic_cast<FilamentExtendComboBox*>(m_rack_filament_comboBox_list[i]);
         if (!fcb) continue;
@@ -3193,18 +3189,14 @@ void CalibrationPresetPage::update_rack_filament_combobox(MachineObject* obj)
         // Populate the dropdown like non-rack machines so both inline and popup comboboxes stay selectable.
         fcb->update_from_preset();
 
-        if (i < (int)rack_nozzles.size()) {
+        if (i < rack->GetTotalRackNozzleCount()) {
             fcb->set_select_mode(m_cali_filament_mode);
 
-            auto it_nozzle = std::next(rack_nozzles.begin(), i);
-            DevNozzle nozzle = it_nozzle->second;
-            if (auto addr_id = it_nozzle->second.GetAddrId(); addr_id.has_value()) {
-                auto opt_nozzle =obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id.value());
-                if (opt_nozzle.has_value()) {
-                    nozzle = opt_nozzle.value();
-                } else {
-                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " nozzle addr_id:" << addr_id.value() << " not found in nozzle system";
-                }
+            DevNozzle nozzle;
+            if (auto opt_nozzle = obj->GetNozzleSystem()->GetNozzleOptByAddrId(i); opt_nozzle.has_value()) {
+                nozzle = opt_nozzle.value();
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " rack nozzle addr_id:" << i << " not found in nozzle system";
             }
 
             fcb->SetNozzleInfo(nozzle, obj);

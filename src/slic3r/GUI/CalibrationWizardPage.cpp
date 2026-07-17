@@ -710,8 +710,8 @@ void FilamentExtendComboBox::SetNozzleInfo(const DevNozzle& nozzle, MachineObjec
         m_nozzle_pos_id = nozzle.GetAddrId().value() + 0x10;
     }
 
-    if (m_id_label)
-        m_id_label->SetLabel(wxString::Format("%d", m_nozzle_id + 1));
+    if (m_id_label && nozzle.GetAddrId().has_value())
+        m_id_label->SetLabel(wxString::Format("%d", nozzle.GetAddrId().value() + 1));
 
     init_flow_type_combo(obj);
     if (m_flow_type_combo && (nozzle.IsExist() || nozzle.IsOnRack())) {
