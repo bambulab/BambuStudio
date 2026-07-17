@@ -70,6 +70,8 @@ public:
     void set_angle(double angle);
 
     std::string get_tooltip() const override;
+    // For embedded gizmos whose grabber rests upright at +PI/2: show offset from that pose (≈0 at drag start).
+    std::string get_tooltip_relative_to_upright() const;
 
     void set_center(const Vec3d &point) { m_custom_center = point; }
     void set_force_local_coordinate(bool use) { m_force_local_coordinate = use; }

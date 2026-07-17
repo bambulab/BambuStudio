@@ -1,4 +1,5 @@
 #include "GLGizmoMeasure.hpp"
+#include "GLGizmoRotate.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Plater.hpp"
@@ -178,7 +179,11 @@ TransformHelper::Cache TransformHelper::s_cache = { { 0, 0, 0, 0 }, Matrix4d::Id
 
 GLGizmoMeasure::GLGizmoMeasure(GLCanvas3D& parent, unsigned int sprite_id)
 : GLGizmoBase(parent, sprite_id)
+, m_rotate_gizmo(std::make_unique<GLGizmoRotate>(parent, GLGizmoRotate::Axis::Z))
 {
+    m_rotate_gizmo->set_group_id(0);
+    m_rotate_gizmo->set_force_local_coordinate(true);
+
     auto sphere_geometry = smooth_sphere(16, 7.5f);
     m_sphere             = std::make_shared<GLModel>();
     m_sphere->init_from(std::move(sphere_geometry),true);
@@ -191,8 +196,17 @@ GLGizmoMeasure::GLGizmoMeasure(GLCanvas3D& parent, unsigned int sprite_id)
     m_gripper_id_raycast_map[GripperType::EDGE] = std::make_shared<PickRaycaster>(m_cylinder->mesh,EDGE_ID);
 }
 
+GLGizmoMeasure::~GLGizmoMeasure() = default;
+
 bool GLGizmoMeasure::on_mouse(const wxMouseEvent &mouse_event)
 {
+    if (is_assembly_around_center_gizmo_enabled()) {
+        if (m_hover_id == 0 || m_dragging) {
+            if (on_mouse_for_rotation(mouse_event))
+                return true;
+        }
+    }
+
     if (mouse_event.Moving()) {
         // only for sure
         m_mouse_left_down = false;
@@ -451,6 +465,11 @@ bool GLGizmoMeasure::on_init()
 {
     m_shortcut_key = WXK_CONTROL_U;
 
+    m_rotate_gizmo->init();
+    ColorRGBA gray_color(.6f, .6f, .6f, .3f);
+    m_rotate_gizmo->set_highlight_color(gray_color.get_data());
+    m_rotate_gizmo->set_angle(PI / 2);
+
     m_desc["feature_selection"]         = _L("Select feature");
     m_desc["point_selection_caption"]   = _L("Shift + Left mouse button");
     m_desc["point_selection"]           = _L("Select point");
@@ -464,6 +483,8 @@ bool GLGizmoMeasure::on_init()
 
 void GLGizmoMeasure::on_set_state()
 {
+    m_rotate_gizmo->set_state(m_state);
+
     if (m_state == Off) {
         m_parent.toggle_selected_volume_visibility(false);
         m_shift_kar_filter.reset_count();
@@ -473,6 +494,7 @@ void GLGizmoMeasure::on_set_state()
         m_editing_distance = false;
         m_is_editing_distance_first_frame = true;
         std::map<GLVolume *, std::shared_ptr<Measure::Measuring>>().swap(m_mesh_measure_map);
+        m_rotate_gizmo_hover_from_picking = false;
     }
     else {
         m_mode = EMode::FeatureSelection;
@@ -481,6 +503,120 @@ void GLGizmoMeasure::on_set_state()
         m_only_select_plane    = false;
         m_distance             = Vec3d::Zero();
     }
+}
+
+void GLGizmoMeasure::on_set_hover_id()
+{
+    if (m_measure_mode != EMeasureMode::ONLY_ASSEMBLY)
+        return;
+    m_rotate_gizmo->set_hover_id(m_hover_id);
+    // Picking only forwards id==0; mark it as a one-frame signal so it does not stick.
+    if (m_hover_id == 0)
+        m_rotate_gizmo_hover_from_picking = true;
+}
+
+void GLGizmoMeasure::on_enable_grabber(unsigned int id)
+{
+    if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY)
+        m_rotate_gizmo->enable_grabber(0);
+}
+
+void GLGizmoMeasure::on_disable_grabber(unsigned int id)
+{
+    if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY)
+        m_rotate_gizmo->disable_grabber(0);
+}
+
+void GLGizmoMeasure::on_start_dragging()
+{
+    if (m_measure_mode != EMeasureMode::ONLY_ASSEMBLY || m_hover_id != 0)
+        return;
+
+    m_rotate_gizmo->start_dragging();
+    m_last_rotate_gizmo_angle = m_rotate_gizmo->get_angle();
+    m_same_model_object = is_two_volume_in_same_model_object();
+    wxGetApp().plater()->take_snapshot("ReverseRotateInMeasure", UndoRedo::SnapshotType::GizmoAction);
+}
+
+void GLGizmoMeasure::on_stop_dragging()
+{
+    if (m_measure_mode != EMeasureMode::ONLY_ASSEMBLY)
+        return;
+
+    m_rotate_gizmo->stop_dragging();
+    m_rotate_gizmo->set_angle(PI / 2);
+
+    // Match set_to_around_center_of_faces(): only commit Face2 pose, keep selected features.
+    // pending_scale must cover BOTH:
+    // 1) do_stop_dragging() -> update_data()
+    // 2) do_rotate() -> INSTANCE_ROTATED -> reload_scene() -> update_data()
+    // Otherwise the second data_changed() resets selected faces (ImGui path only hits #2).
+    m_pending_scale = 2;
+    wxGetApp().plater()->canvas3D()->do_rotate("");
+    register_single_mesh_pick();
+    if (m_same_model_object && m_selected_features.first.feature.has_value())
+        update_feature_by_tran(*m_selected_features.first.feature);
+    if (m_selected_features.second.feature.has_value())
+        update_feature_by_tran(*m_selected_features.second.feature);
+}
+
+void GLGizmoMeasure::on_update(const UpdateData &data)
+{
+    if (m_measure_mode == EMeasureMode::ONLY_ASSEMBLY && m_hover_id == 0)
+        m_rotate_gizmo->update(data);
+}
+
+bool GLGizmoMeasure::is_assembly_around_center_gizmo_enabled() const
+{
+    return m_measure_mode == EMeasureMode::ONLY_ASSEMBLY
+        && m_assembly_mode == AssemblyMode::FACE_FACE
+        && m_hit_different_volumes.size() == 2
+        && m_selected_features.first.feature.has_value()
+        && m_selected_features.second.feature.has_value()
+        && m_selected_features.first.feature->get_type() == Measure::SurfaceFeatureType::Plane
+        && m_selected_features.second.feature->get_type() == Measure::SurfaceFeatureType::Plane
+        && m_assembly_action.can_around_center_of_faces;
+}
+
+void GLGizmoMeasure::update_assembly_rotate_gizmo_tran()
+{
+    const auto [idx2, normal2, pt2] = m_selected_features.second.feature->get_plane();
+    Geometry::Transformation tran;
+    double                   phi;
+    Vec3d                    rotation_axis;
+    Matrix3d                 rotation_matrix;
+    Geometry::rotation_from_two_vectors(Vec3d::UnitZ(), normal2, rotation_axis, phi, &rotation_matrix);
+    tran.set_matrix((Transform3d) rotation_matrix);
+    tran.set_offset(pt2);
+    m_rotate_gizmo->set_custom_tran(tran.get_matrix());
+}
+
+bool GLGizmoMeasure::on_mouse_for_rotation(const wxMouseEvent &mouse_event)
+{
+    if (mouse_event.Moving())
+        return false;
+
+    bool used = use_grabbers(mouse_event);
+    if (!m_dragging)
+        return used;
+
+    if (mouse_event.Dragging()) {
+        const double current_angle = m_rotate_gizmo->get_angle();
+        const double delta         = current_angle - m_last_rotate_gizmo_angle;
+        m_last_rotate_gizmo_angle  = current_angle;
+        if (std::abs(delta) > EPSILON)
+            set_to_around_center_of_faces(m_same_model_object, float(Geometry::rad2deg(delta)), false);
+    }
+
+    return used;
+}
+
+std::string GLGizmoMeasure::get_tooltip() const
+{
+    if (!is_assembly_around_center_gizmo_enabled())
+        return "";
+    // Embedded grabber rests at +PI/2; show delta from upright (not absolute 90°).
+    return m_rotate_gizmo->get_tooltip_relative_to_upright();
 }
 
 std::string GLGizmoMeasure::on_get_name() const
@@ -574,8 +710,13 @@ void GLGizmoMeasure::on_render()
     const float inv_zoom = (float)camera.get_inv_zoom();
     bool mouse_on_gripper = false;
     bool mouse_on_object =false;
+    const bool assembly_rotate_enabled = is_assembly_around_center_gizmo_enabled();
+    // Consume one-frame picking signal so hover_id==0 does not stick across frames.
+    const bool rotate_pick_hover = assembly_rotate_enabled && m_rotate_gizmo_hover_from_picking;
+    m_rotate_gizmo_hover_from_picking = false;
+    const bool keep_assembly_rotate_hover = assembly_rotate_enabled && (m_dragging || rotate_pick_hover);
     {
-        if (!m_editing_distance) {
+        if (!m_editing_distance && !keep_assembly_rotate_hover) {
             Vec3f  hit                          = Vec3f::Zero();
             double closest_hit_squared_distance = std::numeric_limits<double>::max();
             for (auto item : m_gripper_id_raycast_map) {
@@ -600,7 +741,7 @@ void GLGizmoMeasure::on_render()
     size_t model_facet_idx = -1;
     double closest_hit_distance = std::numeric_limits<double>::max();
     {
-        if (!m_editing_distance) {
+        if (!m_editing_distance && !keep_assembly_rotate_hover) {
             for (auto item : m_mesh_raycaster_map) {
                 auto   raycaster                    = item.second->mesh_raycaster;
                 auto   world_tran                   = item.second->world_tran;
@@ -622,11 +763,18 @@ void GLGizmoMeasure::on_render()
             }
         }
 
-        if (!(mouse_on_gripper || mouse_on_object)) {
+        if (keep_assembly_rotate_hover) {
+            m_hover_id = 0;
+            m_rotate_gizmo->set_hover_id(0);
+        } else if (!(mouse_on_gripper || mouse_on_object)) {
             m_hover_id = -1;
             m_last_plane_idx = -1;
             reset_gripper_pick(GripperType::PLANE);
             reset_gripper_pick(GripperType::CIRCLE);
+            if (assembly_rotate_enabled)
+                m_rotate_gizmo->set_hover_id(-1);
+        } else if (assembly_rotate_enabled) {
+            m_rotate_gizmo->set_hover_id(-1);
         }
         if (m_mouse_left_down_mesh_deal && m_hover_id >= 0) {
             m_mouse_left_down_mesh_deal = false;
@@ -666,7 +814,7 @@ void GLGizmoMeasure::on_render()
     }
     const bool is_hovering_on_feature = m_mode == EMode::PointSelection && m_hover_id != -1;
 
-    if (m_mode == EMode::FeatureSelection || m_mode == EMode::PointSelection) {
+    if ((m_mode == EMode::FeatureSelection || m_mode == EMode::PointSelection) && !keep_assembly_rotate_hover) {
         if (m_hover_id == SEL_SPHERE_1_ID || m_hover_id == SEL_SPHERE_2_ID) {
             // Skip feature detection if hovering on a selected point/center
             //reset_gripper_pick(GripperType::UNDEFINE, true);
@@ -1063,6 +1211,13 @@ void GLGizmoMeasure::on_render()
         }
     }
     render_dimensioning();
+
+    if (assembly_rotate_enabled) {
+        update_assembly_rotate_gizmo_tran();
+        // Draw rotate gizmo above dimensioning lines / features (same as SVG).
+        glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
+        m_rotate_gizmo->render();
+    }
 }
 
 void GLGizmoMeasure::update_if_needed()
@@ -1769,7 +1924,12 @@ void GLGizmoMeasure::render_debug_dialog()
 #endif // ENABLE_MEASURE_GIZMO_DEBUG
 void GLGizmoMeasure::on_render_for_picking()
 {
-
+    if (is_assembly_around_center_gizmo_enabled()) {
+        update_assembly_rotate_gizmo_tran();
+        // Match Text/SVG: pick rotate grabber without depth occlusion by volumes.
+        glsafe(::glDisable(GL_DEPTH_TEST));
+        m_rotate_gizmo->render_for_picking();
+    }
 }
 
 void GLGizmoMeasure::show_selection_ui()
@@ -2092,10 +2252,17 @@ void GLGizmoMeasure::show_face_face_assembly_senior()
             }
         }
         if (action.can_around_center_of_faces) {
+            const std::string rotate_around_center_tip =
+                _u8L("Rotate the object on selected Face 2 around the perpendicular line of the selected plane");
+            const float tip_wrap = ImGui::GetFontSize() * 20.0f;
             m_imgui->text(_u8L("Rotate around center:"));
+            if (ImGui::IsItemHovered())
+                m_imgui->tooltip(rotate_around_center_tip, tip_wrap);
             ImGui::SameLine(rotate_around_center_size + m_space_size);
             ImGui::PushItemWidth(m_input_size_max);
             ImGui::BBLInputDouble("##rotate_around_center", &m_buffered_around_center, 0.0f, 0.0f, "%.2f");
+            if (ImGui::IsItemHovered())
+                m_imgui->tooltip(rotate_around_center_tip, tip_wrap);
             if (m_last_active_item_imgui != m_current_active_imgui_id && std::abs(m_buffered_around_center) > EPSILON) {
                 set_to_around_center_of_faces(m_same_model_object, m_buffered_around_center);
                 m_buffered_around_center = 0;
@@ -2574,17 +2741,19 @@ void GLGizmoMeasure::set_to_reverse_rotation(bool same_model_object, int feature
     }
 }
 
-void GLGizmoMeasure::set_to_around_center_of_faces(bool same_model_object, float rotate_degree)
+void GLGizmoMeasure::set_to_around_center_of_faces(bool same_model_object, float rotate_degree, bool take_shot)
 {
     if (m_hit_different_volumes.size() == 2 ) {
         auto &action    = m_assembly_action;
         auto  v         = m_hit_different_volumes[1];
         auto  selection = const_cast<Selection *>(&m_parent.get_selection());
         selection->setup_cache();
-        wxGetApp().plater()->take_snapshot("ReverseRotateInMeasure", UndoRedo::SnapshotType::GizmoAction); // avoid storing another snapshot
+        if (take_shot)
+            wxGetApp().plater()->take_snapshot("ReverseRotateInMeasure", UndoRedo::SnapshotType::GizmoAction); // avoid storing another snapshot
 
         selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
-        m_pending_scale = 1;
+        if (take_shot)
+            m_pending_scale = 1;
 
         auto  radian = Geometry::deg2rad(rotate_degree);
         Vec3d plane_normal, plane_center;
@@ -2602,7 +2771,8 @@ void GLGizmoMeasure::set_to_around_center_of_faces(bool same_model_object, float
             Transform3d              volume_tran = v->get_instance_transformation().get_matrix().inverse() * outMat.get_matrix();
             selection->rotate(v->object_idx(), v->instance_idx(), v->volume_idx(), volume_tran);
         }
-        wxGetApp().plater()->canvas3D()->do_rotate("");
+        if (take_shot)
+            wxGetApp().plater()->canvas3D()->do_rotate("");
         register_single_mesh_pick();
         if (same_model_object) {
             update_feature_by_tran(*m_selected_features.first.feature);

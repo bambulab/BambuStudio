@@ -8,11 +8,16 @@
 #include "libslic3r/Measure.hpp"
 #include "libslic3r/Model.hpp"
 
+#include <memory>
+#include <optional>
+
 namespace Slic3r {
 
 enum class ModelVolumeType : int;
 namespace Measure { class Measuring; }
 namespace GUI {
+
+class GLGizmoRotate;
 
 enum class SLAGizmoEventType : unsigned char;
 enum class EMeasureMode : unsigned char {
@@ -197,6 +202,12 @@ protected:
     bool m_mouse_left_down{ false }; // for detection left_up of this gizmo
     bool m_mouse_left_down_mesh_deal{false};//for pick mesh
 
+    // Assembly face-face: rotate Face 2 around plane normal (same as "Rotate around center")
+    std::unique_ptr<GLGizmoRotate> m_rotate_gizmo;
+    double                         m_last_rotate_gizmo_angle{0.0};
+    // One-frame signal from framebuffer picking (hover id 0); consumed in on_render.
+    bool                 m_rotate_gizmo_hover_from_picking{false};
+
     KeyAutoRepeatFilter m_shift_kar_filter;
 
     SelectedFeatures m_selected_features;
@@ -218,6 +229,7 @@ protected:
 
 public:
     GLGizmoMeasure(GLCanvas3D& parent, unsigned int sprite_id);
+    ~GLGizmoMeasure() override;
     /// <summary>
     /// Apply rotation on select plane
     /// </summary>
@@ -234,6 +246,7 @@ public:
     std::string get_gizmo_leaving_text() const override { return _u8L("Leaving Measure gizmo"); }
     //std::string get_action_snapshot_name() const override { return _u8L("Measure gizmo editing"); }
 
+    std::string get_tooltip() const override;
     std::string get_icon_filename(bool is_dark_mode) const override;
 
 protected:
@@ -243,8 +256,17 @@ protected:
     bool on_is_activable() const override;
     void on_render() override;
     void on_set_state() override;
+    void on_set_hover_id() override;
+    void on_enable_grabber(unsigned int id) override;
+    void on_disable_grabber(unsigned int id) override;
+    void on_start_dragging() override;
+    void on_stop_dragging() override;
+    void on_update(const UpdateData &data) override;
 
     virtual void on_render_for_picking() override;
+    bool         is_assembly_around_center_gizmo_enabled() const;
+    void         update_assembly_rotate_gizmo_tran();
+    bool         on_mouse_for_rotation(const wxMouseEvent &mouse_event);
     void         show_selection_ui();
     void         show_distance_xyz_ui();
     void         show_point_point_assembly();
@@ -283,7 +305,7 @@ protected:
     void set_distance(bool same_model_object, const Vec3d &displacement, bool take_shot = true);
     void set_to_parallel(bool same_model_object, bool take_shot = true, bool is_anti_parallel = false);
     void set_to_reverse_rotation(bool same_model_object,int feature_index);
-    void set_to_around_center_of_faces(bool same_model_object,float rotate_degree);
+    void set_to_around_center_of_faces(bool same_model_object, float rotate_degree, bool take_shot = true);
     void set_to_center_coincidence(bool same_model_object);
     void set_parallel_distance(bool same_model_object,float dist);
 

@@ -75,6 +75,25 @@ std::string GLGizmoRotate::get_tooltip() const
     return (m_hover_id == 0 || m_grabbers[0].dragging) ? axis + ": " + format((float)Geometry::rad2deg(m_angle), 2) : "";
 }
 
+std::string GLGizmoRotate::get_tooltip_relative_to_upright() const
+{
+    if (m_hover_id != 0 && !m_grabbers[0].dragging)
+        return "";
+
+    std::string axis;
+    switch (m_axis)
+    {
+    case X: { axis = "X"; break; }
+    case Y: { axis = "Y"; break; }
+    case Z: { axis = "Z"; break; }
+    }
+
+    // Grabber rest pose is +PI/2 (up); report signed delta so drag starts near 0°.
+    double rel = m_angle - 0.5 * double(PI);
+    Geometry::to_range_pi_pi(rel);
+    return axis + ": " + Slic3r::string_printf("%+.2f", Geometry::rad2deg(rel));
+}
+
 bool GLGizmoRotate::on_init()
 {
     m_grabbers.push_back(Grabber());

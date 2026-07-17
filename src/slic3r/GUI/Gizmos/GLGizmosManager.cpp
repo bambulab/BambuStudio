@@ -381,7 +381,18 @@ bool GLGizmosManager::check_gizmos_closed_except(EType type) const
 
 void GLGizmosManager::set_hover_id(int id)
 {
-    if (m_current == EType::Measure || m_current == EType::Assembly) { return; }
+    if (m_current == EType::Measure || m_current == EType::Assembly) {
+        // Measure/Assembly manage feature hover via their own raycasters.
+        // Only forward framebuffer picking for the assembly rotate grabber (id 0).
+        // Do NOT forward -1: clearing hover here would wipe Measure's feature hover
+        // before on_render restores it and breaks selected-face persistence.
+        if (id != 0)
+            return;
+        if (!m_enabled)
+            return;
+        m_gizmos[m_current]->set_hover_id(id);
+        return;
+    }
     if (!m_enabled || m_current == Undefined)
         return;
 
