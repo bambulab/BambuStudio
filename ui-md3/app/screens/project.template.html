@@ -1,0 +1,42 @@
+<template data-screen="project">
+    <sc-if value="{{ isProject }}">
+    <div style="position:absolute; inset:0; display:flex; background:var(--md-surface);">
+      <div style="width:250px; flex:0 0 auto; border-right:1px solid var(--md-outline-variant); background:var(--md-sc-low); padding:var(--pad); display:flex; flex-direction:column; gap:12px; overflow-y:auto;">
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="height:120px; border-radius:var(--radius); background:repeating-linear-gradient(45deg, var(--md-sc-high) 0 10px, var(--md-sc) 10px 20px); display:flex; align-items:center; justify-content:center; color:var(--md-on-surface-variant);"><span data-icon style="font-size:40px;">deployed_code</span></div>
+          <div style="font-size:14px; font-weight:600;">3DBenchy_project</div>
+          <div style="font-size:11.5px; color:var(--md-on-surface-variant);">by you · 3 objects</div>
+        </div>
+        <div style="height:1px; background:var(--md-outline-variant);"></div>
+        <sc-for list="{{ projectCats }}" as="c" hint-placeholder-count="4">
+          <button onClick="{{ c.onClick }}" style="display:flex; align-items:center; gap:10px; height:42px; padding:0 12px; border:none; border-radius:12px; cursor:pointer; font-size:13px; text-align:left; background:{{ c.bg }}; color:{{ c.fg }};"><span data-icon style="font-size:20px;">{{ c.icon }}</span><span style="flex:1;">{{ c.label }}</span><span style="font-size:11px; opacity:.7;">{{ c.count }}</span></button>
+        </sc-for>
+        <div style="height:1px; background:var(--md-outline-variant);"></div>
+        <div style="padding:14px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); border-radius:var(--radius); display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.4px; text-transform:uppercase;"><span data-icon style="font-size:16px;">account_tree</span> Version control</div>
+          <div style="display:flex; align-items:center; gap:8px; font-size:12px; font-family:'Roboto Mono',monospace;"><span data-icon style="font-size:15px;">commit</span> {{ branch }} · #{{ historyHead }}</div>
+          <div style="font-size:11.5px; opacity:.85;">{{ historyCount }} commits · auto-saved. Bundled into the .3mf on save.</div>
+          <button onClick="{{ toggleHistory }}" style="height:34px; border:none; border-radius:17px; background:var(--md-primary); color:var(--md-on-primary); font-size:12px; font-weight:600; cursor:pointer;">View history</button>
+        </div>
+      </div>
+      <div style="flex:1; min-width:0; display:flex; flex-direction:column; overflow:hidden;">
+        <div style="padding:var(--pad); display:flex; gap:14px; align-items:center; border-bottom:1px solid var(--md-outline-variant);">
+          <div style="font-size:18px; font-weight:700; flex:0 0 auto;">Model pictures</div>
+          <div style="flex:1; max-width:360px;"><dc-import name="SearchField" placeholder="Search files" hint-size="100%,40px"></dc-import></div>
+          <div style="flex:1;"></div>
+          <button style="display:flex; align-items:center; gap:8px; height:42px; padding:0 18px; border:none; border-radius:21px; background:var(--md-primary); color:var(--md-on-primary); font-size:13px; font-weight:600; cursor:pointer;"><span data-icon style="font-size:20px;">add</span> Add file</button>
+        </div>
+        <div style="flex:1; overflow-y:auto; padding:var(--pad);">
+          <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:16px;">
+            <sc-for list="{{ projectFiles }}" as="f" hint-placeholder-count="6">
+              <div style="border:1px solid var(--md-outline-variant); background:var(--md-sc-low); border-radius:var(--radius); overflow:hidden; cursor:pointer;" style-hover="border-color:var(--md-primary);">
+                <div style="height:130px; background:repeating-linear-gradient(45deg, var(--md-sc-high) 0 10px, var(--md-sc) 10px 20px); display:flex; align-items:center; justify-content:center; color:var(--md-on-surface-variant);"><span data-icon style="font-size:38px;">{{ f.icon }}</span></div>
+                <div style="padding:10px 12px; display:flex; align-items:center; gap:8px;"><span style="flex:1; font-size:12.5px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ f.name }}</span><span style="font-size:10px; font-weight:600; padding:2px 7px; border-radius:7px; background:var(--md-secondary-container); color:var(--md-on-secondary-container);">{{ f.type }}</span></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+</template>

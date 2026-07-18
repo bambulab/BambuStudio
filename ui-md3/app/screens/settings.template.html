@@ -1,0 +1,35 @@
+<template data-screen="settings">
+    <sc-if value="{{ isSettings }}">
+    <div style="position:absolute; inset:0; display:flex; background:var(--md-surface);">
+      <div style="width:230px; flex:0 0 auto; border-right:1px solid var(--md-outline-variant); background:var(--md-sc-low); padding:16px 10px; display:flex; flex-direction:column; gap:2px;">
+        <div style="display:flex; align-items:center; gap:10px; height:44px; padding:0 14px; border-radius:22px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-size:13.5px; font-weight:600;"><span data-icon style="font-size:20px;">palette</span> Appearance</div>
+        <div style="display:flex; align-items:center; gap:10px; height:44px; padding:0 14px; border-radius:22px; color:var(--md-on-surface-variant); font-size:13.5px; cursor:pointer;" style-hover="background:var(--md-sc-high);"><span data-icon style="font-size:20px;">settings</span> General</div>
+        <div style="display:flex; align-items:center; gap:10px; height:44px; padding:0 14px; border-radius:22px; color:var(--md-on-surface-variant); font-size:13.5px; cursor:pointer;" style-hover="background:var(--md-sc-high);"><span data-icon style="font-size:20px;">tune</span> Presets</div>
+        <div style="display:flex; align-items:center; gap:10px; height:44px; padding:0 14px; border-radius:22px; color:var(--md-on-surface-variant); font-size:13.5px; cursor:pointer;" style-hover="background:var(--md-sc-high);"><span data-icon style="font-size:20px;">wifi</span> Network</div>
+        <div style="display:flex; align-items:center; gap:10px; height:44px; padding:0 14px; border-radius:22px; color:var(--md-on-surface-variant); font-size:13.5px; cursor:pointer;" style-hover="background:var(--md-sc-high);"><span data-icon style="font-size:20px;">account_tree</span> Version control</div>
+        <div style="display:flex; align-items:center; gap:10px; height:44px; padding:0 14px; border-radius:22px; color:var(--md-on-surface-variant); font-size:13.5px; cursor:pointer;" style-hover="background:var(--md-sc-high);"><span data-icon style="font-size:20px;">info</span> About</div>
+      </div>
+      <div style="flex:1; min-width:0; overflow-y:auto; padding:28px 32px;">
+        <div style="max-width:720px; margin:0 auto; display:flex; flex-direction:column; gap:26px;">
+          <div><dc-import name="SearchField" placeholder="Search settings" hint-size="100%,40px"></dc-import></div>
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div style="font-size:16px; font-weight:700;">Appearance</div>
+            <div style="display:flex; align-items:center; gap:16px;"><div style="width:150px; font-size:13.5px;">Theme</div><div style="display:flex; gap:6px; padding:4px; background:var(--md-sc-highest); border-radius:14px;"><button onClick="{{ setLight }}" style="height:36px; padding:0 18px; display:flex; align-items:center; gap:6px; border:none; border-radius:11px; cursor:pointer; font-size:12.5px; font-weight:500; background:{{ lightBg }}; color:{{ lightFg }};"><span data-icon style="font-size:18px;">light_mode</span> Light</button><button onClick="{{ setDark }}" style="height:36px; padding:0 18px; display:flex; align-items:center; gap:6px; border:none; border-radius:11px; cursor:pointer; font-size:12.5px; font-weight:500; background:{{ darkBg }}; color:{{ darkFg }};"><span data-icon style="font-size:18px;">dark_mode</span> Dark</button></div></div>
+            <div style="display:flex; align-items:center; gap:16px;"><div style="width:150px; font-size:13.5px;">Density</div><div style="display:flex; gap:6px; padding:4px; background:var(--md-sc-highest); border-radius:14px;"><button onClick="{{ setComfortable }}" style="height:36px; padding:0 18px; border:none; border-radius:11px; cursor:pointer; font-size:12.5px; font-weight:500; background:{{ comfBg }}; color:{{ comfFg }};">Comfortable</button><button onClick="{{ setCompact }}" style="height:36px; padding:0 18px; border:none; border-radius:11px; cursor:pointer; font-size:12.5px; font-weight:500; background:{{ compBg }}; color:{{ compFg }};">Compact</button></div></div>
+            <div style="display:flex; align-items:center; gap:16px;"><div style="width:150px; font-size:13.5px;">Accent color</div><div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;"><sc-for list="{{ accentSwatches }}" as="a" hint-placeholder-count="6"><button onClick="{{ a.onClick }}" title="{{ a.name }}" style="width:32px; height:32px; border-radius:50%; cursor:pointer; background:{{ a.color }}; border:{{ a.border }}; display:flex; align-items:center; justify-content:center; color:#fff;"><span data-icon style="font-size:17px; opacity:{{ a.check }};">check</span></button></sc-for><label style="width:32px; height:32px; border-radius:50%; cursor:pointer; border:2px dashed var(--md-outline); display:flex; align-items:center; justify-content:center; color:var(--md-on-surface-variant); position:relative; overflow:hidden;"><span data-icon style="font-size:17px;">colorize</span><input type="color" onInput="{{ onPickAccent }}" style="position:absolute; inset:-4px; opacity:0; cursor:pointer;"></label></div></div>
+          </div>
+          <div style="height:1px; background:var(--md-outline-variant);"></div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <div style="font-size:16px; font-weight:700; margin-bottom:6px;">General</div>
+            <sc-for list="{{ prefs }}" as="p" hint-placeholder-count="5">
+              <div style="display:flex; align-items:center; gap:16px; padding:10px 0;">
+                <div style="flex:1;"><div style="font-size:13.5px; font-weight:500;">{{ p.label }}</div><div style="font-size:12px; color:var(--md-on-surface-variant); margin-top:1px;">{{ p.desc }}</div></div>
+                <button onClick="{{ p.onClick }}" style="width:44px; height:24px; border-radius:14px; border:2px solid {{ p.trackBorder }}; background:{{ p.track }}; position:relative; cursor:pointer; padding:0; flex:0 0 auto;"><span style="position:absolute; top:50%; left:{{ p.knobX }}; transform:translateY(-50%); width:{{ p.knobSize }}; height:{{ p.knobSize }}; border-radius:50%; background:{{ p.knob }};"></span></button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+</template>

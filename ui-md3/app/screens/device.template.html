@@ -1,0 +1,87 @@
+<template data-screen="device">
+    <sc-if value="{{ isDevice }}">
+    <div style="position:absolute; inset:0; overflow:auto; background:var(--md-surface-dim); padding:16px;">
+      <div style="display:flex; gap:16px; align-items:flex-start; max-width:1300px; margin:0 auto;">
+        <div style="flex:1.5; display:flex; flex-direction:column; gap:16px; min-width:0;">
+          <div style="border-radius:var(--radius); overflow:hidden; border:1px solid var(--md-outline-variant); background:#0c0e13;">
+            <div style="position:relative; aspect-ratio:16/9; background:repeating-linear-gradient(45deg,#15171d 0 12px,#1b1e25 12px 24px); display:flex; align-items:center; justify-content:center;">
+              <span data-icon style="font-size:52px; color:#3a3f47;">videocam</span>
+              <div style="position:absolute; left:14px; top:14px; display:flex; align-items:center; gap:6px; padding:4px 10px; background:rgba(0,0,0,.55); border-radius:12px; color:#fff; font-size:11px; font-weight:600;"><span style="width:7px; height:7px; border-radius:50%; background:#ff4747; animation:pulse 1.6s infinite;"></span> LIVE</div>
+              <div style="position:absolute; right:12px; top:12px; display:flex; gap:6px;"><button style="width:34px; height:34px; border:none; background:rgba(0,0,0,.5); color:#fff; border-radius:50%; cursor:pointer;"><span data-icon style="font-size:18px;">hd</span></button><button style="width:34px; height:34px; border:none; background:rgba(0,0,0,.5); color:#fff; border-radius:50%; cursor:pointer;"><span data-icon style="font-size:18px;">fullscreen</span></button></div>
+              <div style="position:absolute; left:14px; bottom:14px; display:flex; gap:8px;"><span style="padding:4px 10px; background:rgba(0,0,0,.55); border-radius:10px; color:#fff; font-size:11.5px; font-family:'Roboto Mono',monospace;">🌡 220°C</span><span style="padding:4px 10px; background:rgba(0,0,0,.55); border-radius:10px; color:#fff; font-size:11.5px; font-family:'Roboto Mono',monospace;">▤ 60°C</span></div>
+            </div>
+          </div>
+          <div style="padding:var(--pad); background:var(--md-sc-low); border:1px solid var(--md-outline-variant); border-radius:var(--radius); display:flex; flex-direction:column; gap:14px;">
+            <div style="display:flex; gap:14px; align-items:center;">
+              <div style="width:60px; height:60px; border-radius:12px; background:repeating-linear-gradient(45deg, var(--md-sc-high) 0 8px, var(--md-sc) 8px 16px); display:flex; align-items:center; justify-content:center; color:var(--md-on-surface-variant);"><span data-icon style="font-size:30px;">deployed_code</span></div>
+              <div style="flex:1; min-width:0;"><div style="font-size:15px; font-weight:600;">3DBenchy.gcode.3mf</div><div style="font-size:12.5px; color:var(--md-on-surface-variant); margin-top:2px;">Layer 124 / 180 · 42 min remaining</div></div>
+              <div style="font-family:'Roboto Mono',monospace; font-size:28px; font-weight:600; color:var(--md-primary);">68%</div>
+            </div>
+            <div style="height:8px; background:var(--md-sc-highest); border-radius:6px; overflow:hidden;"><div style="width:68%; height:100%; background:var(--md-primary); border-radius:6px;"></div></div>
+            <div style="display:flex; gap:10px;">
+              <button style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; height:44px; border:none; border-radius:22px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-size:13.5px; font-weight:600; cursor:pointer;"><span data-icon style="font-size:20px;">pause</span> Pause</button>
+              <button style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; height:44px; border:1px solid var(--md-error); background:transparent; color:var(--md-error); font-size:13.5px; font-weight:600; cursor:pointer; border-radius:22px;"><span data-icon style="font-size:20px;">stop</span> Stop</button>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1; min-width:344px; display:flex; flex-direction:column; gap:16px;">
+          <div style="padding:var(--pad); background:var(--md-sc-low); border:1px solid var(--md-outline-variant); border-radius:var(--radius); display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:.6px; color:var(--md-on-surface-variant); text-transform:uppercase;"><span data-icon style="font-size:16px;">thermostat</span> Temperature</div>
+            <sc-for list="{{ temps }}" as="t" hint-placeholder-count="3">
+              <div style="display:flex; align-items:center; gap:12px; height:40px;">
+                <span data-icon style="font-size:22px; color:var(--md-primary);">{{ t.icon }}</span>
+                <span style="flex:1; font-size:13.5px;">{{ t.label }}</span>
+                <span style="font-family:'Roboto Mono',monospace; font-size:15px; font-weight:500;">{{ t.val }}°</span>
+                <span style="font-size:12px; color:var(--md-on-surface-variant); font-family:'Roboto Mono',monospace;">/ {{ t.target }}</span>
+                <button style="width:32px; height:32px; border:none; background:var(--md-sc-highest); color:var(--md-on-surface-variant); border-radius:50%; cursor:pointer;"><span data-icon style="font-size:17px;">edit</span></button>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:var(--pad); background:var(--md-sc-low); border:1px solid var(--md-outline-variant); border-radius:var(--radius); display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:.6px; color:var(--md-on-surface-variant); text-transform:uppercase;"><span data-icon style="font-size:16px;">speed</span> Print options</div>
+            <div style="display:flex; gap:4px; padding:3px; background:var(--md-sc-highest); border-radius:12px;">
+              <sc-for list="{{ speedModes }}" as="m" hint-placeholder-count="4">
+                <button onClick="{{ m.onClick }}" style="flex:1; height:30px; border:none; border-radius:9px; cursor:pointer; font-size:11.5px; font-weight:500; background:{{ m.bg }}; color:{{ m.fg }};">{{ m.label }}</button>
+              </sc-for>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;"><span data-icon style="font-size:20px; color:var(--md-on-surface-variant);">mode_fan</span><span style="width:100px; font-size:13px;">Part cooling</span><input type="range" min="0" max="100" value="100" style="flex:1; accent-color:var(--md-primary);"></div>
+            <div style="display:flex; align-items:center; gap:12px;"><span data-icon style="font-size:20px; color:var(--md-on-surface-variant);">air</span><span style="width:100px; font-size:13px;">Aux fan</span><input type="range" min="0" max="100" value="40" style="flex:1; accent-color:var(--md-primary);"></div>
+            <div style="display:flex; align-items:center; gap:12px; height:36px;"><span data-icon style="font-size:20px; color:var(--md-on-surface-variant);">lightbulb</span><span style="flex:1; font-size:13px;">Chamber light</span>
+              <button onClick="{{ toggleLamp }}" style="width:44px; height:24px; border-radius:14px; border:2px solid {{ lampTrackBorder }}; background:{{ lampTrack }}; position:relative; cursor:pointer; padding:0;"><span style="position:absolute; top:50%; left:{{ lampKnobX }}; transform:translateY(-50%); width:16px; height:16px; border-radius:50%; background:{{ lampKnob }};"></span></button>
+            </div>
+          </div>
+          <div style="padding:var(--pad); background:var(--md-sc-low); border:1px solid var(--md-outline-variant); border-radius:var(--radius); display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; align-items:center;"><div style="flex:1; display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:.6px; color:var(--md-on-surface-variant); text-transform:uppercase;"><span data-icon style="font-size:16px;">inventory_2</span> AMS</div><span style="font-size:11px; color:var(--md-primary);">Humidity: Dry</span></div>
+            <div style="display:flex; gap:8px;">
+              <sc-for list="{{ filaments }}" as="f" hint-placeholder-count="4">
+                <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 4px; background:var(--md-sc-highest); border-radius:12px;"><div style="width:30px; height:30px; border-radius:8px; background:{{ f.color }}; border:1px solid rgba(0,0,0,.25);"></div><span style="font-size:10px; color:var(--md-on-surface-variant);">{{ f.type }}</span></div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="padding:var(--pad); background:var(--md-sc-low); border:1px solid var(--md-outline-variant); border-radius:var(--radius); display:flex; gap:16px;">
+            <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
+              <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:.6px; color:var(--md-on-surface-variant); text-transform:uppercase; align-self:flex-start;"><span data-icon style="font-size:16px;">control_camera</span> Move</div>
+              <div style="display:grid; grid-template-columns:repeat(3,40px); grid-template-rows:repeat(3,40px); gap:4px; margin-top:4px;">
+                <div></div>
+                <button style="border:none; background:var(--md-sc-highest); color:var(--md-on-surface); border-radius:8px; cursor:pointer;"><span data-icon style="font-size:20px;">keyboard_arrow_up</span></button>
+                <div></div>
+                <button style="border:none; background:var(--md-sc-highest); color:var(--md-on-surface); border-radius:8px; cursor:pointer;"><span data-icon style="font-size:20px;">keyboard_arrow_left</span></button>
+                <button style="border:none; background:var(--md-secondary-container); color:var(--md-on-secondary-container); border-radius:8px; cursor:pointer;"><span data-icon style="font-size:18px;">home</span></button>
+                <button style="border:none; background:var(--md-sc-highest); color:var(--md-on-surface); border-radius:8px; cursor:pointer;"><span data-icon style="font-size:20px;">keyboard_arrow_right</span></button>
+                <div></div>
+                <button style="border:none; background:var(--md-sc-highest); color:var(--md-on-surface); border-radius:8px; cursor:pointer;"><span data-icon style="font-size:20px;">keyboard_arrow_down</span></button>
+                <div></div>
+              </div>
+            </div>
+            <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+              <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:.6px; color:var(--md-on-surface-variant); text-transform:uppercase;">Z axis</div>
+              <button style="height:40px; border:none; background:var(--md-sc-highest); color:var(--md-on-surface); border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;"><span data-icon style="font-size:18px;">keyboard_arrow_up</span> Z +10</button>
+              <button style="height:40px; border:none; background:var(--md-sc-highest); color:var(--md-on-surface); border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;"><span data-icon style="font-size:18px;">keyboard_arrow_down</span> Z −10</button>
+              <button style="height:40px; border:none; background:var(--md-sc-highest); color:var(--md-on-surface); border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; font-size:13px;"><span data-icon style="font-size:18px;">vertical_align_bottom</span> Extrude</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+</template>

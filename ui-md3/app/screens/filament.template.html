@@ -1,0 +1,29 @@
+<template data-screen="filament">
+    <sc-if value="{{ isFilament }}">
+    <div style="position:absolute; inset:0; overflow:auto; background:var(--md-surface); padding:24px 28px;">
+      <div style="max-width:1080px; margin:0 auto; display:flex; flex-direction:column; gap:18px;">
+        <div style="display:flex; gap:14px; align-items:center;">
+          <div style="font-size:20px; font-weight:700; flex:0 0 auto;">Filament Manager</div>
+          <div style="flex:1; max-width:380px;"><dc-import name="SearchField" placeholder="Search filaments" hint-size="100%,40px"></dc-import></div>
+          <div style="flex:1;"></div>
+          <button onClick="{{ openExport }}" style="display:flex; align-items:center; gap:8px; height:42px; padding:0 18px; border:1px solid var(--md-outline); background:transparent; color:var(--md-on-surface); font-size:13px; font-weight:500; cursor:pointer; border-radius:21px;"><span data-icon style="font-size:20px;">file_download</span> Export all</button>
+          <button style="display:flex; align-items:center; gap:8px; height:42px; padding:0 18px; border:1px solid var(--md-outline); background:transparent; color:var(--md-on-surface); font-size:13px; font-weight:500; cursor:pointer; border-radius:21px;"><span data-icon style="font-size:20px;">download</span> Import</button>
+          <button onClick="{{ openAddFilament }}" style="display:flex; align-items:center; gap:8px; height:42px; padding:0 18px; border:none; border-radius:21px; background:var(--md-primary); color:var(--md-on-primary); font-size:13px; font-weight:600; cursor:pointer;"><span data-icon style="font-size:20px;">add</span> New filament</button>
+        </div>
+        <div style="border:1px solid var(--md-outline-variant); border-radius:var(--radius); overflow:hidden; background:var(--md-sc-low);">
+          <div style="display:grid; grid-template-columns:2.4fr 1.4fr 1fr 1fr 1fr 84px; gap:12px; padding:12px 16px; background:var(--md-sc-high); font-size:11px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:var(--md-on-surface-variant);"><span>Filament</span><span>Vendor</span><span>Type</span><span>Nozzle °C</span><span>Bed °C</span><span></span></div>
+          <sc-for list="{{ filamentRows }}" as="f" hint-placeholder-count="6">
+            <div style="display:grid; grid-template-columns:2.4fr 1.4fr 1fr 1fr 1fr 84px; gap:12px; padding:12px 16px; align-items:center; border-top:1px solid var(--md-outline-variant); font-size:13px;">
+              <span style="display:flex; align-items:center; gap:10px; min-width:0;"><span style="width:22px; height:22px; flex:0 0 auto; border-radius:6px; background:{{ f.color }}; border:1px solid rgba(0,0,0,.25);"></span><span style="font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ f.name }}</span></span>
+              <span style="color:var(--md-on-surface-variant);">{{ f.vendor }}</span>
+              <span><span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:7px; background:var(--md-secondary-container); color:var(--md-on-secondary-container);">{{ f.type }}</span></span>
+              <span style="font-family:'Roboto Mono',monospace;">{{ f.nozzle }}</span>
+              <span style="font-family:'Roboto Mono',monospace;">{{ f.bed }}</span>
+              <span style="display:flex; gap:2px; justify-content:flex-end;"><button onClick="{{ exportFilament }}" title="Export filament" style="width:32px; height:32px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:50%; cursor:pointer;" style-hover="background:var(--md-secondary-container); color:var(--md-primary);"><span data-icon style="font-size:18px;">file_download</span></button><button style="width:32px; height:32px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:50%; cursor:pointer;" style-hover="background:var(--md-sc-highest);"><span data-icon style="font-size:18px;">more_vert</span></button></span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+</template>

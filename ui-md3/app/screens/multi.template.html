@@ -1,0 +1,22 @@
+<template data-screen="multi">
+    <sc-if value="{{ isMulti }}">
+    <div style="position:absolute; inset:0; overflow:auto; background:var(--md-surface); padding:28px 32px;">
+      <div style="max-width:1120px; margin:0 auto;">
+        <div style="display:flex; align-items:center; margin-bottom:20px;"><div style="font-size:20px; font-weight:700;">Device farm</div><div style="flex:1; max-width:340px; margin:0 16px;"><dc-import name="SearchField" placeholder="Search devices" hint-size="100%,40px"></dc-import></div><div style="flex:1;"></div><button style="display:flex; align-items:center; gap:8px; height:44px; padding:0 20px; border:none; border-radius:22px; background:var(--md-primary); color:var(--md-on-primary); font-size:13.5px; font-weight:600; cursor:pointer;"><span data-icon style="font-size:20px;">add</span> Add device</button></div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px;">
+          <sc-for list="{{ devices }}" as="d" hint-placeholder-count="4">
+            <div style="padding:16px; background:var(--md-sc-low); border:1px solid var(--md-outline-variant); border-radius:var(--radius); display:flex; flex-direction:column; gap:12px;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div style="width:44px; height:44px; border-radius:12px; background:var(--md-sc-highest); color:var(--md-on-surface-variant); display:flex; align-items:center; justify-content:center;"><span data-icon style="font-size:26px;">print</span></div>
+                <div style="flex:1; min-width:0;"><div style="font-size:14px; font-weight:600;">{{ d.name }}</div><div style="font-size:11.5px; color:var(--md-on-surface-variant);">{{ d.model }}</div></div>
+                <div style="display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--md-on-surface-variant);"><span style="width:8px; height:8px; border-radius:50%; background:{{ d.dot }};"></span> {{ d.status }}</div>
+              </div>
+              <div style="height:96px; border-radius:12px; background:repeating-linear-gradient(45deg,#15171d 0 10px,#1b1e25 10px 20px); display:flex; align-items:center; justify-content:center; color:#3a3f47;"><span data-icon style="font-size:32px;">videocam</span></div>
+              <div style="height:6px; background:var(--md-sc-highest); border-radius:4px; overflow:hidden;"><div style="width:{{ d.pct }}%; height:100%; background:var(--md-primary);"></div></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+</template>

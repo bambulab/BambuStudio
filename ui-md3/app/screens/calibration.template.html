@@ -1,0 +1,19 @@
+<template data-screen="calibration">
+    <sc-if value="{{ isCalibration }}">
+    <div style="position:absolute; inset:0; overflow:auto; background:var(--md-surface); padding:28px 32px;">
+      <div style="max-width:1080px; margin:0 auto;">
+        <div style="display:flex; align-items:center; margin-bottom:6px;"><div style="font-size:20px; font-weight:700;">Calibration</div><div style="flex:1; max-width:340px; margin:0 16px;"><dc-import name="SearchField" placeholder="Search calibrations" hint-size="100%,40px"></dc-import></div><div style="flex:1;"></div><button style="display:flex; align-items:center; gap:8px; height:42px; padding:0 18px; border:1px solid var(--md-outline); background:transparent; color:var(--md-on-surface); font-size:13px; font-weight:500; cursor:pointer; border-radius:21px;"><span data-icon style="font-size:20px;">history</span> History</button></div>
+        <div style="font-size:13.5px; color:var(--md-on-surface-variant); margin-bottom:20px;">Fine-tune your printer and filament for the best possible print quality.</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px;">
+          <sc-for list="{{ caliCards }}" as="c" hint-placeholder-count="6">
+            <button onClick="{{ c.onClick }}" style="text-align:left; display:flex; gap:14px; align-items:flex-start; padding:18px; background:var(--md-sc-low); border:1px solid var(--md-outline-variant); border-radius:var(--radius); cursor:pointer;" style-hover="border-color:var(--md-primary);">
+              <div style="width:46px; height:46px; flex:0 0 auto; border-radius:14px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); display:flex; align-items:center; justify-content:center;"><span data-icon style="font-size:24px;">{{ c.icon }}</span></div>
+              <div style="flex:1; min-width:0;"><div style="font-size:14.5px; font-weight:600;">{{ c.title }}</div><div style="font-size:12px; color:var(--md-on-surface-variant); margin-top:3px; line-height:1.4;">{{ c.desc }}</div></div>
+              <span data-icon style="font-size:22px; color:var(--md-primary);">arrow_forward</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+</template>

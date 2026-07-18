@@ -1,0 +1,65 @@
+<template data-screen="preview">
+    <sc-if value="{{ isPreview }}">
+    <div style="position:absolute; inset:0; display:flex;">
+      <div style="flex:1; position:relative; display:flex; flex-direction:column; min-width:0;">
+        <div style="flex:1; position:relative; overflow:hidden; background:radial-gradient(120% 100% at 50% 0%, var(--md-surface-bright), var(--md-surface-dim) 70%);">
+          <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; perspective:1400px;">
+            <div style="width:520px; height:360px; transform:rotateX(58deg) rotateZ(-38deg); background:linear-gradient(var(--md-sc-high),var(--md-sc)); border:1px solid var(--md-outline); border-radius:6px; background-image:repeating-linear-gradient(0deg,transparent 0 25px, color-mix(in srgb, var(--md-outline) 34%, transparent) 25px 26px), repeating-linear-gradient(90deg,transparent 0 25px, color-mix(in srgb, var(--md-outline) 34%, transparent) 25px 26px); box-shadow:0 40px 60px rgba(0,0,0,.28);"></div>
+          </div>
+          <div style="position:absolute; left:50%; top:44%; transform:translate(-50%,-50%); width:150px; height:164px; filter:drop-shadow(0 20px 16px rgba(0,0,0,.35));">
+            <div style="position:absolute; inset:0; background:#d2477e; clip-path:polygon(50% 2%, 98% 27%, 50% 52%, 2% 27%);"></div>
+            <div style="position:absolute; inset:0; background:repeating-linear-gradient(-6deg, #ef6c3e 0 5px, #c85a34 5px 6px); clip-path:polygon(2% 27%, 50% 52%, 50% 98%, 2% 73%);"></div>
+            <div style="position:absolute; inset:0; background:repeating-linear-gradient(6deg, #b8542f 0 5px, #97452a 5px 6px); clip-path:polygon(98% 27%, 98% 73%, 50% 98%, 50% 52%);"></div>
+          </div>
+          <div style="position:absolute; right:22px; top:0; bottom:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;">
+            <div style="font-family:'Roboto Mono',monospace; font-size:11.5px; color:var(--md-on-surface); background:var(--md-sc); padding:4px 9px; border-radius:8px; border:1px solid var(--md-outline-variant);">Z {{ layerZ }} mm</div>
+            <input type="range" min="1" max="{{ maxLayer }}" value="{{ layer }}" onInput="{{ onLayer }}" style="writing-mode:vertical-lr; direction:rtl; width:12px; height:300px; accent-color:var(--md-primary); cursor:pointer;">
+            <div style="font-family:'Roboto Mono',monospace; font-size:11.5px; color:var(--md-on-surface-variant);">{{ layer }} / {{ maxLayer }}</div>
+          </div>
+          <div style="position:absolute; left:16px; top:16px; display:flex; gap:8px; align-items:center; padding:7px 14px; background:var(--md-sc); border:1px solid var(--md-outline-variant); border-radius:20px; font-size:12.5px; color:var(--md-on-surface-variant); box-shadow:0 2px 6px var(--md-shadow);"><span data-icon style="font-size:16px;">layers</span> Sliced · {{ maxLayer }} layers</div>
+        </div>
+        <div style="flex:0 0 auto; height:58px; display:flex; align-items:center; gap:14px; padding:0 20px; background:var(--md-sc-low); border-top:1px solid var(--md-outline-variant);">
+          <button style="width:38px; height:38px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:50%; cursor:pointer;" style-hover="background:var(--md-sc-high);"><span data-icon style="font-size:22px;">skip_previous</span></button>
+          <button style="width:44px; height:44px; border:none; background:var(--md-primary); color:var(--md-on-primary); border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;"><span data-icon style="font-size:24px; font-variation-settings:'FILL' 1;">play_arrow</span></button>
+          <button style="width:38px; height:38px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:50%; cursor:pointer;" style-hover="background:var(--md-sc-high);"><span data-icon style="font-size:22px;">skip_next</span></button>
+          <input type="range" min="0" max="12380" style="flex:1; accent-color:var(--md-primary); cursor:pointer;">
+          <span style="font-family:'Roboto Mono',monospace; font-size:12px; color:var(--md-on-surface-variant); min-width:120px; text-align:right;">Move 8420 / 12380</span>
+        </div>
+      </div>
+      <div style="width:var(--sidebar); flex:0 0 auto; background:var(--md-sc-low); border-left:1px solid var(--md-outline-variant); display:flex; flex-direction:column; overflow-y:auto; padding:var(--pad); gap:18px;">
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:.6px; color:var(--md-on-surface-variant); text-transform:uppercase;"><span data-icon style="font-size:16px;">palette</span> Color scheme</div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <sc-for list="{{ gcodeSchemes }}" as="c" hint-placeholder-count="5">
+              <button onClick="{{ c.onClick }}" style="height:32px; padding:0 12px; border-radius:16px; cursor:pointer; font-size:12px; font-weight:500; background:{{ c.bg }}; color:{{ c.fg }}; border:{{ c.border }};">{{ c.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:.6px; color:var(--md-on-surface-variant); text-transform:uppercase;">{{ gcodeScheme }}</div>
+          <sc-for list="{{ gcodeLegend }}" as="g" hint-placeholder-count="11">
+            <div style="display:flex; align-items:center; gap:10px; height:28px;">
+              <span style="width:16px; height:16px; border-radius:4px; background:{{ g.color }};"></span>
+              <span style="font-size:12.5px; color:var(--md-on-surface);">{{ g.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:.6px; color:var(--md-on-surface-variant); text-transform:uppercase;"><span data-icon style="font-size:16px;">tune</span> Options</div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <sc-for list="{{ prevOpts }}" as="o" hint-placeholder-count="4">
+              <button onClick="{{ o.onClick }}" style="display:flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:16px; cursor:pointer; font-size:12px; font-weight:500; background:{{ o.bg }}; color:{{ o.fg }}; border:{{ o.border }};"><span data-icon style="font-size:16px;">{{ o.icon }}</span>{{ o.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px; padding:14px; background:var(--md-sc-highest); border-radius:var(--radius);">
+          <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:.6px; color:var(--md-on-surface-variant); text-transform:uppercase;"><span data-icon style="font-size:16px;">insights</span> Statistics</div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:var(--md-on-surface-variant);">Estimated time</span><span style="font-family:'Roboto Mono',monospace; font-weight:500;">1h 24m</span></div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:var(--md-on-surface-variant);">Filament</span><span style="font-family:'Roboto Mono',monospace; font-weight:500;">23.4 g · 7.85 m</span></div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:var(--md-on-surface-variant);">Est. cost</span><span style="font-family:'Roboto Mono',monospace; font-weight:500;">$0.47</span></div>
+          <div style="display:flex; justify-content:space-between; font-size:13px;"><span style="color:var(--md-on-surface-variant);">Layers</span><span style="font-family:'Roboto Mono',monospace; font-weight:500;">180</span></div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+</template>

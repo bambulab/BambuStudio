@@ -1,0 +1,37 @@
+<template data-screen="home">
+    <sc-if value="{{ isHome }}">
+    <div style="position:absolute; inset:0; overflow-y:auto; background:var(--md-surface);">
+      <div style="max-width:1120px; margin:0 auto; padding:32px 32px 56px; display:flex; flex-direction:column; gap:26px;">
+        <div style="display:flex; gap:20px; align-items:center; padding:26px 28px; border-radius:28px; background:linear-gradient(120deg, var(--md-primary-container), var(--md-secondary-container)); color:var(--md-on-primary-container);">
+          <div style="width:64px; height:64px; border-radius:20px; background:var(--md-primary); color:var(--md-on-primary); display:flex; align-items:center; justify-content:center; box-shadow:0 6px 16px var(--md-shadow);"><span data-icon style="font-size:36px; font-variation-settings:'FILL' 1;">deployed_code</span></div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:23px; font-weight:700;">Welcome back</div>
+            <div style="font-size:14px; opacity:.82; margin-top:3px;">Start a new project, open an existing one, or continue where you left off.</div>
+          </div>
+          <div style="display:flex; gap:12px;">
+            <button onClick="{{ goPrepare }}" style="display:flex; align-items:center; gap:8px; height:48px; padding:0 24px; border:none; border-radius:24px; background:var(--md-primary); color:var(--md-on-primary); font-size:14px; font-weight:600; cursor:pointer; box-shadow:0 2px 8px var(--md-shadow);"><span data-icon style="font-size:20px;">add</span> New Project</button>
+            <button style="display:flex; align-items:center; gap:8px; height:48px; padding:0 22px; border:1px solid var(--md-primary); background:transparent; color:var(--md-on-primary-container); border-radius:24px; font-size:14px; font-weight:600; cursor:pointer;"><span data-icon style="font-size:20px;">folder_open</span> Open</button>
+          </div>
+        </div>
+        <div style="max-width:520px;"><dc-import name="SearchField" placeholder="Search models on MakerWorld" hint-size="100%,40px"></dc-import></div>
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+          <div style="display:flex; flex-direction:column; gap:10px; padding:18px; background:var(--md-sc-low); border:1px solid var(--md-outline-variant); border-radius:20px; cursor:pointer;" style-hover="border-color:var(--md-primary);"><div style="width:44px; height:44px; border-radius:14px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); display:flex; align-items:center; justify-content:center;"><span data-icon style="font-size:24px;">upload_file</span></div><div style="font-size:14px; font-weight:600;">Import model</div><div style="font-size:12px; color:var(--md-on-surface-variant);">STL, STEP, 3MF, OBJ</div></div>
+          <div style="display:flex; flex-direction:column; gap:10px; padding:18px; background:var(--md-sc-low); border:1px solid var(--md-outline-variant); border-radius:20px; cursor:pointer;" style-hover="border-color:var(--md-primary);"><div style="width:44px; height:44px; border-radius:14px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); display:flex; align-items:center; justify-content:center;"><span data-icon style="font-size:24px;">folder_open</span></div><div style="font-size:14px; font-weight:600;">Open project</div><div style="font-size:12px; color:var(--md-on-surface-variant);">Resume a .3mf project</div></div>
+          <div style="display:flex; flex-direction:column; gap:10px; padding:18px; background:var(--md-sc-low); border:1px solid var(--md-outline-variant); border-radius:20px; cursor:pointer;" style-hover="border-color:var(--md-primary);"><div style="width:44px; height:44px; border-radius:14px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); display:flex; align-items:center; justify-content:center;"><span data-icon style="font-size:24px;">public</span></div><div style="font-size:14px; font-weight:600;">Explore models</div><div style="font-size:12px; color:var(--md-on-surface-variant);">Browse the online library</div></div>
+          <div onClick="{{ goDevice }}" style="display:flex; flex-direction:column; gap:10px; padding:18px; background:var(--md-sc-low); border:1px solid var(--md-outline-variant); border-radius:20px; cursor:pointer;" style-hover="border-color:var(--md-primary);"><div style="width:44px; height:44px; border-radius:14px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); display:flex; align-items:center; justify-content:center;"><span data-icon style="font-size:24px;">cast</span></div><div style="font-size:14px; font-weight:600;">My devices</div><div style="font-size:12px; color:var(--md-on-surface-variant);">Monitor &amp; control printers</div></div>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px; font-size:16px; font-weight:600;"><span data-icon style="font-size:20px;">history</span> Recent projects</div>
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px;">
+            <sc-for list="{{ recent }}" as="r" hint-placeholder-count="4">
+              <button onClick="{{ goPrepare }}" style="text-align:left; padding:0; border:1px solid var(--md-outline-variant); background:var(--md-sc-low); border-radius:20px; overflow:hidden; cursor:pointer;" style-hover="border-color:var(--md-primary);">
+                <div style="height:118px; background:repeating-linear-gradient(45deg, var(--md-sc-high) 0 10px, var(--md-sc) 10px 20px); display:flex; align-items:center; justify-content:center; color:var(--md-on-surface-variant);"><span data-icon style="font-size:40px;">deployed_code</span></div>
+                <div style="padding:12px 14px;"><div style="font-size:13.5px; font-weight:600; color:var(--md-on-surface); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ r.name }}</div><div style="font-size:11.5px; color:var(--md-on-surface-variant); margin-top:2px;">{{ r.meta }}</div></div>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+</template>
