@@ -1,0 +1,56 @@
+name: Windows installer (ui-md3)
+
+# Packages the self-contained Material Design 3 web app (ui-md3/) into a Windows
+# installer via a thin Electron shell (see ui-md3/desktop/) and publishes it to a
+# GitHub Release. Runs on version tags (v*) or on demand.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Also create/update a GitHub Release with the installer'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write   # needed to create the Release and upload the installer
+
+concurrency:
+  group: windows-installer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: ui-md3/desktop
+        run: npm install
+
+      - name: Build NSIS installer
+        working-directory: ui-md3/desktop
+        run: npm run dist
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bambu-studio-md3-windows-installer
+          path: ui-md3/desktop/dist/*.exe
+          if-no-files-found: error
+
+      - name: Attach installer to Release
+        if: startsWith(github.ref, 'refs/tags/') || inputs.release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ui-md3/desktop/dist/*.exe
+          generate_release_notes: true

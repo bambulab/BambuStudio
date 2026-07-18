@@ -43,7 +43,7 @@ jobs:
         run: |
           rm -rf _site && mkdir -p _site/app
           # App served at /app/ — exclude the heavy read-only design source and docs.
-          rsync -a --exclude 'design-source' --exclude '*.md' --exclude 'landing.html' ui-md3/ _site/app/
+          rsync -a --exclude 'design-source' --exclude 'desktop' --exclude '*.md' --exclude 'landing.html' ui-md3/ _site/app/
           # Landing page is the site root.
           cp ui-md3/landing.html _site/index.html
           echo "Composed _site:"; find _site -maxdepth 2 -type f | sort

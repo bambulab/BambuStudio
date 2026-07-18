@@ -1,0 +1,35 @@
+{
+  "name": "bambu-studio-md3",
+  "productName": "Bambu Studio MD3",
+  "version": "0.1.0",
+  "description": "Material Design 3 concept redesign of Bambu Studio — desktop shell.",
+  "main": "main.js",
+  "author": "codingmachineedge",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "prepare-app": "node prepare.js",
+    "start": "npm run prepare-app && electron .",
+    "dist": "npm run prepare-app && electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^31.7.6",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "io.github.codingmachineedge.bambustudiomd3",
+    "productName": "Bambu Studio MD3",
+    "artifactName": "BambuStudioMD3-Setup-${version}.${ext}",
+    "files": ["main.js", "app/**/*"],
+    "directories": { "output": "dist" },
+    "win": { "target": ["nsis"] },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Bambu Studio MD3"
+    }
+  }
+}
