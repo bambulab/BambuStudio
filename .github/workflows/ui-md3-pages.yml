@@ -39,10 +39,19 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload ui-md3 as the Pages artifact
+      - name: Compose site (landing page at root, app under /app)
+        run: |
+          rm -rf _site && mkdir -p _site/app
+          # App served at /app/ — exclude the heavy read-only design source and docs.
+          rsync -a --exclude 'design-source' --exclude '*.md' --exclude 'landing.html' ui-md3/ _site/app/
+          # Landing page is the site root.
+          cp ui-md3/landing.html _site/index.html
+          echo "Composed _site:"; find _site -maxdepth 2 -type f | sort
+
+      - name: Upload composed site as the Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ui-md3
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment

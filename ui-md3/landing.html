@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bambu Studio — Material Design 3 concept</title>
+<meta name="description" content="An independent Material Design 3 (Material You) concept redesign of the Bambu Studio slicer UI. Self-contained web app — light/dark, density, and a customizable accent seed color.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-25..0&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="light"]{
+  --md-surface:#faf8fd; --md-surface-dim:#dad9e0; --md-surface-bright:#faf8fd;
+  --md-sc-lowest:#ffffff; --md-sc-low:#f4f2f9; --md-sc:#eeedf3; --md-sc-high:#e8e7ee; --md-sc-highest:#e2e1e9;
+  --md-on-surface:#1a1b1f; --md-on-surface-variant:#44464e; --md-outline:#75777f; --md-outline-variant:#c5c6d0;
+  --md-error:#ba1a1a; --md-scrim:rgba(0,0,0,.32); --md-shadow:rgba(0,0,0,.16);
+  --md-primary:#146c2e; --md-on-primary:#ffffff; --md-primary-container:#a6f4b8; --md-on-primary-container:#00210c;
+  --md-secondary-container:#d7e8d9; --md-on-secondary-container:#0e1f13;
+}
+[data-theme="dark"]{
+  --md-surface:#1b1c21; --md-surface-dim:#161619; --md-surface-bright:#3b3c43;
+  --md-sc-lowest:#131317; --md-sc-low:#202127; --md-sc:#25262b; --md-sc-high:#2f3036; --md-sc-highest:#393a41;
+  --md-on-surface:#e8e7ee; --md-on-surface-variant:#cdced8; --md-outline:#94959f; --md-outline-variant:#4a4c54;
+  --md-error:#ffb4ab; --md-scrim:rgba(0,0,0,.6); --md-shadow:rgba(0,0,0,.5);
+  --md-primary:#8bd89b; --md-on-primary:#00391a; --md-primary-container:#095228; --md-on-primary-container:#a6f4b8;
+  --md-secondary-container:#2b3a2f; --md-on-secondary-container:#cfe9d3;
+}
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+body{ margin:0; font-family:'Roboto',system-ui,sans-serif; color:var(--md-on-surface); background:var(--md-surface);
+  -webkit-font-smoothing:antialiased; line-height:1.5; overflow-x:hidden; }
+a{ color:inherit; text-decoration:none; }
+[data-icon]{ font-family:'Material Symbols Outlined'; font-weight:400; line-height:1; -webkit-font-smoothing:antialiased; user-select:none; }
+.mono{ font-family:'Roboto Mono',monospace; }
+.wrap{ max-width:1120px; margin:0 auto; padding:0 24px; }
+@keyframes floaty{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-12px); } }
+@keyframes fadeup{ from{ opacity:0; transform:translateY(16px); } to{ opacity:1; transform:none; } }
+.reveal{ animation:fadeup .7s cubic-bezier(.2,.7,.2,1) both; }
+
+/* ---------- top bar ---------- */
+header{ position:sticky; top:0; z-index:20; backdrop-filter:blur(14px);
+  background:color-mix(in srgb, var(--md-surface) 82%, transparent); border-bottom:1px solid var(--md-outline-variant); }
+.nav{ display:flex; align-items:center; gap:14px; height:62px; }
+.brand{ display:flex; align-items:center; gap:10px; font-weight:600; font-size:15px; }
+.logo{ width:32px; height:32px; border-radius:9px; background:var(--md-primary); color:var(--md-on-primary);
+  display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px var(--md-shadow); }
+.logo [data-icon]{ font-size:21px; font-variation-settings:'FILL' 1; }
+.tag{ font-size:11px; font-weight:600; letter-spacing:.3px; padding:3px 9px; border-radius:20px;
+  background:var(--md-secondary-container); color:var(--md-on-secondary-container); }
+.nav .spacer{ flex:1; }
+.nav a.navlink{ color:var(--md-on-surface-variant); font-size:13.5px; font-weight:500; padding:8px 10px; border-radius:10px; }
+.nav a.navlink:hover{ background:var(--md-sc-high); color:var(--md-on-surface); }
+.iconbtn{ width:38px; height:38px; border:none; background:transparent; color:var(--md-on-surface-variant);
+  border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.iconbtn:hover{ background:var(--md-sc-high); color:var(--md-on-surface); }
+.btn{ display:inline-flex; align-items:center; gap:8px; height:44px; padding:0 22px; border-radius:22px; border:none;
+  font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; transition:filter .15s, background .15s, transform .1s; }
+.btn:active{ transform:translateY(1px); }
+.btn-filled{ background:var(--md-primary); color:var(--md-on-primary); box-shadow:0 2px 8px var(--md-shadow); }
+.btn-filled:hover{ filter:brightness(1.07); }
+.btn-outline{ background:transparent; color:var(--md-on-surface); border:1px solid var(--md-outline); }
+.btn-outline:hover{ background:var(--md-sc-high); }
+
+/* ---------- hero ---------- */
+.hero{ position:relative; padding:74px 0 40px; overflow:hidden; }
+.hero-grid{ display:grid; grid-template-columns:1.05fr .95fr; gap:36px; align-items:center; }
+.eyebrow{ display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:600; letter-spacing:.4px;
+  text-transform:uppercase; color:var(--md-primary); margin-bottom:16px; }
+.eyebrow [data-icon]{ font-size:17px; }
+h1{ font-size:52px; line-height:1.05; font-weight:700; letter-spacing:-1px; margin:0 0 18px; }
+h1 .accent{ color:var(--md-primary); }
+.lede{ font-size:17px; color:var(--md-on-surface-variant); max-width:520px; margin:0 0 28px; }
+.cta-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.hint{ font-size:12.5px; color:var(--md-on-surface-variant); display:flex; align-items:center; gap:6px; }
+.hint [data-icon]{ font-size:16px; }
+
+/* hero art — isometric plate + model, reusing the app's own motif */
+.stage{ position:relative; height:420px; display:flex; align-items:center; justify-content:center; perspective:1400px; }
+.plate{ width:340px; height:236px; transform:rotateX(58deg) rotateZ(-38deg); transform-style:preserve-3d;
+  background:linear-gradient(var(--md-sc-high),var(--md-sc)); border:1px solid var(--md-outline); border-radius:6px;
+  background-image:repeating-linear-gradient(0deg,transparent 0 24px, color-mix(in srgb, var(--md-outline) 34%, transparent) 24px 25px),
+                   repeating-linear-gradient(90deg,transparent 0 24px, color-mix(in srgb, var(--md-outline) 34%, transparent) 24px 25px);
+  box-shadow:0 40px 60px rgba(0,0,0,.30); animation:floaty 7s ease-in-out infinite; }
+.model{ position:absolute; left:50%; top:42%; transform:translate(-50%,-50%); width:150px; height:164px;
+  filter:drop-shadow(0 22px 18px rgba(0,0,0,.4)); animation:floaty 7s ease-in-out infinite; }
+.model i{ position:absolute; inset:0; display:block; }
+.model .t{ background:color-mix(in srgb, var(--md-primary) 84%, #fff); clip-path:polygon(50% 2%, 98% 27%, 50% 52%, 2% 27%); }
+.model .l{ background:color-mix(in srgb, var(--md-primary) 60%, #000 8%); clip-path:polygon(2% 27%, 50% 52%, 50% 98%, 2% 73%); }
+.model .r{ background:color-mix(in srgb, var(--md-primary) 42%, #000 22%); clip-path:polygon(98% 27%, 98% 73%, 50% 98%, 50% 52%); }
+.chip{ position:absolute; display:flex; align-items:center; gap:7px; padding:8px 13px; font-size:12.5px; font-weight:500;
+  background:var(--md-sc); border:1px solid var(--md-outline-variant); border-radius:16px; box-shadow:0 6px 18px var(--md-shadow); }
+.chip [data-icon]{ font-size:17px; color:var(--md-primary); }
+.chip.c1{ top:26px; right:6px; animation:floaty 6s ease-in-out infinite; }
+.chip.c2{ bottom:54px; left:-8px; animation:floaty 8s ease-in-out .4s infinite; }
+.chip.c3{ bottom:8px; right:36px; animation:floaty 6.6s ease-in-out .2s infinite; }
+
+/* ---------- sections ---------- */
+section{ padding:56px 0; }
+.section-head{ text-align:center; max-width:640px; margin:0 auto 40px; }
+.section-head h2{ font-size:32px; font-weight:700; letter-spacing:-.5px; margin:0 0 10px; }
+.section-head p{ font-size:15.5px; color:var(--md-on-surface-variant); margin:0; }
+.divider{ height:1px; background:var(--md-outline-variant); }
+
+.grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.card{ padding:22px; border-radius:20px; background:var(--md-sc-low); border:1px solid var(--md-outline-variant);
+  transition:border-color .15s, transform .15s, background .15s; }
+.card:hover{ border-color:var(--md-primary); transform:translateY(-3px); }
+.card .ico{ width:46px; height:46px; border-radius:14px; background:var(--md-secondary-container);
+  color:var(--md-on-secondary-container); display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
+.card .ico [data-icon]{ font-size:25px; }
+.card h3{ font-size:16px; font-weight:600; margin:0 0 5px; }
+.card p{ font-size:13.5px; color:var(--md-on-surface-variant); margin:0; }
+
+/* material you band */
+.you{ background:linear-gradient(135deg, var(--md-primary-container), var(--md-secondary-container));
+  color:var(--md-on-primary-container); border-radius:28px; padding:40px; display:grid; grid-template-columns:1fr 1fr; gap:32px; align-items:center; }
+.you h2{ font-size:28px; margin:0 0 12px; letter-spacing:-.5px; }
+.you p{ font-size:15px; margin:0 0 18px; opacity:.9; }
+.you .demo{ background:var(--md-sc-lowest); border-radius:20px; padding:20px; box-shadow:0 10px 30px var(--md-shadow); color:var(--md-on-surface); }
+.rowlbl{ font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; color:var(--md-on-surface-variant); margin:0 0 8px; }
+.seg{ display:flex; gap:6px; padding:4px; background:var(--md-sc-highest); border-radius:14px; margin-bottom:16px; }
+.seg button{ flex:1; height:34px; border:none; border-radius:11px; cursor:pointer; font-family:inherit; font-size:12.5px; font-weight:500;
+  background:transparent; color:var(--md-on-surface-variant); display:flex; align-items:center; justify-content:center; gap:6px; }
+.seg button[aria-pressed="true"]{ background:var(--md-primary); color:var(--md-on-primary); }
+.seg button [data-icon]{ font-size:17px; }
+.swatches{ display:flex; gap:10px; }
+.swatch{ width:34px; height:34px; border-radius:50%; cursor:pointer; border:2px solid transparent; }
+.swatch[aria-pressed="true"]{ outline:2px solid var(--md-on-surface); outline-offset:2px; }
+
+/* build steps */
+.steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.step{ padding:22px; border-radius:20px; background:var(--md-sc-low); border:1px solid var(--md-outline-variant); }
+.step .n{ font-family:'Roboto Mono',monospace; font-size:12px; color:var(--md-primary); font-weight:600; }
+.step h3{ font-size:15.5px; margin:6px 0 6px; }
+.step p{ font-size:13px; color:var(--md-on-surface-variant); margin:0; }
+
+footer{ border-top:1px solid var(--md-outline-variant); padding:34px 0 48px; }
+.foot{ display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
+.foot .spacer{ flex:1; }
+.foot a{ color:var(--md-on-surface-variant); font-size:13px; }
+.foot a:hover{ color:var(--md-primary); }
+.disclaimer{ margin-top:18px; font-size:12px; color:var(--md-on-surface-variant); max-width:760px; line-height:1.6; }
+
+@media (max-width:860px){
+  .hero-grid{ grid-template-columns:1fr; } .stage{ height:320px; order:-1; }
+  h1{ font-size:40px; } .grid{ grid-template-columns:1fr 1fr; } .steps{ grid-template-columns:1fr; }
+  .you{ grid-template-columns:1fr; padding:28px; }
+}
+@media (max-width:560px){ .grid{ grid-template-columns:1fr; } .nav .navlink{ display:none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand">
+      <span class="logo"><span data-icon>deployed_code</span></span>
+      Bambu Studio
+      <span class="tag">Material Design 3</span>
+    </div>
+    <span class="spacer"></span>
+    <a class="navlink" href="#features">Screens</a>
+    <a class="navlink" href="#materialyou">Material You</a>
+    <a class="navlink" href="#build">How it's built</a>
+    <a class="navlink" href="https://github.com/codingmachineedge/BambuStudio/tree/md3-redesign/ui-md3" target="_blank" rel="noopener">GitHub</a>
+    <button class="iconbtn" id="themeToggle" title="Toggle light / dark"><span data-icon id="themeIcon">light_mode</span></button>
+    <a class="btn btn-filled" id="launchTop" href="index.html"><span data-icon style="font-size:20px;">rocket_launch</span> Launch app</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="reveal">
+        <div class="eyebrow"><span data-icon>auto_awesome</span> Independent concept redesign</div>
+        <h1>Bambu Studio,<br>reimagined in <span class="accent">Material&nbsp;You</span>.</h1>
+        <p class="lede">A pure Material Design 3 re-skin of the real Bambu Studio slicer — every screen,
+          faithfully restyled. Runs entirely in the browser: light &amp; dark themes, a density toggle,
+          and a customizable accent seed color that regenerates the whole tonal palette.</p>
+        <div class="cta-row">
+          <a class="btn btn-filled" id="launchMain" href="index.html"><span data-icon style="font-size:20px;">rocket_launch</span> Launch the app</a>
+          <a class="btn btn-outline" href="https://github.com/codingmachineedge/BambuStudio/tree/md3-redesign" target="_blank" rel="noopener"><span data-icon style="font-size:20px;">code</span> View source</a>
+        </div>
+        <div class="hint" style="margin-top:16px;"><span data-icon>bolt</span> Zero dependencies · no build step · one self-contained web app</div>
+      </div>
+      <div class="stage reveal" style="animation-delay:.1s">
+        <div class="plate"></div>
+        <div class="model"><i class="t"></i><i class="l"></i><i class="r"></i></div>
+        <div class="chip c1"><span data-icon>layers</span> Sliced · 180 layers</div>
+        <div class="chip c2"><span data-icon>palette</span> Accent → tonal ramp</div>
+        <div class="chip c3 mono"><span data-icon>schedule</span> 1h 24m · 23.4 g</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="divider"></div></div>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Every screen, restyled</h2>
+        <p>The full Bambu Studio information architecture — nothing invented, everything re-drawn in Material 3.</p>
+      </div>
+      <div class="grid" id="featureGrid"></div>
+    </div>
+  </section>
+
+  <section id="materialyou">
+    <div class="wrap">
+      <div class="you">
+        <div>
+          <h2>Material You, all the way down</h2>
+          <p>Theme, density, and accent are first-class. Pick a seed color and the app derives a full
+             HSL tonal ramp for primary, containers, and state layers — live, with no reload.</p>
+          <a class="btn btn-outline" id="launchYou" href="index.html" style="border-color:currentColor;"><span data-icon style="font-size:20px;">tune</span> Try it live</a>
+        </div>
+        <div class="demo">
+          <p class="rowlbl">Theme</p>
+          <div class="seg" data-group="theme">
+            <button data-val="light" aria-pressed="false"><span data-icon>light_mode</span> Light</button>
+            <button data-val="dark" aria-pressed="true"><span data-icon>dark_mode</span> Dark</button>
+          </div>
+          <p class="rowlbl">Density</p>
+          <div class="seg" data-group="density">
+            <button data-val="comfortable" aria-pressed="true">Comfortable</button>
+            <button data-val="compact" aria-pressed="false">Compact</button>
+          </div>
+          <p class="rowlbl">Accent</p>
+          <div class="swatches" id="swatches"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="build">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>How it's built</h2>
+        <p>A design imported from Claude, then implemented as real code by orchestrating the Codex CLI.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="n">01 · Design</div><h3>Imported the MD3 design</h3><p>A full desktop-shell Material 3 design of the real Bambu Studio UI — 9 screens, dialogs, tokens.</p></div>
+        <div class="step"><div class="n">02 · Runtime</div><h3>Tiny vanilla runtime</h3><p>A dependency-free engine reimplements the design's template dialect — keyed patching that preserves focus &amp; caret.</p></div>
+        <div class="step"><div class="n">03 · Implement</div><h3>Coded by Codex CLI</h3><p>Screens built in parallel across git worktrees, orchestrated agent-by-agent, then assembled and QA'd.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div class="brand"><span class="logo"><span data-icon>deployed_code</span></span> Bambu Studio · MD3 concept</div>
+      <span class="spacer"></span>
+      <a href="index.html">Launch app</a>
+      <a href="https://github.com/codingmachineedge/BambuStudio/tree/md3-redesign/ui-md3" target="_blank" rel="noopener">Source</a>
+      <a href="https://github.com/bambulab/BambuStudio" target="_blank" rel="noopener">Upstream project</a>
+    </div>
+    <p class="disclaimer">An independent, open-source Material Design 3 <em>concept</em> redesign built on a fork of the
+      open-source Bambu Studio project. Not affiliated with, authorized by, or endorsed by Bambu Lab. “Bambu Studio”,
+      “Bambu Lab”, and related names are trademarks of their respective owners; they are used here only to describe
+      the software being restyled. “Material Design”, “Material You”, and “Roboto” are trademarks of Google LLC.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // App entry differs between local file view (./index.html) and the Pages site (landing at root, app under /app/).
+  var onPages = /github\.io$/i.test(location.hostname);
+  var APP = onPages ? 'app/' : 'index.html';
+  ['launchTop','launchMain','launchYou'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.setAttribute('href', APP);
+  });
+  document.querySelectorAll('footer a[href="index.html"]').forEach(function(a){ a.setAttribute('href', APP); });
+
+  // Theme toggle
+  var root = document.documentElement, icon = document.getElementById('themeIcon');
+  function applyTheme(t){ root.setAttribute('data-theme', t); icon.textContent = t==='dark' ? 'light_mode' : 'dark_mode'; }
+  document.getElementById('themeToggle').addEventListener('click', function(){
+    applyTheme(root.getAttribute('data-theme')==='dark' ? 'light' : 'dark');
+  });
+
+  // Feature grid — the real Bambu Studio tab set
+  var SCREENS = [
+    ['home','Home','Start a project, reopen recents, browse the model library.'],
+    ['view_in_ar','Prepare','The 3D editor — gizmo rail, scene tools, printer &amp; process sidebar.'],
+    ['layers','Preview','G-code viewer with color schemes, legend, layer &amp; move sliders.'],
+    ['cast','Device','Live camera, temperatures, fans, axis control, AMS &amp; calibration.'],
+    ['devices','Multi-device','Monitor every printer at a glance with progress and status.'],
+    ['folder','Project','Project files — pictures, BOM, assembly guides and notes.'],
+    ['tune','Calibration','Flow dynamics, flow rate, max volumetric speed, temp tower &amp; more.'],
+    ['palette','Filament','Manage presets; filter, select and bulk-export filaments.'],
+    ['settings','Settings','Appearance, presets, network, version control and about.']
+  ];
+  var grid = document.getElementById('featureGrid');
+  grid.innerHTML = SCREENS.map(function(s){
+    return '<div class="card"><div class="ico"><span data-icon>'+s[0]+'</span></div>'+
+           '<h3>'+s[1]+'</h3><p>'+s[2]+'</p></div>';
+  }).join('');
+
+  // Material You interactive demo (mirrors the app's accent seed -> tonal ramp)
+  function hexToHsl(hex){
+    var h=(hex||'').replace('#',''); if(h.length===3) h=h.split('').map(function(c){return c+c;}).join('');
+    var r=parseInt(h.slice(0,2),16)/255,g=parseInt(h.slice(2,4),16)/255,b=parseInt(h.slice(4,6),16)/255;
+    var mx=Math.max(r,g,b),mn=Math.min(r,g,b),hu=0,s=0,l=(mx+mn)/2;
+    if(mx!==mn){var d=mx-mn; s=l>.5?d/(2-mx-mn):d/(mx+mn);
+      if(mx===r)hu=(g-b)/d+(g<b?6:0); else if(mx===g)hu=(b-r)/d+2; else hu=(r-g)/d+4; hu/=6;}
+    return {h:Math.round(hu*360),s:Math.round(s*100),l:Math.round(l*100)};
+  }
+  function applyAccent(seed){
+    var c=hexToHsl(seed), h=c.h, s=Math.max(32,Math.min(92,c.s));
+    var dark = root.getAttribute('data-theme')==='dark';
+    function H(l){return 'hsl('+h+' '+s+'% '+l+'%)';}
+    root.style.setProperty('--md-primary', dark?H(76):H(36));
+    root.style.setProperty('--md-on-primary', dark?H(16):'#fff');
+    root.style.setProperty('--md-primary-container', 'hsl('+h+' '+Math.round(s*(dark?.9:.7))+'% '+(dark?28:88)+'%)');
+    root.style.setProperty('--md-on-primary-container', dark?H(90):H(12));
+    root.style.setProperty('--md-secondary-container', 'hsl('+h+' '+Math.round(s*(dark?.35:.45))+'% '+(dark?26:90)+'%)');
+    root.style.setProperty('--md-on-secondary-container', dark?H(88):H(20));
+  }
+  var ACCENTS=['#22c55e','#7c5cff','#14b8a6','#3b82f6','#f97316','#ec4899'];
+  var sw=document.getElementById('swatches');
+  sw.innerHTML=ACCENTS.map(function(c,i){
+    return '<button class="swatch" data-c="'+c+'" aria-pressed="'+(i===0)+'" title="'+c+'" style="background:'+c+'"></button>';
+  }).join('');
+  sw.addEventListener('click', function(e){
+    var b=e.target.closest('.swatch'); if(!b) return;
+    sw.querySelectorAll('.swatch').forEach(function(x){x.setAttribute('aria-pressed', x===b);});
+    applyAccent(b.getAttribute('data-c'));
+  });
+
+  // Segmented controls (theme / density are visual on this page; they demo the app's controls)
+  document.querySelectorAll('.seg').forEach(function(seg){
+    seg.addEventListener('click', function(e){
+      var b=e.target.closest('button'); if(!b) return;
+      seg.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed', x===b);});
+      if(seg.dataset.group==='theme'){ applyTheme(b.dataset.val);
+        var active=sw.querySelector('.swatch[aria-pressed="true"]'); if(active) applyAccent(active.getAttribute('data-c')); }
+    });
+  });
+
+  applyAccent(ACCENTS[0]);
+})();
+</script>
+</body>
+</html>
