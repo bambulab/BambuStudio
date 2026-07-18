@@ -38,6 +38,10 @@ jobs:
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          # Auto-enable Pages (build type = GitHub Actions) using the pages:write token,
+          # so no manual Settings -> Pages toggle is required on first run.
+          enablement: true
 
       - name: Compose site (landing page at root, app under /app)
         run: |
