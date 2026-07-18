@@ -42,3 +42,6 @@ compile_commands.json
 resources/web/device_page/assets/
 resources/web/device_page/index.html
 
+# ──── Desktop Material: Build artifacts ────  (dm-template:build-artifacts)
+build/
+# ──── end Desktop Material: Build artifacts ────  (dm-template:build-artifacts)
