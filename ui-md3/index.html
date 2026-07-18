@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>mini-dc runtime acceptance demo</title>
+  <title>Bambu Studio — Material Design 3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -60,127 +60,247 @@
     </div>
   </template>
 
-  <template data-component="demo">
-    <main data-theme="{{ theme }}" data-density="{{ density }}" style="min-height:100vh; padding:28px; font-family:'Roboto',system-ui,sans-serif; font-size:var(--fs); background:radial-gradient(1000px 520px at 12% -8%,var(--md-primary-container),transparent 58%),var(--md-surface); color:var(--md-on-surface); -webkit-font-smoothing:antialiased; {{ accentOverride }}">
-      <div style="max-width:1180px; margin:0 auto; display:flex; flex-direction:column; gap:18px;">
-        <header style="display:flex; align-items:center; gap:18px; padding:22px 24px; border:1px solid var(--md-outline-variant); border-radius:24px; background:color-mix(in srgb,var(--md-sc) 94%,transparent); box-shadow:0 12px 34px var(--md-shadow);">
-          <div style="width:54px; height:54px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; border-radius:17px; background:var(--md-primary); color:var(--md-on-primary);">
-            <span data-icon style="font-size:30px; font-variation-settings:'FILL' 1;">deployed_code</span>
-          </div>
-          <div style="flex:1; min-width:0;">
-            <div style="font-size:11px; font-weight:700; letter-spacing:.9px; text-transform:uppercase; color:var(--md-primary);">Run 1 · framework proof</div>
-            <h1 style="margin:3px 0 2px; font-size:24px; line-height:1.2;">mini-dc runtime acceptance demo</h1>
-            <div style="font-size:13px; color:var(--md-on-surface-variant);">Every card below is live; no React, dependencies, build step, or local fetch.</div>
-          </div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-            <span style="padding:7px 11px; border-radius:12px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-family:'Roboto Mono',monospace; font-size:11.5px;">render {{ renderPasses }}</span>
-            <span style="padding:7px 11px; border-radius:12px; background:var(--md-sc-highest); color:var(--md-on-surface-variant); font-family:'Roboto Mono',monospace; font-size:11.5px;">state {{ parentTicks }}</span>
-          </div>
-        </header>
+  <template data-shell>
+<div data-theme="{{ theme }}" data-density="{{ density }}" style="position:absolute; inset:0; display:flex; flex-direction:column; font-family:'Roboto',system-ui,sans-serif; font-size:var(--fs); background:var(--md-surface); color:var(--md-on-surface); overflow:hidden; -webkit-font-smoothing:antialiased; {{ accentOverride }}">
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:16px; align-items:start;">
-          <section data-test="interpolation" title="proof-render-{{ renderPasses }}-missing-{{ missingKey }}" data-proof="render-{{ renderPasses }}-missing-{{ missingKey }}" style="padding:20px; min-height:254px; border:1px solid var(--md-outline-variant); border-radius:20px; background:var(--md-sc-low); display:flex; flex-direction:column; gap:12px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <span style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-weight:700;">1</span>
-              <div><div style="font-size:15px; font-weight:700;">Interpolation</div><div style="font-size:11.5px; color:var(--md-on-surface-variant);">text, mid-attribute, dotted-safe missing values</div></div>
-            </div>
-            <div style="padding:11px 12px; border-radius:12px; background:var(--md-sc-highest); font-family:'Roboto Mono',monospace; font-size:12px;">
-              {{ greeting }} · pass {{ renderPasses }}
-            </div>
-            <div data-test="missing" data-function-empty="{{ forceParent }}" style="font-size:13px;">Missing key: <strong>[{{ missingKey }}]</strong> · function outside an event: <strong>[{{ forceParent }}]</strong></div>
-            <div>
-              <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:11.5px; color:var(--md-on-surface-variant);"><span>mid-style width</span><span>{{ meter }}%</span></div>
-              <div style="height:8px; overflow:hidden; border-radius:5px; background:var(--md-sc-highest);"><div data-test="meter" style="height:100%; width:{{ meter }}%; background:var(--md-primary); border-radius:5px; transition:width .18s ease;"></div></div>
-            </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-              <sc-if value="{{ true }}" hint-placeholder-val="{{ true }}"><span style="padding:5px 9px; border-radius:10px; background:var(--md-primary-container); color:var(--md-on-primary-container); font-size:11.5px;">✓ literal {{ true }} branch</span></sc-if>
-              <sc-if value="{{ false }}"><span style="color:var(--md-error);">FAIL: false branch rendered</span></sc-if>
-              <button data-test="force-parent" onClick="{{ forceParent }}" style="height:32px; padding:0 12px; border:1px solid var(--md-outline); border-radius:16px; background:transparent; color:var(--md-on-surface); cursor:pointer; font-size:11.5px;">Force parent render</button>
-            </div>
-          </section>
+  <!-- ===== TITLE BAR ===== -->
+  <div style="height:46px; flex:0 0 auto; display:flex; align-items:center; gap:6px; padding:0 6px 0 12px; background:var(--md-sc-low); border-bottom:1px solid var(--md-outline-variant);">
+    <div style="width:26px; height:26px; border-radius:8px; background:var(--md-primary); color:var(--md-on-primary); display:flex; align-items:center; justify-content:center; box-shadow:0 1px 2px var(--md-shadow);">
+      <span data-icon style="font-size:18px; font-variation-settings:'FILL' 1;">deployed_code</span>
+    </div>
+    <div style="font-weight:500; font-size:14px; margin-right:10px; letter-spacing:.1px;">Bambu Studio</div>
+    <sc-for list="{{ menus }}" as="m" hint-placeholder-count="5">
+      <button onClick="{{ m.onClick }}" style="height:30px; padding:0 10px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:8px; font-size:13px; cursor:pointer;" style-hover="background:var(--md-sc-high);">{{ m.label }}</button>
+    </sc-for>
+    <div style="flex:1; -webkit-app-region:drag; height:100%;"></div>
+    <button onClick="{{ toggleHistory }}" title="Version history — every edit is auto-saved to this project's Git repo" style="display:flex; align-items:center; gap:7px; height:30px; padding:0 12px; margin-right:6px; border:none; border-radius:16px; background:var(--md-sc); color:var(--md-on-surface-variant); cursor:pointer; font-size:12px;" style-hover="background:var(--md-sc-high);">
+      <span data-icon style="font-size:16px; color:var(--md-primary);">account_tree</span>
+      <span style="font-family:'Roboto Mono',monospace;">{{ branch }}</span>
+      <span style="width:5px; height:5px; border-radius:50%; background:var(--md-primary); animation:pulse 2s infinite;"></span>
+      <span style="font-family:'Roboto Mono',monospace;">#{{ historyHead }}</span>
+    </button>
+    <div style="display:flex; align-items:center; gap:2px; margin-right:6px; padding:0 6px; height:30px; border-radius:20px; background:var(--md-sc); color:var(--md-on-surface-variant); font-size:12.5px;">
+      <span data-icon style="font-size:16px;">description</span>
+      <span style="max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ projectName }}</span>
+    </div>
+    <button onClick="{{ toggleControls }}" title="Appearance" style="width:34px; height:34px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;" style-hover="background:var(--md-sc-high);">
+      <span data-icon style="font-size:20px;">palette</span>
+    </button>
+    <div style="width:1px; height:22px; background:var(--md-outline-variant); margin:0 4px;"></div>
+    <button style="width:38px; height:32px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:8px; cursor:pointer;" style-hover="background:var(--md-sc-high);"><span data-icon style="font-size:18px;">remove</span></button>
+    <button style="width:38px; height:32px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:8px; cursor:pointer;" style-hover="background:var(--md-sc-high);"><span data-icon style="font-size:15px;">crop_square</span></button>
+    <button style="width:38px; height:32px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:8px; cursor:pointer;" style-hover="background:var(--md-error); color:var(--md-on-error);"><span data-icon style="font-size:18px;">close</span></button>
+  </div>
 
-          <section data-test="search-proof" style="padding:20px; min-height:254px; border:1px solid var(--md-outline-variant); border-radius:20px; background:var(--md-sc-low); display:flex; flex-direction:column; gap:12px; position:relative; z-index:5;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <span style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-weight:700;">3–4</span>
-              <div><div style="font-size:15px; font-weight:700;">Imported SearchField + caret</div><div style="font-size:11.5px; color:var(--md-on-surface-variant);">child state survives a parent patch per keystroke</div></div>
-            </div>
-            <dc-import name="SearchField" placeholder="Type here — parent re-renders every key" on-query="{{ onQuery }}" hint-size="100%,40px"></dc-import>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-              <div style="padding:9px 10px; border-radius:10px; background:var(--md-sc-highest); font-size:11.5px;"><span style="color:var(--md-on-surface-variant);">query events</span><div data-test="query-events" style="font-family:'Roboto Mono',monospace; font-size:15px; margin-top:2px;">{{ queryEvents }}</div></div>
-              <div style="padding:9px 10px; border-radius:10px; background:var(--md-sc-highest); font-size:11.5px; min-width:0;"><span style="color:var(--md-on-surface-variant);">child query</span><div data-test="query-value" style="font-family:'Roboto Mono',monospace; font-size:13px; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ query }}</div></div>
-            </div>
-            <div style="font-size:12px; line-height:1.45; color:var(--md-on-surface-variant);">Type a word, click in its middle, then type again. The counter advances, focus stays put, and the new character remains at that caret.</div>
-          </section>
+  <!-- ===== TAB BAR ===== -->
+  <div style="height:52px; flex:0 0 auto; display:flex; align-items:stretch; padding:0 8px; gap:2px; background:var(--md-surface); border-bottom:1px solid var(--md-outline-variant); overflow-x:auto;">
+    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="9">
+      <button onClick="{{ t.onClick }}" style="position:relative; display:flex; align-items:center; gap:8px; padding:0 16px; border:none; background:transparent; color:{{ t.fg }}; font-size:13.5px; font-weight:{{ t.weight }}; cursor:pointer; white-space:nowrap;" style-hover="background:var(--md-sc-low);">
+        <span data-icon style="font-size:20px; font-variation-settings:'FILL' {{ t.fill }};">{{ t.icon }}</span>
+        <span>{{ t.label }}</span>
+        <div style="position:absolute; left:12px; right:12px; bottom:0; height:3px; border-radius:3px 3px 0 0; background:{{ t.indicator }};"></div>
+      </button>
+    </sc-for>
+  </div>
 
-          <section data-test="nested-groups" style="padding:20px; min-height:282px; border:1px solid var(--md-outline-variant); border-radius:20px; background:var(--md-sc-low); display:flex; flex-direction:column; gap:12px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <span style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-weight:700;">2</span>
-              <div style="flex:1;"><div style="font-size:15px; font-weight:700;">Nested keyed loops + conditional rows</div><div style="font-size:11.5px; color:var(--md-on-surface-variant);">both loops update without shifting identities</div></div>
-            </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-              <sc-for list="{{ groups }}" as="group" hint-placeholder-count="2">
-                <div title="Group {{ group.name }}" style="padding:10px; border:1px solid var(--md-outline-variant); border-radius:12px; background:var(--md-sc-highest); display:flex; flex-direction:column; gap:6px;">
-                  <div style="font-size:12px; font-weight:700; color:var(--md-primary);">{{ group.name }}</div>
-                  <sc-for list="{{ group.items }}" as="item" hint-placeholder-count="2">
-                    <div style="min-height:30px; padding:6px 7px; display:flex; align-items:center; gap:6px; border-radius:8px; background:var(--md-sc-lowest); font-size:11.5px;">
-                      <span style="flex:1;">{{ group.name }} / {{ item.label }}</span>
-                      <sc-if value="{{ item.show }}"><span style="width:8px; height:8px; border-radius:50%; background:var(--md-primary);" title="sc-if is true"></span></sc-if>
-                    </div>
-                  </sc-for>
-                </div>
-              </sc-for>
-            </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button data-test="reverse-loops" onClick="{{ reverseNested }}" style="height:34px; padding:0 13px; border:none; border-radius:17px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); cursor:pointer; font-size:11.5px; font-weight:600;">Reverse both loops</button>
-              <button data-test="toggle-ifs" onClick="{{ toggleConditional }}" style="height:34px; padding:0 13px; border:1px solid var(--md-outline); border-radius:17px; background:transparent; color:var(--md-on-surface); cursor:pointer; font-size:11.5px;">Toggle sc-if dots</button>
-            </div>
-          </section>
+  <!-- ===== BODY ===== -->
+  <div style="flex:1 1 auto; position:relative; overflow:hidden; background:var(--md-surface-dim);">
+    <!--SCREEN:home-->
+    <!--SCREEN:prepare-->
+    <!--SCREEN:preview-->
+    <!--SCREEN:device-->
+    <!--SCREEN:multi-->
+    <!--SCREEN:project-->
+    <!--SCREEN:calibration-->
+    <!--SCREEN:filament-->
+    <!--SCREEN:settings-->
 
-          <section data-test="event-proof" style="padding:20px; min-height:282px; border:1px solid var(--md-outline-variant); border-radius:20px; background:var(--md-sc-low); display:flex; flex-direction:column; gap:12px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <span style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-weight:700;">6</span>
-              <div><div style="font-size:15px; font-weight:700;">DOM events + listener replacement</div><div style="font-size:11.5px; color:var(--md-on-surface-variant);">fresh closures, one installed listener</div></div>
-            </div>
-            <input data-test="probe-input" value="{{ nativeText }}" onInput="{{ probeInput }}" placeholder="Native onInput probe" style="height:38px; width:100%; padding:0 12px; border:1px solid var(--md-outline); border-radius:12px; outline:none; background:var(--md-sc-highest); color:var(--md-on-surface); font:12.5px 'Roboto Mono',monospace;">
-            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
-              <div style="padding:8px; border-radius:10px; background:var(--md-sc-highest); font-size:10.5px; color:var(--md-on-surface-variant);">click calls<div data-test="click-calls" style="font:600 16px 'Roboto Mono',monospace; color:var(--md-on-surface);">{{ clickCalls }}</div></div>
-              <div style="padding:8px; border-radius:10px; background:var(--md-sc-highest); font-size:10.5px; color:var(--md-on-surface-variant);">input calls<div data-test="input-calls" style="font:600 16px 'Roboto Mono',monospace; color:var(--md-on-surface);">{{ inputCalls }}</div></div>
-              <div style="padding:8px; border-radius:10px; background:var(--md-sc-highest); font-size:10.5px; color:var(--md-on-surface-variant);">stress patches<div data-test="stress-steps" style="font:600 16px 'Roboto Mono',monospace; color:var(--md-on-surface);">{{ stressSteps }}</div></div>
-            </div>
-            <div style="display:flex; gap:7px; flex-wrap:wrap;">
-              <button data-test="probe-click" onClick="{{ probeClick }}" style="height:34px; padding:0 13px; border:none; border-radius:17px; background:var(--md-primary); color:var(--md-on-primary); cursor:pointer; font-size:11.5px; font-weight:600;">Click: add exactly 1</button>
-              <button data-test="stress" onClick="{{ stressRenders }}" style="height:34px; padding:0 13px; border:1px solid var(--md-outline); border-radius:17px; background:transparent; color:var(--md-on-surface); cursor:pointer; font-size:11.5px;">{{ stressLabel }}</button>
-              <button data-test="batch" onClick="{{ batchUpdates }}" style="height:34px; padding:0 13px; border:1px solid var(--md-outline); border-radius:17px; background:transparent; color:var(--md-on-surface); cursor:pointer; font-size:11.5px;">Batch +5 (now {{ batchValue }})</button>
-            </div>
-            <div style="font-size:11.5px; color:var(--md-on-surface-variant);">After stress reaches 30, one probe click must add exactly one. Last DOM event: <span style="font-family:'Roboto Mono',monospace; color:var(--md-primary);">{{ lastEventType }}</span></div>
-          </section>
+  </div>
 
-          <section style="grid-column:1 / -1; padding:20px; border:1px solid var(--md-outline-variant); border-radius:20px; background:var(--md-sc-low); display:flex; align-items:center; gap:18px; flex-wrap:wrap;">
-            <div style="display:flex; align-items:center; gap:10px; min-width:280px; flex:1;">
-              <span style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-weight:700;">5</span>
-              <div><div style="font-size:15px; font-weight:700;">style-hover state layer</div><div style="font-size:11.5px; color:var(--md-on-surface-variant);">click while hovered: the layer survives that render until mouseleave</div></div>
-            </div>
-            <button data-test="hover" onClick="{{ hoverClick }}" style="height:48px; min-width:280px; padding:0 20px; border:1px solid var(--md-outline); border-radius:16px; background:var(--md-sc-highest); color:var(--md-on-surface); cursor:pointer; font-size:13px; font-weight:600; transition:transform .15s ease,box-shadow .15s ease,background .15s ease;" style-hover="background:var(--md-primary); color:var(--md-on-primary); border-color:var(--md-primary); transform:translateY(-3px); box-shadow:0 9px 22px var(--md-shadow);">
-              Hover, then click me · renders {{ hoverClicks }}
-            </button>
-          </section>
+  <!-- ===== APPEARANCE POPOVER ===== -->
+  <sc-if value="{{ showControls }}">
+  <div onClick="{{ toggleControls }}" style="position:absolute; inset:0; z-index:40;">
+    <div onClick="{{ stop }}" style="position:absolute; top:52px; right:12px; width:300px; background:var(--md-sc); border:1px solid var(--md-outline-variant); border-radius:24px; box-shadow:0 8px 28px var(--md-shadow); padding:18px; display:flex; flex-direction:column; gap:16px; animation:mdfade .18s ease;">
+      <div style="font-size:15px; font-weight:600; display:flex; align-items:center; gap:8px;"><span data-icon style="font-size:20px;">palette</span> Appearance</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; color:var(--md-on-surface-variant);">Theme</div>
+        <div style="display:flex; gap:6px; padding:4px; background:var(--md-sc-highest); border-radius:14px;">
+          <button onClick="{{ setLight }}" style="flex:1; height:36px; display:flex; align-items:center; justify-content:center; gap:6px; border:none; border-radius:11px; cursor:pointer; font-size:12.5px; font-weight:500; background:{{ lightBg }}; color:{{ lightFg }};"><span data-icon style="font-size:18px;">light_mode</span> Light</button>
+          <button onClick="{{ setDark }}" style="flex:1; height:36px; display:flex; align-items:center; justify-content:center; gap:6px; border:none; border-radius:11px; cursor:pointer; font-size:12.5px; font-weight:500; background:{{ darkBg }}; color:{{ darkFg }};"><span data-icon style="font-size:18px;">dark_mode</span> Dark</button>
         </div>
       </div>
-    </main>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; color:var(--md-on-surface-variant);">Density</div>
+        <div style="display:flex; gap:6px; padding:4px; background:var(--md-sc-highest); border-radius:14px;">
+          <button onClick="{{ setComfortable }}" style="flex:1; height:36px; border:none; border-radius:11px; cursor:pointer; font-size:12.5px; font-weight:500; background:{{ comfBg }}; color:{{ comfFg }};">Comfortable</button>
+          <button onClick="{{ setCompact }}" style="flex:1; height:36px; border:none; border-radius:11px; cursor:pointer; font-size:12.5px; font-weight:500; background:{{ compBg }}; color:{{ compFg }};">Compact</button>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font-size:12px; color:var(--md-on-surface-variant);">Accent color</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <sc-for list="{{ accentSwatches }}" as="a" hint-placeholder-count="6">
+            <button onClick="{{ a.onClick }}" title="{{ a.name }}" style="width:34px; height:34px; border-radius:50%; cursor:pointer; background:{{ a.color }}; border:{{ a.border }}; display:flex; align-items:center; justify-content:center; color:#fff;"><span data-icon style="font-size:18px; opacity:{{ a.check }};">check</span></button>
+          </sc-for>
+          <label style="width:34px; height:34px; border-radius:50%; cursor:pointer; border:2px dashed var(--md-outline); display:flex; align-items:center; justify-content:center; color:var(--md-on-surface-variant); position:relative; overflow:hidden;">
+            <span data-icon style="font-size:18px;">colorize</span>
+            <input type="color" onInput="{{ onPickAccent }}" style="position:absolute; inset:-4px; opacity:0; cursor:pointer;">
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <div style="position:absolute; left:50%; bottom:22px; transform:translateX(-50%); z-index:90; display:flex; flex-direction:column-reverse; gap:10px; pointer-events:none; width:min(560px,92vw);">
+    <sc-for list="{{ snacks }}" as="n" hint-placeholder-count="0">
+      <div style="pointer-events:auto; display:flex; align-items:center; gap:12px; padding:12px 10px 12px 16px; background:var(--md-inverse-surface); color:var(--md-inverse-on); border-radius:12px; box-shadow:0 8px 24px var(--md-shadow); animation:mdfade .2s ease;">
+        <span data-icon style="font-size:20px; color:var(--md-inverse-primary);">{{ n.icon }}</span>
+        <span style="flex:1; font-size:13px;">{{ n.message }}</span>
+        <sc-if value="{{ n.hasAction }}"><button onClick="{{ n.action }}" style="border:none; background:transparent; color:var(--md-inverse-primary); font-weight:600; font-size:13px; cursor:pointer; padding:6px 10px; border-radius:8px;">{{ n.actionLabel }}</button></sc-if>
+        <button onClick="{{ n.dismiss }}" style="width:28px; height:28px; border:none; background:transparent; color:var(--md-inverse-on); border-radius:50%; cursor:pointer; opacity:.7;"><span data-icon style="font-size:16px;">close</span></button>
+      </div>
+    </sc-for>
+  </div>
+  <sc-if value="{{ showHistory }}">
+  <div onClick="{{ toggleHistory }}" style="position:absolute; inset:0; z-index:55; background:var(--md-scrim); animation:scrimin .2s;">
+    <div onClick="{{ stop }}" style="position:absolute; top:0; right:0; bottom:0; width:410px; max-width:92vw; background:var(--md-sc); border-left:1px solid var(--md-outline-variant); box-shadow:-8px 0 30px var(--md-shadow); display:flex; flex-direction:column; animation:mdfade .22s ease;">
+      <div style="padding:18px 18px 14px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--md-outline-variant);">
+        <span data-icon style="font-size:22px; color:var(--md-primary);">account_tree</span>
+        <div style="flex:1;"><div style="font-size:15px; font-weight:600;">Version history</div><div style="font-size:11.5px; color:var(--md-on-surface-variant); font-family:'Roboto Mono',monospace;">{{ branch }} · {{ historyCount }} commits</div></div>
+        <button onClick="{{ toggleHistory }}" style="width:36px; height:36px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:50%; cursor:pointer;" style-hover="background:var(--md-sc-high);"><span data-icon style="font-size:20px;">close</span></button>
+      </div>
+      <div style="padding:12px 18px; display:flex; align-items:center; gap:8px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-size:12px;"><span data-icon style="font-size:18px;">bolt</span> Auto-commit is on — every edit is saved automatically.</div>
+      <div style="padding:12px 18px 4px;"><dc-import name="SearchField" placeholder="Search commits" hint-size="100%,40px"></dc-import></div>
+      <div style="flex:1; overflow-y:auto; padding:8px 0;">
+        <sc-for list="{{ history }}" as="h" hint-placeholder-count="6">
+          <div>
+            <button onClick="{{ h.onSelect }}" style="width:100%; text-align:left; display:flex; gap:12px; padding:10px 18px; border:none; background:transparent; cursor:pointer;" style-hover="background:var(--md-sc-low);">
+              <div style="display:flex; flex-direction:column; align-items:center; flex:0 0 auto;"><div style="width:30px; height:30px; border-radius:50%; background:{{ h.dotBg }}; color:{{ h.dotFg }}; display:flex; align-items:center; justify-content:center;"><span data-icon style="font-size:17px;">{{ h.icon }}</span></div><div style="width:2px; flex:1; background:var(--md-outline-variant); margin-top:2px; min-height:8px;"></div></div>
+              <div style="flex:1; min-width:0; padding-bottom:6px;">
+                <div style="font-size:13px; font-weight:500; color:var(--md-on-surface);">{{ h.message }}</div>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:3px;"><span style="font-size:11px; font-family:'Roboto Mono',monospace; color:var(--md-primary);">#{{ h.hash }}</span><span style="font-size:11px; color:var(--md-on-surface-variant);">{{ h.time }}</span></div>
+              </div>
+              <span data-icon style="font-size:20px; color:var(--md-on-surface-variant); flex:0 0 auto;">{{ h.chevron }}</span>
+            </button>
+            <sc-if value="{{ h.expanded }}">
+              <div style="margin:0 18px 12px 48px; background:var(--md-sc-low); border:1px solid var(--md-outline-variant); border-radius:14px; overflow:hidden; animation:mdfade .16s ease;">
+                <div style="height:118px; background:radial-gradient(120% 100% at 50% 0%, var(--md-surface-bright), var(--md-surface-dim)); position:relative; display:flex; align-items:center; justify-content:center; border-bottom:1px solid var(--md-outline-variant);">
+                  <div style="position:relative; width:92px; height:100px; filter:drop-shadow(0 8px 8px rgba(0,0,0,.3));">
+                    <div style="position:absolute; inset:0; background:color-mix(in srgb, var(--md-primary) 84%, #fff); clip-path:polygon(50% 2%, 98% 27%, 50% 52%, 2% 27%);"></div>
+                    <div style="position:absolute; inset:0; background:color-mix(in srgb, var(--md-primary) 60%, #000 8%); clip-path:polygon(2% 27%, 50% 52%, 50% 98%, 2% 73%);"></div>
+                    <div style="position:absolute; inset:0; background:color-mix(in srgb, var(--md-primary) 42%, #000 22%); clip-path:polygon(98% 27%, 98% 73%, 50% 98%, 50% 52%);"></div>
+                  </div>
+                  <div style="position:absolute; left:10px; top:10px; font-size:10px; font-family:'Roboto Mono',monospace; color:var(--md-on-surface-variant); background:var(--md-sc); padding:2px 7px; border-radius:8px;">Plate 1 · snapshot</div>
+                </div>
+                <div style="padding:12px 14px; display:flex; flex-direction:column; gap:10px;">
+                  <div style="display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--md-on-surface-variant);">
+                    <div style="display:flex; align-items:center; gap:6px;"><span data-icon style="font-size:14px;">person</span> {{ h.author }} · {{ h.time }}</div>
+                    <div style="display:flex; align-items:center; gap:6px;"><span data-icon style="font-size:14px;">tag</span> <span style="font-family:'Roboto Mono',monospace;">{{ h.full }}</span></div>
+                    <div style="display:flex; align-items:center; gap:6px;"><span data-icon style="font-size:14px;">description</span> {{ h.files }}</div>
+                  </div>
+                  <div style="height:1px; background:var(--md-outline-variant);"></div>
+                  <div style="font-size:10.5px; font-weight:600; letter-spacing:.4px; text-transform:uppercase; color:var(--md-on-surface-variant);">Changes in this commit</div>
+                  <sc-for list="{{ h.diff }}" as="d" hint-placeholder-count="2">
+                    <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
+                      <span style="flex:1; min-width:0; color:var(--md-on-surface); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ d.label }}</span>
+                      <span style="font-family:'Roboto Mono',monospace; color:var(--md-error); text-decoration:line-through; opacity:.75;">{{ d.from }}</span>
+                      <span data-icon style="font-size:15px; color:var(--md-on-surface-variant);">arrow_forward</span>
+                      <span style="font-family:'Roboto Mono',monospace; color:var(--md-primary);">{{ d.to }}</span>
+                    </div>
+                  </sc-for>
+                  <button onClick="{{ h.restore }}" style="height:36px; margin-top:2px; border:none; border-radius:18px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;"><span data-icon style="font-size:16px;">restore</span> Restore this version</button>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding:14px 18px; border-top:1px solid var(--md-outline-variant); font-size:11.5px; color:var(--md-on-surface-variant); display:flex; align-items:center; gap:8px;"><span data-icon style="font-size:16px;">save</span> This repository is bundled into the .3mf when you save.</div>
+    </div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ isDlgExport }}">
+  <div onClick="{{ closeDialog }}" style="position:absolute; inset:0; z-index:60; background:var(--md-scrim); display:flex; align-items:center; justify-content:center; animation:scrimin .2s;">
+    <div onClick="{{ stop }}" style="width:580px; max-width:94vw; max-height:88vh; background:var(--md-sc); border-radius:28px; box-shadow:0 16px 44px var(--md-shadow); display:flex; flex-direction:column; overflow:hidden; animation:mdfade .2s;">
+      <div style="padding:22px 24px 14px; display:flex; align-items:center; gap:12px;">
+        <div style="width:44px; height:44px; border-radius:14px; background:var(--md-primary-container); color:var(--md-on-primary-container); display:flex; align-items:center; justify-content:center;"><span data-icon style="font-size:24px;">file_download</span></div>
+        <div style="flex:1;"><div style="font-size:18px; font-weight:600;">Export filaments</div><div style="font-size:12.5px; color:var(--md-on-surface-variant);">Filter, select and bulk-export presets</div></div>
+        <button onClick="{{ closeDialog }}" style="width:36px; height:36px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:50%; cursor:pointer;" style-hover="background:var(--md-sc-high);"><span data-icon style="font-size:20px;">close</span></button>
+      </div>
+      <div style="padding:0 24px 14px; display:flex; flex-direction:column; gap:12px;">
+        <dc-import name="SearchField" placeholder="Name containing… (supports regex)" on-query="{{ setExQuery }}" hint-size="100%,40px"></dc-import>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><span style="font-size:11px; font-weight:600; letter-spacing:.4px; text-transform:uppercase; color:var(--md-on-surface-variant); width:56px;">Type</span><sc-for list="{{ exTypeChips }}" as="c" hint-placeholder-count="5"><button onClick="{{ c.onClick }}" style="height:30px; padding:0 13px; border-radius:15px; cursor:pointer; font-size:12px; font-weight:500; background:{{ c.bg }}; color:{{ c.fg }}; border:{{ c.border }};">{{ c.label }}</button></sc-for></div>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><span style="font-size:11px; font-weight:600; letter-spacing:.4px; text-transform:uppercase; color:var(--md-on-surface-variant); width:56px;">Vendor</span><sc-for list="{{ exVendorChips }}" as="c" hint-placeholder-count="4"><button onClick="{{ c.onClick }}" style="height:30px; padding:0 13px; border-radius:15px; cursor:pointer; font-size:12px; font-weight:500; background:{{ c.bg }}; color:{{ c.fg }}; border:{{ c.border }};">{{ c.label }}</button></sc-for></div>
+      </div>
+      <div style="padding:8px 24px; display:flex; align-items:center; gap:10px; border-top:1px solid var(--md-outline-variant); background:var(--md-sc-low);">
+        <button onClick="{{ toggleSelectAllExport }}" style="display:flex; align-items:center; gap:8px; border:none; background:transparent; color:var(--md-on-surface); cursor:pointer; font-size:12.5px; font-weight:500; padding:6px 8px; border-radius:8px;"><span data-icon style="font-size:20px; color:var(--md-primary);">{{ exAllIcon }}</span> Select all</button>
+        <div style="flex:1;"></div>
+        <span style="font-size:12px; color:var(--md-on-surface-variant); font-family:'Roboto Mono',monospace;">{{ exSelCount }} of {{ exTotal }} selected</span>
+      </div>
+      <div style="flex:1; overflow-y:auto; padding:6px 12px; min-height:120px;">
+        <sc-for list="{{ exRows }}" as="r" hint-placeholder-count="6">
+          <button onClick="{{ r.onToggle }}" style="width:100%; text-align:left; display:flex; align-items:center; gap:12px; padding:9px 12px; border:none; border-radius:12px; cursor:pointer; background:{{ r.rowBg }};" style-hover="background:var(--md-sc-high);">
+            <span data-icon style="font-size:22px; color:{{ r.checkColor }};">{{ r.checkIcon }}</span>
+            <span style="width:22px; height:22px; border-radius:6px; background:{{ r.color }}; border:1px solid rgba(0,0,0,.25); flex:0 0 auto;"></span>
+            <span style="flex:1; min-width:0; font-size:13.5px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ r.name }}</span>
+            <span style="font-size:11.5px; color:var(--md-on-surface-variant); width:80px;">{{ r.vendor }}</span>
+            <span style="font-size:11px; font-weight:600; padding:2px 8px; border-radius:7px; background:var(--md-secondary-container); color:var(--md-on-secondary-container);">{{ r.type }}</span>
+            <span style="font-family:'Roboto Mono',monospace; font-size:11.5px; color:var(--md-on-surface-variant); width:78px; text-align:right;">{{ r.nozzle }}/{{ r.bed }}°</span>
+          </button>
+        </sc-for>
+        <sc-if value="{{ exEmpty }}"><div style="padding:36px 12px; text-align:center; color:var(--md-on-surface-variant); font-size:13px;">No filaments match your filter.</div></sc-if>
+      </div>
+      <div style="padding:14px 24px; border-top:1px solid var(--md-outline-variant); display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <span style="font-size:11px; font-weight:600; letter-spacing:.4px; text-transform:uppercase; color:var(--md-on-surface-variant);">Format</span>
+        <sc-for list="{{ exFormatChips }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.onClick }}" style="height:30px; padding:0 13px; border-radius:15px; cursor:pointer; font-size:12px; font-weight:500; font-family:'Roboto Mono',monospace; background:{{ c.bg }}; color:{{ c.fg }}; border:{{ c.border }};">{{ c.label }}</button></sc-for>
+        <div style="flex:1;"></div>
+        <button onClick="{{ closeDialog }}" style="height:42px; padding:0 18px; border:none; background:transparent; color:var(--md-primary); border-radius:21px; cursor:pointer; font-size:13.5px; font-weight:600;">Cancel</button>
+        <button onClick="{{ doExport }}" style="display:flex; align-items:center; gap:8px; height:42px; padding:0 22px; border:none; border-radius:21px; background:var(--md-primary); color:var(--md-on-primary); cursor:pointer; font-size:13.5px; font-weight:600;"><span data-icon style="font-size:20px;">file_download</span> Export {{ exSelCount }}</button>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+  <sc-if value="{{ isDlgSend }}">
+  <div onClick="{{ closeDialog }}" style="position:absolute; inset:0; z-index:60; background:var(--md-scrim); display:flex; align-items:center; justify-content:center; animation:scrimin .2s;">
+    <div onClick="{{ stop }}" style="width:460px; max-width:92vw; background:var(--md-sc); border-radius:28px; box-shadow:0 16px 44px var(--md-shadow); padding:24px; display:flex; flex-direction:column; gap:16px; animation:mdfade .2s;">
+      <div style="display:flex; align-items:center; gap:12px;"><div style="width:44px; height:44px; border-radius:14px; background:var(--md-primary-container); color:var(--md-on-primary-container); display:flex; align-items:center; justify-content:center;"><span data-icon style="font-size:24px;">print</span></div><div style="flex:1;"><div style="font-size:18px; font-weight:600;">Print Plate 1</div><div style="font-size:12.5px; color:var(--md-on-surface-variant);">Send to printer over the network</div></div><button onClick="{{ closeDialog }}" style="width:36px; height:36px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:50%; cursor:pointer;"><span data-icon style="font-size:20px;">close</span></button></div>
+      <div style="display:flex; align-items:center; gap:12px; padding:12px; background:var(--md-sc-highest); border-radius:16px;"><div style="width:40px; height:40px; border-radius:10px; background:var(--md-sc-lowest); color:var(--md-on-surface-variant); display:flex; align-items:center; justify-content:center;"><span data-icon style="font-size:24px;">print</span></div><div style="flex:1;"><div style="font-size:13.5px; font-weight:600;">Bambu Lab X1 Carbon</div><div style="font-size:11.5px; color:var(--md-primary);">● Connected · Idle</div></div><span data-icon style="font-size:20px; color:var(--md-on-surface-variant);">expand_more</span></div>
+      <div style="display:flex; flex-direction:column; gap:8px;"><div style="font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; color:var(--md-on-surface-variant);">AMS mapping</div><div style="display:flex; gap:8px;"><sc-for list="{{ filaments }}" as="f" hint-placeholder-count="4"><div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 4px; background:var(--md-sc-highest); border-radius:10px;"><div style="width:24px; height:24px; border-radius:6px; background:{{ f.color }}; border:1px solid rgba(0,0,0,.25);"></div><span style="font-size:9.5px; color:var(--md-on-surface-variant);">{{ f.type }}</span></div></sc-for></div></div>
+      <div style="display:flex; flex-direction:column;">
+        <div style="display:flex; align-items:center; gap:10px; height:40px;"><span data-icon style="font-size:20px; color:var(--md-on-surface-variant);">videocam</span><span style="flex:1; font-size:13px;">Timelapse</span><span style="width:40px; height:22px; border-radius:12px; background:var(--md-primary); position:relative;"><span style="position:absolute; top:3px; right:3px; width:16px; height:16px; border-radius:50%; background:var(--md-on-primary);"></span></span></div>
+        <div style="display:flex; align-items:center; gap:10px; height:40px;"><span data-icon style="font-size:20px; color:var(--md-on-surface-variant);">grid_on</span><span style="flex:1; font-size:13px;">Bed leveling</span><span style="width:40px; height:22px; border-radius:12px; background:var(--md-primary); position:relative;"><span style="position:absolute; top:3px; right:3px; width:16px; height:16px; border-radius:50%; background:var(--md-on-primary);"></span></span></div>
+        <div style="display:flex; align-items:center; gap:10px; height:40px;"><span data-icon style="font-size:20px; color:var(--md-on-surface-variant);">tune</span><span style="flex:1; font-size:13px;">Flow dynamics calibration</span><span style="width:40px; height:22px; border-radius:12px; background:var(--md-outline-variant); position:relative;"><span style="position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:var(--md-outline);"></span></span></div>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:2px;"><button onClick="{{ closeDialog }}" style="flex:0 0 auto; height:44px; padding:0 20px; border:none; background:transparent; color:var(--md-primary); border-radius:22px; cursor:pointer; font-size:14px; font-weight:600;">Cancel</button><button onClick="{{ sendPrint }}" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; height:44px; border:none; border-radius:22px; background:var(--md-primary); color:var(--md-on-primary); cursor:pointer; font-size:14px; font-weight:600;"><span data-icon style="font-size:20px;">send</span> Send print</button></div>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isDlgAddfil }}">
+  <div onClick="{{ closeDialog }}" style="position:absolute; inset:0; z-index:60; background:var(--md-scrim); display:flex; align-items:center; justify-content:center; animation:scrimin .2s;">
+    <div onClick="{{ stop }}" style="width:520px; max-width:92vw; max-height:86vh; background:var(--md-sc); border-radius:28px; box-shadow:0 16px 44px var(--md-shadow); display:flex; flex-direction:column; overflow:hidden; animation:mdfade .2s;">
+      <div style="padding:22px 24px 12px; display:flex; align-items:center; gap:12px;"><div style="width:44px; height:44px; border-radius:14px; background:var(--md-primary-container); color:var(--md-on-primary-container); display:flex; align-items:center; justify-content:center;"><span data-icon style="font-size:24px;">palette</span></div><div style="flex:1;"><div style="font-size:18px; font-weight:600;">Add filament</div><div style="font-size:12.5px; color:var(--md-on-surface-variant);">Pick a preset to add to this project</div></div><button onClick="{{ closeDialog }}" style="width:36px; height:36px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:50%; cursor:pointer;"><span data-icon style="font-size:20px;">close</span></button></div>
+      <div style="padding:0 24px 12px;"><dc-import name="SearchField" placeholder="Search filament presets" hint-size="100%,40px"></dc-import></div>
+      <div style="flex:1; overflow-y:auto; padding:4px 16px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <sc-for list="{{ filamentRows }}" as="f" hint-placeholder-count="6">
+          <div style="display:flex; align-items:center; gap:10px; padding:12px; background:var(--md-sc-low); border:1px solid var(--md-outline-variant); border-radius:14px; cursor:pointer;" style-hover="border-color:var(--md-primary); background:var(--md-sc-high);"><div style="width:30px; height:30px; border-radius:8px; background:{{ f.color }}; border:1px solid rgba(0,0,0,.25); flex:0 0 auto;"></div><div style="flex:1; min-width:0;"><div style="font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ f.name }}</div><div style="font-size:11px; color:var(--md-on-surface-variant);">{{ f.vendor }} · {{ f.type }}</div></div></div>
+        </sc-for>
+      </div>
+      <div style="padding:14px 24px; border-top:1px solid var(--md-outline-variant); display:flex; justify-content:flex-end; gap:10px;"><button onClick="{{ closeDialog }}" style="height:44px; padding:0 20px; border:none; background:transparent; color:var(--md-primary); border-radius:22px; cursor:pointer; font-size:14px; font-weight:600;">Cancel</button><button onClick="{{ addFilamentConfirm }}" style="display:flex; align-items:center; gap:8px; height:44px; padding:0 22px; border:none; border-radius:22px; background:var(--md-primary); color:var(--md-on-primary); cursor:pointer; font-size:14px; font-weight:600;"><span data-icon style="font-size:20px;">add</span> Add to project</button></div>
+    </div>
+  </div>
+  </sc-if>
+
+</div>
   </template>
 
   <script src="./runtime/mini-dc.js"></script>
   <script src="./app/searchfield.logic.js"></script>
-  <script src="./app/demo.logic.js"></script>
-  <script>
-    (function bootDemo(){
-      var template=function(name){
-        return document.querySelector('template[data-component="'+name+'"]');
-      };
-      DC.register('SearchField',template('SearchField'),SearchField);
-      DC.register('demo',template('demo'),Demo);
-      DC.mount('demo',document.getElementById('app'),{});
-    })();
-  </script>
+  <script src="./app/main.logic.js"></script>
+  <script src="./app/screens/registry.js"></script>
+  <!-- Screen *.logic.js tags are inserted here by the assembly step. -->
+  <script src="./app/boot.js"></script>
 </body>
 </html>
+
