@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>@keyframes mdfade{ from{ opacity:0; transform:translateY(8px);} to{ opacity:1; transform:none;} }</style>
+</helmet>
+<div style="position:relative; width:100%; font-family:'Roboto',system-ui,sans-serif;">
+  <div style="display:flex; align-items:center; gap:4px; height:40px; padding:0 5px 0 14px; background:var(--md-sc-highest); border:1px solid {{ borderColor }}; border-radius:22px;">
+    <span data-icon style="font-size:20px; color:var(--md-on-surface-variant);">search</span>
+    <input value="{{ value }}" onInput="{{ onInput }}" placeholder="{{ placeholder }}" style="flex:1; min-width:0; border:none; background:transparent; outline:none; color:var(--md-on-surface); font-size:13.5px; font-family:{{ inputFont }};">
+    <sc-if value="{{ hasValue }}"><button onClick="{{ clear }}" title="Clear" style="width:30px; height:30px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:50%; cursor:pointer;" style-hover="background:var(--md-sc-low);"><span data-icon style="font-size:18px;">close</span></button></sc-if>
+    <button onClick="{{ toggleRegex }}" title="Use regular expression" style="min-width:32px; height:30px; padding:0 4px; border:none; border-radius:8px; cursor:pointer; font-family:'Roboto Mono',monospace; font-size:12.5px; font-weight:700; background:{{ regexBg }}; color:{{ regexFg }};">.*</button>
+    <button onClick="{{ toggleBuilder }}" title="Regex builder" style="width:32px; height:30px; border:none; border-radius:8px; cursor:pointer; background:{{ builderBg }}; color:{{ builderFg }}; display:flex; align-items:center; justify-content:center;"><span data-icon style="font-size:18px;">tune</span></button>
+  </div>
+
+  <sc-if value="{{ open }}">
+  <div style="position:absolute; top:47px; right:0; left:0; z-index:80; background:var(--md-sc); border:1px solid var(--md-outline-variant); border-radius:18px; box-shadow:0 12px 34px var(--md-shadow); padding:14px; display:flex; flex-direction:column; gap:12px; animation:mdfade .16s ease;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span data-icon style="font-size:18px; color:var(--md-primary);">regular_expression</span>
+      <span style="font-weight:600; font-size:13px;">Regex builder</span>
+      <span style="flex:1;"></span>
+      <span style="font-size:11px; font-weight:600; color:{{ validColor }};">{{ validText }}</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:6px; background:var(--md-sc-lowest); border:1px solid var(--md-outline-variant); border-radius:10px; padding:9px 10px; font-family:'Roboto Mono',monospace; font-size:13px;">
+      <span style="color:var(--md-on-surface-variant);">/</span>
+      <input value="{{ pattern }}" onInput="{{ onPattern }}" placeholder="pattern" style="flex:1; min-width:0; border:none; background:transparent; outline:none; color:var(--md-on-surface); font-family:inherit; font-size:13px;">
+      <span style="color:var(--md-on-surface-variant);">/{{ flagStr }}</span>
+    </div>
+    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+      <sc-for list="{{ flagChips }}" as="c" hint-placeholder-count="4">
+        <button onClick="{{ c.onClick }}" style="height:30px; padding:0 12px; border-radius:15px; cursor:pointer; font-size:11.5px; font-weight:500; background:{{ c.bg }}; color:{{ c.fg }}; border:{{ c.border }};">{{ c.label }}</button>
+      </sc-for>
+    </div>
+    <div style="font-size:10.5px; letter-spacing:.5px; text-transform:uppercase; color:var(--md-on-surface-variant);">Insert token</div>
+    <div style="display:grid; grid-template-columns:repeat(6,1fr); gap:6px;">
+      <sc-for list="{{ tokens }}" as="t" hint-placeholder-count="16">
+        <button onClick="{{ t.onClick }}" title="{{ t.l }}" style="height:38px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; border:1px solid var(--md-outline-variant); background:var(--md-sc-lowest); border-radius:9px; cursor:pointer;" style-hover="background:var(--md-secondary-container); border-color:var(--md-primary);">
+          <span style="font-family:'Roboto Mono',monospace; font-size:12.5px; font-weight:600; color:var(--md-on-surface);">{{ t.t }}</span>
+          <span style="font-size:8.5px; color:var(--md-on-surface-variant);">{{ t.l }}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="display:flex; gap:8px;">
+      <button onClick="{{ clearBuilder }}" style="height:38px; padding:0 16px; border:1px solid var(--md-outline); background:transparent; color:var(--md-on-surface); border-radius:19px; cursor:pointer; font-size:12.5px; font-weight:500;">Clear</button>
+      <button onClick="{{ applyBuilder }}" style="flex:1; height:38px; border:none; background:var(--md-primary); color:var(--md-on-primary); border-radius:19px; cursor:pointer; font-size:12.5px; font-weight:600;">Apply expression</button>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:80},&quot;placeholder&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Search&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { value:'', pattern:'', open:false, regex:false, flags:{ i:true, w:false, m:false, s:false } };
+  compileFlags(){ const f=this.state.flags; return 'g'+(f.i?'i':'')+(f.m?'m':'')+(f.s?'s':''); }
+  valid(){ try{ new RegExp(this.state.pattern, this.compileFlags()); return true; }catch(e){ return false; } }
+  emit(v){ if(typeof this.props.onQuery==='function') this.props.onQuery(v); }
+  ins(t){ this.setState(st=>({ pattern:st.pattern+t, regex:true })); this.emit(this.state.pattern+t); }
+  flagChips(){
+    const f=this.state.flags;
+    const chip=(k,label)=>({ label, onClick:()=>this.setState(st=>({ flags:{...st.flags, [k]:!st.flags[k]} })),
+      bg: f[k]?'var(--md-primary)':'transparent', fg: f[k]?'var(--md-on-primary)':'var(--md-on-surface-variant)',
+      border: f[k]?'1px solid var(--md-primary)':'1px solid var(--md-outline)' });
+    return [ chip('i','Ignore case'), chip('w','Whole word'), chip('m','Multiline'), chip('s','Dotall') ];
+  }
+  renderVals(){
+    const s=this.state;
+    const tokenDefs=[
+      {t:'.',l:'any'},{t:'\\d',l:'digit'},{t:'\\w',l:'word'},{t:'\\s',l:'space'},{t:'^',l:'start'},{t:'$',l:'end'},
+      {t:'\\b',l:'bound'},{t:'+',l:'1 or +'},{t:'*',l:'0 or +'},{t:'?',l:'optional'},{t:'()',l:'group'},{t:'[]',l:'set'},
+      {t:'|',l:'or'},{t:'\\.',l:'literal .'},{t:'{2}',l:'repeat'},{t:'(?:)',l:'non-cap'},
+    ];
+    const ok = s.pattern==='' || this.valid();
+    return {
+      placeholder: this.props.placeholder || 'Search',
+      value: s.value, pattern: s.pattern, open: s.open, hasValue: !!s.value,
+      flagStr: this.compileFlags(),
+      inputFont: s.regex ? "'Roboto Mono',monospace" : "inherit",
+      borderColor: s.open ? 'var(--md-primary)' : 'var(--md-outline)',
+      regexBg: s.regex ? 'var(--md-primary)' : 'var(--md-sc-low)',
+      regexFg: s.regex ? 'var(--md-on-primary)' : 'var(--md-on-surface-variant)',
+      builderBg: s.open ? 'var(--md-secondary-container)' : 'var(--md-sc-low)',
+      builderFg: s.open ? 'var(--md-on-secondary-container)' : 'var(--md-on-surface-variant)',
+      validColor: ok ? 'var(--md-primary)' : 'var(--md-error)',
+      validText: s.pattern==='' ? '' : (ok ? 'valid' : 'invalid'),
+      onInput:(e)=>{ this.setState({ value:e.target.value, pattern: s.regex ? e.target.value : s.pattern }); this.emit(e.target.value); },
+      onPattern:(e)=>{ this.setState({ pattern:e.target.value, value:e.target.value, regex:true }); this.emit(e.target.value); },
+      clear:()=>{ this.setState({ value:'', pattern:'' }); this.emit(''); },
+      toggleRegex:()=>this.setState({ regex:!s.regex }),
+      toggleBuilder:()=>this.setState({ open:!s.open }),
+      applyBuilder:()=>{ this.setState({ open:false, value:s.pattern, regex:true }); this.emit(s.pattern); },
+      clearBuilder:()=>this.setState({ pattern:'' }),
+      tokens: tokenDefs.map(td=>({ ...td, onClick:()=>this.ins(td.t) })),
+      flagChips: this.flagChips(),
+    };
+  }
+}
+</script>
+</body>
+</html>
