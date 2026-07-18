@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>mini-dc runtime acceptance demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-25..0&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./app/styles.css">
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- Ported verbatim from the body of design-source/SearchField.dc.html. -->
+  <template data-component="SearchField">
+    <div style="position:relative; width:100%; font-family:'Roboto',system-ui,sans-serif;">
+      <div style="display:flex; align-items:center; gap:4px; height:40px; padding:0 5px 0 14px; background:var(--md-sc-highest); border:1px solid {{ borderColor }}; border-radius:22px;">
+        <span data-icon style="font-size:20px; color:var(--md-on-surface-variant);">search</span>
+        <input value="{{ value }}" onInput="{{ onInput }}" placeholder="{{ placeholder }}" style="flex:1; min-width:0; border:none; background:transparent; outline:none; color:var(--md-on-surface); font-size:13.5px; font-family:{{ inputFont }};">
+        <sc-if value="{{ hasValue }}"><button onClick="{{ clear }}" title="Clear" style="width:30px; height:30px; border:none; background:transparent; color:var(--md-on-surface-variant); border-radius:50%; cursor:pointer;" style-hover="background:var(--md-sc-low);"><span data-icon style="font-size:18px;">close</span></button></sc-if>
+        <button onClick="{{ toggleRegex }}" title="Use regular expression" style="min-width:32px; height:30px; padding:0 4px; border:none; border-radius:8px; cursor:pointer; font-family:'Roboto Mono',monospace; font-size:12.5px; font-weight:700; background:{{ regexBg }}; color:{{ regexFg }};">.*</button>
+        <button onClick="{{ toggleBuilder }}" title="Regex builder" style="width:32px; height:30px; border:none; border-radius:8px; cursor:pointer; background:{{ builderBg }}; color:{{ builderFg }}; display:flex; align-items:center; justify-content:center;"><span data-icon style="font-size:18px;">tune</span></button>
+      </div>
+
+      <sc-if value="{{ open }}">
+      <div style="position:absolute; top:47px; right:0; left:0; z-index:80; background:var(--md-sc); border:1px solid var(--md-outline-variant); border-radius:18px; box-shadow:0 12px 34px var(--md-shadow); padding:14px; display:flex; flex-direction:column; gap:12px; animation:mdfade .16s ease;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span data-icon style="font-size:18px; color:var(--md-primary);">regular_expression</span>
+          <span style="font-weight:600; font-size:13px;">Regex builder</span>
+          <span style="flex:1;"></span>
+          <span style="font-size:11px; font-weight:600; color:{{ validColor }};">{{ validText }}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; background:var(--md-sc-lowest); border:1px solid var(--md-outline-variant); border-radius:10px; padding:9px 10px; font-family:'Roboto Mono',monospace; font-size:13px;">
+          <span style="color:var(--md-on-surface-variant);">/</span>
+          <input value="{{ pattern }}" onInput="{{ onPattern }}" placeholder="pattern" style="flex:1; min-width:0; border:none; background:transparent; outline:none; color:var(--md-on-surface); font-family:inherit; font-size:13px;">
+          <span style="color:var(--md-on-surface-variant);">/{{ flagStr }}</span>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <sc-for list="{{ flagChips }}" as="c" hint-placeholder-count="4">
+            <button onClick="{{ c.onClick }}" style="height:30px; padding:0 12px; border-radius:15px; cursor:pointer; font-size:11.5px; font-weight:500; background:{{ c.bg }}; color:{{ c.fg }}; border:{{ c.border }};">{{ c.label }}</button>
+          </sc-for>
+        </div>
+        <div style="font-size:10.5px; letter-spacing:.5px; text-transform:uppercase; color:var(--md-on-surface-variant);">Insert token</div>
+        <div style="display:grid; grid-template-columns:repeat(6,1fr); gap:6px;">
+          <sc-for list="{{ tokens }}" as="t" hint-placeholder-count="16">
+            <button onClick="{{ t.onClick }}" title="{{ t.l }}" style="height:38px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; border:1px solid var(--md-outline-variant); background:var(--md-sc-lowest); border-radius:9px; cursor:pointer;" style-hover="background:var(--md-secondary-container); border-color:var(--md-primary);">
+              <span style="font-family:'Roboto Mono',monospace; font-size:12.5px; font-weight:600; color:var(--md-on-surface);">{{ t.t }}</span>
+              <span style="font-size:8.5px; color:var(--md-on-surface-variant);">{{ t.l }}</span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button onClick="{{ clearBuilder }}" style="height:38px; padding:0 16px; border:1px solid var(--md-outline); background:transparent; color:var(--md-on-surface); border-radius:19px; cursor:pointer; font-size:12.5px; font-weight:500;">Clear</button>
+          <button onClick="{{ applyBuilder }}" style="flex:1; height:38px; border:none; background:var(--md-primary); color:var(--md-on-primary); border-radius:19px; cursor:pointer; font-size:12.5px; font-weight:600;">Apply expression</button>
+        </div>
+      </div>
+      </sc-if>
+    </div>
+  </template>
+
+  <template data-component="demo">
+    <main data-theme="{{ theme }}" data-density="{{ density }}" style="min-height:100vh; padding:28px; font-family:'Roboto',system-ui,sans-serif; font-size:var(--fs); background:radial-gradient(1000px 520px at 12% -8%,var(--md-primary-container),transparent 58%),var(--md-surface); color:var(--md-on-surface); -webkit-font-smoothing:antialiased; {{ accentOverride }}">
+      <div style="max-width:1180px; margin:0 auto; display:flex; flex-direction:column; gap:18px;">
+        <header style="display:flex; align-items:center; gap:18px; padding:22px 24px; border:1px solid var(--md-outline-variant); border-radius:24px; background:color-mix(in srgb,var(--md-sc) 94%,transparent); box-shadow:0 12px 34px var(--md-shadow);">
+          <div style="width:54px; height:54px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; border-radius:17px; background:var(--md-primary); color:var(--md-on-primary);">
+            <span data-icon style="font-size:30px; font-variation-settings:'FILL' 1;">deployed_code</span>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:11px; font-weight:700; letter-spacing:.9px; text-transform:uppercase; color:var(--md-primary);">Run 1 · framework proof</div>
+            <h1 style="margin:3px 0 2px; font-size:24px; line-height:1.2;">mini-dc runtime acceptance demo</h1>
+            <div style="font-size:13px; color:var(--md-on-surface-variant);">Every card below is live; no React, dependencies, build step, or local fetch.</div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+            <span style="padding:7px 11px; border-radius:12px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-family:'Roboto Mono',monospace; font-size:11.5px;">render {{ renderPasses }}</span>
+            <span style="padding:7px 11px; border-radius:12px; background:var(--md-sc-highest); color:var(--md-on-surface-variant); font-family:'Roboto Mono',monospace; font-size:11.5px;">state {{ parentTicks }}</span>
+          </div>
+        </header>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:16px; align-items:start;">
+          <section data-test="interpolation" title="proof-render-{{ renderPasses }}-missing-{{ missingKey }}" data-proof="render-{{ renderPasses }}-missing-{{ missingKey }}" style="padding:20px; min-height:254px; border:1px solid var(--md-outline-variant); border-radius:20px; background:var(--md-sc-low); display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-weight:700;">1</span>
+              <div><div style="font-size:15px; font-weight:700;">Interpolation</div><div style="font-size:11.5px; color:var(--md-on-surface-variant);">text, mid-attribute, dotted-safe missing values</div></div>
+            </div>
+            <div style="padding:11px 12px; border-radius:12px; background:var(--md-sc-highest); font-family:'Roboto Mono',monospace; font-size:12px;">
+              {{ greeting }} · pass {{ renderPasses }}
+            </div>
+            <div data-test="missing" data-function-empty="{{ forceParent }}" style="font-size:13px;">Missing key: <strong>[{{ missingKey }}]</strong> · function outside an event: <strong>[{{ forceParent }}]</strong></div>
+            <div>
+              <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:11.5px; color:var(--md-on-surface-variant);"><span>mid-style width</span><span>{{ meter }}%</span></div>
+              <div style="height:8px; overflow:hidden; border-radius:5px; background:var(--md-sc-highest);"><div data-test="meter" style="height:100%; width:{{ meter }}%; background:var(--md-primary); border-radius:5px; transition:width .18s ease;"></div></div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <sc-if value="{{ true }}" hint-placeholder-val="{{ true }}"><span style="padding:5px 9px; border-radius:10px; background:var(--md-primary-container); color:var(--md-on-primary-container); font-size:11.5px;">✓ literal {{ true }} branch</span></sc-if>
+              <sc-if value="{{ false }}"><span style="color:var(--md-error);">FAIL: false branch rendered</span></sc-if>
+              <button data-test="force-parent" onClick="{{ forceParent }}" style="height:32px; padding:0 12px; border:1px solid var(--md-outline); border-radius:16px; background:transparent; color:var(--md-on-surface); cursor:pointer; font-size:11.5px;">Force parent render</button>
+            </div>
+          </section>
+
+          <section data-test="search-proof" style="padding:20px; min-height:254px; border:1px solid var(--md-outline-variant); border-radius:20px; background:var(--md-sc-low); display:flex; flex-direction:column; gap:12px; position:relative; z-index:5;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-weight:700;">3–4</span>
+              <div><div style="font-size:15px; font-weight:700;">Imported SearchField + caret</div><div style="font-size:11.5px; color:var(--md-on-surface-variant);">child state survives a parent patch per keystroke</div></div>
+            </div>
+            <dc-import name="SearchField" placeholder="Type here — parent re-renders every key" on-query="{{ onQuery }}" hint-size="100%,40px"></dc-import>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <div style="padding:9px 10px; border-radius:10px; background:var(--md-sc-highest); font-size:11.5px;"><span style="color:var(--md-on-surface-variant);">query events</span><div data-test="query-events" style="font-family:'Roboto Mono',monospace; font-size:15px; margin-top:2px;">{{ queryEvents }}</div></div>
+              <div style="padding:9px 10px; border-radius:10px; background:var(--md-sc-highest); font-size:11.5px; min-width:0;"><span style="color:var(--md-on-surface-variant);">child query</span><div data-test="query-value" style="font-family:'Roboto Mono',monospace; font-size:13px; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ query }}</div></div>
+            </div>
+            <div style="font-size:12px; line-height:1.45; color:var(--md-on-surface-variant);">Type a word, click in its middle, then type again. The counter advances, focus stays put, and the new character remains at that caret.</div>
+          </section>
+
+          <section data-test="nested-groups" style="padding:20px; min-height:282px; border:1px solid var(--md-outline-variant); border-radius:20px; background:var(--md-sc-low); display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-weight:700;">2</span>
+              <div style="flex:1;"><div style="font-size:15px; font-weight:700;">Nested keyed loops + conditional rows</div><div style="font-size:11.5px; color:var(--md-on-surface-variant);">both loops update without shifting identities</div></div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <sc-for list="{{ groups }}" as="group" hint-placeholder-count="2">
+                <div title="Group {{ group.name }}" style="padding:10px; border:1px solid var(--md-outline-variant); border-radius:12px; background:var(--md-sc-highest); display:flex; flex-direction:column; gap:6px;">
+                  <div style="font-size:12px; font-weight:700; color:var(--md-primary);">{{ group.name }}</div>
+                  <sc-for list="{{ group.items }}" as="item" hint-placeholder-count="2">
+                    <div style="min-height:30px; padding:6px 7px; display:flex; align-items:center; gap:6px; border-radius:8px; background:var(--md-sc-lowest); font-size:11.5px;">
+                      <span style="flex:1;">{{ group.name }} / {{ item.label }}</span>
+                      <sc-if value="{{ item.show }}"><span style="width:8px; height:8px; border-radius:50%; background:var(--md-primary);" title="sc-if is true"></span></sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button data-test="reverse-loops" onClick="{{ reverseNested }}" style="height:34px; padding:0 13px; border:none; border-radius:17px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); cursor:pointer; font-size:11.5px; font-weight:600;">Reverse both loops</button>
+              <button data-test="toggle-ifs" onClick="{{ toggleConditional }}" style="height:34px; padding:0 13px; border:1px solid var(--md-outline); border-radius:17px; background:transparent; color:var(--md-on-surface); cursor:pointer; font-size:11.5px;">Toggle sc-if dots</button>
+            </div>
+          </section>
+
+          <section data-test="event-proof" style="padding:20px; min-height:282px; border:1px solid var(--md-outline-variant); border-radius:20px; background:var(--md-sc-low); display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-weight:700;">6</span>
+              <div><div style="font-size:15px; font-weight:700;">DOM events + listener replacement</div><div style="font-size:11.5px; color:var(--md-on-surface-variant);">fresh closures, one installed listener</div></div>
+            </div>
+            <input data-test="probe-input" value="{{ nativeText }}" onInput="{{ probeInput }}" placeholder="Native onInput probe" style="height:38px; width:100%; padding:0 12px; border:1px solid var(--md-outline); border-radius:12px; outline:none; background:var(--md-sc-highest); color:var(--md-on-surface); font:12.5px 'Roboto Mono',monospace;">
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
+              <div style="padding:8px; border-radius:10px; background:var(--md-sc-highest); font-size:10.5px; color:var(--md-on-surface-variant);">click calls<div data-test="click-calls" style="font:600 16px 'Roboto Mono',monospace; color:var(--md-on-surface);">{{ clickCalls }}</div></div>
+              <div style="padding:8px; border-radius:10px; background:var(--md-sc-highest); font-size:10.5px; color:var(--md-on-surface-variant);">input calls<div data-test="input-calls" style="font:600 16px 'Roboto Mono',monospace; color:var(--md-on-surface);">{{ inputCalls }}</div></div>
+              <div style="padding:8px; border-radius:10px; background:var(--md-sc-highest); font-size:10.5px; color:var(--md-on-surface-variant);">stress patches<div data-test="stress-steps" style="font:600 16px 'Roboto Mono',monospace; color:var(--md-on-surface);">{{ stressSteps }}</div></div>
+            </div>
+            <div style="display:flex; gap:7px; flex-wrap:wrap;">
+              <button data-test="probe-click" onClick="{{ probeClick }}" style="height:34px; padding:0 13px; border:none; border-radius:17px; background:var(--md-primary); color:var(--md-on-primary); cursor:pointer; font-size:11.5px; font-weight:600;">Click: add exactly 1</button>
+              <button data-test="stress" onClick="{{ stressRenders }}" style="height:34px; padding:0 13px; border:1px solid var(--md-outline); border-radius:17px; background:transparent; color:var(--md-on-surface); cursor:pointer; font-size:11.5px;">{{ stressLabel }}</button>
+              <button data-test="batch" onClick="{{ batchUpdates }}" style="height:34px; padding:0 13px; border:1px solid var(--md-outline); border-radius:17px; background:transparent; color:var(--md-on-surface); cursor:pointer; font-size:11.5px;">Batch +5 (now {{ batchValue }})</button>
+            </div>
+            <div style="font-size:11.5px; color:var(--md-on-surface-variant);">After stress reaches 30, one probe click must add exactly one. Last DOM event: <span style="font-family:'Roboto Mono',monospace; color:var(--md-primary);">{{ lastEventType }}</span></div>
+          </section>
+
+          <section style="grid-column:1 / -1; padding:20px; border:1px solid var(--md-outline-variant); border-radius:20px; background:var(--md-sc-low); display:flex; align-items:center; gap:18px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:10px; min-width:280px; flex:1;">
+              <span style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:var(--md-secondary-container); color:var(--md-on-secondary-container); font-weight:700;">5</span>
+              <div><div style="font-size:15px; font-weight:700;">style-hover state layer</div><div style="font-size:11.5px; color:var(--md-on-surface-variant);">click while hovered: the layer survives that render until mouseleave</div></div>
+            </div>
+            <button data-test="hover" onClick="{{ hoverClick }}" style="height:48px; min-width:280px; padding:0 20px; border:1px solid var(--md-outline); border-radius:16px; background:var(--md-sc-highest); color:var(--md-on-surface); cursor:pointer; font-size:13px; font-weight:600; transition:transform .15s ease,box-shadow .15s ease,background .15s ease;" style-hover="background:var(--md-primary); color:var(--md-on-primary); border-color:var(--md-primary); transform:translateY(-3px); box-shadow:0 9px 22px var(--md-shadow);">
+              Hover, then click me · renders {{ hoverClicks }}
+            </button>
+          </section>
+        </div>
+      </div>
+    </main>
+  </template>
+
+  <script src="./runtime/mini-dc.js"></script>
+  <script src="./app/searchfield.logic.js"></script>
+  <script src="./app/demo.logic.js"></script>
+  <script>
+    (function bootDemo(){
+      var template=function(name){
+        return document.querySelector('template[data-component="'+name+'"]');
+      };
+      DC.register('SearchField',template('SearchField'),SearchField);
+      DC.register('demo',template('demo'),Demo);
+      DC.mount('demo',document.getElementById('app'),{});
+    })();
+  </script>
+</body>
+</html>
