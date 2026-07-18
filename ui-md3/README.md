@@ -1,5 +1,7 @@
 # Bambu Studio — Material Design 3
 
+**Live:** https://codingmachineedge.github.io/BambuStudio/ · **App:** https://codingmachineedge.github.io/BambuStudio/app/
+
 A self-contained web implementation of a **Material Design 3 (Material You) concept redesign** of the
 Bambu Studio slicer UI. Every screen of the real app's information architecture, re-skinned in pure
 MD3 — no invented features. Runs in any browser with **zero dependencies and no build step**.
