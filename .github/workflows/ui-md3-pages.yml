@@ -1,0 +1,49 @@
+name: Deploy ui-md3 (MD3 redesign) to GitHub Pages
+
+# Publishes the self-contained Material Design 3 web app in ui-md3/ to GitHub Pages,
+# so the redesign has a live, always-current preview URL. The app is static (no build
+# step): the ui-md3/ directory is uploaded verbatim and served at the site root.
+#
+# One-time setup on the fork: Settings -> Pages -> Build and deployment -> Source:
+# "GitHub Actions". Then this workflow deploys on every push that touches ui-md3/.
+
+on:
+  push:
+    branches: [md3-redesign, master, main]
+    paths:
+      - 'ui-md3/**'
+      - '.github/workflows/ui-md3-pages.yml'
+  workflow_dispatch: {}
+
+# Least-privilege token scoped to what deploy-pages needs.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One in-flight deploy at a time; let a newer push supersede an older run.
+concurrency:
+  group: ui-md3-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload ui-md3 as the Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ui-md3
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
