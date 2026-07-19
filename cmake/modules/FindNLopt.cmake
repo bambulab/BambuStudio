@@ -28,9 +28,8 @@ if(NOT NLopt_DIR)
 
 	set(NLopt_FOUND TRUE)
 
-	set(_NLopt_LIB_NAMES "nlopt")
-	find_library(NLopt_LIBS
-		NAMES ${_NLopt_LIB_NAMES})
+	set(_NLopt_LIB_NAMES "nlopt;nloptd")
+	find_library(NLopt_LIBS NAMES ${_NLopt_LIB_NAMES} REQUIRED)
 	if(NOT NLopt_LIBS)
 		set(NLopt_FOUND FALSE)
 		set(NLopt_ERROR_REASON "${NLopt_ERROR_REASON} Cannot find NLopt library '${_NLopt_LIB_NAMES}'.")
