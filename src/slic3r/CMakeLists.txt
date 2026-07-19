@@ -746,7 +746,7 @@ if (WIN32)
         $<$<CONFIG:Debug>:${HPDF_LIBRARY_DEBUG}>
         $<$<NOT:$<CONFIG:Debug>>:${HPDF_LIBRARY_RELEASE}>)
 else ()
-    find_library(HPDF_LIBRARY NAMES hpdf)
+    find_library(HPDF_LIBRARY NAMES hpdf hpdfd HINTS lib REQUIRED)
 endif ()
 
 target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi
