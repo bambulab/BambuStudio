@@ -30,10 +30,13 @@ jobs:
       - name: set outputs
         id: set_outputs
         env:
-          dep-folder-name: ${{ inputs.os == 'windows-latest' && '/BambuStudio_dep' || ((inputs.os == 'macos-15-intel' || inputs.os == 'macos-15' || inputs.os == 'macos-26') && '') || (inputs.os != 'macos-15-intel' && inputs.os != 'macos-15' && inputs.os != 'macos-26') && '/destdir' || '' }}
-          output-cmd: ${{ inputs.os == 'windows-latest' && '$env:GITHUB_OUTPUT' || '"$GITHUB_OUTPUT"'}}
+          dep-folder-name: ${{ startsWith(inputs.os, 'windows') && '/BambuStudio_dep' || ((inputs.os == 'macos-15-intel' || inputs.os == 'macos-15' || inputs.os == 'macos-26') && '') || (inputs.os != 'macos-15-intel' && inputs.os != 'macos-15' && inputs.os != 'macos-26') && '/destdir' || '' }}
+          output-cmd: ${{ startsWith(inputs.os, 'windows') && '$env:GITHUB_OUTPUT' || '"$GITHUB_OUTPUT"'}}
+          # Windows runs two variants (arm64/arm64ec) on the same runner label,
+          # so the arch must be part of the key or their caches collide.
+          arch-suffix: ${{ (startsWith(inputs.os, 'windows') && inputs.arch != '') && format('-{0}', inputs.arch) || '' }}
         run: |
-          echo cache-key=${{ inputs.os }}-cache-bambustudio_deps-build-${{ hashFiles('deps/**') }} >> ${{ env.output-cmd }}
+          echo cache-key=${{ inputs.os }}${{ env.arch-suffix }}-cache-bambustudio_deps-build-${{ hashFiles('deps/**') }} >> ${{ env.output-cmd }}
           echo cache-path=${{ github.workspace }}/deps/build${{ env.dep-folder-name }} >> ${{ env.output-cmd }}
             
       - name: load cache
