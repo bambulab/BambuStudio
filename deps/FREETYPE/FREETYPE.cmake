@@ -40,10 +40,9 @@ endif()
 # FBX that uses compressed property arrays. Strip the zlib externals after
 # install so only FT_Gzip_Uncompress / FT_Stream_OpenGzip remain visible.
 if(APPLE)
-    if(DEP_DEBUG)
+    set(_ft_lib_name "libfreetype.a")
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(_ft_lib_name "libfreetyped.a")
-    else()
-        set(_ft_lib_name "libfreetype.a")
     endif()
     ExternalProject_Add_Step(dep_FREETYPE strip_zlib_globals
         COMMENT "Stripping FreeType bundled-zlib globals from libfreetype.a (macOS)"
