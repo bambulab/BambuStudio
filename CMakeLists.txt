@@ -84,6 +84,19 @@ elseif (MSVC)
             message(STATUS " is cross compile set to true.............")
             set(IS_CROSS_COMPILE TRUE)
         endif ()
+        if (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64EC")
+            # On ARM64EC the x86 SIMD headers (immintrin.h etc.) refuse direct
+            # inclusion - they must come via <intrin.h> so the softintrin
+            # emulation layer is set up first. Several bundled libraries
+            # (eigen, imgui, clipper2, tinybvh, libigl, minih264) include them
+            # directly, so force-include intrin.h globally instead of patching
+            # each one.
+            add_compile_options(/FIintrin.h)
+            # Software implementations of x86 intrinsics that have no native
+            # ARM64EC lowering (e.g. _mm_cvtsd_si64). MSBuild does not add this
+            # automatically for CMake-generated projects.
+            add_link_options(softintrin.lib)
+        endif ()
 endif ()
 
 # Proposal for C++ unit tests and sandboxes
@@ -132,7 +145,19 @@ if (MSVC)
     # /bigobj (Increase Number of Sections in .Obj file)
     # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
     # Generate symbols at every build target, even for the release.
-    add_compile_options(-bigobj -Zm520 /Zi)
+    if (CMAKE_GENERATOR MATCHES "Ninja")
+        # /Z7 embeds debug info in the objects instead of writing per-target
+        # .pdb files during compilation: /Zi's shared-PDB writes fail with
+        # C1041 under Ninja's parallelism (the VS generator serializes them
+        # via /FS+mspdbsrv) and defeat compiler-launcher caches like sccache.
+        # Only debug-carrying configs get it - embedding into every object of
+        # a Release build pushes libslic3r_gui.lib past the 4 GB .lib format
+        # limit (LNK1248), and plain Release omits debug info in standard
+        # CMake semantics anyway.
+        add_compile_options(-bigobj -Zm520 "$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Debug>>:/Z7>")
+    else ()
+        add_compile_options(-bigobj -Zm520 /Zi)
+    endif ()
     # Disable STL4007: Many result_type typedefs and all argument_type, first_argument_type, and second_argument_type typedefs are deprecated in C++17.
     #FIXME Remove this line after eigen library adapts to the new C++17 adaptor rules.
     add_compile_options(-D_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING)
@@ -636,7 +661,15 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
         set(_bits 32)
     endif ()
 
-    if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+    # Generator platform takes precedence over the host processor so an ARM64
+    # host can build x64 or ARM64EC targets (both consume the x64 runtime DLLs;
+    # ARM64EC processes load x64 DLLs via emulation).
+    set(_copydll_plat "${CMAKE_GENERATOR_PLATFORM}")
+    if (NOT _copydll_plat)
+        set(_copydll_plat "${CMAKE_SYSTEM_PROCESSOR}")
+    endif ()
+    string(TOUPPER "${_copydll_plat}" _copydll_plat)
+    if (_copydll_plat MATCHES "^(ARM64|AARCH64)$")
         set(_gmpdll win_arm64/gmp-10.dll)
         set(_mpfrdll win_arm64/mpfr-6.dll)
         set(output_gmpdll gmp-10.dll)
