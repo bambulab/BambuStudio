@@ -73,6 +73,8 @@ set(lisbslic3r_sources
     CurveAnalyzer.hpp
     CutUtils.cpp
     CutUtils.hpp
+    PaintReproject.cpp
+    PaintReproject.hpp
     EdgeGrid.cpp
     EdgeGrid.hpp
     ElephantFootCompensation.cpp

@@ -6392,10 +6392,6 @@ void ObjectList::fix_through_netfabb()
     if (!wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::Undefined))
         return;
 
-    // BBS: repair rebuilds the mesh; warn that painting is transferred approximately.
-    if (!wxGetApp().confirm_mesh_paint_warning())
-        return;
-
     //          model_name
     std::vector<std::string>                           succes_models;
     //                   model_name     failing reason
@@ -6430,6 +6426,32 @@ void ObjectList::fix_through_netfabb()
                 model_names.push_back(obj->volumes[vol_idx]->name);
         }
     }
+
+    // BBS: repair rebuilds the mesh; painting is transferred approximately.
+    // Only warn about it when the models actually being repaired carry painted
+    // color/support/seam/fuzzy-skin data.
+    bool has_paint = false;
+    if (vol_idxs.empty()) {
+        for (int obj_idx : obj_idxs) {
+            const ModelObject *o = object(obj_idx);
+            if (o && (o->is_mm_painted() || o->is_fuzzy_skin_painted() ||
+                      o->is_fdm_support_painted() || o->is_seam_painted())) {
+                has_paint = true;
+                break;
+            }
+        }
+    } else if (const ModelObject *o = object(obj_idxs.front())) {
+        for (int vol_idx : vol_idxs) {
+            const ModelVolume *v = o->volumes[vol_idx];
+            if (v && (v->is_mm_painted() || v->is_fuzzy_skin_facets_painted() ||
+                      v->is_fdm_support_painted() || v->is_seam_painted())) {
+                has_paint = true;
+                break;
+            }
+        }
+    }
+    if (has_paint && !wxGetApp().confirm_mesh_paint_warning())
+        return;
 
     auto plater = wxGetApp().plater();
 

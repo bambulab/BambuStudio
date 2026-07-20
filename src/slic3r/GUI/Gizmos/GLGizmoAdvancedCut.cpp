@@ -1112,6 +1112,15 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
     Plater *     plater = wxGetApp().plater();
     ModelObject *mo     = plater->model().objects[object_idx];
     if (!mo) return;
+
+    // Cutting rebuilds/splits the mesh; painted color, supports, seam and
+    // fuzzy-skin may not transfer cleanly. Warn the user when any exist.
+    if (mo->is_mm_painted() || mo->is_fuzzy_skin_painted() ||
+        mo->is_fdm_support_painted() || mo->is_seam_painted()) {
+        if (!wxGetApp().confirm_mesh_paint_warning())
+            return;
+    }
+
     // deactivate CutGizmo and than perform a cut
     m_parent.reset_all_gizmos();
     // m_cut_z is the distance from the bed. Subtract possible SLA elevation.

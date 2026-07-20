@@ -5,6 +5,7 @@
 
 
 #include <cfloat>
+#include <functional>
 #include "Point.hpp"
 #include "TriangleMesh.hpp"
 #include "libslic3r/Model.hpp"
@@ -263,6 +264,31 @@ public:
 
     // Set facet of the mesh to a given state. Only works for original triangles.
     void set_facet(int facet_idx, EnforcerBlockerType state);
+
+    struct FacetSubdivisionMeasurement {
+        EnforcerBlockerType dominant_state { EnforcerBlockerType::NONE };
+        double surface_area { 0.0 };
+        double error_area { 0.0 };
+    };
+    struct FacetSubdivisionResult {
+        double surface_area { 0.0 };
+        double error_area { 0.0 };
+        size_t nodes_created { 0 };
+        bool node_budget_exhausted { false };
+        bool depth_limit_reached { false };
+    };
+    using FacetSubdivisionEvaluator =
+        std::function<FacetSubdivisionMeasurement(int, const std::array<Vec3f, 3>&)>;
+
+    // Rebuild original facets by repeatedly splitting the leaf with the largest
+    // measured error. node_budget counts newly created child nodes.
+    FacetSubdivisionResult set_facets_with_subdivision(
+        const std::vector<int> &facet_indices,
+        const FacetSubdivisionEvaluator &evaluator,
+        size_t node_budget,
+        double relative_error_limit,
+        double absolute_error_epsilon,
+        int max_depth);
 
     // Clear everything and make the tree empty.
     void reset();

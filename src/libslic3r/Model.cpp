@@ -11,6 +11,7 @@
 #include "TriangleMeshSlicer.hpp"
 #include "TriangleSelector.hpp"
 #include "AABBTreeIndirect.hpp"
+#include "PaintReproject.hpp"
 #include <queue>
 
 #include "Format/AMF.hpp"
@@ -3192,102 +3193,25 @@ void ModelVolume::reset_extra_facets() {
 }
 
 // ---- BBS: best-effort paint re-projection across mesh-rebuilding ops ----------
-// Walk a TriangleSelector's split tree for source face s; return the first
-// non-NONE leaf state (collapses sub-triangle painting to the dominant intent).
-static EnforcerBlockerType reproj_first_leaf(TriangleSelector &sel, int root_idx)
-{
-    const auto &tris = sel.get_triangles();
-    if (root_idx < 0 || root_idx >= (int)tris.size()) return EnforcerBlockerType::NONE;
-    std::queue<int> q;
-    q.push(root_idx);
-    while (!q.empty()) {
-        int i = q.front(); q.pop();
-        const auto &t = tris[i];
-        if (!t.valid()) continue;
-        if (!t.is_split()) {
-            if (t.get_state() != EnforcerBlockerType::NONE)
-                return t.get_state();
-        } else {
-            for (int c : t.children) if (c >= 0) q.push(c);
-        }
-    }
-    return EnforcerBlockerType::NONE;
-}
-
-// Per-face dominant state of one annotation layer over `mesh`.
-static void reproj_per_face_states(const TriangleMesh &mesh, const FacetsAnnotation &ann,
-                                   std::vector<EnforcerBlockerType> &out)
-{
-    out.assign(mesh.its.indices.size(), EnforcerBlockerType::NONE);
-    if (ann.empty() || mesh.its.indices.empty()) return;
-    TriangleSelector sel(mesh);
-    sel.deserialize(ann.get_data(), true);
-    for (int f = 0; f < (int)mesh.its.indices.size(); ++f)
-        out[f] = reproj_first_leaf(sel, f);
-}
-
-// Write per-face states onto `mesh`'s annotation layer (NONE entries skipped).
-static void reproj_apply_states(const TriangleMesh &mesh,
-                                const std::vector<EnforcerBlockerType> &states,
-                                FacetsAnnotation &out)
-{
-    out.reset();
-    bool any = false;
-    TriangleSelector sel(mesh);
-    const int n = std::min<int>((int)states.size(), (int)mesh.its.indices.size());
-    for (int f = 0; f < n; ++f) {
-        if (states[f] != EnforcerBlockerType::NONE) { sel.set_facet(f, states[f]); any = true; }
-    }
-    if (any) out.set(sel);
-}
-
-// Map each face of new_mesh to the nearest face of old_mesh (by centroid), then
-// transfer the four precomputed old per-face state vectors onto new annotations.
-static void reproj_transfer(const TriangleMesh &old_mesh, const TriangleMesh &new_mesh,
-                            const std::vector<EnforcerBlockerType> &o_sup,
-                            const std::vector<EnforcerBlockerType> &o_seam,
-                            const std::vector<EnforcerBlockerType> &o_mmu,
-                            const std::vector<EnforcerBlockerType> &o_fuzzy,
-                            FacetsAnnotation &d_sup, FacetsAnnotation &d_seam,
-                            FacetsAnnotation &d_mmu, FacetsAnnotation &d_fuzzy)
-{
-    d_sup.reset(); d_seam.reset(); d_mmu.reset(); d_fuzzy.reset();
-    if (old_mesh.its.indices.empty() || new_mesh.its.indices.empty()) return;
-    auto tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
-        old_mesh.its.vertices, old_mesh.its.indices);
-    const int nf = (int)new_mesh.its.indices.size();
-    std::vector<EnforcerBlockerType> n_sup(nf, EnforcerBlockerType::NONE), n_seam = n_sup, n_mmu = n_sup, n_fuzzy = n_sup;
-    for (int f = 0; f < nf; ++f) {
-        const Vec3i &idx = new_mesh.its.indices[f];
-        Vec3f c = (new_mesh.its.vertices[idx[0]] + new_mesh.its.vertices[idx[1]] + new_mesh.its.vertices[idx[2]]) / 3.f;
-        size_t hit = size_t(-1);
-        Vec3f hp;
-        double d2 = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
-            old_mesh.its.vertices, old_mesh.its.indices, tree, c, hit, hp);
-        if (d2 < 0. || hit == size_t(-1) || hit >= o_sup.size()) continue;
-        n_sup[f]   = o_sup[hit];
-        n_seam[f]  = o_seam[hit];
-        n_mmu[f]   = o_mmu[hit];
-        n_fuzzy[f] = o_fuzzy[hit];
-    }
-    reproj_apply_states(new_mesh, n_sup,   d_sup);
-    reproj_apply_states(new_mesh, n_seam,  d_seam);
-    reproj_apply_states(new_mesh, n_mmu,   d_mmu);
-    reproj_apply_states(new_mesh, n_fuzzy, d_fuzzy);
-}
-
 void ModelVolume::set_mesh_keep_paint(TriangleMesh &&mesh_in)
 {
-    const TriangleMesh old_mesh = this->mesh(); // copy before replacing
-    std::vector<EnforcerBlockerType> o_sup, o_seam, o_mmu, o_fuzzy;
-    reproj_per_face_states(old_mesh, this->supported_facets,        o_sup);
-    reproj_per_face_states(old_mesh, this->seam_facets,             o_seam);
-    reproj_per_face_states(old_mesh, this->mmu_segmentation_facets, o_mmu);
-    reproj_per_face_states(old_mesh, this->fuzzy_skin_facets,       o_fuzzy);
+    // Repair rebuilds the triangulation in place: the old and new meshes share the
+    // volume-local frame, so re-project the four painted annotation layers onto the
+    // new mesh with area-error driven subdivision (nearest source face + nearest 3D
+    // point sampling). Snapshot the source paint before set_mesh() overwrites the
+    // mesh; the annotation members themselves survive set_mesh() and are rebuilt by
+    // reproject_paint_geometric (which resets them first).
+    const TriangleMesh      old_mesh = this->mesh(); // copy before replacing
+    const FacetsAnnotation  old_supported(this->supported_facets);
+    const FacetsAnnotation  old_seam(this->seam_facets);
+    const FacetsAnnotation  old_mmu(this->mmu_segmentation_facets);
+    const FacetsAnnotation  old_fuzzy(this->fuzzy_skin_facets);
     this->set_mesh(std::move(mesh_in));
-    reproj_transfer(old_mesh, this->mesh(), o_sup, o_seam, o_mmu, o_fuzzy,
-                    this->supported_facets, this->seam_facets,
-                    this->mmu_segmentation_facets, this->fuzzy_skin_facets);
+    reproject_paint_geometric(
+        old_mesh, old_supported, old_seam, old_mmu, old_fuzzy,
+        this->mesh(), Transform3d::Identity(),
+        this->supported_facets, this->seam_facets,
+        this->mmu_segmentation_facets, this->fuzzy_skin_facets);
 }
 // ------------------------------------------------------------------------------
 

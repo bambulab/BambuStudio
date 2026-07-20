@@ -2168,6 +2168,7 @@ static void triangulate_slice(
     float                    z,
     bool                     triangulate,
     bool                     normals_down,
+    std::vector<int>        *src_faces,
     const std::map<int, Vec3f*> &section_vertices_map)
 {
     sort_remove_duplicates(slice_vertices);
@@ -2209,6 +2210,7 @@ static void triangulate_slice(
             i = j;
         }
         map_vertex_to_index.erase(map_vertex_to_index.begin() + k, map_vertex_to_index.end());
+        assert(src_faces == nullptr || src_faces->size() == its.indices.size());
         for (i = 0; i < int(its.indices.size());) {
             stl_triangle_vertex_indices &f = its.indices[i];
             // Remap the newly added face vertices.
@@ -2219,6 +2221,10 @@ static void triangulate_slice(
                 // Remove degenerate face.
                 f = its.indices.back();
                 its.indices.pop_back();
+                if (src_faces != nullptr) {
+                    (*src_faces)[i] = src_faces->back();
+                    src_faces->pop_back();
+                }
             } else
                 // Keep the face.
                 ++ i;
@@ -2547,9 +2553,12 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
     }
 
     if (upper != nullptr) {
-        triangulate_slice(*upper, upper_lines, upper_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps, NORMALS_DOWN, section_vertices_map);
-        if (upper_src_faces && upper_src_faces->size() < upper->indices.size())
+        triangulate_slice(*upper, upper_lines, upper_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps, NORMALS_DOWN, upper_src_faces, section_vertices_map);
+        if (upper_src_faces) {
+            assert(upper_src_faces->size() <= upper->indices.size());
             upper_src_faces->resize(upper->indices.size(), -1);
+            assert(upper_src_faces->size() == upper->indices.size());
+        }
 #ifndef NDEBUG
         if (triangulate_caps) {
             size_t num_open_edges_new = its_num_open_edges(*upper);
@@ -2559,9 +2568,12 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
     }
 
     if (lower != nullptr) {
-        triangulate_slice(*lower, lower_lines, lower_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps, NORMALS_UP, section_vertices_map);
-        if (lower_src_faces && lower_src_faces->size() < lower->indices.size())
+        triangulate_slice(*lower, lower_lines, lower_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps, NORMALS_UP, lower_src_faces, section_vertices_map);
+        if (lower_src_faces) {
+            assert(lower_src_faces->size() <= lower->indices.size());
             lower_src_faces->resize(lower->indices.size(), -1);
+            assert(lower_src_faces->size() == lower->indices.size());
+        }
 #ifndef NDEBUG
         if (triangulate_caps) {
             size_t num_open_edges_new = its_num_open_edges(*lower);

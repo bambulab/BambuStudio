@@ -3,6 +3,8 @@
 
 #include <boost/container/small_vector.hpp>
 #include <boost/log/trivial.hpp>
+#include <algorithm>
+#include <queue>
 
 #ifndef NDEBUG
 //    #define EXPENSIVE_DEBUG_CHECKS
@@ -993,6 +995,104 @@ void TriangleSelector::set_facet(int facet_idx, EnforcerBlockerType state)
     m_triangles[facet_idx].set_state(state);
 }
 
+TriangleSelector::FacetSubdivisionResult TriangleSelector::set_facets_with_subdivision(
+    const std::vector<int> &facet_indices,
+    const FacetSubdivisionEvaluator &evaluator,
+    size_t node_budget,
+    double relative_error_limit,
+    double absolute_error_epsilon,
+    int max_depth)
+{
+    struct Candidate {
+        int root_idx;
+        int facet_idx;
+        Vec3i neighbors;
+        int depth;
+        FacetSubdivisionMeasurement measurement;
+    };
+    struct CandidateCompare {
+        bool operator()(const Candidate &lhs, const Candidate &rhs) const
+        {
+            if (lhs.measurement.error_area != rhs.measurement.error_area)
+                return lhs.measurement.error_area < rhs.measurement.error_area;
+            if (lhs.root_idx != rhs.root_idx)
+                return lhs.root_idx > rhs.root_idx;
+            return lhs.facet_idx > rhs.facet_idx;
+        }
+    };
+
+    auto triangle_vertices = [this](int facet_idx) {
+        const Triangle &tr = m_triangles[facet_idx];
+        return std::array<Vec3f, 3> {
+            m_vertices[tr.verts_idxs[0]].v,
+            m_vertices[tr.verts_idxs[1]].v,
+            m_vertices[tr.verts_idxs[2]].v
+        };
+    };
+    auto normalize_measurement = [](FacetSubdivisionMeasurement measurement) {
+        measurement.surface_area = std::max(0.0, measurement.surface_area);
+        measurement.error_area = std::clamp(measurement.error_area, 0.0, measurement.surface_area);
+        return measurement;
+    };
+
+    FacetSubdivisionResult result;
+    std::priority_queue<Candidate, std::vector<Candidate>, CandidateCompare> candidates;
+    for (int facet_idx : facet_indices) {
+        if (facet_idx < 0 || facet_idx >= m_orig_size_indices)
+            continue;
+        undivide_triangle(facet_idx);
+        FacetSubdivisionMeasurement measurement =
+            normalize_measurement(evaluator(facet_idx, triangle_vertices(facet_idx)));
+        m_triangles[facet_idx].set_state(measurement.dominant_state);
+        result.surface_area += measurement.surface_area;
+        result.error_area += measurement.error_area;
+        if (measurement.error_area > 0.0)
+            candidates.push({facet_idx, facet_idx, m_neighbors[facet_idx], 0, measurement});
+    }
+
+    const double target_error = std::max(
+        absolute_error_epsilon, relative_error_limit * result.surface_area);
+    while (!candidates.empty() && result.error_area > target_error) {
+        Candidate candidate = candidates.top();
+        candidates.pop();
+        if (candidate.depth >= max_depth) {
+            result.depth_limit_reached = true;
+            continue;
+        }
+        if (node_budget < 4) {
+            result.node_budget_exhausted = true;
+            break;
+        }
+
+        Triangle &triangle = m_triangles[candidate.facet_idx];
+        assert(triangle.valid() && !triangle.is_split());
+        assert(this->verify_triangle_neighbors(triangle, candidate.neighbors));
+        result.error_area = std::max(0.0, result.error_area - candidate.measurement.error_area);
+        node_budget -= 4;
+        result.nodes_created += 4;
+        triangle.set_division(3, 0);
+        perform_split(candidate.facet_idx, candidate.neighbors, candidate.measurement.dominant_state);
+
+        for (int child_idx = 0; child_idx < 4; ++child_idx) {
+            const Triangle &parent = m_triangles[candidate.facet_idx];
+            const int child = parent.children[child_idx];
+            const Vec3i neighbors = this->child_neighbors(parent, candidate.neighbors, child_idx);
+            FacetSubdivisionMeasurement measurement =
+                normalize_measurement(evaluator(candidate.root_idx, triangle_vertices(child)));
+            m_triangles[child].set_state(measurement.dominant_state);
+            result.error_area += measurement.error_area;
+            if (measurement.error_area > 0.0)
+                candidates.push({candidate.root_idx, child, neighbors, candidate.depth + 1, measurement});
+        }
+    }
+
+    for (int facet_idx : facet_indices)
+        if (facet_idx >= 0 && facet_idx < m_orig_size_indices)
+            remove_useless_children(facet_idx);
+    result.error_area = std::clamp(result.error_area, 0.0, result.surface_area);
+    return result;
+}
+
 // called by select_patch()->select_triangle()...select_triangle()
 // to decide which sides of the triangle to split and to actually split it calling set_division() and perform_split().
 void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
@@ -1223,7 +1323,7 @@ void TriangleSelector::remove_useless_children(int facet_idx)
 
     // Call this for all non-leaf children.
     for (int child_idx=0; child_idx<=tr.number_of_split_sides(); ++child_idx) {
-        assert(child_idx < int(m_triangles.size()) && m_triangles[child_idx].valid());
+        assert(tr.children[child_idx] < int(m_triangles.size()) && m_triangles[tr.children[child_idx]].valid());
         if (m_triangles[tr.children[child_idx]].is_split())
             remove_useless_children(tr.children[child_idx]);
     }
