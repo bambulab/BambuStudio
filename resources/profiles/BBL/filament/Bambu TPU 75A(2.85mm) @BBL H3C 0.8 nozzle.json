@@ -30,7 +30,7 @@
         "0"
     ],
     "filament_deretraction_speed": [
-        "10"
+        "30"
     ],
     "filament_diameter": [
         "2.85"
@@ -42,7 +42,7 @@
         "Direct Drive TPU285"
     ],
     "filament_flow_ratio": [
-        "1.08"
+        "1"
     ],
     "filament_flush_temp": [
         "0"
@@ -111,13 +111,13 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "2"
+        "0.4"
     ],
     "filament_retraction_minimum_travel": [
         "nil"
     ],
     "filament_retraction_speed": [
-        "10"
+        "5"
     ],
     "filament_wipe": [
         "1"
@@ -129,7 +129,7 @@
         "nil"
     ],
     "filament_z_hop_types": [
-        "Normal Lift"
+        "Spiral Lift"
     ],
     "include": [
         "fdm_filament_template_direct_dual",
@@ -157,7 +157,7 @@
         "14"
     ],
     "slow_down_min_speed": [
-        "60"
+        "30"
     ],
     "volumetric_speed_coefficients": [
         "-72.1736 -8.8086 10.6201 29.6592 9.9286 -3.3920"

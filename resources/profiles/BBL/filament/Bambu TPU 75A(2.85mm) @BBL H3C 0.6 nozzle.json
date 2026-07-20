@@ -111,7 +111,7 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "2"
+        "1"
     ],
     "filament_retraction_minimum_travel": [
         "nil"
@@ -129,7 +129,7 @@
         "nil"
     ],
     "filament_z_hop_types": [
-        "Normal Lift"
+        "Auto Lift"
     ],
     "include": [
         "fdm_filament_template_direct_dual",
@@ -157,7 +157,7 @@
         "14"
     ],
     "slow_down_min_speed": [
-        "60"
+        "30"
     ],
     "volumetric_speed_coefficients": [
         "-72.1736 -8.8086 10.6201 29.6592 9.9286 -3.3920"
