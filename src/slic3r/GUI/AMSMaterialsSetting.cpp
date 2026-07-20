@@ -737,6 +737,13 @@ sCheckFilamentInfo(PresetBundle* preset_bundle,
     return result;
 }
 
+namespace {
+
+void remember_ams_recent_filament_preset(
+    const wxString& selected);
+
+} // namespace
+
 void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 {
     if (!obj) {
@@ -859,6 +866,13 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
     if (m_is_third) {
         obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, tray_color, m_filament_type, nozzle_temp_min_int, nozzle_temp_max_int,
                                            tray_colors, tray_ctype);
+
+        // Filament Manager entries are identified by their spool ID. Only
+        // remember actual system-preset aliases in the shared recent list.
+        if (m_selected_spool_id.empty()) {
+            remember_ams_recent_filament_preset(
+                m_comboBox_filament->GetValue());
+        }
     }
 
     // Optimistic local update: write the new color into the tray object immediately
@@ -1380,11 +1394,83 @@ static wxBitmap _render_spool_row_bitmap(wxWindow* ctx,
 //
 // The "(N)" suffix on Filament Manager group keys prevents DropDown's
 // top-level de-duplication from merging same-brand rows across sections.
+namespace {
+
+constexpr size_t AMS_RECENT_FILAMENT_PRESETS_MAX = 5;
+constexpr const char* AMS_RECENT_FILAMENT_PRESETS_KEY =
+    "ams_recent_filament_presets";
+
+std::vector<wxString> parse_ams_recent_filament_presets(
+    const std::string& value)
+{
+    std::vector<wxString> result;
+    std::stringstream stream(value);
+    std::string item;
+
+    while (std::getline(stream, item, '\n')) {
+        if (!item.empty())
+            result.emplace_back(from_u8(item));
+    }
+
+    return result;
+}
+
+std::string serialize_ams_recent_filament_presets(
+    const std::vector<wxString>& items)
+{
+    std::string value;
+
+    for (const wxString& item : items) {
+        if (item.empty())
+            continue;
+
+        if (!value.empty())
+            value += '\n';
+
+        value += into_u8(item);
+    }
+
+    return value;
+}
+
+std::vector<wxString> load_ams_recent_filament_presets()
+{
+    return parse_ams_recent_filament_presets(
+        wxGetApp().app_config->get(
+            AMS_RECENT_FILAMENT_PRESETS_KEY));
+}
+
+void remember_ams_recent_filament_preset(
+    const wxString& selected)
+{
+    if (selected.empty())
+        return;
+
+    std::vector<wxString> items =
+        load_ams_recent_filament_presets();
+
+    items.erase(
+        std::remove(items.begin(), items.end(), selected),
+        items.end());
+
+    items.insert(items.begin(), selected);
+
+    if (items.size() > AMS_RECENT_FILAMENT_PRESETS_MAX)
+        items.resize(AMS_RECENT_FILAMENT_PRESETS_MAX);
+
+    wxGetApp().app_config->set(
+        AMS_RECENT_FILAMENT_PRESETS_KEY,
+        serialize_ams_recent_filament_presets(items));
+}
+
+} // namespace
+
 static void _populate_filament_combobox_grouped(
     ::ComboBox*                                    combo,
     const wxArrayString&                           filament_items,
     const std::unordered_map<wxString, wxString>&  query_filament_vendors,
     const std::unordered_map<wxString, wxString>&  query_filament_types,
+    const std::vector<wxString>&                   recent_filament_items,
     std::map<int, std::string>*                    out_idx_to_spool_id = nullptr)
 {
     if (!combo) return;
@@ -1424,6 +1510,32 @@ static void _populate_filament_combobox_grouped(
     };
     for (auto& kv : brand_to_aliases)
         std::sort(kv.second.begin(), kv.second.end(), _intra_bucket_sorter);
+
+    // Keep recently used system presets in their shared recency order and
+    // remove them from the vendor buckets to avoid duplicate entries.
+    std::vector<wxString> recent_aliases;
+
+    for (const wxString& recent : recent_filament_items) {
+        for (auto& [vendor, aliases] : brand_to_aliases) {
+            auto alias_it =
+                std::find(aliases.begin(), aliases.end(), recent);
+
+            if (alias_it == aliases.end())
+                continue;
+
+            recent_aliases.emplace_back(*alias_it);
+            aliases.erase(alias_it);
+            break;
+        }
+    }
+
+    for (auto it = brand_to_aliases.begin();
+         it != brand_to_aliases.end();) {
+        if (it->second.empty())
+            it = brand_to_aliases.erase(it);
+        else
+            ++it;
+    }
 
     std::vector<wxString> ordered_brands;
     for (const wxString& b : priority_brands)
@@ -1592,14 +1704,36 @@ static void _populate_filament_combobox_grouped(
     }
 
     // Section 2
-    if (!ordered_brands.empty()) {
-        combo->Append(_L("System presets"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM);
-                for (const wxString& brand : ordered_brands) {
-                    for (const wxString& alias : brand_to_aliases[brand]) {
-                        combo->Append(alias, wxNullBitmap, brand, nullptr, 0);
-                    }
-                }
+    if (!recent_aliases.empty() || !ordered_brands.empty()) {
+        combo->Append(
+            _L("System presets"),
+            wxNullBitmap,
+            DD_ITEM_STYLE_SPLIT_ITEM);
+
+        if (!recent_aliases.empty()) {
+            const wxString recent_group = _L("Recently used");
+
+            for (const wxString& alias : recent_aliases) {
+                combo->Append(
+                    alias,
+                    wxNullBitmap,
+                    recent_group,
+                    nullptr,
+                    0);
             }
+        }
+
+        for (const wxString& brand : ordered_brands) {
+            for (const wxString& alias : brand_to_aliases[brand]) {
+                combo->Append(
+                    alias,
+                    wxNullBitmap,
+                    brand,
+                    nullptr,
+                    0);
+            }
+        }
+    }
 }
 
 static void _collect_filament_info(const wxString& shown_name,
@@ -1798,10 +1932,15 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     // the hint via a linear scan of the alias list.
     m_combo_idx_to_spool_id.clear();
     m_selected_spool_id.clear();
+
+    const std::vector<wxString> recent_filament_items =
+        load_ams_recent_filament_presets();
+
     _populate_filament_combobox_grouped(m_comboBox_filament,
                                         filament_items,
                                         query_filament_vendors,
                                         query_filament_types,
+                                        recent_filament_items,
                                         &m_combo_idx_to_spool_id);
 
     // If the current tray belongs to a Filament Manager spool, prefer selecting
