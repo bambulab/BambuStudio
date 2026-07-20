@@ -1863,6 +1863,8 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_extra_spacing((float)config.prime_tower_infill_gap.value/100.f),
     m_tower_framework(config.prime_tower_enable_framework.value),
     m_max_speed((float)config.prime_tower_max_speed.value*60.f),
+    m_tail_speed_factor(std::clamp((float)config.prime_tower_tail_speed_factor.value / 100.f, 0.1f, 1.f)),
+    m_tail_slowdown_volume(std::max(0.f, (float)config.prime_tower_tail_slowdown_volume.value)),
     m_accel_to_decel_enable(config.accel_to_decel_enable.value),
     m_accel_to_decel_factor(config.accel_to_decel_factor.value),
     m_printable_height(config.extruder_printable_height.values),
@@ -5400,6 +5402,109 @@ int WipeTower::get_wall_filament_for_all_layer()
     return filament_id;
 }
 
+// Reduce the feedrate of the trailing extrusion moves of an assembled wipe-tower visit so
+// that its last `tail_volume` mm3 of extrusion is printed at `speed_factor` of the original
+// speed. This softens the flow discontinuity when the toolhead leaves the wipe tower for the
+// model. It operates uniformly on any trailing toolpath (outer wall / wipe line / grid) and on
+// both linear (G1) and arc (G2/G3) moves. The wipe-tower writer emits relative E, so a move's
+// extruded volume equals E * filament_area. `tail_volume <= 0` slows the whole visit.
+static void apply_wipe_tower_tail_slowdown(std::string &gcode, float tail_volume, float speed_factor, float filament_area)
+{
+    if (gcode.empty() || filament_area <= 0.f || speed_factor >= 1.f - 1e-4f)
+        return;
+    speed_factor = std::clamp(speed_factor, 0.05f, 1.f);
+
+    // Split into lines (content only). Rejoining with '\n' reproduces the original exactly.
+    std::vector<std::string> lines;
+    {
+        size_t start = 0;
+        while (true) {
+            size_t nl = gcode.find('\n', start);
+            if (nl == std::string::npos) { lines.emplace_back(gcode.substr(start)); break; }
+            lines.emplace_back(gcode.substr(start, nl - start));
+            start = nl + 1;
+        }
+    }
+
+    // Return the numeric value of the token starting with `key` on a G-code move line.
+    auto get_param = [](const std::string &line, char key, float &out) -> bool {
+        size_t i = 0, n = line.size();
+        while (i < n) {
+            while (i < n && line[i] == ' ') ++i;
+            if (i >= n) break;
+            size_t tok = i;
+            while (i < n && line[i] != ' ') ++i;
+            if (line[tok] == key && i - tok >= 2) {
+                out = (float) string_to_double_decimal_point(std::string_view(line).substr(tok + 1, i - tok - 1));
+                return true;
+            }
+        }
+        return false;
+    };
+
+    // Replace the F value of a move line, or append one if the line has no explicit feedrate.
+    auto set_feedrate = [](std::string &line, float f) {
+        int fi = std::max(1, (int) std::floor(f + 0.5f));
+        size_t i = 0, n = line.size();
+        while (i < n) {
+            while (i < n && line[i] == ' ') ++i;
+            size_t tok = i;
+            while (i < n && line[i] != ' ') ++i;
+            if (tok < n && line[tok] == 'F') {
+                line = line.substr(0, tok) + "F" + std::to_string(fi) + line.substr(i);
+                return;
+            }
+        }
+        line += " F" + std::to_string(fi);
+    };
+
+    struct Move { int line_idx; float e; float feedrate; };
+    std::vector<Move> moves;
+    float current_feedrate = 0.f;
+    for (int idx = 0; idx < (int) lines.size(); ++idx) {
+        const std::string &line = lines[idx];
+        size_t p = line.find_first_not_of(' ');
+        if (p == std::string::npos || line[p] != 'G') continue;
+        size_t q = line.find(' ', p);
+        std::string cmd = line.substr(p, (q == std::string::npos ? line.size() : q) - p);
+        bool is_arc = (cmd == "G2" || cmd == "G3");
+        if (cmd != "G1" && !is_arc) continue;
+
+        float fval = 0.f, eval = 0.f, xval = 0.f, yval = 0.f;
+        bool has_f = get_param(line, 'F', fval);
+        bool has_e = get_param(line, 'E', eval);
+        bool has_x = get_param(line, 'X', xval);
+        bool has_y = get_param(line, 'Y', yval);
+        bool is_motion = has_x || has_y || is_arc;
+        // Track the running print feedrate from motion moves and standalone "G1 F" lines,
+        // but ignore pure retract/de-retract moves (E only) so retract speeds don't leak in.
+        if (has_f && (is_motion || (!has_e && !has_x && !has_y)))
+            current_feedrate = fval;
+        if (has_e && eval > 0.f && is_motion && current_feedrate > 0.f)
+            moves.push_back({idx, eval, current_feedrate});
+    }
+    if (moves.empty())
+        return;
+
+    float tail_len = (tail_volume <= 0.f) ? std::numeric_limits<float>::max() : tail_volume / filament_area;
+    float acc = 0.f;
+    for (int m = (int) moves.size() - 1; m >= 0; --m) {
+        if (acc >= tail_len - 1e-6f)
+            break;
+        acc += moves[m].e;
+        set_feedrate(lines[moves[m].line_idx], moves[m].feedrate * speed_factor);
+    }
+
+    std::string out;
+    out.reserve(gcode.size() + 16);
+    for (size_t i = 0; i < lines.size(); ++i) {
+        out += lines[i];
+        if (i + 1 < lines.size())
+            out += '\n';
+    }
+    gcode = std::move(out);
+}
+
 void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult>> &result)
 {
     if (m_plan.empty())
@@ -5605,6 +5710,19 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         if (only_generate_wall && !timelapse_wall.gcode.empty()) {
             layer_result.insert(layer_result.begin(), std::move(timelapse_wall));
         }
+
+        // Soften the flow discontinuity when the toolhead leaves the wipe tower for the model:
+        // slow down the last m_tail_slowdown_volume mm3 of every visit (whatever the trailing
+        // toolpath is: outer wall / wipe line / grid). Only for single-extruder multi-nozzle
+        // machines (N1x, handle_hotend_as_extruder) and never on the first layer.
+        if (m_handle_hotend_as_extruder && !is_first_layer() && m_tail_speed_factor < 1.f) {
+            for (auto &tcr : layer_result) {
+                size_t tail_tool = tcr.new_tool < m_filpar.size() ? tcr.new_tool : m_current_tool;
+                float  area      = tail_tool < m_filpar.size() ? m_filpar[tail_tool].filament_area : 0.f;
+                apply_wipe_tower_tail_slowdown(tcr.gcode, m_tail_slowdown_volume, m_tail_speed_factor, area);
+            }
+        }
+
         result.emplace_back(std::move(layer_result));
     }
     assert(m_outer_wall.size() == m_plan.size());

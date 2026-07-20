@@ -6605,6 +6605,23 @@ void PrintConfigDef::init_fff_params()
     def->min      = 10;
     def->set_default_value(new ConfigOptionFloat(90.));
 
+    def           = this->add("prime_tower_tail_speed_factor", coPercent);
+    def->label    = L("Tail speed factor");
+    def->tooltip  = L("Scale the printing speed of the last section printed each time before the toolhead leaves the prime tower (the length is set by the tail slowdown volume) relative to the tower printing speed. That trailing section may be the outer wall, a tool-change wipe or infill, whichever comes last. Lower values slow it down to soften the flow change when moving back to the model. Does not affect the first layer.");
+    def->sidetext = L("%");
+    def->mode     = comAdvanced;
+    def->min      = 10;
+    def->max      = 100;
+    def->set_default_value(new ConfigOptionPercent(100));
+
+    def           = this->add("prime_tower_tail_slowdown_volume", coFloat);
+    def->label    = L("Tail slowdown volume");
+    def->tooltip  = L("Only the final part printed each time before the toolhead leaves the prime tower, measured as this extruded volume, is slowed down by the tail speed factor; the rest keeps the normal tower speed. That trailing part may be the outer wall, a tool-change wipe or infill. Set to 0 to slow down the whole tower path of each visit. Does not affect the first layer.");
+    def->sidetext = L("mm³");
+    def->mode     = comAdvanced;
+    def->min      = 0;
+    def->set_default_value(new ConfigOptionFloat(10));
+
     def           = this->add("prime_tower_acceleration", coFloat);
     def->label    = L("Acceleration");
     def->tooltip  = L("The acceleration used for prime tower extrusions. Does not affect the first layer. 0 means using the global default acceleration.");

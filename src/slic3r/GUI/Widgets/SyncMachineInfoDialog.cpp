@@ -10,6 +10,7 @@
 #include "slic3r/GUI/GUI_Utils.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
+#include "slic3r/GUI/Plater.hpp"
 
 #include <algorithm>
 #include <cmath>

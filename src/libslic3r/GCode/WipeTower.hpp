@@ -591,6 +591,8 @@ private:
 	float			m_extra_spacing   = 1.f;
 	float           m_tpu_fixed_spacing = 2;
     float           m_max_speed = 5400.f;  // the maximum printing speed on the prime tower.
+    float           m_tail_speed_factor = 1.f;  // speed scale factor applied to the tail of each wipe-tower visit.
+    float           m_tail_slowdown_volume = 10.f;  // only the last N mm3 of each wipe-tower visit is slowed down; 0 = whole visit.
     std::vector<std::vector<Vec2f>> m_wall_skip_points;
     std::map<float,Polylines> m_outer_wall;
     std::vector<double>        m_printable_height;

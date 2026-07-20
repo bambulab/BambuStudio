@@ -1650,6 +1650,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloat,              wipe_tower_rotation_angle))
     ((ConfigOptionFloat,              prime_tower_brim_width))
     ((ConfigOptionFloat,              prime_tower_max_speed))
+    ((ConfigOptionPercent,            prime_tower_tail_speed_factor))
+    ((ConfigOptionFloat,              prime_tower_tail_slowdown_volume))
     ((ConfigOptionFloat,              prime_tower_acceleration))
     ((ConfigOptionFloat,              prime_tower_line_width))
     ((ConfigOptionFloat,              prime_tower_ramming_line_width))

@@ -99,6 +99,8 @@
     "prime_tower_flat_ironing": "0",
     "prime_tower_line_ironing": "1",
     "prime_tower_ironing_speed": "10",
+    "prime_tower_tail_speed_factor": "100%",
+    "prime_tower_tail_slowdown_volume": "10",
     "prime_tower_side_scrape": "0",
     "prime_tower_side_scrape_face": "front_back",
     "prime_tower_side_scrape_length": "2",

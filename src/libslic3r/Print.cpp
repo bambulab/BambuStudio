@@ -314,6 +314,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "prime_tower_enable_framework"
             || opt_key == "prime_tower_width"
             || opt_key == "prime_tower_max_speed"
+            || opt_key == "prime_tower_tail_speed_factor"
+            || opt_key == "prime_tower_tail_slowdown_volume"
             || opt_key == "prime_tower_lift_speed"
             || opt_key == "prime_tower_lift_height"
             || opt_key == "prime_tower_brim_width"

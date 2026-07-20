@@ -3473,6 +3473,8 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_enable_framework", "parameter/prime-tower#internal-ribs");
         optgroup->append_single_option_line("prime_tower_width","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_max_speed","parameter/prime-tower#max-speed");
+        optgroup->append_single_option_line("prime_tower_tail_speed_factor","parameter/prime-tower#max-speed");
+        optgroup->append_single_option_line("prime_tower_tail_slowdown_volume","parameter/prime-tower#max-speed");
         optgroup->append_single_option_line("prime_tower_brim_width","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_infill_gap","parameter/prime-tower#infill-gap");
         optgroup->append_single_option_line("prime_tower_rib_wall", "parameter/prime-tower#rib-wall");
