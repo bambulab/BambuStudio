@@ -766,9 +766,21 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
     curr_tray->current_extruder_id = curr_ams->GetCurrentExtruderId();
     curr_tray->binded_extruder_set = curr_ams->GetBindedExtruderSet();
     curr_tray->binded_switcher_pos = curr_ams->GetSwitcherPos();
+    // 把 is_exists 更新提前到 hold_count 守卫之前：物理插拔状态（feed-hall 传感器
+    // 的 tray_exist_bits）需要始终即时反映到 UI，不应受 hold 机制影响。
+    // hold 的用途是防止 slicer 发出 ams_filament_setting 之后紧接收到旧的
+    // push_status 而把类型/颜色等 identity 字段回滚，与物理在位状态无关。
+    int ams_id_int = 0;
+    int tray_id_int = 0;
+    try {
+        tray_id_int = atoi(curr_tray->id.c_str());
+        curr_tray->is_exists = DevUtil::get_flag_bits(obj->tray_exist_bits, curr_ams->GetTrayId(tray_id_int));
+    } catch (...) {
+    }
+
     if (curr_tray->hold_count > 0) {
         curr_tray->hold_count--;
-        return curr_tray;
+        return curr_tray;   // 只跳过类型/颜色等 identity 字段，is_exists 已更新
     }
 
     DevJsonValParser::ParseVal(j_tray, "tag_uid", curr_tray->tag_uid, std::string("0"));
@@ -829,14 +841,6 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
                 curr_tray->ctype = DevFilaColorType::CTYPE_MULTI;
             }
         }
-    }
-
-    int ams_id_int = 0;
-    int tray_id_int = 0;
-    try {
-        tray_id_int = atoi(curr_tray->id.c_str());
-        curr_tray->is_exists = DevUtil::get_flag_bits(obj->tray_exist_bits, curr_ams->GetTrayId(tray_id_int));
-    } catch (...) {
     }
 
     // Calibration k, n, cali_idx

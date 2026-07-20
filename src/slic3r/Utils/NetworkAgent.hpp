@@ -119,6 +119,7 @@ typedef int (*func_get_mw_user_preference)(void *agent, std::function<void(std::
 typedef int (*func_get_mw_user_4ulist)(void *agent, int seed, int limit, std::function<void(std::string)> callback);
 typedef int (*func_get_hms_snapshot)(void* agent, std::string& dev_id, std::string& file_name, std::function<void(std::string, int)> callback);
 typedef int (*func_sync_ams_filaments)(void *agent, AmsSyncParams params, std::string* http_body);
+typedef int (*func_sync_slot_mappings)(void *agent, SlotMappingsSyncParams params, std::string* http_body);
 
 //the NetworkAgent class
 class NetworkAgent
@@ -245,6 +246,7 @@ public:
     int get_mw_user_4ulist(int seed, int limit, std::function<void(std::string)> callback);
     int get_hms_snapshot(std::string dev_id, std::string file_name, std::function<void(std::string, int)> callback);
     int sync_ams_filaments(AmsSyncParams params, std::string* http_body);
+    int sync_slot_mappings(SlotMappingsSyncParams params, std::string* http_body);
     void *get_network_agent() { return network_agent; }
 
 private:
@@ -361,6 +363,7 @@ private:
     static func_get_mw_user_4ulist     get_mw_user_4ulist_ptr;
     static func_get_hms_snapshot       get_hms_snapshot_ptr;
     static func_sync_ams_filaments     sync_ams_filaments_ptr;
+    static func_sync_slot_mappings     sync_slot_mappings_ptr;
 };
 
 }

@@ -21,6 +21,7 @@
 
 #include "fila_manager/wgtFilaManagerStore.h"
 #include "fila_manager/wgtFilaManagerCloudDispatcher.h"
+#include "fila_manager/wgtFilaManagerCloudSync.h"
 #include "Widgets/Label.hpp"
 
 #include <wx/dcmemory.h>
@@ -165,9 +166,9 @@ void AMSMaterialsSetting::create()
     m_sizer_button->Add(m_button_reset, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
     m_sizer_button->Add(m_button_close, 0, wxALIGN_CENTER, 0);
 
-    m_sizer_main->Add(m_panel_normal, 0, wxALL, FromDIP(2));
+    m_sizer_main->Add(m_panel_normal, 0, 0, 0);
 
-    m_sizer_main->Add(m_panel_kn, 0, wxALL, FromDIP(2));
+    m_sizer_main->Add(m_panel_kn, 0, 0, 0);
 
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(24));
     m_sizer_main->Add(m_sizer_button, 0,  wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
@@ -988,22 +989,13 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
                                          ams_id,
                                          resolved_ams_type,
                                          std::to_string(slot_id))) {
-                store->save();
-                // Push in-printer snapshot to cloud.
-                if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
-                    const FilamentSpool* s = store->get_spool(m_selected_spool_id);
-                    if (s) {
-                        nlohmann::json patch = {
-                            {"in_printer",  s->in_printer},
-                            {"dev_id",      s->dev_id},
-                            {"ams_sn",      s->ams_sn},
-                            {"ams_id",      s->ams_id},
-                            {"ams_type",    s->ams_type},
-                            {"slot_id",     s->slot_id},
-                            {"device_name", s->device_name}
-                        };
-                        disp->enqueue_push_update(m_selected_spool_id, patch);
-                    }
+                // 手动绑定卷通过 slot-mappings/sync 上报绑定关系到云端。
+                // 官方 RFID 卷（tag_uid 有效）不走此路径（它们由 MQTT sync 自动
+                // 更新 in-printer 状态；手动绑定通常只针对无 RFID 的手动录入卷）。
+                if (auto* cloud = wxGetApp().fila_manager_cloud_sync()) {
+                    cloud->sync_slot_bindings_to_cloud(obj->get_dev_id(),
+                                                       {m_selected_spool_id},
+                                                       /*is_bind=*/true);
                 }
             }
         }
@@ -1952,9 +1944,17 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     if (auto tray_opt = obj->get_tray(std::to_string(ams_id), std::to_string(slot_id))) {
         auto* store = wxGetApp().fila_manager_store();
         const FilamentSpool* sp = nullptr;
-        // Prefer exact RFID match; fall back to setting_id+color for cloud-only spools.
-        if (!tray_opt->tag_uid.empty() && store)
-            sp = store->find_by_tag_uid(tray_opt->tag_uid);
+        // 与 wgtFilaManagerSync::match_tray 保持同一口径：
+        //   1. 槽位锚（用户手动绑定过 → in_printer + dev/ams/slot 三配）
+        //   2. tray.uuid 精确匹配（32 位云 UUID，不是 tray.tag_uid 那 16 位 NFC）
+        //   3. setting_id + color 唯一模糊匹配
+        if (store) {
+            sp = store->find_by_slot(obj->get_dev_id(),
+                                     std::to_string(ams_id),
+                                     std::to_string(slot_id));
+        }
+        if (!sp && store && !tray_opt->uuid.empty())
+            sp = store->find_by_tag_uid(tray_opt->uuid);
         if (!sp && store && !tray_opt->setting_id.empty())
             sp = store->find_by_setting_and_color(tray_opt->setting_id, tray_opt->color);
         if (sp) {

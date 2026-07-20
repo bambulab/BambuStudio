@@ -8,10 +8,10 @@
 #include "nlohmann/json.hpp"
 
 #include "AmsAutoPushThrottle.h"
+#include "wgtFilaManagerStore.h"
 
 namespace Slic3r { namespace GUI {
 
-class wgtFilaManagerStore;
 class wgtFilaManagerCloudClient;
 struct FilamentSpool;
 
@@ -52,6 +52,21 @@ public:
 
     void sync_ams_to_cloud(const std::string& dev_id,
                            const std::vector<std::string>& spool_ids);
+
+    // POST /my/filament/v2/slot-mappings/sync：耗材拔出时解绑云端槽位信息。
+    // spoolId 和 rfid 不传（零值），amsSn/slotId/amsId/amsType 传拔出前的在位值。
+    void sync_slot_mappings_to_cloud(const std::string& dev_id,
+                                     const std::vector<EjectedSlotSnapshot>& ejected);
+
+    // POST /my/filament/v2/slot-mappings/sync：手动录入卷（无官方 RFID）的绑定同步。
+    // is_bind=true：生成 bind payload（填 spoolId + rfid）；
+    //              仅 cloud_synced==true 且 spool_id 能解析为 int64 的条目才发送，
+    //              否则跳过（避免把本地 UUID 字符串作为 spoolId 上传）。
+    // is_bind=false：生成 unbind payload（spoolId=0, rfid=""），用于显式解绑。
+    // 官方 RFID 卷（is_valid_tag_uid==true）应走 sync_ams_to_cloud，不走此接口。
+    void sync_slot_bindings_to_cloud(const std::string& dev_id,
+                                     const std::vector<std::string>& spool_ids,
+                                     bool is_bind);
 
     // 用户手动覆盖入口：忽略 throttle 把所有"有 RFID + 有整卷净重"的 spool
     // 全部入 push 队列。即便都 enqueue 也会 record_success 保持 cooldown

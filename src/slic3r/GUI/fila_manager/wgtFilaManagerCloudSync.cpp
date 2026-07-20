@@ -990,6 +990,13 @@ void wgtFilaManagerCloudSync::sync_ams_to_cloud(
             item.amsType = 0;
         }
 
+        if (item.amsSn.empty()) {
+            BOOST_LOG_TRIVIAL(info)
+                << "[FilaCloudSync] sync_ams_to_cloud: skip sid=" << sid
+                << " reason=amsSn_empty";
+            continue;
+        }
+
         item.createNew = false;
         params.items.push_back(std::move(item));
     }
@@ -1001,6 +1008,134 @@ void wgtFilaManagerCloudSync::sync_ams_to_cloud(
         [dev_id](int code, const std::string& msg) {
             BOOST_LOG_TRIVIAL(warning)
                 << "[FilaCloudSync] sync_ams_to_cloud failed: dev=" << dev_id
+                << " code=" << code << " msg=" << msg;
+        });
+}
+
+void wgtFilaManagerCloudSync::sync_slot_mappings_to_cloud(
+    const std::string& dev_id,
+    const std::vector<EjectedSlotSnapshot>& ejected)
+{
+    if (ejected.empty() || !m_client) {
+        BOOST_LOG_TRIVIAL(info)
+            << "[FilaCloudSync] sync_slot_mappings_to_cloud early-return: dev=" << dev_id
+            << " ejected_empty=" << ejected.empty()
+            << " client_null=" << (!m_client);
+        return;
+    }
+
+    BBL::SlotMappingsSyncParams params;
+    params.devId = dev_id;
+
+    for (const auto& snap : ejected) {
+        BBL::SlotMappingItem item;
+        item.amsSn   = snap.ams_sn;
+        item.slotId  = snap.slot_id;
+        item.amsId   = snap.ams_id   >= 0 ? snap.ams_id   : 0;
+        item.amsType = snap.ams_type >= 0 ? snap.ams_type : 0;
+
+        if (item.amsSn.empty()) {
+            BOOST_LOG_TRIVIAL(info)
+                << "[FilaCloudSync] sync_slot_mappings_to_cloud: skip spool=" << snap.spool_id
+                << " reason=amsSn_empty";
+            continue;
+        }
+
+        params.mappings.push_back(std::move(item));
+
+        BOOST_LOG_TRIVIAL(info)
+            << "[FilaCloudSync] sync_slot_mappings_to_cloud: unplug spool="
+            << snap.spool_id << " amsSn=" << snap.ams_sn
+            << " slotId=" << snap.slot_id;
+    }
+
+    m_client->sync_slot_mappings(std::move(params),
+        [](const nlohmann::json&) {},
+        [dev_id](int code, const std::string& msg) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "[FilaCloudSync] sync_slot_mappings_to_cloud failed: dev=" << dev_id
+                << " code=" << code << " msg=" << msg;
+        });
+}
+
+void wgtFilaManagerCloudSync::sync_slot_bindings_to_cloud(
+    const std::string&              dev_id,
+    const std::vector<std::string>& spool_ids,
+    bool                            is_bind)
+{
+    if (spool_ids.empty() || !m_client) return;
+
+    BBL::SlotMappingsSyncParams params;
+    params.devId = dev_id;
+
+    for (const auto& sid : spool_ids) {
+        const FilamentSpool* s = m_store->get_spool(sid);
+        if (!s) {
+            BOOST_LOG_TRIVIAL(info)
+                << "[FilaCloudSync] sync_slot_bindings_to_cloud: skip sid=" << sid
+                << " reason=spool_not_found";
+            continue;
+        }
+
+
+        BBL::SlotMappingItem item;
+        item.amsSn   = s->ams_sn;
+        item.slotId  = s->slot_id;
+        item.amsId   = s->ams_id   >= 0 ? s->ams_id   : 0;
+        item.amsType = s->ams_type >= 0 ? s->ams_type : 0;
+
+        if (item.amsSn.empty()) {
+            BOOST_LOG_TRIVIAL(info)
+                << "[FilaCloudSync] sync_slot_bindings_to_cloud: skip sid=" << sid
+                << " reason=amsSn_empty";
+            continue;
+        }
+
+        if (is_bind) {
+            // spoolId 只在云端已同步（cloud_synced）且 spool_id 能解析为 int64 时发送。
+            // 本地离线创建的 spool_id 是 UUID 字符串，stoll 会抛异常 → 整条跳过，
+            // 不发错误的 spoolId=0（那会被云端解读为解绑）。
+            if (!s->cloud_synced) {
+                BOOST_LOG_TRIVIAL(info)
+                    << "[FilaCloudSync] sync_slot_bindings_to_cloud: skip sid=" << sid
+                    << " reason=not_cloud_synced";
+                continue;
+            }
+            try {
+                item.spoolId = static_cast<int>(std::stoll(s->spool_id));
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(info)
+                    << "[FilaCloudSync] sync_slot_bindings_to_cloud: skip sid=" << sid
+                    << " reason=spool_id_not_int64 spool_id=" << s->spool_id;
+                continue;
+            }
+            // rfid 只在 spool 有有效 tag_uid 时填（官方 RFID 录入后 tag_uid 非空非零）。
+            if (FilamentSpool::is_valid_tag_uid(s->tag_uid))
+                item.rfid = s->tag_uid;
+
+            BOOST_LOG_TRIVIAL(info)
+                << "[FilaCloudSync] sync_slot_bindings_to_cloud: bind spool_id=" << sid
+                << " spoolId=" << item.spoolId
+                << " amsSn=" << item.amsSn
+                << " slotId=" << item.slotId;
+        } else {
+            // is_bind=false：spoolId=0, rfid="" → 云端解读为解绑
+            BOOST_LOG_TRIVIAL(info)
+                << "[FilaCloudSync] sync_slot_bindings_to_cloud: unbind spool_id=" << sid
+                << " amsSn=" << item.amsSn
+                << " slotId=" << item.slotId;
+        }
+
+        params.mappings.push_back(std::move(item));
+    }
+
+    if (params.mappings.empty()) return;
+
+    m_client->sync_slot_mappings(std::move(params),
+        [](const nlohmann::json&) {},
+        [dev_id](int code, const std::string& msg) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "[FilaCloudSync] sync_slot_bindings_to_cloud failed: dev=" << dev_id
                 << " code=" << code << " msg=" << msg;
         });
 }

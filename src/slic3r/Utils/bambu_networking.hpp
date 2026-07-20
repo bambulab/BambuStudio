@@ -299,6 +299,20 @@ struct AmsSyncParams {
     std::vector<AmsSyncItem> items;
 };
 
+struct SlotMappingItem {
+    std::string amsSn;
+    std::string slotId;
+    int         spoolId = 0;
+    std::string rfid;
+    int         amsId   = 0;
+    int         amsType = 0;
+};
+
+struct SlotMappingsSyncParams {
+    std::string                 devId;
+    std::vector<SlotMappingItem> mappings;
+};
+
 struct PublishParams {
     std::string     project_name;
     std::string     project_3mf_file;

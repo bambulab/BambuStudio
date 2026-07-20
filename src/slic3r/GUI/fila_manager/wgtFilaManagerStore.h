@@ -17,6 +17,14 @@ struct MountUpdate {
     std::string ams_sn;
 };
 
+struct EjectedSlotSnapshot {
+    std::string spool_id;
+    std::string ams_sn;
+    int         ams_id   = -1;
+    int         ams_type = -1;
+    std::string slot_id;
+};
+
 struct FilamentSpool {
     std::string spool_id;
     std::string setting_id;
@@ -139,6 +147,15 @@ public:
     const FilamentSpool* find_by_setting_and_color(
         const std::string& setting_id, const std::string& color) const;
 
+    // 反查"当前登记在该槽位上"的 spool（槽位锚），命中条件：
+    //   in_printer == true && dev_id / ams_id / slot_id 三者全等。
+    // 多命中（数据异常）→ 返回 nullptr，让上层退回常规匹配。
+    // 用途：AMS sync 时优先复用用户手动绑定过的 spool_id ↔ 槽位映射，
+    //      解决同款多卷经 setting+color 模糊匹配无法唯一命中的问题。
+    const FilamentSpool* find_by_slot(const std::string& dev_id,
+                                      const std::string& ams_id,
+                                      const std::string& slot_id) const;
+
     // STUDIO-18155：返回所有 spool 的 id 拷贝（不暴露内部 map），调用方可
     // 配合 get_spool 遍历做 push_all_now / 全量同步等批量操作。
     std::vector<std::string> all_spool_ids() const;
@@ -173,7 +190,8 @@ public:
     bool apply_mount_diff(const std::string& dev_id,
                           const std::string& dev_name,
                           const std::map<std::string, MountUpdate>& present_now,
-                          std::vector<std::string>* out_changed_ids = nullptr);
+                          std::vector<std::string>* out_changed_ids = nullptr,
+                          std::vector<EjectedSlotSnapshot>* out_ejected = nullptr);
 
 private:
     std::string get_storage_path() const;

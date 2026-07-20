@@ -338,6 +338,27 @@ const FilamentSpool* wgtFilaManagerStore::find_by_setting_and_color(
 
 // ---------- JSON for WebView ----------
 
+const FilamentSpool* wgtFilaManagerStore::find_by_slot(const std::string& dev_id,
+                                                       const std::string& ams_id,
+                                                       const std::string& slot_id) const
+{
+    if (dev_id.empty() || ams_id.empty() || slot_id.empty()) return nullptr;
+
+    const FilamentSpool* match = nullptr;
+    int count = 0;
+    for (auto& [id, spool] : m_spools) {
+        if (!spool.in_printer)          continue;
+        if (spool.dev_id  != dev_id)    continue;
+        if (spool.slot_id != slot_id)   continue;
+        if (spool.ams_id < 0)           continue;
+        if (std::to_string(spool.ams_id) != ams_id) continue;
+
+        match = &spool;
+        ++count;
+    }
+    return count == 1 ? match : nullptr;
+}
+
 nlohmann::json wgtFilaManagerStore::spools_to_json() const
 {
     nlohmann::json arr = nlohmann::json::array();
@@ -373,7 +394,8 @@ bool wgtFilaManagerStore::apply_mount_diff(
     const std::string& dev_id,
     const std::string& dev_name,
     const std::map<std::string, MountUpdate>& present_now,
-    std::vector<std::string>* out_changed_ids)
+    std::vector<std::string>* out_changed_ids,
+    std::vector<EjectedSlotSnapshot>* out_ejected)
 {
     bool changed = false;
     for (auto& [id, s] : m_spools) {
@@ -406,6 +428,9 @@ bool wgtFilaManagerStore::apply_mount_diff(
                 if (out_changed_ids) out_changed_ids->push_back(id);
             }
         } else if (was_our_hold) {
+            // 在清空前捕获拔出快照，供 slot-mappings/sync 解绑使用
+            if (out_ejected)
+                out_ejected->push_back({id, s.ams_sn, s.ams_id, s.ams_type, s.slot_id});
             // 本机上一次拥有它、这次没上报 → 本机拔出事件，清字段
             s.in_printer  = false;
             s.dev_id.clear();

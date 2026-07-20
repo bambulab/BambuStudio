@@ -139,6 +139,7 @@ func_get_mw_user_preference         NetworkAgent::get_mw_user_preference_ptr = n
 func_get_mw_user_4ulist             NetworkAgent::get_mw_user_4ulist_ptr     = nullptr;
 func_get_hms_snapshot               NetworkAgent::get_hms_snapshot_ptr       = nullptr;
 func_sync_ams_filaments             NetworkAgent::sync_ams_filaments_ptr     = nullptr;
+func_sync_slot_mappings             NetworkAgent::sync_slot_mappings_ptr     = nullptr;
 
 NetworkAgent::NetworkAgent(std::string log_dir)
 {
@@ -392,6 +393,7 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
     get_mw_user_4ulist_ptr     = reinterpret_cast<func_get_mw_user_4ulist>(get_network_function("bambu_network_get_mw_user_4ulist"));
     get_hms_snapshot_ptr       = reinterpret_cast<func_get_hms_snapshot>(get_network_function("bambu_network_get_hms_snapshot"));
     sync_ams_filaments_ptr     = reinterpret_cast<func_sync_ams_filaments>(get_network_function("bambu_network_sync_ams_filaments"));
+    sync_slot_mappings_ptr     = reinterpret_cast<func_sync_slot_mappings>(get_network_function("bambu_network_sync_slot_mappings"));
 
     return 0;
 }
@@ -521,6 +523,7 @@ int NetworkAgent::unload_network_module()
     get_mw_user_preference_ptr        = nullptr;
     get_mw_user_4ulist_ptr            = nullptr;
     sync_ams_filaments_ptr            = nullptr;
+    sync_slot_mappings_ptr            = nullptr;
 
     return 0;
 }
@@ -1550,6 +1553,18 @@ int NetworkAgent::sync_ams_filaments(AmsSyncParams params, std::string* http_bod
         return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
     int ret = sync_ams_filaments_ptr(network_agent, params, http_body);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") % network_agent % ret;
+    return ret;
+}
+
+int NetworkAgent::sync_slot_mappings(SlotMappingsSyncParams params, std::string* http_body)
+{
+    if (!network_agent || !sync_slot_mappings_ptr) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
+            << network_agent << " func_ptr=" << (void*)sync_slot_mappings_ptr << ")";
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
+    }
+    int ret = sync_slot_mappings_ptr(network_agent, params, http_body);
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") % network_agent % ret;
     return ret;
 }

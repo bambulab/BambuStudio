@@ -7,6 +7,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceManager.hpp"
 
 #include <wx/app.h>
@@ -55,6 +56,15 @@ bool wgtFilaManagerSync::on_device_disconnect(const std::string& dev_id,
                                               const std::string& dev_name)
 {
     if (!m_store) return false;
+    // 断连时清除该设备所有槽位的历史在位状态，避免重连后首轮 sync
+    // 把所有槽位都误判为"重新插入"并触发 reset。
+    const std::string prefix = dev_id + ":";
+    for (auto it = m_prev_tray_exists.begin(); it != m_prev_tray_exists.end(); ) {
+        if (it->first.rfind(prefix, 0) == 0)
+            it = m_prev_tray_exists.erase(it);
+        else
+            ++it;
+    }
     // 空 present_now → was_our_hold 的 spool 全部清字段
     const std::map<std::string, MountUpdate> empty;
     return m_store->apply_mount_diff(dev_id, dev_name, empty);
@@ -89,9 +99,55 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
     //      字段由 update_spool_if_changed 在 store 层防御覆盖，不可被 sync 改写
     auto handle_tray = [&](const DevAmsTray& tray, const std::string& ams_id,
                            int ams_type_int) {
+        // key 用于追踪该槽位上一轮的 is_exists 状态（检测重新插入跳变）。
+        const std::string tray_key = dev_id + ":" + ams_id + ":" + tray.id;
+
+        // 物理上已拔出（is_exists=false）的槽位直接跳过，让 apply_mount_diff
+        // 把它从 present_now 中排除，触发拔出事件。
+        // 注意：官方 RFID 耗材拔出后 tray.tag_uid 仍然非空（保留最后一次上报
+        // 的 NFC 硬件 ID），若只靠 setting_id/tag_uid 判空会错过拔出检测，
+        // 导致对应 spool 的在位状态无法被清除。
+        if (!tray.is_exists) {
+            m_prev_tray_exists[tray_key] = false;
+            return;
+        }
+
+        // 可编辑槽（无官方 RFID）重新插入检测：固件会回放上次通过
+        // ams_filament_setting 设置的 tray_info_idx/tray_type/tray_color，导致
+        // 槽位显示旧料而非 "?"。检测到 false→true 跳变时立即发清空命令。
+        {
+            const bool was_exists = [&]() {
+                auto it = m_prev_tray_exists.find(tray_key);
+                return it != m_prev_tray_exists.end() && it->second;
+            }();
+            m_prev_tray_exists[tray_key] = true;
+
+            const bool is_editable_slot =
+                !DevFilaSystem::IsBBL_Filament(tray.tag_uid)
+                && !FilamentSpool::is_valid_tag_uid(tray.uuid);
+
+            if (!was_exists && is_editable_slot) {
+                int ams_id_int  = -1;
+                int slot_id_int = -1;
+                try { ams_id_int  = std::stoi(ams_id);  } catch (...) {}
+                try { slot_id_int = std::stoi(tray.id); } catch (...) {}
+                if (ams_id_int >= 0 && slot_id_int >= 0) {
+                    auto* mgr = wxGetApp().getDeviceManager();
+                    if (MachineObject* obj_ptr = mgr ? mgr->get_my_machine(dev_id) : nullptr)
+                        obj_ptr->command_ams_filament_settings(
+                            ams_id_int, slot_id_int,
+                            std::string{}, std::string{},
+                            std::string("FFFFFFFF00"), std::string{}, 0, 0);
+                    BOOST_LOG_TRIVIAL(info)
+                        << "[ams-sync] editable slot re-inserted, reset to '?'"
+                        << " ams_id=" << ams_id << " slot_id=" << tray.id;
+                }
+            }
+        }
+
         if (tray.setting_id.empty() && tray.tag_uid.empty()) return;
 
-        const FilamentSpool* matched = match_tray(tray);
+        const FilamentSpool* matched = match_tray(tray, dev_id, ams_id);
         if (!matched) {
             // Q5：未匹配 → 不再 add_spool。新增料卷只走 UI "添加耗材-从 AMS
             // 读取" 入口，避免 AMS 现场快照污染长期库存账本。
@@ -180,9 +236,10 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
     // 一次性 diff apply：本机拥有权范围内做增/删/改，
     // 未变化的 spool 字段保持原值 → 前端看到稳定值不跳变。
     // out_changed_ids 收集本轮在位字段发生变化的 spool id，供后续单独推云端。
-    std::vector<std::string> mount_changed_ids;
+    std::vector<std::string>         mount_changed_ids;
+    std::vector<EjectedSlotSnapshot> ejected_snapshots;
     const bool mount_changed = m_store->apply_mount_diff(
-        dev_id, dev_name, present_now, &mount_changed_ids);
+        dev_id, dev_name, present_now, &mount_changed_ids, &ejected_snapshots);
 
     if (any_changed || mount_changed) m_store->set_dirty();
 
@@ -198,27 +255,89 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         }
     }
 
+    // 拔出事件由路径 C 独占，从路径 B 列表中排除，避免同时发两个接口
+    if (!ejected_snapshots.empty()) {
+        std::set<std::string> ejected_ids;
+        for (const auto& snap : ejected_snapshots)
+            ejected_ids.insert(snap.spool_id);
+        mount_changed_ids.erase(
+            std::remove_if(mount_changed_ids.begin(), mount_changed_ids.end(),
+                           [&ejected_ids](const std::string& id) {
+                               return ejected_ids.count(id) > 0;
+                           }),
+            mount_changed_ids.end());
+    }
+
     // 在位字段单独变化（余量未变）的 spool → 批量同步到云端（路径 B）。
-    // 路径 B 独立负责在位字段的云端同步，不被路径 A 过滤；两路允许并发推送
-    // 同一 spool（云端幂等，最后到达者覆盖）。
+    // 路径 B 按 tag_uid 区分官方 RFID 卷与手动录入卷：
+    //   - 官方 RFID 卷（is_valid_tag_uid==true） → sync_ams_to_cloud（POST /ams/sync）
+    //   - 手动录入卷（is_valid_tag_uid==false）  → sync_slot_bindings_to_cloud
+    //       （POST /slot-mappings/sync，bind payload 带 spoolId/rfid）
+    // 两路允许并发推送同一 spool（云端幂等，最后到达者覆盖）。
     if (!mount_changed_ids.empty()) {
         if (auto* cloud = wxGetApp().fila_manager_cloud_sync()) {
-            BOOST_LOG_TRIVIAL(info)
-                << "[ams-sync] path B: dev=" << obj->get_dev_id()
-                << " mount_changed=" << mount_changed_ids.size()
-                << " -> CALL sync_ams_to_cloud";
+            std::vector<std::string> rfid_ids, manual_ids;
+            for (const auto& sid : mount_changed_ids) {
+                const FilamentSpool* sp = m_store->get_spool(sid);
+                if (!sp) continue;
+                if (FilamentSpool::is_valid_tag_uid(sp->tag_uid))
+                    rfid_ids.push_back(sid);
+                else
+                    manual_ids.push_back(sid);
+            }
 
-            cloud->sync_ams_to_cloud(obj->get_dev_id(), mount_changed_ids);
+            if (!rfid_ids.empty()) {
+                BOOST_LOG_TRIVIAL(info)
+                    << "[ams-sync] path B rfid: dev=" << dev_id
+                    << " count=" << rfid_ids.size()
+                    << " -> CALL sync_ams_to_cloud";
+                cloud->sync_ams_to_cloud(dev_id, rfid_ids);
+            }
+            if (!manual_ids.empty()) {
+                BOOST_LOG_TRIVIAL(info)
+                    << "[ams-sync] path B manual: dev=" << dev_id
+                    << " count=" << manual_ids.size()
+                    << " -> CALL sync_slot_bindings_to_cloud (bind)";
+                cloud->sync_slot_bindings_to_cloud(dev_id, manual_ids, /*is_bind=*/true);
+            }
+        }
+    }
+
+    // 路径 C：拔出事件 → 通过 slot-mappings/sync 解绑云端槽位
+    if (!ejected_snapshots.empty()) {
+        if (auto* cloud = wxGetApp().fila_manager_cloud_sync()) {
+            BOOST_LOG_TRIVIAL(info)
+                << "[ams-sync] path C: dev=" << obj->get_dev_id()
+                << " ejected=" << ejected_snapshots.size()
+                << " -> CALL sync_slot_mappings_to_cloud";
+
+            cloud->sync_slot_mappings_to_cloud(obj->get_dev_id(), ejected_snapshots);
         }
     }
 
     return mount_changed;
 }
 
-const FilamentSpool* wgtFilaManagerSync::match_tray(const DevAmsTray& tray)
+const FilamentSpool* wgtFilaManagerSync::match_tray(const DevAmsTray& tray,
+                                                    const std::string& dev_id,
+                                                    const std::string& ams_id)
 {
-    // tray.uuid 是云端分配的 UUID（32字符），与耗材入库时存储的 spool.tag_uid 格式一致。
-    // tray.tag_uid 是 NFC 芯片硬件 ID（16字符），两者不同，不能混用。
+    // 0. 槽位锚优先：用户手动绑定耗材到 AMS 槽位时，AMSMaterialsSetting 会调用
+    //    wgtFilaManagerStore::force_mount_spool 把 (dev_id, ams_id, slot_id) 钉
+    //    在 spool 上；重启后云端 pull 也会恢复这些字段。此分支唯一能解决"同款
+    //    多卷"（setting_id+color 都相同）经模糊匹配 count>1 返回 nullptr 的场景。
+    //    命中后必须做 slot_pin_still_valid 校验：若 spool 的类型/颜色已被用户
+    //    手动改动，视为不同物理卷，锚立即失效退回常规匹配。
+    if (!dev_id.empty() && !ams_id.empty() && !tray.id.empty()) {
+        if (auto* pinned = m_store->find_by_slot(dev_id, ams_id, tray.id)) {
+            if (slot_pin_still_valid(*pinned, tray))
+                return pinned;
+        }
+    }
+
+    // 1. RFID/UUID 精确匹配：
+    //    tray.uuid 是云端分配的 UUID（32字符），与耗材入库时存储的 spool.tag_uid 格式一致。
+    //    tray.tag_uid 是 NFC 芯片硬件 ID（16字符），两者不同，不能混用。
     if (!tray.uuid.empty()) {
         auto* sp = m_store->find_by_tag_uid(tray.uuid);
         if (sp) return sp;
@@ -226,11 +345,43 @@ const FilamentSpool* wgtFilaManagerSync::match_tray(const DevAmsTray& tray)
         // 避免将官方 RFID 耗材的在位信息错误写到仅类型/颜色相同的手动录入耗材上。
         if (FilamentSpool::is_valid_tag_uid(tray.uuid)) return nullptr;
     }
-    if (!tray.setting_id.empty()) {
-        auto* sp = m_store->find_by_setting_and_color(tray.setting_id, tray.color);
-        if (sp) return sp;
-    }
+    // 2. setting_id + color 唯一模糊匹配（同款多卷时 count>1 会返回 nullptr）
+    // if (!tray.setting_id.empty()) {
+    //     auto* sp = m_store->find_by_setting_and_color(tray.setting_id, tray.color);
+    //     if (sp) return sp;
+    // }
     return nullptr;
+}
+
+bool wgtFilaManagerSync::slot_pin_still_valid(const FilamentSpool& sp,
+                                              const DevAmsTray&    tray)
+{
+    // 用户表态的锚失效条件：颜色 / 品牌 / 类型 / 系列 手动改任一 → 视为不同物理卷。
+    // brand / material_type / series 在耗材管理器编辑对话框里被手动修改，
+    // 这里逐字段比对而不是只看 setting_id，避免 setting_id 组合口径变化导致漏判。
+    // AMS 侧 tray.sub_brands 对应 series；tray.m_fila_type 对应 material_type；
+    // 品牌无独立 tray 字段（tray.setting_id 前 3 位间接表达），因此若品牌被改，
+    // setting_id 会随之变，用 setting_id 兜底品牌变化即可。
+    if (!tray.setting_id.empty() && sp.setting_id != tray.setting_id) return false;
+    if (!tray.sub_brands.empty()  && !sp.series.empty()
+        && sp.series != tray.sub_brands) return false;
+    if (!tray.m_fila_type.empty() && !sp.material_type.empty()
+        && sp.material_type != tray.m_fila_type) return false;
+
+    // color 归一化：spool.color_code 是 "#RRGGBB"（6 位带 #），
+    // tray.color 是 "RRGGBBAA"（8 位无 #），统一到 6 位大写 RRGGBB 再比较。
+    if (!tray.color.empty()) {
+        auto norm = [](const std::string& c) {
+            std::string s = c;
+            if (!s.empty() && s[0] == '#') s = s.substr(1);
+            if (s.size() == 8) s = s.substr(0, 6);
+            for (auto& ch : s) ch = static_cast<char>(toupper(static_cast<unsigned char>(ch)));
+            return s;
+        };
+        if (norm(sp.color_code) != norm(tray.color)) return false;
+    }
+
+    return true;
 }
 
 }} // namespace Slic3r::GUI
