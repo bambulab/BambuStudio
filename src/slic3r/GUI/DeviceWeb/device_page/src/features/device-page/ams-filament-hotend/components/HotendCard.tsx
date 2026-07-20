@@ -177,7 +177,7 @@ export function HotendCard({
           <div className="hotend-readout hotend-readout-empty" aria-hidden="true" />
         )}
 
-        <ToolIcon kind={hot.tool_kind ?? 'empty'} op={op} />
+        <ToolIcon kind={hot.tool_kind ?? 'empty'} op={op} withError={op === 'Error'} />
 
         <ToolLabel
           kind={hot.tool_kind ?? 'empty'}

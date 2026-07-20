@@ -2022,8 +2022,9 @@
   top: 5px;
 }
 
-/* "Lost" badge: grey "!" circle overlaid near the top of the hotend body,
-   matching Figma 1882:112113 (tool connected but dropped off the rack). */
+/* Status badge overlaid near the top of the hotend body: red "!" for the
+   abnormal/error state (Figma 1882:27871), grey "!" for lost/unknown. */
+.hotend-icon-error-badge,
 .hotend-icon-lost-badge,
 .hotend-icon-unknown-badge {
   position: absolute;

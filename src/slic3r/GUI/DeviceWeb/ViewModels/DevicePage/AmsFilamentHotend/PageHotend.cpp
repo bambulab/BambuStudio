@@ -364,17 +364,22 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         hotend_op_state == SV::hotend_op_state::taking ||
         hotend_op_state == SV::hotend_op_state::placing ||
         hotend_op_state == SV::hotend_op_state::removing;
-    const bool hotend_can_operate = has_hotend_slot && !hotend_busy;
+    const bool hotend_can_operate = has_hotend_slot && !hotend_busy && hotend_op_state != SV::hotend_op_state::error;
     const nlohmann::json hotend_menu_actions = {
         {SK::hotend_menu_actions::can_read, hotend_can_operate && hotend_tool_kind == SV::tool_kind::nozzle},
         {SK::hotend_menu_actions::can_detail, has_hotend_slot},
         {SK::hotend_menu_actions::can_set_temperature, hotend_can_operate && hotend_tool_kind == SV::tool_kind::nozzle && hotend_op_state != SV::hotend_op_state::error},
         {SK::hotend_menu_actions::can_take_place, hotend_can_operate}
     };
+
+    bool can_edit_filament = card_state != SV::card_state::empty;
+    bool can_load_filament = line_state == SV::line_state::no_filament && card_state != SV::card_state::empty &&
+                             (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);
+    bool can_unload_filament = line_state == SV::line_state::loaded && (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);;
     const nlohmann::json menu_actions = {
-        {SK::menu_actions::can_edit, card_state != SV::card_state::empty},
-        {SK::menu_actions::can_load, line_state == SV::line_state::no_filament && card_state != SV::card_state::empty},
-        {SK::menu_actions::can_unload, line_state == SV::line_state::loaded},
+        {SK::menu_actions::can_edit, can_edit_filament},
+        {SK::menu_actions::can_load, can_load_filament },
+        {SK::menu_actions::can_unload, can_unload_filament},
         {SK::menu_actions::can_read, card_state != SV::card_state::reading && card_state != SV::card_state::empty},
         {SK::menu_actions::can_ams_operation, bind_ams_slot_count > 0}
     };
