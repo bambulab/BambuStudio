@@ -2793,8 +2793,87 @@ void GUI_App::UnRegisterMacPowerCallBack()
 }
 #endif
 
+#ifdef __linux__
+
+namespace {
+
+bool is_x11_session()
+{
+    wxString session_type;
+
+    if (wxGetEnv(wxS("XDG_SESSION_TYPE"), &session_type) &&
+        !session_type.empty()) {
+        return session_type.CmpNoCase(wxS("x11")) == 0;
+    }
+
+    wxString display;
+    wxString wayland_display;
+
+    const bool has_x11_display =
+        wxGetEnv(wxS("DISPLAY"), &display) &&
+        !display.empty();
+
+    const bool has_wayland_display =
+        wxGetEnv(wxS("WAYLAND_DISPLAY"), &wayland_display) &&
+        !wayland_display.empty();
+
+    return has_x11_display && !has_wayland_display;
+}
+
+bool is_nvidia_kernel_driver_loaded()
+{
+    return boost::filesystem::exists(
+               "/proc/driver/nvidia/version") ||
+           boost::filesystem::exists(
+               "/sys/module/nvidia/version");
+}
+
+void apply_webkitgtk_nvidia_x11_workaround()
+{
+    if (!is_x11_session() ||
+        !is_nvidia_kernel_driver_loaded()) {
+        return;
+    }
+
+    bool changed = false;
+    wxString current_value;
+
+    if (!wxGetEnv(
+            wxS("WEBKIT_DISABLE_COMPOSITING_MODE"),
+            &current_value)) {
+        changed =
+            wxSetEnv(
+                wxS("WEBKIT_DISABLE_COMPOSITING_MODE"),
+                wxS("1")) ||
+            changed;
+    }
+
+    if (!wxGetEnv(
+            wxS("WEBKIT_DISABLE_DMABUF_RENDERER"),
+            &current_value)) {
+        changed =
+            wxSetEnv(
+                wxS("WEBKIT_DISABLE_DMABUF_RENDERER"),
+                wxS("1")) ||
+            changed;
+    }
+
+    if (changed) {
+        BOOST_LOG_TRIVIAL(info)
+            << "Applied WebKitGTK NVIDIA/X11 startup workaround";
+    }
+}
+
+} // namespace
+
+#endif // __linux__
+
 bool GUI_App::OnInit()
 {
+#ifdef __linux__
+    apply_webkitgtk_nvidia_x11_workaround();
+#endif
+
 #ifdef __APPLE__
     RegisterMacPowerCallBack();
 #endif
