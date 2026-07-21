@@ -450,6 +450,25 @@ export function SpoolTable({
                             );
                           })()}
                         </div>
+                        {s.note && (
+                          <div
+                            data-testid="filament-row-note"
+                            className="flex items-center gap-1 text-xs text-fm-text-detail leading-[19px] min-w-0"
+                          >
+                            <svg
+                              className="shrink-0 w-3 h-3 opacity-60"
+                              viewBox="0 0 12 12"
+                              fill="none"
+                              aria-hidden="true"
+                            >
+                              <rect x="1" y="1" width="10" height="10" rx="1" stroke="currentColor" strokeWidth="1.1" />
+                              <line x1="3" y1="4" x2="9" y2="4" stroke="currentColor" strokeWidth="1" />
+                              <line x1="3" y1="6.5" x2="9" y2="6.5" stroke="currentColor" strokeWidth="1" />
+                              <line x1="3" y1="9" x2="6.5" y2="9" stroke="currentColor" strokeWidth="1" />
+                            </svg>
+                            <span className="truncate" title={s.note}>{s.note}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </td>
