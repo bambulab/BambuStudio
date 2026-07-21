@@ -597,7 +597,7 @@ msgid "Triangular facet"
 msgstr ""
 
 msgid "Warning: All triangle areas are too small,The current function is not working."
-msgstr ""
+msgstr "Warning: All triangle areas are too small. The current function is not working."
 
 msgid "Lay on face"
 msgstr "Lay on Face"
@@ -2990,7 +2990,7 @@ msgid "Enabling filtration redirects the right fan to filter gas, which may redu
 msgstr ""
 
 msgid "Enabling filtration during printing may reduce cooling and affect print qulity. Please choose carefully"
-msgstr ""
+msgstr "Enabling filtration during printing may reduce cooling and affect print quality.\nPlease choose carefully"
 
 msgid "The selected material only supports the current fan mode, and it can't be changed during printing."
 msgstr ""
@@ -7227,7 +7227,7 @@ msgid "Update"
 msgstr ""
 
 msgid "Assistant(HMS)"
-msgstr ""
+msgstr "Assistant (HMS)"
 
 msgid "Go to"
 msgstr ""
