@@ -130,7 +130,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
             .emit("liveview_session_end", p, &m_media_ctrl->m_track_channel);
         delete ss;
     });
-    m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
+    m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/liveview_bg.png"));
 
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
     m_button_play->SetCanFocus(false);
@@ -640,7 +640,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
     ++m_failed_retry;
 
     // Set idle image after video stops
-    m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
+    m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/liveview_bg.png"));
 
     bool local = tunnel == "local" || tunnel == "rtsp" ||
                  tunnel == "rtsps";
@@ -860,7 +860,7 @@ void MediaPlayCtrl::RequestFileSystemUrl(std::function<void(std::string url)> cb
 void MediaPlayCtrl::start_device_image_flow()
 {
     if (!m_support_liveview_preview) {
-        m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
+        m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/liveview_bg.png"));
         BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: skipped, liveview preview not supported";
         return;
     }
@@ -885,7 +885,7 @@ void MediaPlayCtrl::start_device_image_flow()
 
     // Only reset to default image if we don't have a cached preview for this machine
     if (m_image_last_machine != m_machine) {
-        m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
+        m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/liveview_bg.png"));
     }
 
     // Reset transfer object completely to avoid stale state after CancelAll
