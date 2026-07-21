@@ -87,7 +87,7 @@
 		"support_wrapping_detection": false,
 		"compatible_machine": [],
 		"printer_type": "N10",
-		"printer_thumbnail_image": "printer_thumbnail_N7",
+		"printer_thumbnail_image": "printer_thumbnail_N10",
 		"printer_connect_help_image": "input_access_code_x1",
 		"printer_use_ams_image": "ams_icon",
 		"printer_ext_image": ["ext_image_n7"],
