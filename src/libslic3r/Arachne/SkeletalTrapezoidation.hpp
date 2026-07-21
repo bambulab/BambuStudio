@@ -515,7 +515,7 @@ protected:
      * beads.
      * \return The beading at the interpolated location.
      */
-    Beading interpolate(const Beading& left, double ratio_left_to_whole, const Beading& right, coord_t switching_radius) const;
+    static Beading interpolate(const Beading& left, double ratio_left_to_whole, const Beading& right, coord_t switching_radius);
 
     /*!
      * Subroutine of \ref interpolate(const Beading&, Ratio, const Beading&, coord_t)
@@ -528,7 +528,7 @@ protected:
      * \param right One of the beadings to interpolate between.
      * \return The beading at the interpolated location.
      */
-    Beading interpolate(const Beading& left, double ratio_left_to_whole, const Beading& right) const;
+    static Beading interpolate(const Beading& left, double ratio_left_to_whole, const Beading& right);
 
     /*!
      * Get the beading at a certain node of the skeletal graph, or create one if
