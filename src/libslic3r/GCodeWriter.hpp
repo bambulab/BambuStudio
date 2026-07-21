@@ -26,6 +26,7 @@ public:
     GCodeWriter() :
         multiple_extruders(false), m_curr_filament_extruder{ nullptr,nullptr },
         m_curr_extruder_id (-1),
+        m_current_process_config_idx(0),
         m_single_extruder_multi_material(false),
         m_last_acceleration(0), m_max_acceleration(0),
         m_last_jerk(0), m_max_jerk(0),
@@ -142,6 +143,7 @@ private:
     bool            m_single_extruder_multi_material;
     std::vector<Extruder*> m_curr_filament_extruder;
     int        m_curr_extruder_id;
+    size_t     m_current_process_config_idx;
     unsigned int    m_last_acceleration;
     // Limit for setting the acceleration, to respect the machine limits set for the Marlin firmware.
     // If set to zero, the limit is not in action.
