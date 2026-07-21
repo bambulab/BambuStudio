@@ -244,6 +244,20 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_sizer_filament->Add(m_readonly_filament, 1, wxALIGN_CENTER, 0);
     m_readonly_filament->Hide();
 
+    m_filament_compatibility_hint = new wxStaticText(
+        parent,
+        wxID_ANY,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        0);
+    m_filament_compatibility_hint->SetFont(::Label::Body_13);
+    m_filament_compatibility_hint->SetMinSize(
+        wxSize(AMS_MATERIALS_SETTING_BODY_WIDTH, -1));
+    m_filament_compatibility_hint->Wrap(
+        AMS_MATERIALS_SETTING_BODY_WIDTH);
+    m_filament_compatibility_hint->Hide();
+
     wxBoxSizer* m_sizer_colour = new wxBoxSizer(wxHORIZONTAL);
 
     m_title_colour = new wxStaticText(parent, wxID_ANY, _L("Colour"), wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1), 0);
@@ -361,6 +375,12 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 
     sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
     sizer->Add(m_sizer_filament, 0, wxLEFT | wxRIGHT, FromDIP(20));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
+    sizer->Add(
+        m_filament_compatibility_hint,
+        0,
+        wxLEFT | wxRIGHT,
+        FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
     sizer->Add(m_sizer_colour, 0, wxLEFT | wxRIGHT, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
@@ -735,6 +755,105 @@ sCheckFilamentInfo(PresetBundle* preset_bundle,
     ams_filament_id = it->filament_id;
     ams_setting_id = it->setting_id;
     return result;
+}
+
+void AMSMaterialsSetting::update_filament_compatibility_hint()
+{
+    if (!m_filament_compatibility_hint)
+        return;
+
+    auto hide_hint = [this]() {
+        m_filament_compatibility_hint->SetLabel(wxEmptyString);
+        m_filament_compatibility_hint->Hide();
+        m_panel_normal->Layout();
+        Layout();
+        Fit();
+    };
+
+    if (!obj ||
+        !m_is_third ||
+        m_filament_selection < 0 ||
+        m_comboBox_filament->GetValue().IsEmpty() ||
+        !wxGetApp().preset_bundle ||
+        wxGetApp().app_config->get("skip_ams_blacklist_check") == "true") {
+        hide_hint();
+        return;
+    }
+
+    const auto filament_it =
+        map_filament_items.find(into_u8(m_comboBox_filament->GetValue()));
+
+    if (filament_it == map_filament_items.end() ||
+        filament_it->second.filament_id.empty()) {
+        hide_hint();
+        return;
+    }
+
+    std::string checked_filament_id;
+    std::string checked_setting_id;
+
+    const auto check_result = sCheckFilamentInfo(
+        wxGetApp().preset_bundle,
+        obj,
+        ams_id,
+        slot_id,
+        filament_it->second.filament_id,
+        checked_filament_id,
+        checked_setting_id);
+
+    const auto prohibition_items =
+        check_result.get_items_by_action("prohibition");
+
+    const auto warning_items =
+        check_result.get_items_by_action("warning");
+
+    wxString message;
+
+    if (!prohibition_items.empty()) {
+        for (const auto& item : prohibition_items) {
+            if (!message.empty())
+                message += "\n";
+
+            message += item.info_msg;
+        }
+
+        if (message.empty()) {
+            message = _L(
+                "This filament is not supported by the selected slot.");
+        }
+
+        m_filament_compatibility_hint->SetForegroundColour(
+            wxColour(196, 43, 28));
+    }
+    else if (!warning_items.empty()) {
+        for (const auto& item : warning_items) {
+            if (!message.empty())
+                message += "\n";
+
+            message += item.info_msg;
+        }
+
+        if (message.empty()) {
+            message = _L(
+                "This filament may require special handling in the selected slot.");
+        }
+
+        m_filament_compatibility_hint->SetForegroundColour(
+            wxColour(255, 111, 0));
+    }
+    else {
+        hide_hint();
+        return;
+    }
+
+    m_filament_compatibility_hint->SetLabel(message);
+    m_filament_compatibility_hint->Wrap(
+        AMS_MATERIALS_SETTING_BODY_WIDTH);
+    m_filament_compatibility_hint->Show();
+
+    m_panel_normal->Layout();
+    Layout();
+    Fit();
 }
 
 void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
@@ -2267,6 +2386,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         m_comboBox_nozzle_type->SetValue(wxEmptyString);
         m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
         m_input_n_val->GetTextCtrl()->SetValue(wxEmptyString);
+        update_filament_compatibility_hint();
         m_comboBox_filament->SetClientData(new int(0));
         return;
     }
@@ -2401,6 +2521,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         m_input_k_val->Enable(!ams_filament_id.empty());
     }
 
+    update_filament_compatibility_hint();
     m_comboBox_filament->SetClientData(new int(0));
 }
 

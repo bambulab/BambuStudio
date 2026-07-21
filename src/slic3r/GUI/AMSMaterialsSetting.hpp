@@ -167,6 +167,7 @@ protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_select_nozzle_id(wxCommandEvent &evt);
     void on_select_filament(wxCommandEvent& evt);
+    void update_filament_compatibility_hint();
     void on_select_cali_result(wxCommandEvent &evt);
     void on_select_nozzle_pos_id(wxCommandEvent &evt);
     void on_select_ok(wxCommandEvent &event);
@@ -200,6 +201,7 @@ protected:
     wxPanel *           m_panel_SN;
     wxStaticText *      m_sn_number;
     wxStaticText *      warning_text;
+    wxStaticText *      m_filament_compatibility_hint { nullptr };
     //wxPanel *           m_panel_body;
     wxStaticText *      m_title_filament;
     wxStaticText *      m_title_nozzle_type;
@@ -224,7 +226,7 @@ protected:
     TextInput*          m_input_k_val;
     wxStaticText*       m_n_param;
     TextInput*          m_input_n_val;
-    int                 m_filament_selection;
+    int                 m_filament_selection { -1 };
 
     int m_pa_cali_select_id = 0;
     bool m_pa_data_pending{false};
