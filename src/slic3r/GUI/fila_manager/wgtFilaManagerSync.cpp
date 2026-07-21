@@ -178,6 +178,14 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         }
         present_now[matched->spool_id] = mu;
 
+        // 固件正在读取 RFID 时（Refreshing/Initializing），耗材重量和身份字段
+        // 尚不稳定，跳过云端推送，避免用中间态数据覆盖云端记录。
+        // mount tracking（present_now）已在上方正常登记，不受此守卫影响。
+        if (tray.remain_fetch_status == DevAmsTray::RemainFetchStatus::Refreshing ||
+            tray.remain_fetch_status == DevAmsTray::RemainFetchStatus::Initializing) {
+            return;
+        }
+
         // Q7：缺整卷净重的 spool 整条冻结。连本地 percent 都不刷，避免
         // 半残数据漂移导致 UI 越来越离谱。用户在管理器编辑该 spool 补齐
         // total_net_weight 后下次 AMS sync 自动恢复参与。
@@ -190,12 +198,10 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         }
 
         FilamentSpool updated  = *matched;
-        // Q6：percent (0..100) × total_net_weight (克) / 100 → 当前净重 (克)。
-        // 这是云端 PUT 唯一接受的余量字段（UpdateFilamentV2Req::netWeight）。
-        // 用 double 中间量算完再 round → int64，避开 float 精度丢失，确保
-        // 本地 store 与下面 changed 列表里给 throttle 用的数值完全一致。
-        const int64_t net_weight_g =
-            static_cast<int64_t>(std::round(total_nw * tray.remain / 100.0));
+        // Q6：直接复用 get_filament_remain_weight()
+        // 优先 remain_g，fallback 为 tray.weight × remain%。
+        // nullopt 表示固件确认空 / 无有效数据 → 写 0（status 会被写为 "empty"）。
+        const int64_t net_weight_g = tray.get_filament_remain_weight().value_or(0);
         updated.net_weight     = static_cast<double>(net_weight_g);
         updated.remain_percent = tray.remain;
         updated.status         = (tray.remain == 0)  ? "empty"

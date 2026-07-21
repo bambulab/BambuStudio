@@ -951,7 +951,7 @@ nlohmann::json FilamentManagerVM::build_ams_data()
                         nlohmann::json t;
                         t["slot_id"]   = slot_id;
                         {
-                            int tray_id = std::stoi(ams_id) * 4 + std::stoi(slot_id);
+                            int tray_id = ams->GetTrayId(std::stoi(slot_id));
                             t["tray_label"] = wxGetApp().transition_tridid(tray_id).ToStdString();
                         }
                         t["is_exists"] = tray && tray->is_exists;

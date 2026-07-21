@@ -854,6 +854,13 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
     }
 
     DevJsonValParser::ParseVal(j_tray, "cali_idx", curr_tray->cali_idx);
+
+    if (j_tray.contains("state")) {
+        const int state = DevJsonValParser::GetVal<int>(j_tray, "state");
+        curr_tray->remain_fetch_status =
+            static_cast<DevAmsTray::RemainFetchStatus>((state >> 5) & 0x7);
+    }
+
     return curr_tray;
 }
 

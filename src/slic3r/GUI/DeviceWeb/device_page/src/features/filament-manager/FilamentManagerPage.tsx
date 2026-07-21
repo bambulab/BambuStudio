@@ -290,9 +290,9 @@ export function FilamentManagerPage() {
   }, [batchCreateSpools]);
 
   // AMS bridge callbacks for dialog
-  const handleFetchMachines = useCallback(async (): Promise<MachineItem[]> => {
-    await fetchMachines();
-    return useStore.getState().filament.machines;
+  const handleFetchMachines = useCallback(async (): Promise<{ machines: MachineItem[]; selectedDevId: string }> => {
+    const result = await fetchMachines();
+    return result;
   }, [fetchMachines]);
 
   const handleFetchAmsData = useCallback(async (

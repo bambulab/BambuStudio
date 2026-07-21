@@ -143,7 +143,7 @@ interface Props {
     creates: Partial<Spool>[],
     updates: Partial<Spool>[],
   ) => boolean | Promise<boolean>;
-  onFetchMachines: () => Promise<MachineItem[]>;
+  onFetchMachines: () => Promise<{ machines: MachineItem[]; selectedDevId: string }>;
   // Ask the currently-selected (or specified) printer to resend its full
   // state package. Bound to the refresh button next to the Printer
   // dropdown. Read-only with respect to the globally selected machine.
@@ -1299,7 +1299,7 @@ export function AddEditDialog({
     setAmsLoading(true);
     setAmsError('');
     try {
-      const list = await onFetchMachines();
+      const { machines: list, selectedDevId: fetchedSelectedDev } = await onFetchMachines();
       setMachines(list);
       if (list.length === 0) {
         setAmsData(null);
@@ -1314,8 +1314,12 @@ export function AddEditDialog({
       // (DeviceManager::get_selected_machine), falling back to the first
       // online / first machine only when the global selection is not in
       // this printer list.
+      // Use fetchedSelectedDev (from the RPC response) rather than globalSelectedDev
+      // (Zustand store snapshot): React state updates are async-batched, so the
+      // store mirror set inside fetchMachines may not yet be flushed in this tick.
+      const resolvedDev = fetchedSelectedDev || globalSelectedDev;
       const defaultDev =
-        list.find((m) => globalSelectedDev && m.dev_id === globalSelectedDev) ||
+        list.find((m) => resolvedDev && m.dev_id === resolvedDev) ||
         list.find((m) => m.is_online) ||
         list[0];
       // If the default machine already matches Studio's globally selected
@@ -1323,7 +1327,7 @@ export function AddEditDialog({
       // Only when we fall back to "first online / first in the list" do
       // we ask C++ to switch once so the tray list is not empty. This is
       // a one-shot soft switch at dialog open, not a recurring trigger.
-      const needSwitch = !globalSelectedDev || defaultDev.dev_id !== globalSelectedDev;
+      const needSwitch = !resolvedDev || defaultDev.dev_id !== resolvedDev;
       const data = await onFetchAmsData(defaultDev.dev_id, needSwitch);
       setAmsData(data);
       if (data && data.ams_units.length > 0) {
@@ -1575,7 +1579,7 @@ export function AddEditDialog({
     let cancelled = false;
     const tick = async () => {
       try {
-        const list = await onFetchMachines();
+        const { machines: list } = await onFetchMachines();
         if (cancelled || !Array.isArray(list)) return;
         const prev = machinesRef.current;
         if (JSON.stringify(prev) === JSON.stringify(list)) return;
@@ -1862,7 +1866,6 @@ export function AddEditDialog({
   if (!open) return null;
 
   const currentUnit = amsData?.ams_units.find((u) => u.ams_id === selectedUnit);
-  const slotLabels = ['A1', 'A2', 'A3', 'A4'];
   // STUDIO-18344: form lock + form visibility derive from the new selection
   // model. Multi-select (>=2) hides the form entirely, so the lock flags
   // only matter in single-select mode.
@@ -1875,7 +1878,7 @@ export function AddEditDialog({
   const lockBrand = (amsFieldLocked && amsLockedFields.brand) || isRfidEdit;
   const lockMaterial = (amsFieldLocked && amsLockedFields.material) || isRfidEdit;
   const lockColor = (amsFieldLocked && amsLockedFields.color) || isRfidEdit;
-  const lockWeight = amsFieldLocked && amsLockedFields.weight;
+  const lockWeight = (amsFieldLocked && amsLockedFields.weight) || isRfidEdit;
   // Snapshot of (unit, tray) pairs for the batch summary panel. Resolved
   // against the live `amsData` so a slot whose tray was just pulled drops
   // out automatically on the next render (the poll-prune effect will catch
@@ -2063,7 +2066,7 @@ export function AddEditDialog({
                   </div>
                   <div className="flex gap-[8px] py-[8px]">
                     {currentUnit.trays.map((tray, i) => {
-                      const label = slotLabels[i] || `A${i + 1}`;
+                      const label = tray.tray_label || `${String.fromCharCode(65 + Math.floor(i / 4))}${(i % 4) + 1}`;
                       const slotKey = `${currentUnit.ams_id}:${tray.slot_id}`;
                       const isSelected = selectedSlotKeys.has(slotKey);
                       if (!tray.is_exists) {
