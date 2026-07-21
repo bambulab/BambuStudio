@@ -1475,14 +1475,27 @@ void AMSLib::render_lite_lib(wxDC& dc)
         }
     }
     else  {
-        dc.SetBrush(wxBrush(tmp_lib_colour));
-        if (m_ams_model == DevAmsType::EXT_SPOOL) {
-            dc.DrawRoundedRectangle(FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(8), libsize.x - FromDIP(17), libsize.y - FromDIP(16), 0);
+        auto lite_alpha = m_info.material_colour.Alpha();
+        if (lite_alpha != 0 && lite_alpha != 255 && lite_alpha != 254) {
+            wxRect lite_rect = (m_ams_model == DevAmsType::EXT_SPOOL)
+                ? wxRect(FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(8), libsize.x - FromDIP(17), libsize.y - FromDIP(16))
+                : wxRect(FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(10), libsize.x - FromDIP(17), libsize.y - FromDIP(20));
+            if (transparent_changed) {
+                m_bitmap_transparent_blend = create_translucent_round_rect_bitmap(tmp_lib_colour, lite_rect.GetSize(), 0);
+                transparent_changed = false;
+            }
+            dc.DrawBitmap(m_bitmap_transparent_blend, lite_rect.x, lite_rect.y);
         }
-        else{
-            dc.DrawRoundedRectangle(FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(10), libsize.x - FromDIP(17), libsize.y - FromDIP(20), 0);
-        }
+        else {
+            dc.SetBrush(wxBrush(tmp_lib_colour));
+            if (m_ams_model == DevAmsType::EXT_SPOOL) {
+                dc.DrawRoundedRectangle(FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(8), libsize.x - FromDIP(17), libsize.y - FromDIP(16), 0);
+            }
+            else{
+                dc.DrawRoundedRectangle(FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(10), libsize.x - FromDIP(17), libsize.y - FromDIP(20), 0);
+            }
 
+        }
     }
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     dc.SetBrush(wxBrush(tmp_lib_colour));
@@ -1631,21 +1644,11 @@ void AMSLib::render_generic_lib(wxDC &dc)
         }
         else if (alpha != 255 && alpha != 254) {
             if (transparent_changed) {
-                std::string rgb = (tmp_lib_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
-                if (rgb.size() == 9) {
-                    //delete alpha value
-                    rgb = rgb.substr(0, rgb.size() - 2);
-                }
-                float alpha_f = 0.7 * tmp_lib_colour.Alpha() / 255.0;
-                std::vector<std::string> replace;
-                replace.push_back(rgb);
-                std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
-                replace.push_back(fill_replace);
-                m_bitmap_transparent = ScalableBitmap(this, "transparent_ams_lib", 76, false, false, true, replace);
+                m_bitmap_transparent_blend = create_translucent_round_rect_bitmap(
+                    tmp_lib_colour, wxSize(size.x - FromDIP(4), size.y - FromDIP(4)), m_radius);
                 transparent_changed = false;
-
             }
-            dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(2), FromDIP(2));
+            dc.DrawBitmap(m_bitmap_transparent_blend, FromDIP(2), FromDIP(2));
         }
 
         if (!m_disable_mode) {
@@ -1704,21 +1707,11 @@ void AMSLib::render_generic_lib(wxDC &dc)
         }
         else if (alpha != 255 && alpha != 254) {
             if (transparent_changed) {
-                std::string rgb = (tmp_lib_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
-                if (rgb.size() == 9) {
-                    //delete alpha value
-                    rgb = rgb.substr(0, rgb.size() - 2);
-                }
-                float alpha_f = 0.7 * tmp_lib_colour.Alpha() / 255.0;
-                std::vector<std::string> replace;
-                replace.push_back(rgb);
-                std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
-                replace.push_back(fill_replace);
-                m_bitmap_transparent = ScalableBitmap(this, "transparent_ams_lib", 76, false, false, true, replace);
+                m_bitmap_transparent_blend = create_translucent_round_rect_bitmap(
+                    tmp_lib_colour, wxSize(size.x - FromDIP(4), size.y - FromDIP(4)), m_radius);
                 transparent_changed = false;
-
             }
-            dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(2), FromDIP(2));
+            dc.DrawBitmap(m_bitmap_transparent_blend, FromDIP(2), FromDIP(2));
         }
         //gradient
         if (m_info.material_cols.size() > 1) {
@@ -3074,7 +3067,13 @@ void AMSPreview::doRender(wxDC &dc)
                         dc.DrawLine(rect.GetRight() - FromDIP(1), rect.GetTop() + FromDIP(1), rect.GetLeft() + FromDIP(1), rect.GetBottom() - FromDIP(1));
                     }
                     else {
-                        dc.DrawRoundedRectangle(rect, 2);
+                        auto cube_alpha = iter->material_colour.Alpha();
+                        if (cube_alpha != 0 && cube_alpha != 255 && cube_alpha != 254) {
+                            dc.DrawBitmap(create_translucent_round_rect_bitmap(iter->material_colour, rect.GetSize(), 2), rect.x, rect.y);
+                        }
+                        else {
+                            dc.DrawRoundedRectangle(rect, 2);
+                        }
                     }
                 }
             }
@@ -3140,12 +3139,19 @@ void AMSPreview::doRender(wxDC &dc)
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
             dc.SetBrush(iter.material_colour);
             //dc.SetBrush(*wxGREEN);
+            auto cube_alpha = iter.material_colour.Alpha();
             if (m_ams_item_type == DevAmsType::N3S) {
                 auto rect = wxRect(((size.x - AMS_ITEM_CUBE_SIZE.x) / 2), ((size.y - AMS_ITEM_CUBE_SIZE.y) / 2), (AMS_ITEM_CUBE_SIZE.x), (AMS_ITEM_CUBE_SIZE.y));
-                dc.DrawRoundedRectangle(rect, 0);
+                if (cube_alpha != 0 && cube_alpha != 255 && cube_alpha != 254)
+                    dc.DrawBitmap(create_translucent_round_rect_bitmap(iter.material_colour, rect.GetSize(), 0), rect.x, rect.y);
+                else
+                    dc.DrawRoundedRectangle(rect, 0);
             } else {
                 auto rect = wxRect(((size.x - AMS_ITEM_CUBE_SIZE2.x) / 2), ((size.y - AMS_ITEM_CUBE_SIZE2.y) / 2), (AMS_ITEM_CUBE_SIZE2.x), (AMS_ITEM_CUBE_SIZE2.y));
-                dc.DrawRoundedRectangle(rect, FromDIP(3));
+                if (cube_alpha != 0 && cube_alpha != 255 && cube_alpha != 254)
+                    dc.DrawBitmap(create_translucent_round_rect_bitmap(iter.material_colour, rect.GetSize(), FromDIP(3)), rect.x, rect.y);
+                else
+                    dc.DrawRoundedRectangle(rect, FromDIP(3));
             }
         }
 

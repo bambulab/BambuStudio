@@ -11,6 +11,7 @@
 #include "CalibUtils.hpp"
 #include "../Utils/ColorSpaceConvert.hpp"
 #include "EncodedFilament.hpp"
+#include "FilamentBitmapUtils.hpp"
 
 
 #include "DeviceCore/DevConfig.h"
@@ -598,9 +599,8 @@ std::vector<ColorPickerPopup::ColorItem> AMSMaterialsSetting::get_preset_color_i
 
         std::string key = std::to_string(item.ctype);
         for (const wxColour& color : fila_color.m_colors) {
-            wxColour solid_color(color.Red(), color.Green(), color.Blue(), 255);
-            item.colors.emplace_back(solid_color);
-            key += "|" + colour_to_ams_string(solid_color);
+            item.colors.emplace_back(color);
+            key += "|" + colour_to_ams_string(color);
         }
 
         if (item.colors.empty() || !seen.insert(key).second) continue;
@@ -2711,17 +2711,7 @@ void ColorPicker::doRender(wxDC& dc)
     }
     else if (alpha != 254 && alpha != 255) {
         if (transparent_changed) {
-            std::string rgb = (m_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
-            if (rgb.size() == 9) {
-                //delete alpha value
-                rgb = rgb.substr(0, rgb.size() - 2);
-            }
-            float alpha_f = 0.7 * m_colour.Alpha() / 255.0;
-            std::vector<std::string> replace;
-            replace.push_back(rgb);
-            std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
-            replace.push_back(fill_replace);
-            m_bitmap_transparent = ScalableBitmap(this, "transparent_color_picker", 25, false, false, true, replace).bmp();
+            m_bitmap_transparent = create_translucent_circle_bitmap(m_colour, size.x, FromDIP(1));
             transparent_changed = false;
         }
             wxSize bmp_size = m_bitmap_transparent.GetSize();

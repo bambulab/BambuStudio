@@ -1,5 +1,6 @@
 #include <wx/dcmemory.h>
 #include <wx/graphics.h>
+#include <wx/image.h>
 #include <algorithm>
 #include <cmath>
 
@@ -79,6 +80,99 @@ static void draw_checkerboard(wxDC& dc, const wxSize& size,
     }
 }
 
+void get_translucent_checker_colors(const wxColour& color, wxColour& light_out, wxColour& dark_out)
+{
+    auto blend = [](wxByte c, double a) -> wxByte {
+        return (wxByte) (c * a + 255.0 * (1.0 - a) + 0.5);
+    };
+    light_out = wxColour(blend(color.Red(), 0.45), blend(color.Green(), 0.45), blend(color.Blue(), 0.45));
+    dark_out  = wxColour(blend(color.Red(), 0.70), blend(color.Green(), 0.70), blend(color.Blue(), 0.70));
+}
+
+static unsigned char disc_coverage_alpha(double px, double py, double cx, double cy, double radius)
+{
+    const double dx   = px - cx;
+    const double dy   = py - cy;
+    const double dist = std::sqrt(dx * dx + dy * dy);
+    double cover = radius - dist;
+    cover = std::max(0.0, std::min(1.0, cover));
+    return (unsigned char) (cover * 255.0 + 0.5);
+}
+
+wxBitmap create_translucent_circle_bitmap(const wxColour& color, int diameter, int border_width)
+{
+    if (diameter <= 0) return wxNullBitmap;
+
+    wxColour light_clr, dark_clr;
+    get_translucent_checker_colors(color, light_clr, dark_clr);
+
+    wxBitmap bitmap(diameter, diameter);
+    {
+        wxMemoryDC dc(bitmap);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        draw_checkerboard(dc, wxSize(diameter, diameter), light_clr, dark_clr, 0);
+        if (border_width > 0) {
+            const int inset = (border_width + 1) / 2;
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.SetPen(wxPen(wxColour(color.Red(), color.Green(), color.Blue()), border_width, wxPENSTYLE_SOLID));
+            dc.DrawEllipse(inset, inset, diameter - 2 * inset, diameter - 2 * inset);
+        }
+        dc.SelectObject(wxNullBitmap);
+    }
+
+    wxImage img = bitmap.ConvertToImage();
+    if (!img.IsOk()) return bitmap;
+    img.InitAlpha();
+    if (unsigned char* alpha = img.GetAlpha()) {
+        const double r = diameter / 2.0;
+        for (int y = 0; y < diameter; ++y)
+            for (int x = 0; x < diameter; ++x)
+                alpha[y * diameter + x] = disc_coverage_alpha(x + 0.5, y + 0.5, r, r, r);
+    }
+    return wxBitmap(img);
+}
+
+wxBitmap create_translucent_round_rect_bitmap(const wxColour& color, const wxSize& size, double radius)
+{
+    const int w = size.GetWidth();
+    const int h = size.GetHeight();
+    if (w <= 0 || h <= 0) return wxNullBitmap;
+
+    wxColour light_clr, dark_clr;
+    get_translucent_checker_colors(color, light_clr, dark_clr);
+
+    wxBitmap bitmap(w, h);
+    {
+        wxMemoryDC dc(bitmap);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        draw_checkerboard(dc, wxSize(w, h), light_clr, dark_clr, 0);
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.SetPen(wxPen(wxColour(color.Red(), color.Green(), color.Blue()), 1, wxPENSTYLE_SOLID));
+        dc.DrawRoundedRectangle(0, 0, w, h, radius);
+        dc.SelectObject(wxNullBitmap);
+    }
+
+    wxImage img = bitmap.ConvertToImage();
+    if (!img.IsOk()) return bitmap;
+    img.InitAlpha();
+    unsigned char* alpha = img.GetAlpha();
+    if (alpha && radius > 0.0) {
+        const double rad = std::min(radius, std::min(w, h) / 2.0);
+        for (int y = 0; y < h; ++y) {
+            for (int x = 0; x < w; ++x) {
+                double cx = -1.0, cy = -1.0;
+                if (x < rad          && y < rad)          { cx = rad;         cy = rad; }
+                else if (x >= w - rad && y < rad)          { cx = w - rad;     cy = rad; }
+                else if (x < rad      && y >= h - rad)     { cx = rad;         cy = h - rad; }
+                else if (x >= w - rad && y >= h - rad)     { cx = w - rad;     cy = h - rad; }
+                if (cx >= 0.0)
+                    alpha[y * w + x] = disc_coverage_alpha(x + 0.5, y + 0.5, cx, cy, rad);
+            }
+        }
+    }
+    return wxBitmap(img);
+}
+
 // Create transparent bitmap
 static wxBitmap create_transparent_bitmap(const wxSize& size) {
     BitmapDC bdc(size);
@@ -124,16 +218,12 @@ static wxBitmap create_single_filament_bitmap(const wxColour& color, const wxSiz
 
     // Semi-transparent: precompute blended colors (color over white) as solid,
     // then reuse draw_checkerboard — no wxGraphicsContext needed.
-    // light square = color * 0.45 + white * 0.55, dark square = color * 0.70 + white * 0.30
     if (color.Alpha() != wxALPHA_OPAQUE) {
         BitmapDC bdc(size);
         if (!bdc.dc.IsOk()) return wxNullBitmap;
 
-        auto blend = [](wxByte c, double a) -> wxByte {
-            return (wxByte)(c * a + 255.0 * (1.0 - a) + 0.5);
-        };
-        wxColour light_clr(blend(color.Red(), 0.45), blend(color.Green(), 0.45), blend(color.Blue(), 0.45));
-        wxColour dark_clr (blend(color.Red(), 0.70), blend(color.Green(), 0.70), blend(color.Blue(), 0.70));
+        wxColour light_clr, dark_clr;
+        get_translucent_checker_colors(color, light_clr, dark_clr);
 
         draw_checkerboard(bdc.dc, size, light_clr, dark_clr, 1);
 

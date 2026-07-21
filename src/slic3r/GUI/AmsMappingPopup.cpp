@@ -362,6 +362,8 @@ void MaterialItem::doRender(wxDC& dc)
                 }
             }
         }
+    } else if (mcolor.Alpha() != 0 && mcolor.Alpha() != 255 && mcolor.Alpha() != 254) {
+        dc.DrawBitmap(create_translucent_round_rect_bitmap(mcolor, wxSize(size.x, FromDIP(20)), FromDIP(5)), 0, 0);
     } else {
         dc.SetBrush(wxBrush(mcolor));
         dc.DrawRoundedRectangle(0, 0, size.x, FromDIP(20), 5);
@@ -432,10 +434,14 @@ void MaterialItem::doRender(wxDC& dc)
     {
         if (m_match)
         {
-            dc.SetPen(*wxTRANSPARENT_PEN);
-            dc.SetBrush(wxBrush(wxColour(acolor)));
-            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3) - FromDIP(LEFT_OFFSET), paint_recty, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1),
-                MATERIAL_REC_WHEEL_SIZE.y);
+            int rec_x = (size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3) - FromDIP(LEFT_OFFSET);
+            if (acolor.Alpha() != 0 && acolor.Alpha() != 255 && acolor.Alpha() != 254) {
+                dc.DrawBitmap(create_translucent_round_rect_bitmap(acolor, wxSize(MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y), 0), rec_x, paint_recty);
+            } else {
+                dc.SetPen(*wxTRANSPARENT_PEN);
+                dc.SetBrush(wxBrush(wxColour(acolor)));
+                dc.DrawRectangle(rec_x, paint_recty, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y);
+            }
         }
     }
 
@@ -683,12 +689,16 @@ void MaterialSyncItem::doRender(wxDC &dc)
 
     // top
     dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(mcolor));
-    dc.DrawRoundedRectangle(0, 0, size.x, FromDIP(20), 5);
+    if (mcolor.Alpha() != 0 && mcolor.Alpha() != 255 && mcolor.Alpha() != 254) {
+        dc.DrawBitmap(create_translucent_round_rect_bitmap(mcolor, wxSize(size.x, FromDIP(20)), FromDIP(5)), 0, 0);
+    } else {
+        dc.SetBrush(wxBrush(mcolor));
+        dc.DrawRoundedRectangle(0, 0, size.x, FromDIP(20), 5);
 
-    dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(mcolor));
-    dc.DrawRectangle(0, FromDIP(10), size.x, FromDIP(10));
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(mcolor));
+        dc.DrawRectangle(0, FromDIP(10), size.x, FromDIP(10));
+    }
 
     dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
     dc.DrawLine(FromDIP(1), FromDIP(20), FromDIP(size.x), FromDIP(20));
@@ -729,10 +739,14 @@ void MaterialSyncItem::doRender(wxDC &dc)
                 }
             }
         } else {
-            dc.SetPen(*wxTRANSPARENT_PEN);
-            dc.SetBrush(wxBrush(wxColour(acolor)));
-            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3) - FromDIP(real_left_offset), up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1),
-                             MATERIAL_REC_WHEEL_SIZE.y);
+            int rec_x = (size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3) - FromDIP(real_left_offset);
+            if (acolor.Alpha() != 0 && acolor.Alpha() != 255 && acolor.Alpha() != 254) {
+                dc.DrawBitmap(create_translucent_round_rect_bitmap(acolor, wxSize(MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y), 0), rec_x, up);
+            } else {
+                dc.SetPen(*wxTRANSPARENT_PEN);
+                dc.SetBrush(wxBrush(wxColour(acolor)));
+                dc.DrawRectangle(rec_x, up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y);
+            }
         }
     }
     else {
@@ -1514,6 +1528,10 @@ void MappingItem::doRender(wxDC &dc)
     }
     else if (color.Alpha() == 0) {
         dc.DrawBitmap(m_transparent_mapping_item.bmp(), 0, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2 + get_remain_area_height());
+    }
+    else if (color.Alpha() != 255 && color.Alpha() != 254) {
+        int top = (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2 + get_remain_area_height();
+        dc.DrawBitmap(create_translucent_round_rect_bitmap(color, wxSize(MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y), 0), 0, top);
     }
     else {
         dc.DrawRectangle(0, (size.y - MAPPING_ITEM_REAL_SIZE.y) / 2 + get_remain_area_height(), MAPPING_ITEM_REAL_SIZE.x, MAPPING_ITEM_REAL_SIZE.y);
@@ -2434,6 +2452,13 @@ void AmsRMGroup::doRender(wxDC& dc)
     for (auto iter = m_group_info.rbegin(); iter != m_group_info.rend(); ++iter) {
         std::string tray_name = iter->first;
         wxColour tray_color = iter->second;
+
+        if (tray_color.Alpha() != 0 && tray_color.Alpha() != 255 && tray_color.Alpha() != 254) {
+            double a = tray_color.Alpha() / 255.0;
+            tray_color = wxColour((unsigned char) (tray_color.Red() * a + 255 * (1 - a) + 0.5),
+                                  (unsigned char) (tray_color.Green() * a + 255 * (1 - a) + 0.5),
+                                  (unsigned char) (tray_color.Blue() * a + 255 * (1 - a) + 0.5));
+        }
 
         dc.SetPen(*wxTRANSPARENT_PEN);
 

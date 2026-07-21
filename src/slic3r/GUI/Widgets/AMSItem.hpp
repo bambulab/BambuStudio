@@ -500,6 +500,7 @@ protected:
     ScalableBitmap  m_bitmap_transparent;
     ScalableBitmap  m_bitmap_transparent_def;
     ScalableBitmap  m_bitmap_transparent_lite;
+    wxBitmap        m_bitmap_transparent_blend;
 
     ScalableBitmap  m_bitmap_extra_tray_left;
     ScalableBitmap  m_bitmap_extra_tray_right;

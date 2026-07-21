@@ -28,6 +28,12 @@ wxBitmap create_filament_bitmap(const std::vector<wxColour>& colors,
                               const wxSize& size,
                               bool force_gradient = false);
 
+void get_translucent_checker_colors(const wxColour& color, wxColour& light_out, wxColour& dark_out);
+
+wxBitmap create_translucent_circle_bitmap(const wxColour& color, int diameter, int border_width = 1);
+
+wxBitmap create_translucent_round_rect_bitmap(const wxColour& color, const wxSize& size, double radius);
+
 /**
  * \brief Look up a filament's full colour set (gradient / dual / multi) from the project config by index
  *
