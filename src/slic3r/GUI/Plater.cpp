@@ -382,6 +382,12 @@ enum class LoadFilesType {
     Multiple3MFOther,
 };
 
+static bool is_supported_model_file(const fs::path &path)
+{
+    static const std::regex pattern(".*[.](stp|step|stl|oltp|obj|amf|3mf|svg|gltf|glb|fbx)", std::regex::icase);
+    return std::regex_match(path.string(), pattern);
+}
+
 enum class LoadType : unsigned char
 {
     Unknown,
@@ -18955,7 +18961,7 @@ void Plater::import_model_id(wxString download_info)
         //unsigned int http_code;
         std::string http_body;
 
-        msg = _L("prepare 3mf file...");
+        msg = _L("Preparing file...");
 
         //gets the number of files with the same name
         std::vector<wxString>   vecFiles;
@@ -18970,8 +18976,8 @@ void Plater::import_model_id(wxString download_info)
             wxString extension = fs::path(filename.wx_str()).extension().c_str();
 
 
-            //check file suffix
-            if (!extension.Contains(".3mf") && !extension.Contains(".3MF")) {
+            // Check the suffix before downloading, using the same formats as the local model importer.
+            if (!is_supported_model_file(fs::path(filename.wc_str()))) {
                 msg = _L("Download failed, unknown file format.");
                 return;
             }
@@ -19003,7 +19009,7 @@ void Plater::import_model_id(wxString download_info)
         }
 
 
-        msg = _L("downloading project ...");
+        msg = _L("Downloading model...");
 
         //target_path = wxStandardPaths::Get().GetTempDir().utf8_str().data();
 
@@ -19036,7 +19042,7 @@ void Plater::import_model_id(wxString download_info)
                         if (filesize == 0) {
                             filesize = progress.dltotal;
                             double megabytes = static_cast<double>(progress.dltotal) / (1024 * 1024);
-                            //The maximum size of a 3mf file is 500mb
+                            // The maximum size of a downloaded model file is 500 MB.
                             if (megabytes > 500) {
                                 cont = false;
                                 size_limit = true;
@@ -19049,7 +19055,7 @@ void Plater::import_model_id(wxString download_info)
                         msg = _L("Download failed, File size exception.");
                     }
                     else {
-                        msg = wxString::Format(_L("Project downloaded %d%%"), percent);
+                        msg = wxString::Format(_L("File downloaded %d%%"), percent);
                     }
                 })
                 .on_error([&msg, &cont, &retry_count, max_retries](std::string body, std::string error, unsigned http_status) {
@@ -19190,22 +19196,30 @@ void Plater::import_model_id(wxString download_info)
 
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << PathSanitizer::sanitize(target_path);
-        /* load project */
-        auto result = this->load_project(target_path.wstring());
-        statistics_burial_data_form_mw();
-        if (result == (int)wxID_CANCEL) {
-            return;
-        }
-        /*BBS set project info after load project, project info is reset in load project */
-        //p->project.project_model_id = model_id;
-        //p->project.project_design_id = design_id;
-        AppConfig* config = wxGetApp().app_config;
-        if (config) {
-            p->project.project_country_code = config->get_country_code();
+        const bool is_project = boost::iends_with(target_path.filename().string(), ".3mf");
+        if (is_project) {
+            auto result = this->load_project(target_path.wstring());
+            if (result == (int)wxID_CANCEL)
+                return;
+        } else {
+            wxArrayString input_files;
+            input_files.Add(from_path(target_path));
+            if (!this->load_files(input_files))
+                return;
         }
 
-        // show save new project
-        p->set_project_filename(target_path.wstring());
+        statistics_burial_data_form_mw();
+        if (is_project) {
+            /*BBS set project info after load project, project info is reset in load project */
+            //p->project.project_model_id = model_id;
+            //p->project.project_design_id = design_id;
+            AppConfig* config = wxGetApp().app_config;
+            if (config)
+                p->project.project_country_code = config->get_country_code();
+
+            // show save new project
+            p->set_project_filename(target_path.wstring());
+        }
         p->notification_manager->push_import_finished_notification(target_path.string(), target_path.parent_path().string(), false);
     }
     else {
@@ -20589,7 +20603,6 @@ bool Plater::load_same_type_files(const wxArrayString &filenames) {
     //BBS: remove GCodeViewer as seperate APP logic
 bool Plater::load_files(const wxArrayString& filenames)
 {
-    const std::regex pattern_drop(".*[.](stp|step|stl|oltp|obj|amf|3mf|svg|gltf|glb|fbx)", std::regex::icase);
     const std::regex pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
 
     std::vector<fs::path> normal_paths;
@@ -20607,7 +20620,7 @@ bool Plater::load_files(const wxArrayString& filenames)
 
     for (const auto& filename : filenames) {
         fs::path path(into_path(filename));
-        if (std::regex_match(path.string(), pattern_drop))
+        if (is_supported_model_file(path))
             normal_paths.push_back(std::move(path));
         else if (std::regex_match(path.string(), pattern_gcode_drop))
             gcode_paths.push_back(std::move(path));
