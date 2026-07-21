@@ -920,13 +920,17 @@ bool MachineObject::check_version_valid()
 std::map<int, DevFirmwareVersionInfo> MachineObject::get_ams_version()
 {
     std::map<int, DevFirmwareVersionInfo> result;
+
+    const std::string hotend_ams_type = DevPrinterConfigUtil::get_hotend_ams_type_string(printer_type);
+
     for (const auto &module : module_vers) {
         const std::string &key       = module.first;
         auto               slash_pos = key.find('/');
         if (slash_pos == std::string::npos) continue;
 
         std::string type = key.substr(0, slash_pos);
-        if (type != "ams" && type != "ams_f1" && type != "n3f" && type != "n3s") continue;
+        if (type != "ams" && type != "ams_f1" && type != "n3f" && type != "n3s" &&
+            !(!hotend_ams_type.empty() && type == hotend_ams_type)) continue;
 
         try {
             int ams_id = std::stoi(key.substr(slash_pos + 1));
