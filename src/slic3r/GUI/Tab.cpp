@@ -3230,6 +3230,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_rib_width","parameter/prime-tower#rib-wall");
         optgroup->append_single_option_line("prime_tower_fillet_wall","parameter/prime-tower");
         optgroup->append_single_option_line("enable_tower_interface_features", "parameter/prime-tower");
+        optgroup->append_single_option_line("wipe_tower_no_sparse_layers", "parameter/prime-tower");
 
         optgroup = page->new_optgroup(L("Flush options"), L"param_flush");
         optgroup->append_single_option_line("flush_into_infill", "reduce-wasting-during-filament-change#wipe-into-infill");

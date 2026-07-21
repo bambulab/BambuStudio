@@ -782,7 +782,18 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         double current_z = gcodegen.writer().get_position().z();
         if (z == -1.) // in case no specific z was provided, print at current_z pos
             z = current_z;
-        if (! is_approx(z, current_z)) {
+        // BBS: wipe_tower_no_sparse_layers crash guard.
+        // With sparse layers skipped the wipe tower is compacted far below the object
+        // (e.g. object at z=25, tower at z=0.4). Descending straight to the tower z here is
+        // only safe once the nozzle is already parked over the tower, which is what the
+        // is_finish_first travel above does. When the object is NOT finished first the nozzle
+        // is still parked over the printed model, so descending now would drive it straight
+        // down into the object and hit it. In that case defer the descent: it is re-issued
+        // over the tower after the toolchange travel (see the compaction descents in the
+        // nozzle-change block and after change_filament_gcode below).
+        bool defer_compacted_descend = gcodegen.config().wipe_tower_no_sparse_layers.value
+            && !tcr.priming && !tcr.is_finish_first && (current_z - z) > EPSILON;
+        if (! is_approx(z, current_z) && ! defer_compacted_descend) {
             gcode += gcodegen.writer().retract();
             gcode += gcodegen.writer().travel_to_z(z, "Travel down to the last wipe tower layer.");
             gcode += gcodegen.writer().unretract();
@@ -844,11 +855,41 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         std::string nozzle_change_gcode_trans;
         if (is_nozzle_change) {
             // move to start_pos before nozzle change
+            auto nc_start_pos = wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.start_pos) + plate_origin_2d);
+
+            // BBS: wipe_tower_no_sparse_layers compaction optimization (gated by the option).
+            // With sparse layers skipped the wipe tower is compacted far below the object.
+            // travel_to() normally lifts the nozzle up to the object layer height (max_layer_z)
+            // to clear the object during travel. That lift is required when we arrive from the
+            // model (nozzle still parked up at object height, e.g. the right/non-finish-first
+            // nozzle), but it is pure waste when we are already parked down on the compacted
+            // tower (e.g. right after the tower wall printed before this toolchange): it forces
+            // a full-height Z bounce (compacted z -> max_layer_z -> compacted z) just to reach a
+            // ramming start that already sits on the tower.
+            // Detect that case (tower compacted AND nozzle already down on it) and travel at the
+            // compacted z directly, which also makes the re-descend below unnecessary.
+            double cur_z = gcodegen.writer().get_position().z();
+            bool compact_intower_nc_travel = gcodegen.config().wipe_tower_no_sparse_layers.value
+                && z >= 0. && (tcr.print_z - z) > EPSILON   // tower compacted below the object
+                && (tcr.print_z - cur_z) > EPSILON;         // nozzle already down on the tower, not up on the model
+
             std::string start_pos_str;
-            start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.start_pos) + plate_origin_2d), erMixed,
-                "Move to nozzle change start pos");
+            start_pos_str = gcodegen.travel_to(nc_start_pos, erMixed, "Move to nozzle change start pos",
+                compact_intower_nc_travel ? z : DBL_MAX);
             check_add_eol(start_pos_str);
             nozzle_change_gcode_trans += start_pos_str;
+            // travel_to above may lift the nozzle up to max_layer_z to clear the object.
+            // The nozzle-change wipe that follows (transform_gcode below) carries no explicit
+            // Z, so it would extrude at the object-layer height and float above the compacted
+            // wipe tower. Re-descend to the compacted wipe tower z before those extrusions run.
+            // Skipped when the travel above already stayed at the compacted z.
+            if (!compact_intower_nc_travel
+                && gcodegen.config().wipe_tower_no_sparse_layers.value
+                && z >= 0. && (tcr.print_z - z) > EPSILON) {
+                std::string nc_z_descend = gcodegen.writer().travel_to_z(z, "Descend to compacted wipe tower z (no sparse layers)");
+                check_add_eol(nc_z_descend);
+                nozzle_change_gcode_trans += nc_z_descend;
+            }
             nozzle_change_gcode_trans += gcodegen.unretract();
             nozzle_change_gcode_trans += transform_gcode(tcr.nozzle_change_result.gcode, tcr.nozzle_change_result.start_pos, wipe_tower_offset, wipe_tower_rotation);
             gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.end_pos) + plate_origin_2d));
@@ -1185,6 +1226,21 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         }
 
         start_filament_gcode_str = start_filament_gcode_str + wipe_next_start_point_str + toolchange_unretract_str;
+
+        // BBS: wipe_tower_no_sparse_layers compaction fix.
+        // When sparse layers are skipped, the whole wipe tower layer is compacted down to `z`.
+        // The custom change_filament_gcode lifts the nozzle to object-layer height
+        // (max_layer_z + N) and the following unretract de-hops back to the object layer z.
+        // Any wipe tower extrusions emitted AFTER change_filament_gcode within this tcr
+        // (the wipe/purge moves, and the wall when it is printed after the toolchange)
+        // carry no explicit Z, so they would float at object height regardless of is_finish_first.
+        // Re-descend to the compacted wipe tower z before those extrusions run.
+        if (gcodegen.config().wipe_tower_no_sparse_layers.value
+            && z >= 0. && (tcr.print_z - z) > EPSILON) {
+            std::string z_descend = gcodegen.writer().travel_to_z(z, "Descend to compacted wipe tower z (no sparse layers)");
+            check_add_eol(z_descend);
+            start_filament_gcode_str += z_descend;
+        }
 
         // Insert the end filament, toolchange, and start filament gcode into the generated gcode.
         DynamicConfig config;
