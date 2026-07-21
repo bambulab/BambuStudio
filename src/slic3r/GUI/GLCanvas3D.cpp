@@ -2192,6 +2192,24 @@ void GLCanvas3D::active_view() {
     }
 }
 
+void GLCanvas3D::restore_assembly_guide_ui_after_undo(int selected_folder_id, int keyframe_selected)
+{
+    if (!m_assembly_steps)
+        return;
+    m_assembly_steps->set_input(wxGetApp().imgui(), m_model, &get_active_camera(), &m_selection, &m_volumes,
+                                m_gizmos.get_current_type() != GLGizmosManager::Undefined);
+    m_assembly_steps->restore_guide_ui_after_undo(selected_folder_id, keyframe_selected);
+}
+
+void GLCanvas3D::capture_assembly_guide_ui_for_snapshot(int &out_selected_folder_id, int &out_keyframe_selected) const
+{
+    out_selected_folder_id = -1;
+    out_keyframe_selected  = -1;
+    if (!m_assembly_steps)
+        return;
+    m_assembly_steps->capture_guide_ui_for_snapshot(out_selected_folder_id, out_keyframe_selected);
+}
+
 void GLCanvas3D::append_step_import_to_assembly_tree(const std::vector<StepImportTreeNode>& step_nodes,
     const std::vector<size_t>&                    loaded_idxs,
     const std::string&                            source_path)
@@ -3271,6 +3289,14 @@ bool GLCanvas3D::is_allow_use_gizmo_in_different_view() const
     // OverallPreview: full assemble gizmo set. Normal steps: Move / Rotate only
     // (via get_special_allow_gizmos).
     return m_assembly_steps->is_overall_preview_mode() || !get_special_allow_gizmos().empty();
+}
+
+bool GLCanvas3D::is_allow_gizmo_active() const
+{
+    // Non-assembly canvases keep normal gizmo activability.
+    if (m_canvas_type != ECanvasType::CanvasAssembleView || !m_assembly_steps)
+        return true;
+    return m_assembly_steps->is_selection_added_to_current_step();
 }
 
 std::vector<int> GLCanvas3D::get_special_allow_gizmos() const
@@ -4431,6 +4457,20 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 
     auto imgui = wxGetApp().imgui();
     if (imgui->update_key_data(evt)) {
+        // Text-label notes use an ImGui InputText that sets WantTextInput, which
+        // would otherwise swallow Ctrl+Z/Y here. Forward those shortcuts to the
+        // assemble undo stack after leaving caret mode (InputText uses NoUndoRedo).
+        if (m_canvas_type == CanvasAssembleView && m_assembly_steps &&
+            m_assembly_steps->is_note_text_caret_active() &&
+            (evt.GetModifiers() & ctrlMask) != 0) {
+            const bool is_z = (keyCode == 'z' || keyCode == 'Z' || keyCode == WXK_CONTROL_Z);
+            const bool is_y = (keyCode == 'y' || keyCode == 'Y' || keyCode == WXK_CONTROL_Y);
+            if (is_z || is_y) {
+                m_assembly_steps->exit_note_edit();
+                const bool redo = is_y || ((evt.GetModifiers() & shiftMask) != 0 && is_z);
+                post_event(SimpleEvent(redo ? EVT_GLCANVAS_REDO : EVT_GLCANVAS_UNDO));
+            }
+        }
         render();
         return;
     }

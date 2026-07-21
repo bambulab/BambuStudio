@@ -727,7 +727,8 @@ bool GLGizmoRotate3D::on_is_activable() const
 {
     const Selection &selection = m_parent.get_selection();
     return !selection.is_empty() && !selection.is_wipe_tower() // BBS: don't support rotate wipe tower
-        &&!selection.is_any_cut_volume() && !selection.is_any_connector();
+        && !selection.is_any_cut_volume() && !selection.is_any_connector()
+        && m_parent.is_allow_gizmo_active();
 }
 
 void GLGizmoRotate3D::on_start_dragging()

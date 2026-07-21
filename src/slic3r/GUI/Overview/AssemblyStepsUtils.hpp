@@ -264,8 +264,40 @@ class AssemblyStepsUtils
     bool         m_refit_camera_pending_{false};
     // Per-frame cache: part-number label index -> per-object screen center.
     std::map<int, Vec2d> pn_screen_centers_;
+    // Bumped once per render_main(); the key of the per-frame query caches below.
+    int          m_ui_frame_index{0};
+    // is_selection_added_to_current_step() memo. The query is const and runs from every
+    // gizmo enabling_callback plus the guide panel, so the answer is reused while frame,
+    // step folder and selection stay the same.
+    struct SelectionInStepCache
+    {
+        int    frame{-1};
+        int    folder{-1};
+        size_t selection{0};
+        bool   result{true};
+
+        bool matches(int frame_index, int folder_idx, size_t selection_signature) const
+        {
+            return frame == frame_index && folder == folder_idx && selection == selection_signature;
+        }
+        void store(int frame_index, int folder_idx, size_t selection_signature, bool value)
+        {
+            frame     = frame_index;
+            folder    = folder_idx;
+            selection = selection_signature;
+            result    = value;
+        }
+        void invalidate() { frame = -1; }
+    };
+    mutable SelectionInStepCache m_sel_in_step_cache;
     // Set when part-number labels are (re)generated: the next on-canvas render
     bool         m_pn_autolayout_pending{false};
+    // When true, save_assembly_steps_json_to_model() is a no-op so a multi-step
+    // edit (e.g. auto-explode) can persist once at the end.
+    bool         m_skip_assembly_steps_save{false};
+    // render_main() frame that opened the window above, so the watchdog can tell a
+    // legitimately deferred flush from one that will never arrive.
+    int          m_skip_assembly_steps_save_frame{-1};
     float        m_part_number_label_font_size{0.0f};
     // Inline rename of a part-number label's text. While active the matching pill
     // shows an ImGui InputText; committing renames the backing ModelObject /
@@ -389,6 +421,9 @@ class AssemblyStepsUtils
     double m_play_transition_duration{1.0};
     double m_play_interval_step_to_step_expect = 1.0;
     double m_play_interval_step_to_step = 1.0;
+    // Speed selected on the play bar pill. Kept as its own state because the two
+    // durations above are derived values that get rebuilt on every session reset.
+    double m_play_speed_multiplier{1.0};
     static constexpr double kPlayFrameInterval = 0.02;
     // Right-edge X (canvas coords) of the last-rendered "Assembly Structure"
     float m_assembly_structure_right_x{0.f};
@@ -551,8 +586,19 @@ public://logic
     // framing has to be kept: no step card selected, the overall-preview card, or
     // a step that has no object yet.
     std::set<int>   current_step_focus_object_indices() const;
+    // True when every canvas-selected object/volume belongs to the current step
+    // (OverallPreview / no selection => true). Used to gate Move/Rotate gizmos.
+    bool            is_selection_added_to_current_step() const;
     int             get_selected_node() const { return m_selected_node; }
     void            set_selected_node(int node) { m_selected_node = node; }
+    int             get_keyframe_selected() const { return m_keyframe_selected; }
+    // Restore step/keyframe UI cursor after assemble undo/redo (tree content already
+    // reloaded). Must not call exit_assembly_steps_editing() / deal_once enter path.
+    void            restore_guide_ui_after_undo(int selected_folder_id, int keyframe_selected);
+    // Capture UI cursor for the assemble undo side-map. selected_folder_id is the stable
+    // step-folder id (not a node index, which undo/redo invalidates), or -1 when
+    // overall-preview / no step is being edited.
+    void            capture_guide_ui_for_snapshot(int &out_selected_folder_id, int &out_keyframe_selected) const;
     SelectionOrigin selection_origin() const { return m_selection_origin; }
     void            set_selection_origin(SelectionOrigin origin);
     // Single chokepoint that resets the currently selected step/object node.
@@ -571,6 +617,14 @@ public://logic
     // Returns true when the two trees differ in structure/labels/selection
     void save_assembly_steps_json_to_model();
     void save_assembly_steps_json_to_model_and_request_extra_frame();
+    // Start a coalesced edit: save_assembly_steps_json_to_model() is muted until the
+    // matching flush, so the whole operation collapses into a single Undo entry.
+    void begin_coalesced_steps_save();
+    // Clear m_skip_assembly_steps_save and persist once (end of a coalesced edit).
+    void flush_assembly_steps_json_to_model();
+    // Watchdog against a coalesced edit whose deferred flush never happens; called once
+    // per frame from render_main().
+    void flush_coalesced_steps_save_if_stale();
     //selected node deal begin
     bool has_selected_node() const;
     bool is_selected_final_assembly_node() const;
@@ -590,7 +644,7 @@ public://logic
     // Re-map the currently selected step folder + keyframe to its global play-bar
     void        sync_play_index_to_selection();
     // After a structural edit (add / copy / insert / delete step) eagerly rebuild
-    void        reschedule_play_bar_after_structure_change();
+    void        reschedule_play_bar_after_structure_change(bool save = true);
     void        update_step_screen_center();
     // When `only_object_idxs` is provided, only those object indices have their
     void        fill_folder_keyframes_from_children(int folder_idx,  bool use_glvolume_tran = false);
@@ -754,6 +808,15 @@ public://logic
     std::string              get_object_volume_name(int object_idx, int volume_idx);
     void                     set_note_edit_controls_visible(bool visible) { m_note_edit_controls_visible = visible; }
     bool                     is_note_edit_controls_visible() const { return m_note_edit_controls_visible; }
+    // True while a text-label note owns the ImGui caret (or has a pending focus
+    // request). Used by GLCanvas3D to forward Ctrl+Z/Y to plater undo/redo
+    // instead of letting ImGui InputText swallow the shortcut.
+    bool                     is_note_text_caret_active() const
+    {
+        return m_note_selected_type == AssemblyNoteSelectionType::TextLabel
+            && is_note_edit_controls_visible()
+            && (m_note_text_edit.caret_active || m_note_text_edit.focus_request >= 0);
+    }
     void                     set_note_selection(AssemblyNoteSelectionType type, int idx);
 
     bool                     goto_global_frame(int global_idx);
@@ -771,6 +834,9 @@ public://logic
     void                     resume_playback();
     void                     clear_playback_pause_state();
     void                     clear_global_playback_state();
+    // Playback speed shared by the global run, the per-step local run and the export.
+    void                     set_play_speed_multiplier(double speed);
+    double                   get_play_speed_multiplier() const { return m_play_speed_multiplier; }
     // If playback is paused on the video-intro/title overlay, leave that title mode
     void                     exit_title_mode_if_paused();
     void                     play_different_folder_logic();
@@ -945,6 +1011,10 @@ public://logic
     void insert_keyframe_after_selected();
     // Start playing all keyframes for the current node from the beginning.
     void play_all_keyframes_for_current_node();
+    // Play / pause handler behind the per-step inline play button. Resuming is limited
+    // to a paused local session: a paused global session restarts as local playback so
+    // the per-step button never continues the play bar's global run.
+    void toggle_play_all_keyframes_for_current_node();
     bool should_show_panels();
     void clear_active_assembly_tree_checked();
     // Seed right-side steps tree from a STEP import tree

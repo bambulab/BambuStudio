@@ -11,6 +11,8 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include <sstream>
 #include <regex>
 #include <optional>
@@ -6852,6 +6854,20 @@ public:
     // Slim Undo/Redo path used only while the assembly stack is active: restores m_assemble_model and
     // reloads the assembly scene, deliberately skipping the prepare-model project machinery in undo_redo_to().
     void assemble_undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot);
+    // Assembly guide UI cursor history, keyed by assemble-stack snapshot timestamps.
+    // Kept out of UndoRedo::SnapshotData so the undo core stays domain-agnostic.
+    struct AssemblyGuideUiSnapshot {
+        // Stable AssemblyStepsTreeNode::id of the selected step folder. Node indices
+        // cannot be used here: undo/redo rebuilds the whole node vector from JSON in
+        // traversal order, while runtime edits append, so the same step changes index.
+        // -1 means overall-preview / no step editing.
+        int selected_folder_id{-1};
+        int keyframe_selected{-1};
+    };
+    void remember_assemble_guide_ui(size_t snapshot_timestamp);
+    void remember_assemble_guide_ui_for_latest_action_snapshot();
+    void prune_assemble_guide_ui_snapshots();
+    void clear_assemble_guide_ui_snapshots() { m_assemble_guide_ui_by_time.clear(); }
 
     void take_snapshot(const std::string& snapshot_name, UndoRedo::SnapshotType snapshot_type = UndoRedo::SnapshotType::Action);
     /*void take_snapshot(const wxString& snapshot_name, UndoRedo::SnapshotType snapshot_type = UndoRedo::SnapshotType::Action)
@@ -7149,6 +7165,9 @@ private:
     // outside the assembly stack: the retained snapshots would otherwise no longer match the model and an
     // undo could resurrect / drop the just-synced parts. This flag requests that reset on next entry.
     bool                        m_assemble_undo_baseline_dirty = true;
+    // timestamp -> guide UI cursor at that assemble-stack snapshot (grows with take_snapshot /
+    // pre-jump capture; pruned against live stack timestamps).
+    std::unordered_map<size_t, AssemblyGuideUiSnapshot> m_assemble_guide_ui_by_time;
     // Set while a prepare-side structural restructure (split / combine) destroys and re-creates objects.
     // Such internal removes are NOT user deletes and must not be propagated to the assembly model:
     // the split/combine products keep the source part_guid, so the assembly view stays untouched.
@@ -10494,6 +10513,7 @@ void Plater::priv::reset(bool apply_presets_change)
     // Drop any retained assembly undo history and force a fresh baseline for the next project.
     m_undo_redo_stack_assemble.clear();
     m_assemble_undo_baseline_dirty = true;
+    clear_assemble_guide_ui_snapshots();
     // Drop the persisted assembly-model graph so a fresh / next project does not rebuild a stale a_model.
     model.set_assembly_model_json_str(std::string());
     assemble_view->get_canvas3d()->reset_explosion_ratio();
@@ -18411,6 +18431,7 @@ void Plater::priv::enter_assemble_stack()
         // user can keep undoing edits made in earlier assembly-view sessions.
         if (m_undo_redo_stack_assemble.empty() || m_assemble_undo_baseline_dirty) {
             m_undo_redo_stack_assemble.clear();
+            clear_assemble_guide_ui_snapshots();
             // The trailing '!' marks a non-project-modifying baseline snapshot (see snapshot_modifies_project),
             // so can_undo() reports false until the user actually edits something here -> the toolbar Undo
             // icon stays greyed out at the baseline. Not localized on purpose, never shown to the user.
@@ -18437,6 +18458,40 @@ bool Plater::priv::leave_assemble_stack()
     return changed;
 }
 
+void Plater::priv::remember_assemble_guide_ui(size_t snapshot_timestamp)
+{
+    if (!assemble_view)
+        return;
+    AssemblyGuideUiSnapshot ui;
+    assemble_view->get_canvas3d()->capture_assembly_guide_ui_for_snapshot(ui.selected_folder_id, ui.keyframe_selected);
+    m_assemble_guide_ui_by_time[snapshot_timestamp] = ui;
+}
+
+void Plater::priv::remember_assemble_guide_ui_for_latest_action_snapshot()
+{
+    // take_snapshot() appends: [..., action_snapshot, topmost]. Key the UI to the action snapshot.
+    const auto &ss = m_undo_redo_stack_assemble.snapshots();
+    if (ss.size() < 2)
+        return;
+    remember_assemble_guide_ui(ss[ss.size() - 2].timestamp);
+    // Also tag the live topmost so leaving/re-entering that time (redo after undo-capture) finds UI.
+    remember_assemble_guide_ui(ss.back().timestamp);
+}
+
+void Plater::priv::prune_assemble_guide_ui_snapshots()
+{
+    std::unordered_set<size_t> live;
+    live.reserve(m_undo_redo_stack_assemble.snapshots().size());
+    for (const auto &s : m_undo_redo_stack_assemble.snapshots())
+        live.insert(s.timestamp);
+    for (auto it = m_assemble_guide_ui_by_time.begin(); it != m_assemble_guide_ui_by_time.end();) {
+        if (live.count(it->first) == 0)
+            it = m_assemble_guide_ui_by_time.erase(it);
+        else
+            ++it;
+    }
+}
+
 void Plater::priv::assemble_undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator it_snapshot)
 {
     // Slim, self-contained jump that only touches the assembly model + assembly canvas.
@@ -18447,11 +18502,29 @@ void Plater::priv::assemble_undo_redo_to(std::vector<UndoRedo::Snapshot>::const_
     UndoRedo::SnapshotData top_snapshot_data;
     top_snapshot_data.printer_technology = this->printer_technology;
 
+    // Preserve the UI cursor of the state we are leaving so redo can find it. StackImpl::undo may
+    // capture an uncaptured topmost via its own take_snapshot (bypassing Plater::take_snapshot).
+    remember_assemble_guide_ui(m_undo_redo_stack_assemble.active_snapshot_time());
+
     const UndoRedo::Snapshot snapshot_copy = *it_snapshot;
     const bool jumped = it_snapshot->timestamp < m_undo_redo_stack_assemble.active_snapshot_time() ?
         m_undo_redo_stack_assemble.undo(m_assemble_model, assemble_canvas->get_selection(), assemble_canvas->get_gizmos_manager(), this->partplate_list, top_snapshot_data, it_snapshot->timestamp) :
         m_undo_redo_stack_assemble.redo(m_assemble_model, assemble_canvas->get_gizmos_manager(), this->partplate_list, it_snapshot->timestamp);
     if (jumped) {
+        prune_assemble_guide_ui_snapshots();
+        if (!m_assemble_model.get_assembly_tree_json_str().empty()) {
+            std::string tree_error;
+            if (!AssemblyTreeData::from_json_string(m_assemble_model.get_assembly_tree_json_str(), m_assemble_model.get_assembly_tree_data(), &tree_error))
+                BOOST_LOG_TRIVIAL(warning) << "assemble_undo_redo_to: restore assembly tree failed: " << tree_error;
+        }
+        if (!m_assemble_model.get_assembly_steps_json_str().empty()) {
+            std::string steps_error;
+            float steps_font_size = 0.0f;
+            if (!AssemblyStepsTreeData::from_json_string(m_assemble_model.get_assembly_steps_json_str(), m_assemble_model.get_assembly_steps_tree_data(), m_assemble_model, &steps_error, &steps_font_size))
+                BOOST_LOG_TRIVIAL(warning) << "assemble_undo_redo_to: restore assembly steps failed: " << steps_error;
+        } else {
+            m_assemble_model.get_assembly_steps_tree_data() = AssemblyStepsTreeData();
+        }
         assemble_canvas->get_selection().clear();
         assemble_canvas->reload_scene(true);
         // Restore the selection captured in the target snapshot. The main stack does this in
@@ -18467,6 +18540,15 @@ void Plater::priv::assemble_undo_redo_to(std::vector<UndoRedo::Snapshot>::const_
         // reset_all_states()/exit_gizmo turn into no-ops -> the Move gizmo can no longer be closed on playback
         // or step switch. Prefer update_after_undo_redo() over a bare update_data() for exactly this reset.
         assemble_canvas->get_gizmos_manager().update_after_undo_redo(snapshot_copy);
+        // Restore guide UI cursor from the side map (not SnapshotData). Do NOT call active_view().
+        int restore_folder_id = -1;
+        int restore_kf        = -1;
+        if (auto it_ui = m_assemble_guide_ui_by_time.find(snapshot_copy.timestamp);
+            it_ui != m_assemble_guide_ui_by_time.end()) {
+            restore_folder_id = it_ui->second.selected_folder_id;
+            restore_kf        = it_ui->second.keyframe_selected;
+        }
+        assemble_canvas->restore_assembly_guide_ui_after_undo(restore_folder_id, restore_kf);
         assemble_canvas->set_as_dirty();
     }
 }
@@ -18492,7 +18574,9 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
         assemble_snapshot_data.printer_technology = this->printer_technology;
         GLCanvas3D* assemble_canvas = assemble_view->get_canvas3d();
         m_undo_redo_stack_assemble.take_snapshot(snapshot_name, m_assemble_model, assemble_canvas->get_selection(), assemble_canvas->get_gizmos_manager(), this->partplate_list, assemble_snapshot_data);
+        remember_assemble_guide_ui_for_latest_action_snapshot();
         m_undo_redo_stack_assemble.release_least_recently_used();
+        prune_assemble_guide_ui_snapshots();
         BOOST_LOG_TRIVIAL(info) << "Assemble Undo / Redo snapshot taken: " << snapshot_name;
         return;
     }
@@ -25205,6 +25289,11 @@ void Plater::mark_assemble_view_requires_zoom_to_volumes()
             p_camera->requires_zoom_to_volumes = true;
         }
     }
+}
+
+bool Plater::is_assemble_undo_stack_active() const
+{
+    return p->m_undo_redo_stack_active == &p->m_undo_redo_stack_assemble;
 }
 
 const Camera& Plater::get_picking_camera() const

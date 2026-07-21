@@ -1892,11 +1892,11 @@ private:
 	friend class UndoRedo::StackImpl;
     template<class Archive> void load(Archive& ar) {
         Internal::StaticSerializationWrapper<ModelWipeTower> wipe_tower_wrapper(wipe_tower);
-        ar(materials, objects, wipe_tower_wrapper);
+        ar(materials, objects, wipe_tower_wrapper, m_assembly_tree_json_str, m_assembly_steps_json_str, m_assembly_model_json_str);
     }
     template<class Archive> void save(Archive& ar) const {
         Internal::StaticSerializationWrapper<ModelWipeTower const> wipe_tower_wrapper(wipe_tower);
-        ar(materials, objects, wipe_tower_wrapper);
+        ar(materials, objects, wipe_tower_wrapper, m_assembly_tree_json_str, m_assembly_steps_json_str, m_assembly_model_json_str);
     }
 
     //BBS: add aux temp directory

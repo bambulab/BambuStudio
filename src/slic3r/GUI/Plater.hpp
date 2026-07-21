@@ -785,6 +785,9 @@ public:
     const Camera& get_camera() const;
     Camera& get_camera();
     void mark_assemble_view_requires_zoom_to_volumes();
+    // True while the assembly view owns Undo/Redo, i.e. snapshots go to the assembly stack
+    // instead of the prepare one.
+    bool is_assemble_undo_stack_active() const;
     const Camera& get_picking_camera() const;
     Camera& get_picking_camera();
 

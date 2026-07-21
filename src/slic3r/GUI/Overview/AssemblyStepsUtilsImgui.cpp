@@ -385,6 +385,9 @@ void AssemblyStepsUtils::refresh_guide_show_part_numbers_from_current()
 
 void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
     if (!m_camera || !m_volumes || !m_model) { return;}
+    // Frame tick for per-frame query caches (see is_selection_added_to_current_step()).
+    ++m_ui_frame_index;
+    flush_coalesced_steps_save_if_stale();
     auto &sc = m_imgui_scale;
     //logic
     play_cur_keyframe_logic();
@@ -594,9 +597,9 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
             cur_label += "(" + _u8L("End frame") + ")";
     }
 
-    // Speed multiplier shown in the pill. m_play_transition_duration is the time per
-    // frame; speed = 1 / duration. Clicking the pill cycles 1.0x -> 0.5x -> 1.5x -> 2.0x.
-    const float speed_mult = static_cast<float>(m_play_transition_duration > 0.0 ? (m_play_transition_expect_duration / m_play_transition_duration): 1.0);
+    // Speed multiplier shown in the pill; the frame duration is derived from it.
+    // Clicking the pill cycles 1.0x -> 0.5x -> 1.5x -> 2.0x.
+    const float speed_mult = static_cast<float>(get_play_speed_multiplier());
     char speed_text[16];
     std::snprintf(speed_text, sizeof(speed_text), "%.1fx", speed_mult);
 
@@ -770,14 +773,13 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
         }
         if (clicked) {
             // Cycle order matches the Figma "1.0x" default first: 1.0 -> 0.5 -> 1.5 -> 2.0.
-            const double cur        = (m_play_transition_duration > 0.0 ? m_play_transition_expect_duration / m_play_transition_duration : 1.0);
+            const double cur        = get_play_speed_multiplier();
             double next_speed = 1.0;
             if      (std::abs(cur - 1.0) < 1e-3) next_speed = 0.5;
             else if (std::abs(cur - 0.5) < 1e-3) next_speed = 1.5;
             else if (std::abs(cur - 1.5) < 1e-3) next_speed = 2.0;
             else                                  next_speed = 1.0;
-            m_play_transition_duration = m_play_transition_expect_duration / next_speed;
-            m_play_interval_step_to_step = m_play_interval_step_to_step_expect / next_speed;
+            set_play_speed_multiplier(next_speed);
         }
         if (hovered) {
             // Window has zero WindowPadding; the tooltip needs its own padding back.
@@ -1734,9 +1736,10 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
                 record_camera(cur_entry.data);
                 cur_entry.data.is_camera_define = true;
                 cur_entry.need_save = true;
-                save_assembly_steps_json_to_model();
             }
             m_pn_autolayout_pending = false;
+            // Final persist for auto-explode / apply-pose (skip was held open for us).
+            flush_assembly_steps_json_to_model();
         }
 
         for (int i = 0; i < (int)pn_labels.size(); ++i) {
@@ -2213,8 +2216,10 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
                     return 0;
                 };
 
+                // NoUndoRedo: Ctrl+Z/Y must leave caret mode and hit the assemble
+                // plater undo stack (see GLCanvas3D::on_char), not stb_textedit.
                 ImGuiInputTextFlags text_flags = ImGuiInputTextFlags_Multiline | ImGuiInputTextFlags_NoHorizontalScroll
-                    | ImGuiInputTextFlags_CallbackAlways;
+                    | ImGuiInputTextFlags_CallbackAlways | ImGuiInputTextFlags_NoUndoRedo;
 
                 // Only grab keyboard focus on the frame(s) where a focus request is pending (right after the activating click).
                 if (focus_request)
@@ -6914,14 +6919,8 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
             ImGui::PushID("##tl_play_inline");
             imgui.disabled_begin(!can_play_current_node);
             ImGui::InvisibleButton("##p", ImVec2(btn_sz, btn_sz));
-            if (ImGui::IsItemClicked(0)) {
-                if (m_keyframe_playing)
-                    pause_playback();
-                else if (m_playback_paused)
-                    resume_playback();
-                else
-                    play_all_keyframes_for_current_node();
-            }
+            if (ImGui::IsItemClicked(0))
+                toggle_play_all_keyframes_for_current_node();
             if (ImGui::IsItemHovered())
                 render_panel_tooltip(can_play_current_node ? (m_keyframe_playing ? _u8L("Pause") : _u8L("Play all frames for current step")) :
                     _u8L("At least two keyframes are required to play."));
@@ -6977,6 +6976,7 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
         const bool draw_auto_explode_in_slot = can_auto_explode && !draw_from_fae_in_slot;
         const bool show_shared_explode_fae_slot =
             draw_from_fae_in_slot || draw_auto_explode_in_slot;
+        const bool selection_in_current_step = is_selection_added_to_current_step();
 
         ImTextureID apply_camera_icon = (m_is_dark && m_tree_icon_apply_camera_dark) ?
             m_tree_icon_apply_camera_dark : m_tree_icon_apply_camera;
@@ -7000,13 +7000,17 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
             const float btn_sz = right_btn_sz;
             const float btn_x  = take_right_btn_x();
             const float btn_y  = card_min.y + 6.0f * sc + (title_sz.y - btn_sz) * 0.5f;
-            // A step that only inherited objects has nothing new to explode and
-            // nothing to restore to the assembled pose: dim the icon, drop the
-            // click and explain what the user has to do first.
-            const bool  slot_enabled = step_has_new_objects(auto_explode_folder);
+            // Two reasons to dim the icon and drop the click: the step only inherited
+            // objects (nothing new to explode / restore), or the canvas selection does
+            // not belong to this step yet. slot_enabled is the single gate on purpose:
+            // ImGuiItemFlags_Disabled would also kill IsItemHovered(), so the tooltip
+            // telling the user what to do first could never be read.
+            const bool  slot_enabled = step_has_new_objects(auto_explode_folder) && selection_in_current_step;
             const ImU32 slot_tint    = slot_enabled ? IM_COL32(255, 255, 255, 255)
                                                     : IM_COL32(255, 255, 255, 70);
-            const std::string slot_disabled_tip = _u8L("Add a new object to the current step first");
+            const std::string slot_disabled_tip = !selection_in_current_step
+                ? _u8L("Add the selected object or part to the current step first")
+                : _u8L("Add a new object to the current step first");
 
             if (draw_from_fae_in_slot) {
                 draw_list->AddImage(from_fae_icon,
@@ -7082,8 +7086,8 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
                         // won't be overwritten by automatic camera seeding later.
                         entry.data.camera_user_defined = true;
                         entry.need_save = true;
-                        save_assembly_steps_json_to_model();
                     }
+                    save_assembly_steps_json_to_model();
                 }
             }
             if (ImGui::IsItemHovered())
@@ -7942,6 +7946,8 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
         bool step_changed = (active_step_node >= 0 && m_active_assembly_tree_checked != nullptr &&
                              checked != m_assembly_tree_ui_original_checked);
         if (step_changed) {
+            // One Undo for the whole confirm: membership commit + per-keyframe label rebuild.
+            begin_coalesced_steps_save();
             bool step_was_empty = is_empty_structure_step(active_step_node);
             apply_assembly_tree_checked_to_step(active_step_node, *tree, checked);
             // Membership changed: rebuild part-number labels on every keyframe of
@@ -7962,6 +7968,9 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
                     }
                 }
             }
+            // Persist once here, unless part-number auto-layout will flush on the next frame.
+            if (!m_pn_autolayout_pending)
+                flush_assembly_steps_json_to_model();
         } else {
             // Membership unchanged, but OK still clears the preview selection when
             // m_select_all_when_click_in_step_card is false (default).

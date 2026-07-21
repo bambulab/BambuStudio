@@ -109,6 +109,105 @@ void AssemblyStepsUtils::clear_selected_node()
     m_selected_node = -1;
 }
 
+void AssemblyStepsUtils::capture_guide_ui_for_snapshot(int &out_selected_folder_id, int &out_keyframe_selected) const
+{
+    out_selected_folder_id = -1;
+    out_keyframe_selected  = -1;
+    // OverallPreview is runtime-only and not serialized; treat it like "no step edit"
+    // so undo/redo remaps by stable folder id instead of a shifting node index.
+    if (is_overall_preview_mode())
+        return;
+    const int folder = find_parent_folder(m_selected_node);
+    if (folder < 0 || folder >= (int) _steps_nodes.size())
+        return;
+    if (_steps_nodes[folder].type != AssemblyStepsTreeNode::Type::Folder ||
+        _steps_nodes[folder].is_final_assembly == AssemblyStepKind::OverallPreview)
+        return;
+    out_selected_folder_id = _steps_nodes[folder].id;
+    out_keyframe_selected  = m_keyframe_selected;
+}
+
+void AssemblyStepsUtils::restore_guide_ui_after_undo(int selected_folder_id, int keyframe_selected)
+{
+    // Tree content has already been reloaded from the snapshot JSON. Rebuild the
+    // play-bar index so sync_play_index_to_selection() can resolve the restored
+    // (folder, keyframe) pair, then re-apply the UI cursor without going through
+    // deal_once_when_enter_assembly_view() (which would clear the selection).
+    invalidate_play_frame_refs();
+    rebuild_play_frame_refs();
+
+    exit_note_edit();
+    exit_render_assembly_tree_ui();
+    exit_structure_merge_mode();
+    // OverallPreview is not in JSON; recreate before remapping the UI cursor.
+    ensure_overall_preview_folder();
+
+    auto is_restorable_step_folder = [&](int folder) {
+        if (folder < 0 || folder >= (int) _steps_nodes.size())
+            return false;
+        const auto &n = _steps_nodes[folder];
+        if (n.type != AssemblyStepsTreeNode::Type::Folder ||
+            n.is_final_assembly == AssemblyStepKind::OverallPreview)
+            return false;
+        return std::find(_steps_roots.begin(), _steps_roots.end(), folder) != _steps_roots.end();
+    };
+
+    // Resolve the step by stable id: the JSON reload rebuilt the node vector, so the
+    // index this step had when the snapshot was taken no longer identifies it.
+    int target_folder = -1;
+    if (selected_folder_id >= 0) {
+        for (int i = 0; i < (int) _steps_nodes.size(); ++i) {
+            if (_steps_nodes[i].type != AssemblyStepsTreeNode::Type::Folder)
+                continue;
+            if (_steps_nodes[i].id != selected_folder_id)
+                continue;
+            if (is_restorable_step_folder(i)) {
+                target_folder = i;
+                break;
+            }
+        }
+    }
+
+    if (target_folder < 0) {
+        // Also the landing state when undoing an add / inherit / merge: the step the UI
+        // cursor was captured on does not exist in the restored tree, so its id is gone.
+        // Match OverallPreview card / exit editing: no step card selected, OP highlighted.
+        m_selection_origin  = SelectionOrigin::None;
+        clear_selected_node();
+        m_keyframe_selected = -1;
+        m_last_folder_idx   = -1;
+        apply_keyframe_display_mode();
+        apply_model_assemble_transforms_to_canvas();
+        do_commond_callback("deselect_all");
+        do_commond_callback("dirty");
+        do_commond_callback("request_extra_frame");
+        return;
+    }
+
+    set_selection_origin(SelectionOrigin::TreeNode);
+    m_selected_node   = target_folder;
+    m_last_folder_idx = target_folder;
+
+    auto *entries = get_current_kf_entries();
+    if (!entries || entries->empty()) {
+        m_keyframe_selected = -1;
+    } else if (keyframe_selected < 0 || keyframe_selected >= (int) entries->size()) {
+        m_keyframe_selected = default_keyframe_index();
+    } else {
+        m_keyframe_selected = keyframe_selected;
+    }
+
+    if (entries && m_keyframe_selected >= 0 && m_keyframe_selected < (int) entries->size()) {
+        look_cur_frame_logic((*entries)[m_keyframe_selected]);
+    }
+    apply_keyframe_display_mode();
+    refresh_guide_show_part_numbers_from_current();
+    sync_play_index_to_selection();
+    m_selected_screen_center_dirty_ = true;
+    do_commond_callback("dirty");
+    do_commond_callback("request_extra_frame");
+}
+
 void AssemblyStepsUtils::clear_when_no_selection()
 {
     if (m_selection_origin == SelectionOrigin::None) {
@@ -213,6 +312,8 @@ void AssemblyStepsUtils::reset_state_on_model_changed()
     m_last_has_selected_node_ = false;
     pn_screen_centers_.clear();
     m_pn_autolayout_pending = false;
+    m_skip_assembly_steps_save = false;
+    m_sel_in_step_cache.invalidate();
     m_render_interpolated_part_number_labels = false;
 
     hide_assembly_export_progress();
@@ -273,11 +374,46 @@ std::string AssemblyStepsUtils::assembly_step_display_name(const AssemblyStepsTr
 
 void AssemblyStepsUtils::save_assembly_steps_json_to_model()
 {
+    if (m_skip_assembly_steps_save)
+        return;
     if (!m_model) { return; }
     std::string json_str = build_steps_json_string();
     if (json_str.empty()) { return; }
+    if (json_str == m_model->get_assembly_steps_json_str()) { return; }
+    auto *plater = wxGetApp().plater();
+    // Only the assembly stack may carry this snapshot. STEP import, project close and
+    // new-project also write the steps JSON back while the prepare stack is active, where
+    // the entry would show up as an Undo step with no visible effect.
+    if (plater->is_assemble_undo_stack_active())
+        plater->take_snapshot("Edit Assembly Guide");
     m_model->set_assembly_steps_json_str(json_str);
-    wxGetApp().plater()->set_plater_dirty(true);
+    plater->set_plater_dirty(true);
+}
+
+void AssemblyStepsUtils::begin_coalesced_steps_save()
+{
+    m_skip_assembly_steps_save       = true;
+    m_skip_assembly_steps_save_frame = m_ui_frame_index;
+}
+
+void AssemblyStepsUtils::flush_assembly_steps_json_to_model()
+{
+    m_skip_assembly_steps_save       = false;
+    m_skip_assembly_steps_save_frame = -1;
+    save_assembly_steps_json_to_model();
+}
+
+void AssemblyStepsUtils::flush_coalesced_steps_save_if_stale()
+{
+    if (!m_skip_assembly_steps_save)
+        return;
+    // Auto-explode / apply-pose may hand the final save to the part-number auto-layout of
+    // the following frame. That code sits inside the "step has labels" branch of the notes
+    // render and can be skipped for good (no labels on that frame), so give it exactly one
+    // frame and then persist here: an open window silently drops every later edit.
+    if (m_ui_frame_index <= m_skip_assembly_steps_save_frame + 1)
+        return;
+    flush_assembly_steps_json_to_model();
 }
 
 void AssemblyStepsUtils::save_assembly_steps_json_to_model_and_request_extra_frame()
@@ -805,13 +941,14 @@ void AssemblyStepsUtils::sync_play_index_to_selection()
         m_assembly_play_index = count;
 }
 
-void AssemblyStepsUtils::reschedule_play_bar_after_structure_change()
+void AssemblyStepsUtils::reschedule_play_bar_after_structure_change(bool save)
 {
     invalidate_play_frame_refs();
     rebuild_play_frame_refs();
     sync_play_index_to_selection();
-
-    save_assembly_steps_json_to_model();
+    if (save) {
+        save_assembly_steps_json_to_model();
+    }
     do_commond_callback("dirty");
     do_commond_callback("request_extra_frame");
 }
@@ -1181,6 +1318,12 @@ void AssemblyStepsUtils::inherit_assembly_step()
     // Snapshot the end frame + member object list BEFORE creating nodes
     // (create_*_node() push_back into _steps_nodes and may reallocate).
     const KeyFrame end_copy = *parent_end;
+    // Volume-level membership lives in assembly_tree_checked. The Object children below
+    // only carry object granularity, so without this copy collect_folder_volume_pairs()
+    // falls back to "every volume of those objects" and a partially-checked multi-volume
+    // object would silently gain its remaining parts in the inheriting step.
+    const std::optional<std::unordered_map<std::string, bool>> parent_checked =
+        _steps_nodes[parent].assembly_tree_checked;
     std::vector<int> parent_objs;
     std::set<int>    seen;
     for (int ci : _steps_nodes[parent].children) {
@@ -1207,6 +1350,8 @@ void AssemblyStepsUtils::inherit_assembly_step()
         if (oi >= 0 && oi < (int) m_model->objects.size() && m_model->objects[oi])
             inherited_ids.push_back(m_model->objects[oi]->id().id);
     }
+    // Inherit the exact same checked leaves (uids are tree-wide, so they transfer as is).
+    _steps_nodes[new_idx].assembly_tree_checked = parent_checked;
     sync_keyframe_tree();
 
     // Reset every inherited member to its assembled pose taken from m_model.
@@ -1277,7 +1422,7 @@ void AssemblyStepsUtils::inherit_assembly_step()
     m_selected_node            = new_idx;
     m_structure_scroll_to_node = new_idx;
     on_selected_node_changed();
-    reschedule_play_bar_after_structure_change();//inherit_assembly_step
+    reschedule_play_bar_after_structure_change(/*save*/false);//inherit_assembly_step
     save_assembly_steps_json_to_model();
     do_commond_callback("dirty");
     do_commond_callback("request_extra_frame");
@@ -1436,9 +1581,13 @@ void AssemblyStepsUtils::merge_checked_assembly_steps()
     }
 
     const std::string new_name = make_final_assembly ? _u8L("Final assembly") : _u8L("Merged Step");
+    // One Undo for the whole merge + label rebuild.
+    begin_coalesced_steps_save();
     const int new_idx = create_folder_node(new_name, 0);
-    if (new_idx < 0)
+    if (new_idx < 0) {
+        m_skip_assembly_steps_save = false;
         return;
+    }
     ensure_default_keyframe(new_idx);
     for (int oi : union_objs) {
         const int onode = create_object_node(oi, get_object_name(oi), get_object_id_id(oi));
@@ -1540,7 +1689,9 @@ void AssemblyStepsUtils::merge_checked_assembly_steps()
     }
 
     reschedule_play_bar_after_structure_change(); // merge_checked_assembly_steps
-    save_assembly_steps_json_to_model();
+    // Coalesce mid-path saves; drop deferred layout flush so this remains one Undo.
+    m_pn_autolayout_pending = false;
+    flush_assembly_steps_json_to_model();
     do_commond_callback("dirty");
     do_commond_callback("request_extra_frame");
 }
@@ -2113,10 +2264,20 @@ void AssemblyStepsUtils::apply_final_assembly_to_current_keyframe()
         }
     }
 
+    // One Undo for pose apply + optional part-number rebuild / deferred auto-layout.
+    auto apply_coalesced = [&](const std::set<int> &object_filter,
+                               const std::set<std::pair<int, int>> &volume_filter) {
+        begin_coalesced_steps_save();
+        apply_src_frame_transforms_to_current_keyframe(src_entry, object_filter, volume_filter, true);
+        // Persist once here, unless part-number auto-layout will flush on the next frame.
+        if (!m_pn_autolayout_pending)
+            flush_assembly_steps_json_to_model();
+    };
+
     // With an active selection, only apply the assembled pose to the
     // selected objects/parts. (Covers both single and multi selection.)
     if (!selected_objects.empty() || !selected_volumes.empty()) {
-        apply_src_frame_transforms_to_current_keyframe(src_entry, selected_objects, selected_volumes, true);
+        apply_coalesced(selected_objects, selected_volumes);
         return;
     }
 
@@ -2155,7 +2316,7 @@ void AssemblyStepsUtils::apply_final_assembly_to_current_keyframe()
                 step_volumes.insert({oi, vi});
         }
     }
-    apply_src_frame_transforms_to_current_keyframe(src_entry, step_objects, step_volumes, true);
+    apply_coalesced(step_objects, step_volumes);
 }
 
 void AssemblyStepsUtils::apply_src_frame_transforms_to_current_keyframe(KeyFrameEntry &src,
@@ -2683,8 +2844,16 @@ void AssemblyStepsUtils::clear_global_playback_state()
     m_video_intro_step_duration = VIDEO_INTRO_STEP_DURATION;
     m_render_interpolated_part_number_labels = false;
     m_pending_global_frame_index = -1;
-    m_play_transition_duration = m_play_transition_expect_duration;
-    m_play_interval_step_to_step = m_play_interval_step_to_step_expect;
+    // Re-derive the durations from the speed the user picked instead of forcing 1.0x:
+    // ending a run or starting a local one must not silently reset the play bar pill.
+    set_play_speed_multiplier(m_play_speed_multiplier);
+}
+
+void AssemblyStepsUtils::set_play_speed_multiplier(double speed)
+{
+    m_play_speed_multiplier      = speed > 0.0 ? speed : 1.0;
+    m_play_transition_duration   = m_play_transition_expect_duration / m_play_speed_multiplier;
+    m_play_interval_step_to_step = m_play_interval_step_to_step_expect / m_play_speed_multiplier;
 }
 
 void AssemblyStepsUtils::exit_title_mode_if_paused()
@@ -3128,6 +3297,9 @@ void AssemblyStepsUtils::auto_explode_current_keyframe()
     if (!overall.defined)
         return;
 
+    // One Undo for explode + optional labels + deferred auto-layout.
+    begin_coalesced_steps_save();
+
     // Nothing new to explode: still pin already-assembled poses and exit.
     KeyFrame &target = entry.data;
     auto commit_fixed_poses = [&]() {
@@ -3152,13 +3324,13 @@ void AssemblyStepsUtils::auto_explode_current_keyframe()
     if (items.empty()) {
         commit_fixed_poses();
         entry.need_save = true;
-        save_assembly_steps_json_to_model();
         m_selected_screen_center_dirty_ = true;
         if (m_selection)
             m_selection->mark_bounding_boxes_dirty();
         do_commond_callback("exit_gizmo");
         do_commond_callback("dirty");
         do_commond_callback("request_extra_frame");
+        flush_assembly_steps_json_to_model();
         return;
     }
 
@@ -3230,12 +3402,16 @@ void AssemblyStepsUtils::auto_explode_current_keyframe()
     }
 
     entry.need_save = true;
-    save_assembly_steps_json_to_model();
+
     m_selected_screen_center_dirty_ = true;
     if (m_selection)
         m_selection->mark_bounding_boxes_dirty();
     if (m_select_good_camera_layout_laber_after_auto_explode && m_guide_show_part_numbers) {
         toggle_part_number_labels();
+    }
+    // Persist once here, unless part-number auto-layout will flush on the next frame.
+    if (!m_pn_autolayout_pending) { //delay
+        flush_assembly_steps_json_to_model();
     }
     do_commond_callback("exit_gizmo");
     do_commond_callback("dirty");
@@ -4444,6 +4620,66 @@ std::set<int> AssemblyStepsUtils::current_step_focus_object_indices() const
     if (folder < 0 || folder >= (int) _steps_nodes.size())
         return {};
     return collect_node_object_indices(folder);
+}
+
+bool AssemblyStepsUtils::is_selection_added_to_current_step() const
+{
+    if (!m_selection || is_overall_preview_mode())
+        return true;
+
+    const int folder = find_parent_folder(m_selected_node);
+    if (folder < 0 || folder >= (int) _steps_nodes.size())
+        return true;
+
+    const auto &sel_idxs = m_selection->get_volume_idxs();
+    if (sel_idxs.empty())
+        return true;
+
+    // Every gizmo toolbar item asks this through its enabling_callback, and the guide
+    // panel asks again while drawing, so the query runs several times per frame while
+    // collect_folder_volume_pairs() below allocates a set each time. Reuse the answer
+    // as long as frame, step and selection are unchanged: a step-content edit is
+    // picked up on the next frame, which the edit already requests a redraw for.
+    size_t sel_signature = sel_idxs.size();
+    for (unsigned int gi : sel_idxs)
+        sel_signature = sel_signature * 1000003u + gi;
+    if (m_sel_in_step_cache.matches(m_ui_frame_index, folder, sel_signature))
+        return m_sel_in_step_cache.result;
+
+    bool result = true;
+    // Volume-level membership covers FinalAssembly (whole model) and Normal
+    // steps with assembly_tree_checked / object-node membership.
+    const std::set<std::pair<int, int>> step_vols = collect_folder_volume_pairs(folder);
+    for (unsigned int gi : sel_idxs) {
+        const GLVolume *gv = m_selection->get_volume(gi);
+        if (!gv)
+            continue;
+        const int oi = gv->object_idx();
+        const int vi = gv->volume_idx();
+        if (oi < 0)
+            continue;
+        if (vi >= 0) {
+            if (step_vols.count({oi, vi}) == 0) {
+                result = false;
+                break;
+            }
+        } else {
+            bool any = false;
+            for (const auto &p : step_vols) {
+                if (p.first == oi) {
+                    any = true;
+                    break;
+                }
+            }
+            if (!any) {
+                result = false;
+                break;
+            }
+        }
+    }
+
+    m_sel_in_step_cache.store(m_ui_frame_index, folder, sel_signature, result);
+    return result;
 }
 
 bool AssemblyStepsUtils::has_only_overall_preview_step_card() const
@@ -7873,16 +8109,36 @@ void AssemblyStepsUtils::insert_keyframe_after_selected()
     pause_global_frame();
     m_keyframe_selected = insert_pos;
     refresh_guide_show_part_numbers_from_current();
+    save_assembly_steps_json_to_model();
 }
 
 void AssemblyStepsUtils::play_all_keyframes_for_current_node()
 {
     clear_playback_pause_state();
-    clear_global_playback_state();
     m_keyframe_playing = true;
     build_local_play_queue();
     do_commond_callback("exit_gizmo");
     do_commond_callback("request_extra_frame");
+}
+
+void AssemblyStepsUtils::toggle_play_all_keyframes_for_current_node()
+{
+    // Drop the canvas selection on every click of the inline play button: playback hides
+    // the panels, so a leftover highlight would sit on the parts for the whole run (the
+    // global play bar does the same at the end of play_global_frame()).
+    clear_selection();
+    clear_global_playback_state();//The pause button in local playback is not visible
+    if (m_keyframe_playing) {
+        pause_playback();
+        return;
+    }
+    // pause_playback() keeps m_play_global set, so a paused global run would otherwise
+    // be resumed here and keep advancing every step. Only a paused local run resumes.
+    if (m_playback_paused && !m_play_global) {
+        resume_playback();
+        return;
+    }
+    play_all_keyframes_for_current_node();
 }
 
 bool AssemblyStepsUtils::should_show_panels()

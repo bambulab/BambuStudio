@@ -898,6 +898,13 @@ public:
 
     void active_view();
     bool is_assembly_guide_node_selected() const;
+    AssemblyStepsUtils *get_assembly_steps() { return m_assembly_steps.get(); }
+    const AssemblyStepsUtils *get_assembly_steps() const { return m_assembly_steps.get(); }
+    // Rebind AssemblyStepsUtils inputs and restore step/keyframe UI after assemble undo/redo.
+    void restore_assembly_guide_ui_after_undo(int selected_folder_id, int keyframe_selected);
+    // Current guide UI cursor for the assemble undo side-map. selected_folder_id is the
+    // stable step-folder id, or -1 for overall-preview / no step edit.
+    void capture_assembly_guide_ui_for_snapshot(int &out_selected_folder_id, int &out_keyframe_selected) const;
     // Append a freshly imported STEP hierarchy to the existing assembly tree.
     void append_step_import_to_assembly_tree(const std::vector<StepImportTreeNode>& step_nodes,
                                              const std::vector<size_t>&                    loaded_idxs,
@@ -1109,6 +1116,9 @@ public:
     // Assemble view: OverallPreview uses the full assemble gizmo set; normal step
     // cards use get_special_allow_gizmos() (Move / Rotate).
     bool is_allow_use_gizmo_in_different_view() const;
+    // Assemble view Move/Rotate gate: false when the canvas selection is not
+    // added to the currently selected assembly step.
+    bool is_allow_gizmo_active() const;
     // Optional override of the AssembleView selectable gizmo set (EType values).
     // Non-empty => GLGizmosManager::get_selectable_idxs uses this list instead of
     // the hardcoded assemble defaults. Non-OverallPreview returns Move + Rotate;
