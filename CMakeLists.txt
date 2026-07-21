@@ -304,7 +304,7 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
     # such as Xcode 26), so probe for it instead of relying on the version number.
     if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
         include(CheckCXXCompilerFlag)
-        check_cxx_compiler_flag("-Werror=enum-constexpr-conversion" HAVE_FLAG_ENUM_CONSTEXPR_CONVERSION)
+        check_cxx_compiler_flag("-Wno-error=enum-constexpr-conversion" HAVE_FLAG_ENUM_CONSTEXPR_CONVERSION)
         if(HAVE_FLAG_ENUM_CONSTEXPR_CONVERSION)
             add_compile_options(-Wno-error=enum-constexpr-conversion)
         endif()

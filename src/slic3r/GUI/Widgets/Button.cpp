@@ -4,9 +4,6 @@
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 #include <wx/tipwin.h>
-#ifdef __APPLE__
-#include "libslic3r/MacUtils.hpp"
-#endif
 BEGIN_EVENT_TABLE(Button, StaticBox)
 
 EVT_LEFT_DOWN(Button::mouseDown)
@@ -287,19 +284,6 @@ void Button::render(wxDC& dc)
             pt.y += (rcContent.height - textSize.y) / 2;
         }
         dc.SetTextForeground(text_color.colorForStates(states));
-#if 0
-        dc.SetBrush(*wxLIGHT_GREY);
-        dc.SetPen(wxPen(*wxLIGHT_GREY));
-        dc.DrawRectangle(pt, textSize.GetSize());
-#endif
-#ifdef __WXOSX__
-        pt.y -= this->textSize.x / 2;
-#endif
-#ifdef __APPLE__
-        if (Slic3r::is_mac_version_15()) {
-        pt.y -= FromDIP(1);
-    }
-#endif
         dc.DrawText(text, pt);
     }
 }
@@ -364,7 +348,9 @@ void Button::renderWhiteCorners(wxDC& dc)
 void Button::messureSize()
 {
     wxClientDC dc(this);
-    dc.GetTextExtent(GetLabel(), &textSize.width, &textSize.height, &textSize.x, &textSize.y);
+    dc.GetTextExtent(GetLabel(), &textSize.width, &textSize.height);
+    wxFontMetrics fm = dc.GetFontMetrics();
+    textSize.height = fm.ascent + fm.descent;
     wxSize szContent = textSize.GetSize();
     if (this->active_icon.bmp().IsOk()) {
         if (szContent.y > 0) {
