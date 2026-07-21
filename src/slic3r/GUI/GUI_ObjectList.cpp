@@ -688,7 +688,8 @@ ModelConfig& ObjectList::get_item_config(const wxDataViewItem& item) const
         return s_empty_config;
 
     const int obj_idx = m_objects_model->GetObjectIdByItem(item);
-    const int vol_idx = type & itVolume ? m_objects_model->GetVolumeIdByItem(item) : -1;
+    // Translate it back to the real index
+    const int vol_idx = type & itVolume ? m_objects_model->get_real_volume_index_in_3d(obj_idx, m_objects_model->GetVolumeIdByItem(item)) : -1;
 
     assert(obj_idx >= 0 || ((type & itVolume) && vol_idx >=0));
     return type & itVolume ?(*m_objects)[obj_idx]->volumes[vol_idx]->config :
@@ -3991,7 +3992,7 @@ void ObjectList::part_selection_changed()
                     }
                     else if (parent_type & itVolume) {
                         og_name   = _L("Part Settings to modify");
-                        volume_id = m_objects_model->GetVolumeIdByItem(parent);
+                        volume_id = m_objects_model->get_real_volume_index_in_3d(obj_idx, m_objects_model->GetVolumeIdByItem(parent));
                         m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     }
                     else if (parent_type & itLayer) {
@@ -4002,7 +4003,7 @@ void ObjectList::part_selection_changed()
                 }
                 else if (type & itVolume) {
                     og_name = _L("Part manipulation");
-                    volume_id = m_objects_model->GetVolumeIdByItem(item);
+                    volume_id = m_objects_model->get_real_volume_index_in_3d(obj_idx, m_objects_model->GetVolumeIdByItem(item));
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     update_and_show_manipulations = true;
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
