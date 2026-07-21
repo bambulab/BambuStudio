@@ -19249,7 +19249,7 @@ bool Plater::up_to_date(bool saved, bool backup)
                                         !Slic3r::has_other_changes(backup));
 }
 
-void Plater::add_model(bool imperial_units, std::string fname)
+bool Plater::add_model(bool imperial_units, std::string fname)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " entry";
     wxArrayString input_files;
@@ -19258,7 +19258,7 @@ void Plater::add_model(bool imperial_units, std::string fname)
     if (fname.empty()) {
         wxGetApp().import_model(this, input_files);
         if (input_files.empty())
-            return;
+            return false;
 
         for (const auto& file : input_files)
             paths.emplace_back(into_path(file));
@@ -19302,7 +19302,8 @@ void Plater::add_model(bool imperial_units, std::string fname)
 
     auto strategy = LoadStrategy::LoadModel;
     if (imperial_units) strategy = strategy | LoadStrategy::ImperialUnits;
-    if (!load_files(paths, strategy, ask_multi).empty()) {
+    const bool loaded = !load_files(paths, strategy, ask_multi).empty();
+    if (loaded) {
 
         if (get_project_name() == _L("Untitled") && paths.size() > 0) {
             p->set_project_filename(wxString::FromUTF8(paths[0].string()));
@@ -19310,6 +19311,7 @@ void Plater::add_model(bool imperial_units, std::string fname)
 
         wxGetApp().mainframe->update_title();
     }
+    return loaded;
 }
 
 std::array<Vec3d, 4> get_cut_plane(const BoundingBoxf3 &bbox, const double &cut_height)
@@ -19332,13 +19334,15 @@ void Plater::calib_pa(const Calib_Params &params)
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     switch (params.mode) {
         case CalibMode::Calib_PA_Line:
-            add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance/pressure_advance_test.stl");
+            if (!add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance/pressure_advance_test.stl"))
+                return;
             break;
         case CalibMode::Calib_PA_Pattern:
             _calib_pa_pattern(params);
             break;
         case CalibMode::Calib_PA_Tower:
-            _calib_pa_tower(params);
+            if (!_calib_pa_tower(params))
+                return;
             break;
         default: break;
     }
@@ -19446,9 +19450,10 @@ void Plater::_calib_pa_pattern(const Calib_Params &params)
     changed_objects({0});
 }
 
-void Plater::_calib_pa_tower(const Calib_Params &params)
+bool Plater::_calib_pa_tower(const Calib_Params &params)
 {
-    add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance/tower_with_seam.stl");
+    if (!add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance/tower_with_seam.stl"))
+        return false;
 
     auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -19488,6 +19493,7 @@ void Plater::_calib_pa_tower(const Calib_Params &params)
     }
 
     _calib_pa_select_added_objects();
+    return true;
 }
 
 void Plater::_calib_pa_select_added_objects()
@@ -19520,10 +19526,10 @@ void Plater::calib_flowrate(int pass)
 
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
 
-    if (pass == 1)
-        add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass1.3mf").string());
-    else
-        add_model(false, (boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / "flowrate-test-pass2.3mf").string());
+    const char *filename = pass == 1 ? "flowrate-test-pass1.3mf" : "flowrate-test-pass2.3mf";
+    const auto  model_path = boost::filesystem::path(Slic3r::resources_dir()) / "calib" / "filament_flow" / filename;
+    if (!add_model(false, model_path.string()))
+        return;
 
     auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto printer_config  = &wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -19640,7 +19646,8 @@ void Plater::calib_temp(const Calib_Params &params)
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     if (params.mode != CalibMode::Calib_Temp_Tower) return;
 
-    add_model(false, Slic3r::resources_dir() + "/calib/temperature_tower/temperature_tower.stl");
+    if (!add_model(false, Slic3r::resources_dir() + "/calib/temperature_tower/temperature_tower.stl"))
+        return;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     auto start_temp      = lround(params.start);
     set_config_values<int, ConfigOptionIntsNullable>(filament_config, "nozzle_temperature_initial_layer", (int) start_temp);
@@ -19704,7 +19711,8 @@ void Plater::calib_max_vol_speed(const Calib_Params &params)
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     if (params.mode != CalibMode::Calib_Vol_speed_Tower) return;
 
-    add_model(false, Slic3r::resources_dir() + "/calib/volumetric_speed/SpeedTestStructure.step");
+    if (!add_model(false, Slic3r::resources_dir() + "/calib/volumetric_speed/SpeedTestStructure.step"))
+        return;
 
     auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
@@ -19807,7 +19815,8 @@ void Plater::calib_retraction(const Calib_Params &params)
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     if (params.mode != CalibMode::Calib_Retraction_tower) return;
 
-    add_model(false, Slic3r::resources_dir() + "/calib/retraction/retraction_tower.stl");
+    if (!add_model(false, Slic3r::resources_dir() + "/calib/retraction/retraction_tower.stl"))
+        return;
 
     auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
@@ -19866,7 +19875,8 @@ void Plater::calib_VFA(const Calib_Params &params)
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
     if (params.mode != CalibMode::Calib_VFA_Tower) return;
 
-    add_model(false, Slic3r::resources_dir() + "/calib/vfa/VFA.stl");
+    if (!add_model(false, Slic3r::resources_dir() + "/calib/vfa/VFA.stl"))
+        return;
     auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
