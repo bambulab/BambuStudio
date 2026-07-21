@@ -1769,7 +1769,7 @@ Flow Print::skirt_flow() const
 {
     ConfigOptionFloat width = m_config.initial_layer_line_width;
     if (width.value == 0)
-        width = m_objects.front()->config().line_width;
+        width = m_objects.empty() ? m_config.initial_layer_line_width : m_objects.front()->config().line_width;
 
     /* We currently use a random object's support material extruder.
        While this works for most cases, we should probably consider all of the support material
@@ -1779,7 +1779,7 @@ Flow Print::skirt_flow() const
     return Flow::new_from_config_width(
         frPerimeter,
 		width,
-		(float)m_config.nozzle_diameter.get_at(m_objects.front()->config().support_filament-1),
+		(float)m_config.nozzle_diameter.get_at(m_objects.empty() ? 0 : m_objects.front()->config().support_filament-1),
 		(float)this->skirt_first_layer_height());
 }
 
