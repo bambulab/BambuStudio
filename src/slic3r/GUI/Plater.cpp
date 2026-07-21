@@ -5692,7 +5692,13 @@ void Sidebar::collect_physical_filament_info(std::vector<std::string>& color_str
         Preset* preset = nullptr;
         if (cfg_idx < preset_bundle.filament_presets.size())
             preset = preset_bundle.filaments.find_preset(preset_bundle.filament_presets[cfg_idx]);
-        types.push_back(filament_type_for_color_decompose(preset));
+        std::string ft;
+        if (preset) {
+            std::string display_type;
+            ft = preset->config.get_filament_type(display_type);
+        }
+        if (ft.empty()) ft = "PLA";
+        types.push_back(ft);
     }
 }
 
@@ -6038,6 +6044,21 @@ void Sidebar::decompose_filament_color(int filament_idx)
     std::vector<std::string> color_strs, names, types;
     std::vector<size_t> physical_config_indices;
     collect_physical_filament_info(color_strs, names, types, &physical_config_indices);
+
+    // Build decompose-specific types: ColorDecomposeDialog needs "PLA Basic"
+    // distinction (for CMYW/RYBW card visibility), while collect_physical_filament_info
+    // now returns coarse filament_type (e.g. "PLA" for all PLA variants).
+    std::vector<std::string> decompose_types;
+    {
+        auto& pb = *wxGetApp().preset_bundle;
+        for (size_t i = 0; i < physical_config_indices.size(); ++i) {
+            const size_t ci = physical_config_indices[i];
+            Preset* pr = (ci < pb.filament_presets.size())
+                ? pb.filaments.find_preset(pb.filament_presets[ci]) : nullptr;
+            decompose_types.push_back(filament_type_for_color_decompose(pr));
+        }
+    }
+
     size_t source_physical_idx = size_t(-1);
     for (size_t i = 0; i < physical_config_indices.size(); ++i) {
         if (physical_config_indices[i] == static_cast<size_t>(filament_idx)) {
@@ -6048,7 +6069,7 @@ void Sidebar::decompose_filament_color(int filament_idx)
 
     ColorDecomposeDialog dlg(this,
                              source_physical_idx == size_t(-1) ? -1 : static_cast<int>(source_physical_idx),
-                             target_color, color_strs, names, types,
+                             target_color, color_strs, names, decompose_types,
                              wxGetApp().preset_bundle->filament_presets.size(),
                              static_cast<size_t>(EnforcerBlockerType::ExtruderMax),
                              physical_config_indices);
@@ -6058,7 +6079,7 @@ void Sidebar::decompose_filament_color(int filament_idx)
         MixedFilamentResult mixed_result;
         std::vector<DecomposeMissingComponent> missing_components;
         if (!prepare_decompose_mixed_result(dialog_result, static_cast<size_t>(filament_idx), source_physical_idx,
-                                            color_strs, types, physical_config_indices, mixed_result, missing_components))
+                                            color_strs, decompose_types, physical_config_indices, mixed_result, missing_components))
             return;
 
         if (!confirm_create_decompose_missing_components(this, missing_components))

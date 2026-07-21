@@ -1813,7 +1813,11 @@ void MixedFilamentDialog::update_ok_button_state()
                 parts += wxString::Format(_L("Slot %s (%s)"), slots, wxString::FromUTF8(it->first));
             }
             m_type_mismatch_msg = parts + " " + _L("cannot be mixed. Please select the same filament type.");
+        } else {
+            m_type_mismatch_msg.clear();
         }
+    } else {
+        m_type_mismatch_msg.clear();
     }
 
     bool has_unselected = false;
@@ -1839,6 +1843,10 @@ void MixedFilamentDialog::update_ok_button_state()
 
     if (m_warning_panel) {
         m_warning_panel->Show(has_type_mismatch);
+        // Force a repaint: when the panel is already visible and only the
+        // mismatch text changes (e.g. PETG -> ABS), Show()/Layout() do not
+        // generate a paint event, so paint_warning_panel keeps the stale text.
+        m_warning_panel->Refresh();
         Layout();
     }
 }
