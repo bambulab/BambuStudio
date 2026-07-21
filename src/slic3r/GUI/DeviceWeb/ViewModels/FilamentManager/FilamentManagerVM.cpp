@@ -3,8 +3,10 @@
 #include "slic3r/GUI/DeviceWeb/DeviceWebBridge.hpp"
 
 #include <algorithm>
+#include <stdexcept>
 #include <vector>
 #include <boost/log/trivial.hpp>
+#include <boost/nowide/fstream.hpp>
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
@@ -23,6 +25,7 @@
 
 #include <wx/app.h>
 #include <wx/colour.h>
+#include <wx/filedlg.h>
 #include <wx/string.h>
 #include <iomanip>
 #include <sstream>
@@ -220,6 +223,71 @@ nlohmann::json FilamentManagerVM::HandleSpool(const std::string& action, const n
     if (action == "list") {
         return MakeResp("spool", action, 0, "", build_spool_list());
     }
+    if (action == "export") {
+        wxFileDialog dialog(
+            wxGetApp().GetTopWindow(),
+            wxString::FromUTF8("Export filament inventory"),
+            wxEmptyString,
+            wxString::FromUTF8("filament_inventory_backup.json"),
+            wxString::FromUTF8("JSON files (*.json)|*.json"),
+            wxFD_SAVE | wxFD_OVERWRITE_PROMPT
+        );
+
+        if (dialog.ShowModal() == wxID_CANCEL) {
+            return MakeResp(
+                "spool",
+                action,
+                0,
+                "",
+                {{"cancelled", true}}
+            );
+        }
+
+        try {
+            const std::string path = dialog.GetPath().utf8_string();
+
+            boost::nowide::ofstream output(
+                path,
+                std::ios::out | std::ios::trunc
+            );
+
+            if (!output) {
+                throw std::runtime_error("failed to open export file");
+            }
+
+            const nlohmann::json inventory = {
+                {"spools", build_spool_list()}
+            };
+
+            output << inventory.dump(2) << '\n';
+
+            if (!output) {
+                throw std::runtime_error("failed to write export file");
+            }
+
+            output.close();
+
+            if (!output) {
+                throw std::runtime_error("failed to close export file");
+            }
+
+            return MakeResp(
+                "spool",
+                action,
+                0,
+                "",
+                {{"path", path}}
+            );
+        } catch (const std::exception& e) {
+            return MakeResp(
+                "spool",
+                action,
+                -1,
+                std::string("export failed: ") + e.what()
+            );
+        }
+    }
+
     if (is_spool_cloud_write_action(action) && (!store || !disp || !can_write_spool_to_cloud(agent))) {
         return MakeResp("spool", action, -2, "cloud sync requires sign-in and network");
     }
