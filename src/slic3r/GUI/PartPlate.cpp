@@ -341,7 +341,7 @@ void PartPlate::set_spiral_vase_mode(bool spiral_mode, bool as_global)
 	}
 }
 
-bool PartPlate::valid_instance(int obj_id, int instance_id)
+bool PartPlate::valid_instance(int obj_id, int instance_id) const
 {
 	if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
 	{
@@ -1290,7 +1290,7 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
         int obj_id = it->first;
         int instance_id = it->second;
 
-        if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
+        if (valid_instance(obj_id, instance_id))
         {
             ModelObject* object = m_model->objects[obj_id];
             ModelInstance* instance = object->instances[instance_id];
@@ -2336,6 +2336,9 @@ void PartPlate::set_pos_and_size(Vec3d& origin, int width, int depth, int height
 		for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it) {
 			int obj_id = it->first;
 			int instance_id = it->second;
+			if (!valid_instance(obj_id, instance_id))
+				continue;
+
 			ModelObject* object = m_model->objects[obj_id];
 			ModelInstance* instance = object->instances[instance_id];
 
@@ -2826,7 +2829,7 @@ void PartPlate::duplicate_all_instance(unsigned int dup_count, bool need_skip, s
         int obj_id = it->first;
         int instance_id = it->second;
 
-        if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
+        if (valid_instance(obj_id, instance_id))
         {
             ModelObject* object = m_model->objects[obj_id];
             ModelInstance* instance = object->instances[instance_id];
@@ -2859,7 +2862,7 @@ void PartPlate::duplicate_all_instance(unsigned int dup_count, bool need_skip, s
         int obj_id = it->first;
         int instance_id = it->second;
 
-        if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
+        if (valid_instance(obj_id, instance_id))
         {
             ModelObject* object = m_model->objects[obj_id];
             ModelInstance* instance = object->instances[instance_id];
@@ -2984,7 +2987,7 @@ int PartPlate::printable_instance_size()
         int obj_id      = it->first;
         int instance_id = it->second;
 
-        if (obj_id >= m_model->objects.size())
+        if (!valid_instance(obj_id, instance_id))
 			continue;
 
         ModelObject *  object   = m_model->objects[obj_id];
@@ -3007,7 +3010,7 @@ bool PartPlate::has_printable_instances()
 		int obj_id = it->first;
 		int instance_id = it->second;
 
-		if (obj_id >= m_model->objects.size())
+		if (!valid_instance(obj_id, instance_id))
 			continue;
 
 		ModelObject* object = m_model->objects[obj_id];
@@ -3031,7 +3034,7 @@ bool PartPlate::is_all_instances_unprintable()
         int obj_id      = it->first;
         int instance_id = it->second;
 
-        if (obj_id >= m_model->objects.size()) continue;
+        if (!valid_instance(obj_id, instance_id)) continue;
 
         ModelObject *  object   = m_model->objects[obj_id];
         ModelInstance *instance = object->instances[instance_id];
