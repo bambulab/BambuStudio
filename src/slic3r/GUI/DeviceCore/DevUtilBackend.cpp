@@ -72,6 +72,22 @@ constexpr size_t AMS_DRY_IDX_N3F_PRINT     = 2;
 constexpr size_t AMS_DRY_IDX_N3S_PRINT     = 3;
 constexpr size_t AMS_DRY_IDX_ZMULTI_A_IDLE = 4;
 constexpr size_t AMS_DRY_IDX_ZMULTI_A_PRINT = 5;
+
+// filament_dev_drying_softening_temperature / filament_dev_ams_drying_heat_distortion_temperature
+// share a per-type linear array layout (no idle/print split):
+//   [0]=N3F, [1]=N3S, [2]=ZMULTI_A, [3]=ZMULTI_B
+constexpr DevAmsType PER_TYPE_ORDER[] = {DevAmsType::N3F, DevAmsType::N3S, DevAmsType::ZMULTI_A, DevAmsType::ZMULTI_B};
+
+// Old single-value presets have length 1; out-of-range types fall back to index 0.
+void FillPerTypeMap(const ConfigOptionFloats* opt, std::unordered_map<DevAmsType, float>& out)
+{
+    const size_t count = opt->values.size();
+    size_t i = 0;
+    for (DevAmsType type : PER_TYPE_ORDER) {
+        out[type] = opt->get_at(i < count ? i : 0);
+        ++i;
+    }
+}
 } // namespace
 
 namespace {
@@ -128,11 +144,11 @@ std::optional<DevFilamentDryingPreset> FillDryingPresetFromConfig(const DynamicP
     }
 
     if (config.has("filament_dev_drying_softening_temperature")) {
-        info.filament_dev_drying_softening_temperature = config.option<ConfigOptionFloats>("filament_dev_drying_softening_temperature")->get_at(0);
+        FillPerTypeMap(config.option<ConfigOptionFloats>("filament_dev_drying_softening_temperature"), info.filament_dev_drying_softening_temperature);
     }
 
     if (config.has("filament_dev_ams_drying_heat_distortion_temperature")) {
-        info.filament_dev_ams_drying_heat_distortion_temperature = config.option<ConfigOptionFloats>("filament_dev_ams_drying_heat_distortion_temperature")->get_at(0);
+        FillPerTypeMap(config.option<ConfigOptionFloats>("filament_dev_ams_drying_heat_distortion_temperature"), info.filament_dev_ams_drying_heat_distortion_temperature);
     }
 
     if (config.has("filament_dev_drying_cooling_temperature")) {

@@ -1150,7 +1150,7 @@ void AMSDryCtrWin::start_sending_drying_command()
     int cooling_temp = 50;
     std::optional<DevFilamentDryingPreset> preset = DevUtilBackend::GetFilamentDryingPreset(m_tray_ids[tray_index].filament_id);
     if (preset.has_value()) {
-        cooling_temp = static_cast<int>(preset.value().filament_dev_drying_softening_temperature);
+        cooling_temp = static_cast<int>(preset.value().filament_dev_drying_softening_temperature[m_ams_info.m_model]);
     }
 
     bool rotate_spool = false;
@@ -1658,7 +1658,7 @@ void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
             }
         }
         if (has_filament_inserted) {
-            auto limit_temperature = preset.value().filament_dev_ams_drying_heat_distortion_temperature;
+            auto limit_temperature = preset.value().filament_dev_ams_drying_heat_distortion_temperature[dev_ams->GetAmsType()];
             if (temp_val > limit_temperature) {
                 warning_text += _L("The temperature shall not exceed the filament's heat distortion temperature") + "(" +
                     wxString::Format(wxT("%d"), static_cast<int>(limit_temperature)) + wxString::FromUTF8("°C)\n");
@@ -2017,7 +2017,7 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
             preset = fallback_preset.value();
         }
         std::string icon_path = "dev_ams_dry_ctr_enable";
-        int distortion_temp = static_cast<int>(preset.filament_dev_ams_drying_heat_distortion_temperature);
+        int distortion_temp = static_cast<int>(preset.filament_dev_ams_drying_heat_distortion_temperature[dev_ams->GetAmsType()]);
         if (valid_temp && distortion_temp < input_temp) {
             icon_path = "dev_ams_dry_ctr_disable";
             can_start = false;
@@ -2217,7 +2217,7 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
         }
         float cur_temp = m_printer_status.m_is_printing
             ? std::min({preset.filament_dev_ams_drying_temperature_on_print[dev_ams->GetAmsType()],
-                preset.filament_dev_drying_softening_temperature, preset.filament_dev_ams_drying_heat_distortion_temperature})
+                preset.filament_dev_drying_softening_temperature[dev_ams->GetAmsType()], preset.filament_dev_ams_drying_heat_distortion_temperature[dev_ams->GetAmsType()]})
             : preset.filament_dev_ams_drying_temperature_on_idle[dev_ams->GetAmsType()];
         if (cur_temp < min_dry_temp) {
             min_dry_temp = cur_temp;
@@ -2230,7 +2230,7 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
             Slic3r::DevFilamentDryingPreset preset = fallback_preset.value();
             float cur_temp = m_printer_status.m_is_printing
                 ? std::min({preset.filament_dev_ams_drying_temperature_on_print[dev_ams->GetAmsType()],
-                    preset.filament_dev_drying_softening_temperature, preset.filament_dev_ams_drying_heat_distortion_temperature})
+                    preset.filament_dev_drying_softening_temperature[dev_ams->GetAmsType()], preset.filament_dev_ams_drying_heat_distortion_temperature[dev_ams->GetAmsType()]})
                 : preset.filament_dev_ams_drying_temperature_on_idle[dev_ams->GetAmsType()];
             min_dry_temp = cur_temp;
             default_filament_id = preset.filament_id;

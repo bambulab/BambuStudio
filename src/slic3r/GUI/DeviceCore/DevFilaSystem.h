@@ -458,8 +458,8 @@ struct DevFilamentDryingPreset
     std::unordered_map<DevAmsType, float> filament_dev_ams_drying_time_on_print; // hour
     std::unordered_map<DevAmsType, float> filament_dev_ams_drying_temperature_on_print;
     float filament_dev_drying_cooling_temperature;
-    float filament_dev_drying_softening_temperature;
-    float filament_dev_ams_drying_heat_distortion_temperature;
+    std::unordered_map<DevAmsType, float> filament_dev_drying_softening_temperature;
+    std::unordered_map<DevAmsType, float> filament_dev_ams_drying_heat_distortion_temperature;
 };
 
 }// namespace Slic3r
