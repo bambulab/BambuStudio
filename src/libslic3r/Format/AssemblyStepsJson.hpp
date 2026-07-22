@@ -105,6 +105,9 @@ struct PartNumberLabel
     std::string part_guid;
     Vec2d       arrow_start_offset{Vec2d::Zero()};
     Vec2d       arrow_end_offset{Vec2d(60, -50)};
+    // Per-label visibility on the canvas / tree "标签" column. Closing the pill
+    // sets this false; the label entry is kept so the tree can show the off state.
+    bool        visible{true};
 
     void to_json(nlohmann::json &j) const;
     void from_json(const nlohmann::json &j);
@@ -211,11 +214,23 @@ struct AssembleSingleInfo : public AssembleBaseInfo
     void        from_json(const nlohmann::json &j) override;
 };
 
+// Folder kind stored in AssembleSub / AssemblyStepsTreeNode::is_final_assembly
+// (legacy JSON key kept for compatibility).
+// 0 = normal step, 1 = final assembly, 2 = overall preview.
+// Kind 2 is runtime UI-only: created once for interaction, never serialized.
+namespace AssemblyStepKind {
+constexpr int Normal         = 0;
+constexpr int FinalAssembly  = 1;
+constexpr int OverallPreview = 2;
+}
+
 struct AssembleSub : public AssembleBaseInfo
 {
     int id{-1};
     int step{0};
-    bool is_final_assembly{false};
+    // See AssemblyStepKind. Legacy bool JSON true maps to FinalAssembly (1).
+    // OverallPreview (2) is runtime UI-only and is never written to / read from JSON.
+    int is_final_assembly{AssemblyStepKind::Normal};
     std::vector<std::shared_ptr<AssembleBaseInfo>> children;
     std::optional<std::unordered_map<std::string, bool>> assembly_tree_checked;
 
@@ -271,7 +286,9 @@ struct AssemblyStepsTreeNode
     int              object_idx{-1}; // valid when type == Object
     size_t           object_id{0};   // ModelObject id, stable across object index changes
     bool             visible{true};// per-object render visibility (drives GLVolume show/hide)
-    bool             is_final_assembly{false};
+    // See AssemblyStepKind. Legacy bool JSON true maps to FinalAssembly (1).
+    // OverallPreview (2) is runtime UI-only and is never written to / read from JSON.
+    int              is_final_assembly{AssemblyStepKind::Normal};
     std::vector<int> children; // indices into nodes
     // Optional left-side assembly tree checkbox state for this step folder.
     std::optional<std::unordered_map<std::string, bool>> assembly_tree_checked;

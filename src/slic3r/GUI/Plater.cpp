@@ -9171,11 +9171,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     instance->set_assemble_transformation(instance->get_transformation());
                 }
                 // BBS: keep each volume's assemble transformation in sync with its base transformation
-                for (ModelVolume *mv : object->volumes) {
-                    if (mv != nullptr && !mv->is_assemble_initialized()) {
-                        mv->set_assemble_transformation(mv->get_transformation());
-                    }
-                }
+                q->ensure_model_object_volume_assemble_initialized(object);
                 object->invalidate_bounding_box();
                 BOOST_LOG_TRIVIAL(info) << "STEP import: restore sub-assembly relative position for object \""
                                         << object->name << "\", compensation="
@@ -9649,10 +9645,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
                     }
                 }
                 // BBS: also initialize per-volume assemble transformation so the assembly view can render new volumes correctly even before any explicit per-volume edit.
-                for (ModelVolume *mv : model_object->volumes) {
-                    if (mv != nullptr && !mv->is_assemble_initialized())
-                        mv->set_assemble_transformation(mv->get_transformation());
-                }
+                q->ensure_model_object_volume_assemble_initialized(model_object);
             }
         }
     }
@@ -24651,6 +24644,18 @@ void Plater::show_seqprintinfo_notification(bool has_error)
 void Plater::mirror(Axis axis)      { p->mirror(axis); }
 void Plater::split_object(ModelObject *mo, bool ignore_warning) { p->split_object(mo, ignore_warning); }
 void Plater::set_suppress_assemble_delete_propagation(bool suppress) { p->set_suppress_assemble_delete_propagation(suppress); }
+void Plater::ensure_model_object_volume_assemble_initialized(ModelObject *object)
+{
+    if (object == nullptr)
+        return;
+    for (ModelVolume *mv : object->volumes) {
+        if (mv == nullptr || !mv->is_model_part())
+            continue;
+        mv->ensure_part_guid();
+        if (!mv->is_assemble_initialized())
+            mv->set_assemble_transformation(mv->get_transformation());
+    }
+}
 void Plater::propagate_volume_delete_to_assemble(const ModelVolume &prepare_volume) { p->propagate_volume_delete_to_assemble(prepare_volume); }
 void Plater::sync_assemble_volume_name(const std::string &part_guid, const std::string &new_name) { p->sync_assemble_volume_name(part_guid, new_name); }
 void Plater::change_extruder_for_assemble_selection(int extruder) { p->change_extruder_for_assemble_selection(extruder); }

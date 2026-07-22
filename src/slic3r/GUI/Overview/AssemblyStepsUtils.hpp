@@ -62,7 +62,8 @@ struct AssemblyStructureCard
     bool        select_show_default{false};
     // Tree-node this card represents. -1 marks the synthetic "default"
     int node_idx{-1};
-    bool is_final_assembly{false};
+    // See AssemblyStepKind: 0 normal, 1 final assembly, 2 overall preview.
+    int is_final_assembly{AssemblyStepKind::Normal};
 };
 
 enum class SelectionOrigin {
@@ -77,7 +78,6 @@ enum class SelectionOrigin {
 struct AssemblyStructurePanelData
 {
     std::string                        title;     //Assembly Structure
-    std::string                        subtitle;  //
     std::vector<AssemblyStructureCard> cards;
     bool                               always_show_scrollbar{false};//slider// When true the scrollbar is always visible; when false it only appears on overflow.
 };
@@ -86,6 +86,10 @@ struct AssemblyTreeRenderOptions
 {
     bool        allow_object_check{true};
     bool        allow_volume_check{true};
+    // Column: per-part PartNumberLabel visibility (tree_label_visible / unvisible).
+    bool        show_label_state{true};
+    // Column: which assembly step the part belongs to (or "Not assembled").
+    bool        show_assembly_state{true};
     bool        show_footer{true};
     bool        readonly{false};
     // When true, clicking a row (away from its checkbox/expander) marks it as the
@@ -149,9 +153,8 @@ class AssemblyStepsUtils
     // hover variant (tree_set_hover.svg).
     ImTextureID         m_tree_icon_set{nullptr};
     ImTextureID         m_tree_icon_set_hover{nullptr};
-    // Header collapse / expand toggle (panel_collapse.svg / panel_expand.svg).
-    ImTextureID         m_panel_collapse_icon{nullptr};
-    ImTextureID         m_panel_expand_icon{nullptr};
+    // Reset closed part-number labels (tree_reset.svg) next to the Label gear.
+    ImTextureID         m_tree_icon_reset{nullptr};
     // Help icon for the "Assembly Structure" panel header (view_help.svg).
     ImTextureID         m_structure_help_icon{nullptr};
     // Option/settings icon at the far right of the panel header (tree_option.svg).
@@ -164,6 +167,9 @@ class AssemblyStepsUtils
     ImTextureID         m_structure_step_copy_icon_dark{nullptr};
     ImTextureID         m_structure_step_delete_icon{nullptr};
     ImTextureID         m_structure_step_delete_icon_dark{nullptr};
+    // Header "delete all steps" icon (tree_delete_all.svg).
+    ImTextureID         m_structure_step_delete_all_icon{nullptr};
+    ImTextureID         m_structure_step_delete_all_icon_dark{nullptr};
     ImTextureID         m_structure_step_object_tree_icon{nullptr};
     ImTextureID         m_structure_step_object_tree_icon_dark{nullptr};
     // "Add object to step" affordance shown on each step card. Two states:
@@ -194,6 +200,11 @@ class AssemblyStepsUtils
     // laid out (-1 = none). Set right after a step is created so the tree shows
     // without the user clicking the card's add affordance first.
     int                 m_structure_add_tree_pending_node{-1};
+    // When opening the add-object tree while in OnlyCurrentStep, temporarily
+    // switch to X-Ray (Highlight) so other parts stay visible for picking; restore
+    // on cancel / confirm / exit.
+    bool                m_restore_display_mode_after_add_tree{false};
+    KeyframeDisplayMode m_display_mode_before_add_tree{KeyframeDisplayMode::Highlight};
     int                 m_structure_step_rename_node{-1};
     bool                m_structure_step_rename_open_pending{false};
     bool                m_structure_step_rename_had_focus{false};
@@ -210,7 +221,7 @@ class AssemblyStepsUtils
     // Prev/next icons used by the bottom play bar (Figma node 732:22413).
     ImTextureID         m_play_left_icon{nullptr};
     ImTextureID         m_play_right_icon{nullptr};
-    // Exit icon shown to the right of the Copy/Add step button row (tree_exit.svg).
+    // Exit icon shown to the right of the Add step button row (tree_exit.svg).
     ImTextureID         m_structure_clear_all_icon{nullptr};
     ImTextureID         m_structure_clear_all_icon_dark{nullptr};
     ImTextureID         m_structure_exit_icon{nullptr};
@@ -277,9 +288,6 @@ class AssemblyStepsUtils
     int m_last_rendered_selected_node_for_notes_{-2};
     int m_last_rendered_keyframe_selected_{-2};
     bool m_last_has_selected_node_{false};
-    // Last (object_idx, volume_idx) set a "which steps does this belong to" toast was pushed for.
-    // Selection is polled every frame, so this collapses the poll to one notification per change.
-    std::vector<std::pair<int, int>> m_last_notified_step_hint_vols_;
     // Assembly tree UI state (migrated from GLCanvas3D)
     std::unordered_map<std::string, bool>* m_active_assembly_tree_checked{nullptr};
     int m_assembly_tree_ui_current_folder_node{-1};
@@ -287,7 +295,12 @@ class AssemblyStepsUtils
     std::string m_assembly_tree_search_text;
     bool m_assembly_tree_search_active{false};
     bool m_assembly_tree_search_focus_pending{false};
+    // When true, the tree only shows items that are not yet assembled into any step.
+    bool m_assembly_tree_filter_unassembled{false};
     bool m_show_assembly_tree_step_quick_select{false};
+    // L-shaped hierarchy connectors on depth-1 (second-level) rows, e.g. object
+    // under the root "Model". Default false: only depth >= 2 (third-level+) draw them.
+    bool m_show_assembly_tree_second_level_tree_lines{false};
     // Standalone assembly tree list: collapse-all / expand-all toggle state.
     // false == tree is currently expanded (button offers "collapse all").
     bool m_assembly_tree_list_collapsed{false};
@@ -334,15 +347,17 @@ class AssemblyStepsUtils
         ImTextureID collapse{0};
         ImTextureID select{0};
         ImTextureID search{0};
+        ImTextureID filter{0};
+        ImTextureID filter_ok{0};
+        ImTextureID label_visible{0};
+        ImTextureID label_unvisible{0};
         // Dark-mode variants (light-colored strokes/fills)
         ImTextureID expand_dark{0};
         ImTextureID collapse_dark{0};
         ImTextureID search_dark{0};
-        // External resource tree expand/collapse icons
+        // Panel / list header collapse·expand (panel_collapse.svg / panel_expand.svg).
         ImTextureID expand_external{0};
         ImTextureID collapse_external{0};
-        ImTextureID expand_external_dark{0};
-        ImTextureID collapse_external_dark{0};
     };
     static AssemblyTreeIcons s_assembly_tree_icons;
 
@@ -485,6 +500,12 @@ public://logic
 
     bool            is_key_frame_playing() { return m_keyframe_playing; }
     bool            is_final_assembly_folder(int folder_idx) const;
+    bool            is_overall_preview_folder(int folder_idx) const;
+    // True when no step is selected, or the selected step is the overall-preview card.
+    bool            is_overall_preview_mode() const;
+    // True when the structure panel has no Normal / FinalAssembly step cards
+    // (only the runtime OverallPreview card, or no folder roots yet).
+    bool            has_only_overall_preview_step_card() const;
     int             get_selected_node() const { return m_selected_node; }
     void            set_selected_node(int node) { m_selected_node = node; }
     SelectionOrigin selection_origin() const { return m_selection_origin; }
@@ -620,7 +641,9 @@ public://logic
                                                     bool restrict_to_filters = false);
     // Copy the final-assembly end frame's transforms into the given target keyframe (data only, no canvas push).
     void                     apply_final_assembly_end_frame_transforms_to_keyframe(KeyFrameEntry &target);
-    // Returns true when the currently-selected keyframe's
+    // Returns true when the currently-selected keyframe's object/volume transforms
+    // match the live assembled pose on m_model (instance/volume assemble transforms).
+    // Does not depend on a FinalAssembly step card, which may have been deleted.
     bool                     current_keyframe_matches_final_assembly_end_frame_transforms() const;
     // Returns true when the final-assembly end frame recorded exactly the same
     bool                     final_assembly_end_frame_matches_model() const;
@@ -692,7 +715,7 @@ public://logic
     void clear_runtime_state();
     bool prepare_project_save_end_frame();
     void clear_steps_all();
-    void clear_non_final_assembly_steps();
+    void clear_all_assembly_steps(bool include_final_assembly_step = true);
     void new_project_clear_assembly_steps_tree_view();
     bool             has_pending_play_frames() const;
     std::vector<int> selected_object_indices(int object_count, const std::vector<int> &selection_object_indices) const;
@@ -713,9 +736,14 @@ public://logic
     std::vector<std::pair<int, std::string>> assembly_step_choices() const;
     std::string                              build_steps_json_string();
     void                                     sync_steps_objects_with_model();
-    // Reconcile the final-assembly ("All Objects") end-frame children with the
+    // Reconcile the assembled-pose folder's end-frame children with the live model.
     void                                     sync_all_model_object_to_final_assembly_node();
+    // Runtime-only overall preview (kind == 2); never serialized.
+    int                                      ensure_overall_preview_folder();
+    // Persisted final assembly (kind == 1); used e.g. as the last STEP-import step.
     int                                      ensure_final_assembly_folder();
+    // Prefer final assembly (1), then overall preview (2), as the assembled-pose source.
+    int                                      find_assembled_pose_folder() const;
     void                                     sync_keyframe_tree();
     void                                     ensure_default_keyframe(int node_idx);
     void                                     ensure_default_keyframe_for_node(int node_idx, const std::string &last_frame_name);
@@ -820,10 +848,6 @@ public://logic
     void  apply_keyframe_to_canvas(const KeyFrame &kf, bool apply_camera_view = true);
     void  play_cur_keyframe_logic();
     void  sync_canvas_selection_state();
-    // When no step node is active but the scene has an object/part selected, toast which assembly
-    // steps that selection belongs to. Whole-object selection keeps object-level text; partial
-    // volume selection reports per part. Self-deduping (see m_last_notified_step_hint_vols_).
-    void  notify_selected_object_steps();
     // Each operates on the current node's keyframe entries via get_current_kf_entries(),
     void delete_selected_keyframe();
     // Insert a new keyframe right after the selection, clamped before the "last" frame.
@@ -905,6 +929,18 @@ public://logic
 
 public://imgui
     void init_tree_icons();
+    static bool load_assembly_tree_icons(float sc);
+    // True when this object/volume is not yet placed in any non-final assembly step.
+    // Object-level (volume_idx < 0): true if any of its volumes is unassembled.
+    bool is_assembly_tree_item_unassembled(int object_idx, int volume_idx) const;
+    // Toggle "show unassembled only" filter; returns the new active state.
+    bool toggle_assembly_tree_unassembled_filter();
+    bool is_assembly_tree_unassembled_filter_active() const { return m_assembly_tree_filter_unassembled; }
+    // Toggle PartNumberLabel::visible for the given tree item on the current keyframe.
+    // Object-level (volume_idx < 0) toggles every label of that object together.
+    bool toggle_part_number_label_visible(int object_idx, int volume_idx);
+    // Re-show every closed PartNumberLabel on the current step's current keyframe.
+    bool reset_closed_part_number_labels();
     void                     render_main(float canvas_w, float canvas_h);
     // Bottom-centered play bar (Figma node 732:22413). Renders above the
     void                     render_assemble_play_bar(float canvas_w, float bottom_y);
@@ -1001,7 +1037,6 @@ private://logic
                                   const std::vector<std::string> &page_titles,
                                   const std::vector<int> &step_indices);
     void consume_play_queue_frame(bool update_global_index);
-    static bool load_assembly_tree_icons(float sc);
     bool        is_mouse_over_blocking_panel() const;
     void        track_assembly_view_export(ExportType type) const;
     void        reset_state_on_model_changed();

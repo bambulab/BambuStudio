@@ -2570,6 +2570,7 @@ void GUI::ObjectList::add_new_model_object_from_old_object() {
     new_object->ensure_on_bed();
     // BBS init assmeble transformation
     new_object->get_model()->set_assembly_pos(new_object);
+    wxGetApp().plater()->ensure_model_object_volume_assemble_initialized(new_object);
     object_idxs.push_back(model.objects.size() - 1);
     paste_objects_into_list(object_idxs);
     wxGetApp().mainframe->update_title();
@@ -2657,6 +2658,9 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
 
     //BBS init assmeble transformation
     new_object->get_model()->set_assembly_pos(new_object);
+    // Seed per-volume assemble + stable GUID so the assembly-view thumbnail can
+    // resolve poses before the user ever enters the assembly view (derive/ensure_part_guid).
+    wxGetApp().plater()->ensure_model_object_volume_assemble_initialized(new_object);
 
     object_idxs.push_back(model.objects.size() - 1);
 #ifdef _DEBUG

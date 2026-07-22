@@ -48,6 +48,26 @@ static bool json_get_bool(const nlohmann::json &j, const char *key, bool &value)
     return true;
 }
 
+// Read is_final_assembly as int.
+// Legacy bool true → FinalAssembly (1) so old Default/final-assembly data is kept.
+// OverallPreview (2) is runtime UI-only and must not appear in persisted JSON;
+// if an older mid-migration file still has 2, callers skip it on restore.
+static bool json_get_assembly_step_kind(const nlohmann::json &j, const char *key, int &value)
+{
+    if (!j.contains(key))
+        return false;
+    const auto &v = j[key];
+    if (v.is_boolean()) {
+        value = v.get<bool>() ? AssemblyStepKind::FinalAssembly : AssemblyStepKind::Normal;
+        return true;
+    }
+    if (v.is_number_integer()) {
+        value = v.get<int>();
+        return true;
+    }
+    return false;
+}
+
 static bool json_get_double(const nlohmann::json &j, const char *key, double &value)
 {
     if (!j.contains(key) || !j[key].is_number())
@@ -288,6 +308,7 @@ void PartNumberLabel::to_json(nlohmann::json &j) const
     j["uuid"]          = part_guid;
     j["arrow_start_offset"] = {arrow_start_offset.x(), arrow_start_offset.y()};
     j["arrow_end_offset"]   = {arrow_end_offset.x(), arrow_end_offset.y()};
+    j["visible"]            = visible;
 }
 
 void PartNumberLabel::from_json(const nlohmann::json &j)
@@ -298,6 +319,9 @@ void PartNumberLabel::from_json(const nlohmann::json &j)
     json_get_string(j, "uuid", part_guid);
     json_get_vec2d(j, "arrow_start_offset", arrow_start_offset);
     json_get_vec2d(j, "arrow_end_offset", arrow_end_offset);
+    // Default true for legacy JSON that predates the per-label switch.
+    if (!json_get_bool(j, "visible", visible))
+        visible = true;
 }
 
 // ---- AssemblyNote ----
@@ -619,7 +643,7 @@ void AssembleSub::from_json(const nlohmann::json &j)
     AssembleBaseInfo::from_json(j);
     json_get_int(j, "id", id);
     json_get_int(j, "step", step);
-    json_get_bool(j, "is_final_assembly", is_final_assembly);
+    json_get_assembly_step_kind(j, "is_final_assembly", is_final_assembly);
     assembly_tree_checked.reset();
     if (j.contains("assembly_tree_checked") && j["assembly_tree_checked"].is_object()) {
         assembly_tree_checked.emplace();
@@ -808,6 +832,11 @@ std::string AssemblyStepsTreeData::to_json_string() const
     std::vector<std::shared_ptr<AssembleBaseInfo>> items;
     items.reserve(roots.size());
     for (int root_idx : roots) {
+        // OverallPreview is a runtime-only UI sentinel and must not be persisted.
+        if (root_idx >= 0 && root_idx < (int) nodes.size() &&
+            nodes[root_idx].type == AssemblyStepsTreeNode::Type::Folder &&
+            nodes[root_idx].is_final_assembly == AssemblyStepKind::OverallPreview)
+            continue;
         if (auto item = build_item(root_idx))
             items.push_back(std::move(item));
     }
@@ -1017,6 +1046,11 @@ bool AssemblyStepsTreeData::from_json_string(
         };
 
         for (const auto& item : json_doc.get_items()) {
+            // OverallPreview is runtime UI-only; drop it if an older file still contains it.
+            if (const auto *sub = dynamic_cast<const AssembleSub *>(item.get())) {
+                if (sub->is_final_assembly == AssemblyStepKind::OverallPreview)
+                    continue;
+            }
             const int idx = restore_item(item);
             if (idx >= 0)
                 parsed.roots.push_back(idx);
@@ -1057,16 +1091,25 @@ bool AssemblyStepsTreeData::from_json_string(
         bool baseline_matches_end_frame = false;
         {
             const KeyFrame *end_kf = nullptr;
-            for (const auto &node : parsed.nodes) {
-                if (node.type != AssemblyStepsTreeNode::Type::Folder || !node.is_final_assembly)
+            int preview_idx = -1;
+            int final_idx   = -1;
+            for (int i = 0; i < (int) parsed.nodes.size(); ++i) {
+                const auto &node = parsed.nodes[i];
+                if (node.type != AssemblyStepsTreeNode::Type::Folder)
                     continue;
-                for (const auto &e : node.kf_data.entries) {
+                if (node.is_final_assembly == AssemblyStepKind::OverallPreview)
+                    preview_idx = i;
+                else if (node.is_final_assembly == AssemblyStepKind::FinalAssembly)
+                    final_idx = i;
+            }
+            const int assembled_idx = final_idx >= 0 ? final_idx : preview_idx;
+            if (assembled_idx >= 0) {
+                for (const auto &e : parsed.nodes[assembled_idx].kf_data.entries) {
                     if (e.is_last()) {
                         end_kf = &e.data;
                         break;
                     }
                 }
-                break;
             }
             if (end_kf != nullptr) {
                 // Resolve the end frame's index-keyed pose maps into part GUIDs.

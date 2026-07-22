@@ -5965,9 +5965,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_rectangle_selection.stop_dragging();
         }
         else if (left_click_on_blank) {
-            // deselect and propagate event through callback
-            if (!evt.ShiftDown() && (!any_gizmo_active || !evt.CmdDown()) && m_picking_enabled && m_canvas_type != ECanvasType::CanvasAssembleView)
+            // Deselect on blank canvas click (prepare view and assembly view).
+            // ImGui panels are already filtered out by WantCaptureMouse / toolbar
+            // hit-testing before we reach this path.
+            if (!evt.ShiftDown() && (!any_gizmo_active || !evt.CmdDown()) && m_picking_enabled) {
                 deselect_all();
+                // Keep the assembly tree row highlight in sync with the empty canvas selection.
+                if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps)
+                    m_assembly_steps->sync_tree_ui_selection_from_canvas();
+            }
         }
         //BBS Select plate in this 3D canvas.
         else if (evt.LeftUp() && !m_mouse.rotating && !m_mouse.panning && m_picking_enabled && !m_hover_plate_idxs.empty() && (m_canvas_type == CanvasView3D) && !is_layers_editing_enabled())
@@ -9266,6 +9272,11 @@ void GLCanvas3D::_render_main_toolbar()
         return;
     if (is_assembly_play_or_export_mode())
         return;
+    // In assembly view, hide the gizmo toolbar while editing a real step card
+    // (OverallPreview keeps it visible).
+    if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps &&
+        !m_assembly_steps->is_overall_preview_mode())
+        return;
     const auto& t_camera = get_active_camera();
 
     if (m_canvas_type == ECanvasType::CanvasAssembleView) {
@@ -10006,11 +10017,8 @@ void GLCanvas3D::_try_update_selected_keyframe()
 
 void GLCanvas3D::_render_assembly_steps_view()
 {
-    if (m_canvas_type != ECanvasType::CanvasAssembleView) {
-        if (auto *nm = wxGetApp().plater()->get_notification_manager())
-            nm->close_notification_of_type(NotificationType::SelectObjectInWhichStep);
+    if (m_canvas_type != ECanvasType::CanvasAssembleView)
         return;
-    }
     if (!m_model || m_model->objects.empty() || !m_assembly_steps)//limit CanvasAssembleView
         return;
     m_assembly_steps->set_in_assembly_view(m_canvas_type == ECanvasType::CanvasAssembleView);
@@ -10279,6 +10287,11 @@ void GLCanvas3D::_render_paint_toolbar() const
         return;
     if (is_assembly_play_or_export_mode())
         return;
+    // Hide filament swatches while a non-OverallPreview step card is selected.
+    if (m_assembly_steps && !m_assembly_steps->is_overall_preview_mode()) {
+        m_paint_toolbar_width = 0.0f;
+        return;
+    }
 #if ENABLE_RETINA_GL
     float f_scale = m_retina_helper->get_scale_factor();
 #else
@@ -13047,6 +13060,9 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
             ModelObject *object{nullptr};
             ModelVolume *volume{nullptr};
         };
+        ModelObjectPtrs &prepare_objects = wxGetApp().plater()->model().objects;
+        const bool using_assemble_model = &model_objects != &prepare_objects && !model_objects.empty();
+
         std::unordered_map<size_t, AssemblyVolumeRef> target_by_volume_id;
         std::unordered_map<std::string, AssemblyVolumeRef> target_by_guid;
         for (ModelObject *object : model_objects) {
@@ -13065,12 +13081,30 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
         }
 
         std::unordered_map<size_t, ModelVolume *> prepare_by_volume_id;
-        for (ModelObject *object : wxGetApp().plater()->model().objects) {
+        for (ModelObject *object : prepare_objects) {
             if (object == nullptr)
                 continue;
             for (ModelVolume *volume : object->volumes)
                 if (volume != nullptr && volume->is_model_part())
                     prepare_by_volume_id.emplace(volume->id().id, volume);
+        }
+
+        // Heal missing assemble poses on the prepare model before reading them.
+        // Without this, a freshly added primitive can keep the bed (empty_cell) pose on the
+        // GLVolume when resolve fails, so the assembly thumbnail shows objects far apart.
+        for (ModelObject *po : prepare_objects) {
+            if (po == nullptr || po->instances.empty())
+                continue;
+            bool needs_pos = false;
+            for (ModelInstance *inst : po->instances) {
+                if (inst != nullptr && !inst->is_assemble_initialized()) {
+                    needs_pos = true;
+                    break;
+                }
+            }
+            if (needs_pos)
+                wxGetApp().plater()->model().set_assembly_pos(po);
+            wxGetApp().plater()->ensure_model_object_volume_assemble_initialized(po);
         }
 
         auto instance_for_volume = [](ModelObject *object, const GLVolume *vol) -> ModelInstance * {
@@ -13088,21 +13122,48 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
         auto resolve_assembly_volume_ref = [&](const GLVolume *vol) -> AssemblyVolumeRef {
             auto prepare_it = prepare_by_volume_id.find(vol->geometry_id.first);
             if (prepare_it != prepare_by_volume_id.end()) {
-                const ModelVolume *prepare_volume = prepare_it->second;
-                const std::string &guid = !prepare_volume->assembly_src_guid().empty() ?
-                    prepare_volume->assembly_src_guid() : prepare_volume->part_guid();
-                auto target_by_guid_it = target_by_guid.find(guid);
-                if (target_by_guid_it != target_by_guid.end())
-                    return target_by_guid_it->second;
+                ModelVolume *prepare_volume = prepare_it->second;
+                if (prepare_volume != nullptr)
+                    prepare_volume->ensure_part_guid();//need
+                const std::string &guid = prepare_volume != nullptr && !prepare_volume->assembly_src_guid().empty() ?
+                    prepare_volume->assembly_src_guid() : (prepare_volume ? prepare_volume->part_guid() : std::string());
+                if (!guid.empty()) {
+                    auto target_by_guid_it = target_by_guid.find(guid);
+                    if (target_by_guid_it != target_by_guid.end())
+                        return target_by_guid_it->second;
+                }
+                // Before assemble_model exists, prepare IS the target.
+                if (!using_assemble_model && prepare_volume != nullptr) {
+                    ModelObject *po = prepare_volume->get_object();
+                    if (po != nullptr)
+                        return AssemblyVolumeRef{po, prepare_volume};
+                }
             }
 
             auto target_by_id_it = target_by_volume_id.find(vol->geometry_id.first);
             if (target_by_id_it != target_by_volume_id.end())
                 return target_by_id_it->second;
 
-            // Last-resort index fallback for malformed legacy data without GUIDs.
+            // GLVolumes on the prepare canvas always index the prepare model.
             const int obj_idx = vol->object_idx();
             const int vol_idx = vol->volume_idx();
+            if (obj_idx >= 0 && obj_idx < (int) prepare_objects.size()) {
+                ModelObject *po = prepare_objects[obj_idx];
+                if (po != nullptr && vol_idx >= 0 && vol_idx < (int) po->volumes.size() && po->volumes[vol_idx] != nullptr) {
+                    ModelVolume *pv = po->volumes[vol_idx];
+                    if (pv->is_model_part()) {
+                        pv->ensure_part_guid();
+                        if (!pv->part_guid().empty()) {
+                            auto git = target_by_guid.find(pv->part_guid());
+                            if (git != target_by_guid.end())
+                                return git->second;
+                        }
+                        if (!using_assemble_model)
+                            return AssemblyVolumeRef{po, pv};
+                    }
+                }
+            }
+            // Last-resort: index into whichever model_objects we were given.
             if (obj_idx >= 0 && obj_idx < (int) model_objects.size()) {
                 ModelObject *object = model_objects[obj_idx];
                 if (object != nullptr && vol_idx >= 0 && vol_idx < (int) object->volumes.size())
@@ -13118,16 +13179,35 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
                 continue;
             }
 
-            const AssemblyVolumeRef ref = resolve_assembly_volume_ref(vol);
+            AssemblyVolumeRef ref = resolve_assembly_volume_ref(vol);
             ModelInstance *instance = instance_for_volume(ref.object, vol);
-            if (ref.volume != nullptr && instance != nullptr) {
-                assemble_volume_backups.emplace_back(
-                    VolumeTransformBackup{vol, vol->get_instance_transformation(), vol->get_volume_transformation(), vol->get_offset_to_assembly()});
-                vol->set_instance_transformation(instance->get_assemble_transformation());
-                // Assembly thumbnail uses per-volume assemble matrix (falls back when not initialized).
-                vol->set_volume_transformation(ref.volume->get_assemble_transformation());
-                vol->set_offset_to_assembly(instance->get_offset_to_assembly());
+            // Never keep the prepare-canvas bed pose in the assembly thumbnail: that is what
+            // makes freshly added primitives appear far apart (empty_cell spacing) until the
+            // user enters the assembly view and derive/sync rebuilds reliable assemble poses.
+            if (ref.volume == nullptr || instance == nullptr) {
+                BOOST_LOG_TRIVIAL(warning) << "assembly thumbnail: failed to resolve assemble pose for GLVolume"
+                    << " obj=" << vol->object_idx() << " vol=" << vol->volume_idx()
+                    << " geometry_id=" << vol->geometry_id.first;
+                continue;
             }
+            if (!instance->is_assemble_initialized()) {
+                // Heal on the Model that owns this object (prepare before first enter,
+                // assemble_model afterwards). Passing an assemble object into prepare
+                // model::set_assembly_pos would walk the wrong object list.
+                if (using_assemble_model)
+                    wxGetApp().plater()->assemble_model().set_assembly_pos(ref.object);
+                else if (ref.object != nullptr)
+                    wxGetApp().plater()->model().set_assembly_pos(ref.object);
+            }
+            if (!ref.volume->is_assemble_initialized())
+                ref.volume->set_assemble_transformation(ref.volume->get_transformation());
+
+            assemble_volume_backups.emplace_back(
+                VolumeTransformBackup{vol, vol->get_instance_transformation(), vol->get_volume_transformation(), vol->get_offset_to_assembly()});
+            vol->set_instance_transformation(instance->get_assemble_transformation());
+            // Assembly thumbnail uses per-volume assemble matrix (falls back when not initialized).
+            vol->set_volume_transformation(ref.volume->get_assemble_transformation());
+            vol->set_offset_to_assembly(instance->get_offset_to_assembly());
             assemble_candidate_volumes.emplace_back(vol);
             assemble_candidate_boxes.emplace_back(vol->transformed_bounding_box());
         }

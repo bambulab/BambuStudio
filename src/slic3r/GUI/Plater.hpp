@@ -707,6 +707,9 @@ public:
     // While set, prepare-side object removals are treated as internal restructuring (split / merge) and
     // are NOT propagated as deletes to the independent assembly model (m_assemble_model).
     void set_suppress_assemble_delete_propagation(bool suppress);
+    // Seed each model-part volume's assemble transform from its current transform (once),
+    // and ensure a stable part GUID. Used when cloning / loading / preparing assembly views.
+    void ensure_model_object_volume_assemble_initialized(ModelObject *object);
     // Prepare-side per-volume delete: drop the assembly volume referencing this part (call before the
     // prepare ModelVolume is destroyed) so the independent assembly model stays consistent immediately,
     // and the persisted assembly_model.json does not keep referencing a part that no longer exists.
