@@ -1409,6 +1409,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPointsGroups,       extruder_printable_area))
     //BBS: add bed_exclude_area
     ((ConfigOptionPoints,             bed_exclude_area))
+    // Nested heat-soak zones on bed (inner rectangle first).
+    ((ConfigOptionPoints,             bed_heat_soak_area))
     ((ConfigOptionPoints,             head_wrap_detect_zone))
     // BBS
     ((ConfigOptionString,             bed_custom_texture))

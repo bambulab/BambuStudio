@@ -123,6 +123,8 @@ private:
     Pointfs m_raw_shape;
     Pointfs m_shape;
     Pointfs m_exclude_area;
+    Pointfs m_heat_soak_area;
+    int     m_heat_soak_toolpath_level{0};
     std::vector<Pointfs> m_extruder_areas;
     std::vector<double> m_extruder_heights;
     BoundingBoxf3 m_bounding_box;
@@ -154,7 +156,7 @@ private:
     GLTexture            m_name_texture;
 
     void init();
-    bool valid_instance(int obj_id, int instance_id);
+    bool valid_instance(int obj_id, int instance_id) const;
     void generate_exclude_polygon(ExPolygon &exclude_polygon);
     void generate_logo_polygon(ExPolygon &logo_polygon);
     void generate_logo_polygon(ExPolygon &logo_polygon,const BoundingBoxf3& box);
@@ -405,6 +407,10 @@ public:
     /*rendering related functions*/
     const Pointfs& get_shape() const { return m_shape; }
     bool set_shape(const Pointfs& shape, const Pointfs& exclude_areas, const std::vector<Pointfs>& extruder_areas, const std::vector<double>& extruder_heights, Vec2d position, float height_to_lid, float height_to_rod);
+    void set_heat_soak_areas(const Pointfs& heat_soak_areas, Vec2d position);
+    // Highest heat-soak prompt level among instances and sliced toolpaths: 0 / 1 / 2.
+    int  get_heat_soak_level() const;
+    void update_toolpath_heat_soak_level(const GCodeProcessorResult& gcode_result);
     const std::vector<Pointfs>& get_extruder_areas() const { return m_extruder_areas; }
     const std::vector<double>& get_extruder_heights() const { return m_extruder_heights; }
     bool contains(const Vec3d& point) const;
@@ -617,6 +623,7 @@ class PartPlateList : public ObjectBase
     Pointfs m_shape;
     Pointfs m_exclude_areas;
     Pointfs m_wrapping_exclude_areas;
+    Pointfs m_heat_soak_areas;
     std::vector<Pointfs> m_extruder_areas;
     std::vector<double> m_extruder_heights;
     BoundingBoxf3 m_bounding_box;
@@ -674,6 +681,8 @@ private:
     void  calc_triangles(const ExPolygon &poly);
     void  calc_vertex_for_icons(int index, GLModel &gl_model);
     void  calc_exclude_triangles(const ExPolygon &poly);
+    void  calc_heat_soak_lines();
+    void  apply_heat_soak_to_plates();
     void  calc_triangles_from_polygon(const ExPolygon &poly, GLModel& render_model);
     void  calc_gridlines(const ExPolygon &poly, const BoundingBox &pp_bbox);
     void  calc_vertex_for_number(int index, bool one_number, GLModel &gl_model);
@@ -692,6 +701,8 @@ private:
     GLModel                               m_triangles;
     GLModel                               m_exclude_triangles;
     GLModel                               m_wrapping_detection_triangles;
+    GLModel                               m_heat_soak_inner_lines;
+    GLModel                               m_heat_soak_outer_lines;
     GLModel                               m_gridlines;
     GLModel                               m_gridlines_bolder;
     GLModel                               m_del_icon;
@@ -957,6 +968,7 @@ public:
     void render_grid(bool bottom);
     void render_wrapping_detection_area(bool force_default_color);
     void render_exclude_area(bool force_default_color);
+    void render_heat_soak_area(bool force_default_color);
     void render_instance_exclude_area(bool force_default_color);
     void render_unselected_exclude_area(bool force_default_color);
 
@@ -978,6 +990,9 @@ public:
                     const std::string          &custom_texture,
                     float                       height_to_lid,
                     float                       height_to_rod);
+    void set_heat_soak_areas(const Pointfs &heat_soak_areas);
+    // Pure query: highest heat-soak prompt level on the current plate (0 / 1 / 2).
+    int  get_cur_plate_soak_level() const;
     void set_hover_id(int id);
     void reset_hover_id();
     bool intersects(const BoundingBoxf3 &bb);

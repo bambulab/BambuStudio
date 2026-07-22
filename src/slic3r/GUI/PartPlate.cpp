@@ -20,6 +20,7 @@
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Tesselate.hpp"
+#include "libslic3r/GCode/BedExcludeChecker.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Print.hpp"
@@ -77,6 +78,25 @@ std::array<unsigned char, 4>  PlateTextureForeground = {0x0, 0xae, 0x42, 0xff};
 
 namespace Slic3r {
 namespace GUI {
+namespace {
+
+// Heat-soak zones are two nested rectangles: inner rect first (points [0, 4)),
+// then outer rect (points [4, 8)).
+constexpr size_t HEAT_SOAK_POINTS_PER_RECT = 4;
+constexpr size_t HEAT_SOAK_TOTAL_POINTS    = HEAT_SOAK_POINTS_PER_RECT * 2;
+
+std::array<Polygon, 2> make_heat_soak_polygons(const Pointfs &heat_soak_area)
+{
+	std::array<Polygon, 2> polygons;
+	for (size_t polygon_idx = 0; polygon_idx < polygons.size(); ++polygon_idx) {
+		const size_t begin = polygon_idx * HEAT_SOAK_POINTS_PER_RECT;
+		for (size_t i = begin; i < begin + HEAT_SOAK_POINTS_PER_RECT && i < heat_soak_area.size(); ++i)
+			polygons[polygon_idx].append({scale_(heat_soak_area[i].x()), scale_(heat_soak_area[i].y())});
+	}
+	return polygons;
+}
+
+} // namespace
 
 std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.2666f, 0.2784f, 0.2784f, 1.0f }; //{ 0.4196f, 0.4235f, 0.4235f, 1.0f };
 std::array<float, 4> PartPlate::UNSELECT_COLOR		= { 0.82f, 0.82f, 0.82f, 1.0f };
@@ -341,7 +361,7 @@ void PartPlate::set_spiral_vase_mode(bool spiral_mode, bool as_global)
 	}
 }
 
-bool PartPlate::valid_instance(int obj_id, int instance_id)
+bool PartPlate::valid_instance(int obj_id, int instance_id) const
 {
 	if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
 	{
@@ -3282,6 +3302,88 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, co
 	return true;
 }
 
+void PartPlate::set_heat_soak_areas(const Pointfs &heat_soak_areas, Vec2d position)
+{
+	m_heat_soak_area.clear();
+	m_heat_soak_toolpath_level = 0;
+	m_heat_soak_area.reserve(heat_soak_areas.size());
+	for (const Vec2d &p : heat_soak_areas)
+		m_heat_soak_area.emplace_back(p.x() + position.x(), p.y() + position.y());
+}
+
+int PartPlate::get_heat_soak_level() const
+{
+	if (m_heat_soak_area.size() < HEAT_SOAK_TOTAL_POINTS)
+		return 0;
+
+	const std::array<Polygon, 2> rects = make_heat_soak_polygons(m_heat_soak_area);
+	const Polygon &inner = rects[0];
+	const Polygon &outer = rects[1];
+	if (inner.size() < 3 || outer.size() < 3)
+		return 0;
+
+	// Level of a single footprint: outside the outer rect => 2, outside the inner
+	// rect (but inside the outer) => 1, otherwise 0.
+	auto check_level = [&](const Polygon &hull) -> int {
+		if (hull.size() < 3)
+			return 0;
+		if (!diff(hull, outer).empty())
+			return 2;
+		if (!diff(hull, inner).empty())
+			return 1;
+		return 0;
+	};
+
+	// Seed from the sliced toolpaths (covers wipe tower / brim / skirt reach).
+	int max_level = m_slice_result_valid ? m_heat_soak_toolpath_level : 0;
+	if (max_level >= 2 || !m_model)
+		return max_level;
+
+	for (const auto &pair : obj_to_instance_set) {
+		const int obj_id      = pair.first;
+		const int instance_id = pair.second;
+		if (!valid_instance(obj_id, instance_id))
+			continue;
+
+		ModelInstance *instance = m_model->objects[obj_id]->instances[instance_id];
+		max_level = std::max(max_level, check_level(instance->convex_hull_2d()));
+		if (max_level >= 2)
+			return max_level;
+	}
+
+	if (m_plater != nullptr) {
+		if (const GLCanvas3D *canvas = m_plater->get_view3D_canvas3D()) {
+			for (GLVolume *vol : canvas->get_volumes().volumes) {
+				if (vol == nullptr || !vol->is_wipe_tower || vol->composite_id.object_id - 1000 != m_plate_index)
+					continue;
+
+				max_level = std::max(max_level, check_level(vol->transformed_convex_hull_bounding_box().polygon(true)));
+				break;
+			}
+		}
+	}
+
+	return max_level;
+}
+
+void PartPlate::update_toolpath_heat_soak_level(const GCodeProcessorResult &gcode_result)
+{
+	m_heat_soak_toolpath_level = 0;
+	if (m_heat_soak_area.size() < HEAT_SOAK_TOTAL_POINTS)
+		return;
+
+	const std::array<Polygon, 2> rects = make_heat_soak_polygons(m_heat_soak_area);
+	const Polygon &inner = rects[0];
+	const Polygon &outer = rects[1];
+	if (inner.size() < 3 || outer.size() < 3)
+		return;
+
+	if (toolpath_exceeds_boundary_2d(gcode_result, outer))
+		m_heat_soak_toolpath_level = 2;
+	else if (toolpath_exceeds_boundary_2d(gcode_result, inner))
+		m_heat_soak_toolpath_level = 1;
+}
+
 const BoundingBox PartPlate::get_bounding_box_crd()
 {
 	const auto plate_shape = Slic3r::Polygon::new_scale(m_shape);
@@ -4233,6 +4335,57 @@ void PartPlateList::calc_exclude_triangles(const ExPolygon &poly)
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
 }
 
+void PartPlateList::calc_heat_soak_lines()
+{
+    m_heat_soak_inner_lines.reset();
+    m_heat_soak_outer_lines.reset();
+    if (m_heat_soak_areas.size() < HEAT_SOAK_TOTAL_POINTS)
+        return;
+
+    const std::array<Polygon, 2> rects = make_heat_soak_polygons(m_heat_soak_areas);
+    const Polygon &inner = rects[0];
+    const Polygon &outer = rects[1];
+
+    if (!inner.empty() && !m_heat_soak_inner_lines.init_model_from_lines(to_lines(inner), GROUND_Z))
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create heat soak inner lines\n";
+    if (!outer.empty() && !m_heat_soak_outer_lines.init_model_from_lines(to_lines(outer), GROUND_Z))
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create heat soak outer lines\n";
+}
+
+void PartPlateList::apply_heat_soak_to_plates()
+{
+    for (unsigned int i = 0; i < (unsigned int) m_plate_list.size(); ++i) {
+        PartPlate *plate = m_plate_list[i];
+        if (!plate)
+            continue;
+
+        Vec2d pos = compute_shape_position(i, m_plate_cols);
+        plate->set_heat_soak_areas(m_heat_soak_areas, pos);
+    }
+}
+
+void PartPlateList::set_heat_soak_areas(const Pointfs &heat_soak_areas)
+{
+    if (!heat_soak_areas.empty() &&
+        (heat_soak_areas.size() < HEAT_SOAK_TOTAL_POINTS || heat_soak_areas.size() % HEAT_SOAK_POINTS_PER_RECT != 0))
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": ignoring malformed bed_heat_soak_area with "
+                                   << heat_soak_areas.size() << " points (expected a multiple of "
+                                   << HEAT_SOAK_POINTS_PER_RECT << ", at least " << HEAT_SOAK_TOTAL_POINTS << ")";
+
+    m_heat_soak_areas = heat_soak_areas;
+    apply_heat_soak_to_plates();
+    if (m_plater != nullptr)
+        calc_heat_soak_lines();
+}
+
+int PartPlateList::get_cur_plate_soak_level() const
+{
+    if (m_plate_list.empty() || m_current_plate < 0 || m_current_plate >= (int) m_plate_list.size())
+        return 0;
+
+    return m_plate_list[m_current_plate]->get_heat_soak_level();
+}
+
 void PartPlateList::calc_triangles_from_polygon(const ExPolygon &poly, GLModel &render_model){
     if (poly.empty()) {
         render_model.reset();
@@ -4832,6 +4985,7 @@ void PartPlateList::reinit()
 	//reset plate 0's position
 	Vec2d pos = compute_shape_position(0, m_plate_cols);
 	m_plate_list[0]->set_shape(m_shape, m_exclude_areas, m_extruder_areas, m_extruder_heights, pos, m_height_to_lid, m_height_to_rod);
+	m_plate_list[0]->set_heat_soak_areas(m_heat_soak_areas, pos);
 	//reset unprintable plate's position
 	Vec3d origin2 = compute_origin_for_unprintable();
 	unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, false);
@@ -4891,6 +5045,7 @@ int PartPlateList::create_plate(bool adjust_position)
 	plate->set_index(new_index);
 	Vec2d pos = compute_shape_position(new_index, cols);
 	plate->set_shape(m_shape, m_exclude_areas, m_extruder_areas, m_extruder_heights, pos, m_height_to_lid, m_height_to_rod);
+	plate->set_heat_soak_areas(m_heat_soak_areas, pos);
 	m_plate_list.emplace_back(plate);
 	update_plate_cols();
 	if (old_cols != cols)
@@ -5047,6 +5202,7 @@ int PartPlateList::delete_plate(int index)
 		//update render shapes
 		Vec2d pos = compute_shape_position(i, m_plate_cols);
 		plate->set_shape(m_shape, m_exclude_areas, m_extruder_areas, m_extruder_heights, pos, m_height_to_lid, m_height_to_rod);
+		plate->set_heat_soak_areas(m_heat_soak_areas, pos);
 	}
 
 	//update current_plate if delete current
@@ -5220,6 +5376,7 @@ int PartPlateList::select_plate(int index)
 	if (m_intialized && m_plater) {
 		Vec2d pos = compute_shape_position(index, m_plate_cols);
         m_plater->set_bed_position(pos);
+		m_plater->on_plate_layout_changed();
 		//wxQueueEvent(m_plater, new SimpleEvent(EVT_GLCANVAS_PLATE_SELECT));
 	}
 
@@ -5471,6 +5628,16 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 	PartPlate* plate = NULL;
 	ModelObject* object = NULL;
 
+	struct HeatSoakNotifyGuard
+	{
+		PartPlateList *self;
+		~HeatSoakNotifyGuard()
+		{
+			if (self && self->m_plater)
+				self->m_plater->on_plate_layout_changed();
+		}
+	} heat_soak_guard{this};
+
 	if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
 	{
 		object = m_model->objects[obj_id];
@@ -5649,6 +5816,9 @@ int PartPlateList::notify_instance_removed(int obj_id, int instance_id)
 
 	if (m_plater)
 		m_plater->mark_plate_toolbar_image_dirty();
+
+	if (m_plater)
+		m_plater->on_plate_layout_changed();
 
 	return 0;
 }
@@ -6197,6 +6367,7 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
             shader->set_uniform("projection_matrix", proj_mat);
             if (!bottom) { // draw background
                 render_exclude_area(force_background_color); // for selected_plate
+                render_heat_soak_area(force_background_color);
                 if(wxGetApp().plater()->get_enable_wrapping_detection()){
                     if(!m_wrapping_detection_triangles.is_initialized()){
                         auto points = get_plate_wrapping_detection_area();
@@ -6356,6 +6527,29 @@ void PartPlateList::render_exclude_area(bool force_default_color)
     // draw exclude area
     m_exclude_triangles.set_color(select_color);
     m_exclude_triangles.render_geometry();
+}
+
+void PartPlateList::render_heat_soak_area(bool force_default_color)
+{
+    if (force_default_color)
+        return;
+
+    // Draw the heat-soak zone boundaries as thick, bright outlines so they stand
+    // out against the dark bed and the lighter grid lines.
+    const ColorRGBA line_color{0.95f, 0.95f, 0.95f, 1.0f};
+    const auto &p_ogl_manager = wxGetApp().get_opengl_manager();
+    p_ogl_manager->set_line_width(4.0f * m_scale_factor);
+
+    auto draw = [&](GLModel &model) {
+        if (!model.is_initialized())
+            return;
+
+        model.set_color(line_color);
+        model.render_geometry();
+    };
+
+    draw(m_heat_soak_outer_lines);
+    draw(m_heat_soak_inner_lines);
 }
 
 void PartPlateList::render_instance_exclude_area(bool force_default_color)
@@ -6558,6 +6752,8 @@ bool PartPlateList::set_shapes(const Pointfs              &shape,
 		ExPolygon exclude_poly;
         generate_exclude_polygon(exclude_poly);
         calc_exclude_triangles(exclude_poly);
+        apply_heat_soak_to_plates();
+        calc_heat_soak_lines();
 
         const BoundingBox &pp_bbox = poly.contour.bounding_box();
         calc_gridlines(poly, pp_bbox);

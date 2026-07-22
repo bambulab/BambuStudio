@@ -3961,6 +3961,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     //BBS:exclude the assmble view
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
         _update_slice_error_status();
+        // covers wipe tower changes with no instance add/remove
+        if (wxGetApp().is_editor())
+            wxGetApp().plater()->on_plate_layout_changed();
         // checks for geometry outside the print volume to render it accordingly
         if (!m_volumes.empty()) {
             ModelInstanceEPrintVolumeState state;
@@ -4179,8 +4182,10 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, co
         m_initialized, wxGetApp().get_mode(), only_gcode);
 
     if (wxGetApp().is_editor()) {
+        plate->update_toolpath_heat_soak_level(gcode_result);
         //BBS: always load shell at preview, do this in load_shells
         _update_slice_error_status();
+        wxGetApp().plater()->on_plate_layout_changed();
     }
 
     t_gcode_viewer.refresh(gcode_result, str_tool_colors);

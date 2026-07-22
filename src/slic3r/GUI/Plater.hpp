@@ -877,6 +877,8 @@ public:
                        const std::string   &custom_texture,
                        const std::string   &custom_model,
                        bool                 force_as_custom = false) const;
+    // Generic seam: plate layout / bed state changed
+    void on_plate_layout_changed();
 
 	const NotificationManager* get_notification_manager() const;
 	NotificationManager* get_notification_manager();
@@ -1044,6 +1046,7 @@ private:
     std::string m_preview_only_filename;
     int m_valid_plates_count { 0 };
     int m_check_status = 0; // 0 not check, 1 check success, 2 check failed
+    int m_last_heat_soak_level = -1;
     bool m_b_plate_toolbar_image_dirty{ true };
 
     void suppress_snapshots();
@@ -1059,6 +1062,7 @@ private:
     void _calib_pa_select_added_objects();
 
     void on_filament_map_mode_change();
+    void update_bed_heat_soak_notification();
     friend class SuppressBackgroundProcessingUpdate;
 };
 

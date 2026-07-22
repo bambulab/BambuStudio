@@ -165,6 +165,7 @@ enum class NotificationType
 	BBLTpuNozzleHasMultiFilament,
     BBLHighTempNeedWrappingDetection,
     BBLPrintedWeightOverLimitWarn,
+    BBLBedHeatSoakInfo,
     BBLSingleExtruderMixedFilamentRisk,
     AssemblyWarning,
     AssemblyInfo,
@@ -257,6 +258,9 @@ public:
 	// Closes error or warning of the same text
 	void close_plater_error_notification(const std::string& text);
 	void close_plater_warning_notification(const std::string& text);
+	// Soft prompt when models leave nested heated-bed heat soak zones (A2L).
+	void push_bed_heat_soak_notification(const std::string& text);
+	void close_bed_heat_soak_notification();
 	//The flushing volume matrix has zero values in its off-diagonal elements
     void push_flushing_volume_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext = "", std::function<bool(wxEvtHandler *)> callback  = std::function<bool(wxEvtHandler *)>());
     void close_flushing_volume_error_notification(NotificationType type, NotificationLevel level);

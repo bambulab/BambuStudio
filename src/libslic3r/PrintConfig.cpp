@@ -949,6 +949,9 @@ void PrintConfigDef::init_common_params()
     def->gui_type = ConfigOptionDef::GUIType::one_string;
     def->set_default_value(new ConfigOptionString(""));
 
+    def = this->add("bed_heat_soak_area", coPoints);
+    def->set_default_value(new ConfigOptionPoints());
+
     def = this->add("elefant_foot_compensation", coFloat);
     def->label = L("Elephant foot compensation");
     def->category = L("Quality");

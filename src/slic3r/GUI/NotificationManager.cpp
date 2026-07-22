@@ -292,9 +292,9 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 		bbl_render_left_sign(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
 		render_left_sign(imgui);
 		render_text(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
+		m_minimize_b_visible = (m_multiline && m_lines_count > 3);
 		render_close_button(imgui, win_size.x, win_size.y, win_pos.x, win_pos.y);
-        m_minimize_b_visible = false;
-        if (m_multiline && m_lines_count > 3)
+		if (m_minimize_b_visible)
 			render_minimize_button(imgui, win_pos.x, win_pos.y);
 	}
 	imgui.end();
@@ -2009,6 +2009,31 @@ void NotificationManager::close_plater_warning_notification(const std::string& t
 	}
 }
 
+void NotificationManager::push_bed_heat_soak_notification(const std::string& text)
+{
+	close_bed_heat_soak_notification();
+
+	auto callback = [](wxEvtHandler*) {
+		std::string language = wxGetApp().app_config->get("language");
+		wxString    region = L"en";
+		if (language.find("zh") == 0)
+			region = L"zh";
+		const wxString url = wxString::Format(L"https://wiki.bambulab.com/%s/a2l/maintenance/first-layer-quality-calibration", region)
+			+ wxT("#%E5%85%B6%E4%BB%96%E5%9C%BA%E6%99%AF%E7%83%AD%E5%BA%8A%E4%BF%9D%E6%B8%A9%E7%AD%96%E7%95%A5");
+		wxGetApp().open_browser_with_warning_dialog(url);
+		return false;
+	};
+	NotificationData data{NotificationType::BBLBedHeatSoakInfo, NotificationLevel::WarningNotificationLevel, 0, text, _u8L("For more details, see the Wiki."), callback};
+	auto notification = std::make_unique<NotificationManager::PopNotification>(data, m_id_provider, m_evt_handler);
+	notification->set_Multiline(true);
+	push_notification_data(std::move(notification), 0);
+}
+
+void NotificationManager::close_bed_heat_soak_notification()
+{
+	close_notification_of_type(NotificationType::BBLBedHeatSoakInfo);
+}
+
 void NotificationManager::push_flushing_volume_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext, std::function<bool(wxEvtHandler *)> callback)
 {
     set_all_slicing_errors_gray(false);
@@ -2730,6 +2755,9 @@ void NotificationManager::set_canvas_type(GLCanvas3D::ECanvasType t_canvas_type)
             notification->hide(m_canvas_type == GLCanvas3D::ECanvasType::CanvasView3D);
         if (notification->get_type() == NotificationType::BBLObjectInfo)
             notification->hide(m_canvas_type != GLCanvas3D::ECanvasType::CanvasView3D);
+        if (notification->get_type() == NotificationType::BBLBedHeatSoakInfo)
+            notification->hide(m_canvas_type != GLCanvas3D::ECanvasType::CanvasView3D &&
+                               m_canvas_type != GLCanvas3D::ECanvasType::CanvasPreview);
         if (notification->get_type() == NotificationType::BBLSeqPrintInfo)
             notification->hide(m_canvas_type != GLCanvas3D::ECanvasType::CanvasView3D);
         if ((m_canvas_type == GLCanvas3D::ECanvasType::CanvasPreview) && notification->get_type() == NotificationType::DidYouKnowHint)

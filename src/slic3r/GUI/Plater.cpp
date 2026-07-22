@@ -7149,7 +7149,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
     , main_frame(main_frame)
     //BBS: add bed_exclude_area
     , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
-        "printable_area", "bed_exclude_area", "wrapping_exclude_area", "extruder_printable_area", "bed_custom_texture", "bed_custom_model", "print_sequence",
+        "printable_area", "bed_exclude_area", "bed_heat_soak_area", "wrapping_exclude_area", "extruder_printable_area", "bed_custom_texture", "bed_custom_model", "print_sequence",
         "extruder_clearance_dist_to_rod", "extruder_clearance_max_radius",
         "extruder_clearance_height_to_lid", "extruder_clearance_height_to_rod",
 		"nozzle_height", "skirt_loops", "skirt_distance",
@@ -16784,6 +16784,9 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
         update();
 
         view3D->deselect_all();
+
+        if (q)
+            q->on_plate_layout_changed();
     }
 
     // EVT_GLCANVAS_ARRANGE_OUTPLATE intentionally NOT posted: reschedule is now
@@ -17363,6 +17366,16 @@ void Plater::priv::set_bed_shape(const Pointfs       &shape,
         Vec2d new_shape_position = partplate_list.get_current_shape_position();
         if (shape_position != new_shape_position)
             bed.set_shape(shape, printable_height, extruder_areas, extruder_heights, custom_model, force_as_custom, new_shape_position);
+    }
+
+    // Always refresh heat-soak zones from printer config (may be empty on non-A2L).
+    {
+        Pointfs heat_soak_areas;
+        if (auto *opt = config->option<ConfigOptionPoints>("bed_heat_soak_area"))
+            heat_soak_areas = opt->values;
+        partplate_list.set_heat_soak_areas(heat_soak_areas);
+        if (q)
+            q->on_plate_layout_changed();
     }
 }
 
@@ -23949,6 +23962,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         //BBS: add bed_exclude_area
         else if (opt_key == "printable_area" || opt_key == "bed_exclude_area"
+            || opt_key == "bed_heat_soak_area"
             || opt_key == "extruder_clearance_height_to_lid"
             || opt_key == "extruder_clearance_height_to_rod") {
             bed_shape_changed = true;
@@ -24110,6 +24124,42 @@ void Plater::set_bed_shape() const
 void Plater::set_bed_shape(const Pointfs& shape, const Pointfs& exclude_area, const Pointfs& wrapping_exclude_area, const double printable_height, std::vector<Pointfs> extruder_areas, std::vector<double> extruder_heights, const std::string& custom_texture, const std::string& custom_model, bool force_as_custom) const
 {
     p->set_bed_shape(shape, exclude_area, wrapping_exclude_area, printable_height, extruder_areas, extruder_heights, custom_texture, custom_model, force_as_custom);
+}
+
+void Plater::on_plate_layout_changed()
+{
+    update_bed_heat_soak_notification();
+    if (GLCanvas3D *canvas = p->get_current_canvas3D())
+        canvas->schedule_extra_frame(0);
+}
+
+void Plater::update_bed_heat_soak_notification()
+{
+    GLCanvas3D *canvas = p->get_current_canvas3D();
+    if (!canvas || (canvas->get_canvas_type() != GLCanvas3D::CanvasView3D &&
+                    canvas->get_canvas_type() != GLCanvas3D::CanvasPreview))
+        return;
+
+    NotificationManager *notify = get_notification_manager();
+    if (!notify)
+        return;
+
+    const int level = p->partplate_list.get_cur_plate_soak_level();
+    if (level == m_last_heat_soak_level)
+        return;
+
+    m_last_heat_soak_level = level;
+    if (level <= 0) {
+        notify->close_bed_heat_soak_notification();
+        return;
+    }
+
+    notify->push_bed_heat_soak_notification(
+        _u8L("When Thermal Preconditioning for First Layer Optimization is enabled on the A2L "
+             "printer, the preconditioning duration is automatically adjusted based on the "
+             "model's footprint to achieve the best first-layer quality. Larger footprints "
+             "require longer preconditioning times. The white boxes indicate the boundaries "
+             "between different preconditioning durations."));
 }
 
 void Plater::force_filament_colors_update()
