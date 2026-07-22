@@ -196,8 +196,10 @@ ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
     build_ui();
     wxGetApp().UpdateDlgDarkUI(this);
     // Restore target swatch after dark mode color remapping
-    if (m_target_swatch)
+    if (m_target_swatch) {
         m_target_swatch->SetBackgroundColour(m_target_color);
+        m_target_swatch->Refresh();
+    }
 
     update_card_visibility();
     Fit();
@@ -322,6 +324,26 @@ static wxPanel* create_color_swatch(wxWindow* parent, const wxColour& color, int
     auto* panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(size, size));
     panel->SetBackgroundColour(color);
     panel->SetMinSize(wxSize(size, size));
+    panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    panel->Bind(wxEVT_PAINT, [panel](wxPaintEvent&) {
+        wxAutoBufferedPaintDC dc(panel);
+        wxSize sz = panel->GetClientSize();
+        wxColour c = panel->GetBackgroundColour();
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(c));
+        dc.DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
+        // Mirror sidebar (FilamentBitmapUtils::create_single_filament_bitmap):
+        // gray border for near-white in light mode so white swatches stay
+        // visible on a white background; light border for near-black in dark mode.
+        const bool light_mode = !wxGetApp().dark_mode();
+        if ((light_mode && c.Red() > 224 && c.Green() > 224 && c.Blue() > 224) ||
+            (!light_mode && c.Red() < 45 && c.Green() < 45 && c.Blue() < 45)) {
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.SetPen(wxPen(light_mode ? wxColour(130, 130, 128) : wxColour(207, 207, 207),
+                            1, wxPENSTYLE_SOLID));
+            dc.DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
+        }
+    });
     return panel;
 }
 

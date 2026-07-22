@@ -9892,6 +9892,10 @@ void Plater::priv::apply_textured_mesh_import_result(Slic3r::Model& loaded_model
     };
 
     const auto& entries = result.filament_entries;
+    // Final sidebar ordering produced here (ExistingPhysical -> NewPhysical ->
+    // ExistingMixed -> NewMixed) MUST stay in sync with
+    // TextureImportDialog::compute_display_numbers(), which mirrors this order
+    // so the import dialog shows the same IDs the sidebar will show after OK.
     std::vector<int> filament_index_remap(entries.size(), -1);
     size_t existing_physical_count = 0;
     size_t new_physical_count = 0;
