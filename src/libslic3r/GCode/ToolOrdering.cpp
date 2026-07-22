@@ -1549,6 +1549,7 @@ FilamentGroupContext build_filament_group_context(
     }
 
     context.machine_info.machine_filament_info = machine_filament_info;
+    context.machine_info.nozzle_loaded_filaments = print->get_nozzle_loaded_filament_info();
     context.machine_info.max_group_size = std::move(group_size);
     context.machine_info.master_extruder_id = print_config.master_extruder_id.value - 1;
     context.machine_info.prefer_non_model_filament = prefer_non_model_filament;
@@ -1563,7 +1564,7 @@ FilamentGroupContext build_filament_group_context(
 
     if(mode == FilamentMapMode::fmmManual)
         context.group_info.filament_volume_map = print_config.filament_volume_map.values;
-    else    // hrybid flow means no special request
+    else    // Hybrid means no requested nozzle volume type in auto modes.
         context.group_info.filament_volume_map = std::vector<int>(filament_nums,(int)(NozzleVolumeType::nvtHybrid));
 
     // Build the global nozzle list. For ALL machine types, prefer the per-slot nozzle params.
@@ -1599,24 +1600,46 @@ FilamentGroupContext build_filament_group_context(
                 nozzle.diameter != format_diameter_to_str(extruder_diameters[nozzle.extruder_id]))
                 nozzle.installed = false;//wrong-diameter nozzle: not usable for this print
 
-        if (single_ext_multi_nozzle && is_auto_filament_map_mode(mode)) {
-            const std::string virtual_diameter = extruder_diameters.empty()
-                ? std::string() : format_diameter_to_str(extruder_diameters.front());
-            while (nozzle_list.size() < filament_nums) {
-                MultiNozzleUtils::NozzleInfo virtual_nozzle;
-                virtual_nozzle.diameter         = virtual_diameter;
-                virtual_nozzle.volume_type      = NozzleVolumeType::nvtStandard;
-                virtual_nozzle.extruder_id      = 0;
-                virtual_nozzle.group_id         = static_cast<int>(nozzle_list.size());
-                virtual_nozzle.installed        = true;
-                nozzle_list.emplace_back(std::move(virtual_nozzle));
-            }
-        }
-
         int ams_logical_group_id = -1;
         if (single_ext_multi_nozzle && ams_nozzle_idx_ctx >= 0 &&
             ams_nozzle_idx_ctx < static_cast<int>(nozzle_list.size()) && nozzle_list[ams_nozzle_idx_ctx].installed)
             ams_logical_group_id = ams_nozzle_idx_ctx;
+
+        // N1X 非 match 自动模式需要在 ctx 阶段补足基础容量；match 模式的虚拟喷嘴由
+        // calc_filament_group_for_nozzle_match() 按真实已装料匹配结果追加。
+        if (single_ext_multi_nozzle && is_auto_filament_map_mode(mode) && mode != FilamentMapMode::fmmAutoForMatch) {
+            const std::string virtual_diameter = extruder_diameters.empty()
+                ? std::string() : format_diameter_to_str(extruder_diameters.front());
+
+            const int  ams_capacity = std::max(1, ams_nozzle_capacity);
+
+            auto nozzle_capacity = [ams_logical_group_id, ams_capacity](const MultiNozzleUtils::NozzleInfo& nozzle) {
+                if (!nozzle.installed)
+                    return 0;
+
+                const bool is_ams_nozzle = ams_logical_group_id >= 0 && nozzle.group_id == ams_logical_group_id;
+                return is_ams_nozzle ? ams_capacity : 1;
+            };
+
+            // 统计当前真实/有效入口数。
+            auto usable_slot_count = [&nozzle_list, &nozzle_capacity]() {
+                int count = 0;
+                for (const auto& nozzle : nozzle_list)
+                    count += nozzle_capacity(nozzle);
+                return count;
+            };
+
+            // 简化兜底：非 match 自动模式沿用 Standard 虚拟喷嘴补齐。
+            while (usable_slot_count() < static_cast<int>(used_filaments.size())) {
+                MultiNozzleUtils::NozzleInfo virtual_nozzle;
+                virtual_nozzle.diameter    = virtual_diameter;
+                virtual_nozzle.volume_type = NozzleVolumeType::nvtStandard;
+                virtual_nozzle.extruder_id = 0;
+                virtual_nozzle.group_id    = static_cast<int>(nozzle_list.size());
+                virtual_nozzle.installed   = true;
+                nozzle_list.emplace_back(std::move(virtual_nozzle));
+            }
+        }
 
         // Per-nozzle filament capacity (indexed by nozzle group_id) for every machine, so both the enum and
         // clustering solvers consume one nozzle-level capacity instead of the per-extruder max_group_size:
@@ -2098,6 +2121,8 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
             if (single_ext_multi_nozzle) {
                 if (mode == FilamentMapMode::fmmManual) {
                     ret = build_manual_map_or_throw(context);
+                } else if (mode == FilamentMapMode::fmmAutoForMatch) {
+                    ret = calc_filament_group_for_nozzle_match(context);
                 } else {
                     // Single-extruder multi-nozzle auto: unified FilamentGroup with per-nozzle capacity.
                     FilamentGroup fg(context);

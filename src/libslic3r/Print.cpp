@@ -432,6 +432,11 @@ void Print::set_calib_params(const Calib_Params &params)
     m_calib_params      = params;
 }
 
+void Print::set_nozzle_loaded_filament_info(const std::vector<FilamentGroupUtils::NozzleLoadedFilamentInfo> &filament_info)
+{
+    m_nozzle_loaded_filament_info = filament_info;
+}
+
 bool Print::invalidate_step(PrintStep step)
 {
 	bool invalidated = Inherited::invalidate_step(step);

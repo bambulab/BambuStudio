@@ -1027,6 +1027,9 @@ public:
     const std::vector<std::vector<DynamicPrintConfig>>& get_extruder_filament_info() const { return m_extruder_filament_info; }
     void set_extruder_filament_info(const std::vector<std::vector<DynamicPrintConfig>>& filament_info) { m_extruder_filament_info = filament_info; }
 
+    const std::vector<FilamentGroupUtils::NozzleLoadedFilamentInfo> &get_nozzle_loaded_filament_info() const { return m_nozzle_loaded_filament_info; }
+    void set_nozzle_loaded_filament_info(const std::vector<FilamentGroupUtils::NozzleLoadedFilamentInfo> &filament_info);
+
     void set_geometric_unprintable_filaments(const std::vector<std::set<int>> &unprintables_filament_ids) { m_geometric_unprintable_filaments = unprintables_filament_ids; }
     std::vector<std::set<int>> get_geometric_unprintable_filaments() const { return m_geometric_unprintable_filaments;}
 
@@ -1247,6 +1250,7 @@ private:
     Points                                  m_skirt_convex_hull;
 
     std::vector<std::vector<DynamicPrintConfig>> m_extruder_filament_info;
+    std::vector<FilamentGroupUtils::NozzleLoadedFilamentInfo> m_nozzle_loaded_filament_info;
 
     // Following section will be consumed by the GCodeGenerator.
     ToolOrdering 							m_tool_ordering;

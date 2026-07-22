@@ -85,6 +85,7 @@
 #include "WipeTowerPlacement.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/FilamentGroupUtils.hpp"
 #include "libslic3r/FilamentMixer.hpp"
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/SLAPrint.hpp"
@@ -8087,6 +8088,7 @@ public:
 #endif
     }
     std::vector<std::vector<DynamicPrintConfig>> get_extruder_filament_info();
+    std::vector<FilamentGroupUtils::NozzleLoadedFilamentInfo> get_nozzle_loaded_filament_info();
     void update_print_volume_state();
     void schedule_background_process();
     // Update background processing thread from the current config and Model.
@@ -12051,6 +12053,129 @@ std::vector<std::vector<DynamicPrintConfig>> Plater::priv::get_extruder_filament
     return filament_infos;
 }
 
+std::vector<FilamentGroupUtils::NozzleLoadedFilamentInfo> Plater::priv::get_nozzle_loaded_filament_info()
+{
+    std::vector<FilamentGroupUtils::NozzleLoadedFilamentInfo> filament_infos;
+
+    // 1. 检查当前设备和预设上下文；没有选中设备时，不参与喷嘴已装料匹配。
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev || !wxGetApp().preset_bundle)
+        return filament_infos;
+
+    MachineObject *obj = dev->get_selected_machine();
+    if (!obj || !obj->GetNozzleSystem() || !obj->GetNozzleSystem()->GetNozzleRack())
+        return filament_infos;
+
+    // 2. 仅多喷嘴机型需要同步喷嘴已装料信息，普通单喷嘴机型继续走原有耗材分组逻辑。
+    const DynamicPrintConfig full_config = wxGetApp().preset_bundle->full_config();
+    auto extruder_max_nozzle_count = full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    if (!extruder_max_nozzle_count || !std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int val) { return val > 1; }))
+        return filament_infos;
+
+    // 3. 当前只处理 Hotend Rack A/B：设备侧已经维护 rack 槽位、喷嘴和当前送料槽的对应关系。
+    auto nozzle_system = obj->GetNozzleSystem();
+    auto nozzle_rack   = nozzle_system->GetNozzleRack();
+    if (nozzle_rack->GetRackType() != DevNozzleRack::RackType_A &&
+        nozzle_rack->GetRackType() != DevNozzleRack::RackType_B)
+        return filament_infos;
+
+    // 4. Color 需要 #RRGGBB/#RRGGBBAA；设备侧颜色可能不带 '#', 这里统一后再参与匹配。
+    auto normalize_color = [](const std::string &color) {
+        if (color.empty())
+            return std::string();
+        std::string normalized = color[0] == '#' ? color : "#" + color;
+        if (normalized.size() != 7 && normalized.size() != 9)
+            return std::string();
+        for (size_t idx = 1; idx < normalized.size(); ++idx) {
+            if (!std::isxdigit(static_cast<unsigned char>(normalized[idx])))
+                return std::string();
+        }
+        return normalized;
+    };
+
+    // 5. 将设备侧耗材 id / 颜色 / 类型转换为切片算法需要的已装料信息。
+    auto build_info = [&](int logical_nozzle_id, const std::string &filament_id, const std::string &filament_color,
+                          const std::string &filament_type) -> std::optional<FilamentGroupUtils::NozzleLoadedFilamentInfo> {
+        const std::string normalized_color = normalize_color(filament_color);
+        if (filament_type.empty() || normalized_color.empty())
+            return std::nullopt;
+
+        auto base_info = filament_id.empty() ? std::nullopt : wxGetApp().preset_bundle->get_filament_by_filament_id(filament_id);
+        FilamentGroupUtils::NozzleLoadedFilamentInfo info;
+        info.nozzle_id    = logical_nozzle_id;
+        info.filament_id  = filament_id;
+        info.color        = FilamentGroupUtils::Color(normalized_color);
+        info.type         = filament_type;
+        info.is_support   = base_info ? base_info->is_support : false;
+        info.usage_type   = info.is_support ? FilamentUsageType::SupportOnly : FilamentUsageType::ModelOnly;
+        info.valid        = true;
+        return info;
+    };
+
+    // 6. 使用 DevAmsTray 的统一接口读取耗材 id / 类型，保持与设备侧 AMS 槽位展示一致。
+    auto build_info_from_tray = [&](int logical_nozzle_id, DevAmsTray tray) -> std::optional<FilamentGroupUtils::NozzleLoadedFilamentInfo> {
+        const std::string filament_id = tray.get_filament_id();
+        const std::string filament_type = tray.get_filament_type();
+        const std::string filament_color = !tray.color.empty() ? tray.color : (!tray.cols.empty() ? tray.cols.front() : std::string());
+        return build_info(logical_nozzle_id, filament_id, filament_color, filament_type);
+    };
+
+    auto collect_bound_trays = [&](const DevNozzle &dev_nozzle) {
+        std::vector<std::tuple<int, int, DevAmsTray>> trays;
+        for (const auto &[ams_id, slot_id] : dev_nozzle.GetBindAmsSlots()) {
+            if (auto tray = obj->get_tray(ams_id, slot_id))
+                trays.emplace_back(ams_id, slot_id, *tray);
+        }
+
+        if (auto fila_system = obj->GetFilaSystem()) {
+            for (const int ams_id : dev_nozzle.GetBindAms()) {
+                DevAms *ams = fila_system->GetAmsById(std::to_string(ams_id));
+                if (!ams)
+                    continue;
+                for (const auto &[slot_id_str, tray] : ams->GetTrays()) {
+                    if (!tray)
+                        continue;
+                    try {
+                        trays.emplace_back(ams_id, std::stoi(slot_id_str), *tray);
+                    } catch (...) {
+                    }
+                }
+            }
+             //增加外挂料
+            const int external_spool_id = 255 - dev_nozzle.GetNozzlePosId() + 16;
+            if (auto external_tray = fila_system->GetVirtualTray(external_spool_id))
+                trays.emplace_back(external_spool_id, 0, *external_tray);
+        }
+        return trays;
+    };
+
+    // 7. GetBindAmsSlots 是当前喷嘴正在进/退料的那一路料卷（内置槽或外挂料，二选一）；
+    //    GetBindAms 是绑定到该喷嘴的内置 AMS id，用于收集其全部料槽；
+    //    external spool 额外单独收集，保证即使当前进料源是内置槽时外挂料也不会漏。
+    //    统一收集 tray 后再去重转换，确保喷嘴上所有内置料槽 + 外挂料都能参与后端匹配。
+    auto append_info_for_nozzle = [&](int logical_nozzle_id, const DevNozzle &dev_nozzle) {
+        if (!dev_nozzle.IsExist() || dev_nozzle.IsUnknown() || dev_nozzle.IsAbnormal() || !dev_nozzle.IsHotend())
+            return;
+
+        std::set<DevAmsSlotId> emitted_slots;
+        for (const auto &[ams_id, slot_id, tray] : collect_bound_trays(dev_nozzle)) {
+            if (!emitted_slots.emplace(ams_id, slot_id).second)
+                continue;
+            if (auto info = build_info_from_tray(logical_nozzle_id, tray))
+                filament_infos.emplace_back(std::move(*info));
+        }
+    };
+
+    // 8. 按 rack addr_id 遍历：addr_id 与切片侧 per-slot nozzle group_id 对齐，即这里需要的逻辑喷嘴 id。
+    for (const int nozzle_addr_id : nozzle_rack->GetTotalRackNozzleAddIdSet()) {
+        auto rack_nozzle = nozzle_system->GetNozzleOptByAddrId(nozzle_addr_id);
+        if (rack_nozzle)
+            append_info_for_nozzle(nozzle_addr_id, *rack_nozzle);
+    }
+
+    return filament_infos;
+}
+
 void Plater::priv::update_print_volume_state()
 {
     //BBS: use the plate's bounding box instead of the bed's
@@ -12197,6 +12322,8 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     auto full_cfg = preset_bundle->full_config();
     auto ext_max_nozzle = full_cfg.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
     bool has_multi_nozzle = ext_max_nozzle && std::any_of(ext_max_nozzle->values.begin(), ext_max_nozzle->values.end(), [](int v){ return v > 1; });
+    auto nozzle_loaded_filament_info = get_nozzle_loaded_filament_info();
+
     if (preset_bundle->get_printer_extruder_count() > 1 || has_multi_nozzle) {
         PartPlate* cur_plate = background_process.get_current_plate();
         std::vector<int> f_maps = cur_plate->get_real_filament_maps(preset_bundle->project_config);
@@ -12218,6 +12345,8 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     }
     else
         invalidated = background_process.apply(this->model, preset_bundle->full_config(false));
+
+    background_process.fff_print()->set_nozzle_loaded_filament_info(nozzle_loaded_filament_info);
 
     if ((invalidated == Print::APPLY_STATUS_CHANGED) || (invalidated == Print::APPLY_STATUS_INVALIDATED)) {
         // BBS: add only gcode mode

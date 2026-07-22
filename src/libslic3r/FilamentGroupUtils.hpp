@@ -43,6 +43,24 @@ namespace Slic3r
             bool operator<(const MachineFilamentInfo& other) const;            // 不比较 filament_id，使同类型、同色但小类不同的耗材进入同一候选集合。
         };
 
+        struct NozzleLoadedFilamentInfo : public FilamentInfo
+        {
+            int         nozzle_id = -1;
+            std::string filament_id;
+            bool        valid = false;
+
+            bool operator==(const NozzleLoadedFilamentInfo& other) const
+            {
+                return nozzle_id == other.nozzle_id &&
+                    filament_id == other.filament_id &&
+                    valid == other.valid &&
+                    color == other.color &&
+                    type == other.type &&
+                    is_support == other.is_support &&
+                    usage_type == other.usage_type;
+            }
+        };
+
         class FilamentGroupException: public std::exception {
         public:
             enum ErrorCode {

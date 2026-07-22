@@ -1909,29 +1909,18 @@ void PresetBundle::generate_extruder_full_stats_from_nozzle_stats()
     extruder_full_stat.resize(raw_stats.size());
     for (size_t extruder_id = 0; extruder_id < raw_stats.size(); ++extruder_id) {
         std::vector<std::pair<std::string, std::string>> nozzle_stats;
+        const int max_count = extruder_max_nozzle_count->values[extruder_id];
 
         for (const auto &[volume_type, count] : raw_stats[extruder_id]) {
             std::string volume_str = GetNozzleVolumeTypeStr(volume_type);
 
-            for (int i = 0; i < count; ++i) {
+            for (int i = 0; i < count && nozzle_stats.size() < max_count; ++i) {
                 nozzle_stats.emplace_back(diameter, volume_str);
             }
-
-            int current_count = nozzle_stats.size();
-            int max_count = extruder_max_nozzle_count->values[extruder_id];
-
-            if (current_count < max_count) {
-                std::vector<std::string> diameters = {"0.2", "0.4", "0.6", "0.8"};
-                for (const auto& d : diameters) {
-                    if (d != diameter) {
-                        for (int i = current_count; i < max_count; ++i) {
-                            nozzle_stats.emplace_back(d, "Standard");
-                        }
-                        break;
-                    }
-                }
-            }
         }
+
+        // Keep slot placeholders without inventing wrong-diameter nozzles.
+        nozzle_stats.resize(max_count, {std::string(), std::string()});
 
         extruder_full_stat.set_extruder_stats(extruder_id, nozzle_stats);
     }

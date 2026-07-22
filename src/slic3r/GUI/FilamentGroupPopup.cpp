@@ -341,7 +341,8 @@ void FilamentGroupPopup::UpdateNozzleLabels()
             case fmmAutoForMatch:
                 label  = _L("Convenience Mode");
                 detail = single_ext_multi_nozzle
-                    ? _L("Intelligently assigns filaments based on the filaments currently installed in the printer's AMS")
+                    ? (no_ams ? _L("Intelligently assigns filaments based on the filaments currently loaded in the printer's nozzles") :
+                                _L("Intelligently assigns filaments based on the filaments currently installed in the printer's AMS"))
                     : wxString::Format(_L("Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"), deputy_nozzle_lower, main_nozzle_lower);
                 break;
             case fmmAutoForQuality:
@@ -452,15 +453,15 @@ void FilamentGroupPopup::Init(const std::vector<FilamentMapMode>& available_mode
     // treat it as fmmManual in the UI
     if (m_mode == fmmNozzleManual)
         m_mode = fmmManual;
-    if (m_mode == fmmAutoForMatch && !m_connected) {
-        SetFilamentMapMode(fmmAutoForFlush);
-        m_mode = fmmAutoForFlush;
-    }
-    else if (std::find(m_available_modes.begin(), m_available_modes.end(), m_mode) == m_available_modes.end()) {
-        SetFilamentMapMode(fmmAutoForFlush);
-        m_mode = fmmAutoForFlush;
-    }
-    else if (m_slice_all) {
+
+    // 选择当前 UI 可用模式：当前模式不可选，或便捷模式需要设备连接但当前未连接时，统一回退到第一个可用模式。
+    const bool mode_available = std::find(m_available_modes.begin(), m_available_modes.end(), m_mode) != m_available_modes.end();
+    const bool need_fallback  = !mode_available || (m_mode == fmmAutoForMatch && !m_connected);
+    if (need_fallback)
+        m_mode = m_available_modes.empty() ? fmmAutoForFlush : m_available_modes.front();
+
+    // 回退时需要写回配置；全盘切片时也要把当前模式同步到所有 plate。
+    if (need_fallback || m_slice_all) {
         // reset the filament map mode in slice all mode
         SetFilamentMapMode(m_mode);
     }
@@ -484,9 +485,9 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice
         std::vector<FilamentMapMode> new_available_modes;
         if (is_multi_nozzle_single_extruder(wxGetApp().preset_bundle->full_config())
             && get_effective_ams_nozzle_idx_for_active_diameter(wxGetApp().preset_bundle->full_config()) < 0) {
-            // Single-extruder multi-nozzle machine with no AMS: only the auto "Default" and the fully
-            // manual "Custom" modes apply.
-            new_available_modes = { fmmAutoForFlush, fmmManual };
+
+            new_available_modes = connect_status ? std::vector<FilamentMapMode>{ fmmAutoForMatch, fmmManual } :
+                                                   std::vector<FilamentMapMode>{ fmmAutoForFlush, fmmManual };
         } else {
             std::vector<FilamentMapMode> requested_modes = { fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality };
             Print* print_obj = partplate ? partplate->fff_print() : nullptr;
@@ -499,8 +500,9 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice
         m_available_modes = new_available_modes;
 
         if (m_active) {
-            if (m_connected != connect_status || modes_changed) { Init(m_available_modes); }
+            const bool connection_changed = m_connected != connect_status;
             m_connected = connect_status;
+            if (connection_changed || modes_changed) { Init(m_available_modes); }
             ResetTimer();
         }
         else {
