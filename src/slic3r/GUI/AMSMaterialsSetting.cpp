@@ -2639,14 +2639,16 @@ void ColorPicker::doRender(wxDC& dc)
 {
     wxSize     size = GetSize();
     auto alpha = m_colour.Alpha();
-    auto radius = m_show_full ? size.x / 2 - FromDIP(1) : size.x / 2;
+    // Keep the outer edge inside the bitmap for even pixel sizes produced by DPI scaling.
+    const int outer_radius = (std::min(size.x, size.y) - 1) / 2;
+    auto radius = m_show_full ? outer_radius - FromDIP(1) : outer_radius;
     if (m_selected) radius -= FromDIP(1);
 
     auto draw_state = [&]() {
         if (m_selected) {
             dc.SetPen(wxPen(m_colour));
             dc.SetBrush(*wxTRANSPARENT_BRUSH);
-            dc.DrawCircle(size.x / 2, size.y / 2, size.x / 2);
+            dc.DrawCircle(size.x / 2, size.y / 2, outer_radius);
         }
 
         if (m_show_full) {
@@ -2668,6 +2670,7 @@ void ColorPicker::doRender(wxDC& dc)
             const double center_x = size.x / 2.0;
             const double center_y = size.y / 2.0;
             const double draw_radius = radius;
+            dc.SetPen(*wxTRANSPARENT_PEN);
             for (int x = 0; x < size.x; ++x) {
                 const double dx = x + 0.5 - center_x;
                 if (std::abs(dx) > draw_radius) continue;
@@ -2680,8 +2683,10 @@ void ColorPicker::doRender(wxDC& dc)
                 const size_t idx = std::min(static_cast<size_t>(scaled), m_cols.size() - 2);
                 const double ratio = scaled - idx;
 
-                dc.SetPen(wxPen(mix_colour(m_cols[idx], m_cols[idx + 1], ratio)));
-                dc.DrawLine(x, top, x, bottom + 1);
+                if (top <= bottom) {
+                    dc.SetBrush(wxBrush(mix_colour(m_cols[idx], m_cols[idx + 1], ratio)));
+                    dc.DrawRectangle(x, top, 1, bottom - top + 1);
+                }
             }
         }
         else {
