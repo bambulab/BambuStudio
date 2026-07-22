@@ -7,6 +7,26 @@ const VIEWPORT_MARGIN = 4;
 // Above .stage slot columns and batch dialogs so the menu is never clipped by siblings.
 const CONTEXT_MENU_Z_INDEX = 1100;
 
+/** Resolve menu item visibility from Schema menu_actions (with local fallbacks). */
+export function resolveCardMenuFlags(slot: AmsFilamentHotendSlotViewModel) {
+  const lineState = slot.filament_line.state;
+  const cardState = slot.filament_card.state;
+  const m = slot.menu_actions;
+  return {
+    canEdit: m?.can_edit ?? cardState !== 'Empty',
+    canLoad: m?.can_load ?? (lineState === 'no_filament' && cardState !== 'Empty'),
+    canUnload: m?.can_unload ?? lineState === 'loaded',
+    canRead: m?.can_read ?? (cardState !== 'Reading' && cardState !== 'Empty'),
+    canAmsOperation: m?.can_ams_operation ?? (slot.bind_ams_slot_count ?? 0) > 0,
+    readLabel: m?.read_label ?? 'Read',
+  };
+}
+
+export function hasCardContextMenuItems(slot: AmsFilamentHotendSlotViewModel) {
+  const flags = resolveCardMenuFlags(slot);
+  return flags.canEdit || flags.canLoad || flags.canUnload || flags.canRead || flags.canAmsOperation;
+}
+
 /**
  * Floating context menu rendered at a fixed (x, y) anchor coming from
  * useCardContextMenu. Owns the viewport-edge clamping so the popover never
@@ -31,14 +51,7 @@ export function CardContextMenu({
     top: anchor.y,
   });
 
-  const lineState = slot.filament_line.state;
-  const cardState = slot.filament_card.state;
-  const m = slot.menu_actions;
-  const canEdit = m?.can_edit ?? cardState !== 'Empty';
-  const canLoad = m?.can_load ?? (lineState === 'no_filament' && cardState !== 'Empty');
-  const canUnload = m?.can_unload ?? lineState === 'loaded';
-  const canRead = m?.can_read ?? (cardState !== 'Reading' && cardState !== 'Empty');
-  const canAmsOperation = m?.can_ams_operation ?? (slot.bind_ams_slot_count ?? 0) > 0;
+  const { canEdit, canLoad, canUnload, canRead, canAmsOperation, readLabel } = resolveCardMenuFlags(slot);
 
   // Clamp inside the viewport after the menu measures itself; flips to the
   // left / above the anchor when there isn't enough room to the right / below.
@@ -88,7 +101,7 @@ export function CardContextMenu({
       {canEdit          && <button type="button" role="menuitem" onClick={() => run('edit')}         >{t('Edit')}</button>}
       {canLoad          && <button type="button" role="menuitem" onClick={() => run('load')}         >{t('Load')}</button>}
       {canUnload        && <button type="button" role="menuitem" onClick={() => run('unload')}       >{t('Unload')}</button>}
-      {canRead          && <button type="button" role="menuitem" onClick={() => run('read')}         >{t(m?.read_label ?? 'Read')}</button>}
+      {canRead          && <button type="button" role="menuitem" onClick={() => run('read')}         >{t(readLabel)}</button>}
       {canAmsOperation  && <button type="button" role="menuitem" onClick={() => run('ams_operation')}>{t('AMS Operation')}</button>}
     </div>,
     document.body,

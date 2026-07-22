@@ -404,6 +404,18 @@
   flex: 0 0 auto;
 }
 
+/* Figma 1761:76285 unknown prefeed marker: 16 viewBox scaled to 14px. */
+.prefeed-indicator--unknown {
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  background: transparent;
+  display: block;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
 .card-index-row {
   display: inline-flex;
   align-items: center;
@@ -1842,14 +1854,14 @@
   opacity: 0.6;
 }
 
-/* Mounted nozzle card. */
+/* Taken: nozzle currently mounted on the extruder (muted rack placeholder). */
 .hotend-card.taken {
   background: var(--ams-hotend-card-bg-taken);
 }
 
-.hotend-card.taken .hotend-readout.status-taken {
-  color: var(--ams-text-secondary);
-  font-weight: 500;
+.hotend-card.taken .hotend-readout.status-taken .hotend-readout-text {
+  color: var(--ams-text-disabled);
+  font-weight: 400;
 }
 
 .hotend-card-head {

@@ -176,6 +176,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     namespace SK = AmsHotendSchema::keys;
     namespace SV = AmsHotendSchema::values;
 
+    auto fila_sys = machine_obj->GetFilaSystem();
     auto rack_nozzle_opt = machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id);
     const int display_idx = addr_id_to_display_idx(addr_id);
     const bool is_top_tier = (display_idx % 2) == 0;
@@ -228,7 +229,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
                     {SK::bind_ams::ams_id, bind_ams_id_str},
                     {SK::bind_ams::ams_type, bind_ams_unit ? std::to_string((int)bind_ams_unit->GetAmsType()) : ""},
                     {SK::bind_ams::slot_count, slot_count}
-                });
+                                   });
                 if (bind_ams_unit) ams_operation_units.push_back(BuildAmsUnitJson(machine_obj, bind_ams_unit));
             }
         }
@@ -275,11 +276,11 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
             op_state = SV::hotend_op_state::lost_in_holder;
         } else if (has_tool && rack_nozzle_opt->IsUnknown()) {
             op_state = SV::hotend_op_state::unknown;
-        } else if (auto temp_status = rack_nozzle_opt->GetSetRackNozzleTempStatus()) {
+        } else if (auto temp_status = rack_nozzle_opt->GetRackNozzleTempStatus()) {
             switch (*temp_status) {
-            case DevNozzle::NozzleTempStatus::Heating: op_state = SV::hotend_op_state::heating; break;
-            case DevNozzle::NozzleTempStatus::Cooling: op_state = SV::hotend_op_state::cooling; break;
-            default: op_state = SV::hotend_op_state::idle; break;
+                case DevNozzle::NozzleTempStatus::Heating: op_state = SV::hotend_op_state::heating; break;
+                case DevNozzle::NozzleTempStatus::Cooling: op_state = SV::hotend_op_state::cooling; break;
+                default: op_state = SV::hotend_op_state::idle; break;
             }
         } else if (rack_nozzle_opt->GetTargetTemp() > rack_nozzle_opt->GetCurrentTemp()) {
             op_state = SV::hotend_op_state::heating;
@@ -306,15 +307,15 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         hotend_detail_dialog[SK::hotend_detail_dialog::tool_image_name] = detail_tool_image_name(tool_defs);
         hotend_detail_dialog[SK::hotend_detail_dialog::tool_type] = is_nozzle_tool
             ? (boost::format("%1% %2% %3%")
-                % wx_to_utf8(rack_nozzle_opt->GetNozzleDiameterStr())
-                % wx_to_utf8(rack_nozzle_opt->GetNozzleFlowTypeStr())
-                % wx_to_utf8(rack_nozzle_opt->GetNozzleTypeStr())).str()
+               % wx_to_utf8(rack_nozzle_opt->GetNozzleDiameterStr())
+               % wx_to_utf8(rack_nozzle_opt->GetNozzleFlowTypeStr())
+               % wx_to_utf8(rack_nozzle_opt->GetNozzleTypeStr())).str()
             : tool_label_for_web(tool_defs);
         hotend_detail_dialog[SK::hotend_detail_dialog::nozzle_type] = is_nozzle_tool
             ? (boost::format("%1% %2% %3%")
-                % wx_to_utf8(rack_nozzle_opt->GetNozzleDiameterStr())
-                % wx_to_utf8(rack_nozzle_opt->GetNozzleFlowTypeStr())
-                % wx_to_utf8(rack_nozzle_opt->GetNozzleTypeStr())).str()
+               % wx_to_utf8(rack_nozzle_opt->GetNozzleDiameterStr())
+               % wx_to_utf8(rack_nozzle_opt->GetNozzleFlowTypeStr())
+               % wx_to_utf8(rack_nozzle_opt->GetNozzleTypeStr())).str()
             : tool_label_for_web(tool_defs);
         hotend_detail_dialog[SK::hotend_detail_dialog::firmware_version] = firmware.has_value() && !firmware->sw_ver.empty() ? firmware->sw_ver : "--";
         hotend_detail_dialog[SK::hotend_detail_dialog::serial_number] = has_read_detail ? serial_number : "--";
@@ -334,7 +335,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     nlohmann::json prefeed_indicator = {
         {SK::prefeed_indicator::visible, false},
         {SK::prefeed_indicator::colors, nlohmann::json::array()},
-        {SK::prefeed_indicator::color_type, std::string("single")}
+        {SK::prefeed_indicator::color_type, std::string("single")},
+        {SK::prefeed_indicator::prefeed_fila_type, std::string()}
     };
     const bool external_spool_active = is_external_spool
         && line_state != SV::line_state::no_filament
@@ -344,6 +346,9 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
             auto prefeed_tray_opt = machine_obj->get_tray(prefeed_slot.first, prefeed_slot.second);
             if (!prefeed_tray_opt.has_value() || !prefeed_tray_opt->is_exists) continue;
 
+            // Same unknown rule as ResolveCardState: empty setting_id or type.
+            const bool prefeed_unknown =
+                prefeed_tray_opt->setting_id.empty() || prefeed_tray_opt->m_fila_type.empty();
             std::vector<std::string> prefeed_colors = prefeed_tray_opt->cols;
             if (prefeed_colors.empty()) prefeed_colors.push_back(prefeed_tray_opt->color);
             for (auto& c : prefeed_colors) c = normalize_hex_for_web(c);
@@ -351,7 +356,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
             prefeed_indicator = {
                 {SK::prefeed_indicator::visible, true},
                 {SK::prefeed_indicator::colors, prefeed_colors},
-                {SK::prefeed_indicator::color_type, color_type_for_web(prefeed_tray_opt->ctype)}
+                {SK::prefeed_indicator::color_type, color_type_for_web(prefeed_tray_opt->ctype)},
+                {SK::prefeed_indicator::prefeed_fila_type, prefeed_unknown ? std::string() : prefeed_tray_opt->m_fila_type}
             };
             break;
         }
@@ -373,18 +379,27 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     };
 
     bool can_edit_filament = card_state != SV::card_state::empty;
-    bool can_load_filament = line_state == SV::line_state::no_filament && card_state != SV::card_state::empty &&
-                             (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);
-    bool can_unload_filament = line_state == SV::line_state::loaded && (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);;
+    if (filament_changing && slot_id.has_value() && fila_sys->IsFilamentChangingSlot(slot_id->first, slot_id->second)) {
+        can_edit_filament = false;
+    }
+
     const char* filament_read_label = (card_state == SV::card_state::unknown) ? SV::read_label::read : SV::read_label::reread;// Unknown filament type shows "Read"; known type shows "Reread".
     bool can_read_filament = card_state != SV::card_state::reading && card_state != SV::card_state::empty && machine_obj && !machine_obj->GetFilaSystem()->GetAmsList().empty();
+    if (filament_changing && slot_id.has_value() && fila_sys->IsFilamentChangingSlot(slot_id->first, slot_id->second)){
+        can_read_filament = false;
+    }
+
+    bool can_load_filament = !filament_changing && line_state == SV::line_state::no_filament && card_state != SV::card_state::empty &&
+                             (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);
+    bool can_unload_filament = !filament_changing && line_state == SV::line_state::loaded && (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);
+    bool can_ams_operation = bind_ams_slot_count > 0;
     const nlohmann::json menu_actions = {
         {SK::menu_actions::can_edit, can_edit_filament},
         {SK::menu_actions::can_load, can_load_filament },
         {SK::menu_actions::can_unload, can_unload_filament},
         {SK::menu_actions::can_read, can_read_filament },
         {SK::menu_actions::read_label, filament_read_label},
-        {SK::menu_actions::can_ams_operation, bind_ams_slot_count > 0}
+        {SK::menu_actions::can_ams_operation, can_ams_operation}
     };
 
     const nlohmann::json card_section = {
@@ -400,10 +415,20 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {SK::filament_card::status_text, DevicePageFilamentSlotStateResolver::ResolveStatusText(card_state)}
     };
 
+    bool filament_line_has_filament = false;
+    std::string filament_line_color;
+    if (rack_nozzle_opt.has_value()) {
+        auto slot_now_opt = rack_nozzle_opt->GetSlotNow();
+        if (slot_now_opt.has_value()) {
+            filament_line_color = slot_now_opt->color;
+            filament_line_has_filament = true;
+        }
+    }
+
     const nlohmann::json line_section = {
         {SK::filament_line::state, line_state},
-        {SK::filament_line::has_filament, nozzle_has_filament},
-        {SK::filament_line::filament_color, slot_color}
+        {SK::filament_line::has_filament, filament_line_has_filament},
+        {SK::filament_line::filament_color, filament_line_color}
     };
 
     // filament_in_nozzle differs from filament_in_slot_spool.

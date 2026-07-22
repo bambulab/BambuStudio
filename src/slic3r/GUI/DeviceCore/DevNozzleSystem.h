@@ -1,6 +1,7 @@
 #pragma once
 #include "DevDefs.h"
 #include "DevFirmware.h"
+#include "DevFilaSystem.h"
 
 #include "libslic3r/CommonDefs.hpp"
 #include "libslic3r/MultiNozzleUtils.hpp"
@@ -112,6 +113,10 @@ public:
     static wxString             ToNozzleDiameterStr(const NozzleDiameterType& type);
 
 public:
+    int            GetNozzlePosId() const;
+    int            GetNozzleId() const { return m_nozzle_id; }
+    std::optional<int> GetAddrId() const { return m_addr_id; };
+
     bool     IsExist() const { return m_is_exist && m_nozzle_id > -1; }
     bool     IsEmpty() const { return !IsExist(); }
 
@@ -124,26 +129,13 @@ public:
     void       SetRack(const std::weak_ptr<DevNozzleRack>& rack) { m_nozzle_rack = rack; };
 
     /**/
-    int            GetNozzlePosId() const;
-    int            GetNozzleId() const { return m_nozzle_id; }
-    std::optional<int> GetAddrId() const { return m_addr_id; };
 
     DevNozzleToolDefs GetToolDefs() const { return m_tool_defs; }
+    NozzleToolKind GetToolKind() const;
+
+    bool           IsHotend() const { return m_tool_defs.tool_type == DevNozzleToolType::Nozzle; }
     NozzleType     GetNozzleType() const { return m_nozzle_type; }
     NozzleFlowType GetNozzleFlowType() const { return m_nozzle_flow; }
-    // Derived from m_tool_defs so it can never drift from the parsed tool type.
-    NozzleToolKind GetToolKind() const
-    {
-        switch (m_tool_defs.tool_type) {
-        case DevNozzleToolType::Nozzle: return NozzleToolKind::Hotend;
-        case DevNozzleToolType::Cut:
-            return (m_tool_defs.cut_info.has_value() && m_tool_defs.cut_info->type == CutType::Pen)
-                       ? NozzleToolKind::Pen
-                       : NozzleToolKind::Cutter;
-        default: return NozzleToolKind::Unknown;
-        }
-    }
-    bool           IsHotend() const { return m_tool_defs.tool_type == DevNozzleToolType::Nozzle; }
     NozzleDiameterType GetNozzleDiameterType() const;
     float          GetNozzleDiameter() const { return m_diameter; }
     float          GetNozzleWear() const { return m_wear; }
@@ -187,7 +179,7 @@ public:
     int  GetTargetTemp() const { return m_target_temp; }
 
     void SetRackNozzleTempStatus(int temp_status);
-    std::optional<NozzleTempStatus> GetSetRackNozzleTempStatus() const { return m_temp_status; }
+    std::optional<NozzleTempStatus> GetRackNozzleTempStatus() const { return m_temp_status; }
 
     bool HasFilamentInNozzle() const { return m_has_filament_in_nozzle; }
 
@@ -196,14 +188,17 @@ public:
     // direct bind ams slots. eg. ZMULTI_A
     std::vector<DevAmsSlotId> GetBindAmsSlots() const { return m_bind_ams_slots; };
 
+    // external ams ids bound to this nozzle (from device push "bind_ams")
+    std::vector<int> GetBindAms() const { return m_bind_ams; };
+
     // Preload (pre-feed) AMS slots: rack-matching internal AMS only.
     // Differs from GetBindAmsSlots() when the current feed source is the
     // external spool but an internal AMS slot is also preloaded for this
     // rack nozzle.
     std::vector<DevAmsSlotId> GetPreloadBindAmsSlots() const { return m_preload_bind_ams_slots; };
 
-    // external ams ids bound to this nozzle (from device push "bind_ams")
-    std::vector<int> GetBindAms() const { return m_bind_ams; };
+    std::optional<DevAmsSlotId> GetSlotNowId() const { return m_slot_now; }
+    std::optional<DevAmsTray> GetSlotNow() const;
 
 private:
     int  GetTotalExtruderCount() const;

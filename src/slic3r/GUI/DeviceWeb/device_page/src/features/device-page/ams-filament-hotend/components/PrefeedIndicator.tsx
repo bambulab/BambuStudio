@@ -1,16 +1,37 @@
 import type { AmsFilamentHotendColorType } from '../types';
+import prefeedUnknownUrl from '../assets/prefeed_unknown.svg';
 
 export function PrefeedIndicator({
   displayIndex,
   colors,
   colorType,
+  filaType,
 }: {
   displayIndex: number;
   colors?: string[];
   colorType?: AmsFilamentHotendColorType;
+  /** Empty / missing means unknown prefeed filament (Figma 1761:76285). */
+  filaType?: string;
 }) {
+  const isUnknown = !filaType;
   const normalizedColors = colors?.filter(Boolean) ?? [];
-  if (normalizedColors.length === 0) return null;
+  if (!isUnknown && normalizedColors.length === 0) return null;
+
+  if (isUnknown) {
+    return (
+      <img
+        className="prefeed-indicator prefeed-indicator--unknown"
+        data-testid={`ams-hotend-prefeed-indicator-${displayIndex}`}
+        data-unknown="true"
+        src={prefeedUnknownUrl}
+        width={14}
+        height={14}
+        alt="AMS pre-feed unknown"
+        title="AMS pre-feed"
+        draggable={false}
+      />
+    );
+  }
 
   return (
     <span

@@ -17,6 +17,7 @@ import hotendErrorBadgeUrl    from '../assets/hotend_error_badge.svg';
 import hotendLostBadgeUrl     from '../assets/hotend_lost_badge.svg';
 import hotendUnknownBadgeUrl  from '../assets/hotend_unknown_badge.svg';
 import hotendForbiddenUrl     from '../assets/hotend_forbidden.svg';
+import hotendTakenUrl         from '../assets/hotend_taken.svg';
 import hotendReadingArcUrl    from '../assets/hotend_reading_arc.png';
 
 export function HotendCard({
@@ -37,7 +38,8 @@ export function HotendCard({
   const hot = slot.hotend ?? {};
   const op: HotendOpState = hot.op_state ?? 'Idle';
   const isTaken = !!slot.taken;
-  const isSelected = isTaken || !!hot.selected;
+  // Taken (on-extruder) uses its own muted UX; do not paint the green selected chrome.
+  const isSelected = !isTaken && !!hot.selected;
   const isEmpty = (hot.tool_kind ?? 'empty') === 'empty';
   const isStatusReplaced = op === 'Reading' || op === 'Taking' || op === 'Placing' || op === 'Removing' || op === 'Error' || op === 'Unknown';
   const [menuOpen, setMenuOpen] = useState(false);
@@ -177,13 +179,14 @@ export function HotendCard({
           <div className="hotend-readout hotend-readout-empty" aria-hidden="true" />
         )}
 
-        <ToolIcon kind={hot.tool_kind ?? 'empty'} op={op} withError={op === 'Error'} />
+        <ToolIcon kind={hot.tool_kind ?? 'empty'} op={op} withError={op === 'Error'} taken={isTaken} />
 
         <ToolLabel
           kind={hot.tool_kind ?? 'empty'}
           label={hot.nozzle_label}
           subtext={hot.nozzle_subtext}
           op={op}
+          taken={isTaken}
         />
       </div>
     </div>
@@ -292,7 +295,7 @@ function EmptyReadout() {
   );
 }
 
-// Overlay for the nozzle currently mounted on the extruder.
+// Rack slot whose nozzle is currently mounted on the extruder (Figma Taken UX).
 function TakenReadout() {
   const { t } = useTranslation();
   return (
@@ -350,15 +353,25 @@ function ToolIcon({
   kind,
   op,
   withError,
+  taken,
 }: {
   kind: HotendToolKind;
   op: HotendOpState;
   withError?: boolean;
+  taken?: boolean;
 }) {
   if (op === 'Reading') {
     return (
       <div className="hotend-tool-icon-wrap">
         <img className="hotend-icon-loading" src={hotendReadingArcUrl} width={28} height={28} alt="reading" />
+      </div>
+    );
+  }
+  // Taken rack slot: upload/out-of-tray icon instead of the nozzle body.
+  if (taken) {
+    return (
+      <div className="hotend-tool-icon-wrap">
+        <img className="hotend-icon-taken" src={hotendTakenUrl} width={20} height={20} alt="taken" />
       </div>
     );
   }
@@ -424,16 +437,18 @@ function ToolLabel({
   label,
   subtext,
   op,
+  taken,
 }: {
   kind: HotendToolKind;
   label?: string;
   subtext?: string;
   op: HotendOpState;
+  taken?: boolean;
 }) {
-  const isMuted = kind === 'empty' || kind === 'unknown' || op === 'Reading' || op === 'Unknown';
-  // Unknown nozzle type has no reliable label — always show "--/--".
-  const primary = op === 'Unknown' ? '--' : (label ?? (isMuted ? '--' : ''));
-  const secondary = op === 'Unknown' ? '--' : (subtext ?? (isMuted ? '--' : ''));
+  const isMuted = taken || kind === 'empty' || kind === 'unknown' || op === 'Reading' || op === 'Unknown';
+  // Taken / Unknown: no reliable label — always show "--/--".
+  const primary = (taken || op === 'Unknown') ? '--' : (label ?? (isMuted ? '--' : ''));
+  const secondary = (taken || op === 'Unknown') ? '--' : (subtext ?? (isMuted ? '--' : ''));
   return (
     <div className={`hotend-tool-label${isMuted ? ' muted' : ''}`}>
       <div className="hotend-tool-name">{primary || '\u00A0'}</div>

@@ -55,10 +55,13 @@ namespace filament_card {
 
 // slot.filament_card.prefeed_indicator - top-right color marker for AMS
 // pre-feed while the hotend card itself is currently sourced from Ext.
+// `prefeed_fila_type` mirrors the preload tray's m_fila_type; empty string
+// means unknown filament (same rule as ResolveCardState) and Web shows "?".
 namespace prefeed_indicator {
-    inline constexpr const char* visible    = "visible";
-    inline constexpr const char* colors     = "colors";
-    inline constexpr const char* color_type = "color_type";
+    inline constexpr const char* visible           = "visible";
+    inline constexpr const char* colors            = "colors";
+    inline constexpr const char* color_type        = "color_type";
+    inline constexpr const char* prefeed_fila_type = "prefeed_fila_type";
 }
 
 // slot.filament_line - feed-line state from the spool to the hotend.

@@ -254,6 +254,18 @@ int DevNozzle::GetNozzlePosId() const
 wxString DevNozzle::GetDisplayId() const
 {
     return wxString::Format("%d", m_nozzle_id + 1);
+};
+
+DevNozzle::NozzleToolKind DevNozzle::GetToolKind() const
+{
+    switch (m_tool_defs.tool_type) {
+        case DevNozzleToolType::Nozzle: return NozzleToolKind::Hotend;
+        case DevNozzleToolType::Cut:
+            return (m_tool_defs.cut_info.has_value() && m_tool_defs.cut_info->type == CutType::Pen)
+                ? NozzleToolKind::Pen
+                : NozzleToolKind::Cutter;
+        default: return NozzleToolKind::Unknown;
+    }
 }
 
 wxString DevNozzle::GetNozzleTypeStr() const
@@ -403,6 +415,22 @@ void DevNozzle::SetRackNozzleTempStatus(int temp_status)
     case 3: m_temp_status = DevNozzle::NozzleTempStatus::Cooling; break;
     default: m_temp_status = DevNozzle::NozzleTempStatus::Idle; break;
     }
+}
+
+std::optional<DevAmsTray> DevNozzle::GetSlotNow() const
+{
+    if (!m_slot_now.has_value())
+        return std::nullopt;
+
+    auto rack = m_nozzle_rack.lock();
+    if (!rack)
+        return std::nullopt;
+
+    MachineObject* obj = rack->GetNozzleSystem()->GetOwner();
+    if (!obj)
+        return std::nullopt;
+
+    return obj->get_tray(m_slot_now->first, m_slot_now->second);
 }
 
 DevNozzleSystem::DevNozzleSystem(MachineObject* owner)
@@ -1092,7 +1120,13 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
 
                 // traverse the has filament
                 if (system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
-                    nozzle_obj.m_has_filament_in_nozzle = DevUtil::get_flag_bits(njon["stat"].get<int>(), 5, 1);
+                    if (DevUtil::get_flag_bits(njon["stat"].get<int>(), 5, 1) == 1 || DevUtil::get_flag_bits(njon["stat"].get<int>(), 5, 1)) {
+                        nozzle_obj.m_has_filament_in_nozzle = true;
+                    } else if (DevUtil::get_flag_bits(njon["stat"].get<int>(), 6, 3) != 0) {
+                        nozzle_obj.m_has_filament_in_nozzle = true;
+                    } else {
+                        nozzle_obj.m_has_filament_in_nozzle = false;
+                    }
                 } else if (system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_AB) {
                     nozzle_obj.m_has_filament_in_nozzle = !nozzle_obj.m_fila_id.empty() || !nozzle_obj.m_filament_clr.empty();
                 } else if (auto ext = system->GetOwner()->GetExtderSystem()->GetExtderById(nozzle_obj.m_nozzle_id); ext) {

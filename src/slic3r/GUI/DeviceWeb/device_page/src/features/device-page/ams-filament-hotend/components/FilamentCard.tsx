@@ -1,7 +1,7 @@
 import type { AmsFilamentHotendSlotViewModel, FilamentPageMode } from '../types';
 import { useCardContextMenu } from '../useCardContextMenu';
 import { BatchSlotCheckbox } from './BatchSlotCheckbox';
-import { CardContextMenu } from './CardContextMenu';
+import { CardContextMenu, hasCardContextMenuItems } from './CardContextMenu';
 import { IndexPill } from './IndexPill';
 import { LoadingArcIcon } from './LoadingArcIcon';
 import { PrefeedIndicator } from './PrefeedIndicator';
@@ -10,14 +10,12 @@ import { CardText } from './CardText';
 
 export function FilamentCard({
   slot,
-  globalBusy,
   mode,
   batchChecked,
   onToggleSelect,
   onAction,
 }: {
   slot: AmsFilamentHotendSlotViewModel;
-  globalBusy?: boolean;
   // Page mode the card is rendered under. In batch_* modes the right-click
   // menu is suppressed and a checkbox replaces the empty card-head slot.
   mode: FilamentPageMode;
@@ -45,11 +43,10 @@ export function FilamentCard({
   if (inBatchMode) cls.push('batch-mode');
   if (notAllowed) cls.push('not-allowed');
 
-  // Right-click menu is normal-mode-only. In batch mode the only interactive
-  // surface on the card is the checkbox, so we disable the context menu and
-  // make a body click toggle the selection (when eligible).
+  // Right-click is normal-mode-only. Item visibility comes from Schema
+  // menu_actions; skip opening when no item would render.
   const ctx = useCardContextMenu({
-    disabled: inBatchMode || !slot.enabled || !!globalBusy,
+    disabled: inBatchMode || !slot.enabled || !hasCardContextMenuItems(slot),
   });
 
   const handleBodyClick = () => {
@@ -91,6 +88,7 @@ export function FilamentCard({
                   displayIndex={slot.display_index}
                   colors={prefeedIndicator?.colors}
                   colorType={prefeedIndicator?.color_type}
+                  filaType={prefeedIndicator?.prefeed_fila_type}
                 />
               )}
             </span>

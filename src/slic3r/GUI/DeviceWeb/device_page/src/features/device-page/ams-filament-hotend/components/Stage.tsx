@@ -35,10 +35,6 @@ export function Stage({
   // Dryer chambers are physically attached to the top tier in the current
   // hardware layout; only top slots can fall under a chamber decoration.
   const dryerRuns = findDryerRuns(topSlots, amsDryZones);
-  const allSlots = [...topSlots, ...bottomSlots];
-  const globalBusy = allSlots.some((slot) =>
-    slot.filament_line.state === 'loading' || slot.filament_line.state === 'unloading' || !!slot.is_running
-  );
 
   return (
     <section className={`stage${hotendMode ? ' hotend-mode' : ''}${mode !== 'normal' ? ' batch-mode' : ''}`}>
@@ -59,7 +55,6 @@ export function Stage({
             key={slot.display_index}
             slot={slot}
             lineHeight={TOP_LINE_HEIGHT}
-            globalBusy={globalBusy}
             mode={mode}
             batchChecked={selectedKeys.has(selectionKey(slot))}
             onToggleSelect={onToggleSelect}
@@ -74,7 +69,6 @@ export function Stage({
             key={slot.display_index}
             slot={slot}
             lineHeight={BOTTOM_LINE_HEIGHT}
-            globalBusy={globalBusy}
             mode={mode}
             batchChecked={selectedKeys.has(selectionKey(slot))}
             onToggleSelect={onToggleSelect}

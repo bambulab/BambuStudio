@@ -79,6 +79,8 @@ export interface FilamentCardInfo {
     visible?: boolean;
     colors?: string[];
     color_type?: AmsFilamentHotendColorType;
+    /** Preload tray filament type; empty string means unknown (show "?" marker). */
+    prefeed_fila_type?: string;
   };
   text: string;                               // primary card text controlled by C++
   name: string;                               // was slot.filament_name
@@ -203,8 +205,7 @@ export interface HotendSlotViewModel {
     can_set_temperature?: boolean;
     can_take_place?: boolean;
   };
-  /** True when this rack nozzle is currently mounted on the extruder; the
-   *  Hotend tab card shows a "Taken" overlay instead of the live temperature. */
+  /** True when this rack nozzle is mounted on the extruder; Web shows Taken UX. */
   taken?: boolean;
   hotend: HotendSlotInfo;
   hotend_detail_dialog?: HotendDetailDialogInfo;

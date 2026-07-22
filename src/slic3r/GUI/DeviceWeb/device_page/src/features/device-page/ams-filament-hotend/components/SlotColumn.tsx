@@ -6,7 +6,6 @@ import { Nozzle } from './Nozzle';
 export function SlotColumn({
   slot,
   lineHeight,
-  globalBusy,
   mode,
   batchChecked,
   onToggleSelect,
@@ -14,7 +13,6 @@ export function SlotColumn({
 }: {
   slot: AmsFilamentHotendSlotViewModel;
   lineHeight: number;
-  globalBusy?: boolean;
   mode: FilamentPageMode;
   batchChecked: boolean;
   onToggleSelect: (slot: AmsFilamentHotendSlotViewModel) => void;
@@ -27,7 +25,6 @@ export function SlotColumn({
     >
       <FilamentCard
         slot={slot}
-        globalBusy={globalBusy}
         mode={mode}
         batchChecked={batchChecked}
         onToggleSelect={onToggleSelect}
