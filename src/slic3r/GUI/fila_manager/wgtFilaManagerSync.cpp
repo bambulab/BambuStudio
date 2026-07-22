@@ -202,10 +202,23 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         // 优先 remain_g，fallback 为 tray.weight × remain%。
         // nullopt 表示固件确认空 / 无有效数据 → 写 0（status 会被写为 "empty"）。
         const int64_t net_weight_g = tray.get_filament_remain_weight().value_or(0);
-        updated.net_weight     = static_cast<double>(net_weight_g);
-        updated.remain_percent = tray.remain;
-        updated.status         = (tray.remain == 0)  ? "empty"
-                              : (tray.remain < 20)   ? "low" : "active";
+        // 固件 remain/remain_g 均为 -1（无有效余量数据）时，保留 store 既有值，
+        // 避免用无效哨兵覆盖正确的本地克重/百分比，导致前端显示跳变。
+        const bool has_valid_remain = (tray.remain >= 0 || tray.remain_g >= 0);
+        if (has_valid_remain) {
+            updated.net_weight     = static_cast<double>(net_weight_g);
+            updated.remain_percent = tray.remain;
+            updated.status         = (tray.remain == 0)  ? "empty"
+                                  : (tray.remain < 20)   ? "low" : "active";
+        } else {
+            updated.net_weight     = matched->net_weight;
+            updated.remain_percent = matched->remain_percent;
+            updated.status         = matched->status;
+            BOOST_LOG_TRIVIAL(warning) << "[ams-sync] no valid remain data for spool " << matched->spool_id
+                                      << " remain=" << tray.remain << " remain_g=" << tray.remain_g
+                                      << " → keeping existing net_weight=" << matched->net_weight
+                                      << " remain_percent=" << matched->remain_percent;
+        }
         updated.bound_dev_id   = dev_id;
         updated.bound_ams_id   = ams_id;
         // identity/display 字段（spool_id / tag_uid / color_code / colors /
@@ -352,10 +365,10 @@ const FilamentSpool* wgtFilaManagerSync::match_tray(const DevAmsTray& tray,
         if (FilamentSpool::is_valid_tag_uid(tray.uuid)) return nullptr;
     }
     // 2. setting_id + color 唯一模糊匹配（同款多卷时 count>1 会返回 nullptr）
-    // if (!tray.setting_id.empty()) {
-    //     auto* sp = m_store->find_by_setting_and_color(tray.setting_id, tray.color);
-    //     if (sp) return sp;
-    // }
+    if (!tray.setting_id.empty()) {
+        auto* sp = m_store->find_by_setting_and_color(tray.setting_id, tray.color);
+        if (sp) return sp;
+    }
     return nullptr;
 }
 

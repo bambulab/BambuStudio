@@ -1352,6 +1352,38 @@ void AMSLib::render_lite_lib(wxDC& dc)
 {
     wxSize size = GetSize();
     auto libsize = AMS_LITE_CAN_LIB_SIZE;
+
+    // RFID new-filament hint state machine (mirrors render_generic_lib logic)
+    const AMSCanType cur_state_lite = m_info.material_state;
+    const bool is_reading_lite = (cur_state_lite == AMSCanType::AMS_CAN_TYPE_THIRDBRAND &&
+                                  m_info.material_name.IsEmpty());
+    if (cur_state_lite == AMSCanType::AMS_CAN_TYPE_EMPTY) {
+        m_slot_was_empty = true;
+        m_show_new_filament_hint = false;
+    } else if (cur_state_lite == AMSCanType::AMS_CAN_TYPE_BRAND) {
+        if (m_slot_was_empty) {
+            bool rfid_not_in_manager = true;
+            if (m_obj) {
+                auto* tray = m_obj->get_ams_tray(m_ams_id, m_slot_id);
+                if (tray) {
+                    std::string lookup_uid;
+                    if (tray->tag_uid.size() == 16 && tray->tag_uid.substr(12, 2) == "01")
+                        lookup_uid = tray->uuid;
+                    if (!lookup_uid.empty()) {
+                        auto* store = wxGetApp().fila_manager_store();
+                        if (store && store->find_by_tag_uid(lookup_uid) != nullptr)
+                            rfid_not_in_manager = false;
+                    }
+                }
+            }
+            m_show_new_filament_hint = rfid_not_in_manager;
+        }
+        m_slot_was_empty = false;
+    } else if (!is_reading_lite) {
+        m_slot_was_empty = false;
+        m_show_new_filament_hint = false;
+    }
+
     ScalableBitmap tray_bitmap, tray_bitmap_hover, tray_bitmap_selected;
     if (m_ams_model == DevAmsType::AMS_LITE){
         tray_bitmap = (m_can_index <= 1) ? m_bitmap_extra_tray_left : m_bitmap_extra_tray_right;
@@ -1474,6 +1506,13 @@ void AMSLib::render_lite_lib(wxDC& dc)
     }
     else {
         dc.DrawBitmap(tray_bitmap.bmp(), (size.x - tray_bitmap.GetBmpSize().x) / 2, (size.y - tray_bitmap.GetBmpSize().y) / 2);
+    }
+
+    // RFID new-filament hint icon (top-right corner)
+    if (m_show_new_filament_hint) {
+        auto hint_bmp = m_bitmap_new_filament_hint.bmp();
+        auto hint_sz  = m_bitmap_new_filament_hint.GetBmpSize();
+        dc.DrawBitmap(hint_bmp, size.x - hint_sz.x, 0);
     }
 }
 
