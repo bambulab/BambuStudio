@@ -16,6 +16,7 @@
         "4000",
         "4000"
     ],
+    "enable_arc_fitting": "0",
     "enable_height_slowdown": [
         "0",
         "0",
