@@ -107,7 +107,7 @@ export function MaterialDonut({
         <MaterialFill center={center} colors={colors} colorType={colorType} gradientId={gradientId} />
       </g>
       <circle cx={center} cy={center} r={SPOOL_RING} fill="none" stroke="var(--color-fm-chip-ring)" strokeWidth={1} />
-      <circle cx={center} cy={center} r={SPOOL_HOLE} fill="var(--ams-card-text-bg)" />
+      <circle cx={center} cy={center} r={SPOOL_HOLE} fill="var(--ams-spool-hole-bg)" />
       <circle cx={center} cy={center} r={SPOOL_HOLE} fill="none" stroke="var(--ams-border)" strokeWidth={1} />
     </>
   );

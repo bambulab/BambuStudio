@@ -72,6 +72,7 @@ const buildSlot = (seed: SlotSeed): AmsFilamentHotendSlotViewModel => {
       can_load: lineFor(seed.card_state) === 'no_filament' && seed.card_state !== 'Empty',
       can_unload: lineFor(seed.card_state) === 'loaded',
       can_read: seed.card_state !== 'Reading' && seed.card_state !== 'Empty',
+      read_label: seed.card_state === 'Unknown' ? 'Read' : 'Reread',
       can_ams_operation: (seed.bind_ams_slot_count ?? 0) > 0,
     },
     filament_card: {
@@ -291,10 +292,10 @@ export const mockAmsFilamentHotendState: AmsFilamentHotendViewModel = {
             humidity_raw: 55,
             dry_status: 'Idle',
             trays: [
-              { ams_id: '32', slot_id: '0', exists: false, tray_state: 'empty',   filament_type: '',     filament_name: '',     color: '#D9D9D9', actions: { can_read: true } },
-              { ams_id: '32', slot_id: '1', exists: true,  tray_state: 'unknown', filament_type: '',     filament_name: '?',    color: '#BFBFBF', actions: { can_read: true, can_load: true } },
-              { ams_id: '32', slot_id: '2', exists: true,  tray_state: 'unknown', filament_type: '',     filament_name: '?',    color: '#BFBFBF', actions: { can_read: true, can_load: true } },
-              { ams_id: '32', slot_id: '3', exists: true,  tray_state: 'ready',   filament_type: 'PETG', filament_name: 'PETG', color: '#C29CFF', actions: { can_read: true, can_unload: true } },
+              { ams_id: '32', slot_id: '0', exists: false, tray_state: 'empty',   filament_type: '',     filament_name: '',     color: '#D9D9D9', actions: { can_read: true, read_label: 'Reread' } },
+              { ams_id: '32', slot_id: '1', exists: true,  tray_state: 'unknown', filament_type: '',     filament_name: '?',    color: '#BFBFBF', actions: { can_read: true, can_load: true, read_label: 'Read' } },
+              { ams_id: '32', slot_id: '2', exists: true,  tray_state: 'unknown', filament_type: '',     filament_name: '?',    color: '#BFBFBF', actions: { can_read: true, can_load: true, read_label: 'Read' } },
+              { ams_id: '32', slot_id: '3', exists: true,  tray_state: 'ready',   filament_type: 'PETG', filament_name: 'PETG', color: '#C29CFF', actions: { can_read: true, can_unload: true, read_label: 'Reread' } },
             ],
           },
           {
@@ -304,10 +305,10 @@ export const mockAmsFilamentHotendState: AmsFilamentHotendViewModel = {
             humidity_raw: 41,
             dry_status: 'Idle',
             trays: [
-              { ams_id: '33', slot_id: '0', exists: true, tray_state: 'ready',   filament_type: 'PLA', filament_name: 'PLA Basic', color: '#00AE42', actions: { can_read: true, can_load: true } },
-              { ams_id: '33', slot_id: '1', exists: true, tray_state: 'ready',   filament_type: 'ABS', filament_name: 'ABS',       color: '#999999', actions: { can_read: true, can_load: true } },
-              { ams_id: '33', slot_id: '2', exists: true, tray_state: 'unknown', filament_type: '',    filament_name: '?',         color: '#BFBFBF', actions: { can_read: true, can_load: true } },
-              { ams_id: '33', slot_id: '3', exists: false, tray_state: 'empty',  filament_type: '',    filament_name: '',          color: '#D9D9D9', actions: { can_read: true } },
+              { ams_id: '33', slot_id: '0', exists: true, tray_state: 'ready',   filament_type: 'PLA', filament_name: 'PLA Basic', color: '#00AE42', actions: { can_read: true, can_load: true, read_label: 'Reread' } },
+              { ams_id: '33', slot_id: '1', exists: true, tray_state: 'ready',   filament_type: 'ABS', filament_name: 'ABS',       color: '#999999', actions: { can_read: true, can_load: true, read_label: 'Reread' } },
+              { ams_id: '33', slot_id: '2', exists: true, tray_state: 'unknown', filament_type: '',    filament_name: '?',         color: '#BFBFBF', actions: { can_read: true, can_load: true, read_label: 'Read' } },
+              { ams_id: '33', slot_id: '3', exists: false, tray_state: 'empty',  filament_type: '',    filament_name: '',          color: '#D9D9D9', actions: { can_read: true, read_label: 'Reread' } },
             ],
           },
         ],

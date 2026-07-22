@@ -157,10 +157,12 @@ namespace ams_tray {
 }
 
 // tray.actions (per-tray menu in the AMS Operation dialog)
+// `read_label` mirrors menu_actions::read_label (values::read_label).
 namespace tray_actions {
     inline constexpr const char* can_load   = "can_load";
     inline constexpr const char* can_unload = "can_unload";
     inline constexpr const char* can_read   = "can_read";
+    inline constexpr const char* read_label = "read_label";
 }
 
 // state.filament_page.ams_dry_zones[] - drives the DryerChamber decoration.
@@ -215,6 +217,13 @@ namespace card_state {
     inline constexpr const char* loading       = "Loading";
     inline constexpr const char* unloading     = "Unloading";
     inline constexpr const char* error         = "Error";
+}
+
+// i18n keys for menu_actions / tray_actions `read_label`. Web calls t(read_label).
+// Unknown filament type -> Read; known type -> Reread.
+namespace read_label {
+    inline constexpr const char* read   = "Read";
+    inline constexpr const char* reread = "Reread";
 }
 
 namespace line_state {

@@ -315,6 +315,7 @@ function AmsSlot({
   const canUnload = actions?.can_unload ?? false;
   // Keep read visible for legacy payloads.
   const canRead = actions?.can_read ?? !actions;
+  const readLabel = actions?.read_label ?? 'Read';
   const hasMenu = canLoad || canUnload || canRead;
 
   return (
@@ -325,6 +326,7 @@ function AmsSlot({
           canLoad={canLoad}
           canUnload={canUnload}
           canRead={canRead}
+          readLabel={readLabel}
           onAction={(action) => onAction?.(action)}
         />
       )}
@@ -346,13 +348,16 @@ function ExtTrayMenu({
   canLoad,
   canUnload,
   canRead,
+  readLabel,
   onAction,
 }: {
   canLoad: boolean;
   canUnload: boolean;
   canRead: boolean;
+  readLabel: 'Read' | 'Reread';
   onAction: (action: 'load' | 'unload' | 'read') => void;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLSpanElement>(null);
 
@@ -387,9 +392,9 @@ function ExtTrayMenu({
       </button>
       {open && (
         <div className="ext-tray-menu-popover" role="menu">
-          {canLoad && <button type="button" role="menuitem" onClick={() => run('load')}>Load</button>}
-          {canUnload && <button type="button" role="menuitem" onClick={() => run('unload')}>Unload</button>}
-          {canRead && <button type="button" role="menuitem" onClick={() => run('read')}>Read</button>}
+          {canLoad && <button type="button" role="menuitem" onClick={() => run('load')}>{t('Load')}</button>}
+          {canUnload && <button type="button" role="menuitem" onClick={() => run('unload')}>{t('Unload')}</button>}
+          {canRead && <button type="button" role="menuitem" onClick={() => run('read')}>{t(readLabel)}</button>}
         </div>
       )}
     </span>

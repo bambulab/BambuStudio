@@ -234,23 +234,23 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         }
     }
 
-    std::string filament_name;
-    std::string filament_type;
-    std::string color = "#D9D9D9";
-    std::string color_type = "single";
-    std::vector<std::string> colors;
+    std::string slot_filament_name;
+    std::string slot_filament_type;
+    std::string slot_color = "#D9D9D9";
+    std::string slot_color_type = "single";
+    std::vector<std::string> slot_colors;
     int filament_remain = 100;
     if (tray && tray->is_exists) {
-        if (tray->m_fila_type == "PLA-S") filament_type = "Sup.PLA";
-        else if (tray->m_fila_type == "PA-S") filament_type = "Sup.PA";
-        else if (tray->m_fila_type == "ABS-S") filament_type = "Sup.ABS";
-        else filament_type = tray->m_fila_type;
-        filament_name = ResolveFilamentCardText(tray, filament_type);
-        color = normalize_hex_for_web(tray->color);
-        color_type = color_type_for_web(tray->ctype);
-        colors = tray->cols;
-        if (colors.empty() && !tray->color.empty()) colors.push_back(tray->color);
-        for (auto& c : colors) c = normalize_hex_for_web(c);
+        if (tray->m_fila_type == "PLA-S") slot_filament_type = "Sup.PLA";
+        else if (tray->m_fila_type == "PA-S") slot_filament_type = "Sup.PA";
+        else if (tray->m_fila_type == "ABS-S") slot_filament_type = "Sup.ABS";
+        else slot_filament_type = tray->m_fila_type;
+        slot_filament_name = ResolveFilamentCardText(tray, slot_filament_type);
+        slot_color = normalize_hex_for_web(tray->color);
+        slot_color_type = color_type_for_web(tray->ctype);
+        slot_colors = tray->cols;
+        if (slot_colors.empty() && !tray->color.empty()) slot_colors.push_back(tray->color);
+        for (auto& c : slot_colors) c = normalize_hex_for_web(c);
         filament_remain = DevicePageFilamentSlotStateResolver::ResolveDisplayRemain(tray);
     }
 
@@ -300,8 +300,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         hotend[SK::hotend::tool_kind] = has_tool ? tool_kind_for_web(tool_defs) : SV::tool_kind::empty;
         hotend[SK::hotend::nozzle_label] = is_nozzle_tool ? wx_to_utf8(rack_nozzle_opt->GetNozzleDiameterStr()) : tool_label_for_web(tool_defs);
         hotend[SK::hotend::nozzle_subtext] = is_nozzle_tool ? nozzle_flow_short_name(rack_nozzle_opt->GetNozzleFlowType()) : "";
-        hotend_detail_dialog[SK::hotend_detail_dialog::filament_name] = filament_name;
-        hotend_detail_dialog[SK::hotend_detail_dialog::filament_color] = color;
+        hotend_detail_dialog[SK::hotend_detail_dialog::filament_name] = slot_filament_name;
+        hotend_detail_dialog[SK::hotend_detail_dialog::filament_color] = slot_color;
         hotend_detail_dialog[SK::hotend_detail_dialog::show_filament] = is_nozzle_tool;
         hotend_detail_dialog[SK::hotend_detail_dialog::tool_image_name] = detail_tool_image_name(tool_defs);
         hotend_detail_dialog[SK::hotend_detail_dialog::tool_type] = is_nozzle_tool
@@ -376,22 +376,24 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     bool can_load_filament = line_state == SV::line_state::no_filament && card_state != SV::card_state::empty &&
                              (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);
     bool can_unload_filament = line_state == SV::line_state::loaded && (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);;
+    const char* filament_read_label = (card_state == SV::card_state::unknown) ? SV::read_label::read : SV::read_label::reread;// Unknown filament type shows "Read"; known type shows "Reread".
     const nlohmann::json menu_actions = {
         {SK::menu_actions::can_edit, can_edit_filament},
         {SK::menu_actions::can_load, can_load_filament },
         {SK::menu_actions::can_unload, can_unload_filament},
         {SK::menu_actions::can_read, card_state != SV::card_state::reading && card_state != SV::card_state::empty},
+        {SK::menu_actions::read_label, filament_read_label},
         {SK::menu_actions::can_ams_operation, bind_ams_slot_count > 0}
     };
 
     const nlohmann::json card_section = {
         {SK::filament_card::state, card_state},
-        {SK::filament_card::color, color},
-        {SK::filament_card::color_type, color_type},
-        {SK::filament_card::colors, colors},
-        {SK::filament_card::text, filament_name},
-        {SK::filament_card::name, filament_name},
-        {SK::filament_card::type, filament_type},
+        {SK::filament_card::color, slot_color},
+        {SK::filament_card::color_type, slot_color_type},
+        {SK::filament_card::colors, slot_colors},
+        {SK::filament_card::text, slot_filament_name},
+        {SK::filament_card::name, slot_filament_name},
+        {SK::filament_card::type, slot_filament_type},
         {SK::filament_card::remain, filament_remain},
         {SK::filament_card::prefeed_indicator, prefeed_indicator},
         {SK::filament_card::status_text, DevicePageFilamentSlotStateResolver::ResolveStatusText(card_state)}
@@ -400,13 +402,19 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     const nlohmann::json line_section = {
         {SK::filament_line::state, line_state},
         {SK::filament_line::has_filament, nozzle_has_filament},
-        {SK::filament_line::filament_color, nozzle_has_filament ? color : std::string()}
+        {SK::filament_line::filament_color, slot_color}
     };
+
+    // filament_in_nozzle differs from filament_in_slot_spool.
+    std::string nozzle_filament_color;
+    if (nozzle_has_filament && rack_nozzle_opt.has_value()) {
+        nozzle_filament_color = normalize_hex_for_web(rack_nozzle_opt->GetFilamentColor());
+    }
 
     const nlohmann::json nozzle_section = {
         {SK::filament_nozzle::state, nozzle_state},
         {SK::filament_nozzle::has_filament, nozzle_has_filament},
-        {SK::filament_nozzle::filament_color, nozzle_has_filament ? color : std::string()},
+        {SK::filament_nozzle::filament_color, nozzle_filament_color},
         {SK::filament_nozzle::on_extruder, is_on_extruder},
         {SK::filament_nozzle::tool_kind, nozzle_tool_kind}
     };

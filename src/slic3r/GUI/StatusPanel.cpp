@@ -2490,7 +2490,7 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     auto nozzle_empty_hint_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_nozzle_empty_hint_icon = new wxStaticBitmap(m_nozzle_empty_hint, wxID_ANY, create_scaled_bitmap("monitor_nozzle_temp", this, 16),
                                                   wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
-    m_nozzle_empty_hint_label = new Label(m_nozzle_empty_hint, _L("No nozzle"));
+    m_nozzle_empty_hint_label = new Label(m_nozzle_empty_hint, _L("Unclamped"));
     m_nozzle_empty_hint_label->SetFont(Label::Body_12);
     m_nozzle_empty_hint_label->SetForegroundColour(wxColour("#909090"));
     nozzle_empty_hint_sizer->Add(FromDIP(12), 0, 0, wxEXPAND, 0);

@@ -132,6 +132,8 @@ export interface AmsFilamentHotendSlotViewModel {
     can_load?: boolean;
     can_unload?: boolean;
     can_read?: boolean;
+    /** i18n key: "Read" (unknown type) or "Reread" (known type). Built by C++ Schema. */
+    read_label?: 'Read' | 'Reread';
     can_ams_operation?: boolean;
   };
   /**
@@ -344,6 +346,8 @@ export interface AmsTrayInfo {
     can_load?: boolean;
     can_unload?: boolean;
     can_read?: boolean;
+    /** i18n key: "Read" (unknown type) or "Reread" (known type). Built by C++ Schema. */
+    read_label?: 'Read' | 'Reread';
   };
 }
 

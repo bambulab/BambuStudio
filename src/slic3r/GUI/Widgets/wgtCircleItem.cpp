@@ -1,6 +1,7 @@
 #include "wgtCircleItem.hpp"
 
 #include "Label.hpp"
+#include "StateColor.hpp"
 
 #include <algorithm>
 #include <wx/dc.h>
@@ -12,8 +13,11 @@ constexpr int CIRCLE_ITEM_DEFAULT_DIAMETER_DIP = 24;
 
 wgtCircleItem::wgtCircleItem()
     : StaticBox()
-    , m_circle_color(std::make_pair(0xDCDCDC, (int) StateColor::Disabled), std::make_pair(0xEDEDED, (int) StateColor::Normal))
-    , m_text_color(std::make_pair(0xA0A0A0, (int) StateColor::Disabled), std::make_pair(0x323A3D, (int) StateColor::Normal))
+    // Use dark-map colors so dark mode keeps contrast: #DBDBDB -> #4A4A51,
+    // TextSecondary (#323A3D) -> #E5E5E4. Plain #EDEDED is not remapped and
+    // becomes light-on-light when text flips to the dark-mode secondary color.
+    , m_circle_color(std::make_pair(wxColour("#DBDBDB"), (int) StateColor::Disabled), std::make_pair(wxColour("#DBDBDB"), (int) StateColor::Normal))
+    , m_text_color(std::make_pair(ThemeColor::TextDisabled, (int) StateColor::Disabled), std::make_pair(ThemeColor::TextSecondary, (int) StateColor::Normal))
     , m_text_font(Label::Body_12)
 {
     radius       = 0;

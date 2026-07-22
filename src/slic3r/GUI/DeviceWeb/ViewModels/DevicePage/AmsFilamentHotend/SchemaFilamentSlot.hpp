@@ -65,9 +65,6 @@ namespace prefeed_indicator {
 namespace filament_line {
     inline constexpr const char* state          = "state";          // values::line_state
     inline constexpr const char* has_filament   = "has_filament";
-    // Filament color currently visible inside the feed tube. Empty string
-    // when there is no filament in the line; today mirrors filament_card.color
-    // because C++ has no distinct in-tube color signal.
     inline constexpr const char* filament_color = "filament_color";
 }
 
@@ -75,8 +72,6 @@ namespace filament_line {
 namespace filament_nozzle {
     inline constexpr const char* state          = "state";          // values::nozzle_state
     inline constexpr const char* has_filament   = "has_filament";
-    // Filament color currently inside the nozzle. Empty string when the
-    // nozzle holds no filament; today mirrors filament_card.color.
     inline constexpr const char* filament_color = "filament_color";
     // True when this rack nozzle is the one mounted on the extruder right now.
     inline constexpr const char* on_extruder    = "on_extruder";
@@ -97,11 +92,14 @@ namespace select_action {
 }
 
 // slot.menu_actions
+// `read_label` is an i18n key for the Read menu item: values::read_label.
+// Unknown filament type -> "Read"; known type -> "Reread". Web renders via t().
 namespace menu_actions {
     inline constexpr const char* can_edit          = "can_edit";
     inline constexpr const char* can_load          = "can_load";
     inline constexpr const char* can_unload        = "can_unload";
     inline constexpr const char* can_read          = "can_read";
+    inline constexpr const char* read_label        = "read_label";
     inline constexpr const char* can_ams_operation = "can_ams_operation";
 }
 

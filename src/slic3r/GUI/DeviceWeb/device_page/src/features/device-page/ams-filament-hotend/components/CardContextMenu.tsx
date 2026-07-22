@@ -88,7 +88,7 @@ export function CardContextMenu({
       {canEdit          && <button type="button" role="menuitem" onClick={() => run('edit')}         >{t('Edit')}</button>}
       {canLoad          && <button type="button" role="menuitem" onClick={() => run('load')}         >{t('Load')}</button>}
       {canUnload        && <button type="button" role="menuitem" onClick={() => run('unload')}       >{t('Unload')}</button>}
-      {canRead          && <button type="button" role="menuitem" onClick={() => run('read')}         >{t('Read')}</button>}
+      {canRead          && <button type="button" role="menuitem" onClick={() => run('read')}         >{t(m?.read_label ?? 'Read')}</button>}
       {canAmsOperation  && <button type="button" role="menuitem" onClick={() => run('ams_operation')}>{t('AMS Operation')}</button>}
     </div>,
     document.body,

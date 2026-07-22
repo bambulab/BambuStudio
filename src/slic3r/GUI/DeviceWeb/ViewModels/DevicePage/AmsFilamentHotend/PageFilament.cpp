@@ -177,8 +177,10 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildAmsUnitJson(MachineObject* ma
         const bool is_reading_now = machine_obj && tray->is_reading(machine_obj->tray_reading_bits);
         const bool tray_is_loaded = IsSlotLoadedInExtruder(machine_obj, tray_ams_id, tray_id);
         const bool tray_has_filament = tray->is_exists && tray_state != SV::tray_state::empty;
+        const char* tray_read_label = (tray_state == SV::tray_state::unknown) ? SV::read_label::read : SV::read_label::reread; // Unknown filament type shows "Read"; known type shows "Reread".
         const nlohmann::json tray_actions = {
             {SK::tray_actions::can_read,   tray->is_exists && !is_reading_now},
+            {SK::tray_actions::read_label, tray_read_label},
             {SK::tray_actions::can_load,   tray_has_filament && !tray_is_loaded && !is_reading_now},
             {SK::tray_actions::can_unload, tray_is_loaded && !is_reading_now}
         };

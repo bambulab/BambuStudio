@@ -229,7 +229,7 @@
   "Delete {{count}} Filaments_other": "",
   "Details": "",
   "Dry": "",
-  "Edit": "",
+  "Edit": "Edit",
   "Edit color": "",
   "Error": "",
   "Exit": "",
@@ -262,7 +262,7 @@
   "Please pull out all selected filaments for this unload.": "",
   "Please select": "",
   "Please wait...": "",
-  "Read": "",
+  "Read": "Read",
   "Read All": "",
   "Reading": "",
   "Reading ({{current}} / {{total}})": "",
@@ -299,5 +299,6 @@
   "Unknown": "",
   "Unload the external filament manually before feeding to enable selection.": "",
   "Unlocking Hotend": "",
-  "Waiting for hotend to heat": ""
+  "Waiting for hotend to heat": "",
+  "Reread": "Reread"
 }

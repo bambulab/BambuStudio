@@ -60,6 +60,8 @@
   --ams-card-wrap-bg: #f2f2f2;
   --ams-card-wrap-border: #ebebeb;
   --ams-card-text-bg: #ffffff;
+  /* Opaque spool hole punch-out; must cover material drawn under the hole. */
+  --ams-spool-hole-bg: #ffffff;
   --ams-card-text-border: #ebebeb;
   --ams-card-tray-tag-bg: #ebebeb;
   --ams-popover-bg: #ffffff;
@@ -145,6 +147,8 @@
   --ams-card-wrap-bg: rgba(255, 255, 255, 0.04);
   --ams-card-wrap-border: rgba(255, 255, 255, 0.08);
   --ams-card-text-bg: rgba(255, 255, 255, 0.04);
+  /* Match page bg so the hole fully occludes filament color in dark mode. */
+  --ams-spool-hole-bg: #2D2D31;
   --ams-card-text-border: rgba(255, 255, 255, 0.08);
   --ams-card-tray-tag-bg: rgba(255, 255, 255, 0.10);
   --ams-popover-bg: #2a2a2a;

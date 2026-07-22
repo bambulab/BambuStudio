@@ -64,7 +64,7 @@ export function SpoolDisc({
       {isError && (
         <>
           <circle cx={center} cy={center} r={RING} fill="var(--ams-danger)" />
-          <circle cx={center} cy={center} r={HOLE} fill="var(--ams-card-text-bg)" />
+          <circle cx={center} cy={center} r={HOLE} fill="var(--ams-spool-hole-bg)" />
           <g stroke="var(--ams-text-on-brand)" strokeWidth={2.5} strokeLinecap="round">
             <line x1={center - 5} y1={center - 5} x2={center + 5} y2={center + 5} />
             <line x1={center - 5} y1={center + 5} x2={center + 5} y2={center - 5} />

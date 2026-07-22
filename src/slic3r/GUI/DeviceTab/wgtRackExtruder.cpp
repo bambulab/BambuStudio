@@ -229,7 +229,7 @@ void wgtRackExtruder::update_nozzle_info(MachineObject* obj)
         } else if (!ext_nozzle.IsEmpty() && ext_nozzle.IsUnknown()) {
             flowtype_label = _L("Unknown");
         } else {
-            flowtype_label = _L("Empty");
+            flowtype_label = _L("Unclamped");
         }
     } else if (!ext_nozzle.IsEmpty() && ext_nozzle.IsAbnormal()) {
         flowtype_label = _L("Error");
@@ -238,7 +238,7 @@ void wgtRackExtruder::update_nozzle_info(MachineObject* obj)
     } else if (!tool_label(tool_defs).empty()) {
         flowtype_label = tool_label(tool_defs);
     } else {
-        flowtype_label = _L("Empty");
+        flowtype_label = _L("Unclamped");
     }
 
     if (diameter_show) {

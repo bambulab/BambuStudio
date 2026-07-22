@@ -260,7 +260,7 @@
   "Cannot select: The nozzle status is abnormal or unknown. Please refresh the nozzle information and try again.": "",
   "Completed: {{done}}/{{total}}": "",
   "Delete {{count}} Filaments_other": "",
-  "Edit": "",
+  "Edit": "编辑",
   "Edit color": "",
   "Error": "",
   "Ext": "",
@@ -295,5 +295,6 @@
   "Drag spools to adjust their priority.": "您可以拖动耗材调整使用优先级。",
   "Tip": "",
   "Tips: the filament type({{slot}}) does not match with the filament type({{target}}) in the slicing file. If you want to use this slot, you can install {{target}} instead of {{slot}} and change slot information on the 'Device' page.": "",
-  "Unload the external filament manually before feeding to enable selection.": ""
+  "Unload the external filament manually before feeding to enable selection.": "",
+  "Reread": "重读"
 }
