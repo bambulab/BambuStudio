@@ -1,5 +1,6 @@
 #include "Plater.hpp"
 #include "libslic3r/PerfTrace.hpp"
+#include "DeviceCore/DevAmsRfidRefreshCtrl.h"
 #include "DeviceCore/DevNozzleRack.h"
 #include <array>
 #include <boost/format/format_fwd.hpp>
@@ -2767,6 +2768,57 @@ void Sidebar::priv::sync_extruder_volume_type(MachineObject *obj, const std::opt
     }
 }
 
+void Sidebar::try_refresh_rfid()
+{
+    DeviceManager *device_manager = wxGetApp().getDeviceManager();
+    MachineObject *obj            = device_manager ? device_manager->get_selected_machine() : nullptr;
+    const auto     fila_system    = obj ? obj->GetFilaSystem() : nullptr;
+    const auto     refresh_ctrl   = fila_system ? fila_system->GetAmsRfidRefreshCtrl() : nullptr;
+
+    // somw ams can't auto-read filament info; on a manual sync we probe it for whether a refresh
+    // is needed and, if so, popup a dialog to let the user trigger a read
+    if (!fila_system || !fila_system->GetAmsSystemSetting().SupportsFilamentTabAutoReadRfid()) return;
+    if (!refresh_ctrl) return;
+
+    m_rfid_refresh_token = refresh_ctrl->ProbeRefreshNeed();
+    if (!m_rfid_refresh_token) return;
+
+    const std::string requested_dev_id = obj->get_dev_id();
+
+    wxWeakRef<Sidebar> weak_sidebar(this);
+
+    auto on_probe_done = [weak_sidebar, requested_dev_id](const std::shared_ptr<DevCtrlToken> &callback_token, DevAmsRfidProbeStatus status) {
+        if (!weak_sidebar) return;
+
+        if (weak_sidebar->m_rfid_refresh_token != callback_token) return;
+        weak_sidebar->m_rfid_refresh_token.reset();
+
+        DeviceManager *current_device_manager = wxGetApp().getDeviceManager();
+        MachineObject *current_obj            = current_device_manager ? current_device_manager->get_selected_machine() : nullptr;
+        if (!current_obj || current_obj->get_dev_id() != requested_dev_id) {
+            weak_sidebar->m_begin_sync_printer_status = false;
+            wxGetApp().plater()->update_machine_sync_status();
+            return;
+        }
+
+        if (status == DevAmsRfidProbeStatus::NeedRefresh)
+            tryPopUpSyncMachineInfoDialog(current_obj);
+        else {
+            BOOST_LOG_TRIVIAL(warning) << "RFID probe: no dialog, status=" << static_cast<int>(status);
+        }
+    };
+
+    m_rfid_refresh_token->SetCallback(DevCtrlTokenStatus::ReplyReceived, [on_probe_done](const std::shared_ptr<DevCtrlToken> &t, DevCtrlTokenStatus) {
+        const auto &reply = t->GetReply();
+        on_probe_done(t, reply ? DevAmsRfidRefreshCtrl::ParseProbeReply(*reply) : DevAmsRfidProbeStatus::Unavailable);
+    });
+
+    m_rfid_refresh_token->SetCallback(DevCtrlTokenStatus::SendFailed,
+                                      [on_probe_done](const std::shared_ptr<DevCtrlToken> &t, DevCtrlTokenStatus) { on_probe_done(t, DevAmsRfidProbeStatus::SendFailed); });
+    m_rfid_refresh_token->SetCallback(DevCtrlTokenStatus::TimedOut,
+                                      [on_probe_done](const std::shared_ptr<DevCtrlToken> &t, DevCtrlTokenStatus) { on_probe_done(t, DevAmsRfidProbeStatus::TimedOut); });
+}
+
 bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_manual)
 {
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
@@ -2785,9 +2837,6 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " check_printer_initialized fail";
         return false;
     }
-
-    // some rack can't auto-read filament info, popup a dialog to give user a change to trigger a read opration
-    if (is_manual) { tryPopUpSyncMachineInfoDialog(obj); }
 
     std::string machine_print_name = obj->get_show_printer_type();
     wxString machine_display_name = obj->get_printer_type_display_str();
@@ -5930,6 +5979,7 @@ void Sidebar::deal_btn_sync() {
     auto ok = p->sync_extruder_list(only_external_material, true);
     if (ok) {
         pop_sync_nozzle_and_ams_dialog();
+        try_refresh_rfid();
     } else {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__  << " check error: sync machine fail";
     }
