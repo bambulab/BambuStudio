@@ -511,6 +511,12 @@ public:
     // Helpers to project custom facets on slices
     void project_and_append_custom_facets(bool seam, EnforcerBlockerType type, std::vector<Polygons>& expolys, std::vector<std::pair<Vec3f,Vec3f>>* vertical_points=nullptr) const;
 
+    // Painted-support (enforcer/blocker) meshes are projected in raw object coordinates, while the
+    // object contours are scaled by filament_shrink during slice_volumes(). Returns the matching
+    // 1/shrink factor (1.0 when no compensation applies) so those projections can be aligned with
+    // the compensated object contours; otherwise painted supports disappear after slicing.
+    double                      support_shrinkage_scale() const;
+
     //BBS
     BoundingBox get_first_layer_bbox(float& area, float& layer_height, std::string& name);
     void         get_certain_layers(float start, float end, std::vector<LayerPtrs> &out, std::vector<BoundingBox> &boundingbox_objects);
