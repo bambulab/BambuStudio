@@ -65,8 +65,8 @@
         "-1"
     ],
     "nozzle_temperature": [
-        "245",
-        "245"
+        "255",
+        "255"
     ],
     "nozzle_temperature_initial_layer": [
         "245",
