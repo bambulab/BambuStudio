@@ -63,6 +63,14 @@ void GLGizmoRotate::set_angle(double angle)
     m_angle = angle;
 }
 
+double GLGizmoRotate::get_angle_relative_to_upright() const
+{
+    // Grabber rest pose is +PI/2 (up); report signed delta so drag starts near 0°.
+    double rel = m_angle - 0.5 * double(PI);
+    Geometry::to_range_pi_pi(rel);
+    return rel;
+}
+
 std::string GLGizmoRotate::get_tooltip() const
 {
     std::string axis;
@@ -88,10 +96,7 @@ std::string GLGizmoRotate::get_tooltip_relative_to_upright() const
     case Z: { axis = "Z"; break; }
     }
 
-    // Grabber rest pose is +PI/2 (up); report signed delta so drag starts near 0°.
-    double rel = m_angle - 0.5 * double(PI);
-    Geometry::to_range_pi_pi(rel);
-    return axis + ": " + Slic3r::string_printf("%+.2f", Geometry::rad2deg(rel));
+    return axis + ": " + Slic3r::string_printf("%+.2f", Geometry::rad2deg(get_angle_relative_to_upright()));
 }
 
 bool GLGizmoRotate::on_init()

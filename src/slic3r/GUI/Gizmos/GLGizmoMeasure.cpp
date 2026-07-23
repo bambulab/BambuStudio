@@ -406,9 +406,13 @@ void GLGizmoMeasure::data_changed(bool is_serializing)
         update_if_needed();
         register_single_mesh_pick();
         update_measurement_result();
+        // Transform commits may reload GLVolumes and reset wipe tower / unselected
+        // volumes to active; reapply Measure/Assembly isolation.
+        m_parent.toggle_selected_volume_visibility(true);
         m_pending_scale --;
     }
     else {
+        sync_current_plate_to_selection();
         m_parent.toggle_selected_volume_visibility(true);
         reset_all_pick();
         update_if_needed();
@@ -534,6 +538,7 @@ void GLGizmoMeasure::on_start_dragging()
 
     m_rotate_gizmo->start_dragging();
     m_last_rotate_gizmo_angle = m_rotate_gizmo->get_angle();
+    m_buffered_around_center = 0.0;
     m_same_model_object = is_two_volume_in_same_model_object();
     wxGetApp().plater()->take_snapshot("ReverseRotateInMeasure", UndoRedo::SnapshotType::GizmoAction);
 }
@@ -545,6 +550,7 @@ void GLGizmoMeasure::on_stop_dragging()
 
     m_rotate_gizmo->stop_dragging();
     m_rotate_gizmo->set_angle(PI / 2);
+    m_buffered_around_center = 0.0;
 
     // Match set_to_around_center_of_faces(): only commit Face2 pose, keep selected features.
     // pending_scale must cover BOTH:
@@ -578,9 +584,191 @@ bool GLGizmoMeasure::is_assembly_around_center_gizmo_enabled() const
         && m_assembly_action.can_around_center_of_faces;
 }
 
+void GLGizmoMeasure::sync_current_plate_to_selection() const
+{
+    Plater *plater = wxGetApp().plater();
+    if (!plater)
+        return;
+
+    const Selection &selection = m_parent.get_selection();
+    if (selection.is_empty() || selection.is_wipe_tower())
+        return;
+
+    const BoundingBoxf3 &selection_box = selection.get_bounding_box();
+    if (!selection_box.defined)
+        return;
+
+    PartPlateList &plate_list = plater->get_partplate_list();
+    const int plate_count = plate_list.get_plate_count();
+    if (plate_count <= 0)
+        return;
+
+    auto box_distance2_xy = [](const BoundingBoxf3 &lhs, const BoundingBoxf3 &rhs) {
+        const double dx = lhs.max.x() < rhs.min.x() ? rhs.min.x() - lhs.max.x() :
+            (rhs.max.x() < lhs.min.x() ? lhs.min.x() - rhs.max.x() : 0.0);
+        const double dy = lhs.max.y() < rhs.min.y() ? rhs.min.y() - lhs.max.y() :
+            (rhs.max.y() < lhs.min.y() ? lhs.min.y() - rhs.max.y() : 0.0);
+        return dx * dx + dy * dy;
+    };
+
+    int best_plate = -1;
+    double best_dist2 = std::numeric_limits<double>::max();
+    for (int i = 0; i < plate_count; ++i) {
+        PartPlate *plate = plate_list.get_plate(i);
+        if (!plate)
+            continue;
+        BoundingBoxf3 plate_box = plate->get_bounding_box(false);
+        if (!plate_box.defined)
+            plate_box = plate->get_build_volume();
+        if (!plate_box.defined)
+            continue;
+
+        const double dist2 = box_distance2_xy(selection_box, plate_box);
+        if (dist2 < best_dist2) {
+            best_dist2 = dist2;
+            best_plate = i;
+        }
+    }
+
+    if (best_plate >= 0 && best_plate != plate_list.get_curr_plate_index())
+        plater->select_plate(best_plate);
+}
+
+std::optional<double> GLGizmoMeasure::get_assembly_rotate_gizmo_angle_from_face_obb() const
+{
+    if (!is_assembly_around_center_gizmo_enabled())
+        return std::nullopt;
+
+    const Measure::SurfaceFeature &feature = *m_selected_features.second.feature;
+    if (!feature.plane_indices || !feature.volume)
+        return std::nullopt;
+
+    const GLVolume *volume = static_cast<const GLVolume *>(feature.volume);
+    const TriangleMesh *mesh = volume->ori_mesh;
+    if (!mesh)
+        return std::nullopt;
+
+    const auto plane = feature.get_plane();
+    Vec3d normal = std::get<1>(plane);
+    if (normal.norm() < EPSILON)
+        return std::nullopt;
+    normal.normalize();
+
+    std::vector<Vec3d> pts;
+    pts.reserve(feature.plane_indices->size() * 3);
+    for (int tri_idx : *feature.plane_indices) {
+        if (tri_idx < 0 || tri_idx >= (int) mesh->its.indices.size())
+            continue;
+        const auto &tri = mesh->its.indices[tri_idx];
+        for (int i = 0; i < 3; ++i) {
+            const int vi = tri[i];
+            if (vi >= 0 && vi < (int) mesh->its.vertices.size())
+                pts.emplace_back(feature.world_tran * mesh->its.vertices[vi].cast<double>());
+        }
+    }
+    if (pts.size() < 2)
+        return std::nullopt;
+
+    auto orient_axis = [](Vec3d axis) {
+        if (axis.z() < -EPSILON ||
+            (std::abs(axis.z()) <= EPSILON && (axis.y() < -EPSILON ||
+             (std::abs(axis.y()) <= EPSILON && axis.x() < 0.0))))
+            axis = -axis;
+        return axis;
+    };
+
+    std::vector<Vec3d> candidates;
+    candidates.reserve(feature.plane_indices->size() * 3);
+    for (int tri_idx : *feature.plane_indices) {
+        if (tri_idx < 0 || tri_idx >= (int) mesh->its.indices.size())
+            continue;
+        const auto &tri = mesh->its.indices[tri_idx];
+        Vec3d tri_pts[3];
+        bool valid = true;
+        for (int i = 0; i < 3; ++i) {
+            const int vi = tri[i];
+            if (vi < 0 || vi >= (int) mesh->its.vertices.size()) {
+                valid = false;
+                break;
+            }
+            tri_pts[i] = feature.world_tran * mesh->its.vertices[vi].cast<double>();
+        }
+        if (!valid)
+            continue;
+        for (int i = 0; i < 3; ++i) {
+            Vec3d axis = tri_pts[(i + 1) % 3] - tri_pts[i];
+            axis -= normal * axis.dot(normal);
+            const double len = axis.norm();
+            if (len > EPSILON)
+                candidates.emplace_back(orient_axis(axis / len));
+        }
+    }
+    if (candidates.empty())
+        return std::nullopt;
+
+    double best_area = std::numeric_limits<double>::max();
+    Vec3d  best_u = candidates.front();
+    Vec3d  best_v = normal.cross(best_u).normalized();
+    double best_u_len = 0.0;
+    double best_v_len = 0.0;
+
+    for (const Vec3d &u_raw : candidates) {
+        Vec3d u = u_raw;
+        Vec3d v = normal.cross(u);
+        if (v.norm() < EPSILON)
+            continue;
+        v.normalize();
+
+        double min_u = std::numeric_limits<double>::max();
+        double max_u = -std::numeric_limits<double>::max();
+        double min_v = std::numeric_limits<double>::max();
+        double max_v = -std::numeric_limits<double>::max();
+        for (const Vec3d &p : pts) {
+            const double pu = p.dot(u);
+            const double pv = p.dot(v);
+            min_u = std::min(min_u, pu);
+            max_u = std::max(max_u, pu);
+            min_v = std::min(min_v, pv);
+            max_v = std::max(max_v, pv);
+        }
+
+        const double u_len = max_u - min_u;
+        const double v_len = max_v - min_v;
+        const double area = u_len * v_len;
+        if (area + EPSILON < best_area) {
+            best_area = area;
+            best_u = u;
+            best_v = v;
+            best_u_len = u_len;
+            best_v_len = v_len;
+        }
+    }
+
+    Vec3d axis;
+    if (std::abs(best_u_len - best_v_len) <= EPSILON) {
+        const Vec3d u = orient_axis(best_u);
+        const Vec3d v = orient_axis(best_v);
+        axis = u.z() >= v.z() ? u : v;
+    } else {
+        axis = orient_axis(best_u_len > best_v_len ? best_u : best_v);
+    }
+
+    double phi = 0.0;
+    Vec3d rotation_axis;
+    Matrix3d rotation_matrix;
+    Geometry::rotation_from_two_vectors(Vec3d::UnitZ(), normal, rotation_axis, phi, &rotation_matrix);
+    const Vec3d local_axis = rotation_matrix.transpose() * axis;
+    double angle = std::atan2(local_axis.y(), local_axis.x());
+    if (angle < 0.0)
+        angle += 2.0 * double(PI);
+    return angle;
+}
+
 void GLGizmoMeasure::update_assembly_rotate_gizmo_tran()
 {
-    const auto [idx2, normal2, pt2] = m_selected_features.second.feature->get_plane();
+    const auto plane = m_selected_features.second.feature->get_plane();
+    const Vec3d normal2 = std::get<1>(plane);
+    const Vec3d pt2     = std::get<2>(plane);
     Geometry::Transformation tran;
     double                   phi;
     Vec3d                    rotation_axis;
@@ -589,6 +777,12 @@ void GLGizmoMeasure::update_assembly_rotate_gizmo_tran()
     tran.set_matrix((Transform3d) rotation_matrix);
     tran.set_offset(pt2);
     m_rotate_gizmo->set_custom_tran(tran.get_matrix());
+    if (!m_dragging) {
+        if (std::optional<double> angle = get_assembly_rotate_gizmo_angle_from_face_obb()) {
+            m_rotate_gizmo->set_angle(*angle);
+            m_last_rotate_gizmo_angle = *angle;
+        }
+    }
 }
 
 bool GLGizmoMeasure::on_mouse_for_rotation(const wxMouseEvent &mouse_event)
@@ -604,8 +798,10 @@ bool GLGizmoMeasure::on_mouse_for_rotation(const wxMouseEvent &mouse_event)
         const double current_angle = m_rotate_gizmo->get_angle();
         const double delta         = current_angle - m_last_rotate_gizmo_angle;
         m_last_rotate_gizmo_angle  = current_angle;
-        if (std::abs(delta) > EPSILON)
+        if (std::abs(delta) > EPSILON) {
+            m_buffered_around_center += Geometry::rad2deg(delta);
             set_to_around_center_of_faces(m_same_model_object, float(Geometry::rad2deg(delta)), false);
+        }
     }
 
     return used;
@@ -617,6 +813,30 @@ std::string GLGizmoMeasure::get_tooltip() const
         return "";
     // Embedded grabber rests at +PI/2; show delta from upright (not absolute 90°).
     return m_rotate_gizmo->get_tooltip_relative_to_upright();
+}
+
+BoundingBoxf3 GLGizmoMeasure::get_bounding_box() const
+{
+    BoundingBoxf3 box = GLGizmoBase::get_bounding_box();
+    if (!is_assembly_around_center_gizmo_enabled())
+        return box;
+
+    const auto [idx2, normal2, pt2] = m_selected_features.second.feature->get_plane();
+    Geometry::Transformation tran;
+    double                   phi;
+    Vec3d                    rotation_axis;
+    Matrix3d                 rotation_matrix;
+    Geometry::rotation_from_two_vectors(Vec3d::UnitZ(), normal2, rotation_axis, phi, &rotation_matrix);
+    tran.set_matrix((Transform3d) rotation_matrix);
+    tran.set_offset(pt2);
+
+    // Keep camera framing in sync with the embedded rotate gizmo. Without this,
+    // tiny selected parts frame only the part/measure geometry and the rotate ring
+    // can be partially outside the viewport.
+    m_rotate_gizmo->set_custom_tran(tran.get_matrix());
+    m_rotate_gizmo->init_data_from_selection(m_parent.get_selection());
+    box.merge(m_rotate_gizmo->get_bounding_box());
+    return box;
 }
 
 std::string GLGizmoMeasure::on_get_name() const
@@ -2260,12 +2480,23 @@ void GLGizmoMeasure::show_face_face_assembly_senior()
                 m_imgui->tooltip(rotate_around_center_tip, tip_wrap);
             ImGui::SameLine(rotate_around_center_size + m_space_size);
             ImGui::PushItemWidth(m_input_size_max);
+            const ImGuiID rotate_input_id = ImGui::GetID("##rotate_around_center");
             ImGui::BBLInputDouble("##rotate_around_center", &m_buffered_around_center, 0.0f, 0.0f, "%.2f");
             if (ImGui::IsItemHovered())
                 m_imgui->tooltip(rotate_around_center_tip, tip_wrap);
-            if (m_last_active_item_imgui != m_current_active_imgui_id && std::abs(m_buffered_around_center) > EPSILON) {
-                set_to_around_center_of_faces(m_same_model_object, m_buffered_around_center);
-                m_buffered_around_center = 0;
+            // Apply only on Enter / focus leave (same as parallel_distance). Do not use
+            // BBLInputDouble's return value — it is true on every edit while typing.
+            if (ImGui::IsItemDeactivatedAfterEdit()) {
+                const double delta = m_buffered_around_center;
+                if (std::abs(delta) > EPSILON) {
+                    set_to_around_center_of_faces(m_same_model_object, delta);
+                    m_rotate_gizmo->set_angle(m_rotate_gizmo->get_angle() + Geometry::deg2rad(delta));
+                    m_last_rotate_gizmo_angle = m_rotate_gizmo->get_angle();
+                }
+                m_buffered_around_center = 0.0;
+            } else if (m_current_active_imgui_id != rotate_input_id && !m_dragging) {
+                // Idle / gizmo-linked display: clear when not editing the box and not dragging.
+                m_buffered_around_center = 0.0;
             }
             ImGui::SameLine(rotate_around_center_size + m_space_size + m_input_size_max + m_space_size / 2.0f);
             m_imgui->text(_L("°"));

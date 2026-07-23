@@ -248,6 +248,7 @@ public:
 
     std::string get_tooltip() const override;
     std::string get_icon_filename(bool is_dark_mode) const override;
+    BoundingBoxf3 get_bounding_box() const override;
 
 protected:
     bool on_init() override;
@@ -265,6 +266,8 @@ protected:
 
     virtual void on_render_for_picking() override;
     bool         is_assembly_around_center_gizmo_enabled() const;
+    void         sync_current_plate_to_selection() const;
+    std::optional<double> get_assembly_rotate_gizmo_angle_from_face_obb() const;
     void         update_assembly_rotate_gizmo_tran();
     bool         on_mouse_for_rotation(const wxMouseEvent &mouse_event);
     void         show_selection_ui();

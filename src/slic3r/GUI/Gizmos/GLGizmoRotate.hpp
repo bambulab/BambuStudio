@@ -68,6 +68,7 @@ public:
 
     double get_angle() const { return m_angle; }
     void set_angle(double angle);
+    double get_angle_relative_to_upright() const;
 
     std::string get_tooltip() const override;
     // For embedded gizmos whose grabber rests upright at +PI/2: show offset from that pose (≈0 at drag start).

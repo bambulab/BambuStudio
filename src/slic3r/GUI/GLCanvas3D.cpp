@@ -2055,9 +2055,7 @@ void GLCanvas3D::toggle_selected_volume_visibility(bool selected_visible)
         const Selection::IndicesList &idxs = m_selection.get_volume_idxs();
         if (idxs.size() > 0) {
             for (GLVolume *vol : m_volumes.volumes) {
-                if (vol->composite_id.object_id >= 1000 && vol->composite_id.object_id < 1000 + wxGetApp().plater()->get_partplate_list().get_plate_count())
-                    continue; // the wipe tower
-                if (vol->composite_id.volume_id >= 0) {
+                if (vol->is_wipe_tower || vol->composite_id.volume_id >= 0) {
                     vol->is_active = false;
                 }
             }
@@ -2068,9 +2066,7 @@ void GLCanvas3D::toggle_selected_volume_visibility(bool selected_visible)
         }
     } else { // show all
         for (GLVolume *vol : m_volumes.volumes) {
-            if (vol->composite_id.object_id >= 1000 && vol->composite_id.object_id < 1000 + wxGetApp().plater()->get_partplate_list().get_plate_count())
-                continue; // the wipe tower
-            if (vol->composite_id.volume_id >= 0) {
+            if (vol->is_wipe_tower || vol->composite_id.volume_id >= 0) {
                 vol->is_active = true;
             }
         }
