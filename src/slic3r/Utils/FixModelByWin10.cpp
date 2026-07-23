@@ -471,13 +471,25 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 	};
 	auto worker_thread = boost::thread([&model_object, &volumes, &ivolume, on_progress, &success, &canceled, &finished]() {
 		try {
+			// Progress budget per volume: the win10 SDK mesh repair fills the first
+			// 70%, the paint reprojection the last 30%. Each stage remaps its local
+			// [0,100] percent into that sub-range before calling on_progress (which
+			// further spreads it across all volumes via ivolume).
+			auto sdk_on_progress = [&on_progress](const char *msg, unsigned prcnt) {
+				on_progress(msg, prcnt * 70 / 100);
+			};
+			auto reproject_on_progress = [&on_progress](int percent, const char *msg) {
+				on_progress(msg, (unsigned) (70 + percent * 30 / 100));
+			};
+			auto is_canceled = [&canceled]() { return canceled.load(); };
+
 			std::vector<TriangleMesh> meshes_repaired;
 			meshes_repaired.reserve(volumes.size());
 			for (; ivolume < volumes.size(); ++ ivolume) {
 				indexed_triangle_set repaired_its;
 				std::string repair_error;
-				bool repaired = Slic3r::fix_mesh_by_win10_sdk(volumes[ivolume]->mesh().its, repaired_its, on_progress,
-					[&canceled]() { return canceled.load(); }, &repair_error);
+				bool repaired = Slic3r::fix_mesh_by_win10_sdk(volumes[ivolume]->mesh().its, repaired_its, sdk_on_progress,
+					is_canceled, &repair_error);
 				if (!repaired) {
 					if (canceled)
 						throw RepairCanceledException();
@@ -486,13 +498,19 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 				meshes_repaired.emplace_back(std::move(repaired_its));
 			}
 			for (size_t i = 0; i < volumes.size(); ++ i) {
-				volumes[i]->set_mesh_keep_paint(std::move(meshes_repaired[i])); // BBS: best-effort paint transfer
+				ivolume = i;
+				// Atomic paint transfer: on cancel the volume keeps its original mesh
+				// and paint, so the reprojection stage reverts cleanly.
+				if (!volumes[i]->set_mesh_keep_paint(std::move(meshes_repaired[i]), reproject_on_progress, is_canceled)) {
+					canceled = true;
+					throw RepairCanceledException();
+				}
 				volumes[i]->calculate_convex_hull();
 				volumes[i]->invalidate_convex_hull_2d();
 				volumes[i]->set_new_unique_id();
 			}
 			model_object.invalidate_bounding_box();
-			-- ivolume;
+			ivolume = volumes.empty() ? 0 : volumes.size() - 1;
 			on_progress(L("Repair finished"), 100);
 			success  = true;
 			finished = true;

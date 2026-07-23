@@ -276,19 +276,24 @@ public:
         size_t nodes_created { 0 };
         bool node_budget_exhausted { false };
         bool depth_limit_reached { false };
+        bool canceled { false };
     };
     using FacetSubdivisionEvaluator =
         std::function<FacetSubdivisionMeasurement(int, const std::array<Vec3f, 3>&)>;
+    // Returns true to request early termination of the subdivision loop.
+    using FacetSubdivisionCancelCallback = std::function<bool()>;
 
     // Rebuild original facets by repeatedly splitting the leaf with the largest
-    // measured error. node_budget counts newly created child nodes.
+    // measured error. node_budget counts newly created child nodes. If cancel is
+    // set and returns true, the loop stops early and result.canceled is set.
     FacetSubdivisionResult set_facets_with_subdivision(
         const std::vector<int> &facet_indices,
         const FacetSubdivisionEvaluator &evaluator,
         size_t node_budget,
         double relative_error_limit,
         double absolute_error_epsilon,
-        int max_depth);
+        int max_depth,
+        const FacetSubdivisionCancelCallback &cancel = nullptr);
 
     // Clear everything and make the tree empty.
     void reset();

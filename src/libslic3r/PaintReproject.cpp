@@ -124,11 +124,18 @@ static std::array<Vec3f, 3> transform_triangle(
 class PaintReprojector
 {
 public:
-    PaintReprojector(const TriangleMesh &source_mesh, const FacetsAnnotation &annotation, bool build_aabb)
+    // max_sample_distance: when >= 0, a destination face whose centroid is farther
+    // than this from the source surface is treated as geometry the repair newly
+    // created (e.g. a hole-fill patch) and is left unpainted instead of inheriting
+    // the nearest source paint. Negative disables the cull (geometric provenance
+    // for cutting always samples the nearest face).
+    PaintReprojector(const TriangleMesh &source_mesh, const FacetsAnnotation &annotation, bool build_aabb,
+                     double max_sample_distance = -1.0)
         : m_source_mesh(source_mesh)
         , m_selector(source_mesh)
         , m_source_root_count(int(source_mesh.its.indices.size()))
         , m_face_neighbors(its_face_neighbors(source_mesh.its))
+        , m_max_sample_distance_sq(max_sample_distance >= 0.0 ? max_sample_distance * max_sample_distance : -1.0)
     {
         m_selector.deserialize(annotation.get_data(), true);
         if (build_aabb && !source_mesh.its.indices.empty()) {
@@ -355,27 +362,17 @@ public:
         return {static_cast<EnforcerBlockerType>(dominant_state), surface_area, error_area};
     }
 
-    // Nearest source face (root) for a point given in the source coordinate frame.
-    // Geometric provenance for the repair/boolean path, where no explicit
-    // destination->source face map exists.
-    int nearest_source_root(const Vec3f &point_in_source)
-    {
-        if (!m_has_aabb)
-            return -1;
-        size_t hit_face = size_t(-1);
-        Vec3f  closest_point;
-        const double distance_squared = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
-            m_source_mesh.its.vertices, m_source_mesh.its.indices, m_aabb, point_in_source, hit_face, closest_point);
-        if (distance_squared < 0.0 || hit_face == size_t(-1) || int(hit_face) >= m_source_root_count)
-            return -1;
-        return int(hit_face);
-    }
-
     // 3D nearest-point sampling (repair/boolean): sample the source paint at the
-    // fragment's vertices and centroid by snapping each to the nearest point on
-    // the source mesh and reading the leaf state there. If all samples agree the
-    // leaf is single-state (converged); otherwise it straddles a paint boundary
-    // and is refined until it falls below the fixed root-relative size floor.
+    // fragment's vertices and centroid by snapping each to the nearest point on the
+    // source mesh and reading the leaf state there. The fragment is labeled with the
+    // dominant sampled state and reports an area-proportional error (the fraction of
+    // samples that disagree with the dominant, times the fragment area). Boundary
+    // faces are NOT forced down to a fixed size floor; the subdivision driver refines
+    // whichever leaves carry the most mislabeled area and stops once the residual
+    // error drops under the relative limit -- adaptive area-error refinement. A fixed
+    // size floor is still applied as a pure safety cap so a pathological boundary
+    // (e.g. thin seam strokes that stay mixed at every scale) cannot subdivide
+    // without bound.
     TriangleSelector::FacetSubdivisionMeasurement measure_point_sample(
         const std::array<Vec3f, 3> &target_triangle_in_source,
         const std::array<Vec3f, 3> &target_triangle_in_destination)
@@ -392,11 +389,22 @@ public:
 
         const Vec3f centroid =
             (target_triangle_in_source[0] + target_triangle_in_source[1] + target_triangle_in_source[2]) / 3.f;
-        const int nearest_root = nearest_source_root(centroid);
-        if (nearest_root < 0) {
+        size_t centroid_hit_face = size_t(-1);
+        Vec3f  centroid_closest_point;
+        const double centroid_distance_sq = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
+            m_source_mesh.its.vertices, m_source_mesh.its.indices, m_aabb, centroid,
+            centroid_hit_face, centroid_closest_point);
+        if (centroid_distance_sq < 0.0 || centroid_hit_face == size_t(-1) ||
+            int(centroid_hit_face) >= m_source_root_count) {
             ++m_fallback_count;
             return {EnforcerBlockerType::NONE, surface_area, 0.0};
         }
+        // New-geometry cull: the repair may add faces (e.g. hole-fill patches) that
+        // sit off the original surface. Such faces are farther from the source mesh
+        // than the model-relative tolerance, so leave them unpainted across every
+        // layer instead of inheriting the nearest source paint.
+        if (m_max_sample_distance_sq >= 0.0 && centroid_distance_sq > m_max_sample_distance_sq)
+            return {EnforcerBlockerType::NONE, surface_area, 0.0};
 
         const std::array<Vec3f, 4> sample_points {
             target_triangle_in_source[0],
@@ -404,33 +412,49 @@ public:
             target_triangle_in_source[2],
             centroid
         };
-        EnforcerBlockerType first_state = EnforcerBlockerType::NONE;
-        bool first_set = false;
-        bool mixed = false;
+        std::array<int, StateCount> sample_counts {};
+        int sampled = 0;
         for (const Vec3f &point : sample_points) {
-            const EnforcerBlockerType state = sample_state(point);
-            if (!first_set) {
-                first_state = state;
-                first_set = true;
-            } else if (state != first_state) {
-                mixed = true;
+            const size_t state = static_cast<size_t>(sample_state(point));
+            if (state < sample_counts.size()) {
+                ++sample_counts[state];
+                ++sampled;
             }
         }
+        if (sampled == 0)
+            return {EnforcerBlockerType::NONE, surface_area, 0.0};
 
-        if (!mixed)
-            return {first_state, surface_area, 0.0};
+        size_t dominant_state = 0;
+        for (size_t state = 1; state < sample_counts.size(); ++state)
+            if (sample_counts[state] > sample_counts[dominant_state])
+                dominant_state = state;
 
-        // Boundary-crossing leaf: refine until it drops below a fixed size floor
-        // relative to the nearest source root, mirroring the coplanar path so the
-        // residual half-leaf bias stays sub-visible and bounded.
-        const int dropped_axis = projection_axis(target_triangle_in_source);
-        const double leaf_area =
-            triangle_overlap_area(target_triangle_in_source, target_triangle_in_source, dropped_axis);
-        const std::array<Vec3f, 3> root_triangle = triangle_vertices(nearest_root);
-        const double root_area = triangle_overlap_area(root_triangle, root_triangle, dropped_axis);
-        const bool below_floor = root_area > 0.0 && leaf_area <= root_area * BoundaryLeafAreaRatio;
-        const double error_area = below_floor ? 0.0 : surface_area;
-        return {first_state, surface_area, error_area};
+        // Area-proportional error: the share of samples that disagree with the
+        // dominant state, scaled by the fragment area. A uniform fragment reports
+        // zero error (no refinement); a boundary fragment reports a positive error
+        // that shrinks as it subdivides, so refinement is driven by area error alone.
+        const int minority_samples = sampled - sample_counts[dominant_state];
+        double error_area = surface_area * (double(minority_samples) / double(sampled));
+
+        // Safety floor (not a forced target): normal boundaries converge by area
+        // error well before this, but a pathological boundary -- e.g. thin seam
+        // strokes whose 4 samples stay mixed at every scale because the boundary is
+        // narrower than the fragment -- would otherwise never reach zero error and
+        // keep subdividing up to the per-face node budget, freezing the repair. Once
+        // a fragment shrinks below a fixed fraction of its source root, report zero
+        // error so worst-case work per face stays bounded.
+        if (error_area > 0.0) {
+            const int nearest_root = int(centroid_hit_face);
+            const int dropped_axis = projection_axis(target_triangle_in_source);
+            const double leaf_area = triangle_overlap_area(
+                target_triangle_in_source, target_triangle_in_source, dropped_axis);
+            const std::array<Vec3f, 3> root_triangle = triangle_vertices(nearest_root);
+            const double root_area =
+                triangle_overlap_area(root_triangle, root_triangle, dropped_axis);
+            if (root_area > 0.0 && leaf_area <= root_area * BoundaryLeafAreaRatio)
+                error_area = 0.0;
+        }
+        return {static_cast<EnforcerBlockerType>(dominant_state), surface_area, error_area};
     }
 
 private:
@@ -595,6 +619,9 @@ private:
     std::vector<Vec3i> m_face_neighbors;
     AABBTreeIndirect::Tree3f m_aabb;
     bool m_has_aabb { false };
+    // Squared distance threshold beyond which a destination face is considered
+    // newly created by the repair and skipped; < 0 disables the cull.
+    double m_max_sample_distance_sq { -1.0 };
     size_t m_fallback_count { 0 };
     size_t m_rebound_count { 0 };
 };
@@ -605,27 +632,43 @@ private:
 
 enum class ReprojectMode { OverlapCoplanar, PointNearest };
 
-static constexpr double ReprojectRelativeErrorLimit = 1e-4;
+static constexpr double ReprojectRelativeErrorLimit = 1e-3;
 static constexpr double ReprojectAbsoluteErrorEpsilon = 1e-8;
+// Absolute cap on the per-face convergence target, expressed as a fraction of the
+// whole mesh area. The per-face target is relative_error_limit * face_area, which
+// becomes vanishingly small for tiny faces and would force deep subdivision to chase
+// a negligible absolute area. Flooring the target at this model-relative value lets
+// small faces converge early so they no longer dominate the compute time.
+static constexpr double ReprojectAbsoluteTargetAreaFraction = 1e-6;
 static constexpr int ReprojectMaxSubdivisionDepth = 20;
 static constexpr size_t ReprojectMinNodeBudget = 65536;
 static constexpr size_t ReprojectMaxNodeBudget = 4000000;
 
-static void reproject_one_annotation(const FacetsAnnotation &src,
+// Returns false if the operation was canceled via the cancel callback, true
+// otherwise (including when there was nothing to do).
+static bool reproject_one_annotation(const FacetsAnnotation &src,
                                      FacetsAnnotation       &dst,
                                      const TriangleMesh     &src_mesh,
                                      const TriangleMesh     &dst_mesh,
                                      const Transform3d      &dst_to_src,
                                      const std::vector<int> *dst_to_src_face,
                                      ReprojectMode           mode,
-                                     const char             *annotation_name)
+                                     const char             *annotation_name,
+                                     const PaintReprojectProgressCallback &progress = nullptr,
+                                     const PaintReprojectCancelCallback   &cancel   = nullptr,
+                                     double                  max_sample_distance = -1.0,
+                                     const char             *progress_message = nullptr)
 {
     if (src.empty())
-        return;
+        return true;
     if (mode == ReprojectMode::OverlapCoplanar && (dst_to_src_face == nullptr || dst_to_src_face->empty()))
-        return;
+        return true;
 
-    PaintReprojector projector(src_mesh, src, /*build_aabb=*/ mode == ReprojectMode::PointNearest);
+    // User-facing progress label (English); falls back to the internal log tag.
+    const char *const progress_label = progress_message ? progress_message : annotation_name;
+
+    PaintReprojector projector(src_mesh, src, /*build_aabb=*/ mode == ReprojectMode::PointNearest,
+                               max_sample_distance);
     TriangleSelector dst_sel(dst_mesh);
     const size_t source_nodes = projector.source_node_count();
     // Boundary-driven refinement scales with paint boundary length rather than raw
@@ -635,6 +678,23 @@ static void reproject_one_annotation(const FacetsAnnotation &src,
         source_nodes > ReprojectMaxNodeBudget / 16 ? ReprojectMaxNodeBudget : source_nodes * 16;
     const size_t node_budget = std::max<size_t>(
         ReprojectMinNodeBudget, std::min<size_t>(ReprojectMaxNodeBudget, scaled_source_nodes));
+
+    // Repair path: floor the per-face convergence target at a fraction of the whole
+    // mesh area so tiny faces stop early instead of chasing a negligible absolute
+    // error. Left at the tiny epsilon for the coplanar (cut) path, whose boundary
+    // alignment relies on the existing target.
+    double absolute_target_error = ReprojectAbsoluteErrorEpsilon;
+    if (mode == ReprojectMode::PointNearest) {
+        double dst_total_area = 0.0;
+        for (const Vec3i &face : dst_mesh.its.indices) {
+            const Vec3f &a = dst_mesh.its.vertices[face[0]];
+            const Vec3f &b = dst_mesh.its.vertices[face[1]];
+            const Vec3f &c = dst_mesh.its.vertices[face[2]];
+            dst_total_area += 0.5 * double((b - a).cross(c - a).norm());
+        }
+        absolute_target_error = std::max(
+            ReprojectAbsoluteErrorEpsilon, ReprojectAbsoluteTargetAreaFraction * dst_total_area);
+    }
 
     int n_dst = int(dst_mesh.its.indices.size());
     if (mode == ReprojectMode::OverlapCoplanar)
@@ -680,21 +740,47 @@ static void reproject_one_annotation(const FacetsAnnotation &src,
     // along the edge shared by a cut face and an uncut face. Refining per face
     // guarantees uniform boundary resolution so those edges line up.
     TriangleSelector::FacetSubdivisionResult result;
+    bool canceled = false;
+    const int total_faces = int(destination_roots.size());
+    int processed_faces = 0;
+    int last_reported_percent = -1;
     for (int destination_root : destination_roots) {
+        // Poll cancellation between faces; the subdivision loop also polls
+        // internally so a single heavy boundary face cannot delay the response.
+        if (cancel && cancel()) {
+            canceled = true;
+            break;
+        }
         const TriangleSelector::FacetSubdivisionResult face_result =
             dst_sel.set_facets_with_subdivision(
                 std::vector<int>{destination_root},
                 evaluator,
                 node_budget,
                 ReprojectRelativeErrorLimit,
-                ReprojectAbsoluteErrorEpsilon,
-                ReprojectMaxSubdivisionDepth);
+                absolute_target_error,
+                ReprojectMaxSubdivisionDepth,
+                cancel);
         result.surface_area += face_result.surface_area;
         result.error_area += face_result.error_area;
         result.nodes_created += face_result.nodes_created;
         result.node_budget_exhausted |= face_result.node_budget_exhausted;
         result.depth_limit_reached |= face_result.depth_limit_reached;
+        if (face_result.canceled) {
+            canceled = true;
+            break;
+        }
+
+        ++processed_faces;
+        if (progress && total_faces > 0) {
+            const int percent = int(size_t(processed_faces) * 100 / size_t(total_faces));
+            if (percent != last_reported_percent) {
+                last_reported_percent = percent;
+                progress(percent, progress_label);
+            }
+        }
     }
+    if (canceled)
+        return false;
     const double relative_error =
         result.surface_area > 0.0 ? result.error_area / result.surface_area : 0.0;
     const size_t target_nodes = std::count_if(
@@ -723,6 +809,7 @@ static void reproject_one_annotation(const FacetsAnnotation &src,
             << projector.fallback_count() << " times";
 
     dst.set(dst_sel);
+    return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -744,7 +831,7 @@ void reproject_paint(const ModelVolume &src_volume,
     reproject_one_annotation(src_volume.fuzzy_skin_facets,       dst_volume.fuzzy_skin_facets,       src_mesh, dst_mesh, destination_to_source, &dst_to_src_face, ReprojectMode::OverlapCoplanar, "fuzzy skin");
 }
 
-void reproject_paint_geometric(const TriangleMesh     &src_mesh,
+bool reproject_paint_geometric(const TriangleMesh     &src_mesh,
                                const FacetsAnnotation &src_supported,
                                const FacetsAnnotation &src_seam,
                                const FacetsAnnotation &src_mmu,
@@ -754,7 +841,9 @@ void reproject_paint_geometric(const TriangleMesh     &src_mesh,
                                FacetsAnnotation       &dst_supported,
                                FacetsAnnotation       &dst_seam,
                                FacetsAnnotation       &dst_mmu,
-                               FacetsAnnotation       &dst_fuzzy)
+                               FacetsAnnotation       &dst_fuzzy,
+                               const PaintReprojectProgressCallback &progress,
+                               const PaintReprojectCancelCallback   &cancel)
 {
     // Geometric callers rebuild the whole annotation from scratch, so clear any
     // stale destination paint first: reproject_one_annotation leaves the layer
@@ -765,11 +854,60 @@ void reproject_paint_geometric(const TriangleMesh     &src_mesh,
     dst_mmu.reset();
     dst_fuzzy.reset();
     if (dst_mesh.its.indices.empty() || src_mesh.its.indices.empty())
-        return;
-    reproject_one_annotation(src_supported, dst_supported, src_mesh, dst_mesh, dst_to_src, nullptr, ReprojectMode::PointNearest, "support");
-    reproject_one_annotation(src_seam,      dst_seam,      src_mesh, dst_mesh, dst_to_src, nullptr, ReprojectMode::PointNearest, "seam");
-    reproject_one_annotation(src_mmu,       dst_mmu,       src_mesh, dst_mesh, dst_to_src, nullptr, ReprojectMode::PointNearest, "mmu");
-    reproject_one_annotation(src_fuzzy,     dst_fuzzy,     src_mesh, dst_mesh, dst_to_src, nullptr, ReprojectMode::PointNearest, "fuzzy skin");
+        return true;
+
+    // Distribute the [0, 100] progress range evenly across the non-empty layers so
+    // the bar advances smoothly regardless of how many paint types are present.
+    struct Layer {
+        const FacetsAnnotation &src;
+        FacetsAnnotation       &dst;
+        const char             *name;    // internal log tag
+        const char             *display; // user-facing progress label (English)
+    };
+    const std::array<Layer, 4> layers {{
+        {src_supported, dst_supported, "support",    "Restoring support painting"},
+        {src_seam,      dst_seam,      "seam",       "Restoring seam painting"},
+        {src_mmu,       dst_mmu,       "mmu",        "Restoring paint color"},
+        {src_fuzzy,     dst_fuzzy,     "fuzzy skin", "Restoring fuzzy skin"},
+    }};
+    int active_layers = 0;
+    for (const Layer &layer : layers)
+        if (!layer.src.empty())
+            ++active_layers;
+    if (active_layers == 0)
+        return true;
+
+    // Faces the repair added (hole-fill patches, etc.) sit off the original
+    // surface. Treat a destination face as new-geometry when its centroid is
+    // farther from the source mesh than 1/100 of the source bounding-box diagonal,
+    // a model-relative tolerance that scales with the object instead of an absolute
+    // millimeter cutoff. New faces are then left unpainted across every layer.
+    const BoundingBoxf3 src_bbox = src_mesh.bounding_box();
+    const double src_diagonal = src_bbox.size().norm();
+    const double max_sample_distance = src_diagonal > 0.0 ? src_diagonal / 100.0 : -1.0;
+
+    int layer_index = 0;
+    for (const Layer &layer : layers) {
+        if (layer.src.empty())
+            continue;
+        const int base_percent = layer_index * 100 / active_layers;
+        const int span_percent = 100 / active_layers;
+        PaintReprojectProgressCallback layer_progress;
+        if (progress)
+            layer_progress = [&progress, base_percent, span_percent](int percent, const char *message) {
+                progress(base_percent + percent * span_percent / 100, message);
+            };
+        const bool completed = reproject_one_annotation(
+            layer.src, layer.dst, src_mesh, dst_mesh, dst_to_src, nullptr,
+            ReprojectMode::PointNearest, layer.name, layer_progress, cancel, max_sample_distance,
+            layer.display);
+        if (!completed)
+            return false;
+        ++layer_index;
+    }
+    if (progress)
+        progress(100, "Restoring painting");
+    return true;
 }
 
 } // namespace Slic3r

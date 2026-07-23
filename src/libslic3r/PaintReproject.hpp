@@ -1,6 +1,7 @@
 #ifndef libslic3r_PaintReproject_hpp_
 #define libslic3r_PaintReproject_hpp_
 
+#include <functional>
 #include <vector>
 
 #include "Point.hpp"
@@ -10,6 +11,11 @@ namespace Slic3r {
 class ModelVolume;
 class TriangleMesh;
 class FacetsAnnotation;
+
+// Progress in [0, 100]; message is a short, non-localized stage description.
+using PaintReprojectProgressCallback = std::function<void(int percent, const char *message)>;
+// Returns true to request early termination of the (potentially long) reprojection.
+using PaintReprojectCancelCallback   = std::function<bool()>;
 
 // ---------------------------------------------------------------------------
 // Shared paint (facet-annotation) re-projection.
@@ -51,7 +57,12 @@ void reproject_paint(const ModelVolume &src_volume,
 // is sampled at the nearest 3D point on the source mesh. dst_to_src maps a
 // destination-mesh vertex into the source-mesh coordinate frame (Identity for
 // in-place repair, where old/new meshes share the volume-local frame).
-void reproject_paint_geometric(const TriangleMesh     &src_mesh,
+//
+// Optional progress/cancel callbacks let a caller drive a progress bar and abort
+// a long reprojection. Returns false if the operation was canceled (in which case
+// the destination annotations are left in an unspecified partial state and the
+// caller should discard them); true otherwise.
+bool reproject_paint_geometric(const TriangleMesh     &src_mesh,
                                const FacetsAnnotation &src_supported,
                                const FacetsAnnotation &src_seam,
                                const FacetsAnnotation &src_mmu,
@@ -61,7 +72,9 @@ void reproject_paint_geometric(const TriangleMesh     &src_mesh,
                                FacetsAnnotation       &dst_supported,
                                FacetsAnnotation       &dst_seam,
                                FacetsAnnotation       &dst_mmu,
-                               FacetsAnnotation       &dst_fuzzy);
+                               FacetsAnnotation       &dst_fuzzy,
+                               const PaintReprojectProgressCallback &progress = nullptr,
+                               const PaintReprojectCancelCallback   &cancel   = nullptr);
 
 } // namespace Slic3r
 

@@ -1001,7 +1001,8 @@ TriangleSelector::FacetSubdivisionResult TriangleSelector::set_facets_with_subdi
     size_t node_budget,
     double relative_error_limit,
     double absolute_error_epsilon,
-    int max_depth)
+    int max_depth,
+    const FacetSubdivisionCancelCallback &cancel)
 {
     struct Candidate {
         int root_idx;
@@ -1052,7 +1053,18 @@ TriangleSelector::FacetSubdivisionResult TriangleSelector::set_facets_with_subdi
 
     const double target_error = std::max(
         absolute_error_epsilon, relative_error_limit * result.surface_area);
+    size_t iterations_since_cancel_check = 0;
     while (!candidates.empty() && result.error_area > target_error) {
+        // Poll the cancel callback periodically (not every iteration, to keep the
+        // per-node overhead negligible). A boundary-heavy face can push millions of
+        // candidates, so this bounds worst-case latency to react to cancellation.
+        if (cancel && ++iterations_since_cancel_check >= 1024) {
+            iterations_since_cancel_check = 0;
+            if (cancel()) {
+                result.canceled = true;
+                break;
+            }
+        }
         Candidate candidate = candidates.top();
         candidates.pop();
         if (candidate.depth >= max_depth) {

@@ -3193,25 +3193,42 @@ void ModelVolume::reset_extra_facets() {
 }
 
 // ---- BBS: best-effort paint re-projection across mesh-rebuilding ops ----------
-void ModelVolume::set_mesh_keep_paint(TriangleMesh &&mesh_in)
+bool ModelVolume::set_mesh_keep_paint(TriangleMesh &&mesh_in,
+                                      const std::function<void(int, const char *)> &progress,
+                                      const std::function<bool()> &cancel)
 {
     // Repair rebuilds the triangulation in place: the old and new meshes share the
     // volume-local frame, so re-project the four painted annotation layers onto the
     // new mesh with area-error driven subdivision (nearest source face + nearest 3D
-    // point sampling). Snapshot the source paint before set_mesh() overwrites the
-    // mesh; the annotation members themselves survive set_mesh() and are rebuilt by
-    // reproject_paint_geometric (which resets them first).
-    const TriangleMesh      old_mesh = this->mesh(); // copy before replacing
-    const FacetsAnnotation  old_supported(this->supported_facets);
-    const FacetsAnnotation  old_seam(this->seam_facets);
-    const FacetsAnnotation  old_mmu(this->mmu_segmentation_facets);
-    const FacetsAnnotation  old_fuzzy(this->fuzzy_skin_facets);
+    // point sampling).
+    //
+    // Commit atomically: reproject into temporary annotations against the incoming
+    // mesh WITHOUT touching this volume first, so a cancellation mid-reprojection
+    // leaves the existing mesh and paint completely unchanged (the caller relies on
+    // this for a clean "cancel == revert" behavior).
+    const TriangleMesh     &old_mesh = this->mesh();
+    FacetsAnnotation        new_supported;
+    FacetsAnnotation        new_seam;
+    FacetsAnnotation        new_mmu;
+    FacetsAnnotation        new_fuzzy;
+    const bool completed = reproject_paint_geometric(
+        old_mesh, this->supported_facets, this->seam_facets,
+        this->mmu_segmentation_facets, this->fuzzy_skin_facets,
+        mesh_in, Transform3d::Identity(),
+        new_supported, new_seam, new_mmu, new_fuzzy,
+        progress, cancel);
+    if (!completed)
+        return false;
+
+    // Commit. assign() transfers only the annotation payload and bumps the
+    // timestamp, preserving each layer's stable ObjectID (which the undo/redo
+    // stack keys on) instead of replacing the whole object.
     this->set_mesh(std::move(mesh_in));
-    reproject_paint_geometric(
-        old_mesh, old_supported, old_seam, old_mmu, old_fuzzy,
-        this->mesh(), Transform3d::Identity(),
-        this->supported_facets, this->seam_facets,
-        this->mmu_segmentation_facets, this->fuzzy_skin_facets);
+    this->supported_facets.assign(std::move(new_supported));
+    this->seam_facets.assign(std::move(new_seam));
+    this->mmu_segmentation_facets.assign(std::move(new_mmu));
+    this->fuzzy_skin_facets.assign(std::move(new_fuzzy));
+    return true;
 }
 // ------------------------------------------------------------------------------
 
