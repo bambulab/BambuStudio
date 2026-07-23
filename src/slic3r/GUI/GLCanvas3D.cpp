@@ -2284,7 +2284,7 @@ void GLCanvas3D::append_step_import_to_assembly_tree(const std::vector<StepImpor
 void GLCanvas3D::notify_step_import()
 {
     if (m_assembly_steps)
-        m_assembly_steps->clear_last_recorded_volumes();
+        m_assembly_steps->clear_last_recorded_volumes_guid();
 }
 
 const Selection& GLCanvas3D::get_selection() const
@@ -3232,6 +3232,30 @@ bool GLCanvas3D::can_add_selected_to_assembly_step() const//dont delete
 bool GLCanvas3D::can_add_selected_to_current_assembly_step() const//dont delete
 {
     return m_assembly_steps && m_assembly_steps->can_add_selected_to_current_assembly_step();
+}
+
+bool GLCanvas3D::is_allow_use_gizmo_in_different_view() const
+{
+    // Non-assembly canvases keep normal gizmo behavior.
+    if (m_canvas_type != ECanvasType::CanvasAssembleView || !m_assembly_steps)
+        return true;
+    // OverallPreview: full assemble gizmo set. Normal steps: Move / Rotate only
+    // (via get_special_allow_gizmos).
+    return m_assembly_steps->is_overall_preview_mode() || !get_special_allow_gizmos().empty();
+}
+
+std::vector<int> GLCanvas3D::get_special_allow_gizmos() const
+{
+    std::vector<int> out;
+    // Non-OverallPreview assemble steps: only Move / Rotate.
+    // OverallPreview returns empty so get_selectable_idxs falls back to the
+    // hardcoded assemble list (Move / Rotate / Measure / Assembly / MmuSegmentation).
+    if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps &&
+        !m_assembly_steps->is_overall_preview_mode()) {
+        out.push_back(static_cast<int>(GLGizmosManager::EType::Move));
+        out.push_back(static_cast<int>(GLGizmosManager::EType::Rotate));
+    }
+    return out;
 }
 
 std::vector<std::pair<int, std::string>> GLCanvas3D::assembly_step_choices() const {//dont delete
@@ -9268,11 +9292,10 @@ void GLCanvas3D::_render_main_toolbar()
         return;
     if (is_assembly_play_or_export_mode())
         return;
-    // In assembly view, hide the gizmo toolbar while editing a real step card
-    // (OverallPreview keeps it visible).
-    if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps &&
+    // In assembly view, hide the gizmo toolbar while editing a real step card (OverallPreview keeps it visible).
+    /*if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps &&
         !m_assembly_steps->is_overall_preview_mode())
-        return;
+        return;*/
     const auto& t_camera = get_active_camera();
 
     if (m_canvas_type == ECanvasType::CanvasAssembleView) {

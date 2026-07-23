@@ -88,6 +88,8 @@ struct AssemblyTreeRenderOptions
     bool        allow_volume_check{true};
     // Column: per-part PartNumberLabel visibility (tree_label_visible / unvisible).
     bool        show_label_state{true};
+    // Column: GLVolume vs ModelVolume explosion state (gated by m_view_is_in_explosion_state).
+    bool        show_explosion_state{false};
     // Column: which assembly step the part belongs to (or "Not assembled").
     bool        show_assembly_state{true};
     bool        show_footer{true};
@@ -172,6 +174,8 @@ class AssemblyStepsUtils
     ImTextureID         m_structure_step_delete_all_icon_dark{nullptr};
     ImTextureID         m_structure_step_object_tree_icon{nullptr};
     ImTextureID         m_structure_step_object_tree_icon_dark{nullptr};
+    // Marker shown on an inheriting (child) step card (tree_inheritance.svg).
+    ImTextureID         m_structure_step_inheritance_icon{nullptr};
     // "Add object to step" affordance shown on each step card. Two states:
     ImTextureID         m_structure_step_add_icon_unedit{nullptr};
     ImTextureID         m_structure_step_add_icon_edit{nullptr};
@@ -224,8 +228,15 @@ class AssemblyStepsUtils
     // Exit icon shown to the right of the Add step button row (tree_exit.svg).
     ImTextureID         m_structure_clear_all_icon{nullptr};
     ImTextureID         m_structure_clear_all_icon_dark{nullptr};
+    // Step-merge affordance (tree_merge.svg) replacing the bottom clear-all icon.
+    ImTextureID         m_structure_merge_icon{nullptr};
+    ImTextureID         m_structure_merge_icon_dark{nullptr};
     ImTextureID         m_structure_exit_icon{nullptr};
     ImTextureID         m_structure_exit_icon_dark{nullptr};
+    // Structure-panel multi-step merge mode: cards show checkboxes; footer shows
+    // Select All / Cancel / Confirm instead of Add Step + merge + exit.
+    bool                m_structure_merge_mode{false};
+    std::set<int>       m_structure_merge_checked;
 
     GLVolumeCollection *m_volumes{nullptr};
     Model              *m_model{nullptr};
@@ -351,6 +362,8 @@ class AssemblyStepsUtils
         ImTextureID filter_ok{0};
         ImTextureID label_visible{0};
         ImTextureID label_unvisible{0};
+        ImTextureID explosion{0};
+        ImTextureID explosion_dark{0};
         // Dark-mode variants (light-colored strokes/fills)
         ImTextureID expand_dark{0};
         ImTextureID collapse_dark{0};
@@ -376,9 +389,14 @@ class AssemblyStepsUtils
     bool m_guide_panel_collapsed{false};
     // Add Notes -selected tool: -1=none, 0..N-1 indexes into m_note_tools.
     int m_guide_note_tool_selected{-1};
-    int m_guide_note_color_selected{2};
-    // Background color palette index for TextLabel notes only (default white).
-    int m_guide_note_bg_color_selected{6};
+    // Circle / rect / plain-arrow / ArrowSvg stroke color (default blue #3F82F0, index 3).
+    int m_guide_note_color_selected{3};
+    // TextLabel text color only (default white, kNoteColors index 6).
+    int m_text_note_color_selected{6};
+    // Background color palette index for TextLabel notes only (default blue #3F82F0).
+    int m_guide_note_bg_color_selected{3};
+    // When false (default), hide the TextLabel "Background" color row in Add Notes.
+    bool m_allow_modify_text_note_background{false};
     // Show Part Numbers checkbox state.
     bool                                  m_guide_show_part_numbers{true};
     // Labels-show mode of the currently-selected keyframe; updated on each frame switch.
@@ -403,7 +421,9 @@ class AssemblyStepsUtils
     int                   m_pending_global_frame_index{-1};
     bool                  m_show_video_title_mode{false};
     // When true, keep world axes/grid visible even in play/export mode.
-    bool                  m_force_show_world_axes{true};
+    bool                  m_force_show_world_axes{false};
+    // When true, the assembly tree shows an extra "Explosion" column (debug/opt-in).
+    bool                  m_view_is_in_explosion_state{false};
     // MP4-export-only intro: phase 0 displays the cover title for
     bool                  m_video_intro_active{false};
     int                   m_video_intro_phase{0};
@@ -415,9 +435,25 @@ class AssemblyStepsUtils
     static constexpr double VIDEO_INTRO_STEP_DURATION  = 1.5; // Step 1 title (s)
     bool                  m_in_assembly_view{false};
 
-    int                   m_note_text_focus_request{-1};
-    // When a re-focus is requested to recover from ImGui deactivating the InputText
-    bool                  m_note_text_focus_keep_cursor{false};
+    // Caret state of the text-label notes.
+    struct TextNoteEditState {
+        // Index of the label that must grab the caret on the next frame, -1 when none.
+        int  focus_request{-1};
+        // When a re-focus is requested to recover from ImGui deactivating the InputText
+        bool keep_cursor{false};
+        // True only while the currently-selected text label is in caret/typing mode
+        // (its InputText is the active item). Refreshed every frame by
+        // render_assembly_notes_on_canvas. Used to gate the Delete-key shortcut so a
+        // character delete during typing does not erase the whole label, while still
+        // allowing Delete to remove a selected (non-caret) label even right after it
+        // was dragged/resized (when a handle item may briefly remain active).
+        bool caret_active{false};
+
+        void request_focus(int idx, bool keep_caret) { focus_request = idx; keep_cursor = keep_caret; }
+        void clear_focus_request() { focus_request = -1; keep_cursor = false; }
+        void reset() { clear_focus_request(); caret_active = false; }
+    };
+    TextNoteEditState     m_note_text_edit;
     ImVec2                m_panel_rect_structure_min{0, 0};
     ImVec2                m_panel_rect_structure_max{0, 0};
     ImVec2                m_panel_rect_guide_min{0, 0};
@@ -448,26 +484,17 @@ class AssemblyStepsUtils
     float                 m_export_btn_canvas_w{0.f};
 
     bool m_select_good_camera_layout_laber_after_auto_explode{true};
-    // Deadline after which the "kept whole" tip auto-hides (shown for ~2s).
-    std::chrono::steady_clock::time_point m_explode_collapsed_note_until{};
     // On-demand large-glyph atlas so the title overlay / part-number labels render
     // crisply instead of upscaling the small shared UI font. Built lazily on the GL
     // thread during render; released when leaving the assembly view.
     std::unique_ptr<AssemblyLargeFontCache> m_large_font_cache;
     std::vector<PlayFrameRef> m_play_frame_refs;
     bool                      m_play_frame_refs_dirty{true};
-    std::set<std::string> m_last_recorded_volumes;
+    std::set<std::string> m_last_recorded_volumes_guid;
     int                       m_assembly_play_index{1};
     int                       m_assembly_play_count{0}; // 0 mean dirty
     float                     m_margin_factor_camera_for_not_last_frame{1.4f};
     bool                      m_note_edit_controls_visible{false};
-    // True only while the currently-selected text label is in caret/typing mode
-    // (its InputText is the active item). Refreshed every frame by
-    // render_assembly_notes_on_canvas. Used to gate the Delete-key shortcut so a
-    // character delete during typing does not erase the whole label, while still
-    // allowing Delete to remove a selected (non-caret) label even right after it
-    // was dragged/resized (when a handle item may briefly remain active).
-    bool                      m_note_text_caret_active{false};
     bool                      m_tree_icons_loaded{false};
     bool                      m_playback_paused{false};
     double                    m_playback_pause_started_at{0.0};
@@ -536,6 +563,10 @@ public://logic
     void        on_selected_node_step_changed(int folder_idx);
     void        apply_final_assembly_end_keyframe(bool apply_camera_view = true);
     void        apply_end_keyframe(int folder_idx, bool apply_camera_view = true);
+    // Snap every GLVolume back to Model assemble poses (instance + volume).
+    // Used when leaving a step for OverallPreview so object-level explode cannot
+    // leave stale instance transforms on the canvas.
+    void        apply_model_assemble_transforms_to_canvas();
     // Per-frame edge detector intended for render_main(): when the user goes
     void        auto_apply_final_assembly_on_selection_cleared();
     // Re-map the currently selected step folder + keyframe to its global play-bar
@@ -599,6 +630,30 @@ public://logic
     mutable bool             m_non_final_assembly_step_limit_reached{false};
     void                     add_assembly_step();
     void                     copy_assembly_step();
+    // Inherit the selected step: create a new step right after it whose end frame
+    // (and start frame) copy the parent's end pose, and mark parent object ids as
+    // inherited (kept assembled as a whole during auto-explode).
+    void                     inherit_assembly_step();
+    bool                     can_inherit_selected_assembly_step() const;
+    // True when at least two Normal / FinalAssembly steps exist to merge.
+    bool                     can_enter_structure_merge_mode() const;
+    void                     enter_structure_merge_mode();
+    void                     exit_structure_merge_mode();
+    // Merge currently checked structure-panel steps into a new step placed after
+    // the last checked one. Pose / part-number labels per volume come from the
+    // last checked step that contains that volume (start and end frames separately).
+    // A start frame is created only when at least one source step already has one;
+    // sources without a start frame do not invent one via end-frame fallback.
+    // Annotation notes (circle / clip / text / arrows) are discarded. Camera for
+    // each bookend is captured live from the last checked step's corresponding
+    // frame (same path as timeline viewing, including auto-fit). Selecting every
+    // mergeable step (excluding OverallPreview) yields a FinalAssembly step.
+    void                     merge_checked_assembly_steps();
+    // True when ModelObject index `oi` is an inherited object of step `folder_idx`.
+    bool                     is_object_inherited_in_step(int folder_idx, int oi) const;
+    // For an inheriting (child) step, the current step number of its parent step
+    // (-1 when none / unresolved).
+    int                      inherited_parent_step_number(int child_node_idx) const;
     void                     add_selected_to_new_assembly_step();//Add to New Step
     void                     add_selected_to_current_assembly_step();//Add to Current Step
     void                     add_selected_to_assembly_step(int folder_idx);//Add to Existing Step
@@ -630,7 +685,7 @@ public://logic
                                                     const Geometry::Transformation &transform);
     void                     apply_regular_steps_start_frame_transforms_to_current(bool include_volume_transforms);
     // Patch the currently-selected keyframe's per-object/per-volume
-    void                     apply_final_assembly_end_frame_transforms_to_current_keyframe();
+    void                     apply_final_assembly_to_current_keyframe();
     // Patch the currently-selected keyframe's per-object/per-volume transforms
     // from the given source frame and push the result to the canvas. When
     // restrict_to_filters is true, only objects in object_filter and volumes in
@@ -639,15 +694,15 @@ public://logic
                                                     const std::set<int> &object_filter = {},
                                                     const std::set<std::pair<int, int>> &volume_filter = {},
                                                     bool restrict_to_filters = false);
-    // Copy the final-assembly end frame's transforms into the given target keyframe (data only, no canvas push).
-    void                     apply_final_assembly_end_frame_transforms_to_keyframe(KeyFrameEntry &target);
     // Returns true when the currently-selected keyframe's object/volume transforms
     // match the live assembled pose on m_model (instance/volume assemble transforms).
     // Does not depend on a FinalAssembly step card, which may have been deleted.
-    bool                     current_keyframe_matches_final_assembly_end_frame_transforms() const;
-    // Returns true when the final-assembly end frame recorded exactly the same
-    bool                     final_assembly_end_frame_matches_model() const;
-    void                     clear_last_recorded_volumes() { m_last_recorded_volumes.clear(); }
+    bool                     current_keyframe_matches_final_assembly_transforms() const;
+    // Display names of object/volume poses that differ from the live assembled pose.
+    std::vector<std::string> collect_current_keyframe_assemble_pose_mismatch_names() const;
+    // Returns true when the live model has the same part GUID set captured at load.
+    bool                     loaded_model_structure_matches() const;
+    void                     clear_last_recorded_volumes_guid() { m_last_recorded_volumes_guid.clear(); }
     void                     set_cursor(AssemblyNoteCursorType);
     void                     reset_cursor_if_note_cursor();
     const float              get_imgui_scale() const;
@@ -750,6 +805,7 @@ public://logic
     // Seed a freshly-created step's end frame with the current camera, so switching to
     void                                     seed_end_frame_camera_from_current(int node_idx);
     KeyFrameEntryVector                     *get_current_kf_entries();
+    const KeyFrameEntryVector               *get_current_kf_entries() const;
     void                                     fill_default_transforms(KeyFrameEntry &entry, int object_idx);
     int                                      default_keyframe_index();
     void                                     try_update_selected_keyframe();
@@ -939,6 +995,16 @@ public://imgui
     // Toggle PartNumberLabel::visible for the given tree item on the current keyframe.
     // Object-level (volume_idx < 0) toggles every label of that object together.
     bool toggle_part_number_label_visible(int object_idx, int volume_idx);
+    // True when the live GLVolume assemble matrices differ from ModelObject/ModelVolume
+    // assemble matrices (instance and/or volume). volume_idx < 0 checks the whole object.
+    bool is_glvolume_in_explosion_state(int object_idx, int volume_idx) const;
+    // Toggle explosion for a tree row: when the live GLVolume is exploded, restore
+    // m_model assemble transforms to the canvas + current keyframe and clear the
+    // label marker; otherwise only toggle PartNumberLabel::in_explosion_state.
+    bool toggle_part_number_label_in_explosion_state(int object_idx, int volume_idx);
+    // True when the current keyframe has at least one PartNumberLabel with visible==false.
+    // Used to show the "Reset all closed labels" button in the Label section.
+    bool has_closed_part_number_labels() const;
     // Re-show every closed PartNumberLabel on the current step's current keyframe.
     bool reset_closed_part_number_labels();
     void                     render_main(float canvas_w, float canvas_h);
@@ -1040,7 +1106,7 @@ private://logic
     bool        is_mouse_over_blocking_panel() const;
     void        track_assembly_view_export(ExportType type) const;
     void        reset_state_on_model_changed();
-    void        record_current_model_as_last_final_assembly();
+    void        record_current_model_from_overall_assembly();
 };
 
 } // namespace GUI

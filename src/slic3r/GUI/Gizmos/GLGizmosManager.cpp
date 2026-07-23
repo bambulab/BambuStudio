@@ -35,6 +35,7 @@
 #include "libslic3r/PresetBundle.hpp"
 
 #include <wx/glcanvas.h>
+#include <algorithm>
 
 namespace Slic3r {
 namespace GUI {
@@ -60,6 +61,16 @@ std::vector<size_t> GLGizmosManager::get_selectable_idxs(bool ignore_selectable_
 {
     std::vector<size_t> out;
     if (m_parent.get_canvas_type() == GLCanvas3D::CanvasAssembleView) {
+        // Prefer canvas-provided allow-list (AssembleView -> Move + Rotate).
+        const std::vector<int> special = m_parent.get_special_allow_gizmos();
+        if (!special.empty()) {
+            for (size_t i = 0; i < m_gizmos.size(); ++i) {
+                const int sid = static_cast<int>(m_gizmos[i]->get_sprite_id());
+                if (std::find(special.begin(), special.end(), sid) != special.end())
+                    out.push_back(i);
+            }
+            return out;
+        }
         for (size_t i = 0; i < m_gizmos.size(); ++i)
             if (m_gizmos[i]->get_sprite_id() == (unsigned int) Move ||
                 m_gizmos[i]->get_sprite_id() == (unsigned int) Rotate ||
@@ -1407,8 +1418,6 @@ void GLGizmosManager::add_toolbar_items(const std::shared_ptr<GLToolbar>& p_tool
         return;
     }
 
-    std::vector<size_t> selectable_idxs = get_selectable_idxs();
-
     auto p_gizmo_manager = this;
     for (size_t i = 0; i < m_gizmos.size(); ++i)
     {
@@ -1452,9 +1461,12 @@ void GLGizmosManager::add_toolbar_items(const std::shared_ptr<GLToolbar>& p_tool
         item.pressed_recheck_callback = [p_gizmo_manager, t_type]()->bool {
             return p_gizmo_manager->m_current == t_type;
         };
-        const bool b_is_selectable = (std::find(selectable_idxs.begin(), selectable_idxs.end(), idx) != selectable_idxs.end());
-        item.visibility_callback = [p_gizmo_manager, idx, b_is_selectable]()->bool {
-            bool rt = b_is_selectable;
+        // Re-query selectable idxs each frame so OverallPreview's special allow-list
+        // (Move / Rotate) can show/hide without rebuilding the toolbar.
+        item.visibility_callback = [p_gizmo_manager, idx]()->bool {
+            const std::vector<size_t> selectable_idxs = p_gizmo_manager->get_selectable_idxs();
+            bool rt = std::find(selectable_idxs.begin(), selectable_idxs.end(), idx) !=
+                      selectable_idxs.end();
             if (idx == EType::Svg) {
                 rt = rt && (p_gizmo_manager->m_current == EType::Svg);
             }
@@ -1463,7 +1475,7 @@ void GLGizmosManager::add_toolbar_items(const std::shared_ptr<GLToolbar>& p_tool
             }
             return rt;
         };
-        item.visible = b_is_selectable;
+        item.visible = true;
         p_toolbar->add_item(item);
     }
 }

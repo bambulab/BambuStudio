@@ -309,6 +309,7 @@ void PartNumberLabel::to_json(nlohmann::json &j) const
     j["arrow_start_offset"] = {arrow_start_offset.x(), arrow_start_offset.y()};
     j["arrow_end_offset"]   = {arrow_end_offset.x(), arrow_end_offset.y()};
     j["visible"]            = visible;
+    j["in_explosion_state"] = in_explosion_state;
 }
 
 void PartNumberLabel::from_json(const nlohmann::json &j)
@@ -322,6 +323,9 @@ void PartNumberLabel::from_json(const nlohmann::json &j)
     // Default true for legacy JSON that predates the per-label switch.
     if (!json_get_bool(j, "visible", visible))
         visible = true;
+    // Default false for legacy JSON that predates the explosion column.
+    if (!json_get_bool(j, "in_explosion_state", in_explosion_state))
+        in_explosion_state = false;
 }
 
 // ---- AssemblyNote ----
@@ -622,6 +626,14 @@ void AssembleSub::to_json(nlohmann::json &j) const
         j["id"] = id;
     j["step"] = step;
     j["is_final_assembly"] = is_final_assembly;
+    if (inherited_from_step_id >= 0)
+        j["inherited_from_step_id"] = inherited_from_step_id;
+    if (!inherited_object_ids.empty()) {
+        nlohmann::json arr = nlohmann::json::array();
+        for (size_t oid : inherited_object_ids)
+            arr.push_back(oid);
+        j["inherited_object_ids"] = std::move(arr);
+    }
     if (assembly_tree_checked) {
         nlohmann::json checked = nlohmann::json::object();
         for (const auto& item : *assembly_tree_checked)
@@ -644,6 +656,17 @@ void AssembleSub::from_json(const nlohmann::json &j)
     json_get_int(j, "id", id);
     json_get_int(j, "step", step);
     json_get_assembly_step_kind(j, "is_final_assembly", is_final_assembly);
+    inherited_from_step_id = -1;
+    json_get_int(j, "inherited_from_step_id", inherited_from_step_id);
+    inherited_object_ids.clear();
+    if (j.contains("inherited_object_ids") && j["inherited_object_ids"].is_array()) {
+        for (const auto &v : j["inherited_object_ids"]) {
+            if (v.is_number_unsigned())
+                inherited_object_ids.push_back(v.get<size_t>());
+            else if (v.is_number_integer())
+                inherited_object_ids.push_back(static_cast<size_t>(v.get<long long>()));
+        }
+    }
     assembly_tree_checked.reset();
     if (j.contains("assembly_tree_checked") && j["assembly_tree_checked"].is_object()) {
         assembly_tree_checked.emplace();
@@ -808,6 +831,8 @@ std::string AssemblyStepsTreeData::to_json_string() const
             sub->is_final_assembly = node.is_final_assembly;
             sub->id                = node.id;
             sub->step              = node.step;
+            sub->inherited_from_step_id = node.inherited_from_step_id;
+            sub->inherited_object_ids   = node.inherited_object_ids;
             sub->assembly_tree_checked = node.assembly_tree_checked;
             // Mirror legacy AssemblyStepsUtils::build_steps_json_string — all entries
             for (const auto& kf : node.kf_data.entries)
@@ -1015,6 +1040,8 @@ bool AssemblyStepsTreeData::from_json_string(
                 folder.step            = sub->step;
                 folder.name            = sub->name;
                 folder.is_final_assembly = sub->is_final_assembly;
+                folder.inherited_from_step_id = sub->inherited_from_step_id;
+                folder.inherited_object_ids   = sub->inherited_object_ids;
                 folder.assembly_tree_checked = sub->assembly_tree_checked;
                 folder.kf_data.node_idx   = folder_idx;
                 folder.kf_data.object_idx = folder.object_idx;
@@ -1080,59 +1107,12 @@ bool AssemblyStepsTreeData::from_json_string(
                 continue;
             for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
                 const ModelVolume *volume = obj->volumes[vi];
-                if (volume)
+                if (volume && volume->is_model_part())
                     parsed.loaded_recorded_volumes.insert(volume->ensure_part_guid());
             }
         }
-        // Only trust the snapshot as a baseline when the final-assembly step's end
-        // frame actually covers the same volumes as the loaded model. If they don't
-        // line up (stale steps data vs model), leave the flag false so the runtime
-        // re-syncs instead of skipping it on this loaded baseline.
-        bool baseline_matches_end_frame = false;
-        {
-            const KeyFrame *end_kf = nullptr;
-            int preview_idx = -1;
-            int final_idx   = -1;
-            for (int i = 0; i < (int) parsed.nodes.size(); ++i) {
-                const auto &node = parsed.nodes[i];
-                if (node.type != AssemblyStepsTreeNode::Type::Folder)
-                    continue;
-                if (node.is_final_assembly == AssemblyStepKind::OverallPreview)
-                    preview_idx = i;
-                else if (node.is_final_assembly == AssemblyStepKind::FinalAssembly)
-                    final_idx = i;
-            }
-            const int assembled_idx = final_idx >= 0 ? final_idx : preview_idx;
-            if (assembled_idx >= 0) {
-                for (const auto &e : parsed.nodes[assembled_idx].kf_data.entries) {
-                    if (e.is_last()) {
-                        end_kf = &e.data;
-                        break;
-                    }
-                }
-            }
-            if (end_kf != nullptr) {
-                // Resolve the end frame's index-keyed pose maps into part GUIDs.
-                std::set<std::string> end_volumes;
-                bool keys_valid = true;
-                for (const auto &p : end_kf->volume_transformations) {
-                    const int oi = p.first.first;
-                    const int vi = p.first.second;
-                    if (oi < 0 || oi >= object_count || model.objects[oi] == nullptr ||
-                        vi < 0 || vi >= (int) model.objects[oi]->volumes.size() ||
-                        model.objects[oi]->volumes[vi] == nullptr) {
-                        keys_valid = false;
-                        break;
-                    }
-                    end_volumes.insert(model.objects[oi]->volumes[vi]->ensure_part_guid());
-                }
-                if (keys_valid &&
-                    end_volumes == parsed.loaded_recorded_volumes) {
-                    baseline_matches_end_frame = true;
-                }
-            }
-        }
-        parsed.has_loaded_recorded_baseline = baseline_matches_end_frame;
+        // As long as it's read from JSON, it's definitely a new project.
+        parsed.has_loaded_recorded_baseline = true;
 
         tree = std::move(parsed);
         return true;

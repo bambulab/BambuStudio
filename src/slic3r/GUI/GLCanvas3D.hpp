@@ -1093,6 +1093,14 @@ public:
     bool prepare_assembly_steps_for_project_save();
     bool can_add_selected_to_assembly_step() const;
     bool can_add_selected_to_current_assembly_step() const;
+    // Assemble view: OverallPreview uses the full assemble gizmo set; normal step
+    // cards use get_special_allow_gizmos() (Move / Rotate).
+    bool is_allow_use_gizmo_in_different_view() const;
+    // Optional override of the AssembleView selectable gizmo set (EType values).
+    // Non-empty => GLGizmosManager::get_selectable_idxs uses this list instead of
+    // the hardcoded assemble defaults. Non-OverallPreview returns Move + Rotate;
+    // OverallPreview returns empty (fallback to Move/Rotate/Measure/Assembly/Mmu).
+    std::vector<int> get_special_allow_gizmos() const;
     std::vector<std::pair<int, std::string>> assembly_step_choices() const;
     void add_selected_to_new_assembly_step();
     void add_selected_to_current_assembly_step();

@@ -9342,21 +9342,29 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 if (type_step && !model.step_import_tree_nodes.empty() && !loaded_idxs.empty()) {
                     BOOST_LOG_TRIVIAL(info) << "STEP import: forward tree to assemble canvas, node_count=" << model.step_import_tree_nodes.size()
                                             << ", loaded_object_count=" << loaded_idxs.size();
-                    if (GLCanvas3D *assemble_canvas = q->get_assmeble_canvas3D()) {
-                        assemble_canvas->append_step_import_to_assembly_tree(model.step_import_tree_nodes, loaded_idxs, model.step_import_path);
-                    }
                     // A STEP import establishes an assembly structure up front. Capture it into the
                     // independent assembly model BEFORE the prepare-side merge below, so the assembly
                     // model / tree keeps each STEP part as its own object (pre-merge structure).
                     // First STEP: full derive. Later STEPs: the model already exists, so append the
                     // just-loaded (still separate) objects instead of skipping -- otherwise a second STEP
                     // import is never captured and its assembly objects are lost.
+                    //
+                    // Derive/sync MUST happen before seeding steps. After visiting assemble view the
+                    // canvas stays bound to m_assemble_model; new_project clears that model's objects
+                    // but leaves the binding. Seeding first would write into an empty model (or into
+                    // the prepare model on a cold start) and then be wiped by `m_assemble_model = model`.
                     if (!m_assemble_model_valid)
                         derive_assemble_model();//step import first
                     else
                         sync_assemble_model_on_enter(loaded_idxs);
-                    if (GLCanvas3D *ac = q->get_assmeble_canvas3D())
-                         ac->notify_step_import();
+                    if (GLCanvas3D *assemble_canvas = q->get_assmeble_canvas3D()) {
+                        assemble_canvas->set_model(&m_assemble_model);
+                        assemble_canvas->append_step_import_to_assembly_tree(model.step_import_tree_nodes, loaded_idxs, model.step_import_path);
+                        assemble_canvas->notify_step_import();
+                    }
+                    // Keep prepare-side JSON/tree in sync so save without re-entering assemble view
+                    // still persists the auto-seeded steps.
+                    sync_assemble_steps_to_main_model();
                     // Now merge the objects brought in by THIS STEP import into a single multipart object on
                     auto is_split_compound = wxGetApp().app_config->get_bool("is_split_compound");
                     need_show_sole_text_notice = is_split_compound;

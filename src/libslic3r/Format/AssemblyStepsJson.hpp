@@ -36,7 +36,8 @@ struct ArrowSvgNote
     std::string svg_name{};
     // Shared icon size / tint for every ray of this note.
     Vec2d              label_size{Vec2d(56, 56)};
-    std::array<int, 4> color{0, 200, 80, 230};
+    // Default #3F82F0 (matches the blue swatch in the note color palette).
+    std::array<int, 4> color{63, 130, 240, 255};
     // One ray per pointed part when created from a multi-selection. Always non-empty
     // after from_json() (legacy single-arrow JSON is expanded into rays[0]).
     // All rays share one SVG; rays[0] is the canonical icon-position owner.
@@ -53,9 +54,9 @@ struct TextLabelNote
     std::vector<std::pair<int, int>> bound_volumes{};
     Vec2d       pos_offset{Vec2d(60, -60)};
     Vec2d       size{Vec2d(160, 80)};
-    std::array<int, 4> color{38, 46, 48, 255};
-    // Alpha 217 (~0.85) keeps the historic semi-transparent white look used
-    std::array<int, 4> background_color{255, 255, 255, 255};
+    std::array<int, 4>               color{255, 255, 255, 255};
+    // Default #3F82F0 (matches the blue swatch in the note color palette).
+    std::array<int, 4> background_color{63, 130, 240, 255};
 
     void to_json(nlohmann::json &j) const;
     void from_json(const nlohmann::json &j);
@@ -67,7 +68,8 @@ struct CircleNote
     std::vector<std::pair<int, int>> bound_volumes{};
     Vec2d pos_offset{Vec2d(60, -60)};
     Vec2d size{Vec2d(80, 80)};
-    std::array<int, 4> color{0, 200, 80, 230};
+    // Default #3F82F0 (matches the blue swatch in the note color palette).
+    std::array<int, 4> color{63, 130, 240, 255};
 
     void to_json(nlohmann::json &j) const;
     void from_json(const nlohmann::json &j);
@@ -79,7 +81,8 @@ struct RectangleNote
     std::vector<std::pair<int, int>> bound_volumes{};
     Vec2d pos_offset{Vec2d(60, -60)};
     Vec2d size{Vec2d(80, 80)};
-    std::array<int, 4> color{0, 200, 80, 230};
+    // Default #3F82F0 (matches the blue swatch in the note color palette).
+    std::array<int, 4> color{63, 130, 240, 255};
 
     void to_json(nlohmann::json &j) const;
     void from_json(const nlohmann::json &j);
@@ -91,7 +94,8 @@ struct PlainArrowNote
     std::vector<std::pair<int, int>> bound_volumes{};
     Vec2d arrow_start_offset{Vec2d::Zero()};
     Vec2d arrow_end_offset{Vec2d(80, -60)};
-    std::array<int, 4> color{0, 200, 80, 230};
+    // Default #3F82F0 (matches the blue swatch in the note color palette).
+    std::array<int, 4> color{63, 130, 240, 255};
 
     void to_json(nlohmann::json &j) const;
     void from_json(const nlohmann::json &j);
@@ -108,6 +112,9 @@ struct PartNumberLabel
     // Per-label visibility on the canvas / tree "标签" column. Closing the pill
     // sets this false; the label entry is kept so the tree can show the off state.
     bool        visible{true};
+    // Per-label explosion marker for the tree "Explosion" column. Live display still
+    // prefers GLVolume vs ModelVolume matrix compare; this flag is persisted/toggled.
+    bool        in_explosion_state{false};
 
     void to_json(nlohmann::json &j) const;
     void from_json(const nlohmann::json &j);
@@ -231,6 +238,12 @@ struct AssembleSub : public AssembleBaseInfo
     // See AssemblyStepKind. Legacy bool JSON true maps to FinalAssembly (1).
     // OverallPreview (2) is runtime UI-only and is never written to / read from JSON.
     int is_final_assembly{AssemblyStepKind::Normal};
+    // Inheritance: source (parent) step id this step inherited from (-1 == none),
+    // resolved by id so it survives step reordering.
+    int inherited_from_step_id{-1};
+    // Stable ModelObject ids inherited from the parent step; these explode at
+    // Object granularity (never split into parts) in this step.
+    std::vector<size_t> inherited_object_ids;
     std::vector<std::shared_ptr<AssembleBaseInfo>> children;
     std::optional<std::unordered_map<std::string, bool>> assembly_tree_checked;
 
@@ -289,6 +302,11 @@ struct AssemblyStepsTreeNode
     // See AssemblyStepKind. Legacy bool JSON true maps to FinalAssembly (1).
     // OverallPreview (2) is runtime UI-only and is never written to / read from JSON.
     int              is_final_assembly{AssemblyStepKind::Normal};
+    // Inheritance (Folder only): id of the parent step this step inherited from
+    // (-1 == none), plus the inherited ModelObject ids that must explode at
+    // Object granularity. See AssembleSub for the serialized counterparts.
+    int                 inherited_from_step_id{-1};
+    std::vector<size_t> inherited_object_ids;
     std::vector<int> children; // indices into nodes
     // Optional left-side assembly tree checkbox state for this step folder.
     std::optional<std::unordered_map<std::string, bool>> assembly_tree_checked;
