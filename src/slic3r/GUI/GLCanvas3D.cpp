@@ -3977,6 +3977,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             bool mix_pla_and_petg = cur_plate->check_mixture_of_pla_and_petg(full_config_temp);
             _set_warning_notification(EWarning::MixUsePLAAndPETG, !mix_pla_and_petg);
 
+            _update_brittle_filament_warning(cur_plate, full_config_temp);
+
             bool multi_filament_with_wipe_tower = cur_plate->check_multi_filament_without_prime_tower(full_config_temp);
             _set_warning_notification(EWarning::MultiFilaNoWipeTower, !multi_filament_with_wipe_tower);
 
@@ -4013,6 +4015,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
            _set_warning_notification(EWarning::TPUPrintableError, false);
            _set_warning_notification(EWarning::FilamentPrintableError, false);
            _set_warning_notification(EWarning::MixUsePLAAndPETG, false);
+           _set_warning_notification(EWarning::BrittleFilament, false);
            _set_warning_notification(EWarning::MultiFilaNoWipeTower, false);
            _set_warning_notification(EWarning::PrimeTowerOutside, false);
            _set_warning_notification(EWarning::MultiExtruderPrintableError,false);
@@ -13454,6 +13457,12 @@ void GLCanvas3D::_render_custom_thumbnail_internal(ThumbnailData &              
     BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: finished");
 }
 
+void GLCanvas3D::_update_brittle_filament_warning(PartPlate *plate, const DynamicPrintConfig &config)
+{
+    bool brittle_present = plate != nullptr && plate->check_brittle_filament(config);
+    _set_warning_notification(EWarning::BrittleFilament, brittle_present);
+}
+
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 {
     using NotificationLevel = NotificationManager::NotificationLevel;
@@ -13646,6 +13655,10 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::MixUsePLAAndPETG:
         text = _u8L("PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality.");
         break;
+    case EWarning::BrittleFilament:
+        text = _u8L("Detected brittle filament (e.g., PPS-CF). Please place the models at the center of the heated bed. Printing near the edge may cause the filament to bend "
+                    "excessively and break inside the tube.");
+        break;
     case EWarning::MultiFilaNoWipeTower:
         text = _u8L("The prime tower improves multi-color print quality and is recommended.");
         break;
@@ -13709,6 +13722,15 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             }
             else
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLMixUsePLAAndPETG, NotificationLevel::WarningNotificationLevel);
+        } else if (warning == EWarning::BrittleFilament) {
+            if (state) {
+                notification_manager.show_brittle_filament_notification(text, _u8L("Click Wiki for details."), [](wxEvtHandler *) {
+                    // TODO: replace with the real Wiki link once available.
+                    wxGetApp().open_browser_with_warning_dialog(L"https://wiki.bambulab.com/");
+                    return false;
+                });
+            } else
+                notification_manager.close_brittle_filament_notification();
         } else if (warning == EWarning::MultiFilaNoWipeTower) {
             if (state) {
                 notification_manager.push_notification(NotificationType::BBLMultiFilaNoWipeTower, NotificationLevel::HintNotificationLevel, text, _u8L("Jump to: Prime tower"),
@@ -13719,16 +13741,14 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             } else {
                 notification_manager.close_notification_of_type(NotificationType::BBLMultiFilaNoWipeTower);
             }
-        }
-        else if (warning == EWarning::NozzleFilamentIncompatible){
+        } else if (warning == EWarning::NozzleFilamentIncompatible) {
             if(state){
                 notification_manager.push_slicing_customize_error_notification(NotificationType::BBLNozzleFilamentIncompatible, NotificationLevel::WarningNotificationLevel, text);
             }
             else{
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLNozzleFilamentIncompatible, NotificationLevel::WarningNotificationLevel);
             }
-        }
-        else if (warning == EWarning::TpuNozzleMultipleFilaments) {
+        } else if (warning == EWarning::TpuNozzleMultipleFilaments) {
             if (state) {
                 notification_manager.push_slicing_customize_error_notification(NotificationType::BBLTpuNozzleHasMultiFilament, NotificationLevel::WarningNotificationLevel, text);
             } else {
@@ -13740,8 +13760,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             } else {
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLPrintedWeightOverLimitWarn, NotificationLevel::WarningNotificationLevel);
             }
-        }
-        else if (warning == EWarning::HighTempNeedWrappingDetection) {
+        } else if (warning == EWarning::HighTempNeedWrappingDetection) {
             if (state) {
                 notification_manager.push_slicing_customize_error_notification(NotificationType::BBLHighTempNeedWrappingDetection, NotificationLevel::WarningNotificationLevel, text,
                     _u8L("Enable Clumping Detection"),
@@ -13758,8 +13777,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             } else {
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLHighTempNeedWrappingDetection, NotificationLevel::WarningNotificationLevel);
             }
-        }
-        else if (warning == EWarning::SingleExtruderMixedFilament) {
+        } else if (warning == EWarning::SingleExtruderMixedFilament) {
             if (state) {
                 notification_manager.push_slicing_customize_error_notification(
                     NotificationType::BBLSingleExtruderMixedFilamentRisk,
@@ -13770,8 +13788,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                     NotificationType::BBLSingleExtruderMixedFilamentRisk,
                     NotificationLevel::WarningNotificationLevel);
             }
-        }
-        else {
+        } else {
             if (state)
                 notification_manager.push_plater_warning_notification(text);
             else

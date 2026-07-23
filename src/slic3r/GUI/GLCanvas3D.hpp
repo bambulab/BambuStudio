@@ -61,6 +61,7 @@ namespace gcode {
     class GCodeViewer;
 };
 class PartPlateList;
+class PartPlate;
 class OpenGLManager;
 class GLToolbar;
 class GLToolbarItem;
@@ -407,10 +408,10 @@ class GLCanvas3D
         TPUPrintableError,
         FilamentPrintableError,
         PrintedWeightOverLimitWarn,
-        LeftExtruderPrintableError, // before slice
+        LeftExtruderPrintableError,  // before slice
         RightExtruderPrintableError, // before slice
-        MultiExtruderPrintableError,      // after slice
-        MultiExtruderHeightOutside,       // after slice
+        MultiExtruderPrintableError, // after slice
+        MultiExtruderHeightOutside,  // after slice
         FilamentUnPrintableOnFirstLayer,
         MixUsePLAAndPETG,
         MultiFilaNoWipeTower,
@@ -422,7 +423,8 @@ class GLCanvas3D
         FilamentNozzleFlowIncompatible,
         TpuNozzleMultipleFilaments,
         HighTempNeedWrappingDetection,
-        SingleExtruderMixedFilament
+        SingleExtruderMixedFilament,
+        BrittleFilament
     };
 
     class RenderStats
@@ -1431,6 +1433,9 @@ private:
 
     // generates a warning notification containing the given message
     void _set_warning_notification(EWarning warning, bool state);
+
+    // BBS: show the brittle-filament warning
+    void _update_brittle_filament_warning(PartPlate *plate, const DynamicPrintConfig &config);
 
     bool is_flushing_matrix_error();
     bool _is_any_volume_outside() const;

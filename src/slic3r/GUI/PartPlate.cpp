@@ -1757,6 +1757,22 @@ bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
     return true;
 }
 
+bool PartPlate::check_brittle_filament(const DynamicPrintConfig &config) const
+{
+    const ConfigOptionStrings *filament_types = config.option<ConfigOptionStrings>("filament_type");
+    if (filament_types == nullptr) return false;
+
+    for (int filament_idx : get_extruders(true)) {
+        int filament_id = filament_idx - 1;
+        if (filament_id < 0 || filament_id >= (int) filament_types->values.size()) continue;
+
+        const std::string &filament_type = filament_types->values.at(filament_id);
+        if (filament_type == "PPS-CF" || filament_type == "PPA-CF") return true;
+    }
+
+    return false;
+}
+
 bool PartPlate::check_mixture_filament_compatible(const DynamicPrintConfig &config, std::string &error_msg)
 {
     static std::unordered_map<std::string, std::unordered_set<std::string>> incompatible_filament_pairs;

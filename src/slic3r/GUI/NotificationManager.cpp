@@ -1910,6 +1910,35 @@ void NotificationManager::close_slicing_customize_error_notification(Notificatio
     }
 }
 
+void NotificationManager::show_brittle_filament_notification(const std::string &text, const std::string &hypertext, std::function<bool(wxEvtHandler *)> callback)
+{
+    static bool s_user_dismissed = false;
+    if (s_user_dismissed) return;
+
+    // Already showing: nothing to do (avoids re-pushing every frame).
+    for (const std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+        if (notification->get_type() == NotificationType::BBLBrittleFilament && !notification->is_finished())
+            return;
+    }
+
+    NotificationData data{NotificationType::BBLBrittleFilament, NotificationLevel::WarningNotificationLevel, 0, _u8L("Warning:") + "\n" + text, hypertext, callback};
+    auto             notification = std::make_unique<PlaterWarningNotification>(data, m_id_provider, m_evt_handler);
+    notification->set_delete_callback([this](PopNotification *n) {
+        s_user_dismissed                = true;
+        m_to_delete_after_finish_render = n;
+    });
+    push_notification_data(std::move(notification), 0);
+}
+
+void NotificationManager::close_brittle_filament_notification()
+{
+    // Programmatic teardown (brittle filament no longer in use): real_close() genuinely
+    // removes it, unlike a user close which only hides it.
+    for (std::unique_ptr<PopNotification> &notification : m_pop_notifications)
+        if (notification->get_type() == NotificationType::BBLBrittleFilament)
+            dynamic_cast<PlaterWarningNotification *>(notification.get())->real_close();
+}
+
 void NotificationManager::push_assembly_warning_notification(const std::string& text)
 {
     NotificationData data{ NotificationType::AssemblyWarning, NotificationLevel::WarningNotificationLevel, 0,  _u8L("Warning:") + "\n" + text };
