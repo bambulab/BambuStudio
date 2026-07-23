@@ -107,22 +107,18 @@ void DevAmsRfidRefreshCtrl::Detach()
 
 DevAmsRfidProbeStatus DevAmsRfidRefreshCtrl::ParseProbeReply(const nlohmann::json &reply)
 {
-    if (!reply.contains("try"))
-        return DevAmsRfidProbeStatus::Unavailable;
-
-    const auto &value = reply["try"];
-    if (value.is_boolean())
-        return value.get<bool>() ? DevAmsRfidProbeStatus::NeedRefresh : DevAmsRfidProbeStatus::NoRefreshNeeded;
-
-    if (value.is_string()) {
-        std::string text = value.get<std::string>();
-        std::transform(text.begin(), text.end(), text.begin(),
-                       [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
-        if (text == "success")
-            return DevAmsRfidProbeStatus::NeedRefresh;
-        if (text == "fail")
-            return DevAmsRfidProbeStatus::NoRefreshNeeded;
+    if (reply.contains("try") && reply.contains("result")) {
+        const auto& value = reply["result"];
+        if (value.is_string()) {
+            std::string text = value.get<std::string>();
+            std::transform(text.begin(), text.end(), text.begin(), [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+            if (text == "success")
+                return DevAmsRfidProbeStatus::NeedRefresh;
+            if (text == "fail")
+                return DevAmsRfidProbeStatus::NoRefreshNeeded;
+        }
     }
+
     return DevAmsRfidProbeStatus::Unavailable;
 }
 
