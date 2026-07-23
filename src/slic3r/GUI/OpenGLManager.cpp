@@ -515,7 +515,7 @@ void OpenGLManager::get_viewport_size(uint32_t& width, uint32_t& height) const
     height = m_viewport_height;
 }
 
-void OpenGLManager::_bind_frame_buffer(const std::string& name, EMSAAType msaa_type, uint32_t t_width, uint32_t t_height)
+void OpenGLManager::_bind_frame_buffer(const std::string& name, EMSAAType msaa_type, uint32_t t_width, uint32_t t_height, bool depth_texture)
 {
     if (OpenGLManager::s_back_frame == name) {
         const auto current_framebuffer = m_current_binded_framebuffer.lock();
@@ -540,7 +540,7 @@ void OpenGLManager::_bind_frame_buffer(const std::string& name, EMSAAType msaa_t
     t_fb_params.m_width = width;
     t_fb_params.m_height = height;
     t_fb_params.m_msaa = num_samples;
-
+    t_fb_params.m_depth_texture = depth_texture;
     const auto& iter = m_name_to_framebuffer.find(name);
     bool needs_to_recreate = false;
     if (iter == m_name_to_framebuffer.end()) {
@@ -1053,7 +1053,10 @@ FrameBuffer::FrameBuffer(const FrameBufferParams& params)
     : m_width(params.m_width)
     , m_height(params.m_height)
     , m_msaa(params.m_msaa)
+    , m_depth_texture(params.m_depth_texture)
 {
+    if (m_depth_texture)
+        m_blit_option_type = EBlitOptionType::All;
 }
 
 FrameBuffer::~FrameBuffer()
@@ -1068,6 +1071,12 @@ FrameBuffer::~FrameBuffer()
     {
         glDeleteTextures(1, &m_color_texture_id);
         m_color_texture_id = UINT32_MAX;
+    }
+
+    if (UINT32_MAX != m_depth_texture_id)
+    {
+        glsafe(::glDeleteTextures(1, &m_depth_texture_id));
+        m_depth_texture_id = UINT32_MAX;
     }
 
     if (UINT32_MAX != m_depth_rbo_id)
@@ -1144,6 +1153,11 @@ uint32_t FrameBuffer::get_color_texture() const noexcept
     return m_color_texture_id;
 }
 
+uint32_t FrameBuffer::get_depth_texture() const noexcept
+{
+    return m_depth_texture_id;
+}
+
 bool FrameBuffer::is_texture_valid(uint32_t texture_id) const noexcept
 {
     return m_color_texture_id != UINT32_MAX;
@@ -1192,7 +1206,8 @@ bool FrameBuffer::is_format_equal(const FrameBufferParams& params) const
 {
     const bool rt = m_width == params.m_width
         && m_height == params.m_height
-        && m_msaa == params.m_msaa;
+        && m_msaa == params.m_msaa
+        && m_depth_texture == params.m_depth_texture;
     return rt;
 }
 
@@ -1215,21 +1230,98 @@ void FrameBuffer::create_no_msaa_fbo(bool with_depth)
 
     if (with_depth)
     {
-        glsafe(BBS_GL_EXTENSION_FUNC(::glGenRenderbuffers)(1, &m_depth_rbo_id));
-        glsafe(BBS_GL_EXTENSION_FUNC(::glBindRenderbuffer)(BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), m_depth_rbo_id));
-
-        glsafe(BBS_GL_EXTENSION_FUNC(::glRenderbufferStorage)(BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER), GL_DEPTH24_STENCIL8, m_width, m_height));
-
         const auto& gl_info = OpenGLManager::get_gl_info();
-        uint32_t formated_gl_version = gl_info.get_formated_gl_version();
-        if (formated_gl_version < 30)
+        const uint32_t formated_gl_version =
+            gl_info.get_formated_gl_version();
+
+        if (m_depth_texture &&
+            gl_info.is_version_greater_or_equal_to(3, 0))
         {
-            glsafe(::glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, m_depth_rbo_id));
-            glsafe(::glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, m_depth_rbo_id));
+            glsafe(::glGenTextures(1, &m_depth_texture_id));
+            glsafe(::glBindTexture(
+                GL_TEXTURE_2D,
+                m_depth_texture_id));
+
+            glsafe(::glTexImage2D(
+                GL_TEXTURE_2D,
+                0,
+                GL_DEPTH24_STENCIL8,
+                m_width,
+                m_height,
+                0,
+                GL_DEPTH_STENCIL,
+                GL_UNSIGNED_INT_24_8,
+                nullptr));
+
+            glsafe(::glTexParameteri(
+                GL_TEXTURE_2D,
+                GL_TEXTURE_MIN_FILTER,
+                GL_NEAREST));
+            glsafe(::glTexParameteri(
+                GL_TEXTURE_2D,
+                GL_TEXTURE_MAG_FILTER,
+                GL_NEAREST));
+            glsafe(::glTexParameteri(
+                GL_TEXTURE_2D,
+                GL_TEXTURE_WRAP_S,
+                GL_CLAMP_TO_EDGE));
+            glsafe(::glTexParameteri(
+                GL_TEXTURE_2D,
+                GL_TEXTURE_WRAP_T,
+                GL_CLAMP_TO_EDGE));
+            glsafe(::glTexParameteri(
+                GL_TEXTURE_2D,
+                GL_TEXTURE_COMPARE_MODE,
+                GL_NONE));
+
+            glsafe(::glFramebufferTexture2D(
+                GL_FRAMEBUFFER,
+                GL_DEPTH_STENCIL_ATTACHMENT,
+                GL_TEXTURE_2D,
+                m_depth_texture_id,
+                0));
         }
         else
         {
-            glsafe(::glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depth_rbo_id));
+            glsafe(BBS_GL_EXTENSION_FUNC(
+                ::glGenRenderbuffers)(
+                    1,
+                    &m_depth_rbo_id));
+
+            glsafe(BBS_GL_EXTENSION_FUNC(
+                ::glBindRenderbuffer)(
+                    BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER),
+                    m_depth_rbo_id));
+
+            glsafe(BBS_GL_EXTENSION_FUNC(
+                ::glRenderbufferStorage)(
+                    BBS_GL_EXTENSION_PARAMETER(GL_RENDERBUFFER),
+                    GL_DEPTH24_STENCIL8,
+                    m_width,
+                    m_height));
+
+            if (formated_gl_version < 30)
+            {
+                glsafe(::glFramebufferRenderbufferEXT(
+                    GL_FRAMEBUFFER_EXT,
+                    GL_DEPTH_ATTACHMENT_EXT,
+                    GL_RENDERBUFFER_EXT,
+                    m_depth_rbo_id));
+
+                glsafe(::glFramebufferRenderbufferEXT(
+                    GL_FRAMEBUFFER_EXT,
+                    GL_STENCIL_ATTACHMENT_EXT,
+                    GL_RENDERBUFFER_EXT,
+                    m_depth_rbo_id));
+            }
+            else
+            {
+                glsafe(::glFramebufferRenderbuffer(
+                    GL_FRAMEBUFFER,
+                    GL_DEPTH_STENCIL_ATTACHMENT,
+                    GL_RENDERBUFFER,
+                    m_depth_rbo_id));
+            }
         }
     }
 }
@@ -1348,7 +1440,12 @@ OpenGLManager::FrameBufferModifier::FrameBufferModifier(OpenGLManager& ogl_manag
 
 OpenGLManager::FrameBufferModifier::~FrameBufferModifier()
 {
-    m_ogl_manager._bind_frame_buffer(m_frame_buffer_name, m_msaa_type, m_width, m_height);
+    m_ogl_manager._bind_frame_buffer(
+        m_frame_buffer_name,
+        m_msaa_type,
+        m_width,
+        m_height,
+        m_depth_texture);
 }
 
 OpenGLManager::FrameBufferModifier& OpenGLManager::FrameBufferModifier::set_width(uint32_t t_width)
@@ -1360,6 +1457,12 @@ OpenGLManager::FrameBufferModifier& OpenGLManager::FrameBufferModifier::set_widt
 OpenGLManager::FrameBufferModifier& OpenGLManager::FrameBufferModifier::set_height(uint32_t t_height)
 {
     m_height = t_height;
+    return *this;
+}
+
+OpenGLManager::FrameBufferModifier& OpenGLManager::FrameBufferModifier::set_depth_texture(bool enabled)
+{
+    m_depth_texture = enabled;
     return *this;
 }
 

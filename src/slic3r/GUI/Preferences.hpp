@@ -95,7 +95,13 @@ public:
     wxBoxSizer *create_item_region_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
     wxBoxSizer *create_item_language_combobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<const wxLanguageInfo *> vlist);
     wxBoxSizer *create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
-    wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
+    wxBoxSizer *create_item_checkbox(
+        wxString title,
+        wxWindow *parent,
+        wxString tooltip,
+        int padding_left,
+        std::string param,
+        std::function<void(bool)> callback = nullptr);
     wxBoxSizer *create_item_darkmode_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
     void        set_dark_mode();
     wxWindow* create_item_downloads(wxWindow* parent, int padding_left, std::string param);

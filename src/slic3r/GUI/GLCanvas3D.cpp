@@ -2759,6 +2759,52 @@ void GLCanvas3D::render(bool only_init)
     if (only_init)
         return;
 
+    // Limit only interactive 3D and Preview canvases. The Assembly
+    // canvas owns frame-sensitive video and PDF capture workflows.
+    if (
+        m_canvas_type != ECanvasType::CanvasAssembleView &&
+        wxGetApp().app_config != nullptr)
+    {
+        const int frame_rate_limit = std::clamp(
+            std::atoi(
+                wxGetApp().app_config
+                    ->get(SETTING_OPENGL_FRAME_RATE_LIMIT)
+                    .c_str()),
+            0,
+            240);
+
+        if (
+            frame_rate_limit > 0 &&
+            m_last_present_time !=
+                std::chrono::steady_clock::time_point{})
+        {
+            const auto minimum_frame_duration =
+                std::chrono::microseconds(
+                    1000000 / frame_rate_limit);
+
+            const auto elapsed =
+                std::chrono::steady_clock::now() -
+                m_last_present_time;
+
+            if (elapsed < minimum_frame_duration) {
+                const auto remaining_us =
+                    std::chrono::duration_cast<
+                        std::chrono::microseconds>(
+                            minimum_frame_duration - elapsed)
+                        .count();
+
+                const int remaining_ms = std::max(
+                    1,
+                    static_cast<int>(
+                        (remaining_us + 999) / 1000));
+
+                m_dirty = true;
+                schedule_extra_frame(remaining_ms);
+                return;
+            }
+        }
+    }
+
 #if ENABLE_ENVIRONMENT_MAP
     if (wxGetApp().is_editor())
         wxGetApp().plater()->init_environment_texture();
@@ -2840,20 +2886,82 @@ void GLCanvas3D::render(bool only_init)
         }
     }
 
-    const bool off_screen_rendering_enabled = ogl_manager.is_fxaa_enabled();
+    const bool realistic_ssao_enabled =
+        m_canvas_type == ECanvasType::CanvasView3D &&
+        _get_current_render_stage() ==
+            GUI::ERenderPipelineStage::Normal &&
+        !m_gizmos.is_paint_gizmo() &&
+        OpenGLManager::get_gl_info()
+            .is_version_greater_or_equal_to(3, 1) &&
+        wxGetApp().app_config != nullptr &&
+        wxGetApp().app_config->get_bool(
+            SETTING_OPENGL_REALISTIC_MODE) &&
+        wxGetApp().app_config->get_bool(
+            SETTING_OPENGL_REALISTIC_PHONG) &&
+        wxGetApp().app_config->get_bool(
+            SETTING_OPENGL_PHONG_SSAO) &&
+        wxGetApp().get_shader("phong") != nullptr &&
+        wxGetApp().get_shader("ssao") != nullptr;
 
-    if (m_picking_enabled && EPickingEffect::Silhouette == picking_effect) {
+    const bool cast_shadows_enabled =
+        m_canvas_type == ECanvasType::CanvasView3D &&
+        _get_current_render_stage() ==
+            GUI::ERenderPipelineStage::Normal &&
+        camera.is_looking_downward() &&
+        !m_gizmos.is_paint_gizmo() &&
+        wxGetApp().app_config != nullptr &&
+        wxGetApp().app_config->get_bool(
+            SETTING_OPENGL_REALISTIC_MODE) &&
+        wxGetApp().app_config->get_bool(
+            SETTING_OPENGL_REALISTIC_PHONG) &&
+        wxGetApp().app_config->get_bool(
+            SETTING_OPENGL_PHONG_BASIC_PLATE_SHADOWS) &&
+        wxGetApp().get_shader("plate_shadow") != nullptr;
+
+    const bool build_plate_reflections_enabled =
+        m_canvas_type == ECanvasType::CanvasView3D &&
+        _get_current_render_stage() ==
+            GUI::ERenderPipelineStage::Normal &&
+        camera.is_looking_downward() &&
+        !m_gizmos.is_paint_gizmo() &&
+        wxGetApp().app_config != nullptr &&
+        wxGetApp().app_config->get_bool(
+            SETTING_OPENGL_REALISTIC_MODE) &&
+        wxGetApp().app_config->get_bool(
+            SETTING_OPENGL_REALISTIC_PHONG) &&
+        wxGetApp().app_config->get_bool(
+            SETTING_OPENGL_PHONG_BUILD_PLATE_REFLECTIONS) &&
+        wxGetApp().get_shader("plate_reflection") != nullptr;
+
+    const bool off_screen_rendering_enabled =
+        ogl_manager.is_fxaa_enabled() ||
+        realistic_ssao_enabled;
+
+    if (m_picking_enabled &&
+        EPickingEffect::Silhouette == picking_effect) {
         _render_silhouette_effect();
     }
 
     std::string write_to_framebuffer_name{};
+
     if (off_screen_rendering_enabled) {
         write_to_framebuffer_name = "mainframe";
-        OpenGLManager::FrameBufferModifier main_frame(ogl_manager, write_to_framebuffer_name, ogl_manager.get_msaa_type());
+
+        OpenGLManager::FrameBufferModifier main_frame(
+            ogl_manager,
+            write_to_framebuffer_name,
+            ogl_manager.get_msaa_type());
+
+        main_frame.set_depth_texture(
+            realistic_ssao_enabled);
     }
     else {
-        write_to_framebuffer_name = OpenGLManager::s_back_frame;
-        OpenGLManager::FrameBufferModifier main_frame(ogl_manager, write_to_framebuffer_name);
+        write_to_framebuffer_name =
+            OpenGLManager::s_back_frame;
+
+        OpenGLManager::FrameBufferModifier main_frame(
+            ogl_manager,
+            write_to_framebuffer_name);
     }
 
 #if ENABLE_RENDER_PICKING_PASS
@@ -2890,17 +2998,28 @@ void GLCanvas3D::render(bool only_init)
     int hover_id = (m_hover_plate_idxs.size() > 0) ? m_hover_plate_idxs.front() : -1;
     bool b_with_stencil_outline = !m_gizmos.is_running() && (EPickingEffect::StencilOutline == picking_effect);
     if (m_canvas_type == ECanvasType::CanvasView3D) {
-        //BBS: add outline logic
-        _render_objects(m_volumes,GLVolumeCollection::ERenderType::Opaque, b_with_stencil_outline);
-        if (!m_paint_outline_volumes.empty()) {
-            _render_objects(m_paint_outline_volumes, GLVolumeCollection::ERenderType::Opaque, b_with_stencil_outline,true);
-        }
-        _render_sla_slices();
-        _render_selection();
+        // Render the plate first so the depth buffer can mask the realistic
+        // reflection and cast-shadow passes.
         if (!no_partplate)
             _render_bed(!camera.is_looking_downward(), show_axes);
         if (!no_partplate) //BBS: add outline logic
             _render_platelist(!camera.is_looking_downward(), only_current, only_body, hover_id, true, show_grid);
+
+        if (!no_partplate && build_plate_reflections_enabled)
+            _render_build_plate_reflections(camera);
+        if (!no_partplate && cast_shadows_enabled)
+            _render_cast_shadows_on_plate(camera);
+
+        // Draw opaque geometry after the plate effects so real objects always
+        // occlude their own reflections and shadows.
+        _render_objects(m_volumes, GLVolumeCollection::ERenderType::Opaque, b_with_stencil_outline);
+        if (!m_paint_outline_volumes.empty()) {
+            _render_objects(m_paint_outline_volumes, GLVolumeCollection::ERenderType::Opaque, b_with_stencil_outline, true);
+        }
+
+        _render_sla_slices();
+        _render_selection();
+
         _render_objects(m_volumes, GLVolumeCollection::ERenderType::Transparent, b_with_stencil_outline);
         _render_objects(m_paint_outline_volumes, GLVolumeCollection::ERenderType::Transparent, b_with_stencil_outline, true);
     }
@@ -2944,7 +3063,19 @@ void GLCanvas3D::render(bool only_init)
     _render_selection_sidebar_hints();
     _render_current_gizmo();
 
-    _rebuild_postprocessing_pipeline(p_ogl_manager, write_to_framebuffer_name, OpenGLManager::s_back_frame, viewport[2], viewport[3]);
+    if (realistic_ssao_enabled) {
+        _render_normal_buffer(ogl_manager, viewport[2], viewport[3]);
+    }
+
+    _rebuild_postprocessing_pipeline(
+        p_ogl_manager,
+        write_to_framebuffer_name,
+        OpenGLManager::s_back_frame,
+        viewport[2],
+        viewport[3],
+        realistic_ssao_enabled,
+        static_cast<float>(camera.get_near_z()),
+        static_cast<float>(camera.get_far_z()));
 
 #if ENABLE_RENDER_PICKING_PASS
     }
@@ -2958,6 +3089,60 @@ void GLCanvas3D::render(bool only_init)
 
     // draw overlays
     _render_overlays();
+
+    if (
+        m_canvas_type != ECanvasType::CanvasAssembleView &&
+        wxGetApp().app_config != nullptr &&
+        wxGetApp().app_config->get_bool(
+            SETTING_OPENGL_SHOW_FPS))
+    {
+        const Size canvas_size = get_canvas_size();
+        ImGuiWrapper& imgui = *wxGetApp().imgui();
+
+        ImGui::PushStyleVar(
+            ImGuiStyleVar_WindowRounding,
+            4.0f);
+        ImGui::PushStyleVar(
+            ImGuiStyleVar_WindowBorderSize,
+            0.0f);
+        ImGui::PushStyleVar(
+            ImGuiStyleVar_WindowPadding,
+            ImVec2(8.0f, 5.0f));
+        ImGui::PushStyleColor(
+            ImGuiCol_WindowBg,
+            ImVec4(0.13f, 0.13f, 0.13f, 0.86f));
+        ImGui::PushStyleColor(
+            ImGuiCol_Text,
+            ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+        imgui.set_next_window_pos(
+            static_cast<float>(canvas_size.get_width()) - 10.0f,
+            10.0f,
+            ImGuiCond_Always,
+            1.0f,
+            0.0f);
+
+        imgui.begin(
+            std::string("FPS overlay"),
+            ImGuiWindowFlags_AlwaysAutoResize |
+                ImGuiWindowFlags_NoMouseInputs |
+                ImGuiWindowFlags_NoMove |
+                ImGuiWindowFlags_NoDecoration |
+                ImGuiWindowFlags_NoSavedSettings |
+                ImGuiWindowFlags_NoFocusOnAppearing |
+                ImGuiWindowFlags_NoNav);
+
+        imgui.text(
+            std::string("FPS: ") +
+            std::to_string(std::max(
+                0,
+                m_render_stats.get_fps_and_reset_if_needed())));
+
+        imgui.end();
+
+        ImGui::PopStyleColor(2);
+        ImGui::PopStyleVar(3);
+    }
 
     if (wxGetApp().plater()->is_render_statistic_dialog_visible()) {
         // Match the canvas tooltip styling: dark window background with white text,
@@ -3070,6 +3255,7 @@ void GLCanvas3D::render(bool only_init)
     ogl_manager.unbind_vao();
     ogl_manager.clear_dirty();
     m_canvas->SwapBuffers();
+    m_last_present_time = std::chrono::steady_clock::now();
 
     for (const auto& cb : m_frame_callback_list) {
         cb();
@@ -3752,18 +3938,10 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                                 TriangleMesh mesh = print_object->get_mesh(slaposDrillHoles);
 	                            assert(! mesh.empty());
                                 mesh.transform(sla_print->sla_trafo(*m_model->objects[volume.object_idx()]).inverse());
-#if ENABLE_SMOOTH_NORMALS
-                                volume.indexed_vertex_array->load_mesh(mesh, true);
-#else
                                 volume.indexed_vertex_array->load_mesh(mesh);
-#endif // ENABLE_SMOOTH_NORMALS
                             } else {
 	                        	// Reload the original volume.
-#if ENABLE_SMOOTH_NORMALS
-                                volume.indexed_vertex_array->load_mesh(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh(), true);
-#else
                                 volume.indexed_vertex_array->load_mesh(m_model->objects[volume.object_idx()]->volumes[volume.volume_idx()]->mesh());
-#endif // ENABLE_SMOOTH_NORMALS
                             }
                             volume.finalize_geometry(true);
 	                    }
@@ -7541,7 +7719,15 @@ void GLCanvas3D::render_thumbnail_framebuffer(const std::shared_ptr<OpenGLManage
     if (thumbnail_params.post_processing_enabled) {
          // fxaa pass
         write_to_framebuffer_name = "thumbnail_fb_aa";
-        _rebuild_postprocessing_pipeline(p_ogl_manager, thumbnail_fb_name, write_to_framebuffer_name, w, h);
+        _rebuild_postprocessing_pipeline(
+            p_ogl_manager,
+            thumbnail_fb_name,
+            write_to_framebuffer_name,
+            w,
+            h,
+            false,
+            0.0f,
+            0.0f);
          // end fxaa pass
     }
 
@@ -8722,13 +8908,48 @@ void GLCanvas3D::_render_objects(GLVolumeCollection &cur_volumes, GLVolumeCollec
     else
         cur_volumes.set_show_sinking_contours(!m_gizmos.is_hiding_instances());
 
-    const auto& shader = wxGetApp().get_shader("gouraud");
+    const GUI::ERenderPipelineStage render_pipeline_stage = _get_current_render_stage();
+
+    const bool realistic_view_supported =
+        OpenGLManager::get_gl_info()
+            .is_version_greater_or_equal_to(3, 1);
+
+    const bool realistic_view_allowed =
+        realistic_view_supported &&
+        m_canvas_type == ECanvasType::CanvasView3D &&
+        render_pipeline_stage == GUI::ERenderPipelineStage::Normal &&
+        !in_paint_gizmo &&
+        !m_gizmos.is_paint_gizmo();
+
+    const bool realistic_view_requested =
+        wxGetApp().app_config != nullptr &&
+        wxGetApp().app_config->get_bool(
+            SETTING_OPENGL_REALISTIC_MODE);
+
+    const bool phong_requested =
+        wxGetApp().app_config != nullptr &&
+        wxGetApp().app_config->get_bool(
+            SETTING_OPENGL_REALISTIC_PHONG);
+
+    auto shader = wxGetApp().get_shader("gouraud");
+    bool using_phong_shader = false;
+
+    if (realistic_view_allowed &&
+        realistic_view_requested &&
+        phong_requested) {
+        const auto& phong_shader =
+            wxGetApp().get_shader("phong");
+
+        if (phong_shader) {
+            shader = phong_shader;
+            using_phong_shader = true;
+        }
+    }
     ECanvasType canvas_type = this->m_canvas_type;
     std::array<float, 4> body_color  = canvas_type == ECanvasType::CanvasAssembleView ? std::array<float, 4>({1.0f, 1.0f, 0.0f, 1.0f}) ://yellow
                                                                                         std::array<float, 4>({1.0f, 1.0f, 1.0f, 1.0f});//white
     bool                 partly_inside_enable = canvas_type == ECanvasType::CanvasAssembleView ? false : true;
     auto printable_height_option = GUI::wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("extruder_printable_height");
-    const GUI::ERenderPipelineStage render_pipeline_stage = _get_current_render_stage();
 
     const auto& camera = get_active_camera();
     std::vector<std::array<float, 4>> colors = get_active_colors();
@@ -8736,6 +8957,9 @@ void GLCanvas3D::_render_objects(GLVolumeCollection &cur_volumes, GLVolumeCollec
         if (GUI::ERenderPipelineStage::Silhouette != render_pipeline_stage)
         {
             wxGetApp().bind_shader(shader);
+
+            if (using_phong_shader)
+                shader->set_uniform("enable_ssao", false);
         }
         switch (type)
         {
@@ -11523,11 +11747,7 @@ void GLCanvas3D::_load_sla_shells()
         const TriangleMesh& mesh, const std::array<float, 4>& color, bool outside_printer_detection_enabled) {
         m_volumes.volumes.emplace_back(new GLVolume(color));
         GLVolume& v = *m_volumes.volumes.back();
-#if ENABLE_SMOOTH_NORMALS
-        v.indexed_vertex_array->load_mesh(mesh, true);
-#else
         v.indexed_vertex_array->load_mesh(mesh);
-#endif // ENABLE_SMOOTH_NORMALS
         v.indexed_vertex_array->finalize_geometry(m_initialized);
         v.shader_outside_printer_detection_enabled = outside_printer_detection_enabled;
         v.composite_id.volume_id = volume_id;
@@ -11867,7 +12087,211 @@ void GLCanvas3D::_init_fullscreen_mesh()
     s_full_screen_mesh.init_from(std::move(geo));
 }
 
-void GLCanvas3D::_rebuild_postprocessing_pipeline(const std::shared_ptr<OpenGLManager>& p_ogl_manager, const std::string& input_framebuffer_name, std::string& output_framebuffer_name, uint32_t width, uint32_t height)
+void GLCanvas3D::_render_normal_buffer(OpenGLManager& ogl_manager, uint32_t width, uint32_t height)
+{
+    if (0 == width || 0 == height)
+        return;
+
+    const auto& shader = wxGetApp().get_shader("normal");
+    if (!shader)
+        return;
+
+    // Bind (creating if needed) a non-MSAA G-buffer of the same size as the
+    // main frame. Binding it also resolves the previously bound MSAA main frame.
+    {
+        OpenGLManager::FrameBufferModifier normal_frame(ogl_manager, "normalframe", EMSAAType::Disabled);
+        normal_frame.set_width(width)
+            .set_height(height);
+    }
+
+    GLfloat prev_clear_color[4];
+    glsafe(::glGetFloatv(GL_COLOR_CLEAR_VALUE, prev_clear_color));
+
+    // Clear to the encoded world-up normal (0, 0, 1) so that background pixels
+    // do not introduce spurious occlusion.
+    glsafe(::glClearColor(0.5f, 0.5f, 1.0f, 1.0f));
+    glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    glsafe(::glDisable(GL_BLEND));
+
+    wxGetApp().bind_shader(shader);
+
+    const auto& camera = get_active_camera();
+    const std::vector<std::array<float, 4>> colors = get_active_colors();
+
+    // Same opaque volume selection as the phong pass, so the normal G-buffer
+    // lines up per-pixel with the shaded color and depth buffers.
+    m_volumes.render(
+        GUI::ERenderPipelineStage::Normal,
+        GLVolumeCollection::ERenderType::Opaque,
+        false,
+        camera,
+        colors,
+        *m_model,
+        [this](const GLVolume& volume) {
+            return m_render_sla_auxiliaries || volume.composite_id.volume_id >= 0;
+        },
+        false,
+        { 1.0f, 1.0f, 1.0f, 1.0f },
+        false,
+        nullptr);
+
+    wxGetApp().unbind_shader();
+
+    glsafe(::glClearColor(prev_clear_color[0], prev_clear_color[1], prev_clear_color[2], prev_clear_color[3]));
+}
+
+void GLCanvas3D::_render_cast_shadows_on_plate(const Camera& camera)
+{
+    if (m_volumes.empty())
+        return;
+
+    const auto& shader = wxGetApp().get_shader("plate_shadow");
+    if (!shader)
+        return;
+
+    // Planar projection onto the plate plane (world z = 0) along the same world
+    // light direction the phong shader uses ("from above", slightly tilted).
+    const Vec3d to_light = Vec3d(-0.35, -0.35, 0.87).normalized();
+    const Vec3d l = -to_light; // direction the light travels (downwards)
+    Matrix4d flatten = Matrix4d::Identity();
+    flatten(0, 2) = -l.x() / l.z();
+    flatten(1, 2) = -l.y() / l.z();
+    // Place the projected geometry slightly below the visible plate.
+    // GL_GREATER then uses the existing plate depth as an exact screen-space
+    // mask, while background pixels remain untouched.
+    constexpr double shadow_plane_z = -0.10;
+    flatten(2, 0) = 0.0;
+    flatten(2, 1) = 0.0;
+    flatten(2, 2) = 0.0;
+    flatten(2, 3) = shadow_plane_z;
+
+    const Matrix4d shadow_matrix =
+        camera.get_projection_matrix().matrix() *
+        camera.get_view_matrix().matrix() *
+        flatten;
+
+    wxGetApp().bind_shader(shader);
+    shader->set_uniform("shadow_matrix", shadow_matrix);
+    shader->set_uniform("shadow_color", std::array<float, 4>{ 0.0f, 0.0f, 0.0f, 0.30f });
+
+    // The plate has already populated the depth buffer. Projecting the
+    // shadow slightly below it and using GL_GREATER clips the shadow to visible
+    // plate pixels. The stencil prevents overlapping triangles from repeatedly
+    // darkening the same pixel.
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    glsafe(::glDepthFunc(GL_GREATER));
+    glsafe(::glDepthMask(GL_FALSE));
+    glsafe(::glClearStencil(0));
+    glsafe(::glStencilMask(0xFF));
+    glsafe(::glClear(GL_STENCIL_BUFFER_BIT));
+    glsafe(::glEnable(GL_STENCIL_TEST));
+    glsafe(::glStencilFunc(GL_EQUAL, 0, 0xFF));
+    glsafe(::glStencilOp(GL_KEEP, GL_KEEP, GL_INCR));
+
+    const std::vector<std::array<float, 4>> colors = get_active_colors();
+    m_volumes.render(
+        GUI::ERenderPipelineStage::Normal,
+        GLVolumeCollection::ERenderType::Opaque,
+        true, // disable cull face: project all faces, the stencil keeps one layer
+        camera,
+        colors,
+        *m_model,
+        [](const GLVolume& volume) {
+            return !volume.is_modifier && !volume.is_wipe_tower && volume.composite_id.volume_id >= 0;
+        },
+        false,
+        { 0.0f, 0.0f, 0.0f, 0.0f },
+        false,
+        nullptr);
+
+    glsafe(::glDisable(GL_STENCIL_TEST));
+    glsafe(::glDepthFunc(GL_LESS));
+    glsafe(::glDepthMask(GL_TRUE));
+    glsafe(::glDisable(GL_BLEND));
+    glsafe(::glEnable(GL_CULL_FACE));
+    wxGetApp().unbind_shader();
+}
+
+void GLCanvas3D::_render_build_plate_reflections(const Camera& camera)
+{
+    if (m_volumes.empty())
+        return;
+
+    const auto& shader = wxGetApp().get_shader("plate_reflection");
+    if (!shader)
+        return;
+
+    wxGetApp().bind_shader(shader);
+
+    shader->set_uniform(
+        "view_matrix",
+        camera.get_view_matrix().matrix());
+
+    // A low value keeps the result closer to a textured PEI plate than a
+    // mirror. Vertices higher than 80 mm fade almost completely.
+    shader->set_uniform("reflection_strength", 0.10f);
+    shader->set_uniform("reflection_fade_distance", 80.0f);
+
+    // Reflected geometry is placed below the build plate. GL_GREATER makes it
+    // visible only where the plate has written depth. Opaque objects are drawn
+    // afterwards and therefore cover their own reflection correctly.
+    glsafe(::glEnable(GL_BLEND));
+    glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    glsafe(::glDepthFunc(GL_GREATER));
+    glsafe(::glDepthMask(GL_FALSE));
+
+    // Draw at most one translucent layer per pixel. This avoids excessive
+    // darkening from closed meshes and overlapping triangles.
+    glsafe(::glClearStencil(0));
+    glsafe(::glStencilMask(0xFF));
+    glsafe(::glClear(GL_STENCIL_BUFFER_BIT));
+    glsafe(::glEnable(GL_STENCIL_TEST));
+    glsafe(::glStencilFunc(GL_EQUAL, 0, 0xFF));
+    glsafe(::glStencilOp(GL_KEEP, GL_KEEP, GL_INCR));
+
+    const std::vector<std::array<float, 4>> colors =
+        get_active_colors();
+
+    m_volumes.render(
+        GUI::ERenderPipelineStage::Normal,
+        GLVolumeCollection::ERenderType::Opaque,
+        true,
+        camera,
+        colors,
+        *m_model,
+        [](const GLVolume& volume) {
+            return !volume.is_modifier &&
+                   !volume.is_wipe_tower &&
+                   !volume.is_below_printbed() &&
+                   volume.composite_id.volume_id >= 0;
+        },
+        false,
+        { 1.0f, 1.0f, 1.0f, 1.0f },
+        false,
+        nullptr);
+
+    glsafe(::glDisable(GL_STENCIL_TEST));
+    glsafe(::glDepthFunc(GL_LESS));
+    glsafe(::glDepthMask(GL_TRUE));
+    glsafe(::glDisable(GL_BLEND));
+    glsafe(::glEnable(GL_CULL_FACE));
+
+    wxGetApp().unbind_shader();
+}
+
+void GLCanvas3D::_rebuild_postprocessing_pipeline(
+    const std::shared_ptr<OpenGLManager>& p_ogl_manager,
+    const std::string& input_framebuffer_name,
+    std::string& output_framebuffer_name,
+    uint32_t width,
+    uint32_t height,
+    bool enable_ssao,
+    float z_near,
+    float z_far)
 {
     if (!p_ogl_manager) {
         return;
@@ -11882,6 +12306,153 @@ void GLCanvas3D::_rebuild_postprocessing_pipeline(const std::shared_ptr<OpenGLMa
     _init_fullscreen_mesh();
 
     uint32_t output_texture_id = UINT32_MAX;
+
+    if (enable_ssao) {
+        {
+            OpenGLManager::FrameBufferModifier ssao_frame(
+                ogl_manager,
+                "ssaoframe",
+                EMSAAType::Disabled);
+
+            ssao_frame.set_width(width)
+                .set_height(height);
+        }
+
+        glsafe(::glDisable(GL_DEPTH_TEST));
+        glsafe(::glDisable(GL_BLEND));
+
+        const auto& input_frame_buffer =
+            ogl_manager.get_frame_buffer(
+                input_framebuffer_name);
+
+        if (input_frame_buffer) {
+            const uint32_t color_texture_id =
+                input_frame_buffer->get_color_texture();
+
+            const uint32_t depth_texture_id =
+                input_frame_buffer->get_depth_texture();
+
+            if (color_texture_id != UINT32_MAX &&
+                depth_texture_id != UINT32_MAX) {
+                const auto& ssao_shader =
+                    p_ogl_manager->get_shader("ssao");
+
+                if (ssao_shader) {
+                    p_ogl_manager->bind_shader(
+                        ssao_shader);
+
+                    constexpr int color_stage = 0;
+                    constexpr int depth_stage = 1;
+
+                    ssao_shader->set_uniform(
+                        "color_texture",
+                        color_stage);
+
+                    glsafe(::glActiveTexture(
+                        GL_TEXTURE0 + color_stage));
+
+                    glsafe(::glBindTexture(
+                        GL_TEXTURE_2D,
+                        color_texture_id));
+
+                    ssao_shader->set_uniform(
+                        "depth_texture",
+                        depth_stage);
+
+                    glsafe(::glActiveTexture(
+                        GL_TEXTURE0 + depth_stage));
+
+                    glsafe(::glBindTexture(
+                        GL_TEXTURE_2D,
+                        depth_texture_id));
+
+                    constexpr int normal_stage = 2;
+
+                    const auto& normal_frame_buffer =
+                        ogl_manager.get_frame_buffer(
+                            "normalframe");
+
+                    if (normal_frame_buffer) {
+                        const uint32_t normal_texture_id =
+                            normal_frame_buffer
+                                ->get_color_texture();
+
+                        if (normal_texture_id != UINT32_MAX) {
+                            ssao_shader->set_uniform(
+                                "normal_texture",
+                                normal_stage);
+
+                            glsafe(::glActiveTexture(
+                                GL_TEXTURE0 + normal_stage));
+
+                            glsafe(::glBindTexture(
+                                GL_TEXTURE_2D,
+                                normal_texture_id));
+                        }
+                    }
+
+                    const std::array<float, 2>
+                        inverse_texture_size{
+                            1.0f /
+                                static_cast<float>(width),
+                            1.0f /
+                                static_cast<float>(height)
+                        };
+
+                    ssao_shader->set_uniform(
+                        "inv_tex_size",
+                        inverse_texture_size);
+
+                    ssao_shader->set_uniform(
+                        "z_near",
+                        z_near);
+
+                    ssao_shader->set_uniform(
+                        "z_far",
+                        z_far);
+
+                    s_full_screen_mesh.render_geometry();
+
+                    p_ogl_manager->unbind_shader();
+
+                    glsafe(::glActiveTexture(
+                        GL_TEXTURE0));
+
+                    const auto& ssao_frame_buffer =
+                        ogl_manager.get_frame_buffer(
+                            "ssaoframe");
+
+                    if (ssao_frame_buffer) {
+                        output_texture_id =
+                            ssao_frame_buffer
+                                ->get_color_texture();
+
+                        if (output_texture_id ==
+                            UINT32_MAX) {
+                            BOOST_LOG_TRIVIAL(error)
+                                << "Invalid SSAO output texture.";
+                        }
+                    }
+                    else {
+                        BOOST_LOG_TRIVIAL(error)
+                            << "Invalid SSAO framebuffer.";
+                    }
+                }
+                else {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "Invalid SSAO shader.";
+                }
+            }
+            else {
+                BOOST_LOG_TRIVIAL(error)
+                    << "Invalid SSAO input textures.";
+            }
+        }
+        else {
+            BOOST_LOG_TRIVIAL(error)
+                << "Invalid SSAO input framebuffer.";
+        }
+    }
     if (ogl_manager.is_fxaa_enabled()) {
         if (!offscreen_rendering) {
             {
@@ -11903,47 +12474,92 @@ void GLCanvas3D::_rebuild_postprocessing_pipeline(const std::shared_ptr<OpenGLMa
         glsafe(::glDisable(GL_DEPTH_TEST));
         glsafe(::glDisable(GL_BLEND));
 
-        const auto& p_main_frame_buffer = ogl_manager.get_frame_buffer(offscreen_rendering ? input_framebuffer_name : "fxaaframe_temp");
-        if (p_main_frame_buffer) {
-            output_texture_id = p_main_frame_buffer->get_color_texture();
-            if (p_main_frame_buffer->is_texture_valid(output_texture_id)) {
-                const auto& p_fxaa_shader = p_ogl_manager->get_shader("fxaa");
-                if (p_fxaa_shader) {
-                    p_ogl_manager->bind_shader(p_fxaa_shader);
+        if (output_texture_id == UINT32_MAX) {
+            const auto& p_main_frame_buffer =
+                ogl_manager.get_frame_buffer(
+                    offscreen_rendering
+                        ? input_framebuffer_name
+                        : "fxaaframe_temp");
 
-                    const int stage = 0;
-                    p_fxaa_shader->set_uniform("u_sampler", stage);
-                    glsafe(::glActiveTexture(GL_TEXTURE0 + stage));
-                    glsafe(::glBindTexture(GL_TEXTURE_2D, output_texture_id));
+            if (p_main_frame_buffer) {
+                output_texture_id =
+                    p_main_frame_buffer
+                        ->get_color_texture();
+            }
+        }
 
-                    const std::array<float, 4> viewport_size{ static_cast<float>(width), static_cast<float>(height), 1.0f / width, 1.0f / height };
-                    p_fxaa_shader->set_uniform("u_viewport_size", viewport_size);
+        if (output_texture_id != UINT32_MAX) {
+            const auto& p_fxaa_shader =
+                p_ogl_manager->get_shader("fxaa");
 
-                    s_full_screen_mesh.render_geometry();
+            if (p_fxaa_shader) {
+                p_ogl_manager->bind_shader(
+                    p_fxaa_shader);
 
-                    p_ogl_manager->unbind_shader();
+                const int stage = 0;
 
-                    const auto& p_fxaa_frame_buffer = p_ogl_manager->get_frame_buffer("fxaaframe");
-                    if (p_fxaa_frame_buffer) {
-                        output_texture_id = p_fxaa_frame_buffer->get_color_texture();
-                        if (!p_fxaa_frame_buffer->is_texture_valid(output_texture_id)) {
-                            BOOST_LOG_TRIVIAL(error) << "Invalid fxaa texture.";
-                        }
-                    }
-                    else {
-                        BOOST_LOG_TRIVIAL(error) << "Invalid fxaa framebuffer.";
+                p_fxaa_shader->set_uniform(
+                    "u_sampler",
+                    stage);
+
+                glsafe(::glActiveTexture(
+                    GL_TEXTURE0 + stage));
+
+                glsafe(::glBindTexture(
+                    GL_TEXTURE_2D,
+                    output_texture_id));
+
+                const std::array<float, 4>
+                    viewport_size{
+                        static_cast<float>(width),
+                        static_cast<float>(height),
+                        1.0f /
+                            static_cast<float>(width),
+                        1.0f /
+                            static_cast<float>(height)
+                    };
+
+                p_fxaa_shader->set_uniform(
+                    "u_viewport_size",
+                    viewport_size);
+
+                s_full_screen_mesh.render_geometry();
+
+                p_ogl_manager->unbind_shader();
+
+                const auto& p_fxaa_frame_buffer =
+                    p_ogl_manager->get_frame_buffer(
+                        "fxaaframe");
+
+                if (p_fxaa_frame_buffer) {
+                    output_texture_id =
+                        p_fxaa_frame_buffer
+                            ->get_color_texture();
+
+                    if (output_texture_id ==
+                        UINT32_MAX) {
+                        BOOST_LOG_TRIVIAL(error)
+                            << "Invalid fxaa texture.";
                     }
                 }
                 else {
-                    BOOST_LOG_TRIVIAL(error) << "Invalid fxaa shader.";
+                    BOOST_LOG_TRIVIAL(error)
+                        << "Invalid fxaa framebuffer.";
                 }
             }
             else {
-                BOOST_LOG_TRIVIAL(error) << "Invalid main frame texture. Failed to composite main frame.";
+                BOOST_LOG_TRIVIAL(error)
+                    << "Invalid fxaa shader.";
             }
         }
+        else {
+            BOOST_LOG_TRIVIAL(error)
+                << "Invalid main frame texture. "
+                   "Failed to composite main frame.";
+        }
     }
-    else if (offscreen_rendering) {
+    else if (offscreen_rendering &&
+             output_texture_id == UINT32_MAX) {
         const auto& p_main_frame_buffer = ogl_manager.get_frame_buffer(input_framebuffer_name);
         if (p_main_frame_buffer) {
             output_texture_id = p_main_frame_buffer->get_color_texture();

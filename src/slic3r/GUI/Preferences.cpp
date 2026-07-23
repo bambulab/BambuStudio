@@ -800,7 +800,13 @@ void PreferencesDialog::set_dark_mode()
 #endif
 }
 
-wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param)
+wxBoxSizer *PreferencesDialog::create_item_checkbox(
+    wxString title,
+    wxWindow *parent,
+    wxString tooltip,
+    int padding_left,
+    std::string param,
+    std::function<void(bool)> callback)
 {
     wxBoxSizer *m_sizer_checkbox  = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_checkbox->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
@@ -828,7 +834,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     m_sizer_checkbox->Add(checkbox, wxSizerFlags().CenterVertical().Border(wxRIGHT, FromDIP(ITEM_RIGHT_PADDING)));
 
     //// save config
-    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent &e) {
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param, callback](wxCommandEvent &e) {
         if (param == "privacyuse") {
             app_config->set("firstguide", param, checkbox->GetValue());
             NetworkAgent* agent = GUI::wxGetApp().getAgent();
@@ -987,6 +993,9 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
                 }
             }
         }
+        if (callback)
+            callback(checkbox->GetValue());
+
         e.Skip();
     });
 
@@ -1506,8 +1515,156 @@ wxWindow *PreferencesDialog::create_3d_tab()
 
     auto title_3d = create_item_title(_L("3D Settings"), scrolled, _L("3D Settings"));
 
+    auto title_realistic_rendering = create_item_title(
+        _L("Realistic Rendering"),
+        scrolled,
+        _L("Realistic Rendering"));
+
+    auto title_antialiasing = create_item_title(
+        _L("Anti-aliasing"),
+        scrolled,
+        _L("Anti-aliasing"));
+
+    auto title_rendering_performance = create_item_title(
+        _L("Rendering performance"),
+        scrolled,
+        _L("Rendering performance"));
+
+    auto refresh_current_canvas = []() {
+        if (wxGetApp().plater() != nullptr)
+            wxGetApp().plater()->set_current_canvas_as_dirty();
+    };
+
     auto item_zoom_to_mouse = create_item_checkbox(_L("Zoom to mouse position"), scrolled,
                                                    _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
+
+    auto item_realistic_view = create_item_checkbox(
+        _L("Realistic view"),
+        scrolled,
+        _L("Use per-pixel Phong lighting in the 3D editor. Requires OpenGL 3.1 or newer. Preview, thumbnails, picking and painting tools remain unchanged."),
+        50,
+        SETTING_OPENGL_REALISTIC_MODE);
+
+    auto item_realistic_ssao = create_item_checkbox(
+        _L("Ambient occlusion (SSAO)"),
+        scrolled,
+        _L("Add subtle contact shadows to the realistic 3D editor view. Requires Realistic view and OpenGL 3.1 or newer."),
+        50,
+        SETTING_OPENGL_PHONG_SSAO);
+
+    auto item_cast_shadows = create_item_checkbox(
+        _L("Cast shadows"),
+        scrolled,
+        _L("Cast shadows from objects onto the build plate in the realistic 3D editor view. Requires Realistic view."),
+        50,
+        SETTING_OPENGL_PHONG_BASIC_PLATE_SHADOWS);
+
+    auto item_build_plate_reflections = create_item_checkbox(
+        _L("Build plate reflections"),
+        scrolled,
+        _L("Show subtle reflections of opaque model parts on the build plate. Requires Realistic view."),
+        50,
+        SETTING_OPENGL_PHONG_BUILD_PLATE_REFLECTIONS);
+
+    auto item_realistic_smooth_normals = create_item_checkbox(
+        _L("Smooth normals"),
+        scrolled,
+        _L("Applies smooth normals to the realistic view.\n\nRequires a manual scene reload to take effect (right-click the 3D view and select \"Reload All\")."),
+        50,
+        SETTING_OPENGL_PHONG_SMOOTH_NORMALS);
+
+    const std::vector<wxString> msaa_labels = {
+        _L("Off"),
+        _L("2x"),
+        _L("4x"),
+        _L("8x"),
+        _L("16x")
+    };
+
+    const std::vector<std::string> msaa_values = {
+        "Disabled",
+        "X2",
+        "X4",
+        "X8",
+        "X16"
+    };
+
+    auto item_msaa = create_item_combobox(
+        _L("MSAA"),
+        scrolled,
+        _L("Sets the multisample anti-aliasing level. Higher values produce smoother edges but increase GPU load."),
+        SETTING_OPENGL_MSAA_TYPE,
+        msaa_labels,
+        msaa_values,
+        [refresh_current_canvas](int) {
+            const auto& ogl_manager =
+                wxGetApp().get_opengl_manager();
+
+            if (ogl_manager != nullptr) {
+                ogl_manager->set_msaa_type(
+                    wxGetApp().app_config->get(
+                        SETTING_OPENGL_MSAA_TYPE));
+            }
+
+            refresh_current_canvas();
+        });
+
+    auto item_fxaa = create_item_checkbox(
+        _L("FXAA post-processing"),
+        scrolled,
+        _L("Applies Fast Approximate Anti-Aliasing as a screen-space post-processing pass."),
+        50,
+        SETTING_OPENGL_FXAA_ENABLED,
+        [refresh_current_canvas](bool enabled) {
+            const auto& ogl_manager =
+                wxGetApp().get_opengl_manager();
+
+            if (ogl_manager != nullptr)
+                ogl_manager->set_fxaa_enabled(enabled);
+
+            refresh_current_canvas();
+        });
+
+    const std::vector<wxString> frame_rate_labels = {
+        _L("Unlimited"),
+        _L("30 FPS"),
+        _L("60 FPS"),
+        _L("90 FPS"),
+        _L("120 FPS"),
+        _L("144 FPS"),
+        _L("240 FPS")
+    };
+
+    const std::vector<std::string> frame_rate_values = {
+        "0",
+        "30",
+        "60",
+        "90",
+        "120",
+        "144",
+        "240"
+    };
+
+    auto item_frame_rate_limit = create_item_combobox(
+        _L("Frame rate limit"),
+        scrolled,
+        _L("Limits the frame rate of the interactive 3D and Preview canvases without blocking the user interface. Assembly exports are not limited."),
+        SETTING_OPENGL_FRAME_RATE_LIMIT,
+        frame_rate_labels,
+        frame_rate_values,
+        [refresh_current_canvas](int) {
+            refresh_current_canvas();
+        });
+
+    auto item_show_fps = create_item_checkbox(
+        _L("Show FPS overlay"),
+        scrolled,
+        _L("Shows the measured number of displayed frames per second in the top-right corner of the interactive canvas."),
+        50,
+        SETTING_OPENGL_SHOW_FPS,
+        [refresh_current_canvas](bool) {
+            refresh_current_canvas();
+        });
 
     std::vector<wxString> assemble_view_preview_options = {_L("Auto"), _L("Open"), _L("Close")};
     auto                  enable_assemble_view_preview  = create_item_combobox(
@@ -1575,6 +1732,31 @@ wxWindow *PreferencesDialog::create_3d_tab()
     sizer->Add(item_tooltip_offset, flags);
     sizer->Add(item_toolbar_style, flags);
     sizer->Add(item_zoom_to_mouse, flags);
+
+    sizer->Add(
+        title_realistic_rendering,
+        wxSizerFlags().Expand().Border(wxTOP, FromDIP(16)));
+    sizer->AddSpacer(FromDIP(8));
+    sizer->Add(item_realistic_view, flags);
+    sizer->Add(item_realistic_ssao, flags);
+    sizer->Add(item_cast_shadows, flags);
+    sizer->Add(item_build_plate_reflections, flags);
+    sizer->Add(item_realistic_smooth_normals, flags);
+
+    sizer->Add(
+        title_antialiasing,
+        wxSizerFlags().Expand().Border(wxTOP, FromDIP(16)));
+    sizer->AddSpacer(FromDIP(8));
+    sizer->Add(item_msaa, flags);
+    sizer->Add(item_fxaa, flags);
+
+    sizer->Add(
+        title_rendering_performance,
+        wxSizerFlags().Expand().Border(wxTOP, FromDIP(16)));
+    sizer->AddSpacer(FromDIP(8));
+    sizer->Add(item_frame_rate_limit, flags);
+    sizer->Add(item_show_fps, flags);
+
     sizer->Add(item_show_shells, flags);
 #if !BBL_RELEASE_TO_PUBLIC
     auto item_show_bvh_bounds = create_item_checkbox(_L("Show assembly BVH primary bounds"), scrolled, _L("Display the BVH primary bounding box wireframe in assembly view."), 50,
@@ -2014,6 +2196,17 @@ void PreferencesDialog::on_reset_preferences()
         "import_single_svg_and_split",
         "gamma_correct_in_import_obj",
         "enable_lod",
+        SETTING_OPENGL_REALISTIC_MODE,
+        SETTING_OPENGL_REALISTIC_PHONG,
+        SETTING_OPENGL_SHADING_MODEL,
+        SETTING_OPENGL_PHONG_BASIC_PLATE_SHADOWS,
+        SETTING_OPENGL_PHONG_BUILD_PLATE_REFLECTIONS,
+        SETTING_OPENGL_PHONG_SSAO,
+        SETTING_OPENGL_PHONG_SMOOTH_NORMALS,
+        SETTING_OPENGL_MSAA_TYPE,
+        SETTING_OPENGL_FXAA_ENABLED,
+        SETTING_OPENGL_FRAME_RATE_LIMIT,
+        SETTING_OPENGL_SHOW_FPS,
         "enable_advanced_gcode_viewer_",
         "camera_fullscreen_active_monitor_only",
         "max_recent_count",

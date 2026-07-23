@@ -60,6 +60,13 @@ std::pair<bool, std::string> GLShadersManager::init()
         , { "ENABLE_ENVIRONMENT_MAP"sv }
 #endif // ENABLE_ENVIRONMENT_MAP
         );
+
+    // used to render objects in 3D editor with Phong shading
+    valid &= append_shader("phong", { glsl_version_prefix + "phong.vs", glsl_version_prefix + "phong.fs" }
+#if ENABLE_ENVIRONMENT_MAP
+        , { "ENABLE_ENVIRONMENT_MAP"sv }
+#endif // ENABLE_ENVIRONMENT_MAP
+    );
     // used to render variable layers heights in 3d editor
     valid &= append_shader("variable_layer_height", { glsl_version_prefix + "variable_layer_height.vs", glsl_version_prefix + "variable_layer_height.fs" });
     // used to render highlight contour around selected triangles inside the multi-material gizmo
@@ -96,6 +103,18 @@ std::pair<bool, std::string> GLShadersManager::init()
     valid &= append_shader("mainframe_composite", { glsl_version_prefix + "mainframe_composite.vs", glsl_version_prefix + "mainframe_composite.fs" });
 
     valid &= append_shader("fxaa", { glsl_version_prefix + "fxaa.vs", glsl_version_prefix + "fxaa.fs" });
+
+    // renders world-space normals into a G-buffer consumed by the SSAO pass
+    valid &= append_shader("normal", { glsl_version_prefix + "normal.vs", glsl_version_prefix + "normal.fs" });
+
+    // projects objects onto the plate for the cast-shadow pass
+    valid &= append_shader("plate_shadow", { glsl_version_prefix + "plate_shadow.vs", glsl_version_prefix + "plate_shadow.fs" });
+
+    // renders a subtle mirrored image of opaque objects below the plate
+    valid &= append_shader("plate_reflection", { glsl_version_prefix + "plate_reflection.vs", glsl_version_prefix + "plate_reflection.fs" });
+
+    // used to apply screen-space ambient occlusion
+    valid &= append_shader("ssao", { glsl_version_prefix + "ssao.vs", glsl_version_prefix + "ssao.fs" });
 
     valid &= append_shader("gaussian_blur33", { glsl_version_prefix + "gaussian_blur33.vs", glsl_version_prefix + "gaussian_blur33.fs" });
 
