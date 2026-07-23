@@ -17,10 +17,25 @@ nlohmann::json make_action_state(bool enabled, std::string reason = "")
     };
 }
 
-// Eligible to unload when the filament line is loaded (the card actually
-// holds filament that can be retracted).
 nlohmann::json make_select_action(const nlohmann::json& slot)
 {
+    const auto& nozzle = slot.value(SK::filament_slot::filament_nozzle, nlohmann::json::object());
+    const std::string nozzle_state = nozzle.value(SK::filament_nozzle::state, std::string());
+    if (nozzle_state == SV::nozzle_state::none) {
+        return nlohmann::json{
+            {SK::select_action::can_select, false},
+            {SK::select_action::reason,     _u8L("No nozzle")},
+            {SK::select_action::ext_label,  false},
+        };
+    }
+    if (nozzle_state == SV::nozzle_state::error) {
+        return nlohmann::json{
+            {SK::select_action::can_select, false},
+            {SK::select_action::reason,     _u8L("Nozzle is in error state")},
+            {SK::select_action::ext_label,  false},
+        };
+    }
+
     const auto& line = slot.value(SK::filament_slot::filament_line, nlohmann::json::object());
     const std::string line_state = line.value(SK::filament_line::state, std::string());
     const bool can_select = (line_state == SV::line_state::loaded);

@@ -144,10 +144,21 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
             card_state = is_loaded ? SV::card_state::ready_to_use : SV::card_state::ready_to_load;
         }
 
-        const bool can_select = !is_loaded;
+        const auto& src_nozzle = slot.value(SK::filament_slot::filament_nozzle, nlohmann::json::object());
+        const std::string src_nozzle_state = src_nozzle.value(SK::filament_nozzle::state, std::string());
+        const bool nozzle_empty = (src_nozzle_state == SV::nozzle_state::none);
+        const bool nozzle_error = (src_nozzle_state == SV::nozzle_state::error);
+
+        bool can_select = false;
         std::string reason;
-        if (is_loaded) {
+        if (nozzle_empty) {
+            reason = _u8L("No nozzle");
+        } else if (nozzle_error) {
+            reason = _u8L("Nozzle is in error state");
+        } else if (is_loaded) {
             reason = _u8L("External filament already loaded into hotend");
+        } else {
+            can_select = true;
         }
 
         const nlohmann::json card_section = {
@@ -168,11 +179,14 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
             {SK::filament_line::filament_color, is_loaded ? color : std::string()}
         };
 
+        const std::string nozzle_state = (nozzle_empty || nozzle_error)
+            ? src_nozzle_state
+            : (is_loaded ? SV::nozzle_state::active : SV::nozzle_state::normal);
         const nlohmann::json nozzle_section = {
-            {SK::filament_nozzle::state,          is_loaded ? SV::nozzle_state::active : SV::nozzle_state::normal},
-            {SK::filament_nozzle::has_filament,   is_loaded},
-            {SK::filament_nozzle::filament_color, is_loaded ? color : std::string()},
-            {SK::filament_nozzle::on_extruder,    slot.value(SK::filament_slot::filament_nozzle, nlohmann::json::object()).value(SK::filament_nozzle::on_extruder, false)}
+            {SK::filament_nozzle::state,          nozzle_state},
+            {SK::filament_nozzle::has_filament,   is_loaded && !nozzle_empty && !nozzle_error},
+            {SK::filament_nozzle::filament_color, (is_loaded && !nozzle_empty && !nozzle_error) ? color : std::string()},
+            {SK::filament_nozzle::on_extruder,    src_nozzle.value(SK::filament_nozzle::on_extruder, false)}
         };
 
         slots.push_back({

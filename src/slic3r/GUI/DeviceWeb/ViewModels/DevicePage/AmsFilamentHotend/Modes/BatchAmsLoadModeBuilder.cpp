@@ -19,7 +19,35 @@ namespace SV = AmsHotendSchema::values;
 
 namespace {
 
-nlohmann::json make_select_action(const std::string& card_state)
+struct PrebuiltNozzleInfo {
+    int            addr_id = 0;
+    nlohmann::json nozzle  = {
+        {SK::filament_nozzle::state,          SV::nozzle_state::normal},
+        {SK::filament_nozzle::has_filament,   false},
+        {SK::filament_nozzle::filament_color, std::string()},
+        {SK::filament_nozzle::on_extruder,    false},
+    };
+};
+
+PrebuiltNozzleInfo find_prebuilt_nozzle(const nlohmann::json& prebuilt_normal_page, int display_index)
+{
+    PrebuiltNozzleInfo info;
+    const auto slots_it = prebuilt_normal_page.find(SK::filament_page::hotend_slots);
+    if (slots_it == prebuilt_normal_page.end() || !slots_it->is_array()) {
+        return info;
+    }
+    for (const auto& slot : *slots_it) {
+        if (slot.value(SK::filament_slot::display_index, 0) != display_index) {
+            continue;
+        }
+        info.addr_id = slot.value(SK::filament_slot::addr_id, 0);
+        info.nozzle  = slot.value(SK::filament_slot::filament_nozzle, info.nozzle);
+        return info;
+    }
+    return info;
+}
+
+nlohmann::json make_select_action(const std::string& card_state, const std::string& nozzle_state)
 {
     const bool is_empty        = (card_state == SV::card_state::empty);
     const bool is_ready_to_load= (card_state == SV::card_state::ready_to_load);
@@ -33,7 +61,11 @@ nlohmann::json make_select_action(const std::string& card_state)
     bool can_select = false;
     std::string reason;
 
-    if (is_empty) {
+    if (nozzle_state == SV::nozzle_state::none) {
+        reason = _u8L("No nozzle");
+    } else if (nozzle_state == SV::nozzle_state::error) {
+        reason = _u8L("Nozzle is in error state");
+    } else if (is_empty) {
         reason = _u8L("Empty slot");
     } else if (is_reading) {
         reason = _u8L("RFID is being read");
@@ -186,8 +218,11 @@ nlohmann::json BatchAmsLoadModeBuilder::BuildFilamentPage(
                 {SK::filament_card::status_text, resolve_status_text(card_state)}
             };
 
+            const PrebuiltNozzleInfo prebuilt = find_prebuilt_nozzle(prebuilt_normal_page, display_index);
+            const std::string nozzle_state = prebuilt.nozzle.value(SK::filament_nozzle::state, std::string(SV::nozzle_state::normal));
+
             slots.push_back({
-                {SK::filament_slot::addr_id,           0},
+                {SK::filament_slot::addr_id,           prebuilt.addr_id},
                 {SK::filament_slot::display_index,     display_index},
                 {SK::filament_slot::ams_id,            ams_id},
                 {SK::filament_slot::slot_id,           slot_id},
@@ -200,13 +235,8 @@ nlohmann::json BatchAmsLoadModeBuilder::BuildFilamentPage(
                     {SK::filament_line::has_filament,   false},
                     {SK::filament_line::filament_color, std::string()}
                 }},
-                {SK::filament_slot::filament_nozzle, {
-                    {SK::filament_nozzle::state,          SV::nozzle_state::normal},
-                    {SK::filament_nozzle::has_filament,   false},
-                    {SK::filament_nozzle::filament_color, std::string()},
-                    {SK::filament_nozzle::on_extruder,    false}
-                }},
-                {SK::filament_slot::select_action,     make_select_action(card_state)},
+                {SK::filament_slot::filament_nozzle,   prebuilt.nozzle},
+                {SK::filament_slot::select_action,     make_select_action(card_state, nozzle_state)},
             });
         }
     }
