@@ -706,6 +706,7 @@ private:
 #endif // ENABLE_RENDER_PICKING_PASS
 
     RenderStats m_render_stats;
+    std::chrono::steady_clock::time_point m_last_present_time{};
 
     int m_imgui_undo_redo_hovered_pos{ -1 };
     int m_mouse_wheel{ 0 };
@@ -1467,7 +1468,26 @@ private:
     static bool is_volume_in_plate_boundingbox(const GLVolume &v, int plate_idx, const BoundingBoxf3 &plate_build_volume);
     static void _init_fullscreen_mesh();
 
-    static void _rebuild_postprocessing_pipeline(const std::shared_ptr<OpenGLManager>& p_ogl_manager, const std::string& input_framebuffer_name, std::string& output_framebuffer_name, uint32_t width, uint32_t height);
+    static void _rebuild_postprocessing_pipeline(
+        const std::shared_ptr<OpenGLManager>& p_ogl_manager,
+        const std::string& input_framebuffer_name,
+        std::string& output_framebuffer_name,
+        uint32_t width,
+        uint32_t height,
+        bool enable_ssao,
+        float z_near,
+        float z_far);
+
+    // Renders world-space normals of the opaque scene into a dedicated
+    // "normalframe" G-buffer that the SSAO post-processing pass samples.
+    void _render_normal_buffer(OpenGLManager& ogl_manager, uint32_t width, uint32_t height);
+
+    // Renders a planar projected shadow slightly below the plate surface
+    // along the realistic-view world light direction.
+    void _render_cast_shadows_on_plate(const Camera& camera);
+
+    // Renders a subtle mirrored image of opaque model volumes below the plate.
+    void _render_build_plate_reflections(const Camera& camera);
 
     static void _render_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects,
         const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
