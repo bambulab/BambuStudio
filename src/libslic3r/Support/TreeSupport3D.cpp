@@ -3417,8 +3417,12 @@ static std::pair<int, int> discretize_polygon(const Vec3f& center, const Polygon
     return { begin, int(pts.size()) };
 }
 
-// Returns Z span of the generated mesh.
-static std::pair<float, float> extrude_branch(
+// Returns Z span of the generated mesh. Generates one closed tube (bottom hemisphere,
+// bisector-normal section circles connected by zig-zag strips, top hemisphere) for the
+// given continuous path. This is the original extrude_branch body, now a reusable piece
+// generator invoked by extrude_branch(), which may split a path into self-intersection-free
+// pieces before calling this.
+static std::pair<float, float> extrude_branch_tube(
     const std::vector<const SupportElement*>&path,
     const TreeSupportSettings               &config,
     const SlicingParameters                 &slicing_params,
@@ -3499,17 +3503,116 @@ static std::pair<float, float> extrude_branch(
 //            sprintf(fname, "d:\\temp\\meshes\\tree-partial-%d.obj", ++irun);
 //            its_write_obj(result, fname);
         }
-#if 0
-        if (circles_intersect(p1, nprev, support_element_radius(settings, prev), p2, ncurrent, support_element_radius(settings, current))) {
-            // Cannot connect previous and current slice using a simple zig-zag triangulation,
-            // because the two circles intersect.
-
-        } else {
-            // Continue with chaining.
-
-        }
-#endif
     }
+
+    return std::make_pair(zmin, zmax);
+}
+
+// Geometrically correct section-circle intersection test (the file-scope circles_intersect
+// above is incomplete dead code). Two oriented section discs (p1,n1,r1) and (p2,n2,r2)
+// intersect only when each disc crosses the other's plane AND their chords on the shared
+// plane-intersection line overlap. Near-parallel normals mean cleanly stacked circles
+// (a straight tube segment) -> not intersecting.
+static bool section_circles_intersect(
+    const Vec3d &p1, const Vec3d &n1, const double r1,
+    const Vec3d &p2, const Vec3d &n2, const double r2)
+{
+    const double cos_tilt = std::clamp(n1.dot(n2), -1.0, 1.0);
+    const double sin_tilt = std::sqrt(std::max(0.0, 1.0 - cos_tilt * cos_tilt)); // sin of tilt angle
+    if (sin_tilt < 1e-4)
+        return false;
+    const Vec3d  delta = p1 - p2;
+    // Signed distance of each center to the other section's plane; a disc reaches the other
+    // plane only if this does not exceed the disc's projected extent (r * sin_tilt).
+    const double dist1 = n2.dot(delta);
+    const double dist2 = n1.dot(delta);
+    if (std::abs(dist1) > r1 * sin_tilt || std::abs(dist2) > r2 * sin_tilt)
+        return false;
+    // Both discs cross the plane-intersection line, but they truly intersect only if their
+    // chords on that line overlap. e = n1 x n2 runs along the line with |e| = sin_tilt; h1/h2
+    // are the chord half-lengths, axial is the gap between the two chord midpoints.
+    const Vec3d  e     = n1.cross(n2);
+    const double axial = std::abs(e.dot(delta)) / sin_tilt;
+    const double h1    = std::sqrt(std::max(0.0, r1 * r1 - (dist1 / sin_tilt) * (dist1 / sin_tilt)));
+    const double h2    = std::sqrt(std::max(0.0, r2 * r2 - (dist2 / sin_tilt) * (dist2 / sin_tilt)));
+    return axial <= h1 + h2;
+}
+
+// Safe-joints wrapper around extrude_branch_tube. When consecutive section circles
+// intersect in 3D, the zig-zag triangulation self-folds and slicing drops that area
+// (a gap / missing slice in the sliced layers). In that case split the path at the
+// offending edges and emit each unsafe edge as a standalone closed capsule. Adjacent
+// pieces overlap at the shared node; the resulting overlapping (but valid, same-winding)
+// section contours are merged downstream by the non-zero fill clipping (diff_clipped /
+// intersection), same as the branch-to-branch endpoint overlaps in the original code.
+static std::pair<float, float> extrude_branch(
+    const std::vector<const SupportElement*>&path,
+    const TreeSupportSettings               &config,
+    const SlicingParameters                 &slicing_params,
+    const std::vector<SupportElements>      &move_bounds,
+    indexed_triangle_set                    &result)
+{
+    const size_t n = path.size();
+    if (n < 3)
+        return extrude_branch_tube(path, config, slicing_params, move_bounds, result);
+
+    // Per-node section circle: interior nodes use the bisector normal (matches
+    // extrude_branch_tube's mid-tube sections), endpoints use the segment direction.
+    std::vector<Vec3d>  node_pos(n);
+    std::vector<double> node_radius(n);
+    std::vector<Vec3d>  node_normal(n);
+    for (size_t i = 0; i < n; ++ i) {
+        node_pos[i] = to_3d(unscaled<double>(path[i]->state.result_on_layer),
+                            layer_z(slicing_params, config, path[i]->state.layer_idx));
+        node_radius[i] = unscaled<double>(support_element_radius(config, *path[i]));
+    }
+    node_normal[0]     = (node_pos[1] - node_pos[0]).normalized();
+    node_normal[n - 1] = (node_pos[n - 1] - node_pos[n - 2]).normalized();
+    for (size_t i = 1; i + 1 < n; ++ i) {
+        const Vec3d v1 = (node_pos[i]     - node_pos[i - 1]).normalized();
+        const Vec3d v2 = (node_pos[i + 1] - node_pos[i]    ).normalized();
+        node_normal[i] = (v1 + v2).normalized();
+    }
+
+    // Mark unsafe edges.
+    std::vector<char> edge_unsafe(n - 1, 0);
+    bool any_unsafe = false;
+    for (size_t k = 0; k + 1 < n; ++ k)
+        if (section_circles_intersect(node_pos[k], node_normal[k], node_radius[k],
+                                      node_pos[k + 1], node_normal[k + 1], node_radius[k + 1])) {
+            edge_unsafe[k] = 1;
+            any_unsafe     = true;
+        }
+
+    if (! any_unsafe)
+        return extrude_branch_tube(path, config, slicing_params, move_bounds, result);
+
+    // Split into ordered pieces: maximal safe runs + isolated unsafe single-edge capsules.
+    // Adjacent pieces share the boundary node; their closed hemispheres overlap there and
+    // are merged by the downstream non-zero fill clipping (no 3D boolean needed).
+    float zmin =  std::numeric_limits<float>::max();
+    float zmax = -std::numeric_limits<float>::max();
+    std::vector<const SupportElement*> piece_path;
+    indexed_triangle_set               piece_mesh;
+    auto emit_piece = [&](size_t begin, size_t end) {
+        piece_path.assign(path.begin() + begin, path.begin() + end + 1);
+        piece_mesh.clear();
+        const std::pair<float, float> span =
+            extrude_branch_tube(piece_path, config, slicing_params, move_bounds, piece_mesh);
+        zmin = std::min(zmin, span.first);
+        zmax = std::max(zmax, span.second);
+        its_merge(result, piece_mesh);
+    };
+    size_t run_start = 0;
+    for (size_t k = 0; k + 1 < n; ++ k)
+        if (edge_unsafe[k]) {
+            if (run_start < k)
+                emit_piece(run_start, k); // safe run [run_start, k]
+            emit_piece(k, k + 1);         // unsafe edge as its own capsule
+            run_start = k + 1;
+        }
+    if (run_start < n - 1)
+        emit_piece(run_start, n - 1);     // trailing safe run [run_start, n-1]
 
     return std::make_pair(zmin, zmax);
 }
@@ -4513,6 +4616,9 @@ void organic_draw_branches(
                         slices[i] = diff_clipped(slices[i], volumes.getCollision(0, layer_begin + i, true)); // FIXME parent_uses_min || draw_area.element->state.use_min_xy_dist);
                         slices[i] = intersection(slices[i], volumes.m_bed_area);
                     }
+                    // Per-branch model-severed fragment removal is deferred to a tree-level
+                    // connectivity pass (keep_main) that runs after sibling branches are merged,
+                    // so a fragment held up by a sibling branch is not dropped prematurely.
                     size_t num_empty = 0;
                     if (slices.front().empty()) {
                         // Some of the initial layers are empty.
@@ -4652,6 +4758,93 @@ void organic_draw_branches(
                         slice.bottom_contacts = union_(slice.bottom_contacts);
                         slice.num_branches = 1;
                     }
+                // keep_main (tree level): now that sibling branches of this tree are merged per
+                // layer, drop slice components not connected through vertical overlap to any branch
+                // axis of this tree. Running at tree scope (instead of per branch) keeps fragments
+                // held up by a sibling branch, which a per-branch pass cannot see.
+                if (tree.first_layer_id >= 0) {
+                    const LayerIndex base = tree.first_layer_id;
+                    const size_t     n    = tree.slices.size();
+                    // 25 um: treat an axis point on/near a part boundary as inside.
+                    const double axis_touch_tol = scaled<double>(0.025);
+                    std::vector<ExPolygons>        parts(n);
+                    std::vector<std::vector<char>> keep(n);
+                    for (size_t i = 0; i < n; ++i) {
+                        parts[i] = union_ex(tree.slices[i].polygons);
+                        keep[i].assign(parts[i].size(), 0);
+                    }
+                    // Seed with every branch axis node of this tree.
+                    for (const Branch& branch : tree.branches)
+                        for (const SupportElement* el : branch.path) {
+                            const LayerIndex layer = el->state.layer_idx;
+                            if (layer < base || size_t(layer - base) >= n)
+                                continue;
+                            const size_t i = size_t(layer - base);
+                            if (parts[i].empty())
+                                continue;
+                            const Point axis = el->state.result_on_layer;
+                            for (size_t j = 0; j < parts[i].size(); ++j) {
+                                if (keep[i][j])
+                                    continue;
+                                bool ok = parts[i][j].contains(axis);
+                                if (!ok) {
+                                    Point pt = axis;
+                                    move_inside(to_polygons(parts[i][j]), pt, 0);
+                                    ok = (axis - pt).cast<double>().norm() < axis_touch_tol;
+                                }
+                                if (ok)
+                                    keep[i][j] = 1;
+                            }
+                        }
+                    // Cache each layer's kept contour union; invalidated when its keep[] changes.
+                    std::vector<Polygons> kept_cache(n);
+                    std::vector<char>     cache_dirty(n, 1);
+                    auto kept_polys = [&](size_t i) -> const Polygons& {
+                        if (cache_dirty[i]) {
+                            Polygons out;
+                            for (size_t j = 0; j < parts[i].size(); ++j)
+                                if (keep[i][j])
+                                    append(out, to_polygons(parts[i][j]));
+                            kept_cache[i]  = std::move(out);
+                            cache_dirty[i] = 0;
+                        }
+                        return kept_cache[i];
+                    };
+                    // One directional sweep: keep any part overlapping a kept part in the adjacent
+                    // lower (up) / upper (down) layer. Returns whether keep[] changed.
+                    auto sweep = [&](bool up) {
+                        bool changed = false;
+                        for (size_t s = 1; s < n; ++s) {
+                            const size_t i = up ? s : n - 1 - s;
+                            const size_t p = up ? i - 1 : i + 1;
+                            const Polygons &neighbor_polys = kept_polys(p);
+                            if (neighbor_polys.empty())
+                                continue;
+                            for (size_t j = 0; j < parts[i].size(); ++j)
+                                if (!keep[i][j] && !intersection(to_polygons(parts[i][j]), neighbor_polys).empty()) {
+                                    keep[i][j]     = 1;
+                                    cache_dirty[i] = 1;
+                                    changed        = true;
+                                }
+                        }
+                        return changed;
+                    };
+                    // Iterate to a fixpoint: a single up+down pass is not a connected-component
+                    // computation and would drop fragments linked to an axis through zig-zag
+                    // (multi-direction) layer chains. Keep flags only grow, so this terminates.
+                    bool changed = true;
+                    while (changed) {
+                        const bool up_changed   = sweep(true);
+                        const bool down_changed = sweep(false);
+                        changed = up_changed || down_changed;
+                    }
+                    for (size_t i = 0; i < n; ++i) {
+                        const Polygons kept = kept_polys(i);
+                        tree.slices[i].polygons = kept;
+                        if (!tree.slices[i].bottom_contacts.empty())
+                            tree.slices[i].bottom_contacts = intersection(tree.slices[i].bottom_contacts, kept);
+                    }
+                }
                 throw_on_cancel();
             }
         }, tbb::simple_partitioner());
