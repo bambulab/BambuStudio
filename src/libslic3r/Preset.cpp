@@ -1014,6 +1014,7 @@ static std::vector<std::string> s_Preset_print_options {
     "layer_height", "initial_layer_print_height", "wall_loops", "slice_closing_radius", "spiral_mode", "spiral_mode_smooth", "spiral_mode_max_xy_smoothing", "slicing_mode",
     "top_shell_layers", "top_shell_thickness", "bottom_shell_layers", "bottom_shell_thickness", "ensure_vertical_shell_thickness", "reduce_crossing_wall", "detect_thin_wall",
     "detect_overhang_wall", "top_color_penetration_layers", "bottom_color_penetration_layers",
+    "make_overhang_printable", "make_overhang_printable_angle", "make_overhang_printable_hole_size",
     "infill_instead_top_bottom_surfaces",
     "smooth_speed_discontinuity_area","smooth_coefficient", "seam_position", "seam_placement_away_from_overhangs", "wall_sequence", "is_infill_first", "sparse_infill_density", "fill_multiline",
     "sparse_infill_pattern", "sparse_infill_anchor", "sparse_infill_anchor_max", "top_surface_pattern", "monotonic_travel_into_wall",

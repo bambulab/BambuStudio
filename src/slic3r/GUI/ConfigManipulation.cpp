@@ -869,6 +869,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     SeamPosition seam_pos = config->option<ConfigOptionEnum<SeamPosition>>("seam_position")->value;
     toggle_line("seam_placement_away_from_overhangs", seam_pos == SeamPosition::spAligned || seam_pos == SeamPosition::spRear);
 
+    const bool make_overhang_printable = config->opt_bool("make_overhang_printable");
+    toggle_line("make_overhang_printable_angle", make_overhang_printable);
+    toggle_line("make_overhang_printable_hole_size", make_overhang_printable);
+
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // sparse_infill_filament uses the same logic as in Print::extruders()
     for (auto el : {"sparse_infill_pattern", "sparse_infill_anchor_max", "infill_combination", "minimum_sparse_infill_area", "sparse_infill_filament", "infill_shift_step",
