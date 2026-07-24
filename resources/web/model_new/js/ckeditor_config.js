@@ -162,13 +162,24 @@ const editorConfig = {
 	language: editorLanguage
 };
 
-script.onload = () => {
+let editorsInitialized = false;
+function initEditors() {
+	if (editorsInitialized) return;
+	editorsInitialized = true;
 	ClassicEditor.create(document.querySelector('#editor'), editorConfig).then( editor => {
 		window.projectEditor = editor;
 	});
 	ClassicEditor.create(document.querySelector('#profile-editor'), editorConfig).then( editor => {
 		window.profileEditor = editor;
 	});
-};
+}
+
+// Initialise the editors once the translation file has loaded. If it fails to
+// load (e.g. the resolved locale has no translation file such as "en-us", which
+// happens when editor.html is opened without a ?lang= and the webview reports
+// navigator.language as en-US), still initialise the editors so the description
+// field is usable instead of leaving the page without an editor.
+script.onload = initEditors;
+script.onerror = initEditors;
 
 document.head.appendChild(script);
