@@ -26,6 +26,11 @@ public:
     // os specific load of wxFont
     static std::unique_ptr<::Slic3r::Emboss::FontFile> create_font_file(const wxFont &font);
 
+    // For TrueType collections (.ttc) find index of the face selected by the
+    // wx font inside the loaded file (macOS only, nullopt elsewhere or when
+    // the file contains a single font / face can't be identified).
+    static std::optional<unsigned int> get_collection_index(const wxFont &font, const ::Slic3r::Emboss::FontFile &font_file);
+
     static EmbossStyle::Type get_current_type();
     static EmbossStyle       create_emboss_style(const wxFont &font, const std::string &name = "");
 
