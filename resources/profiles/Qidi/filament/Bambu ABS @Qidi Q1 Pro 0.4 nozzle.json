@@ -1,0 +1,30 @@
+{
+    "type": "filament",
+    "filament_id": "GFB00",
+    "setting_id": "GFSB00_Qidi_56",
+    "name": "Bambu ABS @Qidi Q1 Pro 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Bambu ABS @Qidi",
+    "activate_chamber_temp_control": [
+        "0"
+    ],
+    "filament_max_volumetric_speed": [
+        "24.5"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "90"
+    ],
+    "nozzle_temperature": [
+        "260"
+    ],
+    "pressure_advance": [
+        "0.035"
+    ],
+    "during_print_exhaust_fan_speed":[
+         "0"
+    ],
+    "compatible_printers": [
+        "Qidi Q1 Pro 0.4 nozzle"
+	]
+}
