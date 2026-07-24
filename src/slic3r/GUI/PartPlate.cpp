@@ -6960,6 +6960,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
  					plate_data_item->filament_change_sequence = m_plate_list[i]->m_gcode_result->filament_change_sequence;
                     plate_data_item->nozzle_change_sequence = m_plate_list[i]->m_gcode_result->nozzle_change_sequence;
                     plate_data_item->optimal_assignment = m_plate_list[i]->m_gcode_result->optimal_assignment;
+                    plate_data_item->pause_printing = m_plate_list[i]->m_gcode_result->pause_printing;
                     plate_data_item->first_layer_time = std::to_string(m_plate_list[i]->cali_bboxes_data.first_layer_time);
 					Print *print                      = nullptr;
 					m_plate_list[i]->get_print((PrintBase **) &print, nullptr, nullptr);
@@ -7071,6 +7072,7 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
         gcode_result->timelapse_warning_code = plate_data_list[i]->timelapse_warning_code;
 		gcode_result->filament_change_sequence = plate_data_list[i]->filament_change_sequence;
 		gcode_result->nozzle_change_sequence   = plate_data_list[i]->nozzle_change_sequence;
+		gcode_result->pause_printing            = plate_data_list[i]->pause_printing;
         m_plate_list[index]->set_timelapse_warning_code(plate_data_list[i]->timelapse_warning_code);
 		m_plate_list[index]->slice_filaments_info = plate_data_list[i]->slice_filaments_info;
 		gcode_result->warnings = plate_data_list[i]->warnings;
