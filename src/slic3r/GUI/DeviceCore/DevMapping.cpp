@@ -8,6 +8,8 @@
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/GuiColor.hpp"
 
+#include <algorithm>
+
 using namespace nlohmann;
 
 namespace Slic3r
@@ -128,6 +130,16 @@ namespace Slic3r
 
     int DevMappingUtil::ams_filament_mapping(const MachineObject* obj, const std::vector<FilamentInfo>& filaments, std::vector<FilamentInfo>& result, std::vector<bool> map_opt, std::vector<int> exclude_id, bool nozzle_has_ams_then_ignore_ext)
     {
+        // Match priority:
+        //   type (hard) > setting_id (sub-class) > filament_id (class) > color.
+        constexpr float kColorDistanceMin    = 0.f;
+        constexpr float kColorDistanceMax    = 1000.f;   // > real DeltaE76 upper bound (~260)
+        constexpr float kClassDistanceOffset = 10000.f;  // class match (filament_id) only
+        constexpr float kTypeDistanceOffset  = 20000.f;  // same type only
+        constexpr float kMismatchDistance    = 999999.f; // hard fail (type / alpha mismatch)
+        static_assert(kColorDistanceMax < kClassDistanceOffset, "color distance must not override sub-class / class match priority");
+        static_assert(kTypeDistanceOffset - kClassDistanceOffset > kColorDistanceMax, "class-vs-type gap must exceed the color distance range");
+
         if (filaments.empty())
             return -1;
 
@@ -250,19 +262,18 @@ namespace Slic3r
                 val.tray_id = tray->second.id;
                 wxColour c = wxColour(filaments[i].color);
                 wxColour tray_c = DevAmsTray::decode_color(tray->second.color);
-                val.distance = GUI::calc_color_distance(c, tray_c);
+                float color_distance = GUI::calc_color_distance(GUI::convert_to_rgba(c), GUI::convert_to_rgba(tray_c));
+                val.distance = std::clamp(color_distance, kColorDistanceMin, kColorDistanceMax);
                 if (filaments[i].type != tray->second.type)
                 {
-                    val.distance = 999999;
+                    val.distance = kMismatchDistance;
                     val.is_type_match = false;
                 }
                 else
                 {
                     if (c.Alpha() != tray_c.Alpha())
-                        val.distance = 999999;
+                        val.distance = kMismatchDistance;
                     else {
-                        constexpr float kClassDistanceOffset = 1000.f;
-                        constexpr float kTypeDistanceOffset = 2000.f;
                         const bool is_sub_class_match = !filaments[i].setting_id.empty() && !tray->second.setting_id.empty()
                             && filaments[i].setting_id == tray->second.setting_id;
                         const bool is_class_match = !filaments[i].filament_id.empty() && !tray->second.filament_id.empty()
