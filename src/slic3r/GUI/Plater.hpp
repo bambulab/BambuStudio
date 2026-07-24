@@ -372,7 +372,8 @@ public:
     bool open_3mf_file(const fs::path &file_path);
     int  get_3mf_file_count(std::vector<fs::path> paths);
     void add_file();
-    void add_model(bool imperial_units = false, std::string fname = "");
+    // Returns false when no object was added, for example when loading failed or was cancelled.
+    bool add_model(bool imperial_units = false, std::string fname = "");
     void import_sl1_archive();
     void extract_config_from_project();
     void load_gcode();
@@ -1051,7 +1052,7 @@ private:
     int start_next_slice();
 
     void _calib_pa_pattern(const Calib_Params &params);
-    void _calib_pa_tower(const Calib_Params &params);
+    bool _calib_pa_tower(const Calib_Params &params);
     void _calib_pa_select_added_objects();
 
     void on_filament_map_mode_change();
