@@ -2392,6 +2392,8 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
         mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/torus.stl").c_str(), true, nullptr);
     else if (type_name == "Rounded Rectangle")
         mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/rounded_rectangle.stl").c_str(), true, nullptr);
+    else if (type_name == "TearDrop")
+        mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/TearDrop.stl").c_str(), true, nullptr);
     else if (type_name == "Bambu Cube")
         mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/Bambu_Cube.stl").c_str(), true, nullptr);
     else if (type_name == "Bambu Cube V2")
