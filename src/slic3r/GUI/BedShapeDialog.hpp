@@ -69,7 +69,7 @@ public:
 
     // Returns the resulting bed shape polygon. This value will be stored to the ini file.
     const std::vector<Vec2d>& get_shape() const { return m_shape; }
-    const std::string& get_custom_texture() const { return (m_custom_texture != NONE) ? m_custom_texture : EMPTY_STRING; }
+    const std::string& get_custom_texture() const;
     const std::string& get_custom_model() const { return (m_custom_model != NONE) ? m_custom_model : EMPTY_STRING; }
     bool  get_valid() { return m_is_valid; }
     void  set_edit_state(bool flag) { m_can_edit = flag; }
