@@ -6450,7 +6450,7 @@ int GCodeProcessor::get_extruder_id(bool force_initialize)const
 int GCodeProcessor::get_machine_config_idx(int filament_idx) const
 {
     int extruder_id = get_extruder_id();
-    if (!m_nozzle_group_result || extruder_id < 0)
+    if (!m_nozzle_group_result || extruder_id < 0 || static_cast<size_t>(extruder_id) >= m_result.extruder_types.size())
         return 0;
     int nozzle_id = m_nozzle_status_recorder.get_nozzle_in_extruder(extruder_id);
     auto nozzle_info = m_nozzle_group_result->get_nozzle_from_id(nozzle_id);
