@@ -91,6 +91,14 @@ using namespace nlohmann;
 #include <X11/Xlib.h>
 #endif
 
+// BBS: for the out-of-memory new-handler (bbl_out_of_memory_handler)
+#include <new> // std::set_new_handler
+#if defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h> // CFUserNotificationDisplayNotice
+#elif !defined(_MSC_VER) && !defined(__MINGW32__)
+#include <unistd.h> // write(), STDERR_FILENO
+#endif
+
 #ifdef SLIC3R_GUI
     #include "slic3r/GUI/GUI_Init.hpp"
 #endif /* SLIC3R_GUI */
@@ -8633,6 +8641,52 @@ LONG WINAPI VectoredExceptionHandler(PEXCEPTION_POINTERS pExceptionInfo)
     return EXCEPTION_CONTINUE_SEARCH;
 }*/
 
+// BBS: out-of-memory new-handler, installed on every platform
+#define BBL_OOM_TITLE "Bambu Studio - Out of Memory"
+#define BBL_OOM_BODY \
+    "Bambu Studio has run out of memory and must close.\n\n" \
+    "Your project may be too large for the available memory. " \
+    "Try closing other applications, reducing the model complexity " \
+    "or plate count, and restart."
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+// Windows: raw Win32 MessageBoxW with static wide literals; no wx, no allocation.
+static void bbl_oom_notify_windows() { ::MessageBoxW(nullptr, L"" BBL_OOM_BODY, L"" BBL_OOM_TITLE, MB_OK | MB_ICONERROR | MB_TOPMOST | MB_SETFOREGROUND); }
+#elif defined(__APPLE__)
+// macOS: CFUserNotification works without a running event loop and takes static
+// CFString literals (no heap use beyond CF internals). Best-effort.
+static void bbl_oom_notify_macos()
+{ CFUserNotificationDisplayNotice(0.0, kCFUserNotificationStopAlertLevel, nullptr, nullptr, nullptr, CFSTR(BBL_OOM_TITLE), CFSTR(BBL_OOM_BODY), nullptr); }
+#else
+// Linux: no allocation-free GUI primitive is safe under OOM (GTK allocates; fork+exec
+// of zenity can itself fail when memory is gone). Emit an async-signal-safe message to
+// stderr instead of a dialog.
+static void bbl_oom_notify_linux()
+{
+    const char msg[] = "\n" BBL_OOM_TITLE "\n" BBL_OOM_BODY "\n\n";
+    ssize_t    n     = ::write(STDERR_FILENO, msg, sizeof(msg) - 1);
+    (void) n;
+}
+#endif
+
+static void bbl_out_of_memory_handler()
+{
+    // Notify once; if new keeps failing (or fails on another thread), avoid stacking
+    // dialogs or recursing.
+    static volatile long s_reported = 0;
+#if defined(_MSC_VER) || defined(__MINGW32__)
+    if (::InterlockedCompareExchange(&s_reported, 1, 0) == 0) bbl_oom_notify_windows();
+#elif defined(__APPLE__)
+    if (__sync_val_compare_and_swap(&s_reported, 0, 1) == 0) bbl_oom_notify_macos();
+#else
+    if (__sync_val_compare_and_swap(&s_reported, 0, 1) == 0) bbl_oom_notify_linux();
+#endif
+
+    // Fall through: crash so a dump is still generated.
+    int *a = nullptr;
+    *a     = 0;
+}
+
 #if defined(_MSC_VER) || defined(__MINGW32__)
 extern "C" {
     __declspec(dllexport) int __stdcall bambustu_main(int argc, wchar_t **argv)
@@ -8652,10 +8706,7 @@ extern "C" {
         //AddVectoredExceptionHandler(1, CBaseException::UnhandledExceptionFilter);
         //SET_DEFULTER_HANDLER();
 #endif
-        std::set_new_handler([]() {
-            int *a = nullptr;
-            *a     = 0;
-            });
+        std::set_new_handler(bbl_out_of_memory_handler);
         // Call the UTF8 main.
         return CLI().run(argc, argv_ptrs.data());
     }
@@ -8663,6 +8714,7 @@ extern "C" {
 #else /* _MSC_VER */
 int main(int argc, char **argv)
 {
+    std::set_new_handler(bbl_out_of_memory_handler);
     return CLI().run(argc, argv);
 }
 #endif /* _MSC_VER */
