@@ -14,9 +14,11 @@
 #include "slic3r/GUI/Widgets/StaticBox.hpp"
 #include "slic3r/GUI/Widgets/AnimaController.hpp"
 
+#include <wx/bitmap.h>
 #include <wx/panel.h>
 #include <wx/simplebook.h>
 #include <memory>
+#include <string>
 
 // Previous definitions
 class Button;
@@ -43,6 +45,8 @@ wxDECLARE_EVENT(EVT_NOZZLE_RACK_NOZZLE_ITEM_SELECTED, wxCommandEvent);
 
 namespace Slic3r::GUI
 {
+wxBitmap SetNozzleBmpColor(const wxBitmap& bmp, const std::string& color_str);
+
 class wgtDeviceNozzleRack : public wxPanel
 {
 public:
