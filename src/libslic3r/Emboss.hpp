@@ -170,6 +170,25 @@ namespace Emboss
     double get_text_shape_scale(const FontProp &fp, const FontFile &ff);
 
     /// <summary>
+    /// Insert line breaks so each line fits wrap_width_mm. Preserves existing '\n'.
+    /// Word-wraps on spaces; breaks long words by character when needed.
+    /// </summary>
+    std::string apply_text_wrap(FontFileWithCache &font_with_cache, const std::string &text, const FontProp &font_prop, double wrap_width_mm);
+
+    /// <summary>
+    /// Optionally wrap text to width and/or shrink FontProp::size_in_mm so the layout fits a box.
+    /// When wrap_height_mm &lt;= 0, only width is enforced.
+    /// </summary>
+    /// <returns>Text used for shape generation (may include inserted '\n')</returns>
+    std::string fit_text_to_box(FontFileWithCache &font_with_cache,
+                                FontProp &         font_prop,
+                                const std::string &text,
+                                double             wrap_width_mm,
+                                double             wrap_height_mm,
+                                bool               do_wrap,
+                                bool               do_shrink);
+
+    /// <summary>
     /// getter of font info by collection defined in prop
     /// </summary>
     /// <param name="font">Contain infos about all fonts(collections) in file</param>

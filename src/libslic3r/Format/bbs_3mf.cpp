@@ -249,6 +249,10 @@ static constexpr const char* THICKNESS_ATTR       = "thickness";
 static constexpr const char* EMBEDED_DEPTH_ATTR   = "embeded_depth";
 static constexpr const char* ROTATE_ANGLE_ATTR    = "rotate_angle";
 static constexpr const char* TEXT_GAP_ATTR        = "text_gap";
+static constexpr const char* WRAP_TEXT_ATTR       = "wrap_text";
+static constexpr const char* WRAP_WIDTH_ATTR      = "wrap_width";
+static constexpr const char* WRAP_HEIGHT_ATTR     = "wrap_height";
+static constexpr const char* AUTO_SHRINK_ATTR     = "auto_shrink";
 static constexpr const char* BOLD_ATTR            = "bold";
 static constexpr const char* ITALIC_ATTR          = "italic";
 static constexpr const char *SURFACE_TYPE         = "surface_type";
@@ -4979,6 +4983,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             text_info.text_configuration.style.prop.boldness = bbs_get_attribute_value_float(attributes, num_attributes, BOLDNESS_ATTR);
             text_info.text_configuration.style.prop.skew     = bbs_get_attribute_value_float(attributes, num_attributes, SKEW_ATTR);
         }
+        if (bbs_has_attribute_value_int(attributes, num_attributes, LINE_GAP_ATTR))
+            text_info.text_configuration.style.prop.line_gap = bbs_get_attribute_value_int(attributes, num_attributes, LINE_GAP_ATTR);
+        if (bbs_has_attribute_value_int(attributes, num_attributes, CHAR_GAP_ATTR))
+            text_info.text_configuration.style.prop.char_gap = bbs_get_attribute_value_int(attributes, num_attributes, CHAR_GAP_ATTR);
         text_info.m_curr_font_idx = bbs_get_attribute_value_int(attributes, num_attributes, FONT_INDEX_ATTR);
 
         text_info.m_font_size = bbs_get_attribute_value_float(attributes, num_attributes, FONT_SIZE_ATTR);
@@ -4986,6 +4994,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         text_info.m_embeded_depth = bbs_get_attribute_value_float(attributes, num_attributes, EMBEDED_DEPTH_ATTR);
         text_info.m_rotate_angle  = bbs_get_attribute_value_float(attributes, num_attributes, ROTATE_ANGLE_ATTR);
         text_info.m_text_gap      = bbs_get_attribute_value_float(attributes, num_attributes, TEXT_GAP_ATTR);
+        if (bbs_has_attribute_value_int(attributes, num_attributes, WRAP_TEXT_ATTR))
+            text_info.m_wrap_text = bbs_get_attribute_value_int(attributes, num_attributes, WRAP_TEXT_ATTR) != 0;
+        if (bbs_has_attribute_value_int(attributes, num_attributes, WRAP_WIDTH_ATTR))
+            text_info.m_wrap_width_mm = bbs_get_attribute_value_float(attributes, num_attributes, WRAP_WIDTH_ATTR);
+        if (bbs_has_attribute_value_int(attributes, num_attributes, WRAP_HEIGHT_ATTR))
+            text_info.m_wrap_height_mm = bbs_get_attribute_value_float(attributes, num_attributes, WRAP_HEIGHT_ATTR);
+        if (bbs_has_attribute_value_int(attributes, num_attributes, AUTO_SHRINK_ATTR))
+            text_info.m_auto_shrink = bbs_get_attribute_value_int(attributes, num_attributes, AUTO_SHRINK_ATTR) != 0;
 
         text_info.m_bold      = bbs_get_attribute_value_int(attributes, num_attributes, BOLD_ATTR);
         text_info.m_italic    = bbs_get_attribute_value_int(attributes, num_attributes, ITALIC_ATTR);
@@ -8015,12 +8031,17 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     void _add_text_info_to_archive(std::stringstream& stream, const TextInfo& text_info) {
         stream << "      <" << TEXT_INFO_TAG << " ";
 
-        stream << TEXT_ATTR << "=\"" << xml_escape(text_info.m_text) << "\" ";
+        // Preserve newlines/tabs in text attributes (XML attribute whitespace normalisation).
+        stream << TEXT_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(text_info.m_text) << "\" ";
         stream << FONT_NAME_ATTR << "=\"" << xml_escape(text_info.m_font_name) << "\" ";
         stream << FONT_VERSION_ATTR << "=\"" << text_info.m_font_version << "\" ";
         stream << STYLE_NAME_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(text_info.text_configuration.style.name) << "\" ";
         stream << BOLDNESS_ATTR << "=\"" << text_info.text_configuration.style.prop.boldness.value_or(0) << "\" ";
         stream << SKEW_ATTR << "=\"" << text_info.text_configuration.style.prop.skew.value_or(0) << "\" ";
+        if (text_info.text_configuration.style.prop.line_gap.has_value())
+            stream << LINE_GAP_ATTR << "=\"" << *text_info.text_configuration.style.prop.line_gap << "\" ";
+        if (text_info.text_configuration.style.prop.char_gap.has_value())
+            stream << CHAR_GAP_ATTR << "=\"" << *text_info.text_configuration.style.prop.char_gap << "\" ";
 
         stream << FONT_INDEX_ATTR << "=\"" << text_info.m_curr_font_idx << "\" ";
 
@@ -8029,6 +8050,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << EMBEDED_DEPTH_ATTR << "=\"" << text_info.m_embeded_depth << "\" ";
         stream << ROTATE_ANGLE_ATTR << "=\"" << text_info.m_rotate_angle << "\" ";
         stream << TEXT_GAP_ATTR << "=\"" << text_info.m_text_gap << "\" ";
+        stream << WRAP_TEXT_ATTR << "=\"" << (text_info.m_wrap_text ? 1 : 0) << "\" ";
+        stream << WRAP_WIDTH_ATTR << "=\"" << text_info.m_wrap_width_mm << "\" ";
+        stream << WRAP_HEIGHT_ATTR << "=\"" << text_info.m_wrap_height_mm << "\" ";
+        stream << AUTO_SHRINK_ATTR << "=\"" << (text_info.m_auto_shrink ? 1 : 0) << "\" ";
 
         stream << BOLD_ATTR << "=\"" << (text_info.m_bold ? 1 : 0) << "\" ";
         stream << ITALIC_ATTR << "=\"" << (text_info.m_italic ? 1 : 0) << "\" ";

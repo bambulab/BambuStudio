@@ -26,6 +26,7 @@
 #include "slic3r/GUI/format.hpp"
 //#include "slic3r/GUI/3DScene.hpp"
 #include "slic3r/GUI/Jobs/Worker.hpp"
+#include "slic3r/GUI/TextLines.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 #include <wx/regex.h>
 // #define EXECUTE_UPDATE_ON_MAIN_THREAD // debug execution on main thread
@@ -1282,11 +1283,10 @@ void create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, st
     if (shape.shapes_with_ids.empty())
         return;
     result.clear();
+    result.reserve(shape.shapes_with_ids.size());
     auto   first_project_tr = calc_project_tran(input, input.shape.scale);
 
-    TextConfiguration text_configuration = input.get_text_configuration();
     bool              support_backup_fonts = std::any_of(shape.text_scales.begin(), shape.text_scales.end(), [](float x) { return x > 0; });
-    const char *text     = input.get_text_configuration().text.c_str();
     wxString          input_text           = wxString::FromUTF8(input.get_text_configuration().text);
     wxRegEx           re("^ +$");
     bool              is_all_space = re.Matches(input_text);
@@ -1294,16 +1294,19 @@ void create_all_char_mesh(DataBase &input, std::vector<TriangleMesh> &result, st
     if (input_text.size() != shape.shapes_with_ids.size()) {
         BOOST_LOG_TRIVIAL(info) <<__FUNCTION__<< "error: input_text.size() != shape.shapes_with_ids.size()";
     }
-    for (int i = 0; i < shape.shapes_with_ids.size(); i++) {
+    // Keep a 1:1 mesh slot for every glyph/control character (including '\n').
+    // Skipping empty shapes desyncs meshes from text_cursors and breaks multiline layout.
+    for (int i = 0; i < (int) shape.shapes_with_ids.size(); i++) {
         auto &temp_shape = shape.shapes_with_ids[i];
-        if (input_text[i] == ' ') {
+        const bool is_space = i < (int) input_text.size() && input_text[i] == ' ';
+        const bool is_line_break = temp_shape.id == ENTER_UNICODE ||
+                                   (i < (int) input_text.size() && (input_text[i] == '\n' || input_text[i] == '\r'));
+        if (is_space || is_line_break || temp_shape.expoly.empty()) {
             result.emplace_back(TriangleMesh());
             continue;
         }
-        if (temp_shape.expoly.empty())
-            continue;
         if (support_backup_fonts) {
-            if (i < shape.text_scales.size() && shape.text_scales[i] > 0) {
+            if (i < (int) shape.text_scales.size() && shape.text_scales[i] > 0) {
                 auto temp_scale = shape.text_scales[i];
 
                 auto temp_project_tr = calc_project_tran(input, temp_scale);
@@ -1467,19 +1470,28 @@ bool GenerateTextJob::update_text_positions(InputInfo &input_info)
 
     input_info.text_lengths   = text_lengths;
     input_info.m_surface_type = GenerateTextJob::SurfaceType::None;
+    const unsigned count_lines = get_count_lines(input_info.m_text_shape.shapes_with_ids);
+    const bool     is_multiline = count_lines > 1;
+    // Flat / horizontal text keeps the baked Emboss 2D multiline layout.
+    // Surface modes use per-line contour sampling instead of a flat stamp.
+    input_info.m_use_baked_layout  = is_multiline && input_info.text_surface_type == TextInfo::TextType::HORIZONAL;
+    input_info.m_surface_multiline = is_multiline && input_info.text_surface_type != TextInfo::TextType::HORIZONAL;
     if (input_info.text_surface_type == TextInfo::TextType::HORIZONAL) {
-        input_info.use_surface   = false;
+        input_info.use_surface = false;
         Vec3d mouse_normal_world = input_info.m_text_normal_in_world.cast<double>();
-        Vec3d world_pos_dir      = input_info.m_cut_plane_dir_in_world.cross(mouse_normal_world);
         auto  inv_               = (input_info.m_model_object_in_world_tran.get_matrix_no_offset() * input_info.m_text_tran_in_object.get_matrix_no_offset()).inverse();
-        Vec3d pos_dir            =  Vec3d::UnitX();
         auto  mouse_normal_local = inv_ * mouse_normal_world;
         mouse_normal_local.normalize();
 
-        calc_position_points(input_info.m_position_points, text_lengths, input_info.m_text_gap, pos_dir);
-
-        for (int i = 0; i < text_num; ++i) {
-            input_info.m_normal_points[i] = mouse_normal_local;
+        if (input_info.m_use_baked_layout) {
+            for (int i = 0; i < text_num; ++i) {
+                input_info.m_position_points[i] = Vec3d::Zero();
+                input_info.m_normal_points[i]   = mouse_normal_local;
+            }
+        } else {
+            calc_position_points(input_info.m_position_points, text_lengths, input_info.m_text_gap, Vec3d::UnitX());
+            for (int i = 0; i < text_num; ++i)
+                input_info.m_normal_points[i] = mouse_normal_local;
         }
         return true;
     }
@@ -1490,6 +1502,113 @@ bool GenerateTextJob::update_text_positions(InputInfo &input_info)
 bool GenerateTextJob::generate_text_points(InputInfo &input_info)
 {
     if (input_info.m_surface_type == GenerateTextJob::SurfaceType::None) {
+        return true;
+    }
+    // Multiline surface: place each line on its own parallel slice contour.
+    if (input_info.m_surface_multiline) {
+        if (!input_info.font_file || !input_info.mo)
+            return false;
+        ModelVolumePtrs volumes_to_slice;
+        for (int i = 0; i < (int) input_info.mo->volumes.size(); ++i) {
+            if (i == input_info.m_volume_idx)
+                continue;
+            ModelVolume *mv = input_info.mo->volumes[i];
+            if (mv->is_text() || !mv->is_model_part())
+                continue;
+            volumes_to_slice.push_back(mv);
+        }
+        if (volumes_to_slice.empty())
+            return false;
+
+        const unsigned count_lines = get_count_lines(input_info.m_text_shape.shapes_with_ids);
+        TextLines text_lines = create_text_lines(input_info.m_text_tran_in_object.get_matrix(), volumes_to_slice, *input_info.font_file,
+                                                 input_info.font_prop, count_lines);
+        if (text_lines.size() != count_lines)
+            return false;
+
+        std::vector<BoundingBoxes> bbs = create_line_bounds(input_info.m_text_shape.shapes_with_ids, count_lines);
+        const double               em_2_mm = std::max(5., (double) input_info.font_prop.size_in_mm);
+        const int32_t              em_2_polygon = static_cast<int32_t>(std::round(scale_(em_2_mm)));
+        const auto                 rotate_tran  = Geometry::assemble_transform(Vec3d::Zero(), {-0.5 * M_PI, 0.0, 0.0});
+
+        input_info.m_position_points.assign(input_info.m_chars_mesh_result.size(), Vec3d::Zero());
+        input_info.m_normal_points.assign(input_info.m_chars_mesh_result.size(), Vec3d::UnitZ());
+
+        size_t s_i_offset = 0;
+        for (size_t line_i = 0; line_i < text_lines.size(); ++line_i) {
+            const BoundingBoxes &line_bbs = bbs[line_i];
+            const TextLine &     line     = text_lines[line_i];
+            if (line.polygon.empty()) {
+                s_i_offset += line_bbs.size();
+                continue;
+            }
+            PolygonPoints       samples = sample_slice(line, line_bbs, input_info.m_text_shape.scale);
+            std::vector<double> angles  = calculate_angles(em_2_polygon, samples, line.polygon);
+            for (size_t i = 0; i < line_bbs.size(); ++i) {
+                const size_t global_i = s_i_offset + i;
+                if (global_i >= input_info.m_position_points.size())
+                    break;
+                if (!line_bbs[i].defined) {
+                    if (i < samples.size()) {
+                        Vec2d  p2 = unscale(samples[i].point);
+                        input_info.m_position_points[global_i] = rotate_tran * Vec3d(p2.x(), p2.y(), 0.);
+                    }
+                    continue;
+                }
+                const PolygonPoint &sample = samples[i];
+                Vec2d               p2     = unscale(sample.point);
+                input_info.m_position_points[global_i] = rotate_tran * Vec3d(p2.x(), p2.y(), 0.);
+                // Approximate surface normal from contour tangent in the text plane.
+                const double angle = (i < angles.size()) ? angles[i] : 0.;
+                Vec3d        tangent(std::cos(angle), std::sin(angle), 0.);
+                Vec3d        n = rotate_tran.linear() * Vec3d(-tangent.y(), tangent.x(), 0.);
+                if (n.norm() > 1e-6)
+                    input_info.m_normal_points[global_i] = n.normalized();
+            }
+            s_i_offset += line_bbs.size();
+        }
+
+        // Refine normals from the host mesh (same approach as single-line surface text).
+        TriangleMesh slice_meshs;
+        for (ModelVolume *mv : volumes_to_slice) {
+            TriangleMesh vol_mesh(mv->mesh());
+            vol_mesh.transform(mv->get_matrix());
+            slice_meshs.merge(vol_mesh);
+        }
+        slice_meshs.transform(input_info.m_text_tran_in_object.get_matrix().inverse());
+        const bool is_mirrored = (input_info.m_model_object_in_world_tran * input_info.m_text_tran_in_object).is_left_handed();
+        auto point_in_triangle_delete_area = [](const Vec3d &point, const Vec3d &point0, const Vec3d &point1, const Vec3d &point2) {
+            Vec3d p0_p1 = point1 - point0;
+            Vec3d p0_p2 = point2 - point0;
+            Vec3d p_p0  = point0 - point;
+            Vec3d p_p1  = point1 - point;
+            Vec3d p_p2  = point2 - point;
+            double s  = p0_p1.cross(p0_p2).norm();
+            double s0 = p_p0.cross(p_p1).norm();
+            double s1 = p_p1.cross(p_p2).norm();
+            double s2 = p_p2.cross(p_p0).norm();
+            return std::abs(s0 + s1 + s2 - s);
+        };
+        for (size_t i = 0; i < input_info.m_position_points.size(); ++i) {
+            double best = 1e9;
+            for (auto indice : slice_meshs.its.indices) {
+                Vec3d point0 = slice_meshs.its.vertices[indice[0]].cast<double>();
+                Vec3d point1 = slice_meshs.its.vertices[indice[1]].cast<double>();
+                Vec3d point2 = slice_meshs.its.vertices[indice[2]].cast<double>();
+                double abs_area = point_in_triangle_delete_area(input_info.m_position_points[i], point0, point1, point2);
+                if (best > abs_area) {
+                    best = abs_area;
+                    Vec3d n = (point1 - point0).cross(point2 - point0);
+                    if (n.norm() > 1e-9) {
+                        n.normalize();
+                        if (is_mirrored)
+                            n = -n;
+                        input_info.m_normal_points[i] = n;
+                    }
+                }
+            }
+        }
+        input_info.slice_mesh = slice_meshs;
         return true;
     }
     auto &m_text_tran_in_object = input_info.m_text_tran_in_object;
@@ -1897,9 +2016,11 @@ Vec2f GenerateTextJob::calc_mesh_offset(const std::pair<int, int> &align_type,
                                         int                       i)
 {
     Vec2f mesh_offset(Vec2f::Zero());
-    if (i < text_absolute_cursors.size()) {
+    if (i < (int) text_absolute_cursors.size() && i < (int) text_cursors.size()) {
         if (align_type.first == (int) Slic3r::FontProp::HorizontalAlign::center) {
-            mesh_offset[0] = -text_absolute_cursors[i] - text_align_offsets[0][0] + text_cursors[i] / 2.f;
+            const float align_x = (i < (int) text_align_offsets.size()) ? text_align_offsets[i][0] :
+                                  (!text_align_offsets.empty() ? text_align_offsets[0][0] : 0.f);
+            mesh_offset[0] = -text_absolute_cursors[i] - align_x + text_cursors[i] / 2.f;
         } // else todo
     }
     return mesh_offset;
@@ -1922,17 +2043,22 @@ void  GenerateTextJob::generate_mesh_according_points(InputInfo &input_info)
     auto inv_text_cs_in_object_no_offset = (m_model_object_in_world_tran.get_matrix_no_offset() * text_tran_in_object.get_matrix_no_offset()).inverse();
 
     ExPolygons ex_polygons;
-    std::vector<BoundingBoxes> bbs;
-    int                        line_idx = 0;
+    BoundingBoxes              all_glyph_bbs;
     SurfaceVolumeData::ModelSources ms_es;
     DataBase                        input_db("", std::make_shared<std::atomic<bool>>(false));
     if (input_info.use_surface) {
         EmbossShape &es = input_info.m_text_shape;
         if (es.shapes_with_ids.empty())
             throw JobException(_u8L("Font doesn't have any shape for given text.").c_str());
-        size_t                     count_lines = 1; // input1.text_lines.size();
-        bbs = create_line_bounds(es.shapes_with_ids, count_lines);
-        if (bbs.empty()) {
+        // Flat bounds list indexed by global glyph index (supports multiline).
+        all_glyph_bbs.reserve(es.shapes_with_ids.size());
+        for (const ExPolygonsWithId &shape_id : es.shapes_with_ids) {
+            BoundingBox bb;
+            if (!shape_id.expoly.empty())
+                bb = get_extents(shape_id.expoly);
+            all_glyph_bbs.push_back(bb);
+        }
+        if (all_glyph_bbs.empty()) {
             return;
         }
         SurfaceVolumeData::ModelSource ms;
@@ -1946,14 +2072,30 @@ void  GenerateTextJob::generate_mesh_according_points(InputInfo &input_info)
         input_db.shape.scale            = input_info.shape_scale;
     }
     auto cut_plane_dir = inv_text_cs_in_object_no_offset * m_cut_plane_dir_in_world;
-    for (int i = 0; i < m_position_points.size(); ++i) {
+    for (int i = 0; i < (int) m_position_points.size(); ++i) {
         auto         position      = m_position_points[i];
         auto         normal        = m_normal_points[i];
         TriangleMesh sub_mesh;
         auto         local_tran = get_sub_mesh_tran(position, normal, cut_plane_dir, m_embeded_depth);
-        Vec2f mesh_offset = calc_mesh_offset(input_info.m_align_type, input_info.m_text_cursors, input_info.m_text_absolute_cursors, input_info.m_text_align_offsets, i);
+        Vec2f mesh_offset = Vec2f::Zero();
+        if (input_info.m_use_baked_layout) {
+            mesh_offset = Vec2f::Zero();
+        } else if (input_info.m_surface_multiline) {
+            // Glyph meshes still carry Emboss layout offsets; center each glyph on its curve sample.
+            if (i < (int) m_chars_mesh_result.size() && !m_chars_mesh_result[i].its.empty()) {
+                const auto bb = m_chars_mesh_result[i].bounding_box();
+                mesh_offset   = Vec2f(static_cast<float>(-bb.center().x()), static_cast<float>(-bb.center().y()));
+            }
+        } else {
+            mesh_offset = calc_mesh_offset(input_info.m_align_type, input_info.m_text_cursors, input_info.m_text_absolute_cursors,
+                                           input_info.m_text_align_offsets, i);
+        }
         if (input_info.use_surface) {
-            get_text_mesh(sub_mesh, input_info.m_text_shape, bbs[line_idx], ms_es, input_db, i, mesh_offset, text_tran_in_object, local_tran, input_info.slice_mesh);
+            if (input_info.m_surface_multiline && i < (int) all_glyph_bbs.size() && all_glyph_bbs[i].defined) {
+                const BoundingBox &glyph_bb = all_glyph_bbs[i];
+                mesh_offset = Vec2f(-glyph_bb.center().x() * input_info.shape_scale, 0.f);
+            }
+            get_text_mesh(sub_mesh, input_info.m_text_shape, all_glyph_bbs, ms_es, input_db, i, mesh_offset, text_tran_in_object, local_tran, input_info.slice_mesh);
         }
         else {
             get_text_mesh(sub_mesh, m_chars_mesh_result, i, mesh_offset, local_tran);
@@ -1974,8 +2116,13 @@ void CreateObjectTextJob::process(Ctl &ctl) {
     m_input.m_text_absolute_cursors = m_input.m_text_shape.text_absolute_cursors;
     m_input.m_text_align_offsets    = m_input.m_text_shape.text_align_offsets;
     m_input.m_align_type            = m_input.m_text_shape.align_type;
+    m_input.m_use_baked_layout      = get_count_lines(m_input.m_text_shape.shapes_with_ids) > 1;
 
     if (m_input.m_chars_mesh_result.empty()) {
+        return;
+    }
+    if (m_input.m_use_baked_layout) {
+        m_input.m_position_points.assign(m_input.m_chars_mesh_result.size(), Vec3d::Zero());
         return;
     }
     std::vector<double> text_lengths;
@@ -1989,11 +2136,14 @@ void CreateObjectTextJob::finalize(bool canceled, std::exception_ptr &eptr) {
         return create_message("Can't create empty object.");
 
     TriangleMesh final_mesh;
-    for (int i = 0; i < m_input.m_position_points.size();i++) {
+    for (int i = 0; i < (int) m_input.m_position_points.size();i++) {
         TriangleMesh sub_mesh;
         auto         position   = m_input.m_position_points[i];
         auto         local_tran = GenerateTextJob::get_sub_mesh_tran(position, Vec3d::UnitZ(), Vec3d(0, 1, 0), m_input.text_info.m_embeded_depth);
-        Vec2f        mesh_offset = GenerateTextJob::calc_mesh_offset(m_input.m_align_type, m_input.m_text_cursors, m_input.m_text_absolute_cursors, m_input.m_text_align_offsets, i);
+        Vec2f        mesh_offset = m_input.m_use_baked_layout ?
+                                Vec2f::Zero() :
+                                GenerateTextJob::calc_mesh_offset(m_input.m_align_type, m_input.m_text_cursors, m_input.m_text_absolute_cursors,
+                                                                  m_input.m_text_align_offsets, i);
         GenerateTextJob::get_text_mesh(sub_mesh, m_input.m_chars_mesh_result, i, mesh_offset, local_tran);
         final_mesh.merge(sub_mesh);
     }

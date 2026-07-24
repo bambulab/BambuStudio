@@ -273,6 +273,8 @@ struct CreateTextInput
     DataBasePtr               base;
 
     std::vector<Vec3d> m_position_points;
+    // When true, glyph meshes already contain the final 2D multiline layout from Emboss::text2vshapes.
+    bool m_use_baked_layout = false;
 };
 
 class CreateObjectTextJob : public JobNew
@@ -384,6 +386,13 @@ public:
 
         bool         first_generate = false;
         Emboss::DataUpdate m_data_update;
+        // When true, glyph meshes already contain the final 2D multiline layout from Emboss::text2vshapes.
+        // Placement keeps every character at the text origin and skips single-line re-spacing.
+        bool         m_use_baked_layout = false;
+        // Multiline surface: place each line on its own slice contour (create_text_lines + sample_slice).
+        bool         m_surface_multiline = false;
+        std::shared_ptr<const Slic3r::Emboss::FontFile> font_file;
+        FontProp                                        font_prop;
 
     };
     static bool update_text_positions(InputInfo &input_info);
