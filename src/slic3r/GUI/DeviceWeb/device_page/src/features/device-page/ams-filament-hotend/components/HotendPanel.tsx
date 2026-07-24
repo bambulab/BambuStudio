@@ -23,7 +23,9 @@ export function HotendPanel({
   const ordered = [...slots].sort((a, b) => a.display_index - b.display_index);
   const isRackBusy = !!rackStatus?.active;
 
-  if (rackStatus?.active && rackStatus.mode === 'all') return <HotendRackProgressPanel status={rackStatus} />;
+  if (rackStatus?.active && rackStatus.mode === 'all') {
+    return <HotendRackProgressPanel status={rackStatus} onAction={(action) => onAction(action)} />;
+  }
 
   return (
     <section className="hotend-panel" data-testid="ams-hotend-hotend-panel">

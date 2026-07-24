@@ -50,20 +50,6 @@ export function HotendRackProgressPanel({
   const { t } = useTranslation();
   if (!status?.active) return null;
 
-  if (status.mode === 'all') {
-    return (
-      <section className="hotend-panel hotend-panel-reading" data-testid="ams-hotend-hotend-panel">
-        <div className="hotend-read-all-center" data-testid="ams-hotend-read-all-progress">
-          <span className="hotend-read-all-spinner" aria-hidden="true" />
-          <div>{progressTitle(status, t)}</div>
-          <div className="hotend-read-all-tips" data-testid="ams-hotend-read-all-tips">
-            {status.tips || t('Please wait...')}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   const steps = status.steps ?? [];
 
   return (

@@ -313,7 +313,7 @@ function setMockHotendReading(displayIndex: number, total: number) {
         state: 'running',
         current_step: 2,
         steps,
-        can_stop: false,
+        can_stop: true,
         can_retry: false,
       },
       hotend_slots: AMS_FILAMENT_HOTEND_STATE.hotend_page.hotend_slots.map((slot) => ({

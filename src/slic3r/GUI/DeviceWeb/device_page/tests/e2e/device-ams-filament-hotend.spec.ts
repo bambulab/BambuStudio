@@ -42,9 +42,8 @@ test.describe('AMS filament hotend page', () => {
     await page.getByTestId('ams-hotend-tab-hotend').click();
     await page.getByTestId('ams-hotend-action-read-all').click();
 
-    await expect(page.getByTestId('ams-hotend-read-all-progress')).toBeVisible();
-    await expect(page.getByTestId('ams-hotend-read-all-progress')).toContainText('读取中（1 / 9）');
-    await expect(page.getByTestId('ams-hotend-read-all-tips')).toContainText('请稍后...');
+    await expect(page.getByTestId('ams-hotend-rack-progress')).toBeVisible();
+    await expect(page.getByTestId('ams-hotend-reading-status')).toContainText('读取中（1 / 9）');
     await expect(page.getByTestId('ams-hotend-action-read-all')).toBeDisabled();
     const pageBox = await page.getByTestId('ams-filament-hotend-page').boundingBox();
     expect(pageBox?.height).toBeGreaterThanOrEqual(260);
