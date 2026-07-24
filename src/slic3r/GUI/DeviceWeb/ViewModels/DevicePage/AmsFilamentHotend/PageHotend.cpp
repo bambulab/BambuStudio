@@ -1,4 +1,5 @@
 #include "ViewModel.hpp"
+#include "ResolverDeviceState.hpp"
 #include "ResolverSlotState.hpp"
 #include "ActionHandlerHotend.hpp"
 #include "BuilderHotendRackProgressStatus.hpp"
@@ -495,6 +496,10 @@ std::optional<nlohmann::json> DevicePageHotendActionHandler::TryHandle(DevicePag
         const nlohmann::json action_payload = payload;
         wxGetApp().CallAfter([action_payload]() { open_hotend_detail_dialog(action_payload); });
     } else if (action == "read_all_hotends") {
+        if (DevicePageDeviceStateResolver::BlockIfBusy(machine_obj)) {
+            return vm.MakeResponse(vm.GetModule(), "action", action, 3,
+                _u8L("The printer is busy on other job"), vm.BuildState());
+        }
         wxGetApp().CallAfter([]() {
             auto* dev_mgr = wxGetApp().getDeviceManager();
             MachineObject* mo = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;

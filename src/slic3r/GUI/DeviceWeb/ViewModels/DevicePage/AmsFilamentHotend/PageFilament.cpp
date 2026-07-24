@@ -2,6 +2,7 @@
 #include "ActionHandlerFilament.hpp"
 #include "BuilderFilamentChangeStatus.hpp"
 #include "FilamentManualPullDialog.hpp"
+#include "ResolverDeviceState.hpp"
 #include "ResolverSlotState.hpp"
 
 #include "slic3r/GUI/AMSDryControl.hpp"
@@ -346,6 +347,10 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
             vm_ptr->ReportState("state", "changed");
         });
     } else if (action == "load" && fila_system && !ams_id.empty() && !slot_id.empty()) {
+        if (DevicePageDeviceStateResolver::BlockIfBusy(machine_obj)) {
+            return vm.MakeResponse(vm.GetModule(), "action", action, 3,
+                _u8L("The printer is busy on other job"), vm.BuildState());
+        }
         try {
             int old_temp = -1;
             int new_temp = -1;
@@ -363,6 +368,10 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
             return vm.MakeResponse(vm.GetModule(), "action", action, 2, e.what(), vm.BuildState());
         }
     } else if (action == "unload" && fila_system && !ams_id.empty() && !slot_id.empty()) {
+        if (DevicePageDeviceStateResolver::BlockIfBusy(machine_obj)) {
+            return vm.MakeResponse(vm.GetModule(), "action", action, 3,
+                _u8L("The printer is busy on other job"), vm.BuildState());
+        }
         try {
             int old_temp = -1;
             int new_temp = -1;
@@ -465,6 +474,10 @@ std::optional<nlohmann::json> DevicePageFilamentActionHandler::TryHandle(DeviceP
         }
         if (slot_pairs.empty()) {
             return vm.MakeResponse(vm.GetModule(), "action", action, 2, _u8L("All selected slots are invalid"), vm.BuildState());
+        }
+        if (DevicePageDeviceStateResolver::BlockIfBusy(machine_obj)) {
+            return vm.MakeResponse(vm.GetModule(), "action", action, 3,
+                _u8L("The printer is busy on other job"), vm.BuildState());
         }
         if (!committed && !unknown_slots.empty()) {
             nlohmann::json edit_payload = {

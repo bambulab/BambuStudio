@@ -291,6 +291,8 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/FilamentManualPullDialog.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverDeviceState.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverDeviceState.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ActionHandlerHotend.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaExtOperationPage.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaFilamentSlot.hpp
