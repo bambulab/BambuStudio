@@ -565,17 +565,12 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
                     return;
                 }
             } else if (boost::algorithm::iends_with(m_partplate_list->m_logo_texture_filename, ".png")) {
-                // generate a temporary lower resolution texture to show while no main texture levels have been compressed
-                /* if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_logo_texture_filename) {
-                    if (!temp_texture->load_from_file(m_logo_texture_filename, false, GLTexture::None, false)) {
-                        render_default(bottom, false);
-                        return;
-                    }
-                    canvas.request_extra_frame();
-                }*/
-
-                // starts generating the main texture, compression will run asynchronously
-                if (!m_partplate_list->m_logo_texture.load_from_file(m_partplate_list->m_logo_texture_filename, true, GLTexture::MultiThreaded, true)) {
+                // Upload uncompressed RGBA immediately.
+                // MultiThreaded DXT used to allocate an empty compressed texture and fill it
+                // asynchronously; the temporary preview path (see 3DBed) was removed, so large /
+                // fully-opaque custom bed PNGs often stayed black until compress+upload finished
+                // (and without request_extra_frame they could stay black forever when idle).
+                if (!m_partplate_list->m_logo_texture.load_from_file(m_partplate_list->m_logo_texture_filename, true, GLTexture::None, true)) {
                     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % m_partplate_list->m_logo_texture_filename;
                     return;
                 }
@@ -3158,8 +3153,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 {
 	auto compute_exclude_points = [&exclude_polygon](Vec2d& center, double radius, double start_angle, double stop_angle, int count)
 	{
-		double angle, angle_steps;
-		angle_steps = (stop_angle - start_angle) / (count - 1);
+		double angle_steps = (stop_angle - start_angle) / (count - 1);
 		for(int j = 0; j < count; j++ )
 		{
 			double angle = start_angle + j * angle_steps;
@@ -3177,7 +3171,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 			{
 				const Vec2d& p = m_exclude_area[i];
 				Vec2d center;
-				double start_angle, stop_angle, angle_steps, radius_x, radius_y, radius;
+				double start_angle, stop_angle, radius;
 				switch (i) {
 					case 0:
                         radius = 8.f;
