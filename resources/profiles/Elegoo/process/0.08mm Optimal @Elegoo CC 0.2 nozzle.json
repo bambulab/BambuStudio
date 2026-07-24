@@ -1,0 +1,12 @@
+{
+    "type": "process",
+    "name": "0.08mm Optimal @Elegoo CC 0.2 nozzle",
+    "inherits": "fdm_process_elegoo_common",
+    "from": "system",
+    "instantiation": "true",
+    "elefant_foot_compensation": "0.05",
+    "layer_height": "0.08",
+    "compatible_printers": [
+        "Elegoo Centauri Carbon 0.2 nozzle"
+    ]
+}
