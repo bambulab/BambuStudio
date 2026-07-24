@@ -4425,9 +4425,19 @@ void MainFrame::open_recent_project(size_t file_id, wxString const & filename)
 void MainFrame::remove_recent_project(size_t file_id, wxString const &filename)
 {
     if (file_id == size_t(-1)) {
-        if (filename.IsEmpty())
+        if (filename.IsEmpty()) {
+            MessageDialog confirmation(
+                this,
+                _L("Are you sure you want to clear all recent projects?"),
+                _L("Clear recent projects"),
+                wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+
+            if (confirmation.ShowModal() != wxID_YES)
+                return;
+
             while (m_recent_projects.GetCount() > 0)
                 m_recent_projects.RemoveFileFromHistory(0);
+        }
         else
             file_id = m_recent_projects.FindFileInHistory(filename);
     }
