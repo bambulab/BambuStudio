@@ -3050,6 +3050,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("sparse_infill_density");
         optgroup->append_single_option_line("fill_multiline");
         optgroup->append_single_option_line("sparse_infill_pattern", "fill-patterns#infill types and their properties of sparse");
+        optgroup->append_single_option_line("gyroid_optimized");
         optgroup->append_single_option_line("locked_skin_infill_pattern", "fill-patterns#infill types and their properties of sparse", -1, true);
         optgroup->append_single_option_line("skin_infill_density", "", -1, true);
         optgroup->append_single_option_line("locked_skeleton_infill_pattern", "fill-patterns#infill types and their properties of sparse", -1, true);
