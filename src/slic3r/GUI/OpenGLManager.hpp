@@ -56,6 +56,7 @@ struct FrameBufferParams
     uint32_t m_width{ 0 };
     uint32_t m_height{ 0 };
     uint32_t m_msaa{ 0 };
+    bool m_depth_texture{ false };
 };
 
 struct FrameBuffer
@@ -67,6 +68,7 @@ struct FrameBuffer
     void unbind();
 
     uint32_t get_color_texture() const noexcept;
+    uint32_t get_depth_texture() const noexcept;
 
     bool is_texture_valid(uint32_t texture_id) const noexcept;
 
@@ -99,10 +101,12 @@ private:
     uint32_t m_width{ 0 };
     uint32_t m_height{ 0 };
     uint8_t m_msaa{ 0 };
+    bool m_depth_texture{ false };
     uint32_t m_msaa_back_buffer_rbos[2]{ UINT32_MAX, UINT32_MAX };
     uint32_t m_gl_id_for_back_fbo{ UINT32_MAX };
     uint32_t m_gl_id{ UINT32_MAX };
     uint32_t m_color_texture_id{ UINT32_MAX };
+    uint32_t m_depth_texture_id{ UINT32_MAX };
     uint32_t m_depth_rbo_id{ UINT32_MAX };
     bool m_needs_to_solve{ false };
     EBlitOptionType m_blit_option_type{ EBlitOptionType::Color };
@@ -176,6 +180,7 @@ public:
         ~FrameBufferModifier();
         FrameBufferModifier& set_width(uint32_t t_width);
         FrameBufferModifier& set_height(uint32_t t_height);
+        FrameBufferModifier& set_depth_texture(bool enabled);
 
     private:
         // no copy
@@ -192,6 +197,7 @@ public:
         EMSAAType m_msaa_type{ EMSAAType::Disabled };
         uint32_t m_width{ 0u };
         uint32_t m_height{ 0u };
+        bool m_depth_texture{ false };
     };
 
 #ifdef __APPLE__
@@ -309,7 +315,7 @@ public:
 
 private:
     static void detect_multisample(int* attribList);
-    void _bind_frame_buffer(const std::string& name, EMSAAType msaa_type, uint32_t t_width = 0, uint32_t t_height = 0);
+    void _bind_frame_buffer(const std::string& name, EMSAAType msaa_type, uint32_t t_width = 0, uint32_t t_height = 0, bool depth_texture = false);
     void _unbind_frame_buffer(const std::string& name);
 };
 

@@ -137,11 +137,7 @@ void GLGizmoPainterBase::init_selected_glvolume(GLVolume &v,const TriangleMesh &
     v.force_native_color = true;
     v.selected           = true;
     v.set_render_color();
-#if ENABLE_SMOOTH_NORMALS
-    v.indexed_vertex_array->load_mesh(mesh, true);
-#else
     v.indexed_vertex_array->load_mesh(mesh);
-#endif // ENABLE_SMOOTH_NORMALS
     v.indexed_vertex_array->finalize_geometry(true);
     v.set_instance_transformation(world_transformation);
     v.set_convex_hull(mesh.convex_hull_3d());

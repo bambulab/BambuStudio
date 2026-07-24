@@ -18,6 +18,18 @@ using namespace nlohmann;
 #define ENV_PRE_HOST		"2"
 #define ENV_PRODUCT_HOST	"3"
 
+#define SETTING_OPENGL_REALISTIC_MODE "opengl_realistic_mode"
+#define SETTING_OPENGL_REALISTIC_PHONG "opengl_realistic_phong"
+#define SETTING_OPENGL_SHADING_MODEL "opengl_shading_model"
+#define SETTING_OPENGL_PHONG_BASIC_PLATE_SHADOWS "opengl_phong_basic_plate_shadows"
+#define SETTING_OPENGL_PHONG_BUILD_PLATE_REFLECTIONS "opengl_phong_build_plate_reflections"
+#define SETTING_OPENGL_PHONG_SSAO "opengl_phong_ssao"
+#define SETTING_OPENGL_PHONG_SMOOTH_NORMALS "opengl_phong_smooth_normals"
+#define SETTING_OPENGL_MSAA_TYPE "msaa_type"
+#define SETTING_OPENGL_FXAA_ENABLED "enable_advanced_antialiasing"
+#define SETTING_OPENGL_FRAME_RATE_LIMIT "opengl_frame_rate_limit"
+#define SETTING_OPENGL_SHOW_FPS "opengl_show_fps"
+
 #define SUPPORT_DARK_MODE
 //#define _MSW_DARK_MODE
 

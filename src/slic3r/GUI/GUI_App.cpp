@@ -3179,9 +3179,9 @@ bool GUI_App::on_init_inner()
 
     const auto& p_ogl_manager = get_opengl_manager();
     if (p_ogl_manager) {
-        const auto& msaa_type = app_config->get("msaa_type");
+        const auto& msaa_type = app_config->get(SETTING_OPENGL_MSAA_TYPE);
         p_ogl_manager->set_msaa_type(msaa_type);
-        const bool is_fxaa_enabled = app_config->get_bool("enable_advanced_antialiasing");
+        const bool is_fxaa_enabled = app_config->get_bool(SETTING_OPENGL_FXAA_ENABLED);
         p_ogl_manager->set_fxaa_enabled(is_fxaa_enabled);
 
         const bool gizmo_keep_screen_size = app_config->get_bool("gizmo_keep_screen_size");

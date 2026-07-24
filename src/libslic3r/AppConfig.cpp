@@ -193,6 +193,20 @@ void AppConfig::set_defaults()
         set_bool("use_last_fold_state_gcodeview_option_panel", true);
     if (get("enable_lod").empty())
         set_bool("enable_lod", true);
+    if (get(SETTING_OPENGL_REALISTIC_MODE).empty())
+        set_bool(SETTING_OPENGL_REALISTIC_MODE, false);
+    if (get(SETTING_OPENGL_REALISTIC_PHONG).empty())
+        set_bool(SETTING_OPENGL_REALISTIC_PHONG, true);
+    if (get(SETTING_OPENGL_SHADING_MODEL).empty())
+        set(SETTING_OPENGL_SHADING_MODEL, "gouraud");
+    if (get(SETTING_OPENGL_PHONG_BASIC_PLATE_SHADOWS).empty())
+        set_bool(SETTING_OPENGL_PHONG_BASIC_PLATE_SHADOWS, false);
+    if (get(SETTING_OPENGL_PHONG_BUILD_PLATE_REFLECTIONS).empty())
+        set_bool(SETTING_OPENGL_PHONG_BUILD_PLATE_REFLECTIONS, false);
+    if (get(SETTING_OPENGL_PHONG_SSAO).empty())
+        set_bool(SETTING_OPENGL_PHONG_SSAO, false);
+    if (get(SETTING_OPENGL_PHONG_SMOOTH_NORMALS).empty())
+        set_bool(SETTING_OPENGL_PHONG_SMOOTH_NORMALS, false);
     if (get("enable_assemble_view_preview").empty())
         set("enable_assemble_view_preview", "Auto");
     if (get("enable_bvh").empty())
@@ -241,11 +255,15 @@ void AppConfig::set_defaults()
     if (get("prefer_to_use_dgpu").empty())
         set_bool("prefer_to_use_dgpu", false);
 
-    if (get("msaa_type").empty())
-        set("msaa_type", "X4");
+    if (get(SETTING_OPENGL_MSAA_TYPE).empty())
+        set(SETTING_OPENGL_MSAA_TYPE, "X4");
 
-    if (get("enable_advanced_antialiasing").empty())
-        set_bool("enable_advanced_antialiasing", false);
+    if (get(SETTING_OPENGL_FXAA_ENABLED).empty())
+        set_bool(SETTING_OPENGL_FXAA_ENABLED, false);
+    if (get(SETTING_OPENGL_FRAME_RATE_LIMIT).empty())
+        set(SETTING_OPENGL_FRAME_RATE_LIMIT, "0");
+    if (get(SETTING_OPENGL_SHOW_FPS).empty())
+        set_bool(SETTING_OPENGL_SHOW_FPS, false);
 
     if (get("enable_advanced_gcode_viewer_").empty())
         set_bool("enable_advanced_gcode_viewer_", true);
