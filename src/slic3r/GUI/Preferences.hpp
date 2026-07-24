@@ -90,12 +90,12 @@ public:
     RadioSelectorList m_radio_group;
     // ComboBoxSelectorList    m_comxbo_group;
 
-    wxBoxSizer *create_item_title(wxString title, wxWindow *parent, wxString tooltip);
+    wxBoxSizer *create_item_title(const wxString &title, wxWindow *parent, const wxString &tooltip, short level = 0);
     wxBoxSizer *create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param,const std::vector<wxString>& label_list, const std::vector<std::string>& value_list, std::function<void(int)> callback = nullptr, int title_width = 0, int combox_width = 0);
     wxBoxSizer *create_item_region_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
     wxBoxSizer *create_item_language_combobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<const wxLanguageInfo *> vlist);
     wxBoxSizer *create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
-    wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
+    wxBoxSizer *create_item_checkbox(const wxString &title, wxWindow *parent, const wxString &tooltip, int padding_left, const std::string &param, std::function<void(int)> callback = nullptr);
     wxBoxSizer *create_item_darkmode_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
     void        set_dark_mode();
     wxWindow* create_item_downloads(wxWindow* parent, int padding_left, std::string param);
@@ -120,6 +120,7 @@ public:
     wxWindow* create_general_tab();
     wxWindow* create_user_tab();
     wxWindow* create_3d_tab();
+    wxWindow* create_camera_page(wxWindow *parent);
     wxWindow* create_other_tab();
     wxWindow* create_developer_tab();
     wxBoxSizer *create_bottom_buttons();
