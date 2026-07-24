@@ -19,6 +19,8 @@ function makeBody(submod: string, action: string, payload?: Record<string, unkno
   return { module: 'filament', submod, action, payload: payload ?? {} };
 }
 
+const NATIVE_FILE_DIALOG_TIMEOUT_MS = 30 * 60 * 1000;
+
 function isFilamentManagerVisible() {
   const hashPath = window.location.hash.replace(/^#/, '').split('?')[0] || '';
   const route = hashPath.startsWith('/') ? hashPath : `/${hashPath}`;
@@ -436,6 +438,39 @@ export function useFilamentManagerBridge() {
     });
   }, [pushToast, t]);
 
+  const exportSpoolInventory = useCallback(async () => {
+    const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
+      makeBody('spool', 'export'),
+      NATIVE_FILE_DIALOG_TIMEOUT_MS
+    );
+
+    if (!res.ok) {
+      pushToast({
+        level: 'error',
+        text: `${t('Failed')}: ${String(res.error)}`,
+      });
+      return false;
+    }
+
+    const responsePayload = res.value.payload as
+      | { cancelled?: boolean }
+      | undefined;
+
+    if (responsePayload?.cancelled) {
+      return false;
+    }
+
+    if (res.value.error_code !== 0) {
+      pushToast({
+        level: 'error',
+        text: `${t('Failed')}: ${res.value.message || t('unknown error')}`,
+      });
+      return false;
+    }
+
+    return true;
+  }, [request, pushToast, t]);
+
   const addSpool = useCallback(async (spool: Partial<Spool>) => {
     const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
       makeBody('spool', 'add', spool as Record<string, unknown>)
@@ -691,6 +726,7 @@ export function useFilamentManagerBridge() {
   return {
     init,
     fetchSpools,
+    exportSpoolInventory,
     addSpool,
     batchAddSpool,
     batchCreateSpools,
