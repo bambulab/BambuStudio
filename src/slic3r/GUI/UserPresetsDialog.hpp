@@ -57,6 +57,10 @@ private:
     
     bool delete_confirm(int collection, int filament_preset_num, int print_preset_num);
 
+    // Rebuild the dialog's internal preset state from the current preset_bundle.
+    // Use after reload_user_presets_from_disk() to reflect on-disk changes without closing the dialog.
+    void reload_presets_ui();
+
     void on_dpi_changed(const wxRect &suggested_rect) override;
 
     bool is_filament_list() const;
@@ -72,6 +76,7 @@ private:
     std::unordered_set<wxSizer*> m_hiden_sizers;
     CheckBox * m_check_all;
     Label * m_label_check_count;
+    Button * m_button_reload;
     Button * m_button_delete;
 
 private:
