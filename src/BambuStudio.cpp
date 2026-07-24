@@ -6856,25 +6856,55 @@ int CLI::run(int argc, char **argv)
                                         }
                                     }
 
-                                    for (int f_index = 0; f_index < plate_filaments.size(); f_index++) {
-                                        for (int f_index = 0; f_index < plate_filaments.size(); f_index++) {
-                                            if (plate_filaments[f_index] <= filament_count) {
-                                                int filament_extruder = filament_maps[plate_filaments[f_index] - 1];
-                                                std::string filament_type;
-                                                m_print_config.get_filament_type(filament_type, plate_filaments[f_index] - 1);
-                                                auto *filament_printable_status = dynamic_cast<const ConfigOptionInts *>(m_print_config.option("filament_printable"));
-                                                if (filament_printable_status && (filament_printable_status->values.size() >= plate_filaments[f_index])) {
-                                                    int status = filament_printable_status->values.at(plate_filaments[f_index] - 1);
-                                                    if (!(status >> (filament_extruder - 1) & 1)) {
-                                                        BOOST_LOG_TRIVIAL(error)
-                                                            << boost::format(
-                                                                   "plate %1% : filament %2% can not be printed on extruder %3%, under manual mode for multi extruder printer") %
-                                                                   (index + 1) % filament_type % filament_extruder;
-                                                        record_exit_reson(outfile_dir, CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER, index + 1,
-                                                                          cli_errors[CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER], sliced_info);
-                                                        flush_and_exit(CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER);
-                                                    }
-                                                }
+                                    // Validate per-filament printability under manual multi-extruder mode.
+                                    // After --load-filaments shrinks the active filament set, ModelVolume "extruder"
+                                    // configs loaded from the source 3MF may still reference original (higher) slot
+                                    // numbers. Guard every index into filament_maps and filament_printable to avoid
+                                    // out-of-bounds reads (which previously surfaced as a bogus extruder id, e.g.
+                                    // "filament TPU can not be printed on extruder 21842") and avoid undefined
+                                    // behaviour from shifting by >= width of int when a stale filament_extruder is
+                                    // out of range. See related upstream reports: bambulab/BambuStudio#10408, #9963,
+                                    // #10402, and vertical-cloud-lab/tensegrity-optimization#64.
+                                    for (int f_index = 0; f_index < (int)plate_filaments.size(); f_index++) {
+                                        const int fid = plate_filaments[f_index];
+                                        if (fid < 1 || fid > filament_count)
+                                            continue;
+                                        if ((size_t)fid > filament_maps.size()) {
+                                            BOOST_LOG_TRIVIAL(error) << boost::format(
+                                                "plate %1% : filament slot %2% is not present in filament_map "
+                                                "(size %3%); per-part extruder map was not rebuilt after "
+                                                "--load-filaments. Pass --filament-map with %4% entries or "
+                                                "re-author the input 3MF so every per-volume \"extruder\" is "
+                                                "within 1..%4%.")
+                                                % (index + 1) % fid % filament_maps.size() % filament_count;
+                                            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, index + 1,
+                                                              cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                                            flush_and_exit(CLI_INVALID_PARAMS);
+                                        }
+                                        const int filament_extruder = filament_maps[fid - 1];
+                                        if (filament_extruder < 1 || filament_extruder > new_extruder_count) {
+                                            BOOST_LOG_TRIVIAL(error) << boost::format(
+                                                "plate %1% : filament %2% has invalid extruder id %3% "
+                                                "(expected 1..%4%); per-part extruder assignment was not "
+                                                "remapped after --load-filaments.")
+                                                % (index + 1) % fid % filament_extruder % new_extruder_count;
+                                            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, index + 1,
+                                                              cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                                            flush_and_exit(CLI_INVALID_PARAMS);
+                                        }
+                                        std::string filament_type;
+                                        m_print_config.get_filament_type(filament_type, fid - 1);
+                                        auto *filament_printable_status = dynamic_cast<const ConfigOptionInts *>(m_print_config.option("filament_printable"));
+                                        if (filament_printable_status && (filament_printable_status->values.size() >= (size_t)fid)) {
+                                            const int status = filament_printable_status->values.at(fid - 1);
+                                            if (!(status >> (filament_extruder - 1) & 1)) {
+                                                BOOST_LOG_TRIVIAL(error)
+                                                    << boost::format(
+                                                           "plate %1% : filament %2% can not be printed on extruder %3%, under manual mode for multi extruder printer") %
+                                                           (index + 1) % filament_type % filament_extruder;
+                                                record_exit_reson(outfile_dir, CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER, index + 1,
+                                                                  cli_errors[CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER], sliced_info);
+                                                flush_and_exit(CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER);
                                             }
                                         }
                                     }
