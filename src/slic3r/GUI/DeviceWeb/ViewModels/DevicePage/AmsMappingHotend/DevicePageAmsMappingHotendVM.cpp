@@ -271,6 +271,10 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildState() const
     data[SK::root::material_index]      = m_material_index;
     data[SK::root::reset_visible]       = true;
     data[SK::root::session_seq]         = m_session_seq;
+    // Report Studio's UI theme so the web popup chrome can follow light/dark
+    // (mirrors FilamentManagerVM). Only the chrome reacts on the web side; the
+    // filament color content is never themed.
+    data[SK::root::theme]               = (wxGetApp().app_config->get("dark_color_mode") == "1") ? "dark" : "light";
     data[SK::root::hotend_slots]        = nlohmann::json::array();
     data[SK::root::sub_ams_groups]      = nlohmann::json::object();
 

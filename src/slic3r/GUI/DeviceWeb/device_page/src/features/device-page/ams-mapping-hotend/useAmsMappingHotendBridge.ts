@@ -145,6 +145,14 @@ export function useAmsMappingHotendBridge() {
     void refresh();
   }, [refresh]);
 
+  // Mirror the host theme onto <html data-theme> so the popup chrome follows
+  // Studio's light/dark mode. Only the chrome reacts; filament colors stay.
+  useEffect(() => {
+    if (state.theme === 'dark' || state.theme === 'light') {
+      document.documentElement.dataset.theme = state.theme;
+    }
+  }, [state.theme]);
+
   // Acknowledge to C++ once a real (session_seq > 0) state has been committed
   // to the DOM. The popup defers its show until this ack so the window's first
   // frame is the freshly pushed machine data (no stale-then-fresh flicker on

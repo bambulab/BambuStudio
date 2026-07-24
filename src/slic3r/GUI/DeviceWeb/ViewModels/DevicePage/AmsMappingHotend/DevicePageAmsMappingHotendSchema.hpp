@@ -35,6 +35,7 @@ namespace root {
     // The Web side resets transient view state (e.g. the sub-AMS sub-page) when
     // the value changes, so re-opening the popup always lands on the main view.
     inline constexpr const char* session_seq         = "session_seq";
+    inline constexpr const char* theme               = "theme";        // "dark" | "light"
 }
 
 // Per-slot fields — shared between main hotend slots and sub-AMS slots.

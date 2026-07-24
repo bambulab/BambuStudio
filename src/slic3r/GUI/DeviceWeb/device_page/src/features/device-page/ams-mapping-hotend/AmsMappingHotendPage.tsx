@@ -26,6 +26,11 @@ function hasUnknownTypeSelected(slots: AmsMappingHotendSlotViewModel[]): boolean
 
 const HOST_LAYOUT_MODULE = 'device_host';
 
+// Logical-pixel gap kept below the last element (the Wiki tip). Reported as a
+// DIP baseline; the wx host multiplies by the display scale via FromDIP(), so
+// this stays correct across resolutions / DPI scaling.
+const CONTENT_BOTTOM_GAP = 6;
+
 // Observe the real rendered size of the mapping page and report it to the wx
 // host via device_host/layout/content_size so the popup can Fit itself instead
 // of relying on the initial SetMinSize.
@@ -42,7 +47,20 @@ function useReportHostContentSize(rootRef: RefObject<HTMLElement | null>) {
 
     const report = () => {
       rafId = 0;
-      const { width, height } = resolveHostContentSize(root);
+      // `.ams-map-hotend-page` is height:100% of the popup, so its scrollHeight
+      // just echoes the current popup height (a feedback loop that never
+      // shrinks). Measure the last child (the Wiki tip) bottom instead and add
+      // a fixed CONTENT_BOTTOM_GAP below it so the popup fits the real content.
+      const rootTop = root.getBoundingClientRect().top;
+      const last = root.lastElementChild;
+      const contentHeight = last
+        ? last.getBoundingClientRect().bottom - rootTop + CONTENT_BOTTOM_GAP
+        : root.scrollHeight;
+      const { width, height } = resolveHostContentSize({
+        scrollWidth: root.scrollWidth,
+        scrollHeight: contentHeight,
+        offsetHeight: contentHeight,
+      });
       if (width <= 0 || height <= 0) return;
 
       const sizeKey = `${width}x${height}`;

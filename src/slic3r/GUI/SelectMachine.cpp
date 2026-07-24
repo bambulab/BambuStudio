@@ -584,7 +584,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_filament_panel->SetMaxSize(wxSize(FromDIP(637), -1));
     m_filament_panel_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_sizer_ams_mapping = new wxGridSizer(0, 10, FromDIP(7), FromDIP(7));
+    m_sizer_ams_mapping = new wxGridSizer(0, 10, FromDIP(7), FromDIP(17));
     m_filament_panel_sizer->Add(m_sizer_ams_mapping, 0, wxEXPAND|wxALL, FromDIP(10));
     m_filament_panel->SetSizer(m_filament_panel_sizer);
     m_filament_panel->Layout();
@@ -5037,7 +5037,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             }
         } else {
             item = create_material_item(m_filament_panel, colour_rgb, preset_filament.filament_display_type, preset_filament.filament_id);
-            m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
+            m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(is_hotend_rack ? 0 : 5));
             sizer_count++;
         }
 
@@ -5096,7 +5096,18 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     }
 
     if (sizer_count > 0) {
-        m_sizer_ams_mapping->SetCols(8);
+        int cols = 8;
+        if (is_hotend_rack) {
+            const int avail   = FromDIP(637 - 20);   // panel usable width (637 min/max, 10 outer margin each side)
+            const int gap     = FromDIP(12);         // hotend HGap (small enough to fit 6 cards per row)
+            const int per_col = FromDIP(92) + gap;   // fixed card width + gap
+            const int cols_fit = std::max(1, (avail + gap) / per_col);
+            cols = std::max(1, std::min((int)sizer_count, cols_fit));
+        }
+        m_sizer_ams_mapping->SetCols(cols);
+        m_sizer_ams_mapping->SetHGap(FromDIP(is_hotend_rack ? 12 : 7));
+        if (auto* grid_item = m_filament_panel_sizer->GetItem(m_sizer_ams_mapping))
+            grid_item->SetFlag(is_hotend_rack ? wxALL : (wxEXPAND | wxALL));
         m_sizer_ams_mapping->Layout();
         m_filament_panel_sizer->Layout();
     }
@@ -7674,6 +7685,8 @@ void SelectMachineDialog::update_material_item_pos(MachineObject* obj_)
     const bool is_single_head = obj_->GetExtderSystem()->GetTotalExtderCount() < 2;
     const bool has_switcher = obj_->GetFilaSwitch()->IsInstalled();
     const bool use_single_panel = is_single_head || has_switcher;
+    const auto rack_type_pos = obj_->GetNozzleRack()->GetRackType();
+    const bool is_hotend_rack = (rack_type_pos == DevNozzleRack::RackType_A || rack_type_pos == DevNozzleRack::RackType_B);
 
     bool to_change_pos = false;
     for (const auto& iter : m_materialList) {
@@ -7711,7 +7724,7 @@ void SelectMachineDialog::update_material_item_pos(MachineObject* obj_)
         if (use_single_panel) {
             if (!m_sizer_ams_mapping->IsShown(material_item)) {
                 material_item->Reparent(m_filament_panel);
-                m_sizer_ams_mapping->Add(material_item, 0, wxALL, FromDIP(5));
+                m_sizer_ams_mapping->Add(material_item, 0, wxALL, FromDIP(is_hotend_rack ? 0 : 5));
                 sizer_count++;
             }
         } else {
@@ -7728,7 +7741,18 @@ void SelectMachineDialog::update_material_item_pos(MachineObject* obj_)
     }
 
     if (sizer_count > 0) {
-        m_sizer_ams_mapping->SetCols(8);
+        int cols = 8;
+        if (is_hotend_rack) {
+            const int avail   = FromDIP(637 - 20);
+            const int gap     = FromDIP(12);
+            const int per_col = FromDIP(92) + gap;
+            const int cols_fit = std::max(1, (avail + gap) / per_col);
+            cols = std::max(1, std::min(sizer_count, cols_fit));
+        }
+        m_sizer_ams_mapping->SetCols(cols);
+        m_sizer_ams_mapping->SetHGap(FromDIP(is_hotend_rack ? 12 : 7));
+        if (auto* grid_item = m_filament_panel_sizer->GetItem(m_sizer_ams_mapping))
+            grid_item->SetFlag(is_hotend_rack ? wxALL : (wxEXPAND | wxALL));
         m_sizer_ams_mapping->Layout();
         m_filament_panel_sizer->Layout();
     }

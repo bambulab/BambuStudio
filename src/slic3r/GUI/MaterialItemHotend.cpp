@@ -97,6 +97,14 @@ void MaterialItemHotend::doRender(wxDC& dc)
     auto   acolor = m_ams_coloul;
     change_the_opacity(acolor);
 
+    // Left-aligned layout for the hotend card: the spool icon sits 6px from the
+    // left edge, and both the top material name and the bottom filament-type
+    // text share the same left x (the column just right of the spool icon).
+    const int wheel_bmp_h  = m_ams_wheel_mitem.GetBmpSize().y;
+    const int wheel_bmp_w  = m_ams_wheel_mitem.GetBmpSize().x;
+    const int wheel_left   = FromDIP(6);
+    const int content_left = wheel_left + wheel_bmp_w + FromDIP(2);
+
     if (mcolor.Alpha() == 0) {
         // "transparent_material_up" is authored 65px wide for the base card;
         // this hotend card is wider (80px), so stretch the checkerboard to the
@@ -124,14 +132,14 @@ void MaterialItemHotend::doRender(wxDC& dc)
     dc.SetBrush(wxBrush(mcolor));
     dc.DrawRectangle(0, FromDIP(10), size.x, FromDIP(10));
 
-    // material name
+    // material name (left-aligned at content_left)
     auto material_name_colour = mcolor.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
     if (mcolor.Alpha() == 0) { material_name_colour = wxColour(0x26, 0x2E, 0x30); }
     dc.SetTextForeground(material_name_colour);
     dc.SetFont(::Label::Body_12);
     if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) { dc.SetFont(::Label::Body_10); }
     auto material_txt_size = dc.GetTextExtent(m_material_name);
-    dc.DrawText(m_material_name, wxPoint((GetSize().x - material_txt_size.x) / 2, (FromDIP(20) - material_txt_size.y) / 2));
+    dc.DrawText(m_material_name, wxPoint(content_left, (FromDIP(20) - material_txt_size.y) / 2));
 
     dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
     dc.DrawLine(FromDIP(1), FromDIP(20), FromDIP(size.x), FromDIP(20));
@@ -142,9 +150,9 @@ void MaterialItemHotend::doRender(wxDC& dc)
     const int rec_h      = FromDIP(16);
     const int left_off   = FromDIP(2);
 
-    // spool area
+    // spool area (color swatch stays centered inside the left-aligned spool icon)
     auto paint_recty = up + (m_ams_wheel_mitem.GetBmpSize().y - rec_h) / 2;
-    auto left        = (size.x / 2 - rec_w) / 2 + FromDIP(3);
+    auto left        = wheel_left + (wheel_bmp_w - rec_w) / 2 + FromDIP(3);
     auto right       = left + rec_w - FromDIP(3);
     dc.SetPen(*wxTRANSPARENT_PEN);
 
@@ -170,8 +178,7 @@ void MaterialItemHotend::doRender(wxDC& dc)
     } else {
         if (m_match) {
             dc.SetBrush(wxBrush(acolor));
-            dc.DrawRectangle((size.x / 2 - rec_w) / 2 + FromDIP(3) - left_off,
-                             paint_recty, rec_w - FromDIP(1), rec_h);
+            dc.DrawRectangle(left - left_off, paint_recty, rec_w - FromDIP(1), rec_h);
         }
     }
 
@@ -193,17 +200,29 @@ void MaterialItemHotend::doRender(wxDC& dc)
         dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(1), size.y - FromDIP(1), 5);
     }
 
-    // spool icon
-    auto wheel_left = (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(2) - left_off;
+    // spool icon (left-aligned 6px from the edge; not-match icon shares the same anchor)
     auto wheel_top  = up;
     if (!m_match) {
-        wheel_left = (size.x - m_ams_not_match.GetBmpWidth()) / 2 - left_off;
         dc.DrawBitmap(m_ams_not_match.bmp(), wheel_left, wheel_top);
     } else {
         if (acolor.Alpha() == 0)
             dc.DrawBitmap(m_filament_wheel_transparent.bmp(), wheel_left, wheel_top);
         else
             dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left, wheel_top);
+
+        // Slot number on the topmost layer, centered inside the wheel; the
+        // filament color fill below stays visible as the background. Pick a
+        // contrasting text color so the number is readable on any color.
+        if (!m_mapped_nozzle_str.IsEmpty()) {
+            auto num_colour = (acolor.Alpha() != 0 && acolor.GetLuminance() < 0.6) ? *wxWHITE
+                                                                                   : wxColour(0x26, 0x2E, 0x30);
+            dc.SetFont(::Label::Head_12);
+            dc.SetTextForeground(num_colour);
+            auto num_sz = dc.GetTextExtent(m_mapped_nozzle_str);
+            dc.DrawText(m_mapped_nozzle_str,
+                        wheel_left + (wheel_bmp_w - num_sz.x) / 2,
+                        wheel_top  + (wheel_bmp_h - num_sz.y) / 2);
+        }
     }
 
     // filament type text + arrow
@@ -220,7 +239,7 @@ void MaterialItemHotend::doRender(wxDC& dc)
     text_pos_x = 0;
     int arrow_left = size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(4) - left_off;
     if (m_match) {
-        int text_x = GetSize().x / 2 + (GetSize().x / 2 - ams_filament_type_size.x) / 2 - FromDIP(8) - left_off + text_pos_x;
+        int text_x = content_left + text_pos_x;
         dc.DrawText(display_filament_type, wxPoint(text_x, text_pos_y));
         int arrow_y = text_pos_y + (ams_filament_type_size.y - m_arraw_bitmap_white.GetBmpHeight()) / 2;
         if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) &&
@@ -232,42 +251,37 @@ void MaterialItemHotend::doRender(wxDC& dc)
 
     up += m_ams_wheel_mitem.GetBmpSize().y;
 
-    // nozzle info row
+    // nozzle info row: the nozzle icon sits under the spool (vertically aligned
+    // with the slot number), and the nozzle dia/type text is left-aligned with
+    // the filament type column (content_left).
     if (!m_mapped_nozzle_str.IsEmpty()) {
         wxPen dashed_pen(WXCOLOUR_GREY400, 1, wxPENSTYLE_SHORT_DASH);
         dc.SetPen(dashed_pen);
         up += FromDIP(4);
         dc.DrawLine(FromDIP(1), up, FromDIP(size.x), up);
 
-        int buttom_h = size.y - up;
-        dc.SetFont(::Label::Head_12);
-        auto nozzle_pos_sz  = dc.GetTextExtent(m_mapped_nozzle_str);
-        int  nozzle_bmp_w   = m_rack_nozzle_bitmap.GetBmpWidth();
-        int  nozzle_bmp_h   = m_rack_nozzle_bitmap.GetBmpHeight();
-        dc.SetFont(::Label::Body_10);
+        int buttom_h     = size.y - up;
+        int nozzle_bmp_w = m_rack_nozzle_bitmap.GetBmpWidth();
+        int nozzle_bmp_h = m_rack_nozzle_bitmap.GetBmpHeight();
+
+        // nozzle icon centered under the spool wheel (same vertical line as the number)
+        int noz_x = wheel_left + (wheel_bmp_w - nozzle_bmp_w) / 2;
+        dc.DrawBitmap(m_rack_nozzle_bitmap.bmp(), noz_x, up + (buttom_h - nozzle_bmp_h) / 2);
+
+        // nozzle dia/type text aligned with the filament type column; typography
+        // follows the design: 12px / weight 400 / #262E30 (gray-900).
+        dc.SetFont(::Label::Body_12);
+        dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
         auto dia_and_type_sz = dc.GetTextExtent(m_nozzle_dia_and_type);
-
-        int gap     = FromDIP(2);
-        int total_w = nozzle_pos_sz.x + gap + nozzle_bmp_w + dia_and_type_sz.x;
-        int cur_x   = (size.x - total_w) / 2;
-
-        dc.SetFont(::Label::Head_12);
-        dc.DrawText(m_mapped_nozzle_str, cur_x, up + (buttom_h - nozzle_pos_sz.y) / 2);
-        cur_x += nozzle_pos_sz.x + gap;
-
-        dc.DrawBitmap(m_rack_nozzle_bitmap.bmp(), cur_x, up + (buttom_h - nozzle_bmp_h) / 2);
-        cur_x += nozzle_bmp_w + gap;
-
-        dc.SetFont(::Label::Body_10);
-        dc.DrawText(m_nozzle_dia_and_type, cur_x, up + (buttom_h - dia_and_type_sz.y) / 2);
+        dc.DrawText(m_nozzle_dia_and_type, content_left, up + (buttom_h - dia_and_type_sz.y) / 2);
     }
 }
 
 void MaterialItemHotend::messure_size()
 {
-    SetSize(wxSize(FromDIP(80), FromDIP(84)));
-    SetMinSize(wxSize(FromDIP(80), FromDIP(84)));
-    SetMaxSize(wxSize(FromDIP(80), FromDIP(84)));
+    SetSize(wxSize(FromDIP(92), FromDIP(84)));
+    SetMinSize(wxSize(FromDIP(92), FromDIP(84)));
+    SetMaxSize(wxSize(FromDIP(92), FromDIP(84)));
 }
 
 }} // namespace Slic3r::GUI

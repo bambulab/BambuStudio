@@ -1,11 +1,34 @@
-import filamentTagUrl from '../../ams-filament-hotend/assets/spool_filament_tag_figma.svg';
-import unknownSpoolUrl from '../../ams-filament-hotend/assets/spool_unknown_figma.svg';
 import type { AmsMappingHotendColorType } from '../types';
 
 const DEFAULT_SIZE = 52;
-const OUTER = 26;
-const RING = 23;
-const HOLE = 9;
+const OUTER = 26; // svg center
+
+// Stroke frame (grey-600, 1px each) with 2px white gaps on both sides of the
+// color ring. Ring ratio inner:outer = 18:52 per design (inner ring Ø18 => r9,
+// outer ring Ø52 => outer edge at r26). Radii in the 52-unit viewBox, from the
+// outer edge inward:
+//   outer stroke  25..26   (1px, grey-600, outer ring Ø52)
+//   white gap     23..25   (2px)
+//   color ring    11.5..23
+//   white gap     9.5..11.5 (2px)
+//   inner stroke  8.5..9.5 (1px, grey-600, inner ring Ø18)
+//   white hole    < 8.5
+const STROKE_W = 1;
+// Structural (non-filament) colors follow the popup theme via CSS variables
+// defined on `.ams-map-hotend-page` (light) and its `[data-theme="dark"]`
+// override. Fallbacks keep the light look when rendered outside the popup.
+// The filament color content itself is never themed.
+const STROKE_COLOR = 'var(--spool-frame, #909090)'; // grey-600 frame
+const SURFACE_COLOR = 'var(--spool-surface, #ffffff)'; // base / gaps / hole
+const TRACK_COLOR = 'var(--spool-track, #eeeeee)'; // grey-300 consumed amount
+// Outline drawn around the color ring for light filament so it stays
+// distinguishable from the consumed track / gaps. Same color as the outer
+// frame, half its width per design.
+const OUTLINE_W = STROKE_W / 2;
+const OUTER_STROKE_R = 25.5;
+const COLOR_OUTER = 23;
+const COLOR_INNER = 11.5;
+const INNER_STROKE_R = 9;
 
 interface SpoolRingProps {
   size?: number;
@@ -35,6 +58,21 @@ function isTransparentHex(hex: string): boolean {
   return hex.slice(7, 9).toUpperCase() === '00';
 }
 
+// A color counts as "light" when its perceived luminance reaches that of the
+// design threshold grey #CDCDCD (205). Such colors blend into the grey-300
+// consumed track / white gaps, so the ring gets an extra outline.
+const LIGHT_LUMA_THRESHOLD = 205; // luminance of #CDCDCD (205,205,205)
+function isLightColor(hex: string): boolean {
+  const m = /^#?([0-9a-fA-F]{6})/.exec(stripAlpha(hex));
+  if (!m) return false;
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 0xff;
+  const g = (n >> 8) & 0xff;
+  const b = n & 0xff;
+  const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+  return luma >= LIGHT_LUMA_THRESHOLD;
+}
+
 export function SpoolRing({
   size = DEFAULT_SIZE,
   color,
@@ -57,6 +95,14 @@ export function SpoolRing({
     !isThird &&
     (isTransparentHex(color) || rawColors.every(isTransparentHex));
 
+  // Outline the color ring only for light real filament. Use the color that
+  // sits on the ring's outer edge (last stop for gradient, first otherwise),
+  // which is the one bordering the grey-300 track / white base.
+  const outerEdgeColor =
+    colorType === 'gradient' ? effectiveColors[effectiveColors.length - 1] : effectiveColors[0];
+  const needsOutline =
+    !isEmpty && !isThird && !isTransparent && isLightColor(outerEdgeColor);
+
   return (
     <svg
       className="spool-ring"
@@ -65,15 +111,20 @@ export function SpoolRing({
       viewBox={`0 0 ${DEFAULT_SIZE} ${DEFAULT_SIZE}`}
       role="img"
     >
-      <circle cx={center} cy={center} r={OUTER} fill="#e6e6e6" />
-      <circle cx={center} cy={center} r={OUTER - 0.5} fill="none" stroke="#d4d4d4" strokeWidth={1} />
+      {/* Surface base: every gap and the center hole reads as the surface. */}
+      <circle cx={center} cy={center} r={OUTER} fill={SURFACE_COLOR} />
 
-      {isEmpty ? (
-        <EmptyDisc center={center} />
-      ) : isThird ? (
+      {/* Consumed-amount track (grey-300): for a used spool the color arc only
+          covers the remaining amount, so the rest of the ring shows this track.
+          Full spools / gradient / multi / third-party paint over it entirely. */}
+      {!isEmpty && <circle cx={center} cy={center} r={COLOR_OUTER} fill={TRACK_COLOR} />}
+
+      {/* Color content: each branch fills only up to COLOR_OUTER; the inner
+          part is carved back to white below so the inner gap + hole show. */}
+      {isEmpty ? null : isThird ? (
         <ThirdPartyDisc center={center} />
       ) : isTransparent ? (
-        <TransparentDisc center={center} />
+        <TransparentDisc center={center} color={effectiveColors[0]} />
       ) : (
         <RemainDonut
           center={center}
@@ -83,79 +134,77 @@ export function SpoolRing({
         />
       )}
 
-      {!isEmpty && !isThird && !isTransparent && clampedRemain > 0 && (
-        <image href={filamentTagUrl} x={0} y={0} width={DEFAULT_SIZE} height={DEFAULT_SIZE} preserveAspectRatio="none" />
+      {/* Carve the inner gap + hole back to the surface above the color. */}
+      <circle cx={center} cy={center} r={COLOR_INNER} fill={SURFACE_COLOR} />
+
+      {/* Light filament: outline the color ring so it stays distinguishable
+          from the grey-300 consumed track and the white gaps. Drawn after the
+          inner carve so the inner edge stays visible. */}
+      {needsOutline && <ColorOutline center={center} remain={clampedRemain} />}
+
+      {/* grey-600 frame: outer + inner strokes, both 2px, each separated from
+          the color ring by a 2px white gap. */}
+      <circle cx={center} cy={center} r={OUTER_STROKE_R} fill="none" stroke={STROKE_COLOR} strokeWidth={STROKE_W} />
+      <circle cx={center} cy={center} r={INNER_STROKE_R} fill="none" stroke={STROKE_COLOR} strokeWidth={STROKE_W} />
+
+      {/* Empty slot marker sits in the hole, above the frame. */}
+      {isEmpty && (
+        <text
+          x={center}
+          y={center + 1}
+          fontFamily="HarmonyOS Sans SC, system-ui, sans-serif"
+          fontSize={14}
+          fill="#c2c2c2"
+          textAnchor="middle"
+          dominantBaseline="central"
+        >
+          /
+        </text>
+      )}
+
+      {/* Small grey filament tag (notch); the gradient sheen overlay is dropped
+          so the ring stays a flat color per design. Third-party (solid grey
+          disc) shows it too regardless of remain. */}
+      {!isEmpty && !isTransparent && (isThird || clampedRemain > 0) && (
+        <path
+          d="M39.5 24.5L46 24.5C46.8284 24.5 47.5 25.1716 47.5 26C47.5 26.8284 46.8284 27.5 46 27.5L39.5 27.5C38.6716 27.5 38 26.8284 38 26C38 25.1716 38.6716 24.5 39.5 24.5Z"
+          fill="#949495"
+          fillOpacity={0.4}
+        />
       )}
     </svg>
   );
 }
 
-function EmptyDisc({ center }: { center: number }) {
-  return (
-    <>
-      <circle cx={center} cy={center} r={HOLE} fill="#ffffff" />
-      <text
-        x={center}
-        y={center + 1}
-        fontFamily="HarmonyOS Sans SC, system-ui, sans-serif"
-        fontSize={14}
-        fill="#c2c2c2"
-        textAnchor="middle"
-        dominantBaseline="central"
-      >
-        /
-      </text>
-    </>
-  );
-}
-
-// Unknown / third-party filament: use the shared spool_unknown_figma asset
-// to stay consistent with the device filament tab (SpoolDisc.tsx).
+// Unknown / third-party filament ("?"): a solid #7F7F7F gray ring per design.
 function ThirdPartyDisc({ center }: { center: number }) {
-  return (
-    <>
-      <image
-        href={unknownSpoolUrl}
-        x={0}
-        y={0}
-        width={DEFAULT_SIZE}
-        height={DEFAULT_SIZE}
-        preserveAspectRatio="none"
-      />
-      <circle cx={center} cy={center} r={HOLE} fill="#ffffff" />
-      <circle cx={center} cy={center} r={HOLE} fill="none" stroke="#e6e6e6" strokeWidth={1} />
-    </>
-  );
+  return <circle cx={center} cy={center} r={COLOR_OUTER} fill="#7f7f7f" />;
 }
 
-// Transparent filament (alpha == 0): draw a checker pattern on the donut so
-// the user can recognise it as see-through. Mirrors the wxWidgets
+// Transparent filament (alpha == 0): checker pattern tinted with the filament's
+// own color so it reads as see-through. Mirrors the wxWidgets
 // `m_filament_wheel_transparent` bitmap behaviour.
-function TransparentDisc({ center }: { center: number }) {
+function TransparentDisc({ center, color }: { center: number; color: string }) {
   const patternId = nextUid('checker');
+  const tint = typeof color === 'string' && /^#[0-9a-fA-F]{6}$/.test(color) ? color : '#cfe8d3';
   return (
     <>
       <defs>
         <pattern id={patternId} width={4} height={4} patternUnits="userSpaceOnUse">
-          <rect width={4} height={4} fill="#ffffff" />
-          <rect width={2} height={2} fill="#cfe8d3" />
-          <rect x={2} y={2} width={2} height={2} fill="#cfe8d3" />
+          <rect width={4} height={4} fill={SURFACE_COLOR} />
+          <rect width={2} height={2} fill={tint} fillOpacity={0.45} />
+          <rect x={2} y={2} width={2} height={2} fill={tint} fillOpacity={0.45} />
         </pattern>
       </defs>
-      <circle cx={center} cy={center} r={RING} fill={`url(#${patternId})`} />
-      <circle cx={center} cy={center} r={RING} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={1} />
-      <circle cx={center} cy={center} r={HOLE} fill="#ffffff" />
-      <circle cx={center} cy={center} r={HOLE} fill="none" stroke="#e6e6e6" strokeWidth={1} />
+      <circle cx={center} cy={center} r={COLOR_OUTER} fill={`url(#${patternId})`} />
     </>
   );
 }
 
-// Filled donut for real (non-transparent, non-empty, non-unknown) filament.
-// Branches by color type:
-//   - single   : solid ring + remain arc (single color)
-//   - gradient : SVG linearGradient across the whole ring (matches wxWidgets
-//                ctype == 0 horizontal gradient)
-//   - multi    : equal wedges per color (ctype == 1 segmented)
+// Color content for real (non-empty, non-third, non-transparent) filament.
+//   - single   : solid ring + remain arc
+//   - gradient : radial gradient, smooth inner->outer transition
+//   - multi    : concentric bands with abrupt (cliff) transitions
 function RemainDonut({
   center,
   colors,
@@ -168,107 +217,120 @@ function RemainDonut({
   colorType?: AmsMappingHotendColorType;
 }) {
   if (colors.length === 1 || colorType === 'single') {
-    return (
-      <>
-        {remain > 0 && (
-          <RemainArc center={center} r={RING} color={colors[0]} remain={remain} />
-        )}
-        <circle cx={center} cy={center} r={RING} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={1} />
-        <circle cx={center} cy={center} r={HOLE} fill="#ffffff" />
-        <circle cx={center} cy={center} r={HOLE} fill="none" stroke="#e6e6e6" strokeWidth={1} />
-      </>
-    );
+    return remain > 0 ? (
+      <RemainArc center={center} rOuter={COLOR_OUTER} rInner={COLOR_INNER} color={colors[0]} remain={remain} />
+    ) : null;
   }
 
   if (colorType === 'gradient') {
-    // Conic gradient simulated with many small arc segments (pure SVG, no foreignObject).
-    const SEGMENTS = 36;
-    const ringR = (RING + HOLE) / 2;
-    const strokeW = RING - HOLE;
-    const arcs: React.ReactElement[] = [];
-    for (let i = 0; i < SEGMENTS; i++) {
-      const t = i / SEGMENTS;
-      const tNext = (i + 1) / SEGMENTS;
-      const a0 = t * Math.PI * 2 - Math.PI / 2;
-      const a1 = tNext * Math.PI * 2 - Math.PI / 2;
-      const color = lerpColors(colors, t);
-      const x0 = center + ringR * Math.cos(a0);
-      const y0 = center + ringR * Math.sin(a0);
-      const x1 = center + ringR * Math.cos(a1);
-      const y1 = center + ringR * Math.sin(a1);
-      arcs.push(
-        <path
-          key={i}
-          d={`M ${x0} ${y0} A ${ringR} ${ringR} 0 0 1 ${x1} ${y1}`}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeW}
-        />
-      );
-    }
+    // Radial gradient: color transitions smoothly from the inner edge
+    // (colors[0]) to the outer edge (colors[N-1]) of the ring, per the
+    // interaction spec.
+    const gradId = nextUid('spool-grad');
+    const innerOffset = COLOR_INNER / COLOR_OUTER;
+    const stops: React.ReactElement[] = [
+      <stop key="center" offset={0} stopColor={colors[0]} />,
+    ];
+    colors.forEach((c, i) => {
+      const off = innerOffset + (1 - innerOffset) * (colors.length === 1 ? 1 : i / (colors.length - 1));
+      stops.push(<stop key={i} offset={off} stopColor={c} />);
+    });
+    const clip = remainClip(center, remain);
     return (
       <>
-        {remain > 0 && arcs}
-        <circle cx={center} cy={center} r={RING} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={1} />
-        <circle cx={center} cy={center} r={HOLE} fill="#ffffff" />
-        <circle cx={center} cy={center} r={HOLE} fill="none" stroke="#e6e6e6" strokeWidth={1} />
+        <defs>
+          <radialGradient id={gradId} cx={center} cy={center} r={COLOR_OUTER} gradientUnits="userSpaceOnUse">
+            {stops}
+          </radialGradient>
+          {clip?.el}
+        </defs>
+        {remain > 0 && (
+          <circle
+            cx={center}
+            cy={center}
+            r={COLOR_OUTER}
+            fill={`url(#${gradId})`}
+            clipPath={clip ? `url(#${clip.id})` : undefined}
+          />
+        )}
       </>
     );
   }
 
-  // multi (ctype == 1): concentric rings, outermost = colors[0], innermost = colors[N-1].
-  const ringWidth = (RING - HOLE) / colors.length;
+  // multi: concentric bands, outermost = colors[0], innermost = colors[N-1].
+  const ringWidth = (COLOR_OUTER - COLOR_INNER) / colors.length;
+  const clip = remainClip(center, remain);
   return (
     <>
-      {remain > 0 && colors.map((c, i) => {
-        const r = RING - i * ringWidth - ringWidth / 2;
-        return (
-          <circle
-            key={i}
-            cx={center}
-            cy={center}
-            r={r}
-            fill="none"
-            stroke={c}
-            strokeWidth={ringWidth}
-          />
-        );
-      })}
-      <circle cx={center} cy={center} r={RING} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={1} />
-      <circle cx={center} cy={center} r={HOLE} fill="#ffffff" />
-      <circle cx={center} cy={center} r={HOLE} fill="none" stroke="#e6e6e6" strokeWidth={1} />
+      {clip && <defs>{clip.el}</defs>}
+      {remain > 0 && (
+        <g clipPath={clip ? `url(#${clip.id})` : undefined}>
+          {colors.map((c, i) => {
+            const r = COLOR_OUTER - i * ringWidth - ringWidth / 2;
+            return (
+              <circle key={i} cx={center} cy={center} r={r} fill="none" stroke={c} strokeWidth={ringWidth} />
+            );
+          })}
+        </g>
+      )}
     </>
   );
 }
 
-function RemainArc({ center, r, color, remain }: { center: number; r: number; color: string; remain: number }) {
+// Clip to the remaining-amount wedge (starting at 12 o'clock, clockwise) so
+// gradient / multi fills only cover the remaining portion; the consumed part
+// shows the grey-300 track underneath. Returns null when the spool is full.
+function remainClip(center: number, remain: number): { id: string; el: React.ReactElement } | null {
+  if (remain >= 100) return null;
+  const id = nextUid('remain-clip');
+  const angle = (remain / 100) * Math.PI * 2;
+  const start = -Math.PI / 2;
+  const d = wedgePath(center, center, COLOR_OUTER, 0, start, start + angle);
+  return { id, el: <clipPath id={id}><path d={d} /></clipPath> };
+}
+
+// Outline of the color ring for light filament. Matches the color content
+// geometry: a full donut (two rings) when full, otherwise the remaining wedge
+// (outer arc + inner arc + the two radial edges bordering the grey-300 track).
+function ColorOutline({ center, remain }: { center: number; remain: number }) {
+  if (remain <= 0) return null;
   if (remain >= 100) {
-    return <circle cx={center} cy={center} r={r} fill={color} />;
+    return (
+      <>
+        <circle cx={center} cy={center} r={COLOR_OUTER} fill="none" stroke={STROKE_COLOR} strokeWidth={OUTLINE_W} />
+        <circle cx={center} cy={center} r={COLOR_INNER} fill="none" stroke={STROKE_COLOR} strokeWidth={OUTLINE_W} />
+      </>
+    );
+  }
+  const angle = (remain / 100) * Math.PI * 2;
+  const start = -Math.PI / 2;
+  const d = wedgePath(center, center, COLOR_OUTER, COLOR_INNER, start, start + angle);
+  return <path d={d} fill="none" stroke={STROKE_COLOR} strokeWidth={OUTLINE_W} strokeLinejoin="round" />;
+}
+
+function RemainArc({
+  center,
+  rOuter,
+  rInner,
+  color,
+  remain,
+}: {
+  center: number;
+  rOuter: number;
+  rInner: number;
+  color: string;
+  remain: number;
+}) {
+  if (remain >= 100) {
+    // Full ring: fill a disc up to rOuter; the parent carves the inner white.
+    return <circle cx={center} cy={center} r={rOuter} fill={color} />;
   }
 
   const angle = (remain / 100) * Math.PI * 2;
   const startAngle = -Math.PI / 2;
   const endAngle = startAngle + angle;
-  const d = wedgePath(center, center, r, HOLE, startAngle, endAngle);
+  const d = wedgePath(center, center, rOuter, rInner, startAngle, endAngle);
   return <path d={d} fill={color} />;
-}
-
-// Linearly interpolate between colors in the array at position t (0..1).
-function lerpColors(colors: string[], t: number): string {
-  if (colors.length === 1) return colors[0];
-  const scaled = t * (colors.length - 1);
-  const i = Math.min(Math.floor(scaled), colors.length - 2);
-  const f = scaled - i;
-  return lerpHex(colors[i], colors[i + 1], f);
-}
-
-function lerpHex(a: string, b: string, t: number): string {
-  const ra = parseInt(a.slice(1, 3), 16), ga = parseInt(a.slice(3, 5), 16), ba2 = parseInt(a.slice(5, 7), 16);
-  const rb = parseInt(b.slice(1, 3), 16), gb = parseInt(b.slice(3, 5), 16), bb = parseInt(b.slice(5, 7), 16);
-  const r = Math.round(ra + (rb - ra) * t);
-  const g = Math.round(ga + (gb - ga) * t);
-  const bv = Math.round(ba2 + (bb - ba2) * t);
-  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${bv.toString(16).padStart(2, '0')}`;
 }
 
 function wedgePath(cx: number, cy: number, r1: number, r0: number, a0: number, a1: number) {

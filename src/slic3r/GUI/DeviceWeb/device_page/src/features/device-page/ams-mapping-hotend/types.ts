@@ -109,6 +109,9 @@ export interface AmsMappingHotendViewModel {
   // entered sub-page.
   session_seq: number;
   hotend_slots: AmsMappingHotendSlotViewModel[];
+  // Host UI theme; mirrored onto <html data-theme> so the popup chrome follows
+  // Studio's light/dark mode. The filament color content is never themed.
+  theme?: 'dark' | 'light';
 }
 
 export interface BridgeResponseBody<T> {
