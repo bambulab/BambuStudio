@@ -1,0 +1,17 @@
+{
+    "type": "filament",
+    "name": "FilAr PETG @BBL A1M 0.2 nozzle",
+    "inherits": "FilAr PETG @base",
+    "from": "system",
+    "setting_id": "FILARPETG_03",
+    "instantiation": "true",
+    "filament_max_volumetric_speed": [
+        "1"
+    ],
+    "compatible_printers": [
+        "Bambu Lab A1 mini 0.2 nozzle"
+    ],
+    "filament_vendor": [
+        "FilAr"
+    ]
+}
