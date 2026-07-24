@@ -2298,6 +2298,7 @@ void TreeSupport::draw_circles()
     const coordf_t branch_radius = config.tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
     bool on_buildplate_only = m_object_config->support_on_build_plate_only.value;
+    const coord_t buildplate_interface_merge_distance = scale_(config.tree_support_branch_distance.value / 2.);
     Polygon branch_circle; //Pre-generate a circle with correct diameter so that we don't have to recompute those (co)sines every time.
 
     const bool z_overrides  = print->config().top_z_overrides_xy_distance;
@@ -2428,10 +2429,15 @@ void TreeSupport::draw_circles()
                         }
                     }
                     else {
-                        // merge overhang to get a smoother interface surface
-                        // Do not merge when buildplate_only is on, because some underneath nodes may have been deleted.
-                        if (top_interface_layers > 0 && (node.support_roof_layers_below > 1 || (node.support_roof_layers_below >= 0 && !node.is_sharp_tail)) &&
-                            !on_buildplate_only) {
+                        const bool merge_overhang =
+                            top_interface_layers > 0 &&
+                            (node.support_roof_layers_below > 1 || (node.support_roof_layers_below >= 0 && !node.is_sharp_tail));
+
+                        // Merge the full overhang to get a smoother interface surface when
+                        // support may rest on the model. Build-plate-only support is expanded
+                        // from the remaining branch area below instead, because branches may
+                        // have been pruned.
+                        if (merge_overhang && !on_buildplate_only) {
                             if (node.overhang.contour.size() > 100 || node.overhang.holes.size() > 1)
                                 area.emplace_back(node.overhang);
                             else {
@@ -2466,6 +2472,18 @@ void TreeSupport::draw_circles()
                             //                           std::min(node.radius + node.dist_mm_to_top / (scale * branch_radius) * 0.5, MAX_BRANCH_RADIUS_FIRST_LAYER) - node.radius);
                             area = avoid_object_remove_extra_small_parts(ExPolygon(circle), get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
                             // area = diff_clipped({ ExPolygon(circle) }, get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
+
+                            if (merge_overhang && on_buildplate_only && !area.empty()) {
+                                ExPolygons overhang_area;
+                                if (node.overhang.contour.size() > 100 || node.overhang.holes.size() > 1)
+                                    overhang_area.emplace_back(node.overhang);
+                                else
+                                    overhang_area = offset_ex({node.overhang}, scale_(m_ts_data->m_xy_distance));
+
+                                ExPolygons reachable_area = offset_ex(area, buildplate_interface_merge_distance);
+                                append(area, intersection_ex(overhang_area, reachable_area));
+                                area = union_ex(area);
+                            }
                         }
 
                         if (!area.empty()) has_circle_node = true;
