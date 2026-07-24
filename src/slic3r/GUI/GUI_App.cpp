@@ -3217,10 +3217,18 @@ bool GUI_App::on_init_inner()
         BOOST_LOG_TRIVIAL(info) << "begin to show the splash screen...";
         //BBS use BBL splashScreen
         scrn = new BBLSplashScreen(bmp, wxSPLASH_CENTRE_ON_SCREEN, 0, splashscreen_pos);
-#ifndef __linux__
+        // Process pending paint events so the splash is drawn immediately on all
+        // platforms. Without this, GTK never paints the window before the heavy
+        // loading work begins, leaving a black window until the app is ready.
         wxYield();
-#endif
+        scrn->Raise();
+        scrn->Update();
         scrn->SetText(_L("Loading configuration")+ dots);
+        // BBLSplashScreen::SetText() does not force a repaint on non-macOS.
+        // Refresh() + Update() ensure the first status line is visible before
+        // the heavy startup work begins.
+        scrn->Refresh();
+        scrn->Update();
     }
 
     BOOST_LOG_TRIVIAL(info) << "loading systen presets...";
