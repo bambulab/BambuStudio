@@ -6,6 +6,9 @@
 #include "MainFrame.hpp"
 #include "ReleaseNote.hpp"
 
+#include <wx/clipbrd.h>
+#include <wx/dataobj.h>
+
 namespace Slic3r {
 namespace GUI
 {
@@ -214,6 +217,7 @@ void DeviceErrorDialog::init_button_list()
     init_button(DBL_CHECK_RETRY, _L("Retry"));
     init_button(DBL_CHECK_RESUME, _L("Resume"));
     init_button(DBL_CHECK_OK, _L("Confirm"));
+    init_button(COPY_ERROR_DETAILS, _L("Copy Error Details"));
 }
 
 void DeviceErrorDialog::on_dpi_changed(const wxRect& suggested_rect)
@@ -455,6 +459,14 @@ void DeviceErrorDialog::update_contents(const wxString& title, const wxString& t
             }
         }
 
+        auto copy_iter = m_button_list.find(COPY_ERROR_DETAILS);
+        if (copy_iter != m_button_list.end())
+        {
+            m_sizer_button->Add(copy_iter->second, 0, wxALL, FromDIP(5));
+            copy_iter->second->Show();
+            m_used_button.insert(copy_iter->second);
+        }
+
         // Special case, do not show close button
         if (need_remove_close_btn)
         {
@@ -495,6 +507,9 @@ void DeviceErrorDialog::update_contents(const wxString& title, const wxString& t
     /* error code*/
     const wxString& show_time = wxDateTime::Now().Format("%H%M%d");
     const wxString& error_code_msg = wxString::Format("[%S %S]", error_code, show_time);
+    m_error_title = title;
+    m_error_text = text;
+    m_error_code_text = error_code_msg;
     m_error_code_label->SetMaxSize(wxSize(FromDIP(300), -1));
     m_error_code_label->SetMinSize(wxSize(FromDIP(300), -1));
     m_error_code_label->SetLabelText(error_code_msg);
@@ -531,6 +546,34 @@ void DeviceErrorDialog::update_contents(const wxString& title, const wxString& t
         Fit();
     }
 };
+
+void DeviceErrorDialog::copy_error_details_to_clipboard() const
+{
+    wxString details;
+
+    if (!m_error_title.IsEmpty())
+        details += m_error_title;
+
+    if (!m_error_code_text.IsEmpty()) {
+        if (!details.IsEmpty())
+            details += "\n";
+        details += m_error_code_text;
+    }
+
+    if (!m_error_text.IsEmpty()) {
+        if (!details.IsEmpty())
+            details += "\n\n";
+        details += m_error_text;
+    }
+
+    if (details.IsEmpty())
+        return;
+
+    if (wxTheClipboard->Open()) {
+        wxTheClipboard->SetData(new wxTextDataObject(details));
+        wxTheClipboard->Close();
+    }
+}
 
 void DeviceErrorDialog::on_button_click(ActionButton btn_id)
 {
@@ -683,6 +726,11 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
         m_obj->command_clean_print_error(m_obj->subtask_id_, m_error_code);
         m_obj->command_clean_print_error_uiop(m_error_code);
         break;
+    }
+
+    case DeviceErrorDialog::COPY_ERROR_DETAILS: {
+        copy_error_details_to_clipboard();
+        return;
     }
 
     default: break;
