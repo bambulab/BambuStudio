@@ -1325,6 +1325,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_chamber_temp_control))
     ((ConfigOptionBool,                support_air_filtration))
     ((ConfigOptionBool,                support_cooling_filter))
+    ((ConfigOptionBool,                support_auxiliary_fan_filtration))
     ((ConfigOptionBool,                cooling_filter_enabled))
     ((ConfigOptionIntsNullable,        extruder_max_nozzle_count))
     ((ConfigOptionBool,                support_fast_purge_mode))
@@ -1368,6 +1369,9 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
 
     //BBS
     ((ConfigOptionInts,               additional_cooling_fan_speed))
+    ((ConfigOptionBool,               enable_auxiliary_fan_filtration))
+    ((ConfigOptionInt,                auxiliary_fan_filtration_speed))
+    ((ConfigOptionInt,                auxiliary_fan_filtration_post_time))
     ((ConfigOptionBool,               reduce_crossing_wall))
     ((ConfigOptionBool,               z_direction_outwall_speed_continuous))
     ((ConfigOptionFloatOrPercent,     max_travel_detour_distance))
@@ -1971,6 +1975,9 @@ size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id);
 // 从GCode Config中调用基础的参数idx查找方法
 size_t get_process_config_idx(const GCodeConfig &config, unsigned int filament_id);
 size_t get_filament_config_idx(const GCodeConfig& config, unsigned int filament_id);
+
+bool supports_auxiliary_fan_filtration(bool auxiliary_fan, bool support_cooling_filter, bool support_auxiliary_fan_filtration);
+int auxiliary_fan_speed_with_filtration(int stock_speed, bool filtration_enabled, int filtration_speed);
 
 } // namespace Slic3r
 
