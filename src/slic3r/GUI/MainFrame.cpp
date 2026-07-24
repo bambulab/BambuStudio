@@ -2909,6 +2909,15 @@ void MainFrame::init_menubar_as_editor()
 
         Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_open_project() && (m_recent_projects.GetCount() > 0)); }, recent_projects_submenu->GetId());
 
+        // #11401: let users clear the recent projects list from the UI
+        append_menu_item(fileMenu, wxID_ANY, _L("Clear recent projects"), _L("Clear the recent projects list"),
+            [this](wxCommandEvent&) {
+                while (m_recent_projects.GetCount() > 0)
+                    m_recent_projects.RemoveFileFromHistory(m_recent_projects.GetCount() - 1);
+                wxGetApp().app_config->set_recent_projects(std::vector<std::string>());
+                wxGetApp().app_config->save();
+            }, "", nullptr, [this]() { return m_recent_projects.GetCount() > 0; }, this);
+
         // BBS: close save project
 #ifndef __APPLE__
         append_menu_item(fileMenu, wxID_ANY, _L("Save Project") + "\t" + ctrl + "S", _L("Save current project to file"),
