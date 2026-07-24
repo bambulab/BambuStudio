@@ -215,6 +215,55 @@ body {
 .btn-delete:not(:disabled):hover { color: var(--danger); }
 .btn:disabled { opacity: 0.4; cursor: default; }
 
+/* Quick inventory chips */
+.quick-chip-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+.quick-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: var(--radius-lg);
+    border: 0.5px solid var(--border);
+    background: var(--bg-inner);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+}
+.quick-chip:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+.quick-chip.active {
+    color: var(--brand);
+    border-color: var(--brand);
+    background: var(--bg-input);
+}
+.quick-chip-count {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--bg-sidebar);
+    color: var(--text-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+}
+.quick-chip.active .quick-chip-count {
+    color: #fff;
+    background: var(--brand);
+}
+
 /* Filter dropdown */
 .filter-dropdown {
     position: absolute;
