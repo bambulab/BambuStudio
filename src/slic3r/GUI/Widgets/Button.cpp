@@ -433,7 +433,18 @@ void Button::mouseReleased(wxMouseEvent& event)
         pressedDown = false;
         if (HasCapture())
             ReleaseMouse();
-        if (wxRect({0, 0}, GetSize()).Contains(event.GetPosition()))
+        // Touch input drift slop. The button-up position can land a few
+        // pixels outside the rect after a tap because finger contact rolls
+        // between press and release; the original strict
+        // wxRect({0,0},GetSize()).Contains(...) check silently dropped
+        // those clicks on every touchscreen device (visible symptom on
+        // Cancel buttons, AMS spool selectors, sidebar tabs, etc.).
+        // Inflating the hit area by kReleaseSlop on each side preserves
+        // the deliberate drag-off-to-cancel gesture for desktop mouse
+        // users (any release more than ~15 px outside still cancels)
+        // while accepting the small finger drift typical of touchscreens.
+        constexpr int kReleaseSlop = 15;
+        if (wxRect({0, 0}, GetSize()).Inflate(kReleaseSlop).Contains(event.GetPosition()))
             sendButtonEvent();
     }
 }
