@@ -60,7 +60,6 @@ const std::vector<std::string> GCodeProcessor::ReservedTags = {
     "_GP_LAST_LINE_M73_PLACEHOLDER",
     "_GP_ESTIMATED_PRINTING_TIME_PLACEHOLDER",
     "_GP_TOTAL_LAYER_NUMBER_PLACEHOLDER",
-    "_GP_PAUSE_PRINTING_PLACEHOLDER",
     " WIPE_TOWER_START",
     " WIPE_TOWER_END",
     "_GP_FILAMENT_USED_WEIGHT_PLACEHOLDER",
@@ -720,20 +719,6 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 char buf[128];
                 sprintf(buf, "; total layer number: %zd\n", context.total_layer_num);
                 ret += buf;
-            }
-            else if (line == reserved_tag(ETags::Pause_Printing_Placeholder)) {
-                const TimeMachine& machine = machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)];
-                const int total_time = time_in_minutes(machine.time);
-                ret += "; pause_printing: [";
-                for (size_t i = 0; i < machine.pause_times.size(); ++i) {
-                    const int percent = machine.time > 0.0f ? int(100.0f * machine.pause_times[i].elapsed_time / machine.time) : 0;
-                    const int remaining_time = time_in_minutes(std::max(0.0f, machine.time - machine.pause_times[i].elapsed_time));
-                    const int elapsed_time = std::max(0, total_time - remaining_time);
-                    char buf[128];
-                    sprintf(buf, "%s{\"percent\":%d,\"time\":%d}", i == 0 ? "" : ",", percent, elapsed_time);
-                    ret += buf;
-                }
-                ret += "]\n";
             }
             else if (line == reserved_tag(ETags::Used_Filament_Weight_Placeholder)) {
                 std::map<size_t, double>total_weight_per_extruder;
@@ -1551,6 +1536,11 @@ void GCodeProcessorResult::reset() {
     spiral_vase_layers = std::vector<std::pair<float, std::pair<size_t, size_t>>>();
     time = 0;
     optimal_assignment.clear();
+<<<<<<< HEAD   (05e469 ADD: Add TearDrop primitive object)
+=======
+    pause_printing.clear();
+    used_mixed_filaments.clear();
+>>>>>>> CHANGE (0b82bc ENH: Add pause info(count,index,percent,remaining_time,layer)
 
     //BBS: add mutex for protection of gcode result
     unlock();
@@ -1589,6 +1579,7 @@ void GCodeProcessorResult::reset() {
     filament_change_sequence.clear();
     nozzle_change_sequence.clear();
     optimal_assignment.clear();
+    pause_printing.clear();
     skippable_part_time.clear();
     warnings.clear();
 
@@ -2773,6 +2764,17 @@ void GCodeProcessor::finalize(bool post_process)
             m_nozzle_diameter
         );
         m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, context);
+    }
+
+    m_result.pause_printing.clear();
+    const auto& normal_machine = m_time_processor.machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)];
+    m_result.pause_printing.reserve(normal_machine.pause_times.size());
+    for (const auto& pause_time : normal_machine.pause_times) {
+        GCodeProcessorResult::PausePrintInfo pause_info;
+        pause_info.percent = normal_machine.time > 0.0f ? int(100.0f * pause_time.elapsed_time / normal_machine.time) : 0;
+        pause_info.remaining_time = int((std::max(0.0f, normal_machine.time - pause_time.elapsed_time) + 0.5f) / 60.0f);
+        pause_info.layer_id = pause_time.layer_id;
+        m_result.pause_printing.push_back(pause_info);
     }
 
     //update times for results
@@ -5675,7 +5677,7 @@ void GCodeProcessor::process_M400(const GCodeReader::GCodeLine& line)
             if (!machine.enabled)
                 continue;
 
-            machine.pause_times.push_back({ m_g1_line_id, 0.0f });
+            machine.pause_times.push_back({ m_g1_line_id, 0.0f, m_layer_id });
         }
     }
     if (line.has_value('S', value_s) || line.has_value('P', value_p)) {

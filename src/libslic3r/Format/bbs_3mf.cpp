@@ -210,6 +210,17 @@ static constexpr const char* BUILD_TAG = "build";
 static constexpr const char* ITEM_TAG = "item";
 static constexpr const char* METADATA_TAG = "metadata";
 static constexpr const char* FILAMENT_TAG = "filament";
+<<<<<<< HEAD   (05e469 ADD: Add TearDrop primitive object)
+=======
+static constexpr const char* MIXED_FILAMENT_TAG = "mixed_filament";
+static constexpr const char* MIXED_FILAMENT_COMPONENTS_TAG = "components";
+static constexpr const char* PAUSE_LIST_TAG = "pause_list";
+static constexpr const char* PAUSE_TAG = "pause";
+static constexpr const char* PAUSE_INDEX_ATTR = "index";
+static constexpr const char* PAUSE_LAYER_ATTR = "layer";
+static constexpr const char* PAUSE_PERCENT_ATTR = "percent";
+static constexpr const char* PAUSE_REMAINING_TIME_ATTR = "remaining_time";
+>>>>>>> CHANGE (0b82bc ENH: Add pause info(count,index,percent,remaining_time,layer)
 static constexpr const char* SLICE_WARNING_TAG = "warning";
 static constexpr const char* WARNING_MSG_TAG = "msg";
 static constexpr const char *FILAMENT_ID_TAG   = "id";
@@ -340,6 +351,7 @@ static constexpr const char* NOZZLE_TYPE_ATTR          = "nozzle_types";
 static constexpr const char* NOZZLE_DIAMETERS_ATTR = "nozzle_diameters";
 static constexpr const char* SLICE_PREDICTION_ATTR = "prediction";
 static constexpr const char* SLICE_WEIGHT_ATTR = "weight";
+static constexpr const char* PAUSE_COUNT_ATTR = "pause_count";
 static constexpr const char* FIRST_LAYER_TIME_ATTR = "first_layer_time";
 static constexpr const char* TIMELAPSE_TYPE_ATTR = "timelapse_type";
 static constexpr const char* OUTSIDE_ATTR = "outside";
@@ -1335,6 +1347,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _handle_start_config_filament(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_filament();
 
+<<<<<<< HEAD   (05e469 ADD: Add TearDrop primitive object)
+=======
+        bool _handle_start_config_mixed_filament(const char** attributes, unsigned int num_attributes);
+
+        bool _handle_start_config_pause(const char** attributes, unsigned int num_attributes);
+
+>>>>>>> CHANGE (0b82bc ENH: Add pause info(count,index,percent,remaining_time,layer)
         bool _handle_start_config_warning(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_warning();
 
@@ -3631,6 +3650,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_start_config_plater_instance(attributes, num_attributes);
         else if (::strcmp(FILAMENT_TAG, name) == 0)
             res = _handle_start_config_filament(attributes, num_attributes);
+<<<<<<< HEAD   (05e469 ADD: Add TearDrop primitive object)
+=======
+        else if (::strcmp(MIXED_FILAMENT_TAG, name) == 0)
+            res = _handle_start_config_mixed_filament(attributes, num_attributes);
+        else if (::strcmp(PAUSE_TAG, name) == 0)
+            res = _handle_start_config_pause(attributes, num_attributes);
+>>>>>>> CHANGE (0b82bc ENH: Add pause info(count,index,percent,remaining_time,layer)
         else if (::strcmp(SLICE_WARNING_TAG, name) == 0)
             res = _handle_start_config_warning(attributes, num_attributes);
         else if (::strcmp(NOZZLE_TAG, name) == 0)
@@ -4796,6 +4822,38 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
+<<<<<<< HEAD   (05e469 ADD: Add TearDrop primitive object)
+=======
+    bool _BBS_3MF_Importer::_handle_start_config_mixed_filament(const char** attributes, unsigned int num_attributes)
+    {
+        if (m_curr_plater) {
+            std::string id         = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_ID_TAG);
+            std::string type       = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_TYPE_TAG);
+            std::string color      = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_COLOR_TAG);
+            std::string components = bbs_get_attribute_value_string(attributes, num_attributes, MIXED_FILAMENT_COMPONENTS_TAG);
+            PlateMixedFilamentInfo mixed_info;
+            mixed_info.id         = atoi(id.c_str());
+            mixed_info.type       = type;
+            mixed_info.color      = color;
+            mixed_info.components = components;
+            m_curr_plater->mixed_filaments_info.push_back(mixed_info);
+        }
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_config_pause(const char** attributes, unsigned int num_attributes)
+    {
+        if (m_curr_plater) {
+            GCodeProcessorResult::PausePrintInfo pause_info;
+            pause_info.percent = atoi(bbs_get_attribute_value_string(attributes, num_attributes, PAUSE_PERCENT_ATTR).c_str());
+            pause_info.remaining_time = atoi(bbs_get_attribute_value_string(attributes, num_attributes, PAUSE_REMAINING_TIME_ATTR).c_str());
+            pause_info.layer_id = atoi(bbs_get_attribute_value_string(attributes, num_attributes, PAUSE_LAYER_ATTR).c_str());
+            m_curr_plater->pause_printing.push_back(pause_info);
+        }
+        return true;
+    }
+
+>>>>>>> CHANGE (0b82bc ENH: Add pause info(count,index,percent,remaining_time,layer)
     bool _BBS_3MF_Importer::_handle_start_config_warning(const char** attributes, unsigned int num_attributes)
     {
         if (m_curr_plater) {
@@ -8565,6 +8623,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << TIMELAPSE_TYPE_ATTR << "\" " << VALUE_ATTR << "=\"" << timelapse_type << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_PREDICTION_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->get_gcode_prediction_str() << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SLICE_WEIGHT_ATTR      << "\" " << VALUE_ATTR << "=\"" <<  plate_data->get_gcode_weight_str() << "\"/>\n";
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << PAUSE_COUNT_ATTR << "\" " << VALUE_ATTR << "=\"" << plate_data->pause_printing.size() << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << FIRST_LAYER_TIME_ATTR      << "\" " << VALUE_ATTR << "=\"" <<  plate_data->first_layer_time << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OUTSIDE_ATTR      << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->toolpath_outside << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SUPPORT_USED_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->is_support_used << "\"/>\n";
@@ -8679,6 +8738,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         stream << "      <" << LAYER_FILAMENT_LIST_TAG << " filament_list=\"" << key_stream.str() << "\" layer_ranges=\"" << value_stream.str() << "\" />\n";
                     }
                     stream << "    </" << LAYER_FILAMENT_LISTS_TAG << ">\n";
+                }
+
+                if (!plate_data->pause_printing.empty()) {
+                    stream << "    <" << PAUSE_LIST_TAG << ">\n";
+                    for (size_t pause_index = 0; pause_index < plate_data->pause_printing.size(); ++pause_index) {
+                        const auto& pause_info = plate_data->pause_printing[pause_index];
+                        stream << "      <" << PAUSE_TAG << " " << PAUSE_INDEX_ATTR << "=\"" << pause_index + 1 << "\" "
+                               << PAUSE_LAYER_ATTR << "=\"" << pause_info.layer_id << "\" "
+                               << PAUSE_PERCENT_ATTR << "=\"" << pause_info.percent << "\" "
+                               << PAUSE_REMAINING_TIME_ATTR << "=\"" << pause_info.remaining_time << "\" />\n";
+                    }
+                    stream << "    </" << PAUSE_LIST_TAG << ">\n";
                 }
 
                 stream << "  </" << PLATE_TAG << ">\n";
