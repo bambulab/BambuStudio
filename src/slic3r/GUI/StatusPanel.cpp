@@ -1525,21 +1525,37 @@ void PrintingTaskPanel::init_scaled_buttons()
     m_button_clean->SetCornerRadius(FromDIP(12));
 }
 
-void PrintingTaskPanel::error_info_reset()
+bool PrintingTaskPanel::error_info_reset()
 {
-    if (m_panel_error_txt->IsShown()) {
-        m_staticline->Hide();
-        m_panel_error_txt->Hide();
-        m_panel_error_txt->GetParent()->Layout();
-        m_error_text->SetLabel(wxEmptyString);
-    }
+    if (!m_panel_error_txt->IsShown()) return false;
+
+    m_error_text->SetLabel(wxEmptyString);
+    m_staticline->Hide();
+    m_panel_error_txt->Hide();
+    refreshErrorContents();
+    return true;
 }
 
-void PrintingTaskPanel::show_error_msg(wxString msg)
+void PrintingTaskPanel::show_error_msg(const wxString &msg)
 {
     m_staticline->Show();
     m_panel_error_txt->Show();
+
+    // Give the auto-wrapping label its final width before assigning the message.
+    Layout();
+    m_panel_error_txt->Layout();
     m_error_text->SetLabel(msg);
+    m_panel_error_txt->Layout();
+    refreshErrorContents();
+}
+
+void PrintingTaskPanel::refreshErrorContents()
+{
+    Layout();
+    InvalidateBestSize();
+    m_error_text->Refresh();
+    m_panel_error_txt->Refresh();
+    Refresh();
 }
 
 void PrintingTaskPanel::reset_printing_value()
@@ -3256,7 +3272,19 @@ void StatusPanel::on_subtask_abort(wxCommandEvent &event)
     abort_dlg->Raise();
 }
 
-void StatusPanel::error_info_reset() { m_project_task_panel->error_info_reset(); }
+void StatusPanel::error_info_reset()
+{
+    if (m_project_task_panel->error_info_reset()) {
+        refreshProjectTaskLayout();
+    }
+}
+
+void StatusPanel::refreshProjectTaskLayout()
+{
+    Layout();
+    FitInside();
+    m_project_task_panel->Refresh();
+}
 
 void StatusPanel::on_print_error_clean(wxCommandEvent &event)
 {
@@ -3484,7 +3512,10 @@ void StatusPanel::update_error_message()
         BOOST_LOG_TRIVIAL(info) << "print error: device error code = " << obj->print_error;
 
         /* show error message on task panel */
-        if (!error_msg.IsEmpty()) { m_project_task_panel->show_error_msg(error_msg); }
+        if (!error_msg.IsEmpty()) {
+            m_project_task_panel->show_error_msg(error_msg);
+            refreshProjectTaskLayout();
+        }
     }
 
     last_error = obj->print_error;

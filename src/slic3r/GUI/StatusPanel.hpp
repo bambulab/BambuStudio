@@ -345,8 +345,8 @@ private:
 public:
     void init_bitmaps();
     void init_scaled_buttons();
-    void error_info_reset();
-    void show_error_msg(wxString msg);
+    bool error_info_reset();
+    void show_error_msg(const wxString &msg);
     void reset_printing_value();
     void msw_rescale();
 
@@ -397,6 +397,7 @@ public:
     void                           set_has_reted_text(bool has_rated);
 
 private:
+    void refreshErrorContents();
     void paint(wxPaintEvent&);
 };
 
@@ -719,6 +720,7 @@ protected:
     void on_subtask_abort(wxCommandEvent &event);
     void on_print_error_clean(wxCommandEvent &event);
     void error_info_reset();
+    void refreshProjectTaskLayout();
     void show_recenter_dialog();
 
     /* axis control */
