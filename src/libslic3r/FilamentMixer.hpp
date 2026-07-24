@@ -138,6 +138,15 @@ void expand_mixed_slots_in_unprintables(
     const std::vector<unsigned char>  &is_mixed,
     const std::vector<std::string>    &comp_strs);
 
+// Clear any non-empty gradient-curve slot that parses to fewer than 2 control points.
+// Heals per-slot arrays corrupted by the legacy "|" separator collision between
+// PresetBundle::export_selections / load_selections (which used "|" as the inter-slot
+// delimiter) and serialize_gradient_curve / parse_gradient_curve (which use "|" as the
+// intra-slot control-point delimiter). Such a round-trip splits a multi-point curve
+// across adjacent slots, leaving single-point entries that fail MakerWorld's strict
+// "curve needs >= 2 points" check. Clearing them falls back to the linear range.
+void sanitize_mixed_gradient_curve_array(std::vector<std::string>& vals);
+
 } // namespace Slic3r
 
 #endif // SLIC3R_FILAMENT_MIXER_HPP

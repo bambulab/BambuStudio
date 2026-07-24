@@ -2161,11 +2161,28 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
         // Old projects may not contain filament_mixed_gradient_curve; resize unconditionally.
         auto& vals = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_curve")->values;
         if (config.has("presets", "filament_mixed_gradient_curve")) {
+            const std::string raw = config.get("presets", "filament_mixed_gradient_curve");
+            // New format: C-style escaped ";" (escape_strings_cstyle), safe for curve values
+            // that contain "|" (the intra-slot control-point delimiter). Legacy format used
+            // "|" as the inter-slot delimiter, which collided with the intra-slot "|" and
+            // split multi-point curves across slots. Disambiguate by size: the new format
+            // always round-trips to exactly n_filaments elements; a legacy "|" split of a
+            // corrupted curve yields != n_filaments. Invariant: a non-empty curve implies a
+            // mixed gradient slot, which requires n_filaments >= 3, so the new format's
+            // escaped form always contains ";" and unescapes to size == n_filaments.
             std::vector<std::string> parts;
-            boost::algorithm::split(parts, config.get("presets", "filament_mixed_gradient_curve"), boost::algorithm::is_any_of("|"));
-            vals = std::move(parts);
+            if (Slic3r::unescape_strings_cstyle(raw, parts) && parts.size() == n_filaments) {
+                vals = std::move(parts);
+            } else {
+                std::vector<std::string> legacy_parts;
+                boost::algorithm::split(legacy_parts, raw, boost::algorithm::is_any_of("|"));
+                vals = std::move(legacy_parts);
+            }
         }
         vals.resize(n_filaments, std::string{});
+        // Heal legacy corruption: clear any non-empty slot that ended up with < 2 points
+        // (e.g. a curve split across slots by the old "|" delimiter). Falls back to linear.
+        Slic3r::sanitize_mixed_gradient_curve_array(vals);
     }
     {
         // 兜底：旧工程没有 filament_mixed_gradient_per_part 时也保证数组长度与 n_filaments 一致
@@ -2321,7 +2338,11 @@ void PresetBundle::export_selections(AppConfig &config)
     if (auto* opt = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_range"))
         config.set("presets", "filament_mixed_gradient_range", boost::algorithm::join(opt->values, "|"));
     if (auto* opt = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_curve"))
-        config.set("presets", "filament_mixed_gradient_curve", boost::algorithm::join(opt->values, "|"));
+        // Use C-style escaped ";" encoding (same as ConfigOptionStrings::serialize) instead
+        // of "|" join: each slot's curve value may itself contain "|" as the control-point
+        // delimiter (serialize_gradient_curve), which would collide with "|" as the inter-
+        // slot delimiter and split the curve across slots on the next load_selections.
+        config.set("presets", "filament_mixed_gradient_curve", Slic3r::escape_strings_cstyle(opt->values));
     if (auto* opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part")) {
         std::string s;
         for (size_t i = 0; i < opt->values.size(); ++i) {

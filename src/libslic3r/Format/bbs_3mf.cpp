@@ -11,6 +11,7 @@
 #include "../Time.hpp"
 
 #include "../I18N.hpp"
+#include "../FilamentMixer.hpp"
 
 #include "bbs_3mf.hpp"
 
@@ -2742,6 +2743,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 return;
             }
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", load project config file successfully from %1%\n") % PathSanitizer::sanitize(dest_file);
+
+            // Heal any gradient-curve slots corrupted by the legacy "|" separator collision
+            // (see FilamentMixer::sanitize_mixed_gradient_curve_array). The 3MF JSON itself
+            // is safe (";" + C-style escape), but older projects saved through the buggy
+            // export_selections/load_selections path may already carry single-point entries
+            // that fail MakerWorld's "curve needs >= 2 points" check.
+            if (auto* curve_opt = config.option<ConfigOptionStrings>("filament_mixed_gradient_curve"))
+                Slic3r::sanitize_mixed_gradient_curve_array(curve_opt->values);
         }
     }
 

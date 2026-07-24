@@ -551,4 +551,20 @@ void expand_mixed_slots_in_unprintables(
     }
 }
 
+void sanitize_mixed_gradient_curve_array(std::vector<std::string>& vals)
+{
+    for (size_t i = 0; i < vals.size(); ++i) {
+        if (vals[i].empty())
+            continue;
+        // parse_gradient_curve returns empty for both "empty input" and "<2 valid points";
+        // we already skipped empty, so an empty result means a corrupted single-point slot.
+        if (parse_gradient_curve(vals[i]).empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "sanitize_mixed_gradient_curve_array: slot "
+                << i << " curve \"" << vals[i]
+                << "\" has fewer than 2 valid points; clearing to linear";
+            vals[i].clear();
+        }
+    }
+}
+
 } // namespace Slic3r
