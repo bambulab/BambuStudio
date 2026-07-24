@@ -744,47 +744,109 @@ wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxWindow *pare
     return m_sizer_switch;
 }
 
-wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxWindow* parent, wxString tooltip, int padding_left, std::string param)
+wxBoxSizer *PreferencesDialog::create_item_darkmode_combobox(
+    wxString title, wxWindow *parent, wxString tooltip)
 {
-    wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
-    m_sizer_checkbox->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
+    const std::vector<wxString> labels = {
+        _L("Light"),
+        _L("Dark"),
+        _L("Follow system")
+    };
 
-    auto checkbox = new ::CheckBox(parent);
-    m_checkbox_list[m_checkbox_list.size()] = checkbox;
-    checkbox->SetValue((app_config->get(param) == "1") ? true : false);
-    m_dark_mode_ckeckbox = checkbox;
+    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
+    sizer->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
 
-    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    checkbox_title->SetForegroundColour(ThemeColor::TextPrimary);
-    checkbox_title->SetFont(::Label::Body_13);
+    auto *combo_title = new wxStaticText(
+        parent,
+        wxID_ANY,
+        title,
+        wxDefaultPosition,
+        wxSize(FromDIP(TITLE_WIDTH), -1),
+        0
+    );
 
-    auto size = checkbox_title->GetTextExtent(title);
-    checkbox_title->SetMinSize(wxSize(size.x + FromDIP(40), -1));
-    checkbox_title->Wrap(-1);
+    combo_title->SetForegroundColour(ThemeColor::TextPrimary);
+    combo_title->SetFont(::Label::Body_13);
+    combo_title->SetToolTip(tooltip);
+    combo_title->Wrap(-1);
 
-    m_sizer_checkbox->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
-    m_sizer_checkbox->Add(checkbox_title, wxSizerFlags().CenterVertical().Proportion(1));
-    m_sizer_checkbox->Add(checkbox, wxSizerFlags().CenterVertical().Border(wxRIGHT, FromDIP(ITEM_RIGHT_PADDING)));
+    sizer->Add(
+        combo_title,
+        wxSizerFlags()
+            .CenterVertical()
+            .Proportion(1)
+    );
 
-    //// save config
-    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent& e) {
-        app_config->set(param, checkbox->GetValue() ? "1" : "0");
-        app_config->save();
-        wxGetApp().Update_dark_mode_flag();
+    auto *combobox = new ::ComboBox(
+        parent,
+        wxID_ANY,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxSize(FromDIP(LARGE_COMBOBOX_WIDTH), -1),
+        0,
+        nullptr,
+        wxCB_READONLY
+    );
 
-        //dark mode
+    m_combobox_list[m_combobox_list.size()] = combobox;
+
+    combobox->SetFont(::Label::Body_13);
+    combobox->GetDropDown().SetFont(::Label::Body_13);
+
+    for (const wxString &label : labels)
+        combobox->Append(label);
+
+    const std::string color_mode =
+        app_config->get("dark_color_mode");
+
+    combobox->SetSelection(
+        color_mode == "2" ? 2 :
+        color_mode == "1" ? 1 :
+        0
+    );
+
+    sizer->Add(
+        combobox,
+        wxSizerFlags()
+            .CenterVertical()
+            .Border(wxRIGHT, FromDIP(ITEM_RIGHT_PADDING))
+    );
+
+    combobox->GetDropDown().Bind(
+        wxEVT_COMBOBOX,
+        [this](wxCommandEvent &event) {
+            const int selection = event.GetSelection();
+
+            app_config->set(
+                "dark_color_mode",
+                std::to_string(selection)
+            );
+
+            app_config->save();
+            wxGetApp().Update_dark_mode_flag();
+
 #ifdef _MSW_DARK_MODE
-        wxGetApp().force_colors_update();
-        wxGetApp().update_ui_from_settings();
-        set_dark_mode();
+            wxGetApp().force_colors_update();
+            wxGetApp().update_ui_from_settings();
+            set_dark_mode();
 #endif
-        SimpleEvent evt = SimpleEvent(EVT_GLCANVAS_COLOR_MODE_CHANGED);
-        wxPostEvent(wxGetApp().plater(), evt);
-        e.Skip();
-        });
 
-    checkbox->SetToolTip(tooltip);
-    return m_sizer_checkbox;
+            SimpleEvent canvas_event(
+                EVT_GLCANVAS_COLOR_MODE_CHANGED
+            );
+            wxPostEvent(
+                wxGetApp().plater(),
+                canvas_event
+            );
+
+            event.Skip();
+        }
+    );
+
+    combobox->SetToolTip(tooltip);
+
+    return sizer;
 }
 
 void PreferencesDialog::set_dark_mode()
@@ -1367,7 +1429,7 @@ wxWindow *PreferencesDialog::create_general_tab()
     auto                  item_currency = create_item_combobox(_L("Units"), scrolled, _L("Units"), "use_inches", Units, {"0", "1"});
 
 #ifdef _WIN32
-    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable dark mode"), scrolled, _L("Enable dark mode"), 50, "dark_color_mode");
+    auto item_darkmode = create_item_darkmode_combobox(_L("Theme"), scrolled, _L("Choose the interface theme: light, dark, or follow the system setting."));
 #endif
 
     std::vector<wxString>    FlushOptionLabels = {_L("All"), _L("Color change"), _L("Disabled")};

@@ -237,15 +237,26 @@ wxFont get_default_font_for_dpi(const wxWindow *window, int dpi)
 }
 
 bool check_dark_mode() {
-#if 0 //#ifdef _WIN32  // #ysDarkMSW - Allow it when we deside to support the sustem colors for application
-    wxRegKey rk(wxRegKey::HKCU,
-        "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize");
-    if (rk.Exists() && rk.HasValue("AppsUseLightTheme")) {
+#ifdef _WIN32
+    wxRegKey rk(
+        wxRegKey::HKCU,
+        "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"
+    );
+
+    if (
+        rk.Exists() &&
+        rk.HasValue("AppsUseLightTheme")
+    ) {
         long value = -1;
-        rk.QueryValue("AppsUseLightTheme", &value);
+
+        rk.QueryValue(
+            "AppsUseLightTheme",
+            &value
+        );
+
         return value <= 0;
     }
-#endif
+#endif // _WIN32
 #if wxCHECK_VERSION(3,1,3)
     return wxSystemSettings::GetAppearance().IsDark();
 #else
@@ -259,7 +270,7 @@ bool check_dark_mode() {
 void update_dark_ui(wxWindow* window)
 {
 #ifdef SUPPORT_DARK_MODE
-    bool is_dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+    bool is_dark = wxGetApp().dark_mode();
 #else
     bool is_dark = false;
 #endif
@@ -268,12 +279,31 @@ void update_dark_ui(wxWindow* window)
 }
 #endif
 
+#ifdef _WIN32
+bool should_follow_system_theme()
+{
+    return wxGetApp().app_config &&
+           wxGetApp().app_config->get("dark_color_mode") == "2";
+}
+#endif
+
 void update_dark_config()
 {
-    wxSystemAppearance app = wxSystemSettings::GetAppearance();
-    GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
+#ifdef __WINDOWS__
+    // Keep dark_color_mode == "2" while refreshing the
+    // effective system appearance.
+    wxGetApp().Update_dark_mode_flag();
+#else
+    wxSystemAppearance app =
+        wxSystemSettings::GetAppearance();
+
+    GUI::wxGetApp().app_config->set(
+        "dark_color_mode",
+        app.IsDark() ? "1" : "0"
+    );
     GUI::wxGetApp().app_config->save();
     wxGetApp().Update_dark_mode_flag();
+#endif // __WINDOWS__
 }
 
 

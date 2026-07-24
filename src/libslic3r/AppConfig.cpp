@@ -265,7 +265,7 @@ void AppConfig::set_defaults()
 
 #ifdef SUPPORT_DARK_MODE
     if (get("dark_color_mode").empty())
-        set("dark_color_mode", "0");
+        set("dark_color_mode", "2");
 #endif
 
 //#ifdef SUPPORT_SYS_MENU

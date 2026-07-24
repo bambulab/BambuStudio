@@ -97,6 +97,7 @@ bool check_dark_mode();
 void update_dark_config();
 #ifdef _WIN32
 void update_dark_ui(wxWindow* window);
+bool should_follow_system_theme();
 #endif
 
 #if !wxVERSION_EQUAL_OR_GREATER_THAN(3,1,3)
@@ -202,11 +203,10 @@ public:
         this->Bind(wxEVT_SYS_COLOUR_CHANGED, [this](wxSysColourChangedEvent& event)
         {
 #ifndef __WINDOWS__
-                update_dark_config();
-                on_sys_color_changed();
-                event.Skip();
-#endif // __WINDOWS__
-
+            update_dark_config();
+            on_sys_color_changed();
+#endif // !__WINDOWS__
+            event.Skip();
         });
 
         if (std::is_same<wxDialog, P>::value) {
@@ -325,16 +325,24 @@ private:
         m_prev_scale_factor = m_scale_factor;
     }
 
-#if 0 //#ifdef _WIN32  // #ysDarkMSW - Allow it when we deside to support the sustem colors for application
-    bool HandleSettingChange(WXWPARAM wParam, WXLPARAM lParam) override
+#ifdef _WIN32
+    bool HandleSettingChange(
+        WXWPARAM wParam,
+        WXLPARAM lParam
+    ) override
     {
-        update_dark_ui(this);
-        on_sys_color_changed();
+        const bool handled =
+            P::HandleSettingChange(wParam, lParam);
 
-        // let the system handle it
-        return false;
+        if (should_follow_system_theme()) {
+            update_dark_config();
+            update_dark_ui(this);
+            on_sys_color_changed();
+        }
+
+        return handled;
     }
-#endif
+#endif // _WIN32
 
 };
 
