@@ -5782,7 +5782,7 @@ GCode::LayerResult GCode::process_layer(
                 if (instance_to_print.object_by_extruder.support && !instance_to_print.object_by_extruder.support->empty()) {
                     if (use_per_volume) {
                         m_nominal_z = obj_sub_z;
-                        gcode += m_writer.travel_to_z(obj_sub_z, "restore Z for support");
+                        m_need_change_layer_lift_z = true;
                     }
                     ExtrusionRole support_role = instance_to_print.object_by_extruder.support_extrusion_role;
                     gcode += this->extrude_support(instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, support_role));
@@ -5818,7 +5818,7 @@ GCode::LayerResult GCode::process_layer(
         if (!layer_tools.mixed_sub_layer_groups.empty()) {
             m_writer.add_object_end_labels(gcode);
             m_nominal_z = print_z;
-            gcode += m_writer.travel_to_z(print_z, "restore Z after sublayers");
+            m_need_change_layer_lift_z = true;
         }
     }
     if (first_layer) {
