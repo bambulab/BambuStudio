@@ -9606,11 +9606,10 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
         const auto &gradient_flags = cfg.filament_mixed_gradient.values;
         const auto &range_strs     = cfg.filament_mixed_gradient_range.values;
         const auto &curve_strs     = cfg.filament_mixed_gradient_curve.values;
-        const bool  sublayer_on    = cfg.enable_mixed_color_sublayer.value;
 
         std::map<std::string, std::string> mixed_errors = validate_mixed_filament_params(
             is_mixed, comp_strs, ratio_strs, gradient_flags,
-            range_strs, curve_strs, sublayer_on);
+            range_strs, curve_strs);
         for (const auto &kv : mixed_errors)
             if (error_message.find(kv.first) == error_message.end())
                 error_message.emplace(kv.first, kv.second);

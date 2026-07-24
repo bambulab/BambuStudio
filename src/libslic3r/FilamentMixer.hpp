@@ -155,8 +155,7 @@ std::map<std::string, std::string> validate_mixed_filament_params(
     const std::vector<std::string>   &ratio_strs,
     const std::vector<unsigned char> &gradient_flags,
     const std::vector<std::string>   &gradient_range_strs,
-    const std::vector<std::string>   &gradient_curve_strs,
-    bool                              enable_mixed_color_sublayer);
+    const std::vector<std::string>   &gradient_curve_strs);
 
 } // namespace Slic3r
 

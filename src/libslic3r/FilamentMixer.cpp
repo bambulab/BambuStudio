@@ -724,8 +724,7 @@ std::map<std::string, std::string> validate_mixed_filament_params(
     const std::vector<std::string>   &ratio_strs,
     const std::vector<unsigned char> &gradient_flags,
     const std::vector<std::string>   &gradient_range_strs,
-    const std::vector<std::string>   &gradient_curve_strs,
-    bool                              enable_mixed_color_sublayer)
+    const std::vector<std::string>   &gradient_curve_strs)
 {
     std::map<std::string, std::string> errors;
 
@@ -807,10 +806,6 @@ std::map<std::string, std::string> validate_mixed_filament_params(
             if (components.size() != 2) {
                 append_error(errors, "filament_mixed_gradient",
                        slot + ": gradient requires exactly 2 components");
-            }
-            if (!enable_mixed_color_sublayer) {
-                append_error(errors, "filament_mixed_gradient",
-                       slot + ": gradient requires enable_mixed_color_sublayer");
             }
 
             if (gradient_specified) {
