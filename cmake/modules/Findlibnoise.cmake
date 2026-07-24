@@ -19,7 +19,7 @@ find_path(LIBNOISE_INCLUDE_DIR NAMES noise.h
 
 # bambulab/libnoise produces libnoise_static (.lib on Windows, liblibnoise_static.a on Linux)
 find_library(LIBNOISE_LIBRARY
-  NAMES libnoise_static noise_static
+  NAMES libnoise_static libnoise_staticd noise_static noise_staticd
   PATHS ${CMAKE_PREFIX_PATH}
   PATH_SUFFIXES lib
   NO_DEFAULT_PATH
