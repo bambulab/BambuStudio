@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSG99_24",
     "instantiation": "true",
+    "fan_max_speed": [
+        "60"
+    ],
     "filament_change_length": [
         "0"
     ],
@@ -61,6 +64,9 @@
     "nozzle_temperature_initial_layer": [
         "255",
         "255"
+    ],
+    "overhang_fan_speed": [
+        "60"
     ],
     "slow_down_min_speed": [
         "20",

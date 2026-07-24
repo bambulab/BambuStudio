@@ -79,6 +79,9 @@
         "245",
         "245"
     ],
+    "overhang_fan_speed": [
+        "50"
+    ],
     "compatible_printers": [
         "Bambu Lab H3C 0.4 nozzle"
     ],

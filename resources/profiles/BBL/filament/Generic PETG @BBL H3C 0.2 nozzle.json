@@ -49,6 +49,9 @@
         "255",
         "255"
     ],
+    "overhang_fan_speed": [
+        "60"
+    ],
     "slow_down_min_speed": [
         "20",
         "20"
