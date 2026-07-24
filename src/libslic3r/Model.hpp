@@ -994,8 +994,16 @@ public:
     // BBS: best-effort paint preservation across mesh-rebuilding operations
     // (repair/simplify/smooth). Replaces the mesh, then re-projects all four
     // paint layers from the OLD mesh onto the new one by nearest-surface lookup.
-    // Approximate: a remeshed surface has no exact face correspondence.
-    void                set_mesh_keep_paint(TriangleMesh &&mesh);
+    // Rebuild the mesh (Simplify / Repair) while transferring painted color / supports / seam /
+    // fuzzy-skin to it at full fidelity. `progress(percent 0..100)`, if set, is called during the
+    // (multi-core) re-subdivision so the caller can drive a progress bar; return false to cancel.
+    void                set_mesh_keep_paint(TriangleMesh &&mesh, const std::function<bool(int)> &progress = {});
+    // Multi-source paint transfer for a boolean result: each source mesh is transformed by its
+    // paired matrix into this volume's frame, then nearest-surface sampling carries all four paint
+    // layers, re-subdividing this volume's paint only where the color changes. `progress(percent)`,
+    // if set, is called periodically (0..100). Return false from it to cancel the transfer early.
+    void                reproject_paint_from_volumes(const std::vector<std::pair<const ModelVolume*, Transform3d>> &srcs,
+                                                     const std::function<bool(int)> &progress = {});
     ModelMaterial*      material() const;
     void                set_material(t_model_material_id material_id, const ModelMaterial &material);
     // Extract the current extruder ID based on this ModelVolume's config and the parent ModelObject's config.

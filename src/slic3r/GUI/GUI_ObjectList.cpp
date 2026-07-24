@@ -1,5 +1,8 @@
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PresetBundle.hpp"
+#include <thread>
+#include <atomic>
+#include <chrono>
 #include "GUI_ObjectList.hpp"
 #include "GUI_Factories.hpp"
 //#include "GUI_ObjectLayers.hpp"
@@ -3514,8 +3517,21 @@ void ObjectList::boolean()
 
     Plater::TakeSnapshot snapshot(wxGetApp().plater(), "boolean");
 
+    // Boolean runs synchronously on the UI thread and can take a while (mcut has to resolve
+    // the CSG, especially on self-intersecting meshes) followed by the paint transfer. Show a
+    // progress popup with phase text so it does not look like a silent freeze. Matches the
+    // "Repairing model object" dialog (same flags + adaptive sizing + two-line message) for a
+    // uniform look: line 1 names the operation + object, line 2 is the current phase.
+    const wxString bool_msg = _L("Boolean operation") + ": " + from_u8((*m_objects)[obj_idxs.front()]->name) + "\n";
+    ProgressDialog progress_dlg(_L("Boolean operation"), bool_msg + _L("Combining meshes..."), 100,
+                                find_toplevel_parent(wxGetApp().plater()),
+                                wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT, true);
+    progress_dlg.Update(5, bool_msg + _L("Combining meshes..."));
+
     ModelObject* object = (*m_objects)[obj_idxs.front()];
     TriangleMesh mesh = Plater::combine_mesh_fff(*object, -1, [this](const std::string &msg) { return wxGetApp().notification_manager()->push_plater_warning_notification(msg); });
+
+    progress_dlg.Update(55, bool_msg + _L("Transferring paint..."));
 
     // add mesh to model as a new object, keep the original object's name and config
     Model* model = object->get_model();
@@ -3525,6 +3541,68 @@ void ObjectList::boolean()
     if (new_object->instances.empty())
         new_object->add_instance();
     ModelVolume* new_volume = new_object->add_volume(mesh);
+
+    // BBS: best-effort transfer painting from all source parts onto the union
+    // result. combine_mesh_fff bakes each volume's matrix into object space, so
+    // the sources are projected with their own matrices to match. Must run
+    // before center_around_origin() shifts the mesh.
+    {
+        // combine_mesh_fff(object, -1, ...) bakes the object's instance transform
+        // into the union result (Plater.cpp: mesh.transform(instance->get_matrix())),
+        // so the union lives in world/plate coordinates. Rebuild the source meshes in
+        // that SAME frame by prepending the instance matrix - otherwise every union
+        // face sits ~100 mm from the object-space sources, past the match cutoff, and
+        // all paint is dropped (the union comes out one solid color). Single-instance
+        // is the norm; for multiple instances the first instance's copy is matched.
+        const Transform3d inst = object->instances.empty()
+            ? Transform3d::Identity()
+            : object->instances.front()->get_matrix();
+        // add_volume() recentered the union mesh to its own origin and moved that
+        // offset into new_volume's transform, so new_volume->mesh() is in the volume's
+        // LOCAL frame - not world. Bring the world-space sources (inst * volume matrix)
+        // into that same local frame with new_volume->get_matrix().inverse(); otherwise
+        // every source sits ~100 mm from the recentered result and all paint is dropped.
+        const Transform3d world_to_local = new_volume->get_matrix().inverse();
+        std::vector<std::pair<const ModelVolume*, Transform3d>> bsrcs;
+        for (const ModelVolume* v : object->volumes)
+            if (v->is_model_part())
+                bsrcs.emplace_back(v, world_to_local * inst * v->get_matrix());
+        // Run the (multi-core) paint transfer on a BACKGROUND thread so the UI thread stays free
+        // to update the progress dialog and pump the message queue - the app keeps responding
+        // instead of going "not responding" while all cores are busy. The transfer's progress
+        // callback runs on worker threads, so it only touches atomics; the UI thread polls them.
+        // Best-effort: a degenerate boolean result must never take down the app - a throw is
+        // caught and just skips the paint transfer (the union geometry is already valid).
+        {
+            std::atomic<int>   pct{0};
+            std::atomic<bool>  cancel_req{false};
+            std::atomic<bool>  finished{false};
+            std::exception_ptr worker_ex;
+            std::thread worker([&]() {
+                try {
+                    new_volume->reproject_paint_from_volumes(bsrcs, [&pct, &cancel_req](int p) {
+                        pct.store(p, std::memory_order_relaxed);
+                        return !cancel_req.load(std::memory_order_relaxed);
+                    });
+                } catch (...) { worker_ex = std::current_exception(); }
+                finished.store(true, std::memory_order_release);
+            });
+            while (!finished.load(std::memory_order_acquire)) {
+                if (!progress_dlg.Update(55 + pct.load(std::memory_order_relaxed) * 35 / 100,
+                                         bool_msg + _L("Transferring paint...")))
+                    cancel_req.store(true, std::memory_order_relaxed); // user hit Cancel
+                std::this_thread::sleep_for(std::chrono::milliseconds(30));
+            }
+            worker.join();
+            if (worker_ex) {
+                try { std::rethrow_exception(worker_ex); }
+                catch (const std::exception &e) { BOOST_LOG_TRIVIAL(error) << "boolean paint transfer skipped: " << e.what(); }
+                catch (...) { BOOST_LOG_TRIVIAL(error) << "boolean paint transfer skipped: unknown error"; }
+            }
+        }
+    }
+
+    progress_dlg.Update(90, bool_msg + _L("Updating scene..."));
 
     // BBS: ensure on bed but no need to ensure locate in the center around origin
     new_object->ensure_on_bed();
@@ -3542,6 +3620,8 @@ void ObjectList::boolean()
     add_object_to_list(m_objects->size() - 1);
     select_item(m_objects_model->GetItemById(m_objects->size() - 1));
     update_selections_on_canvas();
+
+    progress_dlg.Update(100, wxEmptyString);
 }
 
 wxDataViewItem ObjectList::add_layer_root_item(const wxDataViewItem obj_item)
