@@ -6,6 +6,7 @@
 //**********************************************************/
 
 #include "wgtDeviceNozzleRackUpdate.h"
+#include "wgtDeviceNozzleRack.h"
 
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 #include "slic3r/GUI/DeviceCore/DevUpgrade.h"
@@ -383,7 +384,14 @@ void wgtDeviceNozzleRackHotendUpdate::OnBitmapHoverEnter(wxMouseEvent& event)
     wxBoxSizer* frameSizer = new wxBoxSizer(wxVERTICAL);
     m_hoverFrame->SetSizer(frameSizer);
 
-    wxStaticBitmap* hoverBmp = new wxStaticBitmap(m_hoverFrame, wxID_ANY, scaledBmp->bmp());
+    wxBitmap hover_bitmap = scaledBmp->bmp();
+    if (m_nozzle_status == NOZZLE_STATUS_NORMAL ||
+        m_nozzle_status == NOZZLE_STATUS_ABNORMAL)
+        hover_bitmap =
+            SetNozzleBmpColor(hover_bitmap, m_filament_color);
+
+    wxStaticBitmap* hoverBmp =
+        new wxStaticBitmap(m_hoverFrame, wxID_ANY, hover_bitmap);
     frameSizer->Add(hoverBmp, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP | wxBOTTOM, FromDIP(12));
 
     wxPoint mousePos = wxGetMousePosition();
@@ -428,14 +436,20 @@ void wgtDeviceNozzleRackHotendUpdate::updateNozzleImage(const DevNozzle& nozzle)
         if (nozzle.GetNozzleFlowType() == H_FLOW && index >= 1)
         {
             m_nozzle_image = nozzle_hh[index - 1][0];
-            m_icon_bitmap->SetBitmap(m_nozzle_image->bmp());
+            m_icon_bitmap->SetBitmap(
+                SetNozzleBmpColor(
+                    m_nozzle_image->bmp(),
+                    nozzle.GetFilamentColor()));
             m_scaled_nozzle_image = nozzle_hh[index - 1][1];
             findNozzleImage = true;
         }
         else if (nozzle.GetNozzleFlowType() == S_FLOW && index >= 0)
         {
             m_nozzle_image = nozzle_hs[index][0];
-            m_icon_bitmap->SetBitmap(m_nozzle_image->bmp());
+            m_icon_bitmap->SetBitmap(
+                SetNozzleBmpColor(
+                    m_nozzle_image->bmp(),
+                    nozzle.GetFilamentColor()));
             m_scaled_nozzle_image = nozzle_hs[index][1];
             findNozzleImage = true;
         }
@@ -521,6 +535,10 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle)
         }
     }
 
+    const std::string filament_color = nozzle.GetFilamentColor();
+    const bool filament_color_changed = m_filament_color != filament_color;
+    m_filament_color = filament_color;
+
     if (nozzle.IsEmpty() && m_nozzle_status != NOZZLE_STATUS_EMPTY)
     {
         m_nozzle_status = NOZZLE_STATUS_EMPTY;
@@ -544,7 +562,8 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle)
         m_status_bitmap->Show(false);
 
     }
-    else if (nozzle.IsNormal() && m_nozzle_status != NOZZLE_STATUS_NORMAL)
+    else if (nozzle.IsNormal() &&
+             (m_nozzle_status != NOZZLE_STATUS_NORMAL || filament_color_changed))
     {
         m_nozzle_status = NOZZLE_STATUS_NORMAL;
 
@@ -570,7 +589,8 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle)
         m_status_label->Show(false);
         m_status_bitmap->Show(false);
     }
-    else if (nozzle.IsAbnormal() && m_nozzle_status != NOZZLE_STATUS_ABNORMAL)
+    else if (nozzle.IsAbnormal() &&
+             (m_nozzle_status != NOZZLE_STATUS_ABNORMAL || filament_color_changed))
     {
         m_nozzle_status = NOZZLE_STATUS_ABNORMAL;
 
@@ -693,7 +713,10 @@ void wgtDeviceNozzleRackHotendUpdate::Rescale()
     }
     else if (m_nozzle_image != nullptr)
     {
-        m_icon_bitmap->SetBitmap(m_nozzle_image->bmp());
+        m_icon_bitmap->SetBitmap(
+            SetNozzleBmpColor(
+                m_nozzle_image->bmp(),
+                m_filament_color));
     }
     m_icon_bitmap->Refresh();
 }

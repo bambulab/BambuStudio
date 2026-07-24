@@ -126,6 +126,7 @@ private:
     bool findNozzleImage = false;
 
     NozzleStatus m_nozzle_status = NOZZLE_STATUS_DC;
+    std::string m_filament_color;
     std::weak_ptr<DevNozzleRack> m_nozzle_rack;
 
     std::vector<std::vector<ScalableBitmap*>> nozzle_hs;
