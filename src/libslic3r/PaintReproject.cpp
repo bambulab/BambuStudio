@@ -1,6 +1,7 @@
 #include "PaintReproject.hpp"
 
 #include "libslic3r.h"
+#include "I18N.hpp"
 #include "Model.hpp"
 #include "TriangleMesh.hpp"
 #include "TriangleSelector.hpp"
@@ -657,7 +658,8 @@ static bool reproject_one_annotation(const FacetsAnnotation &src,
                                      const PaintReprojectProgressCallback &progress = nullptr,
                                      const PaintReprojectCancelCallback   &cancel   = nullptr,
                                      double                  max_sample_distance = -1.0,
-                                     const char             *progress_message = nullptr)
+                                     const char             *progress_message = nullptr,
+                                     double                  absolute_target_error = ReprojectAbsoluteErrorEpsilon)
 {
     if (src.empty())
         return true;
@@ -679,22 +681,9 @@ static bool reproject_one_annotation(const FacetsAnnotation &src,
     const size_t node_budget = std::max<size_t>(
         ReprojectMinNodeBudget, std::min<size_t>(ReprojectMaxNodeBudget, scaled_source_nodes));
 
-    // Repair path: floor the per-face convergence target at a fraction of the whole
-    // mesh area so tiny faces stop early instead of chasing a negligible absolute
-    // error. Left at the tiny epsilon for the coplanar (cut) path, whose boundary
-    // alignment relies on the existing target.
-    double absolute_target_error = ReprojectAbsoluteErrorEpsilon;
-    if (mode == ReprojectMode::PointNearest) {
-        double dst_total_area = 0.0;
-        for (const Vec3i &face : dst_mesh.its.indices) {
-            const Vec3f &a = dst_mesh.its.vertices[face[0]];
-            const Vec3f &b = dst_mesh.its.vertices[face[1]];
-            const Vec3f &c = dst_mesh.its.vertices[face[2]];
-            dst_total_area += 0.5 * double((b - a).cross(c - a).norm());
-        }
-        absolute_target_error = std::max(
-            ReprojectAbsoluteErrorEpsilon, ReprojectAbsoluteTargetAreaFraction * dst_total_area);
-    }
+    // absolute_target_error floors the per-face convergence target so tiny faces
+    // stop early (computed once by the caller from the whole mesh area for the
+    // repair path; the coplanar/cut path keeps the tiny epsilon default).
 
     int n_dst = int(dst_mesh.its.indices.size());
     if (mode == ReprojectMode::OverlapCoplanar)
@@ -865,10 +854,10 @@ bool reproject_paint_geometric(const TriangleMesh     &src_mesh,
         const char             *display; // user-facing progress label (English)
     };
     const std::array<Layer, 4> layers {{
-        {src_supported, dst_supported, "support",    "Restoring support painting"},
-        {src_seam,      dst_seam,      "seam",       "Restoring seam painting"},
-        {src_mmu,       dst_mmu,       "mmu",        "Restoring paint color"},
-        {src_fuzzy,     dst_fuzzy,     "fuzzy skin", "Restoring fuzzy skin"},
+        {src_supported, dst_supported, "support",    L("Restoring support painting")},
+        {src_seam,      dst_seam,      "seam",       L("Restoring seam painting")},
+        {src_mmu,       dst_mmu,       "mmu",        L("Restoring paint color")},
+        {src_fuzzy,     dst_fuzzy,     "fuzzy skin", L("Restoring fuzzy skin")},
     }};
     int active_layers = 0;
     for (const Layer &layer : layers)
@@ -886,6 +875,19 @@ bool reproject_paint_geometric(const TriangleMesh     &src_mesh,
     const double src_diagonal = src_bbox.size().norm();
     const double max_sample_distance = src_diagonal > 0.0 ? src_diagonal / 100.0 : -1.0;
 
+    // Floor the per-face convergence target at a fraction of the whole destination
+    // mesh area so tiny faces stop early instead of chasing a negligible absolute
+    // error. Computed once here and shared by every layer (was recomputed per layer).
+    double dst_total_area = 0.0;
+    for (const Vec3i &face : dst_mesh.its.indices) {
+        const Vec3f &a = dst_mesh.its.vertices[face[0]];
+        const Vec3f &b = dst_mesh.its.vertices[face[1]];
+        const Vec3f &c = dst_mesh.its.vertices[face[2]];
+        dst_total_area += 0.5 * double((b - a).cross(c - a).norm());
+    }
+    const double absolute_target_error = std::max(
+        ReprojectAbsoluteErrorEpsilon, ReprojectAbsoluteTargetAreaFraction * dst_total_area);
+
     int layer_index = 0;
     for (const Layer &layer : layers) {
         if (layer.src.empty())
@@ -900,13 +902,13 @@ bool reproject_paint_geometric(const TriangleMesh     &src_mesh,
         const bool completed = reproject_one_annotation(
             layer.src, layer.dst, src_mesh, dst_mesh, dst_to_src, nullptr,
             ReprojectMode::PointNearest, layer.name, layer_progress, cancel, max_sample_distance,
-            layer.display);
+            layer.display, absolute_target_error);
         if (!completed)
             return false;
         ++layer_index;
     }
     if (progress)
-        progress(100, "Restoring painting");
+        progress(100, L("Restoring painting"));
     return true;
 }
 

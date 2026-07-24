@@ -830,6 +830,19 @@ private:
 
     // To access set_new_unique_id() when copy / pasting a ModelVolume.
     friend class ModelVolume;
+    // Scratch buffer for two-phase paint keep (compute then commit). Needs
+    // friendship because FacetsAnnotation constructors are private.
+    friend struct PaintKeepPrepared;
+};
+
+// Holds a repaired mesh plus re-projected paint layers before commit.
+// Constructible outside ModelVolume (unlike bare FacetsAnnotation).
+struct PaintKeepPrepared {
+    TriangleMesh     mesh;
+    FacetsAnnotation supported;
+    FacetsAnnotation seam;
+    FacetsAnnotation mmu;
+    FacetsAnnotation fuzzy;
 };
 
 struct RaycastResult
@@ -1003,6 +1016,18 @@ public:
     bool                set_mesh_keep_paint(TriangleMesh &&mesh,
                                             const std::function<void(int, const char *)> &progress = nullptr,
                                             const std::function<bool()> &cancel = nullptr);
+    // Split of set_mesh_keep_paint into a read-only compute step and a commit step,
+    // so a caller repairing several volumes can compute them all first and only
+    // commit once every volume succeeds (object-level all-or-nothing on cancel).
+    // reproject_paint_keep fills out's annotation layers from the current mesh/paint
+    // onto new_mesh WITHOUT mutating this volume (out.mesh is left untouched); returns
+    // false if canceled (out annotations are then unspecified).
+    bool                reproject_paint_keep(const TriangleMesh &new_mesh,
+                                             PaintKeepPrepared &out,
+                                             const std::function<void(int, const char *)> &progress = nullptr,
+                                             const std::function<bool()> &cancel = nullptr) const;
+    // Commits a previously computed new mesh and its re-projected paint layers.
+    void                commit_mesh_keep_paint(PaintKeepPrepared &&prepared);
     ModelMaterial*      material() const;
     void                set_material(t_model_material_id material_id, const ModelMaterial &material);
     // Extract the current extruder ID based on this ModelVolume's config and the parent ModelObject's config.
