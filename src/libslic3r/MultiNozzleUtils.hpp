@@ -285,6 +285,16 @@ std::vector<NozzleInfo> build_nozzle_list(double diameter, const std::vector<int
 // _slot): group_id == physical slot, empty slots become placeholders. Returns empty when the params
 // are absent or inconsistent (caller falls back).
 std::vector<NozzleInfo> build_nozzle_list_from_extruder_nozzles(const PrintConfig& print_config);
+// fmmNozzleManual 兼容：把旧“分组 key”形式的 filament_nozzle_map 转成后端使用的 nozzle_list 下标。
+// 同 key 的耗材共用一个喷嘴；新 key 取第一个 已安装、未占用、(挤出机+流量)兼容 的喷嘴。喷嘴表由
+// build_nozzle_list_from_extruder_nozzles 构建，下标与切片后端一致。若输入已是合法下标则原样返回
+// （幂等），因此仍须在整盘全集上调用（见 Print::resolve_manual_nozzle_map）。无法解析时返回空。
+std::vector<int> resolve_manual_nozzle_map_to_index(
+    const PrintConfig&               config,
+    const std::vector<unsigned int>& used_filaments,
+    const std::vector<int>&          filament_map_1based,
+    const std::vector<int>&          filament_volume_map,
+    const std::vector<int>&          filament_nozzle_key_map);
 // 从gcode.3mf中加载nozzle info需要处理前后兼容性
 std::vector<NozzleInfo> load_nozzle_infos_with_compatibility(
     const std::vector<NozzleInfo>& nozzle_infos,

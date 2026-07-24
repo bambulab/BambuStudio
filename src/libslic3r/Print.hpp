@@ -1002,6 +1002,10 @@ public:
 
     void update_filament_maps_to_config(std::vector<int> f_maps, std::vector<int> f_volume_maps = std::vector<int>{}, std::vector<int> f_nozzle_maps = std::vector<int>{});
     void update_to_config_by_nozzle_group_result(const MultiNozzleUtils::NozzleGroupResultBase& result);
+    // fmmNozzleManual（仅 H2C）：命令行以旧“分组 key”传入 filament_nozzle_map。在整盘全集上把它解析成
+    // 后端使用的 nozzle_list 下标并写回 config。幂等（已是合法下标则保持不变），但必须传整盘全集、
+    // 不能传单层子集。无法解析时抛异常。
+    void resolve_manual_nozzle_map(const std::vector<unsigned int>& used_filaments);
     void apply_config_for_render(const DynamicConfig &config);
 
     // 1 based group ids

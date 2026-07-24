@@ -3075,6 +3075,30 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps, std::vector<
     m_has_auto_filament_map_result = true;
 }
 
+void Print::resolve_manual_nozzle_map(const std::vector<unsigned int>& used_filaments)
+{
+    // 只处理 H2C 类（多挤出机 + 多喷嘴）的 fmmNozzleManual：命令行以旧“分组 key”传入 filament_nozzle_map。
+    // N1X（单挤出机多喷嘴）与其他模式/机型保持原逻辑不变。
+    const bool has_multiple_nozzle = std::any_of(m_config.extruder_max_nozzle_count.values.begin(),
+                                                 m_config.extruder_max_nozzle_count.values.end(),
+                                                 [](int v) { return v > 1; });
+    const bool single_ext_multi_nozzle =
+        m_config.handle_hotend_as_extruder && m_config.nozzle_diameter.size() == 1 && has_multiple_nozzle;
+    if (m_config.filament_map_mode.value != FilamentMapMode::fmmNozzleManual || !has_multiple_nozzle || single_ext_multi_nozzle)
+        return;
+
+    // 在整盘全集 used_filaments 上解析；已是合法下标则原样返回（幂等），否则按 key 转成下标。
+    std::vector<int> nozzle_index_map = MultiNozzleUtils::resolve_manual_nozzle_map_to_index(
+        m_config, used_filaments, m_config.filament_map.values, m_config.filament_volume_map.values,
+        m_config.filament_nozzle_map.values);
+    if (nozzle_index_map.empty())
+        throw Slic3r::RuntimeError(L("Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."));
+
+    // 写回 config（含 ori_full），后续分组/回写都读到下标语义。
+    m_config.filament_nozzle_map.values = nozzle_index_map;
+    m_ori_full_print_config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = nozzle_index_map;
+}
+
 void Print::update_to_config_by_nozzle_group_result(const MultiNozzleUtils::NozzleGroupResultBase& group_result)
 {
     int  extruder_count, extruder_volume_type_count;

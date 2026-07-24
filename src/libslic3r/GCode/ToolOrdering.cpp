@@ -2947,6 +2947,9 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
     if(!m_print->is_dynamic_group_reorder()){
         // 逐层打印时，在生成toolodering时分组，统计相关信息并写回
         if(!m_print->is_sequential_print()){
+            // fmmNozzleManual(H2C)：在整盘全集上把旧分组 key 的 filament_nozzle_map 解析成下标，
+            // 供后续按层分组读取（其他模式/机型为空操作）。
+            m_print->resolve_manual_nozzle_map(layer_data.used_filaments);
             // Stage 4: 计算分组
             grouping_result = ToolOrdering::get_recommended_filament_maps(
                 m_print,

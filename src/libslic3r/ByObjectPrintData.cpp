@@ -106,6 +106,9 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
 
     auto all_filaments = collect_filament_data(print,data.print_object_order);
     auto used_filaments = collect_sorted_used_filaments(all_filaments);
+    // fmmNozzleManual(H2C)：分组前在整盘全集上把旧分组 key 的 filament_nozzle_map 解析成下标
+    // （其他模式/机型为空操作）。
+    print->resolve_manual_nozzle_map(used_filaments);
     auto physical_unprintables = print->get_physical_unprintable_filaments(used_filaments);
     auto geometric_unprintables = print->get_geometric_unprintable_filaments();
 

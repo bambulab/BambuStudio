@@ -102,6 +102,83 @@ std::vector<NozzleInfo> build_nozzle_list_from_extruder_nozzles(const PrintConfi
     return ret;
 }
 
+std::vector<int> resolve_manual_nozzle_map_to_index(
+    const PrintConfig&               config,
+    const std::vector<unsigned int>& used_filaments,
+    const std::vector<int>&          filament_map_1based,
+    const std::vector<int>&          filament_volume_map,
+    const std::vector<int>&          filament_nozzle_key_map)
+{
+    // 阶段 1：构建与切片后端完全一致的喷嘴列表（group_id == 下标），保证转换出的下标可直接被后端消费。
+    const std::vector<NozzleInfo> nozzle_list = build_nozzle_list_from_extruder_nozzles(config);
+    if (nozzle_list.empty())
+        return {};
+    const int nozzle_cnt = (int) nozzle_list.size();
+
+    // 流量兼容判断：Hybrid 与任意流量兼容，否则要求流量类型相同。
+    auto is_volume_compatible = [](NozzleVolumeType nozzle_volume, int filament_volume) {
+        return nozzle_volume == nvtHybrid || filament_volume == (int) nvtHybrid || (int) nozzle_volume == filament_volume;
+    };
+
+    // 阶段 2：幂等判断——若每根用到的耗材的传入值都已能落到合法喷嘴（范围内、已安装、挤出机一致、
+    // 流量兼容），说明它已是下标语义，直接原样返回，重复调用不漂移；任一条不满足即视为旧分组 key。
+    auto already_nozzle_index = [&]() {
+        for (unsigned int filament_id : used_filaments) {
+            // 输入长度不一致，无法判定为合法下标。
+            if (filament_id >= filament_nozzle_key_map.size() || filament_id >= filament_map_1based.size() || filament_id >= filament_volume_map.size())
+                return false;
+            const int idx = filament_nozzle_key_map[filament_id];
+            if (idx < 0 || idx >= nozzle_cnt)                                                return false; // 越界 -> 只能是 key
+            const NozzleInfo& nozzle = nozzle_list[idx];
+            if (!nozzle.installed)                                                           return false; // 指向空槽 -> 只能是 key
+            if (nozzle.extruder_id != filament_map_1based[filament_id] - 1)                  return false; // 挤出机不匹配 -> 只能是 key
+            if (!is_volume_compatible(nozzle.volume_type, filament_volume_map[filament_id])) return false; // 流量不兼容 -> 只能是 key
+        }
+        return true; // 每根用到的耗材都能落到合法喷嘴 -> 已是下标语义
+    };
+    if (already_nozzle_index())
+        return filament_nozzle_key_map;
+
+    // 阶段 3：准备输出与查找表。
+    const size_t     filament_count = filament_nozzle_key_map.size();
+    std::vector<int> filament_to_nozzle_index(filament_count, 0); // 结果：每根耗材最终落到的喷嘴下标
+    std::vector<bool> nozzle_taken(nozzle_list.size(), false);    // 喷嘴是否已被占用（固定喷嘴一嘴一料）
+    std::map<int, int> key_to_nozzle_index;                       // 旧分组 key -> 已解析的喷嘴下标（同 key 复用）
+
+    // 阶段 4：逐根耗材，把旧“分组 key”解析成真实喷嘴下标。
+    for (unsigned int filament_id : used_filaments) {
+        if (filament_id >= filament_count || filament_id >= filament_map_1based.size() || filament_id >= filament_volume_map.size())
+            return {};
+
+        // 同一个 key 的耗材共用同一个喷嘴，直接复用已解析结果。
+        const int group_key = filament_nozzle_key_map[filament_id];
+        if (auto it = key_to_nozzle_index.find(group_key); it != key_to_nozzle_index.end()) {
+            filament_to_nozzle_index[filament_id] = it->second;
+            continue;
+        }
+
+        // 新 key：按 (挤出机, 流量) 选第一个已安装、未占用且兼容的喷嘴。
+        const int target_extruder    = filament_map_1based[filament_id] - 1; // 转 0-based；N1X 单挤出机恒为 0
+        const int target_volume_type = filament_volume_map[filament_id];
+        int       matched_nozzle     = -1;
+        for (size_t idx = 0; idx < nozzle_list.size(); ++idx) {
+            const NozzleInfo& nozzle = nozzle_list[idx];
+            if (!nozzle.installed || nozzle_taken[idx])                      continue;
+            if (nozzle.extruder_id != target_extruder)                      continue;
+            if (!is_volume_compatible(nozzle.volume_type, target_volume_type)) continue;
+            matched_nozzle = (int) idx;
+            break;
+        }
+        if (matched_nozzle < 0) // 该组找不到可用喷嘴，判为失败让上层报错
+            return {};
+
+        nozzle_taken[matched_nozzle]      = true;
+        key_to_nozzle_index[group_key]    = matched_nozzle;
+        filament_to_nozzle_index[filament_id] = matched_nozzle;
+    }
+    return filament_to_nozzle_index;
+}
+
 std::vector<NozzleInfo> build_nozzle_list(double diameter, const std::vector<int>& filament_nozzle_map, const std::vector<int>& filament_volume_map, const std::vector<int>& filament_map)
 {
     std::string diameter_str = format_diameter_to_str(diameter);
