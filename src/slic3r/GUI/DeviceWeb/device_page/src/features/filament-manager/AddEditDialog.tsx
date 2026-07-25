@@ -1743,13 +1743,18 @@ export function AddEditDialog({
     // it anyway.
     const trayNetInit = parseInt(String(tray.weight ?? '0'), 10) || 0;
     const currentNet = getTrayCurrentNetWeight(tray);
-    setTotalNetWeight(trayNetInit > 0 ? trayNetInit : 1000);
-    setCurrentNetWeight(currentNet > 0 ? currentNet : (trayNetInit > 0 ? trayNetInit : 1000));
+    const totalNet = trayNetInit > 0 ? trayNetInit : 1000;
+    setTotalNetWeight(totalNet);
+    setCurrentNetWeight(
+      currentNet !== null
+        ? Math.min(Math.max(currentNet, 0), totalNet)
+        : totalNet,
+    );
     setAmsLockedFields({
       brand: !!brandName,
       material: !!typeName || !!filamentName,
       color: !!sanitizedColor,
-      weight: trayNetInit > 0 || currentNet > 0,
+      weight: trayNetInit > 0 || currentNet !== null,
     });
   };
 
@@ -2129,7 +2134,7 @@ export function AddEditDialog({
                               <div className="text-[12px] leading-[19px] text-fm-text-secondary">
                                 {(() => {
                                   const cur = getTrayCurrentNetWeight(tray);
-                                  return cur > 0 ? `${cur}g` : '—';
+                                  return cur !== null ? `${cur}g` : '—';
                                 })()}
                               </div>
                             </div>
@@ -2180,7 +2185,7 @@ export function AddEditDialog({
                           <span className="text-[11px] leading-[16px] text-fm-text-detail">
                             {(() => {
                               const cur = getTrayCurrentNetWeight(item.tray);
-                              return cur > 0 ? `${cur}g` : '—';
+                              return cur !== null ? `${cur}g` : '—';
                             })()}
                           </span>
                         </div>
