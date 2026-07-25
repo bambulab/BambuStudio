@@ -1614,6 +1614,7 @@ wxWindow *PreferencesDialog::create_other_tab()
     });
     auto item_gcodes_warning = create_item_checkbox(_L("No warnings when loading 3MF with modified G-codes"), scrolled, _L("No warnings when loading 3MF with modified G-codes"),
                                                     50, "no_warn_when_modified_gcodes");
+    auto item_cloud_server_warning = create_item_checkbox(_L("Don't show cloud device server connection warnings"), scrolled, _L("When enabled, the \"Failed to connect to the cloud device server\" dialog will not appear. Uncheck to restore the warning."), 50, "suppress_cloud_device_server_warning");
     std::vector<wxString>    backup_labels = {_L("10 seconds"), _L("20 seconds"), _L("30 seconds"), _L("1 minute"), _L("2 minutes"),
                                               _L("5 minutes"),  _L("10 minutes"), _L("30 minutes"), _L("never")};
     std::vector<std::string> backup_values = {"10", "20", "30", "60", "120", "300", "600", "1800", "0"};
@@ -1632,6 +1633,7 @@ wxWindow *PreferencesDialog::create_other_tab()
     sizer->Add(item_max_recent_count, flags);
     sizer->Add(item_auto_backup, flags);
     sizer->Add(item_gcodes_warning, flags);
+    sizer->Add(item_cloud_server_warning, flags);
 
     // ---- Online Models (visible only when has_model_mall()) ----
     auto title_modelmall   = create_item_title(_L("Online Models"), scrolled, _L("Online Models"));
