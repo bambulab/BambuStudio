@@ -352,6 +352,7 @@ static constexpr const char* TIMELAPSE_TYPE_ATTR = "timelapse_type";
 static constexpr const char* OUTSIDE_ATTR = "outside";
 static constexpr const char* SUPPORT_USED_ATTR = "support_used";
 static constexpr const char* LABEL_OBJECT_ENABLED_ATTR = "label_object_enabled";
+static constexpr const char* SUPPORT_MATERIAL_ON_WIPE_TOWER_ATTR = "support_material_on_wipe_tower";
 static constexpr const char* ENABLE_FILAMENT_DYNAMIC_MAP_ATTR = "enable_filament_dynamic_map";
 static constexpr const char* HAS_FILAMENT_SWITCHER_ATTR = "has_filament_switcher";
 static constexpr const char* SKIPPED_ATTR = "skipped";
@@ -1677,6 +1678,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate->toolpath_outside = it->second->toolpath_outside;
             plate->is_support_used = it->second->is_support_used;
             plate->is_label_object_enabled = it->second->is_label_object_enabled;
+            plate->support_material_on_wipe_tower = it->second->support_material_on_wipe_tower;
             plate->skipped_objects = it->second->skipped_objects;
             plate->slice_filaments_info = it->second->slice_filaments_info;
             plate->nozzles_info = it->second->nozzles_info;
@@ -2388,6 +2390,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->toolpath_outside = it->second->toolpath_outside;
             plate_data_list[it->first-1]->is_support_used = it->second->is_support_used;
             plate_data_list[it->first-1]->is_label_object_enabled = it->second->is_label_object_enabled;
+            plate_data_list[it->first-1]->support_material_on_wipe_tower = it->second->support_material_on_wipe_tower;
             plate_data_list[it->first-1]->slice_filaments_info = it->second->slice_filaments_info;
             plate_data_list[it->first-1]->nozzles_info  = it->second->nozzles_info;
             plate_data_list[it->first-1]->skipped_objects = it->second->skipped_objects;
@@ -4731,6 +4734,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             {
                 if (m_curr_plater)
                     std::istringstream(value) >> std::boolalpha >> m_curr_plater->is_label_object_enabled;
+            }
+            else if (key == SUPPORT_MATERIAL_ON_WIPE_TOWER_ATTR)
+            {
+                if (m_curr_plater)
+                    std::istringstream(value) >> std::boolalpha >> m_curr_plater->support_material_on_wipe_tower;
             }
             else if (key == ENABLE_FILAMENT_DYNAMIC_MAP_ATTR)
             {
@@ -8593,6 +8601,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OUTSIDE_ATTR      << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->toolpath_outside << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SUPPORT_USED_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->is_support_used << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LABEL_OBJECT_ENABLED_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->is_label_object_enabled << "\"/>\n";
+                stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SUPPORT_MATERIAL_ON_WIPE_TOWER_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << plate_data->support_material_on_wipe_tower << "\"/>\n";
                 if (plate_data && plate_data->nozzle_group_result)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << ENABLE_FILAMENT_DYNAMIC_MAP_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << plate_data->nozzle_group_result->is_support_dynamic_nozzle_map() << "\"/>\n";
                 else

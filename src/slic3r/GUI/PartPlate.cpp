@@ -6971,6 +6971,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 							plate_data_item->gcode_weight =wxString::Format("%.2f", ps.total_weight).ToStdString();
 						}
 						plate_data_item->is_support_used = print->is_support_used();
+						plate_data_item->support_material_on_wipe_tower = print->support_material_on_wipe_tower();
 					} else {
 						BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("print is null!");
 					}
@@ -7069,6 +7070,7 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 		ps.total_used_filament *= 1000; //koef
 		gcode_result->toolpath_outside = plate_data_list[i]->toolpath_outside;
 		gcode_result->label_object_enabled = plate_data_list[i]->is_label_object_enabled;
+        gcode_result->support_material_on_wipe_tower = plate_data_list[i]->support_material_on_wipe_tower;
         gcode_result->timelapse_warning_code = plate_data_list[i]->timelapse_warning_code;
 		gcode_result->filament_change_sequence = plate_data_list[i]->filament_change_sequence;
 		gcode_result->nozzle_change_sequence   = plate_data_list[i]->nozzle_change_sequence;

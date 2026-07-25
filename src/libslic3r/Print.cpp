@@ -3163,6 +3163,32 @@ size_t Print::get_process_config_idx(unsigned int filament_id) const
     return Slic3r::get_process_config_idx(m_config, filament_id);
 }
 
+bool Print::support_material_on_wipe_tower() const
+{
+    if (!this->has_wipe_tower() || !this->has_support_material())
+        return false;
+
+    for (const PrintObject *object : m_objects) {
+        if (!object->has_support_material())
+            continue;
+
+        const std::vector<unsigned int> obj_filaments = object->object_extruders();
+        const int                       support_fil   = object->config().support_filament;
+        const int                       support_interface_fil = object->config().support_interface_filament;
+
+        auto support_differs_from_body = [&](int filament_1based) -> bool {
+            if (filament_1based <= 0)
+                return false;
+            const unsigned int filament_0based = static_cast<unsigned int>(filament_1based - 1);
+            return std::find(obj_filaments.begin(), obj_filaments.end(), filament_0based) == obj_filaments.end();
+        };
+
+        if (support_differs_from_body(support_fil) || support_differs_from_body(support_interface_fil))
+            return true;
+    }
+    return false;
+}
+
 // Wipe tower support.
 bool Print::has_wipe_tower() const
 {

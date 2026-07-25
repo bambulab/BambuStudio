@@ -2002,6 +2002,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     print->set_done(psGCodeExport);
     //BBS: set enable_label_object
     result->label_object_enabled = m_enable_label_object;
+    result->support_material_on_wipe_tower = print->support_material_on_wipe_tower();
     // Write the profiler measurements to file
     PROFILE_UPDATE();
     PROFILE_OUTPUT(debug_out_path("gcode-export-profile.txt").c_str());
@@ -2471,6 +2472,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             out << used_filaments[idx] + 1;
         }
         file.writeln(out.str());
+    }
+
+    {
+        const bool support_material_on_wipe_tower = print.support_material_on_wipe_tower();
+        file.write_format("; support_material_on_wipe_tower: %s\n", support_material_on_wipe_tower ? "true" : "false");
     }
 
     file.write_format("; HEADER_BLOCK_END\n\n");

@@ -270,6 +270,7 @@ namespace Slic3r {
         bool toolpath_outside;
         //BBS: add object_label_enabled
         bool label_object_enabled;
+        bool support_material_on_wipe_tower{false};
         //BBS : extra retraction when change filament,experiment func
         bool long_retraction_when_cut {0};
         int timelapse_warning_code {0};
@@ -328,6 +329,7 @@ namespace Slic3r {
             wrapping_exclude_area = other.wrapping_exclude_area;
             toolpath_outside = other.toolpath_outside;
             label_object_enabled = other.label_object_enabled;
+            support_material_on_wipe_tower = other.support_material_on_wipe_tower;
             update_imgui_flag         = other.update_imgui_flag;
             is_helio_gcode            = other.is_helio_gcode;
             long_retraction_when_cut = other.long_retraction_when_cut;

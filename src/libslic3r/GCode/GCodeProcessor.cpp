@@ -1524,6 +1524,7 @@ void GCodeProcessorResult::reset() {
     toolpath_outside = false;
     //BBS: add label_object_enabled
     label_object_enabled = false;
+    support_material_on_wipe_tower = false;
     timelapse_warning_code = 0;
     support_traditional_timelapse = true;
     printable_height = 0.0f;
@@ -1557,6 +1558,7 @@ void GCodeProcessorResult::reset() {
     is_helio_gcode   = false;
     //BBS: add label_object_enabled
     label_object_enabled = false;
+    support_material_on_wipe_tower = false;
     long_retraction_when_cut = false;
     timelapse_warning_code = 0;
     support_traditional_timelapse = true;

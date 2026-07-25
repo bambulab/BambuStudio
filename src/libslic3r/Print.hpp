@@ -945,6 +945,8 @@ public:
 
     // Wipe tower support.
     bool                        has_wipe_tower() const;
+    // True when wipe tower is enabled and support uses a filament not shared with the model body.
+    bool                        support_material_on_wipe_tower() const;
     const WipeTowerData&        wipe_tower_data(size_t filaments_cnt = 0) const;
     const ToolOrdering& 		tool_ordering() const { return m_tool_ordering; }
     
