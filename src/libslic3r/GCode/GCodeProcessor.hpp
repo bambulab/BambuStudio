@@ -267,6 +267,9 @@ namespace Slic3r {
         bool long_retraction_when_cut {0};
         int timelapse_warning_code {0};
         bool support_traditional_timelapse{true};
+        // BBS: when true, timelapse time is excluded from the reported estimate; the preview legend
+        // uses this to avoid showing / double-counting the timelapse portion.
+        bool exclude_timelapse_time_from_estimate{false};
         bool update_imgui_flag{false};
         bool is_helio_gcode{false};
         float printable_height;
@@ -325,6 +328,7 @@ namespace Slic3r {
             long_retraction_when_cut = other.long_retraction_when_cut;
             timelapse_warning_code = other.timelapse_warning_code;
             support_traditional_timelapse = other.support_traditional_timelapse;
+            exclude_timelapse_time_from_estimate = other.exclude_timelapse_time_from_estimate;
             printable_height = other.printable_height;
             settings_ids = other.settings_ids;
             filaments_count = other.filaments_count;
@@ -767,6 +771,9 @@ namespace Slic3r {
             std::vector<int> extruder_max_nozzle_count { 1 };
             std::vector<ExtruderType> extruder_types;
             std::vector<double> nozzle_diameter;
+            // BBS: when true, subtract timelapse_part_time from the estimate written into the G-code header.
+            bool exclude_timelapse_time{ false };
+            float timelapse_part_time{ 0.0f };
 
             TimeProcessContext(
                 const UsedFilaments& used_filaments_,
@@ -786,7 +793,9 @@ namespace Slic3r {
                 const std::vector<int>& extruder_max_nozzle_count_,
                 const std::vector<double>& filament_preheat_temperature_delta_,
                 const std::vector<ExtruderType>& extruder_types_,
-                const std::vector<double>& nozzle_diameter_
+                const std::vector<double>& nozzle_diameter_,
+                const bool exclude_timelapse_time_,
+                const float timelapse_part_time_
             ) :
                 used_filaments(used_filaments_),
                 filament_lists(filament_lists_),
@@ -805,7 +814,9 @@ namespace Slic3r {
                 extruder_max_nozzle_count(extruder_max_nozzle_count_),
                 filament_preheat_temperature_delta(filament_preheat_temperature_delta_),
                 extruder_types(extruder_types_),
-                nozzle_diameter(nozzle_diameter_)
+                nozzle_diameter(nozzle_diameter_),
+                exclude_timelapse_time(exclude_timelapse_time_),
+                timelapse_part_time(timelapse_part_time_)
             {
             }
 
@@ -1137,6 +1148,8 @@ namespace Slic3r {
         std::vector<int> m_filament_pre_cooling_temp{ 0 };
         std::vector<double> m_filament_preheat_temperature_delta;
         bool m_enable_pre_heating{ false };
+        // When true, the timelapse block time is subtracted from the reported print-time estimate.
+        bool m_exclude_timelapse_time{ false };
         bool m_handle_hotend_as_extruder { false };
         bool m_has_filament_switcher{ false };
         std::vector<int> m_physical_extruder_map;

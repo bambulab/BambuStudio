@@ -1507,6 +1507,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPoints,             start_end_points))
     ((ConfigOptionEnum<TimelapseType>,    timelapse_type))
     ((ConfigOptionBool,               farthest_point_timelapse))
+    ((ConfigOptionBool,               exclude_timelapse_from_estimate))
     ((ConfigOptionFloat,              default_jerk))
     ((ConfigOptionFloat,              outer_wall_jerk))
     ((ConfigOptionFloat,              inner_wall_jerk))

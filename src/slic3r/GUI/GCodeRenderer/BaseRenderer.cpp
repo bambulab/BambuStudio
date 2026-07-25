@@ -2609,6 +2609,11 @@ namespace Slic3r
                     if (auto timelapse_time_iter = m_gcode_result->skippable_part_time.find(SkipType::stTimelapse); timelapse_time_iter != m_gcode_result->skippable_part_time.end()) {
                         timelapse_time = timelapse_time_iter->second;
                     }
+                    // BBS: when the user excludes timelapse from the estimate, modes[].time is already
+                    // reduced by it, so hide the timelapse component here to keep the legend consistent
+                    // (avoids the "+ timelapse" line and double-subtracting it from model printing time).
+                    if (m_gcode_result->exclude_timelapse_time_from_estimate)
+                        timelapse_time = 0.0;
                     ImGui::Dummy(ImVec2(0.0f, ImGui::GetFontSize() * 0.1));
                     ImGui::Dummy({ window_padding, window_padding });
                     ImGui::SameLine();

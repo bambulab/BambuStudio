@@ -1067,7 +1067,7 @@ static std::vector<std::string> s_Preset_print_options {
      "support_bottom_interface_spacing", "enable_overhang_speed", "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed", "overhang_totally_speed",
     "enable_height_slowdown","slowdown_start_height", "slowdown_start_speed", "slowdown_start_acc", "slowdown_end_height", "slowdown_end_speed", "slowdown_end_acc",
      "initial_layer_infill_speed", "top_one_wall_type", "top_area_threshold", "only_one_wall_first_layer",
-     "timelapse_type", "internal_bridge_support_thickness",
+     "timelapse_type", "exclude_timelapse_from_estimate", "internal_bridge_support_thickness",
      "wall_generator", "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
      "wall_distribution_count", "min_feature_size", "min_bead_width", "post_process",
     "seam_gap", "wipe_speed", "top_solid_infill_flow_ratio", "initial_layer_flow_ratio",

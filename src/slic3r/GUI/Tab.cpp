@@ -3243,6 +3243,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("spiral_mode_smooth", "spiral-vase#smooth");
         optgroup->append_single_option_line("spiral_mode_max_xy_smoothing", "spiral-vase#max-xy-smoothing");
         optgroup->append_single_option_line("timelapse_type", "Timelapse");
+        optgroup->append_single_option_line("exclude_timelapse_from_estimate", "Timelapse");
 
         optgroup->append_single_option_line("fuzzy_skin", "parameter/fuzzy-skin");
         optgroup->append_single_option_line("fuzzy_skin_mode");

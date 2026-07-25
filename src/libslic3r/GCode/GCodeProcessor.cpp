@@ -667,22 +667,36 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 }
             }
             else if (line == reserved_tag(ETags::Estimated_Printing_Time_Placeholder)) {
+                // BBS: optionally drop the timelapse block time from the reported estimate.
+                // timelapse_part_time is accumulated over all enabled modes, so spread it evenly.
+                float timelapse_time_per_mode = 0.0f;
+                if (context.exclude_timelapse_time && context.timelapse_part_time > 0.0f) {
+                    size_t enabled_modes = 0;
+                    for (const auto& m : machines)
+                        if (m.enabled)
+                            ++enabled_modes;
+                    if (enabled_modes == 0)
+                        enabled_modes = 1;
+                    timelapse_time_per_mode = context.timelapse_part_time / static_cast<float>(enabled_modes);
+                }
                 for (size_t i = 0; i < static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count); ++i) {
                     const TimeMachine& machine = machines[i];
                     PrintEstimatedStatistics::ETimeMode mode = static_cast<PrintEstimatedStatistics::ETimeMode>(i);
                     if (mode == PrintEstimatedStatistics::ETimeMode::Normal || machine.enabled) {
                         char buf[128];
+                        const float total_time = std::max(0.0f, machine.time - timelapse_time_per_mode);
+                        const float model_time = std::max(0.0f, total_time - machine.prepare_time);
                         if (!s_IsBBLPrinter) {
                             // Klipper estimator
                             sprintf(buf, "; estimated printing time (normal mode) = %s\n",
-                                get_time_dhms(machine.time).c_str());
+                                get_time_dhms(total_time).c_str());
                             ret += buf;
                         }
                         else {
                             // BBS estimator
                             sprintf(buf, "; model printing time: %s; total estimated time: %s\n",
-                                get_time_dhms(machine.time - machine.prepare_time).c_str(),
-                                get_time_dhms(machine.time).c_str());
+                                get_time_dhms(model_time).c_str(),
+                                get_time_dhms(total_time).c_str());
                             ret += buf;
                         }
                     }
@@ -1500,6 +1514,7 @@ void GCodeProcessorResult::reset() {
     label_object_enabled = false;
     timelapse_warning_code = 0;
     support_traditional_timelapse = true;
+    exclude_timelapse_time_from_estimate = false;
     printable_height = 0.0f;
     settings_ids.reset();
     extruders_count = 0;
@@ -1533,6 +1548,7 @@ void GCodeProcessorResult::reset() {
     long_retraction_when_cut = false;
     timelapse_warning_code = 0;
     support_traditional_timelapse = true;
+    exclude_timelapse_time_from_estimate = false;
     printable_height = 0.0f;
     settings_ids.reset();
     filaments_count = 0;
@@ -1933,6 +1949,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_filament_pre_cooling_temp = config.filament_pre_cooling_temperature.values;
     m_filament_preheat_temperature_delta = config.filament_preheat_temperature_delta.values;
     m_enable_pre_heating = config.enable_pre_heating;
+    m_exclude_timelapse_time = config.exclude_timelapse_from_estimate;
     m_has_filament_switcher = config.has_filament_switcher;
     m_physical_extruder_map = config.physical_extruder_map.values;
     m_extruder_max_nozzle_count = config.extruder_max_nozzle_count.values;
@@ -2729,7 +2746,12 @@ void GCodeProcessor::finalize(bool post_process)
             m_extruder_max_nozzle_count,
             m_filament_preheat_temperature_delta,
             m_result.extruder_types,
-            m_nozzle_diameter
+            m_nozzle_diameter,
+            m_exclude_timelapse_time,
+            [this]() {
+                auto it = m_result.skippable_part_time.find(SkipType::stTimelapse);
+                return (it != m_result.skippable_part_time.end()) ? it->second : 0.0f;
+            }()
         );
         m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, context);
     }
@@ -6246,9 +6268,30 @@ void GCodeProcessor::simulate_st_synchronize(float additional_time, ExtrusionRol
 
 void GCodeProcessor::update_estimated_times_stats()
 {
-    auto update_mode = [this](PrintEstimatedStatistics::ETimeMode mode) {
+    // BBS: when the user opts out of counting timelapse time, subtract the duration of the
+    // timelapse blocks (tagged "; SKIPTYPE: timelapse" in the printer's time-lapse G-code) from
+    // the reported estimate. skippable_part_time is accumulated across all enabled time modes, so
+    // spread it evenly to avoid over-subtracting when more than one mode is enabled.
+    m_result.exclude_timelapse_time_from_estimate = m_exclude_timelapse_time;
+    float timelapse_time_per_mode = 0.0f;
+    if (m_exclude_timelapse_time) {
+        auto it = m_result.skippable_part_time.find(SkipType::stTimelapse);
+        if (it != m_result.skippable_part_time.end() && it->second > 0.0f) {
+            size_t enabled_modes = 0;
+            for (const auto& machine : m_time_processor.machines)
+                if (machine.enabled)
+                    ++enabled_modes;
+            if (enabled_modes == 0)
+                enabled_modes = 1;
+            timelapse_time_per_mode = it->second / static_cast<float>(enabled_modes);
+        }
+    }
+
+    auto update_mode = [this, timelapse_time_per_mode](PrintEstimatedStatistics::ETimeMode mode) {
         PrintEstimatedStatistics::Mode& data = m_result.print_statistics.modes[static_cast<size_t>(mode)];
         data.time = get_time(mode);
+        if (timelapse_time_per_mode > 0.0f)
+            data.time = std::max(0.0f, data.time - timelapse_time_per_mode);
         data.prepare_time = get_prepare_time(mode);
         data.custom_gcode_times = get_custom_gcode_times(mode, true);
         data.moves_times = get_moves_time(mode);

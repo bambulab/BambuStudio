@@ -5111,6 +5111,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("exclude_timelapse_from_estimate", coBool);
+    def->label = L("Exclude timelapse time from estimate");
+    def->tooltip = L("When enabled, the extra time spent on timelapse moves is not counted in the "
+                     "estimated printing time reported after slicing (and written into the G-code and "
+                     "3MF). Timelapse itself still runs during the print; only the reported estimate "
+                     "changes. The printer's live remaining-time countdown is not affected.");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("standby_temperature_delta", coInt);
     def->label = L("Temperature variation");
     //def->tooltip = L("Temperature difference to be applied when an extruder is not active. "
