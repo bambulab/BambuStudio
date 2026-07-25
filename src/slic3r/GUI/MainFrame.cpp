@@ -1959,12 +1959,26 @@ wxBoxSizer* MainFrame::create_side_tools()
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
 
+    // #11187: the default action on the print button is configurable in Preferences
+    // ("Default print action"). Fall back to "Print plate" for empty/unknown values.
+    wxString print_btn_label = _L("Print plate");
+    if (wxGetApp().app_config) {
+        const std::string default_action = wxGetApp().app_config->get("default_print_action");
+        if (default_action == "print_all") {
+            m_print_select = ePrintAll;          print_btn_label = _L("Print all");
+        } else if (default_action == "send") {
+            m_print_select = eSendToPrinter;     print_btn_label = _L("Send");
+        } else if (default_action == "send_all") {
+            m_print_select = eSendToPrinterAll;  print_btn_label = _L("Send all");
+        }
+    }
+
     auto slice_panel = new wxPanel(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxTRANSPARENT_WINDOW);
     auto print_panel = new wxPanel(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxTRANSPARENT_WINDOW);
 
     m_slice_btn = new SideButton(slice_panel, _L("Slice plate"), "");
     m_slice_option_btn = new SideButton(slice_panel, "", "sidebutton_dropdown", 0, FromDIP(14));
-    m_print_btn = new SideButton(print_panel, _L("Print plate"), "");
+    m_print_btn = new SideButton(print_panel, print_btn_label, "");
     m_print_option_btn = new SideButton(print_panel, "", "sidebutton_dropdown", 0, FromDIP(14));
 
     auto slice_sizer = new wxBoxSizer(wxHORIZONTAL);

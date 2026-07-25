@@ -1374,6 +1374,12 @@ wxWindow *PreferencesDialog::create_general_tab()
     std::vector<std::string> FlushOptionValues = {"all", "color change", "disabled"};
     auto item_auto_flush = create_item_combobox(_L("Auto Flush"), scrolled, _L("Auto calculate flush volumes"), "auto_calculate_flush", FlushOptionLabels, FlushOptionValues);
 
+    std::vector<wxString> DefaultPrintActionLabels = {_L("Print plate"), _L("Print all"), _L("Send"), _L("Send all")};
+    std::vector<std::string> DefaultPrintActionValues = {"print_plate", "print_all", "send", "send_all"};
+    auto item_default_print_action = create_item_combobox(_L("Default print action"), scrolled,
+        _L("Action selected by default on the print button. You can still change it from the button's dropdown."),
+        "default_print_action", DefaultPrintActionLabels, DefaultPrintActionValues);
+
     auto item_single_instance = create_item_checkbox(_L("Keep only one Bambu Studio instance"), scrolled,
 #if __APPLE__
                                                      _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
@@ -1426,6 +1432,7 @@ wxWindow *PreferencesDialog::create_general_tab()
     sizer->Add(item_region, flags);
     sizer->Add(item_currency, flags);
     sizer->Add(item_auto_flush, flags);
+    sizer->Add(item_default_print_action, flags);
 #ifdef _WIN32
     sizer->Add(item_darkmode, flags);
 #endif
