@@ -44,6 +44,7 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_DELETE_FILAMENT_FAILED        -30
 #define BAMBU_NETWORK_ERR_GET_FILAMENT_CONFIG_FAILED    -31
 #define BAMBU_NETWORK_ERR_AMS_SYNC_FAILED               -32
+#define BAMBU_NETWORK_ERR_SLOT_MAPPINGS_SYNC_FAILED     -33
 
 //bind error
 #define BAMBU_NETWORK_ERR_BIND_CREATE_SOCKET_FAILED          -1010 //failed to create socket
@@ -104,7 +105,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "02.08.01.53"
+#define BAMBU_NETWORK_AGENT_VERSION         "02.08.01.54"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -302,14 +303,14 @@ struct AmsSyncParams {
 struct SlotMappingItem {
     std::string amsSn;
     std::string slotId;
-    int         spoolId = 0;
+    int         spoolId  = 0;
     std::string rfid;
-    int         amsId   = 0;
-    int         amsType = 0;
+    int         amsId    = 0;
+    int         amsType  = 0;
 };
 
 struct SlotMappingsSyncParams {
-    std::string                 devId;
+    std::string                  devId;
     std::vector<SlotMappingItem> mappings;
 };
 
