@@ -1,0 +1,49 @@
+FOUND_GTK3=$(pacman -Qq gtk3 2>/dev/null || true)
+
+# Arch ships headers together with the runtime package, so there is no
+# separate -dev/-devel split like on Debian/Fedora.
+REQUIRED_DEV_PACKAGES=(
+    base-devel
+    bzip2
+    cmake
+    curl
+    dbus
+    eglexternalplatform
+    extra-cmake-modules
+    git
+    glew
+    glu
+    gst-plugins-base
+    gst-plugins-good
+    gstreamer
+    gtk3
+    libmspack
+    libsecret
+    libunwind
+    libxkbcommon
+    libxkbcommon-x11
+    mesa
+    nasm
+    ninja
+    openssl
+    perl
+    wayland
+    wayland-protocols
+    wget
+    x264
+    yasm
+)
+
+if [[ -n "$UPDATE_LIB" ]]
+then
+    REQUIRED_DEV_PACKAGES+=(webkit2gtk-4.1)
+
+    # pacman resolves already-installed packages itself via --needed, so there
+    # is no need to pre-filter the list the way the rpm/dpkg paths do.
+    sudo pacman -Sy --needed --noconfirm "${REQUIRED_DEV_PACKAGES[@]}"
+
+    echo -e "done\n"
+    exit 0
+fi
+
+FOUND_GTK3_DEV=${FOUND_GTK3}
