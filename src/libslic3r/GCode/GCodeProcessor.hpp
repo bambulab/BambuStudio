@@ -248,13 +248,6 @@ namespace Slic3r {
             bool use_for_support{false};
         };
 
-        struct PausePrintInfo
-        {
-            int percent{0};
-            int remaining_time{0}; // min
-            unsigned int layer_id{0};
-        };
-
         std::string filename;
         unsigned int id;
         std::vector<MoveVertex> moves;
@@ -301,7 +294,6 @@ namespace Slic3r {
         std::vector<unsigned int> nozzle_change_sequence;
         std::vector<unsigned int> filament_change_sequence;
         std::vector<int> optimal_assignment;
-        std::vector<PausePrintInfo> pause_printing;
         // first key stores `from` filament, second keys stores the `to` filament
         std::map<std::pair<int,int>, int > filament_change_count_map;
 
@@ -353,7 +345,6 @@ namespace Slic3r {
             filament_change_sequence = other.filament_change_sequence;
             nozzle_change_sequence = other.nozzle_change_sequence;
             optimal_assignment = other.optimal_assignment;
-            pause_printing = other.pause_printing;
             skippable_part_time = other.skippable_part_time;
             initial_layer_time = other.initial_layer_time;
             used_filaments = other.used_filaments;
@@ -469,6 +460,7 @@ namespace Slic3r {
             Last_Line_M73_Placeholder,
             Estimated_Printing_Time_Placeholder,
             Total_Layer_Number_Placeholder,
+            Pause_Printing_Placeholder,
             Wipe_Tower_Start,
             Wipe_Tower_End,
             Used_Filament_Weight_Placeholder,
@@ -658,7 +650,6 @@ namespace Slic3r {
             {
                 unsigned int g1_line_id;
                 float elapsed_time;
-                unsigned int layer_id{0};
             };
             std::vector<StopTime> stop_times;
             std::vector<StopTime> pause_times;
