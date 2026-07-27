@@ -158,8 +158,8 @@
         "150"
     ],
     "travel_acceleration": [
-        "20000",
-        "20000"
+        "25000",
+        "25000"
     ],
     "travel_short_distance_acceleration": [
         "250",

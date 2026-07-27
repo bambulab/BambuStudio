@@ -68,6 +68,8 @@
         "250",
         "250"
     ],
+    "ironing_flow": "25%",
+    "monotonic_travel_into_wall": "45.0",
     "outer_wall_acceleration": [
         "5000",
         "5000",
@@ -195,9 +197,9 @@
         "200"
     ],
     "travel_acceleration": [
-        "20000",
-        "20000",
-        "20000"
+        "25000",
+        "25000",
+        "25000"
     ],
     "travel_short_distance_acceleration": [
         "250",
@@ -219,9 +221,7 @@
         "80%",
         "80%"
     ],
-    "monotonic_travel_into_wall": "45.0",
     "compatible_printers": [
         "Bambu Lab H3C 0.6 nozzle"
-    ],
-    "ironing_flow": "25%"
+    ]
 }
