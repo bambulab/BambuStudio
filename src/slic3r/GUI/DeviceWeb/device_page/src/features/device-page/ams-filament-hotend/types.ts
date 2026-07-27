@@ -21,7 +21,8 @@ export type AmsFilamentHotendNozzleState =
   | 'Normal'    // 普通灰色
   | 'Active'    // 当前正在使用,绿色
   | 'None'      // 未插喷嘴/工具: 虚线框 + 禁止圆
-  | 'Error';    // 红色
+  | 'Error'     // 红色
+  | 'Lost';
 
 export type AmsFilamentHotendTab = 'filament' | 'hotend';
 export type AmsFilamentHotendColorType = 'single' | 'multi' | 'gradient';

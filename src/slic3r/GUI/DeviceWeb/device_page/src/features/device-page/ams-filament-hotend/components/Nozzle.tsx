@@ -1,5 +1,6 @@
 import type { AmsFilamentHotendNozzleState, HotendToolKind } from '../types';
 import { visibleFilamentColor } from '../visibleFilamentColor';
+import hotendLostBadgeUrl from '../assets/hotend_lost_badge.svg';
 
 // Inline nozzle from the Figma export (viewBox 24x48). Rendered as SVG so
 // the dashed filament path through the assembly can take the spool color
@@ -160,7 +161,7 @@ export function Nozzle({
     );
   }
 
-  if (nozzleState === 'Error') {
+  if (nozzleState === 'Error' || nozzleState === 'Lost') {
     return (
       <svg
         className={`nozzle nozzle-${nozzleState.toLowerCase()}`}
@@ -183,8 +184,20 @@ export function Nozzle({
         </g>
         <path d={ERROR_NOZZLE_BODY_PATH} fill="#A3A3A3" />
         <path d={ERROR_NOZZLE_DETAIL_PATH} fill="black" />
-        <path d={ERROR_BADGE_CIRCLE_PATH} fill="#E14747" />
-        <path d={ERROR_BADGE_MARK_PATH} fill="#EBEBEB" />
+        {nozzleState === 'Lost' ? (
+          <image
+            href={hotendLostBadgeUrl}
+            x={4}
+            y={29}
+            width={16}
+            height={16}
+          />
+        ) : (
+          <>
+            <path d={ERROR_BADGE_CIRCLE_PATH} fill="#E14747" />
+            <path d={ERROR_BADGE_MARK_PATH} fill="#EBEBEB" />
+          </>
+        )}
       </svg>
     );
   }

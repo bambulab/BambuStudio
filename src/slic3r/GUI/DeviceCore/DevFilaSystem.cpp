@@ -621,7 +621,15 @@ bool DevAms::SupportHumidityPercent() const
 
 bool DevAms::SupportDrying() const
 {
-    return m_ams_type == DevAmsType::N3F || m_ams_type == DevAmsType::N3S || (m_ams_type == DevAmsType::ZMULTI_A) || (m_ams_type == DevAmsType::ZMULTI_B);
+    if (m_ams_type == DevAmsType::N3F || m_ams_type == DevAmsType::N3S) {
+        return true;
+    }
+    else if (m_ams_type == DevAmsType::ZMULTI_A || m_ams_type == DevAmsType::ZMULTI_B) {
+        for (auto [_, zone] : m_zones) {
+            if (zone.SupportDrying()) { return true; }
+        }
+    }
+    return false;
 }
 
 bool DevAms::IsSupportRemoteDry(const MachineObject* obj) const

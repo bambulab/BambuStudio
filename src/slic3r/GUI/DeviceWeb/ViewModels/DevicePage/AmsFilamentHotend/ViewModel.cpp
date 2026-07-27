@@ -209,7 +209,7 @@ void DevicePageAmsFilamentHotendVM::ReportState(const std::string& submod, const
 
 void DevicePageAmsFilamentHotendVM::OnSysColorChanged()
 {
-    // Theme is global UI state â€?it must NOT be routed through
+    // Theme is global UI state ??it must NOT be routed through
     // ReportState("state", ...) because that path is de-duped against the
     // last BuildState() snapshot; when the device payload is unchanged
     // (e.g. the user just toggled dark mode without touching the AMS) the
@@ -310,7 +310,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
         fp[SK::filament_page::actions][SK::filament_actions::show_auto_refill]  = has_connected_ams;
         // Per-slot ams_operation.units is the canonical source for AMS-unit
         // detail (the AMS Operation dialog reads from there). The Filament tab
-        // reads dryer chamber data from `ams_dry_zones` instead â€?slots no
+        // reads dryer chamber data from `ams_dry_zones` instead ? slots no
         // longer carry their own dryer fields.
         //
         // Only zones whose physical layout actually supports drying are
@@ -318,10 +318,21 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
         // `zone_slots.size() == 2`). Non-drying zones (e.g. the "everything
         // else" bucket some AMS units report) MUST be filtered out or the
         // DryerChamber decoration would wrap unrelated columns.
+        bool can_dry = false;
         for (const auto& [_, ams_unit] : fila_system->GetAmsList()) {
-            if (!ams_unit) continue;
-            for (const auto& [zone_id, zone] : ams_unit->GetZones()) {
+            if (!ams_unit || !ams_unit->SupportDrying()) {
+                continue;
+            };
+            can_dry = true;
+
+            const auto& zones = ams_unit->GetZones();
+            if (zones.empty()) {
+                continue;
+            }
+
+            for (const auto& [zone_id, zone] : zones) {
                 if (!zone.SupportDrying()) continue;
+                can_dry = true;
                 const std::string dry_status_enum = zone.dry_status.has_value()
                     ? dry_status_short_name(*zone.dry_status)
                     : std::string();
@@ -340,6 +351,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
             }
         }
 
+        fp[SK::filament_page::actions][SK::filament_actions::can_dry] = can_dry;
     }
 
     std::vector<int> addr_ids;
@@ -414,7 +426,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
             const auto& line_section = full_slot.value(SK::filament_slot::filament_line, nlohmann::json::object());
             const std::string line_state = line_section.value(SK::filament_line::state, std::string());
             auto& tips = fp[SK::filament_page::actions][SK::filament_actions::tips];
-            // "Slot N filament loading/unloading in progress" â€?translated on
+            // "Slot N filament loading/unloading in progress" ??translated on
             // the C++ side so the Web only prints the localized string.
             const std::string change_op = _u8L("loading/unloading");
             if (line_state == SV::line_state::loading) {

@@ -304,6 +304,8 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/SchemaHotendPage.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Schema.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/IFilamentPageModeBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchModeCommon.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchModeCommon.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/NormalModeBuilder.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/NormalModeBuilder.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchAmsLoadModeBuilder.hpp

@@ -1,4 +1,5 @@
 #include "BatchAmsLoadModeBuilder.hpp"
+#include "BatchModeCommon.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ViewModel.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Schema.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.hpp"
@@ -47,7 +48,7 @@ PrebuiltNozzleInfo find_prebuilt_nozzle(const nlohmann::json& prebuilt_normal_pa
     return info;
 }
 
-nlohmann::json make_select_action(const std::string& card_state, const std::string& nozzle_state)
+nlohmann::json make_select_action(const std::string& card_state, const nlohmann::json& nozzle_section)
 {
     const bool is_empty        = (card_state == SV::card_state::empty);
     const bool is_ready_to_load= (card_state == SV::card_state::ready_to_load);
@@ -61,10 +62,8 @@ nlohmann::json make_select_action(const std::string& card_state, const std::stri
     bool can_select = false;
     std::string reason;
 
-    if (nozzle_state == SV::nozzle_state::none) {
-        reason = _u8L("No nozzle");
-    } else if (nozzle_state == SV::nozzle_state::error) {
-        reason = _u8L("Nozzle is in error state");
+    if (auto nozzle_reason = BatchModeCommon::nozzle_unavailable_reason(nozzle_section)) {
+        reason = *nozzle_reason;
     } else if (is_empty) {
         reason = _u8L("Empty slot");
     } else if (is_reading) {
@@ -79,31 +78,8 @@ nlohmann::json make_select_action(const std::string& card_state, const std::stri
         can_select = true;
     }
 
-    return nlohmann::json{
-        {SK::select_action::can_select, can_select},
-        {SK::select_action::reason,     reason},
-        // Auto-load mode does not use the EXT badge (that's only batch_ext_load).
-        {SK::select_action::ext_label,  false},
-    };
-}
-
-std::string normalize_hex_for_batch_ams(const std::string& raw)
-{
-    if (raw.empty()) return "#D9D9D9";
-    std::string hex = raw;
-    if (hex[0] != '#') hex = "#" + hex;
-    if (hex.size() > 9) hex = hex.substr(0, 9);
-    return hex;
-}
-
-std::string color_type_for_batch_ams(DevFilaColorType color_type)
-{
-    switch (color_type) {
-    case DevFilaColorType::CTYPE_MULTI:    return "multi";
-    case DevFilaColorType::CTYPE_GRADIANT: return "gradient";
-    case DevFilaColorType::CTYPE_SINGLE:   return "single";
-    }
-    return "single";
+    // Auto-load mode does not use the EXT badge (that's only batch_ext_load).
+    return BatchModeCommon::make_select_action(can_select, reason);
 }
 
 bool is_ams_slot_loaded_in_hotend(MachineObject* machine_obj, const DevAmsTray* tray)
@@ -140,16 +116,6 @@ std::string resolve_status_text(const std::string& card_state)
     return "";
 }
 
-// Wrap a regular `actions.can_<name>` boolean into the batch-shape
-// `{ enabled, reason }` object expected by the Web in batch modes.
-nlohmann::json make_action_state(bool enabled, std::string reason = "")
-{
-    return nlohmann::json{
-        {SK::action_state::enabled, enabled},
-        {SK::action_state::reason,  std::move(reason)},
-    };
-}
-
 } // namespace
 
 nlohmann::json BatchAmsLoadModeBuilder::BuildFilamentPage(
@@ -172,10 +138,10 @@ nlohmann::json BatchAmsLoadModeBuilder::BuildFilamentPage(
     const auto& src_actions = prebuilt_normal_page.value(SK::filament_page::actions, nlohmann::json::object());
     const bool src_can_dry = src_actions.value(SK::filament_actions::can_dry, false);
     page[SK::filament_page::actions] = {
-        {SK::filament_actions::can_dry,           make_action_state(src_can_dry)},
-        {SK::filament_actions::can_show_load_auto, make_action_state(true)},
-        {SK::filament_actions::can_load_external, make_action_state(false, other_active)},
-        {SK::filament_actions::can_unload,        make_action_state(false, other_active)},
+        {SK::filament_actions::can_dry,           BatchModeCommon::make_action_state(src_can_dry)},
+        {SK::filament_actions::can_show_load_auto, BatchModeCommon::make_action_state(true)},
+        {SK::filament_actions::can_load_external, BatchModeCommon::make_action_state(false, other_active)},
+        {SK::filament_actions::can_unload,        BatchModeCommon::make_action_state(false, other_active)},
     };
 
     nlohmann::json slots = nlohmann::json::array();
@@ -195,12 +161,12 @@ nlohmann::json BatchAmsLoadModeBuilder::BuildFilamentPage(
 
             std::vector<std::string> colors = tray->cols;
             if (colors.empty() && !tray->color.empty()) colors.push_back(tray->color);
-            for (auto& color : colors) color = normalize_hex_for_batch_ams(color);
+            for (auto& color : colors) color = BatchModeCommon::normalize_hex_for_web(color);
 
             const std::string card_state = resolve_ams_slot_card_state(machine_obj, tray);
             const std::string filament_type = tray->m_fila_type;
             const std::string filament_name = vm.ResolveFilamentCardText(tray, filament_type);
-            const std::string color = normalize_hex_for_batch_ams(tray->color);
+            const std::string color = BatchModeCommon::normalize_hex_for_web(tray->color);
             const int display_index = fallback_display_index++;
             const bool is_top_tier = (display_index % 2) == 0;
 
@@ -209,7 +175,7 @@ nlohmann::json BatchAmsLoadModeBuilder::BuildFilamentPage(
             const nlohmann::json card_section = {
                 {SK::filament_card::state,       card_state},
                 {SK::filament_card::color,       color},
-                {SK::filament_card::color_type,  color_type_for_batch_ams(tray->ctype)},
+                {SK::filament_card::color_type,  BatchModeCommon::color_type_for_web(tray->ctype)},
                 {SK::filament_card::colors,      colors},
                 {SK::filament_card::text,        filament_name},
                 {SK::filament_card::name,        filament_name},
@@ -219,7 +185,6 @@ nlohmann::json BatchAmsLoadModeBuilder::BuildFilamentPage(
             };
 
             const PrebuiltNozzleInfo prebuilt = find_prebuilt_nozzle(prebuilt_normal_page, display_index);
-            const std::string nozzle_state = prebuilt.nozzle.value(SK::filament_nozzle::state, std::string(SV::nozzle_state::normal));
 
             slots.push_back({
                 {SK::filament_slot::addr_id,           prebuilt.addr_id},
@@ -236,7 +201,7 @@ nlohmann::json BatchAmsLoadModeBuilder::BuildFilamentPage(
                     {SK::filament_line::filament_color, std::string()}
                 }},
                 {SK::filament_slot::filament_nozzle,   prebuilt.nozzle},
-                {SK::filament_slot::select_action,     make_select_action(card_state, nozzle_state)},
+                {SK::filament_slot::select_action,     make_select_action(card_state, prebuilt.nozzle)},
             });
         }
     }

@@ -26,7 +26,8 @@ public:
     static std::string ResolveNozzleState(const std::string& card_state,
                                           const std::string& line_state,
                                           bool has_tool,
-                                          bool is_abnormal);
+                                          bool is_abnormal,
+                                          bool is_lost);
     static int ResolveDisplayRemain(const DevAmsTray* tray);
     static std::string ResolveStatusText(const std::string& card_state);
 };

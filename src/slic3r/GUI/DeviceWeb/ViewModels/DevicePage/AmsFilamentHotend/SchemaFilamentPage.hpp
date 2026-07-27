@@ -16,7 +16,7 @@ struct FilamentActions
     bool        can_load_external = true;
     bool        can_show_load_auto = true;
     bool        can_unload = true;
-    bool        can_dry = true;
+    bool        can_dry = false;
     bool        show_ams_settings = false;
     bool        show_auto_refill = false;
     bool        show_read_all = false;

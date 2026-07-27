@@ -1,4 +1,5 @@
 #include "BatchUnloadModeBuilder.hpp"
+#include "BatchModeCommon.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Schema.hpp"
 #include "slic3r/GUI/I18N.hpp"
 
@@ -9,31 +10,11 @@ namespace SV = AmsHotendSchema::values;
 
 namespace {
 
-nlohmann::json make_action_state(bool enabled, std::string reason = "")
-{
-    return nlohmann::json{
-        {SK::action_state::enabled, enabled},
-        {SK::action_state::reason,  std::move(reason)},
-    };
-}
-
 nlohmann::json make_select_action(const nlohmann::json& slot)
 {
     const auto& nozzle = slot.value(SK::filament_slot::filament_nozzle, nlohmann::json::object());
-    const std::string nozzle_state = nozzle.value(SK::filament_nozzle::state, std::string());
-    if (nozzle_state == SV::nozzle_state::none) {
-        return nlohmann::json{
-            {SK::select_action::can_select, false},
-            {SK::select_action::reason,     _u8L("No nozzle")},
-            {SK::select_action::ext_label,  false},
-        };
-    }
-    if (nozzle_state == SV::nozzle_state::error) {
-        return nlohmann::json{
-            {SK::select_action::can_select, false},
-            {SK::select_action::reason,     _u8L("Nozzle is in error state")},
-            {SK::select_action::ext_label,  false},
-        };
+    if (auto nozzle_reason = BatchModeCommon::nozzle_unavailable_reason(nozzle)) {
+        return BatchModeCommon::make_select_action(false, *nozzle_reason);
     }
 
     const auto& line = slot.value(SK::filament_slot::filament_line, nlohmann::json::object());
@@ -43,12 +24,8 @@ nlohmann::json make_select_action(const nlohmann::json& slot)
     if (!can_select) {
         reason = _u8L("Slot not loaded");
     }
-    return nlohmann::json{
-        {SK::select_action::can_select, can_select},
-        {SK::select_action::reason,     reason},
-        // Unload mode doesn't use the EXT badge.
-        {SK::select_action::ext_label,  false},
-    };
+    // Unload mode doesn't use the EXT badge.
+    return BatchModeCommon::make_select_action(can_select, reason);
 }
 
 } // namespace
@@ -67,10 +44,10 @@ nlohmann::json BatchUnloadModeBuilder::BuildFilamentPage(
     const auto& src_actions = prebuilt_normal_page.value(SK::filament_page::actions, nlohmann::json::object());
     const bool src_can_dry = src_actions.value(SK::filament_actions::can_dry, false);
     page[SK::filament_page::actions] = {
-        {SK::filament_actions::can_dry,           make_action_state(src_can_dry)},
-        {SK::filament_actions::can_show_load_auto, make_action_state(false, other_active)},
-        {SK::filament_actions::can_load_external, make_action_state(false, other_active)},
-        {SK::filament_actions::can_unload,        make_action_state(true)},
+        {SK::filament_actions::can_dry,           BatchModeCommon::make_action_state(src_can_dry)},
+        {SK::filament_actions::can_show_load_auto, BatchModeCommon::make_action_state(false, other_active)},
+        {SK::filament_actions::can_load_external, BatchModeCommon::make_action_state(false, other_active)},
+        {SK::filament_actions::can_unload,        BatchModeCommon::make_action_state(true)},
     };
 
     nlohmann::json slots = nlohmann::json::array();

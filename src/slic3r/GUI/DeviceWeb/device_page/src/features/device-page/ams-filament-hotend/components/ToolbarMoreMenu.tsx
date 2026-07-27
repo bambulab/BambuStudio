@@ -34,10 +34,11 @@ export function ToolbarMoreMenu({
   }, [open]);
 
   // Mirror the previous per-action gating: `Load` (auto load) follows the
-  // show/hide flag; External / Unload / Dry disable when unavailable;
+  // show/hide flag; External / Unload disable when unavailable;
   // Auto-refill only appears when the AMS supports it.
   const showLoad = actions.can_show_load_auto ?? true;
   const canLoadExternal = actions.can_load_external ?? actions.can_load ?? false;
+  const showDry = actions.can_dry ?? false;
 
   const run = (action: string) => {
     setOpen(false);
@@ -88,15 +89,16 @@ export function ToolbarMoreMenu({
           >
             {t('Unload')}
           </button>
-          <button
-            type="button"
-            role="menuitem"
-            data-testid="ams-hotend-action-dry"
-            disabled={!actions.can_dry}
-            onClick={() => run('dry')}
-          >
-            {t('Dry')}
-          </button>
+          {showDry && (
+            <button
+              type="button"
+              role="menuitem"
+              data-testid="ams-hotend-action-dry"
+              onClick={() => run('dry')}
+            >
+              {t('Dry')}
+            </button>
+          )}
           {actions.show_auto_refill && (
             <button
               type="button"

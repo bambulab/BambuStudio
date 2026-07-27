@@ -1,4 +1,5 @@
 #include "BatchExtLoadModeBuilder.hpp"
+#include "BatchModeCommon.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ViewModel.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Schema.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.hpp"
@@ -18,33 +19,6 @@ namespace SV = AmsHotendSchema::values;
 
 namespace {
 
-nlohmann::json make_action_state(bool enabled, std::string reason = "")
-{
-    return nlohmann::json{
-        {SK::action_state::enabled, enabled},
-        {SK::action_state::reason,  std::move(reason)},
-    };
-}
-
-std::string color_type_for_ext_web(DevFilaColorType color_type)
-{
-    switch (color_type) {
-    case DevFilaColorType::CTYPE_MULTI:    return "multi";
-    case DevFilaColorType::CTYPE_GRADIANT: return "gradient";
-    case DevFilaColorType::CTYPE_SINGLE:   return "single";
-    }
-    return "single";
-}
-
-std::string normalize_ext_hex_for_web(const std::string& raw)
-{
-    if (raw.empty()) return "#D9D9D9";
-    std::string hex = raw;
-    if (hex[0] != '#') hex = "#" + hex;
-    if (hex.size() > 9) hex = hex.substr(0, 9);
-    return hex;
-}
-
 bool is_ext_slot_loaded(MachineObject* machine_obj, std::optional<DevAmsTray> ext_tray_opt)
 {
     if (machine_obj && ext_tray_opt.has_value()) {
@@ -61,13 +35,9 @@ bool is_ext_slot_loaded(MachineObject* machine_obj, std::optional<DevAmsTray> ex
 
 nlohmann::json make_select_action(bool can_select, std::string reason)
 {
-    return nlohmann::json{
-        {SK::select_action::can_select, can_select},
-        {SK::select_action::reason,     std::move(reason)},
-        // Manual external-spool mode shows the EXT badge on every nozzle card
-        // to make it clear the visible filament info comes from the virtual tray.
-        {SK::select_action::ext_label,  true},
-    };
+    // Manual external-spool mode shows the EXT badge on every nozzle card
+    // to make it clear the visible filament info comes from the virtual tray.
+    return BatchModeCommon::make_select_action(can_select, std::move(reason), /*ext_label*/ true);
 }
 
 int ext_tray_id_for_addr_id(int addr_id)
@@ -91,10 +61,10 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
     const auto& src_actions = prebuilt_normal_page.value(SK::filament_page::actions, nlohmann::json::object());
     const bool src_can_dry = src_actions.value(SK::filament_actions::can_dry, false);
     page[SK::filament_page::actions] = {
-        {SK::filament_actions::can_dry,           make_action_state(src_can_dry)},
-        {SK::filament_actions::can_show_load_auto, make_action_state(false, other_active)},
-        {SK::filament_actions::can_load_external, make_action_state(true)},
-        {SK::filament_actions::can_unload,        make_action_state(false, other_active)},
+        {SK::filament_actions::can_dry,           BatchModeCommon::make_action_state(src_can_dry)},
+        {SK::filament_actions::can_show_load_auto, BatchModeCommon::make_action_state(false, other_active)},
+        {SK::filament_actions::can_load_external, BatchModeCommon::make_action_state(true)},
+        {SK::filament_actions::can_unload,        BatchModeCommon::make_action_state(false, other_active)},
     };
 
     nlohmann::json slots = nlohmann::json::array();
@@ -131,14 +101,14 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
         if (ext_tray_opt.has_value() && !ext_tray_opt->m_fila_type.empty()) {
             filament_type = ext_tray_opt->m_fila_type;
             filament_name = vm.ResolveFilamentCardText(&*ext_tray_opt, filament_type);
-            color = normalize_ext_hex_for_web(ext_tray_opt->color);
-            color_type = color_type_for_ext_web(ext_tray_opt->ctype);
+            color = BatchModeCommon::normalize_hex_for_web(ext_tray_opt->color);
+            color_type = BatchModeCommon::color_type_for_web(ext_tray_opt->ctype);
             colors = ext_tray_opt->cols;
             if (colors.empty() && !ext_tray_opt->color.empty()) {
                 colors.push_back(ext_tray_opt->color);
             }
             for (auto& c : colors) {
-                c = normalize_ext_hex_for_web(c);
+                c = BatchModeCommon::normalize_hex_for_web(c);
             }
             remain = DevicePageFilamentSlotStateResolver::ResolveDisplayRemain(&*ext_tray_opt);
             card_state = is_loaded ? SV::card_state::ready_to_use : SV::card_state::ready_to_load;
@@ -146,15 +116,13 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
 
         const auto& src_nozzle = slot.value(SK::filament_slot::filament_nozzle, nlohmann::json::object());
         const std::string src_nozzle_state = src_nozzle.value(SK::filament_nozzle::state, std::string());
-        const bool nozzle_empty = (src_nozzle_state == SV::nozzle_state::none);
-        const bool nozzle_error = (src_nozzle_state == SV::nozzle_state::error);
+        const auto nozzle_reason = BatchModeCommon::nozzle_unavailable_reason(src_nozzle);
+        const bool nozzle_unavailable = nozzle_reason.has_value();
 
         bool can_select = false;
         std::string reason;
-        if (nozzle_empty) {
-            reason = _u8L("No nozzle");
-        } else if (nozzle_error) {
-            reason = _u8L("Nozzle is in error state");
+        if (nozzle_unavailable) {
+            reason = *nozzle_reason;
         } else if (is_loaded) {
             reason = _u8L("External filament already loaded into hotend");
         } else {
@@ -179,14 +147,18 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
             {SK::filament_line::filament_color, is_loaded ? color : std::string()}
         };
 
-        const std::string nozzle_state = (nozzle_empty || nozzle_error)
+        const std::string nozzle_state = nozzle_unavailable
             ? src_nozzle_state
             : (is_loaded ? SV::nozzle_state::active : SV::nozzle_state::normal);
+        const bool nozzle_has_filament = is_loaded && !nozzle_unavailable;
         const nlohmann::json nozzle_section = {
             {SK::filament_nozzle::state,          nozzle_state},
-            {SK::filament_nozzle::has_filament,   is_loaded && !nozzle_empty && !nozzle_error},
-            {SK::filament_nozzle::filament_color, (is_loaded && !nozzle_empty && !nozzle_error) ? color : std::string()},
-            {SK::filament_nozzle::on_extruder,    src_nozzle.value(SK::filament_nozzle::on_extruder, false)}
+            {SK::filament_nozzle::has_filament,   nozzle_has_filament},
+            {SK::filament_nozzle::filament_color, nozzle_has_filament ? color : std::string()},
+            {SK::filament_nozzle::on_extruder,    src_nozzle.value(SK::filament_nozzle::on_extruder, false)},
+            // Keep the tool kind so a non-nozzle tool still renders its own
+            // silhouette instead of a plain nozzle while being unselectable.
+            {SK::filament_nozzle::tool_kind,      src_nozzle.value(SK::filament_nozzle::tool_kind, std::string(SV::tool_kind::empty))}
         };
 
         slots.push_back({

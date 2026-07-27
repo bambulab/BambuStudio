@@ -246,6 +246,7 @@ namespace nozzle_state {
     inline constexpr const char* active  = "Active";
     inline constexpr const char* none    = "None";
     inline constexpr const char* error   = "Error";
+    inline constexpr const char* lost    = "Lost";
 }
 
 namespace tray_state {
