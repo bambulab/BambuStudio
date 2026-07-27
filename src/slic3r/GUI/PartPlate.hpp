@@ -310,6 +310,8 @@ public:
 
     //get the plate's center point origin
     Vec3d get_center_origin();
+    //get the plate's top-left corner origin
+    Vec3d get_topleft_origin();
     /* size and position related functions*/
     //set position and size
     void set_pos_and_size(Vec3d& origin, int width, int depth, int height, bool with_instance_move, bool do_clear = true);

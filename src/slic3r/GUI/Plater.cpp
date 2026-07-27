@@ -16215,6 +16215,10 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
     old_plate_bbox_list.reserve(old_plate_list.get_plate_count());
     std::vector<BoundingBoxf3> old_plate_wt_bbox; // per-plate wipe tower bbox; .defined=false when absent
     old_plate_wt_bbox.reserve(old_plate_list.get_plate_count());
+    // Snapshot of old plate's filament count; new plate's AMS association
+    // isn't settled yet right after select_prest(), so reuse this instead.
+    std::vector<int> old_plate_filament_cnt;
+    old_plate_filament_cnt.reserve(old_plate_list.get_plate_count());
     const DynamicPrintConfig &old_full_config         = wxGetApp().preset_bundle->full_config();
     const int                 old_nozzle_nums         = wxGetApp().preset_bundle->get_printer_extruder_count();
     const bool                old_prime_tower_enabled = old_full_config.opt_bool("enable_prime_tower");
@@ -16233,6 +16237,7 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
 
         BoundingBoxf3 wt_bbox; // default-constructed: defined=false
         const int     filament_cnt = static_cast<int>(plate->get_extruders().size());
+        old_plate_filament_cnt.emplace_back(filament_cnt);
         // Wipe tower contributes only when prime tower is on and the plate has >1 filament.
         if (old_prime_tower_enabled && filament_cnt > 1) {
             Vec3d wt_pos, wt_size;
@@ -16404,22 +16409,29 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
         }
 
         // Merge footprint at the pre-switch anchor with the NEW printer's tower size.
+        // filament_cnt comes from the OLD-plate snapshot since new_plate's isn't settled yet.
         PartPlate *new_plate = cur_plate_list.get_plate(i);
-        if (i < static_cast<int>(old_plate_wt_bbox.size()) && old_plate_wt_bbox[i].defined) { 
+        if (i < static_cast<int>(old_plate_wt_bbox.size()) && old_plate_wt_bbox[i].defined) {
             const BoundingBoxf3 &old_wt  = old_plate_wt_bbox[i];
             Vec3d new_wt_size = Vec3d::Zero();
-            const int filament_cnt = static_cast<int>(new_plate->get_extruders().size());
+            const int filament_cnt = old_plate_filament_cnt[i];
             if (new_prime_tower_enabled && filament_cnt > 1){
                 Vec3d new_wt_pos_unused;
-                new_plate->estimate_wipe_tower_polygon(new_full_config_for_wt, static_cast<int>(i), 
-                                                        new_wt_pos_unused, new_wt_size, 
-                                                        new_nozzle_nums, filament_cnt);
+                // use_global_objects=true: per-plate containment isn't reliable yet here,
+                // so scan all objects instead.
+                new_plate->estimate_wipe_tower_polygon(new_full_config_for_wt, static_cast<int>(i),
+                                                        new_wt_pos_unused, new_wt_size,
+                                                        new_nozzle_nums, filament_cnt, /*use_global_objects=*/true);
             }
             content_bbox.merge(BoundingBoxf3(old_wt.min, old_wt.min + new_wt_size));
         }
 
-        
+
         const Vec3d new_plate_sz = new_plate->get_bounding_box().size();
+        const Vec3d old_plate_sz = old_plate_bbox_list[i].size();
+        const double plate_size_eps = 0.1;
+        const bool  same_plate_size = std::abs(new_plate_sz.x() - old_plate_sz.x()) <= plate_size_eps
+                                    && std::abs(new_plate_sz.y() - old_plate_sz.y()) <= plate_size_eps;
         const Vec3d content_dim  = content_bbox.size();
         const bool  xy_over      = content_dim.x() > new_plate_sz.x() + xy_overflow_eps
                                 || content_dim.y() > new_plate_sz.y() + xy_overflow_eps;
@@ -16427,8 +16439,11 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
             for (int o : effective_objs)
                 reschedule_set.insert(o);
         } else {
+            // Same plate size -> delta ends up ~zero, but still go through this
+            // path so the wipe tower position write below always runs.
+            const Vec3d pass_center = same_plate_size ? old_plate_bbox_list[i].center() : content_bbox.center();
             // Defer delta until create_plate has settled the final grid.
-            pass_translations.push_back({i, std::move(effective_objs), old_plate_bbox_list[i].center()});
+            pass_translations.push_back({i, std::move(effective_objs), pass_center});
         }
     }
 
@@ -16568,42 +16583,82 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
                 }
             }
 
-            const bool has_tower_snapshot = 
+            const bool has_tower_snapshot =
                     pt.plate_idx < static_cast<int>(old_plate_wt_bbox.size()) && old_plate_wt_bbox[pt.plate_idx].defined
                     && wipe_tower_x && wipe_tower_y && pt.plate_idx < static_cast<int>(wipe_tower_x->values.size()) &&
                     pt.plate_idx < static_cast<int>(wipe_tower_y->values.size());
-            
-            // Apply tower translation even when delta is 0 (size may have changed).
+
+            // Always (re)write the tower position: set_default_wipe_tower_pos_for_plate()
+            // unconditionally reset wipe_tower_x/y earlier, so it must be re-derived here.
             if(has_tower_snapshot){
                 const BoundingBoxf3 &old_wt = old_plate_wt_bbox[pt.plate_idx];
-                Vec3d new_wt_min                  = old_wt.min + delta;
-                
-                // Re-estimate size under the NEW preset; do not clamp iwith the snapshot size.
-                Vec3d                new_wt_size = Vec3d::Zero();
-                const int filament_cnt = static_cast<int>(new_plate->get_extruders().size());
+
+                Vec3d new_wt_size = old_wt.max - old_wt.min;
+                const int filament_cnt = old_plate_filament_cnt[pt.plate_idx];
                 if (new_prime_tower_enabled && filament_cnt > 1) {
                     Vec3d new_wt_pos_unused;
-                    new_plate->estimate_wipe_tower_polygon(new_full_config_for_wt, pt.plate_idx, new_wt_pos_unused, new_wt_size, new_nozzle_nums, filament_cnt);
+                    new_plate->estimate_wipe_tower_polygon(new_full_config_for_wt, pt.plate_idx, new_wt_pos_unused, new_wt_size,
+                                                            new_nozzle_nums, filament_cnt, /*use_global_objects=*/true);
                 }
 
-                BoundingBoxf3 plate_bb = new_plate->get_bounding_box();
-                for (const Pointfs &points : new_plate->get_extruder_areas()) {
-                    BoundingBoxf bboxf(points);
-                    if (plate_bb.min(0) > bboxf.min(0)) plate_bb.min(0) = bboxf.min(0);
-                    if (plate_bb.max(0) < bboxf.max(0)) plate_bb.max(0) = bboxf.max(0);
-                    if (plate_bb.min(1) > bboxf.min(1)) plate_bb.min(1) = bboxf.min(1);
-                    if (plate_bb.max(1) < bboxf.max(1)) plate_bb.max(1) = bboxf.max(1);
-                }
+                // Anchor by the bottom-left (min) corner: it rides the content delta,
+                // and the new size grows/shrinks from that fixed corner.
+                const Vec3d new_wt_min = old_wt.min + delta;
+
+                // Clamp against get_build_volume(true), same as interactive drag, so on
+                // dual-nozzle plates the tower stays reachable by both nozzles.
+                BoundingBoxf3 plate_bb = new_plate->get_build_volume(true);
                 const float margin = WIPE_TOWER_MARGIN;
+                Vec3d clamped_wt_min = new_wt_min;
                 for (int axis = 0; axis < 2; ++axis) {
                     double lo = plate_bb.min(axis) + margin;
                     double hi = plate_bb.max(axis) - new_wt_size(axis) - margin;
                     if (hi < lo) hi = lo; // tower doesn't fit even alone: pin to the low edge
-                    new_wt_min(axis) = std::clamp(new_wt_min(axis), lo, hi);
+                    clamped_wt_min(axis) = std::clamp(new_wt_min(axis), lo, hi);
                 }
+                const Vec3d pull_back = clamped_wt_min - new_wt_min;
+
+                // Try applying the pull-back to objects too; keep it only if they still
+                // fit, otherwise it's tower-only so objects don't get shoved off-plate.
+                Vec3d obj_shift = Vec3d::Zero();
+                if (pull_back.cwiseAbs().maxCoeff() > 1e-6) {
+                    BoundingBoxf3 shifted_content_bbox;
+                    for (int obj_idx : pt.effective_objs) {
+                        if (obj_idx < 0 || obj_idx >= static_cast<int>(model.objects.size())) continue;
+                        ModelObject *o = model.objects[obj_idx];
+                        if (!o || o->instances.empty()) continue;
+                        BoundingBoxf3 ibb = o->instance_bounding_box(0);
+                        shifted_content_bbox.merge(BoundingBoxf3(ibb.min + pull_back, ibb.max + pull_back));
+                    }
+                    if (shifted_content_bbox.defined) {
+                        const Vec3d new_plate_sz    = new_plate->get_bounding_box().size();
+                        const Vec3d shifted_dim     = shifted_content_bbox.size();
+                        const bool  objs_would_overflow =
+                                shifted_dim.x() > new_plate_sz.x() + xy_overflow_eps
+                                || shifted_dim.y() > new_plate_sz.y() + xy_overflow_eps
+                                || shifted_content_bbox.min.x() < new_plate->get_bounding_box().min.x() - xy_overflow_eps
+                                || shifted_content_bbox.min.y() < new_plate->get_bounding_box().min.y() - xy_overflow_eps
+                                || shifted_content_bbox.max.x() > new_plate->get_bounding_box().max.x() + xy_overflow_eps
+                                || shifted_content_bbox.max.y() > new_plate->get_bounding_box().max.y() + xy_overflow_eps;
+                        if (!objs_would_overflow)
+                            obj_shift = pull_back;
+                    }
+                }
+                if (obj_shift.cwiseAbs().maxCoeff() > 1e-6) {
+                    for (int obj_idx : pt.effective_objs) {
+                        if (obj_idx < 0 || obj_idx >= static_cast<int>(model.objects.size())) continue;
+                        ModelObject *o = model.objects[obj_idx];
+                        if (!o || o->instances.empty()) continue;
+                        ModelInstance *inst = o->instances[0];
+                        inst->set_offset(inst->get_offset() + obj_shift);
+                        o->invalidate_bounding_box();
+                    }
+                }
+                const Vec3d final_wt_min = new_wt_min + pull_back;
+
                 const Vec3d new_plate_origin       = new_plate->get_origin();
-                wipe_tower_x->values[pt.plate_idx] = new_wt_min.x() - new_plate_origin.x();
-                wipe_tower_y->values[pt.plate_idx] = new_wt_min.y() - new_plate_origin.y();
+                wipe_tower_x->values[pt.plate_idx] = final_wt_min.x() - new_plate_origin.x();
+                wipe_tower_y->values[pt.plate_idx] = final_wt_min.y() - new_plate_origin.y();
                 if (pt.plate_idx < static_cast<int>(model.wipe_tower.positions.size()))
                     model.wipe_tower.positions[pt.plate_idx] = Vec2d(wipe_tower_x->values[pt.plate_idx], wipe_tower_y->values[pt.plate_idx]);
             }
@@ -16632,10 +16687,10 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
                 model.objects[obj_id]->invalidate_bounding_box();
         }
 
-        // 5. Park virtual-bound objects on the virtual plate, aligned by
-        //    convex-hull centre so multi-part offset origins don't spill out.
+        // 5. Park virtual-bound objects on the virtual plate, aligned by bbox
+        //    top-left corner so oversized items spill right/down, not onto other plates.
         PartPlate    &unprintable_plate = cur_plate_list.get_unprintable_plate();
-        const Vec3d   virtual_center    = unprintable_plate.get_center_origin();
+        const Vec3d   virtual_topleft   = unprintable_plate.get_topleft_origin();
         std::set<int> all_virtual       = virtual_obj_idxs;
         all_virtual.insert(arrange_unpackable.begin(), arrange_unpackable.end());
         for (int obj_idx : all_virtual) {
@@ -16644,12 +16699,11 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
             ModelObject *o = model.objects[obj_idx];
             if (!o || o->instances.empty())
                 continue;
-            ModelInstance *inst        = o->instances[0];
-            BoundingBoxf3  hull        = o->instance_convex_hull_bounding_box(static_cast<size_t>(0));
-            const Vec3d    cur_off     = inst->get_offset();
-            const Vec3d    hull_center = hull.center();
-            inst->set_offset(Vec3d(cur_off.x() + (virtual_center.x() - hull_center.x()),
-                                   cur_off.y() + (virtual_center.y() - hull_center.y()),
+            ModelInstance *inst    = o->instances[0];
+            BoundingBoxf3  hull    = o->instance_convex_hull_bounding_box(static_cast<size_t>(0));
+            const Vec3d    cur_off = inst->get_offset();
+            inst->set_offset(Vec3d(cur_off.x() + (virtual_topleft.x() - hull.min(0)),
+                                   cur_off.y() + (virtual_topleft.y() - hull.max(1)),
                                    cur_off.z()));
             o->invalidate_bounding_box();
         }

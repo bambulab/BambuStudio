@@ -2421,6 +2421,25 @@ Vec3d PartPlate::get_center_origin()
 	return origin;
 }
 
+//get the plate's top-left corner origin
+Vec3d PartPlate::get_topleft_origin()
+{
+	Vec3d origin;
+
+	// Mirrors get_center_origin(): virtual/unprintable plate has no m_shape,
+	// fall back to origin+size; real plates use the bbox for non-rect beds.
+	if (m_shape.empty()) {
+		origin(0) = m_origin.x();
+		origin(1) = m_origin.y() + m_depth;
+	} else {
+		origin(0) = m_bounding_box.min(0);
+		origin(1) = m_bounding_box.max(1);
+	}
+	origin(2) = m_origin.z();
+
+	return origin;
+}
+
 bool PartPlate::generate_plate_name_texture()
 {
 	auto     bed_ext        = get_extents(m_shape);
@@ -5707,9 +5726,12 @@ int PartPlateList::reload_all_objects(bool except_locked, int plate_index)
 			// a brand-new real plate's bbox.
 			if (sticky_virtual.count(std::make_pair((int)i, (int)j)))
 			{
-				Vec3d center = unprintable_plate.get_center_origin();
-				center.z() = instance->get_transformation().get_offset(Z);
-				instance->set_offset(center);
+				const Vec3d topleft = unprintable_plate.get_topleft_origin();
+				BoundingBoxf3 cur_hull = object->instance_convex_hull_bounding_box(j);
+				const Vec3d cur_off = instance->get_offset();
+				instance->set_offset(Vec3d(cur_off.x() + (topleft.x() - cur_hull.min(0)),
+					cur_off.y() + (topleft.y() - cur_hull.max(1)),
+					cur_off.z()));
 				object->invalidate_bounding_box();
 				BoundingBoxf3 new_bbox = object->instance_convex_hull_bounding_box(j);
 				unprintable_plate.add_instance(i, j, false, &new_bbox);
@@ -5788,9 +5810,12 @@ int PartPlateList::construct_objects_list_for_new_plate(int plate_index)
 			// Re-park sticky-virtual instances first; re-snap to the virtual centre.
 			if (sticky_virtual.count(std::make_pair((int)i, (int)j)))
 			{
-				Vec3d center = unprintable_plate.get_center_origin();
-				center.z() = instance->get_transformation().get_offset(Z);
-				instance->set_offset(center);
+				const Vec3d topleft = unprintable_plate.get_topleft_origin();
+				BoundingBoxf3 cur_hull = object->instance_convex_hull_bounding_box(j);
+				const Vec3d cur_off = instance->get_offset();
+				instance->set_offset(Vec3d(cur_off.x() + (topleft.x() - cur_hull.min(0)),
+					cur_off.y() + (topleft.y() - cur_hull.max(1)),
+					cur_off.z()));
 				object->invalidate_bounding_box();
 				BoundingBoxf3 new_bbox = object->instance_convex_hull_bounding_box(j);
 				unprintable_plate.add_instance(i, j, false, &new_bbox);
@@ -6128,7 +6153,8 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 	{
 		if (arrange_polygon.bed_idx == -1)
 		{
-			// outarea for large object
+			// outarea for large object: reset to the bin-local top-left corner,
+			// then fall through to the normal row/col stride offset below.
 			arrange_polygon.bed_idx = m_plate_list.size();
 			BoundingBox apbox = get_extents(arrange_polygon.transformed_poly());  // the item may have been rotated
 			auto        apbox_size = apbox.size();
