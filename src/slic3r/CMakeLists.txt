@@ -761,7 +761,17 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     FIND_LIBRARY(WAYLAND_EGL_LIBRARIES    NAMES wayland-egl)
     FIND_LIBRARY(WAYLAND_CLIENT_LIBRARIES NAMES wayland-client)
     find_package(CURL REQUIRED)
-    target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES} OSMesa)
+    # Not every distribution still ships libOSMesa: upstream Mesa deprecated the
+    # classic OSMesa build, and on some distributions the only remaining provider
+    # conflicts with the regular mesa package. Link it when it is available and
+    # fall back to the EGL context path below when it is not.
+    FIND_LIBRARY(OSMESA_LIBRARIES NAMES OSMesa)
+    if (OSMESA_LIBRARIES)
+        target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES} ${OSMESA_LIBRARIES})
+    else ()
+        message(STATUS "libOSMesa not found, building without the OSMesa offscreen context")
+        target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES})
+    endif ()
     target_link_libraries(libslic3r_gui
         OpenGL::EGL
         ${WAYLAND_SERVER_LIBRARIES}
