@@ -4211,6 +4211,9 @@ void StatusPanel::update_subtask(MachineObject *obj)
                     image = image.Scale(width, height, wxIMAGE_QUALITY_NORMAL);
                     return wxBitmap(image);
                 };
+                auto get_resource_image_path = [](const std::string &image_name) {
+                    return from_u8((boost::format("%1%/images/%2%.png") % resources_dir() % image_name).str());
+                };
                 wxString png_path = "";
                 int      width    = m_project_task_panel->get_bitmap_thumbnail()->GetSize().x;
                 int      height   = m_project_task_panel->get_bitmap_thumbnail()->GetSize().y;
@@ -4225,17 +4228,17 @@ void StatusPanel::update_subtask(MachineObject *obj)
                                 image_name += "_left";
                             }
                         }
-                        png_path = (boost::format("%1%/images/%2%.png") % resources_dir() % image_name).str();
+                        png_path = get_resource_image_path(image_name);
                     } else if (m_calib_mode == CalibMode::Calib_Flow_Rate) {
-                        png_path = (boost::format("%1%/images/flow_rate_calibration_auto.png") % resources_dir()).str();
+                        png_path = get_resource_image_path("flow_rate_calibration_auto");
                     }
 
                 } else if (m_calib_method == CALI_METHOD_MANUAL) {
                     if (m_calib_mode == CalibMode::Calib_PA_Line) {
                         if (cali_stage == 0) { // Line mode
-                            png_path = (boost::format("%1%/images/fd_calibration_manual.png") % resources_dir()).str();
+                            png_path = get_resource_image_path("fd_calibration_manual");
                         } else if (cali_stage == 1) { // Pattern mode
-                            png_path = (boost::format("%1%/images/fd_pattern_manual_device.png") % resources_dir()).str();
+                            png_path = get_resource_image_path("fd_pattern_manual_device");
                         }
                     }
                 }
