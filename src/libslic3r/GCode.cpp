@@ -2476,7 +2476,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     {
         const bool support_material_on_wipe_tower = print.support_material_on_wipe_tower();
-        file.write_format("; support_material_on_wipe_tower: %s\n", support_material_on_wipe_tower ? "true" : "false");
+        file.write_format("; support_material_on_wipe_tower: %d\n", int(support_material_on_wipe_tower));
     }
 
     file.write_format("; HEADER_BLOCK_END\n\n");
