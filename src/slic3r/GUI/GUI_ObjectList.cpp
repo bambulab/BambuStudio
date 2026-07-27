@@ -2375,6 +2375,9 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
         // Centered around 0, sitting on the print bed.
         // The cylinder has the same volume as the box above.
         mesh = TriangleMesh(its_make_cylinder(0.5 * side, side));
+    else if (type_name == "Hexagonal Prism")
+        // Centered around 0, sitting on the print bed.
+        mesh = TriangleMesh(its_make_cylinder(0.5 * side, side, PI / 3));
     else if (type_name == "Sphere")
         // Centered around 0, half the sphere below the print bed, half above.
         // The sphere has the same volume as the box above.
