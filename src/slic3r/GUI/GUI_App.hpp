@@ -3,7 +3,9 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
+#include "DeepLink.hpp"
 #include "ImGuiWrapper.hpp"
 #include "ConfigWizard.hpp"
 #include "libslic3r/Preset.hpp"
@@ -293,7 +295,9 @@ private:
 #endif
 
 //import model from mall
-    wxString       m_download_file_url;
+    std::optional<RemoteModelDownloadRequest> m_pending_model_download;
+
+    std::optional<RemoteModelDownloadRequest> prepare_model_download_from_deep_link(const std::string &url);
 
 //#ifdef _WIN32
     wxColour        m_color_label_modified;
@@ -537,6 +541,8 @@ public:
     std::string     handle_web_request(std::string cmd);
     void            handle_script_message(std::string msg);
     void            request_model_download(wxString url);
+    void            request_model_download(const RemoteModelDownloadRequest &request);
+    void            handle_studio_deep_link(const std::string &url);
     std::string     sanitize_download_url(const std::string& url);
     void            download_project(std::string project_id);
     void            request_project_download(std::string project_id);
