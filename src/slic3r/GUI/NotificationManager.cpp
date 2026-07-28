@@ -2897,12 +2897,16 @@ void NotificationManager::bbl_close_seqprintinfo_notification()
 void NotificationManager::bbl_show_plugin_install_notification(const std::string &text)
 {
     std::string hyper_text;
-    auto callback = [](wxEvtHandler *) {
-        wxCommandEvent *evt = new wxCommandEvent(EVT_INSTALL_PLUGIN_NETWORKING);
-        wxQueueEvent(wxGetApp().plater(), evt);
-        return false;
-    };
-    hyper_text =  _u8L(" Click here to install it.");
+    std::function<bool(wxEvtHandler *)> callback;
+    // Without a plug-in published for this architecture there is nothing to offer installing.
+    if (GUI_App::is_networking_plugin_available()) {
+        callback = [](wxEvtHandler *) {
+            wxCommandEvent *evt = new wxCommandEvent(EVT_INSTALL_PLUGIN_NETWORKING);
+            wxQueueEvent(wxGetApp().plater(), evt);
+            return false;
+        };
+        hyper_text = _u8L(" Click here to install it.");
+    }
     NotificationData data{NotificationType::BBLPluginInstallHint, NotificationLevel::WarningNotificationLevel, 0, text, hyper_text, callback};
 
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {

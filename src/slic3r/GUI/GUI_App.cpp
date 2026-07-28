@@ -1600,6 +1600,11 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
     json j;
     std::string err_msg;
 
+    if (name == "plugins" && !is_networking_plugin_available()) {
+        BOOST_LOG_TRIVIAL(info) << "[download_plugin]: no networking plug-in is published for this architecture, skip the download";
+        return -1;
+    }
+
     // get country_code
     AppConfig* app_config = wxGetApp().app_config;
     if (!app_config) {
@@ -1788,6 +1793,11 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
 {
     bool cancel = false;
     std::string target_file_path = (fs::temp_directory_path() / package_name).string();
+
+    if (name == "plugins" && !is_networking_plugin_available()) {
+        BOOST_LOG_TRIVIAL(info) << "[install_plugin]: no networking plug-in is published for this architecture, skip the install";
+        return -1;
+    }
 
     BOOST_LOG_TRIVIAL(info) << "[install_plugin] enter";
     // get plugin folder
@@ -3638,6 +3648,9 @@ bool GUI_App::on_init_network(bool try_backup)
 {
     int  load_agent_dll       = Slic3r::NetworkAgent::initialize_network_module(false, !app_config->get_bool("ignore_module_cert"));
     bool create_network_agent = false;
+    // Never offer to re-download the plug-in when none is published for this architecture,
+    // otherwise the download is retried on every start and can never succeed.
+    const bool may_update_plugin = is_networking_plugin_available() && app_config->get("installed_networking") == "1";
 __retry:
     if (!load_agent_dll) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll ok";
@@ -3647,7 +3660,7 @@ __retry:
             if (!bambu_source) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": can not get bambu source module!";
                 m_networking_compatible = false;
-                if (app_config->get("installed_networking") == "1") {
+                if (may_update_plugin) {
                     m_networking_need_update = true;
                 }
             }
@@ -3662,13 +3675,13 @@ __retry:
                 goto __retry;
             }
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, version dismatch, need upload network module";
-            if (app_config->get("installed_networking") == "1") {
+            if (may_update_plugin) {
                 m_networking_need_update = true;
             }
         }
     } else {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, load dll failed";
-        if (app_config->get("installed_networking") == "1") {
+        if (may_update_plugin) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_init_network, need upload network module";
             m_networking_need_update = true;
         }
@@ -4322,6 +4335,13 @@ void GUI_App::ShowUserGuide() {
 
 void GUI_App::ShowDownNetPluginDlg(bool post_login)
 {
+    if (!is_networking_plugin_available()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": no networking plug-in is published for this architecture, nothing to install";
+        show_info(static_cast<wxWindow *>(mainframe),
+                  _L("The Bambu Network Plug-in is not available for this processor architecture, so network related features are unavailable."),
+                  _L("Network Plug-in unavailable"));
+        return;
+    }
     try {
         auto iter = std::find_if(dialogStack.begin(), dialogStack.end(), [](auto dialog) {
             return dynamic_cast<DownloadProgressDialog *>(dialog) != nullptr;

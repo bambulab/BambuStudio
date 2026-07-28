@@ -1164,6 +1164,10 @@ bool PresetUpdater::priv::get_cached_plugins_version(std::string& cached_version
 
 void PresetUpdater::priv::sync_plugins(std::string http_url, std::string plugin_version)
 {
+    if (!GUI::GUI_App::is_networking_plugin_available()) {
+        BOOST_LOG_TRIVIAL(info) << "no need to sync plugins, none is published for this architecture.";
+        return;
+    }
     if (plugin_version == "00.00.00.00") {
         BOOST_LOG_TRIVIAL(info) << "non need to sync plugins for there is no plugins currently.";
         return;
