@@ -6518,7 +6518,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     struct SearcherModeGuard {
         ~SearcherModeGuard() { wxGetApp().sidebar().update_searcher(); }
     } searcher_mode_guard;
-    wxGetApp().sidebar().update_searcher(comAdvanced);
+    wxGetApp().sidebar().update_searcher(comDevelop);
 
     UnsavedChangesDialog dlg(m_type, presets, new_printer_name, no_transfer);
 
