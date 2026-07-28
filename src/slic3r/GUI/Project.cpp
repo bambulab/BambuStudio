@@ -63,7 +63,7 @@ ProjectPanel::ProjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, 
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_browser = WebView::CreateWebView(this, m_project_home_url);
+    m_browser = WebView::CreateWebView(this, m_project_home_url, "Project");
     if (m_browser == nullptr) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("load web view of project page failed");
         return;

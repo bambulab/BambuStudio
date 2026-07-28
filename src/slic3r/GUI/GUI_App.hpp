@@ -782,6 +782,11 @@ public:
 
     void update_log_sink_region();
 
+    // Apply a "severity_level" string (fatal/error/warning/info/debug/trace) to
+    // both the Boost.Log and wx logging verbosity, keeping them in sync. Single
+    // entry point used at init and by the preference combobox.
+    void set_severity_level(const std::string &level);
+
 private:
     int             updating_bambu_networking();
     bool            on_init_inner();

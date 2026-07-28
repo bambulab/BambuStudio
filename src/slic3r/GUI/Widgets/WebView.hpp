@@ -6,8 +6,8 @@
 class WebView
 {
 public:
-    static wxWebView *CreateWebView(wxWindow *parent, wxString const &url);
-    
+    static wxWebView *CreateWebView(wxWindow *parent, wxString const &url, wxString const &name = wxEmptyString);
+
     static void LoadUrl(wxWebView * webView, wxString const &url);
 
     static bool RunScript(wxWebView * webView, wxString const & msg);

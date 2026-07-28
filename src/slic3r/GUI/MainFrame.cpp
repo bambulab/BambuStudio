@@ -52,6 +52,7 @@
 #include <string_view>
 
 #include "GUI_App.hpp"
+#include "slic3r/GUI/PerfTrace.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "MsgDialog.hpp"
 #include "Notebook.hpp"
@@ -221,6 +222,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     , m_settings_dialog(this)
     , diff_dialog(this)
 {
+    PERF_TRACE("Creating main window");
+
 #ifdef __WXOSX__
     set_miniaturizable(GetHandle());
 #endif
@@ -245,12 +248,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     long max_recent_count = 18;
     if (max_recent_count_str.ToLong(&max_recent_count))
         set_max_recent_count((int)max_recent_count);
-
-    //reset log level
-    auto loglevel = wxGetApp().app_config->get("severity_level");
-    std::map<std::string, int> wx_log_levels{{"fatal", wxLOG_FatalError}, {"error", wxLOG_FatalError}, {"warning", wxLOG_Warning},
-                                             {"info", wxLOG_Info},        {"debug", wxLOG_Debug},      {"trace", wxLOG_Trace}};
-    wxLog::SetLogLevel(wx_log_levels[loglevel]);
 
     // BBS
     m_recent_projects.SetMenuPathStyle(wxFH_PATH_SHOW_ALWAYS);
@@ -457,20 +454,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
     // BBS: fix taskbar overlay on windows
 #ifdef WIN32
-    auto setMaxSize = [this]() {
-        wxDisplay display(this);
-        auto size = display.GetClientArea().GetSize();
-        HWND      hWnd = GetHandle();
-        RECT      borderThickness;
-        SetRectEmpty(&borderThickness);
-        AdjustWindowRectEx(&borderThickness, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
-        SetMaxSize(size + wxSize{-borderThickness.left + borderThickness.right, -borderThickness.top + borderThickness.bottom});
-    };
-    this->Bind(wxEVT_DPI_CHANGED, [setMaxSize](auto & e) {
-        setMaxSize();
-        e.Skip();
-        });
-    setMaxSize();
     // SetMaximize already position window at left/top corner, even if Windows Task Bar is at left side.
     // Not known why, but fix it here
     this->Bind(wxEVT_MAXIMIZE, [this](auto &e) {
@@ -1461,7 +1444,7 @@ void MainFrame::init_tabpanel()
     });
 
     if (wxGetApp().is_editor()) {
-        m_webview         = new WebViewPanel(m_tabpanel);
+        m_webview = new WebViewPanel(m_tabpanel);
         Bind(EVT_LOAD_URL, [this](wxCommandEvent &evt) {
             wxString url = evt.GetString();
             select_tab(MainFrame::tpHome);
@@ -4163,6 +4146,25 @@ void MainFrame::jump_to_multipage()
     ((MultiMachinePage*)m_multi_machine)->jump_to_send_page();
 }
 
+// Readable name for a tab index, for perf tracing.
+static const char *perf_tab_name(size_t tab)
+{
+    switch (tab) {
+    case MainFrame::tpHome: return "Home";
+    case MainFrame::tp3DEditor: return "3D Editor";
+    case MainFrame::tpPreview: return "Preview";
+    case MainFrame::tpMonitor: return "Device";
+    case MainFrame::tpMultiDevice: return "Multi-device";
+    case MainFrame::tpProject: return "Project";
+    case MainFrame::tpCalibration: return "Calibration";
+    case MainFrame::tpAuxiliary: return "Auxiliary";
+    case MainFrame::toDebugTool: return "Debug Tool";
+    case MainFrame::tpFilamentManager: return "Filament Manager";
+    case MainFrame::tpWebDevice: return "Web Device";
+    case size_t(-1): return "last selected";
+    default: return "unknown";
+    }
+}
 
 //BBS GUI refactor: remove unused layout new/dlg
 void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
@@ -4196,6 +4198,7 @@ void MainFrame::select_tab(size_t tab/* = size_t(-1)*/)
         }
     };
 
+    PERF_TRACE(std::string("Switching to ") + perf_tab_name(tab) + " tab");
     select(false);
 }
 

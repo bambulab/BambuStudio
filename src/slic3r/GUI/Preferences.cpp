@@ -552,7 +552,7 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxW
     // save config
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
         auto level = Slic3r::get_string_logging_level(e.GetSelection());
-        Slic3r::set_logging_level(Slic3r::level_string_to_boost(level));
+        wxGetApp().set_severity_level(level);
         app_config->set("severity_level",level);
         app_config->save();
         e.Skip();

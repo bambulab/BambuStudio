@@ -295,7 +295,42 @@ wxString WebView::BuildEdgeUserDataPath()
 #endif
 }
 
-wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
+void on_webview_evt(wxWebView *webview)
+{
+    webview->Bind(wxEVT_WEBVIEW_NAVIGATING, [webview](wxWebViewEvent &e) {
+        wxLogMessage("NAVIGATING: %s", e.GetURL());
+        BOOST_LOG_TRIVIAL(info) << webview->GetName() << " [WebView] navigating " << e.GetURL();
+        e.Skip();
+    });
+
+    webview->Bind(wxEVT_WEBVIEW_NAVIGATED, [webview](wxWebViewEvent &e) {
+        BOOST_LOG_TRIVIAL(info) << webview->GetName() << " [WebView] navigated: " << e.GetURL();
+        e.Skip();
+    });
+
+    webview->Bind(wxEVT_WEBVIEW_LOADED, [webview](wxWebViewEvent &e) {
+        BOOST_LOG_TRIVIAL(info) << webview->GetName() << " [WebView] loaded: " << e.GetURL();
+        e.Skip();
+    });
+
+    webview->Bind(wxEVT_WEBVIEW_ERROR, [webview](wxWebViewEvent &e) {
+        BOOST_LOG_TRIVIAL(info) << webview->GetName()
+                                << wxString::Format(" [WebView] error: url=%s, code=%d, description=%s", e.GetURL(), static_cast<int>(e.GetInt()), e.GetString().utf8_string());
+        e.Skip();
+    });
+
+    webview->Bind(wxEVT_WEBVIEW_TITLE_CHANGED, [webview](wxWebViewEvent &e) {
+        BOOST_LOG_TRIVIAL(info) << webview->GetName() << wxString::Format(" [WebView] title changed: %s", e.GetString().utf8_string());
+        e.Skip();
+    });
+
+    webview->Bind(wxEVT_WEBVIEW_NEWWINDOW, [webview](wxWebViewEvent &e) {
+        BOOST_LOG_TRIVIAL(info) << webview->GetName() << wxString::Format(" [WebView] new window: %s", e.GetString());
+        e.Skip();
+    });
+}
+
+wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxString const &name)
 {
 #if wxUSE_WEBVIEW_EDGE
     // Check if a fixed version of edge is present in
@@ -330,6 +365,8 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     auto webView = wxWebView::New();
 #endif
     if (webView) {
+        on_webview_evt(webView);
+
         webView->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
 
         wxString language_code = Slic3r::GUI::wxGetApp().current_language_code().BeforeFirst('_');
@@ -339,6 +376,7 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
                                                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.52 BBL-Slicer/v%s (%s) BBL-Language/%s",
                                                SLIC3R_VERSION, Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light", language_code.mb_str()));
         webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        if (!name.empty()) webView->SetName(name);
         // We register the wxfs:// protocol for testing purposes
         webView->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("bbl")));
         // And the memory: file system

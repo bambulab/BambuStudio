@@ -4,6 +4,7 @@
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/PerfTrace.hpp"
 #include "libslic3r_version.h"
 #include "../Utils/Http.hpp"
 
@@ -83,38 +84,40 @@ namespace GUI {
 WebViewPanel::WebViewPanel(wxWindow *parent)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
-    m_Region = wxGetApp().app_config->get_country_code();
-    m_loginstatus = -1;
+     PERF_TRACE("Creating WebViewPanel");
 
-    // Connect the webview events
-    Bind(wxEVT_WEBVIEW_NAVIGATING, &WebViewPanel::OnNavigationRequest, this);
-    Bind(wxEVT_WEBVIEW_NAVIGATED, &WebViewPanel::OnNavigationComplete, this);
-    Bind(wxEVT_WEBVIEW_LOADED, &WebViewPanel::OnDocumentLoaded, this);
-    Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &WebViewPanel::OnTitleChanged, this);
-    Bind(wxEVT_WEBVIEW_ERROR, &WebViewPanel::OnError, this);
-    Bind(wxEVT_WEBVIEW_NEWWINDOW, &WebViewPanel::OnNewWindow, this);
-    Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &WebViewPanel::OnScriptMessage, this);
-    Bind(EVT_RESPONSE_MESSAGE, &WebViewPanel::OnScriptResponseMessage, this);
+     m_Region      = wxGetApp().app_config->get_country_code();
+     m_loginstatus = -1;
 
-    wxString UrlLeft  = wxString::Format("file://%s/web/homepage3/left.html", from_u8(resources_dir()));
-    wxString UrlRight = wxString::Format("file://%s/web/homepage3/home.html", from_u8(resources_dir()));
-    wxString UrlWiki  = wxString::Format("file://%s/web/homepage3/wiki.html", from_u8(resources_dir()));
-    wxString wiki_region_param;
+     // Connect the webview events
+     Bind(wxEVT_WEBVIEW_NAVIGATING, &WebViewPanel::OnNavigationRequest, this);
+     Bind(wxEVT_WEBVIEW_NAVIGATED, &WebViewPanel::OnNavigationComplete, this);
+     Bind(wxEVT_WEBVIEW_LOADED, &WebViewPanel::OnDocumentLoaded, this);
+     Bind(wxEVT_WEBVIEW_TITLE_CHANGED, &WebViewPanel::OnTitleChanged, this);
+     Bind(wxEVT_WEBVIEW_ERROR, &WebViewPanel::OnError, this);
+     Bind(wxEVT_WEBVIEW_NEWWINDOW, &WebViewPanel::OnNewWindow, this);
+     Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &WebViewPanel::OnScriptMessage, this);
+     Bind(EVT_RESPONSE_MESSAGE, &WebViewPanel::OnScriptResponseMessage, this);
+
+     wxString UrlLeft  = wxString::Format("file://%s/web/homepage3/left.html", from_u8(resources_dir()));
+     wxString UrlRight = wxString::Format("file://%s/web/homepage3/home.html", from_u8(resources_dir()));
+     wxString UrlWiki  = wxString::Format("file://%s/web/homepage3/wiki.html", from_u8(resources_dir()));
+     wxString wiki_region_param;
     if (!m_Region.empty())
         wiki_region_param = wxString::Format("region=%s", from_u8(m_Region));
     if (!wiki_region_param.empty())
         UrlWiki = wxString::Format("file://%s/web/homepage3/wiki.html?%s", from_u8(resources_dir()), wiki_region_param);
 
-    wxString strlang = GetStudioLanguage();
+     wxString strlang = GetStudioLanguage();
     if (strlang != "")
     {
         UrlLeft = wxString::Format("file://%s/web/homepage3/left.html?lang=%s", from_u8(resources_dir()), strlang);
-        UrlRight = wxString::Format("file://%s/web/homepage3/home.html?lang=%s", from_u8(resources_dir()), strlang);
-        if (!wiki_region_param.empty())
-            UrlWiki = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s&%s", from_u8(resources_dir()), strlang, wiki_region_param);
-        else
-            UrlWiki = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s", from_u8(resources_dir()), strlang);
-    }
+         UrlRight = wxString::Format("file://%s/web/homepage3/home.html?lang=%s", from_u8(resources_dir()), strlang);
+         if (!wiki_region_param.empty())
+             UrlWiki = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s&%s", from_u8(resources_dir()), strlang, wiki_region_param);
+         else
+             UrlWiki = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s", from_u8(resources_dir()), strlang);
+     }
 
     topsizer = new wxBoxSizer(wxVERTICAL);
 
@@ -210,7 +213,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
 
     // LeftMenu webview
     m_leftfirst   = false;
-    m_browserLeft = WebView::CreateWebView(this, UrlLeft);
+    m_browserLeft = WebView::CreateWebView(this, UrlLeft, "LeftMenu");
     if (m_browserLeft == nullptr) {
         wxLogError("Could not init m_browser");
         return;
@@ -220,14 +223,14 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_browserLeft->SetMaxSize(wxSize(FromDIP(224), -1));
 
     // Create the webview
-    m_browser = WebView::CreateWebView(this, UrlRight);
+    m_browser = WebView::CreateWebView(this, UrlRight, "Home");
     if (m_browser == nullptr) {
         wxLogError("Could not init m_browser");
         return;
     }
 
     // Makerworld webview
-    m_browserMW = WebView::CreateWebView(m_online_container, "about:blank");
+    m_browserMW = WebView::CreateWebView(m_online_container, "about:blank", "Makerworld");
     if (m_browserMW == nullptr) {
         wxLogError("Could not init  m_browserMW");
         return;
@@ -237,7 +240,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_onlinefirst    = false;
 
     // MakerLab webview
-    m_browserML = WebView::CreateWebView(m_online_container, "about:blank");
+    m_browserML = WebView::CreateWebView(m_online_container, "about:blank", "MakerLab");
     if (m_browserML == nullptr) {
         wxLogError("Could not init  m_browserML");
         return;
@@ -247,7 +250,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_MakerLabFirst = false;
 
     // PrintHistory webview
-    m_browserPH = WebView::CreateWebView(this, "about:blank");
+    m_browserPH = WebView::CreateWebView(this, "about:blank", "PrintHistory");
     if (m_browserPH == nullptr) {
         wxLogError("Could not init  m_browserPH");
         return;
@@ -257,7 +260,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_printhistoryfirst = false;
 
     // Wiki webview
-    m_browserWiki = WebView::CreateWebView(this, UrlWiki);
+    m_browserWiki = WebView::CreateWebView(this, UrlWiki, "Wiki");
     if (m_browserWiki == nullptr) {
         wxLogError("Could not init  m_browserWiki");
         return;
@@ -1671,14 +1674,13 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
     */
 void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
 {
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetTarget().ToUTF8().data();
     wxString wurl = evt.GetURL();
     // Only notify if the document is the main frame, not a subframe
-    if (m_browser!=nullptr && evt.GetId() == m_browser->GetId()) {
+    if (m_browser != nullptr && evt.GetId() == m_browser->GetId()) {
+        wxString name = GetName();
+        perf_mark((name.IsEmpty() ? std::string("WebView") : name.ToStdString()) + " loaded");
         if (wxGetApp().get_mode() == comDevelop) wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
-    }
-    else if (m_browserLeft!=nullptr && evt.GetId() == m_browserLeft->GetId())
-    {
+    } else if (m_browserLeft != nullptr && evt.GetId() == m_browserLeft->GetId()) {
         m_leftfirst = true;
     }
 
@@ -2003,7 +2005,6 @@ void WebViewPanel::OnSelectAll(wxCommandEvent& WXUNUSED(evt))
     */
 void WebViewPanel::OnError(wxWebViewEvent& evt)
 {
-    //BOOST_LOG_TRIVIAL(info) << "HomePage OnError, Url = " << evt.GetURL() << " , Message: "<<evt.GetString();
 
 #define WX_ERROR_CASE(type) \
     case type: \
@@ -2023,7 +2024,7 @@ void WebViewPanel::OnError(wxWebViewEvent& evt)
         WX_ERROR_CASE(wxWEBVIEW_NAV_ERR_OTHER);
     }
 
-    BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": [" << category << "] " << evt.GetString().ToUTF8().data();
+    BOOST_LOG_TRIVIAL(warning) << "WebViewPanel got error: " << "[" << category << "] " << evt.GetString().ToUTF8().data();
 
     if (wxGetApp().get_mode() == comDevelop)
     {

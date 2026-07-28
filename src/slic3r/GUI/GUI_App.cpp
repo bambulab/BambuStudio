@@ -7,8 +7,10 @@
 #include "slic3r/GUI/UserManager.hpp"
 #include "slic3r/GUI/TaskManager.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
+#include "slic3r/GUI/PerfTrace.hpp"
 #include "format.hpp"
 #include <wx/language.h>
+#include <wx/string.h>
 #include <wx/weakref.h>
 
 // Localization headers: include libslic3r version first so everything in this file
@@ -1442,6 +1444,8 @@ GUI_App::GUI_App()
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
+    perf_mark("Application started");
+
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
     this->init_app_config();
     if (app_config) {
@@ -2915,9 +2919,24 @@ void GUI_App::emit_fila_debug_log(const std::string& category,
 
 class wxBoostLog : public wxLog
 {
-    void DoLogText(const wxString &msg) override {
-
-        BOOST_LOG_TRIVIAL(warning) << msg.ToUTF8().data();
+    // Forward each wx log record to Boost.Log preserving its original
+    // severity, instead of collapsing everything to warning. All wx messages
+    // are tagged with a "[wx]" prefix so they can be told apart from native
+    // Boost.Log output.
+    void DoLogTextAtLevel(wxLogLevel level, const wxString &msg) override
+    {
+        const std::string text = "[wx] " + std::string(msg.ToUTF8().data());
+        switch (level) {
+        case wxLOG_FatalError: BOOST_LOG_TRIVIAL(fatal) << text; break;
+        case wxLOG_Error: BOOST_LOG_TRIVIAL(error) << text; break;
+        case wxLOG_Warning: BOOST_LOG_TRIVIAL(warning) << text; break;
+        case wxLOG_Message:
+        case wxLOG_Status:
+        case wxLOG_Info: BOOST_LOG_TRIVIAL(info) << text; break;
+        case wxLOG_Debug: BOOST_LOG_TRIVIAL(debug) << text; break;
+        case wxLOG_Trace: BOOST_LOG_TRIVIAL(trace) << text; break;
+        default: BOOST_LOG_TRIVIAL(info) << text; break;
+        }
     }
     ~wxBoostLog() override
     {
@@ -2927,6 +2946,26 @@ class wxBoostLog : public wxLog
         wxLog::SetActiveTarget(t);
     }
 };
+
+// Map the "severity_level" app-config string (the same value driven by the
+// preference combobox and Slic3r::set_logging_level) to a wx log level, so the
+// wx logging verbosity stays in sync with the Boost.Log verbosity.
+static wxLogLevel severity_level_to_wx(const std::string &level)
+{
+    if (level == "fatal") return wxLOG_FatalError;
+    if (level == "error") return wxLOG_Error;
+    if (level == "warning") return wxLOG_Warning;
+    if (level == "info") return wxLOG_Info;
+    if (level == "debug") return wxLOG_Debug;
+    if (level == "trace") return wxLOG_Trace;
+    return wxLOG_Info;
+}
+
+void GUI_App::set_severity_level(const std::string &level)
+{
+    Slic3r::set_logging_level(Slic3r::level_string_to_boost(level));
+    wxLog::SetLogLevel(severity_level_to_wx(level));
+}
 
 // Populate process-wide live-view track context (client + session).
 // Called once during GUI_App::OnInit, before any tunnel-using code can emit
@@ -2988,10 +3027,9 @@ std::string get_system_info()
 
 bool GUI_App::on_init_inner()
 {
+    PERF_TRACE("Initializing application");
     wxLog::SetActiveTarget(new wxBoostLog());
-#if BBL_RELEASE_TO_PUBLIC
-    wxLog::SetLogLevel(wxLOG_Message);
-#endif
+    set_severity_level(app_config->get("severity_level"));
 
     //set preset text
     auto preset_path = fs::path(Slic3r::data_dir()) / PRESET_SYSTEM_DIR;
@@ -3457,7 +3495,7 @@ bool GUI_App::on_init_inner()
     }
     else
         load_current_presets();
-
+    
     if (plater_ != nullptr) {
         plater_->reset_project_dirty_initial_presets();
         plater_->update_project_dirty_from_presets();
@@ -3470,6 +3508,7 @@ bool GUI_App::on_init_inner()
 #endif
     mainframe->Show(true);
     BOOST_LOG_TRIVIAL(info) << "main frame firstly shown";
+    perf_mark("Main window shown");
 
 //#if BBL_HAS_FIRST_PAGE
     //BBS: set tp3DEditor firstly
@@ -7385,6 +7424,8 @@ bool GUI_App::checked_tab(Tab* tab)
 //BBS: add preset combo box re-activate logic
 void GUI_App::load_current_presets(bool active_preset_combox/*= false*/, bool check_printer_presets_ /*= true*/)
 {
+    PERF_TRACE("Loading presets");
+
     // check printer_presets for the containing information about "Print Host upload"
     // and create physical printer from it, if any exists
     if (check_printer_presets_)
