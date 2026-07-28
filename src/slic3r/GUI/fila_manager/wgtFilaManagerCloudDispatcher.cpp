@@ -64,104 +64,6 @@ std::string cloud_spool_id_from_response(const nlohmann::json& resp)
     return {};
 }
 
-// 判断 patch 是否修改了 identity 字段（"这卷是什么料"的定义性属性）。
-// 命中任一 → 视为耗材本体变了，与该 spool 绑定的 AMS 槽位需要打回未识别态。
-// 与 slot_pin_still_valid 保持同一口径：setting_id / brand / material_type /
-// series / color_code / colors[0]。
-bool patch_touches_identity(const nlohmann::json& patch, const FilamentSpool& old)
-{
-    if (!patch.is_object()) return false;
-
-    auto str_changed = [&](const char* key, const std::string& old_val) {
-        if (!patch.contains(key)) return false;
-        const auto& v = patch.at(key);
-        if (v.is_null() || !v.is_string()) return false;
-        return v.get<std::string>() != old_val;
-    };
-    auto normalize_color = [](const std::string& c) {
-        std::string s = c;
-        if (!s.empty() && s[0] == '#') s = s.substr(1);
-        if (s.size() == 8) s = s.substr(0, 6);
-        for (auto& ch : s) ch = static_cast<char>(toupper(static_cast<unsigned char>(ch)));
-        return s;
-    };
-    auto color_str_changed = [&](const char* key, const std::string& old_val) {
-        if (!patch.contains(key)) return false;
-        const auto& v = patch.at(key);
-        if (v.is_null() || !v.is_string()) return false;
-        return normalize_color(v.get<std::string>()) != normalize_color(old_val);
-    };
-
-    if (str_changed("setting_id",    old.setting_id))    return true;
-    if (str_changed("brand",         old.brand))         return true;
-    if (str_changed("material_type", old.material_type)) return true;
-    if (str_changed("series",        old.series))        return true;
-    if (color_str_changed("color_code", old.color_code)) return true;
-
-    // 多色卷：主色（colors[0]）变化也算 identity 变。
-    if (patch.contains("colors") && patch.at("colors").is_array()
-        && !patch.at("colors").empty()
-        && patch.at("colors").front().is_string()) {
-        const std::string new_head = patch.at("colors").front().get<std::string>();
-        const std::string old_head = old.colors.empty() ? std::string{} : old.colors.front();
-        if (normalize_color(new_head) != normalize_color(old_head)) return true;
-    }
-    return false;
-}
-
-// 向打印机发 tray 清空命令，使对应 AMS 槽位还原为 "?" 状态。
-// 与 AMSMaterialsSetting::on_select_reset / MachineObject::check_ams_filament_valid 同款
-// wire payload：空 filament_id / setting_id / tray_type，白色透明兜底色 "FFFFFFFF00"，
-// 温度 0/0。打印机据此把 tray_info_idx/tray_type 清空，is_tray_info_ready() 返回 false，
-// widget 画 "?"，并在下轮 sync 中被 apply_mount_diff 清 in_printer 系列字段。
-// 设备离线时静默跳过。
-void reset_bound_tray(const std::string& dev_id, int ams_id, int slot_id_int)
-{
-    auto* mgr = wxGetApp().getDeviceManager();
-    if (!mgr) return;
-    MachineObject* obj = mgr->get_my_machine(dev_id);
-    if (!obj || !obj->is_online()) return;
-
-    BOOST_LOG_TRIVIAL(info)
-        << "[CloudDispatcher] reset bound tray"
-        << " dev_id="  << dev_id
-        << " ams_id="  << ams_id
-        << " slot_id=" << slot_id_int;
-
-    obj->command_ams_filament_settings(ams_id, slot_id_int,
-        /*filament_id*/std::string{},
-        /*setting_id*/ std::string{},
-        /*tray_color*/ std::string("FFFFFFFF00"),
-        /*tray_type*/  std::string{},
-        /*nozzle_temp_min*/0,
-        /*nozzle_temp_max*/0);
-}
-
-// identity 变更时，若该 spool 当前绑定在某台在线设备的 AMS 槽位上，
-// 调用 reset_bound_tray 还原槽位为 "?"，离线/未在位时静默跳过。
-void maybe_reset_bound_tray_on_identity_change(
-    const std::string& spool_id, const nlohmann::json& local_patch)
-{
-    auto* store = wxGetApp().fila_manager_store();
-    if (!store) return;
-
-    const FilamentSpool* old = store->get_spool(spool_id);
-    if (!old) return;
-    if (!old->in_printer) return;
-    if (old->dev_id.empty()) return;
-    if (old->ams_id < 0) return;
-    if (old->slot_id.empty()) return;
-    if (!patch_touches_identity(local_patch, *old)) return;
-
-    int slot_id_int = -1;
-    try { slot_id_int = std::stoi(old->slot_id); } catch (...) { return; }
-
-    BOOST_LOG_TRIVIAL(info)
-        << "[CloudDispatcher] identity changed, reset bound tray spool_id=" << spool_id;
-
-    reset_bound_tray(old->dev_id, old->ams_id, slot_id_int);
-}
-
 } // namespace
 
 // ---------------------------------------------------------------------------
@@ -459,10 +361,6 @@ void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_
         [this, spool_id, local_patch](const nlohmann::json& /*resp*/) {
             wxTheApp->CallAfter([this, spool_id, local_patch]() {
                 BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_update ok " << spool_id;
-                // 在 apply_patch 覆盖字段之前抓 identity diff：apply_patch 之后
-                // store 里的 spool 已经是新值，与 patch 相同，无法再判定"是否变
-                // 化"。检查基于 old 值 + patch，命中则给打印机发 tray 清空命令。
-                maybe_reset_bound_tray_on_identity_change(spool_id, local_patch);
                 if (auto* store = wxGetApp().fila_manager_store()) {
                     store->apply_patch(spool_id, local_patch);
                     store->mark_synced(spool_id, true);
@@ -546,21 +444,6 @@ void wgtFilaManagerCloudDispatcher::run_push_delete_op(const std::vector<std::st
                 BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_delete ok";
                 if (auto* store = wxGetApp().fila_manager_store()) {
                     for (const auto& spool_id : spool_ids) {
-                        // 仅无 RFID 的手动录入卷（tag_uid 空/全零）在位时才发
-                        // MQTT 清空 tray：官方 RFID 卷的在位状态由 MQTT sync
-                        // 自动维护，不需要此路径；删除操作不再发云端解绑，因为
-                        // 云端 DELETE 会自动清理 slot-mapping。
-                        const FilamentSpool* sp = store->get_spool(spool_id);
-                        if (sp && sp->in_printer
-                            && !sp->dev_id.empty()
-                            && sp->ams_id >= 0
-                            && !sp->slot_id.empty()
-                            && !FilamentSpool::is_valid_tag_uid(sp->tag_uid)) {
-                            int slot_id_int = -1;
-                            try { slot_id_int = std::stoi(sp->slot_id); } catch (...) {}
-                            if (slot_id_int >= 0)
-                                reset_bound_tray(sp->dev_id, sp->ams_id, slot_id_int);
-                        }
                         store->remove_spool(spool_id);
                     }
                 }

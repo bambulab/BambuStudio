@@ -116,39 +116,6 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
             return;
         }
 
-        // 可编辑槽（无官方 RFID）重新插入检测：固件会回放上次通过
-        // ams_filament_setting 设置的 tray_info_idx/tray_type/tray_color，导致
-        // 槽位显示旧料而非 "?"。检测到 false→true 跳变时立即发清空命令。
-        {
-            const bool was_exists = [&]() {
-                auto it = m_prev_tray_exists.find(tray_key);
-                return it != m_prev_tray_exists.end() && it->second;
-            }();
-            m_prev_tray_exists[tray_key] = true;
-
-            const bool is_editable_slot =
-                !DevFilaSystem::IsBBL_Filament(tray.tag_uid)
-                && !FilamentSpool::is_valid_tag_uid(tray.uuid);
-
-            if (!was_exists && is_editable_slot) {
-                int ams_id_int  = -1;
-                int slot_id_int = -1;
-                try { ams_id_int  = std::stoi(ams_id);  } catch (...) {}
-                try { slot_id_int = std::stoi(tray.id); } catch (...) {}
-                if (ams_id_int >= 0 && slot_id_int >= 0) {
-                    auto* mgr = wxGetApp().getDeviceManager();
-                    if (MachineObject* obj_ptr = mgr ? mgr->get_my_machine(dev_id) : nullptr)
-                        obj_ptr->command_ams_filament_settings(
-                            ams_id_int, slot_id_int,
-                            std::string{}, std::string{},
-                            std::string("FFFFFFFF00"), std::string{}, 0, 0);
-                    BOOST_LOG_TRIVIAL(info)
-                        << "[ams-sync] editable slot re-inserted, reset to '?'"
-                        << " ams_id=" << ams_id << " slot_id=" << tray.id;
-                }
-            }
-        }
-
         if (tray.setting_id.empty() && tray.tag_uid.empty()) return;
 
         const FilamentSpool* matched = match_tray(tray, dev_id, ams_id);
