@@ -62,13 +62,14 @@ namespace Slic3r
         return h;
     }
 
+    // 冲刷体积(mm^3)折算成时间等价分(秒)：体积→质量(密度/1000)→冲刷耗时(速度)→×2修正
+    // evaluate_score 与 calc_one_change_budget 共用，避免两处系数漂移
+    static constexpr double FLUSH_VOLUME_TO_SCORE = 1.26 /*密度g/cm^3*/ * 180.0 /*冲刷s/g*/ * 2.0 /*修正*/ / 1000.0; // == 0.4536
+
     static double evaluate_score(const double flush, const double time, const bool with_time = false) {
         if (!with_time) return flush;
 
-        double approx_density = 1.26;    //   g/cm^3
-        double approx_flush_speed = 180; //   s/g
-        double correction_factor = 2;
-        double flush_score = flush * approx_density * approx_flush_speed * correction_factor / 1000;
+        double flush_score = flush * FLUSH_VOLUME_TO_SCORE;
         return flush_score + time;
     }
 
@@ -203,6 +204,33 @@ namespace Slic3r
         return total / std::max(dedup_factor, 1);
     }
 
+    double FilamentGroup::calc_one_change_budget(const std::vector<unsigned int>& used_filaments) const
+    {
+        // “一次换料”预算：对所有已用料两两组合，各取“较贵方向”的 flush，再取中位数作为
+        // “典型一次换料”的代价。中位数天然对个别极端色对（如纯黑↔纯白）免疫，随调色板自适应：
+        // 暗↔亮预算大、近似色预算小。最后折算到与 evaluate_score 相同的分数尺度。
+        // 空/单料/零矩阵时返回 0，退回 update_memoryed_groups 里的绝对/相对下限兜底。
+        const size_t n = used_filaments.size();
+        if (n < 2 || ctx.model_info.flush_matrix.empty())
+            return 0.0;
+
+        std::vector<float> pair_flush;
+        for (const auto& fm : ctx.model_info.flush_matrix)
+            for (size_t i = 0; i < n; ++i)
+                for (size_t j = i + 1; j < n; ++j)
+                    pair_flush.push_back(std::max(fm[used_filaments[i]][used_filaments[j]],
+                                                  fm[used_filaments[j]][used_filaments[i]]));
+        if (pair_flush.empty())
+            return 0.0;
+
+        const size_t mid = pair_flush.size() / 2;
+        std::nth_element(pair_flush.begin(), pair_flush.begin() + mid, pair_flush.end());
+        const double typical_flush = pair_flush[mid];
+
+        constexpr double kOneChangeMargin = 1.2; // 留余量，保证完整一次换料仍在容忍度内
+        return typical_flush * FLUSH_VOLUME_TO_SCORE * kOneChangeMargin;
+    }
+
     std::vector<int> FilamentGroup::calc_group_by_enum(
         int k,
         const std::vector<unsigned int>& used_filaments,
@@ -215,6 +243,7 @@ namespace Slic3r
         static constexpr int BEST_FIT_LIMIT_REWARD = 10;
 
         int n = (int)used_filaments.size();
+        const double one_change_budget = calc_one_change_budget(used_filaments);
 
         std::vector<std::vector<int>> candidates(n);
         for (int i = 0; i < n; i++) {
@@ -341,7 +370,7 @@ namespace Slic3r
             }
 
             MemoryedGroup mg(used_labels, score, prefer_level);
-            update_memoryed_groups(mg, ctx.group_info.max_gap_threshold, m_memoryed_heap);
+            update_memoryed_groups(mg, one_change_budget, ctx.group_info.max_gap_threshold, m_memoryed_heap);
         }
 
         if (cost) *cost = best_flush;
@@ -359,6 +388,7 @@ namespace Slic3r
         KMediods PAM(k, (int)used_filaments.size(), distance_evaluator, ctx.machine_info.master_extruder_id);
         PAM.set_unplacable_limits(unplaceable_limits);
         PAM.set_memory_threshold(ctx.group_info.max_gap_threshold);
+        PAM.set_one_change_budget(calc_one_change_budget(used_filaments));
 
         std::vector<std::pair<std::set<int>, int>> cluster_size_limit;
         for (auto& [extruder_id, nozzles] : ctx.nozzle_info.extruder_nozzle_list) {
@@ -493,13 +523,14 @@ namespace Slic3r
     }
 
 
-    void FilamentGroupUtils::update_memoryed_groups(const MemoryedGroup& item, const double gap_threshold, MemoryedGroupHeap& groups)
+    void FilamentGroupUtils::update_memoryed_groups(const MemoryedGroup& item, const double one_change_budget, const double gap_threshold, MemoryedGroupHeap& groups)
     {
-        // Use the more lenient of absolute/relative tolerance to avoid losing valid candidates
-        // when scores are small, while still allowing proportional expansion when scores are large.
-        auto emplace_if_accepatle = [gap_threshold](MemoryedGroupHeap& heap, const MemoryedGroup& elem, const MemoryedGroup& best) {
+        // 保留比最优多约五次换料代价的候选，让 select_best_group_for_ams 能优先选
+        // 匹配 AMS 的分组(如两个料都留在已装载的挤出机)，而非纯最小冲刷的左右拆分。
+        // one_change_budget 随色对自适应；绝对/相对下限兜底退化情况(空/零冲刷矩阵、极小分数)。
+        auto emplace_if_accepatle = [one_change_budget, gap_threshold](MemoryedGroupHeap& heap, const MemoryedGroup& elem, const MemoryedGroup& best) {
             double gap = std::abs(elem.cost - best.cost);
-            double tolerance = std::max(ABSOLUTE_FLUSH_GAP_TOLERANCE * 6.0, best.cost * gap_threshold);
+            double tolerance = std::max(std::max(ABSOLUTE_FLUSH_GAP_TOLERANCE * 6.0, one_change_budget* 5.0), best.cost * gap_threshold);
             if (gap <= tolerance)
                 heap.push(elem);
             };
@@ -821,7 +852,7 @@ namespace Slic3r
             double           curr_cluster_cost   = evaluate_labels(curr_cluster_labels);
 
             MemoryedGroup g(curr_cluster_labels, curr_cluster_cost, 1);
-            update_memoryed_groups(g, memory_threshold, memoryed_groups);
+            update_memoryed_groups(g, m_one_change_budget, memory_threshold, memoryed_groups);
 
             bool mediods_changed = true;
             while (mediods_changed && T.time_machine_end() < timeout_ms) {
@@ -856,7 +887,7 @@ namespace Slic3r
                     curr_cluster_cost   = evaluate_labels(curr_cluster_labels);
 
                     MemoryedGroup g(curr_cluster_labels, curr_cluster_cost, 1);
-                    update_memoryed_groups(g, memory_threshold, memoryed_groups);
+                    update_memoryed_groups(g, m_one_change_budget, memory_threshold, memoryed_groups);
                 }
             }
 
