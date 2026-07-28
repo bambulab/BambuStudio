@@ -57,4 +57,5 @@ namespace ProfileDescrption {
     const std::string PROFILE_DESCRIPTION_49 = _L("High quality profile for 0.8mm nozzle, prioritizing print quality.");
     const std::string PROFILE_DESCRIPTION_50 = _L("Strength profile for 0.8mm nozzle, prioritizing strength.");
     const std::string PROFILE_DESCRIPTION_51 = _L("Standard profile for 0.8mm nozzle, prioritizing speed.");
+    const std::string PROFILE_DESCRIPTION_52 = _L("Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf");
 }
