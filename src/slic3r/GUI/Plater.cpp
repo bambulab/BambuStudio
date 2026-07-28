@@ -1235,7 +1235,7 @@ static std::map<int, std::vector<DevNozzle>> deserialize_nozzle_config(const std
             boost::split(values, part, boost::is_any_of(","));
             if (values.size() == 2) {
                 DevNozzle nozzle;
-                nozzle.m_diameter = std::stof(values[0]);
+                nozzle.m_diameter = string_to_double_decimal_point(values[0]);
                 nozzle.m_nozzle_flow = static_cast<NozzleFlowType>(std::stoi(values[1]));
                 nozzles.push_back(nozzle);
             }
@@ -1980,7 +1980,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     // while physical id is used as a device query argument.
     for (size_t index = 0; index < extruder_nums; ++index) {
         int physical_extruder_id = extruder_map[index]; // physical extruder id
-        nozzle_diameters[index]  = nozzle_option ? atof(nozzle_option->diameter.c_str()) : obj->GetExtderSystem()->GetNozzleDiameter(physical_extruder_id);
+        nozzle_diameters[index]  = nozzle_option ? string_to_double_decimal_point(nozzle_option->diameter) : obj->GetExtderSystem()->GetNozzleDiameter(physical_extruder_id);
         std::optional<NozzleVolumeType> select_type;
         NozzleVolumeType target_type = NozzleVolumeType::nvtStandard;
         if (nozzle_option && nozzle_option->extruder_nozzle_stats.count(index)) {
