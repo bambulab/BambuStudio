@@ -43,6 +43,8 @@
     "extruder_variant_list": [
         "Direct Drive Standard,Direct Drive High Flow,Direct Drive TPU285"
     ],
+    "aux_fan_independent_control": "1",
+    "aux_fan_standard_side": "right",
     "fan_direction": "left",
     "handle_hotend_as_extruder": "1",
     "hotend_cooling_rate": [
@@ -284,7 +286,7 @@
         "30"
     ],
     "support_chamber_temp_control": "1",
-    "sync_auxiliary_fan_to_second_fan": "1",
+    "sync_auxiliary_fan_to_second_fan": "0",
     "wipe": [
         "1",
         "1",

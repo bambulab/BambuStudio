@@ -1206,9 +1206,10 @@ float ToolOrdering::cal_max_additional_fan(const PrintConfig &config)
         std::vector<unsigned int> filaments = layer_tools.extruders;
         std::set<int>             layer_extruder_count;
         // count once only
-        for (unsigned int &filament : filaments)
-            if (max_fan < config.additional_cooling_fan_speed.get_at(filament))
-                max_fan = config.additional_cooling_fan_speed.get_at(filament);
+        for (unsigned int &filament : filaments) {
+            max_fan = std::max(max_fan, float(config.additional_cooling_fan_speed.get_at(filament)));
+            max_fan = std::max(max_fan, float(config.optional_cooling_fan_speed.get_at(filament)));
+        }
     }
     return max_fan;
 }

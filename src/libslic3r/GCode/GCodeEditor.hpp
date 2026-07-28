@@ -463,7 +463,12 @@ private :
     std::vector<float>          m_current_pos;
     // Current known fan speed or -1 if not known yet.
     int                         m_fan_speed;
-    int                         m_additional_fan_speed;
+    // Auxiliary fans of this machine, cached at construction time.
+    std::vector<AuxFanSlot>     m_aux_fan_slots;
+    // Current known speed of each auxiliary fan, or -1 if not known yet.
+    std::vector<int>            m_aux_fan_speeds;
+    // Per auxiliary fan: the new speed still has to be emitted at the next layer change.
+    std::vector<char>           m_aux_fan_pending_layer_change;
     // Cached from GCodeWriter.
     // Printing extruder IDs, zero based.
     std::vector<unsigned int>   m_extruder_ids;
@@ -479,7 +484,6 @@ private :
     int                         m_current_fan_speed;
     //BBS:
     bool                        m_set_fan_changing_layer = false;
-    bool                        m_set_addition_fan_changing_layer = false;
     bool                        m_set_fan_changing_filament_start = true;
 };
 

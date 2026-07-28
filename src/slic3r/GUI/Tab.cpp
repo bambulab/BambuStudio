@@ -4894,29 +4894,49 @@ void TabFilament::build()
         optgroup->append_single_option_line("pre_start_fan_time", "auto-cooling");
         optgroup->append_single_option_line("ironing_fan_speed", "auto-cooling");
 
-        optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_fan");
+        // One settings group per auxiliary part cooling fan. Whether the optional one is
+        // shown, and how both are titled, is decided per machine in TabFilament::toggle_options().
+        auto build_aux_fan_group = [page](const wxString &group_title,
+                                          const std::string &initial_layers_key,
+                                          const std::string &initial_speed_key,
+                                          const std::string &full_speed_layer_key,
+                                          const std::string &speed_key) {
+            auto aux_optgroup = page->new_optgroup(group_title, L"param_cooling_fan");
 
-        line = {L("Initial layer fan"),
-                L("Set the auxiliary fan speed for the first few layers")};
-        line.label_path = "auto-cooling";
-        line.append_option(optgroup->get_option("close_additional_fan_first_x_layers"));
-        line.append_option(optgroup->get_option("first_x_layer_fan_speed"));
-        optgroup->append_line(line);
+            Line aux_line = {L("Initial layer fan"),
+                             L("Set the auxiliary fan speed for the first few layers")};
+            aux_line.label_path = "auto-cooling";
+            aux_line.append_option(aux_optgroup->get_option(initial_layers_key));
+            aux_line.append_option(aux_optgroup->get_option(initial_speed_key));
+            aux_optgroup->append_line(aux_line);
 
-        line = {L("Linear ramp up"),
-                L("Auxiliary fan speed will linearly increase from the initial layer speed "
-                  "to the target speed over the specified number of layers")};
-        line.label_path = "auto-cooling";
-        {
-            auto opt_layer = optgroup->get_option("additional_fan_full_speed_layer");
-            opt_layer.opt.label = L("At layer");
-            opt_layer.opt.sidetext = L("layers");
-            line.append_option(opt_layer);
-            auto opt_speed = optgroup->get_option("additional_cooling_fan_speed");
-            opt_speed.opt.label = L("ramp up to");
-            line.append_option(opt_speed);
-        }
-        optgroup->append_line(line);
+            aux_line = {L("Linear ramp up"),
+                        L("Auxiliary fan speed will linearly increase from the initial layer speed "
+                          "to the target speed over the specified number of layers")};
+            aux_line.label_path = "auto-cooling";
+            {
+                auto opt_layer = aux_optgroup->get_option(full_speed_layer_key);
+                opt_layer.opt.label = L("At layer");
+                opt_layer.opt.sidetext = L("layers");
+                aux_line.append_option(opt_layer);
+                auto opt_speed = aux_optgroup->get_option(speed_key);
+                opt_speed.opt.label = L("ramp up to");
+                aux_line.append_option(opt_speed);
+            }
+            aux_optgroup->append_line(aux_line);
+            return aux_optgroup;
+        };
+
+        m_aux_fan_standard_optgroup = build_aux_fan_group(L("Auxiliary part cooling fan"),
+                                                          "close_additional_fan_first_x_layers",
+                                                          "first_x_layer_fan_speed",
+                                                          "additional_fan_full_speed_layer",
+                                                          "additional_cooling_fan_speed");
+        m_aux_fan_optional_optgroup = build_aux_fan_group(L("Auxiliary part cooling fan (left)"),
+                                                          "close_optional_fan_first_x_layers",
+                                                          "first_x_layer_optional_fan_speed",
+                                                          "optional_fan_full_speed_layer",
+                                                          "optional_cooling_fan_speed");
 
         optgroup = page->new_optgroup(L("Exhaust fan"),L"param_cooling_fan");
 
@@ -5075,6 +5095,36 @@ void TabFilament::toggle_options()
 
         for (auto elem : { "during_print_exhaust_fan_speed","complete_print_exhaust_fan_speed" })
             toggle_line(elem, m_config->opt_bool("activate_air_filtration",0)&&support_air_filtration);
+
+        // Only machines whose optional auxiliary fan can be driven separately get a second
+        // settings group. Left and right are just labels here: the settings themselves are
+        // tied to the standard and the optional fan, not to a physical side.
+        {
+            const DynamicPrintConfig &printer_config = m_preset_bundle->printers.get_edited_preset().config;
+            const std::vector<AuxFanSlot> slots = collect_aux_fan_slots(printer_config);
+            const bool show_optional = printer_config.opt_bool("auxiliary_fan") &&
+                                       slots.size() > 1 && slots.back().independent;
+
+            for (auto elem : { "close_optional_fan_first_x_layers", "first_x_layer_optional_fan_speed",
+                               "optional_fan_full_speed_layer", "optional_cooling_fan_speed" })
+                toggle_line(elem, show_optional);
+
+            FanDirection standard_side = fdRight;
+            if (const auto *side_opt = printer_config.option<ConfigOptionEnum<FanDirection>>("aux_fan_standard_side"))
+                standard_side = side_opt->value;
+
+            if (m_aux_fan_standard_optgroup && m_aux_fan_standard_optgroup->stb) {
+                wxString title = _L("Auxiliary part cooling fan");
+                if (show_optional)
+                    title = standard_side == fdLeft ? _L("Auxiliary part cooling fan (left)")
+                                                    : _L("Auxiliary part cooling fan (right)");
+                m_aux_fan_standard_optgroup->set_name(title);
+            }
+            if (show_optional && m_aux_fan_optional_optgroup && m_aux_fan_optional_optgroup->stb)
+                m_aux_fan_optional_optgroup->set_name(standard_side == fdLeft
+                                                          ? _L("Auxiliary part cooling fan (right)")
+                                                          : _L("Auxiliary part cooling fan (left)"));
+        }
 
     }
     if (m_active_page->title() == "Filament")

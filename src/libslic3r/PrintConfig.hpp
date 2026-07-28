@@ -752,6 +752,28 @@ extern void update_static_print_config_from_dynamic(ConfigBase& config, const Dy
 extern void compute_filament_override_value(const std::string& opt_key, const ConfigOption *opt_old_machine, const ConfigOption *opt_new_machine, const ConfigOption *opt_new_filament, const DynamicPrintConfig& new_full_config,
     t_config_option_keys& diff_keys, DynamicPrintConfig& filament_overrides, std::vector<int>& f_map_indices);
 
+// The P index in "M106 P<index>" is a fixed product convention: the standard
+// auxiliary part cooling fan is always P2, the optional one (fan box) is always P10.
+static constexpr int AUX_FAN_STANDARD_GCODE_INDEX = 2;
+static constexpr int AUX_FAN_OPTIONAL_GCODE_INDEX = 10;
+
+// One auxiliary part cooling fan of the current machine.
+// Whether a machine has the optional fan, and whether that fan can be driven
+// separately, is declared by "sync_auxiliary_fan_to_second_fan" and
+// "aux_fan_independent_control". Which physical side each fan sits on is purely
+// a GUI concern, see "aux_fan_standard_side".
+struct AuxFanSlot
+{
+    bool optional;    // false: the standard fan (P2), true: the optional fan (P10)
+    int  gcode_index; // the P index used in "M106 P<index>"
+    // When false, this slot mirrors the speed computed for the standard fan
+    // instead of reading its own filament settings.
+    bool independent;
+};
+
+// Returns the auxiliary fans of this machine, the standard one always first.
+extern std::vector<AuxFanSlot> collect_aux_fan_slots(const ConfigBase &config);
+
 void handle_legacy_sla(DynamicPrintConfig &config);
 
 class StaticPrintConfig : public StaticConfig
@@ -1433,6 +1455,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPoint,               default_wipe_tower_pos))
     ((ConfigOptionBool,                auxiliary_fan))
     ((ConfigOptionBool,                sync_auxiliary_fan_to_second_fan))
+    // The machine has an optional second auxiliary fan (P10) that can be driven
+    // separately from the standard one (P2).
+    ((ConfigOptionBool,                aux_fan_independent_control))
+    // Physical side of the standard auxiliary fan. Only used to title the GUI groups.
+    ((ConfigOptionEnum<FanDirection>,  aux_fan_standard_side))
     ((ConfigOptionEnum<FanDirection>,fan_direction))
     ((ConfigOptionBool,                support_chamber_temp_control))
     ((ConfigOptionBool,                support_air_filtration))
@@ -1492,6 +1519,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
 
     //BBS
     ((ConfigOptionInts,               additional_cooling_fan_speed))
+    ((ConfigOptionInts,               optional_cooling_fan_speed))
     ((ConfigOptionBool,               reduce_crossing_wall))
     ((ConfigOptionBool,               z_direction_outwall_speed_continuous))
     ((ConfigOptionFloatOrPercent,     max_travel_detour_distance))
@@ -1541,10 +1569,13 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               during_print_exhaust_fan_speed))
     ((ConfigOptionInts,               complete_print_exhaust_fan_speed))
     ((ConfigOptionInts,               close_additional_fan_first_x_layers))
+    ((ConfigOptionInts,               close_optional_fan_first_x_layers))
     ((ConfigOptionInts,               additional_fan_full_speed_layer))
+    ((ConfigOptionInts,               optional_fan_full_speed_layer))
     ((ConfigOptionInts,               close_fan_the_first_x_layers))
     ((ConfigOptionInts,               first_x_layer_part_fan_speed))
     ((ConfigOptionFloats,             first_x_layer_fan_speed))
+    ((ConfigOptionFloats,             first_x_layer_optional_fan_speed))
     ((ConfigOptionEnum<DraftShield>,  draft_shield))
     ((ConfigOptionFloat,              extruder_clearance_height_to_rod))//BBs
     ((ConfigOptionFloat,              extruder_clearance_height_to_lid))//BBS

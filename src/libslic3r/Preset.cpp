@@ -1111,7 +1111,7 @@ static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", 
     // "bed_type",
     //BBS:temperature_vitrification
     "temperature_vitrification", "reduce_fan_stop_start_freq", "slow_down_for_layer_cooling", "no_slow_down_for_cooling_on_outwalls", "cooling_slowdown_logic", "cooling_perimeter_transition_distance", "fan_min_speed","filament_ramming_travel_time","filament_pre_cooling_temperature","filament_ramming_travel_time_nc","filament_pre_cooling_temperature_nc",
-    "fan_max_speed", "enable_overhang_bridge_fan", "overhang_fan_speed", "ironing_fan_speed", "pre_start_fan_time", "overhang_fan_threshold", "overhang_threshold_participating_cooling","close_fan_the_first_x_layers", "first_x_layer_part_fan_speed", "close_additional_fan_first_x_layers", "first_x_layer_fan_speed", "full_fan_speed_layer", "additional_fan_full_speed_layer", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed",
+    "fan_max_speed", "enable_overhang_bridge_fan", "overhang_fan_speed", "ironing_fan_speed", "pre_start_fan_time", "overhang_fan_threshold", "overhang_threshold_participating_cooling","close_fan_the_first_x_layers", "first_x_layer_part_fan_speed", "close_additional_fan_first_x_layers", "close_optional_fan_first_x_layers", "first_x_layer_fan_speed", "first_x_layer_optional_fan_speed", "full_fan_speed_layer", "additional_fan_full_speed_layer", "optional_fan_full_speed_layer", "fan_cooling_layer_time", "slow_down_layer_time", "slow_down_min_speed",
     "filament_start_gcode", "filament_end_gcode",
     //exhaust fan control
     "activate_air_filtration","during_print_exhaust_fan_speed","complete_print_exhaust_fan_speed",
@@ -1121,7 +1121,7 @@ static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", 
     // Profile compatibility
     "filament_vendor", "compatible_prints", "compatible_prints_condition", "compatible_printers", "compatible_printers_condition", "inherits",
     //BBS
-    "filament_wipe_distance", "additional_cooling_fan_speed",
+    "filament_wipe_distance", "additional_cooling_fan_speed", "optional_cooling_fan_speed",
     "nozzle_temperature_range_low", "nozzle_temperature_range_high",
     "filament_extruder_variant",
     //OrcaSlicer
@@ -1175,7 +1175,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "scan_first_layer", "wrapping_detection_layers", "wrapping_exclude_area", "machine_load_filament_time", "machine_unload_filament_time",
     "ams_filament_load_time_ams", "ams_filament_load_time_ams_lite", "ams_filament_load_time_n3f_s",
     "ams_filament_unload_time_ams", "ams_filament_unload_time_ams_lite", "ams_filament_unload_time_n3f_s", "default_ams_type", "machine_pause_gcode", "template_custom_gcode","machine_hotend_change_time",
-    "auxiliary_fan", "sync_auxiliary_fan_to_second_fan", "fan_direction", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","support_cooling_filter","cooling_filter_enabled","printer_structure","farthest_point_timelapse","default_wipe_tower_pos","thumbnail_size",
+    "auxiliary_fan", "sync_auxiliary_fan_to_second_fan", "aux_fan_independent_control", "aux_fan_standard_side", "fan_direction", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","support_cooling_filter","cooling_filter_enabled","printer_structure","farthest_point_timelapse","default_wipe_tower_pos","thumbnail_size",
     "best_object_pos", "head_wrap_detect_zone","printer_notes","print_in_clockwise",
     "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut",
     //OrcaSlicer

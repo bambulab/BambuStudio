@@ -2050,6 +2050,23 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 0 });
 
+    def = this->add("close_optional_fan_first_x_layers", coInts);
+    def->label = L("For the first");
+    def->tooltip = L("Set special optional auxiliary cooling fan for the first certain layers.");
+    def->sidetext = L("layers");
+    def->min = 0;
+    def->max = 100000;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInts { 1 });
+
+    def = this->add("optional_fan_full_speed_layer", coInts);
+    def->label = L("Full fan speed at layer");
+    def->tooltip = L("Optional auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1.");
+    def->min = 0;
+    def->max = 100000;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInts { 0 });
+
     def = this->add("close_fan_the_first_x_layers", coInts);
     def->label = L("For the first");
     def->tooltip = L("Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed "
@@ -2073,6 +2090,14 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("first_x_layer_fan_speed", coFloats);
     def->label    = L("Fan speed");
     def->tooltip  = L("Special auxiliary cooling fan speed, effective only for the first x layers");
+    def->sidetext = "%";
+    def->min      = 0;
+    def->max      = 100;
+    def->set_default_value(new ConfigOptionFloats{0});
+
+    def           = this->add("first_x_layer_optional_fan_speed", coFloats);
+    def->label    = L("Fan speed");
+    def->tooltip  = L("Special optional auxiliary cooling fan speed, effective only for the first x layers");
     def->sidetext = "%";
     def->min      = 0;
     def->max      = 100;
@@ -3841,6 +3866,27 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("aux_fan_independent_control", coBool);
+    def->label = L("Independent optional auxiliary fan control");
+    def->tooltip = L("Enable this if the printer has an optional auxiliary part cooling fan that can be adjusted separately from the standard one");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("aux_fan_standard_side", coEnum);
+    def->label = L("Standard auxiliary fan side");
+    def->tooltip = L("Physical side of the standard auxiliary part cooling fan. Only used to tell the two fans apart in the user interface");
+    def->enum_keys_map = &ConfigOptionEnum<FanDirection>::get_enum_values();
+    def->enum_values.push_back("undefine");
+    def->enum_values.push_back("left");
+    def->enum_values.push_back("right");
+    def->enum_values.push_back("both");
+    def->enum_labels.push_back(L("Undefine"));
+    def->enum_labels.push_back(L("Left"));
+    def->enum_labels.push_back(L("Right"));
+    def->enum_labels.push_back(L("Both"));
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionEnum<FanDirection>(fdRight));
+
     def = this->add("fan_direction", coEnum);
     def->label = L("Fan direction");
     def->tooltip = L("Cooling fan direction of the printer");
@@ -4684,6 +4730,16 @@ void PrintConfigDef::init_fff_params()
     def = this->add("additional_cooling_fan_speed", coInts);
     def->label = L("Fan speed");
     def->tooltip = L("Speed of auxiliary part cooling fan. Auxiliary fan will run at this speed during printing except the first several layers "
+                     "which are defined by no cooling layers");
+    def->sidetext = "%";
+    def->min = 0;
+    def->max = 100;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInts { 0 });
+
+    def = this->add("optional_cooling_fan_speed", coInts);
+    def->label = L("Fan speed");
+    def->tooltip = L("Speed of the optional auxiliary part cooling fan. It will run at this speed during printing except the first several layers "
                      "which are defined by no cooling layers");
     def->sidetext = "%";
     def->min = 0;
@@ -7600,6 +7656,28 @@ void PrintConfigDef::init_sla_params()
     def->enum_labels.push_back(L(" "));
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<SLAMaterialSpeed>(slamsFast));
+}
+
+std::vector<AuxFanSlot> collect_aux_fan_slots(const ConfigBase &config)
+{
+    // No auxiliary fan on this machine: neither the standard (P2) nor the optional (P10) slot exists
+    const ConfigOptionBool *auxiliary_fan = config.option<ConfigOptionBool>("auxiliary_fan");
+    if (auxiliary_fan == nullptr || !auxiliary_fan->value)
+        return {};
+
+    // With auxiliary_fan enabled, the standard fan (P2) always exists; P10 is added only when
+    // the machine has an independent or synced optional fan
+    std::vector<AuxFanSlot> slots{ AuxFanSlot{ false, AUX_FAN_STANDARD_GCODE_INDEX, true } };
+
+    const ConfigOptionBool *independent = config.option<ConfigOptionBool>("aux_fan_independent_control");
+    const ConfigOptionBool *synced = config.option<ConfigOptionBool>("sync_auxiliary_fan_to_second_fan");
+    const bool has_independent = independent != nullptr && independent->value;
+    const bool has_synced = synced != nullptr && synced->value;
+
+    if(has_independent || has_synced)
+        slots.push_back(AuxFanSlot{ true, AUX_FAN_OPTIONAL_GCODE_INDEX, has_independent });
+
+    return slots;
 }
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)

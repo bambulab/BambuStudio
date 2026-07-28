@@ -37,6 +37,16 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
+// The optional auxiliary fan (P10) has no entry in any profile: its settings fall back to
+// the standard fan (P2) of the same profile level, so presets and 3MFs that predate the
+// split keep driving both fans at the same speed.
+static const std::vector<std::pair<std::string, std::string>> s_aux_fan_standard_to_optional_keys = {
+    { "additional_cooling_fan_speed",        "optional_cooling_fan_speed" },
+    { "close_additional_fan_first_x_layers", "close_optional_fan_first_x_layers" },
+    { "first_x_layer_fan_speed",             "first_x_layer_optional_fan_speed" },
+    { "additional_fan_full_speed_layer",     "optional_fan_full_speed_layer" },
+};
+
 //BBS: add json support
 //static const std::string CONFIG_VERSION_KEY = "version";
 //static const std::string CONFIG_NAME_KEY = "name";
@@ -815,6 +825,16 @@ ConfigSubstitutions ConfigBase::load_string_map(std::map<std::string, std::strin
                 dst->set(src);
         }
     }
+    for (const auto &keys : s_aux_fan_standard_to_optional_keys) {
+        if (!this->has(keys.first) || this->has(keys.second))
+            continue;
+        auto *src = this->option(keys.first);
+        if (src == nullptr)
+            continue;
+        auto *dst = this->option(keys.second, true);
+        if (dst)
+            dst->set(src);
+    }
     return std::move(substitutions_ctxt.substitutions);
 }
 
@@ -1068,6 +1088,30 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                         }
                     }
                 }
+            }
+        }
+
+        // The optional auxiliary fan inherits the standard one whenever this config level
+        // does not set it explicitly, so both fans keep running at the same speed for
+        // every preset and 3MF written before the optional fan became configurable.
+        for (const auto &keys : s_aux_fan_standard_to_optional_keys) {
+            if (!this->has(keys.first) || this->has(keys.second))
+                continue;
+            auto *src = this->option(keys.first);
+            if (src == nullptr)
+                continue;
+            auto *dst = this->option(keys.second, true);
+            if (dst)
+                dst->set(src);
+        }
+        if (this->has("different_settings_to_system")) {
+            auto *diff_opt = this->option<ConfigOptionStrings>("different_settings_to_system");
+            if (diff_opt) {
+                for (auto &diff_str : diff_opt->values)
+                    for (const auto &keys : s_aux_fan_standard_to_optional_keys)
+                        if (diff_str.find(keys.first) != std::string::npos &&
+                            diff_str.find(keys.second) == std::string::npos)
+                            diff_str += ";" + keys.second;
             }
         }
 

@@ -5421,8 +5421,10 @@ void GCodeProcessor::process_M106(const GCodeReader::GCodeLine& line)
             m_fan_speed = (100.0f / 255.0f) * new_fan_speed;
         else
             m_fan_speed = 100.0f;
-    } else if (line.has('P') && line.p() == 2.0f) {
-        // M106 P2: additional/auxiliary cooling fan (side fan)
+    } else if (line.has('P') && (line.p() == float(AUX_FAN_STANDARD_GCODE_INDEX) ||
+                                 line.p() == float(AUX_FAN_OPTIONAL_GCODE_INDEX))) {
+        // Auxiliary/side cooling fan. The preview only has a single channel for them,
+        // so with two independently driven fans the last one written wins.
         float new_fan_speed;
         if (line.has_value('S', new_fan_speed))
             m_additional_fan_speed = (100.0f / 255.0f) * new_fan_speed;
@@ -5433,10 +5435,11 @@ void GCodeProcessor::process_M106(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_M107(const GCodeReader::GCodeLine& line)
 {
-    // M107: disable fan; without P or P1 = part fan, P2 = additional/side fan
+    // M107: disable fan; without P or P1 = part fan, P2 / P10 = auxiliary side fans
     if (!line.has('P') || (line.has('P') && line.p() == 1.0f))
         m_fan_speed = 0.0f;
-    else if (line.has('P') && line.p() == 2.0f)
+    else if (line.has('P') && (line.p() == float(AUX_FAN_STANDARD_GCODE_INDEX) ||
+                               line.p() == float(AUX_FAN_OPTIONAL_GCODE_INDEX)))
         m_additional_fan_speed = 0.0f;
 }
 

@@ -93,6 +93,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
     static std::unordered_set<std::string> steps_gcode = {
         //BBS
         "additional_cooling_fan_speed",
+        "optional_cooling_fan_speed",
         "reduce_crossing_wall",
         "max_travel_detour_distance",
         "avoid_crossing_wall_includes_support",
@@ -115,8 +116,11 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "close_fan_the_first_x_layers",
         "first_x_layer_part_fan_speed",
         "close_additional_fan_first_x_layers",
+        "close_optional_fan_first_x_layers",
         "additional_fan_full_speed_layer",
+        "optional_fan_full_speed_layer",
         "first_x_layer_fan_speed",
+        "first_x_layer_optional_fan_speed",
         "machine_end_gcode",
         "printing_by_object_gcode",
         "filament_end_gcode",

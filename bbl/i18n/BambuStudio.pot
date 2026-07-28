@@ -10992,6 +10992,36 @@ msgstr ""
 msgid "Auxiliary part cooling fan"
 msgstr ""
 
+msgid "Auxiliary part cooling fan (right)"
+msgstr ""
+
+msgid "Auxiliary part cooling fan (left)"
+msgstr ""
+
+msgid "Set special optional auxiliary cooling fan for the first certain layers."
+msgstr ""
+
+msgid "Special optional auxiliary cooling fan speed, effective only for the first x layers"
+msgstr ""
+
+msgid "Speed of the optional auxiliary part cooling fan. It will run at this speed during printing except the first several layers which are defined by no cooling layers"
+msgstr ""
+
+msgid "Optional auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
+msgstr ""
+
+msgid "Independent optional auxiliary fan control"
+msgstr ""
+
+msgid "Enable this if the printer has an optional auxiliary part cooling fan that can be adjusted separately from the standard one"
+msgstr ""
+
+msgid "Standard auxiliary fan side"
+msgstr ""
+
+msgid "Physical side of the standard auxiliary part cooling fan. Only used to tell the two fans apart in the user interface"
+msgstr ""
+
 msgid "Set the auxiliary fan speed for the first few layers"
 msgstr ""
 

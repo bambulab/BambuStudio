@@ -604,6 +604,10 @@ class TabFilament : public Tab
 private:
 	ogStaticText*	m_volumetric_speed_description_line {nullptr};
 	ogStaticText*	m_cooling_description_line {nullptr};
+	// Auxiliary part cooling fan groups. Whether the optional one is shown, and how both
+	// are titled, depends on the machine. See TabFilament::toggle_options().
+	ConfigOptionsGroupShp m_aux_fan_standard_optgroup;
+	ConfigOptionsGroupShp m_aux_fan_optional_optgroup;
 	MultiSwitchButton* m_flush_mode_switch {nullptr};
 	wxWindow*          m_flush_mode_panel {nullptr};
 	int                m_flush_mode_selection {0};

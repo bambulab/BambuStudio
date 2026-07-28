@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 3.9\n"
 
 msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
 msgstr "该材料与当前机器设置不兼容，将使用通用的材料预设。"
@@ -11299,6 +11299,36 @@ msgstr "当预计的层打印时间比设置值要短时，部件冷却风扇转
 
 msgid "Auxiliary part cooling fan"
 msgstr "辅助部件冷却风扇"
+
+msgid "Auxiliary part cooling fan (right)"
+msgstr "辅助部件冷却风扇（右侧）"
+
+msgid "Auxiliary part cooling fan (left)"
+msgstr "辅助部件冷却风扇（左侧）"
+
+msgid "Set special optional auxiliary cooling fan for the first certain layers."
+msgstr "为起始几层设置特殊的选配辅助冷却风扇速度。"
+
+msgid "Special optional auxiliary cooling fan speed, effective only for the first x layers"
+msgstr "该值仅用于选配辅助散热风扇，在前x层生效。"
+
+msgid "Speed of the optional auxiliary part cooling fan. It will run at this speed during printing except the first several layers which are defined by no cooling layers"
+msgstr "选配辅助部件冷却风扇的转速。选配辅助部件冷却风扇将一直运行在该速度，除了设置的无需冷却的前若干层"
+
+msgid "Optional auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
+msgstr "选配辅助风扇转速将从”起始层“风扇线性递增至层的全风扇转速。“全风扇速度层”如果低于“初始层”，则将被忽略，此时风扇将在”起始层“ + 1层处以全风扇转速运行。"
+
+msgid "Independent optional auxiliary fan control"
+msgstr "独立控制选配辅助风扇"
+
+msgid "Enable this if the printer has an optional auxiliary part cooling fan that can be adjusted separately from the standard one"
+msgstr "若打印机有选配辅助部件冷却风扇，且可与标配辅助风扇分别调节，请启用此项"
+
+msgid "Standard auxiliary fan side"
+msgstr "标配辅助风扇所在侧"
+
+msgid "Physical side of the standard auxiliary part cooling fan. Only used to tell the two fans apart in the user interface"
+msgstr "标配辅助部件冷却风扇的物理安装侧，仅用于在界面中区分两路风扇"
 
 msgid "Set the auxiliary fan speed for the first few layers"
 msgstr "为前几层设置辅助风扇速度"
