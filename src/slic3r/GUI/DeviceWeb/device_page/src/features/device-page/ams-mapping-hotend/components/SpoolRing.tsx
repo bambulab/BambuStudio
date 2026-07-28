@@ -96,10 +96,13 @@ export function SpoolRing({
     (isTransparentHex(color) || rawColors.every(isTransparentHex));
 
   // Outline the color ring only for light real filament. Use the color that
-  // sits on the ring's outer edge (last stop for gradient, first otherwise),
-  // which is the one bordering the grey-300 track / white base.
+  // sits on the ring's outer edge, which is the one bordering the grey-300
+  // track / white base. Gradient and multi both run inner->outer, so that is
+  // the last entry; a single-color spool only has the first one.
   const outerEdgeColor =
-    colorType === 'gradient' ? effectiveColors[effectiveColors.length - 1] : effectiveColors[0];
+    effectiveColors.length === 1 || colorType === 'single'
+      ? effectiveColors[0]
+      : effectiveColors[effectiveColors.length - 1];
   const needsOutline =
     !isEmpty && !isThird && !isTransparent && isLightColor(outerEdgeColor);
 
@@ -205,6 +208,7 @@ function TransparentDisc({ center, color }: { center: number; color: string }) {
 //   - single   : solid ring + remain arc
 //   - gradient : radial gradient, smooth inner->outer transition
 //   - multi    : concentric bands with abrupt (cliff) transitions
+// Both follow the firmware order: colors[0] innermost .. colors[N-1] outermost.
 function RemainDonut({
   center,
   colors,
@@ -257,7 +261,8 @@ function RemainDonut({
     );
   }
 
-  // multi: concentric bands, outermost = colors[0], innermost = colors[N-1].
+  // multi: concentric bands. Same inner->outer order as gradient, i.e.
+  // innermost = colors[0], outermost = colors[N-1].
   const ringWidth = (COLOR_OUTER - COLOR_INNER) / colors.length;
   const clip = remainClip(center, remain);
   return (
@@ -266,7 +271,7 @@ function RemainDonut({
       {remain > 0 && (
         <g clipPath={clip ? `url(#${clip.id})` : undefined}>
           {colors.map((c, i) => {
-            const r = COLOR_OUTER - i * ringWidth - ringWidth / 2;
+            const r = COLOR_INNER + i * ringWidth + ringWidth / 2;
             return (
               <circle key={i} cx={center} cy={center} r={r} fill="none" stroke={c} strokeWidth={ringWidth} />
             );

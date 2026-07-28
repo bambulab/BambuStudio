@@ -88,6 +88,9 @@ export function MaterialDonut({
             fy={center}
             gradientUnits="userSpaceOnUse"
           >
+            {/* Flat lead-in across the hidden centre so the inner edge of the
+                visible ring starts exactly on colors[0]. */}
+            <stop offset="0%" stopColor={opaqueColor(colors[0])} stopOpacity={colorOpacity(colors[0])} />
             {colors.map((c, i) => (
               <stop
                 key={`${c}-${i}`}
@@ -135,11 +138,14 @@ function MaterialFill({
   );
 }
 
+// colors[0] is the innermost band, colors[N-1] the outermost one. The discs are
+// painted from the outside in so each smaller one covers the previous.
 function ConcentricRings({ center, colors }: { center: number; colors: string[] }) {
   const band = (SPOOL_RING - SPOOL_HOLE) / colors.length;
   return (
     <>
-      {colors.map((color, index) => {
+      {colors.map((_, index) => {
+        const color = colors[colors.length - 1 - index];
         const radius = SPOOL_RING - band * index;
         return (
           <circle
@@ -222,9 +228,16 @@ function colorOpacity(color: string) {
   return alpha === null ? 1 : Math.max(0.2, alpha / 255);
 }
 
+// Firmware reports the colour list from the inside of the spool outwards, so
+// colors[0] must land on the inner edge of the visible ring (r = SPOOL_HOLE)
+// and colors[N-1] on its outer edge (r = SPOOL_RING). Spreading the stops over
+// the full 0..SPOOL_RING radius instead buries the first colour(s) under the
+// centre hole, which is why a 4-colour spool only showed 3 colours.
+const RING_INNER_OFFSET = SPOOL_HOLE / SPOOL_RING;
+
 function gradientStopOffset(index: number, total: number) {
   if (total <= 1) return 100;
-  return (index / (total - 1)) * 100;
+  return (RING_INNER_OFFSET + (1 - RING_INNER_OFFSET) * (index / (total - 1))) * 100;
 }
 
 function alphaFromHex(color: string) {
