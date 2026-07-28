@@ -1338,7 +1338,7 @@ void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket)
             //std::cout << "Not Find agreeBackUrl" << std::endl;
             auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
 
-            wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
+            wxString language_code = wxGetApp().current_language_code_safe().BeforeFirst('_');
 
             mw_currenturl = (boost::format("%1%%2%/studio/webview?from=bambustudio") % host % language_code.mb_str()).str();
         }
@@ -2092,7 +2092,7 @@ void WebViewPanel::OpenMakerworldSearchPage(std::string KeyWord)
 
     auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
 
-    wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
+    wxString language_code = wxGetApp().current_language_code_safe().BeforeFirst('_');
 
     m_online_LastUrl = (boost::format("%1%%2%/studio/webview/search?from=bambustudio&keyword=%3%&from_studio_home=true") % host % language_code.mb_str() % UrlEncode(KeyWord)).str();
     SwitchWebContent("online");
@@ -2103,7 +2103,7 @@ void WebViewPanel::SetMakerworldModelID(std::string ModelID)
 {
     auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
 
-    wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
+    wxString language_code = wxGetApp().current_language_code_safe().BeforeFirst('_');
 
     if (ModelID != "")
         m_online_LastUrl = (boost::format("%1%%2%/studio/webview?modelid=%3%&from=bambustudio") % host % language_code.mb_str() % ModelID).str();
@@ -2115,7 +2115,7 @@ void WebViewPanel::SetPrintHistoryTaskID(int TaskID)
 {
     auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
 
-    wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
+    wxString language_code = wxGetApp().current_language_code_safe().BeforeFirst('_');
 
     if (TaskID != 0)
         m_print_history_LastUrl = (boost::format("%1%%2%/studio/print-history/%3%?from=bambustudio") % host % language_code.mb_str() % TaskID).str();

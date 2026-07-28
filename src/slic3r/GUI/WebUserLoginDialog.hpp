@@ -61,8 +61,6 @@ public:
 
     bool run();
 
-    std::string GetStudioLanguage();
-
     static int web_sequence_id;
 private:
     wxTimer *m_timer { nullptr };
