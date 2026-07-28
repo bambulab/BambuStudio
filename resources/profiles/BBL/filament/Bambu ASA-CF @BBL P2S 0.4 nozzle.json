@@ -27,6 +27,10 @@
         "0",
         "0"
     ],
+    "filament_retraction_length": [
+        "1.2",
+        "nil"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
@@ -41,6 +45,9 @@
     "nozzle_temperature_initial_layer": [
         "275",
         "275"
+    ],
+    "overhang_fan_speed": [
+        "100"
     ],
     "retraction_distances_when_ec": [
         "0",

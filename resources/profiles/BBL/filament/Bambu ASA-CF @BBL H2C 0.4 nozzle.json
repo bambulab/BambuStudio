@@ -11,6 +11,12 @@
     "eng_plate_temp": [
         "90"
     ],
+    "filament_change_length": [
+        "4"
+    ],
+    "filament_change_length_nc": [
+        "4"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10"
@@ -23,15 +29,19 @@
         "18",
         "18"
     ],
+    "filament_pre_cooling_temperature_nc": [
+        "235",
+        "235"
+    ],
+    "filament_preheat_temperature_delta": [
+        "20",
+        "20"
+    ],
     "filament_prime_volume": [
         "30"
     ],
     "filament_prime_volume_nc": [
         "30"
-    ],
-    "filament_pre_cooling_temperature_nc": [
-        "235",
-        "235"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -41,18 +51,12 @@
         "1",
         "1"
     ],
-    "filament_change_length": [
-        "4"
+    "filament_retraction_length": [
+        "1.2",
+        "1.2"
     ],
     "first_x_layer_fan_speed": [
         "0"
-    ],
-    "filament_change_length_nc": [
-        "4"
-    ],
-    "filament_preheat_temperature_delta": [
-        "20",
-        "20"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

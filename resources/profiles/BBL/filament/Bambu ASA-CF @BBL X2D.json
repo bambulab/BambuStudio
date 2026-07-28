@@ -35,6 +35,12 @@
         "0",
         "0"
     ],
+    "filament_retraction_length": [
+        "1.2",
+        "nil",
+        "nil",
+        "nil"
+    ],
     "filament_tower_interface_print_temp": [
         "275"
     ],

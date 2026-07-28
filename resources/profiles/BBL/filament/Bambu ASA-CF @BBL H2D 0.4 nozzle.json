@@ -11,6 +11,9 @@
     "eng_plate_temp": [
         "90"
     ],
+    "filament_change_length": [
+        "4"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10"
@@ -23,15 +26,16 @@
         "18",
         "18"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
     ],
-    "filament_prime_volume": [
-        "30"
-    ],
-    "filament_change_length": [
-        "4"
+    "filament_retraction_length": [
+        "1.2",
+        "1.2"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
