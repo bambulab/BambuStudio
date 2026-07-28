@@ -3230,6 +3230,8 @@ void CalibrationPresetPage::update_rack_filament_combobox(MachineObject* obj)
                 }
             }
 
+            const bool nozzle_selectable = (nozzle.IsExist() || nozzle.IsOnRack()) && nozzle.IsNormal() && nozzle.IsHotend();
+
             /* Only offer the popup when there is more than one slot to choose from;
                a single (or no) slot stays on the inline combobox. */
             if (slot_set.size() > 1) {
@@ -3238,11 +3240,11 @@ void CalibrationPresetPage::update_rack_filament_combobox(MachineObject* obj)
                 fcb->SetSubAmsMode(true, _L("Not Selected"));
                 /* Cache the slot set on the owner; the shared popup is filled lazily on click. */
                 fcb->SetSubAmsSlotSet(slot_set);
-                fcb->Enable(nozzle.IsExist() || nozzle.IsOnRack());
+                fcb->Enable(nozzle_selectable);
             } else {
                 fcb->SetSubAmsMode(false);
                 fcb->SetSubAmsSlotSet({});  // no popup for this slot; drop any stale cache
-                fcb->Enable((nozzle.IsExist() || nozzle.IsOnRack()) && fcb->GetComboBox()->is_tray_exist() && fcb->GetComboBox()->is_compatible_with_printer());
+                fcb->Enable(nozzle_selectable && fcb->GetComboBox()->is_tray_exist() && fcb->GetComboBox()->is_compatible_with_printer());
             }
 
             fcb->Show();
