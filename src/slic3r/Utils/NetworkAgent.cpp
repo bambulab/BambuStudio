@@ -1191,10 +1191,12 @@ int NetworkAgent::start_send_gcode_to_sdcard(PrintParams params, OnUpdateStatusF
 
 int NetworkAgent::start_local_print(PrintParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn)
 {
-    int ret = 0;
+    int ret = BAMBU_NETWORK_ERR_INVALID_HANDLE;
     if (network_agent && start_local_print_ptr) {
         ret = start_local_print_ptr(network_agent, params, update_fn, cancel_fn);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, dev_id=%3%, task_name=%4%, project_name=%5%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(params.dev_id) %params.task_name %params.project_name;
+    } else {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" invalid handle: network_agent=%1%, start_local_print_ptr=%2%, dev_id=%3%") % network_agent % start_local_print_ptr % BBLCrossTalk::Crosstalk_DevId(params.dev_id);
     }
     return ret;
 }

@@ -2,6 +2,7 @@
 #define slic3r_DeviceManager_hpp_
 
 #include <map>
+#include <functional>
 #include <mutex>
 #include <vector>
 #include <string>
@@ -110,10 +111,16 @@ bool is_stringing_prone_filament(const std::string& filament_id, float nozzle_di
 
 class MachineObject
 {
+public:
+    using AccessCodeRefreshCallback = std::function<void(bool success, std::string access_code, std::string print_status)>;
+
 private:
     NetworkAgent *    m_agent{nullptr};
     DeviceManager*    m_manager{ nullptr };
     std::shared_ptr<int> m_token = std::make_shared<int>(1);
+    std::mutex m_access_code_refresh_mutex;
+    std::string m_access_code_refresh_sequence_id;
+    AccessCodeRefreshCallback m_access_code_refresh_callback;
 
     /* properties */
     std::string dev_name;
@@ -651,6 +658,8 @@ public:
     int command_set_printer_nozzle(std::string nozzle_type, float diameter);
     int command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter);
     int command_get_access_code();
+    std::string request_access_code(AccessCodeRefreshCallback callback);
+    void cancel_access_code_request(const std::string& sequence_id);
     int command_ack_proceed(json& proceed);
 
     /* control apis */

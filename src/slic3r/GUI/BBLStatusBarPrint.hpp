@@ -3,6 +3,7 @@
 
 #include <wx/panel.h>
 #include <wx/stattext.h>
+#include <wx/string.h>
 
 #include <memory>
 #include <string>
@@ -45,6 +46,8 @@ class BBLStatusBarPrint : public ProgressIndicator
     wxWindow *    block_right;
 
 public:
+    using StatusHeightChangedFn = std::function<void(int)>;
+
     BBLStatusBarPrint(wxWindow *parent = nullptr, int id = -1);
     ~BBLStatusBarPrint() = default;
 
@@ -73,6 +76,7 @@ public:
     void        set_status_text(const std::string &txt);
     void        set_status_text(const char *txt) override;
     wxString    get_status_text() const;
+    void        set_status_height_changed_callback(StatusHeightChangedFn callback) { m_status_height_changed_callback = callback; }
     void        set_font(const wxFont &font);
     void        set_object_info(const wxString &txt);
     void        set_slice_info(const wxString &txt);
@@ -91,8 +95,11 @@ private:
     bool     m_show_error_info_state = false;
     bool     m_busy = false;
     bool     m_was_cancelled = false;
+    int      m_status_panel_height = 0;
+    wxString m_status_text_raw;
     CancelFn m_cancel_cb;
     CancelFn m_cancel_cb_fina;
+    StatusHeightChangedFn m_status_height_changed_callback;
 };
 
 namespace GUI {
