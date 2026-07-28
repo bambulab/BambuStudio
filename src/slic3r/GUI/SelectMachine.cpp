@@ -6539,8 +6539,8 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
     }
 
     for (auto iter : m_materialList) {
-        int fila_id        = iter.first;
         Material * item    = iter.second;
+        int fila_id        = item->id;
         MaterialItem *m    = item->item;
         if(std::find(filaments_not_enough.begin(), filaments_not_enough.end(), fila_id) != filaments_not_enough.end()) {
             m->on_warning();

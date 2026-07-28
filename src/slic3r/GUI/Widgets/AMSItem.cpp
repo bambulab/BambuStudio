@@ -1429,7 +1429,7 @@ void AMSLib::render_lite_lib(wxDC& dc)
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     if (m_info.material_cols.size() > 1) {
         wxRect color_rect(FromDIP(10), FromDIP(10), libsize.x - FromDIP(18), libsize.y - FromDIP(18));
-        if (m_info.ctype == DevFilaColorType::CTYPE_MULTI) {
+        if (m_info.ctype == DevFilaColorType::CTYPE_GRADIANT) {
             fill_gradient_rect_east(dc, color_rect, m_info.material_cols.front(), m_info.material_cols.back());
         }
         else {
@@ -1555,7 +1555,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
     if (m_ams_model == DevAmsType::EXT_SPOOL){
         wxRect color_rect(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1));
         if (m_info.ctype != DevFilaColorType::CTYPE_SINGLE && m_info.material_cols.size() > 1 && alpha != 0) {
-            if (m_info.ctype == DevFilaColorType::CTYPE_MULTI) {
+            if (m_info.ctype == DevFilaColorType::CTYPE_GRADIANT) {
                 fill_gradient_rect_east(dc, color_rect, m_info.material_cols.front(), m_info.material_cols.back());
             }
             else {

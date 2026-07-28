@@ -281,7 +281,10 @@ static int s_get_mapped_nozzle_str_line_count(const wxString& text)
 
 void MaterialItem::doRender(wxDC& dc)
 {
-    wxSize size = GetSize();
+    const int status_border_space = FromDIP(1);
+    wxSize frame_size = GetSize();
+    wxSize size(frame_size.x - status_border_space * 2, frame_size.y - status_border_space * 2);
+    dc.SetDeviceOrigin(status_border_space, status_border_space);
     auto mcolor = m_material_coloul;
     auto acolor = m_ams_coloul;
     change_the_opacity(acolor);
@@ -380,13 +383,13 @@ void MaterialItem::doRender(wxDC& dc)
     dc.SetTextForeground(material_name_colour);
 
     dc.SetFont(::Label::Body_12);
-    if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10)
+    if (dc.GetTextExtent(m_material_name).x > size.x - 10)
     {
         dc.SetFont(::Label::Body_10);
     }
 
     auto material_txt_size = dc.GetTextExtent(m_material_name);
-    dc.DrawText(m_material_name, wxPoint((GetSize().x - material_txt_size.x) / 2, (FromDIP(20) - material_txt_size.y) / 2));
+    dc.DrawText(m_material_name, wxPoint((size.x - material_txt_size.x) / 2, (FromDIP(20) - material_txt_size.y) / 2));
 
     dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
     dc.DrawLine(FromDIP(1), FromDIP(20), FromDIP(size.x), FromDIP(20));
@@ -445,31 +448,33 @@ void MaterialItem::doRender(wxDC& dc)
         }
     }
 
-    if (m_match)
-    {
-        dc.SetPen(wxPen(wxGetApp().dark_mode() ? wxColour(107, 107, 107) : wxColour(0xAC, 0xAC, 0xAC), FromDIP(1)));
-    }
-    else
-    {
-        dc.SetPen(wxPen(wxColour(234, 31, 48), FromDIP(1)));
-    }
-
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRoundedRectangle(FromDIP(0), FromDIP(0), size.x - FromDIP(0), size.y, 5);
-
     if (m_selected)
     {
         dc.SetPen(wxPen(wxColour(0x00, 0xAE, 0x42), FromDIP(2)));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(1), size.y - FromDIP(1), 5);
-    } else if (m_warning) {
-        dc.SetPen(wxPen(wxColour(0xFF, 0x6F, 0x00), FromDIP(2)));
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(1), size.y - FromDIP(1), 5);
     }
+
+    if (!m_match)
+    {
+        dc.SetPen(wxPen(wxColour(234, 31, 48), FromDIP(1)));
+    }
+    else if (m_warning)
+    {
+        dc.SetPen(wxPen(wxColour(0xFF, 0x6F, 0x00), FromDIP(1)));
+    }
+    else
+    {
+        dc.SetPen(wxPen(wxGetApp().dark_mode() ? wxColour(107, 107, 107) : wxColour(0xAC, 0xAC, 0xAC), FromDIP(1)));
+    }
+
+    dc.SetDeviceOrigin(0, 0);
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.DrawRoundedRectangle(FromDIP(0), FromDIP(0), frame_size.x, frame_size.y, 5);
+    dc.SetDeviceOrigin(status_border_space, status_border_space);
     //#endif
 
-    auto wheel_left = (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(2) - FromDIP(LEFT_OFFSET);
+    auto wheel_left = (size.x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(2) - FromDIP(LEFT_OFFSET);
     auto wheel_top = up;
 
     if (!m_match)
@@ -514,7 +519,7 @@ void MaterialItem::doRender(wxDC& dc)
     int arrow_left = size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(4) - FromDIP(LEFT_OFFSET);
     if (m_match)
     {
-        dc.DrawText(m_mapping_text, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(8) - FromDIP(LEFT_OFFSET) + text_pos_x, text_pos_y));
+        dc.DrawText(m_mapping_text, wxPoint(size.x / 2 + (size.x / 2 - mapping_txt_size.x) / 2 - FromDIP(8) - FromDIP(LEFT_OFFSET) + text_pos_x, text_pos_y));
 
         int arrow_y = text_pos_y + (mapping_txt_size.y - m_arraw_bitmap_white.GetBmpHeight()) / 2;
         if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) && (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180))
@@ -560,16 +565,19 @@ void MaterialItem::reset_valid_info() {
 
 void MaterialItem::messure_size()
 {
+    const int status_border_size = FromDIP(1) * 2;
     if (m_mapped_nozzle_str.empty()) {
-        SetSize(wxSize(FromDIP(65), FromDIP(50)));
-        SetMinSize(wxSize(FromDIP(65), FromDIP(50)));
-        SetMaxSize(wxSize(FromDIP(65), FromDIP(50)));
+        const wxSize item_size(FromDIP(65) + status_border_size, FromDIP(50) + status_border_size);
+        SetSize(item_size);
+        SetMinSize(item_size);
+        SetMaxSize(item_size);
     } else {
         const int line_count = s_get_mapped_nozzle_str_line_count(m_mapped_nozzle_str);
-        const int item_height = FromDIP(84 + std::max(0, line_count - 1) * 10);
-        SetSize(wxSize(FromDIP(65), item_height));
-        SetMinSize(wxSize(FromDIP(65), item_height));
-        SetMaxSize(wxSize(FromDIP(65), item_height));
+        const int item_height = FromDIP(84 + std::max(0, line_count - 1) * 10) + status_border_size;
+        const wxSize item_size(FromDIP(65) + status_border_size, item_height);
+        SetSize(item_size);
+        SetMinSize(item_size);
+        SetMaxSize(item_size);
     }
 }
 
