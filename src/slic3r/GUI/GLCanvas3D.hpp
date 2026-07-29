@@ -652,6 +652,10 @@ private:
     bool m_extra_frame_requested;
     bool m_event_handlers_bound{ false };
 
+    // Timestamp of the last detected touchpad scroll event, used to keep
+    // treating subsequent events as pan even if rotation momentarily hits WHEEL_DELTA.
+    int64_t m_last_touchpad_scroll_ms{ 0 };
+
     GLVolumeCollection m_paint_outline_volumes;
     GLVolumeCollection m_volumes;
     mutable std::shared_ptr<gcode::GCodeViewer> m_p_gcode_viewer{ nullptr };
