@@ -299,7 +299,7 @@ void PingCodeBindDialog::on_key_backspace(wxKeyEvent& event)
         }
     }
 
-    if (event.GetKeyCode() == WXK_BACK && idx >= 0) {
+    if (event.GetKeyCode() == WXK_BACK && idx > 0) {
         CallAfter([this, idx]() {
             m_text_input_single_code[idx - 1]->SetFocus();
             m_button_bind->Enable(false);
