@@ -55,11 +55,11 @@
         "-1"
     ],
     "nozzle_temperature": [
-        "220",
-        "220"
+        "230",
+        "230"
     ],
     "nozzle_temperature_initial_layer": [
-        "220",
+        "230",
         "220"
     ],
     "pre_start_fan_time": [
