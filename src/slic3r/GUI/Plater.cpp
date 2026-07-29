@@ -1975,9 +1975,12 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     nozzle_diameters.resize(extruder_nums);
     std::vector<NozzleVolumeType>target_types(extruder_nums, NozzleVolumeType::nvtStandard);
 
+    // Two extruder id spaces are in play here: "index" is the logical id (0 = left, 1 = right),
+    // which is what nozzle_diameters/target_types and every downstream preset consumer are keyed by,
+    // while physical id is used as a device query argument.
     for (size_t index = 0; index < extruder_nums; ++index) {
-        int extruder_id = extruder_map[index]; //physical extruder id
-        nozzle_diameters[extruder_id] = nozzle_option ? atof(nozzle_option->diameter.c_str()) : obj->GetExtderSystem()->GetNozzleDiameter(index);
+        int physical_extruder_id = extruder_map[index]; // physical extruder id
+        nozzle_diameters[index]  = nozzle_option ? atof(nozzle_option->diameter.c_str()) : obj->GetExtderSystem()->GetNozzleDiameter(physical_extruder_id);
         std::optional<NozzleVolumeType> select_type;
         NozzleVolumeType target_type = NozzleVolumeType::nvtStandard;
         if (nozzle_option && nozzle_option->extruder_nozzle_stats.count(index)) {
@@ -1988,15 +1991,15 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         }
 
         if (obj->is_nozzle_flow_type_supported()) {
-            if (obj->GetExtderSystem()->GetNozzleFlowType(index) == NozzleFlowType::NONE_FLOWTYPE) {
+            if (obj->GetExtderSystem()->GetNozzleFlowType(physical_extruder_id) == NozzleFlowType::NONE_FLOWTYPE) {
                 MessageDialog dlg(this->plater, _L("There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."),
                                   _L("Sync extruder information"), wxICON_WARNING | wxOK);
                 dlg.ShowModal();
                 continue;
             }
             // hack code, only use standard flow for 0.2
-            if (std::fabs(nozzle_diameters[extruder_id] - 0.2) > EPSILON && !is_skip_high_flow_printer(printer_model))
-                target_type = DevNozzle::ToNozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(extruder_id));
+            if (std::fabs(nozzle_diameters[index] - 0.2) > EPSILON && !is_skip_high_flow_printer(printer_model))
+                target_type = DevNozzle::ToNozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(physical_extruder_id));
         }
         if (select_type)
             target_type = *select_type;
