@@ -10444,6 +10444,8 @@ void Plater::priv::reset(bool apply_presets_change)
     // Stop and reset the Print content.
     this->background_process.reset();
     model.clear_objects();
+    // Drop the assembly BVH cache so ratios / bounds / notifications do not leak into the next project.
+    GLCanvas3D::clear_isolated_volumes_cache();
     // Invalidate the independent assembly model so it is re-derived for the next project.
     m_assemble_model.clear_objects();
     m_assemble_model_valid = false;

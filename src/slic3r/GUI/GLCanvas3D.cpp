@@ -1850,6 +1850,8 @@ void GLCanvas3D::reset_volumes(bool set_notice)
 
     m_selection.clear();
     m_volumes.clear();
+    // Drop the assembly BVH cache built from the volumes being released.
+    clear_isolated_volumes_cache();
     m_dirty = true;
     if (set_notice) { _set_warning_notification(EWarning::ObjectOutside, false); }
 }
@@ -12447,6 +12449,29 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
     BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: finished");
 }
 
+void GLCanvas3D::clear_isolated_volumes_cache()
+{
+    s_isolated_volumes.clear();
+    s_isolated_notification_shown        = false;
+    s_intersects_notification_shown      = false;
+    s_far_from_origin_notification_shown = false;
+    s_bvh_primary_bounds.reset();
+    s_bvh_expanded_bounds.reset();
+    s_first_primary_bounds.reset();
+    s_assemble_candidate_volumes_size = 0;
+    s_assemble_ratio                  = 0;
+    s_assemble_volume_ratio           = 0;
+
+    // Close stale notifications whose click handler depended on the cleared cache.
+    if (auto *plater = wxGetApp().plater()) {
+        if (auto *notify_mgr = plater->get_notification_manager()) {
+            notify_mgr->close_notification_of_type(NotificationType::BBLIsolatedVolumeInfo);
+            notify_mgr->close_notification_of_type(NotificationType::BBLAssemblyFarFromOrigin);
+            notify_mgr->close_notification_of_type(NotificationType::BBLIntersectsVolumeInfo);
+        }
+    }
+}
+
 void GLCanvas3D::_show_isolated_volumes_notification()
 {
     if (s_isolated_volumes.empty())
@@ -12456,6 +12481,8 @@ void GLCanvas3D::_show_isolated_volumes_notification()
     if (!plater)
         return;
 
+    // Use the name copied at detection time: the GLVolume may already have been
+    // destroyed by reload_scene / reset_volumes.
     std::string names;
     int count = 0;
     for (const auto& iv : s_isolated_volumes) {
@@ -12463,13 +12490,23 @@ void GLCanvas3D::_show_isolated_volumes_notification()
             names += "...";
             break;
         }
-        if (!iv.vol) {
+        if (iv.name.empty() && iv.obj_idx < 0)
             continue;
-        }
         if (!names.empty()) names += ", ";
-        names += iv.vol->name;
+        if (!iv.name.empty()) {
+            // Cap a single name so a corrupted/oversized cached string cannot explode allocation.
+            constexpr size_t k_max_name_chars = 128;
+            names.append(iv.name, 0, std::min(iv.name.size(), k_max_name_chars));
+            if (iv.name.size() > k_max_name_chars)
+                names += "...";
+        } else {
+            names += (boost::format("object_%1%") % iv.obj_idx).str();
+        }
         ++count;
     }
+    if (count == 0)
+        return;
+
     std::string info_text = _u8L("Overview") + ": " + _u8L("Isolated objects detected") + ": " + names + "\n"
                           + _u8L("Click to move them closer to the main body.");
 
@@ -12554,9 +12591,9 @@ bool GLCanvas3D::_move_isolated_volumes_closer(wxEvtHandler*)
     plater->take_snapshot("Move isolated volumes", UndoRedo::SnapshotType::GizmoAction);
 
     for (const auto& iv : s_isolated_volumes) {
-        if (!iv.vol || iv.obj_idx < 0 || iv.obj_idx >= (int) model.objects.size()) continue;
+        if (iv.obj_idx < 0 || iv.obj_idx >= (int) model.objects.size()) continue;
 
-        const int inst_idx = iv.vol->instance_idx();
+        const int inst_idx = iv.instance_idx;
         ModelObject* obj = model.objects[iv.obj_idx];
         if (inst_idx < 0 || inst_idx >= (int) obj->instances.size()) continue;
         ModelInstance* inst = obj->instances[inst_idx];
@@ -12766,9 +12803,14 @@ static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
                         }
                     }
                     if (!already) {
-                        GLCanvas3D::s_isolated_volumes.push_back({vol, oid, candidate_boxes[pi]});
+                        GLCanvas3D::IsolatedVolumeInfo info;
+                        info.obj_idx            = oid;
+                        info.instance_idx       = vol->instance_idx();
+                        info.name               = vol->name;
+                        info.world_box_assembly = candidate_boxes[pi];
+                        GLCanvas3D::s_isolated_volumes.push_back(std::move(info));
                         const auto &back = GLCanvas3D::s_isolated_volumes.back();
-                        BOOST_LOG_TRIVIAL(info) << boost::format("assembly thumbnail BVH isolated: obj_idx=%1% name=%2% stored_obj_idx=%3%") % oid % vol->name % back.obj_idx;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("assembly thumbnail BVH isolated: obj_idx=%1% name=%2% stored_obj_idx=%3%") % oid % back.name % back.obj_idx;
                     }
                 }
             }
@@ -12847,7 +12889,7 @@ static void _reclaim_isolated_volumes_by_bvh(
                     GLCanvas3D::s_bvh_expanded_bounds = _expand_bounds(GLCanvas3D::s_bvh_primary_bounds, GLCanvas3D::s_expand_bvh_box_dist);
 #if !BBL_RELEASE_TO_PUBLIC
                     BOOST_LOG_TRIVIAL(info) << boost::format("assembly BVH: reclaimed isolated vol obj_idx=%1% name=%2% (bvh pass %3%)")
-                        % oid % GLCanvas3D::s_isolated_volumes[pi].vol->name % iter;
+                        % oid % GLCanvas3D::s_isolated_volumes[pi].name % iter;
 #endif
                 }
                 return;

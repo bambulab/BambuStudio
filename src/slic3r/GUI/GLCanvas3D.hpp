@@ -1026,12 +1026,16 @@ public:
             : render_type(rt), canvas_type(ct), rebuild_bvh(rb) {}
     };
     struct IsolatedVolumeInfo {
-        GLVolume*     vol     = nullptr;
-        int           obj_idx = -1;
+        // Identify volumes by index / name only: GLVolume* would dangle after reload/reset.
+        int           obj_idx      = -1;
+        int           instance_idx = -1;
+        std::string   name;
         BoundingBoxf3 world_box_assembly;
     };
     static bool                            s_enable_bvh;
     static std::vector<IsolatedVolumeInfo> s_isolated_volumes;
+    // Invalidate cached isolated-volume / notification state (e.g. project load).
+    static void                            clear_isolated_volumes_cache();
     static int                             s_assemble_candidate_volumes_size;
     static bool                            s_isolated_notification_shown;
     static bool                            s_intersects_notification_shown;
