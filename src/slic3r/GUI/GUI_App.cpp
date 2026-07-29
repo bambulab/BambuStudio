@@ -87,6 +87,7 @@
 #include "DeviceCore/DevManager.h"
 
 #include "../Utils/PresetUpdater.hpp"
+#include "../Utils/VersionPolicyManager.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "../Utils/Process.hpp"
 #include "../Utils/MacDarkMode.hpp"
@@ -121,6 +122,7 @@
 #include "WebDownPluginDlg.hpp"
 #include "WebGuideDialog.hpp"
 #include "ReleaseNote.hpp"
+#include "VersionPolicyDialog.hpp"
 #include "BetaVersionDialog.hpp"
 #include "PrivacyUpdateDialog.hpp"
 #include "ModelMall.hpp"
@@ -1350,6 +1352,14 @@ void GUI_App::post_init()
 
             //BBS: check new version
             this->check_new_version();
+
+            //BBS: pull the studio version policy, the startup check point waits for it
+            VersionPolicyManager::inst().init([this] {
+                CallAfter([this] {
+                    this->check_startup_version_policy();
+                });
+            });
+
             //BBS: check privacy version
             if (is_user_login()) {
                 this->check_privacy_version(0);
@@ -5513,6 +5523,93 @@ void GUI_App::check_update(bool show_tips, int by_user)
             check_beta_version(show_tips);
         }
     }
+}
+
+PolicyCheckResult GUI_App::check_version_policy(PolicyCheckPoint point)
+{
+    try {
+        return VersionPolicyManager::inst().check(point);
+    } catch (...) {
+        // Fail open, as everywhere in this layer: a policy that cannot be read
+        // must not be able to stop the user.
+        BOOST_LOG_TRIVIAL(error) << "[VersionPolicy]: check point " << (int) point << " failed, allowing";
+        return PolicyCheckResult();
+    }
+}
+
+void GUI_App::check_startup_version_policy()
+{
+    const PolicyCheckResult result = check_version_policy(PolicyCheckPoint::Startup);
+    if (result.has_message()) {
+        VersionPolicyDialog dialog(mainframe);
+
+        // A version blocked at startup offers no way out, so acknowledging the
+        // message is all the user can do; a warning still lets Studio start.
+        if (result.blocked()) {
+            dialog.add_button(VersionPolicyDialog::ButtonId::Acknowledge, _L("Got it"));
+        } else {
+            dialog.add_button(VersionPolicyDialog::ButtonId::Continue, _L("Continue"));
+        }
+
+        dialog.UpdateByPolicyHits(result);
+        dialog.run();
+
+        // A version blocked at startup is not usable at all. Closing right here
+        // would tear the main frame down while the dialog is still on the
+        // stack, hence the hop to the next turn of the event loop.
+        if (result.blocked()) {
+            CallAfter([this] {
+                if (mainframe) {
+                    mainframe->shutdown();
+                }
+            });
+        }
+    }
+}
+
+namespace {
+
+/**
+ * @brief Runs the dialog of a check point that guards an operation.
+ *
+ * A block leaves the user nothing to decide, a warning lets them go on or
+ * step out of the operation they started.
+ *
+ * @return Whether the guarded operation may go ahead.
+ */
+bool run_policy_guard_dialog(wxWindow *parent, const PolicyCheckResult &result)
+{
+    VersionPolicyDialog dialog(parent);
+
+    if (result.blocked()) {
+        dialog.add_button(VersionPolicyDialog::ButtonId::Acknowledge, _L("Got it"));
+    } else {
+        dialog.add_button(VersionPolicyDialog::ButtonId::Continue, _L("Continue"));
+        dialog.add_button(VersionPolicyDialog::ButtonId::Back, _L("Cancel"), nullptr, VersionPolicyDialog::ButtonStyle::Secondary);
+    }
+
+    dialog.UpdateByPolicyHits(result);
+    return dialog.run();
+}
+
+} // namespace
+
+bool GUI_App::check_slice_version_policy()
+{
+    const PolicyCheckResult result = check_version_policy(PolicyCheckPoint::BeforeSlice);
+    if (!result.has_message()) {
+        return true;
+    }
+    return run_policy_guard_dialog(mainframe, result);
+}
+
+bool GUI_App::check_send_print_version_policy()
+{
+    const PolicyCheckResult result = check_version_policy(PolicyCheckPoint::BeforeSend);
+    if (!result.has_message()) {
+        return true;
+    }
+    return run_policy_guard_dialog(mainframe, result);
 }
 
 void GUI_App::check_new_version(bool show_tips, int by_user)

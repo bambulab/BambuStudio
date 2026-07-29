@@ -26,6 +26,7 @@
 #include "slic3r/GUI/UnsavedChangesDialog.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "slic3r/GUI/GLEnums.hpp"
+#include "slic3r/Utils/VersionPolicyManager.hpp"
 
 #include <wx/app.h>
 #include <wx/timer.h>
@@ -586,6 +587,48 @@ public:
     void            check_privacy_version(int online_login = 0);
     void            report_consent(std::string expand);
     void            check_track_enable();
+
+    /**
+     * @brief Asks the cloud version policy about a check point.
+     *
+     * Only answers what the policy says. Showing a VersionPolicyDialog and
+     * deciding what its buttons do is left to the caller, since what a hit
+     * means differs per check point.
+     *
+     * @param point Check point to evaluate.
+     * @return The hits, if any. An empty result means the caller may carry on
+     *         silently, which is also what any failure below resolves to.
+     * @note Does not throw and performs no network I/O.
+     */
+    PolicyCheckResult check_version_policy(PolicyCheckPoint point);
+
+    /**
+     * @brief Shows the policy that matched at startup, if any.
+     *
+     * Quits the application on a block: such a version must not reach the
+     * workspace at all.
+     */
+    void            check_startup_version_policy();
+
+    /**
+     * @brief Shows the policy that guards slicing, if any.
+     *
+     * Call it on an explicit slice request, before any slicing work starts.
+     *
+     * @return true when slicing may go ahead: nothing matched, or the user
+     *         chose to continue through a warning. A block always returns false.
+     */
+    bool            check_slice_version_policy();
+
+    /**
+     * @brief Shows the policy that guards printing, if any.
+     *
+     * Call it right before the send to printer dialog would come up.
+     *
+     * @return true when the dialog may come up: nothing matched, or the user
+     *         chose to continue through a warning. A block always returns false.
+     */
+    bool            check_send_print_version_policy();
 
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 

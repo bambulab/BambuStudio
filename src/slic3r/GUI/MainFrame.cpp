@@ -2020,6 +2020,10 @@ wxBoxSizer* MainFrame::create_side_tools()
 
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
+            // Ask the cloud version policy first, so a blocked version does not
+            // even get to touch the background process.
+            if (!wxGetApp().check_slice_version_policy()) return;
+
             if (m_plater->is_background_process_update_scheduled())
                 m_plater->update(false, true);
 

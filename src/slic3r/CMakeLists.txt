@@ -530,6 +530,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/AmsMappingPopupUpdate.cpp
     GUI/ReleaseNote.hpp
     GUI/ReleaseNote.cpp
+    GUI/VersionPolicyDialog.hpp
+    GUI/VersionPolicyDialog.cpp
     GUI/HelioReleaseNote.hpp
     GUI/HelioReleaseNote.cpp
     GUI/HelioHistoryDialog.hpp
@@ -611,6 +613,12 @@ set(SLIC3R_GUI_SOURCES
     Utils/FileHelp.hpp
     Utils/PresetUpdater.cpp
     Utils/PresetUpdater.hpp
+    Utils/VersionPolicyParser.cpp
+    Utils/VersionPolicyParser.hpp
+    Utils/VersionPolicyFetcher.cpp
+    Utils/VersionPolicyFetcher.hpp
+    Utils/VersionPolicyManager.cpp
+    Utils/VersionPolicyManager.hpp
     Utils/Process.cpp
     Utils/Process.hpp
     Utils/RaycastManager.cpp
