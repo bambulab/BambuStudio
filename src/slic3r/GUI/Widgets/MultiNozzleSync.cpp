@@ -1,5 +1,6 @@
 #include "MultiNozzleSync.hpp"
 #include "../GUI_App.hpp"
+#include "../Plater.hpp"
 #include "../DeviceCore/DevConfigUtil.h"
 #include "../DeviceCore/DevManager.h"
 #include "libslic3r/PresetBundle.hpp"

@@ -14,7 +14,6 @@
 #include "../GUI_App.hpp"
 #include "../GUI.hpp"
 #include "../GUI_ObjectList.hpp"
-#include "../GLCanvas3D.hpp"
 #include "../MainFrame.hpp"
 #include "../Plater.hpp"
 #include "../MsgDialog.hpp"
@@ -3959,8 +3958,8 @@ std::string AssemblyStepsUtils::generate_output_path(ExportType type)
 wxWindow* AssemblyStepsUtils::assembly_export_progress_anchor() const
 {
     if (wxGetApp().plater()) {
-        if (GLCanvas3D *canvas = wxGetApp().plater()->get_assmeble_canvas3D())
-            return canvas->get_wxglcanvas();
+        if (wxWindow *canvas = wxGetApp().plater()->get_assemble_wxglcanvas())
+            return canvas;
     }
     return wxGetApp().mainframe;
 }

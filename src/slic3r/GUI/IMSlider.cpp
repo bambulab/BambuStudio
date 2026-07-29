@@ -1,6 +1,7 @@
 #include "IMSlider.hpp"
 #include "libslic3r/GCode.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
 #include "NotificationManager.hpp"
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -239,9 +240,10 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
         if (tick >= 0) m_ticks.ticks.emplace(TickCode{tick, h.type, h.extruder, h.color, h.extra});
     }
 
-    if (!was_empty && m_ticks.empty())
+    if (!was_empty && m_ticks.empty()) {
         // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
-        ;// post_ticks_changed_event();
+        // post_ticks_changed_event();
+    }
 
     if (m_ticks.has_tick_with_code(ToolChange) && !m_can_change_color) {
         if (!wxGetApp().plater()->only_gcode_mode() && !wxGetApp().plater()->using_exported_file())
@@ -1152,7 +1154,7 @@ void IMSlider::render_input_custom_gcode(std::string custom_gcode)
             set_focus = false;
         }
         if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
-            wxGetApp().plater()->get_current_canvas3D()->force_set_focus();
+            if (m_request_canvas_focus) m_request_canvas_focus();
             ImGui::SetKeyboardFocusHere(0);
             strcpy(m_custom_gcode, custom_gcode.c_str());
         }
@@ -1200,7 +1202,7 @@ void IMSlider::render_input_custom_gcode(std::string custom_gcode)
 }
 
 void IMSlider::do_go_to_layer(size_t layer_number) {
-    clamp((int)layer_number, m_min_value, m_max_value);
+    // SetLowerValue / SetHigherValue clamp to [m_min_value, m_max_value] internally.
     GetSelection() == ssLower ? SetLowerValue(layer_number) : SetHigherValue(layer_number);
 }
 
@@ -1234,7 +1236,7 @@ void IMSlider::render_go_to_layer_dialog()
             set_focus = false;
         }
         if (set_focus && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)) {
-            wxGetApp().plater()->get_current_canvas3D()->force_set_focus();
+            if (m_request_canvas_focus) m_request_canvas_focus();
             ImGui::SetKeyboardFocusHere(0);
         }
         ImGui::InputText("##input_layer_number", m_layer_number, sizeof(m_layer_number));
@@ -1522,7 +1524,7 @@ std::string IMSlider::get_label(int tick, LabelType label_type)
     const size_t value = tick;
 
     if (m_label_koef == 1.0 && m_values.empty()) {
-        std::to_string(value);
+        return std::to_string(value);
     }
     if (value >= m_values.size()) return "error";
 

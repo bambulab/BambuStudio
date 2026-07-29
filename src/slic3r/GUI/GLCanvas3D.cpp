@@ -3077,7 +3077,8 @@ void GLCanvas3D::render(bool only_init)
     if (!suppress_notifications)
         wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width(), bottom_margin, right_margin);
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
-        wxGetApp().plater()->get_dailytips()->render();
+        const Size& cnv_size = get_canvas_size();
+        wxGetApp().plater()->get_dailytips()->render(cnv_size.get_width(), cnv_size.get_height());
     }
 
     wxGetApp().imgui()->render();

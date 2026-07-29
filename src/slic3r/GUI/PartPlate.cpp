@@ -36,6 +36,7 @@
 #include "Widgets/Label.hpp"
 #include "3DBed.hpp"
 #include "PartPlate.hpp"
+#include "GLCanvas3D.hpp"
 #include "Camera.hpp"
 #include "GUI_Colors.hpp"
 #include "GUI_ObjectList.hpp"
@@ -6245,7 +6246,7 @@ void PartPlateList::postprocess_bed_index_for_selected(arrangement::ArrangePolyg
 		else
 		{
 			//judge whether it is at the left side of the plate border
-			if (arrange_polygon.bed_idx <= i)
+			if (arrange_polygon.bed_idx <= (int)i)
 			{
 				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":found in plate_index %1%, bed_idx %2%") % i % arrange_polygon.bed_idx;
 				return;
@@ -6290,7 +6291,7 @@ void PartPlateList::postprocess_bed_index_for_unselected(arrangement::ArrangePol
 		else
 		{
 			//judge whether it is at the left side of the plate border
-			if (arrange_polygon.bed_idx <= i)
+			if (arrange_polygon.bed_idx <= (int)i)
 			{
 				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":found in plate_index %1%, bed_idx %2%") % i % arrange_polygon.bed_idx;
 				return;

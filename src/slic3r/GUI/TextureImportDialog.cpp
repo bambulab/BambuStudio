@@ -9,6 +9,7 @@
 #include "Widgets/StateColor.hpp"
 #include "Widgets/StaticLine.hpp"
 #include "libslic3r/ColorDecomposeRecipe.hpp"
+#include "libslic3r/Model.hpp"
 #include "libslic3r/Win10ModelRepair.hpp"
 
 #include <wx/button.h>

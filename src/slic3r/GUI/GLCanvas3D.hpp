@@ -16,7 +16,7 @@
 #include "MeshUtils.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "Camera.hpp"
-namespace Slic3r { namespace GUI { class AssemblyStepsUtils; } }
+#include "GLCanvasType.hpp"
 #include "IMToolbar.hpp"
 #include "slic3r/GUI/3DBed.hpp"
 #include "libslic3r/Slicing.hpp"
@@ -60,6 +60,7 @@ namespace GUI {
 namespace gcode {
     class GCodeViewer;
 };
+class AssemblyStepsUtils;
 class PartPlateList;
 class PartPlate;
 class OpenGLManager;
@@ -589,13 +590,12 @@ public:
         bool  min_area = true;
     };
 
-    //BBS: add canvas type for assemble view usage
-    enum ECanvasType
-    {
-        CanvasView3D = 0,
-        CanvasPreview = 1,
-        CanvasAssembleView = 2,
-    };
+    // Alias + enumerator mirrors for the lightweight definitions in GLCanvasType.hpp.
+    // Keeps existing call sites such as GLCanvas3D::ECanvasType / GLCanvas3D::CanvasView3D.
+    using ECanvasType = ::Slic3r::GUI::ECanvasType;
+    static constexpr ECanvasType CanvasView3D       = ::Slic3r::GUI::CanvasView3D;
+    static constexpr ECanvasType CanvasPreview      = ::Slic3r::GUI::CanvasPreview;
+    static constexpr ECanvasType CanvasAssembleView = ::Slic3r::GUI::CanvasAssembleView;
 
     int GetHoverId();
     void set_ignore_left_up() { m_mouse.ignore_left_up = true; }
@@ -1298,15 +1298,7 @@ public:
     void highlight_gizmo(const std::string& gizmo_name);
 
     // Timestamp for FPS calculation and notification fade-outs.
-    static int64_t timestamp_now() {
-#ifdef _WIN32
-        // Cheaper on Windows, calls GetSystemTimeAsFileTime()
-        return wxGetUTCTimeMillis().GetValue();
-#else
-        // calls clock()
-        return wxGetLocalTimeMillis().GetValue();
-#endif
-    }
+    static int64_t timestamp_now() { return canvas_timestamp_now(); }
 
     void reset_sequential_print_clearance() {
         m_sequential_print_clearance.set_visible(false);

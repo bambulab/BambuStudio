@@ -29,7 +29,6 @@
 #include <wx/utils.h>
 
 #include <numeric>
-#include <codecvt>
 #include <boost/log/trivial.hpp>
 
 #include <GL/glew.h>
@@ -40,7 +39,6 @@
 #endif
 #include <imgui/imgui_internal.h>
 #include "libslic3r/SVG.hpp"
-#include <codecvt>
 
 #include "../ParamsPanel.hpp"
 using namespace Slic3r;
@@ -3085,11 +3083,10 @@ bool GLGizmoText::filter_model_volume(ModelVolume *mv) {
 
 float GLGizmoText::get_text_height(const std::string &text)//todo
 {
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> str_cnv;
-    std::wstring                                     ws = boost::nowide::widen(text);
-    std::vector<std::string>                         alphas;
+    std::wstring             ws = boost::nowide::widen(text);
+    std::vector<std::string> alphas;
     for (auto w : ws) {
-        alphas.push_back(str_cnv.to_bytes(w));
+        alphas.push_back(boost::nowide::narrow(std::wstring(1, w)));
     }
     auto  texts  = alphas ;
     float max_height = 0.f;

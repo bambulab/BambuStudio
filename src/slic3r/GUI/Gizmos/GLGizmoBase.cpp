@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_Colors.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
 

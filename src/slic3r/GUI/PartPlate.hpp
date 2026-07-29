@@ -13,11 +13,11 @@
 #include "libslic3r/Format/bbs_3mf.hpp"
 #include "libslic3r/Slicing.hpp"
 #include "libslic3r/Arrange.hpp"
-#include "Plater.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
-#include "GLCanvas3D.hpp"
+// VendorProfile::PrinterModel is a nested type, so it cannot be forward declared.
+#include "libslic3r/Preset.hpp"
 #include "GLTexture.hpp"
 #include "3DScene.hpp"
 #include "GLModel.hpp"
@@ -65,6 +65,7 @@ class ModelObject;
 class ModelInstance;
 class Print;
 class SLAPrint;
+class BackgroundSlicingProcess;
 struct HelioPlateResult;
 
 namespace GUI {

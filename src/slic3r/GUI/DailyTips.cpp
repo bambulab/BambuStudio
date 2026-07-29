@@ -1,4 +1,6 @@
 #include "DailyTips.hpp"
+#include "GUI_App.hpp"
+#include "Plater.hpp"
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -623,7 +625,7 @@ void DailyTipsWindow::close()
     m_show = false;
 }
 
-void DailyTipsWindow::render()
+void DailyTipsWindow::render(float cnv_width, float cnv_height)
 {
     if (!m_show)
         return;
@@ -633,8 +635,7 @@ void DailyTipsWindow::render()
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     float scale = imgui.get_font_size() / 15.0f;
 
-    const Size& cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
-    ImVec2 center = ImVec2(cnv_size.get_width() * 0.5f, cnv_size.get_height() * 0.5f);
+    ImVec2 center = ImVec2(cnv_width * 0.5f, cnv_height * 0.5f);
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
     ImVec2 padding = ImVec2(25, 25) * scale;

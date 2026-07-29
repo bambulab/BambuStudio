@@ -14,7 +14,6 @@
 #include "slic3r/Utils/NetworkAgent.hpp"
 #include "slic3r/GUI/WebViewDialog.hpp"
 #include "slic3r/GUI/WebUserLoginDialog.hpp"
-#include "slic3r/GUI/BindDialog.hpp"
 #include "slic3r/GUI/HMS.hpp"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerStore.h"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerSync.h"
@@ -72,6 +71,7 @@ namespace Slic3r {
 
 class AppConfig;
 class FilamentColorCodeQuery;
+class GLShaderProgram;
 class PresetBundle;
 class PresetUpdater;
 class ModelObject;

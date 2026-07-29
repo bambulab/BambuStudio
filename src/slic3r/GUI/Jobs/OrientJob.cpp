@@ -164,11 +164,11 @@ void OrientJob::process()
     auto start = std::chrono::steady_clock::now();
     static const auto arrangestr = _(L("Orienting..."));
 
-    const GLCanvas3D::OrientSettings& settings = m_plater->canvas3D()->get_orient_settings();
+    const bool min_area = m_plater->get_orient_min_area();
 
     orientation::OrientParams params;
     orientation::OrientParamsArea params_area;
-    if (settings.min_area) {
+    if (min_area) {
         memcpy(&params, &params_area, sizeof(params));
         params.min_volume = false;
     }

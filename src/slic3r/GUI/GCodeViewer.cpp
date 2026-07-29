@@ -3,6 +3,7 @@
 #include "slic3r/GUI/GCodeRenderer/LegacyRenderer.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/PartPlate.hpp"
 #include "libslic3r/BoundingBox.hpp"
 namespace Slic3r {
     namespace GUI {

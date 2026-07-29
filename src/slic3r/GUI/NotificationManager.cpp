@@ -1,4 +1,6 @@
 #include "NotificationManager.hpp"
+#include "GLCanvas3D.hpp"
+#include "Plater.hpp"
 
 #include "HintNotification.hpp"
 #include "SlicingProgressNotification.hpp"
@@ -112,7 +114,7 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 	, m_hypertext           (n.hypertext)
 	, m_text2               (n.text2)
 	, m_evt_handler         (evt_handler)
-	, m_notification_start  (GLCanvas3D::timestamp_now())
+	, m_notification_start  (canvas_timestamp_now())
 {
     if (!n.second_hypertext.empty()) {
         m_second_hypertext = n.second_hypertext;
@@ -407,7 +409,7 @@ void NotificationManager::PopNotification::bbl_render_block_notification(GLCanva
 void NotificationManager::PopNotification::close()
 {
     m_state = EState::ClosePending;
-    wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+    wxGetApp().plater()->schedule_extra_frame(0);
 }
 
 bool NotificationManager::PopNotification::push_background_color()
@@ -586,7 +588,7 @@ void NotificationManager::PopNotification::init()
 			m_multiline = true;
 	}
 
-	m_notification_start = GLCanvas3D::timestamp_now();
+	m_notification_start = canvas_timestamp_now();
 	if (m_state == EState::Unknown || m_state == EState::Hovered)
 		m_state = EState::Shown;
 }
@@ -1055,7 +1057,7 @@ bool NotificationManager::PopNotification::update_state(bool paused, const int64
 		return false;
 	}
 
-	int64_t now = GLCanvas3D::timestamp_now();
+	int64_t now = canvas_timestamp_now();
 
 	// reset fade opacity for non-closing notifications or hover during fading
 	if (m_state != EState::FadingOut && m_state != EState::ClosePending && m_state != EState::Finished) {
@@ -2218,7 +2220,7 @@ void NotificationManager::set_upload_job_notification_percentage(int id, const s
 			PrintHostUploadNotification* phun = dynamic_cast<PrintHostUploadNotification*>(notification.get());
 			if (phun->compare_job_id(id)) {
 				phun->set_percentage(percentage);
-				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+				wxGetApp().plater()->schedule_extra_frame(0);
 				break;
 			}
 		}
@@ -2231,7 +2233,7 @@ void NotificationManager::upload_job_notification_show_canceled(int id, const st
 			PrintHostUploadNotification* phun = dynamic_cast<PrintHostUploadNotification*>(notification.get());
 			if (phun->compare_job_id(id)) {
 				phun->cancel();
-				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+				wxGetApp().plater()->schedule_extra_frame(0);
 				break;
 			}
 		}
@@ -2244,7 +2246,7 @@ void NotificationManager::upload_job_notification_show_error(int id, const std::
 			PrintHostUploadNotification* phun = dynamic_cast<PrintHostUploadNotification*>(notification.get());
 			if(phun->compare_job_id(id)) {
 				phun->error();
-				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+				wxGetApp().plater()->schedule_extra_frame(0);
 				break;
 			}
 		}
@@ -2328,7 +2330,7 @@ void NotificationManager::update_slicing_notif_dailytips(bool need_change)
 					spn->get_dailytips_panel()->retrieve_data_from_hint_database(HIGH_SHRINKAGE_FILAMENT_HINT_KEY, high_shrinkage_filament_names);
 				else
 					spn->get_dailytips_panel()->retrieve_data_from_hint_database(HintDataNavigation::Random);
-				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+				wxGetApp().plater()->schedule_extra_frame(0);
 			}
 			return;
 		}
@@ -2356,7 +2358,7 @@ void NotificationManager::set_slicing_progress_percentage(const std::string& tex
 			SlicingProgressNotification* spn = dynamic_cast<SlicingProgressNotification*>(notification.get());
 			if(spn->set_progress_state(percentage)) {
 				spn->set_status_text(text, is_helio);
-				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+				wxGetApp().plater()->schedule_extra_frame(0);
 			}
 			return;
 		}
@@ -2371,7 +2373,7 @@ void NotificationManager::set_slicing_progress_canceled(const std::string& text)
 			SlicingProgressNotification* spn = dynamic_cast<SlicingProgressNotification*>(notification.get());
 			spn->set_progress_state(SlicingProgressNotification::SlicingProgressState::SP_CANCELLED);
 			spn->set_status_text(text);
-			wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+			wxGetApp().plater()->schedule_extra_frame(0);
 			return;
 		}
 	}
@@ -2385,7 +2387,7 @@ void NotificationManager::set_slicing_progress_hidden()
 			SlicingProgressNotification* notif = dynamic_cast<SlicingProgressNotification*>(notification.get());
             notif->get_dailytips_panel()->set_is_helio(false);
 			notif->set_progress_state(SlicingProgressNotification::SlicingProgressState::SP_NO_SLICING);
-			wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+			wxGetApp().plater()->schedule_extra_frame(0);
 			return;
 		}
 	}
@@ -2467,7 +2469,7 @@ void NotificationManager::progress_indicator_set_progress(int pr)
 		if (notification->get_type() == NotificationType::ProgressIndicator) {
 			dynamic_cast<ProgressIndicatorNotification*>(notification.get())->set_progress(pr);
 			// Ask for rendering - needs to be done on every progress. Calls to here doesnt trigger IDLE event or rendering.
-			wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(100);
+			wxGetApp().plater()->schedule_extra_frame(100);
 			return;
 		}
 	}
@@ -2549,8 +2551,8 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 	}
 	if (!ui_ready)
 		return retval;
-	if (auto* canvas = wxGetApp().plater()->get_current_canvas3D())
-		canvas->schedule_extra_frame(0);
+	if (wxGetApp().plater())
+		wxGetApp().plater()->schedule_extra_frame(0);
 	return retval;
 }
 
@@ -2564,7 +2566,7 @@ void NotificationManager::push_delayed_notification_data(std::unique_ptr<Notific
 			return;
 	}
 	m_waiting_notifications.emplace_back(std::move(notification), condition_callback, initial_delay == 0 ? delay_interval : initial_delay, delay_interval);
-	wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(initial_delay == 0 ? delay_interval : initial_delay);
+	wxGetApp().plater()->schedule_extra_frame(initial_delay == 0 ? delay_interval : initial_delay);
 }
 
 void NotificationManager::stop_delayed_notifications_of_type(const NotificationType type)
@@ -2590,7 +2592,7 @@ void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay
         // Reset each frame; render()/bbl_render_block_notification() set it back
         // to true (with the cached rect) only for notifications actually drawn.
         notification->set_not_rendered();
-        if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        if (m_canvas_type == ECanvasType::CanvasAssembleView) {
             if (notification->get_type() != NotificationType::AssemblyInfo
                 && notification->get_type() != NotificationType::AssemblyWarning
                 && notification->get_type() != NotificationType::BBLIsolatedVolumeInfo
@@ -2606,14 +2608,14 @@ void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay
             }
         }
         if (notification->get_data().level == NotificationLevel::ErrorNotificationLevel || notification->get_data().level == NotificationLevel::SeriousWarningNotificationLevel) {
-            notification->bbl_render_block_notification(canvas, bottom_up_last_y, m_move_from_overlay && (m_canvas_type == GLCanvas3D::ECanvasType::CanvasView3D), overlay_width * m_scale, right_margin * m_scale);
+            notification->bbl_render_block_notification(canvas, bottom_up_last_y, m_move_from_overlay && (m_canvas_type == ECanvasType::CanvasView3D), overlay_width * m_scale, right_margin * m_scale);
             if (notification->get_state() != PopNotification::EState::Finished)
 				bottom_up_last_y = notification->get_top() + GAP_WIDTH;
 		}
 		else {
 			if (notification->get_state() != PopNotification::EState::Hidden && notification->get_state() != PopNotification::EState::Finished) {
 				i++;
-				notification->render(canvas, bottom_up_last_y, m_move_from_overlay && (m_canvas_type == GLCanvas3D::ECanvasType::CanvasView3D), overlay_width * m_scale, right_margin * m_scale);
+				notification->render(canvas, bottom_up_last_y, m_move_from_overlay && (m_canvas_type == ECanvasType::CanvasView3D), overlay_width * m_scale, right_margin * m_scale);
 				if (notification->get_state() != PopNotification::EState::Finished)
 					bottom_up_last_y = notification->get_top() + GAP_WIDTH;
 			}
@@ -2628,7 +2630,7 @@ void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay
         close_and_delete_self(m_to_delete_after_finish_render);
         m_to_delete_after_finish_render = nullptr;
     }
-	m_last_render = GLCanvas3D::timestamp_now();
+	m_last_render = canvas_timestamp_now();
 }
 
 bool NotificationManager::update_notifications(GLCanvas3D& canvas)
@@ -2644,7 +2646,7 @@ bool NotificationManager::update_notifications(GLCanvas3D& canvas)
 	// next_render() returns numeric_limits::max if no need for frame
 	const int64_t max = std::numeric_limits<int64_t>::max();
 	int64_t       next_render = max;
-	const int64_t time_since_render = GLCanvas3D::timestamp_now() - m_last_render;
+	const int64_t time_since_render = canvas_timestamp_now() - m_last_render;
 	bool		  request_render = false;
 	// During render, each notification detects if its currently hovered and changes its state to EState::Hovered
 	// If any notification is hovered, all restarts its countdown
@@ -2743,27 +2745,27 @@ bool NotificationManager::activate_existing(const NotificationManager::PopNotifi
 	return false;
 }
 
-void NotificationManager::set_canvas_type(GLCanvas3D::ECanvasType t_canvas_type)
+void NotificationManager::set_canvas_type(ECanvasType t_canvas_type)
 {
     m_canvas_type = t_canvas_type;
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::PlaterWarning)
-            notification->hide(m_canvas_type != GLCanvas3D::ECanvasType::CanvasView3D);
+            notification->hide(m_canvas_type != ECanvasType::CanvasView3D);
         if (notification->get_type() == NotificationType::BBLPlateInfo)
-            notification->hide(m_canvas_type != GLCanvas3D::ECanvasType::CanvasView3D);
+            notification->hide(m_canvas_type != ECanvasType::CanvasView3D);
         if (notification->get_type() == NotificationType::SignDetected)
-            notification->hide(m_canvas_type == GLCanvas3D::ECanvasType::CanvasView3D);
+            notification->hide(m_canvas_type == ECanvasType::CanvasView3D);
         if (notification->get_type() == NotificationType::BBLObjectInfo)
-            notification->hide(m_canvas_type != GLCanvas3D::ECanvasType::CanvasView3D);
+            notification->hide(m_canvas_type != ECanvasType::CanvasView3D);
         if (notification->get_type() == NotificationType::BBLBedHeatSoakInfo)
-            notification->hide(m_canvas_type != GLCanvas3D::ECanvasType::CanvasView3D &&
-                               m_canvas_type != GLCanvas3D::ECanvasType::CanvasPreview);
+            notification->hide(m_canvas_type != ECanvasType::CanvasView3D &&
+                               m_canvas_type != ECanvasType::CanvasPreview);
         if (notification->get_type() == NotificationType::BBLSeqPrintInfo)
-            notification->hide(m_canvas_type != GLCanvas3D::ECanvasType::CanvasView3D);
-        if ((m_canvas_type == GLCanvas3D::ECanvasType::CanvasPreview) && notification->get_type() == NotificationType::DidYouKnowHint)
+            notification->hide(m_canvas_type != ECanvasType::CanvasView3D);
+        if ((m_canvas_type == ECanvasType::CanvasPreview) && notification->get_type() == NotificationType::DidYouKnowHint)
             notification->close();
         if (notification->get_type() == NotificationType::ValidateWarning)
-            notification->hide(m_canvas_type != GLCanvas3D::ECanvasType::CanvasView3D);
+            notification->hide(m_canvas_type != ECanvasType::CanvasView3D);
     }
 }
 
@@ -3098,7 +3100,7 @@ void NotificationManager::bbl_show_filament_map_invalid_notification_after_slice
         wxCommandEvent evt(EVT_OPEN_FILAMENT_MAP_SETTINGS_DIALOG);
         evt.SetEventObject(plater);
         auto canvas_type = plater->canvas3D()->get_canvas_type();
-        if (canvas_type == GLCanvas3D::ECanvasType::CanvasPreview)
+        if (canvas_type == ECanvasType::CanvasPreview)
             evt.SetInt(1); // 1 means from gcode viewer, should do slice right now
         else
             evt.SetInt(0);
@@ -3174,18 +3176,32 @@ void NotificationManager::PlaterWarningNotification::close()
     if (is_finished())
         return;
     m_state = EState::Hidden;
-    wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+    wxGetApp().plater()->schedule_extra_frame(0);
     if(m_on_delete_callback)
         m_on_delete_callback(this);
 }
+
+void NotificationManager::PlaterWarningNotification::real_close()
+{
+    m_state = EState::ClosePending;
+    wxGetApp().plater()->schedule_extra_frame(0);
 }
-void GUI::NotificationManager::AssemblyWarningNotification::close()
+
+void NotificationManager::AssemblyWarningNotification::close()
 {
     if (is_finished())
         return;
     m_state = EState::Hidden;
-    wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
+    wxGetApp().plater()->schedule_extra_frame(0);
     if (m_on_delete_callback)
         m_on_delete_callback(this);
 }
-}//namespace Slic3r
+
+void NotificationManager::AssemblyWarningNotification::real_close()
+{
+    m_state = EState::ClosePending;
+    wxGetApp().plater()->schedule_extra_frame(0);
+}
+
+} // namespace GUI
+} // namespace Slic3r

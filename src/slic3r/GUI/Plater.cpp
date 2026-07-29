@@ -2075,7 +2075,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
 
     auto find_string = [](ComboBox *combo, const wxString& str) {
-        for (int i = 0; i < combo->GetCount(); ++i) {
+        for (int i = 0; i < (int)combo->GetCount(); ++i) {
             wxString text = combo->GetString(i);
             if (text.StartsWith(str)) {
                 return i;
@@ -4712,7 +4712,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         else if(color_before_sync[i] != color_opt->values[i] && wxGetApp().app_config->get("auto_calculate_flush") != "disabled"){
             auto_calc_flushing_volumes(i);
         }
-        else if(is_support_filament(i) !=is_support_before[i] && wxGetApp().app_config->get("auto_calculate_flush") == "all"){
+        else if((int)is_support_filament(i) !=is_support_before[i] && wxGetApp().app_config->get("auto_calculate_flush") == "all"){
             auto_calc_flushing_volumes(i);
         }
     }
@@ -12613,7 +12613,8 @@ void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
         for (auto const& warning : state.warnings) {
             if (warning.current) {
                 NotificationManager::NotificationLevel notif_level = NotificationManager::NotificationLevel::WarningNotificationLevel;
-                if (evt.status.message_type == PrintStateBase::SlicingNotificationType::SlicingReplaceInitEmptyLayers | PrintStateBase::SlicingNotificationType::SlicingEmptyGcodeLayers) {
+                if (evt.status.message_type == PrintStateBase::SlicingNotificationType::SlicingReplaceInitEmptyLayers ||
+                    evt.status.message_type == PrintStateBase::SlicingNotificationType::SlicingEmptyGcodeLayers) {
                     notif_level = NotificationManager::NotificationLevel::SeriousWarningNotificationLevel;
                 }
                 notification_manager->push_slicing_warning_notification(warning.message, false, model_object, object_id, warning_step, warning.message_id, notif_level);
@@ -25070,6 +25071,51 @@ void Plater::arrange()
 void Plater::set_current_canvas_as_dirty()
 {
     p->set_current_canvas_as_dirty();
+}
+
+void Plater::schedule_extra_frame(int miliseconds)
+{
+    if (GLCanvas3D *canvas = p->get_current_canvas3D())
+        canvas->schedule_extra_frame(miliseconds);
+}
+
+void Plater::highlight_toolbar_item(const std::string &item_name)
+{
+    if (GLCanvas3D *canvas = canvas3D())
+        canvas->highlight_toolbar_item(item_name);
+}
+
+void Plater::highlight_gizmo(const std::string &gizmo_name)
+{
+    if (GLCanvas3D *canvas = canvas3D())
+        canvas->highlight_gizmo(gizmo_name);
+}
+
+void Plater::deselect_current_canvas()
+{
+    if (GLCanvas3D *canvas = canvas3D())
+        canvas->deselect_all();
+}
+
+wxWindow *Plater::get_assemble_wxglcanvas()
+{
+    if (GLCanvas3D *canvas = get_assmeble_canvas3D())
+        return canvas->get_wxglcanvas();
+    return nullptr;
+}
+
+bool Plater::is_allow_x_ray_in_assembly()
+{
+    if (GLCanvas3D *canvas = get_assmeble_canvas3D())
+        return canvas->get_gizmos_manager().is_allow_x_ray_in_assembly();
+    return true;
+}
+
+bool Plater::get_orient_min_area()
+{
+    if (GLCanvas3D *canvas = canvas3D())
+        return canvas->get_orient_settings().min_area;
+    return true;
 }
 
 void Plater::unbind_canvas_event_handlers()

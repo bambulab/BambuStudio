@@ -1379,11 +1379,11 @@ void Selection::translate(const Vec3d &displacement, TransformationType transfor
     else if (m_mode == Volume)
         synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
-    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != ECanvasType::CanvasAssembleView) {
         ensure_not_below_bed();
     }
     set_bounding_boxes_dirty();
-    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != ECanvasType::CanvasAssembleView) {
         wxGetApp().plater()->canvas3D()->requires_check_outside_state();
     }
 }
@@ -1525,7 +1525,7 @@ void Selection::rotate(const Vec3d& rotation, TransformationType transformation_
     }
 
     set_bounding_boxes_dirty();
-    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != ECanvasType::CanvasAssembleView) {
         wxGetApp().plater()->canvas3D()->requires_check_outside_state();
     }
 }
@@ -1872,7 +1872,7 @@ void Selection::scale_and_translate(const Vec3d &scale, const Vec3d &world_trans
 
     ensure_on_bed();
     set_bounding_boxes_dirty();
-    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasAssembleView) {
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != ECanvasType::CanvasAssembleView) {
         wxGetApp().plater()->canvas3D()->requires_check_outside_state();
     }
 }
@@ -2990,7 +2990,7 @@ void Selection::render_sidebar_scale_hints(const std::string& sidebar_field, boo
 void Selection::render_sidebar_layers_hints(GLShaderProgram& shader, const std::string& sidebar_field) const
 {
     static const double Margin = 10.0;
-    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D) {
+    if (wxGetApp().plater()->canvas3D()->get_canvas_type() != ECanvasType::CanvasView3D) {
         return;
     }
     std::string field = sidebar_field;
@@ -3363,7 +3363,7 @@ void Selection::ensure_not_below_bed()
 
 bool Selection::is_from_fully_selected_instance(unsigned int volume_idx) const
 {
-    if (m_mode == Instance && wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+    if (m_mode == Instance && wxGetApp().plater()->canvas3D()->get_canvas_type() == ECanvasType::CanvasAssembleView) {
         return true;
     }
     struct SameInstance

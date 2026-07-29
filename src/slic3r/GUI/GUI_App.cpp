@@ -1,5 +1,6 @@
 #include "libslic3r/Technologies.hpp"
 #include "GUI_App.hpp"
+#include "BindDialog.hpp"
 #include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_Factories.hpp"
@@ -8233,7 +8234,8 @@ const std::shared_ptr<GLShaderProgram>& GUI_App::get_shader(const std::string &s
         return p_ogl_manager->get_shader(shader_name);
     }
 
-    return nullptr;
+    static std::shared_ptr<GLShaderProgram> s_empty_shader{ nullptr };
+    return s_empty_shader;
 }
 
 const std::shared_ptr<GLShaderProgram> GUI_App::get_current_shader() const
