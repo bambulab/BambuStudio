@@ -1374,7 +1374,7 @@ void AMSMaterialsSetting::apply_dialog_size()
 
 bool AMSMaterialsSetting::is_virtual_tray()
 {
-    return ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID;
+    return obj && obj->GetFilaSystem()->IsVirtualTrayId(std::to_string(ams_id));
 }
 
 void AMSMaterialsSetting::update_kval_editability()
@@ -2349,7 +2349,7 @@ int AMSMaterialsSetting::get_cali_index_by_ams_slot(MachineObject *obj, int ams_
     if (!m_pending_from_printer) return -1;
 
     if (obj->GetCalib()->IsVersionInited()) {
-        if (auto vt_tray = obj->get_vt_tray(std::to_string(ams_id))) {
+        if (auto vt_tray = obj->GetFilaSystem()->GetVirtualTray(std::to_string(ams_id))) {
             return vt_tray->cali_idx;
         } else {
             DevAmsTray *selected_tray = obj->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));

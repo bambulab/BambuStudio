@@ -413,12 +413,14 @@ void DevCalib::ExtrusionCalibSetParse(const json & jj){
     int ams_id  = tray_ams_slot_map.find(tray_id) != tray_ams_slot_map.end() ? tray_ams_slot_map[tray_id].first : -1;
     int slot_id = tray_ams_slot_map.find(tray_id) != tray_ams_slot_map.end() ? tray_ams_slot_map[tray_id].second : -1;
 
-    if(tray_id == VIRTUAL_TRAY_MAIN_ID) {
-        std::optional<float> k_opt = jj.contains("k_value") ? std::optional<float>(jj["k_value"].get<float>()) : std::nullopt;
-        std::optional<float> n_opt = jj.contains("n_value") ? std::optional<float>(jj["n_value"].get<float>()) : std::nullopt;
-        GetOwner()->GetFilaSystem()->SetVirtualTray(VIRTUAL_TRAY_MAIN_ID, k_opt, n_opt, std::nullopt);
+    auto *fila_system = GetOwner()->GetFilaSystem().get();
+    if (auto vt_opt = fila_system->GetVirtualTray(std::to_string(tray_id))) {
+        DevAmsTray vt_tray = vt_opt.value();
+        vt_tray.k = jj.value("k_value", vt_tray.k);
+        vt_tray.n = jj.value("n_value", vt_tray.n);
+        fila_system->UpdateVirtualTray(std::to_string(tray_id), vt_tray);
     }else{
-        auto tray_item = GetOwner()->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
+        auto tray_item = fila_system->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
         if (tray_item) {
             tray_item->k = jj.value("k_value", tray_item->k);
             tray_item->n = jj.value("n_coef", tray_item->n);
@@ -441,11 +443,14 @@ void DevCalib::ExtrusionCalibSelectParse(const json &jj){
         int ams_id = jj.value("ams_id", default_ams_id);
         int slot_id = jj.value("slot_id", default_slot_id);
 
-        if (GetOwner()->GetFilaSystem()->IsVirtualTrayId(std::to_string(ams_id))) {
-            std::optional<int> idx_opt = jj.contains("cali_idx") ? std::optional<int>(jj["cali_idx"].get<int>()) : std::nullopt;
-            GetOwner()->GetFilaSystem()->SetVirtualTray(ams_id, std::nullopt, std::nullopt, idx_opt, /*is_set_hold_count=*/true);
+        auto *fila_system = GetOwner()->GetFilaSystem().get();
+        if (auto vt_opt = fila_system->GetVirtualTray(std::to_string(ams_id))) {
+            DevAmsTray vt_tray = vt_opt.value();
+            vt_tray.cali_idx   = jj.value("cali_idx", vt_tray.cali_idx);
+            vt_tray.set_hold_count();
+            fila_system->UpdateVirtualTray(std::to_string(ams_id), vt_tray);
         } else {
-            auto tray_item = GetOwner()->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
+            auto tray_item = fila_system->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
             if (tray_item) {
                 tray_item->cali_idx = jj.value("cali_idx", tray_item->cali_idx);
                 tray_item->set_hold_count();

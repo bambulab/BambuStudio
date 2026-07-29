@@ -4422,7 +4422,7 @@ void sGetSwitchInfo(MachineObject *obj, const std::string &ams_id, const std::st
         return;
     }
 
-    if (obj->can_resume() && !devPrinterUtil::IsVirtualSlot(ams_id)) {
+    if (obj->can_resume() && !obj->GetFilaSystem()->IsVirtualTrayId(ams_id)) {
         const auto &err_info = _L("When printing is paused, filament loading and unloading are only supported for external slots.");
         load_error_info      = err_info;
         unload_error_info    = err_info;
@@ -4452,7 +4452,7 @@ void sGetSwitchInfo(MachineObject *obj, const std::string &ams_id, const std::st
     }
 
     if (obj->GetFilaSwitch()->IsInstalled()) {
-        if (devPrinterUtil::IsVirtualSlot(ams_id)) {
+        if (obj->GetFilaSystem()->IsVirtualTrayId(ams_id)) {
             const auto &err_info = _L("\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch.");
             load_error_info      = err_info;
             unload_error_info    = err_info;
@@ -4472,7 +4472,7 @@ void sGetSwitchInfo(MachineObject *obj, const std::string &ams_id, const std::st
 
         if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id && ext.HasFilamentInExt()) { load_error_info = _L("Current slot has alread been loaded"); }
     }
-    if (!devPrinterUtil::IsVirtualSlot(ams_id) && !tray_item->is_exists) { load_error_info = _L("The selected slot is empty."); }
+    if (!obj->GetFilaSystem()->IsVirtualTrayId(ams_id) && !tray_item->is_exists) { load_error_info = _L("The selected slot is empty."); }
 
     auto ams_item = obj->GetFilaSystem()->GetAmsById(ams_id);
     if (ams_item) {
@@ -5269,21 +5269,19 @@ void StatusPanel::on_ams_load_curr()
 
         update_load_with_temp();
         // virtual tray
-        if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0 || curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) == 0) {
-            int vt_slot_idx = 0;
-            if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) == 0) { vt_slot_idx = 1; }
+        if (obj->GetFilaSystem()->IsVirtualTrayId(curr_ams_id)) {
+            int  old_temp   = -1;
+            int  new_temp   = -1;
+            auto tray_opt   = obj->GetFilaSystem()->GetVirtualTray(curr_ams_id);
 
-            int         old_temp  = -1;
-            int         new_temp  = -1;
-            DevAmsTray *curr_tray = &obj->vt_slot[vt_slot_idx];
-
-            if (!curr_tray) return;
+            if (!tray_opt) return;
+            const DevAmsTray &curr_tray = tray_opt.value();
 
             try {
-                if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
-                    old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
-                if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty())
-                    new_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
+                if (!curr_tray.nozzle_temp_max.empty() && !curr_tray.nozzle_temp_min.empty())
+                    old_temp = (atoi(curr_tray.nozzle_temp_min.c_str()) + atoi(curr_tray.nozzle_temp_max.c_str())) / 2;
+                if (!curr_tray.nozzle_temp_max.empty() && !curr_tray.nozzle_temp_min.empty())
+                    new_temp = (atoi(curr_tray.nozzle_temp_min.c_str()) + atoi(curr_tray.nozzle_temp_max.c_str())) / 2;
             } catch (...) {
                 ;
             }
@@ -5418,7 +5416,7 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
         m_extrusion_cali_dlg->obj = obj;
         std::string ams_id        = m_ams_control->GetCurentAms();
         std::string tray_id       = m_ams_control->GetCurrentCan(ams_id);
-        if (tray_id.empty() && ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) != 0) {
+        if (tray_id.empty() && !obj->GetFilaSystem()->IsVirtualTrayId(ams_id)) {
             wxString      txt = _L("Please select an AMS slot before calibration");
             MessageDialog msg_dlg(nullptr, txt, wxEmptyString, wxICON_WARNING | wxOK);
             msg_dlg.ShowModal();
@@ -5429,7 +5427,7 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
         int tray_id_int = 0;
 
         // set ams_filament id is is bbl filament
-        if (devPrinterUtil::IsVirtualSlot(ams_id)) {
+        if (obj->GetFilaSystem()->IsVirtualTrayId(ams_id)) {
             // tray_id_int                           = VIRTUAL_TRAY_MAIN_ID;
             m_extrusion_cali_dlg->ams_filament_id = "";
         } else {
@@ -5754,9 +5752,8 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
         event.GetString().ToLong(&slot_id_long);
         int slot_id = static_cast<int>(slot_id_long);
 
-        if (obj->vt_slot.empty()) return;
-        int vt_idx = (ams_id == VIRTUAL_TRAY_DEPUTY_ID && obj->vt_slot.size() > 1) ? 1 : 0;
-        const DevAmsTray* vt_tray = &obj->vt_slot[vt_idx];
+        auto vt_tray = obj->GetFilaSystem()->GetVirtualTray(std::to_string(ams_id));
+        if (!vt_tray) return;
 
         try {
             std::string sn_number;
@@ -5817,8 +5814,8 @@ void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
         // std::string curr_ams_id = m_ams_control->GetCurentAms();
         if (event.GetInt() < 0 || event.GetInt() > VIRTUAL_TRAY_MAIN_ID) { return; }
         std::string curr_ams_id = std::to_string(event.GetInt());
-        // do not support refresh rfid for VIRTUAL_TRAY_MAIN_ID
-        if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) { return; }
+        // RFID refresh is an AMS-only command; external slots have no reader.
+        if (obj->GetFilaSystem()->IsVirtualTrayId(curr_ams_id)) { return; }
         std::string curr_can_id = event.GetString().ToStdString();
 
         std::map<std::string, DevAms *>::iterator it = obj->GetFilaSystem()->GetAmsList().find(curr_ams_id);
@@ -5870,7 +5867,7 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
         std::string curr_ams_id          = m_ams_control->GetCurentAms();
         std::string curr_selected_ams_id = std::to_string(event.GetInt());
 
-        if (curr_ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
+        if (obj->GetFilaSystem()->IsVirtualTrayId(curr_ams_id)) {
             return;
         } else {
             std::string                               curr_can_id = event.GetString().ToStdString();

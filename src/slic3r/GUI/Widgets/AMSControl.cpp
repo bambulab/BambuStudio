@@ -1089,7 +1089,7 @@ void AMSControl::UpdateAms(const std::string   &series_name,
             }
             std::string ams_id = ams_item.second->get_ams_id();
             AmsItem* cans = ams_item.second;
-            if (cans->get_ams_id() == std::to_string(VIRTUAL_TRAY_MAIN_ID) || cans->get_ams_id() == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+            if (obj && obj->GetFilaSystem()->IsVirtualTrayId(ams_id)) {
                 for (auto ifo : m_ext_info) {
                     if (ifo.ams_id == ams_id) {
                         cans->Update(ifo);

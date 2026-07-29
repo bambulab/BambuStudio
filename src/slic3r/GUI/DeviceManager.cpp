@@ -761,20 +761,12 @@ bool MachineObject::is_extrusion_cali_finished()
 DevAmsTray *MachineObject::get_curr_tray()
 {
     const std::string& cur_ams_id = m_extder_system->GetCurrentAmsId();
-    if (cur_ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
-        return &vt_slot[0];
+
+    if (m_fila_system->IsVirtualTrayId(cur_ams_id)) {
+        return m_fila_system->GetVirtualTrayPtr(cur_ams_id);
     }
 
-    DevAms* curr_ams = get_curr_Ams();
-    if (!curr_ams) return nullptr;
-
-    auto it = curr_ams->GetTrays().find(m_extder_system->GetCurrentSlotId());
-    if (it != curr_ams->GetTrays().end())
-    {
-        return it->second;
-    }
-
-    return nullptr;
+    return m_fila_system->GetAmsTray(cur_ams_id, m_extder_system->GetCurrentSlotId());
 }
 
 std::string MachineObject::get_filament_id(std::string ams_id, std::string tray_id) const {
@@ -4292,6 +4284,7 @@ DevAmsTray MachineObject::parse_vt_tray(MachineObject* obj_, const json& vtray)
     vt_tray.ams_type = DevAmsType::EXT_SPOOL;
     vt_tray.is_exists = true;// for external spool, default to true
 
+    int vt_tray_id_int = VIRTUAL_TRAY_MAIN_ID;
     if (vtray.contains("id")) {
         std::string id = vtray["id"].get<std::string>();
 
@@ -4303,9 +4296,11 @@ DevAmsTray MachineObject::parse_vt_tray(MachineObject* obj_, const json& vtray)
         }
         // bit0~7 slot_id   bit8~15 ams_id
         if ((id_int >> 8) > 0 && (id_int & 0xff) >= 0) {
-            vt_tray.id = std::to_string((id_int >> 8) + (id_int & 0xff));
+            vt_tray_id_int = (id_int >> 8) + (id_int & 0xff);
+            vt_tray.id     = std::to_string(vt_tray_id_int);
         } else {
-            vt_tray.id = id;
+            vt_tray_id_int = id_int;
+            vt_tray.id     = id;
         }
     }
     vt_tray.ams_id = vt_tray.id;
@@ -4320,7 +4315,7 @@ DevAmsTray MachineObject::parse_vt_tray(MachineObject* obj_, const json& vtray)
     auto curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - obj_->extrusion_cali_set_hold_start);
     if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
-        || obj_->extrusion_cali_set_tray_id != VIRTUAL_TRAY_MAIN_ID) {
+        || obj_->extrusion_cali_set_tray_id != vt_tray_id_int) {
         if (vtray.contains("k"))
             vt_tray.k = vtray["k"].get<float>();
         if (vtray.contains("n"))

@@ -369,9 +369,10 @@ public:
     void        CollectAmsColors(std::vector<wxColour>& ams_colors) const;
 
     /* external trays*/
-    void SetVirtualTray(int virtual_tray_id, std::optional<float> k_value, std::optional<float> n_value, std::optional<int> cali_idx, bool is_set_hold_count = false);
     std::optional<DevAmsTray> GetVirtualTray(int virtual_tray_id) const;
     std::optional<DevAmsTray> GetVirtualTray(const std::string& virtual_tray_id) const;
+    DevAmsTray* GetVirtualTrayPtr(const std::string& virtual_tray_id);
+    bool UpdateVirtualTray(const std::string& virtual_tray_id, const DevAmsTray& tray);
     const std::map<std::string, DevAmsTray>& GetVirtualTrays() const { return m_vt_trays; }
     bool IsVirtualTrayId(const std::string& tray_id) const { return m_vt_trays.find(tray_id) != m_vt_trays.end(); }
 

@@ -317,7 +317,7 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
             if (tray) handle_tray(*tray, ams_id, ams_type_int);
         }
     }
-    for (auto& vt_tray : obj->vt_slot) {
+    for (const auto& [vt_id, vt_tray] : fila_sys->GetVirtualTrays()) {
         handle_tray(vt_tray, "ext", static_cast<int>(DevAmsType::EXT_SPOOL));
     }
 

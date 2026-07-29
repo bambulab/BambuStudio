@@ -1787,7 +1787,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
 
         return true;
     }
-    if (devPrinterUtil::IsVirtualSlot(ams_id)) {
+    if (curr_obj->GetFilaSystem()->IsVirtualTrayId(std::to_string(ams_id))) {
         if (m_cali_mode == CalibMode::Calib_PA_Line && (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO)) {
             std::string filamnt_type;
             preset->get_filament_type(filamnt_type);
@@ -2911,7 +2911,7 @@ void CalibrationPresetPage::select_default_compatible_filament()
     auto curr_rack_type = curr_obj->GetNozzleRack()->GetRackType();
     const bool is_rack_panel = (curr_rack_type == DevNozzleRack::RackType_A || curr_rack_type == DevNozzleRack::RackType_B);
     FilamentComboBoxList& active_list = is_rack_panel ? m_rack_filament_comboBox_list : m_filament_comboBox_list;
-    if (!devPrinterUtil::IsVirtualSlot(ams_id)) {
+    if (!curr_obj->GetFilaSystem()->IsVirtualTrayId(ams_id)) {
         std::vector<CaliFilamentInfo> selected_filament;
         size_t loop_n = is_rack_panel ? active_list.size() : static_cast<size_t>(MAX_SLOT_NUM);
         for (size_t i = 0; i < loop_n; ++i) {
