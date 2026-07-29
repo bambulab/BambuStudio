@@ -3052,14 +3052,6 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comDevelop;
     def->set_default_value(new ConfigOptionStrings{""});
 
-    def          = this->add("filament_prime_tower_feedrate_factor", coFloats);
-    def->label   = L("Prime tower feedrate factor");
-    def->tooltip = L("Feedrate scaling factor for prime/wipe tower extrusion when hotends are handled as extruders. "
-                     "It does not affect all tower travel moves. 1.0 means no change; values below 1.0 slow down, above 1.0 speed up.");
-    def->mode    = comDevelop;
-    def->min     = 0.01;
-    def->set_default_value(new ConfigOptionFloats{1.f});
-
     def          = this->add("filament_mixed_gradient_range", coStrings);
     def->label   = L("Mixed filament gradient range");
     def->tooltip = L("Start and end ratios for the first component in gradient mode. "
@@ -6617,6 +6609,14 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->min      = 10;
     def->set_default_value(new ConfigOptionFloat(90.));
+
+    def           = this->add("prime_tower_feedrate_factor", coFloat);
+    def->label    = L("Prime tower feedrate factor");
+    def->tooltip  = L("Feedrate scaling factor for prime/wipe tower extrusion when hotends are handled as extruders. "
+                      "It does not affect all tower travel moves. 1.0 means no change; values below 1.0 slow down, above 1.0 speed up.");
+    def->mode     = comAdvanced;
+    def->min      = 0.01;
+    def->set_default_value(new ConfigOptionFloat(1.));
 
     def           = this->add("prime_tower_tail_speed_factor", coPercent);
     def->label    = L("Tail speed factor");

@@ -363,7 +363,6 @@ public:
         float filament_tower_interface_pre_extrusion_dist = 0;
         float filament_tower_interface_pre_extrusion_length = 0;
         std::vector<double> speed_factor_curve;
-        float prime_tower_feedrate_factor = 1.f;
         float filament_petg_pre_extrusion_offset_dist = 0;
     };
 
@@ -591,6 +590,7 @@ private:
 	float			m_extra_spacing   = 1.f;
 	float           m_tpu_fixed_spacing = 2;
     float           m_max_speed = 5400.f;  // the maximum printing speed on the prime tower.
+    float           m_feedrate_factor = 1.f;  // feedrate scale factor for tower extrusions when hotends are handled as extruders.
     float           m_tail_speed_factor = 1.f;  // speed scale factor applied to the tail of each wipe-tower visit.
     float           m_tail_slowdown_volume = 10.f;  // only the last N mm3 of each wipe-tower visit is slowed down; 0 = whole visit.
     std::vector<std::vector<Vec2f>> m_wall_skip_points;
@@ -602,7 +602,7 @@ private:
             return std::min(m_first_layer_speed * 60.f, m_max_speed);
         if (m_handle_hotend_as_extruder) {
             float feedrate = 60.0f * m_filpar[filament_id].max_e_speed / extrusion_flow;
-            feedrate *= m_filpar[filament_id].prime_tower_feedrate_factor;
+            feedrate *= m_feedrate_factor;
             return std::min(feedrate, m_machine_max_speed);
         }
         return std::min(60.0f * m_filpar[filament_id].max_e_speed / extrusion_flow, m_max_speed);

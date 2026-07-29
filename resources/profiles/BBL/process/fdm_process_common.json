@@ -96,6 +96,7 @@
     "prime_tower_lift_speed": "90",
     "prime_tower_lift_height": "-1",
     "prime_tower_max_speed": "90",
+    "prime_tower_feedrate_factor": "1",
     "prime_tower_flat_ironing": "0",
     "prime_tower_line_ironing": "1",
     "prime_tower_ironing_speed": "10",

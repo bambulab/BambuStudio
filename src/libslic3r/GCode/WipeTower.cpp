@@ -1863,6 +1863,7 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_extra_spacing((float)config.prime_tower_infill_gap.value/100.f),
     m_tower_framework(config.prime_tower_enable_framework.value),
     m_max_speed((float)config.prime_tower_max_speed.value*60.f),
+    m_feedrate_factor(std::max(0.01f, (float)config.prime_tower_feedrate_factor.value)),
     m_tail_speed_factor(std::clamp((float)config.prime_tower_tail_speed_factor.value / 100.f, 0.1f, 1.f)),
     m_tail_slowdown_volume(std::max(0.f, (float)config.prime_tower_tail_slowdown_volume.value)),
     m_accel_to_decel_enable(config.accel_to_decel_enable.value),
@@ -2068,7 +2069,6 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
     m_filpar[idx].idle_travel_cooling_enabled = config.filament_idle_travel_cooling_enabled.get_at(idx);
     std::string filament_curve_str = config.filament_prime_tower_speed_factor_curve.get_at(idx);
     m_filpar[idx].speed_factor_curve = parseDoubles(filament_curve_str);
-    m_filpar[idx].prime_tower_feedrate_factor = (float)config.filament_prime_tower_feedrate_factor.get_at(idx);
 
     m_perimeter_width = (config.prime_tower_line_width.value > 0)
         ? (float) config.prime_tower_line_width.value

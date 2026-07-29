@@ -3473,6 +3473,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_enable_framework", "parameter/prime-tower#internal-ribs");
         optgroup->append_single_option_line("prime_tower_width","parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_max_speed","parameter/prime-tower#max-speed");
+        optgroup->append_single_option_line("prime_tower_feedrate_factor","parameter/prime-tower#max-speed");
         optgroup->append_single_option_line("prime_tower_tail_speed_factor","parameter/prime-tower#max-speed");
         optgroup->append_single_option_line("prime_tower_tail_slowdown_volume","parameter/prime-tower#max-speed");
         optgroup->append_single_option_line("prime_tower_brim_width","parameter/prime-tower");
@@ -4828,7 +4829,6 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("filament_ramming_volumetric_speed_nc", 0));
         optgroup->append_line(line);
         optgroup->append_single_option_line("filament_prime_tower_speed_factor_curve", "", 0);
-        optgroup->append_single_option_line("filament_prime_tower_feedrate_factor", "", 0);
 
         // BBS
         optgroup = page->new_optgroup(L("Filament scarf seam settings"), L"param_volumetric_speed");

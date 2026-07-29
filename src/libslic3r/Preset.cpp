@@ -1065,7 +1065,7 @@ static std::vector<std::string> s_Preset_print_options {
     "skin_infill_line_width","skeleton_infill_line_width",
     "top_surface_line_width", "support_line_width", "infill_wall_overlap", "bridge_flow", "counterbore_hole_bridging",
     "elefant_foot_compensation", "xy_contour_compensation", "xy_hole_compensation", "resolution", "enable_prime_tower", "prime_tower_enable_framework",
-    "prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points","prime_tower_max_speed","prime_tower_tail_speed_factor","prime_tower_tail_slowdown_volume","enable_tower_interface_features",
+    "prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points","prime_tower_max_speed","prime_tower_feedrate_factor","prime_tower_tail_speed_factor","prime_tower_tail_slowdown_volume","enable_tower_interface_features",
     "prime_tower_rib_wall","prime_tower_extra_rib_length","prime_tower_rib_width","prime_tower_fillet_wall","prime_tower_infill_gap","prime_tower_lift_speed","prime_tower_lift_height",
     "prime_tower_acceleration","prime_tower_line_width","prime_tower_ramming_line_width","prime_tower_wipe_speed","prime_tower_wipe_distance",
     "prime_tower_flat_ironing","prime_tower_line_ironing","prime_tower_ironing_speed",
@@ -1102,7 +1102,7 @@ static std::vector<std::string> s_Preset_print_options {
 static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", */ "default_filament_colour", "required_nozzle_HRC", "filament_diameter", "volumetric_speed_coefficients", "filament_type",
                                                           "filament_soluble", "filament_is_support", "filament_printable", "filament_extruder_compatibility", "filament_scarf_seam_type", "filament_scarf_height",
                                                           "filament_scarf_gap", "filament_scarf_length",
-    "filament_max_volumetric_speed", "impact_strength_z", "filament_ramming_volumetric_speed", "filament_ramming_volumetric_speed_nc", "filament_adaptive_volumetric_speed", "filament_prime_tower_speed_factor_curve", "filament_prime_tower_feedrate_factor",
+    "filament_max_volumetric_speed", "impact_strength_z", "filament_ramming_volumetric_speed", "filament_ramming_volumetric_speed_nc", "filament_adaptive_volumetric_speed", "filament_prime_tower_speed_factor_curve",
     "filament_flow_ratio", "filament_density", "filament_adhesiveness_category", "filament_metal_stickiness", "filament_cost", "filament_minimal_purge_on_wipe_tower",
     "nozzle_temperature", "nozzle_temperature_initial_layer",
     // BBS

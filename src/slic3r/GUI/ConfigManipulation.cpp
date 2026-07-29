@@ -1121,10 +1121,10 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
         toggle_line(el, have_side_scrape);
 
     {
-        // The prime-tower tail slowdown only applies to single-extruder multi-nozzle machines
-        // (N1x, handle_hotend_as_extruder), so hide these two options on other printers.
+        // The prime-tower feedrate factor and tail slowdown only apply to single-extruder
+        // multi-nozzle machines (N1x, handle_hotend_as_extruder), so hide them on other printers.
         bool handle_hotend_as_extruder = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_bool("handle_hotend_as_extruder");
-        for (auto el : {"prime_tower_tail_speed_factor", "prime_tower_tail_slowdown_volume"})
+        for (auto el : {"prime_tower_feedrate_factor", "prime_tower_tail_speed_factor", "prime_tower_tail_slowdown_volume"})
             toggle_line(el, have_prime_tower && handle_hotend_as_extruder);
     }
 
