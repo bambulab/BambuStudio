@@ -951,6 +951,11 @@ public:
     void refresh_camera_scene_box();
 
     BoundingBoxf3 assembly_view_cur_bounding_box() const;
+    // Volumes of the objects added to the assembly step card currently open in the
+    // structure panel. Undefined box when that framing does not apply (other canvas
+    // types, overall preview / no step card, step without visible volumes), which
+    // tells callers to keep using the whole scene.
+    BoundingBoxf3 assembly_current_step_bounding_box() const;
     BoundingBoxf3 volumes_bounding_box(bool limit_to_expand_plate) const;
     bool          is_volumes_limit_to_expand_plate() const;
     BoundingBoxf3 scene_bounding_box() const;
@@ -1504,9 +1509,7 @@ private:
         bool                               ban_light              = false,
         const ExtraThumbData&              extra_thumb_data       = ExtraThumbData());
     void _show_isolated_volumes_notification();
-    static bool _move_isolated_volumes_closer(wxEvtHandler*);
     void _check_assembly_far_from_origin();
-    static bool _reset_assembly_to_origin(wxEvtHandler*);
     static void _filter_assembly_thumbnail_candidates_by_bvh(const std::vector<GLVolume*>& assemble_candidate_volumes,
         const std::vector<BoundingBoxf3>&  assemble_candidate_boxes,
         bool                               skip_single_volume_bvh,

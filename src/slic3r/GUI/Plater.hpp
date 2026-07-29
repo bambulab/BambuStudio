@@ -1003,6 +1003,8 @@ public:
     wxMenu* instance_menu();
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
+    wxMenu* assemble_object_menu();
+    wxMenu* assemble_part_menu();
     wxMenu* assemble_multi_selection_menu();
     wxMenu* filament_action_menu(int active_filament_menu_id);
     int     GetPlateIndexByRightMenuInLeftUI();

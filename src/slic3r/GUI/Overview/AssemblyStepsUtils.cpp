@@ -126,6 +126,9 @@ void AssemblyStepsUtils::exit_assembly_steps_editing()
     // actually cleared, then ask the canvas to deselect all volumes.
     exit_structure_merge_mode();
     exit_note_edit();
+    // Closing the add-object tree must not re-apply OnlyCurrentStep / X-Ray for
+    // the step we are leaving: overall preview always shows the full model.
+    m_restore_display_mode_after_add_tree = false;
     exit_render_assembly_tree_ui();
     m_selection_origin = SelectionOrigin::None;
     clear_when_no_selection();
@@ -505,6 +508,45 @@ void AssemblyStepsUtils::apply_tree_items_selection_to_canvas()
 
     do_commond_callback("dirty");
     do_commond_callback("request_extra_frame");
+}
+
+void AssemblyStepsUtils::popup_assemble_context_menu()
+{
+    Plater *plater = wxGetApp().plater();
+    if (plater == nullptr || m_selection == nullptr)
+        return;
+
+    // The hover preview narrows the canvas selection down to the hovered row, so
+    // rebuild it from the selected tree rows first - otherwise a multi-row
+    // selection would open the single object/part menu.
+    apply_tree_items_selection_to_canvas();
+    if (m_selection->is_empty())
+        return;
+
+    // Menus are built from ObjectList selection state (same as Plater::on_right_click).
+    if (ObjectList *obj_list = wxGetApp().obj_list())
+        obj_list->update_selections();
+
+    const Selection &selection = *m_selection;
+    const bool is_some_full_instances = selection.is_single_full_instance() ||
+                                        selection.is_single_full_object() ||
+                                        selection.is_multiple_full_instance();
+    const bool is_part = selection.is_single_volume() || selection.is_single_modifier();
+
+    wxMenu *menu = nullptr;
+    if (is_some_full_instances)
+        menu = plater->assemble_object_menu();
+    else if (is_part)
+        menu = plater->assemble_part_menu();
+    else
+        menu = plater->assemble_multi_selection_menu();
+
+    if (menu != nullptr) {
+        plater->PopupMenu(menu);
+        // The right-button release is consumed by the menu, so ImGui would keep the
+        // button latched and miss the next right-click on the same spot.
+        ImGui::GetIO().MouseDown[1] = false;
+    }
 }
 
 void AssemblyStepsUtils::seed_tree_selected_items_from_canvas(const AssemblyTreeData &tree)
@@ -1064,6 +1106,26 @@ bool AssemblyStepsUtils::is_object_inherited_in_step(int folder_idx, int oi) con
     return std::find(ids.begin(), ids.end(), oid) != ids.end();
 }
 
+bool AssemblyStepsUtils::step_has_new_objects(int folder_idx) const
+{
+    if (!m_model || folder_idx < 0 || folder_idx >= (int) _steps_nodes.size())
+        return false;
+    // Final assembly / overall preview act on the whole model, not on the objects
+    // introduced by one step.
+    if (_steps_nodes[folder_idx].is_final_assembly != AssemblyStepKind::Normal)
+        return true;
+    for (int oi : collect_node_object_indices(folder_idx)) {
+        if (oi < 0 || oi >= (int) m_model->objects.size() || m_model->objects[oi] == nullptr)
+            continue;
+        // Keep in sync with the already_assembled test in auto_explode_current_keyframe().
+        const bool already_assembled =
+            is_object_inherited_in_step(folder_idx, oi) && is_object_used_in_previous_steps(oi, folder_idx);
+        if (!already_assembled)
+            return true;
+    }
+    return false;
+}
+
 int AssemblyStepsUtils::inherited_parent_step_number(int child_node_idx) const
 {
     if (!m_model || child_node_idx < 0 || child_node_idx >= (int) _steps_nodes.size())
@@ -1264,7 +1326,6 @@ void AssemblyStepsUtils::merge_checked_assembly_steps()
 
     // Preserve selection order as the current structure-panel root order.
     std::vector<int> checked_folders;
-    std::vector<int> all_mergeable;
     for (int ri : _steps_roots) {
         if (ri < 0 || ri >= (int) _steps_nodes.size())
             continue;
@@ -1272,15 +1333,15 @@ void AssemblyStepsUtils::merge_checked_assembly_steps()
         if (n.type != AssemblyStepsTreeNode::Type::Folder ||
             n.is_final_assembly == AssemblyStepKind::OverallPreview)
             continue;
-        all_mergeable.push_back(ri);
         if (m_structure_merge_checked.count(ri))
             checked_folders.push_back(ri);
     }
     if (checked_folders.size() < 2)
         return;
 
-    const bool make_final_assembly =
-        !all_mergeable.empty() && checked_folders.size() == all_mergeable.size();
+    // Checking every step card does not make the result a final assembly - the
+    // checked steps must actually contain every part of the model.
+    const bool make_final_assembly = merged_steps_cover_whole_model(checked_folders);
     // A Normal merged step consumes one non-final slot; FinalAssembly does not.
     if (!make_final_assembly && !can_add_non_final_assembly_step())
         return;
@@ -1482,6 +1543,46 @@ void AssemblyStepsUtils::merge_checked_assembly_steps()
     save_assembly_steps_json_to_model();
     do_commond_callback("dirty");
     do_commond_callback("request_extra_frame");
+}
+
+bool AssemblyStepsUtils::merged_steps_cover_whole_model(const std::vector<int> &folder_idxs) const
+{
+    if (!m_model || folder_idxs.empty())
+        return false;
+
+    auto collect_object_part_guids = [this](int oi, std::set<std::string> &out) {
+        if (oi < 0 || oi >= (int) m_model->objects.size())
+            return;
+        const ModelObject *obj = m_model->objects[oi];
+        if (!obj)
+            return;
+        for (const ModelVolume *volume : obj->volumes) {
+            if (volume && volume->is_model_part())
+                out.insert(volume->ensure_part_guid());
+        }
+    };
+
+    // Whole-model baseline. m_last_recorded_volumes_guid is (re)recorded when
+    // entering the assembly view, so it normally mirrors the live model; fall back
+    // to the live model when the runtime state was cleared.
+    std::set<std::string> expected = m_last_recorded_volumes_guid;
+    if (expected.empty()) {
+        for (int oi = 0; oi < (int) m_model->objects.size(); ++oi)
+            collect_object_part_guids(oi, expected);
+    }
+    if (expected.empty())
+        return false;
+
+    // Steps carry objects, so every model part of a member object counts as
+    // covered - the same union the merged step is built from.
+    std::set<std::string> covered;
+    for (int folder : folder_idxs) {
+        for (int oi : collect_node_object_indices(folder))
+            collect_object_part_guids(oi, covered);
+    }
+    // Every baseline part must be present. Covering more than the baseline (parts
+    // added after it was recorded) still counts as the whole model.
+    return std::includes(covered.begin(), covered.end(), expected.begin(), expected.end());
 }
 
  void AssemblyStepsUtils::add_selected_to_assembly_step(int folder_idx) {
@@ -2867,8 +2968,6 @@ void AssemblyStepsUtils::auto_explode_current_keyframe()
         return;
     const bool     final_assembly = _steps_nodes[folder].is_final_assembly == AssemblyStepKind::FinalAssembly;
     KeyFrameEntry &entry = (*entries)[m_keyframe_selected];
-    if (final_assembly && entry.is_last())
-        return;
 
     //if (m_select_good_camera_layout_laber_after_auto_explode && m_guide_show_part_numbers) {//todo
     //    toggle_part_number_labels(); // auto_explode_current_keyframe
@@ -4334,6 +4433,17 @@ bool AssemblyStepsUtils::is_overall_preview_mode() const
     if (!has_selected_node())
         return true;
     return is_overall_preview_folder(find_parent_folder(m_selected_node));
+}
+
+std::set<int> AssemblyStepsUtils::current_step_focus_object_indices() const
+{
+    // is_overall_preview_mode() already covers "no step card selected".
+    if (!m_model || is_overall_preview_mode())
+        return {};
+    const int folder = find_parent_folder(m_selected_node);
+    if (folder < 0 || folder >= (int) _steps_nodes.size())
+        return {};
+    return collect_node_object_indices(folder);
 }
 
 bool AssemblyStepsUtils::has_only_overall_preview_step_card() const
@@ -6635,6 +6745,7 @@ void AssemblyStepsUtils::exit_render_assembly_tree_ui()
     m_assembly_tree_selected_items.clear();
     m_assembly_tree_selection_anchor = {-1, -1};
     m_assembly_tree_hover_id = -1;
+    m_assembly_tree_context_menu_frame = -1;
     m_tree_item_rename_object_idx = -1;
     m_tree_item_rename_volume_idx = -1;
     m_tree_item_rename_focus_pending = false;
@@ -8149,12 +8260,24 @@ void AssemblyStepsUtils::apply_keyframe_display_mode(KeyframeDisplayMode mode)
 }
 
 void AssemblyStepsUtils::show_all_volume_normal_render() {
+    // Reset every live GLVolume. Walking only Object nodes in the steps tree is
+    // not enough: an empty / newly-added step dims the whole scene via
+    // show_volumes_as_step_candidates(), and those volumes are not yet children
+    // of any step folder, so they would stay translucent after leaving for
+    // overall preview.
+    if (m_volumes) {
+        for (GLVolume *vol : m_volumes->volumes) {
+            if (!vol)
+                continue;
+            apply_glvolume_state(vol, {/*active=*/true, /*alpha=*/1.f, /*force_native_color=*/false});
+        }
+    }
+    if (!m_model)
+        return;
     auto &step_nodes = m_model->get_assembly_steps_tree_data().nodes;
-    for (const auto &node : step_nodes) {
-        if (node.type != AssemblyStepsTreeNode::Type::Object || node.object_idx < 0)
-            continue;
-        bool hidden = !node.visible;
-        apply_object_state(node.object_idx, {!hidden, hidden ? 0.f : 1.f, hidden});
+    for (auto &node : step_nodes) {
+        if (node.type == AssemblyStepsTreeNode::Type::Object && node.object_idx >= 0)
+            node.visible = true;
     }
 }
 

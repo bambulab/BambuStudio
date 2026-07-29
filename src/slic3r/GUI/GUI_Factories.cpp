@@ -1948,10 +1948,10 @@ wxMenu* MenuFactory::assemble_object_menu()
 wxMenu* MenuFactory::assemble_part_menu()
 {
     wxMenu* menu = new MenuWithSeparators();
-
+    append_menu_items_assembly_steps(menu);
     //append_menu_item_delete(menu);
     //append_menu_item_simplify(menu);
-    //menu->AppendSeparator();
+    menu->AppendSeparator();
 
     append_menu_item_change_extruder(menu);
     //append_menu_item_per_object_settings(menu);

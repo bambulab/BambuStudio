@@ -352,6 +352,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Overview/AssemblyStepsUtilsImgui.cpp
     GUI/Overview/AssemblyStepsUtils.hpp
     GUI/Overview/AssemblyStepsUtilsInternal.hpp
+    GUI/Overview/OverviewUtils.cpp
+    GUI/Overview/OverviewUtils.hpp
     GUI/CameraUtils.cpp
     GUI/CameraUtils.hpp
     GUI/wxExtensions.cpp

@@ -90,7 +90,7 @@ struct AssemblyTreeRenderOptions
     bool        show_label_state{true};
     // Column: GLVolume vs ModelVolume explosion state (gated by m_view_is_in_explosion_state).
     bool        show_explosion_state{false};
-    // Column: which assembly step the part belongs to (or "Not assembled").
+    // Column: which assembly step the part belongs to (or "Unassembled").
     bool        show_assembly_state{true};
     bool        show_footer{true};
     bool        readonly{false};
@@ -285,6 +285,17 @@ class AssemblyStepsUtils
     std::set<std::pair<int, int>> m_assembly_tree_selected_items;
     std::pair<int, int>           m_assembly_tree_selection_anchor{-1, -1};
     int          m_assembly_tree_hover_id{-1};
+    // Right-click on a tree row. The wx right-down event can land on an ImGui
+    // frame that was already opened by an earlier event, in which case
+    // ImGui::IsItemClicked(1) never sees the press transition and the click is
+    // lost. The press edge is therefore detected from io.MouseDown[1] as observed
+    // by the tree itself (m_assembly_tree_right_mouse_down).
+    // m_assembly_tree_context_menu_frame is the ImGui frame index at which a
+    // right-click had to move the row selection first; the wx menu is opened two
+    // frames later so the new highlight is on screen before the modal menu loop
+    // blocks canvas repaints (-1 = nothing pending).
+    bool         m_assembly_tree_right_mouse_down{false};
+    int          m_assembly_tree_context_menu_frame{-1};
     // Inline rename of a tree-view row, keyed by (object_idx, volume_idx) of the
     // backing ModelObject / ModelVolume (volume_idx < 0 = object-level). Mirrors
     // the part-number label rename flow.
@@ -395,8 +406,10 @@ class AssemblyStepsUtils
     int m_text_note_color_selected{6};
     // Background color palette index for TextLabel notes only (default blue #3F82F0).
     int m_guide_note_bg_color_selected{3};
-    // When false (default), hide the TextLabel "Background" color row in Add Notes.
-    bool m_allow_modify_text_note_background{false};
+    // When false (default), hide the TextLabel "Text" color row in Add Notes.
+    bool m_allow_modify_text_note_foreground{false};
+    // When true (default), hide the TextLabel "Background" color row in Add Notes.
+    bool m_allow_modify_text_note_background{true};
     // Show Part Numbers checkbox state.
     bool                                  m_guide_show_part_numbers{true};
     // Labels-show mode of the currently-selected keyframe; updated on each frame switch.
@@ -533,6 +546,11 @@ public://logic
     // True when the structure panel has no Normal / FinalAssembly step cards
     // (only the runtime OverallPreview card, or no folder roots yet).
     bool            has_only_overall_preview_step_card() const;
+    // ModelObject indices the currently open step card is about, so the camera can
+    // be framed on that step instead of the whole model. Empty when the scene-wide
+    // framing has to be kept: no step card selected, the overall-preview card, or
+    // a step that has no object yet.
+    std::set<int>   current_step_focus_object_indices() const;
     int             get_selected_node() const { return m_selected_node; }
     void            set_selected_node(int node) { m_selected_node = node; }
     SelectionOrigin selection_origin() const { return m_selection_origin; }
@@ -599,6 +617,10 @@ public://logic
     // Rebuild the canvas selection from m_assembly_tree_selected_items (the rows
     // selected in the assembly tree). Supports multiple objects/volumes at once.
     void                     apply_tree_items_selection_to_canvas();
+    // Popup the same assemble-view wx context menu as Plater::on_right_click
+    // (assemble_object / assemble_part / assemble_multi_selection), based on the
+    // rows selected in the assembly tree.
+    void                     popup_assemble_context_menu();
     // One-shot seed of m_assembly_tree_selected_items from the current canvas
     // selection, so opening the add-object tree highlights the rows that match
     // what is selected on the canvas. Whole-object selections map to the object
@@ -646,11 +668,24 @@ public://logic
     // sources without a start frame do not invent one via end-frame fallback.
     // Annotation notes (circle / clip / text / arrows) are discarded. Camera for
     // each bookend is captured live from the last checked step's corresponding
-    // frame (same path as timeline viewing, including auto-fit). Selecting every
-    // mergeable step (excluding OverallPreview) yields a FinalAssembly step.
+    // frame (same path as timeline viewing, including auto-fit). The merged step
+    // becomes a FinalAssembly one only when merged_steps_cover_whole_model() holds.
     void                     merge_checked_assembly_steps();
+    // True when the model parts contained in `folder_idxs` add up to the whole
+    // model (m_last_recorded_volumes_guid, the part-GUID baseline refreshed when
+    // entering the assembly view). Only such a merge result is a final assembly:
+    // checking every step card is not enough on its own, since the cards together
+    // may still miss parts of the model.
+    bool                     merged_steps_cover_whole_model(const std::vector<int> &folder_idxs) const;
     // True when ModelObject index `oi` is an inherited object of step `folder_idx`.
     bool                     is_object_inherited_in_step(int folder_idx, int oi) const;
+    // True when a Normal step introduces at least one object that is not already
+    // assembled by an earlier step - the same test auto_explode_current_keyframe()
+    // uses to pick its explode targets. A step that only carries inherited objects
+    // (or no object at all) has nothing to explode and nothing to restore to the
+    // assembled pose. Non-Normal steps (final assembly / overall preview) act on
+    // every object and always report true.
+    bool                     step_has_new_objects(int folder_idx) const;
     // For an inheriting (child) step, the current step number of its parent step
     // (-1 when none / unresolved).
     int                      inherited_parent_step_number(int child_node_idx) const;
@@ -1039,7 +1074,8 @@ public://imgui
         const AssemblyTreeRenderOptions& options, float sc);
     void render_assembly_guide_panel(float panel_x, float panel_y, float panel_w, float panel_h, float sc, bool is_dark);
     // Floating "Export" button anchored to the LEFT of the guide panel.
-    void render_assembly_guide_export_button(float panel_x, float panel_y, float sc);
+    void render_assembly_guide_export_button(float panel_x, float panel_y, float sc,
+                                             bool disabled = false, bool use_corner_mode = true);
     // Connection type button widget: draws icon + label in a white card,
     bool render_connection_type_btn(ImDrawList *dl, float x, float y, float w, float h, ImTextureID icon, const char *label,
                                     float icon_sz, float label_fs, float sc,

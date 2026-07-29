@@ -1,6 +1,7 @@
 #include "libslic3r/libslic3r.h"
 #include "GLCanvas3D.hpp"
 #include "Overview/AssemblyStepsUtils.hpp"
+#include "Overview/OverviewUtils.hpp"
 
 #include <chrono>
 #include <igl/unproject.h>
@@ -2336,6 +2337,24 @@ BoundingBoxf3 GLCanvas3D::assembly_view_cur_bounding_box() const {
     return m_model->bounding_box_in_assembly_view();
 }
 
+BoundingBoxf3 GLCanvas3D::assembly_current_step_bounding_box() const
+{
+    BoundingBoxf3 bb;
+    if (m_canvas_type != ECanvasType::CanvasAssembleView || m_assembly_steps == nullptr)
+        return bb;
+    const std::set<int> step_objects = m_assembly_steps->current_step_focus_object_indices();
+    if (step_objects.empty())
+        return bb;
+    for (const GLVolume *volume : m_volumes.volumes) {
+        if (volume == nullptr || !volume->is_active)
+            continue;
+        if (step_objects.count(volume->object_idx()) == 0)
+            continue;
+        bb.merge(volume->transformed_bounding_box());
+    }
+    return bb;
+}
+
 BoundingBoxf3 GLCanvas3D::volumes_bounding_box(bool limit_to_expand_plate) const
 {
     BoundingBoxf3 bb;
@@ -2592,8 +2611,15 @@ void GLCanvas3D::zoom_to_fit()
 
     select_view("plate");
     if (m_selection.is_empty()) {
-        if (m_canvas_type == ECanvasType::CanvasAssembleView)
-            zoom_to_volumes();
+        if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+            // Inside a step card, fit the objects that step has added instead of
+            // the whole model.
+            const BoundingBoxf3 step_box = assembly_current_step_bounding_box();
+            if (step_box.defined)
+                _zoom_to_box(step_box);
+            else
+                zoom_to_volumes();
+        }
         else
             zoom_to_bed();
     }
@@ -5902,8 +5928,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     //BBS rotate around target
                     Camera& camera = get_active_camera();
                     Vec3d rotate_target = Vec3d::Zero();
+                    // Inside a step card the orbit center follows that step's own
+                    // objects, so rotating does not swing around unrelated geometry.
+                    const BoundingBoxf3 step_box = assembly_current_step_bounding_box();
                     if (!m_selection.is_empty())
                         rotate_target = m_selection.get_bounding_box().center();
+                    else if (step_box.defined)
+                        rotate_target = step_box.center();
                     else
                         rotate_target = volumes_bounding_box(is_volumes_limit_to_expand_plate()).center();
                     //BBS do not limit rotate in assemble view
@@ -12554,7 +12585,7 @@ void GLCanvas3D::_show_isolated_volumes_notification()
     NotificationManager* notify_mgr = plater->get_notification_manager();
     notify_mgr->push_notification(NotificationType::BBLIsolatedVolumeInfo,
                                   NotificationManager::NotificationLevel::ImportantNotificationLevel,
-                                  info_text, _u8L("Move closer"), &GLCanvas3D::_move_isolated_volumes_closer);
+                                  info_text, _u8L("Move closer"), &OverviewUtils::move_isolated_volumes_closer);
 }
 
 void GLCanvas3D::_check_assembly_far_from_origin()
@@ -12580,105 +12611,10 @@ void GLCanvas3D::_check_assembly_far_from_origin()
         std::string info_text = _u8L("The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?");
         notify_mgr->push_notification(NotificationType::BBLAssemblyFarFromOrigin,
                                       NotificationManager::NotificationLevel::ImportantNotificationLevel,
-                                      info_text, _u8L("Reset to origin"), &GLCanvas3D::_reset_assembly_to_origin);
+                                      info_text, _u8L("Reset to origin"), &OverviewUtils::reset_assembly_to_origin);
     } else {
         notify_mgr->close_notification_of_type(NotificationType::BBLAssemblyFarFromOrigin);
     }
-}
-
-bool GLCanvas3D::_reset_assembly_to_origin(wxEvtHandler*)
-{
-    auto* plater = wxGetApp().plater();
-    if (!plater) return false;
-    Model& model = plater->model();
-
-    plater->take_snapshot("reset all volumes to assembly origin", UndoRedo::SnapshotType::GizmoAction);
-
-    auto reset_assembly_instance_offsets = [](Model& target_model) {
-        for (ModelObject* obj : target_model.objects) {
-            for (ModelInstance* inst : obj->instances) {
-                Geometry::Transformation trafo = inst->get_assemble_transformation();
-                trafo.set_offset(Vec3d::Zero());
-                inst->set_assemble_transformation(trafo);
-            }
-        }
-    };
-    reset_assembly_instance_offsets(model);
-    reset_assembly_instance_offsets(plater->assemble_model());
-    GLCanvas3D* canvas = plater->get_current_canvas3D();
-    if (canvas) {
-        for (GLVolume* gv : canvas->get_volumes().volumes) {
-            gv->set_instance_offset(Vec3d::Zero());
-        }
-        if (canvas->get_canvas_type() == ECanvasType::CanvasAssembleView)
-            canvas->zoom_to_fit();
-    }
-    s_bvh_primary_bounds.reset();
-    s_far_from_origin_notification_shown = false;
-    plater->get_partplate_list().reset_thumbnail_assembly_view_data();
-    plater->update();
-    return false;
-}
-
-bool GLCanvas3D::_move_isolated_volumes_closer(wxEvtHandler*)
-{
-    auto* plater = wxGetApp().plater();
-    if (!plater) return false;
-    Model& model = plater->model();
-
-    const Vec3d  box_center  = s_bvh_primary_bounds.center();
-    const double target_dist = 30.0;
-
-    plater->take_snapshot("Move isolated volumes", UndoRedo::SnapshotType::GizmoAction);
-
-    for (const auto& iv : s_isolated_volumes) {
-        if (iv.obj_idx < 0 || iv.obj_idx >= (int) model.objects.size()) continue;
-
-        const int inst_idx = iv.instance_idx;
-        ModelObject* obj = model.objects[iv.obj_idx];
-        if (inst_idx < 0 || inst_idx >= (int) obj->instances.size()) continue;
-        ModelInstance* inst = obj->instances[inst_idx];
-
-        const Vec3d world_center = iv.world_box_assembly.center();
-        const Vec3d obj_half    = iv.world_box_assembly.size() * 0.5;
-
-        Vec3d delta = Vec3d::Zero();
-        for (int axis = 0; axis < 3; ++axis) {
-            const double obj_min = world_center(axis) - obj_half(axis);
-            const double obj_max = world_center(axis) + obj_half(axis);
-            const double pri_min = s_bvh_primary_bounds.min(axis);
-            const double pri_max = s_bvh_primary_bounds.max(axis);
-
-            if (obj_max < pri_min - target_dist) {
-                delta(axis) = (pri_min - target_dist - obj_half(axis)) - world_center(axis);
-            } else if (obj_min > pri_max + target_dist) {
-                delta(axis) = (pri_max + target_dist + obj_half(axis)) - world_center(axis);
-            }
-        }
-
-        if (delta.squaredNorm() < 1e-3) continue;
-
-        Geometry::Transformation new_trafo = inst->get_assemble_transformation();
-        new_trafo.set_offset(new_trafo.get_offset() + delta);
-        inst->set_assemble_transformation(new_trafo);
-    }
-
-    GLCanvas3D* canvas = plater->get_current_canvas3D();
-    if (canvas && canvas->get_canvas_type() == ECanvasType::CanvasAssembleView) {
-        Selection& sel = canvas->get_selection();
-        sel.clear();
-        for (const auto& iv : s_isolated_volumes) {
-            if (iv.obj_idx >= 0 && iv.obj_idx < (int) model.objects.size())
-                sel.add_object((unsigned int) iv.obj_idx, false);
-        }
-    }
-
-    s_isolated_volumes.clear();
-    s_isolated_notification_shown = false;
-    s_intersects_notification_shown = false;
-    plater->get_partplate_list().reset_thumbnail_assembly_view_data();
-    plater->update();
-    return false;
 }
 
 static void _collect_bvh_subtree_prims(const tinybvh::BVH& bvh, uint32_t node_idx, std::vector<uint32_t>& prim_indices)

@@ -18169,6 +18169,17 @@ void Plater::priv::sync_assemble_scale_from_prepare()
             if (mv->is_model_part() && !mv->part_guid().empty())
                 prepare_by_guid.emplace(mv->part_guid(), PrepareRef{po, mv});
 
+    // Pass 1: work out every assembly volume's target scale without writing anything yet, and decide
+    // whether the prepare side rescaled the WHOLE model by one uniform factor. That case needs more than
+    // a size update: the assembly poses are authored independently (a STEP import merges the parts into
+    // one prepare object while the assembly splits them over several objects / instances), so they do not
+    // ride along with the prepare instance scale. Resizing the parts alone would leave the old spacing
+    // behind and the assembly would fall apart, so the poses are scaled about a common pivot below.
+    struct PendingScale { int oi; int vi; Vec3d target; };
+    std::vector<PendingScale> pending;
+    bool   scale_parts_uniformly = true; // every part changes by the same uniform factor
+    double uniform_ratio         = 0.0;  // that factor; 0 = not seen yet
+
     for (int oi = 0; oi < (int) m_assemble_model.objects.size(); ++oi) {
         ModelObject *ao = m_assemble_model.objects[oi];
         // At render the assembly world size = instance.assemble_scale ⊙ volume.assemble_scale. The assembly
@@ -18179,18 +18190,24 @@ void Plater::priv::sync_assemble_scale_from_prepare()
             : ao->instances.front()->get_assemble_transformation().get_scaling_factor();
         for (int vi = 0; vi < (int) ao->volumes.size(); ++vi) {
             ModelVolume *av = ao->volumes[vi];
-            const std::string &src = av->assembly_src_guid();
-            if (src.empty())
+            if (!av->is_model_part())
                 continue;
+            const std::string &src = av->assembly_src_guid();
+            if (src.empty()) {
+                scale_parts_uniformly = false;
+                continue;
+            }
             auto it = prepare_by_guid.find(src);
-            if (it == prepare_by_guid.end())
+            if (it == prepare_by_guid.end()) {
+                scale_parts_uniformly = false;
                 continue; // split / combined on the prepare side: keep the frozen pose
+            }
             const ModelObject *po = it->second.po;
             const ModelVolume *pv = it->second.pv;
 
             // target assembly volume scale = prepare world size / assembly instance scale, so that
             //   asm_inst_scale ⊙ target == prepare_instance_scale ⊙ prepare_volume_scale (the prepare size).
-            // Only the scale is rewritten; the assembly-authored offset / rotation / mirror stay intact
+            // Only the scale is rewritten; the assembly-authored rotation / mirror stay intact
             // (get_assemble_transformation() falls back to the base transform for a not-yet-posed part).
             // (Instance 0; componentwise, matching the codebase's scaling-factor convention.)
             const Vec3d prepare_inst_scale = po->instances.empty() ? Vec3d::Ones()
@@ -18201,39 +18218,116 @@ void Plater::priv::sync_assemble_scale_from_prepare()
 
             // set/get round-trips through matrix decomposition, so compare with a tolerance instead of ==
             // to avoid rewriting (and needlessly resetting the assembly undo baseline) on every entry.
-            if ((av->get_assemble_transformation().get_scaling_factor() - target_volume_scale).cwiseAbs().maxCoeff() > 1e-6) {
-                Geometry::Transformation asm_trafo = av->get_assemble_transformation();
-                asm_trafo.set_scaling_factor(target_volume_scale);
-                av->set_assemble_transformation(asm_trafo);
-                ao->invalidate_bounding_box();
-                // Geometry of m_assemble_model changed outside the assembly stack: reset the undo baseline.
-                m_assemble_undo_baseline_dirty = true;
+            const Vec3d current_volume_scale = av->get_assemble_transformation().get_scaling_factor();
+            if ((current_volume_scale - target_volume_scale).cwiseAbs().maxCoeff() > 1e-6)
+                pending.push_back(PendingScale{oi, vi, target_volume_scale});
 
-                // Mirror the new scale to all keyframe entries that reference this volume,
-                // preserving each keyframe's recorded rotation and translation.
-                auto &steps_tree = m_assemble_model.get_assembly_steps_tree_data();
-                if (!steps_tree.nodes.empty()) {
-                    const std::pair<int, int> vol_key{oi, vi};
-                    std::function<void(int)> update_kf;
-                    update_kf = [&](int nid) {
-                        if (nid < 0 || nid >= (int) steps_tree.nodes.size())
-                            return;
-                        auto &node = steps_tree.nodes[nid];
-                        for (auto &entry : node.kf_data.entries) {
-                            auto kit = entry.data.volume_transformations.find(vol_key);
-                            if (kit != entry.data.volume_transformations.end()) {
-                                kit->second.set_scaling_factor(target_volume_scale);
-                                entry.need_save = true;
-                            }
-                        }
-                        for (int child : node.children)
-                            update_kf(child);
-                    };
-                    for (int root : steps_tree.roots)
-                        update_kf(root);
-                }
+            // A part left untouched contributes ratio 1, so a partial (single part / single object)
+            // prepare-side rescale breaks the uniformity test and only the sizes are reproduced.
+            if (!scale_parts_uniformly || current_volume_scale.cwiseAbs().minCoeff() < EPSILON) {
+                scale_parts_uniformly = false;
+                continue;
             }
+            const Vec3d ratio = target_volume_scale.cwiseQuotient(current_volume_scale);
+            if (ratio.maxCoeff() - ratio.minCoeff() > 1e-6)
+                scale_parts_uniformly = false;
+            else if (uniform_ratio == 0.0)
+                uniform_ratio = ratio.x();
+            else if (std::abs(ratio.x() - uniform_ratio) > 1e-6)
+                scale_parts_uniformly = false;
         }
+    }
+
+    if (pending.empty())
+        return;
+
+    const bool rescale_poses = scale_parts_uniformly && uniform_ratio > 0.0 && std::abs(uniform_ratio - 1.0) > 1e-6;
+
+    // Pivot the pose rescale at the assembled scene's ground-level centre: the assembly then keeps both
+    // its place and its footing, mirroring the prepare side (scaled about the selection box centre by
+    // Selection::scale_and_translate(), then dropped back onto the bed by ensure_on_bed()).
+    Vec3d pivot = Vec3d::Zero();
+    if (rescale_poses) {
+        BoundingBoxf3 scene_box;
+        for (const ModelObject *ao : m_assemble_model.objects) {
+            if (ao->instances.empty())
+                continue;
+            const Transform3d inst_matrix = ao->instances.front()->get_assemble_transformation().get_matrix();
+            for (const ModelVolume *av : ao->volumes)
+                if (av->is_model_part() && av->mesh_ptr() != nullptr)
+                    scene_box.merge(av->mesh().bounding_box().transformed(inst_matrix * av->get_assemble_transformation().get_matrix()));
+        }
+        if (scene_box.defined)
+            pivot = Vec3d(scene_box.center().x(), scene_box.center().y(), scene_box.min.z());
+    }
+
+    // Pass 2: write the part scales. A volume's assemble offset lives in object space and reaches the
+    // world through the (unchanged) instance matrix, so scaling it by the same factor moves the part
+    // exactly as far as the instance below.
+    std::map<std::pair<int, int>, Vec3d> new_volume_scales;
+    for (const PendingScale &ps : pending) {
+        ModelObject *ao = m_assemble_model.objects[ps.oi];
+        ModelVolume *av = ao->volumes[ps.vi];
+        Geometry::Transformation asm_trafo = av->get_assemble_transformation();
+        asm_trafo.set_scaling_factor(ps.target);
+        if (rescale_poses)
+            asm_trafo.set_offset(asm_trafo.get_offset() * uniform_ratio);
+        av->set_assemble_transformation(asm_trafo);
+        ao->invalidate_bounding_box();
+        new_volume_scales.emplace(std::pair<int, int>{ps.oi, ps.vi}, ps.target);
+    }
+    // Geometry of m_assemble_model changed outside the assembly stack: reset the undo baseline.
+    m_assemble_undo_baseline_dirty = true;
+
+    auto rescale_about_pivot = [&](Geometry::Transformation &trafo) {
+        trafo.set_offset(pivot + uniform_ratio * (trafo.get_offset() - pivot));
+    };
+
+    if (rescale_poses) {
+        for (ModelObject *ao : m_assemble_model.objects) {
+            for (ModelInstance *inst : ao->instances) {
+                Geometry::Transformation inst_trafo = inst->get_assemble_transformation();
+                rescale_about_pivot(inst_trafo);
+                inst->set_assemble_transformation(inst_trafo);
+            }
+            ao->invalidate_bounding_box();
+        }
+    }
+
+    // Mirror the new scale (and, for a whole-model rescale, the moved poses) to every keyframe entry,
+    // preserving each keyframe's recorded rotation. Explode offsets scale along with the model.
+    auto &steps_tree = m_assemble_model.get_assembly_steps_tree_data();
+    if (!steps_tree.nodes.empty()) {
+        std::function<void(int)> update_kf;
+        update_kf = [&](int nid) {
+            if (nid < 0 || nid >= (int) steps_tree.nodes.size())
+                return;
+            auto &node = steps_tree.nodes[nid];
+            for (auto &entry : node.kf_data.entries) {
+                bool touched = false;
+                if (rescale_poses) {
+                    for (auto &kv : entry.data.object_transformations) {
+                        rescale_about_pivot(kv.second);
+                        touched = true;
+                    }
+                }
+                for (auto &kv : entry.data.volume_transformations) {
+                    auto sit = new_volume_scales.find(kv.first);
+                    if (sit == new_volume_scales.end())
+                        continue;
+                    kv.second.set_scaling_factor(sit->second);
+                    if (rescale_poses)
+                        kv.second.set_offset(kv.second.get_offset() * uniform_ratio);
+                    touched = true;
+                }
+                if (touched)
+                    entry.need_save = true;
+            }
+            for (int child : node.children)
+                update_kf(child);
+        };
+        for (int root : steps_tree.roots)
+            update_kf(root);
     }
 }
 
@@ -26589,6 +26683,8 @@ wxMenu* Plater::default_menu()          { return p->menus.default_menu();       
 wxMenu* Plater::instance_menu()         { return p->menus.instance_menu();          }
 wxMenu* Plater::layer_menu()            { return p->menus.layer_menu();             }
 wxMenu* Plater::multi_selection_menu()  { return p->menus.multi_selection_menu();   }
+wxMenu *Plater::assemble_object_menu() { return p->menus.assemble_object_menu(); }
+wxMenu *Plater::assemble_part_menu() { return p->menus.assemble_part_menu(); }
 wxMenu *Plater::assemble_multi_selection_menu() { return p->menus.assemble_multi_selection_menu(); }
 wxMenu *Plater::filament_action_menu(int active_filament_menu_id) { return p->menus.filament_action_menu(active_filament_menu_id); }
 int     Plater::GetPlateIndexByRightMenuInLeftUI() { return p->m_is_RightClickInLeftUI; }
