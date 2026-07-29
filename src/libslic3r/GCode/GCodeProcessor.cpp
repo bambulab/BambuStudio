@@ -1986,6 +1986,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_filament_pre_cooling_temp = config.filament_pre_cooling_temperature.values;
     m_filament_preheat_temperature_delta = config.filament_preheat_temperature_delta.values;
     m_enable_pre_heating = config.enable_pre_heating;
+    m_handle_hotend_as_extruder = config.handle_hotend_as_extruder;
     m_has_filament_switcher = config.has_filament_switcher;
     m_physical_extruder_map = config.physical_extruder_map.values;
     m_extruder_max_nozzle_count = config.extruder_max_nozzle_count.values;
