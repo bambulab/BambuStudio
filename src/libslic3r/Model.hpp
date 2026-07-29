@@ -932,6 +932,13 @@ public:
         float            height{0.f};
         float            radius_tolerance{0.f}; // [0.f : 1.f]
         float            height_tolerance{0.f}; // [0.f : 1.f]
+        // Index of the volume this piece was cut from, inside the object being cut.
+        // Only meaningful while a cut is in progress: the groove cut applies several
+        // cut planes in a row, so it needs to tell which pieces belong to the same
+        // source part and may be merged back together.
+        // Not listed in serialize() below: this is transient scratch state, so it is neither
+        // written to 3mf nor preserved across an undo/redo snapshot.
+        int              source_part_idx{-1};
 
         CutInfo() = default;
         CutInfo(CutConnectorType type, float radius_, float height_, float rad_tolerance, float h_tolerance, bool processed = false)
