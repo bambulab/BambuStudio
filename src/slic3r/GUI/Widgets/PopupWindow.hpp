@@ -28,6 +28,7 @@ private:
 #endif
 
 #ifdef __WXMSW__
+    void appActivate(wxActivateEvent &event);
     void topWindowActivate(wxActivateEvent &event);
     void topWindowIconize(wxIconizeEvent &event);
     void topWindowShow(wxShowEvent &event);
