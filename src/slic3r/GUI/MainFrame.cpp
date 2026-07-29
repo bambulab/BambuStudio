@@ -397,8 +397,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 #ifdef _WIN32
         if (m_is_in_move_or_resize) {
             ULONGLONG now = GetTickCount64();
-            if (now - m_last_resize_layout_ms < 33)
+            if (now - m_last_resize_layout_ms < 33) {
+                // Throttling the full layout keeps the 3D views cheap while dragging, but the
+                // topbar cannot be skipped: it is a child window, so a stale (still wider) topbar
+                // keeps its window controls and title laid out past the frame's client area, where
+                // they are clipped away - leaving what looks like empty space where the buttons were.
+                if (m_topbar) m_topbar->UpdateToolbarWidth(GetClientSize().GetWidth());
                 return;
+            }
             m_last_resize_layout_ms = now;
         }
 #endif
@@ -452,7 +458,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     update_layout();
     sizer->SetSizeHints(this);
 
-    // BBS: fix taskbar overlay on windows
 #ifdef WIN32
     // SetMaximize already position window at left/top corner, even if Windows Task Bar is at left side.
     // Not known why, but fix it here
