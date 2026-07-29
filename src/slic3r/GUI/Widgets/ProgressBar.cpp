@@ -1,8 +1,12 @@
 #include "ProgressBar.hpp"
+
+#include <algorithm>
+
 #include "../I18N.hpp"
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
 #include "Label.hpp"
+#include "StateColor.hpp"
 
 
 
@@ -24,6 +28,7 @@ ProgressBar::ProgressBar(wxWindow *parent, wxWindowID id, int max, const wxPoint
 
     m_max = max;
     m_radius = m_miniHeight / 2;
+    m_barHeight = m_miniHeight;
     wxSize temp_size(size.x, m_miniHeight);
 
     SetFont(Label::Head_12);
@@ -81,6 +86,46 @@ void ProgressBar::SetProgressBackgroundColour(wxColour colour)
      Refresh();
 }
 
+void ProgressBar::SetMarkers(const std::vector<Marker> &markers)
+{
+    const bool unchanged = m_markers.size() == markers.size() &&
+                           std::equal(m_markers.begin(), m_markers.end(), markers.begin(),
+                                      [](const auto &lhs, const auto &rhs) {
+                                          return lhs.m_position == rhs.m_position && lhs.m_label == rhs.m_label;
+                                      });
+    if (unchanged)
+        return;
+
+    m_markers = markers;
+    updateControlHeight();
+    Refresh();
+}
+
+void ProgressBar::SetHeight(int height)
+{
+    m_barHeight = std::max(1, height);
+    m_minHeight = m_barHeight;
+    m_radius    = m_barHeight / 2;
+    updateControlHeight();
+}
+
+void ProgressBar::updateControlHeight()
+{
+    const bool hasLabel = std::any_of(m_markers.begin(), m_markers.end(), [](const auto &marker) {
+        return !marker.m_label.empty();
+    });
+    const int height = m_barHeight + (hasLabel ? FromDIP(34) : 0);
+    if (GetMinSize().GetHeight() == height && GetSize().GetHeight() == height)
+        return;
+
+    wxSize minSize = GetMinSize();
+    minSize.SetHeight(height);
+    wxWindow::SetMinSize(minSize);
+    SetSize(GetSize().GetWidth(), height);
+    if (GetParent())
+        GetParent()->Layout();
+}
+
 void ProgressBar::Rescale()
 {
     ;
@@ -134,8 +179,10 @@ void ProgressBar::SetMinSize(const wxSize &size)
         return;
     }
 
-    m_radius = m_miniHeight / 2.4;
-    wxWindow::SetMinSize({size.x, m_miniHeight});
+    m_barHeight = m_miniHeight;
+    m_radius    = m_miniHeight / 2.4;
+    wxWindow::SetMinSize({size.x, m_barHeight});
+    updateControlHeight();
     // SetSize(size);
     SetRadius(m_radius);
 }
@@ -172,13 +219,18 @@ void ProgressBar::render(wxDC &dc)
 void ProgressBar::doRender(wxDC &dc)
 {
     if (m_step >= m_max) m_step = m_max;
-    wxSize size   = GetSize();
+    const wxSize size      = GetClientSize();
+    const int    barHeight = std::min(m_barHeight, size.y);
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(wxBrush(GetBackgroundColour()));
+    dc.DrawRectangle(0, 0, size.x, size.y);
+
     dc.SetPen(wxPen(m_progress_background_colour, 1));
     dc.SetBrush(wxBrush(m_progress_background_colour));
     if (m_radius == 0) {
-        dc.DrawRectangle(0, 0, size.x, size.y);
+        dc.DrawRectangle(0, 0, size.x, barHeight);
     } else {
-        dc.DrawRoundedRectangle(0, 0, size.x, size.y, m_radius);
+        dc.DrawRoundedRectangle(0, 0, size.x, barHeight, m_radius);
     }
 
     //draw progress
@@ -189,9 +241,9 @@ void ProgressBar::doRender(wxDC &dc)
         dc.SetPen(wxPen(m_progress_colour_disable, 1));
         dc.SetBrush(wxBrush(m_progress_colour_disable));
         if (m_radius == 0) {
-            dc.DrawRectangle(0, 0, m_proportion, size.y);
+            dc.DrawRectangle(0, 0, m_proportion, barHeight);
         } else {
-            dc.DrawRoundedRectangle(0, 0, m_proportion, size.y, m_radius);
+            dc.DrawRoundedRectangle(0, 0, m_proportion, barHeight, m_radius);
         }
 
         dc.SetFont(::Label::Head_12);
@@ -199,7 +251,7 @@ void ProgressBar::doRender(wxDC &dc)
         dc.SetTextForeground(wxColour(144, 144, 144));
         auto pt = wxPoint();
         pt.x    = (size.x - textSize.x) / 2;
-        pt.y    = (size.y - textSize.y) / 2;
+        pt.y    = (barHeight - textSize.y) / 2;
         dc.DrawText(m_disable_text, pt);
 
     } else {
@@ -209,9 +261,9 @@ void ProgressBar::doRender(wxDC &dc)
         dc.SetPen(wxPen(m_progress_colour, 1));
         dc.SetBrush(wxBrush(m_progress_colour));
         if (m_radius == 0) {
-            dc.DrawRectangle(0, 0, m_proportion, size.y);
+            dc.DrawRectangle(0, 0, m_proportion, barHeight);
         } else {
-            dc.DrawRoundedRectangle(0, 0, m_proportion, size.y, m_radius);
+            dc.DrawRoundedRectangle(0, 0, m_proportion, barHeight, m_radius);
         }
 
         dc.SetFont(GetFont());
@@ -219,7 +271,7 @@ void ProgressBar::doRender(wxDC &dc)
         dc.SetTextForeground(wxColour(144, 144, 144));
         auto pt = wxPoint();
         pt.x    = (size.x - textSize.x) / 2;
-        pt.y    = (size.y - textSize.y) / 2;
+        pt.y    = (barHeight - textSize.y) / 2;
 
         auto text = wxString("");
         if (m_step < 10) {
@@ -231,6 +283,53 @@ void ProgressBar::doRender(wxDC &dc)
         if (m_shownumber) {
             dc.DrawText(text + wxString("%"), pt);
         }
+    }
+
+    renderMarkers(dc, size, barHeight);
+
+}
+
+void ProgressBar::renderMarkers(wxDC &dc, const wxSize &size, int barHeight)
+{
+    if (m_markers.empty() || size.x <= 0 || m_max <= 0)
+        return;
+
+    const wxColour background = GetBackgroundColour();
+    const int      gapWidth   = std::max(2, FromDIP(2));
+    for (const auto &marker : m_markers) {
+        const int position = std::clamp(marker.m_position, 0, m_max);
+        const int markerX  = size.x * position / m_max;
+        if (markerX > 0 && markerX < size.x) {
+            dc.SetPen(wxPen(background, 1));
+            dc.SetBrush(wxBrush(background));
+            dc.DrawRectangle(markerX - gapWidth / 2, 0, gapWidth, barHeight);
+        }
+    }
+
+    for (const auto &marker : m_markers) {
+        if (marker.m_label.empty())
+            continue;
+
+        const int position = std::clamp(marker.m_position, 0, m_max);
+        const int markerX  = size.x * position / m_max;
+        dc.SetFont(::Label::Body_11);
+        const wxSize textSize    = dc.GetTextExtent(marker.m_label);
+        const int    bubbleWidth = std::min(size.x, textSize.x + FromDIP(20));
+        const int    bubbleHeight = textSize.y + FromDIP(12);
+        const int    bubbleY      = barHeight + FromDIP(5);
+        const int    bubbleX      = std::clamp(markerX - bubbleWidth / 2, 0, std::max(0, size.x - bubbleWidth));
+        const wxColour bubbleBackground = ThemeColor::Grey700;
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(bubbleBackground));
+        dc.DrawRoundedRectangle(bubbleX, bubbleY, bubbleWidth, bubbleHeight, FromDIP(5));
+        wxPoint pointer[] = {{markerX, barHeight + FromDIP(1)},
+                             {markerX - FromDIP(4), bubbleY + FromDIP(1)},
+                             {markerX + FromDIP(4), bubbleY + FromDIP(1)}};
+        dc.DrawPolygon(3, pointer);
+        dc.SetTextForeground(ThemeColor::White);
+        dc.DrawText(marker.m_label, bubbleX + (bubbleWidth - textSize.x) / 2,
+                    bubbleY + (bubbleHeight - textSize.y) / 2);
+        break;
     }
 
 }

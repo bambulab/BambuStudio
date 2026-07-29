@@ -21,6 +21,7 @@
 #include "DeviceCore/DevDefs.h"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevFirmware.h"
+#include "DeviceCore/DevPrintTaskInfo.h"
 #include "DeviceCore/DevUtil.h"
 #include "DeviceCore/DevCalib.h"
 
@@ -149,6 +150,9 @@ private:
 
     /*Upgrade*/
     std::shared_ptr<DevUpgrade> m_upgrade;
+
+    /* Print task information */
+    DevPrintTaskInfo m_printTaskInfo;
 
     /*Status*/
     DevStatus* m_status;
@@ -409,6 +413,8 @@ public:
     void store_version_info(const DevFirmwareVersionInfo& info);
 
     /* printing */
+    const DevPrintTaskInfo &getPrintTaskInfo() const { return m_printTaskInfo; }
+
     std::string print_type;
     //float   nozzle { 0.0f };        // default is 0.0f as initial value
     bool    is_220V_voltage { false };
