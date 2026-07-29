@@ -2156,6 +2156,10 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
                 }
             }
             return result;
+        } else {
+            FilamentGroup fg(context);
+            fg.get_custom_seq = create_custom_seq_function(print_config, false);
+            ret = fg.calc_filament_group();
         }
     }
 
