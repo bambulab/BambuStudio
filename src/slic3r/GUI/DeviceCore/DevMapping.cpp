@@ -271,17 +271,14 @@ namespace Slic3r
                 }
                 else
                 {
-                    if (c.Alpha() != tray_c.Alpha())
-                        val.distance = kMismatchDistance;
-                    else {
-                        const bool is_sub_class_match = !filaments[i].setting_id.empty() && !tray->second.setting_id.empty()
-                            && filaments[i].setting_id == tray->second.setting_id;
-                        const bool is_class_match = !filaments[i].filament_id.empty() && !tray->second.filament_id.empty()
-                            && filaments[i].filament_id == tray->second.filament_id;
-                        if (!is_sub_class_match) {
-                            val.distance += is_class_match ? kClassDistanceOffset : kTypeDistanceOffset;
-                        }
+                    const bool is_sub_class_match = !filaments[i].setting_id.empty() && !tray->second.setting_id.empty()
+                        && filaments[i].setting_id == tray->second.setting_id;
+                    const bool is_class_match = !filaments[i].filament_id.empty() && !tray->second.filament_id.empty()
+                        && filaments[i].filament_id == tray->second.filament_id;
+                    if (!is_sub_class_match) {
+                        val.distance += is_class_match ? kClassDistanceOffset : kTypeDistanceOffset;
                     }
+
                     val.is_type_match = true;
                 }
                 ::sprintf(buffer, "  %6.0f", val.distance);
