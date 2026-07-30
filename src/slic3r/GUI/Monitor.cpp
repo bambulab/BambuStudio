@@ -282,9 +282,11 @@ void MonitorPanel::on_activate()
         return;
 
     const auto rfid_refresh_ctrl = fila_system->GetAmsRfidRefreshCtrl();
-    if (!rfid_refresh_ctrl)
+    if (!rfid_refresh_ctrl) {
         return;
-
+    }
+    
+    return;// reset story-7043553223
     rfid_refresh_ctrl->TriggerRefresh();
 }
 

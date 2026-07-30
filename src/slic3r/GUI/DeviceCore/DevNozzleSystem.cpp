@@ -228,6 +228,18 @@ bool DevNozzle::IsUnknown() const
     return DevUtil::get_flag_bits(m_stat, 1, 2) == (1 << 1);
 }
 
+
+bool DevNozzle::IsInBindAmsSlots(int ams_id, int slot_id) const
+{
+    for(const auto& slot : m_bind_ams_slots){
+        if(slot.first == ams_id && slot.second == slot_id) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 DevNozzle::FilamentEngagementStatus DevNozzle::GetFilamentEngagementStatus() const
 {
     if (IsEmpty()) {

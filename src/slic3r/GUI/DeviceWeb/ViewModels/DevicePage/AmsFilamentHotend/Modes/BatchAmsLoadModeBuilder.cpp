@@ -87,8 +87,10 @@ bool is_ams_slot_loaded_in_hotend(MachineObject* machine_obj, const DevAmsTray* 
     if (machine_obj && tray) {
         if (auto nozzle_addr_opt = tray->get_nozzle_addr_id(machine_obj); nozzle_addr_opt.has_value()) {
             auto nozzle_opt = machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(nozzle_addr_opt.value());
-            if (nozzle_opt.has_value() && nozzle_opt->HasFilamentInNozzle() && nozzle_opt->GetFilamentId() == tray->get_filament_id()){
-                return true;
+            if (nozzle_opt.has_value()){
+                try {
+                    return nozzle_opt->HasFilamentInNozzle() && nozzle_opt->IsInBindAmsSlots(std::stoi(tray->ams_id), std::stoi(tray->id));
+                } catch(...){ }
             }
         }
     }

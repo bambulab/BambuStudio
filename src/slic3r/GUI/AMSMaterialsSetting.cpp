@@ -699,7 +699,7 @@ void AMSMaterialsSetting::update_filament_weight_editing()
 
     m_panel_filament_weight->Show();
     const bool editable = can_edit_filament_weight();
-    m_input_total_weight->Enable(editable);
+    m_input_total_weight->Enable(false);
     m_input_remain_weight->Enable(editable);
 }
 

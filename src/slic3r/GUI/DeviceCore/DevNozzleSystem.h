@@ -186,6 +186,7 @@ public:
     FilamentEngagementStatus GetFilamentEngagementStatus() const;
 
     // direct bind ams slots. eg. ZMULTI_A
+    bool IsInBindAmsSlots(int ams_id, int slot_id) const;
     std::vector<DevAmsSlotId> GetBindAmsSlots() const { return m_bind_ams_slots; };
 
     // external ams ids bound to this nozzle (from device push "bind_ams")

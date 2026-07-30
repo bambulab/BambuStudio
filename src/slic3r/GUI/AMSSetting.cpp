@@ -589,6 +589,7 @@ void AMSSetting::update_air_printing_detection(MachineObject* obj)
 
 void AMSSetting::update_filament_tab_auto_read_rfid(MachineObject* obj)
 {
+    return;// reset story-7043553223
     if (const auto fila_system = obj ? obj->GetFilaSystem() : nullptr) {
         const bool supported = fila_system->GetAmsSystemSetting().SupportsFilamentTabAutoReadRfid();
         m_sizer_filament_tab_auto_read_rfid_block->Show(supported);
