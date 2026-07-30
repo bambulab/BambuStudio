@@ -1987,29 +1987,36 @@ std::vector<NozzleConfig> Sidebar::priv::collect_nozzle_configs_from_machine(Mac
         nozzles[id] = &nozzle;
     }
 
+    auto has_rack = nozzle_system->GetNozzleRack()->IsSupported();
+
+    // only check nozzle is normal and unknown when nozzle rack is supported
+    auto is_normal  = [has_rack](const DevNozzle *nozzle) { return !has_rack || nozzle->IsNormal(); };
+    auto is_unknown = [has_rack](const DevNozzle *nozzle) { return has_rack && nozzle->IsUnknown(); };
+
     std::vector<NozzleConfig> nozzle_configs;
     nozzle_configs.reserve(extruder_nozzle_count);
     for (const auto *nozzle : nozzles) {
         auto &nozzle_config = nozzle_configs.emplace_back();
-        if (!nozzle->IsExist() || nozzle->IsUnknown() || nozzle->IsAbnormal() || !nozzle->IsHotend()) continue;
+
+        if (extruder_nozzle_count <= 1) {
+            nozzle_config.status = NozzleStatus::nsNormal;
+        } else {
+            if (!is_normal(nozzle)) {
+                nozzle_config.status = NozzleStatus::nsError;
+            } else if (is_unknown(nozzle)) {
+                nozzle_config.status = NozzleStatus::nsUnknown;
+            } else {
+                nozzle_config.status = NozzleStatus::nsNormal;
+            }
+        }
+
+        if (!nozzle->IsExist() || is_unknown(nozzle) || !is_normal(nozzle) || !nozzle->IsHotend()) continue;
 
         nozzle_config.diameter = get_diameter_string(nozzle->GetNozzleDiameter());
         nozzle_config.volume   = DevNozzle::ToNozzleVolumeType(nozzle->GetNozzleFlowType());
 
         const auto &bind_ams_slots = nozzle->GetBindAmsSlots();
         if (!bind_ams_slots.empty()) nozzle_config.ams_slot = bind_ams_slots[0];
-
-        if (extruder_nozzle_count <= 1) {
-            nozzle_config.status = NozzleStatus::nsNormal;
-        } else {
-            if (nozzle->IsAbnormal()) {
-                nozzle_config.status = NozzleStatus::nsError;
-            } else if (nozzle->IsUnknown()) {
-                nozzle_config.status = NozzleStatus::nsUnknown;
-            } else {
-                nozzle_config.status = NozzleStatus::nsNormal;
-            }
-        }
     }
 
     return nozzle_configs;
@@ -2799,7 +2806,8 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     wxString target_display_name = pm ? wxString::FromUTF8(pm->name) : wxString(DevPrinterConfigUtil::get_printer_display_name(target_model_id));
     Preset* machine_preset = get_printer_preset(obj);
     if (!machine_preset) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << "check error: machine_preset empty";
+        plater->pop_warning_and_go_to_device_page(printer_name, Plater::PrinterWarningType::NotAvailable, _L("Sync printer information"));
+        BOOST_LOG_TRIVIAL(warning) << "can not find a preset matching the connected machine, check installed/enabled machine and the status of the conected machine";
         return false;
     }
     if (machine_print_name != target_model_id) {
@@ -24402,7 +24410,9 @@ Preset *get_printer_preset(const MachineObject *obj)
     for (const auto &nozzles : {nozzle_sys->GetExtNozzles(), nozzle_sys->GetRackNozzles()}) {
         bool found{false};
         for (const auto &[_, nozzle] : nozzles) {
-            if (nozzle.GetLogicExtruderId() == 0 && nozzle.IsHotend() && nozzle.IsNormal()) {
+            // only check nozzle is normal when nozzle rack is supported
+            bool normal = !nozzle_sys->GetNozzleRack()->IsSupported() || nozzle.IsNormal();
+            if (nozzle.GetLogicExtruderId() == 0 && nozzle.IsHotend() && normal) {
                 machine_nozzle_diameter = nozzle.GetNozzleDiameter();
                 found                   = true;
                 break;
@@ -27158,6 +27168,8 @@ void Plater::pop_warning_and_go_to_device_page(wxString printer_name, PrinterWar
         content = _L("There are no filaments on the printer. Please load the filaments on the printer first.");
     } else if (type == PrinterWarningType::EMPTY_FILAMENT) {
         content = _L("The filaments on the printer are all unknown types. Please go to the printer screen or software device page to set the filament type.");
+    } else if (type == PrinterWarningType::NotAvailable) {
+        content = wxString::Format(_L("The currently connected printer is not available, please check the status of %s before syncing."), printer_name);
     }
     MessageDialog dlg(this, content, title, wxOK | wxFORWARD | wxICON_WARNING, _L("Device Page"));
     auto          result = dlg.ShowModal();
