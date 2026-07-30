@@ -489,6 +489,16 @@ void SeparatedDragDropPanel::UpdateLabel(const wxString &label)
     }
 }
 
+void SeparatedDragDropPanel::SetUnifiedContentMaxWidth(int max_width)
+{
+    if (!m_unified_panel)
+        return;
+    // unified 面板以 wxEXPAND 加入布局，限制其最大宽度可让内部网格保持紧凑，
+    // 外层盒子仍可拉伸，多出宽度作为拖放区。
+    m_unified_panel->SetMaxSize({max_width, -1});
+    Layout();
+}
+
 void SeparatedDragDropPanel::SetUseSeparation(bool use_separation)
 {
     if (m_use_separation != use_separation) {

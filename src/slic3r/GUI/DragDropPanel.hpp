@@ -93,6 +93,8 @@ public:
     bool IsUseSeparation() const { return m_use_separation; }
     void ClearAllBlocks();
     void UpdateLabel(const wxString &label);
+    // 限制 unified（非分隔）耗材网格宽度，使外层拖放盒被拉宽时图标仍保持紧凑间距。
+    void SetUnifiedContentMaxWidth(int max_width);
 
 private:
     void UpdateLayout();

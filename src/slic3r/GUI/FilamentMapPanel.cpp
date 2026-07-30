@@ -634,16 +634,18 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
     }
 
     if (has_ams) {
+        // 这里不要限制内部网格宽度：AMS（左）盒拖入的耗材数量不定，限制宽度被 6 列网格
+        // 均分到小于图标尺寸后图标会挤在一起没间隙。保持原有均衡尺寸即可。
         m_left_panel->SetMinSize({FromDIP(160), -1});
         m_right_panel->SetMinSize({FromDIP(360), -1});
         drag_sizer->Add(m_left_panel, 3, wxALIGN_CENTER | wxEXPAND);
         drag_sizer->AddSpacer(FromDIP(12));
         drag_sizer->Add(m_right_panel, 7, wxALIGN_CENTER | wxEXPAND);
     } else {
-        m_right_panel->SetMinSize({FromDIP(550), -1});
-        drag_sizer->AddStretchSpacer(1);
-        drag_sizer->Add(m_right_panel, 0, wxALIGN_CENTER);
-        drag_sizer->AddStretchSpacer(1);
+        // 让拖放盒横跨对话框宽度（避免列表太窄），但内部耗材网格宽度限制挤出机宽度，使图标保持紧凑间距而不被拉散。
+        m_right_panel->SetMinSize({FromDIP(460), -1});
+        m_right_panel->SetUnifiedContentMaxWidth(FromDIP(260));
+        drag_sizer->Add(m_right_panel, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
     }
 
     top_sizer->Add(drag_sizer, 0, wxEXPAND);
@@ -950,15 +952,25 @@ void FilamentMapMultiNozzlePanel::UpdateNozzleCountDisplay()
             wxString right_title = wxString::Format(fixed_label + "(%d)", right_count);
             m_right_panel->UpdateLabel(right_title);
         } else {
-            wxString type_label;
-            if (has_full_stat) {
-                for (const auto &kv : fixed_counts) {
-                    if (kv.second > 0) { type_label = get_volume_type_label(kv.first); break; }
+            // 单挤出机多喷嘴且只有一种流量类型时：统一喷嘴组用机型 AMS
+            // 名称标注，而非喷嘴数量/流量类型。
+            std::string model_id = is_multi_nozzle_single_extruder(full_cfg)
+                                       ? preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle)
+                                       : std::string();
+            wxString title;
+            if (!model_id.empty()) {
+                title = wxString::Format("%sAMS", model_id);
+            } else {
+                wxString type_label;
+                if (has_full_stat) {
+                    for (const auto &kv : fixed_counts) {
+                        if (kv.second > 0) { type_label = get_volume_type_label(kv.first); break; }
+                    }
                 }
+                title = type_label.empty()
+                    ? wxString::Format(_L("Nozzle (%d)"), m_total_nozzle_count)
+                    : wxString::Format(_L("Nozzle (%d) - %s"), m_total_nozzle_count, type_label);
             }
-            wxString title = type_label.empty()
-                ? wxString::Format(_L("Nozzle (%d)"), m_total_nozzle_count)
-                : wxString::Format(_L("Nozzle (%d) - %s"), m_total_nozzle_count, type_label);
             m_right_panel->UpdateLabel(title);
         }
     }
@@ -1283,7 +1295,8 @@ FilamentMapSavingPanel::FilamentMapSavingPanel(wxWindow *parent, const wxString 
     auto saving_sizer = new wxBoxSizer(wxVERTICAL);
     saving_sizer->AddSpacer(FromDIP(32));
 
-    if (!custom_text) {
+    // 空文件夹带放大镜的占位图标。仅保存面板与 默认占位（custom text）都显示。
+    {
         auto icon_bitmap = create_scaled_bitmap("search_file", nullptr, 80);
         auto icon_btn    = new wxStaticBitmap(this, wxID_ANY, icon_bitmap);
         saving_sizer->Add(icon_btn, 0, wxALIGN_CENTER);
@@ -1297,15 +1310,26 @@ FilamentMapSavingPanel::FilamentMapSavingPanel(wxWindow *parent, const wxString 
         wxString deputy_nz_saving = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_saving, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
         desc_text = wxString::Format(_L("Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"), deputy_nz_saving, main_nz_saving);
     }
-    auto desc_label = new Label(this, desc_text);
-    desc_label->SetFont(custom_text ? Label::Body_14 : Label::Body_12);
-    desc_label->SetForegroundColour(wxColour("#6B6B6B"));
+
     if (custom_text) {
-        desc_label->SetWindowStyleFlag(desc_label->GetWindowStyleFlag() | wxALIGN_CENTER_HORIZONTAL);
-        saving_sizer->AddStretchSpacer(2);
+        // 占位文案需自适应宽度 + 上限 + 超长末尾省略号。自定义 Label 不支持
+        // wxST_ELLIPSIZE_END，改用原生 wxStaticText（与仓库其它省略号标签一致）。
+        auto desc_label = new wxStaticText(this, wxID_ANY, desc_text, wxDefaultPosition, wxDefaultSize,
+                                           wxST_ELLIPSIZE_END | wxALIGN_CENTER_HORIZONTAL);
+        desc_label->SetFont(Label::Body_14);
+        desc_label->SetBackgroundColour(GetBackgroundColour());
+        desc_label->SetForegroundColour(wxColour("#6B6B6B"));
+        // 用标签自身（已生效）字体测量：短文案按内容自适应，长/本地化文案受上限约束。
+        const int desc_max_width  = FromDIP(460);
+        const int desc_text_width = desc_label->GetTextExtent(desc_text).GetWidth() + FromDIP(8);
+        const int desc_width      = std::min(desc_text_width, desc_max_width);
+        desc_label->SetMinSize(wxSize(desc_width, -1));
+        desc_label->SetMaxSize(wxSize(desc_width, -1));
         saving_sizer->Add(desc_label, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(50));
-        saving_sizer->AddStretchSpacer(3);
     } else {
+        auto desc_label = new Label(this, desc_text);
+        desc_label->SetFont(Label::Body_12);
+        desc_label->SetForegroundColour(wxColour("#6B6B6B"));
         saving_sizer->Add(desc_label, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(50));
     }
     saving_sizer->AddSpacer(FromDIP(32));

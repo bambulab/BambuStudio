@@ -614,7 +614,11 @@ namespace Slic3r
                     bool has_multi_nozzle = emnc && std::any_of(emnc->values.begin(), emnc->values.end(), [](int v) { return v > 1; });
                     auto hh = print.config().option<ConfigOptionBool>("handle_hotend_as_extruder");
                     m_single_ext_multi_nozzle = hh && hh->value && m_nozzle_nums == 1 && has_multi_nozzle;
-                    m_ams_nozzle_idx = m_single_ext_multi_nozzle ? get_effective_ams_nozzle_idx_for_active_diameter(print.config()) : -1;
+                    // 使用切片构建各耗材 group_id 时所用的同一 AMS 喷嘴索引（对切片后的 print.config() 调用 get_effective_ams_nozzle_idx）。带口径门控、基于实时
+                    // full_config 的变体可能与切片分组不一致
+                    m_ams_nozzle_idx = m_single_ext_multi_nozzle
+                        ? get_effective_ams_nozzle_idx(print.config())
+                        : -1;
                     m_total_nozzle_count = (emnc && !emnc->values.empty()) ? emnc->values.front() : 1;
                 }
                 auto nozzle_group_result = print.get_nozzle_group_result();
@@ -1569,11 +1573,20 @@ namespace Slic3r
                         {
                             if (callback && !checkbox && !visible)
                                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(172 / 255.0f, 172 / 255.0f, 172 / 255.0f, 1.00f));
+                            // 本行最高单元格（如 "x m\ny g" 占 2 行）；单行单元格以它为基准垂直居中。
+                            float row_max_h = 0.f;
+                            for (const auto& col : columns_offsets)
+                                row_max_h = std::max(row_max_h, ImGui::CalcTextSize(col.first.c_str()).y);
                             float dummy_size = type == EItemType::None ? window_padding * 3 : ImGui::GetStyle().ItemSpacing.x + icon_size;
                             ImGui::SameLine(dummy_size);
+                            const float row_top_y = ImGui::GetCursorPosY();
+                            const float cell0_h = ImGui::CalcTextSize(columns_offsets[0].first.c_str()).y;
+                            ImGui::SetCursorPosY(row_top_y + std::max(0.0f, (row_max_h - cell0_h) * 0.5f));
                             imgui.text(columns_offsets[0].first);
                             for (auto i = 1; i < columns_offsets.size(); i++) {
                                 ImGui::SameLine(columns_offsets[i].second);
+                                const float cell_h = ImGui::CalcTextSize(columns_offsets[i].first.c_str()).y;
+                                ImGui::SetCursorPosY(row_top_y + std::max(0.0f, (row_max_h - cell_h) * 0.5f));
                                 imgui.text(columns_offsets[i].first);
                             }
                             if (callback && !checkbox && !visible)
@@ -1741,6 +1754,28 @@ namespace Slic3r
                     return result;
 
                     };
+                // 单挤出机多喷嘴：把耗材所分到的喷嘴描述为 "<口径> <流量缩写>"（如"0.4 Std"）；AMS 喷嘴额外带槽位号，如 "0.4 Std (5号)"。缩写：标准 Std、 高流量 HF、TPU TPU285。
+                auto get_n1x_nozzle_label = [this](const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> &group_result, int filament_id) -> std::string {
+                    if (!group_result)
+                        return "";
+                    auto nz = group_result->get_first_nozzle_for_filament(filament_id);
+                    if (!nz)
+                        return "";
+                    auto vol_abbr = [](NozzleVolumeType vt) -> std::string {
+                        switch (vt) {
+                        case nvtHighFlow:
+                        case nvtE3DHighFlow:  return "HF";
+                        case nvtTPUHighFlow:
+                        case nvtTPU285:       return "TPU285";
+                        case nvtStandard:
+                        default:              return "Std";
+                        }
+                    };
+                    std::string label = nz->diameter + " " + vol_abbr(nz->volume_type);
+                    if (m_ams_nozzle_idx >= 0 && nz->group_id == m_ams_nozzle_idx)
+                        label += " (" + std::to_string(nz->group_id + 1) + _u8L("号") + ")";
+                    return label;
+                    };
                 //BBS Slicing Result title
                 ImGui::Dummy({ window_padding, window_padding });
                 ImGui::Dummy({ window_padding, window_padding });
@@ -1848,6 +1883,9 @@ namespace Slic3r
                 ImGui::Dummy({ window_padding, window_padding });
                 // data used to properly align items in columns when showing time
                 std::vector<float> offsets;
+                // 耗材丝（ColorPrint）图例增加一列 "Nozzle"，内容来自分组结果；
+                // 多挤出机机型保持原布局。
+                const bool show_nozzle_col = m_single_ext_multi_nozzle && group_result;
                 std::vector<std::string> labels;
                 std::vector<std::string> times;
                 std::string travel_time;
@@ -2034,6 +2072,12 @@ namespace Slic3r
                     }
                     if (is_show_left_right_result) {
                         title_columns.push_back({ _u8L("Nozzles"), {""} });
+                    } else if (show_nozzle_col) {
+                        //来自分组结果的每根耗材喷嘴分配。提供样本使该列有足够宽度。
+                        std::vector<std::string> nozzle_samples;
+                        for (unsigned char extruder_id : m_extruder_ids)
+                            nozzle_samples.push_back(get_n1x_nozzle_label(group_result, static_cast<int>(extruder_id)));
+                        title_columns.push_back({ _u8L("Nozzle"), nozzle_samples });
                     }
                     auto offsets_ = calculate_offsets(title_columns, icon_size);
                     std::vector<std::pair<std::string, float>> title_offsets;
@@ -2148,7 +2192,10 @@ namespace Slic3r
                     size_t i = 0;
                     for (unsigned char extruder_id : m_extruder_ids) {
                         ::sprintf(buf, imperial_units ? "%.2f in    %.2f g" : "%.2f m    %.2f g", model_used_filaments_m[i], model_used_filaments_g[i]);
-                        append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_id], { { _u8L("Extruder") + " " + std::to_string(extruder_id + 1), offsets[0]}, {buf, offsets[1]} });
+                        std::vector<std::pair<std::string, float>> columns_offsets;
+                        columns_offsets.push_back({ _u8L("Extruder") + " " + std::to_string(extruder_id + 1), offsets[0] });
+                        columns_offsets.push_back({ buf, offsets[1] });
+                        append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_id], columns_offsets);
                         i++;
                     }
                     break;
@@ -2231,6 +2278,8 @@ namespace Slic3r
                                 std::string nozzle_str   = get_nozzle_label(group_result, static_cast<int>(extruder_idx));
                                 ::sprintf(buf, "%s", nozzle_str.c_str());
                                 columns_offsets.push_back({buf, color_print_offsets[_u8L("Nozzles")]});
+                            } else if (show_nozzle_col) {
+                                columns_offsets.push_back({ get_n1x_nozzle_label(group_result, static_cast<int>(extruder_idx)), color_print_offsets[_u8L("Nozzle")] });
                             }
                             append_item(EItemType::Rect, m_tools.m_tool_colors[extruder_idx], columns_offsets, false, filament_visible, [this, extruder_idx]() {
                                 m_tools.m_tool_visibles[extruder_idx] = !m_tools.m_tool_visibles[extruder_idx];
@@ -2764,7 +2813,9 @@ namespace Slic3r
                         append_option_item(item, offsets);
                 }
                 ImGui::Dummy({ window_padding, window_padding });
-                if (m_nozzle_nums > 1 || m_single_ext_multi_nozzle)
+                // 单挤出机多喷嘴只在外接 AMS 与固定喷嘴间划分耗材，分组图例仅在接入
+                // AMS（m_ams_nozzle_idx >= 0）时有意义；无外接 AMS 时无可分组，隐藏。
+                if (m_nozzle_nums > 1 || (m_single_ext_multi_nozzle && m_ams_nozzle_idx >= 0))
                     render_legend_color_arr_recommen(window_padding, is_show_left_right_result);
                 legend_height = ImGui::GetCurrentWindow()->Size.y;
                 imgui.end();
