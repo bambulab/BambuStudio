@@ -674,7 +674,6 @@ void ColorDecomposeDialog::update_filament_limit_warning()
             m_limit_warning_panel->Hide();
             Layout();
             Fit();
-            CenterOnParent();
         }
         return;
     }
@@ -700,12 +699,11 @@ void ColorDecomposeDialog::update_filament_limit_warning()
         m_limit_warning_text->Wrap(avail);
 
     Layout();
-    // Only resize/recenter when the warning panel actually toggled from hidden
-    // to shown. While already visible, switching modes must not re-Fit/recenter
-    // the dialog, which would make it jump on every card switch.
+    // Only resize when the warning panel actually toggled from hidden to shown.
+    // While already visible, switching modes must not re-Fit the dialog, which
+    // would make it jump on every card switch. Fit keeps the user-moved position.
     if (!was_shown) {
         Fit();
-        CenterOnParent();
     }
 }
 

@@ -224,6 +224,29 @@ ColorDecomposeRecipeResult recommend_from_physical_filaments(
         if (preferred_material_type.empty() || material_matches(filament.type, preferred_material_type))
             candidates.push_back(filament);
     }
+
+    // Early exit: if a material-matched candidate has the exact target color,
+    // return it as 100%. Downstream rejects single-component results (no mixed
+    // slot created), which is correct -- the color already exists.
+    const std::string target_hex = color_decompose_rgb_to_hex(target);
+    for (const auto& cand : candidates) {
+        ColorDecomposeRgb cand_rgb;
+        if (!color_decompose_hex_to_rgb(cand.color_hex, cand_rgb))
+            continue;
+        if (color_decompose_rgb_to_hex(cand_rgb) == target_hex) {
+            ColorDecomposeRecipeResult exact;
+            exact.valid = true;
+            exact.mode = ColorDecomposeRecipeMode::MaterialList;
+            exact.matched_color_hex = cand.color_hex;
+            ColorDecomposeRecipeComponent comp;
+            comp.color_hex = cand.color_hex;
+            comp.ratio = 100;
+            comp.filament_index = cand.filament_index;
+            exact.components.push_back(comp);
+            return exact;
+        }
+    }
+
     if (candidates.size() < 2)
         candidates = physical_filaments;
     candidates.erase(std::remove_if(candidates.begin(), candidates.end(), [](const auto& filament) {
