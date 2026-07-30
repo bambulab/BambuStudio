@@ -44,17 +44,23 @@ static void apply_tolerance(ModelVolume *vol)
     vol->set_offset(vol->get_offset() + rot_norm * z_offset);
 }
 
-static void add_cut_volume(TriangleMesh &     mesh,
+// Already extracted for i18n via GLGizmoAdvancedCut.cpp; CutUtils is not in list.txt,
+// so pass the English marker string only (no L() here).
+static const char *const CutStageCutting = "Cutting model object";
+
+// Returns false when the paint reprojection was canceled; the caller has to unwind.
+static bool add_cut_volume(TriangleMesh &     mesh,
                            ModelObject *      object,
                            const ModelVolume *src_volume,
                            const Transform3d &cut_matrix,
                            const std::string &suffix = {},
                            ModelVolumeType    type   = ModelVolumeType::MODEL_PART,
                            const std::vector<int>* src_faces = nullptr,
-                           const Transform3d* destination_to_source = nullptr)
+                           const Transform3d* destination_to_source = nullptr,
+                           const CutProgressRange &progress = {})
 {
     if (mesh.empty())
-        return;
+        return true;
 
     mesh.transform(cut_matrix);
     ModelVolume *vol = object->add_volume(mesh);
@@ -78,11 +84,16 @@ static void add_cut_volume(TriangleMesh &     mesh,
         // band and inherit identical paint.
         const Transform3d dts_centered =
             (*destination_to_source) * Eigen::Translation3d(vol->source.mesh_offset);
-        reproject_paint(*src_volume, *vol, *src_faces, dts_centered);
+        if (!reproject_paint(*src_volume, *vol, *src_faces, dts_centered,
+                             [&progress](int percent, const char *message) { progress.report(percent, message); },
+                             [&progress]() { return progress.canceled(); }))
+            return false;
     }
+    return true;
 }
 
-static void process_volume_cut(ModelVolume *            volume,
+// Returns false when the cut was canceled; the caller has to unwind.
+static bool process_volume_cut(ModelVolume *            volume,
                                const Transform3d &      instance_matrix,
                                const Transform3d &      cut_matrix,
                                ModelObjectCutAttributes attributes,
@@ -90,7 +101,8 @@ static void process_volume_cut(ModelVolume *            volume,
                                TriangleMesh &           lower_mesh,
                                std::vector<int>*        upper_src_faces = nullptr,
                                std::vector<int>*        lower_src_faces = nullptr,
-                               Transform3d*             destination_to_source = nullptr)
+                               Transform3d*             destination_to_source = nullptr,
+                               const CutProgressRange & progress = {})
 {
     const auto volume_matrix = volume->get_matrix();
 
@@ -108,20 +120,33 @@ static void process_volume_cut(ModelVolume *            volume,
     mesh.transform(source_to_cut, true);
 
     indexed_triangle_set upper_its, lower_its;
-    cut_mesh(mesh.its, 0.0f, &upper_its, &lower_its, true, upper_src_faces, lower_src_faces);
+    // Slicing dominates this stage; leave the tail of the range to building the two meshes.
+    // Always refresh the stage label: a prior volume / nested groove cut may have left a
+    // "Restoring ..." message in the shared progress callback, and a null message would stick.
+    progress.report(0., CutStageCutting);
+    const CutProgressRange slice_progress = progress.sub(0., 90.);
+    cut_mesh(mesh.its, 0.0f, &upper_its, &lower_its, true, upper_src_faces, lower_src_faces,
+             [&slice_progress](int percent) { slice_progress.report(percent, CutStageCutting); },
+             [&slice_progress]() { return slice_progress.canceled(); });
+    if (progress.canceled())
+        return false;
     if (attributes.has(ModelObjectCutAttribute::KeepUpper))
         upper_mesh = TriangleMesh(upper_its);
     if (attributes.has(ModelObjectCutAttribute::KeepLower))
         lower_mesh = TriangleMesh(lower_its);
+    progress.report(100., CutStageCutting);
+    return true;
 }
 
-static void process_connector_cut(ModelVolume *               volume,
+// Returns false when the cut was canceled; the caller has to unwind.
+static bool process_connector_cut(ModelVolume *               volume,
                                   const Transform3d &         instance_matrix,
                                   const Transform3d &         cut_matrix,
                                   ModelObjectCutAttributes    attributes,
                                   ModelObject *               upper,
                                   ModelObject *               lower,
-                                  std::vector<ModelObject *> &dowels)
+                                  std::vector<ModelObject *> &dowels,
+                                  const CutProgressRange &    progress = {})
 {
     assert(volume->cut_info.is_connector);
     volume->cut_info.set_processed();
@@ -192,16 +217,22 @@ static void process_connector_cut(ModelVolume *               volume,
 
         // Perform cut
         TriangleMesh upper_mesh, lower_mesh;
-        process_volume_cut(volume, Transform3d::Identity(), cut_matrix, attributes, upper_mesh, lower_mesh);
+        // A dowel carries no paint, so the whole slice goes to the geometry.
+        if (!process_volume_cut(volume, Transform3d::Identity(), cut_matrix, attributes, upper_mesh, lower_mesh,
+                                nullptr, nullptr, nullptr, progress))
+            return false;
 
         // add small Z offset to better preview
         upper_mesh.translate((-0.05 * Vec3d::UnitZ()).cast<float>());
         lower_mesh.translate((0.05 * Vec3d::UnitZ()).cast<float>());
 
-        // Add cut parts to the related objects
+        // Add cut parts to the related objects. No paint is carried here, so neither call can
+        // report a cancellation.
         add_cut_volume(upper_mesh, upper, volume, cut_matrix, "_A", volume->type());
         add_cut_volume(lower_mesh, lower, volume, cut_matrix, "_B", volume->type());
     }
+    progress.report(100.);
+    return true;
 }
 
 static void process_modifier_cut(ModelVolume *volume, const Transform3d &instance_matrix, const Transform3d &inverse_cut_matrix, ModelObjectCutAttributes attributes, ModelObject *upper, ModelObject *lower)
@@ -226,34 +257,55 @@ static void process_modifier_cut(ModelVolume *volume, const Transform3d &instanc
         lower->add_volume(*volume);
 }
 
-static void process_solid_part_cut(
-    ModelVolume *volume, const Transform3d &instance_matrix, const Transform3d &cut_matrix, ModelObjectCutAttributes attributes, ModelObject *upper, ModelObject *lower)
+// Returns false when the cut or the paint reprojection was canceled; the caller has to unwind.
+static bool process_solid_part_cut(ModelVolume *            volume,
+                                   const Transform3d &      instance_matrix,
+                                   const Transform3d &      cut_matrix,
+                                   ModelObjectCutAttributes attributes,
+                                   ModelObject *            upper,
+                                   ModelObject *            lower,
+                                   const CutProgressRange & progress = {})
 {
     // Perform cut
     TriangleMesh upper_mesh, lower_mesh;
     std::vector<int> upper_src, lower_src;
     Transform3d destination_to_source;
-    process_volume_cut(volume, instance_matrix, cut_matrix, attributes, upper_mesh, lower_mesh,
-                       &upper_src, &lower_src, &destination_to_source);
+    // The geometry owns the first 70% of this volume's slice, restoring its paint the last 30%,
+    // shared by the two halves whenever both are produced.
+    if (!process_volume_cut(volume, instance_matrix, cut_matrix, attributes, upper_mesh, lower_mesh,
+                            &upper_src, &lower_src, &destination_to_source, progress.sub(0., 70.)))
+        return false;
+
+    const CutProgressRange paint       = progress.sub(70., 100.);
+    const bool             both_halves = !upper_mesh.empty() && !lower_mesh.empty();
+    const CutProgressRange upper_paint = both_halves ? paint.sub(0., 50.) : paint;
+    const CutProgressRange lower_paint = both_halves ? paint.sub(50., 100.) : paint;
 
     // Add required cut parts to the objects
 
     if (attributes.has(ModelObjectCutAttribute::CutToParts)) {
-        add_cut_volume(upper_mesh, upper, volume, cut_matrix, "_A", ModelVolumeType::MODEL_PART, &upper_src, &destination_to_source);
+        if (!add_cut_volume(upper_mesh, upper, volume, cut_matrix, "_A", ModelVolumeType::MODEL_PART, &upper_src, &destination_to_source, upper_paint))
+            return false;
         if (!lower_mesh.empty()) {
-            add_cut_volume(lower_mesh, upper, volume, cut_matrix, "_B", ModelVolumeType::MODEL_PART, &lower_src, &destination_to_source);
+            if (!add_cut_volume(lower_mesh, upper, volume, cut_matrix, "_B", ModelVolumeType::MODEL_PART, &lower_src, &destination_to_source, lower_paint))
+                return false;
             upper->volumes.back()->cut_info.is_from_upper = false;
         }
-        return;
+        progress.report(100.);
+        return true;
     }
 
     if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
-        add_cut_volume(upper_mesh, upper, volume, cut_matrix, {}, ModelVolumeType::MODEL_PART, &upper_src, &destination_to_source);
+        if (!add_cut_volume(upper_mesh, upper, volume, cut_matrix, {}, ModelVolumeType::MODEL_PART, &upper_src, &destination_to_source, upper_paint))
+            return false;
     }
 
     if (attributes.has(ModelObjectCutAttribute::KeepLower) && !lower_mesh.empty()) {
-        add_cut_volume(lower_mesh, lower, volume, cut_matrix, {}, ModelVolumeType::MODEL_PART, &lower_src, &destination_to_source);
+        if (!add_cut_volume(lower_mesh, lower, volume, cut_matrix, {}, ModelVolumeType::MODEL_PART, &lower_src, &destination_to_source, lower_paint))
+            return false;
     }
+    progress.report(100.);
+    return true;
 }
 
 static void reset_instance_transformation(ModelObject *      object,
@@ -325,6 +377,25 @@ Cut::Cut(const ModelObject *      object,
     if (object) m_model.add_object(*object);
 }
 
+void Cut::set_progress(CutProgressCallback progress, CutCancelCallback cancel)
+{
+    m_progress = CutProgressRange(std::move(progress), std::move(cancel));
+}
+
+const ModelObjectPtrs &Cut::abandon(ModelObject *upper, ModelObject *lower, const std::vector<ModelObject *> &dowels)
+{
+    m_canceled = true;
+    // Same ownership transfer post_process() uses for a half that is not kept.
+    if (upper)
+        m_model.objects.push_back(upper);
+    if (lower)
+        m_model.objects.push_back(lower);
+    for (ModelObject *dowel : dowels)
+        m_model.objects.push_back(dowel);
+    m_model.clear_objects();
+    return m_model.objects;
+}
+
 void Cut::post_process(ModelObject *object, bool is_upper, ModelObjectPtrs &cut_object_ptrs, bool keep, bool place_on_cut, bool flip,  bool discard_half_cut)
 {
     if (!object) return;
@@ -393,18 +464,40 @@ const ModelObjectPtrs &Cut::perform_with_plane()
     const Transformation cut_transformation = Transformation(m_cut_matrix);
     const Transform3d    inverse_cut_matrix = cut_transformation.get_rotation_matrix().inverse() * translation_transform(-1. * cut_transformation.get_offset());
 
-    for (ModelVolume *volume : mo->volumes) {
+    // Slices are weighted by face count rather than handed out evenly: a modifier volume costs
+    // nothing while a dense solid part dominates the run, and an even split makes the bar crawl
+    // through the expensive volume and then jump. The floor of one keeps empty volumes from
+    // collapsing to a zero-width slice.
+    m_progress.report(0., CutStageCutting);
+    const size_t volume_count = mo->volumes.size();
+    std::vector<double> volume_weight_prefix(volume_count + 1, 0.);
+    for (size_t volume_idx = 0; volume_idx < volume_count; ++ volume_idx)
+        volume_weight_prefix[volume_idx + 1] =
+            volume_weight_prefix[volume_idx] +
+            std::max<double>(1., double(mo->volumes[volume_idx]->mesh().its.indices.size()));
+    const double volume_weight_total = std::max(1., volume_weight_prefix.back());
+    for (size_t volume_idx = 0; volume_idx < volume_count; ++ volume_idx) {
+        if (m_progress.canceled())
+            return this->abandon(upper, lower, dowels);
+        ModelVolume *volume = mo->volumes[volume_idx];
+        const CutProgressRange volume_progress = m_progress.sub(volume_weight_prefix[volume_idx] * 100. / volume_weight_total,
+                                                                volume_weight_prefix[volume_idx + 1] * 100. / volume_weight_total);
         if (!volume->is_model_part()) {
             if (volume->cut_info.is_processed){
                 process_modifier_cut(volume, instance_matrix, inverse_cut_matrix, m_attributes, upper, lower);
             }
             else{
-                process_connector_cut(volume, instance_matrix, m_cut_matrix, m_attributes, upper, lower, dowels);
+                if (!process_connector_cut(volume, instance_matrix, m_cut_matrix, m_attributes, upper, lower, dowels, volume_progress))
+                    return this->abandon(upper, lower, dowels);
             }
         } else if (!volume->mesh().empty()) {
-            process_solid_part_cut(volume, instance_matrix, m_cut_matrix, m_attributes, upper, lower);
+            if (!process_solid_part_cut(volume, instance_matrix, m_cut_matrix, m_attributes, upper, lower, volume_progress))
+                return this->abandon(upper, lower, dowels);
         }
+        volume_progress.report(100.);
     }
+    if (m_progress.canceled())
+        return this->abandon(upper, lower, dowels);
 
     // Post-process cut parts
     if (m_attributes.has(ModelObjectCutAttribute::CutToParts) && upper->volumes.empty()) {
@@ -608,6 +701,8 @@ const ModelObjectPtrs &Cut::perform_by_contour(std::vector<Part> parts, int dowe
         lower->name = lower->name + "_B";
     }
 
+    m_progress.report(0., CutStageCutting);
+
     const size_t cut_parts_cnt = parts.size();
     bool         has_modifiers = false;
 
@@ -632,6 +727,10 @@ const ModelObjectPtrs &Cut::perform_by_contour(std::vector<Part> parts, int dowe
 
     ModelObjectPtrs cut_object_ptrs;
 
+    // The parts themselves were already cut by the caller; what is left here is distributing them
+    // and merging. Only the connector branch does real cutting, so it owns the bulk of the range.
+    m_progress.report(10., CutStageCutting);
+
     ModelVolumePtrs &volumes = cut_mo->volumes;
     if (volumes.size() == cut_parts_cnt) {
         // Means that object is cut without connectors
@@ -640,6 +739,7 @@ const ModelObjectPtrs &Cut::perform_by_contour(std::vector<Part> parts, int dowe
         post_process(upper, lower, cut_object_ptrs);
         // Merge within each source part; cut_mo still owns the source volumes here.
         merge_solid_parts_inside_object(cut_object_ptrs, &cut_mo->volumes);
+        m_progress.report(90., CutStageCutting);
 
         finalize(cut_object_ptrs);
     } else if (volumes.size() > cut_parts_cnt) {
@@ -652,7 +752,14 @@ const ModelObjectPtrs &Cut::perform_by_contour(std::vector<Part> parts, int dowe
 
         // Perform cut just to get connectors
         Cut                    cut(cut_mo, m_instance, m_cut_matrix, m_attributes);
+        // Leave the tail of the range to the merge below, which is not free on dense parts.
+        cut.set_progress(m_progress.sub(10., 80.));
         const ModelObjectPtrs &cut_connectors_obj = cut.perform_with_plane();
+        if (cut.was_canceled()) {
+            for (ModelVolume *v : source_parts)
+                delete v;
+            return this->abandon(upper, lower);
+        }
         assert(dowels_count > 0 ? cut_connectors_obj.size() >= 3 : cut_connectors_obj.size() == 2);
 
         // Connectors from upper object
@@ -667,6 +774,7 @@ const ModelObjectPtrs &Cut::perform_by_contour(std::vector<Part> parts, int dowe
         merge_solid_parts_inside_object(cut_object_ptrs, &source_parts);
         for (ModelVolume *v : source_parts)
             delete v;
+        m_progress.report(90., CutStageCutting);
 
         finalize(cut_object_ptrs);
         // Add Dowel-connectors as separate objects to cut_object_ptrs
@@ -674,6 +782,7 @@ const ModelObjectPtrs &Cut::perform_by_contour(std::vector<Part> parts, int dowe
             for (size_t id = 2; id < cut_connectors_obj.size(); id++)
                 m_model.add_object(*cut_connectors_obj[id]);
     }
+    m_progress.report(100.);
     return m_model.objects;
 }
 
@@ -719,23 +828,41 @@ const ModelObjectPtrs &Cut::perform_with_groove(const Groove &groove, const Tran
             }
     };
 
-    auto cut = [this, add_volumes_from_cut](ModelObject *object, const Transform3d &cut_matrix, const ModelObjectCutAttribute add_volumes_attribute, Model &tmp_model_for_cut) {
+    // A groove is carved by seven plane cuts in a row; hand each an equal slice of the range.
+    // static so the lambda below can read it without capturing it.
+    int                    groove_cut_index = 0;
+    static constexpr int   GrooveCutCount   = 7;
+    auto groove_step = [this, &groove_cut_index]() {
+        const double from = double(groove_cut_index) * 100. / double(GrooveCutCount);
+        const double to   = double(groove_cut_index + 1) * 100. / double(GrooveCutCount);
+        ++ groove_cut_index;
+        return m_progress.sub(from, to);
+    };
+
+    auto cut = [this, add_volumes_from_cut](ModelObject *object, const Transform3d &cut_matrix, const ModelObjectCutAttribute add_volumes_attribute,
+                                           Model &tmp_model_for_cut, const CutProgressRange &progress) {
         Cut cut(object, m_instance, cut_matrix);
+        cut.set_progress(progress);
 
         tmp_model_for_cut = Model();
-        tmp_model_for_cut.add_object(*cut.perform_with_plane().front());
+        const ModelObjectPtrs &cut_result = cut.perform_with_plane();
+        if (cut.was_canceled())
+            return false;
+        tmp_model_for_cut.add_object(*cut_result.front());
         assert(!tmp_model_for_cut.objects.empty());
 
         object->clear_volumes();
         add_volumes_from_cut(object, add_volumes_attribute, tmp_model_for_cut);
         reset_instance_transformation(object, m_instance);
+        return true;
     };
 
     // cut by upper plane
 
     const Transform3d cut_matrix_upper = translation_transform(rotation_m * (groove_half_depth * Vec3d::UnitZ())) * m_cut_matrix;
     {
-        cut(tmp_object, cut_matrix_upper, ModelObjectCutAttribute::KeepLower, tmp_model_for_cut);
+        if (!cut(tmp_object, cut_matrix_upper, ModelObjectCutAttribute::KeepLower, tmp_model_for_cut, groove_step()))
+            return this->abandon(upper, lower);
         add_volumes_from_cut(upper, ModelObjectCutAttribute::KeepUpper, tmp_model_for_cut);
     }
 
@@ -743,7 +870,8 @@ const ModelObjectPtrs &Cut::perform_with_groove(const Groove &groove, const Tran
 
     const Transform3d cut_matrix_lower = translation_transform(rotation_m * (-groove_half_depth * Vec3d::UnitZ())) * m_cut_matrix;
     {
-        cut(tmp_object, cut_matrix_lower, ModelObjectCutAttribute::KeepUpper, tmp_model_for_cut);
+        if (!cut(tmp_object, cut_matrix_lower, ModelObjectCutAttribute::KeepUpper, tmp_model_for_cut, groove_step()))
+            return this->abandon(upper, lower);
         add_volumes_from_cut(lower, ModelObjectCutAttribute::KeepLower, tmp_model_for_cut);
     }
 
@@ -756,7 +884,8 @@ const ModelObjectPtrs &Cut::perform_with_groove(const Groove &groove, const Tran
         const Transform3d cut_matrix_angle1 = translation_transform(rotation_m * (-h_side_shift * Vec3d::UnitX())) * m_cut_matrix *
                                               rotation_transform(Vec3d(0, -groove.flaps_angle, -groove.angle));
 
-        cut(tmp_object, cut_matrix_angle1, ModelObjectCutAttribute::KeepLower, tmp_model_for_cut);
+        if (!cut(tmp_object, cut_matrix_angle1, ModelObjectCutAttribute::KeepLower, tmp_model_for_cut, groove_step()))
+            return this->abandon(upper, lower);
         add_volumes_from_cut(lower, ModelObjectCutAttribute::KeepUpper, tmp_model_for_cut);
     }
 
@@ -765,7 +894,8 @@ const ModelObjectPtrs &Cut::perform_with_groove(const Groove &groove, const Tran
         const Transform3d cut_matrix_angle2 = translation_transform(rotation_m * (h_side_shift * Vec3d::UnitX())) * m_cut_matrix *
                                               rotation_transform(Vec3d(0, groove.flaps_angle, groove.angle));
 
-        cut(tmp_object, cut_matrix_angle2, ModelObjectCutAttribute::KeepLower, tmp_model_for_cut);
+        if (!cut(tmp_object, cut_matrix_angle2, ModelObjectCutAttribute::KeepLower, tmp_model_for_cut, groove_step()))
+            return this->abandon(upper, lower);
         add_volumes_from_cut(lower, ModelObjectCutAttribute::KeepUpper, tmp_model_for_cut);
     }
 
@@ -774,18 +904,24 @@ const ModelObjectPtrs &Cut::perform_with_groove(const Groove &groove, const Tran
         const double h_groove_shift_tolerance = groove_half_depth - (double) groove.depth_tolerance;
 
         const Transform3d cut_matrix_lower_tolerance = translation_transform(rotation_m * (-h_groove_shift_tolerance * Vec3d::UnitZ())) * m_cut_matrix;
-        cut(tmp_object, cut_matrix_lower_tolerance, ModelObjectCutAttribute::KeepUpper, tmp_model_for_cut);
+        if (!cut(tmp_object, cut_matrix_lower_tolerance, ModelObjectCutAttribute::KeepUpper, tmp_model_for_cut, groove_step()))
+            return this->abandon(upper, lower);
 
         const double h_side_shift_tolerance = h_side_shift - 0.5 * double(groove.width_tolerance);
 
         const Transform3d cut_matrix_angle1_tolerance = translation_transform(rotation_m * (-h_side_shift_tolerance * Vec3d::UnitX())) * m_cut_matrix *
                                                         rotation_transform(Vec3d(0, -groove.flaps_angle, -groove.angle));
-        cut(tmp_object, cut_matrix_angle1_tolerance, ModelObjectCutAttribute::KeepLower, tmp_model_for_cut);
+        if (!cut(tmp_object, cut_matrix_angle1_tolerance, ModelObjectCutAttribute::KeepLower, tmp_model_for_cut, groove_step()))
+            return this->abandon(upper, lower);
 
         const Transform3d cut_matrix_angle2_tolerance = translation_transform(rotation_m * (h_side_shift_tolerance * Vec3d::UnitX())) * m_cut_matrix *
                                                         rotation_transform(Vec3d(0, groove.flaps_angle, groove.angle));
-        cut(tmp_object, cut_matrix_angle2_tolerance, ModelObjectCutAttribute::KeepUpper, tmp_model_for_cut);
+        if (!cut(tmp_object, cut_matrix_angle2_tolerance, ModelObjectCutAttribute::KeepUpper, tmp_model_for_cut, groove_step()))
+            return this->abandon(upper, lower);
     }
+    // Adding or removing a cut above without updating GrooveCutCount would silently skew the
+    // whole range, so tie the constant to the number of steps actually taken.
+    assert(groove_cut_index == GrooveCutCount);
 
     // this part can be added to the upper object now
     add_volumes_from_cut(upper, ModelObjectCutAttribute::KeepLower, tmp_model_for_cut);
@@ -838,6 +974,7 @@ const ModelObjectPtrs &Cut::perform_with_groove(const Groove &groove, const Tran
 
     finalize(cut_object_ptrs);
 
+    m_progress.report(100.);
     return m_model.objects;
 }
 

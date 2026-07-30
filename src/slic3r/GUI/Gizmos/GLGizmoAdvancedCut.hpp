@@ -281,6 +281,10 @@ protected:
     }
 
 private:
+    // Set while a deferred perform_cut() is queued on the event loop, so holding the button down
+    // or clicking twice in one frame cannot enqueue a second cut.
+    bool m_perform_cut_requested { false };
+
     void perform_cut(const Selection& selection);
     bool can_perform_cut() const;
     void apply_connectors_in_model(ModelObject *mo, int &dowels_count);

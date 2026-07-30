@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <deque>
 #include <queue>
 #include <mutex>
@@ -2327,7 +2328,8 @@ Polygons project_mesh(
 }
 
 void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* upper, indexed_triangle_set* lower, bool triangulate_caps,
-              std::vector<int>* upper_src_faces, std::vector<int>* lower_src_faces)
+              std::vector<int>* upper_src_faces, std::vector<int>* lower_src_faces,
+              const std::function<void(int)> &progress, const std::function<bool()> &cancel)
 {
     assert(upper || lower);
     if (upper == nullptr && lower == nullptr)
@@ -2359,7 +2361,25 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
     std::vector<Vec3i> facets_edge_ids = its_face_edge_ids(mesh);
     std::map<int, Vec3f *> section_vertices_map;
 
-    for (int facet_idx = 0; facet_idx < int(mesh.indices.size()); ++ facet_idx) {
+    // Report / poll in chunks: the callbacks reach a mutex and a condition variable, so
+    // doing it per facet would cost more than the slicing itself. One chunk of a large
+    // mesh takes single-digit milliseconds, which is short enough for a responsive Cancel.
+    constexpr int ProgressChunkFacets = 8192;
+    // Leave the last 20% of the range to the two cap triangulations below.
+    constexpr int SlicePercentSpan    = 80;
+    const int     facet_count         = int(mesh.indices.size());
+    bool          canceled            = false;
+
+    for (int facet_idx = 0; facet_idx < facet_count; ++ facet_idx) {
+        if (facet_idx % ProgressChunkFacets == 0) {
+            if (cancel && cancel()) {
+                canceled = true;
+                break;
+            }
+            // Widened: facet_idx * 80 overflows int past ~2.7e7 facets, which large scans reach.
+            if (progress)
+                progress(int(int64_t(facet_idx) * SlicePercentSpan / facet_count));
+        }
         const stl_triangle_vertex_indices &facet = mesh.indices[facet_idx];
         Vec3f vertices[3] { mesh.vertices[facet(0)], mesh.vertices[facet(1)], mesh.vertices[facet(2)] };
         float min_z = std::min(vertices[0].z(), std::min(vertices[1].z(), vertices[2].z()));
@@ -2552,7 +2572,9 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
         }
     }
 
-    if (upper != nullptr) {
+    if (upper != nullptr && !canceled) {
+        if (progress)
+            progress(SlicePercentSpan);
         triangulate_slice(*upper, upper_lines, upper_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps, NORMALS_DOWN, upper_src_faces, section_vertices_map);
         if (upper_src_faces) {
             assert(upper_src_faces->size() <= upper->indices.size());
@@ -2567,7 +2589,9 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
 #endif // NDEBUG
     }
 
-    if (lower != nullptr) {
+    if (lower != nullptr && !canceled) {
+        if (progress)
+            progress(90);
         triangulate_slice(*lower, lower_lines, lower_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps, NORMALS_UP, lower_src_faces, section_vertices_map);
         if (lower_src_faces) {
             assert(lower_src_faces->size() <= lower->indices.size());
@@ -2581,6 +2605,11 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
         }
 #endif // NDEBUG
     }
+    if (progress && !canceled)
+        progress(100);
+    // The map owns these; triangulate_slice() above only reads them.
+    for (auto &kvp : section_vertices_map)
+        delete kvp.second;
     std::map<int, Vec3f*>().swap(section_vertices_map);
 }
 

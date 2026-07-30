@@ -295,6 +295,51 @@ public:
         int max_depth,
         const FacetSubdivisionCancelCallback &cancel = nullptr);
 
+    // How much of a destination triangle a source paint region covers.
+    enum class RegionCoverage {
+        None,    // no overlap at all: leave the triangle alone
+        Partial, // the region boundary crosses the triangle: refine
+        Full     // the region covers the triangle: paint it as a whole
+    };
+    using RegionCoverageEvaluator =
+        std::function<RegionCoverage(const std::array<Vec3f, 3> &)>;
+
+    struct RegionPaintResult {
+        size_t nodes_created { 0 };
+        size_t facets_touched { 0 };
+        bool   node_budget_exhausted { false };
+        bool   canceled { false };
+    };
+
+    // Paint one source region onto this mesh the way a real brush stroke would:
+    // fill whole triangles the region covers completely, subdivide the ones it
+    // only partially covers, and stop at the edge_limit edge-length floor. At
+    // that floor any remaining contact paints the triangle, which makes the
+    // coverage conservative: a feature thinner than the floor survives (dilated
+    // by at most one leaf) instead of being averaged away by a majority vote.
+    // Painting several regions in sequence composes exactly like consecutive
+    // user strokes, so nesting is resolved by paint order.
+    //
+    // paintable_facets, when given, is indexed by original facet and restricts
+    // the walk: facets outside it are neither seeded nor reached by the spread,
+    // so paint already present on them survives untouched.
+    //
+    // edge_limit is measured in the frame trafo maps the vertices into, matching
+    // split_triangle(); pass the instance x volume transform to make it a true
+    // millimeter limit on a scaled volume, or null to measure mesh-local lengths.
+    //
+    // The edge limit this installs is restored on return, so it is safe to call on
+    // a selector that is reused afterwards.
+    RegionPaintResult paint_region(const std::vector<int>         &start_facets,
+                                   const RegionCoverageEvaluator  &coverage,
+                                   EnforcerBlockerType             new_state,
+                                   float                           edge_limit,
+                                   size_t                          node_budget,
+                                   int                             max_depth,
+                                   const FacetSubdivisionCancelCallback &cancel = nullptr,
+                                   const std::vector<char>        *paintable_facets = nullptr,
+                                   const Transform3f              *trafo = nullptr);
+
     // Clear everything and make the tree empty.
     void reset();
 
@@ -422,8 +467,32 @@ protected:
 private:
     bool select_triangle(int facet_idx, EnforcerBlockerType type, bool triangle_splitting);
     bool select_triangle_recursive(int facet_idx, const Vec3i &neighbors, EnforcerBlockerType type, bool triangle_splitting);
+    // Everything a paint_region() walk carries from the top down, bundled so the recursion
+    // keeps a short signature and so the cancel poll can share one counter with the outer
+    // breadth-first walk.
+    struct RegionPaintContext
+    {
+        const RegionCoverageEvaluator        &coverage;
+        const FacetSubdivisionCancelCallback &cancel;
+        const Transform3f                    *trafo;
+        EnforcerBlockerType                   new_state;
+        int                                   max_depth;
+        size_t                                node_budget;
+        size_t                                steps_since_cancel_check { 0 };
+        RegionPaintResult                     result;
+    };
+    // Polls cancel every RegionPaintCancelPollInterval visited nodes and records the answer in
+    // ctx.result. Returns true once the walk has to unwind.
+    static bool region_paint_canceled(RegionPaintContext &ctx);
+    bool paint_region_recursive(int                  facet_idx,
+                                const Vec3i         &neighbors,
+                                int                  depth,
+                                RegionPaintContext  &ctx);
+    std::array<Vec3f, 3> facet_vertices(int facet_idx) const;
     void undivide_triangle(int facet_idx);
-    void split_triangle(int facet_idx, const Vec3i &neighbors);
+    // trafo is applied to the vertices before measuring the edge lengths against
+    // the edge-length limit; pass nullptr to measure in mesh-local coordinates.
+    void split_triangle(int facet_idx, const Vec3i &neighbors, const Transform3f *trafo = nullptr);
     void remove_useless_children(int facet_idx); // No hidden meaning. Triangles are meant.
     bool is_facet_clipped(int facet_idx, const ClippingPlane &clp) const;
     int  push_triangle(int a, int b, int c, int source_triangle, EnforcerBlockerType state = EnforcerBlockerType{0});

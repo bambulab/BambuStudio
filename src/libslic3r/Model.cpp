@@ -3208,12 +3208,21 @@ bool ModelVolume::reproject_paint_keep(const TriangleMesh &new_mesh,
     // commit once they all succeed. A cancellation mid-reprojection therefore
     // leaves every volume completely unchanged ("cancel == revert").
     const TriangleMesh &old_mesh = this->mesh();
+    // Keeps the subdivision floor a real millimeter distance on a scaled volume. Mirrors the
+    // painting gizmo, which measures against instance x volume without the instance offset;
+    // instance 0 stands in for the selection the gizmo would have used, and only its scaling
+    // matters here.
+    const ModelInstance *instance = (this->object != nullptr && !this->object->instances.empty())
+        ? this->object->instances.front() : nullptr;
+    const Transform3d dst_world_matrix =
+        (instance != nullptr ? instance->get_transformation().get_matrix_no_offset() : Transform3d::Identity()) *
+        this->get_matrix();
     return reproject_paint_geometric(
         old_mesh, this->supported_facets, this->seam_facets,
         this->mmu_segmentation_facets, this->fuzzy_skin_facets,
         new_mesh, Transform3d::Identity(),
         out.supported, out.seam, out.mmu, out.fuzzy,
-        progress, cancel);
+        progress, cancel, &dst_world_matrix);
 }
 
 void ModelVolume::commit_mesh_keep_paint(PaintKeepPrepared &&prepared)

@@ -20,6 +20,7 @@
 #include "CommonDefs.hpp"
 #include "Config.hpp"
 #include "Polygon.hpp"
+#include <atomic>
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
@@ -1923,7 +1924,6 @@ public:
     // from the timestmap of the object at the top of the Undo / Redo stack.
     virtual uint64_t    timestamp() const throw() { return m_timestamp; }
     bool                timestamp_matches(const ModelConfig &rhs) const throw() { return m_timestamp == rhs.m_timestamp; }
-    // Not thread safe! Should not be called from other than the main thread!
     void                touch() { m_timestamp = ++ s_last_timestamp; }
     bool operator==(const ModelConfig &other) const {
         return m_data == other.m_data;
@@ -1936,7 +1936,9 @@ private:
     uint64_t                    m_timestamp { 1 };
     DynamicPrintConfig          m_data;
 
-    static uint64_t             s_last_timestamp;
+    // Atomic because touch() is reached from a worker thread: a cut copies each source volume's
+    // config onto the volumes of its own private clone.
+    static std::atomic<uint64_t> s_last_timestamp;
 };
 
 // const std::vector<double> &fv_matrix:  origin matrix from json

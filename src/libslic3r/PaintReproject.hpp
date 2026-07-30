@@ -48,10 +48,16 @@ using PaintReprojectCancelCallback   = std::function<bool()>;
 // Cutting: provenance from the explicit destination->source face map, measured
 // by in-plane coplanar overlap. destination_to_source maps a destination-mesh
 // vertex back into the source-mesh coordinate frame.
-void reproject_paint(const ModelVolume &src_volume,
-                     ModelVolume       &dst_volume,
-                     const std::vector<int> &dst_to_src_face,
-                     const Transform3d      &destination_to_source);
+//
+// Optional progress/cancel callbacks behave as in reproject_paint_geometric below:
+// returns false if the operation was canceled, in which case the destination
+// annotations are left untouched for the caller to discard.
+[[nodiscard]] bool reproject_paint(const ModelVolume &src_volume,
+                                   ModelVolume       &dst_volume,
+                                   const std::vector<int> &dst_to_src_face,
+                                   const Transform3d      &destination_to_source,
+                                   const PaintReprojectProgressCallback &progress = nullptr,
+                                   const PaintReprojectCancelCallback   &cancel   = nullptr);
 
 // Repair/boolean: no face map. Provenance is the nearest source face and paint
 // is sampled at the nearest 3D point on the source mesh. dst_to_src maps a
@@ -62,19 +68,24 @@ void reproject_paint(const ModelVolume &src_volume,
 // a long reprojection. Returns false if the operation was canceled (in which case
 // the destination annotations are left in an unspecified partial state and the
 // caller should discard them); true otherwise.
-bool reproject_paint_geometric(const TriangleMesh     &src_mesh,
-                               const FacetsAnnotation &src_supported,
-                               const FacetsAnnotation &src_seam,
-                               const FacetsAnnotation &src_mmu,
-                               const FacetsAnnotation &src_fuzzy,
-                               const TriangleMesh     &dst_mesh,
-                               const Transform3d      &dst_to_src,
-                               FacetsAnnotation       &dst_supported,
-                               FacetsAnnotation       &dst_seam,
-                               FacetsAnnotation       &dst_mmu,
-                               FacetsAnnotation       &dst_fuzzy,
-                               const PaintReprojectProgressCallback &progress = nullptr,
-                               const PaintReprojectCancelCallback   &cancel   = nullptr);
+//
+// dst_world_matrix maps the destination mesh into world space. It is only used to keep
+// the subdivision floor a real millimeter distance on a scaled volume; pass null when the
+// destination mesh is already in millimeters, or to accept mesh-local measurement.
+[[nodiscard]] bool reproject_paint_geometric(const TriangleMesh     &src_mesh,
+                                             const FacetsAnnotation &src_supported,
+                                             const FacetsAnnotation &src_seam,
+                                             const FacetsAnnotation &src_mmu,
+                                             const FacetsAnnotation &src_fuzzy,
+                                             const TriangleMesh     &dst_mesh,
+                                             const Transform3d      &dst_to_src,
+                                             FacetsAnnotation       &dst_supported,
+                                             FacetsAnnotation       &dst_seam,
+                                             FacetsAnnotation       &dst_mmu,
+                                             FacetsAnnotation       &dst_fuzzy,
+                                             const PaintReprojectProgressCallback &progress = nullptr,
+                                             const PaintReprojectCancelCallback   &cancel   = nullptr,
+                                             const Transform3d      *dst_world_matrix = nullptr);
 
 } // namespace Slic3r
 
