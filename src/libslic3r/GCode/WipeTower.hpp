@@ -115,6 +115,18 @@ public:
         bool is_finish_first = false;
 
         bool               is_contact = false;
+        // True when this tool change emitted a diagonal side scrape, so GCode::append_tcr moves the
+        // E deretract to after the scrape (via the [wipe_tower_deretract_gcode] placeholder). For the
+        // scrape case start_pos / tool_change_start_pos are set to the scrape start (see tool_change_new).
+        bool               side_scrape = false;
+        // Where the scrape descends to. The wipe tower generator only knows the Z it planned the layer
+        // at, while wipe_tower_no_sparse_layers prints the layer at a compacted, much lower Z. The two
+        // scrape Z values are therefore emitted as [wipe_tower_scrape_z_top] / [wipe_tower_scrape_z_low]
+        // placeholders and GCode::append_tcr resolves them from the fields below:
+        // z_low for the uncompacted tower, depth plus min_height_above_base for the compacted one.
+        float              side_scrape_z_low = 0.f;                 // lowest scrape Z in the planned layer frame
+        float              side_scrape_depth = 0.f;                 // requested descent below the tower top
+        float              side_scrape_min_height_above_base = 0.f; // keep this far above the tower's first layer
         NozzleChangeResult nozzle_change_result;
 
 		// Sum the total length of the extrusion.
@@ -411,10 +423,50 @@ public:
     NozzleChangeResult ramming(int old_filament_id, int new_filament_id, bool solid_change = false, bool extruder_change = true); // extruder_chang means nozzle_change
     NozzleChangeResult heater_off_nozzle_change(int old_filament_id, int new_filament_id);
     NozzleChangeResult idle_travel_cooling(int old_filament_id, int new_filament_id);
+    // Number of brim/chamfer loops printed around a layer of the given height, where dist_to_first counts
+    // layers above the tower's first layer. Shared by finish_layer_new(), which prints the loops, and
+    // side_scrape_z_floor(), which has to know how far up they reach; deriving both from one place keeps
+    // the scrape from descending into a flare the printer actually laid down.
+    int                brim_chamfer_loops_num(float layer_height, bool first_layer, int dist_to_first) const;
     ToolChangeResult   finish_layer_new(bool extrude_perimeter = true, bool extrude_fill = true, bool extrude_fill_wall = true);
     ToolChangeResult   finish_block(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true);
     ToolChangeResult   finish_block_solid(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true, WipeTowerLayerType layer_type = WipeTowerLayerType::Normal);
     void toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length,bool solid_toolchange=false);
+    // Vertical extent of one scrape, see ToolChangeResult::side_scrape_z_low for how it is consumed.
+    struct SideScrapeZ
+    {
+        float z_low                 = 0.f;
+        float depth                 = 0.f;
+        float min_height_above_base = 0.f;
+    };
+    // After a tool change and before the wipe line, move to the prime tower side wall and do a
+    // diagonal lift scrape (travel only) so the oozed filament stub sticks to the side wall.
+    // Returns false when this layer leaves no room for the scrape and nothing was emitted, in which case
+    // out_scrape_start / out_z are left untouched and the tool change has to fall back to its normal
+    // start point.
+    bool toolchange_side_scrape(WipeTowerWriter &writer, const box_coordinates &cleaning_box, const Vec2f &initial_position,
+                                Vec2f *out_scrape_start = nullptr, SideScrapeZ *out_z = nullptr);
+    // The scrape works on one pair of opposite tower walls, so the geometry helpers below are written
+    // against two abstract axes instead of X and Y: "across" is the axis the nozzle approaches the wall
+    // on and the diagonal moves in, "along" is the wall tangent. across_is_x selects the pair:
+    // true = left/right walls (across = X, along = Y), false = front/back walls (across = Y, along = X).
+    // positive_side picks the wall with the larger coordinate (right resp. back).
+    // All of them work in the tower footprint frame the m_outer_wall polylines are stored in, which is
+    // the writer frame with m_y_shift already folded in.
+    //
+    // Outermost wall coordinate at one `along` value, for the layer whose stored Z is nearest to z.
+    bool outer_wall_extreme_at(float z, bool across_is_x, bool positive_side, float along, float &out_across) const;
+    // Span of the wall (at the current Z, taking previous and current layer walls into account) that runs
+    // straight, grown outwards from the middle of the wall so that the rounded corners and the rib bulges
+    // stay out of it. Collapses to the middle of the wall when it runs straight nowhere; only a wall with
+    // no stored geometry at all returns false.
+    bool side_wall_straight_along_range(bool across_is_x, bool positive_side, float &along_begin, float &along_end) const;
+    // Lowest Z the nozzle may descend to. Because keeps_outer_walls_unshrunk() locks the wall of every
+    // layer to the same footprint, the only part of the tower reaching further out is the brim chamfer
+    // at the base, so the floor is simply the top of the highest chamfered layer (the tower's own first
+    // layer when there is no brim). This also keeps the nozzle off the bed. The rib arms do grow towards
+    // the base, but the scrape only ever runs on the middle of a wall, which they do not reach into.
+    float side_scrape_z_floor() const;
     Vec2f              get_rib_offset() const { return m_rib_offset; }
     bool               is_need_ramming(int filament_id_1, int filament_id_2, int layer_id) const;
     bool               is_same_extruder(int filament_id_1, int filament_id_2, int layer_id) const;
@@ -431,6 +483,8 @@ private:
 
     const float Width_To_Nozzle_Ratio = 1.25f; // desired line width (oval) in multiples of nozzle diameter - may not be actually neccessary to adjust
     const float WT_EPSILON            = 1e-3f;
+    // How far the brim chamfer may flare out beyond the tower wall.
+    static constexpr float WT_MAX_CHAMFER_WIDTH = 3.f;
     float filament_area() const {
         return m_filpar[m_current_tool].filament_area;
     }
@@ -555,6 +609,24 @@ private:
     bool                       m_flat_ironing=false;
     bool                       m_line_ironing = true;
     float                      m_ironing_speed = 10.f * 60.f;
+    bool                       m_enable_side_scrape = false;
+    // Which pair of tower walls the scrape runs on: the left/right pair, or else the front/back pair.
+    // Resolved from prime_tower_side_scrape_face in the constructor so this header does not need the
+    // enum, which lives behind the forward declared PrintConfig.
+    bool                       m_side_scrape_on_left_right = false;
+    // The scrape descends outside the outer wall, so the wall must not step inward with height: any
+    // wider layer below would be in the way. Keeping every layer at the full tower depth makes all
+    // walls sit at the same place, which leaves the brim chamfer at the tower base as the only part
+    // that reaches further out. Same idea as smooth timelapse forcing a full-depth tower on every layer.
+    bool keeps_outer_walls_unshrunk() const { return m_enable_side_scrape; }
+    float                      m_side_scrape_length = 2.f;   // mm, horizontal distance moved inward
+    float                      m_side_scrape_height = 1.5f;  // mm, Z lift height
+    float                      m_side_scrape_speed  = 1400.f * 60.f; // mm/min
+    float                      m_side_scrape_wall_gap = 0.2f; // mm, gap kept outside the outer wall
+    float                      m_side_scrape_point_spacing = 1.f; // mm, target gap between scrape start points
+    float                      m_side_scrape_along_length  = 2.f; // mm, empty travel along the wall after the scrape
+    // Increments on every side scrape attempt; used to cycle start points across both outer walls.
+    unsigned int               m_side_scrape_seq = 0;
     float                      m_machine_max_speed = 500.f * 60.f;
     bool                       m_contact_ironing = false;
     bool                       m_has_filament_switcher = false;
@@ -669,6 +741,13 @@ bool wipe_tower_sparse_layers_skipped(const PrintConfig &config);
 
 // A planned layer prints no tower at all when its only toolchange keeps the same filament.
 bool wipe_tower_layer_is_sparse(const std::vector<WipeTower::ToolChangeResult> &layer_tool_changes);
+
+// How far the diagonal side scrape reaches outside the prime tower's outer wall, per side. The scrape
+// is a travel move so it deposits nothing, but the nozzle does enter that ring, which means every
+// clearance check has to reserve it on top of the printed footprint. Zero when the scrape is off.
+// This is the unclamped upper bound: toolchange_side_scrape() shortens the diagonal on a narrow tower
+// and skips it where the wall leaves no room, both of which only shrink the real excursion.
+double prime_tower_side_scrape_margin(const PrintConfig &config);
 
 // Print z the compacted tower reaches on every planned layer. Sparse layers carry over the
 // previous value, so the tower falls one layer height behind the object for each of them.

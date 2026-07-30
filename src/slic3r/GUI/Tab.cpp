@@ -3487,6 +3487,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_flat_ironing", "parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_line_ironing", "parameter/prime-tower");
         optgroup->append_single_option_line("prime_tower_ironing_speed", "parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_side_scrape", "parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_side_scrape_face", "parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_side_scrape_length", "parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_side_scrape_height", "parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_side_scrape_speed", "parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_side_scrape_wall_gap", "parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_side_scrape_point_spacing", "parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_side_scrape_along_length", "parameter/prime-tower");
         optgroup->append_single_option_line("enable_tower_interface_features", "parameter/prime-tower");
         optgroup->append_single_option_line("wipe_tower_no_sparse_layers", "parameter/prime-tower");
 

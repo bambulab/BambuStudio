@@ -3,6 +3,7 @@
     "name": "0.24mm Standard @BBL H3C",
     "inherits": "fdm_process_single_0.24",
     "from": "system",
+    "prime_tower_side_scrape": "1",
     "setting_id": "GP271",
     "instantiation": "true",
     "bridge_speed": [

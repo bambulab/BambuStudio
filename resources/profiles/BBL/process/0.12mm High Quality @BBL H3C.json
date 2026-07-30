@@ -3,6 +3,7 @@
     "name": "0.12mm High Quality @BBL H3C",
     "inherits": "fdm_process_single_0.12",
     "from": "system",
+    "prime_tower_side_scrape": "1",
     "setting_id": "GP264",
     "instantiation": "true",
     "bridge_speed": [

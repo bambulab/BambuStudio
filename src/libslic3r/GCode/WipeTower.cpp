@@ -35,6 +35,15 @@ bool wipe_tower_layer_is_sparse(const std::vector<WipeTower::ToolChangeResult> &
     return layer_tool_changes.size() == 1 && layer_tool_changes.front().initial_tool == layer_tool_changes.front().new_tool;
 }
 
+double prime_tower_side_scrape_margin(const PrintConfig &config)
+{
+    if (! config.prime_tower_side_scrape.value)
+        return 0.;
+    // The diagonal starts one scrape length outside the line that already sits the wall gap outside the
+    // wall, so that sum is the outermost point the nozzle reaches.
+    return std::max(0., config.prime_tower_side_scrape_wall_gap.value + config.prime_tower_side_scrape_length.value);
+}
+
 std::vector<float> compute_compacted_wipe_tower_z(const std::vector<std::vector<WipeTower::ToolChangeResult>> &tool_changes)
 {
     std::vector<float> tower_z(tool_changes.size(), 0.f);
@@ -730,6 +739,10 @@ public:
         return (*this);
     }
 
+	// Offset this writer adds to every Y it emits, needed to convert coordinates that were derived from
+	// the tower footprint frame (WipeTower::m_outer_wall) back into the frame travel() expects.
+	float                            y_shift() const { return m_y_shift; }
+
     WipeTowerWriter&            disable_linear_advance() {
         if (m_gcode_flavor == gcfKlipper)
             m_gcode += "SET_PRESSURE_ADVANCE ADVANCE=0\n";
@@ -768,6 +781,8 @@ public:
 	const Vec2f& 		 pos()   const { return m_current_pos; }
 	const Vec2f	 		 start_pos_rotated() const { return m_start_pos; }
 	const Vec2f  		 pos_rotated() const { return this->rotate(m_current_pos); }
+	// Rotate an arbitrary wipe-tower-local point into the same frame as start_pos_rotated().
+	const Vec2f  		 point_rotated(const Vec2f &pt) const { return this->rotate(pt); }
 	float 				 elapsed_time() const { return m_elapsed_time; }
     float                get_and_reset_used_filament_length() { float temp = m_used_filament_length; m_used_filament_length = 0.f; return temp; }
 
@@ -928,6 +943,38 @@ public:
 
 	WipeTowerWriter& travel(const Vec2f &dest, float f = 0.f)
 		{ return extrude_explicit(dest.x(), dest.y(), 0.f, f); }
+
+	// Combined travel move to an XY position (in wipe tower local coordinates) while simultaneously
+	// moving to an absolute Z. Used for the diagonal side scrape. The Z value is emitted verbatim so the
+	// caller can hand over a placeholder instead of a number, which is what the side scrape does: the Z
+	// the tower layer is really printed at is only known when the gcode is exported.
+	// This is a pure travel move (no extrusion) and does not change m_current_z.
+	WipeTowerWriter& travel_xyz(const Vec2f &dest, const std::string &z, float f = 0.f)
+	{
+		Vec2f rotated_current_pos(this->pos_rotated());
+		Vec2f rot(this->rotate(dest));
+
+		m_gcode += set_travel_acceleration();
+		m_gcode += "G1";
+		if (std::abs(rot.x() - rotated_current_pos.x()) > (float) EPSILON)
+			m_gcode += set_format_X(rot.x());
+		if (std::abs(rot.y() - rotated_current_pos.y()) > (float) EPSILON)
+			m_gcode += set_format_Y(rot.y());
+		m_gcode += " Z" + z;
+		if (f != 0.f && f != m_current_feedrate)
+			m_gcode += set_format_F(f);
+
+		m_current_pos.x() = dest.x();
+		m_current_pos.y() = dest.y();
+
+		float dx  = rot.x() - rotated_current_pos.x();
+		float dy  = rot.y() - rotated_current_pos.y();
+		float len = std::sqrt(dx * dx + dy * dy);
+		if (m_current_feedrate > 0.f)
+			m_elapsed_time += len / m_current_feedrate * 60.f;
+		m_gcode += "\n";
+		return *this;
+	}
 
 	// Extrude a line from current position to x, y with the extrusion amount given by m_extrusion_flow.
     WipeTowerWriter &extrude(float x, float y, float f = 0.f, LimitFlow limit_flow = LimitFlow::LimitPrintFlow)
@@ -1822,6 +1869,14 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_flat_ironing(config.prime_tower_flat_ironing.value),
     m_line_ironing(config.prime_tower_line_ironing.value),
     m_ironing_speed(config.prime_tower_ironing_speed.value * 60.f),
+    m_enable_side_scrape(config.prime_tower_side_scrape.value),
+    m_side_scrape_on_left_right(config.prime_tower_side_scrape_face.value == sssfLeftRight),
+    m_side_scrape_length((float) config.prime_tower_side_scrape_length.value),
+    m_side_scrape_height((float) config.prime_tower_side_scrape_height.value),
+    m_side_scrape_speed((float) config.prime_tower_side_scrape_speed.value * 60.f),
+    m_side_scrape_wall_gap((float) config.prime_tower_side_scrape_wall_gap.value),
+    m_side_scrape_point_spacing((float) config.prime_tower_side_scrape_point_spacing.value),
+    m_side_scrape_along_length((float) config.prime_tower_side_scrape_along_length.value),
     m_enable_tower_interface_features(config.enable_tower_interface_features.value),
     m_physical_extruder_map(config.physical_extruder_map.values),
     m_enable_arc_fitting(config.enable_arc_fitting.value),
@@ -2870,8 +2925,11 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool
 
     // outer perimeter (always):
     // BBS
+    float wipe_tower_depth = m_layer_info->depth + m_perimeter_width;
+    if (keeps_outer_walls_unshrunk())
+        wipe_tower_depth = m_wipe_tower_depth;
     box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)),
-        m_wipe_tower_width, m_layer_info->depth + m_perimeter_width);
+        m_wipe_tower_width, wipe_tower_depth);
     wt_box = align_perimeter(wt_box);
     if (extrude_perimeter) {
         writer.rectangle(wt_box, feedrate);
@@ -3124,6 +3182,16 @@ void WipeTower::plan_tower()
             m_plan[i].depth = max_depth_for_all;
         }
     }
+
+    // Side scrape: pin every layer to the tallest per-layer depth so the outer walls never step inward
+    // (the scrape descends outside them).
+    if (keeps_outer_walls_unshrunk()) {
+        float max_d = 0.f;
+        for (const WipeTowerInfo &layer : m_plan)
+            max_d = std::max(max_d, layer.depth);
+        for (WipeTowerInfo &layer : m_plan)
+            layer.depth = max_d;
+    }
 }
 
 void WipeTower::save_on_last_wipe()
@@ -3210,6 +3278,23 @@ WipeTower::ToolChangeResult WipeTower::merge_tcr(ToolChangeResult &first, ToolCh
     out.initial_tool = first.initial_tool;
     out.new_tool = second.new_tool;
     out.is_contact   = first.is_contact || second.is_contact;
+    // Preserve the side scrape flag regardless of merge order: the [wipe_tower_deretract_gcode]
+    // placeholder lives in whichever part emitted the scrape, and both gcodes are concatenated here.
+    // The scrape Z data has to follow the same part, otherwise the Z placeholders resolve to the
+    // default (no descent) and the scrape degenerates into a flat move.
+    // At most one of the two may carry a scrape: only tool_change_new() emits one, and every caller
+    // pairs a tool change with a finish_layer/finish_block result, which never scrapes. Merging two
+    // scrapes would leave two [wipe_tower_deretract_gcode] placeholders in the concatenated gcode,
+    // and GCode::append_tcr expands all of them, deretracting twice.
+    out.side_scrape  = first.side_scrape || second.side_scrape;
+    if (! first.side_scrape && second.side_scrape) {
+        out.side_scrape_z_low                 = second.side_scrape_z_low;
+        out.side_scrape_depth                 = second.side_scrape_depth;
+        out.side_scrape_min_height_above_base = second.side_scrape_min_height_above_base;
+    }
+    // start_pos / tool_change_start_pos (which for the scrape case already point at the scrape start)
+    // are propagated by the existing merge logic below, so both the deferred append_tcr approach and
+    // the merge-inserted travel land on the scrape start.
     auto has_nozzle_change_action = [](const NozzleChangeResult &ncr) {
         return !ncr.gcode.empty() || ncr.heater_off_only || ncr.zero_flush_idle_cooling;
     };
@@ -3400,6 +3485,10 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool, bool sol
     writer.speed_override_backup();
     writer.speed_override(100);
 
+    bool        did_side_scrape    = false;
+    Vec2f       scrape_start_local = Vec2f(0.f, 0.f);
+    SideScrapeZ scrape_z;
+
     // Ram the hot material out of the melt zone, retract the filament into the cooling tubes and let it cool.
     if (new_tool != (unsigned int) -1) { // This is not the last change.
         Vec2f initial_position = get_next_pos(cleaning_box, wipe_length, solid_toolchange);
@@ -3443,6 +3532,16 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool, bool sol
             writer.travel(initial_position);
         }
 #endif
+        // Diagonal side scrape: after the tool change, before the wipe line, scrape the oozed
+        // filament stub onto the tower side wall (travel only). Skipped on the first layer.
+        if (m_enable_side_scrape && !is_first_layer() &&
+            toolchange_side_scrape(writer, cleaning_box, initial_position, &scrape_start_local, &scrape_z)) {
+            // The E deretract is emitted here (after the scrape) instead of in filament_start_gcode.
+            // GCode::append_tcr substitutes this placeholder based on ToolChangeResult::side_scrape.
+            writer.append("[wipe_tower_deretract_gcode]\n");
+            did_side_scrape = true;
+        }
+
         toolchange_wipe_new(writer, cleaning_box, wipe_length, solid_toolchange);
 
         writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Wipe_Tower_End) + "\n");
@@ -3466,7 +3565,20 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool, bool sol
     if (m_current_tool < m_used_filament_length.size())
         m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
-    return construct_tcr(writer, false, old_tool, false, true, purge_volume, solid_toolchange);
+    ToolChangeResult result = construct_tcr(writer, false, old_tool, false, true, purge_volume, solid_toolchange);
+    result.side_scrape = did_side_scrape;
+    if (did_side_scrape) {
+        result.side_scrape_z_low                 = scrape_z.z_low;
+        result.side_scrape_depth                 = scrape_z.depth;
+        result.side_scrape_min_height_above_base = scrape_z.min_height_above_base;
+        // Route every travel that brings the nozzle to the tower (append_tcr approach or merge travel)
+        // straight to the scrape start, so the nozzle no longer detours to the wipe line start first.
+        // The scrape itself ends at the wipe line start, where the wipe line then begins as usual.
+        Vec2f rotated_scrape_start   = writer.point_rotated(scrape_start_local);
+        result.start_pos             = rotated_scrape_start;
+        result.tool_change_start_pos = rotated_scrape_start;
+    }
+    return result;
 }
 
 //for extruder change and nozzle change
@@ -3786,6 +3898,25 @@ WipeTower::NozzleChangeResult WipeTower::idle_travel_cooling(int old_filament_id
     return result;
 }
 
+int WipeTower::brim_chamfer_loops_num(float layer_height, bool first_layer, int dist_to_first) const
+{
+    const float spacing = m_perimeter_width - layer_height * float(1. - M_PI_4);
+    if (spacing <= (float) EPSILON)
+        return 0;
+    // The first layer carries the full brim; every layer above it one loop less, capped by the maximum
+    // chamfer width.
+    int loops_num = int((m_wipe_tower_brim_width + spacing / 2.f) / spacing);
+    if (! first_layer) {
+        // A layer below the tower's first layer yields a negative distance, which would turn the
+        // subtraction below into hundreds of ever-expanding loops. Such a layer must not get a chamfer.
+        if (dist_to_first < 0)
+            return 0;
+        const int chamfer_loops_num = int(WT_MAX_CHAMFER_WIDTH / spacing);
+        loops_num                   = std::min(loops_num, chamfer_loops_num) - dist_to_first;
+    }
+    return std::max(0, loops_num);
+}
+
 WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, bool extrude_fill, bool extrude_fill_wall)
 {
     assert(!this->layer_finished());
@@ -3899,7 +4030,9 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     // outer perimeter (always):
     // BBS
     float wipe_tower_depth = m_wipe_tower_depth;
-    if (m_wipe_tower_blocks.size() == 1) {
+    // Single-block towers normally shrink the outer wall with the per-layer depth. The side scrape needs
+    // that wall to stay at the full tower depth on every layer, so keep m_wipe_tower_depth.
+    if (m_wipe_tower_blocks.size() == 1 && ! keeps_outer_walls_unshrunk()) {
         wipe_tower_depth = m_layer_info->depth + m_perimeter_width;
     }
     box_coordinates wt_box(Vec2f(0.f, 0.f), m_wipe_tower_width, wipe_tower_depth);
@@ -3918,25 +4051,73 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
         shift_polyline.translate(0, scaled(m_y_shift));
         m_outer_wall[m_z_pos].push_back(shift_polyline);
     }
-    // brim chamfer
-    float spacing = m_perimeter_width - m_layer_height * float(1. - M_PI_4);
-    // How many perimeters shall the brim have?
-    int loops_num = (m_wipe_tower_brim_width + spacing / 2.f) / spacing;
-    const float max_chamfer_width = 3.f;
-    if (!first_layer) {
-        // stop print chamfer if depth changes
-        if (m_layer_info->depth != m_plan.front().depth) {
-            loops_num = 0;
+
+    // First layer: fill the voids left inside the outer wall to maximise the area the tower has glued to
+    // the bed. The diagonal scrape drags the ooze stub along the wall on every tool change, and that
+    // repeated sideways load can topple a tower whose base only touches the bed on the sparse infill
+    // bands. The rib/cross outer wall is concave - its diagonal arms extend past the tower body - and the
+    // sparse block infill only covers the central full-width bands, so the arm interiors, the triangular
+    // pockets where the arms meet the body, and the thin ring just inside the wall are all left empty.
+    // Fill everything inside the wall that the block infill does not cover
+    // by offsetting the wall polygon inward step by step. The concentric loops naturally follow the arms,
+    // the corner triangles and the ring in one pass. Only done when side scrape is enabled. These loops
+    // sit strictly inside the outer wall, so they are intentionally not recorded in m_outer_wall (which
+    // tracks the outermost wall for the scrape geometry) and they leave the brim/wipe handling below,
+    // which uses outer_wall, untouched.
+    if (extrude_perimeter && first_layer && m_enable_side_scrape) {
+        const float step = m_perimeter_width - m_layer_height * float(1. - M_PI_4);
+        // Region already covered by the block/tower purge infill, rebuilt like the fill boxes above so the
+        // concentric loops do not double-extrude over it.
+        Polygons purged;
+        auto add_band = [&](float y0, float y1) {
+            if (y1 - y0 <= WT_EPSILON)
+                return;
+            box_coordinates band(Vec2f(m_perimeter_width, y0), m_wipe_tower_width - 2 * m_perimeter_width, y1 - y0);
+            Polygon         p;
+            p.points = {Point::new_scale(band.ld), Point::new_scale(band.rd), Point::new_scale(band.ru), Point::new_scale(band.lu)};
+            purged.emplace_back(std::move(p));
+        };
+        if (m_wipe_tower_blocks.size() > 1) {
+            // Same extent finish_block() fills: the block band minus one perimeter width at its far end.
+            for (const WipeTowerBlock &block : m_wipe_tower_blocks)
+                if (m_cur_layer_id >= 0 && size_t(m_cur_layer_id) < block.layer_depths.size())
+                    add_band(block.start_depth, block.start_depth + block.layer_depths[m_cur_layer_id] - m_perimeter_width);
         } else {
-            // limit max chamfer width to 3 mm
-            int chamfer_loops_num = (int) (max_chamfer_width / spacing);
-            // A layer below m_first_layer_idx yields a negative distance, which would turn the
-            // subtraction below into hundreds of ever-expanding loops. Such a layer sits under the
-            // first tower layer and must not get a chamfer at all.
-            int dist_to_1st       = m_layer_info - m_plan.begin() - m_first_layer_idx;
-            loops_num             = dist_to_1st < 0 ? 0 : std::min(loops_num, chamfer_loops_num) - dist_to_1st;
+            for (const box_coordinates &fb : fill_boxes)
+                add_band(fb.ld.y(), fb.lu.y());
+        }
+        // The band edges are the outermost purge extrusion axes, so grow them by one line spacing to keep the
+        // concentric loops just touching the purge instead of printing on top of it.
+        Polygons purged_grown = purged.empty() ? Polygons{} : offset(purged, scaled(step));
+        // Interior of the wall, one line in (the wall itself is already extruded above), minus the purge.
+        // Tracked as ExPolygons and re-unioned after every shrink: the rib wall is concave, so shrinking it
+        // splits the region into islands whose contours would otherwise be re-offset as an unrelated set of
+        // loops and could end up overlapping each other.
+        ExPolygons voids = diff_ex(offset(outer_wall, -scaled(step)), purged_grown);
+        // Anything narrower than a single extrusion cannot be printed as a loop and would only deposit a
+        // blob on the first layer, so drop those islands instead of tracing them.
+        const double min_island_area = scaled<double>(step) * scaled<double>(step);
+        remove_small_and_small_holes(voids, min_island_area);
+        for (int guard = 0; guard < 200 && ! voids.empty(); ++guard) {
+            for (const ExPolygon &island : voids) {
+                writer.polygon(island.contour, feedrate);
+                for (const Polygon &hole : island.holes)
+                    writer.polygon(hole, feedrate);
+            }
+            voids = union_ex(offset_ex(voids, -scaled(step)));
+            remove_small_and_small_holes(voids, min_island_area);
         }
     }
+
+    // brim chamfer
+    float spacing = m_perimeter_width - m_layer_height * float(1. - M_PI_4);
+    int   dist_to_1st = int(m_layer_info - m_plan.begin() - m_first_layer_idx);
+    int   loops_num   = brim_chamfer_loops_num(m_layer_height, first_layer, dist_to_1st);
+    // stop print chamfer if depth changes. Kept out of brim_chamfer_loops_num because it depends on the
+    // layer being printed rather than on the chamfer geometry; side scrape locks the depth (see
+    // keeps_outer_walls_unshrunk), so side_scrape_z_floor() never has to model this branch.
+    if (! first_layer && m_layer_info->depth != m_plan.front().depth)
+        loops_num = 0;
 
     if (loops_num > 0) {
         //box_coordinates box = wt_box;
@@ -4211,6 +4392,331 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
             m_used_filament_length[filament_id] += writer.get_and_reset_used_filament_length();
 
     return construct_block_tcr(writer, false, filament_id, true, 0.f);
+}
+
+// Cut the polylines with the line "along == const" and keep the extreme coordinate on the requested
+// side. See the WipeTower::outer_wall_extreme_at declaration for the across/along axis convention.
+static bool polylines_extreme_at(const Polylines &pls, bool across_is_x, bool positive_side, float along, float &out_across)
+{
+    const int i_across = across_is_x ? 0 : 1;
+    const int i_along  = across_is_x ? 1 : 0;
+
+    bool  found   = false;
+    float extreme = positive_side ? -std::numeric_limits<float>::max() : std::numeric_limits<float>::max();
+    for (const Polyline &pl : pls) {
+        const Points &pts = pl.points;
+        for (size_t i = 0; i + 1 < pts.size(); ++i) {
+            Vec2f a = unscaled<float>(pts[i]);
+            Vec2f b = unscaled<float>(pts[i + 1]);
+            if ((a[i_along] - along) * (b[i_along] - along) > 0.f)          // segment does not straddle the cut
+                continue;
+            if (std::abs(b[i_along] - a[i_along]) < (float) EPSILON)        // segment parallel to the cut, ignore
+                continue;
+            float t = (along - a[i_along]) / (b[i_along] - a[i_along]);
+            float c = a[i_across] + t * (b[i_across] - a[i_across]);
+            extreme = positive_side ? std::max(extreme, c) : std::min(extreme, c);
+            found   = true;
+        }
+    }
+    if (found)
+        out_across = extreme;
+    return found;
+}
+
+bool WipeTower::outer_wall_extreme_at(float z, bool across_is_x, bool positive_side, float along, float &out_across) const
+{
+    if (m_outer_wall.empty())
+        return false;
+    // Pick the stored layer whose Z is closest to the requested z (within half a layer height). The map
+    // is ordered by Z, so the candidates are the first entry not below z and the one before it.
+    const float      tol = m_layer_height * 0.5f + (float) EPSILON;
+    const Polylines *pls = nullptr;
+    float            best_dz = tol;
+    auto             it  = m_outer_wall.lower_bound(z - tol);
+    for (; it != m_outer_wall.end() && it->first <= z + tol; ++it) {
+        float dz = std::abs(it->first - z);
+        if (dz <= best_dz) {
+            best_dz = dz;
+            pls     = &it->second;
+        }
+    }
+    if (pls == nullptr)
+        return false;
+
+    return polylines_extreme_at(*pls, across_is_x, positive_side, along, out_across);
+}
+
+bool WipeTower::side_wall_straight_along_range(bool across_is_x, bool positive_side, float &along_begin, float &along_end) const
+{
+    const float along_extent = across_is_x ? m_wipe_tower_depth : m_wipe_tower_width;
+    if (along_extent <= (float) EPSILON)
+        return false;
+
+    const int   n    = std::max(32, int(std::lround(double(along_extent) / 0.25)));
+    const float step = along_extent / float(n);
+
+    std::vector<float> wall(n + 1, 0.f);
+    std::vector<char>  wall_valid(n + 1, 0);
+    for (int i = 0; i <= n; ++i) {
+        float along = step * float(i);
+        float q     = 0.f;
+        for (float z : {m_z_pos - m_layer_height, m_z_pos}) {
+            if (! outer_wall_extreme_at(z, across_is_x, positive_side, along, q))
+                continue;
+            wall[i]       = wall_valid[i] ? (positive_side ? std::max(wall[i], q) : std::min(wall[i], q)) : q;
+            wall_valid[i] = 1;
+        }
+    }
+
+    // Grow the straight run outwards from the middle of the wall. The diagonal ribs run from the tower
+    // centre to its corners, so they always meet a wall near its ends and never at its middle, and the
+    // fillets only round the corners: the middle sample sits on the straight part whenever there is one,
+    // which makes it both the seed and the nominal outer coordinate of the wall. Estimating that nominal
+    // edge from all samples instead (a median, say) only holds while the straight part covers more than
+    // half of the wall - on a small tower the fixed-width rib arms take most of it and the estimate lands
+    // on a rib slope, rejecting the wall even though its middle runs perfectly straight.
+    const int mid = n / 2;
+    int       seed = -1;
+    for (int d = 0; d <= n && seed < 0; ++d) {
+        if (mid - d >= 0 && wall_valid[mid - d])
+            seed = mid - d;
+        else if (mid + d <= n && wall_valid[mid + d])
+            seed = mid + d;
+    }
+    if (seed < 0)
+        return false;
+    const float edge = wall[seed];
+
+    // Deviation from the seed that still counts as straight: fillets pull the wall inwards and the
+    // diagonal ribs push it outwards, both of which show up as a deviation from edge.
+    const float tol = std::max(0.02f, 0.05f * m_perimeter_width);
+
+    int lo = seed, hi = seed;
+    while (lo > 0 && wall_valid[lo - 1] && std::abs(wall[lo - 1] - edge) <= tol)
+        --lo;
+    while (hi < n && wall_valid[hi + 1] && std::abs(wall[hi + 1] - edge) <= tol)
+        ++hi;
+
+    // Pull in by one sample step: the true fillet/rib boundary lies somewhere between two samples. A wall
+    // with no straight run at all collapses to the seed, which is still the safest single spot to scrape
+    // on, so the caller keeps the scrape there rather than dropping it for the whole layer.
+    along_begin = std::min(step * float(lo) + step, step * float(seed));
+    along_end   = std::max(step * float(hi) - step, step * float(seed));
+    return true;
+}
+
+float WipeTower::side_scrape_z_floor() const
+{
+    // Clearance kept above the highest flared layer. Tangency would not be enough: the scrape line sits
+    // only m_side_scrape_wall_gap outside the wall while the chamfer under it flares out much further, so
+    // the nozzle passes right over that flare, and over-extrusion on it, the three-decimal rounding of the
+    // Z placeholders and the separately computed base Z of a compacted tower all eat into the gap.
+    const float clearance = 0.4f;
+
+    if (m_plan.empty())
+        return m_layer_height + clearance;
+
+    const size_t first = m_first_layer_idx == size_t(-1) ? 0 : std::min(m_first_layer_idx, m_plan.size() - 1);
+
+    // Highest layer still carrying a brim or chamfer loop, counted with the same helper finish_layer_new()
+    // sizes them with, so the two cannot drift apart. Walking the plan rather than closing the form also
+    // handles a variable layer height, which changes the loop spacing from layer to layer.
+    size_t flared_top = first;
+    for (size_t i = first; i < m_plan.size(); ++i) {
+        if (brim_chamfer_loops_num(m_plan[i].height, i == first, int(i - first)) <= 0)
+            break;
+        flared_top = i;
+    }
+
+    // Stay above the topmost flared layer; without a brim that is the tower's own first layer, which also
+    // keeps the nozzle off the bed.
+    return m_plan[flared_top].z + clearance;
+}
+
+bool WipeTower::toolchange_side_scrape(WipeTowerWriter &writer, const box_coordinates &cleaning_box, const Vec2f &initial_position,
+                                       Vec2f *out_scrape_start, SideScrapeZ *out_z)
+{
+    // cleaning_box is kept in the signature for call-site consistency; the scrape position is chosen
+    // from the full tower footprint so starts can be spread along both walls of the selected pair.
+    (void)cleaning_box;
+
+    // Which pair of walls to scrape on, expressed through the across/along axes the geometry helpers
+    // use: the diagonal moves along "across", the smear travel after it along "along".
+    const bool  across_is_x   = m_side_scrape_on_left_right;
+    const float across_extent = across_is_x ? m_wipe_tower_width : m_wipe_tower_depth;
+
+    // Advance the sequence up front so that a layer on which the scrape turns out to be impossible
+    // hands the next attempt over to the opposite wall and the next slot instead of retrying the same
+    // blocked spot forever.
+    const unsigned int slot = m_side_scrape_seq++;
+
+    // Clamp the diagonal run as a sanity bound.
+    float length = std::min(m_side_scrape_length, across_extent / 2.f - m_perimeter_width);
+    if (length <= (float) EPSILON || m_side_scrape_height <= (float) EPSILON)
+        return false;
+
+    // Spread scrape starts across both walls of the pair so ooze stubs do not pile at one XY. Sequence:
+    // positive@slot0, negative@slot0, positive@slot1, ... cycling through evenly spaced slots.
+    const bool  positive_side = (slot % 2u) == 0u;
+    const float outward       = positive_side ? 1.f : -1.f;
+
+    // The m_outer_wall polylines the geometry helpers read live in the tower footprint frame, which is
+    // the writer frame with its Y shift already applied. Everything below is computed in that frame and
+    // converted back when a move is emitted.
+    const float y_shift = writer.y_shift();
+    auto to_writer = [across_is_x, y_shift](float across, float along) {
+        Vec2f p = across_is_x ? Vec2f(across, along) : Vec2f(along, across);
+        p.y() -= y_shift;
+        return p;
+    };
+
+    // Keep both the scrape start and the following along-wall move on the straight part of the wall:
+    // outside that span the wall curves into the fillets or bulges out on the ribs, which would turn
+    // the along-wall move into a diagonal and risk touching the tower. The straight span is also what
+    // makes the collision reference below safe to take from the current and previous layer alone: a rib
+    // arm is longest at the tower base and shrinks with height (see generate_rib_polygon), so on a rib
+    // the layers under the one being scraped reach further out than the sampled ones. The span is grown
+    // from the middle of the wall, which the ribs never reach, so it degenerates to that single point
+    // rather than to the full wall when the wall offers no straight run - the scrape then still happens,
+    // just without the along-wall move.
+    float straight_lo = 0.f, straight_hi = 0.f;
+    if (! side_wall_straight_along_range(across_is_x, positive_side, straight_lo, straight_hi))
+        return false;
+    const float margin   = std::min(m_perimeter_width, 0.25f * (straight_hi - straight_lo));
+    const float along_lo = straight_lo + margin;
+    const float along_hi = std::max(along_lo, straight_hi - margin);
+    // Fit as many evenly spaced slots into the usable span as the requested spacing allows. A short
+    // straight span therefore yields fewer, tighter points rather than points off the straight part,
+    // down to a single point when the span has collapsed to the middle of the wall.
+    const float span            = along_hi - along_lo;
+    const float spacing         = std::max(0.1f, m_side_scrape_point_spacing);
+    const int   points_per_side = std::clamp(int(std::lround(double(span) / double(spacing))), 1, 64);
+    const int   along_slot      = int((slot / 2u) % unsigned(points_per_side));
+
+    float along0       = along_lo + (float(along_slot) + 0.5f) * span / float(points_per_side);
+    float scrape_speed = m_side_scrape_speed;
+
+    float z_top = m_z_pos; // current layer top
+    // Top of the tower's own first layer, i.e. the tower base the floor below is expressed relative to.
+    float z_base = m_layer_height;
+    if (m_first_layer_idx != size_t(-1) && m_first_layer_idx < m_plan.size())
+        z_base = m_plan[m_first_layer_idx].z;
+    else if (!m_plan.empty())
+        z_base = m_plan.front().z;
+    // keeps_outer_walls_unshrunk() locks the wall of every layer to the same footprint, so nothing below
+    // the current layer reaches further out except the brim chamfer at the base. Staying above that also
+    // keeps a large configured height from driving the nozzle into the bed.
+    const float z_floor = side_scrape_z_floor();
+    float       z_low   = std::max(m_z_pos - m_side_scrape_height, z_floor);
+    // Close to the tower base there is no vertical room left. Skip the scrape rather than emit a flat
+    // move, which would not drag the stub anywhere.
+    if (z_top - z_low <= (float) EPSILON)
+        return false;
+
+    // After the diagonal, a short empty travel along the wall drags the ooze stub further instead of
+    // leaving a blob at the scrape end. Prefer the direction toward the wipe start and keep it inside
+    // the straight span.
+    const float initial_along = across_is_x ? initial_position.y() + y_shift : initial_position.x();
+    float smear     = std::min(m_side_scrape_along_length, span);
+    float smear_dir = (initial_along >= along0) ? 1.f : -1.f;
+    float along1    = std::clamp(along0 + smear_dir * smear, along_lo, along_hi);
+    // If clamped to the same position (span boundary), try the opposite direction once.
+    if (std::abs(along1 - along0) <= (float) EPSILON) {
+        smear_dir = -smear_dir;
+        along1    = std::clamp(along0 + smear_dir * smear, along_lo, along_hi);
+    }
+
+    // Reference wall coordinate for the whole scrape, taken from the stored wall only. The tower extents
+    // would be a tempting nominal value for the left and right walls, but seeding the search with them
+    // makes a fillet that pulls the wall inwards invisible, and the diagonal would then end short of the
+    // real wall and scrape nothing. During a tool change the current layer wall may or may not be printed
+    // yet, so take the outermost of the previous and the current layer; sampling the whole [along0, along1]
+    // stretch on top of that yields one value that clears the wall everywhere the nozzle goes. Inside a
+    // straight span every sample is the same, so this costs nothing there.
+    bool  wall_found  = false;
+    float wall_across = 0.f;
+    {
+        const float a  = std::min(along0, along1);
+        const float b  = std::max(along0, along1);
+        const int   ns = std::max(2, int(std::lround(double(b - a) / 0.25)));
+        for (int i = 0; i <= ns; ++i) {
+            const float at = a + (b - a) * float(i) / float(ns);
+            for (float z : {m_z_pos - m_layer_height, m_z_pos}) {
+                float q = 0.f;
+                if (! outer_wall_extreme_at(z, across_is_x, positive_side, at, q))
+                    continue;
+                wall_across = wall_found ? (positive_side ? std::max(wall_across, q) : std::min(wall_across, q)) : q;
+                wall_found  = true;
+            }
+        }
+    }
+    // Without stored wall data there is nothing to place the scrape against.
+    if (! wall_found)
+        return false;
+
+    // The scrape line sits a controllable gap outside the wall; the diagonal starts further out and low,
+    // then rises while approaching the wall, ending gap-outside the upper wall.
+    float scrape_across = wall_across + outward * m_side_scrape_wall_gap;
+    float start_across  = scrape_across + outward * length;
+
+    if (out_scrape_start)
+        *out_scrape_start = to_writer(start_across, along0);
+    if (out_z) {
+        out_z->z_low = z_low;
+        // The descent the scrape asks for, and how far above the tower base it has to stay to clear the
+        // brim chamfer flare. Both are independent of where the layer ends up in Z, so GCode::append_tcr
+        // can rebuild the scrape for a tower compacted by wipe_tower_no_sparse_layers.
+        out_z->depth                 = z_top - z_low;
+        out_z->min_height_above_base = std::max(0.f, z_floor - z_base);
+    }
+
+    writer.append(";--------------------\n"
+                  "; CP TOOLCHANGE SIDE SCRAPE\n");
+    // 1) Position outside the wall at the layer top (also the after-toolchange landing point).
+    writer.travel(to_writer(start_across, along0), scrape_speed);
+    // 2) Descend below the already-printed top surface, staying outside the wall.
+    writer.travel_xyz(to_writer(start_across, along0), "[wipe_tower_scrape_z_low]", scrape_speed);
+    // 3) Diagonal scrape: rise back to the layer top while approaching the wall, dragging the ooze
+    //    stub up along the outside of the upper wall; the closest approach stays gap-outside the wall.
+    writer.travel_xyz(to_writer(scrape_across, along0), "[wipe_tower_scrape_z_top]", scrape_speed);
+    // 4) Short empty travel along the wall to smear the stub further. The tower wall is not necessarily
+    //    a straight segment (fillets pull it in, rib bulges push it out), so a single straight move at the
+    //    constant reference coordinate would lift off the wall wherever the wall curves inward and drag the
+    //    stub through the air. Instead follow the actual wall contour, kept a fixed gap outside it. The move
+    //    stays at the layer top, so only the current/previous layer walls matter and lower layers, which the
+    //    reference coordinate guarded against, cannot be hit here.
+    if (std::abs(along1 - along0) > (float) EPSILON) {
+        // Outer wall coordinate at one `along`, offset out by the gap so the path hugs the wall without
+        // cutting into it. Uses the outermost of the previous and current layer walls, matching the scrape
+        // reference. Falls back to the straight reference where this layer stored no wall data.
+        auto hug_across = [&](float at) -> float {
+            bool  found = false;
+            float q     = positive_side ? -std::numeric_limits<float>::max() : std::numeric_limits<float>::max();
+            for (float z : {m_z_pos - m_layer_height, m_z_pos}) {
+                float w = 0.f;
+                if (! outer_wall_extreme_at(z, across_is_x, positive_side, at, w))
+                    continue;
+                q     = positive_side ? std::max(q, w) : std::min(q, w);
+                found = true;
+            }
+            // Where this layer stored no wall data, keep the straight reference rather than risk cutting in.
+            if (! found)
+                return scrape_across;
+            return q + outward * m_side_scrape_wall_gap;
+        };
+        // Sample finely enough to trace the fillets and rib bulges; the move is travel only, so a dense
+        // polyline just costs a few extra G1 lines.
+        const int ns = std::max(1, int(std::lround(double(std::abs(along1 - along0)) / 0.5)));
+        for (int i = 1; i <= ns; ++i) {
+            const float at = along0 + (along1 - along0) * float(i) / float(ns);
+            writer.travel(to_writer(hug_across(at), at), scrape_speed);
+        }
+    }
+    // 5) Travel to the wipe start position so the wipe line begins as usual.
+    writer.travel(initial_position, scrape_speed);
+    writer.append(";--------------------\n");
+
+    return true;
 }
 
 void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length,bool solid_tool_toolchange)
@@ -4527,7 +5033,9 @@ void WipeTower::update_all_layer_depth(float wipe_tower_depth)
     if (m_wipe_tower_depth > 0)
         m_wipe_tower_depth += start_offset;
 
-    if (m_enable_wrapping_detection || m_enable_timelapse_print) {
+    // Keep every layer at the full tower depth when the outer walls must stay put for the diagonal
+    // scrape (or when wrapping / smooth timelapse already needs a tower on every layer).
+    if (m_enable_wrapping_detection || m_enable_timelapse_print || keeps_outer_walls_unshrunk()) {
         if (is_approx(m_wipe_tower_depth, 0.f))
             m_wipe_tower_depth = wipe_tower_depth;
         for (WipeTowerInfo &plan_info : m_plan) {
@@ -4920,7 +5428,9 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
         m_cur_layer_id = index++;
         set_layer(layer.z, layer.height, 0, false, layer.z == m_plan.back().z);
         if (m_layer_info->depth < m_perimeter_width) continue;
-        if (m_wipe_tower_blocks.size() == 1) {
+        // Do not centre a shallow layer with y_shift when the scrape needs the outer walls locked to the
+        // full tower depth; that shift is exactly the depth shrinkage we just disabled.
+        if (m_wipe_tower_blocks.size() == 1 && ! keeps_outer_walls_unshrunk()) {
             if (m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width) {
                 // align y shift to perimeter width
                 float dy  = m_extra_spacing * m_perimeter_width;
@@ -5146,7 +5656,7 @@ void WipeTower::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &
         if (m_layer_info->depth < m_perimeter_width)
             continue;
 
-        if (m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width) {
+        if (! keeps_outer_walls_unshrunk() && m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width) {
             // align y shift to perimeter width
             float dy = m_extra_spacing * m_perimeter_width;
             m_y_shift = (m_wipe_tower_depth - m_layer_info->depth) / 2.f;
@@ -5238,7 +5748,7 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
     // BBS
 
     float wipe_tower_depth = m_layer_info->depth + m_perimeter_width;
-    if (is_new_mode && (m_enable_timelapse_print || m_enable_wrapping_detection))
+    if (is_new_mode && (m_enable_timelapse_print || m_enable_wrapping_detection || keeps_outer_walls_unshrunk()))
         wipe_tower_depth = m_wipe_tower_depth;
     box_coordinates wt_box(Vec2f(0.f, (m_current_shape == SHAPE_REVERSED ? m_layer_info->toolchanges_depth() : 0.f)), m_wipe_tower_width, wipe_tower_depth);
     wt_box = align_perimeter(wt_box);

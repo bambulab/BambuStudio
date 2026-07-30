@@ -1111,8 +1111,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
          {"prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points", "prime_tower_rib_wall", "prime_tower_infill_gap", "prime_tower_enable_framework", "prime_tower_max_speed",
           "prime_tower_acceleration", "prime_tower_line_width", "prime_tower_ramming_line_width",
           "prime_tower_wipe_speed", "prime_tower_wipe_distance",
-          "prime_tower_flat_ironing", "prime_tower_line_ironing", "prime_tower_ironing_speed"})
+          "prime_tower_flat_ironing", "prime_tower_line_ironing", "prime_tower_ironing_speed",
+          "prime_tower_side_scrape"})
         toggle_line(el, have_prime_tower);
+
+    bool have_side_scrape = config->opt_bool("prime_tower_side_scrape") && have_prime_tower;
+    for (auto el : {"prime_tower_side_scrape_face", "prime_tower_side_scrape_length", "prime_tower_side_scrape_height", "prime_tower_side_scrape_speed", "prime_tower_side_scrape_wall_gap",
+                    "prime_tower_side_scrape_point_spacing", "prime_tower_side_scrape_along_length"})
+        toggle_line(el, have_side_scrape);
 
     {
         std::string printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");

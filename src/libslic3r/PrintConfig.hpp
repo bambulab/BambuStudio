@@ -246,6 +246,12 @@ enum TimelapseType : int {
     tlSmooth
 };
 
+// Which pair of opposite prime tower walls the diagonal side scrape runs on.
+enum SideScrapeFace : int {
+    sssfLeftRight = 0,
+    sssfFrontBack
+};
+
 enum DraftShield {
     dsDisabled, dsLimited, dsEnabled
 };
@@ -571,6 +577,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLADisplayOrientation)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SLAPillarConnectionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BrimType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TimelapseType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SideScrapeFace)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(BedType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(DraftShield)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ForwardCompatibilitySubstitutionRule)
@@ -1655,6 +1662,14 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionBool,               prime_tower_flat_ironing))
     ((ConfigOptionBool,               prime_tower_line_ironing))
     ((ConfigOptionFloat,              prime_tower_ironing_speed))
+    ((ConfigOptionBool,               prime_tower_side_scrape))
+    ((ConfigOptionEnum<SideScrapeFace>, prime_tower_side_scrape_face))
+    ((ConfigOptionFloat,              prime_tower_side_scrape_length))
+    ((ConfigOptionFloat,              prime_tower_side_scrape_height))
+    ((ConfigOptionFloat,              prime_tower_side_scrape_speed))
+    ((ConfigOptionFloat,              prime_tower_side_scrape_wall_gap))
+    ((ConfigOptionFloat,              prime_tower_side_scrape_point_spacing))
+    ((ConfigOptionFloat,              prime_tower_side_scrape_along_length))
     ((ConfigOptionBool,               prime_tower_rib_wall))
     ((ConfigOptionBool,               prime_tower_fillet_wall))
     //((ConfigOptionFloat,              wipe_tower_bridging))

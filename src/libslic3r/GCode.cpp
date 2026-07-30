@@ -1233,7 +1233,16 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             extra_unretract = filament_tower_interface_pre_extrusion_length;
         else if (is_petg_pre_extrusion)
             extra_unretract = 2.f;
-        std::string toolchange_unretract_str = (extra_unretract > 0.f) ? gcodegen.unretract(extra_unretract) : gcodegen.unretract();
+        // When the diagonal side scrape is active, the E deretract must happen *after* the scrape,
+        // while the Z unlift must still happen *before* it. Split the two so the scrape starts at the
+        // current layer Z but the nozzle only deretracts once it is over the tower side wall.
+        std::string toolchange_unretract_str, side_scrape_unlift_str, side_scrape_deretract_str;
+        if (tcr.side_scrape) {
+            side_scrape_unlift_str    = gcodegen.writer().unlift();
+            side_scrape_deretract_str = gcodegen.unretract(extra_unretract, /*include_unlift=*/false);
+        } else {
+            toolchange_unretract_str = (extra_unretract > 0.f) ? gcodegen.unretract(extra_unretract) : gcodegen.unretract();
+        }
         int current_nozzle_id = group_result->get_nozzle_id(new_filament_id,m_layer_idx);
         // std::string toolchange_unretract_str = gcodegen.unretract(); check_add_eol(toolchange_unretract_str);
         gcodegen.placeholder_parser().set("current_extruder", new_filament_id);
@@ -1271,7 +1280,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             add_change_filament_624 = false;
         }
 
-        start_filament_gcode_str = start_filament_gcode_str + wipe_next_start_point_str + toolchange_unretract_str;
+        // With the side scrape active, filament_start only carries the Z unlift; the E deretract is
+        // emitted later through the [wipe_tower_deretract_gcode] placeholder (after the scrape).
+        start_filament_gcode_str = start_filament_gcode_str + wipe_next_start_point_str +
+                                   (tcr.side_scrape ? side_scrape_unlift_str : toolchange_unretract_str);
 
         // BBS: wipe_tower_no_sparse_layers compaction fix.
         // When sparse layers are skipped, the whole wipe tower layer is compacted down to `z`.
@@ -1293,6 +1305,28 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         config.set_key_value("filament_end_gcode", new ConfigOptionString(end_filament_gcode_str));
         config.set_key_value("change_filament_gcode", new ConfigOptionString(toolchange_gcode_str));
         config.set_key_value("filament_start_gcode", new ConfigOptionString(start_filament_gcode_str));
+        config.set_key_value("wipe_tower_deretract_gcode", new ConfigOptionString(tcr.side_scrape ? side_scrape_deretract_str : std::string()));
+
+        // Resolve the two side scrape Z placeholders. The wipe tower computed the scrape against the Z it
+        // planned this layer at, which wipe_tower_no_sparse_layers replaces by a compacted, much lower Z.
+        // Using the planned Z there would send the nozzle up to the object height and leave the rest of the
+        // tower gcode (which carries no Z of its own) printing in mid air.
+        double scrape_z_top = tcr.print_z;
+        double scrape_z_low = tcr.side_scrape_z_low;
+        if (tcr.side_scrape) {
+            // Deliberately not `z`: for an uncompacted tower `z` is just the current position, which still
+            // carries the retract lift at this point, while the scrape starts after the matching unlift.
+            if (m_sparse_layers_skipped && m_layer_idx >= 0 && size_t(m_layer_idx) < m_compacted_tower_z.size()) {
+                // Compacted tower: descend the requested depth below the printed tower top, but stay above
+                // the brim chamfer flare at the tower base, which is where the tower reaches out furthest.
+                scrape_z_top = m_compacted_tower_z[m_layer_idx];
+                scrape_z_low = std::max(scrape_z_top - double(tcr.side_scrape_depth),
+                                        compacted_tower_base_z() + double(tcr.side_scrape_min_height_above_base));
+            }
+            scrape_z_low = std::min(scrape_z_low, scrape_z_top);
+        }
+        config.set_key_value("wipe_tower_scrape_z_top", new ConfigOptionString(float_to_string_decimal_point(scrape_z_top, 3)));
+        config.set_key_value("wipe_tower_scrape_z_low", new ConfigOptionString(float_to_string_decimal_point(scrape_z_low, 3)));
         std::string tcr_gcode, tcr_escaped_gcode = gcodegen.placeholder_parser_process("tcr_rotated_gcode", tcr_rotated_gcode, new_filament_id, &config);
         unescape_string_cstyle(tcr_escaped_gcode, tcr_gcode);
         gcode += tcr_gcode;
@@ -1420,6 +1454,16 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         return gcode_out;
     }
 
+
+    double WipeTowerIntegration::compacted_tower_base_z() const
+    {
+        // The accumulation in compute_compacted_wipe_tower_z() stays at zero until the first layer that
+        // really prints a tower, so the first non-zero entry is that layer's print z.
+        for (float z : m_compacted_tower_z)
+            if (z > 0.f)
+                return z;
+        return 0.;
+    }
 
     std::string WipeTowerIntegration::prime(GCode& gcodegen)
     {
@@ -1829,9 +1873,9 @@ bool GCode::is_BBL_Printer()
     return false;
 }
 
-std::string GCode::unretract(float extra_retract)
+std::string GCode::unretract(float extra_retract, bool include_unlift)
 {
-    return m_writer.unlift() + m_writer.unretract(extra_retract);
+    return (include_unlift ? m_writer.unlift() : std::string()) + m_writer.unretract(extra_retract);
 }
 
 //BBS : get the plate model's projection on first layer, contain plate offset,unscaled data

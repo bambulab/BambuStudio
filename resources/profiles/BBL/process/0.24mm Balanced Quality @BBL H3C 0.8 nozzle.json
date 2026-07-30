@@ -3,6 +3,7 @@
     "name": "0.24mm Balanced Quality @BBL H3C 0.8 nozzle",
     "inherits": "fdm_process_single_0.24_nozzle_0.8",
     "from": "system",
+    "prime_tower_side_scrape": "1",
     "setting_id": "GP270",
     "instantiation": "true",
     "description": "High quality profile for 0.8mm nozzle, prioritizing print quality.",

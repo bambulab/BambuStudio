@@ -3,6 +3,7 @@
     "name": "0.32mm Balanced Quality @BBL H3C 0.8 nozzle",
     "inherits": "fdm_process_single_0.32_nozzle_0.8",
     "from": "system",
+    "prime_tower_side_scrape": "1",
     "setting_id": "GP273",
     "instantiation": "true",
     "description": "Strength profile for 0.8mm nozzle, prioritizing strength.",

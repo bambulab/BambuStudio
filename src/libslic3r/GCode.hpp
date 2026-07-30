@@ -125,6 +125,10 @@ private:
     // Postprocesses gcode: rotates and moves G1 extrusions and returns result
     std::string post_process_wipe_tower_moves(const WipeTower::ToolChangeResult& tcr, const Vec2f& translation, float angle) const;
 
+    // Print z of the compacted tower's own first layer, i.e. its top surface right above the bed.
+    // Returns 0 when the tower is not compacted.
+    double compacted_tower_base_z() const;
+
     // Left / right edges of the wipe tower, for the planning of wipe moves.
     const float                                                  m_left;
     const float                                                  m_right;
@@ -240,7 +244,7 @@ public:
     // BBS: detect lift type in needs_retraction
     bool        needs_retraction(const Polyline &travel, ExtrusionRole role, LiftType &lift_type);
     std::string retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift, bool apply_instantly = false, bool slow_lift = false);
-    std::string unretract(float extra_retract = 0.f);
+    std::string unretract(float extra_retract = 0.f, bool include_unlift = true);
     //BBS
     bool is_BBL_Printer();
 

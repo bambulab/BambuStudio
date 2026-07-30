@@ -408,6 +408,12 @@ static const t_config_enum_values s_keys_map_TimelapseType = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(TimelapseType)
 
+static const t_config_enum_values s_keys_map_SideScrapeFace = {
+    {"left_right", sssfLeftRight},
+    {"front_back", sssfFrontBack}
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(SideScrapeFace)
+
 static const t_config_enum_values s_keys_map_DraftShield = {
     { "disabled", dsDisabled },
     { "limited",  dsLimited  },
@@ -6704,6 +6710,97 @@ void PrintConfigDef::init_fff_params()
     def->min      = 1;
     def->max      = 100;
     def->set_default_value(new ConfigOptionFloat(10.));
+
+    def          = this->add("prime_tower_side_scrape", coBool);
+    def->label   = L("Side scrape after tool change");
+    def->tooltip = L("After a tool change and before the wipe line, move the nozzle to the prime tower side wall and "
+                     "do a diagonal lift scrape (travel only, no extrusion). This scrapes the oozed filament stub onto "
+                     "the side wall instead of letting it pile up on the prime tower top surface.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def                = this->add("prime_tower_side_scrape_face", coEnum);
+    def->label         = L("Side scrape walls");
+    def->tooltip       = L("Which pair of opposite prime tower walls the diagonal scrape runs on. "
+                           "Note that enabling the side scrape always disables depth shrinkage of the prime "
+                           "tower (the outer wall stays at the full depth on every layer), regardless of this "
+                           "setting, so that the scrape can descend safely outside the walls.");
+    def->enum_keys_map = &ConfigOptionEnum<SideScrapeFace>::get_enum_values();
+    def->enum_values.emplace_back("left_right");
+    def->enum_values.emplace_back("front_back");
+    def->enum_labels.emplace_back(L("Left and right"));
+    def->enum_labels.emplace_back(L("Front and back"));
+    def->mode          = comAdvanced;
+    def->set_default_value(new ConfigOptionEnum<SideScrapeFace>(sssfFrontBack));
+
+    def           = this->add("prime_tower_side_scrape_length", coFloat);
+    def->label    = L("Side scrape length");
+    def->tooltip  = L("Horizontal distance the nozzle travels inward from the prime tower side wall during the diagonal scrape.");
+    def->sidetext = L("mm");
+    def->mode     = comAdvanced;
+    def->min      = 0.1;
+    def->max      = 20;
+    def->set_default_value(new ConfigOptionFloat(2.));
+
+    def           = this->add("prime_tower_side_scrape_height", coFloat);
+    def->label    = L("Side scrape lift height");
+    def->tooltip  = L("How far the nozzle descends below the current wipe-tower top before the "
+                      "diagonal scrape. The actual descent is clamped so the nozzle stays above the "
+                      "wipe tower's brim and first layer (avoids hitting the brim or the bed when the "
+                      "tower is still short). Layers with no room left for a descent get no scrape.");
+    def->sidetext = L("mm");
+    def->mode     = comAdvanced;
+    def->min      = 0.1;
+    def->max      = 10;
+    def->set_default_value(new ConfigOptionFloat(1.5));
+
+    def           = this->add("prime_tower_side_scrape_speed", coFloat);
+    def->label    = L("Side scrape speed");
+    def->tooltip  = L("Movement speed of the diagonal side scrape.");
+    def->sidetext = L("mm/s");
+    def->mode     = comAdvanced;
+    def->min      = 1;
+    def->max      = 2000;
+    def->set_default_value(new ConfigOptionFloat(1400.));
+
+    def           = this->add("prime_tower_side_scrape_wall_gap", coFloat);
+    def->label    = L("Side scrape wall gap");
+    def->tooltip  = L("Distance kept between the diagonal side scrape line and the prime tower outer wall. "
+                      "A positive value keeps the scrape outside the wall; the outer wall position is taken as "
+                      "the outermost of the current and previous layer walls at the scrape location so the "
+                      "scrape never cuts into the tower.");
+    def->sidetext = L("mm");
+    def->mode     = comAdvanced;
+    def->min      = -2;
+    def->max      = 10;
+    def->set_default_value(new ConfigOptionFloat(0.2));
+
+    def           = this->add("prime_tower_side_scrape_point_spacing", coFloat);
+    def->label    = L("Side scrape point spacing");
+    def->tooltip  = L("Target distance between consecutive side scrape start points along one side wall. "
+                      "Scrape starts are spread over both side walls so the ooze stubs do not pile up at a "
+                      "single spot. The number of points is derived from this spacing and the length of the "
+                      "straight part of the side wall, so the effective spacing can be smaller than requested "
+                      "when the straight part is short.");
+    def->sidetext = L("mm");
+    def->mode     = comAdvanced;
+    def->min      = 0.5;
+    def->max      = 50;
+    def->set_default_value(new ConfigOptionFloat(1.));
+
+    def           = this->add("prime_tower_side_scrape_along_length", coFloat);
+    def->label    = L("Side scrape along-wall length");
+    def->tooltip  = L("Upper bound for the empty travel along the side wall performed right after the diagonal "
+                      "scrape, before the nozzle moves to the wipe line start. It smears the ooze stub further "
+                      "along the wall. The travel never leaves the straight part of the side wall, so the actual "
+                      "length is only the room left between the scrape start and the end of that straight part. "
+                      "On a rib prime tower the straight part can be just a few millimetres, in which case the "
+                      "travel is much shorter than the value set here.");
+    def->sidetext = L("mm");
+    def->mode     = comAdvanced;
+    def->min      = 0;
+    def->max      = 50;
+    def->set_default_value(new ConfigOptionFloat(2.));
 
     def          = this->add("prime_tower_rib_wall", coBool);
     def->label   = L("Rib wall");

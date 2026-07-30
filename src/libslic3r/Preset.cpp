@@ -1069,6 +1069,8 @@ static std::vector<std::string> s_Preset_print_options {
     "prime_tower_rib_wall","prime_tower_extra_rib_length","prime_tower_rib_width","prime_tower_fillet_wall","prime_tower_infill_gap","prime_tower_lift_speed","prime_tower_lift_height",
     "prime_tower_acceleration","prime_tower_line_width","prime_tower_ramming_line_width","prime_tower_wipe_speed","prime_tower_wipe_distance",
     "prime_tower_flat_ironing","prime_tower_line_ironing","prime_tower_ironing_speed",
+    "prime_tower_side_scrape","prime_tower_side_scrape_face","prime_tower_side_scrape_length","prime_tower_side_scrape_height","prime_tower_side_scrape_speed","prime_tower_side_scrape_wall_gap",
+    "prime_tower_side_scrape_point_spacing","prime_tower_side_scrape_along_length",
     "enable_circle_compensation", "circle_compensation_manual_offset", "apply_scarf_seam_on_circles",
     "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
     "flush_into_infill", "flush_into_objects", "flush_into_support","process_notes", "enable_mixed_color_sublayer",

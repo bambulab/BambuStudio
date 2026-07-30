@@ -321,6 +321,14 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "prime_tower_flat_ironing"
             || opt_key == "prime_tower_line_ironing"
             || opt_key == "prime_tower_ironing_speed"
+            || opt_key == "prime_tower_side_scrape"
+            || opt_key == "prime_tower_side_scrape_face"
+            || opt_key == "prime_tower_side_scrape_length"
+            || opt_key == "prime_tower_side_scrape_height"
+            || opt_key == "prime_tower_side_scrape_speed"
+            || opt_key == "prime_tower_side_scrape_wall_gap"
+            || opt_key == "prime_tower_side_scrape_point_spacing"
+            || opt_key == "prime_tower_side_scrape_along_length"
             || opt_key == "prime_tower_acceleration"
             || opt_key == "prime_tower_line_width"
             || opt_key == "prime_tower_ramming_line_width"
@@ -1056,6 +1064,13 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
             wipe_tower_polygon.translate(Point(scale_(x), scale_(y)));
             convex_hulls_temp.push_back(wipe_tower_polygon);
         }
+        // The diagonal side scrape takes the nozzle outside the tower wall without depositing anything,
+        // so the checks below have to reserve that ring as well. Grown in every direction rather than
+        // only along the scraped pair of walls: the outline is used in bed coordinates, so an isotropic
+        // margin keeps this independent of the tower rotation and can only make the check stricter.
+        const double side_scrape_margin = prime_tower_side_scrape_margin(config);
+        if (side_scrape_margin > 0.)
+            convex_hulls_temp = offset(convex_hulls_temp, float(scaled(side_scrape_margin)));
     }
     if (!intersection(convex_hulls_other, convex_hulls_temp).empty()) {
         if (warning) {
@@ -3534,7 +3549,11 @@ double compacted_tower_footprint_padding(const PrintConfig &config, double brim_
     // reaches half a line width further still. Allowing a line width per side covers both, which is
     // what keeps an estimated footprint enclosing the real one and the pre-slice check stricter than
     // the precise one.
-    return std::max(0., brim_width) + 2. * config.nozzle_diameter.get_at(0);
+    //
+    // The diagonal side scrape prints nothing, but it does take the nozzle outside the wall, so it
+    // enlarges the space the tower needs just like the brim does. Adding it here rather than at the call
+    // sites is what keeps the plater's keep-out ring and the validation behind it in agreement.
+    return std::max(0., brim_width) + 2. * config.nozzle_diameter.get_at(0) + prime_tower_side_scrape_margin(config);
 }
 
 Polygons compacted_wipe_tower_rings(const CompactedTowerZone &zone, bool any_body_tier)
@@ -3854,7 +3873,18 @@ void Print::validate_compacted_wipe_tower_clearance() const
     if (tower_pts.empty())
         return;
 
-    const CompactedTowerZone zone = compacted_wipe_tower_zone(m_config, Geometry::convex_hull(tower_pts));
+    // Travel end-points were dropped above because travels normally reach a bit further out than the
+    // walls. The side scrape is the one travel that has to be accounted for: it descends alongside the
+    // wall, so the nozzle really does occupy that ring at tower height. Grow the deposited hull by it.
+    Polygon tower_hull = Geometry::convex_hull(tower_pts);
+    const double side_scrape_margin = prime_tower_side_scrape_margin(m_config);
+    if (side_scrape_margin > 0.) {
+        const Polygons grown = offset(tower_hull, float(scaled(side_scrape_margin)));
+        if (! grown.empty())
+            tower_hull = grown.front();
+    }
+
+    const CompactedTowerZone zone = compacted_wipe_tower_zone(m_config, tower_hull);
     if (zone.empty())
         return;
 
