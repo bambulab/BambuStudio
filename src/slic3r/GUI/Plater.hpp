@@ -59,7 +59,6 @@ class HelioActionEvent;
 enum SLAPrintObjectStep : unsigned int;
 enum class ConversionType : int;
 class DevAms;
-class DevCtrlToken;
 namespace csg {
 enum class BooleanFailReason;
 }
@@ -323,14 +322,9 @@ private:
     void  finalize_auto_calc_flushing_volumes();
     void  update_bed_thumbnail(std::string path);
 
-    // On a manual sync, probe the ams for whether an rfid refresh is needed and popup a dialog if so.
-    void try_refresh_rfid();
-
 private:
     struct priv;
     std::unique_ptr<priv> p;
-
-    std::shared_ptr<DevCtrlToken> m_rfid_refresh_token;
 
     wxBoxSizer* m_scrolled_sizer = nullptr;
     bool            m_soft_first_start {true };
