@@ -8669,6 +8669,9 @@ void TryLoadLastMachine::InnerLoad(NetworkAgent* agent, DeviceManager* dev)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": try to reconnect " << BBLCrossTalk::Crosstalk_DevId(last_select_machine)
         << ", is_mqtt_ok=" << is_mqtt_ok << ", is_list_ok=" << is_list_ok;
     if (last_select_machine.empty()) {
+        if (is_mqtt_ok && is_list_ok) {
+            dev->load_last_machine();
+        }
         return;
     }
 
@@ -8700,8 +8703,13 @@ void TryLoadLastMachine::InnerLoad(NetworkAgent* agent, DeviceManager* dev)
         }
     } else {
         if (is_mqtt_ok && is_list_ok) {
-            dev->set_selected_machine(last_select_machine);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": try select cloud machine";
+            if (dev->get_my_machine(last_select_machine) &&
+                dev->set_selected_machine(last_select_machine)) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": try select cloud machine";
+            } else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": last selected machine is unavailable, fall back";
+                dev->load_last_machine();
+            }
         } else {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": mqtt or list not ready";
         }

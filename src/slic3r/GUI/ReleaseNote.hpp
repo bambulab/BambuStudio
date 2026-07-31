@@ -49,7 +49,6 @@ wxDECLARE_EVENT(EVT_SECONDARY_CHECK_RETRY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_DONE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SECONDARY_CHECK_RESUME, wxCommandEvent);
 wxDECLARE_EVENT(EVT_UPDATE_NOZZLE, wxCommandEvent);
-wxDECLARE_EVENT(EVT_UPDATE_TEXT_MSG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ERROR_DIALOG_BTN_CLICKED, wxCommandEvent);
 
 class ReleaseNoteDialog : public DPIDialog
@@ -347,9 +346,8 @@ public:
     void on_check_ip_address_failed(wxCommandEvent& evt);
     void on_ok(wxMouseEvent& evt);
     void on_send_retry();
-    void update_test_msg_event(wxCommandEvent &evt);
-    void post_update_test_msg(std::weak_ptr<InputIpAddressDialog> w, wxString text, bool beconnect);
-    void workerThreadFunc(std::string str_ip, std::string str_access_code, std::string sn, std::string model_id);
+    static void workerThreadFunc(std::weak_ptr<InputIpAddressDialog> dialog, std::string str_ip,
+        std::string str_access_code, std::string sn, std::string model_id, int input_index);
     void OnTimer(wxTimerEvent& event);
     void on_text(wxCommandEvent& evt);
     void on_dpi_changed(const wxRect& suggested_rect) override;
@@ -382,7 +380,6 @@ wxDECLARE_EVENT(EVT_CLOSE_IPADDRESS_DLG, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CHECKBOX_CHANGE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_ENTER_IP_ADDRESS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CHECK_IP_ADDRESS_FAILED, wxCommandEvent);
-wxDECLARE_EVENT(EVT_CHECK_IP_ADDRESS_LAYOUT, wxCommandEvent);
 
 
 }} // namespace Slic3r::GUI
