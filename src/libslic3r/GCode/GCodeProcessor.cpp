@@ -2009,8 +2009,13 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     // Filament load / unload times are not specific to a firmware flavor. Let anybody use it if they find it useful.
     // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
     // are considered to be active for the single extruder multi-material printers only.
-    m_time_processor.filament_load_times = static_cast<float>(config.machine_load_filament_time.value);
-    m_time_processor.filament_unload_times = static_cast<float>(config.machine_unload_filament_time.value);
+    MultiNozzleUtils::resolve_ams_load_unload(get_ams_load_times(config),
+                                              get_ams_unload_times(config),
+                                              config.default_ams_type.value,
+                                              static_cast<float>(config.machine_load_filament_time.value),
+                                              static_cast<float>(config.machine_unload_filament_time.value),
+                                              m_time_processor.filament_load_times,
+                                              m_time_processor.filament_unload_times);
     m_time_processor.extruder_change_times = static_cast<float>(config.machine_switch_extruder_time.value);
     m_time_processor.hotend_change_times = static_cast<float>(config.machine_hotend_change_time.value);
     m_time_processor.prepare_compensation_time = static_cast<float>(config.machine_prepare_compensation_time.value);
@@ -2337,13 +2342,22 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
     m_extruder_temps.resize(m_result.filaments_count);
 
-    const ConfigOptionFloat* machine_load_filament_time = config.option<ConfigOptionFloat>("machine_load_filament_time");
-    if (machine_load_filament_time != nullptr)
-        m_time_processor.filament_load_times = static_cast<float>(machine_load_filament_time->value);
-
+    const ConfigOptionFloat* machine_load_filament_time   = config.option<ConfigOptionFloat>("machine_load_filament_time");
     const ConfigOptionFloat* machine_unload_filament_time = config.option<ConfigOptionFloat>("machine_unload_filament_time");
-    if (machine_unload_filament_time != nullptr)
-        m_time_processor.filament_unload_times = static_cast<float>(machine_unload_filament_time->value);
+    {
+        float legacy_load   = (machine_load_filament_time != nullptr) ? static_cast<float>(machine_load_filament_time->value) : m_time_processor.filament_load_times;
+        float legacy_unload = (machine_unload_filament_time != nullptr) ? static_cast<float>(machine_unload_filament_time->value) : m_time_processor.filament_unload_times;
+
+        const std::vector<double> ams_load_times   = get_ams_load_times(config);
+        const std::vector<double> ams_unload_times = get_ams_unload_times(config);
+        int default_ams_type = -1;
+        if (const ConfigOptionInt* opt = config.option<ConfigOptionInt>("default_ams_type"))
+            default_ams_type = opt->value;
+
+        MultiNozzleUtils::resolve_ams_load_unload(ams_load_times, ams_unload_times, default_ams_type,
+                                                  legacy_load, legacy_unload,
+                                                  m_time_processor.filament_load_times, m_time_processor.filament_unload_times);
+    }
 
     const ConfigOptionFloat* machine_switch_extruder_time = config.option<ConfigOptionFloat>("machine_switch_extruder_time");
     if (machine_switch_extruder_time != nullptr)
@@ -5752,7 +5766,10 @@ void GCodeProcessor::process_M702(const GCodeReader::GCodeLine& line)
         // M702 C is expected to be sent by the custom end G-code when finalizing a print.
         // The MK3 unit shall unload and park the active filament into the MMU2 unit.
         m_time_processor.extruder_unloaded = true;
-        simulate_st_synchronize(get_filament_unload_time(filament_id));
+        float unload_time = get_filament_unload_time(filament_id);
+        if (filament_id >= 0)
+            m_result.print_statistics.unload_time_per_filament[static_cast<size_t>(filament_id)] += unload_time;
+        simulate_st_synchronize(unload_time);
     }
 }
 
@@ -5965,10 +5982,16 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
             extra_time += get_extruder_change_time(new_extruder_id);
         }
         if (nozzle_in_extruder_change || filament_in_nozzle_change){
-            if (old_filament_in_extruder >= 0)
-                extra_time += get_filament_unload_time(static_cast<size_t>(old_filament_in_extruder));
+            if (old_filament_in_extruder >= 0) {
+                float unload_time = get_filament_unload_time(static_cast<size_t>(old_filament_in_extruder));
+                extra_time += unload_time;
+                m_result.print_statistics.unload_time_per_filament[static_cast<size_t>(old_filament_in_extruder)] += unload_time;
+            }
             m_time_processor.extruder_unloaded = false;
-            extra_time += get_filament_load_time(static_cast<size_t>(new_filament_id));
+            float load_time = get_filament_load_time(static_cast<size_t>(new_filament_id));
+            extra_time += load_time;
+            if (new_filament_id >= 0)
+                m_result.print_statistics.load_time_per_filament[static_cast<size_t>(new_filament_id)] += load_time;
 
             if (filament_in_nozzle_change && old_filament_in_nozzle != -1)
                 m_result.print_statistics.total_flush_filament_changes++;

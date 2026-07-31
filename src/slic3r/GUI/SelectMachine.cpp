@@ -3,6 +3,7 @@
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Thread.hpp"
+#include "libslic3r/MultiNozzleUtils.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Preview.hpp"
@@ -102,6 +103,61 @@ std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_t
         assert(false);
         return "";
     }
+}
+
+// Map device AMS types to AMS timing-vector indices.
+//  0  = reserved external-spool slot (use values[0], typically 0s)
+// >0 = AmsTimeType enum value
+// -1 = unsupported for AMS timing; resolve_ams_load_unload falls back to legacy times
+static int to_ams_time_index(DevAmsType type)
+{
+    switch (type) {
+    case DevAmsType::EXT_SPOOL:
+        return 0;
+    case DevAmsType::AMS:
+        return static_cast<int>(AmsTimeType::Ams);
+    case DevAmsType::AMS_LITE:
+    case DevAmsType::AMS_LITE_MIXED:
+        return static_cast<int>(AmsTimeType::AmsLite);
+    case DevAmsType::N3F:
+    case DevAmsType::N3S:
+        return static_cast<int>(AmsTimeType::N3SF);
+    default:
+        return -1;
+    }
+}
+
+static std::vector<int> build_actual_ams_type_per_filament(const std::vector<FilamentInfo>& mapping, MachineObject* obj)
+{
+    int filament_count = 0;
+    for (const auto& f : mapping) {
+        if (f.id + 1 > filament_count)
+            filament_count = f.id + 1;
+    }
+
+    std::vector<int> types(static_cast<size_t>(filament_count), -1);
+    if (!obj)
+        return types;
+
+    for (const auto& f : mapping) {
+        if (f.id < 0 || f.id >= filament_count) {
+            continue;
+        }
+
+        if (f.ams_id.empty() || f.tray_id < 0) {
+            types[f.id] = -1;
+            continue;
+        }
+
+        if (DevAms* ams = obj->GetFilaSystem()->GetAmsById(f.ams_id)) {
+            types[f.id] = to_ams_time_index(ams->GetAmsType());
+        } else if (devPrinterUtil::IsVirtualSlot(f.ams_id)) {
+            types[f.id] = to_ams_time_index(DevAmsType::EXT_SPOOL);
+        } else {
+            types[f.id] = -1;
+        }
+    }
+    return types;
 }
 
 std::vector<wxString> SelectMachineDialog::MACHINE_BED_TYPE_STRING;
@@ -304,6 +360,11 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     timeimg = new wxStaticBitmap(m_basic_panel, wxID_ANY, print_time->bmp(), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
     m_stext_time = new Label(m_basic_panel, wxEmptyString);
     m_stext_time->SetFont(Label::Body_13);
+    m_time_estimate_tip = new Label(m_basic_panel, wxString::FromUTF8("●"));
+    m_time_estimate_tip->SetFont(Label::Body_8);
+    m_time_estimate_tip->SetForegroundColour(wxColour("#FF6F00"));
+    m_time_estimate_tip->SetToolTip(_L("The current estimated time has been recalculated based on the actual filament mapping."));
+    m_time_estimate_tip->Hide();
 
     print_weight   = new ScalableBitmap(m_scroll_area, "print-weight", 18);
     weightimg = new wxStaticBitmap(m_basic_panel, wxID_ANY, print_weight->bmp(), wxDefaultPosition, wxSize(FromDIP(18), FromDIP(18)), 0);
@@ -326,6 +387,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_sizer_basic_weight_time->Add(timeimg, 0, wxALIGN_CENTER, 0);
     m_sizer_basic_weight_time->Add(m_stext_time, 0, wxALIGN_CENTER|wxLEFT, FromDIP(6));
+    m_sizer_basic_weight_time->Add(m_time_estimate_tip, 0, wxALIGN_TOP | wxLEFT, FromDIP(2));
     m_sizer_basic_weight_time->AddSpacer(FromDIP(30));
     m_sizer_basic_weight_time->Add(weightimg, 0, wxALIGN_CENTER, 0);
     m_sizer_basic_weight_time->Add(m_stext_weight, 0, wxALIGN_CENTER|wxLEFT, FromDIP(6));
@@ -1548,36 +1610,117 @@ void SelectMachineDialog::auto_supply_with_ext(std::vector<DevAmsTray> slots) {
         }
     }
 }
-void SelectMachineDialog::refresh_save_time(MachineObject *obj)
+
+
+
+bool SelectMachineDialog::support_filament_mapping_estimate() const
 {
     if (m_print_type != FROM_NORMAL) {
-        return;
+        return false;
     }
 
-    // update the total print time
-    auto save_time = get_filament_change_gap_time(obj);
-    {
-        wxString   print_time;
-        PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
-        if (plate && plate->get_slice_result()) {
-            float base_time = plate->get_slice_result()->print_statistics.modes[0].time;
-            if (save_time.has_value()) {
-                base_time += save_time.value();
-                if (base_time < 0) base_time = 0;
+    // Gate on the preset's own AMS timing config instead of a hard-coded machine name or
+    // nozzle variant: only presets that configure AMS load/unload times set default_ams_type
+    // to a real timing type. Both the default (-1) and the external spool (0) are excluded,
+    // since neither has per-AMS timings to recalculate with.
+    bool filament_mapping_estimate = false;
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle) {
+        const auto& printer_config = preset_bundle->printers.get_edited_preset().config;
+        const auto* sel_opt        = printer_config.option<ConfigOptionInt>("default_ams_type");
+        const auto& ams_types      = get_ams_time_types();
+        filament_mapping_estimate  = sel_opt && std::find(ams_types.begin(), ams_types.end(), sel_opt->value) != ams_types.end();
+    }
+
+    return filament_mapping_estimate;
+}
+
+void SelectMachineDialog::update_time_estimate_tip(bool show)
+{
+    if (m_time_estimate_tip) {
+        const bool show_tip = show && support_filament_mapping_estimate();
+        const wxString tip = show_tip ? _L("The current estimated time has been recalculated based on the actual filament mapping.") : wxString();
+        if (m_time_estimate_tip->GetToolTipText() != tip) {
+            m_time_estimate_tip->SetToolTip(tip);
+        }
+
+        if (m_time_estimate_tip->Show(show_tip)) {
+            if (m_basic_panel) {
+                m_basic_panel->Layout();
             }
-            print_time = wxString::Format("%s", short_time(get_time_dhms(base_time)));
-            m_stext_time->SetLabel(print_time);
         }
     }
+}
 
-    // update the tips of suggest pos dispaly
+void SelectMachineDialog::refresh_print_time(MachineObject *obj)
+{
+    PartPlate* plate = m_plater ? m_plater->get_partplate_list().get_curr_plate() : nullptr;
+    const GCodeProcessorResult* slice_result = plate ? plate->get_slice_result() : nullptr;
+    if (m_print_type == FROM_NORMAL && slice_result) {
+        if (slice_result->print_statistics.modes.empty()) {
+            return;
+        }
+
+        const float sliced_seconds = slice_result->print_statistics.modes[0].time;
+        if (support_filament_mapping_estimate()) {
+            refresh_print_time_ams_mapping(obj, slice_result, sliced_seconds);
+        } else {
+            refresh_print_time_normal(obj, sliced_seconds);
+            update_time_estimate_tip(false);
+        }
+    } else {
+        update_time_estimate_tip(false);
+        m_saveTimeText->Hide();
+    }
+}
+
+void SelectMachineDialog::set_print_time_display(float sliced_seconds, float display_seconds)
+{
+    const wxString sliced_label  = wxString::Format("%s", short_time(get_time_dhms(sliced_seconds)));
+    const wxString display_label = wxString::Format("%s", short_time(get_time_dhms(display_seconds)));
+    m_stext_time->SetLabel(display_label);
+    update_time_estimate_tip(display_label != sliced_label);
+}
+
+void SelectMachineDialog::refresh_print_time_normal(MachineObject* obj, float sliced_seconds)
+{
+    float display_seconds = sliced_seconds;
+    const auto save_time  = get_filament_change_gap_time(obj);
+    if (save_time.has_value()) {
+        display_seconds += save_time.value();
+        if (display_seconds < 0)
+            display_seconds = 0;
+    }
+
+    set_print_time_display(sliced_seconds, display_seconds);
+    update_save_time_hint(obj, save_time);
+}
+
+void SelectMachineDialog::refresh_print_time_ams_mapping(MachineObject* obj, const GCodeProcessorResult* slice_result, float sliced_seconds)
+{
+    float display_seconds = sliced_seconds;
+
+    if (PresetBundle* preset_bundle = wxGetApp().preset_bundle) {
+        const auto& printer_config  = preset_bundle->printers.get_edited_preset().config;
+        const auto  actual_ams_types  = build_actual_ams_type_per_filament(m_ams_mapping_result, obj);
+        const auto  recalc_result     = MultiNozzleUtils::estimate_mapped_print_time(
+            slice_result, &printer_config, actual_ams_types);
+        if (recalc_result.reason == MultiNozzleUtils::FailReason::Ok)
+            display_seconds = std::max(0.f, recalc_result.total_seconds);
+    }
+
+    set_print_time_display(sliced_seconds, display_seconds);
+    m_saveTimeText->Hide();
+}
+
+void SelectMachineDialog::update_save_time_hint(MachineObject* obj, const std::optional<float>& save_time)
+{
     bool is_all_at_suggest_pos = true;
     for (const auto& mapping_item : m_ams_mapping_result) {
         is_all_at_suggest_pos = is_at_suggested_pos(obj, mapping_item.id);
-        if (!is_all_at_suggest_pos) {
+        if (!is_all_at_suggest_pos)
             break;
-        }
-    };
+    }
 
     if (save_time.has_value() && save_time.value() >= 1 && !is_all_at_suggest_pos) {
         wxString text = wxString::Format(_L("Recommended filament arrangement saves %s->"), FormatTime(*save_time));
@@ -3359,7 +3502,10 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
     // Re-check flow calibration default after manual mapping change
     DeviceManager* dev_mgr = wxGetApp().getDeviceManager();
     MachineObject* obj = dev_mgr ? dev_mgr->get_my_machine(m_printer_last_select) : nullptr;
-    if (obj) { check_tpu_aero_flow_cali(obj); }
+    if (obj) {
+        check_tpu_aero_flow_cali(obj);
+        refresh_print_time(obj);
+    }
 }
 
 void SelectMachineDialog::on_print_job_cancel(wxCommandEvent &evt)
@@ -3664,7 +3810,7 @@ void SelectMachineDialog::update_by_obj(MachineObject* obj_)
     update_print_status_msg();
     //update_scroll_area_size();/*STUDIO-12867 the page maybe blank in some platform. FIXME*/
 
-    refresh_save_time(obj_);
+    refresh_print_time(obj_);
 }
 
 void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
@@ -4991,7 +5137,7 @@ void SelectMachineDialog::set_default_normal(const ThumbnailData &data)
 
     m_stext_time->SetLabel(time);
     m_stext_weight->SetLabel(weight);
-    refresh_save_time(obj_);
+    refresh_print_time(obj_);
 }
 
 wxString SelectMachineDialog::FormatTime(float totalSeconds)
@@ -5236,7 +5382,7 @@ void SelectMachineDialog::set_default_from_sdcard()
         m_stext_time->SetLabel(time);
         m_stext_weight->SetLabel(weight);
         // auto save_time = get_filament_change_gap_time(obj_);
-        refresh_save_time(obj_);
+        refresh_print_time(obj_);
     }
     catch (...) {}
 }

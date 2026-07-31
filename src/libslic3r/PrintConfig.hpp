@@ -33,6 +33,8 @@
 
 namespace Slic3r {
 
+class DynamicPrintConfig;
+
 enum GCodeFlavor : unsigned char {
     gcfMarlinLegacy, gcfKlipper, gcfRepRapSprinter, gcfRepRapFirmware, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlinFirmware, gcfSailfish, gcfMach3, gcfMachinekit,
     gcfSmoothie, gcfNoExtrusion
@@ -42,6 +44,14 @@ enum FilamentUsageType {
     SupportOnly,
     ModelOnly,
     Hybrid
+};
+
+// AMS load/unload timing-vector indices. Values stay aligned with the existing
+// preset layout; index 0 is reserved for the legacy external-spool slot.
+enum class AmsTimeType : int {
+    Ams     = 1,
+    AmsLite = 2,
+    N3SF    = 3,
 };
 
 enum class FuzzySkinType {
@@ -407,6 +417,21 @@ static std::set<NozzleVolumeType> get_valid_nozzle_volume_type() {
 }
 
 std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type);
+
+// Canonical AMS timing type name used in slice_info (default_ams_type / ams_type).
+extern std::string get_ams_type_name(int ams_type);
+extern const std::vector<int>& get_ams_time_types();
+// Each AMS timing type owns a dedicated scalar option, so no option key needs an index
+// suffix. Returns an empty string for types without a timing option (e.g. external spool).
+extern std::string get_ams_load_time_key(int ams_type);
+extern std::string get_ams_unload_time_key(int ams_type);
+// The per-type scalar options gathered into AmsTimeType-indexed tables. Always large enough
+// to be indexed by any value from get_ams_time_types() without a bounds check. Index 0 is
+// the external spool, which has no AMS timing and therefore stays 0.
+extern std::vector<double> get_ams_load_times(const ConfigBase &config);
+extern std::vector<double> get_ams_unload_times(const ConfigBase &config);
+// Resolve machine-declared canonical AMS names to timing type enum values.
+extern std::vector<int> get_supported_ams_time_types(const std::vector<std::string> &supported_names);
 
 static std::string bed_type_to_gcode_string(const BedType type)
 {
@@ -1255,6 +1280,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             print_extruder_variant))
     ((ConfigOptionFloat,               machine_load_filament_time))
     ((ConfigOptionFloat,               machine_unload_filament_time))
+    ((ConfigOptionFloat,               ams_filament_load_time_ams))
+    ((ConfigOptionFloat,               ams_filament_load_time_ams_lite))
+    ((ConfigOptionFloat,               ams_filament_load_time_n3f_s))
+    ((ConfigOptionFloat,               ams_filament_unload_time_ams))
+    ((ConfigOptionFloat,               ams_filament_unload_time_ams_lite))
+    ((ConfigOptionFloat,               ams_filament_unload_time_n3f_s))
+    ((ConfigOptionInt,                 default_ams_type))
     ((ConfigOptionFloat,               machine_switch_extruder_time))
     ((ConfigOptionFloat,               machine_hotend_change_time))
     ((ConfigOptionBool,                group_algo_with_time))

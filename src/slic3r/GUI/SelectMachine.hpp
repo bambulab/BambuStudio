@@ -54,6 +54,7 @@
 // Previous definitions
 namespace Slic3r{
     class DevExtder;
+    struct GCodeProcessorResult;
 }
 
 namespace Slic3r { namespace GUI {
@@ -405,6 +406,7 @@ protected:
     wxSimplebook*                       m_simplebook{nullptr};
     wxStaticText*                       m_rename_text{nullptr};
     Label*                              m_stext_time{ nullptr };
+    Label*                              m_time_estimate_tip{ nullptr };
     Label*                              m_stext_weight{ nullptr };
     Label*                              m_saveTimeText{ nullptr };
     PrinterMsgPanel *                   m_statictext_ams_msg{nullptr};
@@ -653,7 +655,14 @@ private:
 
 
 
-    void refresh_save_time(MachineObject *obj);
+    // update time
+    bool support_filament_mapping_estimate() const;
+    void update_time_estimate_tip(bool show);
+    void refresh_print_time(MachineObject *obj);
+    void set_print_time_display(float sliced_seconds, float display_seconds);
+    void refresh_print_time_normal(MachineObject* obj, float sliced_seconds);
+    void refresh_print_time_ams_mapping(MachineObject* obj, const GCodeProcessorResult* slice_result, float sliced_seconds);
+    void update_save_time_hint(MachineObject* obj, const std::optional<float>& save_time);
 
     bool has_bowden_extuder(MachineObject *obj);
 };

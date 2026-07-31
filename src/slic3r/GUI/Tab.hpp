@@ -628,6 +628,8 @@ private:
 	bool		m_has_single_extruder_MM_page = false;
 	bool		m_use_silent_mode = false;
 	void		append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key);
+	void		build_ams_filament_time_options(ConfigOptionsGroupShp optgroup);
+	void		toggle_ams_filament_time_options();
 	bool		m_rebuild_kinematics_page = false;
 
 	ogStaticText*	m_fff_print_host_upload_description_line {nullptr};

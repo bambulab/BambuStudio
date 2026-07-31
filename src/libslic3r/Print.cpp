@@ -220,6 +220,13 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "printer_notes",
         "filament_velocity_adaptation_factor",
         "filament_tower_interface_purge_volume",
+        "default_ams_type",
+        "ams_filament_load_time_ams",
+        "ams_filament_load_time_ams_lite",
+        "ams_filament_load_time_n3f_s",
+        "ams_filament_unload_time_ams",
+        "ams_filament_unload_time_ams_lite",
+        "ams_filament_unload_time_n3f_s",
     };
 
     static std::unordered_set<std::string> steps_ignore;

@@ -225,6 +225,8 @@ static constexpr const char *FILAMENT_USED_M_TAG = "used_m";
 static constexpr const char *FILAMENT_USED_G_TAG = "used_g";
 static constexpr const char *FILAMENT_USED_FOR_SUPPORT     = "used_for_support";
 static constexpr const char *FILAMENT_USED_FOR_OBJECT      = "used_for_object";
+static constexpr const char *FILAMENT_TOTAL_LOAD_TIME_TAG   = "total_load_time";
+static constexpr const char *FILAMENT_TOTAL_UNLOAD_TIME_TAG = "total_unload_time";
 static constexpr const char *FILAMENT_TRAY_INFO_ID_TAG     = "tray_info_idx";
 static constexpr const char *LAYER_FILAMENT_LISTS_TAG      = "layer_filament_lists";
 static constexpr const char *LAYER_FILAMENT_LIST_TAG       = "layer_filament_list";
@@ -232,6 +234,12 @@ static constexpr const char *FILAMENT_NOZZLE_GROUP_ID_TAG    = "group_id";
 static constexpr const char *FILAMENT_NOZZLE_DIAMETER_TAG    = "nozzle_diameter";
 static constexpr const char *FILAMENT_NOZZLE_VOLUME_TYPE_TAG = "volume_type";
 static constexpr const char *NOZZLE_TAG                      = "nozzle";
+static constexpr const char *DEFAULT_AMS_TYPE_ATTR           = "default_ams_type";
+static constexpr const char *AMS_LIST_TAG                    = "ams_list";
+static constexpr const char *AMS_ITEM_TAG                    = "ams";
+static constexpr const char *AMS_TYPE_ATTR                   = "ams_type";
+static constexpr const char *AMS_LOAD_TIME_ATTR             = "load_time";
+static constexpr const char *AMS_UNLOAD_TIME_ATTR           = "unload_time";
 
 
 static constexpr const char* CONFIG_TAG = "config";
@@ -699,6 +707,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         info.id = it->first;
         info.used_g = used_filament_g;
         info.used_m = used_filament_m;
+        {
+            auto load_it = ps.load_time_per_filament.find(it->first);
+            if (load_it != ps.load_time_per_filament.end())
+                info.total_load_time = load_it->second;
+            auto unload_it = ps.unload_time_per_filament.find(it->first);
+            if (unload_it != ps.unload_time_per_filament.end())
+                info.total_unload_time = unload_it->second;
+        }
 
         if (result && result->nozzle_group_result) {
             auto nozzles_for_filament = result->nozzle_group_result->get_nozzles_for_filament(it->first);
@@ -1350,6 +1366,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         bool _handle_start_config_nozzle(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_nozzle();
+
+        bool _handle_start_config_ams_item(const char** attributes, unsigned int num_attributes);
 
         //BBS: add plater config parse functions
         bool _handle_start_config_plater(const char** attributes, unsigned int num_attributes);
@@ -3649,6 +3667,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_start_config_warning(attributes, num_attributes);
         else if (::strcmp(NOZZLE_TAG, name) == 0)
             res = _handle_start_config_nozzle(attributes, num_attributes);
+        else if (::strcmp(AMS_ITEM_TAG, name) == 0)
+            res = _handle_start_config_ams_item(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_TAG, name) == 0)
             res = _handle_start_assemble(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_ITEM_TAG, name) == 0)
@@ -4720,6 +4740,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (m_curr_plater)
                     m_curr_plater->gcode_weight = value;
             }
+            else if (key == DEFAULT_AMS_TYPE_ATTR)
+            {
+                if (m_curr_plater)
+                    m_curr_plater->default_ams_type = value;
+            }
             else if (key == OUTSIDE_ATTR)
             {
                 if (m_curr_plater)
@@ -4804,6 +4829,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             filament_info.group_id = parse_int_list(group_id);
             filament_info.nozzle_diameter = string_to_double_decimal_point(nozzle_diameter);
             filament_info.nozzle_volume_type = volume_type;
+            std::string total_load_time   = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_TOTAL_LOAD_TIME_TAG);
+            std::string total_unload_time = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_TOTAL_UNLOAD_TIME_TAG);
+            filament_info.total_load_time   = total_load_time.empty() ? 0.0 : atof(total_load_time.c_str());
+            filament_info.total_unload_time = total_unload_time.empty() ? 0.0 : atof(total_unload_time.c_str());
             m_curr_plater->slice_filaments_info.push_back(filament_info);
         }
         return true;
@@ -4881,6 +4910,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     bool _BBS_3MF_Importer::_handle_end_config_nozzle()
     {
         // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_config_ams_item(const char** attributes, unsigned int num_attributes)
+    {
+        if (m_curr_plater) {
+            AmsLoadUnloadTimeInfo ams_info;
+            ams_info.ams_type    = bbs_get_attribute_value_string(attributes, num_attributes, AMS_TYPE_ATTR);
+            ams_info.load_time   = bbs_get_attribute_value_float(attributes, num_attributes, AMS_LOAD_TIME_ATTR);
+            ams_info.unload_time = bbs_get_attribute_value_float(attributes, num_attributes, AMS_UNLOAD_TIME_ATTR);
+            m_curr_plater->ams_list.push_back(ams_info);
+        }
         return true;
     }
 
@@ -8625,6 +8666,21 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     stream << "\"/>\n";
                 }
 
+                // AMS type the preset assumes for the time estimation, written as the canonical AMS type name
+                // (see get_ams_type_name; N3F/N3S collapse into "N3F_S"). Emitted only when a concrete AMS
+                // type is configured (>= 0); currently only the N9 0.4 nozzle preset sets this (to 1), so the
+                // tag appears only for that machine. The full per-AMS <ams_list> is written later near the
+                // end of the plate.
+                {
+                    int default_ams_type = -1;
+                    if (auto* opt = config.option<ConfigOptionInt>("default_ams_type"))
+                        default_ams_type = opt->value;
+                    if (default_ams_type >= 0) {
+                        std::string default_ams_type_str = get_ams_type_name(default_ams_type);
+                        stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << DEFAULT_AMS_TYPE_ATTR << "\" " << VALUE_ATTR << "=\"" << xml_escape(default_ams_type_str) << "\"/>\n";
+                    }
+                }
+
                 for (auto it = plate_data->objects_and_instances.begin(); it != plate_data->objects_and_instances.end(); it++)
                 {
                         int obj_id = it->first;
@@ -8674,7 +8730,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                            << FILAMENT_NOZZLE_DIAMETER_TAG << "=\"" << it->nozzle_diameter << "\" "
                            << FILAMENT_NOZZLE_VOLUME_TYPE_TAG << "=\"" << it->nozzle_volume_type << "\" "
                            << FILAMENT_USED_FOR_OBJECT << "=\"" << it->used_for_object << "\" "
-                           << FILAMENT_USED_FOR_SUPPORT << "=\"" << it->used_for_support << "\"/>\n";
+                           << FILAMENT_USED_FOR_SUPPORT << "=\"" << it->used_for_support << "\" "
+                           << FILAMENT_TOTAL_LOAD_TIME_TAG << "=\"" << it->total_load_time << "\" "
+                           << FILAMENT_TOTAL_UNLOAD_TIME_TAG << "=\"" << it->total_unload_time << "\"/>\n";
                 }
 
                 for (auto it = plate_data->warnings.begin(); it != plate_data->warnings.end(); it++) {
@@ -8688,6 +8746,38 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         for(auto& used_nozzle: used_nozzle_list){
                             stream <<"    <"<< NOZZLE_TAG <<" "<< used_nozzle.serialize() << "/>\n";
                         }
+                    }
+                }
+
+                // Per-AMS load/unload time list. Grouped with the other list tags near the end of the plate.
+                // Each AMS type has its own pair of timing options; the type is reported under the
+                // canonical name from get_ams_type_name. Types with both times zero are skipped.
+                {
+                    const std::vector<double> ams_load_times   = get_ams_load_times(config);
+                    const std::vector<double> ams_unload_times = get_ams_unload_times(config);
+
+                    struct AmsItem { std::string name; double load_time; double unload_time; };
+                    std::vector<AmsItem> ams_items;
+                    for (const int ams_type : get_ams_time_types()) {
+                        const size_t ams_idx     = static_cast<size_t>(ams_type);
+                        const double load_time   = ams_load_times[ams_idx];
+                        const double unload_time = ams_unload_times[ams_idx];
+                        if (load_time <= 0.0 && unload_time <= 0.0)
+                            continue;
+                        std::string name = get_ams_type_name(ams_type);
+                        if (name.empty())
+                            continue;
+                        ams_items.push_back({ name, load_time, unload_time });
+                    }
+                    if (!ams_items.empty()) {
+                        stream << "    <" << AMS_LIST_TAG << ">\n";
+                        for (const AmsItem& item : ams_items) {
+                            stream << "      <" << AMS_ITEM_TAG << " "
+                                   << AMS_TYPE_ATTR << "=\"" << xml_escape(item.name) << "\" "
+                                   << AMS_LOAD_TIME_ATTR << "=\"" << item.load_time << "\" "
+                                   << AMS_UNLOAD_TIME_ATTR << "=\"" << item.unload_time << "\"/>\n";
+                        }
+                        stream << "    </" << AMS_LIST_TAG << ">\n";
                     }
                 }
 

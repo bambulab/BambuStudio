@@ -589,6 +589,90 @@ std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type)
     return s_keys_names_NozzleVolumeType[nozzle_volume_type];
 }
 
+std::string get_ams_type_name(int ams_type)
+{
+    switch (static_cast<AmsTimeType>(ams_type)) {
+    case AmsTimeType::Ams:     return "AMS";
+    case AmsTimeType::AmsLite: return "AMS_LITE";
+    case AmsTimeType::N3SF:    return "N3F_S";
+    default:                   return std::string();
+    }
+}
+
+const std::vector<int>& get_ams_time_types()
+{
+    static const std::vector<int> types = {
+        static_cast<int>(AmsTimeType::Ams),
+        static_cast<int>(AmsTimeType::AmsLite),
+        static_cast<int>(AmsTimeType::N3SF)
+    };
+    return types;
+}
+
+// The option keys are deliberately spelled out instead of derived from get_ams_type_name():
+// they are persisted in presets and 3mf projects, so they must stay stable even if a
+// display / slice_info name changes.
+std::string get_ams_load_time_key(int ams_type)
+{
+    switch (static_cast<AmsTimeType>(ams_type)) {
+    case AmsTimeType::Ams:     return "ams_filament_load_time_ams";
+    case AmsTimeType::AmsLite: return "ams_filament_load_time_ams_lite";
+    case AmsTimeType::N3SF:    return "ams_filament_load_time_n3f_s";
+    default:                   return std::string();
+    }
+}
+
+std::string get_ams_unload_time_key(int ams_type)
+{
+    switch (static_cast<AmsTimeType>(ams_type)) {
+    case AmsTimeType::Ams:     return "ams_filament_unload_time_ams";
+    case AmsTimeType::AmsLite: return "ams_filament_unload_time_ams_lite";
+    case AmsTimeType::N3SF:    return "ams_filament_unload_time_n3f_s";
+    default:                   return std::string();
+    }
+}
+
+// Gather the per-type scalar options into a table that can be indexed by AmsTimeType.
+// Types without an option (external spool, unknown values) keep 0.
+static std::vector<double> gather_ams_times(const ConfigBase &config, bool unload)
+{
+    const std::vector<int> &ams_types = get_ams_time_types();
+
+    int max_type = 0;
+    for (const int ams_type : ams_types)
+        if (ams_type > max_type)
+            max_type = ams_type;
+
+    std::vector<double> times(static_cast<size_t>(max_type) + 1, 0.);
+    for (const int ams_type : ams_types) {
+        const std::string key = unload ? get_ams_unload_time_key(ams_type) : get_ams_load_time_key(ams_type);
+        if (key.empty())
+            continue;
+        if (const auto *opt = config.option<ConfigOptionFloat>(key))
+            times[static_cast<size_t>(ams_type)] = opt->value;
+    }
+    return times;
+}
+
+std::vector<double> get_ams_load_times(const ConfigBase &config) { return gather_ams_times(config, false); }
+std::vector<double> get_ams_unload_times(const ConfigBase &config) { return gather_ams_times(config, true); }
+
+std::vector<int> get_supported_ams_time_types(const std::vector<std::string> &supported_names)
+{
+    std::vector<int> types;
+    std::set<int>    added_types;
+    for (const std::string &supported_name : supported_names) {
+        for (const int ams_type : get_ams_time_types()) {
+            if (get_ams_type_name(ams_type) != supported_name)
+                continue;
+            if (added_types.insert(ams_type).second)
+                types.push_back(ams_type);
+            break;
+        }
+    }
+    return types;
+}
+
 void sync_nozzle_volume_type_to_extruder_count(DynamicPrintConfig &cfg, bool cli_specified_nozzle_volume_type)
 {
     auto *nd = cfg.option<ConfigOptionFloatsNullable>("nozzle_diameter");
@@ -2394,6 +2478,66 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.0));
+
+    // One scalar option per AMS type. The keys are looked up through get_ams_load_time_key() /
+    // get_ams_unload_time_key(); keep both in sync when a new AMS type is added.
+    def = this->add("ams_filament_load_time_ams", coFloat);
+    def->label = L("AMS filament load time");
+    def->tooltip = L("Filament load time when printing with an AMS. For statistics only");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
+
+    def = this->add("ams_filament_load_time_ams_lite", coFloat);
+    def->label = L("AMS Lite filament load time");
+    def->tooltip = L("Filament load time when printing with an AMS Lite. For statistics only");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
+
+    def = this->add("ams_filament_load_time_n3f_s", coFloat);
+    def->label = L("N3F/N3S filament load time");
+    def->tooltip = L("Filament load time when printing with an N3F or N3S. For statistics only");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
+
+    def = this->add("ams_filament_unload_time_ams", coFloat);
+    def->label = L("AMS filament unload time");
+    def->tooltip = L("Filament unload time when printing with an AMS. For statistics only");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
+
+    def = this->add("ams_filament_unload_time_ams_lite", coFloat);
+    def->label = L("AMS Lite filament unload time");
+    def->tooltip = L("Filament unload time when printing with an AMS Lite. For statistics only");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
+
+    def = this->add("ams_filament_unload_time_n3f_s", coFloat);
+    def->label = L("N3F/N3S filament unload time");
+    def->tooltip = L("Filament unload time when printing with an N3F or N3S. For statistics only");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.0));
+
+    def = this->add("default_ams_type", coInt);
+    def->label = L("Default AMS type");
+    def->tooltip = L("The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine.");
+    // Rendered as a read-only dropdown: i_enum_open picks the Choice widget, and the
+    // registered DynamicAmsTimeTypeList (see Tab.cpp) forces read-only mode and fills items
+    // at runtime. The stored value stays the AmsTimeType enum int.
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(-1));
 
     def = this->add("machine_switch_extruder_time", coFloat);
     def->label = L("Extruder switch time");
@@ -7058,6 +7202,11 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         //BBS: this is old profile in which value is expressed as percentage.
         //But now these key-value must be absolute value.
         //Reset to default value by erasing these key to avoid parsing error.
+        opt_key = "";
+    } else if (opt_key == "ams_filament_load_time" || opt_key == "ams_filament_unload_time") {
+        // Superseded by one scalar option per AMS type (ams_filament_load_time_ams etc.).
+        // The old vector was indexed by the AMS type enum, which cannot be expressed as a
+        // single renamed key; drop it and let the printer preset supply the new options.
         opt_key = "";
     } else if (opt_key == "inherits_cummulative") {
         opt_key = "inherits_group";
