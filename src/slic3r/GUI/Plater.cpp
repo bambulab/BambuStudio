@@ -16308,6 +16308,13 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
     const DynamicPrintConfig &old_full_config         = wxGetApp().preset_bundle->full_config();
     const int                 old_nozzle_nums         = wxGetApp().preset_bundle->get_printer_extruder_count();
     const bool                old_prime_tower_enabled = old_full_config.opt_bool("enable_prime_tower");
+    // Smooth-mode timelapse needs a wipe tower even for a single-filament plate, so it
+    // must gate the snapshot/translate logic the same way filament_cnt>1 does.
+    const auto old_timelapse_smooth = []() -> bool {
+        if (auto *opt = wxGetApp().preset_bundle->full_config().option<ConfigOptionEnum<TimelapseType>>("timelapse_type"))
+            return opt->value == TimelapseType::tlSmooth;
+        return false;
+    }();
     for (size_t i = 0; i < old_plate_list.get_plate_count(); ++i) {
         PartPlate                    *plate   = old_plate_list.get_plate(i);
         std::set<std::pair<int, int>> obj_set = plate->get_obj_and_inst_set();
@@ -16324,8 +16331,9 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
         BoundingBoxf3 wt_bbox; // default-constructed: defined=false
         const int     filament_cnt = static_cast<int>(plate->get_extruders().size());
         old_plate_filament_cnt.emplace_back(filament_cnt);
-        // Wipe tower contributes only when prime tower is on and the plate has >1 filament.
-        if (old_prime_tower_enabled && filament_cnt > 1) {
+        // Wipe tower contributes when prime tower is on and (plate has >1 filament
+        // OR smooth-mode timelapse, which needs a tower even for a single filament).
+        if (old_prime_tower_enabled && (filament_cnt > 1 || old_timelapse_smooth)) {
             Vec3d wt_pos, wt_size;
             plate->estimate_wipe_tower_polygon(old_full_config, static_cast<int>(i),
                                                wt_pos, wt_size, old_nozzle_nums, filament_cnt);
@@ -16468,6 +16476,11 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
     const DynamicPrintConfig &new_full_config_for_wt = wxGetApp().preset_bundle->full_config();
     const int new_nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
     const bool new_prime_tower_enabled = new_full_config_for_wt.opt_bool("enable_prime_tower");
+    const bool new_timelapse_smooth = []() -> bool {
+        if (auto *opt = wxGetApp().preset_bundle->full_config().option<ConfigOptionEnum<TimelapseType>>("timelapse_type"))
+            return opt->value == TimelapseType::tlSmooth;
+        return false;
+    }();
 
     for (int i = 0; i < static_cast<int>(plate_object.size()); ++i) {
         std::vector<int> effective_objs;
@@ -16501,7 +16514,7 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
             const BoundingBoxf3 &old_wt  = old_plate_wt_bbox[i];
             Vec3d new_wt_size = Vec3d::Zero();
             const int filament_cnt = old_plate_filament_cnt[i];
-            if (new_prime_tower_enabled && filament_cnt > 1){
+            if (new_prime_tower_enabled && (filament_cnt > 1 || new_timelapse_smooth)){
                 Vec3d new_wt_pos_unused;
                 // use_global_objects=true: per-plate containment isn't reliable yet here,
                 // so scan all objects instead.
@@ -16681,7 +16694,7 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
 
                 Vec3d new_wt_size = old_wt.max - old_wt.min;
                 const int filament_cnt = old_plate_filament_cnt[pt.plate_idx];
-                if (new_prime_tower_enabled && filament_cnt > 1) {
+                if (new_prime_tower_enabled && (filament_cnt > 1 || new_timelapse_smooth)) {
                     Vec3d new_wt_pos_unused;
                     new_plate->estimate_wipe_tower_polygon(new_full_config_for_wt, pt.plate_idx, new_wt_pos_unused, new_wt_size,
                                                             new_nozzle_nums, filament_cnt, /*use_global_objects=*/true);
