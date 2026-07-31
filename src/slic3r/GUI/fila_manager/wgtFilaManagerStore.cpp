@@ -86,6 +86,64 @@ nlohmann::json FilamentSpool::to_json() const
     };
 }
 
+SoftMatchFilamentItem SoftMatchFilamentItem::from_json(const nlohmann::json& j)
+{
+    SoftMatchFilamentItem s;
+    auto get = [&](const char* key, auto& dst) {
+        if (j.contains(key)) j.at(key).get_to(dst);
+    };
+    get("id",              s.id);
+    get("createType",      s.create_type);
+    get("filamentVendor",  s.filament_vendor);
+    get("filamentType",    s.filament_type);
+    get("filamentName",    s.filament_name);
+    get("filamentId",      s.filament_id);
+    get("RFID",            s.rfid);
+    get("color",           s.color);
+    get("colorType",       s.color_type);
+    if (j.contains("colors") && j.at("colors").is_array())
+        j.at("colors").get_to(s.colors);
+    get("netWeight",       s.net_weight);
+    get("totalNetWeight",  s.total_net_weight);
+    get("note",            s.note);
+    get("trayIdName",      s.tray_id_name);
+    get("category",        s.category);
+    get("inPrinter",       s.in_printer);
+    get("devId",           s.dev_id);
+    get("amsSn",           s.ams_sn);
+    get("slotId",          s.slot_id);
+    if (j.contains("amsId") && j.at("amsId").is_number())
+        s.ams_id = j.at("amsId").get<int>();
+    if (j.contains("amsType") && j.at("amsType").is_number())
+        s.ams_type = j.at("amsType").get<int>();
+    if (j.contains("deviceName") && j.at("deviceName").is_string())
+        s.device_name = j.at("deviceName").get<std::string>();
+    get("depleted",        s.depleted);
+    return s;
+}
+
+SoftMatchPendingResponse SoftMatchPendingResponse::from_json(const nlohmann::json& j)
+{
+    SoftMatchPendingResponse r;
+    if (j.contains("hits") && j.at("hits").is_array()) {
+        for (const auto& item : j.at("hits"))
+            r.hits.push_back(SoftMatchFilamentItem::from_json(item));
+    }
+    if (j.contains("candidates") && j.at("candidates").is_array()) {
+        for (const auto& entry : j.at("candidates")) {
+            SoftMatchPendingCandidate c;
+            if (entry.contains("pendingId") && entry.at("pendingId").is_number())
+                c.pending_id = entry.at("pendingId").get<int>();
+            if (entry.contains("candidates") && entry.at("candidates").is_array()) {
+                for (const auto& cand : entry.at("candidates"))
+                    c.candidates.push_back(SoftMatchFilamentItem::from_json(cand));
+            }
+            r.candidates.push_back(std::move(c));
+        }
+    }
+    return r;
+}
+
 FilamentSpool FilamentSpool::from_json(const nlohmann::json& j)
 {
     FilamentSpool s;

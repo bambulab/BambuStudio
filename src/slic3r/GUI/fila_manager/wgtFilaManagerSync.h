@@ -2,8 +2,9 @@
 #define slic3r_wgtFilaManagerSync_h_
 
 #include <map>
-#include <set>
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace Slic3r {
 class MachineObject;
@@ -28,9 +29,10 @@ public:
     // 返回 true 表示有字段被清空（调用方据此决定是否刷 UI）。
     bool on_device_disconnect(const std::string& dev_id, const std::string& dev_name);
 
-    // 用户在新耗材提示弹窗中选择"Not now"后调用。
-    // 在该 uuid 对应的耗材拔出之前，抑制角标重复弹出。
-    void skip_new_filament_hint(const std::string& uuid);
+    // 把待显示的 RFID 新耗材角标通知逐条发给 StatusPanel，并清空队列。
+    // 须在 AMSControl::UpdateAms 完成后（m_ams_item_list 已更新）调用，
+    // 否则 find(ams_id) 会因 item list 尚未重建而静默丢弃。
+    void drain_filament_hints();
 
 private:
     // 匹配一条 AMS tray 到 store 中的 spool。优先复用用户已手动绑定过的
@@ -47,11 +49,6 @@ private:
     static bool slot_pin_still_valid(const FilamentSpool& sp,
                                      const DevAmsTray&    tray);
 
-    void check_new_filament_hint(MachineObject* obj);
-    void notify_new_filament_hint(const std::string& ams_id,
-                                  const std::string& slot_id,
-                                  bool               show);
-
     wgtFilaManagerStore* m_store;
 
     // 追踪每个 AMS 槽位上一轮的 is_exists 状态，用于检测"拔出后重新插入"跳变。
@@ -60,13 +57,17 @@ private:
     // tray_type/tray_color，需主动发 ams_filament_setting 清空使槽位回到 "?"。
     std::map<std::string, bool> m_prev_tray_exists;
 
-    // 用户已选择"Not now"的 tray uuid 集合。
-    // 命中的 uuid 在 check_new_filament_hint 中不触发角标。
-    // 耗材拔出（is_exists=false）时，通过 m_slot_skipped_uuid 反查并移除。
-    std::set<std::string>        m_skipped_uuids;
-    // key 格式与 m_prev_tray_exists 相同；value 为该槽位当前被 skip 的 uuid。
-    std::map<std::string, std::string> m_slot_skipped_uuid;
+    // RFID 耗材自动注册防重发：记录已在 in-flight 中的 UUID，避免同一 MQTT 帧
+    // 连续触发多次 sync_ams 请求。断连时在 on_device_disconnect 中清空。
+    std::set<std::string> m_auto_added_rfid_uuids;
 
+    // 待补发的角标队列：{ams_id, slot_id}。
+    // check_and_register_new_rfid_spools 入队，drain_filament_hints 在
+    // AMSControl::UpdateAms 完成后消费，确保 m_ams_item_list 已重建。
+    std::vector<std::pair<std::string, std::string>> m_pending_hints;
+
+    // 检测 AMS 中尚未存在于本地 store 的官方 RFID 耗材，向云端发 ams/sync 注册。
+    void check_and_register_new_rfid_spools(MachineObject* obj);
 };
 
 }} // namespace Slic3r::GUI

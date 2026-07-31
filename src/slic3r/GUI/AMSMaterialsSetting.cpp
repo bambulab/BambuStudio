@@ -29,6 +29,7 @@
 #include <wx/dcmemory.h>
 #include <wx/graphics.h>
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 
 #define FILAMENT_MAX_TEMP       300
@@ -744,6 +745,87 @@ namespace {
 void remember_ams_recent_filament_preset(
     const wxString& selected);
 
+// ---------------------------------------------------------------------------
+// FilaManagerPromptDialog
+// Shown when the user edits filament type or colour on a slot that was
+// originally bound to a Filament Manager spool.
+// Three vertically-stacked buttons (matches the reference screenshot style):
+//   RESULT_ADD_TO_LIBRARY — green primary
+//   RESULT_SAVE_ONLY      — white secondary
+//   RESULT_CANCEL         — white secondary
+// ---------------------------------------------------------------------------
+class FilaManagerPromptDialog : public DPIDialog
+{
+public:
+    enum Result {
+        RESULT_ADD_TO_LIBRARY = wxID_HIGHEST + 1,
+        RESULT_SAVE_ONLY,
+        RESULT_CANCEL
+    };
+
+    explicit FilaManagerPromptDialog(wxWindow* parent)
+        : DPIDialog(parent, wxID_ANY, _L("Add to Filament Library?"),
+                    wxDefaultPosition, wxDefaultSize,
+                    wxCAPTION | wxCLOSE_BOX)
+    {
+        SetBackgroundColour(*wxWHITE);
+
+        StateColor btn_bg_green(
+            std::pair<wxColour, int>(wxColour(27, 136, 68),  StateColor::Pressed),
+            std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+            std::pair<wxColour, int>(wxColour(0, 174, 66),   StateColor::Normal));
+        StateColor btn_bg_white(
+            std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+            std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+            std::pair<wxColour, int>(*wxWHITE,                StateColor::Normal));
+
+        auto* sizer = new wxBoxSizer(wxVERTICAL);
+
+        // Body text
+        auto* body = new Label(this,
+            _L("Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"));
+        body->SetFont(Label::Body_13);
+        body->Wrap(FromDIP(320));
+        sizer->Add(body, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
+
+        sizer->Add(0, FromDIP(16), 0);
+
+        auto make_btn = [&](const wxString& label, StateColor bg, bool green) -> Button* {
+            auto* btn = new Button(this, label);
+            btn->SetBackgroundColor(bg);
+            btn->SetBorderColor(green ? wxColour(0, 0, 0, 0) : wxColour(38, 46, 48));
+            btn->SetTextColor(green ? wxColour("#FFFFFE") : wxColour(38, 46, 48));
+            btn->SetFont(Label::Body_13);
+            btn->SetMinSize(wxSize(FromDIP(320), FromDIP(40)));
+            btn->SetMaxSize(wxSize(-1, FromDIP(40)));
+            btn->SetCornerRadius(FromDIP(12));
+            return btn;
+        };
+
+        auto* btn_add    = make_btn(_L("Add to Filament Library"), btn_bg_green, true);
+        auto* btn_save   = make_btn(_L("Save Only"),               btn_bg_white, false);
+        auto* btn_cancel = make_btn(_L("Cancel"),                  btn_bg_white, false);
+
+        btn_add->Bind(wxEVT_BUTTON,    [this](wxCommandEvent&){ EndModal(RESULT_ADD_TO_LIBRARY); });
+        btn_save->Bind(wxEVT_BUTTON,   [this](wxCommandEvent&){ EndModal(RESULT_SAVE_ONLY); });
+        btn_cancel->Bind(wxEVT_BUTTON, [this](wxCommandEvent&){ EndModal(RESULT_CANCEL); });
+        Bind(wxEVT_CLOSE_WINDOW,       [this](wxCloseEvent&)  { EndModal(RESULT_CANCEL); });
+
+        sizer->Add(btn_add,    0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+        sizer->Add(0, FromDIP(8), 0);
+        sizer->Add(btn_save,   0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+        sizer->Add(0, FromDIP(8), 0);
+        sizer->Add(btn_cancel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+        sizer->Add(0, FromDIP(20), 0);
+
+        SetSizer(sizer);
+        Fit();
+        CentreOnParent();
+    }
+
+    void on_dpi_changed(const wxRect&) override { Fit(); }
+};
+
 } // namespace
 
 void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
@@ -757,12 +839,155 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
         return;
     }
 
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle) {
+        return;
+    }
+
+    // If the slot was originally bound to a Filament Manager spool, show a
+    // confirmation dialog when the user either switches to a *different* system
+    // preset or changes the colour.  Re-binding to a *different* spool needs no prompt.
+    if (!m_open_spool_id.empty()) {
+        // Switching to a different Filament Manager spool is a pure rebind — skip the prompt.
+        // Staying on the same spool but changing colour/type, or switching to a system preset,
+        // should still prompt.
+        const bool rebinding_to_different_spool =
+            !m_selected_spool_id.empty() && (m_selected_spool_id != m_open_spool_id);
+        if (!rebinding_to_different_spool) {
+            const bool preset_type_changed =
+                m_selected_spool_id.empty() && (ams_filament_id != m_open_filament_id);
+            const bool color_changed = (m_clr_picker->m_colour != m_open_colour);
+            if (preset_type_changed || color_changed) {
+            FilaManagerPromptDialog dlg(this);
+            const int result = dlg.ShowModal();
+            if (result == FilaManagerPromptDialog::RESULT_CANCEL)
+                return;
+            // 对齐前端 normalizePresetFilamentName (buildSpoolFromTray.ts:36-56)：
+            // 按顺序尝试剥离前缀，首次命中即停。两个分支共用。
+            auto compute_series = [](const FilamentBaseInfo& fi) -> std::string {
+                const std::string& original = fi.filament_name;
+                const std::string& vendor   = fi.vendor;
+                std::string        s        = original;
+                auto try_strip = [&s](const std::string& alias) -> bool {
+                    if (alias.empty()) return false;
+                    const std::string prefix = alias + " ";
+                    if (s.size() > prefix.size() && s.compare(0, prefix.size(), prefix) == 0) {
+                        s = s.substr(prefix.size());
+                        return true;
+                    }
+                    return false;
+                };
+                std::string vendor_no_space = vendor;
+                vendor_no_space.erase(
+                    std::remove_if(vendor_no_space.begin(), vendor_no_space.end(),
+                                   [](unsigned char ch) { return std::isspace(ch) != 0; }),
+                    vendor_no_space.end());
+                if (!try_strip(vendor)) {
+                    if (!try_strip(vendor_no_space)) {
+                        if (vendor == "Bambu Lab") try_strip("Bambu");
+                    }
+                }
+                if (s.empty() || s == vendor) s = original;
+                return s;
+            };
+
+            if (result == FilaManagerPromptDialog::RESULT_ADD_TO_LIBRARY) {
+                auto* store = wxGetApp().fila_manager_store();
+                if (store) {
+                    FilamentSpool new_spool;
+                    new_spool.setting_id   = ams_filament_id;
+                    new_spool.entry_method = "manual";
+                    new_spool.color_type   = m_clr_picker->ctype;
+
+                    // Build colour fields — multi-colour or single
+                    for (const auto& c : m_clr_picker->m_cols)
+                        new_spool.colors.push_back(
+                            wxString::Format("#%02X%02X%02X", c.Red(), c.Green(), c.Blue()).ToStdString());
+                    const wxColour& cc = m_clr_picker->m_colour;
+                    new_spool.color_code = wxString::Format("#%02X%02X%02X",
+                                                            cc.Red(), cc.Green(), cc.Blue()).ToStdString();
+                    if (new_spool.colors.empty())
+                        new_spool.colors.push_back(new_spool.color_code);
+
+                    // Filament meta from preset bundle
+                    auto fila_opt = preset_bundle->get_filament_by_filament_id(ams_filament_id);
+                    if (fila_opt) {
+                        new_spool.material_type = fila_opt->filament_type;
+                        new_spool.brand         = fila_opt->vendor;
+                        new_spool.series        = compute_series(*fila_opt);
+                    }
+
+                    // 新建耗材卷默认整卷净重 1000 g，当前净重 1000 g。
+                    // 与前端 buildSpoolFromTray.ts:200-208 的 fallback 保持一致，
+                    // 避免 wgtFilaManagerSync.cpp:161-166 的"缺整卷净重整条冻结"。
+                    // spool_weight (0) 与 remain_percent (100) 保持结构体默认。
+                    new_spool.initial_weight = 1000.0;
+                    new_spool.net_weight     = 1000.0;
+
+                    const std::string new_id = store->add_spool(new_spool);
+
+                    // Async cloud push — fires after this function returns
+                    if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
+                        FilamentSpool spool_for_push = new_spool;
+                        spool_for_push.spool_id = new_id;
+                        disp->enqueue_push_create(spool_for_push);
+                    }
+
+                    // Redirect existing force_mount_spool block to bind the new spool
+                    m_selected_spool_id = new_id;
+                }
+            } else if (result == FilaManagerPromptDialog::RESULT_SAVE_ONLY) {
+                // 耗材绑定关系不变，只把已绑定的 spool 更新为当前界面选择的品牌/类型/颜色。
+                auto* store = wxGetApp().fila_manager_store();
+                if (store) {
+                    nlohmann::json patch;
+                    patch["setting_id"] = ams_filament_id;
+                    patch["color_type"] = m_clr_picker->ctype;
+
+                    std::vector<std::string> cols;
+                    for (const auto& c : m_clr_picker->m_cols)
+                        cols.push_back(wxString::Format("#%02X%02X%02X",
+                                       c.Red(), c.Green(), c.Blue()).ToStdString());
+                    const wxColour& cc2      = m_clr_picker->m_colour;
+                    const std::string cc_hex = wxString::Format("#%02X%02X%02X",
+                                              cc2.Red(), cc2.Green(), cc2.Blue()).ToStdString();
+                    if (cols.empty()) cols.push_back(cc_hex);
+                    patch["color_code"] = cc_hex;
+                    patch["colors"]     = cols;
+
+                    auto fila_opt2 = preset_bundle->get_filament_by_filament_id(ams_filament_id);
+                    if (fila_opt2) {
+                        patch["material_type"] = fila_opt2->filament_type;
+                        patch["brand"]         = fila_opt2->vendor;
+                        patch["series"]        = compute_series(*fila_opt2);
+                    }
+
+                    store->apply_patch(m_open_spool_id, patch);
+
+                    if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
+                        std::string saved_dev_id   = obj->get_dev_id();
+                        std::string saved_spool_id = m_open_spool_id;
+                        disp->enqueue_push_update(m_open_spool_id, patch,
+                            [saved_dev_id, saved_spool_id]() {
+                                if (auto* cloud = wxGetApp().fila_manager_cloud_sync())
+                                    cloud->sync_slot_bindings_to_cloud(saved_dev_id,
+                                                                       {saved_spool_id},
+                                                                       /*is_bind=*/true);
+                            });
+                    }
+                }
+            }
+            } // preset_type_changed || color_changed
+        } // !rebinding_to_different_spool
+    }
+
+    // the combobox item
+    auto filament_item = map_filament_items[into_u8(m_comboBox_filament->GetValue())];
+
     //get filament id
     ams_filament_id = "";
     ams_setting_id = "";
 
-    // the combobox item
-    auto filament_item = map_filament_items[into_u8(m_comboBox_filament->GetValue())];
     // For Filament Manager spool entries the ComboBox text is wxEmptyString, so
     // map_filament_items lookup yields nothing. Re-populate from the spool directly.
     if (!m_selected_spool_id.empty() && filament_item.filament_id.empty()) {
@@ -777,7 +1002,6 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 
 
     // check filament info
-    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     const auto& fila_check_res = sCheckFilamentInfo(preset_bundle, obj, ams_id, slot_id, filament_item.filament_id, ams_filament_id, ams_setting_id);
     bool can_set_fila = fila_check_res.get_items_by_action("prohibition").empty();
 
@@ -1072,9 +1296,6 @@ void AMSMaterialsSetting::on_clr_picker(wxMouseEvent &event)
     if(!m_is_third)
         return;
 
-    if (!m_selected_spool_id.empty())
-        return;
-
     if (obj->is_in_printing() || obj->can_resume()) {
         if (!obj->is_support_filament_setting_inprinting) {
             return;
@@ -1331,10 +1552,14 @@ static wxBitmap _render_spool_row_bitmap(wxWindow* ctx,
     const int text_max_w = std::max(total_w - right_pad - weight_col - text_x, ctx->FromDIP(40));
 
     int remain_g = 0;
-    const double total_net = sp.effective_total_net_weight();
-    if (total_net > 0.0) {
-        const int pct = std::max(0, std::min(100, sp.remain_percent));
-        remain_g = static_cast<int>(total_net * pct / 100.0);
+    if (sp.net_weight > 0.0)
+        remain_g = static_cast<int>(std::round(sp.net_weight));
+    else {
+        const double total_net = sp.effective_total_net_weight();
+        if (total_net > 0.0) {
+            const int pct = std::max(0, std::min(100, sp.remain_percent));
+            remain_g = static_cast<int>(total_net * pct / 100.0);
+        }
     }
     const wxString weight_str = wxString::Format("%dg", remain_g);
 
@@ -1984,19 +2209,14 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     }
     m_comboBox_filament->SetSelection(selection_idx);
 
+    m_snap_taken = false;
     post_select_event(selection_idx);
 
     if (selection_idx < 0) {
         m_comboBox_filament->SetValue(wxEmptyString);
     }
 
-    // Synchronously set the colour picker's editable state so it is correct
-    // before ShowModal() paints the dialog — don't rely on the async posted event.
-    {
-        const bool is_spool = (selection_idx >= 0 &&
-                               m_combo_idx_to_spool_id.count(selection_idx) > 0);
-        m_clr_picker->Enable(!is_spool);
-    }
+    m_clr_picker->Enable(true);
 
     // Set the flag whether to open the filament setting dialog from the device page
     m_comboBox_filament->SetClientData(new int(1));
@@ -2417,8 +2637,6 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         auto it = m_combo_idx_to_spool_id.find(m_filament_selection);
         m_selected_spool_id = (it != m_combo_idx_to_spool_id.end()) ? it->second : std::string{};
     }
-    // Color is owned by the filament manager spool — disable editing.
-    m_clr_picker->Enable(m_selected_spool_id.empty());
 
     //reset cali
     int cali_select_idx = -1;
@@ -2582,6 +2800,13 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
     }
 
     m_comboBox_filament->SetClientData(new int(0));
+
+    if (!m_snap_taken) {
+        m_open_spool_id    = m_selected_spool_id;
+        m_open_colour      = m_clr_picker->m_colour;
+        m_open_filament_id = ams_filament_id;
+        m_snap_taken       = true;
+    }
 }
 
 void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect)
@@ -3159,7 +3384,6 @@ void AMSNewOfficialFilamentDlg::create()
 
     m_radio_record_new    = new RadioBox(this);
     m_radio_link_existing = new RadioBox(this);
-    m_radio_skip          = new RadioBox(this);
 
     auto _row = [&](RadioBox* rb, const wxString& text) {
         auto* row = new wxBoxSizer(wxHORIZONTAL);
@@ -3183,13 +3407,11 @@ void AMSNewOfficialFilamentDlg::create()
     m_combo_link->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED,
                        &AMSNewOfficialFilamentDlg::on_combo_selected, this);
 
-    _row(m_radio_skip, _L("Not now"));
     m_radio_record_new->SetValue(true);
 
     auto select_radio = [this](RadioBox* chosen) {
         m_radio_record_new   ->SetValue(chosen == m_radio_record_new);
         m_radio_link_existing->SetValue(chosen == m_radio_link_existing);
-        m_radio_skip         ->SetValue(chosen == m_radio_skip);
         const bool show_combo = (chosen == m_radio_link_existing);
         GetSizer()->Show(m_combo_row, show_combo, true);
         // Confirm is enabled only when: not in link mode, or a real spool is selected
@@ -3203,9 +3425,6 @@ void AMSNewOfficialFilamentDlg::create()
     });
     m_radio_link_existing->Bind(wxEVT_TOGGLEBUTTON, [this, select_radio](wxCommandEvent&) {
         select_radio(m_radio_link_existing);
-    });
-    m_radio_skip->Bind(wxEVT_TOGGLEBUTTON, [this, select_radio](wxCommandEvent&) {
-        select_radio(m_radio_skip);
     });
 
     auto* btn_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -3223,12 +3442,6 @@ void AMSNewOfficialFilamentDlg::create()
     m_btn_confirm->SetTextColor(wxColour("#FFFFFE"));
     m_btn_confirm->Bind(wxEVT_BUTTON, &AMSNewOfficialFilamentDlg::on_confirm, this);
 
-    m_btn_cancel = new Button(this, _L("Cancel"));
-    m_btn_cancel->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
-    m_btn_cancel->SetCornerRadius(FromDIP(12));
-    m_btn_cancel->Bind(wxEVT_BUTTON, &AMSNewOfficialFilamentDlg::on_cancel, this);
-
-    btn_sizer->Add(m_btn_cancel,  0, wxRIGHT, FromDIP(8));
     btn_sizer->Add(m_btn_confirm, 0);
     sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, FromDIP(12));
 
@@ -3248,21 +3461,23 @@ void AMSNewOfficialFilamentDlg::on_confirm(wxCommandEvent&)
             return;  // nothing selected — keep dialog open
         m_choice = Choice::LinkExisting;
         m_selected_link_spool_id = it->second;
-    } else {
-        m_choice = Choice::Skip;
     }
     EndModal(wxID_OK);
-}
-
-void AMSNewOfficialFilamentDlg::on_cancel(wxCommandEvent&)
-{
-    m_choice = Choice::Skip;
-    EndModal(wxID_CANCEL);
 }
 
 void AMSNewOfficialFilamentDlg::on_combo_selected(wxCommandEvent& evt)
 {
     const int sel = evt.GetSelection();
+
+    // only-hit: lock index 0 — the single hit entry is always selected
+    if (m_only_hit) {
+        m_combo_link->SetSelection(0);
+        m_combo_link->SetIcon("drop_down");
+        auto it0 = m_combo_header_texts.find(0);
+        m_combo_link->SetLabel(it0 != m_combo_header_texts.end() ? it0->second : _L("Please select"));
+        return;
+    }
+
     m_btn_confirm->Enable(m_combo_idx_to_spool_id.count(sel) > 0);
 
     // ComboBox::SetSelection stuffed the 52px row bitmap into the header.
@@ -3270,6 +3485,17 @@ void AMSNewOfficialFilamentDlg::on_combo_selected(wxCommandEvent& evt)
     m_combo_link->SetIcon("drop_down");
     auto it = m_combo_header_texts.find(sel);
     m_combo_link->SetLabel(it != m_combo_header_texts.end() ? it->second : _L("Please select"));
+
+    // sel == 0 是 hit，sel > 0 是 candidate
+    auto id_it = m_combo_idx_to_spool_id.find(sel);
+    if (id_it != m_combo_idx_to_spool_id.end())
+        m_selected_link_spool_id = id_it->second;
+    if (sel > 0 && id_it != m_combo_idx_to_spool_id.end()) {
+        try { m_selected_candidate_id = std::stoi(id_it->second); }
+        catch (...) { m_selected_candidate_id = 0; }
+    } else {
+        m_selected_candidate_id = 0;
+    }
 }
 
 void AMSNewOfficialFilamentDlg::SetTrayContext(MachineObject* obj,
@@ -3279,19 +3505,46 @@ void AMSNewOfficialFilamentDlg::SetTrayContext(MachineObject* obj,
     m_obj     = obj;
     m_ams_id  = ams_id;
     m_slot_id = slot_id;
-    populate_link_combo();
-    // Reset to default state
+
+    // Reset radio state first; combo label/selection is managed by populate_link_combo().
     m_radio_record_new->SetValue(true);
     m_radio_link_existing->SetValue(false);
-    m_radio_skip->SetValue(false);
     GetSizer()->Show(m_combo_row, false, true);
-    m_selected_link_spool_id.clear();
-    // Initial placeholder in the combo header before user picks anything.
-    m_combo_link->SetIcon("drop_down");
-    m_combo_link->SetLabel(_L("Please select"));
     m_btn_confirm->Enable(true);
+
+    populate_link_combo();
+
     Layout();
     Fit();
+}
+
+void AMSNewOfficialFilamentDlg::SetSoftMatchData(const SoftMatchPendingResponse& data)
+{
+    m_soft_match_data = data;
+    populate_link_combo();
+}
+
+static FilamentSpool soft_match_item_to_spool(const SoftMatchFilamentItem& item)
+{
+    FilamentSpool sp;
+    sp.spool_id      = std::to_string(item.id);
+    sp.brand         = item.filament_vendor;
+    sp.material_type = item.filament_type;
+    sp.series        = item.filament_name;
+    sp.color_code    = item.color;
+    if (!sp.color_code.empty() && sp.color_code[0] == '#')
+        sp.color_code = sp.color_code.substr(1);
+    sp.colors        = item.colors;
+    sp.color_type    = item.color_type;
+    sp.net_weight    = item.net_weight;
+    sp.initial_weight = item.total_net_weight;
+    sp.remain_percent = (item.total_net_weight > 0)
+        ? static_cast<int>(item.net_weight * 100.0 / item.total_net_weight)
+        : 100;
+    sp.note         = item.note;
+    sp.tray_id_name = item.tray_id_name;
+    sp.entry_method = item.create_type;
+    return sp;
 }
 
 void AMSNewOfficialFilamentDlg::populate_link_combo()
@@ -3300,80 +3553,216 @@ void AMSNewOfficialFilamentDlg::populate_link_combo()
     m_combo_idx_to_spool_id.clear();
     m_combo_header_texts.clear();
     m_selected_link_spool_id.clear();
-    if (!m_obj) return;
 
-    DevAmsTray* tray = m_obj->get_ams_tray(m_ams_id, m_slot_id);
-    if (!tray) return;
+    // 找当前槽位的 32 位 RFID（tray->uuid）
+    DevAmsTray* tray = (m_obj ? m_obj->get_ams_tray(m_ams_id, m_slot_id) : nullptr);
+    const std::string tray_uuid = (tray && !tray->uuid.empty()) ? tray->uuid : "";
 
-    auto* store = wxGetApp().fila_manager_store();
-    if (!store) return;
-
-    // Normalize tray color: strip leading '#', uppercase 6 hex chars
-    auto normalize_color = [](std::string c) -> std::string {
-        if (!c.empty() && c[0] == '#') c = c.substr(1);
-        std::transform(c.begin(), c.end(), c.begin(), ::toupper);
-        return c.substr(0, std::min<size_t>(6, c.size()));
-    };
-    const std::string tray_color = normalize_color(tray->color);
-
-    // Note: tray->sub_brands actually holds the SERIES name (e.g. "PLA Basic"),
-    // not the brand. Official AMS filaments are always Bambu Lab, so match on
-    // brand="Bambu Lab" + series==tray.sub_brands + material_type + color.
-    std::vector<FilamentSpool> candidates;
-    for (const auto& id : store->all_spool_ids()) {
-        const FilamentSpool* sp = store->get_spool(id);
-        if (!sp) continue;
-        if (sp->in_printer) continue;
-        if (!sp->tag_uid.empty()) continue;
-        if (sp->brand         != "Bambu Lab")            continue;
-        if (sp->series        != tray->sub_brands)       continue;
-        if (sp->material_type != tray->m_fila_type)      continue;
-        if (normalize_color(sp->color_code) != tray_color) continue;
-        candidates.push_back(*sp);
+    // 从软匹配响应中找到命中当前槽位 RFID 的 hit 条目
+    const SoftMatchFilamentItem* hit_item = nullptr;
+    for (const auto& hit : m_soft_match_data.hits) {
+        if (hit.rfid == tray_uuid) { hit_item = &hit; break; }
     }
 
-    // Use the same 52px row-bitmap pattern as _populate_filament_combobox_grouped:
-    // full row rendered into a bitmap (chip + name + note + weight), passed with
-    // wxEmptyString so DropDown row height is driven entirely by iconSize.
-    //
-    // DropDown reserves ~30px on the left of each row for check icon + padding
-    // (DropDown.cpp: rcContent.x += 5, then check_bmp.width + 5 more). Subtract
-    // that from the bitmap width so the right-aligned weight column is not clipped.
+    if (!hit_item) {
+        m_combo_link->Append(_L("No matching filament"), wxNullBitmap, DD_ITEM_STYLE_DISABLED);
+        m_combo_link->SetIcon("drop_down");
+        m_combo_link->SetLabel(_L("Please select"));
+        m_combo_link->Enable(false);
+        m_hit_spool_id          = 0;
+        m_selected_candidate_id = 0;
+        m_only_hit              = false;
+        return;
+    }
+
+    // 找该 hit 对应的 candidates
+    const std::vector<SoftMatchFilamentItem>* cands = nullptr;
+    for (const auto& cand_entry : m_soft_match_data.candidates) {
+        if (cand_entry.pending_id == hit_item->id) {
+            cands = &cand_entry.candidates;
+            break;
+        }
+    }
+
+    // 构建待展示列表：hit 在前，candidates 在后
+    std::vector<const SoftMatchFilamentItem*> items;
+    items.push_back(hit_item);
+    if (cands) {
+        for (const auto& c : *cands) items.push_back(&c);
+    }
+
+    // DropDown reserves ~30px on the left of each row for check icon + padding.
     const int check_reserve = m_combo_link->FromDIP(30);
     const int row_width = std::max(
         m_combo_link->GetSize().GetWidth() - check_reserve,
         m_combo_link->FromDIP(230));
 
-    if (candidates.empty()) {
-        m_combo_link->Append(_L("No matching filament"), wxNullBitmap, DD_ITEM_STYLE_DISABLED);
-        return;
-    }
-
-    for (const auto& sp : candidates) {
+    for (const auto* item : items) {
+        FilamentSpool sp = soft_match_item_to_spool(*item);
         bool note_truncated = false;
         wxBitmap row_bmp = _render_spool_row_bitmap(m_combo_link, sp, row_width,
                                                     /*dimmed=*/false, &note_truncated);
         int idx = m_combo_link->Append(wxEmptyString, row_bmp);
         if (idx < 0) continue;
-        m_combo_idx_to_spool_id[idx] = sp.spool_id;
+        m_combo_idx_to_spool_id[idx] = std::to_string(item->id);
 
-        // If the note was truncated to fit the row, expose the full text via tooltip.
-        if (note_truncated && !sp.note.empty()) {
+        if (note_truncated && !item->note.empty())
             m_combo_link->SetItemTooltip(static_cast<unsigned int>(idx),
-                _L("Remark") + ": " + wxString::FromUTF8(sp.note));
-        }
+                _L("Remark") + ": " + wxString::FromUTF8(item->note));
 
         // Header text shown in the combo box when this item is selected.
-        wxString header = _spool_display_name(sp);
-        const double total_nw = sp.effective_total_net_weight();
-        if (total_nw > 0.0) {
-            const int remain_g = static_cast<int>(
-                total_nw * std::max(0, std::min(100, sp.remain_percent)) / 100.0);
-            if (remain_g > 0)
-                header += wxString::Format("  %dg", remain_g);
-        }
+        wxString header = wxString::FromUTF8(item->filament_name);
+        if (item->net_weight > 0)
+            header += wxString::Format("  %.0fg", item->net_weight);
         m_combo_header_texts[idx] = header;
     }
+
+    // 记录 hit 的云端 id
+    m_hit_spool_id          = hit_item->id;
+    m_selected_candidate_id = 0;
+    m_only_hit              = (cands == nullptr || cands->empty());
+
+    // 预选 hit（items[0] 就是 hit，对应 combo index 0）
+    if (m_combo_link->GetCount() > 0) {
+        m_combo_link->SetSelection(0);
+        m_combo_link->SetIcon("drop_down");
+        auto it0 = m_combo_header_texts.find(0);
+        m_combo_link->SetLabel(
+            it0 != m_combo_header_texts.end() ? it0->second : _L("Please select"));
+        auto id0 = m_combo_idx_to_spool_id.find(0);
+        if (id0 != m_combo_idx_to_spool_id.end())
+            m_selected_link_spool_id = id0->second;
+    }
+
+    // only-hit 时下拉框仍可展开查看，但 on_combo_selected 会锁定 index 0 不变
+    m_combo_link->Enable(true);
+}
+
+// ---- AMSNewFilamentRecordedDlg ------------------------------------------
+
+AMSNewFilamentRecordedDlg::AMSNewFilamentRecordedDlg(wxWindow* parent,
+                                                     const FilamentSpool& sp)
+    : DPIDialog(parent, wxID_ANY, _L("New Filament"),
+                wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+    create(sp);
+    wxGetApp().UpdateDlgDarkUI(this);
+}
+
+void AMSNewFilamentRecordedDlg::create(const FilamentSpool& sp)
+{
+    SetBackgroundColour(*wxWHITE);
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
+
+    // Info text
+    auto* label = new wxStaticText(this, wxID_ANY,
+        _L("New filament information has been recorded."),
+        wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    label->Wrap(FromDIP(380));
+    sizer->Add(label, 0, wxALL, FromDIP(12));
+
+    // Card bitmap: color chip + name/weight row + note row
+    {
+        const int pad_x     = FromDIP(8);
+        const int pad_y     = FromDIP(6);
+        const int icon_px   = FromDIP(36);
+        const int gap       = FromDIP(8);
+        const int row_h     = FromDIP(52);
+        const int line_h    = FromDIP(20);
+        const int right_pad = FromDIP(12);
+        const int card_w    = FromDIP(280);
+        const int total_w   = std::max(card_w, FromDIP(240));
+        const int total_h   = row_h;
+
+        wxBitmap bmp(total_w, total_h);
+        wxMemoryDC dc(bmp);
+        const bool dark_mode = wxGetApp().dark_mode();
+        dc.SetBackground(wxBrush(dark_mode ? wxColour(0x2D, 0x2D, 0x31) : *wxWHITE));
+        dc.Clear();
+        dc.SetPen(*wxTRANSPARENT_PEN);
+
+        // Color chip
+        wxBitmap chip = _make_spool_color_chip(this, sp);
+        if (chip.IsOk())
+            dc.DrawBitmap(chip, pad_x, (total_h - icon_px) / 2, true);
+
+        const int text_x     = pad_x + icon_px + gap;
+        const int weight_col = FromDIP(60);
+        const int text_max_w = std::max(total_w - right_pad - weight_col - text_x, FromDIP(40));
+        const int top_y      = pad_y;
+        const int bottom_y   = pad_y + line_h;
+
+        // Compute weight string: prefer net_weight (already set to remain_g or estimated)
+        int remain_g = 0;
+        if (sp.net_weight > 0.0) {
+            remain_g = static_cast<int>(sp.net_weight);
+        } else {
+            const double total_net = sp.effective_total_net_weight();
+            if (total_net > 0.0) {
+                const int pct = std::max(0, std::min(100, sp.remain_percent));
+                remain_g = static_cast<int>(total_net * pct / 100.0);
+            }
+        }
+        const wxString weight_str = wxString::Format("%dg", remain_g);
+
+        // Name (top row, left)
+        wxFont name_font = ::Label::Body_14;
+        dc.SetFont(name_font);
+        dc.SetTextForeground(dark_mode ? wxColour(0xE5, 0xE5, 0xE6) : wxColour(0x26, 0x2E, 0x30));
+        wxString name = _spool_display_name(sp);
+        if (dc.GetTextExtent(name).GetWidth() > text_max_w)
+            name = wxControl::Ellipsize(name, dc, wxELLIPSIZE_END, text_max_w);
+        dc.DrawText(name, text_x, top_y);
+
+        // Weight (top row, right-aligned)
+        const wxSize w_sz = dc.GetTextExtent(weight_str);
+        dc.DrawText(weight_str, total_w - right_pad - w_sz.GetWidth(), top_y);
+
+        // Note (bottom row) — always show, empty note renders as "Remark: --"
+        wxFont note_font = ::Label::Body_14;
+        note_font.SetPointSize(std::max(8, note_font.GetPointSize() - 2));
+        dc.SetFont(note_font);
+        dc.SetTextForeground(dark_mode ? wxColour(0xC0, 0xC0, 0xC0) : wxColour(0x90, 0x90, 0x90));
+        wxString note = _spool_note_line(sp);
+        const int note_max_w = std::max(total_w - text_x - right_pad, FromDIP(40));
+        if (dc.GetTextExtent(note).GetWidth() > note_max_w)
+            note = wxControl::Ellipsize(note, dc, wxELLIPSIZE_END, note_max_w);
+        dc.DrawText(note, text_x, bottom_y);
+
+        // Rounded border — inset by 0.5px so the stroke stays inside the bitmap
+        if (wxGraphicsContext* gc = wxGraphicsContext::Create(dc)) {
+            gc->SetPen(wxPen(dark_mode ? wxColour(0x50, 0x50, 0x54) : wxColour(0xD0, 0xD0, 0xD0),
+                             FromDIP(1)));
+            gc->SetBrush(*wxTRANSPARENT_BRUSH);
+            gc->DrawRoundedRectangle(0.5, 0.5, total_w - 1.0, total_h - 1.0, FromDIP(6));
+            delete gc;
+        }
+
+        dc.SelectObject(wxNullBitmap);
+        auto* bmp_ctrl = new wxStaticBitmap(this, wxID_ANY, bmp);
+        sizer->Add(bmp_ctrl, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(12));
+    }
+
+    // OK button
+    auto* btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+    btn_sizer->AddStretchSpacer();
+    auto* btn_ok = new Button(this, _L("OK"));
+    btn_ok->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+    btn_ok->SetCornerRadius(FromDIP(12));
+    btn_ok->SetBackgroundColor(StateColor(
+        std::pair<wxColour, int>(wxColour(27, 136, 68),  StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66),   StateColor::Normal)
+    ));
+    btn_ok->SetBorderColor(wxColour(0, 174, 66));
+    btn_ok->SetTextColor(wxColour("#FFFFFE"));
+    btn_ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_OK); });
+    btn_sizer->Add(btn_ok, 0);
+    sizer->Add(btn_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(12));
+
+    SetSizer(sizer);
+    Fit();
+    Centre();
 }
 
 }} // namespace Slic3r::GUI

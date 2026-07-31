@@ -388,9 +388,17 @@ void DropDown::render(wxDC &dc)
         // it already contains all text; skip drawing text on top to avoid duplicates.
         const bool icon_fills_row = !is_top_level_group && icon.IsOk()
                                     && size2.y > textSize.y * 2;
+        auto strip_brand_prefix = [](const wxString &text, const wxString &grp) -> wxString {
+            if (grp.EndsWith(' ')) return text;
+            wxString prefix = grp.BeforeFirst(' ');
+            if (prefix.IsEmpty()) prefix = grp;
+            if (text.StartsWith(prefix))
+                return text.substr(prefix.size()).Trim(false);
+            return text;
+        };
         auto text = group.IsEmpty()
                         ? (item.group.IsEmpty() ? item.text : item.group)
-                        : (item.text.StartsWith(group) && !group.EndsWith(' ') ? item.text.substr(group.size()).Trim(false) : item.text);
+                        : strip_brand_prefix(item.text, group);
         if (!text_off && !text.IsEmpty() && !icon_fills_row) {
             wxSize tSize = dc.GetMultiLineTextExtent(text);
             if (pt.x + tSize.x > rcContent.GetRight()) {
@@ -500,9 +508,17 @@ void DropDown::messureSize()
         ++count;
         wxSize size1;
         if (!text_off) {
+            auto strip_brand_prefix = [](const wxString &text, const wxString &grp) -> wxString {
+                if (grp.EndsWith(' ')) return text;
+                wxString prefix = grp.BeforeFirst(' ');
+                if (prefix.IsEmpty()) prefix = grp;
+                if (text.StartsWith(prefix))
+                    return text.substr(prefix.size()).Trim(false);
+                return text;
+            };
             auto text = group.IsEmpty()
                         ? (item.group.IsEmpty() ? item.text : item.group)
-                        : (item.text.StartsWith(group) && !group.EndsWith(' ') ? item.text.substr(group.size()).Trim(false) : item.text);
+                        : strip_brand_prefix(item.text, group);
             size1 = dc.GetMultiLineTextExtent(text);
             if (group.IsEmpty() && !item.group.IsEmpty())
                 size1.x += 5 + arrow_bitmap.GetBmpWidth();

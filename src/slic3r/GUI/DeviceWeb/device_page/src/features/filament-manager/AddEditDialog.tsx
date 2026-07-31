@@ -422,8 +422,12 @@ export function AddEditDialog({
   //   选项直接显示云端 `get_filament_config` 返回的 filamentName 完整名
   //   （例如 "PLA Basic" / "PETG Translucent" / "PLA-S Support For PLA/PETG"）。
   //   这样下拉值与云端创建/更新耗材接口的 filamentName 字段语义一致，不再
-  //   依赖本地 preset 的 "type + series[]" 拼接。本地 preset 仅作为云端
-  //   config 尚未拉回来时的 fallback 兜底。
+  //   依赖本地 preset 的 "type + series[]" 拼接。
+  //   数据源为「云端 filamentSettings ∪ 本地 PresetBundle（含用户自定义
+  //   preset，STUDIO-18110 之后由 build_preset_options 附带 is_user 输出）」，
+  //   由共享 Set<string> 去重。这样云端未覆盖但用户已建的类型（例如自定义
+  //   eSUN PLA Basic / PLA Matte）也能出现在下拉里；纯官方品牌因命名对齐，
+  //   Set 折叠后与旧行为一致。
   const typeSeriesOptions = useMemo<string[]>(() => {
     const set = new Set<string>();
 

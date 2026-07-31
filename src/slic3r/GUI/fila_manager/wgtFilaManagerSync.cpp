@@ -1,6 +1,7 @@
 #include "wgtFilaManagerSync.h"
 #include "wgtFilaManagerStore.h"
 #include "wgtFilaManagerCloudSync.h"
+#include "wgtFilaManagerCloudClient.h"
 #include "wgtFilaManagerCloudDispatcher.h"
 #include "AmsAutoPushThrottle.h"
 
@@ -9,9 +10,6 @@
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceManager.hpp"
-#include "slic3r/GUI/MainFrame.hpp"
-#include "slic3r/GUI/Monitor.hpp"
-#include "slic3r/GUI/StatusPanel.hpp"
 
 #include <wx/app.h>
 #include <boost/log/trivial.hpp>
@@ -52,8 +50,102 @@ bool wgtFilaManagerSync::on_device_update(MachineObject* obj)
 {
     if (!obj || !m_store) return false;
     if (!obj->is_online()) return false;  // 离线不处理，保留在位字段
-    check_new_filament_hint(obj);
+    check_and_register_new_rfid_spools(obj);
     return sync_all_trays(obj);
+}
+
+void wgtFilaManagerSync::check_and_register_new_rfid_spools(MachineObject* obj)
+{
+    if (!obj || !m_store) return;
+
+    auto* disp = wxGetApp().fila_manager_cloud_disp();
+    const bool pull_ready = !disp || (!disp->last_synced_at().empty() && !disp->is_pulling());
+    if (!pull_ready) return;
+
+    auto fila_sys = obj->GetFilaSystem();
+    if (!fila_sys) return;
+
+    for (auto& [ams_id_key, ams_ptr] : fila_sys->GetAmsList()) {
+        if (!ams_ptr || !ams_ptr->IsExist()) continue;
+        for (auto& [slot_id_key, tray] : ams_ptr->GetTrays()) {
+            if (!tray) continue;
+            if (tray->tag_uid.size() != 16 || tray->tag_uid.substr(12, 2) != "01")
+                continue;
+            const std::string& uuid = tray->uuid;
+            if (!FilamentSpool::is_valid_tag_uid(uuid)) continue;
+            if (m_store->find_by_tag_uid(uuid) != nullptr) {
+                m_auto_added_rfid_uuids.erase(uuid);  // keep set in sync so delete+reinsert re-triggers
+                continue;
+            }
+            if (m_auto_added_rfid_uuids.count(uuid)) continue;
+
+            m_auto_added_rfid_uuids.insert(uuid);
+
+            BBL::AmsSyncItem sync_item;
+            sync_item.RFID         = uuid;
+            sync_item.filamentId   = tray->setting_id;
+            sync_item.filamentType = tray->m_fila_type;
+            sync_item.filamentName = tray->sub_brands;
+            {
+                std::string color = tray->color;
+                if (!color.empty() && color[0] != '#') color = "#" + color;
+                sync_item.color = color;
+            }
+            sync_item.colorType       = static_cast<int>(tray->ctype);
+            sync_item.colors          = tray->cols;
+            sync_item.netWeight       = tray->get_filament_remain_weight().value_or(0);
+            try { sync_item.totalNetWeight = std::stoi(tray->weight); } catch (...) {}
+            sync_item.trayIdName      = tray->tray_id_name;
+            sync_item.slotId          = slot_id_key;
+            try { sync_item.amsId = std::stoi(ams_id_key); } catch (...) {}
+            sync_item.amsType         = static_cast<int>(tray->ams_type);
+            if (auto* bundle = wxGetApp().preset_bundle) {
+                auto info = bundle->get_filament_by_filament_id(tray->setting_id);
+                if (info.has_value()) sync_item.filamentVendor = info->vendor;
+            }
+            {
+                const auto ver_map = obj->get_ams_version();
+                auto ver_it = ver_map.find(sync_item.amsId);
+                if (ver_it != ver_map.end()) sync_item.amsSn = ver_it->second.sn;
+            }
+
+            BBL::AmsSyncParams params;
+            params.devId = obj->get_dev_id();
+            params.items.push_back(std::move(sync_item));
+
+            // 入队：角标须等 AMSControl::UpdateAms 完成（m_ams_item_list 已重建）
+            // 后再发，否则切机时 find(ams_id) 会因 item list 未更新而静默丢弃。
+            // drain_filament_hints() 在 StatusPanel::update_ams 调 UpdateAms 之后调用。
+            m_pending_hints.emplace_back(ams_id_key, slot_id_key);
+
+            wgtFilaManagerCloudClient client;
+            client.sync_ams(std::move(params),
+                [this, uuid](const nlohmann::json&) {
+                    wxGetApp().CallAfter([this, uuid]() {
+                        m_auto_added_rfid_uuids.erase(uuid);
+                        // Pull the newly created spool back so find_by_tag_uid
+                        // succeeds on the next AMS update and the badge does not reappear.
+                        if (auto* d = wxGetApp().fila_manager_cloud_disp())
+                            d->enqueue_pull();
+                    });
+                },
+                [uuid](int code, const std::string& err) {
+                    BOOST_LOG_TRIVIAL(warning)
+                        << "[auto_add_rfid] sync_ams failed uuid=" << uuid
+                        << " code=" << code << " err=" << err;
+                    // uuid stays in m_auto_added_rfid_uuids; no retry until reconnect
+                });
+        }
+    }
+}
+
+void wgtFilaManagerSync::drain_filament_hints()
+{
+    if (m_pending_hints.empty()) return;
+    auto hints = std::move(m_pending_hints);
+    m_pending_hints.clear();
+    for (const auto& [ams_id, slot_id] : hints)
+        wxGetApp().notify_new_rfid_filament(ams_id, slot_id);
 }
 
 bool wgtFilaManagerSync::on_device_disconnect(const std::string& dev_id,
@@ -69,6 +161,9 @@ bool wgtFilaManagerSync::on_device_disconnect(const std::string& dev_id,
         else
             ++it;
     }
+    // 清空 RFID 自动注册防重发集合，确保重连后同一耗材能再次触发注册。
+    m_auto_added_rfid_uuids.clear();
+    m_pending_hints.clear();
     // 空 present_now → was_our_hold 的 spool 全部清字段
     const std::map<std::string, MountUpdate> empty;
     return m_store->apply_mount_diff(dev_id, dev_name, empty);
@@ -372,68 +467,6 @@ bool wgtFilaManagerSync::slot_pin_still_valid(const FilamentSpool& sp,
     }
 
     return true;
-}
-
-void wgtFilaManagerSync::check_new_filament_hint(MachineObject* obj)
-{
-    if (!obj || !m_store) return;
-    auto fila_sys = obj->GetFilaSystem();
-    if (!fila_sys) return;
-
-    const std::string dev_id = obj->get_dev_id();
-
-    for (auto& [ams_id, ams] : fila_sys->GetAmsList()) {
-        if (!ams) continue;
-        for (auto& [slot_id, tray] : ams->GetTrays()) {
-            if (!tray) continue;
-            const std::string key = dev_id + ":" + ams_id + ":" + tray->id;
-
-            if (!tray->is_exists || !DevFilaSystem::IsBBL_Filament(tray->tag_uid)) {
-                // 耗材拔出时，清除该槽位的 skip 记录，让下次插入重新评估
-                auto it = m_slot_skipped_uuid.find(key);
-                if (it != m_slot_skipped_uuid.end()) {
-                    m_skipped_uuids.erase(it->second);
-                    m_slot_skipped_uuid.erase(it);
-                }
-                notify_new_filament_hint(ams_id, tray->id, false);
-                continue;
-            }
-
-            // RFID 尚未读取完成，不作判断，等下次 tick
-            if (tray->remain_fetch_status == DevAmsTray::RemainFetchStatus::Refreshing ||
-                tray->remain_fetch_status == DevAmsTray::RemainFetchStatus::Initializing)
-                continue;
-
-            if (tray->uuid.empty()) continue;
-
-            // 用户已对该卷选择"Not now"，在拔出前抑制角标
-            if (m_skipped_uuids.count(tray->uuid)) {
-                m_slot_skipped_uuid[key] = tray->uuid;  // 记录反向映射，供拔出时清除
-                continue;
-            }
-
-            const bool not_in_store = m_store->find_by_tag_uid(tray->uuid) == nullptr;
-            notify_new_filament_hint(ams_id, tray->id, not_in_store);
-        }
-    }
-}
-
-void wgtFilaManagerSync::skip_new_filament_hint(const std::string& uuid)
-{
-    if (uuid.empty()) return;
-    m_skipped_uuids.insert(uuid);
-}
-
-void wgtFilaManagerSync::notify_new_filament_hint(const std::string& ams_id,
-                                                   const std::string& slot_id,
-                                                   bool               show)
-{
-    wxGetApp().CallAfter([ams_id, slot_id, show]() {
-        auto* mf = wxGetApp().mainframe;
-        if (!mf || !mf->m_monitor) return;
-        auto* panel = mf->m_monitor->get_status_panel();
-        if (panel) panel->set_ams_new_filament_hint(ams_id, slot_id, show);
-    });
 }
 
 }} // namespace Slic3r::GUI

@@ -11,6 +11,8 @@
 #include "BitmapCache.hpp"
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
+#include "fila_manager/wgtFilaManagerCloudClient.h"
+#include "fila_manager/wgtFilaManagerStore.h"
 #include <wx/weakref.h>
 #ifdef __APPLE__
 #include "CameraFullscreenMac.hpp"
@@ -3906,6 +3908,8 @@ void StatusPanel::update_extruder_status(MachineObject *obj)
     if (!obj) return;
 }
 
+static nlohmann::json build_ams_tray_batch_create(DevAmsTray* tray, const std::string& ams_id, MachineObject* obj);
+
 void StatusPanel::update_ams(MachineObject *obj)
 {
     // update obj in sub dlg
@@ -3946,7 +3950,8 @@ void StatusPanel::update_ams(MachineObject *obj)
         last_tray_is_bbl_bits = -1;
         last_read_done_bits   = -1;
         last_reading_bits     = -1;
-        last_ams_version      = -1;
+        m_task_lock_setup_handled_dev_id.clear();
+        m_task_lock_verify_handled_dev_id.clear();
         BOOST_LOG_TRIVIAL(trace) << "machine object" << BBLCrossTalk::Crosstalk_DevName(obj->get_dev_name()) << " was disconnected, set show_ams_group is false";
 
         m_ams_control->SetAmsModel(DevAmsType::EXT_SPOOL, ams_mode);
@@ -3990,6 +3995,10 @@ void StatusPanel::update_ams(MachineObject *obj)
     // must select a current can
     m_ams_control->UpdateAms(obj->get_printer_series_str(), obj->printer_type, ams_info, ext_info, *obj->GetExtderSystem(), obj->get_dev_id(), obj, false);
     m_ams_control->UpdateAmsDryControl(obj);
+
+    // m_ams_item_list 已由 UpdateAms 重建完毕，此时可安全补发 RFID 新耗材角标。
+    if (auto* sync = wxGetApp().fila_manager_sync())
+        sync->drain_filament_hints();
 
     last_tray_exist_bits  = obj->tray_exist_bits;
     last_ams_exist_bits   = obj->ams_exist_bits;
@@ -4060,11 +4069,12 @@ void StatusPanel::update_ams(MachineObject *obj)
     update_ams_control_state(curr_ams_id, curr_can_id);
 }
 
-void sGetSwitchInfo(MachineObject* obj,
-                    const std::string& ams_id,
-                    const std::string& slot_id,
-                    wxString& load_error_info,
-                    wxString& unload_error_info)
+void StatusPanel::show_ams_filament_hint(const std::string& ams_id, const std::string& slot_id)
+{
+    if (m_ams_control) m_ams_control->show_filament_hint(ams_id, slot_id);
+}
+
+void sGetSwitchInfo(MachineObject *obj, const std::string &ams_id, const std::string &slot_id, wxString &load_error_info, wxString &unload_error_info)
 {
 
     load_error_info.clear();
@@ -5230,6 +5240,63 @@ static nlohmann::json build_ams_tray_batch_create(DevAmsTray* tray,
     return body;
 }
 
+void StatusPanel::show_new_official_filament_dlg(
+    const std::string& ams_id, const std::string& slot_id)
+{
+    int rc = m_new_official_filament_dlg->ShowModal();
+    if (rc == wxID_OK) {
+        m_ams_control->dismiss_filament_hint(ams_id, slot_id);
+        auto choice = m_new_official_filament_dlg->GetChoice();
+        if (choice == AMSNewOfficialFilamentDlg::Choice::LinkExisting) {
+            const int hit_id  = m_new_official_filament_dlg->GetHitSpoolId();
+            const int cand_id = m_new_official_filament_dlg->GetSelectedCandidateId();
+            if (hit_id > 0) {
+                wgtFilaManagerCloudClient client;
+                BBL::SoftMatchPendingActionParams p;
+                p.spoolId = hit_id;
+                if (cand_id > 0 && cand_id != hit_id) {
+                    // 用户改选了 candidate → link_other
+                    p.action        = "link_other";
+                    p.targetSpoolId = cand_id;
+                } else {
+                    // 用户保留 hit（无 candidate 或未改选）→ accept
+                    p.action = "accept";
+                }
+                const std::string action = p.action;
+                client.post_soft_match_pending(p,
+                    [action](const nlohmann::json&) {
+                        BOOST_LOG_TRIVIAL(info)
+                            << "[soft_match_pending] " << action << " success";
+                    },
+                    [action](int code, const std::string& err) {
+                        BOOST_LOG_TRIVIAL(warning)
+                            << "[soft_match_pending] " << action << " failed code=" << code
+                            << " err=" << err;
+                    });
+            }
+        }
+        if (choice == AMSNewOfficialFilamentDlg::Choice::RecordNew) {
+            const int hit_id = m_new_official_filament_dlg->GetHitSpoolId();
+            if (hit_id > 0) {
+                wgtFilaManagerCloudClient client;
+                BBL::SoftMatchPendingActionParams p;
+                p.action  = "create_new";
+                p.spoolId = hit_id;
+                // targetSpoolId 保持默认 0，不传
+                client.post_soft_match_pending(p,
+                    [](const nlohmann::json&) {
+                        BOOST_LOG_TRIVIAL(info) << "[soft_match_pending] create_new success";
+                    },
+                    [](int code, const std::string& err) {
+                        BOOST_LOG_TRIVIAL(warning)
+                            << "[soft_match_pending] create_new failed code=" << code
+                            << " err=" << err;
+                    });
+            }
+        }
+    }
+}
+
 void StatusPanel::on_new_official_filament_hint(wxCommandEvent &event)
 {
     std::string ams_id  = std::to_string(event.GetInt());
@@ -5239,53 +5306,81 @@ void StatusPanel::on_new_official_filament_hint(wxCommandEvent &event)
         m_new_official_filament_dlg = new AMSNewOfficialFilamentDlg(this);
     m_new_official_filament_dlg->SetTrayContext(obj, ams_id, slot_id);
 
-    int rc = m_new_official_filament_dlg->ShowModal();
-    if (rc == wxID_OK) {
-        m_ams_control->dismiss_filament_hint(ams_id, slot_id);
-        auto choice = m_new_official_filament_dlg->GetChoice();
-        if (choice == AMSNewOfficialFilamentDlg::Choice::Skip) {
-            DevAmsTray* tray = obj ? obj->get_ams_tray(ams_id, slot_id) : nullptr;
-            if (tray && !tray->uuid.empty()) {
-                if (auto* sync = wxGetApp().fila_manager_sync())
-                    sync->skip_new_filament_hint(tray->uuid);
-            }
-        }
-        if (choice == AMSNewOfficialFilamentDlg::Choice::RecordNew ||
-            choice == AMSNewOfficialFilamentDlg::Choice::LinkExisting) {
+    if (!obj) {
+        show_new_official_filament_dlg(ams_id, slot_id);
+        return;
+    }
 
-            auto* mf = wxGetApp().mainframe;
-            if (mf && mf->web_device() && obj) {
-                DevAmsTray* tray = obj->get_ams_tray(ams_id, slot_id);
-                if (tray) {
-                    if (choice == AMSNewOfficialFilamentDlg::Choice::RecordNew) {
-                        mf->web_device()->DispatchCommand(
-                            build_ams_tray_batch_create(tray, ams_id, obj));
-                    } else {
-                        const std::string old_id =
-                            m_new_official_filament_dlg->GetSelectedLinkSpoolId();
-                        if (!old_id.empty()) {
-                            // Delete the old no-RFID spool
-                            nlohmann::json del_body;
-                            del_body["module"]  = "filament";
-                            del_body["submod"]  = "spool";
-                            del_body["action"]  = "remove";
-                            del_body["payload"] = {{"spool_id", old_id}};
-                            mf->web_device()->DispatchCommand(del_body);
-                            // Re-add with RFID from AMS tray
-                            mf->web_device()->DispatchCommand(
-                                build_ams_tray_batch_create(tray, ams_id, obj));
-                        }
+    std::string ams_sn;
+    int ams_id_int = -1;
+    try { ams_id_int = std::stoi(ams_id); } catch (...) {}
+    if (ams_id_int >= 0) {
+        const auto ams_ver_map = obj->get_ams_version();
+        auto ver_it = ams_ver_map.find(ams_id_int);
+        if (ver_it != ams_ver_map.end())
+            ams_sn = ver_it->second.sn;
+    }
+
+    wgtFilaManagerCloudClient client;
+    BBL::SoftMatchPendingParams p;
+    p.devId = obj->get_dev_id();
+    p.amsSn = ams_sn;
+    client.get_soft_match_pending(p,
+        [this, ams_id, slot_id](const nlohmann::json& data) {
+            m_soft_match_pending = SoftMatchPendingResponse::from_json(data);
+            BOOST_LOG_TRIVIAL(info)
+                << "[soft_match_pending] parsed: hits=" << m_soft_match_pending.hits.size()
+                << " candidates=" << m_soft_match_pending.candidates.size();
+
+            DevAmsTray* tray = obj ? obj->get_ams_tray(ams_id, slot_id) : nullptr;
+            std::string tray_rfid = (tray && !tray->uuid.empty()) ? tray->uuid : "";
+
+            bool hit_matches_slot = false;
+            if (!tray_rfid.empty()) {
+                for (const auto& hit : m_soft_match_pending.hits) {
+                    if (hit.rfid == tray_rfid) {
+                        hit_matches_slot = true;
+                        break;
                     }
                 }
             }
-        }
-    }
-}
 
-void StatusPanel::set_ams_new_filament_hint(const std::string& ams_id, const std::string& slot_id, bool show)
-{
-    if (m_ams_control)
-        m_ams_control->set_new_filament_hint(ams_id, slot_id, show);
+            if (m_soft_match_pending.hits.empty() || !hit_matches_slot) {
+                // 情况一：云端已自动创建，或当前槽位耗材不在待匹配队列
+                FilamentSpool display_sp;
+                if (tray) {
+                    display_sp.series        = tray->sub_brands;
+                    display_sp.material_type = tray->get_display_filament_type();
+                    display_sp.color_name    = {};
+                    display_sp.color_code = (!tray->color.empty() && tray->color[0] == '#')
+                                            ? tray->color.substr(1) : tray->color;
+                    display_sp.colors     = tray->cols;
+                    display_sp.color_type = static_cast<int>(tray->ctype);
+                    if (tray->remain_g >= 0) {
+                        display_sp.net_weight     = tray->remain_g;
+                        display_sp.remain_percent = 100;
+                    } else {
+                        double total_w = 0.0;
+                        try { total_w = std::stod(tray->weight); } catch (...) {}
+                        if (total_w > 0.0)
+                            display_sp.net_weight = total_w * tray->remain / 100.0;
+                        display_sp.remain_percent = tray->remain;
+                    }
+                }
+                AMSNewFilamentRecordedDlg dlg(this, display_sp);
+                dlg.ShowModal();
+                m_ams_control->dismiss_filament_hint(ams_id, slot_id);
+            } else {
+                // 情况二/三：有待匹配条目，让用户选择处理方式
+                m_new_official_filament_dlg->SetSoftMatchData(m_soft_match_pending);
+                show_new_official_filament_dlg(ams_id, slot_id);
+            }
+        },
+        [this, ams_id, slot_id](int code, const std::string& err) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "[soft_match_pending] GET failed code=" << code << " err=" << err;
+            show_new_official_filament_dlg(ams_id, slot_id);
+        });
 }
 
 void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)

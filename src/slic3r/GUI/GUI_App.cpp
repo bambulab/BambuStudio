@@ -3666,6 +3666,13 @@ bool GUI_App::on_init_inner()
     return true;
 }
 
+void GUI_App::notify_new_rfid_filament(const std::string& ams_id, const std::string& slot_id)
+{
+    if (!mainframe || !mainframe->m_monitor) return;
+    auto* sp = mainframe->m_monitor->get_status_panel();
+    if (sp) sp->show_ams_filament_hint(ams_id, slot_id);
+}
+
 void GUI_App::copy_network_if_available()
 {
     if (app_config->get("update_network_plugin") != "true")
@@ -5473,14 +5480,13 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 
         GUI::wxGetApp().mainframe->show_sync_dialog();
 
-        // Trigger filament-manager cloud pull on the dispatcher queue; no-op if
-        // already pulling.  Runs after login so auth token is available.
-        if (!m_disable_fila_manager && m_fila_manager_cloud_disp) {
-            m_fila_manager_cloud_disp->enqueue_pull();
-        }
         if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
             mainframe->web_device()->NotifyFilamentSessionState();
         }
+    }
+
+    if (!m_disable_fila_manager && m_fila_manager_cloud_disp) {
+        m_fila_manager_cloud_disp->enqueue_pull();
     }
 }
 

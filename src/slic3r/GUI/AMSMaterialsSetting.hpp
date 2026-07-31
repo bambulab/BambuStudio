@@ -241,6 +241,14 @@ protected:
     // spool_id selected by the user in on_select_filament(); empty if a System
     // Preset was selected instead of a Filament Manager spool.
     std::string                          m_selected_spool_id;
+
+    // Snapshot of the state when the dialog was first opened (populated by the
+    // first on_select_filament firing after Popup()).  Used to detect whether
+    // the user changed the filament type or colour relative to the initial state.
+    std::string  m_open_spool_id;    // spool_id bound at open; empty if none
+    wxColour     m_open_colour;      // colour loaded at open
+    std::string  m_open_filament_id; // ams_filament_id at open, for semantic type comparison
+    bool         m_snap_taken{false}; // whether the snapshot has been taken
 };
 
 wxDECLARE_EVENT(EVT_SELECTED_COLOR, wxCommandEvent);
@@ -261,13 +269,14 @@ public:
     void SetTrayContext(MachineObject* obj,
                         const std::string& ams_id,
                         const std::string& slot_id);
+    void SetSoftMatchData(const SoftMatchPendingResponse& data);
     std::string GetSelectedLinkSpoolId() const { return m_selected_link_spool_id; }
+    int GetHitSpoolId() const          { return m_hit_spool_id; }
+    int GetSelectedCandidateId() const { return m_selected_candidate_id; }
 
     void on_dpi_changed(const wxRect&) override {
         m_btn_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
         m_btn_confirm->SetCornerRadius(FromDIP(12));
-        m_btn_cancel->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
-        m_btn_cancel->SetCornerRadius(FromDIP(12));
         Fit();
     }
 
@@ -276,14 +285,11 @@ private:
     void populate_link_combo();
     void on_combo_selected(wxCommandEvent&);
     void on_confirm(wxCommandEvent&);
-    void on_cancel(wxCommandEvent&);
 
     Choice    m_choice{ Choice::RecordNew };
     RadioBox* m_radio_record_new{ nullptr };
     RadioBox* m_radio_link_existing{ nullptr };
-    RadioBox* m_radio_skip{ nullptr };
     Button*   m_btn_confirm{ nullptr };
-    Button*   m_btn_cancel{ nullptr };
 
     ::ComboBox*                m_combo_link{ nullptr };
     wxSizer*                   m_combo_row{ nullptr };
@@ -294,6 +300,25 @@ private:
     MachineObject* m_obj    { nullptr };
     std::string    m_ams_id;
     std::string    m_slot_id;
+
+    SoftMatchPendingResponse m_soft_match_data;
+    int  m_hit_spool_id{ 0 };            // 命中 hit 的云端 spoolId，0 表示无 hit
+    int  m_selected_candidate_id{ 0 };   // 用户改选的 candidate 云端 id，0 = 未改
+    bool m_only_hit{ false };            // candidates 为空时置 true
+};
+
+// ---- AMSNewFilamentRecordedDlg ------------------------------------------
+// Shown when an AMS slot gets a new official filament and the cloud has already
+// auto-created the record (Case 1). Displays the filament card and an OK button.
+class AMSNewFilamentRecordedDlg : public DPIDialog
+{
+public:
+    AMSNewFilamentRecordedDlg(wxWindow* parent, const FilamentSpool& sp);
+
+    void on_dpi_changed(const wxRect&) override { Fit(); }
+
+private:
+    void create(const FilamentSpool& sp);
 };
 
 }} // namespace Slic3r::GUI

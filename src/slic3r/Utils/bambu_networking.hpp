@@ -436,6 +436,17 @@ struct SlotMappingsSyncParams {
     std::vector<SlotMappingItem> mappings;
 };
 
+struct SoftMatchPendingParams {
+    std::string devId;
+    std::string amsSn;
+};
+
+struct SoftMatchPendingActionParams {
+    std::string action;
+    int         spoolId       = 0;
+    int         targetSpoolId = 0;
+};
+
 struct PublishParams {
     std::string     project_name;
     std::string     project_3mf_file;

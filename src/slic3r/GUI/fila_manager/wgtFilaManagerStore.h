@@ -25,6 +25,50 @@ struct EjectedSlotSnapshot {
     std::string slot_id;
 };
 
+// 软匹配 pending 响应中的单条料卷（hits 和 candidates 条目共用同一形状）
+struct SoftMatchFilamentItem {
+    int         id            = 0;
+    std::string create_type;        // "ams" | "manual"
+    std::string filament_vendor;
+    std::string filament_type;
+    std::string filament_name;
+    std::string filament_id;
+    std::string rfid;
+    std::string color;              // "#RRGGBBAA" 或 "#RRGGBB"
+    int         color_type        = 2;
+    std::vector<std::string> colors;
+    double      net_weight        = 0;
+    double      total_net_weight  = 0;
+    std::string note;
+    std::string tray_id_name;
+    std::string category;
+    bool        in_printer        = false;
+    std::string dev_id;
+    std::string ams_sn;
+    std::string slot_id;
+    int         ams_id            = -1;
+    int         ams_type          = -1;
+    std::string device_name;
+    bool        depleted          = false;
+
+    static SoftMatchFilamentItem from_json(const nlohmann::json& j);
+};
+
+// 一对待匹配关系：pending_id 对应某条 hit，candidates 是服务端推荐的合并候选
+struct SoftMatchPendingCandidate {
+    int                                pending_id = 0;
+    std::vector<SoftMatchFilamentItem> candidates;
+};
+
+// GET /my/filament/v2/soft-match/pending 的完整解析结果
+struct SoftMatchPendingResponse {
+    std::vector<SoftMatchFilamentItem>     hits;
+    std::vector<SoftMatchPendingCandidate> candidates;
+    bool empty() const { return hits.empty(); }
+
+    static SoftMatchPendingResponse from_json(const nlohmann::json& j);
+};
+
 struct FilamentSpool {
     std::string spool_id;
     std::string setting_id;

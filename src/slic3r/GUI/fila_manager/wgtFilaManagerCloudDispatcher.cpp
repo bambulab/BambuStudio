@@ -116,7 +116,8 @@ void wgtFilaManagerCloudDispatcher::enqueue_push_create(const FilamentSpool& spo
 }
 
 void wgtFilaManagerCloudDispatcher::enqueue_push_update(const std::string& spool_id,
-                                                        const nlohmann::json& local_patch)
+                                                        const nlohmann::json& local_patch,
+                                                        std::function<void()> on_cloud_ok)
 {
     if (spool_id.empty()) return;
     wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher enqueue push_update",
@@ -125,8 +126,8 @@ void wgtFilaManagerCloudDispatcher::enqueue_push_update(const std::string& spool
                                     {"patch_keys", local_patch.is_object() ?
                                         static_cast<int>(local_patch.size()) : 0}});
     nlohmann::json patch_copy = local_patch.is_object() ? local_patch : nlohmann::json::object();
-    m_queue.push_back([this, spool_id, patch_copy]() {
-        run_push_update_op(spool_id, patch_copy);
+    m_queue.push_back([this, spool_id, patch_copy, on_cloud_ok]() {
+        run_push_update_op(spool_id, patch_copy, on_cloud_ok);
     });
     schedule_next();
 }
@@ -322,7 +323,8 @@ void wgtFilaManagerCloudDispatcher::run_push_create_op(const FilamentSpool& spoo
 }
 
 void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_id,
-                                                       const nlohmann::json& local_patch)
+                                                       const nlohmann::json& local_patch,
+                                                       std::function<void()> on_cloud_ok)
 {
     if (!m_sync || !is_user_logged_in()) {
         if (m_sync && !is_user_logged_in()) {
@@ -353,13 +355,14 @@ void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_
         store->mark_synced(spool_id, true);
         update_last_synced_now();
         if (m_on_push_done) m_on_push_done(spool_id, "update");
+        if (on_cloud_ok) on_cloud_ok();
         on_op_done();
         return;
     }
 
     m_client->update_spool(spool_id, body,
-        [this, spool_id, local_patch](const nlohmann::json& /*resp*/) {
-            wxTheApp->CallAfter([this, spool_id, local_patch]() {
+        [this, spool_id, local_patch, on_cloud_ok](const nlohmann::json& /*resp*/) {
+            wxTheApp->CallAfter([this, spool_id, local_patch, on_cloud_ok]() {
                 BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_update ok " << spool_id;
                 if (auto* store = wxGetApp().fila_manager_store()) {
                     store->apply_patch(spool_id, local_patch);
@@ -370,18 +373,19 @@ void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_
                                                "Queued update push completed successfully",
                                                {{"spool_id", spool_id}});
                 if (m_on_push_done) m_on_push_done(spool_id, "update");
+                if (on_cloud_ok) on_cloud_ok();
                 on_op_done();
             });
         },
-        [this, spool_id, create_body](int code, const std::string& err) {
+        [this, spool_id, create_body, on_cloud_ok](int code, const std::string& err) {
             if (code == 404) {
                 // Fallback to create for the common "cloud has no record of
                 // this local spool yet" case (e.g. the local row was created
                 // while offline and the first update is effectively a create).
                 BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_update 404, fallback create " << spool_id;
                 m_client->create_spool(create_body,
-                    [this, spool_id](const nlohmann::json&) {
-                        wxTheApp->CallAfter([this, spool_id]() {
+                    [this, spool_id, on_cloud_ok](const nlohmann::json&) {
+                        wxTheApp->CallAfter([this, spool_id, on_cloud_ok]() {
                             BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_update fallback create ok " << spool_id;
                             if (auto* store = wxGetApp().fila_manager_store()) {
                                 store->mark_synced(spool_id, true);
@@ -391,6 +395,7 @@ void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_
                                                            "Update push fell back to create and completed successfully",
                                                            {{"spool_id", spool_id}});
                             if (m_on_push_done) m_on_push_done(spool_id, "update");
+                            if (on_cloud_ok) on_cloud_ok();
                             on_op_done();
                         });
                     },

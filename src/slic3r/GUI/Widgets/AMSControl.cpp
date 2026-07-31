@@ -374,17 +374,22 @@ void AMSControl::on_retry()
 
 void AMSControl::dismiss_filament_hint(const std::string& ams_id, const std::string& slot_id)
 {
-    set_new_filament_hint(ams_id, slot_id, false);
+    auto it = m_ams_item_list.find(ams_id);
+    if (it == m_ams_item_list.end() || !it->second) return;
+    auto libs = it->second->get_can_lib_list();
+    auto lib_it = libs.find(slot_id);
+    if (lib_it != libs.end() && lib_it->second)
+    lib_it->second->set_new_filament_hint(false);
 }
 
-void AMSControl::set_new_filament_hint(const std::string& ams_id, const std::string& slot_id, bool show)
+void AMSControl::show_filament_hint(const std::string& ams_id, const std::string& slot_id)
 {
     auto it = m_ams_item_list.find(ams_id);
     if (it == m_ams_item_list.end() || !it->second) return;
     auto libs = it->second->get_can_lib_list();
     auto lib_it = libs.find(slot_id);
     if (lib_it != libs.end() && lib_it->second)
-        lib_it->second->set_new_filament_hint(show);
+        lib_it->second->set_new_filament_hint(true);
 }
 
 AMSControl::~AMSControl()
