@@ -82,6 +82,7 @@ struct TrayData
     int             id;// same as tray_id
     int             ctype = 0;
     int             remain = MAPPING_ITEM_INVALID_REMAIN;
+    int             remain_g = -1;      // remaining weight in grams; -1 = not provided by firmware
     std::string     name;
     std::string     filament_type;
     wxColour        colour;

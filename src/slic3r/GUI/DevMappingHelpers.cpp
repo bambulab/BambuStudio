@@ -128,6 +128,7 @@ std::optional<TrayData> MakeTrayData(MachineObject*    obj,
         } else {
             td.type          = NORMAL;
             td.remain        = tray->remain;
+            td.remain_g      = tray->remain_g;
             td.colour        = DevAmsTray::decode_color(tray->color);
             td.name          = tray->get_display_filament_type();
             td.filament_type = tray->get_filament_type();

@@ -119,6 +119,8 @@ bool ComputeCanEdit(MachineObject* obj, const TrayData& td)
 // `out_of_range_fallback` keeps the legacy behaviour for malformed inputs.
 int ComputeDisplayRemain(const TrayData& td, int out_of_range_fallback)
 {
+    // Unknown weight (remain_g == -1, e.g. third-party spool): show as full.
+    if (td.type != EMPTY && td.remain_g == -1) return 100;
     int remain = (td.remain >= 0 && td.remain <= 100) ? td.remain : out_of_range_fallback;
     if (td.type != EMPTY && remain < 5) remain = 5;
     return remain;
