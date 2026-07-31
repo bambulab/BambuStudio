@@ -2657,7 +2657,10 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             }
                         }
                         if (callback)
-                            callback(!access_code.empty(), std::move(access_code), print_status);
+                        {
+                            const bool has_access_code = !access_code.empty();
+                            callback(has_access_code, std::move(access_code), print_status);
+                        }
                     }
                 }
             }
