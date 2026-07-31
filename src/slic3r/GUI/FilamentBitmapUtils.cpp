@@ -47,11 +47,6 @@ void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const wxColour& from,
     }
 }
 
-// Check if a color is transparent (alpha == 0)
-static bool is_transparent_color(const wxColour& color) {
-    return color.Alpha() == 0;
-}
-
 // Draw a 1px solid border around the full bitmap rectangle
 static void draw_border(wxDC& dc, const wxSize& size, const wxColour& color) {
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
@@ -213,27 +208,27 @@ static void sort_colors_by_hsv(std::vector<wxColour>& colors) {
 
 static wxBitmap create_single_filament_bitmap(const wxColour& color, const wxSize& size)
 {
-    if (is_transparent_color(color))
+    const unsigned char alpha = color.Alpha();
+
+    // Fully transparent: fixed light checkerboard (RGB ignored).
+    if (alpha == 0)
         return create_transparent_bitmap(size);
 
-    // Semi-transparent: precompute blended colors (color over white) as solid,
-    // then reuse draw_checkerboard — no wxGraphicsContext needed.
-    if (color.Alpha() != wxALPHA_OPAQUE) {
+    // Semi-transparent: tinted checkerboard from the filament color blended over white.
+    if (alpha != wxALPHA_OPAQUE) {
         BitmapDC bdc(size);
         if (!bdc.dc.IsOk()) return wxNullBitmap;
 
         wxColour light_clr, dark_clr;
         get_translucent_checker_colors(color, light_clr, dark_clr);
-
         draw_checkerboard(bdc.dc, size, light_clr, dark_clr, 1);
-
-        // Draw border in solid color
         draw_border(bdc.dc, size, wxColour(color.Red(), color.Green(), color.Blue()));
 
         bdc.dc.SelectObject(wxNullBitmap);
         return bdc.bitmap;
     }
 
+    // Opaque: solid fill; optional border for very light / very dark swatches.
     BitmapDC bdc(size);
     if (!bdc.dc.IsOk()) return wxNullBitmap;
 

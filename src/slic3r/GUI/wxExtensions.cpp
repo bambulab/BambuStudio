@@ -745,7 +745,10 @@ wxBitmap *get_extruder_color_icon(std::string color, std::string label, int icon
             dc.SetBackgroundMode(wxTRANSPARENT);
 
             auto size   = dc.GetTextExtent(wxString(label));
-            dc.SetTextForeground(clr.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
+            if (clr.Alpha() == 0)
+                dc.SetTextForeground(*wxBLACK);
+            else
+                dc.SetTextForeground(clr.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
             dc.DrawText(label, (icon_width - size.x) / 2, (icon_height - size.y) / 2);
             dc.SelectObject(wxNullBitmap);
         }
