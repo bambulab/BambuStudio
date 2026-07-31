@@ -1194,13 +1194,11 @@ void SyncAmsInfoDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &resul
                 wxString ams_id;
                 wxColour ams_col;
 
-                if (f->tray_id == VIRTUAL_TRAY_MAIN_ID || f->tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
-                    ams_id = "Ext";
-                }
-
-                else if (f->tray_id >= 0) {
-                    ams_id = wxGetApp().transition_tridid(f->tray_id);
-                    // ams_id = wxString::Format("%02d", f->tray_id + 1);
+                if (f->tray_id >= 0) {
+                    // Rack machines resolve virtual trays to "<nozzle>-Ext"; others keep the legacy label.
+                    auto *         dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+                    MachineObject *obj = dev ? dev->get_selected_machine() : nullptr;
+                    ams_id             = wxGetApp().transition_tridid(f->tray_id, std::nullopt, obj);
                 } else {
                     ams_id = "-";
                 }
@@ -2087,13 +2085,25 @@ void SyncAmsInfoDialog::on_set_finish_mapping(wxCommandEvent &evt)
             BOOST_LOG_TRIVIAL(info) << "The ams mapping result: id is " << m_ams_mapping_result[i].id << "tray_id is " << m_ams_mapping_result[i].tray_id;
         }
 
+        // Rack machines post only the bare nozzle index ("2") as the label; recompute
+        // the full "<nozzle>-<source>" label via transition_tridid so manual selection
+        // matches the synced label. Non-rack machines keep the popup's label.
+        wxString       disp_ams_name = selection_data_arr[4];
+        auto *         dev           = Slic3r::GUI::wxGetApp().getDeviceManager();
+        MachineObject *obj           = dev ? dev->get_selected_machine() : nullptr;
+        if (obj && obj->GetNozzleRack() &&
+            (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A ||
+             obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) {
+            disp_ams_name = wxGetApp().transition_tridid(evt.GetInt(), std::nullopt, obj);
+        }
+
         MaterialHash::iterator iter = m_materialList.begin();
         while (iter != m_materialList.end()) {
             Material *    item = iter->second;
             auto          m    = item->item;
             if (item->id == m_current_filament_id) {
                 auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));
-                m->set_ams_info(ams_colour, selection_data_arr[4], ctype, material_cols);//finish
+                m->set_ams_info(ams_colour, disp_ams_name, ctype, material_cols);//finish
             }
             iter++;
         }

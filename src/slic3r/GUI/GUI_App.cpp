@@ -89,6 +89,10 @@
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevHMSQuery.h"
+#include "DeviceCore/DevDefs.h"
+#include "DeviceCore/DevFilaSystem.h"
+#include "DeviceCore/DevNozzleSystem.h"
+#include "DeviceCore/DevNozzleRack.h"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/VersionPolicyManager.hpp"
@@ -4767,7 +4771,21 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
         input_file = dialog.GetPath();
 }
 
-wxString GUI_App::transition_tridid(int trid_id, std::optional<int> total_extruder_count) const
+wxString GUI_App::transition_tridid(int trid_id, std::optional<int> total_extruder_count, MachineObject* obj) const
+{
+    // Hotend-rack machines use rack labels; everything else keeps the legacy decoding.
+    if (obj) {
+        auto rack = obj->GetNozzleRack();
+        if (rack && (rack->GetRackType() == DevNozzleRack::RackType_A ||
+                     rack->GetRackType() == DevNozzleRack::RackType_B)) {
+            return transition_tridid_rack(trid_id, obj);
+        }
+    }
+
+    return transition_tridid_legacy(trid_id, total_extruder_count);
+}
+
+wxString GUI_App::transition_tridid_legacy(int trid_id, std::optional<int> total_extruder_count) const
 {
     if (trid_id == VIRTUAL_TRAY_MAIN_ID || trid_id == VIRTUAL_TRAY_DEPUTY_ID) {
         if (total_extruder_count.value_or(-1) == 2) {
@@ -4798,20 +4816,46 @@ wxString GUI_App::transition_tridid(int trid_id, std::optional<int> total_extrud
         int id_suffix = trid_id - 24 + 1;//ams lite for n9 trid_id start from 24
         return wxString::Format("Q%d", id_suffix);
     }
-    else if (trid_id >= 28 && trid_id <= 36)
-    {
-        int id_suffix = trid_id - 28 + 1;
-        return wxString::Format("AMS-A%d", id_suffix);
-    }
-    else if (trid_id >= 37 && trid_id <= 43)
-    {
-        int id_suffix = trid_id - 27 + 1;
-        return wxString::Format("AMS-B%d", id_suffix);
-    }
     else {
         int id_index = std::clamp((int)ceil(trid_id / 4), 0, 25);
         int id_suffix = trid_id % 4 + 1;
         return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
+    }
+}
+
+wxString GUI_App::transition_tridid_rack(int trid_id, MachineObject* obj) const
+{
+    // Resolve trid_id -> (ams_id, slot_id) -> nozzle pos + feed source; fall back to legacy on any miss.
+    if (!obj || !obj->GetFilaSystem())
+        return transition_tridid_legacy(trid_id);
+
+    auto index_map = obj->GetFilaSystem()->GetTrayIndexMap();
+    auto it        = index_map.find(trid_id);
+    if (it == index_map.end())
+        return transition_tridid_legacy(trid_id);
+
+    const int ams_id  = it->second.first;
+    const int slot_id = it->second.second;
+
+    auto tray_opt = obj->get_tray(ams_id, slot_id);
+    if (!tray_opt.has_value())
+        return transition_tridid_legacy(trid_id);
+
+    auto pos_opt = tray_opt->get_nozzle_pos_id(obj);
+    if (!pos_opt.has_value())
+        return transition_tridid_legacy(trid_id);
+
+    // Nozzle pos ids carry an internal offset (0x10); UI counts from 1.
+    const int nozzle_pos = pos_opt.value() - 0x10 + 1;
+
+    switch (tray_opt->ams_type) {
+    case DevAmsType::EXT_SPOOL:
+        return wxString::Format("%d-Ext", nozzle_pos);
+    case DevAmsType::ZMULTI_A:
+    case DevAmsType::ZMULTI_B: return wxString::Format("%d", nozzle_pos);
+    default:
+        // N3F/AMS -> "9-A1", N3S -> "9-HT-A" (suffix reuses the legacy decoder).
+        return wxString::Format("%d-%s", nozzle_pos, transition_tridid_legacy(trid_id));
     }
 }
 

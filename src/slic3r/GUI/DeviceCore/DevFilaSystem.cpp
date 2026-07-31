@@ -318,9 +318,9 @@ std::string DevAmsTray::get_slot_name(MachineObject* obj) const
         if (ams_type == DevAmsType::N3S) {
             return "HT-" + val_char;
         } else if (ams_type == DevAmsType::ZMULTI_A) {
-            return wxString::Format("AMS-A%d", slot_id).ToStdString();
+            return wxString::Format("%d", slot_id).ToStdString();
         } else if (ams_type == DevAmsType::ZMULTI_B) {
-            return wxString::Format("AMS-B%d", slot_id).ToStdString();
+            return wxString::Format("%d", slot_id).ToStdString();
         } else {
             return val_char + wxString::Format("%d", slot_id).ToStdString();
         }

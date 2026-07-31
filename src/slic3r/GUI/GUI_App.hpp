@@ -527,7 +527,10 @@ public:
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
-    wxString        transition_tridid(int trid_id, std::optional<int> total_extruder_count = std::nullopt) const;
+    wxString        transition_tridid(int trid_id, std::optional<int> total_extruder_count = std::nullopt, MachineObject* obj = nullptr) const;
+    wxString        transition_tridid_legacy(int trid_id, std::optional<int> total_extruder_count = std::nullopt) const;
+    // Hotend-rack machines: "<nozzle_pos>-<suffix>", e.g. "9-Ext" / "9-A1" / "9-HT-A".
+    wxString        transition_tridid_rack(int trid_id, MachineObject* obj) const;
     void            ShowUserGuide();
     void            ShowDownNetPluginDlg(bool post_login = false);
     void            ShowUserLogin(bool show = true);
