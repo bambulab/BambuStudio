@@ -1072,7 +1072,7 @@ PresetsConfigSubstitutions PresetBundle::import_presets(std::vector<std::string>
                 if (status) {
                     std::string file_name = file_stat.m_filename;
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Form zip file: " << file << ". Read file name: " << file_stat.m_filename;
-                    size_t index = file_name.find_last_of('/');
+                    size_t index = file_name.find_last_of("/\\");
                     if (std::string::npos != index) {
                         file_name = file_name.substr(index + 1);
                     }

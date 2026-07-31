@@ -675,6 +675,19 @@ bool bbs_is_valid_object_type(const std::string& type)
     return false;
 }
 
+static std::string bbs_join_path_within_dir(const std::string& base_dir, const std::string& rel_path)
+{
+    std::string joined = base_dir + "/" + rel_path;
+    boost::filesystem::path base = boost::filesystem::path(base_dir).lexically_normal();
+    boost::filesystem::path joined_path = boost::filesystem::path(joined).lexically_normal();
+    const std::string base_str = base.generic_string();
+    const std::string joined_str = joined_path.generic_string();
+    bool inside = joined_str.size() >= base_str.size() &&
+        joined_str.compare(0, base_str.size(), base_str) == 0 &&
+        (joined_str.size() == base_str.size() || joined_str[base_str.size()] == '/');
+    return inside ? joined : std::string();
+}
+
 namespace Slic3r {
 
 void PlateData::parse_filament_info(GCodeProcessorResult *result)
@@ -2406,7 +2419,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->plate_index = it->second->plate_index-1;
             plate_data_list[it->first-1]->plate_name  = it->second->plate_name;
             plate_data_list[it->first-1]->obj_inst_map = it->second->obj_inst_map;
-            plate_data_list[it->first-1]->gcode_file = (m_load_restore || it->second->gcode_file.empty()) ? it->second->gcode_file : m_backup_path + "/" + it->second->gcode_file;
+            plate_data_list[it->first-1]->gcode_file = (m_load_restore || it->second->gcode_file.empty()) ? it->second->gcode_file : bbs_join_path_within_dir(m_backup_path, it->second->gcode_file);
             plate_data_list[it->first-1]->gcode_prediction = it->second->gcode_prediction;
             plate_data_list[it->first-1]->gcode_weight = it->second->gcode_weight;
             plate_data_list[it->first-1]->toolpath_outside = it->second->toolpath_outside;
@@ -2417,12 +2430,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->nozzles_info  = it->second->nozzles_info;
             plate_data_list[it->first-1]->skipped_objects = it->second->skipped_objects;
             plate_data_list[it->first-1]->warnings = it->second->warnings;
-            plate_data_list[it->first-1]->thumbnail_file = (m_load_restore || it->second->thumbnail_file.empty()) ? it->second->thumbnail_file : m_backup_path + "/" + it->second->thumbnail_file;
+            plate_data_list[it->first-1]->thumbnail_file = (m_load_restore || it->second->thumbnail_file.empty()) ? it->second->thumbnail_file : bbs_join_path_within_dir(m_backup_path, it->second->thumbnail_file);
             //plate_data_list[it->first-1]->pattern_file = (m_load_restore || it->second->pattern_file.empty()) ? it->second->pattern_file : m_backup_path + "/" + it->second->pattern_file;
-            plate_data_list[it->first-1]->no_light_thumbnail_file = (m_load_restore || it->second->no_light_thumbnail_file.empty()) ? it->second->no_light_thumbnail_file : m_backup_path + "/" + it->second->no_light_thumbnail_file;
-            plate_data_list[it->first-1]->top_file = (m_load_restore || it->second->top_file.empty()) ? it->second->top_file : m_backup_path + "/" + it->second->top_file;
-            plate_data_list[it->first-1]->pick_file = (m_load_restore || it->second->pick_file.empty()) ? it->second->pick_file : m_backup_path + "/" + it->second->pick_file;
-            plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
+            plate_data_list[it->first-1]->no_light_thumbnail_file = (m_load_restore || it->second->no_light_thumbnail_file.empty()) ? it->second->no_light_thumbnail_file : bbs_join_path_within_dir(m_backup_path, it->second->no_light_thumbnail_file);
+            plate_data_list[it->first-1]->top_file = (m_load_restore || it->second->top_file.empty()) ? it->second->top_file : bbs_join_path_within_dir(m_backup_path, it->second->top_file);
+            plate_data_list[it->first-1]->pick_file = (m_load_restore || it->second->pick_file.empty()) ? it->second->pick_file : bbs_join_path_within_dir(m_backup_path, it->second->pick_file);
+            plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : bbs_join_path_within_dir(m_backup_path, it->second->pattern_bbox_file);
             plate_data_list[it->first-1]->config = it->second->config;
             plate_data_list[it->first-1]->filament_maps = it->second->filament_maps;
             plate_data_list[it->first-1]->filament_change_sequence = it->second->filament_change_sequence;

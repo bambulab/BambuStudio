@@ -189,7 +189,7 @@ void HttpServer::start()
     using tcp = boost::asio::ip::tcp;
     guard_    = std::make_unique<boost::asio::executor_work_guard<decltype(io_.get_executor())>>(io_.get_executor());
 
-    tcp::endpoint ep{tcp::v4(), LOCALHOST_PORT};
+    tcp::endpoint ep{boost::asio::ip::make_address("127.0.0.1"), LOCALHOST_PORT};
     boost::system::error_code ec;
     acceptor_.open(ep.protocol(), ec);
     acceptor_.set_option(tcp::acceptor::reuse_address(true), ec);
