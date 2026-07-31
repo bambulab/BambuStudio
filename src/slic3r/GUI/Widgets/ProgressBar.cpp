@@ -182,9 +182,6 @@ void ProgressBar::SetMinSize(const wxSize &size)
     m_barHeight = m_miniHeight;
     m_radius    = m_miniHeight / 2.4;
     wxWindow::SetMinSize({size.x, m_barHeight});
-    updateControlHeight();
-    // SetSize(size);
-    SetRadius(m_radius);
 }
 
 
