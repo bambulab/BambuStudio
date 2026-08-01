@@ -804,8 +804,9 @@ template<> std::function<double(const Item&, const ItemGroup&)> AutoArranger<Box
             double miss = Placer::overfit(fullbb, m_bin);
             miss = miss > 0 ? miss : 0;
             score += miss * miss;
-            if (score > LARGE_COST_TO_REJECT)
+            if (score > LARGE_COST_TO_REJECT) {
                 score = 1.5 * LARGE_COST_TO_REJECT;
+            }
         }
 
         return score;
@@ -935,7 +936,38 @@ void _arrange(
             }
             auto pure_item_width = bb.width() - itm.inflation() * 2;
             auto pure_item_height = bb.height() - itm.inflation() * 2;
-            if (pure_item_width > pure_bin_width || pure_item_height > pure_bin_height) {
+            // Auto rotation checks every 45-degree candidate independently,
+            // so an oversized original angle must not pre-empt this branch.
+            if (params.allow_rotations) {
+                auto angle = min_area_boundingbox_rotation(itm.transformedShape());
+                BOOST_LOG_TRIVIAL(debug) << itm.name << " min_area_boundingbox_rotation=" << angle << ", original angle=" << itm.rotation();
+
+                if (fabs(angle) < EPSILON) {
+                    allowed_angles = {0., PI * 0.25, PI * 0.5, PI * 0.75};
+                } else {
+                    allowed_angles = {0., angle, angle + PI * 0.25, angle + PI * 0.5, angle + PI * 0.75};
+                }
+
+                // Fall back to the min-area-bbox rescue angle only if every
+                // candidate above is still oversized.
+                bool any_candidate_fits = false;
+                for (double cand : allowed_angles) {
+                    auto rotsh = itm.rawShape();
+                    sl::rotate(rotsh, cand);
+                    auto cand_bb = sl::boundingBox(rotsh);
+                    auto cand_item_width  = cand_bb.width() - itm.inflation() * 2;
+                    auto cand_item_height = cand_bb.height() - itm.inflation() * 2;
+                    if (cand_item_width <= pure_bin_width && cand_item_height <= pure_bin_height) {
+                        any_candidate_fits = true;
+                        break;
+                    }
+                }
+                if (!any_candidate_fits) {
+                    BOOST_LOG_TRIVIAL(debug) << itm.name << " too big at every candidate angle, adding fit_into_box_rotation=" << angle;
+                    allowed_angles.emplace_back(angle);
+                }
+            }
+            else if (pure_item_width > pure_bin_width || pure_item_height > pure_bin_height) {
                 auto angle = min_area_boundingbox_rotation(itm.transformedShape());
                 BOOST_LOG_TRIVIAL(debug) << itm.name << " too big, rotate to fit_into_box_rotation=" << angle;
                 allowed_angles.emplace_back(angle);
@@ -957,15 +989,6 @@ void _arrange(
                 } catch (const std::exception &e) {
                     // min_area_boundingbox_rotation may throw exception of dividing 0 if the object is already perfectly aligned to X
                     BOOST_LOG_TRIVIAL(error) << "arranging min_area_boundingbox_rotation fails, msg=" << e.what();
-                }
-            } else if (params.allow_rotations) {
-                auto angle = min_area_boundingbox_rotation(itm.transformedShape());
-                BOOST_LOG_TRIVIAL(debug) << itm.name << " min_area_boundingbox_rotation=" << angle << ", original angle=" << itm.rotation();
-
-                if (fabs(angle) < EPSILON) {
-                    allowed_angles = {0., PI * 0.25, PI * 0.5, PI * 0.75};
-                } else {
-                    allowed_angles = {0., angle, angle + PI * 0.25, angle + PI * 0.5, angle + PI * 0.75};
                 }
             }
 

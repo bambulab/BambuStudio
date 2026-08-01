@@ -50,6 +50,12 @@ class _Item {
     // that a zero angle is not a rotation because of testing for equality.
     bool has_rotation_ = false, has_translation_ = false, has_inflation_ = false;
 
+    // BBS: true when _trypack degraded this item's bed contour to raw (the
+    // item is bed-flush in some axis, infl==0). Part-vs-part NFP then uses
+    // expected_infl_trans_cache_ (inflated by the expected inflation) for
+    // spacing; bed-boundary / merged_pile_ / objfunc still use transformedShape().
+    bool use_raw_shape_ = false;
+
     // For caching the calculations as they can get pretty expensive.
     mutable RawShape tr_cache_;
     mutable bool tr_cache_valid_ = false;
@@ -57,6 +63,11 @@ class _Item {
     mutable bool area_cache_valid_ = false;
     mutable RawShape inflate_cache_;
     mutable bool inflate_cache_valid_ = false;
+    // BBS: cached contour inflated by the expected inflation + rot + trans,
+    // used by part-vs-part NFP when use_raw_shape_ is true.
+    mutable RawShape expected_infl_trans_cache_;
+    mutable bool expected_infl_trans_valid_ = false;
+    mutable Coord expected_infl_ = 0;
 
     enum class Convexity: char {
         UNCHECKED,
@@ -321,6 +332,30 @@ public:
         return inflation_;
     }
 
+    // BBS: mark this item as bed-flush long (infl degraded to 0 -> bed contour
+    // uses raw). Part-vs-part NFP then uses expectedInflTransShape() (inflated
+    // by the expected infl) for spacing while everything else stays on transformedShape().
+    inline void useRawShape(bool b) BP2D_NOEXCEPT { use_raw_shape_ = b; }
+    inline bool useRawShape() const BP2D_NOEXCEPT { return use_raw_shape_; }
+
+    // BBS: build & cache the contour inflated by the expected infl + rot +
+    // trans, called in _trypack per candidate rotation.  Read later by
+    // expectedInflTransShape() for part-vs-part NFP when useRawShape().
+    inline const RawShape& cacheExpectedInflTransShape(Coord expected_infl) const
+    {
+        expected_infl_ = expected_infl;
+        return rebuildExpectedInflTransShape();
+    }
+
+    // BBS: cached contour inflated by the expected infl (after
+    // cacheExpectedInflTransShape). Used by calcnfp's part-vs-part NFP for
+    // bed-flush items. Rebuilds itself (like transformedShape()) if a later
+    // rotation()/translation() invalidated it.
+    inline const RawShape& expectedInflTransShape() const {
+        if (!expected_infl_trans_valid_) return rebuildExpectedInflTransShape();
+        return expected_infl_trans_cache_;
+    }
+
     inline void inflate(Coord distance) BP2D_NOEXCEPT
     {
         inflation(inflation() + distance);
@@ -340,6 +375,7 @@ public:
     {
         if(rotation_ != rot) {
             rotation_ = rot; has_rotation_ = true; tr_cache_valid_ = false;
+            expected_infl_trans_valid_ = false;
             rmt_valid_ = false; lmb_valid_ = false;
             bb_cache_.valid = false;
         }
@@ -349,6 +385,7 @@ public:
     {
         if(translation_ != tr) {
             translation_ = tr; has_translation_ = true; tr_cache_valid_ = false;
+            expected_infl_trans_valid_ = false;
             //bb_cache_.valid = false;
         }
     }
@@ -437,6 +474,16 @@ public:
 
 private:
 
+    inline const RawShape& rebuildExpectedInflTransShape() const {
+        RawShape cpy = sh_;
+        if (expected_infl_ > 0) sl::offset(cpy, expected_infl_);
+        if(has_rotation_) sl::rotate(cpy, rotation_);
+        if(has_translation_) sl::translate(cpy, translation_);
+        expected_infl_trans_cache_ = cpy;
+        expected_infl_trans_valid_ = true;
+        return expected_infl_trans_cache_;
+    }
+
     inline const RawShape& infaltedShape() const {
         if(has_inflation_ ) {
             if(inflate_cache_valid_) return inflate_cache_;
@@ -452,6 +499,7 @@ private:
     inline void invalidateCache() const BP2D_NOEXCEPT
     {
         tr_cache_valid_ = false;
+        expected_infl_trans_valid_ = false;
         lmb_valid_ = false; rmt_valid_ = false;
         area_cache_valid_ = false;
         inflate_cache_valid_ = false;
