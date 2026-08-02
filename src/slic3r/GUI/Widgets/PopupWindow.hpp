@@ -17,10 +17,19 @@ public:
 #ifdef __WXMSW__
     void BindUnfocusEvent();
 #endif
+#ifdef __WXOSX__
+    void Popup(wxWindow *focus = nullptr) override;
+    void Dismiss() override;
+#endif
 private:
 #ifdef __WXOSX__
     void OnMouseEvent2(wxMouseEvent &evt);
     wxEvtHandler * hovered { this };
+
+    class SameAppFocusGuard;
+    SameAppFocusGuard *m_focus_guard { nullptr };
+    wxWindow *         m_guarded_window { nullptr };
+    void               removeFocusGuard();
 #endif
 
 #ifdef __WXGTK__

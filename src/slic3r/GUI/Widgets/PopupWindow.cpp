@@ -28,6 +28,9 @@ bool PopupWindow::Create(wxWindow *parent, int style)
 
 PopupWindow::~PopupWindow()
 {
+#ifdef __WXOSX__
+    removeFocusGuard();
+#endif
 #ifdef __WXGTK__
     GetTopParent(this)->Unbind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
 #endif
@@ -39,6 +42,72 @@ PopupWindow::~PopupWindow()
 }
 
 #ifdef __WXOSX__
+
+// Any process holding accessibility permission can raise our windows via the
+// AXRaise action. The raised window becomes key, an open popup resigns key, and
+// wxPopupFocusHandler dismisses it. When the raise happens on mouse-down, the
+// popup is gone before the click is delivered: the click is lost, and the popup's
+// NSWindow is left on screen unpainted at NSPopUpMenuWindowLevel.
+//
+// A raise is not the user dismissing the popup, so swallow the kill-focus while
+// the pointer is still inside the popup. wxFocusEvent::GetWindow() cannot be used
+// to detect this - it is null for a key-window change, which is not a
+// first-responder change.
+//
+// Other dismissal paths are unaffected: clicking outside goes through
+// wxPopupWindowHandler (EVT_LEFT_DOWN on m_child), and leaving the application
+// through its own deactivation path.
+class PopupWindow::SameAppFocusGuard : public wxEvtHandler
+{
+public:
+    explicit SameAppFocusGuard(PopupWindow *popup) : m_popup(popup)
+    {
+        Bind(wxEVT_KILL_FOCUS, &SameAppFocusGuard::OnKillFocus, this);
+    }
+
+private:
+    void OnKillFocus(wxFocusEvent &event)
+    {
+        // Pointer still over the popup, so this was not the user dismissing it:
+        // stop here so wxPopupFocusHandler behind us never runs.
+        if (m_popup->GetScreenRect().Contains(wxGetMousePosition()))
+            return;
+        event.Skip();
+    }
+
+    PopupWindow *m_popup;
+};
+
+void PopupWindow::Popup(wxWindow *focus)
+{
+    wxPopupTransientWindow::Popup(focus);
+    // Guard m_focus, not the focus argument: on macOS the base class reassigns
+    // m_focus = FindFocus() before pushing wxPopupFocusHandler onto it, and the
+    // two are different windows. Pushing after the base call puts us ahead of
+    // wxPopupFocusHandler in the handler chain.
+    if (m_focus_guard == nullptr && m_focus != nullptr) {
+        m_focus_guard    = new SameAppFocusGuard(this);
+        m_guarded_window = m_focus;
+        m_focus->PushEventHandler(m_focus_guard);
+    }
+}
+
+void PopupWindow::Dismiss()
+{
+    removeFocusGuard();
+    wxPopupTransientWindow::Dismiss();
+}
+
+void PopupWindow::removeFocusGuard()
+{
+    if (m_focus_guard) {
+        if (m_guarded_window)
+            m_guarded_window->RemoveEventHandler(m_focus_guard);
+        delete m_focus_guard;
+        m_focus_guard = nullptr;
+    }
+    m_guarded_window = nullptr;
+}
 
 static wxEvtHandler * HitTest(wxWindow * parent, wxMouseEvent &evt)
 {
