@@ -29,6 +29,11 @@ const OUTER_STROKE_R = 25.5;
 const COLOR_OUTER = 23;
 const COLOR_INNER = 11.5;
 const INNER_STROKE_R = 9;
+// Checker backdrop for translucent filament. Same tile / tones as the device
+// page spool (SpoolGraphic.tsx) so both surfaces read identically.
+const CHECKER_TILE = 6;
+const CHECKER_BG = '#dfeee4';
+const CHECKER_FG = '#9ed3ae';
 
 interface SpoolRingProps {
   size?: number;
@@ -49,13 +54,29 @@ function nextUid(prefix: string) {
 // Strip optional alpha. C++ side now emits #RRGGBBAA; legacy callers may
 // still pass #RRGGBB. Returns the 6-digit RGB form for non-alpha consumers.
 function stripAlpha(hex: string): string {
+  if (hex === 'transparent') return CHECKER_FG;
   if (typeof hex !== 'string' || hex.length !== 9 || hex[0] !== '#') return hex;
   return hex.slice(0, 7);
 }
 
-function isTransparentHex(hex: string): boolean {
-  if (typeof hex !== 'string' || hex.length !== 9 || hex[0] !== '#') return false;
-  return hex.slice(7, 9).toUpperCase() === '00';
+function alphaFromHex(hex: string): number | null {
+  if (typeof hex !== 'string' || hex.length !== 9 || hex[0] !== '#') return null;
+  const alpha = Number.parseInt(hex.slice(7, 9), 16);
+  return Number.isNaN(alpha) ? null : alpha;
+}
+
+// Any partial alpha counts as translucent, not just a fully clear spool.
+function isTransparentColor(hex: string): boolean {
+  if (hex === 'transparent') return true;
+  const alpha = alphaFromHex(hex);
+  return alpha !== null && alpha < 255;
+}
+
+// Firmware alpha drives the paint opacity; floor it so a near-clear spool
+// still tints the checker instead of vanishing into it.
+function colorOpacity(hex: string): number {
+  const alpha = alphaFromHex(hex);
+  return alpha === null ? 1 : Math.max(0.2, alpha / 255);
 }
 
 // A color counts as "light" when its perceived luminance reaches that of the
@@ -90,10 +111,7 @@ export function SpoolRing({
   // only renders it.
   const clampedRemain = Math.max(0, Math.min(100, remain));
 
-  const isTransparent =
-    !isEmpty &&
-    !isThird &&
-    (isTransparentHex(color) || rawColors.every(isTransparentHex));
+  const isTransparent = !isEmpty && !isThird && rawColors.some(isTransparentColor);
 
   // Outline the color ring only for light real filament. Use the color that
   // sits on the ring's outer edge, which is the one bordering the grey-300
@@ -126,14 +144,13 @@ export function SpoolRing({
           part is carved back to white below so the inner gap + hole show. */}
       {isEmpty ? null : isThird ? (
         <ThirdPartyDisc center={center} />
-      ) : isTransparent ? (
-        <TransparentDisc center={center} color={effectiveColors[0]} />
       ) : (
         <RemainDonut
           center={center}
-          colors={effectiveColors}
+          colors={rawColors}
           remain={clampedRemain}
           colorType={colorType}
+          isTransparent={isTransparent}
         />
       )}
 
@@ -168,7 +185,7 @@ export function SpoolRing({
       {/* Small grey filament tag (notch); the gradient sheen overlay is dropped
           so the ring stays a flat color per design. Third-party (solid grey
           disc) shows it too regardless of remain. */}
-      {!isEmpty && !isTransparent && (isThird || clampedRemain > 0) && (
+      {!isEmpty && (isThird || clampedRemain > 0) && (
         <path
           d="M39.5 24.5L46 24.5C46.8284 24.5 47.5 25.1716 47.5 26C47.5 26.8284 46.8284 27.5 46 27.5L39.5 27.5C38.6716 27.5 38 26.8284 38 26C38 25.1716 38.6716 24.5 39.5 24.5Z"
           fill="#949495"
@@ -184,100 +201,99 @@ function ThirdPartyDisc({ center }: { center: number }) {
   return <circle cx={center} cy={center} r={COLOR_OUTER} fill="#7f7f7f" />;
 }
 
-// Transparent filament (alpha == 0): checker pattern tinted with the filament's
-// own color so it reads as see-through. Mirrors the wxWidgets
-// `m_filament_wheel_transparent` bitmap behaviour.
-function TransparentDisc({ center, color }: { center: number; color: string }) {
-  const patternId = nextUid('checker');
-  const tint = typeof color === 'string' && /^#[0-9a-fA-F]{6}$/.test(color) ? color : '#cfe8d3';
-  return (
-    <>
-      <defs>
-        <pattern id={patternId} width={4} height={4} patternUnits="userSpaceOnUse">
-          <rect width={4} height={4} fill={SURFACE_COLOR} />
-          <rect width={2} height={2} fill={tint} fillOpacity={0.45} />
-          <rect x={2} y={2} width={2} height={2} fill={tint} fillOpacity={0.45} />
-        </pattern>
-      </defs>
-      <circle cx={center} cy={center} r={COLOR_OUTER} fill={`url(#${patternId})`} />
-    </>
-  );
-}
-
-// Color content for real (non-empty, non-third, non-transparent) filament.
-//   - single   : solid ring + remain arc
+// Color content for real (non-empty, non-third) filament.
+//   - single   : solid ring
 //   - gradient : radial gradient, smooth inner->outer transition
 //   - multi    : concentric bands with abrupt (cliff) transitions
 // Both follow the firmware order: colors[0] innermost .. colors[N-1] outermost.
+//
+// Translucent filament composes as three layers inside the same remain wedge:
+// grey-300 track (drawn by the caller) -> checker -> the fills above at the
+// firmware alpha. Painting the color opaquely instead would make a translucent
+// spool indistinguishable from a solid one.
 function RemainDonut({
   center,
   colors,
   remain,
   colorType,
+  isTransparent,
 }: {
   center: number;
   colors: string[];
   remain: number;
   colorType?: AmsMappingHotendColorType;
+  isTransparent?: boolean;
 }) {
-  if (colors.length === 1 || colorType === 'single') {
-    return remain > 0 ? (
-      <RemainArc center={center} rOuter={COLOR_OUTER} rInner={COLOR_INNER} color={colors[0]} remain={remain} />
-    ) : null;
-  }
+  if (remain <= 0) return null;
 
-  if (colorType === 'gradient') {
-    // Radial gradient: color transitions smoothly from the inner edge
-    // (colors[0]) to the outer edge (colors[N-1]) of the ring, per the
-    // interaction spec.
-    const gradId = nextUid('spool-grad');
-    const innerOffset = COLOR_INNER / COLOR_OUTER;
-    const stops: React.ReactElement[] = [
-      <stop key="center" offset={0} stopColor={colors[0]} />,
-    ];
-    colors.forEach((c, i) => {
-      const off = innerOffset + (1 - innerOffset) * (colors.length === 1 ? 1 : i / (colors.length - 1));
-      stops.push(<stop key={i} offset={off} stopColor={c} />);
-    });
-    const clip = remainClip(center, remain);
-    return (
-      <>
-        <defs>
+  const clip = remainClip(center, remain);
+  const clipAttr = clip ? `url(#${clip.id})` : undefined;
+  const checkerId = nextUid('checker');
+  const gradId = nextUid('spool-grad');
+  const isSingle = colors.length === 1 || colorType === 'single';
+  const isGradient = !isSingle && colorType === 'gradient';
+  const innerOffset = COLOR_INNER / COLOR_OUTER;
+  const ringWidth = (COLOR_OUTER - COLOR_INNER) / colors.length;
+
+  return (
+    <>
+      <defs>
+        {clip?.el}
+        {isTransparent && (
+          <pattern id={checkerId} width={CHECKER_TILE} height={CHECKER_TILE} patternUnits="userSpaceOnUse">
+            <rect width={CHECKER_TILE} height={CHECKER_TILE} fill={CHECKER_BG} />
+            <rect width={CHECKER_TILE / 2} height={CHECKER_TILE / 2} fill={CHECKER_FG} />
+            <rect
+              x={CHECKER_TILE / 2}
+              y={CHECKER_TILE / 2}
+              width={CHECKER_TILE / 2}
+              height={CHECKER_TILE / 2}
+              fill={CHECKER_FG}
+            />
+          </pattern>
+        )}
+        {isGradient && (
           <radialGradient id={gradId} cx={center} cy={center} r={COLOR_OUTER} gradientUnits="userSpaceOnUse">
-            {stops}
+            <stop offset={0} stopColor={stripAlpha(colors[0])} stopOpacity={colorOpacity(colors[0])} />
+            {colors.map((c, i) => (
+              <stop
+                key={i}
+                offset={innerOffset + (1 - innerOffset) * (colors.length === 1 ? 1 : i / (colors.length - 1))}
+                stopColor={stripAlpha(c)}
+                stopOpacity={colorOpacity(c)}
+              />
+            ))}
           </radialGradient>
-          {clip?.el}
-        </defs>
-        {remain > 0 && (
+        )}
+      </defs>
+
+      <g clipPath={clipAttr}>
+        {isTransparent && <circle cx={center} cy={center} r={COLOR_OUTER} fill={`url(#${checkerId})`} />}
+        {isGradient ? (
+          <circle cx={center} cy={center} r={COLOR_OUTER} fill={`url(#${gradId})`} />
+        ) : isSingle ? (
           <circle
             cx={center}
             cy={center}
             r={COLOR_OUTER}
-            fill={`url(#${gradId})`}
-            clipPath={clip ? `url(#${clip.id})` : undefined}
+            fill={stripAlpha(colors[0])}
+            fillOpacity={colorOpacity(colors[0])}
           />
+        ) : (
+          colors.map((c, i) => (
+            <circle
+              key={i}
+              cx={center}
+              cy={center}
+              r={COLOR_INNER + i * ringWidth + ringWidth / 2}
+              fill="none"
+              stroke={stripAlpha(c)}
+              strokeOpacity={colorOpacity(c)}
+              strokeWidth={ringWidth}
+            />
+          ))
         )}
-      </>
-    );
-  }
-
-  // multi: concentric bands. Same inner->outer order as gradient, i.e.
-  // innermost = colors[0], outermost = colors[N-1].
-  const ringWidth = (COLOR_OUTER - COLOR_INNER) / colors.length;
-  const clip = remainClip(center, remain);
-  return (
-    <>
-      {clip && <defs>{clip.el}</defs>}
-      {remain > 0 && (
-        <g clipPath={clip ? `url(#${clip.id})` : undefined}>
-          {colors.map((c, i) => {
-            const r = COLOR_INNER + i * ringWidth + ringWidth / 2;
-            return (
-              <circle key={i} cx={center} cy={center} r={r} fill="none" stroke={c} strokeWidth={ringWidth} />
-            );
-          })}
-        </g>
-      )}
+      </g>
     </>
   );
 }
@@ -311,31 +327,6 @@ function ColorOutline({ center, remain }: { center: number; remain: number }) {
   const start = -Math.PI / 2;
   const d = wedgePath(center, center, COLOR_OUTER, COLOR_INNER, start, start + angle);
   return <path d={d} fill="none" stroke={STROKE_COLOR} strokeWidth={OUTLINE_W} strokeLinejoin="round" />;
-}
-
-function RemainArc({
-  center,
-  rOuter,
-  rInner,
-  color,
-  remain,
-}: {
-  center: number;
-  rOuter: number;
-  rInner: number;
-  color: string;
-  remain: number;
-}) {
-  if (remain >= 100) {
-    // Full ring: fill a disc up to rOuter; the parent carves the inner white.
-    return <circle cx={center} cy={center} r={rOuter} fill={color} />;
-  }
-
-  const angle = (remain / 100) * Math.PI * 2;
-  const startAngle = -Math.PI / 2;
-  const endAngle = startAngle + angle;
-  const d = wedgePath(center, center, rOuter, rInner, startAngle, endAngle);
-  return <path d={d} fill={color} />;
 }
 
 function wedgePath(cx: number, cy: number, r1: number, r0: number, a0: number, a1: number) {
