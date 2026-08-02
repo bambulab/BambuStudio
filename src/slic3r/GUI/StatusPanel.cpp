@@ -1035,6 +1035,12 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     m_gauge_progress = new ProgressBar(progress_lr_panel, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize);
     m_gauge_progress->SetValue(0);
     m_gauge_progress->SetHeight(PROGRESSBAR_HEIGHT);
+    m_gauge_progress->Bind(EVT_PROGRESS_BAR_HEIGHT_CHANGED, [this, progress_lr_panel](wxCommandEvent &) {
+        progress_lr_panel->InvalidateBestSize();
+        progress_lr_panel->Layout();
+        InvalidateBestSize();
+        Layout();
+    });
 
     wxBoxSizer *bSizer_task_btn = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1816,11 +1822,9 @@ void PrintingTaskPanel::updatePauseMarkers(const DevPrintPauseList *pauseList, i
         const auto &pausePoint = *upcomingPauses[index];
         ProgressBar::Marker marker;
         marker.m_position = pausePoint.m_progressPercent;
-        if (index == 0) {
-            const int timeUntilPause = printRemainingTime - pausePoint.m_remainingTime * 60;
-            marker.m_label = wxString::Format(
-                "%s (-%s)", _L("Pause"), from_u8(get_bbl_monitor_time_dhm(timeUntilPause)));
-        }
+        const int timeUntilPause = printRemainingTime - pausePoint.m_remainingTime * 60;
+        marker.m_label = wxString::Format(
+            "%s (-%s)", _L("Pause"), from_u8(get_bbl_monitor_time_dhm(timeUntilPause)));
         markers.emplace_back(std::move(marker));
     }
     m_gauge_progress->SetMarkers(markers);
@@ -4313,7 +4317,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
     const auto &pauseList = obj->getPrintTaskInfo().getPauseList();
     if (pauseList && pauseList->m_total > 0) {
         m_project_task_panel->updatePauseNum(
-            true, _L("Pause") + wxString::Format(" %d/%d", pauseList->getPassedCount(), pauseList->m_total));
+            true, _L("Pause") + wxString::Format(": %d/%d", pauseList->getPassedCount(), pauseList->m_total));
         m_project_task_panel->updatePauseMarkers(&*pauseList, obj->mc_left_time);
     } else {
         m_project_task_panel->updatePauseNum(false);

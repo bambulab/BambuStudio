@@ -11,8 +11,11 @@
 
 
 wxDEFINE_EVENT(wxCUSTOMEVT_SET_TEMP_FINISH, wxCommandEvent);
-BEGIN_EVENT_TABLE(ProgressBar, wxPanel)
+wxDEFINE_EVENT(EVT_PROGRESS_BAR_HEIGHT_CHANGED, wxCommandEvent);
+BEGIN_EVENT_TABLE(ProgressBar, wxWindow)
 EVT_PAINT(ProgressBar::paintEvent)
+EVT_MOTION(ProgressBar::mouseMove)
+EVT_LEAVE_WINDOW(ProgressBar::mouseLeave)
 END_EVENT_TABLE()
 
 ProgressBar::ProgressBar(wxWindow *parent, wxWindowID id, int max, const wxPoint &pos, const wxSize &size, bool shown)
@@ -97,6 +100,7 @@ void ProgressBar::SetMarkers(const std::vector<Marker> &markers)
         return;
 
     m_markers = markers;
+    m_hoveredMarker = m_lastMousePosition ? findHoveredMarker(*m_lastMousePosition) : -1;
     updateControlHeight();
     Refresh();
 }
@@ -122,8 +126,10 @@ void ProgressBar::updateControlHeight()
     minSize.SetHeight(height);
     wxWindow::SetMinSize(minSize);
     SetSize(GetSize().GetWidth(), height);
-    if (GetParent())
-        GetParent()->Layout();
+    wxCommandEvent event(EVT_PROGRESS_BAR_HEIGHT_CHANGED, GetId());
+    event.SetEventObject(this);
+    event.StopPropagation();
+    ProcessWindowEvent(event);
 }
 
 void ProgressBar::Rescale()
@@ -190,6 +196,45 @@ void ProgressBar::paintEvent(wxPaintEvent &evt)
 
     wxPaintDC dc(this);
     render(dc);
+}
+
+int ProgressBar::findHoveredMarker(const wxPoint &position) const
+{
+    const wxSize size = GetClientSize();
+    if (position.y < 0 || position.y > m_barHeight || size.x <= 0 || m_max <= 0)
+        return -1;
+
+    const int hoverTolerance = FromDIP(7);
+    for (size_t index = 0; index < m_markers.size(); ++index) {
+        if (m_markers[index].m_label.empty())
+            continue;
+
+        const int markerX = size.x * std::clamp(m_markers[index].m_position, 0, m_max) / m_max;
+        if (position.x >= markerX - hoverTolerance && position.x <= markerX + hoverTolerance)
+            return static_cast<int>(index);
+    }
+    return -1;
+}
+
+void ProgressBar::mouseMove(wxMouseEvent &evt)
+{
+    m_lastMousePosition = evt.GetPosition();
+    const int hoveredMarker = findHoveredMarker(*m_lastMousePosition);
+    if (m_hoveredMarker != hoveredMarker) {
+        m_hoveredMarker = hoveredMarker;
+        Refresh();
+    }
+    evt.Skip();
+}
+
+void ProgressBar::mouseLeave(wxMouseEvent &evt)
+{
+    m_lastMousePosition.reset();
+    if (m_hoveredMarker != -1) {
+        m_hoveredMarker = -1;
+        Refresh();
+    }
+    evt.Skip();
 }
 
 void ProgressBar::render(wxDC &dc)
@@ -303,8 +348,9 @@ void ProgressBar::renderMarkers(wxDC &dc, const wxSize &size, int barHeight)
         }
     }
 
-    for (const auto &marker : m_markers) {
-        if (marker.m_label.empty())
+    for (size_t index = 0; index < m_markers.size(); ++index) {
+        const auto &marker = m_markers[index];
+        if (marker.m_label.empty() || static_cast<int>(index) != m_hoveredMarker)
             continue;
 
         const int position = std::clamp(marker.m_position, 0, m_max);
