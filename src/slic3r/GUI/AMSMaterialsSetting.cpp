@@ -1503,12 +1503,13 @@ static void _populate_filament_combobox_grouped(
     for (auto& kv : brand_to_aliases)
         std::sort(kv.second.begin(), kv.second.end(), _intra_bucket_sorter);
 
-    // Keep recently used system presets in their shared recency order and
-    // remove them from the vendor buckets to avoid duplicate entries.
+    // Keep recently used system presets in their shared recency order. This is
+    // an additive shortcut group: the aliases stay in their vendor buckets so
+    // they remain reachable under the brand they belong to.
     std::vector<wxString> recent_aliases;
 
     for (const wxString& recent : recent_filament_items) {
-        for (auto& [vendor, aliases] : brand_to_aliases) {
+        for (const auto& [vendor, aliases] : brand_to_aliases) {
             auto alias_it =
                 std::find(aliases.begin(), aliases.end(), recent);
 
@@ -1516,17 +1517,8 @@ static void _populate_filament_combobox_grouped(
                 continue;
 
             recent_aliases.emplace_back(*alias_it);
-            aliases.erase(alias_it);
             break;
         }
-    }
-
-    for (auto it = brand_to_aliases.begin();
-         it != brand_to_aliases.end();) {
-        if (it->second.empty())
-            it = brand_to_aliases.erase(it);
-        else
-            ++it;
     }
 
     std::vector<wxString> ordered_brands;
