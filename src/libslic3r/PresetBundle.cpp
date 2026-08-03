@@ -1791,7 +1791,51 @@ std::string GetNozzleVolumeTypeStr(const NozzleVolumeType &type)
     }
 }
 
-static void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, const ExtruderFullStat &full_stat)
+ExtruderFullStat build_extruder_full_stat_from_nozzle_stat(const ExtruderNozzleStat &nozzle_stat,
+                                                           const std::vector<int>   &extruder_max_nozzle_count,
+                                                           const std::string        &diameter_str)
+{
+    ExtruderFullStat full_stat;
+    const auto raw_stats = nozzle_stat.get_raw_stat();
+    full_stat.resize(raw_stats.size());
+    for (size_t extruder_id = 0; extruder_id < raw_stats.size(); ++extruder_id) {
+        std::vector<std::pair<std::string, std::string>> nozzle_stats;
+        const int max_count = (extruder_id < extruder_max_nozzle_count.size())
+            ? std::max(0, extruder_max_nozzle_count[extruder_id]) : 0;
+        for (const auto &[volume_type, count] : raw_stats[extruder_id]) {
+            std::string volume_str = GetNozzleVolumeTypeStr(volume_type);
+            for (int i = 0; i < count && static_cast<int>(nozzle_stats.size()) < max_count; ++i)
+                nozzle_stats.emplace_back(diameter_str, volume_str);
+        }
+        // 保留空槽占位,不臆造口径错误的喷嘴。
+        nozzle_stats.resize(max_count, {std::string(), std::string()});
+        full_stat.set_extruder_stats(extruder_id, nozzle_stats);
+    }
+    return full_stat;
+}
+
+bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config, const ExtruderNozzleStat &nozzle_stat)
+{
+    const ConfigOptionInts*         count_opt = config.option<ConfigOptionInts>("extruder_nozzle_count");
+    const ConfigOptionEnumsGeneric* vtype_opt = config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type");
+    const std::vector<int> counts = count_opt ? count_opt->values : std::vector<int>{};
+    const std::vector<int> vtypes = vtype_opt ? vtype_opt->values : std::vector<int>{};
+
+    int total = 0;
+    for (int c : counts) total += c;
+    if (total <= 0 || static_cast<int>(vtypes.size()) != total)
+        return false;
+
+    const auto &raw_stats = nozzle_stat.get_raw_stat();
+    if (raw_stats.empty() || counts.size() != raw_stats.size())
+        return false;
+    for (size_t e = 0; e < counts.size(); ++e)
+        if (counts[e] != nozzle_stat.get_extruder_nozzle_count(static_cast<int>(e)))
+            return false;
+    return true;
+}
+
+void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, const ExtruderFullStat &full_stat)
 {
     const auto raw = full_stat.get_raw_stat();
     std::vector<int>    nozzle_counts;
@@ -1845,18 +1889,8 @@ void PresetBundle::update_extruder_full_stats_from_config()
     int total = 0;
     for (int c : counts) total += c;
 
-    bool counts_match_stats = false;
-    if (total > 0 && static_cast<int>(vtypes.size()) == total) {
-        const auto &raw_stats = extruder_nozzle_stat.get_raw_stat();
-        counts_match_stats = !raw_stats.empty() && counts.size() == raw_stats.size();
-        for (size_t e = 0; counts_match_stats && e < counts.size(); ++e) {
-            if (counts[e] != extruder_nozzle_stat.get_extruder_nozzle_count(static_cast<int>(e)))
-                counts_match_stats = false;
-        }
-    }
-
-    if (!m_project_file_has_per_slot_nozzle_options || !counts_match_stats) {
-        // Old 3mf without the four keys, or defaults / inconsistent data vs extruder_nozzle_stats.
+    if (!m_project_file_has_per_slot_nozzle_options || !per_slot_nozzle_options_consistent(project_config, extruder_nozzle_stat)) {
+        // 旧 3mf 缺四字段,或字段为默认值 / 与 extruder_nozzle_stats 不一致时,重建。
         generate_extruder_full_stats_from_nozzle_stats();
         sync_per_slot_nozzle_options_from_full_stat(project_config, extruder_full_stat);
         return;
@@ -1900,30 +1934,11 @@ void PresetBundle::generate_extruder_full_stats_from_nozzle_stats()
     if (extruder_nozzle_stat.get_force_keep_flag()) {
         return;
     }
-    extruder_full_stat.clear();
-    auto raw_stats = extruder_nozzle_stat.get_raw_stat();
     const Preset &printer_preset            = printers.get_edited_preset();
-    auto  diameter                          = printer_preset.config.opt_string("printer_variant");
-    auto  extruder_max_nozzle_count         = printer_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-
-    extruder_full_stat.resize(raw_stats.size());
-    for (size_t extruder_id = 0; extruder_id < raw_stats.size(); ++extruder_id) {
-        std::vector<std::pair<std::string, std::string>> nozzle_stats;
-        const int max_count = extruder_max_nozzle_count->values[extruder_id];
-
-        for (const auto &[volume_type, count] : raw_stats[extruder_id]) {
-            std::string volume_str = GetNozzleVolumeTypeStr(volume_type);
-
-            for (int i = 0; i < count && nozzle_stats.size() < max_count; ++i) {
-                nozzle_stats.emplace_back(diameter, volume_str);
-            }
-        }
-
-        // Keep slot placeholders without inventing wrong-diameter nozzles.
-        nozzle_stats.resize(max_count, {std::string(), std::string()});
-
-        extruder_full_stat.set_extruder_stats(extruder_id, nozzle_stats);
-    }
+    const std::string diameter              = printer_preset.config.opt_string("printer_variant");
+    const auto* max_nozzle_count_opt        = printer_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    const std::vector<int> max_nozzle_count = max_nozzle_count_opt ? max_nozzle_count_opt->values : std::vector<int>{};
+    extruder_full_stat = build_extruder_full_stat_from_nozzle_stat(extruder_nozzle_stat, max_nozzle_count, diameter);
 }
 
 // Merge one vendor's presets with the other vendor's presets, report duplicates.

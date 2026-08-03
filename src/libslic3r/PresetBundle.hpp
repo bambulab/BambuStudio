@@ -186,6 +186,14 @@ private:
     std::vector<std::vector<std::pair<std::string, std::string>>> extruder_nozzle_stats;
 };
 
+// GUI(PresetBundle)与 CLI(BambuStudio.cpp)共用的逐槽喷嘴对账:两端用同一套判据和重建逻辑,
+// 从权威 ExtruderNozzleStat 生成逐槽四字段(count / volume_type / diameter / slot)。
+ExtruderFullStat build_extruder_full_stat_from_nozzle_stat(const ExtruderNozzleStat &nozzle_stat,
+                                                           const std::vector<int>   &extruder_max_nozzle_count,
+                                                           const std::string        &diameter_str);
+void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, const ExtruderFullStat &full_stat);
+bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config, const ExtruderNozzleStat &nozzle_stat);
+
 // Bundle of Print + Filament + Printer presets.
 class PresetBundle
 {

@@ -6671,6 +6671,19 @@ int CLI::run(int argc, char **argv)
                                     for (size_t eid = 0; eid < new_nozzle_volume_type.size(); ++eid) {
                                         nozzle_stats_obj.on_volume_type_switch(eid, new_nozzle_volume_type[eid]);
                                     }
+
+                                    // 与 GUI 载入工程时的对账保持一致(PresetBundle::update_extruder_full_stats_from_config):
+                                    // 旧 3mf 缺逐槽四字段时会回退到默认值(count={1}/diameter={0.4}),与真实多挤出机不符,
+                                    // 使喷嘴被口径校验全部禁用。仅在字段缺失或与权威 nozzle_stats_obj 不一致时才重建,
+                                    // 健康布局保持不动;与 GUI 复用同一套门控 / 构建 / 展平函数。
+                                    if (!m_print_config.has("extruder_nozzle_count") ||
+                                        !per_slot_nozzle_options_consistent(m_print_config, nozzle_stats_obj)) {
+                                        const std::string diameter_str   = m_print_config.opt_string("printer_variant");
+                                        const auto* max_nozzle_count_opt = m_print_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+                                        const std::vector<int> max_nozzle_count = max_nozzle_count_opt ? max_nozzle_count_opt->values : std::vector<int>{};
+                                        ExtruderFullStat full_stat = build_extruder_full_stat_from_nozzle_stat(nozzle_stats_obj, max_nozzle_count, diameter_str);
+                                        sync_per_slot_nozzle_options_from_full_stat(m_print_config, full_stat);
+                                    }
                                 }
                                 m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values =
                                     save_extruder_nozzle_stats_to_string(nozzle_stats_obj.get_raw_stat());
