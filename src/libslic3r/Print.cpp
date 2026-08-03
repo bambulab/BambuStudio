@@ -1381,13 +1381,19 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 
         bool multi_material = false;
         bool multi_region   = false;
+        bool uses_mixed     = false;
+        const auto &is_mixed = m_config.filament_is_mixed.values;
         for (const PrintObject *object : m_objects) {
             if (object->object_extruders().size() > 1)
                 multi_material = true;
             if (object->all_regions().size() > 1)
                 multi_region = true;
+            for (unsigned int ext : object->object_extruders()) {
+                if (ext < is_mixed.size() && is_mixed[ext])
+                    uses_mixed = true;
+            }
         }
-        if (multi_material)
+        if (multi_material || uses_mixed)
             return {L("The spiral vase mode does not work when an object contains more than one materials."), nullptr, "spiral_mode"};
         if (multi_region)
             return {L("The spiral vase mode does not work when an object contains regions with different print settings."), nullptr, "spiral_mode"};
