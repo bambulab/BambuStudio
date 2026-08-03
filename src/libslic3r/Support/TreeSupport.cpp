@@ -2557,6 +2557,9 @@ void TreeSupport::draw_circles()
                         floor_areas = std::move(diff_ex(floor_areas, bottom_gap_area));
                     }
                 }
+                // prune_floating_supports() pairs each area_group back with its region by walking the vector below
+                // in step with the group order, so the fills that follow have to keep appending in vector order
+                // and nothing may reorder or drop entries on either side afterwards.
                 auto &area_groups = ts_layer->area_groups;
                 for (auto& expoly : ts_layer->base_areas) {
                     //if (area(expoly) < SQ(scale_(1))) continue;
@@ -2614,6 +2617,10 @@ void TreeSupport::draw_circles()
             }
         });
 
+        // The areas are final here, so drop the unsupported ones before anything reads them back: the lightning
+        // generator below roots its trees in base_areas, and the hole moving pass reshapes them. Both would
+        // otherwise plan against regions that are about to disappear.
+        prune_floating_supports();
 
         if (with_lightning_infill)
         {
@@ -2812,6 +2819,181 @@ void TreeSupport::draw_circles()
         ts_layers[layer_nr]->upper_layer = layer_nr != ts_layers.size() - 1 ? ts_layers[layer_nr + 1] : nullptr;
         ts_layers[layer_nr]->lower_layer = layer_nr > 0 ? ts_layers[layer_nr - 1] : nullptr;
     }
+}
+
+// Fraction of a region that the carrier below holds up. The bounding boxes come from get_extents_vector(carrier)
+// and spare the clipper boolean the candidates that are nowhere near the region. Those that are near are trimmed
+// to the region's own box before the boolean: the carrier covers the whole layer below and takes its outline from
+// the model slices, so feeding it whole would drag thousands of vertices through every one of the layer's regions.
+static double carried_area_ratio(const ExPolygons &carrier, const std::vector<BoundingBox> &carrier_bboxes, const ExPolygon &region)
+{
+    const double region_area = region.area();
+    if (region_area <= 0.) return 0.;
+    const BoundingBox region_bbox = get_extents(region);
+    Polygons          near_carrier;
+    for (size_t i = 0; i < carrier.size(); i++)
+        if (carrier_bboxes[i].overlap(region_bbox))
+            append(near_carrier, ClipperUtils::clip_clipper_polygons_with_subject_bbox(carrier[i], region_bbox));
+    if (near_carrier.empty()) return 0.;
+    double carried_area = 0.;
+    for (const ExPolygon &part : intersection_ex(region, near_carrier)) carried_area += part.area();
+    return carried_area / region_area;
+}
+
+void TreeSupport::prune_floating_supports()
+{
+    SupportLayerPtrs &ts_layers = m_object->support_layers();
+    if (m_object->layers().empty() || ts_layers.size() <= size_t(m_raft_layers)) return;
+
+    // Regions are stored in one vector per area type, and area_groups holds raw pointers into those vectors, so
+    // both are pruned together and the pointers re-bound afterwards. The per type arrays below index by AreaType.
+    constexpr int num_area_types = SupportLayer::Roof1stLayer + 1;
+    static_assert(SupportLayer::BaseType == 0 && SupportLayer::RoofType == 1 && SupportLayer::FloorType == 2 && SupportLayer::Roof1stLayer == 3,
+                  "regions_by_type must be indexed by SupportLayer::AreaType");
+
+    // A support layer is carried either by the support printed right below it, or by the model it came to rest
+    // on. That model top sits gap_object_support below the support bottom, since the gap is left on purpose.
+    const PrintObjectConfig &config             = m_object->config();
+    const coordf_t           gap_object_support = std::max(0., m_slicing_params.gap_object_support);
+    // Support standing on the plate is carried by definition, and so is support resting on the raft, whose top
+    // is not among the object slices searched below. This cannot be keyed off the lowest entry left in ts_layers:
+    // draw_circles() drops the layers that got no node, so that entry may well be the first one up in the air.
+    const coordf_t           grounded_z         = m_raft_layers > 0 ? ts_layers[m_raft_layers - 1]->print_z : 0.;
+
+    const double branch_angle = config.tree_support_branch_angle.value * M_PI / 180.;
+    // Branches may then move freely, so no region can be told apart as unsupported.
+    if (branch_angle >= M_PI / 2) return;
+    const double   tan_branch_angle        = tan(branch_angle);
+    const coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
+    const int      wall_count              = std::max(1, config.tree_support_wall_count.value);
+
+    std::vector<coordf_t> obj_print_z;
+    obj_print_z.reserve(m_object->layers().size());
+    for (const Layer *object_layer : m_object->layers()) obj_print_z.emplace_back(object_layer->print_z);
+
+    size_t     num_pruned = 0;
+    ExPolygons support_below; // everything printed on the previous support layer
+    for (size_t layer_nr = m_raft_layers; layer_nr < ts_layers.size(); layer_nr++) {
+        if (m_object->print()->canceled()) return;
+
+        SupportLayer *ts_layer = ts_layers[layer_nr];
+        // A layer that got no node keeps a zero height and is never printed, so it neither carries what is
+        // above it nor interrupts the layer that does.
+        if (ts_layer->height < EPSILON) continue;
+        // Only what sits near this layer's own regions can carry them, so the candidates are clipped to their
+        // bounding box below. It stays undefined when the layer holds no region at all, or none with an extent,
+        // and either way there is nothing here to prune and nothing to carry the layer above.
+        BoundingBox layer_bbox;
+        for (const SupportLayer::AreaGroup &area_group : ts_layer->area_groups) layer_bbox.merge(get_extents(*area_group.area));
+        if (!layer_bbox.defined) {
+            support_below.clear();
+            continue;
+        }
+
+        const coordf_t bottom_z = ts_layer->print_z - ts_layer->height;
+        const bool     grounded = bottom_z <= grounded_z + EPSILON;
+
+        ExPolygons carrier;
+        if (!grounded) {
+            // A region may stick out past whatever carries it, but only by so much. Grow the carrier by that
+            // much so legitimate growth is not counted as floating. drop_nodes() caps a step two different
+            // ways and this has to bound both of them, since too little slack prunes healthy branches:
+            //   - get_max_move_dist() caps how far a node may shift, by the node's own layer height;
+            //   - its layer wide max_move_distance is how fast a fading branch loses radius and how far a
+            //     polygon node may shrink or a merged node may escape, and that one scales with the wall count.
+            // Both are driven by a layer height, and this support layer's own is taken for it rather than
+            // config.layer_height, since independent_support_layer_height lets it run thicker than the
+            // nominal one and the bound has to hold for the thicker case.
+            // The last term is the half extrusion width the radius gains per layer under bottom expansion.
+            const coordf_t carry_slack = std::max({std::min(tan_branch_angle * ts_layer->height, support_extrusion_width),
+                                                   tan_branch_angle * ts_layer->height * wall_count,
+                                                   support_extrusion_width / 2.});
+            // Assembling the carrier means a union and an offset over everything below, which is a clipper
+            // boolean across the whole layer. Clipping first keeps that off the parts of the layer that are too
+            // far away to matter: on a plate full of small parts the rest of it is pure overhead.
+            layer_bbox.offset(scale_(carry_slack) + SCALED_EPSILON);
+
+            const int top_obj_layer_nr = int(std::upper_bound(obj_print_z.begin(), obj_print_z.end(), bottom_z + EPSILON) - obj_print_z.begin()) - 1;
+            // Walk down by print_z instead of by a layer count. With adaptive layer height the object layers are
+            // thinner than m_slicing_params.layer_height, so a count derived from that nominal height spans less
+            // than the real gap and the model actually carrying this region would be missed, pruning it away.
+            // One local layer of slack on top of the gap, the support bottom need not line up with an object layer.
+            const coordf_t lowest_z = top_obj_layer_nr >= 0 ? bottom_z - gap_object_support - m_object->get_layer(top_obj_layer_nr)->height : 0.;
+            Polygons candidates = ClipperUtils::clip_clipper_polygons_with_subject_bbox(support_below, layer_bbox);
+            for (int obj_layer_nr = top_obj_layer_nr; obj_layer_nr >= 0 && obj_print_z[obj_layer_nr] >= lowest_z - EPSILON; obj_layer_nr--)
+                append(candidates, ClipperUtils::clip_clipper_polygons_with_subject_bbox(m_object->get_layer(obj_layer_nr)->lslices, layer_bbox));
+            carrier = offset_ex(union_ex(candidates), scale_(carry_slack));
+        }
+        const std::vector<BoundingBox> carrier_bboxes = get_extents_vector(carrier);
+
+        ExPolygons *regions_by_type[num_area_types] = {&ts_layer->base_areas, &ts_layer->roof_areas, &ts_layer->floor_areas, &ts_layer->roof_1st_layer};
+        ExPolygons  kept_regions[num_area_types];
+        std::vector<SupportLayer::AreaGroup> kept_groups;
+        kept_groups.reserve(ts_layer->area_groups.size());
+        size_t next_index[num_area_types] = {};
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+        ExPolygons pruned_regions;
+#endif
+        for (const SupportLayer::AreaGroup &area_group : ts_layer->area_groups) {
+            const int type = area_group.type;
+            if (type < SupportLayer::BaseType || type > SupportLayer::Roof1stLayer) continue;
+            const size_t index = next_index[type]++;
+            if (index >= regions_by_type[type]->size()) continue;
+            // draw_circles() fills area_groups in vector order within each type and nothing reorders either
+            // side before this point. Were that to change, the pruning below would drop the wrong regions and
+            // the pointers would still re-bind, leaving no trace.
+            assert(area_group.area == &(*regions_by_type[type])[index]);
+            ExPolygon &region = (*regions_by_type[type])[index];
+            // Regions are dropped whole, never trimmed: what is kept here feeds the next layer's carrier, so
+            // trimming would eat a little more off every layer and erode a healthy branch into a thread over a
+            // hundred layers. A branch landing on the edge of its carrier still prints, so only drop the ones
+            // mostly out in the air.
+            const bool   is_interface = type == SupportLayer::RoofType || type == SupportLayer::Roof1stLayer;
+            const double ratio        = grounded ? 1. : carried_area_ratio(carrier, carrier_bboxes, region);
+            if (ratio < (is_interface ? MIN_CARRIED_RATIO_INTERFACE : MIN_CARRIED_RATIO)) {
+                num_pruned++;
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+                pruned_regions.emplace_back(region);
+#endif
+                continue;
+            }
+            kept_regions[type].emplace_back(std::move(region));
+            kept_groups.emplace_back(area_group);
+        }
+
+        for (int type = 0; type < num_area_types; type++) *regions_by_type[type] = std::move(kept_regions[type]);
+        size_t rebound_index[num_area_types] = {};
+        for (SupportLayer::AreaGroup &area_group : kept_groups) {
+            ExPolygons &regions = *regions_by_type[area_group.type];
+            area_group.area     = &regions[rebound_index[area_group.type]++];
+        }
+        ts_layer->area_groups = std::move(kept_groups);
+
+        // support_islands feeds retraction avoidance, keep it in sync with what is left.
+        if (!ts_layer->support_islands.empty()) {
+            ExPolygons islands;
+            islands.reserve(ts_layer->area_groups.size());
+            for (const SupportLayer::AreaGroup &area_group : ts_layer->area_groups) islands.emplace_back(*area_group.area);
+            ts_layer->support_islands = union_ex(islands);
+            ts_layer->lslices_bboxes.clear();
+            ts_layer->lslices_bboxes.reserve(ts_layer->support_islands.size());
+            for (const ExPolygon &expoly : ts_layer->support_islands) ts_layer->lslices_bboxes.emplace_back(get_extents(expoly));
+        }
+
+        support_below.clear();
+        support_below.reserve(ts_layer->area_groups.size());
+        for (const SupportLayer::AreaGroup &area_group : ts_layer->area_groups) support_below.emplace_back(*area_group.area);
+
+#ifdef SUPPORT_TREE_DEBUG_TO_SVG
+        if (!pruned_regions.empty())
+            SVG::export_expolygons(debug_out_path("prune_floating_%d_%.2f.svg", int(layer_nr), ts_layer->print_z),
+                                   {{carrier, {"carrier", "yellow", 0.5}},
+                                    {support_below, {"kept", "green", 0.5}},
+                                    {pruned_regions, {"pruned", "red", 0.5}}});
+#endif
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "Tree support floating region pruning done. " << num_pruned << " regions removed.";
 }
 
 double SupportNode::diameter_angle_scale_factor;
