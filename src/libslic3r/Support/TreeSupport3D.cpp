@@ -4926,19 +4926,20 @@ void organic_draw_branches(
                                 std::vector<BottomExtraSlice>   bottom_extra_slices;
                                 Polygons                        rest_support;
                                 coord_t                         bottom_radius = support_element_radius(config, *branch.path.front());
-                                // Don't propagate further than 1.5 * bottom radius.
-                                //LayerIndex                      layers_propagate_max = 2 * bottom_radius / config.layer_height;
-                                LayerIndex                      layers_propagate_max = 5 * bottom_radius / config.layer_height;
-                                LayerIndex                      layer_bottommost = branch.path.front()->state.verylost ?
-                                    // If the tree bottom is hanging in the air, bring it down to some surface.
-                                    0 :
-                                    //FIXME the "verylost" branches should stop when crossing another support.
-                                    std::max(0, layer_begin - layers_propagate_max);
+                                // nofloat (Solution 1): drop the non-gracious "fake root" until it
+                                // wraps onto the model surface (rest area pinched below
+                                // support_area_stop) or reaches the bed, instead of a fixed
+                                // layers_propagate_max budget that left the bottom floating. Sibling
+                                // overlaps are welded later by the per-tree union + keep_main pass.
+                                LayerIndex                      layer_bottommost = 0;
                                 double                          support_area_min_radius = M_PI * sqr(double(config.branch_radius));
                                 double                          support_area_stop = std::max(0.2 * M_PI * sqr(double(bottom_radius)), 0.5 * support_area_min_radius);
                                 // Only propagate until the rest area is smaller than this threshold.
                                //double                          support_area_min = 0.1 * support_area_min_radius;
                                 for (LayerIndex layer_idx = layer_begin - 1; layer_idx >= layer_bottommost; --layer_idx) {
+                                    // Drop is now bounded by the model/bed instead of layers_propagate_max, so poll cancel every 16 layers.
+                                    if (((layer_begin - 1 - layer_idx) & 15) == 15)
+                                        throw_on_cancel();
                                     rest_support = diff_clipped(rest_support.empty() ? slices.front() : rest_support, volumes.getCollision(0, layer_idx, false));
                                     double rest_support_area = area(rest_support);
                                     if (rest_support_area < support_area_stop)
