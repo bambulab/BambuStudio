@@ -1,0 +1,16 @@
+{
+    "type": "filament",
+    "name": "fdm_filament_template_p3c",
+    "from": "system",
+    "instantiation": "false",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
+    "filament_dev_ams_drying_ams_limitations": [
+        "0",
+        "1",
+        "2",
+        "3"
+    ]
+}

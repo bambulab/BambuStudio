@@ -6,6 +6,10 @@
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
         {
+            "name": "Bambu Lab P3C",
+            "sub_path": "machine/Bambu Lab P3C.json"
+        },
+        {
             "name": "Bambu Lab X1 Carbon",
             "sub_path": "machine/Bambu Lab X1 Carbon.json"
         },
@@ -67,6 +71,518 @@
         }
     ],
     "filament_list": [
+        {
+            "name": "fdm_filament_template_p3c",
+            "sub_path": "filament/fdm_filament_template_p3c.json"
+        },
+        {
+            "name": "Bambu ABS @BBL P3C",
+            "sub_path": "filament/Bambu ABS @BBL P3C.json"
+        },
+        {
+            "name": "Bambu ABS @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu ABS @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS @BBL P3C 0.6 nozzle",
+            "sub_path": "filament/Bambu ABS @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu ABS @BBL P3C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu ABS-GF @BBL P3C",
+            "sub_path": "filament/Bambu ABS-GF @BBL P3C.json"
+        },
+        {
+            "name": "Bambu Support for ABS @BBL P3C",
+            "sub_path": "filament/Bambu Support for ABS @BBL P3C.json"
+        },
+        {
+            "name": "Generic ABS @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Generic ABS @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic ABS @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic ABS @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu ASA @BBL P3C",
+            "sub_path": "filament/Bambu ASA @BBL P3C.json"
+        },
+        {
+            "name": "Bambu ASA @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu ASA @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu ASA @BBL P3C 0.6 nozzle",
+            "sub_path": "filament/Bambu ASA @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu ASA @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu ASA @BBL P3C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu ASA-Aero @BBL P3C",
+            "sub_path": "filament/Bambu ASA-Aero @BBL P3C.json"
+        },
+        {
+            "name": "Bambu ASA-CF @BBL P3C",
+            "sub_path": "filament/Bambu ASA-CF @BBL P3C.json"
+        },
+        {
+            "name": "Generic ASA @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Generic ASA @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic ASA @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic ASA @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic BVOH @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic BVOH @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic EVA @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic EVA @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic HIPS @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Generic HIPS @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic HIPS @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic HIPS @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PA6-CF @BBL P3C",
+            "sub_path": "filament/Bambu PA6-CF @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PA6-GF @BBL P3C",
+            "sub_path": "filament/Bambu PA6-GF @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PAHT-CF @BBL P3C",
+            "sub_path": "filament/Bambu PAHT-CF @BBL P3C.json"
+        },
+        {
+            "name": "Bambu Support For PA/PET @BBL P3C",
+            "sub_path": "filament/Bambu Support For PA PET @BBL P3C.json"
+        },
+        {
+            "name": "Generic PA @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PA @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic PA-CF @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PA-CF @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PC @BBL P3C",
+            "sub_path": "filament/Bambu PC @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PC @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PC @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PC @BBL P3C 0.6 nozzle",
+            "sub_path": "filament/Bambu PC @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PC @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu PC @BBL P3C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PC FR @BBL P3C",
+            "sub_path": "filament/Bambu PC FR @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PC FR @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PC FR @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PC @BBL P3C",
+            "sub_path": "filament/Generic PC @BBL P3C.json"
+        },
+        {
+            "name": "Generic PC @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Generic PC @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PCTG @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PCTG @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic PE @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PE @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic PE-CF @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PE-CF @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PET-CF @BBL P3C",
+            "sub_path": "filament/Bambu PET-CF @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PETG Basic @BBL P3C",
+            "sub_path": "filament/Bambu PETG Basic @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PETG Basic @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Basic @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Basic @BBL P3C 0.6 nozzle",
+            "sub_path": "filament/Bambu PETG Basic @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG HF @BBL P3C",
+            "sub_path": "filament/Bambu PETG HF @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PETG HF @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG HF @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG HF @BBL P3C 0.6 nozzle",
+            "sub_path": "filament/Bambu PETG HF @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG HF @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu PETG HF @BBL P3C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL P3C",
+            "sub_path": "filament/Bambu PETG Matte @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Matte @BBL P3C 0.6 nozzle",
+            "sub_path": "filament/Bambu PETG Matte @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG Translucent @BBL P3C",
+            "sub_path": "filament/Bambu PETG Translucent @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PETG Translucent @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PETG Translucent @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PETG-CF @BBL P3C",
+            "sub_path": "filament/Bambu PETG-CF @BBL P3C.json"
+        },
+        {
+            "name": "Generic PETG @BBL P3C",
+            "sub_path": "filament/Generic PETG @BBL P3C.json"
+        },
+        {
+            "name": "Generic PETG @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Generic PETG @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PETG HF @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Generic PETG HF @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PETG HF @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PETG HF @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic PETG-CF @BBL P3C",
+            "sub_path": "filament/Generic PETG-CF @BBL P3C.json"
+        },
+        {
+            "name": "Generic PHA @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PHA @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Aero @BBL P3C",
+            "sub_path": "filament/Bambu PLA Aero @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Basic @BBL P3C",
+            "sub_path": "filament/Bambu PLA Basic @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Basic @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Basic @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Basic @BBL P3C 0.6 nozzle",
+            "sub_path": "filament/Bambu PLA Basic @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Basic @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Basic @BBL P3C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Galaxy @BBL P3C",
+            "sub_path": "filament/Bambu PLA Galaxy @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Galaxy @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Galaxy @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Glow @BBL P3C",
+            "sub_path": "filament/Bambu PLA Glow @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Glow @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Glow @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Lite @BBL P3C",
+            "sub_path": "filament/Bambu PLA Lite @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Lite @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Lite @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Marble @BBL P3C",
+            "sub_path": "filament/Bambu PLA Marble @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Matte @BBL P3C",
+            "sub_path": "filament/Bambu PLA Matte @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Matte @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Matte @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Matte @BBL P3C 0.6 nozzle",
+            "sub_path": "filament/Bambu PLA Matte @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Matte @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Matte @BBL P3C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Metal @BBL P3C",
+            "sub_path": "filament/Bambu PLA Metal @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Metal @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Metal @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Pure @BBL P3C",
+            "sub_path": "filament/Bambu PLA Pure @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Pure @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Pure @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Silk @BBL P3C",
+            "sub_path": "filament/Bambu PLA Silk @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Silk @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Silk @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Silk+ @BBL P3C",
+            "sub_path": "filament/Bambu PLA Silk+ @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Silk+ @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Silk+ @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Sparkle @BBL P3C",
+            "sub_path": "filament/Bambu PLA Sparkle @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Tough+ @BBL P3C",
+            "sub_path": "filament/Bambu PLA Tough+ @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Tough+ @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Tough+ @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Tough+ @BBL P3C 0.6 nozzle",
+            "sub_path": "filament/Bambu PLA Tough+ @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Tough+ @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu PLA Tough+ @BBL P3C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Translucent @BBL P3C",
+            "sub_path": "filament/Bambu PLA Translucent @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA Translucent @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu PLA Translucent @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Wood @BBL P3C",
+            "sub_path": "filament/Bambu PLA Wood @BBL P3C.json"
+        },
+        {
+            "name": "Bambu PLA-CF @BBL P3C",
+            "sub_path": "filament/Bambu PLA-CF @BBL P3C.json"
+        },
+        {
+            "name": "Bambu Support For PLA @BBL P3C",
+            "sub_path": "filament/Bambu Support For PLA @BBL P3C.json"
+        },
+        {
+            "name": "Bambu Support For PLA @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu Support For PLA @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu Support For PLA/PETG @BBL P3C",
+            "sub_path": "filament/Bambu Support For PLA-PETG @BBL P3C.json"
+        },
+        {
+            "name": "Bambu Support For PLA/PETG @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Bambu Support For PLA-PETG @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PLA @BBL P3C",
+            "sub_path": "filament/Generic PLA @BBL P3C.json"
+        },
+        {
+            "name": "Generic PLA @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Generic PLA @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PLA High Speed @BBL P3C",
+            "sub_path": "filament/Generic PLA High Speed @BBL P3C.json"
+        },
+        {
+            "name": "Generic PLA High Speed @BBL P3C 0.2 nozzle",
+            "sub_path": "filament/Generic PLA High Speed @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Generic PLA Silk @BBL P3C",
+            "sub_path": "filament/Generic PLA Silk @BBL P3C.json"
+        },
+        {
+            "name": "Generic PLA-CF @BBL P3C",
+            "sub_path": "filament/Generic PLA-CF @BBL P3C.json"
+        },
+        {
+            "name": "Generic PP @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PP @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic PP-CF @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PP-CF @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic PP-GF @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PP-GF @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PPA-CF @BBL P3C",
+            "sub_path": "filament/Bambu PPA-CF @BBL P3C.json"
+        },
+        {
+            "name": "Generic PPA-CF @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PPA-CF @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic PPA-GF @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PPA-GF @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic PPS @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PPS @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Generic PPS-CF @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PPS-CF @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu PVA @BBL P3C",
+            "sub_path": "filament/Bambu PVA @BBL P3C.json"
+        },
+        {
+            "name": "Generic PVA @BBL P3C 0.4 nozzle",
+            "sub_path": "filament/Generic PVA @BBL P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 75A(2.85mm) @BBL P3C",
+            "sub_path": "filament/Bambu TPU 75A(2.85mm) @BBL P3C.json"
+        },
+        {
+            "name": "Bambu TPU 75A(2.85mm) @BBL P3C 0.6 nozzle",
+            "sub_path": "filament/Bambu TPU 75A(2.85mm) @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 75A(2.85mm) @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu TPU 75A(2.85mm) @BBL P3C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 85A @BBL P3C",
+            "sub_path": "filament/Bambu TPU 85A @BBL P3C.json"
+        },
+        {
+            "name": "Bambu TPU 85A @BBL P3C 0.6 nozzle",
+            "sub_path": "filament/Bambu TPU 85A @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 85A @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu TPU 85A @BBL P3C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 90A @BBL P3C",
+            "sub_path": "filament/Bambu TPU 90A @BBL P3C.json"
+        },
+        {
+            "name": "Bambu TPU 90A @BBL P3C 0.6 nozzle",
+            "sub_path": "filament/Bambu TPU 90A @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 90A @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu TPU 90A @BBL P3C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 95A HF @BBL P3C",
+            "sub_path": "filament/Bambu TPU 95A HF @BBL P3C.json"
+        },
+        {
+            "name": "Bambu TPU 95A HF @BBL P3C 0.6 nozzle",
+            "sub_path": "filament/Bambu TPU 95A HF @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 95A HF @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Bambu TPU 95A HF @BBL P3C 0.8 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU for AMS @BBL P3C",
+            "sub_path": "filament/Bambu TPU for AMS @BBL P3C.json"
+        },
+        {
+            "name": "Generic TPU @BBL P3C",
+            "sub_path": "filament/Generic TPU @BBL P3C.json"
+        },
+        {
+            "name": "Generic TPU @BBL P3C 0.6 nozzle",
+            "sub_path": "filament/Generic TPU @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Generic TPU @BBL P3C 0.8 nozzle",
+            "sub_path": "filament/Generic TPU @BBL P3C 0.8 nozzle.json"
+        },
+        {
+            "name": "Generic TPU for AMS @BBL P3C",
+            "sub_path": "filament/Generic TPU for AMS @BBL P3C.json"
+        },
         {
             "name": "fdm_filament_template_direct_bowden",
             "sub_path": "filament/fdm_filament_template_direct_bowden.json"
@@ -9002,6 +9518,42 @@
     ],
     "machine_list": [
         {
+            "name": "Bambu Lab P3C 0.4 nozzle template change_filament_gcode",
+            "sub_path": "machine/Bambu Lab P3C 0.4 nozzle template change_filament_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P3C 0.4 nozzle template layer_change_gcode",
+            "sub_path": "machine/Bambu Lab P3C 0.4 nozzle template layer_change_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P3C 0.4 nozzle template machine_end_gcode",
+            "sub_path": "machine/Bambu Lab P3C 0.4 nozzle template machine_end_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P3C 0.4 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab P3C 0.4 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P3C 0.4 nozzle template time_lapse_gcode",
+            "sub_path": "machine/Bambu Lab P3C 0.4 nozzle template time_lapse_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P3C 0.4 nozzle",
+            "sub_path": "machine/Bambu Lab P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab P3C 0.2 nozzle",
+            "sub_path": "machine/Bambu Lab P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab P3C 0.6 nozzle",
+            "sub_path": "machine/Bambu Lab P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab P3C 0.8 nozzle",
+            "sub_path": "machine/Bambu Lab P3C 0.8 nozzle.json"
+        },
+        {
             "name": "Bambu Lab A1 0.4 nozzle template change_filament_gcode",
             "sub_path": "machine/Bambu Lab A1 0.4 nozzle template change_filament_gcode.json"
         },
@@ -9631,6 +10183,70 @@
         }
     ],
     "process_list": [
+        {
+            "name": "0.08mm High Quality @BBL P3C",
+            "sub_path": "process/0.08mm High Quality @BBL P3C.json"
+        },
+        {
+            "name": "0.08mm High Quality @BBL P3C 0.2 nozzle",
+            "sub_path": "process/0.08mm High Quality @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "0.10mm Standard @BBL P3C 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm High Quality @BBL P3C",
+            "sub_path": "process/0.12mm High Quality @BBL P3C.json"
+        },
+        {
+            "name": "0.12mm Balanced Quality @BBL P3C 0.2 nozzle",
+            "sub_path": "process/0.12mm Balanced Quality @BBL P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "0.16mm High Quality @BBL P3C",
+            "sub_path": "process/0.16mm High Quality @BBL P3C.json"
+        },
+        {
+            "name": "0.16mm Standard @BBL P3C",
+            "sub_path": "process/0.16mm Standard @BBL P3C.json"
+        },
+        {
+            "name": "0.18mm Balanced Quality @BBL P3C 0.6 nozzle",
+            "sub_path": "process/0.18mm Balanced Quality @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "0.20mm High Quality @BBL P3C",
+            "sub_path": "process/0.20mm High Quality @BBL P3C.json"
+        },
+        {
+            "name": "0.20mm Standard @BBL P3C",
+            "sub_path": "process/0.20mm Standard @BBL P3C.json"
+        },
+        {
+            "name": "0.24mm Standard @BBL P3C",
+            "sub_path": "process/0.24mm Standard @BBL P3C.json"
+        },
+        {
+            "name": "0.24mm Balanced Quality @BBL P3C 0.6 nozzle",
+            "sub_path": "process/0.24mm Balanced Quality @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "0.24mm Balanced Quality @BBL P3C 0.8 nozzle",
+            "sub_path": "process/0.24mm Balanced Quality @BBL P3C 0.8 nozzle.json"
+        },
+        {
+            "name": "0.30mm Standard @BBL P3C 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @BBL P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "0.32mm Balanced Quality @BBL P3C 0.8 nozzle",
+            "sub_path": "process/0.32mm Balanced Quality @BBL P3C 0.8 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @BBL P3C 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @BBL P3C 0.8 nozzle.json"
+        },
         {
             "name": "fdm_process_common",
             "sub_path": "process/fdm_process_common.json"
