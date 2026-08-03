@@ -421,10 +421,18 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
                 g_delay_webviews.push_back(webView);
             } else {
                 addScriptMessageHandler(webView);
+                // AddScriptMessageHandler pumps a nested event loop (RunScriptSync ->
+                // wxYieldFor). While the adding-flag is set, other webviews' deferred
+                // CallAfter lambdas dispatched by that nested loop take the guarded
+                // branch above and queue themselves here, so drain them now. Any webview
+                // torn down while queued (e.g. a language-switch GUI rebuild) is skipped:
+                // ~WebViewRef removes it from g_webviews, so the find() below filters it
+                // out instead of dereferencing freed memory.
                 while (!g_delay_webviews.empty()) {
-                    auto views = std::move(g_delay_webviews);
-                    for (auto wv : views)
-                        addScriptMessageHandler(wv);
+                    auto wv = g_delay_webviews.front();
+                    g_delay_webviews.erase(g_delay_webviews.begin());
+                    if (std::find(g_webviews.begin(), g_webviews.end(), wv) == g_webviews.end()) continue;
+                    addScriptMessageHandler(wv);
                 }
             }
 #ifndef __WIN32__
