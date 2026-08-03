@@ -40,6 +40,29 @@ static void update_ui(wxWindow* window)
 
 static const char g_min_cluster_color = 1;
 static const char g_max_color = (int) EnforcerBlockerType::ExtruderMax;
+static const RGBA* get_object_level_volume_color(
+    const VolumeColorInfo& volume_color,
+    const std::unordered_map<int, std::vector<RGBA>>& color_group_map,
+    size_t triangle_count)
+{
+    if (volume_color.triangle_colors.size() != triangle_count ||
+        volume_color.pid < 0 || volume_color.pindex < 0)
+        return nullptr;
+
+    auto color_group = color_group_map.find(volume_color.pid);
+    if (color_group == color_group_map.end() ||
+        volume_color.pindex >= int(color_group->second.size()))
+        return nullptr;
+
+    for (const TriangleColor& triangle_color : volume_color.triangle_colors)
+        if (triangle_color.pid != volume_color.pid ||
+            triangle_color.indices[0] != volume_color.pindex ||
+            triangle_color.indices[1] != volume_color.pindex ||
+            triangle_color.indices[2] != volume_color.pindex)
+            return nullptr;
+    return &color_group->second[volume_color.pindex];
+}
+
 const  StateColor ok_btn_bg(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
                      std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
                      std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
@@ -244,6 +267,7 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
                   EndModal(wxCANCEL);
                   return;
               }
+              m_panel_ObjColor->apply_volume_filament_ids();
               m_panel_ObjColor->clear_instance_and_revert_offset();
               m_panel_ObjColor->send_new_filament_to_ui();
               EndModal(wxID_OK);
@@ -618,6 +642,83 @@ void ObjColorPanel::cancel_paint_color() {
     }
     clear_instance_and_revert_offset();
     m_first_extruder_id = 1;
+}
+
+void ObjColorPanel::apply_volume_filament_ids()
+{
+    if (m_obj_in_out.model == nullptr)
+        return;
+
+    // Preserve volume boundaries only when all candidate parts use object-level 3MF colors and none
+    // of their triangles overrides those colors. Such volumes are assigned a filament directly instead
+    // of surface painting, which would otherwise merge and blur the boundaries between volumes.
+    // Triangle-painted models keep the existing surface-painting path.
+    std::unordered_map<int, unsigned char> object_level_volume_filament_ids;
+    if (m_obj_in_out.input_type == ObjDialogInOut::FormatType::Standard3mf &&
+        !m_obj_in_out.exist_color_error && !m_obj_in_out.exist_texture_error) {
+        auto collect_object_volumes = [this](const ModelObject &object,
+                                             std::vector<std::pair<int, unsigned char>> &mapped_volumes) {
+            bool has_model_part = false;
+            for (const ModelVolume *volume : object.volumes) {
+                if (volume == nullptr || !volume->is_model_part())
+                    continue;
+                has_model_part = true;
+                auto color_info = m_obj_in_out.volume_colors.find(volume->id().id);
+                const RGBA *object_level_color = nullptr;
+                if (color_info != m_obj_in_out.volume_colors.end())
+                    object_level_color = get_object_level_volume_color(
+                        color_info->second, m_obj_in_out.color_group_map, volume->mesh().its.indices.size());
+                if (object_level_color == nullptr)
+                    return false;
+                const int filament_id = filament_id_for_color(*object_level_color);
+                if (filament_id <= 0)
+                    return false;
+                mapped_volumes.emplace_back(volume->id().id, static_cast<unsigned char>(filament_id));
+            }
+            return has_model_part;
+        };
+
+        if (m_obj_in_out.model->looks_like_multipart_object()) {
+            std::vector<std::pair<int, unsigned char>> mapped_volumes;
+            bool all_objects_colored = true;
+            for (const ModelObject *object : m_obj_in_out.model->objects)
+                if (object == nullptr || !collect_object_volumes(*object, mapped_volumes)) {
+                    all_objects_colored = false;
+                    break;
+                }
+            if (all_objects_colored && mapped_volumes.size() > 1)
+                object_level_volume_filament_ids.insert(mapped_volumes.begin(), mapped_volumes.end());
+        } else {
+            for (const ModelObject *object : m_obj_in_out.model->objects) {
+                if (object == nullptr)
+                    continue;
+                std::vector<std::pair<int, unsigned char>> mapped_volumes;
+                if (collect_object_volumes(*object, mapped_volumes) && mapped_volumes.size() > 1)
+                    object_level_volume_filament_ids.insert(mapped_volumes.begin(), mapped_volumes.end());
+            }
+        }
+    }
+
+    for (ModelObject *object : m_obj_in_out.model->objects)
+        if (object != nullptr)
+            for (ModelVolume *volume : object->volumes) {
+                auto volume_filament = object_level_volume_filament_ids.find(volume->id().id);
+                if (volume_filament != object_level_volume_filament_ids.end()) {
+                    volume->config.set("extruder", volume_filament->second);
+                    volume->mmu_segmentation_facets.reset();
+                }
+            }
+}
+
+int ObjColorPanel::filament_id_for_color(const RGBA &color) const
+{
+    for (size_t i = 0; i < m_input_colors.size(); ++i)
+        if (color_is_equal(color, m_input_colors[i]) && i < m_cluster_labels_from_algo.size()) {
+            const int label = m_cluster_labels_from_algo[i];
+            if (label >= 0 && size_t(label) < m_cluster_map_filaments.size() && m_cluster_map_filaments[label] > 0)
+                return m_cluster_map_filaments[label];
+        }
+    return 0;
 }
 
 void ObjColorPanel::update_filament_ids()
@@ -1053,15 +1154,8 @@ void ObjColorPanel::deal_thumbnail() {
         if (color_is_equal(used_color, UNDEFINE_COLOR)) {
             return result_filament_id;
         }
-        for (size_t j = 0; j < m_input_colors_size; j++) {
-            if (color_is_equal(used_color, m_input_colors[j])) {
-                int algo_label = m_cluster_labels_from_algo[j];
-                if (m_cluster_map_filaments[algo_label] > 0) {
-                    result_filament_id = m_cluster_map_filaments[algo_label];
-                    break;
-                }
-            }
-        }
+        if (const int mapped_filament_id = filament_id_for_color(used_color); mapped_filament_id > 0)
+            result_filament_id = mapped_filament_id;
         return result_filament_id;
     } : std::function<int(int, int, int)>(nullptr);
 
