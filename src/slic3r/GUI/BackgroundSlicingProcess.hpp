@@ -1,6 +1,7 @@
 #ifndef slic3r_GUI_BackgroundSlicingProcess_hpp_
 #define slic3r_GUI_BackgroundSlicingProcess_hpp_
 
+#include <cstdint>
 #include <string>
 #include <condition_variable>
 #include <mutex>
@@ -27,8 +28,8 @@ class SLAPrint;
 class HelioCompletionEvent : public wxEvent
 {
 public:
-    HelioCompletionEvent(wxEventType eventType, int winid, std::string in_path, std::string in_tmp_path, bool in_is_successful, std::string in_error_message = "", int ac = 0, std::string mean_impro = "", std::string std_impro = "")
-        : wxEvent(winid, eventType), tmp_path(in_tmp_path), path(in_path), is_successful(in_is_successful), error_message(in_error_message), action(ac), quality_mean_improvement(mean_impro), quality_std_improvement(std_impro){}
+    HelioCompletionEvent(wxEventType eventType, int winid, std::string in_path, std::string in_tmp_path, bool in_is_successful, std::string in_error_message = "", int ac = 0, std::string mean_impro = "", std::string std_impro = "", std::uint64_t in_generation = 0)
+        : wxEvent(winid, eventType), tmp_path(in_tmp_path), path(in_path), is_successful(in_is_successful), error_message(in_error_message), action(ac), quality_mean_improvement(mean_impro), quality_std_improvement(std_impro), generation(in_generation) {}
     virtual wxEvent *Clone() const { return new HelioCompletionEvent(*this); }
 
     std::string tmp_path;
@@ -36,19 +37,31 @@ public:
     bool        is_successful;
     std::string error_message;
     int action; //0-simulation 1-optimization
-    std::string quality_mean_improvement;	
-    std::string quality_std_improvement;	
+    std::string quality_mean_improvement;
+    std::string quality_std_improvement;
+    std::uint64_t generation;
+};
+
+class HelioActionEvent : public wxEvent
+{
+public:
+    HelioActionEvent(wxEventType eventType, int winid, std::uint64_t in_generation)
+        : wxEvent(winid, eventType), generation(in_generation) {}
+    virtual wxEvent *Clone() const { return new HelioActionEvent(*this); }
+    std::uint64_t generation;
 };
 
 class SlicingStatusEvent : public wxEvent
 {
 public:
-	SlicingStatusEvent(wxEventType eventType, int winid, const PrintBase::SlicingStatus &status) :
-		wxEvent(winid, eventType), status(std::move(status)) {}
-	virtual wxEvent *Clone() const { return new SlicingStatusEvent(*this); }
+    SlicingStatusEvent(wxEventType eventType, int winid, const PrintBase::SlicingStatus &status, std::uint64_t in_generation = 0) :
+        wxEvent(winid, eventType), status(std::move(status)), generation(in_generation) {}
+    virtual wxEvent *Clone() const { return new SlicingStatusEvent(*this); }
 
-	PrintBase::SlicingStatus status;
+    PrintBase::SlicingStatus status;
+    std::uint64_t generation;
 };
+
 
 class SlicingProcessCompletedEvent : public wxEvent
 {

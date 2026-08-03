@@ -592,7 +592,7 @@ public:
     //for helio slice
     bool            is_helio_enable();
     static void     request_helio_pat(std::function<void(std::string)> func);
-    static void     request_helio_supported_data();
+    static void     request_helio_supported_data(bool force_refresh = false);
 	//static std::vector<Slic3r::HelioQuery::SupportedPrinters> get_helio_support_printer_model();
 
     void                                               persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);

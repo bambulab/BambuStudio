@@ -425,6 +425,8 @@ public:
     //BBS
     void update_side_button_style();
     void update_slice_print_status(SlicePrintEventType event, bool can_slice = true, bool can_print = true);
+    void update_helio_button_state();
+
 
     int select_device_page_count{ 0 };
 
