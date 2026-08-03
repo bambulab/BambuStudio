@@ -4296,7 +4296,15 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_GESTURE_PAN, &GLCanvas3D::on_gesture, this);
         m_canvas->Bind(wxEVT_GESTURE_ZOOM, &GLCanvas3D::on_gesture, this);
         m_canvas->Bind(wxEVT_GESTURE_ROTATE, &GLCanvas3D::on_gesture, this);
+        // Pan gestures are only registered on Windows, where the touchpad two-finger swipe
+        // has to reach on_gesture(). On macOS the pan recognizer wx installs here also claims
+        // plain left-button drags, so moving an object turns into a camera pan; initGestures()
+        // below already covers the touchpad path there.
+#ifdef __WXMSW__
         m_canvas->EnableTouchEvents(wxTOUCH_ZOOM_GESTURE | wxTOUCH_ROTATE_GESTURE | wxTOUCH_PAN_GESTURES);
+#else
+        m_canvas->EnableTouchEvents(wxTOUCH_ZOOM_GESTURE | wxTOUCH_ROTATE_GESTURE);
+#endif
 #if __WXOSX__
         initGestures(m_canvas->GetHandle(), m_canvas); // for UIPanGestureRecognizer allowedScrollTypesMask
 #endif
