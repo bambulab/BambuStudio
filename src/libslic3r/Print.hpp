@@ -1165,6 +1165,8 @@ private:
 
     void                _make_skirt();
     void                _make_wipe_tower();
+    // Vertical clearance against the compacted wipe tower, see wipe_tower_no_sparse_layers.
+    void                validate_compacted_wipe_tower_clearance() const;
     void                finalize_first_layer_convex_hull();
     void                update_filament_self_index_cache();
 
