@@ -264,7 +264,7 @@ wxDEFINE_EVENT(EVT_SWITCH_TO_PREPARE_TAB, wxCommandEvent);
 
 // helio
 wxDEFINE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, HelioCompletionEvent);
-wxDEFINE_EVENT(EVT_HELIO_PROCESSING_STARTED, SimpleEvent);
+wxDEFINE_EVENT(EVT_HELIO_PROCESSING_STARTED, HelioActionEvent);
 wxDEFINE_EVENT(EVT_HELIO_INPUT_DLG, SimpleEvent);
 // end helio
 
@@ -6871,10 +6871,14 @@ public:
 
     // V2: single material path (feature flag OFF)
     int update_helio_background_process_v2(std::string& printer_id, std::string& material_id);
+    int update_helio_background_process_v2_once(std::string& printer_id, std::string& material_id);
     // V3: multi-material path (feature flag ON)
     int update_helio_background_process(std::string& printer_id,
                                          std::vector<HelioQuery::MaterialInput>& materials,
                                          bool& is_multi_color, bool& is_multi_material);
+    int update_helio_background_process_once(std::string& printer_id,
+                                              std::vector<HelioQuery::MaterialInput>& materials,
+                                              bool& is_multi_color, bool& is_multi_material);
 
     void clear_warnings();
     void add_warning(const Slic3r::PrintStateBase::Warning &warning, size_t oid);
@@ -6922,9 +6926,9 @@ public:
     void on_action_slice_plate(SimpleEvent&);
     void on_action_slice_all(SimpleEvent&);
     void on_helio_processing_complete(HelioCompletionEvent &);
-    void on_helio_processing_start(SimpleEvent &);
+    void on_helio_processing_start(HelioActionEvent &);
     void on_helio_input_dlg(SimpleEvent &);
-    void on_helio_process();
+    void on_helio_process(const PartPlate* expected_plate);
     void on_action_publish(wxCommandEvent &evt);
     void on_action_print_plate(SimpleEvent&);
     void on_action_print_all(SimpleEvent&);
@@ -12372,6 +12376,9 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
 void Plater::priv::on_slicing_update(SlicingStatusEvent &evt)
 {
+    if (evt.status.is_helio && !helio_background_process.is_action_current(evt.generation)) {
+        return;
+    }
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": event_type %1%, percent %2%, text %3%") % evt.GetEventType() % evt.status.percent % evt.status.text;
     //BBS: add slice project logic
     std::string title_text = _u8L("Slicing");
@@ -12960,19 +12967,21 @@ static std::vector<std::string> extract_material_keywords(const std::string& mat
 
 // Helper function to find similar materials based on keywords
 static std::vector<HelioQuery::SupportedData> find_similar_materials(
+    const SupportDataCatalogPairView& support_data,
     const std::string& target_name,
     const std::vector<std::string>& keywords)
 {
     std::vector<HelioQuery::SupportedData> similar_materials;
+    const auto& supported_materials = support_data.materials;
 
-    if (keywords.empty()) {
+    if (keywords.empty() || !supported_materials) {
         return similar_materials;
     }
 
     std::string lower_target = target_name;
     boost::algorithm::to_lower(lower_target);
 
-    for (const HelioQuery::SupportedData& pdata : HelioQuery::global_supported_materials) {
+    for (const HelioQuery::SupportedData& pdata : *supported_materials) {
         if (pdata.native_name.empty()) {
             continue;
         }
@@ -13022,14 +13031,19 @@ static std::vector<std::string> extract_printer_keywords(const std::string& prin
 
 // Helper function to find similar printers based on keywords
 static std::vector<HelioQuery::SupportedData> find_similar_printers(
+    const SupportDataCatalogPairView& support_data,
     const std::string& target_name,
     const std::vector<std::string>& keywords)
 {
     std::vector<HelioQuery::SupportedData> similar_printers;
+    const auto& supported_printers = support_data.printers;
+    if (!supported_printers) {
+        return similar_printers;
+    }
 
     // If no keywords found, return all printers as options
     if (keywords.empty()) {
-        for (const HelioQuery::SupportedData& pdata : HelioQuery::global_supported_printers) {
+        for (const HelioQuery::SupportedData& pdata : *supported_printers) {
             if (!pdata.native_name.empty()) {
                 similar_printers.push_back(pdata);
             }
@@ -13040,7 +13054,7 @@ static std::vector<HelioQuery::SupportedData> find_similar_printers(
     std::string lower_target = target_name;
     boost::algorithm::to_lower(lower_target);
 
-    for (const HelioQuery::SupportedData& pdata : HelioQuery::global_supported_printers) {
+    for (const HelioQuery::SupportedData& pdata : *supported_printers) {
         if (pdata.native_name.empty()) {
             continue;
         }
@@ -13198,7 +13212,8 @@ struct FilamentSupportInfo {
 };
 
 // Helper function to check if a single filament is supported by Helio and get its material ID
-static FilamentSupportInfo check_filament_helio_support(const std::string& filament_preset_name, int extruder_index)
+static FilamentSupportInfo check_filament_helio_support(const SupportDataCatalogPairView& support_data,
+                                                        const std::string& filament_preset_name, int extruder_index)
 {
     FilamentSupportInfo info;
     info.preset_name = filament_preset_name;
@@ -13222,7 +13237,12 @@ static FilamentSupportInfo check_filament_helio_support(const std::string& filam
     // Find best (longest) match to prefer specific materials over generic ones
     size_t best_match_length = 0;
 
-    for (const HelioQuery::SupportedData& pdata : HelioQuery::global_supported_materials) {
+    const auto& supported_materials = support_data.materials;
+    if (!supported_materials) {
+        return info;
+    }
+
+    for (const HelioQuery::SupportedData& pdata : *supported_materials) {
         if (pdata.native_name.empty()) continue;
 
         std::string native_name = pdata.native_name;
@@ -13339,12 +13359,6 @@ public:
         warning_box->SetSizer(warning_sizer);
         main_sizer->Add(warning_box, 0, wxALL, wxWindowBase::FromDIP(15, this));
 
-        // Future support message
-        Label* future_msg = new Label(this, Label::Body_13,
-            _L("True multi-material support will be added in a future update."), LB_AUTO_WRAP);
-        future_msg->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#6B6B6B")));
-        future_msg->Wrap(wxWindowBase::FromDIP(470, this));
-        main_sizer->Add(future_msg, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
 
         // Option 1: Proceed with single filament
         StaticBox* option1_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
@@ -13527,6 +13541,32 @@ public:
 
         option2_box->SetSizer(option2_sizer);
         main_sizer->Add(option2_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+        wxColour option3_bg = is_dark_mode ? wxColour(30, 45, 70) : wxColour("#E3F2FD");
+        wxColour option3_border = is_dark_mode ? wxColour(100, 181, 246) : wxColour("#2196F3");
+        wxColour option3_text_color = is_dark_mode ? wxColour(240, 240, 240) : text_color;
+        // Option 3: Enable multi-material optimization
+        StaticBox* option3_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                               wxSize(wxWindowBase::FromDIP(470, this), -1));
+        option3_box->SetBackgroundColor(StateColor(std::make_pair(option3_bg, (int)StateColor::Normal)));
+        option3_box->SetBackgroundColour(option3_bg);
+        option3_box->SetBorderColor(StateColor(std::make_pair(option3_border, (int)StateColor::Normal)));
+        option3_box->SetBorderWidth(1);
+        option3_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+
+        wxBoxSizer* option3_sizer = new wxBoxSizer(wxVERTICAL);
+        option3_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        Label* option3_title = new Label(option3_box, Label::Head_14, _L("Option 3: Enable multi-material optimization"));
+        option3_title->SetForegroundColour(option3_text_color);
+        option3_sizer->Add(option3_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option3_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        Label* option3_desc = new Label(option3_box, Label::Body_13,
+            _L("Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""), LB_AUTO_WRAP);
+        option3_desc->SetForegroundColour(option3_text_color);
+        option3_desc->Wrap(wxWindowBase::FromDIP(440, this));
+        option3_sizer->Add(option3_desc, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option3_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        option3_box->SetSizer(option3_sizer);
+        main_sizer->Add(option3_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
 
         SetSizerAndFit(main_sizer);
         {
@@ -13865,9 +13905,10 @@ private:
 // Progress dialog shown while re-fetching supported printers/materials from Helio
 class HelioSyncProgressDialog : public DPIDialog {
 public:
-    HelioSyncProgressDialog(wxWindow* parent)
+    HelioSyncProgressDialog(wxWindow* parent, bool wait_for_refresh_completion = false)
         : DPIDialog(parent, wxID_ANY, _L("Syncing Data"),
                    wxDefaultPosition, wxDefaultSize, wxCAPTION)
+        , m_wait_for_refresh_completion(wait_for_refresh_completion)
     {
         SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
 
@@ -13884,7 +13925,12 @@ public:
                               wxSize(wxWindowBase::FromDIP(300, this), -1), wxGA_HORIZONTAL);
         m_gauge->Pulse();
         sizer->Add(m_gauge, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(20, this));
-        sizer->AddSpacer(wxWindowBase::FromDIP(20, this));
+        sizer->AddSpacer(wxWindowBase::FromDIP(10, this));
+
+        m_cancel_btn = new Button(this, _L("Cancel"));
+        m_cancel_btn->Bind(wxEVT_BUTTON, &HelioSyncProgressDialog::OnCancel, this);
+        sizer->Add(m_cancel_btn, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(20, this));
+        sizer->AddSpacer(wxWindowBase::FromDIP(10, this));
 
         SetSizerAndFit(sizer);
         CentreOnParent();
@@ -13892,7 +13938,6 @@ public:
 
         m_timer = new wxTimer(this);
         Bind(wxEVT_TIMER, &HelioSyncProgressDialog::OnTimer, this);
-        m_start_time = std::chrono::steady_clock::now();
         m_timer->Start(500);
     }
 
@@ -13904,17 +13949,36 @@ public:
     }
 
     void on_dpi_changed(const wxRect& suggested_rect) override {}
+    bool was_cancelled_by_user() const { return m_cancelled_by_user; }
+
 
 private:
+    void OnCancel(wxCommandEvent&) {
+        m_cancelled_by_user = true;
+        if (m_timer) {
+            m_timer->Stop();
+        }
+        EndModal(wxID_CANCEL);
+    }
+
     void OnTimer(wxTimerEvent&) {
         m_gauge->Pulse();
-        if (HelioQuery::global_printers_fully_loaded && HelioQuery::global_materials_fully_loaded) {
+        const auto support_data = HelioQuery::supported_data_view();
+
+        if (m_wait_for_refresh_completion) {
+            if (support_data.printers_state != SupportDataLoadState::Loading &&
+                support_data.materials_state != SupportDataLoadState::Loading) {
+                const bool refresh_succeeded = support_data.printers_state == SupportDataLoadState::Ready &&
+                                               support_data.materials_state == SupportDataLoadState::Ready;
+                EndModal(refresh_succeeded ? wxID_OK : wxID_CANCEL);
+            }
+            return;
+        }
+        if (support_data.availability == SupportDataAvailability::Usable) {
             EndModal(wxID_OK);
             return;
         }
-        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::steady_clock::now() - m_start_time).count();
-        if (elapsed >= 15) {
+        if (support_data.availability == SupportDataAvailability::LoadFailed) {
             EndModal(wxID_CANCEL);
             return;
         }
@@ -13922,14 +13986,68 @@ private:
 
     wxTimer* m_timer;
     wxGauge* m_gauge;
-    std::chrono::steady_clock::time_point m_start_time;
+    Button* m_cancel_btn;
+    bool m_wait_for_refresh_completion{false};
+    bool m_cancelled_by_user{false};
+
 };
+
+static std::string helio_support_data_error_details(const SupportDataCatalogPairView& support_data)
+{
+    std::string details = support_data.printers_last_error;
+    const std::string material_error = support_data.materials_last_error;
+    if (!material_error.empty()) {
+        if (!details.empty()) details += "\n";
+        details += material_error;
+    }
+    return details;
+}
+
+static bool refresh_helio_supported_data(wxWindow* parent)
+{
+    wxGetApp().request_helio_supported_data(true);
+    HelioSyncProgressDialog sync_dlg(parent, true);
+    if (sync_dlg.ShowModal() == wxID_OK) {
+        return true;
+    }
+    if (sync_dlg.was_cancelled_by_user()) {
+        return false;
+    }
+
+
+    const auto support_data = HelioQuery::supported_data_view();
+    wxString message = support_data.availability == SupportDataAvailability::Usable
+        ? _L("Helio could not refresh all printer and material data. The previous complete data remains available.")
+        : _L("Helio could not load complete printer and material data. Matching remains paused.");
+    const std::string details = helio_support_data_error_details(support_data);
+    if (!details.empty()) {
+        message += "\n\n";
+        message += wxString::FromUTF8(details);
+    }
+    MessageDialog failure_dialog(parent, message, _L("Helio Data Refresh Failed"), wxOK | wxICON_ERROR);
+    failure_dialog.ShowModal();
+    return false;
+}
 
 // ===========================================================================
 // V2 PATH: Single material_id, uses HelioMixedFilamentDialog for mixed types
 // Used when helio_multimaterial_enabled feature flag is OFF
 // ===========================================================================
+static constexpr int HELIO_SUPPORT_DATA_REFRESHED = -2;
+
 int Plater::priv::update_helio_background_process_v2(std::string& printer_id, std::string& material_id)
+{
+    for (;;) {
+        const int result = update_helio_background_process_v2_once(printer_id, material_id);
+        if (result != HELIO_SUPPORT_DATA_REFRESHED) {
+            return result;
+        }
+        printer_id.clear();
+        material_id.clear();
+    }
+}
+
+int Plater::priv::update_helio_background_process_v2_once(std::string& printer_id, std::string& material_id)
 {
     helio_using_reference_material = false; // Reset at start (Issue D fix)
 
@@ -13946,8 +14064,17 @@ int Plater::priv::update_helio_background_process_v2(std::string& printer_id, st
          return -1;
      }
 
+    const auto support_data = HelioQuery::supported_data_view();
+    const auto& supported_printers = support_data.printers;
+    const auto& supported_materials = support_data.materials;
+    if (support_data.availability != SupportDataAvailability::Usable ||
+        !supported_printers || !supported_materials) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Helio support-data snapshot is unavailable";
+        return -1;
+    }
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": preset_name = '" << preset_name << "', preset_pure_name = '" << preset_pure_name << "'";
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": global_supported_printers.size() = " << HelioQuery::global_supported_printers.size();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": supported_printers.size() = " << supported_printers->size();
 
     std::string printer_target_name = preset_name;
     boost::trim(printer_target_name);
@@ -13963,7 +14090,7 @@ int Plater::priv::update_helio_background_process_v2(std::string& printer_id, st
 
     // Step 1: Try word-boundary matching
     auto [best_match_id, best_match_length] = match_printer_with_boundaries(
-        printer_target_name, HelioQuery::global_supported_printers);
+        printer_target_name, *supported_printers);
 
     if (!best_match_id.empty()) {
         helio_support = true;
@@ -13974,7 +14101,7 @@ int Plater::priv::update_helio_background_process_v2(std::string& printer_id, st
     // Step 2: Token-based matching
     if (!helio_support) {
         auto [token_printer_id, token_native_name] = match_printer_tokens(
-            printer_target_name, HelioQuery::global_supported_printers);
+            printer_target_name, *supported_printers);
 
         if (!token_printer_id.empty()) {
             wxString message = wxString::Format(
@@ -13997,7 +14124,7 @@ int Plater::priv::update_helio_background_process_v2(std::string& printer_id, st
     // Step 3: Reference printer selection dialog
     if (!helio_support) {
         std::vector<std::string> keywords = extract_printer_keywords(printer_target_name);
-        std::vector<HelioQuery::SupportedData> similar_printers = find_similar_printers(printer_target_name, keywords);
+        std::vector<HelioQuery::SupportedData> similar_printers = find_similar_printers(support_data, printer_target_name, keywords);
 
         if (!similar_printers.empty()) {
             wxArrayString printer_choices;
@@ -14051,7 +14178,7 @@ int Plater::priv::update_helio_background_process_v2(std::string& printer_id, st
     for (size_t i = 0; i < extruders.size(); ++i) {
         int extruder_idx = extruders[i] - 1;
         if (extruder_idx >= 0 && extruder_idx < (int)preset_filaments.size()) {
-            FilamentSupportInfo info = check_filament_helio_support(preset_filaments[extruder_idx], extruder_idx);
+            FilamentSupportInfo info = check_filament_helio_support(support_data, preset_filaments[extruder_idx], extruder_idx);
             all_filament_infos.push_back(info);
 
             if (info.is_supported) {
@@ -14106,7 +14233,7 @@ int Plater::priv::update_helio_background_process_v2(std::string& printer_id, st
         boost::trim(target_name);
 
         std::vector<std::string> keywords = extract_material_keywords(target_name);
-        std::vector<HelioQuery::SupportedData> similar_materials = find_similar_materials(target_name, keywords);
+        std::vector<HelioQuery::SupportedData> similar_materials = find_similar_materials(support_data, target_name, keywords);
 
         std::string default_material_id;
         for (const auto& info : all_filament_infos) {
@@ -14127,6 +14254,9 @@ int Plater::priv::update_helio_background_process_v2(std::string& printer_id, st
                 material_id = unsupported_dialog.get_selected_material_id();
                 helio_using_reference_material = true;
                 material_already_selected = true;
+            } else if (choice == 3 && refresh_helio_supported_data(
+                           static_cast<wxWindow*>(wxGetApp().mainframe))) {
+                return HELIO_SUPPORT_DATA_REFRESHED;
             } else {
                 return -1;
             }
@@ -14147,7 +14277,7 @@ int Plater::priv::update_helio_background_process_v2(std::string& printer_id, st
         size_t best_mat_match_length = 0;
         std::string best_mat_id;
 
-        for (HelioQuery::SupportedData pdata : HelioQuery::global_supported_materials) {
+        for (const HelioQuery::SupportedData& pdata : *supported_materials) {
             if (!pdata.native_name.empty()) {
                 std::string native_name = pdata.native_name;
                 size_t atPos = used_filament.find('@');
@@ -14190,7 +14320,7 @@ int Plater::priv::update_helio_background_process_v2(std::string& printer_id, st
             std::string best_token_material_id;
             std::string best_token_native_name;
 
-            for (HelioQuery::SupportedData pdata : HelioQuery::global_supported_materials) {
+            for (const HelioQuery::SupportedData& pdata : *supported_materials) {
                 if (!pdata.native_name.empty()) {
                     std::string native_name = pdata.native_name;
                     boost::algorithm::to_lower(native_name);
@@ -14248,7 +14378,7 @@ int Plater::priv::update_helio_background_process_v2(std::string& printer_id, st
                 boost::trim(target_name2);
 
                 std::vector<std::string> keywords = extract_material_keywords(target_name2);
-                std::vector<HelioQuery::SupportedData> similar_materials = find_similar_materials(target_name2, keywords);
+                std::vector<HelioQuery::SupportedData> similar_materials = find_similar_materials(support_data, target_name2, keywords);
 
                 if (!similar_materials.empty()) {
                     wxArrayString material_choices;
@@ -14261,7 +14391,7 @@ int Plater::priv::update_helio_background_process_v2(std::string& printer_id, st
                     // Collect unsupported filament info for dialog
                     std::vector<FilamentSupportInfo> unsupported_for_dialog;
                     unsupported_for_dialog.push_back(all_filament_infos.empty() ?
-                        check_filament_helio_support(used_filament, extruders.front() - 1) :
+                        check_filament_helio_support(support_data, used_filament, extruders.front() - 1) :
                         all_filament_infos[0]);
 
                     std::string default_mat_id;
@@ -14279,6 +14409,9 @@ int Plater::priv::update_helio_background_process_v2(std::string& printer_id, st
                         material_id = unsupported_dialog.get_selected_material_id();
                         is_supported_by_helio = true;
                         helio_using_reference_material = true;
+                    } else if (choice == 3 && refresh_helio_supported_data(
+                                   static_cast<wxWindow*>(wxGetApp().mainframe))) {
+                        return HELIO_SUPPORT_DATA_REFRESHED;
                     } else {
                         GUI::MessageDialog errordialog(nullptr,
                             wxString::Format(_L("Helio does not support materials %s.\n\nPlease choose an officially supported material. "), used_filament),
@@ -14338,6 +14471,23 @@ int Plater::priv::update_helio_background_process(std::string& printer_id,
                                                    std::vector<HelioQuery::MaterialInput>& materials,
                                                    bool& is_multi_color, bool& is_multi_material)
 {
+    for (;;) {
+        const int result = update_helio_background_process_once(printer_id, materials,
+                                                                 is_multi_color, is_multi_material);
+        if (result != HELIO_SUPPORT_DATA_REFRESHED) {
+            return result;
+        }
+        printer_id.clear();
+        materials.clear();
+        is_multi_color = false;
+        is_multi_material = false;
+    }
+}
+
+int Plater::priv::update_helio_background_process_once(std::string& printer_id,
+                                                        std::vector<HelioQuery::MaterialInput>& materials,
+                                                        bool& is_multi_color, bool& is_multi_material)
+{
     helio_using_reference_material = false; // Reset at start (Issue D fix)
     notification_manager->close_notification_of_type(NotificationType::HelioSlicingError);
     PresetBundle *           preset_bundle     = wxGetApp().preset_bundle;
@@ -14352,9 +14502,18 @@ int Plater::priv::update_helio_background_process(std::string& printer_id,
          return -1;
      }
 
+    const auto support_data = HelioQuery::supported_data_view();
+    const auto& supported_printers = support_data.printers;
+    const auto& supported_materials = support_data.materials;
+    if (support_data.availability != SupportDataAvailability::Usable ||
+        !supported_printers || !supported_materials) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Helio support-data snapshot is unavailable";
+        return -1;
+    }
+
     /*invalid printer preset*/
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": preset_name = '" << preset_name << "', preset_pure_name = '" << preset_pure_name << "'";
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": global_supported_printers.size() = " << HelioQuery::global_supported_printers.size();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": supported_printers.size() = " << supported_printers->size();
 
     // For printer matching, use the full preset_name to handle modified names like "myBambu Lab H2Dsmells"
     std::string printer_target_name = preset_name;
@@ -14373,7 +14532,7 @@ int Plater::priv::update_helio_background_process(std::string& printer_id,
     // This finds the best (longest) match to prefer specific printers over generic ones
     // e.g., "H2D Pro" should match before "H2D" when both could match
     auto [best_match_id, best_match_length] = match_printer_with_boundaries(
-        printer_target_name, HelioQuery::global_supported_printers);
+        printer_target_name, *supported_printers);
 
     if (!best_match_id.empty()) {
         helio_support = true;
@@ -14385,7 +14544,7 @@ int Plater::priv::update_helio_background_process(std::string& printer_id,
     // This handles cases like "myBambu Lab H2Dsmells" or "yourH2Dfast"
     if (!helio_support) {
         auto [token_printer_id, token_native_name] = match_printer_tokens(
-            printer_target_name, HelioQuery::global_supported_printers);
+            printer_target_name, *supported_printers);
 
         if (!token_printer_id.empty()) {
             // Show confirmation dialog for token-based match
@@ -14414,7 +14573,7 @@ int Plater::priv::update_helio_background_process(std::string& printer_id,
 
         // Extract keywords and find similar printers
         std::vector<std::string> keywords = extract_printer_keywords(printer_target_name);
-        std::vector<HelioQuery::SupportedData> similar_printers = find_similar_printers(printer_target_name, keywords);
+        std::vector<HelioQuery::SupportedData> similar_printers = find_similar_printers(support_data, printer_target_name, keywords);
 
         if (!similar_printers.empty()) {
             // Create list of printer names for selection dialog
@@ -14685,7 +14844,7 @@ int Plater::priv::update_helio_background_process(std::string& printer_id,
     for (size_t i = 0; i < extruders.size(); ++i) {
         int extruder_idx = extruders[i] - 1; // Extruders are 1-indexed
         if (extruder_idx >= 0 && extruder_idx < (int)preset_filaments.size()) {
-            FilamentSupportInfo info = check_filament_helio_support(preset_filaments[extruder_idx], extruder_idx);
+            FilamentSupportInfo info = check_filament_helio_support(support_data, preset_filaments[extruder_idx], extruder_idx);
             all_filament_infos.push_back(info);
 
             if (info.is_supported) {
@@ -14760,7 +14919,7 @@ int Plater::priv::update_helio_background_process(std::string& printer_id,
         std::string best_token_material_id;
         std::string best_token_native_name;
 
-        for (const HelioQuery::SupportedData& pdata : HelioQuery::global_supported_materials) {
+        for (const HelioQuery::SupportedData& pdata : *supported_materials) {
             if (pdata.native_name.empty()) continue;
             std::string native_name = pdata.native_name;
             boost::algorithm::to_lower(native_name);
@@ -14809,7 +14968,7 @@ int Plater::priv::update_helio_background_process(std::string& printer_id,
 
         // No token match — show reference material selection dialog
         std::vector<std::string> keywords = extract_material_keywords(target_name);
-        std::vector<HelioQuery::SupportedData> similar_materials = find_similar_materials(target_name, keywords);
+        std::vector<HelioQuery::SupportedData> similar_materials = find_similar_materials(support_data, target_name, keywords);
 
         if (!similar_materials.empty()) {
             wxArrayString material_choices;
@@ -14831,7 +14990,7 @@ int Plater::priv::update_helio_background_process(std::string& printer_id,
 
             int choice = 0;
             std::string selected_ref_material_id;
-            do {
+            {
                 HelioUnsupportedFilamentsDialog unsupported_dialog(
                     static_cast<wxWindow*>(wxGetApp().mainframe),
                     unsupported_for_slot, similar_materials, default_material_id);
@@ -14843,23 +15002,12 @@ int Plater::priv::update_helio_background_process(std::string& printer_id,
                 if (choice == 3) {
                     // Re-fetch supported data from Helio
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": User chose to refresh supported data for slot " << i;
-                    std::string helio_api_url = HelioQuery::get_helio_api_url();
-                    std::string helio_api_key = HelioQuery::get_helio_pat();
-                    HelioQuery::request_all_support_machine(helio_api_url, helio_api_key);
-                    HelioQuery::request_all_support_materials(helio_api_url, helio_api_key);
-
-                    // Show progress dialog while data syncs
-                    HelioSyncProgressDialog sync_dlg(static_cast<wxWindow*>(wxGetApp().mainframe));
-                    sync_dlg.ShowModal();
-
-                    // Re-compute similar materials with refreshed data
-                    similar_materials = find_similar_materials(target_name, keywords);
-                    if (similar_materials.empty()) {
-                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": No similar materials found after refresh for slot " << i;
-                        break;
+                    if (!refresh_helio_supported_data(static_cast<wxWindow*>(wxGetApp().mainframe))) {
+                        return -1;
                     }
+                    return HELIO_SUPPORT_DATA_REFRESHED;
                 }
-            } while (choice == 3);
+            }
 
             if (choice == 1) {
                 materials[i].materialId = selected_ref_material_id;
@@ -14923,6 +15071,9 @@ int Plater::priv::update_helio_background_process(std::string& printer_id,
 
 void Plater::priv::on_helio_processing_complete(HelioCompletionEvent &a)
 {
+    if (!helio_background_process.is_action_current(a.generation)) {
+        return;
+    }
     if (a.is_successful) {
         this->reset_gcode_toolpaths();
 
@@ -15001,8 +15152,11 @@ void Plater::priv::on_helio_processing_complete(HelioCompletionEvent &a)
     }
 }
 
-void Plater::priv::on_helio_processing_start(SimpleEvent &a)
+void Plater::priv::on_helio_processing_start(HelioActionEvent &a)
 {
+    if (!helio_background_process.is_action_current(a.generation)) {
+        return;
+    }
     notification_manager->close_notification_of_type(GUI::NotificationType::SignDetected);
     notification_manager->close_notification_of_type(GUI::NotificationType::ExportFinished);
     notification_manager->set_slicing_progress_began(true);
@@ -15010,8 +15164,20 @@ void Plater::priv::on_helio_processing_start(SimpleEvent &a)
 }
 
 //BBS: GUI refactor: slice with helio
-void Plater::priv::on_helio_process()
+void Plater::priv::on_helio_process(const PartPlate* expected_plate)
 {
+    auto helio_launch_allowed = [this, expected_plate]() {
+        const PartPlate* current_plate = partplate_list.get_curr_plate();
+        return current_plate != nullptr && current_plate == expected_plate &&
+               current_plate->is_slice_result_valid() && current_plate->can_slice() &&
+               !q->only_gcode_mode() && !q->using_exported_file() &&
+               !sidebar->has_broken_mixed_filament(current_plate) &&
+               !q->is_background_process_slicing();
+    };
+
+    if (!helio_launch_allowed())
+        return;
+
     std::string helio_api_url = Slic3r::HelioQuery::get_helio_api_url();
     std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
 
@@ -15061,25 +15227,40 @@ void Plater::priv::on_helio_process()
 
         while (dlg.ShowModal() == wxID_OK)
         {
+            if (!helio_launch_allowed())
+                return;
+
             if (partplate_list.get_curr_plate()->empty()) return;
             GCodeProcessorResult* g_result = background_process.get_current_gcode_result();
 
             /*simulation*/
             int action = dlg.get_action();
-            helio_background_process.set_action(action);
 
             if (action == 0) {
                 bool valid = false;
                 HelioQuery::SimulationInput data = dlg.get_simulation_input(valid);
                 if (!valid) { continue; }
 
-                helio_background_process.set_simulation_input_data(data);
-                if (multimaterial_enabled) {
-                    helio_background_process.init(helio_api_key, helio_api_url, printer_id, materials, is_multi_color, is_multi_material, g_result, preview, [this]() {});
-                } else {
-                    helio_background_process.init(helio_api_key, helio_api_url, printer_id, material_id, g_result, preview, [this]() {});
+                const bool initialized = multimaterial_enabled
+                    ? helio_background_process.init(helio_api_key, helio_api_url, printer_id, materials, is_multi_color,
+                                                    is_multi_material, g_result, preview, [this]() {})
+                    : helio_background_process.init(helio_api_key, helio_api_url, printer_id, material_id, g_result,
+                                                    preview, [this]() {});
+                if (!initialized) {
+                    MessageDialog dlg(nullptr, _L("Previous Helio action is still stopping; try again shortly"),
+                                      _L("Helio Additive"), wxOK | wxICON_WARNING);
+                    dlg.ShowModal();
+                    continue;
                 }
-                helio_background_process.helio_thread_start(background_process.m_mutex, background_process.m_condition, background_process.m_state, notification_manager);
+                helio_background_process.set_action(action);
+                helio_background_process.set_simulation_input_data(data);
+                if (!helio_background_process.helio_thread_start(background_process.m_mutex, background_process.m_condition,
+                                                                 background_process.m_state, notification_manager)) {
+                    MessageDialog dlg(nullptr, _L("Previous Helio action is still stopping; try again shortly"),
+                                      _L("Helio Additive"), wxOK | wxICON_WARNING);
+                    dlg.ShowModal();
+                    continue;
+                }
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":helio simulation process called (V" << (multimaterial_enabled ? "3" : "2") << ")";
 
                 if (wxGetApp().getAgent()) {
@@ -15095,13 +15276,26 @@ void Plater::priv::on_helio_process()
                 HelioQuery::OptimizationInput data = dlg.get_optimization_input(valid);
                 if (!valid) { continue; }
 
-                helio_background_process.set_optimization_input_data(data);
-                if (multimaterial_enabled) {
-                    helio_background_process.init(helio_api_key, helio_api_url, printer_id, materials, is_multi_color, is_multi_material, g_result, preview, [this]() {});
-                } else {
-                    helio_background_process.init(helio_api_key, helio_api_url, printer_id, material_id, g_result, preview, [this]() {});
+                const bool initialized = multimaterial_enabled
+                    ? helio_background_process.init(helio_api_key, helio_api_url, printer_id, materials, is_multi_color,
+                                                    is_multi_material, g_result, preview, [this]() {})
+                    : helio_background_process.init(helio_api_key, helio_api_url, printer_id, material_id, g_result,
+                                                    preview, [this]() {});
+                if (!initialized) {
+                    MessageDialog dlg(nullptr, _L("Previous Helio action is still stopping; try again shortly"),
+                                      _L("Helio Additive"), wxOK | wxICON_WARNING);
+                    dlg.ShowModal();
+                    continue;
                 }
-                helio_background_process.helio_thread_start(background_process.m_mutex, background_process.m_condition, background_process.m_state, notification_manager);
+                helio_background_process.set_action(action);
+                helio_background_process.set_optimization_input_data(data);
+                if (!helio_background_process.helio_thread_start(background_process.m_mutex, background_process.m_condition,
+                                                                 background_process.m_state, notification_manager)) {
+                    MessageDialog dlg(nullptr, _L("Previous Helio action is still stopping; try again shortly"),
+                                      _L("Helio Additive"), wxOK | wxICON_WARNING);
+                    dlg.ShowModal();
+                    continue;
+                }
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":helio optimization process called (V" << (multimaterial_enabled ? "3" : "2") << ")";
 
                 if (wxGetApp().getAgent()) {
@@ -15119,6 +15313,12 @@ void Plater::priv::on_helio_process()
 
 void Plater::priv::on_helio_input_dlg(SimpleEvent &a)
 {
+    const PartPlate* current_plate = partplate_list.get_curr_plate();
+    if (current_plate == nullptr || !current_plate->is_slice_result_valid() ||
+        !current_plate->can_slice() || q->only_gcode_mode() || q->using_exported_file() ||
+        sidebar->has_broken_mixed_filament(current_plate) || q->is_background_process_slicing())
+        return;
+
     std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
 
     if (helio_api_key.empty()) {
@@ -15150,16 +15350,40 @@ void Plater::priv::on_helio_input_dlg(SimpleEvent &a)
         }
     }
     else {
-        if (!HelioQuery::global_printers_fully_loaded || !HelioQuery::global_materials_fully_loaded) {
+        const SupportDataAvailability availability = HelioQuery::supported_data_view().availability;
+        if (availability == SupportDataAvailability::Usable) {
+            on_helio_process(current_plate);
+        }
+        else if (availability == SupportDataAvailability::Synchronizing) {
             wxGetApp().request_helio_supported_data();
             auto dlg = MessageDialog(nullptr, _L("The printer list and material list are being synchronized. Please try again later."), _L("Synchronizing Helio"), wxOK | wxICON_WARNING);
             dlg.ShowModal();
         }
         else {
-            on_helio_process();
+                const std::string details = helio_support_data_error_details(HelioQuery::supported_data_view());
+
+                wxString message = _L("Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material.");
+                if (!details.empty()) {
+                    message += "\n\n";
+                    message += wxString::FromUTF8(details);
+                }
+                MessageDialog dlg(nullptr, message, _L("Helio Data Load Failed"), wxYES_NO | wxNO_DEFAULT | wxICON_ERROR);
+                dlg.SetButtonLabel(wxID_YES, _L("Retry"));
+                dlg.SetButtonLabel(wxID_NO, _L("Cancel"));
+                if (dlg.ShowModal() != wxID_YES) {
+                    return;
+                }
+
+                wxGetApp().request_helio_supported_data(true);
+                HelioSyncProgressDialog sync_dlg(static_cast<wxWindow*>(wxGetApp().mainframe), true);
+                sync_dlg.ShowModal();
+                if (HelioQuery::supported_data_view().availability == SupportDataAvailability::Usable) {
+                    on_helio_process(current_plate);
+                    return;
+                }
+            }
         }
     }
-}
 
 //BBS: GUI refactor: slice all
 void Plater::priv::on_action_slice_all(SimpleEvent&)

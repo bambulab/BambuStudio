@@ -653,6 +653,10 @@ set(SLIC3R_GUI_SOURCES
     Utils/WxFontUtils.cpp
     Utils/HelioDragon.cpp
     Utils/HelioDragon.hpp
+    Utils/HelioRetryPolicy.cpp
+    Utils/HelioRetryPolicy.hpp
+    Utils/HelioSupportData.cpp
+    Utils/HelioSupportData.hpp
     Utils/FileTransferUtils.cpp
     Utils/FileTransferUtils.hpp
     Utils/FileTransferObject.cpp

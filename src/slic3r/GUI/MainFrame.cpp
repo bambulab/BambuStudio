@@ -2174,6 +2174,8 @@ wxBoxSizer* MainFrame::create_side_tools()
                 m_slice_select = eSliceAll;
                 m_slice_enable = get_enable_slice_status();
                 m_slice_btn->Enable(m_slice_enable);
+                update_helio_button_state();
+
                 this->Layout();
                 if(m_slice_option_pop_up)
                     m_slice_option_pop_up->Dismiss();
@@ -2185,6 +2187,8 @@ wxBoxSizer* MainFrame::create_side_tools()
                 m_slice_select = eSlicePlate;
                 m_slice_enable = get_enable_slice_status();
                 m_slice_btn->Enable(m_slice_enable);
+                update_helio_button_state();
+
                 this->Layout();
                 if(m_slice_option_pop_up)
                     m_slice_option_pop_up->Dismiss();
@@ -2581,17 +2585,30 @@ void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_sl
     m_slice_enable = enable_slice;
     m_print_enable = enable_print;
 
-    /*for healio*/
-    if (expand_program_holder) {
-        expand_program_holder->updateExpandButtonBitmap(expand_helio_id, m_print_enable?"helio_icon_topbar":"helio_icon_topbar_disable");
-        expand_program_holder->EnableExpandButton(expand_helio_id, m_print_enable);
-    }
+    update_helio_button_state();
 
-
-    if (!old_slice_status && enable_slice)
+    if (!old_slice_status && enable_slice) {
         m_plater->stop_helio_process();
         m_plater->reset_check_status();
+    }
 }
+
+void MainFrame::update_helio_button_state()
+{
+    if (!expand_program_holder)
+        return;
+
+    const PartPlate* current_plate = m_plater != nullptr ? m_plater->get_partplate_list().get_curr_plate() : nullptr;
+    const bool helio_enabled = m_plater != nullptr && !m_plater->only_gcode_mode() &&
+                               !m_plater->using_exported_file() && current_plate != nullptr &&
+                               current_plate->is_slice_result_valid() && current_plate->can_slice() &&
+                               !m_plater->sidebar().has_broken_mixed_filament() &&
+                               !m_plater->is_background_process_slicing();
+    expand_program_holder->updateExpandButtonBitmap(expand_helio_id, helio_enabled ? "helio_icon_topbar" : "helio_icon_topbar_disable");
+    expand_program_holder->EnableExpandButton(expand_helio_id, helio_enabled);
+}
+
+
 
 
 void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
