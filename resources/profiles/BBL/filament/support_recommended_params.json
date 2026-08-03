@@ -55,6 +55,7 @@
                 "support_type": "tree(auto)",
                 "support_on_build_plate_only": false,
                 "support_top_z_distance": 0.0,
+                "support_bottom_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
                 "support_object_xy_distance": 0.0
