@@ -1,5 +1,6 @@
 #include "Plater.hpp"
 #include <array>
+#include <boost/format/format_fwd.hpp>
 #include <cstddef>
 #include <cstdio>
 #include <cctype>
@@ -291,6 +292,41 @@ static void set_config_values(DynamicPrintConfig *config, const std::string &key
     else {
         BOOST_LOG_TRIVIAL(info) << "set_config_values: the key" << key << "is empty.";
     }
+}
+
+// Decide whether a loaded 3mf config really belongs to a Bambu Lab machine
+static bool is_bbl_vendor_config(const DynamicPrintConfig &config_loaded, PresetBundle *preset_bundle)
+{
+    if (!preset_bundle) return false;
+    auto *printer_model_opt = config_loaded.option<ConfigOptionString>("printer_model");
+    if (!printer_model_opt || printer_model_opt->value.empty()) return false;
+
+    for (const auto &vendor : preset_bundle->vendors) {
+        for (const auto &vendor_model : vendor.second.models) {
+            if (vendor_model.name == printer_model_opt->value) return vendor.first == "BBL";
+        }
+    }
+    return false;
+}
+
+// Check whether a 3mf's per-extruder options match the nozzle_diameter count.
+// Must run on the raw loaded config, before defaults backfill would mask absent options.
+// Returns true when consistent, false on the first size mismatch.
+static bool check_project_config(const DynamicPrintConfig &config_loaded)
+{
+    auto *nd = config_loaded.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (!nd) return false;
+
+    const size_t extruder_count = nd->size();
+    if (extruder_count <= 1) return true;
+
+    const auto  *opt = dynamic_cast<const ConfigOptionVectorBase *>(config_loaded.option("extruder_type"));
+    const size_t sz  = opt ? opt->size() : 0;
+    if (sz != extruder_count) {
+        BOOST_LOG_TRIVIAL(warning) << "config invalid, extruder_type size expected " << extruder_count << " got " << sz;
+        return false;
+    }
+    return true;
 }
 
 // When saving layer-slider ticks to the model, re-append entries whose print_z is above the current
@@ -8345,6 +8381,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     else
                         load_type  = static_cast<LoadType>(std::stoi(import_project_action));
 
+                    // check the loaded config if its not from BBL
+                    if (!is_bbl_vendor_config(config_loaded, wxGetApp().preset_bundle) && !check_project_config(config_loaded)) {
+                        load_config = false;
+                        show_info(q, _L("The 3mf file has invalid config, load geometry data only"), _L("Load 3mf"));
+                    }
+
                     // BBS: version check
                     Semver app_version = *(Semver::parse(SLIC3R_VERSION));
                     if (en_3mf_file_type == En3mfType::From_Prusa) {
@@ -8412,7 +8454,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             else {
                                 //if the minor version is not matched
                                 //if (file_version.min() != app_version.min()) {
-                                    Newer3mfVersionDialog newer_dlg(q, &file_version, &cloud_ver, "");
+                                Newer3mfVersionDialog newer_dlg(q, &file_version, &cloud_ver, "");
                                     auto res = newer_dlg.ShowModal();
                                 //}
                             }
