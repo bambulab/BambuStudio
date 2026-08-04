@@ -9538,22 +9538,6 @@
             "sub_path": "machine/Bambu Lab P3C 0.4 nozzle template time_lapse_gcode.json"
         },
         {
-            "name": "Bambu Lab P3C 0.4 nozzle",
-            "sub_path": "machine/Bambu Lab P3C 0.4 nozzle.json"
-        },
-        {
-            "name": "Bambu Lab P3C 0.2 nozzle",
-            "sub_path": "machine/Bambu Lab P3C 0.2 nozzle.json"
-        },
-        {
-            "name": "Bambu Lab P3C 0.6 nozzle",
-            "sub_path": "machine/Bambu Lab P3C 0.6 nozzle.json"
-        },
-        {
-            "name": "Bambu Lab P3C 0.8 nozzle",
-            "sub_path": "machine/Bambu Lab P3C 0.8 nozzle.json"
-        },
-        {
             "name": "Bambu Lab A1 0.4 nozzle template change_filament_gcode",
             "sub_path": "machine/Bambu Lab A1 0.4 nozzle template change_filament_gcode.json"
         },
@@ -9936,6 +9920,22 @@
         {
             "name": "fdm_bbl_3dp_001_common",
             "sub_path": "machine/fdm_bbl_3dp_001_common.json"
+        },
+        {
+            "name": "Bambu Lab P3C 0.4 nozzle",
+            "sub_path": "machine/Bambu Lab P3C 0.4 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab P3C 0.2 nozzle",
+            "sub_path": "machine/Bambu Lab P3C 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab P3C 0.6 nozzle",
+            "sub_path": "machine/Bambu Lab P3C 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu Lab P3C 0.8 nozzle",
+            "sub_path": "machine/Bambu Lab P3C 0.8 nozzle.json"
         },
         {
             "name": "Bambu Lab A1 0.4 nozzle",
