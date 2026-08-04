@@ -1267,10 +1267,19 @@ static wxBitmap _make_spool_color_chip(wxWindow* ctx, const Slic3r::GUI::Filamen
 
 static wxString _spool_display_name(const Slic3r::GUI::FilamentSpool& sp)
 {
-    if (!sp.series.empty())        return wxString::FromUTF8(sp.series);
-    if (!sp.material_type.empty()) return wxString::FromUTF8(sp.material_type);
-    if (!sp.color_name.empty())    return wxString::FromUTF8(sp.color_name);
-    return _L("Filament");
+    wxString name_part;
+    if (!sp.series.empty())
+        name_part = wxString::FromUTF8(sp.series);
+    else if (!sp.material_type.empty())
+        name_part = wxString::FromUTF8(sp.material_type);
+    else if (!sp.color_name.empty())
+        name_part = wxString::FromUTF8(sp.color_name);
+    else
+        name_part = _L("Filament");
+
+    if (!sp.brand.empty())
+        return wxString::FromUTF8(sp.brand) + " " + name_part;
+    return name_part;
 }
 
 static wxString _spool_note_line(const Slic3r::GUI::FilamentSpool& sp)

@@ -831,6 +831,7 @@ protected:
 
 public:
     void update_error_message();
+    void set_ams_new_filament_hint(const std::string& ams_id, const std::string& slot_id, bool show);
 
 public:
     StatusPanel(wxWindow *      parent,

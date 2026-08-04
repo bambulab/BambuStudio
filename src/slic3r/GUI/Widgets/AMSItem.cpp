@@ -1353,37 +1353,6 @@ void AMSLib::render_lite_lib(wxDC& dc)
     wxSize size = GetSize();
     auto libsize = AMS_LITE_CAN_LIB_SIZE;
 
-    // RFID new-filament hint state machine (mirrors render_generic_lib logic)
-    const AMSCanType cur_state_lite = m_info.material_state;
-    const bool is_reading_lite = (cur_state_lite == AMSCanType::AMS_CAN_TYPE_THIRDBRAND &&
-                                  m_info.material_name.IsEmpty());
-    if (cur_state_lite == AMSCanType::AMS_CAN_TYPE_EMPTY) {
-        m_slot_was_empty = true;
-        m_show_new_filament_hint = false;
-    } else if (cur_state_lite == AMSCanType::AMS_CAN_TYPE_BRAND) {
-        if (m_slot_was_empty) {
-            bool rfid_not_in_manager = true;
-            if (m_obj) {
-                auto* tray = m_obj->get_ams_tray(m_ams_id, m_slot_id);
-                if (tray) {
-                    std::string lookup_uid;
-                    if (tray->tag_uid.size() == 16 && tray->tag_uid.substr(12, 2) == "01")
-                        lookup_uid = tray->uuid;
-                    if (!lookup_uid.empty()) {
-                        auto* store = wxGetApp().fila_manager_store();
-                        if (store && store->find_by_tag_uid(lookup_uid) != nullptr)
-                            rfid_not_in_manager = false;
-                    }
-                }
-            }
-            m_show_new_filament_hint = rfid_not_in_manager;
-        }
-        m_slot_was_empty = false;
-    } else if (!is_reading_lite) {
-        m_slot_was_empty = false;
-        m_show_new_filament_hint = false;
-    }
-
     ScalableBitmap tray_bitmap, tray_bitmap_hover, tray_bitmap_selected;
     if (m_ams_model == DevAmsType::AMS_LITE){
         tray_bitmap = (m_can_index <= 1) ? m_bitmap_extra_tray_left : m_bitmap_extra_tray_right;
@@ -1532,40 +1501,6 @@ void AMSLib::render_lite_lib(wxDC& dc)
 
 void AMSLib::render_generic_lib(wxDC &dc)
 {
-    const AMSCanType cur_state = m_info.material_state;
-    const bool is_reading = (cur_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND &&
-                             m_info.material_name.IsEmpty());
-    if (cur_state == AMSCanType::AMS_CAN_TYPE_EMPTY) {
-        m_slot_was_empty = true;
-        m_show_new_filament_hint = false;
-    } else if (cur_state == AMSCanType::AMS_CAN_TYPE_BRAND) {
-        if (m_slot_was_empty) {
-            bool rfid_not_in_manager = true;
-            if (m_obj) {
-                auto* tray = m_obj->get_ams_tray(m_ams_id, m_slot_id);
-                if (tray) {
-                    // The store's tag_uid is tray->uuid (not tray->tag_uid): the
-                    // panel normalizes the raw RFID before sending it to the
-                    // frontend, which then writes tray->uuid into the spool record.
-                    // Mirror that same normalization here so the lookup key matches.
-                    std::string lookup_uid;
-                    if (tray->tag_uid.size() == 16 && tray->tag_uid.substr(12, 2) == "01")
-                        lookup_uid = tray->uuid;
-                    if (!lookup_uid.empty()) {
-                        auto* store = wxGetApp().fila_manager_store();
-                        if (store && store->find_by_tag_uid(lookup_uid) != nullptr)
-                            rfid_not_in_manager = false;
-                    }
-                }
-            }
-            m_show_new_filament_hint = rfid_not_in_manager;
-        }
-        m_slot_was_empty = false;
-    } else if (!is_reading) {
-        m_slot_was_empty = false;
-        m_show_new_filament_hint = false;
-    }
-
     wxSize size = GetSize();
     auto   tmp_lib_colour = m_info.material_colour;
     change_the_opacity(tmp_lib_colour);

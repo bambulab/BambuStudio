@@ -437,26 +437,24 @@ export function AddEditDialog({
       });
     }
 
-    if (set.size === 0) {
-      const vendors = brand ? presets.filter((v) => v.name === brand) : presets;
-      vendors.forEach((v) => {
-        v.types.forEach((tp) => {
-          if (Array.isArray(tp.items) && tp.items.length > 0) {
-            tp.items.forEach((item) => {
-              const name = normalizePresetFilamentName(item.name, v.name, tp.name, item.series || '');
-              if (name) set.add(name);
-            });
-            return;
-          }
-          const series = Array.isArray(tp.series) ? tp.series.filter(Boolean) : [];
-          if (series.length === 0) {
-            if (tp.name) set.add(tp.name);
-          } else {
-            series.forEach((s) => set.add(formatTypeSeries(tp.name, s)));
-          }
-        });
+    const vendors = brand ? presets.filter((v) => v.name === brand) : presets;
+    vendors.forEach((v) => {
+      v.types.forEach((tp) => {
+        if (Array.isArray(tp.items) && tp.items.length > 0) {
+          tp.items.forEach((item) => {
+            const name = normalizePresetFilamentName(item.name, v.name, tp.name, item.series || '');
+            if (name) set.add(name);
+          });
+          return;
+        }
+        const series = Array.isArray(tp.series) ? tp.series.filter(Boolean) : [];
+        if (series.length === 0) {
+          if (tp.name) set.add(tp.name);
+        } else {
+          series.forEach((s) => set.add(formatTypeSeries(tp.name, s)));
+        }
       });
-    }
+    });
     return [...set].sort();
   }, [brand, cloudConfig, presets, getCloudSettingDisplayName]);
 

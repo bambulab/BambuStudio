@@ -5243,6 +5243,13 @@ void StatusPanel::on_new_official_filament_hint(wxCommandEvent &event)
     if (rc == wxID_OK) {
         m_ams_control->dismiss_filament_hint(ams_id, slot_id);
         auto choice = m_new_official_filament_dlg->GetChoice();
+        if (choice == AMSNewOfficialFilamentDlg::Choice::Skip) {
+            DevAmsTray* tray = obj ? obj->get_ams_tray(ams_id, slot_id) : nullptr;
+            if (tray && !tray->uuid.empty()) {
+                if (auto* sync = wxGetApp().fila_manager_sync())
+                    sync->skip_new_filament_hint(tray->uuid);
+            }
+        }
         if (choice == AMSNewOfficialFilamentDlg::Choice::RecordNew ||
             choice == AMSNewOfficialFilamentDlg::Choice::LinkExisting) {
 
@@ -5273,6 +5280,12 @@ void StatusPanel::on_new_official_filament_hint(wxCommandEvent &event)
             }
         }
     }
+}
+
+void StatusPanel::set_ams_new_filament_hint(const std::string& ams_id, const std::string& slot_id, bool show)
+{
+    if (m_ams_control)
+        m_ams_control->set_new_filament_hint(ams_id, slot_id, show);
 }
 
 void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)

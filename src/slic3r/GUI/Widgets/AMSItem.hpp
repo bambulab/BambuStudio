@@ -530,7 +530,6 @@ protected:
     bool m_view_only{ false };
     bool m_pass_road{ false };
     bool m_show_new_filament_hint{ false };
-    bool m_slot_was_empty{ false };
     ScalableBitmap  m_bitmap_new_filament_hint;
 
     void on_enter_window(wxMouseEvent &evt);

@@ -9,6 +9,9 @@
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/Monitor.hpp"
+#include "slic3r/GUI/StatusPanel.hpp"
 
 #include <wx/app.h>
 #include <boost/log/trivial.hpp>
@@ -49,6 +52,7 @@ bool wgtFilaManagerSync::on_device_update(MachineObject* obj)
 {
     if (!obj || !m_store) return false;
     if (!obj->is_online()) return false;  // 离线不处理，保留在位字段
+    check_new_filament_hint(obj);
     return sync_all_trays(obj);
 }
 
@@ -401,6 +405,68 @@ bool wgtFilaManagerSync::slot_pin_still_valid(const FilamentSpool& sp,
     }
 
     return true;
+}
+
+void wgtFilaManagerSync::check_new_filament_hint(MachineObject* obj)
+{
+    if (!obj || !m_store) return;
+    auto fila_sys = obj->GetFilaSystem();
+    if (!fila_sys) return;
+
+    const std::string dev_id = obj->get_dev_id();
+
+    for (auto& [ams_id, ams] : fila_sys->GetAmsList()) {
+        if (!ams) continue;
+        for (auto& [slot_id, tray] : ams->GetTrays()) {
+            if (!tray) continue;
+            const std::string key = dev_id + ":" + ams_id + ":" + tray->id;
+
+            if (!tray->is_exists || !DevFilaSystem::IsBBL_Filament(tray->tag_uid)) {
+                // 耗材拔出时，清除该槽位的 skip 记录，让下次插入重新评估
+                auto it = m_slot_skipped_uuid.find(key);
+                if (it != m_slot_skipped_uuid.end()) {
+                    m_skipped_uuids.erase(it->second);
+                    m_slot_skipped_uuid.erase(it);
+                }
+                notify_new_filament_hint(ams_id, tray->id, false);
+                continue;
+            }
+
+            // RFID 尚未读取完成，不作判断，等下次 tick
+            if (tray->remain_fetch_status == DevAmsTray::RemainFetchStatus::Refreshing ||
+                tray->remain_fetch_status == DevAmsTray::RemainFetchStatus::Initializing)
+                continue;
+
+            if (tray->uuid.empty()) continue;
+
+            // 用户已对该卷选择"Not now"，在拔出前抑制角标
+            if (m_skipped_uuids.count(tray->uuid)) {
+                m_slot_skipped_uuid[key] = tray->uuid;  // 记录反向映射，供拔出时清除
+                continue;
+            }
+
+            const bool not_in_store = m_store->find_by_tag_uid(tray->uuid) == nullptr;
+            notify_new_filament_hint(ams_id, tray->id, not_in_store);
+        }
+    }
+}
+
+void wgtFilaManagerSync::skip_new_filament_hint(const std::string& uuid)
+{
+    if (uuid.empty()) return;
+    m_skipped_uuids.insert(uuid);
+}
+
+void wgtFilaManagerSync::notify_new_filament_hint(const std::string& ams_id,
+                                                   const std::string& slot_id,
+                                                   bool               show)
+{
+    wxGetApp().CallAfter([ams_id, slot_id, show]() {
+        auto* mf = wxGetApp().mainframe;
+        if (!mf || !mf->m_monitor) return;
+        auto* panel = mf->m_monitor->get_status_panel();
+        if (panel) panel->set_ams_new_filament_hint(ams_id, slot_id, show);
+    });
 }
 
 }} // namespace Slic3r::GUI
