@@ -379,7 +379,7 @@ void PrintJob::process()
     }
 
     if (params.preset_name.empty() && m_print_type == "from_normal") { params.preset_name = wxString::Format("%s_plate_%d", m_project_name, curr_plate_idx).ToStdString(); }
-    if (params.project_name.empty()) {params.project_name = m_project_name;}
+    if (!m_project_name.empty()) { params.project_name = m_project_name; }
 
     if (m_is_calibration_task) {
         params.project_name = m_project_name;

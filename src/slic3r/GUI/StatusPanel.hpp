@@ -303,12 +303,12 @@ private:
 
     wxBoxSizer*     m_printing_sizer;
     wxStaticText *  m_staticText_printing;
-    wxStaticText*   m_staticText_subtask_value;
+    wxStaticText*   m_staticText_title;
     wxStaticText*   m_staticText_consumption_of_time;
     wxStaticText*   m_staticText_consumption_of_weight;
     wxStaticText*   m_printing_stage_value;
     ScalableButton* m_question_button;
-    wxStaticText*   m_staticText_profile_value;
+    wxStaticText*   m_staticText_subtitle;
     wxStaticText*   m_staticText_progress_percent;
     wxStaticText*   m_staticText_progress_percent_icon;
     wxStaticText*   m_staticText_progress_left;
@@ -364,7 +364,7 @@ public:
     void update_stopping_state(bool enter);
     void enable_pause_resume_button(bool enable, std::string type);
     void enable_abort_button(bool enable);
-    void update_subtask_name(wxString name);
+    void update_title(const wxString &title);
     void update_stage_value(wxString stage, int val);
     void update_stage_value_with_machine(wxString stage, int val, MachineObject* obj = nullptr);
     void on_stage_clicked(wxMouseEvent& event);
@@ -378,7 +378,7 @@ public:
     void updatePauseNum(bool show, wxString num = wxEmptyString);
     void updatePauseMarkers(const DevPrintPauseList *pauseList, int printRemainingTime = 0);
     void show_priting_use_info(bool show, wxString time = wxEmptyString, wxString weight = wxEmptyString);
-    void show_profile_info(bool show, wxString profile = wxEmptyString);
+    void show_subtitle(bool show, const wxString &subtitle = wxEmptyString);
     void set_thumbnail_img(const wxBitmap& bmp, const std::string& bmp_name);
     void set_brightness_value(int value) { m_brightness_value = value; }
     void set_plate_index(int plate_idx = -1);
@@ -485,9 +485,9 @@ protected:
 
     Label *         m_staticText_printing;
     wxStaticBitmap *m_bitmap_thumbnail;
-    wxStaticText *  m_staticText_subtask_value;
+    wxStaticText *  m_staticText_title;
     wxStaticText *  m_printing_stage_value;
-    wxStaticText *  m_staticText_profile_value;
+    wxStaticText *  m_staticText_subtitle;
     ProgressBar*    m_gauge_progress;
     wxStaticText *  m_staticText_progress_percent;
     wxStaticText *  m_staticText_progress_percent_icon;
@@ -669,6 +669,12 @@ class StatusPanel : public StatusBasePanel
 private:
     friend class MonitorPanel;
 
+    struct TaskDisplayInfo
+    {
+        wxString title;
+        wxString subtitle;
+    };
+
 protected:
     std::shared_ptr<SliceInfoPopup> m_slice_info_popup;
     std::shared_ptr<ImageTransientPopup> m_image_popup;
@@ -824,6 +830,9 @@ protected:
     void show_printing_status(bool ctrl_area = true, bool temp_area = true);
     void update_basic_print_data(bool def = false);
     void update_model_info();
+    TaskDisplayInfo resolve_task_display_info(const std::string &task_id, const std::string &subtask_name,
+                                              const BBLModelTask *model_task) const;
+    void update_task_display_info(MachineObject *obj);
     void update_subtask(MachineObject* obj);
     void update_partskip_subtask(MachineObject *obj);
     void update_cloud_subtask(MachineObject *obj);
