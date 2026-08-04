@@ -9,6 +9,7 @@
 #include "GUI_App.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/FilamentMixer.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -403,6 +404,67 @@ void get_filament_colors_by_id(int filament_index, std::vector<wxColour>& out_co
     if (auto* colour_type_opt = proj_config.option<ConfigOptionStrings>("filament_colour_type");
         colour_type_opt && filament_index < (int) colour_type_opt->values.size())
         out_is_gradient = (colour_type_opt->values[filament_index] == "0");
+}
+
+void recompute_mixed_slot_colors(std::vector<wxColour>& colors,
+                                 const Slic3r::DynamicPrintConfig& cfg)
+{
+    const auto* is_mixed_opt = cfg.option<ConfigOptionBools>("filament_is_mixed");
+    const auto* comp_opt     = cfg.option<ConfigOptionStrings>("filament_mixed_components");
+    const auto* ratio_opt    = cfg.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios");
+    const auto* grad_opt     = cfg.option<ConfigOptionBools>("filament_mixed_gradient");
+    if (!is_mixed_opt || !comp_opt) return;
+
+    const size_t n = is_mixed_opt->values.size();
+    if (colors.size() < n) colors.resize(n);
+
+    const auto* colour_opt = cfg.option<ConfigOptionStrings>("filament_colour");
+    const auto  kFallback  = wxColour(128, 128, 128, 255);
+
+    for (size_t i = 0; i < n; ++i) {
+        if (!is_mixed_opt->values[i]) continue;
+
+        if (i >= comp_opt->values.size()) { colors[i] = kFallback; continue; }
+        auto comp_ids = Slic3r::parse_mixed_components(comp_opt->values[i]);
+        if (comp_ids.empty()) { colors[i] = kFallback; continue; }
+
+        bool is_gradient = grad_opt && i < grad_opt->values.size() && grad_opt->values[i];
+        std::vector<unsigned int> use_ids = comp_ids;
+        std::vector<int>          weights;
+
+        if (is_gradient && comp_ids.size() >= 2) {
+            use_ids = { comp_ids.front(), comp_ids.back() };
+            weights = { 5000, 5000 };
+        } else {
+            auto ratios_d = Slic3r::parse_mixed_ratios(
+                (ratio_opt && i < ratio_opt->values.size()) ? ratio_opt->values[i] : std::string{},
+                comp_ids.size());
+            weights.reserve(comp_ids.size());
+            for (double r : ratios_d)
+                weights.push_back(static_cast<int>(std::lround(r * 10000.0)));
+        }
+
+        std::vector<std::string> hex_colors;
+        hex_colors.reserve(use_ids.size());
+        bool any_invalid = false;
+        for (unsigned int id : use_ids) {
+            if (id == 0 || id > colors.size()) { any_invalid = true; break; }
+            wxColour c = colors[id - 1];
+            if (c.IsOk() && (c.Red() > 0 || c.Green() > 0 || c.Blue() > 0)) {
+                hex_colors.push_back(wxString::Format("#%02X%02X%02X", c.Red(), c.Green(), c.Blue()).ToStdString());
+            } else if (colour_opt && (id - 1) < colour_opt->values.size()) {
+                hex_colors.push_back(colour_opt->values[id - 1]);
+            } else {
+                any_invalid = true; break;
+            }
+        }
+        if (any_invalid) { colors[i] = kFallback; continue; }
+
+        std::string hex = Slic3r::blend_color_multi(hex_colors, weights);
+        wxColour blended(hex);
+        if (!blended.IsOk()) blended = kFallback;
+        colors[i] = wxColour(blended.Red(), blended.Green(), blended.Blue(), 255);
+    }
 }
 
 }} // namespace Slic3r::GUI

@@ -43,6 +43,12 @@ wxBitmap create_translucent_round_rect_bitmap(const wxColour& color, const wxSiz
  */
 void get_filament_colors_by_id(int filament_index, std::vector<wxColour>& out_colors, bool& out_is_gradient);
 
+// Recompute blended representative colors for mixed (virtual) filament slots.
+// Reads mixed-filament config keys from cfg and writes back into colors[i]
+// for every slot where filament_is_mixed[i] is true.
+void recompute_mixed_slot_colors(std::vector<wxColour>& colors,
+                                 const Slic3r::DynamicPrintConfig& cfg);
+
 }} // namespace Slic3r::GUI
 
 #endif // slic3r_GUI_FilamentBitmapUtils_hpp_
