@@ -39,6 +39,7 @@
 #include "PrePrintChecker.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/StaticBox.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
@@ -702,7 +703,15 @@ private:
     Label*         m_text_bed_type;
 };
 
-class NozzleStatePanel : public wxPanel
+// One nozzle row: rack machines use the whole row, others split it to highlight one part
+struct NozzleRowLabels
+{
+    Label* whole    = nullptr;
+    Label* diameter = nullptr;
+    Label* flow     = nullptr;
+};
+
+class NozzleStatePanel : public StaticBox
 {
 public:
     NozzleStatePanel(wxWindow* parent);
@@ -716,16 +725,19 @@ private:
                     const ExtruderNozzleInfos& machine_nozzle_infos);
     void UpdateGui();
     void UpdateLabelColour();
+    void AppendNozzleRows(wxSizer* vbox, int ext_id, bool slicing_side);
 
 private:
     ExtruderNozzleInfos m_slicing_nozzles;
     ExtruderNozzleInfos m_installed_nozzles;
     std::string         m_printer_type;
+    int                 m_total_ext_count = 1;
+    bool                m_has_rack = false;
 
     wxSizer* m_sizer;
 
-    // key(extruder_id) -> { key1(nozzle type info), val1(label)}
-    std::unordered_map<int, std::unordered_map<NozzleDef, Label*>> m_slicing_labels;
+    // key(extruder_id) -> { key1(nozzle type info), val1(labels)}
+    std::unordered_map<int, std::unordered_map<NozzleDef, NozzleRowLabels>> m_slicing_labels;
 };
 
 wxDECLARE_EVENT(EVT_SWITCH_PRINT_OPTION, wxCommandEvent);
