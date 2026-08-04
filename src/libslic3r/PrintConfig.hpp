@@ -420,6 +420,7 @@ std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type);
 
 // Canonical AMS timing type name used in slice_info (default_ams_type / ams_type).
 extern std::string get_ams_type_name(int ams_type);
+extern std::string get_ams_type_display_name(int ams_type);
 extern const std::vector<int>& get_ams_time_types();
 // Each AMS timing type owns a dedicated scalar option, so no option key needs an index
 // suffix. Returns an empty string for types without a timing option (e.g. external spool).

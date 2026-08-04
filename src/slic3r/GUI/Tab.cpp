@@ -5854,10 +5854,10 @@ static struct DynamicAmsTimeTypeList : DynamicList
     {
         items.clear();
         for (const int ams_type : current_types()) {
-            const std::string name = get_ams_type_name(ams_type);
-            if (name.empty())
+            const std::string display_name = get_ams_type_display_name(ams_type);
+            if (display_name.empty())
                 continue;
-            items.push_back({wxString::FromUTF8(name.c_str()), ams_type});
+            items.push_back({wxString::FromUTF8(display_name.c_str()), ams_type});
         }
     }
 
@@ -5915,14 +5915,14 @@ void TabPrinter::build_ams_filament_time_options(ConfigOptionsGroupShp optgroup)
     // then show only the current machine's supported types. Each type has its own pair of
     // scalar options, so the AMS type is carried by the option key and never by an index.
     for (const int ams_type : get_ams_time_types()) {
-        const std::string name       = get_ams_type_name(ams_type);
-        const std::string load_key   = get_ams_load_time_key(ams_type);
-        const std::string unload_key = get_ams_unload_time_key(ams_type);
-        if (name.empty() || load_key.empty() || unload_key.empty())
+        const std::string display_name = get_ams_type_display_name(ams_type);
+        const std::string load_key     = get_ams_load_time_key(ams_type);
+        const std::string unload_key   = get_ams_unload_time_key(ams_type);
+        if (display_name.empty() || load_key.empty() || unload_key.empty())
             continue;
 
         // The AMS type is already the line label, so shorten the per-option labels.
-        Line line{wxString::FromUTF8(name.c_str()), wxString()};
+        Line line{wxString::FromUTF8(display_name.c_str()), wxString()};
         Option load_option = optgroup->get_option(load_key);
         load_option.opt.label = L("Load time");
         line.append_option(load_option);

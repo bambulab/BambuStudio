@@ -8703,10 +8703,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 }
 
                 // AMS type the preset assumes for the time estimation, written as the canonical AMS type name
-                // (see get_ams_type_name; N3F/N3S collapse into "N3F_S"). Emitted only when a concrete AMS
-                // type is configured (>= 0); currently only the N9 0.4 nozzle preset sets this (to 1), so the
-                // tag appears only for that machine. The full per-AMS <ams_list> is written later near the
-                // end of the plate.
                 {
                     int default_ams_type = -1;
                     if (auto* opt = config.option<ConfigOptionInt>("default_ams_type"))

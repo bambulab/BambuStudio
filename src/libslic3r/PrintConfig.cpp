@@ -599,6 +599,16 @@ std::string get_ams_type_name(int ams_type)
     }
 }
 
+std::string get_ams_type_display_name(int ams_type)
+{
+    switch (static_cast<AmsTimeType>(ams_type)) {
+    case AmsTimeType::Ams:     return "AMS";
+    case AmsTimeType::AmsLite: return "AMS Lite";
+    case AmsTimeType::N3SF:    return "AMS 2 Pro/AMS HT";
+    default:                   return std::string();
+    }
+}
+
 const std::vector<int>& get_ams_time_types()
 {
     static const std::vector<int> types = {
