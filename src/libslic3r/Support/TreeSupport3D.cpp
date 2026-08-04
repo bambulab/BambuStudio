@@ -4585,6 +4585,33 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
             std::tie(interface_layers, base_interface_layers) = generate_interface_layers(print_object.config(), support_params,
                 bottom_contacts, top_contacts, interface_layers, base_interface_layers, intermediate_layers, layer_storage);
 
+            // A very low overhang produces roofs that have no tree body underneath. Printing the whole
+            // stack as interface leaves it without an anchor to the bed, so turn the bed-touching interface
+            // layer into a base once the roofs above it are tall enough to spare it. A one- or two-layer
+            // stack stays interface-only, where converting the bed layer would consume the whole support.
+            const coordf_t bed_print_z = print_object.slicing_parameters().object_print_z_min;
+            if (intermediate_layers.empty() && ! interface_layers.empty() &&
+                interface_layers.front()->bottom_z < bed_print_z + EPSILON) {
+                SupportGeneratorLayer *base_layer = interface_layers.front();
+                // Estimate the stack height from every roof whose footprint overlaps this bed interface
+                // layer. Roofs sharing a layer index are merged into one layer object, and a genuine
+                // single-layer overhang lives in top_contacts (dtt_roof == 0), so it is never demoted here;
+                // only a bed interface layer that already carries taller roofs above it gets converted.
+                std::vector<coordf_t> stack_zs;
+                for (const SupportGeneratorLayersPtr *layers : { &interface_layers, &base_interface_layers, &top_contacts })
+                    for (const SupportGeneratorLayer *layer : *layers)
+                        if (layer != nullptr && ! layer->polygons.empty() && overlaps(layer->polygons, base_layer->polygons))
+                            stack_zs.emplace_back(layer->print_z);
+                std::sort(stack_zs.begin(), stack_zs.end());
+                stack_zs.erase(std::unique(stack_zs.begin(), stack_zs.end(),
+                    [](coordf_t l, coordf_t r) { return std::abs(l - r) < EPSILON; }), stack_zs.end());
+                if (stack_zs.size() >= 3) {
+                    base_layer->layer_type = SupporLayerType::sltBase;
+                    intermediate_layers.emplace_back(base_layer);
+                    interface_layers.erase(interface_layers.begin());
+                }
+            }
+
             auto t_draw = std::chrono::high_resolution_clock::now();
             auto dur_pre_gen = 0.001 * std::chrono::duration_cast<std::chrono::microseconds>(t_precalc - t_start).count();
             auto dur_gen = 0.001 * std::chrono::duration_cast<std::chrono::microseconds>(t_gen - t_precalc).count();
