@@ -6,7 +6,7 @@
     "setting_id": "GFSL95_25",
     "instantiation": "true",
     "additional_cooling_fan_speed": [
-        "75"
+        "60"
     ],
     "eng_plate_temp": [
         "55"
@@ -71,6 +71,7 @@
         "220",
         "220"
     ],
+    "optional_cooling_fan_speed": {},
     "slow_down_layer_time": [
         "4"
     ],

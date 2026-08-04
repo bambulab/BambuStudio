@@ -6,7 +6,7 @@
     "setting_id": "GFSU99_14",
     "instantiation": "true",
     "additional_cooling_fan_speed": [
-        "100"
+        "80"
     ],
     "eng_plate_temp": [
         "35"

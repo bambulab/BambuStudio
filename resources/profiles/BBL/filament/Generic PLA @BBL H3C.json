@@ -6,7 +6,7 @@
     "setting_id": "GFSL99_26",
     "instantiation": "true",
     "additional_cooling_fan_speed": [
-        "75"
+        "60"
     ],
     "eng_plate_temp": [
         "55"
@@ -75,6 +75,7 @@
         "220",
         "220"
     ],
+    "optional_cooling_fan_speed": {},
     "slow_down_min_speed": [
         "20",
         "20"

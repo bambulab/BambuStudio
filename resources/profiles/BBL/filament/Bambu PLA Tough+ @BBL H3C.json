@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSA10_42",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "60"
+    ],
     "eng_plate_temp": [
         "55"
     ],
@@ -75,6 +78,7 @@
         "245",
         "245"
     ],
+    "optional_cooling_fan_speed": {},
     "pre_start_fan_time": [
         "2"
     ],
