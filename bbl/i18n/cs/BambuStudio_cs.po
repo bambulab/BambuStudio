@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 20:35+0800\n"
+"POT-Creation-Date: 2026-08-04 20:52+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -952,6 +952,9 @@ msgstr "Přiřadit díl na druhou stranu"
 msgid "Cut"
 msgstr "Oříznout"
 
+msgid "Cutting model object"
+msgstr ""
+
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr ""
 
@@ -1329,6 +1332,9 @@ msgstr "Rovnoběžná_vzdálenost:"
 
 msgid "Flip by Face 2"
 msgstr "Překlopit podle plochy 2"
+
+msgid "Rotate the object on selected Face 2 around the perpendicular line of the selected plane"
+msgstr ""
 
 msgid "Assemble"
 msgstr "Sestavit"
@@ -2057,6 +2063,12 @@ msgstr "Verze Bambu Studio je příliš stará pro povolení cloudové služby. 
 msgid "Your software certificate has been revoked, please update Bambu Studio software."
 msgstr "Váš softwarový certifikát byl zneplatněn. Aktualizujte prosím software Bambu Studio."
 
+msgid "Got it"
+msgstr "Rozumím"
+
+msgid "Continue"
+msgstr "Pokračovat"
+
 msgid "Retrieving printer information, please try again later."
 msgstr "Načítají se informace o tiskárně. Zkuste to prosím později."
 
@@ -2247,6 +2259,9 @@ msgstr "Kostka"
 msgid "Cylinder"
 msgstr "Válec"
 
+msgid "Hexagonal Prism"
+msgstr ""
+
 msgid "Cone"
 msgstr "Kužel"
 
@@ -2261,6 +2276,9 @@ msgstr "Torus"
 
 msgid "Rounded Rectangle"
 msgstr "Zaoblený obdélník"
+
+msgid "TearDrop"
+msgstr ""
 
 msgid "Bambu Cube"
 msgstr "Bambu Cube"
@@ -3011,6 +3029,16 @@ msgstr "Přesto změnit"
 msgid "Off"
 msgstr "Vypnuto"
 
+msgid "Air Purifier"
+msgstr ""
+
+msgctxt "AirPurifier"
+msgid "Max"
+msgstr ""
+
+msgid "Silent"
+msgstr "Tichý"
+
 msgid "Filter"
 msgstr "Filtrace"
 
@@ -3196,6 +3224,21 @@ msgstr "Krok"
 msgid "Install parts"
 msgstr ""
 
+msgid "Inherited Step"
+msgstr ""
+
+msgid "start frame"
+msgstr ""
+
+msgid "Final assembly"
+msgstr ""
+
+msgid "Merged Step"
+msgstr ""
+
+msgid "end frame"
+msgstr ""
+
 msgid "Apply the final assembly pose to the objects or parts added in the current step?"
 msgstr ""
 
@@ -3244,16 +3287,10 @@ msgstr ""
 msgid "New Step"
 msgstr ""
 
-msgid "Final assembly"
-msgstr ""
-
-msgid "end frame"
+msgid "Overall preview"
 msgstr ""
 
 msgid "Assembly Structure"
-msgstr ""
-
-msgid "Start your assembly journey from Add Step"
 msgstr ""
 
 msgctxt "AssemblyStructure"
@@ -3284,21 +3321,20 @@ msgstr ""
 msgid "Model"
 msgstr "Model"
 
-msgid "start frame"
-msgstr ""
-
 msgid "transition frame"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Step %d"
-msgstr ""
-
-msgid "not used in any assembly step"
 msgstr ""
 
 #, boost-format
 msgid "Plate %1%"
+msgstr ""
+
+msgid "Label"
+msgstr ""
+
+msgid "Explosion"
+msgstr ""
+
+msgid "Unassembled"
 msgstr ""
 
 msgid "Assembly Step"
@@ -3325,6 +3361,9 @@ msgstr ""
 msgid "X-Ray Other Parts"
 msgstr ""
 
+msgid "Play from the current step."
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr ""
 
@@ -3340,7 +3379,16 @@ msgstr ""
 msgid "Display Mode"
 msgstr ""
 
-msgid "Set export file parameters"
+msgid "Show world axes"
+msgstr ""
+
+msgid "Show explosion state column"
+msgstr ""
+
+msgid "Allow modify text note foreground"
+msgstr ""
+
+msgid "Allow modify text note background"
 msgstr ""
 
 msgid "Camera margin factor for the current frame. The larger the value, the more margin."
@@ -3358,12 +3406,6 @@ msgstr ""
 msgid "Insert step after"
 msgstr ""
 
-msgid "Tip"
-msgstr "Tip"
-
-msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
-msgstr ""
-
 msgid "Expand"
 msgstr ""
 
@@ -3373,10 +3415,25 @@ msgstr "Sbalit"
 msgid "Options"
 msgstr "Možnosti"
 
+msgid "Delete all assembly steps"
+msgstr ""
+
+msgid "There’s no step to delete"
+msgstr ""
+
 msgid "Go to Wiki"
 msgstr "Přejít na Wiki"
 
-msgid "Copy current step"
+msgid "Inherit the state of Step"
+msgstr ""
+
+msgid "Assembled parts are not exploded"
+msgstr ""
+
+msgid "Copy and inherit this step"
+msgstr ""
+
+msgid "Add objects to this step before copying"
 msgstr ""
 
 msgid "Delete current step"
@@ -3385,26 +3442,26 @@ msgstr ""
 msgid "Add some objects to current step"
 msgstr ""
 
-msgid "Copy Step"
+#, boost-format
+msgid "No more than %1% steps are allowed."
 msgstr ""
 
 msgid "Add Step"
 msgstr ""
 
-#, boost-format
-msgid "No more than %1% steps are allowed."
-msgstr ""
-
-msgid "Only copy steps. This is independent of the selected objects on the canvas."
-msgstr ""
-
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr ""
 
-msgid "Delete all assembly steps except the final assembly."
+msgid "Merge and add steps."
 msgstr ""
 
-msgid "Exit the assembly step editing, you can also press the Esc button to exit"
+msgid "Click to exit assembly step editing, or press Esc."
+msgstr ""
+
+msgid "Not"
+msgstr ""
+
+msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
 msgstr ""
 
 msgid "Click to add Cyber Brick"
@@ -3420,6 +3477,9 @@ msgid "Export Markdown"
 msgstr ""
 
 msgid "Export MP4"
+msgstr ""
+
+msgid "Set export file parameters"
 msgstr ""
 
 msgid "After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF."
@@ -3443,10 +3503,10 @@ msgstr ""
 msgid "Show one label per model part."
 msgstr ""
 
-msgid "Label"
+msgid "Label settings"
 msgstr ""
 
-msgid "Label settings"
+msgid "Reset all closed labels"
 msgstr ""
 
 msgid "Show Object/Part labels"
@@ -3479,28 +3539,13 @@ msgstr ""
 msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
 msgstr ""
 
+msgid "Please create an assembly step before exporting."
+msgstr ""
+
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr ""
 
 msgid "Screw"
-msgstr ""
-
-msgid "Note"
-msgstr "Poznámka"
-
-msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
-msgstr ""
-
-msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
-msgstr ""
-
-msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
-msgstr ""
-
-msgid "undoing these edits is not yet supported and will be added in a later version."
-msgstr ""
-
-msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
 msgstr ""
 
 msgid "Connection Type"
@@ -3551,13 +3596,16 @@ msgstr ""
 msgid "At least two keyframes are required to play."
 msgstr ""
 
-msgid "Automatically explode all objects."
-msgstr ""
-
-msgid "Automatically explode all parts."
+msgid "Add a new object to the current step first"
 msgstr ""
 
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
+msgstr ""
+
+msgid "Automatically explode objects that are new to this step. Objects already assembled in earlier steps stay together."
+msgstr ""
+
+msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
 msgstr ""
 
 msgid "Apply current camera angle to all frames of the current step"
@@ -3581,17 +3629,26 @@ msgstr ""
 msgid "Search"
 msgstr "Hledat"
 
+msgid "Expand all objects"
+msgstr ""
+
+msgid "Collapse all objects"
+msgstr ""
+
 msgid "List"
 msgstr ""
 
 msgid "Assembly list"
 msgstr ""
 
-msgid "Expand all objects"
+msgid "Show all objects"
 msgstr ""
 
-msgid "Collapse all objects"
+msgid "Show unassembled only"
 msgstr ""
+
+msgid "Object name"
+msgstr "Název objektu"
 
 msgid "Select all parts in a step"
 msgstr ""
@@ -3810,10 +3867,10 @@ msgstr ""
 msgid "Project Physical Filaments"
 msgstr ""
 
-msgid "Project Mixed Filaments"
+msgid "New Physical Filaments"
 msgstr ""
 
-msgid "New Physical Filaments"
+msgid "Project Mixed Filaments"
 msgstr ""
 
 msgid "New Mixed Filaments"
@@ -3903,9 +3960,6 @@ msgstr ""
 
 msgid "Mesh issue"
 msgstr ""
-
-msgid "Continue"
-msgstr "Pokračovat"
 
 msgid "Choose SLA archive:"
 msgstr "Vyberte SLA archiv:"
@@ -4113,6 +4167,9 @@ msgstr ""
 
 msgid "System presets"
 msgstr "Systémová přednastavení"
+
+msgid "Recently used"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4668,12 +4725,9 @@ msgstr ""
 "Nastaveno na 0,2"
 
 msgid ""
-"Should not large than layer height.\n"
+"Should not be larger than layer height.\n"
 "Reset to 10%"
 msgstr ""
-"Nemělo by být více než výška vrstvy.\n"
-"Obnoveno na 10 %Hodnota nesmí být větší než výška vrstvy.\n"
-"Obnoveno na 10 %"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5834,6 +5888,12 @@ msgstr "Návrat k sestavě"
 msgid "return"
 msgstr "vrátit"
 
+msgid "Exit current gizmo editing"
+msgstr ""
+
+msgid "Return to prepare view"
+msgstr ""
+
 msgid "Fit camera"
 msgstr "Přizpůsobit kameru"
 
@@ -5936,6 +5996,9 @@ msgstr "filamenty %s nelze tisknout přímo na povrch této podložky."
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "Ve směsi byly detekovány filamenty PLA a PETG. Upravte parametry podle wiki, abyste zajistili kvalitu tisku."
 
+msgid "Detected brittle filament (e.g., PPS-CF). Please place the models at the center of the heated bed. Printing near the edge may cause the filament to bend excessively and break inside the tube."
+msgstr ""
+
 msgid "The prime tower improves multi-color print quality and is recommended."
 msgstr "Věž pro oddělení trysky zlepšuje kvalitu vícebarevného tisku a je doporučena."
 
@@ -5947,6 +6010,9 @@ msgstr "Částečný objem proplachu je nastaven na 0. Vícebarevný tisk může
 
 msgid "Click Wiki for help."
 msgstr "Klikněte na Wiki pro nápovědu."
+
+msgid "Click Wiki for details."
+msgstr ""
 
 msgid "Jump to: Prime tower"
 msgstr "Přejít na: oddělovací věž trysky"
@@ -6250,6 +6316,12 @@ msgstr "Uložit projekt jako"
 
 msgid "Save current project as"
 msgstr "Uložit aktuální projekt jako"
+
+msgid "Show Project in Folder"
+msgstr ""
+
+msgid "Show current project in folder"
+msgstr ""
 
 msgid "Import 3MF/STL/STEP/SVG/OBJ/AMF"
 msgstr "Importovat 3MF/STL/STEP/SVG/OBJ/AMF"
@@ -6799,8 +6871,8 @@ msgstr "Nepodařilo se získat informace o modelu z tiskárny."
 msgid "Failed to parse model information."
 msgstr "Nepodařilo se analyzovat informace o modelu."
 
-msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
-msgstr "Soubor .gcode.3mf neobsahuje žádná data G-kódu. Proveďte řez v Bambu Studio a exportujte nový soubor .gcode.3mf."
+msgid "The .gcode.3mf file contains no G-code data. Please slice it with Bambu Studio and export a new .gcode.3mf file."
+msgstr ""
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -7187,9 +7259,6 @@ msgstr "Nelze načíst informace o filamentu: filament je zaveden do tiskové hl
 msgid "This only takes effect during printing"
 msgstr "Toto platí pouze během tisku"
 
-msgid "Silent"
-msgstr "Tichý"
-
 msgid "Sport"
 msgstr "Sport"
 
@@ -7349,6 +7418,9 @@ msgstr "Probíhá výpočet, čekejte prosím..."
 
 msgid "Status"
 msgstr "Stav"
+
+msgid "Print queue"
+msgstr ""
 
 msgctxt "Firmware"
 msgid "Update"
@@ -7546,6 +7618,9 @@ msgstr "Otevřít odkaz pro více informací"
 
 msgid "Warning:"
 msgstr "Varování:"
+
+msgid "For more details, see the Wiki."
+msgstr ""
 
 msgid "Export successfully."
 msgstr "Export byl úspěšný."
@@ -8118,11 +8193,14 @@ msgstr "Sbalit postranní panel"
 msgid "Loading file: %s"
 msgstr "Načítání souboru: %s"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "Soubor 3mf nepochází od Bambu Lab, načtou se pouze geometrická data."
+msgid "The 3mf file has invalid config, load geometry data only"
+msgstr ""
 
 msgid "Load 3mf"
 msgstr "Načíst 3mf"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data only."
+msgstr "Soubor 3mf nepochází od Bambu Lab, načtou se pouze geometrická data."
 
 msgid "The Config can not be loaded."
 msgstr "Konfiguraci nelze načíst."
@@ -8816,6 +8894,9 @@ msgstr "Nedoporučuje se používat PVA filamenty s tryskou 0,2 mm."
 
 msgid "Are you sure to use them? \n"
 msgstr "Opravdu je chcete použít? \n"
+
+msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
+msgstr ""
 
 msgid "Send G-code"
 msgstr "Odeslat G-kód"
@@ -9689,6 +9770,9 @@ msgstr "Bambu Cool Plate SuperTack"
 msgid "Send print job"
 msgstr "Odeslat tiskovou úlohu"
 
+msgid "The current estimated time has been recalculated based on the actual filament mapping."
+msgstr ""
+
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Nejste spokojeni se seskupením filamentů? Přeskupte a proveďte řez ->"
 
@@ -9739,6 +9823,9 @@ msgstr "Trysky a filamenty stejného typu využívají stejný PA profil"
 
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "Pokud se filament/tryska hlavního extruderu nezměnily, bude znovu použita poslední hodnota kalibrace. Pomocný extruder použije výchozí systémovou hodnotu."
+
+msgid "Add to queue"
+msgstr ""
 
 msgid "send completed"
 msgstr "odesílání dokončeno"
@@ -9799,6 +9886,9 @@ msgid "Continue printing"
 msgstr ""
 
 msgid "Return to modify"
+msgstr ""
+
+msgid "Only the current sliced plate can be added to the print queue."
 msgstr ""
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
@@ -9915,20 +10005,8 @@ msgstr "Počkejte prosím chvíli..."
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
 msgstr "Stojan tiskové hlavy a hotendu je plný. Před tiskem prosím odeberte alespoň jeden hotend."
 
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "Nastavení průtoku trysky %s(%s) neodpovídá souboru řezu (%s). Ujistěte se, že nainstalovaná tryska odpovídá nastavení tiskárny, a následně při řezání nastavte příslušné přednastavení tiskárny."
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "Tip: Pokud jste nedávno vyměnili trysku tiskárny, přejděte do 'Zařízení -> Části tiskárny' a změňte nastavení trysky."
-
-#, c-format, boost-format
-msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr "Průměr %s (%.1f mm) aktuální tiskárny neodpovídá souboru řezu (%.1f mm). Ujistěte se, že instalovaná tryska odpovídá nastavení v tiskárně, a při řezání nastavte odpovídající přednastavení tiskárny."
-
-#, c-format, boost-format
-msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr "Aktuální průměr trysky (%.1fmm) neodpovídá souboru pro řezání (%.1fmm). Ujistěte se, že instalovaná tryska odpovídá nastavení v tiskárně, a při řezání zvolte odpovídající přednastavení tiskárny."
+msgid "The nozzle type doesn't match. Please re-slice."
+msgstr ""
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "Přepínač dráhy filamentu nainstalovaný v tiskárně neodpovídá souboru pro řezání. Abyste předešli problémům s kvalitou tisku, znovu proveďte řezání."
@@ -9992,8 +10070,11 @@ msgstr "Chladná (Supertack)"
 msgid "Click here if you can't connect to the printer"
 msgstr "Klikněte zde, pokud se nemůžete připojit k tiskárně"
 
-msgid "Sliced file"
-msgstr "Soubor s řezem"
+msgid "Slice file"
+msgstr ""
+
+msgid "The connected printer"
+msgstr ""
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Bez přihlášení se zobrazují pouze tiskárny v režimu LAN"
@@ -10259,6 +10340,18 @@ msgstr "Klikněte pro více informací"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Klikněte pro obnovení všech nastavení na poslední uloženou předvolbu."
 
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
+msgstr "Při použití rozpustného materiálu pro podpěru doporučujeme následující nastavení: 0 horní vzdálenost v ose z, 0 rozestup rozhraní, 0 vzdálenost podpěra/objekt v ose xy, prokládaný pravoúhlý vzor, vypnout nezávislou výšku vrstvy podpěry a použít rozpustné materiály jak pro rozhraní podpěry, tak pro základnu podpěry"
+
 msgid "Support interface speed"
 msgstr "Rychlost rozhraní podpěr"
 
@@ -10283,8 +10376,14 @@ msgid ""
 "Setting a higher bed temperature may cause damage to the printer."
 msgstr ""
 
+msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
+msgstr ""
+
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Věž pro oddělení trysky je vyžadována pro plynulé časosběrné snímání. Bez věže pro oddělení trysky mohou být na modelu vady. Chcete povolit čisticí věž?"
+
+msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
+msgstr ""
 
 msgid "Still print by object?"
 msgstr "Chcete pokračovat v tisku podle objektu?"
@@ -10305,12 +10404,6 @@ msgid ""
 msgstr "Při použití PLA jako podpěry pro TPU doporučujeme následující nastavení: 0 horní vzdálenost v ose z, 0 rozestup rozhraní, 0 vzdálenost podpěra/objekt v ose xy, prokládaný pravoúhlý vzor, vypnout nezávislou výšku vrstvy podpěry a použít PLA jak pro rozhraní podpěry, tak pro základnu podpěry"
 
 msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr "Při použití rozpustného materiálu pro podpěru doporučujeme následující nastavení: 0 horní vzdálenost v ose z, 0 rozestup rozhraní, 0 vzdálenost podpěra/objekt v ose xy, prokládaný pravoúhlý vzor, vypnout nezávislou výšku vrstvy podpěry a použít rozpustné materiály jak pro rozhraní podpěry, tak pro základnu podpěry"
-
-msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
@@ -10328,9 +10421,6 @@ msgstr "Při použití %s pro podpěru %s doporučujeme následující nastaven�
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "Při použití PLA pro podpěru TPU doporučujeme následující nastavení:"
 
-msgid "When using soluble material for the support interface, We recommend the following settings:"
-msgstr "Při použití rozpustného materiálu pro rozhraní podpěr doporučujeme následující nastavení:"
-
 msgid "When using support material for the support interface, We recommend the following settings:"
 msgstr "Při použití materiálu pro podpěry na rozhraní podpěr doporučujeme následující nastavení:"
 
@@ -10346,8 +10436,8 @@ msgstr ""
 "Výška vrstvy je příliš malá.\n"
 "Bude nastavena na min_layer_height.\n"
 
-msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
-msgstr "Výška vrstvy překračuje limit v nastavení tiskárny -> Extruder -> Limity výšky vrstvy, což může způsobit problémy s kvalitou tisku."
+msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
+msgstr ""
 
 msgid "Adjust to the set range automatically? \n"
 msgstr "Automaticky upravit na nastavený rozsah? \n"
@@ -10632,6 +10722,9 @@ msgstr ""
 msgid "Printable space"
 msgstr "Tisknutelný prostor"
 
+msgid "AMS filament load/unload time"
+msgstr ""
+
 msgid "Extruder Clearance"
 msgstr "Vzdálenost extruderu"
 
@@ -10697,6 +10790,12 @@ msgstr "Limity výšky vrstvy"
 
 msgid "Retraction when switching material"
 msgstr "Retrakce při výměně materiálu"
+
+msgid "Load time"
+msgstr ""
+
+msgid "Unload time"
+msgstr ""
 
 msgid ""
 "The Wipe option is not available when using the Firmware Retraction mode.\n"
@@ -11041,6 +11140,9 @@ msgstr "Import textur je dočasně nedostupný, částečné zbarvení bude auto
 msgid " And "
 msgstr " A "
 
+msgid "Note"
+msgstr "Poznámka"
+
 msgid "The color has been selected, you can choose OK to continue or manually adjust it."
 msgstr "Barva byla vybrána. Můžete zvolit OK a pokračovat nebo ji upravit ručně."
 
@@ -11125,6 +11227,9 @@ msgstr ""
 msgid "Use AMS"
 msgstr "Použít AMS"
 
+msgid "Tip"
+msgstr "Tip"
+
 msgid "Only synchronize filament type and color, not including AMS slot information."
 msgstr "Synchronizuje se pouze typ a barva filamentu, informace o slotu AMS nejsou zahrnuty."
 
@@ -11164,6 +11269,10 @@ msgstr "Synchronizuje se pouze typ a barva filamentu, informace o slotu nejsou z
 msgid "Ext spool"
 msgstr "Vnější cívka"
 
+#, c-format, boost-format
+msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+msgstr "Nastavení průtoku trysky %s(%s) neodpovídá souboru řezu (%s). Ujistěte se, že nainstalovaná tryska odpovídá nastavení tiskárny, a následně při řezání nastavte příslušné přednastavení tiskárny."
+
 msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
 msgstr "Zkontrolujte prosím, zda je typ trysky tiskárny stejný jako přednastavený typ trysky."
 
@@ -11176,6 +11285,9 @@ msgstr "Timelapse není podpěrován, protože pořadí tisku je nastaveno na \"
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
 msgstr "Vybral(a) jste současně externí i AMS filament pro jeden extruder, externí filament bude třeba měnit ručně."
+
+msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+msgstr "Tip: Pokud jste nedávno vyměnili trysku tiskárny, přejděte do 'Zařízení -> Části tiskárny' a změňte nastavení trysky."
 
 msgid "Successfully synchronized nozzle information."
 msgstr "Úspěšně synchronizovány informace o trysce."
@@ -11553,11 +11665,11 @@ msgstr "Kde najdete IP adresu tiskárny a přístupový kód?"
 msgid "Connect"
 msgstr "Připojit"
 
-msgid "IP and Access Code Verified! You may close the window"
-msgstr "IP adresa a přístupový kód byly ověřeny! Okno můžete zavřít"
-
 msgid "connecting..."
 msgstr "připojování..."
+
+msgid "IP and Access Code Verified! You may close the window"
+msgstr "IP adresa a přístupový kód byly ověřeny! Okno můžete zavřít"
 
 msgid "Failed to connect to printer."
 msgstr "Nepodařilo se připojit k tiskárně."
@@ -11643,9 +11755,6 @@ msgstr "Odinstalovat Helio Additive"
 
 msgid "Legal & Activation Terms"
 msgstr "Právní podmínky a podmínky aktivace"
-
-msgid "Got it"
-msgstr "Rozumím"
 
 msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
 msgstr "Nepodařilo se získat Helio PAT. Klikněte na Obnovit pro nové získání."
@@ -12272,19 +12381,35 @@ msgstr "Konfigurační balíček byl aktualizován na "
 msgid "Open G-code file:"
 msgstr "Otevřít soubor G-kódu:"
 
-msgid "Print task sending times out."
-msgstr "Časový limit pro odesílání tiskové úlohy vypršel."
-
-msgid "Sending print configuration"
-msgstr "Odesílání konfigurace tisku"
+#, c-format, boost-format
+msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr "Úspěšně odesláno. Automaticky přejde na stránku zařízení za %ss"
 
+msgid "Print task sending times out."
+msgstr "Časový limit pro odesílání tiskové úlohy vypršel."
+
+msgid "Sending print job with LAN acceleration"
+msgstr ""
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr ""
+
+msgid "Sending print configuration"
+msgstr "Odesílání konfigurace tisku"
+
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Úspěšně odesláno. Automaticky přejde na další stránku za %ss"
+
+msgid "Refreshing printer access code"
+msgstr ""
+
+msgid "Adding print job to queue"
+msgstr ""
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "Následující objekt(y) mají prázdnou počáteční vrstvu a nelze je tisknout. Odřízněte spodní část nebo povolte podpěry."
@@ -12632,6 +12757,14 @@ msgstr "Generování sukně a lemu"
 
 msgid "Generating G-code"
 msgstr "Generování G-kódu"
+
+#, boost-format
+msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr ""
+
+#, boost-format
+msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
+msgstr ""
 
 msgid "Failed processing of the filename_format template."
 msgstr "Nepodařilo se zpracovat šablonu filename_format."
@@ -13509,6 +13642,48 @@ msgstr "Doba vysunutí filamentu"
 
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "Čas potřebný k vysunutí starého filamentu při výměně filamentu. Pouze pro statistické účely"
+
+msgid "AMS filament load time"
+msgstr ""
+
+msgid "Filament load time when printing with an AMS. For statistics only"
+msgstr ""
+
+msgid "AMS Lite filament load time"
+msgstr ""
+
+msgid "Filament load time when printing with an AMS Lite. For statistics only"
+msgstr ""
+
+msgid "N3F/N3S filament load time"
+msgstr ""
+
+msgid "Filament load time when printing with an N3F or N3S. For statistics only"
+msgstr ""
+
+msgid "AMS filament unload time"
+msgstr ""
+
+msgid "Filament unload time when printing with an AMS. For statistics only"
+msgstr ""
+
+msgid "AMS Lite filament unload time"
+msgstr ""
+
+msgid "Filament unload time when printing with an AMS Lite. For statistics only"
+msgstr ""
+
+msgid "N3F/N3S filament unload time"
+msgstr ""
+
+msgid "Filament unload time when printing with an N3F or N3S. For statistics only"
+msgstr ""
+
+msgid "Default AMS type"
+msgstr ""
+
+msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
+msgstr ""
 
 msgid "Extruder switch time"
 msgstr "Čas přepnutí extruderu"
@@ -14978,6 +15153,12 @@ msgstr "Spustit G-kód při zahájení celého tisku"
 msgid "Start G-code when start the printing of this filament"
 msgstr "Spustit G-kód při zahájení tisku tohoto filamentu"
 
+msgid "No sparse layers (experimental)"
+msgstr ""
+
+msgid "If enabled, the wipe tower will not be printed on layers with no toolchanges. On layers with a toolchange, extruder will travel downward to print the wipe tower. User is responsible for ensuring there is no collision with the print."
+msgstr ""
+
 msgid "Slice gap closing radius"
 msgstr "Poloměr uzavírání mezer při řezu"
 
@@ -15676,9 +15857,6 @@ msgstr ""
 "Kompenzaci velikosti XY nelze kombinovat s malováním drsný povrch.Objekt má povolenou kompenzaci velikosti XY, která nebude použita, protože je současně aplikováno malování efektem drsný povrch.\n"
 "Kompenzace velikosti XY není slučitelná s malováním efektem drsný povrch."
 
-msgid "Object name"
-msgstr "Název objektu"
-
 msgid "Loading of a model file failed."
 msgstr "Načítání souboru modelu selhalo."
 
@@ -15699,6 +15877,21 @@ msgstr "Neznámý formát souboru. Vstupní soubor musí mít příponu .3mf neb
 
 msgid "Canceled"
 msgstr "Zrušeno"
+
+msgid "Restoring support painting"
+msgstr ""
+
+msgid "Restoring seam painting"
+msgstr ""
+
+msgid "Restoring paint color"
+msgstr ""
+
+msgid "Restoring fuzzy skin"
+msgstr ""
+
+msgid "Restoring painting"
+msgstr ""
 
 msgid "load_obj: failed to parse"
 msgstr "načtení_obj: analýza selhala"
@@ -17441,6 +17634,9 @@ msgstr "Profil pevnosti pro trysku 0,8 mm, upřednostňuje pevnost."
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Standardní profil pro trysku 0,8 mm, upřednostňující rychlost."
 
+msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
+msgstr ""
+
 msgid "Failed to create GCodeV2"
 msgstr "Nepodařilo se vytvořit GCodeV2"
 
@@ -18146,12 +18342,6 @@ msgstr "Doporučení pro míchání"
 msgid "-- Select --"
 msgstr "-- Vyberte --"
 
-msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr "Efekt přechodu vyžaduje, aby byla povolena možnost 'Smíšená barevná podvrstva'. Povolíte ji nyní?"
-
-msgid "Mixed Color Sublayer"
-msgstr "Smíšená barevná podvrstva"
-
 #, c-format, boost-format
 msgid "Slot %s (%s)"
 msgstr "Slot %s (%s)"
@@ -18224,6 +18414,12 @@ msgid "Material Ratio"
 msgstr ""
 
 msgid "Model Height"
+msgstr ""
+
+msgid "Auxiliaries"
+msgstr ""
+
+msgid "An unexpected error occurred"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
@@ -18546,6 +18742,40 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid ""
+#~ "Should not large than layer height.\n"
+#~ "Reset to 10%"
+#~ msgstr ""
+#~ "Nemělo by být více než výška vrstvy.\n"
+#~ "Obnoveno na 10 %Hodnota nesmí být větší než výška vrstvy.\n"
+#~ "Obnoveno na 10 %"
+
+#~ msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
+#~ msgstr "Soubor .gcode.3mf neobsahuje žádná data G-kódu. Proveďte řez v Bambu Studio a exportujte nový soubor .gcode.3mf."
+
+#, c-format, boost-format
+#~ msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+#~ msgstr "Průměr %s (%.1f mm) aktuální tiskárny neodpovídá souboru řezu (%.1f mm). Ujistěte se, že instalovaná tryska odpovídá nastavení v tiskárně, a při řezání nastavte odpovídající přednastavení tiskárny."
+
+#, c-format, boost-format
+#~ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+#~ msgstr "Aktuální průměr trysky (%.1fmm) neodpovídá souboru pro řezání (%.1fmm). Ujistěte se, že instalovaná tryska odpovídá nastavení v tiskárně, a při řezání zvolte odpovídající přednastavení tiskárny."
+
+#~ msgid "Sliced file"
+#~ msgstr "Soubor s řezem"
+
+#~ msgid "When using soluble material for the support interface, We recommend the following settings:"
+#~ msgstr "Při použití rozpustného materiálu pro rozhraní podpěr doporučujeme následující nastavení:"
+
+#~ msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
+#~ msgstr "Výška vrstvy překračuje limit v nastavení tiskárny -> Extruder -> Limity výšky vrstvy, což může způsobit problémy s kvalitou tisku."
+
+#~ msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+#~ msgstr "Efekt přechodu vyžaduje, aby byla povolena možnost 'Smíšená barevná podvrstva'. Povolíte ji nyní?"
+
+#~ msgid "Mixed Color Sublayer"
+#~ msgstr "Smíšená barevná podvrstva"
 
 #~ msgid "Second"
 #~ msgstr "Sekunda"

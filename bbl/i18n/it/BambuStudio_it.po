@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 20:35+0800\n"
+"POT-Creation-Date: 2026-08-04 20:52+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -950,6 +950,9 @@ msgstr "Assegna il modello all'altro lato"
 msgid "Cut"
 msgstr "Taglia"
 
+msgid "Cutting model object"
+msgstr "Taglio oggetto modello"
+
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr "I bordi aperti potrebbero essere causati dall'utensile di taglio; desideri correggerli ora?"
 
@@ -1323,6 +1326,9 @@ msgstr "Distanza_parallela:"
 
 msgid "Flip by Face 2"
 msgstr "Capovolgi su Faccia 2"
+
+msgid "Rotate the object on selected Face 2 around the perpendicular line of the selected plane"
+msgstr "Ruota l'oggetto sulla Faccia 2 selezionata attorno alla retta perpendicolare al piano selezionato"
 
 msgid "Assemble"
 msgstr "Assembla"
@@ -2049,6 +2055,12 @@ msgstr "La versione Bambu Studio è troppo vecchia per abilitare il servizio clo
 msgid "Your software certificate has been revoked, please update Bambu Studio software."
 msgstr "Il tuo certificato software è stato revocato; aggiorna Bambu Studio."
 
+msgid "Got it"
+msgstr "Capito"
+
+msgid "Continue"
+msgstr "Continua"
+
 msgid "Retrieving printer information, please try again later."
 msgstr "Per recuperare le informazioni sulla stampante, riprova più tardi."
 
@@ -2239,6 +2251,9 @@ msgstr "Cubo"
 msgid "Cylinder"
 msgstr "Cilindro"
 
+msgid "Hexagonal Prism"
+msgstr "Prisma esagonale"
+
 msgid "Cone"
 msgstr "Cono"
 
@@ -2253,6 +2268,9 @@ msgstr "Toroide"
 
 msgid "Rounded Rectangle"
 msgstr "Rettangolo arrotondato"
+
+msgid "TearDrop"
+msgstr ""
 
 msgid "Bambu Cube"
 msgstr "Bambu Cube"
@@ -2454,7 +2472,7 @@ msgid "Delete this filament"
 msgstr "Elimina questo filamento"
 
 msgid "Decompose Color"
-msgstr ""
+msgstr "Scomponi colore"
 
 msgid "Merge with"
 msgstr "Unisci con"
@@ -2508,7 +2526,7 @@ msgid "Split to objects"
 msgstr "Dividi in oggetti"
 
 msgid "Split the selected objects into multiple objects"
-msgstr ""
+msgstr "Dividere gli oggetti selezionati in più oggetti"
 
 msgid "Clone"
 msgstr "Clona"
@@ -3000,6 +3018,16 @@ msgstr "Cambia Comunque"
 msgid "Off"
 msgstr "Spento"
 
+msgid "Air Purifier"
+msgstr "Purificatore dell'aria"
+
+msgctxt "AirPurifier"
+msgid "Max"
+msgstr "Massimo"
+
+msgid "Silent"
+msgstr "Silenzioso"
+
 msgid "Filter"
 msgstr "Filtro"
 
@@ -3185,6 +3213,21 @@ msgstr "Step"
 msgid "Install parts"
 msgstr "Installa le parti"
 
+msgid "Inherited Step"
+msgstr "Passaggio ereditato"
+
+msgid "start frame"
+msgstr "fotogramma iniziale"
+
+msgid "Final assembly"
+msgstr "Montaggio finale"
+
+msgid "Merged Step"
+msgstr "Passaggio unito"
+
+msgid "end frame"
+msgstr "fotogramma finale"
+
 msgid "Apply the final assembly pose to the objects or parts added in the current step?"
 msgstr "Applicare la posa di montaggio finale agli oggetti o alle parti aggiunte nel passaggio corrente?"
 
@@ -3225,25 +3268,19 @@ msgid "Saving project will automatically switch to end frame"
 msgstr "Con il salvataggio del progetto si passerà automaticamente al fotogramma finale"
 
 msgid "Are you sure you want to delete all assembly steps?"
-msgstr ""
+msgstr "Sei sicuro di voler eliminare tutti i passaggi di montaggio?"
 
 msgid "Delete all steps"
-msgstr ""
+msgstr "Elimina tutti i passaggi"
 
 msgid "New Step"
 msgstr "Nuovo passaggio"
 
-msgid "Final assembly"
-msgstr "Montaggio finale"
-
-msgid "end frame"
-msgstr "fotogramma finale"
+msgid "Overall preview"
+msgstr "Anteprima complessiva"
 
 msgid "Assembly Structure"
 msgstr "Struttura di montaggio"
-
-msgid "Start your assembly journey from Add Step"
-msgstr "Iniziare il percorso di montaggio da Aggiungi passaggio"
 
 msgctxt "AssemblyStructure"
 msgid "Default"
@@ -3273,22 +3310,21 @@ msgstr "Elimina il passaggio"
 msgid "Model"
 msgstr "Modello"
 
-msgid "start frame"
-msgstr "fotogramma iniziale"
-
 msgid "transition frame"
 msgstr "fotogramma di transizione"
-
-#, c-format, boost-format
-msgid "Step %d"
-msgstr ""
-
-msgid "not used in any assembly step"
-msgstr ""
 
 #, boost-format
 msgid "Plate %1%"
 msgstr "Piatto %1%"
+
+msgid "Label"
+msgstr "Etichetta"
+
+msgid "Explosion"
+msgstr "Esplosione"
+
+msgid "Unassembled"
+msgstr "Non assemblato"
 
 msgid "Assembly Step"
 msgstr "Passaggio di montaggio"
@@ -3309,10 +3345,13 @@ msgid "step"
 msgstr "passaggio"
 
 msgid "Show Current Step Parts Only"
-msgstr ""
+msgstr "Mostra solo le parti del passaggio corrente"
 
 msgid "X-Ray Other Parts"
-msgstr ""
+msgstr "Altre parti in modalità raggi X"
+
+msgid "Play from the current step."
+msgstr "Riproduci dal passaggio corrente."
 
 msgid "Play all frames for all steps."
 msgstr "Riprodurre tutti i fotogrammi per ogni passaggio."
@@ -3329,8 +3368,17 @@ msgstr "Riprodurre il fotogramma successivo."
 msgid "Display Mode"
 msgstr "Modalità di visualizzazione"
 
-msgid "Set export file parameters"
-msgstr "Imposta parametri file di esportazione"
+msgid "Show world axes"
+msgstr "Mostra assi globali"
+
+msgid "Show explosion state column"
+msgstr "Mostra colonna stato esplosione"
+
+msgid "Allow modify text note foreground"
+msgstr "Consenti modifica colore primo piano nota di testo"
+
+msgid "Allow modify text note background"
+msgstr "Consenti modifica sfondo nota testo"
 
 msgid "Camera margin factor for the current frame. The larger the value, the more margin."
 msgstr "Fattore di margine della telecamera per il fotogramma corrente. Maggiore è il valore, maggiore è il margine."
@@ -3347,12 +3395,6 @@ msgstr "Inserisci il passaggio prima"
 msgid "Insert step after"
 msgstr "Inserisci il passaggio dopo"
 
-msgid "Tip"
-msgstr "Consiglio"
-
-msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
-msgstr "Al momento non è selezionata alcuna scheda di passaggio. Le operazioni di modifica della posa, come lo spostamento del gizmo, influiranno sulla vista finale del montaggio effettiva."
-
 msgid "Expand"
 msgstr "Espandi"
 
@@ -3362,11 +3404,26 @@ msgstr "Comprimi"
 msgid "Options"
 msgstr "Opzioni"
 
+msgid "Delete all assembly steps"
+msgstr "Elimina tutti i passaggi di assemblaggio"
+
+msgid "There’s no step to delete"
+msgstr "Non c'è nessun passaggio da eliminare"
+
 msgid "Go to Wiki"
 msgstr "Vai alla Wiki"
 
-msgid "Copy current step"
-msgstr "Copia il passaggio corrente"
+msgid "Inherit the state of Step"
+msgstr "Eredita lo stato del passaggio"
+
+msgid "Assembled parts are not exploded"
+msgstr "Le parti assemblate non sono esplose"
+
+msgid "Copy and inherit this step"
+msgstr "Copia ed eredita questo passaggio"
+
+msgid "Add objects to this step before copying"
+msgstr "Aggiungi oggetti a questo passaggio prima di copiare"
 
 msgid "Delete current step"
 msgstr "Elimina il passaggio corrente"
@@ -3374,27 +3431,27 @@ msgstr "Elimina il passaggio corrente"
 msgid "Add some objects to current step"
 msgstr "Aggiungi alcuni oggetti al passaggio corrente"
 
-msgid "Copy Step"
-msgstr "Copia passaggio"
-
-msgid "Add Step"
-msgstr "Aggiungi passaggio"
-
 #, boost-format
 msgid "No more than %1% steps are allowed."
 msgstr "Sono consentiti non più di %1% passaggi."
 
-msgid "Only copy steps. This is independent of the selected objects on the canvas."
-msgstr "Copiare solo i passaggi. Questa operazione è indipendente dagli oggetti selezionati sulla tela."
+msgid "Add Step"
+msgstr "Aggiungi passaggio"
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr "Aggiungere solo passaggi vuoti. Ciò non ha nulla a che vedere con gli oggetti selezionati sulla tela."
 
-msgid "Delete all assembly steps except the final assembly."
-msgstr ""
+msgid "Merge and add steps."
+msgstr "Unisci e aggiungi passaggi."
 
-msgid "Exit the assembly step editing, you can also press the Esc button to exit"
-msgstr ""
+msgid "Click to exit assembly step editing, or press Esc."
+msgstr "Fai clic per uscire dalla modifica dei passaggi di montaggio oppure premi Esc."
+
+msgid "Not"
+msgstr "Non"
+
+msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
+msgstr "Fare clic prima su Conferma. Dopo che le etichette sono state generate sulla tela, questo controllo etichette può essere utilizzato."
 
 msgid "Click to add Cyber Brick"
 msgstr "Fare clic per aggiungere Cyber Brick"
@@ -3410,6 +3467,9 @@ msgstr "Esporta in Markdown"
 
 msgid "Export MP4"
 msgstr "Esporta in MP4"
+
+msgid "Set export file parameters"
+msgstr "Imposta parametri file di esportazione"
 
 msgid "After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF."
 msgstr "Dopo aver esportato il documento Markdown, è possibile modificarlo con software di terze parti come Zettlr e quindi esportarlo in PDF."
@@ -3432,11 +3492,11 @@ msgstr "Mostrare un'etichetta per ogni oggetto del modello."
 msgid "Show one label per model part."
 msgstr "Mostrare un'etichetta per ogni parte del modello."
 
-msgid "Label"
-msgstr "Etichetta"
-
 msgid "Label settings"
 msgstr "Impostazioni delle etichette"
+
+msgid "Reset all closed labels"
+msgstr "Ripristina tutte le etichette chiuse"
 
 msgid "Show Object/Part labels"
 msgstr "Mostra etichette oggetti/parti"
@@ -3466,31 +3526,16 @@ msgid "Display mode"
 msgstr "Modalità di visualizzazione"
 
 msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
-msgstr ""
+msgstr "Seleziona automaticamente le etichette a livello di oggetto o di parte: un oggetto già mostrato nei passaggi precedenti e utilizzato per intero viene compresso in un'unica etichetta dell'oggetto; gli oggetti utilizzati solo in parte e quelli visualizzati per la prima volta vengono etichettati a livello di singola parte."
+
+msgid "Please create an assembly step before exporting."
+msgstr "Creare prima un passaggio di assemblaggio prima dell'esportazione."
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "Esportare la guida al montaggio in formato PDF, Markdown o MP4"
 
 msgid "Screw"
 msgstr "Vite"
-
-msgid "Note"
-msgstr "Nota"
-
-msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
-msgstr "Le modifiche alla posa (ad esempio, lo spostamento del gizmo) effettuate sul fotogramma chiave del passaggio di montaggio finale influiranno sulla visualizzazione effettiva dell'assieme."
-
-msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
-msgstr "Le modifiche alla posa (ad esempio, lo spostamento del gizmo) effettuate sul fotogramma chiave del passaggio corrente non influiranno sulla visualizzazione effettiva dell'assieme."
-
-msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
-msgstr "Se necessario, è possibile ripristinare una posizione relativamente buona premendo il pulsante \"applica la posa di montaggio effettiva\"."
-
-msgid "undoing these edits is not yet supported and will be added in a later version."
-msgstr "La funzione di annullamento di queste modifiche non è ancora supportata e verrà aggiunta in una versione successiva."
-
-msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
-msgstr "Alcuni oggetti sono stati utilizzati in un fotogramma chiave precedente del passaggio corrente e non sono stati esplosi qui. È possibile esploderli manualmente con lo strumento di spostamento."
 
 msgid "Connection Type"
 msgstr "Tipo di connessione"
@@ -3540,14 +3585,17 @@ msgstr "Riproduci tutti i fotogrammi per il passaggio corrente"
 msgid "At least two keyframes are required to play."
 msgstr "Per la riproduzione sono necessari almeno due fotogrammi chiave."
 
-msgid "Automatically explode all objects."
-msgstr "Esplodere automaticamente tutti gli oggetti."
-
-msgid "Automatically explode all parts."
-msgstr "Esplodere automaticamente tutte le parti."
+msgid "Add a new object to the current step first"
+msgstr "Aggiungere prima un nuovo oggetto al passaggio corrente"
 
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
 msgstr "Applicare la posa di montaggio finale all'oggetto o alla parte attualmente selezionata (se non è selezionato nulla, la posa verrà applicata a tutti gli oggetti aggiunti nel fotogramma corrente)"
+
+msgid "Automatically explode objects that are new to this step. Objects already assembled in earlier steps stay together."
+msgstr "Esplodi automaticamente gli oggetti nuovi in questo passaggio. Gli oggetti già assemblati nei passaggi precedenti restano uniti."
+
+msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
+msgstr "Esplodi automaticamente le nuove parti. Gli oggetti ereditati o già assemblati nei passaggi precedenti restano uniti come un tutt'uno."
 
 msgid "Apply current camera angle to all frames of the current step"
 msgstr "Applicare l'angolazione corrente della telecamera a tutti i fotogrammi del passaggio corrente"
@@ -3570,17 +3618,26 @@ msgstr "Albero di montaggio"
 msgid "Search"
 msgstr "Cerca"
 
+msgid "Expand all objects"
+msgstr "Espandi tutti gli oggetti"
+
+msgid "Collapse all objects"
+msgstr "Comprimi tutti gli oggetti"
+
 msgid "List"
 msgstr "Elenco"
 
 msgid "Assembly list"
-msgstr ""
+msgstr "Elenco componenti"
 
-msgid "Expand all objects"
-msgstr ""
+msgid "Show all objects"
+msgstr "Mostra tutti gli oggetti"
 
-msgid "Collapse all objects"
-msgstr ""
+msgid "Show unassembled only"
+msgstr "Mostra solo gli elementi non montati"
+
+msgid "Object name"
+msgstr "Nome oggetto"
 
 msgid "Select all parts in a step"
 msgstr "Seleziona tutte le parti in un passaggio"
@@ -3789,22 +3846,22 @@ msgid "Remaining time: %dmin%ds"
 msgstr "Tempo rimanente: %dmin%ds"
 
 msgid "One-click CMYW auto-mix"
-msgstr ""
+msgstr "Miscelazione automatica CMYW con un solo clic"
 
 msgid "One-click RYBW auto-mix"
-msgstr ""
+msgstr "Miscelazione automatica RYBW con un solo clic"
 
 msgid "Project Physical Filaments"
-msgstr ""
-
-msgid "Project Mixed Filaments"
-msgstr ""
+msgstr "Filamenti fisici del progetto"
 
 msgid "New Physical Filaments"
-msgstr ""
+msgstr "Nuovi filamenti fisici"
+
+msgid "Project Mixed Filaments"
+msgstr "Filamenti misti del progetto"
 
 msgid "New Mixed Filaments"
-msgstr ""
+msgstr "Nuovi filamenti misti"
 
 msgid "+ Add Material"
 msgstr "+ Aggiungi Materiale"
@@ -3847,10 +3904,10 @@ msgid "Filament Mapping"
 msgstr "Mappatura dei filamenti"
 
 msgid "Reset filament mapping to the state before one-click mixing"
-msgstr ""
+msgstr "Ripristinare la mappatura dei filamenti allo stato precedente alla miscelazione con un clic"
 
 msgid "Choose the one-click auto-mix mode for texture color import"
-msgstr ""
+msgstr "Selezionare la modalità di miscelazione automatica con un clic per l'importazione del colore della texture"
 
 msgid "Auto-merge same filament"
 msgstr "Unisci automaticamente lo stesso filamento"
@@ -3890,9 +3947,6 @@ msgstr "Si prega di notare che la mesh presenta una geometria a spessore zero o 
 
 msgid "Mesh issue"
 msgstr "Errore mesh"
-
-msgid "Continue"
-msgstr "Continua"
 
 msgid "Choose SLA archive:"
 msgstr "Seleziona l'archivio SLA:"
@@ -4071,7 +4125,7 @@ msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Inserisci un valore valido (K in %.1f ~%.1f, N in %.1f ~%.1f)"
 
 msgid "Remark"
-msgstr ""
+msgstr "Osservazione"
 
 msgid "Other"
 msgstr "Altro"
@@ -4080,31 +4134,34 @@ msgid "Filament Manager"
 msgstr "Gestore filamento"
 
 msgid "In printer"
-msgstr ""
+msgstr "Nella stampante"
 
 #, c-format, boost-format
 msgid "In printer: %s"
-msgstr ""
+msgstr "Nella stampante: %s"
 
 msgctxt "Filament Manager"
 msgid "Note"
 msgstr "Nota"
 
 msgid "Unsupported Filaments"
-msgstr ""
+msgstr "Filamenti non supportati"
 
 msgctxt "Unsupported Filaments"
 msgid "Note"
 msgstr "Nota"
 
 msgid "No unsupported filaments"
-msgstr ""
+msgstr "Nessun filamento non supportato"
 
 msgid "No filaments"
-msgstr ""
+msgstr "Nessun filamento"
 
 msgid "System presets"
 msgstr "Preset sistema"
+
+msgid "Recently used"
+msgstr "Usati di recente"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4127,22 +4184,22 @@ msgid "Custom Color"
 msgstr "Colore personalizzato"
 
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS ha rilevato un nuovo filamento ufficiale. Aggiungerlo al Gestore dei filamenti?"
 
 msgid "Add as new filament"
-msgstr ""
+msgstr "Aggiungi come nuovo filamento"
 
 msgid "Link to existing filament"
-msgstr ""
+msgstr "Collega al filamento esistente"
 
 msgid "Not now"
-msgstr ""
+msgstr "Non adesso"
 
 msgid "Please select"
-msgstr ""
+msgstr "Selezionare"
 
 msgid "No matching filament"
-msgstr ""
+msgstr "Nessun filamento corrispondente"
 
 msgid "Dynamic flow calibration"
 msgstr "Calibrazione dinamica del flusso"
@@ -4650,11 +4707,11 @@ msgstr ""
 "È stata reimpostata a 0.2"
 
 msgid ""
-"Should not large than layer height.\n"
+"Should not be larger than layer height.\n"
 "Reset to 10%"
 msgstr ""
-"Non dovrebbe essere maggiore dell'altezza del layer. \n"
-"Ripristinato al 10%"
+"Non deve superare l'altezza layer.\n"
+"Reimposta al 10%"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5781,6 +5838,12 @@ msgstr "Ritorna al montaggio"
 msgid "return"
 msgstr "Indietro"
 
+msgid "Exit current gizmo editing"
+msgstr "Esci dalla modifica del gizmo corrente"
+
+msgid "Return to prepare view"
+msgstr "Torna alla vista Prepara"
+
 msgid "Fit camera"
 msgstr "Adatta fotocamera"
 
@@ -5883,6 +5946,9 @@ msgstr "i filamenti %s non possono essere stampati direttamente sulla superficie
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "Filamenti PLA e PETG rilevati nella miscela. Regola i parametri secondo la Wiki per garantire la qualità di stampa."
 
+msgid "Detected brittle filament (e.g., PPS-CF). Please place the models at the center of the heated bed. Printing near the edge may cause the filament to bend excessively and break inside the tube."
+msgstr "È stato rilevato un filamento fragile, ad esempio PPS-CF. Posiziona i modelli al centro del piano riscaldato. La stampa in prossimità del bordo potrebbe piegare eccessivamente il filamento, causandone la rottura all'interno del tubo."
+
 msgid "The prime tower improves multi-color print quality and is recommended."
 msgstr "La Prime tower è consigliata perchè migliora la qualità delle stampe multicolore."
 
@@ -5894,6 +5960,9 @@ msgstr "Volume di spurgo parziale impostato su 0. La stampa multicolore può cau
 
 msgid "Click Wiki for help."
 msgstr "Fai clic su Wiki per assistenza."
+
+msgid "Click Wiki for details."
+msgstr "Fai clic su Wiki per maggiori dettagli."
 
 msgid "Jump to: Prime tower"
 msgstr "Vai a: Prime tower"
@@ -6194,6 +6263,12 @@ msgstr "Salva Progetto come"
 
 msgid "Save current project as"
 msgstr "Salva Progetto corrente come"
+
+msgid "Show Project in Folder"
+msgstr "Mostra il progetto nella cartella"
+
+msgid "Show current project in folder"
+msgstr "Mostra il progetto corrente nella cartella"
 
 msgid "Import 3MF/STL/STEP/SVG/OBJ/AMF"
 msgstr "Importa 3MF/STL/STEP/SVG/OBJ/AMF"
@@ -6736,8 +6811,8 @@ msgstr "Impossibile recuperare le informazioni del modello dalla stampante."
 msgid "Failed to parse model information."
 msgstr "Impossibile analizzare le informazioni del modello"
 
-msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
-msgstr "Il file .gcode.3mf non contiene dati G-code. Elaboralo in BambuStudio ed esportalo in un nuovo file .gcode.3mf."
+msgid "The .gcode.3mf file contains no G-code data. Please slice it with Bambu Studio and export a new .gcode.3mf file."
+msgstr "Il file .gcode.3mf non contiene dati G-code. Esegui lo slicing con Bambu Studio ed esporta un nuovo file .gcode.3mf."
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -7123,9 +7198,6 @@ msgstr "Impossibile leggere le informazioni sul filamento: il filamento è caric
 msgid "This only takes effect during printing"
 msgstr "Questo ha effetto solo in fase di stampa"
 
-msgid "Silent"
-msgstr "Silenzioso"
-
 msgid "Sport"
 msgstr "Sport"
 
@@ -7281,6 +7353,9 @@ msgstr "Calcolo​•​in​•​corso;​•​attendi​•​prego..."
 
 msgid "Status"
 msgstr "Stato"
+
+msgid "Print queue"
+msgstr "Coda di stampa"
 
 msgctxt "Firmware"
 msgid "Update"
@@ -7478,6 +7553,9 @@ msgstr "Apri il link per maggiori informazioni"
 
 msgid "Warning:"
 msgstr "Avviso:"
+
+msgid "For more details, see the Wiki."
+msgstr "Per maggiori dettagli, consulta il Wiki."
 
 msgid "Export successfully."
 msgstr "Esportato correttamente."
@@ -7754,10 +7832,10 @@ msgid "Printer settings"
 msgstr "Impostazioni stampante"
 
 msgid "At least one plate is required"
-msgstr ""
+msgstr "È richiesta almeno una piastra"
 
 msgid "Remove current plate"
-msgstr ""
+msgstr "Rimuovi la piastra attuale"
 
 msgid "Auto orient objects on current plate"
 msgstr "Orientamento automatico degli oggetti sul piatto corrente"
@@ -7782,7 +7860,7 @@ msgstr "Personalizza il piatto corrente"
 
 #, c-format, boost-format
 msgid "%s is not compatible with %s nozzle."
-msgstr ""
+msgstr "%s non è compatibile con %s il nozzle."
 
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
@@ -8045,11 +8123,14 @@ msgstr "Comprimi barra laterale"
 msgid "Loading file: %s"
 msgstr "Caricamento file: %s"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "Il 3mf non proviene da Bambu Lab, caricate solo le geometrie."
+msgid "The 3mf file has invalid config, load geometry data only"
+msgstr ""
 
 msgid "Load 3mf"
 msgstr "Carica 3mf"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data only."
+msgstr "Il 3mf non proviene da Bambu Lab, caricate solo le geometrie."
 
 msgid "The Config can not be loaded."
 msgstr "La configurazione non può essere caricata."
@@ -8721,10 +8802,10 @@ msgid "Negative parts detected. Would you like to perform mesh boolean before ex
 msgstr "Rilevate parti negative. Vuoi eseguire una mesh booleana prima dell'esportazione?"
 
 msgid "Failed to save the project: an invalid setting value was found while writing the file."
-msgstr ""
+msgstr "Impossibile salvare il progetto: durante la scrittura del file è stato rilevato un valore di impostazione non valido."
 
 msgid "Please check your settings and try again."
-msgstr ""
+msgstr "Controlla le impostazioni e riprova."
 
 msgid ""
 "Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
@@ -8740,6 +8821,9 @@ msgstr "Sconsigliato l'uso di filamenti PVA con nozzle da 0.2 mm."
 
 msgid "Are you sure to use them? \n"
 msgstr "Sei sicuro di usarli? \n"
+
+msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
+msgstr "Quando il Preriscaldamento Termico per l'Ottimizzazione del Primo Strato è abilitato sulla stampante A2L, la durata del preriscaldamento viene regolata automaticamente in base all'impronta del modello per ottenere la migliore qualità del primo strato. Impronte più grandi richiedono tempi di preriscaldamento più lunghi. Le caselle bianche indicano i confini tra diverse durate di preriscaldamento."
 
 msgid "Send G-code"
 msgstr "Invia G-code"
@@ -8917,7 +9001,7 @@ msgstr ""
 "Vuoi continuare abilitando questa funzionalità?"
 
 msgid "Download path"
-msgstr ""
+msgstr "Percorso di download"
 
 msgid "Choose Download Directory"
 msgstr "Scegliere la directory di download"
@@ -8939,7 +9023,7 @@ msgid "Other"
 msgstr "Altro"
 
 msgid "Developer Tools"
-msgstr ""
+msgstr "Strumenti per sviluppatori"
 
 msgid "General Settings"
 msgstr "Impostazioni generali"
@@ -9021,7 +9105,7 @@ msgid "Learn more"
 msgstr "Ulteriori informazioni"
 
 msgid "User Settings"
-msgstr ""
+msgstr "Impostazioni utente"
 
 msgid "Auto plate type"
 msgstr "Rileva tipo piatto"
@@ -9030,13 +9114,13 @@ msgid "Studio will remember build plate selected last time for certain printer m
 msgstr "Studio ricorderà il piatto di stampa selezionato l'ultima volta per un determinato modello di stampante."
 
 msgid "12-hour"
-msgstr ""
+msgstr "12 ore"
 
 msgid "24-hour"
-msgstr ""
+msgstr "24 ore"
 
 msgid "time format for print progress"
-msgstr ""
+msgstr "formato orario per l'avanzamento della stampa"
 
 msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
 msgstr "Visualizza l'orario in formato 12 ore con AM/PM invece del formato 24 ore"
@@ -9138,7 +9222,7 @@ msgid "Remember last used color scheme"
 msgstr "Ricorda l'ultima combinazione di colori utilizzata"
 
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-msgstr "Una volta attivata, l’ultima combinazione di colori utilizzata (es. Tipo di linea, Velocità) verrà applicata automaticamente al prossimo avvio."
+msgstr "Una volta attivata, l'ultima combinazione di colori utilizzata (es. Tipo di linea, Velocità) verrà applicata automaticamente al prossimo avvio."
 
 msgid "Improve rendering performance by lod"
 msgstr "Migliora le prestazioni di rendering in base al livello"
@@ -9174,31 +9258,31 @@ msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "Nessun avviso durante il caricamento del 3MF con G-code modificato"
 
 msgid "10 seconds"
-msgstr ""
+msgstr "10 secondi"
 
 msgid "20 seconds"
-msgstr ""
+msgstr "20 secondi"
 
 msgid "30 seconds"
-msgstr ""
+msgstr "30 secondi"
 
 msgid "1 minute"
-msgstr ""
+msgstr "1 minuto"
 
 msgid "2 minutes"
-msgstr ""
+msgstr "2 minuti"
 
 msgid "5 minutes"
-msgstr ""
+msgstr "5 minuti"
 
 msgid "10 minutes"
-msgstr ""
+msgstr "10 minuti"
 
 msgid "30 minutes"
-msgstr ""
+msgstr "30 minuti"
 
 msgid "never"
-msgstr ""
+msgstr "mai"
 
 msgid "Auto-Backup"
 msgstr "Backup automatico"
@@ -9216,7 +9300,7 @@ msgid "Show history on the home page"
 msgstr "Mostra cronologia sulla home page"
 
 msgid "Developer Mode"
-msgstr ""
+msgstr "Modalità sviluppatore"
 
 msgid "Develop mode"
 msgstr "Modalità sviluppatore"
@@ -9246,7 +9330,7 @@ msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "Se abilitato, imposta Bambu Studio come applicazione predefinita per aprire i file .step"
 
 msgid "Log"
-msgstr ""
+msgstr "Registro"
 
 msgid "fatal"
 msgstr "fatale"
@@ -9303,16 +9387,16 @@ msgid "Switch cloud environment, Please login again!"
 msgstr "Cambia ambiente cloud, accedi di nuovo!"
 
 msgid "Reset all warning dialogs"
-msgstr ""
+msgstr "Reimposta tutte le finestre di dialogo di avvertenza"
 
 msgid "Reset preferences"
-msgstr ""
+msgstr "Ripristina preferenze"
 
 msgid "All warning dialogs that you have disabled by checking \"Don't show again\" are now re-enabled and will show next time they apply."
-msgstr ""
+msgstr "Tutte le finestre di dialogo di avvertenza disattivate selezionando l'opzione \"Non mostrare più\" sono ora riattivate e verranno visualizzate la prossima volta che si presenteranno."
 
 msgid "Check details"
-msgstr ""
+msgstr "Verificare i dettagli"
 
 msgid ""
 "- Sync printer presets after loading a file\n"
@@ -9322,9 +9406,15 @@ msgid ""
 "- Unsaved projects.\n"
 "- Mixed color sublayer with variable layer height warning"
 msgstr ""
+"- Sincronizzare le preimpostazioni della stampante dopo il caricamento di un file\n"
+"- Impostazioni della finestra di dialogo \"Carica 3MF\"\n"
+"- Esecuzione di script di post-elaborazione\n"
+"- Richiesta di raccomandazione della struttura di supporto\n"
+"- Progetti non salvati.\n"
+"- Avvertenza relativa al sottostrato a colori misti con altezza dello strato variabile"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
-msgstr ""
+msgstr "Sei sicuro di voler ripristinare tutte le preferenze? Le modifiche avranno effetto dopo il riavvio."
 
 msgid "User presets"
 msgstr "Preset utente"
@@ -9601,6 +9691,9 @@ msgstr ""
 msgid "Send print job"
 msgstr "Invia lavoro di stampa"
 
+msgid "The current estimated time has been recalculated based on the actual filament mapping."
+msgstr "Il tempo stimato attuale è stato ricalcolato in base alla mappatura effettiva del Filamento."
+
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Non sei soddisfatto del raggruppamento dei filamenti? Raggruppa nuovamente e riesegui lo slicing ->"
 
@@ -9648,6 +9741,9 @@ msgstr "Nozzle e filamenti dello stesso tipo condividono lo stesso profilo PA"
 
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "Se il filamento/nozzle dell'estrusore principale non è cambiato, verrà riutilizzato l'ultimo valore di calibrazione. L'estrusore ausiliario utilizzerà il valore predefinito del sistema."
+
+msgid "Add to queue"
+msgstr "Aggiungi alla coda"
 
 msgid "send completed"
 msgstr "invio completato"
@@ -9709,6 +9805,9 @@ msgstr "Continua a stampare"
 
 msgid "Return to modify"
 msgstr "Torna alla modifica"
+
+msgid "Only the current sliced plate can be added to the print queue."
+msgstr "Solo la piastra attualmente in elaborazione può essere aggiunta alla coda di stampa."
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Questo controlla la planarità del piano. Il livellamento rende uniforme l'altezza dell'estruso."
@@ -9824,20 +9923,8 @@ msgstr "Attendi un momento..."
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
 msgstr "La testa di stampa e il rack hotend sono pieni. Rimuovi almeno un hotend prima di avviare la stampa."
 
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "L'impostazione del flusso del nozzle di %s (%s) non corrisponde a quella del file di slicing (%s). Per favore, assicurati che il nozzle installato corrisponda alle impostazioni della stampante, quindi imposta il preset della stampante corrispondente durante lo slicing."
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "Suggerimenti: Se hai cambiato il nozzle della tua stampante di recente, per favore vai su 'Dispositivo -> Parti della stampante' per modificare l'impostazione del nozzle."
-
-#, c-format, boost-format
-msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr "Il diametro del %s (%.1f mm) della stampante attuale non corrisponde a quello del file di slicing (%.1f mm). Assicurati che il nozzle installato corrisponda alle impostazioni della stampante, quindi imposta il preset della stampante corrispondente durante lo slicing."
-
-#, c-format, boost-format
-msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr "Il diametro del nozzle attuale (%.1f mm) non corrisponde a quello del file di slicing (%.1f mm). Assicurati che il nozzle installato corrisponda alle impostazioni della stampante, quindi imposta il preset della stampante corrispondente durante lo slicing."
+msgid "The nozzle type doesn't match. Please re-slice."
+msgstr ""
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "Il Filament Track Switch installato sulla stampante non corrisponde al file elaborato. Esegui nuovamente l'elaborazione per evitare problemi di qualità di stampa."
@@ -9878,7 +9965,7 @@ msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the 
 msgstr "Se l'opzione \"Calibrazione dinamica del flusso\" è impostata su Automatico/Attivato, il sistema utilizzerà il valore di calibrazione manuale o il valore predefinito e salterà il processo di calibrazione del flusso. È possibile eseguire una calibrazione manuale del flusso per il filamento TPU nella pagina \"Calibrazione\"."
 
 msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-msgstr ""
+msgstr "Il filamento nell'AMS potrebbe non essere sufficiente per questa stampa. Ricaricarlo o sostituirlo."
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Alcuni filamenti possono passare da un estrusore all’altro durante la stampa. La calibrazione manuale del valore K non può essere applicata all’intera stampa, il che può influire sulla qualità. Abilita la calibrazione del Flusso Dinamico."
@@ -9901,8 +9988,11 @@ msgstr ""
 msgid "Click here if you can't connect to the printer"
 msgstr "Clicca qui se non riesci a connetterti alla stampante"
 
-msgid "Sliced file"
-msgstr "File elaborato"
+msgid "Slice file"
+msgstr ""
+
+msgid "The connected printer"
+msgstr ""
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Nessun account di login, vengono visualizzate solo le stampanti in modalità LAN"
@@ -10168,6 +10258,20 @@ msgstr "Clicca per saperne di più"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Clicca per ripristinare tutte le impostazioni dell'ultimo preset salvato."
 
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+"Quando usi materiale solubile per il supporto, ti consigliamo le seguenti impostazioni:\n"
+"distanza Z superiore 0, spaziatura interfaccia 0, distanza XY supporto/oggetto 0, motivo rettilineo interlacciato, disattiva l’altezza strato di supporto indipendente e usa materiali solubili sia per l’interfaccia che per la base di supporto."
+
 msgid "Support interface speed"
 msgstr "Velocità interfaccia di supporto"
 
@@ -10192,8 +10296,14 @@ msgid ""
 "Setting a higher bed temperature may cause damage to the printer."
 msgstr "La stampante selezionata ha un limite di temperatura del piano di stampa di %d °C. Impostare una temperatura del piano di stampa superiore potrebbe danneggiare la stampante."
 
+msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
+msgstr "Il timelapse fluido richiede una torre di pulizia su ogni strato, il che non è compatibile con \"Nessuno strato sparso\". \"Nessuno strato sparso\" è stato disattivato."
+
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "È necessaria una Prime Tower per la modalità timelapse fluida. Potrebbero esserci dei difetti sul modello senza Prime Tower. Vuoi abilitare la prime tower?"
+
+msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
+msgstr "\"Nessuno strato sparso\" non è compatibile con il timelapse fluido, che richiede una torre di pulizia su ogni strato. Il timelapse è stato impostato in modalità tradizionale."
 
 msgid "Still print by object?"
 msgstr "Stampa ancora per oggetto?"
@@ -10214,14 +10324,6 @@ msgstr ""
 "distanza Z superiore 0, spaziatura interfaccia 0, distanza XY supporto/oggetto 0, motivo rettilineo interlacciato, disabilita l’altezza strato di supporto indipendente e utilizza il PLA sia per l’interfaccia che per la base di supporto."
 
 msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"Quando usi materiale solubile per il supporto, ti consigliamo le seguenti impostazioni:\n"
-"distanza Z superiore 0, spaziatura interfaccia 0, distanza XY supporto/oggetto 0, motivo rettilineo interlacciato, disattiva l’altezza strato di supporto indipendente e usa materiali solubili sia per l’interfaccia che per la base di supporto."
-
-msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
@@ -10237,9 +10339,6 @@ msgstr "Quando si utilizza %s per supporti %s, consigliamo i seguenti settaggi:"
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "Quando si utilizza PLA per supportare il TPU, consigliamo le seguenti impostazioni:"
 
-msgid "When using soluble material for the support interface, We recommend the following settings:"
-msgstr "Quando si utilizza materiale solubile per l'interfaccia di supporto, consigliamo le seguenti impostazioni:"
-
 msgid "When using support material for the support interface, We recommend the following settings:"
 msgstr "Quando si utilizza materiale di supporto per l'interfaccia di supporto, consigliamo le seguenti impostazioni:"
 
@@ -10253,7 +10352,7 @@ msgstr ""
 "L'altezza layer è troppo piccola.\n"
 "Verrà impostato su altezza_min_layer\n"
 
-msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
+msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
 msgstr "L'altezza layer supera il limite riportato in Impostazioni stampante -> Estrusore -> Limite altezza layer, ciò può causare problemi di qualità di stampa."
 
 msgid "Adjust to the set range automatically? \n"
@@ -10538,6 +10637,9 @@ msgstr "Modalità di spurgo: Rapida"
 msgid "Printable space"
 msgstr "Spazio stampabile"
 
+msgid "AMS filament load/unload time"
+msgstr "Tempo di Carica/Scarica Filamento AMS"
+
 msgid "Extruder Clearance"
 msgstr "Spazio estrusore"
 
@@ -10603,6 +10705,12 @@ msgstr "Limiti altezza layer"
 
 msgid "Retraction when switching material"
 msgstr "Retrazione quando si cambia materiale"
+
+msgid "Load time"
+msgstr "Tempo di Carica"
+
+msgid "Unload time"
+msgstr "Tempo di Scaricamento"
 
 msgid ""
 "The Wipe option is not available when using the Firmware Retraction mode.\n"
@@ -10940,6 +11048,9 @@ msgstr "L’importazione delle texture non è temporaneamente disponibile; la co
 msgid " And "
 msgstr " E "
 
+msgid "Note"
+msgstr "Nota"
+
 msgid "The color has been selected, you can choose OK to continue or manually adjust it."
 msgstr "Il colore è stato selezionato; puoi scegliere OK per continuare oppure regolarlo manualmente."
 
@@ -11021,6 +11132,9 @@ msgstr ""
 msgid "Use AMS"
 msgstr "Usa AMS"
 
+msgid "Tip"
+msgstr "Consiglio"
+
 msgid "Only synchronize filament type and color, not including AMS slot information."
 msgstr "Sincronizza solo il tipo e il colore del filamento, senza includere le informazioni sugli slot AMS."
 
@@ -11060,6 +11174,10 @@ msgstr "Sincronizza solo il tipo e il colore del filamento, senza includere le i
 msgid "Ext spool"
 msgstr "Bobina esterna"
 
+#, c-format, boost-format
+msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+msgstr "L'impostazione del flusso del nozzle di %s (%s) non corrisponde a quella del file di slicing (%s). Per favore, assicurati che il nozzle installato corrisponda alle impostazioni della stampante, quindi imposta il preset della stampante corrispondente durante lo slicing."
+
 msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
 msgstr "Controlla se il tipo di nozzle del dispositivo è lo stesso del tipo di nozzle preimpostato."
 
@@ -11072,6 +11190,9 @@ msgstr "Timelapse non supportato perché la sequenza di stampa è impostata su \
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
 msgstr "Hai selezionato contemporaneamente il filamento esterno e AMS in un estrusore; dovrai cambiare manualmente il filamento esterno."
+
+msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+msgstr "Suggerimenti: Se hai cambiato il nozzle della tua stampante di recente, per favore vai su 'Dispositivo -> Parti della stampante' per modificare l'impostazione del nozzle."
 
 msgid "Successfully synchronized nozzle information."
 msgstr "Informazioni nozzle sincronizzate con successo."
@@ -11449,11 +11570,11 @@ msgstr "Dove trovo l'IP e il codice accesso della stampante?"
 msgid "Connect"
 msgstr "Connetti"
 
-msgid "IP and Access Code Verified! You may close the window"
-msgstr "IP e codice di accesso verificati! Puoi chiudere la finestra"
-
 msgid "connecting..."
 msgstr "connessione..."
+
+msgid "IP and Access Code Verified! You may close the window"
+msgstr "IP e codice di accesso verificati! Puoi chiudere la finestra"
 
 msgid "Failed to connect to printer."
 msgstr "Impossibile connettersi alla stampante."
@@ -11537,9 +11658,6 @@ msgstr "Disinstalla Helio Additive"
 
 msgid "Legal & Activation Terms"
 msgstr "Termini Legali & Attivazione"
-
-msgid "Got it"
-msgstr "Capito"
 
 msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
 msgstr "Impossibile ottenere Helio PAT, Clicca Aggiorna per riprovare."
@@ -12166,19 +12284,35 @@ msgstr "Pacchetto di configurazione aggiornato a "
 msgid "Open G-code file:"
 msgstr "Apri un file G-code:"
 
-msgid "Print task sending times out."
-msgstr "L'invio dell'attività di stampa è scaduto."
-
-msgid "Sending print configuration"
-msgstr "Invia configurazione di stampa"
+#, c-format, boost-format
+msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+msgstr "Aggiunto correttamente alla coda di stampa. Verrà automaticamente visualizzata la pagina della coda di stampa tra %ss"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
 msgstr "Inviato con successo. Salta automaticamente alla pagina del dispositivo in %s"
 
+msgid "Print task sending times out."
+msgstr "L'invio dell'attività di stampa è scaduto."
+
+msgid "Sending print job with LAN acceleration"
+msgstr "Invio del lavoro di stampa con accelerazione LAN"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "Invio tramite Servizio cloud fallito. Invio del lavoro di stampa tramite LAN senza cronologia di stampa."
+
+msgid "Sending print configuration"
+msgstr "Invia configurazione di stampa"
+
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Inviato con successo. Andrà automaticamente alla pagina successiva in %ss"
+
+msgid "Refreshing printer access code"
+msgstr "Aggiornamento codice di accesso stampante"
+
+msgid "Adding print job to queue"
+msgstr "Aggiunta del lavoro di stampa alla coda"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "I seguenti oggetti(o) hanno un layer iniziale vuoto e non possono essere stampati. Taglia la parte inferiore o attivare i supporti."
@@ -12526,6 +12660,14 @@ msgstr "Generazione skirt & brim"
 
 msgid "Generating G-code"
 msgstr "Generazione G-code"
+
+#, boost-format
+msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr "%1% è troppo vicino a una torre di pulizia compattata. L'ugello scende nella torre a Z %2% mm mentre l'oggetto raggiunge già Z %3% mm e la testa di stampa necessita di %4% mm di spazio libero orizzontale per passarci accanto, ma ne rimangono solo %5% mm. Disattiva \"Nessuno strato sparso\", allontana la torre di pulizia o abbassa l'oggetto."
+
+#, boost-format
+msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
+msgstr "%1% è troppo alto per essere stampato insieme a una torre di pulizia compattata. L'ugello scende nella torre a Z %2% mm mentre l'oggetto raggiunge già Z %3% mm, superando lo spazio libero di %4% mm. Disattiva \"Nessuno strato sparso\" o abbassa l'oggetto."
 
 msgid "Failed processing of the filename_format template."
 msgstr "Elaborazione del modello filename_format fallita."
@@ -13399,6 +13541,48 @@ msgstr "Durata scaricamento filamento"
 
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "Tempo di scarico del filamento quando si cambia filamento. Solo per statistica"
+
+msgid "AMS filament load time"
+msgstr "Tempo di Carica Filamento AMS"
+
+msgid "Filament load time when printing with an AMS. For statistics only"
+msgstr "Tempo di caricamento filamento durante la stampa con un AMS. Solo per statistiche"
+
+msgid "AMS Lite filament load time"
+msgstr "Tempo di caricamento filamento AMS Lite"
+
+msgid "Filament load time when printing with an AMS Lite. For statistics only"
+msgstr "Tempo di caricamento filamento durante la stampa con un AMS Lite. Solo per statistiche"
+
+msgid "N3F/N3S filament load time"
+msgstr "Tempo di caricamento filamento N3F/N3S"
+
+msgid "Filament load time when printing with an N3F or N3S. For statistics only"
+msgstr "Tempo di caricamento filamento durante la stampa con N3F o N3S. Solo per statistiche"
+
+msgid "AMS filament unload time"
+msgstr "Tempo di Scarica Filamento AMS"
+
+msgid "Filament unload time when printing with an AMS. For statistics only"
+msgstr "Tempo di scaricamento filamento durante la stampa con un AMS. Solo per statistiche"
+
+msgid "AMS Lite filament unload time"
+msgstr "Tempo di scaricamento filamento AMS Lite"
+
+msgid "Filament unload time when printing with an AMS Lite. For statistics only"
+msgstr "Tempo di scaricamento filamento durante la stampa con un AMS Lite. Solo per statistiche"
+
+msgid "N3F/N3S filament unload time"
+msgstr "Tempo di scaricamento filamento N3F/N3S"
+
+msgid "Filament unload time when printing with an N3F or N3S. For statistics only"
+msgstr "Tempo di scaricamento filamento durante la stampa con N3F o N3S. Solo per statistiche"
+
+msgid "Default AMS type"
+msgstr "Tipo AMS predefinito"
+
+msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
+msgstr "Il tipo AMS predefinito utilizzato per stimare il tempo di Carica/Scarica Filamento, memorizzato come valore enum del tipo di temporizzazione AMS. Proviene dal preset della stampante e non riflette l'AMS attualmente collegato alla macchina."
 
 msgid "Extruder switch time"
 msgstr "Tempo cambio estrusore"
@@ -14867,6 +15051,12 @@ msgstr "Avvia il G-code all'avvio di una stampa"
 msgid "Start G-code when start the printing of this filament"
 msgstr "Avvia G-code quando la stampante utilizza questo filamento"
 
+msgid "No sparse layers (experimental)"
+msgstr "Nessun layer rado (sperimentale)"
+
+msgid "If enabled, the wipe tower will not be printed on layers with no toolchanges. On layers with a toolchange, extruder will travel downward to print the wipe tower. User is responsible for ensuring there is no collision with the print."
+msgstr "Se l'opzione è abilitata, la torre di spurgo non verrà stampata nei layer senza alcun cambio utensile. Nei layer con un cambio utensile, l'estrusore si sposterà verso il basso per stampare la torre di spurgo. È responsabilità dell'utente assicurarsi che non si verifichino collisioni con la stampa."
+
 msgid "Slice gap closing radius"
 msgstr "Raggio chiusura del gap"
 
@@ -15570,9 +15760,6 @@ msgstr ""
 "Un oggetto ha abilitato la compensazione della dimensione XY che non verrà utilizzata perché è anch'esso pitturato con fuzzy skin.\n"
 "La compensazione della dimensione XY non può essere combinata con la pittura con fuzzy skin."
 
-msgid "Object name"
-msgstr "Nome oggetto"
-
 msgid "Loading of a model file failed."
 msgstr "Caricamento file del modello non riuscito."
 
@@ -15593,6 +15780,21 @@ msgstr "Formato file sconosciuto: il file di input deve avere estensione .3mf o 
 
 msgid "Canceled"
 msgstr "Annullato"
+
+msgid "Restoring support painting"
+msgstr "Ripristino della pittura dei supporti"
+
+msgid "Restoring seam painting"
+msgstr "Ripristino della pittura della cucitura"
+
+msgid "Restoring paint color"
+msgstr "Ripristino della pittura a colori"
+
+msgid "Restoring fuzzy skin"
+msgstr "Ripristino della fuzzy skin"
+
+msgid "Restoring painting"
+msgstr "Ripristino della pittura"
 
 msgid "load_obj: failed to parse"
 msgstr "load_obj: analisi non riuscita"
@@ -16935,7 +17137,7 @@ msgid "Need select printer"
 msgstr "È necessario che sia selezionata una strampante"
 
 msgid "Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid."
-msgstr ""
+msgstr "Impossibile caricare le preimpostazioni di calibrazione. Verificare che la stampante, il nozzle e i profili di stampa selezionati siano validi."
 
 msgid "The start, end or step is not valid value."
 msgstr "L'inizio, la fine o la fase non sono valori validi."
@@ -17277,6 +17479,9 @@ msgstr "Profilo forte per nozzle 0.8 mm, che privilegia la resistenza."
 
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Profilo standard per nozzle 0.8 mm, che privilegia la velocità."
+
+msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
+msgstr "Profilo a bassa accelerazione per l'ugello da 0,4 mm. Usalo quando la stampante si trova su una scrivania o uno scaffale instabili."
 
 msgid "Failed to create GCodeV2"
 msgstr "Impossibile creare GCodeV2"
@@ -17983,12 +18188,6 @@ msgstr "Raccomandazioni Miscelazione"
 msgid "-- Select --"
 msgstr "-- Seleziona --"
 
-msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr "L'effetto sfumato richiede l'abilitazione di 'Sublayer colore misto'. Vuoi abilitarlo?"
-
-msgid "Mixed Color Sublayer"
-msgstr "Sublayer Colore Misto"
-
 #, c-format, boost-format
 msgid "Slot %s (%s)"
 msgstr ""
@@ -18012,56 +18211,62 @@ msgid "Remove the third material"
 msgstr "Rimuovere il terzo materiale"
 
 msgid "Project Filament List"
-msgstr ""
+msgstr "Elenco dei filamenti del progetto"
 
 msgid "Standard Mode Recommendations"
-msgstr ""
+msgstr "Consigli per la modalità standard"
 
 msgid "Target Color"
-msgstr ""
+msgstr "Colore di destinazione"
 
 msgid "Select Color Decomposition"
-msgstr ""
+msgstr "Seleziona la scomposizione cromatica"
 
 msgid "Arbitrary Mode"
-msgstr ""
+msgstr "Modalità libera"
 
 msgid "Material List"
-msgstr ""
+msgstr "Elenco dei materiali"
 
 msgid "Standard Mode"
 msgstr "Modalità Standard"
 
 msgid "At least two filaments of the same material type are required for decomposition"
-msgstr ""
+msgstr "Per la scomposizione sono necessari almeno due filamenti dello stesso tipo di materiale"
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
-msgstr ""
+msgstr "L'elenco dei materiali supporta al massimo %1% colori. Dopo %2% la scomposizione, il numero di materiali supererebbe %1%. Prima di eseguire la scomposizione, elimina i filamenti inutilizzati dalla schermata principale."
 
 msgid "Cyan"
-msgstr ""
+msgstr "Ciano"
 
 msgid "Magenta"
 msgstr ""
 
 msgid "Yellow"
-msgstr ""
+msgstr "Giallo"
 
 msgid ", "
 msgstr ""
 
 msgid "The current filament list does not contain "
-msgstr ""
+msgstr "L'elenco corrente dei filamenti non contiene"
 
 msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
-msgstr ""
+msgstr ". Dopo la scomposizione, verrà creato automaticamente il filamento di progetto richiesto dal filamento misto."
 
 msgid "Material Ratio"
 msgstr "Rapporto dei materiali"
 
 msgid "Model Height"
 msgstr "Altezza modello"
+
+msgid "Auxiliaries"
+msgstr "Ausiliari"
+
+msgid "An unexpected error occurred"
+msgstr "Si è verificato un errore imprevisto"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -18358,6 +18563,75 @@ msgid ""
 msgstr ""
 "Affidabilità al Primo Tentativo\n"
 "Meno supervisione, risultati più prevedibili. Ad esempio: una piccola produzione che stampa parti in PETG evita sorprese tipo \"fallimento alla sesta ora\" e mantiene i lotti nei tempi previsti."
+
+#~ msgid "Start your assembly journey from Add Step"
+#~ msgstr "Iniziare il percorso di montaggio da Aggiungi passaggio"
+
+#~ msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
+#~ msgstr "Al momento non è selezionata alcuna scheda di passaggio. Le operazioni di modifica della posa, come lo spostamento del gizmo, influiranno sulla vista finale del montaggio effettiva."
+
+#~ msgid "Copy current step"
+#~ msgstr "Copia il passaggio corrente"
+
+#~ msgid "Copy Step"
+#~ msgstr "Copia passaggio"
+
+#~ msgid "Only copy steps. This is independent of the selected objects on the canvas."
+#~ msgstr "Copiare solo i passaggi. Questa operazione è indipendente dagli oggetti selezionati sulla tela."
+
+#~ msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
+#~ msgstr "Le modifiche alla posa (ad esempio, lo spostamento del gizmo) effettuate sul fotogramma chiave del passaggio di montaggio finale influiranno sulla visualizzazione effettiva dell'assieme."
+
+#~ msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
+#~ msgstr "Le modifiche alla posa (ad esempio, lo spostamento del gizmo) effettuate sul fotogramma chiave del passaggio corrente non influiranno sulla visualizzazione effettiva dell'assieme."
+
+#~ msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
+#~ msgstr "Se necessario, è possibile ripristinare una posizione relativamente buona premendo il pulsante \"applica la posa di montaggio effettiva\"."
+
+#~ msgid "undoing these edits is not yet supported and will be added in a later version."
+#~ msgstr "La funzione di annullamento di queste modifiche non è ancora supportata e verrà aggiunta in una versione successiva."
+
+#~ msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
+#~ msgstr "Alcuni oggetti sono stati utilizzati in un fotogramma chiave precedente del passaggio corrente e non sono stati esplosi qui. È possibile esploderli manualmente con lo strumento di spostamento."
+
+#~ msgid "Automatically explode all objects."
+#~ msgstr "Esplodere automaticamente tutti gli oggetti."
+
+#~ msgid "Automatically explode all parts."
+#~ msgstr "Esplodere automaticamente tutte le parti."
+
+#~ msgid ""
+#~ "Should not large than layer height.\n"
+#~ "Reset to 10%"
+#~ msgstr ""
+#~ "Non dovrebbe essere maggiore dell'altezza del layer. \n"
+#~ "Ripristinato al 10%"
+
+#~ msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
+#~ msgstr "Il file .gcode.3mf non contiene dati G-code. Elaboralo in BambuStudio ed esportalo in un nuovo file .gcode.3mf."
+
+#, c-format, boost-format
+#~ msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+#~ msgstr "Il diametro del %s (%.1f mm) della stampante attuale non corrisponde a quello del file di slicing (%.1f mm). Assicurati che il nozzle installato corrisponda alle impostazioni della stampante, quindi imposta il preset della stampante corrispondente durante lo slicing."
+
+#, c-format, boost-format
+#~ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+#~ msgstr "Il diametro del nozzle attuale (%.1f mm) non corrisponde a quello del file di slicing (%.1f mm). Assicurati che il nozzle installato corrisponda alle impostazioni della stampante, quindi imposta il preset della stampante corrispondente durante lo slicing."
+
+#~ msgid "Sliced file"
+#~ msgstr "File elaborato"
+
+#~ msgid "When using soluble material for the support interface, We recommend the following settings:"
+#~ msgstr "Quando si utilizza materiale solubile per l'interfaccia di supporto, consigliamo le seguenti impostazioni:"
+
+#~ msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
+#~ msgstr "L'altezza layer supera il limite riportato in Impostazioni stampante -> Estrusore -> Limite altezza layer, ciò può causare problemi di qualità di stampa."
+
+#~ msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+#~ msgstr "L'effetto sfumato richiede l'abilitazione di 'Sublayer colore misto'. Vuoi abilitarlo?"
+
+#~ msgid "Mixed Color Sublayer"
+#~ msgstr "Sublayer Colore Misto"
 
 #~ msgid "Show Current Step Objects Only"
 #~ msgstr "Mostra solo gli oggetti del passaggio corrente"
