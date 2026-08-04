@@ -220,6 +220,9 @@ static bool has_importable_texture(const Slic3r::TexturedMesh& textured_mesh)
     if (textured_mesh.vertices.empty() || textured_mesh.indices.empty())
         return false;
 
+    if (!textured_mesh.precomputed_face_colors.empty())
+        return true;
+
     return std::any_of(textured_mesh.textures.begin(), textured_mesh.textures.end(),
         [](const Slic3r::TextureImage& texture) { return !texture.data.empty(); });
 }

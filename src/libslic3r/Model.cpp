@@ -341,31 +341,51 @@ Model Model::read_from_file(const std::string&                                  
                         mtl_data, obj_dir, *tex_mesh)) {
                     model.texture_mesh = tex_mesh;
                 }
-            } else {
-                ObjDialogInOut in_out;
-                in_out.model = &model;
-                in_out.lost_material_name = obj_info.lost_material_name;
-                in_out.ml_region          = obj_info.ml_region;
-                in_out.ml_name            = obj_info.ml_name;
-                in_out.ml_id              = obj_info.ml_id;
+            } else if (!model.objects.empty() && !model.objects.back()->volumes.empty()) {
+                auto build_tex_mesh_geometry = [&]() {
+                    auto tex_mesh = std::make_shared<TexturedMesh>();
+                    const auto& its = model.objects.back()->volumes[0]->mesh().its;
+                    tex_mesh->vertices.resize(its.vertices.size());
+                    for (size_t i = 0; i < its.vertices.size(); ++i)
+                        tex_mesh->vertices[i] = {its.vertices[i].x(), its.vertices[i].y(), its.vertices[i].z()};
+                    tex_mesh->indices.resize(its.indices.size());
+                    for (size_t i = 0; i < its.indices.size(); ++i)
+                        tex_mesh->indices[i] = {its.indices[i][0], its.indices[i][1], its.indices[i][2]};
+                    return tex_mesh;
+                };
                 if (obj_info.vertex_colors.size() > 0) {
-                    if (objFn) {
-                        in_out.input_colors      = std::move(obj_info.vertex_colors);
-                        in_out.is_single_color   = false;
-                        in_out.deal_vertex_color = true;
-                        objFn(in_out);
+                    auto tex_mesh = build_tex_mesh_geometry();
+                    const auto& its = model.objects.back()->volumes[0]->mesh().its;
+                    tex_mesh->precomputed_face_colors.resize(its.indices.size());
+                    for (size_t i = 0; i < its.indices.size(); ++i) {
+                        const auto& f = its.indices[i];
+                        auto avg = [&](int ch) -> std::size_t {
+                            float v = (obj_info.vertex_colors[f[0]][ch]
+                                     + obj_info.vertex_colors[f[1]][ch]
+                                     + obj_info.vertex_colors[f[2]][ch]) / 3.0f * 255.0f;
+                            return (std::size_t) std::clamp(v, 0.0f, 255.0f);
+                        };
+                        tex_mesh->precomputed_face_colors[i] = {avg(0), avg(1), avg(2)};
                     }
+                    tex_mesh->precomputed_vertex_colors = obj_info.vertex_colors;
+                    model.texture_mesh = tex_mesh;
                 } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) {
-                    if (objFn) {
-                        in_out.input_colors      = std::move(obj_info.face_colors);
-                        in_out.mtl_colors        = std::move(obj_info.mtl_colors);
-                        in_out.mtl_color_names   = std::move(obj_info.mtl_color_names);
-                        in_out.first_time_using_makerlab = obj_info.first_time_using_makerlab;
-                        in_out.is_single_color   = obj_info.is_single_mtl;
-                        in_out.usemtls           = obj_info.usemtls;
-                        in_out.deal_vertex_color = false;
-                        objFn(in_out);
+                    auto tex_mesh = build_tex_mesh_geometry();
+                    const size_t nf = tex_mesh->indices.size();
+                    tex_mesh->precomputed_face_colors.resize(nf);
+                    for (size_t i = 0; i < nf; ++i) {
+                        if (i < obj_info.face_colors.size()) {
+                            const auto& c = obj_info.face_colors[i];
+                            tex_mesh->precomputed_face_colors[i] = {
+                                (std::size_t) std::clamp(c[0] * 255.0f, 0.0f, 255.0f),
+                                (std::size_t) std::clamp(c[1] * 255.0f, 0.0f, 255.0f),
+                                (std::size_t) std::clamp(c[2] * 255.0f, 0.0f, 255.0f)
+                            };
+                        } else {
+                            tex_mesh->precomputed_face_colors[i] = {128, 128, 128};
+                        }
                     }
+                    model.texture_mesh = tex_mesh;
                 }
             }
         }

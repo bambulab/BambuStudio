@@ -353,6 +353,69 @@ bool texture_to_painting(
     return true;
 }
 
+bool face_colors_to_painting(
+    const TexturedMesh& mesh,
+    PaintedMesh& painted,
+    const TexturePaintingSettings& settings,
+    PaintProgressCallback progress,
+    PaintCancelCallback cancel)
+{
+    if (mesh.vertices.empty() || mesh.indices.empty() || mesh.precomputed_face_colors.empty())
+        return false;
+
+    // Build tex2color::TriMesh from input geometry
+    tex2color::TriMesh input_mesh;
+    input_mesh.vertices.resize(mesh.vertices.size());
+    for (size_t i = 0; i < mesh.vertices.size(); ++i)
+        input_mesh.vertices[i] = Vec3f(mesh.vertices[i][0], mesh.vertices[i][1], mesh.vertices[i][2]);
+    input_mesh.indices.resize(mesh.indices.size());
+    for (size_t i = 0; i < mesh.indices.size(); ++i)
+        input_mesh.indices[i] = Vec3i(mesh.indices[i][0], mesh.indices[i][1], mesh.indices[i][2]);
+
+    // Forward settings to tex2color
+    tex2color::TextureToColorSettings algo_settings;
+    algo_settings.target_colors_num = settings.target_colors_num;
+    algo_settings.smooth_weight     = settings.smooth_weight;
+    switch (settings.mesh_repair_decision) {
+    case TexturePaintingSettings::MeshRepairDecision::Ask:
+        algo_settings.mesh_repair_decision = tex2color::MeshRepairDecision::Ask;
+        break;
+    case TexturePaintingSettings::MeshRepairDecision::RepairAndImport:
+        algo_settings.mesh_repair_decision = tex2color::MeshRepairDecision::RepairAndImport;
+        break;
+    case TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair:
+    default:
+        algo_settings.mesh_repair_decision = tex2color::MeshRepairDecision::ImportWithoutRepair;
+        break;
+    }
+    algo_settings.mesh_repair_decision_required = settings.mesh_repair_decision_required;
+    algo_settings.mesh_repair_callback = settings.mesh_repair_callback;
+
+    tex2color::AlgoProgressCallback algo_progress = nullptr;
+    if (progress) {
+        algo_progress = [&progress](tex2color::AlgoProgress p) {
+            progress(p.percent, p.message);
+        };
+    }
+    tex2color::AlgoCancelCallback algo_cancel = nullptr;
+    if (cancel) {
+        algo_cancel = [&cancel]() -> bool { return cancel(); };
+    }
+
+    tex2color::TriMesh out_mesh;
+    std::vector<std::array<std::size_t,3>> out_face_colors;
+    bool ok = tex2color::ClusterAndSmooth(
+        input_mesh, mesh.precomputed_face_colors, out_mesh, out_face_colors,
+        algo_settings, algo_progress, algo_cancel,
+        mesh.precomputed_vertex_colors);
+
+    if (!ok)
+        return false;
+
+    extract_painted_mesh(out_mesh, out_face_colors, painted);
+    return true;
+}
+
 double compute_delta_e(
     const std::array<std::size_t,3>& rgb1,
     const std::array<float,4>& rgba2)

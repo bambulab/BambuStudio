@@ -1746,8 +1746,11 @@ TextureImportDialog::TextureImportDialog(
 
     m_preview_canvas->set_mesh_data(m_textured_mesh.vertices, m_textured_mesh.indices);
 
-    // Prepare texture rendering data for the Original tab
-    if (!m_textured_mesh.textures.empty()) {
+    // Pre-computed face colors (OBJ vertex colors / MTL face colors):
+    // use them directly as the Original preview, skip texture decode.
+    if (!m_textured_mesh.precomputed_face_colors.empty()) {
+        m_preview_canvas->set_original_face_colors(m_textured_mesh.precomputed_face_colors);
+    } else if (!m_textured_mesh.textures.empty()) {
         std::vector<std::vector<unsigned char>> tex_pixels_rgb;
         std::vector<int> tex_widths, tex_heights;
         tex_pixels_rgb.reserve(m_textured_mesh.textures.size());
@@ -2433,7 +2436,13 @@ void TextureImportDialog::start_computation(bool auto_color, bool initial)
         auto worker_settings = settings;
         bool mesh_repair_decision_required = false;
         worker_settings.mesh_repair_decision_required = &mesh_repair_decision_required;
-        bool ok = Slic3r::texture_to_painting(mesh_copy, result, worker_settings, progress_cb, cancel_cb);
+        bool ok;
+        if (!mesh_copy.precomputed_face_colors.empty()) {
+            ok = Slic3r::face_colors_to_painting(
+                mesh_copy, result, worker_settings, progress_cb, cancel_cb);
+        } else {
+            ok = Slic3r::texture_to_painting(mesh_copy, result, worker_settings, progress_cb, cancel_cb);
+        }
 
         if (m_cancel_flag.load()) {
             wxQueueEvent(handler, new wxCommandEvent(EVT_TEXTURE_COMPUTE_ERROR));
