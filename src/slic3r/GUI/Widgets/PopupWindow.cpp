@@ -1,7 +1,5 @@
 #include "PopupWindow.hpp"
 
-#include <wx/app.h>
-
 static wxWindow *GetTopParent(wxWindow *pWindow)
 {
     wxWindow *pWin = pWindow;
@@ -25,10 +23,6 @@ bool PopupWindow::Create(wxWindow *parent, int style)
     for (auto evt : {wxEVT_LEFT_DOWN, wxEVT_LEFT_UP, wxEVT_LEFT_DCLICK, wxEVT_MOTION, wxEVT_MOUSEWHEEL})
         Bind(evt, &PopupWindow::OnMouseEvent2, this);
 #endif
-#ifdef __WXMSW__
-    // Watch app activation so we can close on app switch.
-    if (wxTheApp) wxTheApp->Bind(wxEVT_ACTIVATE_APP, &PopupWindow::appActivate, this);
-#endif
     return true;
 }
 
@@ -38,7 +32,6 @@ PopupWindow::~PopupWindow()
     GetTopParent(this)->Unbind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
 #endif
 #ifdef __WXMSW__
-    if (wxTheApp) wxTheApp->Unbind(wxEVT_ACTIVATE_APP, &PopupWindow::appActivate, this);
     GetTopParent(this)->Unbind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
     GetTopParent(this)->Unbind(wxEVT_ICONIZE, &PopupWindow::topWindowIconize, this);
     GetTopParent(this)->Unbind(wxEVT_SHOW, &PopupWindow::topWindowShow, this);
@@ -98,14 +91,6 @@ void PopupWindow::topWindowActivate(wxActivateEvent &event)
 #endif
 
 #ifdef __WXMSW__
-// WM_ACTIVATEAPP fires only when activation crosses an application boundary, so this
-// can't misfire when a popup takes activation away from its own owner frame.
-void PopupWindow::appActivate(wxActivateEvent &event)
-{
-    event.Skip();
-    if (!event.GetActive() && IsShown()) DismissAndNotify();
-}
-
 void PopupWindow::BindUnfocusEvent()
 {
     GetTopParent(this)->Bind(wxEVT_ACTIVATE, &PopupWindow::topWindowActivate, this);
@@ -131,5 +116,18 @@ void PopupWindow::topWindowShow(wxShowEvent &event)
     event.Skip();
     if (!event.IsShown())
         Dismiss();
+}
+#endif
+
+#ifdef __WIN32__
+// Windows delivers WM_ACTIVATEAPP to every top-level window of the thread when
+// the app loses foreground, including a transient popup that wx neither
+// activated nor re-raised wxEVT_ACTIVATE_APP for. Handling the raw message on
+// the popup's own HWND is the reliable dismiss path the wx events miss.
+WXLRESULT PopupWindow::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+{
+    if (nMsg == WM_ACTIVATEAPP && wParam == FALSE && IsShown())
+        DismissAndNotify();
+    return wxPopupTransientWindow::MSWWindowProc(nMsg, wParam, lParam);
 }
 #endif

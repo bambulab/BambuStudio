@@ -17,6 +17,9 @@ public:
 #ifdef __WXMSW__
     void BindUnfocusEvent();
 #endif
+#ifdef __WIN32__
+    WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam) override;
+#endif
 private:
 #ifdef __WXOSX__
     void OnMouseEvent2(wxMouseEvent &evt);
@@ -28,7 +31,6 @@ private:
 #endif
 
 #ifdef __WXMSW__
-    void appActivate(wxActivateEvent &event);
     void topWindowActivate(wxActivateEvent &event);
     void topWindowIconize(wxIconizeEvent &event);
     void topWindowShow(wxShowEvent &event);
