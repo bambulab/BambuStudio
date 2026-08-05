@@ -4098,7 +4098,7 @@ int CLI::run(int argc, char **argv)
     2. 判断是否切换了机型，若机型切换，则需要重新设置默认值（此时会将默认参数修复）
     3. 判断是否切换了流量，若流量切换，重新设置对应流量，并复制原先的喷嘴数量
     */
-    bool has_extruder_nozzle_stats = m_print_config.has("extruder_nozzle_stats");
+    bool has_extruder_nozzle_stats = m_print_config.has("extruder_nozzle_stats_new") || m_print_config.has("extruder_nozzle_stats");
     ExtruderNozzleStat nozzle_stats_obj;
 
     // Synchronize the default parameters and the ones received on the command line.
@@ -4148,8 +4148,11 @@ int CLI::run(int argc, char **argv)
         nozzle_stats_obj.on_printer_model_change_cli(curr_volume_map_value, max_nozzle_count);
     }
     else {
-        auto nozzle_stat_str = m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats")->values;
-        nozzle_stats_obj.set_raw_stat(get_extruder_nozzle_stats(nozzle_stat_str));
+        const auto *nozzle_stats_opt = m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats_new");
+        if (nozzle_stats_opt == nullptr || nozzle_stats_opt->values.empty())
+            nozzle_stats_opt = m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats");
+        if (nozzle_stats_opt != nullptr)
+            nozzle_stats_obj.set_raw_stat(get_extruder_nozzle_stats(nozzle_stats_opt->values));
     }
 
 

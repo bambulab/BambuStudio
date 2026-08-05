@@ -506,6 +506,12 @@ static const t_config_enum_values s_keys_map_NozzleVolumeType = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NozzleVolumeType)
 
+NozzleVolumeType legacy_fallback_nozzle_volume_type(NozzleVolumeType nozzle_volume_type)
+{
+    static_assert(nvtTPUHighFlow == 3, "legacy cut-off moved: re-check which NozzleVolumeType values must downgrade to Standard");
+    return nozzle_volume_type > nvtTPUHighFlow ? nvtStandard : nozzle_volume_type;
+}
+
 static const t_config_enum_values s_keys_map_FilamentMapMode = {
     { "Auto For Flush", fmmAutoForFlush },
     { "Auto For Match", fmmAutoForMatch },
@@ -756,9 +762,20 @@ std::vector<std::map<NozzleVolumeType,int>> get_extruder_nozzle_stats(const std:
         for (auto& nozzle_info : nozzle_infos) {
             std::vector<std::string> attr;
             boost::algorithm::split(attr, nozzle_info, boost::is_any_of("#"));
-            NozzleVolumeType volume_type = NozzleVolumeType(s_keys_map_NozzleVolumeType.at(attr[0]));
+            if (attr.size() < 2) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", malformed nozzle stat entry \"%1%\", skipped") % nozzle_info;
+                continue;
+            }
+
+            NozzleVolumeType volume_type = nvtStandard;
+            auto             type_iter   = s_keys_map_NozzleVolumeType.find(attr[0]);
+            if (type_iter != s_keys_map_NozzleVolumeType.end())
+                volume_type = NozzleVolumeType(type_iter->second);
+            else
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", unknown NozzleVolumeType \"%1%\", fall back to Standard") % attr[0];
             int nozzle_count = std::atoi(attr[1].c_str());
-            nozzle_count_map[volume_type] = nozzle_count;
+            // Accumulate so that several unknown types collapsing onto Standard keep the total count.
+            nozzle_count_map[volume_type] += nozzle_count;
         }
         extruder_nozzle_counts.emplace_back(nozzle_count_map);
     }
@@ -880,6 +897,33 @@ std::vector<std::string> save_extruder_nozzle_stats_to_string(const std::vector<
     return extruder_nozzle_count_str;
 }
 
+void split_nozzle_stats_for_export(DynamicPrintConfig &config)
+{
+    auto *stats_opt = config.option<ConfigOptionStrings>("extruder_nozzle_stats");
+    if (stats_opt == nullptr || stats_opt->values.empty())
+        return;
+
+    // The new key always holds the untranslated names, overwriting whatever an imported project left there.
+    config.option<ConfigOptionStrings>("extruder_nozzle_stats_new", true)->values = stats_opt->values;
+
+    auto stats      = get_extruder_nozzle_stats(stats_opt->values);
+    bool downgraded = false;
+    for (auto &extruder_stat : stats) {
+        std::map<NozzleVolumeType, int> legacy_stat;
+        for (const auto &entry : extruder_stat) {
+            const NozzleVolumeType legacy_type = legacy_fallback_nozzle_volume_type(entry.first);
+            if (legacy_type != entry.first)
+                downgraded = true;
+            // Several new types may collapse onto the same legacy one, so accumulate instead of overwrite.
+            legacy_stat[legacy_type] += entry.second;
+        }
+        extruder_stat = std::move(legacy_stat);
+    }
+    // Leave the legacy key byte-identical when nothing had to be downgraded, so that projects without
+    // new volume types keep producing the exact same 3mf content as before.
+    if (downgraded)
+        stats_opt->values = save_extruder_nozzle_stats_to_string(stats);
+}
 
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
@@ -4841,6 +4885,11 @@ void PrintConfigDef::init_fff_params()
     def = this->add("extruder_nozzle_stats", coStrings);
     def->set_default_value(new ConfigOptionStrings { });
 
+    // Same content as extruder_nozzle_stats but never downgraded on export. Builds that predate a
+    // volume type simply drop this unknown key and fall back to the legacy one.
+    def = this->add("extruder_nozzle_stats_new", coStrings);
+    def->set_default_value(new ConfigOptionStrings { });
+
     def = this->add("enable_filament_dynamic_map", coBool);
     def->label = "Enable filament dynamic map";
     def->tooltip = "Support filament map to different nozzle";
@@ -8650,7 +8699,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
 
             if (variant_index[0] < 0) {
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, for filament")
-                    % __LINE__ % s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type];
+                    % __LINE__ % s_keys_names_ExtruderType[extruder_type] % get_nozzle_volume_type_string(nozzle_volume_type);
                 /*assert(false);*/
             }
 
@@ -8684,7 +8733,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                     variant_index[v_index] = get_index_for_extruder(e_index+1, id_name, extruder_type, nozzle_volume_type, variant_name);
                     if (variant_index[v_index] < 0) {
                         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, extruder_index %4%, nvt_index %5%, nvt_count %6%")
-                            %__LINE__ %s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type] % (e_index+1) %nvt_index %nvt_count;
+                            %__LINE__ %s_keys_names_ExtruderType[extruder_type] % get_nozzle_volume_type_string(nozzle_volume_type) % (e_index+1) %nvt_index %nvt_count;
                         assert(false);
                         //for some updates happens in a invalid state(caused by popup window)
                         //we need to avoid crash
@@ -8872,7 +8921,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
             variant_index[f_index] = get_index_for_extruder(f_index+1, id_name, extruder_type, nozzle_volume_type, variant_name);
             if (variant_index[f_index] < 0) {
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%")
-                    %__LINE__ %s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type] % (f_index+1) %filament_maps[f_index];
+                    %__LINE__ %s_keys_names_ExtruderType[extruder_type] % get_nozzle_volume_type_string(nozzle_volume_type) % (f_index+1) %filament_maps[f_index];
                 /*assert(false);*/
                 //for some updates happens in a invalid state(caused by popup window)
                 //we need to avoid crash
@@ -9063,7 +9112,7 @@ void DynamicPrintConfig::update_filament_config_values_for_multiple_extruders(Dy
                         BOOST_LOG_TRIVIAL(error) << __FUNCTION__
                                                  << boost::format(
                                                         ", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%") %
-                                                        __LINE__ % s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type] % (f_index + 1) %
+                                                        __LINE__ % s_keys_names_ExtruderType[extruder_type] % get_nozzle_volume_type_string(nozzle_volume_type) % (f_index + 1) %
                                                         filament_maps[f_index];
                         assert(false);
                         // for some updates happens in a invalid state(caused by popup window)
@@ -9089,7 +9138,7 @@ void DynamicPrintConfig::update_filament_config_values_for_multiple_extruders(Dy
                 if (param_index < 0) {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__
                                              << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%") %
-                                                    __LINE__ % s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type] % (f_index + 1) %
+                                                    __LINE__ % s_keys_names_ExtruderType[extruder_type] % get_nozzle_volume_type_string(nozzle_volume_type) % (f_index + 1) %
                                                     filament_maps[f_index];
                     assert(false);
                     // for some updates happens in a invalid state(caused by popup window)

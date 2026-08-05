@@ -8849,9 +8849,16 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 preset_bundle->extruder_nozzle_stat.set_force_keep_flag(false);
 
                                 // 导入的配置中存在有效nozzle_stats，则复用
-                                if (auto nozzle_stats_ptr = proj_cfg.option<ConfigOptionStrings>("extruder_nozzle_stats");
-                                    nozzle_stats_ptr && !(nozzle_stats_ptr->values.empty() || std::any_of(nozzle_stats_ptr->values.begin(), nozzle_stats_ptr->values.end(),
-                                                                                                          [](const std::string &elem) { return elem.empty(); }))) {
+                                // extruder_nozzle_stats_new holds the untranslated volume type names, while the legacy
+                                // key may have been downgraded on export, so it only serves older projects.
+                                auto nozzle_stats_valid = [](const ConfigOptionStrings *opt) {
+                                    return opt && !(opt->values.empty() || std::any_of(opt->values.begin(), opt->values.end(),
+                                                                                       [](const std::string &elem) { return elem.empty(); }));
+                                };
+                                const ConfigOptionStrings *nozzle_stats_ptr = proj_cfg.option<ConfigOptionStrings>("extruder_nozzle_stats_new");
+                                if (!nozzle_stats_valid(nozzle_stats_ptr))
+                                    nozzle_stats_ptr = proj_cfg.option<ConfigOptionStrings>("extruder_nozzle_stats");
+                                if (nozzle_stats_valid(nozzle_stats_ptr)) {
                                     preset_bundle->extruder_nozzle_stat = ExtruderNozzleStat(get_extruder_nozzle_stats(nozzle_stats_ptr->values));
                                 } else {
                                     // 打印机型切换或数据无效，则读取默认值
@@ -8861,6 +8868,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                     for (size_t idx = 0; idx < nozzle_volume_opt->size(); ++idx) {
                                         preset_bundle->extruder_nozzle_stat.on_volume_type_switch(idx, NozzleVolumeType(nozzle_volume_opt->values[idx]));
                                     }
+                                }
+                                // The legacy key arrives downgraded from a project exported by this or a newer build,
+                                // and full_fff_config() derives the extruder variants from it before refreshing it from
+                                // extruder_nozzle_stat. Push the resolved stats back so project_config stays consistent.
+                                {
+                                    const std::vector<std::string> resolved_nozzle_stats = save_extruder_nozzle_stats_to_string(
+                                        preset_bundle->extruder_nozzle_stat.get_raw_stat());
+                                    proj_cfg.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values     = resolved_nozzle_stats;
+                                    proj_cfg.option<ConfigOptionStrings>("extruder_nozzle_stats_new", true)->values = resolved_nozzle_stats;
                                 }
                                 //BBS: rewrite wipe tower pos stored in 3mf file , the code above should be seriously reconsidered
                                  ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
