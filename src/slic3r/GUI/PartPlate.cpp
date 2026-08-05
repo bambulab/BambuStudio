@@ -698,7 +698,13 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
 
 void PartPlate::render_height_limit(PartPlate::HeightLimitMode mode)
 {
-	if (m_print && m_print->config().print_sequence == PrintSequence::ByObject && mode != HEIGHT_LIMIT_NONE)
+	// A compacted prime tower drags the nozzle back down to the plate on every toolchange, so the rod
+	// and the lid limit how tall a neighbouring object may be exactly as they do in sequential printing.
+	// The reference lines are just as useful there, so they are not tied to the print sequence alone.
+	const bool relevant_for_print_mode = m_print && (m_print->config().print_sequence == PrintSequence::ByObject ||
+	                                                 (m_print->config().print_sequence == PrintSequence::ByLayer &&
+	                                                  wipe_tower_sparse_layers_skipped(m_print->config()) && m_print->has_wipe_tower()));
+	if (relevant_for_print_mode && mode != HEIGHT_LIMIT_NONE)
 	{
 		// draw lower limit
 		const auto& p_ogl_manager = wxGetApp().get_opengl_manager();

@@ -1357,6 +1357,16 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             ret.type = STRING_EXCEPT_OBJECT_COLLISION_IN_LAYER_PRINT;
             return ret;
         }
+
+        // A compacted prime tower drags the nozzle back down to the plate on every toolchange, so tall
+        // objects collide with it much like they do in sequential printing. Checking it here rather than
+        // only during slicing is what lets the plater show the collision area and the height limit while
+        // the plate is still being arranged.
+        ret = compacted_wipe_tower_clearance_valid(*this, collison_polygons, height_polygons);
+        if (!ret.string.empty()) {
+            ret.type = STRING_EXCEPT_OBJECT_COLLISION_IN_LAYER_PRINT;
+            return ret;
+        }
     }
 
     if (m_config.enable_prime_tower) {
@@ -3322,6 +3332,272 @@ static double convex_outline_gap(const Polygon &a, const Polygon &b)
     return unscale_(std::sqrt(d2));
 }
 
+double compacted_tower_footprint_padding(const PrintConfig &config, double brim_width)
+{
+    // The brim is deposited material like any other and reaches past the wall on the first layer, so
+    // the sweeping rod has to clear it too.
+    //
+    // On top of it, two effects make a nominal outline fall short of the printed tower on its low
+    // corner even though it overshoots by millimetres on the high one: WipeTower re-centres the tower
+    // by rib_offset once its first-layer wall is known (measured at up to a quarter millimetre with the
+    // widest brim), and the precise check hulls extrusion centre lines, so the deposited material
+    // reaches half a line width further still. Allowing a line width per side covers both, which is
+    // what keeps an estimated footprint enclosing the real one and the pre-slice check stricter than
+    // the precise one.
+    return std::max(0., brim_width) + 2. * config.nozzle_diameter.get_at(0);
+}
+
+Polygons compacted_wipe_tower_rings(const CompactedTowerZone &zone, bool any_body_tier)
+{
+    Polygons rings = zone.grown_nozzle;
+    if (any_body_tier)
+        append(rings, zone.grown_body);
+    return rings;
+}
+
+CompactedTowerZone compacted_wipe_tower_zone(const PrintConfig &config, const Polygon &tower_footprint)
+{
+    CompactedTowerZone zone;
+    if (tower_footprint.points.empty())
+        return zone;
+
+    // Spiral Z-hop at wipe-tower entry (the G3 Z I J P1 that GCodeWriter::eager_lift emits) starts on
+    // the tower outline at a low Z. The spiral centre sits one radius away from the start point, so the
+    // circle reaches 2 * radius beyond the outline. radius = lift / (2*pi*atan(slope_threshold)) is the
+    // same formula eager_lift uses; z_hop is capped at 5 mm by the option definition.
+    double max_lift = 0.;
+    for (size_t i = 0; i < config.z_hop.size(); ++i)
+        max_lift = std::max(max_lift, double(config.z_hop.get_at(i)));
+    if (config.prime_tower_lift_height.value > 0)
+        max_lift = std::max(max_lift, double(config.prime_tower_lift_height.value));
+    max_lift = std::min(max_lift, 5.);
+    const double spiral_radius = max_lift < EPSILON ? 0. : max_lift / (2. * PI * std::atan(GCodeWriter::slope_threshold));
+    const double spiral_reach  = 2. * spiral_radius;
+
+    // Working footprint = outline grown by the spiral envelope. All later clearance tests use this, so
+    // a travel that leaves the deposited wall at low Z is still treated as part of the tower.
+    zone.hull = tower_footprint;
+    if (spiral_reach > EPSILON) {
+        const Polygons grown = offset(tower_footprint, float(scale_(spiral_reach)), jtRound, scale_(0.1));
+        if (! grown.empty())
+            zone.hull = Geometry::convex_hull(grown);
+    }
+
+    // Y margin matches the sequential print check: half the nozzle-to-rod offset per side.
+    zone.bbox_rod = zone.hull.bounding_box();
+    zone.bbox_rod.offset(scale_(config.extruder_clearance_dist_to_rod.value * 0.5));
+
+    // Horizontal clearance, mirroring the sequential print check down to how the distance is split:
+    // there each of the two object hulls grows by half of extruder_clearance_max_radius, so the two
+    // outlines touch exactly when the objects are the full radius apart. Splitting it the same way
+    // here (half on the tower, half on the instance in compacted_wipe_tower_clearance) states the
+    // same criterion, and it is what lets the plater draw both outlines: they meet at the instant the
+    // check trips, instead of one of them being already buried inside the other. The smaller
+    // MAX_OUTER_NOZZLE_RADIUS tier is the bare nozzle cone, the only part narrow enough to sit beside
+    // an object rising less than nozzle_height. The 0.2 mm shaved off is the same rounding slack the
+    // sequential check applies, 0.1 mm per side. Both rings are built here; which one a given object
+    // is measured against depends on its own height and is decided in
+    // compacted_wipe_tower_clearance().
+    zone.body_radius  = config.extruder_clearance_max_radius.value;
+    zone.grown_body   = offset(zone.hull, float(scale_(compacted_tower_half_clearance(zone.body_radius))), jtRound, scale_(0.1));
+    zone.grown_nozzle = offset(zone.hull, float(scale_(compacted_tower_half_clearance(MAX_OUTER_NOZZLE_RADIUS))), jtRound, scale_(0.1));
+    return zone;
+}
+
+CompactedTowerClearance compacted_wipe_tower_clearance(const PrintConfig &config, const CompactedTowerZone &zone,
+                                                      const Polygon &inst_hull, double object_rise)
+{
+    BoundingBox inst_bbox = inst_hull.bounding_box();
+    inst_bbox.offset(scale_(config.extruder_clearance_dist_to_rod.value * 0.5));
+
+    // Only the Y span matters for the rod: it spans the whole X axis, so an object sharing the tower's
+    // Y band passes under it however far apart the two are in X.
+    const bool overlaps_in_y = std::min(inst_bbox.max.y(), zone.bbox_rod.max.y()) - std::max(inst_bbox.min.y(), zone.bbox_rod.min.y()) > 0;
+
+    CompactedTowerClearance result;
+    result.far_clearance = overlaps_in_y ? config.extruder_clearance_height_to_rod.value : config.extruder_clearance_height_to_lid.value;
+
+    // The rod and the lid are the only obstacles once the object stands far enough away. Closer than
+    // the toolhead radius it is the head body itself that hits the object, and it does so as soon as
+    // the object rises past the nozzle cone, which is far below the rod.
+    // The instance carries the other half of each clearance, the tower rings already hold the first
+    // half; see compacted_wipe_tower_zone(). Both halves are needed for the verdict to mean
+    // "a full radius apart", and drawing what is tested is what keeps the plater honest.
+    //
+    // Which tier applies is a property of this object alone: the head body sits above the nozzle cone,
+    // so it cannot reach an object that stays below nozzle_height however close it stands, and however
+    // tall the rest of the plate is. Deciding it per plate instead - the way sequential printing does
+    // with its all-short switch - would claim the wide clearance against a short object beside the
+    // tower, and leave the plater drawing a keep-out ring this check can never trip.
+    const bool object_is_short = object_rise <= double(config.nozzle_height.value) + EPSILON;
+    result.body_clearance      = object_is_short ? double(MAX_OUTER_NOZZLE_RADIUS) : zone.body_radius;
+
+    const Polygons inst_near_nozzle = offset(inst_hull, float(scale_(compacted_tower_half_clearance(MAX_OUTER_NOZZLE_RADIUS))), jtRound, scale_(0.1));
+    const bool     near_nozzle      = ! intersection(zone.grown_nozzle, inst_near_nozzle).empty();
+    result.near_body                = false;
+    if (! object_is_short) {
+        const Polygons inst_near_body = offset(inst_hull, float(scale_(compacted_tower_half_clearance(zone.body_radius))), jtRound, scale_(0.1));
+        result.near_body              = ! intersection(zone.grown_body, inst_near_body).empty();
+    }
+
+    result.allowed_rise = result.far_clearance;
+    if (near_nozzle)
+        result.allowed_rise = 0.;
+    else if (result.near_body)
+        result.allowed_rise = std::min(result.far_clearance, double(config.nozzle_height.value));
+    return result;
+}
+
+Polygon compacted_wipe_tower_offender_outline(const Polygon &inst_hull, double body_clearance)
+{
+    // Exactly the half-clearance the check grew this instance by, so the halo drawn around an object is
+    // the very outline that was tested against the tower ring of the same tier. Passing the clearance
+    // the object was actually judged on keeps a short object from being drawn with the wide ring it is
+    // not subject to.
+    const Polygons grown = offset(inst_hull, float(scale_(compacted_tower_half_clearance(body_clearance))), jtRound, scale_(0.1));
+    return grown.empty() ? inst_hull : grown.front();
+}
+
+// Convex hull of one print instance in bed coordinates, the same outline both compacted tower checks
+// compare against the tower.
+static Polygon print_instance_hull(const PrintObject &object, const PrintInstance &instance)
+{
+    Points pts;
+    for (const ModelVolume *v : object.model_object()->volumes) {
+        if (! v->is_model_part())
+            continue;
+        Polygon hull = v->get_convex_hull_2d(Geometry::assemble_transform(Vec3d::Zero(), instance.model_instance->get_rotation(),
+                                                                          instance.model_instance->get_scaling_factor(), instance.model_instance->get_mirror()));
+        hull.translate(instance.shift - object.center_offset());
+        append(pts, hull.points);
+    }
+    return pts.empty() ? Polygon() : Geometry::convex_hull(pts);
+}
+
+// Footprint the compacted prime tower is expected to occupy on the plate, in bed coordinates.
+// Before psWipeTower has run there is no tower geometry at all, so this falls back to the same
+// estimate the plater builds its preview box from. Answering while the user is still arranging the
+// plate is the whole point of the pre-slice check, and an estimate is all that can be had then.
+static Polygon estimated_wipe_tower_footprint(const Print &print)
+{
+    const PrintConfig &config       = print.config();
+    const size_t       filaments_cnt = print.extruders().size();
+    if (filaments_cnt == 0)
+        return Polygon();
+
+    const WipeTowerData &wtd = print.wipe_tower_data(filaments_cnt);
+
+    double width, depth, brim;
+    Vec2d  local_min;
+    if (wtd.bbx.size().x() > EPSILON && wtd.bbx.size().y() > EPSILON) {
+        // The tower has already been generated once, so use its real box (brim included) instead of
+        // re-estimating. Same frame first_layer_wipe_tower_corners() works in.
+        width     = wtd.bbx.size().x();
+        depth     = wtd.bbx.size().y();
+        local_min = wtd.bbx.min + wtd.rib_offset.cast<double>();
+        brim      = 0.;
+    } else {
+        depth = wtd.depth;
+        if (depth < EPSILON)
+            return Polygon();
+        // PartPlate::estimate_wipe_tower_size() squares the rib tower off and the preview box the user
+        // drags around is built from that, so match it here rather than keeping the nominal width.
+        width     = config.prime_tower_rib_wall.value ? depth : double(config.prime_tower_width.value);
+        local_min = Vec2d::Zero();
+        brim      = double(wtd.brim_width);
+    }
+
+    const double padding = compacted_tower_footprint_padding(config, brim);
+    local_min -= Vec2d(padding, padding);
+    width += 2. * padding;
+    depth += 2. * padding;
+
+    const Eigen::Rotation2Dd rot(Geometry::deg2rad(config.wipe_tower_rotation_angle.value));
+    const Vec2d              translate(config.wipe_tower_x.get_at(print.get_plate_index()) + print.get_plate_origin()(0),
+                                       config.wipe_tower_y.get_at(print.get_plate_index()) + print.get_plate_origin()(1));
+
+    Polygon footprint;
+    for (const Vec2d &corner : { local_min,
+                                 Vec2d(local_min.x() + width, local_min.y()),
+                                 Vec2d(local_min.x() + width, local_min.y() + depth),
+                                 Vec2d(local_min.x(),         local_min.y() + depth) }) {
+        const Vec2d p = rot * corner + translate;
+        footprint.points.emplace_back(scale_(p.x()), scale_(p.y()));
+    }
+    return footprint;
+}
+
+// Pre-slice counterpart of validate_compacted_wipe_tower_clearance(). It applies the very same
+// clearance rule, but to an estimated tower footprint instead of the real tool-change extrusions,
+// which is what lets it run from Print::validate() before anything has been sliced. Reporting through
+// polygons / height_polygons rather than by throwing is what puts the collision area and the height
+// limit plane on the plater, exactly the way sequential printing does it.
+StringObjectException Print::compacted_wipe_tower_clearance_valid(const Print &print, Polygons *polygons, std::vector<std::pair<Polygon, float>> *height_polygons)
+{
+    const PrintConfig &config = print.config();
+    if (! wipe_tower_sparse_layers_skipped(config) || config.print_sequence != PrintSequence::ByLayer || ! print.has_wipe_tower())
+        return {};
+
+    const CompactedTowerZone zone = compacted_wipe_tower_zone(config, estimated_wipe_tower_footprint(print));
+    if (zone.empty())
+        return {};
+
+    StringObjectException exception;
+    Polygons              offenders;
+    bool                  body_tier_used = false;
+    for (const PrintObject *object : print.objects()) {
+        const double object_top = unscaled<double>(object->max_z());
+        for (const PrintInstance &instance : object->instances()) {
+            const Polygon inst_hull = print_instance_hull(*object, instance);
+            if (inst_hull.points.empty())
+                continue;
+            const CompactedTowerClearance clearance = compacted_wipe_tower_clearance(config, zone, inst_hull, object_top);
+            body_tier_used                          = body_tier_used || compacted_tower_body_tier(clearance);
+            // Every tier the precise check applies is applied here too, otherwise an object standing
+            // within the toolhead radius would pass here and then be rejected mid-slice, which is the
+            // one outcome this check exists to prevent. The compacted tower base is unknown before
+            // slicing, so the rise is measured from the plate rather than from the tower top; that
+            // overstates it by the tower's own height and makes this check err strict, never lax.
+            if (object_top <= clearance.allowed_rise + EPSILON)
+                continue;
+
+            const std::string msg =
+                clearance.near_body ?
+                    (boost::format(L("%1% is too close to a compacted prime tower. The toolhead needs %2% mm of horizontal "
+                                     "clearance to descend beside it, and within that distance the object may not rise more "
+                                     "than %3% mm. Turn off \"No sparse layers\", move the prime tower away, or lower the object."))
+                     % object->model_object()->name % (boost::format("%.2f") % clearance.body_clearance).str()
+                     % (boost::format("%.2f") % clearance.allowed_rise).str()).str() :
+                    (boost::format(L("%1% is too tall to be printed together with a compacted prime tower, "
+                                     "which only leaves %2% mm of clearance. Turn off \"No sparse layers\", "
+                                     "move the prime tower away, or lower the object."))
+                     % object->model_object()->name % (boost::format("%.2f") % clearance.allowed_rise).str()).str();
+            if (exception.string.empty()) {
+                exception.string = msg;
+                exception.object = object->model_object();
+            } else {
+                exception.string += "\n" + msg;
+                exception.object = nullptr;
+            }
+            const Polygon outline = compacted_wipe_tower_offender_outline(inst_hull, clearance.body_clearance);
+            offenders.emplace_back(outline);
+            if (height_polygons)
+                height_polygons->emplace_back(outline, float(clearance.allowed_rise));
+        }
+    }
+
+    // Draw the tower's keep-out ring alongside the offending objects, so the collision area reads as
+    // "this object reaches into the space the toolhead needs around the tower" rather than as a lone
+    // highlighted object. Emitted only on a real collision; the plater discards polygons otherwise.
+    // Only the rings some object on this plate is actually measured against are drawn, so that a ring
+    // and an object outline touching always means that object is over its limit.
+    if (polygons && ! offenders.empty()) {
+        append(*polygons, compacted_wipe_tower_rings(zone, body_tier_used));
+        append(*polygons, offenders);
+    }
+    return exception;
+}
+
 // With wipe_tower_no_sparse_layers the tower only grows on layers that carry a real toolchange,
 // so it ends up far below the object and the nozzle has to descend to it. While the nozzle sits
 // down on the compacted tower the rod is at tower_z + extruder_clearance_height_to_rod, and it
@@ -3378,88 +3654,23 @@ void Print::validate_compacted_wipe_tower_clearance() const
     }
     if (tower_pts.empty())
         return;
-    const Polygon tower_extrusion_hull = Geometry::convex_hull(tower_pts);
 
-    // Spiral Z-hop at wipe-tower entry (the G3 Z I J P1 that GCodeWriter::eager_lift emits) starts on
-    // the tower outline at a low Z. The spiral centre sits one radius away from the start point, so the
-    // circle reaches 2 * radius beyond the outline. radius = lift / (2*pi*atan(slope_threshold)) is the
-    // same formula eager_lift uses; z_hop is capped at 5 mm by the option definition.
-    double max_lift = 0.;
-    for (size_t i = 0; i < m_config.z_hop.size(); ++i)
-        max_lift = std::max(max_lift, double(m_config.z_hop.get_at(i)));
-    if (m_config.prime_tower_lift_height.value > 0)
-        max_lift = std::max(max_lift, double(m_config.prime_tower_lift_height.value));
-    max_lift = std::min(max_lift, 5.);
-    const double spiral_radius = max_lift < EPSILON ? 0. :
-                                 max_lift / (2. * PI * std::atan(GCodeWriter::slope_threshold));
-    const double spiral_reach  = 2. * spiral_radius;
+    const CompactedTowerZone zone = compacted_wipe_tower_zone(m_config, Geometry::convex_hull(tower_pts));
+    if (zone.empty())
+        return;
 
-    // Working footprint = extrusion hull grown by the spiral envelope. All later clearance tests use
-    // this, so a travel that leaves the deposited wall at low Z is still treated as part of the tower.
-    Polygon tower_hull = tower_extrusion_hull;
-    if (spiral_reach > EPSILON) {
-        const Polygons grown = offset(tower_extrusion_hull, float(scale_(spiral_reach)), jtRound, scale_(0.1));
-        if (! grown.empty())
-            tower_hull = Geometry::convex_hull(grown);
-    }
-
-    // Y margin matches the sequential print check: half the nozzle-to-rod offset per side.
-    const coord_t rod_margin = scale_(m_config.extruder_clearance_dist_to_rod.value * 0.5);
-    BoundingBox   tower_bbox = tower_hull.bounding_box();
-    tower_bbox.offset(rod_margin);
-
-    // Horizontal clearance, mirroring the sequential print check: there the hull of each of the two
-    // objects grows by 0.5 * extruder_clearance_max_radius, so the two outlines have to stay a full
-    // extruder_clearance_max_radius apart. Growing only the tower by the whole radius states the same
-    // distance criterion with a single offset. The smaller MAX_OUTER_NOZZLE_RADIUS tier is the bare
-    // nozzle cone, the only part narrow enough to sit beside an object rising less than nozzle_height.
-    // The 0.2 mm shaved off is the same rounding slack the sequential check applies, 0.1 mm per side.
-    const double   body_radius        = m_config.extruder_clearance_max_radius.value;
-    const Polygons tower_grown_body   = offset(tower_hull, float(scale_(body_radius - 0.2)), jtRound, scale_(0.1));
-    const Polygons tower_grown_nozzle = offset(tower_hull, float(scale_(MAX_OUTER_NOZZLE_RADIUS - 0.2)), jtRound, scale_(0.1));
-
-    const double height_to_rod = m_config.extruder_clearance_height_to_rod.value;
-    const double height_to_lid = m_config.extruder_clearance_height_to_lid.value;
-    const double nozzle_height = m_config.nozzle_height.value;
-    auto         fmt_mm        = [](double v) { return (boost::format("%.2f") % v).str(); };
+    auto fmt_mm = [](double v) { return (boost::format("%.2f") % v).str(); };
 
     for (const PrintObject *object : m_objects) {
         const double object_top = unscaled<double>(object->max_z());
         for (const PrintInstance &instance : object->instances()) {
-            Points inst_pts;
-            for (const ModelVolume *v : object->model_object()->volumes) {
-                if (! v->is_model_part())
-                    continue;
-                Polygon hull = v->get_convex_hull_2d(Geometry::assemble_transform(Vec3d::Zero(), instance.model_instance->get_rotation(),
-                                                                                  instance.model_instance->get_scaling_factor(), instance.model_instance->get_mirror()));
-                hull.translate(instance.shift - object->center_offset());
-                append(inst_pts, hull.points);
-            }
-            if (inst_pts.empty())
+            const Polygon inst_hull = print_instance_hull(*object, instance);
+            if (inst_hull.points.empty())
                 continue;
-            const Polygon inst_hull = Geometry::convex_hull(inst_pts);
-            BoundingBox   inst_bbox = inst_hull.bounding_box();
-            inst_bbox.offset(rod_margin);
-
-            // Only the Y span matters for the rod: it spans the whole X axis, so an object sharing the
-            // tower's Y band passes under it however far apart the two are in X.
-            const bool   overlaps_in_y = std::min(inst_bbox.max.y(), tower_bbox.max.y()) - std::max(inst_bbox.min.y(), tower_bbox.min.y()) > 0;
-            const double far_clearance = overlaps_in_y ? height_to_rod : height_to_lid;
-
-            // The rod and the lid are the only obstacles once the object stands far enough away. Closer
-            // than the toolhead radius it is the head body itself that hits the object, and it does so as
-            // soon as the object rises past the nozzle cone, which is far below the rod.
-            const bool near_nozzle = ! intersection(tower_grown_nozzle, inst_hull).empty();
-            const bool near_body   = ! intersection(tower_grown_body, inst_hull).empty();
-
-            double allowed_rise = far_clearance;
-            if (near_nozzle)
-                allowed_rise = 0.;
-            else if (near_body)
-                allowed_rise = std::min(far_clearance, nozzle_height);
 
             // Report the worst layer rather than the first offending one, it is the one that explains the
-            // collision best.
+            // collision best. The rise has to be known before the clearance: it is what selects the
+            // horizontal tier, the nozzle cone being out of the head body's reach.
             double max_rise = 0.;
             size_t worst_i  = 0;
             for (size_t i = 0; i < tool_changes.size(); ++i) {
@@ -3473,21 +3684,22 @@ void Print::validate_compacted_wipe_tower_clearance() const
                 }
             }
 
-            if (max_rise <= allowed_rise + EPSILON)
+            const CompactedTowerClearance clearance = compacted_wipe_tower_clearance(m_config, zone, inst_hull, max_rise);
+            if (max_rise <= clearance.allowed_rise + EPSILON)
                 continue;
             const double obstacle_z = std::min(object_top, double(tool_changes[worst_i].front().print_z));
-            if (near_body)
+            if (clearance.near_body)
                 throw Slic3r::SlicingError((boost::format(L("%1% is too close to a compacted prime tower. "
                                                             "The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, "
                                                             "and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. "
                                                             "Turn off \"No sparse layers\", move the prime tower away, or lower the object."))
-                                            % object->model_object()->name % fmt_mm(tower_z[worst_i]) % fmt_mm(obstacle_z) % fmt_mm(body_radius)
-                                            % fmt_mm(convex_outline_gap(tower_hull, inst_hull)))
+                                            % object->model_object()->name % fmt_mm(tower_z[worst_i]) % fmt_mm(obstacle_z) % fmt_mm(clearance.body_clearance)
+                                            % fmt_mm(convex_outline_gap(zone.hull, inst_hull)))
                                                .str());
             throw Slic3r::SlicingError((boost::format(L("%1% is too tall to be printed together with a compacted prime tower. "
                                                         "The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, "
                                                         "which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."))
-                                        % object->model_object()->name % fmt_mm(tower_z[worst_i]) % fmt_mm(obstacle_z) % fmt_mm(far_clearance))
+                                        % object->model_object()->name % fmt_mm(tower_z[worst_i]) % fmt_mm(obstacle_z) % fmt_mm(clearance.far_clearance))
                                            .str());
         }
     }
