@@ -188,7 +188,10 @@ void DevNozzleRack::ParseRackInfoV1_0(const nlohmann::json& rack_info)
         }
     }
 
-    m_rack_type = RackType_AB; // default to RackType_AB
+    if (rack_info.contains("info")) {
+        m_rack_type = RackType_AB; // default to RackType_AB
+    }
+
     if (rack_info.contains("info2")) {
         const auto& info2 = rack_info["info2"].get<int>();
         m_rack_cali_detail_bits = info2;
