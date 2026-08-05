@@ -855,6 +855,36 @@ static void AdjustWorkingAreaForAutoHide(const HWND hWnd, MINMAXINFO *mmi)
     }
 }
 
+// Constrain the maximized size/position to the monitor work area. This frame is borderless
+// (no wxCAPTION), so Windows defaults ptMaxSize/ptMaxPosition to the whole monitor - covering
+// the taskbar. wxWidgets' HandleGetMinMaxInfo only touches the track size, never ptMaxSize, so
+// without this a plain Maximize() (e.g. the startup restore in window_pos_restore, which does not
+// go through the topbar maximize button) leaves the taskbar hidden until the first restore.
+static void ClampMaxToWorkArea(const HWND hWnd, MINMAXINFO *mmi)
+{
+    const auto monitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+    if (!monitor) { return; }
+    MONITORINFO mi;
+    mi.cbSize = sizeof(mi);
+    if (!GetMonitorInfo(monitor, &mi)) { return; }
+    const RECT &work      = mi.rcWork;      // excludes a normal (non-auto-hide) taskbar
+    const RECT &monitorRc = mi.rcMonitor;
+
+    // WM_NCCALCSIZE above does NOT return 0 when maximized, so DefWindowProc still subtracts the
+    // maximized non-client frame from the client area. If ptMaxSize were exactly the work area, the
+    // visible client would end up shorter/narrower by that frame. Grow ptMaxSize by the frame so the
+    // client fills the work area, and shift ptMaxPosition by the same amount to keep it aligned - the
+    // off-screen overhang is clipped to the monitor by Windows, matching BBLTopbar::OnFullScreen.
+    RECT frame;
+    SetRectEmpty(&frame);
+    AdjustWindowRectEx(&frame, GetWindowLongPtr(hWnd, GWL_STYLE), FALSE, 0);
+
+    mmi->ptMaxPosition.x = (work.left - monitorRc.left) + frame.left;
+    mmi->ptMaxPosition.y = (work.top - monitorRc.top) + frame.top;
+    mmi->ptMaxSize.x     = (work.right - work.left) + (frame.right - frame.left);
+    mmi->ptMaxSize.y     = (work.bottom - work.top) + (frame.bottom - frame.top);
+}
+
 WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
     /* When we have a custom titlebar in the window, we don't need the non-client area of a normal window
@@ -903,6 +933,7 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
             HWND hWnd = GetHandle();
             auto mmi = (MINMAXINFO *) lParam;
             HandleGetMinMaxInfo(mmi);
+            ClampMaxToWorkArea(hWnd, mmi);
             AdjustWorkingAreaForAutoHide(hWnd, mmi);
             return 0;
         }
