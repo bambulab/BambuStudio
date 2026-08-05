@@ -703,7 +703,16 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             }
             return;}
 #endif
-        if (evt.CmdDown() && evt.GetKeyCode() == 'R') { if (m_slice_enable) { wxGetApp().plater()->update(true, true); wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE)); this->m_tabpanel->SetSelection(tpPreview); } return; }
+        // on_action_slice_plate already switches to the Preview tab via select_view_3D("Preview").
+        // Do NOT also SetSelection(tpPreview) here: that posts a second preview-enter event whose
+        // do_reslice would run the version-policy guard a second time (double dialog on a blocked version).
+        if (evt.CmdDown() && evt.GetKeyCode() == 'R') {
+            if (m_slice_enable) {
+                wxGetApp().plater()->update(true, true);
+                wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+            }
+            return;
+        }
         if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'G') {
             m_plater->apply_background_progress();
             m_print_enable = get_enable_print_status();
@@ -1340,6 +1349,12 @@ void MainFrame::init_tabpanel()
                 e.Veto();
                 return;
             }
+        }
+        // Gate the interactive switch INTO the Preview tab through the cloud version policy.
+        if (new_sel == tpPreview && m_plater != nullptr &&
+            m_tabpanel->GetPage((size_t) new_sel) == m_plater &&
+            wxGetApp().is_editor() && !m_plater->only_gcode_mode()) {
+            if (!wxGetApp().check_slice_version_policy()) { e.Veto(); }
         }
         if (wxGetApp().preset_bundle &&
             wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle) &&
@@ -2049,11 +2064,19 @@ wxBoxSizer* MainFrame::create_side_tools()
         });
 #endif
 
-    m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
-        {
-            // Ask the cloud version policy first, so a blocked version does not
-            // even get to touch the background process.
-            if (!wxGetApp().check_slice_version_policy()) return;
+    m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &event)
+    {
+            // If the cloud policy hard-blocks this version, skip the AMS-sync check and the
+            // first-time tutorial popups: they are pointless when slicing will be refused.
+            // Post the slice event straight through; on_action_slice_plate/all raises the
+            // single blocking dialog. Use the SILENT check here so we don't double-prompt.
+            if (wxGetApp().is_slice_version_blocked()) {
+                if (m_slice_select == eSliceAll)
+                    wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
+                else
+                    wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+                return;
+            }
 
             if (m_plater->is_background_process_update_scheduled())
                 m_plater->update(false, true);

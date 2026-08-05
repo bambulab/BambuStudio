@@ -5607,6 +5607,13 @@ bool GUI_App::check_slice_version_policy()
     return run_policy_guard_dialog(mainframe, result);
 }
 
+bool GUI_App::is_slice_version_blocked()
+{
+    // Cheap, in-memory evaluation; never shows UI. Mirrors the fail-open policy of
+    // check_version_policy() (a policy that cannot be read never blocks).
+    return check_version_policy(PolicyCheckPoint::BeforeSlice).blocked();
+}
+
 bool GUI_App::check_send_print_version_policy()
 {
     const PolicyCheckResult result = check_version_policy(PolicyCheckPoint::BeforeSend);

@@ -621,6 +621,19 @@ public:
     bool            check_slice_version_policy();
 
     /**
+     * @brief Silent (no dialog) test of whether the current version is hard-blocked
+     *        from slicing by the cloud policy.
+     *
+     * Use it to short-circuit expensive pre-slice work (AMS sync checks, first-time
+     * tutorial popups) without raising the policy dialog. The single user-facing
+     * dialog is still raised by check_slice_version_policy() at the actual slice.
+     *
+     * @return true only when a BeforeSlice policy of severity "block" matches; a
+     *         warning-only match or no match returns false.
+     */
+    bool            is_slice_version_blocked();
+
+    /**
      * @brief Shows the policy that guards printing, if any.
      *
      * Call it right before the send to printer dialog would come up.
