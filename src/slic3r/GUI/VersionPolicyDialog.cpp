@@ -342,6 +342,15 @@ std::string build_html(const std::vector<PolicyHit> &hits)
     return html;
 }
 
+/**
+ * @brief Spells a design token for wxHTML, following the active theme.
+ *
+ * The colours in an HTML page are text, not widget properties, so the
+ * UpdateDarkUI() walk cannot reach them; every token handed to wxHTML has to
+ * go through the theme map here or the body stays light in dark mode.
+ */
+wxString html_color(const wxColour &color) { return StateColor::darkModeColorFor(color).GetAsString(wxC2S_HTML_SYNTAX); }
+
 /** @brief Applies the shared button metrics of the design. */
 void style_button(Button *button, const StateColor &background, const wxColour &border, const wxColour &text)
 {
@@ -475,12 +484,14 @@ void VersionPolicyDialog::UpdateByPolicyHits(const PolicyCheckResult &result)
 {
     m_blocking = result.blocked();
 
-    // wxHTML carries no stylesheet, so the surface and the text colour of the
-    // design are handed to it on the body tag itself.
-    const wxString background = ThemeColor::Grey200.GetAsString(wxC2S_HTML_SYNTAX);
-    const wxString foreground = ThemeColor::TextMuted.GetAsString(wxC2S_HTML_SYNTAX);
-    m_body->SetPage("<html><body bgcolor=\"" + background + "\" text=\"" + foreground + "\">" + from_u8(build_html(result.all_hits)) +
-                    "</body></html>");
+    // wxHTML carries no stylesheet, so the surface, the text and the link
+    // colour of the design are handed to it on the body tag itself. Its own
+    // default link blue is unreadable on the dark surface, hence the third one.
+    const wxString background = html_color(ThemeColor::Grey200);
+    const wxString foreground = html_color(ThemeColor::TextMuted);
+    const wxString link       = html_color(ThemeColor::Link);
+    m_body->SetPage("<html><body bgcolor=\"" + background + "\" text=\"" + foreground + "\" link=\"" + link + "\">" +
+                    from_u8(build_html(result.all_hits)) + "</body></html>");
 
     Layout();
     Fit();
