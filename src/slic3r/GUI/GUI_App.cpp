@@ -1572,6 +1572,10 @@ std::string GUI_App::get_model_http_url(std::string country_code)
     {
         url = "https://makerhub-pre.bambulab.net/";
     }
+    else if (country_code == "NEW_ENV_US_PRE")
+    {
+        url = "https://makerhub-pre-us.bambulab.net/";
+    }
     else {
         url = "https://makerworld.com/";
     }
