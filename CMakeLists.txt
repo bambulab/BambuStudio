@@ -455,6 +455,46 @@ else()
     target_link_libraries(boost_libs INTERFACE boost_headeronly ${Boost_LIBRARIES})
 endif()
 
+# Boost::iostreams pulls in an imported zstd target that (on some system
+# packages) only exports one build configuration (often the empty/NONE one).
+# Multi-config builds such as RelWithDebInfo then fail with "IMPORTED_LOCATION
+# not set". Copy an existing configuration's location onto the missing ones so
+# every consumer of boost_libs can resolve zstd.
+function(slic3r_backfill_imported_configs tgt)
+    if(NOT TARGET ${tgt})
+        return()
+    endif()
+    get_target_property(_have ${tgt} IMPORTED_CONFIGURATIONS)
+    if(NOT _have)
+        return()
+    endif()
+    list(GET _have 0 _src)
+    get_target_property(_loc ${tgt} IMPORTED_LOCATION_${_src})
+    get_target_property(_imp ${tgt} IMPORTED_IMPLIB_${_src})
+    get_target_property(_son ${tgt} IMPORTED_SONAME_${_src})
+    foreach(_cfg RELEASE RELWITHDEBINFO MINSIZEREL DEBUG)
+        if(NOT _cfg IN_LIST _have)
+            set_property(TARGET ${tgt} APPEND PROPERTY IMPORTED_CONFIGURATIONS ${_cfg})
+            if(_loc)
+                set_target_properties(${tgt} PROPERTIES IMPORTED_LOCATION_${_cfg} "${_loc}")
+            endif()
+            if(_imp)
+                set_target_properties(${tgt} PROPERTIES IMPORTED_IMPLIB_${_cfg} "${_imp}")
+            endif()
+            if(_son)
+                set_target_properties(${tgt} PROPERTIES IMPORTED_SONAME_${_cfg} "${_son}")
+            endif()
+        endif()
+    endforeach()
+endfunction()
+
+# Only needed on Linux, where boost_iostreams pulls the system zstd package
+# whose CMake config exports a single (NONE) configuration. On Windows/macOS
+# zstd comes from the prebuilt deps / vcpkg with all configurations present.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    slic3r_backfill_imported_configs(zstd::libzstd_shared)
+    slic3r_backfill_imported_configs(zstd::libzstd_static)
+endif()
 
 
 # Find and configure intel-tbb
