@@ -2023,7 +2023,7 @@ void NotificationManager::push_bed_heat_soak_notification(const std::string& tex
 		wxGetApp().open_browser_with_warning_dialog(url);
 		return false;
 	};
-	NotificationData data{NotificationType::BBLBedHeatSoakInfo, NotificationLevel::WarningNotificationLevel, 0, text, _u8L("For more details, see the Wiki."), callback};
+	NotificationData data{NotificationType::BBLBedHeatSoakInfo, NotificationLevel::WarningNotificationLevel, 0, text, _u8L("Wiki for details."), callback};
 	auto notification = std::make_unique<NotificationManager::PopNotification>(data, m_id_provider, m_evt_handler);
 	notification->set_Multiline(true);
 	push_notification_data(std::move(notification), 0);

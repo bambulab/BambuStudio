@@ -134,6 +134,8 @@ void AppConfig::set_defaults()
             set_bool("single_instance", false);
         if (get("import_3mf_as_project").empty())
             set_bool("import_3mf_as_project", true);
+        if (get("show_bed_heat_soak_area").empty())
+            set_bool("show_bed_heat_soak_area", true);
 #ifdef SUPPORT_REMEMBER_OUTPUT_PATH
         if (get("remember_output_path").empty())
             set_bool("remember_output_path", true);

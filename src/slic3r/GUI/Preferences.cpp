@@ -932,6 +932,11 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             wxGetApp().switch_staff_pick(pbool);
         }
 
+        if (param == "show_bed_heat_soak_area") {
+            if (wxGetApp().plater())
+                wxGetApp().plater()->on_show_bed_heat_soak_area_changed();
+        }
+
         if (param == "sync_user_preset") {
             bool sync = app_config->get("sync_user_preset") == "true" ? true : false;
             if (sync) {
@@ -1624,6 +1629,10 @@ wxWindow *PreferencesDialog::create_3d_tab()
                                                  _L("Always show shells or not in preview view tab. If you change this value, you should reslice."), 50,
                                                  "show_shells_in_preview");
 
+    auto item_show_heat_soak_area = create_item_checkbox(_L("Show heat-soak area"), scrolled,
+                                                         _L("Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."), 50,
+                                                         "show_bed_heat_soak_area");
+
     auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), scrolled,
                                                        _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
 
@@ -1653,6 +1662,7 @@ wxWindow *PreferencesDialog::create_3d_tab()
     sizer->Add(wrap_option_row(scrolled, item_toolbar_style), flags);
     sizer->Add(wrap_option_row(scrolled, item_zoom_to_mouse), flags);
     sizer->Add(wrap_option_row(scrolled, item_show_shells), flags);
+    sizer->Add(wrap_option_row(scrolled, item_show_heat_soak_area), flags);
 #if !BBL_RELEASE_TO_PUBLIC
     auto item_show_bvh_bounds = create_item_checkbox(_L("Show assembly BVH primary bounds"), scrolled, _L("Display the BVH primary bounding box wireframe in assembly view."), 50,
                                                      "show_assembly_bvh_bounds");

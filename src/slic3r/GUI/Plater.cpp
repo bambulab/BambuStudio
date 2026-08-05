@@ -24371,6 +24371,11 @@ void Plater::on_plate_layout_changed()
         canvas->schedule_extra_frame(0);
 }
 
+void Plater::on_show_bed_heat_soak_area_changed()
+{
+    update_bed_heat_soak_notification();
+}
+
 void Plater::update_bed_heat_soak_notification()
 {
     GLCanvas3D *canvas = p->get_current_canvas3D();
@@ -24382,22 +24387,26 @@ void Plater::update_bed_heat_soak_notification()
     if (!notify)
         return;
 
-    const int level = p->partplate_list.get_cur_plate_soak_level();
-    if (level == m_last_heat_soak_level)
+    const bool enabled = wxGetApp().app_config->get("show_bed_heat_soak_area") != "false";
+    const bool show = enabled && p->partplate_list.get_cur_plate_soak_level() > 0;
+    if (show == p->partplate_list.is_heat_soak_visible())
         return;
 
-    m_last_heat_soak_level = level;
-    if (level <= 0) {
+    if (show)
+    {
+        notify->push_bed_heat_soak_notification(
+            _u8L("When thermal preconditioning is enabled, duration auto-adjusts to the model's "
+                 "position for optimal first-layer quality; the farther from the center, the longer "
+                 "it takes. White boxes mark the boundary lines. To disable the guidelines and this "
+                 "warning, go to Preferences > 3D."));
+    }
+    else
+    {
         notify->close_bed_heat_soak_notification();
-        return;
     }
 
-    notify->push_bed_heat_soak_notification(
-        _u8L("When Thermal Preconditioning for First Layer Optimization is enabled on the A2L "
-             "printer, the preconditioning duration is automatically adjusted based on the "
-             "model's footprint to achieve the best first-layer quality. Larger footprints "
-             "require longer preconditioning times. The white boxes indicate the boundaries "
-             "between different preconditioning durations."));
+    p->partplate_list.set_heat_soak_visible(show);
+    canvas->schedule_extra_frame(0);
 }
 
 void Plater::force_filament_colors_update()

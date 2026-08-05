@@ -703,6 +703,7 @@ private:
     GLModel                               m_wrapping_detection_triangles;
     GLModel                               m_heat_soak_inner_lines;
     GLModel                               m_heat_soak_outer_lines;
+    bool                                  m_heat_soak_visible{false};
     GLModel                               m_gridlines;
     GLModel                               m_gridlines_bolder;
     GLModel                               m_del_icon;
@@ -993,6 +994,8 @@ public:
     void set_heat_soak_areas(const Pointfs &heat_soak_areas);
     // Pure query: highest heat-soak prompt level on the current plate (0 / 1 / 2).
     int  get_cur_plate_soak_level() const;
+    void set_heat_soak_visible(bool visible);
+    bool is_heat_soak_visible() const;
     void set_hover_id(int id);
     void reset_hover_id();
     bool intersects(const BoundingBoxf3 &bb);

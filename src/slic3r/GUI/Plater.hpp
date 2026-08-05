@@ -421,6 +421,7 @@ public:
     std::map<std::string, std::string> get_bed_texture_maps();
     int                                get_right_icon_offset_bed(int i = 0);
     bool                               get_enable_wrapping_detection();
+    void                               on_show_bed_heat_soak_area_changed();
 
     static wxColour get_next_color_for_filament();
     static wxString get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning);
@@ -1051,7 +1052,6 @@ private:
     std::string m_preview_only_filename;
     int m_valid_plates_count { 0 };
     int m_check_status = 0; // 0 not check, 1 check success, 2 check failed
-    int m_last_heat_soak_level = -1;
     bool m_b_plate_toolbar_image_dirty{ true };
 
     void suppress_snapshots();

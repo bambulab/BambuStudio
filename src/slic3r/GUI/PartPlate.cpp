@@ -74,10 +74,6 @@ const float N9_WIPE_TOWER_DEFAULT_Y_POS = 160.;
 const float I3_WIPE_TOWER_DEFAULT_X_POS = 0.;
 const float I3_WIPE_TOWER_DEFAULT_Y_POS = 250.; // Max y
 
-std::array<unsigned char, 4>  PlateTextureForeground = {0x0, 0xae, 0x42, 0xff};
-
-namespace Slic3r {
-namespace GUI {
 namespace {
 
 // Heat-soak zones are two nested rectangles: inner rect first (points [0, 4)),
@@ -85,9 +81,9 @@ namespace {
 constexpr size_t HEAT_SOAK_POINTS_PER_RECT = 4;
 constexpr size_t HEAT_SOAK_TOTAL_POINTS    = HEAT_SOAK_POINTS_PER_RECT * 2;
 
-std::array<Polygon, 2> make_heat_soak_polygons(const Pointfs &heat_soak_area)
+std::array<Slic3r::Polygon, 2> make_heat_soak_polygons(const Slic3r::Pointfs &heat_soak_area)
 {
-	std::array<Polygon, 2> polygons;
+	std::array<Slic3r::Polygon, 2> polygons;
 	for (size_t polygon_idx = 0; polygon_idx < polygons.size(); ++polygon_idx) {
 		const size_t begin = polygon_idx * HEAT_SOAK_POINTS_PER_RECT;
 		for (size_t i = begin; i < begin + HEAT_SOAK_POINTS_PER_RECT && i < heat_soak_area.size(); ++i)
@@ -97,6 +93,12 @@ std::array<Polygon, 2> make_heat_soak_polygons(const Pointfs &heat_soak_area)
 }
 
 } // namespace
+
+
+std::array<unsigned char, 4>  PlateTextureForeground = {0x0, 0xae, 0x42, 0xff};
+
+namespace Slic3r {
+namespace GUI {
 
 std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.2666f, 0.2784f, 0.2784f, 1.0f }; //{ 0.4196f, 0.4235f, 0.4235f, 1.0f };
 std::array<float, 4> PartPlate::UNSELECT_COLOR		= { 0.82f, 0.82f, 0.82f, 1.0f };
@@ -4392,6 +4394,16 @@ int PartPlateList::get_cur_plate_soak_level() const
     return m_plate_list[m_current_plate]->get_heat_soak_level();
 }
 
+void PartPlateList::set_heat_soak_visible(bool visible)
+{
+    m_heat_soak_visible = visible;
+}
+
+bool PartPlateList::is_heat_soak_visible() const
+{
+    return m_heat_soak_visible;
+}
+
 void PartPlateList::calc_triangles_from_polygon(const ExPolygon &poly, GLModel &render_model){
     if (poly.empty()) {
         render_model.reset();
@@ -6537,12 +6549,12 @@ void PartPlateList::render_exclude_area(bool force_default_color)
 
 void PartPlateList::render_heat_soak_area(bool force_default_color)
 {
-    if (force_default_color)
+    if (force_default_color || !m_heat_soak_visible)
         return;
 
     // Draw the heat-soak zone boundaries as thick, bright outlines so they stand
     // out against the dark bed and the lighter grid lines.
-    const ColorRGBA line_color{0.95f, 0.95f, 0.95f, 1.0f};
+    const ColorRGBA line_color{0.95f, 0.95f, 0.95f, 0.35f};
     const auto &p_ogl_manager = wxGetApp().get_opengl_manager();
     p_ogl_manager->set_line_width(4.0f * m_scale_factor);
 
