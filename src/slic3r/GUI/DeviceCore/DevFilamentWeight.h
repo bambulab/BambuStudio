@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "slic3r/GUI/I18N.hpp"
+
 namespace Slic3r {
 
 struct DevFilamentWeightValidation
@@ -18,12 +20,18 @@ public:
 
     static DevFilamentWeightValidation Validate(int total, int remain)
     {
+        if (remain > total) {
+            return { false, _u8L("The total weight must bigger than remain weight.") };
+        }
+
+        if (remain < MIN_TOTAL_GRAMS || remain > MAX_TOTAL_GRAMS) {
+            return { false, _u8L("Please enter a valid remaining weight from 1g to 10000g.") };
+        }
+
         if (total < MIN_TOTAL_GRAMS || total > MAX_TOTAL_GRAMS) {
-            return { false, "Please enter a valid total weight (1-10000 g)." };
+            return { false, _u8L("Please enter a valid total weight from 1g to 10000g.") };
         }
-        if (remain < MIN_TOTAL_GRAMS || remain > total) {
-            return { false, "Please enter a valid remaining weight (1-total weight g)." };
-        }
+
         return { true, "" };
     }
 };

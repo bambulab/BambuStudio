@@ -633,6 +633,7 @@ bool AMSMaterialsSetting::can_edit_filament_weight() const
     return support_filament_remain_edit() && !m_filament_type.empty() && !m_view_only && m_is_third;
 }
 
+#define DEFAULT_TOTAL_WEIGHT 1000
 bool AMSMaterialsSetting::validate_filament_weight_inputs(bool is_target_bbl, int& cmd_total_weight, int& cmd_remain_weight) const
 {
     if (!can_edit_filament_weight()) return true;
@@ -650,12 +651,11 @@ bool AMSMaterialsSetting::validate_filament_weight_inputs(bool is_target_bbl, in
                         cmd_total_weight = stoi(tray_opt->weight);
                         cmd_remain_weight = cmd_total_weight;
                     } else {
-                        cmd_total_weight = 1000;
+                        cmd_total_weight = DEFAULT_TOTAL_WEIGHT;
                         cmd_remain_weight = -1;
                     }
                 }
-                catch (const std::exception& e) {
-
+                catch (const std::exception&) {
                 };
             }
         }
@@ -663,12 +663,20 @@ bool AMSMaterialsSetting::validate_filament_weight_inputs(bool is_target_bbl, in
         return true;
     }
 
-    long total = 0;
     long remain = 0;
-    if (!total_text.ToLong(&total) || !remain_text.ToLong(&remain)) {
+    if (!remain_text.ToLong(&remain)) {
         MessageDialog msg_dlg(nullptr, _L("Please enter valid filament weights."), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
+    }
+
+	long total = 0;
+	if (!total_text.ToLong(&total)) {
+        total = DEFAULT_TOTAL_WEIGHT;
+	}
+
+    if (remain > total) {
+        total = remain;
     }
 
     const auto validation = DevFilamentWeight::Validate(static_cast<int>(total), static_cast<int>(remain));
