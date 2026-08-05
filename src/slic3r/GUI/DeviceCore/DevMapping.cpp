@@ -19,56 +19,45 @@ using namespace nlohmann;
 
 namespace Slic3r
 {
+    static bool _is_mapping_slot_on_machine(const MachineObject* obj, const FilamentInfo& item, bool check_empty_slot)
+    {
+        auto fila_sys = obj->GetFilaSystem();
+        if (!fila_sys) {
+            return false;
+        }
+
+        if (item.ams_id.empty() || item.slot_id.empty()) {
+            return false;
+        }
+
+		auto ams_tray = fila_sys->GetAmsTray(item.ams_id, item.slot_id);
+		if (ams_tray) {
+            return check_empty_slot ? ams_tray->is_exists : true;
+		}
+
+		auto vir_tray = fila_sys->GetVirtualTray(item.ams_id);
+		if (vir_tray.has_value()) {
+            return true;// vir_tray does't support is_exists
+		}
+
+        return false;
+    }
+
     bool DevMappingUtil::is_valid_mapping_result(const MachineObject* obj, std::vector<FilamentInfo>& result, bool check_empty_slot)
     {
-        if (result.empty()) return false;
+        if (!obj || result.empty()) {
+            return false;
+        }
 
-        for (int i = 0; i < result.size(); i++)
-        {
-            // invalid mapping result
-            if (result[i].tray_id < 0)
-            {
-                if (result[i].ams_id.empty() && result[i].slot_id.empty())
-                {
-                    return false;
-                }
-            }
-            else
-            {
-
-                auto ams_item = obj->GetFilaSystem()->GetAmsById(result[i].ams_id);
-                if (ams_item == nullptr)
-                {
-                    if ((result[i].ams_id != std::to_string(VIRTUAL_TRAY_MAIN_ID)) &&
-                        (result[i].ams_id != std::to_string(VIRTUAL_TRAY_DEPUTY_ID)))
-                    {
-                        result[i].tray_id = -1;
-                        return false;
-                    }
-                }
-                else
-                {
-                    if (check_empty_slot)
-                    {
-                        auto tray_item = ams_item->GetTrays().find(result[i].slot_id);
-                        if (tray_item == ams_item->GetTrays().end())
-                        {
-                            result[i].tray_id = -1;
-                            return false;
-                        }
-                        else
-                        {
-                            if (!tray_item->second->is_exists)
-                            {
-                                result[i].tray_id = -1;
-                                return false;
-                            }
-                        }
-                    }
-                }
+        bool all_valid = true;
+        for (FilamentInfo& item : result) {
+            if (!_is_mapping_slot_on_machine(obj, item, check_empty_slot)) {
+                item.tray_id = -1;
+                all_valid    = false;
             }
         }
-        return true;
+
+        return all_valid;
     }
 
     // calc distance map
