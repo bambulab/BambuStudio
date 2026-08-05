@@ -6,7 +6,7 @@
     "setting_id": "GFSG01_32",
     "instantiation": "true",
     "filament_change_length": [
-        "0"
+        "5"
     ],
     "filament_change_length_nc": [
         "0"
@@ -19,6 +19,10 @@
     "filament_max_volumetric_speed": [
         "6",
         "6"
+    ],
+    "filament_pre_cooling_temperature": [
+        "230",
+        "230"
     ],
     "filament_prime_tower_speed_factor_curve": [
         "0.5,1,1,1,0.5"

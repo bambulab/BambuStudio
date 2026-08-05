@@ -17,9 +17,6 @@
     "fan_min_speed": [
         "10"
     ],
-    "filament_change_length": [
-        "0"
-    ],
     "filament_change_length_nc": [
         "0"
     ],
