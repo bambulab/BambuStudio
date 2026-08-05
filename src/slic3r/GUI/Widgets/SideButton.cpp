@@ -278,6 +278,13 @@ void SideButton::dorender(wxDC& dc, wxDC& text_dc)
     auto text = GetLabel();
     if (!text.IsEmpty()) {
         pt.y += (rcContent.height - textSize.y) / 2;
+#ifdef __APPLE__
+        /* wx计算文字长宽都是浮点数向下取整
+           macOS系统文字渲染为了抗锯齿效果，会在边缘向外多渲染0.5到1个像素，所以需要向上取整
+           简单方案：+1手动向上取整
+        */
+        pt.y -= FromDIP(1);
+#endif
         text_dc.SetFont(GetFont());
         text_dc.SetTextForeground(text_color.colorForStates(states));
         text_dc.DrawText(text, pt);

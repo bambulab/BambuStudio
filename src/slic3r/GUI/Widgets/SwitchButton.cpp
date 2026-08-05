@@ -149,9 +149,19 @@ void SwitchButton::Rescale()
 			}
             memdc.SetTextForeground(text_color.colorForStates(state ^ StateColor::Checked));
             auto text_y = BS + (thumbSize.y - textSize[0].y) / 2;
+#ifdef __APPLE__
+            /* wx计算文字长宽都是浮点数向下取整
+               macOS系统文字渲染为了抗锯齿效果，会在边缘向外多渲染0.5到1个像素，所以需要向上取整
+               简单方案：+1手动向上取整
+            */
+            text_y -= FromDIP(1);
+#endif
             memdc.DrawText(labels[0], {BS + (thumbSize.x - textSize[0].x) / 2, text_y});
             memdc.SetTextForeground(text_color2.count() == 0 ? text_color.colorForStates(state) : text_color2.colorForStates(state));
             auto text_y_1 = BS + (thumbSize.y - textSize[1].y) / 2;
+#ifdef __APPLE__
+            text_y_1 -= FromDIP(1);
+#endif
             memdc.DrawText(labels[1], {trackSize.x - thumbSize.x - BS + (thumbSize.x - textSize[1].x) / 2, text_y_1});
 			memdc.SelectObject(wxNullBitmap);
 #ifdef __WXOSX__
