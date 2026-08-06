@@ -23,9 +23,19 @@ endif ()
 #     set(_patch_cmd test -f WXWIDGETS_PATCHED || ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch && touch WXWIDGETS_PATCHED)
 # endif ()
 
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # Fix blank wxGLCanvas on native Wayland: reposition the EGL subsurface
+    # after layout and keep eglSwapBuffers() from blocking on frame callbacks
+    # (backport of the corresponding wxWidgets 3.2 behavior).
+    set(_patch_cmd PATCH_COMMAND sh -c "test -f WXWIDGETS_PATCHED || git apply --verbose --ignore-space-change --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/0002-fix-wayland-egl-subsurface.patch && touch WXWIDGETS_PATCHED")
+else ()
+    set(_patch_cmd "")
+endif ()
+
 bambustudio_add_cmake_project(wxWidgets
     GIT_REPOSITORY "https://github.com/bambulab/wxWidgets"
     GIT_TAG master
+    ${_patch_cmd}
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
     CMAKE_ARGS
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5
