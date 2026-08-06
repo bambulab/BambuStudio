@@ -60,7 +60,12 @@ class DeviceHttpHeaders
 public:
     std::string get_response()
     {
-        std::filesystem::path root = resources_dir() + "/web/device_page/dist";
+        // resources_dir() and the request URL are both UTF-8. Constructing a path directly from
+        // them would decode the bytes with the native narrow encoding (the ANSI code page on
+        // Windows), so any non-ASCII installation path or asset name would resolve to a
+        // non-existent file and serve only 404s.
+        const std::filesystem::path root = std::filesystem::weakly_canonical(
+            std::filesystem::u8path(resources_dir() + "/web/device_page/dist"));
 
         if (url.empty() || url.find("..") != std::string::npos)
             return response_404();
@@ -71,10 +76,13 @@ public:
         if (qpos != std::string::npos)
             path = path.substr(0, qpos);
 
-        std::filesystem::path rel  = (path == "/") ? "/index.html" : path;
+        std::filesystem::path rel  = std::filesystem::u8path((path == "/") ? "/index.html" : path);
         std::filesystem::path full = std::filesystem::weakly_canonical(root / rel.relative_path());
 
-        if (full.generic_string().rfind(std::filesystem::weakly_canonical(root).generic_string(), 0) != 0)
+        // Keep the containment check on path components: converting a path back to a narrow string
+        // is lossy for characters outside the native narrow encoding.
+        const std::filesystem::path inside = full.lexically_relative(root);
+        if (inside.empty() || *inside.begin() == std::filesystem::path(".."))
             return response_404();
 
         std::ifstream file(full, std::ios::binary);
@@ -84,7 +92,7 @@ public:
         std::string body((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
         std::ostringstream ss;
         ss << "HTTP/1.1 200 OK\r\n"
-           << "Content-Type: " << mime_type(full.extension().string()) << "\r\n"
+           << "Content-Type: " << mime_type(full.extension().u8string()) << "\r\n"
            << "Content-Length: " << body.size() << "\r\n\r\n"
            << body;
         return ss.str();
@@ -163,7 +171,17 @@ class DeviceSession : public std::enable_shared_from_this<DeviceSession>
     void send_response()
     {
         auto self = shared_from_this();
-        auto resp = std::make_shared<std::string>(headers_.get_response());
+        // Resolving the request touches the filesystem and converts encodings, both of which can
+        // throw. This runs on the io_context thread, so an escaping exception would take the
+        // whole process down instead of failing a single request.
+        std::string body;
+        try {
+            body = headers_.get_response();
+        } catch (const std::exception &ex) {
+            BOOST_LOG_TRIVIAL(warning) << "[DeviceHttpServer] failed to build response: " << ex.what();
+            body = response_404();
+        }
+        auto resp = std::make_shared<std::string>(std::move(body));
         boost::asio::async_write(socket_, boost::asio::buffer(*resp),
             [self, resp](const boost::system::error_code &, std::size_t) {
                 boost::system::error_code ec;
