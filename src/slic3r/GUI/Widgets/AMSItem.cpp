@@ -1195,18 +1195,25 @@ void AMSLib::render_lite_text(wxDC& dc)
 void AMSLib::render_generic_text(wxDC &dc)
 {
     bool show_k_value = true;
+    bool k_loading    = false;
     if (m_info.material_name.empty()) {
         show_k_value = false;
     }
     else if (m_info.cali_idx == -1 || (m_obj && (CalibUtils::get_selected_calib_idx(m_obj->GetCalib()->GetPAHistory(), m_info.cali_idx) == -1))) {
-        if (m_obj && m_obj->GetConfig() && m_obj->GetConfig()->SupportCalibrationPA_FlowAuto())
+        if (m_obj && m_obj->GetConfig() && m_obj->GetConfig()->SupportCalibrationPA_FlowAuto()) {
             show_k_value = false;
+        }
+        else if (m_info.cali_idx == -1) {
+            // user selected default, hide k value
+            show_k_value = false;
+        }
+        else if (m_obj && !m_obj->GetCalib()->IsPAHistoryReady()) {
+            // PA history not loaded yet (e.g. after machine switch), show loading
+            show_k_value = false;
+            k_loading = true;
+        }
         else {
             get_default_k_n_value(m_info.filament_id, m_info.k, m_info.n);
-            // k&n is default, disable show_k_value
-            if (is_approx(m_info.k, 0.02f) && is_approx(m_info.n, 1.0f)) {
-                show_k_value = false;
-            }
         }
     }
     else if (abs(m_info.k) < EPSILON) {
@@ -1303,7 +1310,9 @@ void AMSLib::render_generic_text(wxDC &dc)
             }
             else {
                 auto pot = wxPoint(0, 0);
-                if (m_obj && show_k_value) {
+                if (m_obj && k_loading) {
+                    pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(22));
+                } else if (m_obj && show_k_value) {
                     pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9));
                 } else {
                     pot = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 + FromDIP(3));
@@ -1325,6 +1334,19 @@ void AMSLib::render_generic_text(wxDC &dc)
 
                 tooltip_text += "\n" + str_k;
             }
+        }
+        else if (m_obj && k_loading && m_show_kn) {
+            wxString str_k     = wxString::Format("K %1.3f", m_info.k);
+            wxString str_line1 = "K";
+            wxString str_line2 = _CTX(L_CONTEXT("loading", "AMS filament"), "AMS filament");
+            dc.SetFont(::Label::Body_11);
+            auto tsize_k     = dc.GetMultiLineTextExtent(str_k);
+            auto tsize_line1 = dc.GetMultiLineTextExtent(str_line1);
+            auto tsize_line2 = dc.GetMultiLineTextExtent(str_line2);
+            int  y_text      = (libsize.y - tsize_k.y) / 2 - FromDIP(20) + tsize_k.y;
+            dc.DrawText(str_line1, wxPoint((libsize.x - tsize_line1.x) / 2, y_text));
+            dc.DrawText(str_line2, wxPoint((libsize.x - tsize_line2.x) / 2, y_text + tsize_line1.y));
+            tooltip_text += "\n" + str_line1 + " " + str_line2;
         }
         if (GetToolTipText() != tooltip_text) {
             SetToolTip(tooltip_text);

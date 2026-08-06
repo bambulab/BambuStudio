@@ -10,6 +10,7 @@
 #include <wx/dcgraph.h>
 #include "CalibUtils.hpp"
 #include "../Utils/ColorSpaceConvert.hpp"
+#include "../Utils/BBLUtil.hpp"
 #include "EncodedFilament.hpp"
 #include "FilamentBitmapUtils.hpp"
 
@@ -1821,6 +1822,11 @@ Preset* AMSMaterialsSetting::get_filament_by_id(const std::string& filament_id, 
 void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max, wxString k, wxString n)
 {
     if (!obj) return;
+    BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::Popup dev_id=" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
+                             << ", ams_id=" << ams_id << ", slot_id=" << slot_id
+                             << ", calib_version_inited=" << obj->GetCalib()->IsVersionInited()
+                             << ", pa_history_ready=" << obj->GetCalib()->IsPAHistoryReady()
+                             << ", pa_history_status=" << (int)obj->GetCalib()->GetPAHistoryStatus();
     update_widgets();
     // set default value
     if (k.IsEmpty())
@@ -2005,9 +2011,20 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
             cali_info.use_nozzle_volume_type = false;
             CalibUtils::emit_get_PA_calib_infos(cali_info);
             m_pa_data_pending = true;
+            BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_select_filament request PA history, dev_id="
+                                     << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
+                                     << ", ams_id=" << ams_id << ", ext_id=" << ext_id
+                                     << ", nozzle_diameter=" << cali_info.nozzle_diameter;
+        } else {
+            BOOST_LOG_TRIVIAL(warning) << "AMSMaterialsSetting::on_select_filament cannot request PA history, invalid ext_id, dev_id="
+                                        << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id()) << ", ams_id=" << ams_id;
         }
     } else {
         m_pa_data_pending = false;
+        BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_select_filament PA history already ready or version not inited, dev_id="
+                                 << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
+                                 << ", calib_version_inited=" << obj->GetCalib()->IsVersionInited()
+                                 << ", pa_history_ready=" << obj->GetCalib()->IsPAHistoryReady();
     }
 
     update();
@@ -2026,12 +2043,19 @@ void AMSMaterialsSetting::post_select_event(int index) {
 void AMSMaterialsSetting::TryRefreshPAProfiles()
 {
     if (!m_pa_data_pending || !obj) return;
-    if (!obj->GetCalib()->IsPAHistoryReady()) return;
+    if (!obj->GetCalib()->IsPAHistoryReady()) {
+        BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::TryRefreshPAProfiles PA history not ready yet, dev_id="
+                                 << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
+                                 << ", pa_history_status=" << (int)obj->GetCalib()->GetPAHistoryStatus();
+        return;
+    }
 
     m_pa_data_pending = false;
 
     // Re-trigger filament selection to repopulate PA profile dropdown with real data
     int sel = m_comboBox_filament->GetSelection();
+    BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::TryRefreshPAProfiles PA history ready, re-triggering selection, dev_id="
+                             << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id()) << ", sel=" << sel;
     if (sel >= 0) {
         m_comboBox_filament->SetClientData(new int(1));
         post_select_event(sel);
@@ -2091,6 +2115,12 @@ void AMSMaterialsSetting::update_pa_profile_items()
 
     std::vector<PACalibResult> cali_history = obj->GetCalib()->GetPAHistory();
     std::sort(cali_history.begin(), cali_history.end(), [](const PACalibResult &left, const PACalibResult &right) { return left.nozzle_pos_id < right.nozzle_pos_id; });
+
+    BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::update_pa_profile_items dev_id=" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
+                             << ", ams_id=" << ams_id << ", ams_filament_id=" << ams_filament_id
+                             << ", calib_version_inited=" << obj->GetCalib()->IsVersionInited()
+                             << ", pa_history_ready=" << obj->GetCalib()->IsPAHistoryReady()
+                             << ", cali_history_size=" << cali_history.size();
 
     {
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " AMS Calibration Histtory";
@@ -2535,10 +2565,20 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
             m_input_k_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[0].k_value));
             m_input_n_val->GetTextCtrl()->SetValue(float_to_string_with_precision(m_pa_profile_items[0].n_coef));
         }
+        BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_select_filament k/n resolved, dev_id="
+                                 << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
+                                 << ", ams_id=" << ams_id << ", slot_id=" << slot_id
+                                 << ", from_printer=" << (from_printer ? *from_printer : -1)
+                                 << ", cali_select_idx=" << cali_select_idx
+                                 << ", k=" << m_input_k_val->GetTextCtrl()->GetValue().ToStdString()
+                                 << ", n=" << m_input_n_val->GetTextCtrl()->GetValue().ToStdString();
     }
     else {
         //m_input_k_val->GetTextCtrl()->SetValue("0.00");
         m_input_k_val->Enable(!ams_filament_id.empty());
+        BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_select_filament calib version not inited, k input left as-is, dev_id="
+                                 << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
+                                 << ", ams_id=" << ams_id << ", slot_id=" << slot_id;
     }
 
     m_comboBox_filament->SetClientData(new int(0));
