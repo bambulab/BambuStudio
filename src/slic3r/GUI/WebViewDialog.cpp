@@ -1739,6 +1739,9 @@ bool WebViewPanel::IsAllowedScriptCommand(wxWebViewEvent& evt)
     };
     static const std::set<std::string> kMakerWorldAllowed = {
         "makerworld_model_open",
+        // Used by the MakerWorld page header (logo, external links). The handler in
+        // GUI_App::handle_web_request only launches http/https URLs.
+        "common_openurl",
     };
 
     // Avoid full JSON parse here — MakerLab STL/3mf payloads can be multi-MB base64.

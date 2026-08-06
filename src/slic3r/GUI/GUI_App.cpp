@@ -5019,7 +5019,14 @@ std::string GUI_App::handle_web_request(std::string cmd)
             else if (command_str.compare("common_openurl") == 0) {
                 boost::optional<std::string> path      = root.get_optional<std::string>("url");
                 if (path.has_value()) {
-                    wxLaunchDefaultBrowser(path.value());
+                    // Remote pages may send this command, so refuse anything but plain web URLs:
+                    // local schemes (file://, ms-msdt:, custom protocol handlers) must never reach the shell.
+                    const std::string &url = path.value();
+                    if (boost::istarts_with(url, "http://") || boost::istarts_with(url, "https://")) {
+                        wxLaunchDefaultBrowser(url);
+                    } else {
+                        BOOST_LOG_TRIVIAL(warning) << "common_openurl: refused non-http(s) url";
+                    }
                 }
             }
             else if (command_str.compare("homepage_leftmenu_clicked") == 0) {
