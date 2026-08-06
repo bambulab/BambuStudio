@@ -1041,12 +1041,24 @@ public:
                        bool rb = false)
             : render_type(rt), canvas_type(ct), rebuild_bvh(rb) {}
     };
+    // Stable identity of the ModelObject / ModelInstance / ModelVolume that owns the assemble pose of
+    // a candidate GLVolume. The assembly thumbnail is always rendered from the 3D-view GLVolumes (whose
+    // composite_id addresses the prepare model) while the poses are read from the independent assembly
+    // model, so GLVolume indices must never be used to write a pose back: the two object lists diverge
+    // as soon as the assembly model is rebuilt from assembly_model.json instead of cloned from prepare.
+    struct AssemblePoseTarget {
+        size_t      object_id{0};
+        size_t      instance_id{0};
+        std::string part_guid;
+        bool        valid() const { return object_id != 0; }
+    };
     struct IsolatedVolumeInfo {
         // Identify volumes by index / name only: GLVolume* would dangle after reload/reset.
-        int           obj_idx      = -1;
-        int           instance_idx = -1;
-        std::string   name;
-        BoundingBoxf3 world_box_assembly;
+        int                obj_idx      = -1;
+        int                instance_idx = -1;
+        std::string        name;
+        BoundingBoxf3      world_box_assembly;
+        AssemblePoseTarget target;
     };
     static bool                            s_enable_bvh;
     static std::vector<IsolatedVolumeInfo> s_isolated_volumes;
@@ -1524,6 +1536,7 @@ private:
     void _check_assembly_far_from_origin();
     static void _filter_assembly_thumbnail_candidates_by_bvh(const std::vector<GLVolume*>& assemble_candidate_volumes,
         const std::vector<BoundingBoxf3>&  assemble_candidate_boxes,
+        const std::vector<AssemblePoseTarget>& assemble_candidate_targets,
         bool                               skip_single_volume_bvh,
         bool                               rebuild_bvh,
         std::vector<bool>&                 include_candidate_volumes);

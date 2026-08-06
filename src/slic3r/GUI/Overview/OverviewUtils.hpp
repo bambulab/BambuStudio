@@ -9,6 +9,7 @@ namespace Slic3r {
 
 class Model;
 class ModelObject;
+class ModelVolume;
 
 namespace GUI {
 
@@ -23,6 +24,7 @@ public:
     static Model &assembly_edit_primary_model(Plater &plater);
     static void   set_model_assemble_instance_offsets(Model &model, const Vec3d &offset);
     static void   sync_assemble_instance_offset_to_prepare(const ModelObject *assemble_obj, int inst_idx, Model &prepare_model);
+    static void   sync_assemble_volume_offset_to_prepare(const ModelVolume *assemble_vol, Model &prepare_model);
     static void   sync_all_assemble_instance_offsets_to_prepare(Model &assemble_model, Model &prepare_model);
     static void   sync_canvas_glvolume_instance_offsets_from_model(GLCanvas3D *canvas, const Model &model);
 

@@ -468,6 +468,9 @@ class AssemblyStepsUtils
     double                m_play_end_start_time{0.0};
     int                   m_pending_global_frame_index{-1};
     bool                  m_show_video_title_mode{false};
+    // When false (default), pausing on a title overlay jumps forward to the nearest
+    // subsequent valid keyframe instead of remaining on the title card.
+    bool                  m_allow_stay_on_the_title{false};
     // When true, keep world axes/grid visible even in play/export mode.
     bool                  m_force_show_world_axes{false};
     // When true, the assembly tree shows an extra "Explosion" column (debug/opt-in).
@@ -832,6 +835,8 @@ public://logic
     void                     pause_global_frame();
     void                     pause_playback();
     void                     resume_playback();
+    // Play-bar primary button: pause / resume / start (with intro when at ends).
+    void                     toggle_global_playback();
     void                     clear_playback_pause_state();
     void                     clear_global_playback_state();
     // Playback speed shared by the global run, the per-step local run and the export.
@@ -839,6 +844,8 @@ public://logic
     double                   get_play_speed_multiplier() const { return m_play_speed_multiplier; }
     // If playback is paused on the video-intro/title overlay, leave that title mode
     void                     exit_title_mode_if_paused();
+    // Leave title overlay and seek to the nearest subsequent valid keyframe.
+    void                     leave_title_mode_to_nearest_keyframe();
     void                     play_different_folder_logic();
     // Drives the MP4 video intro phases. Only invoked while
     void                     play_video_intro_logic();
@@ -933,8 +940,11 @@ public://logic
     void commit_part_label_rename();
     // Enter inline-rename mode for a tree-view row backed by the given
     // ModelObject (volume_idx < 0) / ModelVolume; committing reuses
-    // rename_model_item_from_label.
+    // rename_model_item_from_label (same ObjectList sync as part-label rename).
     void begin_tree_item_rename(int object_idx, int volume_idx, const std::string &name);
+    // Confirm any pending tree-row inline rename (Enter, ImGui focus loss, or a
+    // canvas click that clears the selection). No-op when not renaming.
+    void commit_tree_item_rename();
     // Apply a new name to a ModelVolume (identified by part_guid) or,
     // when part_guid is empty, to the ModelObject at object_idx.
     // Returns true when the model name actually changed.
@@ -1019,8 +1029,6 @@ public://logic
     void clear_active_assembly_tree_checked();
     // Seed right-side steps tree from a STEP import tree
     void create_assembly_steps_from_step_import_tree(const std::vector<StepImportTreeNode> &step_nodes, const std::string &source_path);
-    // Build left-side assembly tree from Model objects and plates
-    AssemblyTreeData build_assembly_tree_data();
     void             show_all_volume_normal_render();
     // Render every part as a translucent "candidate" for a freshly-created step: parts
     void             show_volumes_as_step_candidates();

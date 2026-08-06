@@ -12883,6 +12883,7 @@ static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
                                          double                             threshold_dist,
                                          const std::vector<GLVolume*>&      candidate_volumes,
                                          const std::vector<BoundingBoxf3>&  candidate_boxes,
+                                         const std::vector<GLCanvas3D::AssemblePoseTarget>& candidate_targets,
                                          std::vector<bool>&                 include_flags)
 {
     if (node_idx == primary_idx) {
@@ -12938,9 +12939,12 @@ static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
                         info.instance_idx       = vol->instance_idx();
                         info.name               = vol->name;
                         info.world_box_assembly = candidate_boxes[pi];
+                        if (pi < candidate_targets.size())
+                            info.target = candidate_targets[pi];
                         GLCanvas3D::s_isolated_volumes.push_back(std::move(info));
                         const auto &back = GLCanvas3D::s_isolated_volumes.back();
-                        BOOST_LOG_TRIVIAL(info) << boost::format("assembly thumbnail BVH isolated: obj_idx=%1% name=%2% stored_obj_idx=%3%") % oid % back.name % back.obj_idx;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("assembly thumbnail BVH isolated: obj_idx=%1% name=%2% stored_obj_idx=%3% target_obj_id=%4% target_inst_id=%5% target_guid=%6%")
+                                                       % oid % back.name % back.obj_idx % back.target.object_id % back.target.instance_id % back.target.part_guid;
                     }
                 }
             }
@@ -12948,8 +12952,8 @@ static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
         return;
     }
 
-    _check_and_exclude_bvh_node(bvh, node.leftFirst,     primary_idx, primary_bounds, threshold_dist, candidate_volumes, candidate_boxes, include_flags);
-    _check_and_exclude_bvh_node(bvh, node.leftFirst + 1, primary_idx, primary_bounds, threshold_dist, candidate_volumes, candidate_boxes, include_flags);
+    _check_and_exclude_bvh_node(bvh, node.leftFirst,     primary_idx, primary_bounds, threshold_dist, candidate_volumes, candidate_boxes, candidate_targets, include_flags);
+    _check_and_exclude_bvh_node(bvh, node.leftFirst + 1, primary_idx, primary_bounds, threshold_dist, candidate_volumes, candidate_boxes, candidate_targets, include_flags);
 }
 constexpr double c_bvh_expand_dist = 3.0;
 static void _reclaim_isolated_volumes_by_bvh(
@@ -13049,6 +13053,7 @@ static void _reclaim_isolated_volumes_by_bvh(
 
 void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<GLVolume*>& assemble_candidate_volumes,
     const std::vector<BoundingBoxf3>&  assemble_candidate_boxes,
+    const std::vector<AssemblePoseTarget>& assemble_candidate_targets,
     bool                               skip_single_volume_bvh,
     bool                               rebuild_bvh,
     std::vector<bool>&                 include_candidate_volumes)
@@ -13142,7 +13147,7 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
     s_bvh_expanded_bounds = _expand_bounds(primary_bounds, s_expand_bvh_box_dist);
 
     _check_and_exclude_bvh_node(volume_bvh, 0, primary_idx, s_bvh_expanded_bounds, threshold_dist,
-                                assemble_candidate_volumes, assemble_candidate_boxes, include_candidate_volumes);
+                                assemble_candidate_volumes, assemble_candidate_boxes, assemble_candidate_targets, include_candidate_volumes);
 
     if (!s_isolated_volumes.empty()) {
         std::unordered_map<int, std::vector<size_t>> obj_to_candidates;
@@ -13240,12 +13245,14 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
     else {
         std::vector<GLVolume *>     assemble_candidate_volumes;
         std::vector<BoundingBoxf3>  assemble_candidate_boxes;
+        std::vector<AssemblePoseTarget> assemble_candidate_targets;
         bool skip_single_volume_bvh = volumes.volumes.size() == 1 && !volumes.volumes.front()->is_modifier && !volumes.volumes.front()->is_wipe_tower;
         if (!s_enable_bvh) {
             skip_single_volume_bvh = true;
         }
         assemble_candidate_volumes.reserve(volumes.volumes.size());
         assemble_candidate_boxes.reserve(volumes.volumes.size());
+        assemble_candidate_targets.reserve(volumes.volumes.size());
 
         struct AssemblyVolumeRef {
             ModelObject *object{nullptr};
@@ -13401,11 +13408,18 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
             vol->set_offset_to_assembly(instance->get_offset_to_assembly());
             assemble_candidate_volumes.emplace_back(vol);
             assemble_candidate_boxes.emplace_back(vol->transformed_bounding_box());
+            // Record who really owns the assemble pose. This is the only identity that survives the
+            // prepare/assembly object-list divergence; GLVolume indices address the prepare model here.
+            AssemblePoseTarget target;
+            target.object_id   = ref.object->id().id;
+            target.instance_id = instance->id().id;
+            target.part_guid   = !ref.volume->assembly_src_guid().empty() ? ref.volume->assembly_src_guid() : ref.volume->part_guid();
+            assemble_candidate_targets.emplace_back(std::move(target));
         }
         s_assemble_candidate_volumes_size = assemble_candidate_volumes.size();
         std::vector<bool> include_candidate_volumes(assemble_candidate_volumes.size(), true);
         const auto bvh_t0 = std::chrono::steady_clock::now();
-        _filter_assembly_thumbnail_candidates_by_bvh(assemble_candidate_volumes, assemble_candidate_boxes, skip_single_volume_bvh, extra_thumb_data.rebuild_bvh, include_candidate_volumes);
+        _filter_assembly_thumbnail_candidates_by_bvh(assemble_candidate_volumes, assemble_candidate_boxes, assemble_candidate_targets, skip_single_volume_bvh, extra_thumb_data.rebuild_bvh, include_candidate_volumes);
         s_last_bvh_filter_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - bvh_t0).count();
 
         for (size_t i = 0; i < assemble_candidate_volumes.size(); ++i) {

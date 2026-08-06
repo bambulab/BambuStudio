@@ -89,6 +89,63 @@ std::string sanitize_export_output_path(const std::string &path, const std::stri
     output_path = output_path.parent_path() / (stem + extension);
     return output_path.string();
 }
+
+// Locate a model-part volume by stable part_guid. Returns false when not found.
+bool find_volume_by_part_guid(const Model &model, const std::string &part_guid, int &out_oi, int &out_vi)
+{
+    out_oi = -1;
+    out_vi = -1;
+    if (part_guid.empty())
+        return false;
+    for (int oi = 0; oi < (int) model.objects.size(); ++oi) {
+        const ModelObject *obj = model.objects[oi];
+        if (!obj) continue;
+        for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+            if (obj->volumes[vi] && obj->volumes[vi]->ensure_part_guid() == part_guid) {
+                out_oi = oi;
+                out_vi = vi;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// Count model-part volumes; when count == 1 writes the sole volume index to out_sole_vi.
+int count_model_parts(const ModelObject &obj, int *out_sole_vi = nullptr)
+{
+    int count = 0;
+    int sole  = -1;
+    for (int vi = 0; vi < (int) obj.volumes.size(); ++vi) {
+        if (obj.volumes[vi] && obj.volumes[vi]->is_model_part()) {
+            ++count;
+            sole = vi;
+        }
+    }
+    if (out_sole_vi)
+        *out_sole_vi = (count == 1) ? sole : -1;
+    return count;
+}
+
+// Refresh prepare-side ObjectList from the model (vol_idx < 0 = object row).
+void sync_prepare_object_list_name(int prep_oi, int prep_vi)
+{
+    if (ObjectList *obj_list = wxGetApp().obj_list())
+        obj_list->sync_name_from_model(prep_oi, prep_vi);
+}
+
+// Patch assembly-tree row labels for a rename. volume_idx < 0 targets the object row;
+// also_object_row also updates the collapsed object row when renaming a sole volume.
+void patch_assembly_tree_rename_labels(AssemblyTreeData &tree, int object_idx, int volume_idx,
+                                       bool also_object_row, const std::string &name)
+{
+    for (auto &node : tree.nodes) {
+        if (volume_idx >= 0 && node.object_idx == object_idx && node.volume_idx == volume_idx)
+            node.label = name;
+        if ((volume_idx < 0 || also_object_row) && node.object_idx == object_idx && node.volume_idx < 0)
+            node.label = name;
+    }
+}
 } // namespace
 
 void AssemblyStepsUtils::set_selection_origin(SelectionOrigin origin)
@@ -96,6 +153,7 @@ void AssemblyStepsUtils::set_selection_origin(SelectionOrigin origin)
     if (m_selection_origin != origin) {
         if (origin == SelectionOrigin::None) {
             commit_part_label_rename();
+            commit_tree_item_rename();
             exit_note_edit();
             //ban exit_render_assembly_tree_ui() here;
             //this clear_when_no_selection(); Trigger camera rotation and exit the current step editing with a single click
@@ -2870,6 +2928,9 @@ void AssemblyStepsUtils::pause_playback()
     m_keyframe_playing = false;
     m_playback_paused = true;
     m_playback_pause_started_at = assembly_now_seconds();
+    // Default: do not freeze on the title card — jump to the next valid keyframe.
+    if (!m_allow_stay_on_the_title && is_show_video_title_mode())
+        leave_title_mode_to_nearest_keyframe();
     do_commond_callback("request_extra_frame");
 }
 
@@ -2892,6 +2953,57 @@ void AssemblyStepsUtils::resume_playback()
     if (m_video_intro_active || m_show_video_title_mode || m_pending_global_frame_index > 0)
         m_play_global = true;
     do_commond_callback("request_extra_frame");
+}
+
+void AssemblyStepsUtils::toggle_global_playback()
+{
+    rebuild_play_frame_refs();
+    const int total_frames = (int) m_play_frame_refs.size();
+    const int cur_global   = total_frames > 0 ? std::clamp(m_assembly_play_index, 1, total_frames) : 1;
+
+    if (m_keyframe_playing) {
+        pause_playback();
+    } else if (m_playback_paused) {
+        resume_playback();
+    } else {
+        // Fresh play: start from the frame the progress bar is currently on.
+        if (cur_global <= 1 || cur_global >= total_frames)
+            start_playback_with_intro();
+        else
+            play_global_frame(true);
+    }
+}
+
+void AssemblyStepsUtils::leave_title_mode_to_nearest_keyframe()
+{
+    if (!is_show_video_title_mode())
+        return;
+
+    // Prefer the frame the title was announcing (between-step pending), then the
+    // first playable frame after intro, then the current play index.
+    int target = -1;
+    if (m_pending_global_frame_index > 0)
+        target = m_pending_global_frame_index;
+    else if (m_video_intro_active)
+        target = 1;
+    else
+        target = std::max(1, m_assembly_play_index);
+
+    m_video_intro_active            = false;
+    m_video_intro_phase             = 0;
+    m_video_intro_start_time        = 0.0;
+    m_show_video_title_mode         = false;
+    m_play_different_folder_waiting = false;
+    m_play_different_folder_phase   = 0;
+    m_pending_global_frame_index    = -1;
+
+    if (target > 0)
+        goto_global_frame(target);
+
+    // Stay paused on the landed keyframe so Resume continues from here.
+    m_keyframe_playing          = false;
+    m_playback_paused           = true;
+    m_playback_pause_started_at = assembly_now_seconds();
 }
 
 void AssemblyStepsUtils::play_different_folder_logic()
@@ -5727,6 +5839,95 @@ void AssemblyStepsUtils::begin_tree_item_rename(int object_idx, int volume_idx, 
     m_tree_item_rename_focus_pending = true;
 }
 
+void AssemblyStepsUtils::commit_tree_item_rename()
+{
+    const int object_idx = m_tree_item_rename_object_idx;
+    const int volume_idx = m_tree_item_rename_volume_idx;
+    if (object_idx < 0)
+        return;
+
+    const std::string new_name = m_tree_item_rename_buf;
+    // Drop the edit state up front so the save/callbacks below cannot re-enter
+    // this commit path.
+    m_tree_item_rename_object_idx    = -1;
+    m_tree_item_rename_volume_idx    = -1;
+    m_tree_item_rename_focus_pending = false;
+
+    // Prefer the volume part_guid path (same as PartNumberLabel) so prepare-side
+    // ObjectList stays in sync. Collapsed single-volume object rows expose
+    // volume_idx < 0; resolve their sole model-part volume when possible.
+    std::string guid;
+    if (m_model && object_idx < (int) m_model->objects.size()) {
+        ModelObject *obj = m_model->objects[object_idx];
+        if (obj) {
+            if (volume_idx >= 0 && volume_idx < (int) obj->volumes.size() && obj->volumes[volume_idx]) {
+                guid = obj->volumes[volume_idx]->ensure_part_guid();
+            } else if (volume_idx < 0) {
+                int model_part_count = 0;
+                int sole_vi          = -1;
+                for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+                    if (obj->volumes[vi] && obj->volumes[vi]->is_model_part()) {
+                        ++model_part_count;
+                        sole_vi = vi;
+                    }
+                }
+                if (model_part_count == 1 && sole_vi >= 0)
+                    guid = obj->volumes[sole_vi]->ensure_part_guid();
+            }
+        }
+    }
+
+    const bool has_guid = !guid.empty();
+    if (has_guid) {
+        if (!rename_model_item_from_label(guid, -1, new_name))
+            return;
+    } else {
+        if (!rename_model_item_from_label("", object_idx, new_name))
+            return;
+    }
+
+    // Read back the committed name after the model was updated.
+    const std::string committed = [&]() -> std::string {
+        if (has_guid) {
+            for (const ModelObject *obj : m_model->objects) {
+                if (!obj) continue;
+                for (const ModelVolume *vol : obj->volumes) {
+                    if (vol && vol->ensure_part_guid() == guid)
+                        return vol->name;
+                }
+            }
+        } else if (object_idx >= 0 && object_idx < (int) m_model->objects.size() && m_model->objects[object_idx]) {
+            return m_model->objects[object_idx]->name;
+        }
+        return std::string();
+    }();
+
+    // Propagate the renamed label to every keyframe across all step nodes,
+    // so canvas PartNumberLabels stay consistent with the tree rename.
+    bool any_dirty = false;
+    for (auto &node : _steps_nodes) {
+        for (auto &entry : node.kf_data.entries) {
+            bool entry_dirty = false;
+            for (auto &lbl : entry.data.assembly_note.part_number_labels) {
+                bool match = has_guid ? (lbl.part_guid == guid)
+                                      : (lbl.object_idx == object_idx && lbl.volume_idx < 0);
+                if (match) {
+                    lbl.part_name = committed;
+                    entry_dirty   = true;
+                }
+            }
+            if (entry_dirty) {
+                entry.need_save = true;
+                any_dirty       = true;
+            }
+        }
+    }
+    if (any_dirty)
+        save_assembly_steps_json_to_model();
+    do_commond_callback("dirty");
+    do_commond_callback("request_extra_frame");
+}
+
 bool AssemblyStepsUtils::rename_model_item_from_label(const std::string &part_guid, int object_idx, const std::string &new_name)
 {
     if (!m_model)
@@ -5737,60 +5938,48 @@ bool AssemblyStepsUtils::rename_model_item_from_label(const std::string &part_gu
     if (trimmed.empty())
         return false;
 
-    if (!part_guid.empty()) {
-        // Volume-level rename: find in the plater's model (source of truth)
-        // and update ObjectList; also mirror to the assembly model.
-        Model &prepare_model = wxGetApp().model();
-        int prep_oi = -1, prep_vi = -1;
-        for (int oi = 0; oi < (int) prepare_model.objects.size(); ++oi) {
-            if (prepare_model.objects[oi] == nullptr) continue;
-            for (int vi = 0; vi < (int) prepare_model.objects[oi]->volumes.size(); ++vi) {
-                if (prepare_model.objects[oi]->volumes[vi] != nullptr &&
-                    prepare_model.objects[oi]->volumes[vi]->ensure_part_guid() == part_guid) {
-                    prep_oi = oi;
-                    prep_vi = vi;
-                    break;
-                }
-            }
-            if (prep_oi >= 0) break;
-        }
-        if (prep_oi < 0 || prep_vi < 0)
-            return false;
-        if (prepare_model.objects[prep_oi]->volumes[prep_vi]->name == trimmed)
-            return false;
-        prepare_model.objects[prep_oi]->volumes[prep_vi]->name = trimmed;
-        if (ObjectList *obj_list = wxGetApp().obj_list())
-            obj_list->sync_name_from_model(prep_oi, prep_vi);
+    auto patch_both_trees = [this](int oi, int vi, bool also_object_row, const std::string &name) {
+        patch_assembly_tree_rename_labels(m_model->get_assembly_tree_data(), oi, vi, also_object_row, name);
+        patch_assembly_tree_rename_labels(m_structure_select_popup_tree, oi, vi, also_object_row, name);
+    };
 
-        // Mirror the rename in the assembly model's copy and patch tree labels
+    if (!part_guid.empty()) {
+        // Volume-level rename: prepare model is source of truth; mirror to assembly + ObjectList.
+        Model &prepare_model = wxGetApp().model();
+        int    prep_oi = -1, prep_vi = -1;
+        if (!find_volume_by_part_guid(prepare_model, part_guid, prep_oi, prep_vi))
+            return false;
+        ModelObject *prep_obj = prepare_model.objects[prep_oi];
+        if (!prep_obj || !prep_obj->volumes[prep_vi])
+            return false;
+        if (prep_obj->volumes[prep_vi]->name == trimmed)
+            return false;
+
+        prep_obj->volumes[prep_vi]->name = trimmed;
+        // Single-volume objects show the object row in ObjectList; keep names aligned
+        // (same convention as ObjectList rename).
+        const bool prep_sole_part = count_model_parts(*prep_obj) == 1;
+        if (prep_sole_part)
+            prep_obj->name = trimmed;
+        sync_prepare_object_list_name(prep_oi, prep_vi);
+
         int asm_oi = -1, asm_vi = -1;
-        for (int oi = 0; oi < (int) m_model->objects.size(); ++oi) {
-            if (m_model->objects[oi] == nullptr) continue;
-            for (int vi = 0; vi < (int) m_model->objects[oi]->volumes.size(); ++vi) {
-                if (m_model->objects[oi]->volumes[vi] != nullptr &&
-                    m_model->objects[oi]->volumes[vi]->ensure_part_guid() == part_guid) {
-                    asm_oi = oi;
-                    asm_vi = vi;
-                    break;
-                }
+        if (find_volume_by_part_guid(*m_model, part_guid, asm_oi, asm_vi)) {
+            ModelObject *asm_obj = m_model->objects[asm_oi];
+            if (asm_obj && asm_obj->volumes[asm_vi]) {
+                asm_obj->volumes[asm_vi]->name = trimmed;
+                // Assembly tree collapses single-volume objects to the object row.
+                const bool asm_sole_part = count_model_parts(*asm_obj) == 1;
+                if (asm_sole_part)
+                    asm_obj->name = trimmed;
+                patch_both_trees(asm_oi, asm_vi, asm_sole_part, trimmed);
             }
-            if (asm_oi >= 0) break;
-        }
-        if (asm_oi >= 0 && asm_vi >= 0) {
-            m_model->objects[asm_oi]->volumes[asm_vi]->name = trimmed;
-            auto patch_tree_label = [asm_oi, asm_vi, &trimmed](AssemblyTreeData &tree) {
-                for (auto &node : tree.nodes) {
-                    if (node.object_idx == asm_oi && node.volume_idx == asm_vi)
-                        node.label = trimmed;
-                }
-            };
-            patch_tree_label(m_model->get_assembly_tree_data());
-            patch_tree_label(m_structure_select_popup_tree);
         }
         return true;
     }
 
-    // Object-level rename: only in the assembly model (no ObjectList sync)
+    // Object-level rename: update the assembly model and sync prepare ObjectList
+    // when a matching prepare object can be found via shared volume part_guid.
     if (object_idx < 0 || object_idx >= (int) m_model->objects.size())
         return false;
     ModelObject *obj = m_model->objects[object_idx];
@@ -5799,14 +5988,34 @@ bool AssemblyStepsUtils::rename_model_item_from_label(const std::string &part_gu
     if (obj->name == trimmed)
         return false;
     obj->name = trimmed;
-    auto patch_tree_label = [object_idx, &trimmed](AssemblyTreeData &tree) {
-        for (auto &node : tree.nodes) {
-            if (node.object_idx == object_idx && node.volume_idx < 0)
-                node.label = trimmed;
-        }
-    };
-    patch_tree_label(m_model->get_assembly_tree_data());
-    patch_tree_label(m_structure_select_popup_tree);
+    patch_both_trees(object_idx, -1, false, trimmed);
+
+    Model &prepare_model = wxGetApp().model();
+    int    prep_oi       = -1;
+    for (const ModelVolume *vol : obj->volumes) {
+        if (!vol) continue;
+        const std::string g = vol->ensure_part_guid();
+        if (g.empty()) continue;
+        int vi = -1;
+        if (find_volume_by_part_guid(prepare_model, g, prep_oi, vi))
+            break;
+        prep_oi = -1;
+    }
+    if (prep_oi < 0 || !prepare_model.objects[prep_oi])
+        return true;
+
+    ModelObject *prep_obj = prepare_model.objects[prep_oi];
+    prep_obj->name = trimmed;
+    // Mirror ObjectList's single-volume convention: renaming the object also
+    // renames its only part, and vice versa.
+    int prep_sole_vi = -1;
+    if (count_model_parts(*prep_obj, &prep_sole_vi) == 1 && prep_sole_vi >= 0) {
+        prep_obj->volumes[prep_sole_vi]->name = trimmed;
+        int asm_sole_vi = -1;
+        if (count_model_parts(*obj, &asm_sole_vi) == 1 && asm_sole_vi >= 0)
+            obj->volumes[asm_sole_vi]->name = trimmed;
+    }
+    sync_prepare_object_list_name(prep_oi, -1);
     return true;
 }
 
@@ -6972,6 +7181,8 @@ void AssemblyStepsUtils::auto_open_add_tree_for_selected_step()
 
 void AssemblyStepsUtils::exit_render_assembly_tree_ui()
 {
+    // Commit any in-progress row rename before dropping panel-local rename state.
+    commit_tree_item_rename();
     m_structure_add_tree_card = -1;
     m_structure_add_tree_step_node = -1;
     m_assembly_tree_ui_current_folder_node = -1;
@@ -9144,183 +9355,6 @@ void AssemblyStepsUtils::create_assembly_steps_from_step_import_tree(
     }
 }
 
-AssemblyTreeData AssemblyStepsUtils::build_assembly_tree_data()
-{
-    AssemblyTreeData tree;
-    if (m_model == nullptr)
-        return tree;
-
-    auto add_node = [&tree, this](int parent_id, const std::string& uid, const std::string& label, int object_idx, int volume_idx, bool selectable = true) {
-        AssemblyTreeNodeData node;
-        node.id         = static_cast<int>(tree.nodes.size());
-        node.parent_id  = parent_id;
-        node.uid        = uid;
-        node.label      = label;
-        node.object_idx = object_idx;
-        node.volume_idx = volume_idx;
-        node.selectable = selectable;
-        tree.nodes.emplace_back(std::move(node));
-
-        if (parent_id >= 0 && parent_id < static_cast<int>(tree.nodes.size()))
-            tree.nodes[parent_id].children.emplace_back(tree.nodes.back().id);
-        else
-            tree.roots.emplace_back(tree.nodes.back().id);
-
-        return tree.nodes.back().id;
-    };
-
-    std::vector<bool> object_in_step_tree(m_model->objects.size(), false);
-
-    // Carry over existing "step:<N>" subtrees from the previous in-memory
-    // AssemblyTreeData. STEP imports register directly via
-    // append_step_import_to_assembly_tree() and are persisted in 3MF.
-    std::unordered_map<int, int> old_step_id_to_new;
-    const AssemblyTreeData& old_assembly_tree = m_model->get_assembly_tree_data();
-    old_step_id_to_new.reserve(old_assembly_tree.nodes.size());
-    for (const auto& old_node : old_assembly_tree.nodes) {
-        if (old_node.uid.rfind("step:", 0) != 0)
-            continue;
-
-        int parent_id = -1;
-        if (old_node.parent_id >= 0) {
-            auto it = old_step_id_to_new.find(old_node.parent_id);
-            if (it != old_step_id_to_new.end())
-                parent_id = it->second;
-        }
-
-        bool selectable = old_node.volume_idx < 0;
-        if (selectable && old_node.children.empty() &&
-            old_node.object_idx >= 0 && static_cast<size_t>(old_node.object_idx) < m_model->objects.size() &&
-            m_model->objects[old_node.object_idx] != nullptr &&
-            m_model->objects[old_node.object_idx]->volumes.size() > 1)
-            selectable = false;
-
-        const int new_id = add_node(parent_id, old_node.uid, old_node.label,
-                                    old_node.object_idx, old_node.volume_idx,
-                                    selectable);
-        old_step_id_to_new.emplace(old_node.id, new_id);
-
-        if (old_node.object_idx >= 0 && static_cast<size_t>(old_node.object_idx) < object_in_step_tree.size())
-            object_in_step_tree[old_node.object_idx] = m_model->objects[old_node.object_idx] != nullptr;
-    }
-
-    auto add_object_node = [this, &add_node](int parent_id, int object_idx) {
-        if (object_idx < 0 || static_cast<size_t>(object_idx) >= m_model->objects.size())
-            return;
-
-        const ModelObject* object = m_model->objects[object_idx];
-        if (object == nullptr)
-            return;
-
-        const std::string object_label = object->name.empty() ? _u8L("Object") : object->name;
-        const int object_node = add_node(parent_id, "object:" + std::to_string(object_idx), object_label, object_idx, -1);
-        if (object->volumes.size() <= 1)
-            return;
-
-        for (size_t volume_idx = 0; volume_idx < object->volumes.size(); ++volume_idx) {
-            const ModelVolume* volume = object->volumes[volume_idx];
-            if (volume == nullptr)
-                continue;
-
-            const std::string volume_label = volume->name.empty() ? _u8L("Part") : volume->name;
-            add_node(object_node,
-                     "object:" + std::to_string(object_idx) + "/volume:" + std::to_string(volume_idx),
-                     volume_label,
-                     object_idx,
-                     static_cast<int>(volume_idx),
-                     false);
-        }
-    };
-
-    std::vector<bool> object_added(m_model->objects.size(), false);
-    PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
-    for (int plate_idx = 0; plate_idx < plate_list.get_plate_count(); ++plate_idx) {
-        PartPlate* plate = plate_list.get_plate(plate_idx);
-        if (plate == nullptr)
-            continue;
-
-        std::vector<int> object_indices;
-        for (const ModelObject* plate_object : plate->get_objects_on_this_plate()) {
-            auto object_it = std::find(m_model->objects.begin(), m_model->objects.end(), plate_object);
-            if (object_it == m_model->objects.end())
-                continue;
-            const int object_idx = static_cast<int>(std::distance(m_model->objects.begin(), object_it));
-            if ((object_idx < static_cast<int>(object_in_step_tree.size()) && object_in_step_tree[object_idx]) ||
-                (object_idx < static_cast<int>(object_added.size()) && object_added[object_idx]))
-                continue;
-            object_indices.emplace_back(object_idx);
-            object_added[object_idx] = true;
-        }
-
-        if (object_indices.empty())
-            continue;
-
-        const int plate_node = add_node(-1, "plate:" + std::to_string(plate_idx), (boost::format(_u8L("Plate %1%")) % (plate_idx + 1)).str(), -1, -1);
-        for (int object_idx : object_indices)
-            add_object_node(plate_node, object_idx);
-    }
-
-    for (int object_idx = 0; object_idx < static_cast<int>(m_model->objects.size()); ++object_idx) {
-        if ((object_idx >= static_cast<int>(object_in_step_tree.size()) || !object_in_step_tree[object_idx]) &&
-            (object_idx >= static_cast<int>(object_added.size()) || !object_added[object_idx]))
-            add_object_node(-1, object_idx);
-    }
-
-    // Prune nodes whose ModelObject/Volume has been removed
-    std::vector<int> old_to_new(tree.nodes.size(), -1);
-    std::function<bool(int)> mark_kept_node = [&](int node_id) {
-        if (node_id < 0 || node_id >= static_cast<int>(tree.nodes.size()))
-            return false;
-
-        const auto& node = tree.nodes[node_id];
-        bool has_kept_child = false;
-        for (int child_id : node.children)
-            has_kept_child = mark_kept_node(child_id) || has_kept_child;
-
-        bool has_valid_model_item = false;
-        if (node.object_idx >= 0 && node.object_idx < static_cast<int>(m_model->objects.size()) &&
-            m_model->objects[node.object_idx] != nullptr) {
-            const ModelObject* object = m_model->objects[node.object_idx];
-            has_valid_model_item = node.volume_idx < 0 ||
-                                   (static_cast<size_t>(node.volume_idx) < object->volumes.size() && object->volumes[node.volume_idx] != nullptr);
-        }
-
-        if (has_valid_model_item || has_kept_child) {
-            old_to_new[node_id] = 0;
-            return true;
-        }
-        return false;
-    };
-    for (int root_id : tree.roots)
-        mark_kept_node(root_id);
-
-    AssemblyTreeData pruned_tree;
-    std::function<void(int, int)> append_kept_node = [&](int old_id, int parent_id) {
-        if (old_id < 0 || old_id >= static_cast<int>(tree.nodes.size()) || old_to_new[old_id] < 0)
-            return;
-
-        auto node = tree.nodes[old_id];
-        node.id        = static_cast<int>(pruned_tree.nodes.size());
-        node.parent_id = parent_id;
-        node.children.clear();
-        pruned_tree.nodes.emplace_back(std::move(node));
-        const int new_id = pruned_tree.nodes.back().id;
-        old_to_new[old_id] = new_id;
-
-        if (parent_id >= 0)
-            pruned_tree.nodes[parent_id].children.emplace_back(new_id);
-        else
-            pruned_tree.roots.emplace_back(new_id);
-
-        for (int child_id : tree.nodes[old_id].children)
-            append_kept_node(child_id, new_id);
-    };
-    for (int root_id : tree.roots)
-        append_kept_node(root_id, -1);
-
-    tree = std::move(pruned_tree);
-    return tree;
-}
 // NoteColorItem / kNoteColors / note_color_* helpers moved to
 // AssemblyStepsUtilsInternal.hpp (shared with AssemblyStepsUtilsImgui.cpp).
 void AssemblyStepsUtils::update_part_number_label_forbidden_layout_areas(float canvas_w, float canvas_h)

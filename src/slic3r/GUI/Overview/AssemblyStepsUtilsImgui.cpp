@@ -680,7 +680,18 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     const float TOTAL_H = top_half + std::max(top_half + 4.0f * sc, 21.74f * sc + LABEL_FONT_PX + 4.0f * sc);
 
     // Window position: centered horizontally, anchored so its bottom edge sits at `bottom_y`.
-    const float win_x = canvas_w * 0.5f - TOTAL_W * 0.5f;
+    // When the sidebar is expanded the canvas is narrower and a centered bar would overlap
+    // the left Assembly Structure panel (play/pause sits on that side). Prefer centering,
+    // but push right enough to clear the structure panel when needed.
+    float win_x = canvas_w * 0.5f - TOTAL_W * 0.5f;
+    if (m_assembly_structure_right_x > 0.0f) {
+        const float min_x = m_assembly_structure_right_x + 8.0f * sc;
+        if (win_x < min_x)
+            win_x = min_x;
+    }
+    const float max_x = canvas_w - TOTAL_W - 12.0f * sc;
+    if (max_x > 0.0f && win_x > max_x)
+        win_x = max_x;
     const float win_y = bottom_y - TOTAL_H + 15;
 
     ImGui::SetNextWindowPos(ImVec2(win_x, win_y), ImGuiCond_Always);
@@ -691,11 +702,16 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
 
+    // Do NOT use NoBringToFrontOnFocus here. When the sidebar is expanded the
+    // canvas shrinks and this centered bar's left (play/pause) overlaps the
+    // Assembly Structure panel; with NoBringToFrontOnFocus the structure panel
+    // stays above this bar for hit-testing, so play has no hover/click while the
+    // right-side nav buttons (outside that overlap) still work.
     m_imgui->begin(std::string("##assembly_play_bar"),
         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
-        ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus);
+        ImGuiWindowFlags_NoBackground);
 
     m_panel_rect_playbar_min = ImVec2(win_x, win_y);
     m_panel_rect_playbar_max = ImVec2(win_x + TOTAL_W, win_y + TOTAL_H);
@@ -727,17 +743,8 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
                             b0.y + (PLAY_BTN_SZ - PLAY_ICON_SZ) * 0.5f);
             dl->AddImage(tex, i0, ImVec2(i0.x + PLAY_ICON_SZ, i0.y + PLAY_ICON_SZ));
         }
-        if (clicked) {
-            if (m_keyframe_playing) pause_playback();
-            else if (m_playback_paused) resume_playback();
-            else {
-                // Fresh play: start from the frame the progress bar is currently
-                if (cur_global <= 1 || cur_global >= total_frames)
-                    start_playback_with_intro();
-                else
-                    play_global_frame(true);
-            }
-        }
+        if (clicked)
+            toggle_global_playback();
         if (hovered) {
             // unified message for both play and pause states). Window has zero
             // WindowPadding, so the tooltip needs its own padding back.
@@ -2475,6 +2482,15 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
         char win_id[64];
         snprintf(win_id, sizeof(win_id), "##circle_note_%d", ni);
 
+        // Outline-only hit: the bbox InvisibleButton would otherwise swallow clicks
+        // over the hollow interior and block overlapping text labels underneath.
+        // Keep inputs only on the stroke (or while this circle is mid-drag).
+        ImVec2 mouse_pos = ImGui::GetIO().MousePos;
+        bool on_circle_line = is_point_on_ellipse_outline(mouse_pos, center, radius, line_hit_tol);
+        ImGuiWindowFlags circle_flags = drag_flags;
+        if (!on_circle_line && s_circle_line_drag_idx != ni)
+            circle_flags |= ImGuiWindowFlags_NoInputs;
+
         // Moving uses the full circle bounds, while close/resize get their own
         // small overlay windows so they are not swallowed by the move hit area.
         ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
@@ -2483,11 +2499,9 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-        if (ImGui::Begin(win_id, nullptr, drag_flags)) {
+        if (ImGui::Begin(win_id, nullptr, circle_flags)) {
             ImGui::PushID(ni);
             ImGui::InvisibleButton("##circle_move", size);
-            ImVec2 mouse_pos = ImGui::GetIO().MousePos;
-            bool on_circle_line = is_point_on_ellipse_outline(mouse_pos, center, radius, line_hit_tol);
             if (ImGui::IsItemHovered() && on_circle_line) {
                 set_cursor(AssemblyNoteCursorType::Move);
                 note_cursor_requested = true;
@@ -2621,17 +2635,23 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
 
         char win_id[64];
         snprintf(win_id, sizeof(win_id), "##rect_note_%d", ni);
+        // Outline-only hit: pass through hollow interior so overlapping text
+        // labels remain selectable. Keep inputs while mid-drag.
+        ImVec2 mouse_pos = ImGui::GetIO().MousePos;
+        bool on_rect_line = is_point_on_rect_outline(mouse_pos, pos, max_pt, line_hit_tol);
+        ImGuiWindowFlags rect_flags = drag_flags;
+        if (!on_rect_line && s_rect_line_drag_idx != ni)
+            rect_flags |= ImGuiWindowFlags_NoInputs;
+
         ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
         ImGui::SetNextWindowSize(size, ImGuiCond_Always);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-        if (ImGui::Begin(win_id, nullptr, drag_flags)) {
+        if (ImGui::Begin(win_id, nullptr, rect_flags)) {
             ImGui::PushID(ni);
             ImGui::InvisibleButton("##rect_move", size);
-            ImVec2 mouse_pos = ImGui::GetIO().MousePos;
-            bool on_rect_line = is_point_on_rect_outline(mouse_pos, pos, max_pt, line_hit_tol);
             if (ImGui::IsItemHovered() && on_rect_line) {
                 set_cursor(AssemblyNoteCursorType::Move);
                 note_cursor_requested = true;
@@ -2767,6 +2787,13 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
                             std::max(line_body_start.y, line_body_end.y) + hit_tol);
             ImVec2 line_size(std::max(1.0f, line_max.x - line_min.x),
                              std::max(1.0f, line_max.y - line_min.y));
+            // Line AABB can be large for diagonal arrows; only capture input on
+            // the stroke itself so overlapping text labels stay clickable.
+            bool on_arrow_line = distance_to_segment(mouse_pos, line_body_start, line_body_end) <= hit_tol;
+            ImGuiWindowFlags line_flags = drag_flags;
+            if (!on_arrow_line && s_plain_arrow_line_drag_idx != ni)
+                line_flags |= ImGuiWindowFlags_NoInputs;
+
             char line_win_id[64];
             snprintf(line_win_id, sizeof(line_win_id), "##plain_arrow_line_%d", ni);
             ImGui::SetNextWindowPos(line_min, ImGuiCond_Always);
@@ -2775,9 +2802,8 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
             ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-            if (ImGui::Begin(line_win_id, nullptr, drag_flags)) {
+            if (ImGui::Begin(line_win_id, nullptr, line_flags)) {
                 ImGui::InvisibleButton("##plain_arrow_line_drag", line_size);
-                bool on_arrow_line = distance_to_segment(mouse_pos, line_body_start, line_body_end) <= hit_tol;
                 if (ImGui::IsItemHovered() && on_arrow_line) {
                     set_cursor(AssemblyNoteCursorType::Move);
                     note_cursor_requested = true;
@@ -4773,13 +4799,19 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
     visible_rows.reserve(tree.nodes.size());
     std::function<void(int, int, bool)> collect_visible_row;
     collect_visible_row = [&tree, &node_matches_visible, &has_only_collapsible_child,
-                           &collect_visible_row, &visible_rows, force_expand_matches]
+                           &collect_visible_row, &visible_rows, force_expand_matches, this]
                           (int node_id, int depth, bool is_last) {
         if (node_id < 0 || node_id >= static_cast<int>(tree.nodes.size()))
             return;
         if (!node_matches_visible(node_id))
             return;
         const auto& node = tree.nodes[node_id];
+        if (node.volume_idx >= 0 && m_model) {
+            const ModelObject* obj = node.object_idx >= 0 && static_cast<size_t>(node.object_idx) < m_model->objects.size()
+                                     ? m_model->objects[node.object_idx] : nullptr;
+            if (obj && static_cast<size_t>(node.volume_idx) < obj->volumes.size() && !obj->volumes[node.volume_idx]->is_model_part())
+                return;
+        }
         visible_rows.push_back({node_id, depth, is_last});
 
         const bool collapse_single_leaf = !force_expand_matches && has_only_collapsible_child(node_id);
@@ -4897,6 +4929,10 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
 
         const bool collapse_single_leaf = !force_expand_matches && has_only_collapsible_child(node_id);
         const bool has_children = !node.children.empty() && !collapse_single_leaf;
+        // Arrow position: to the right of the checkbox (or content-left if no
+        // checkbox), sharing the same 10*sc gap. Text always starts after the
+        // reserved arrow slot so labels stay vertically aligned across sibling
+        // rows regardless of whether they have a dropdown arrow.
         const float arrow_x = checkable ? checkbox_rect.Max.x + 10.0f * sc : content_x;
         const ImVec2 arrow_min(arrow_x, center_y - arrow_size * 0.5f);
         const ImRect arrow_rect(arrow_min, ImVec2(arrow_min.x + arrow_size, arrow_min.y + arrow_size));
@@ -4907,9 +4943,7 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
             child_draw_list->AddImage(arrow_tex, arrow_rect.Min, arrow_rect.Max);
         }
 
-        const float text_x = has_children
-            ? arrow_rect.Max.x + 10.0f * sc
-            : (checkable ? checkbox_rect.Max.x + 10.0f * sc : content_x);
+        const float text_x = arrow_x + arrow_size + 10.0f * sc;
         // Keep the name column clear of Label/Assemble, using the same right edge
         // as the header so icons / "step N" stay centered under their titles.
         const float text_max_x = (state_cols_w > 0.0f)
@@ -4936,20 +4970,12 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
                 ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
             const bool entered     = ImGui::InputText("##tree_item_rename", &m_tree_item_rename_buf, input_flags);
             const bool deactivated = ImGui::IsItemDeactivated();
-            if (entered || deactivated) {
-                std::string guid;
-                if (node.volume_idx >= 0 && m_model && node.object_idx >= 0 && node.object_idx < (int) m_model->objects.size()) {
-                    const ModelObject *obj = m_model->objects[node.object_idx];
-                    if (obj && node.volume_idx < (int) obj->volumes.size() && obj->volumes[node.volume_idx])
-                        guid = obj->volumes[node.volume_idx]->ensure_part_guid();
-                }
-                if (!guid.empty())
-                    rename_model_item_from_label(guid, -1, m_tree_item_rename_buf);
-                else
-                    rename_model_item_from_label("", node.object_idx, m_tree_item_rename_buf);
-                m_tree_item_rename_object_idx = -1;
-                m_tree_item_rename_volume_idx = -1;
-            }
+            // entered    : Enter pressed.
+            // deactivated: ImGui dropped focus (click onto another ImGui widget).
+            // A click on the bare 3D canvas (deselect) routes through
+            // set_selection_origin(None) -> commit_tree_item_rename() instead.
+            if (entered || deactivated)
+                commit_tree_item_rename();
             ImGui::PopStyleVar(2);
             ImGui::PopStyleColor(3);
         } else {

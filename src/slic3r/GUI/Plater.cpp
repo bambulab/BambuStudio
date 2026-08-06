@@ -6811,6 +6811,10 @@ public:
     bool leave_gizmos_stack();
     // Derive the persistent independent assembly model from the prepare model (shared meshes, GUIDs copied).
     void derive_assemble_model();
+    // True when the live m_assemble_model is stale relative to prepare (e.g. emptied by
+    // propagate_delete_to_assemble after a prepare delete, while prepare undo restored objects /
+    // assembly_model.json). Next assembly enter must re-derive instead of append+set_assembly_pos.
+    bool assemble_model_needs_rederive_from_prepare() const;
     // On entering the assembly view: append prepare-side objects not yet referenced (by part_guid) in a_model.
     void sync_assemble_model_on_enter(const std::vector<size_t>& loaded_idxs = {});
     // Mirror the render-relevant per-part state (filament / MMU color painting) between the prepare model
@@ -6835,8 +6839,10 @@ public:
     // On assembly-view entry: reproduce each prepare part's world size (instance_scale ⊙ volume_scale,
     // covering both object-level and part-level prepare scaling) on its assembly counterpart (matched by
     // assembly_src_guid) by baking it into the assembly volume's assemble scale and dividing out the
-    // assembly instance scale. Only the scale is touched; the assembly offset / rotation stay independent.
-    // The assembly view has no scale tool, so size is always prepare-authoritative (one-way sync).
+    // assembly instance scale. When the prepare side uniformly rescales a whole model -- or a whole
+    // prepare object (e.g. a STEP multipart while a neighbouring cube is left alone) -- assembly poses
+    // are also scaled about a ground-level pivot so the parts do not fall apart. The assembly view has
+    // no scale tool, so size is always prepare-authoritative (one-way sync).
     void sync_assemble_scale_from_prepare();
     // Safety net run at the end of sync_assemble_model_on_enter: drop assembly volumes whose
     // assembly_src_guid no longer matches any prepare part (a prepare-side delete that did not propagate,
@@ -7168,6 +7174,10 @@ private:
     // outside the assembly stack: the retained snapshots would otherwise no longer match the model and an
     // undo could resurrect / drop the just-synced parts. This flag requests that reset on next entry.
     bool                        m_assemble_undo_baseline_dirty = true;
+    // True when the independent assembly undo stack has project-modifying edits since the last
+    // project save. The main-stack up_to_date() check alone cannot see these edits, so close /
+    // new-project prompts must consult this flag (see priv::up_to_date).
+    bool                        m_assemble_project_dirty = false;
     // timestamp -> guide UI cursor at that assemble-stack snapshot (grows with take_snapshot /
     // pre-jump capture; pruned against live stack timestamps).
     std::unordered_map<size_t, AssemblyGuideUiSnapshot> m_assemble_guide_ui_by_time;
@@ -10532,6 +10542,7 @@ void Plater::priv::reset(bool apply_presets_change)
     // Drop any retained assembly undo history and force a fresh baseline for the next project.
     m_undo_redo_stack_assemble.clear();
     m_assemble_undo_baseline_dirty = true;
+    m_assemble_project_dirty = false;
     clear_assemble_guide_ui_snapshots();
     // Drop the persisted assembly-model graph so a fresh / next project does not rebuild a stale a_model.
     model.set_assembly_model_json_str(std::string());
@@ -12221,10 +12232,16 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             // it across view switches so assembly edits and structure survive and stay independent of the
             // prepare-side structural edits (split / combine). Bind the assembly canvas + its undo/redo
             // stack to m_assemble_model only.
-            if (!m_assemble_model_valid)
+            //
+            // Prepare delete(+propagate) can empty the live assemble model while leaving valid=true;
+            // prepare undo restores objects / assembly_model.json on the main model only. Detect that
+            // hole and re-derive from JSON (or clone) so relationships are restored — otherwise sync
+            // treats every prepare object as new and calls set_assembly_pos, wiping assembly poses.
+            if (!m_assemble_model_valid || assemble_model_needs_rederive_from_prepare())
                 derive_assemble_model();//set_current_panel
-            else
-                // Existing assembly model: pull in prepare-side objects added since last entry.
+            // Always sync after derive/keep: refresh mesh/scale/render, and append truly new prepare
+            // objects that are not in the persisted assembly graph.
+            if (m_assemble_model_valid)
                 sync_assemble_model_on_enter();
             assemble_view->get_canvas3d()->set_model(&m_assemble_model);
         }
@@ -17731,6 +17748,7 @@ void Plater::priv::derive_assemble_model()
 {
     // A freshly derived / restored assembly model has no matching undo history: force a clean baseline.
     m_assemble_undo_baseline_dirty = true;
+    m_assemble_project_dirty = false;
     // Ensure every prepare-side model part has a stable GUID before cloning, so each assembly-side
     // counterpart can reference it through assembly_src_guid.
     for (ModelObject *mo : model.objects)
@@ -17798,6 +17816,45 @@ void Plater::priv::derive_assemble_model()
                                    << " model_json_present=" << (!model.get_assembly_model_json_str().empty());
     }
 #endif
+}
+
+bool Plater::priv::assemble_model_needs_rederive_from_prepare() const
+{
+    // Live assemble already matches prepare well enough for incremental sync.
+    if (!m_assemble_model_valid || model.objects.empty())
+        return false;
+
+    // Prepare delete emptied the live assemble model (valid stays true). Prepare undo restores
+    // objects on the main model only — re-derive from assembly_model.json / clone instead of
+    // treating every object as a fresh import via set_assembly_pos.
+    if (m_assemble_model.objects.empty())
+        return true;
+
+    // Partial delete + undo: some prepare parts are back but missing from live assemble, while the
+    // persisted assembly graph still describes them. Prefer a full JSON restore over set_assembly_pos.
+    const std::string &json = model.get_assembly_model_json_str();
+    if (json.empty())
+        return false;
+
+    std::unordered_set<std::string> asm_guids;
+    for (const ModelObject *ao : m_assemble_model.objects)
+        for (const ModelVolume *mv : ao->volumes)
+            if (mv != nullptr && !mv->assembly_src_guid().empty())
+                asm_guids.insert(mv->assembly_src_guid());
+
+    for (const ModelObject *po : model.objects) {
+        for (const ModelVolume *mv : po->volumes) {
+            if (mv == nullptr || !mv->is_model_part())
+                continue;
+            const std::string &guid = mv->part_guid();
+            if (guid.empty() || asm_guids.count(guid) != 0)
+                continue;
+            // GUID appears in the persisted assembly graph → this is a restore hole, not a new part.
+            if (json.find(guid) != std::string::npos)
+                return true;
+        }
+    }
+    return false;
 }
 
 void Plater::priv::sync_assemble_model_on_enter(const std::vector<size_t>& loaded_idxs)
@@ -18271,8 +18328,20 @@ void Plater::priv::sync_assemble_scale_from_prepare()
     // one prepare object while the assembly splits them over several objects / instances), so they do not
     // ride along with the prepare instance scale. Resizing the parts alone would leave the old spacing
     // behind and the assembly would fall apart, so the poses are scaled about a common pivot below.
+    //
+    // When only SOME prepare objects were rescaled (e.g. cube left alone, STEP object scaled), the
+    // whole-model uniformity test fails. Fall back to per-prepare-object groups: each group that shares
+    // one uniform ratio gets its own pose rescale about that group's ground-level centre.
     struct PendingScale { int oi; int vi; Vec3d target; };
+    struct MatchedPart {
+        int                 oi;
+        int                 vi;
+        const ModelObject  *prepare_obj;
+        double              ratio;        // valid when axes_uniform
+        bool                axes_uniform;
+    };
     std::vector<PendingScale> pending;
+    std::vector<MatchedPart>  matched;
     bool   scale_parts_uniformly = true; // every part changes by the same uniform factor
     double uniform_ratio         = 0.0;  // that factor; 0 = not seen yet
 
@@ -18318,18 +18387,27 @@ void Plater::priv::sync_assemble_scale_from_prepare()
             if ((current_volume_scale - target_volume_scale).cwiseAbs().maxCoeff() > 1e-6)
                 pending.push_back(PendingScale{oi, vi, target_volume_scale});
 
+            bool   axes_uniform = false;
+            double ratio        = 0.0;
+            if (current_volume_scale.cwiseAbs().minCoeff() >= EPSILON) {
+                const Vec3d r = target_volume_scale.cwiseQuotient(current_volume_scale);
+                if (r.maxCoeff() - r.minCoeff() <= 1e-6) {
+                    axes_uniform = true;
+                    ratio        = r.x();
+                }
+            }
+            matched.push_back(MatchedPart{oi, vi, po, ratio, axes_uniform});
+
             // A part left untouched contributes ratio 1, so a partial (single part / single object)
-            // prepare-side rescale breaks the uniformity test and only the sizes are reproduced.
-            if (!scale_parts_uniformly || current_volume_scale.cwiseAbs().minCoeff() < EPSILON) {
+            // prepare-side rescale breaks the whole-model uniformity test; the per-prepare-object
+            // fallback below still rescales poses inside each uniformly scaled group.
+            if (!scale_parts_uniformly || !axes_uniform) {
                 scale_parts_uniformly = false;
                 continue;
             }
-            const Vec3d ratio = target_volume_scale.cwiseQuotient(current_volume_scale);
-            if (ratio.maxCoeff() - ratio.minCoeff() > 1e-6)
-                scale_parts_uniformly = false;
-            else if (uniform_ratio == 0.0)
-                uniform_ratio = ratio.x();
-            else if (std::abs(ratio.x() - uniform_ratio) > 1e-6)
+            if (uniform_ratio == 0.0)
+                uniform_ratio = ratio;
+            else if (std::abs(ratio - uniform_ratio) > 1e-6)
                 scale_parts_uniformly = false;
         }
     }
@@ -18337,24 +18415,81 @@ void Plater::priv::sync_assemble_scale_from_prepare()
     if (pending.empty())
         return;
 
-    const bool rescale_poses = scale_parts_uniformly && uniform_ratio > 0.0 && std::abs(uniform_ratio - 1.0) > 1e-6;
+    const bool rescale_poses_global = scale_parts_uniformly && uniform_ratio > 0.0 && std::abs(uniform_ratio - 1.0) > 1e-6;
 
-    // Pivot the pose rescale at the assembled scene's ground-level centre: the assembly then keeps both
-    // its place and its footing, mirroring the prepare side (scaled about the selection box centre by
-    // Selection::scale_and_translate(), then dropped back onto the bed by ensure_on_bed()).
-    Vec3d pivot = Vec3d::Zero();
-    if (rescale_poses) {
-        BoundingBoxf3 scene_box;
-        for (const ModelObject *ao : m_assemble_model.objects) {
-            if (ao->instances.empty())
+    // Ground-level centre of the given assembly volumes: keeps place and footing, mirroring the prepare
+    // side (scaled about the selection box centre by Selection::scale_and_translate(), then dropped
+    // back onto the bed by ensure_on_bed()).
+    auto ground_center_pivot = [&](const std::vector<std::pair<int, int>> &vols) -> Vec3d {
+        BoundingBoxf3 box;
+        for (const auto &key : vols) {
+            if (key.first < 0 || key.first >= (int) m_assemble_model.objects.size())
+                continue;
+            const ModelObject *ao = m_assemble_model.objects[key.first];
+            if (ao->instances.empty() || key.second < 0 || key.second >= (int) ao->volumes.size())
+                continue;
+            const ModelVolume *av = ao->volumes[key.second];
+            if (!av->is_model_part() || av->mesh_ptr() == nullptr)
                 continue;
             const Transform3d inst_matrix = ao->instances.front()->get_assemble_transformation().get_matrix();
-            for (const ModelVolume *av : ao->volumes)
-                if (av->is_model_part() && av->mesh_ptr() != nullptr)
-                    scene_box.merge(av->mesh().bounding_box().transformed(inst_matrix * av->get_assemble_transformation().get_matrix()));
+            box.merge(av->mesh().bounding_box().transformed(inst_matrix * av->get_assemble_transformation().get_matrix()));
         }
-        if (scene_box.defined)
-            pivot = Vec3d(scene_box.center().x(), scene_box.center().y(), scene_box.min.z());
+        if (!box.defined)
+            return Vec3d::Zero();
+        return Vec3d(box.center().x(), box.center().y(), box.min.z());
+    };
+
+    // volume key -> ratio used to scale that volume's assemble offset (pose rescale only).
+    std::map<std::pair<int, int>, double> volume_offset_ratios;
+    // assembly object index -> (ratio, pivot) for instance assemble-offset rescale.
+    std::map<int, std::pair<double, Vec3d>> instance_rescales;
+
+    if (rescale_poses_global) {
+        std::vector<std::pair<int, int>> all_vols;
+        for (const MatchedPart &mp : matched)
+            all_vols.emplace_back(mp.oi, mp.vi);
+        const Vec3d pivot = ground_center_pivot(all_vols);
+        for (const PendingScale &ps : pending)
+            volume_offset_ratios.emplace(std::pair<int, int>{ps.oi, ps.vi}, uniform_ratio);
+        for (int oi = 0; oi < (int) m_assemble_model.objects.size(); ++oi)
+            instance_rescales.emplace(oi, std::make_pair(uniform_ratio, pivot));
+    } else {
+        // Group matched assembly parts by their prepare-side owning object.
+        std::unordered_map<const ModelObject *, std::vector<size_t>> by_prepare;
+        for (size_t i = 0; i < matched.size(); ++i)
+            by_prepare[matched[i].prepare_obj].push_back(i);
+
+        for (auto &kv : by_prepare) {
+            const std::vector<size_t> &idxs = kv.second;
+            bool   group_uniform = true;
+            double group_ratio   = 0.0;
+            for (size_t i : idxs) {
+                const MatchedPart &mp = matched[i];
+                if (!mp.axes_uniform) {
+                    group_uniform = false;
+                    break;
+                }
+                if (group_ratio == 0.0)
+                    group_ratio = mp.ratio;
+                else if (std::abs(mp.ratio - group_ratio) > 1e-6) {
+                    group_uniform = false;
+                    break;
+                }
+            }
+            if (!group_uniform || group_ratio <= 0.0 || std::abs(group_ratio - 1.0) <= 1e-6)
+                continue; // size-only for this prepare object
+
+            std::vector<std::pair<int, int>> group_vols;
+            group_vols.reserve(idxs.size());
+            for (size_t i : idxs)
+                group_vols.emplace_back(matched[i].oi, matched[i].vi);
+            const Vec3d pivot = ground_center_pivot(group_vols);
+            for (size_t i : idxs) {
+                const MatchedPart &mp = matched[i];
+                volume_offset_ratios.emplace(std::pair<int, int>{mp.oi, mp.vi}, group_ratio);
+                instance_rescales.emplace(mp.oi, std::make_pair(group_ratio, pivot));
+            }
+        }
     }
 
     // Pass 2: write the part scales. A volume's assemble offset lives in object space and reaches the
@@ -18366,32 +18501,35 @@ void Plater::priv::sync_assemble_scale_from_prepare()
         ModelVolume *av = ao->volumes[ps.vi];
         Geometry::Transformation asm_trafo = av->get_assemble_transformation();
         asm_trafo.set_scaling_factor(ps.target);
-        if (rescale_poses)
-            asm_trafo.set_offset(asm_trafo.get_offset() * uniform_ratio);
+        const auto key = std::pair<int, int>{ps.oi, ps.vi};
+        auto       rit = volume_offset_ratios.find(key);
+        if (rit != volume_offset_ratios.end())
+            asm_trafo.set_offset(asm_trafo.get_offset() * rit->second);
         av->set_assemble_transformation(asm_trafo);
         ao->invalidate_bounding_box();
-        new_volume_scales.emplace(std::pair<int, int>{ps.oi, ps.vi}, ps.target);
+        new_volume_scales.emplace(key, ps.target);
     }
     // Geometry of m_assemble_model changed outside the assembly stack: reset the undo baseline.
     m_assemble_undo_baseline_dirty = true;
 
-    auto rescale_about_pivot = [&](Geometry::Transformation &trafo) {
-        trafo.set_offset(pivot + uniform_ratio * (trafo.get_offset() - pivot));
-    };
-
-    if (rescale_poses) {
-        for (ModelObject *ao : m_assemble_model.objects) {
-            for (ModelInstance *inst : ao->instances) {
-                Geometry::Transformation inst_trafo = inst->get_assemble_transformation();
-                rescale_about_pivot(inst_trafo);
-                inst->set_assemble_transformation(inst_trafo);
-            }
-            ao->invalidate_bounding_box();
+    for (const auto &kv : instance_rescales) {
+        const int     oi    = kv.first;
+        const double  ratio = kv.second.first;
+        const Vec3d  &pivot = kv.second.second;
+        if (oi < 0 || oi >= (int) m_assemble_model.objects.size())
+            continue;
+        ModelObject *ao = m_assemble_model.objects[oi];
+        for (ModelInstance *inst : ao->instances) {
+            Geometry::Transformation inst_trafo = inst->get_assemble_transformation();
+            inst_trafo.set_offset(pivot + ratio * (inst_trafo.get_offset() - pivot));
+            inst->set_assemble_transformation(inst_trafo);
         }
+        ao->invalidate_bounding_box();
     }
 
-    // Mirror the new scale (and, for a whole-model rescale, the moved poses) to every keyframe entry,
-    // preserving each keyframe's recorded rotation. Explode offsets scale along with the model.
+    // Mirror the new scale (and, for a whole-model / per-object rescale, the moved poses) to every
+    // keyframe entry, preserving each keyframe's recorded rotation. Explode offsets scale along with
+    // the model.
     auto &steps_tree = m_assemble_model.get_assembly_steps_tree_data();
     if (!steps_tree.nodes.empty()) {
         std::function<void(int)> update_kf;
@@ -18401,19 +18539,23 @@ void Plater::priv::sync_assemble_scale_from_prepare()
             auto &node = steps_tree.nodes[nid];
             for (auto &entry : node.kf_data.entries) {
                 bool touched = false;
-                if (rescale_poses) {
-                    for (auto &kv : entry.data.object_transformations) {
-                        rescale_about_pivot(kv.second);
-                        touched = true;
-                    }
+                for (auto &ot : entry.data.object_transformations) {
+                    auto iit = instance_rescales.find(ot.first);
+                    if (iit == instance_rescales.end())
+                        continue;
+                    const double ratio = iit->second.first;
+                    const Vec3d &pivot = iit->second.second;
+                    ot.second.set_offset(pivot + ratio * (ot.second.get_offset() - pivot));
+                    touched = true;
                 }
-                for (auto &kv : entry.data.volume_transformations) {
-                    auto sit = new_volume_scales.find(kv.first);
+                for (auto &vt : entry.data.volume_transformations) {
+                    auto sit = new_volume_scales.find(vt.first);
                     if (sit == new_volume_scales.end())
                         continue;
-                    kv.second.set_scaling_factor(sit->second);
-                    if (rescale_poses)
-                        kv.second.set_offset(kv.second.get_offset() * uniform_ratio);
+                    vt.second.set_scaling_factor(sit->second);
+                    auto rit = volume_offset_ratios.find(vt.first);
+                    if (rit != volume_offset_ratios.end())
+                        vt.second.set_offset(vt.second.get_offset() * rit->second);
                     touched = true;
                 }
                 if (touched)
@@ -18464,6 +18606,10 @@ void Plater::priv::enter_assemble_stack()
         // snapshots would no longer match m_assemble_model). Otherwise leave the stack untouched so the
         // user can keep undoing edits made in earlier assembly-view sessions.
         if (m_undo_redo_stack_assemble.empty() || m_assemble_undo_baseline_dirty) {
+            // Preserve unsaved assembly edits across a forced baseline rebuild (prepare-side
+            // structural sync). The new baseline already contains those edits, so the stack tip
+            // looks "clean" — keep the dirty flag so close/new-project still prompts to save.
+            const bool keep_assemble_dirty = m_assemble_project_dirty;
             m_undo_redo_stack_assemble.clear();
             clear_assemble_guide_ui_snapshots();
             // The trailing '!' marks a non-project-modifying baseline snapshot (see snapshot_modifies_project),
@@ -18471,6 +18617,9 @@ void Plater::priv::enter_assemble_stack()
             // icon stays greyed out at the baseline. Not localized on purpose, never shown to the user.
             this->take_snapshot(std::string("Assemble-Initial!"));
             m_assemble_undo_baseline_dirty = false;
+            // Establish a known saved tip so project_modified() works for undo/redo dirty refresh.
+            m_undo_redo_stack_assemble.mark_current_as_saved();
+            m_assemble_project_dirty = keep_assemble_dirty;
         }
     }
 }
@@ -18584,6 +18733,11 @@ void Plater::priv::assemble_undo_redo_to(std::vector<UndoRedo::Snapshot>::const_
         }
         assemble_canvas->restore_assembly_guide_ui_after_undo(restore_folder_id, restore_kf);
         assemble_canvas->set_as_dirty();
+        // Refresh assembly dirty from the stack tip vs last mark_current_as_saved so undoing
+        // all the way back to the saved tip clears the unsaved-project prompt.
+        m_assemble_project_dirty = m_undo_redo_stack_assemble.project_modified();
+        if (m_assemble_project_dirty)
+            set_plater_dirty(true);
     }
 }
 
@@ -18611,6 +18765,12 @@ void Plater::priv::take_snapshot(const std::string& snapshot_name, const UndoRed
         remember_assemble_guide_ui_for_latest_action_snapshot();
         m_undo_redo_stack_assemble.release_least_recently_used();
         prune_assemble_guide_ui_snapshots();
+        // Assembly edits live on an independent stack; the main-stack up_to_date() check cannot
+        // see them. Mark the project dirty so close / new-project prompts still ask to save.
+        if (snapshot_modifies_project(snapshot_type) && (snapshot_name.empty() || snapshot_name.back() != '!')) {
+            m_assemble_project_dirty = true;
+            set_plater_dirty(true);
+        }
         BOOST_LOG_TRIVIAL(info) << "Assemble Undo / Redo snapshot taken: " << snapshot_name;
         return;
     }
@@ -18737,12 +18897,25 @@ bool Plater::priv::up_to_date(bool saved, bool backup)
     size_t& last_time = backup ? m_backup_timestamp : m_saved_timestamp;
     if (saved) {
         last_time = undo_redo_stack_main().active_snapshot_time();
-        if (!backup)
+        if (!backup) {
             undo_redo_stack_main().mark_current_as_saved();
+            // Assembly-only edits are tracked separately from the main undo stack. A successful
+            // project save (or "don't save" continue) clears that tip so the next close prompt
+            // does not keep asking for already-handled assembly changes.
+            m_assemble_project_dirty = false;
+            if (!m_undo_redo_stack_assemble.empty())
+                m_undo_redo_stack_assemble.mark_current_as_saved();
+        }
         return true;
     }
     else {
-        return !undo_redo_stack_main().has_real_change_from(last_time);
+        if (undo_redo_stack_main().has_real_change_from(last_time))
+            return false;
+        // Independent assembly stack may hold unsaved guide / pose edits while the prepare
+        // stack stays clean — still treat the project as dirty for close / new-project.
+        if (m_assemble_project_dirty)
+            return false;
+        return true;
     }
 }
 
@@ -19982,8 +20155,11 @@ bool Plater::up_to_date(bool saved, bool backup)
         Slic3r::clear_other_changes(backup);
         return p->up_to_date(saved, backup);
     }
-    return p->model.objects.empty() || (p->up_to_date(saved, backup) &&
-                                        !Slic3r::has_other_changes(backup));
+    // Assembly dirty is already consulted inside priv::up_to_date (return false when
+    // m_assemble_project_dirty). Do NOT OR !m_assemble_project_dirty here: that short-circuits
+    // to true whenever the assembly side is clean and would swallow prepare-only unsaved edits.
+    return p->model.objects.empty()
+         || (p->up_to_date(saved, backup) && !Slic3r::has_other_changes(backup));
 }
 
 void Plater::add_model(bool imperial_units, std::string fname)
