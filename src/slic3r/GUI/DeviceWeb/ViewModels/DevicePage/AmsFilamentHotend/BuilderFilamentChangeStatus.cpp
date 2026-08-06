@@ -55,7 +55,7 @@ int filament_step_display_index(MachineObject* machine_obj, const DevAmsSlotId& 
 
     DevAmsSlotId key = slot;
     if (machine_obj->GetFilaSystem()->IsVirtualTrayId(std::to_string(key.first))) key.second = 0;
-    const auto slot_to_display_index = machine_obj->GetFilaSystem()->GetSlot2NozzleDisplayIdx();
+    const auto slot_to_display_index = machine_obj->GetFilaSystem()->GetSlot2HotendDisplayIdx();
     if (auto it = slot_to_display_index.find(key); it != slot_to_display_index.end()) {
         return it->second;
     }
@@ -212,7 +212,7 @@ nlohmann::json DevicePageFilamentChangeStatusBuilder::Build(MachineObject* machi
 
         nlohmann::json items = nlohmann::json::array();
         int running_index_1based = 0;
-        const auto slot_to_display_index = fila_system->GetSlot2NozzleDisplayIdx();
+        const auto slot_to_display_index = fila_system->GetSlot2HotendDisplayIdx();
 
         for (size_t i = 0; i < changing_slots.size(); ++i) {
             const auto& s = changing_slots[i];

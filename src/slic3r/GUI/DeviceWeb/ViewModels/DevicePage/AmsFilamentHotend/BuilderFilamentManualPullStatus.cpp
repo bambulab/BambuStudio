@@ -52,7 +52,7 @@ nlohmann::json DevicePageFilamentManualPullStatusBuilder::Build(MachineObject* m
 
     auto fila_system = machine_obj->GetFilaSystem();
     auto nozzle_sys = machine_obj->GetNozzleSystem();
-    const auto slot_to_display_index = fila_system->GetSlot2NozzleDisplayIdx();
+    const auto slot_to_display_index = fila_system->GetSlot2HotendDisplayIdx();
 
     const auto& changing_slots = fila_system->GetFilamentChangingSlots();
     for (size_t i = 0; i < changing_slots.size(); ++i) {

@@ -385,7 +385,7 @@ public:
 
     // nozzle
     std::string GetNozzleFlowStringByAmsId(const std::string& ams_id) const;
-    std::map<DevAmsSlotId, int> GetSlot2NozzleDisplayIdx() const;
+    std::map<DevAmsSlotId, int> GetSlot2HotendDisplayIdx() const;
 
     // filament backup
     bool CanShowFilamentBackup() const;

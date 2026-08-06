@@ -1014,34 +1014,47 @@ bool DevFilaSystem::IsCurrentFilamentChangingSlot(int ams_id, int slot_id) const
 }
 
 
-std::map<DevAmsSlotId, int> DevFilaSystem::GetSlot2NozzleDisplayIdx() const
-{
-    std::map<DevAmsSlotId, int> slot_to_display_index;
-    if (!m_owner || !m_owner->GetNozzleRack() || !m_owner->GetNozzleSystem()) {
-        assert(0);
-        return slot_to_display_index;
-    }
+// only support for rack
+std::map<DevAmsSlotId, int> DevFilaSystem::GetSlot2HotendDisplayIdx() const {
+	std::map<DevAmsSlotId, int> slot_to_display_index;
+	if (!m_owner || !m_owner->GetNozzleRack() || !m_owner->GetNozzleSystem()) {
+		assert(0);
+		return slot_to_display_index;
+	}
 
-    const auto& rack_type = m_owner->GetNozzleRack()->GetRackType();
-    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B) {
-        return slot_to_display_index;
-    }
+	const auto& rack_type = m_owner->GetNozzleRack()->GetRackType();
+	if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B) {
+		return slot_to_display_index;
+	}
 
-    const int rack_count = m_owner->GetNozzleRack()->GetTotalRackNozzleCount();
-    for (int addr_id = 0; addr_id < rack_count; ++addr_id) {
-        const auto& rack_nozzle_opt = m_owner->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id);
-        if (!rack_nozzle_opt.has_value()) continue;
+	for (const auto& [ams_id, ams] : amsList) {
+		if (!ams) {
+            continue;
+		}
 
-        const auto& ams_slots = rack_nozzle_opt->GetBindAmsSlots();
-        if (ams_slots.empty()) continue;
+        for (const auto& [slot_id, slot] : ams->GetTrays()) {
+            if (slot && slot->get_nozzle_addr_id(m_owner).has_value()) {
+                try {
+                    auto nozzle_addr_id = slot->get_nozzle_addr_id(m_owner).value();
+                    slot_to_display_index[DevAmsSlotId{ std::stoi(ams_id), std::stoi(slot_id) }] = nozzle_addr_id + 1;
+                } catch (const std::exception&) {
+                }
+            }
+        }
+	}
 
-        int ams_id = ams_slots[0].first;
-        int mapped_slot_id = ams_slots[0].second;
-        if (GetVirtualTray(ams_id).has_value()) mapped_slot_id = 0;
-        slot_to_display_index[{ams_id, mapped_slot_id}] = addr_id + 1;
-    }
+	const auto& vt_trays = GetVirtualTrays();
+	for (const auto& [vt_id, vt] : vt_trays) {
+		if (vt.get_nozzle_addr_id(m_owner).has_value()) {
+            try {
+                auto nozzle_addr_id = vt.get_nozzle_addr_id(m_owner).value();
+                slot_to_display_index[DevAmsSlotId{ std::stoi(vt_id), 0 }] = nozzle_addr_id + 1;
+            } catch (const std::exception&) {
+            }
+		}
+	}
 
-    return slot_to_display_index;
+	return slot_to_display_index;
 }
 
 void DevFilaSystem::ParseVirtualTrayInfos(const json& jj)
