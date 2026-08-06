@@ -1,5 +1,7 @@
 #include "WebView.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/Utils/MacDarkMode.hpp"
 
 #include <boost/log/trivial.hpp>
@@ -94,6 +96,24 @@ void enable_default_webview2_cdp_for_internal_builds()
 #endif
 }
 
+// BBL_ENABLE_WEBVIEW_DEBUG gate: ProcessFailed log/dialog is enabled when
+// BBL_RELEASE_TO_PUBLIC is false, or env BBL_ENABLE_WEBVIEW_DEBUG is true/1/on/yes.
+bool is_bbl_webview_debug_enabled()
+{
+    static const bool enabled = []() -> bool {
+#if !BBL_RELEASE_TO_PUBLIC
+        return true;
+#else
+        wxString value;
+        if (!wxGetEnv("BBL_ENABLE_WEBVIEW_DEBUG", &value) || value.empty())
+            return false;
+        value.MakeLower();
+        return value == "1" || value == "true" || value == "on" || value == "yes";
+#endif
+    }();
+    return enabled;
+}
+
 // Cookie name to clear and the domain substring it must belong to on logout.
 constexpr wchar_t kLogoutCookieName[]   = L"token";
 constexpr wchar_t kLogoutCookieDomain[] = L"bambulab";
@@ -108,11 +128,47 @@ bool domain_matches_bambulab(LPCWSTR domain)
     return lower.find(kLogoutCookieDomain) != std::wstring::npos;
 }
 
+const char *process_failed_kind_str(COREWEBVIEW2_PROCESS_FAILED_KIND kind)
+{
+    switch (kind) {
+    case COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED: return "BROWSER_PROCESS_EXITED";
+    case COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED: return "RENDER_PROCESS_EXITED";
+    case COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_UNRESPONSIVE: return "RENDER_PROCESS_UNRESPONSIVE";
+    case COREWEBVIEW2_PROCESS_FAILED_KIND_FRAME_RENDER_PROCESS_EXITED: return "FRAME_RENDER_PROCESS_EXITED";
+    case COREWEBVIEW2_PROCESS_FAILED_KIND_UTILITY_PROCESS_EXITED: return "UTILITY_PROCESS_EXITED";
+    case COREWEBVIEW2_PROCESS_FAILED_KIND_SANDBOX_HELPER_PROCESS_EXITED: return "SANDBOX_HELPER_PROCESS_EXITED";
+    case COREWEBVIEW2_PROCESS_FAILED_KIND_GPU_PROCESS_EXITED: return "GPU_PROCESS_EXITED";
+    case COREWEBVIEW2_PROCESS_FAILED_KIND_PPAPI_PLUGIN_PROCESS_EXITED: return "PPAPI_PLUGIN_PROCESS_EXITED";
+    case COREWEBVIEW2_PROCESS_FAILED_KIND_PPAPI_BROKER_PROCESS_EXITED: return "PPAPI_BROKER_PROCESS_EXITED";
+    case COREWEBVIEW2_PROCESS_FAILED_KIND_UNKNOWN_PROCESS_EXITED: return "UNKNOWN_PROCESS_EXITED";
+    default: return "UNKNOWN_KIND";
+    }
+}
+
+const char *process_failed_reason_str(COREWEBVIEW2_PROCESS_FAILED_REASON reason)
+{
+    switch (reason) {
+    case COREWEBVIEW2_PROCESS_FAILED_REASON_UNEXPECTED: return "UNEXPECTED";
+    case COREWEBVIEW2_PROCESS_FAILED_REASON_UNRESPONSIVE: return "UNRESPONSIVE";
+    case COREWEBVIEW2_PROCESS_FAILED_REASON_TERMINATED: return "TERMINATED";
+    case COREWEBVIEW2_PROCESS_FAILED_REASON_CRASHED: return "CRASHED";
+    case COREWEBVIEW2_PROCESS_FAILED_REASON_LAUNCH_FAILED: return "LAUNCH_FAILED";
+    case COREWEBVIEW2_PROCESS_FAILED_REASON_OUT_OF_MEMORY: return "OUT_OF_MEMORY";
+    case COREWEBVIEW2_PROCESS_FAILED_REASON_PROFILE_DELETED: return "PROFILE_DELETED";
+    default: return "UNKNOWN_REASON";
+    }
+}
+
 } // namespace
 
 class WebViewEdge : public wxWebViewEdge
 {
 public:
+    ~WebViewEdge()
+    {
+        UnsubscribeProcessFailed();
+    }
+
     bool SetUserAgent(const wxString &userAgent)
     {
         bool dark = userAgent.Contains("dark");
@@ -120,6 +176,7 @@ public:
 
         ICoreWebView2 *webView2 = (ICoreWebView2 *) GetNativeBackend();
         if (webView2) {
+            EnsureProcessFailedSubscribed();
             ICoreWebView2Settings *settings;
             HRESULT                hr = webView2->get_Settings(&settings);
             if (hr == S_OK) {
@@ -148,6 +205,7 @@ public:
     {
         ICoreWebView2 *webView2 = (ICoreWebView2 *) GetNativeBackend();
         if (webView2) {
+            EnsureProcessFailedSubscribed();
             ICoreWebView2_13 * webView2_13;
             HRESULT           hr = webView2->QueryInterface(&webView2_13);
             if (hr == S_OK) {
@@ -170,21 +228,141 @@ public:
     {
         if (!pendingUserAgent.empty()) {
             auto thiz = const_cast<WebViewEdge *>(this);
+            thiz->EnsureProcessFailedSubscribed();            
             auto userAgent = std::move(thiz->pendingUserAgent);
             thiz->pendingUserAgent.clear();
             thiz->SetUserAgent(userAgent);
         }
         if (pendingColorScheme) {
-            auto thiz      = const_cast<WebViewEdge *>(this);
+            auto thiz = const_cast<WebViewEdge *>(this);
+            thiz->EnsureProcessFailedSubscribed();
             auto colorScheme = pendingColorScheme;
             thiz->pendingColorScheme = COREWEBVIEW2_PREFERRED_COLOR_SCHEME_AUTO;
             thiz->SetColorScheme(colorScheme);
         }
         wxWebViewEdge::DoGetClientSize(x, y);
     };
+
 private:
+    void EnsureProcessFailedSubscribed()
+    {
+        if (!is_bbl_webview_debug_enabled())
+            return;
+        if (m_processFailedSubscribed)
+            return;
+
+        ICoreWebView2 *webView2 = (ICoreWebView2 *) GetNativeBackend();
+        if (!webView2)
+            return;
+
+        using Microsoft::WRL::Callback;
+        HRESULT hr = webView2->add_ProcessFailed(
+            Callback<ICoreWebView2ProcessFailedEventHandler>(
+                [this](ICoreWebView2 *sender, ICoreWebView2ProcessFailedEventArgs *args) -> HRESULT {
+                    if (!args)
+                        return S_OK;
+
+                    COREWEBVIEW2_PROCESS_FAILED_KIND kind =
+                        COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED;
+                    args->get_ProcessFailedKind(&kind);
+
+                    COREWEBVIEW2_PROCESS_FAILED_REASON reason =
+                        COREWEBVIEW2_PROCESS_FAILED_REASON_UNEXPECTED;
+                    int exit_code = 0;
+                    Microsoft::WRL::ComPtr<ICoreWebView2ProcessFailedEventArgs2> args2;
+                    if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2))) && args2) {
+                        args2->get_Reason(&reason);
+                        args2->get_ExitCode(&exit_code);
+                    }
+
+                    wxString url;
+                    if (sender) {
+                        LPWSTR source = nullptr;
+                        if (SUCCEEDED(sender->get_Source(&source)) && source) {
+                            url = source;
+                            CoTaskMemFree(source);
+                        }
+                    }
+                    if (url.empty())
+                        url = GetCurrentURL();
+
+                    BOOST_LOG_TRIVIAL(error)
+                        << GetName()
+                        << " [WebView] ProcessFailed"
+                        << " kind=" << process_failed_kind_str(kind)
+                        << " (" << static_cast<int>(kind) << ")"
+                        << " reason=" << process_failed_reason_str(reason)
+                        << " (" << static_cast<int>(reason) << ")"
+                        << " exitCode=" << exit_code
+                        << " url=" << url.ToUTF8().data();
+
+                    // Only surface fatal browser/renderer exits to the user.
+                    // UNRESPONSIVE fires repeatedly while stuck; GPU/utility usually auto-recover.
+                    const bool notify_user =
+                        kind == COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED ||
+                        kind == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED;
+                    if (notify_user) {
+                        const wxString detail = wxString::Format(
+                            "kind=%s (%d)\nreason=%s (%d)\nexitCode=%d\nurl=%s",
+                            wxString(process_failed_kind_str(kind)), static_cast<int>(kind),
+                            wxString(process_failed_reason_str(reason)), static_cast<int>(reason),
+                            exit_code, url);
+                        const wxString webview_name = GetName();
+                        // Do not ShowModal inside ProcessFailed (reentrancy). Defer to UI loop.
+                        Slic3r::GUI::wxGetApp().CallAfter([detail, webview_name]() {
+                            auto &app = Slic3r::GUI::wxGetApp();
+                            if (app.is_closing())
+                                return;
+
+                            static bool s_showing = false;
+                            if (s_showing)
+                                return;
+                            s_showing = true;
+
+                            wxString reason_block = detail;
+                            if (!webview_name.empty())
+                                reason_block = wxString::Format("name=%s\n%s", webview_name, detail);
+
+                            const wxString message = wxString::Format(
+                                _L("The embedded webpage has crashed. Please contact Bambu Studio.\n\nReason:\n%s"),
+                                reason_block);
+
+                            Slic3r::GUI::MessageDialog dlg(nullptr, message, _L("Embedded Webpage Crashed"),
+                                                           wxOK | wxICON_ERROR);
+                            dlg.ShowModal();
+                            s_showing = false;
+                        });
+                    }
+
+                    return S_OK;
+                })
+                .Get(),
+            &m_processFailedToken);
+
+        if (SUCCEEDED(hr)) {
+            m_processFailedSubscribed = true;
+            BOOST_LOG_TRIVIAL(info) << GetName() << " [WebView] ProcessFailed handler subscribed";
+        } else {
+            BOOST_LOG_TRIVIAL(warning) << GetName()
+                                      << wxString::Format(" [WebView] add_ProcessFailed failed, hr=0x%08X",
+                                                          static_cast<unsigned>(hr)).ToUTF8().data();
+        }
+    }
+
+    void UnsubscribeProcessFailed()
+    {
+        if (!m_processFailedSubscribed)
+            return;
+        ICoreWebView2 *webView2 = (ICoreWebView2 *) GetNativeBackend();
+        if (webView2)
+            webView2->remove_ProcessFailed(m_processFailedToken);
+        m_processFailedSubscribed = false;
+    }
+
     wxString pendingUserAgent;
     COREWEBVIEW2_PREFERRED_COLOR_SCHEME pendingColorScheme = COREWEBVIEW2_PREFERRED_COLOR_SCHEME_AUTO;
+    EventRegistrationToken m_processFailedToken{};
+    bool m_processFailedSubscribed{false};
 };
 
 #elif defined __WXOSX__
