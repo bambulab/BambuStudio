@@ -12,9 +12,9 @@
         "50"
     ],
     "default_acceleration": [
-        "20000",
-        "20000",
-        "20000"
+        "8000",
+        "8000",
+        "8000"
     ],
     "enable_arc_fitting": "0",
     "enable_height_slowdown": [
@@ -53,9 +53,9 @@
         "6000"
     ],
     "inner_wall_acceleration": [
-        "12000",
-        "12000",
-        "12000"
+        "0",
+        "0",
+        "0"
     ],
     "inner_wall_speed": [
         "150",
@@ -70,9 +70,9 @@
     "ironing_flow": "25%",
     "monotonic_travel_into_wall": "45.0",
     "outer_wall_acceleration": [
-        "7000",
-        "7000",
-        "7000"
+        "4000",
+        "4000",
+        "4000"
     ],
     "outer_wall_speed": [
         "60",
