@@ -30,6 +30,9 @@ DeviceWebHost::DeviceWebHost(wxWindow* parent, DeviceWebHostMode mode,
     , m_initial_path(std::move(initial_path))
     , m_allow_lazy(allow_lazy)
 {
+#if defined(__WXOSX__)
+    m_alive_flag = std::make_shared<bool>(true);
+#endif
     if (!m_allow_lazy) {
         EnsureBuilt();
     }
@@ -106,10 +109,27 @@ void DeviceWebHost::EnsureBuilt()
     // Mark so NavigateTo skips the next call: LoadUrl already loaded the correct URL,
     // and running JS hash navigation before the page is ready causes a white screen.
     m_just_built = true;
+
+#if defined(__WXOSX__)
+    if (auto* wv = m_device_webview->GetWebView()) {
+        if (void* native = wv->GetNativeBackend())
+            Slic3r::GUI::WKWebView_setCrashHandler(native, OnWKContentProcessCrash, this);
+    }
+#endif
 }
 
 DeviceWebHost::~DeviceWebHost()
 {
+#if defined(__WXOSX__)
+    // 先置 false，使已入队的 CallAfter lambda 安全空转，再注销 ObjC 代理
+    if (m_alive_flag) *m_alive_flag = false;
+    if (m_device_webview) {
+        if (auto* wv = m_device_webview->GetWebView()) {
+            if (void* native = wv->GetNativeBackend())
+                Slic3r::GUI::WKWebView_setCrashHandler(native, nullptr, nullptr);
+        }
+    }
+#endif
     if (m_device_web_bridge) m_device_web_bridge->SetManager(nullptr);
     if (m_device_web_mgr)    m_device_web_mgr->SetBridge(nullptr);
 }
@@ -157,6 +177,13 @@ void DeviceWebHost::NavigateTo(const std::string& path, bool re_init)
         return;
     }
 
+#if defined(__WXOSX__)
+    // 走到这里说明即将真正加载一个新页面（非构造后的冗余跳过、非 lazy 首建），
+    // 意味着上一次（若发生过崩溃恢复）页面是活着的——把崩溃恢复计数清零，
+    // 让下一次偶发崩溃重新获得完整的重试预算。
+    m_crash_recovery_count = 0;
+#endif
+
     if (m_suspended) {
         // macOS: resume from about:blank; loading the real URL re-runs init().
         m_suspended = false;
@@ -186,6 +213,44 @@ void DeviceWebHost::Suspend()
     // animating/compositing/running timers and lets the macOS run loop go idle.
     m_device_webview->load_url("about:blank");
 }
+
+#if defined(__WXOSX__)
+void DeviceWebHost::OnWKContentProcessCrash(void* context)
+{
+    auto* host = static_cast<DeviceWebHost*>(context);
+    std::weak_ptr<bool> weak_flag = host->m_alive_flag;
+    wxTheApp->CallAfter([host, weak_flag]() {
+        auto flag = weak_flag.lock();
+        if (flag && *flag)
+            host->RecoverFromCrash();
+    });
+}
+
+void DeviceWebHost::RecoverFromCrash()
+{
+    if (!m_device_webview) return;
+
+    // 重试上限：连续崩溃超过 kMaxCrashRecoveryAttempts 次后停止自动恢复，
+    // 避免在页面持续崩溃（多为环境/页面自身问题）时无限重载。
+    // 失败降级（错误占位页等）暂未实现，到顶后仅停止重试、保留当前（白屏）状态。
+    if (m_crash_recovery_count >= kMaxCrashRecoveryAttempts) {
+        BOOST_LOG_TRIVIAL(error) << "[DeviceWebHost] WKWebView 内容进程崩溃恢复已达上限（"
+                                 << kMaxCrashRecoveryAttempts << " 次），停止自动重试";
+        return;
+    }
+    ++m_crash_recovery_count;
+
+    BOOST_LOG_TRIVIAL(warning) << "[DeviceWebHost] WKWebView 内容进程已终止，正在重载页面（第 "
+                               << m_crash_recovery_count << "/" << kMaxCrashRecoveryAttempts << " 次尝试）";
+    // 重置所有可能阻止 LoadUrl() 的状态标记
+    m_suspended  = false;
+    m_just_built = false;
+    // LoadUrl() 始终调用 LoadURL(url) → WKWebView loadRequest:，
+    // 这会重启已终止的 WK2 进程并重新导航。
+    // 不能用 wv->Reload()：在已崩溃的 WKWebView 上是空操作。
+    LoadUrl();
+}
+#endif
 
 bool DeviceWebHost::CanReportToWeb() const
 {
