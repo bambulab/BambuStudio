@@ -4474,7 +4474,13 @@ GCode::TimelapseGCodeResult GCode::generate_timelapse_gcode(const Print &print, 
     }
 
     double z_before_timelapse = m_writer.get_position()(2);
-    m_writer.set_current_position_clear(false);
+    // Only the safe-pos branch relocates the head (firmware side, via M9711). The inline photo
+    // branch just triggers the shutter where the head already is, so the tracked position stays
+    // valid; clearing it would downgrade the next spiral lift to a plain vertical lift and split
+    // the following travel into separate XY and Z moves. If an inline template still emits G
+    // motion, fix that machine's time_lapse_gcode rather than scanning for motion here.
+    if (!skip_pos_pick)
+        m_writer.set_current_position_clear(false);
 
     double temp_z_after_tool_change;
     if (GCodeProcessor::get_last_z_from_gcode(timelapse_gcode, temp_z_after_tool_change)) {
