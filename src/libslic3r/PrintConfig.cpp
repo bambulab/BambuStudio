@@ -825,6 +825,18 @@ NozzleVolumeType convert_to_nvt_type(const std::string &variant_str) {
     return nvtHybrid;
 }
 
+bool is_nozzle_printable_for_filament(NozzleVolumeType machine_nvt, const std::vector<std::string> &filament_variants, bool variants_are_complete)
+{
+    if (!variants_are_complete)
+        return true;
+
+    for (const std::string &variant : filament_variants) {
+        if (convert_to_nvt_type(variant) == machine_nvt)
+            return true;
+    }
+    return false;
+}
+
 void DynamicPrintConfig::repair_nil_filament_max_volumetric_speed()
 {
     auto* speed_opt   = this->option<ConfigOptionFloats>("filament_max_volumetric_speed");

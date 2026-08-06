@@ -509,6 +509,7 @@ extern bool is_filament_extruder_override_key(const std::string &opt_key);
 extern std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::string> &strs);
 extern std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std::map<int, int>> &extruder_ams_count);
 extern NozzleVolumeType convert_to_nvt_type(const std::string& variant_str);
+extern bool is_nozzle_printable_for_filament(NozzleVolumeType machine_nvt, const std::vector<std::string>& filament_variants, bool variants_are_complete);
 extern std::vector<std::map<NozzleVolumeType, int>> get_extruder_nozzle_stats(const std::vector<std::string> & strs);
 extern std::vector<std::string> save_extruder_nozzle_stats_to_string(const std::vector<std::map<NozzleVolumeType, int>> &extruder_nozzle_stats);
 extern NozzleVolumeType legacy_fallback_nozzle_volume_type(NozzleVolumeType nozzle_volume_type);

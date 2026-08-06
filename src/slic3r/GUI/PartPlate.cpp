@@ -1597,6 +1597,7 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
 
     std::vector<int> used_filaments = get_extruders(true);  // 1 base
     auto fil_preset_names = wxGetApp().preset_bundle->filament_presets;
+    const PresetCollection& fil_collection = wxGetApp().preset_bundle->filaments;
 
     // Non-manual modes: only auto filament-map modes need an extra gate below.
     if (mode != fmmManual) {
@@ -1635,21 +1636,15 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
                 continue;
             std::string fil_name = fil_preset->alias;
 
-            std::set<NozzleVolumeType> filament_volume_types;
             std::vector<std::string>   filament_variants;
             if (fil_preset->config.has("filament_extruder_variant"))
                 filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
             else
                 filament_variants = {"Direct Drive Standard"};
-            for (const auto &variant : filament_variants) {
-                NozzleVolumeType nvt = convert_to_nvt_type(variant);
-                if (nvt != nvtHybrid && nvt <= nvtMaxNozzleVolumeType)
-                    filament_volume_types.insert(nvt);
-            }
 
             bool compatible = false;
             for (NozzleVolumeType machine_nvt : machine_volume_types) {
-                if (filament_volume_types.count(machine_nvt) > 0) {
+                if (is_nozzle_printable_for_filament(machine_nvt, filament_variants, fil_collection.is_bbl_brand_filament(*fil_preset))) {
                     compatible = true;
                     break;
                 }
@@ -1657,18 +1652,16 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
             if (compatible)
                 continue;
 
-            // List all configured machine nozzle types that are incompatible with this filament.
+            // Every configured machine nozzle is incompatible at this point, so list them all.
             wxString incompatible_nozzles;
             for (NozzleVolumeType machine_nvt : machine_volume_types) {
-                if (filament_volume_types.count(machine_nvt) > 0)
-                    continue;
                 if (machine_nvt >= (NozzleVolumeType) volume_names.size())
                     continue;
                 if (!incompatible_nozzles.empty())
                     incompatible_nozzles += "/";
                 incompatible_nozzles += _L(volume_names.at(machine_nvt));
             }
-            error_message = wxString::Format(_L("%s is not compatible with %s nozzle."), fil_name, incompatible_nozzles);
+            error_message = wxString::Format(_L("The %s nozzle can not print %s."), incompatible_nozzles, fil_name);
             return false;
         }
 
@@ -1712,10 +1705,9 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
             auto extruder_variant_opt = config.option<ConfigOptionStrings>("printer_extruder_variant");
             if (!extruder_variant_opt || extruder_idx < 0 || extruder_idx >= (int)extruder_variant_opt->values.size())
                 continue;
-            std::unordered_set<std::string> filament_variants_set(filament_variants.begin(), filament_variants.end());
-            std::string                     extruder_variant = extruder_variant_opt->values.at(extruder_idx);
-            if (filament_variants_set.count(extruder_variant) == 0) {
-                NozzleVolumeType variant_name = convert_to_nvt_type(extruder_variant);
+            std::string      extruder_variant = extruder_variant_opt->values.at(extruder_idx);
+            NozzleVolumeType variant_name     = convert_to_nvt_type(extruder_variant);
+            if (!is_nozzle_printable_for_filament(variant_name, filament_variants, fil_collection.is_bbl_brand_filament(*fil_preset))) {
                 auto             volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
                 std::string      volume       = volume_names.at(variant_name);
                 error_message                 = wxString::Format(_L("The %s nozzle can not print %s."), _L(volume), fil_name);
@@ -1932,6 +1924,8 @@ bool PartPlate::check_flow_compatible_of_nozzle_and_filament(const DynamicPrintC
     auto extruder_variants = config.option<ConfigOptionStrings>("printer_extruder_variant")->values;
     if (extruder_variants.size() != 1 || used_filaments.empty()) return true;
 
+    const PresetCollection &fil_collection = wxGetApp().preset_bundle->filaments;
+
     std::string extruder_variant = extruder_variants[0];
     for (auto fil_idx : used_filaments){
         int fil_id = fil_idx - 1;
@@ -1947,9 +1941,8 @@ bool PartPlate::check_flow_compatible_of_nozzle_and_filament(const DynamicPrintC
         else
             filament_variants = {"Direct Drive Standard"};
 
-        std::unordered_set<std::string> filament_variants_set(filament_variants.begin(), filament_variants.end());
-        if (filament_variants_set.find(extruder_variant) == filament_variants_set.end()){
-            NozzleVolumeType variant_name = convert_to_nvt_type(extruder_variant);
+        NozzleVolumeType variant_name = convert_to_nvt_type(extruder_variant);
+        if (!is_nozzle_printable_for_filament(variant_name, filament_variants, fil_collection.is_bbl_brand_filament(*fil_preset))) {
             auto volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
             std::string volume = volume_names.at(variant_name);
             error_msg = GUI::format(_L("The %s nozzle can not print %s."), _L(volume), fil_name);

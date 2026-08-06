@@ -588,6 +588,8 @@ public:
 	// where the "inherits" profile name is searched for in both m_presets and m_map_system_profile_renamed.
 	const Preset*	get_preset_parent(const Preset& child) const;
 	const Preset*	get_preset_base(const Preset& child) const;
+	// True when the inheritance chain roots in a Bambu Lab branded system filament preset.
+	bool            is_bbl_brand_filament(const Preset& preset) const;
 	// Return the selected preset including the user modifications.
     Preset&         get_edited_preset()         { return m_edited_preset; }
     const Preset&   get_edited_preset() const   { return m_edited_preset; }

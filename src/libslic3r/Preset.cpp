@@ -2835,6 +2835,15 @@ const Preset *PresetCollection::get_preset_base(const Preset &child) const
     return inherits ? get_preset_base(*inherits) : nullptr;
 }
 
+bool PresetCollection::is_bbl_brand_filament(const Preset &preset) const
+{
+    const Preset *base = get_preset_base(preset);
+    if (base == nullptr || !base->is_system)
+        return false;
+    auto *vendor = base->config.option<ConfigOptionStrings>("filament_vendor");
+    return vendor != nullptr && !vendor->values.empty() && vendor->values.front() == "Bambu Lab";
+}
+
 // Return vendor of the first parent profile, for which the vendor is defined, or null if such profile does not exist.
 PresetWithVendorProfile PresetCollection::get_preset_with_vendor_profile(const Preset &preset) const
 {
