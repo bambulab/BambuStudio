@@ -4655,6 +4655,20 @@ void FacetsAnnotation::set_enforcer_block_type_limit(const ModelVolume  &mv,
     this->set(selector);
 }
 
+void FacetsAnnotation::remap_filament_ids(const ModelVolume &mv, EnforcerBlockerType max_type,
+                                          const std::vector<int> &old_to_new_1based)
+{
+    if (empty())
+        return;
+    TriangleSelector selector(mv.mesh());
+    // Deserialize with the old filament limit first; otherwise N_new < N_old
+    // would clear valid old painted states before the remap can translate them.
+    selector.deserialize(m_data, false, (EnforcerBlockerType) old_to_new_1based.size());
+    selector.remap_filament_states(old_to_new_1based, max_type);
+    this->set(selector);
+    this->set_enforcer_block_type_limit(mv, max_type);
+}
+
 indexed_triangle_set FacetsAnnotation::get_facets_strict(const ModelVolume& mv, EnforcerBlockerType type) const
 {
     TriangleSelector selector(mv.mesh());

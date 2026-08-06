@@ -68,6 +68,8 @@ using namespace nlohmann;
 #include "libslic3r/Thread.hpp"
 #include "libslic3r/BlacklistedLibraryCheck.hpp"
 #include "libslic3r/FlushVolCalc.hpp"
+#include "libslic3r/FilamentRemapper.hpp"
+#include "libslic3r/FilamentMixer.hpp"
 
 #include "libslic3r/Orient.hpp"
 #include "libslic3r/PNGReadWrite.hpp"
@@ -2785,6 +2787,13 @@ int CLI::run(int argc, char **argv)
     std::vector<DynamicPrintConfig> load_filaments_config;
     std::vector<std::string> load_filaments_id;
     std::vector<std::string> load_filaments_name, load_filaments_inherit;
+    // Cloud filament remap: when an old->new map is given, --load-filaments describes the NEW (cloud)
+    // filament list (N_new) instead of the 3MF's original list. It is stashed here and detached from the
+    // N_old pipeline below, then consumed by the remap step to rebuild the project's filament list.
+    const auto *old_to_new_map_opt = m_config.option<ConfigOptionInts>("old_to_new_filament_map");
+    const bool cli_filament_remap = old_to_new_map_opt && !old_to_new_map_opt->values.empty();
+    std::vector<DynamicPrintConfig> remap_new_filament_presets;
+    std::vector<std::string> remap_new_filament_names, remap_new_filament_ids;
     int current_index = 0;
     const bool cli_has_map = m_extra_config.has("filament_diameter_map");
     // Machine preset diameter. --load_settings wins over the project config, which still
@@ -3002,10 +3011,26 @@ int CLI::run(int argc, char **argv)
     if (filament_count == 0)
         filament_count = load_filament_count;
 
-    if (is_bbl_3mf && (load_filament_count > 0) && (load_filaments_set.size() == 1) && !estimate_mode)
-    {
+    if (is_bbl_3mf && (load_filament_count > 0) && (load_filaments_set.size() == 1) && !estimate_mode) {
         disable_wipe_tower_after_mapping = true;
-        BOOST_LOG_TRIVIAL(info) << boost::format("map all the filaments to the same one, load_filament_count %1%")%load_filament_count;
+        BOOST_LOG_TRIVIAL(info) << boost::format("map all the filaments to the same one, load_filament_count %1%") % load_filament_count;
+    }
+
+    if (cli_filament_remap && load_filament_count > 0) {
+        remap_new_filament_presets = load_filaments_config;
+        remap_new_filament_names   = load_filaments_name;
+        remap_new_filament_ids     = load_filaments_id;
+
+        //load_filaments_config.clear();
+        //load_filaments_name.clear();
+        //load_filaments_id.clear();
+        //load_filaments_inherit.clear();
+        //load_filaments_index.clear();
+        //load_filaments_set.clear();
+        //load_filament_count = 0;
+
+        BOOST_LOG_TRIVIAL(info) << "CLI filament remap: captured " << remap_new_filament_presets.size()
+                                << " new filament presets from --load-filaments (detached from N_old pipeline)";
     }
 
     //load system config if needed
@@ -4105,7 +4130,7 @@ int CLI::run(int argc, char **argv)
     }
 
     //set the filament settings into print config
-    if ((load_filament_count > 0) || (up_config_to_date))
+    if (((load_filament_count > 0) || (up_config_to_date)) && !cli_filament_remap)
     {
         //std::vector<int> filament_variant_count(filament_count, 1);
         std::vector<int> old_start_indice(filament_count, 0);
@@ -4732,6 +4757,162 @@ int CLI::run(int argc, char **argv)
             boost::nowide::cerr << it->first <<": "<< it->second << std::endl;
         record_exit_reson(outfile_dir, CLI_INVALID_VALUES_IN_3MF, 0, cli_errors[CLI_INVALID_VALUES_IN_3MF], sliced_info);
         flush_and_exit(CLI_INVALID_VALUES_IN_3MF);
+    }
+
+    // Remap project filaments (solid <-> mixed) from CLI parameters.
+    if (cli_filament_remap) {
+        const std::vector<int> &old_to_new_map = old_to_new_map_opt->values;
+        BOOST_LOG_TRIVIAL(info) << "CLI filament remap requested, map size=" << old_to_new_map.size();
+
+        // The new (cloud) filament list is described by --load-filaments (stashed above): each physical
+        // slot's preset provides its brand / filament_id / filament_type. Colors and mixed layout come from
+        // the standard project fields in m_config (populated from the command line).
+        auto read_strings = [&](const char *key) -> std::vector<std::string> {
+            auto *o = m_config.option<ConfigOptionStrings>(key);
+            return o ? o->values : std::vector<std::string>();
+        };
+        auto read_bools = [&](const char *key) -> std::vector<unsigned char> {
+            auto *o = m_config.option<ConfigOptionBools>(key);
+            return o ? o->values : std::vector<unsigned char>();
+        };
+
+        FilamentRemapInput remap_input;
+        remap_input.colors           = read_strings("filament_colour");
+        remap_input.mixed_components = read_strings("filament_mixed_components");
+        remap_input.mixed_ratios     = read_strings("filament_mixed_sublayer_ratios");
+        remap_input.is_mixed         = read_bools("filament_is_mixed");
+        remap_input.mixed_gradient   = read_bools("filament_mixed_gradient");
+        remap_input.old_to_new_map   = old_to_new_map;
+
+        // New filament count is derived from the filament_colour list. filament type is never taken from the
+        // command line: physical slots read it from their --load-filaments preset, mixed slots inherit it
+        // from their first component.
+        const size_t n_new = remap_input.colors.size();
+        if (n_new == 0 || remap_input.is_mixed.size() != n_new) {
+            BOOST_LOG_TRIVIAL(error) << "filament remap: color/is_mixed length mismatch (colors=" << remap_input.colors.size() << ", is_mixed=" << remap_input.is_mixed.size()
+                                     << ")";
+            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            flush_and_exit(CLI_INVALID_PARAMS);
+        }
+        // types are always derived below (physical from preset, mixed from first component).
+        remap_input.types.assign(n_new, std::string());
+        if (remap_input.mixed_components.size() < n_new) remap_input.mixed_components.resize(n_new);
+        if (remap_input.mixed_ratios.size() < n_new) remap_input.mixed_ratios.resize(n_new);
+        if (remap_input.mixed_gradient.size() < n_new) remap_input.mixed_gradient.resize(n_new, 0);
+
+        remap_input.filament_presets.resize(n_new);
+        remap_input.filament_preset_names.resize(n_new);
+        remap_input.filament_ids.resize(n_new);
+
+        // The stashed --load-filaments list must align with the new slot count. --load-defaultfila pads
+        // empty/mixed slots with a default preset so the list stays index-aligned with the new slots.
+        if (remap_new_filament_presets.size() < n_new) {
+            BOOST_LOG_TRIVIAL(error) << "filament remap: --load-filaments provides " << remap_new_filament_presets.size() << " presets but " << n_new
+                                     << " new slots are required "
+                                     << "(pass one preset per new slot and use --load-defaultfila to pad empty/mixed slots)";
+            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            flush_and_exit(CLI_INVALID_PARAMS);
+        }
+
+        // First pass: physical slots take their preset (brand / filament_id / type) straight from the
+        // stashed --load-filaments entry at the same slot index.
+        for (size_t i = 0; i < n_new; ++i) {
+            if (remap_input.is_mixed[i]) continue;
+            remap_input.filament_presets[i]      = remap_new_filament_presets[i];
+            remap_input.filament_preset_names[i] = remap_new_filament_names[i];
+            remap_input.filament_ids[i]          = remap_new_filament_ids[i];
+            // Derive the filament type from the preset (physical slots never rely on a CLI type parameter).
+            auto *tp             = remap_input.filament_presets[i].option<ConfigOptionStrings>("filament_type");
+            remap_input.types[i] = (tp && !tp->values.empty()) ? tp->values.front() : std::string("PLA");
+            BOOST_LOG_TRIVIAL(info) << "remap slot " << (i + 1) << " physical type " << remap_input.types[i] << " -> " << remap_input.filament_preset_names[i];
+        }
+
+        // Second pass: mixed slots copy first component's physical preset.
+        for (size_t i = 0; i < n_new; ++i) {
+            if (!remap_input.is_mixed[i]) continue;
+            auto comps = parse_mixed_components(remap_input.mixed_components[i]);
+            if (comps.empty() || comps[0] < 1 || comps[0] > n_new || remap_input.is_mixed[comps[0] - 1]) {
+                BOOST_LOG_TRIVIAL(error) << "mixed slot " << (i + 1) << " missing valid first component";
+                record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                flush_and_exit(CLI_INVALID_PARAMS);
+            }
+            size_t src                           = comps[0] - 1;
+            remap_input.filament_presets[i]      = remap_input.filament_presets[src];
+            remap_input.filament_preset_names[i] = remap_input.filament_preset_names[src];
+            remap_input.filament_ids[i]          = remap_input.filament_ids[src];
+            // Keep mixed display type as provided; override if empty.
+            if (remap_input.types[i].empty()) remap_input.types[i] = remap_input.types[src];
+            BOOST_LOG_TRIVIAL(info) << "remap slot " << (i + 1) << " mixed, clone preset from component " << comps[0] << " (" << remap_input.filament_preset_names[i] << ")";
+        }
+
+        if (m_models.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "filament remap requires a loaded model/3mf";
+            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            flush_and_exit(CLI_INVALID_PARAMS);
+        }
+
+        FilamentRemapResult remap_ret = remap_project_filaments(m_models[0], m_print_config, remap_input);
+        if (!remap_ret.success) {
+            BOOST_LOG_TRIVIAL(error) << "filament remap failed: " << remap_ret.error;
+            boost::nowide::cerr << "filament remap failed: " << remap_ret.error << std::endl;
+            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            flush_and_exit(CLI_INVALID_PARAMS);
+        }
+
+        // Re-apply CLI routing/gradient params that remap_project_filaments resets to defaults.
+        // m_config holds the original CLI values; writing them back preserves the caller's intent.
+        // Routing arrays must match the new filament count (n_new); clamp/pad them so a mismatched
+        // CLI length can never leave m_print_config with inconsistent filament array sizes. Default
+        // fills mirror the ensure_int_array defaults inside remap_project_filaments.
+        auto reapply_routing_ints = [&](const char *key, int fill) {
+            const auto *src = m_config.option<ConfigOptionInts>(key);
+            if (!src) return;
+            std::vector<int> vals = src->values;
+            if (vals.size() != n_new) {
+                BOOST_LOG_TRIVIAL(warning) << "filament remap: " << key << " length " << vals.size() << " != new filament count " << n_new << ", adjusting";
+                vals.resize(n_new, fill);
+            }
+            m_print_config.option<ConfigOptionInts>(key, true)->values = std::move(vals);
+        };
+        reapply_routing_ints("filament_map", 1); // 1-based extruder id; extruder 1 always exists
+        reapply_routing_ints("filament_nozzle_map", 0);
+        reapply_routing_ints("filament_volume_map", (int) NozzleVolumeType::nvtStandard);
+
+        for (const char *k : {"filament_map_mode", "filament_mixed_gradient_range", "filament_mixed_gradient_curve"}) {
+            const ConfigOption *src = m_config.option(k);
+            if (src) m_print_config.set_key_value(k, src->clone());
+        }
+
+        filament_count = (int) n_new;
+
+        // Keep inherits_group / different_settings_to_system aligned with new filament count.
+        // Layout: [process, fila1..filaN, printer]
+        {
+            auto       &inherits_group  = m_print_config.option<ConfigOptionStrings>("inherits_group", true)->values;
+            std::string process_inherit = inherits_group.empty() ? std::string() : inherits_group.front();
+            std::string printer_inherit = inherits_group.size() >= 2 ? inherits_group.back() : std::string();
+            inherits_group.assign(n_new + 2, std::string());
+            inherits_group[0] = process_inherit;
+            // System filament presets: inherits entry left empty; name is in filament_settings_id.
+            inherits_group[n_new + 1] = printer_inherit;
+
+            auto       &different_settings = m_print_config.option<ConfigOptionStrings>("different_settings_to_system", true)->values;
+            std::string process_diff       = different_settings.empty() ? std::string() : different_settings.front();
+            std::string printer_diff       = different_settings.size() >= 2 ? different_settings.back() : std::string();
+            different_settings.assign(n_new + 2, std::string());
+            different_settings[0]         = process_diff;
+            different_settings[n_new + 1] = printer_diff;
+        }
+
+        // Re-validate after remap.
+        validity = m_print_config.validate(true);
+        if (!validity.empty()) {
+            boost::nowide::cerr << "Param values after filament remap error: " << std::endl;
+            for (auto it = validity.begin(); it != validity.end(); ++it) boost::nowide::cerr << it->first << ": " << it->second << std::endl;
+            record_exit_reson(outfile_dir, CLI_INVALID_VALUES_IN_3MF, 0, cli_errors[CLI_INVALID_VALUES_IN_3MF], sliced_info);
+            flush_and_exit(CLI_INVALID_VALUES_IN_3MF);
+        }
+        BOOST_LOG_TRIVIAL(info) << "CLI filament remap completed, filament_count=" << filament_count;
     }
 
     // 机型变化时要触发model change  => 原来没值或者model发生变化

@@ -525,6 +525,8 @@ set(lisbslic3r_sources
     FilamentMixer.hpp
     FilamentMixer.cpp
     FilamentMixerModel.hpp
+    FilamentRemapper.hpp
+    FilamentRemapper.cpp
     ColorDecomposeRecipe.hpp
     ColorDecomposeRecipe.cpp
 )

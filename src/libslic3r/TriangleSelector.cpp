@@ -2422,6 +2422,30 @@ void TriangleSelector::replace_state(EnforcerBlockerType from, EnforcerBlockerTy
     }
 }
 
+void TriangleSelector::remap_filament_states(const std::vector<int> &old_to_new_1based, EnforcerBlockerType max_ebt)
+{
+    for (Triangle &triangle : m_triangles) {
+        if (triangle.is_split() || !triangle.valid())
+            continue;
+        EnforcerBlockerType s = triangle.get_state();
+        if (s == EnforcerBlockerType::NONE)
+            continue;
+        int old_id = (int) s;
+        if (old_id <= 0)
+            continue;
+        int new_id = 0;
+        if (old_id <= (int) old_to_new_1based.size())
+            new_id = old_to_new_1based[old_id - 1];
+        if (new_id <= 0) {
+            triangle.set_state(EnforcerBlockerType::NONE);
+            continue;
+        }
+        if (new_id > (int) max_ebt)
+            new_id = (int) max_ebt;
+        triangle.set_state(EnforcerBlockerType(new_id));
+    }
+}
+
 TriangleSelector::Cursor::Cursor(const Vec3f &source_, float radius_world, const Transform3d &trafo_, const ClippingPlane &clipping_plane_)
     : source{source_}, trafo{trafo_.cast<float>()}, clipping_plane{clipping_plane_}
 {

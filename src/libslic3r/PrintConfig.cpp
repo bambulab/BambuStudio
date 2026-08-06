@@ -11603,6 +11603,12 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "\"filament1.json;filament2.json;...\"";
     def->set_default_value(new ConfigOptionStrings());
 
+    def = this->add("old_to_new_filament_map", coInts);
+    def->label = "Old to new filament map";
+    def->tooltip = "One-to-one map from old 1-based filament ids to new 1-based ids. Length equals old filament count.";
+    def->cli_params = "\"1,2,3,5,6\"";
+    def->set_default_value(new ConfigOptionInts());
+
     def = this->add("skip_objects", coInts);
     def->label = "Skip Objects";
     def->tooltip = "Skip some objects in this print";

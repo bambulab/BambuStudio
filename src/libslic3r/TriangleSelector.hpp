@@ -6,6 +6,7 @@
 
 #include <cfloat>
 #include <functional>
+#include <vector>
 #include "Point.hpp"
 #include "TriangleMesh.hpp"
 #include "libslic3r/Model.hpp"
@@ -376,6 +377,11 @@ public:
     // own filament has to be baked in explicitly. Painting only whole facets is not
     // enough - a facet carrying a brush stroke keeps unpainted areas around it.
     void fill_unpainted(EnforcerBlockerType state);
+
+    // Remap painted filament states with an arbitrary old→new map.
+    // old_to_new_1based[i] is the new 1-based filament id for old filament (i+1).
+    // Values <= 0 clear the facet to NONE. max_ebt clamps out-of-range results.
+    void remap_filament_states(const std::vector<int> &old_to_new_1based, EnforcerBlockerType max_ebt);
 
 protected:
     // Triangle and info about how it's split.

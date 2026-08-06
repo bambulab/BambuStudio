@@ -796,6 +796,9 @@ public:
                                                        EnforcerBlockerType max_type,
                                                        EnforcerBlockerType to_delete_filament = EnforcerBlockerType::NONE,
                                                        EnforcerBlockerType replace_filament = EnforcerBlockerType::NONE);
+    // Remap painted filament facet states with an arbitrary old→new 1-based map.
+    void                 remap_filament_ids(const ModelVolume &mv, EnforcerBlockerType max_type,
+                                            const std::vector<int> &old_to_new_1based);
     indexed_triangle_set get_facets_strict(const ModelVolume& mv, EnforcerBlockerType type) const;
     bool has_facets(const ModelVolume& mv, EnforcerBlockerType type) const;
     bool empty() const { return m_data.first.empty(); }
