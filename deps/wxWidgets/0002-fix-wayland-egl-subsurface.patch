@@ -701,3 +701,61 @@
  };
  
  // ----------------------------------------------------------------------------
+--- a/src/gtk/glcanvas.cpp
++++ b/src/gtk/glcanvas.cpp
+@@ -48,6 +48,45 @@
+ // emission hook for "parent-set"
+ //-----------------------------------------------------------------------------
+ 
++#if wxUSE_GLCANVAS_EGL && defined(GDK_WINDOWING_X11)
++#include <EGL/egl.h>
++
++extern "C" {
++// Under X11 the EGL window surface can only be created when the EGLConfig's
++// native visual matches the visual of the X window. Mesa tolerates a
++// mismatch, NVIDIA fails with EGL_BAD_ALLOC and, since the failure is silent
++// in release builds, the canvas just stays blank. Align the widget's visual
++// with the config before the widget is realized, mirroring what the GLX path
++// below does with the GLX visual.
++static gboolean
++egl_parent_set_hook(GSignalInvocationHint*, guint, const GValue* param_values, void* data)
++{
++    wxGLCanvas* win = (wxGLCanvas*)data;
++    if (g_value_peek_pointer(&param_values[0]) != win->m_wxwindow)
++        return true;
++
++    GdkDisplay* const gdpy = gtk_widget_get_display(win->m_wxwindow);
++    EGLConfig* const config = win->GetEGLConfig();
++    EGLDisplay const dpy = wxGLCanvasEGL::GetDisplay();
++    EGLint vid = 0;
++    if (GDK_IS_X11_DISPLAY(gdpy) && config && dpy != EGL_NO_DISPLAY &&
++        eglGetConfigAttrib(dpy, *config, EGL_NATIVE_VISUAL_ID, &vid) && vid != 0)
++    {
++        GdkVisual* visual = gtk_widget_get_visual(win->m_wxwindow);
++        if (GDK_VISUAL_XVISUAL(visual)->visualid != (VisualID)vid)
++        {
++            GdkScreen* screen = gtk_widget_get_screen(win->m_wxwindow);
++            visual = gdk_x11_screen_lookup_visual(screen, vid);
++            if (visual)
++                gtk_widget_set_visual(win->m_wxwindow, visual);
++        }
++    }
++    // remove hook
++    return false;
++}
++}
++#endif // wxUSE_GLCANVAS_EGL && GDK_WINDOWING_X11
++
+ #if !wxUSE_GLCANVAS_EGL
+ extern "C" {
+ static gboolean
+@@ -250,6 +289,9 @@
+ #if !wxUSE_GLCANVAS_EGL
+     unsigned sig_id = g_signal_lookup("parent-set", GTK_TYPE_WIDGET);
+     g_signal_add_emission_hook(sig_id, 0, parent_set_hook, this, NULL);
++#elif defined(GDK_WINDOWING_X11)
++    unsigned sig_id = g_signal_lookup("parent-set", GTK_TYPE_WIDGET);
++    g_signal_add_emission_hook(sig_id, 0, egl_parent_set_hook, this, NULL);
+ #endif
+ 
+     wxWindow::Create( parent, id, pos, size, style, name );
