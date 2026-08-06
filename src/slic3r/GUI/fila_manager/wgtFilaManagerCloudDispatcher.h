@@ -7,6 +7,8 @@
 #include <vector>
 #include "nlohmann/json.hpp"
 
+namespace BBL { struct AmsSyncParams; }
+
 namespace Slic3r { namespace GUI {
 
 class wgtFilaManagerCloudSync;
@@ -58,6 +60,10 @@ public:
                              const nlohmann::json& local_patch);
     // Push a batch delete for multiple spool ids.
     void enqueue_push_delete(const std::vector<std::string>& spool_ids);
+    // Sync AMS tray weights to cloud via POST /my/filament/v2/ams/sync.
+    // Used for device-reported remainder updates (auto and manual push-all).
+    void enqueue_sync_ams(BBL::AmsSyncParams params,
+                          std::function<void()> on_cloud_ok = nullptr);
 
     // Clear any not-yet-started push ops.  Does not cancel the in-flight op.
     void clear_pending();
@@ -80,6 +86,8 @@ private:
     void run_push_update_op(const std::string& spool_id,
                             const nlohmann::json& local_patch);
     void run_push_delete_op(const std::vector<std::string>& spool_ids);
+    void run_sync_ams_op(BBL::AmsSyncParams params,
+                         std::function<void()> on_cloud_ok);
 
     void update_last_synced_now();
     void record_error(int code, const std::string& msg);
