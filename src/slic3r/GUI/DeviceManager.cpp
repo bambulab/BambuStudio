@@ -1665,6 +1665,11 @@ int MachineObject::command_ams_change_filament(bool load, std::string ams_id, st
 
 int MachineObject::command_multi_slot_ams_change_filament(bool is_load, const std::vector<std::pair<int, int>>& slots)
 {
+    if (slots.size() == 1) {
+        const auto& [ams_id, slot_id] = slots.front();
+        return command_ams_change_filament(is_load, std::to_string(ams_id), std::to_string(slot_id));
+    }
+
     json j;
     try {
         j["print"]["command"]     = "multi_slot_ams_change_filament";
