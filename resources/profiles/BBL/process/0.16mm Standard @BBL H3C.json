@@ -106,6 +106,7 @@
     ],
     "prime_tower_acceleration": "20000",
     "prime_tower_brim_width": "-1",
+    "prime_tower_feedrate_factor": "0.82",
     "prime_tower_line_ironing": "0",
     "prime_tower_line_width": "0.8",
     "prime_tower_width": "60",
