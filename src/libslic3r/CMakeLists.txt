@@ -526,6 +526,43 @@ if(MSVC AND MSVC_VERSION GREATER_EQUAL 1950 AND NOT DEFINED OpenCV_RUNTIME)
     # explicitly here to match what find_package looks for.
     set(OpenCV_RUNTIME vc17)
 endif()
+if(MSVC AND NOT DEFINED OpenCV_ARCH)
+    # OpenCVConfig.cmake's arch dispatcher matches CMAKE_GENERATOR_PLATFORM against
+    # "ARM64" case-sensitively, but build_win.bat passes -A arm64 (lowercase), so it
+    # falls back to x64 and misses the ARM64/<runtime>/staticlib install layout.
+    # Select the arch explicitly for any spelling of an ARM64 target. The dispatcher
+    # only honours pre-set values when BOTH OpenCV_ARCH and OpenCV_RUNTIME are
+    # defined, so pin the runtime too (our deps build installs the vc17 layout).
+    set(_slic3r_gen_platform "${CMAKE_GENERATOR_PLATFORM}")
+    if(NOT _slic3r_gen_platform)
+        set(_slic3r_gen_platform "${CMAKE_SYSTEM_PROCESSOR}")
+    endif()
+    string(TOUPPER "${_slic3r_gen_platform}" _slic3r_gen_platform)
+    if(_slic3r_gen_platform MATCHES "^(ARM64|AARCH64)$")
+        set(OpenCV_ARCH ARM64)
+        if(NOT DEFINED OpenCV_RUNTIME)
+            set(OpenCV_RUNTIME vc17)
+        endif()
+    elseif(_slic3r_gen_platform STREQUAL "ARM64EC")
+        # ARM64EC consumes either dependency flavor (EC and x64 code
+        # interoperate): the in-repo ARM64EC deps bundle installs OpenCV under
+        # ARM64/vc17 (its recipe treats EC like arm64), while an x64 deps
+        # prefix uses x64/vc17. Pick whichever layout the prefix provides.
+        # MSVC 19.4x also falls in a gap in OpenCV 4.6's runtime table, so the
+        # runtime must be pinned here too.
+        set(OpenCV_ARCH x64)
+        foreach(_slic3r_prefix ${CMAKE_PREFIX_PATH})
+            if(EXISTS "${_slic3r_prefix}/ARM64/vc17")
+                set(OpenCV_ARCH ARM64)
+            endif()
+        endforeach()
+        unset(_slic3r_prefix)
+        if(NOT DEFINED OpenCV_RUNTIME)
+            set(OpenCV_RUNTIME vc17)
+        endif()
+    endif()
+    unset(_slic3r_gen_platform)
+endif()
 find_package(OpenCV REQUIRED core)
 find_package(assimp REQUIRED)
 cmake_policy(POP)
