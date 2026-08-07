@@ -5587,7 +5587,7 @@ void GUI_App::check_startup_version_policy()
         if (result.blocked()) {
             CallAfter([this] {
                 if (mainframe) {
-                    mainframe->shutdown();
+                    wxGetApp().ExitMainLoop();
                 }
             });
         }
