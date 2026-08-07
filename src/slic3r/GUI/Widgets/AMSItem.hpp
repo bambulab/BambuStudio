@@ -539,6 +539,7 @@ protected:
     void render(wxDC &dc);
     void render_lite_text(wxDC& dc);
     void render_generic_text(wxDC& dc);
+    wxString get_filament_color_tooltip() const;
     void doRender(wxDC& dc);
     void render_lite_lib(wxDC& dc);
     void render_generic_lib(wxDC& dc);
