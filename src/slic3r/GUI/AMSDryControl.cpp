@@ -1478,7 +1478,7 @@ int AMSDryCtrWin::update_dryness_status(DevAms* dev_ams)
         if (m_ams_info.m_left_dry_time != dev_ams->GetLeftDryTime()) {
             updated += 1;
             m_ams_info.m_left_dry_time = dev_ams->GetLeftDryTime();
-            m_time_data_label->SetLabel(wxString::Format("%02d : %02d",
+            m_time_data_label->SetLabel(wxString::Format("%02d:%02d",
                 m_ams_info.m_left_dry_time / 60, m_ams_info.m_left_dry_time % 60));
         }
     }
