@@ -14,6 +14,7 @@ add_executable(${_TEST_NAME}_tests
 	test_printobject.cpp
 	test_skirt_brim.cpp
 	test_support_material.cpp
+	test_tool_ordering.cpp
 	test_trianglemesh.cpp
 	)
 target_link_libraries(${_TEST_NAME}_tests test_common libslic3r)
