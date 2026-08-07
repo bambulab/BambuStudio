@@ -236,7 +236,7 @@ namespace instance_check_internal
 			dbus_uint32_t 	serial = 0;
 			const char* sigval = message_text.c_str();
 			//std::string		interface_name = "com.prusa3d.prusaslicer.InstanceCheck";
-			std::string		interface_name = "com.bambulab.BambuStudio.InstanceCheck.Object" + version;
+			std::string		interface_name = "com.BambuLab.BambuStudio.InstanceCheck.Object" + version;
 			std::string   	method_name = "AnotherInstance";
 			//std::string		object_name = "/com/prusa3d/prusaslicer/InstanceCheck";
 			std::string		object_name = "/com/BambuLab/BambuStudio/InstanceCheck/Object" + version;
@@ -538,7 +538,7 @@ namespace MessageHandlerDBusInternal
 	        "       <arg name=\"data\" direction=\"out\" type=\"s\" />"
 	        "     </method>"
 	        "   </interface>"
-	        "   <interface name=\"com.bambulab.BambuStudio.InstanceCheck\">"
+	        "   <interface name=\"com.BambuLab.BambuStudio.InstanceCheck\">"
 	        "     <method name=\"AnotherInstance\">"
 	        "       <arg name=\"data\" direction=\"in\" type=\"s\" />"
 	        "     </method>"
