@@ -6,7 +6,7 @@
     "setting_id": "GFSS02_25",
     "instantiation": "true",
     "additional_cooling_fan_speed": [
-        "75"
+        "0"
     ],
     "eng_plate_temp": [
         "55"
@@ -15,10 +15,10 @@
         "55"
     ],
     "fan_max_speed": [
-        "80"
+        "0"
     ],
     "fan_min_speed": [
-        "60"
+        "0"
     ],
     "filament_change_length": [
         "0"
@@ -67,6 +67,10 @@
     "nozzle_temperature_initial_layer": [
         "240",
         "240"
+    ],
+    "optional_cooling_fan_speed": {},
+    "overhang_fan_speed": [
+        "0"
     ],
     "slow_down_min_speed": [
         "20",
