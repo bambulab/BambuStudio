@@ -831,11 +831,17 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
         }
     }
 
-    int ams_id_int = 0;
     int tray_id_int = 0;
+    int global_tray_id = -1;
     try {
-        tray_id_int = atoi(curr_tray->id.c_str());
-        curr_tray->is_exists = DevUtil::get_flag_bits(obj->tray_exist_bits, curr_ams->GetTrayId(tray_id_int));
+        tray_id_int = std::stoi(curr_tray->id);
+        global_tray_id = curr_ams->GetTrayId(tray_id_int);
+        if (global_tray_id >= 0) {
+            curr_tray->is_exists =
+                DevUtil::get_flag_bits(
+                    obj->tray_exist_bits,
+                    global_tray_id);
+        }
     } catch (...) {
     }
 
@@ -843,8 +849,7 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
     auto curr_time = std::chrono::system_clock::now();
     auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - obj->extrusion_cali_set_hold_start);
     if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
-        || ams_id_int != (obj->extrusion_cali_set_tray_id / 4)
-        || tray_id_int != (obj->extrusion_cali_set_tray_id % 4)) {
+        || global_tray_id != obj->extrusion_cali_set_tray_id) {
         DevJsonValParser::ParseVal(j_tray, "k", curr_tray->k);
         DevJsonValParser::ParseVal(j_tray, "n", curr_tray->n);
     }
