@@ -3276,18 +3276,202 @@ static void reproj_transfer(const TriangleMesh &old_mesh, const TriangleMesh &ne
     reproj_apply_states(new_mesh, n_fuzzy, d_fuzzy);
 }
 
-void ModelVolume::set_mesh_keep_paint(TriangleMesh &&mesh_in)
+void ModelVolume::set_mesh_keep_paint(TriangleMesh &&mesh_in, const std::function<bool(int)> &progress)
 {
+    // High-fidelity paint preservation across a mesh rebuild (Simplify / Repair). The old path
+    // flattened every source face to ONE dominant colour, so a subdivided (brush-painted) boundary
+    // was destroyed when the mesh was rebuilt. Here we keep the FULL split-tree of the old mesh,
+    // sample it per-point by nearest surface, and drive the new mesh's own TriangleSelector to
+    // subdivide only where the colour changes - the same proven technique as the boolean transfer
+    // (reproject_paint_from_volumes), just single-source and same-frame (identity), so simpler.
     const TriangleMesh old_mesh = this->mesh(); // copy before replacing
-    std::vector<EnforcerBlockerType> o_sup, o_seam, o_mmu, o_fuzzy;
-    reproj_per_face_states(old_mesh, this->supported_facets,        o_sup);
-    reproj_per_face_states(old_mesh, this->seam_facets,             o_seam);
-    reproj_per_face_states(old_mesh, this->mmu_segmentation_facets, o_mmu);
-    reproj_per_face_states(old_mesh, this->fuzzy_skin_facets,       o_fuzzy);
+
+    auto make_sel = [&old_mesh](const FacetsAnnotation &ann) -> std::shared_ptr<TriangleSelector> {
+        if (ann.empty()) return nullptr;
+        auto s = std::make_shared<TriangleSelector>(old_mesh);
+        s->deserialize(ann.get_data(), true);
+        return s;
+    };
+    auto sel_mmu   = make_sel(this->mmu_segmentation_facets);
+    auto sel_sup   = make_sel(this->supported_facets);
+    auto sel_seam  = make_sel(this->seam_facets);
+    auto sel_fuzzy = make_sel(this->fuzzy_skin_facets);
+
     this->set_mesh(std::move(mesh_in));
-    reproj_transfer(old_mesh, this->mesh(), o_sup, o_seam, o_mmu, o_fuzzy,
-                    this->supported_facets, this->seam_facets,
-                    this->mmu_segmentation_facets, this->fuzzy_skin_facets);
+
+    if (old_mesh.its.indices.empty() || this->mesh().its.indices.empty() ||
+        (!sel_mmu && !sel_sup && !sel_seam && !sel_fuzzy)) {
+        this->supported_facets.reset();        this->seam_facets.reset();
+        this->mmu_segmentation_facets.reset(); this->fuzzy_skin_facets.reset();
+        return;
+    }
+
+    auto tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
+        old_mesh.its.vertices, old_mesh.its.indices);
+
+    // Subdivide colour boundaries down to 0.05mm - below the smallest printable layer height, so the
+    // paint boundary survives the remesh at full fidelity instead of being flattened to base faces.
+    const float edge_limit = 0.05f;
+    // Spread the progress bar across only the layers we actually transfer (most models = mmu only).
+    const int         active = (sel_mmu ? 1 : 0) + (sel_sup ? 1 : 0) + (sel_seam ? 1 : 0) + (sel_fuzzy ? 1 : 0);
+    int               ord    = 0;
+    std::atomic<bool> cancelled{false};
+    auto transfer = [&](const std::shared_ptr<TriangleSelector> &src, FacetsAnnotation &dst) {
+        if (!src || cancelled.load()) { dst.reset(); return; }
+        const int base = ord++;
+        TriangleSelector out(this->mesh());
+        out.paint_by_sampler([&](const Vec3f &p) -> EnforcerBlockerType {
+            size_t face = size_t(-1); Vec3f hit;
+            const double d2 = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
+                old_mesh.its.vertices, old_mesh.its.indices, tree, p, face, hit);
+            if (d2 < 0. || face == size_t(-1)) return EnforcerBlockerType::NONE;
+            return src->state_at(hit, int(face));
+        }, edge_limit,
+            [&, base](int done, int total) -> bool {
+                if (progress && total > 0 && !progress((base * 100 + done * 100 / total) / std::max(1, active))) {
+                    cancelled.store(true);
+                    return false;
+                }
+                return true;
+            });
+        dst.reset();
+        dst.set(out);
+    };
+    transfer(sel_mmu,   this->mmu_segmentation_facets);
+    transfer(sel_sup,   this->supported_facets);
+    transfer(sel_seam,  this->seam_facets);
+    transfer(sel_fuzzy, this->fuzzy_skin_facets);
+    if (progress) progress(100);
+}
+
+void ModelVolume::reproject_paint_from_volumes(const std::vector<std::pair<const ModelVolume*, Transform3d>> &srcs,
+                                               const std::function<bool(int)> &progress)
+{
+    // High-fidelity paint transfer. The old path flattened every source face and every
+    // result face to ONE dominant color, so hand-painted brush detail smaller than a base
+    // face was lost when the boolean rebuilt the mesh into coarse triangles. Here we keep
+    // each source's FULL subdivided paint, sample it per-point, and drive the union's own
+    // TriangleSelector to subdivide only where the color changes - preserving brush detail
+    // without bloating uniform regions.
+    struct SrcVol {
+        Transform3d to_src;          // union-local point -> this source volume's local point
+        int         face_begin = 0;  // first merged-mesh face owned by this volume
+        int         face_end   = 0;  // one past the last
+        int         base_extruder = 0;
+        std::shared_ptr<TriangleSelector> sel_mmu, sel_sup, sel_seam, sel_fuzzy;
+    };
+    std::vector<SrcVol> vols;
+    TriangleMesh        combined; // every source BASE mesh, merged, in THIS (union) volume's frame
+    // Which paint layers any source actually uses - so we can skip sampling a layer nobody
+    // painted (a big speed-up: most models only use mmu, so we skip 3 of 4 layers).
+    bool any_sup = false, any_seam = false, any_fuzzy = false;
+
+    for (const auto &pr : srcs) {
+        const ModelVolume *sv = pr.first;
+        if (sv == nullptr || sv->mesh().its.indices.empty())
+            continue;
+        SrcVol sd;
+        sd.to_src        = pr.second.inverse();
+        sd.base_extruder = sv->extruder_id();
+        auto make_sel = [sv](const FacetsAnnotation &ann) {
+            auto s = std::make_shared<TriangleSelector>(sv->mesh());
+            if (!ann.empty())
+                s->deserialize(ann.get_data(), true);
+            return s;
+        };
+        sd.sel_mmu   = make_sel(sv->mmu_segmentation_facets);
+        sd.sel_sup   = make_sel(sv->supported_facets);
+        sd.sel_seam  = make_sel(sv->seam_facets);
+        sd.sel_fuzzy = make_sel(sv->fuzzy_skin_facets);
+        any_sup   |= !sv->supported_facets.empty();
+        any_seam  |= !sv->seam_facets.empty();
+        any_fuzzy |= !sv->fuzzy_skin_facets.empty();
+
+        TriangleMesh m = sv->mesh();
+        m.transform(pr.second, true);
+        sd.face_begin = int(combined.its.indices.size());
+        combined.merge(m);
+        sd.face_end = int(combined.its.indices.size());
+        vols.push_back(std::move(sd));
+    }
+
+    if (combined.its.indices.empty() || this->mesh().its.indices.empty()) {
+        this->supported_facets.reset();       this->seam_facets.reset();
+        this->mmu_segmentation_facets.reset(); this->fuzzy_skin_facets.reset();
+        return;
+    }
+
+    auto tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
+        combined.its.vertices, combined.its.indices);
+
+    // Reject matches farther than 2% of the combined bbox diagonal (same as the old path)
+    // so brand-new boolean surfaces stay unpainted instead of snapping to a distant color.
+    Vec3f bbmin = combined.its.vertices.front(), bbmax = bbmin;
+    for (const Vec3f &p : combined.its.vertices) { bbmin = bbmin.cwiseMin(p); bbmax = bbmax.cwiseMax(p); }
+    const double diag    = (bbmax - bbmin).cast<double>().norm();
+    const double cutoff2 = (0.02 * diag) * (0.02 * diag);
+
+    auto owner_of = [&vols](int face) -> const SrcVol* {
+        for (const SrcVol &sd : vols)
+            if (face >= sd.face_begin && face < sd.face_end) return &sd;
+        return nullptr;
+    };
+
+    enum class Layer { Mmu, Sup, Seam, Fuzzy };
+    auto sample = [&](const Vec3f &p_union, Layer layer) -> EnforcerBlockerType {
+        size_t face = size_t(-1); Vec3f hitp;
+        double d2 = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
+            combined.its.vertices, combined.its.indices, tree, p_union, face, hitp);
+        if (d2 < 0. || d2 > cutoff2 || face == size_t(-1))
+            return EnforcerBlockerType::NONE;
+        const SrcVol *sd = owner_of(int(face));
+        if (sd == nullptr) return EnforcerBlockerType::NONE;
+        const int   local_face = int(face) - sd->face_begin;
+        const Vec3f p_src      = (sd->to_src * hitp.cast<double>()).cast<float>();
+        const TriangleSelector *sel = layer == Layer::Mmu  ? sd->sel_mmu.get()
+                                    : layer == Layer::Sup  ? sd->sel_sup.get()
+                                    : layer == Layer::Seam ? sd->sel_seam.get()
+                                                           : sd->sel_fuzzy.get();
+        EnforcerBlockerType st = sel->state_at(p_src, local_face);
+        // MMU only: a part colored via the filament dropdown (no brush) has an empty mmu
+        // layer - fall back to its base filament so every region keeps its color on the
+        // fused result. The other layers have no "base" and stay NONE where unpainted.
+        if (layer == Layer::Mmu && st == EnforcerBlockerType::NONE
+            && sd->base_extruder >= 1 && sd->base_extruder <= int(EnforcerBlockerType::ExtruderMax))
+            st = EnforcerBlockerType(sd->base_extruder);
+        return st;
+    };
+
+    // Subdivide colour boundaries down to 0.05mm - below the smallest layer height a 0.2mm
+    // nozzle can print (0.08mm), so the paint boundary is never the fidelity bottleneck, while
+    // staying fast and light. (Finer, e.g. 0.01mm, is dramatically heavier for no print benefit.)
+    const float edge_limit = 0.05f;
+    // Spread the progress bar evenly across the layers we actually run.
+    const int         active_layers = 1 + (any_sup ? 1 : 0) + (any_seam ? 1 : 0) + (any_fuzzy ? 1 : 0);
+    int               layer_ord     = 0;
+    std::atomic<bool> cancelled{false}; // set from worker threads inside paint_by_sampler
+    auto apply = [&](Layer layer, FacetsAnnotation &dst) {
+        if (cancelled.load()) { dst.reset(); return; }
+        const int base = layer_ord++;
+        TriangleSelector sel(this->mesh());
+        sel.paint_by_sampler([&, layer](const Vec3f &p) { return sample(p, layer); }, edge_limit,
+            [&, base](int done, int total) -> bool {
+                if (progress && total > 0 && !progress((base * 100 + done * 100 / total) / active_layers)) {
+                    cancelled.store(true);
+                    return false; // stop this layer's sampling
+                }
+                return true;
+            });
+        dst.reset();
+        dst.set(sel);
+    };
+    // mmu always runs (it also carries each part's base filament); the other three only
+    // if someone actually painted them, otherwise just clear them.
+    apply(Layer::Mmu, this->mmu_segmentation_facets);
+    if (any_sup)   apply(Layer::Sup,  this->supported_facets); else this->supported_facets.reset();
+    if (any_seam)  apply(Layer::Seam, this->seam_facets);      else this->seam_facets.reset();
+    if (any_fuzzy) apply(Layer::Fuzzy, this->fuzzy_skin_facets); else this->fuzzy_skin_facets.reset();
+    if (progress) progress(100);
 }
 // ------------------------------------------------------------------------------
 

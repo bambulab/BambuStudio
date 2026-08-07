@@ -20,6 +20,9 @@
 #include <algorithm>
 #include <unordered_set>
 #include <memory>
+#include <thread>
+#include <atomic>
+#include <utility>
 
 namespace Slic3r {
 namespace GUI {
@@ -1348,7 +1351,9 @@ void BooleanOperationEngine::apply_result_to_model(const BooleanOperationResult&
 //NOTE: keep watching
 ModelVolume* BooleanOperationEngine::create_result_volume(ModelObject* target_object,
                                                         const TriangleMesh& result_mesh,
-                                                        ModelVolume* source_volume) {
+                                                        ModelVolume* source_volume,
+                                                        const std::vector<ModelVolume*>& paint_sources,
+                                                        std::vector<std::pair<const ModelVolume*, Transform3d>>* out_deferred) {
     // Convert world mesh to target's local space using target instance and source volume transforms:
     // local = (T_inst_target * T_vol_source)^{-1} * world
     TriangleMesh local_mesh = result_mesh;
@@ -1390,6 +1395,34 @@ ModelVolume* BooleanOperationEngine::create_result_volume(ModelObject* target_ob
         new_volume->set_assemble_transformation(source_volume->get_assemble_transformation());
     else
         new_volume->set_assemble_transformation(new_volume->get_transformation());
+    // Transfer painting onto the boolean result with the high-fidelity per-triangle sampler.
+    // A Boolean fuses TWO+ operands, so paint must be sampled from EVERY participating source,
+    // not just the primary one - otherwise the half contributed by the other operand comes out
+    // blank (the bug: union dropped color on one half). Map each source's local frame into the
+    // result-volume local frame (the result mesh was baked into world_to_target_local above);
+    // for the primary source in the same instance this reduces to identity, matching the old path.
+    std::vector<std::pair<const ModelVolume*, Transform3d>> bsrcs;
+    auto add_paint_source = [&](const ModelVolume* v) {
+        if (!v) return;
+        Transform3d v_inst = Transform3d::Identity();
+        const ModelObject* vo = v->get_object();
+        if (vo && !vo->instances.empty() && vo->instances[0])
+            v_inst = vo->instances[0]->get_transformation().get_matrix();
+        bsrcs.emplace_back(v, world_to_target_local * v_inst * v->get_matrix());
+    };
+    if (paint_sources.empty())
+        add_paint_source(source_volume);
+    else
+        for (const ModelVolume* v : paint_sources)
+            add_paint_source(v);
+
+    if (out_deferred) {
+        // Hand the transfer back to the caller so it can run on a worker thread while driving the
+        // gizmo's progress bar (keeps the UI responsive - no "not responding"/crash feel).
+        *out_deferred = std::move(bsrcs);
+    } else {
+        new_volume->reproject_paint_from_volumes(bsrcs);
+    }
     return new_volume;
 }
 
@@ -2691,6 +2724,60 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
         return nullptr;
     };
 
+    // Deferred high-fidelity paint transfers: (result volume, its per-source sample list).
+    using PaintJobs = std::vector<std::pair<ModelVolume*, std::vector<std::pair<const ModelVolume*, Transform3d>>>>;
+
+    // Run the deferred transfers on a worker thread while driving the gizmo's OWN progress bar
+    // (the green "Applying result.." bar in the input window) rather than a separate dialog. We're
+    // inside the job-finalize callback with m_async_job_running still true, so the bar is visible;
+    // the normal render loop is blocked here, so each poll we update the shared progress and pump a
+    // single frame ourselves (m_parent.render()) so the bar animates. The paint transfer IS the
+    // "applying result" phase, so map it into the tail (90->100%) to keep that status text.
+    // MUST be called while every operand volume is still alive - the sampler reads paint straight
+    // from them - so this runs after the result volumes are created but BEFORE any source deletion.
+    auto run_paint_transfers = [&](PaintJobs& jobs) {
+        if (jobs.empty()) return;
+        std::atomic<int>   pct{0};
+        std::atomic<bool>  finished{false};
+        std::exception_ptr worker_ex;
+        std::thread worker([&]() {
+            try {
+                const size_t n = jobs.size();
+                for (size_t k = 0; k < n; ++k) {
+                    if (!jobs[k].first) continue;
+                    jobs[k].first->reproject_paint_from_volumes(
+                        jobs[k].second,
+                        [&pct, k, n](int p) {
+                            pct.store(int((k * 100 + p) / n), std::memory_order_relaxed);
+                            return true;
+                        });
+                }
+            } catch (...) { worker_ex = std::current_exception(); }
+            finished.store(true, std::memory_order_release);
+        });
+        auto drive_bar = [&](int transfer_pct) {
+            {
+                std::lock_guard<std::mutex> lk(m_async_mutex);
+                m_async_boolean_operation_progress = 90.0f + 0.1f * std::max(0, std::min(100, transfer_pct));
+            }
+            set_dirty();
+            m_parent.render();  // pump one frame - the main render loop is blocked in this callback
+        };
+        while (!finished.load(std::memory_order_acquire)) {
+            drive_bar(pct.load(std::memory_order_relaxed));
+            std::this_thread::sleep_for(std::chrono::milliseconds(30));
+        }
+        worker.join();
+        drive_bar(100);
+        if (worker_ex) {
+            // Best-effort: a degenerate transfer must never take down the app - the boolean
+            // geometry is already valid; just skip the paint.
+            try { std::rethrow_exception(worker_ex); }
+            catch (const std::exception& e) { BOOST_LOG_TRIVIAL(error) << "boolean paint transfer skipped: " << e.what(); }
+            catch (...) { BOOST_LOG_TRIVIAL(error) << "boolean paint transfer skipped: unknown error"; }
+        }
+    };
+
     // Part mode: Apply results to the same object
     if (job_data.settings.target_mode == BooleanTargetMode::Part) {
         // Check volumes_a is not empty before accessing [0]
@@ -2712,6 +2799,20 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
         // Collect all source volumes that will be replaced
         std::vector<ModelVolume*> sources_to_replace;
 
+        // Gather EVERY boolean operand (A and B groups) as a paint source so both halves of the
+        // result keep their painting - not just the primary A volume. In Part mode all operands
+        // live in target_object.
+        std::vector<ModelVolume*> all_operands;
+        auto add_operand = [&](const ObjectID& vid) {
+            if (ModelVolume* v = find_volume_in_object(target_object, vid))
+                if (std::find(all_operands.begin(), all_operands.end(), v) == all_operands.end())
+                    all_operands.push_back(v);
+        };
+        for (const auto& vd : job_data.volumes_a) add_operand(vd.volume_id);
+        for (const auto& vd : job_data.volumes_b) add_operand(vd.volume_id);
+
+        PaintJobs paint_jobs;
+
         // Create result volumes
         for (size_t i = 0; i < job_data.result.result_meshes.size(); ++i) {
             // Find source volume
@@ -2722,14 +2823,16 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
 
             if (!source_volume) continue;
 
-            // Create new result volume
+            // Create new result volume (paint transfer deferred so it can run behind a dialog)
+            std::vector<std::pair<const ModelVolume*, Transform3d>> deferred;
             ModelVolume* new_volume = m_boolean_engine.create_result_volume(
-                target_object, job_data.result.result_meshes[i], source_volume);
+                target_object, job_data.result.result_meshes[i], source_volume, all_operands, &deferred);
 
             if (!new_volume) continue;
 
             // Force result to be MODEL_PART (same as sync version)
             new_volume->set_type(ModelVolumeType::MODEL_PART);
+            paint_jobs.emplace_back(new_volume, std::move(deferred));
 
             // Determine if source should be replaced based on operation mode
             bool should_replace = false;
@@ -2749,6 +2852,10 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
                 sources_to_replace.push_back(source_volume);
             }
         }
+
+        // Transfer paint NOW - while every operand volume is still alive (the deletions below
+        // would otherwise free the sources the sampler reads from).
+        run_paint_transfers(paint_jobs);
 
         // Delete source volumes that need to be replaced
         // Collect indices first and delete from back to front to avoid iterator invalidation
@@ -2855,6 +2962,20 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
                 new_obj->instances[0]->get_transformation());
         }
 
+        // Gather EVERY boolean operand (A and B groups, across objects) as a paint source so all
+        // contributing halves of the result keep their painting - not just the primary A volume.
+        std::vector<ModelVolume*> all_operands;
+        auto add_operand_obj = [&](const ObjectID& vid) {
+            if (ModelObject* o = find_object_by_volume_id(vid))
+                if (ModelVolume* v = find_volume_in_object(o, vid))
+                    if (std::find(all_operands.begin(), all_operands.end(), v) == all_operands.end())
+                        all_operands.push_back(v);
+        };
+        for (const auto& vd : job_data.volumes_a) add_operand_obj(vd.volume_id);
+        for (const auto& vd : job_data.volumes_b) add_operand_obj(vd.volume_id);
+
+        PaintJobs paint_jobs;
+
         // Add ALL result meshes to this single object (same as sync version)
         for (size_t i = 0; i < job_data.result.result_meshes.size(); ++i) {
             // Find source volume
@@ -2867,15 +2988,21 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
 
             if (!source_volume) continue;
 
-            // Create result volume
+            // Create result volume (paint transfer deferred so it can run behind a dialog)
+            std::vector<std::pair<const ModelVolume*, Transform3d>> deferred;
             ModelVolume* new_volume = m_boolean_engine.create_result_volume(
-                new_obj, job_data.result.result_meshes[i], source_volume);
+                new_obj, job_data.result.result_meshes[i], source_volume, all_operands, &deferred);
 
             if (new_volume) {
+                paint_jobs.emplace_back(new_volume, std::move(deferred));
                 // Force result to be MODEL_PART
                 new_volume->set_type(ModelVolumeType::MODEL_PART);
             }
         }
+
+        // Transfer paint NOW - while every operand volume/object is still alive (the source-object
+        // deletion below would otherwise free the sources the sampler reads from).
+        run_paint_transfers(paint_jobs);
 
         // Attach non-model volumes BEFORE deletion (same as sync version line 1256)
         attach_ignored_non_models_to_target(new_obj, job_data.settings);

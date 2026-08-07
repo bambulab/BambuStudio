@@ -301,7 +301,13 @@ private:
         std::function<void(float)> progress_cb = nullptr) const;
 
     // ========================== MODEL MANIPULATION HELPERS ==========================
-    ModelVolume* create_result_volume(ModelObject* target_object, const TriangleMesh& result_mesh, ModelVolume* source_volume);
+    // paint_sources: EVERY boolean operand to sample paint from (not just the primary source),
+    // so a union/difference/intersection keeps painting on all contributing halves. If out_deferred
+    // is non-null the (heavy) paint transfer is not run here - its (source,transform) list is handed
+    // back so the caller can run it on a worker thread while driving the gizmo's progress bar.
+    ModelVolume* create_result_volume(ModelObject* target_object, const TriangleMesh& result_mesh, ModelVolume* source_volume,
+                                      const std::vector<ModelVolume*>& paint_sources = {},
+                                      std::vector<std::pair<const ModelVolume*, Transform3d>>* out_deferred = nullptr);
     void delete_volumes_from_model(const std::vector<ModelVolume*>& volumes_to_delete);
     void update_delete_list(BooleanOperationResult& result, const std::vector<VolumeInfo>& volumes, const BooleanOperationSettings& settings) const;
 
