@@ -1236,6 +1236,15 @@ void GUI_App::post_init()
         }
         else {
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Found glcontext not ready, postpone the init";
+            // The eager init above could not run, so rendering must stay
+            // enabled: the render path performs the same initialization
+            // lazily once the canvas is actually visible. Leaving it
+            // disabled here would keep the viewport blank for the whole
+            // session (on Wayland the canvas is never "shown on screen"
+            // during post_init, because its wl_subsurface only exists
+            // after the widget is mapped, which cannot happen within the
+            // current event-loop turn).
+            plater_->canvas3D()->enable_render(true);
         }
 //#endif
         if (is_editor())
