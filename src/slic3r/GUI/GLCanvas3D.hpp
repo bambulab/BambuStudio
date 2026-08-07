@@ -25,6 +25,7 @@ namespace Slic3r { namespace GUI { class AssemblyStepsUtils; } }
 
 #include <float.h>
 
+#include <wx/mousestate.h>
 #include <wx/timer.h>
 
 class wxSizeEvent;
@@ -87,6 +88,8 @@ public:
 
     int get_scale_factor() const;
     void set_scale_factor(int height);
+
+    inline Point center() const { return { m_width / 2, m_height / 2 }; }
 };
 
 
@@ -350,6 +353,7 @@ class GLCanvas3D
             int move_volume_idx;
             bool move_requires_threshold;
             Point move_start_threshold_position_2D;
+            int last_modifiers;
 
         public:
             Drag();
@@ -360,22 +364,17 @@ class GLCanvas3D
         Vec3d scene_position;
         Drag drag;
         bool ignore_left_up;
-        bool ignore_right_up;
         bool rotating{ false };
         bool panning{ false };
 
         Mouse();
 
-        void set_start_position_2D_as_invalid() { drag.start_position_2D = Drag::Invalid_2D_Point; }
-        void set_start_position_3D_as_invalid() { drag.start_position_3D = Drag::Invalid_3D_Point; }
         void set_move_start_threshold_position_2D_as_invalid() { drag.move_start_threshold_position_2D = Drag::Invalid_2D_Point; }
-
-        bool is_start_position_2D_defined() const { return (drag.start_position_2D != Drag::Invalid_2D_Point); }
-        bool is_start_position_3D_defined() const { return (drag.start_position_3D != Drag::Invalid_3D_Point); }
         bool is_move_start_threshold_position_2D_defined() const { return (drag.move_start_threshold_position_2D != Drag::Invalid_2D_Point); }
         bool is_move_threshold_met(const Point& mouse_pos) const {
-            return (std::abs(mouse_pos(0) - drag.move_start_threshold_position_2D(0)) > Drag::MoveThresholdPx)
-                || (std::abs(mouse_pos(1) - drag.move_start_threshold_position_2D(1)) > Drag::MoveThresholdPx);
+            return is_move_start_threshold_position_2D_defined() &&
+                (  (std::abs(mouse_pos(0) - drag.move_start_threshold_position_2D(0)) > Drag::MoveThresholdPx)
+                || (std::abs(mouse_pos(1) - drag.move_start_threshold_position_2D(1)) > Drag::MoveThresholdPx) );
         }
     };
 
@@ -545,6 +544,39 @@ class GLCanvas3D
         ERenderPipelineStage m_stage;
     };
 
+
+    enum class CameraRotationMode : unsigned char
+    {
+        Default,            // situation dependent
+        CameraTarget,       // rotate around current camera target
+        SelectedPlate,      // rotate around center of currently selected plate
+        ViewCenter,         // around center point of current canvas
+        Cursor,             // around cursor position
+        SelectionOrCursor,  // around currently selected object(s) or cursor position if no selection
+    };
+
+    // Stored cached app config options pertaining to camera movement, to avoid expensive lookups during active user interactions.
+    struct CameraManipulationConf
+    {
+        bool init{ false };
+        bool free_camera{ false };
+        bool zoom_to_mouse{ false };
+        bool reverse_zoom{ false };
+        wxMouseButton rot_button{ wxMouseButton::wxMOUSE_BTN_LEFT };
+        wxMouseButton pan_button{ wxMouseButton::wxMOUSE_BTN_ANY };
+        CameraRotationMode rot_mode_nomod{ CameraRotationMode::SelectedPlate };
+        CameraRotationMode rot_mode_ctrl{ CameraRotationMode::ViewCenter };
+        CameraRotationMode rot_mode_alt{ CameraRotationMode::SelectionOrCursor };
+        float rot_speed_factor{ 0.8f };
+
+        void update_from_app_config();
+        static CameraRotationMode camera_rot_mode_config_to_enum(const std::string& name);
+    };
+
+    // Cached runtime camera manipulation control configuration based on user button/modifier preferences.
+    // static because there is only one global app config which applies to all instances of GLCanvas3D.
+    static CameraManipulationConf m_cam_manip_conf;
+
 public:
     enum ECursorType : unsigned char
     {
@@ -691,7 +723,7 @@ private:
     std::vector<int> m_hover_plate_idxs;
     //BBS if explosion_ratio is changed, need to update volume bounding box
     mutable float m_explosion_ratio = 1.0;
-    mutable Vec3d m_rotation_center{ 0.0, 0.0, 0.0};
+    Vec3d m_rotation_center{ Mouse::Drag::Invalid_3D_Point };
 
     // Following variable is obsolete and it should be safe to remove it.
     // I just don't want to do it now before a release (Lukas Matena 24.3.2019)
@@ -740,9 +772,7 @@ private:
     using FrameCallback = std::function<void()>;
     std::vector<FrameCallback> m_frame_callback_list;
 
-#if ENABLE_SHOW_CAMERA_TARGET
     mutable GLModel m_camera_target_mark;
-#endif // ENABLE_SHOW_CAMERA_TARGET
 
 public:
     OrientSettings& get_orient_settings()
@@ -1139,6 +1169,7 @@ public:
     void on_render_fallback_timer(wxTimerEvent& evt);
     void on_set_color_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
+    void on_mouse_capture_lost(wxMouseCaptureLostEvent&) { mouse_up_cleanup(); }
     void on_gesture(wxGestureEvent& evt);
     void on_paint(wxPaintEvent& evt);
     void on_kill_focus(wxFocusEvent &evt);
@@ -1173,6 +1204,7 @@ public:
     void handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type);
 
     void update_ui_from_settings();
+    static void update_camera_manipulation_settings() { m_cam_manip_conf.update_from_app_config(); }
 
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
     int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }
@@ -1387,9 +1419,7 @@ private:
     float _show_assembly_tooltip_information(float caption_max, float x, float y) const;
     void _render_assemble_control();
     void _render_assemble_info() const;
-#if ENABLE_SHOW_CAMERA_TARGET
-    void _render_camera_target() const;
-#endif // ENABLE_SHOW_CAMERA_TARGET
+    void _render_camera_target(const Vec3d& target) const;
     void _render_sla_slices();
     void _render_selection_sidebar_hints() const;
     //BBS: GUI refactor: adjust main toolbar position

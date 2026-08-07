@@ -80,13 +80,17 @@ private:
     bool      m_expanded      = false;
 };
 
-wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *parent, wxString tooltip)
+wxBoxSizer *PreferencesDialog::create_item_title(const wxString &title, wxWindow *parent, const wxString &tooltip, short level /* = 0 */)
 {
-    wxBoxSizer *m_sizer_title = new wxBoxSizer(wxHORIZONTAL);
+    auto text = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
+    text->SetForegroundColour(ThemeColor::TextSecondary);
+    text->SetFont(level < 2 ? Label::Head_13 : Label::Head_12);
+    if (!tooltip.IsEmpty() && tooltip != title)
+        text->SetToolTip(tooltip);
 
-    auto m_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    m_title->SetForegroundColour(ThemeColor::TextSecondary);
-    m_title->SetFont(::Label::Head_13);
+    wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->AddSpacer(FromDIP(TITLE_PADDING));
+    sizer->Add(text, wxSizerFlags().CenterVertical());
 
     // The Preferences dialog has no native default push button (every visible button
     // is a custom-drawn ::Button, i.e. a plain wxWindow, not a Win32 BUTTON control).
@@ -98,12 +102,10 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     // hidden, zero-size native button as a stable in-thread default so the walk finds its
     // target immediately and never leaves our own windows.
     // The hang is first found on windows, but keep it on other platforms is no harm
-    auto line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
+    if (level == 0)
+        auto line = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
 
-    m_sizer_title->AddSpacer(FromDIP(TITLE_PADDING));
-    m_sizer_title->Add(m_title, wxSizerFlags().CenterVertical());
-
-    return m_sizer_title;
+    return sizer;
 }
 
 wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, const std::vector<wxString>& label_list, const std::vector<std::string>& value_list, std::function<void(int)> callback, int title_width, int combox_width)
@@ -800,7 +802,7 @@ void PreferencesDialog::set_dark_mode()
 #endif
 }
 
-wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param)
+wxBoxSizer *PreferencesDialog::create_item_checkbox(const wxString &title, wxWindow *parent, const wxString &tooltip, int padding_left, const std::string &param, std::function<void(int)> callback /* = nullptr */)
 {
     wxBoxSizer *m_sizer_checkbox  = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_checkbox->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
@@ -828,7 +830,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
     m_sizer_checkbox->Add(checkbox, wxSizerFlags().CenterVertical().Border(wxRIGHT, FromDIP(ITEM_RIGHT_PADDING)));
 
     //// save config
-    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent &e) {
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [=](wxCommandEvent &e) {
         if (param == "privacyuse") {
             app_config->set("firstguide", param, checkbox->GetValue());
             NetworkAgent* agent = GUI::wxGetApp().getAgent();
@@ -847,6 +849,10 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
         else {
             app_config->set_bool(param, checkbox->GetValue());
             app_config->save();
+        }
+
+        if (callback) {
+            callback(e.GetInt());
         }
 
         if (param == "staff_pick_switch") {
@@ -1506,9 +1512,6 @@ wxWindow *PreferencesDialog::create_3d_tab()
 
     auto title_3d = create_item_title(_L("3D Settings"), scrolled, _L("3D Settings"));
 
-    auto item_zoom_to_mouse = create_item_checkbox(_L("Zoom to mouse position"), scrolled,
-                                                   _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
-
     std::vector<wxString> assemble_view_preview_options = {_L("Auto"), _L("Open"), _L("Close")};
     auto                  enable_assemble_view_preview  = create_item_combobox(
         _L("Display overview"), scrolled, _L("Display overview"), "enable_assemble_view_preview", assemble_view_preview_options, {"Auto", "Open", "Close"},
@@ -1574,7 +1577,6 @@ wxWindow *PreferencesDialog::create_3d_tab()
     sizer->Add(item_grabber_size, flags);
     sizer->Add(item_tooltip_offset, flags);
     sizer->Add(item_toolbar_style, flags);
-    sizer->Add(item_zoom_to_mouse, flags);
     sizer->Add(item_show_shells, flags);
 #if !BBL_RELEASE_TO_PUBLIC
     auto item_show_bvh_bounds = create_item_checkbox(_L("Show assembly BVH primary bounds"), scrolled, _L("Display the BVH primary bounding box wireframe in assembly view."), 50,
@@ -1595,6 +1597,8 @@ wxWindow *PreferencesDialog::create_3d_tab()
                                                        "camera_fullscreen_active_monitor_only");
     sizer->Add(item_camera_fullscreen, flags); // [refactor-review]
 
+    sizer->Add(create_camera_page(scrolled), 0, wxEXPAND, FromDIP(10));
+    
     sizer->AddSpacer(FromDIP(20));
     scrolled->SetSizer(sizer);
     scrolled->FitInside();
@@ -1634,7 +1638,7 @@ wxWindow *PreferencesDialog::create_other_tab()
     sizer->Add(item_gcodes_warning, flags);
 
     // ---- Online Models (visible only when has_model_mall()) ----
-    auto title_modelmall   = create_item_title(_L("Online Models"), scrolled, _L("Online Models"));
+    auto title_modelmall   = create_item_title(_L("Online Models"), scrolled, _L("Online Models"), 1);
     auto item_modelmall    = create_item_checkbox(_L("Show online staff-picked models on the home page"), scrolled, _L("Show online staff-picked models on the home page"), 50,
                                                   "staff_pick_switch");
     auto item_show_history = create_item_checkbox(_L("Show history on the home page"), scrolled, _L("Show history on the home page"), 50, "show_print_history");
@@ -1655,7 +1659,7 @@ wxWindow *PreferencesDialog::create_other_tab()
     update_modelmall(dummy);
 
     // ---- Developer Mode (Figma keeps these two here, in the Other tab) ----
-    auto title_dev           = create_item_title(_L("Developer Mode"), scrolled, _L("Developer Mode"));
+    auto title_dev           = create_item_title(_L("Developer Mode"), scrolled, _L("Developer Mode"), 1);
     auto item_dev_mode       = create_item_checkbox(_L("Develop mode"), scrolled, _L("Develop mode"), 50, "developer_mode");
     auto item_skip_blacklist = create_item_checkbox(_L("Skip AMS blacklist check"), scrolled, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
     sizer->Add(title_dev, wxSizerFlags().Expand().Border(wxTOP, FromDIP(16)));
@@ -1664,7 +1668,7 @@ wxWindow *PreferencesDialog::create_other_tab()
 
 #ifdef _WIN32
     // ---- Associate Files To Bambu Studio (Windows only) ----
-    auto title_associate_file = create_item_title(_L("Associate Files To Bambu Studio"), scrolled, _L("Associate Files To Bambu Studio"));
+    auto title_associate_file = create_item_title(_L("Associate Files To Bambu Studio"), scrolled, _L("Associate Files To Bambu Studio"), 1);
     auto item_associate_3mf   = create_item_checkbox(_L("Associate .3mf files to Bambu Studio"), scrolled,
                                                      _L("If enabled, sets Bambu Studio as default application to open .3mf files"), 50, "associate_3mf");
     auto item_associate_stl   = create_item_checkbox(_L("Associate .stl files to Bambu Studio"), scrolled,
@@ -1681,6 +1685,198 @@ wxWindow *PreferencesDialog::create_other_tab()
     scrolled->SetSizer(sizer);
     scrolled->FitInside();
     return scrolled;
+}
+
+wxWindow* PreferencesDialog::create_camera_page(wxWindow *parent)
+{
+    auto page = new wxWindow(parent, wxID_ANY);
+    page->SetBackgroundColour(*wxWHITE);
+
+    auto title_view_control = create_item_title(_L("Camera Controls"), page, _L("These settings adjust how to interact with 3D view camera controls."), 1);
+
+    static const auto update_cam_manip_settings = [](int) {
+        if (const Plater *p = wxGetApp().plater())
+            p->update_camera_manipulation_settings();
+    };
+
+    auto item_mouse_zoom_settings  = create_item_checkbox(
+        _L("Zoom to mouse position"), page,
+        _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."),
+        50, "zoom_to_mouse", update_cam_manip_settings
+    );
+
+    auto item_mouse_zoom_reverse  = create_item_checkbox(
+        _L("Invert Zoom Direction"), page,
+        _L("Reverses mouse wheel zoom action so that scrolling down/back will zoom in instead of out."),
+        50, "reverse_mouse_wheel_zoom", update_cam_manip_settings
+    );
+
+    auto item_rot_factor = create_item_range_input(_L("Rotation Speed Scale"), page, _L(
+            "This setting determines how sensitive the camera rotation (orbit) speed is in relation to mouse movement. Lower values increase precision and slow down the rotation.\n"
+            "Range: 0.01 - 3.00; Default: 0.8.\n\n"
+            "Note that holding down the Shift key while rotating will reduce the scaling to half of this value, temporarily allowing finer control."
+        ),
+        "view_rotate_speed_factor", 0.01f, 3.0f, 2, [](wxString) { update_cam_manip_settings(0); }
+    );
+
+    auto title_mouse_buttons = create_item_title(_L("Mouse Button Assignment"), page, _L(
+        "These settings determine which actions are preformed when the corresponding mouse button is pressed while dragging across the 3D view.\n"
+        "The left mouse button is always used to select and manipulate items, regardless of the choices selected here."
+    ), 2);
+
+    static const std::vector<wxString> mouse_btn_labels = {
+        _CTX(L_CONTEXT("Left",   "Mouse Button"), "Mouse Button"),
+        _CTX(L_CONTEXT("Middle", "Mouse Button"), "Mouse Button"),
+        _CTX(L_CONTEXT("Right",  "Mouse Button"), "Mouse Button"),
+        _CTX(L_CONTEXT("Aux 1",  "Mouse Button"), "Mouse Button"),
+        _CTX(L_CONTEXT("Aux 2",  "Mouse Button"), "Mouse Button"),
+    };
+    static const std::vector<std::string> mouse_btn_names = { "left", "mid", "right", "aux1", "aux2" };
+
+    // Pan control has the legacy default of using either middle or right button.
+    static const std::vector<wxString> mouse_btn_pan_labels = [&]() {
+        auto tmp(mouse_btn_labels);
+        tmp.push_back(_CTX(L_CONTEXT("Right or Middle",  "Mouse Button"), "Mouse Button"));
+        return tmp;
+    }();
+    static const std::vector<std::string> mouse_btn_pan_names = [&]() {
+        auto tmp(mouse_btn_names);
+        tmp.push_back("any");
+        return tmp;
+    }();
+
+    auto item_rot_btn = create_item_combobox(
+        _L("Mouse Rotate Button"), page,
+        _L("Which mouse button to hold while dragging to control camera rotation."),
+        "view_rotate_mb", mouse_btn_labels, mouse_btn_names,
+        update_cam_manip_settings
+    );
+    ::ComboBox *item_rot_btn_cbox = m_combobox_list[m_combobox_list.size()-1];
+
+    auto item_pan_btn = create_item_combobox(
+        _L("Mouse Pan Button"), page,
+        _L("Which mouse button to hold while dragging to control camera panning."),
+        "view_pan_mb", mouse_btn_pan_labels, mouse_btn_pan_names,
+        update_cam_manip_settings
+    );
+    ::ComboBox *item_pan_btn_cbox = m_combobox_list[m_combobox_list.size()-1];
+
+    // Ensures that rotate and pan button choices must be exclusive, changes other action choice if needed.
+    // eg. if pan button is changed to be same as rotate, the rotate button choice is changed to compensate.
+    const auto validate_mouse_btns = [this, item_rot_btn_cbox, item_pan_btn_cbox](char idx)
+    {
+        const std::string rot_mb = app_config->get("view_rotate_mb");
+        const std::string pan_mb = app_config->get("view_pan_mb");
+        if (rot_mb != pan_mb && pan_mb != "any")
+            return;
+        const std::string &this_btn = (idx == 'r' ? rot_mb : pan_mb);
+        std::string other_btn;
+        if (this_btn == "any") {
+            if (rot_mb == "mid" || rot_mb == "right")
+                other_btn = "left";
+            else
+                return;
+        }
+        else if (idx == 'r' && pan_mb == "any") {
+            if (this_btn == "mid")
+                other_btn = "right";
+            else if (this_btn == "right")
+                other_btn = "mid";
+            else
+                return;
+        }
+        else if (this_btn == "left" || this_btn == "mid")
+            other_btn = "right";
+        else if (this_btn == "right")
+            other_btn = "mid";
+        else if (this_btn == "aux1")
+            other_btn = "aux2";
+        else if (this_btn == "aux2")
+            other_btn = "aux1";
+        else
+            other_btn = "left";
+        if (auto *other_cbox = (idx == 'r' ? item_pan_btn_cbox : item_rot_btn_cbox))
+            other_cbox->SetSelection((int)std::distance(mouse_btn_names.cbegin(), std::find(mouse_btn_names.cbegin(), mouse_btn_names.cend(), other_btn)));
+        // ComboBox::SetSelection() doesn't trigger any callbacks and neither does SelectAndNotify() (and that also causes recursion here).
+        app_config->set(idx == 'r' ? "view_pan_mb" : "view_rotate_mb", other_btn);
+        app_config->save();
+        update_cam_manip_settings(0);
+    };
+    // These handlers must be added after creating the combos because the callback's capture must have the instances already created.
+    item_rot_btn_cbox->Bind(wxEVT_COMBOBOX, [=](wxEvent &e) { validate_mouse_btns('r'); e.Skip(); });
+    item_pan_btn_cbox->Bind(wxEVT_COMBOBOX, [=](wxEvent &e) { validate_mouse_btns('p'); e.Skip(); });
+
+    auto title_rot_mode = create_item_title(_L("Rotation Mode"), page, _L(
+        "Select camera rotation modes to use based on keyboard modifier(s) pressed while dragging the mouse.\n\n"
+        "Selection or Cursor - Rotate around the center of selected object(s), or around cursor position when no selection and in Preview mode.\n"
+        "Cursor (always) - Always around where the cursor was positioned on the initial click, regardless of selection.\n"
+        "View Center - Rotate around the center of the current view window, clamped at zero Z height.\n"
+        "Selected Plate - Rotate around the center of the currently active build plate.\n"
+        "Camera Target - Rotate around whatever the camera is currently focused on. This acts somewhat like a 3D mouse and may be useful when transitioning between devices.\n"
+    ), 2);
+
+    static const std::vector<wxString> camera_rotation_type_labels = {
+        _CTX(L_CONTEXT("Selection or Cursor", "Camera rotation mode"), "Camera rotation mode"),
+        _CTX(L_CONTEXT("Cursor (always)",     "Camera rotation mode"), "Camera rotation mode"),
+        _CTX(L_CONTEXT("View Center",         "Camera rotation mode"), "Camera rotation mode"),
+        _CTX(L_CONTEXT("Selected Plate",      "Camera rotation mode"), "Camera rotation mode"),
+        _CTX(L_CONTEXT("Camera Target",       "Camera rotation mode"), "Camera rotation mode"),
+    };
+    static const std::vector<std::string> camera_rotation_type_names = { "selection", "cursor", "center", "plate", "target", };
+
+    auto item_rot_mode_nomod = create_item_combobox(
+        _L("Default (no key)"), page,
+        _L("The camera rotation type to use when none of the other key choices below are held down."),
+        "view_rotate_mode_nomod", camera_rotation_type_labels, camera_rotation_type_names,
+        update_cam_manip_settings
+    );
+
+    auto item_rot_mode_ctrl = create_item_combobox(
+#ifdef __APPLE__
+        _L("With Command key"), page,
+        _L("The camera rotation type to use when the Command key is held."),
+#else
+        _L("With Ctrl key"), page,
+        _L("The camera rotation type to use when the Control key is held."),
+#endif
+        "view_rotate_mode_ctrl", camera_rotation_type_labels, camera_rotation_type_names,
+        update_cam_manip_settings
+    );
+
+    auto item_rot_mode_alt = create_item_combobox(
+#ifdef __APPLE__
+        _L("With Option key"), page,
+        _L("The camera rotation type to use when the Option key is held."),
+#else
+        _L("With Alt key"), page,
+        _L("The camera rotation type to use when the Alt key is held."),
+#endif
+        "view_rotate_mode_alt", camera_rotation_type_labels, camera_rotation_type_names,
+        update_cam_manip_settings
+    );
+
+    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+    auto flags = wxSizerFlags().Expand().Border(wxTOP, FromDIP(4));
+
+    sizer->Add(title_view_control, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer->Add(item_mouse_zoom_settings, flags);
+    sizer->Add(item_mouse_zoom_reverse, flags);
+    sizer->Add(item_rot_factor, flags);
+
+    sizer->Add(title_mouse_buttons, 0, wxTOP | wxLEFT | wxEXPAND, FromDIP(5));
+    sizer->Add(item_rot_btn, flags);
+    sizer->Add(item_pan_btn, flags);
+
+    sizer->Add(title_rot_mode, 0, wxTOP | wxLEFT | wxEXPAND, FromDIP(5));
+    sizer->Add(item_rot_mode_nomod, flags);
+    sizer->Add(item_rot_mode_ctrl, flags);
+    sizer->Add(item_rot_mode_alt, flags);
+
+    page->SetSizer(sizer);
+    page->Layout();
+    sizer->Fit(page);
+
+    return page;
 }
 
 wxWindow *PreferencesDialog::create_developer_tab()
@@ -1702,12 +1898,12 @@ wxWindow *PreferencesDialog::create_developer_tab()
     sizer->AddSpacer(FromDIP(4));
     sizer->Add(item_log, flags);
 
-    auto title_dev         = create_item_title(_L("Developer Tools"), scrolled, _L("Developer Tools"));
+    auto title_dev         = create_item_title(_L("Developer Tools"), scrolled, _L("Developer Tools"), 1);
     auto item_internal_dev = create_item_checkbox(_L("Internal developer mode"), scrolled, _L("Internal developer mode"), 50, "internal_developer_mode");
     auto item_ssl_mqtt     = create_item_checkbox(_L("Enable SSL(MQTT)"), scrolled, _L("Enable SSL(MQTT)"), 50, "enable_ssl_for_mqtt");
     auto item_ssl_ftp      = create_item_checkbox(_L("Enable SSL(FTP)"), scrolled, _L("Enable SSL(FTP)"), 50, "enable_ssl_for_ftp");
 
-    auto title_host = create_item_title(_L("Host Setting"), scrolled, _L("Host Setting"));
+    auto title_host = create_item_title(_L("Host Setting"), scrolled, _L("Host Setting"), 1);
     auto radio1     = create_item_radiobox(_L("DEV host: api-dev.bambu-lab.com/v1"), scrolled, wxEmptyString, 50, 1, "dev_host");
     auto radio2     = create_item_radiobox(_L("QA  host: api-qa.bambu-lab.com/v1"), scrolled, wxEmptyString, 50, 1, "qa_host");
     auto radio3     = create_item_radiobox(_L("PRE host: api-pre.bambu-lab.com/v1"), scrolled, wxEmptyString, 50, 1, "pre_host");

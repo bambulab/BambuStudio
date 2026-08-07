@@ -14,6 +14,7 @@
 #include <wx/spinctrl.h>
 #include <wx/artprov.h>
 #include <wx/colordlg.h>
+#include <wx/mousestate.h>
 
 #include <vector>
 #include <functional>
@@ -82,9 +83,44 @@ wxColourData show_sys_picker_dialog(wxWindow *parent, const wxColourData &clr_da
 
 namespace Slic3r {
 namespace GUI {
+
 class BitmapComboBox;
+
+/// Checks pressed status of a mouse button within a given `wxMouseState` structure (typically from a mouse event). Returns:
+/// - When `button` is in `wxMOUSE_BTN_LEFT` - `wxMOUSE_BTN_AUX2` range, then the corresponding `state.*IsDown()` result for given `button`;
+/// - When `button == wxMOUSE_BTN_ANY` then return `true` if any button returns `true` for `state.*IsDown()`;
+/// - When `button == wxMOUSE_BTN_NONE` then return `true` if all buttons return `false` for `state.*IsDown()` (opposite of `wxMOUSE_BTN_ANY`);
+/// - `false` if `button` value is out of range.
+inline bool wx_mouse_button_is_down(const wxMouseState& state, wxMouseButton button) {
+    switch (button) {
+        case wxMouseButton::wxMOUSE_BTN_LEFT:   return state.LeftIsDown();
+        case wxMouseButton::wxMOUSE_BTN_MIDDLE: return state.MiddleIsDown();
+        case wxMouseButton::wxMOUSE_BTN_RIGHT:  return state.RightIsDown();
+        case wxMouseButton::wxMOUSE_BTN_AUX1:   return state.Aux1IsDown();
+        case wxMouseButton::wxMOUSE_BTN_AUX2:   return state.Aux2IsDown();
+        case wxMouseButton::wxMOUSE_BTN_ANY:
+            return state.LeftIsDown() || state.MiddleIsDown() || state.RightIsDown() || state.Aux1IsDown() || state.Aux2IsDown();
+        case wxMouseButton::wxMOUSE_BTN_NONE:
+            return !wx_mouse_button_is_down(state, wxMOUSE_BTN_ANY);
+        default: return false;
+    }
 }
+
+/// Returns a corresponding `wsMouseButton` enum value for given `name` if one is matched, or `wxMOUSE_BTN_NONE` otherwise.
+/// Recognized strings: "any", "left", "mid", "right", "aux1", "aux2"
+inline wxMouseButton mouse_button_name_to_wx_enum(const std::string& name) {
+    if (!name.compare("left"))  return wxMouseButton::wxMOUSE_BTN_LEFT;
+    if (!name.compare("right")) return wxMouseButton::wxMOUSE_BTN_RIGHT;
+    if (!name.compare("mid"))   return wxMouseButton::wxMOUSE_BTN_MIDDLE;
+    if (!name.compare("aux1"))  return wxMouseButton::wxMOUSE_BTN_AUX1;
+    if (!name.compare("aux2"))  return wxMouseButton::wxMOUSE_BTN_AUX2;
+    if (!name.compare("any"))   return wxMouseButton::wxMOUSE_BTN_ANY;
+    return wxMouseButton::wxMOUSE_BTN_NONE;
 }
+
+}  // ns GUI
+}  // ns Slic3r
+
 void apply_extruder_selector(Slic3r::GUI::BitmapComboBox** ctrl,
                              wxWindow* parent,
                              const std::string& first_item = "",
