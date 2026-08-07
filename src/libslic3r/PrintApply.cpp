@@ -1757,6 +1757,10 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 	        	// Synchronize the content of instances.
 	        	auto new_instance = model_object_new.instances.begin();
 				for (auto old_instance = model_object.instances.begin(); old_instance != model_object.instances.end(); ++ old_instance, ++ new_instance) {
+                    // BBS: printable toggle changes which instances generate G-code; invalidate skirt/brim, wipe tower, and G-code.
+                    if ((*old_instance)->printable != (*new_instance)->printable) {
+                        update_apply_status(this->invalidate_steps({psSkirtBrim, psWipeTower, psGCodeExport}));
+                    }
                     if (is_printable_filament_changed(new_full_config, (*old_instance)->convex_hull_2d(), (*new_instance)->convex_hull_2d())) {
                         update_apply_status(this->invalidate_steps({psWipeTower, psGCodeExport}));
                     }
