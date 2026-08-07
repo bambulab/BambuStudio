@@ -207,6 +207,8 @@ void AppConfig::set_defaults()
         set_bool("import_single_svg_and_split", true);
     if (get("user_bed_type").empty())
         set_bool("user_bed_type", true);
+    if (get("default_print_action").empty())
+        set("default_print_action", "print_plate");
     if (get("grabber_size_factor").empty())
         set("grabber_size_factor", "1.0");
     if (get("assembly_part_number_label_font_size").empty())
