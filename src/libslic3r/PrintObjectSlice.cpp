@@ -1161,6 +1161,9 @@ void PrintObject::slice_volumes()
         m_layers.back()->upper_layer = nullptr;
     m_print->throw_if_canceled();
 
+    this->apply_conical_overhang();
+    m_print->throw_if_canceled();
+
     // Is any ModelVolume MMU painted?
     if (const auto& volumes = this->model_object()->volumes;
         m_print->config().filament_diameter.size() > 1 && // BBS
@@ -1365,6 +1368,60 @@ void PrintObject::slice_volumes()
 
     m_print->throw_if_canceled();
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - make_slices in parallel - end";
+}
+
+void PrintObject::apply_conical_overhang()
+{
+    if (m_layers.empty()) return;
+
+    const double angle = this->config().make_overhang_printable_angle.value;
+    if (angle == 90.) return;
+
+    const coordf_t offset        = -float(scale_(std::tan(angle * M_PI / 180.) * m_config.layer_height.value));
+    const coordf_t max_hole_area = float(scale_(scale_(this->config().make_overhang_printable_hole_size.value)));
+
+    for (auto layer_it = m_layers.rbegin() + 1; layer_it != m_layers.rend(); ++layer_it) {
+        m_print->throw_if_canceled();
+        Layer *layer       = *layer_it;
+        Layer *upper_layer = layer->upper_layer;
+
+        if (upper_layer->empty() || std::all_of(layer->m_regions.begin(), layer->m_regions.end(),
+                                                [](const LayerRegion *region) { return region->slices.empty() || !region->region().config().make_overhang_printable.value; }))
+            continue;
+
+        ExPolygons upper   = union_ex(upper_layer->merged(float(SCALED_EPSILON)));
+        ExPolygons current = union_ex(layer->merged(float(SCALED_EPSILON)));
+
+        if (max_hole_area > 0.) {
+            for (const ExPolygon &polygon : current) {
+                for (const Polygon &hole : polygon.holes) {
+                    if (std::abs(hole.area()) >= max_hole_area) continue;
+
+                    ExPolygon  hole_polygon(hole);
+                    ExPolygons covered = intersection_ex(upper, hole_polygon);
+                    if (!covered.empty() && xor_ex(covered, hole_polygon).empty()) upper = diff_ex(upper, hole_polygon);
+                }
+            }
+        }
+
+        upper = offset_ex(upper, offset);
+        for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
+            if (!upper_layer->m_regions[region_id]->region().config().make_overhang_printable.value) continue;
+
+            ExPolygons additions = union_ex(intersection_ex(upper_layer->m_regions[region_id]->slices.surfaces, upper));
+            additions.erase(std::remove_if(additions.begin(), additions.end(), [&current](const ExPolygon &polygon) { return diff_ex(polygon, current).empty(); }),
+                            additions.end());
+
+            ExPolygons region = to_expolygons(layer->m_regions[region_id]->slices.surfaces);
+            layer->m_regions[region_id]->slices.set(union_ex(region, additions), stInternal);
+
+            for (size_t other_region = 0; other_region < this->num_printing_regions(); ++other_region) {
+                if (other_region == region_id) continue;
+                ExPolygons other = to_expolygons(layer->m_regions[other_region]->slices.surfaces);
+                layer->m_regions[other_region]->slices.set(diff_ex(other, additions, ApplySafetyOffset::Yes), stInternal);
+            }
+        }
+    }
 }
 
 //BBS: this function is used to offset contour and holes of expolygons seperately by different value

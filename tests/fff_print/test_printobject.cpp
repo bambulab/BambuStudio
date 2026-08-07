@@ -87,3 +87,32 @@ SCENARIO("PrintObject: object layer heights", "[PrintObject]") {
 #endif
     }
 }
+
+TEST_CASE("Make overhang printable expands lower slices after a config change", "[PrintObject][Overhang]")
+{
+    TriangleMesh stem = make_cube(4., 4., 2.);
+    stem.translate(4.f, 0.f, 0.f);
+    TriangleMesh top = make_cube(12., 4., 2.);
+    top.translate(0.f, 0.f, 2.f);
+    stem.merge(top);
+
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({{"first_layer_height", 1.},
+                                   {"layer_height", 1.},
+                                   {"nozzle_diameter", 2.},
+                                   {"elefant_foot_compensation", 0.},
+                                   {"make_overhang_printable", false},
+                                   {"make_overhang_printable_angle", 45.}});
+
+    Print print;
+    Model model;
+    init_print({stem}, print, model, config);
+    print.process();
+    const double original_area = area(print.objects().front()->get_layer(1)->lslices);
+
+    config.set_key_value("make_overhang_printable", new ConfigOptionBool(true));
+    print.apply(model, config);
+    print.process();
+
+    REQUIRE(area(print.objects().front()->get_layer(1)->lslices) > original_area);
+}

@@ -1012,6 +1012,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<TopOneWallType>, top_one_wall_type))
     ((ConfigOptionPercent,            top_area_threshold))
     ((ConfigOptionBool,               only_one_wall_first_layer))
+    ((ConfigOptionFloat,              make_overhang_printable_angle))
+    ((ConfigOptionFloat,              make_overhang_printable_hole_size))
     // OrcaSlicer
     ((ConfigOptionPercent,            seam_gap))
     ((ConfigOptionPercent,            wipe_speed))
@@ -1130,6 +1132,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable, slowdown_end_acc))
     ((ConfigOptionFloatOrPercent, sparse_infill_anchor))
     ((ConfigOptionFloatOrPercent, sparse_infill_anchor_max))
+    ((ConfigOptionBool, make_overhang_printable))
     //OrcaSlicer
     ((ConfigOptionFloatsNullable, top_solid_infill_flow_ratio))
     ((ConfigOptionFloat, initial_layer_flow_ratio))
