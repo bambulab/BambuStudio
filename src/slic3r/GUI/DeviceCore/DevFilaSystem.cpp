@@ -651,7 +651,7 @@ bool DevAms::IsDryableSlot(int slot_id) const
         if (!dry_zone) return false;
         return std::find(dry_zone->zone_slots.begin(), dry_zone->zone_slots.end(), slot_id) != dry_zone->zone_slots.end();
     }
-    return true;
+    return SupportDrying();
 }
 
 bool DevAms::AmsIsDrying()

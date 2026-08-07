@@ -1860,26 +1860,26 @@ bool SelectMachineDialog::is_selected_ams_drying(MachineObject* obj)
 {
     if (!obj) return false;
 
-    // If a UI material is selected, only when that material is mapped to an AMS
-    // and that AMS is currently drying.
-    for (const auto& kv : m_materialList) {
-        Material* mat = kv.second;
-        if (!mat || !mat->item) continue;
-        if (!mat->item->m_selected) continue;
+    auto fila_system = obj->GetFilaSystem();
+    if (!fila_system) return false;
 
-        // find mapping entry for this material id
-        for (const FilamentInfo& f : m_ams_mapping_result) {
-            if (f.id != mat->id) continue;
+    // Warn as soon as any filament of this print is fed from a slot that is being
+    // dried. The check must cover every mapped slot, not just the material item
+    // currently highlighted in the UI, otherwise the warning would depend on where
+    // the user last clicked.
+    for (const FilamentInfo &f : m_ams_mapping_result) {
+        if (f.ams_id.empty()) continue;
 
-            if (f.ams_id.empty()) return false;
+        DevAms* dev_ams = fila_system->GetAmsById(f.ams_id);
+        if (!dev_ams || !dev_ams->AmsIsDrying()) continue;
 
-            auto fila_system = obj->GetFilaSystem();
-            if (!fila_system) return false;
-            DevAms* dev_ams = fila_system->GetAmsById(f.ams_id);
-            return (dev_ams && dev_ams->AmsIsDrying());
+        // A zoned AMS only heats the slots of its dryable zone, so printing from a
+        // slot outside that zone is unaffected by the drying temperature. An AMS
+        // without zone info keeps the legacy "every slot is dryable" behavior.
+        const int slot = f.get_slot_id();
+        if (slot < 0 || dev_ams->IsDryableSlot(slot)) {
+            return true; // cannot resolve the slot -> keep warning
         }
-
-        return false;
     }
 
     return false;
