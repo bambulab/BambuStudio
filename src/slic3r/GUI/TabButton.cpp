@@ -218,8 +218,11 @@ void TabButton::mouseReleased(wxMouseEvent &event)
     event.Skip();
     if (pressedDown) {
         pressedDown = false;
-        ReleaseMouse();
-        if (wxRect({0, 0}, GetSize()).Contains(event.GetPosition()))
+        if (HasCapture())
+            ReleaseMouse();
+        // Touch input drift slop — see Button::mouseReleased.
+        constexpr int kReleaseSlop = 15;
+        if (wxRect({0, 0}, GetSize()).Inflate(kReleaseSlop).Contains(event.GetPosition()))
             sendButtonEvent();
     }
 }
