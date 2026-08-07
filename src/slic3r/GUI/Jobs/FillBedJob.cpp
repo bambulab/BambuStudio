@@ -167,15 +167,33 @@ void FillBedJob::prepare()
         ap.bed_idx = PartPlateList::MAX_PLATES_COUNT;
         ap.height = 1;
         ap.itemid = -1;
-        ap.setter = [this, mi_orig_trafo](const ArrangePolygon &p) {
+        ap.setter = [this, sel_id, mi_orig_trafo](const ArrangePolygon &p) {
             ModelObject *mo = m_plater->model().objects[m_object_idx];
-            ModelObject* newObj = m_plater->model().add_object(*mo);
-            newObj->name = mo->name +" "+ std::to_string(p.itemid);
-            for (ModelInstance *newInst : newObj->instances) {
-                newInst->set_transformation(mi_orig_trafo);
-                newInst->apply_arrange_result(p.translation.cast<double>(), p.rotation);
+
+            if (m_instances) {
+                ModelInstance *new_instance =
+                    mo->add_instance(*mo->instances[sel_id]);
+
+                new_instance->set_transformation(mi_orig_trafo);
+                new_instance->apply_arrange_result(
+                    p.translation.cast<double>(),
+                    p.rotation);
+            } else {
+                ModelObject *new_object =
+                    m_plater->model().add_object(*mo);
+
+                new_object->name =
+                    mo->name + " " + std::to_string(p.itemid);
+
+                for (ModelInstance *new_instance : new_object->instances) {
+                    new_instance->set_transformation(mi_orig_trafo);
+                    new_instance->apply_arrange_result(
+                        p.translation.cast<double>(),
+                        p.rotation);
+                }
+
+                m_plater->model().set_assembly_pos(new_object);
             }
-            m_plater->model().set_assembly_pos(newObj);
         };
         m_selected.emplace_back(ap);
     }
@@ -395,7 +413,7 @@ void FillBedJob::finalize()
         return s + int(ap.priority == 0 && ap.bed_idx == 0);
     });
 
-    int oldSize = m_plater->model().objects.size();
+    const size_t old_size = m_plater->model().objects.size();
 
     if (added_cnt > 0) {
         for (ArrangePolygon& ap : m_selected) {
@@ -417,14 +435,42 @@ void FillBedJob::finalize()
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":selected: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
         }
 
-        int   newSize = m_plater->model().objects.size();
-        auto obj_list = m_plater->sidebar().obj_list();
-        for (size_t i = oldSize; i < newSize; i++) {
-            obj_list->add_object_to_list(i, true, true, false);
-            obj_list->update_printable_state(i, 0);
-        }
+        auto *obj_list = m_plater->sidebar().obj_list();
 
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": paste_objects_into_list";
+        if (m_instances) {
+            const size_t new_inst_cnt = model_object->instances.size();
+
+            if (new_inst_cnt > inst_cnt) {
+                // A single instance has no separate child node in the object
+                // list. When transitioning to multiple instances, add nodes
+                // for both the original instance and the newly created ones.
+                const size_t list_items_to_add =
+                    inst_cnt == 1
+                        ? new_inst_cnt
+                        : new_inst_cnt - inst_cnt;
+
+                obj_list->increase_object_instances(
+                    m_object_idx,
+                    list_items_to_add);
+            }
+
+            BOOST_LOG_TRIVIAL(debug)
+                << __FUNCTION__
+                << ": added "
+                << (new_inst_cnt - inst_cnt)
+                << " instances";
+        } else {
+            const size_t new_size = m_plater->model().objects.size();
+
+            for (size_t i = old_size; i < new_size; ++i) {
+                obj_list->add_object_to_list(i, true, true, false);
+                obj_list->update_printable_state(i, 0);
+            }
+
+            BOOST_LOG_TRIVIAL(debug)
+                << __FUNCTION__
+                << ": paste_objects_into_list";
+        }
 
         m_plater->update();
     }
