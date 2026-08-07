@@ -1970,11 +1970,25 @@ int CLI::run(int argc, char **argv)
                             const Vec3d &instance_offset = model_instance->get_offset();
                             BOOST_LOG_TRIVIAL(info) << boost::format("instance %1% transform {%2%,%3%,%4%} at %5%:%6%")% model_object->name % instance_offset.x() % instance_offset.y() %instance_offset.z() % __FUNCTION__ % __LINE__<< std::endl;
                         }*/
-                    current_printer_name = config.option<ConfigOptionString>("printer_settings_id")->value;
-                    current_process_name = config.option<ConfigOptionString>("print_settings_id")->value;
+                    const auto *printer_settings_id  = config.option<ConfigOptionString>("printer_settings_id");
+                    const auto *print_settings_id    = config.option<ConfigOptionString>("print_settings_id");
+                    const auto *filament_settings_id = config.option<ConfigOptionStrings>("filament_settings_id");
+                    const auto *nozzle_diameter      = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+                    const char *missing_option       = printer_settings_id == nullptr  ? "printer_settings_id" :
+                                                       print_settings_id == nullptr    ? "print_settings_id" :
+                                                       filament_settings_id == nullptr ? "filament_settings_id" :
+                                                       nozzle_diameter == nullptr      ? "nozzle_diameter" : nullptr;
+                    if (missing_option != nullptr) {
+                        BOOST_LOG_TRIVIAL(error) << boost::format("3mf is missing required configuration option: %1%") % missing_option;
+                        record_exit_reson(outfile_dir, CLI_INVALID_VALUES_IN_3MF, 0, cli_errors[CLI_INVALID_VALUES_IN_3MF], sliced_info);
+                        flush_and_exit(CLI_INVALID_VALUES_IN_3MF);
+                    }
+
+                    current_printer_name = printer_settings_id->value;
+                    current_process_name = print_settings_id->value;
                     current_printer_model = config.option<ConfigOptionString>("printer_model", true)->value;
-                    current_filaments_name = config.option<ConfigOptionStrings>("filament_settings_id")->values;
-                    current_extruder_count = config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+                    current_filaments_name = filament_settings_id->values;
+                    current_extruder_count = nozzle_diameter->values.size();
                     current_printer_variant_count = config.option<ConfigOptionStrings>("printer_extruder_variant", true)->values.size();
                     current_print_variant_count = config.option<ConfigOptionStrings>("print_extruder_variant", true)->values.size();
                     current_is_multi_extruder = current_extruder_count > 1;
@@ -2003,6 +2017,7 @@ int CLI::run(int argc, char **argv)
                     ConfigOptionStrings* option_strings = config.option<ConfigOptionStrings>("inherits_group");
                     if (option_strings) {
                         current_inherits_group = option_strings->values;
+                        current_inherits_group.resize(current_filaments_name.size() + 2);
                         size_t size = current_inherits_group.size();
                         if (current_inherits_group[size-1].empty()) {
                             current_printer_system_name = current_printer_name;
