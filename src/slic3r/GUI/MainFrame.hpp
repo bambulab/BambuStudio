@@ -97,6 +97,7 @@ class MainFrame : public DPIFrame
     bool     m_loaded {false};
     wxTimer* m_reset_title_text_colour_timer{ nullptr };
     wxString m_title_cache;  // last value applied by update_title(), avoids redundant SetTitle
+    wxTimer* m_autosave_timer{ nullptr };
 
     wxString    m_qs_last_input_file = wxEmptyString;
     wxString    m_qs_last_output_file = wxEmptyString;
