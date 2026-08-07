@@ -6542,7 +6542,10 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
         } else{
             ironing_extrusions.clear();
         }
-        chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
+        // Respect no_sort: collections flagged no_sort (e.g. interface walls-before-infill)
+        // carry a deliberate order that greedy nearest-point chaining would destroy.
+        if (! support_fills.no_sort)
+            chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
 
         const double support_speed  = NOZZLE_CONFIG(support_speed);
         const double support_interface_speed = NOZZLE_CONFIG(support_interface_speed);
