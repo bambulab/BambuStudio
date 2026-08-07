@@ -24,10 +24,14 @@
         "1",
         "1"
     ],
-    "filament_idle_travel_cooling_enabled": "0",
+    "filament_idle_travel_cooling_enabled": "1",
     "filament_max_volumetric_speed": [
         "3.2",
         "3.2"
+    ],
+    "filament_pre_cooling_temperature": [
+        "195",
+        "195"
     ],
     "filament_prime_tower_speed_factor_curve": [
         "0.5,1,1,1,0.5"
