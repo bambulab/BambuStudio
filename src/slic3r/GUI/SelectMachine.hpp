@@ -50,6 +50,9 @@
 #define  PRINT_OPT_BG_GRAY       0xF8F8F8
 #define  PRINT_OPT_ITEM_BG_GRAY  0xEEEEEE
 
+#include <boost/weak_ptr.hpp>
+
+class PrinterFileSystem;
 
 // Previous definitions
 namespace Slic3r{
@@ -347,6 +350,14 @@ private:
     std::string                         m_required_data_file_name;
     std::string                         m_required_data_file_path;
 
+    // print-from-sdcard source printer info, used to transfer the file when another printer is selected
+    boost::weak_ptr<PrinterFileSystem>  m_source_fs;
+    size_t                              m_source_file_index{size_t(-1)};
+    std::string                         m_source_file_path;
+    std::string                         m_source_dev_id;
+    std::string                         m_transferred_local_path;
+    bool                                m_waiting_source_download{false};
+
     std::vector<POItem> ops_auto;
     std::vector<POItem> ops_no_auto;
 
@@ -564,6 +575,11 @@ public:
     void navigate_to_timelapse_page();
     bool is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
+    void set_sdcard_print_source(PrinterFileSystem* fs, size_t file_index, const std::string& dev_id);
+    bool is_sdcard_cross_printer_send() const;
+    void fetch_file_from_source_printer();
+    void on_source_download_event(wxCommandEvent& e);
+    void release_source_download_binding();
     void set_print_type(PrintFromType type) {m_print_type = type;};
     bool Show(bool show);
     bool do_ams_mapping(MachineObject *obj_,bool use_ams);
