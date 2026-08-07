@@ -59,6 +59,7 @@
         "230",
         "230"
     ],
+    "optional_cooling_fan_speed": {},
     "slow_down_min_speed": [
         "20",
         "20"

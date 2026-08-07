@@ -59,6 +59,7 @@
         "230",
         "230"
     ],
+    "optional_cooling_fan_speed": {},
     "retraction_distances_when_ec": [
         "0",
         "0"

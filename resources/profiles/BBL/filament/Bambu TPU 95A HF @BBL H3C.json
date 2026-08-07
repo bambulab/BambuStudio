@@ -51,6 +51,9 @@
         "10",
         "10"
     ],
+    "fins_extrude_safe_temp": [
+        "55"
+    ],
     "include": [
         "fdm_filament_template_direct_dual",
         "fdm_filament_template_h3c"
@@ -70,6 +73,7 @@
         "230",
         "230"
     ],
+    "optional_cooling_fan_speed": {},
     "pre_start_fan_time": [
         "2"
     ],
