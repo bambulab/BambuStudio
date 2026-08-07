@@ -1018,15 +1018,11 @@ wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
     info_section->Add(fila_section, 0, wxEXPAND | wxALL, FromDIP(5));
 
     // Part 4: Circular toggle with description
+#if BBL_RELEASE_TO_PUBLIC == 1
     wxBoxSizer* toggle_section = new wxBoxSizer(wxHORIZONTAL);
 
     m_rotate_spool_toggle = new wxCheckBox(parent, wxID_ANY, "");
     m_rotate_spool_toggle->SetValue(false);
-
-#if !BBL_RELEASE_TO_PUBLIC
-    m_rotate_spool_toggle->SetValue(false);
-    m_rotate_spool_toggle->Show(false);
-#endif
 
     m_rotate_spool_toggle->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) {
         bool is_checked = event.IsChecked();
@@ -1039,12 +1035,10 @@ wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
     Label* toggle_description = new Label(parent, _L("Rotate spool when drying"), LB_AUTO_WRAP);
     toggle_description->SetForegroundColour(*wxBLACK);
     toggle_description->SetFont(Label::Body_12);
-#if !BBL_RELEASE_TO_PUBLIC
-    toggle_description->Show(false);
-#endif
     toggle_section->Add(toggle_description, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, 0);
 
     info_section->Add(toggle_section, 0, wxEXPAND | wxALL, FromDIP(5));
+#endif
 
     return info_section;
 }
@@ -1154,7 +1148,7 @@ void AMSDryCtrWin::start_sending_drying_command()
     }
 
     bool rotate_spool = false;
-#if BBL_RELEASE_TO_PUBLIC
+#if BBL_RELEASE_TO_PUBLIC == 1
     rotate_spool = m_rotate_spool_toggle->GetValue();
 #endif
 
