@@ -45,6 +45,7 @@ option(DEP_BUILD_FREETYPE "Compile freetype" ON)
 option(DEP_BUILD_WXWIDGETS "Compile wxWidgets" ON)
 option(DEP_BUILD_GMP "Compile GMP" ON)
 option(DEP_BUILD_MPFR "Compile MPFR" ON)
+option(DEP_BUILD_CGAL "Compile CGAL" ON)
 option(DEP_BUILD_FFMPEG "Compile ffmpeg" ON)
 option(DEP_BUILD_LIBHARU "Compile libharu" ON)
 
@@ -268,7 +269,11 @@ if (DEP_BUILD_MPFR)
     include(MPFR/MPFR.cmake)
     set(MPFR_PKG dep_MPFR)
 endif ()
-include(CGAL/CGAL.cmake)
+set(CGAL_PKG "")
+if (DEP_BUILD_CGAL)
+    include(CGAL/CGAL.cmake)
+    set(CGAL_PKG dep_CGAL)
+endif()
 
 include(NLopt/NLopt.cmake)
 
@@ -314,7 +319,7 @@ set(_dep_list
     dep_OpenVDB
     dep_OpenCSG
     dep_OpenCV
-    dep_CGAL
+    ${CGAL_PKG}
     ${OPENSSL_PKG}
     ${GLFW_PKG}
     ${PNG_PKG}
