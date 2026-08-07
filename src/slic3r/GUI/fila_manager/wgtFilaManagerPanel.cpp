@@ -102,7 +102,7 @@ void wgtFilaManagerPanel::msw_rescale() {}
 void wgtFilaManagerPanel::on_sys_color_changed()
 {
     if (m_bridge_ready) {
-        bool dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+        bool dark = wxGetApp().dark_mode();
         push_to_web("theme_changed", {{"theme", dark ? "dark" : "light"}});
     }
 }
@@ -224,7 +224,7 @@ void wgtFilaManagerPanel::register_handlers()
     m_handlers["init"] = [this](int seq, const nlohmann::json& /*data*/) {
         if (!m_bridge_ready) m_bridge_ready = true;
 
-        bool dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+        bool dark = wxGetApp().dark_mode();
         nlohmann::json result;
         result["theme"]   = dark ? "dark" : "light";
         result["spools"]  = build_spool_list();

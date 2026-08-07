@@ -195,7 +195,7 @@ void FilamentManagerVM::ReportState(const std::string& submod, const std::string
 
 nlohmann::json FilamentManagerVM::HandleInit(const std::string& action, const nlohmann::json& /*payload*/)
 {
-    bool dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+    bool dark = wxGetApp().dark_mode();
     nlohmann::json data;
     data["theme"]   = dark ? "dark" : "light";
     data["spools"]  = build_spool_list();
@@ -662,7 +662,7 @@ nlohmann::json FilamentManagerVM::HandleColors(const std::string& action, const 
 void FilamentManagerVM::OnSysColorChanged()
 {
     if (!m_bridge) return;
-    bool dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+    bool dark = wxGetApp().dark_mode();
     nlohmann::json data;
     data["theme"] = dark ? "dark" : "light";
     m_bridge->ReportMsg(MakeResp("init", "theme_changed", 0, "", data));
