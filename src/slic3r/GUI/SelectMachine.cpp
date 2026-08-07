@@ -7258,6 +7258,24 @@ bool SelectMachineDialog::CheckWarningFilamentSuspectEngagement(MachineObject* o
         return true;
     }
 
+    // Only the slots mapped for this print are relevant. A suspect nozzle that the
+    // current job never uses must not raise a warning.
+    std::set<int> mapped_addr_ids;
+    for (const auto& fila : m_ams_mapping_result) {
+        if (fila.tray_id < 0 || fila.ams_id.empty()) continue;
+
+        auto tray_opt = obj_->get_tray(fila.ams_id, fila.slot_id);
+        if (!tray_opt.has_value()) continue;
+
+        auto addr_opt = tray_opt->get_nozzle_addr_id(obj_);
+        if (!addr_opt.has_value()) continue; // cannot resolve the nozzle -> avoid false positive
+        mapped_addr_ids.insert(addr_opt.value());
+    }
+
+    if (mapped_addr_ids.empty()) {
+        return true;
+    }
+
     std::vector<int> suspect_slot_ids;
     for (const auto& [_, nozzle] : rack->GetRackNozzles()) {
         if (nozzle.GetFilamentEngagementStatus() != DevNozzle::FilamentEngagementStatus::Suspect) {
@@ -7266,7 +7284,11 @@ bool SelectMachineDialog::CheckWarningFilamentSuspectEngagement(MachineObject* o
         if (!nozzle.GetAddrId().has_value()) {
             continue;
         }
-        suspect_slot_ids.push_back(nozzle.GetAddrId().value() + 1);
+        const int addr_id = nozzle.GetAddrId().value();
+        if (mapped_addr_ids.count(addr_id) == 0) {
+            continue; // the nozzle is not used by this print
+        }
+        suspect_slot_ids.push_back(addr_id + 1);
     }
 
     if (suspect_slot_ids.empty()) {
