@@ -45,7 +45,7 @@ wxDEFINE_EVENT(EVT_NOZZLE_RACK_NOZZLE_ITEM_SELECTED, wxCommandEvent);
 namespace Slic3r::GUI
 {
 
-static wxBitmap SetNozzleBmpColor(const wxBitmap& bmp, const std::string& color_str) {
+wxBitmap SetNozzleBmpColor(const wxBitmap& bmp, const std::string& color_str) {
     if(color_str.empty()) return bmp;
 
     wxImage img = bmp.ConvertToImage();
