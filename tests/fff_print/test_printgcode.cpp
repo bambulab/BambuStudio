@@ -269,3 +269,152 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
         }
     }
 }
+
+SCENARIO("H2 AUX filtration override is layered onto generated G-code", "[PrintGCode][AuxFiltration]") {
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set("printer_model", std::string("Bambu Lab H2C"));
+    config.set("auxiliary_fan", true);
+    config.set("support_cooling_filter", true);
+    config.set("support_auxiliary_fan_filtration", true);
+    config.set("enable_auxiliary_fan_filtration", true);
+    config.set("auxiliary_fan_filtration_speed", 70);
+    config.set("auxiliary_fan_filtration_post_time", 12);
+    config.set("layer_change_gcode", std::string("M106 P2 S0 ; layer hook"));
+    config.set("machine_start_gcode", std::string(
+        "{if auxiliary_fan_filtration_active}\n"
+        "M106 P2 S{auxiliary_fan_filtration_speed_num} ; start filter\n"
+        "{endif}\n"
+        "; MACHINE START END"));
+    config.set("machine_end_gcode", std::string(
+        "; MACHINE END START\n"
+        "{if auxiliary_fan_filtration_active}\n"
+        "M106 P2 S{auxiliary_fan_filtration_speed_num} ; final filter\n"
+        "{if auxiliary_fan_filtration_post_time > 0}\n"
+        "M400 S{auxiliary_fan_filtration_post_time}\n"
+        "{endif}\n"
+        "M106 P2 S0 ; final filter off\n"
+        "{endif}\n"
+        "; FINISH SOUND"));
+
+    std::string gcode = Slic3r::Test::slice({TestMesh::cube_20x20x20}, config);
+
+    SECTION("startup and every layer reassert the configured minimum") {
+        CHECK(gcode.find("M106 P2 S178 ; start filter") != std::string::npos);
+        const std::string layer_hook_token = "M106 P2 S0 ; layer hook";
+        size_t layer_hook = gcode.find(layer_hook_token);
+        REQUIRE(layer_hook != std::string::npos);
+        while (layer_hook != std::string::npos) {
+            const size_t next_layer_hook = gcode.find(layer_hook_token, layer_hook + layer_hook_token.size());
+            const size_t reassert = gcode.find("M106 P2 S178", layer_hook + layer_hook_token.size());
+            REQUIRE(reassert != std::string::npos);
+            CHECK((next_layer_hook == std::string::npos || reassert < next_layer_hook));
+            layer_hook = next_layer_hook;
+        }
+    }
+
+    SECTION("the final blocking dwell is inside machine end and finishes by turning P2 off") {
+        const size_t machine_end = gcode.find("; MACHINE END START");
+        const size_t last_p2_before_machine_end = gcode.rfind("M106 P2 S", machine_end);
+        const size_t final_filter = gcode.find("M106 P2 S178 ; final filter", machine_end);
+        const size_t dwell = gcode.find("M400 S12", final_filter);
+        const size_t fan_off = gcode.find("M106 P2 S0 ; final filter off", dwell);
+        const size_t finish_sound = gcode.find("; FINISH SOUND", fan_off);
+
+        REQUIRE(machine_end != std::string::npos);
+        REQUIRE(last_p2_before_machine_end != std::string::npos);
+        REQUIRE(final_filter != std::string::npos);
+        REQUIRE(dwell != std::string::npos);
+        REQUIRE(fan_off != std::string::npos);
+        REQUIRE(finish_sound != std::string::npos);
+        CHECK(gcode.compare(last_p2_before_machine_end, std::string("M106 P2 S0").size(), "M106 P2 S0") != 0);
+        CHECK(final_filter > machine_end);
+        CHECK(dwell > final_filter);
+        CHECK(fan_off > dwell);
+        CHECK(finish_sound > fan_off);
+    }
+
+    SECTION("a zero post-print time skips the dwell but still turns P2 off") {
+        config.set("auxiliary_fan_filtration_post_time", 0);
+        gcode = Slic3r::Test::slice({TestMesh::cube_20x20x20}, config);
+
+        const size_t machine_end = gcode.find("; MACHINE END START");
+        const size_t final_filter = gcode.find("M106 P2 S178 ; final filter", machine_end);
+        const size_t fan_off = gcode.find("M106 P2 S0 ; final filter off", final_filter);
+
+        REQUIRE(machine_end != std::string::npos);
+        REQUIRE(final_filter != std::string::npos);
+        REQUIRE(fan_off != std::string::npos);
+        CHECK(gcode.substr(final_filter, fan_off - final_filter).find("M400 S") == std::string::npos);
+    }
+
+    SECTION("a higher stock AUX request is not lowered to the filtration minimum") {
+        config.set_key_value("additional_cooling_fan_speed", new ConfigOptionInts { 90 });
+        config.set_key_value("close_additional_fan_first_x_layers", new ConfigOptionInts { 0 });
+        gcode = Slic3r::Test::slice({TestMesh::cube_20x20x20}, config);
+
+        CHECK(gcode.find("M106 P2 S229") != std::string::npos);
+    }
+}
+
+SCENARIO("Disabled H2 AUX filtration preserves stock shutdown behavior", "[PrintGCode][AuxFiltration]") {
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set("printer_model", std::string("Bambu Lab H2C"));
+    config.set("auxiliary_fan", true);
+    config.set("support_cooling_filter", true);
+    config.set("support_auxiliary_fan_filtration", true);
+    config.set("enable_auxiliary_fan_filtration", false);
+    config.set("machine_start_gcode", std::string(
+        "{if auxiliary_fan_filtration_active}\n"
+        "M106 P2 S{auxiliary_fan_filtration_speed_num} ; start filter\n"
+        "{endif}"));
+    config.set("machine_end_gcode", std::string(
+        "; MACHINE END START\n"
+        "{if auxiliary_fan_filtration_active}\n"
+        "M106 P2 S{auxiliary_fan_filtration_speed_num}\n"
+        "M400 S{auxiliary_fan_filtration_post_time}\n"
+        "M106 P2 S0\n"
+        "{endif}"));
+
+    std::string gcode = Slic3r::Test::slice({TestMesh::cube_20x20x20}, config);
+    const size_t machine_end = gcode.find("; MACHINE END START");
+    const size_t last_p2_before_machine_end = gcode.rfind("M106 P2 S", machine_end);
+
+    REQUIRE(machine_end != std::string::npos);
+    REQUIRE(last_p2_before_machine_end != std::string::npos);
+    CHECK(gcode.compare(last_p2_before_machine_end, std::string("M106 P2 S0").size(), "M106 P2 S0") == 0);
+    CHECK(gcode.find("; start filter") == std::string::npos);
+    CHECK(gcode.find("M400 S60", machine_end) == std::string::npos);
+}
+
+SCENARIO("Unsupported printers ignore the H2 AUX filtration override", "[PrintGCode][AuxFiltration]") {
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set("printer_model", std::string("Bambu Lab X2D"));
+    config.set("auxiliary_fan", true);
+    config.set("support_cooling_filter", true);
+    config.set("enable_auxiliary_fan_filtration", true);
+    config.set("auxiliary_fan_filtration_speed", 70);
+    config.set("auxiliary_fan_filtration_post_time", 12);
+    config.set("machine_start_gcode", std::string(
+        "{if auxiliary_fan_filtration_active}\n"
+        "M106 P2 S{auxiliary_fan_filtration_speed_num} ; start filter\n"
+        "{endif}"));
+    config.set("machine_end_gcode", std::string(
+        "; MACHINE END START\n"
+        "{if auxiliary_fan_filtration_active}\n"
+        "M106 P2 S{auxiliary_fan_filtration_speed_num} ; final filter\n"
+        "M400 S{auxiliary_fan_filtration_post_time}\n"
+        "M106 P2 S0 ; final filter off\n"
+        "{endif}"));
+
+    std::string gcode = Slic3r::Test::slice({TestMesh::cube_20x20x20}, config);
+    const size_t machine_end = gcode.find("; MACHINE END START");
+    const size_t last_p2_before_machine_end = gcode.rfind("M106 P2 S", machine_end);
+
+    REQUIRE(machine_end != std::string::npos);
+    REQUIRE(last_p2_before_machine_end != std::string::npos);
+    CHECK(gcode.compare(last_p2_before_machine_end, std::string("M106 P2 S0").size(), "M106 P2 S0") == 0);
+    CHECK(gcode.find("; start filter") == std::string::npos);
+    CHECK(gcode.find("; final filter") == std::string::npos);
+    CHECK(gcode.find("M400 S12", machine_end) == std::string::npos);
+    CHECK(gcode.find("M106 P2 S178") == std::string::npos);
+}

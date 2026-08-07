@@ -3497,6 +3497,12 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("support_auxiliary_fan_filtration", coBool);
+    def->label = L("Support AUX filtration override");
+    def->tooltip = L("Machine-profile capability for AUX filtration override. Enable only for printer profiles whose P2 AUX fan semantics and stock G-code templates include the required filtration hooks.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("cooling_filter_enabled", coBool);
     def->label = L("Use cooling filter");
     def->tooltip = L("Enable this if printer support cooling filter");
@@ -4223,6 +4229,30 @@ void PrintConfigDef::init_fff_params()
     def->max = 100;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 0 });
+
+    def = this->add("enable_auxiliary_fan_filtration", coBool);
+    def->label = L("Enable AUX filtration override");
+    def->tooltip = L("Requires a user-modified AUX fan path that recirculates chamber air through a filter. Do not enable on an unmodified printer.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("auxiliary_fan_filtration_speed", coInt);
+    def->label = L("AUX filtration speed");
+    def->tooltip = L("Minimum auxiliary fan speed used by the modified filtration path during startup, printing, filament changes, and the final post-print dwell.");
+    def->sidetext = "%";
+    def->min = 1;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(70));
+
+    def = this->add("auxiliary_fan_filtration_post_time", coInt);
+    def->label = L("Post-print filtration time");
+    def->tooltip = L("Final filtration dwell after the normal shutdown and stock purification sequence. Set to 0 to skip the dwell; the AUX fan will still be turned off.");
+    def->sidetext = L("s");
+    def->min = 0;
+    def->max = 180;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(60));
 
     def = this->add("min_layer_height", coFloats);
     def->label = L("Min");
@@ -10132,6 +10162,19 @@ float get_real_skirt_dist(const ConfigBase& cfg)
     // Outermost skirt centerline = skirt_distance + (N-0.5)*spacing,
     // plus half extrusion width for the physical outer edge.
     return skirt_distance + (skirt_loops - 0.5f) * spacing + 0.5f * flow_width;
+}
+
+// support_auxiliary_fan_filtration is a machine-profile capability. Enable it only
+// for profiles whose P2 AUX fan semantics and stock templates contain the required
+// startup, filament-change, and machine-end filtration hooks.
+bool supports_auxiliary_fan_filtration(bool auxiliary_fan, bool support_cooling_filter, bool support_auxiliary_fan_filtration)
+{
+    return auxiliary_fan && support_cooling_filter && support_auxiliary_fan_filtration;
+}
+
+int auxiliary_fan_speed_with_filtration(int stock_speed, bool filtration_enabled, int filtration_speed)
+{
+    return filtration_enabled ? std::max(stock_speed, filtration_speed) : stock_speed;
 }
 } // namespace Slic3r
 

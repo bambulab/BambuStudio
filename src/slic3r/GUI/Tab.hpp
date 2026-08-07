@@ -496,6 +496,7 @@ public:
 private:
 	ogStaticText*	m_recommended_thin_wall_thickness_description_line = nullptr;
 	ogStaticText*	m_top_bottom_shell_thickness_explanation = nullptr;
+	ConfigOptionsGroupShp m_auxiliary_fan_filtration_group;
 };
 
 class TabPrintModel : public TabPrint
