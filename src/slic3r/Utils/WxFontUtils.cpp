@@ -8,6 +8,7 @@
 #include <wx/uri.h>
 #include <wx/fontutil.h> // wxNativeFontInfo
 #include <wx/osx/core/cfdictionary.h>
+#include "imgui/imstb_truetype.h" // read PostScript names from font collections
 #elif defined(__linux__)
 #include "slic3r/Utils/FontConfigHelp.hpp"
 #endif
@@ -42,11 +43,58 @@ bool is_valid_ttf(std::string_view file_path)
     return true;
 }
 
+// Resolve the wx font to a concrete CoreText descriptor (caller releases).
+// wxNativeFontInfo keeps the face name as font *family*, so weight-qualified
+// or localized names ("Pretendard Black", "Apple SD Gothic Neo Heavy") do not
+// match as a family. Fall back to CTFontCreateWithName which also matches
+// full and PostScript names; verify the result carries the requested name,
+// because CoreText silently substitutes a default font for unknown names.
+CTFontDescriptorRef create_matched_descriptor(const wxFont &font)
+{
+    const wxNativeFontInfo *info = font.GetNativeFontInfo();
+    if (info == nullptr) return nullptr;
+    CTFontDescriptorRef descriptor = info->GetCTFontDescriptor();
+    CFURLRef url = (CFURLRef) CTFontDescriptorCopyAttribute(descriptor, kCTFontURLAttribute);
+    if (url != NULL) {
+        CFRelease(url);
+        CFRetain(descriptor);
+        return descriptor;
+    }
+
+    wxString facename = font.GetFaceName();
+    if (facename.empty()) return nullptr;
+    CFStringRef name = CFStringCreateWithCString(kCFAllocatorDefault, facename.utf8_str(), kCFStringEncodingUTF8);
+    if (name == NULL) return nullptr;
+    ScopeGuard sg_name([&name]() { CFRelease(name); });
+    CTFontRef ct_font = CTFontCreateWithName(name, 0.0, nullptr);
+    if (ct_font == NULL) return nullptr;
+    ScopeGuard sg_font([&ct_font]() { CFRelease(ct_font); });
+
+    bool matches = false;
+    const CFStringRef name_keys[] = {kCTFontFullNameKey, kCTFontFamilyNameKey, kCTFontPostScriptNameKey};
+    for (CFStringRef key : name_keys) {
+        CFStringRef font_name = CTFontCopyName(ct_font, key);
+        if (font_name == NULL) continue;
+        matches = CFStringCompare(font_name, name, kCFCompareCaseInsensitive) == kCFCompareEqualTo;
+        CFRelease(font_name);
+        if (matches) break;
+    }
+    if (!matches) { // localized name ("나눔고딕")
+        CFStringRef display_name = CTFontCopyDisplayName(ct_font);
+        if (display_name != NULL) {
+            matches = CFStringCompare(display_name, name, kCFCompareCaseInsensitive) == kCFCompareEqualTo;
+            CFRelease(display_name);
+        }
+    }
+    if (!matches) return nullptr;
+    return CTFontCopyFontDescriptor(ct_font);
+}
+
 // get filepath from wxFont on Mac OsX
 std::string get_file_path(const wxFont& font) {
-    const wxNativeFontInfo *info = font.GetNativeFontInfo();
-    if (info == nullptr) return {};
-    CTFontDescriptorRef descriptor = info->GetCTFontDescriptor();
+    CTFontDescriptorRef descriptor = create_matched_descriptor(font);
+    if (descriptor == nullptr) return {};
+    ScopeGuard sg_desc([&descriptor]() { CFRelease(descriptor); });
     CFURLRef typeref = (CFURLRef)CTFontDescriptorCopyAttribute(descriptor, kCTFontURLAttribute);
     if (typeref == NULL) return {};
     ScopeGuard sg([&typeref]() { CFRelease(typeref); });
@@ -60,8 +108,61 @@ std::string get_file_path(const wxFont& font) {
     BOOST_LOG_TRIVIAL(trace) << "input uri(" << file_uri.c_str() << ") convert to path(" << path.c_str() << ") string(" << path_str << ").";
     return path_str;
 }
+
+// PostScript name (name table id 6) of one font inside a font file / collection
+std::string get_font_ps_name(const unsigned char *data, unsigned int index)
+{
+    int offset = stbtt_GetFontOffsetForIndex(data, (int) index);
+    if (offset < 0) return {};
+    stbtt_fontinfo info;
+    if (stbtt_InitFont(&info, data, offset) == 0) return {};
+    int length = 0;
+    // Microsoft platform(3), Unicode BMP(1), english(0x409) -> UTF-16BE
+    const char *name = stbtt_GetFontNameString(&info, &length, 3, 1, 0x409, 6);
+    if (name != nullptr) {
+        std::string result;
+        result.reserve(length / 2);
+        for (int i = 1; i < length; i += 2) result.push_back(name[i]);
+        return result;
+    }
+    // Macintosh platform(1), Roman(0), english(0) -> single byte
+    name = stbtt_GetFontNameString(&info, &length, 1, 0, 0, 6);
+    if (name != nullptr) return std::string(name, length);
+    return {};
+}
 } // namespace
 #endif // __APPLE__
+
+std::optional<unsigned int> WxFontUtils::get_collection_index(const wxFont &font, const Emboss::FontFile &font_file)
+{
+#ifdef __APPLE__
+    // Only TrueType collections (.ttc) need a font index; CoreText knows the
+    // selected face only by name, so match its PostScript name against the
+    // names of the fonts packed in the loaded file.
+    if (font_file.infos.size() <= 1) return {};
+    if (font_file.data == nullptr || font_file.data->empty()) return {};
+    CTFontDescriptorRef descriptor = create_matched_descriptor(font);
+    if (descriptor == nullptr) return {};
+    CTFontDescriptorRef matched = CTFontDescriptorCreateMatchingFontDescriptor(descriptor, nullptr);
+    CFRelease(descriptor);
+    if (matched == nullptr) return {};
+    CFStringRef ps_name_ref = (CFStringRef) CTFontDescriptorCopyAttribute(matched, kCTFontNameAttribute);
+    CFRelease(matched);
+    if (ps_name_ref == NULL) return {};
+    std::string ps_name = wxCFStringRef::AsString(ps_name_ref).utf8_string();
+    CFRelease(ps_name_ref);
+    if (ps_name.empty()) return {};
+
+    const unsigned char *data = font_file.data->data();
+    for (unsigned int i = 0; i < font_file.infos.size(); ++i)
+        if (get_font_ps_name(data, i) == ps_name) return i;
+    return {};
+#else
+    (void) font;
+    (void) font_file;
+    return {};
+#endif
+}
 
 bool WxFontUtils::can_load(const wxFont &font)
 {

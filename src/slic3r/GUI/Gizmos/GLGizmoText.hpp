@@ -107,6 +107,8 @@ private:
     //font deal
     struct Facenames; // forward declaration
     std::unique_ptr<Facenames> m_face_names;
+    // hide fonts unable to render current text in the face name combo (macOS)
+    bool m_only_supported_fonts = false;
     // Keep information about stored styles and loaded actual style to compare with
     Emboss::StyleManager     m_style_manager;
     std::shared_ptr<std::atomic<bool>> m_job_cancel                 = nullptr;
