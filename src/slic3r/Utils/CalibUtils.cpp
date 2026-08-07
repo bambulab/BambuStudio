@@ -215,7 +215,7 @@ std::vector<double> generate_max_speed_parameter_value(const std::string &key)
     Flow flow = Flow(line_width, layer_height, nozzle_diameter);
 
     std::vector<double> speed_values;
-    speed_values.resize(extruder_nums * nozzle_volume_types.size());
+    speed_values.reserve(extruder_nums * nozzle_volume_types.size());
 
     for (size_t i = 0; i < extruder_nums; ++i) {
         int    index                         = get_index_for_extruder_parameter(filament_config, "filament_max_volumetric_speed", i, ExtruderType(extruder_types[i]),
