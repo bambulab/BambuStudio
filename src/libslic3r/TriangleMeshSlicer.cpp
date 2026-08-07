@@ -1736,6 +1736,68 @@ static ExPolygons make_expolygons_simple(std::vector<IntersectionLine> &lines)
     return slices;
 }
 
+static bool remove_short_backtracks(Polygon &polygon, coord_t max_path_length, coord_t endpoint_tolerance)
+{
+    static constexpr size_t max_edges = 8;
+    bool                    removed   = false;
+    bool                    changed   = true;
+
+    while (changed && polygon.points.size() >= 4) {
+        changed        = false;
+        const size_t n = polygon.points.size();
+
+        for (size_t start_idx = 0; start_idx < n && !changed; ++start_idx) {
+            double path_length = 0.;
+            size_t prev_idx    = start_idx;
+
+            for (size_t edge_count = 1; edge_count <= std::min(max_edges, n - 1); ++edge_count) {
+                const size_t end_idx = (start_idx + edge_count) % n;
+                path_length += (polygon.points[end_idx] - polygon.points[prev_idx]).cast<double>().norm();
+                if (path_length > double(max_path_length))
+                    break;
+
+                if (edge_count >= 2 && n - edge_count >= 3 &&
+                    (polygon.points[end_idx] - polygon.points[start_idx]).cast<double>().norm() <= double(endpoint_tolerance)) {
+                    // Keep the start point and remove the short path through the near-duplicate end point.
+                    if (start_idx < end_idx) {
+                        polygon.points.erase(polygon.points.begin() + start_idx + 1, polygon.points.begin() + end_idx + 1);
+                    } else {
+                        Points kept;
+                        kept.reserve(start_idx - end_idx);
+                        kept.insert(kept.end(), polygon.points.begin() + end_idx + 1, polygon.points.begin() + start_idx + 1);
+                        polygon.points = std::move(kept);
+                    }
+                    removed = true;
+                    changed = true;
+                    break;
+                }
+
+                prev_idx = end_idx;
+            }
+        }
+    }
+
+    return removed;
+}
+
+static bool remove_short_backtracks(ExPolygons &expolygons, float closing_radius)
+{
+    const coord_t max_path_length = std::min<coord_t>(scale_(0.002), coord_t(scale_(closing_radius) * 0.05));
+    if (max_path_length <= 0)
+        return false;
+
+    const coord_t endpoint_tolerance = std::min<coord_t>(scale_(0.0001), std::max<coord_t>(1, max_path_length / 20));
+    bool          removed             = false;
+
+    for (ExPolygon &expolygon : expolygons) {
+        removed |= remove_short_backtracks(expolygon.contour, max_path_length, endpoint_tolerance);
+        for (Polygon &hole : expolygon.holes)
+            removed |= remove_short_backtracks(hole, max_path_length, endpoint_tolerance);
+    }
+
+    return removed;
+}
+
 static void make_expolygons(const Polygons &loops, const float closing_radius, const float extra_offset, ClipperLib::PolyFillType fill_type, ExPolygons* slices)
 {
     /*
@@ -1816,12 +1878,16 @@ static void make_expolygons(const Polygons &loops, const float closing_radius, c
         ex_slices.size(), holes_count, loops.size());
     #endif
     
+    ExPolygons unioned = union_ex(loops, fill_type);
+    if (offset_out > 0 && offset_in < 0)
+        remove_short_backtracks(unioned, closing_radius);
+
     // append to the supplied collection
     expolygons_append(*slices,
-        offset_out > 0 && offset_in < 0 ? offset2_ex(union_ex(loops, fill_type), offset_out, offset_in) :
-        offset_out > 0 ? offset_ex(union_ex(loops, fill_type), offset_out) :
-        offset_in  < 0 ? offset_ex(union_ex(loops, fill_type), offset_in) :
-        union_ex(loops, fill_type));
+        offset_out > 0 && offset_in < 0 ? offset2_ex(unioned, offset_out, offset_in) :
+        offset_out > 0 ? offset_ex(unioned, offset_out) :
+        offset_in  < 0 ? offset_ex(unioned, offset_in) :
+        std::move(unioned));
 }
 
 // Make a trafo for transforming the vertices. Scale up in XY, not in Z.
