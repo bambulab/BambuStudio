@@ -322,6 +322,8 @@ private:
     std::string                         m_print_error_msg;
     std::string                         m_print_error_extra;
     std::string                         m_printer_last_select;
+    std::string                         m_lan_info_reconnect_dev_id;
+    int                                 m_lan_info_refresh_tick{0};
     std::string                         m_print_info;
     wxString                            m_current_project_name;
     PrintDialogStatus                   m_print_status { PrintStatusInit };
@@ -488,6 +490,7 @@ public:
 
     void update_by_obj(MachineObject* obj_ = nullptr);
     void update_show_status(MachineObject* obj_ = nullptr);
+    bool refresh_lan_info_if_needed(MachineObject* obj_);
 
     bool CheckErrorRackStatus(MachineObject* obj_);//return true if no errors
     bool CheckErrorExtruderNozzleWithSlicing(MachineObject* obj_);//return true if no errors
