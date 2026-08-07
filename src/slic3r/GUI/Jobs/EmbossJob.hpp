@@ -242,7 +242,7 @@ public:
     /// <param name="volume">Volume to be updated</param>
     /// <param name="mesh">New Triangle mesh for volume</param>
     /// <param name="base">Data to write into volume</param>
-    static void update_volume(ModelVolume *volume, TriangleMesh &&mesh, const DataBase &base);
+    static void update_volume(ModelVolume *volume, TriangleMesh &&mesh, const DataBase &base, bool preserve_center = false);
 };
 
 /// <summary>
