@@ -12107,7 +12107,7 @@ msgid "Checking version..."
 msgstr "Version wird überprüft..."
 
 msgid "Updating"
-msgstr "Aktualiseren"
+msgstr "Aktualisieren"
 
 msgid "Updating failed"
 msgstr "Aktualisierung fehlgeschlagen"
