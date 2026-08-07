@@ -625,7 +625,10 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     // starts to look pinched. Scale the gaps with the font so the speed pill
     // and the nav buttons stop hugging the progress track at system fonts.
     const float GAP_S1_TO_BAR    = std::max(12.0f * sc, BAR_FONT_PX + 4.0f * sc); // section1 -> progress
-    const float PROGRESS_W       = 558.0f * sc;
+    // Ideal track width from Figma; may shrink below when the Assembly Structure
+    // panel leaves too little room (high-DPI macOS often hits this).
+    const float PROGRESS_W_IDEAL = 558.0f * sc;
+    const float PROGRESS_W_MIN   = 180.0f * sc;
     const float BAR_H            = 6.0f * sc;
     // Circle must comfortably hold the step number at BAR_FONT_PX. Figma spec is
     // 18 (Figma 11px font); we grow it just enough to keep a margin around the
@@ -668,10 +671,31 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
         : ImVec2(24.0f * sc, 16.0f * sc);
     const float SPEED_BADGE_W = std::max(SPEED_BADGE_H, speed_text_sz.x + 2.0f * SPEED_PAD_X);
 
-    const float TOTAL_W = PLAY_BTN_SZ + GAP_SECTION1 + SPEED_BADGE_W
-                        + GAP_S1_TO_BAR + PROGRESS_W
+    // Width without the progress track. Track width is chosen next so the bar
+    // can still sit fully to the right of the Assembly Structure panel on
+    // high-DPI displays (macOS 26+ ContentScale) where 558*sc no longer fits.
+    const float FIXED_W = PLAY_BTN_SZ + GAP_SECTION1 + SPEED_BADGE_W
+                        + GAP_S1_TO_BAR
                         + GAP_BAR_TO_NAV + NAV_BTN_SZ + NAV_GAP + NAV_BTN_SZ
                         + dm_slot_w;
+    // Prefer the live panel rect (actual ImGui window) over the layout constant
+    // so a DPI / AutoResize mismatch cannot leave play under the white panel.
+    const float structure_right = std::max(m_assembly_structure_right_x,
+        m_panel_rect_structure_max.x);
+    const float structure_gap = 12.0f * sc;
+    const float right_margin  = 12.0f * sc;
+    const float left_clear    = (structure_right > 0.0f)
+        ? (structure_right + structure_gap)
+        : right_margin;
+    const float progress_avail = canvas_w - left_clear - right_margin - FIXED_W;
+    float PROGRESS_W = PROGRESS_W_IDEAL;
+    if (progress_avail >= PROGRESS_W_IDEAL)
+        PROGRESS_W = PROGRESS_W_IDEAL;
+    else if (progress_avail >= PROGRESS_W_MIN)
+        PROGRESS_W = progress_avail;
+    else
+        PROGRESS_W = PROGRESS_W_MIN;
+    const float TOTAL_W = FIXED_W + PROGRESS_W;
     // main_cy is the vertical center of the top row (play, speed, progress, nav).
     // It must be at least half the tallest element so nothing clips above the window.
     const float top_half = std::max({PLAY_BTN_SZ * 0.5f, SPEED_BADGE_H * 0.5f, CIRCLE_D * 0.5f, dm_arrow_sz * 0.5f});
@@ -680,18 +704,21 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     const float TOTAL_H = top_half + std::max(top_half + 4.0f * sc, 21.74f * sc + LABEL_FONT_PX + 4.0f * sc);
 
     // Window position: centered horizontally, anchored so its bottom edge sits at `bottom_y`.
-    // When the sidebar is expanded the canvas is narrower and a centered bar would overlap
-    // the left Assembly Structure panel (play/pause sits on that side). Prefer centering,
-    // but push right enough to clear the structure panel when needed.
+    // Always keep the play/pause control clear of the left Assembly Structure panel.
+    // Previously a right-edge clamp could undo that push when TOTAL_W was large
+    // (Retina / macOS high scale), leaving play under the panel after pause.
     float win_x = canvas_w * 0.5f - TOTAL_W * 0.5f;
-    if (m_assembly_structure_right_x > 0.0f) {
-        const float min_x = m_assembly_structure_right_x + 8.0f * sc;
-        if (win_x < min_x)
-            win_x = min_x;
+    if (win_x < left_clear)
+        win_x = left_clear;
+    const float max_x = canvas_w - TOTAL_W - right_margin;
+    if (max_x >= left_clear) {
+        if (win_x > max_x)
+            win_x = max_x;
+    } else {
+        // Even the shrunk bar is wider than the free span: keep play clear of
+        // the structure panel and allow the right side to clip past the margin.
+        win_x = left_clear;
     }
-    const float max_x = canvas_w - TOTAL_W - 12.0f * sc;
-    if (max_x > 0.0f && win_x > max_x)
-        win_x = max_x;
     const float win_y = bottom_y - TOTAL_H + 15;
 
     ImGui::SetNextWindowPos(ImVec2(win_x, win_y), ImGuiCond_Always);
@@ -712,6 +739,9 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
         ImGuiWindowFlags_NoBackground);
+    // Structure panel is re-created after pause and can steal display order on
+    // some macOS builds; force the play bar above it every frame.
+    ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
 
     m_panel_rect_playbar_min = ImVec2(win_x, win_y);
     m_panel_rect_playbar_max = ImVec2(win_x + TOTAL_W, win_y + TOTAL_H);
@@ -746,12 +776,14 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
         if (clicked)
             toggle_global_playback();
         if (hovered) {
-            // unified message for both play and pause states). Window has zero
-            // WindowPadding, so the tooltip needs its own padding back.
+            // Match the icon: pause tip while playing, otherwise play-from-here / play-all.
+            // Window has zero WindowPadding, so the tooltip needs its own padding back.
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f * sc, 6.0f * sc));
-            const std::string play_tip = cur_step_num != 1
-                ? _u8L("Play from the current step.")
-                : _u8L("Play all frames for all steps.");
+            const std::string play_tip = m_keyframe_playing
+                ? _u8L("Pause")
+                : (cur_step_num != 1
+                    ? _u8L("Play from the current step.")
+                    : _u8L("Play all frames for all steps."));
             m_imgui->tooltip(play_tip, 20.0f * m_imgui->scaled(1.0f));
             ImGui::PopStyleVar();
         }
@@ -3271,13 +3303,19 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
     for (const auto &c : data.cards)
         cards_total += card_h_of(c) + card_gap;
     const float scroll_content_h = card_gap + cards_total;
-    // Overall panel budget mirrors the guide panel: keep clear of the 3D
-    // navigator (rect published by _render_3d_navigator, 0 when hidden) and leave
-    // a 50px gap. The card scroll region gets whatever is left after the fixed
-    // chrome (header + action row + footer hint), instead of an arbitrary
-    // half-canvas cap, so the panel fills the available height.
+    // Overall panel budget: keep clear of the 3D navigator (rect published by
+    // _render_3d_navigator, 0 when hidden) AND of the bottom play bar. Relying
+    // on nav_h alone is unsafe: on the pause frame the navigator may still
+    // report 0 (it renders after assembly UI), which previously let the panel
+    // grow over the play/pause control (reproduced on macOS 26).
+    // Subtract panel_y so panel_y + overall_max_h stays above the reserved bottom.
     const float nav_h = std::max(0.0f, m_overlay_rect_navigator_max.y - m_overlay_rect_navigator_min.y);
-    const float overall_max_h = std::max(header_h, canvas_h - nav_h - 50.0f * sc);
+    const float nav_reserve = nav_h + 50.0f * sc;
+    const float play_bar_clearance = (has_selected_step_node() ? 30.0f : 95.0f) * sc;
+    const float play_bar_h_reserve = 64.0f * sc;
+    const float play_bar_reserve = play_bar_clearance + play_bar_h_reserve + 8.0f * sc;
+    const float bottom_reserve = std::max(nav_reserve, play_bar_reserve);
+    const float overall_max_h = std::max(header_h, canvas_h - panel_y - bottom_reserve);
     const float non_scroll_h  = header_h + action_h + bottom_pad + card_gap + footer_hint_extra_h;
     const float max_scroll_region_h = std::max(0.0f, overall_max_h - non_scroll_h);
     const float scroll_region_h_target = std::min(scroll_content_h, max_scroll_region_h);
@@ -3433,10 +3471,16 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
 
     // When collapsed, only the header is visible.
     if (m_structure_panel_collapsed) {
+        // Prefer the live ImGui window bounds so play-bar clearance stays correct
+        // if DPI / style scaling ever expands the window past panel_w.
+        const ImVec2 wp = ImGui::GetWindowPos();
+        const ImVec2 ws = ImGui::GetWindowSize();
+        m_assembly_structure_right_x = std::max(panel_x + panel_w, wp.x + ws.x);
+        m_panel_rect_structure_min = wp;
+        m_panel_rect_structure_max = ImVec2(wp.x + ws.x, wp.y + ws.y);
         imgui.end();
         ImGui::PopStyleVar(3);
         ImGui::PopStyleColor(1);
-        m_assembly_structure_right_x = panel_x + panel_w;
         return;
     }
 
@@ -4199,13 +4243,19 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         }
     }
 
+    // Capture live bounds before End(); play-bar clearance must not underestimate
+    // the painted panel if DPI / style scaling expands the window past panel_w.
+    {
+        const ImVec2 wp = ImGui::GetWindowPos();
+        const ImVec2 ws = ImGui::GetWindowSize();
+        m_assembly_structure_right_x = std::max(panel_x + panel_w, wp.x + ws.x);
+        m_panel_rect_structure_min = wp;
+        m_panel_rect_structure_max = ImVec2(wp.x + ws.x, wp.y + ws.y);
+    }
+
     imgui.end();
     ImGui::PopStyleVar(3);
     ImGui::PopStyleColor(1);
-
-    m_assembly_structure_right_x = panel_x + panel_w;
-    m_panel_rect_structure_min = ImVec2(panel_x, panel_y);
-    m_panel_rect_structure_max = ImVec2(panel_x + panel_w, panel_y + panel_h);
 
     // ---- Standalone assembly tree list (canvas right side) ------------------
     // A read-only mirror of the assembly tree. It is shown only while no step

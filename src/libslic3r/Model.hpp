@@ -1735,6 +1735,10 @@ public:
     std::string&       get_assembly_model_json_str()       { return m_assembly_model_json_str; }
     void               set_assembly_model_json_str(std::string json_str) { m_assembly_model_json_str = std::move(json_str); }
 
+    // Drop assembly tree / steps / a_model JSON. clear_objects() does not touch these; call on project
+    // reset so the next STEP/3mf open does not re-derive leftover empty steps from the prepare model.
+    void clear_assembly_artifacts();
+
     // Extensions for color print
     // CustomGCode::Info custom_gcode_per_print_z;
     //BBS: replace model custom gcode with current plate custom gcode

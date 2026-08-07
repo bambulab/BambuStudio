@@ -7638,10 +7638,14 @@ static const float cameraProjection[16] = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.
 void GLCanvas3D::_render_3d_navigator()
 {
     const bool is_assembly_nav = (m_canvas_type == ECanvasType::CanvasAssembleView) && m_assembly_steps;
-    if (is_assembly_nav)
-        m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::Navigator, ImVec2(0, 0), ImVec2(0, 0));
+    // During play/export the navigator is hidden, but keep the last published
+    // rect. Clearing it here would leave nav_h=0 for the first frame after
+    // pause (assembly UI renders before the navigator republishes), letting
+    // the Assembly Structure panel grow over the play bar — seen on macOS 26.
     if (is_assembly_play_or_export_mode())
         return;
+    if (is_assembly_nav)
+        m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::Navigator, ImVec2(0, 0), ImVec2(0, 0));
     if (!wxGetApp().show_3d_navigator()) {
         return;
     }

@@ -541,6 +541,11 @@ class AssemblyStepsUtils
     std::unique_ptr<AssemblyLargeFontCache> m_large_font_cache;
     std::vector<PlayFrameRef> m_play_frame_refs;
     bool                      m_play_frame_refs_dirty{true};
+    // Signature of the steps tree used to build m_play_frame_refs. Open-3mf /
+    // derive can replace tree contents in-place (same Model*) without clearing
+    // this cache; stamp mismatch forces a rebuild so the play bar matches the
+    // left-side step list.
+    uint64_t                  m_play_frame_refs_content_stamp{0};
     std::set<std::string> m_last_recorded_volumes_guid;
     int                       m_assembly_play_index{1};
     int                       m_assembly_play_count{0}; // 0 mean dirty
@@ -1046,6 +1051,8 @@ public://logic
     void            clear_note_selection();
     void            invalidate_play_frame_refs();
     void            rebuild_play_frame_refs();
+    // Cheap signature of playable folders + keyframe counts (for stale-cache detect).
+    uint64_t        play_frame_refs_content_stamp() const;
     void                                    sync_canvas_selection_to_tree(bool selection_empty, bool selection_instance, const std::vector<int> &selected_object_indices);
     std::vector<AssemblySelectionMatchInfo> sync_single_canvas_selection_to_tree_or_get_matches(bool selection_empty, int selected_object_idx, int selected_volume_idx);
     void                                    sync_structure_select_popup_to_canvas(const AssemblyTreeData &popup_tree);

@@ -6811,6 +6811,8 @@ public:
     bool leave_gizmos_stack();
     // Derive the persistent independent assembly model from the prepare model (shared meshes, GUIDs copied).
     void derive_assemble_model();
+    // Project reset / load_project: drop assemble objects, undo, and assembly artifacts on both models.
+    void invalidate_assemble_model_on_project_reset();
     // True when the live m_assemble_model is stale relative to prepare (e.g. emptied by
     // propagate_delete_to_assemble after a prepare delete, while prepare undo restored objects /
     // assembly_model.json). Next assembly enter must re-derive instead of append+set_assembly_pos.
@@ -10534,18 +10536,7 @@ void Plater::priv::reset(bool apply_presets_change)
     // Stop and reset the Print content.
     this->background_process.reset();
     model.clear_objects();
-    // Drop the assembly BVH cache so ratios / bounds / notifications do not leak into the next project.
-    GLCanvas3D::clear_isolated_volumes_cache();
-    // Invalidate the independent assembly model so it is re-derived for the next project.
-    m_assemble_model.clear_objects();
-    m_assemble_model_valid = false;
-    // Drop any retained assembly undo history and force a fresh baseline for the next project.
-    m_undo_redo_stack_assemble.clear();
-    m_assemble_undo_baseline_dirty = true;
-    m_assemble_project_dirty = false;
-    clear_assemble_guide_ui_snapshots();
-    // Drop the persisted assembly-model graph so a fresh / next project does not rebuild a stale a_model.
-    model.set_assembly_model_json_str(std::string());
+    invalidate_assemble_model_on_project_reset();
     assemble_view->get_canvas3d()->reset_explosion_ratio();
     update();
 
@@ -17744,6 +17735,27 @@ bool Plater::priv::leave_gizmos_stack()
     return changed;
 }
 
+void Plater::priv::invalidate_assemble_model_on_project_reset()
+{
+    // Drop the assembly BVH cache so ratios / bounds / notifications do not leak into the next project.
+    GLCanvas3D::clear_isolated_volumes_cache();
+    // Invalidate the independent assembly model so it is re-derived for the next project.
+    m_assemble_model.clear_objects();
+    m_assemble_model_valid = false;
+    // Drop any retained assembly undo history and force a fresh baseline for the next project.
+    m_undo_redo_stack_assemble.clear();
+    m_assemble_undo_baseline_dirty = true;
+    m_assemble_project_dirty       = false;
+    clear_assemble_guide_ui_snapshots();
+    // clear_objects() does not touch assembly steps/tree. After leaving assembly view those
+    // artifacts live on the prepare model (sync_assemble_steps_to_main_model); if they survive
+    // reset, the next homepage STEP open does derive_assemble_model() via `m_assemble_model =
+    // model` and then appends a fresh STEP seed on top — leaving an empty leftover step.
+    // new_project avoids this via model.load_from(empty); load_project only calls reset().
+    model.clear_assembly_artifacts();
+    m_assemble_model.clear_assembly_artifacts();
+}
+
 void Plater::priv::derive_assemble_model()
 {
     // A freshly derived / restored assembly model has no matching undo history: force a clean baseline.
@@ -17947,13 +17959,29 @@ void Plater::priv::sync_assemble_model_on_enter(const std::vector<size_t>& loade
             for (ModelVolume *mv : ao->volumes)
                 mv->set_assembly_src_guid(mv->part_guid());
             // STEP re-import: keep cloned assemble_offset, then apply the shared extra shift.
-            // Otherwise place like a fresh import via set_assembly_pos.
+            // Otherwise place like a fresh import via set_assembly_pos — but only when the
+            // prepare-side instance never had an assemble pose. ModelInstance's clone ctor
+            // copies offsets yet resets m_assemble_initialized to false, so gating must use
+            // po (not ao); unconditional set_assembly_pos would wipe a restored / edited pose.
             // Prepare-side po always mirrors ao so the assembly-view thumbnail stays in sync.
             if (!loaded_idxs.empty()) {
                 for (ModelInstance *inst : ao->instances)
                     inst->set_assemble_offset(inst->get_assemble_offset() + step_reimport_extra_offset);
             } else {
-                m_assemble_model.set_assembly_pos(ao);
+                bool po_assemble_initialized = false;
+                for (ModelInstance *inst : po->instances) {
+                    if (inst->is_assemble_initialized()) {
+                        po_assemble_initialized = true;
+                        break;
+                    }
+                }
+                if (!po_assemble_initialized) {
+                    m_assemble_model.set_assembly_pos(ao);
+                } else {
+                    // Re-flag the clone so later heal paths do not treat it as uninitialized.
+                    for (ModelInstance *inst : ao->instances)
+                        inst->set_assemble_offset(inst->get_assemble_offset());
+                }
             }
             for (size_t i = 0; i < ao->instances.size() && i < po->instances.size(); ++i)
                 po->instances[i]->set_assemble_offset(ao->instances[i]->get_assemble_offset());
@@ -19627,6 +19655,12 @@ int Plater::load_project(wxString const &filename2,
     int wx_dlg_id = close_with_confirm(check);
     if (wx_dlg_id == wxID_CANCEL) {
         return wx_dlg_id;
+    }
+
+    // Same as new_project: stop playback / clear assembly runtime before the
+    // incoming 3mf replaces the model, otherwise play-mode chrome can linger.
+    if (auto *assemble_canvas = get_assmeble_canvas3D()) {
+        assemble_canvas->new_project_clear_assembly_steps_tree_view(true);
     }
 
     //BBS: add only gcode mode

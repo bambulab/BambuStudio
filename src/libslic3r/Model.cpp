@@ -201,6 +201,15 @@ void Model::update_links_bottom_up_recursive()
 	}
 }
 
+void Model::clear_assembly_artifacts()
+{
+    m_assembly_tree_data.clear();
+    m_assembly_tree_json_str.clear();
+    m_assembly_steps_tree_data.clear();
+    m_assembly_steps_json_str.clear();
+    m_assembly_model_json_str.clear();
+}
+
 Model::~Model()
 {
     this->clear_objects();

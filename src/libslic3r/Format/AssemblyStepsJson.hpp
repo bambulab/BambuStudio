@@ -159,6 +159,9 @@ struct KeyFrame
     std::map<int, Geometry::Transformation>                  object_transformations;
     std::map<std::pair<int, int>, Geometry::Transformation>  volume_transformations;
     std::map<std::pair<int, int>, std::string>               volume_names;
+    // Stable ModelVolume::part_guid keyed like volume_transformations. Used to
+    // rebind poses after a prepare-side volume delete shifts volume_idx.
+    std::map<std::pair<int, int>, std::string>               volume_guids;
     AssemblyNote                                             assembly_note;
     LabelsShowType                                           labels_show_type{LabelsShowType::AutoRecommend};
     bool                                                     is_interpolation{false}; // no need to save
@@ -189,6 +192,7 @@ struct KeyFrame
         object_transformations = src.object_transformations;
         volume_transformations = src.volume_transformations;
         volume_names = src.volume_names;
+        volume_guids = src.volume_guids;
         assembly_note = src.assembly_note;
         labels_show_type = src.labels_show_type;
     }

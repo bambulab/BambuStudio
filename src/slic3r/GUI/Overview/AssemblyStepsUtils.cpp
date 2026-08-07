@@ -32,6 +32,11 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
+#include <algorithm>
+#include <unordered_map>
+#include <unordered_set>
+#include <type_traits>
+
 #include <hpdf/hpdf.h>
 
 #include <GL/glew.h>
@@ -109,6 +114,239 @@ bool find_volume_by_part_guid(const Model &model, const std::string &part_guid, 
         }
     }
     return false;
+}
+
+// Resolve old object_idx after prepare-side delete/reorder. Returns -1 when deleted.
+int remap_object_idx_key(int old_idx,
+                         const std::unordered_map<int, int> &old_to_new,
+                         const std::unordered_set<int> &deleted)
+{
+    if (deleted.count(old_idx))
+        return -1;
+    auto it = old_to_new.find(old_idx);
+    return (it != old_to_new.end()) ? it->second : old_idx;
+}
+
+void remap_bound_volume_object_indices(std::vector<std::pair<int, int>> &bound,
+                                       const std::unordered_map<int, int> &old_to_new,
+                                       const std::unordered_set<int> &deleted)
+{
+    std::vector<std::pair<int, int>> out;
+    out.reserve(bound.size());
+    for (const auto &key : bound) {
+        const int ni = remap_object_idx_key(key.first, old_to_new, deleted);
+        if (ni < 0)
+            continue;
+        out.emplace_back(ni, key.second);
+    }
+    bound = std::move(out);
+}
+
+void remap_bound_volume_keys(std::vector<std::pair<int, int>> &bound,
+                             const std::map<std::pair<int, int>, std::pair<int, int>> &vol_key_remap)
+{
+    if (vol_key_remap.empty())
+        return;
+    std::vector<std::pair<int, int>> out;
+    out.reserve(bound.size());
+    for (const auto &key : bound) {
+        auto it = vol_key_remap.find(key);
+        if (it == vol_key_remap.end())
+            continue; // deleted / unresolved
+        out.push_back(it->second);
+    }
+    bound = std::move(out);
+}
+
+int find_volume_idx_by_name(const ModelObject &obj, const std::string &name)
+{
+    if (name.empty())
+        return -1;
+    for (int vi = 0; vi < (int) obj.volumes.size(); ++vi) {
+        const ModelVolume *mv = obj.volumes[vi];
+        if (!mv)
+            continue;
+        if (mv->name == name || (mv->name.empty() && obj.name == name))
+            return vi;
+    }
+    return -1;
+}
+
+// Rebind volume_transformations after a prepare-side volume delete shifts volume_idx
+// inside the same ModelObject. Prefer part_guid; fall back to volume_names.
+// Returns true when any key changed or an entry was dropped.
+bool remap_keyframe_volume_indices(KeyFrame &kf, const Model &model)
+{
+    if (kf.volume_transformations.empty())
+        return false;
+
+    std::map<std::pair<int, int>, Geometry::Transformation> new_vt;
+    std::map<std::pair<int, int>, std::string>               new_vn;
+    std::map<std::pair<int, int>, std::string>               new_vg;
+    std::map<std::pair<int, int>, std::pair<int, int>>       vol_key_remap;
+    bool changed = false;
+
+    for (auto &p : kf.volume_transformations) {
+        const std::pair<int, int> old_key = p.first;
+        int oi = old_key.first;
+        int vi = old_key.second;
+
+        std::string guid;
+        auto git = kf.volume_guids.find(old_key);
+        if (git != kf.volume_guids.end())
+            guid = git->second;
+        std::string name;
+        auto nit = kf.volume_names.find(old_key);
+        if (nit != kf.volume_names.end())
+            name = nit->second;
+
+        int new_oi = oi;
+        int new_vi = -1;
+        if (!guid.empty()) {
+            int found_oi = -1, found_vi = -1;
+            if (find_volume_by_part_guid(model, guid, found_oi, found_vi)) {
+                new_oi = found_oi;
+                new_vi = found_vi;
+            }
+        }
+        if (new_vi < 0 && new_oi >= 0 && new_oi < (int) model.objects.size() && model.objects[new_oi]) {
+            new_vi = find_volume_idx_by_name(*model.objects[new_oi], name);
+        }
+        // Last resort: keep index only when still in range and identity unknown.
+        if (new_vi < 0 && guid.empty() && name.empty() &&
+            new_oi >= 0 && new_oi < (int) model.objects.size() && model.objects[new_oi] &&
+            vi >= 0 && vi < (int) model.objects[new_oi]->volumes.size() &&
+            model.objects[new_oi]->volumes[vi]) {
+            new_vi = vi;
+        }
+
+        if (new_vi < 0) {
+            changed = true; // deleted volume pose dropped
+            continue;
+        }
+        const std::pair<int, int> new_key{new_oi, new_vi};
+        if (new_key != old_key)
+            changed = true;
+        vol_key_remap.emplace(old_key, new_key);
+        new_vt.emplace(new_key, std::move(p.second));
+        if (!name.empty())
+            new_vn.emplace(new_key, name);
+        if (!guid.empty())
+            new_vg.emplace(new_key, guid);
+        else if (model.objects[new_oi]->volumes[new_vi])
+            new_vg.emplace(new_key, model.objects[new_oi]->volumes[new_vi]->ensure_part_guid());
+    }
+
+    if (!changed && new_vt.size() == kf.volume_transformations.size()) {
+        // Still refresh guids for next sync when legacy frames lacked uuid.
+        if (!new_vg.empty() && kf.volume_guids.empty()) {
+            kf.volume_guids = std::move(new_vg);
+            return true;
+        }
+        return false;
+    }
+
+    kf.volume_transformations = std::move(new_vt);
+    kf.volume_names           = std::move(new_vn);
+    kf.volume_guids           = std::move(new_vg);
+
+    auto &note = kf.assembly_note;
+    for (auto &lbl : note.part_number_labels) {
+        if (!lbl.part_guid.empty()) {
+            int foi = -1, fvi = -1;
+            if (find_volume_by_part_guid(model, lbl.part_guid, foi, fvi)) {
+                lbl.object_idx = foi;
+                lbl.volume_idx = fvi;
+            } else {
+                lbl.object_idx = -1;
+            }
+            continue;
+        }
+        auto it = vol_key_remap.find({lbl.object_idx, lbl.volume_idx});
+        if (it != vol_key_remap.end()) {
+            lbl.object_idx = it->second.first;
+            lbl.volume_idx = it->second.second;
+        } else if (lbl.volume_idx >= 0) {
+            lbl.object_idx = -1;
+        }
+    }
+    note.part_number_labels.erase(
+        std::remove_if(note.part_number_labels.begin(), note.part_number_labels.end(),
+                       [](const PartNumberLabel &lbl) { return lbl.object_idx < 0; }),
+        note.part_number_labels.end());
+
+    for (auto &svg : note.arrow_svgs)
+        for (auto &ray : svg.rays)
+            remap_bound_volume_keys(ray.bound_volumes, vol_key_remap);
+    for (auto &t : note.text_labels)
+        remap_bound_volume_keys(t.bound_volumes, vol_key_remap);
+    for (auto &c : note.circle_notes)
+        remap_bound_volume_keys(c.bound_volumes, vol_key_remap);
+    for (auto &r : note.rectangle_notes)
+        remap_bound_volume_keys(r.bound_volumes, vol_key_remap);
+    for (auto &a : note.plain_arrows)
+        remap_bound_volume_keys(a.bound_volumes, vol_key_remap);
+
+    return true;
+}
+
+// Keyframe poses / notes are keyed by runtime object_idx. After a prepare delete,
+// sync_steps_objects_with_model remaps tree nodes by stable object_id — these maps
+// must follow or remaining parts receive the deleted object's pose ("fallen apart").
+void remap_keyframe_object_indices(KeyFrame &kf,
+                                   const std::unordered_map<int, int> &old_to_new,
+                                   const std::unordered_set<int> &deleted)
+{
+    if (old_to_new.empty() && deleted.empty())
+        return;
+
+    {
+        std::map<int, Geometry::Transformation> remapped;
+        for (auto &p : kf.object_transformations) {
+            const int ni = remap_object_idx_key(p.first, old_to_new, deleted);
+            if (ni < 0)
+                continue;
+            remapped.emplace(ni, std::move(p.second));
+        }
+        kf.object_transformations = std::move(remapped);
+    }
+
+    auto remap_pair_map = [&](auto &pair_map) {
+        using MapType = std::remove_reference_t<decltype(pair_map)>;
+        MapType remapped;
+        for (auto &p : pair_map) {
+            const int ni = remap_object_idx_key(p.first.first, old_to_new, deleted);
+            if (ni < 0)
+                continue;
+            remapped.emplace(std::make_pair(ni, p.first.second), std::move(p.second));
+        }
+        pair_map = std::move(remapped);
+    };
+    remap_pair_map(kf.volume_transformations);
+    remap_pair_map(kf.volume_names);
+    remap_pair_map(kf.volume_guids);
+
+    auto &note = kf.assembly_note;
+    for (auto &lbl : note.part_number_labels) {
+        const int ni = remap_object_idx_key(lbl.object_idx, old_to_new, deleted);
+        lbl.object_idx = ni;
+    }
+    note.part_number_labels.erase(
+        std::remove_if(note.part_number_labels.begin(), note.part_number_labels.end(),
+                       [](const PartNumberLabel &lbl) { return lbl.object_idx < 0; }),
+        note.part_number_labels.end());
+
+    for (auto &svg : note.arrow_svgs)
+        for (auto &ray : svg.rays)
+            remap_bound_volume_object_indices(ray.bound_volumes, old_to_new, deleted);
+    for (auto &t : note.text_labels)
+        remap_bound_volume_object_indices(t.bound_volumes, old_to_new, deleted);
+    for (auto &c : note.circle_notes)
+        remap_bound_volume_object_indices(c.bound_volumes, old_to_new, deleted);
+    for (auto &r : note.rectangle_notes)
+        remap_bound_volume_object_indices(r.bound_volumes, old_to_new, deleted);
+    for (auto &a : note.plain_arrows)
+        remap_bound_volume_object_indices(a.bound_volumes, old_to_new, deleted);
 }
 
 // Count model-part volumes; when count == 1 writes the sole volume index to out_sole_vi.
@@ -375,6 +613,16 @@ void AssemblyStepsUtils::reset_state_on_model_changed()
     m_render_interpolated_part_number_labels = false;
 
     hide_assembly_export_progress();
+    // New project / model reload: play-bar refs must not keep the previous project's timeline.
+    invalidate_play_frame_refs();
+    // New project / model reload must hard-stop any in-flight or soft-paused
+    // playback. Soft pause (pause_playback) keeps m_playback_paused / m_play_global
+    // for resume; that session belongs to the previous project's timeline.
+    if (m_keyframe_playing || m_playback_paused || m_play_global || m_video_intro_active ||
+        m_show_video_title_mode || m_play_different_folder_waiting || m_play_end_waiting ||
+        !m_play_queue.empty()) {
+        pause_global_frame();
+    }
 }
 
 void AssemblyStepsUtils::set_input(ImGuiWrapper *imgui, Model *model, Camera *camera, Selection *selection, GLVolumeCollection *volumes, bool gizmo_active)
@@ -1160,6 +1408,7 @@ void AssemblyStepsUtils::fill_folder_keyframes_from_children(int folder_idx, boo
                 entry.data.volume_transformations[key] = gv ? gv->get_volume_transformation()
                                                             : get_volume_transform(oi, vi);
                 entry.data.volume_names[key]           = !mv->name.empty() ? mv->name : obj->name;
+                entry.data.volume_guids[key]           = mv->ensure_part_guid();
             }
             entry.need_save = true;
         }
@@ -1433,6 +1682,7 @@ void AssemblyStepsUtils::inherit_assembly_step()
                 const std::pair<int, int> key{oi, vi};
                 kf.volume_transformations[key] = get_volume_transform(oi, vi);
                 kf.volume_names[key]           = !mv->name.empty() ? mv->name : obj->name;
+                kf.volume_guids[key]           = mv->ensure_part_guid();
             }
         }
     };
@@ -1868,6 +2118,7 @@ void AssemblyStepsUtils::rescale_user_camera_zoom_to_viewport(const KeyFrame &kf
      kf.object_transformations.clear();
      kf.volume_transformations.clear();
      kf.volume_names.clear();
+     kf.volume_guids.clear();
     auto snapshot_object_volumes = [&](int object_idx) {
         if (object_idx < 0 || object_idx >= (int) m_model->objects.size())
             return;
@@ -1883,6 +2134,7 @@ void AssemblyStepsUtils::rescale_user_camera_zoom_to_viewport(const KeyFrame &kf
             const std::pair<int, int> key{object_idx, vi};
             kf.volume_transformations[key] = get_volume_transform(object_idx, vi);
             kf.volume_names[key]           = !mv->name.empty() ? mv->name : obj->name;
+            kf.volume_guids[key]           = mv->ensure_part_guid();
         }
     };
 
@@ -1946,6 +2198,7 @@ void AssemblyStepsUtils::update_final_assembly_end_keyframe_from_current_selecti
             const std::pair<int, int> key{object_idx, vi};
             kf.volume_transformations[key] = get_volume_transform(object_idx, vi);
             kf.volume_names[key]           = !mv->name.empty() ? mv->name : obj->name;
+            kf.volume_guids[key]           = mv->ensure_part_guid();
             any_patched = true;
         }
     }
@@ -1990,8 +2243,10 @@ void AssemblyStepsUtils::record_selected_gl_volume_transforms_to_current_keyfram
             const ModelVolume        *mv = obj->volumes[vi];
             const std::pair<int, int> key{oi, vi};
             kf.volume_transformations[key] = gv->get_volume_transformation();
-            if (mv)
+            if (mv) {
                 kf.volume_names[key] = !mv->name.empty() ? mv->name : obj->name;
+                kf.volume_guids[key] = mv->ensure_part_guid();
+            }
             any_patched = true;
         }
     }
@@ -2041,8 +2296,10 @@ void AssemblyStepsUtils::record_all_glvolumes_in_cur_step__to_current_keyframe()
             const ModelVolume        *mv = obj->volumes[vi];
             const std::pair<int, int> key{oi, vi};
             kf.volume_transformations[key] = gv->get_volume_transformation();
-            if (mv)
+            if (mv) {
                 kf.volume_names[key] = !mv->name.empty() ? mv->name : obj->name;
+                kf.volume_guids[key] = mv->ensure_part_guid();
+            }
             any_patched = true;
         }
     }
@@ -2260,6 +2517,8 @@ void AssemblyStepsUtils::apply_regular_steps_start_frame_transforms_to_current(b
                 target.volume_transformations[item.first] = item.second;
             for (const auto &item : start_entry->data.volume_names)
                 target.volume_names[item.first] = item.second;
+            for (const auto &item : start_entry->data.volume_guids)
+                target.volume_guids[item.first] = item.second;
         }
     }
 
@@ -2298,6 +2557,7 @@ void AssemblyStepsUtils::apply_final_assembly_to_current_keyframe()
             const std::pair<int, int> key{oi, vi};
             src_entry.data.volume_transformations[key] = get_volume_transform(oi, vi);
             src_entry.data.volume_names[key]           = !mv->name.empty() ? mv->name : obj->name;
+            src_entry.data.volume_guids[key]           = mv->ensure_part_guid();
         }
     }
 
@@ -2413,6 +2673,9 @@ void AssemblyStepsUtils::apply_src_frame_transforms_to_current_keyframe(KeyFrame
     for (const auto &item : src_data.volume_names)
         if (!restrict_to_filters || volume_filter.count(item.first))
             target.volume_names[item.first] = item.second;
+    for (const auto &item : src_data.volume_guids)
+        if (!restrict_to_filters || volume_filter.count(item.first))
+            target.volume_guids[item.first] = item.second;
 
     // FinalAssembly explode writes object-level poses; drop any leftover volume
     // offsets on restore so the end-frame object pose is what the canvas shows.
@@ -2426,6 +2689,12 @@ void AssemblyStepsUtils::apply_src_frame_transforms_to_current_keyframe(KeyFrame
         for (auto it = target.volume_names.begin(); it != target.volume_names.end();) {
             if (!restrict_to_filters || object_filter.count(it->first.first))
                 it = target.volume_names.erase(it);
+            else
+                ++it;
+        }
+        for (auto it = target.volume_guids.begin(); it != target.volume_guids.end();) {
+            if (!restrict_to_filters || object_filter.count(it->first.first))
+                it = target.volume_guids.erase(it);
             else
                 ++it;
         }
@@ -3178,7 +3447,8 @@ void AssemblyStepsUtils::play_global_frame(bool from_btn_click)
 
     int folder_cur = find_parent_folder(m_play_frame_refs[cur_ref_idx].node_idx);
     int folder_next = find_parent_folder(m_play_frame_refs[next_ref_idx].node_idx);
-    if (folder_cur == folder_next) {
+    // Empty step: only play its title card, then advance (no interpolate queue).
+    if (folder_cur == folder_next && !is_empty_structure_step(folder_cur)) {
         if (goto_global_frame(cur_idx)) {
             build_local_play_queue();
             m_pending_global_frame_index = next_idx;
@@ -3428,6 +3698,7 @@ void AssemblyStepsUtils::auto_explode_current_keyframe()
                 if (obj && vt.first >= 0 && vt.first < (int) obj->volumes.size() && obj->volumes[vt.first]) {
                     const ModelVolume *mv = obj->volumes[vt.first];
                     target.volume_names[key] = !mv->name.empty() ? mv->name : obj->name;
+                    target.volume_guids[key] = mv->ensure_part_guid();
                 }
                 apply_volume_transform(pose.object_idx, vt.first, vt.second);
             }
@@ -3507,6 +3778,8 @@ void AssemblyStepsUtils::auto_explode_current_keyframe()
                 if (obj && item.volume_idx >= 0 && item.volume_idx < static_cast<int>(obj->volumes.size())) {
                     const ModelVolume *mv = obj->volumes[item.volume_idx];
                     target.volume_names[key] = (mv && !mv->name.empty()) ? mv->name : obj->name;
+                    if (mv)
+                        target.volume_guids[key] = mv->ensure_part_guid();
                 }
             }
             apply_volume_transform(item.object_idx, item.volume_idx, transform);
@@ -4592,6 +4865,7 @@ void AssemblyStepsUtils::clear_runtime_state()
     m_play_queue.clear();
     m_assembly_play_index = 1;
     m_assembly_play_count = 0;
+    clear_playback_pause_state();
     clear_global_playback_state();
     m_play_different_folder_start_time = 0.0;
 
@@ -5198,6 +5472,26 @@ void AssemblyStepsUtils::sync_steps_objects_with_model()
             folder.is_final_assembly = AssemblyStepKind::FinalAssembly;
     }
 
+    // Snapshot old→new before mutating tree indices. Keyframe pose maps are keyed
+    // by the same object_idx; remapping only the tree leaves remaining parts with
+    // the deleted object's explode pose ("fallen apart" after prepare delete).
+    std::unordered_map<int, int> old_to_new;
+    std::unordered_set<int>      deleted_obj_idxs;
+    for (const auto &node : _steps_nodes) {
+        if (node.type != AssemblyStepsTreeNode::Type::Object)
+            continue;
+        const int old_idx  = node.object_idx;
+        const int real_idx = find_model_object_idx_by_id(node.object_id);
+        if (real_idx >= 0) {
+            if (old_idx >= 0 && old_idx != real_idx)
+                old_to_new[old_idx] = real_idx;
+        } else if (old_idx >= 0) {
+            deleted_obj_idxs.insert(old_idx);
+        }
+    }
+    for (const auto &kv : old_to_new)
+        deleted_obj_idxs.erase(kv.first);
+
     for (int root_idx : _steps_roots) {
         if (root_idx < 0 || root_idx >= (int) _steps_nodes.size())
             continue;
@@ -5258,6 +5552,36 @@ void AssemblyStepsUtils::sync_steps_objects_with_model()
         }
         folder.children = std::move(valid_children);
     }
+
+    if (old_to_new.empty() && deleted_obj_idxs.empty()) {
+        // Object list unchanged — still rebind volume_idx inside objects when a
+        // prepare-side volume delete shifted sibling indices.
+        bool volume_remapped = false;
+        for (auto &node : _steps_nodes) {
+            for (auto &entry : node.kf_data.entries) {
+                if (remap_keyframe_volume_indices(entry.data, *m_model)) {
+                    entry.need_save = true;
+                    volume_remapped = true;
+                }
+            }
+        }
+        if (volume_remapped)
+            save_assembly_steps_json_to_model();
+        return;
+    }
+
+    for (auto &node : _steps_nodes) {
+        if (node.kf_data.object_idx >= 0) {
+            const int ni = remap_object_idx_key(node.kf_data.object_idx, old_to_new, deleted_obj_idxs);
+            node.kf_data.object_idx = ni;
+        }
+        for (auto &entry : node.kf_data.entries) {
+            remap_keyframe_object_indices(entry.data, old_to_new, deleted_obj_idxs);
+            remap_keyframe_volume_indices(entry.data, *m_model);
+            entry.need_save = true;
+        }
+    }
+    save_assembly_steps_json_to_model();
 }
 
 void AssemblyStepsUtils::sync_all_model_object_to_final_assembly_node()
@@ -5504,6 +5828,7 @@ void AssemblyStepsUtils::fill_default_transforms(KeyFrameEntry &entry,int object
     entry.data.object_transformations.clear();
     entry.data.volume_transformations.clear();
     entry.data.volume_names.clear();
+    entry.data.volume_guids.clear();
     const ModelObject *obj = m_model ? m_model->objects[object_idx] : nullptr;
     if (!obj)
         return;
@@ -5518,6 +5843,7 @@ void AssemblyStepsUtils::fill_default_transforms(KeyFrameEntry &entry,int object
         const std::pair<int, int> key{object_idx, vi};
         entry.data.volume_transformations[key] = get_volume_transform(object_idx, vi);
         entry.data.volume_names[key]           = !mv->name.empty() ? mv->name : obj->name;
+        entry.data.volume_guids[key]           = mv->ensure_part_guid();
     }
 }
 
@@ -6693,6 +7019,7 @@ void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {
             // Consume the baseline so later genuine model edits are still detected.
             steps_tree.has_loaded_recorded_baseline = false;
             update_model_object_tree();
+            rebuild_play_frame_refs();
         }
 
         if (!loaded_model_structure_matches()) {
@@ -7384,6 +7711,7 @@ bool AssemblyStepsUtils::toggle_part_number_label_in_explosion_state(int object_
             kf.volume_transformations[key] = vol_t;
             const ModelVolume *mv = obj->volumes[vi];
             kf.volume_names[key] = !mv->name.empty() ? mv->name : obj->name;
+            kf.volume_guids[key] = mv->ensure_part_guid();
             changed = true;
         };
         if (volume_idx < 0) {
@@ -9067,16 +9395,61 @@ void AssemblyStepsUtils::invalidate_play_frame_refs()
 {
     m_play_frame_refs_dirty = true;
     m_play_frame_refs.clear();
+    m_play_frame_refs_content_stamp = 0;
+}
+
+uint64_t AssemblyStepsUtils::play_frame_refs_content_stamp() const
+{
+    if (!m_model)
+        return 0;
+
+    const auto &tree  = m_model->get_assembly_steps_tree_data();
+    const auto &nodes = tree.nodes;
+    const auto &roots = tree.roots;
+
+    // FNV-1a 64-bit over playable timeline inputs.
+    uint64_t h = 14695981039346656037ull;
+    auto mix = [&](uint64_t v) {
+        h ^= v;
+        h *= 1099511628211ull;
+    };
+    mix(static_cast<uint64_t>(nodes.size()));
+    mix(static_cast<uint64_t>(roots.size()));
+    for (int ri : roots) {
+        if (ri < 0 || ri >= (int) nodes.size()) {
+            mix(0xffffffffffffffffull);
+            continue;
+        }
+        const auto &n = nodes[ri];
+        mix(static_cast<uint64_t>(n.id));
+        mix(static_cast<uint64_t>(n.step));
+        mix(static_cast<uint64_t>(n.is_final_assembly));
+        mix(static_cast<uint64_t>(n.type));
+        mix(static_cast<uint64_t>(n.kf_data.entries.size()));
+        // Include child count so structure-only edits still invalidate.
+        mix(static_cast<uint64_t>(n.children.size()));
+    }
+    return h;
 }
 
 void AssemblyStepsUtils::rebuild_play_frame_refs()
 {
-    if (!m_play_frame_refs_dirty)
+    const uint64_t stamp = play_frame_refs_content_stamp();
+    // Open-3mf / new-project can replace the steps tree without flipping dirty
+    // (same Model* pointer). Detect that here so the play bar never keeps the
+    // previous project's dozens of frame ticks against a 3-step tree.
+    if (!m_play_frame_refs_dirty && stamp == m_play_frame_refs_content_stamp)
         return;
+
+    wxBusyCursor busy;
     update_final_assembly_step_number_to_max();
     m_play_frame_refs.clear();
-    if (!m_model)
+    if (!m_model) {
+        m_play_frame_refs_dirty = false;
+        m_play_frame_refs_content_stamp = 0;
+        m_assembly_play_count = 0;
         return;
+    }
 
     auto &step_nodes = m_model->get_assembly_steps_tree_data().nodes;
 
@@ -9183,7 +9556,13 @@ void AssemblyStepsUtils::rebuild_play_frame_refs()
             m_play_frame_refs.push_back({ne.node_idx, fi});
     }
 
-    m_play_frame_refs_dirty = false;
+    m_play_frame_refs_dirty         = false;
+    m_play_frame_refs_content_stamp = play_frame_refs_content_stamp();
+    m_assembly_play_count           = (int) m_play_frame_refs.size();
+    if (m_assembly_play_count <= 0)
+        m_assembly_play_index = 1;
+    else if (m_assembly_play_index < 1 || m_assembly_play_index > m_assembly_play_count)
+        m_assembly_play_index = 1;
 }
 
 

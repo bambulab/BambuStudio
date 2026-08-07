@@ -480,6 +480,9 @@ void KeyFrame::to_json(nlohmann::json &j) const
         auto it = volume_names.find(p.first);
         if (it != volume_names.end())
             item["volume_name"] = it->second;
+        auto git = volume_guids.find(p.first);
+        if (git != volume_guids.end() && !git->second.empty())
+            item["uuid"] = git->second;
         item["transformation"] = transform3d_to_json(p.second.get_matrix());
         vt_arr.push_back(item);
     }
@@ -526,6 +529,7 @@ void KeyFrame::from_json(const nlohmann::json &j)
 
     volume_transformations.clear();
     volume_names.clear();
+    volume_guids.clear();
     if (j.contains("volume_transformations") && j["volume_transformations"].is_array()) {
         for (const auto &item : j["volume_transformations"]) {
             int obj_id = -1;
@@ -541,6 +545,9 @@ void KeyFrame::from_json(const nlohmann::json &j)
             std::string volume_name;
             if (json_get_string(item, "volume_name", volume_name))
                 volume_names[key] = volume_name;
+            std::string volume_guid;
+            if (json_get_string(item, "uuid", volume_guid) && !volume_guid.empty())
+                volume_guids[key] = volume_guid;
         }
     }
 
