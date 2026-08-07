@@ -637,7 +637,8 @@ target_link_libraries(libslic3r
     )
 
 if(NOT WIN32)
-    target_link_libraries(libslic3r freetype)
+    find_package(Freetype REQUIRED)
+    target_link_libraries(libslic3r Freetype::Freetype)
     if (NOT APPLE)
         target_link_libraries(libslic3r fontconfig)
     endif()
