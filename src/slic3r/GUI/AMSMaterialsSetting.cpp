@@ -2890,13 +2890,59 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     m_clrData->SetChooseAlpha(false);
 
 
+    // Hex colour input field (shares a row with the custom colour swatch below)
+    auto hex_label = new wxStaticText(m_def_color_box, wxID_ANY, wxT("#"), wxDefaultPosition, wxDefaultSize, 0);
+    hex_label->SetFont(::Label::Body_12);
+    m_hex_input = new TextInput(m_def_color_box, wxEmptyString, wxEmptyString, wxEmptyString,
+                                wxDefaultPosition, wxSize(FromDIP(80), FromDIP(24)), wxTE_PROCESS_ENTER);
+    m_hex_input->GetTextCtrl()->SetMaxLength(6);
+    m_hex_input->SetFont(::Label::Body_12);
+    m_hex_input->SetToolTip(_L("Enter a hex colour code (e.g. FF8800)"));
+
+    m_hex_input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent&) {
+        wxString hex = m_hex_input->GetTextCtrl()->GetValue().Trim().Upper();
+        if (hex.Length() == 6) {
+            unsigned long rgb = 0;
+            if (hex.ToULong(&rgb, 16)) {
+                wxColour col((rgb >> 16) & 0xff, (rgb >> 8) & 0xff, rgb & 0xff);
+                set_def_colour(col);
+                wxCommandEvent evt(EVT_SELECTED_COLOR);
+                unsigned long g_col = ((col.Red() & 0xff) << 24) | ((col.Green() & 0xff) << 16) | ((col.Blue() & 0xff) << 8) | 0xff;
+                evt.SetInt(g_col);
+                wxPostEvent(GetParent(), evt);
+            }
+        }
+    });
+
+    // Live preview: colour the custom swatch as soon as 6 valid hex digits are
+    // typed, without applying or dismissing (Enter still commits). set_def_colour
+    // syncs the field via ChangeValue(), which does not emit wxEVT_TEXT, so this
+    // does not fire on programmatic updates.
+    m_hex_input->GetTextCtrl()->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) {
+        wxString hex = m_hex_input->GetTextCtrl()->GetValue().Trim().Upper();
+        unsigned long rgb = 0;
+        if (hex.Length() == 6 && hex.ToULong(&rgb, 16)) {
+            wxColour col((rgb >> 16) & 0xff, (rgb >> 8) & 0xff, rgb & 0xff);
+            m_ts_stbitmap_custom->Hide();
+            m_custom_cp->SetBackgroundColor(col);
+            m_custom_cp->Refresh();
+        }
+        e.Skip();
+    });
+
     m_sizer_box->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_sizer_box->Add(m_sizer_ams, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
     m_sizer_box->Add(m_ams_fg_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
     m_sizer_box->Add(m_sizer_other, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
     m_sizer_box->Add(m_other_fg_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
     m_sizer_box->Add(m_sizer_custom, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(10));
-    m_sizer_box->Add(m_custom_cp, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(16));
+
+    // Custom colour swatch and hex input aligned on one row
+    auto m_sizer_custom_row = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_custom_row->Add(m_custom_cp, 0, wxALIGN_CENTER_VERTICAL);
+    m_sizer_custom_row->Add(hex_label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
+    m_sizer_custom_row->Add(m_hex_input, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(2));
+    m_sizer_box->Add(m_sizer_custom_row, 0, wxLEFT|wxRIGHT, FromDIP(16));
     m_sizer_box->Add(0, 0, 0, wxTOP, FromDIP(10));
 
 
@@ -3072,10 +3118,17 @@ void ColorPickerPopup::set_def_colour(wxColour col, std::vector<wxColour> cols, 
 
     if (m_def_col.Alpha() == 0) {
         m_ts_stbitmap_custom->Show();
+        if (m_hex_input)
+            m_hex_input->GetTextCtrl()->ChangeValue(wxEmptyString);
     }
     else {
         m_ts_stbitmap_custom->Hide();
         m_custom_cp->SetBackgroundColor(m_def_col);
+        if (m_hex_input) {
+            wxString hex = wxString::Format("%02X%02X%02X",
+                m_def_col.Red(), m_def_col.Green(), m_def_col.Blue());
+            m_hex_input->GetTextCtrl()->ChangeValue(hex);
+        }
     }
 
     Dismiss();
@@ -3094,6 +3147,12 @@ void ColorPickerPopup::OnDismiss() {}
 void ColorPickerPopup::Popup()
 {
     PopupWindow::Popup();
+    // A wxPopupTransientWindow does not route keyboard input to its children
+    // until one of them is given focus, so the hex field stays unusable if we
+    // only wait for a click. Focusing it here (same approach as SearchDialog)
+    // activates the popup and lets the user type right away.
+    if (m_hex_input)
+        m_hex_input->GetTextCtrl()->SetFocus();
 }
 
 bool ColorPickerPopup::ProcessLeftDown(wxMouseEvent& event) {

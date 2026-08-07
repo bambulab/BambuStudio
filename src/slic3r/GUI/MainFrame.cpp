@@ -777,6 +777,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             return;
         }
 
+        // F1–F4: switch main tabs
+        if (!evt.HasAnyModifiers()) {
+            if (key_code == WXK_F1) { select_tab(size_t(tp3DEditor)); return; }
+            if (key_code == WXK_F2) { select_tab(size_t(tpPreview));  return; }
+            if (key_code == WXK_F3) { select_tab(size_t(tpMonitor));  return; }
+            if (key_code == WXK_F4) { select_tab(size_t(tpProject));  return; }
+        }
+
         // Pass 3D view preset shortcuts directly to the current canvas. (Only 0-7 currently used but reserve 8 & 9 anyway.)
         if (evt.CmdDown() && ((key_code >= '0' && key_code <= '9') || (key_code >= WXK_NUMPAD0 && key_code <= WXK_NUMPAD9)) && m_plater) {
             if (auto *canvas = m_plater->canvas3D()) {
