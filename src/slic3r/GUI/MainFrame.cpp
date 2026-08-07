@@ -47,6 +47,9 @@
 #include "Widgets/ProgressDialog.hpp"
 #include "BindDialog.hpp"
 #include "../Utils/MacDarkMode.hpp"
+#ifdef __APPLE__
+#include "libslic3r/MacUtils.hpp"
+#endif
 
 #include <fstream>
 #include <string_view>
@@ -303,14 +306,20 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
 #ifdef __APPLE__
     // Initialize the docker task bar icon.
-    switch (wxGetApp().get_app_mode()) {
-    default:
-    case GUI_App::EAppMode::Editor:
-        m_taskbar_icon = std::make_unique<BambuStudioTaskBarIcon>(wxTBI_DOCK);
-        m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-mac_256px.ico"), wxBITMAP_TYPE_ICO), "BambuStudio");
-        break;
-    case GUI_App::EAppMode::GCodeViewer:
-        break;
+    // On macOS 26+ (Tahoe) setting a custom dock icon at runtime overrides the
+    // system's Liquid Glass / tinted icon theming for the app bundle icon. Skip
+    // it there so the themed bundle icon (Icon.icns) is shown instead. The check
+    // is a lower bound, so future macOS releases (27+) are covered as well.
+    if (!is_mac_os_at_least(26)) {
+        switch (wxGetApp().get_app_mode()) {
+        default:
+        case GUI_App::EAppMode::Editor:
+            m_taskbar_icon = std::make_unique<BambuStudioTaskBarIcon>(wxTBI_DOCK);
+            m_taskbar_icon->SetIcon(wxIcon(Slic3r::var("BambuStudio-mac_256px.ico"), wxBITMAP_TYPE_ICO), "BambuStudio");
+            break;
+        case GUI_App::EAppMode::GCodeViewer:
+            break;
+        }
     }
 #endif // __APPLE__
 

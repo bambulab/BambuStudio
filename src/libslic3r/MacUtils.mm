@@ -20,4 +20,12 @@ int is_mac_version_15()
         return false;
     }
 }
+
+// Runtime check that works regardless of the SDK used to build, and is
+// inherently true for the given major version and all later ones.
+bool is_mac_os_at_least(int major)
+{
+    NSOperatingSystemVersion version = { major, 0, 0 };
+    return [[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:version];
+}
 }; // namespace Slic3r
