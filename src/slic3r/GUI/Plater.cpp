@@ -227,7 +227,8 @@ wxDEFINE_EVENT(EVT_SLICING_COMPLETED,               wxCommandEvent);
 wxDEFINE_EVENT(EVT_PROCESS_COMPLETED,               SlicingProcessCompletedEvent);
 wxDEFINE_EVENT(EVT_EXPORT_BEGAN,                    wxCommandEvent);
 wxDEFINE_EVENT(EVT_EXPORT_FINISHED,                 wxCommandEvent);
-wxDEFINE_EVENT(EVT_IMPORT_MODEL_ID,                 wxCommandEvent);
+using RemoteModelDownloadEvent = Event<RemoteModelDownloadRequest>;
+wxDEFINE_EVENT(EVT_IMPORT_MODEL_ID,                 RemoteModelDownloadEvent);
 wxDEFINE_EVENT(EVT_DOWNLOAD_PROJECT,                wxCommandEvent);
 wxDEFINE_EVENT(EVT_PUBLISH,                         wxCommandEvent);
 wxDEFINE_EVENT(EVT_OPEN_PLATESETTINGSDIALOG,        wxCommandEvent);
@@ -6918,7 +6919,7 @@ public:
     //BBS: add part plate related logic
     void on_plate_right_click(RBtnPlateEvent&);
     void on_plate_selected(SimpleEvent&);
-    void on_action_request_model_id(wxCommandEvent& evt);
+    void on_action_request_model_id(RemoteModelDownloadEvent& evt);
     void on_action_download_project(wxCommandEvent& evt);
     void on_slice_button_status(bool enable);
     //BBS: GUI refactor: GLToolbar
@@ -7654,6 +7655,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         }
         wxGetApp().mainframe->Raise();
         this->q->load_files(input_files);
+    });
+    this->q->Bind(EVT_DEEP_LINK_OTHER_INSTANCE, [](DeepLinkFromOtherInstanceEvent& evt) {
+        BOOST_LOG_TRIVIAL(trace) << "Received deep link from other instance event.";
+        wxGetApp().mainframe->Raise();
+        for (const std::string &url : evt.data)
+            wxGetApp().handle_studio_deep_link(url);
     });
     this->q->Bind(EVT_INSTANCE_GO_TO_FRONT, [this](InstanceGoToFrontEvent &) {
         bring_instance_forward();
@@ -15640,11 +15647,11 @@ void Plater::priv::on_plate_selected(SimpleEvent&)
     sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
 }
 
-void Plater::priv::on_action_request_model_id(wxCommandEvent& evt)
+void Plater::priv::on_action_request_model_id(RemoteModelDownloadEvent& evt)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received import model id event\n" ;
     if (q != nullptr) {
-        q->import_model_id(evt.GetString());
+        q->import_model_id(evt.data);
     }
 }
 
@@ -19112,10 +19119,11 @@ int Plater::save_project(bool saveAs)
 }
 
 //BBS import model by model id
-void Plater::import_model_id(wxString download_info)
+void Plater::import_model_id(const RemoteModelDownloadRequest &request)
 {
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << __LINE__ << " start downloading";
 
+    const wxString download_info = from_u8(request.download_info);
     wxString download_origin_url = download_info;
     wxString download_url;
     wxString filename;
@@ -19166,8 +19174,10 @@ void Plater::import_model_id(wxString download_info)
 
     boost::filesystem::path target_path;
 
-    //reset params
-    p->project.reset();
+    // Opening a project replaces its metadata. Geometry-only imports must
+    // leave the current project's identity and settings untouched.
+    if (request.action == RemoteModelAction::OpenProject)
+        p->project.reset();
 
     /* prepare project and profile */
     boost::thread import_thread = Slic3r::create_thread([&percent, &cont, &cancel, &retry_count, max_retries, &msg, &target_path, &download_ok, download_url, &filename] {
@@ -19414,23 +19424,48 @@ void Plater::import_model_id(wxString download_info)
 
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << PathSanitizer::sanitize(target_path);
-        /* load project */
-        auto result = this->load_project(target_path.wstring());
-        statistics_burial_data_form_mw();
-        if (result == (int)wxID_CANCEL) {
-            return;
-        }
-        /*BBS set project info after load project, project info is reset in load project */
-        //p->project.project_model_id = model_id;
-        //p->project.project_design_id = design_id;
-        AppConfig* config = wxGetApp().app_config;
-        if (config) {
-            p->project.project_country_code = config->get_country_code();
-        }
+        if (request.action == RemoteModelAction::OpenProject) {
+            /* load project */
+            auto result = this->load_project(target_path.wstring());
+            statistics_burial_data_form_mw();
+            if (result == (int)wxID_CANCEL) {
+                return;
+            }
+            /*BBS set project info after load project, project info is reset in load project */
+            //p->project.project_model_id = model_id;
+            //p->project.project_design_id = design_id;
+            AppConfig* config = wxGetApp().app_config;
+            if (config) {
+                p->project.project_country_code = config->get_country_code();
+            }
 
-        // show save new project
-        p->set_project_filename(target_path.wstring());
-        p->notification_manager->push_import_finished_notification(target_path.string(), target_path.parent_path().string(), false);
+            // show save new project
+            p->set_project_filename(target_path.wstring());
+            p->notification_manager->push_import_finished_notification(target_path.string(), target_path.parent_path().string(), false);
+        } else {
+            if ((only_gcode_mode() || using_exported_file()) && new_project() == wxID_CANCEL)
+                return;
+
+            const bool was_dirty = is_project_dirty();
+            std::string snapshot_label = "Import Object: ";
+            snapshot_label += encode_path(target_path.filename().string().c_str());
+            Plater::TakeSnapshot snapshot(this, snapshot_label);
+            const std::vector<size_t> loaded_objects = load_files({target_path}, LoadStrategy::LoadModel);
+            if (loaded_objects.empty()) {
+                // The snapshot itself is project-modifying. If no geometry was
+                // imported into an otherwise clean project, keep it clean.
+                if (!was_dirty) {
+                    p->undo_redo_stack_main().mark_current_as_saved();
+                    set_plater_dirty(false);
+                }
+                return;
+            }
+
+            set_plater_dirty(true);
+            wxGetApp().mainframe->update_title();
+            statistics_burial_data(target_path.string());
+            p->notification_manager->push_import_finished_notification(target_path.string(), target_path.parent_path().string(), false);
+        }
     }
     else {
         if (!msg.empty()) {
@@ -19448,11 +19483,9 @@ void Plater::download_project(const wxString& project_id)
     return;
 }
 
-void Plater::request_model_download(wxString url)
+void Plater::request_model_download(const RemoteModelDownloadRequest &request)
 {
-    wxCommandEvent* event = new wxCommandEvent(EVT_IMPORT_MODEL_ID);
-    event->SetString(url);
-    wxQueueEvent(this, event);
+    wxQueueEvent(this, new RemoteModelDownloadEvent(EVT_IMPORT_MODEL_ID, request));
 }
 
 void Plater::request_download_project(std::string project_id)

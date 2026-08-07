@@ -19,6 +19,7 @@
 #include "Jobs/Job.hpp"
 #include "Jobs/Worker.hpp"
 #include "Search.hpp"
+#include "DeepLink.hpp"
 #include "PartPlate.hpp"
 #include "GUI_App.hpp"
 #include "Jobs/PrintJob.hpp"
@@ -363,9 +364,9 @@ public:
     int load_project(wxString const & filename = "", wxString const & originfile = "-");
     int save_project(bool saveAs = false);
     //BBS download project by project id
-    void import_model_id(wxString download_info);
+    void import_model_id(const RemoteModelDownloadRequest &request);
     void download_project(const wxString& project_id);
-    void request_model_download(wxString url);
+    void request_model_download(const RemoteModelDownloadRequest &request);
     void request_download_project(std::string project_id);
     // BBS: check snapshot
     bool up_to_date(bool saved, bool backup);

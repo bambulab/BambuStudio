@@ -1119,51 +1119,13 @@ void GUI_App::post_init()
             %this->init_params->input_files.size() %this->init_params->input_gcode;
 
         if (this->init_params->input_files.size() == 1 &&
-            boost::starts_with(this->init_params->input_files.front(), "bambustudio://open")) {
+            is_studio_deep_link_candidate(this->init_params->input_files.front())) {
+            auto request = prepare_model_download_from_deep_link(this->init_params->input_files.front());
+            if (request)
+                m_pending_model_download = std::move(*request);
 
-            std::string download_params_url = url_decode(this->init_params->input_files.front());
-            auto input_str_arr = split_str(download_params_url, "file=");
-            if (input_str_arr.size() > 1) {input_str_arr.erase(input_str_arr.begin());}
-
-            std::string download_url;
-#if BBL_RELEASE_TO_PUBLIC
-			short ext_url_open_state = -1; // -1 not set, wxNO not open, wxYES open
-            for (auto input_str : input_str_arr) {
-                if (boost::starts_with(input_str, "http://makerworld") ||
-                    boost::starts_with(input_str, "https://makerworld") ||
-                    boost::starts_with(input_str, "http://public-cdn.bblmw.com") ||
-                    boost::starts_with(input_str, "https://public-cdn.bblmw.com") ||
-                    boost::algorithm::contains(input_str, "amazonaws.com") ||
-                    boost::algorithm::contains(input_str, "aliyuncs.com")) {
-                    download_url = input_str;
-                }
-                else {
-                    if (ext_url_open_state == -1) {
-
-                        MessageDialog msg_dlg(nullptr,
-                                              _L("This file is not from a trusted site, do you want to open it anyway?"), "",
-                                              wxAPPLY | wxYES_NO);
-                        ext_url_open_state   = msg_dlg.ShowModal();
-                    }
-                    if (ext_url_open_state == wxID_YES) {
-                        download_url = input_str;
-                    }
-                }
-            }
-#else
-            for (auto input_str : input_str_arr) {
-                download_url = input_str;
-            }
-#endif
-            download_url = sanitize_download_url(download_url);
-
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", download_url %1%") % PathSanitizer::sanitize(download_url);
-
-            if (!download_url.empty()) {
-                m_download_file_url = from_u8(download_url);
-            }
-
-            m_open_method = "makerworld";
+            const auto deep_link = parse_studio_deep_link(this->init_params->input_files.front());
+            m_open_method = deep_link && deep_link->action == RemoteModelAction::ImportModel ? "deep_link_import" : "makerworld";
         }
         else {
             switch_to_3d = true;
@@ -3556,9 +3518,9 @@ bool GUI_App::on_init_inner()
 #endif
             this->post_init();
 
-            if (!m_download_file_url.empty()) {
-                request_model_download(m_download_file_url);
-                m_download_file_url = "";
+            if (m_pending_model_download) {
+                request_model_download(*m_pending_model_download);
+                m_pending_model_download.reset();
             }
 
             update_publish_status();
@@ -5151,9 +5113,63 @@ void GUI_App::handle_script_message(std::string msg)
 
 void GUI_App::request_model_download(wxString url)
 {
-    if (plater_) {
-        plater_->request_model_download(url);
+    request_model_download(RemoteModelDownloadRequest {RemoteModelAction::OpenProject, into_u8(url)});
+}
+
+void GUI_App::request_model_download(const RemoteModelDownloadRequest &request)
+{
+    if (plater_)
+        plater_->request_model_download(request);
+}
+
+std::optional<RemoteModelDownloadRequest> GUI_App::prepare_model_download_from_deep_link(const std::string &url)
+{
+    const auto deep_link = parse_studio_deep_link(url);
+    if (!deep_link)
+        return std::nullopt;
+
+    std::string download_url = url_decode(deep_link->encoded_download_info);
+#if BBL_RELEASE_TO_PUBLIC
+    const bool trusted = boost::starts_with(download_url, "http://makerworld") ||
+                         boost::starts_with(download_url, "https://makerworld") ||
+                         boost::starts_with(download_url, "http://public-cdn.bblmw.com") ||
+                         boost::starts_with(download_url, "https://public-cdn.bblmw.com") ||
+                         boost::algorithm::contains(download_url, "amazonaws.com") ||
+                         boost::algorithm::contains(download_url, "aliyuncs.com");
+    if (!trusted) {
+        MessageDialog msg_dlg(nullptr,
+                              _L("This file is not from a trusted site, do you want to open it anyway?"), "",
+                              wxAPPLY | wxYES_NO);
+        if (msg_dlg.ShowModal() != wxID_YES)
+            return std::nullopt;
     }
+#endif
+
+    download_url = sanitize_download_url(download_url);
+    if (download_url.empty())
+        return std::nullopt;
+
+    // Preserve the legacy macOS handler's explicit scheme check. Canonical
+    // bambustudio:// links keep the existing bambustudio://open behavior.
+    if (deep_link->legacy_macos_scheme &&
+        !boost::starts_with(download_url, "http://") &&
+        !boost::starts_with(download_url, "https://"))
+        return std::nullopt;
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", download_url %1%") % PathSanitizer::sanitize(download_url);
+    return RemoteModelDownloadRequest {deep_link->action, std::move(download_url)};
+}
+
+void GUI_App::handle_studio_deep_link(const std::string &url)
+{
+    auto request = prepare_model_download_from_deep_link(url);
+    if (!request)
+        return;
+
+    if (m_post_initialized)
+        request_model_download(*request);
+    else
+        m_pending_model_download = std::move(*request);
 }
 
 std::string GUI_App::sanitize_download_url(const std::string &url)
@@ -7493,45 +7509,8 @@ void GUI_App::MacOpenURL(const wxString& url)
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << "get mac url " << url;
 #endif
 
-    if (!url.empty() && boost::starts_with(url, "bambustudioopen://")) {
-        auto input_str_arr = split_str(url.ToStdString(), "bambustudioopen://");
-        if (input_str_arr.size() > 1) {input_str_arr.erase(input_str_arr.begin());}
-
-        std::string download_origin_url;
-        for (auto input_str : input_str_arr) {
-            if (!input_str.empty()) download_origin_url = input_str;
-        }
-
-        std::string decoded_url = url_decode(download_origin_url);
-        std::string download_file_url;
-#if BBL_RELEASE_TO_PUBLIC
-        if (boost::starts_with(decoded_url, "http://makerworld") || boost::starts_with(decoded_url, "https://makerworld") ||
-            boost::starts_with(decoded_url, "http://public-cdn.bblmw.com") || boost::starts_with(decoded_url, "https://public-cdn.bblmw.com") ||
-            boost::algorithm::contains(decoded_url, "amazonaws.com") || boost::algorithm::contains(decoded_url, "aliyuncs.com")) {
-            download_file_url = decoded_url;
-        } else {
-            MessageDialog msg_dlg(nullptr, _L("This file is not from a trusted site, do you want to open it anyway?"), "", wxAPPLY | wxYES_NO);
-            if (msg_dlg.ShowModal() == wxID_YES) download_file_url = decoded_url;
-        }
-#else
-        download_file_url = decoded_url;
-#endif
-        download_file_url = sanitize_download_url(download_file_url);
-
-#if !BBL_RELEASE_TO_PUBLIC
-        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << download_file_url;
-#endif
-
-        if (!download_file_url.empty() && (boost::starts_with(download_file_url, "http://") || boost::starts_with(download_file_url, "https://"))) {
-
-            if (m_post_initialized) {
-                request_model_download(download_file_url);
-            }
-            else {
-                m_download_file_url = download_file_url;
-            }
-        }
-    }
+    if (!url.empty() && parse_studio_deep_link(url.ToStdString()))
+        handle_studio_deep_link(url.ToStdString());
 }
 
 // wxWidgets override to get an event on open files.
