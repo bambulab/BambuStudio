@@ -674,6 +674,7 @@ struct Sidebar::priv
 
     int  FromDIP(int n) { return plater->FromDIP(n); }
     void layout_printer(bool isBBL, bool isDual);
+    void update_printer_title();
 
     void flush_printer_sync(bool restart = false);
     void show_filament_switcher_dialog(bool is_ready, bool is_manual);
@@ -772,6 +773,24 @@ struct Sidebar::priv
     void hide_rich_tip(wxButton* btn);
 #endif
 };
+
+void Sidebar::priv::update_printer_title()
+{
+    if (m_text_printer_settings == nullptr || m_panel_printer_content == nullptr)
+        return;
+
+    wxString title = _L("Printer");
+    if (m_panel_printer_content->GetMaxHeight() == 0 && combo_printer != nullptr) {
+        const wxString printer_name = combo_printer->GetValue();
+        if (!printer_name.empty()) {
+            title += ": ";
+            title += printer_name;
+        }
+    }
+
+    m_text_printer_settings->SetLabel(title);
+    m_panel_printer_title->Layout();
+}
 
 void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
 {
@@ -2452,7 +2471,7 @@ Sidebar::Sidebar(Plater *parent)
         p->m_panel_printer_title->SetBackgroundColor2(0xF1F1F1);
 
         p->m_printer_icon = new ScalableButton(p->m_panel_printer_title, wxID_ANY, "printer");
-        p->m_text_printer_settings = new Label(p->m_panel_printer_title, _L("Printer"), LB_PROPAGATE_MOUSE_EVENT);
+        p->m_text_printer_settings = new Label(p->m_panel_printer_title, _L("Printer"), LB_PROPAGATE_MOUSE_EVENT | wxST_ELLIPSIZE_END);
 
         p->m_printer_icon->Bind(wxEVT_BUTTON, [this](wxCommandEvent& e) {
             //auto wizard_t = new ConfigWizard(wxGetApp().mainframe);
@@ -2471,8 +2490,7 @@ Sidebar::Sidebar(Plater *parent)
 
         wxBoxSizer* h_sizer_title = new wxBoxSizer(wxHORIZONTAL);
         h_sizer_title->Add(p->m_printer_icon, 0, wxALIGN_CENTRE | wxLEFT | wxRIGHT, em);
-        h_sizer_title->Add(p->m_text_printer_settings, 0, wxALIGN_CENTER);
-        h_sizer_title->AddStretchSpacer();
+        h_sizer_title->Add(p->m_text_printer_settings, 1, wxALIGN_CENTER);
         h_sizer_title->Add(p->m_printer_setting, 0, wxALIGN_CENTER);
         h_sizer_title->Add(15 * em / 10, 0, 0, 0, 0);
         h_sizer_title->SetMinSize(-1, 3 * em);
@@ -2493,6 +2511,7 @@ Sidebar::Sidebar(Plater *parent)
                 p->m_panel_printer_content->SetMaxSize({-1, -1});
             else
                 p->m_panel_printer_content->SetMaxSize({-1, 0});
+            p->update_printer_title();
             m_scrolled_sizer->Layout();
         });
 
@@ -3600,6 +3619,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
         if (GUI::wxGetApp().plater())
             GUI::wxGetApp().plater()->update_machine_sync_status();
 
+        p->update_printer_title();
         Layout();
 
         break;
