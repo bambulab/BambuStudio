@@ -2150,8 +2150,11 @@ void GUI_App::init_networking_callbacks()
                 return;
             }
             GUI::wxGetApp().CallAfter([this, dev_id] {
-                if (is_closing())
+                if (is_closing()) return;
+                if (!m_device_manager) {
+                    BOOST_LOG_TRIVIAL(warning) << "on_printer_connected: m_device_manager is null, skip (is_closing=" << is_closing() << ")";
                     return;
+                }
                 bool tunnel = boost::algorithm::starts_with(dev_id, "tunnel/");
                 /* request_pushing */
                 MachineObject* obj = m_device_manager->get_my_machine(tunnel ? dev_id.substr(7) : dev_id);
@@ -2170,8 +2173,8 @@ void GUI_App::init_networking_callbacks()
                     if (m_agent)
                         m_agent->install_device_cert(obj->get_dev_id(), obj->is_lan_mode_printer());
                 }
-                });
             });
+        });
 
         m_agent->set_get_country_code_fn([this]() {
             if (app_config)
@@ -2195,6 +2198,10 @@ void GUI_App::init_networking_callbacks()
                         return;
                     }
                     /* request_pushing */
+                    if (!m_device_manager) {
+                        BOOST_LOG_TRIVIAL(warning) << "on_local_connect: m_device_manager is null, skip (is_closing=" << is_closing() << ")";
+                        return;
+                    }
                     MachineObject* obj = m_device_manager->get_my_machine(dev_id);
                     wxCommandEvent event(EVT_CONNECT_LAN_MODE_PRINT);
 
@@ -2269,6 +2276,11 @@ void GUI_App::init_networking_callbacks()
                     return;
                 }
 
+                if (!m_device_manager) {
+                    BOOST_LOG_TRIVIAL(warning) << "on_message(cloud): m_device_manager is null, skip (is_closing=" << is_closing() << ")";
+                    return;
+                }
+
                 if (MachineObject* obj = this->m_device_manager->get_user_machine(dev_id)) {
                     auto sel = this->m_device_manager->get_selected_machine();
                     if (sel && sel->get_dev_id() == dev_id) {
@@ -2304,9 +2316,7 @@ void GUI_App::init_networking_callbacks()
                     return;
 
                 //check user
-                if (user_id == m_agent->get_user_id()) {
-                    this->m_user_manager->parse_json(msg);
-                }
+                if (m_user_manager && user_id == m_agent->get_user_id()) { this->m_user_manager->parse_json(msg); }
 
             });
         };
@@ -2323,6 +2333,11 @@ void GUI_App::init_networking_callbacks()
                     return;
 
                 if (this->process_network_msg(dev_id, msg)) {
+                    return;
+                }
+
+                if (!m_device_manager) {
+                    BOOST_LOG_TRIVIAL(warning) << "on_local_message: m_device_manager is null, skip (is_closing=" << is_closing() << ")";
                     return;
                 }
 
@@ -2861,6 +2876,7 @@ int GUI_App::OnExit()
     }
 
     if (m_device_manager) {
+        BOOST_LOG_TRIVIAL(warning) << "OnExit: deleting m_device_manager (is_closing=" << is_closing() << ")";
         delete m_device_manager;
         m_device_manager = nullptr;
     }
