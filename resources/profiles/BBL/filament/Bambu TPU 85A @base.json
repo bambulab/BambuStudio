@@ -19,7 +19,7 @@
         "Bambu Lab"
     ],
     "fins_extrude_safe_temp": [
-        "55"
+        "60"
     ],
     "nozzle_temperature": [
         "225"
