@@ -683,6 +683,17 @@ public:
 #if defined(__WINDOWS__)
     bool            is_running_on_arm64() { return m_is_arm64; }
 #endif
+    // Bambu Lab publishes the network plug-in as a universal binary for macOS and with a
+    // separate arm64 build for Windows, but only as x86-64 binaries for Linux. So on any
+    // other Linux architecture (arm64, ...) there is nothing we could download and dlopen.
+    static bool     is_networking_plugin_available()
+    {
+#if defined(__linux__) && !defined(__x86_64__)
+        return false;
+#else
+        return true;
+#endif
+    }
 
 
     void            load_url(wxString url);
