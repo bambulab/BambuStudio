@@ -26,6 +26,8 @@
 #include "wx/textctrl.h"
 #include <wx/timer.h>
 
+#include <chrono>
+#include <cstdint>
 
 namespace Slic3r {
 
@@ -182,6 +184,10 @@ private:
     wxBoxSizer *topsizer { nullptr };
 
     int         m_loginstatus;
+    bool        m_makerworld_sso_navigation_pending { false };
+    bool        m_makerworld_sso_redirect_completed { false };
+    std::uint64_t m_makerworld_sso_flow_id { 0 };
+    std::chrono::steady_clock::time_point m_makerworld_sso_navigation_started_at;
     bool m_isPerformingBack = false;
     bool m_online_history_cleared { false };
     bool m_makerlab_history_cleared { false };

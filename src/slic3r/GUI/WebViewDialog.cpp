@@ -74,6 +74,26 @@ namespace GUI {
         wxString lower = url.Lower();
         return lower.StartsWith("about:blank");
     }
+
+    std::string GetSafeWebUrlForLog(const wxString &url)
+    {
+        std::string safe_url = url.ToUTF8().data();
+        const size_t sensitive_part = safe_url.find_first_of("?#");
+        if (sensitive_part != std::string::npos)
+            safe_url.erase(sensitive_part);
+        return safe_url.empty() ? "<empty>" : safe_url;
+    }
+
+    bool IsMakerWorldSignInUrl(const wxString &url)
+    {
+        return url.Contains("/api/sign-in/ticket");
+    }
+
+    bool IsMakerWorldAuthenticationPage(const wxString &url)
+    {
+        const wxString lower = url.Lower();
+        return lower.Contains("/login") || lower.Contains("/sign-in") || lower.Contains("/agree-terms");
+    }
     }
 
     BEGIN_EVENT_TABLE(WebViewPanel, wxPanel)
@@ -694,6 +714,13 @@ void WebViewPanel::OnFreshLoginStatus(wxTimerEvent &event)
 {
     //wxString mwnow = m_browserMW->GetCurrentURL();
 
+    if (m_makerworld_sso_navigation_pending &&
+        std::chrono::steady_clock::now() - m_makerworld_sso_navigation_started_at > std::chrono::seconds(15)) {
+        BOOST_LOG_TRIVIAL(error) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                 << " sign-in navigation timed out";
+        m_makerworld_sso_navigation_pending = false;
+    }
+
     auto mainframe = Slic3r::GUI::wxGetApp().mainframe;
     if (mainframe && mainframe->m_webview == this)
         Slic3r::GUI::wxGetApp().get_login_info();
@@ -1301,14 +1328,29 @@ bool WebViewPanel::GetJumpUrl(bool login, wxString ticket, wxString targeturl, w
 
 void WebViewPanel::UpdateMakerworldLoginStatus()
 {
+    const std::uint64_t flow_id = ++m_makerworld_sso_flow_id;
     NetworkAgent *agent = GUI::wxGetApp().getAgent();
-    if (agent == nullptr) return;
+    if (agent == nullptr) {
+        BOOST_LOG_TRIVIAL(error) << "MakerWorld SSO: flow=" << flow_id
+                                 << " cannot request bind ticket because NetworkAgent is unavailable";
+        m_makerworld_sso_navigation_pending = false;
+        m_makerworld_sso_redirect_completed = false;
+        return;
+    }
 
+    BOOST_LOG_TRIVIAL(info) << "MakerWorld SSO: flow=" << flow_id << " requesting bind ticket";
+    m_makerworld_sso_redirect_completed = false;
     std::string newticket;
     int ret = agent->request_bind_ticket(&newticket);
-    if (ret==0)
+    if (ret == 0) {
+        BOOST_LOG_TRIVIAL(info) << "MakerWorld SSO: flow=" << flow_id
+                                << " bind ticket acquired; starting sign-in navigation";
         SetMakerworldPageLoginStatus(true, newticket);
-    else {
+    } else {
+        BOOST_LOG_TRIVIAL(error) << "MakerWorld SSO: flow=" << flow_id
+                                 << " failed to acquire bind ticket, ret=" << ret;
+        m_makerworld_sso_navigation_pending = false;
+        m_makerworld_sso_redirect_completed = false;
         wxString UrlDisconnect = MakeDisconnectUrl("online");
         m_browserMW->LoadURL(UrlDisconnect);
     }
@@ -1318,6 +1360,9 @@ void WebViewPanel::UpdateMakerworldLoginStatus()
 void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket)
 {
     if (m_browserMW == nullptr) return;
+
+    if (!login)
+        m_makerworld_sso_redirect_completed = false;
 
     wxString mw_currenturl;
     if (m_online_LastUrl != "") {
@@ -1353,8 +1398,19 @@ void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket)
 
     bool b = GetJumpUrl(login, ticket, mw_currenturl, mw_jumpurl);
     if (b) {
+        m_makerworld_sso_navigation_pending = login;
+        if (login) {
+            m_makerworld_sso_navigation_started_at = std::chrono::steady_clock::now();
+            BOOST_LOG_TRIVIAL(info) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                    << " navigating to sign-in endpoint; target="
+                                    << GetSafeWebUrlForLog(mw_currenturl);
+        }
         m_browserMW->LoadURL(mw_jumpurl);
         m_online_LastUrl = "";
+    } else if (login) {
+        BOOST_LOG_TRIVIAL(error) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                 << " failed to build sign-in navigation URL";
+        m_makerworld_sso_navigation_pending = false;
     }
 }
 
@@ -1519,6 +1575,19 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
     //BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
     const wxString &url = evt.GetURL();
 
+    if (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId() &&
+        m_makerworld_sso_navigation_pending) {
+        BOOST_LOG_TRIVIAL(info) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                << " navigation requested; page=" << GetSafeWebUrlForLog(url);
+    } else if (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId() &&
+               m_makerworld_sso_redirect_completed && IsMakerWorldAuthenticationPage(url)) {
+        BOOST_LOG_TRIVIAL(warning) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                   << " navigated to an authentication page after SSO redirect; "
+                                      "the MakerWorld session may not be persisted, page="
+                                   << GetSafeWebUrlForLog(url);
+        m_makerworld_sso_redirect_completed = false;
+    }
+
 #ifdef __WXOSX__
     // MakerLab STL download uses blob: object URLs. WebView2 on Windows handles this as a
     // file download; WKWebView treats it as navigation and fails with "Frame load interrupted".
@@ -1582,8 +1651,11 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
         m_info->Dismiss();
     }
 
+    const wxString log_url = (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId())
+        ? wxString::FromUTF8(GetSafeWebUrlForLog(evt.GetURL()))
+        : evt.GetURL();
     if (wxGetApp().get_mode() == comDevelop)
-        wxLogMessage("%s", "Navigation request to '" + evt.GetURL() + "' (target='" +
+        wxLogMessage("%s", "Navigation request to '" + log_url + "' (target='" +
             evt.GetTarget() + "')");
 
     //If we don't want to handle navigation then veto the event and navigation
@@ -1607,6 +1679,10 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
     if (m_browserMW!=nullptr && evt.GetId() == m_browserMW->GetId())
     {
         wxString current_url = m_browserMW->GetCurrentURL();
+        if (m_makerworld_sso_navigation_pending) {
+            BOOST_LOG_TRIVIAL(info) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                    << " navigation completed; page=" << GetSafeWebUrlForLog(current_url);
+        }
         std::string TmpNowUrl = current_url.ToStdString();
         std::string mwHost    = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
         if (TmpNowUrl.find(mwHost) != std::string::npos) m_onlinefirst = true;
@@ -1663,8 +1739,11 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
     //m_browser->Show();
     Layout();
     //BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetURL().ToUTF8().data();
+    const wxString completed_log_url = (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId())
+        ? wxString::FromUTF8(GetSafeWebUrlForLog(evt.GetURL()))
+        : evt.GetURL();
     if (wxGetApp().get_mode() == comDevelop)
-        wxLogMessage("%s", "Navigation complete; url='" + evt.GetURL() + "'");
+        wxLogMessage("%s", "Navigation complete; url='" + completed_log_url + "'");
     UpdateState();
     ShowNetpluginTip();
 }
@@ -1676,7 +1755,21 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
 {
     wxString wurl = evt.GetURL();
     // Only notify if the document is the main frame, not a subframe
-    if (m_browser != nullptr && evt.GetId() == m_browser->GetId()) {
+    if (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId()) {
+        if (m_makerworld_sso_navigation_pending) {
+            const wxString current_url = m_browserMW->GetCurrentURL();
+            if (IsMakerWorldSignInUrl(current_url)) {
+                BOOST_LOG_TRIVIAL(error) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                         << " sign-in endpoint loaded without redirect; authentication unverified";
+            } else {
+                BOOST_LOG_TRIVIAL(info) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                        << " sign-in redirect completed; final_page="
+                                        << GetSafeWebUrlForLog(current_url);
+                m_makerworld_sso_redirect_completed = true;
+            }
+            m_makerworld_sso_navigation_pending = false;
+        }
+    } else if (m_browser != nullptr && evt.GetId() == m_browser->GetId()) {
         wxString name = GetName();
         perf_mark((name.IsEmpty() ? std::string("WebView") : name.ToStdString()) + " loaded");
         if (wxGetApp().get_mode() == comDevelop) wxLogMessage("%s", "Document loaded; url='" + evt.GetURL() + "'");
@@ -2029,9 +2122,20 @@ void WebViewPanel::OnError(wxWebViewEvent& evt)
 
     BOOST_LOG_TRIVIAL(warning) << "WebViewPanel got error: " << "[" << category << "] " << evt.GetString().ToUTF8().data();
 
+    if (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId() &&
+        m_makerworld_sso_navigation_pending) {
+        BOOST_LOG_TRIVIAL(error) << "MakerWorld SSO: flow=" << m_makerworld_sso_flow_id
+                                 << " sign-in navigation failed, category=" << category
+                                 << ", page=" << GetSafeWebUrlForLog(evt.GetURL());
+        m_makerworld_sso_navigation_pending = false;
+    }
+
     if (wxGetApp().get_mode() == comDevelop)
     {
-        wxLogMessage("%s", "Error; url='" + evt.GetURL() + "', error='" + category + " (" + evt.GetString() + ")'");
+        const wxString error_log_url = (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId())
+            ? wxString::FromUTF8(GetSafeWebUrlForLog(evt.GetURL()))
+            : evt.GetURL();
+        wxLogMessage("%s", "Error; url='" + error_log_url + "', error='" + category + " (" + evt.GetString() + ")'");
 
         // Show the info bar with an error
     }
