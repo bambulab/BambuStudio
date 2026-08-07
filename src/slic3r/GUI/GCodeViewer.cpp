@@ -415,7 +415,13 @@ namespace Slic3r {
                 const bool b_dirty = m_b_advanced_gcode_viewer_enabled != b_advanced_gcode_viewer_enabled;
                 if (!m_p_renderer || b_dirty) {
                     if (p_ogl_manager) {
-                        if (p_ogl_manager->init_gl()) {
+                        // Do not force GL initialization here: this accessor can run
+                        // during startup before the canvas GL context has ever been
+                        // made current (e.g. on Wayland), which would compile all
+                        // shaders into whatever foreign context is current. GL init
+                        // is performed by the render path with the proper context
+                        // current; until then, defer creating the renderer.
+                        if (p_ogl_manager->is_gl_initialized()) {
                             const auto& gl_version = p_ogl_manager->get_gl_info().get_formated_gl_version();
                             if (b_advanced_gcode_viewer_enabled && gl_version >= 31) {
                                 m_p_renderer = std::make_shared<gcode::AdvancedRenderer>();
