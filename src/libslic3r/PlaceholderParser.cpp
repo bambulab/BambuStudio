@@ -211,12 +211,10 @@ namespace client
 
         expr &operator=(const expr &rhs)
         {
-            //BBS: avoid memory leak when call operator= directly before call reset()
-            if (this->type == TYPE_STRING && this->data.s) {
-                delete this->data.s;
-                this->data.s = nullptr;
-            }
+            if (this == &rhs)
+                return *this;
 
+            this->reset();
             this->type      = rhs.type;
             this->it_range  = rhs.it_range;
             if (rhs.type == TYPE_STRING)
@@ -228,10 +226,13 @@ namespace client
 
         expr &operator=(expr &&rhs)
         {
-            type            = rhs.type;
-            this->it_range  = rhs.it_range;
-            data.set(rhs.data);
-            rhs.type        = TYPE_EMPTY;
+            if (this != &rhs) {
+                this->reset();
+                this->type      = rhs.type;
+                this->it_range  = rhs.it_range;
+                this->data.set(rhs.data);
+                rhs.type        = TYPE_EMPTY;
+            }
             return *this;
         }
 
