@@ -3938,9 +3938,15 @@ void Sidebar::search()
     p->searcher.search();
 }
 
-void Sidebar::jump_to_option(const std::string& opt_key, Preset::Type type, const std::wstring& category)
+void Sidebar::jump_to_option(const std::string& opt_key_with_idx, Preset::Type type, const std::wstring& category)
 {
     //const Search::Option& opt = p->searcher.get_option(opt_key, type);
+    // The settings search keys vector options with a "#<variant>" suffix (e.g.
+    // "filament_xxx#0"), but the option groups are keyed by the bare option key, so
+    // strip the suffix before locating/activating the option, otherwise the jump
+    // silently fails for per-extruder/filament settings (#11200). substr(0, npos)
+    // returns the whole string when there is no '#', so bare keys are unaffected.
+    const std::string opt_key = opt_key_with_idx.substr(0, opt_key_with_idx.find('#'));
     if (type == Preset::TYPE_PRINT) {
         auto tab = dynamic_cast<TabPrintModel*>(wxGetApp().params_panel()->get_current_tab());
         if (tab && tab->has_key(opt_key)) {
