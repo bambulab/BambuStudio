@@ -24,6 +24,9 @@
     "filament_vendor": [
         "Generic"
     ],
+    "filament_density":[
+        "1.2"
+    ],
 	"compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",
         "Qidi X-Max 0.4 nozzle",
