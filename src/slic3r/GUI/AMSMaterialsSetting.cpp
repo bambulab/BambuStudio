@@ -1803,8 +1803,9 @@ void AMSMaterialsSetting::get_filaments_info(const MachineObject*               
 
     // First pass: system presets.
     collect_pass(true);
-    // Second pass: user presets.
-    if (obj->is_support_user_preset) {
+    // Second pass: user presets. Third-party AMS slots should also be able to
+    // select compatible custom filaments created in Filament Manager.
+    if (obj->is_support_user_preset || m_is_third) {
         collect_pass(false);
     }
 }
