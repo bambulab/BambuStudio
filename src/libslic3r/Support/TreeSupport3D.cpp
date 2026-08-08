@@ -20,6 +20,7 @@
 #include "Polygon.hpp"
 #include "Polyline.hpp"
 #include "MutablePolygon.hpp"
+#include "ShortestPath.hpp"
 #include "SupportCommon.hpp"
 #include "TriangleMeshSlicer.hpp"
 #include "TreeSupport.hpp"
@@ -61,6 +62,20 @@
 
 #ifdef LIGHTNING_INFILL_DEBUG
 #include "SVG.hpp"
+#include <sstream>
+#include <boost/nowide/cstdio.hpp>
+// Emit one diagnostic line to both the boost log and a file under debug_out_path(). Only the GUI
+// installs a boost log file sink, so a file of our own is what makes CLI batch runs observable.
+#define LIGHTNING_DBG(x) do { \
+    std::ostringstream _os; \
+    _os << x; \
+    const std::string _line = _os.str(); \
+    BOOST_LOG_TRIVIAL(info) << _line; \
+    if (FILE *_f = boost::nowide::fopen(debug_out_path("lightning_summary.txt").c_str(), "a")) { \
+        fprintf(_f, "%s\n", _line.c_str()); \
+        fclose(_f); \
+    } \
+} while (0)
 #endif
 
 namespace Slic3r
@@ -4133,43 +4148,42 @@ void slice_branches(
 /*!
  * \brief Lightning-infill style pass for internal voids in the organic tree support.
  *
- * Organic tree branches print perimeters only (no infill). When branches union into a trunk during the
- * top-down draw pass, the trunk cross-section can develop an interior hole - a vertical void inside
- * otherwise solid support. Where such a void first appears over a solid column one layer below, the
- * newly hollowed area has nothing beneath it, so the support wall printed above sags ("internal floating").
+ * Organic tree branches print perimeters only (no infill). The stored cross-section polygons still look
+ * "solid", but their interiors are never extruded - so when branches merge and an interior hole suddenly
+ * appears, the new hole-rim sheath sits over air even if the filled polygon below covers that XY.
  *
  * This pass:
  *  1) Reconstructs the real solid cross-section per layer (union of the tree base with its top/
  *     bottom contacts, since intermediate_layers has had those subtracted and would otherwise show
  *     spurious holes).
- *  2) Detects newly opened interior holes in an area window (~0.02-50 mm^2):
- *         overhang[L] = intersection(diff(holes[L], holes[L-1]), solid[L-1])
- *  3) Feeds those voids to FillLightning::Generator with the same-layer cross-section (holes included)
- *     as the grounding contour, so each void can ground onto the surrounding support ring.
- *  4) Turns the generated lines into thin strips, clips them against the zero-radius model collision,
- *     and stores them in lightning_infill_areas. They are NOT merged into intermediate_layers: the organic
- *     tree base is toolpathed sheath-only (hollow), so generate_support_toolpaths() emits these strips
- *     as real interior support extrusions (ipRectilinear at density 1.0). The Lightning Generator only
- *     decides where to ground; the final toolpath pattern is solid rectilinear, not lightning.
+ *  2) Detects floating sheath (first unsupported printable wall of an internal feature):
+ *         overhang[L] = sheath[L] - offset(sheath[L-1], layer_height tolerance)
+ *     clipped to the interior of the outer contours (so trunk diameter growth is ignored) and
+ *     thickened slightly into the adjacent void for DistanceField sampling. This catches both a
+ *     newly opened void rim and nested islands that appear later inside an already-open void
+ *     (diff(holes[L], holes[L-1]) is empty there because the child is a subset of the parent).
+ *     Continuing hole-over-hole rims rest on the rim below and are not fed again.
+ *  3) Feeds those overhangs to FillLightning::Generator so trees grow downward through the void
+ *     and ground onto the surrounding support ring. Same-layer hole interiors are not filled solid;
+ *     the lightning network is only a vertical scaffold under the floating sheath.
+ *  4) Clips the generated lines to the filled branch footprint minus the model collision (so the
+ *     network can run inside a merge void, but not inside the part), drops sub-mm stubs, chains the
+ *     rest and stores them in lightning_infill_lines. They are NOT merged into intermediate_layers.
+ *     generate_support_toolpaths() looks them up by the compacted intermediate-layer index
+ *     (print_z), not by support_layer_id.
  *
- * Always enabled for organic trees (no separate config). Full adaptation of support_base_pattern for
- * whole-base organic fill is a separate concern.
+ * Always enabled for organic trees (no separate config).
  *
- * Because every void lies inside its own cross-section, the lightning DistanceField always terminates.
- * This runs after organic_draw_branches() (which already called volumes.clear_all_but_object_collision()),
- * therefore only the radius-0 collision cache and m_bed_area are relied upon here.
- *
- * Define LIGHTNING_INFILL_DEBUG (see top of this file) to enable diagnostics:
- * BOOST_LOG info summaries plus SVG exports under debug_out_path() ({data_dir}/SVG/).
+ * Define LIGHTNING_INFILL_DEBUG (see top of this file) to enable diagnostics.
  */
 static void organic_lightning_infill(
     PrintObject                     &print_object,
-    TreeModelVolumes                &volumes,
+    const TreeModelVolumes          &volumes,
     const TreeSupportSettings       &config,
     SupportGeneratorLayersPtr       &bottom_contacts,
     SupportGeneratorLayersPtr       &top_contacts,
     SupportGeneratorLayersPtr       &intermediate_layers,
-    std::vector<ExPolygons>         &lightning_infill_areas,
+    std::vector<Polylines>          &lightning_infill_lines,
     std::function<void()>            throw_on_cancel)
 {
     const size_t num_layers = intermediate_layers.size();
@@ -4177,13 +4191,17 @@ static void organic_lightning_infill(
         return;
 
     const coord_t line_width = config.support_line_width;
-    // Scaled^2 area per 1 mm^2, used to express the hole-area window in real units.
+    // Scaled^2 area per 1 mm^2, used to express the feed-area window in real units.
     const double  area_scaled_per_mm2 = sqr(scaled<double>(1.));
-    // Hole-area acceptance window for the internal-void ("floating") detection. A support cross-section
-    // hole smaller than this is extrusion noise; larger than this is a genuine gap rather than the thin
-    // hollowing this pass repairs. Defaults ~0.02 - 50 mm^2 for newly opened holes over solid support.
-    const double  min_hole_area = 0.02 * area_scaled_per_mm2;
-    const double  max_hole_area = 50.0 * area_scaled_per_mm2;
+    // Feed-area acceptance window for floating-sheath pieces and the void polygons that bound them.
+    // Smaller than this is extrusion noise; larger than this is a genuine gap between separate branches
+    // rather than a merge void.
+    const double  min_feed_area = 0.02 * area_scaled_per_mm2;
+    const double  max_feed_area = 50.0 * area_scaled_per_mm2;
+
+#ifdef LIGHTNING_INFILL_DEBUG
+    LIGHTNING_DBG("Lightning infill start. num_layers=" << num_layers);
+#endif
 
     // Per-layer grounding contours (the full solid support cross-section, holes included) and the
     // internal-void overhang to fill.
@@ -4209,14 +4227,14 @@ static void organic_lightning_infill(
         append(s, roof_at(layer_idx));
         return union_ex(s);
     };
-    // Interior holes of a cross-section, returned as positively-oriented region polygons and filtered to
-    // the hole-area window. These are candidate internal voids that may float when newly opened.
+    // Interior holes of a cross-section within the acceptance window, returned as positively-oriented
+    // region polygons. Used to bound lightning seeds to void interiors when thickening floating sheath.
     auto holes_of = [&](const ExPolygons &expolys) -> Polygons {
         Polygons out;
         for (const ExPolygon &ep : expolys)
             for (const Polygon &h : ep.holes) {
                 const double a = std::abs(h.area());
-                if (a < min_hole_area || a > max_hole_area)
+                if (a < min_feed_area || a > max_feed_area)
                     continue;
                 Polygon p = h;
                 p.make_counter_clockwise();
@@ -4224,14 +4242,6 @@ static void organic_lightning_infill(
             }
         return out;
     };
-    // The filled outer boundary of a cross-section (holes removed): the solid support material footprint.
-    auto solid_of = [&](const ExPolygons &expolys) -> Polygons {
-        Polygons out;
-        for (const ExPolygon &ep : expolys)
-            out.emplace_back(ep.contour);
-        return union_(out);
-    };
-
     // Per-layer solid cross-section (ExPolygons) reused by both the contour and the detection below.
     // contours[L] carries the outer boundary and the hole rims, so a hole-interior overhang sample
     // grounds onto the surrounding support ring (Layer::getBestGroundingLocation scans every ring).
@@ -4243,44 +4253,120 @@ static void organic_lightning_infill(
     }
 
     // ---- Internal-void ("floating") detection -------------------------------------------------------
-    // For every layer L>=1 take the interior holes of the solid cross-section and keep the part that sits
-    // directly over solid support material one layer below:
-    //     overhang[L] = intersection( diff(holes[L], holes[L-1]), solid[L-1] )
-    // diff(holes[L], holes[L-1]) drops voids that merely continue a void already open below (so a cavity
-    // is only handled where it is newly opened), and intersecting with solid[L-1] guarantees the removed
-    // material had a solid column beneath it (voids reaching down to the plate are left alone). Because
-    // every kept region lies inside the cross-section, its samples fall within contours[L]'s bounding
-    // box, so the lightning DistanceField always terminates (no hang).
+    // Organic trunks print a sheath only (outer contour + hole rims). The filled support_ex is a lie
+    // about what is extruded, so "hole opened over solid_of(below)" is the wrong test.
+    //
+    // Correct feed: printable sheath on this layer that is not reached by the sheath below within one
+    // layer-height of lateral tolerance. That catches
+    //   - the first rim of a newly opened void,
+    //   - nested islands / rings that appear later inside an already-open void
+    //     (diff(holes[L], holes[L-1]) is empty for those - the child is a subset of the parent hole,
+    //      and lightning from the parent's earlier feed only exists at/below that feed layer).
+    // Continuing hole-over-hole rims rest on the rim below and produce an empty feed.
+    // Ordinary trunk diameter growth is excluded by intersecting with an inset of the outer contours.
+    const float half_line_width = float(0.5 * line_width);
+    // Fallback when a support layer has no height recorded (e.g. empty placeholder). Prefer the
+    // support layer's own height below so independent_support_layer_height stays accurate.
+    const float fallback_support_tolerance = float(scaled<double>(print_object.config().layer_height.value));
+    auto sheath_of = [&](const ExPolygons &expolys) -> Polygons {
+        if (expolys.empty())
+            return {};
+        return diff(offset(expolys, half_line_width), offset(expolys, -half_line_width));
+    };
+    auto layer_support_tolerance = [&](size_t layer_idx) -> float {
+        if (layer_idx < intermediate_layers.size() && intermediate_layers[layer_idx] &&
+            intermediate_layers[layer_idx]->height > EPSILON)
+            return float(scaled<double>(intermediate_layers[layer_idx]->height));
+        return fallback_support_tolerance;
+    };
 #ifdef LIGHTNING_INFILL_DEBUG
     // Areas are reported in mm^2. SCALING_FACTOR is 1e-5 here, so area scale is 1e10.
     auto to_mm2 = [](double a) -> double { return a * 1e-10; };
-    double dbg_new_hole_area = 0.; int dbg_new_hole_layers = 0;
+    double dbg_feed_area = 0.; int dbg_feed_layers = 0;
 #endif
+    // sheath[L] is sheath_below for layer L+1; keep the previous result instead of recomputing.
+    Polygons sheath_below;
     for (size_t layer_idx = 1; layer_idx < num_layers; ++ layer_idx) {
         throw_on_cancel();
-        Polygons holes_here = holes_of(support_ex[layer_idx]);
-        if (holes_here.empty())
+        Polygons sheath_here = sheath_of(support_ex[layer_idx]);
+        if (sheath_here.empty()) {
+            sheath_below.clear();
             continue;
+        }
+        if (layer_idx == 1 || sheath_below.empty())
+            sheath_below = sheath_of(support_ex[layer_idx - 1]);
+        const float support_tolerance = layer_support_tolerance(layer_idx);
+        Polygons floating = sheath_below.empty()
+            ? sheath_here
+            : diff(sheath_here, offset(sheath_below, support_tolerance));
+        sheath_below = std::move(sheath_here);
+        if (floating.empty())
+            continue;
+
+        // Drop outer-wall growth: keep only floating sheath inside the branch. An empty inset means every
+        // branch on this layer is thinner than two line widths and has no interior to seed into, so the
+        // layer is rejected rather than let through with the outer sheath unfiltered.
+        Polygons branch_interior;
+        for (const ExPolygon &ep : support_ex[layer_idx]) {
+            ExPolygons inset = offset_ex(ExPolygons{ ExPolygon(ep.contour) }, -float(line_width));
+            append(branch_interior, to_polygons(inset));
+        }
+        if (branch_interior.empty())
+            continue;
+        floating = intersection(floating, union_(branch_interior));
+        if (floating.empty())
+            continue;
+
+        // Apply the feed-area window to floating sheath pieces before thickening. Thickening can merge
+        // several valid rims into one polygon larger than max_feed_area; re-applying max afterwards
+        // would drop that whole feed. After thickening only discard crumbs below min_feed_area.
+        {
+            Polygons filtered_floating;
+            filtered_floating.reserve(floating.size());
+            for (Polygon &p : floating) {
+                const double a = std::abs(p.area());
+                if (a < min_feed_area || a > max_feed_area)
+                    continue;
+                filtered_floating.emplace_back(std::move(p));
+            }
+            floating = std::move(filtered_floating);
+            if (floating.empty())
+                continue;
+        }
+
+        // Thicken the unsupported rim slightly into the adjacent void so DistanceField gets enough
+        // samples; clip to this layer's holes (and holes below) so we never seed outside the void.
+        Polygons holes_here  = holes_of(support_ex[layer_idx]);
         Polygons holes_below = holes_of(support_ex[layer_idx - 1]);
-        Polygons newly_opened = holes_below.empty() ? holes_here : diff(holes_here, holes_below);
-        if (newly_opened.empty())
+        Polygons void_region = union_(holes_here, holes_below);
+        Polygons feed        = floating;
+        if (! void_region.empty())
+            feed = union_(floating, intersection(offset(floating, float(line_width)), void_region));
+
+        Polygons filtered;
+        filtered.reserve(feed.size());
+        for (Polygon &p : feed) {
+            if (std::abs(p.area()) < min_feed_area)
+                continue;
+            filtered.emplace_back(std::move(p));
+        }
+        if (filtered.empty())
             continue;
-        Polygons solid_below = solid_of(support_ex[layer_idx - 1]);
-        if (solid_below.empty())
-            continue;
-        Polygons overhang = intersection(newly_opened, solid_below);
-        if (overhang.empty() || area(overhang) < min_hole_area)
-            continue;
+        lightning_overhangs[layer_idx] = std::move(filtered);
 #ifdef LIGHTNING_INFILL_DEBUG
-        dbg_new_hole_area += area(overhang); ++ dbg_new_hole_layers;
+        dbg_feed_area += area(lightning_overhangs[layer_idx]); ++ dbg_feed_layers;
+        LIGHTNING_DBG("[LIGHTNING-DETECT] layer=" << layer_idx
+            << " z=" << (intermediate_layers[layer_idx] ? intermediate_layers[layer_idx]->print_z : 0.)
+            << " floating_sheath(mm2)=" << to_mm2(area(floating))
+            << " fed(mm2)=" << to_mm2(area(lightning_overhangs[layer_idx]))
+            << " status=FED");
 #endif
-        append(lightning_overhangs[layer_idx], std::move(overhang));
     }
 
 #ifdef LIGHTNING_INFILL_DEBUG
-    BOOST_LOG_TRIVIAL(info) << "Lightning infill newly-opened hole detection done. num_layers=" << num_layers
-        << " hole_area_window(mm2)=[" << to_mm2(min_hole_area) << "," << to_mm2(max_hole_area) << "]"
-        << " new_hole_layers=" << dbg_new_hole_layers << " new_hole_area(mm2)=" << to_mm2(dbg_new_hole_area);
+    LIGHTNING_DBG("Lightning infill floating-sheath detection done. num_layers=" << num_layers
+        << " feed_area_window(mm2)=[" << to_mm2(min_feed_area) << "," << to_mm2(max_feed_area) << "]"
+        << " feed_layers=" << dbg_feed_layers << " feed_area(mm2)=" << to_mm2(dbg_feed_area));
 #endif
 
     // Critical safety clamp: the lightning DistanceField samples the overhang but erases supported
@@ -4315,19 +4401,19 @@ static void organic_lightning_infill(
             if (intermediate_layers[layer_idx])
                 dbg_max_fed_z = std::max(dbg_max_fed_z, intermediate_layers[layer_idx]->print_z);
             const double z = intermediate_layers[layer_idx] ? intermediate_layers[layer_idx]->print_z : 0.;
-            SVG::export_expolygons(debug_out_path("lightning_infill_new_hole_%d_%.2f.svg", int(layer_idx), z), {
+            SVG::export_expolygons(debug_out_path("lightning_infill_void_feed_%d_%.2f.svg", int(layer_idx), z), {
                 { support_ex[layer_idx], { "support", "gray", 0.5f } },
-                { union_ex(lightning_overhangs[layer_idx]), { "newly_opened", "red", 0.5f } }
+                { union_ex(lightning_overhangs[layer_idx]), { "feed", "red", 0.5f } }
             });
         }
-        BOOST_LOG_TRIVIAL(info) << "Lightning infill after bbox-clip: fed_layers=" << fed_layers
-            << " fed_area(mm2)=" << to_mm2(dbg_fed_area) << " max_fed_z(mm)=" << dbg_max_fed_z;
+        LIGHTNING_DBG("Lightning infill after bbox-clip: fed_layers=" << fed_layers
+            << " fed_area(mm2)=" << to_mm2(dbg_fed_area) << " max_fed_z(mm)=" << dbg_max_fed_z);
     }
 #endif
 
     if (fed_layers == 0) {
 #ifdef LIGHTNING_INFILL_DEBUG
-        BOOST_LOG_TRIVIAL(info) << "Lightning infill: nothing to fill, returning.";
+        LIGHTNING_DBG("Lightning infill: nothing to fill, returning.");
 #endif
         return;
     }
@@ -4342,65 +4428,135 @@ static void organic_lightning_infill(
 
     FillLightning::Generator generator(&print_object, contours, lightning_overhangs, throw_on_cancel, float(density));
 
-    // Clip the generated lines to a valid outline. intersection_pl() drops everything against an empty
-    // limit, so fall back to a generous bounding box when the bed polygon is unavailable.
-    Polygons line_limit;
-    if (volumes.m_bed_area.is_valid())
-        line_limit = Polygons{ volumes.m_bed_area };
-    else {
-        BoundingBox bb;
-        for (const Polygons &c : contours)
-            bb.merge(get_extents(c));
-        for (const Polygons &o : lightning_overhangs)
-            bb.merge(get_extents(o));
-        if (bb.defined) {
-            bb.offset(scaled<coord_t>(10.));
-            line_limit = Polygons{ bb.polygon() };
-        }
-    }
-
-    // Store the generated lightning strips per layer as fill regions. They are NOT merged into
-    // intermediate_layers here: the organic tree base is toolpathed sheath-only (hollow), so an area
-    // merge would never be printed as interior support. generate_support_toolpaths turns these regions
-    // into real infill extrusions inside the branch, closing the internal void the tree could not.
-    if (lightning_infill_areas.size() < num_layers)
-        lightning_infill_areas.resize(num_layers);
+    // Store the generated lightning network per layer as polylines, the same way the hybrid tree does
+    // (TreeSupport::generate_toolpaths). They are NOT merged into intermediate_layers: the organic tree
+    // base is toolpathed sheath-only (hollow), so an area merge would never be printed as interior
+    // support. generate_support_toolpaths extrudes these polylines directly inside the branch.
+    //
+    // Turning the lines into strips and refilling them with a rectilinear filler instead is what
+    // produced the long straight lines: the filler rasterises the whole strip cluster and, with an
+    // unbounded link_max_length, joins raster ends across the entire cluster.
+    if (lightning_infill_lines.size() < num_layers)
+        lightning_infill_lines.resize(num_layers);
+    // Anything shorter than this is a stub at a branch tip that costs a travel move and supports nothing.
+    const double min_line_length = scaled<double>(1.);
 #ifdef LIGHTNING_INFILL_DEBUG
-    int    dbg_line_layers = 0, dbg_fill_layers = 0;
-    size_t dbg_total_lines = 0;
-    double dbg_fill_area = 0.;
+    int    dbg_line_layers = 0, dbg_kept_layers = 0;
+    size_t dbg_total_lines = 0, dbg_kept_lines = 0;
+    double dbg_kept_length = 0.;
 #endif
     for (size_t layer_idx = 0; layer_idx < num_layers; ++ layer_idx) {
         throw_on_cancel();
-        const FillLightning::Layer &lightning_layer = generator.getTreesForLayer(layer_idx);
-        Polylines lines = lightning_layer.convertToLines(line_limit, 0);
-        if (lines.empty())
+        // Clip to this layer's filled branch footprint minus the model. Filling the holes is required:
+        // that is where the grounding network has to run, and clipping against the holed cross-section
+        // would delete it. Subtracting the radius-0 min_xy collision then drops any path that would
+        // land inside the part (a hole that is the model's silhouette, not a merge void), without
+        // eating wall-hugging min_xy sheath. Same getCollision(0, layer, true) trim as
+        // organic_draw_branches uses on its slices.
+        // Shrink by half a line width so the extrusion axis stays inside the sheath.
+        Polygons footprint;
+        for (const ExPolygon &ep : support_ex[layer_idx])
+            footprint.emplace_back(ep.contour);
+        footprint = offset(union_(footprint), -half_line_width);
+        if (! footprint.empty())
+            footprint = diff_clipped(footprint, volumes.getCollision(0, layer_idx, true));
+        if (footprint.empty())
             continue;
+
+        const FillLightning::Layer &lightning_layer = generator.getTreesForLayer(layer_idx);
+        Polylines lines = lightning_layer.convertToLines(footprint, 0);
+        if (lines.empty()) {
+#ifdef LIGHTNING_INFILL_DEBUG
+            LIGHTNING_DBG("[LIGHTNING-EMIT] layer=" << layer_idx
+                << " z=" << (intermediate_layers[layer_idx] ? intermediate_layers[layer_idx]->print_z : 0.)
+                << " fed_overhang(mm2)=" << to_mm2(area(lightning_overhangs[layer_idx]))
+                << " convertToLines=empty");
+#endif
+            continue;
+        }
 #ifdef LIGHTNING_INFILL_DEBUG
         ++ dbg_line_layers; dbg_total_lines += lines.size();
 #endif
-        Polygons cols = offset(lines, float(0.5 * line_width));
-        if (cols.empty())
+        lines.erase(std::remove_if(lines.begin(), lines.end(),
+                                   [min_line_length](const Polyline &pl) { return pl.length() < min_line_length; }),
+                    lines.end());
+        if (lines.empty())
             continue;
-        // Never let the supplement cross the printed part.
-        cols = diff_clipped(cols, volumes.getCollision(0, LayerIndex(layer_idx), false));
-        if (cols.empty())
-            continue;
-        lightning_infill_areas[layer_idx] = union_ex(cols);
+
+        lightning_infill_lines[layer_idx] = chain_polylines(std::move(lines));
 #ifdef LIGHTNING_INFILL_DEBUG
-        ++ dbg_fill_layers; dbg_fill_area += area(cols);
+        ++ dbg_kept_layers; dbg_kept_lines += lightning_infill_lines[layer_idx].size();
+        double len = 0.;
+        for (const Polyline &pl : lightning_infill_lines[layer_idx])
+            len += pl.length();
+        dbg_kept_length += len;
+        LIGHTNING_DBG("[LIGHTNING-EMIT] layer=" << layer_idx
+            << " z=" << (intermediate_layers[layer_idx] ? intermediate_layers[layer_idx]->print_z : 0.)
+            << " fed_overhang(mm2)=" << to_mm2(area(lightning_overhangs[layer_idx]))
+            << " kept_lines=" << lightning_infill_lines[layer_idx].size()
+            << " kept_length(mm)=" << unscaled<double>(len));
         const double z = intermediate_layers[layer_idx] ? intermediate_layers[layer_idx]->print_z : 0.;
         SVG::export_expolygons(debug_out_path("lightning_infill_fill_%d_%.2f.svg", int(layer_idx), z), {
             { support_ex[layer_idx], { "support", "gray", 0.5f } },
-            { lightning_infill_areas[layer_idx], { "fill", "blue", 0.5f } }
+            { union_ex(offset(lightning_infill_lines[layer_idx], half_line_width)), { "fill", "blue", 0.5f } }
         });
 #endif
     }
 #ifdef LIGHTNING_INFILL_DEBUG
-    BOOST_LOG_TRIVIAL(info) << "Lightning infill generation done. line_layers=" << dbg_line_layers
+    LIGHTNING_DBG("Lightning infill generation done. line_layers=" << dbg_line_layers
         << " total_lines=" << dbg_total_lines
-        << " fill_layers=" << dbg_fill_layers
-        << " fill_area(mm2)=" << to_mm2(dbg_fill_area);
+        << " kept_layers=" << dbg_kept_layers
+        << " kept_lines=" << dbg_kept_lines
+        << " kept_length(mm)=" << unscaled<double>(dbg_kept_length));
+
+    // Approximate the material that is actually printable on each organic base layer: the sheath
+    // around the support contours plus lightning strips clipped to the filled outer footprint. Then
+    // report material that is not reached by the layer below within one layer-height of lateral
+    // tolerance. This is a diagnostic approximation; contact/interface toolpaths are emitted later
+    // and are not included here.
+    {
+        std::vector<ExPolygons> printed_areas(num_layers);
+        double total_printed_area = 0.;
+        double total_floating_area = 0.;
+        int floating_layers = 0;
+
+        for (size_t layer_idx = 0; layer_idx < num_layers; ++ layer_idx) {
+            const ExPolygons outer_band = offset_ex(support_ex[layer_idx], half_line_width);
+            const ExPolygons inner_area = offset_ex(support_ex[layer_idx], -half_line_width);
+            Polygons printed = to_polygons(diff_ex(to_polygons(outer_band), to_polygons(inner_area)));
+
+            if (! lightning_infill_lines[layer_idx].empty())
+                append(printed, offset(lightning_infill_lines[layer_idx], half_line_width));
+
+            printed_areas[layer_idx] = union_ex(printed);
+            total_printed_area += area(printed_areas[layer_idx]);
+            if (layer_idx == 0 || printed_areas[layer_idx].empty())
+                continue;
+
+            const ExPolygons supported_from_below = offset_ex(printed_areas[layer_idx - 1], layer_support_tolerance(layer_idx));
+            ExPolygons floating = diff_ex(to_polygons(printed_areas[layer_idx]), to_polygons(supported_from_below));
+            const double floating_area = area(floating);
+            if (floating_area <= 0.)
+                continue;
+
+            ++ floating_layers;
+            total_floating_area += floating_area;
+            const double z = intermediate_layers[layer_idx] ? intermediate_layers[layer_idx]->print_z : 0.;
+            LIGHTNING_DBG("[LIGHTNING-FLOATING-DIAG] layer=" << layer_idx
+                << " z=" << z
+                << " printed_area(mm2)=" << to_mm2(area(printed_areas[layer_idx]))
+                << " floating_area(mm2)=" << to_mm2(floating_area));
+            SVG::export_expolygons(debug_out_path("lightning_infill_floating_%d_%.2f.svg", int(layer_idx), z), {
+                { printed_areas[layer_idx], { "printed", "gray", 0.5f } },
+                { floating, { "floating", "red", 0.7f } }
+            });
+        }
+
+        LIGHTNING_DBG("[LIGHTNING-FLOATING-DIAG] summary"
+            << " floating_layers=" << floating_layers
+            << " total_printed_area(mm2)=" << to_mm2(total_printed_area)
+            << " total_floating_area(mm2)=" << to_mm2(total_floating_area));
+    }
 #endif
 }
 
@@ -4523,9 +4679,10 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
             layer_storage, top_contacts, interface_layers, base_interface_layers };
 
         std::vector<ExPolygons> cooldown_areas(num_support_layers);
-        // Per-layer lightning infill regions for newly opened internal voids (see organic_lightning_infill /
-        // generate_support_toolpaths). Always generated for organic hollow trunks.
-        std::vector<ExPolygons> lightning_infill_areas(num_support_layers);
+        // Filled at the dense layer_idx (same as intermediate_layers before compaction), then
+        // compacted to the non-null intermediate slots so generate_support_toolpaths can look
+        // them up by idx_layer_intermediate (print_z), not by support_layer_id.
+        std::vector<Polylines> lightning_infill_lines(num_support_layers);
         if (has_support) {
             auto t_precalc = std::chrono::high_resolution_clock::now();
             // value is the area where support may be placed. As this is calculated in CreateLayerPathing it is saved and reused in draw_areas
@@ -4576,10 +4733,25 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 
             // ### Lightning infill for newly opened internal voids in organic hollow trunks (always on).
             organic_lightning_infill(print_object, volumes, config,
-                bottom_contacts, top_contacts, intermediate_layers, lightning_infill_areas, throw_on_cancel);
+                bottom_contacts, top_contacts, intermediate_layers, lightning_infill_lines, throw_on_cancel);
 
             //tree_support->move_bounds_to_contact_nodes(move_bounds, print_object, config);
 
+            // lightning_infill_lines was filled at the same dense layer_idx as intermediate_layers
+            // (including empty slots). Drop the matching entries so the two arrays stay aligned
+            // after the nullptrs are removed; generate_support_toolpaths looks them up by the
+            // compacted intermediate index (print_z), not by support_layer_id.
+            {
+                std::vector<Polylines> kept_lightning;
+                kept_lightning.reserve(intermediate_layers.size());
+                for (size_t i = 0; i < intermediate_layers.size(); ++ i) {
+                    if (intermediate_layers[i] == nullptr)
+                        continue;
+                    kept_lightning.emplace_back(i < lightning_infill_lines.size() ?
+                        std::move(lightning_infill_lines[i]) : Polylines{});
+                }
+                lightning_infill_lines = std::move(kept_lightning);
+            }
             remove_undefined_layers();
 
             std::tie(interface_layers, base_interface_layers) = generate_interface_layers(print_object.config(), support_params,
@@ -4648,7 +4820,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         // Don't fill in the tree supports, make them hollow with just a single sheath line.
         print.set_status(69, _L("Generating support"));
         generate_support_toolpaths(print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
-            raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers, cooldown_areas, lightning_infill_areas);
+            raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers, cooldown_areas, &lightning_infill_lines);
 
         auto t_end = std::chrono::high_resolution_clock::now();
         BOOST_LOG_TRIVIAL(info) << "Total time of organic tree support: " << 0.001 * std::chrono::duration_cast<std::chrono::microseconds>(t_end - t_start).count() << " ms";

@@ -1489,7 +1489,7 @@ void generate_support_toolpaths(
     const SupportGeneratorLayersPtr     &interface_layers,
     const SupportGeneratorLayersPtr     &base_interface_layers,
     const std::vector<ExPolygons>       &cooldown_areas,
-    const std::vector<ExPolygons>       &lightning_infill_areas)
+    std::vector<Polylines>              *lightning_infill_lines)
 {
     // loop_interface_processor with a given circle radius.
     LoopInterfaceProcessor loop_interface_processor(1.5 * support_params.support_material_interface_flow.scaled_width());
@@ -1618,7 +1618,7 @@ void generate_support_toolpaths(
     std::vector<LayerCache>             layer_caches(support_layers.size());
 
     tbb::parallel_for(tbb::blocked_range<size_t>(n_raft_layers, support_layers.size()),
-        [&config, &slicing_params, &support_params, &support_layers, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &base_interface_layers, &cooldown_areas, &lightning_infill_areas, &layer_caches, &loop_interface_processor,
+        [&config, &slicing_params, &support_params, &support_layers, &bottom_contacts, &top_contacts, &intermediate_layers, &interface_layers, &base_interface_layers, &cooldown_areas, &lightning_infill_lines, &layer_caches, &loop_interface_processor,
             &bbox_object, &angles, n_raft_layers, link_max_length_factor]
             (const tbb::blocked_range<size_t>& range) {
         // Indices of the 1st layer in their respective container at the support layer height.
@@ -1837,22 +1837,20 @@ void generate_support_toolpaths(
                     if (support_layer.print_z > 100.0)
                         support_params2.tree_branch_diameter_double_wall_area_scaled = 0.1;
                     tree_supports_generate_paths(base_layer.extrusions, base_layer.polygons_to_extrude(), flow, support_params2);
-                    // Close internal floating voids. The organic tree base above is printed sheath-only
-                    // (hollow), so a ceiling over an internal hole gets no support. Emit the pre-computed
-                    // lightning-grounded infill regions as solid rectilinear support.
-                    if (support_layer_id < lightning_infill_areas.size() && ! lightning_infill_areas[support_layer_id].empty()) {
-                        ExPolygons lf_regions = intersection_ex(to_polygons(lightning_infill_areas[support_layer_id]), base_layer.polygons_to_extrude());
-                        if (! lf_regions.empty()) {
-                            auto lf_filler = std::unique_ptr<Fill>(Fill::new_from_type(ipRectilinear));
-                            lf_filler->set_bounding_box(bbox_object);
-                            lf_filler->angle   = angles[support_layer_id % angles.size()];
-                            lf_filler->spacing = flow.spacing();
-                            fill_expolygons_generate_paths(
-                                base_layer.extrusions,
-                                std::move(lf_regions),
-                                lf_filler.get(), 1.0f,
-                                ExtrusionRole::erSupportMaterial, flow);
-                        }
+                    // Ground internal floating voids. The organic tree base above is printed sheath-only
+                    // (hollow), so material printed over an internal hole gets no support. The polylines
+                    // were already clipped to this layer's filled footprint minus the model by
+                    // organic_lightning_infill. They are indexed like the compacted intermediate_layers
+                    // (print_z), not like support_layers (which also holds raft and contact-only rows).
+                    // Emit only for the intermediate already bound as this support layer's base.
+                    if (lightning_infill_lines &&
+                        idx_layer_intermediate < lightning_infill_lines->size() &&
+                        idx_layer_intermediate < intermediate_layers.size() &&
+                        base_layer.layer == intermediate_layers[idx_layer_intermediate] &&
+                        ! (*lightning_infill_lines)[idx_layer_intermediate].empty()) {
+                        extrusion_entities_append_paths(base_layer.extrusions,
+                            std::move((*lightning_infill_lines)[idx_layer_intermediate]),
+                            ExtrusionRole::erSupportMaterial, float(flow.mm3_per_mm()), float(flow.width()), float(flow.height()));
                     }
                     done = true;
                 }
