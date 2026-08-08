@@ -91,6 +91,8 @@
 		"printer_connect_help_image": "input_access_code_x1",
 		"printer_use_ams_image": "ams_icon",
 		"printer_ext_image": ["ext_image_n7"],
+		"hotend_rack_image": "nozzle_rack_a",
+		"hotend_ams_image": "monitor_upgrade_rack_a_ams_png",
 		"use_ams_type": "generic",
 		"printer_arch": "core_xy",
 		"printer_series": "series_x1",

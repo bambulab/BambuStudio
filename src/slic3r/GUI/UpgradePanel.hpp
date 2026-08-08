@@ -219,6 +219,7 @@ protected:
     std::string last_status_str = "";
 
     std::string m_last_laser_product_name = "";
+    std::string m_rack_imgs_printer_type = "";
 
     SecondaryCheckDialog* confirm_dlg = nullptr;
 
@@ -284,6 +285,7 @@ private:
     void createExhaustFan(wxBoxSizer *main_left_sizer);
     void createAmshubWidgets(wxBoxSizer *main_left_sizer);
 
+    void update_rack_imgs(MachineObject* obj);
     void update_hotend_ams(MachineObject* obj);
     void update_air_pump(MachineObject* obj);
     void update_cut(MachineObject* obj);

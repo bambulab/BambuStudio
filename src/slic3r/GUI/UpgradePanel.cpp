@@ -935,6 +935,7 @@ void MachineInfoPanel::update(MachineObject* obj)
         // update version
         update_version_text(obj);
 
+        update_rack_imgs(obj);
         update_hotend_ams(obj);
 
         // update ams and extension
@@ -1380,6 +1381,36 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
 
     this->Layout();
     this->Fit();
+}
+
+// The hotend rack and the rack AMS differ per printer model, so their images come from
+// "hotend_rack_image" / "hotend_ams_image" in resources/printers/<model>.json. Models without
+// those keys keep the legacy shared images. Reading the config is file IO, so it is only
+// redone when the bound printer model changes.
+void MachineInfoPanel::update_rack_imgs(MachineObject* obj)
+{
+    if (!obj || m_rack_imgs_printer_type == obj->printer_type) { return; }
+    m_rack_imgs_printer_type = obj->printer_type;
+
+    std::string rack_img = DevPrinterConfigUtil::get_hotend_rack_img(obj->printer_type);
+    if (rack_img.empty()) { rack_img = "nozzle_rack"; }
+
+    std::string rack_ams_img = DevPrinterConfigUtil::get_hotend_ams_img(obj->printer_type);
+    if (rack_ams_img.empty()) { rack_ams_img = "monitor_upgrade_ams_png"; }
+
+    try {
+        m_img_nozzle_rack = ScalableBitmap(this, rack_img, 160);
+        m_nozzle_rack_img->SetBitmap(m_img_nozzle_rack.bmp());
+
+        m_img_hotend_ams = ScalableBitmap(this, rack_ams_img, 150);
+        m_hotend_ams_img->SetBitmap(m_img_hotend_ams.bmp());
+    }
+    catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "update_rack_imgs error : " << e.what();
+    }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(error) << "update_rack_imgs failed: unknown error";
+    }
 }
 
 void MachineInfoPanel::update_hotend_ams(MachineObject* obj)
