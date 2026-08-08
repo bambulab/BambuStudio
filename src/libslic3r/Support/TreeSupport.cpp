@@ -1965,7 +1965,25 @@ void TreeSupport::move_bounds_to_contact_nodes(std::vector<TreeSupport3D::Suppor
             auto &elem    = elements[i];
             auto &state   = elem.state;
             state.print_z = layer_z(print_object.slicing_parameters(), config, layer_nr);
-            auto node = this->create_node(state.result_on_layer, state.distance_to_top, layer_nr, 0, state.to_buildplate, nullptr, state.print_z, config.layer_height);
+
+            // TreeSupport3D marks branch layers that still have to be emitted as
+            // support roof through missing_roof_layers. Preserve that information
+            // when converting the 3D support elements to the classic SupportNode
+            // representation instead of silently resetting the roof depth to zero.
+            const int support_roof_layers_below =
+                state.missing_roof_layers > state.distance_to_top ?
+                    int(state.missing_roof_layers - state.distance_to_top) :
+                    0;
+
+            auto node = this->create_node(
+                state.result_on_layer,
+                state.distance_to_top,
+                layer_nr,
+                support_roof_layers_below,
+                state.to_buildplate,
+                nullptr,
+                state.print_z,
+                config.layer_height);
             contact_nodes_layer.push_back(node);
             if (layer_nr < move_bounds.size() - 1 && !elem.parents.empty()) {
                 node->parent = contact_nodes[layer_nr + 1][elem.parents.front()];
