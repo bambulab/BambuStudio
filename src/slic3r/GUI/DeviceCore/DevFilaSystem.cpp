@@ -862,6 +862,27 @@ std::string DevFilaSystem::GetTrayNameByTrayId(int tray_id)
             tray_name = std::string(1, prefix) + std::string(1, suffix);
         }
     }
+
+    MachineObject* obj  = GetOwner();
+    if (!obj) return tray_name;
+
+    auto rack_type = obj->GetNozzleRack()->GetRackType();
+    if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
+        auto it = tray_ams_slot_map.find(tray_id);
+        if (it != tray_ams_slot_map.end()) {
+            if (auto tray = obj->get_tray(it->second.first, it->second.second); tray.has_value()) {
+                auto addr_id = tray->get_nozzle_addr_id(obj);
+                if (addr_id.has_value()) {
+                    if (tray->ams_type == DevAmsType::ZMULTI_A || tray->ams_type == DevAmsType::ZMULTI_B) {
+                        tray_name = std::to_string(addr_id.value() + 1);
+                    } else {
+                        tray_name = std::to_string(addr_id.value() + 1) + "-" + tray_name;
+                    }
+                }
+            }
+        }
+    }
+
     return tray_name;
 }
 
@@ -1229,7 +1250,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
             } else if (bind_switch_in == 1) {
                 binded_switcher_pos = DevFilaSwitch::SwitchPos::POS_IN_A;
             }
-        } else if (extuder_id == 0xE && type_id == DevAmsType::ZMULTI_A || type_id == DevAmsType::ZMULTI_B) {
+        } else if (extuder_id == 0xE && (type_id == DevAmsType::ZMULTI_A || type_id == DevAmsType::ZMULTI_B)) {
             binded_extruder_set = { MAIN_EXTRUDER_ID };
         } else if (extuder_id == 0xE && (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) {
             binded_extruder_set = { MAIN_EXTRUDER_ID };

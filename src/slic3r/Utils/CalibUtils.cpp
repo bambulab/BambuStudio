@@ -212,7 +212,12 @@ std::map<int, DynamicPrintConfig> CalibUtils::build_filament_ams_list(MachineObj
                 slot_id = std::stoi(tray.first);
                 tray_id = obj->GetFilaSystem()->GetTrayIdByAmsSlotId(ams_id, slot_id);
 
-                filament_ams_list.emplace(tray_id, build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
+                auto rack_type = obj->GetNozzleSystem()->GetNozzleRack()->GetRackType();
+                if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
+                    filament_ams_list.emplace(tray_id, build_tray_config(*tray.second, "", std::to_string(ams_id), std::to_string(slot_id)));
+                } else {
+                    filament_ams_list.emplace(tray_id, build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
+                }
             } catch(...) {
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid ams_id:"<< ams.first << " or slot_id:" << tray.first;
             }
