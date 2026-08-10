@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 20:52+0800\n"
+"POT-Creation-Date: 2026-08-10 18:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -951,7 +951,7 @@ msgid "Cut"
 msgstr "Vágás"
 
 msgid "Cutting model object"
-msgstr "Modell objektum vágása"
+msgstr "Modellobjektum vágása"
 
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr "A nyitott éleket a vágószerszám okozhatja, szeretné most megjavítani?"
@@ -3002,6 +3002,10 @@ msgstr "A művelet végrehajtásához szükséges filament típusa ismeretlen. �
 msgid "/"
 msgstr "/"
 
+msgctxt "AMS filament"
+msgid "loading"
+msgstr ""
+
 msgid "Confirm"
 msgstr "Megerősítés"
 
@@ -3214,7 +3218,7 @@ msgid "Install parts"
 msgstr "Alkatrészek telepítése"
 
 msgid "Inherited Step"
-msgstr "Öröklött lépés"
+msgstr "Örökölt lépés"
 
 msgid "start frame"
 msgstr "kezdő képkocka"
@@ -3313,10 +3317,6 @@ msgstr "Modell"
 msgid "transition frame"
 msgstr "átmeneti képkocka"
 
-#, boost-format
-msgid "Plate %1%"
-msgstr "%1% lemez"
-
 msgid "Label"
 msgstr "Címke"
 
@@ -3372,13 +3372,13 @@ msgid "Show world axes"
 msgstr "Világtengelyek megjelenítése"
 
 msgid "Show explosion state column"
-msgstr "Robbantási állapot oszlop megjelenítése"
+msgstr "Robbantott állapot oszlopának megjelenítése"
 
 msgid "Allow modify text note foreground"
 msgstr "Szövegjegyzet előtérszínének módosítása engedélyezése"
 
 msgid "Allow modify text note background"
-msgstr "Szöveges megjegyzés hátterének módosítása engedélyezve"
+msgstr "Szöveges megjegyzés hátterének módosításának engedélyezése"
 
 msgid "Camera margin factor for the current frame. The larger the value, the more margin."
 msgstr "Kameramargó-faktor az aktuális képkockához. Minél nagyobb az érték, annál nagyobb a margó."
@@ -3414,13 +3414,13 @@ msgid "Go to Wiki"
 msgstr "Tovább a Wikihez"
 
 msgid "Inherit the state of Step"
-msgstr "A lépés állapotának öröklése"
+msgstr "Lépésállapot öröklése"
 
 msgid "Assembled parts are not exploded"
 msgstr "Az összeállított részek nincsenek szétrobbantva"
 
 msgid "Copy and inherit this step"
-msgstr "Másolás és öröklés ebből a lépésből"
+msgstr "Lépés másolása és öröklése"
 
 msgid "Add objects to this step before copying"
 msgstr "Adjon hozzá objektumokat ehhez a lépéshez másolás előtt"
@@ -3585,6 +3585,9 @@ msgstr "Az aktuális lépés összes képkockájának lejátszása"
 msgid "At least two keyframes are required to play."
 msgstr "Legalább két kulcsképkocka szükséges a lejátszáshoz."
 
+msgid "Add the selected object or part to the current step first"
+msgstr "Először adja hozzá a kiválasztott objektumot vagy alkatrészt az aktuális lépéshez."
+
 msgid "Add a new object to the current step first"
 msgstr "Adjon hozzá új objektumot az aktuális lépéshez elsőként"
 
@@ -3592,10 +3595,10 @@ msgid "Apply the final assembly pose to the currently selected object or part(if
 msgstr "A végső összeszerelési pozíció alkalmazása az aktuálisan kiválasztott objektumra vagy alkatrészre (ha nincs kijelölve, akkor az aktuális képkockában hozzáadott összes objektumra alkalmazza)"
 
 msgid "Automatically explode objects that are new to this step. Objects already assembled in earlier steps stay together."
-msgstr "Az új objektumok automatikus szétszedése ebben a lépésben. Az előző lépésekben már összeállított objektumok egyben maradnak."
+msgstr "Az ebben a lépésben újonnan hozzáadott objektumok automatikus robbantása. A korábbi lépésekben már összeállított objektumok együtt maradnak."
 
 msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
-msgstr "Az új részek automatikus szétszedése. Az örökölt vagy korábbi lépésekben összeállított objektumok egy egészként maradnak."
+msgstr "Az új részek automatikus szétszedése. Az örökölt vagy korábbi lépésekben összeállított objektumok együtt maradnak."
 
 msgid "Apply current camera angle to all frames of the current step"
 msgstr "Az aktuális kameraszög alkalmazása az aktuális lépés összes képkockájára"
@@ -7563,8 +7566,8 @@ msgstr "További információkért nyisd meg a linket"
 msgid "Warning:"
 msgstr "Figyelem:"
 
-msgid "For more details, see the Wiki."
-msgstr "További részletekért tekintse meg a Wikit."
+msgid "Wiki for details."
+msgstr ""
 
 msgid "Export successfully."
 msgstr "Sikeresen exportálva."
@@ -7868,10 +7871,6 @@ msgid "Customize current plate"
 msgstr "Tálca testreszabása"
 
 #, c-format, boost-format
-msgid "%s is not compatible with %s nozzle."
-msgstr "A(z) %s nem kompatibilis a(z) %s fúvókával."
-
-#, c-format, boost-format
 msgid "The %s nozzle can not print %s."
 msgstr "A(z) %s fúvóka nem tud %s-t nyomtatni."
 
@@ -8133,7 +8132,7 @@ msgid "Loading file: %s"
 msgstr "Fájl betöltése: %s"
 
 msgid "The 3mf file has invalid config, load geometry data only"
-msgstr ""
+msgstr "A 3mf fájl érvénytelen konfigurációt tartalmaz, csak a geometriai adatokat tölti be."
 
 msgid "Load 3mf"
 msgstr "3mf betöltése"
@@ -8392,9 +8391,6 @@ msgstr "Több anyagot is kiválasztottál: %s"
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
 msgstr "Megjegyzés: A nem támogatott anyagok esetén a kiválasztott referencia anyagot használjuk a szimulációhoz."
 
-msgid "True multi-material support will be added in a future update."
-msgstr "Valódi többanyagú támogatás egy későbbi frissítés során kerül bevezetésre."
-
 msgid "Option 1: Proceed using a single filament type"
 msgstr "1. lehetőség: Folytatás egyetlen filamenttípus használatával"
 
@@ -8421,6 +8417,12 @@ msgstr "Nem támogatott anyagok"
 
 msgid "Go Back"
 msgstr "Vissza"
+
+msgid "Option 3: Enable multi-material optimization"
+msgstr "3. opció: Többanyag-optimalizálás engedélyezése"
+
+msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
+msgstr "Kattintson a harmadik féltől származó ikonra → Engedélyezze a Helio Additive funkciót → Jelölje be az \"Kísérleti: Többanyag-támogatás engedélyezése\" jelölőnégyzetet"
 
 msgid "Unsupported Materials Detected"
 msgstr "Nem támogatott anyag észlelve"
@@ -8457,6 +8459,15 @@ msgstr "Adatok szinkronizálása"
 
 msgid "Refreshing printer and material data..."
 msgstr "Nyomtató- és anyagadatok frissítése..."
+
+msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
+msgstr "A Helio nem tudta frissíteni az összes nyomtató- és anyaginformációt. Az előző teljes adat továbbra is elérhető."
+
+msgid "Helio could not load complete printer and material data. Matching remains paused."
+msgstr "A Helio nem tudta betölteni a teljes nyomtató- és anyaginformációt. Az illesztés szüneteltetve."
+
+msgid "Helio Data Refresh Failed"
+msgstr "Helio adatrefrissítés sikertelen"
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Egy Helio szimulációs vagy optimalizálási feladat folyamatban van."
@@ -8580,6 +8591,12 @@ msgstr "Támogatott nyomtatók"
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "Kattints az Optimalizálás/Javítás gombra az első optimalizálás elindításához."
 
+msgid "Previous Helio action is still stopping; try again shortly"
+msgstr "Az előző Helio művelet még folyamatban van; próbálkozzon újra hamarosan"
+
+msgid "Helio Additive"
+msgstr ""
+
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
@@ -8604,6 +8621,12 @@ msgstr "A nyomtatólista és az anyaglista szinkronizálása folyamatban van. K�
 
 msgid "Synchronizing Helio"
 msgstr "Helio szinkronizálása"
+
+msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
+msgstr "A Helio nem tudta betölteni a támogatott nyomtató- és anyagnévsorokat. Az illesztés szüneteltetve lett, hogy a nem elérhető adatokat ne kezeljék nem támogatott anyagként."
+
+msgid "Helio Data Load Failed"
+msgstr "Helio adatok betöltése sikertelen"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Kérjük, orvosold a szeletelési hibákat, és próbáld meg újra."
@@ -8828,8 +8851,8 @@ msgstr "Nem ajánlott a PVA filament használata 0,2 mm-es fúvókával."
 msgid "Are you sure to use them? \n"
 msgstr "Biztos, hogy használod? \n"
 
-msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
-msgstr "Amikor az A2L nyomtatón engedélyezve van a \"Thermal Preconditioning for First Layer Optimization\" (Hőelőkészítés az első réteg optimalizálásához), az előkészítési idő automatikusan a modell talpnyomának megfelelően módosul a legjobb kezdőréteg minőség eléréséhez. A nagyobb talpnyomok hosszabb előkészítési időt igényelnek. A fehér dobozok jelzik a különböző előkészítési idők közötti határokat."
+msgid "When thermal preconditioning is enabled, duration auto-adjusts to the model's position for optimal first-layer quality; the farther from the center, the longer it takes. White boxes mark the boundary lines. To disable the guidelines and this warning, go to Preferences > 3D."
+msgstr ""
 
 msgid "Send G-code"
 msgstr "G-kód küldése"
@@ -9205,6 +9228,12 @@ msgstr "Mindig jelenítse meg a héjakat az előnézetben"
 
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Az előnézeti nézet lapon mindig jelenítse meg a héjakat, vagy ne jelenítse meg őket. Ha ezt az értéket módosítja, újra kell szeletelnie."
+
+msgid "Show heat-soak area"
+msgstr ""
+
+msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
+msgstr ""
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "STEP-háló paraméterbeállítási párbeszédpaneljének megjelenítése."
@@ -9933,7 +9962,7 @@ msgid "The toolhead and hotend rack are full. Please remove at least one hotend 
 msgstr "A szerszámfej és a hotendtartó tele van. Nyomtás előtt kérjük, távolíts el legalább egy hotendet."
 
 msgid "The nozzle type doesn't match. Please re-slice."
-msgstr ""
+msgstr "A fúvóka típusa nem egyezik. Kérjük, szeleteld újra."
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "A nyomtatóra szerelt filamentváltó nem egyezik a szeletelt fájlban megadott értékkel. Kérjük, szeleteld újra a fájlt a nyomtatási minőségi problémák elkerülése érdekében."
@@ -9998,10 +10027,10 @@ msgid "Click here if you can't connect to the printer"
 msgstr "Kattints ide, ha nem tudsz csatlakozni a nyomtatóhoz"
 
 msgid "Slice file"
-msgstr ""
+msgstr "Szeletelt fájl"
 
 msgid "The connected printer"
-msgstr ""
+msgstr "A csatlakoztatott nyomtató"
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Nincs bejelentkezési fiók, csak a LAN módban lévő nyomtatók jelennek meg"
@@ -10272,6 +10301,8 @@ msgid ""
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Ha oldható anyagot használsz a támaszhoz, javasoljuk a következő beállításokat:\n"
+"0 felső Z-távolság, 0 alsó Z-távolság, 0 érintkező réteg térköz, 0 támasz/objektum XY-távolság, váltottsoros rektilineáris mintázat, kapcsolj ki minden független támasz rétegmagasságot, és használj oldható anyagokat mind a támasz érintkezőrétegéhez, mind a támasz alapjához"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -10647,7 +10678,7 @@ msgid "Printable space"
 msgstr "Nyomtatási terület"
 
 msgid "AMS filament load/unload time"
-msgstr "AMS filament betöltés/kilövés ideje"
+msgstr "AMS filament betöltési/kitöltési ideje"
 
 msgid "Extruder Clearance"
 msgstr "Extruder távolság"
@@ -10719,7 +10750,7 @@ msgid "Load time"
 msgstr "Betöltési idő"
 
 msgid "Unload time"
-msgstr "Kilövési idő"
+msgstr "Kitöltési idő"
 
 msgid ""
 "The Wipe option is not available when using the Firmware Retraction mode.\n"
@@ -11685,9 +11716,6 @@ msgstr "Szoftverszolgáltatási Feltételek"
 msgid "^"
 msgstr ""
 
-msgid "Helio Additive"
-msgstr ""
-
 msgid "Helio Additive Privacy Agreement"
 msgstr "Helio Additive adatvédelmi megállapodás"
 
@@ -12081,6 +12109,9 @@ msgstr "Sebesség és minőség javítása"
 msgid "Applies Helio's optimized speed/flow/fan strategy."
 msgstr "A Helio által optimalizált sebesség/áramlás/ventilátor stratégia alkalmazása."
 
+msgid "Save the simulated sliced 3MF locally"
+msgstr "A szimulált, szeletelt 3MF lokálisan mentése"
+
 msgid "✅ Will Print"
 msgstr "✅ Nyomtatható"
 
@@ -12322,7 +12353,7 @@ msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Sikeresen elküldve. Ugrás automatikusan a következő oldalra %s mp-en belül"
 
 msgid "Refreshing printer access code"
-msgstr "Nyomtató hozzáférési kód frissítése"
+msgstr "Nyomtató hozzáférési kódjának frissítése"
 
 msgid "Adding print job to queue"
 msgstr "Nyomtatási feladat hozzáadása a várólistához"
@@ -12674,6 +12705,14 @@ msgstr "Szoknya & perem generálása"
 
 msgid "Generating G-code"
 msgstr "G-kód generálása"
+
+#, boost-format
+msgid "%1% is too close to a compacted prime tower. The toolhead needs %2% mm of horizontal clearance to descend beside it, and within that distance the object may not rise more than %3% mm. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr ""
+
+#, boost-format
+msgid "%1% is too tall to be printed together with a compacted prime tower, which only leaves %2% mm of clearance. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
@@ -13557,43 +13596,43 @@ msgid "AMS filament load time"
 msgstr "AMS filament betöltési ideje"
 
 msgid "Filament load time when printing with an AMS. For statistics only"
-msgstr "Filament betöltési idő AMS-szel történő nyomtatáskor. Csak statisztikához"
+msgstr "Filament betöltési ideje AMS-sel történő nyomtatáskor. Csak statisztikához"
 
 msgid "AMS Lite filament load time"
 msgstr "AMS Lite filament betöltési ideje"
 
 msgid "Filament load time when printing with an AMS Lite. For statistics only"
-msgstr "Filament betöltési idő AMS Lite-tal történő nyomtatáskor. Csak statisztikához"
+msgstr "Filament betöltési ideje AMS Lite-tal történő nyomtatáskor. Csak statisztikához"
 
 msgid "N3F/N3S filament load time"
 msgstr "N3F/N3S filament betöltési ideje"
 
 msgid "Filament load time when printing with an N3F or N3S. For statistics only"
-msgstr "Filament betöltési idő N3F vagy N3S használatakor. Csak statisztikához"
+msgstr "Filament betöltési ideje N3F vagy N3S használatakor. Csak statisztikához"
 
 msgid "AMS filament unload time"
-msgstr "AMS filament kilövési ideje"
+msgstr "AMS filament kitöltési ideje"
 
 msgid "Filament unload time when printing with an AMS. For statistics only"
-msgstr "Filament kilövési idő AMS-szel történő nyomtatáskor. Csak statisztikához"
+msgstr "Filament kitöltési ideje AMS-sel történő nyomtatáskor. Csak statisztikához"
 
 msgid "AMS Lite filament unload time"
-msgstr "AMS Lite filament kilövési ideje"
+msgstr "AMS Lite filament kitöltési ideje"
 
 msgid "Filament unload time when printing with an AMS Lite. For statistics only"
-msgstr "Filament kilövési idő AMS Lite-tal történő nyomtatáskor. Csak statisztikához"
+msgstr "Filament kitöltési ideje AMS Lite-tal történő nyomtatáskor. Csak statisztikához"
 
 msgid "N3F/N3S filament unload time"
-msgstr "N3F/N3S filament kilövési ideje"
+msgstr "N3F/N3S filament kitöltési ideje"
 
 msgid "Filament unload time when printing with an N3F or N3S. For statistics only"
-msgstr "Filament kilövési idő N3F vagy N3S használatakor. Csak statisztikához"
+msgstr "Filament kitöltési ideje N3F vagy N3S használatakor. Csak statisztikához"
 
 msgid "Default AMS type"
 msgstr "Alapértelmezett AMS típus"
 
 msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
-msgstr "Az alapértelmezett AMS-típus, amelyet a filament betöltési/kilövési idejének becsléséhez használnak, és amely az AMS időzítési típusának enumerációs értékként van tárolva. Ez a nyomtató előbeállításából származik, és nem tükrözi a géphez jelenleg csatlakoztatott AMS-t."
+msgstr "Az alapértelmezett AMS-típus, amely a filament betöltési/kitöltési idejének becsléséhez használatos, és amely az AMS időzítési típusának enumerációs értékeként van tárolva. A nyomtató előbeállításából származik, és nem tükrözi a géphez jelenleg csatlakoztatott AMS-t."
 
 msgid "Extruder switch time"
 msgstr "Extruderváltási idő"
@@ -17484,22 +17523,52 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Standard profil 0,8 mm-es fúvókához, a sebességet előtérbe helyezve."
 
 msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
-msgstr "Lassított gyorsulási profil a 0,4 mm-es fúvókához. Használja, ha a nyomtató instabil asztalon vagy polcon áll"
+msgstr "Lassított gyorsulási profil a 0,4 mm-es fúvókához. Akkor használandó, ha a nyomtató instabil asztalon vagy polcon áll"
 
-msgid "Failed to create GCodeV2"
-msgstr "GCodeV2 létrehozása sikertelen"
+msgid "Helio GCode status response is incomplete"
+msgstr "A Helio G-kód státuszválasza hiányos."
+
+msgid "Helio GCode status response parse failed"
+msgstr "A Helio G-kód státuszválaszának elemzése sikertelen."
+
+msgid "Helio action canceled"
+msgstr "Helio művelet törölve."
+
+msgid "Helio GCode creation response is incomplete"
+msgstr "A Helio G-kód létrehozási válasza hiányos."
 
 msgid "Failed to parse response"
 msgstr "Nem sikerült értelmezni a választ"
 
-msgid "Failed to create GCodeV3"
-msgstr "GCodeV3 létrehozása sikertelen"
+msgid "Helio GCode status check failed"
+msgstr "Helio G-kód státuszellenőrzés sikertelen."
+
+msgid "Helio GCode creation timed out while checking status"
+msgstr "A Helio G-kód létrehozása időtúllépést szenvedett a státusz ellenőrzése közben."
+
+msgid "Failed to create Simulation"
+msgstr "Nem sikerült létrehozni a szimulációt."
+
+msgid "Helio simulation response is incomplete"
+msgstr "A Helio szimulációs válasza hiányos."
 
 msgid "Helio simulation task failed"
 msgstr "A Helio szimulációs feladat sikertelen"
 
+msgid "Helio simulation response parse failed"
+msgstr "A Helio szimulációs válaszának elemzése sikertelen."
+
+msgid "Failed to create Optimization"
+msgstr "Nem sikerült létrehozni az optimalizálást."
+
+msgid "Helio optimization response is incomplete"
+msgstr "A Helio optimalizálási válasza hiányos."
+
 msgid "Helio optimization task failed"
 msgstr "Helio optimalizációs feladat sikertelen"
+
+msgid "Helio optimization response parse failed"
+msgstr "A Helio optimalizálási válaszának elemzése sikertelen."
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "A Helio API végpont üres, kérjük, ellenőrizd a beállításokat."
@@ -17516,8 +17585,8 @@ msgstr "Helio: a fájl feltöltése sikeres"
 msgid "Helio: file upload failed"
 msgstr "Helio: fájl feltöltése sikertelen"
 
-msgid "Please make sure you have the corrent API key set in preferences."
-msgstr "Kérjük, győződj meg róla, hogy a beállításoknál a helyes API-kulcs van megadva."
+msgid "Please make sure you have the correct API key set in preferences."
+msgstr "Kérjük, győződjön meg róla, hogy a helyes API-kulcs van beállítva a beállításokban."
 
 msgid "Helio: GCode created successfully"
 msgstr "Helio: G-kód sikeresen létrehozva"
@@ -17525,14 +17594,14 @@ msgstr "Helio: G-kód sikeresen létrehozva"
 msgid "Helio: simulation successfully created"
 msgstr "Helio: szimuláció sikeresen létrehozva"
 
-msgid "Helio: simulation working"
-msgstr "Helio: a szimuláció fut"
+msgid "transient progress checks did not recover"
+msgstr "az átmeneti folyamatellenőrzések nem álltak helyre"
 
 msgid "Helio: simulation failed"
 msgstr "Helio: a szimuláció sikertelen volt"
 
-msgid "Helio: Simulation check failed"
-msgstr "Helio: a szimuláció ellenőrzése sikertelen volt"
+msgid "Helio: simulation working"
+msgstr "Helio: a szimuláció fut"
 
 msgid "Helio: Failed to create Simulation"
 msgstr "Helio: nem sikerült létrehozni a szimulációt"
@@ -17543,17 +17612,11 @@ msgstr "Helio: a G-kód létrehozása sikertelen"
 msgid "Helio: optimization successfully created"
 msgstr "Helio: optimalizálás sikeresen létrehozva"
 
-msgid "Helio: optimization working"
-msgstr "Helio: optimalizálás folyamatban"
-
 msgid "Helio: optimization failed"
 msgstr "Helio: optimalizáció sikertelen"
 
-msgid "Helio: Optimzaion check failed"
-msgstr "Helio: optimízációs ellenőrzés sikertelen"
-
-msgid "Helio: Failed to create Optimization"
-msgstr "Helio: nem sikerült létrehozni az optimalizálást"
+msgid "Helio: optimization working"
+msgstr "Helio: optimalizálás folyamatban"
 
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: A G-kód sikeresen letöltve"
@@ -18567,6 +18630,41 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#, boost-format
+#~ msgid "Plate %1%"
+#~ msgstr "%1% lemez"
+
+#~ msgid "For more details, see the Wiki."
+#~ msgstr "További részletekért tekintse meg a Wikit."
+
+#, c-format, boost-format
+#~ msgid "%s is not compatible with %s nozzle."
+#~ msgstr "A(z) %s nem kompatibilis a(z) %s fúvókával."
+
+#~ msgid "True multi-material support will be added in a future update."
+#~ msgstr "Valódi többanyagú támogatás egy későbbi frissítés során kerül bevezetésre."
+
+#~ msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
+#~ msgstr "Amikor az A2L nyomtatón engedélyezve van a \"Thermal Preconditioning for First Layer Optimization\" (Hőelőkészítés az első réteg optimalizálásához), az előkészítési idő automatikusan a modell talpnyomának megfelelően módosul a legjobb kezdőréteg minőség eléréséhez. A nagyobb talpnyomok hosszabb előkészítési időt igényelnek. A fehér dobozok jelzik a különböző előkészítési idők közötti határokat."
+
+#~ msgid "Failed to create GCodeV2"
+#~ msgstr "GCodeV2 létrehozása sikertelen"
+
+#~ msgid "Failed to create GCodeV3"
+#~ msgstr "GCodeV3 létrehozása sikertelen"
+
+#~ msgid "Please make sure you have the corrent API key set in preferences."
+#~ msgstr "Kérjük, győződj meg róla, hogy a beállításoknál a helyes API-kulcs van megadva."
+
+#~ msgid "Helio: Simulation check failed"
+#~ msgstr "Helio: a szimuláció ellenőrzése sikertelen volt"
+
+#~ msgid "Helio: Optimzaion check failed"
+#~ msgstr "Helio: optimízációs ellenőrzés sikertelen"
+
+#~ msgid "Helio: Failed to create Optimization"
+#~ msgstr "Helio: nem sikerült létrehozni az optimalizálást"
 
 #~ msgid "Start your assembly journey from Add Step"
 #~ msgstr "Kezdje az összeszerelési folyamatot a Lépés hozzáadása lehetőséggel"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 20:52+0800\n"
+"POT-Creation-Date: 2026-08-10 18:15+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2990,6 +2990,10 @@ msgstr "执行此操作的耗材类型未知。请设置槽位信息。"
 msgid "/"
 msgstr ""
 
+msgctxt "AMS filament"
+msgid "loading"
+msgstr ""
+
 msgid "Confirm"
 msgstr "确定"
 
@@ -3301,10 +3305,6 @@ msgstr "模型"
 msgid "transition frame"
 msgstr "过渡帧"
 
-#, boost-format
-msgid "Plate %1%"
-msgstr "盘 %1%"
-
 msgid "Label"
 msgstr "标签"
 
@@ -3572,6 +3572,9 @@ msgstr "播放当前步骤的所有帧"
 
 msgid "At least two keyframes are required to play."
 msgstr "至少需要两个关键帧才能播放。"
+
+msgid "Add the selected object or part to the current step first"
+msgstr "请先将选定的对象或部件添加到当前步骤"
 
 msgid "Add a new object to the current step first"
 msgstr "请先将一个新对象添加到当前步骤"
@@ -7519,8 +7522,8 @@ msgstr "打开链接获取更多信息"
 msgid "Warning:"
 msgstr "警告："
 
-msgid "For more details, see the Wiki."
-msgstr "更多详情，请参阅 Wiki。"
+msgid "Wiki for details."
+msgstr ""
 
 msgid "Export successfully."
 msgstr "导出成功。"
@@ -7822,10 +7825,6 @@ msgid "Customize current plate"
 msgstr "自定义当前盘"
 
 #, c-format, boost-format
-msgid "%s is not compatible with %s nozzle."
-msgstr "%s耗材不支持使用%s类型喷嘴打印"
-
-#, c-format, boost-format
 msgid "The %s nozzle can not print %s."
 msgstr "%s喷嘴不可以打印%s"
 
@@ -8087,7 +8086,7 @@ msgid "Loading file: %s"
 msgstr "加载文件：%s"
 
 msgid "The 3mf file has invalid config, load geometry data only"
-msgstr ""
+msgstr "3mf 文件配置无效，仅加载几何数据"
 
 msgid "Load 3mf"
 msgstr "加载3mf"
@@ -8345,9 +8344,6 @@ msgstr "你已选择多种材料：%s"
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
 msgstr "注意：不支持的材料将使用所选参考材料进行仿真。"
 
-msgid "True multi-material support will be added in a future update."
-msgstr "真正的多材料支持将在后续更新中加入。"
-
 msgid "Option 1: Proceed using a single filament type"
 msgstr "选项 1：继续使用单一耗材类型"
 
@@ -8374,6 +8370,12 @@ msgstr "查看支持的材料"
 
 msgid "Go Back"
 msgstr "返回"
+
+msgid "Option 3: Enable multi-material optimization"
+msgstr "选项 3：启用多材料优化"
+
+msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
+msgstr "点击第三方图标 → 启用 Helio Additive → 勾选“实验性：启用多材料支持”"
 
 msgid "Unsupported Materials Detected"
 msgstr "检测到不支持的材料"
@@ -8410,6 +8412,15 @@ msgstr "同步数据"
 
 msgid "Refreshing printer and material data..."
 msgstr "正在刷新打印机和材料数据……"
+
+msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
+msgstr "Helio 无法刷新所有打印机和材料数据。先前完整的可用数据仍保留。"
+
+msgid "Helio could not load complete printer and material data. Matching remains paused."
+msgstr "Helio 无法加载完整的打印机和材料数据。匹配已暂停。"
+
+msgid "Helio Data Refresh Failed"
+msgstr "Helio 数据刷新失败"
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Helio 仿真或优化任务正在进行中。"
@@ -8533,6 +8544,12 @@ msgstr "查看支持的打印机"
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "点击优化/增强按钮开始您的第一次优化。"
 
+msgid "Previous Helio action is still stopping; try again shortly"
+msgstr "上一个 Helio 操作仍在进行中，请稍后重试"
+
+msgid "Helio Additive"
+msgstr ""
+
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
@@ -8557,6 +8574,12 @@ msgstr "打印机列表和材料列表正在同步中。请稍后再试。"
 
 msgid "Synchronizing Helio"
 msgstr "正在同步 Helio"
+
+msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
+msgstr "Helio 无法加载支持的打印机和材料列表。匹配已暂停，以避免将不可用数据视为不支持的材料。"
+
+msgid "Helio Data Load Failed"
+msgstr "Helio 数据加载失败"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "请解决切片错误后再重新发布。"
@@ -8780,8 +8803,8 @@ msgstr "不建议使用0.2毫米喷嘴来打印PVA材料"
 msgid "Are you sure to use them? \n"
 msgstr "您确定要使用它吗？ \n"
 
-msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
-msgstr "当在 A2L 打印机上启用“首层优化热预处理”时，预处理时长将根据模型占地面积自动调整，以获得最佳的首层质量。较大的占地面积需要更长的预处理时间。白色框表示不同预处理时长的边界。"
+msgid "When thermal preconditioning is enabled, duration auto-adjusts to the model's position for optimal first-layer quality; the farther from the center, the longer it takes. White boxes mark the boundary lines. To disable the guidelines and this warning, go to Preferences > 3D."
+msgstr ""
 
 msgid "Send G-code"
 msgstr "发送 G 代码"
@@ -9157,6 +9180,12 @@ msgstr "在预览界面总是显示透明壳"
 
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "始终在预览视图选项卡中显示或不显示壳。如果更改值，您应该重新切片。"
+
+msgid "Show heat-soak area"
+msgstr ""
+
+msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
+msgstr ""
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "显示step参数设置对话框。"
@@ -9882,7 +9911,7 @@ msgid "The toolhead and hotend rack are full. Please remove at least one hotend 
 msgstr "工具头和热端挂架已满，请卸下至少一个热端后再打印。"
 
 msgid "The nozzle type doesn't match. Please re-slice."
-msgstr ""
+msgstr "喷嘴类型不匹配。请重新切片。"
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "打印机上安装的耗材变轨器与切片文件不匹配。请重新切片以避免打印质量问题。"
@@ -9947,10 +9976,10 @@ msgid "Click here if you can't connect to the printer"
 msgstr "如果您无法连接打印机，请点击这里"
 
 msgid "Slice file"
-msgstr ""
+msgstr "切片文件"
 
 msgid "The connected printer"
-msgstr ""
+msgstr "已连接的打印机"
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "未登录账号，仅显示局域网模式的打印机"
@@ -10220,7 +10249,7 @@ msgid ""
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
-"0顶部z距离，0底部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
+"0 顶部 Z 距离，0 底部 Z 距离，0 接口间距，0 支撑/模型 XY 距离，交错直线图案，禁用独立支撑层高，并将可溶性材料同时用于支撑接口和支撑底部"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -10263,7 +10292,7 @@ msgid "Prime tower is required for smooth timelapse. There may be flaws on the m
 msgstr "平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您想打开擦料塔吗？"
 
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
-msgstr "“无稀疏层”与需要每一层都生成装料塔的平滑延时摄影不兼容。延时摄影已切换到传统模式。"
+msgstr "“无稀疏层”与需要每一层都生成擦料塔的平滑延时摄影不兼容。延时摄影已切换到传统模式。"
 
 msgid "Still print by object?"
 msgstr "仍然按对象打印吗？"
@@ -11629,9 +11658,6 @@ msgstr "软件服务条款与条件"
 msgid "^"
 msgstr ""
 
-msgid "Helio Additive"
-msgstr ""
-
 msgid "Helio Additive Privacy Agreement"
 msgstr "Helio Additive 隐私协议"
 
@@ -12021,6 +12047,9 @@ msgstr "增强速度与质量"
 
 msgid "Applies Helio's optimized speed/flow/fan strategy."
 msgstr "应用 Helio 优化的速度/流量/风扇策略。"
+
+msgid "Save the simulated sliced 3MF locally"
+msgstr "将模拟切片后的 3MF 文件本地保存"
 
 msgid "✅ Will Print"
 msgstr "✅ 可打印"
@@ -12617,12 +12646,20 @@ msgid "Generating G-code"
 msgstr "正在生成G-code"
 
 #, boost-format
+msgid "%1% is too close to a compacted prime tower. The toolhead needs %2% mm of horizontal clearance to descend beside it, and within that distance the object may not rise more than %3% mm. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr ""
+
+#, boost-format
+msgid "%1% is too tall to be printed together with a compacted prime tower, which only leaves %2% mm of clearance. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr ""
+
+#, boost-format
 msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr "%1% 离压实的装料塔太近了。喷嘴在 Z %2% mm 处下降到装料塔，而物体已达到 Z %3% mm，工具头需要 %4% mm 的水平间隙才能从旁边通过，但仅剩 %5% mm。请关闭“无稀疏层”选项、移动装料塔或降低物体高度。"
+msgstr "%1% 离压缩的擦料塔太近了。喷嘴在 Z %2% mm 处下降到擦料塔，而物体已达到 Z %3% mm，工具头需要 %4% mm 的水平间隙才能从旁边通过，但仅剩 %5% mm。请关闭“无稀疏层”选项、移动擦料塔或降低物体高度。"
 
 #, boost-format
 msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
-msgstr "%1% 太高，无法与压实的装料塔一起打印。喷嘴在 Z %2% mm 处下降到装料塔，而物体已达到 Z %3% mm，这超出了 %4% mm 的间隙。请关闭“无稀疏层”选项或降低物体高度。"
+msgstr "%1% 太高，无法与压缩的擦拭塔一起打印。喷嘴在 Z %2% mm 处下降到擦拭塔，而物体已达到 Z %3% mm，这超出了 %4% mm 的间隙。请关闭“无稀疏层”选项或降低物体高度。"
 
 msgid "Failed processing of the filename_format template."
 msgstr "处理文件名格式模板失败。"
@@ -17414,20 +17451,50 @@ msgstr "0.8mm喷嘴的默认参数，速度优先。"
 msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
 msgstr "适配0.4mm喷嘴的低加速度配置，适用于打印机放置在晃动的桌面或置物架上的场景"
 
-msgid "Failed to create GCodeV2"
-msgstr "无法创建 GCode"
+msgid "Helio GCode status response is incomplete"
+msgstr "Helio GCode 状态响应不完整"
+
+msgid "Helio GCode status response parse failed"
+msgstr "Helio GCode 状态响应解析失败"
+
+msgid "Helio action canceled"
+msgstr "Helio 操作已取消"
+
+msgid "Helio GCode creation response is incomplete"
+msgstr "Helio GCode 创建响应不完整"
 
 msgid "Failed to parse response"
 msgstr "解析响应失败"
 
-msgid "Failed to create GCodeV3"
-msgstr "无法创建 GCodeV3"
+msgid "Helio GCode status check failed"
+msgstr "Helio GCode 状态检查失败"
+
+msgid "Helio GCode creation timed out while checking status"
+msgstr "Helio GCode 创建在检查状态时超时"
+
+msgid "Failed to create Simulation"
+msgstr "创建仿真失败"
+
+msgid "Helio simulation response is incomplete"
+msgstr "Helio 仿真响应不完整"
 
 msgid "Helio simulation task failed"
 msgstr "Helio仿真任务失败"
 
+msgid "Helio simulation response parse failed"
+msgstr "Helio 仿真响应解析失败"
+
+msgid "Failed to create Optimization"
+msgstr "创建优化失败"
+
+msgid "Helio optimization response is incomplete"
+msgstr "Helio 优化响应不完整"
+
 msgid "Helio optimization task failed"
 msgstr "Helio 优化任务失败"
+
+msgid "Helio optimization response parse failed"
+msgstr "Helio 优化响应解析失败"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API 端点为空，请检查配置。"
@@ -17444,7 +17511,7 @@ msgstr "Helio：文件已成功上传"
 msgid "Helio: file upload failed"
 msgstr "Helio：文件上传失败"
 
-msgid "Please make sure you have the corrent API key set in preferences."
+msgid "Please make sure you have the correct API key set in preferences."
 msgstr "请确保您已在偏好设置中正确设置了 API 密钥。"
 
 msgid "Helio: GCode created successfully"
@@ -17453,14 +17520,14 @@ msgstr "Helio：G代码已成功创建"
 msgid "Helio: simulation successfully created"
 msgstr "Helio：仿真创建成功"
 
-msgid "Helio: simulation working"
-msgstr "Helio：仿真运行中"
+msgid "transient progress checks did not recover"
+msgstr "瞬时进度检查未能恢复"
 
 msgid "Helio: simulation failed"
 msgstr "Helio：仿真失败"
 
-msgid "Helio: Simulation check failed"
-msgstr "Helio：仿真检测失败"
+msgid "Helio: simulation working"
+msgstr "Helio：仿真运行中"
 
 msgid "Helio: Failed to create Simulation"
 msgstr "Helio: 创建仿真失败"
@@ -17471,17 +17538,11 @@ msgstr "Helio: 创建GCode失败"
 msgid "Helio: optimization successfully created"
 msgstr "Helio：优化创建成功"
 
-msgid "Helio: optimization working"
-msgstr "Helio：优化运行中"
-
 msgid "Helio: optimization failed"
 msgstr "Helio：优化失败"
 
-msgid "Helio: Optimzaion check failed"
-msgstr "Helio：优化检查失败"
-
-msgid "Helio: Failed to create Optimization"
-msgstr "Helio: 创建优化失败"
+msgid "Helio: optimization working"
+msgstr "Helio：优化运行中"
 
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio：G代码下载成功"
@@ -18494,6 +18555,41 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#, boost-format
+#~ msgid "Plate %1%"
+#~ msgstr "盘 %1%"
+
+#~ msgid "For more details, see the Wiki."
+#~ msgstr "更多详情，请参阅 Wiki。"
+
+#, c-format, boost-format
+#~ msgid "%s is not compatible with %s nozzle."
+#~ msgstr "%s耗材不支持使用%s类型喷嘴打印"
+
+#~ msgid "True multi-material support will be added in a future update."
+#~ msgstr "真正的多材料支持将在后续更新中加入。"
+
+#~ msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
+#~ msgstr "当在 A2L 打印机上启用“首层优化热预处理”时，预处理时长将根据模型占地面积自动调整，以获得最佳的首层质量。较大的占地面积需要更长的预处理时间。白色框表示不同预处理时长的边界。"
+
+#~ msgid "Failed to create GCodeV2"
+#~ msgstr "无法创建 GCode"
+
+#~ msgid "Failed to create GCodeV3"
+#~ msgstr "无法创建 GCodeV3"
+
+#~ msgid "Please make sure you have the corrent API key set in preferences."
+#~ msgstr "请确保您已在偏好设置中正确设置了 API 密钥。"
+
+#~ msgid "Helio: Simulation check failed"
+#~ msgstr "Helio：仿真检测失败"
+
+#~ msgid "Helio: Optimzaion check failed"
+#~ msgstr "Helio：优化检查失败"
+
+#~ msgid "Helio: Failed to create Optimization"
+#~ msgstr "Helio: 创建优化失败"
 
 #~ msgid "Start your assembly journey from Add Step"
 #~ msgstr "从添加步骤开始您的组装之旅"

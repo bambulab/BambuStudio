@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 20:52+0800\n"
+"POT-Creation-Date: 2026-08-10 18:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -951,7 +951,7 @@ msgid "Cut"
 msgstr "Cortar"
 
 msgid "Cutting model object"
-msgstr "Cortando objeto del modelo"
+msgstr "Objeto de modelo de corte"
 
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr "Los bordes abiertos pueden deberse a la herramienta de corte, ¿desea corregirlo ahora?"
@@ -2270,7 +2270,7 @@ msgid "Rounded Rectangle"
 msgstr "Rectángulo redondeado"
 
 msgid "TearDrop"
-msgstr "Lágrima"
+msgstr "Gota"
 
 msgid "Bambu Cube"
 msgstr "Bambu Cube"
@@ -3002,6 +3002,10 @@ msgstr "Se desconoce el tipo de filamento que se requiere para realizar esta acc
 msgid "/"
 msgstr "/"
 
+msgctxt "AMS filament"
+msgid "loading"
+msgstr ""
+
 msgid "Confirm"
 msgstr "Confirmar"
 
@@ -3223,7 +3227,7 @@ msgid "Final assembly"
 msgstr "Ensamblaje final"
 
 msgid "Merged Step"
-msgstr "Paso combinado"
+msgstr "Paso fusionado"
 
 msgid "end frame"
 msgstr "fotograma final"
@@ -3313,15 +3317,11 @@ msgstr "Modelo"
 msgid "transition frame"
 msgstr "fotograma de transición"
 
-#, boost-format
-msgid "Plate %1%"
-msgstr "Placa %1%"
-
 msgid "Label"
 msgstr "Etiqueta"
 
 msgid "Explosion"
-msgstr "Explosión"
+msgstr "Descomposición"
 
 msgid "Unassembled"
 msgstr "Sin ensamblar"
@@ -3372,13 +3372,13 @@ msgid "Show world axes"
 msgstr "Mostrar ejes del mundo"
 
 msgid "Show explosion state column"
-msgstr "Mostrar columna de estado de explosión"
+msgstr "Mostrar columna de estado de descomposición"
 
 msgid "Allow modify text note foreground"
 msgstr "Permitir modificar el primer plano de la nota de texto"
 
 msgid "Allow modify text note background"
-msgstr "Permitir modificar fondo de nota de texto"
+msgstr "Permitir modificar el fondo de la nota de texto"
 
 msgid "Camera margin factor for the current frame. The larger the value, the more margin."
 msgstr "Factor de margen de la cámara para el fotograma actual. Cuanto mayor sea el valor, más margen habrá."
@@ -3417,7 +3417,7 @@ msgid "Inherit the state of Step"
 msgstr "Heredar el estado del paso"
 
 msgid "Assembled parts are not exploded"
-msgstr "Las piezas ensambladas no están explotadas"
+msgstr "Las piezas ensambladas no se descomponen"
 
 msgid "Copy and inherit this step"
 msgstr "Copiar y heredar este paso"
@@ -3585,6 +3585,9 @@ msgstr "Reproducir todos los fotogramas del paso actual"
 msgid "At least two keyframes are required to play."
 msgstr "Se necesitan al menos dos fotogramas clave para reproducir."
 
+msgid "Add the selected object or part to the current step first"
+msgstr "Primero, agrega el objeto o la pieza seleccionada al paso actual."
+
 msgid "Add a new object to the current step first"
 msgstr "Agrega primero un nuevo objeto al paso actual"
 
@@ -3592,10 +3595,10 @@ msgid "Apply the final assembly pose to the currently selected object or part(if
 msgstr "Aplicar la pose de ensamblaje final al objeto o pieza seleccionado actualmente (si no hay ninguno seleccionado, aplicarla a todos los objetos añadidos en el fotograma actual)"
 
 msgid "Automatically explode objects that are new to this step. Objects already assembled in earlier steps stay together."
-msgstr "Explosionar automáticamente los objetos que son nuevos en este paso. Los objetos ya ensamblados en pasos anteriores permanecen juntos."
+msgstr "Descompone automáticamente los objetos que son nuevos en este paso. Los objetos ya ensamblados en pasos anteriores permanecen juntos."
 
 msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
-msgstr "Explosionar automáticamente las piezas nuevas. Los objetos heredados o ya ensamblados en pasos anteriores permanecen juntos como un todo."
+msgstr "Descompone automáticamente las piezas nuevas. Los objetos heredados o ya ensamblados en pasos anteriores permanecen juntos como un todo."
 
 msgid "Apply current camera angle to all frames of the current step"
 msgstr "Aplicar el ángulo de cámara actual a todos los fotogramas del paso actual"
@@ -7563,8 +7566,8 @@ msgstr "Abra enlace para más información"
 msgid "Warning:"
 msgstr "Advertencia:"
 
-msgid "For more details, see the Wiki."
-msgstr "Para más detalles, consulta la Wiki."
+msgid "Wiki for details."
+msgstr ""
 
 msgid "Export successfully."
 msgstr "Exportado correctamente"
@@ -7868,10 +7871,6 @@ msgid "Customize current plate"
 msgstr "Personalizar la placa actual"
 
 #, c-format, boost-format
-msgid "%s is not compatible with %s nozzle."
-msgstr "%s no es compatible con la boquilla %s."
-
-#, c-format, boost-format
 msgid "The %s nozzle can not print %s."
 msgstr "La %s boquilla no puede imprimir%s."
 
@@ -8133,7 +8132,7 @@ msgid "Loading file: %s"
 msgstr "Cargando archivo: %s"
 
 msgid "The 3mf file has invalid config, load geometry data only"
-msgstr ""
+msgstr "El archivo 3mf tiene una configuración no válida, solo se cargarán los datos de geometría"
 
 msgid "Load 3mf"
 msgstr "Cargar 3mf"
@@ -8395,9 +8394,6 @@ msgstr "Ha seleccionado múltiples materiales: %s"
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
 msgstr "Nota: Los materiales no compatibles utilizarán el material de referencia seleccionado para la simulación."
 
-msgid "True multi-material support will be added in a future update."
-msgstr "Se agregará soporte multi-material real en una futura actualización."
-
 msgid "Option 1: Proceed using a single filament type"
 msgstr "Opción 1: Proceder utilizando un solo tipo de filamento"
 
@@ -8424,6 +8420,12 @@ msgstr "Ver materiales compatibles"
 
 msgid "Go Back"
 msgstr "Atrás"
+
+msgid "Option 3: Enable multi-material optimization"
+msgstr "Opción 3: Habilitar optimización multimaterial"
+
+msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
+msgstr "Haga clic en el icono de terceros → Habilitar Helio Additive → Marque \"Experimental: Habilitar soporte multimaterial\""
 
 msgid "Unsupported Materials Detected"
 msgstr "Materiales no compatibles detectados"
@@ -8460,6 +8462,15 @@ msgstr "Sincronizando datos"
 
 msgid "Refreshing printer and material data..."
 msgstr "Actualizando los datos de la impresora y del material..."
+
+msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
+msgstr "Helio no pudo actualizar todos los datos de impresoras y materiales. Los datos completos anteriores siguen disponibles."
+
+msgid "Helio could not load complete printer and material data. Matching remains paused."
+msgstr "Helio no pudo cargar los datos completos de impresoras y materiales. La correspondencia se ha pausado."
+
+msgid "Helio Data Refresh Failed"
+msgstr "Error al actualizar datos de Helio"
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Está en curso una tarea de simulación u optimización de Helio."
@@ -8583,6 +8594,12 @@ msgstr "Ver impresoras compatibles"
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "Haga clic en el botón Optimizar/Mejorar para iniciar su primera optimización."
 
+msgid "Previous Helio action is still stopping; try again shortly"
+msgstr "La acción anterior de Helio todavía se está deteniendo; intente de nuevo en breve"
+
+msgid "Helio Additive"
+msgstr "Helio Adicional"
+
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
@@ -8607,6 +8624,12 @@ msgstr "La lista de impresoras y la lista de materiales se están sincronizando.
 
 msgid "Synchronizing Helio"
 msgstr "Sincronización de Helio"
+
+msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
+msgstr "Helio no pudo cargar las listas de impresoras y materiales compatibles. La correspondencia se ha pausado para que los datos no disponibles no se traten como un material no compatible."
+
+msgid "Helio Data Load Failed"
+msgstr "Error al cargar datos de Helio"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Por favor, resuelve los errores de corte y publica de nuevo."
@@ -8833,8 +8856,8 @@ msgstr "No se recomienda utilizar filamentos de PVA con boquillas de 0,2 mm."
 msgid "Are you sure to use them? \n"
 msgstr "¿Está seguro de usarlo? \n"
 
-msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
-msgstr "Cuando el Preacondicionamiento Térmico para la Optimización de la Primera Capa está activado en la impresora A2L, la duración del preacondicionamiento se ajusta automáticamente según la huella del modelo para lograr la mejor calidad de la primera capa. Huellas más grandes requieren tiempos de preacondicionamiento más largos. Los cuadros blancos indican los límites entre diferentes duraciones de preacondicionamiento."
+msgid "When thermal preconditioning is enabled, duration auto-adjusts to the model's position for optimal first-layer quality; the farther from the center, the longer it takes. White boxes mark the boundary lines. To disable the guidelines and this warning, go to Preferences > 3D."
+msgstr ""
 
 msgid "Send G-code"
 msgstr "Enviar código G"
@@ -9214,6 +9237,12 @@ msgstr "Mostrar siempre las capas exteriores en la vista previa"
 
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Mostrar siempre o no las paredes en la pestaña de vista previa. Si cambia este valor, deberá volver a laminar."
+
+msgid "Show heat-soak area"
+msgstr ""
+
+msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
+msgstr ""
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Mostrar el cuadro de diálogo de configuración de parámetros de malla escalonada."
@@ -9707,7 +9736,7 @@ msgid "Send print job"
 msgstr "Enviar trabajo de impresión"
 
 msgid "The current estimated time has been recalculated based on the actual filament mapping."
-msgstr "El tiempo estimado actual se ha recalculado en función del mapeo real del Filamento."
+msgstr "El tiempo estimado actual se ha recalculado en función del mapeo real del filamento."
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "¿No está satisfecho con la agrupación de filamentos? Reagrupe y corte ->"
@@ -9941,7 +9970,7 @@ msgid "The toolhead and hotend rack are full. Please remove at least one hotend 
 msgstr "El cabezal y el rack de hotends están llenos. Por favor, retire al menos un hotend antes de imprimir."
 
 msgid "The nozzle type doesn't match. Please re-slice."
-msgstr ""
+msgstr "El tipo de boquilla no coincide. Por favor, vuelva a rebanar."
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "El selector de la guía del filamento instalado en la impresora no coincide con el archivo laminado. Vuelva a laminar el archivo para evitar problemas de calidad de impresión."
@@ -10006,10 +10035,10 @@ msgid "Click here if you can't connect to the printer"
 msgstr "Haga clic aquí si no puede conectarse a la impresora"
 
 msgid "Slice file"
-msgstr ""
+msgstr "Archivo rebanado"
 
 msgid "The connected printer"
-msgstr ""
+msgstr "La impresora conectada"
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Sin cuenta de acceso, sólo se muestran las impresoras en modo LAN"
@@ -10280,6 +10309,8 @@ msgid ""
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Cuando utilice material soluble para el soporte, recomendamos la siguiente configuración:\n"
+"0 distancia z superior, 0 distancia z inferior, 0 espaciado de interfaz, 0 distancia xy soporte/objeto, patrón rectilíneo entrelazado, deshabilitar la altura de capa de soporte independiente y usar materiales solubles tanto para la interfaz de soporte como para la base de soporte"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -10657,7 +10688,7 @@ msgid "Printable space"
 msgstr "Espacio imprimible"
 
 msgid "AMS filament load/unload time"
-msgstr "Tiempo de carga/descarga de Filamento del AMS"
+msgstr "Tiempo de carga/descarga de filamento del AMS"
 
 msgid "Extruder Clearance"
 msgstr "Holgura del extrusor"
@@ -11695,9 +11726,6 @@ msgstr "Términos y condiciones del servicio de software"
 msgid "^"
 msgstr ""
 
-msgid "Helio Additive"
-msgstr "Helio Adicional"
-
 msgid "Helio Additive Privacy Agreement"
 msgstr "Acuerdo de privacidad de Helio Additive"
 
@@ -12091,6 +12119,9 @@ msgstr "Con velocidad y calidad mejoradas"
 msgid "Applies Helio's optimized speed/flow/fan strategy."
 msgstr "Aplica la estrategia optimizada de velocidad/flujo/ventilador de Helio."
 
+msgid "Save the simulated sliced 3MF locally"
+msgstr "Guardar el 3MF simulado y segmentado localmente"
+
 msgid "✅ Will Print"
 msgstr "✅ Se imprimirá"
 
@@ -12322,7 +12353,7 @@ msgid "Sending print job with LAN acceleration"
 msgstr "Enviando trabajo de impresión con aceleración LAN"
 
 msgid "Cloud service sending failed. Sending print job over LAN without print history."
-msgstr "Fallo al enviar desde el Servicio en la nube. Enviando trabajo de impresión a través de LAN sin historial de impresión."
+msgstr "Error al enviar el servicio en la nube. Enviando trabajo de impresión a través de LAN sin historial de impresión."
 
 msgid "Sending print configuration"
 msgstr "Enviando la configuración de impresión"
@@ -12684,6 +12715,14 @@ msgstr "Generando falda y ala"
 
 msgid "Generating G-code"
 msgstr "Generando G-code"
+
+#, boost-format
+msgid "%1% is too close to a compacted prime tower. The toolhead needs %2% mm of horizontal clearance to descend beside it, and within that distance the object may not rise more than %3% mm. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr ""
+
+#, boost-format
+msgid "%1% is too tall to be printed together with a compacted prime tower, which only leaves %2% mm of clearance. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
@@ -13564,46 +13603,46 @@ msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "Tiempo para descargar el filamento viejo cuando se cambia de filamento. Sólo para las estadísticas"
 
 msgid "AMS filament load time"
-msgstr "Tiempo de carga de Filamento del AMS"
+msgstr "Tiempo de carga de filamento del AMS"
 
 msgid "Filament load time when printing with an AMS. For statistics only"
-msgstr "Tiempo de carga de Filamento al imprimir con un AMS. Solo para estadísticas"
+msgstr "Tiempo de carga de filamento al imprimir con un AMS. Solo para estadísticas"
 
 msgid "AMS Lite filament load time"
-msgstr "Tiempo de carga de Filamento del AMS Lite"
+msgstr "Tiempo de carga de filamento del AMS lite"
 
 msgid "Filament load time when printing with an AMS Lite. For statistics only"
-msgstr "Tiempo de carga de Filamento al imprimir con un AMS Lite. Solo para estadísticas"
+msgstr "Tiempo de carga de filamento al imprimir con un AMS lite. Solo para estadísticas"
 
 msgid "N3F/N3S filament load time"
-msgstr "Tiempo de carga de Filamento N3F/N3S"
+msgstr "Tiempo de carga de filamento del N3F/N3S"
 
 msgid "Filament load time when printing with an N3F or N3S. For statistics only"
-msgstr "Tiempo de carga de Filamento al imprimir con un N3F o N3S. Solo para estadísticas"
+msgstr "Tiempo de carga de filamento al imprimir con un N3F o N3S. Solo para estadísticas"
 
 msgid "AMS filament unload time"
-msgstr "Tiempo de descarga de Filamento del AMS"
+msgstr "Tiempo de descarga de filamento del AMS"
 
 msgid "Filament unload time when printing with an AMS. For statistics only"
-msgstr "Tiempo de descarga de Filamento al imprimir con un AMS. Solo para estadísticas"
+msgstr "Tiempo de descarga de filamento al imprimir con un AMS. Solo para estadísticas"
 
 msgid "AMS Lite filament unload time"
-msgstr "Tiempo de descarga de Filamento del AMS Lite"
+msgstr "Tiempo de descarga de filamento del AMS lite"
 
 msgid "Filament unload time when printing with an AMS Lite. For statistics only"
-msgstr "Tiempo de descarga de Filamento al imprimir con un AMS Lite. Solo para estadísticas"
+msgstr "Tiempo de descarga de filamento al imprimir con un AMS lite. Solo para estadísticas"
 
 msgid "N3F/N3S filament unload time"
-msgstr "Tiempo de descarga de Filamento N3F/N3S"
+msgstr "Tiempo de descarga de filamento del N3F/N3S"
 
 msgid "Filament unload time when printing with an N3F or N3S. For statistics only"
-msgstr "Tiempo de descarga de Filamento al imprimir con un N3F o N3S. Solo para estadísticas"
+msgstr "Tiempo de descarga de filamento al imprimir con un N3F o N3S. Solo para estadísticas"
 
 msgid "Default AMS type"
 msgstr "Tipo de AMS predeterminado"
 
 msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
-msgstr "El tipo de AMS predeterminado utilizado para estimar el tiempo de carga/descarga del Filamento, almacenado como el valor de enumeración del tipo de temporización del AMS. Proviene de la configuración predeterminada de la impresora y no refleja el AMS actualmente conectado a la máquina."
+msgstr "El tipo de AMS predeterminado usado para estimar el tiempo de carga/descarga de filamento se guarda como el valor de enumeración del tipo de temporización del AMS. Proviene del preajuste de la impresora y no refleja el AMS actualmente conectado a la máquina."
 
 msgid "Extruder switch time"
 msgstr "Tiempo de cambio del extrusor"
@@ -17498,22 +17537,52 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Perfil estándar para boquilla de 0.8 mm, que prioriza la velocidad."
 
 msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
-msgstr "Perfil de aceleración reducida para la boquilla de 0.4 mm. Úsalo cuando la impresora esté en un escritorio o estante inestables."
+msgstr "Perfil de baja aceleración para la boquilla de 0,4 mm. Úsalo cuando la impresora esté en un escritorio o estante flojo"
 
-msgid "Failed to create GCodeV2"
-msgstr "No se pudo crear G-CodeV2"
+msgid "Helio GCode status response is incomplete"
+msgstr "La respuesta del estado del GCode de Helio está incompleta"
+
+msgid "Helio GCode status response parse failed"
+msgstr "Fallo al analizar la respuesta del estado del GCode de Helio"
+
+msgid "Helio action canceled"
+msgstr "Acción de Helio cancelada"
+
+msgid "Helio GCode creation response is incomplete"
+msgstr "La respuesta de creación del GCode de Helio está incompleta"
 
 msgid "Failed to parse response"
 msgstr "No se pudo analizar la respuesta"
 
-msgid "Failed to create GCodeV3"
-msgstr "Error al crear G-CodeV3"
+msgid "Helio GCode status check failed"
+msgstr "Fallo al comprobar el estado del GCode de Helio"
+
+msgid "Helio GCode creation timed out while checking status"
+msgstr "Tiempo de espera agotado para la creación del GCode de Helio al comprobar el estado"
+
+msgid "Failed to create Simulation"
+msgstr "Fallo al crear la simulación"
+
+msgid "Helio simulation response is incomplete"
+msgstr "La respuesta de simulación de Helio está incompleta"
 
 msgid "Helio simulation task failed"
 msgstr "La tarea de simulación de Helio falló"
 
+msgid "Helio simulation response parse failed"
+msgstr "Fallo al analizar la respuesta de simulación de Helio"
+
+msgid "Failed to create Optimization"
+msgstr "Fallo al crear la optimización"
+
+msgid "Helio optimization response is incomplete"
+msgstr "La respuesta de optimización de Helio está incompleta"
+
 msgid "Helio optimization task failed"
 msgstr "La tarea de optimización de Helio falló"
+
+msgid "Helio optimization response parse failed"
+msgstr "Fallo al analizar la respuesta de optimización de Helio"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "El punto final de la API de Helio está vacío, por favor verifique la configuración."
@@ -17530,8 +17599,8 @@ msgstr "Helio: archivo subido correctamente"
 msgid "Helio: file upload failed"
 msgstr "Helio: la carga del archivo ha fallado"
 
-msgid "Please make sure you have the corrent API key set in preferences."
-msgstr "Por favor, asegúrese de que tiene configurada la clave API correcta en las preferencias."
+msgid "Please make sure you have the correct API key set in preferences."
+msgstr "Por favor, asegúrese de que tiene la clave API correcta configurada en las preferencias."
 
 msgid "Helio: GCode created successfully"
 msgstr "Helio: G-Code se ha creado con éxito"
@@ -17539,14 +17608,14 @@ msgstr "Helio: G-Code se ha creado con éxito"
 msgid "Helio: simulation successfully created"
 msgstr "Helio: simulación creado con éxito"
 
-msgid "Helio: simulation working"
-msgstr "Helio: simulación en funcionamiento"
+msgid "transient progress checks did not recover"
+msgstr "Las comprobaciones de progreso transitorias no se recuperaron"
 
 msgid "Helio: simulation failed"
 msgstr "Helio: la simulación ha fallado"
 
-msgid "Helio: Simulation check failed"
-msgstr "Helio: Ha fallado la comprobación de simulación"
+msgid "Helio: simulation working"
+msgstr "Helio: simulación en funcionamiento"
 
 msgid "Helio: Failed to create Simulation"
 msgstr "Helio: Error al crear la simulación"
@@ -17557,17 +17626,11 @@ msgstr "Helio: Error al crear G-Code"
 msgid "Helio: optimization successfully created"
 msgstr "Helio: optimización creada con éxito"
 
-msgid "Helio: optimization working"
-msgstr "Helio: optimización en funcionamiento"
-
 msgid "Helio: optimization failed"
 msgstr "Helio: la optimización ha fallado"
 
-msgid "Helio: Optimzaion check failed"
-msgstr "Helio: Ha fallado la comprobación de optimización"
-
-msgid "Helio: Failed to create Optimization"
-msgstr "Helio: Error al crear la optimización"
+msgid "Helio: optimization working"
+msgstr "Helio: optimización en funcionamiento"
 
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: El G-Code se ha descargado con éxito"
@@ -18578,6 +18641,41 @@ msgid ""
 msgstr ""
 "Fiabilidad a la primera\n"
 "Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
+
+#, boost-format
+#~ msgid "Plate %1%"
+#~ msgstr "Placa %1%"
+
+#~ msgid "For more details, see the Wiki."
+#~ msgstr "Para más detalles, consulta la Wiki."
+
+#, c-format, boost-format
+#~ msgid "%s is not compatible with %s nozzle."
+#~ msgstr "%s no es compatible con la boquilla %s."
+
+#~ msgid "True multi-material support will be added in a future update."
+#~ msgstr "Se agregará soporte multi-material real en una futura actualización."
+
+#~ msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
+#~ msgstr "Cuando el Preacondicionamiento Térmico para la Optimización de la Primera Capa está activado en la impresora A2L, la duración del preacondicionamiento se ajusta automáticamente según la huella del modelo para lograr la mejor calidad de la primera capa. Huellas más grandes requieren tiempos de preacondicionamiento más largos. Los cuadros blancos indican los límites entre diferentes duraciones de preacondicionamiento."
+
+#~ msgid "Failed to create GCodeV2"
+#~ msgstr "No se pudo crear G-CodeV2"
+
+#~ msgid "Failed to create GCodeV3"
+#~ msgstr "Error al crear G-CodeV3"
+
+#~ msgid "Please make sure you have the corrent API key set in preferences."
+#~ msgstr "Por favor, asegúrese de que tiene configurada la clave API correcta en las preferencias."
+
+#~ msgid "Helio: Simulation check failed"
+#~ msgstr "Helio: Ha fallado la comprobación de simulación"
+
+#~ msgid "Helio: Optimzaion check failed"
+#~ msgstr "Helio: Ha fallado la comprobación de optimización"
+
+#~ msgid "Helio: Failed to create Optimization"
+#~ msgstr "Helio: Error al crear la optimización"
 
 #~ msgid "Start your assembly journey from Add Step"
 #~ msgstr "Inicie el proceso de ensamblaje desde Añadir paso"

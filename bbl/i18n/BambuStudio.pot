@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 20:52+0800\n"
+"POT-Creation-Date: 2026-08-10 18:15+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2977,6 +2977,10 @@ msgstr ""
 msgid "/"
 msgstr ""
 
+msgctxt "AMS filament"
+msgid "loading"
+msgstr ""
+
 msgid "Confirm"
 msgstr ""
 
@@ -3288,10 +3292,6 @@ msgstr ""
 msgid "transition frame"
 msgstr ""
 
-#, possible-boost-format
-msgid "Plate %1%"
-msgstr ""
-
 msgid "Label"
 msgstr ""
 
@@ -3558,6 +3558,9 @@ msgid "Play all frames for current step"
 msgstr ""
 
 msgid "At least two keyframes are required to play."
+msgstr ""
+
+msgid "Add the selected object or part to the current step first"
 msgstr ""
 
 msgid "Add a new object to the current step first"
@@ -7394,7 +7397,7 @@ msgstr ""
 msgid "Warning:"
 msgstr ""
 
-msgid "For more details, see the Wiki."
+msgid "Wiki for details."
 msgstr ""
 
 msgid "Export successfully."
@@ -7694,10 +7697,6 @@ msgid "Edit current plate name"
 msgstr ""
 
 msgid "Customize current plate"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "%s is not compatible with %s nozzle."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -8204,9 +8203,6 @@ msgstr ""
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
 msgstr ""
 
-msgid "True multi-material support will be added in a future update."
-msgstr ""
-
 msgid "Option 1: Proceed using a single filament type"
 msgstr ""
 
@@ -8232,6 +8228,12 @@ msgid "See supported materials"
 msgstr ""
 
 msgid "Go Back"
+msgstr ""
+
+msgid "Option 3: Enable multi-material optimization"
+msgstr ""
+
+msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
 msgstr ""
 
 msgid "Unsupported Materials Detected"
@@ -8268,6 +8270,15 @@ msgid "Syncing Data"
 msgstr ""
 
 msgid "Refreshing printer and material data..."
+msgstr ""
+
+msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
+msgstr ""
+
+msgid "Helio could not load complete printer and material data. Matching remains paused."
+msgstr ""
+
+msgid "Helio Data Refresh Failed"
 msgstr ""
 
 msgid "A Helio simulation or optimization task is in progress."
@@ -8370,6 +8381,12 @@ msgstr ""
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr ""
 
+msgid "Previous Helio action is still stopping; try again shortly"
+msgstr ""
+
+msgid "Helio Additive"
+msgstr ""
+
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
@@ -8391,6 +8408,12 @@ msgid "The printer list and material list are being synchronized. Please try aga
 msgstr ""
 
 msgid "Synchronizing Helio"
+msgstr ""
+
+msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
+msgstr ""
+
+msgid "Helio Data Load Failed"
 msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
@@ -8603,7 +8626,7 @@ msgstr ""
 msgid "Are you sure to use them? \n"
 msgstr ""
 
-msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
+msgid "When thermal preconditioning is enabled, duration auto-adjusts to the model's position for optimal first-layer quality; the farther from the center, the longer it takes. White boxes mark the boundary lines. To disable the guidelines and this warning, go to Preferences > 3D."
 msgstr ""
 
 msgid "Send G-code"
@@ -8969,6 +8992,12 @@ msgid "Always show shells in preview"
 msgstr ""
 
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
+msgstr ""
+
+msgid "Show heat-soak area"
+msgstr ""
+
+msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
 msgstr ""
 
 msgid "Show the step mesh parameter setting dialog."
@@ -11382,9 +11411,6 @@ msgstr ""
 msgid "^"
 msgstr ""
 
-msgid "Helio Additive"
-msgstr ""
-
 msgid "Helio Additive Privacy Agreement"
 msgstr ""
 
@@ -11758,6 +11784,9 @@ msgid "Enhance Speed & Quality"
 msgstr ""
 
 msgid "Applies Helio's optimized speed/flow/fan strategy."
+msgstr ""
+
+msgid "Save the simulated sliced 3MF locally"
 msgstr ""
 
 msgid "✅ Will Print"
@@ -12347,6 +12376,14 @@ msgid "Generating skirt & brim"
 msgstr ""
 
 msgid "Generating G-code"
+msgstr ""
+
+#, possible-boost-format
+msgid "%1% is too close to a compacted prime tower. The toolhead needs %2% mm of horizontal clearance to descend beside it, and within that distance the object may not rise more than %3% mm. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr ""
+
+#, possible-boost-format
+msgid "%1% is too tall to be printed together with a compacted prime tower, which only leaves %2% mm of clearance. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
 msgstr ""
 
 #, possible-boost-format
@@ -17018,19 +17055,49 @@ msgstr ""
 msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
 msgstr ""
 
-msgid "Failed to create GCodeV2"
+msgid "Helio GCode status response is incomplete"
+msgstr ""
+
+msgid "Helio GCode status response parse failed"
+msgstr ""
+
+msgid "Helio action canceled"
+msgstr ""
+
+msgid "Helio GCode creation response is incomplete"
 msgstr ""
 
 msgid "Failed to parse response"
 msgstr ""
 
-msgid "Failed to create GCodeV3"
+msgid "Helio GCode status check failed"
+msgstr ""
+
+msgid "Helio GCode creation timed out while checking status"
+msgstr ""
+
+msgid "Failed to create Simulation"
+msgstr ""
+
+msgid "Helio simulation response is incomplete"
 msgstr ""
 
 msgid "Helio simulation task failed"
 msgstr ""
 
+msgid "Helio simulation response parse failed"
+msgstr ""
+
+msgid "Failed to create Optimization"
+msgstr ""
+
+msgid "Helio optimization response is incomplete"
+msgstr ""
+
 msgid "Helio optimization task failed"
+msgstr ""
+
+msgid "Helio optimization response parse failed"
 msgstr ""
 
 msgid "Helio API endpoint is empty, please check the configuration."
@@ -17048,7 +17115,7 @@ msgstr ""
 msgid "Helio: file upload failed"
 msgstr ""
 
-msgid "Please make sure you have the corrent API key set in preferences."
+msgid "Please make sure you have the correct API key set in preferences."
 msgstr ""
 
 msgid "Helio: GCode created successfully"
@@ -17057,13 +17124,13 @@ msgstr ""
 msgid "Helio: simulation successfully created"
 msgstr ""
 
-msgid "Helio: simulation working"
+msgid "transient progress checks did not recover"
 msgstr ""
 
 msgid "Helio: simulation failed"
 msgstr ""
 
-msgid "Helio: Simulation check failed"
+msgid "Helio: simulation working"
 msgstr ""
 
 msgid "Helio: Failed to create Simulation"
@@ -17075,16 +17142,10 @@ msgstr ""
 msgid "Helio: optimization successfully created"
 msgstr ""
 
-msgid "Helio: optimization working"
-msgstr ""
-
 msgid "Helio: optimization failed"
 msgstr ""
 
-msgid "Helio: Optimzaion check failed"
-msgstr ""
-
-msgid "Helio: Failed to create Optimization"
+msgid "Helio: optimization working"
 msgstr ""
 
 msgid "Helio: GCode downloaded successfully"

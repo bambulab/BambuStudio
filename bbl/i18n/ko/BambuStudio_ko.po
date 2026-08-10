@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 20:52+0800\n"
+"POT-Creation-Date: 2026-08-10 18:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2252,7 +2252,7 @@ msgid "Cylinder"
 msgstr "원기둥"
 
 msgid "Hexagonal Prism"
-msgstr ""
+msgstr "육각기둥"
 
 msgid "Cone"
 msgstr "원뿔"
@@ -2996,6 +2996,10 @@ msgstr "이 작업을 수행하는 데 필요한 필라멘트 유형을 알 수 
 msgid "/"
 msgstr "/"
 
+msgctxt "AMS filament"
+msgid "loading"
+msgstr ""
+
 msgid "Confirm"
 msgstr "확인"
 
@@ -3307,10 +3311,6 @@ msgstr "모델"
 msgid "transition frame"
 msgstr "전환 프레임"
 
-#, boost-format
-msgid "Plate %1%"
-msgstr "플레이트 %1%"
-
 msgid "Label"
 msgstr "라벨"
 
@@ -3579,6 +3579,9 @@ msgstr "현재 단계의 모든 프레임을 재생합니다."
 msgid "At least two keyframes are required to play."
 msgstr "재생하려면 최소 두 개의 키프레임이 필요합니다."
 
+msgid "Add the selected object or part to the current step first"
+msgstr "먼저 선택한 객체 또는 부품을 현재 단계에 추가하세요."
+
 msgid "Add a new object to the current step first"
 msgstr "먼저 현재 단계에 새 개체를 추가하세요"
 
@@ -3586,10 +3589,10 @@ msgid "Apply the final assembly pose to the currently selected object or part(if
 msgstr "현재 선택된 객체 또는 부품에 최종 조립 포즈를 적용합니다(선택된 객체가 없으면 현재 프레임에 추가된 모든 객체에 적용합니다)."
 
 msgid "Automatically explode objects that are new to this step. Objects already assembled in earlier steps stay together."
-msgstr "이 단계에 새로 추가된 객체는 자동으로 분해됩니다. 이전 단계에서 이미 조립된 객체는 하나로 유지됩니다."
+msgstr "이 단계에 새로 추가된 객체는 자동으로 분해됩니다. 이전 단계에서 이미 조립된 객체는 함께 유지됩니다."
 
 msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
-msgstr "새 부품은 자동으로 분해됩니다. 이전 단계에서 상속되었거나 이미 조립된 객체는 전체 하나로 유지됩니다."
+msgstr "새 부품은 자동으로 분해됩니다. 이전 단계에서 상속되었거나 이미 조립된 객체는 하나의 전체로 유지됩니다."
 
 msgid "Apply current camera angle to all frames of the current step"
 msgstr "현재 카메라 각도를 현재 단계의 모든 프레임에 적용합니다."
@@ -7550,8 +7553,8 @@ msgstr "자세한 정보는 링크를 열어주세요"
 msgid "Warning:"
 msgstr "경고:"
 
-msgid "For more details, see the Wiki."
-msgstr "자세한 내용은 Wiki를 참조하세요."
+msgid "Wiki for details."
+msgstr ""
 
 msgid "Export successfully."
 msgstr "내보내기 성공"
@@ -7855,10 +7858,6 @@ msgid "Customize current plate"
 msgstr "현재 플레이트 사용자 정의"
 
 #, c-format, boost-format
-msgid "%s is not compatible with %s nozzle."
-msgstr "%s는 %s 노즐과 호환되지 않습니다."
-
-#, c-format, boost-format
 msgid "The %s nozzle can not print %s."
 msgstr "%s 노즐은 %s 을 인쇄할 수 없습니다."
 
@@ -8122,7 +8121,7 @@ msgid "Loading file: %s"
 msgstr "파일 불러오기 중: %s"
 
 msgid "The 3mf file has invalid config, load geometry data only"
-msgstr ""
+msgstr "3mf 파일 설정이 올바르지 않습니다. 형상 데이터만 로드합니다."
 
 msgid "Load 3mf"
 msgstr "3mf 불러오기"
@@ -8384,9 +8383,6 @@ msgstr "여러 재료를 선택하셨습니다: %s"
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
 msgstr "참고: 지원되지 않는 재료는 시뮬레이션을 위해 선택한 참조 재료를 사용합니다."
 
-msgid "True multi-material support will be added in a future update."
-msgstr "진정한 다중 재료 지원은 향후 업데이트에서 추가될 예정입니다."
-
 msgid "Option 1: Proceed using a single filament type"
 msgstr "옵션 1: 단일 필라멘트 유형만 사용하여 진행히기"
 
@@ -8413,6 +8409,12 @@ msgstr "지원되는 재료 보기"
 
 msgid "Go Back"
 msgstr "뒤로 가기"
+
+msgid "Option 3: Enable multi-material optimization"
+msgstr "옵션 3: 다중 재료 최적화 활성화"
+
+msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
+msgstr "타사 아이콘 클릭 → Helio Additive 활성화 → \"실험: 다중 재료 지원 활성화\" 체크"
 
 msgid "Unsupported Materials Detected"
 msgstr "지원되지 않는 재료 감지됨"
@@ -8449,6 +8451,15 @@ msgstr "데이터 동기화"
 
 msgid "Refreshing printer and material data..."
 msgstr "프린터 및 재료 데이터 새로고침 중..."
+
+msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
+msgstr "Helio가 모든 프린터 및 재료 데이터를 새로고침하지 못했습니다. 이전의 전체 데이터는 계속 사용할 수 있습니다."
+
+msgid "Helio could not load complete printer and material data. Matching remains paused."
+msgstr "Helio가 전체 프린터 및 재료 데이터를 로드하지 못했습니다. 매칭이 일시 중지되었습니다."
+
+msgid "Helio Data Refresh Failed"
+msgstr "Helio 데이터 새로고침 실패"
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Helio 시뮬레이션 또는 최적화 작업이 진행 중입니다."
@@ -8572,6 +8583,12 @@ msgstr "지원되는 프린터 보기"
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "최적화/향상 버튼을 클릭하여 첫 번째 최적화를 시작하세요."
 
+msgid "Previous Helio action is still stopping; try again shortly"
+msgstr "이전 Helio 작업이 아직 진행 중입니다. 곧 다시 시도하십시오."
+
+msgid "Helio Additive"
+msgstr ""
+
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
@@ -8596,6 +8613,12 @@ msgstr "프린터 목록과 재료 목록이 동기화 중입니다. 잠시 후 
 
 msgid "Synchronizing Helio"
 msgstr "Helio 동기화"
+
+msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
+msgstr "Helio가 지원되는 프린터 및 재료 목록을 로드하지 못했습니다. 사용할 수 없는 데이터가 지원되지 않는 재료로 간주되지 않도록 매칭이 일시 중지되었습니다."
+
+msgid "Helio Data Load Failed"
+msgstr "Helio 데이터 로드 실패"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "슬라이싱 오류를 해결하고 다시 게시하십시오."
@@ -8822,8 +8845,8 @@ msgstr "0.2mm 노즐에는 PVA 필라멘트를 사용하는 것은 권장하지 
 msgid "Are you sure to use them? \n"
 msgstr "정말로 사용하시겠습니까? \n"
 
-msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
-msgstr "A2L 프린터에서 첫 레이어 최적화를 위한 열전 사전 컨디셔닝이 활성화되면, 최상의 첫 레이어 품질을 달성하기 위해 모델의 풋프린트를 기반으로 사전 컨디셔닝 기간이 자동으로 조정됩니다. 더 큰 풋프린트일수록 더 긴 사전 컨디셔닝 시간이 필요합니다. 흰색 상자는 다른 사전 컨디셔닝 기간의 경계를 나타냅니다."
+msgid "When thermal preconditioning is enabled, duration auto-adjusts to the model's position for optimal first-layer quality; the farther from the center, the longer it takes. White boxes mark the boundary lines. To disable the guidelines and this warning, go to Preferences > 3D."
+msgstr ""
 
 msgid "Send G-code"
 msgstr "G 코드 보내기"
@@ -9201,6 +9224,12 @@ msgstr "항상 셸을 미리 보기로 표시"
 
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "미리 보기 탭에서 셸을 항상 표시할지 여부를 선택합니다. 이 값을 변경하는 경우 다시 슬라이스해야 합니다."
+
+msgid "Show heat-soak area"
+msgstr ""
+
+msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
+msgstr ""
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "스텝 메시 매개변수 설정 대화 상자를 표시합니다."
@@ -9694,7 +9723,7 @@ msgid "Send print job"
 msgstr "출력 작업 보내기"
 
 msgid "The current estimated time has been recalculated based on the actual filament mapping."
-msgstr "현재 예상 시간이 실제 필라멘트 매핑을 기반으로 재계산되었습니다."
+msgstr "현재 예상 시간이 실제 필라멘트 매핑을 기준으로 다시 계산되었습니다."
 
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "필라멘트 그룹화가 만족스럽지 않으신가요? 재그룹화 및 슬라이스 ->"
@@ -9928,7 +9957,7 @@ msgid "The toolhead and hotend rack are full. Please remove at least one hotend 
 msgstr "툴헤드 및 핫엔드 랙이 가득 찼습니다. 출력 전에 핫엔드 하나 이상을 제거해 주세요."
 
 msgid "The nozzle type doesn't match. Please re-slice."
-msgstr ""
+msgstr "노즐 타입이 일치하지 않습니다. 다시 슬라이스하세요."
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "프린터에 설치된 필라멘트 트랙 스위치가 슬라이싱 파일과 일치하지 않습니다. 출력 품질 문제를 방지하려면 다시 슬라이싱하십시오."
@@ -9993,10 +10022,10 @@ msgid "Click here if you can't connect to the printer"
 msgstr "프린터에 연결할 수 없는 경우 여기를 클릭하세요"
 
 msgid "Slice file"
-msgstr ""
+msgstr "슬라이스 파일"
 
 msgid "The connected printer"
-msgstr ""
+msgstr "연결된 프린터"
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "로그인 계정 없음, LAN 모드의 프린터만 표시됨"
@@ -10267,6 +10296,9 @@ msgid ""
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"지지대에 용해성 소재를 사용하는 경우, 다음 설정을 권장합니다:\n"
+"0 상단 z 거리, 0 하단 z 거리, 0 인터페이스 간격, 0 지지대/물체 xy 거리, 인터레이스된 직선 패턴,\n"
+"독립적인 지지대 레이어 높이 비활성화 및 지지대 인터페이스와 지지대 베이스 모두에 용해성 소재 사용"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -11678,9 +11710,6 @@ msgstr "소프트웨어 서비스 이용약관"
 msgid "^"
 msgstr ""
 
-msgid "Helio Additive"
-msgstr ""
-
 msgid "Helio Additive Privacy Agreement"
 msgstr "Helio Additive 개인정보 보호 약관"
 
@@ -12074,6 +12103,9 @@ msgstr "속도 및 품질 향상"
 msgid "Applies Helio's optimized speed/flow/fan strategy."
 msgstr "Helio의 최적화된 속도/유량/팬 전략을 적용합니다."
 
+msgid "Save the simulated sliced 3MF locally"
+msgstr "시뮬레이션된 슬라이스 3MF를 로컬에 저장"
+
 msgid "✅ Will Print"
 msgstr "✅ 출력 가능함"
 
@@ -12302,10 +12334,10 @@ msgid "Print task sending times out."
 msgstr "출력 작업 전송 시간 초과."
 
 msgid "Sending print job with LAN acceleration"
-msgstr "LAN 가속으로 출력 작업 보내는 중"
+msgstr "LAN 가속을 사용해 출력 작업 전송 중"
 
 msgid "Cloud service sending failed. Sending print job over LAN without print history."
-msgstr "클라우드 서비스 전송 실패. 출력 기록 없이 LAN으로 출력 작업 보냅니다."
+msgstr "클라우드 서비스 전송에 실패했습니다. 출력 기록 없이 LAN을 통해 출력 작업을 전송합니다."
 
 msgid "Sending print configuration"
 msgstr "출력 설정 보내기"
@@ -12667,6 +12699,14 @@ msgstr "스커트 및 브림 생성"
 
 msgid "Generating G-code"
 msgstr "G 코드 생성"
+
+#, boost-format
+msgid "%1% is too close to a compacted prime tower. The toolhead needs %2% mm of horizontal clearance to descend beside it, and within that distance the object may not rise more than %3% mm. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr ""
+
+#, boost-format
+msgid "%1% is too tall to be printed together with a compacted prime tower, which only leaves %2% mm of clearance. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
@@ -13551,43 +13591,43 @@ msgid "AMS filament load time"
 msgstr "AMS 필라멘트 로드 시간"
 
 msgid "Filament load time when printing with an AMS. For statistics only"
-msgstr "AMS로 프린트할 때의 필라멘트 로드 시간. 통계용입니다."
+msgstr "AMS로 프린트할 때의 필라멘트 로드 시간입니다. 통계용으로만 사용됩니다."
 
 msgid "AMS Lite filament load time"
 msgstr "AMS Lite 필라멘트 로드 시간"
 
 msgid "Filament load time when printing with an AMS Lite. For statistics only"
-msgstr "AMS Lite로 프린트할 때의 필라멘트 로드 시간. 통계용입니다."
+msgstr "AMS Lite로 프린트할 때의 필라멘트 로드 시간입니다. 통계용으로만 사용됩니다."
 
 msgid "N3F/N3S filament load time"
 msgstr "N3F/N3S 필라멘트 로드 시간"
 
 msgid "Filament load time when printing with an N3F or N3S. For statistics only"
-msgstr "N3F 또는 N3S로 프린트할 때의 필라멘트 로드 시간. 통계용입니다."
+msgstr "N3F 또는 N3S로 프린트할 때의 필라멘트 로드 시간입니다. 통계용으로만 사용됩니다."
 
 msgid "AMS filament unload time"
 msgstr "AMS 필라멘트 언로드 시간"
 
 msgid "Filament unload time when printing with an AMS. For statistics only"
-msgstr "AMS로 프린트할 때의 필라멘트 언로드 시간. 통계용입니다."
+msgstr "AMS로 프린트할 때의 필라멘트 언로드 시간입니다. 통계용으로만 사용됩니다."
 
 msgid "AMS Lite filament unload time"
 msgstr "AMS Lite 필라멘트 언로드 시간"
 
 msgid "Filament unload time when printing with an AMS Lite. For statistics only"
-msgstr "AMS Lite로 프린트할 때의 필라멘트 언로드 시간. 통계용입니다."
+msgstr "AMS Lite로 프린트할 때의 필라멘트 언로드 시간입니다. 통계용으로만 사용됩니다."
 
 msgid "N3F/N3S filament unload time"
 msgstr "N3F/N3S 필라멘트 언로드 시간"
 
 msgid "Filament unload time when printing with an N3F or N3S. For statistics only"
-msgstr "N3F 또는 N3S로 프린트할 때의 필라멘트 언로드 시간. 통계용입니다."
+msgstr "N3F 또는 N3S로 프린트할 때의 필라멘트 언로드 시간입니다. 통계용으로만 사용됩니다."
 
 msgid "Default AMS type"
 msgstr "기본 AMS 유형"
 
 msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
-msgstr "필라멘트 로드/언로드 시간을 추정하는 데 사용되는 기본 AMS 유형으로, AMS 타이밍 유형 열거 값으로 저장됩니다. 프린터 프리셋에서 가져오며 현재 기계에 연결된 AMS를 반영하지 않습니다."
+msgstr "필라멘트 로드/언로드 시간을 추정하는 데 사용되는 기본 AMS 유형입니다. AMS 타이밍 유형 enum 값으로 저장되며, 프린터 프리셋에서 가져옵니다. 현재 기기에 연결된 AMS 상태를 반영하지 않습니다."
 
 msgid "Extruder switch time"
 msgstr "압출기 전환 시간"
@@ -17481,22 +17521,52 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "속도를 우선시하는 0.8mm 노즐의 표준 프로필."
 
 msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
-msgstr "0.4mm 노즐용 저가속 프로파일입니다. 프린터가 흔들리는 책상이나 선반에 놓여 있을 때 사용하십시오."
+msgstr "0.4mm 노즐용 저가속 프로파일입니다. 프린터가 흔들리는 책상이나 선반 위에 놓여 있을 때 사용하세요."
 
-msgid "Failed to create GCodeV2"
-msgstr "GCodeV2 생성 실패"
+msgid "Helio GCode status response is incomplete"
+msgstr "Helio GCode 상태 응답이 불완전합니다."
+
+msgid "Helio GCode status response parse failed"
+msgstr "Helio GCode 상태 응답 구문 분석에 실패했습니다."
+
+msgid "Helio action canceled"
+msgstr "Helio 작업이 취소되었습니다."
+
+msgid "Helio GCode creation response is incomplete"
+msgstr "Helio GCode 생성 응답이 불완전합니다."
 
 msgid "Failed to parse response"
 msgstr "응답 구문 분석 실패"
 
-msgid "Failed to create GCodeV3"
-msgstr "GCodeV3 생성 실패"
+msgid "Helio GCode status check failed"
+msgstr "Helio GCode 상태 확인 실패"
+
+msgid "Helio GCode creation timed out while checking status"
+msgstr "상태 확인 중 Helio GCode 생성 시간 초과"
+
+msgid "Failed to create Simulation"
+msgstr "시뮬레이션 생성 실패"
+
+msgid "Helio simulation response is incomplete"
+msgstr "Helio 시뮬레이션 응답이 불완전합니다."
 
 msgid "Helio simulation task failed"
 msgstr "Helio 시뮬레이션 작업 실패"
 
+msgid "Helio simulation response parse failed"
+msgstr "Helio 시뮬레이션 응답 구문 분석에 실패했습니다."
+
+msgid "Failed to create Optimization"
+msgstr "최적화 생성 실패"
+
+msgid "Helio optimization response is incomplete"
+msgstr "Helio 최적화 응답이 불완전합니다."
+
 msgid "Helio optimization task failed"
 msgstr "Helio 최적화 작업 실패"
+
+msgid "Helio optimization response parse failed"
+msgstr "Helio 최적화 응답 구문 분석에 실패했습니다."
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API 엔드포인트가 비어 있습니다. 구성을 확인하세요."
@@ -17513,7 +17583,7 @@ msgstr "Helio: 파일이 성공적으로 업로드되었습니다."
 msgid "Helio: file upload failed"
 msgstr "Helio: 파일 업로드 실패"
 
-msgid "Please make sure you have the corrent API key set in preferences."
+msgid "Please make sure you have the correct API key set in preferences."
 msgstr "설정에서 올바른 API 키가 설정되어 있는지 확인하십시오."
 
 msgid "Helio: GCode created successfully"
@@ -17522,14 +17592,14 @@ msgstr "Helio: GCode 생성 성공"
 msgid "Helio: simulation successfully created"
 msgstr "Helio: 시뮬레이션 생성 성공"
 
-msgid "Helio: simulation working"
-msgstr "Helio: 시뮬레이션 작동 중"
+msgid "transient progress checks did not recover"
+msgstr "일시적인 진행 상황 확인에서 복구하지 못했습니다."
 
 msgid "Helio: simulation failed"
 msgstr "Helio: 시뮬레이션 실패"
 
-msgid "Helio: Simulation check failed"
-msgstr "Helio: 시뮬레이션 검사 실패"
+msgid "Helio: simulation working"
+msgstr "Helio: 시뮬레이션 작동 중"
 
 msgid "Helio: Failed to create Simulation"
 msgstr "Helio: 시뮬레이션 생성 실패"
@@ -17540,17 +17610,11 @@ msgstr "Helio: GCode 생성 실패"
 msgid "Helio: optimization successfully created"
 msgstr "Helio: 최적화 생성 성공"
 
-msgid "Helio: optimization working"
-msgstr "Helio: 최적화 작업 중"
-
 msgid "Helio: optimization failed"
 msgstr "Helio: 최적화 실패"
 
-msgid "Helio: Optimzaion check failed"
-msgstr "Helio: 최적화 검사 실패"
-
-msgid "Helio: Failed to create Optimization"
-msgstr "Helio: 최적화 생성 실패"
+msgid "Helio: optimization working"
+msgstr "Helio: 최적화 작업 중"
 
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: G코드 다운로드 성공"
@@ -18563,6 +18627,41 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#, boost-format
+#~ msgid "Plate %1%"
+#~ msgstr "플레이트 %1%"
+
+#~ msgid "For more details, see the Wiki."
+#~ msgstr "자세한 내용은 Wiki를 참조하세요."
+
+#, c-format, boost-format
+#~ msgid "%s is not compatible with %s nozzle."
+#~ msgstr "%s는 %s 노즐과 호환되지 않습니다."
+
+#~ msgid "True multi-material support will be added in a future update."
+#~ msgstr "진정한 다중 재료 지원은 향후 업데이트에서 추가될 예정입니다."
+
+#~ msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
+#~ msgstr "A2L 프린터에서 첫 레이어 최적화를 위한 열전 사전 컨디셔닝이 활성화되면, 최상의 첫 레이어 품질을 달성하기 위해 모델의 풋프린트를 기반으로 사전 컨디셔닝 기간이 자동으로 조정됩니다. 더 큰 풋프린트일수록 더 긴 사전 컨디셔닝 시간이 필요합니다. 흰색 상자는 다른 사전 컨디셔닝 기간의 경계를 나타냅니다."
+
+#~ msgid "Failed to create GCodeV2"
+#~ msgstr "GCodeV2 생성 실패"
+
+#~ msgid "Failed to create GCodeV3"
+#~ msgstr "GCodeV3 생성 실패"
+
+#~ msgid "Please make sure you have the corrent API key set in preferences."
+#~ msgstr "설정에서 올바른 API 키가 설정되어 있는지 확인하십시오."
+
+#~ msgid "Helio: Simulation check failed"
+#~ msgstr "Helio: 시뮬레이션 검사 실패"
+
+#~ msgid "Helio: Optimzaion check failed"
+#~ msgstr "Helio: 최적화 검사 실패"
+
+#~ msgid "Helio: Failed to create Optimization"
+#~ msgstr "Helio: 최적화 생성 실패"
 
 #~ msgid "Start your assembly journey from Add Step"
 #~ msgstr "'단계 추가'에서 조립 여정 시작"

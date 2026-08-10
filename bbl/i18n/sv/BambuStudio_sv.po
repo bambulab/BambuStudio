@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 20:52+0800\n"
+"POT-Creation-Date: 2026-08-10 18:15+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2999,6 +2999,10 @@ msgstr "Filamenttyp är okänd vilket krävs för att utföra denna åtgärd. An
 msgid "/"
 msgstr "/"
 
+msgctxt "AMS filament"
+msgid "loading"
+msgstr ""
+
 msgid "Confirm"
 msgstr "Bekräfta"
 
@@ -3211,7 +3215,7 @@ msgid "Install parts"
 msgstr "Installera delar"
 
 msgid "Inherited Step"
-msgstr "Ärver steg"
+msgstr "Ärvt steg"
 
 msgid "start frame"
 msgstr "startram"
@@ -3220,7 +3224,7 @@ msgid "Final assembly"
 msgstr "Slutmontering"
 
 msgid "Merged Step"
-msgstr "Sammanslaget steg"
+msgstr "Sammanfogat steg"
 
 msgid "end frame"
 msgstr "slutsteg"
@@ -3309,10 +3313,6 @@ msgstr "Modell"
 
 msgid "transition frame"
 msgstr "övergångsram"
-
-#, boost-format
-msgid "Plate %1%"
-msgstr "Platta %1%"
 
 msgid "Label"
 msgstr "Etikett"
@@ -3581,6 +3581,9 @@ msgstr "Spela alla ramar för aktuellt steg"
 
 msgid "At least two keyframes are required to play."
 msgstr "Minst två nyckelbilder krävs för att spela upp."
+
+msgid "Add the selected object or part to the current step first"
+msgstr "Lägg till det markerade objektet eller delen i det aktuella steget först"
 
 msgid "Add a new object to the current step first"
 msgstr "Lägg till ett nytt objekt i det aktuella steget först"
@@ -7552,8 +7555,8 @@ msgstr "Öppna länken för mer information"
 msgid "Warning:"
 msgstr "Varning:"
 
-msgid "For more details, see the Wiki."
-msgstr "För mer information, se Wiki."
+msgid "Wiki for details."
+msgstr ""
 
 msgid "Export successfully."
 msgstr "Exporten lyckades."
@@ -7857,10 +7860,6 @@ msgid "Customize current plate"
 msgstr "Anpassa nuvarande platta"
 
 #, c-format, boost-format
-msgid "%s is not compatible with %s nozzle."
-msgstr "%s är inte kompatibel med %s munstycke."
-
-#, c-format, boost-format
 msgid "The %s nozzle can not print %s."
 msgstr "%s nozzle kan inte skriva ut %s."
 
@@ -8120,7 +8119,7 @@ msgid "Loading file: %s"
 msgstr "Laddar fil: %s"
 
 msgid "The 3mf file has invalid config, load geometry data only"
-msgstr ""
+msgstr "3mf-filen har ogiltig konfiguration, laddar endast geometri data"
 
 msgid "Load 3mf"
 msgstr "Ladda 3mf"
@@ -8379,9 +8378,6 @@ msgstr "Du har valt flera material: %s"
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
 msgstr "Obs: Material som inte stöds kommer att använda det valda referens materialet för simulering."
 
-msgid "True multi-material support will be added in a future update."
-msgstr "Verkligt stöd för flera material kommer att läggas till i en framtida uppdatering."
-
 msgid "Option 1: Proceed using a single filament type"
 msgstr "Alternativ 1: Fortsätt med en enda filament typ"
 
@@ -8408,6 +8404,12 @@ msgstr "Se material som stöds"
 
 msgid "Go Back"
 msgstr "Gå tillbaka"
+
+msgid "Option 3: Enable multi-material optimization"
+msgstr "Alternativ 3: Aktivera flermaterialoptimering"
+
+msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
+msgstr "Klicka på tredjepartsikonen → Aktivera Helio Additive → Markera \"Experimentellt: Aktivera flermaterialstöd\""
 
 msgid "Unsupported Materials Detected"
 msgstr "Material som inte stöds har upptäckts"
@@ -8444,6 +8446,15 @@ msgstr "Synkroniserar data"
 
 msgid "Refreshing printer and material data..."
 msgstr "Uppdaterar printer och materialdata..."
+
+msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
+msgstr "Helio kunde inte uppdatera all skrivar- och materialdata. Den tidigare kompletta datan finns kvar."
+
+msgid "Helio could not load complete printer and material data. Matching remains paused."
+msgstr "Helio kunde inte ladda komplett skrivar- och materialdata. Matchning är pausad."
+
+msgid "Helio Data Refresh Failed"
+msgstr "Helio Datainhämtning Misslyckades"
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "En Helio simulering eller optimerings uppgift pågår."
@@ -8567,6 +8578,12 @@ msgstr "Se printer som stöds"
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "Klicka på knappen Optimera/Förbättra för att starta din första optimering."
 
+msgid "Previous Helio action is still stopping; try again shortly"
+msgstr "Föregående Helio-åtgärd pågår fortfarande; försök igen strax"
+
+msgid "Helio Additive"
+msgstr "Helio Additiv"
+
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
@@ -8591,6 +8608,12 @@ msgstr "Printer listan och material listan synkroniseras. Försök igen senare."
 
 msgid "Synchronizing Helio"
 msgstr "Synkroniserar Helio"
+
+msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
+msgstr "Helio kunde inte ladda de stödda skrivar- och materiallistorna. Matchning har pausats så att otillgänglig data inte behandlas som ett otillåtet material."
+
+msgid "Helio Data Load Failed"
+msgstr "Helio Data-inläsning misslyckades"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Lös berednings felen och publicera igen."
@@ -8815,8 +8838,8 @@ msgstr "Det är inte rekommenderat att använda PVA-filament med 0.2 mm nozzle."
 msgid "Are you sure to use them? \n"
 msgstr "Är du säker på att du ska använda dem? \n"
 
-msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
-msgstr "När termisk förkonditionering för optimering av första lagret är aktiverad på A2L-skrivaren, justeras förkonditioneringstiden automatiskt baserat på modellens fotavtryck för att uppnå bästa kvalitet på första lagret. Större fotavtryck kräver längre förkonditioneringstider. De vita rutorna indikerar gränserna mellan olika förkonditioneringstider."
+msgid "When thermal preconditioning is enabled, duration auto-adjusts to the model's position for optimal first-layer quality; the farther from the center, the longer it takes. White boxes mark the boundary lines. To disable the guidelines and this warning, go to Preferences > 3D."
+msgstr ""
 
 msgid "Send G-code"
 msgstr "Skicka G-kod"
@@ -9192,6 +9215,12 @@ msgstr "Visa alltid skal i förhandsgranskningen"
 
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Visa alltid skal eller inte i förhandsgranskningsvyn. Om du ändrar det här värdet bör du slicera om."
+
+msgid "Show heat-soak area"
+msgstr ""
+
+msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
+msgstr ""
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Visa dialogrutan för inställning av steg mesh parametrar."
@@ -9919,7 +9948,7 @@ msgid "The toolhead and hotend rack are full. Please remove at least one hotend 
 msgstr "Verktygshuvud och hotend ställ är fullt. Ta bort minst en hotend innan utskrift."
 
 msgid "The nozzle type doesn't match. Please re-slice."
-msgstr ""
+msgstr "Nozzletypen matchar inte. Försök att rendera om."
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "Filament spårbytaren som är installerad på printern matchar inte berednings filen. Bered om för att undvika problem med utskrifts kvaliteten."
@@ -9984,10 +10013,10 @@ msgid "Click here if you can't connect to the printer"
 msgstr "Klicka här om du inte kan ansluta till printern"
 
 msgid "Slice file"
-msgstr ""
+msgstr "Rendera fil"
 
 msgid "The connected printer"
-msgstr ""
+msgstr "Den anslutna skrivaren"
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Inget inloggningskonto, bara skrivare i LAN-läge visas"
@@ -10258,6 +10287,8 @@ msgid ""
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"När du använder lösligt material för supporten rekommenderar vi följande inställningar:\n"
+"0 topp z-avstånd, 0 botten z-avstånd, 0 gränssnittsavstånd, 0 support/objekt xy-avstånd, sammanflätat rektlinjärt mönster, inaktivera oberoende supportlagerhöjd och använd lösliga material för både supportgränssnitt och supportbas"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -10635,7 +10666,7 @@ msgid "Printable space"
 msgstr "Utskriftsbar yta"
 
 msgid "AMS filament load/unload time"
-msgstr "AMS-filament laddnings-/avlastningstid"
+msgstr "AMS-filament inmatnings-/utmatningstid"
 
 msgid "Extruder Clearance"
 msgstr "Extruder Frigång"
@@ -10704,10 +10735,10 @@ msgid "Retraction when switching material"
 msgstr "Reduktion vid material byte"
 
 msgid "Load time"
-msgstr "Laddningstid"
+msgstr "Inmatningstid"
 
 msgid "Unload time"
-msgstr "Avlastningstid"
+msgstr "Utmatningstid"
 
 msgid ""
 "The Wipe option is not available when using the Firmware Retraction mode.\n"
@@ -11673,9 +11704,6 @@ msgstr "Villkor för program varutjänster"
 msgid "^"
 msgstr ""
 
-msgid "Helio Additive"
-msgstr "Helio Additiv"
-
 msgid "Helio Additive Privacy Agreement"
 msgstr "Helio Additive´s integritetsavtal"
 
@@ -12068,6 +12096,9 @@ msgstr "Förbättra hastighet och kvalitet"
 
 msgid "Applies Helio's optimized speed/flow/fan strategy."
 msgstr "Tillämpar Helios optimerade hastighet/flöde / fläkt strategi."
+
+msgid "Save the simulated sliced 3MF locally"
+msgstr "Spara den simulerade skivade 3MF lokalt"
 
 msgid "✅ Will Print"
 msgstr "✅ Kommer att skriva ut"
@@ -12659,6 +12690,14 @@ msgstr "Skapar Skirt & Brim"
 
 msgid "Generating G-code"
 msgstr "Skapar G-kod"
+
+#, boost-format
+msgid "%1% is too close to a compacted prime tower. The toolhead needs %2% mm of horizontal clearance to descend beside it, and within that distance the object may not rise more than %3% mm. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr ""
+
+#, boost-format
+msgid "%1% is too tall to be printed together with a compacted prime tower, which only leaves %2% mm of clearance. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
@@ -13539,46 +13578,46 @@ msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "Dags att mata ut gammalt filament när du byter filament. Endast för statistik"
 
 msgid "AMS filament load time"
-msgstr "AMS-filament laddningstid"
+msgstr "AMS-filament inmatningstid"
 
 msgid "Filament load time when printing with an AMS. For statistics only"
-msgstr "Filament laddningstid vid utskrift med AMS. Endast för statistik"
+msgstr "Filament inmatningstid vid utskrift med AMS. Endast för statistik"
 
 msgid "AMS Lite filament load time"
-msgstr "AMS Lite filament laddningstid"
+msgstr "AMS Lite filament inmatningstid"
 
 msgid "Filament load time when printing with an AMS Lite. For statistics only"
-msgstr "Filament laddningstid vid utskrift med AMS Lite. Endast för statistik"
+msgstr "Filament inmatningstid vid utskrift med AMS Lite. Endast för statistik"
 
 msgid "N3F/N3S filament load time"
-msgstr "N3F/N3S filament laddningstid"
+msgstr "N3F/N3S filament inmatningstid"
 
 msgid "Filament load time when printing with an N3F or N3S. For statistics only"
-msgstr "Filament laddningstid vid utskrift med N3F eller N3S. Endast för statistik"
+msgstr "Filament inmatningstid vid utskrift med N3F eller N3S. Endast för statistik"
 
 msgid "AMS filament unload time"
-msgstr "AMS-filament avlastningstid"
+msgstr "AMS-filament utmatningstid"
 
 msgid "Filament unload time when printing with an AMS. For statistics only"
-msgstr "Filament avlastningstid vid utskrift med AMS. Endast för statistik"
+msgstr "Filament utmatningstid vid utskrift med AMS. Endast för statistik"
 
 msgid "AMS Lite filament unload time"
-msgstr "AMS Lite filament avlastningstid"
+msgstr "AMS Lite filament utmatningstid"
 
 msgid "Filament unload time when printing with an AMS Lite. For statistics only"
-msgstr "Filament avlastningstid vid utskrift med AMS Lite. Endast för statistik"
+msgstr "Filament utmatningstid vid utskrift med AMS Lite. Endast för statistik"
 
 msgid "N3F/N3S filament unload time"
-msgstr "N3F/N3S filament avlastningstid"
+msgstr "N3F/N3S filament utmatningstid"
 
 msgid "Filament unload time when printing with an N3F or N3S. For statistics only"
-msgstr "Filament avlastningstid vid utskrift med N3F eller N3S. Endast för statistik"
+msgstr "Filament utmatningstid vid utskrift med N3F eller N3S. Endast för statistik"
 
 msgid "Default AMS type"
-msgstr "Standard AMS-typ"
+msgstr "Standardtyp för AMS"
 
 msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
-msgstr "Standardtypen för AMS som används för att uppskatta laddnings-/avlastningstid för filament, lagrad som enumvärdet för AMS-tidsinställning. Den kommer från skrivarinställningen och återspeglar inte den AMS som för närvarande är ansluten till maskinen."
+msgstr "Standardtypen för AMS som används för att uppskattainmatnings-/utmatningstid för filament, lagrad som enum-värdet för AMS-tidsinställning. Den kommer från skrivarinställningen och återspeglar inte den AMS som för närvarande är ansluten till maskinen."
 
 msgid "Extruder switch time"
 msgstr "Extruder omkopplingstid"
@@ -17474,22 +17513,52 @@ msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Standardprofil för 0.8 mm nozzle, prioriterar hastighet."
 
 msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
-msgstr "Lägre accelerationsprofil för 0,4 mm munstycke. Använd den när skrivaren står på ett ostadigt skrivbord eller en hylla."
+msgstr "Lägre accelerationsprofil för 0,4 mm nozzle. Använd den när skrivaren står på ett ostadigt skrivbord eller en hylla"
 
-msgid "Failed to create GCodeV2"
-msgstr "Det gick inte att skapa GCodeV2"
+msgid "Helio GCode status response is incomplete"
+msgstr "Helio GCode-statusmeddelande är ofullständigt"
+
+msgid "Helio GCode status response parse failed"
+msgstr "Helio GCode-statusmeddelande kunde inte parsas"
+
+msgid "Helio action canceled"
+msgstr "Helio-åtgärd avbruten"
+
+msgid "Helio GCode creation response is incomplete"
+msgstr "Helio GCode-skapande svar är ofullständigt"
 
 msgid "Failed to parse response"
 msgstr "Misslyckades med att analysera svaret"
 
-msgid "Failed to create GCodeV3"
-msgstr "Det gick inte att skapa GCodeV3"
+msgid "Helio GCode status check failed"
+msgstr "Helio GCode-statuskontroll misslyckades"
+
+msgid "Helio GCode creation timed out while checking status"
+msgstr "Helio GCode-skapande hade tidsgräns överskridits vid statuskontroll"
+
+msgid "Failed to create Simulation"
+msgstr "Kunde inte skapa simulering"
+
+msgid "Helio simulation response is incomplete"
+msgstr "Helio-simuleringssvar är ofullständigt"
 
 msgid "Helio simulation task failed"
 msgstr "Helio simuleringsuppgift misslyckades"
 
+msgid "Helio simulation response parse failed"
+msgstr "Helio-simuleringssvar kunde inte parsas"
+
+msgid "Failed to create Optimization"
+msgstr "Kunde inte skapa optimering"
+
+msgid "Helio optimization response is incomplete"
+msgstr "Helio-optimeringssvar är ofullständigt"
+
 msgid "Helio optimization task failed"
 msgstr "Helio optimeringsuppgift misslyckades"
+
+msgid "Helio optimization response parse failed"
+msgstr "Helio-optimeringssvar kunde inte parsas"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API slutpunkt är tom, kontrollera konfigurationen."
@@ -17506,8 +17575,8 @@ msgstr "Helio: filen laddades upp"
 msgid "Helio: file upload failed"
 msgstr "Helio: Filuppladdning misslyckades"
 
-msgid "Please make sure you have the corrent API key set in preferences."
-msgstr "Se till att du har korrekt API nyckel inställd i inställningarna."
+msgid "Please make sure you have the correct API key set in preferences."
+msgstr "Se till att du har angett rätt API-nyckel i inställningarna."
 
 msgid "Helio: GCode created successfully"
 msgstr "Helio: G kod skapades"
@@ -17515,14 +17584,14 @@ msgstr "Helio: G kod skapades"
 msgid "Helio: simulation successfully created"
 msgstr "Helio: simulering har skapats"
 
-msgid "Helio: simulation working"
-msgstr "Helio: simulering arbetar"
+msgid "transient progress checks did not recover"
+msgstr "tillfälliga framstegskontroller återhämtade sig inte"
 
 msgid "Helio: simulation failed"
 msgstr "Helio: simulering misslyckades"
 
-msgid "Helio: Simulation check failed"
-msgstr "Helio: Simulerings kontroll misslyckades"
+msgid "Helio: simulation working"
+msgstr "Helio: simulering arbetar"
 
 msgid "Helio: Failed to create Simulation"
 msgstr "Helio: Det gick inte att skapa simulering"
@@ -17533,17 +17602,11 @@ msgstr "Helio: Det gick inte att skapa G kod"
 msgid "Helio: optimization successfully created"
 msgstr "Helio: optimering har skapats"
 
-msgid "Helio: optimization working"
-msgstr "Helio: optimering pågår"
-
 msgid "Helio: optimization failed"
 msgstr "Helio: optimeringen misslyckades"
 
-msgid "Helio: Optimzaion check failed"
-msgstr "Helio: Optimerings kontrollen misslyckades"
-
-msgid "Helio: Failed to create Optimization"
-msgstr "Helio: Det gick inte att skapa optimering"
+msgid "Helio: optimization working"
+msgstr "Helio: optimering pågår"
 
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: G kod hämtades framgångsrikt"
@@ -18554,6 +18617,41 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#, boost-format
+#~ msgid "Plate %1%"
+#~ msgstr "Platta %1%"
+
+#~ msgid "For more details, see the Wiki."
+#~ msgstr "För mer information, se Wiki."
+
+#, c-format, boost-format
+#~ msgid "%s is not compatible with %s nozzle."
+#~ msgstr "%s är inte kompatibel med %s munstycke."
+
+#~ msgid "True multi-material support will be added in a future update."
+#~ msgstr "Verkligt stöd för flera material kommer att läggas till i en framtida uppdatering."
+
+#~ msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
+#~ msgstr "När termisk förkonditionering för optimering av första lagret är aktiverad på A2L-skrivaren, justeras förkonditioneringstiden automatiskt baserat på modellens fotavtryck för att uppnå bästa kvalitet på första lagret. Större fotavtryck kräver längre förkonditioneringstider. De vita rutorna indikerar gränserna mellan olika förkonditioneringstider."
+
+#~ msgid "Failed to create GCodeV2"
+#~ msgstr "Det gick inte att skapa GCodeV2"
+
+#~ msgid "Failed to create GCodeV3"
+#~ msgstr "Det gick inte att skapa GCodeV3"
+
+#~ msgid "Please make sure you have the corrent API key set in preferences."
+#~ msgstr "Se till att du har korrekt API nyckel inställd i inställningarna."
+
+#~ msgid "Helio: Simulation check failed"
+#~ msgstr "Helio: Simulerings kontroll misslyckades"
+
+#~ msgid "Helio: Optimzaion check failed"
+#~ msgstr "Helio: Optimerings kontrollen misslyckades"
+
+#~ msgid "Helio: Failed to create Optimization"
+#~ msgstr "Helio: Det gick inte att skapa optimering"
 
 #~ msgid "Start your assembly journey from Add Step"
 #~ msgstr "Börja din monteringsresa från Lägg till steg"

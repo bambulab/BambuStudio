@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-04 20:52+0800\n"
+"POT-Creation-Date: 2026-08-10 18:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3002,6 +3002,10 @@ msgstr "Het type filament dat nodig is om deze actie uit te voeren, is onbekend.
 msgid "/"
 msgstr "/"
 
+msgctxt "AMS filament"
+msgid "loading"
+msgstr ""
+
 msgid "Confirm"
 msgstr "Bevestigen"
 
@@ -3313,10 +3317,6 @@ msgstr "Model"
 msgid "transition frame"
 msgstr "overgangsframe"
 
-#, boost-format
-msgid "Plate %1%"
-msgstr "Plaat %1%"
-
 msgid "Label"
 msgstr ""
 
@@ -3584,6 +3584,9 @@ msgstr "Alle frames voor de huidige stap afspelen"
 
 msgid "At least two keyframes are required to play."
 msgstr "Er zijn minimaal twee keyframes nodig om het af te spelen."
+
+msgid "Add the selected object or part to the current step first"
+msgstr "Voeg eerst het geselecteerde object of onderdeel toe aan de huidige stap."
 
 msgid "Add a new object to the current step first"
 msgstr "Voeg eerst een nieuw object toe aan de huidige stap"
@@ -7557,8 +7560,8 @@ msgstr "Open link voor meer info"
 msgid "Warning:"
 msgstr "Waarschuwing:"
 
-msgid "For more details, see the Wiki."
-msgstr "Zie de Wiki voor meer informatie."
+msgid "Wiki for details."
+msgstr ""
 
 msgid "Export successfully."
 msgstr "Succesvol exporteren."
@@ -7862,10 +7865,6 @@ msgid "Customize current plate"
 msgstr "Huidig plaat aanpassen"
 
 #, c-format, boost-format
-msgid "%s is not compatible with %s nozzle."
-msgstr "%s is niet compatibel met %s nozzle."
-
-#, c-format, boost-format
 msgid "The %s nozzle can not print %s."
 msgstr "De %s nozzle kan niet %s afdrukken."
 
@@ -8127,7 +8126,7 @@ msgid "Loading file: %s"
 msgstr "Bestand laden: %s"
 
 msgid "The 3mf file has invalid config, load geometry data only"
-msgstr ""
+msgstr "Het 3mf-bestand heeft een ongeldige configuratie, laad alleen geometriegegevens"
 
 msgid "Load 3mf"
 msgstr "Laad 3mf"
@@ -8389,9 +8388,6 @@ msgstr "Je hebt meerdere materialen geselecteerd: %s"
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
 msgstr "Opmerking: niet-ondersteunde materialen gebruiken het geselecteerde referentiemateriaal voor simulatie."
 
-msgid "True multi-material support will be added in a future update."
-msgstr "Echte ondersteuning voor meerdere materialen wordt in een toekomstige update toegevoegd."
-
 msgid "Option 1: Proceed using a single filament type"
 msgstr "Optie 1: Doorgaan met het gebruik van één type filament"
 
@@ -8418,6 +8414,12 @@ msgstr "Zie de ondersteunde materialen"
 
 msgid "Go Back"
 msgstr "Ga terug"
+
+msgid "Option 3: Enable multi-material optimization"
+msgstr "Optie 3: Multi-materiaaloptimalisatie inschakelen"
+
+msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
+msgstr "Klik op het pictogram van derden → Helio Additive inschakelen → Vink \"Experimenteel: Ondersteuning voor meerdere materialen inschakelen\" aan"
 
 msgid "Unsupported Materials Detected"
 msgstr "Niet-ondersteunde materialen gedetecteerd"
@@ -8454,6 +8456,15 @@ msgstr "Gegevens synchroniseren"
 
 msgid "Refreshing printer and material data..."
 msgstr "Printer- en materiaalgegevens vernieuwen..."
+
+msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
+msgstr "Helio kon niet alle printer- en materiaalgegevens vernieuwen. De vorige volledige gegevens blijven beschikbaar."
+
+msgid "Helio could not load complete printer and material data. Matching remains paused."
+msgstr "Helio kon geen volledige printer- en materiaalgegevens laden. Het matchen blijft gepauzeerd."
+
+msgid "Helio Data Refresh Failed"
+msgstr "Helio-gegevens vernieuwen mislukt"
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Een Helio-simulatie- of optimalisatietaak is bezig."
@@ -8577,6 +8588,12 @@ msgstr "Zie ondersteunde printers"
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "Klik op de knop Optimaliseren/Verbeteren om je eerste optimalisatie te starten."
 
+msgid "Previous Helio action is still stopping; try again shortly"
+msgstr "Vorige Helio-actie wordt nog steeds uitgevoerd; probeer het binnenkort opnieuw"
+
+msgid "Helio Additive"
+msgstr "Helio-additief"
+
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
@@ -8601,6 +8618,12 @@ msgstr "De printerlijst en materiaal lijst worden gesynchroniseerd. Probeer het 
 
 msgid "Synchronizing Helio"
 msgstr "Helio synchroniseren"
+
+msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
+msgstr "Helio kon de ondersteunde printer- en materiaallijsten niet laden. Het matchen is gepauzeerd, zodat onbeschikbare gegevens niet als een onondersteund materiaal worden behandeld."
+
+msgid "Helio Data Load Failed"
+msgstr "Helio-gegevens laden mislukt"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Los aub de slicing fouten op en publiceer opnieuw."
@@ -8825,8 +8848,8 @@ msgstr "Het wordt niet aanbevolen om PVA-filamenten met nozzles van 0,2 mm te ge
 msgid "Are you sure to use them? \n"
 msgstr "Weet u zeker dat u ze gaat gebruiken? \n"
 
-msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
-msgstr "Wanneer Thermal Preconditioning for First Layer Optimization is ingeschakeld op de A2L-printer, wordt de voorconditioneringstijd automatisch aangepast op basis van de voetafdruk van het model om de beste eerste laag-kwaliteit te bereiken. Grotere voetafdrukken vereisen langere voorconditioneringstijden. De witte vakken geven de grenzen tussen verschillende voorconditioneringstijden aan."
+msgid "When thermal preconditioning is enabled, duration auto-adjusts to the model's position for optimal first-layer quality; the farther from the center, the longer it takes. White boxes mark the boundary lines. To disable the guidelines and this warning, go to Preferences > 3D."
+msgstr ""
 
 msgid "Send G-code"
 msgstr "Verstuur G-code"
@@ -9202,6 +9225,12 @@ msgstr "Shells altijd weergeven in preview"
 
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Hiermee geeft u aan of shells altijd wel of niet worden weergegeven in het voorbeeldtabblad. Als u deze waarde wijzigt, moet u opnieuw slicen."
+
+msgid "Show heat-soak area"
+msgstr ""
+
+msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
+msgstr ""
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Het dialoogvenster voor het instellen van de stapmaasparameter weergeven."
@@ -9929,7 +9958,7 @@ msgid "The toolhead and hotend rack are full. Please remove at least one hotend 
 msgstr "De printkop en het hot-end rek zijn vol. Verwijder minimaal één hot-end voordat u gaat printen."
 
 msgid "The nozzle type doesn't match. Please re-slice."
-msgstr ""
+msgstr "Het nozzle-type komt niet overeen. Voer de slicing opnieuw uit."
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "De filamentwisselaar die op de printer is geïnstalleerd, komt niet overeen met het slicingbestand. Snijd opnieuw om problemen met de printkwaliteit te voorkomen."
@@ -9994,10 +10023,10 @@ msgid "Click here if you can't connect to the printer"
 msgstr "Klik hier als je geen verbinding kunt maken met de printer"
 
 msgid "Slice file"
-msgstr ""
+msgstr "Gesliced bestand"
 
 msgid "The connected printer"
-msgstr ""
+msgstr "De verbonden printer"
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Geen login-account, alleen printers in LAN-modus worden weergegeven"
@@ -10268,6 +10297,9 @@ msgid ""
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"Bij gebruik van oplosbaar materiaal voor de support, raden we de volgende instellingen aan:\n"
+"0 top z-afstand, 0 bottom z-afstand, 0 interface-afstand, 0 support/object xy-afstand, interlaced rectilinear\n"
+"patroon, onafhankelijke laaghoogte uitschakelen en oplosbare materialen gebruiken voor zowel de supportinterface als de supportbasis"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -11684,9 +11716,6 @@ msgstr "Software Servicevoorwaarden & Condities"
 msgid "^"
 msgstr ""
 
-msgid "Helio Additive"
-msgstr "Helio-additief"
-
 msgid "Helio Additive Privacy Agreement"
 msgstr "Privacyovereenkomst van Helio Additive"
 
@@ -12077,6 +12106,9 @@ msgstr "Verbeter snelheid en kwaliteit"
 
 msgid "Applies Helio's optimized speed/flow/fan strategy."
 msgstr "Past Helio's geoptimaliseerde snelheid/doorvoer/ventilator-strategie toe."
+
+msgid "Save the simulated sliced 3MF locally"
+msgstr "Sla de gesimuleerde gesneden 3MF lokaal op"
 
 msgid "✅ Will Print"
 msgstr "✅ Zal printen"
@@ -12671,6 +12703,14 @@ msgstr "Skirt en brim worden gegenereerd"
 
 msgid "Generating G-code"
 msgstr "Genereer G-code"
+
+#, boost-format
+msgid "%1% is too close to a compacted prime tower. The toolhead needs %2% mm of horizontal clearance to descend beside it, and within that distance the object may not rise more than %3% mm. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr ""
+
+#, boost-format
+msgid "%1% is too tall to be printed together with a compacted prime tower, which only leaves %2% mm of clearance. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+msgstr ""
 
 #, boost-format
 msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
@@ -17485,20 +17525,50 @@ msgstr "Standaardprofiel voor nozzle van 0,8 mm, waarbij snelheid voorop staat."
 msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
 msgstr "Profiel met lagere acceleratie voor de 0,4mm nozzle. Gebruik dit als de printer op een wiebelig bureau of schap staat"
 
-msgid "Failed to create GCodeV2"
-msgstr "Kon GCodeV2 niet aanmaken"
+msgid "Helio GCode status response is incomplete"
+msgstr "Helio GCode-statusreactie is onvolledig"
+
+msgid "Helio GCode status response parse failed"
+msgstr "Helio GCode-statusreactie kon niet worden geparseerd"
+
+msgid "Helio action canceled"
+msgstr "Helio-actie geannuleerd"
+
+msgid "Helio GCode creation response is incomplete"
+msgstr "Helio GCode-aanmaakreactie is onvolledig"
 
 msgid "Failed to parse response"
 msgstr "Kon antwoord niet ontleden"
 
-msgid "Failed to create GCodeV3"
-msgstr "Kon GCodeV3 niet aanmaken"
+msgid "Helio GCode status check failed"
+msgstr "Helio GCode-statuscontrole mislukt"
+
+msgid "Helio GCode creation timed out while checking status"
+msgstr "Helio GCode-aanmaak is verlopen tijdens het controleren van de status"
+
+msgid "Failed to create Simulation"
+msgstr "Simulatie kon niet worden aangemaakt"
+
+msgid "Helio simulation response is incomplete"
+msgstr "Helio-simulatiereactie is onvolledig"
 
 msgid "Helio simulation task failed"
 msgstr "Helio simulatie taak mislukt"
 
+msgid "Helio simulation response parse failed"
+msgstr "Helio-simulatietaak kon niet worden geparseerd"
+
+msgid "Failed to create Optimization"
+msgstr "Optimalisatie kon niet worden aangemaakt"
+
+msgid "Helio optimization response is incomplete"
+msgstr "Helio-optimalisatiereactie is onvolledig"
+
 msgid "Helio optimization task failed"
 msgstr "Helio optimalisatietaak mislukt"
+
+msgid "Helio optimization response parse failed"
+msgstr "Helio-optimalisatietaak kon niet worden geparseerd"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API-eindpunt is leeg, controleer de configuratie alstublieft."
@@ -17515,8 +17585,8 @@ msgstr "Helio: bestand succesvol geüpload"
 msgid "Helio: file upload failed"
 msgstr "Helio: bestand upload mislukt"
 
-msgid "Please make sure you have the corrent API key set in preferences."
-msgstr "Zorg ervoor dat u de juiste API-sleutel in de voorkeuren hebt ingesteld."
+msgid "Please make sure you have the correct API key set in preferences."
+msgstr "Zorg ervoor dat u de juiste API-sleutel hebt ingesteld in de voorkeuren."
 
 msgid "Helio: GCode created successfully"
 msgstr "Helio: GCode succesvol aangemaakt"
@@ -17524,14 +17594,14 @@ msgstr "Helio: GCode succesvol aangemaakt"
 msgid "Helio: simulation successfully created"
 msgstr "Helio: simulatie succesvol aangemaakt"
 
-msgid "Helio: simulation working"
-msgstr "Helio: simulatie actief"
+msgid "transient progress checks did not recover"
+msgstr "tijdelijke voortgangscontroles zijn niet hersteld"
 
 msgid "Helio: simulation failed"
 msgstr "Helio: simulatie mislukt"
 
-msgid "Helio: Simulation check failed"
-msgstr "Helio: simulatiecontrole mislukt"
+msgid "Helio: simulation working"
+msgstr "Helio: simulatie actief"
 
 msgid "Helio: Failed to create Simulation"
 msgstr "Helio: Simulatie kan niet worden gemaakt"
@@ -17542,17 +17612,11 @@ msgstr "Helio: Het is niet gelukt om GCode te maken"
 msgid "Helio: optimization successfully created"
 msgstr "Helio: optimalisatie succesvol aangemaakt"
 
-msgid "Helio: optimization working"
-msgstr "Helio: optimalisatie actief"
-
 msgid "Helio: optimization failed"
 msgstr "Helio: optimalisatie mislukt"
 
-msgid "Helio: Optimzaion check failed"
-msgstr "Helio: Optimzaion-controle mislukt"
-
-msgid "Helio: Failed to create Optimization"
-msgstr "Helio: Het is niet gelukt om optimalisatie aan te maken"
+msgid "Helio: optimization working"
+msgstr "Helio: optimalisatie actief"
 
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: GCode succesvol gedownload"
@@ -18565,6 +18629,41 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#, boost-format
+#~ msgid "Plate %1%"
+#~ msgstr "Plaat %1%"
+
+#~ msgid "For more details, see the Wiki."
+#~ msgstr "Zie de Wiki voor meer informatie."
+
+#, c-format, boost-format
+#~ msgid "%s is not compatible with %s nozzle."
+#~ msgstr "%s is niet compatibel met %s nozzle."
+
+#~ msgid "True multi-material support will be added in a future update."
+#~ msgstr "Echte ondersteuning voor meerdere materialen wordt in een toekomstige update toegevoegd."
+
+#~ msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
+#~ msgstr "Wanneer Thermal Preconditioning for First Layer Optimization is ingeschakeld op de A2L-printer, wordt de voorconditioneringstijd automatisch aangepast op basis van de voetafdruk van het model om de beste eerste laag-kwaliteit te bereiken. Grotere voetafdrukken vereisen langere voorconditioneringstijden. De witte vakken geven de grenzen tussen verschillende voorconditioneringstijden aan."
+
+#~ msgid "Failed to create GCodeV2"
+#~ msgstr "Kon GCodeV2 niet aanmaken"
+
+#~ msgid "Failed to create GCodeV3"
+#~ msgstr "Kon GCodeV3 niet aanmaken"
+
+#~ msgid "Please make sure you have the corrent API key set in preferences."
+#~ msgstr "Zorg ervoor dat u de juiste API-sleutel in de voorkeuren hebt ingesteld."
+
+#~ msgid "Helio: Simulation check failed"
+#~ msgstr "Helio: simulatiecontrole mislukt"
+
+#~ msgid "Helio: Optimzaion check failed"
+#~ msgstr "Helio: Optimzaion-controle mislukt"
+
+#~ msgid "Helio: Failed to create Optimization"
+#~ msgstr "Helio: Het is niet gelukt om optimalisatie aan te maken"
 
 #~ msgid "Start your assembly journey from Add Step"
 #~ msgstr "Begin uw montageproces bij Stap toevoegen"
