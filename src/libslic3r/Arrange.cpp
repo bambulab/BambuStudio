@@ -85,7 +85,16 @@ void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig & pri
 {
     // Note: skirt_distance is now defined between outermost brim and skirt, not the object and skirt.
     // So we can't do max but do adding instead.
-    params.brim_skirt_distance = get_real_skirt_dist(print_cfg);
+    // Feed the filaments of the arranged items into the estimation so that it follows the same
+    // "widest spacing wins" rule as Print::skirt_flow(), which drives both the real skirt and the
+    // sequential print collision check.
+    std::vector<unsigned int> used_filaments;
+    for (const ArrangePolygon &ap : selected)
+        for (const auto &filament : ap.extrude_id_filament_types)
+            if (filament.first > 0)
+                used_filaments.emplace_back(static_cast<unsigned int>(filament.first));
+    sort_remove_duplicates(used_filaments);
+    params.brim_skirt_distance = get_real_skirt_dist(print_cfg, used_filaments);
     params.bed_shrink_x += params.brim_skirt_distance;
     params.bed_shrink_y += params.brim_skirt_distance;
     if (params.is_seq_print) {

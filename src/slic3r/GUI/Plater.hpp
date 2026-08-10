@@ -188,6 +188,7 @@ public:
     void create_printer_preset();
     void init_filament_combo(PlaterPresetComboBox **combo, const int filament_idx);
     void remove_unused_filament_combos(const size_t current_extruder_count);
+    void refresh_filament_diameter_buttons(bool validate_selections = false);
     void set_bed_by_curr_bed_type(AppConfig *config);
     void update_all_preset_comboboxes();
     //void update_partplate(PartPlateList& list);
@@ -318,7 +319,8 @@ private:
     void  collect_physical_filament_info(std::vector<std::string>& colors,
                                          std::vector<std::string>& names,
                                          std::vector<std::string>& types,
-                                         std::vector<size_t>* config_indices = nullptr);
+                                         std::vector<size_t>* config_indices = nullptr,
+                                         std::vector<std::string>* diameters = nullptr);
     void  auto_calc_flushing_volumes_internal(const int filament_id, const int extruder_id);
     void  finalize_auto_calc_flushing_volumes();
     void  update_bed_thumbnail(std::string path);

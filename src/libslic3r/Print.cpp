@@ -1,5 +1,6 @@
 #include "Exception.hpp"
 #include "Print.hpp"
+#include "AdaptiveLayerMerge.hpp"
 #include "BoundingBox.hpp"
 #include "Brim.hpp"
 #include "ClipperUtils.hpp"
@@ -260,6 +261,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         } else if (
                opt_key == "initial_layer_print_height"
             || opt_key == "nozzle_diameter"
+            || opt_key == "filament_selected_nozzle_diameters"
+            || opt_key == "multi_nozzle_diameter_mode"
             || opt_key == "resolution"
             || opt_key == "precise_z_height"
             || opt_key == "filament_shrink"
@@ -567,6 +570,29 @@ std::vector<unsigned int> Print::extruders(bool conside_custom_gcode) const
     return extruders;
 }
 
+bool Print::uses_multiple_nozzle_diameters() const
+{
+    if (! multi_nozzle_diameter_mode_enabled(m_full_print_config))
+        return false;
+
+    // Regions and object configs only. This is queried from inside the per-object slicing steps, and support
+    // generation runs them in parallel, while Print::extruders() reaches into the model volumes and updates
+    // their lazy paint caches on the way.
+    std::vector<unsigned int> filaments;
+    for (const PrintRegion *region : m_print_regions)
+        region->collect_object_printing_extruders(*this, filaments);
+    for (const PrintObject *object : m_objects)
+        if (object->has_support_material()) {
+            // A "don't care" support filament prints with one of the filaments collected above.
+            if (object->config().support_filament > 0)
+                filaments.emplace_back((unsigned int) object->config().support_filament - 1);
+            if (object->config().support_interface_filament > 0)
+                filaments.emplace_back((unsigned int) object->config().support_interface_filament - 1);
+        }
+    sort_remove_duplicates(filaments);
+    return has_multiple_used_nozzle_diameters(m_config, filaments);
+}
+
 unsigned int Print::num_object_instances() const
 {
 	unsigned int instances = 0;
@@ -578,8 +604,11 @@ unsigned int Print::num_object_instances() const
 double Print::max_allowed_layer_height() const
 {
     double nozzle_diameter_max = 0.;
-    for (unsigned int extruder_id : this->extruders())
-        nozzle_diameter_max = std::max(nozzle_diameter_max, m_config.nozzle_diameter.get_at(extruder_id));
+    // Resolved per filament, not per extruder slot: a filament may have selected a nozzle diameter its slot
+    // does not carry, and nozzle_diameter is indexed by extruder.
+    for (unsigned int filament_id : this->extruders())
+        nozzle_diameter_max = std::max(nozzle_diameter_max,
+                                       double(nozzle_diameter_for_filament(m_config, filament_id + 1)));
     return nozzle_diameter_max;
 }
 
@@ -671,7 +700,7 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
     // BBS: Add skirt expansion for sequential print collision detection.
     // Per side: max(0.5*clearance + 0.5*skirt_extra, skirt_extra), matching the arrange logic.
     if (print.is_sequential_print()) {
-        float skirt_extra = get_real_skirt_dist(print.config());
+        float skirt_extra = get_real_skirt_dist(print.config(), print.skirt_flow());
         obj_distance += scale_(0.5f * skirt_extra);
         obj_distance = std::max(obj_distance, static_cast<float>(scale_(skirt_extra)));
     }
@@ -1486,13 +1515,18 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     }
 
     if (this->has_wipe_tower() && ! m_objects.empty()) {
-        // Make sure all extruders have the same nozzle diameter when prime tower is enabled.
-        // Different filament diameters are supported — the wipe tower handles per-filament extrusion.
+        // Different nozzle diameters are supported by the prime tower's per-filament extrusion planning.
         double first_nozzle_diam = m_config.nozzle_diameter.get_at(extruders.front());
         for (const auto& extruder_idx : extruders) {
             double nozzle_diam = m_config.nozzle_diameter.get_at(extruder_idx);
-            if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam)
-                return { L("Different nozzle diameters are not allowed when prime tower is enabled.") };
+            if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam) {
+                if (warning) {
+                    warning->string = L("Printing with different nozzle diameters and prime tower is experimental. "
+                                        "The prime tower may not work correctly with mismatched nozzle sizes.");
+                    warning->is_warning = true;
+                }
+                break;
+            }
         }
 
         if (! m_config.use_relative_e_distances)
@@ -1626,11 +1660,15 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 return ("One or more object were assigned an extruder that the printer does not have.");
 #endif
 
-        auto validate_extrusion_width = [/*min_nozzle_diameter,*/ max_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
+        const double primary_diameter = primary_nozzle_diameter(this->full_print_config());
+        const double preset_nozzle_diameter =
+            (primary_diameter > EPSILON) ? primary_diameter : max_nozzle_diameter;
+        auto validate_extrusion_width = [preset_nozzle_diameter](const ConfigBase &config, const char *opt_key, double layer_height, std::string &err_msg) -> bool {
             // This may change in the future, if we switch to "extrusion width wrt. nozzle diameter"
             // instead of currently used logic "extrusion width wrt. layer height", see GH issues #1923 #2829.
 //        	double extrusion_width_min = config.get_abs_value(opt_key, min_nozzle_diameter);
 //        	double extrusion_width_max = config.get_abs_value(opt_key, max_nozzle_diameter);
+            // Widths are authored as absolute values for the primary diameter used to select the process preset.
             double extrusion_width_min = config.get_abs_value(opt_key);
             double extrusion_width_max = config.get_abs_value(opt_key);
         	if (extrusion_width_min == 0) {
@@ -1638,7 +1676,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         	} else if (extrusion_width_min <= layer_height) {
                 err_msg = L("Too small line width");
 				return false;
-			} else if (extrusion_width_max > max_nozzle_diameter * 2.5) {
+			} else if (extrusion_width_max > preset_nozzle_diameter * 2.5) {
                 err_msg = L("Too large line width");
 				return false;
 			}
@@ -1683,25 +1721,16 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             }
 
             double initial_layer_print_height = m_config.initial_layer_print_height.value;
-            double first_layer_min_nozzle_diameter;
-            if (object->has_raft()) {
-                // if we have raft layers, only support material extruder is used on first layer
-                size_t first_layer_extruder = object->config().raft_layers == 1
-                    ? object->config().support_interface_filament-1
-                    : object->config().support_filament-1;
-                first_layer_min_nozzle_diameter = (first_layer_extruder == size_t(-1)) ?
-                    min_nozzle_diameter :
-                    m_config.nozzle_diameter.get_at(first_layer_extruder);
-            } else {
-                // if we don't have raft layers, any nozzle diameter is potentially used in first layer
-                first_layer_min_nozzle_diameter = min_nozzle_diameter;
-            }
-            if (initial_layer_print_height > first_layer_min_nozzle_diameter)
+            // Mixed-diameter machines keep unused smaller nozzles installed. The process preset
+            // (layer height, line width) follows the user-selected primary diameter, so this
+            // ceiling must not be tightened by those unused slots.
+            const double layer_height_nozzle_limit = (primary_diameter > EPSILON) ? primary_diameter : min_nozzle_diameter;
+            if (initial_layer_print_height > layer_height_nozzle_limit)
                 return  {L("Layer height cannot exceed nozzle diameter"), object, "initial_layer_print_height"};
 
             // validate layer_height
             double layer_height = object->config().layer_height.value;
-            if (layer_height > min_nozzle_diameter)
+            if (layer_height > layer_height_nozzle_limit)
                 return  {L("Layer height cannot exceed nozzle diameter"), object, "layer_height"};
 
             // Validate extrusion widths.
@@ -1838,26 +1867,41 @@ Flow Print::brim_flow() const
     return Flow::new_from_config_width(
         frPerimeter,
 		width,
-        (float)m_config.nozzle_diameter.get_at(m_print_regions.front()->config().wall_filament-1),
-		(float)this->skirt_first_layer_height());
+        float(primary_nozzle_diameter(this->full_print_config())),
+        nozzle_diameter_for_filament(m_config, m_print_regions.front()->config().wall_filament),
+		(float)this->skirt_first_layer_height(),
+        multi_nozzle_diameter_mode_enabled(this->full_print_config()));
 }
 
 Flow Print::skirt_flow() const
 {
+    Flow flow = this->skirt_flow(*m_objects.front(), m_objects.front()->config().support_filament);
+    for (unsigned int extruder_id : this->extruders()) {
+        Flow candidate = this->skirt_flow(extruder_id + 1);
+        if (candidate.spacing() > flow.spacing())
+            flow = candidate;
+    }
+    return flow;
+}
+
+Flow Print::skirt_flow(unsigned int filament_id) const
+{
+    return this->skirt_flow(*m_objects.front(), filament_id);
+}
+
+Flow Print::skirt_flow(const PrintObject &object, unsigned int filament_id) const
+{
     ConfigOptionFloat width = m_config.initial_layer_line_width;
     if (width.value == 0)
-        width = m_objects.front()->config().line_width;
+        width = object.config().line_width;
 
-    /* We currently use a random object's support material extruder.
-       While this works for most cases, we should probably consider all of the support material
-       extruders and take the one with, say, the smallest index;
-       The same logic should be applied to the code that selects the extruder during G-code
-       generation as well. */
     return Flow::new_from_config_width(
         frPerimeter,
 		width,
-		(float)m_config.nozzle_diameter.get_at(m_objects.front()->config().support_filament-1),
-		(float)this->skirt_first_layer_height());
+        float(primary_nozzle_diameter(this->full_print_config())),
+		nozzle_diameter_for_filament(m_config, filament_id),
+		(float)this->skirt_first_layer_height(),
+        multi_nozzle_diameter_mode_enabled(this->full_print_config()));
 }
 
 bool Print::has_support_material() const
@@ -2724,7 +2768,6 @@ void Print::_make_skirt()
 
     // Skirt may be printed on several layers, having distinct layer heights,
     // but loops must be aligned so can't vary width/spacing
-    // TODO: use each extruder's own flow
     double initial_layer_print_height = this->skirt_first_layer_height();
     Flow   flow = this->skirt_flow();
     float  spacing = flow.spacing();
@@ -2738,7 +2781,8 @@ void Print::_make_skirt()
         extruders_e_per_mm.reserve(set_extruders.size());
         for (auto &extruder_id : set_extruders) {
             extruders.push_back(extruder_id);
-            extruders_e_per_mm.push_back(Extruder((unsigned int)extruder_id, &m_config, m_config.single_extruder_multi_material).e_per_mm(mm3_per_mm));
+            const double extruder_mm3_per_mm = this->skirt_flow((unsigned int)extruder_id + 1).mm3_per_mm();
+            extruders_e_per_mm.push_back(Extruder((unsigned int)extruder_id, &m_config, m_config.single_extruder_multi_material).e_per_mm(extruder_mm3_per_mm));
         }
     }
 
@@ -2806,15 +2850,20 @@ void Print::_make_skirt()
     // BBS: per-object skirt. Sequential (ByObject + multi-object) uses config skirt_loops/skirt_distance; otherwise one loop at 1mm.
     const bool by_object = is_sequential_print() && m_config.skirt_per_object.value;
     const size_t n_object_skirts = by_object ? std::max(size_t(1), size_t(m_config.skirt_loops.value)) : 1;
-    const float object_skirt_initial_offset = by_object
-        ? float(scale_(m_config.skirt_distance.value - spacing / 2.f))
-        : float(scale_(1.0));
     for (auto obj_cvx_hull : object_convex_hulls) {
         PrintObject* object = obj_cvx_hull.first;
+        const std::vector<unsigned int> object_extruders = object->object_extruders();
+        const unsigned int filament_id = object_extruders.empty() ?
+            (unsigned int)object->config().support_filament.value : object_extruders.front() + 1;
+        const Flow object_skirt_flow = this->skirt_flow(*object, filament_id);
+        const float object_spacing = object_skirt_flow.spacing();
+        const float object_skirt_initial_offset = by_object
+            ? float(scale_(m_config.skirt_distance.value - object_spacing / 2.f))
+            : float(scale_(1.0));
         float obj_distance = object_skirt_initial_offset;
         for (size_t i = 0; i < n_object_skirts; i++) {
             if (by_object || i > 0)
-                obj_distance += float(scale_(spacing));
+                obj_distance += float(scale_(object_spacing));
             Polygon loop;
             {
                 // BBS. skirt_distance is defined as the gap between skirt and outer most brim, so no need to add max_brim_width
@@ -2830,8 +2879,8 @@ void Print::_make_skirt()
             eloop.paths.emplace_back(ExtrusionPath(
                 ExtrusionPath(
                     erSkirt,
-                    (float)mm3_per_mm,         // this will be overridden at G-code export time
-                    flow.width(),
+                    (float)object_skirt_flow.mm3_per_mm(), // this will be overridden at G-code export time
+                    object_skirt_flow.width(),
                     (float)initial_layer_print_height  // this will be overridden at G-code export time
                 )));
             eloop.paths.back().polyline = loop.split_at_first_point();
@@ -3978,6 +4027,7 @@ void Print::_make_wipe_tower()
                          m_wipe_tower_data.tool_ordering.empty() ? 0.f : m_wipe_tower_data.tool_ordering.back().print_z, m_wipe_tower_data.tool_ordering.all_extruders());
     wipe_tower.set_first_layer_flow_ratio(m_default_region_config.initial_layer_flow_ratio);
     wipe_tower.set_has_tpu_filament(this->has_tpu_filament());
+    wipe_tower.set_multi_diameter_print(this->uses_multiple_nozzle_diameters());
     wipe_tower.set_nozzle_group_result(*group_result);
     wipe_tower.set_shared_print_bed(this->get_extruder_shared_printable_polygon());
     // Set the extruder & material properties at the wipe tower object.
@@ -4019,7 +4069,18 @@ void Print::_make_wipe_tower()
         for (auto& layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
             ++layer_idx;
 
-            if (!layer_tools.has_wipe_tower) continue;
+            if (!layer_tools.has_wipe_tower) {
+                // This layer changes tools directly because it has no wipe-tower visit. Keep the planner's
+                // loaded-filament and nozzle state aligned with the G-code writer before the next tower layer.
+                for (const unsigned int filament_id : layer_tools.extruders) {
+                    auto nozzle_info = group_result->get_nozzle_for_filament(filament_id, layer_idx);
+                    if (!nozzle_info)
+                        continue;
+                    old_filament_id = filament_id;
+                    nozzle_recorder.set_nozzle_status(nozzle_info->group_id, filament_id);
+                }
+                continue;
+            }
             bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
             wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, old_filament_id, old_filament_id);
 

@@ -134,13 +134,17 @@ static wxColour blend_n_colors(const std::vector<wxColour>& cols, const std::vec
 MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
                                          const std::vector<std::string>& physical_colors,
                                          const std::vector<std::string>& physical_names,
-                                         const std::vector<std::string>& physical_types)
+                                         const std::vector<std::string>& physical_types,
+                                         const std::vector<std::string>& physical_diameters,
+                                         bool enforce_nozzle_diameter)
     : DPIDialog(parent, wxID_ANY, _L("Add Mixed Filament"), wxDefaultPosition,
                 wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_edit_mode(false)
     , m_physical_colors(physical_colors)
     , m_physical_names(physical_names)
     , m_physical_types(physical_types)
+    , m_physical_diameters(physical_diameters)
+    , m_enforce_nozzle_diameter(enforce_nozzle_diameter)
 {
     m_result.components = {1, (physical_colors.size() >= 2) ? 2u : 1u};
     m_result.ratios     = {50, 50};
@@ -158,7 +162,9 @@ MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
                                          const MixedFilamentResult& existing,
                                          const std::vector<std::string>& physical_colors,
                                          const std::vector<std::string>& physical_names,
-                                         const std::vector<std::string>& physical_types)
+                                         const std::vector<std::string>& physical_types,
+                                         const std::vector<std::string>& physical_diameters,
+                                         bool enforce_nozzle_diameter)
     : DPIDialog(parent, wxID_ANY, _L("Edit Mixed Filament"), wxDefaultPosition,
                 wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_result(existing)
@@ -166,6 +172,8 @@ MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
     , m_physical_colors(physical_colors)
     , m_physical_names(physical_names)
     , m_physical_types(physical_types)
+    , m_physical_diameters(physical_diameters)
+    , m_enforce_nozzle_diameter(enforce_nozzle_diameter)
 {
     if (m_result.components.size() < 2) {
         m_result.components = {1, (physical_colors.size() >= 2) ? 2u : 1u};
@@ -1285,19 +1293,21 @@ void MixedFilamentDialog::rebuild_recommendation_items()
     size_t n = m_physical_colors.size();
     int count = 0;
 
-    // Group physical filaments by type (only same-type combos are recommended)
-    std::map<std::string, std::vector<size_t>> type_groups;
+    // Only filaments with the same material type and nozzle diameter may be mixed.
+    std::map<std::pair<std::string, std::string>, std::vector<size_t>> type_groups;
     for (size_t i = 0; i < n; ++i) {
         std::string t = (i < m_physical_types.size()) ? m_physical_types[i] : "PLA";
         // Skip support filaments (type ends with "-S")
         if (t.size() >= 2 && t.compare(t.size() - 2, 2, "-S") == 0)
             continue;
-        type_groups[t].push_back(i);
+        const std::string diameter = i < m_physical_diameters.size() ? m_physical_diameters[i] : std::string();
+        type_groups[{t, diameter}].push_back(i);
     }
 
     if (num_components() >= 3) {
         // Three-color: C(g,3) x 3 variants per same-type group
-        for (auto& [type, indices] : type_groups) {
+        for (auto& group : type_groups) {
+            auto& indices = group.second;
             if (count >= MAX_RECOMMENDATIONS) break;
             size_t g = indices.size();
             for (size_t ai = 0; ai < g && count < MAX_RECOMMENDATIONS; ++ai) {
@@ -1340,7 +1350,8 @@ void MixedFilamentDialog::rebuild_recommendation_items()
         }
     } else {
         // Two-color: C(g,2) per same-type group
-        for (auto& [type, indices] : type_groups) {
+        for (auto& group : type_groups) {
+            auto& indices = group.second;
             if (count >= MAX_RECOMMENDATIONS) break;
             size_t g = indices.size();
             for (size_t ai = 0; ai < g && count < MAX_RECOMMENDATIONS; ++ai) {
@@ -1410,12 +1421,15 @@ void MixedFilamentDialog::rebuild_all_combos()
     for (size_t i = 0; i < m_combo_filaments.size(); ++i) {
         std::set<unsigned int> others_selected;
         std::set<std::string>  others_types;
+        std::set<std::string>  others_diameters;
         for (size_t k = 0; k < m_result.components.size(); ++k) {
             if (k == i) continue;
             unsigned int phys = m_result.components[k];
             others_selected.insert(phys);
             if (phys >= 1 && phys <= m_physical_types.size())
                 others_types.insert(m_physical_types[phys - 1]);
+            if (phys >= 1 && phys <= m_physical_diameters.size())
+                others_diameters.insert(m_physical_diameters[phys - 1]);
         }
 
         auto* combo = m_combo_filaments[i];
@@ -1441,6 +1455,11 @@ void MixedFilamentDialog::rebuild_all_combos()
             if (!others_types.empty() && !m_physical_types.empty()) {
                 std::string this_type = (j < m_physical_types.size()) ? m_physical_types[j] : "PLA";
                 if (others_types.find(this_type) == others_types.end())
+                    style = DD_ITEM_STYLE_DIMMED;
+            }
+            if (!others_diameters.empty() && !m_physical_diameters.empty()) {
+                const std::string this_diameter = j < m_physical_diameters.size() ? m_physical_diameters[j] : std::string();
+                if (others_diameters.find(this_diameter) == others_diameters.end())
                     style = DD_ITEM_STYLE_DIMMED;
             }
 
@@ -1802,6 +1821,7 @@ void MixedFilamentDialog::update_ok_button_state()
     if (!m_btn_ok) return;
 
     bool has_type_mismatch = false;
+    bool has_diameter_mismatch = false;
     if (!m_physical_types.empty() && m_result.components.size() >= 2) {
         std::map<std::string, std::vector<unsigned int>> type_groups;
         for (size_t i = 0; i < m_result.components.size(); ++i) {
@@ -1830,12 +1850,44 @@ void MixedFilamentDialog::update_ok_button_state()
         m_type_mismatch_msg.clear();
     }
 
+    if (!m_physical_diameters.empty() && m_result.components.size() >= 2) {
+        std::map<std::string, std::vector<unsigned int>> diameter_groups;
+        bool missing_diameter = false;
+        for (unsigned int phys : m_result.components) {
+            if (phys < 1 || phys > m_physical_diameters.size()) {
+                missing_diameter = m_enforce_nozzle_diameter;
+                continue;
+            }
+            if (m_physical_diameters[phys - 1].empty())
+                missing_diameter = m_enforce_nozzle_diameter;
+            diameter_groups[m_physical_diameters[phys - 1]].push_back(phys);
+        }
+        has_diameter_mismatch = diameter_groups.size() > 1 || missing_diameter;
+        if (has_diameter_mismatch) {
+            wxString parts;
+            for (const auto &group : diameter_groups) {
+                if (!parts.empty())
+                    parts += _L(" and ");
+                wxString slots;
+                for (unsigned int slot : group.second) {
+                    if (!slots.empty())
+                        slots += ", ";
+                    slots += std::to_string(slot);
+                }
+                const wxString diameter = group.first.empty() ? _L("unknown nozzle") :
+                    wxString::FromUTF8(group.first) + " mm";
+                parts += wxString::Format(_L("Slot %s (%s)"), slots, diameter);
+            }
+            m_type_mismatch_msg = parts + " " + _L("cannot be mixed. Please select filaments using the same nozzle diameter.");
+        }
+    }
+
     bool has_unselected = false;
     for (unsigned int c : m_result.components) {
         if (c == 0) { has_unselected = true; break; }
     }
 
-    bool can_confirm = !has_type_mismatch && !has_unselected;
+    bool can_confirm = !has_type_mismatch && !has_diameter_mismatch && !has_unselected;
     m_btn_ok->Enable(can_confirm);
     if (has_unselected) {
         m_btn_ok->SetBackgroundColor(wxColour("#CECECE"));
@@ -1845,6 +1897,10 @@ void MixedFilamentDialog::update_ok_button_state()
         m_btn_ok->SetBackgroundColor(wxColour("#CECECE"));
         m_btn_ok->SetBorderColor(wxColour("#CECECE"));
         m_btn_ok->SetToolTip(_L("Cannot mix different filament types"));
+    } else if (has_diameter_mismatch) {
+        m_btn_ok->SetBackgroundColor(wxColour("#CECECE"));
+        m_btn_ok->SetBorderColor(wxColour("#CECECE"));
+        m_btn_ok->SetToolTip(_L("Cannot mix filaments using different nozzle diameters"));
     } else {
         m_btn_ok->SetBackgroundColor(wxColour("#00AE42"));
         m_btn_ok->SetBorderColor(wxColour("#00AE42"));
@@ -1852,7 +1908,7 @@ void MixedFilamentDialog::update_ok_button_state()
     }
 
     if (m_warning_panel) {
-        m_warning_panel->Show(has_type_mismatch);
+        m_warning_panel->Show(has_type_mismatch || has_diameter_mismatch);
         // Force a repaint: when the panel is already visible and only the
         // mismatch text changes (e.g. PETG -> ABS), Show()/Layout() do not
         // generate a paint event, so paint_warning_panel keeps the stale text.

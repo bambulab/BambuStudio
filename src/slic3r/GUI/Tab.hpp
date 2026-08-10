@@ -661,6 +661,7 @@ private:
     std::vector<int> 	 m_extruder_type;
     std::string          m_base_preset_name;
     std::string          m_base_preset_model;
+    bool                 m_full_stat_prebuilt_for_model_change = false;
 
 public:
 	ScalableButton*	m_reset_to_filament_color = nullptr;
@@ -693,6 +694,12 @@ public:
 	void		extruders_count_changed(size_t extruders_count);
 	PageShp		build_kinematics_page();
 	void		build_unregular_pages(bool from_initial_build = false);
+	// Multi-diameter: refresh extruder_full_stat to the freshly selected printer *before* update_compatible
+	// consumes it. on_preset_loaded() rebuilds it too, but only afterwards, which would let the
+	// compatibility / nozzle-diameter derivation read the previous printer's stat during a model switch.
+	// Only rebuilds on an actual model change (matching on_preset_loaded's guard) and never updates
+	// m_base_preset_model, so the full UI refresh in on_preset_loaded still runs.
+	void		refresh_extruder_full_stat_for_model_change();
 	void		on_preset_loaded() override;
 	void		init_options_list() override;
 	void		msw_rescale() override;

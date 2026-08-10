@@ -179,6 +179,10 @@ public:
     unsigned int solid_infill_filament(const PrintRegion &region) const;
 	// Returns a zero based extruder this eec should be printed with, according to PrintRegion config or extruder_override if overriden.
 	unsigned int extruder(const ExtrusionEntityCollection &extrusions, const PrintRegion &region) const;
+	// The same decision as extruder(), but as the 1-based filament slot the region config names, where
+	// 0 still means "don't care". extruder() folds that 0 onto filament 1 on its way to a zero based
+	// index, so anything registering slots into LayerTools::extruders has to read them from here.
+	unsigned int filament_slot(const ExtrusionEntityCollection &extrusions, const PrintRegion &region) const;
 
     coordf_t 					print_z	= 0.;
     bool 						has_object = false;

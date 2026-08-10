@@ -232,7 +232,7 @@ static void lowpass_filter_by_paths_overhang_degree(ExtrusionPaths& paths) {
 std::pair<double, double> PerimeterGenerator::dist_boundary(double width)
 {
     std::pair<double, double> out;
-    float nozzle_diameter = print_config->nozzle_diameter.get_at(config->wall_filament - 1);
+    float nozzle_diameter = nozzle_diameter_for_filament(*print_config, config->wall_filament);
     float start_offset = -0.5 * width;
     float end_offset = 0.5 * nozzle_diameter;
     double degree_0 = scale_(start_offset + 0.5 * (end_offset - start_offset) / (overhang_sampling_number - 1));
@@ -646,7 +646,13 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
             node.node_id      = perimeter_generator.loop_nodes->size();
             node.loop_id      = extrusion_coll.entities.size();
             node.bbox         = get_extents(node.node_contour.pts);
-            node.bbox.offset(perimeter_generator.config->outer_wall_line_width/2);
+            const float nozzle_diameter = nozzle_diameter_for_filament(
+                *perimeter_generator.print_config, perimeter_generator.config->wall_filament);
+            node.bbox.offset(Flow::extrusion_width_for_nozzle(
+                perimeter_generator.config->outer_wall_line_width,
+                perimeter_generator.preset_nozzle_diameter,
+                nozzle_diameter,
+                perimeter_generator.multi_nozzle_diameter_mode) / 2);
             perimeter_generator.loop_nodes->push_back(std::move(node));
         }
 
@@ -660,7 +666,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                         ClipperLib_Z::Path extrusion_path;
             extrusion_path.reserve(extrusion->size());
 
-            double nozzle_diameter = perimeter_generator.print_config->nozzle_diameter.get_at(perimeter_generator.config->wall_filament - 1);
+            double nozzle_diameter = nozzle_diameter_for_filament(*perimeter_generator.print_config, perimeter_generator.config->wall_filament);
             Polygons lower_layer_polys = perimeter_generator.lower_slices_polygons();
 
             coord_t max_extrusion_width = 0;
@@ -1158,7 +1164,13 @@ void PerimeterGenerator::process_classic()
                     // increase by half peri the inner space to fill the frontier between last and stored.
                     top_fills = union_ex(top_fills, top_polygons);
                     //set the clip to the external wall but go back inside by infill_extrusion_width/2 to be sure the extrusion won't go outside even with a 100% overlap.
-                    double infill_spacing_unscaled = this->config->sparse_infill_line_width.value;
+                    const float infill_nozzle_diameter = nozzle_diameter_for_filament(
+                        *this->print_config, this->config->sparse_infill_filament);
+                    double infill_spacing_unscaled = Flow::extrusion_width_for_nozzle(
+                        this->config->sparse_infill_line_width,
+                        this->preset_nozzle_diameter,
+                        infill_nozzle_diameter,
+                        this->multi_nozzle_diameter_mode);
                     fill_clip = offset_ex(last, double(ext_perimeter_spacing / 2) - scale_(infill_spacing_unscaled / 2));
                     last = intersection_ex(inner_polygons, last);
                     if (has_gap_fill)
@@ -1485,7 +1497,7 @@ void PerimeterGenerator::process_arachne()
         // We consider overhang any part where the entire nozzle diameter is not supported by the
         // lower layer, so we take lower slices and offset them by half the nozzle diameter used
         // in the current layer
-        double nozzle_diameter = this->print_config->nozzle_diameter.get_at(this->config->wall_filament - 1);
+        double nozzle_diameter = nozzle_diameter_for_filament(*this->print_config, this->config->wall_filament);
         m_lower_slices_polygons = offset(*this->lower_slices, float(scale_(+nozzle_diameter / 2)));
     }
 
@@ -1838,7 +1850,7 @@ bool PerimeterGeneratorLoop::is_internal_contour() const
 
 std::vector<Polygons> PerimeterGenerator::generate_lower_polygons_series(float width)
 {
-    float nozzle_diameter = print_config->nozzle_diameter.get_at(config->wall_filament - 1);
+    float nozzle_diameter = nozzle_diameter_for_filament(*print_config, config->wall_filament);
     float start_offset = -0.5 * width;
     float end_offset = 0.5 * nozzle_diameter;
 

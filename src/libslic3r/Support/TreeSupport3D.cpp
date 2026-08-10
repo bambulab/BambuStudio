@@ -249,7 +249,11 @@ static std::vector<std::pair<TreeSupportSettings, std::vector<size_t>>> group_me
     const coordf_t radius_sample_resolution = g_config_tree_support_collision_resolution;
 
     // calc the extrudable expolygons of each layer
-    const coordf_t extrusion_width = config.line_width.value;
+    const coordf_t extrusion_width = Flow::extrusion_width_for_nozzle(
+        config.line_width,
+        float(primary_nozzle_diameter(print_object.print()->full_print_config())),
+        nozzle_diameter_for_filament(print_config, config.support_filament),
+        multi_nozzle_diameter_mode_enabled(print_object.print()->full_print_config()));
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     tbb::parallel_for(tbb::blocked_range<size_t>(0, print_object.layer_count()),
         [&](const tbb::blocked_range<size_t>& range) {
@@ -4995,6 +4999,11 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         std::vector<Polylines> lightning_infill_lines(num_support_layers);
         // Sparse rectilinear columns under floating faces left by model intrusion into a trunk.
         std::vector<ExPolygons> floating_column_areas(num_support_layers);
+        // The auxiliary areas stay indexed by the original organic grid even after undefined generator
+        // layers are removed. Preserve the grid's real Z coordinates for the final support-layer remap.
+        std::vector<coordf_t> per_layer_area_print_z(num_support_layers);
+        for (size_t layer_idx = 0; layer_idx < num_support_layers; ++ layer_idx)
+            per_layer_area_print_z[layer_idx] = layer_z(print_object.slicing_parameters(), config, layer_idx);
         if (has_support) {
             auto t_precalc = std::chrono::high_resolution_clock::now();
             // value is the area where support may be placed. As this is calculated in CreateLayerPathing it is saved and reused in draw_areas
@@ -5147,7 +5156,41 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 
         // Produce the support G-code.
         SupportGeneratorLayersPtr raft_layers = generate_raft_base(print_object, support_params, print_object.slicing_parameters(), top_contacts, interface_layers, base_interface_layers, intermediate_layers, layer_storage);
+
+        // BBS multi-diameter: merge the support areas into slabs a coarse nozzle can extrude. The organic tree
+        // is grown on a layer grid of a fixed height, so this post-pass is the only place its Z ladder can
+        // still be coarsened. print_z -> filament the merged slab at that height was planned for.
+        std::map<coordf_t, SupportMergePlan::Candidate> planned_filaments;
+        std::map<coordf_t, SupportMergePlan::Candidate> planned_interface_filaments;
+        std::map<coordf_t, coordf_t> planned_interface_heights;
+        merge_support_layers_multi_diameter(print_object, support_params, print_object.slicing_parameters(), raft_layers,
+            bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers,
+            planned_filaments, planned_interface_filaments, planned_interface_heights, &per_layer_area_print_z,
+            &cooldown_areas, nullptr);
+
         SupportGeneratorLayersPtr layers_sorted = generate_support_layers(print_object, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
+
+        // Hand the planned filament over to the support layers the object owns now. Matching by print_z is safe
+        // because generate_support_layers() gives every support layer a unique print_z.
+        for (SupportLayer *support_layer : print_object.support_layers()) {
+            auto it = planned_filaments.lower_bound(support_layer->print_z - EPSILON);
+            if (it != planned_filaments.end() && it->first <= support_layer->print_z + EPSILON) {
+                support_layer->planned_filament_id     = it->second.filament_id;
+                support_layer->planned_nozzle_diameter = it->second.nozzle_diameter;
+            }
+            auto interface_it = planned_interface_filaments.lower_bound(support_layer->print_z - EPSILON);
+            if (interface_it != planned_interface_filaments.end() &&
+                interface_it->first <= support_layer->print_z + EPSILON) {
+                support_layer->planned_interface_filament_id =
+                    interface_it->second.filament_id;
+                support_layer->planned_interface_nozzle_diameter =
+                    interface_it->second.nozzle_diameter;
+            }
+            auto height_it = planned_interface_heights.lower_bound(support_layer->print_z - EPSILON);
+            if (height_it != planned_interface_heights.end() &&
+                height_it->first <= support_layer->print_z + EPSILON)
+                support_layer->interface_slab_height = height_it->second;
+        }
 
         // BBS: This is a hack to avoid the support being generated outside the bed area. See #4769.
         tbb::parallel_for_each(layers_sorted.begin(), layers_sorted.end(), [&](SupportGeneratorLayer *layer) {

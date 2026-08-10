@@ -10,6 +10,7 @@
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
 #include "Widgets/Label.hpp"
+#include "Widgets/SwitchButton.hpp"
 #include "wx/graphics.h"
 
 namespace Slic3r {
@@ -30,8 +31,27 @@ static const wxColour FlowNormalColor     = wxColour("#999999");
 static const wxColour DiameterDisabledColor = wxColour("#CECECE");
 static const wxColour FlowDisabledColor     = wxColour("#DCDCDC");
 
-DiameterButtonPanel::DiameterButtonPanel(wxWindow *parent, const std::vector<wxString> &diameter_choices, bool show_title)
-    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), m_choices(diameter_choices), m_show_title(show_title)
+// Extract the leading numeric part of a diameter label (e.g. "0.4 mm" -> "0.4"),
+// stopping at the first character that is not a digit or decimal point.
+static wxString parse_diameter_value(const wxString &label)
+{
+    wxString value;
+    for (const auto &ch : label) {
+        if (wxIsdigit(ch) || ch == '.')
+            value += ch;
+        else
+            break;
+    }
+    return value;
+}
+
+DiameterButtonPanel::DiameterButtonPanel(wxWindow *parent, const std::vector<wxString> &diameter_choices, bool show_title,
+                                         DisabledTooltipContext tooltip_context, bool show_multi_nozzle_mode)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+    , m_choices(diameter_choices)
+    , m_show_title(show_title)
+    , m_show_multi_nozzle_mode(show_multi_nozzle_mode)
+    , m_tooltip_context(tooltip_context)
 {
     SetBackgroundColour(*wxWHITE);
     if (!m_choices.empty()) {
@@ -51,14 +71,34 @@ void DiameterButtonPanel::CreateLayout()
         auto title = new Label(this, _L("Set nozzle diameter"));
         title->SetFont(Label::Body_13);
         title->SetForegroundColour(wxColour("#999999"));
-        main_sizer->Add(title, 0, wxALIGN_LEFT | wxBOTTOM, FromDIP(4));
+
+        auto title_sizer = new wxBoxSizer(wxHORIZONTAL);
+        title_sizer->Add(title, 0, wxALIGN_CENTER_VERTICAL);
+        if (m_show_multi_nozzle_mode) {
+            title_sizer->AddStretchSpacer();
+            m_multi_nozzle_mode_switch = new SwitchButton(this);
+            m_multi_nozzle_mode_switch->SetValue(m_multi_nozzle_mode_enabled);
+            m_multi_nozzle_mode_switch->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &event) {
+                m_multi_nozzle_mode_enabled = m_multi_nozzle_mode_switch->GetValue();
+                if (m_multi_nozzle_mode_callback)
+                    m_multi_nozzle_mode_callback(m_multi_nozzle_mode_enabled);
+                event.Skip();
+            });
+            title_sizer->Add(m_multi_nozzle_mode_switch, 0, wxALIGN_CENTER_VERTICAL);
+
+            auto mode_label = new Label(this, _L("Multi-nozzle mode"));
+            mode_label->SetFont(Label::Body_12);
+            title_sizer->Add(mode_label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
+        }
+        main_sizer->Add(title_sizer, 0, wxEXPAND | wxBOTTOM, FromDIP(4));
     }
     auto button_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_buttons.clear();
     for (const auto &diameter : m_choices) {
         auto btn = new Button(this, diameter);
-        btn->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
-        btn->SetMaxSize(wxSize(FromDIP(54), FromDIP(24)));
+        const int button_width = m_tooltip_context == FilamentContext ? 40 : 54;
+        btn->SetMinSize(wxSize(FromDIP(button_width), FromDIP(24)));
+        btn->SetMaxSize(wxSize(FromDIP(button_width), FromDIP(24)));
         btn->SetFont(Label::Body_12);
         btn->SetCornerRadius(FromDIP(6));
 
@@ -84,6 +124,13 @@ void DiameterButtonPanel::RefreshLayout(const std::vector<wxString> &choices)
 
     Refresh();
     Update();
+}
+
+void DiameterButtonPanel::SetMultiNozzleMode(bool enabled)
+{
+    m_multi_nozzle_mode_enabled = enabled;
+    if (m_multi_nozzle_mode_switch)
+        m_multi_nozzle_mode_switch->SetValue(enabled);
 }
 
 void DiameterButtonPanel::OnButtonClicked(wxCommandEvent &event)
@@ -133,10 +180,13 @@ void DiameterButtonPanel::UpdateButtonStates()
 
 void DiameterButtonPanel::Rescale()
 {
+    if (m_multi_nozzle_mode_switch)
+        m_multi_nozzle_mode_switch->Rescale();
     for (auto *btn : m_buttons) {
         if (btn) {
-            btn->SetMinSize(wxSize(FromDIP(54), FromDIP(24)));
-            btn->SetMaxSize(wxSize(FromDIP(54), FromDIP(24)));
+            const int button_width = m_tooltip_context == FilamentContext ? 40 : 54;
+            btn->SetMinSize(wxSize(FromDIP(button_width), FromDIP(24)));
+            btn->SetMaxSize(wxSize(FromDIP(button_width), FromDIP(24)));
             btn->SetFont(Label::Body_12);
             btn->SetCornerRadius(FromDIP(6));
             btn->Rescale();
@@ -196,28 +246,11 @@ void DiameterButtonPanel::UpdateSingleButtonState(Button *btn, const wxString &d
     btn->SetBorderColor(border_color);
     btn->SetGrayed(state == NoNozzle);
 
-    wxString tip = wxString::Format(_L("Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."), btn->GetLabel());
+    wxString tip = m_tooltip_context == FilamentContext
+        ? wxString::Format(_L("This filament does not support the %smm nozzle, or no matching nozzle is configured."), btn->GetLabel())
+        : wxString::Format(_L("Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."), btn->GetLabel());
     state == NoNozzle ? btn->SetToolTip(tip) : btn->UnsetToolTip();
     btn->Refresh();
-}
-
-DiameterButtonPanel::ButtonState DiameterButtonPanel::GetButtonState(const wxString &diameter) const
-{
-    for (size_t i = 0; i < m_choices.size(); ++i) {
-        if (m_choices[i] == diameter && i < m_buttons.size()) {
-            Button *btn = m_buttons[i];
-
-            if (i == m_selected_index) { return ButtonState::Selected; }
-
-            if (m_nozzle_query_callback && m_nozzle_query_callback(diameter)) {
-                return ButtonState::HasNozzle;
-            } else {
-                return ButtonState::NoNozzle;
-            }
-        }
-    }
-
-    return ButtonState::NoNozzle;
 }
 
 HorizontalScrollablePanel::HorizontalScrollablePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) : wxScrolledWindow(parent, id, pos, size, wxHSCROLL)
@@ -345,22 +378,20 @@ void ExtruderPanel::CreateLayout()
 
 void ExtruderPanel::ShowEnable(bool enable)
 {
-    m_disabled = !enable;
-    wxColour text_color = enable ? DiameterNormalColor : DiameterDisabledColor;
-    wxColour flow_color = enable ? FlowNormalColor : FlowDisabledColor;
+    m_disabled = false;
+    wxColour text_color = DiameterNormalColor;
+    wxColour flow_color = FlowNormalColor;
     if (m_disabled_icon) {
-        m_disabled_icon->Show(!enable);
+        m_disabled_icon->Show(false);
     }
     if (m_left_scroll && m_right_scroll) {
-        if (enable) {
-            UpdateScrollButtons();
-        } else {
-            m_left_scroll->Show(false);
-            m_right_scroll->Show(false);
-        }
+        UpdateScrollButtons();
     }
 
-    auto tooltip = _L("BambuStudio does not support slicing with mixed diameters. Extruders with diffenrent diameters from the printing diameter are not available. If you want to use this extruder, you can either modify nozzle diameter or click to adjust extruder settings.");
+    auto tooltip = enable
+        ? wxString()
+        : _L("This extruder has a different nozzle diameter from the selected printing diameter. "
+             "Printing with mixed nozzle diameters is experimental.");
 
     std::function<void(wxWindow*)> set_children_tooltip = [this, &tooltip, enable, &set_children_tooltip](wxWindow *window) {
         if (!window) return;

@@ -4824,6 +4824,9 @@ wxString GUI_App::transition_tridid_legacy(int trid_id, std::optional<int> total
     else {
         int id_index = std::clamp((int)ceil(trid_id / 4), 0, 25);
         int id_suffix = trid_id % 4 + 1;
+        // Bound against the number of dictionary entries, not the length of its
+        // first string: the latter is 1, which turned every id_index >= 1 into an
+        // empty label (a mapped slot then rendered as "not matched").
         if (dict_len > id_index) {
             return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
         };

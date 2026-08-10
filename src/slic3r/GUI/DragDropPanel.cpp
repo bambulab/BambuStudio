@@ -162,6 +162,15 @@ private:
     ColorDataObject m_data;
 };
 
+static int s_dragged_filament_id = 0;
+
+class ScopedDraggedFilament
+{
+public:
+    explicit ScopedDraggedFilament(int filament_id) { s_dragged_filament_id = filament_id; }
+    ~ScopedDraggedFilament() { s_dragged_filament_id = 0; }
+};
+
 ///////////////   ColorDropTarget  start ////////////////////////
 // Get the data from the drag source when drop it
 class ColorDropTarget : public wxDropTarget
@@ -174,6 +183,7 @@ public:
     }
 
     virtual wxDragResult OnData(wxCoord x, wxCoord y, wxDragResult def) override;
+    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
     virtual bool         OnDrop(wxCoord x, wxCoord y) override {
         return true;
     }
@@ -188,9 +198,21 @@ wxDragResult ColorDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
     if (!GetData())
         return wxDragNone;
 
+    // Multi-diameter restriction: refuse a filament whose preset does not support this panel's working
+    // diameter. Returning wxDragNone leaves the block on its source panel (the drag snaps back).
+    if (!m_panel->accepts_filament(m_data->GetFilament()))
+        return wxDragNone;
+
     m_panel->AddColorBlock(m_data->GetType(), m_data->GetFilament());
 
     return wxDragCopy;
+}
+
+wxDragResult ColorDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
+{
+    if (s_dragged_filament_id > 0 && !m_panel->accepts_filament(s_dragged_filament_id))
+        return wxDragNone;
+    return wxDropTarget::OnDragOver(x, y, def);
 }
 ///////////////   ColorDropTarget  end ////////////////////////
 
@@ -289,6 +311,7 @@ void DragDropPanel::DoDragDrop(ColorPanel *panel, const std::string &type, int f
         return;
 
     ColorDropSource source(this, panel, type, filament_id);
+    ScopedDraggedFilament dragged_filament(filament_id);
     if (source.DoDragDrop(wxDrag_CopyOnly) == wxDragResult::wxDragCopy) {
         this->RemoveColorBlock(panel);
     }
@@ -373,6 +396,7 @@ public:
     }
 
     virtual wxDragResult OnData(wxCoord x, wxCoord y, wxDragResult def) override;
+    virtual wxDragResult OnDragOver(wxCoord x, wxCoord y, wxDragResult def) override;
     virtual bool         OnDrop(wxCoord x, wxCoord y) override { return true; }
 
 private:
@@ -384,8 +408,20 @@ wxDragResult SeparatedColorDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult
 {
     if (!GetData()) return wxDragNone;
 
+    // Multi-diameter restriction: refuse a filament whose preset does not support this extruder's
+    // working diameter (see ColorDropTarget::OnData).
+    if (!m_panel->accepts_filament(m_data->GetFilament()))
+        return wxDragNone;
+
     m_panel->AddColorBlock(m_data->GetType(), m_data->GetFilament(), nvtStandard);
     return wxDragCopy;
+}
+
+wxDragResult SeparatedColorDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
+{
+    if (s_dragged_filament_id > 0 && !m_panel->accepts_filament(s_dragged_filament_id))
+        return wxDragNone;
+    return wxDropTarget::OnDragOver(x, y, def);
 }
 
 SeparatedDragDropPanel::SeparatedDragDropPanel(wxWindow *parent, const wxString &label, bool use_separation) : wxPanel(parent), m_use_separation(use_separation)
@@ -549,6 +585,16 @@ void SeparatedDragDropPanel::SetUnifiedGridWidth(int box_width)
     Layout();
 }
 
+void SeparatedDragDropPanel::set_accept_filament_predicate(std::function<bool(int)> pred)
+{
+    m_accept_filament = pred;
+    // All sub-panels belong to the same extruder, so they share the same working diameter / predicate.
+    if (m_high_flow_panel) m_high_flow_panel->set_accept_filament_predicate(pred);
+    if (m_standard_panel)  m_standard_panel->set_accept_filament_predicate(pred);
+    if (m_tpu_panel)       m_tpu_panel->set_accept_filament_predicate(pred);
+    if (m_unified_panel)   m_unified_panel->set_accept_filament_predicate(std::move(pred));
+}
+
 void SeparatedDragDropPanel::SetUseSeparation(bool use_separation)
 {
     if (m_use_separation != use_separation) {
@@ -670,7 +716,7 @@ std::vector<int> SeparatedDragDropPanel::GetStandardFilaments() const
     return {};
 }
 
-std::vector<int> SeparatedDragDropPanel::GetTPUHighFlowFilaments() const 
+std::vector<int> SeparatedDragDropPanel::GetTPUHighFlowFilaments() const
 {
     if (m_use_separation) {
         return m_tpu_panel->GetAllFilaments();

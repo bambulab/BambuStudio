@@ -66,6 +66,8 @@ static std::vector<std::string> s_project_options {
     "filament_map",
     "filament_volume_map",
     "filament_nozzle_map",
+    "filament_selected_nozzle_diameters",
+    "multi_nozzle_diameter_mode",
     "extruder_nozzle_stats",
     "extruder_nozzle_stats_new",
     "prime_volume_mode",
@@ -439,6 +441,8 @@ PresetBundle::PresetBundle()
     this->printers.select_preset(0);
 
     this->project_config.apply_only(FullPrintConfig::defaults(), s_project_options);
+    // This is a project-only option, intentionally kept out of the static PrintConfig layout.
+    this->project_config.set_key_value("multi_nozzle_diameter_mode", new ConfigOptionBool(false));
 }
 
 PresetBundle::PresetBundle(const PresetBundle &rhs)
@@ -1814,6 +1818,29 @@ ExtruderFullStat build_extruder_full_stat_from_nozzle_stat(const ExtruderNozzleS
     return full_stat;
 }
 
+bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config)
+{
+    const ConfigOptionInts*         count_opt = config.option<ConfigOptionInts>("extruder_nozzle_count");
+    const ConfigOptionEnumsGeneric* vtype_opt = config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type");
+    const ConfigOptionFloats*       diam_opt  = config.option<ConfigOptionFloats>("extruder_nozzle_diameter");
+    const ConfigOptionInts*         slot_opt  = config.option<ConfigOptionInts>("extruder_nozzle_slot");
+    const std::vector<int> counts = count_opt ? count_opt->values : std::vector<int>{};
+    const std::vector<int> vtypes = vtype_opt ? vtype_opt->values : std::vector<int>{};
+    const std::vector<double> diams = diam_opt ? diam_opt->values : std::vector<double>{};
+    const std::vector<int> slots = slot_opt ? slot_opt->values : std::vector<int>{};
+
+    int total = 0;
+    for (int c : counts) {
+        if (c < 0)
+            return false;
+        total += c;
+    }
+    return total > 0
+        && static_cast<int>(vtypes.size()) == total
+        && static_cast<int>(diams.size()) == total
+        && static_cast<int>(slots.size()) == total;
+}
+
 bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config, const ExtruderNozzleStat &nozzle_stat)
 {
     const ConfigOptionInts*         count_opt = config.option<ConfigOptionInts>("extruder_nozzle_count");
@@ -1822,15 +1849,16 @@ bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config, const 
     const std::vector<int> vtypes = vtype_opt ? vtype_opt->values : std::vector<int>{};
 
     int total = 0;
-    for (int c : counts) total += c;
+    for (int count : counts)
+        total += count;
     if (total <= 0 || static_cast<int>(vtypes.size()) != total)
         return false;
 
     const auto &raw_stats = nozzle_stat.get_raw_stat();
     if (raw_stats.empty() || counts.size() != raw_stats.size())
         return false;
-    for (size_t e = 0; e < counts.size(); ++e)
-        if (counts[e] != nozzle_stat.get_extruder_nozzle_count(static_cast<int>(e)))
+    for (size_t extruder_id = 0; extruder_id < counts.size(); ++extruder_id)
+        if (counts[extruder_id] != nozzle_stat.get_extruder_nozzle_count(static_cast<int>(extruder_id)))
             return false;
     return true;
 }
@@ -1863,6 +1891,39 @@ void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, con
     config.option<ConfigOptionInts>("extruder_nozzle_slot", true)->values               = std::move(nozzle_slots);
 }
 
+// Derive a per-extruder representative nozzle diameter from the per-slot snapshot so that slicing
+// consumes the user-selected diameters (persisted with the project via extruder_full_stat) instead of
+// the printer preset's fixed values. For each extruder we take the minimum installed-slot diameter,
+// which is conservative for line-width / layer-height limits when a single extruder mixes diameters.
+// Extruders without any installed slot (or diameters that fail to parse) keep the preset fallback, and
+// the result always matches the fallback length so downstream extruder-count logic stays intact.
+std::vector<double> derive_nozzle_diameter_from_full_stat(const ExtruderFullStat    &full_stat,
+                                                          const std::vector<double> &fallback)
+{
+    std::vector<double> result       = fallback;
+    const int           stat_extruders = full_stat.get_extruder_count();
+    for (size_t e = 0; e < result.size(); ++e) {
+        if (static_cast<int>(e) >= stat_extruders)
+            continue;
+        double min_diam = 0.0;
+        bool   found    = false;
+        for (const auto &slot : full_stat.get_extruder_stats(e)) {
+            if (slot.first.empty())
+                continue;
+            const double d = atof(slot.first.c_str());
+            if (d <= 0.0)
+                continue;
+            if (!found || d < min_diam) {
+                min_diam = d;
+                found    = true;
+            }
+        }
+        if (found)
+            result[e] = min_diam;
+    }
+    return result;
+}
+
 void PresetBundle::note_per_slot_nozzle_options_from_project_file(const DynamicPrintConfig &raw_file_config)
 {
     m_project_file_has_per_slot_nozzle_options = raw_file_config.has("extruder_nozzle_count")
@@ -1889,8 +1950,8 @@ void PresetBundle::update_extruder_full_stats_from_config()
     int total = 0;
     for (int c : counts) total += c;
 
-    if (!m_project_file_has_per_slot_nozzle_options || !per_slot_nozzle_options_consistent(project_config, extruder_nozzle_stat)) {
-        // 旧 3mf 缺四字段,或字段为默认值 / 与 extruder_nozzle_stats 不一致时,重建。
+    if (!m_project_file_has_per_slot_nozzle_options || !per_slot_nozzle_options_consistent(project_config)) {
+        // Rebuild legacy projects that lack a complete per-slot nozzle snapshot.
         generate_extruder_full_stats_from_nozzle_stats();
         sync_per_slot_nozzle_options_from_full_stat(project_config, extruder_full_stat);
         return;
@@ -2556,6 +2617,8 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     ConfigOptionInts* filament_map = project_config.option<ConfigOptionInts>("filament_map");
     ConfigOptionInts* filament_nozzle_map = project_config.option<ConfigOptionInts>("filament_nozzle_map");
     ConfigOptionInts* filament_volume_map = project_config.option<ConfigOptionInts>("filament_volume_map");
+    ConfigOptionStrings* selected_nozzle_diameters =
+        project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
     filament_color->resize(n);
     filament_multi_color->resize(n);
     filament_color_type->resize(n);
@@ -2563,6 +2626,7 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     ams_multi_color_filment.resize(n);
     filament_nozzle_map->values.resize(n, 0);
     filament_volume_map->values.resize(n, static_cast<int>(NozzleVolumeType::nvtStandard));
+    selected_nozzle_diameters->values.resize(n);
 
     if (auto* opt = project_config.option<ConfigOptionBools>("filament_is_mixed"))
         opt->values.resize(n, false);
@@ -2590,6 +2654,7 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
         }
     }
 
+    validate_filament_nozzle_diameter_selections();
     update_multi_material_filament_presets();
 }
 
@@ -2617,6 +2682,8 @@ void PresetBundle::update_num_filaments(unsigned int to_del_flament_id)
     ConfigOptionStrings *filament_multi_color = project_config.option<ConfigOptionStrings>("filament_multi_colour");
     ConfigOptionStrings *filament_color_type  = project_config.option<ConfigOptionStrings>("filament_colour_type");
     ConfigOptionInts* filament_map = project_config.option<ConfigOptionInts>("filament_map");
+    ConfigOptionStrings* selected_nozzle_diameters =
+        project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
     if (filament_color->values.size() > to_del_flament_id) {
         filament_color->values.erase(filament_color->values.begin() + to_del_flament_id);
         if (filament_map->values.size() > to_del_flament_id) {
@@ -2639,6 +2706,7 @@ void PresetBundle::update_num_filaments(unsigned int to_del_flament_id)
 
     erase_or_resize(filament_multi_color->values);
     erase_or_resize(filament_color_type->values);
+    erase_or_resize(selected_nozzle_diameters->values);
     erase_or_resize(ams_multi_color_filment);
 
     {
@@ -2760,6 +2828,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
     std::vector<std::string> ams_filament_colors;
     std::vector<std::string> ams_filament_color_types;
     std::vector<AMSMapInfo>  ams_array_maps;
+    std::vector<AMSMapInfo>  synced_ams_maps;
     ams_multi_color_filment.clear();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": filament_ams_list size: %1%") % filament_ams_list.size();
     struct AmsInfo
@@ -2770,6 +2839,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         std::string filament_color_type = "";
         std::string filament_preset = "";
         std::vector<std::string> mutli_filament_color;
+        AMSMapInfo  mapping;
     };
     auto is_double_extruder = get_printer_extruder_count() == 2;
     std::vector<AmsInfo> ams_infos;
@@ -2797,6 +2867,10 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         auto slot_id    = ams.opt_string("slot_id", 0u);
         ams_infos.push_back({filament_id.empty() ? false : true,false, filament_color});
         AMSMapInfo temp = {ams_id, slot_id};
+        if (const auto *tray_diameters = ams.option<ConfigOptionFloats>("tray_nozzle_diameter");
+            tray_diameters != nullptr && !tray_diameters->values.empty() && tray_diameters->values.front() > 0.)
+            temp.nozzle_diameter = format_diameter_to_str(tray_diameters->values.front());
+        ams_infos.back().mapping = temp;
         ams_array_maps.push_back(temp);
         index++;
         if (filament_id.empty()) {
@@ -2822,6 +2896,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             ams_filament_colors.push_back(filament_color);
             ams_filament_color_types.push_back(filament_color_type);
             ams_multi_color_filment.push_back(filament_multi_color);
+            synced_ams_maps.push_back(temp);
             continue;
         }
         bool has_type = false;
@@ -2845,6 +2920,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                     ams_filament_colors.push_back(filament_color);
                     ams_filament_color_types.push_back(filament_color_type);
                     ams_multi_color_filment.push_back(filament_multi_color);
+                    synced_ams_maps.push_back(temp);
                     unknowns.emplace_back(&ams, has_type ? L("The filament may not be compatible with the current machine settings. Generic filament presets will be used.") :
                                                            L("The filament model is unknown. Still using the previous filament preset."));
                     continue;
@@ -2870,6 +2946,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         ams_filament_colors.push_back(filament_color);
         ams_filament_color_types.push_back(filament_color_type);
         ams_multi_color_filment.push_back(filament_multi_color);
+        synced_ams_maps.push_back(temp);
     }
     if (ams_filament_presets.empty())
         return 0;
@@ -2958,7 +3035,9 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         check_has_merge_info(maps, merge_info,filament_color->values.size());
         auto get_map_index = [&ams_infos](const std::vector<AMSMapInfo> &infos, const AMSMapInfo &temp) {
             for (int i = 0; i < infos.size(); i++) {
-                if (infos[i].slot_id == temp.slot_id && infos[i].ams_id == temp.ams_id) {
+                const bool diameter_matches = temp.nozzle_diameter.empty() || infos[i].nozzle_diameter.empty() ||
+                    std::abs(atof(infos[i].nozzle_diameter.c_str()) - atof(temp.nozzle_diameter.c_str())) < 1e-6;
+                if (infos[i].slot_id == temp.slot_id && infos[i].ams_id == temp.ams_id && diameter_matches) {
                     ams_infos[i].is_map = true;
                     return i;
                 }
@@ -2978,6 +3057,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             if (maps.find(i) != maps.end()) {//mapping exist
                 auto valid_index = get_map_index(ams_array_maps, maps[i]);
                 if (valid_index >= 0 && valid_index < ams_filament_presets.size()) {
+                    maps[i].nozzle_diameter = ams_array_maps[valid_index].nozzle_diameter;
                     exist_colors[i]           = ams_filament_colors[valid_index];
                     exist_color_types[i]      = ams_filament_color_types[valid_index];
                     exist_filament_presets[i] = ams_filament_presets[valid_index];
@@ -3037,8 +3117,11 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 }
                 auto idx = get_idx_in_array(exist_filament_presets, exist_colors, need_append_colors[i].filament_preset, need_append_colors[i].filament_color);
                 if (idx >= 0) {
+                    if (maps.find(idx) == maps.end())
+                        maps[idx] = need_append_colors[i].mapping;
                     continue;
                 }
+                maps[int(exist_filament_presets.size())] = need_append_colors[i].mapping;
                 exist_filament_presets.push_back(need_append_colors[i].filament_preset);
                 exist_colors.push_back(need_append_colors[i].filament_color);
                 exist_color_types.push_back(need_append_colors[i].filament_color_type);
@@ -3056,6 +3139,9 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         filament_color_type->values = ams_filament_color_types;
         this->filament_presets = ams_filament_presets;
         filament_map->values.resize(ams_filament_colors.size(), 1);
+        maps.clear();
+        for (size_t i = 0; i < synced_ams_maps.size(); ++i)
+            maps[int(i)] = synced_ams_maps[i];
 
         auto& print_config = this->prints.get_edited_preset().config;
         auto  support_filament_opt = print_config.option<ConfigOptionInt>("support_filament");
@@ -3339,6 +3425,470 @@ std::pair<int, int> PresetBundle::get_ams_count(int index)
 
     auto &counts = extruder_ams_counts[index];
     return {counts[4], counts[1]};
+}
+
+std::vector<std::string> PresetBundle::get_extra_compatible_printers_by_full_stat()
+{
+    std::vector<std::string> result;
+    // Broadening compatibility to sibling nozzle-diameter variants only makes sense while the project is
+    // allowed to print with several diameters at once.
+    if (! multi_nozzle_diameter_mode_enabled(this->project_config))
+        return result;
+    if (this->extruder_full_stat.empty())
+        return result;
+
+    // Defensive net against a stale snapshot: a printer switch now refreshes extruder_full_stat before
+    // update_compatible() runs (TabPrinter::refresh_extruder_full_stat_for_model_change), but any other
+    // caller that reaches here with a snapshot whose extruder count no longer matches the current printer
+    // must skip broadening rather than leak the previous printer's diameters into the compatibility set.
+    if (this->extruder_full_stat.get_extruder_count() != this->get_printer_extruder_count())
+        return result;
+
+    // Collect the distinct diameters the user selected via "set nozzle diameter".
+    std::set<double> selected_diameters;
+    const int extruder_count = this->extruder_full_stat.get_extruder_count();
+    for (int e = 0; e < extruder_count; ++e) {
+        for (const auto &slot : this->extruder_full_stat.get_extruder_stats(e)) {
+            if (slot.first.empty())
+                continue;
+            const double d = atof(slot.first.c_str());
+            if (d > 0.0)
+                selected_diameters.insert(d);
+        }
+    }
+    // Nothing to broaden for a single-diameter selection (compared numerically to avoid "0.4" vs "0.40").
+    if (selected_diameters.size() <= 1)
+        return result;
+
+    const std::string printer_model = this->printers.get_edited_preset().config.opt_string("printer_model");
+    if (printer_model.empty())
+        return result;
+
+    std::set<std::string> names;
+    for (auto printer_it = this->printers.begin(); printer_it != this->printers.end(); ++printer_it) {
+        if (printer_it->config.opt_string("printer_model") != printer_model)
+            continue;
+        const double variant_diameter = atof(printer_it->config.opt_string("printer_variant").c_str());
+        if (variant_diameter <= 0.0)
+            continue;
+        for (double d : selected_diameters) {
+            if (std::abs(variant_diameter - d) < 1e-3) {
+                names.insert(printer_it->name);
+                break;
+            }
+        }
+    }
+    result.assign(names.begin(), names.end());
+    return result;
+}
+
+std::vector<std::string> PresetBundle::compute_filament_supported_nozzle_diameters(size_t num_filaments) const
+{
+    std::vector<std::string> result(num_filaments);
+
+    // Map every printer preset name to its (normalized) variant diameter. Filament presets reference
+    // printers by name in compatible_printers, so this lets us translate a compatible printer into the
+    // diameter it represents. Only variants of the active model belong to this project's choice set.
+    std::map<std::string, std::string> printer_name_to_diameter;
+    const std::string printer_model = this->printers.get_edited_preset().config.opt_string("printer_model");
+    for (auto printer_it = this->printers.begin(); printer_it != this->printers.end(); ++printer_it) {
+        if (printer_it->config.opt_string("printer_model") != printer_model)
+            continue;
+        const double variant_diameter = atof(printer_it->config.opt_string("printer_variant").c_str());
+        if (variant_diameter > 0.0)
+            printer_name_to_diameter[printer_it->name] = format_diameter_to_str(variant_diameter);
+    }
+    if (printer_name_to_diameter.empty())
+        return result;
+
+    for (size_t i = 0; i < num_filaments; ++i) {
+        if (i >= this->filament_presets.size())
+            continue;
+        const Preset *preset = const_cast<PresetBundle *>(this)->filaments.find_preset(this->filament_presets[i], false);
+        if (preset == nullptr)
+            continue;
+
+        const auto *compatible = preset->config.option<ConfigOptionStrings>("compatible_printers");
+        if (compatible == nullptr)
+            continue;
+
+        // Use the filament preset's own compatible_printers only. The multi-diameter broadening that
+        // makes sibling-variant filaments selectable must NOT leak here: the restriction has to reflect
+        // the diameters the filament natively supports, not the loosened selectable set.
+        std::set<std::string> diameters;
+        for (const std::string &printer_name : compatible->values) {
+            auto found = printer_name_to_diameter.find(printer_name);
+            if (found != printer_name_to_diameter.end())
+                diameters.insert(found->second);
+        }
+
+        std::string joined;
+        for (const std::string &d : diameters) {
+            if (!joined.empty())
+                joined += ';';
+            joined += d;
+        }
+        result[i] = std::move(joined);
+    }
+    return result;
+}
+
+static std::set<std::string> filament_preset_diameters_for_model(
+    const Preset &preset, const std::map<std::string, std::string> &printer_name_to_diameter)
+{
+    std::set<std::string> result;
+    const auto *compatible = preset.config.option<ConfigOptionStrings>("compatible_printers");
+    if (compatible == nullptr)
+        return result;
+    for (const std::string &printer_name : compatible->values) {
+        auto it = printer_name_to_diameter.find(printer_name);
+        if (it != printer_name_to_diameter.end())
+            result.insert(it->second);
+    }
+    return result;
+}
+
+static std::map<std::string, std::string> build_printer_name_to_diameter(const PresetBundle &bundle)
+{
+    const std::string printer_model = bundle.printers.get_edited_preset().config.opt_string("printer_model");
+    std::map<std::string, std::string> result;
+    for (auto it = bundle.printers.begin(); it != bundle.printers.end(); ++it) {
+        if (it->config.opt_string("printer_model") != printer_model)
+            continue;
+        const double diameter = atof(it->config.opt_string("printer_variant").c_str());
+        if (diameter > 0.0)
+            result[it->name] = format_diameter_to_str(diameter);
+    }
+    return result;
+}
+
+static bool uses_per_slot_nozzle_diameters(const ConfigBase &config)
+{
+    if (const auto *diameters = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+        diameters != nullptr && diameters->values.size() > 1)
+        return true;
+
+    if (const auto *max_counts =
+            config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+        max_counts != nullptr &&
+        std::any_of(max_counts->values.begin(), max_counts->values.end(),
+                    [](int count) { return count > 1; }))
+        return true;
+
+    const auto *hotend_as_extruder =
+        config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+    return hotend_as_extruder != nullptr && hotend_as_extruder->value;
+}
+
+static std::set<std::string> collect_configured_nozzle_diameters(const PresetBundle &bundle)
+{
+    std::set<std::string> result;
+    const Preset &printer = bundle.printers.get_edited_preset();
+
+    // With the project-level gate off the machine offers exactly one diameter - the one its printer preset
+    // is on - no matter how many the rack physically carries. Every caller keys its single-diameter branch
+    // on this set holding fewer than two entries, so the whole preset/selector side follows from here.
+    if (!multi_nozzle_diameter_mode_enabled(bundle.project_config) ||
+        !uses_per_slot_nozzle_diameters(printer.config)) {
+        const double primary_diameter = atof(printer.config.opt_string("printer_variant").c_str());
+        if (primary_diameter > 0.0)
+            result.insert(format_diameter_to_str(primary_diameter));
+        return result;
+    }
+
+    // Keep every physical slot visible to the selector. Whether a machine can print multiple diameters
+    // has nothing to do with how many slots one extruder has: a dual-extruder machine holding one
+    // diameter per side (H2D) is just as multi-diameter as a single extruder holding several (H3C).
+    // The representative per-extruder diameter is intentionally not used here either, because one
+    // logical extruder may carry several physical diameters.
+    for (int extruder_id = 0; extruder_id < bundle.extruder_full_stat.get_extruder_count(); ++extruder_id)
+        for (const auto &slot : bundle.extruder_full_stat.get_extruder_stats(extruder_id)) {
+            const double diameter = atof(slot.first.c_str());
+            if (diameter > 0.0)
+                result.insert(format_diameter_to_str(diameter));
+        }
+
+    // Without a per-slot snapshot the printer preset is all we know about the hardware.
+    if (result.empty()) {
+        const double primary_diameter = atof(printer.config.opt_string("printer_variant").c_str());
+        if (primary_diameter > 0.0)
+            result.insert(format_diameter_to_str(primary_diameter));
+    }
+    return result;
+}
+
+static std::vector<std::string> get_filament_nozzle_diameter_options(
+    const PresetBundle                       &bundle,
+    size_t                                    filament_index,
+    const std::map<std::string, std::string> &printer_name_to_diameter,
+    const std::set<std::string>              &configured)
+{
+    if (filament_index >= bundle.filament_presets.size() || bundle.is_mixed_filament(filament_index))
+        return {};
+
+    const Preset *current = bundle.filaments.find_preset(bundle.filament_presets[filament_index], false);
+    if (current == nullptr)
+        return {};
+
+    std::set<std::string> supported = filament_preset_diameters_for_model(*current, printer_name_to_diameter);
+    if (!current->filament_id.empty()) {
+        for (auto it = bundle.filaments.begin(); it != bundle.filaments.end(); ++it) {
+            if (it->is_system && it->filament_id == current->filament_id) {
+                const auto diameters = filament_preset_diameters_for_model(*it, printer_name_to_diameter);
+                supported.insert(diameters.begin(), diameters.end());
+            }
+        }
+    }
+
+    std::vector<std::string> result;
+    if (supported.empty()) {
+        result.assign(configured.begin(), configured.end());
+    } else {
+        std::set_intersection(supported.begin(), supported.end(), configured.begin(), configured.end(),
+                              std::back_inserter(result));
+    }
+    std::sort(result.begin(), result.end(), [](const std::string &lhs, const std::string &rhs) {
+        return atof(lhs.c_str()) < atof(rhs.c_str());
+    });
+    return result;
+}
+
+std::vector<std::string> PresetBundle::get_filament_nozzle_diameter_options(size_t filament_index) const
+{
+    const auto printer_name_to_diameter = build_printer_name_to_diameter(*this);
+    const auto configured = collect_configured_nozzle_diameters(*this);
+    return ::Slic3r::get_filament_nozzle_diameter_options(*this, filament_index, printer_name_to_diameter, configured);
+}
+
+bool PresetBundle::is_filament_nozzle_diameter_valid(size_t filament_index, const std::string &diameter) const
+{
+    if (diameter.empty())
+        return true;
+    const std::string normalized = format_diameter_to_str(atof(diameter.c_str()));
+    const auto options = get_filament_nozzle_diameter_options(filament_index);
+    return std::find(options.begin(), options.end(), normalized) != options.end();
+}
+
+static bool set_filament_nozzle_diameter(
+    PresetBundle                              &bundle,
+    size_t                                     filament_index,
+    const std::string                         &diameter,
+    std::string                               *selected_preset_name,
+    const std::map<std::string, std::string>  &printer_name_to_diameter,
+    const std::vector<std::string>            &options)
+{
+    if (filament_index >= bundle.filament_presets.size())
+        return false;
+
+    auto *selected = bundle.project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+    selected->values.resize(bundle.filament_presets.size());
+    if (diameter.empty()) {
+        selected->values[filament_index].clear();
+        if (selected_preset_name != nullptr)
+            *selected_preset_name = bundle.filament_presets[filament_index];
+        return true;
+    }
+
+    const std::string normalized = format_diameter_to_str(atof(diameter.c_str()));
+    if (std::find(options.begin(), options.end(), normalized) == options.end())
+        return false;
+
+    const Preset *current = bundle.filaments.find_preset(bundle.filament_presets[filament_index], false);
+    if (current == nullptr)
+        return false;
+
+    const auto current_diameters = filament_preset_diameters_for_model(*current, printer_name_to_diameter);
+    std::string target_preset = current->name;
+    if (!current_diameters.empty() && current_diameters.count(normalized) == 0) {
+        target_preset.clear();
+        if (!current->filament_id.empty()) {
+            for (auto it = bundle.filaments.begin(); it != bundle.filaments.end(); ++it) {
+                if (!it->is_system || it->filament_id != current->filament_id)
+                    continue;
+                const auto diameters = filament_preset_diameters_for_model(*it, printer_name_to_diameter);
+                if (diameters.count(normalized) != 0) {
+                    target_preset = it->name;
+                    break;
+                }
+            }
+        }
+        if (target_preset.empty())
+            return false;
+        bundle.filament_presets[filament_index] = target_preset;
+        if (filament_index == 0)
+            bundle.filaments.select_preset_by_name(target_preset, false, true);
+    }
+
+    selected->values[filament_index] = normalized;
+    if (selected_preset_name != nullptr)
+        *selected_preset_name = target_preset;
+    return true;
+}
+
+bool PresetBundle::set_filament_nozzle_diameter(size_t filament_index, const std::string &diameter,
+                                                std::string *selected_preset_name)
+{
+    const auto printer_name_to_diameter = build_printer_name_to_diameter(*this);
+    const auto configured = collect_configured_nozzle_diameters(*this);
+    const auto options = ::Slic3r::get_filament_nozzle_diameter_options(
+        *this, filament_index, printer_name_to_diameter, configured);
+    return ::Slic3r::set_filament_nozzle_diameter(
+        *this, filament_index, diameter, selected_preset_name, printer_name_to_diameter, options);
+}
+
+static const Preset *find_default_filament_for_nozzle_diameter(
+    PresetBundle                              &bundle,
+    const std::string                         &diameter,
+    const std::map<std::string, std::string>  &printer_name_to_diameter)
+{
+    const std::string printer_model = bundle.printers.get_edited_preset().config.opt_string("printer_model");
+    for (auto printer = bundle.printers.begin(); printer != bundle.printers.end(); ++printer) {
+        if (printer->config.opt_string("printer_model") != printer_model)
+            continue;
+        const double variant = atof(printer->config.opt_string("printer_variant").c_str());
+        if (variant <= 0. || format_diameter_to_str(variant) != diameter)
+            continue;
+        const auto *defaults = printer->config.option<ConfigOptionStrings>("default_filament_profile");
+        if (defaults == nullptr)
+            continue;
+        for (const std::string &name : defaults->values) {
+            const Preset *candidate = bundle.filaments.find_preset(name, false);
+            if (candidate != nullptr && candidate->config.opt_string("filament_type", 0u) == "PLA" &&
+                filament_preset_diameters_for_model(*candidate, printer_name_to_diameter).count(diameter) != 0)
+                return candidate;
+        }
+    }
+
+    // Keep the established incompatible-filament fallback even if the target printer preset does not
+    // declare a usable default profile.
+    const Preset *first_pla = nullptr;
+    for (auto candidate = bundle.filaments.begin(); candidate != bundle.filaments.end(); ++candidate) {
+        if (!candidate->is_system || candidate->config.opt_string("filament_type", 0u) != "PLA" ||
+            filament_preset_diameters_for_model(*candidate, printer_name_to_diameter).count(diameter) == 0)
+            continue;
+        if (candidate->name == PresetBundle::BBL_DEFAULT_FILAMENT ||
+            boost::algorithm::starts_with(candidate->name, std::string(PresetBundle::BBL_DEFAULT_FILAMENT) + " @"))
+            return &*candidate;
+        if (first_pla == nullptr)
+            first_pla = &*candidate;
+    }
+    return first_pla;
+}
+
+void PresetBundle::validate_filament_nozzle_diameter_selections(const std::map<int, AMSMapInfo> *device_maps)
+{
+    auto *selected = project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+    selected->values.resize(filament_presets.size());
+    const auto printer_name_to_diameter = build_printer_name_to_diameter(*this);
+    const auto configured = collect_configured_nozzle_diameters(*this);
+
+    // A legacy/single-diameter project does not retain an explicit per-slot diameter selection.
+    // Normalize any sibling preset selected by the previous multi-diameter state before clearing it.
+    if (configured.size() < 2) {
+        if (configured.size() == 1) {
+            const std::string target = *configured.begin();
+            for (size_t i = 0; i < filament_presets.size(); ++i) {
+                if (is_mixed_filament(i))
+                    continue;
+
+                const auto options = ::Slic3r::get_filament_nozzle_diameter_options(
+                    *this, i, printer_name_to_diameter, configured);
+                if (std::find(options.begin(), options.end(), target) != options.end() &&
+                    ::Slic3r::set_filament_nozzle_diameter(
+                        *this, i, target, nullptr, printer_name_to_diameter, options))
+                    continue;
+
+                if (const Preset *fallback = find_default_filament_for_nozzle_diameter(
+                        *this, target, printer_name_to_diameter)) {
+                    filament_presets[i] = fallback->name;
+                    if (i == 0)
+                        filaments.select_preset_by_name(fallback->name, false, true);
+                    const auto fallback_options = ::Slic3r::get_filament_nozzle_diameter_options(
+                        *this, i, printer_name_to_diameter, configured);
+                    ::Slic3r::set_filament_nozzle_diameter(
+                        *this, i, target, nullptr, printer_name_to_diameter, fallback_options);
+                }
+            }
+        }
+        std::fill(selected->values.begin(), selected->values.end(), std::string());
+        return;
+    }
+
+    auto tray_diameter = [this](const AMSMapInfo &mapping) {
+        const double mapped_diameter = atof(mapping.nozzle_diameter.c_str());
+        if (mapped_diameter > 0.)
+            return format_diameter_to_str(mapped_diameter);
+        for (const auto &entry : filament_ams_list) {
+            const DynamicPrintConfig &tray = entry.second;
+            if (tray.opt_string("ams_id", 0u) != mapping.ams_id ||
+                tray.opt_string("slot_id", 0u) != mapping.slot_id)
+                continue;
+            const auto *diameters = tray.option<ConfigOptionFloats>("tray_nozzle_diameter");
+            if (diameters != nullptr && !diameters->values.empty() && diameters->values.front() > 0.)
+                return format_diameter_to_str(diameters->values.front());
+        }
+        return std::string();
+    };
+
+    for (size_t i = 0; i < filament_presets.size(); ++i) {
+        if (is_mixed_filament(i)) {
+            selected->values[i].clear();
+            continue;
+        }
+        const auto options = ::Slic3r::get_filament_nozzle_diameter_options(
+            *this, i, printer_name_to_diameter, configured);
+        if (options.empty()) {
+            selected->values[i].clear();
+            continue;
+        }
+
+        std::string device_diameter;
+        if (device_maps != nullptr) {
+            const auto mapped = device_maps->find(int(i));
+            if (mapped != device_maps->end() && !mapped->second.ams_id.empty() && !mapped->second.slot_id.empty())
+                device_diameter = tray_diameter(mapped->second);
+        }
+
+        if (!device_diameter.empty()) {
+            const std::string normalized_device = format_diameter_to_str(atof(device_diameter.c_str()));
+            if (std::find(options.begin(), options.end(), normalized_device) != options.end() &&
+                ::Slic3r::set_filament_nozzle_diameter(
+                    *this, i, normalized_device, nullptr, printer_name_to_diameter, options))
+                continue;
+
+            // Match the existing single-diameter printer-switch behavior: replace an incompatible material
+            // with the target nozzle variant's default filament while preserving the project slot color.
+            if (const Preset *fallback = find_default_filament_for_nozzle_diameter(
+                    *this, normalized_device, printer_name_to_diameter)) {
+                filament_presets[i] = fallback->name;
+                if (i == 0)
+                    filaments.select_preset_by_name(fallback->name, false, true);
+                const auto fallback_options = ::Slic3r::get_filament_nozzle_diameter_options(
+                    *this, i, printer_name_to_diameter, configured);
+                if (::Slic3r::set_filament_nozzle_diameter(
+                        *this, i, normalized_device, nullptr, printer_name_to_diameter, fallback_options)) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": replaced incompatible filament " << i
+                                            << " with " << fallback->name
+                                            << " for mapped nozzle diameter " << normalized_device;
+                    continue;
+                }
+            }
+
+            // Keep the physical state available for validation if no compatible default preset exists.
+            selected->values[i] = normalized_device;
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament " << i
+                                       << " has no default filament for mapped nozzle diameter " << normalized_device;
+            continue;
+        }
+
+        std::string target = device_maps != nullptr ? options.front() : selected->values[i];
+        const std::string normalized = format_diameter_to_str(atof(target.c_str()));
+        if (target.empty() || std::find(options.begin(), options.end(), normalized) == options.end())
+            target = options.front();
+        if (!::Slic3r::set_filament_nozzle_diameter(
+                *this, i, target, nullptr, printer_name_to_diameter, options))
+            selected->values[i].clear();
+}
 }
 
 //BBS: check whether this is the only edited filament
@@ -3750,6 +4300,29 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
 
     // Per-slot nozzle params for the grouping backend, derived from extruder_full_stat.
     sync_per_slot_nozzle_options_from_full_stat(out, this->extruder_full_stat);
+
+    // Multi-diameter: let slicing read the user-selected diameters (persisted with the project through
+    // extruder_full_stat) rather than the printer preset's fixed nozzle_diameter. Preset switching is
+    // kept on the UI side so diameter-dependent tuning (layer height, line width, flow) still follows
+    // the preset; here we only override the raw per-extruder diameter values, preserving the array
+    // length and falling back to the preset value for any extruder without an installed nozzle.
+    // The topology gate includes both multi-extruder machines and single-extruder multi-slot machines.
+    // A single-extruder single-slot machine must keep the active preset diameter instead of a stale slot snapshot.
+    // Both overrides below are what makes a config multi-diameter, so the project-level gate comes first:
+    // with it off the printer preset's own nozzle_diameter and no per-filament selection is all slicing sees.
+    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(this->project_config);
+    if (auto *nozzle_diameter_opt = out.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+        multi_diameter_mode && uses_per_slot_nozzle_diameters(out) &&
+        nozzle_diameter_opt != nullptr && !this->extruder_full_stat.empty()) {
+        nozzle_diameter_opt->values = derive_nozzle_diameter_from_full_stat(this->extruder_full_stat, nozzle_diameter_opt->values);
+    }
+
+    std::vector<std::string> selected_nozzle_diameters;
+    if (multi_diameter_mode)
+        selected_nozzle_diameters = this->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters")->values;
+    selected_nozzle_diameters.resize(filament_ids.size());
+    out.option<ConfigOptionStrings>("filament_selected_nozzle_diameters", true)->values =
+        std::move(selected_nozzle_diameters);
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
@@ -4222,6 +4795,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 
         // 4) Load the project config values (the per extruder wipe matrix etc).
         this->project_config.apply_only(config, s_project_options);
+        this->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters")
+            ->values.resize(this->filament_presets.size());
 
         break;
     }
@@ -5960,8 +6535,13 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
         for (size_t idx = 0; idx < prefered_filament_profiles.size(); ++idx) {
             BOOST_LOG_TRIVIAL(info) << boost::format("prefered filament： %1%") % prefered_filament_profiles[idx];
         }
+        // BBS multi-diameter: also treat filament presets bound to sibling nozzle-diameter variants
+        // (selected via "set nozzle diameter") as compatible, so the user can keep using them while
+        // running mixed-diameter printing. Reset afterwards to avoid leaking state into later passes.
+        this->filaments.set_extra_compatible_printers(this->get_extra_compatible_printers_by_full_stat());
         this->filaments.update_compatible(printer_preset_with_vendor_profile, &print_preset_with_vendor_profile, select_other_filament_if_incompatible,
             PreferedFilamentsProfileMatch(this->filaments.get_selected_idx() == size_t(-1) ? nullptr : &this->filaments.get_edited_preset(), prefered_filament_profiles));
+        this->filaments.clear_extra_compatible_printers();
         if (select_other_filament_if_incompatible != PresetSelectCompatibleType::Never) {
             // Verify validity of the current filament presets.
             const std::string prefered_filament_profile = prefered_filament_profiles.empty() ? std::string() : prefered_filament_profiles.front();
@@ -6213,7 +6793,45 @@ void PresetBundle::set_filament_preset(size_t idx, const std::string &name)
         BOOST_LOG_TRIVIAL(warning) << boost::format("Warning: set_filament_preset out of range %1% - %2%") % idx % filament_presets.size();
         return;
     }
+    const std::string old_name = filament_presets[idx];
+    const Preset *old_preset = filaments.find_preset(old_name, false);
     filament_presets[idx] = Preset::remove_suffix_modified(name);
+
+    auto *selected = project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+    if (selected == nullptr)
+        return;
+    selected->values.resize(filament_presets.size());
+    const std::string previous_diameter = selected->values[idx];
+
+    const Preset *preset = filaments.find_preset(filament_presets[idx], false);
+    if (preset == nullptr) {
+        selected->values[idx].clear();
+        return;
+    }
+
+    const std::string printer_model = printers.get_edited_preset().config.opt_string("printer_model");
+    std::map<std::string, std::string> printer_name_to_diameter;
+    for (auto it = printers.begin(); it != printers.end(); ++it) {
+        if (it->config.opt_string("printer_model") != printer_model)
+            continue;
+        const double diameter = atof(it->config.opt_string("printer_variant").c_str());
+        if (diameter > 0.0)
+            printer_name_to_diameter[it->name] = format_diameter_to_str(diameter);
+    }
+
+    const auto native_diameters = filament_preset_diameters_for_model(*preset, printer_name_to_diameter);
+    // Selecting a sibling diameter variant of the same filament is an explicit diameter choice.
+    // Re-selecting the current preset keeps the choice, while changing to a different material clears it
+    // so validation cannot silently select a sibling variant using the previous material's diameter.
+    if (old_name == filament_presets[idx])
+        selected->values[idx] = previous_diameter;
+    else if (old_preset != nullptr && ! preset->filament_id.empty() &&
+             old_preset->filament_id == preset->filament_id) {
+        selected->values[idx] = native_diameters.size() == 1 ?
+            *native_diameters.begin() : previous_diameter;
+    } else {
+        selected->values[idx].clear();
+    }
 }
 
 void PresetBundle::set_default_suppressed(bool default_suppressed)

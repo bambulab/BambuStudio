@@ -1382,6 +1382,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     //((ConfigOptionInts,                filament_extruder_id))
     ((ConfigOptionStrings,             filament_extruder_variant))
     ((ConfigOptionInts,                filament_self_index))
+    // Per-filament explicitly selected nozzle diameter. Empty means not selected.
+    ((ConfigOptionStrings,             filament_selected_nozzle_diameters))
     ((ConfigOptionInts,                print_extruder_id))
     ((ConfigOptionStrings,             print_extruder_variant))
     ((ConfigOptionFloat,               machine_load_filament_time))
@@ -2026,8 +2028,18 @@ Points get_bed_shape(const DynamicPrintConfig &cfg, bool use_share = true);
 Points get_bed_shape(const PrintConfig &cfg, bool use_share = false);
 Points get_bed_shape(const SLAPrinterConfig &cfg);
 Slic3r::Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg, bool use_share = false);
+class Flow;
 bool has_skirt(const ConfigBase& cfg);
+// Distance from an object outline to the outer edge of its per-object skirt.
+// Prefer the Flow overload whenever a Print is available: it uses the real skirt flow.
+// The filament_ids overload is for callers that only have a config (arrange): it infers the flow
+// from the config and, like Print::skirt_flow(), keeps the widest spacing among the filaments in
+// use, so the estimate is never smaller than what slicing will extrude.
+// The config-only overload cannot know which filaments are in use and only looks at the dedicated
+// skirt filament, so it may underestimate on mixed-diameter setups.
 float get_real_skirt_dist(const ConfigBase& cfg);
+float get_real_skirt_dist(const ConfigBase& cfg, const Flow &flow);
+float get_real_skirt_dist(const ConfigBase& cfg, const std::vector<unsigned int> &filament_ids);
 
 // ModelConfig is a wrapper around DynamicPrintConfig with an addition of a timestamp.
 // Each change of ModelConfig is tracked by assigning a new timestamp from a global counter.
@@ -2152,6 +2164,38 @@ static void set_flush_volumes_matrix(std::vector<T> &out_matrix, const std::vect
 }
 
 size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id);
+
+// True when the flat per-slot diameter list is the authoritative diameter source. Single-extruder
+// multi-nozzle machines retain their historical non-empty-list behavior; multi-extruder machines require
+// at least one multi-slot extruder and a list covering every installed slot.
+bool has_authoritative_per_slot_nozzle_diameters(
+    bool handle_hotend_as_extruder, const std::vector<int> &slot_counts,
+    const std::vector<double> &slot_diameters);
+
+// The project-level gate of the multi-nozzle-diameter flow (multi_nozzle_diameter_mode). Every query
+// that could make a path behave as multi-diameter goes through it, so a project with the mode off slices
+// and presents exactly as it did before multi-diameter printing existed. Missing option means off.
+bool multi_nozzle_diameter_mode_enabled(const ConfigOptionResolver &config);
+
+// Whether the printer offers more than one nozzle diameter to pick from. This is the machine capability,
+// not what a print uses: with a single diameter available nothing downstream may behave as multi-diameter.
+// Always false while multi_nozzle_diameter_mode is off.
+bool has_multiple_configured_nozzle_diameters(const ConfigBase &config);
+
+// Fill every physical filament slot with a deterministic nozzle diameter when multiple configured
+// diameters are active. Mixed virtual slots stay empty. Existing valid selections are preserved.
+bool complete_filament_nozzle_diameter_selections(
+    DynamicPrintConfig &config, const std::vector<std::string> &supported_diameters);
+
+// Resolve the nozzle diameter used for slicing a 1-based filament id. An explicit per-filament
+// selection takes precedence; otherwise preserve the historical direct nozzle_diameter lookup.
+// filament_map only controls routing and must not affect slicing geometry.
+float nozzle_diameter_for_filament(const PrintConfig &config, unsigned int filament_id);
+
+// Diameter the user selected to switch the machine/process preset (printer_variant).
+// Layer-height validation must use this value, not the smallest installed mixed-diameter slot.
+// Read from DynamicPrintConfig (full_print_config); printer_variant is not a PrintConfig member.
+double primary_nozzle_diameter(const ConfigBase &config);
 
 // 从GCode Config中调用基础的参数idx查找方法
 size_t get_process_config_idx(const GCodeConfig &config, unsigned int filament_id);

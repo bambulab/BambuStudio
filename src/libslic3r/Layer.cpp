@@ -205,6 +205,21 @@ void Layer::make_perimeters()
     BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id();
     // keep track of regions whose perimeters we have already generated
     std::vector<unsigned char> done(m_regions.size(), false);
+    auto same_merge_patches = [](const LayerRegion *lhs, const LayerRegion *rhs) {
+        const bool lhs_merged = ! lhs->adaptive_merge_patches.empty();
+        const bool rhs_merged = ! rhs->adaptive_merge_patches.empty();
+        if (lhs_merged != rhs_merged)
+            return false;
+        if (! lhs_merged)
+            return true;
+        const AdaptiveMergePatch &a = lhs->adaptive_merge_patches.front();
+        const AdaptiveMergePatch &b = rhs->adaptive_merge_patches.front();
+        if (a.bottom_idx != b.bottom_idx || a.top_idx != b.top_idx || a.group_top != b.group_top)
+            return false;
+        // A layer swallowed by the band above it extrudes nothing, so its regions can share one shell
+        // discovery pass. A group top clips against the contour it retained, which no two regions share.
+        return ! a.group_top;
+    };
 
     for (LayerRegionPtrs::iterator layerm = m_regions.begin(); layerm != m_regions.end(); ++ layerm)
     	if ((*layerm)->slices.empty()) {
@@ -235,6 +250,9 @@ void Layer::make_perimeters()
                     continue;
                 if ((*layerm)->region().gradient_volume_id() != other_layerm->region().gradient_volume_id())
                     continue;
+                // A shared perimeter pass can only honor the merge plan of its front region.
+                if (! same_merge_patches(*layerm, other_layerm))
+                    continue;
 
                 other_layerm->perimeters.clear();
                 other_layerm->fills.clear();
@@ -248,16 +266,53 @@ void Layer::make_perimeters()
                 }
             }
 
+            // BBS multi-diameter adaptive layer height: a region inside a band is extruded on the group top
+            // only, at the height of the whole band. The layers below it are dropped, not merged into it.
+            auto generate_region_perimeters = [&](LayerRegion *lm, const SurfaceCollection &src,
+                                                  SurfaceCollection *out_fill, ExPolygons *out_no_overlap) {
+                if (lm->adaptive_merge_patches.empty()) {
+                    lm->make_perimeters(src, perimeter_regions, out_fill, out_no_overlap, this->loop_nodes);
+                    return;
+                }
+
+                const AdaptiveMergePatch &patch = lm->adaptive_merge_patches.front();
+                if (! patch.group_top) {
+                    // Swallowed by the group top, so nothing is extruded here. The fill surfaces still have
+                    // to pass through shell discovery, otherwise a solid layer inside the band disappears
+                    // before combine_adaptive_infill() can promote it.
+                    lm->make_perimeters(src, perimeter_regions, out_fill, out_no_overlap,
+                                        this->loop_nodes, 0., true, nullptr, true);
+                    return;
+                }
+
+                // Only the retained contour is extruded. What the band had to give up to a finer nozzle
+                // printing below it is out of reach of this nozzle and is dropped.
+                SurfaceCollection core_slices;
+                for (const Surface &s : src.surfaces)
+                    for (ExPolygon &e : intersection_ex(ExPolygons{ s.expolygon }, patch.area()))
+                        core_slices.surfaces.emplace_back(s, std::move(e));
+                if (core_slices.surfaces.empty()) {
+                    lm->perimeters.clear();
+                    lm->thin_fills.clear();
+                    return;
+                }
+                // The layers inside the band are not extruded separately. Using the physical layer
+                // immediately below the group top would therefore treat the band's own dropped contours as
+                // support and hide overhangs that start below the band bottom.
+                const ExPolygons *lower_slices = patch.bottom_idx > 0 ?
+                    &this->object()->get_layer(int(patch.bottom_idx - 1))->lslices : nullptr;
+                lm->make_perimeters(core_slices, perimeter_regions, out_fill, out_no_overlap,
+                                    this->loop_nodes, patch.merged_height, true, lower_slices);
+            };
+
 	        if (layerms.size() == 1) {  // optimization
 	            (*layerm)->fill_surfaces.surfaces.clear();
                 (*layerm)->fill_no_overlap_expolygons.clear();
-                (*layerm)->make_perimeters((*layerm)->slices, perimeter_regions, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons, this->loop_nodes);
+                generate_region_perimeters(*layerm, (*layerm)->slices, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons);
 
 	            (*layerm)->fill_expolygons = to_expolygons((*layerm)->fill_surfaces.surfaces);
 	        } else {
 	            SurfaceCollection new_slices;
-	            // Use the region with highest infill rate, as the make_perimeters() function below decides on the gap fill based on the infill existence.
-	            LayerRegion *layerm_config = layerms.front();
 	            {
 	                // group slices (surfaces) according to number of extra perimeters
 	                std::map<unsigned short, Surfaces> slices;  // extra_perimeters => [ surface, surface... ]
@@ -279,7 +334,7 @@ void Layer::make_perimeters()
 	            SurfaceCollection fill_surfaces;
                 //BBS
                 ExPolygons fill_no_overlap;
-                (*layerm)->make_perimeters(new_slices, perimeter_regions, &fill_surfaces, &fill_no_overlap, this->loop_nodes);
+                generate_region_perimeters(*layerm, new_slices, &fill_surfaces, &fill_no_overlap);
 
 	            // assign fill_surfaces to each layer
 	            if (!fill_surfaces.surfaces.empty()) {

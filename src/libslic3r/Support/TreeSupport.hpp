@@ -544,6 +544,9 @@ private:
      */
     void insert_dropped_node(std::vector<SupportNode*>& nodes_layer, SupportNode* node);
     void create_tree_support_layers();
+    // BBS multi-diameter: merge the sparse base into slabs a coarse nozzle can extrude, leaving the roof and
+    // floor at the layer height. Runs between draw_circles() and generate_toolpaths().
+    void merge_base_areas_multi_diameter();
     void generate_toolpaths();
     // get unscaled radius of node
     coordf_t calc_branch_radius(coordf_t base_radius, size_t layers_to_top, size_t tip_layers, double diameter_angle_scale_factor);

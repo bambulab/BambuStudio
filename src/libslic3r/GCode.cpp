@@ -530,12 +530,18 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     static float get_outer_wall_volumetric_speed(const FullPrintConfig& config, const Print& print, int filament_id, int extruder_id) {
         float outer_wall_volumetric_speed = 0;
         float filament_max_volumetric_speed = config.filament_max_volumetric_speed.get_at(filament_id);
-        float outer_wall_line_width = print.default_region_config().outer_wall_line_width.value;
+        const float preset_nozzle_diameter = float(primary_nozzle_diameter(config));
+        const float nozzle_diameter = nozzle_diameter_for_filament(print.config(), unsigned(filament_id + 1));
+        float outer_wall_line_width = float(Flow::extrusion_width_for_nozzle(
+            print.default_region_config().outer_wall_line_width, preset_nozzle_diameter, nozzle_diameter,
+            multi_nozzle_diameter_mode_enabled(config)));
         if (outer_wall_line_width == 0.0) {
-            float default_line_width = print.default_object_config().line_width.value;
+            float default_line_width = float(Flow::extrusion_width_for_nozzle(
+                print.default_object_config().line_width, preset_nozzle_diameter, nozzle_diameter,
+                multi_nozzle_diameter_mode_enabled(config)));
             outer_wall_line_width = default_line_width == 0.0 ? config.filament_diameter.get_at(filament_id) : default_line_width;
         }
-        Flow outer_wall_flow = Flow(outer_wall_line_width, config.layer_height, config.nozzle_diameter.get_at(extruder_id));
+        Flow outer_wall_flow = Flow(outer_wall_line_width, config.layer_height, nozzle_diameter);
         float outer_wall_speed = print.default_region_config().outer_wall_speed.get_at(extruder_id);
         outer_wall_volumetric_speed = outer_wall_speed * outer_wall_flow.mm3_per_mm();
         if (outer_wall_volumetric_speed > filament_max_volumetric_speed)
@@ -1483,6 +1489,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         assert(m_layer_idx >= 0);
         if (m_layer_idx >= (int) m_tool_changes.size()) return gcode;
+        // The tower drops layers whose filler nozzle cannot lay down the base layer height, see
+        // WipeTower::plan_tower_ladder(). Such a layer carries no result at all.
+        if (m_tool_changes[m_layer_idx].empty()) return gcode;
 
         // Calculate where the wipe tower layer will be printed. -1 means that print z will not change,
         // resulting in a wipe tower with sparse layers.
@@ -1513,6 +1522,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     {
         assert(m_layer_idx >= 0);
         if (m_layer_idx >= (int) m_tool_changes.size())
+            return true;
+        if (m_tool_changes[m_layer_idx].empty())
             return true;
 
         bool   ignore_sparse = false;
@@ -1586,6 +1597,7 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
     size_t idx_object_layer = 0;
     size_t idx_support_layer = 0;
     const LayerToPrint* last_extrusion_layer = nullptr;
+    size_t last_extrusion_layer_idx = 0;
     while (idx_object_layer < object.layers().size() || idx_support_layer < object.support_layers().size()) {
         LayerToPrint layer_to_print;
         double print_z_min = std::numeric_limits<double>::max();
@@ -1644,17 +1656,39 @@ std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObjec
                 }
                 extra_gap = std::max(extra_gap, top_cd == 0 ? 0 :object.config().raft_contact_distance.value);
             }
+            // BBS multi-diameter adaptive layer height: use the Z span this printed layer actually covers.
+            // On a merge group-top layer the shared core is extruded at N x base height, so the merged-out
+            // layers below carry no extrusions on purpose; effective_print_height() returns the merged span
+            // (== height for ordinary layers) so those merged-out layers are not flagged as a printability gap.
             double maximal_print_z = (last_extrusion_layer ? last_extrusion_layer->print_z() : 0.)
-                + layer_to_print.layer()->height
+                + layer_to_print.layer()->effective_print_height()
                 + std::max(0., extra_gap);
             // Negative support_contact_z is not taken into account, it can result in false positives in cases
 
-            if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON)
+            // The Z span above may still be too short when the group-top layer prints something else than the
+            // merged core (a bridge keeps its own layer height, for instance). The layers in between are
+            // nevertheless covered by the merged extrusion of a group-top layer above them, so a gap made up
+            // exclusively of merged-out layers is not a real gap.
+            bool merged_out_in_between = false;
+            if (last_extrusion_layer != nullptr && last_extrusion_layer_idx + 2 <= layers_to_print.size() - 1) {
+                merged_out_in_between = true;
+                for (size_t idx = last_extrusion_layer_idx + 1; idx + 1 < layers_to_print.size(); ++idx) {
+                    const Layer *in_between = layers_to_print[idx].object_layer;
+                    if (in_between == nullptr || ! in_between->is_adaptive_merged_out()) {
+                        merged_out_in_between = false;
+                        break;
+                    }
+                }
+            }
+
+            if (has_extrusions && layer_to_print.print_z() > maximal_print_z + 2. * EPSILON && ! merged_out_in_between)
                 warning_ranges.emplace_back(std::make_pair((last_extrusion_layer ? last_extrusion_layer->print_z() : 0.), layers_to_print.back().print_z()));
         }
         // Remember last layer with extrusions.
-        if (has_extrusions)
+        if (has_extrusions) {
             last_extrusion_layer = &layers_to_print.back();
+            last_extrusion_layer_idx = layers_to_print.size() - 1;
+        }
     }
 
     if (! warning_ranges.empty()) {
@@ -1906,6 +1940,9 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     // BBS
     m_curr_print = print;
+    // export_layer_filaments() runs after do_export() and reads m_print. Set it here so the
+    // early-return path below (cached G-code) does not leave m_print as nullptr.
+    m_print = print;
 
     CNumericLocalesSetter locales_setter;
 
@@ -3574,7 +3611,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 // export info requested for filament change
 void GCode::export_layer_filaments(GCodeProcessorResult* result)
 {
-    if (result == nullptr)
+    if (result == nullptr || m_print == nullptr)
         return;
 
     const std::vector<int>filament_map = m_config.filament_map.values; // 1 based
@@ -5018,6 +5055,19 @@ GCode::LayerResult GCode::process_layer(
                 // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
                 bool            interface_dontcare = object.config().support_interface_filament.value == 0;
 
+                // BBS multi-diameter: this support layer was merged into a slab thicker than the object layers,
+                // which is below the minimum layer height of every other filament of this Z range. Honour the
+                // filament the support merge plan reserved for it instead of picking the active one.
+                if (support_dontcare && support_layer.planned_filament_id > 0) {
+                    support_extruder = (unsigned int) (support_layer.planned_filament_id - 1);
+                    support_dontcare = false;
+                }
+                if (interface_dontcare && support_layer.planned_interface_filament_id > 0) {
+                    interface_extruder =
+                        (unsigned int) (support_layer.planned_interface_filament_id - 1);
+                    interface_dontcare = false;
+                }
+
                 // BBS: apply wiping overridden extruders
                 WipingExtrusions& wiping_extrusions = const_cast<LayerTools&>(layer_tools).wiping_extrusions();
                 if (support_dontcare) {
@@ -5036,6 +5086,29 @@ GCode::LayerResult GCode::process_layer(
                     }
                 }
 
+                // BBS multi-diameter: the printable layer height window of a filament's nozzle. Only used to
+                // correct a "don't care" choice that cannot extrude this support layer height at all, and only
+                // when a filament of this layer can, so the pick never gets worse than it was.
+                // The classic support generator folds a merged slab back into the layer height, but the tree
+                // generators keep base and roof on one SupportLayer and record the merged thickness in
+                // base_slab_height / interface_slab_height. Checking the layer height alone would let a slab
+                // that was never pinned to a filament end up on a nozzle that cannot extrude it.
+                const coordf_t support_slab_height = support_layer.base_slab_height > EPSILON ?
+                    support_layer.base_slab_height : support_layer.height;
+                const coordf_t interface_slab_height = support_layer.interface_slab_height > EPSILON ?
+                    support_layer.interface_slab_height : support_layer.height;
+                auto nozzle_can_print_height = [&print](unsigned int extruder_id, coordf_t height) {
+                    const double nozzle = nozzle_diameter_for_filament(print.config(), extruder_id + 1);
+                    return nozzle <= EPSILON || adaptive_layer_height_range(nozzle).contains(height);
+                };
+                // Only the roles still resolved here constrain the choice: a filament already pinned by the
+                // merge plan or by a wiping override is not picked by the code below.
+                auto nozzle_can_print_layer = [&nozzle_can_print_height, support_dontcare, interface_dontcare,
+                                               support_slab_height, interface_slab_height](unsigned int extruder_id) {
+                    return (! support_dontcare   || nozzle_can_print_height(extruder_id, support_slab_height)) &&
+                           (! interface_dontcare || nozzle_can_print_height(extruder_id, interface_slab_height));
+                };
+
                 // BBS: try to print support base with a filament other than interface filament
                 if (support_dontcare && !interface_dontcare) {
                     unsigned int dontcare_extruder = first_extruder_id;
@@ -5049,6 +5122,16 @@ GCode::LayerResult GCode::process_layer(
 
                         dontcare_extruder = extruder_id;
                         break;
+                    }
+                    if (! nozzle_can_print_layer(dontcare_extruder)) {
+                        for (unsigned int extruder_id : layer_tools.extruders) {
+                            if (print.config().filament_soluble.get_at(extruder_id) || extruder_id == interface_extruder)
+                                continue;
+                            if (nozzle_can_print_layer(extruder_id)) {
+                                dontcare_extruder = extruder_id;
+                                break;
+                            }
+                        }
                     }
                 #if 0
                     //BBS: not found a suitable extruder in current layer ,dontcare_extruider==first_extruder_id==interface_extruder
@@ -5080,6 +5163,14 @@ GCode::LayerResult GCode::process_layer(
                         // Try to find a non-support extruder on the same layer.
                         for (unsigned int extruder_id : layer_tools.extruders)
                             if (!print.config().filament_is_support.get_at(extruder_id)) {
+                                dontcare_extruder = extruder_id;
+                                break;
+                            }
+                    }
+                    if (! nozzle_can_print_layer(dontcare_extruder)) {
+                        // The active filament's nozzle cannot extrude this support layer height.
+                        for (unsigned int extruder_id : layer_tools.extruders)
+                            if (nozzle_can_print_layer(extruder_id) && ! print.config().filament_soluble.get_at(extruder_id)) {
                                 dontcare_extruder = extruder_id;
                                 break;
                             }
@@ -5448,13 +5539,14 @@ GCode::LayerResult GCode::process_layer(
             const std::pair<size_t, size_t> loops = loops_it->second;
             this->set_origin(0., 0.);
             m_avoid_crossing_perimeters.use_external_mp();
-            Flow layer_skirt_flow = print.skirt_flow().with_height(float(m_skirt_done.back() - (m_skirt_done.size() == 1 ? 0. : m_skirt_done[m_skirt_done.size() - 2])));
+            Flow layer_skirt_flow = print.skirt_flow(extruder_id + 1).with_height(float(m_skirt_done.back() - (m_skirt_done.size() == 1 ? 0. : m_skirt_done[m_skirt_done.size() - 2])));
             double mm3_per_mm = layer_skirt_flow.mm3_per_mm();
             for (size_t i = loops.first; i < loops.second; ++i) {
                 // Adjust flow according to this layer's layer height.
                 ExtrusionLoop loop = *dynamic_cast<const ExtrusionLoop*>(print.skirt().entities[i]);
                 for (ExtrusionPath &path : loop.paths) {
                     path.height = layer_skirt_flow.height();
+                    path.width = layer_skirt_flow.width();
                     path.mm3_per_mm = mm3_per_mm;
                 }
                 //FIXME using the support_speed of the 1st object printed.
@@ -5488,9 +5580,17 @@ GCode::LayerResult GCode::process_layer(
 
                 const Point& offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
                 set_origin(unscaled(offset));
-                for (ExtrusionEntity* ee : instance_to_print.print_object.object_skirt().entities)
+                const Flow object_skirt_flow = print.skirt_flow(*obj, extruder_id + 1);
+                for (ExtrusionEntity* ee : instance_to_print.print_object.object_skirt().entities) {
+                    ExtrusionLoop loop = *dynamic_cast<const ExtrusionLoop*>(ee);
+                    for (ExtrusionPath &path : loop.paths) {
+                        path.height = object_skirt_flow.height();
+                        path.width = object_skirt_flow.width();
+                        path.mm3_per_mm = object_skirt_flow.mm3_per_mm();
+                    }
                     //FIXME using the support_speed of the 1st object printed.
-                    gcode += this->extrude_entity(*ee, "skirt", NOZZLE_CONFIG(support_speed));
+                    gcode += this->extrude_loop(loop, "skirt", NOZZLE_CONFIG(support_speed));
+                }
             }
         }
 

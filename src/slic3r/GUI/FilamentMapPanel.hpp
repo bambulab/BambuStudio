@@ -3,6 +3,7 @@
 #include "GUI.hpp"
 #include "DragDropPanel.hpp"
 #include <wx/string.h>
+#include <set>
 #include <vector>
 
 namespace Slic3r::GUI {
@@ -66,9 +67,18 @@ private:
     std::vector<int>         m_filament_volume_map;
     std::vector<int>         m_filament_list;
     std::vector<std::string> m_filament_type;
+    std::vector<std::set<std::string>> m_allowed_diameters;
+    std::vector<std::set<std::string>> m_extruder_diameters;
+    std::vector<std::string>           m_cached_selected_diameters;
+    std::vector<std::string>           m_cached_filament_presets;
+    std::string                        m_cached_printer_model;
+    std::string                        m_cached_printer_preset;
     wxTimer* m_timer;
     int m_invalid_id{ -1 };
     bool m_force_validation{ false };
+    // Multi-diameter safety net: last diameter-mismatch message shown (empty = none), used to drive the
+    // OnTimer UI refresh independently of the nozzle-availability error state.
+    wxString m_diameter_error;
 };
 
 class FilamentMapMultiNozzlePanel : public FilamentMapPanel
@@ -115,10 +125,17 @@ private:
     std::vector<int>         m_filament_volume_map;
     std::vector<int>         m_filament_list;
     std::vector<std::string> m_filament_type;
+    std::vector<std::set<std::string>> m_allowed_diameters;
+    std::vector<std::string>           m_cached_selected_diameters;
+    std::vector<std::string>           m_cached_filament_presets;
+    std::string                        m_cached_printer_model;
+    std::string                        m_cached_printer_preset;
+    wxString                           m_diameter_error;
     wxTimer *m_timer;
     int      m_invalid_id{-1};
     bool     m_force_validation{false};
     int      m_ams_nozzle_idx{0};
+    bool     m_topology_changed{false};
     int      m_total_nozzle_count{1};
     int      m_ams_slot_count{1};
     bool     m_pending_height_sync{false};

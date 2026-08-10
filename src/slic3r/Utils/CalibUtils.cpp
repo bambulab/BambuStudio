@@ -1020,16 +1020,15 @@ void CalibUtils::calib_pa_pattern(const MachineObject *obj, const CalibInfo &cal
     for (const auto opt : SuggestedConfigCalibPAPattern().floats_pairs) {
         full_config.set_key_value(opt.first, new ConfigOptionFloatsNullable(opt.second));
     }
+    for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
+        full_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
+    }
 
     int logic_extruder_id = DevExtder::to_logical_extruder_id(obj->GetExtderSystem()->GetTotalExtderCount(), calib_info.extruder_id);
     int index = get_index_for_extruder_parameter(full_config, "outer_wall_speed", logic_extruder_id, calib_info.extruder_type, calib_info.nozzle_volume_type);
     float wall_speed = CalibPressureAdvance::find_optimal_PA_speed(full_config, full_config.get_abs_value("line_width"), full_config.get_abs_value("layer_height"), logic_extruder_id, 0);
     ConfigOptionFloatsNullable *wall_speed_speed_opt = full_config.option<ConfigOptionFloatsNullable>("outer_wall_speed");
     wall_speed_speed_opt->values[index]              = wall_speed;
-
-    for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
-        full_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
-    }
 
     for (const auto opt : SuggestedConfigCalibPAPattern().int_pairs) {
         full_config.set_key_value(opt.first, new ConfigOptionInt(opt.second));
@@ -1070,6 +1069,9 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
 
     for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs(nozzle_diameter)) { print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second)); }
     for (const auto opt : SuggestedConfigCalibPAPattern().floats_pairs) { print_config.set_key_value(opt.first, new ConfigOptionFloatsNullable(opt.second)); }
+    for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
+        print_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
+    }
 
     std::vector<CalibInfo> sorted_calib_infos = calib_infos;
     std::sort(sorted_calib_infos.begin(), sorted_calib_infos.end(), [](const CalibInfo &left_item, const CalibInfo &right_item) {
@@ -1092,10 +1094,6 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
         }
         ModelObject* object = model.objects[calib_info.index];
         object->config.set_key_value("outer_wall_speed", new ConfigOptionFloatsNullable(new_speeds));
-    }
-
-    for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
-        print_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
     }
 
     for (const auto opt : SuggestedConfigCalibPAPattern().int_pairs) { print_config.set_key_value(opt.first, new ConfigOptionInt(opt.second)); }

@@ -763,8 +763,25 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key) const
         // Compute absolute value over the absolute value of the base option.
         //FIXME there are some ratio_over chains, which end with empty ratio_with.
         // For example, XXX_extrusion_width parameters are not handled by get_abs_value correctly.
-        return opt_def->ratio_over.empty() ? 0. :
-            static_cast<const ConfigOptionFloatOrPercent*>(raw_opt)->get_abs_value(this->get_abs_value(opt_def->ratio_over));
+        if (opt_def->ratio_over.empty())
+            return 0.;
+        const ConfigOptionFloatOrPercent *opt = static_cast<const ConfigOptionFloatOrPercent*>(raw_opt);
+        // The "ratio_over" reference may point to a per-extruder vector option (e.g. line width
+        // expressed as a percentage of nozzle_diameter); resolve it over the first value in that case.
+        const ConfigOption *ratio_opt = this->option(opt_def->ratio_over);
+        if (ratio_opt == nullptr)
+            return opt->percent ? 0. : opt->value;
+
+        double ratio_over_value = 0.;
+        if (ratio_opt->type() == coFloats) {
+            const auto *vec = static_cast<const ConfigOptionVector<double>*>(ratio_opt);
+            if (vec->values.empty() || std::isnan(vec->values.front()))
+                return opt->percent ? 0. : opt->value;
+            ratio_over_value = vec->values.front();
+        } else {
+            ratio_over_value = this->get_abs_value(opt_def->ratio_over);
+        }
+        return opt->get_abs_value(ratio_over_value);
     }
     std::string err_info = "ConfigBase::get_abs_value(): Not a valid option type for get_abs_value(), parameter : " + opt_key;
     throw ConfigurationError(err_info);

@@ -108,6 +108,11 @@ struct SupportParameters {
         this->support_material_flow = Slic3r::support_material_flow(&object, float(slicing_params.layer_height));
         this->support_material_interface_flow = Slic3r::support_material_interface_flow(&object, float(slicing_params.layer_height));
     	this->raft_interface_flow                = support_material_interface_flow;
+        // BBS multi-diameter: kept so the support base flow can be rebuilt for a nozzle the support merge plan
+        // picked. support_material_flow() derives the nozzle from support_filament, which is 0 in that case.
+        this->support_base_width = (object_config.support_line_width.value > 0) ? object_config.support_line_width : object_config.line_width;
+        this->preset_nozzle_diameter = float(primary_nozzle_diameter(object.print()->full_print_config()));
+        this->multi_nozzle_diameter_mode = multi_nozzle_diameter_mode_enabled(object.print()->full_print_config());
 
         // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
         this->support_layer_height_min = scaled<coord_t>(0.01);
@@ -252,10 +257,16 @@ struct SupportParameters {
 	        assert(slicing_params.raft_layers() == 0);
 	    }
 
-        support_extrusion_width = object_config.support_line_width.value > 0 ? object_config.support_line_width : object_config.line_width;
+        {
+            const auto support_nozzle_diameter = nozzle_diameter_for_filament(print_config, object_config.support_filament);
+            const ConfigOptionFloat &support_width_opt = object_config.support_line_width.value > 0 ? object_config.support_line_width : object_config.line_width;
+            support_extrusion_width = Flow::extrusion_width_for_nozzle(
+                support_width_opt, preset_nozzle_diameter, support_nozzle_diameter,
+                multi_nozzle_diameter_mode);
+        }
         // Check if set to zero, use default if so.
         if (support_extrusion_width <= 0.0) {
-            const auto nozzle_diameter               = print_config.nozzle_diameter.get_at(object_config.support_interface_filament - 1);
+            const auto nozzle_diameter               = nozzle_diameter_for_filament(print_config, object_config.support_interface_filament);
             support_extrusion_width = Flow::auto_extrusion_width(FlowRole::frSupportMaterial, (float) nozzle_diameter);
         }
 
@@ -311,6 +322,21 @@ struct SupportParameters {
     Flow 		support_material_bottom_interface_flow;
 	// Flow at raft inteface & contact layers.
 	Flow    				raft_interface_flow;
+    // BBS multi-diameter: the line width option behind the support flows, so base and interface slabs can be
+    // rebuilt for the nozzle selected by the support merge plan.
+    ConfigOptionFloat support_base_width;
+    float preset_nozzle_diameter { 0.f };
+    bool multi_nozzle_diameter_mode { false };
+    Flow support_material_flow_for_nozzle(double nozzle_diameter, float layer_height) const {
+        return Flow::new_from_config_width(
+            frSupportMaterial, support_base_width, preset_nozzle_diameter, float(nozzle_diameter), layer_height,
+            multi_nozzle_diameter_mode);
+    }
+    Flow support_material_interface_flow_for_nozzle(double nozzle_diameter, float layer_height) const {
+        return Flow::new_from_config_width(
+            frSupportMaterialInterface, support_base_width, preset_nozzle_diameter, float(nozzle_diameter), layer_height,
+            multi_nozzle_diameter_mode);
+    }
     coordf_t support_extrusion_width;
     // Is merging of regions allowed? Could the interface & base support regions be printed with the same extruder?
     bool 		can_merge_support_regions;

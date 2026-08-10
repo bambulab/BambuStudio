@@ -10,6 +10,7 @@
 #include <wx/sizer.h>
 #include <wx/timer.h>
 #include <vector>
+#include <functional>
 
 
 namespace Slic3r { namespace GUI {
@@ -40,11 +41,17 @@ public:
 
     std::vector<ColorPanel *> get_filament_blocks() const { return m_filament_blocks; }
 
+    // Multi-diameter restriction: predicate deciding whether this panel (an extruder/nozzle of a fixed
+    // working diameter) accepts a given filament (1-based id). Empty predicate = accept everything.
+    void set_accept_filament_predicate(std::function<bool(int)> pred) { m_accept_filament = std::move(pred); }
+    bool accepts_filament(int filament_id) const { return !m_accept_filament || m_accept_filament(filament_id); }
+
 private:
     wxBoxSizer *m_sizer;
     wxGridSizer *m_grid_item_sizer;
     Label       *m_title_label = nullptr;
     bool         m_is_auto;
+    std::function<bool(int)> m_accept_filament;
 
     std::vector<ColorPanel *> m_filament_blocks;
 
@@ -101,6 +108,11 @@ public:
     void SetUnifiedGridColumns(int cols);
     void SetUnifiedGridWidth(int box_width);
 
+    // Multi-diameter restriction: propagate the accept predicate to every sub-panel (this panel is a
+    // single extruder split by volume type, so all sub-panels share the same working diameter).
+    void set_accept_filament_predicate(std::function<bool(int)> pred);
+    bool accepts_filament(int filament_id) const { return !m_accept_filament || m_accept_filament(filament_id); }
+
 private:
     void UpdateLayout();
 
@@ -116,6 +128,7 @@ private:
     DragDropPanel *m_unified_panel;
 
     bool m_use_separation;
+    std::function<bool(int)> m_accept_filament;
 };
 
 }} // namespace Slic3r::GUI

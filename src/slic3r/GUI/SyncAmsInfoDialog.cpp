@@ -213,6 +213,8 @@ void SyncAmsInfoDialog::deal_ok()
                 auto &temp   = m_result.sync_maps[temp_idx];
                 temp.ams_id  = m_ams_mapping_result[i].ams_id;
                 temp.slot_id = m_ams_mapping_result[i].slot_id;
+                if (m_ams_mapping_result[i].nozzle_diameter > 0.)
+                    temp.nozzle_diameter = std::to_string(m_ams_mapping_result[i].nozzle_diameter);
             }
             else{
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check error:  m_result.sync_maps:" << temp_idx;

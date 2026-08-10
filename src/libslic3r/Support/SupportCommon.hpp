@@ -8,13 +8,43 @@
 #include "../Layer.hpp"
 #include "../Polygon.hpp"
 #include "../Print.hpp"
+#include "../SupportMergePlan.hpp"
 #include "SupportLayer.hpp"
 #include "SupportParameters.hpp"
+
+#include <map>
 
 namespace Slic3r {
 
 class PrintObject;
 class SupportLayer;
+
+// BBS multi-diameter: merge the generated support areas into slabs a coarse nozzle can actually extrude, and
+// report the filament every merged slab was planned for, keyed by its print_z.
+//
+// Runs after the support areas exist but before generate_support_layers() installs them, which is the only
+// place where the support Z ladder can still be changed. Both the classic generator and the organic tree
+// generator hand the same layer arrays to generate_support_layers(), so one pass covers both.
+//
+// cooldown_areas / lightning_infill_areas are rebuilt to use the support layer id generate_support_layers()
+// will assign. per_layer_area_print_z carries the source grid's real Z coordinates when its indices do not
+// already match the generated layer arrays. Pass nullptr when the generator has no per-grid areas.
+void merge_support_layers_multi_diameter(
+    const PrintObject                               &object,
+    const SupportParameters                         &support_params,
+    const SlicingParameters                         &slicing_params,
+    const SupportGeneratorLayersPtr                 &raft_layers,
+    SupportGeneratorLayersPtr                       &bottom_contacts,
+    SupportGeneratorLayersPtr                       &top_contacts,
+    SupportGeneratorLayersPtr                       &intermediate_layers,
+    SupportGeneratorLayersPtr                       &interface_layers,
+    SupportGeneratorLayersPtr                       &base_interface_layers,
+    std::map<coordf_t, SupportMergePlan::Candidate> &planned_filaments,
+    std::map<coordf_t, SupportMergePlan::Candidate> &planned_interface_filaments,
+    std::map<coordf_t, coordf_t>                     &planned_interface_heights,
+    const std::vector<coordf_t>                     *per_layer_area_print_z = nullptr,
+    std::vector<ExPolygons>                         *cooldown_areas = nullptr,
+    std::vector<ExPolygons>                         *lightning_infill_areas = nullptr);
 
 // Turn some of the base layers into base interface layers.
 // For soluble interfaces with non-soluble bases, print maximum two first interface layers with the base

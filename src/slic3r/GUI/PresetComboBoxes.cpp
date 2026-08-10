@@ -209,8 +209,15 @@ void PresetComboBox::update_selection()
      * So, select last combobox item ("Add/Remove preset")
      */
     //validate_selection();
-    if (m_last_selected == INT_MAX)
+    if (m_last_selected == INT_MAX) {
         m_last_selected = 1;
+        // For filament comboboxes the AMS/nozzle entries are appended before the preset groups, so
+        // item 1 belongs to a printer tray. Landing there would show that tray's filament name and
+        // tray-number icon as if this slot used it, so step past the AMS block.
+        if (m_first_ams_filament && m_last_selected >= m_first_ams_filament && m_last_selected < m_last_ams_filament &&
+            m_last_ams_filament < (int) GetCount())
+            m_last_selected = m_last_ams_filament;
+    }
 
     SetSelection(m_last_selected);
 #ifdef __WXMSW__
@@ -1131,7 +1138,22 @@ bool PlaterPresetComboBox::switch_to_tab()
         const std::string& selected_preset = GetString(GetSelection()).ToUTF8().data();
         if (!boost::algorithm::starts_with(selected_preset, Preset::suffix_modified()))
         {
-            const std::string& preset_name = wxGetApp().preset_bundle->filaments.get_preset_name_by_alias(selected_preset);
+            // Open the concrete preset that THIS filament slot actually uses. Several filament slots can
+            // share one alias while sitting on different nozzle-diameter variants (multi-diameter mode).
+            // get_preset_name_by_alias() has no per-slot context, so resolving the displayed alias would
+            // collapse every slot onto a single variant (the main diameter / whichever is selected in the
+            // collection) and make one slot's edit bleed into the others. filament_presets[m_filament_idx]
+            // is the exact variant of this slot, so prefer it when it still matches the displayed alias.
+            auto              preset_bundle = wxGetApp().preset_bundle;
+            std::string       preset_name;
+            const std::string slot_preset  = (m_filament_idx >= 0 && m_filament_idx < (int) preset_bundle->filament_presets.size())
+                ? preset_bundle->filament_presets[m_filament_idx]
+                : std::string();
+            const Preset *slot_preset_ptr = slot_preset.empty() ? nullptr : preset_bundle->filaments.find_preset(slot_preset);
+            if (slot_preset_ptr != nullptr && (slot_preset_ptr->alias == selected_preset || slot_preset_ptr->name == selected_preset))
+                preset_name = slot_preset;
+            else
+                preset_name = preset_bundle->filaments.get_preset_name_by_alias(selected_preset);
             if (wxGetApp().get_tab(m_type)->select_preset(preset_name))
                 wxGetApp().get_tab(m_type)->get_combo_box()->set_filament_idx(m_filament_idx);
             else {
@@ -1289,6 +1311,7 @@ void PlaterPresetComboBox::update()
     //BBS:  move system to the end
     wxString selected_system_preset;
     wxString selected_user_preset;
+    wxString selected_uncompatible_preset;
     wxString tooltip;
     const std::deque<Preset>& presets = m_collection->get_presets();
 
@@ -1348,6 +1371,14 @@ void PlaterPresetComboBox::update()
             if (boost::ends_with(name, " template"))
                 continue;
             uncompatible_presets.emplace(name, bmp);
+            // An incompatible preset can still be the one this slot really uses, e.g. a nozzle-diameter
+            // variant the active printer does not accept. It must take part in validate_selection(),
+            // otherwise m_last_selected stays INT_MAX and update_selection() falls back to item 1 -
+            // the first AMS/nozzle entry - so the slot silently shows another tray's filament and icon.
+            if (is_selected) {
+                selected_uncompatible_preset = name;
+                tooltip                      = get_tooltip(preset);
+            }
         }
         else if (preset.is_default || preset.is_system) {
             //BBS: move system to the end
@@ -1499,7 +1530,7 @@ void PlaterPresetComboBox::update()
     add_presets(nonsys_presets, selected_user_preset, L("User presets"), _L("Custom") + " ");
     // BBS: move system to the end
     add_presets(system_presets, selected_system_preset, L("System presets"), _L("System"));
-    add_presets(uncompatible_presets, {}, L("Unsupported presets"), _L("Unsupported") + " ");
+    add_presets(uncompatible_presets, selected_uncompatible_preset, L("Unsupported presets"), _L("Unsupported") + " ");
 
     //BBS: remove unused pysical printer logic
     /*if (m_type == Preset::TYPE_PRINTER)

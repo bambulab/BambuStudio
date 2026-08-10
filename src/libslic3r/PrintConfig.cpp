@@ -4,9 +4,12 @@
 #include "Flow.hpp"
 #include "I18N.hpp"
 #include "FilamentMixer.hpp"
+#include "Utils.hpp"
 
 #include <set>
 #include <cmath>
+#include <cstdlib>
+#include <sstream>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -103,9 +106,186 @@ const std::vector<std::string> filament_overhang_override_keys = {
 size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id)
 {
     if (filament_id < config.filament_map.size()) {
-        return config.filament_map.get_at(filament_id)-1;
+        const int mapped = config.filament_map.get_at(filament_id);
+        return mapped > 0 ? size_t(mapped - 1) : 0;
     }
     return 0;
+}
+
+bool has_authoritative_per_slot_nozzle_diameters(
+    bool handle_hotend_as_extruder, const std::vector<int> &slot_counts,
+    const std::vector<double> &slot_diameters)
+{
+    if (slot_diameters.empty())
+        return false;
+    if (handle_hotend_as_extruder)
+        return true;
+
+    // Requiring an extruder with several slots would reject a dual-extruder machine that carries one
+    // diameter per side, and its slots would then be filtered against a single representative diameter.
+    // A self-consistent per-slot list is authoritative on its own.
+    size_t expected_slot_count = 0;
+    for (int count : slot_counts)
+        if (count > 0)
+            expected_slot_count += size_t(count);
+    return expected_slot_count > 0 && slot_diameters.size() == expected_slot_count;
+}
+
+bool multi_nozzle_diameter_mode_enabled(const ConfigOptionResolver &config)
+{
+    const auto *opt = config.option<ConfigOptionBool>("multi_nozzle_diameter_mode");
+    return opt != nullptr && opt->value;
+}
+
+bool has_multiple_configured_nozzle_diameters(const ConfigBase &config)
+{
+    if (! multi_nozzle_diameter_mode_enabled(config))
+        return false;
+
+    auto has_multiple = [](const std::vector<double> &diameters) {
+        double first = 0.;
+        for (double diameter : diameters) {
+            if (diameter <= EPSILON)
+                continue;
+            if (first <= EPSILON)
+                first = diameter;
+            else if (std::abs(diameter - first) > EPSILON)
+                return true;
+        }
+        return false;
+    };
+
+    // Per-slot diameters describe the capability of both single-extruder multi-nozzle machines and
+    // H2C-class multi-extruder machines. Invalid per-slot data falls back to the per-extruder values.
+    const auto *per_slot     = config.option<ConfigOptionFloats>("extruder_nozzle_diameter");
+    const auto *slot_counts  = config.option<ConfigOptionInts>("extruder_nozzle_count");
+    const auto *hotend_as_extruder = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+    static const std::vector<int> no_slot_counts;
+    if (per_slot != nullptr && has_authoritative_per_slot_nozzle_diameters(
+        hotend_as_extruder != nullptr && hotend_as_extruder->value,
+        slot_counts != nullptr ? slot_counts->values : no_slot_counts,
+        per_slot->values))
+        return has_multiple(per_slot->values);
+    const auto *per_extruder = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    return per_extruder != nullptr && has_multiple(per_extruder->values);
+}
+
+bool complete_filament_nozzle_diameter_selections(
+    DynamicPrintConfig &config, const std::vector<std::string> &supported_diameters)
+{
+    auto *selected = config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters", true);
+    if (selected == nullptr)
+        return false;
+
+    if (! multi_nozzle_diameter_mode_enabled(config)) {
+        std::fill(selected->values.begin(), selected->values.end(), std::string());
+        return false;
+    }
+
+    std::set<std::string> configured;
+    auto collect_diameters = [&configured](const std::vector<double> &diameters) {
+        for (double diameter : diameters)
+            if (diameter > 0.)
+                configured.insert(format_diameter_to_str(diameter));
+    };
+    const auto *per_slot = config.option<ConfigOptionFloats>("extruder_nozzle_diameter");
+    const auto *per_extruder = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    const auto *per_extruder_slot_counts = config.option<ConfigOptionInts>("extruder_nozzle_count");
+    const std::vector<int> empty_slot_counts;
+    if (per_slot != nullptr && has_authoritative_per_slot_nozzle_diameters(
+        config.opt_bool("handle_hotend_as_extruder"),
+        per_extruder_slot_counts != nullptr ? per_extruder_slot_counts->values : empty_slot_counts,
+        per_slot->values))
+        collect_diameters(per_slot->values);
+    else if (per_extruder != nullptr)
+        collect_diameters(per_extruder->values);
+
+    const auto *is_mixed = config.option<ConfigOptionBools>("filament_is_mixed");
+    size_t filament_count = selected->values.size();
+    if (is_mixed != nullptr)
+        filament_count = std::max(filament_count, is_mixed->values.size());
+    filament_count = std::max(filament_count, supported_diameters.size());
+    if (const auto *colours = config.option<ConfigOptionStrings>("filament_colour"))
+        filament_count = std::max(filament_count, colours->values.size());
+    selected->values.resize(filament_count);
+
+    if (configured.size() < 2) {
+        std::fill(selected->values.begin(), selected->values.end(), std::string());
+        return false;
+    }
+
+    auto parse_supported = [](const std::string &joined) {
+        std::set<std::string> values;
+        std::string token;
+        std::stringstream stream(joined);
+        while (std::getline(stream, token, ';')) {
+            const double diameter = std::atof(token.c_str());
+            if (diameter > 0.)
+                values.insert(format_diameter_to_str(diameter));
+        }
+        return values;
+    };
+
+    for (size_t index = 0; index < filament_count; ++index) {
+        if (is_mixed != nullptr && index < is_mixed->values.size() && is_mixed->values[index]) {
+            selected->values[index].clear();
+            continue;
+        }
+
+        std::set<std::string> allowed = configured;
+        if (index < supported_diameters.size() && !supported_diameters[index].empty()) {
+            const std::set<std::string> native = parse_supported(supported_diameters[index]);
+            allowed.clear();
+            std::set_intersection(native.begin(), native.end(), configured.begin(), configured.end(),
+                                  std::inserter(allowed, allowed.end()));
+        }
+        if (allowed.empty()) {
+            selected->values[index].clear();
+            continue;
+        }
+
+        const std::string normalized = format_diameter_to_str(std::atof(selected->values[index].c_str()));
+        if (allowed.count(normalized) != 0) {
+            selected->values[index] = normalized;
+            continue;
+        }
+        selected->values[index] = *std::min_element(allowed.begin(), allowed.end(),
+            [](const std::string &lhs, const std::string &rhs) {
+                return std::atof(lhs.c_str()) < std::atof(rhs.c_str());
+            });
+    }
+    return true;
+}
+
+float nozzle_diameter_for_filament(const PrintConfig &config, unsigned int filament_id)
+{
+    if (filament_id != 0) {
+        const size_t fil_idx = filament_id - 1;
+        const auto  &selected = config.filament_selected_nozzle_diameters.values;
+        if (fil_idx < selected.size() && !selected[fil_idx].empty() &&
+            selected[fil_idx].find(';') == std::string::npos) {
+            const double diameter = std::atof(selected[fil_idx].c_str());
+            if (diameter > 0.0)
+                return float(diameter);
+        }
+    }
+
+    const size_t nozzle_idx = (filament_id == 0) ? 0 : filament_id - 1;
+    return float(config.nozzle_diameter.get_at(nozzle_idx));
+}
+
+double primary_nozzle_diameter(const ConfigBase &config)
+{
+    if (const auto *opt = config.option<ConfigOptionString>("printer_variant")) {
+        const double variant = std::atof(opt->value.c_str());
+        if (variant > 0.0)
+            return variant;
+    }
+    if (const auto *diam = config.option<ConfigOptionFloatsNullable>("nozzle_diameter")) {
+        if (!diam->values.empty())
+            return diam->values.front();
+    }
+    return 0.0;
 }
 
 size_t get_filament_config_idx(const GCodeConfig &config, unsigned int filament_id)
@@ -2315,6 +2495,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Line width of outer wall");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max_literal = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
@@ -2525,7 +2706,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Default line width if some line width is set to be zero");
     def->sidetext = L("mm");
     def->min = 0;
-    def->max = 10;
+    def->max_literal = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
 
@@ -3552,6 +3733,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Line width of initial layer");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max_literal = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
 
@@ -3563,6 +3745,7 @@ void PrintConfigDef::init_fff_params()
                      "of initial layer. Zero means to use the line width of initial layer.");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max_literal = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0));
 
@@ -4060,6 +4243,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("Adjust the line width of the selected skin paths.");
     def->sidetext = L("mm");
     def->min      = 0;
+    def->max_literal = 10;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
 
@@ -4069,6 +4253,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("Adjust the line width of the selected skeleton paths.");
     def->sidetext = L("mm");
     def->min      = 0;
+    def->max_literal = 10;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
 
@@ -4253,6 +4438,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Line width of internal sparse infill");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max_literal = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
 
@@ -4904,6 +5090,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Line width of inner wall");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max_literal = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
 
@@ -5372,6 +5559,18 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts { 1 });
     def->cli = ConfigOptionDef::nocli;
 
+    def = this->add("filament_selected_nozzle_diameters", coStrings);
+    def->label = "Filament selected nozzle diameters";
+    def->tooltip = "Per-filament explicitly selected nozzle diameter. Empty means not selected.";
+    def->set_default_value(new ConfigOptionStrings {});
+    def->cli = ConfigOptionDef::nocli;
+
+    def = this->add("multi_nozzle_diameter_mode", coBool);
+    def->label = "Multi nozzle diameter mode";
+    def->tooltip = "Let one plate print with several nozzle diameters. When disabled, the machine is treated "
+                   "as offering a single nozzle diameter and slicing keeps the single-diameter behavior.";
+    def->set_default_value(new ConfigOptionBool { false });
+
     def = this->add("filament_retract_length_nc", coFloats);
     def->label = L("length when change hotend");
     def->tooltip = L("When this retraction value is modified, it will be used as the amount of filament retracted "
@@ -5645,6 +5844,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Line width of internal solid infill");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max_literal = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
 
@@ -5920,6 +6120,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Line width of support");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max_literal = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
 
@@ -6319,6 +6520,7 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("Line width for top surfaces");
     def->sidetext = L("mm");
     def->min = 0;
+    def->max_literal = 10;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.4));
 
@@ -8299,6 +8501,14 @@ void DynamicPrintConfig::normalize_fdm_1()
     if (auto *opt_gcode_resolution = this->opt<ConfigOptionFloat>("resolution", false); opt_gcode_resolution)
         // Resolution will be above 1um.
         opt_gcode_resolution->value = std::max(opt_gcode_resolution->value, 0.001);
+
+    // BBS multi-diameter: a printer offering a single nozzle diameter has to slice exactly as it did before
+    // multi-diameter printing existed. Per-filament selections are the only input that could still make it
+    // look otherwise - a project saved on another machine, a hand-edited config - so they are dropped here,
+    // at the one entrance every slicing path shares, instead of being second-guessed by every consumer.
+    if (auto *selected = this->option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+        selected != nullptr && ! selected->values.empty() && ! has_multiple_configured_nozzle_diameters(*this))
+        std::fill(selected->values.begin(), selected->values.end(), std::string());
 
     return;
 }
@@ -10954,48 +11164,114 @@ bool has_skirt(const ConfigBase& cfg)
     return (opt_skirt_height && opt_skirt_height->getInt() > 0 && opt_skirt_loops && opt_skirt_loops->getInt() > 0)
         || (opt_draft_shield && opt_draft_shield->getInt() != dsDisabled);
 }
-float get_real_skirt_dist(const ConfigBase& cfg)
+// Shared gate of all get_real_skirt_dist() overloads: tells whether a per-object skirt expansion
+// applies at all and, if so, reports the effective loop count and the configured gap.
+static bool skirt_expansion_params(const ConfigBase &cfg, int &skirt_loops, float &skirt_distance)
 {
     auto opt_skirt_per_object = cfg.option("skirt_per_object");
     if (!opt_skirt_per_object || !opt_skirt_per_object->getBool())
-        return 0.f;
+        return false;
 
     if (!has_skirt(cfg))
-        return 0.f;
+        return false;
 
     auto opt_skirt_loops = cfg.option("skirt_loops");
-    int skirt_loops = opt_skirt_loops ? opt_skirt_loops->getInt() : 0;
+    skirt_loops = opt_skirt_loops ? opt_skirt_loops->getInt() : 0;
     auto opt_draft_shield = cfg.option("draft_shield");
     if (opt_draft_shield && opt_draft_shield->getInt() != dsDisabled && skirt_loops == 0)
         skirt_loops = 1;
     if (skirt_loops <= 0)
-        return 0.f;
+        return false;
 
-    auto  opt_dist       = cfg.option("skirt_distance");
-    float skirt_distance = opt_dist ? static_cast<float>(opt_dist->getFloat()) : 0.f;
+    auto opt_dist  = cfg.option("skirt_distance");
+    skirt_distance = opt_dist ? static_cast<float>(opt_dist->getFloat()) : 0.f;
+    return true;
+}
 
-    auto  opt_nozzle     = cfg.option("nozzle_diameter");
-    auto  opt_nozzle_f   = dynamic_cast<const ConfigOptionFloats *>(opt_nozzle);
-    float nozzle_dia     = opt_nozzle_f ? static_cast<float>(opt_nozzle_f->get_at(0)) : 0.4f;
+// Nozzle diameter a filament will be printed with. Mirrors
+// nozzle_diameter_for_filament(const PrintConfig &, unsigned int) for callers that only hold a
+// DynamicPrintConfig (arrange). filament_id is 1-based; 0 means "unknown" and falls back to
+// the first extruder.
+static float skirt_nozzle_diameter_for_filament(const ConfigBase &cfg, unsigned int filament_id)
+{
+    const auto *opt_nozzle_f = cfg.option<ConfigOptionFloats>("nozzle_diameter");
+    const float fallback_dia = opt_nozzle_f ? static_cast<float>(opt_nozzle_f->get_at(0)) : 0.4f;
+    if (filament_id == 0)
+        return fallback_dia;
+
+    const size_t filament_idx = size_t(filament_id - 1);
+    const auto  *selected     = cfg.option<ConfigOptionStrings>("filament_selected_nozzle_diameters");
+    if (selected != nullptr && filament_idx < selected->values.size() &&
+        selected->values[filament_idx].find(';') == std::string::npos) {
+        const double selected_diameter = std::atof(selected->values[filament_idx].c_str());
+        if (selected_diameter > 0.)
+            return static_cast<float>(selected_diameter);
+    }
+    if (opt_nozzle_f == nullptr)
+        return fallback_dia;
+
+    return static_cast<float>(opt_nozzle_f->get_at(filament_idx));
+}
+
+// Skirt flow inferred from the config alone, mirroring Print::skirt_flow().
+static Flow skirt_flow_from_config(const ConfigBase &cfg, unsigned int filament_id)
+{
+    ConfigOptionFloat width_opt(0.);
+    auto opt_lw = cfg.option<ConfigOptionFloat>("initial_layer_line_width");
+    if (opt_lw && opt_lw->value > 0)
+        width_opt = *opt_lw;
+    if (width_opt.value == 0) {
+        auto opt_gen_lw = cfg.option<ConfigOptionFloat>("line_width");
+        if (opt_gen_lw && opt_gen_lw->value > 0)
+            width_opt = *opt_gen_lw;
+    }
+
     auto  opt_lh       = cfg.option("initial_layer_print_height");
     float layer_height = opt_lh ? static_cast<float>(opt_lh->getFloat()) : 0.2f;
 
-    // Use Flow to compute actual extrusion width and spacing,
-    // matching Print::skirt_flow() / _make_skirt() exactly.
-    ConfigOptionFloat width_opt;
-    auto opt_lw = cfg.option("initial_layer_line_width");
-    width_opt.value = (opt_lw && opt_lw->getFloat() > 0) ? opt_lw->getFloat() : 0;
-    if (width_opt.value == 0) {
-        auto opt_gen_lw = cfg.option("line_width");
-        width_opt.value = (opt_gen_lw && opt_gen_lw->getFloat() > 0) ? opt_gen_lw->getFloat() : 0;
-    }
-    Flow flow = Flow::new_from_config_width(frPerimeter, width_opt, nozzle_dia, layer_height);
-    float spacing    = flow.spacing();
-    float flow_width = flow.width();
+    return Flow::new_from_config_width(
+        frPerimeter, width_opt, float(primary_nozzle_diameter(cfg)),
+        skirt_nozzle_diameter_for_filament(cfg, filament_id), layer_height,
+        multi_nozzle_diameter_mode_enabled(cfg));
+}
+
+float get_real_skirt_dist(const ConfigBase& cfg, const Flow &flow)
+{
+    int   skirt_loops    = 0;
+    float skirt_distance = 0.f;
+    if (!skirt_expansion_params(cfg, skirt_loops, skirt_distance))
+        return 0.f;
 
     // Outermost skirt centerline = skirt_distance + (N-0.5)*spacing,
     // plus half extrusion width for the physical outer edge.
-    return skirt_distance + (skirt_loops - 0.5f) * spacing + 0.5f * flow_width;
+    return skirt_distance + (skirt_loops - 0.5f) * flow.spacing() + 0.5f * flow.width();
+}
+
+float get_real_skirt_dist(const ConfigBase& cfg, const std::vector<unsigned int> &filament_ids)
+{
+    int   skirt_loops    = 0;
+    float skirt_distance = 0.f;
+    if (!skirt_expansion_params(cfg, skirt_loops, skirt_distance))
+        return 0.f;
+
+    // Same selection rule as Print::skirt_flow(): start from the dedicated skirt filament and keep
+    // the widest spacing among the filaments in use. Without it a mixed-diameter setup would
+    // reserve less room here than the slicer later extrudes.
+    const auto        *opt_skirt_filament = cfg.option<ConfigOptionInt>("support_filament");
+    const unsigned int skirt_filament     = opt_skirt_filament && opt_skirt_filament->value > 0 ?
+        static_cast<unsigned int>(opt_skirt_filament->value) : 0;
+    Flow flow = skirt_flow_from_config(cfg, skirt_filament);
+    for (unsigned int filament_id : filament_ids) {
+        const Flow candidate = skirt_flow_from_config(cfg, filament_id);
+        if (candidate.spacing() > flow.spacing())
+            flow = candidate;
+    }
+    return get_real_skirt_dist(cfg, flow);
+}
+
+float get_real_skirt_dist(const ConfigBase& cfg)
+{
+    return get_real_skirt_dist(cfg, std::vector<unsigned int>{});
 }
 } // namespace Slic3r
 

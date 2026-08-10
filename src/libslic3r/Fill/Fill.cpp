@@ -293,10 +293,30 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 
 		        // Calculate the actual flow we'll be using for this infill.
 		        params.bridge = is_bridge || Fill::use_bridge_flow(params.pattern);
-				params.flow   = params.bridge ?
-					//BBS: always enable thick bridge for internal bridge
-					layerm.bridging_flow(extrusion_role, (surface.is_bridge() && !surface.is_external()) || object_config.thick_bridges) :
-					layerm.flow(extrusion_role, (surface.thickness == -1) ? layer.height : surface.thickness);
+		        const double surface_height = (surface.thickness == -1) ? layer.height : surface.thickness;
+		        if (! params.bridge) {
+		            params.flow = layerm.flow(extrusion_role, surface_height);
+		        } else {
+		            //BBS: always enable thick bridge for internal bridge
+		            const bool thick       = (surface.is_bridge() && ! surface.is_external()) || object_config.thick_bridges;
+		            const bool merged_span = is_bridge && surface_height > layer.height + EPSILON;
+		            // A thick bridge is a rounded extrusion as tall as the nozzle is wide, laid at the layer's
+		            // own Z. That extra height is what anchors an internal bridge down into the sparse fill,
+		            // so decimating the span must not cost it: the merged height is at most 0.7 nozzle
+		            // diameters, which the thick extrusion covers on its own.
+		            Flow thick_flow;
+		            if (thick)
+		                thick_flow = layerm.bridging_flow(extrusion_role, true);
+		            if (thick && (! merged_span || double(thick_flow.height()) + EPSILON >= surface_height))
+		                params.flow = thick_flow;
+		            else if (merged_span)
+		                // BBS multi-diameter: this bridge is the only extrusion filling the merged span, so it
+		                // has to be extruded at the merged height. A thin bridging flow derives its height from
+		                // the physical layer and would leave the rest of the span empty.
+		                params.flow = layerm.flow(extrusion_role, surface_height).with_flow_ratio(region_config.bridge_flow);
+		            else
+		                params.flow = layerm.bridging_flow(extrusion_role, false);
+		        }
 				//BBS: record speed params
                 if (!params.bridge) {
                     if (params.extrusion_role == erInternalInfill)
@@ -341,12 +361,20 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 				//get locked region param
 				if (params.pattern == ipLockedZag){
 					const PrintObject *object = layerm.layer()->object();
-					auto nozzle_diameter = float(object->print()->config().nozzle_diameter.get_at(layerm.region().extruder(extrusion_role) - 1));
-					Flow skin_flow = params.bridge ? params.flow : Flow::new_from_config_width(extrusion_role, region_config.skin_infill_line_width, nozzle_diameter, float((surface.thickness == -1) ? layer.height : surface.thickness));
+					auto nozzle_diameter = nozzle_diameter_for_filament(
+                        object->print()->config(), layerm.region().extruder(extrusion_role));
+                    auto preset_nozzle_diameter = float(primary_nozzle_diameter(object->print()->full_print_config()));
+					Flow skin_flow = params.bridge ? params.flow : Flow::new_from_config_width(
+                        extrusion_role, region_config.skin_infill_line_width, preset_nozzle_diameter, nozzle_diameter,
+                        float((surface.thickness == -1) ? layer.height : surface.thickness),
+                        multi_nozzle_diameter_mode_enabled(object->print()->full_print_config()));
 					//add skin flow
 					append_flow_param(lock_param.skin_flow_params, skin_flow, surface.expolygon);
 
-					Flow skeleton_flow = params.bridge ? params.flow : Flow::new_from_config_width(extrusion_role, region_config.skeleton_infill_line_width, nozzle_diameter, float((surface.thickness == -1) ? layer.height : surface.thickness)) ;
+					Flow skeleton_flow = params.bridge ? params.flow : Flow::new_from_config_width(
+                        extrusion_role, region_config.skeleton_infill_line_width, preset_nozzle_diameter, nozzle_diameter,
+                        float((surface.thickness == -1) ? layer.height : surface.thickness),
+                        multi_nozzle_diameter_mode_enabled(object->print()->full_print_config())) ;
 					// add skeleton flow
 					append_flow_param(lock_param.skeleton_flow_params, skeleton_flow, surface.expolygon);
 

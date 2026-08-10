@@ -100,6 +100,14 @@ static int s_nozzle_mapping_last_request_time = 0;
 // Need to convert to 0-based rack nozzle IDs (0, 1, 2, 3...) for lookup
 constexpr int HOTEND_RACK_INTERNAL_ID_OFFSET = 16;
 
+static int s_get_physical_extruder(const DynamicPrintConfig& config, int logical_extruder)
+{
+    const auto* physical_map = config.option<ConfigOptionInts>("physical_extruder_map");
+    if (!physical_map || logical_extruder < 0 || logical_extruder >= int(physical_map->values.size()))
+        return INVALID_EXTRUDER_ID;
+    return physical_map->values[logical_extruder];
+}
+
 std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_type)
 {
     if (nozzle_volume_type == NozzleVolumeType::nvtStandard) {
@@ -1320,6 +1328,8 @@ void SelectMachineDialog::sync_ams_mapping_result(const std::vector<FilamentInfo
                 wxColour ams_col;
 
                 if (f->tray_id >= 0) {
+                    // obj_ is required so hotend-rack machines get their rack label
+                    // instead of falling back to the legacy AMS decoding.
                     ams_id = wxGetApp().transition_tridid(f->tray_id, total_ext_count, obj_);
                     if (m_filament_left_panel->IsShown() && m_filament_right_panel->IsShown() && devPrinterUtil::IsVirtualSlot(f->tray_id)) {
                         ams_id = "Ext";
@@ -6089,11 +6099,10 @@ static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles()
                 NozzleDef nozzle_data;
                 nozzle_data.nozzle_diameter = s_get_diameter(used_nozzle.diameter);
                 nozzle_data.nozzle_flow_type = DevNozzle::ToNozzleFlowType(used_nozzle.volume_type);
-                if (used_nozzle.extruder_id == 0) {
-                    used_extuder_nozzles.insert({ DEPUTY_EXTRUDER_ID, nozzle_data });
-                } else if (used_nozzle.extruder_id == 1) {
-                    used_extuder_nozzles.insert({ MAIN_EXTRUDER_ID, nozzle_data });
-                }
+                const int physical_extruder = s_get_physical_extruder(
+                    preset_bundle->full_config(), used_nozzle.extruder_id);
+                if (physical_extruder != INVALID_EXTRUDER_ID)
+                    used_extuder_nozzles.insert({ physical_extruder, nozzle_data });
             };
 
             return used_extuder_nozzles;
@@ -6121,6 +6130,11 @@ static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles()
                 if (nozzle_group_res) {
                     const auto &nozzle_infos = DevUtilBackend::CollectNozzleInfo(nozzle_group_res.get(), logic_extruder_idx);
                     for (const auto& nozzle_info : nozzle_infos) {
+                        // A hotend rack prints one logical extruder with several diameters, so the
+                        // diameter has to come from the sliced nozzle as well. The preset value read
+                        // above only describes the extruder, and using it here would ask the printer
+                        // for hotends the slice never needed.
+                        nozzle_data.nozzle_diameter  = nozzle_info.first.nozzle_diameter;
                         nozzle_data.nozzle_flow_type = nozzle_info.first.nozzle_flow_type;
                         used_extuder_nozzles.insert({ physical_idx, nozzle_data });
                     }

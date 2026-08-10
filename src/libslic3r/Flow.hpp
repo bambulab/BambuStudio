@@ -104,7 +104,19 @@ public:
 
     static Flow bridging_flow(float dmr, float nozzle_diameter) { return Flow { dmr, dmr, bridge_extrusion_spacing(dmr), nozzle_diameter, true }; }
 
-    static Flow new_from_config_width(FlowRole role, const ConfigOptionFloat &width, float nozzle_diameter, float height);
+    // Convert the absolute width authored for the process preset into the equivalent width for the
+    // nozzle that will actually print the path when multi-diameter mode is enabled.
+    static double extrusion_width_for_nozzle(
+        const ConfigOptionFloat &width, float preset_nozzle_diameter, float nozzle_diameter,
+        bool multi_nozzle_diameter_mode);
+
+    static Flow new_from_config_width(
+        FlowRole role,
+        const ConfigOptionFloat &width,
+        float preset_nozzle_diameter,
+        float nozzle_diameter,
+        float height,
+        bool multi_nozzle_diameter_mode);
 
     // Spacing of extrusions with rounded extrusion model.
     static float rounded_rectangle_extrusion_spacing(float width, float height);
@@ -117,10 +129,10 @@ public:
     // The defaults were derived from manual Prusa MK3 profiles.
     static float auto_extrusion_width(FlowRole role, float nozzle_diameter);
 
-    // Extrusion width from full config, taking into account the defaults (when set to zero) and ratios (percentages).
+    // Extrusion width from full config, taking into account the defaults when set to zero.
     // Precise value depends on layer index (1st layer vs. other layers vs. variable layer height),
     // on active extruder etc. Therefore the value calculated by this function shall be used as a hint only.
-	static double extrusion_width(const std::string &opt_key, const ConfigOptionFloatOrPercent *opt, const ConfigOptionResolver &config, const unsigned int first_printing_extruder = 0);
+	static double extrusion_width(const std::string &opt_key, const ConfigOptionFloat *opt, const ConfigOptionResolver &config, const unsigned int first_printing_extruder = 0);
 	static double extrusion_width(const std::string &opt_key, const ConfigOptionResolver &config, const unsigned int first_printing_extruder = 0);
 
 private:

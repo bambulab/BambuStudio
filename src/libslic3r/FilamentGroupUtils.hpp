@@ -34,6 +34,7 @@ namespace Slic3r
             std::string type;
             bool is_support;
             FilamentUsageType usage_type;
+            float diameter{0.f};
         };
 
         struct MachineFilamentInfo: public FilamentInfo {
@@ -57,7 +58,8 @@ namespace Slic3r
                     color == other.color &&
                     type == other.type &&
                     is_support == other.is_support &&
-                    usage_type == other.usage_type;
+                    usage_type == other.usage_type &&
+                    diameter == other.diameter;
             }
         };
 

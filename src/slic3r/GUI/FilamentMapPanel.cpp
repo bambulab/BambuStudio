@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <cstdlib>
 #include <optional>
+#include <functional>
+#include <sstream>
 
 namespace Slic3r::GUI {
 
@@ -137,6 +139,85 @@ static NozzleVolumeType get_ams_nozzle_volume_from_full_stat(int ams_nozzle_idx)
     return vals.empty() ? nvtStandard : NozzleVolumeType(vals[0]);
 }
 
+// ==================== Multi-diameter grouping restriction (GUI side) ====================
+// Explicit per-filament selections take precedence over the preset's native compatible diameters.
+// Without an explicit selection, preserve the existing native-support restriction.
+
+static std::set<std::string> split_diameter_set(const std::string &joined)
+{
+    std::set<std::string> out;
+    std::string           token;
+    std::stringstream     ss(joined);
+    while (std::getline(ss, token, ';'))
+        if (!token.empty())
+            out.insert(token);
+    return out;
+}
+
+static std::vector<std::set<std::string>> get_filament_allowed_diameters(size_t filament_count)
+{
+    std::vector<std::set<std::string>> result(filament_count);
+    const auto joined = wxGetApp().preset_bundle->compute_filament_supported_nozzle_diameters(filament_count);
+    for (size_t i = 0; i < filament_count && i < joined.size(); ++i)
+        result[i] = split_diameter_set(joined[i]);
+    if (const auto *selected = wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>(
+            "filament_selected_nozzle_diameters")) {
+        for (size_t i = 0; i < filament_count && i < selected->values.size(); ++i) {
+            if (!selected->values[i].empty())
+                result[i] = {format_diameter_to_str(string_to_double_decimal_point(selected->values[i]))};
+        }
+    }
+    return result;
+}
+
+static std::vector<std::set<std::string>> get_backend_extruder_diameters()
+{
+    const PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    const auto *fallback = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    const size_t extruder_count = std::max<size_t>(
+        preset_bundle->extruder_full_stat.get_extruder_count(), fallback ? fallback->values.size() : 0);
+    std::vector<std::set<std::string>> result(extruder_count);
+    for (size_t e = 0; e < extruder_count; ++e) {
+        if (e < size_t(preset_bundle->extruder_full_stat.get_extruder_count())) {
+            for (const auto &slot : preset_bundle->extruder_full_stat.get_extruder_stats(int(e))) {
+                const double diameter = string_to_double_decimal_point(slot.first);
+                if (diameter > 0.0)
+                    result[e].insert(format_diameter_to_str(diameter));
+            }
+        }
+        if (result[e].empty() && fallback != nullptr && e < fallback->values.size() && fallback->values[e] > 0.0)
+            result[e].insert(format_diameter_to_str(fallback->values[e]));
+    }
+    return result;
+}
+
+// Build a drag-drop accept predicate for a panel whose working diameter is target_diameter. Filaments
+// with unknown native diameters stay unrestricted so nothing is accidentally blocked.
+static std::function<bool(int)> make_diameter_accept_predicate(const std::vector<std::set<std::string>> &native_diameters,
+                                                               const std::string                        &target_diameter)
+{
+    return [native_diameters, target_diameter](int filament_id) -> bool {
+        const int idx = filament_id - 1;
+        if (idx < 0 || idx >= static_cast<int>(native_diameters.size()) || native_diameters[idx].empty())
+            return true;
+        return native_diameters[idx].count(target_diameter) > 0;
+    };
+}
+
+static std::function<bool(int)> make_diameter_accept_predicate(const std::vector<std::set<std::string>> &native_diameters,
+                                                               const std::set<std::string>              &target_diameters)
+{
+    return [native_diameters, target_diameters](int filament_id) -> bool {
+        const int idx = filament_id - 1;
+        if (idx < 0 || idx >= static_cast<int>(native_diameters.size()) || native_diameters[idx].empty())
+            return true;
+        return std::any_of(target_diameters.begin(), target_diameters.end(),
+                           [&native_diameters, idx](const std::string &diameter) {
+                               return native_diameters[idx].count(diameter) > 0;
+                           });
+    };
+}
+
 static const wxColour BgNormalColor  = wxColour("#FFFFFF");
 static const wxColour BgSelectColor  = wxColour("#EBF9F0");
 static const wxColour BgDisableColor = wxColour("#CECECE");
@@ -162,6 +243,59 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
     auto nozzle_volume_values = proj_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
     std::vector<int> filament_map = GetFilamentMaps();
     std::vector<int> filament_volume_map = GetFilamentVolumeMaps();
+    std::vector<std::string> selected_diameters;
+    if (const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters"))
+        selected_diameters = selected->values;
+    const std::string printer_model = preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
+    const std::string printer_preset = preset_bundle->printers.get_edited_preset().name;
+    bool restrictions_changed = false;
+    if (selected_diameters != m_cached_selected_diameters || preset_bundle->filament_presets != m_cached_filament_presets ||
+        printer_model != m_cached_printer_model || printer_preset != m_cached_printer_preset) {
+        m_allowed_diameters = get_filament_allowed_diameters(m_filament_map.size());
+        m_cached_selected_diameters = std::move(selected_diameters);
+        m_cached_filament_presets = preset_bundle->filament_presets;
+        m_cached_printer_model = printer_model;
+        m_cached_printer_preset = printer_preset;
+        restrictions_changed = true;
+    }
+    std::vector<std::set<std::string>> extruder_diameters = get_backend_extruder_diameters();
+    if (extruder_diameters != m_extruder_diameters) {
+        m_extruder_diameters = std::move(extruder_diameters);
+        restrictions_changed = true;
+    }
+    if (restrictions_changed) {
+        const std::set<std::string> left_diameters =
+            m_extruder_diameters.size() > 0 ? m_extruder_diameters[0] : std::set<std::string>{};
+        const std::set<std::string> right_diameters =
+            m_extruder_diameters.size() > 1 ? m_extruder_diameters[1] : std::set<std::string>{};
+        m_left_panel->set_accept_filament_predicate(left_diameters.empty() ? std::function<bool(int)>{} :
+            make_diameter_accept_predicate(m_allowed_diameters, left_diameters));
+        m_right_panel->set_accept_filament_predicate(right_diameters.empty() ? std::function<bool(int)>{} :
+            make_diameter_accept_predicate(m_allowed_diameters, right_diameters));
+    }
+
+    // Multi-diameter safety net: flag any filament placed on an extruder whose working diameter its
+    // preset does not support. The drag-drop restriction prevents this interactively; this also catches
+    // a stale map loaded from a project whose diameters changed.
+    wxString diameter_error;
+    for (int fid : m_filament_list) {
+        const int idx = fid - 1;
+        if (idx < 0 || idx >= static_cast<int>(m_allowed_diameters.size()) || m_allowed_diameters[idx].empty())
+            continue;
+        const int eid = filament_map[idx] - 1;
+        if (eid < 0 || eid >= static_cast<int>(m_extruder_diameters.size()))
+            continue;
+        const std::set<std::string> &extruder_diameters = m_extruder_diameters[eid];
+        const bool has_compatible_diameter = std::any_of(
+            extruder_diameters.begin(), extruder_diameters.end(),
+            [this, idx](const std::string &diameter) { return m_allowed_diameters[idx].count(diameter) > 0; });
+        if (!extruder_diameters.empty() && !has_compatible_diameter) {
+            diameter_error = _L("Error: a filament is assigned to a nozzle of incompatible diameter. "
+                                "Please regroup so each filament stays on a nozzle whose diameter it supports.");
+            break;
+        }
+    }
+
     std::vector<int>nozzle_count(nozzle_volume_values.size());
     for (size_t eid = 0; eid < nozzle_volume_values.size(); ++eid) {
         NozzleVolumeType extruder_volume_type = NozzleVolumeType(nozzle_volume_values[eid]);
@@ -192,34 +326,62 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
 
             if ((has_standard && standard_count == 0) ||
                 (has_highflow && highflow_count == 0)) {
-                valid = false;
-                invalid_eid = eid;
-                invalid_nozzle = (has_standard && standard_count == 0) ? NozzleVolumeType::nvtStandard : NozzleVolumeType::nvtHighFlow;
-                break;
+                auto nozzle_opt = preset_bundle->printers.get_edited_preset()
+                                      .config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+                bool has_configured_nozzle = nozzle_opt && eid < nozzle_opt->size()
+                                             && nozzle_opt->get_at(eid) > 0;
+                if (!has_configured_nozzle) {
+                    valid = false;
+                    invalid_eid = eid;
+                    invalid_nozzle = (has_standard && standard_count == 0) ? NozzleVolumeType::nvtStandard : NozzleVolumeType::nvtHighFlow;
+                    break;
+                }
             }
         } else {
             int count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(eid, extruder_volume_type);
             if (count == 0) {
-                valid = false;
-                invalid_eid = eid;
-                invalid_nozzle = extruder_volume_type;
-                break;
+                // When mixing nozzle diameters, an extruder may have 0 nozzles of the
+                // "selected" diameter but still have a usable nozzle installed (just a
+                // different size).  Check the configured nozzle_diameter — if it is
+                // positive the extruder is physically present and should be allowed.
+                auto nozzle_opt = preset_bundle->printers.get_edited_preset()
+                                      .config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+                bool has_configured_nozzle = nozzle_opt && eid < nozzle_opt->size()
+                                             && nozzle_opt->get_at(eid) > 0;
+                if (!has_configured_nozzle) {
+                    valid = false;
+                    invalid_eid = eid;
+                    invalid_nozzle = extruder_volume_type;
+                    break;
+                }
             }
         }
     }
 
-    bool update_ui  = m_invalid_id != invalid_eid;
+    // A diameter mismatch invalidates the grouping regardless of nozzle availability.
+    if (!diameter_error.empty())
+        valid = false;
+
+    bool update_ui  = (m_invalid_id != invalid_eid) || (m_diameter_error != diameter_error);
     bool send_event = update_ui || m_force_validation;
 
-    m_invalid_id = invalid_eid;
+    m_invalid_id     = invalid_eid;
+    m_diameter_error = diameter_error;
 
     if (update_ui) {
         if (valid) {
             m_errors->Hide();
             m_suggestion_panel->Hide();
+        } else if (!diameter_error.empty()) {
+            // Diameter mismatch: the "set nozzle count" suggestion does not apply, so show only the error.
+            m_errors->SetLabel(diameter_error);
+            m_errors->Wrap(FromDIP(520));
+            m_errors->Show();
+            m_suggestion_panel->Hide();
         } else {
             m_errors->SetLabel(wxString::Format(_L("Error: %s extruder has no available %s nozzle, current group result is invalid."),
                                                 invalid_eid == 0 ? _L("Left") : _L("Right"), invalid_nozzle == NozzleVolumeType::nvtStandard ? _L("Standard") : _L("High Flow")));
+            m_errors->Wrap(FromDIP(520));
             m_errors->Show();
             m_suggestion_panel->Show();
         }
@@ -385,6 +547,15 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
     , m_filament_list(filament_list)
     , m_filament_type(type)
 {
+    m_allowed_diameters  = get_filament_allowed_diameters(m_filament_map.size());
+    m_extruder_diameters = get_backend_extruder_diameters();
+    if (const auto *selected = wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>(
+            "filament_selected_nozzle_diameters"))
+        m_cached_selected_diameters = selected->values;
+    m_cached_filament_presets = wxGetApp().preset_bundle->filament_presets;
+    m_cached_printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
+    m_cached_printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset().name;
+
     SetName(wxT("FilamentMapManualPanel"));
     SetBackgroundColour(BgNormalColor);
 
@@ -416,6 +587,18 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
             m_right_panel->AddColorBlock(type, idx + 1, vol_type);
         }
     }
+
+    // Multi-diameter restriction: an extruder accepts a filament when any installed physical nozzle
+    // supports its selected diameter. left_panel = extruder 0 (deputy), right_panel = extruder 1 (main).
+    const std::set<std::string> left_diameters =
+        m_extruder_diameters.size() > 0 ? m_extruder_diameters[0] : std::set<std::string>{};
+    const std::set<std::string> right_diameters =
+        m_extruder_diameters.size() > 1 ? m_extruder_diameters[1] : std::set<std::string>{};
+    if (!left_diameters.empty())
+        m_left_panel->set_accept_filament_predicate(make_diameter_accept_predicate(m_allowed_diameters, left_diameters));
+    if (!right_diameters.empty())
+        m_right_panel->set_accept_filament_predicate(make_diameter_accept_predicate(m_allowed_diameters, right_diameters));
+
     m_left_panel->SetMinSize({FromDIP(260), FromDIP(110)});
     m_right_panel->SetMinSize({FromDIP(260), FromDIP(110)});
 
@@ -592,6 +775,12 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
     SetBackgroundColour(BgNormalColor);
 
     auto preset_bundle = wxGetApp().preset_bundle;
+    m_allowed_diameters = get_filament_allowed_diameters(m_filament_map.size());
+    if (const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters"))
+        m_cached_selected_diameters = selected->values;
+    m_cached_filament_presets = preset_bundle->filament_presets;
+    m_cached_printer_model = preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
+    m_cached_printer_preset = preset_bundle->printers.get_edited_preset().name;
     auto full_cfg = preset_bundle->full_config();
     auto cnt_opt = full_cfg.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
     m_total_nozzle_count = (cnt_opt && !cnt_opt->values.empty()) ? cnt_opt->values[0] : 1;
@@ -630,6 +819,23 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
             m_right_panel->AddColorBlock(tp, idx + 1, vol_type);
         }
     }
+
+    // Multi-diameter restriction: the AMS panel represents its physical nozzle, while the fixed
+    // panel may contain several configured nozzle diameters.
+    const auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
+    std::set<std::string> ams_diameters;
+    std::set<std::string> fixed_diameters;
+    for (size_t i = 0; i < full_stats.size(); ++i) {
+        const double diameter = string_to_double_decimal_point(full_stats[i].first);
+        if (diameter <= 0.0)
+            continue;
+        auto &target = static_cast<int>(i) == m_ams_nozzle_idx ? ams_diameters : fixed_diameters;
+        target.insert(format_diameter_to_str(diameter));
+    }
+    if (m_left_panel && !ams_diameters.empty())
+        m_left_panel->set_accept_filament_predicate(make_diameter_accept_predicate(m_allowed_diameters, ams_diameters));
+    if (m_right_panel && !fixed_diameters.empty())
+        m_right_panel->set_accept_filament_predicate(make_diameter_accept_predicate(m_allowed_diameters, fixed_diameters));
 
     if (has_ams) {
         m_left_panel->SetUnifiedGridColumns(AMS_PANEL_GRID_COLS);
@@ -805,13 +1011,74 @@ void FilamentMapMultiNozzlePanel::OnDragDropCompleted(wxCommandEvent& event)
 
 void FilamentMapMultiNozzlePanel::OnTimer(wxTimerEvent &)
 {
-    bool update_ui  = m_invalid_id != -1;
-    bool send_event = update_ui || m_force_validation;
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    std::vector<std::string> selected_diameters;
+    if (const auto *selected = preset_bundle->project_config.option<ConfigOptionStrings>("filament_selected_nozzle_diameters"))
+        selected_diameters = selected->values;
+    const std::string printer_model = preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
+    const std::string printer_preset = preset_bundle->printers.get_edited_preset().name;
+    if (selected_diameters != m_cached_selected_diameters || preset_bundle->filament_presets != m_cached_filament_presets ||
+        printer_model != m_cached_printer_model || printer_preset != m_cached_printer_preset) {
+        m_allowed_diameters = get_filament_allowed_diameters(m_filament_map.size());
+        m_cached_selected_diameters = std::move(selected_diameters);
+        m_cached_filament_presets = preset_bundle->filament_presets;
+        m_cached_printer_model = printer_model;
+        m_cached_printer_preset = printer_preset;
+    }
 
-    m_invalid_id = -1;
+    const DynamicPrintConfig full_config = preset_bundle->full_config();
+    const int current_ams_nozzle_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_config);
+    m_topology_changed |= current_ams_nozzle_idx != m_ams_nozzle_idx;
+
+    const auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
+    std::set<std::string> ams_diameters;
+    std::set<std::string> fixed_diameters;
+    for (size_t idx = 0; idx < full_stats.size(); ++idx) {
+        const double diameter = string_to_double_decimal_point(full_stats[idx].first);
+        if (diameter <= 0.0)
+            continue;
+        auto &target = int(idx) == m_ams_nozzle_idx ? ams_diameters : fixed_diameters;
+        target.insert(format_diameter_to_str(diameter));
+    }
+    if (m_left_panel)
+        m_left_panel->set_accept_filament_predicate(ams_diameters.empty() ? std::function<bool(int)>{} :
+            make_diameter_accept_predicate(m_allowed_diameters, ams_diameters));
+    m_right_panel->set_accept_filament_predicate(fixed_diameters.empty() ? std::function<bool(int)>{} :
+        make_diameter_accept_predicate(m_allowed_diameters, fixed_diameters));
+
+    auto has_incompatible = [this](const std::vector<int> &filaments, const std::set<std::string> &targets) {
+        if (targets.empty())
+            return false;
+        for (int filament_id : filaments) {
+            const int idx = filament_id - 1;
+            if (idx < 0 || idx >= int(m_allowed_diameters.size()) || m_allowed_diameters[idx].empty())
+                continue;
+            if (std::none_of(targets.begin(), targets.end(), [this, idx](const std::string &diameter) {
+                    return m_allowed_diameters[idx].count(diameter) > 0;
+                }))
+                return true;
+        }
+        return false;
+    };
+    const bool invalid = m_topology_changed ||
+                         (m_left_panel && has_incompatible(GetLeftFilaments(), ams_diameters)) ||
+                         has_incompatible(GetRightFilaments(), fixed_diameters);
+    const wxString diameter_error = m_topology_changed ?
+        _L("Error: the nozzle configuration changed. Please reopen the filament grouping dialog.") :
+        (invalid ? _L("Error: a filament is assigned to a nozzle of incompatible diameter. "
+                      "Please regroup so each filament stays on a nozzle whose diameter it supports.") : wxString());
+    bool update_ui  = diameter_error != m_diameter_error;
+    bool send_event = update_ui || m_force_validation;
+    m_diameter_error = diameter_error;
 
     if (update_ui) {
-        m_errors->Hide();
+        if (invalid) {
+            m_errors->SetLabel(diameter_error);
+            m_errors->Wrap(FromDIP(520));
+            m_errors->Show();
+        } else {
+            m_errors->Hide();
+        }
         if (m_left_panel) m_left_panel->Freeze();
         m_right_panel->Freeze();
         Layout();
@@ -824,7 +1091,7 @@ void FilamentMapMultiNozzlePanel::OnTimer(wxTimerEvent &)
 
     if (send_event) {
         wxCommandEvent event(wxEVT_INVALID_MANUAL_MAP);
-        event.SetInt(1);
+        event.SetInt(!invalid);
         ProcessEvent(event);
         m_force_validation = false;
     }

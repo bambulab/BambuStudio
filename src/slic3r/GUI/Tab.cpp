@@ -6029,6 +6029,32 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
     apply_searcher();
 }
 
+void TabPrinter::refresh_extruder_full_stat_for_model_change()
+{
+    m_full_stat_prebuilt_for_model_change = false;
+    const Preset& current_printer = m_preset_bundle->printers.get_selected_preset();
+    const Preset* base_printer    = m_preset_bundle->printers.get_preset_base(current_printer);
+    if (!base_printer)
+        base_printer = &current_printer;
+    const std::string base_model = base_printer->config.option<ConfigOptionString>("printer_model")->value;
+
+    // Same guard as on_preset_loaded(): only a model change resets the per-extruder nozzle stat. A
+    // same-model variant switch (e.g. "set nozzle diameter") must keep the user's multi-diameter selection.
+    // Deliberately do NOT update m_base_preset_model here, so on_preset_loaded() still performs its full
+    // UI refresh (sidebar / nozzle count display / purge mode) for this model change.
+    if (base_model == m_base_preset_model)
+        return;
+
+    // Rebuild the per-extruder counts and the per-slot snapshot from the freshly selected printer preset.
+    // A project load keeps its restored 3mf stat. Do not mark that no-op as a completed prebuild because
+    // on_preset_loaded() still owns the normal fallback rebuild.
+    if (m_preset_bundle->extruder_nozzle_stat.get_force_keep_flag())
+        return;
+    m_preset_bundle->extruder_nozzle_stat.on_printer_model_change(m_preset_bundle);
+    m_preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
+    m_full_stat_prebuilt_for_model_change = true;
+}
+
 // this gets executed after preset is loaded and before GUI fields are updated
 void TabPrinter::on_preset_loaded()
 {
@@ -6109,7 +6135,8 @@ void TabPrinter::on_preset_loaded()
             bool has_multiple_nozzle = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
             if (extruder_max_nozzle_count && nozzle_volume_type) {
                 wxGetApp().plater()->sidebar().enable_nozzle_count_edit(has_multiple_nozzle);
-                m_preset_bundle->extruder_nozzle_stat.on_printer_model_change(m_preset_bundle);
+                if (!m_full_stat_prebuilt_for_model_change)
+                    m_preset_bundle->extruder_nozzle_stat.on_printer_model_change(m_preset_bundle);
                 for (size_t idx = 0; idx < extruders_count; ++idx) {
                     updateNozzleCountDisplay(m_preset_bundle, idx, NozzleVolumeType(nozzle_volume_type->values[idx]));
                 }
@@ -6132,6 +6159,7 @@ void TabPrinter::on_preset_loaded()
         }
         m_base_preset_model = base_model;
     }
+    m_full_stat_prebuilt_for_model_change = false;
 }
 
 void TabPrinter::update_pages()
@@ -7044,6 +7072,14 @@ bool Tab::select_preset(
                 }
             }
         }
+        // Multi-diameter: refresh the per-extruder nozzle stat to the freshly selected printer *before*
+        // update_compatible() below derives nozzle diameters / broadens filament compatibility from it.
+        // on_preset_loaded() (invoked later via load_current_preset) rebuilds it as well, but only after
+        // update_compatible, so without this a model switch would compare filaments against the previous
+        // printer's stat (e.g. leaking the old model's nozzle diameters into the compatibility set).
+        if (is_selected && printer_tab)
+            static_cast<TabPrinter*>(this)->refresh_extruder_full_stat_for_model_change();
+
         // Mark the print & filament enabled if they are compatible with the currently selected preset.
         // The following method should not discard changes of current print or filament presets on change of a printer profile,
         // if they are compatible with the current printer.

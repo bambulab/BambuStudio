@@ -200,7 +200,7 @@ void  InterlockingGenerator::generateInterlockingwall(Layer* layer) const{
     has_any_mesh.merge(has_all_meshes); // perform union and intersection simultaneously. Cannibalizes voxels_per_mesh
 
     if (has_all_meshes.empty()) {
-        return; 
+        return;
     }
 
     ExPolygons layer_regions;

@@ -7,6 +7,7 @@
 #include <atomic>
 
 #include "libslic3r/libslic3r.h"
+#include "libslic3r/ExPolygon.hpp"
 #include "libslic3r/ExtrusionEntity.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/PrintConfig.hpp"
@@ -116,6 +117,28 @@ struct PrintObjectSeamData
         Slic3r::deque<SeamPlacerImpl::Perimeter>   perimeters;
         std::vector<SeamPlacerImpl::SeamCandidate> points;
         std::unique_ptr<SeamCandidatesTree>        points_tree;
+        // BBS multi-diameter adaptive layer height: this layer was swallowed by a merge group, its walls
+        // are extruded by the group top above it. It owns no perimeter to align a seam string against,
+        // only the placeholder candidate extract_perimeter_polygons() inserts for empty layers.
+        bool                                       merged_out { false };
+        // Where the layer was swallowed. With several nozzle diameters in play a layer is normally
+        // swallowed over part of its area only, because the finer nozzles keep printing every layer while a
+        // coarser region has its walls lifted to the band top. merged_out is the degenerate case of this
+        // area covering everything the layer had.
+        ExPolygons                                 merged_out_areas;
+
+        // True when nothing is extruded at this XY, so a seam string running through it is interrupted by
+        // the merge rather than ended by it.
+        bool swallowed_at(const Vec2f &position) const
+        {
+            if (this->merged_out)
+                return true;
+            const Point point = Point::new_scale(position);
+            for (const ExPolygon &expolygon : this->merged_out_areas)
+                if (expolygon.contains(point))
+                    return true;
+            return false;
+        }
     };
     // Map of PrintObjects (PO) -> vector of layers of PO -> vector of perimeter
     std::vector<LayerSeams> layers;

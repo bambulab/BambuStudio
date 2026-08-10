@@ -1395,6 +1395,11 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     //BBS: add plate index
     t_config_option_keys print_diff       = print_config_diffs(m_config, new_full_config, filament_overrides, this->m_plate_index, filament_maps);
     t_config_option_keys full_config_diff = full_print_config_diffs(m_full_print_config, new_full_config, this->m_plate_index);
+    // multi_nozzle_diameter_mode is project-only and deliberately not part of the static PrintConfig
+    // object layout. Once an old full config exists, only an actual mode transition invalidates slicing.
+    if (m_full_print_config.option("multi_nozzle_diameter_mode") != nullptr &&
+        multi_nozzle_diameter_mode_enabled(m_full_print_config) != multi_nozzle_diameter_mode_enabled(new_full_config))
+        print_diff.emplace_back("multi_nozzle_diameter_mode");
     // Collect changes to object and region configs.
     t_config_option_keys object_diff      = m_default_object_config.diff(new_full_config);
     t_config_option_keys region_diff      = m_default_region_config.diff(new_full_config);

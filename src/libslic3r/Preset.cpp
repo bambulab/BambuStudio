@@ -830,6 +830,24 @@ bool is_compatible_with_printer(const PresetWithVendorProfile &preset, const Pre
     return is_compatible_with_printer(preset, active_printer, &config);
 }
 
+//BBS multi-diameter: accept a preset when its compatible_printers list references any of the given
+// printer preset names (e.g. sibling nozzle-diameter variants selected via "set nozzle diameter").
+// Presets without an explicit compatible_printers list are already handled as "compatible with all"
+// by is_compatible_with_printer(), so returning false here for that case is safe.
+bool is_compatible_with_printer_names(const PresetWithVendorProfile &preset, const std::vector<std::string> &printer_names)
+{
+    if (printer_names.empty())
+        return false;
+    auto *compatible_printers = dynamic_cast<const ConfigOptionStrings *>(preset.preset.config.option("compatible_printers"));
+    if (compatible_printers == nullptr || compatible_printers->values.empty())
+        return false;
+    for (const std::string &name : printer_names) {
+        if (std::find(compatible_printers->values.begin(), compatible_printers->values.end(), name) != compatible_printers->values.end())
+            return true;
+    }
+    return false;
+}
+
 void Preset::set_visible_from_appconfig(const AppConfig &app_config)
 {
     //BBS: add config related log
@@ -1323,6 +1341,9 @@ PresetCollection& PresetCollection::operator=(const PresetCollection &rhs)
     m_edited_preset = rhs.m_edited_preset;
     m_saved_preset = rhs.m_saved_preset;
     m_idx_selected = rhs.m_idx_selected;
+    m_extra_compatible_printers = rhs.m_extra_compatible_printers;
+    m_active_printer_name = rhs.m_active_printer_name;
+    m_prefer_active_printer_alias = rhs.m_prefer_active_printer_alias;
     m_default_suppressed = rhs.m_default_suppressed;
     m_num_default_presets = rhs.m_num_default_presets;
     m_dir_path = rhs.m_dir_path;
@@ -1351,6 +1372,9 @@ void PresetCollection::reset(bool delete_files)
     unlock();
     m_map_alias_to_profile_name.clear();
     m_map_system_profile_renamed.clear();
+    m_extra_compatible_printers.clear();
+    m_active_printer_name.clear();
+    m_prefer_active_printer_alias = false;
 }
 
 void PresetCollection::add_default_preset(const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &preset_name)
@@ -2883,6 +2907,10 @@ PresetWithVendorProfile PresetCollection::get_preset_with_vendor_profile(const P
 
 const std::string& PresetCollection::get_preset_name_by_alias(const std::string& alias) const
 {
+    // BBS multi-diameter: when several nozzle-diameter variants share an alias and are all compatible (the
+    // compatibility set was broadened for mixed-diameter printing), prefer the variant bound to the active
+    // printer preset (the main diameter). Fall back to the first compatible variant otherwise.
+    const std::string *fallback = nullptr;
 	for (
 		// Find the 1st profile name with the alias.
 		auto it = Slic3r::lower_bound_by_predicate(m_map_alias_to_profile_name.begin(), m_map_alias_to_profile_name.end(), [&alias](auto &l){ return l.first < alias; });
@@ -2891,9 +2919,20 @@ const std::string& PresetCollection::get_preset_name_by_alias(const std::string&
         for (const std::string &preset_name : it->second) {
             if (auto it_preset = this->find_preset_internal(preset_name);
 			it_preset != m_presets.end() && it_preset->name == preset_name &&
-            it_preset->is_visible && (it_preset->is_compatible || size_t(it_preset - m_presets.begin()) == m_idx_selected))
-	        return it_preset->name;
+            it_preset->is_visible && (it_preset->is_compatible || size_t(it_preset - m_presets.begin()) == m_idx_selected)) {
+                if (m_prefer_active_printer_alias && !m_active_printer_name.empty()) {
+                    auto *compatible_printers = dynamic_cast<const ConfigOptionStrings *>(it_preset->config.option("compatible_printers"));
+                    if (compatible_printers != nullptr &&
+                        std::find(compatible_printers->values.begin(), compatible_printers->values.end(), m_active_printer_name) != compatible_printers->values.end())
+                        return it_preset->name;
+                }
+                if (fallback == nullptr)
+                    fallback = &it_preset->name;
+            }
         }
+
+    if (fallback != nullptr)
+        return *fallback;
 
     return alias;
 }
@@ -2999,6 +3038,9 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
     const ConfigOption *opt = active_printer.preset.config.option("nozzle_diameter");
     if (opt)
         config.set_key_value("num_extruders", new ConfigOptionInt((int)static_cast<const ConfigOptionFloatsNullable*>(opt)->values.size()));
+    // Keep the disambiguation policy after m_extra_compatible_printers is cleared by PresetBundle.
+    m_active_printer_name = active_printer.preset.name;
+    m_prefer_active_printer_alias = !m_extra_compatible_printers.empty();
     int some_compatible = 0;
 
     if (active_print)
@@ -3013,6 +3055,12 @@ size_t PresetCollection::update_compatible_internal(const PresetWithVendorProfil
         const PresetWithVendorProfile this_preset_with_vendor_profile = this->get_preset_with_vendor_profile(preset_edited);
         bool    was_compatible  = preset_edited.is_compatible;
         preset_edited.is_compatible = is_compatible_with_printer(this_preset_with_vendor_profile, active_printer, &config);
+        // BBS multi-diameter: broaden compatibility to sibling nozzle-diameter printer variants that the
+        // user selected via "set nozzle diameter", so their filament presets stay selectable.
+        if (! preset_edited.is_compatible && ! m_extra_compatible_printers.empty() &&
+            (this_preset_with_vendor_profile.vendor == nullptr ||
+             this_preset_with_vendor_profile.vendor == active_printer.vendor))
+            preset_edited.is_compatible = is_compatible_with_printer_names(this_preset_with_vendor_profile, m_extra_compatible_printers);
         if (preset_edited.is_compatible)
             some_compatible++;
 	    if (active_print != nullptr)

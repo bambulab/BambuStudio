@@ -22,6 +22,7 @@
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/FilamentBitmapUtils.hpp"
 #include "slic3r/GUI/Widgets/Button.hpp"
+#include "slic3r/GUI/Widgets/CheckBox.hpp"
 #include "slic3r/GUI/Widgets/ComboBox.hpp"
 #include "slic3r/GUI/Widgets/Label.hpp"
 #include "slic3r/GUI/Widgets/StateColor.hpp"
@@ -220,7 +221,7 @@ public:
     wxSizer     *GetSizer() const { return m_sizer; }
     NozzleConfig GetConfig() const;
     wxString     GetDiameter() const; // parsed value ("" when Empty)
-    void         UpdateWarningState(const wxString &selected_diameter, bool &title_matches);
+    void         UpdateWarningState(const wxString &selected_diameter, bool show_diameter_warning, bool &title_matches);
     void         Rescale();
 
 private:
@@ -409,27 +410,43 @@ void NozzleRow::build_filament_views(wxWindow *parent)
 
 // Rebuild the diameter list for the given volume type. 0.2 nozzle only exists with a
 // Standard volume type, so it is removed whenever a non-Standard volume type is selected.
+//
+// Keep the in-edit diameter across rebuilds. m_seed is the value at dialog open and
+// must only be a fallback — otherwise picking a flow type snaps the diameter back.
 void NozzleRow::rebuild_diameter_combo(NozzleVolumeType volume_type)
 {
-    const wxString prev = m_diameter_combo->GetValue();
+    const wxString prev     = m_diameter_combo->GetValue();
+    const wxString prev_dia = parse_diameter_value(prev);
+    const bool     had_list = m_diameter_combo->GetCount() > 0;
     m_diameter_combo->Clear();
-    int select = -1;
+
+    int seed_idx = -1;
+    int prev_idx = -1;
     for (const auto &d : m_diameters) {
         if (d == "0.2" && volume_type != NozzleVolumeType::nvtStandard) continue;
         m_diameter_combo->Append(wxString::FromUTF8(d) + " mm", {});
-        if (d == m_seed.diameter.ToStdString()) select = m_diameter_combo->GetCount() - 1;
+        const int idx = static_cast<int>(m_diameter_combo->GetCount()) - 1;
+        if (d == m_seed.diameter.ToStdString())
+            seed_idx = idx;
+        if (had_list && d == prev_dia.ToStdString())
+            prev_idx = idx;
     }
     m_diameter_combo->Append(_L("Empty"), {});
-    if (select == -1) {
-        if (m_seed.diameter.IsEmpty()) {
-            // An empty-diameter seed (non-existent / abnormal nozzle) maps to the trailing "Empty" entry,
-            // not the first real diameter — otherwise the nozzle is silently persisted as configured.
-            select = m_diameter_combo->GetCount() - 1;
-        } else {
-            const int prev_idx = m_diameter_combo->FindString(prev);
-            select             = prev_idx != wxNOT_FOUND ? prev_idx : 0;
-        }
-    }
+    const int empty_idx = static_cast<int>(m_diameter_combo->GetCount()) - 1;
+
+    int select = 0;
+    if (had_list && prev_idx != -1)
+        select = prev_idx;
+    else if (had_list && prev == _L("Empty"))
+        select = empty_idx;
+    else if (m_seed.diameter.IsEmpty())
+        // An empty-diameter seed (non-existent / abnormal nozzle) maps to the trailing
+        // "Empty" entry, not the first real diameter — otherwise the nozzle is silently
+        // persisted as configured.
+        select = empty_idx;
+    else if (seed_idx != -1)
+        select = seed_idx;
+
     m_diameter_combo->SetSelection(select);
 }
 
@@ -438,6 +455,18 @@ void NozzleRow::rebuild_flow_combo(const wxString &diameter)
 {
     auto *preset_bundle      = wxGetApp().preset_bundle;
     auto  nozzle_volumes_def = preset_bundle->project_config.def()->get("nozzle_volume_type");
+
+    // Keep the in-edit flow across rebuilds. m_seed.volume is only the value at
+    // dialog open; using it as the sole target snaps the flow back after a diameter
+    // change (e.g. 0.8 then High Flow cannot stick).
+    int prev_volume = -1;
+    {
+        const int sel = m_flow_combo->GetSelection();
+        if (sel != wxNOT_FOUND)
+            if (void *data = m_flow_combo->GetClientData(sel))
+                prev_volume = decode_volume(data);
+    }
+    const bool had_list = m_flow_combo->GetCount() > 0;
 
     m_flow_combo->Clear();
 
@@ -449,8 +478,9 @@ void NozzleRow::rebuild_flow_combo(const wxString &diameter)
 
     const int  idx    = m_extruder_index;
     const auto type   = extruders_def->enum_labels[extruders->values[idx]];
-    const int  wanted = static_cast<int>(m_seed.volume);
+    const int  wanted = (had_list && prev_volume >= 0) ? prev_volume : static_cast<int>(m_seed.volume);
     int        select = -1;
+    int        seed_select = -1;
 
     for (int j = 0; j < (int) nozzle_volumes_def->enum_labels.size(); ++j) {
         const bool variant_ok = boost::algorithm::contains(extruder_variants->values[idx], type + " " + nozzle_volumes_def->enum_labels[j]);
@@ -463,9 +493,11 @@ void NozzleRow::rebuild_flow_combo(const wxString &diameter)
         if (cur_volume_type == NozzleVolumeType::nvtHybrid) continue;
 
         if (wanted == j) select = m_flow_combo->GetCount();
+        if (static_cast<int>(m_seed.volume) == j) seed_select = m_flow_combo->GetCount();
         m_flow_combo->Append(_L(nozzle_volumes_def->enum_labels[j]), {}, encode_volume(j));
     }
-    if (select == -1) select = m_flow_combo->GetCount() - 1;
+    if (select == -1) select = seed_select;
+    if (select == -1) select = static_cast<int>(m_flow_combo->GetCount()) - 1;
     m_flow_combo->SetSelection(select);
 }
 
@@ -538,7 +570,7 @@ bool NozzleRow::apply_error_state()
     return true;
 }
 
-void NozzleRow::UpdateWarningState(const wxString &selected_diameter, bool &title_matches)
+void NozzleRow::UpdateWarningState(const wxString &selected_diameter, bool show_diameter_warning, bool &title_matches)
 {
     if (!m_warning_icon) return;
 
@@ -567,7 +599,7 @@ void NozzleRow::UpdateWarningState(const wxString &selected_diameter, bool &titl
     if (m_label) m_label->SetForegroundColour(ThemeColor::TextPrimary);
     diameter.Replace(" mm", "");
     if (diameter == selected_diameter) title_matches = true;
-    m_warning_icon->Show(diameter != selected_diameter);
+    m_warning_icon->Show(show_diameter_warning && diameter != selected_diameter);
 }
 
 void NozzleRow::Rescale()
@@ -598,7 +630,7 @@ public:
                  std::function<void()>            on_ams_count_changed);
 
     std::vector<NozzleConfig> GetConfigs() const;
-    void                      UpdateWarnings(const wxString &selected_diameter);
+    void                      UpdateWarnings(const wxString &selected_diameter, bool show_diameter_warning);
     void                      Rescale();
     bool                      HasDiameter(const wxString &diameter) const;
 
@@ -781,12 +813,12 @@ void NozzleColumn::update_ams_previews()
     if (m_on_ams_count_changed) m_on_ams_count_changed();
 }
 
-void NozzleColumn::UpdateWarnings(const wxString &selected_diameter)
+void NozzleColumn::UpdateWarnings(const wxString &selected_diameter, bool show_diameter_warning)
 {
     bool title_matches = false;
-    for (const auto &row : m_rows) row->UpdateWarningState(selected_diameter, title_matches);
+    for (const auto &row : m_rows) row->UpdateWarningState(selected_diameter, show_diameter_warning, title_matches);
 
-    m_title_label->SetForegroundColour(title_matches ? ThemeColor::TextPrimary : ThemeColor::Warning);
+    m_title_label->SetForegroundColour(!show_diameter_warning || title_matches ? ThemeColor::TextPrimary : ThemeColor::Warning);
 
     Layout();
     Refresh();
@@ -932,6 +964,7 @@ void ExtruderSettingsDialog::create_layout(const wxString &selected_diameter, co
     auto *main_sizer = new wxBoxSizer(wxVERTICAL);
     build_diameter_selector(main_sizer, selected_diameter);
     build_columns(main_sizer, left_seeds, right_seeds);
+    build_multi_diameter_option(main_sizer);
     build_warning_panels(main_sizer);
     build_button_bar(main_sizer);
 
@@ -996,6 +1029,26 @@ void ExtruderSettingsDialog::build_columns(wxBoxSizer *main_sizer, const std::ve
         layout_badge();
         e.Skip();
     });
+}
+
+// The project-level multi-diameter gate. Seeded from the project config and read back by the caller on
+// Confirm, so it is saved with the project like the rest of project_config.
+void ExtruderSettingsDialog::build_multi_diameter_option(wxBoxSizer *main_sizer)
+{
+    m_multi_diameter_check = new CheckBox(this);
+    m_multi_diameter_check->SetValue(multi_nozzle_diameter_mode_enabled(wxGetApp().preset_bundle->project_config));
+    m_multi_diameter_check->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &e) {
+        update_dialog_state();
+        e.Skip();
+    });
+
+    auto *label = new Label(this, _L("Print with multiple nozzle diameters on one plate"));
+    label->SetFont(Label::Body_13);
+
+    auto *row = new wxBoxSizer(wxHORIZONTAL);
+    row->Add(m_multi_diameter_check, 0, wxALIGN_CENTER_VERTICAL);
+    row->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
+    main_sizer->Add(row, 0, wxALIGN_LEFT | wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
 }
 
 // The two notices below the columns; both start hidden and are toggled by
@@ -1098,7 +1151,7 @@ void ExtruderSettingsDialog::update_dialog_state()
 
     auto scan = [&](NozzleColumn *col, int extruder_idx) {
         if (!col) return;
-        col->UpdateWarnings(selected);
+        col->UpdateWarnings(selected, !GetMultiDiameterMode());
         if (!extruder_configs_match(col->GetConfigs(), m_seed_configs[extruder_idx])) all_synced = false;
         for (const auto &cfg : col->GetConfigs()) {
             if (cfg.diameter.IsEmpty())
@@ -1109,6 +1162,9 @@ void ExtruderSettingsDialog::update_dialog_state()
     };
     scan(m_left_column, 0);
     scan(m_right_column, 1);
+
+    // Nozzles off the selected diameter are only unusable while the multi-diameter mode is off.
+    if (GetMultiDiameterMode()) has_warning = false;
 
     if (m_warning_panel) m_warning_panel->Show(has_warning);
     if (m_warning_serious_panel) m_warning_serious_panel->Show(has_empty);
@@ -1173,11 +1229,14 @@ std::vector<NozzleConfig> ExtruderSettingsDialog::GetExtruderConfigs(int index) 
     return {};
 }
 
+bool ExtruderSettingsDialog::GetMultiDiameterMode() const { return m_multi_diameter_check && m_multi_diameter_check->GetValue(); }
+
 void ExtruderSettingsDialog::on_dpi_changed(const wxRect & /*suggested_rect*/)
 {
     if (m_diameter_panel) m_diameter_panel->Rescale();
     if (m_left_column) m_left_column->Rescale();
     if (m_right_column) m_right_column->Rescale();
+    if (m_multi_diameter_check) m_multi_diameter_check->Rescale();
 
     auto rescale_btn = [this](Button *btn) {
         if (!btn) return;

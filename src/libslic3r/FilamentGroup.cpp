@@ -2,6 +2,7 @@
 #include "GCode/ToolOrderUtils.hpp"
 #include "FlushVolPredictor.hpp"
 #include <cmath>
+#include <functional>
 #include <queue>
 #include <random>
 #include <cassert>
@@ -34,6 +35,16 @@ namespace Slic3r
 
         // 4. 单对成本 = 颜色成本 × (N+1) + 小类不匹配成本，求解器再对全部匹配求和。
         return weighted_color_cost + filament_id_mismatch_cost;
+    }
+
+    static bool filament_diameter_matches_nozzle_volume(const FilamentGroupUtils::FilamentInfo &filament,
+                                                        NozzleVolumeType volume_type)
+    {
+        if (filament.diameter <= 0.f)
+            return true;
+        const bool uses_285_filament = filament.diameter > 2.5f;
+        const bool uses_285_path     = volume_type == NozzleVolumeType::nvtTPU285;
+        return uses_285_filament == uses_285_path;
     }
 
     // clear the array and heap,save the groups in heap to the array
@@ -1463,9 +1474,14 @@ namespace Slic3r
             std::vector<int> unprintable_nozzles;
             for(size_t nozzle_idx =0 ;nozzle_idx < ctx.nozzle_info.nozzle_list.size(); ++nozzle_idx){
                 auto nozzle_info = ctx.nozzle_info.nozzle_list[nozzle_idx];
+                const unsigned int filament_id = used_filaments[fidx];
+                const bool diameter_mismatch = filament_id < ctx.model_info.selected_nozzle_diameters.size() &&
+                    !ctx.model_info.selected_nozzle_diameters[filament_id].empty() &&
+                    ctx.model_info.selected_nozzle_diameters[filament_id] != nozzle_info.diameter;
 
                 if(std::find(unexpected_extruders.begin(), unexpected_extruders.end(), nozzle_info.extruder_id)!= unexpected_extruders.end() || (expected_volume!=nvtHybrid && expected_volume != nozzle_info.volume_type) ||
-                  (unprintable_volumes.count(nozzle_info.volume_type) != 0))
+                  !filament_diameter_matches_nozzle_volume(ctx.model_info.filament_info[filament_id], nozzle_info.volume_type) ||
+                  (unprintable_volumes.count(nozzle_info.volume_type) != 0) || diameter_mismatch)
                     unprintable_nozzles.push_back(nozzle_idx);
             }
             if(unprintable_nozzles.empty())
@@ -1537,14 +1553,31 @@ namespace Slic3r
         std::vector<int> r_nodes(loaded_nozzles.size());
         std::iota(r_nodes.begin(), r_nodes.end(), 0);
 
-        // 3、定义硬约束：材料类型、支撑属性、不可打印限制和喷嘴流量类型都兼容时，才允许连边。
-        auto can_match = [&ctx, &used_filaments, &loaded_nozzles](int used_filament_idx, int loaded_idx) {
+        // Multi-diameter hard constraint, shared by the loaded-nozzle matching and the unmatched
+        // fallback: a filament may only sit on a nozzle whose diameter its preset works at. Type and
+        // color alone carry no diameter information, so without this a 0.4-only filament can be
+        // matched onto a loaded 0.2 nozzle just because both hold the same material.
+        auto diameter_matches = [&ctx](int filament_id, const MultiNozzleUtils::NozzleInfo &nozzle) {
+            if (filament_id < 0 || filament_id >= static_cast<int>(ctx.model_info.selected_nozzle_diameters.size()))
+                return true;
+            const std::string &selected = ctx.model_info.selected_nozzle_diameters[filament_id];
+            return selected.empty() || selected == nozzle.diameter;
+        };
+
+        // 3、定义硬约束：材料类型、支撑属性、不可打印限制、喷嘴口径和喷嘴流量类型都兼容时，才允许连边。
+        auto can_match = [&ctx, &used_filaments, &loaded_nozzles, &diameter_matches](int used_filament_idx, int loaded_idx) {
             int         filament_id = used_filaments[used_filament_idx];
             const auto &model       = ctx.model_info.filament_info[filament_id];
             const auto &loaded      = *loaded_nozzles[loaded_idx].filament;
             const auto &nozzle      = loaded_nozzles[loaded_idx].nozzle;
 
             if (model.type != loaded.type || model.is_support != loaded.is_support)
+                return false;
+
+            if (!diameter_matches(filament_id, nozzle))
+                return false;
+
+            if (!filament_diameter_matches_nozzle_volume(model, nozzle.volume_type))
                 return false;
 
             if (nozzle.extruder_id >= 0 && nozzle.extruder_id < static_cast<int>(ctx.model_info.unprintable_filaments.size()) &&
@@ -1581,7 +1614,7 @@ namespace Slic3r
 
         // 5、把匹配结果转换成“工程耗材 -> nozzle group_id”。
         //    真实喷嘴先消耗自身容量；如果同一个真实喷嘴匹配到多个工程耗材，超出容量的部分再追加同类型虚拟喷嘴。
-        auto build_match_result = [&ctx, &used_filaments, &loaded_nozzles](const std::vector<int> &match) {
+        auto build_match_result = [&ctx, &used_filaments, &loaded_nozzles, &diameter_matches](const std::vector<int> &match) {
             std::vector<int> group(ctx.group_info.total_filament_num, ctx.machine_info.master_extruder_id);
             std::unordered_map<int, int> remaining_capacity;
 
@@ -1607,9 +1640,13 @@ namespace Slic3r
             };
 
             // 5.3 兜底分配只处理“没有匹配到已装料入口”的工程耗材。
-            //     这类耗材没有颜色最优目标，但仍然要满足不可打印和流量类型约束。
-            auto can_place_unloaded = [&ctx](int filament_id, const MultiNozzleUtils::NozzleInfo& nozzle) {
+            //     这类耗材没有颜色最优目标，但仍然要满足不可打印、喷嘴口径和流量类型约束。
+            auto can_place_unloaded = [&ctx, &diameter_matches](int filament_id, const MultiNozzleUtils::NozzleInfo& nozzle) {
                 if (!nozzle.installed)
+                    return false;
+                if (!diameter_matches(filament_id, nozzle))
+                    return false;
+                if (!filament_diameter_matches_nozzle_volume(ctx.model_info.filament_info[filament_id], nozzle.volume_type))
                     return false;
                 if (nozzle.extruder_id >= 0 && nozzle.extruder_id < static_cast<int>(ctx.model_info.unprintable_filaments.size()) &&
                     ctx.model_info.unprintable_filaments[nozzle.extruder_id].count(filament_id) != 0)

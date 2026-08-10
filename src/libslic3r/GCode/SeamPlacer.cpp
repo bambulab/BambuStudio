@@ -919,6 +919,22 @@ public:
     }
 };
 
+// BBS multi-diameter adaptive layer height: a group-top layer extrudes its whole merge span in one pass,
+// so the geometry supporting its walls is the layer below the group bottom. The physical layer right below
+// lies inside the span the wall itself covers and would hide every overhang the span starts with. Returns
+// the deepest group bottom over all group-top patches, matching how Layer::effective_print_height() reports
+// the tallest span; patch indices are PrintObject layer indices, same as Layer::make_perimeters() uses for
+// its lower_slices_override.
+std::optional<size_t> adaptive_merge_group_bottom(const Layer *layer)
+{
+    std::optional<size_t> bottom;
+    for (const LayerRegion *layerm : layer->regions())
+        for (const AdaptiveMergePatch &patch : layerm->adaptive_merge_patches)
+            if (patch.group_top && (! bottom.has_value() || patch.bottom_idx < *bottom))
+                bottom = patch.bottom_idx;
+    return bottom;
+}
+
 } // namespace SeamPlacerImpl
 
 // Parallel process and extract each perimeter polygon of the given print object.
@@ -935,6 +951,15 @@ void SeamPlacer::gather_seam_candidates(const PrintObject *po, const SeamPlacerI
             PrintObjectSeamData::LayerSeams &layer_seams = seam_data.layers[layer_idx];
             const Layer *                    layer       = po->get_layer(layer_idx);
             auto                             unscaled_z  = layer->slice_z;
+            layer_seams.merged_out                       = layer->is_adaptive_merged_out();
+            {
+                ExPolygons swallowed;
+                for (const LayerRegion *layerm : layer->regions())
+                    for (const AdaptiveMergePatch &patch : layerm->adaptive_merge_patches)
+                        if (! patch.group_top)
+                            append(swallowed, patch.area());
+                layer_seams.merged_out_areas = union_ex(swallowed);
+            }
             std::vector<const LayerRegion *> regions;
             // NOTE corresponding region ptr may be null, if the layer has zero perimeters
             Polygons polygons = extract_perimeter_polygons(layer, configured_seam_preference, regions);
@@ -977,13 +1002,39 @@ void SeamPlacer::calculate_overhangs_and_layer_embedding(const PrintObject *po)
             bool                                should_compute_layer_embedding = regions_with_perimeter > 1;
             std::unique_ptr<PerimeterDistancer> current_layer_distancer        = std::make_unique<PerimeterDistancer>(po->layers()[layer_idx]);
 
+            // BBS multi-diameter adaptive layer height: a group-top layer extrudes its whole merge span in
+            // one pass. Points on such a merged wall are as tall as the span and rest on the layer below the
+            // group bottom, while points outside the patches still print at the base height on the layer
+            // right below, so the reference is picked per point. Patches of one layer may span different Z
+            // ranges; all merged points then share the deepest span, the same layer-wide approximation
+            // Layer::effective_print_height() already makes. It only biases the overhang score of a seam
+            // candidate, never the extruded geometry.
+            const Layer *                       layer = po->layers()[layer_idx];
+            ExPolygons                          merged_areas;
+            double                              merged_height = layer->height;
+            std::unique_ptr<PerimeterDistancer> merged_support_distancer;
+            if (const std::optional<size_t> group_bottom = adaptive_merge_group_bottom(layer); group_bottom.has_value() && *group_bottom != layer_idx) {
+                for (const LayerRegion *layerm : layer->regions())
+                    for (const AdaptiveMergePatch &patch : layerm->adaptive_merge_patches)
+                        if (patch.group_top)
+                            append(merged_areas, patch.area());
+                merged_areas  = union_ex(merged_areas);
+                merged_height = layer->effective_print_height();
+                // A span starting on the very first layer has nothing below it, same as layer 0 itself.
+                if (*group_bottom > 0)
+                    merged_support_distancer = std::make_unique<PerimeterDistancer>(po->layers()[*group_bottom - 1]);
+            }
+
             int points_size = layers[layer_idx].points.size();
             for (size_t i = 0; i < points_size; i++) {
                 SeamCandidate &perimeter_point = layers[layer_idx].points[i];
                 Vec2f point = Vec2f{perimeter_point.position.head<2>()};
-                if (prev_layer_distancer.get() != nullptr) {
-                    double dist_temp = prev_layer_distancer->distance_from_perimeter(point);
-                    perimeter_point.overhang = dist_temp + 0.6f * perimeter_point.perimeter.flow_width - tan(SeamPlacer::overhang_angle_threshold) * po->layers()[layer_idx]->height;
+                const bool on_merged_wall = ! merged_areas.empty() && expolygons_contain(merged_areas, Point::new_scale(point.x(), point.y()));
+                const PerimeterDistancer *lower_distancer = on_merged_wall ? merged_support_distancer.get() : prev_layer_distancer.get();
+                const double              point_height    = on_merged_wall ? merged_height : layer->height;
+                if (lower_distancer != nullptr) {
+                    double dist_temp = lower_distancer->distance_from_perimeter(point);
+                    perimeter_point.overhang = dist_temp + 0.6f * perimeter_point.perimeter.flow_width - tan(SeamPlacer::overhang_angle_threshold) * point_height;
                     perimeter_point.overhang      = perimeter_point.overhang < 0.0f ? 0.0f : perimeter_point.overhang;
 
                     perimeter_point.overhang_degree = (dist_temp + 0.6f * perimeter_point.perimeter.flow_width) / perimeter_point.perimeter.flow_width;
@@ -1124,12 +1175,21 @@ std::vector<std::pair<size_t, size_t>> SeamPlacer::find_seam_string(const PrintO
     };
 
     while (next_layer >= 0) {
+        const Vec3f prev_position = layers[prev_point_index.first].points[prev_point_index.second].position;
+        // BBS multi-diameter adaptive layer height: a layer swallowed by a band holds no wall of its own,
+        // so there is nothing on it for the string to attach to. Step over those layers, otherwise the
+        // string ends at the first one and consecutive band tops are never aligned against each other.
+        // The test is made where the string currently runs rather than on the layer as a whole: a layer is
+        // normally swallowed over part of its area only, the part belonging to the coarser nozzle.
+        while (next_layer >= 0 && next_layer < int(layers.size()) &&
+               layers[next_layer].swallowed_at(prev_position.head<2>())) { next_layer += step; }
+        if (next_layer < 0) { break; }
         if (next_layer >= int(layers.size())) {
             reverse_lookup_direction();
             if (next_layer < 0) { break; }
+            continue;
         }
         float max_distance       = SeamPlacer::seam_align_tolerable_dist_factor * layers[start_seam.first].points[start_seam.second].perimeter.flow_width;
-        Vec3f prev_position      = layers[prev_point_index.first].points[prev_point_index.second].position;
         Vec3f projected_position = prev_position;
         projected_position.z()   = float(po->get_layer(next_layer)->slice_z);
 
@@ -1310,6 +1370,9 @@ std::vector<std::pair<size_t, size_t>> SeamPlacer::gather_all_seams_of_object(co
     // gather vector of all seams on the print_object - pair of layer_index and seam__index within that layer
     std::vector<std::pair<size_t, size_t>>              seams;
     for (size_t layer_idx = 0; layer_idx < layers.size(); ++layer_idx) {
+        // BBS multi-diameter adaptive layer height: a swallowed layer only carries the placeholder
+        // candidate, never a real seam, and no loop is ever emitted for it.
+        if (layers[layer_idx].merged_out) { continue; }
         const std::vector<SeamPlacerImpl::SeamCandidate> &layer_perimeter_points = layers[layer_idx].points;
         size_t                            current_point_index    = 0;
         while (current_point_index < layer_perimeter_points.size()) {
@@ -1323,8 +1386,24 @@ std::vector<std::pair<size_t, size_t>> SeamPlacer::gather_all_seams_of_object(co
 void SeamPlacer::filter_scarf_seam_switch_by_angle(const float &angle, std::vector<PrintObjectSeamData::LayerSeams> &layers)
 {
     std::vector<std::pair<size_t, size_t>> seams = gather_all_seams_of_object(layers);
+    if (seams.empty())
+        return;
 
     float max_distance = SeamPlacer::seam_align_tolerable_dist_factor * layers[seams[0].first].points[seams[0].second].perimeter.flow_width;
+
+    // BBS multi-diameter adaptive layer height: the next wall above a band top can sit several physical
+    // layers higher, because everything in between was swallowed by the band. Such a gap is not a
+    // discontinuity of the seam line. Whether a layer in between counts as swallowed depends on where the
+    // seam line runs, since the finer nozzles keep printing those layers elsewhere. On a single diameter
+    // nothing is ever swallowed, so only the directly adjacent layer passes, exactly as before.
+    auto is_next_printed_layer = [&layers](size_t prev_layer, size_t next_layer, const Vec2f &position) {
+        if (next_layer <= prev_layer)
+            return false;
+        for (size_t idx = prev_layer + 1; idx < next_layer; ++idx)
+            if (! layers[idx].swallowed_at(position))
+                return false;
+        return true;
+    };
 
     std::vector<int> seam_index_pos;
     std::vector<std::vector<int>> seam_index_group;
@@ -1342,10 +1421,11 @@ void SeamPlacer::filter_scarf_seam_switch_by_angle(const float &angle, std::vect
                 continue;
 
             // if the seam is not continous with prev layer, break
-            if (seams[prev_idx].first + 1 != seams[next_seam].first)
+            const Vec3f &prev_seam_position = layers[seams[prev_idx].first].points[seams[prev_idx].second].position;
+            if (! is_next_printed_layer(seams[prev_idx].first, seams[next_seam].first, prev_seam_position.head<2>()))
                 break;
 
-            if ((layers[seams[prev_idx].first].points[seams[prev_idx].second].position - layers[seams[next_seam].first].points[seams[next_seam].second].position).norm() <=
+            if ((prev_seam_position - layers[seams[next_seam].first].points[seams[next_seam].second].position).norm() <=
                 max_distance) {
 
                 layers[seams[next_seam].first].points[seams[next_seam].second].is_grouped = true;

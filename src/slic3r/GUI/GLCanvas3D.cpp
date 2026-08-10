@@ -7081,7 +7081,7 @@ void GLCanvas3D::update_sequential_clearance()
             shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_max_radius.value - EPSILON));
 
         if (fff_print()->is_sequential_print()) {
-            float skirt_extra = get_real_skirt_dist(fff_print()->config());
+            float skirt_extra = get_real_skirt_dist(fff_print()->config(), fff_print()->skirt_flow());
             shrink_factor += scale_(0.5f * skirt_extra);
             shrink_factor = std::max(shrink_factor, static_cast<float>(scale_(skirt_extra)));
         }
@@ -11745,6 +11745,9 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const BuildVolume& build_volume, con
             volume->indexed_vertex_array->reserve(VERTEX_BUFFER_RESERVE_SIZE / 6);
         for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++idx_layer) {
             const std::vector<WipeTower::ToolChangeResult> &layer = ctxt.tool_change(idx_layer);
+            // The tower drops the layers whose filler nozzle cannot lay down the base layer height.
+            if (layer.empty())
+                continue;
             for (size_t i = 0; i < vols.size(); ++i) {
                 GLVolume &vol = *vols[i];
                 if (vol.print_zs.empty() || vol.print_zs.back() != layer.front().print_z) {

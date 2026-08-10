@@ -899,7 +899,15 @@ namespace client
             }
             else {
                 switch (opt.opt->type()) {
-                case coFloat:   output.set_d(opt.opt->getFloat());   break;
+                case coFloat:
+                {
+                    std::string opt_key(opt.it_range.begin(), opt.it_range.end());
+                    if (boost::ends_with(opt_key, "line_width"))
+                        output.set_d(Flow::extrusion_width(opt_key, *ctx, static_cast<unsigned int>(ctx->current_extruder_id)));
+                    else
+                        output.set_d(opt.opt->getFloat());
+                    break;
+                }
                 case coInt:     output.set_i(opt.opt->getInt());     break;
                 case coString:  output.set_s(static_cast<const ConfigOptionString*>(opt.opt)->value); break;
                 case coPercent: output.set_d(opt.opt->getFloat());   break;
@@ -908,10 +916,7 @@ namespace client
                 case coFloatOrPercent:
                 {
                     std::string opt_key(opt.it_range.begin(), opt.it_range.end());
-                    if (boost::ends_with(opt_key, "line_width")) {
-                    	// Extrusion width supports defaults and a complex graph of dependencies.
-                        output.set_d(Flow::extrusion_width(opt_key, *ctx, static_cast<unsigned int>(ctx->current_extruder_id)));
-                    } else if (! static_cast<const ConfigOptionFloatOrPercent*>(opt.opt)->percent) {
+                    if (! static_cast<const ConfigOptionFloatOrPercent*>(opt.opt)->percent) {
                     	// Not a percent, just return the value.
                         output.set_d(opt.opt->getFloat());
                     } else {
@@ -925,8 +930,10 @@ namespace client
 			                    ctx->throw_exception("FloatOrPercent variable failed to resolve the \"ratio_over\" dependencies", opt.it_range);
 			                if (boost::ends_with(opt_def->ratio_over, "line_width")) {
                     			// Extrusion width supports defaults and a complex graph of dependencies.
-                                assert(opt_parent->type() == coFloatOrPercent);
-                        		v *= Flow::extrusion_width(opt_def->ratio_over, static_cast<const ConfigOptionFloatOrPercent*>(opt_parent), *ctx, static_cast<unsigned int>(ctx->current_extruder_id));
+                                if (opt_parent->type() != coFloat)
+                                    ctx->throw_exception("Line width variable has invalid type", opt.it_range);
+                                v *= Flow::extrusion_width(opt_def->ratio_over, static_cast<const ConfigOptionFloat*>(opt_parent), *ctx,
+                                                           static_cast<unsigned int>(ctx->current_extruder_id));
                         		break;
                         	}
                         	if (opt_parent->type() == coFloat || opt_parent->type() == coFloatOrPercent) {

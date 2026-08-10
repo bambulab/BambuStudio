@@ -674,7 +674,11 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
     const PrintObjectConfig& config = m_object->config();
     SupportType stype = support_type;
     const coordf_t radius_sample_resolution = g_config_tree_support_collision_resolution;
-    const coordf_t extrusion_width = config.line_width.value;
+    const coordf_t extrusion_width = Flow::extrusion_width_for_nozzle(
+        config.line_width,
+        float(primary_nozzle_diameter(m_object->print()->full_print_config())),
+        nozzle_diameter_for_filament(m_object->print()->config(), config.support_filament),
+        multi_nozzle_diameter_mode_enabled(m_object->print()->full_print_config()));
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     const coordf_t max_bridge_length = scale_(config.max_bridge_length.value);
     const bool bridge_no_support = max_bridge_length > 0;
@@ -1514,20 +1518,408 @@ static void make_perimeter_and_infill(ExtrusionEntitiesPtr& dst, const ExPolygon
     }
 }
 
+namespace {
+
+// One base area of a layer a slab swallowed, kept by value because the layer's base_areas are cleared before
+// the merged areas are rebuilt. The flags decide how generate_toolpaths() extrudes the area and cannot be
+// recomputed here, so a merged area inherits them from every source it overlaps.
+struct TreeBaseSource
+{
+    ExPolygon area;
+    BoundingBox bbox;
+    coordf_t  dist_to_top { 0. };
+    bool      need_infill { false };
+    bool      need_extra_wall { false };
+    bool      need_cooling { false };
+};
+
+struct TreeAreaSource
+{
+    ExPolygon area;
+    int       layer_idx { 0 };
+    int       type { 0 };
+    int       interface_id { 0 };
+    coordf_t  dist_to_top { 0. };
+    bool      need_infill { false };
+    bool      need_extra_wall { false };
+    bool      need_cooling { false };
+};
+
+} // namespace
+
+void TreeSupport::merge_base_areas_multi_diameter()
+{
+    const SupportMergePlan plan = make_support_merge_plan(*m_object);
+    if (! plan.enabled)
+        return;
+
+    const int     num_layers    = int(m_object->support_layer_count());
+    const int     raft_layers   = int(m_raft_layers);
+    const coord_t gap_xy_scaled = scaled<coord_t>(m_support_params.gap_xy);
+
+    auto candidate_fits_floor = [](const SupportLayer &layer,
+                                   const SupportMergePlan::Candidate &candidate) {
+        return layer.floor_areas.empty() || candidate.window.contains(layer.height);
+    };
+
+    // Resolve roof/contact layers from the model downwards. Fine printable layers keep their Z ladder unless
+    // doing so would strand a thinner roof directly below. Adjacent roofs and matching base are then folded
+    // into the smallest continuous slab printable by an available nozzle.
+    for (int top = num_layers - 1; top > raft_layers; -- top) {
+        SupportLayer *layer_top = m_object->get_support_layer(top);
+        if (layer_top == nullptr || (layer_top->roof_areas.empty() && layer_top->roof_1st_layer.empty()))
+            continue;
+
+        const coordf_t top_z = layer_top->print_z;
+        SupportMergePlan::Candidate candidate =
+            plan.finest_interface_for_slab(top_z, layer_top->height);
+        if (candidate.valid() && ! candidate_fits_floor(*layer_top, candidate))
+            candidate = {};
+        int      bottom      = top;
+        coordf_t bottom_z    = layer_top->print_z - layer_top->height;
+        coordf_t slab_height = layer_top->height;
+        if (candidate.valid()) {
+            // Do not finalize a printable roof while the directly connected roof below it is too thin.
+            // Absorbing that lower roof may turn, for example, 0.2 mm + 0.1 mm into a valid 0.3 mm slab.
+            while (bottom > raft_layers + 1) {
+                const SupportLayer *below = m_object->get_support_layer(bottom - 1);
+                if (below == nullptr || below->print_z < bottom_z - EPSILON ||
+                    (below->roof_areas.empty() && below->roof_1st_layer.empty()))
+                    break;
+                if (plan.finest_interface_for_slab(below->print_z, below->height).valid())
+                    break;
+                const coordf_t combined_bottom_z = below->print_z - below->height;
+                SupportMergePlan::Candidate combined =
+                    plan.finest_interface_for_slab(top_z, top_z - combined_bottom_z);
+                if (combined.valid() && ! candidate_fits_floor(*layer_top, combined))
+                    combined = {};
+                if (! combined.valid())
+                    break;
+                -- bottom;
+                bottom_z    = combined_bottom_z;
+                slab_height = top_z - bottom_z;
+                candidate   = combined;
+            }
+            if (bottom == top) {
+                layer_top->planned_interface_filament_id      = candidate.filament_id;
+                layer_top->planned_interface_nozzle_diameter  = candidate.nozzle_diameter;
+                continue;
+            }
+        }
+
+        while (! candidate.valid() && bottom > raft_layers + 1) {
+            const SupportLayer *below = m_object->get_support_layer(bottom - 1);
+            if (below == nullptr || below->print_z < bottom_z - EPSILON ||
+                (below->roof_areas.empty() && below->roof_1st_layer.empty() && below->base_areas.empty()))
+                break;
+            -- bottom;
+            bottom_z    = below->print_z - below->height;
+            slab_height = top_z - bottom_z;
+            candidate   = plan.finest_interface_for_slab(top_z, slab_height);
+            if (candidate.valid() && ! candidate_fits_floor(*layer_top, candidate))
+                candidate = {};
+        }
+        if (! candidate.valid())
+            continue;
+
+        std::vector<TreeAreaSource> sources;
+        ExPolygons merged_roof;
+        for (int i = bottom; i <= top; ++ i) {
+            SupportLayer *layer = m_object->get_support_layer(i);
+            append(merged_roof, layer->roof_areas);
+            append(merged_roof, layer->roof_1st_layer);
+            for (const SupportLayer::AreaGroup &group : layer->area_groups)
+                sources.push_back({ *group.area, i, group.type, group.interface_id, group.dist_to_top,
+                                    group.need_infill, group.need_extra_wall, group.need_cooling });
+        }
+        merged_roof = union_ex(merged_roof);
+        // A roof area is only kept clear of the object at its own layer. The slab is a single extrusion over
+        // its whole Z span, so it covers the XY the object occupies further down as well - a shape widening
+        // towards the bed is the canonical case - and has to be cut back to the same clearance there. When
+        // the object leaves no room at all the slab is refused: printing the roofs at their own layers is
+        // unprintably thin, but dropping them removes the support under the overhang entirely.
+        Polygons roof_trimming;
+        const LayerPtrs &clearance_layers = m_object->layers();
+        auto clearance_it = std::lower_bound(clearance_layers.begin(), clearance_layers.end(), bottom_z + EPSILON,
+            [](const Layer *layer, coordf_t print_z) { return layer->print_z < print_z; });
+        for (; clearance_it != clearance_layers.end(); ++ clearance_it) {
+            const Layer *object_layer = *clearance_it;
+            if (object_layer->print_z - object_layer->height > top_z - EPSILON)
+                break;
+            polygons_append(roof_trimming, offset(object_layer->lslices, float(gap_xy_scaled)));
+        }
+        if (! roof_trimming.empty())
+            merged_roof = diff_ex(merged_roof, union_(roof_trimming));
+        if (merged_roof.empty())
+            continue;
+        const ExPolygons borrowed_area = merged_roof;
+
+        for (int i = bottom; i <= top; ++ i) {
+            SupportLayer *layer = m_object->get_support_layer(i);
+            layer->base_areas = diff_ex(layer->base_areas, borrowed_area);
+            layer->roof_areas.clear();
+            layer->roof_1st_layer.clear();
+        }
+        layer_top->roof_areas             = std::move(merged_roof);
+        layer_top->interface_slab_height  = slab_height;
+        layer_top->planned_interface_filament_id     = candidate.filament_id;
+        layer_top->planned_interface_nozzle_diameter = candidate.nozzle_diameter;
+
+        // Rebind the raw AreaGroup pointers invalidated by the polygon replacements above while preserving
+        // the path-generation flags carried by every source region.
+        for (int i = bottom; i <= top; ++ i) {
+            SupportLayer *layer = m_object->get_support_layer(i);
+            std::vector<SupportLayer::AreaGroup> rebuilt;
+            for (const SupportLayer::AreaGroup &group : layer->area_groups)
+                if (group.type == SupportLayer::FloorType)
+                    rebuilt.emplace_back(group);
+
+            auto append_groups = [&](ExPolygons &areas, int type, bool merged_interface) {
+                for (ExPolygon &area : areas) {
+                    SupportLayer::AreaGroup group(&area, type, 0.);
+                    bool matched = false;
+                    for (const TreeAreaSource &source : sources) {
+                        const bool source_type_matches = merged_interface ?
+                            (source.type == SupportLayer::RoofType ||
+                             source.type == SupportLayer::Roof1stLayer) :
+                            (source.type == type && source.layer_idx == i);
+                        if (! source_type_matches || ! overlaps({ area }, source.area))
+                            continue;
+                        if (! matched || source.dist_to_top < group.dist_to_top) {
+                            group.dist_to_top = source.dist_to_top;
+                            group.interface_id = source.interface_id;
+                        }
+                        group.need_infill     |= source.need_infill;
+                        group.need_extra_wall |= source.need_extra_wall;
+                        group.need_cooling    |= source.need_cooling;
+                        matched = true;
+                    }
+                    group.need_extra_wall &= ! group.need_infill;
+                    rebuilt.emplace_back(group);
+                }
+            };
+            append_groups(layer->base_areas, SupportLayer::BaseType, false);
+            if (i == top)
+                append_groups(layer->roof_areas, SupportLayer::RoofType, true);
+            layer->area_groups = std::move(rebuilt);
+
+            if (! layer->support_islands.empty()) {
+                ExPolygons islands;
+                for (const SupportLayer::AreaGroup &group : layer->area_groups)
+                    islands.emplace_back(*group.area);
+                layer->support_islands = union_ex(islands);
+                layer->lslices_bboxes = get_extents_vector(layer->support_islands);
+            }
+        }
+
+        top = bottom;
+    }
+
+    // The raft and the first support layer decide how the print sticks to the bed. A layer carrying brim
+    // islands is left alone too, because its islands and bounding boxes are derived from its areas.
+    auto mergeable = [this](int layer_id) {
+        const SupportLayer *ts_layer = m_object->get_support_layer(layer_id);
+        return ts_layer != nullptr && ! ts_layer->base_areas.empty() && ts_layer->support_islands.empty();
+    };
+
+    for (int top = num_layers - 1; top > raft_layers; -- top) {
+        if (! mergeable(top))
+            continue;
+
+        SupportLayer  *layer_top   = m_object->get_support_layer(top);
+        const coordf_t slab_top_z  = layer_top->print_z;
+        int            bottom      = top;
+        coordf_t       slab_height = layer_top->height;
+        SupportMergePlan::Candidate pinned = plan.coarsest_for_slab(slab_top_z, slab_height);
+
+        // A layer without a base is where the support column ends, so the slab stops there rather than
+        // reaching into thin air. The candidate set is re-read on every step because growing the slab also
+        // grows the Z span the filament has to come from.
+        while (bottom > raft_layers + 1 && mergeable(bottom - 1)) {
+            const SupportLayer *below  = m_object->get_support_layer(bottom - 1);
+            const coordf_t      height = slab_top_z - (below->print_z - below->height);
+            if (height > plan.max_height_for_slab(slab_top_z, height) + EPSILON)
+                break;
+            // Never emit a slab no filament of this span can extrude, whatever the limit above allowed.
+            const SupportMergePlan::Candidate candidate = plan.coarsest_for_slab(slab_top_z, height);
+            if (! candidate.valid())
+                break;
+            -- bottom;
+            slab_height = height;
+            pinned      = candidate;
+        }
+
+        if (bottom < top) {
+            std::vector<TreeBaseSource> sources;
+            ExPolygons                  slab_areas;
+            for (int i = top; i >= bottom; -- i) {
+                SupportLayer *layer = m_object->get_support_layer(i);
+                for (const SupportLayer::AreaGroup &group : layer->area_groups)
+                    if (group.type == SupportLayer::BaseType)
+                        sources.push_back({ *group.area, get_extents(*group.area), group.dist_to_top, group.need_infill,
+                                            group.need_extra_wall, group.need_cooling });
+                append(slab_areas, layer->base_areas);
+                if (i == top)
+                    continue;
+                layer->base_areas.clear();
+                layer->area_groups.erase(std::remove_if(layer->area_groups.begin(), layer->area_groups.end(),
+                    [](const SupportLayer::AreaGroup &group) { return group.type == SupportLayer::BaseType; }),
+                    layer->area_groups.end());
+            }
+
+            // The base now fills the whole slab, so it has to be cut away from everything it grew over: the
+            // object layers it spans, and the roof and floor of the layers it swallowed, which stay behind at
+            // their own height and would otherwise be extruded twice.
+            Polygons trimming;
+            for (int i = bottom; i <= top; ++ i) {
+                const SupportLayer *layer = m_object->get_support_layer(i);
+                polygons_append(trimming, to_polygons(layer->roof_areas));
+                polygons_append(trimming, to_polygons(layer->floor_areas));
+                polygons_append(trimming, to_polygons(layer->roof_1st_layer));
+            }
+            const LayerPtrs &object_layers = m_object->layers();
+            auto object_layer_it = std::lower_bound(object_layers.begin(), object_layers.end(), slab_top_z - slab_height + EPSILON,
+                [](const Layer *layer, coordf_t print_z) { return layer->print_z < print_z; });
+            for (; object_layer_it != object_layers.end(); ++ object_layer_it) {
+                const Layer *object_layer = *object_layer_it;
+                if (object_layer->print_z - object_layer->height > slab_top_z - EPSILON)
+                    break;
+                polygons_append(trimming, offset(object_layer->lslices, float(gap_xy_scaled)));
+            }
+
+            ExPolygons merged = union_ex(slab_areas);
+            if (! trimming.empty())
+                merged = diff_ex(merged, union_(trimming));
+            layer_top->base_areas       = std::move(merged);
+            layer_top->base_slab_height = slab_height;
+            // Pin the slab to its filament only once it got thicker than the object layers: a slab of base
+            // height can be extruded by any nozzle, and leaving it alone lets the exporter minimize tool changes.
+            if (pinned.valid() && slab_height > plan.base_height_at(slab_top_z) + EPSILON) {
+                layer_top->planned_filament_id     = pinned.filament_id;
+                layer_top->planned_nozzle_diameter = pinned.nozzle_diameter;
+            }
+
+            // Rebuild the base groups: base_areas was replaced, so the pointers of the old ones dangle. The
+            // groups of the roof and floor point into their own vectors and stay valid.
+            std::vector<SupportLayer::AreaGroup> others;
+            for (const SupportLayer::AreaGroup &group : layer_top->area_groups)
+                if (group.type != SupportLayer::BaseType)
+                    others.emplace_back(group);
+            layer_top->area_groups.clear();
+            for (ExPolygon &expoly : layer_top->base_areas) {
+                coordf_t dist_to_top     = std::numeric_limits<coordf_t>::max();
+                bool     need_infill     = false;
+                bool     need_extra_wall = false;
+                bool     need_cooling    = false;
+                const BoundingBox expoly_bbox = get_extents(expoly);
+                for (const TreeBaseSource &source : sources)
+                    if (expoly_bbox.overlap(source.bbox) && overlaps({ expoly }, source.area)) {
+                        dist_to_top      = std::min(dist_to_top, source.dist_to_top);
+                        need_infill     |= source.need_infill;
+                        need_extra_wall |= source.need_extra_wall;
+                        need_cooling    |= source.need_cooling;
+                    }
+                layer_top->area_groups.emplace_back(&expoly, SupportLayer::BaseType,
+                    dist_to_top == std::numeric_limits<coordf_t>::max() ? 0. : dist_to_top);
+                layer_top->area_groups.back().need_infill     = need_infill;
+                layer_top->area_groups.back().need_extra_wall = need_extra_wall && ! need_infill;
+                layer_top->area_groups.back().need_cooling    = need_cooling;
+            }
+            layer_top->area_groups.insert(layer_top->area_groups.end(), others.begin(), others.end());
+        }
+
+        // The for loop's decrement then moves below the slab.
+        top = bottom;
+    }
+
+    // A merged base slab is one extrusion, so cutting a roof column out of it drops the support under that
+    // column over the slab's whole Z span. Grow the roof down to where support actually resumes rather than
+    // leave it hanging above the void the cut created.
+    for (int i = num_layers - 1; i > raft_layers; -- i) {
+        SupportLayer *layer = m_object->get_support_layer(i);
+        if (layer == nullptr || (layer->roof_areas.empty() && layer->roof_1st_layer.empty()))
+            continue;
+
+        ExPolygons roof = layer->roof_areas;
+        append(roof, layer->roof_1st_layer);
+        roof = union_ex(roof);
+
+        const coordf_t roof_height = layer->interface_slab_height > EPSILON ?
+            layer->interface_slab_height : layer->height;
+        const coordf_t bottom_z  = layer->print_z - roof_height;
+        // No filament could extrude a taller slab, so nothing below that reach can serve as a landing.
+        const coordf_t max_reach = plan.max_interface_height(layer->print_z, roof_height);
+        if (max_reach <= roof_height + EPSILON)
+            continue;
+
+        // Land on the highest support surface the column reaches, so the grown slab never runs into
+        // material another branch of the same roof still rests on.
+        coordf_t landing_z = 0.;
+        bool     landed    = false;
+        bool     blocked   = false;
+        for (int j = i - 1; j >= raft_layers && ! blocked; -- j) {
+            const SupportLayer *below = m_object->get_support_layer(j);
+            if (below == nullptr)
+                continue;
+            if (layer->print_z - below->print_z > max_reach + EPSILON)
+                break;
+            for (const ExPolygons *areas : { &below->base_areas, &below->roof_areas,
+                                             &below->roof_1st_layer, &below->floor_areas })
+                if (! areas->empty() && overlaps(*areas, roof)) {
+                    if (below->print_z > bottom_z + EPSILON) {
+                        // Support already reaches into the range the slab would grow through.
+                        blocked = true;
+                        break;
+                    }
+                    landing_z = std::max(landing_z, below->print_z);
+                    landed    = true;
+                }
+        }
+        if (blocked || ! landed || landing_z > bottom_z - EPSILON)
+            continue;
+
+        // The base slab merge keeps its distance to the object, and so must a roof growing down.
+        bool             hits_object   = false;
+        const LayerPtrs &object_layers = m_object->layers();
+        auto object_layer_it = std::lower_bound(object_layers.begin(), object_layers.end(),
+            landing_z + EPSILON,
+            [](const Layer *object_layer, coordf_t print_z) { return object_layer->print_z < print_z; });
+        for (; object_layer_it != object_layers.end() && ! hits_object; ++ object_layer_it) {
+            const Layer *object_layer = *object_layer_it;
+            if (object_layer->print_z - object_layer->height > bottom_z - EPSILON)
+                break;
+            hits_object = overlaps(offset_ex(object_layer->lslices, float(gap_xy_scaled)), roof);
+        }
+        if (hits_object)
+            continue;
+
+        const coordf_t height = layer->print_z - landing_z;
+        const SupportMergePlan::Candidate candidate =
+            plan.finest_interface_for_slab(layer->print_z, height);
+        if (! candidate.valid() || ! candidate_fits_floor(*layer, candidate)) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Tree support roof at z=" << layer->print_z << " stays " << (bottom_z - landing_z)
+                << "mm above the support below it: no filament can extrude a " << height << "mm slab there";
+            continue;
+        }
+        layer->interface_slab_height             = height;
+        layer->planned_interface_filament_id     = candidate.filament_id;
+        layer->planned_interface_nozzle_diameter = candidate.nozzle_diameter;
+    }
+}
+
 void TreeSupport::generate_toolpaths()
 {
     const PrintObjectConfig &object_config = m_object->config();
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
-    coordf_t nozzle_diameter = m_print_config->nozzle_diameter.get_at(object_config.support_filament - 1);
+    coordf_t nozzle_diameter = nozzle_diameter_for_filament(*m_print_config, object_config.support_filament);
     coordf_t layer_height = object_config.layer_height.value;
     const int wall_count = object_config.tree_support_wall_count.value;
 
     // coconut: use same intensity settings as SupportMaterial.cpp
     auto m_support_material_interface_flow = support_material_interface_flow(m_object, float(m_slicing_params.layer_height));
     coordf_t interface_spacing = object_config.support_interface_spacing.value + m_support_material_interface_flow.spacing();
-    coordf_t bottom_interface_spacing = interface_spacing;
     coordf_t interface_density = std::min(1., m_support_material_interface_flow.spacing() / interface_spacing);
-    coordf_t bottom_interface_density = std::min(1., m_support_material_interface_flow.spacing() / bottom_interface_spacing);
 
     const coordf_t branch_radius = object_config.tree_support_branch_diameter.value / 2;
     const coordf_t branch_radius_scaled = scale_(branch_radius);
@@ -1535,8 +1927,11 @@ void TreeSupport::generate_toolpaths()
     if (m_object->support_layers().empty())
         return;
 
-    auto generate_support_ironing_entity = [this](const ExPolygons &unioned_expolygons, const BoundingBox &bbox_object, const SupportLayer *ts_layer,
-                                           ExtrusionEntityCollection *temp_entity_collection) {
+    auto generate_support_ironing_entity = [this](const ExPolygons &unioned_expolygons,
+                                           const BoundingBox &bbox_object,
+                                           const SupportLayer *ts_layer,
+                                           ExtrusionEntityCollection *temp_entity_collection,
+                                           const Flow &interface_flow) {
         // support interface ironing related generation, tree support logic
         if (m_support_params.enable_support_ironing && !unioned_expolygons.empty()) {
             auto ironing_fill = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.ironing_pattern));
@@ -1552,9 +1947,9 @@ void TreeSupport::generate_toolpaths()
             if (m_support_params.ironing_inset > EPSILON)
                 polys_to_iron = union_ex(offset(polys_to_iron, -scale_(m_support_params.ironing_inset)));
 
-            Flow       support_ironing_flow(m_support_params.support_material_interface_flow.width(),
-                                            m_support_params.support_material_interface_flow.height() * m_support_params.ironing_flow_percent * 0.01,
-                                            m_support_params.support_material_interface_flow.nozzle_diameter());
+            Flow       support_ironing_flow(interface_flow.width(),
+                                            interface_flow.height() * m_support_params.ironing_flow_percent * 0.01,
+                                            interface_flow.nozzle_diameter());
             FillParams ironing_fill_params;
             ironing_fill_params.density     = 1.0f;
             ironing_fill_params.dont_adjust = true;
@@ -1654,7 +2049,8 @@ void TreeSupport::generate_toolpaths()
         if (m_support_params.enable_support_ironing && !raft_interface_areas.empty()
             && layer_nr == m_slicing_params.base_raft_layers + m_slicing_params.interface_raft_layers-1) {
             BoundingBox                bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
-            generate_support_ironing_entity(raft_interface_areas, bbox_object, ts_layer, &(ts_layer->support_fills) );
+            generate_support_ironing_entity(
+                raft_interface_areas, bbox_object, ts_layer, &(ts_layer->support_fills), support_flow);
         }
 
         fill_params.density = object_config.raft_first_layer_density * 0.01;
@@ -1692,8 +2088,29 @@ void TreeSupport::generate_toolpaths()
                 //m_object->print()->set_status(70, (boost::format(_u8L("Support: generate toolpath at layer %d")) % layer_id).str());
 
                 SupportLayer* ts_layer = m_object->get_support_layer(layer_id);
-                Flow support_flow(support_extrusion_width, ts_layer->height, nozzle_diameter);
-                Flow interface_flow = support_material_interface_flow(m_object, ts_layer->height); // update flow using real support layer height
+                const coordf_t base_height = ts_layer->base_slab_height > EPSILON ? ts_layer->base_slab_height : ts_layer->height;
+                const Flow support_flow = ts_layer->planned_nozzle_diameter > EPSILON ?
+                    m_support_params.support_material_flow_for_nozzle(ts_layer->planned_nozzle_diameter, float(base_height)) :
+                    Flow(support_extrusion_width, base_height, nozzle_diameter);
+                const coordf_t interface_height = ts_layer->interface_slab_height > EPSILON ?
+                    ts_layer->interface_slab_height : ts_layer->height;
+                Flow interface_flow = ts_layer->planned_interface_nozzle_diameter > EPSILON ?
+                    m_support_params.support_material_interface_flow_for_nozzle(
+                        ts_layer->planned_interface_nozzle_diameter, float(interface_height)) :
+                    support_material_interface_flow(m_object, interface_height);
+                // Only the roof is ever merged into a slab. Every other interface region of the layer keeps
+                // the layer height, so it needs its own flow even when the roof got pinned to a nozzle.
+                const Flow base_height_interface_flow =
+                    ts_layer->planned_interface_nozzle_diameter > EPSILON ?
+                    m_support_params.support_material_interface_flow_for_nozzle(
+                        ts_layer->planned_interface_nozzle_diameter, float(ts_layer->height)) :
+                    support_material_interface_flow(m_object, ts_layer->height);
+                const coordf_t layer_interface_density = std::min(
+                    1., interface_flow.spacing() /
+                        (object_config.support_interface_spacing.value + interface_flow.spacing()));
+                const coordf_t base_height_interface_density = std::min(
+                    1., base_height_interface_flow.spacing() /
+                        (object_config.support_interface_spacing.value + base_height_interface_flow.spacing()));
                 coordf_t support_spacing         = object_config.support_base_pattern_spacing.value + support_flow.spacing();
                 coordf_t support_density         = std::min(1., support_flow.spacing() / support_spacing);
                 ts_layer->support_fills.no_sort = false;
@@ -1721,12 +2138,13 @@ void TreeSupport::generate_toolpaths()
                         else {
                             polys.push_back(poly);
                         }
-                        fill_params.density = interface_density;
+                        fill_params.density = area_group.type == SupportLayer::RoofType ?
+                            layer_interface_density : base_height_interface_density;
                         fill_params.dont_adjust = true;
                     }
                     if (area_group.type == SupportLayer::Roof1stLayer) {
                         // use higher flow for roof_1st_layer ?
-                        Flow roof_1st_layer_flow = support_material_interface_flow(m_object, ts_layer->height)/*.with_flow_ratio(1.5)*/;
+                        Flow roof_1st_layer_flow = base_height_interface_flow/*.with_flow_ratio(1.5)*/;
 
                         // Note: spacing means the separation between two lines as if they are tightly extruded
                         filler_Roof1stLayer->spacing = roof_1st_layer_flow.spacing();
@@ -1753,7 +2171,7 @@ void TreeSupport::generate_toolpaths()
                         // generate a perimeter first to support interface better
                         ExtrusionEntityCollection* temp_support_fills = new ExtrusionEntityCollection();
                         make_perimeter_and_infill(temp_support_fills->entities, poly, 1, roof_1st_layer_flow, erSupportTransition,
-                            filler_Roof1stLayer.get(), interface_density, false);
+                            filler_Roof1stLayer.get(), base_height_interface_density, false);
                         temp_support_fills->no_sort = true; // make sure loops are first
                         if (!temp_support_fills->entities.empty())
                             ts_layer->support_fills.entities.push_back(temp_support_fills);
@@ -1761,13 +2179,14 @@ void TreeSupport::generate_toolpaths()
                             delete temp_support_fills;
                     } else if (area_group.type == SupportLayer::FloorType) {
                         // floor_areas
-                        fill_params.density = bottom_interface_density;
-                        filler_interface->spacing = interface_flow.spacing();
+                        fill_params.density = base_height_interface_density;
+                        filler_interface->spacing = base_height_interface_flow.spacing();
                         fill_expolygons_generate_paths(ts_layer->support_fills.entities, polys,
-                            filler_interface.get(), fill_params, erSupportMaterialInterface, interface_flow);
+                            filler_interface.get(), fill_params, erSupportMaterialInterface,
+                            base_height_interface_flow);
                     } else if (area_group.type == SupportLayer::RoofType) {
                         // roof_areas
-                        fill_params.density       = interface_density;
+                        fill_params.density       = layer_interface_density;
                         filler_interface->spacing = interface_flow.spacing();
                         if (m_object_config->support_interface_pattern == smipGrid) {
                             filler_interface->angle = Geometry::deg2rad(object_config.support_angle.value);
@@ -1804,7 +2223,7 @@ void TreeSupport::generate_toolpaths()
                         ExtrusionEntityCollection *temp_support_fills = new ExtrusionEntityCollection();
                         for (auto &single_poly : union_ex(polys))
                             make_perimeter_and_infill(temp_support_fills->entities, single_poly, 1, interface_flow, erSupportMaterialInterface, filler_interface.get(),
-                                                      interface_density, false);
+                                                      layer_interface_density, false);
                         temp_support_fills->no_sort = true; // make sure loops are first
                         if (!temp_support_fills->entities.empty())
                             ts_layer->support_fills.entities.push_back(temp_support_fills);
@@ -1820,7 +2239,11 @@ void TreeSupport::generate_toolpaths()
                                 unioned_expolygons = diff_ex(unioned_expolygons, upper_expolygons);
                                 unioned_expolygons = union_ex(unioned_expolygons);
                             }
-                            if (!unioned_expolygons.empty()) { generate_support_ironing_entity(unioned_expolygons, bbox_object, ts_layer, temp_support_ironings); }
+                            if (!unioned_expolygons.empty()) {
+                                generate_support_ironing_entity(
+                                    unioned_expolygons, bbox_object, ts_layer,
+                                    temp_support_ironings, interface_flow);
+                            }
                             temp_support_ironings->no_sort = true; // make sure loops are first
                             if (!temp_support_ironings->entities.empty())
                                 ts_layer->support_fills.entities.push_back(temp_support_ironings);
@@ -2089,8 +2512,7 @@ void TreeSupport::generate()
     }
     profiler.stage_finish(STAGE_DRAW_CIRCLES);
 
-
-
+    merge_base_areas_multi_diameter();
     profiler.stage_start(STAGE_GENERATE_TOOLPATHS);
     const long long support_toolpath_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     m_object->print()->set_status(70, _u8L("Generating support"));
@@ -3826,7 +4248,16 @@ void TreeSupport::smooth_nodes()
         }
     }
 
-    float max_move = scale_(m_object_config->support_line_width / 2);
+    const coordf_t support_nozzle_diameter = nozzle_diameter_for_filament(
+        m_object->print()->config(), m_object_config->support_filament);
+    const coordf_t support_lw = m_object_config->support_line_width.value > 0 ?
+        Flow::extrusion_width_for_nozzle(
+            m_object_config->support_line_width,
+            float(primary_nozzle_diameter(m_object->print()->full_print_config())),
+            float(support_nozzle_diameter),
+            multi_nozzle_diameter_mode_enabled(m_object->print()->full_print_config())) :
+        m_support_params.support_extrusion_width;
+    float max_move = scale_(support_lw / 2);
     // if the branch is very tall, the tip also needs extra wall
     float thresh_tall_branch = 100;
     float thresh_dist_to_top = 30;
@@ -3872,7 +4303,7 @@ void TreeSupport::smooth_nodes()
                             branch[i]->radius = radii1[i];
                             branch[i]->movement = (pts[i + 1] - pts[i - 1]) / 2;
                             branch[i]->is_processed = true;
-                            branch[i]->overhang_degree = std::min(10.0, unscale_((branch[i]->movement).cast<double>().norm()) / m_object_config->support_line_width * 10);
+                            branch[i]->overhang_degree = std::min(10.0, unscale_((branch[i]->movement).cast<double>().norm()) / support_lw * 10);
                             if (branch[i]->parents.size() > 1 || (branch[i]->movement.x() > max_move || branch[i]->movement.y() > max_move) ||
                                 (total_height > thresh_tall_branch && branch[i]->dist_mm_to_top < thresh_dist_to_top))
                                 branch[i]->need_extra_wall = true;
@@ -4162,7 +4593,11 @@ void TreeSupport::generate_contact_points()
     bool       on_buildplate_only    = m_object_config->support_on_build_plate_only.value;
     const bool roof_enabled          = config.support_interface_top_layers.value > 0;
     const bool force_tip_to_roof = roof_enabled && m_support_params.soluble_interface;
-    const coordf_t extrusion_width = config.line_width.value;
+    const coordf_t extrusion_width = Flow::extrusion_width_for_nozzle(
+        config.line_width,
+        float(primary_nozzle_diameter(m_object->print()->full_print_config())),
+        nozzle_diameter_for_filament(m_object->print()->config(), config.support_filament),
+        multi_nozzle_diameter_mode_enabled(m_object->print()->full_print_config()));
 
     //First generate grid points to cover the entire area of the print.
     BoundingBox bounding_box = m_object->bounding_box();

@@ -11,6 +11,7 @@
 #include "MutablePolygon.hpp"
 
 #include <cmath>
+#include <map>
 #include <memory>
 #include <boost/log/trivial.hpp>
 #include <boost/container/static_vector.hpp>
@@ -443,8 +444,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     // The layers may or may not be synchronized with the object layers, depending on the configuration.
     // For example, a single nozzle multi material printing will need to generate a waste tower, which in turn
     // wastes less material, if there are as little tool changes as possible.
-    SupportGeneratorLayersPtr intermediate_layers = this->raft_and_intermediate_support_layers(
-        object, bottom_contacts, top_contacts, layer_storage);
+    SupportGeneratorLayersPtr intermediate_layers = this->raft_and_intermediate_support_layers(object, bottom_contacts, top_contacts, layer_storage);
 
     this->trim_support_layers_by_object(object, top_contacts, m_slicing_params.gap_support_object, m_slicing_params.gap_object_support, m_support_params.gap_xy);
 
@@ -515,6 +515,16 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     }
 */
 
+    // BBS multi-diameter: merge the support areas into slabs a coarse nozzle can extrude. This has to run
+    // before generate_support_layers() installs them, because that is where the Z ladder is frozen.
+    // print_z -> filament the merged slab at that height was planned for.
+    std::map<coordf_t, SupportMergePlan::Candidate> planned_filaments;
+    std::map<coordf_t, SupportMergePlan::Candidate> planned_interface_filaments;
+    std::map<coordf_t, coordf_t> planned_interface_heights;
+    merge_support_layers_multi_diameter(object, m_support_params, m_slicing_params, raft_layers,
+        bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers,
+        planned_filaments, planned_interface_filaments, planned_interface_heights);
+
     BOOST_LOG_TRIVIAL(info) << "Support generator - Creating layers";
 
 // For debugging purposes, one may want to show only some of the support extrusions.
@@ -528,6 +538,28 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     SupportGeneratorLayersPtr layers_sorted =
 #endif // SLIC3R_DEBUG
     generate_support_layers(object, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
+
+    // BBS multi-diameter: hand the planned filament over to the support layers the object owns now. Matching by
+    // print_z is safe because generate_support_layers() gives every support layer a unique print_z.
+    for (SupportLayer *support_layer : object.support_layers()) {
+        auto it = planned_filaments.lower_bound(support_layer->print_z - EPSILON);
+        if (it != planned_filaments.end() && it->first <= support_layer->print_z + EPSILON) {
+            support_layer->planned_filament_id      = it->second.filament_id;
+            support_layer->planned_nozzle_diameter  = it->second.nozzle_diameter;
+        }
+        auto interface_it = planned_interface_filaments.lower_bound(support_layer->print_z - EPSILON);
+        if (interface_it != planned_interface_filaments.end() &&
+            interface_it->first <= support_layer->print_z + EPSILON) {
+            support_layer->planned_interface_filament_id =
+                interface_it->second.filament_id;
+            support_layer->planned_interface_nozzle_diameter =
+                interface_it->second.nozzle_diameter;
+        }
+        auto height_it = planned_interface_heights.lower_bound(support_layer->print_z - EPSILON);
+        if (height_it != planned_interface_heights.end() &&
+            height_it->first <= support_layer->print_z + EPSILON)
+            support_layer->interface_slab_height = height_it->second;
+    }
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Generating tool paths";
 
@@ -1234,7 +1266,7 @@ namespace SupportMaterialInternal {
             // Surface supporting this layer, expanded by 0.5 * nozzle_diameter, as we consider this kind of overhang to be sufficiently supported.
             Polygons lower_grown_slices = expand(lower_layer_polygons,
                 //FIXME to mimic the decision in the perimeter generator, we should use half the external perimeter width.
-                0.5f * float(scale_(print_config.nozzle_diameter.get_at(layerm.region().config().wall_filament-1))),
+                0.5f * float(scale_(nozzle_diameter_for_filament(print_config, layerm.region().config().wall_filament))),
                 SUPPORT_SURFACES_OFFSET_PARAMETERS);
             // Collect perimeters of this layer.
             //FIXME split_at_first_point() could split a bridge mid-way
@@ -2169,7 +2201,11 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
 
     // check if the sharp tails should be extended higher
     bool detect_first_sharp_tail_only = false;
-    const coordf_t extrusion_width = m_object_config->line_width.value;
+    const coordf_t extrusion_width = Flow::extrusion_width_for_nozzle(
+        m_object_config->line_width,
+        float(primary_nozzle_diameter(object.print()->full_print_config())),
+        nozzle_diameter_for_filament(*m_print_config, m_object_config->support_filament),
+        multi_nozzle_diameter_mode_enabled(object.print()->full_print_config()));
     const coordf_t extrusion_width_scaled = scale_(extrusion_width);
     if (is_auto(m_object_config->support_type.value) && g_config_support_sharp_tails && !detect_first_sharp_tail_only) {
         for (size_t layer_nr = layer_id_start; layer_nr < num_layers; layer_nr++) {
@@ -2256,7 +2292,11 @@ SupportGeneratorLayersPtr PrintObjectSupportMaterial::top_contact_layers(
     const bool config_remove_small_overhangs = m_object_config->support_remove_small_overhang.value;
     if (config_remove_small_overhangs) {
         std::vector<OverhangCluster> clusters;
-        double fw_scaled = scale_(m_object_config->line_width);
+        double fw_scaled = scale_(Flow::extrusion_width_for_nozzle(
+            m_object_config->line_width,
+            float(primary_nozzle_diameter(object.print()->full_print_config())),
+            nozzle_diameter_for_filament(*m_print_config, m_object_config->support_filament),
+            multi_nozzle_diameter_mode_enabled(object.print()->full_print_config())));
         std::set<ExPolygon*> removed_overhang;
 
         for (size_t layer_id = layer_id_start; layer_id < num_layers; layer_id++) {

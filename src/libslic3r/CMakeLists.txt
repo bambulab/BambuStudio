@@ -314,6 +314,10 @@ set(lisbslic3r_sources
     PrincipalComponents2D.cpp
     AppConfig.cpp
     AppConfig.hpp
+    AdaptiveLayerMerge.cpp
+    AdaptiveLayerMerge.hpp
+    SupportMergePlan.cpp
+    SupportMergePlan.hpp
     Print.cpp
     Print.hpp
     PrintApply.cpp

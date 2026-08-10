@@ -45,6 +45,8 @@ public:
     const PrintRegionConfig     *config;
     const PrintObjectConfig     *object_config;
     const PrintConfig           *print_config;
+    float                        preset_nozzle_diameter;
+    bool                         multi_nozzle_diameter_mode;
     const PerimeterRegions      *perimeter_regions;
     // Outputs:
     ExtrusionEntityCollection   *loops;
@@ -71,6 +73,8 @@ public:
         const PrintRegionConfig*    config,
         const PrintObjectConfig*    object_config,
         const PrintConfig*          print_config,
+        const float                 preset_nozzle_diameter,
+        const bool                  multi_nozzle_diameter_mode,
         const bool                  spiral_mode,
         // Output:
         // Loops with the external thin walls
@@ -86,6 +90,8 @@ public:
             layer_id(-1), slice_z(0), perimeter_flow(flow), ext_perimeter_flow(flow),
             overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
+            preset_nozzle_diameter(preset_nozzle_diameter),
+            multi_nozzle_diameter_mode(multi_nozzle_diameter_mode),
             m_spiral_vase(spiral_mode),
             m_scaled_resolution(scaled<double>(print_config->resolution.value > EPSILON ? print_config->resolution.value : EPSILON)), loops(loops),
         gap_fill(gap_fill),

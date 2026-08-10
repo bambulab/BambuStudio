@@ -45,13 +45,17 @@ public:
     MixedFilamentDialog(wxWindow* parent,
                         const std::vector<std::string>& physical_colors,
                         const std::vector<std::string>& physical_names,
-                        const std::vector<std::string>& physical_types = {});
+                        const std::vector<std::string>& physical_types = {},
+                        const std::vector<std::string>& physical_diameters = {},
+                        bool enforce_nozzle_diameter = false);
 
     MixedFilamentDialog(wxWindow* parent,
                         const MixedFilamentResult& existing,
                         const std::vector<std::string>& physical_colors,
                         const std::vector<std::string>& physical_names,
-                        const std::vector<std::string>& physical_types = {});
+                        const std::vector<std::string>& physical_types = {},
+                        const std::vector<std::string>& physical_diameters = {},
+                        bool enforce_nozzle_diameter = false);
 
     MixedFilamentResult get_result() const { return m_result; }
 
@@ -117,6 +121,8 @@ private:
     std::vector<std::string>    m_physical_colors;
     std::vector<std::string>    m_physical_names;
     std::vector<std::string>    m_physical_types;
+    std::vector<std::string>    m_physical_diameters;
+    bool                        m_enforce_nozzle_diameter{false};
     wxString                    m_type_mismatch_msg;
 
     // Combo item index -> 1-based physical filament index (per combo)

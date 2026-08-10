@@ -143,6 +143,13 @@ unsigned int LayerTools::solid_infill_filament(const PrintRegion &region) const
 // Returns a zero based extruder this eec should be printed with, according to PrintRegion config or extruder_override if overriden.
 unsigned int LayerTools::extruder(const ExtrusionEntityCollection &extrusions, const PrintRegion &region) const
 {
+	unsigned int result = this->filament_slot(extrusions, region);
+	result = (result == 0) ? 0 : result - 1;
+	return resolve_mixed(result);
+}
+
+unsigned int LayerTools::filament_slot(const ExtrusionEntityCollection &extrusions, const PrintRegion &region) const
+{
 	assert(region.config().wall_filament.value >= 0);
 	assert(region.config().sparse_infill_filament.value >= 0);
 	assert(region.config().solid_infill_filament.value >= 0);
@@ -171,12 +178,12 @@ unsigned int LayerTools::extruder(const ExtrusionEntityCollection &extrusions, c
                         extruder      = region.config().wall_filament.value;
                         curr_priority = 90;
                     }
-                } else if (is_solid_infill(extrusions_role)) {
+                } else if (is_solid_infill(ee->role())) {
                     if (curr_priority < 70) { // solid infill 4st priority
                         extruder      = region.config().solid_infill_filament.value;
                         curr_priority = 70;
                     }
-                } else if (is_infill(extrusions_role)) {
+                } else if (is_infill(ee->role())) {
                     if (curr_priority < 60) { // infill 5st priority
                         extruder      = region.config().sparse_infill_filament.value;
                         curr_priority = 60;
@@ -188,8 +195,7 @@ unsigned int LayerTools::extruder(const ExtrusionEntityCollection &extrusions, c
             extruder = region.config().wall_filament.value;
     }else
         extruder = this->extruder_override;
-	unsigned int result = (extruder == 0) ? 0 : extruder - 1;
-	return resolve_mixed(result);
+	return extruder;
 }
 
 static double calc_max_layer_height(const PrintConfig &config, double max_object_layer_height)
@@ -542,12 +548,23 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
     int initial_extruder_id = -1;
     std::map<int, double> min_areas_per_extruder;
 
+    // This global heuristic spans all objects, so use the largest configured nozzle conservatively.
+    if (print.config().nozzle_diameter.values.empty())
+        return tool_order;
+    const double reference_nozzle = *std::max_element(print.config().nozzle_diameter.values.begin(),
+                                                      print.config().nozzle_diameter.values.end());
+    const double first_layer_line_width = Flow::extrusion_width_for_nozzle(
+        print.config().initial_layer_line_width,
+        float(primary_nozzle_diameter(print.full_print_config())),
+        float(reference_nozzle),
+        multi_nozzle_diameter_mode_enabled(print.full_print_config()));
+
     for (auto object : print.objects()) {
         const Layer* target_layer = nullptr;
         for(auto layer : object->layers()){
             for(auto layerm : layer->regions()){
                 for(auto& expoly : layerm->raw_slices){
-                    if (!offset_ex(expoly, -0.2 * scale_(print.config().initial_layer_line_width)).empty()) {
+                    if (!offset_ex(expoly, -0.2 * scale_(first_layer_line_width)).empty()) {
                         target_layer = layer;
                         break;
                     }
@@ -566,7 +583,7 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
             int extruder_id = layerm->region().config().option("wall_filament")->getInt();
 
             for (auto expoly : layerm->raw_slices) {
-                if (offset_ex(expoly, -0.2 * scale_(print.config().initial_layer_line_width)).empty())
+                if (offset_ex(expoly, -0.2 * scale_(first_layer_line_width)).empty())
                     continue;
 
                 double contour_area = expoly.contour.area();
@@ -621,8 +638,14 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
     const Layer* target_layer = nullptr;
     for(auto layer : object.layers()){
         for(auto layerm : layer->regions()){
+            const unsigned int wall_filament = layerm->region().config().wall_filament.value;
+            const double object_line_width = Flow::extrusion_width_for_nozzle(
+                object.config().line_width,
+                float(primary_nozzle_diameter(object.print()->full_print_config())),
+                nozzle_diameter_for_filament(object.print()->config(), wall_filament),
+                multi_nozzle_diameter_mode_enabled(object.print()->full_print_config()));
             for(auto& expoly : layerm->raw_slices){
-                if (!offset_ex(expoly, -0.2 * scale_(object.config().line_width)).empty()) {
+                if (!offset_ex(expoly, -0.2 * scale_(object_line_width)).empty()) {
                     target_layer = layer;
                     break;
                 }
@@ -639,8 +662,13 @@ std::vector<unsigned int> ToolOrdering::generate_first_layer_tool_order(const Pr
 
     for (auto layerm : target_layer->regions()) {
         int extruder_id = layerm->region().config().option("wall_filament")->getInt();
+        const double object_line_width = Flow::extrusion_width_for_nozzle(
+            object.config().line_width,
+            float(primary_nozzle_diameter(object.print()->full_print_config())),
+            nozzle_diameter_for_filament(object.print()->config(), (unsigned int) extruder_id),
+            multi_nozzle_diameter_mode_enabled(object.print()->full_print_config()));
         for (auto expoly : layerm->raw_slices) {
-            if (offset_ex(expoly, -0.2 * scale_(object.config().line_width)).empty())
+            if (offset_ex(expoly, -0.2 * scale_(object_line_width)).empty())
                 continue;
 
             double contour_area = expoly.contour.area();
@@ -792,17 +820,21 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 layer_tools.has_object = true;
             }
 
-            bool has_infill       = false;
-            bool has_solid_infill = false;
             bool something_nonoverriddable = false;
+            // The filament every fill collection will actually be printed with, read back through the
+            // very decision GCode::process_layer() makes. Classifying a collection by the role of its
+            // first entity alone misses one that leads with a gap fill - neither solid nor sparse - and
+            // leaves this region's filament unregistered for the whole layer. process_layer() finds no
+            // registration either and falls back to the last tool of the layer, so the region comes out
+            // in a filament it was never assigned, at the line width of the one it was. The walls of the
+            // same region register that filament anyway on an ordinary layer, which is why this only
+            // surfaces once adaptive merging has decimated them away and the fill stands there alone.
+            std::vector<unsigned int> fill_slots;
             for (const ExtrusionEntity *ee : layerm->fills.entities) {
                 // fill represents infill extrusions of a single island.
                 const auto *fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
-                ExtrusionRole role = fill->entities.empty() ? erNone : fill->entities.front()->role();
-                if (is_solid_infill(role))
-                    has_solid_infill = true;
-                else if (is_infill(role))
-                    has_infill = true;
+                if (! fill->entities.empty())
+                    fill_slots.emplace_back(layer_tools.filament_slot(*fill, region));
 
                 if (m_print_config_ptr) {
                     if (! layer_tools.wiping_extrusions().is_overriddable_and_mark(*fill, *m_print_config_ptr, object, region))
@@ -813,16 +845,10 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 }
             }
 
-            if (something_nonoverriddable) {
-            	if (extruder_override == 0) {
-	                if (has_solid_infill)
-	                    layer_tools.extruders.emplace_back(region.config().solid_infill_filament);
-	                if (has_infill)
-	                    layer_tools.extruders.emplace_back(region.config().sparse_infill_filament);
-            	} else if (has_solid_infill || has_infill)
-            		layer_tools.extruders.emplace_back(extruder_override);
-            }
-            if (has_solid_infill || has_infill)
+            if (something_nonoverriddable)
+                for (unsigned int slot : fill_slots)
+                    layer_tools.extruders.emplace_back(slot);
+            if (! fill_slots.empty())
                 layer_tools.has_object = true;
         }
 
@@ -891,6 +917,13 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         unsigned int extruder_support   = object.config().support_filament.value;
         unsigned int extruder_interface = object.config().support_interface_filament.value;
         bool         interface_not_for_body = object.config().support_interface_not_for_body;
+        // BBS multi-diameter: this support layer is thicker than the object layers, so only the filament it was
+        // planned for can extrude it. Report it as a fixed filament instead of the "don't care" placeholder,
+        // otherwise the tool change and the wipe tower would not be planned for it.
+        if (extruder_support == 0 && support_layer->planned_filament_id > 0)
+            extruder_support = (unsigned int) support_layer->planned_filament_id;
+        if (extruder_interface == 0 && support_layer->planned_interface_filament_id > 0)
+            extruder_interface = (unsigned int) support_layer->planned_interface_filament_id;
         if (has_support) {
             auto has_reusable_layer_extruder = [&]() -> bool {
                 for (unsigned int extruder_id : layer_tools.extruders) {
@@ -1352,6 +1385,7 @@ std::vector<int> build_manual_nozzle_map(const PrintConfig &print_config,
     std::vector<int> fnmap(filament_nums, ams_nozzle_idx >= 0 ? ams_nozzle_idx : 0);
     const auto& ufnm          = print_config.filament_nozzle_map.values;
     const auto& fvmap         = print_config.filament_volume_map.values;
+    const auto& selected_diameters = print_config.filament_selected_nozzle_diameters.values;
 
     auto compatible = [](int nozzle_vt, int filament_vt) {
         return nozzle_vt == nvtHybrid || filament_vt == nvtHybrid || nozzle_vt == filament_vt;
@@ -1371,6 +1405,10 @@ std::vector<int> build_manual_nozzle_map(const PrintConfig &print_config,
 
     for (auto f : used_filaments) {
         if (in_ams_group(f)) {
+            if (f < selected_diameters.size() && !selected_diameters[f].empty() &&
+                (ams_nozzle_idx < 0 || ams_nozzle_idx >= static_cast<int>(nozzle_list.size()) ||
+                 nozzle_list[ams_nozzle_idx].diameter != selected_diameters[f]))
+                return {};
             fnmap[f] = ams_nozzle_idx;
             ++ams_group_count;
             continue;
@@ -1383,6 +1421,9 @@ std::vector<int> build_manual_nozzle_map(const PrintConfig &print_config,
         for (const auto& n : nozzle_list) {
             if (!n.installed || n.group_id == ams_nozzle_idx || used_fixed.count(n.group_id))
                 continue;
+            if (f < selected_diameters.size() && !selected_diameters[f].empty() &&
+                n.diameter != selected_diameters[f])
+                continue;
             if (compatible((int) n.volume_type, req_vol)) {
                 chosen = n.group_id;
                 break;
@@ -1393,7 +1434,8 @@ std::vector<int> build_manual_nozzle_map(const PrintConfig &print_config,
             fnmap[f] = chosen;
         } else {
             MultiNozzleUtils::NozzleInfo virtual_nozzle;
-            virtual_nozzle.diameter    = virtual_diameter;
+            virtual_nozzle.diameter    = f < selected_diameters.size() && !selected_diameters[f].empty()
+                ? selected_diameters[f] : virtual_diameter;
             virtual_nozzle.volume_type = NozzleVolumeType(req_vol);
             virtual_nozzle.extruder_id = 0;
             virtual_nozzle.group_id    = static_cast<int>(nozzle_list.size());
@@ -1525,6 +1567,8 @@ FilamentGroupContext build_filament_group_context(
     context.model_info.unprintable_filaments = ext_unprintable_filaments;
     context.model_info.layer_filaments = layer_filaments;
     context.model_info.filament_ids = filament_ids;
+    context.model_info.selected_nozzle_diameters = print_config.filament_selected_nozzle_diameters.values;
+    context.model_info.selected_nozzle_diameters.resize(filament_nums);
     context.model_info.unprintable_volumes = unprintable_volumes;
 
     for (size_t idx = 0; idx < filament_types.size(); ++idx) {
@@ -1533,6 +1577,8 @@ FilamentGroupContext build_filament_group_context(
         info.type = filament_types[idx];
         info.is_support = filament_is_support[idx];
         info.usage_type = filament_usage_types[idx];
+        if (idx < print_config.filament_diameter.size())
+            info.diameter = float(print_config.filament_diameter.get_at(idx));
         context.model_info.filament_info.emplace_back(std::move(info));
     }
 
@@ -1592,14 +1638,30 @@ FilamentGroupContext build_filament_group_context(
         }
     }
 
-    // Disable nozzles whose diameter does not match their extruder's active (working) diameter.
+    // Keep every authoritative per-slot nozzle available in multi-diameter mode and apply the per-filament
+    // restriction in the nozzle-level grouping solver. With the project gate off, only slots matching the
+    // active printer preset diameter remain available. Legacy multi-extruder configurations still expose one
+    // working diameter per extruder and disable slots that disagree with that representative diameter.
     {
         std::vector<MultiNozzleUtils::NozzleInfo>& nozzle_list        = context.nozzle_info.nozzle_list;
         const std::vector<double>&                 extruder_diameters = print_config.nozzle_diameter.values;
-        for (MultiNozzleUtils::NozzleInfo& nozzle : nozzle_list)
-            if (nozzle.extruder_id < 0 || nozzle.extruder_id >= static_cast<int>(extruder_diameters.size()) ||
-                nozzle.diameter != format_diameter_to_str(extruder_diameters[nozzle.extruder_id]))
-                nozzle.installed = false;//wrong-diameter nozzle: not usable for this print
+        const bool use_per_slot_diameters = has_authoritative_per_slot_nozzle_diameters(
+            print_config.handle_hotend_as_extruder, print_config.extruder_nozzle_count.values,
+            print_config.extruder_nozzle_diameter.values);
+        if (!multi_nozzle_diameter_mode_enabled(print->full_print_config())) {
+            double active_diameter = primary_nozzle_diameter(print->full_print_config());
+            if (active_diameter <= EPSILON && !extruder_diameters.empty())
+                active_diameter = extruder_diameters.front();
+            const std::string active_diameter_str = format_diameter_to_str(active_diameter);
+            for (MultiNozzleUtils::NozzleInfo& nozzle : nozzle_list)
+                if (nozzle.diameter != active_diameter_str)
+                    nozzle.installed = false;
+        } else if (!use_per_slot_diameters) {
+            for (MultiNozzleUtils::NozzleInfo& nozzle : nozzle_list)
+                if (nozzle.extruder_id < 0 || nozzle.extruder_id >= static_cast<int>(extruder_diameters.size()) ||
+                    nozzle.diameter != format_diameter_to_str(extruder_diameters[nozzle.extruder_id]))
+                    nozzle.installed = false;//wrong-diameter nozzle: not usable for this print
+        }
 
         int ams_logical_group_id = -1;
         if (single_ext_multi_nozzle && ams_nozzle_idx_ctx >= 0 &&
@@ -1736,6 +1798,40 @@ FilamentGroupContext build_filament_group_context(
         }
     }
 
+    // Multi-diameter restriction: keep each filament on the diameter explicitly selected before slicing.
+    // This only tightens the auto solver's unprintable set and leaves flush/time scoring untouched.
+    // Authoritative per-slot configurations are constrained later against the physical nozzle list.
+    {
+        const std::vector<double> &extruder_diameters = print_config.nozzle_diameter.values;
+        std::set<std::string> distinct_diameters;
+        for (double d : extruder_diameters)
+            distinct_diameters.insert(format_diameter_to_str(d));
+
+        const auto &selected = print_config.filament_selected_nozzle_diameters.values;
+        auto &unprintable_filaments = context.model_info.unprintable_filaments;
+        const bool has_selected = std::any_of(selected.begin(), selected.end(),
+                                              [](const std::string &value) { return !value.empty(); });
+        const bool use_per_slot_diameters = has_authoritative_per_slot_nozzle_diameters(
+            print_config.handle_hotend_as_extruder, print_config.extruder_nozzle_count.values,
+            print_config.extruder_nozzle_diameter.values);
+        if (!use_per_slot_diameters &&
+            (distinct_diameters.size() > 1 || has_selected) && extruder_nums >= 2) {
+            for (auto fil_id : used_filaments) {
+                if (fil_id >= selected.size() || selected[fil_id].empty())
+                    continue;
+                const std::string allowed = format_diameter_to_str(atof(selected[fil_id].c_str()));
+
+                std::vector<int> incompatible_extruders;
+                for (size_t e = 0; e < extruder_nums && e < unprintable_filaments.size(); ++e) {
+                    if (allowed != format_diameter_to_str(extruder_diameters[e]))
+                        incompatible_extruders.emplace_back((int) e);
+                }
+                for (int e : incompatible_extruders)
+                    unprintable_filaments[e].insert(fil_id);
+            }
+        }
+    }
+
     return context;
 }
 
@@ -1791,8 +1887,12 @@ MultiNozzleUtils::LayeredNozzleGroupResult refine_groups_by_Nozzle_State(const F
             auto noz_info             = ctx.nozzle_info.nozzle_list[noz];
             int  ext_id               = noz_info.extruder_id;
             auto ext_unprintable_fils = ctx.model_info.unprintable_filaments[ext_id];
+            const bool diameter_mismatch = fil < ctx.model_info.selected_nozzle_diameters.size() &&
+                !ctx.model_info.selected_nozzle_diameters[fil].empty() &&
+                ctx.model_info.selected_nozzle_diameters[fil] != noz_info.diameter;
             if (ext_unprintable_fils.count(fil) > 0 ||
-                (expected_volume != nvtHybrid && expected_volume != noz_info.volume_type) || (unprintable_volumes.count(noz_info.volume_type) != 0))
+                diameter_mismatch || (expected_volume != nvtHybrid && expected_volume != noz_info.volume_type) ||
+                (unprintable_volumes.count(noz_info.volume_type) != 0))
                 fil_unplaceable_nozs[fil].insert(noz);
         }
     }
@@ -2027,6 +2127,50 @@ std::vector<FilamentPlanRes> plan_filament_mapping_and_order_by_combo_ranges(
 
 
 
+// Multi-diameter manual safety net: reject a manual filament -> extruder assignment that disagrees
+// with the filament's completed selected diameter. This guards CLI/scripted paths that set filament_map
+// directly and bypass the UI drag-drop restriction.
+static void validate_manual_diameter_or_throw(const PrintConfig                &print_config,
+                                              const std::vector<unsigned int> &used_filaments,
+                                              const std::vector<int>          &extruder_map_0based,
+                                              bool                             multi_nozzle_diameter_mode)
+{
+    if (!multi_nozzle_diameter_mode)
+        return;
+
+    // Per-slot configurations are validated against the selected physical nozzle by the nozzle-level
+    // manual grouping path. Their per-extruder diameter is only a representative fallback.
+    if (has_authoritative_per_slot_nozzle_diameters(
+        print_config.handle_hotend_as_extruder, print_config.extruder_nozzle_count.values,
+        print_config.extruder_nozzle_diameter.values))
+        return;
+
+    const std::vector<double> &extruder_diameters = print_config.nozzle_diameter.values;
+    std::set<std::string>      distinct_diameters;
+    for (double d : extruder_diameters)
+        distinct_diameters.insert(format_diameter_to_str(d));
+
+    const auto &selected = print_config.filament_selected_nozzle_diameters.values;
+    const bool has_selected = std::any_of(selected.begin(), selected.end(),
+                                          [](const std::string &value) { return !value.empty(); });
+    if (distinct_diameters.size() <= 1 && !has_selected)
+        return;
+
+    for (auto fid : used_filaments) {
+        if (fid >= selected.size() || selected[fid].empty())
+            continue;
+        const std::string allowed = format_diameter_to_str(atof(selected[fid].c_str()));
+        if (fid >= extruder_map_0based.size())
+            continue;
+        const int e = extruder_map_0based[fid];
+        if (e < 0 || e >= (int) extruder_diameters.size())
+            continue;
+        if (allowed != format_diameter_to_str(extruder_diameters[e]))
+            throw Slic3r::RuntimeError(_L("Filament assigned to a nozzle of incompatible diameter. Please regroup so each "
+                                          "filament stays on a nozzle whose diameter it supports."));
+    }
+}
+
 MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filament_maps(Print                                           *print,
                                                                                      const std::vector<std::vector<unsigned int>> &layer_filaments,
                                                                                      const FilamentMapMode                         mode,
@@ -2043,6 +2187,7 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
         return LayeredNozzleGroupResult();
 
     const auto& print_config = print->config();
+    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(print->full_print_config());
     size_t filament_nums = print_config.filament_colour.values.size();
     size_t extruder_nums = print_config.nozzle_diameter.values.size();
     auto used_filaments = collect_sorted_used_filaments(layer_filaments);
@@ -2074,6 +2219,7 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
     if (mode == FilamentMapMode::fmmManual && !has_multiple_nozzle){
         auto manual_filament_map = print_config.filament_map.values;
         std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
+        validate_manual_diameter_or_throw(print_config, used_filaments, manual_filament_map, multi_diameter_mode);
         auto result = LayeredNozzleGroupResult::create(manual_filament_map, nozzle_list, used_filaments, print_config.handle_hotend_as_extruder);
         return result ? *result : LayeredNozzleGroupResult();
     }
@@ -2091,8 +2237,14 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
             for (auto fil : used_filaments) {
                 if (fil >= user_nozzle_map.size() || user_nozzle_map[fil] < 0 || user_nozzle_map[fil] >= nozzle_cnt)
                     throw Slic3r::RuntimeError(_L("Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."));
-                if (!context.nozzle_info.nozzle_list[user_nozzle_map[fil]].installed)
+                const auto &nozzle = context.nozzle_info.nozzle_list[user_nozzle_map[fil]];
+                if (!nozzle.installed)
                     throw Slic3r::RuntimeError(_L("Nozzle assignment error: per-filament nozzle map points to an empty or unavailable nozzle."));
+                if (multi_diameter_mode &&
+                    fil < context.model_info.selected_nozzle_diameters.size() &&
+                    !context.model_info.selected_nozzle_diameters[fil].empty() &&
+                    context.model_info.selected_nozzle_diameters[fil] != nozzle.diameter)
+                    throw Slic3r::RuntimeError(_L("Nozzle assignment error: per-filament nozzle map points to a nozzle with a different diameter."));
                 ret[fil] = user_nozzle_map[fil];
             }
         } else {
@@ -2155,6 +2307,7 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
                         throw Slic3r::RuntimeError(_L("Group error in manual mode. Please check nozzle count or regroup."));
                     }
                 }
+                validate_manual_diameter_or_throw(print_config, used_filaments, result_map, multi_diameter_mode);
             }
             return result;
         } else {
@@ -3424,8 +3577,12 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
                     if (this_support_layer == nullptr)
                         break;
 
-                    bool support_overriddable = object_config.support_filament == 0;
-                    bool support_intf_overriddable = object_config.support_interface_filament == 0;
+                    // BBS multi-diameter: a support slab thicker than the object layers is pinned to the filament
+                    // it was planned for, so it must not be flushed into by an arbitrary other filament.
+                    bool support_overriddable = object_config.support_filament == 0 && this_support_layer->planned_filament_id == 0;
+                    bool support_intf_overriddable =
+                        object_config.support_interface_filament == 0 &&
+                        this_support_layer->planned_interface_filament_id == 0;
                     if (!support_overriddable && !support_intf_overriddable)
                         break;
 

@@ -75,6 +75,7 @@ namespace Slic3r
             std::vector<std::vector<unsigned int>> layer_filaments;
             std::vector<FilamentGroupUtils::FilamentInfo> filament_info;
             std::vector<std::string> filament_ids;
+            std::vector<std::string> selected_nozzle_diameters;
             std::vector<std::set<int>> unprintable_filaments;
             std::map<int, std::set<NozzleVolumeType>> unprintable_volumes;
         } model_info;

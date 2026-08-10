@@ -29,6 +29,7 @@ struct AMSMapInfo
     /*for new ams mapping*/ // from struct FilamentInfo
     std::string ams_id{""};
     std::string slot_id{""};
+    std::string nozzle_diameter{""};
 };
 struct AMSComboInfo
 {
@@ -194,7 +195,10 @@ ExtruderFullStat build_extruder_full_stat_from_nozzle_stat(const ExtruderNozzleS
                                                            const std::vector<int>   &extruder_max_nozzle_count,
                                                            const std::string        &diameter_str);
 void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, const ExtruderFullStat &full_stat);
+bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config);
 bool per_slot_nozzle_options_consistent(const DynamicPrintConfig &config, const ExtruderNozzleStat &nozzle_stat);
+std::vector<double> derive_nozzle_diameter_from_full_stat(const ExtruderFullStat   &full_stat,
+                                                          const std::vector<double> &fallback);
 
 // Bundle of Print + Filament + Printer presets.
 class PresetBundle
@@ -321,6 +325,25 @@ public:
                                                                                                std::string &      nozzle_temp_max,
                                                                                                std::string &      preset_setting_id);
     Preset *                    get_similar_printer_preset(std::string printer_model, std::string printer_variant);
+    // BBS multi-diameter: printer preset names of the current printer model whose nozzle-diameter variant
+    // matches any diameter selected via "set nozzle diameter" (stored in extruder_full_stat). Returns an
+    // empty list when no multi-diameter selection exists, keeping single-diameter behavior unchanged.
+    std::vector<std::string>    get_extra_compatible_printers_by_full_stat();
+
+    // Multi-diameter grouping restriction: for each loaded filament, the ';'-joined list of nozzle
+    // diameters its preset natively supports (compatible_printers x printer_variant). This uses the
+    // filament preset's own compatible_printers only and never the broadened selectable set.
+    std::vector<std::string>    compute_filament_supported_nozzle_diameters(size_t num_filaments) const;
+    // Returns the configured nozzle diameters supported by the logical filament in this slot.
+    std::vector<std::string>    get_filament_nozzle_diameter_options(size_t filament_index) const;
+    bool                        is_filament_nozzle_diameter_valid(size_t filament_index, const std::string &diameter) const;
+    // Updates the selected diameter and switches to a matching system preset when the current preset cannot serve it.
+    bool                        set_filament_nozzle_diameter(size_t filament_index, const std::string &diameter,
+                                                           std::string *selected_preset_name = nullptr);
+    // Resizes selections and fills missing or invalid values with a deterministic supported default.
+    // Device mappings, when supplied, take precedence and bind a filament to its physical slot diameter.
+    void                        validate_filament_nozzle_diameter_selections(
+                                    const std::map<int, AMSMapInfo> *device_maps = nullptr);
 
     /**
      * \brief Set the ams count for extruder \p index

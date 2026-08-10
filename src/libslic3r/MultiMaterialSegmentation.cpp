@@ -1481,8 +1481,10 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
         float   extrusion_spacing{ 0.f };
     };
     PrintConfig print_config = print_object.print()->config();
-    float default_line_width = float(print_object.config().line_width.value);
-    auto layer_color_stat = [&layers = std::as_const(layers), print_config, default_line_width, &print_object](const size_t layer_idx, const size_t color_idx) -> LayerColorStat {
+    const ConfigOptionFloat default_line_width_opt = print_object.config().line_width;
+    const float preset_nozzle_diameter = float(primary_nozzle_diameter(print_object.print()->full_print_config()));
+    const bool multi_diameter_mode = multi_nozzle_diameter_mode_enabled(print_object.print()->full_print_config());
+    auto layer_color_stat = [&layers = std::as_const(layers), print_config, default_line_width_opt, preset_nozzle_diameter, multi_diameter_mode, &print_object](const size_t layer_idx, const size_t color_idx) -> LayerColorStat {
         LayerColorStat out;
         const Layer &layer = *layers[layer_idx];
         for (const LayerRegion *region : layer.regions())
@@ -1491,8 +1493,12 @@ static inline std::vector<std::vector<ExPolygons>> mmu_segmentation_top_and_bott
                 // As this region may split existing regions, we collect statistics over all regions for color_idx == 0.
                 color_idx == 0 || config.wall_filament == int(color_idx)) {
                 //BBS: the extrusion line width is outer wall rather than inner wall
-                float nozzle_diamter = float(print_config.nozzle_diameter.get_at(config.wall_filament - 1));
-                float outer_wall_line_width = float(config.outer_wall_line_width) == 0.0 ? (default_line_width == 0.0 ? nozzle_diamter : default_line_width) : float(config.outer_wall_line_width.value);
+                float nozzle_diamter = nozzle_diameter_for_filament(print_config, config.wall_filament);
+                float default_line_width = float(Flow::extrusion_width_for_nozzle(
+                    default_line_width_opt, preset_nozzle_diameter, nozzle_diamter, multi_diameter_mode));
+                float outer_wall_line_width_cfg = float(Flow::extrusion_width_for_nozzle(
+                    config.outer_wall_line_width, preset_nozzle_diameter, nozzle_diamter, multi_diameter_mode));
+                float outer_wall_line_width = outer_wall_line_width_cfg == 0.0 ? (default_line_width == 0.0 ? nozzle_diamter : default_line_width) : outer_wall_line_width_cfg;
                 out.extrusion_width     = std::max<float>(out.extrusion_width, outer_wall_line_width);
                 out.top_color_penetration_layers    = std::max<int>(out.top_color_penetration_layers, config.top_color_penetration_layers);
                 out.bottom_color_penetration_layers = std::max<int>(out.bottom_color_penetration_layers, config.bottom_color_penetration_layers);

@@ -9,6 +9,7 @@
 #include "slic3r/GUI/ExtruderPanel.hpp"
 
 class wxBoxSizer;
+class CheckBox;
 
 namespace Slic3r::GUI {
 
@@ -32,6 +33,8 @@ public:
 
     wxString                  GetSelectedDiameter() const;
     std::vector<NozzleConfig> GetExtruderConfigs(int index) const; // 0 = left/single, 1 = right
+    // Project-level multi_nozzle_diameter_mode as left by the user. Off keeps the single-diameter flow.
+    bool                      GetMultiDiameterMode() const;
 
     void on_dpi_changed(const wxRect &suggested_rect) override;
 
@@ -39,6 +42,7 @@ private:
     void create_layout(const wxString &selected_diameter, const std::vector<NozzleConfig> &left_seeds, const std::vector<NozzleConfig> &right_seeds);
     void build_diameter_selector(wxBoxSizer *main_sizer, const wxString &selected_diameter);
     void build_columns(wxBoxSizer *main_sizer, const std::vector<NozzleConfig> &left_seeds, const std::vector<NozzleConfig> &right_seeds);
+    void build_multi_diameter_option(wxBoxSizer *main_sizer);
     void build_warning_panels(wxBoxSizer *main_sizer);
     void build_button_bar(wxBoxSizer *main_sizer);
     void setup_callbacks();
@@ -65,6 +69,8 @@ private:
     NozzleColumn        *m_right_column{nullptr};
     CustomSeparator     *m_separator{nullptr};
     wxStaticBitmap      *m_badge{nullptr}; // machine-wide synced badge (top-right of container)
+
+    CheckBox *m_multi_diameter_check{nullptr}; // project-level multi_nozzle_diameter_mode
 
     wxPanel *m_warning_panel{nullptr};         // mixed-diameter note
     wxPanel *m_warning_serious_panel{nullptr}; // empty-nozzle note

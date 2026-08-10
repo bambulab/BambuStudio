@@ -35,9 +35,8 @@ Flow LayerRegion::bridging_flow(FlowRole role, bool thick_bridge) const
     const PrintObject       &print_object   = *this->layer()->object();
     if (thick_bridge) {
         // The old Slic3r way (different from all other slicers): Use rounded extrusions.
-        // Get the configured nozzle_diameter for the extruder associated to the flow role requested.
-        // Here this->extruder(role) - 1 may underflow to MAX_INT, but then the get_at() will follback to zero'th element, so everything is all right.
-        auto nozzle_diameter = float(print_object.print()->config().nozzle_diameter.get_at(region.extruder(role) - 1));
+        // Get the configured nozzle_diameter for the extruder that this role's filament is grouped to.
+        auto nozzle_diameter = nozzle_diameter_for_filament(print_object.print()->config(), region.extruder(role));
         // Applies default bridge spacing.
         return Flow::bridging_flow(float(sqrt(region_config.bridge_flow)) * nozzle_diameter, nozzle_diameter);
     } else {
@@ -128,14 +127,23 @@ void LayerRegion::auto_circle_compensation(SurfaceCollection& slices, const Auto
     }
 }
 
-void LayerRegion::make_perimeters(const SurfaceCollection &slices, const PerimeterRegions &perimeter_regions, SurfaceCollection *fill_surfaces, ExPolygons *fill_no_overlap, std::vector<LoopNode> &loop_nodes)
+void LayerRegion::make_perimeters(const SurfaceCollection &slices, const PerimeterRegions &perimeter_regions, SurfaceCollection *fill_surfaces, ExPolygons *fill_no_overlap, std::vector<LoopNode> &loop_nodes, double perimeter_layer_height, bool clear_outputs, const ExPolygons *lower_slices_override, bool fill_only)
 {
-    this->perimeters.clear();
-    this->thin_fills.clear();
+    if (clear_outputs && ! fill_only) {
+        this->perimeters.clear();
+        this->thin_fills.clear();
+    }
+
+    ExtrusionEntityCollection discarded_perimeters;
+    ExtrusionEntityCollection discarded_thin_fills;
+    std::vector<LoopNode>     discarded_loop_nodes;
 
     const PrintConfig &      print_config  = this->layer()->object()->print()->config();
     const PrintRegionConfig &region_config = this->region().config();
     const PrintObjectConfig& object_config = this->layer()->object()->config();
+    // BBS multi-diameter: the merged core is printed with a larger effective height; walls and their flow
+    // must use that height so the extrusion volume matches. 0 means "use the physical layer height".
+    const double             wall_layer_height = perimeter_layer_height > 0. ? perimeter_layer_height : this->layer()->height;
     // This needs to be in sync with PrintObject::_slice() slicing_mode_normal_below_layer!
     bool spiral_mode = print_config.spiral_mode &&
         //FIXME account for raft layers.
@@ -145,22 +153,26 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const Perimet
     PerimeterGenerator g(
         // input:
         &slices,
-        this->layer()->height,
-        this->flow(frPerimeter),
+        wall_layer_height,
+        this->flow(frPerimeter, wall_layer_height),
         &region_config,
         &this->layer()->object()->config(),
         &print_config,
+        float(primary_nozzle_diameter(this->layer()->object()->print()->full_print_config())),
+        multi_nozzle_diameter_mode_enabled(this->layer()->object()->print()->full_print_config()),
         spiral_mode,
         // output:
-        &this->perimeters,
-        &this->thin_fills,
+        fill_only ? &discarded_perimeters : &this->perimeters,
+        fill_only ? &discarded_thin_fills : &this->thin_fills,
         fill_surfaces,
         //BBS
         fill_no_overlap,
-        &loop_nodes
+        fill_only ? &discarded_loop_nodes : &loop_nodes
     );
 
-    if (this->layer()->lower_layer != nullptr)
+    if (lower_slices_override != nullptr)
+        g.lower_slices = lower_slices_override;
+    else if (this->layer()->lower_layer != nullptr)
         // Cummulative sum of polygons over all the regions.
         g.lower_slices = &this->layer()->lower_layer->lslices;
     if (this->layer()->upper_layer != NULL)
@@ -168,9 +180,13 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const Perimet
 
     g.layer_id              = (int)this->layer()->id();
     g.slice_z               = this->layer()->slice_z;
-    g.ext_perimeter_flow    = this->flow(frExternalPerimeter);
-    g.overhang_flow         = this->bridging_flow(frPerimeter, object_config.thick_bridges);
-    g.solid_infill_flow     = this->flow(frSolidInfill);
+    g.ext_perimeter_flow    = this->flow(frExternalPerimeter, wall_layer_height);
+    // A merged overhang wall is the only extrusion filling its Z span, so it needs the merged height just
+    // like the regular walls. Keep the original bridge flow for unmerged perimeters.
+    g.overhang_flow         = wall_layer_height > this->layer()->height + EPSILON ?
+        this->flow(frPerimeter, wall_layer_height).with_flow_ratio(region_config.bridge_flow) :
+        this->bridging_flow(frPerimeter, object_config.thick_bridges);
+    g.solid_infill_flow     = this->flow(frSolidInfill, wall_layer_height);
     g.perimeter_regions     = &perimeter_regions;
 
     if (this->layer()->object()->config().wall_generator.value == PerimeterGeneratorType::Arachne && !spiral_mode)

@@ -532,6 +532,33 @@ std::vector<size_t> check_mixed_filament_type_consistency(
     return result;
 }
 
+std::vector<size_t> check_mixed_filament_diameter_consistency(
+    const std::vector<unsigned char> &is_mixed,
+    const std::vector<std::string>   &comp_strs,
+    const std::vector<std::string>   &filament_diameters)
+{
+    std::vector<size_t> result;
+    for (size_t i = 0; i < is_mixed.size(); ++i) {
+        if (!is_mixed[i] || i >= comp_strs.size() || comp_strs[i].empty())
+            continue;
+        const auto components = parse_mixed_components(comp_strs[i]);
+        if (components.size() < 2)
+            continue;
+
+        std::set<std::string> diameters;
+        for (unsigned int component : components) {
+            if (component < 1)
+                continue;
+            const size_t index = size_t(component - 1);
+            if (index < filament_diameters.size())
+                diameters.insert(filament_diameters[index]);
+        }
+        if (diameters.size() > 1)
+            result.push_back(i);
+    }
+    return result;
+}
+
 void expand_mixed_slots_in_unprintables(
     std::vector<std::set<int>>        &unprintables,
     const std::vector<unsigned char>  &is_mixed,
