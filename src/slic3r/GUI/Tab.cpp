@@ -1940,6 +1940,130 @@ static wxString generate_support_param_description(const std::string& key, const
     return wxString::Format("%s: %s%s", label, value_str, unit_str);
 }
 
+static bool is_zero_gap_distance(double distance)
+{
+    return std::abs(distance) <= EPSILON;
+}
+
+static std::string filament_type_of_index(int filament_idx_0based)
+{
+    auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+    auto &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
+    if (filament_idx_0based < 0 || filament_idx_0based >= static_cast<int>(filament_presets.size()))
+        return {};
+    Slic3r::Preset *filament = filaments.find_preset(filament_presets[filament_idx_0based]);
+    if (!filament)
+        return {};
+    auto *type_opt = filament->config.option<ConfigOptionStrings>("filament_type");
+    if (!type_opt || type_opt->values.empty())
+        return {};
+    return type_opt->values[0];
+}
+
+// True when support interface material differs from the model body, or is a dedicated support/soluble filament.
+// Note: do not rely on has_filaments() alone - volumes with default extruder (0) are often omitted there,
+// which would miss common cases like PETG model + PLA interface.
+static bool is_dissimilar_or_support_interface_filament(int interface_filament_id)
+{
+    if (interface_filament_id < 0)
+        return false;
+    if (is_support_filament(interface_filament_id, false) || is_soluble_filament(interface_filament_id))
+        return true;
+
+    const std::string interface_type = filament_type_of_index(interface_filament_id);
+    if (interface_type.empty())
+        return false;
+
+    if (!Slic3r::GUI::wxGetApp().plater())
+        return false;
+
+    for (const ModelObject *mo : Slic3r::GUI::wxGetApp().plater()->model().objects) {
+        if (!mo)
+            continue;
+        for (const ModelVolume *vol : mo->volumes) {
+            if (!vol || !vol->is_model_part())
+                continue;
+            // extruder_id() already falls back to object/default filament (1-based).
+            const int eid = vol->extruder_id();
+            if (eid <= 0)
+                continue;
+            const std::string model_type = filament_type_of_index(eid - 1);
+            if (!model_type.empty() && model_type != interface_type)
+                return true;
+        }
+    }
+    return false;
+}
+
+// Zero-gap support interface that uses a dissimilar / support / soluble material as the contact surface.
+static bool is_zero_gap_dissimilar_support_interface(const DynamicPrintConfig &config)
+{
+    if (!config.has("enable_support") || !config.has("support_top_z_distance") ||
+        !config.has("support_interface_filament") || !config.has("enforce_support_layers"))
+        return false;
+
+    const bool support_enabled =
+        config.opt_bool("enable_support") || config.opt_int("enforce_support_layers") > 0;
+    if (!support_enabled)
+        return false;
+    if (!is_zero_gap_distance(config.opt_float("support_top_z_distance")))
+        return false;
+
+    const int interface_filament_id = config.opt_int("support_interface_filament") - 1;
+    return is_dissimilar_or_support_interface_filament(interface_filament_id);
+}
+
+// When applying a zero-gap support recommendation, also turn off thick bridges to avoid a
+// follow-up Suggestion dialog (paragraph-style dialogs cannot list this key).
+static void append_disable_thick_bridges_if_needed(DynamicPrintConfig &conf, const DynamicPrintConfig &current)
+{
+    if (current.has("thick_bridges") && current.opt_bool("thick_bridges"))
+        conf.set_key_value("thick_bridges", new ConfigOptionBool(false));
+}
+
+static bool should_suggest_disable_thick_bridges(const DynamicPrintConfig &config)
+{
+    return config.has("thick_bridges") && config.opt_bool("thick_bridges") &&
+           is_zero_gap_dissimilar_support_interface(config);
+}
+
+// Show Suggestion dialog recommending thick_bridges = Off. Returns true if the dialog was shown.
+static bool suggest_disable_thick_bridges_if_needed(DynamicPrintConfig *config, ConfigManipulation &config_manipulation)
+{
+    if (!config || !should_suggest_disable_thick_bridges(*config))
+        return false;
+
+    DynamicPrintConfig recommended_conf;
+    recommended_conf.set_key_value("thick_bridges", new ConfigOptionBool(false));
+
+    DynamicPrintConfig filtered_conf;
+    for (const auto &key : recommended_conf.keys()) {
+        const ConfigOption *current_opt = config->option(key);
+        const ConfigOption *new_opt     = recommended_conf.option(key);
+        if (current_opt && new_opt && current_opt->serialize() != new_opt->serialize())
+            filtered_conf.set_key_value(key, new_opt->clone());
+    }
+    if (filtered_conf.empty())
+        return false;
+
+    wxString msg_text = _L("When using support material for the support interface, We recommend the following settings:");
+    msg_text += "\n\n";
+    for (const auto &key : filtered_conf.keys()) {
+        const ConfigOption *opt = filtered_conf.option(key);
+        if (!opt)
+            continue;
+        wxString desc = generate_support_param_description(key, opt);
+        if (!desc.empty())
+            msg_text += "  \u2022 " + desc + "\n";
+    }
+    msg_text += "\n" + _L("Do you want to apply these settings?");
+
+    MessageDialog dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
+    if (dialog.ShowModal() == wxID_YES)
+        config_manipulation.apply(config, &filtered_conf);
+    wxGetApp().plater()->update();
+    return true;
+}
 
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
@@ -2259,6 +2383,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 //new_conf.set_key_value("top_z_overrides_xy_distance", new ConfigOptionBool(true));
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
                 new_conf.set_key_value("support_interface_filament", new ConfigOptionInt(filament_id + 1));
+                // Paragraph dialog cannot list thick_bridges; apply together to avoid a second popup.
+                append_disable_thick_bridges_if_needed(new_conf, *m_config);
                 m_config_manipulation.apply(m_config, &new_conf);
             }
             wxGetApp().plater()->update();
@@ -2399,6 +2525,26 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         if (found_recommendation && (soluble_suggestion || interface_filament_type == "PVA"))
             recommended_conf.set_key_value("support_filament", new ConfigOptionInt(interface_filament_id + 1));
 
+        // Zero-gap support interface + thick bridges: also recommend turning thick bridges off
+        // so it appears in the same Suggestion dialog instead of a second popup.
+        // For soluble_suggestion (paragraph dialog), still record the intent and apply on Yes
+        // via filtered_conf / append helper, then skip the follow-up popup.
+        bool thick_bridges_in_recommendation = false;
+        if (found_recommendation && m_config->has("thick_bridges") && m_config->opt_bool("thick_bridges")) {
+            bool will_be_zero_gap = false;
+            if (const ConfigOptionFloat *top_z_opt =
+                    recommended_conf.option<ConfigOptionFloat>("support_top_z_distance"))
+                will_be_zero_gap = is_zero_gap_distance(top_z_opt->value);
+            else if (m_config->has("support_top_z_distance"))
+                will_be_zero_gap = is_zero_gap_distance(m_config->opt_float("support_top_z_distance"));
+            if (will_be_zero_gap) {
+                if (!soluble_suggestion)
+                    recommended_conf.set_key_value("thick_bridges", new ConfigOptionBool(false));
+                thick_bridges_in_recommendation = true;
+            }
+        }
+
+        bool thick_bridges_handled_in_dialog = false;
         if (found_recommendation && !recommended_conf.empty()) {
             // 过滤掉当前配置已经是推荐值的参数
             DynamicPrintConfig filtered_conf;
@@ -2442,10 +2588,32 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
                 MessageDialog dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
                 if (dialog.ShowModal() == wxID_YES) {
+                    if (soluble_suggestion && thick_bridges_in_recommendation)
+                        append_disable_thick_bridges_if_needed(filtered_conf, *m_config);
                     m_config_manipulation.apply(m_config, &filtered_conf);
+                    // List dialog showed thick_bridges, or soluble Yes applied it silently.
+                    if (thick_bridges_in_recommendation)
+                        thick_bridges_handled_in_dialog = true;
+                } else if (!soluble_suggestion && thick_bridges_in_recommendation) {
+                    // User already declined a list that included thick_bridges: Off.
+                    thick_bridges_handled_in_dialog = true;
                 }
                 wxGetApp().plater()->update();
             }
+        }
+
+        // Standalone thick-bridges suggestion when not already answered/applied above.
+        if (!thick_bridges_handled_in_dialog)
+            suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation);
+    }
+
+    // Suggest disabling thick bridges for zero-gap support-material interface
+    if (opt_key == "thick_bridges" || opt_key == "support_top_z_distance" || opt_key == "enable_support" ||
+        opt_key == "enforce_support_layers" || opt_key == "support_filament") {
+        if (!m_postpone_update_ui) {
+            auto const &applying = m_config_manipulation.applying_keys();
+            if (std::find(applying.begin(), applying.end(), opt_key) == applying.end())
+                suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation);
         }
     }
 
