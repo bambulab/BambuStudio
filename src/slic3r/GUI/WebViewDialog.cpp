@@ -1829,6 +1829,7 @@ bool WebViewPanel::IsAllowedScriptCommand(wxWebViewEvent& evt)
     static const std::set<std::string> kMakerLabAllowed = {
         "homepage_makerlab_open_3mf_binary",
         "homepage_makerlab_stl_download",
+        "common_openurl",  // MakerLab pages use this to open external links (e.g. "Support Creator", "open in browser")
     };
     static const std::set<std::string> kMakerWorldAllowed = {
         "makerworld_model_open",
