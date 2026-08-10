@@ -202,6 +202,12 @@ export function AddEditDialog({
   // outgoing spool is unambiguously single-colour.
   const [colors, setColors] = useState<string[]>([]);
   const [colorType, setColorType] = useState<0 | 1 | 2>(2);
+  // Raw (un-canonicalised) color_code preserving the alpha byte from the
+  // original #RRGGBBAA value. Used only by the preview-bar SpoolColorChip so
+  // single-colour translucent filaments render a tinted checkerboard instead
+  // of a solid fill. NOT used for palette matching, CSS gradient strings, or
+  // any other logic that requires a canonical #RRGGBB form.
+  const [rawColorCode, setRawColorCode] = useState('');
   // STUDIO-17977 F1.3: BBL 官方耗材代码（如 "Q01B00" / "13903"），来自
   // FilamentColorCodeQuery 中匹配的 candidate。仅用于 form 当前会话内的
   // UI 展示（预览栏右侧），**不持久化**到 FilamentSpool / cloud schema：
@@ -325,6 +331,7 @@ export function AddEditDialog({
       setSeries(initSpool.series || '');
       const initialColor = normalizeColorCode(initSpool.color_code);
       setColorCode(initialColor);
+      setRawColorCode(initSpool.color_code || '');
       setCustomColors(initialColor && !isPresetColor(initialColor) ? [initialColor] : []);
       setColorName(initSpool.color_name || '');
       // Restore multicolor / gradient state (W4 added these to the wire
@@ -1715,7 +1722,10 @@ export function AddEditDialog({
     // preview-hex label) gets a canonical value.  Without this, an
     // un-prefixed hex flows into a CSS gradient and silently breaks.
     const sanitizedColor = normalizeColorCode(tray.color);
-    if (sanitizedColor) setColorCode(sanitizedColor);
+    if (sanitizedColor) {
+      setColorCode(sanitizedColor);
+      setRawColorCode(tray.color || '');
+    }
 
     // STUDIO-17977 F1.3: switching AMS slots must also reset the
     // gradient/multicolor pair (cols / ctype on the device side) and clear
@@ -2457,7 +2467,7 @@ export function AddEditDialog({
                       className="inline-flex shrink-0"
                     >
                       <SpoolColorChip
-                        colorCode={colorCode}
+                        colorCode={rawColorCode || colorCode}
                         colors={colors}
                         colorType={colorType as 0 | 1 | 2 | undefined}
                         size={16}
@@ -2657,7 +2667,11 @@ function AmsUnitIcon({ unit, isActive }: { unit: AmsUnit; isActive: boolean }) {
   const trays = unit.trays || [];
   const colors = [0, 1, 2, 3].map((i) => {
     const t = trays[i];
-    return t && t.is_exists && t.color ? t.color : 'rgba(255,255,255,0.1)';
+    // Canonicalise to #RRGGBB: SVG 1.1 fill does not support 8-char #RRGGBBAA
+    // hex — WebView2 would render it as black or transparent.
+    return t && t.is_exists && t.color
+      ? (normalizeColorCode(t.color) || 'rgba(255,255,255,0.1)')
+      : 'rgba(255,255,255,0.1)';
   });
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
