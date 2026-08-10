@@ -2166,7 +2166,7 @@ export function AddEditDialog({
                       </button>
                     </div>
                   </div>
-                  <div className="flex gap-[8px] py-[8px]">
+                  <div className="grid grid-cols-4 gap-[8px] py-[8px]">
                     {currentUnit.trays.map((tray, i) => {
                       const baseLabel = tray.display_index != null
                         ? String(tray.display_index)
