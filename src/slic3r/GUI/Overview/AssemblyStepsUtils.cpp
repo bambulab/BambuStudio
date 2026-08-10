@@ -116,6 +116,44 @@ bool find_volume_by_part_guid(const Model &model, const std::string &part_guid, 
     return false;
 }
 
+// part_guid -> (object_idx, volume_idx). Built once per sync and reused across keyframes.
+using PartGuidIndex = std::unordered_map<std::string, std::pair<int, int>>;
+
+PartGuidIndex build_part_guid_index(const Model &model)
+{
+    PartGuidIndex index;
+    for (int oi = 0; oi < (int) model.objects.size(); ++oi) {
+        const ModelObject *obj = model.objects[oi];
+        if (!obj)
+            continue;
+        for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+            const ModelVolume *mv = obj->volumes[vi];
+            if (!mv || !mv->is_model_part())
+                continue;
+            // Index only existing identities; empty GUID volumes cannot match keyframe guids
+            // until assigned. Avoid ensure_part_guid here so a sync pass does not mutate the model.
+            const std::string &guid = mv->part_guid();
+            if (!guid.empty())
+                index.emplace(guid, std::make_pair(oi, vi));
+        }
+    }
+    return index;
+}
+
+bool find_volume_by_part_guid(const PartGuidIndex &index, const std::string &part_guid, int &out_oi, int &out_vi)
+{
+    out_oi = -1;
+    out_vi = -1;
+    if (part_guid.empty())
+        return false;
+    auto it = index.find(part_guid);
+    if (it == index.end())
+        return false;
+    out_oi = it->second.first;
+    out_vi = it->second.second;
+    return true;
+}
+
 // Resolve old object_idx after prepare-side delete/reorder. Returns -1 when deleted.
 int remap_object_idx_key(int old_idx,
                          const std::unordered_map<int, int> &old_to_new,
@@ -175,7 +213,9 @@ int find_volume_idx_by_name(const ModelObject &obj, const std::string &name)
 // Rebind volume_transformations after a prepare-side volume delete shifts volume_idx
 // inside the same ModelObject. Prefer part_guid; fall back to volume_names.
 // Returns true when any key changed or an entry was dropped.
-bool remap_keyframe_volume_indices(KeyFrame &kf, const Model &model)
+// guid_index: optional O(1) lookup built by the caller (sync_steps_objects_with_model);
+// when null, falls back to a full-model scan per lookup.
+bool remap_keyframe_volume_indices(KeyFrame &kf, const Model &model, const PartGuidIndex *guid_index = nullptr)
 {
     if (kf.volume_transformations.empty())
         return false;
@@ -185,6 +225,12 @@ bool remap_keyframe_volume_indices(KeyFrame &kf, const Model &model)
     std::map<std::pair<int, int>, std::string>               new_vg;
     std::map<std::pair<int, int>, std::pair<int, int>>       vol_key_remap;
     bool changed = false;
+
+    auto resolve_guid = [&](const std::string &guid, int &foi, int &fvi) -> bool {
+        if (guid_index)
+            return find_volume_by_part_guid(*guid_index, guid, foi, fvi);
+        return find_volume_by_part_guid(model, guid, foi, fvi);
+    };
 
     for (auto &p : kf.volume_transformations) {
         const std::pair<int, int> old_key = p.first;
@@ -204,7 +250,7 @@ bool remap_keyframe_volume_indices(KeyFrame &kf, const Model &model)
         int new_vi = -1;
         if (!guid.empty()) {
             int found_oi = -1, found_vi = -1;
-            if (find_volume_by_part_guid(model, guid, found_oi, found_vi)) {
+            if (resolve_guid(guid, found_oi, found_vi)) {
                 new_oi = found_oi;
                 new_vi = found_vi;
             }
@@ -220,10 +266,21 @@ bool remap_keyframe_volume_indices(KeyFrame &kf, const Model &model)
             new_vi = vi;
         }
 
+        // find_* may return an in-range index that still points at a null slot (delete
+        // paths can reset without compacting). Treat that like a deleted volume.
+        if (new_vi >= 0) {
+            if (new_oi < 0 || new_oi >= (int) model.objects.size() || !model.objects[new_oi] ||
+                new_vi >= (int) model.objects[new_oi]->volumes.size() ||
+                !model.objects[new_oi]->volumes[new_vi]) {
+                new_vi = -1;
+            }
+        }
+
         if (new_vi < 0) {
             changed = true; // deleted volume pose dropped
             continue;
         }
+        ModelVolume *resolved_vol = model.objects[new_oi]->volumes[new_vi];
         const std::pair<int, int> new_key{new_oi, new_vi};
         if (new_key != old_key)
             changed = true;
@@ -233,8 +290,8 @@ bool remap_keyframe_volume_indices(KeyFrame &kf, const Model &model)
             new_vn.emplace(new_key, name);
         if (!guid.empty())
             new_vg.emplace(new_key, guid);
-        else if (model.objects[new_oi]->volumes[new_vi])
-            new_vg.emplace(new_key, model.objects[new_oi]->volumes[new_vi]->ensure_part_guid());
+        else
+            new_vg.emplace(new_key, resolved_vol->ensure_part_guid());
     }
 
     if (!changed && new_vt.size() == kf.volume_transformations.size()) {
@@ -254,7 +311,7 @@ bool remap_keyframe_volume_indices(KeyFrame &kf, const Model &model)
     for (auto &lbl : note.part_number_labels) {
         if (!lbl.part_guid.empty()) {
             int foi = -1, fvi = -1;
-            if (find_volume_by_part_guid(model, lbl.part_guid, foi, fvi)) {
+            if (resolve_guid(lbl.part_guid, foi, fvi)) {
                 lbl.object_idx = foi;
                 lbl.volume_idx = fvi;
             } else {
@@ -5556,10 +5613,11 @@ void AssemblyStepsUtils::sync_steps_objects_with_model()
     if (old_to_new.empty() && deleted_obj_idxs.empty()) {
         // Object list unchanged — still rebind volume_idx inside objects when a
         // prepare-side volume delete shifted sibling indices.
+        const PartGuidIndex guid_index = build_part_guid_index(*m_model);
         bool volume_remapped = false;
         for (auto &node : _steps_nodes) {
             for (auto &entry : node.kf_data.entries) {
-                if (remap_keyframe_volume_indices(entry.data, *m_model)) {
+                if (remap_keyframe_volume_indices(entry.data, *m_model, &guid_index)) {
                     entry.need_save = true;
                     volume_remapped = true;
                 }
@@ -5570,6 +5628,7 @@ void AssemblyStepsUtils::sync_steps_objects_with_model()
         return;
     }
 
+    const PartGuidIndex guid_index = build_part_guid_index(*m_model);
     for (auto &node : _steps_nodes) {
         if (node.kf_data.object_idx >= 0) {
             const int ni = remap_object_idx_key(node.kf_data.object_idx, old_to_new, deleted_obj_idxs);
@@ -5577,7 +5636,7 @@ void AssemblyStepsUtils::sync_steps_objects_with_model()
         }
         for (auto &entry : node.kf_data.entries) {
             remap_keyframe_object_indices(entry.data, old_to_new, deleted_obj_idxs);
-            remap_keyframe_volume_indices(entry.data, *m_model);
+            remap_keyframe_volume_indices(entry.data, *m_model, &guid_index);
             entry.need_save = true;
         }
     }
@@ -7542,7 +7601,10 @@ bool AssemblyStepsUtils::is_assembly_tree_item_unassembled(int object_idx, int v
         return false;
 
     auto volume_in_any_step = [&](int vi) -> bool {
-        for (int ni = 0; ni < (int) _steps_nodes.size(); ++ni) {
+        // Match assembly-state column: only live roots, ignore soft-deleted steps.
+        for (int ni : _steps_roots) {
+            if (ni < 0 || ni >= (int) _steps_nodes.size())
+                continue;
             const auto &n = _steps_nodes[ni];
             if (n.type != AssemblyStepsTreeNode::Type::Folder || n.is_final_assembly != AssemblyStepKind::Normal)
                 continue;
@@ -9407,15 +9469,35 @@ uint64_t AssemblyStepsUtils::play_frame_refs_content_stamp() const
     const auto &nodes = tree.nodes;
     const auto &roots = tree.roots;
 
-    // FNV-1a 64-bit over playable timeline inputs.
+    // FNV-1a 64-bit stamp of the playable timeline inputs used by rebuild_play_frame_refs.
+    // Must change when open-3mf / new-project swaps the steps tree without flipping
+    // m_play_frame_refs_dirty (same AssemblyStepsUtils / Model* lifetime).
+    //
+    // Mixed fields (invariants covered):
+    // - nodes.size / roots.size: overall tree cardinality
+    // - root_ord + node_idx (ri): roots list order and which nodes[] slot is a root
+    //   (reordering roots alone must invalidate even if ids match)
+    // - n.id: stable Folder id from next_node_id(), NOT the nodes[] array index
+    // - n.step: user-visible step number (renumber / edit)
+    // - n.name: fold rename without id/step change
+    // - is_final_assembly / type: role of the root card
+    // - entries.size / children.size: keyframe count and child structure
     uint64_t h = 14695981039346656037ull;
     auto mix = [&](uint64_t v) {
         h ^= v;
         h *= 1099511628211ull;
     };
+    auto mix_str = [&](const std::string &s) {
+        mix(static_cast<uint64_t>(s.size()));
+        for (unsigned char c : s)
+            mix(static_cast<uint64_t>(c));
+    };
     mix(static_cast<uint64_t>(nodes.size()));
     mix(static_cast<uint64_t>(roots.size()));
-    for (int ri : roots) {
+    for (size_t root_ord = 0; root_ord < roots.size(); ++root_ord) {
+        const int ri = roots[root_ord];
+        mix(static_cast<uint64_t>(root_ord));
+        mix(static_cast<uint64_t>(static_cast<uint32_t>(ri)));
         if (ri < 0 || ri >= (int) nodes.size()) {
             mix(0xffffffffffffffffull);
             continue;
@@ -9423,10 +9505,10 @@ uint64_t AssemblyStepsUtils::play_frame_refs_content_stamp() const
         const auto &n = nodes[ri];
         mix(static_cast<uint64_t>(n.id));
         mix(static_cast<uint64_t>(n.step));
+        mix_str(n.name);
         mix(static_cast<uint64_t>(n.is_final_assembly));
         mix(static_cast<uint64_t>(n.type));
         mix(static_cast<uint64_t>(n.kf_data.entries.size()));
-        // Include child count so structure-only edits still invalidate.
         mix(static_cast<uint64_t>(n.children.size()));
     }
     return h;

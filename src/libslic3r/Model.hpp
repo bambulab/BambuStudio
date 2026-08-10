@@ -1164,6 +1164,11 @@ public:
     // Assembly-side only: the prepare-side part_guid this volume references. Empty in the prepare model.
     const std::string& assembly_src_guid() const { return m_assembly_src_guid; }
     void               set_assembly_src_guid(const std::string &guid) { m_assembly_src_guid = guid; }
+    // Per-volume printable. On the assembly model this is the sole printable source of truth
+    // (object/instance printable stay true); prepare-side unprintable maps here per part so a
+    // multipart assembly MO can grey only the matching volume.
+    bool printable() const { return m_printable; }
+    void set_printable(bool v) { m_printable = v; }
 protected:
 	friend class Print;
     friend class SLAPrint;
@@ -1203,6 +1208,9 @@ private:
     mutable std::string                 m_part_guid;
     // Assembly-side only: the prepare-side part_guid this volume references. Empty in the prepare model.
     std::string                         m_assembly_src_guid;
+    // Default true. Assembly-side printable is ModelVolume-only; sync writes prepare
+    // object/instance printable here per part and keeps assembly object/instance printable.
+    bool                                m_printable{true};
 
     TextInfo m_text_info;
 
@@ -1277,6 +1285,7 @@ private:
         , mmu_segmentation_facets(other.mmu_segmentation_facets)
         , m_text_info(other.m_text_info), emboss_shape(other.emboss_shape)
         , m_part_guid(other.m_part_guid), m_assembly_src_guid(other.m_assembly_src_guid)
+        , m_printable(other.m_printable)
     {
 		assert(this->id().valid());
         assert(this->config.id().valid());
@@ -1302,7 +1311,8 @@ private:
         name(other.name), source(other.source), m_mesh(new TriangleMesh(std::move(mesh))), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
         m_assemble_transformation(other.m_assemble_transformation),
         m_assemble_initialized(other.m_assemble_initialized),
-        emboss_shape(other.emboss_shape)
+        emboss_shape(other.emboss_shape),
+        m_printable(other.m_printable)
     {
 		assert(this->id().valid());
         assert(this->config.id().valid());
@@ -1353,7 +1363,7 @@ private:
         // BBS: add backup, check modify
         bool mesh_changed = false;
         auto tr = m_transformation;
-        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info, m_assemble_transformation, m_assemble_initialized, m_part_guid, m_assembly_src_guid);
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info, m_assemble_transformation, m_assemble_initialized, m_part_guid, m_assembly_src_guid, m_printable);
         mesh_changed |= !(tr == m_transformation);
         auto t = supported_facets.timestamp();
         cereal::load_by_value(ar, supported_facets);
@@ -1382,7 +1392,7 @@ private:
 	}
 	template<class Archive> void save(Archive &ar) const {
 		bool has_convex_hull = m_convex_hull.get() != nullptr;
-        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info, m_assemble_transformation, m_assemble_initialized, m_part_guid, m_assembly_src_guid);
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info, m_assemble_transformation, m_assemble_initialized, m_part_guid, m_assembly_src_guid, m_printable);
         cereal::save_by_value(ar, supported_facets);
         cereal::save_by_value(ar, fuzzy_skin_facets);
         cereal::save_by_value(ar, seam_facets);

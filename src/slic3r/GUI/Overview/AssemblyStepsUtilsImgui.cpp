@@ -3626,6 +3626,8 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
             const float obj_x = card_max.x - card_pad - step_icon_sz;
             const float del_x = obj_x - step_icon_gap - step_icon_sz;
             const float cpy_x = del_x - step_icon_gap - step_icon_sz;
+            // Popup sits just right of the object-tree icon, top-aligned with it.
+            const ImVec2 obj_tree_anchor(obj_x + step_icon_sz + 8.0f * sc, icon_cy);
 
             auto pick_step_icon = [&](ImTextureID light, ImTextureID dark) -> ImTextureID {
                 return (m_is_dark && dark) ? dark : light;
@@ -3649,9 +3651,9 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                 return clicked && c.node_idx >= 0;
             };
 
-            const bool step_actions_enabled = c.selected && c.node_idx >= 0;
-            m_imgui->disabled_begin(!step_actions_enabled);
-
+            // Click selects this step first (same idea as the empty-card placeholder
+            // operating on "the current step"), then runs the action so the button
+            // always targets the card it sits on — even when that card was not selected.
             // Empty steps have nothing to inherit; keep the icon visible but disabled.
             const bool copy_enabled = !is_empty_structure_step(c.node_idx);
             m_imgui->disabled_begin(!copy_enabled);
@@ -3665,18 +3667,27 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
             m_imgui->disabled_end();
             if (step_icon_button(del_x, pick_step_icon(m_structure_step_delete_icon, m_structure_step_delete_icon_dark),
                                  "delete_", _u8L("Delete current step"))) {
+                select_steps_tree_node_for_canvas(c.node_idx);
                 delete_structure_step(c.node_idx);
             }
             if (step_icon_button(obj_x, pick_step_icon(m_structure_step_object_tree_icon, m_structure_step_object_tree_icon_dark),
                                  "objtree_", _u8L("Add some objects to current step"))) {
-                open_structure_add_tree(static_cast<int>(ci), c.node_idx,
-                                        ImVec2(obj_x + step_icon_sz + 8.0f * sc, icon_cy));
+                select_steps_tree_node_for_canvas(c.node_idx);
+                open_structure_add_tree(static_cast<int>(ci), c.node_idx, obj_tree_anchor);
             }
-            m_imgui->disabled_end();
-            // Deferred auto-open requested right after this step was created.
+            // Deferred auto-open after Add Step: open once the card's live icon
+            // rect is known. Keep re-anchoring while open so scroll-to-node /
+            // content reflow cannot leave the popup stuck at a stale Y (e.g.
+            // still aligned with Step 1 after the new Step 2 card moves).
+            if (c.node_idx >= 0 &&
+                (c.node_idx == m_structure_add_tree_pending_node ||
+                 c.node_idx == m_structure_add_tree_step_node)) {
+                m_structure_add_tree_pos = obj_tree_anchor;
+                if (c.node_idx == m_structure_add_tree_step_node)
+                    m_structure_add_tree_card = static_cast<int>(ci);
+            }
             if (c.node_idx >= 0 && c.node_idx == m_structure_add_tree_pending_node) {
-                open_structure_add_tree(static_cast<int>(ci), c.node_idx,
-                                        ImVec2(obj_x + step_icon_sz + 8.0f * sc, icon_cy));
+                open_structure_add_tree(static_cast<int>(ci), c.node_idx, obj_tree_anchor);
                 m_structure_add_tree_pending_node = -1;
             }
         }
@@ -3983,7 +3994,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                                (ph_min.y + ph_max.y - fs_chip) * 0.5f),
                         col_text_light, c.placeholder_text.c_str());
 
-            if (c.selected && c.node_idx >= 0) {
+            if (c.node_idx >= 0) {
                 ImGui::SetCursorScreenPos(ph_min);
                 const std::string ph_id = std::string("##asp_placeholder_add_") + std::to_string(ci);
                 ImGui::InvisibleButton(ph_id.c_str(), ImVec2(ph_max.x - ph_min.x, ph_max.y - ph_min.y));
@@ -3992,6 +4003,8 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                     render_panel_tooltip(_u8L("Add object to current step"));
                 }*/
                 if (ImGui::IsItemClicked()) {
+                    // Select this step first so "current step" matches the card clicked.
+                    select_steps_tree_node_for_canvas(c.node_idx);
                     open_structure_add_tree(static_cast<int>(ci), c.node_idx, ImVec2(ph_max.x + 8.0f * sc, ph_min.y));
                     suppress_card_click = true;
                 }
@@ -4712,8 +4725,13 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
         std::set<std::pair<int, int>> vols;
     };
     std::vector<FolderStepVols> folder_step_vols;
-    folder_step_vols.reserve(_steps_nodes.size());
-    for (int ni = 0; ni < (int) _steps_nodes.size(); ++ni) {
+    // Only active roots: delete_structure_step soft-deletes by unlinking from
+    // _steps_roots while keeping the node in _steps_nodes; scanning all nodes
+    // would keep stale volume membership after a step is deleted.
+    folder_step_vols.reserve(_steps_roots.size());
+    for (int ni : _steps_roots) {
+        if (ni < 0 || ni >= (int) _steps_nodes.size())
+            continue;
         const auto &n = _steps_nodes[ni];
         if (n.type != AssemblyStepsTreeNode::Type::Folder || n.is_final_assembly != AssemblyStepKind::Normal)
             continue;

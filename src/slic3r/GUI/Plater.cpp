@@ -6851,10 +6851,11 @@ public:
     // or an inconsistent restored state), then drop any assembly object left with no volumes. Pruned
     // volumes / objects are logged by name. Prepare-side split/combine keep GUIDs, so they are never pruned.
     void prune_orphan_assemble_parts();
-    // Pull prepare-side ModelObject / ModelInstance printable flags onto the matching assembly objects
-    // (matched by assembly_src_guid). Re-enter must refresh this: add_object() only copies printable at
-    // first clone time, so a later prepare-side "set unprintable" would otherwise leave assembly parts
-    // still looking printable (and skew the assembly thumbnail filter).
+    // Pull prepare-side ModelObject / ModelInstance printable onto matching assembly ModelVolumes
+    // (matched by assembly_src_guid -> prepare part_guid). On the assembly side, printable is
+    // ModelVolume-only: this never leaves a meaningful assembly ModelObject / ModelInstance
+    // printable (forced true on sync) so a multipart assembly MO can grey individual parts.
+    // Re-enter must refresh this.
     void sync_assemble_printable_from_prepare();
     // Mirror the assembly steps / tree authored on m_assemble_model back onto the prepare model so the
     // existing 3mf export path (which serializes from the prepare model) persists assembly-view edits.
@@ -18022,38 +18023,46 @@ void Plater::priv::sync_assemble_printable_from_prepare()
     if (!m_assemble_model_valid)
         return;
 
-    // part_guid -> prepare ModelObject that owns it.
-    std::unordered_map<std::string, ModelObject *> prepare_obj_by_guid;
-    for (ModelObject *po : model.objects)
-        for (ModelVolume *mv : po->volumes)
-            if (mv->is_model_part() && !mv->part_guid().empty())
-                prepare_obj_by_guid.emplace(mv->part_guid(), po);
+    // Prepare part_guid -> printable of the owning prepare object/instance.
+    // Prepare-side UI still toggles object/instance printable; assembly greys by volume.
+    std::unordered_map<std::string, bool> prepare_printable_by_guid;
+    for (ModelObject *po : model.objects) {
+        if (!po)
+            continue;
+        bool printable = po->printable;
+        for (const ModelInstance *inst : po->instances) {
+            if (inst && !inst->printable) {
+                printable = false;
+                break;
+            }
+        }
+        for (ModelVolume *mv : po->volumes) {
+            if (mv && mv->is_model_part() && !mv->part_guid().empty())
+                prepare_printable_by_guid[mv->part_guid()] = printable;
+        }
+    }
 
     for (ModelObject *ao : m_assemble_model.objects) {
-        // Distinct prepare objects referenced by this assembly object's parts.
-        std::set<ModelObject *> sources;
-        for (const ModelVolume *av : ao->volumes) {
-            const std::string &src = av->assembly_src_guid();
-            if (src.empty())
-                continue;
-            auto it = prepare_obj_by_guid.find(src);
-            if (it != prepare_obj_by_guid.end())
-                sources.insert(it->second);
-        }
-        if (sources.empty())
+        if (!ao)
             continue;
-
-        // AND across prepare sources: any unprintable source makes the assembly object unprintable.
-        bool obj_printable  = true;
-        bool inst_printable = true;
-        for (const ModelObject *po : sources) {
-            obj_printable = obj_printable && po->printable;
-            for (const ModelInstance *inst : po->instances)
-                inst_printable = inst_printable && inst->printable;
-        }
-        ao->printable = obj_printable;
+        // Assembly-side printable is ModelVolume-only. Keep object/instance printable true so they
+        // never grey sibling volumes; any older object-level sync residue is cleared here.
+        ao->printable = true;
         for (ModelInstance *inst : ao->instances)
-            inst->printable = inst_printable;
+            if (inst)
+                inst->printable = true;
+
+        for (ModelVolume *av : ao->volumes) {
+            if (!av || !av->is_model_part())
+                continue;
+            const std::string &src = av->assembly_src_guid();
+            if (src.empty()) {
+                av->set_printable(true);
+                continue;
+            }
+            auto it = prepare_printable_by_guid.find(src);
+            av->set_printable(it == prepare_printable_by_guid.end() ? true : it->second);
+        }
     }
 }
 
@@ -18124,10 +18133,37 @@ bool Plater::priv::sync_assemble_render_state(bool prepare_to_assemble)
             ModelVolume *from = prepare_to_assemble ? pv : av;
 
             // Filament: compare resolved extruder ids so an object-level assignment on the prepare side is
-            // honored, and write the value into the destination volume config only when it actually differs
-            // (leaves an untouched prepare-side object-level assignment intact).
+            // honored. Assemble→prepare must match prepare ObjectList: a single model_part object stores
+            // filament on ModelObject (and clears part overrides). Count model_parts only — modifiers do
+            // not force the per-volume path. Pure single-volume objects also match 3mf load, which erases
+            // the sole volume's "extruder".
             const int from_extruder = from->extruder_id();
-            if (dst->extruder_id() != from_extruder) {
+            if (!prepare_to_assemble) {
+                ModelObject *dst_obj = dst->get_object();
+                int model_part_count = 0;
+                if (dst_obj != nullptr) {
+                    for (const ModelVolume *mv : dst_obj->volumes)
+                        if (mv && mv->is_model_part() && ++model_part_count > 1)
+                            break;
+                }
+                if (dst_obj != nullptr && model_part_count == 1) {
+                    const ConfigOptionInt *obj_ext =
+                        dynamic_cast<const ConfigOptionInt *>(dst_obj->config.option("extruder"));
+                    const int  obj_extruder     = (obj_ext == nullptr || obj_ext->getInt() == 0) ? 1 : obj_ext->getInt();
+                    const bool vol_has_override = dst->config.has("extruder");
+                    // Normalize even when resolved extruder_id already matches (volume override masking
+                    // a stale object-level value), otherwise save+reload drops the override and restores
+                    // the old object filament.
+                    if (obj_extruder != from_extruder || vol_has_override) {
+                        dst_obj->config.set_key_value("extruder", new ConfigOptionInt(from_extruder));
+                        dst->config.erase("extruder");
+                        changed = true;
+                    }
+                } else if (dst->extruder_id() != from_extruder) {
+                    dst->config.set_key_value("extruder", new ConfigOptionInt(from_extruder));
+                    changed = true;
+                }
+            } else if (dst->extruder_id() != from_extruder) {
                 dst->config.set_key_value("extruder", new ConfigOptionInt(from_extruder));
                 changed = true;
             }

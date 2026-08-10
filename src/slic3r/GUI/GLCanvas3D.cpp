@@ -2145,11 +2145,15 @@ void GLCanvas3D::update_instance_printable_state_for_object(const size_t obj_idx
         ModelInstance* instance = model_object->instances[inst_idx];
 
         for (GLVolume* volume : m_volumes.volumes) {
-            if ((volume->object_idx() == (int)obj_idx) && (volume->instance_idx() == inst_idx))
-                volume->printable = instance->printable;
-                if (!volume->printable) {
+            if ((volume->object_idx() == (int)obj_idx) && (volume->instance_idx() == inst_idx)) {
+                bool vol_printable = true;
+                const int vi = volume->volume_idx();
+                if (vi >= 0 && vi < (int) model_object->volumes.size() && model_object->volumes[vi])
+                    vol_printable = model_object->volumes[vi]->printable();
+                volume->printable = instance->printable && vol_printable;
+                if (!volume->printable)
                     volume->render_color = GLVolume::UNPRINTABLE_COLOR;
-                }
+            }
         }
     }
 }
@@ -3760,8 +3764,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 				ModelVolumeState key(model_volume.id(), model_instance.id());
 				auto it = std::lower_bound(model_volume_state.begin(), model_volume_state.end(), key, model_volume_state_lower);
 				assert(it != model_volume_state.end() && it->geometry_id == key.geometry_id);
-                auto update_printable_state = [this, &model_instance](GLVolume &volume) {
-                    volume.printable = model_instance.printable;
+                auto update_printable_state = [this, &model_instance, &model_volume](GLVolume &volume) {
+                    volume.printable = model_instance.printable && model_volume.printable();
                 };
                 if (it->new_geometry()) {
                     // New volume.

@@ -2859,8 +2859,20 @@ void GLGizmoMeasure::set_distance(bool same_model_object, const Vec3d &displacem
         selection->set_mode(same_model_object ? Selection::Volume : Selection::Instance);
         m_pending_scale ++;
         if (same_model_object == false) {
+            // Apply world displacement to the shared ModelInstance. Every GLVolume of this
+            // object/instance must get the same instance transform: siblings share one
+            // ModelInstance, and do_move() writes instance offset from each GLVolume in
+            // order (last writer wins). Updating only the hit volume leaves siblings stale
+            // and undoes the move when the object has multiple ModelVolumes.
+            const int oi = v->object_idx();
+            const int ii = v->instance_idx();
             auto object_displacement = v->get_instance_transformation().get_matrix_no_offset().inverse() * displacement;
-            v->set_instance_transformation(v->get_instance_transformation().get_matrix() * Geometry::translation_transform(object_displacement));
+            const Transform3d new_inst = v->get_instance_transformation().get_matrix() *
+                                         Geometry::translation_transform(object_displacement);
+            for (GLVolume *vol : m_parent.get_volumes().volumes) {
+                if (vol && vol->object_idx() == oi && vol->instance_idx() == ii)
+                    vol->set_instance_transformation(new_inst);
+            }
         } else {
             Geometry::Transformation tran(v->world_matrix());
             auto                     local_displacement = tran.get_matrix_no_offset().inverse() * displacement;
@@ -2900,7 +2912,16 @@ void GLGizmoMeasure::set_to_parallel(bool same_model_object, bool take_shot, boo
                 auto new_rotation_tran = r_m * v->get_instance_transformation().get_rotation_matrix();
                 Vec3d rotation         = Geometry::extract_euler_angles(new_rotation_tran);
                 v->set_instance_rotation(rotation);
-                selection->rotate(v->object_idx(), v->instance_idx(), v->get_instance_transformation().get_matrix());
+                // Propagate to every GLVolume of this instance (multi-volume objects share one
+                // ModelInstance; do_rotate() last-writer-wins from each GLVolume).
+                const Transform3d new_inst = v->get_instance_transformation().get_matrix();
+                const int         oi       = v->object_idx();
+                const int         ii       = v->instance_idx();
+                for (GLVolume *vol : m_parent.get_volumes().volumes) {
+                    if (vol && vol->object_idx() == oi && vol->instance_idx() == ii)
+                        vol->set_instance_transformation(new_inst);
+                }
+                selection->rotate(oi, ii, new_inst);
             } else {
                 Geometry::Transformation world_tran(v->world_matrix());
                 auto        new_tran         = r_m * world_tran.get_rotation_matrix();
