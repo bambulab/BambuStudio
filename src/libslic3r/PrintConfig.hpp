@@ -1473,6 +1473,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloatsNullable,     outer_wall_acceleration))
     ((ConfigOptionFloatsNullable,     initial_layer_acceleration))
     ((ConfigOptionFloat,              initial_layer_line_width))
+    ((ConfigOptionFloat,              initial_layer_infill_line_width))
     ((ConfigOptionFloat,              initial_layer_print_height))
     ((ConfigOptionFloatsNullable,     initial_layer_speed))
     //BBS
