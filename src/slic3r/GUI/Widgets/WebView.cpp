@@ -855,6 +855,22 @@ void on_webview_evt(wxWebView *webview)
 
 }
 
+#ifdef __WXOSX__
+namespace {
+// Studio pages served from the local bundle (file://, wxfs://, memory://).
+// PrinterWebView / DeviceWebHost create the view with an empty url and load a
+// local file later, so match them by name as well.
+bool IsStudioLocalWebPage(const wxString &url, const wxString &name)
+{
+    wxString u = url;
+    u.MakeLower();
+    if (u.StartsWith("file:") || u.StartsWith("wxfs:") || u.StartsWith("memory:"))
+        return true;
+    return url.empty() && name == "DeivcePage";
+}
+} // namespace
+#endif
+
 wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxString const &name,
                                  Slic3r::GUI::WebViewProtectionMode mode)
 {
@@ -903,6 +919,11 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
     webView->SetUserDataPathOption(user_data_path);
 #elif defined(__WXOSX__)
     wxWebView *webView = new WebViewWebKit;
+    // Local Studio pages need no persistent WebKit storage, so keep them off
+    // the default data store, which a second Studio instance cannot open.
+    // Must run before Create(): the data store is fixed at configuration time.
+    if (IsStudioLocalWebPage(url2, name))
+        webView->SetNonPersistentWebsiteDataStore(true);
 #else
     auto webView = wxWebView::New();
 #endif
