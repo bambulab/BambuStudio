@@ -2549,6 +2549,15 @@ ModelObjectPtrs PartPlate::get_objects_on_this_plate() {
     return objects_ptr;
 }
 
+std::set<int> PartPlate::get_obj_idxs_on_this_plate()
+{
+    std::set<int> obj_idxs;
+    for (auto it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); it++) {
+        obj_idxs.insert(it->first);
+    }
+    return obj_idxs;
+}
+
 ModelInstance* PartPlate::get_instance(int obj_id, int instance_id)
 {
 	if (!contain_instance(obj_id, instance_id))
