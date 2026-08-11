@@ -26,7 +26,19 @@
     "eng_plate_temp_initial_layer": [
         "100"
     ],
+    "fan_cooling_layer_time": [
+        "80"
+    ],
+    "fan_max_speed": [
+        "80"
+    ],
+    "fan_min_speed": [
+        "1"
+    ],
     "filament_change_length": [
+        "4"
+    ],
+    "filament_change_length_nc": [
         "4"
     ],
     "filament_cooling_before_tower": [
@@ -35,7 +47,7 @@
         "10"
     ],
     "filament_flow_ratio": [
-        "1",
+        "0.9555",
         "1",
         "1"
     ],
@@ -44,10 +56,25 @@
         "5",
         "5"
     ],
+    "filament_overhang_2_4_speed": [
+        "35",
+        "50",
+        "50"
+    ],
+    "filament_overhang_3_4_speed": [
+        "35",
+        "30",
+        "30"
+    ],
     "filament_pre_cooling_temperature_nc": [
         "230",
         "230",
         "230"
+    ],
+    "filament_preheat_temperature_delta": [
+        "20",
+        "20",
+        "20"
     ],
     "filament_prime_volume": [
         "30"
@@ -68,9 +95,6 @@
     "first_x_layer_fan_speed": [
         "0"
     ],
-    "filament_change_length_nc": [
-        "4"
-    ],
     "hole_coef_2": [
         "-0.0003"
     ],
@@ -82,11 +106,6 @@
     ],
     "hole_limit_min": [
         "0.167"
-    ],
-    "filament_preheat_temperature_delta": [
-        "20",
-        "20",
-        "20"
     ],
     "include": [
         "fdm_filament_template_direct_dual_e3d"
@@ -100,6 +119,22 @@
         "270",
         "270",
         "270"
+    ],
+    "overhang_fan_speed": [
+        "75"
+    ],
+    "override_process_overhang_speed": [
+        "1",
+        "0",
+        "0"
+    ],
+    "slow_down_layer_time": [
+        "1"
+    ],
+    "slow_down_min_speed": [
+        "35",
+        "10",
+        "10"
     ],
     "temperature_vitrification": [
         "150"
