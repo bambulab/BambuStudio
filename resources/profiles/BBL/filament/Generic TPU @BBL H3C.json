@@ -44,6 +44,15 @@
         "nil",
         "0.4"
     ],
+    "close_optional_fan_first_x_layers": [
+        "1"
+    ],
+    "first_x_layer_optional_fan_speed": [
+        "0"
+    ],
+    "optional_fan_full_speed_layer": [
+        "0"
+    ],
     "include": [
         "fdm_filament_template_direct_dual",
         "fdm_filament_template_h3c"
@@ -63,7 +72,9 @@
         "230",
         "230"
     ],
-    "optional_cooling_fan_speed": {},
+    "optional_cooling_fan_speed": [
+        "75"
+    ],
     "retraction_distances_when_ec": [
         "0",
         "0"
