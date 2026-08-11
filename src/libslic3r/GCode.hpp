@@ -636,6 +636,21 @@ private:
     bool m_enable_label_object;
     std::vector<size_t> m_label_objects_ids;
     std::string _encode_label_ids_to_base64(std::vector<size_t> ids);
+    // Bit i mirrors m_label_objects_ids[i] and stays set while that object still has
+    // something left to print. Broadcast to the firmware through M639 so it can end the
+    // print early once every remaining object has been skipped.
+    uint64_t            m_remaining_objects_bitmap{0};
+    // Set when an object finished on the layer being generated; the next layer emits the
+    // broadcast right after change_layer(), which is guaranteed to sit outside M624/M625.
+    bool                m_pending_remaining_objects_gcode{false};
+    // Maps a layer index to the objects whose last layer it is. Only filled in by-layer mode.
+    std::map<size_t, std::vector<size_t>> m_objects_finished_at_layer;
+    bool        _is_object_skip_early_end_enabled() const;
+    void        _init_remaining_objects_bitmap();
+    std::string _remaining_objects_gcode() const;
+    void        _clear_remaining_object(size_t label_id);
+    void        _mark_objects_finished(size_t layer_idx);
+    void        _precompute_object_last_layers(const std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> &layers_to_print);
     float               m_smooth_coefficient{0.0f};
 
     // 1 << 0: A1 series cannot supprot traditional timelapse when printing by object (cannot turn on timelapse)

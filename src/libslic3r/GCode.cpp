@@ -2537,6 +2537,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_enable_label_object = false;
         m_label_objects_ids.clear();
     }
+    _init_remaining_objects_bitmap();
 
     {
         std::string filament_density_list = "; filament_density: ";
@@ -3110,6 +3111,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.writeln(machine_start_gcode);
     //BBS: mark machine start gcode
     file.write_format(";%s\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::MachineStartGCodeEnd).c_str());
+
+    //BBS: tell the firmware which objects this print starts with, so it can compare against
+    //the user's skip list later on. No M624 has been written yet, so this is outside any object block.
+    if (_is_object_skip_early_end_enabled())
+        file.write(_remaining_objects_gcode());
+
     //BBS: gcode writer doesn't know where the real position of extruder is after inserting custom gcode
     m_writer.set_current_position_clear(false);
     m_start_gcode_filament = GCodeProcessor::get_gcode_last_filament(machine_start_gcode);
@@ -3335,6 +3342,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 std::string ignored_empty_layer_warning;
                 this->process_layers(print, tool_ordering, collect_layers_to_print(*object, &ignored_empty_layer_warning), instance - object->instances().data(), file,
                                      prime_extruder);
+
+                //BBS: this instance is done. Unlike the by-layer path there is no following
+                //change_layer() to flush the pending M625 for us, so flush it here before broadcasting.
+                if (_is_object_skip_early_end_enabled()) {
+                    std::string skip_gcode;
+                    m_writer.add_object_change_labels(skip_gcode);
+                    _clear_remaining_object(instance->model_instance->get_labeled_id());
+                    skip_gcode += _remaining_objects_gcode();
+                    file.write(skip_gcode);
+                }
                 {
                     // save the flush statitics stored in tool ordering by object
                     print.m_statistics_by_extruder_count.stats_by_single_extruder += tool_ordering.get_filament_change_stats(ToolOrdering::FilamentChangeMode::SingleExt);
@@ -3458,6 +3475,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         std::string gcode;
         m_writer.add_object_change_labels(gcode);
         file.write(gcode);
+    }
+
+    //BBS: an all zero list tells the firmware no object can be skipped anymore, which keeps it
+    //from ending the print early once the end gcode is already running. Must stay after the
+    //label flush above so that it never lands inside an M624/M625 block.
+    if (_is_object_skip_early_end_enabled()) {
+        m_remaining_objects_bitmap = 0;
+        file.write(_remaining_objects_gcode());
     }
 
     file.write(m_writer.set_fan(0));
@@ -3720,6 +3745,9 @@ void GCode::process_layers(
     for (const PrintInstance *instance : print_object_instances_ordering)
         object_label.push_back(instance->model_instance->get_labeled_id());
 
+    if (_is_object_skip_early_end_enabled())
+        _precompute_object_last_layers(layers_to_print);
+
     std::vector<GCode::LayerResult> layers_results;
     layers_results.resize(layers_to_print.size());
 
@@ -3740,6 +3768,10 @@ void GCode::process_layers(
                 print.throw_if_canceled();
                 GCode::LayerResult res = this->process_layer(print, layer.second, layer_tools, &layer == &layers_to_print.back(), &print_object_instances_ordering, tool_ordering.get_most_used_extruder(), size_t(-1));
                 res.gcode_store_pos = layer_to_print_idx - 1;
+                //BBS: this filter is serial_in_order, so the objects finishing on this layer are
+                //cleared before the next layer is generated and broadcasts the updated list.
+                if (_is_object_skip_early_end_enabled())
+                    _mark_objects_finished(layer_to_print_idx - 1);
                 return std::move(res);
             }
         });
@@ -4811,6 +4843,15 @@ GCode::LayerResult GCode::process_layer(
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
     update_layer_related_config(m_layer_index);
     update_placeholder_parser_with_variant_params();
+
+    //BBS: broadcast the objects still to be printed after one of them finished on the previous
+    //layer. change_layer() has already flushed the pending M625 and no M624 has been written for
+    //this layer yet, so this lands outside any object block without reordering existing gcode.
+    if (m_pending_remaining_objects_gcode && _is_object_skip_early_end_enabled()) {
+        gcode += _remaining_objects_gcode();
+        m_pending_remaining_objects_gcode = false;
+    }
+
     m_layer = &layer;
     m_object_layer_over_raft = false;
     if (! print.config().layer_change_gcode.value.empty()) {
@@ -7748,6 +7789,81 @@ std::string GCode::_encode_label_ids_to_base64(std::vector<size_t> ids)
         throw Slic3r::LogicError("Label object id error!");
 
     return encodeBase64(bitset);
+}
+
+// Deliberately mirrors the M624/M625 gate: whenever a print labels its objects, the firmware
+// also gets the remaining object list. Every machine reaching this point already receives
+// M624/M625, so broadcasting M639 alongside them exposes nothing new.
+bool GCode::_is_object_skip_early_end_enabled() const
+{
+    return m_enable_label_object;
+}
+
+void GCode::_init_remaining_objects_bitmap()
+{
+    const size_t count = m_label_objects_ids.size();
+    // g_max_label_object is 64 and the gate above uses <=, so a full 64 objects can reach
+    // here. Shifting by 64 would be undefined, hence the explicit branch.
+    m_remaining_objects_bitmap = (count >= 64) ? ~0ull : ((1ull << count) - 1);
+    m_pending_remaining_objects_gcode = false;
+}
+
+// Deliberately bypasses _encode_label_ids_to_base64: it throws on an empty bitset, while the
+// final broadcast has to carry all zeros to tell the firmware nothing is left to skip.
+std::string GCode::_remaining_objects_gcode() const
+{
+    std::string ids;
+    for (size_t i = 0; i < m_label_objects_ids.size(); ++i) {
+        if (m_remaining_objects_bitmap & (1ull << i)) {
+            if (!ids.empty())
+                ids += ",";
+            ids += std::to_string(m_label_objects_ids[i]);
+        }
+    }
+
+    return "; remaining object ids: " + ids + "\n" + "M639 " + encodeBase64(m_remaining_objects_bitmap) + "\n";
+}
+
+// An object counts as present on a layer when it owns either an object layer or a support
+// layer there. Checking for actual extrusions instead would miss objects whose top layer is
+// handed to another extruder, and supports belong to the object anyway: skipping the object
+// skips its supports too.
+void GCode::_precompute_object_last_layers(const std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> &layers_to_print)
+{
+    m_objects_finished_at_layer.clear();
+
+    std::map<const PrintObject *, size_t> last_layer_of_object;
+    for (size_t layer_idx = 0; layer_idx < layers_to_print.size(); ++layer_idx) {
+        for (const LayerToPrint &layer_to_print : layers_to_print[layer_idx].second) {
+            // original_object is filled in for every object on every layer, so it cannot tell
+            // on its own whether this object has anything to print here. It is still the right
+            // handle to use, because object() resolves to the shared source object.
+            if (layer_to_print.original_object != nullptr && (layer_to_print.object_layer != nullptr || layer_to_print.support_layer != nullptr))
+                last_layer_of_object[layer_to_print.original_object] = layer_idx;
+        }
+    }
+
+    for (const auto &object_and_layer : last_layer_of_object)
+        for (const PrintInstance &instance : object_and_layer.first->instances())
+            m_objects_finished_at_layer[object_and_layer.second].push_back(instance.model_instance->get_labeled_id());
+}
+
+void GCode::_clear_remaining_object(size_t label_id)
+{
+    auto pos = std::lower_bound(m_label_objects_ids.begin(), m_label_objects_ids.end(), label_id);
+    if (pos != m_label_objects_ids.end() && *pos == label_id)
+        m_remaining_objects_bitmap &= ~(1ull << (pos - m_label_objects_ids.begin()));
+}
+
+void GCode::_mark_objects_finished(size_t layer_idx)
+{
+    auto it = m_objects_finished_at_layer.find(layer_idx);
+    if (it == m_objects_finished_at_layer.end())
+        return;
+
+    for (size_t label_id : it->second)
+        _clear_remaining_object(label_id);
+    m_pending_remaining_objects_gcode = true;
 }
 
 // This method accepts &point in print coordinates.
