@@ -3458,6 +3458,13 @@ Polygon compacted_wipe_tower_offender_outline(const Polygon &inst_hull, double b
     return grown.empty() ? inst_hull : grown.front();
 }
 
+// Shared user-facing message for every compacted-tower clearance failure. Height-limit and too-close
+// are the same class of layout violation under "No sparse layers", so they share one wording.
+static std::string compacted_wipe_tower_clearance_error()
+{
+    return L("The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\".");
+}
+
 // Convex hull of one print instance in bed coordinates, the same outline both compacted tower checks
 // compare against the tower.
 static Polygon print_instance_hull(const PrintObject &object, const PrintInstance &instance)
@@ -3561,22 +3568,14 @@ StringObjectException Print::compacted_wipe_tower_clearance_valid(const Print &p
             if (object_top <= clearance.allowed_rise + EPSILON)
                 continue;
 
-            const std::string msg =
-                clearance.near_body ?
-                    (boost::format(L("%1% is too close to a compacted prime tower. The toolhead needs %2% mm of horizontal "
-                                     "clearance to descend beside it, and within that distance the object may not rise more "
-                                     "than %3% mm. Turn off \"No sparse layers\", move the prime tower away, or lower the object."))
-                     % object->model_object()->name % (boost::format("%.2f") % clearance.body_clearance).str()
-                     % (boost::format("%.2f") % clearance.allowed_rise).str()).str() :
-                    (boost::format(L("%1% is too tall to be printed together with a compacted prime tower, "
-                                     "which only leaves %2% mm of clearance. Turn off \"No sparse layers\", "
-                                     "move the prime tower away, or lower the object."))
-                     % object->model_object()->name % (boost::format("%.2f") % clearance.allowed_rise).str()).str();
+            // Height-limit and too-close cases share one user-facing message: both mean the layout
+            // violates the "No sparse layers" clearance rule, and the remedies are the same.
+            const std::string msg = compacted_wipe_tower_clearance_error();
             if (exception.string.empty()) {
                 exception.string = msg;
                 exception.object = object->model_object();
             } else {
-                exception.string += "\n" + msg;
+                // Same wording for every offender; keep a single copy and drop the object pointer.
                 exception.object = nullptr;
             }
             const Polygon outline = compacted_wipe_tower_offender_outline(inst_hull, clearance.body_clearance);
@@ -3659,8 +3658,6 @@ void Print::validate_compacted_wipe_tower_clearance() const
     if (zone.empty())
         return;
 
-    auto fmt_mm = [](double v) { return (boost::format("%.2f") % v).str(); };
-
     for (const PrintObject *object : m_objects) {
         const double object_top = unscaled<double>(object->max_z());
         for (const PrintInstance &instance : object->instances()) {
@@ -3672,35 +3669,21 @@ void Print::validate_compacted_wipe_tower_clearance() const
             // collision best. The rise has to be known before the clearance: it is what selects the
             // horizontal tier, the nozzle cone being out of the head body's reach.
             double max_rise = 0.;
-            size_t worst_i  = 0;
             for (size_t i = 0; i < tool_changes.size(); ++i) {
                 if (tool_changes[i].empty() || wipe_tower_layer_is_sparse(tool_changes[i]))
                     continue;
                 // Nothing above the current layer exists yet, so a tall object only counts up to it.
                 const double rise = std::min(object_top, double(tool_changes[i].front().print_z)) - tower_z[i];
-                if (rise > max_rise) {
+                if (rise > max_rise)
                     max_rise = rise;
-                    worst_i  = i;
-                }
             }
 
             const CompactedTowerClearance clearance = compacted_wipe_tower_clearance(m_config, zone, inst_hull, max_rise);
             if (max_rise <= clearance.allowed_rise + EPSILON)
                 continue;
-            const double obstacle_z = std::min(object_top, double(tool_changes[worst_i].front().print_z));
-            if (clearance.near_body)
-                throw Slic3r::SlicingError((boost::format(L("%1% is too close to a compacted prime tower. "
-                                                            "The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, "
-                                                            "and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. "
-                                                            "Turn off \"No sparse layers\", move the prime tower away, or lower the object."))
-                                            % object->model_object()->name % fmt_mm(tower_z[worst_i]) % fmt_mm(obstacle_z) % fmt_mm(clearance.body_clearance)
-                                            % fmt_mm(convex_outline_gap(zone.hull, inst_hull)))
-                                               .str());
-            throw Slic3r::SlicingError((boost::format(L("%1% is too tall to be printed together with a compacted prime tower. "
-                                                        "The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, "
-                                                        "which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."))
-                                        % object->model_object()->name % fmt_mm(tower_z[worst_i]) % fmt_mm(obstacle_z) % fmt_mm(clearance.far_clearance))
-                                           .str());
+            // Same wording as compacted_wipe_tower_clearance_valid(): height-limit and too-close
+            // share one message, since both are layout violations of "No sparse layers".
+            throw Slic3r::SlicingError(compacted_wipe_tower_clearance_error());
         }
     }
 }
