@@ -4821,6 +4821,91 @@ ImVec2 AssemblyStepsUtils::export_button_size(float sc) const
     return ImVec2(btn_w, btn_h);
 }
 
+float AssemblyStepsUtils::calc_assemble_play_bar_top_y(float canvas_h, float sc) const
+{
+    // Mirrors the TOTAL_H / win_y math of render_assemble_play_bar(). Recomputing it is
+    // preferable to reading m_panel_rect_playbar_*: the bar renders after the panels that
+    // must clear it, so that rect is always one frame old and reads zero on the very frame
+    // the bar appears. Keep in sync with render_assemble_play_bar().
+    const float font_px       = ImGui::GetFontSize();
+    const float play_btn_sz   = 24.0f * sc * 1.5f;
+    const float speed_badge_h = std::max(24.0f * sc, font_px + 8.0f * sc);
+    const float circle_d      = std::max(18.0f * sc, font_px + 6.0f * sc);
+    const float dm_arrow_sz   = ImGui::GetFrameHeight();
+    const float top_half      = std::max(std::max(play_btn_sz, speed_badge_h),
+                                         std::max(circle_d, dm_arrow_sz)) * 0.5f;
+    const float total_h  = top_half + std::max(top_half + 4.0f * sc, 21.74f * sc + font_px + 4.0f * sc);
+    const float bottom_y = canvas_h - (has_selected_step_node() ? 30.0f : 95.0f) * sc;
+    return bottom_y - total_h + 15.0f;
+}
+
+float AssemblyStepsUtils::calc_canvas_panel_bottom_limit(float canvas_h, float sc, float panel_x0, float panel_x1) const
+{
+    const float gap   = 8.0f * sc;
+    float       limit = canvas_h - 12.0f * sc;
+
+    // The Assemble Control strip is the baseline the bottom UI rests on, so panels stay
+    // above it even when they sit in a column it does not cover: a panel reaching below
+    // that line reads as running off the canvas. It renders before the assembly panels,
+    // so its rect is already current here.
+    if (m_overlay_rect_assemble_control_max.x > m_overlay_rect_assemble_control_min.x &&
+        m_overlay_rect_assemble_control_max.y > m_overlay_rect_assemble_control_min.y)
+        limit = std::min(limit, m_overlay_rect_assemble_control_min.y - gap);
+
+    // The 3D navigator and the fit-camera toolbar are corner widgets rather than a
+    // baseline, so they only shorten a panel that actually shares their columns. Both
+    // render after the assembly panels and lag one frame, which costs a single frame of
+    // overlap when they appear.
+    auto keep_above_if_overlapping = [&](const ImVec2 &mn, const ImVec2 &mx) {
+        if (mx.x <= mn.x || mx.y <= mn.y)
+            return; // not rendered this frame
+        if (mx.x <= panel_x0 || mn.x >= panel_x1)
+            return; // no horizontal overlap
+        limit = std::min(limit, mn.y - gap);
+    };
+    keep_above_if_overlapping(m_overlay_rect_navigator_min, m_overlay_rect_navigator_max);
+    keep_above_if_overlapping(m_overlay_rect_fit_camera_min, m_overlay_rect_fit_camera_max);
+
+    // The play bar is centered and horizontally overlaps any panel that is not pinned to
+    // an edge, so reserve it whenever it is visible. Visibility mirrors render_main().
+    if (!is_export_mode() && !is_overall_preview_mode())
+        limit = std::min(limit, calc_assemble_play_bar_top_y(canvas_h, sc) - gap);
+
+    // Notifications are rendered after the assembly panels and therefore stay on top of
+    // them, so they need no reservation here.
+    return limit;
+}
+
+float AssemblyStepsUtils::calc_export_button_toolbar_offset(float panel_x, float panel_y, float sc) const
+{
+    const float tb_x0 = m_gizmo_toolbar_rect_min.x;
+    const float tb_y0 = m_gizmo_toolbar_rect_min.y;
+    const float tb_x1 = m_gizmo_toolbar_rect_max.x;
+    const float tb_y1 = m_gizmo_toolbar_rect_max.y;
+    if (tb_x1 <= tb_x0 || tb_y1 <= tb_y0)
+        return 0.f; // toolbar not visible / no rect this frame
+
+    // Export button rect for the "beside the panel" layout used by the standalone
+    // tree list: right edge one gap left of the panel, top aligned with the panel.
+    const ImVec2 bsz = export_button_size(sc);
+    const float  gap = 12.0f * sc;
+    const float  bx1 = panel_x - gap;
+    const float  bx0 = bx1 - bsz.x;
+    const float  by0 = panel_y;
+    const float  by1 = panel_y + bsz.y;
+
+    // Same inflation as get_guide_panel_y_offset() so both react at equal distance.
+    const float margin = 10.0f * sc;
+    const bool  btn_hits = (tb_x0 - margin < bx1) && (tb_x1 + margin > bx0) &&
+                           (tb_y0 - margin < by1) && (tb_y1 + margin > by0);
+    if (!btn_hits)
+        return 0.f;
+
+    // Unlike the guide panel this list has no corner fallback, so drop the whole
+    // pair below the toolbar instead of relocating the button on top of the list.
+    return std::max(0.f, tb_y1 + margin - by0);
+}
+
 float AssemblyStepsUtils::get_guide_panel_y_offset(float guide_x, float guide_y_base, float guide_w, float sc)
 {
     // The top gizmo/main toolbar rect (logical px) is fed from GLCanvas3D.
@@ -5409,9 +5494,9 @@ std::vector<std::pair<int, std::string>> AssemblyStepsUtils::assembly_step_choic
     std::vector<std::pair<int, std::string>> choices;
     for (int node_idx : sorted_step_nodes()) {
         if (node_idx >= 0 && node_idx < (int) _steps_nodes.size()) {
-            if (_steps_nodes[node_idx].is_final_assembly == AssemblyStepKind::FinalAssembly)
-                continue;
-            choices.push_back({node_idx, assembly_step_display_name(_steps_nodes[node_idx])});
+            if (_steps_nodes[node_idx].is_final_assembly == AssemblyStepKind::Normal) {
+                choices.push_back({node_idx, assembly_step_display_name(_steps_nodes[node_idx])});
+            }
         }
     }
     return choices;

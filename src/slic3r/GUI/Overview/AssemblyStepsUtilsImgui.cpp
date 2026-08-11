@@ -3469,6 +3469,44 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         }
     }
 
+    // Right-side read-only Assembly list. Independent of the Structure panel
+    // expand/collapse: collapsing Structure must not hide this list (Overall
+    // Preview / no step selected). Kept as a lambda so the collapsed early-out
+    // and the expanded path share one call site.
+    auto render_standalone_assembly_list = [&]() {
+        if (has_selected_node() || is_render_assembly_tree_ui_open())
+            return;
+        // Base content width (Object-name column). Label/Assemble columns are
+        // added inside render_assembly_tree_ui — compute the final window width
+        // first, then right-align so the panel stays fully on-canvas.
+        const float list_base_w = 310.0f * sc;
+        const bool  list_show_label     = false; // show_checkbox == false
+        const bool  list_show_explosion = false;
+        const bool  list_show_assembly  = true;  // matches render_assembly_tree_ui
+        const float list_w = calc_assembly_tree_window_w(list_base_w, sc, list_show_label, list_show_explosion, list_show_assembly);
+        const float list_x = canvas_w - list_w - 12.0f * sc;
+        // The Export button is drawn to the left of the list and top-aligned with it,
+        // where it can land on the gizmo toolbar. Drop both below the toolbar.
+        const float list_y = panel_y + calc_export_button_toolbar_offset(list_x, panel_y, sc);
+        // Keep clear of whatever bottom overlay actually sits under this column, plus the
+        // assembly-info notification: it pops up in the bottom-right corner right under
+        // this list. It renders after the panels so it stays readable on top, but leave
+        // room so the two do not visually collide. NotificationManager publishes no rect,
+        // so this is a fixed budget sized for the usual two-line notification.
+        const float notification_reserve = 50.0f * sc;
+        const float list_h = std::max(180.0f * sc,
+            calc_canvas_panel_bottom_limit(canvas_h, sc, list_x, list_x + list_w) - list_y - notification_reserve);
+        render_assembly_tree_ui(list_x, list_y, list_base_w, list_h, sc, /*show_checkbox*/ false);
+        // Nothing to export as long as the Overall Preview card is the only one:
+        // the export needs at least one Normal / FinalAssembly step. Keep the
+        // Export button beside the tree so its disabled state and guidance remain
+        // visible. The tree is right-aligned using its final width above; passing
+        // list_x positions the button immediately to its left.
+        render_assembly_guide_export_button(list_x, list_y, sc,
+                                            /*disabled=*/has_only_overall_preview_step_card(),
+                                            /*use_corner_mode=*/false);
+    };
+
     // When collapsed, only the header is visible.
     if (m_structure_panel_collapsed) {
         // Prefer the live ImGui window bounds so play-bar clearance stays correct
@@ -3481,6 +3519,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         imgui.end();
         ImGui::PopStyleVar(3);
         ImGui::PopStyleColor(1);
+        render_standalone_assembly_list();
         return;
     }
 
@@ -4079,8 +4118,15 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         const float tree_w = 310.0f * sc;
         // Height is auto-fit to the content inside render_assembly_tree_ui; pass the
         // remaining on-screen height as the upper clamp so it never runs off canvas.
-        const float tree_h_avail = std::max(180.0f * sc, canvas_h - m_structure_add_tree_pos.y - 12.0f * sc);
-        const float tree_x = panel_x + panel_w + 10.0f * sc;
+        // Clamp against the bottom overlays rather than the raw canvas height: a step
+        // with many items grows the tree until it covers the play bar, which happens
+        // on macOS well before Windows because the larger font inflates both the tree
+        // rows and the play bar itself. Pass the widest possible window so the overlap
+        // test errs towards reserving.
+        const float tree_x     = panel_x + panel_w + 10.0f * sc;
+        const float tree_max_w = calc_assembly_tree_window_w(tree_w, sc, true, true, true);
+        const float tree_h_avail = std::max(180.0f * sc,
+            calc_canvas_panel_bottom_limit(canvas_h, sc, tree_x, tree_x + tree_max_w) - m_structure_add_tree_pos.y);
         render_assembly_tree_ui(tree_x, m_structure_add_tree_pos.y, tree_w, tree_h_avail, sc);
     }
 
@@ -4271,32 +4317,9 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
     ImGui::PopStyleColor(1);
 
     // ---- Standalone assembly tree list (canvas right side) ------------------
-    // A read-only mirror of the assembly tree. It is shown only while no step
-    // card row is selected (has_selected_node() == false) and the editable
-    // add-object popup is closed, so it never overlaps the step-editing list.
-    // Reuses render_assembly_tree_ui() with checkboxes / footer disabled.
-    if (!has_selected_node() && !is_render_assembly_tree_ui_open()) {
-        // Base content width (Object-name column). Label/Assemble columns are
-        // added inside render_assembly_tree_ui — compute the final window width
-        // first, then right-align so the panel stays fully on-canvas.
-        const float list_base_w = 310.0f * sc;
-        const bool  list_show_label     = false; // show_checkbox == false
-        const bool  list_show_explosion = false;
-        const bool  list_show_assembly  = true;  // matches render_assembly_tree_ui
-        const float list_w = calc_assembly_tree_window_w(list_base_w, sc, list_show_label, list_show_explosion, list_show_assembly);
-        const float list_x = canvas_w - list_w - 12.0f * sc;
-        const float list_y = panel_y;
-        const float list_h = std::max(180.0f * sc, canvas_h - list_y - 12.0f * sc);
-        render_assembly_tree_ui(list_x, list_y, list_base_w, list_h, sc, /*show_checkbox*/ false);
-        // Nothing to export as long as the Overall Preview card is the only one:
-        // the export needs at least one Normal / FinalAssembly step. Keep the
-        // Export button beside the tree so its disabled state and guidance remain
-        // visible. The tree is right-aligned using its final width above; passing
-        // list_x positions the button immediately to its left.
-        render_assembly_guide_export_button(list_x, list_y, sc,
-                                            /*disabled=*/has_only_overall_preview_step_card(),
-                                            /*use_corner_mode=*/false);
-    }
+    // A read-only mirror of the assembly tree. Same path as the Structure-collapsed
+    // early-out above so expand/collapse of Structure never hides this list.
+    render_standalone_assembly_list();
 
     if (!m_save_project_tip_text.empty()) {
         if (std::chrono::steady_clock::now() >= m_save_project_tip_until) {
@@ -7819,10 +7842,13 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
                 }
                 if (ImGui::IsItemClicked(0)) {
                     const bool make_open = m_assembly_tree_list_collapsed;
+                    // Toggle every expandable row (model root, STEP groups, multi-volume
+                    // objects). Object-only toggling is a no-op when
+                    // has_only_collapsible_child already hides the sole volume child, and
+                    // it never closes intermediate group nodes in a STEP hierarchy.
                     if (tree)
                         for (const auto &n : tree->nodes)
-                            // Toggle only ModelObject-level nodes (object node = has an object but no
-                            if (n.object_idx >= 0 && n.volume_idx < 0)
+                            if (!n.children.empty())
                                 s_assembly_tree_open_nodes[n.uid] = make_open;
                     m_assembly_tree_list_collapsed = !m_assembly_tree_list_collapsed;
                 }

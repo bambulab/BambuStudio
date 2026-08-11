@@ -1016,6 +1016,15 @@ public://logic
     // relocated corner export button) when they overlap. Also updates
     // m_export_btn_corner_mode based on a precise export-button vs toolbar AABB test.
     float get_guide_panel_y_offset(float guide_x, float guide_y_base, float guide_w, float sc);
+    // Bottom-most y a canvas-anchored side panel spanning [panel_x0, panel_x1] may
+    // extend to. Only bottom overlays that actually share columns with the panel are
+    // reserved, so e.g. the bottom-left 3D navigator does not shorten a right-side panel.
+    float calc_canvas_panel_bottom_limit(float canvas_h, float sc, float panel_x0, float panel_x1) const;
+    // Top edge of the bottom-centered play bar, recomputed from its layout constants.
+    float calc_assemble_play_bar_top_y(float canvas_h, float sc) const;
+    // Downward shift for a right-side panel whose Export button sits to its LEFT and
+    // top-aligned with it, so that button clears the top gizmo toolbar.
+    float calc_export_button_toolbar_offset(float panel_x, float panel_y, float sc) const;
     void  record_keyframe_logic(KeyFrameEntry &entry);
     void  apply_keyframe_to_canvas(const KeyFrame &kf, bool apply_camera_view = true);
     void  play_cur_keyframe_logic();
