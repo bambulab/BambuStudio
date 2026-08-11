@@ -1836,6 +1836,9 @@ bool WebViewPanel::IsAllowedScriptCommand(wxWebViewEvent& evt)
         // Used by the MakerWorld page header (logo, external links). The handler in
         // GUI_App::handle_web_request only launches http/https URLs.
         "common_openurl",
+        // Used by the MakerWorld search page "back to model library" button to
+        // notify the left-menu panel to switch back to the home/online view.
+        "homepage_leftmenu_switch",
     };
 
     // Avoid full JSON parse here — MakerLab STL/3mf payloads can be multi-MB base64.
