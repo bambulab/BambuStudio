@@ -7,6 +7,7 @@
 
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
+#include <wx/translation.h>
 
 namespace Slic3r { namespace GUI {
 
@@ -1068,6 +1069,19 @@ wxString FanControlPopupNew::get_fan_mode_name(int mode_id) const
     return iter != radio_btn_name.end() ? iter->second : wxString::Format(_L("Fan"));;
 }
 
+static wxString translate_air_duct_chamber_text(const std::string& printer_type, const std::string& text)
+{
+    const std::string& text_context = DevPrinterConfigUtil::get_fan_text(printer_type, "text_context");
+    if (!text_context.empty()) {
+        if (wxTranslations* translations = wxTranslations::Get()) {
+            if (const wxString* translated = translations->GetTranslatedString(wxString::FromUTF8(text), wxEmptyString,
+                                                                              wxString::FromUTF8(text_context)))
+                return *translated;
+        }
+    }
+    return _CTX(text, "air_duct");
+}
+
 wxString FanControlPopupNew::get_fan_func_name(int mode, int submode, AIR_FUN func) const
 {
     if (m_obj)
@@ -1080,7 +1094,8 @@ wxString FanControlPopupNew::get_fan_func_name(int mode, int submode, AIR_FUN fu
             L_CONTEXT("Left(Aux)", "air_duct");
             L_CONTEXT("Left(Heating)", "air_duct");
             L_CONTEXT("Chamber", "air_duct");
-            return _CTX(func_text, "air_duct");
+            L_CONTEXT("Chamber", "air_duct_chamber");
+            return translate_air_duct_chamber_text(m_obj->printer_type, func_text);
         }
     }
 

@@ -64,22 +64,21 @@
 			"support_ams_settings_reorder": true,
 			"support_ams_settings_hide_image": true
 		},
-		"fan" : {
-			"0" :
-			{
+		"fan": {
+			"0": {
 				"description": "",
 				"2": "Right(Aux)",
 				"10": "Left(Aux)",
 				"15": "Chamber"
 			},
-			"1" :
-			{
+			"1": {
 				"2": "Right(Heating)",
 				"10": "Left(Aux)",
 				"15": "Chamber"
 			},
 			"AIR_DUCT_COOLING_FILT": "Cooling mode is suitable for printing %s materials.",
-			"AIR_DUCT_COOLING_FILT_PARAM": [ "PLA/PETG/TPU" ]
+			"AIR_DUCT_COOLING_FILT_PARAM": [ "PLA/PETG/TPU" ],
+			"text_context": "air_duct_chamber"
 		},
 		"model_id": "N10",
 		"subseries": ["N10-V2"],
