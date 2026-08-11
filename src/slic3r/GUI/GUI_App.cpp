@@ -4803,7 +4803,9 @@ wxString GUI_App::transition_tridid_legacy(int trid_id, std::optional<int> total
     if (trid_id >= 128 * 4) {
         trid_id -= 128 * 4;
         int id_index = trid_id / 4;
-        return wxString::Format("%s", maping_dict[id_index]);
+        if (maping_dict->size() > id_index) {
+            return wxString::Format("%s", maping_dict[id_index]);
+        };
     }
     else if (trid_id >= 0x80 && trid_id <= 0x87) { // n3s
         const char base = 'A' + (trid_id - 128);
@@ -4819,8 +4821,12 @@ wxString GUI_App::transition_tridid_legacy(int trid_id, std::optional<int> total
     else {
         int id_index = std::clamp((int)ceil(trid_id / 4), 0, 25);
         int id_suffix = trid_id % 4 + 1;
-        return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
+        if (maping_dict->size() > id_index) {
+            return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
+        };
     }
+
+    return "";
 }
 
 wxString GUI_App::transition_tridid_rack(int trid_id, MachineObject* obj) const

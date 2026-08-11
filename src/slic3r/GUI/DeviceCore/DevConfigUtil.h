@@ -139,6 +139,9 @@ public:
     /*bed*/
     static int get_bed_temperature_limit(const std::string &type_str) { return get_value_from_config<int>(type_str, "print", "bed_temperature_limit"); }
 
+    /*nozzle*/
+    static int get_default_nozzle_count(const std::string& type_str);
+
 public:
     template<typename T>
     static T get_value_from_config(const std::string& type_str, const std::string& item)

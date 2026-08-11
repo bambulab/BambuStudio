@@ -379,6 +379,7 @@ public:
     std::map<int, DevAmsSlotId> GetTrayIndexMap();
     int GetTrayIdByAmsSlotId(int ams_id, int slot_id);
     std::string GetTrayNameByTrayId(int tray_id);
+    static std::string GetTrayNameByAmsSlotId(const std::string& dev_id, int ams_id, int slot_id, DevAmsType ams_type);
 
     // extruder
     int  GetExtruderIdByAmsId(const std::string& ams_id) const;

@@ -2,6 +2,11 @@
 #include "libslic3r/Utils.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 
+#include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
+
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -79,9 +84,12 @@ nlohmann::json FilamentSpool::to_json() const
         {"tray_label",      [this]() -> std::string {
             if (ams_id < 0 || slot_id.empty()) return {};
             try {
-                int tray_id = ams_id * 4 + std::stoi(slot_id);
-                return wxGetApp().transition_tridid(tray_id).ToStdString();
-            } catch (...) { return {}; }
+                return DevFilaSystem::GetTrayNameByAmsSlotId(dev_id, ams_id, std::stoi(slot_id), (DevAmsType)ams_type);
+            } catch (...) {
+                return {};
+            }
+
+            return {};
         }()}
     };
 }

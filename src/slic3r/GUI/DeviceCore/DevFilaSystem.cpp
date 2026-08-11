@@ -886,6 +886,42 @@ std::string DevFilaSystem::GetTrayNameByTrayId(int tray_id)
     return tray_name;
 }
 
+
+std::string DevFilaSystem::GetTrayNameByAmsSlotId(const std::string& dev_id, int ams_id, int slot_id, DevAmsType ams_type)
+{
+    if (ams_type == DevAmsType::N3S) {
+        const char base = 'A' + (ams_id - 128);
+        wxString tray_name("HT-");
+        tray_name.append(base);
+        return tray_name.ToStdString();
+    } else if (ams_type == DevAmsType::ZMULTI_A || ams_type == DevAmsType::ZMULTI_B) {
+        return wxString::Format("%d", slot_id + 1).ToStdString();
+    } else if (ams_type == DevAmsType::AMS_LITE_MIXED) {
+        return wxString::Format("Q%d", slot_id + 1).ToStdString();
+    } else if (ams_type == DevAmsType::EXT_SPOOL) {
+        int nozzle_count = DevPrinterConfigUtil::get_default_nozzle_count(DevPrinterConfigUtil::get_printer_type_by_dev_id(dev_id));
+        if (nozzle_count == 1) {
+            return "Ext";
+        } else if (nozzle_count == 2) {
+            if (ams_id == VIRTUAL_TRAY_MAIN_ID) {
+                return "Ext-R";
+            } else {
+                return "Ext-L";
+            }
+        } else if (nozzle_count > 2) {
+            return wxString::Format("Ext-%d", 256 - slot_id).ToStdString();
+        }
+
+        return "Ext";
+    } else {
+        wxString tray_name;
+        const char base = 'A' + ams_id;
+        tray_name.append(base);
+        tray_name.append(std::to_string(slot_id + 1));
+        return tray_name.ToStdString();
+    }
+}
+
 int DevFilaSystem::GetExtruderIdByAmsId(const std::string& ams_id) const
 {
     auto rack_type = GetOwner()->GetNozzleRack()->GetRackType();
