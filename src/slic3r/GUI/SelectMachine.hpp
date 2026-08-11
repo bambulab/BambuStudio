@@ -546,6 +546,8 @@ public:
     void set_default();
     void change_materialitem_tip(bool no_ams_only_ext);
     void reset_and_sync_ams_list();
+    bool is_hotend_rack() const;
+    MaterialItem* create_material_item(wxWindow* parent, wxColour colour_rgb, const wxString& display_type, const std::string& filament_id);
     void clone_thumbnail_data();
     void record_edge_pixels_data();
     wxColour adjust_color_for_render(const wxColour& color);

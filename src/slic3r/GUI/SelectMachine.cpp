@@ -4960,6 +4960,24 @@ void SelectMachineDialog::on_material_item_clicked(MaterialItem* item,
     }
 }
 
+bool SelectMachineDialog::is_hotend_rack() const
+{
+    MachineObject* dev = wxGetApp().getDeviceManager()->get_selected_machine();
+    if (!dev) { return false; }
+    const auto rack_type = dev->GetNozzleRack()->GetRackType();
+    return rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B;
+}
+
+MaterialItem* SelectMachineDialog::create_material_item(wxWindow* parent, wxColour colour_rgb,
+                                                       const wxString& display_type, const std::string& filament_id)
+{
+    if (is_hotend_rack()) {
+        return new MaterialItemHotend(parent, colour_rgb, display_type, filament_id);
+    }
+    return new MaterialItem(parent, colour_rgb, display_type, filament_id);
+}
+
+
 void SelectMachineDialog::reset_and_sync_ams_list()
 {
     // Reset
@@ -4990,20 +5008,10 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 
     auto dev = wxGetApp().getDeviceManager()->get_selected_machine();
     bool has_switcher = dev && dev->GetFilaSwitch()->IsInstalled();
-    auto rack_type = dev ? dev->GetNozzleRack()->GetRackType() : DevNozzleRack::None;
-    bool is_hotend_rack = (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B);
 
     auto filament_color_render_info = wxGetApp().plater()->get_filament_colors_render_info();
     auto filament_color_type_info   = wxGetApp().plater()->get_filament_color_render_type();
 
-    auto create_material_item = [&](wxWindow *parent, wxColour colour_rgb,
-                                     const wxString& display_type, std::string filament_id) -> MaterialItem* {
-        if (is_hotend_rack){
-            return new MaterialItemHotend(parent, colour_rgb, display_type, filament_id);
-        } else {
-            return new MaterialItem(parent, colour_rgb, display_type, filament_id);
-        }
-    };
 
     for (auto i = 0; i < used_filaments.size(); i++) {
         auto          used_filament = used_filaments[i] - 1;
@@ -5037,7 +5045,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             }
         } else {
             item = create_material_item(m_filament_panel, colour_rgb, preset_filament.filament_display_type, preset_filament.filament_id);
-            m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(is_hotend_rack ? 0 : 5));
+            m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(is_hotend_rack() ? 0 : 5));
             sizer_count++;
         }
 
@@ -5097,7 +5105,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 
     if (sizer_count > 0) {
         int cols = 8;
-        if (is_hotend_rack) {
+        if (is_hotend_rack()) {
             const int avail   = FromDIP(637 - 20);   // panel usable width (637 min/max, 10 outer margin each side)
             const int gap     = FromDIP(12);         // hotend HGap (small enough to fit 6 cards per row)
             const int per_col = FromDIP(92) + gap;   // fixed card width + gap
@@ -5105,9 +5113,9 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             cols = std::max(1, std::min((int)sizer_count, cols_fit));
         }
         m_sizer_ams_mapping->SetCols(cols);
-        m_sizer_ams_mapping->SetHGap(FromDIP(is_hotend_rack ? 12 : 7));
+        m_sizer_ams_mapping->SetHGap(FromDIP(is_hotend_rack() ? 12 : 7));
         if (auto* grid_item = m_filament_panel_sizer->GetItem(m_sizer_ams_mapping))
-            grid_item->SetFlag(is_hotend_rack ? wxALL : (wxEXPAND | wxALL));
+            grid_item->SetFlag(is_hotend_rack() ? wxALL : (wxEXPAND | wxALL));
         m_sizer_ams_mapping->Layout();
         m_filament_panel_sizer->Layout();
     }
@@ -5568,6 +5576,7 @@ void SelectMachineDialog::set_default_from_sdcard()
     bool          selected_any      = false;
     MaterialItem *first_enabled     = nullptr;
     int           first_enabled_id  = -1;
+    int sizer_count = 0;
 
     auto filament_color_render_info2 = wxGetApp().plater()->get_filament_colors_render_info();
     auto filament_color_type_info2   = wxGetApp().plater()->get_filament_color_render_type();
@@ -5581,16 +5590,17 @@ void SelectMachineDialog::set_default_from_sdcard()
                 auto nozzle_id = m_filaments_map[fo.id];
 
                 if (nozzle_id == 1) {
-                    item = new MaterialItem(m_filament_left_panel, wxColour(fo.color), fo.get_display_filament_type(), fo.filament_id);
+                    item = create_material_item(m_filament_left_panel, wxColour(fo.color), fo.get_display_filament_type(), fo.filament_id);
                     m_sizer_ams_mapping_left->Add(item, 0, wxALL, FromDIP(5));
                 } else if (nozzle_id == 2) {
-                    item = new MaterialItem(m_filament_right_panel, wxColour(fo.color), fo.get_display_filament_type(), fo.filament_id);
+                    item = create_material_item(m_filament_right_panel, wxColour(fo.color), fo.get_display_filament_type(), fo.filament_id);
                     m_sizer_ams_mapping_right->Add(item, 0, wxALL, FromDIP(5));
                 }
             }
         } else {
-            item = new MaterialItem(m_filament_panel, wxColour(fo.color), fo.get_display_filament_type(), fo.filament_id);
-            m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
+            item = create_material_item(m_filament_panel, wxColour(fo.color), fo.get_display_filament_type(), fo.filament_id);
+            m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(is_hotend_rack() ? 0 : 5));
+            sizer_count++;
         }
 
         if (!item) continue;
@@ -5661,6 +5671,22 @@ void SelectMachineDialog::set_default_from_sdcard()
         m_filaments.push_back(fo);
     }
 
+    if (sizer_count > 0) {
+        int cols = 8;
+        if (is_hotend_rack()) {
+            const int avail    = FromDIP(637 - 20);   // panel usable width (637 min/max, 10 outer margin each side)
+            const int gap      = FromDIP(12);         // hotend HGap (small enough to fit 6 cards per row)
+            const int per_col  = FromDIP(92) + gap;   // fixed card width + gap
+            const int cols_fit = std::max(1, (avail + gap) / per_col);
+            cols = std::max(1, std::min((int)sizer_count, cols_fit));
+        }
+        m_sizer_ams_mapping->SetCols(cols);
+        m_sizer_ams_mapping->SetHGap(FromDIP(is_hotend_rack() ? 12 : 7));
+        if (auto* grid_item = m_filament_panel_sizer->GetItem(m_sizer_ams_mapping))
+            grid_item->SetFlag(is_hotend_rack() ? wxALL : (wxEXPAND | wxALL));
+        m_sizer_ams_mapping->Layout();
+        m_filament_panel_sizer->Layout();
+    }
     m_basic_panel->Layout();
     m_basic_panel->Fit();
 
@@ -6371,9 +6397,9 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
         return "?";
     }
 
-    if (m_print_type != FROM_NORMAL) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": from normal";
-        return wxEmptyString;// there are no slicing data when print from sdcard
+    if (m_print_type == FROM_SDCARD_VIEW && !obj_->GetNozzleRack()->IsSupported()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": from sdcard (no nozzle rack)";
+        return wxEmptyString;
     }
 
     if (use_dynamic_nozzle_map() && !obj_->GetFilaSwitch()->IsInstalled()) {
