@@ -318,9 +318,9 @@ std::string DevAmsTray::get_slot_name(MachineObject* obj) const
         if (ams_type == DevAmsType::N3S) {
             return "HT-" + val_char;
         } else if (ams_type == DevAmsType::ZMULTI_A) {
-            return wxString::Format("%d", slot_id).ToStdString();
+            return wxString::Format("%d", slot_id + 1).ToStdString();
         } else if (ams_type == DevAmsType::ZMULTI_B) {
-            return wxString::Format("%d", slot_id).ToStdString();
+            return wxString::Format("%d", slot_id + 1).ToStdString();
         } else {
             return val_char + wxString::Format("%d", slot_id).ToStdString();
         }
@@ -973,7 +973,7 @@ std::optional<DevFilamentStep> DevFilaSystem::GetCurrentFilamentChangeStep() con
 }
 std::vector<DevFilamentStep> DevFilaSystem::GetCurrentFilamentChangeSteps() const
 {
-    if (m_owner->GetMcTask().IsValid() && m_filament_change_steps_multi.size() > m_owner->GetMcTask().GetSubStep()) {
+    if (m_owner->GetMcTask().IsValid() && m_filament_change_steps_multi.size() > m_owner->GetMcTask().GetSubStep() && m_filament_change_steps_multi.size() > 1) {
         return m_filament_change_steps_multi[m_owner->GetMcTask().GetSubStep()];
     };
 
