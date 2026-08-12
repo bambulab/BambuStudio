@@ -7174,6 +7174,88 @@ void AssemblyStepsUtils::bind_current_selection_volumes(std::vector<std::pair<in
     }
 }
 
+bool AssemblyStepsUtils::reset_assemblies_too_far_from_world_origin(double distance_limit_mm)
+{
+    if (!m_model || distance_limit_mm <= 0.0)
+        return false;
+
+    // Port of the former assemble-view far-from-origin check: any volume whose world
+    // AABB center is at least distance_limit_mm from the world origin is "too far".
+    // Heal by resetting assemble offsets instead of a warning notification — far
+    // poses break zoom / camera matrix math.
+    std::unordered_set<int> far_object_idxs;
+
+    if (m_volumes && !m_volumes->empty()) {
+        for (GLVolume *volume : m_volumes->volumes) {
+            if (volume == nullptr)
+                continue;
+            const int oi = volume->object_idx();
+            if (oi < 0 || oi >= (int) m_model->objects.size())
+                continue;
+            if (volume->transformed_bounding_box().center().norm() >= distance_limit_mm)
+                far_object_idxs.insert(oi);
+        }
+    } else {
+        // Volumes not ready yet: approximate the same world pose from Model
+        // assemble transforms composed with the volume's own mesh transform.
+        for (int oi = 0; oi < (int) m_model->objects.size(); ++oi) {
+            ModelObject *obj = m_model->objects[oi];
+            if (obj == nullptr || obj->instances.empty() || obj->instances[0] == nullptr)
+                continue;
+            const Transform3d inst_m = obj->instances[0]->get_assemble_transformation().get_matrix();
+            for (ModelVolume *mv : obj->volumes) {
+                if (mv == nullptr || !mv->is_model_part())
+                    continue;
+                const Transform3d world =
+                    inst_m * mv->get_assemble_transformation().get_matrix() * mv->get_matrix();
+                if (mv->mesh().transformed_bounding_box(world).center().norm() >= distance_limit_mm) {
+                    far_object_idxs.insert(oi);
+                    break;
+                }
+            }
+        }
+    }
+
+    if (far_object_idxs.empty()) {
+        return false;
+    }
+
+    for (int oi : far_object_idxs) {
+        ModelObject *obj = m_model->objects[oi];
+        if (obj == nullptr)
+            continue;
+        for (ModelInstance *inst : obj->instances) {
+            if (inst == nullptr)
+                continue;
+            Geometry::Transformation trafo = inst->get_assemble_transformation();
+            trafo.set_offset(Vec3d::Zero());
+            inst->set_assemble_transformation(trafo);
+        }
+        for (ModelVolume *mv : obj->volumes) {
+            if (mv == nullptr)
+                continue;
+            Geometry::Transformation trafo = mv->get_assemble_transformation();
+            trafo.set_offset(Vec3d::Zero());
+            mv->set_assemble_transformation(trafo);
+        }
+        // Push the healed Model poses onto the live GLVolumes (no overall-preview gate).
+        if (m_volumes) {
+            apply_instance_transform(oi, get_instance_transform(oi));
+            for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+                if (obj->volumes[vi])
+                    apply_volume_transform(oi, vi, get_volume_transform(oi, vi));
+            }
+        }
+    }
+
+    m_selected_screen_center_dirty_ = true;
+    if (m_selection)
+        m_selection->mark_bounding_boxes_dirty();
+    do_commond_callback("dirty");
+    save_assembly_steps_json_to_model();
+    return true;
+}
+
 void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {
     if (!m_model) { return; }
     // If the previous session left playback paused on the title overlay, exit it.
@@ -7206,6 +7288,9 @@ void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {
                 exit_assembly_steps_editing(); // Avoid choosing a starting frame that doesn't match
             }
         }
+        // Heal far assemble poses before tree / zoom so camera framing cannot use a
+        // broken world AABB (silent reset replaces the old assemble-view warning).
+        reset_assemblies_too_far_from_world_origin();
         const AssemblyTreeData &tree = m_model->get_assembly_tree_data();
         if (tree.empty()){
             update_model_object_tree();

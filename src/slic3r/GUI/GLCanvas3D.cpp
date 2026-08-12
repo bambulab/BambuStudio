@@ -184,11 +184,6 @@ std::string& get_object_clashed_text() {
     return object_clashed_text;
 }
 
-std::string& get_assembly_too_far_text() {
-    static std::string assembly_warning_too_far{};
-    return assembly_warning_too_far;
-}
-
 std::string& get_left_extruder_unprintable_text() {
     static std::string left_unprintable_text;
     return left_unprintable_text;
@@ -1896,40 +1891,6 @@ static bool construct_error_string(ObjectFilamentResults& object_result, std::st
     return false;
 }
 
-static bool construct_assembly_warning_string(std::vector<std::string>& object_result, std::string& error_string)
-{
-    error_string.clear();
-    if (!object_result.size()) {
-        return false;
-    }
-    bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-    double koef = imperial_units ? GizmoObjectManipulation::mm_to_in : 1.0f;
-    float distance_limit = 10000.0f;
-    if (imperial_units) {
-        distance_limit *= koef;
-    }
-    if (imperial_units) {
-        error_string += (boost::format(_utf8(L("Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"))) % distance_limit).str();
-    }
-    else {
-        error_string += (boost::format(_utf8(L("Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"))) % distance_limit).str();
-    }
-    if (!object_result.empty()) {
-        if (imperial_units) {
-            error_string += (boost::format(_utf8(L("Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"))) % distance_limit).str();
-        }
-        else {
-            error_string += (boost::format(_utf8(L("Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"))) % distance_limit).str();
-        }
-        for (const auto& t_name : object_result)
-        {
-            error_string += t_name;
-            error_string += "\n";
-        }
-    }
-    return true;
-}
-
 static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilamentResults& object_result, std::string& left_extruder_unprintable_text, std::string& right_extruder_unprintable_text)
 {
     left_extruder_unprintable_text.clear();
@@ -2394,7 +2355,10 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box(bool limit_to_expand_plate) const
             const auto v_bb     = volume->transformed_bounding_box();
             if (is_limit && !expand_part_plate_list_box.overlap(v_bb))
                 continue;
-            if (v_bb.max_size() > 100000) {//unit::mm more than 100m
+            // Skip absurdly large meshes and objects parked far from the world origin.
+            // Far-but-small AABBs (max_size OK, center.norm huge) still poison zoom /
+            // apply_projection (Camera::calc_tight_frustrum_zs_around → set_distance).
+            if (v_bb.max_size() > 10000 || v_bb.center().norm() >= 10000) {//unit::mm more than 10m
                 continue;
             }
             bb.merge(v_bb);
@@ -4111,53 +4075,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
         }
     }
-    else
-    {
-        bool flag = false;
-        if (!m_volumes.empty()) {
-            std::vector<std::string> object_results;
-            object_results.reserve(10);
-            struct TempVolumeData
-            {
-                BoundingBoxf3 m_aabb;
-                GLVolume* m_p_volume{ nullptr };
-            };
-            std::vector<TempVolumeData> temp_volume_data_list;
-            temp_volume_data_list.reserve(m_volumes.volumes.size());
-            BoundingBoxf3 assembly_bb;
-            for (GLVolume* volume : m_volumes.volumes) {
-                if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes)) {
-                    const auto v_bb = volume->transformed_bounding_box();
-                    assembly_bb.merge(v_bb);
 
-                    TempVolumeData t_volume_data;
-                    t_volume_data.m_aabb = v_bb;
-                    t_volume_data.m_p_volume = volume;
-                    temp_volume_data_list.emplace_back(t_volume_data);
-                }
-            }
-
-            if (assembly_bb.max_size() >= 1e4f) { // 10m
-                for (const auto& t_volume_data : temp_volume_data_list) {
-                    if (!t_volume_data.m_p_volume) {
-                        continue;
-                    }
-                    const auto t_length = t_volume_data.m_aabb.center().norm();
-                    if (t_length >= 1e4f) {
-                        const auto& p_object = (*m_model).objects[t_volume_data.m_p_volume->object_idx()];
-                        if (p_object) {
-                            object_results.emplace_back(p_object->name);
-                        }
-                    }
-                }
-                flag = construct_assembly_warning_string(object_results, get_assembly_too_far_text());
-            }
-        }
-        else {
-            flag = false;
-        }
-        _set_warning_notification(EWarning::AsemblyInvalid, flag);
-    }
 
     refresh_camera_scene_box();
 
@@ -13765,8 +13683,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         SLICING_SERIOUS_WARNING,
         SLICING_ERROR,
         SLICING_LIMIT_ERROR,
-        SLICING_HEIGHT_OUTSIDE,
-        ASSEMBLY_WARNNING
+        SLICING_HEIGHT_OUTSIDE
     };
     std::string gc2_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
     std::string gc2_dep = DevPrinterConfigUtil::get_toolhead_display_name(gc2_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase);
@@ -13958,11 +13875,6 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::PrimeTowerOutside:
         text  = _u8L("The prime tower extends beyond the plate boundary.");
         break;
-    case EWarning::AsemblyInvalid:
-    {
-        error = ErrorType::ASSEMBLY_WARNNING;
-        break;
-    }
     case EWarning::NozzleFilamentIncompatible: {
         text = _u8L(get_nozzle_filament_incompatible_text());
         break;
@@ -14192,15 +14104,6 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         else
             notification_manager.close_slicing_customize_error_notification(NotificationType::BBLSliceMultiExtruderHeightOutside, NotificationLevel::ErrorNotificationLevel);
         break;
-    case ASSEMBLY_WARNNING:
-    {
-        text = get_assembly_too_far_text();
-        if (state)
-            notification_manager.push_assembly_warning_notification(text);
-        else
-            notification_manager.close_assembly_warning_notification(text);
-        break;
-    }
     default:
         break;
     }

@@ -990,6 +990,12 @@ public://logic
     // Fill bound_volumes with the (object_idx, volume_idx) of the currently selected
     void  bind_current_selection_volumes(std::vector<std::pair<int, int>> &bound_volumes) const;
 
+    // Same far-from-origin threshold formerly used by the assemble-view warning (10000 mm / 10 m).
+    // Objects whose world AABB center is at least this far have their ModelInstance /
+    // ModelVolume assemble offsets zeroed (no warning dialog), then GLVolumes are synced
+    // so zoom / camera math cannot blow up. Returns true when anything was rewritten.
+    bool reset_assemblies_too_far_from_world_origin(double distance_limit_mm = 1e4);
+
     void deal_once_when_enter_assembly_view();
 
     // [DIAG] Dump the bound assembly model (m_model == a_model in the assembly view) to the log:

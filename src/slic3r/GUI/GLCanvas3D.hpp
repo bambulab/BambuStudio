@@ -418,7 +418,6 @@ class GLCanvas3D
         PrimeTowerOutside,
         NozzleFilamentIncompatible,
         MixtureFilamentIncompatible,
-        AsemblyInvalid, // for asembly view only
         FlushingVolumeZero,
         FilamentNozzleFlowIncompatible,
         TpuNozzleMultipleFilaments,
