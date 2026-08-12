@@ -1629,8 +1629,8 @@ wxWindow *PreferencesDialog::create_3d_tab()
                                                  _L("Always show shells or not in preview view tab. If you change this value, you should reslice."), 50,
                                                  "show_shells_in_preview");
 
-    auto item_show_heat_soak_area = create_item_checkbox(_L("Show heat-soak area"), scrolled,
-                                                         _L("Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."), 50,
+    auto item_show_heat_soak_area = create_item_checkbox(_L("Show Thermal Preconditioning Area"), scrolled,
+                                                         _L("Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."), 50,
                                                          "show_bed_heat_soak_area");
 
     auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), scrolled,
