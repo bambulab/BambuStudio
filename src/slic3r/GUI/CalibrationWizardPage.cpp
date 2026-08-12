@@ -769,6 +769,9 @@ bool FilamentExtendComboBox::Enable(bool enable)
     m_nozzle_selectable = enable;
     SyncSelectionEnableState();
 
+    if (!enable) SetValue(false);
+    if (m_radioBox)  enable ? m_radioBox->Enable() : m_radioBox->Disable();
+    if (m_checkBox)  m_checkBox->Enable(enable);
     if (m_comboBox)  m_comboBox->Enable(enable);
     if (m_nozzle_combo) {
         m_nozzle_combo->Enable(enable);
