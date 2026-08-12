@@ -627,7 +627,7 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     const float GAP_S1_TO_BAR    = std::max(12.0f * sc, BAR_FONT_PX + 4.0f * sc); // section1 -> progress
     // Ideal track width from Figma; may shrink below when the Assembly Structure
     // panel leaves too little room (high-DPI macOS often hits this).
-    const float PROGRESS_W_IDEAL = 558.0f * sc;
+    const float PROGRESS_W_IDEAL = std::min(558.0f * sc, canvas_w * 0.22f);
     const float PROGRESS_W_MIN   = 180.0f * sc;
     const float BAR_H            = 6.0f * sc;
     // Circle must comfortably hold the step number at BAR_FONT_PX. Figma spec is
@@ -740,8 +740,19 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
         ImGuiWindowFlags_NoBackground);
     // Structure panel is re-created after pause and can steal display order on
-    // some macOS builds; force the play bar above it every frame.
-    ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
+    // some macOS builds, so the bar has to be forced above it. Do that only while the
+    // two actually overlap: an unconditional bring-to-front also lifts the bar above
+    // the notifications, which render after it, and then the bar silently swallows
+    // the clicks on their hyperlinks. win_x is normally pushed clear of the panel by
+    // left_clear, so the overlap only happens when that rect turns out stale or wrong.
+    // The panel renders before this bar, so its rect is current.
+    const bool overlaps_structure_panel =
+        m_panel_rect_structure_max.x > m_panel_rect_structure_min.x &&
+        m_panel_rect_structure_max.y > m_panel_rect_structure_min.y &&
+        win_x < m_panel_rect_structure_max.x && win_x + TOTAL_W > m_panel_rect_structure_min.x &&
+        win_y < m_panel_rect_structure_max.y && win_y + TOTAL_H > m_panel_rect_structure_min.y;
+    if (overlaps_structure_panel)
+        ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
 
     m_panel_rect_playbar_min = ImVec2(win_x, win_y);
     m_panel_rect_playbar_max = ImVec2(win_x + TOTAL_W, win_y + TOTAL_H);

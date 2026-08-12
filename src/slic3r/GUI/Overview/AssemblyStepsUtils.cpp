@@ -4397,6 +4397,10 @@ static HPDF_Font load_unicode_pdf_font(HPDF_Doc pdf)
         {"/System/Library/Fonts/PingFang.ttc",       0},
         {"/System/Library/Fonts/STHeiti Light.ttc",  0},
         {"/System/Library/Fonts/STHeiti Medium.ttc", 0},
+        // Apple is progressively turning the CJK faces above into on-demand font
+        // assets, so on some releases none of them exist on disk. Songti still ships
+        // TrueType outlines under Supplemental.
+        {"/System/Library/Fonts/Supplemental/Songti.ttc", 0},
 #else
         {"/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", 0},
         {"/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",         0},
@@ -4411,6 +4415,9 @@ static HPDF_Font load_unicode_pdf_font(HPDF_Doc pdf)
         "C:\\Windows\\Fonts\\arialuni.ttf",
 #elif defined(__APPLE__)
         "/Library/Fonts/Arial Unicode.ttf",
+        // The entry above is only a compatibility symlink into Supplemental, and that
+        // symlink is not present on every macOS release; try the real file too.
+        "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
 #else
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
 #endif
@@ -4422,27 +4429,38 @@ static HPDF_Font load_unicode_pdf_font(HPDF_Doc pdf)
     // poisons the whole document: every later HPDF call silently becomes a
     // no-op and the PDF is never written. Reset the error after each failed
     // attempt so we can fall back to the next candidate (e.g. Arial Unicode).
-    for (const auto &c : ttc_candidates) {
-        if (!fs::exists(c.path))
-            continue;
-        const char *fname = HPDF_LoadTTFontFromFile2(pdf, c.path, c.index, HPDF_TRUE);
+    auto try_load = [&](const std::string &path, bool is_ttc, HPDF_UINT index) -> HPDF_Font {
+        if (!fs::exists(path))
+            return nullptr;
+        const char *fname = is_ttc ? HPDF_LoadTTFontFromFile2(pdf, path.c_str(), index, HPDF_TRUE)
+                                   : HPDF_LoadTTFontFromFile(pdf, path.c_str(), HPDF_TRUE);
         if (fname) {
-            if (HPDF_Font f = HPDF_GetFont(pdf, fname, "UTF-8"))
+            if (HPDF_Font f = HPDF_GetFont(pdf, fname, "UTF-8")) {
+                BOOST_LOG_TRIVIAL(info) << "assembly steps export: PDF text uses font " << path;
                 return f;
+            }
         }
         HPDF_ResetError(pdf);
-    }
-    for (const char *p : ttf_candidates) {
-        if (!fs::exists(p))
-            continue;
-        const char *fname = HPDF_LoadTTFontFromFile(pdf, p, HPDF_TRUE);
-        if (fname) {
-            if (HPDF_Font f = HPDF_GetFont(pdf, fname, "UTF-8"))
-                return f;
-        }
-        HPDF_ResetError(pdf);
-    }
+        return nullptr;
+    };
 
+    for (const auto &c : ttc_candidates)
+        if (HPDF_Font f = try_load(c.path, true, c.index))
+            return f;
+    for (const char *p : ttf_candidates)
+        if (HPDF_Font f = try_load(p, false, 0))
+            return f;
+
+    // Last resort before the base-14 fallback: the font shipped in resources. Since the
+    // system faces above are turning into on-demand assets, a machine can end up with
+    // none of them on disk, and Helvetica is a single-byte Type1 face that carries no
+    // CJK glyph at all. Label and TextShape already load this same file, so it is always
+    // installed, and it keeps the TrueType outlines libharu can parse.
+    if (HPDF_Font f = try_load(resources_dir() + "/fonts/HarmonyOS_Sans_SC_Regular.ttf", false, 0))
+        return f;
+
+    BOOST_LOG_TRIVIAL(error) << "assembly steps export: no Unicode-capable font available, "
+                                "falling back to Helvetica; non-ASCII text will not render";
     HPDF_ResetError(pdf);
     return HPDF_GetFont(pdf, "Helvetica", nullptr);
 }
@@ -4547,6 +4565,14 @@ bool AssemblyStepsUtils::build_assembly_steps_pdf(const std::string &pdf_filenam
 
     HPDF_SetCompressionMode(pdf, HPDF_COMP_ALL);
     HPDF_Font   font   = load_unicode_pdf_font(pdf);
+    if (!font) {
+        // Drawing with a null font sets an error on the document, and from then on every
+        // HPDF call is a silent no-op, so the export would just produce no file and no
+        // diagnostic. Fail here instead, while the cause is still known.
+        BOOST_LOG_TRIVIAL(error) << "assembly steps export: no PDF font could be loaded";
+        HPDF_Free(pdf);
+        return false;
+    }
     const float margin = 36.0f;
     const float step_title_size = 18.0f;
     const float sub_label_size  = 14.0f;
