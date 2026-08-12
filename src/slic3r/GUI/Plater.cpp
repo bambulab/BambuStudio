@@ -13042,8 +13042,7 @@ void Plater::priv::on_action_open_project(SimpleEvent&)
 void Plater::priv::on_action_slice_plate(SimpleEvent&)
 {
     if (q != nullptr) {
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice plate event\n" ;
-        if (!wxGetApp().check_slice_version_policy()) return;
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice plate event\n";
         //BBS update extruder params and speed table before slicing
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
         auto& print = q->get_partplate_list().get_current_fff_print();
@@ -15522,8 +15521,7 @@ void Plater::priv::on_helio_input_dlg(SimpleEvent &a)
 void Plater::priv::on_action_slice_all(SimpleEvent&)
 {
     if (q != nullptr) {
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice project event\n" ;
-        if (!wxGetApp().check_slice_version_policy()) return;
+        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice project event\n";
         //BBS update extruder params and speed table before slicing
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
         auto& print = q->get_partplate_list().get_current_fff_print();
@@ -17096,7 +17094,7 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
             } dlg(q);
             dlg.Fit();
             if (dlg.ShowModal() == wxID_YES) {
-                if (GUI::wxGetApp().sidebar().sync_extruder_list()) {
+                if (GUI::wxGetApp().sidebar().sync_extruder_list() && wxGetApp().check_slice_version_policy()) {
                     if (is_slice_all)
                         wxPostEvent(q, SimpleEvent(EVT_GLTOOLBAR_SLICE_ALL));
                     else
