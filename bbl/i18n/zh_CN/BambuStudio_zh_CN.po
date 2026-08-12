@@ -3121,6 +3121,10 @@ msgctxt "air_duct"
 msgid "Chamber"
 msgstr "机箱"
 
+msgctxt "air_duct_chamber"
+msgid "Chamber"
+msgstr "腔体"
+
 msgid "Hotend"
 msgstr ""
 
