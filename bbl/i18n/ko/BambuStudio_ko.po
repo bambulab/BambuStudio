@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 18:15+0800\n"
+"POT-Creation-Date: 2026-08-12 18:48+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -8584,7 +8584,7 @@ msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "최적화/향상 버튼을 클릭하여 첫 번째 최적화를 시작하세요."
 
 msgid "Previous Helio action is still stopping; try again shortly"
-msgstr "이전 Helio 작업이 아직 진행 중입니다. 곧 다시 시도하십시오."
+msgstr "이전 Helio 작업이 아직 중단되는 중입니다. 잠시 후 다시 시도하세요."
 
 msgid "Helio Additive"
 msgstr ""
@@ -9225,11 +9225,11 @@ msgstr "항상 셸을 미리 보기로 표시"
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "미리 보기 탭에서 셸을 항상 표시할지 여부를 선택합니다. 이 값을 변경하는 경우 다시 슬라이스해야 합니다."
 
-msgid "Show heat-soak area"
-msgstr ""
+msgid "Show Thermal Preconditioning Area"
+msgstr "예열 영역 표시"
 
-msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
-msgstr ""
+msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
+msgstr "모델이 예열 영역을 벗어나면 경고합니다. 이 기능을 지원하는 프린터에서만 사용할 수 있습니다."
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "스텝 메시 매개변수 설정 대화 상자를 표시합니다."
@@ -9840,7 +9840,7 @@ msgid "Return to modify"
 msgstr "수정으로 돌아가기"
 
 msgid "Only the current sliced plate can be added to the print queue."
-msgstr "현재 슬라이스된 플레이트만 인쇄 대기열에 추가할 수 있습니다."
+msgstr "현재 슬라이스된 플레이트만 출력 대기열에 추가할 수 있습니다."
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "히트 베드의 평탄도를 확인합니다. 수평을 맞추면 압출 높이가 균일해집니다."
@@ -9899,6 +9899,9 @@ msgstr "비정상적인 출력 파일입니다. 다시 슬라이싱 하십시오
 
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "출력 작업이 성공적으로 전송되었으므로 취소해도 출력 작업이 중단되지 않습니다. 이 작업을 종료해야 하는 경우 '장치' 페이지에서 중지하세요."
+
+msgid "Print immediately"
+msgstr "즉시 출력"
 
 msgid "The name length exceeds the limit."
 msgstr "이름 길이가 제한을 초과합니다."
@@ -10312,6 +10315,12 @@ msgstr ""
 msgid "Support interface speed"
 msgstr "지지대 인터페이스 속도"
 
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr "지지대 인터페이스에 지지대 재료를 사용할 경우, 다음 설정을 권장합니다:"
+
+msgid "Do you want to apply these settings?"
+msgstr "이 설정을 적용하시겠습니까?"
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "노즐 교체를 위해 프라임 타워가 필요합니다. 프라임 타워가 없으면 모델에 결함이 있을 수 있습니다. 프라임 타워를 비활성화하시겠습니까?"
 
@@ -10377,12 +10386,6 @@ msgstr "%s 를 사용하여 %s를 지지하는 경우, 다음 설정을 권장�
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "PLA를 지지대로 사용하여 TPU를 출력할 때, 다음 설정을 권장합니다:"
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr "지지대 인터페이스에 지지대 재료를 사용할 경우, 다음 설정을 권장합니다:"
-
-msgid "Do you want to apply these settings?"
-msgstr "이 설정을 적용하시겠습니까?"
 
 msgid ""
 "Layer height is too small.\n"
@@ -12324,7 +12327,7 @@ msgstr "G-코드 파일 열기:"
 
 #, c-format, boost-format
 msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr "인쇄 대기열에 성공적으로 추가되었습니다. %ss 후에 인쇄 대기열 페이지로 자동 이동합니다."
+msgstr "출력 대기열에 성공적으로 추가되었습니다. %ss 후에 출력 대기열 페이지로 자동 이동합니다."
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
@@ -12350,7 +12353,7 @@ msgid "Refreshing printer access code"
 msgstr "프린터 액세스 코드 새로고침 중"
 
 msgid "Adding print job to queue"
-msgstr "인쇄 작업 대기열에 추가 중"
+msgstr "출력 작업 대기열에 추가 중"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "다음 개체의 초기 레이어가 비어 있어 출력할 수 없습니다. 하단을 잘라내거나 지지대를 사용하세요."
@@ -12700,21 +12703,8 @@ msgstr "스커트 및 브림 생성"
 msgid "Generating G-code"
 msgstr "G 코드 생성"
 
-#, boost-format
-msgid "%1% is too close to a compacted prime tower. The toolhead needs %2% mm of horizontal clearance to descend beside it, and within that distance the object may not rise more than %3% mm. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr ""
-
-#, boost-format
-msgid "%1% is too tall to be printed together with a compacted prime tower, which only leaves %2% mm of clearance. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr ""
-
-#, boost-format
-msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr "%1%이(가) 압축된 프라임 타워에 너무 가깝습니다. 노즐이 Z %2% mm에서 타워로 내려가는 동안 개체는 이미 Z %3% mm에 도달했으며, 툴헤드가 옆을 지나가려면 %4% mm의 수평 여유 공간이 필요하지만 %5% mm만 남아 있습니다. \"희소 레이어 없음\"을 끄거나, 프라임 타워를 멀리 옮기거나, 개체를 낮추세요."
-
-#, boost-format
-msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
-msgstr "%1%이(가) 너무 높아 압축된 프라임 타워와 함께 인쇄할 수 없습니다. 노즐이 Z %2% mm에서 타워로 내려가는 동안 개체는 이미 Z %3% mm에 도달했으며, 이는 %4% mm의 여유 공간을 초과합니다. \"희소 레이어 없음\"을 끄거나 개체를 낮추세요."
+msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
+msgstr "모델과 프라임 타워의 상대적 위치가 \"희박 레이어 없음\" 기능의 요구 사항을 충족하지 않습니다. 상대적 위치를 조정하거나, 모델 높이를 낮추거나, \"희박 레이어 없음\" 기능을 끄십시오."
 
 msgid "Failed processing of the filename_format template."
 msgstr "파일 이름 형식 템플릿 처리에 실패했습니다."
@@ -17584,7 +17574,7 @@ msgid "Helio: file upload failed"
 msgstr "Helio: 파일 업로드 실패"
 
 msgid "Please make sure you have the correct API key set in preferences."
-msgstr "설정에서 올바른 API 키가 설정되어 있는지 확인하십시오."
+msgstr "설정에서 올바른 API 키가 설정되어 있는지 확인하세요."
 
 msgid "Helio: GCode created successfully"
 msgstr "Helio: GCode 생성 성공"
@@ -18627,6 +18617,14 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#, boost-format
+#~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+#~ msgstr "%1%이(가) 압축된 프라임 타워에 너무 가깝습니다. 노즐이 Z %2% mm에서 타워로 내려가는 동안 개체는 이미 Z %3% mm에 도달했으며, 툴헤드가 옆을 지나가려면 %4% mm의 수평 여유 공간이 필요하지만 %5% mm만 남아 있습니다. \"희소 레이어 없음\"을 끄거나, 프라임 타워를 멀리 옮기거나, 개체를 낮추세요."
+
+#, boost-format
+#~ msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
+#~ msgstr "%1%이(가) 너무 높아 압축된 프라임 타워와 함께 인쇄할 수 없습니다. 노즐이 Z %2% mm에서 타워로 내려가는 동안 개체는 이미 Z %3% mm에 도달했으며, 이는 %4% mm의 여유 공간을 초과합니다. \"희소 레이어 없음\"을 끄거나 개체를 낮추세요."
 
 #, boost-format
 #~ msgid "Plate %1%"

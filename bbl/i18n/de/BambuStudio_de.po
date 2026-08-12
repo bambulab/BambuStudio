@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 18:15+0800\n"
+"POT-Creation-Date: 2026-08-12 18:48+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9239,11 +9239,11 @@ msgstr "Zeige immer Schalen in der Vorschau"
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Im Vorschau-Tab können Sie festlegen, ob Schalen immer angezeigt werden sollen. Wenn Sie diesen Wert ändern, müssen Sie das Modell erneut slicen."
 
-msgid "Show heat-soak area"
-msgstr ""
+msgid "Show Thermal Preconditioning Area"
+msgstr "Thermischen Vorwärmbereich anzeigen"
 
-msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
-msgstr ""
+msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
+msgstr "Warnen, wenn ein Modell über den thermischen Vorwärmbereich hinausragt. Nur auf Druckern verfügbar, die diese Funktion unterstützen."
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Zeigt den Dialog zur Einstellung der Step-Mesh-Parameter an."
@@ -9914,6 +9914,9 @@ msgstr "Abnormale Daten in der Druckdatei. Bitte slicen Sie erneut"
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "Da der Druckauftrag erfolgreich gesendet wurde, wird er durch die Abbrechung nicht gestoppt. Wenn Sie den Auftrag beenden möchten, halten Sie ihn auf der Seite „Gerät“ an."
 
+msgid "Print immediately"
+msgstr "Sofort drucken"
+
 msgid "The name length exceeds the limit."
 msgstr "Die Namenslänge überschreitet das Limit."
 
@@ -10325,6 +10328,12 @@ msgstr ""
 msgid "Support interface speed"
 msgstr "Geschwindigkeit der Stützstruktur-Schnittstelle"
 
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr "Wenn Stützmaterial für die Stützstruktur-Schnittstelle verwendet wird, empfehlen wir die folgenden Einstellungen:"
+
+msgid "Do you want to apply these settings?"
+msgstr "Möchten Sie diese Einstellungen anwenden?"
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Der Reinigungsturm ist für den Düsenwechsel erforderlich. Ohne Reinigungsturm können Fehler im Modell auftreten. Möchten Sie den Reinigungsturm wirklich deaktivieren?"
 
@@ -10391,12 +10400,6 @@ msgstr "Wenn %s als Support für %s verwendet wird, empfehlen wir folgende Einst
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "Wenn PLA zum Stützen von TPU verwendet wird, empfehlen wir die folgenden Einstellungen:"
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr "Wenn Stützmaterial für die Stützstruktur-Schnittstelle verwendet wird, empfehlen wir die folgenden Einstellungen:"
-
-msgid "Do you want to apply these settings?"
-msgstr "Möchten Sie diese Einstellungen anwenden?"
 
 msgid ""
 "Layer height is too small.\n"
@@ -12717,21 +12720,8 @@ msgstr "Generieren von Schürze und Rand"
 msgid "Generating G-code"
 msgstr "Generiere G-Code"
 
-#, boost-format
-msgid "%1% is too close to a compacted prime tower. The toolhead needs %2% mm of horizontal clearance to descend beside it, and within that distance the object may not rise more than %3% mm. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr ""
-
-#, boost-format
-msgid "%1% is too tall to be printed together with a compacted prime tower, which only leaves %2% mm of clearance. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr ""
-
-#, boost-format
-msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr "%1% ist zu nah an einem verdichteten Primer-Turm. Die Düse senkt sich bei Z %2% mm zum Turm ab, während das Objekt bereits Z %3% mm erreicht und der Werkzeugkopf %4% mm horizontalen Abstand zum Vorbeigleiten benötigt, aber nur noch %5% mm übrig sind. Deaktivieren Sie „Keine spärlichen Schichten“, verschieben Sie den Primer-Turm oder senken Sie das Objekt ab."
-
-#, boost-format
-msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
-msgstr "%1% ist zu hoch, um zusammen mit einem verdichteten Primer-Turm gedruckt zu werden. Die Düse senkt sich bei Z %2% mm zum Turm ab, während das Objekt bereits Z %3% mm erreicht, was den Freiraum von %4% mm überschreitet. Deaktivieren Sie „Keine spärlichen Schichten“ oder senken Sie das Objekt ab."
+msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
+msgstr "Die relative Position des Modells und des Reinigungsturms erfüllt nicht die Anforderungen der Funktion „Keine dünnen Schichten“. Bitte passen Sie deren relative Positionen an, verringern Sie die Modellhöhe oder deaktivieren Sie „Keine dünnen Schichten“."
 
 msgid "Failed processing of the filename_format template."
 msgstr "Verarbeitung der Vorlage filename_format fehlgeschlagen."
@@ -18638,6 +18628,14 @@ msgid ""
 msgstr ""
 "Zuverlässigkeit auf Anhieb\n"
 "Weniger Überwachung, vorhersagbarere Ausgabe. Beispiel: Eine kleine Farm, die PETG-Teile druckt, vermeidet Überraschungen wie \"Ausfall in Stunde 6\" und hält Chargen im Zeitplan."
+
+#, boost-format
+#~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+#~ msgstr "%1% ist zu nah an einem verdichteten Primer-Turm. Die Düse senkt sich bei Z %2% mm zum Turm ab, während das Objekt bereits Z %3% mm erreicht und der Werkzeugkopf %4% mm horizontalen Abstand zum Vorbeigleiten benötigt, aber nur noch %5% mm übrig sind. Deaktivieren Sie „Keine spärlichen Schichten“, verschieben Sie den Primer-Turm oder senken Sie das Objekt ab."
+
+#, boost-format
+#~ msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
+#~ msgstr "%1% ist zu hoch, um zusammen mit einem verdichteten Primer-Turm gedruckt zu werden. Die Düse senkt sich bei Z %2% mm zum Turm ab, während das Objekt bereits Z %3% mm erreicht, was den Freiraum von %4% mm überschreitet. Deaktivieren Sie „Keine spärlichen Schichten“ oder senken Sie das Objekt ab."
 
 #, boost-format
 #~ msgid "Plate %1%"

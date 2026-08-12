@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 18:15+0800\n"
+"POT-Creation-Date: 2026-08-12 18:48+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -9168,10 +9168,10 @@ msgstr "在預覽介面總是顯示透明殼"
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "始終在預覽檢視選項卡中顯示或不顯示殼。如果更改值，您應該重新切片。"
 
-msgid "Show heat-soak area"
+msgid "Show Thermal Preconditioning Area"
 msgstr ""
 
-msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
+msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
 msgstr ""
 
 msgid "Show the step mesh parameter setting dialog."
@@ -9835,6 +9835,9 @@ msgstr "列印檔案資料異常，請重新切片"
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "因列印任務已成功傳送，此次取消操作未能中止本次任務。如需終止任務，請在“裝置頁面”停止列印。"
 
+msgid "Print immediately"
+msgstr ""
+
 msgid "The name length exceeds the limit."
 msgstr "名稱長度超過限制。"
 
@@ -10241,6 +10244,12 @@ msgstr ""
 msgid "Support interface speed"
 msgstr "支撐面"
 
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr "當使用支撐材料作為支撐接觸面時，我們推薦配置以下引數："
+
+msgid "Do you want to apply these settings?"
+msgstr "是否應用這些配置？"
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "切換噴嘴需要擦料塔，否則列印件上可能會有瑕疵。您確定要關閉擦料塔嗎？"
 
@@ -10304,12 +10313,6 @@ msgstr "當使用%s作為支撐料支撐%s時，我們推薦配置以下引數�
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "當使用PLA作為支撐材料支撐TPU時，我們推薦配置以下引數："
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr "當使用支撐材料作為支撐接觸面時，我們推薦配置以下引數："
-
-msgid "Do you want to apply these settings?"
-msgstr "是否應用這些配置？"
 
 msgid ""
 "Layer height is too small.\n"
@@ -12619,20 +12622,7 @@ msgstr "正在生成skirt和brim"
 msgid "Generating G-code"
 msgstr "正在生成G-code"
 
-#, boost-format
-msgid "%1% is too close to a compacted prime tower. The toolhead needs %2% mm of horizontal clearance to descend beside it, and within that distance the object may not rise more than %3% mm. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr ""
-
-#, boost-format
-msgid "%1% is too tall to be printed together with a compacted prime tower, which only leaves %2% mm of clearance. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr ""
-
-#, boost-format
-msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr ""
-
-#, boost-format
-msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
+msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
 msgstr ""
 
 msgid "Failed processing of the filename_format template."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 18:15+0800\n"
+"POT-Creation-Date: 2026-08-12 18:48+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -9229,11 +9229,11 @@ msgstr "Mindig jelenítse meg a héjakat az előnézetben"
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Az előnézeti nézet lapon mindig jelenítse meg a héjakat, vagy ne jelenítse meg őket. Ha ezt az értéket módosítja, újra kell szeletelnie."
 
-msgid "Show heat-soak area"
-msgstr ""
+msgid "Show Thermal Preconditioning Area"
+msgstr "Hő-előkezelési terület megjelenítése"
 
-msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
-msgstr ""
+msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
+msgstr "Figyelmeztessen, ha egy modell túlnyúlik a hő-előkezelési területen. Csak az ezt a funkciót támogató nyomtatókon érhető el."
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "STEP-háló paraméterbeállítási párbeszédpaneljének megjelenítése."
@@ -9905,6 +9905,9 @@ msgstr "Rendellenes nyomtatási fájladatok. Kérjük, szeleteld újra"
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "Mivel a nyomtatási feladat sikeresen elküldésre került, a törlés nem állítja le a nyomtatási feladatot. Ha meg kell szakítanod ezt a feladatot, kérjük állítsd le az 'Eszköz' oldalon."
 
+msgid "Print immediately"
+msgstr "Azonnali nyomtatás"
+
 msgid "The name length exceeds the limit."
 msgstr "A név túl hosszú."
 
@@ -10315,6 +10318,12 @@ msgstr ""
 msgid "Support interface speed"
 msgstr "Támasz érintkezőfelület sebesség"
 
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr "Támaszanyag használata esetén a támaszfelülethez a következő beállításokat javasoljuk:"
+
+msgid "Do you want to apply these settings?"
+msgstr "Szeretnéd alkalmazni ezeket a beállításokat?"
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "A fúvókacsere miatt szükség van a törlőtoronyra. Nélküle előfordulhatnak hibák a nyomtatott tárgyon. Biztos, hogy kikapcsolod a törlőtornyot?"
 
@@ -10380,12 +10389,6 @@ msgstr "Amikor %s-t használsz %s támaszanyagaként, a következő beállítás
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "Ha PLA-t használsz TPU-támaszként, a következő beállításokat javasoljuk:"
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr "Támaszanyag használata esetén a támaszfelülethez a következő beállításokat javasoljuk:"
-
-msgid "Do you want to apply these settings?"
-msgstr "Szeretnéd alkalmazni ezeket a beállításokat?"
 
 msgid ""
 "Layer height is too small.\n"
@@ -12706,21 +12709,8 @@ msgstr "Szoknya & perem generálása"
 msgid "Generating G-code"
 msgstr "G-kód generálása"
 
-#, boost-format
-msgid "%1% is too close to a compacted prime tower. The toolhead needs %2% mm of horizontal clearance to descend beside it, and within that distance the object may not rise more than %3% mm. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr ""
-
-#, boost-format
-msgid "%1% is too tall to be printed together with a compacted prime tower, which only leaves %2% mm of clearance. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr ""
-
-#, boost-format
-msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr "%1% túl közel van egy kompakt prime towerhez. A fúvóka Z %2% mm magasságban ereszkedik le a toronyhoz, miközben az objektum már eléri a Z %3% mm magasságot, és a szerszámfejnek %4% mm vízszintes helyre van szüksége mellette elhaladáshoz, de csak %5% mm maradt. Kapcsolja ki a \"Nincsenek ritka rétegek\" opciót, mozgassa arrébb a prime towert, vagy engedje lejjebb az objektumot."
-
-#, boost-format
-msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
-msgstr "%1% túl magas ahhoz, hogy együtt nyomtassák egy kompakt prime towerrel. A fúvóka Z %2% mm magasságban ereszkedik le a toronyhoz, miközben az objektum már eléri a Z %3% mm magasságot, ami meghaladja a %4% mm hézagot. Kapcsolja ki a \"Nincsenek ritka rétegek\" opciót, vagy engedje lejjebb az objektumot."
+msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
+msgstr "A modell és a törlőtorony relatív pozíciója nem felel meg a „Nincsenek ritka rétegek” funkció követelményeinek. Kérjük, igazítsd ki a relatív pozíciójukat, csökkentsd a modell magasságát, vagy kapcsold ki a „Nincsenek ritka rétegek” funkciót."
 
 msgid "Failed processing of the filename_format template."
 msgstr "Nem sikerült feldolgozni a fájlnév_formátum sablont."
@@ -18630,6 +18620,14 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#, boost-format
+#~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+#~ msgstr "%1% túl közel van egy kompakt prime towerhez. A fúvóka Z %2% mm magasságban ereszkedik le a toronyhoz, miközben az objektum már eléri a Z %3% mm magasságot, és a szerszámfejnek %4% mm vízszintes helyre van szüksége mellette elhaladáshoz, de csak %5% mm maradt. Kapcsolja ki a \"Nincsenek ritka rétegek\" opciót, mozgassa arrébb a prime towert, vagy engedje lejjebb az objektumot."
+
+#, boost-format
+#~ msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
+#~ msgstr "%1% túl magas ahhoz, hogy együtt nyomtassák egy kompakt prime towerrel. A fúvóka Z %2% mm magasságban ereszkedik le a toronyhoz, miközben az objektum már eléri a Z %3% mm magasságot, ami meghaladja a %4% mm hézagot. Kapcsolja ki a \"Nincsenek ritka rétegek\" opciót, vagy engedje lejjebb az objektumot."
 
 #, boost-format
 #~ msgid "Plate %1%"

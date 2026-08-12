@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-10 18:15+0800\n"
+"POT-Creation-Date: 2026-08-12 18:48+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3372,7 +3372,7 @@ msgid "Show explosion state column"
 msgstr "Visa kolumn för explosionsläge"
 
 msgid "Allow modify text note foreground"
-msgstr "Tillåt ändring av textanteckningens förgrund"
+msgstr "Tillåt ändring av förgrund för textanmärkning"
 
 msgid "Allow modify text note background"
 msgstr "Tillåt ändring av bakgrund för textanmärkning"
@@ -3402,10 +3402,10 @@ msgid "Options"
 msgstr "Alternativ"
 
 msgid "Delete all assembly steps"
-msgstr "Ta bort alla monteringssteg"
+msgstr "Radera alla monteringssteg"
 
 msgid "There’s no step to delete"
-msgstr "Det finns inget steg att ta bort"
+msgstr "Det finns inget steg att radera"
 
 msgid "Go to Wiki"
 msgstr "Gå till Wiki"
@@ -8119,7 +8119,7 @@ msgid "Loading file: %s"
 msgstr "Laddar fil: %s"
 
 msgid "The 3mf file has invalid config, load geometry data only"
-msgstr "3mf-filen har ogiltig konfiguration, laddar endast geometri data"
+msgstr "3mf-filen har ogiltig konfiguration, laddar endast geometriska data"
 
 msgid "Load 3mf"
 msgstr "Ladda 3mf"
@@ -8409,7 +8409,7 @@ msgid "Option 3: Enable multi-material optimization"
 msgstr "Alternativ 3: Aktivera flermaterialoptimering"
 
 msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
-msgstr "Klicka på tredjepartsikonen → Aktivera Helio Additive → Markera \"Experimentellt: Aktivera flermaterialstöd\""
+msgstr "Klicka på tredjepartsikonen → Aktivera Helio Additive → Markera \"Experimentell: Aktivera stöd för flera material\""
 
 msgid "Unsupported Materials Detected"
 msgstr "Material som inte stöds har upptäckts"
@@ -8454,7 +8454,7 @@ msgid "Helio could not load complete printer and material data. Matching remains
 msgstr "Helio kunde inte ladda komplett skrivar- och materialdata. Matchning är pausad."
 
 msgid "Helio Data Refresh Failed"
-msgstr "Helio Datainhämtning Misslyckades"
+msgstr "Uppdateringen av Helio-data misslyckades"
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "En Helio simulering eller optimerings uppgift pågår."
@@ -8579,7 +8579,7 @@ msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "Klicka på knappen Optimera/Förbättra för att starta din första optimering."
 
 msgid "Previous Helio action is still stopping; try again shortly"
-msgstr "Föregående Helio-åtgärd pågår fortfarande; försök igen strax"
+msgstr "Tidigare Helio-åtgärd stoppas fortfarande; försök igen inom kort"
 
 msgid "Helio Additive"
 msgstr "Helio Additiv"
@@ -8610,10 +8610,10 @@ msgid "Synchronizing Helio"
 msgstr "Synkroniserar Helio"
 
 msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
-msgstr "Helio kunde inte ladda de stödda skrivar- och materiallistorna. Matchning har pausats så att otillgänglig data inte behandlas som ett otillåtet material."
+msgstr "Helio kunde inte ladda listorna över skrivare och material som stöds. Matchningen har pausats för att otillgängliga data inte ska behandlas som ett material som inte stöds."
 
 msgid "Helio Data Load Failed"
-msgstr "Helio Data-inläsning misslyckades"
+msgstr "Laddningen av Helio-data misslyckades"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Lös berednings felen och publicera igen."
@@ -9216,11 +9216,11 @@ msgstr "Visa alltid skal i förhandsgranskningen"
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Visa alltid skal eller inte i förhandsgranskningsvyn. Om du ändrar det här värdet bör du slicera om."
 
-msgid "Show heat-soak area"
-msgstr ""
+msgid "Show Thermal Preconditioning Area"
+msgstr "Visa termisk förkonditioneringsyta"
 
-msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
-msgstr ""
+msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
+msgstr "Varna om en modell sträcker sig utanför den termiska förkonditioneringsytan. Endast tillgänglig på skrivare som stöder denna funktion."
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Visa dialogrutan för inställning av steg mesh parametrar."
@@ -9831,7 +9831,7 @@ msgid "Return to modify"
 msgstr "Återgå för att ändra"
 
 msgid "Only the current sliced plate can be added to the print queue."
-msgstr "Endast den aktuella skivade plattan kan läggas till i utskriftskön."
+msgstr "Endast den aktuella beredda plattan kan läggas till i utskriftskön."
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Detta kontrollerar värmebäddens planhet. Utjämning gör den extruderade höjden enhetlig."
@@ -9891,6 +9891,9 @@ msgstr "Onormal utskrifts fil data. Vänligen bered igen"
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "Eftersom utskriftsjobbet har skickats framgångsrikt kommer avbrytandet inte stoppa utskriftsjobbet. Om du behöver avsluta det här jobbet, stoppa det på sidan \"Enhet\"."
 
+msgid "Print immediately"
+msgstr "Skriv ut omedelbart"
+
 msgid "The name length exceeds the limit."
 msgstr "Namnlängden överskrider gränsen."
 
@@ -9948,7 +9951,7 @@ msgid "The toolhead and hotend rack are full. Please remove at least one hotend 
 msgstr "Verktygshuvud och hotend ställ är fullt. Ta bort minst en hotend innan utskrift."
 
 msgid "The nozzle type doesn't match. Please re-slice."
-msgstr "Nozzletypen matchar inte. Försök att rendera om."
+msgstr "Nozzlet-ypen matchar inte. Gör om beredning."
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "Filament spårbytaren som är installerad på printern matchar inte berednings filen. Bered om för att undvika problem med utskrifts kvaliteten."
@@ -10013,7 +10016,7 @@ msgid "Click here if you can't connect to the printer"
 msgstr "Klicka här om du inte kan ansluta till printern"
 
 msgid "Slice file"
-msgstr "Rendera fil"
+msgstr "Bered fil"
 
 msgid "The connected printer"
 msgstr "Den anslutna skrivaren"
@@ -10287,8 +10290,8 @@ msgid ""
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
-"När du använder lösligt material för supporten rekommenderar vi följande inställningar:\n"
-"0 topp z-avstånd, 0 botten z-avstånd, 0 gränssnittsavstånd, 0 support/objekt xy-avstånd, sammanflätat rektlinjärt mönster, inaktivera oberoende supportlagerhöjd och använd lösliga material för både supportgränssnitt och supportbas"
+"Vid användning av lösligt material som stöd rekommenderar vi följande inställningar:\n"
+"0 i övre Z-avstånd, 0 i undre Z-avstånd, 0 i gränssnittets avstånd, 0 i XY-avståndet mellan stöd och objekt, ett korsande rätlinjigt mönster, inaktivera oberoende lagerhöjd för stöd och använd lösliga material både för stödets gränssnitt och stödbas"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -10301,6 +10304,12 @@ msgstr ""
 
 msgid "Support interface speed"
 msgstr "Stöd gräns snittets hastighet"
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr "När du använder stödmaterial för stöd gräns snittet rekommenderar vi följande inställningar:"
+
+msgid "Do you want to apply these settings?"
+msgstr "Vill du använda dessa inställningar?"
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Prime tower krävs för nozzle byte. Det kan bli brister på modellen utan prime tower. Är du säker på att du vill inaktivera prime tower?"
@@ -10324,13 +10333,13 @@ msgid ""
 msgstr "Den valda skrivaren har en gräns av bäddens temperatur på %d°C. Om du ställer in en högre bäddens temperatur kan skrivaren skadas."
 
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
-msgstr "Smidig timelapse kräver ett prime tower på varje lager, vilket inte är kompatibelt med \"Inga glesa lager\". \"Inga glesa lager\" har stängts av."
+msgstr "Smidig timelapse kräver ett prime torn på varje lager, vilket inte är kompatibelt med \"Inga glesa lager\". \"Inga glesa lager\" har stängts av."
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Prime tower krävs för Smooth timelapse-läge. Det kan bli fel på modellen utan prime tower. Vill du aktivera prime tower?"
 
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
-msgstr "\"Inga glesa lager\" är inte kompatibelt med smidig timelapse, som kräver ett prime tower på varje lager. Timelapse har bytts till traditionellt läge."
+msgstr "\"Inga glesa lager\" är inte kompatibelt med smidig timelapse, som kräver ett prime torn på varje lager. Timelapse har bytts till traditionellt läge."
 
 msgid "Still print by object?"
 msgstr "Fortfarande utskrift per objekt?"
@@ -10366,12 +10375,6 @@ msgstr "När du använder %s som support %srekommenderar vi följande inställni
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "När du använder PLA som stödmaterial för TPU, rekommenderar vi följande inställningar:"
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr "När du använder stödmaterial för stöd gräns snittet rekommenderar vi följande inställningar:"
-
-msgid "Do you want to apply these settings?"
-msgstr "Vill du använda dessa inställningar?"
 
 msgid ""
 "Layer height is too small.\n"
@@ -12098,7 +12101,7 @@ msgid "Applies Helio's optimized speed/flow/fan strategy."
 msgstr "Tillämpar Helios optimerade hastighet/flöde / fläkt strategi."
 
 msgid "Save the simulated sliced 3MF locally"
-msgstr "Spara den simulerade skivade 3MF lokalt"
+msgstr "Spara den simulerade beredda 3MF lokalt"
 
 msgid "✅ Will Print"
 msgstr "✅ Kommer att skriva ut"
@@ -12318,7 +12321,7 @@ msgstr "Öppna G-kod fil:"
 
 #, c-format, boost-format
 msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr "Framgångsrikt tillagd i utskriftskön. Hoppar automatiskt till utskriftskön om %ss"
+msgstr "Har lagt till i utskriftskön. Hoppar automatiskt till utskriftskön om %s s"
 
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the device page in %ss"
@@ -12691,21 +12694,8 @@ msgstr "Skapar Skirt & Brim"
 msgid "Generating G-code"
 msgstr "Skapar G-kod"
 
-#, boost-format
-msgid "%1% is too close to a compacted prime tower. The toolhead needs %2% mm of horizontal clearance to descend beside it, and within that distance the object may not rise more than %3% mm. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr ""
-
-#, boost-format
-msgid "%1% is too tall to be printed together with a compacted prime tower, which only leaves %2% mm of clearance. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr ""
-
-#, boost-format
-msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
-msgstr "%1% är för nära ett kompakt prime tower. Munstycket sänks till tornet vid Z %2% mm medan objektet redan når Z %3% mm, och verktygshuvudet behöver %4% mm horisontellt utrymme för att passera vid sidan av det, men bara %5% mm återstår. Stäng av \"Inga glesa lager\", flytta prime tower åt sidan, eller sänk objektet."
-
-#, boost-format
-msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
-msgstr "%1% är för hög för att skrivas ut tillsammans med ett kompakt prime tower. Munstycket sänks till tornet vid Z %2% mm medan objektet redan når Z %3% mm, vilket överskrider utrymmet på %4% mm. Stäng av \"Inga glesa lager\" eller sänk objektet."
+msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
+msgstr "Den relativa positionen för modellen och Prime Tower uppfyller inte kraven för funktionen \"Inga glesa lager\". Justera deras relativa positioner, sänk modellhöjden eller stäng av \"Inga glesa lager\"."
 
 msgid "Failed processing of the filename_format template."
 msgstr "Skapande av filnamn_format template misslyckades."
@@ -17516,16 +17506,16 @@ msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer 
 msgstr "Lägre accelerationsprofil för 0,4 mm nozzle. Använd den när skrivaren står på ett ostadigt skrivbord eller en hylla"
 
 msgid "Helio GCode status response is incomplete"
-msgstr "Helio GCode-statusmeddelande är ofullständigt"
+msgstr "Helios GCode-statussvar är inte komplett"
 
 msgid "Helio GCode status response parse failed"
-msgstr "Helio GCode-statusmeddelande kunde inte parsas"
+msgstr "Helio GCode-statussvar kunde inte tolkas"
 
 msgid "Helio action canceled"
 msgstr "Helio-åtgärd avbruten"
 
 msgid "Helio GCode creation response is incomplete"
-msgstr "Helio GCode-skapande svar är ofullständigt"
+msgstr "Helio GCode-skapandesvar är inte komplett"
 
 msgid "Failed to parse response"
 msgstr "Misslyckades med att analysera svaret"
@@ -17534,31 +17524,31 @@ msgid "Helio GCode status check failed"
 msgstr "Helio GCode-statuskontroll misslyckades"
 
 msgid "Helio GCode creation timed out while checking status"
-msgstr "Helio GCode-skapande hade tidsgräns överskridits vid statuskontroll"
+msgstr "Tidsgränsen för Helio GCode-skapande har löpt ut vid statuskontroll"
 
 msgid "Failed to create Simulation"
-msgstr "Kunde inte skapa simulering"
+msgstr "Det gick inte att skapa simulering"
 
 msgid "Helio simulation response is incomplete"
-msgstr "Helio-simuleringssvar är ofullständigt"
+msgstr "Helio-simuleringssvar är inte komplett"
 
 msgid "Helio simulation task failed"
 msgstr "Helio simuleringsuppgift misslyckades"
 
 msgid "Helio simulation response parse failed"
-msgstr "Helio-simuleringssvar kunde inte parsas"
+msgstr "Helio-simuleringssvar kunde inte tolkas"
 
 msgid "Failed to create Optimization"
-msgstr "Kunde inte skapa optimering"
+msgstr "Det gick inte att skapa optimering"
 
 msgid "Helio optimization response is incomplete"
-msgstr "Helio-optimeringssvar är ofullständigt"
+msgstr "Helio-optimeringssvar är inte komplett"
 
 msgid "Helio optimization task failed"
 msgstr "Helio optimeringsuppgift misslyckades"
 
 msgid "Helio optimization response parse failed"
-msgstr "Helio-optimeringssvar kunde inte parsas"
+msgstr "Helio-optimeringssvar kunde inte tolkas"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API slutpunkt är tom, kontrollera konfigurationen."
@@ -17576,7 +17566,7 @@ msgid "Helio: file upload failed"
 msgstr "Helio: Filuppladdning misslyckades"
 
 msgid "Please make sure you have the correct API key set in preferences."
-msgstr "Se till att du har angett rätt API-nyckel i inställningarna."
+msgstr "Se till att du har korrekt API-nyckel inställd i inställningarna."
 
 msgid "Helio: GCode created successfully"
 msgstr "Helio: G kod skapades"
@@ -17585,7 +17575,7 @@ msgid "Helio: simulation successfully created"
 msgstr "Helio: simulering har skapats"
 
 msgid "transient progress checks did not recover"
-msgstr "tillfälliga framstegskontroller återhämtade sig inte"
+msgstr "tillfälliga förloppskontroller återställdes inte"
 
 msgid "Helio: simulation failed"
 msgstr "Helio: simulering misslyckades"
@@ -18617,6 +18607,14 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#, boost-format
+#~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+#~ msgstr "%1% är för nära ett kompakt prime tower. Munstycket sänks till tornet vid Z %2% mm medan objektet redan når Z %3% mm, och verktygshuvudet behöver %4% mm horisontellt utrymme för att passera vid sidan av det, men bara %5% mm återstår. Stäng av \"Inga glesa lager\", flytta prime tower åt sidan, eller sänk objektet."
+
+#, boost-format
+#~ msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
+#~ msgstr "%1% är för hög för att skrivas ut tillsammans med ett kompakt prime tower. Munstycket sänks till tornet vid Z %2% mm medan objektet redan når Z %3% mm, vilket överskrider utrymmet på %4% mm. Stäng av \"Inga glesa lager\" eller sänk objektet."
 
 #, boost-format
 #~ msgid "Plate %1%"
