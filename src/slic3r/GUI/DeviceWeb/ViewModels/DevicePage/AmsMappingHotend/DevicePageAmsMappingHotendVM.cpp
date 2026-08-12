@@ -800,7 +800,12 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
             sub_slot[SK::slot::ams_id]         = std::to_string(sub_td.ams_id);
             sub_slot[SK::slot::slot_id]        = std::to_string(sub_td.slot_id);
             sub_slot[SK::slot::tray_id]        = sub_td.id;
-            sub_slot[SK::slot::index]          = std::to_string(sub_index++);
+            // A preload card is another feed source for the *same* hotend
+            // position as the main card, so it carries the hotend index (which
+            // the send page also shows as the mapping label). Real sub-AMS
+            // slots keep their ordinal inside their own AMS unit.
+            sub_slot[SK::slot::index]          = std::to_string(g.is_preload ? slot_index : sub_index);
+            ++sub_index;
             sub_slot[SK::slot::ext]            = (sub_td.ams_type == DevAmsType::EXT_SPOOL);
             sub_slot[SK::slot::state]          = slot_state_to_string(sj.state);
             sub_slot[SK::slot::filament_type]  = sub_td.filament_type;

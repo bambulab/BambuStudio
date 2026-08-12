@@ -185,6 +185,7 @@ static bool fill_nozzle_info_from_group_result(FilamentInfo &info, const std::sh
 
     std::set<double>           diameters;
     std::set<NozzleVolumeType> volume_types;
+    std::set<int>              group_ids;
     for (const auto &nozzle : nozzles) {
         try {
             diameters.insert(boost::lexical_cast<double>(nozzle.diameter));
@@ -192,7 +193,12 @@ static bool fill_nozzle_info_from_group_result(FilamentInfo &info, const std::sh
             diameters.insert(atof(nozzle.diameter.c_str()));
         }
         volume_types.insert(nozzle.volume_type);
+        if (nozzle.group_id >= 0)
+            group_ids.insert(nozzle.group_id);
     }
+
+    // The print-queue path reads group_id from the 3mf; here only the grouping result has it.
+    info.group_id.assign(group_ids.begin(), group_ids.end());
 
     if (diameters.empty())
         return false;
@@ -1392,6 +1398,11 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
 
     int filament_result = 0;
     const bool check_nozzle_type = check_nozzle_type_for_ams_mapping(obj_, m_print_type);
+    // From the sliced config, not the live preset: it produced the group ids we compare against.
+    // Only names the candidate slot; the mapping layer confirms it against the machine.
+    const int sub_ams_group_id = (m_print_type == FROM_NORMAL && m_plater)
+        ? get_effective_ams_nozzle_idx(m_plater->get_partplate_list().get_current_fff_print().config())
+        : -1;
     std::vector<bool> map_opt;  //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
     if (nozzle_nums > 1){
         //get nozzle property, the extders are same?
@@ -1463,7 +1474,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
                 map_opt[0] = false;
                 map_opt[1] = false;
             }
-            filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, check_nozzle_type);
+            filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, check_nozzle_type, sub_ams_group_id);
         }
         //When filaments cannot be matched automatically, whether to use ext for automatic supply
         //auto_supply_with_ext(obj_->vt_slot);
@@ -1476,7 +1487,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
             map_opt[1] = false;
             map_opt[3] = true;
         }
-        filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, check_nozzle_type);
+        filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, check_nozzle_type, sub_ams_group_id);
         // auto_supply_with_ext(obj_->vt_slot);
     }
 
@@ -7344,27 +7355,22 @@ bool SelectMachineDialog::CheckWarningExtSpoolNotLoaded(MachineObject* obj_)
         || obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) 
         return true;
 
-    for (const auto& [ams_id, ams] : obj_->GetFilaSystem()->GetAmsList()) {
-        if (ams && (ams->GetAmsType() == DevAmsType::ZMULTI_A ||
-                    ams->GetAmsType() == DevAmsType::ZMULTI_B)) {
-            return true;
-        }
-    }
-
+    // Same predicate as auto-mapping, so it also catches slots the manual panel allowed.
     for (const auto& fila : m_ams_mapping_result) {
-        // Only inspect filaments that were actually mapped to a slot.
-        if (fila.tray_id < 0 || fila.ams_id.empty()) continue;
+        if (fila.tray_id < 0 || fila.ams_id.empty()) continue; // never mapped
 
-        auto       tray_opt    = obj_->get_tray(fila.ams_id, fila.slot_id);
-        const bool is_external = devPrinterUtil::IsVirtualSlot(fila.ams_id) ||
-            (tray_opt.has_value() && tray_opt->ams_type == DevAmsType::EXT_SPOOL);
-        if (!is_external || !tray_opt.has_value()) continue;
+        auto tray_opt = obj_->get_tray(fila.ams_id, fila.slot_id);
+        if (!tray_opt.has_value()) continue;
 
         auto addr_opt = tray_opt->get_nozzle_addr_id(obj_);
         if (!addr_opt.has_value()) continue; // cannot resolve the nozzle -> avoid false positive
         auto nozzle_opt = obj_->GetNozzleSystem()->GetNozzleOptByAddrId(addr_opt.value());
-        if (nozzle_opt.has_value() && !nozzle_opt->HasFilamentInNozzle()) {
-            return false; // mapped to external spool but the nozzle is not loaded
+        if (!nozzle_opt.has_value()) continue;
+
+        const DevAmsType ams_type = devPrinterUtil::IsVirtualSlot(fila.ams_id) ? DevAmsType::EXT_SPOOL
+                                                                               : tray_opt->ams_type;
+        if (!DevMappingUtil::IsSlotAutoLoadable(*nozzle_opt, ams_type, DevAmsSlotId{fila.get_ams_id(), fila.get_slot_id()})) {
+            return false; // the user has to push this filament in before printing
         }
     }
     return true;

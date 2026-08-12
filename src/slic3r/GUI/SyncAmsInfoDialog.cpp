@@ -1247,6 +1247,8 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
     m_filaments_map            = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);
 
     int               filament_result = 0;
+    // From the sliced config, not the live preset: it produced the group ids we compare against.
+    const int sub_ams_group_id = get_effective_ams_nozzle_idx(wxGetApp().plater()->get_partplate_list().get_current_fff_print().config());
     std::vector<bool> map_opt; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
     if (nozzle_nums > 1) {
         map_opt         = {true, true, true, true}; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
@@ -1255,13 +1257,15 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
             map_opt[3] = false;
         }
         filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
-                                                     wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true);
+                                                     wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true,
+                                                     /*check_nozzle_type*/ false, sub_ams_group_id);
     }
     // single nozzle
     else {
         map_opt = { false, true, false, true }; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
         filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
-                                                               wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true);
+                                                               wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true,
+                                                               /*check_nozzle_type*/ false, sub_ams_group_id);
     }
 
     if (filament_result == 0) {
