@@ -2252,6 +2252,16 @@ void GUI_App::init_networking_callbacks()
                     return;
                 }
 
+                // Direct LAN connection owns this device — ignore cloud MQTT so state
+                // is not applied to a different MachineObject than local MQTT updates.
+                if (MachineObject* my = this->m_device_manager->get_my_machine(dev_id)) {
+                    if (my->is_lan_mode_printer()) {
+                        if (GUI::wxGetApp().plater())
+                            GUI::wxGetApp().plater()->update_machine_sync_status();
+                        return;
+                    }
+                }
+
                 if (MachineObject* obj = this->m_device_manager->get_user_machine(dev_id)) {
                     auto sel = this->m_device_manager->get_selected_machine();
                     if (sel && sel->get_dev_id() == dev_id) {
@@ -2311,7 +2321,8 @@ void GUI_App::init_networking_callbacks()
 
                 if (MachineObject* obj = m_device_manager->get_my_machine(dev_id)) {
                     obj->parse_json("lan", msg);
-                    if (this->m_device_manager->get_selected_machine() == obj) {
+                    auto sel = this->m_device_manager->get_selected_machine();
+                    if (sel && sel->get_dev_id() == dev_id) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
                         // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
                         // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
