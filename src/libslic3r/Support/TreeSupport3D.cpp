@@ -1990,6 +1990,36 @@ static bool merge_influence_areas_two_elements(
     const SupportElementMerging &smaller_rad = dst_radius_bigger ? src : dst;
     const SupportElementMerging &bigger_rad  = dst_radius_bigger ? dst : src;
     const coord_t real_radius_delta = std::abs(support_element_radius(config, bigger_rad.state) - support_element_radius(config, smaller_rad.state));
+    // Cap the lateral merge reach. The merge test below inflates the thin branch by the radius
+    // delta, so a large radius difference lets a thick branch swallow a far-away thin one in a
+    // single layer - the source of the aggressive sideways merge at large diameters.
+    //
+    // Both influence areas grow towards each other by maximum_move_distance per layer, so a gap
+    // closes at twice that rate. Allowing 2 * maximum_move_distance therefore means "merge if the
+    // two branches would have met one layer later", which keeps the merge within the movement
+    // budget the branch angle defines instead of scaling with the radius. The second term keeps a
+    // branch from jumping further than a fraction of its own radius, mirroring the ovalisation
+    // threshold in draw_area(); it only binds for a bigger radius below
+    // 2 * maximum_move_distance / ovalisation_slow_ratio.
+    //
+    // Both lower bounds are sized to stay inactive at sane settings and only catch degenerate
+    // ones, so that they never become the dominant term: half a line width gives a small radius
+    // difference a minimum merge reach when the move budget is tiny (the final clamp below still
+    // caps it at the radius delta, so a zero branch angle keeps the original CuraEngine behaviour),
+    // and max_merge_delay_layers keeps an extreme radius delta from postponing a merge indefinitely.
+    static constexpr const double     ovalisation_slow_ratio = 0.75; // mirrors draw_area()
+    static constexpr const LayerIndex max_merge_delay_layers = 30;
+    // support_tree_angle is only clamped below 90 deg, not to the 60 deg the setting exposes, so a
+    // config that bypasses that bound (hand edited project, command line) can drive
+    // maximum_move_distance close to the coord_t limit. Cap it before doubling to avoid overflow.
+    static constexpr const coord_t    max_sane_move_distance = scaled<coord_t>(10.);
+    const coord_t move_budget = std::min<coord_t>(config.maximum_move_distance, max_sane_move_distance);
+    coord_t merge_reach = std::min<coord_t>(2 * move_budget,
+        coord_t(ovalisation_slow_ratio * support_element_radius(config, bigger_rad.state)));
+    merge_reach = std::max<coord_t>(merge_reach, config.support_line_width / 2);
+    merge_reach = std::max<coord_t>(merge_reach, real_radius_delta - 2 * max_merge_delay_layers * move_budget);
+    // Never exceed the geometric "engulfed by the radius delta" limit this whole test is built on.
+    merge_reach = std::min(merge_reach, real_radius_delta);
     {
         // Testing intersection of bounding boxes.
         // Expand the smaller radius branch bounding box to match the lambda intersect_small_with_bigger() below.
@@ -1997,8 +2027,8 @@ static bool merge_influence_areas_two_elements(
         // is sufficient. On the other side, if a mitered offset was used by the lambda,
         // the bounding box expansion would have to account for the mitered extension of the sharp corners.
         Eigen::AlignedBox<coord_t, 2> smaller_bbox = smaller_rad.bbox();
-        smaller_bbox.min() -= Point{ real_radius_delta, real_radius_delta };
-        smaller_bbox.max() += Point{ real_radius_delta, real_radius_delta };
+        smaller_bbox.min() -= Point{ merge_reach, merge_reach };
+        smaller_bbox.max() += Point{ merge_reach, merge_reach };
         if (! smaller_bbox.intersects(bigger_rad.bbox()))
             return false;
     }
@@ -2048,10 +2078,10 @@ static bool merge_influence_areas_two_elements(
     // Remember that collision radius <= real radius as otherwise this assumption would be false.
     const coord_t   smaller_collision_radius    = support_element_collision_radius(config, smaller_rad.state);
     const Polygons &collision                   = volumes.getCollision(smaller_collision_radius, layer_idx - 1, use_min_radius);
-    auto            intersect_small_with_bigger = [real_radius_delta, smaller_collision_radius, &collision, &config](const Polygons &small, const Polygons &bigger) {
+    auto            intersect_small_with_bigger = [merge_reach, smaller_collision_radius, &collision, &config](const Polygons &small, const Polygons &bigger) {
         return intersection(
             safe_offset_inc(
-                small, real_radius_delta, collision,
+                small, merge_reach, collision,
                 // -3 avoids possible rounding errors
                 2 * (config.xy_distance + smaller_collision_radius - 3), 0, 0),
             bigger);
