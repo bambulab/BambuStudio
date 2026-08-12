@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 18:48+0800\n"
+"POT-Creation-Date: 2026-08-12 20:41+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -292,7 +292,7 @@ msgid "TPU High Flow"
 msgstr "TPU高流量"
 
 msgid "E3D High Flow"
-msgstr "E3D 高流量"
+msgstr "E3D高流量"
 
 msgid "Unknown"
 msgstr "未知"
@@ -2992,7 +2992,7 @@ msgstr ""
 
 msgctxt "AMS filament"
 msgid "loading"
-msgstr ""
+msgstr "加载中"
 
 msgid "Confirm"
 msgstr "确定"
@@ -7523,7 +7523,7 @@ msgid "Warning:"
 msgstr "警告："
 
 msgid "Wiki for details."
-msgstr ""
+msgstr "详情查看Wiki"
 
 msgid "Export successfully."
 msgstr "导出成功。"
@@ -8804,7 +8804,7 @@ msgid "Are you sure to use them? \n"
 msgstr "您确定要使用它吗？ \n"
 
 msgid "When thermal preconditioning is enabled, duration auto-adjusts to the model's position for optimal first-layer quality; the farther from the center, the longer it takes. White boxes mark the boundary lines. To disable the guidelines and this warning, go to Preferences > 3D."
-msgstr ""
+msgstr "开启热床保温后，保温时长会随模型摆放位置自动调整（距离中心越远时间越久），以保证最佳首层质量；白色方框标示不同保温时长的边界。如需关闭辅助标线与本警告，请前往 偏好设置 -> 3D。"
 
 msgid "Send G-code"
 msgstr "发送 G 代码"
@@ -9182,10 +9182,10 @@ msgid "Always show shells or not in preview view tab. If you change this value, 
 msgstr "始终在预览视图选项卡中显示或不显示壳。如果更改值，您应该重新切片。"
 
 msgid "Show Thermal Preconditioning Area"
-msgstr ""
+msgstr "显示热床保温区域"
 
 msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
-msgstr ""
+msgstr "当模型超出热床保温区域时发出警告。仅支持此功能的打印机可用。"
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "显示step参数设置对话框。"
@@ -9855,7 +9855,7 @@ msgid "As the print job has been successfully sent, the cancellation will not br
 msgstr "因打印任务已成功发送，此次取消操作未能中止本次任务。如需终止任务，请在“设备页面”停止打印。"
 
 msgid "Print immediately"
-msgstr ""
+msgstr "立即打印"
 
 msgid "The name length exceeds the limit."
 msgstr "名称长度超过限制。"
@@ -9908,7 +9908,7 @@ msgid "Refreshing information of hotends(%d/%d)."
 msgstr "正在刷新喷嘴信息(%d/%d)。"
 
 msgid "Please wait a moment..."
-msgstr "请稍等片刻……"
+msgstr "请稍等片刻..."
 
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
 msgstr "工具头和热端挂架已满，请卸下至少一个热端后再打印。"
@@ -9973,7 +9973,7 @@ msgid "High Temp"
 msgstr ""
 
 msgid "Cool(Supertack)"
-msgstr ""
+msgstr "增稳低温打印板"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "如果您无法连接打印机，请点击这里"
@@ -14569,7 +14569,7 @@ msgid "The allowed max printed mass"
 msgstr "允许的最大打印质量"
 
 msgid "The allowed max printed mass on a plate"
-msgstr ""
+msgstr "打印板上允许的最大打印质量"
 
 msgid "Minimum speed for extruding"
 msgstr "最小挤出速度"
