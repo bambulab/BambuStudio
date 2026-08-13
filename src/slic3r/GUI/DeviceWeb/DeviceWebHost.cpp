@@ -14,9 +14,9 @@
 
 namespace Slic3r { namespace GUI {
 
-//#if !BBL_RELEASE_TO_PUBLIC
-//#define DEVICE_USE_HTTP_SERVER
-//#endif
+#if !BBL_RELEASE_TO_PUBLIC
+#define DEVICE_USE_HTTP_SERVER
+#endif
 
 static std::uint64_t TimeNowMs() {
     return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
