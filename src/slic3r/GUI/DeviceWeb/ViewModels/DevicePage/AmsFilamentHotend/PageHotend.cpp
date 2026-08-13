@@ -59,7 +59,8 @@ std::string nozzle_flow_short_name(NozzleFlowType flow_type)
 std::string format_nozzle_used_time(int print_time_seconds)
 {
     const int safe_seconds = std::max(0, print_time_seconds);
-    if (safe_seconds < 3600) return "<1h";
+    // Match device UX: show exact minutes below 1h instead of collapsing to "<1h".
+    if (safe_seconds < 3600) return std::to_string(safe_seconds / 60) + " min";
 
     const double hours = safe_seconds / 3600.0;
     std::ostringstream oss;

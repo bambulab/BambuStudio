@@ -19,8 +19,8 @@ assert.match(
 
 assert.match(
   hotendPageSource,
-  /return\s+"<1h";/,
-  'Hotend ViewModel should show <1h for print times below one hour',
+  /safe_seconds\s*\/\s*60\)\s*\+\s*" min"/,
+  'Hotend ViewModel should show exact minutes for print times below one hour',
 );
 
 assert.match(
