@@ -1745,9 +1745,13 @@ wxWindow *PreferencesDialog::create_other_tab()
     auto title_dev           = create_item_title(_L("Developer Mode"), scrolled, _L("Developer Mode"));
     auto item_dev_mode       = create_item_checkbox(_L("Develop mode"), scrolled, _L("Develop mode"), 50, "developer_mode");
     auto item_skip_blacklist = create_item_checkbox(_L("Skip AMS blacklist check"), scrolled, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
+    auto item_webview_devtools = create_item_checkbox(
+        _L("Enable DevTools For Webview") + " (" + _L("Take effect after restarting Studio") + ")", scrolled,
+        _L("Enable DevTools For Webview"), 50, "enable_webview_devtools");
     sizer->Add(title_dev, wxSizerFlags().Expand().Border(wxTOP, FromDIP(16)));
     sizer->Add(wrap_option_row(scrolled, item_dev_mode), flags);
     sizer->Add(wrap_option_row(scrolled, item_skip_blacklist), flags);
+    sizer->Add(wrap_option_row(scrolled, item_webview_devtools), flags);
 
 #ifdef _WIN32
     // ---- Associate Files To Bambu Studio (Windows only) ----
@@ -2111,6 +2115,7 @@ void PreferencesDialog::on_reset_preferences()
         "show_print_history",
         "developer_mode",
         "skip_ams_blacklist_check",
+        "enable_webview_devtools",
         "severity_level",
     };
     for (const char *k : kPrefKeys) app_config->erase("app", k);

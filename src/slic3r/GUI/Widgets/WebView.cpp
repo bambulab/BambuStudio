@@ -438,7 +438,9 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
 #ifndef __WIN32__
         });
 #endif
-        webView->EnableContextMenu(false);
+        const bool enable_devtools = Slic3r::GUI::wxGetApp().app_config && Slic3r::GUI::wxGetApp().app_config->get("enable_webview_devtools") == "true";
+        webView->EnableContextMenu(enable_devtools);
+        webView->EnableAccessToDevTools(enable_devtools);
     } else {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": failed. Use fake web view.";
         webView = new FakeWebView;
