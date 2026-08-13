@@ -5159,28 +5159,6 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     if (m_gizmos.on_mouse_wheel(evt))
         return;
 
-    if (m_canvas_type == CanvasAssembleView && (evt.AltDown() || evt.CmdDown())) {
-        float rotation = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
-        if (evt.AltDown()) {
-            auto clp_dist = m_gizmos.m_assemble_view_data->model_objects_clipper()->get_position();
-            clp_dist = rotation < 0.f
-                ? std::max(0., clp_dist - 0.01)
-                : std::min(1., clp_dist + 0.01);
-            m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(clp_dist, true);
-        }
-        else if (evt.CmdDown()) {
-            m_explosion_ratio = rotation < 0.f
-                ? std::max(1., m_explosion_ratio - 0.01)
-                : std::min(3., m_explosion_ratio + 0.01);
-            if (m_explosion_ratio != GLVolume::explosion_ratio) {
-                for (GLVolume* volume : m_volumes.volumes) {
-                    volume->set_bounding_boxes_as_dirty();
-                }
-                GLVolume::explosion_ratio = m_explosion_ratio;
-            }
-        }
-        return;
-    }
     // Shift + scroll wheel/touchpad: pan the camera instead of zooming.
     // This allows touchpad users to pan vertically/horizontally by holding Shift.
     // Note: Ctrl is not used because Windows touchpad drivers send Ctrl+Wheel for pinch-to-zoom.
