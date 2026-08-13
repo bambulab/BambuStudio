@@ -4321,6 +4321,24 @@ static wxString _get_ext_loc_str(const std::unordered_set<int>& extruders, int t
     return wxEmptyString;
 }
 
+/* The filament kept in the hotend currently picked by the extruder is not necessarily the one
+   the extruder is fed from, so it has to be read from the picked hotend itself. Anything that
+   cannot be resolved to a filament preset (no hotend picked, empty hotend, unrecognized slot)
+   counts as unknown. */
+static bool _is_picked_hotend_fila_known(MachineObject* obj, const DevExtder& extder)
+{
+    if (!obj || !extder.HasNozzleInstalled()) { return false; }
+
+    const auto& picked_hotend = obj->GetNozzleSystem()->GetExtNozzle(extder.GetExtId());
+    if (!picked_hotend.HasFilamentInNozzle()) { return false; }
+
+    const auto& hotend_slot = picked_hotend.GetSlotNowId();
+    if (!hotend_slot.has_value()) { return false; }
+
+    const auto& hotend_fila_id = obj->get_filament_id(std::to_string(hotend_slot->first), std::to_string(hotend_slot->second));
+    return wxGetApp().preset_bundle->get_filament_by_filament_id(hotend_fila_id).has_value();
+}
+
 void SelectMachineDialog::update_show_status(MachineObject* obj_)
 {
     m_pre_print_checker.clear();
@@ -4560,6 +4578,9 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         std::set<string>  high_temp_filaments;
         std::unordered_set<int> known_fila_soften_extruders;
         std::unordered_set<int> unknown_fila_soften_extruders;
+        // Hotend-rack machines only warn when the toolhead filament type is unknown
+        const auto rack_type = obj_->GetNozzleRack()->GetRackType();
+        const bool warn_soften_on_unknown_only = (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B);
         auto preset_full_config = wxGetApp().preset_bundle->full_config();
         auto chamber_temperatures = preset_full_config.option<ConfigOptionInts>("chamber_temperatures");
         for (const FilamentInfo& item : m_ams_mapping_result) {
@@ -4576,7 +4597,9 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
                         auto filament_info = wxGetApp().preset_bundle->get_filament_by_filament_id(fila_id);
                         if (filament_info) {
                             if (filament_info->temperature_vitrification - chamber_temp <= 5) {
-                                known_fila_soften_extruders.insert(extder.GetExtId());
+                                if (!warn_soften_on_unknown_only || !_is_picked_hotend_fila_known(obj_, extder)) {
+                                    known_fila_soften_extruders.insert(extder.GetExtId());
+                                }
                             }
                         } else {
                             // the minimum temperature_vitrification of the known filaments is 43 degrees
