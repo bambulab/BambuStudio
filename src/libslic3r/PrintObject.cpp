@@ -629,6 +629,216 @@ void PrintObject::make_perimeters()
     this->set_done(posPerimeters);
 }
 
+namespace {
+
+// Minimum contact extent, mirroring length_thresh_small_overhang in TreeSupport.cpp.
+const coord_t zero_gap_length_thresh = scale_(2);
+
+// Same thresh_angle convention as SupportMaterial::detect_overhangs: +1, clamp 89.
+double zero_gap_threshold_rad(const PrintObjectConfig &config)
+{
+    double thresh_angle = config.support_threshold_angle.value > 0 ? config.support_threshold_angle.value + 1 : 0;
+    thresh_angle = std::min(thresh_angle, 89.);
+    return Geometry::deg2rad(thresh_angle);
+}
+
+// Prefer the real external-perimeter flow width over config.line_width (which may be 0).
+// Max across regions is conservative: a larger guard_r only shrinks the Bottom mask.
+float scaled_external_perimeter_width(const Layer &layer)
+{
+    float fw = 0.f;
+    for (const LayerRegion *layerm : layer.regions())
+        fw = std::max(fw, float(layerm->flow(frExternalPerimeter).scaled_width()));
+    return fw;
+}
+
+// Zero-gap Normal/auto support only: refine stBottomBridge on fill_surfaces where a
+// conservative top-contact candidate exists. Prefer false Bridge over false Bottom.
+// stNormalManual is not covered yet: its contacts come solely from the enforcer branch of
+// detect_contacts, so the geometric overhang mask would not describe them. See GitHub #11540.
+bool should_refine_zero_gap_contact(const PrintObjectConfig &config)
+{
+    return config.enable_support.value
+        && config.support_top_z_distance.value == 0.
+        && config.support_type.value == stNormalAuto
+        && ! config.support_on_build_plate_only.value
+        && ! config.support_critical_regions_only.value
+        // Without interface layers the contact is printed with the sparse base pattern
+        // (see SupportParameters), which is too weak a base for a regular bottom surface.
+        && config.support_interface_top_layers.value > 0
+        // Classic support drops fill bridges from contacts only after process_external_surfaces
+        // assigns bridge_angle. Calling remove_bridges_from_contacts() here cannot see those
+        // surfaces yet; subtracting every stBottomBridge would empty the mask. Keep legacy
+        // Bridge classification whenever bridge_no_support is on.
+        && ! config.bridge_no_support.value;
+}
+
+// Mirror TreeSupport check_small_overhang criterion B: keep pieces whose erosion
+// remains non-empty and whose eroded bbox exceeds the length threshold on at least one axis.
+bool is_significant_contact_piece(const ExPolygon &piece, float erode_r)
+{
+    if (erode_r <= 0.f)
+        return false;
+    ExPolygons eroded = offset_ex(piece, -erode_r);
+    if (eroded.empty())
+        return false;
+    Point bbox_sz = get_extents(eroded).size();
+    return bbox_sz.x() > zero_gap_length_thresh || bbox_sz.y() > zero_gap_length_thresh;
+}
+
+ExPolygons filter_significant_contact_pieces(ExPolygons pieces, float erode_r)
+{
+    ExPolygons out;
+    out.reserve(pieces.size());
+    for (ExPolygon &piece : pieces)
+        if (is_significant_contact_piece(piece, erode_r))
+            out.emplace_back(std::move(piece));
+    return out;
+}
+
+struct ZeroGapContactMask
+{
+    ExPolygons polygons;
+    float      sliver_r = 0.f; // leftover / inset sliver filter, <= the opening radius
+};
+
+// Lightweight zero-gap top-contact candidate. Intentionally conservative vs classic detect_overhangs.
+ZeroGapContactMask compute_zero_gap_contact_mask(
+    const PrintObject &object,
+    const Layer &layer,
+    const Layer &lower_layer,
+    size_t layer_id,
+    const std::vector<Polygons> &blockers,
+    const std::vector<Polygons> &enforcers)
+{
+    ZeroGapContactMask result;
+    const float extrusion_width_scaled = scaled_external_perimeter_width(layer);
+    if (extrusion_width_scaled <= 0.f)
+        return result;
+
+    const PrintObjectConfig &config = object.config();
+    const double threshold_rad = zero_gap_threshold_rad(config);
+    const float  angle_offset  = (threshold_rad > 0.)
+        ? float(scale_(lower_layer.height / tan(threshold_rad)))
+        : 0.5f * extrusion_width_scaled;
+    // Opening radius covering both the threshold angle and the small-overhang lower bound.
+    const float guard_r = std::max(2.5f * extrusion_width_scaled, angle_offset);
+    result.sliver_r = 2.5f * extrusion_width_scaled;
+    if (guard_r <= 0.f)
+        return result;
+
+    const Polygons lower_polygons = to_polygons(lower_layer.lslices);
+
+    // Automatic overhangs, approximating detect_overhangs: the opening drops what the
+    // threshold angle and small-overhang removal would have dropped.
+    ExPolygons mask;
+    {
+        Polygons lower_expanded = (angle_offset > 0.f)
+            ? expand(lower_polygons, angle_offset, ClipperLib::jtSquare, 0.)
+            : lower_polygons;
+        ExPolygons raw = diff_ex(layer.lslices, lower_expanded);
+        if (! raw.empty()) {
+            mask = intersection_ex(opening_ex(raw, guard_r), raw);
+            mask = filter_significant_contact_pieces(std::move(mask), guard_r);
+        }
+    }
+
+    // Support enforcers, mirroring detect_contacts: they enforce support as if the slope were
+    // 90 degrees, so neither the threshold angle nor small-overhang removal applies. Running the
+    // opening here would discard narrow painted strips that do get a contact interface.
+    if (layer_id < enforcers.size() && ! enforcers[layer_id].empty()) {
+        ExPolygons enforced = diff_ex(
+            intersection_ex(layer.lslices, enforcers[layer_id]),
+            expand(lower_polygons, 0.05f * extrusion_width_scaled, ClipperLib::jtSquare, 0.));
+        enforced = filter_significant_contact_pieces(std::move(enforced), result.sliver_r);
+        if (! enforced.empty())
+            mask = mask.empty() ? std::move(enforced) : union_ex(mask, enforced);
+    }
+    if (mask.empty())
+        return result;
+
+    // Support blockers (expand slightly, matching SupportMaterial). Classic support lets an
+    // enforcer win over a blocker; subtracting from the whole mask is stricter on purpose.
+    if (layer_id < blockers.size() && ! blockers[layer_id].empty()) {
+        Polygons blocker = expand(union_(blockers[layer_id]), float(1000. * SCALED_EPSILON));
+        mask = diff_ex(mask, blocker);
+        if (mask.empty())
+            return result;
+    }
+
+    // Negative support_expansion shrinks contacts in classic support; mirror that.
+    // Classic support spares enforcers from it, so applying it here is stricter on purpose.
+    const float xy_expansion = float(scale_(config.support_expansion.value));
+    if (xy_expansion < -SCALED_EPSILON) {
+        mask = offset_ex(mask, xy_expansion);
+        if (mask.empty())
+            return result;
+    }
+
+    // Lateral gap between support and object wall is not covered by the opening;
+    // erode so the unsupported rim stays Bridge.
+    const float xy_gap = float(scale_(config.support_object_xy_distance.value));
+    if (xy_gap > SCALED_EPSILON) {
+        mask = offset_ex(mask, -xy_gap);
+        if (mask.empty())
+            return result;
+    }
+
+    // Re-filter leftover slivers after shrinks. Use sliver_r, not guard_r: the angle
+    // opening already ran, and xy_gap must not apply that radius a second time.
+    result.polygons = filter_significant_contact_pieces(std::move(mask), result.sliver_r);
+    return result;
+}
+
+// Split each stBottomBridge fill surface into supported (stBottom) / unsupported (stBottomBridge).
+// Only significant contact pieces are promoted; everything else of the original surface stays
+// a single Bridge remainder (slivers are merged back, not left as separate islands).
+// slices are left unchanged.
+void refine_fill_surfaces_for_zero_gap_contact(LayerRegion &layerm, const ExPolygons &mask, float sliver_r)
+{
+    if (mask.empty() || sliver_r <= 0.f)
+        return;
+
+    Surfaces out;
+    out.reserve(layerm.fill_surfaces.surfaces.size());
+
+    for (const Surface &surface : layerm.fill_surfaces.surfaces) {
+        if (surface.surface_type != stBottomBridge) {
+            out.emplace_back(surface);
+            continue;
+        }
+
+        // fill_surfaces is already inset by perimeters; do not re-apply the full
+        // overhang opening radius here or a valid contact would fail the bbox test.
+        ExPolygons candidates = intersection_ex(surface.expolygon, mask);
+        ExPolygons promoted;
+        promoted.reserve(candidates.size());
+        for (ExPolygon &expoly : candidates)
+            if (is_significant_contact_piece(expoly, sliver_r))
+                promoted.emplace_back(std::move(expoly));
+
+        if (promoted.empty()) {
+            out.emplace_back(surface);
+            continue;
+        }
+
+        // Remainder must be computed before moving promoted polygons.
+        ExPolygons remainder = diff_ex(surface.expolygon, promoted);
+        for (ExPolygon &expoly : promoted) {
+            Surface refined(surface, std::move(expoly));
+            refined.surface_type = stBottom;
+            out.emplace_back(std::move(refined));
+        }
+        // Original minus promoted: rim, true overhang, and rejected slivers stay Bridge together.
+        for (ExPolygon &expoly : remainder)
+            out.emplace_back(Surface(surface, std::move(expoly)));
+    }
+
+    layerm.fill_surfaces.surfaces = std::move(out);
+}
+
+} // namespace
+
 void PrintObject::prepare_infill()
 {
     if (! this->set_started(posPrepareInfill))
@@ -652,6 +862,34 @@ void PrintObject::prepare_infill()
     std::vector<std::vector<SurfaceCollection>> slice_surfaces_cpy;
     this->detect_surfaces_type(slice_surfaces_cpy);
     m_print->throw_if_canceled();
+
+    // Zero-gap Normal support: reclassify fill_surfaces that will be carried by the
+    // support interface as stBottom, keep true overhangs as stBottomBridge (GitHub #11540).
+    // Local masks only; slices stay typed as produced by detect_surfaces_type().
+    if (m_layers.size() > 1 && should_refine_zero_gap_contact(m_config)) {
+        // Both sources must be collected, exactly like SupportAnnotations does: slice_support_*()
+        // only sees blocker / enforcer volumes, painted-on-mesh ones arrive as custom facets.
+        std::vector<Polygons> blockers = this->slice_support_blockers();
+        this->project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
+        std::vector<Polygons> enforcers = this->slice_support_enforcers();
+        this->project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
+        BOOST_LOG_TRIVIAL(debug) << "Refining zero-gap support contacts in parallel - start";
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(1, m_layers.size()),
+            [this, &blockers, &enforcers](const tbb::blocked_range<size_t> &range) {
+                for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
+                    m_print->throw_if_canceled();
+                    Layer *layer = m_layers[layer_id];
+                    ZeroGapContactMask mask = compute_zero_gap_contact_mask(
+                        *this, *layer, *m_layers[layer_id - 1], layer_id, blockers, enforcers);
+                    if (mask.polygons.empty())
+                        continue;
+                    for (LayerRegion *layerm : layer->m_regions)
+                        refine_fill_surfaces_for_zero_gap_contact(*layerm, mask.polygons, mask.sliver_r);
+                }
+            });
+        BOOST_LOG_TRIVIAL(debug) << "Refining zero-gap support contacts in parallel - end";
+    }
 
     // Also tiny stInternal surfaces are turned to stInternalSolid.
     BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces..." << log_memory_info();
@@ -1208,6 +1446,10 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "tree_support_branch_diameter_angle"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
+            if (m_config.support_top_z_distance == 0.) {
+                // Zero-gap contact refinement in prepare_infill reads these support settings.
+                steps.emplace_back(posPrepareInfill);
+            }
         } else if (
                opt_key == "bottom_shell_layers"
             || opt_key == "top_shell_layers"
@@ -1489,6 +1731,7 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
             		m_layers.size()),
                 [this, spiral_mode, region_id, interface_shells, &surfaces_new, &slice_surfaces_cpy](const tbb::blocked_range<size_t> &range) {
                 // BBS coconut: can't set to stBottom when soluable support is used, as the support may not be actaully generated, e.g. when "on build plate only" option is enabled. See github #3507.
+                // Zero-gap Normal/auto contacts may later be refined back to stBottom in prepare_infill, see github #11540.
                 SurfaceType surface_type_bottom_other = stBottomBridge;
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     m_print->throw_if_canceled();

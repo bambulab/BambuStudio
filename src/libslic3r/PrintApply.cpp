@@ -1699,9 +1699,12 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                     this->call_cancel_callback();
                     update_apply_status(false);
                 }
-                // Invalidate just the supports step.
-                for (const PrintObjectStatus &print_object_status : print_objects_range)
+                // Invalidate supports; also prepare_infill when zero-gap contact refinement is active.
+                for (const PrintObjectStatus &print_object_status : print_objects_range) {
                     update_apply_status(print_object_status.print_object->invalidate_step(posSupportMaterial));
+                    if (print_object_status.print_object->config().support_top_z_distance == 0.)
+                        update_apply_status(print_object_status.print_object->invalidate_step(posPrepareInfill));
+                }
                 if (supports_differ) {
                     // Copy just the support volumes.
                     model_volume_list_update_supports(model_object, model_object_new);

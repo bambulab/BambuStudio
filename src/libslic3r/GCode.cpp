@@ -7270,24 +7270,20 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             // initial_layer_speed is also on_first_layer()-gated.
             //
             // A bottom hanging over a void is classified as stBottomBridge and already
-            // dispatched to erBridgeInfill (bridge speed) before reaching this branch, so it
-            // is not handled here. This includes overhangs held by ordinary support towers:
-            // the support is not part of the object's own lower-layer slices, so such bottoms
-            // are stBottomBridge (also forced for soluble support, see #3507) and never reach
-            // this erBottomSurface branch.
+            // dispatched to erBridgeInfill (bridge speed) before reaching this branch.
+            // Overhangs held by ordinary (non-zero-gap) support towers stay stBottomBridge
+            // because support is not part of the object's own lower-layer slices.
             //
-            // What can still arrive here as erBottomSurface on a non-bed layer is stBottom,
-            // which has two physically different sub-cases:
+            // What can still arrive here as erBottomSurface on a non-bed layer is stBottom:
             //   1. The first object layer printed over a raft with a Z gap
             //      (gap_raft_object > 0): it actually bridges the air gap above the raft
             //      interface, so it needs bridge speed.
-            //   2. A bottom resting on solid below with no gap: the first object layer sitting
-            //      directly on a gapless (soluble) raft interface, or, with interface_shells,
-            //      a region bottom lying on another region's solid. It should print at the
-            //      regular solid-infill speed; using bridge speed here would needlessly slow
-            //      down well-supported bottoms. Note: stacked bottom-shell layers above the
-            //      contact layer are stInternalSolid (erSolidInfill), not erBottomSurface, so
-            //      they are unaffected by this branch.
+            //   2. A bottom resting on solid below with no gap: a gapless (soluble) raft
+            //      interface, interface_shells onto another region's solid, or a zero-gap
+            //      Normal support contact reclassified from stBottomBridge in prepare_infill
+            //      (github #11540). These should print at regular solid-infill speed.
+            // Stacked bottom-shell layers above the contact layer are stInternalSolid
+            // (erSolidInfill), not erBottomSurface, so they are unaffected by this branch.
             if (on_first_layer()) {
                 speed = NOZZLE_CONFIG(initial_layer_infill_speed);
             } else if (object_layer_over_raft() && m_layer != nullptr &&
