@@ -7923,8 +7923,8 @@ NozzleStatePanel::NozzleStatePanel(wxWindow* parent)
 static Label* s_create_content_label(wxWindow* parent, const wxString& content_str)
 {
     Label* label = new Label(parent, content_str);
-    label->SetBackgroundColour(NOZZLE_STATE_PANEL_BG);
-    label->SetForegroundColour(WXCOLOUR_GREY700);
+    label->SetBackgroundColour(StateColor::darkModeColorFor(NOZZLE_STATE_PANEL_BG));
+    label->SetForegroundColour(StateColor::darkModeColorFor(WXCOLOUR_GREY700));
     label->SetFont(Label::Body_12);
     return label;
 }
@@ -7978,7 +7978,8 @@ static NozzleRowLabels s_create_split_hcontent(wxWindow* parent,
 static Label* s_create_title_label(wxWindow* parent, const wxString& title_str)
 {
     Label* label = new Label(parent, title_str);
-    label->SetBackgroundColour(NOZZLE_STATE_PANEL_BG);
+    label->SetBackgroundColour(StateColor::darkModeColorFor(NOZZLE_STATE_PANEL_BG));
+    label->SetForegroundColour(StateColor::darkModeColorFor(ThemeColor::TextPrimary));
     label->SetFont(Label::Head_12);
     return label;
 }
@@ -8036,7 +8037,7 @@ void NozzleStatePanel::UpdateGui()
     wxPanel* separator = new wxPanel(this);
     separator->SetMaxSize(wxSize(FromDIP(1), -1));
     separator->SetMinSize(wxSize(FromDIP(1), -1));
-    separator->SetBackgroundColour(WXCOLOUR_GREY300);
+    separator->SetBackgroundColour(StateColor::darkModeColorFor(WXCOLOUR_GREY300));
 
     m_sizer->AddSpacer(FromDIP(NOZZLE_STATE_SIDE_PADDING));
     m_sizer->Add(slicing_vbox, 0, wxTOP | wxBOTTOM, FromDIP(NOZZLE_STATE_TB_PADDING));
@@ -8051,7 +8052,7 @@ void NozzleStatePanel::UpdateGui()
     s_set_panel_background(this);
     for (auto child : GetChildren()) {
         if (child != separator) {
-            child->SetBackgroundColour(NOZZLE_STATE_PANEL_BG);
+            child->SetBackgroundColour(StateColor::darkModeColorFor(NOZZLE_STATE_PANEL_BG));
         }
     }
 
@@ -8126,7 +8127,7 @@ static const NozzleRowLabels* s_find_labels(const std::unordered_map<int, std::u
 static void s_set_label_colour(Label* label, const wxColour& font_clr)
 {
     if (label) {
-        label->SetForegroundColour(font_clr);
+        label->SetForegroundColour(StateColor::darkModeColorFor(font_clr));
         label->Refresh();
     }
 }
