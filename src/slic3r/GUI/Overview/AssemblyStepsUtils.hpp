@@ -199,6 +199,9 @@ class AssemblyStepsUtils
     int                 m_structure_add_tree_card{-1};
     int                 m_structure_add_tree_step_node{-1};
     ImVec2              m_structure_add_tree_pos{0.0f, 0.0f};
+    // Set for the frames where the anchor above scrolled out of the visible card region
+    // and the popup had to be pinned to that region instead of following it.
+    bool                m_structure_add_tree_anchor_clipped{false};
     bool                m_structure_add_tree_opened_this_frame{false};
     // Step folder node whose add-object tree should auto-open once its card is
     // laid out (-1 = none). Set right after a step is created so the tree shows
@@ -1026,6 +1029,10 @@ public://logic
     // extend to. Only bottom overlays that actually share columns with the panel are
     // reserved, so e.g. the bottom-left 3D navigator does not shorten a right-side panel.
     float calc_canvas_panel_bottom_limit(float canvas_h, float sc, float panel_x0, float panel_x1) const;
+    // Top-most y a canvas-anchored side panel spanning [panel_x0, panel_x1] may start at.
+    // Counterpart of calc_canvas_panel_bottom_limit: only top overlays that actually share
+    // columns with the panel push it down, so the default top inset is kept otherwise.
+    float calc_canvas_panel_top_limit(float sc, float panel_x0, float panel_x1) const;
     // Top edge of the bottom-centered play bar, recomputed from its layout constants.
     float calc_assemble_play_bar_top_y(float canvas_h, float sc) const;
     // Downward shift for a right-side panel whose Export button sits to its LEFT and

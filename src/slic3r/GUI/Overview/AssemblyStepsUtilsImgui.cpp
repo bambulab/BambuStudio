@@ -4136,9 +4136,23 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         // test errs towards reserving.
         const float tree_x     = panel_x + panel_w + 10.0f * sc;
         const float tree_max_w = calc_assembly_tree_window_w(tree_w, sc, true, true, true);
-        const float tree_h_avail = std::max(180.0f * sc,
-            calc_canvas_panel_bottom_limit(canvas_h, sc, tree_x, tree_x + tree_max_w) - m_structure_add_tree_pos.y);
-        render_assembly_tree_ui(tree_x, m_structure_add_tree_pos.y, tree_w, tree_h_avail, sc);
+        // The anchor icon scrolls with its card, so it leaves the visible card region once
+        // the list is scrolled far enough. Following it there would drag the popup over the
+        // panel header (or off the canvas) while the step it belongs to is not even on
+        // screen, so pin the anchor to the region and let the side arrow park at the
+        // matching window edge instead.
+        const float anchor_icon_sz = 20.0f * sc; // step_icon_sz in the card layout
+        const float anchor_min_y   = scroll_region_y;
+        const float anchor_max_y   = std::max(anchor_min_y, scroll_region_y + scroll_region_h - anchor_icon_sz);
+        const float anchor_y       = std::clamp(m_structure_add_tree_pos.y, anchor_min_y, anchor_max_y);
+        m_structure_add_tree_anchor_clipped = m_structure_add_tree_pos.y < anchor_min_y - 0.5f ||
+                                              m_structure_add_tree_pos.y > anchor_max_y + 0.5f;
+        // Pass the raw icon-to-bottom slot. render_assembly_tree_ui keeps the
+        // default top-align with the object-tree icon, and only lifts the window
+        // (min of 500*sc and 2/3 canvas height + side arrow) when that slot is too short.
+        const float tree_h_avail =
+            calc_canvas_panel_bottom_limit(canvas_h, sc, tree_x, tree_x + tree_max_w) - anchor_y;
+        render_assembly_tree_ui(tree_x, anchor_y, tree_w, tree_h_avail, sc);
     }
 
     // ---- Action buttons --------------------------------------------------
@@ -7655,9 +7669,9 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
     const bool show_explosion_state = show_checkbox && m_view_is_in_explosion_state;
     const bool show_assembly_state  = true;
 
-    // Auto-fit the panel height to the number of visible rows, capped at 800*sc
-    // (then the row list scrolls). panel_h is the on-screen upper clamp.
-    const float adaptive_h = [&]() {
+    // Unclamped content height (chrome + visible rows). Used to decide whether
+    // the icon-aligned slot would overflow and need the min-height + arrow rule.
+    const float content_h = [&]() {
         auto to_lower_ascii = [](std::string v) {
             std::transform(v.begin(), v.end(), v.begin(),
                 [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
@@ -7726,22 +7740,65 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
             chrome_h += 20.0f * sc + 8.0f * sc; // Object name / Label / Explosion / Assembly row
         if (show_checkbox)
             chrome_h += 58.0f * sc; // footer
-        const float content_h = chrome_h + visible_rows * (row_h + row_spacing) + 8.0f * sc;
-        float h = std::min(content_h, 800.0f * sc);
-        if (panel_h > 0.0f)
-            h = std::min(h, panel_h);
-        return h;
+        return chrome_h + visible_rows * (row_h + row_spacing) + 8.0f * sc;
     }();
 
     // Label/Explosion/Assemble are *added* columns: grow the window so Object-name keeps the
     // caller's original panel_w (310*sc). Callers that right-align (Assembly list)
-    // must use calc_assembly_tree_window_w() when choosing panel_x.
+    // must use calc_assembly_tree_window_w() when choosing panel_x. Resolved before the
+    // vertical layout because the top limit below only reserves overlays that share
+    // columns with [panel_x, panel_x + window_w].
+    const float window_w = calc_assembly_tree_window_w(panel_w, sc, show_label_state, show_explosion_state, show_assembly_state);
+
+    // Auto-fit the panel height to the number of visible rows, capped at 800*sc
+    // (then the row list scrolls). panel_h is the on-screen upper clamp from the
+    // icon-aligned top down to the play-bar / overlay limit.
+    const float k_tree_max_h = 800.0f * sc;
+    // Tunable: when the icon-aligned slot overflows and is shorter than this,
+    // lift the window to this minimum and point a side arrow at the icon.
+    const float canvas_h = ImGui::GetIO().DisplaySize.y;
+    const float k_tree_min_popup_h = std::min(500.0f * sc, canvas_h * (2.0f / 3.0f));
+    const float desired_h = std::min(content_h, k_tree_max_h);
+    // Lifting grows the window upwards from the bottom limit, so it needs a hard top stop:
+    // the return toolbar sits in the same column and must stay clickable, and without a
+    // stop a tall step list would also push the window past the top of the canvas.
+    const float top_min = calc_canvas_panel_top_limit(sc, panel_x, panel_x + window_w);
+
+    float window_y = panel_y;
+    float window_h = desired_h;
+    bool  draw_icon_anchor_arrow = false;
+    if (show_checkbox) {
+        const float avail_from_icon = panel_h;
+        const bool  content_overflows = desired_h > avail_from_icon + 0.5f;
+        if (content_overflows && avail_from_icon < k_tree_min_popup_h) {
+            draw_icon_anchor_arrow = true;
+            const float bottom_limit = panel_y + panel_h;
+            window_h = std::max(k_tree_min_popup_h, desired_h);
+            window_y = bottom_limit - window_h;
+            if (window_y < top_min) {
+                window_y = top_min;
+                window_h = std::max(1.0f, bottom_limit - window_y);
+            }
+            if (window_y + 0.5f >= panel_y)
+                draw_icon_anchor_arrow = false;
+        } else if (panel_h > 0.0f) {
+            window_h = std::min(desired_h, panel_h);
+        }
+    } else if (panel_h > 0.0f) {
+        window_h = std::min(desired_h, panel_h);
+    }
+    // A pinned anchor has no on-screen icon left to align with, so keep the side arrow even
+    // when the window is not lifted: its tip is clamped to the window, which parks it at the
+    // start or end edge and points back towards the scrolled-out step.
+    if (show_checkbox && m_structure_add_tree_anchor_clipped)
+        draw_icon_anchor_arrow = true;
+    const float adaptive_h = window_h;
+
     const AssemblyTreeStateColMetrics state_cols =
         calc_assembly_tree_state_col_metrics(sc, show_label_state, show_explosion_state, show_assembly_state);
     const float scrollbar_track_w = 14.0f * sc;
-    const float window_w = calc_assembly_tree_window_w(panel_w, sc, show_label_state, show_explosion_state, show_assembly_state);
 
-    ImGui::SetNextWindowPos(ImVec2(panel_x, panel_y), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
+    ImGui::SetNextWindowPos(ImVec2(panel_x, window_y), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
     ImGui::SetNextWindowSize(ImVec2(window_w, adaptive_h), ImGuiCond_Always);
 
     const float tree_panel_radius = 4.0f * sc;
@@ -7776,6 +7833,27 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
     const ImVec2 tree_window_min = ImGui::GetWindowPos();
     const ImVec2 tree_window_max(tree_window_min.x + ImGui::GetWindowSize().x,
                                  tree_window_min.y + ImGui::GetWindowSize().y);
+    if (draw_icon_anchor_arrow) {
+        // Left-pointing caret on the popup edge, vertically aimed at the step
+        // card's object-tree icon (panel_y is that icon's top).
+        const float icon_sz = 20.0f * sc;
+        const float tri_w   = 8.0f * sc;
+        const float tri_h   = 14.0f * sc;
+        // A pinned anchor sits outside the card region, so aim from its true (unclamped)
+        // position: the clamp below then parks the tip on whichever window edge the step
+        // scrolled out towards, instead of on the side the pinned anchor happens to be.
+        const float aim_y = (show_checkbox && m_structure_add_tree_anchor_clipped)
+            ? m_structure_add_tree_pos.y + icon_sz * 0.5f
+            : panel_y + icon_sz * 0.5f;
+        const float tip_y   = std::clamp(aim_y,
+                                         tree_window_min.y + tri_h * 0.5f,
+                                         tree_window_max.y - tri_h * 0.5f);
+        const ImVec2 tip(tree_window_min.x - tri_w + 1.0f * sc, tip_y);
+        const ImVec2 top(tree_window_min.x + 1.0f * sc, tip_y - tri_h * 0.5f);
+        const ImVec2 bot(tree_window_min.x + 1.0f * sc, tip_y + tri_h * 0.5f);
+        const ImU32  tri_col = m_is_dark ? IM_COL32(45, 45, 49, 250) : IM_COL32(255, 255, 255, 250);
+        ImGui::GetForegroundDrawList()->AddTriangleFilled(tip, top, bot, tri_col);
+    }
     ImFont *font = ImGui::GetFont();
     const float fs_title = ImGui::GetFontSize();
     // Match Assembly Structure panel header / title styling.

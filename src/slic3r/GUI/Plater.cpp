@@ -18652,8 +18652,14 @@ void Plater::priv::sync_assemble_steps_to_main_model()
     // This function also runs from export_3mf() on ordinary prepare-view saves; doing the write-back there
     // would clobber a fresh prepare-view edit (e.g. painting a stroke, then saving / slicing) with the
     // assembly model's stale data. The prepare->assembly direction is refreshed on assembly-view entry.
-    if (m_undo_redo_stack_active == &m_undo_redo_stack_assemble)
-        sync_assemble_render_state(/*prepare_to_assemble*/ false);
+    if (m_undo_redo_stack_active == &m_undo_redo_stack_assemble) {
+        // Filament / painting write-back updates the prepare Model, but ObjectList caches
+        // its own extruder strings. Refresh the filament column so Prepare view matches.
+        if (sync_assemble_render_state(/*prepare_to_assemble*/ false)) {
+            if (ObjectList *ol = wxGetApp().obj_list())
+                ol->sync_filament_from_model();
+        }
+    }
 }
 
 void Plater::priv::enter_assemble_stack()

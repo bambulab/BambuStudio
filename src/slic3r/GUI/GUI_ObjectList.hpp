@@ -258,6 +258,9 @@ public:
     // Refresh a list item's displayed name from the model, without relying on the
     // current selection (vol_idx < 0 targets the object row).
     void                sync_name_from_model(int obj_idx, int vol_idx);
+    // Refresh filament-column numbers/icons from ModelObject/ModelVolume config
+    // (no config rewrite). Used after assembly-view filament edits are written back.
+    void                sync_filament_from_model();
     void                update_filament_values_for_items(const size_t filaments_count);
     void                update_filament_values_for_items_when_delete_filament(const size_t filament_id, const int replace_id = -1);
 

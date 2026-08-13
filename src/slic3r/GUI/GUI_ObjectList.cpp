@@ -1215,6 +1215,45 @@ void ObjectList::sync_name_from_model(int obj_idx, int vol_idx)
     m_objects_model->SetName(new_name, item);
 }
 
+void ObjectList::sync_filament_from_model()
+{
+    if (m_objects_model == nullptr || m_objects == nullptr)
+        return;
+
+    auto extruder_str = [](const ModelConfig &cfg, int fallback) {
+        if (!cfg.has("extruder"))
+            return wxString::Format("%d", fallback);
+        const int e = cfg.extruder();
+        return wxString::Format("%d", e <= 0 ? fallback : e);
+    };
+
+    for (size_t i = 0; i < m_objects->size(); ++i) {
+        ModelObject *object = (*m_objects)[i];
+        if (object == nullptr)
+            continue;
+        wxDataViewItem obj_item = m_objects_model->GetItemById(static_cast<int>(i));
+        if (!obj_item)
+            continue;
+        const wxString obj_ext = extruder_str(object->config, 1);
+        m_objects_model->SetExtruder(obj_ext, obj_item);
+
+        if (object->volumes.size() <= 1)
+            continue;
+        const int obj_ext_n = wxAtoi(obj_ext);
+        for (size_t id = 0; id < object->volumes.size(); ++id) {
+            ModelVolume *mv = object->volumes[id];
+            if (mv == nullptr)
+                continue;
+            const int ui_vol = m_objects_model->get_real_volume_index_in_ui(static_cast<int>(i), static_cast<int>(id));
+            wxDataViewItem vol_item = m_objects_model->GetItemByVolumeId(static_cast<int>(i), ui_vol);
+            if (!vol_item)
+                continue;
+            m_objects_model->SetExtruder(extruder_str(mv->config, obj_ext_n), vol_item);
+        }
+    }
+    Refresh();
+}
+
 void ObjectList::selection_changed()
 {
     if (m_prevent_list_events) return;

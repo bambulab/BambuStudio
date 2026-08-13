@@ -4902,6 +4902,29 @@ float AssemblyStepsUtils::calc_canvas_panel_bottom_limit(float canvas_h, float s
     return limit;
 }
 
+float AssemblyStepsUtils::calc_canvas_panel_top_limit(float sc, float panel_x0, float panel_x1) const
+{
+    const float gap = 8.0f * sc;
+    // Default top inset shared by the assembly side panels (render_assembly_structure_panel).
+    float limit = 17.0f * sc;
+
+    // The return toolbar is docked to the right edge of the Assembly Structure panel, i.e.
+    // the very column a lifted add-object tree grows into, so a panel that starts above it
+    // would cover it. It renders after the assembly panels and lags one frame; that is
+    // harmless for a top inset that only moves when the structure panel is resized, but it
+    // does mean the rect is still empty on the first frame.
+    auto keep_below_if_overlapping = [&](const ImVec2 &mn, const ImVec2 &mx) {
+        if (mx.x <= mn.x || mx.y <= mn.y)
+            return; // not rendered this frame
+        if (mx.x <= panel_x0 || mn.x >= panel_x1)
+            return; // no horizontal overlap
+        limit = std::max(limit, mx.y + gap);
+    };
+    keep_below_if_overlapping(m_overlay_rect_return_toolbar_min, m_overlay_rect_return_toolbar_max);
+
+    return limit;
+}
+
 float AssemblyStepsUtils::calc_export_button_toolbar_offset(float panel_x, float panel_y, float sc) const
 {
     const float tb_x0 = m_gizmo_toolbar_rect_min.x;
