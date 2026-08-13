@@ -1348,10 +1348,12 @@ public:
         }
     }
 
-    WipeTowerWriter &format_line_M104(int target_temp, int target_extruder, bool wait_for_moves = true, const std::string &comment = std::string())
+    WipeTowerWriter &format_line_M104(int target_temp, int target_extruder, bool is_heating, bool wait_for_moves = true, const std::string &comment = std::string())
     {
         std::string buffer;
-        if (wait_for_moves)
+        // Only wait before cooling: G1 is non-blocking, so M104 cool-down must not start mid-travel.
+        // Heating can start early and does not need M400.
+        if (wait_for_moves && !is_heating)
             buffer += "M400\n";
         buffer += "M104";
         if (target_extruder != -1)
@@ -3446,7 +3448,7 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
                                 ? get_nozzle_id(new_filament_id, m_cur_layer_id) : -1;
         writer.append(format_line_M632(new_filament_id, new_nozzle_id));
         if (m_filpar[m_current_tool].precool_target_temp.second != 0) {
-            writer.format_line_M104(m_filpar[m_current_tool].precool_target_temp.second, get_extruder_id(m_current_tool, m_cur_layer_id))
+            writer.format_line_M104(m_filpar[m_current_tool].precool_target_temp.second, get_extruder_id(m_current_tool, m_cur_layer_id), false, true, "Wipe tower nozzle change pre cooling")
                 .append(format_line_M106());
         }
         writer.append(format_line_M633());
@@ -3976,7 +3978,9 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
             writer.extrude(writer.x(), writer.y()+spacing*(up_to_down?-1:1), feedrate);
         }
         if (layer_type == WipeTowerLayerType::Contact && m_enable_tower_interface_features && m_filpar[m_current_tool].filament_tower_interface_print_temp != m_filpar[m_current_tool].nozzle_temperature)
-            writer.format_line_M104(m_filpar[m_current_tool].nozzle_temperature, get_extruder_id(m_current_tool, m_cur_layer_id));
+            writer.format_line_M104(m_filpar[m_current_tool].nozzle_temperature, get_extruder_id(m_current_tool, m_cur_layer_id),
+                                    m_filpar[m_current_tool].nozzle_temperature > m_filpar[m_current_tool].filament_tower_interface_print_temp,
+                                    true, "Wipe tower interface layer leave restore");
         writer.append("; CP EMPTY GRID END\n"
                       ";------------------\n\n\n\n\n\n\n");
     }
@@ -4067,7 +4071,7 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
         if (m_filpar[m_current_tool].filament_cooling_before_tower < EPSILON) return;
         if (!should_heating) return;
         float target_temp = is_first_layer() ? m_filpar[m_current_tool].nozzle_temperature_initial_layer : m_filpar[m_current_tool].nozzle_temperature;
-        writer.format_line_M104(target_temp, get_extruder_id(m_current_tool, m_cur_layer_id));
+        writer.format_line_M104(target_temp, get_extruder_id(m_current_tool, m_cur_layer_id), true, true, "Wipe tower reheat before wipe");
     };
     float speed_factor = 1.f;
     if (should_heating)
@@ -4110,7 +4114,9 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
         float ironing_length = 3.;
 
         if (should_cooling_before_object && i == cooling_begin_line) {
-            writer.format_line_M104(m_filpar[m_current_tool].nozzle_temperature, get_extruder_id(m_current_tool, m_cur_layer_id));
+            writer.format_line_M104(m_filpar[m_current_tool].nozzle_temperature, get_extruder_id(m_current_tool, m_cur_layer_id),
+                                    m_filpar[m_current_tool].nozzle_temperature > m_filpar[m_current_tool].filament_tower_interface_print_temp,
+                                    true, "Wipe tower pre object cooling");
         }
 
         if (i == 0 && m_use_gap_wall) { // BBS: add ironing after extruding start
