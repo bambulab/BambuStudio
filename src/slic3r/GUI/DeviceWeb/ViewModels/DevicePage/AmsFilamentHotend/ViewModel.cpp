@@ -202,9 +202,13 @@ void DevicePageAmsFilamentHotendVM::ReportState(const std::string& submod, const
     if (state_key == m_last_report_state) {
         return;
     }
-    
-    m_last_report_state = state_key;
-    m_bridge->ReportMsg(MakeResponse(GetModule(), submod, action, 0, "", state));
+
+    // Only cache after the visibility gate actually delivered the payload.
+    // Caching first let a dropped report poison m_last_report_state so the
+    // same snapshot was skipped once the device page became visible.
+    if (m_bridge->ReportMsg(MakeResponse(GetModule(), submod, action, 0, "", state))) {
+        m_last_report_state = state_key;
+    }
 }
 
 void DevicePageAmsFilamentHotendVM::OnSysColorChanged()
