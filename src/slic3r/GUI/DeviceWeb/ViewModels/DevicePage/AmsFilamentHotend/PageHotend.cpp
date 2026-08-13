@@ -388,7 +388,9 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
 
     const char* filament_read_label = (card_state == SV::card_state::unknown) ? SV::read_label::read : SV::read_label::reread;// Unknown filament type shows "Read"; known type shows "Reread".
     bool can_read_filament = card_state != SV::card_state::reading && card_state != SV::card_state::empty && machine_obj && !machine_obj->GetFilaSystem()->GetAmsList().empty();
-    if (filament_changing && slot_id.has_value() && fila_sys->IsFilamentChangingSlot(slot_id->first, slot_id->second)){
+    if (filament_changing && slot_id.has_value() && fila_sys->IsFilamentChangingSlot(slot_id->first, slot_id->second)) {
+        can_read_filament = false;
+    } else if (is_external_spool) {
         can_read_filament = false;
     }
 
