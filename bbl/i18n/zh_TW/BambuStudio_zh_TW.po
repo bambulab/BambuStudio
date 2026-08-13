@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 20:41+0800\n"
+"POT-Creation-Date: 2026-08-13 23:15+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3008,16 +3008,6 @@ msgstr "仍然改動"
 msgid "Off"
 msgstr "關閉"
 
-msgid "Air Purifier"
-msgstr ""
-
-msgctxt "AirPurifier"
-msgid "Max"
-msgstr ""
-
-msgid "Silent"
-msgstr "靜音"
-
 msgid "Filter"
 msgstr "過濾"
 
@@ -5648,22 +5638,6 @@ msgstr "以下物體位於盤的邊界上或超過了高度限制：\n"
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "請透過將物體完全移動到盤上或移出盤來解決問題，並確認其高度在構建範圍內。\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "組件的邊界框過大（最大尺寸 >= %1% 英吋），可能導致渲染問題。\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "組件的邊界框過大（最大尺寸 >= %1% mm），可能導致渲染問題。\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "以下物件距離世界座標系原點太遠（距離 >= %1% 英吋）：\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "以下物件距離世界座標系原點太遠（距離 >= %1% mm）：\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "一些模型的位置或者尺寸超出了%s的可列印範圍。"
@@ -7158,6 +7132,9 @@ msgstr "無法讀取耗材絲資訊：耗材絲已經載入到工具頭，請退
 msgid "This only takes effect during printing"
 msgstr "僅在列印過程中生效"
 
+msgid "Silent"
+msgstr "靜音"
+
 msgid "Sport"
 msgstr "運動"
 
@@ -7313,9 +7290,6 @@ msgstr "計算中，請等待..."
 
 msgid "Status"
 msgstr "裝置狀態"
-
-msgid "Print queue"
-msgstr ""
 
 msgctxt "Firmware"
 msgid "Update"
@@ -9710,9 +9684,6 @@ msgstr "同型別噴嘴與耗材共用PA配置檔案"
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "如果主擠出機的耗材/噴嘴未更換，將複用上次的校準值。輔助擠出機將使用系統預設值。"
 
-msgid "Add to queue"
-msgstr ""
-
 msgid "send completed"
 msgstr "傳送完成"
 
@@ -9774,9 +9745,6 @@ msgstr ""
 msgid "Return to modify"
 msgstr ""
 
-msgid "Only the current sliced plate can be added to the print queue."
-msgstr ""
-
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "檢測熱床的平整度。調平可以使擠出的高度更均勻。"
 
@@ -9834,9 +9802,6 @@ msgstr "列印檔案資料異常，請重新切片"
 
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "因列印任務已成功傳送，此次取消操作未能中止本次任務。如需終止任務，請在“裝置頁面”停止列印。"
-
-msgid "Print immediately"
-msgstr ""
 
 msgid "The name length exceeds the limit."
 msgstr "名稱長度超過限制。"
@@ -12247,14 +12212,6 @@ msgstr "配置包已更新到"
 msgid "Open G-code file:"
 msgstr "開啟G-code檔案："
 
-#, c-format, boost-format
-msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "已傳送完成，即將自動跳轉到裝置頁面（%s秒）"
-
 msgid "Print task sending times out."
 msgstr "傳送列印任務超時。"
 
@@ -12268,13 +12225,14 @@ msgid "Sending print configuration"
 msgstr "正在傳送列印配置"
 
 #, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "已傳送完成，即將自動跳轉到裝置頁面（%s秒）"
+
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "已成功傳送。將在%ss後自動跳轉到下一頁。"
 
 msgid "Refreshing printer access code"
-msgstr ""
-
-msgid "Adding print job to queue"
 msgstr ""
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
@@ -18512,6 +18470,22 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "組件的邊界框過大（最大尺寸 >= %1% 英吋），可能導致渲染問題。\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "組件的邊界框過大（最大尺寸 >= %1% mm），可能導致渲染問題。\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "以下物件距離世界座標系原點太遠（距離 >= %1% 英吋）：\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "以下物件距離世界座標系原點太遠（距離 >= %1% mm）：\n"
 
 #~ msgid "True multi-material support will be added in a future update."
 #~ msgstr "真正的多材料支援將在後續更新中加入。"

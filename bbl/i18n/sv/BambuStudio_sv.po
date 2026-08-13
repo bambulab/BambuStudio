@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 20:41+0800\n"
+"POT-Creation-Date: 2026-08-13 23:15+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3019,16 +3019,6 @@ msgstr "Ändra ändå"
 msgid "Off"
 msgstr "Av"
 
-msgid "Air Purifier"
-msgstr "Luftrenare"
-
-msgctxt "AirPurifier"
-msgid "Max"
-msgstr ""
-
-msgid "Silent"
-msgstr "Tyst"
-
 msgid "Filter"
 msgstr ""
 
@@ -5678,22 +5668,6 @@ msgstr "Följande föremål läggs över plattans gräns eller överskrider höj
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Lös problemet genom att flytta den helt på eller av plattan och bekräfta att höjden ligger inom byggvolymen.\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "Sammansättningens avgränsningsruta är för stor (max storlek >%1%= tum) vilket kan orsaka problem med renderingen.\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "Sammansättningens avgränsningsruta är för stor (maxstorlek >=%1%mm) vilket kan orsaka problem med renderingen.\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "Följande objekt har för långt ( avstånd > = %1% tum) från originalet av världens koordinatsystem:\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "Följande objekt är för långt (avstånd >=%1%mm) från originalet av världens koordinatsystem:\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "Positionen eller storleken på vissa modeller överskrider %s's utskrivbara område."
@@ -7197,6 +7171,9 @@ msgstr "Kan inte läsa filament info: filamentet är laddat i verktygshuvudet, m
 msgid "This only takes effect during printing"
 msgstr "Detta gäller endast under utskrift."
 
+msgid "Silent"
+msgstr "Tyst"
+
 msgid "Sport"
 msgstr "Sport"
 
@@ -7354,9 +7331,6 @@ msgstr "Beräknar; vänta..."
 
 msgid "Status"
 msgstr "Status"
-
-msgid "Print queue"
-msgstr "Utskriftskö"
 
 msgctxt "Firmware"
 msgid "Update"
@@ -9764,9 +9738,6 @@ msgstr "Nozzle och filament av samma typ delar samma PA profil"
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "Om filamentet/nozzle på huvud extrudern inte har ändrats kommer det senaste kalibreringsvärdet att återanvändas. Hjälp extrudern kommer att använda systemets standardvärde."
 
-msgid "Add to queue"
-msgstr "Lägg till i kö"
-
 msgid "send completed"
 msgstr "skicka slutförd"
 
@@ -9830,9 +9801,6 @@ msgstr "Fortsätt utskrift"
 msgid "Return to modify"
 msgstr "Återgå för att ändra"
 
-msgid "Only the current sliced plate can be added to the print queue."
-msgstr "Endast den aktuella beredda plattan kan läggas till i utskriftskön."
-
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Detta kontrollerar värmebäddens planhet. Utjämning gör den extruderade höjden enhetlig."
 
@@ -9891,9 +9859,6 @@ msgstr "Onormal utskrifts fil data. Vänligen bered igen"
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "Eftersom utskriftsjobbet har skickats framgångsrikt kommer avbrytandet inte stoppa utskriftsjobbet. Om du behöver avsluta det här jobbet, stoppa det på sidan \"Enhet\"."
 
-msgid "Print immediately"
-msgstr "Skriv ut omedelbart"
-
 msgid "The name length exceeds the limit."
 msgstr "Namnlängden överskrider gränsen."
 
@@ -9951,7 +9916,7 @@ msgid "The toolhead and hotend rack are full. Please remove at least one hotend 
 msgstr "Verktygshuvud och hotend ställ är fullt. Ta bort minst en hotend innan utskrift."
 
 msgid "The nozzle type doesn't match. Please re-slice."
-msgstr "Nozzlet-ypen matchar inte. Gör om beredning."
+msgstr "Nozzle-typen matchar inte. Gör om beredning."
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "Filament spårbytaren som är installerad på printern matchar inte berednings filen. Bered om för att undvika problem med utskrifts kvaliteten."
@@ -12319,14 +12284,6 @@ msgstr "Konfigurations paket uppdaterat till "
 msgid "Open G-code file:"
 msgstr "Öppna G-kod fil:"
 
-#, c-format, boost-format
-msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr "Har lagt till i utskriftskön. Hoppar automatiskt till utskriftskön om %s s"
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Framgångsrikt skickat. Kommer automatiskt att hoppa till enhetssidan om %s s"
-
 msgid "Print task sending times out."
 msgstr "Timeout för sändning av utskriftsuppgift."
 
@@ -12340,14 +12297,15 @@ msgid "Sending print configuration"
 msgstr "Skicka utskrifts konfiguration"
 
 #, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "Framgångsrikt skickat. Kommer automatiskt att hoppa till enhetssidan om %s s"
+
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Skickat. Hoppar automatiskt till nästa sida in%s s"
 
 msgid "Refreshing printer access code"
 msgstr "Uppdaterar skrivarens åtkomstkod"
-
-msgid "Adding print job to queue"
-msgstr "Lägger till utskriftsjobb i kön"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "Följande objekt har ett tomt initiallager och kan inte skrivas ut. Vänligen klipp botten eller aktivera support."
@@ -18607,6 +18565,44 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid "Air Purifier"
+#~ msgstr "Luftrenare"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "Sammansättningens avgränsningsruta är för stor (max storlek >%1%= tum) vilket kan orsaka problem med renderingen.\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "Sammansättningens avgränsningsruta är för stor (maxstorlek >=%1%mm) vilket kan orsaka problem med renderingen.\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "Följande objekt har för långt ( avstånd > = %1% tum) från originalet av världens koordinatsystem:\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "Följande objekt är för långt (avstånd >=%1%mm) från originalet av världens koordinatsystem:\n"
+
+#~ msgid "Print queue"
+#~ msgstr "Utskriftskö"
+
+#~ msgid "Add to queue"
+#~ msgstr "Lägg till i kö"
+
+#~ msgid "Only the current sliced plate can be added to the print queue."
+#~ msgstr "Endast den aktuella beredda plattan kan läggas till i utskriftskön."
+
+#~ msgid "Print immediately"
+#~ msgstr "Skriv ut omedelbart"
+
+#, c-format, boost-format
+#~ msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+#~ msgstr "Har lagt till i utskriftskön. Hoppar automatiskt till utskriftskön om %s s"
+
+#~ msgid "Adding print job to queue"
+#~ msgstr "Lägger till utskriftsjobb i kön"
 
 #, boost-format
 #~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."

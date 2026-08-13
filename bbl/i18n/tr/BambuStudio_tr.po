@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 20:41+0800\n"
+"POT-Creation-Date: 2026-08-13 23:15+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -3021,16 +3021,6 @@ msgstr "Yine de Değiştir"
 msgid "Off"
 msgstr "Kapalı"
 
-msgid "Air Purifier"
-msgstr ""
-
-msgctxt "AirPurifier"
-msgid "Max"
-msgstr ""
-
-msgid "Silent"
-msgstr "Sessiz"
-
 msgid "Filter"
 msgstr "Süz"
 
@@ -5663,22 +5653,6 @@ msgstr "Aşağıdaki nesneler plaka sınırının üzerine yerleştirilir veya y
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Lütfen sorunu tamamen plakanın üzerine veya dışına hareket ettirerek ve yüksekliğin yapım hacmi dahilinde olduğunu doğrulayarak çözün.\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "Assembly'nin sınırlayıcı kutusu çok büyük ( maksimum boyut >= %1% inç ), bu da render sorunlarına neden olabilir.\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "Assembly'nin sınırlayıcı kutusu çok büyük (maksimum boyut >= %1% mm), bu da render sorunlarına neden olabilir.\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "Aşağıdaki nesneler dünya koordinat sisteminin orijinalinden çok uzakta ( mesafe >= %1% inç ):\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "Aşağıdaki nesneler dünya koordinat sisteminin orijinalinden çok uzakta ( mesafe >= %1% mm ):\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "Bazı modellerin konumu veya boyutu %s'nin yazdırılabilir aralığını aşıyor."
@@ -7178,6 +7152,9 @@ msgstr ""
 msgid "This only takes effect during printing"
 msgstr "Bu yalnızca yazdırma sırasında etkili olur"
 
+msgid "Silent"
+msgstr "Sessiz"
+
 msgid "Sport"
 msgstr "Spor"
 
@@ -7333,9 +7310,6 @@ msgstr "Hesaplanıyor, lütfen bekleyin..."
 
 msgid "Status"
 msgstr "Durum"
-
-msgid "Print queue"
-msgstr ""
 
 msgctxt "Firmware"
 msgid "Update"
@@ -9711,9 +9685,6 @@ msgstr ""
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr ""
 
-msgid "Add to queue"
-msgstr ""
-
 msgid "send completed"
 msgstr "gönderme tamamlandı"
 
@@ -9775,9 +9746,6 @@ msgstr ""
 msgid "Return to modify"
 msgstr ""
 
-msgid "Only the current sliced plate can be added to the print queue."
-msgstr ""
-
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Bu, ısı yatağının düzlüğünü kontrol eder. Tesviye, ekstrüzyon yüksekliğini tekdüze hale getirir."
 
@@ -9835,9 +9803,6 @@ msgstr "Anormal yazdırma dosyası verileri. Lütfen tekrar dilimleyin"
 
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "Yazdırma işi başarıyla gönderildiğinden, iptal işlemi yazdırma işini durdurmayacaktır. Bu işi sonlandırmanız gerekiyorsa, lütfen 'Aygıt' sayfasında durdurun."
-
-msgid "Print immediately"
-msgstr ""
 
 msgid "The name length exceeds the limit."
 msgstr "Ad uzunluğu sınırı aşıyor."
@@ -12235,14 +12200,6 @@ msgstr "Yapılandırma paketi şu şekilde güncellendi "
 msgid "Open G-code file:"
 msgstr "G kodu dosyasını açın:"
 
-#, c-format, boost-format
-msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Başarıyla gönderildi. %ss'de otomatik olarak cihaz sayfasına atlayacak"
-
 msgid "Print task sending times out."
 msgstr "Yazdırma görevi gönderimi zaman aşımına uğradı."
 
@@ -12256,13 +12213,14 @@ msgid "Sending print configuration"
 msgstr "Yazdırma yapılandırması gönderiliyor"
 
 #, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "Başarıyla gönderildi. %ss'de otomatik olarak cihaz sayfasına atlayacak"
+
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Başarıyla gönderildi. %ss'de otomatik olarak bir sonraki sayfaya atlayacak"
 
 msgid "Refreshing printer access code"
-msgstr ""
-
-msgid "Adding print job to queue"
 msgstr ""
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
@@ -18463,6 +18421,22 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "Assembly'nin sınırlayıcı kutusu çok büyük ( maksimum boyut >= %1% inç ), bu da render sorunlarına neden olabilir.\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "Assembly'nin sınırlayıcı kutusu çok büyük (maksimum boyut >= %1% mm), bu da render sorunlarına neden olabilir.\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "Aşağıdaki nesneler dünya koordinat sisteminin orijinalinden çok uzakta ( mesafe >= %1% inç ):\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "Aşağıdaki nesneler dünya koordinat sisteminin orijinalinden çok uzakta ( mesafe >= %1% mm ):\n"
 
 #~ msgid "Failed to create GCodeV2"
 #~ msgstr "GCodeV2 oluşturulamadı"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 20:41+0800\n"
+"POT-Creation-Date: 2026-08-13 23:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3014,16 +3014,6 @@ msgstr "変更を続行"
 msgid "Off"
 msgstr "オフ"
 
-msgid "Air Purifier"
-msgstr "空気清浄機"
-
-msgctxt "AirPurifier"
-msgid "Max"
-msgstr "最大"
-
-msgid "Silent"
-msgstr "サイレント"
-
 msgid "Filter"
 msgstr "フィルター"
 
@@ -3400,7 +3390,7 @@ msgid "Delete all assembly steps"
 msgstr "すべての組み立てステップを削除"
 
 msgid "There’s no step to delete"
-msgstr "削除するステップがありません"
+msgstr "削除できるステップがありません"
 
 msgid "Go to Wiki"
 msgstr "Wikiへ移動"
@@ -3443,7 +3433,7 @@ msgid "Not"
 msgstr "未"
 
 msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
-msgstr "まず「確認」をクリックしてください。キャンバス上にラベルが生成された後、このラベルコントロールを使用できます。"
+msgstr "まず「確認」をクリックしてください。キャンバス上にラベルが生成されると、このラベルコントロールが使用可能になります。"
 
 msgid "Click to add Cyber Brick"
 msgstr "クリックしてCyber Brickを追加"
@@ -3578,10 +3568,10 @@ msgid "At least two keyframes are required to play."
 msgstr "再生するには、少なくとも2つのキーフレームが必要です。"
 
 msgid "Add the selected object or part to the current step first"
-msgstr "選択したオブジェクトまたはパーツをまず現在のステップに追加してください。"
+msgstr "先に、選択したオブジェクトまたはパーツを現在のステップに追加してください"
 
 msgid "Add a new object to the current step first"
-msgstr "まず現在のステップに新しいオブジェクトを追加してください"
+msgstr "先に、現在のステップに新しいオブジェクトを追加してください"
 
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
 msgstr "現在選択されているオブジェクトまたはパーツに最終アセンブリポーズを適用します（何も選択されていない場合は、現在のフレームに追加されたすべてのオブジェクトに適用します）。"
@@ -5666,22 +5656,6 @@ msgstr "以下のオブジェクトがプレートの境界を超えて配置さ
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "プレート上またはプレートから完全に移動させ、高さがビルドボリューム内であることを確認して問題を解決してください。\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "アセンブリのバウンディングボックスが大きすぎます（最大サイズが %1%インチ以上）。レンダリングに問題が発生する可能性があります。\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "アセンブリのバウンディングボックスが大きすぎます（最大サイズが %1%mm 以上）。レンダリングに問題が発生する可能性があります。\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "次のオブジェクトはワールド座標系の原点から離れすぎています（距離が %1%インチ以上）。\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "以下のオブジェクトは、ワールド座標系の原点から離れすぎています（距離が %1%mm 以上）。\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "一部のモデルの位置またはサイズが、%s の造形可能範囲を超えています。"
@@ -7169,6 +7143,9 @@ msgstr "フィラメント情報を読み取れません。フィラメントが
 msgid "This only takes effect during printing"
 msgstr "造形時の設定"
 
+msgid "Silent"
+msgstr "サイレント"
+
 msgid "Sport"
 msgstr "スポーツ"
 
@@ -7324,9 +7301,6 @@ msgstr "計算中です。しばらくお待ちください…"
 
 msgid "Status"
 msgstr "デバイス状態"
-
-msgid "Print queue"
-msgstr "プリントキュー"
 
 msgctxt "Firmware"
 msgid "Update"
@@ -8087,7 +8061,7 @@ msgid "Loading file: %s"
 msgstr "ファイルを読込む: %s"
 
 msgid "The 3mf file has invalid config, load geometry data only"
-msgstr "3mfファイルに無効な設定があるため、ジオメトリデータのみをロードします。"
+msgstr "3MFファイルの設定が無効なため、ジオメトリデータのみを読み込みます"
 
 msgid "Load 3mf"
 msgstr "3mfを読込み"
@@ -8374,7 +8348,7 @@ msgid "Option 3: Enable multi-material optimization"
 msgstr "オプション 3: マルチマテリアル最適化を有効にする"
 
 msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
-msgstr "サードパーティアイコンをクリック → Helio Additive を有効にする → 「実験的: マルチマテリアルサポートを有効にする」にチェックを入れる"
+msgstr "サードパーティアイコンをクリック → Helio Additive を有効にする → 「実験機能：マルチマテリアル対応を有効化」にチェックを入れる"
 
 msgid "Unsupported Materials Detected"
 msgstr "未対応の材料が検出されました"
@@ -8413,13 +8387,13 @@ msgid "Refreshing printer and material data..."
 msgstr "プリンターおよび材料データを更新中…"
 
 msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
-msgstr "Helio はプリンターとマテリアルの全データを更新できませんでした。以前の完全なデータが引き続き利用可能です。"
+msgstr "Helio はプリンターおよびマテリアルの全データを更新できませんでした。前回の完全なデータが引き続き利用可能です。"
 
 msgid "Helio could not load complete printer and material data. Matching remains paused."
-msgstr "Helio はプリンターとマテリアルの完全なデータをロードできませんでした。マッチングは一時停止されています。"
+msgstr "Helio はプリンターおよびマテリアルの完全なデータを読み込めませんでした。マッチングは一時停止中です。"
 
 msgid "Helio Data Refresh Failed"
-msgstr "Helio データ更新失敗"
+msgstr "Helio データの更新に失敗しました"
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Helioのシミュレーションまたは最適化タスクを実行中です。"
@@ -8541,7 +8515,7 @@ msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "「最適化／強化」ボタンをクリックして、最初の最適化を開始してください。"
 
 msgid "Previous Helio action is still stopping; try again shortly"
-msgstr "前回の Helio アクションがまだ処理中です。しばらくしてからもう一度お試しください"
+msgstr "前回の Helio アクションの停止処理中です。しばらくしてからもう一度お試しください"
 
 msgid "Helio Additive"
 msgstr ""
@@ -8570,10 +8544,10 @@ msgid "Synchronizing Helio"
 msgstr "Helioを同期中"
 
 msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
-msgstr "Helio はサポートされているプリンターおよびマテリアルリストをロードできませんでした。サポートされていないマテリアルとして扱われるのを防ぐため、マッチングは一時停止されました。"
+msgstr "Helio は対応プリンターおよびマテリアルのリストを読み込めませんでした。未取得のデータが非対応マテリアルとして処理されるのを防ぐため、マッチングを一時停止しました。"
 
 msgid "Helio Data Load Failed"
-msgstr "Helio データロード失敗"
+msgstr "Helio データの読み込みに失敗しました"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "スライシングエラーを解決して、もう一度公開していください"
@@ -9730,9 +9704,6 @@ msgstr "同じ種類のノズルとフィラメントは、同一のPAプロフ�
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "メイン押出機のフィラメント／ノズルが変更されていない場合、前回のキャリブレーション値が再利用されます。補助押出機にはシステムのデフォルト値が使用されます。"
 
-msgid "Add to queue"
-msgstr "キューに追加"
-
 msgid "send completed"
 msgstr "送信完了"
 
@@ -9794,9 +9765,6 @@ msgstr "造形を続行"
 msgid "Return to modify"
 msgstr "戻って変更"
 
-msgid "Only the current sliced plate can be added to the print queue."
-msgstr "現在のスライスされたプレートのみをプリントキューに追加できます。"
-
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "これはヒートベッドの平坦度を確認します。レベリングを行うことで、フィラメントの押し出し高さが均一になります。"
 
@@ -9855,9 +9823,6 @@ msgstr "ファイルに異常があります、もう一度スライスしてく
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "造型ジョブは正常に送信されたため、キャンセルしても造形ジョブは停止しません。このジョブを終了する必要がある場合は、「デバイス」ページで停止してください。"
 
-msgid "Print immediately"
-msgstr "すぐに造形開始"
-
 msgid "The name length exceeds the limit."
 msgstr "名前の長さが制限を超えています。"
 
@@ -9915,7 +9880,7 @@ msgid "The toolhead and hotend rack are full. Please remove at least one hotend 
 msgstr "ツールヘッドとホットエンドラックが満杯です。造形を始める前に、少なくとも1つのホットエンドを取り外してください。"
 
 msgid "The nozzle type doesn't match. Please re-slice."
-msgstr "ノズルの種類が一致しません。再スライスしてください。"
+msgstr "ノズルの種類が一致しません。再度スライスしてください。"
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "プリンターに取り付けられているフィラメント経路切替器が、スライスファイルと一致していません。造形品質への影響を防ぐため、再スライスしてください。"
@@ -10257,8 +10222,9 @@ msgid ""
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
-"サポート材に水溶性素材を使用する場合、以下の設定を推奨します。\n"
-"Top Z距離: 0、Bottom Z距離: 0、インターフェース間隔: 0、サポート/オブジェクトXY距離: 0、交互の直線パターン、独立サポート層の高さを無効にし、サポートインターフェースとサポートベースの両方に水溶性素材を使用"
+"水溶性サポート材を使用する場合、以下の設定を推奨します。\n"
+"トップZ距離: 0、ボトムZ距離: 0、インターフェース間隔: 0、サポート／オブジェクトのXY距離: 0、インターレース直線 \n"
+"パターン、独立サポート積層ピッチの無効化、サポートインターフェースおよびサポートベースの両方に水溶性サポート材を使用"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -10304,13 +10270,13 @@ msgid ""
 msgstr "選択したプリンターのベッド温度の上限は%d°Cです。ベッド温度をこれ以上高く設定すると、プリンターの損傷につながる可能性があります。"
 
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
-msgstr "スムースタイムラプスでは、すべてのレイヤーにプライムタワーが必要ですが、これは「スパースレイヤーなし」と互換性がありません。「スパースレイヤーなし」はオフになりました。"
+msgstr "スムーズタイムラプス機能には全レイヤーでのプライムタワー配置が必要なため、「スパースレイヤーなし」とは併用できません。「スパースレイヤーなし」をオフにしました。"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "タイムラプスをスムーズに行うにはプライムタワーが必要です。プライムタワーがない場合、モデルに欠陥がある可能性があります。プライムタワーを有効にしますか？"
 
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
-msgstr "「スパースレイヤーなし」は、すべてのレイヤーにプライムタワーが必要なスムースタイムラプスと互換性がありません。タイムラプスは従来のモードに切り替わりました。"
+msgstr "「スパースレイヤーなし」は、全レイヤーにプライムタワーを必要とするスムーズタイムラプスと併用できません。タイムラプスを従来モードに切り替えました。"
 
 msgid "Still print by object?"
 msgstr "まだオブジェクト順に印刷しますか？"
@@ -12277,14 +12243,6 @@ msgstr "構成パッケージがアップデートされました"
 msgid "Open G-code file:"
 msgstr "G-codeファイルを開く"
 
-#, c-format, boost-format
-msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr "プリントキューに追加しました。%ss後に自動的にプリントキューページにジャンプします。"
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "送信しました、%s秒後デバイスページへ移動します"
-
 msgid "Print task sending times out."
 msgstr "印刷タスクの送信がタイムアウトしました。"
 
@@ -12298,14 +12256,15 @@ msgid "Sending print configuration"
 msgstr "構成を送信"
 
 #, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "送信しました、%s秒後デバイスページへ移動します"
+
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "正常に送信されました。%s秒で自動的に次のページにジャンプします。"
 
 msgid "Refreshing printer access code"
 msgstr "プリンターのアクセスコードを更新中"
-
-msgid "Adding print job to queue"
-msgstr "プリントタスクをキューに追加中"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "以下のオブジェクトは一層目が空のため、印刷できません。底をカットするか、サポートを有効にしてください。"
@@ -17477,49 +17436,49 @@ msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer 
 msgstr "0.4mmノズル用の低加速度プロファイルです。プリンターが不安定な机や棚に置かれている場合に使用してください"
 
 msgid "Helio GCode status response is incomplete"
-msgstr "Helio GCodeステータス応答が不完全です"
+msgstr "Helio Gコードのステータス応答が不完全です"
 
 msgid "Helio GCode status response parse failed"
-msgstr "Helio GCodeステータス応答の解析に失敗しました"
+msgstr "Helio Gコードのステータス応答の解析に失敗しました"
 
 msgid "Helio action canceled"
-msgstr "Helioアクションがキャンセルされました"
+msgstr "Helio アクションがキャンセルされました"
 
 msgid "Helio GCode creation response is incomplete"
-msgstr "Helio GCode作成応答が不完全です"
+msgstr "Helio Gコードの生成応答が不完全です"
 
 msgid "Failed to parse response"
 msgstr "応答の解析に失敗しました"
 
 msgid "Helio GCode status check failed"
-msgstr "Helio GCodeステータスチェックに失敗しました"
+msgstr "Helio Gコードのステータ確認に失敗しました"
 
 msgid "Helio GCode creation timed out while checking status"
-msgstr "Helio GCode作成中にステータスチェックでタイムアウトしました"
+msgstr "Helio Gコード生成時のステータス確認でタイムアウトしました"
 
 msgid "Failed to create Simulation"
-msgstr "シミュレーションの作成に失敗しました"
+msgstr "シミュレーションの生成に失敗しました"
 
 msgid "Helio simulation response is incomplete"
-msgstr "Helioシミュレーション応答が不完全です"
+msgstr "Helio シミュレーション応答が不完全です"
 
 msgid "Helio simulation task failed"
 msgstr "Helioシミュレーションタスクが失敗しました"
 
 msgid "Helio simulation response parse failed"
-msgstr "Helioシミュレーション応答の解析に失敗しました"
+msgstr "Helio シミュレーション応答の解析に失敗しました"
 
 msgid "Failed to create Optimization"
-msgstr "最適化の作成に失敗しました"
+msgstr "最適化処理の生成に失敗しました"
 
 msgid "Helio optimization response is incomplete"
-msgstr "Helio最適化応答が不完全です"
+msgstr "Helio 最適化応答が不完全です"
 
 msgid "Helio optimization task failed"
 msgstr "Helio最適化タスクが失敗しました"
 
 msgid "Helio optimization response parse failed"
-msgstr "Helio最適化応答の解析に失敗しました"
+msgstr "Helio 最適化応答の解析に失敗しました"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio APIエンドポイントが未設定です。設定内容を確認してください。"
@@ -17537,7 +17496,7 @@ msgid "Helio: file upload failed"
 msgstr "Helio：ファイルのアップロードに失敗しました"
 
 msgid "Please make sure you have the correct API key set in preferences."
-msgstr "正しいAPIキーが環境設定に設定されていることを確認してください。"
+msgstr "環境設定で正しいAPI キーが設定されていることを確認してください。"
 
 msgid "Helio: GCode created successfully"
 msgstr "Helio：Gコードの生成に成功しました"
@@ -17546,7 +17505,7 @@ msgid "Helio: simulation successfully created"
 msgstr "Helio：シミュレーションの生成に成功しました"
 
 msgid "transient progress checks did not recover"
-msgstr "一時的な進捗チェックが回復しませんでした"
+msgstr "一時的な進捗確認が復旧しませんでした"
 
 msgid "Helio: simulation failed"
 msgstr "Helio：シミュレーションに失敗しました"
@@ -18577,6 +18536,48 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Air Purifier"
+#~ msgstr "空気清浄機"
+
+#~ msgctxt "AirPurifier"
+#~ msgid "Max"
+#~ msgstr "最大"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "アセンブリのバウンディングボックスが大きすぎます（最大サイズが %1%インチ以上）。レンダリングに問題が発生する可能性があります。\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "アセンブリのバウンディングボックスが大きすぎます（最大サイズが %1%mm 以上）。レンダリングに問題が発生する可能性があります。\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "次のオブジェクトはワールド座標系の原点から離れすぎています（距離が %1%インチ以上）。\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "以下のオブジェクトは、ワールド座標系の原点から離れすぎています（距離が %1%mm 以上）。\n"
+
+#~ msgid "Print queue"
+#~ msgstr "プリントキュー"
+
+#~ msgid "Add to queue"
+#~ msgstr "キューに追加"
+
+#~ msgid "Only the current sliced plate can be added to the print queue."
+#~ msgstr "現在のスライスされたプレートのみをプリントキューに追加できます。"
+
+#~ msgid "Print immediately"
+#~ msgstr "すぐに造形開始"
+
+#, c-format, boost-format
+#~ msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+#~ msgstr "プリントキューに追加しました。%ss後に自動的にプリントキューページにジャンプします。"
+
+#~ msgid "Adding print job to queue"
+#~ msgstr "プリントタスクをキューに追加中"
 
 #, boost-format
 #~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."

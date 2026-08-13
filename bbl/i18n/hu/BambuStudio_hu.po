@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 20:41+0800\n"
+"POT-Creation-Date: 2026-08-13 23:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3022,16 +3022,6 @@ msgstr "Megváltoztatás"
 msgid "Off"
 msgstr "Ki"
 
-msgid "Air Purifier"
-msgstr "Légtisztító"
-
-msgctxt "AirPurifier"
-msgid "Max"
-msgstr ""
-
-msgid "Silent"
-msgstr "Csendes"
-
 msgid "Filter"
 msgstr "Szűrő"
 
@@ -3324,7 +3314,7 @@ msgid "Explosion"
 msgstr "Robbantás"
 
 msgid "Unassembled"
-msgstr "Össze nem szerelt"
+msgstr "Nincs összeszerelve"
 
 msgid "Assembly Step"
 msgstr "Összeszerelési lépés"
@@ -3375,7 +3365,7 @@ msgid "Show explosion state column"
 msgstr "Robbantott állapot oszlopának megjelenítése"
 
 msgid "Allow modify text note foreground"
-msgstr "Szövegjegyzet előtérszínének módosítása engedélyezése"
+msgstr "Szöveges megjegyzés előtér-módosításának engedélyezése"
 
 msgid "Allow modify text note background"
 msgstr "Szöveges megjegyzés hátterének módosításának engedélyezése"
@@ -3405,7 +3395,7 @@ msgid "Options"
 msgstr "Opciók"
 
 msgid "Delete all assembly steps"
-msgstr "Törölje az összes összeszerelési lépést"
+msgstr "Az összes összeállítási lépés törlése"
 
 msgid "There’s no step to delete"
 msgstr "Nincs törölhető lépés"
@@ -3423,7 +3413,7 @@ msgid "Copy and inherit this step"
 msgstr "Lépés másolása és öröklése"
 
 msgid "Add objects to this step before copying"
-msgstr "Adjon hozzá objektumokat ehhez a lépéshez másolás előtt"
+msgstr "Másolás előtt adj objektumokat ehhez a lépéshez"
 
 msgid "Delete current step"
 msgstr "Aktuális lépés törlése"
@@ -3442,7 +3432,7 @@ msgid "Only add empty steps. This has nothing to do with the selected objects on
 msgstr "Csak üres lépéseket adjon hozzá. Ennek semmi köze a vásznon kijelölt objektumokhoz."
 
 msgid "Merge and add steps."
-msgstr "Egyesítse és adja hozzá a lépéseket."
+msgstr "Egyesítsd és add hozzá a lépéseket."
 
 msgid "Click to exit assembly step editing, or press Esc."
 msgstr "Kattintson az összeszerelési lépések szerkesztéséből való kilépéshez, vagy nyomja meg az Esc billentyűt."
@@ -3451,7 +3441,7 @@ msgid "Not"
 msgstr "Nem"
 
 msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
-msgstr "Kérjük, kattintson először a Megerősítés gombra. Miután a címkék megjelentek a vásznon, ez a címkevezérlő használható lesz."
+msgstr "Először kattintson a Megerősítés gombra. Miután a címkék létrejöttek a vásznon, a címkevezérlő használhatóvá válik."
 
 msgid "Click to add Cyber Brick"
 msgstr "Kattintson ide a Cyber Brick hozzáadásához"
@@ -3529,7 +3519,7 @@ msgid "Automatically choose object-or-part-level labels: a fully-used object alr
 msgstr "Objektum- vagy részszintű címkék automatikus kiválasztása: egy korábbi lépésekben már megjelenített, teljes mértékben használt objektum egyetlen objektumcímkévé csukódik össze; a részleges objektumok és az első megjelenések egyedi részekenként vannak címkézve."
 
 msgid "Please create an assembly step before exporting."
-msgstr "Kérjük, hozzon létre egy összeszerelési lépést az exportálás előtt."
+msgstr "Exportálás előtt kérjük, hozz létre egy összeállítási lépést."
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "Összeszerelési útmutató exportálása PDF, Markdown vagy MP4 formátumban"
@@ -3586,10 +3576,10 @@ msgid "At least two keyframes are required to play."
 msgstr "Legalább két kulcsképkocka szükséges a lejátszáshoz."
 
 msgid "Add the selected object or part to the current step first"
-msgstr "Először adja hozzá a kiválasztott objektumot vagy alkatrészt az aktuális lépéshez."
+msgstr "Először add hozzá a kiválasztott objektumot vagy alkatrészt az aktuális lépéshez"
 
 msgid "Add a new object to the current step first"
-msgstr "Adjon hozzá új objektumot az aktuális lépéshez elsőként"
+msgstr "Először adj hozzá egy új objektumot az aktuális lépéshez"
 
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
 msgstr "A végső összeszerelési pozíció alkalmazása az aktuálisan kiválasztott objektumra vagy alkatrészre (ha nincs kijelölve, akkor az aktuális képkockában hozzáadott összes objektumra alkalmazza)"
@@ -5689,22 +5679,6 @@ msgstr "A következő objektumok a tálcán kívülre esnek, vagy meghaladják a
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Kérjük, mozgasd őket teljesen a tálcán kívülre/belülre és bizonyosodj meg arról, hogy a tárgy magassága belefér a nyomtatható tartományba.\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "Az összeállítás befoglaló mérete túl nagy (maximális méret >= %1% in), ami renderelési problémákat okozhat.\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "Az összeállítás befoglaló mérete túl nagy (maximális méret >= %1% mm), ami renderelési problémákat okozhat.\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "A következő objektumok túl messze vannak (távolság >= %1% in) a világ koordináta-rendszer origójától:\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "A következő objektumok túl messze vannak (távolság >= %1% mm) a világ koordináta-rendszer origójától:\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "Egyes modellek pozíciója vagy mérete meghaladja a(z) %s által nyomtatható tartományt."
@@ -7208,6 +7182,9 @@ msgstr "Nem olvasható a filamentinformáció: filament van betöltve a szerszá
 msgid "This only takes effect during printing"
 msgstr "Ez csak a nyomtatás során érvényesül"
 
+msgid "Silent"
+msgstr "Csendes"
+
 msgid "Sport"
 msgstr "Sport"
 
@@ -7365,9 +7342,6 @@ msgstr "Számítás folyamatban, kérjük várj..."
 
 msgid "Status"
 msgstr "Állapot"
-
-msgid "Print queue"
-msgstr "Nyomtatási sor"
 
 msgctxt "Firmware"
 msgid "Update"
@@ -8132,7 +8106,7 @@ msgid "Loading file: %s"
 msgstr "Fájl betöltése: %s"
 
 msgid "The 3mf file has invalid config, load geometry data only"
-msgstr "A 3mf fájl érvénytelen konfigurációt tartalmaz, csak a geometriai adatokat tölti be."
+msgstr "A 3mf fájl érvénytelen konfigurációt tartalmaz, csak geometriai adatok betöltése"
 
 msgid "Load 3mf"
 msgstr "3mf betöltése"
@@ -8419,10 +8393,10 @@ msgid "Go Back"
 msgstr "Vissza"
 
 msgid "Option 3: Enable multi-material optimization"
-msgstr "3. opció: Többanyag-optimalizálás engedélyezése"
+msgstr "3. opció: Többanyagú optimalizálás engedélyezése"
 
 msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
-msgstr "Kattintson a harmadik féltől származó ikonra → Engedélyezze a Helio Additive funkciót → Jelölje be az \"Kísérleti: Többanyag-támogatás engedélyezése\" jelölőnégyzetet"
+msgstr "Kattints a harmadik fél ikonra → Engedélyezd a Helio Additive funkciót → Jelöld be az „Kísérleti: Többanyag-támogatás engedélyezése” opciót"
 
 msgid "Unsupported Materials Detected"
 msgstr "Nem támogatott anyag észlelve"
@@ -8461,10 +8435,10 @@ msgid "Refreshing printer and material data..."
 msgstr "Nyomtató- és anyagadatok frissítése..."
 
 msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
-msgstr "A Helio nem tudta frissíteni az összes nyomtató- és anyaginformációt. Az előző teljes adat továbbra is elérhető."
+msgstr "A Helio nem tudta frissíteni az összes nyomtató- és anyagadatot. A korábbi teljes adatok továbbra is elérhetők."
 
 msgid "Helio could not load complete printer and material data. Matching remains paused."
-msgstr "A Helio nem tudta betölteni a teljes nyomtató- és anyaginformációt. Az illesztés szüneteltetve."
+msgstr "A Helio nem tudta betölteni az összes nyomtató- és anyagadatot. Az illesztés szüneteltetve."
 
 msgid "Helio Data Refresh Failed"
 msgstr "Helio adatrefrissítés sikertelen"
@@ -8592,7 +8566,7 @@ msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "Kattints az Optimalizálás/Javítás gombra az első optimalizálás elindításához."
 
 msgid "Previous Helio action is still stopping; try again shortly"
-msgstr "Az előző Helio művelet még folyamatban van; próbálkozzon újra hamarosan"
+msgstr "Az előző Helio-művelet leállítása még folyamatban van. Próbáld újra egy kis idő múlva"
 
 msgid "Helio Additive"
 msgstr ""
@@ -8623,7 +8597,7 @@ msgid "Synchronizing Helio"
 msgstr "Helio szinkronizálása"
 
 msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
-msgstr "A Helio nem tudta betölteni a támogatott nyomtató- és anyagnévsorokat. Az illesztés szüneteltetve lett, hogy a nem elérhető adatokat ne kezeljék nem támogatott anyagként."
+msgstr "A Helio nem tudta betölteni a támogatott nyomtatók és anyagok listáját. Az egyeztetés szünetel, így a nem elérhető adatok nem lesznek nem támogatott anyagként kezelve."
 
 msgid "Helio Data Load Failed"
 msgstr "Helio adatok betöltése sikertelen"
@@ -9778,9 +9752,6 @@ msgstr "Az azonos típusú fúvókák és filamentek ugyanazt a PA profilt haszn
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "Ha a fő extruder filamentje/fúvókája nem változott, a rendszer az utolsó kalibrációs értéket használja újra. A segédextruder a rendszer alapértelmezett értékét fogja használni."
 
-msgid "Add to queue"
-msgstr "Hozzáadás a várólistához"
-
 msgid "send completed"
 msgstr "küldés befejezve"
 
@@ -9844,9 +9815,6 @@ msgstr "Nyomtatás folytatása"
 msgid "Return to modify"
 msgstr "Vissza a módosításhoz"
 
-msgid "Only the current sliced plate can be added to the print queue."
-msgstr "Csak az aktuális szeletelt lemez adható hozzá a nyomtatási várólistához."
-
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Ellenőrzi az asztal szintjét. A szintezés egyenletessé teszi az extrudált magasságot."
 
@@ -9904,9 +9872,6 @@ msgstr "Rendellenes nyomtatási fájladatok. Kérjük, szeleteld újra"
 
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "Mivel a nyomtatási feladat sikeresen elküldésre került, a törlés nem állítja le a nyomtatási feladatot. Ha meg kell szakítanod ezt a feladatot, kérjük állítsd le az 'Eszköz' oldalon."
-
-msgid "Print immediately"
-msgstr "Azonnali nyomtatás"
 
 msgid "The name length exceeds the limit."
 msgstr "A név túl hosszú."
@@ -10348,13 +10313,13 @@ msgstr ""
 "Magasabb asztalhőmérséklet beállítása a nyomtató károsodását okozhatja."
 
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
-msgstr "A sima timelapse minden réteghez igényel egy prime towert, ami nem kompatibilis a \"Nincsenek ritka rétegek\" opcióval. A \"Nincsenek ritka rétegek\" ki lett kapcsolva."
+msgstr "A folyamatos timelapse minden rétegen törlőtornyot igényel, ami nem kompatibilis a „Nincs ritka réteg” beállítással. A „Nincs ritka réteg” ki lett kapcsolva."
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "A sima timelapse miatt szükség van a törlőtoronyra. Nélküle előfordulhatnak hibák a nyomtatott tárgyon. Engedélyezed a törlőtornyot?"
 
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
-msgstr "A \"Nincsenek ritka rétegek\" nem kompatibilis a sima timelapse funkcióval, ami minden réteghez egy prime towert igényel. A Timelapse hagyományos módra váltott."
+msgstr "A „Nincs ritka réteg” beállítás nem kompatibilis a folyamatos timelapse móddal, amely minden rétegen törlőtornyot igényel. A timelapse hagyományos módra lett állítva."
 
 msgid "Still print by object?"
 msgstr "Továbbra is tárgyanként szeretnél nyomtatni?"
@@ -12331,14 +12296,6 @@ msgstr "Konfigurációs csomag frissítve a következőre "
 msgid "Open G-code file:"
 msgstr "G-kód fájl megnyitása:"
 
-#, c-format, boost-format
-msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr "Sikeresen hozzáadva a nyomtatási várólistához. Automatikusan átugrik a nyomtatási várólista oldalára %s múlva."
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Sikeresen elküldve. Az eszköz oldala automatikusan megjelenik %s mp-en belül"
-
 msgid "Print task sending times out."
 msgstr "Időtúllépés a nyomtatási feladat küldése során."
 
@@ -12352,14 +12309,15 @@ msgid "Sending print configuration"
 msgstr "Nyomtatási konfiguráció küldése"
 
 #, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "Sikeresen elküldve. Az eszköz oldala automatikusan megjelenik %s mp-en belül"
+
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Sikeresen elküldve. Ugrás automatikusan a következő oldalra %s mp-en belül"
 
 msgid "Refreshing printer access code"
 msgstr "Nyomtató hozzáférési kódjának frissítése"
-
-msgid "Adding print job to queue"
-msgstr "Nyomtatási feladat hozzáadása a várólistához"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "A következő objektum üres kezdőréteggel rendelkezik, ezért nem lehet kinyomtatni. Kérjük, vágd le az objektum alját, vagy engedélyezd a támaszokat."
@@ -17516,16 +17474,16 @@ msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer 
 msgstr "Lassított gyorsulási profil a 0,4 mm-es fúvókához. Akkor használandó, ha a nyomtató instabil asztalon vagy polcon áll"
 
 msgid "Helio GCode status response is incomplete"
-msgstr "A Helio G-kód státuszválasza hiányos."
+msgstr "Helio G-kód állapotválasza hiányos"
 
 msgid "Helio GCode status response parse failed"
-msgstr "A Helio G-kód státuszválaszának elemzése sikertelen."
+msgstr "Helio G-kód állapotválaszának elemzése sikertelen"
 
 msgid "Helio action canceled"
-msgstr "Helio művelet törölve."
+msgstr "Helio művelet törölve"
 
 msgid "Helio GCode creation response is incomplete"
-msgstr "A Helio G-kód létrehozási válasza hiányos."
+msgstr "Helio G-kód létrehozási válasza hiányos"
 
 msgid "Failed to parse response"
 msgstr "Nem sikerült értelmezni a választ"
@@ -17534,13 +17492,13 @@ msgid "Helio GCode status check failed"
 msgstr "Helio G-kód státuszellenőrzés sikertelen."
 
 msgid "Helio GCode creation timed out while checking status"
-msgstr "A Helio G-kód létrehozása időtúllépést szenvedett a státusz ellenőrzése közben."
+msgstr "Helio G-kód létrehozása időtúllépést szenvedett a státusz ellenőrzése közben."
 
 msgid "Failed to create Simulation"
-msgstr "Nem sikerült létrehozni a szimulációt."
+msgstr "Nem sikerült létrehozni a szimulációt"
 
 msgid "Helio simulation response is incomplete"
-msgstr "A Helio szimulációs válasza hiányos."
+msgstr "Helio szimulációs válasza hiányos"
 
 msgid "Helio simulation task failed"
 msgstr "A Helio szimulációs feladat sikertelen"
@@ -17549,16 +17507,16 @@ msgid "Helio simulation response parse failed"
 msgstr "A Helio szimulációs válaszának elemzése sikertelen."
 
 msgid "Failed to create Optimization"
-msgstr "Nem sikerült létrehozni az optimalizálást."
+msgstr "Nem sikerült létrehozni az optimalizálást"
 
 msgid "Helio optimization response is incomplete"
-msgstr "A Helio optimalizálási válasza hiányos."
+msgstr "Helio optimalizálási válasza hiányos"
 
 msgid "Helio optimization task failed"
 msgstr "Helio optimalizációs feladat sikertelen"
 
 msgid "Helio optimization response parse failed"
-msgstr "A Helio optimalizálási válaszának elemzése sikertelen."
+msgstr "Helio optimalizálási válaszának elemzése sikertelen"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "A Helio API végpont üres, kérjük, ellenőrizd a beállításokat."
@@ -17576,7 +17534,7 @@ msgid "Helio: file upload failed"
 msgstr "Helio: fájl feltöltése sikertelen"
 
 msgid "Please make sure you have the correct API key set in preferences."
-msgstr "Kérjük, győződjön meg róla, hogy a helyes API-kulcs van beállítva a beállításokban."
+msgstr "Kérjük, győződj meg arról, hogy a helyes API-kulcs van beállítva a beállításokban"
 
 msgid "Helio: GCode created successfully"
 msgstr "Helio: G-kód sikeresen létrehozva"
@@ -18620,6 +18578,44 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "Air Purifier"
+#~ msgstr "Légtisztító"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "Az összeállítás befoglaló mérete túl nagy (maximális méret >= %1% in), ami renderelési problémákat okozhat.\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "Az összeállítás befoglaló mérete túl nagy (maximális méret >= %1% mm), ami renderelési problémákat okozhat.\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "A következő objektumok túl messze vannak (távolság >= %1% in) a világ koordináta-rendszer origójától:\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "A következő objektumok túl messze vannak (távolság >= %1% mm) a világ koordináta-rendszer origójától:\n"
+
+#~ msgid "Print queue"
+#~ msgstr "Nyomtatási sor"
+
+#~ msgid "Add to queue"
+#~ msgstr "Hozzáadás a várólistához"
+
+#~ msgid "Only the current sliced plate can be added to the print queue."
+#~ msgstr "Csak az aktuális szeletelt lemez adható hozzá a nyomtatási várólistához."
+
+#~ msgid "Print immediately"
+#~ msgstr "Azonnali nyomtatás"
+
+#, c-format, boost-format
+#~ msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+#~ msgstr "Sikeresen hozzáadva a nyomtatási várólistához. Automatikusan átugrik a nyomtatási várólista oldalára %s múlva."
+
+#~ msgid "Adding print job to queue"
+#~ msgstr "Nyomtatási feladat hozzáadása a várólistához"
 
 #, boost-format
 #~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."

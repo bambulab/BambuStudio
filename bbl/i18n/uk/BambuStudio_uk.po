@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 20:41+0800\n"
+"POT-Creation-Date: 2026-08-13 23:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -3013,16 +3013,6 @@ msgstr "Змінити все одно"
 msgid "Off"
 msgstr "Вимк."
 
-msgid "Air Purifier"
-msgstr ""
-
-msgctxt "AirPurifier"
-msgid "Max"
-msgstr ""
-
-msgid "Silent"
-msgstr "Тихий"
-
 msgid "Filter"
 msgstr ""
 
@@ -5657,22 +5647,6 @@ msgstr "Наступні об'єкти перекривають межі пла�
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Будь ласка, передвиньте це повністю на чи з пластини, та переконайтеся, що висота знаходиться у межах області друку.\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr ""
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr ""
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr ""
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr ""
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr ""
@@ -7167,6 +7141,9 @@ msgstr ""
 msgid "This only takes effect during printing"
 msgstr "Це діє лише під час друку"
 
+msgid "Silent"
+msgstr "Тихий"
+
 msgid "Sport"
 msgstr "Спортивний"
 
@@ -7324,9 +7301,6 @@ msgstr "Розрахунок, будь ласка, зачекайте…"
 
 msgid "Status"
 msgstr "Статус"
-
-msgid "Print queue"
-msgstr ""
 
 msgctxt "Firmware"
 msgid "Update"
@@ -9681,9 +9655,6 @@ msgstr ""
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr ""
 
-msgid "Add to queue"
-msgstr ""
-
 msgid "send completed"
 msgstr "відправлення завершено"
 
@@ -9745,9 +9716,6 @@ msgstr ""
 msgid "Return to modify"
 msgstr ""
 
-msgid "Only the current sliced plate can be added to the print queue."
-msgstr ""
-
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr ""
 
@@ -9804,9 +9772,6 @@ msgid "Abnormal print file data. Please slice again"
 msgstr "Неправильні дані файлу друку. Будь ласка, наріжте знову"
 
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
-msgstr ""
-
-msgid "Print immediately"
 msgstr ""
 
 msgid "The name length exceeds the limit."
@@ -12193,14 +12158,6 @@ msgstr "Пакет конфігурації оновлено до "
 msgid "Open G-code file:"
 msgstr "Відкрийте файл G-коду:"
 
-#, c-format, boost-format
-msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Успішно надіслано. Автоматично перейде на сторінку пристрою через %s c"
-
 msgid "Print task sending times out."
 msgstr "Час відправлення завдання на друк закінчився."
 
@@ -12214,13 +12171,14 @@ msgid "Sending print configuration"
 msgstr "Надсилання конфігурації друку"
 
 #, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "Успішно надіслано. Автоматично перейде на сторінку пристрою через %s c"
+
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Успішно відправлено. Автоматично перейдеться на наступну сторінку через %s с"
 
 msgid "Refreshing printer access code"
-msgstr ""
-
-msgid "Adding print job to queue"
 msgstr ""
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 20:41+0800\n"
+"POT-Creation-Date: 2026-08-13 23:15+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3010,16 +3010,6 @@ msgstr "仍然改动"
 msgid "Off"
 msgstr "关闭"
 
-msgid "Air Purifier"
-msgstr "空气净化器"
-
-msgctxt "AirPurifier"
-msgid "Max"
-msgstr "强效"
-
-msgid "Silent"
-msgstr "静音"
-
 msgid "Filter"
 msgstr "过滤"
 
@@ -5660,22 +5650,6 @@ msgstr "以下物体位于盘的边界上或超过了高度限制：\n"
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "请通过将物体完全移动到盘上或移出盘来解决问题，并确认其高度在构建范围内。\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "装配体的边界框过大（最大尺寸 >= %1% 英寸），这可能会导致渲染问题。\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "装配体的边界框过大（最大尺寸 >= %1% mm），这可能会导致渲染问题。\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "以下对象距离世界坐标系原点过远（距离 >= %1% 英寸）：\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "以下对象距离世界坐标系原点过远（距离 >= %1% mm）：\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "一些模型的位置或者尺寸超出了%s的可打印范围。"
@@ -7170,6 +7144,9 @@ msgstr "无法读取耗材丝信息：耗材丝已经加载到工具头，请退
 msgid "This only takes effect during printing"
 msgstr "仅在打印过程中生效"
 
+msgid "Silent"
+msgstr "静音"
+
 msgid "Sport"
 msgstr "运动"
 
@@ -7325,9 +7302,6 @@ msgstr "计算中，请等待..."
 
 msgid "Status"
 msgstr "设备状态"
-
-msgid "Print queue"
-msgstr "打印队列"
 
 msgctxt "Firmware"
 msgid "Update"
@@ -9729,9 +9703,6 @@ msgstr "同类型喷嘴与耗材共用PA配置文件"
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "如果主挤出机的耗材/喷嘴未更换，将复用上次的校准值。辅助挤出机将使用系统默认值。"
 
-msgid "Add to queue"
-msgstr "添加到队列"
-
 msgid "send completed"
 msgstr "发送完成"
 
@@ -9793,9 +9764,6 @@ msgstr "继续打印"
 msgid "Return to modify"
 msgstr "返回修改"
 
-msgid "Only the current sliced plate can be added to the print queue."
-msgstr "只能将当前切片的工作台添加到打印队列。"
-
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "检测热床的平整度。调平可以使挤出的高度更均匀。"
 
@@ -9853,9 +9821,6 @@ msgstr "打印文件数据异常，请重新切片"
 
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "因打印任务已成功发送，此次取消操作未能中止本次任务。如需终止任务，请在“设备页面”停止打印。"
-
-msgid "Print immediately"
-msgstr "立即打印"
 
 msgid "The name length exceeds the limit."
 msgstr "名称长度超过限制。"
@@ -12270,14 +12235,6 @@ msgstr "配置包已更新到"
 msgid "Open G-code file:"
 msgstr "打开G-code文件："
 
-#, c-format, boost-format
-msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr "已成功添加到打印队列。将在%ss后自动跳转到打印队列页面"
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
-
 msgid "Print task sending times out."
 msgstr "发送打印任务超时。"
 
@@ -12291,14 +12248,15 @@ msgid "Sending print configuration"
 msgstr "正在发送打印配置"
 
 #, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
+
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "已成功发送。将在%ss后自动跳转到下一页。"
 
 msgid "Refreshing printer access code"
 msgstr "正在刷新打印机访问码"
-
-msgid "Adding print job to queue"
-msgstr "正在将打印任务添加到队列"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "模型出现空层无法打印。请切掉底部或打开支撑。"
@@ -18545,6 +18503,48 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Air Purifier"
+#~ msgstr "空气净化器"
+
+#~ msgctxt "AirPurifier"
+#~ msgid "Max"
+#~ msgstr "强效"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "装配体的边界框过大（最大尺寸 >= %1% 英寸），这可能会导致渲染问题。\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "装配体的边界框过大（最大尺寸 >= %1% mm），这可能会导致渲染问题。\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "以下对象距离世界坐标系原点过远（距离 >= %1% 英寸）：\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "以下对象距离世界坐标系原点过远（距离 >= %1% mm）：\n"
+
+#~ msgid "Print queue"
+#~ msgstr "打印队列"
+
+#~ msgid "Add to queue"
+#~ msgstr "添加到队列"
+
+#~ msgid "Only the current sliced plate can be added to the print queue."
+#~ msgstr "只能将当前切片的工作台添加到打印队列。"
+
+#~ msgid "Print immediately"
+#~ msgstr "立即打印"
+
+#, c-format, boost-format
+#~ msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+#~ msgstr "已成功添加到打印队列。将在%ss后自动跳转到打印队列页面"
+
+#~ msgid "Adding print job to queue"
+#~ msgstr "正在将打印任务添加到队列"
 
 #, boost-format
 #~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."

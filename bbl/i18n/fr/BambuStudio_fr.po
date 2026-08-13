@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 20:41+0800\n"
+"POT-Creation-Date: 2026-08-13 23:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3022,16 +3022,6 @@ msgstr "Changer quand même"
 msgid "Off"
 msgstr "Arrêté"
 
-msgid "Air Purifier"
-msgstr "Purificateur d'air"
-
-msgctxt "AirPurifier"
-msgid "Max"
-msgstr "Maximum"
-
-msgid "Silent"
-msgstr "Silencieux"
-
 msgid "Filter"
 msgstr "Filtre"
 
@@ -5678,22 +5668,6 @@ msgstr "Les objets suivants sont placés au-dessus de la limite de la plaque ou 
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Veuillez résoudre le problème en le déplaçant complètement sur ou hors de la plaque et en confirmant que la hauteur est dans le volume de construction.\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "La boîte englobante de l’assemblage est trop grande (taille max ≥ %1% in), ce qui peut provoquer des problèmes d’affichage.\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "La boîte englobante de l’assemblage est trop grande (taille max ≥ %1% mm), ce qui peut provoquer des problèmes d’affichage.\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "Les objets suivants sont trop éloignés (distance >= %1% pouces) de l'origine du système de coordonnées global :\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "Les objets suivants sont trop éloignés (distance >= %1% mm) de l'origine du système de coordonnées global :\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "La position ou la taille de certains modèles dépasse la zone imprimable de la %s."
@@ -7197,6 +7171,9 @@ msgstr "Impossible de lire les informations sur le filament : le filament est c
 msgid "This only takes effect during printing"
 msgstr "Cela ne prend effet que pendant l'impression"
 
+msgid "Silent"
+msgstr "Silencieux"
+
 msgid "Sport"
 msgstr "Sport"
 
@@ -7354,9 +7331,6 @@ msgstr "Calcul en cours ; veuillez patienter..."
 
 msgid "Status"
 msgstr "État"
-
-msgid "Print queue"
-msgstr "File d'attente d'impression"
 
 msgctxt "Firmware"
 msgid "Update"
@@ -9767,9 +9741,6 @@ msgstr "Les buses et filaments du même type partagent le même profil PA"
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "Si le filament/la buse de l'extrudeur principale n'a pas changé, la dernière valeur d'étalonnage sera réutilisée. L'extrudeur auxiliaire utilisera la valeur par défaut du système."
 
-msgid "Add to queue"
-msgstr "Ajouter à la file d'attente"
-
 msgid "send completed"
 msgstr "Envoi terminé"
 
@@ -9833,9 +9804,6 @@ msgstr "Continuer l'impression"
 msgid "Return to modify"
 msgstr "Retour à la modification"
 
-msgid "Only the current sliced plate can be added to the print queue."
-msgstr "Seule la tranche actuelle peut être ajoutée à la file d'attente d'impression."
-
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Cette opération permet de vérifier la planéité du plateau. Le nivellement permet d'uniformiser la hauteur de l'extrusion."
 
@@ -9893,9 +9861,6 @@ msgstr "Données du fichier d'impression anormales. Veuillez découper à nouvea
 
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "Comme la tâche d'impression a été envoyée avec succès, l'annulation n'entraînera pas l'arrêt de la tâche d'impression. Si vous devez mettre fin à cette tâche, veuillez l'arrêter dans la page \"Imprimante\"."
-
-msgid "Print immediately"
-msgstr "Imprimer immédiatement"
 
 msgid "The name length exceeds the limit."
 msgstr "La longueur du nom dépasse la limite."
@@ -12320,14 +12285,6 @@ msgstr "Package de configuration mis à jour pour "
 msgid "Open G-code file:"
 msgstr "Ouvrir un fichier G-code :"
 
-#, c-format, boost-format
-msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr "Ajouté avec succès à la file d'attente d'impression. Passage automatique à la page de la file d'attente d'impression dans %ss"
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Envoyé avec succès. Redirection vers la page Imprimante dans %ss"
-
 msgid "Print task sending times out."
 msgstr "L’envoi de l’impression a expiré."
 
@@ -12341,14 +12298,15 @@ msgid "Sending print configuration"
 msgstr "Envoi de la configuration d'impression"
 
 #, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "Envoyé avec succès. Redirection vers la page Imprimante dans %ss"
+
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Transféré avec succès. Passage automatique à la page suivante en %ss"
 
 msgid "Refreshing printer access code"
 msgstr "Actualisation du code d'accès de l'imprimante"
-
-msgid "Adding print job to queue"
-msgstr "Ajout de la tâche d'impression à la file d'attente"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "L'objet suivant a un première couche vide et ne peut pas être imprimé. Vous pouvez activer les supports et/ou couper la base du fichier."
@@ -18611,6 +18569,48 @@ msgid ""
 msgstr ""
 "Fiabilité Garantie du Premier Coup\n"
 "Moins de surveillance, une production plus prévisible. Exemple : une petite exploitation agricole produisant des pièces en PETG évite les mauvaises surprises \"panne au bout de 6 h\" et respecte les délais de production."
+
+#~ msgid "Air Purifier"
+#~ msgstr "Purificateur d'air"
+
+#~ msgctxt "AirPurifier"
+#~ msgid "Max"
+#~ msgstr "Maximum"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "La boîte englobante de l’assemblage est trop grande (taille max ≥ %1% in), ce qui peut provoquer des problèmes d’affichage.\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "La boîte englobante de l’assemblage est trop grande (taille max ≥ %1% mm), ce qui peut provoquer des problèmes d’affichage.\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "Les objets suivants sont trop éloignés (distance >= %1% pouces) de l'origine du système de coordonnées global :\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "Les objets suivants sont trop éloignés (distance >= %1% mm) de l'origine du système de coordonnées global :\n"
+
+#~ msgid "Print queue"
+#~ msgstr "File d'attente d'impression"
+
+#~ msgid "Add to queue"
+#~ msgstr "Ajouter à la file d'attente"
+
+#~ msgid "Only the current sliced plate can be added to the print queue."
+#~ msgstr "Seule la tranche actuelle peut être ajoutée à la file d'attente d'impression."
+
+#~ msgid "Print immediately"
+#~ msgstr "Imprimer immédiatement"
+
+#, c-format, boost-format
+#~ msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+#~ msgstr "Ajouté avec succès à la file d'attente d'impression. Passage automatique à la page de la file d'attente d'impression dans %ss"
+
+#~ msgid "Adding print job to queue"
+#~ msgstr "Ajout de la tâche d'impression à la file d'attente"
 
 #, boost-format
 #~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."

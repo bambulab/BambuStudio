@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 20:41+0800\n"
+"POT-Creation-Date: 2026-08-13 23:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -3033,16 +3033,6 @@ msgstr "Přesto změnit"
 msgid "Off"
 msgstr "Vypnuto"
 
-msgid "Air Purifier"
-msgstr ""
-
-msgctxt "AirPurifier"
-msgid "Max"
-msgstr ""
-
-msgid "Silent"
-msgstr "Tichý"
-
 msgid "Filter"
 msgstr "Filtrace"
 
@@ -5736,22 +5726,6 @@ msgstr "Následující objekty přesahují hranice podložky nebo překračují 
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Problém vyřešíte tak, že objekt zcela přesunete na podložku nebo mimo ni a ověříte, že jeho výška nepřekračuje stavební objem.\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "Ohraničující rámeček sestavy je příliš velký (maximální rozměr >= %1% in), což může způsobit problémy s vykreslováním.\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "Ohraničující rámeček sestavy je příliš velký (maximální rozměr >= %1% mm), což může způsobit problémy s vykreslováním.\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "Následující objekty jsou příliš vzdálené (vzdálenost >= %1% in) od počátku světového souřadnicového systému:\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "Následující objekty jsou příliš vzdálené (vzdálenost >= %1% mm) od počátku světového souřadnicového systému:\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "Poloha nebo velikost některých modelů přesahuje tisknutelný rozsah tiskárny %s."
@@ -7262,6 +7236,9 @@ msgstr "Nelze načíst informace o filamentu: filament je zaveden do tiskové hl
 msgid "This only takes effect during printing"
 msgstr "Toto platí pouze během tisku"
 
+msgid "Silent"
+msgstr "Tichý"
+
 msgid "Sport"
 msgstr "Sport"
 
@@ -7421,9 +7398,6 @@ msgstr "Probíhá výpočet, čekejte prosím..."
 
 msgid "Status"
 msgstr "Stav"
-
-msgid "Print queue"
-msgstr ""
 
 msgctxt "Firmware"
 msgid "Update"
@@ -9853,9 +9827,6 @@ msgstr "Trysky a filamenty stejného typu využívají stejný PA profil"
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "Pokud se filament/tryska hlavního extruderu nezměnily, bude znovu použita poslední hodnota kalibrace. Pomocný extruder použije výchozí systémovou hodnotu."
 
-msgid "Add to queue"
-msgstr ""
-
 msgid "send completed"
 msgstr "odesílání dokončeno"
 
@@ -9917,9 +9888,6 @@ msgstr ""
 msgid "Return to modify"
 msgstr ""
 
-msgid "Only the current sliced plate can be added to the print queue."
-msgstr ""
-
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Probíhá kontrola rovinnosti vyhřívané podložky. Nivelace zajišťuje jednotnou výšku vytlačovaného materiálu."
 
@@ -9977,9 +9945,6 @@ msgstr "Data tiskového souboru jsou neplatná. Proveďte prosím opětovné ře
 
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "Protože byla tisková úloha úspěšně odeslána, její zrušení ji nezastaví. Pokud potřebujete tuto úlohu zastavit, zastavte ji na stránce „Zařízení“."
-
-msgid "Print immediately"
-msgstr ""
 
 msgid "The name length exceeds the limit."
 msgstr "Délka názvu překračuje limit."
@@ -12413,14 +12378,6 @@ msgstr "Konfigurační balíček byl aktualizován na "
 msgid "Open G-code file:"
 msgstr "Otevřít soubor G-kódu:"
 
-#, c-format, boost-format
-msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Úspěšně odesláno. Automaticky přejde na stránku zařízení za %ss"
-
 msgid "Print task sending times out."
 msgstr "Časový limit pro odesílání tiskové úlohy vypršel."
 
@@ -12434,13 +12391,14 @@ msgid "Sending print configuration"
 msgstr "Odesílání konfigurace tisku"
 
 #, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "Úspěšně odesláno. Automaticky přejde na stránku zařízení za %ss"
+
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Úspěšně odesláno. Automaticky přejde na další stránku za %ss"
 
 msgid "Refreshing printer access code"
-msgstr ""
-
-msgid "Adding print job to queue"
 msgstr ""
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
@@ -18793,6 +18751,22 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "Ohraničující rámeček sestavy je příliš velký (maximální rozměr >= %1% in), což může způsobit problémy s vykreslováním.\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "Ohraničující rámeček sestavy je příliš velký (maximální rozměr >= %1% mm), což může způsobit problémy s vykreslováním.\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "Následující objekty jsou příliš vzdálené (vzdálenost >= %1% in) od počátku světového souřadnicového systému:\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "Následující objekty jsou příliš vzdálené (vzdálenost >= %1% mm) od počátku světového souřadnicového systému:\n"
 
 #~ msgid "True multi-material support will be added in a future update."
 #~ msgstr "Plná podpora více materiálů bude přidána v některé z budoucích aktualizací."

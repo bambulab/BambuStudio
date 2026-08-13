@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 20:41+0800\n"
+"POT-Creation-Date: 2026-08-13 23:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3022,16 +3022,6 @@ msgstr "Trotzdem ändern"
 msgid "Off"
 msgstr "Aus"
 
-msgid "Air Purifier"
-msgstr "Luftreiniger"
-
-msgctxt "AirPurifier"
-msgid "Max"
-msgstr "Maximal"
-
-msgid "Silent"
-msgstr "Leise"
-
 msgid "Filter"
 msgstr ""
 
@@ -3375,7 +3365,7 @@ msgid "Show explosion state column"
 msgstr "Spalte für Explosionsstatus anzeigen"
 
 msgid "Allow modify text note foreground"
-msgstr "Textnotiz-Vordergrund zulassen"
+msgstr "Ändern des Textnotiz-Vordergrunds zulassen"
 
 msgid "Allow modify text note background"
 msgstr "Ändern des Texthinweis-Hintergrunds zulassen"
@@ -3423,7 +3413,7 @@ msgid "Copy and inherit this step"
 msgstr "Diesen Schritt kopieren und übernehmen"
 
 msgid "Add objects to this step before copying"
-msgstr "Fügen Sie dem Schritt Objekte hinzu, bevor Sie ihn kopieren"
+msgstr "Fügen Sie vor dem Kopieren Objekte zu diesem Schritt hinzu"
 
 msgid "Delete current step"
 msgstr "Aktuellen Schritt löschen"
@@ -3442,7 +3432,7 @@ msgid "Only add empty steps. This has nothing to do with the selected objects on
 msgstr "Nur leere Schritte hinzufügen. Dies hat nichts mit den ausgewählten Objekten auf der Arbeitsfläche zu tun."
 
 msgid "Merge and add steps."
-msgstr "Schritte zusammenführen und hinzufügen."
+msgstr "Zusammenführen und Schritte hinzufügen."
 
 msgid "Click to exit assembly step editing, or press Esc."
 msgstr "Klicken Sie hier, um die Bearbeitung der Montageschritte zu beenden, oder drücken Sie Esc."
@@ -3451,7 +3441,7 @@ msgid "Not"
 msgstr "Nicht"
 
 msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
-msgstr "Bitte klicken Sie zuerst auf Bestätigen. Nachdem Labels auf der Zeichenfläche generiert wurden, kann diese Labelsteuerung verwendet werden."
+msgstr "Bitte klicken Sie zuerst auf Bestätigen. Nachdem die Beschriftungen auf der Arbeitsfläche generiert wurden, kann dieses Beschriftungselement verwendet werden."
 
 msgid "Click to add Cyber Brick"
 msgstr "Zum Hinzufügen von „Cyber Brick“ hier klicken"
@@ -3529,7 +3519,7 @@ msgid "Automatically choose object-or-part-level labels: a fully-used object alr
 msgstr "Automatische Auswahl von Objekt- oder Teilbezeichnungen: Ein vollständig verwendetes Objekt, das bereits in früheren Schritten angezeigt wurde, wird zu einer einzigen Objektbezeichnung zusammengefasst; Teilobjekte und erstmalige Auftritte werden pro einzelnem Teil bezeichnet."
 
 msgid "Please create an assembly step before exporting."
-msgstr "Bitte erstellen Sie zuerst einen Montageschritt, bevor Sie exportieren."
+msgstr "Bitte erstellen Sie vor dem Exportieren einen Montageschritt."
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "Montageanleitung als PDF, Markdown oder MP4 exportieren"
@@ -3586,7 +3576,7 @@ msgid "At least two keyframes are required to play."
 msgstr "Zum Abspielen werden mindestens zwei Keyframes benötigt."
 
 msgid "Add the selected object or part to the current step first"
-msgstr "Fügen Sie zuerst das ausgewählte Objekt oder Teil zum aktuellen Schritt hinzu."
+msgstr "Fügen Sie zuerst das ausgewählte Objekt oder Teil zum aktuellen Schritt hinzu"
 
 msgid "Add a new object to the current step first"
 msgstr "Fügen Sie zuerst ein neues Objekt zum aktuellen Schritt hinzu"
@@ -5693,22 +5683,6 @@ msgstr "Folgende Objekte liegen über der Plattengrenze bzw. überschreiten die 
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Lösen​•​Sie​•​das​•​Problem,​•​indem​•​Sie​•​es​•​ganz​•​auf​•​die​•​Platte​•​schieben​•​oder​•​von​•​ihr​•​entfernen,​•​und​•​stellen​•​Sie​•​sicher,​•​dass​•​die​•​Höhe​•​innerhalb​•​des​•​Druckvolumens​•​liegt.\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "Der Begrenzungsrahmen der Baugruppe ist zu groß (maximale Größe >=%1% in), was zu Rendering-Problemen führen kann.\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "Der Begrenzungsrahmen der Baugruppe ist zu groß (maximale Größe >=%1% mm), was zu Rendering-Problemen führen kann.\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "Die folgenden Objekte sind zu weit (Abstand >= %1% in ) vom Ursprung des Weltkoordinatensystems entfernt:\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "Die folgenden Objekte sind zu weit (Abstand >= %1% mm) vom Ursprung des Weltkoordinatensystems entfernt:\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "Die Position oder Größe einiger Modelle überschreitet den druckbaren Bereich des %s."
@@ -7210,6 +7184,9 @@ msgstr "Filamentinformationen können nicht gelesen werden: Das Filament ist in 
 msgid "This only takes effect during printing"
 msgstr "Diese Funktion ist nur während des Druckens wirksam."
 
+msgid "Silent"
+msgstr "Leise"
+
 msgid "Sport"
 msgstr "Sport"
 
@@ -7367,9 +7344,6 @@ msgstr "Wird berechnet, bitte warten..."
 
 msgid "Status"
 msgstr "Status"
-
-msgid "Print queue"
-msgstr "Druckwarteschlange"
 
 msgctxt "Firmware"
 msgid "Update"
@@ -8136,7 +8110,7 @@ msgid "Loading file: %s"
 msgstr "Datei wird geladen: %s"
 
 msgid "The 3mf file has invalid config, load geometry data only"
-msgstr "Die 3mf-Datei hat eine ungültige Konfiguration, nur Geometriedaten laden"
+msgstr "Die 3MF-Datei weist eine ungültige Konfiguration auf, es werden nur Geometriedaten geladen"
 
 msgid "Load 3mf"
 msgstr "3mf laden"
@@ -8428,7 +8402,7 @@ msgid "Option 3: Enable multi-material optimization"
 msgstr "Option 3: Multi-Material-Optimierung aktivieren"
 
 msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
-msgstr "Klicken Sie auf das Symbol eines Drittanbieters → Helio Additive aktivieren → \"Experimentell: Multi-Material-Unterstützung aktivieren\" aktivieren"
+msgstr "Klicken Sie auf das Drittanbieter-Symbol → Helio Additive aktivieren → Aktivieren Sie „Experimentell: Multi-Material-Unterstützung aktivieren“"
 
 msgid "Unsupported Materials Detected"
 msgstr "Nicht unterstützte Materialien erkannt"
@@ -8470,7 +8444,7 @@ msgid "Helio could not refresh all printer and material data. The previous compl
 msgstr "Helio konnte nicht alle Drucker- und Materialdaten aktualisieren. Die vorherigen vollständigen Daten bleiben verfügbar."
 
 msgid "Helio could not load complete printer and material data. Matching remains paused."
-msgstr "Helio konnte keine vollständigen Drucker- und Materialdaten laden. Die Zuordnung ist pausiert."
+msgstr "Helio konnte die vollständigen Drucker- und Materialdaten nicht laden. Der Abgleich bleibt angehalten."
 
 msgid "Helio Data Refresh Failed"
 msgstr "Helio-Datenaktualisierung fehlgeschlagen"
@@ -8598,7 +8572,7 @@ msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "Klicken Sie auf die Schaltfläche Optimieren/Verbessern, um Ihre erste Optimierung zu starten."
 
 msgid "Previous Helio action is still stopping; try again shortly"
-msgstr "Vorherige Helio-Aktion wird noch ausgeführt; versuchen Sie es in Kürze erneut"
+msgstr "Die vorherige Helio-Aktion wird noch gestoppt; versuchen Sie es in Kürze erneut"
 
 msgid "Helio Additive"
 msgstr ""
@@ -8629,10 +8603,10 @@ msgid "Synchronizing Helio"
 msgstr "Helio synchronisieren"
 
 msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
-msgstr "Helio konnte die unterstützten Drucker- und Materiallisten nicht laden. Die Zuordnung wurde pausiert, damit nicht verfügbare Daten nicht als nicht unterstütztes Material behandelt werden."
+msgstr "Helio konnte die Listen der unterstützten Drucker und Materialien nicht laden. Der Abgleich wurde angehalten, damit nicht verfügbare Daten nicht als nicht unterstütztes Material behandelt werden."
 
 msgid "Helio Data Load Failed"
-msgstr "Helio-Datenladefehler"
+msgstr "Laden der Helio-Daten fehlgeschlagen"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Bitte beheben Sie die Slicing-Fehler und veröffentlichen Sie es erneut."
@@ -9787,9 +9761,6 @@ msgstr "Düsen und Filamente desselben Typs haben dasselbe PA-Profil"
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "Wenn das Filament/die Düse des Hauptextruders nicht geändert wurde, wird der letzte Kalibrierungswert wiederverwendet. Der Nebenextruder verwendet den Standardwert des Systems."
 
-msgid "Add to queue"
-msgstr "Zur Warteschlange hinzufügen"
-
 msgid "send completed"
 msgstr "Senden abgeschlossen"
 
@@ -9853,9 +9824,6 @@ msgstr "Drucken fortsetzen"
 msgid "Return to modify"
 msgstr "Zurück zum Ändern"
 
-msgid "Only the current sliced plate can be added to the print queue."
-msgstr "Nur die aktuelle geslicete Platte kann zur Druckwarteschlange hinzugefügt werden."
-
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Hiermit wird die Ebenheit des Heizbetts überprüft. Durch die Nivellierung wird die extrudierte Höhe gleichmäßig."
 
@@ -9913,9 +9881,6 @@ msgstr "Abnormale Daten in der Druckdatei. Bitte slicen Sie erneut"
 
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "Da der Druckauftrag erfolgreich gesendet wurde, wird er durch die Abbrechung nicht gestoppt. Wenn Sie den Auftrag beenden möchten, halten Sie ihn auf der Seite „Gerät“ an."
-
-msgid "Print immediately"
-msgstr "Sofort drucken"
 
 msgid "The name length exceeds the limit."
 msgstr "Die Namenslänge überschreitet das Limit."
@@ -10039,7 +10004,7 @@ msgid "Click here if you can't connect to the printer"
 msgstr "Klicken Sie hier, wenn Sie keine Verbindung zum Drucker herstellen können"
 
 msgid "Slice file"
-msgstr "Slice-Datei"
+msgstr "Datei slicen"
 
 msgid "The connected printer"
 msgstr "Der verbundene Drucker"
@@ -10313,8 +10278,9 @@ msgid ""
 "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
-"Bei Verwendung von löslichem Material für die Stützen empfehlen wir folgende Einstellungen:\n"
-"0 oberer Z-Abstand, 0 unterer Z-Abstand, 0 Schnittstellenabstand, 0 XY-Abstand zwischen Stütze und Objekt, verflochtenes geradliniges Muster, unabhängige Stützschichthöhe deaktivieren und lösliches Material sowohl für die Stützschnittstelle als auch für die Stützbasis verwenden"
+"Wenn Sie lösliches Material für die Stützstruktur verwenden, empfehlen wir die folgenden Einstellungen:\n"
+"0 Z-Abstand oben, 0 Z-Abstand unten, 0 Schnittstellenabstand, 0 XY-Abstand zwischen Stützstruktur/Objekt, verflochtenes geradliniges \n"
+"Muster, unabhängige Schichthöhe der Stützstruktur deaktivieren und lösliche Materialien sowohl für die Stützstruktur-Schnittstelle als auch für die Stützstruktur-Basis verwenden"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -10358,13 +10324,13 @@ msgstr ""
 "Das Einstellen einer höheren Druckbetttemperatur kann den Drucker beschädigen."
 
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
-msgstr "Ein glatter Zeitraffer erfordert einen Primer-Turm auf jeder Schicht, was nicht mit „Keine spärlichen Schichten“ kompatibel ist. „Keine spärlichen Schichten“ wurde deaktiviert."
+msgstr "Flüssiger Zeitraffer benötigt einen Prime-Turm auf jeder Schicht, was nicht mit „Keine spärlichen Schichten“ kompatibel ist. „Keine spärlichen Schichten“ wurde deaktiviert."
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Für den gewählten Zeitraffermodus ist ein Reinigungsturm erforderlich. Ohne Reinigungsturm kann es zu Fehlern am Modell kommen. Möchten Sie den Reinigungsturm aktivieren?"
 
 msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
-msgstr "„Keine spärlichen Schichten“ ist nicht mit glatten Zeitraffern kompatibel, die einen Primer-Turm auf jeder Schicht erfordern. Zeitraffer wurde in den traditionellen Modus umgeschaltet."
+msgstr "„Keine spärlichen Schichten“ ist nicht mit flüssigem Zeitraffer kompatibel, der einen Prime-Turm auf jeder Schicht benötigt. Zeitraffer wurde in den traditionellen Modus geschaltet."
 
 msgid "Still print by object?"
 msgstr "Immer noch nach Objekt drucken?"
@@ -12124,7 +12090,7 @@ msgid "Applies Helio's optimized speed/flow/fan strategy."
 msgstr "Wendet Helios optimierte Strategie für Geschwindigkeit/Fluss/Lüfter an."
 
 msgid "Save the simulated sliced 3MF locally"
-msgstr "Den simulierten, geslicten 3MF lokal speichern"
+msgstr "Speichern Sie die simulierte geslicte 3MF-Datei lokal"
 
 msgid "✅ Will Print"
 msgstr "✅ Wird gelingen"
@@ -12342,14 +12308,6 @@ msgstr "Konfigurationspaket aktualisiert auf "
 msgid "Open G-code file:"
 msgstr "Öffne G-Code-Datei:"
 
-#, c-format, boost-format
-msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr "Erfolgreich zur Druckwarteschlange hinzugefügt. Die Druckwarteschlangenseite wird in %ss automatisch angezeigt."
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Erfolgreich gesendet, springt automatisch zur Geräteseite in %ss"
-
 msgid "Print task sending times out."
 msgstr "Zeitüberschreitung beim Senden des Druckauftrags."
 
@@ -12363,14 +12321,15 @@ msgid "Sending print configuration"
 msgstr "Druckkonfiguration senden"
 
 #, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "Erfolgreich gesendet, springt automatisch zur Geräteseite in %ss"
+
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Erfolgreich gesendet. Automatisches Springen zur nächsten Seite in %ss"
 
 msgid "Refreshing printer access code"
 msgstr "Drucker-Zugangscode wird aktualisiert"
-
-msgid "Adding print job to queue"
-msgstr "Druckauftrag zur Warteschlange hinzufügen"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "Die folgenden Objekte haben eine leere Anfangsebene und können nicht gedruckt werden. Bitte schneiden Sie den Boden ab oder aktivieren Sie die Stützen."
@@ -17528,7 +17487,7 @@ msgid "Helio GCode status response is incomplete"
 msgstr "Helio GCode-Statusantwort ist unvollständig"
 
 msgid "Helio GCode status response parse failed"
-msgstr "Helio GCode-Statusantwort konnte nicht analysiert werden"
+msgstr "Parsen der Helio GCode-Statusantwort fehlgeschlagen"
 
 msgid "Helio action canceled"
 msgstr "Helio-Aktion abgebrochen"
@@ -17543,10 +17502,10 @@ msgid "Helio GCode status check failed"
 msgstr "Helio GCode-Statusprüfung fehlgeschlagen"
 
 msgid "Helio GCode creation timed out while checking status"
-msgstr "Helio GCode-Erstellung: Zeitüberschreitung beim Prüfen des Status"
+msgstr "Zeitüberschreitung bei der Helio GCode-Erstellung während der Statusprüfung"
 
 msgid "Failed to create Simulation"
-msgstr "Helio: Simulation konnte nicht erstellt werden"
+msgstr "Simulation konnte nicht erstellt werden"
 
 msgid "Helio simulation response is incomplete"
 msgstr "Helio-Simulationsantwort ist unvollständig"
@@ -17555,10 +17514,10 @@ msgid "Helio simulation task failed"
 msgstr "Helio-Simulationsaufgabe fehlgeschlagen"
 
 msgid "Helio simulation response parse failed"
-msgstr "Helio-Simulationsantwort konnte nicht analysiert werden"
+msgstr "Parsen der Helio-Simulationsantwort fehlgeschlagen"
 
 msgid "Failed to create Optimization"
-msgstr "Helio: Optimierung konnte nicht erstellt werden"
+msgstr "Optimierung konnte nicht erstellt werden"
 
 msgid "Helio optimization response is incomplete"
 msgstr "Helio-Optimierungsantwort ist unvollständig"
@@ -17567,7 +17526,7 @@ msgid "Helio optimization task failed"
 msgstr "Helio-Optimierungsaufgabe fehlgeschlagen"
 
 msgid "Helio optimization response parse failed"
-msgstr "Helio-Optimierungsantwort konnte nicht analysiert werden"
+msgstr "Parsen der Helio-Optimierungsantwort fehlgeschlagen"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Der Helio API-Endpunkt ist leer. Bitte überprüfen Sie die Konfiguration."
@@ -17585,7 +17544,7 @@ msgid "Helio: file upload failed"
 msgstr "Helio: Datei-Upload fehlgeschlagen"
 
 msgid "Please make sure you have the correct API key set in preferences."
-msgstr "Bitte stellen Sie sicher, dass Sie den richtigen API-Schlüssel in den Einstellungen festgelegt haben."
+msgstr "Bitte stellen Sie sicher, dass in den Einstellungen der korrekte API-Schlüssel festgelegt ist."
 
 msgid "Helio: GCode created successfully"
 msgstr "Helio: GCode erfolgreich erstellt"
@@ -17594,7 +17553,7 @@ msgid "Helio: simulation successfully created"
 msgstr "Helio: Simulation erfolgreich erstellt"
 
 msgid "transient progress checks did not recover"
-msgstr "Transiente Fortschrittsprüfungen konnten nicht wiederhergestellt werden"
+msgstr "Vorübergehende Fortschrittsprüfungen konnten nicht wiederhergestellt werden"
 
 msgid "Helio: simulation failed"
 msgstr "Helio: Simulation fehlgeschlagen"
@@ -18628,6 +18587,48 @@ msgid ""
 msgstr ""
 "Zuverlässigkeit auf Anhieb\n"
 "Weniger Überwachung, vorhersagbarere Ausgabe. Beispiel: Eine kleine Farm, die PETG-Teile druckt, vermeidet Überraschungen wie \"Ausfall in Stunde 6\" und hält Chargen im Zeitplan."
+
+#~ msgid "Air Purifier"
+#~ msgstr "Luftreiniger"
+
+#~ msgctxt "AirPurifier"
+#~ msgid "Max"
+#~ msgstr "Maximal"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "Der Begrenzungsrahmen der Baugruppe ist zu groß (maximale Größe >=%1% in), was zu Rendering-Problemen führen kann.\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "Der Begrenzungsrahmen der Baugruppe ist zu groß (maximale Größe >=%1% mm), was zu Rendering-Problemen führen kann.\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "Die folgenden Objekte sind zu weit (Abstand >= %1% in ) vom Ursprung des Weltkoordinatensystems entfernt:\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "Die folgenden Objekte sind zu weit (Abstand >= %1% mm) vom Ursprung des Weltkoordinatensystems entfernt:\n"
+
+#~ msgid "Print queue"
+#~ msgstr "Druckwarteschlange"
+
+#~ msgid "Add to queue"
+#~ msgstr "Zur Warteschlange hinzufügen"
+
+#~ msgid "Only the current sliced plate can be added to the print queue."
+#~ msgstr "Nur die aktuelle geslicete Platte kann zur Druckwarteschlange hinzugefügt werden."
+
+#~ msgid "Print immediately"
+#~ msgstr "Sofort drucken"
+
+#, c-format, boost-format
+#~ msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+#~ msgstr "Erfolgreich zur Druckwarteschlange hinzugefügt. Die Druckwarteschlangenseite wird in %ss automatisch angezeigt."
+
+#~ msgid "Adding print job to queue"
+#~ msgstr "Druckauftrag zur Warteschlange hinzufügen"
 
 #, boost-format
 #~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 20:41+0800\n"
+"POT-Creation-Date: 2026-08-13 23:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3016,16 +3016,6 @@ msgstr "어떻게든 변경"
 msgid "Off"
 msgstr "끄기"
 
-msgid "Air Purifier"
-msgstr "공기 청정기"
-
-msgctxt "AirPurifier"
-msgid "Max"
-msgstr "최대"
-
-msgid "Silent"
-msgstr "사일런트"
-
 msgid "Filter"
 msgstr "필터"
 
@@ -3417,7 +3407,7 @@ msgid "Copy and inherit this step"
 msgstr "이 단계 복사 및 상속"
 
 msgid "Add objects to this step before copying"
-msgstr "복사하기 전에 이 단계에 개체를 추가하세요"
+msgstr "복사하기 전에 이 단계에 객체를 추가하세요"
 
 msgid "Delete current step"
 msgstr "현재 단계 삭제"
@@ -3583,7 +3573,7 @@ msgid "Add the selected object or part to the current step first"
 msgstr "먼저 선택한 객체 또는 부품을 현재 단계에 추가하세요."
 
 msgid "Add a new object to the current step first"
-msgstr "먼저 현재 단계에 새 개체를 추가하세요"
+msgstr "먼저 현재 단계에 새 객체를 추가하세요"
 
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
 msgstr "현재 선택된 객체 또는 부품에 최종 조립 포즈를 적용합니다(선택된 객체가 없으면 현재 프레임에 추가된 모든 객체에 적용합니다)."
@@ -5683,22 +5673,6 @@ msgstr "다음 물체가 플레이트의 경계에 놓이거나 높이 제한을
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "플레이트 위 또는 아래로 완전히 움직여 높이가 빌드 볼륨 내에 있는지 확인하여 문제를 해결하세요.\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "어셈블리의 경계 상자가 너무 커서(최대 크기 &gt;= %1% 인치) 렌더링 문제가 발생할 수 있습니다.\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "어셈블리의 경계 상자가 너무 커서(최대 크기 &gt;= %1% mm) 렌더링 문제가 발생할 수 있습니다.\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "다음 물체는 표준 좌표계의 원래 좌표계에서 너무 멀리 떨어져 있습니다 (거리 >= %1% in).\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "다음 물체는 표준 좌표계의 원래 좌표계에서 너무 멀리 떨어져 있습니다 (거리 >= %1% mm).\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "일부 모델의 위치 또는 크기가 %s의 출력 가능 범위를 초과합니다."
@@ -7199,6 +7173,9 @@ msgstr "필라멘트 정보를 읽을 수 없음: 필라멘트가 툴헤드에 �
 msgid "This only takes effect during printing"
 msgstr "이는 출력 중에만 적용됩니다."
 
+msgid "Silent"
+msgstr "사일런트"
+
 msgid "Sport"
 msgstr "스포츠"
 
@@ -7356,9 +7333,6 @@ msgstr "계산 중, 잠시만 기다려주세요..."
 
 msgid "Status"
 msgstr "상태"
-
-msgid "Print queue"
-msgstr "출력 대기열"
 
 msgctxt "Firmware"
 msgid "Update"
@@ -8411,10 +8385,10 @@ msgid "Go Back"
 msgstr "뒤로 가기"
 
 msgid "Option 3: Enable multi-material optimization"
-msgstr "옵션 3: 다중 재료 최적화 활성화"
+msgstr "옵션 3: 다중 소재 최적화 활성화"
 
 msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
-msgstr "타사 아이콘 클릭 → Helio Additive 활성화 → \"실험: 다중 재료 지원 활성화\" 체크"
+msgstr "제3자 아이콘 클릭 → Helio Additive 활성화 → \"실험: 다중 소재 지원 활성화\" 체크"
 
 msgid "Unsupported Materials Detected"
 msgstr "지원되지 않는 재료 감지됨"
@@ -8453,10 +8427,10 @@ msgid "Refreshing printer and material data..."
 msgstr "프린터 및 재료 데이터 새로고침 중..."
 
 msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
-msgstr "Helio가 모든 프린터 및 재료 데이터를 새로고침하지 못했습니다. 이전의 전체 데이터는 계속 사용할 수 있습니다."
+msgstr "Helio가 모든 프린터 및 소재 데이터를 새로고침하지 못했습니다. 이전의 전체 데이터는 계속 사용할 수 있습니다."
 
 msgid "Helio could not load complete printer and material data. Matching remains paused."
-msgstr "Helio가 전체 프린터 및 재료 데이터를 로드하지 못했습니다. 매칭이 일시 중지되었습니다."
+msgstr "Helio가 전체 프린터 및 소재 데이터를 로드하지 못했습니다. 매칭이 일시 중지되었습니다."
 
 msgid "Helio Data Refresh Failed"
 msgstr "Helio 데이터 새로고침 실패"
@@ -8615,7 +8589,7 @@ msgid "Synchronizing Helio"
 msgstr "Helio 동기화"
 
 msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
-msgstr "Helio가 지원되는 프린터 및 재료 목록을 로드하지 못했습니다. 사용할 수 없는 데이터가 지원되지 않는 재료로 간주되지 않도록 매칭이 일시 중지되었습니다."
+msgstr "Helio가 지원되는 프린터 및 소재 목록을 로드하지 못했습니다. 사용할 수 없는 데이터가 지원되지 않는 소재로 간주되지 않도록 매칭이 일시 중지되었습니다."
 
 msgid "Helio Data Load Failed"
 msgstr "Helio 데이터 로드 실패"
@@ -9773,9 +9747,6 @@ msgstr "동일 유형의 노즐과 필라멘트는 동일한 PA 프로필을 공
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "주 압출기의 필라멘트/노즐이 변경되지 않은 경우, 마지막 보정 값이 재사용됩니다. 보조 압출기는 시스템 기본값을 사용합니다."
 
-msgid "Add to queue"
-msgstr "대기열에 추가"
-
 msgid "send completed"
 msgstr "전송 완료"
 
@@ -9839,9 +9810,6 @@ msgstr "계속 출력"
 msgid "Return to modify"
 msgstr "수정으로 돌아가기"
 
-msgid "Only the current sliced plate can be added to the print queue."
-msgstr "현재 슬라이스된 플레이트만 출력 대기열에 추가할 수 있습니다."
-
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "히트 베드의 평탄도를 확인합니다. 수평을 맞추면 압출 높이가 균일해집니다."
 
@@ -9899,9 +9867,6 @@ msgstr "비정상적인 출력 파일입니다. 다시 슬라이싱 하십시오
 
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "출력 작업이 성공적으로 전송되었으므로 취소해도 출력 작업이 중단되지 않습니다. 이 작업을 종료해야 하는 경우 '장치' 페이지에서 중지하세요."
-
-msgid "Print immediately"
-msgstr "즉시 출력"
 
 msgid "The name length exceeds the limit."
 msgstr "이름 길이가 제한을 초과합니다."
@@ -10300,7 +10265,7 @@ msgid ""
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "지지대에 용해성 소재를 사용하는 경우, 다음 설정을 권장합니다:\n"
-"0 상단 z 거리, 0 하단 z 거리, 0 인터페이스 간격, 0 지지대/물체 xy 거리, 인터레이스된 직선 패턴,\n"
+"0 상단 z 거리, 0 하단 z 거리, 0 인터페이스 간격, 0 지지대/객체 xy 거리, 인터레이스된 직선 패턴,\n"
 "독립적인 지지대 레이어 높이 비활성화 및 지지대 인터페이스와 지지대 베이스 모두에 용해성 소재 사용"
 
 msgid ""
@@ -12325,14 +12290,6 @@ msgstr "설정 패키지가 다음과 같이 업데이트 되었습니다 "
 msgid "Open G-code file:"
 msgstr "G-코드 파일 열기:"
 
-#, c-format, boost-format
-msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr "출력 대기열에 성공적으로 추가되었습니다. %ss 후에 출력 대기열 페이지로 자동 이동합니다."
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "성공적으로 전송되었습니다. %ss의 장치 페이지로 자동으로 이동합니다."
-
 msgid "Print task sending times out."
 msgstr "출력 작업 전송 시간 초과."
 
@@ -12346,14 +12303,15 @@ msgid "Sending print configuration"
 msgstr "출력 설정 보내기"
 
 #, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "성공적으로 전송되었습니다. %ss의 장치 페이지로 자동으로 이동합니다."
+
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "성공적으로 전송되었습니다. %ss의 다음 페이지로 자동으로 이동합니다"
 
 msgid "Refreshing printer access code"
 msgstr "프린터 액세스 코드 새로고침 중"
-
-msgid "Adding print job to queue"
-msgstr "출력 작업 대기열에 추가 중"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "다음 개체의 초기 레이어가 비어 있어 출력할 수 없습니다. 하단을 잘라내거나 지지대를 사용하세요."
@@ -17514,25 +17472,25 @@ msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer 
 msgstr "0.4mm 노즐용 저가속 프로파일입니다. 프린터가 흔들리는 책상이나 선반 위에 놓여 있을 때 사용하세요."
 
 msgid "Helio GCode status response is incomplete"
-msgstr "Helio GCode 상태 응답이 불완전합니다."
+msgstr "Helio G코드 상태 응답이 불완전합니다."
 
 msgid "Helio GCode status response parse failed"
-msgstr "Helio GCode 상태 응답 구문 분석에 실패했습니다."
+msgstr "Helio G코드 상태 응답 구문 분석에 실패했습니다."
 
 msgid "Helio action canceled"
 msgstr "Helio 작업이 취소되었습니다."
 
 msgid "Helio GCode creation response is incomplete"
-msgstr "Helio GCode 생성 응답이 불완전합니다."
+msgstr "Helio G코드 생성 응답이 불완전합니다."
 
 msgid "Failed to parse response"
 msgstr "응답 구문 분석 실패"
 
 msgid "Helio GCode status check failed"
-msgstr "Helio GCode 상태 확인 실패"
+msgstr "Helio G코드 상태 확인 실패"
 
 msgid "Helio GCode creation timed out while checking status"
-msgstr "상태 확인 중 Helio GCode 생성 시간 초과"
+msgstr "상태 확인 중 Helio G코드 생성 시간 초과"
 
 msgid "Failed to create Simulation"
 msgstr "시뮬레이션 생성 실패"
@@ -18617,6 +18575,48 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#~ msgid "Air Purifier"
+#~ msgstr "공기 청정기"
+
+#~ msgctxt "AirPurifier"
+#~ msgid "Max"
+#~ msgstr "최대"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "어셈블리의 경계 상자가 너무 커서(최대 크기 &gt;= %1% 인치) 렌더링 문제가 발생할 수 있습니다.\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "어셈블리의 경계 상자가 너무 커서(최대 크기 &gt;= %1% mm) 렌더링 문제가 발생할 수 있습니다.\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "다음 물체는 표준 좌표계의 원래 좌표계에서 너무 멀리 떨어져 있습니다 (거리 >= %1% in).\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "다음 물체는 표준 좌표계의 원래 좌표계에서 너무 멀리 떨어져 있습니다 (거리 >= %1% mm).\n"
+
+#~ msgid "Print queue"
+#~ msgstr "출력 대기열"
+
+#~ msgid "Add to queue"
+#~ msgstr "대기열에 추가"
+
+#~ msgid "Only the current sliced plate can be added to the print queue."
+#~ msgstr "현재 슬라이스된 플레이트만 출력 대기열에 추가할 수 있습니다."
+
+#~ msgid "Print immediately"
+#~ msgstr "즉시 출력"
+
+#, c-format, boost-format
+#~ msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+#~ msgstr "출력 대기열에 성공적으로 추가되었습니다. %ss 후에 출력 대기열 페이지로 자동 이동합니다."
+
+#~ msgid "Adding print job to queue"
+#~ msgstr "출력 작업 대기열에 추가 중"
 
 #, boost-format
 #~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."

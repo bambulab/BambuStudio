@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 20:41+0800\n"
+"POT-Creation-Date: 2026-08-13 23:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3026,16 +3026,6 @@ msgstr "Mude de qualquer maneira"
 msgid "Off"
 msgstr "Desligado"
 
-msgid "Air Purifier"
-msgstr "Purificador de ar"
-
-msgctxt "AirPurifier"
-msgid "Max"
-msgstr "Máximo"
-
-msgid "Silent"
-msgstr "Silencioso"
-
 msgid "Filter"
 msgstr "Filtro"
 
@@ -5692,22 +5682,6 @@ msgstr "Os seguintes objetos são colocados sobre o limite da placa ou excedem o
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Resolva o problema movendo-o totalmente para dentro ou para fora da placa e confirmando que a altura está dentro do volume de construção.\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "A caixa delimitadora da montagem é muito grande (tamanho máximo >= %1% pol), o que pode causar problemas de renderização.\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "A caixa delimitadora da montagem é muito grande (tamanho máximo >= %1% mm), o que pode causar problemas de renderização.\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "Os seguintes objetos estão muito longe ( distância >= %1% in ) do original do sistema de coordenadas do mundo:\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "Os seguintes objetos estão muito longe (distância >= %1% mm ) do original do sistema de coordenadas do mundo:\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "A posição ou o tamanho de alguns modelos excede o intervalo de impressão de %s."
@@ -7211,6 +7185,9 @@ msgstr "Não é possível ler as informações do filamento: o filamento está c
 msgid "This only takes effect during printing"
 msgstr "Isso só tem efeito durante a impressão"
 
+msgid "Silent"
+msgstr "Silencioso"
+
 msgid "Sport"
 msgstr "Esportivo"
 
@@ -7368,9 +7345,6 @@ msgstr "Calculando; aguarde..."
 
 msgid "Status"
 msgstr "Estado"
-
-msgid "Print queue"
-msgstr "Fila de impressão"
 
 msgctxt "Firmware"
 msgid "Update"
@@ -9787,9 +9761,6 @@ msgstr "Bicos e filamentos do mesmo tipo compartilham o mesmo perfil PA"
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "Se o filamento/bico da extrusora principal não tiver sido trocado, o último valor de calibração será reutilizado. A extrusora auxiliar usará o valor padrão do sistema."
 
-msgid "Add to queue"
-msgstr "Adicionar à fila"
-
 msgid "send completed"
 msgstr "envio concluído"
 
@@ -9851,9 +9822,6 @@ msgstr "Continuar impressão"
 msgid "Return to modify"
 msgstr "Voltar para modificar"
 
-msgid "Only the current sliced plate can be added to the print queue."
-msgstr "Apenas a placa fatiada atual pode ser adicionada à fila de impressão."
-
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Isso verifica o nivelamento da mesa aquecida. O nivelamento torna a altura extrudada uniforme."
 
@@ -9911,9 +9879,6 @@ msgstr "Dados anormais do arquivo de impressão. Por favor, corte novamente"
 
 msgid "As the print job has been successfully sent, the cancellation will not bring the print job to a halt. If you need to terminate this job, please stop it in 'Device' page."
 msgstr "Como o trabalho de impressão foi enviado com sucesso, o cancelamento não parará o trabalho de impressão. Se você precisar encerrar este trabalho, pare-o na página 'Dispositivo'."
-
-msgid "Print immediately"
-msgstr "Imprimir imediatamente"
 
 msgid "The name length exceeds the limit."
 msgstr "O tamanho do nome excede o limite."
@@ -10312,7 +10277,7 @@ msgid ""
 "pattern, disable independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "Ao utilizar material solúvel para o suporte, recomendamos as seguintes configurações:\n"
-"distância Z superior 0, distância Z inferior 0, espaçamento da interface 0, distância xy suporte/objeto 0, padrão retilíneo entrelaçado,\n"
+"distância Z superior 0, distância Z inferior 0, espaçamento da interface 0, distância xy suporte/objeto 0, padrão retilíneo entrelaçado, \n"
 "desativar a altura da camada de suporte independente e utilizar materiais solúveis tanto para a interface do suporte quanto para a base do suporte"
 
 msgid ""
@@ -12343,14 +12308,6 @@ msgstr "Pacote de configuração atualizado para "
 msgid "Open G-code file:"
 msgstr "Abra o arquivo g-code"
 
-#, c-format, boost-format
-msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
-msgstr "Adicionado com sucesso à fila de impressão. Você será redirecionado automaticamente para a página da fila de impressão em %ss"
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Enviado com sucesso. Saltará automaticamente para a página do dispositivo em %s s."
-
 msgid "Print task sending times out."
 msgstr "O tempo limite de envio da tarefa de impressão é expirado."
 
@@ -12364,14 +12321,15 @@ msgid "Sending print configuration"
 msgstr "Enviando configuração de impressão"
 
 #, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "Enviado com sucesso. Saltará automaticamente para a página do dispositivo em %s s."
+
+#, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Enviado com sucesso. Saltará automaticamente para a próxima página em %s s"
 
 msgid "Refreshing printer access code"
 msgstr "Atualizando código de acesso da impressora"
-
-msgid "Adding print job to queue"
-msgstr "Adicionando tarefa de impressão à fila"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "Os seguintes objetos têm uma camada inicial vazia e não podem ser impressos. Corte a parte inferior ou ative os suportes."
@@ -18635,6 +18593,48 @@ msgid ""
 msgstr ""
 "Confiabilidade na Primeira Tentativa\n"
 "Menos supervisão, saída mais previsível. Exemplo: uma pequena fazenda produzindo peças de PETG evita surpresas de \"falha na hora 6\" e mantém os lotes no cronograma."
+
+#~ msgid "Air Purifier"
+#~ msgstr "Purificador de ar"
+
+#~ msgctxt "AirPurifier"
+#~ msgid "Max"
+#~ msgstr "Máximo"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "A caixa delimitadora da montagem é muito grande (tamanho máximo >= %1% pol), o que pode causar problemas de renderização.\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "A caixa delimitadora da montagem é muito grande (tamanho máximo >= %1% mm), o que pode causar problemas de renderização.\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "Os seguintes objetos estão muito longe ( distância >= %1% in ) do original do sistema de coordenadas do mundo:\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "Os seguintes objetos estão muito longe (distância >= %1% mm ) do original do sistema de coordenadas do mundo:\n"
+
+#~ msgid "Print queue"
+#~ msgstr "Fila de impressão"
+
+#~ msgid "Add to queue"
+#~ msgstr "Adicionar à fila"
+
+#~ msgid "Only the current sliced plate can be added to the print queue."
+#~ msgstr "Apenas a placa fatiada atual pode ser adicionada à fila de impressão."
+
+#~ msgid "Print immediately"
+#~ msgstr "Imprimir imediatamente"
+
+#, c-format, boost-format
+#~ msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+#~ msgstr "Adicionado com sucesso à fila de impressão. Você será redirecionado automaticamente para a página da fila de impressão em %ss"
+
+#~ msgid "Adding print job to queue"
+#~ msgstr "Adicionando tarefa de impressão à fila"
 
 #, boost-format
 #~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
