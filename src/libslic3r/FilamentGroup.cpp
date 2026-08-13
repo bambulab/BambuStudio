@@ -473,6 +473,12 @@ namespace Slic3r
         std::vector<std::vector<MachineFilamentInfo>> machine_filament_info = machine_filament_info_;
         machine_filament_info.resize(2);
 
+        // 设备侧完全没有耗材信息（未连接打印机 / 未同步 AMS）时，所有候选代价相同，
+        // AMS 匹配没有参考价值，直接保留最小冲刷方案，避免结果由平局顺序决定。
+        if (std::all_of(machine_filament_info.begin(), machine_filament_info.end(),
+                        [](const std::vector<MachineFilamentInfo>& filaments) { return filaments.empty(); }))
+            return filament_to_nozzles.size() ? filament_to_nozzles.front() : std::vector<int>();
+
         int best_cost = std::numeric_limits<int>::max();
         std::vector<int>best_map;
 
@@ -492,7 +498,9 @@ namespace Slic3r
                 if (group_colors[i].empty())
                     continue;
                 if (machine_filament_info[i].empty()) {
-                    group_cost += group_colors.size() * fail_cost;
+                    // 按耗材根数计罚，与下方匹配分支保持同一尺度；
+                    // 若按分组数计罚，则"用的头越少越便宜"，会把所有耗材压到同一个挤出机。
+                    group_cost += (int) group_colors[i].size() * fail_cost;
                     continue;
                 }
                 std::vector<std::vector<float>>distance_matrix(group_colors[i].size(), std::vector<float>(machine_filament_info[i].size()));
