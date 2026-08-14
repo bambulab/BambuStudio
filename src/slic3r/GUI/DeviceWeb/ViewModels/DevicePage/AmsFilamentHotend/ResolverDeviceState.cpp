@@ -20,18 +20,6 @@ bool DevicePageDeviceStateResolver::IsBusy(MachineObject* machine_obj)
     if (machine_obj->is_in_calibration()) return true;
     if (machine_obj->is_in_extrusion_cali()) return true;
     if (machine_obj->is_in_upgrading()) return true;
-
-    if (machine_obj->ams_status_main != AmsStatusMain::AMS_STATUS_MAIN_IDLE
-        && machine_obj->ams_status_main != AmsStatusMain::AMS_STATUS_MAIN_UNKNOWN) {
-        return true;
-    }
-
-    if (machine_obj->is_enable_np) {
-        if (auto* extder = machine_obj->GetExtderSystem(); extder && extder->IsBusyLoading()) {
-            return true;
-        }
-    }
-
     return false;
 }
 
