@@ -4590,6 +4590,222 @@ static void organic_lightning_infill(
 #endif
 }
 
+/*!
+ * \brief Close floating organic support faces left by model intrusion.
+ *
+ * After organic_draw_branches(), a model part may poke into a trunk. The overhang
+ * detector puts a roof (interface) under that intruding underside, and the roof ends
+ * up in the middle of the trunk cross section. The trunk polygon is a full disc, but
+ * tree_supports_generate_paths() prints it sheath-only, so the disc interior is air:
+ * the roof is a ceiling over a void even though every polygon test says it is covered.
+ *
+ * Support below a layer is therefore measured on printed material - the sheath wall
+ * band of the base plus the solid interfaces - not on the base polygon. Lightning
+ * void caps are a separate channel and are not consulted here. A thin branch is fully
+ * covered by its own wall band and never triggers.
+ *
+ * This pass:
+ *  1) Takes only the ceiling that sits over the hollow interior of the trunk (roof clipped
+ *     to the trunk core). That is the part the model punched into; the sheath rim and the
+ *     areas held by other branch tips are excluded. Normal tips are kept out by two gates:
+ *     the trunk must extend beyond the roof (a tip has its whole top covered), and a probe
+ *     above the top Z gap must find the trunk carrying on past the face.
+ *  2) Drops that footprint layer by layer, clipped against model collision and the bed.
+ *     At each layer the part overlapping printed material (a bent branch pipe, a solid
+ *     tip, a bottom contact / flange) is subtracted and stops there; the remainder keeps
+ *     descending. With no pipe underneath it runs all the way to the tree bottom / bed.
+ *  3) Unions each layer of the support column into intermediate_layers (so the sheath and
+ *     the SupportCommon intersection at toolpath time keep it) and into floating_column_areas.
+ */
+static void organic_support_floating_faces(
+    PrintObject                     &print_object,
+    TreeModelVolumes                &volumes,
+    const TreeSupportSettings       &config,
+    SupportGeneratorLayersPtr       &bottom_contacts,
+    SupportGeneratorLayersPtr       &top_contacts,
+    SupportGeneratorLayersPtr       &intermediate_layers,
+    SupportGeneratorLayerStorage    &layer_storage,
+    std::vector<ExPolygons>         &floating_column_areas,
+    std::function<void()>            throw_on_cancel)
+{
+    const size_t num_layers = intermediate_layers.size();
+    if (num_layers < 2 || top_contacts.empty())
+        return;
+
+    const double area_scaled_per_mm2 = sqr(scaled<double>(1.));
+    // Ignore sub-extrusion noise; same order as organic_lightning_infill's hole floor.
+    const double min_area = 0.02 * area_scaled_per_mm2;
+    // One extrusion width: sheath band thickness, seating tolerance and sliver filter.
+    const float  line_w = float(std::max<coord_t>(config.support_line_width, scaled<coord_t>(0.1)));
+    // A column stands on printed material at the same layer if it is within ~45 degrees of it.
+    const float  land_tol = float(std::max(config.layer_height, coord_t(1)));
+
+    // Empty fallback so the accessors can hand back a reference for missing layers
+    // instead of copying a whole layer of polygons on every lookup.
+    static const Polygons s_no_polygons;
+    auto base_at = [&](size_t layer_idx) -> const Polygons & {
+        return (layer_idx < num_layers && intermediate_layers[layer_idx]) ? intermediate_layers[layer_idx]->polygons : s_no_polygons;
+    };
+    auto roof_at = [&](size_t layer_idx) -> const Polygons & {
+        return (layer_idx < top_contacts.size() && top_contacts[layer_idx]) ? top_contacts[layer_idx]->polygons : s_no_polygons;
+    };
+    auto bottom_at = [&](size_t layer_idx) -> const Polygons & {
+        return (layer_idx < bottom_contacts.size() && bottom_contacts[layer_idx]) ? bottom_contacts[layer_idx]->polygons : s_no_polygons;
+    };
+
+    // Per-layer column polygons accumulated across all feet, committed after the scan.
+    std::vector<Polygons> column_layers(num_layers);
+
+    // Material actually extruded on a layer: the sheath band of the base (its interior is
+    // air) plus the solid interfaces. Cached, it is rescanned per foot. Lightning strips
+    // are ignored here - they are a separate fill channel, not part of intrusion detection.
+    std::vector<Polygons> printed_static_cache(num_layers);
+    std::vector<char>     printed_static_valid(num_layers, 0);
+    auto printed_static_at = [&](size_t layer_idx) -> const Polygons & {
+        if (! printed_static_valid[layer_idx]) {
+            Polygons printed;
+            const Polygons &base = base_at(layer_idx);
+            if (! base.empty()) {
+                Polygons core = offset(base, - line_w);
+                // Thin branch: wall fills the disc - treat the whole disc as solid pipe.
+                // Thick trunk: only the sheath ring is printed; the core is air.
+                append(printed, core.empty() ? base : diff(base, core));
+            }
+            append(printed, bottom_at(layer_idx));
+            append(printed, roof_at(layer_idx));
+            printed_static_cache[layer_idx] = printed.empty() ? printed : union_(printed);
+            printed_static_valid[layer_idx] = 1;
+        }
+        return printed_static_cache[layer_idx];
+    };
+    // Same, plus support columns already committed by earlier feet. Cached and dirtied
+    // when column_layers grows so the drop loop does not re-union every call.
+    std::vector<Polygons> printed_dyn_cache(num_layers);
+    std::vector<char>     printed_dyn_dirty(num_layers, 1);
+    auto printed_at = [&](size_t layer_idx) -> const Polygons & {
+        if (printed_dyn_dirty[layer_idx]) {
+            Polygons printed = printed_static_at(layer_idx);
+            if (! column_layers[layer_idx].empty()) {
+                append(printed, column_layers[layer_idx]);
+                printed = union_(printed);
+            }
+            printed_dyn_cache[layer_idx] = std::move(printed);
+            printed_dyn_dirty[layer_idx] = 0;
+        }
+        return printed_dyn_cache[layer_idx];
+    };
+
+    for (size_t layer_idx = 1; layer_idx < num_layers; ++ layer_idx) {
+        throw_on_cancel();
+
+        const Polygons &roof = roof_at(layer_idx);
+        if (roof.empty() || area(roof) < min_area)
+            continue;
+
+        const Polygons &trunk_below = base_at(layer_idx - 1);
+        if (trunk_below.empty())
+            continue;
+
+        // Cheapest high-yield gate first: not a branch tip. The trunk must extend beyond the
+        // ceiling - a tip has its whole top covered by the roof, while a through-going branch
+        // the model intruded still has trunk outside the face. Ordinary tips die here before
+        // any offset / intersection is spent on them.
+        if (area(diff(trunk_below, roof)) < min_area)
+            continue;
+
+        // The hollow trunk core one layer down. A ceiling reaching it is an interior face.
+        Polygons trunk_core = offset(trunk_below, - line_w);
+        if (trunk_core.empty())
+            continue;
+
+        // The valve face is only the ceiling sitting over the hollow interior of the trunk -
+        // the part the model punched into. The rest of a top_contact is carried by the sheath
+        // rim or by other branch tips, so it is deliberately excluded. Clipping to the core
+        // (not to the whole trunk) drops the sheath band, which is already printed.
+        Polygons foot = intersection(roof, trunk_core);
+        if (foot.empty() || area(foot) < min_area)
+            continue;
+
+        // What the material below leaves uncarried. Gates the pass - a ceiling already carried
+        // by printed material below needs nothing. Overlap is subtracted per layer on emit.
+        const Polygons &printed_below = printed_at(layer_idx - 1);
+        Polygons unsupported = printed_below.empty() ? foot : diff(foot, printed_below);
+        if (unsupported.empty() || area(unsupported) < min_area)
+            continue;
+
+        // The model punched through the trunk, so the branch wraps around it and carries on:
+        // base is still there above the top Z gap. An ordinary branch tip has nothing above.
+        const size_t probe_idx = layer_idx + config.z_distance_top_layers + 2;
+        if (probe_idx >= num_layers || intersection(offset(foot, line_w), base_at(probe_idx)).empty())
+            continue;
+
+        // Drop until every piece of the footprint has landed on a pipe / bottom contact /
+        // bed flange, or until layer 0. Overlap with printed material at the current layer
+        // is subtracted (lands on that pipe); the remainder keeps falling toward the plate.
+        // Start from the uncarried part - the material below layer_idx-1 already holds the rest.
+        Polygons need = std::move(unsupported);
+        for (LayerIndex k = 1; LayerIndex(layer_idx) >= k; ++ k) {
+            if ((k & 15) == 15)
+                throw_on_cancel();
+
+            const size_t below = size_t(LayerIndex(layer_idx) - k);
+            // Trim collision to the local footprint bbox before the clipper diff.
+            const BoundingBox need_bb = get_extents(need).inflated(SCALED_EPSILON);
+            Polygons collision = ClipperUtils::clip_clipper_polygons_with_subject_bbox(
+                volumes.getCollision(0, LayerIndex(below), false), need_bb);
+            Polygons column = diff_clipped(need, collision);
+            if (volumes.m_bed_area.is_valid())
+                column = intersection(column, Polygons{ volumes.m_bed_area });
+            if (column.empty() || area(column) < min_area)
+                break;
+
+            // Emit only the part that is not already solid at this layer (avoid double-fill
+            // over an existing pipe wall / bottom contact).
+            const Polygons &printed_here = printed_at(below);
+            Polygons emit = printed_here.empty() ? column : diff(column, printed_here);
+            if (! emit.empty() && area(emit) >= min_area) {
+                append(column_layers[below], emit);
+                printed_dyn_dirty[below] = 1;
+            }
+
+            if (below == 0)
+                break;
+
+            // Soft land on a bent pipe / sheath / bottom contact: subtract the overlap
+            // (printed_here already includes bottom contacts), keep the free part.
+            need = printed_here.empty() ? std::move(column) : diff(column, offset(printed_here, land_tol));
+            if (need.empty() || area(need) < min_area)
+                break;
+        }
+    }
+
+    // Commit the columns into the base + sparse-rectilinear fill channel.
+    if (floating_column_areas.size() < num_layers)
+        floating_column_areas.resize(num_layers);
+
+    const SlicingParameters &slicing_params = print_object.slicing_parameters();
+    for (size_t layer_idx = 0; layer_idx < num_layers; ++ layer_idx) {
+        if (column_layers[layer_idx].empty())
+            continue;
+        throw_on_cancel();
+        Polygons col = union_(column_layers[layer_idx]);
+        if (col.empty() || area(col) < min_area)
+            continue;
+
+        // Never let the column enter the printed part.
+        col = diff_clipped(col, volumes.getCollision(0, LayerIndex(layer_idx), false));
+        if (col.empty())
+            continue;
+
+        SupportGeneratorLayer *&base_layer = intermediate_layers[layer_idx];
+        if (base_layer == nullptr)
+            base_layer = &layer_allocate(layer_storage, SupporLayerType::sltBase, slicing_params, config, layer_idx);
+        base_layer->polygons = union_(base_layer->polygons, col);
+
+        floating_column_areas[layer_idx] = union_ex(col);
+    }
+}
+
 static void generate_support_areas(Print &print, TreeSupport* tree_support, const BuildVolume &build_volume, const std::vector<size_t> &print_object_ids, std::function<void()> throw_on_cancel)
 {
     // Settings with the indexes of meshes that use these settings.
@@ -4713,6 +4929,8 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         // compacted to the non-null intermediate slots so generate_support_toolpaths can look
         // them up by idx_layer_intermediate (print_z), not by support_layer_id.
         std::vector<Polylines> lightning_infill_lines(num_support_layers);
+        // Sparse rectilinear columns under floating faces left by model intrusion into a trunk.
+        std::vector<ExPolygons> floating_column_areas(num_support_layers);
         if (has_support) {
             auto t_precalc = std::chrono::high_resolution_clock::now();
             // value is the area where support may be placed. As this is calculated in CreateLayerPathing it is saved and reused in draw_areas
@@ -4764,6 +4982,28 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
             // ### Lightning infill for newly opened internal voids in organic hollow trunks (always on).
             organic_lightning_infill(print_object, volumes, config,
                 bottom_contacts, top_contacts, intermediate_layers, lightning_infill_lines, throw_on_cancel);
+
+            // ### Sparse rectilinear columns under floating faces left by model intrusion into a trunk.
+            organic_support_floating_faces(print_object, volumes, config,
+                bottom_contacts, top_contacts, intermediate_layers, layer_storage,
+                floating_column_areas, throw_on_cancel);
+
+            // floating_column_areas was filled at the same dense layer_idx as intermediate_layers
+            // (including the null slots). Drop the entries whose intermediate row is about to be removed
+            // as undefined, so the two arrays stay 1:1 after compaction. generate_support_toolpaths then
+            // looks them up by idx_layer_intermediate (print_z), not by support_layer_id (which also
+            // numbers raft and contact-only rows).
+            {
+                std::vector<ExPolygons> kept_floating;
+                kept_floating.reserve(intermediate_layers.size());
+                for (size_t i = 0; i < intermediate_layers.size(); ++ i) {
+                    if (intermediate_layers[i] == nullptr)
+                        continue;
+                    kept_floating.emplace_back(i < floating_column_areas.size() ?
+                        std::move(floating_column_areas[i]) : ExPolygons{});
+                }
+                floating_column_areas = std::move(kept_floating);
+            }
 
             //tree_support->move_bounds_to_contact_nodes(move_bounds, print_object, config);
 
@@ -4850,7 +5090,8 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         // Don't fill in the tree supports, make them hollow with just a single sheath line.
         print.set_status(69, _L("Generating support"));
         generate_support_toolpaths(print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
-            raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers, cooldown_areas, &lightning_infill_lines);
+            raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers,
+            cooldown_areas, &lightning_infill_lines, floating_column_areas);
 
         auto t_end = std::chrono::high_resolution_clock::now();
         BOOST_LOG_TRIVIAL(info) << "Total time of organic tree support: " << 0.001 * std::chrono::duration_cast<std::chrono::microseconds>(t_end - t_start).count() << " ms";

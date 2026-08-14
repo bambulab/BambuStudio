@@ -78,7 +78,11 @@ void generate_support_toolpaths(
     // otherwise printed sheath-only / hollow). Indexed like intermediate_layers after undefined layers
     // are removed. Look up by idx_layer_intermediate (print_z), not by support_layer_id (raft / contacts).
     // Non-owning; entries are moved from when extruded. Null when the caller has no organic lightning.
-    std::vector<Polylines>              *lightning_infill_lines = nullptr);
+    std::vector<Polylines>              *lightning_infill_lines = nullptr,
+    // Organic tree only: sparse rectilinear columns under floating faces left by model intrusion into a
+    // trunk. Compacted in lockstep with intermediate_layers, so look up by idx_layer_intermediate
+    // (print_z), not by support_layer_id. Filled at support_density (columns are peelable, not solid caps).
+    const std::vector<ExPolygons>       &floating_column_areas = {});
 
 // FN_HIGHER_EQUAL: the provided object pointer has a Z value >= of an internal threshold.
 // Find the first item with Z value >= of an internal threshold of fn_higher_equal.
