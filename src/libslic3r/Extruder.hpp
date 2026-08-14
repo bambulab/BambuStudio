@@ -31,9 +31,6 @@ public:
 
     unsigned int id() const { return m_id; }
 
-    NozzleVolumeType volume_type() const;
-    ExtruderType  extruder_type() const;
-
     unsigned int extruder_id() const;
     unsigned int nozzle_id() const;
     double extrude(double dE);
@@ -55,7 +52,6 @@ public:
     double filament_flow_ratio() const;
     double retract_before_wipe() const;
     double retraction_length() const;
-    double retract_lift() const;
     int    retract_speed() const;
     int    deretract_speed() const;
     double retract_restart_extra() const;

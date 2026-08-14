@@ -37,27 +37,6 @@ unsigned int Extruder::nozzle_id() const
     return 0;
 }
 
-NozzleVolumeType Extruder::volume_type() const
-{
-    assert(m_config);
-    if(m_id < m_config->nozzle_volume_type.size()) {
-        return NozzleVolumeType(m_config->nozzle_volume_type.get_at(m_id));
-    }
-
-    return NozzleVolumeType::nvtStandard;
-}
-
-ExtruderType Extruder::extruder_type() const
-{
-    assert(m_config);
-    unsigned int ext_id = this->extruder_id();
-    if (ext_id < m_config->extruder_type.size()) {
-        return ExtruderType(m_config->extruder_type.get_at(ext_id));
-    }
-    return ExtruderType::etDirectDrive;
-}
-
-
 double Extruder::extrude(double dE)
 {
     // BBS
@@ -187,11 +166,6 @@ double Extruder::retract_before_wipe() const
 double Extruder::retraction_length() const
 {
     return m_config->retraction_length.get_at(get_filament_config_idx(*m_config, m_id));
-}
-
-double Extruder::retract_lift() const
-{
-    return m_config->z_hop.get_at(get_filament_config_idx(*m_config, m_id));
 }
 
 int Extruder::retract_speed() const

@@ -57,6 +57,7 @@ class DiameterButtonPanel : public wxPanel
 {
 public:
     using NozzleQueryCallback = std::function<bool(const wxString &diameter)>;
+    using NoNozzleClickCallback = std::function<void(const wxString &diameter)>;
 
     enum ButtonState { Selected, HasNozzle, NoNozzle };
 
@@ -64,6 +65,7 @@ public:
     wxString    GetSelectedDiameter() const { return m_selected_diameter; }
     void        SetSelectedDiameter(const wxString &diameter);
     void        SetNozzleQueryCallback(NozzleQueryCallback callback) { m_nozzle_query_callback = callback; }
+    void        SetNoNozzleClickCallback(NoNozzleClickCallback callback) { m_no_nozzle_click_callback = callback; }
     void        UpdateSingleButtonState(Button *btn, const wxString &diameter);
     void        UpdateButtonStates();
     ButtonState GetButtonState(const wxString &diameter) const;
@@ -81,6 +83,7 @@ private:
     wxString              m_selected_diameter;
     bool                  m_show_title{true};
     NozzleQueryCallback   m_nozzle_query_callback{nullptr};
+    NoNozzleClickCallback m_no_nozzle_click_callback{nullptr};
 };
 
 class HorizontalScrollablePanel : public wxScrolledWindow
@@ -109,7 +112,6 @@ public:
     ExtruderPanel(wxWindow *parent, GroupType type);
 
     GroupType GetType() const { return m_type; }
-    NozzleVolumeType GetVolumeType(const wxString& diameter) const;
 
     void SetDiameter(const wxString& diameter);
     void SetFlow(const wxString& diameter);
@@ -169,132 +171,6 @@ public:
     std::vector<AMSinfo> m_ext;
 };
 
-class ExtruderDialogPanel : public ExtruderPanel
-{
-public:
-    struct NozzleInternal
-    {
-        wxStaticBitmap *warning_icon{nullptr};
-        ComboBox       *type_combo{nullptr};
-        Label *diameter_flow_label {nullptr};
-        ComboBox *diameter_combo{nullptr};
-        ComboBox *flow_combo{nullptr};
-        Label *nozzle_label {nullptr};
-        wxStaticText *question_label {nullptr};
-        wxPanel *material_color_panel {nullptr};
-        StaticBox *material_color_box {nullptr};
-        Label *material_label {nullptr};
-        Label *error_label {nullptr};
-        Label *unknown_label {nullptr};
-        bool is_serious_warning{false};
-
-        std::pair<int, int> ams_slot{-1, -1}; // ams_id, slot_id
-    };
-    ExtruderDialogPanel(wxWindow *parent, GroupType type, std::vector<NozzleConfig> cfg);
-    std::vector<NozzleInternal> GetNozzleConfigs() const { return m_nozzles; }
-    Label* GetFilamentLabel() const { return m_filament_label; }
-    void UpdateWarningStates(const wxString &selected_diameter);
-    void ShowAMSCountPopup();
-    void ShowAMSDeletePopup(AMSPreview *ams_preview);
-    void ShowBadge(bool show);
-    void Rescale();
-    std::vector<NozzleConfig> ExtractConfig();
-    ExtruderNozzleStat BuildExtruderNozzleStat(wxString diameter, const std::vector<NozzleConfig> &configs);
-
-    void sync_ams_from_panel(const ExtruderPanel *source_panel);
-    void set_ams_count(int n4, int n1) override
-    {
-        if (n4 == m_ams_n4 && n1 == m_ams_n1)
-            return;
-
-        m_ams_n4 = n4;
-        m_ams_n1 = n1;
-        update_ams();
-    }
-    void update_ams() override;
-    bool is_extruder_synced(wxString diameter);
-    std::pair<const Caninfo *, DevAmsType> get_caninfo(const NozzleInternal &nozzle) const;
-
-private:
-    void OnNozzleErrorClick(wxMouseEvent &evt);
-
-#ifdef __WXMSW__
-    ScalableBitmap m_badge;
-    void           OnPaint(wxPaintEvent &event);
-#endif
-#ifdef __WXOSX__
-    ScalableButton *m_badge{nullptr};
-    void            LayoutBadge();
-    void            OnSize(wxSizeEvent &event);
-#endif
-
-    wxBitmap m_warning_bitmap;
-    wxBitmap m_warning_serious_bitmap;
-    Label *m_title_label {nullptr};
-    Label *m_filament_label{nullptr};
-    ScalableButton *m_add_btn{nullptr};
-    PopupWindow *m_ams_popup{nullptr};
-    std::vector<NozzleInternal> m_nozzles;
-    std::vector<NozzleConfig>   m_nozzle_configs;
-};
-
-class ExtruderSettingsDialog : public DPIDialog
-{
-public:
-    ExtruderSettingsDialog(wxWindow                        *parent,
-                           bool                             is_dual_extruder,
-                           wxString                        &diameter,
-                           const std::vector<NozzleConfig> &left_configs,
-                           const std::vector<NozzleConfig> &right_configs    = {},
-                           ExtruderPanel                   *left_source = nullptr,
-                           ExtruderPanel                   *right_source = nullptr,
-                           CustomSeparator::State           state = CustomSeparator::State::Hidden);
-
-    wxString GetSelectedDiameter() const;
-    std::vector<NozzleConfig> GetExtruderConfigs(int index) const;
-    void UpdateDialogState();
-    void OnAMSCountChanged();
-
-    void on_dpi_changed(const wxRect &suggested_rect) override;
-
-private:
-    void CreateLayout();
-    std::vector<NozzleConfig> ExtractConfigsFromPanel(ExtruderDialogPanel *panel) const;
-    void SetupCallbacks();
-    void SaveAMSInitialState(ExtruderPanel *left_source, ExtruderPanel *right_source);
-    void RestoreAMSInitialState();
-    void AlignSeparatorIcon();
-
-    bool m_is_dual_extruder{false};
-    int  m_max_nozzle_count{6};
-
-    DiameterButtonPanel *m_diameter_panel{nullptr};
-    wxPanel             *m_extruder_container{nullptr};
-    ExtruderDialogPanel *m_left_extruder_panel{nullptr};
-    ExtruderDialogPanel *m_right_extruder_panel{nullptr};
-    wxPanel             *m_warning_panel{nullptr};
-    wxPanel             *m_warning_serious_panel{nullptr};
-    Button              *m_confirm_btn{nullptr};
-    Button              *m_cancel_btn{nullptr};
-    Button              *m_refresh_btn{nullptr};
-    CustomSeparator     *m_separator{nullptr};
-
-    wxString m_diameter;
-
-    std::vector<NozzleConfig> m_left_configs;
-    std::vector<NozzleConfig> m_right_configs;
-
-    struct InitialAMSState
-    {
-        size_t               ams_n4{0};
-        size_t               ams_n1{0};
-        std::vector<AMSinfo> ams_4;
-        std::vector<AMSinfo> ams_1;
-        std::vector<AMSinfo> ext;
-    };
-    InitialAMSState m_initial_left_ams;
-    InitialAMSState m_initial_right_ams;
-};
 
 class ExtruderPanelGroup : public wxPanel
 {

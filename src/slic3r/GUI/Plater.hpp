@@ -143,7 +143,8 @@ struct NozzleConfig
     wxString         diameter;
     NozzleVolumeType volume {nvtStandard};
     NozzleStatus     status{2}; // unknow
-    std::pair<int, int> ams_slot{-1, -1}; // ams_id, slot_id
+    std::vector<std::pair<int, int>> ams_slots;
+    bool has_bind_ams = false;
 
     NozzleConfig()          = default;
     NozzleConfig(const wxString &diameter_, NozzleVolumeType volume_, NozzleStatus status_) : diameter(diameter_), volume(volume_), status(status_) {}
@@ -867,8 +868,6 @@ public:
     bool check_ams_status(bool is_slice_all);
     // only check sync status and printer model id
     bool get_machine_sync_status();
-    // check whether nozzle staus is synced with printer, extruder = -1 means check both extruder
-    bool is_extruder_stat_synced(int extruder_id = -1);
     void update_machine_sync_status();
     void update_filament_volume_map(int extruder_id, int volume_type);
 

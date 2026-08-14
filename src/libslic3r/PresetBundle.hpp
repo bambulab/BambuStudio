@@ -8,6 +8,7 @@
 #include <memory>
 #include <unordered_map>
 #include <optional>
+#include <utility>
 #include <variant>
 #include <map>
 #include <boost/filesystem/path.hpp>
@@ -319,6 +320,22 @@ public:
                                                                                                std::string &      nozzle_temp_max,
                                                                                                std::string &      preset_setting_id);
     Preset *                    get_similar_printer_preset(std::string printer_model, std::string printer_variant);
+
+    /**
+     * \brief Set the ams count for extruder \p index
+     *
+     * \param index logical index of extruer
+     * \param ams4  count of the 4-slot ams
+     * \param ams1  count of the 1-slot ams
+     */
+    void set_ams_count(int index, int ams4, int ams1);
+
+    /**
+     * \brief get the ams count for extruder \p index, <4-slot, 1-slot>
+     *
+     * \param index logical index of extruer
+     */
+    std::pair<int, int> get_ams_count(int index);
 
     PresetCollection            prints;
     PresetCollection            sla_prints;

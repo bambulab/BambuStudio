@@ -98,6 +98,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/MultiNozzleSync.cpp
     GUI/Widgets/SyncMachineInfoDialog.hpp
     GUI/Widgets/SyncMachineInfoDialog.cpp
+    GUI/Widgets/ExtruderSettingsDialog.hpp
+    GUI/Widgets/ExtruderSettingsDialog.cpp
     GUI/MixedFilamentDialog.cpp
     GUI/MixedFilamentDialog.hpp
     GUI/ColorDecomposeDialog.cpp
@@ -538,6 +540,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/DragCanvas.hpp
     GUI/ExtruderPanel.cpp
     GUI/ExtruderPanel.hpp
+    GUI/ExtruderHelpers.cpp
+    GUI/ExtruderHelpers.hpp
     GUI/PublishDialog.cpp
     GUI/PublishDialog.hpp
     GUI/RecenterDialog.cpp

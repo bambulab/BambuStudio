@@ -3318,6 +3318,29 @@ Preset *PresetBundle::get_similar_printer_preset(std::string printer_model, std:
     return printer_presets.begin()->second;
 }
 
+void PresetBundle::set_ams_count(int index, int ams4, int ams1)
+{
+    extruder_ams_counts.resize(get_printer_extruder_count());
+
+    bool valid = (0 <= index && index < extruder_ams_counts.size());
+    assert(valid && "out of bound");
+    if (!valid) return;
+
+    auto &counts = extruder_ams_counts[index];
+    counts[4]    = ams4;
+    counts[1]    = ams1;
+}
+
+std::pair<int, int> PresetBundle::get_ams_count(int index)
+{
+    bool valid = (0 <= index && index < extruder_ams_counts.size());
+    assert(valid && "out of bound");
+    if (!valid) return {0, 0};
+
+    auto &counts = extruder_ams_counts[index];
+    return {counts[4], counts[1]};
+}
+
 //BBS: check whether this is the only edited filament
 bool PresetBundle::is_the_only_edited_filament(unsigned int filament_index)
 {
