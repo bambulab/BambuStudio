@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-13 23:15+0800\n"
+"POT-Creation-Date: 2026-08-14 16:02+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -9260,6 +9260,9 @@ msgstr "Geliştirici Modu"
 
 msgid "Skip AMS blacklist check"
 msgstr "AMS kara liste kontrolünü atla"
+
+msgid "Enable DevTools For Webview"
+msgstr ""
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Bambu Stüdyosuna Ortak Dosyalar"

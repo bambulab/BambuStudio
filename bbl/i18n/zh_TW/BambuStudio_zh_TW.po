@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-13 23:15+0800\n"
+"POT-Creation-Date: 2026-08-14 16:02+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -9255,6 +9255,9 @@ msgstr "開發者模式"
 
 msgid "Skip AMS blacklist check"
 msgstr "跳過AMS黑名單檢查"
+
+msgid "Enable DevTools For Webview"
+msgstr ""
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Bambu Studio檔案關聯"

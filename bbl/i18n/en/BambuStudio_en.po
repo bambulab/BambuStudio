@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-13 23:15+0800\n"
+"POT-Creation-Date: 2026-08-14 16:02+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -9203,6 +9203,9 @@ msgstr "Develop mode"
 
 msgid "Skip AMS blacklist check"
 msgstr "Skip AMS blacklist check"
+
+msgid "Enable DevTools For Webview"
+msgstr ""
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Associate Files To Bambu Studio"
