@@ -1320,7 +1320,7 @@ void SelectMachineDialog::sync_ams_mapping_result(const std::vector<FilamentInfo
                 wxColour ams_col;
 
                 if (f->tray_id >= 0) {
-                    ams_id = wxGetApp().transition_tridid(f->tray_id, total_ext_count);
+                    ams_id = wxGetApp().transition_tridid(f->tray_id, total_ext_count, obj_);
                     if (m_filament_left_panel->IsShown() && m_filament_right_panel->IsShown() && devPrinterUtil::IsVirtualSlot(f->tray_id)) {
                         ams_id = "Ext";
                     }

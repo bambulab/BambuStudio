@@ -4799,11 +4799,12 @@ wxString GUI_App::transition_tridid_legacy(int trid_id, std::optional<int> total
     }
 
     wxString maping_dict[] = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" };
+    const int dict_len = static_cast<int>(std::size(maping_dict));
 
     if (trid_id >= 128 * 4) {
         trid_id -= 128 * 4;
         int id_index = trid_id / 4;
-        if (maping_dict->size() > id_index) {
+        if (dict_len > id_index) {
             return wxString::Format("%s", maping_dict[id_index]);
         };
     }
@@ -4821,7 +4822,7 @@ wxString GUI_App::transition_tridid_legacy(int trid_id, std::optional<int> total
     else {
         int id_index = std::clamp((int)ceil(trid_id / 4), 0, 25);
         int id_suffix = trid_id % 4 + 1;
-        if (maping_dict->size() > id_index) {
+        if (dict_len > id_index) {
             return wxString::Format("%s%d", maping_dict[id_index], id_suffix);
         };
     }
