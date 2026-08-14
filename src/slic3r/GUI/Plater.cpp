@@ -12911,9 +12911,10 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !has_error)
             notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, false);
 
-        // Show tutorial popup after successful slicing (if tutorial is active)
+        // Show tutorial popup after successful slicing (if Helio is enabled and tutorial is active)
         if (!has_error && !evt.cancelled() && evt.success() && is_finished) {
-            if (wxGetApp().app_config->get("helio_first_time_tutorial") == "active") {
+            if (wxGetApp().app_config->get("helio_enable") == "true" &&
+                wxGetApp().app_config->get("helio_first_time_tutorial") == "active") {
                 wxString tutorial_msg = _L("Great! Now click the Helio button to start optimization.");
                 notification_manager->push_notification(
                     NotificationType::CustomNotification,

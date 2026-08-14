@@ -24,6 +24,17 @@
 
 namespace Slic3r { namespace GUI {
 
+// ctype arrives in the wire dialect (0=gradient, 1=multicolor, 2=single);
+// translate it into DevFilaColorType so render code compares enumerator names.
+static DevFilaColorType wire_ctype_to_color_type(int ctype)
+{
+    switch (ctype) {
+    case 0:  return DevFilaColorType::CTYPE_GRADIANT;
+    case 1:  return DevFilaColorType::CTYPE_MULTI;
+    default: return DevFilaColorType::CTYPE_SINGLE;
+    }
+}
+
     static const wxColour AMS_TRAY_DEFAULT_COL = wxColour(255, 255, 255);
     wxDEFINE_EVENT(EVT_AMS_EXTRUSION_CALI, wxCommandEvent);
     wxDEFINE_EVENT(EVT_AMS_LOAD, SimpleEvent);
@@ -1451,7 +1462,7 @@ void AMSLib::render_lite_lib(wxDC& dc)
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     if (m_info.material_cols.size() > 1) {
         wxRect color_rect(FromDIP(10), FromDIP(10), libsize.x - FromDIP(18), libsize.y - FromDIP(18));
-        if (m_info.ctype == DevFilaColorType::CTYPE_GRADIANT) {
+        if (wire_ctype_to_color_type(m_info.ctype) == DevFilaColorType::CTYPE_GRADIANT) {
             fill_gradient_rect_east(dc, color_rect, m_info.material_cols.front(), m_info.material_cols.back());
         }
         else {
@@ -1576,8 +1587,8 @@ void AMSLib::render_generic_lib(wxDC &dc)
 
     if (m_ams_model == DevAmsType::EXT_SPOOL){
         wxRect color_rect(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1));
-        if (m_info.ctype != DevFilaColorType::CTYPE_SINGLE && m_info.material_cols.size() > 1 && alpha != 0) {
-            if (m_info.ctype == DevFilaColorType::CTYPE_GRADIANT) {
+        if (wire_ctype_to_color_type(m_info.ctype) != DevFilaColorType::CTYPE_SINGLE && m_info.material_cols.size() > 1 && alpha != 0) {
+            if (wire_ctype_to_color_type(m_info.ctype) == DevFilaColorType::CTYPE_GRADIANT) {
                 fill_gradient_rect_east(dc, color_rect, m_info.material_cols.front(), m_info.material_cols.back());
             }
             else {
