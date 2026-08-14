@@ -49,6 +49,7 @@ namespace hotend_detail_dialog {
     inline constexpr const char* firmware_version = "firmware_version";
     inline constexpr const char* serial_number  = "serial_number";
     inline constexpr const char* used_time_hours = "used_time_hours";
+    inline constexpr const char* switch_count   = "switch_count";
 }
 
 }}}} // namespace Slic3r::GUI::AmsHotendSchema::keys

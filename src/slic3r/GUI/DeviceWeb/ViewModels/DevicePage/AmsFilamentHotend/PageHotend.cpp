@@ -120,8 +120,8 @@ public:
     explicit HotendDetailDialog(wxWindow* parent)
         : DPIDialog(parent, wxID_ANY, _L("Hotend Details"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     {
-        SetClientSize(wxSize(FromDIP(520), FromDIP(320)));
-        SetMinClientSize(wxSize(FromDIP(520), FromDIP(320)));
+        SetClientSize(wxSize(FromDIP(520), FromDIP(354)));
+        SetMinClientSize(wxSize(FromDIP(520), FromDIP(354)));
     }
 
 protected:
@@ -143,7 +143,7 @@ void open_hotend_detail_dialog(const nlohmann::json& payload)
     const std::string route = (boost::format("/device_page/hotend_detail?addr_id=%1%&display_index=%2%")
         % addr_id % display_index).str();
     auto* host = new DeviceWebHost(&dlg, DeviceWebHostMode::DevicePageAmsFilamentHotend, route);
-    host->SetMinSize(wxSize(dlg.FromDIP(520), dlg.FromDIP(320)));
+    host->SetMinSize(wxSize(dlg.FromDIP(520), dlg.FromDIP(354)));
     auto* sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(host, 1, wxEXPAND);
     dlg.SetSizer(sizer);
@@ -324,6 +324,10 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         hotend_detail_dialog[SK::hotend_detail_dialog::serial_number] = has_read_detail ? serial_number : "--";
         hotend_detail_dialog[SK::hotend_detail_dialog::used_time_hours] = has_read_detail
             ? nlohmann::json(format_nozzle_used_time(rack_nozzle_opt->GetNozzlePrintTime()))
+            : nlohmann::json(nullptr);
+        const auto nozzle_switch_count = rack_nozzle_opt->GetNozzleSwitchCount();
+        hotend_detail_dialog[SK::hotend_detail_dialog::switch_count] = (has_read_detail && nozzle_switch_count.has_value())
+            ? nlohmann::json(*nozzle_switch_count)
             : nlohmann::json(nullptr);
         hotend[SK::hotend::current_temp] = is_nozzle_tool ? nlohmann::json(rack_nozzle_opt->GetCurrentTemp()) : nlohmann::json(nullptr);
         hotend[SK::hotend::target_temp] = is_nozzle_tool ? rack_nozzle_opt->GetTargetTemp() : 0;

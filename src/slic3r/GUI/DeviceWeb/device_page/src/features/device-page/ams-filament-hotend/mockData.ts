@@ -139,10 +139,11 @@ const mockDetail = {
   firmware_version: '10.10.10.10',
   serial_number: '1234567890',
   used_time_hours: '2057.0h',
+  switch_count: 128,
 };
 
 const buildHotendDetail = (hotend?: HotendSlotInfo) => {
-  if (!hotend || hotend.tool_kind === 'empty') return { used_time_hours: null, tool_image_name: 'empty', show_filament: false };
+  if (!hotend || hotend.tool_kind === 'empty') return { used_time_hours: null, switch_count: null, tool_image_name: 'empty', show_filament: false };
   if (hotend.tool_kind !== 'nozzle') {
     return {
       ...mockDetail,

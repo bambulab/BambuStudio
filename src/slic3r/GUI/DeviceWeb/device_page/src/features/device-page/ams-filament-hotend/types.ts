@@ -68,6 +68,7 @@ export interface HotendDetailDialogInfo {
   firmware_version?: string;
   serial_number?: string;
   used_time_hours?: string | null;
+  switch_count?: number | null;
 }
 
 // Filament card render group (spool disc + labels). Mirrors C++ keys::filament_card.

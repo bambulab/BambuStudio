@@ -39,6 +39,10 @@ function formatUsedTime(usedTimeText?: string | null) {
   return textOrDash(usedTimeText);
 }
 
+function formatSwitchCount(switchCount?: number | null) {
+  return switchCount == null ? '--' : String(switchCount);
+}
+
 function toolImageSrc(imageName?: string | null) {
   if (!imageName || imageName === 'empty') return null;
   return TOOL_IMAGE_MAP[imageName] ?? null;
@@ -118,6 +122,7 @@ export function HotendDetailPage() {
           </div>
           <InfoLine label="SN" value={textOrDash(detail.serial_number)} />
           <InfoLine label="Usedtime" value={formatUsedTime(detail.used_time_hours)} />
+          <InfoLine label="Switch Count" value={formatSwitchCount(detail.switch_count)} />
         </aside>
 
         <section className="hotend-detail-info">

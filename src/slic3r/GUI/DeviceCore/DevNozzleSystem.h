@@ -140,6 +140,7 @@ public:
     float          GetNozzleDiameter() const { return m_diameter; }
     float          GetNozzleWear() const { return m_wear; }
     int            GetNozzlePrintTime() const { return m_nozzle_print_time; }
+    std::optional<int> GetNozzleSwitchCount() const { return m_nozzle_switch_count;}
 
     // display
     wxString GetDisplayId() const;
@@ -232,6 +233,7 @@ private:
 
     std::weak_ptr<DevNozzleRack> m_nozzle_rack; // weak pointer to the nozzle rack
     int m_nozzle_print_time = 0; // seconds
+    std::optional<int> m_nozzle_switch_count;
 };
 
 class DevNozzleSystem
