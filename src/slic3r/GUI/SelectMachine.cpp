@@ -3002,6 +3002,25 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
     for (auto item : m_checkbox_list) {
         PrintOption       *opt = item.second;
         const std::string &val = config->get(obj->printer_type, item.first);
+
+        // Default to auto or on, when reopen the software in !BBL_RELEASE_TO_PUBLIC
+#if !BBL_RELEASE_TO_PUBLIC
+        static bool s_time_lapse_option_init = false;
+        if (!s_time_lapse_option_init && item.first == "timelapse") {
+            wxString error_messgae;
+            if (obj->canEnableTimelapse(error_messgae) && !has_timelapse_warning(error_messgae)) {
+                if (opt->contain_opt("auto")) {
+                    opt->setValue("auto");
+                } else if (opt->contain_opt("on")) {
+                    opt->setValue("on");
+                }
+
+                s_time_lapse_option_init = true;
+                continue;
+            }
+        }
+#endif
+
         if (opt->contain_opt(val)) {
             opt->setValue(val);
         } else if (opt->contain_opt("auto")) {
