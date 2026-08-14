@@ -8719,9 +8719,14 @@ int DynamicPrintConfig::get_extruder_nozzle_volume_count(int extruder_count, std
         count = 0;
         for (int i = 0; i < extruder_count;  i++)
         {
-            count += extruder_nozzle_counts[i].size();
             for (auto& iter: extruder_nozzle_counts[i])
-                nozzle_volume_types[i].push_back(iter.first);
+            {
+                if (iter.second > 0)
+                {
+                    count++;
+                    nozzle_volume_types[i].push_back(iter.first);
+                }
+            }
         }
     }
     /*auto opt_extruder_nozzle_volume_types = dynamic_cast<const ConfigOptionInts*>(this->option("extruder_nozzle_volume_type"));
@@ -8767,6 +8772,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
         }
 
         if (extruder_id > 0 && extruder_id <= static_cast<unsigned> (extruder_count)) {
+            //材料参数处理
             variant_index.resize(1);
             ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(extruder_id - 1));
             NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(extruder_id - 1));
@@ -8793,6 +8799,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
             variant_count = 1;
         }
         else {
+            //机器和工艺参数处理
             if  (extruder_nozzle_volume_count > extruder_count){
                 variant_count = extruder_nozzle_volume_count;
             } else
