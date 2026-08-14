@@ -2147,6 +2147,15 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels   = def_top_fill_pattern->enum_labels;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 
+    def                = this->add("sub_top_surface_pattern", coEnum);
+    def->label         = L("Sub-top surface pattern");
+    def->category      = L("Strength");
+    def->tooltip       = L("Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin.");
+    def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
+    def->enum_values   = def_top_fill_pattern->enum_values;
+    def->enum_labels   = def_top_fill_pattern->enum_labels;
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
+
     def = this->add("outer_wall_line_width", coFloat);
     def->label = L("Outer wall");
     def->category = L("Quality");
@@ -9522,6 +9531,10 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     // --soild-fill-pattern
     if (!print_config_def.get("internal_solid_infill_pattern")->has_enum_value(cfg.internal_solid_infill_pattern.serialize())) {
         error_message.emplace("internal_solid_infill_pattern", L("invalid value ") + cfg.internal_solid_infill_pattern.serialize());
+    }
+
+    if (!print_config_def.get("sub_top_surface_pattern")->has_enum_value(cfg.sub_top_surface_pattern.serialize())) {
+        error_message.emplace("sub_top_surface_pattern", L("invalid value ") + cfg.sub_top_surface_pattern.serialize());
     }
 
     // --fill-density

@@ -15,6 +15,7 @@
 #include "Time.hpp"
 #include "TriangleMeshSlicer.hpp"
 #include "Utils.hpp"
+#include "Fill/FillBase.hpp"
 #include "Fill/FillAdaptive.hpp"
 #include "Fill/FillLightning.hpp"
 #include "Format/STL.hpp"
@@ -990,6 +991,9 @@ void PrintObject::prepare_infill()
     this->combine_infill();
     m_print->throw_if_canceled();
 
+    this->discover_sub_top_surfaces();
+    m_print->throw_if_canceled();
+
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         for (const Layer *layer : m_layers) {
@@ -1529,6 +1533,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "bottom_surface_pattern"
             || opt_key == "bottom_surface_density"
             || opt_key == "internal_solid_infill_pattern"
+            || opt_key == "sub_top_surface_pattern"
             || opt_key == "external_fill_link_max_length"
             || opt_key == "sparse_infill_anchor"
             || opt_key == "sparse_infill_anchor_max"
@@ -3979,6 +3984,80 @@ void PrintObject::combine_infill()
                         stInternalVoid);
                 }
             }
+        }
+    }
+}
+
+void PrintObject::discover_sub_top_surfaces()
+{
+    BOOST_LOG_TRIVIAL(trace) << "discover_sub_top_surfaces()";
+    if (m_layers.size() < 2)
+        return;
+
+    for (size_t idx_layer = 0; idx_layer + 1 < m_layers.size(); ++idx_layer) {
+        m_print->throw_if_canceled();
+        const Layer *upper = m_layers[idx_layer + 1];
+        Layer       *layer = m_layers[idx_layer];
+
+        ExPolygons top_mask;
+        for (const LayerRegion *upper_region : upper->regions())
+            for (const Surface &s : upper_region->fill_surfaces.surfaces)
+                if (s.surface_type == stTop)
+                    top_mask.emplace_back(s.expolygon);
+        if (top_mask.empty())
+            continue;
+        top_mask = union_ex(top_mask);
+
+        // Let the perimeters above join the mask: the shadow they cast hugs the top surface
+        // without ever being covered by it.
+        ExPolygons upper_bands;
+        for (const LayerRegion *upper_region : upper->regions())
+            append(upper_bands, diff_ex(to_expolygons(upper_region->slices.surfaces),
+                                        upper_region->fill_expolygons));
+        if (! upper_bands.empty()) {
+            // Only bands adjoining the top surface qualify - perimeters elsewhere on the
+            // layer above cast a shadow that sits under no top surface. A band borders on
+            // fill_expolygons and therefore on stTop, so a plain intersection would come
+            // out empty and the adjacency test has to reach slightly outwards.
+            const ExPolygons reach = offset_ex(top_mask, float(scale_(0.02)));
+            ExPolygons       adjoining;
+            for (ExPolygon &band : union_ex(upper_bands))
+                if (! intersection_ex(ExPolygons { band }, reach).empty())
+                    adjoining.emplace_back(std::move(band));
+            if (! adjoining.empty()) {
+                append(adjoining, std::move(top_mask));
+                top_mask = union_ex(adjoining);
+            }
+        }
+
+        for (LayerRegion *layerm : layer->m_regions) {
+            const ExPolygons solid_ex = to_expolygons(layerm->fill_surfaces.filter_by_type(stInternalSolid));
+            if (solid_ex.empty())
+                continue;
+
+            // Opening drops what only grazes the mask.
+            const float      min_width = float(layerm->flow(frSolidInfill).scaled_spacing());
+            const ExPolygons under_top = opening_ex(
+                intersection_ex(solid_ex, top_mask, ApplySafetyOffset::Yes),
+                0.5f * min_width);
+            if (under_top.empty())
+                continue;
+
+            // An island too narrow for is_narrow_infill_area() gets filled concentrically,
+            // reading as a seam against the stSubTop around it, so hand over the ones
+            // bordering the claimed area; those further away keep the concentric fill that
+            // spares thin features a stream of short segments.
+            const ExPolygons claimed = offset_ex(under_top, float(scale_(0.02)));
+            ExPolygons       remaining;
+            for (ExPolygon &island : opening_ex(diff_ex(solid_ex, under_top), 0.5f * min_width)) {
+                const ExPolygons island_ex { island };
+                if (! is_narrow_infill_area(island) || intersection_ex(island_ex, claimed).empty())
+                    remaining.emplace_back(std::move(island));
+            }
+            ExPolygons sub_top = diff_ex(solid_ex, remaining);
+            layerm->fill_surfaces.remove_type(stInternalSolid);
+            layerm->fill_surfaces.append(std::move(remaining), stInternalSolid);
+            layerm->fill_surfaces.append(std::move(sub_top), stSubTop);
         }
     }
 }
