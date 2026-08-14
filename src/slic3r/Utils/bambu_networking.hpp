@@ -5,6 +5,7 @@
 #include <functional>
 #include <map>
 #include <vector>
+#include <cstdint>
 
 extern std::string g_log_folder;
 extern std::string g_log_start_time;
@@ -272,6 +273,7 @@ struct PrintParams {
     bool            try_emmc_print;
     std::string     svc_context;
     std::string     slicer_uid;
+    std::string     queue_plate_id;
 };
 
 struct TaskQueryParams
@@ -280,6 +282,102 @@ struct TaskQueryParams
     int status = 0;
     int offset = 0;
     int limit = 20;
+};
+
+// Queue record IDs are int64 so request payloads retain the service's numeric
+// project, plate, and profile ID types across the dynamic-library ABI.
+struct PrintQueuePlateCreateParams
+{
+    std::string title;
+    int64_t     design_id = 0;
+    int64_t     instance_id = 0;
+    std::string model_id;
+    int64_t     profile_id = 0;
+    int         plate_index = 0;
+    bool        include_source_ids = false;
+};
+
+struct PrintQueueProjectCreateParams
+{
+    std::string device_id;
+    std::string title;
+    std::string cover;
+    std::string mode = "cloud_file";
+    std::vector<PrintQueuePlateCreateParams> plates;
+};
+
+struct PrintQueueProjectsQueryParams
+{
+    std::string device_id;
+    std::string status;
+    int         offset = 0;
+    int         limit = 20;
+};
+
+struct PrintQueueProjectUpdateParams
+{
+    int64_t     project_id = 0;
+    std::string title;
+};
+
+struct PrintQueueProjectSortParams
+{
+    int64_t     project_id = 0;
+    int64_t     prev_project_id = 0;
+};
+
+struct PrintQueueProjectDeleteParams
+{
+    int64_t     project_id = 0;
+};
+
+struct PrintQueuePlateUpdateParams
+{
+    int64_t     plate_id = 0;
+    std::string title;
+};
+
+struct PrintQueuePlateSortParams
+{
+    int64_t     plate_id = 0;
+    int64_t     project_id = 0;
+    int64_t     prev_plate_id = 0;
+};
+
+struct PrintQueuePlateDeleteParams
+{
+    int64_t     plate_id = 0;
+};
+
+struct PrintQueuePlateExtractParams
+{
+    int64_t     plate_id = 0;
+    std::string title;
+    std::string cover;
+    int64_t     prev_project_id = 0;
+};
+
+struct PrintQueueUnavailablePlatesDeleteParams
+{
+    std::string device_id;
+};
+
+struct PrintQueueModelProfileQueryParams
+{
+    int64_t     profile_id = 0;
+    std::string model_id;
+};
+
+struct PrintQueueConfigDownloadParams
+{
+    std::string url;
+};
+
+struct PrintQueueTaskParams
+{
+    std::string model_id;
+    std::string profile_id;
+    PrintParams params;
 };
 
 struct FilamentQueryParams
