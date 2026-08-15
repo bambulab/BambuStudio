@@ -163,6 +163,10 @@ static const double smooth_speed_step = 10;
 static const double not_split_length = scale_(1.0);
 static const double max_step_length = scale_(1.0); // cut path if the path too long
 static const double min_step_length = scale_(0.4); // cut step
+// Temporary workaround for X2D: an extra temperature drop before entering the wipe tower when a filament
+// switcher is combined with mixed extruder types. Condition mirrors the pre-cooling/pre-heating injector
+// in GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating().
+static const double g_filament_switcher_extra_cooling_before_tower = 10.;
 
 Vec2d travel_point_1;
 Vec2d travel_point_2;
@@ -1000,6 +1004,11 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                     std::vector<double> flush_v_speed(num_filaments);
                     std::vector<int>    flush_temps(num_filaments);
                     std::vector<double> filament_cooling_before_tower(num_filaments);
+                    const auto& extruder_types = m_print_config->extruder_type.values;
+                    bool has_mixed_extruder_types = extruder_types.size() > 1 &&
+                        std::adjacent_find(extruder_types.begin(), extruder_types.end(), [](int lhs, int rhs) { return lhs != rhs; }) != extruder_types.end();
+                    double extra_cooling_before_tower = (m_print_config->has_filament_switcher.value && has_mixed_extruder_types) ?
+                        g_filament_switcher_extra_cooling_before_tower : 0.;
                     for (size_t idx = 0; idx < num_filaments; ++idx) {
                         size_t fi = gcodegen.get_filament_config_index(idx);
                         flush_v_speed[idx] = m_print_config->filament_flush_volumetric_speed.get_at(fi);
@@ -1009,7 +1018,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                                                          : m_print_config->filament_flush_temp.get_at(fi);
                         if (flush_temps[idx] == 0)
                             flush_temps[idx] = m_print_config->nozzle_temperature_range_high.get_at(idx);
-                        filament_cooling_before_tower[idx] = m_print_config->filament_cooling_before_tower.get_at(fi);
+                        filament_cooling_before_tower[idx] = m_print_config->filament_cooling_before_tower.get_at(fi) + extra_cooling_before_tower;
                     }
                     if (tcr.is_contact || gcodegen.m_layer_index == 0) std::fill(filament_cooling_before_tower.begin(), filament_cooling_before_tower.end(), 0);
                     config.set_key_value("flush_volumetric_speeds", new ConfigOptionFloats(flush_v_speed));
