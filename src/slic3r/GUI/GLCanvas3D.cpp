@@ -33,6 +33,7 @@
 #include "slic3r/GUI/BitmapCache.hpp"
 #include "slic3r/Utils/MacDarkMode.hpp"
 #include "slic3r/GUI/GuiColor.hpp"
+#include "slic3r/GUI/UIHelpers/ImGuiFilamentWidgets.hpp"
 
 #include "WipeTowerDialog.hpp"
 #include "GLToolbar.hpp"
@@ -10493,7 +10494,6 @@ void GLCanvas3D::_render_paint_toolbar() const
     const float paint_btn_side = 20.0f * f_scale * em_unit;
     const ImVec2 button_size(paint_btn_side, paint_btn_side);
     const float spacing = paint_btn_side * 0.22f;
-    const float paint_btn_rounding = paint_btn_side * 0.18f;
     const float return_button_margin = 130.0f * em_unit * f_scale;
     const float paint_to_toolbar_offset = 50.0f * em_unit * f_scale; // gap to main toolbar; reserve uses offset/2
 
@@ -10503,18 +10503,6 @@ void GLCanvas3D::_render_paint_toolbar() const
 
     constexpr float kPaintSwatchBorderDeltaE = 12.f;
     constexpr float kPaintSwatchBorderWidth  = 1.f;
-    const auto check_swatch_close_to_bg = [&](const unsigned char rgb[3],
-                                              const RGBA *color_from, const RGBA *color_to)
-    {
-        const RGBA paintbar_bg = { window_bg.x, window_bg.y, window_bg.z, window_bg.w };
-        if (color_from && color_to) {
-            const float d0 = Slic3r::GUI::calc_color_distance(*color_from, paintbar_bg);
-            const float d1 = Slic3r::GUI::calc_color_distance(*color_to, paintbar_bg);
-            return std::min(d0, d1) < kPaintSwatchBorderDeltaE;
-        }
-        const RGBA swatch_rgb = { rgb[0] / 255.f, rgb[1] / 255.f, rgb[2] / 255.f, 1.f };
-        return Slic3r::GUI::calc_color_distance(swatch_rgb, paintbar_bg) < kPaintSwatchBorderDeltaE;
-    };
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(spacing, spacing));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
@@ -10549,60 +10537,25 @@ void GLCanvas3D::_render_paint_toolbar() const
     imgui.begin(_L("Paint Toolbar"), window_flags);
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    bool disabled = !wxGetApp().plater()->can_fillcolor();
-    unsigned char rgb[3];
+    const bool disabled = !wxGetApp().plater()->can_fillcolor();
 
-    auto gradient_info = wxGetApp().plater()->get_filament_gradient_info();
-
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, paint_btn_rounding);
     for (int i = 0; i < extruder_num; i++) {
         if ((i % max_per_row) > 0)
             ImGui::SameLine();
-        Slic3r::GUI::BitmapCache::parse_color(colors[i], rgb);
-        const std::string num_str = std::to_string(i + 1);
-        ImGui::PushStyleColor(ImGuiCol_Button, ImColor(rgb[0], rgb[1], rgb[2]).Value);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImColor(rgb[0], rgb[1], rgb[2]).Value);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImColor(rgb[0], rgb[1], rgb[2]).Value);
-        if (disabled)
-            ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-        if (ImGui::Button(("##filament_button" + num_str).c_str(), button_size))
+
+        ImGuiFilament::FilamentIconButtonOpts opts;
+        opts.size               = button_size;
+        opts.disabled           = disabled;
+        opts.hover_ring         = false;
+        opts.fallback_hex_color = colors[i].c_str();
+        if (ImGuiFilament::filament_icon_button(i, opts))
             wxPostEvent(m_canvas, IntEvent(EVT_GLTOOLBAR_FILLCOLOR, i + 1));
 
-        ImVec2 r_min = ImGui::GetItemRectMin();
-        ImVec2 r_max = ImGui::GetItemRectMax();
-        const bool is_gradient = i < (int) gradient_info.size() && gradient_info[i].is_gradient;
-        if (is_gradient) {
-            auto& gf = gradient_info[i].color_from;
-            auto& gt = gradient_info[i].color_to;
-            ImU32 col_from = IM_COL32(uint8_t(gf[0]*255.f), uint8_t(gf[1]*255.f), uint8_t(gf[2]*255.f), 255);
-            ImU32 col_to   = IM_COL32(uint8_t(gt[0]*255.f), uint8_t(gt[1]*255.f), uint8_t(gt[2]*255.f), 255);
-            const int vert_start_idx = draw_list->VtxBuffer.Size;
-            draw_list->PathRect(r_min, r_max, paint_btn_rounding);
-            draw_list->PathFillConvex(col_from);
-            const int vert_end_idx = draw_list->VtxBuffer.Size;
-            ImGui::ShadeVertsLinearColorGradientKeepAlpha(draw_list, vert_start_idx, vert_end_idx, r_min, ImVec2(r_max.x, r_min.y), col_from, col_to);
-        }
-
-        const bool is_close_to_bg = check_swatch_close_to_bg(rgb,
-                                    is_gradient ? &gradient_info[i].color_from : nullptr,
-                                    is_gradient ? &gradient_info[i].color_to   : nullptr);
-
-        {
-            float gray = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2];
-            ImU32 text_color = gray < 80 ? IM_COL32(255, 255, 255, 255) : IM_COL32(0, 0, 0, 255);
-            const float number_font_size = button_size.y * 0.8f;
-            ImFont* font = ImGui::GetFont();
-            ImVec2 num_size = font->CalcTextSizeA(number_font_size, FLT_MAX, 0.0f, num_str.c_str());
-            ImVec2 num_pos(
-                r_min.x + (r_max.x - r_min.x - num_size.x) * 0.5f,
-                r_min.y + (r_max.y - r_min.y - num_size.y) * 0.5f);
-            draw_list->AddText(font, number_font_size, num_pos, text_color, num_str.c_str());
-        }
-
+        const bool is_close_to_bg = ImGuiFilament::is_close_to_background(i, window_bg, kPaintSwatchBorderDeltaE);
         if (is_close_to_bg)
-            draw_list->AddRect(r_min, r_max, border_col, paint_btn_rounding, 0, kPaintSwatchBorderWidth);
+            draw_list->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), border_col, 0.f, 0, kPaintSwatchBorderWidth);
 
-        if (ImGui::IsItemHovered()) {
+        if (!disabled && ImGui::IsItemHovered()) {
             wxString tooltip_text;
             if (!filament_display_names[i].empty())
                 tooltip_text = wxString(filament_display_names[i].c_str(), wxConvUTF8);
@@ -10618,11 +10571,7 @@ void GLCanvas3D::_render_paint_toolbar() const
             imgui.tooltip(tooltip_text, ImGui::GetFontSize() * 20.0f);
             ImGui::PopStyleVar(2);
         }
-        ImGui::PopStyleColor(3);
-        if (disabled)
-            ImGui::PopItemFlag();
     }
-    ImGui::PopStyleVar();
 
     m_paint_toolbar_width = ImGui::GetWindowWidth() + paint_to_toolbar_offset;
     imgui.end();

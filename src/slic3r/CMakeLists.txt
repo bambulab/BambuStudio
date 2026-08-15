@@ -186,6 +186,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/UIHelpers/MeshBooleanUI.hpp
     GUI/UIHelpers/TextEllipsis.cpp
     GUI/UIHelpers/TextEllipsis.hpp
+    GUI/UIHelpers/ImGuiFilamentWidgets.cpp
+    GUI/UIHelpers/ImGuiFilamentWidgets.hpp
     GUI/GLSelectionRectangle.cpp
     GUI/GLSelectionRectangle.hpp
     GUI/Gizmos/GizmoObjectManipulation.cpp

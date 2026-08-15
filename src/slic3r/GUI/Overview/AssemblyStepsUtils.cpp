@@ -19,6 +19,8 @@
 #include "../MsgDialog.hpp"
 #include "../NotificationManager.hpp"
 #include "../OpenGLManager.hpp"
+#include "../3DScene.hpp"
+#include "../FilamentBitmapUtils.hpp"
 #include "../imgui/imgui_stdlib.h"
 #include "../MP4/PBOReader.hpp"
 #include "../MP4/Mp4Recorder.hpp"
@@ -92,6 +94,24 @@ std::string sanitize_export_output_path(const std::string &path, const std::stri
         stem = fallback_stem.empty() ? "Assembly Guide" : fallback_stem;
     output_path = output_path.parent_path() / (stem + extension);
     return output_path.string();
+}
+
+// Viewport filament alpha (transparent slots stay slightly visible).
+float filament_render_alpha_for_volume(const GLVolume *vol)
+{
+    if (!vol)
+        return 1.f;
+    std::vector<wxColour> colors;
+    bool                  is_gradient  = false;
+    int                   filament_idx = vol->extruder_id - 1;
+    if (filament_idx < 0)
+        filament_idx = 0;
+    get_filament_colors_by_id(filament_idx, colors, is_gradient);
+    if (colors.empty())
+        return 1.f;
+    const wxColour &c = colors.front();
+    const std::array<float, 4> rgba = {c.Red() / 255.f, c.Green() / 255.f, c.Blue() / 255.f, c.Alpha() / 255.f};
+    return adjust_color_for_rendering(rgba)[3];
 }
 
 // Locate a model-part volume by stable part_guid. Returns false when not found.
@@ -9344,7 +9364,8 @@ void AssemblyStepsUtils::show_all_volume_normal_render() {
         for (GLVolume *vol : m_volumes->volumes) {
             if (!vol)
                 continue;
-            apply_glvolume_state(vol, {/*active=*/true, /*alpha=*/1.f, /*force_native_color=*/false});
+            apply_glvolume_state(vol, {/*active=*/true, /*alpha=*/filament_render_alpha_for_volume(vol),
+                                       /*force_native_color=*/false});
         }
     }
     if (!m_model)
@@ -9386,6 +9407,13 @@ void AssemblyStepsUtils::apply_keyframe_display_mode()
         return;
 
     auto &step_nodes = m_model->get_assembly_steps_tree_data().nodes;
+    // Overall preview / final assembly always show the full model with filament
+    // alpha. X-Ray / OnlyCurrentStep would flatten transparency or dim the scene.
+    if (is_overall_preview_mode() || is_selected_final_assembly_node()) {
+        show_all_volume_normal_render();
+        do_commond_callback("dirty");
+        return;
+    }
     if (is_empty_structure_step(m_selected_node)) {
         show_volumes_as_step_candidates();
         return;
@@ -9414,7 +9442,9 @@ void AssemblyStepsUtils::apply_keyframe_display_mode()
                     if (!vol)
                         continue;
                     const bool is_current = current_vols.count({vol->object_idx(), vol->volume_idx()}) > 0;
-                    apply_glvolume_state(vol, {is_current, is_current ? 1.f : 0.f, !is_current});
+                    apply_glvolume_state(vol, {is_current,
+                                               is_current ? filament_render_alpha_for_volume(vol) : 0.f,
+                                               !is_current});
                 }
             }
         } else {
@@ -9452,7 +9482,8 @@ void AssemblyStepsUtils::apply_tree_checked_display_mode(const AssemblyTreeData&
 {
     if (!m_model || !m_volumes)
         return;
-    if (m_keyframe_display_mode == KeyframeDisplayMode::All) {
+    if (m_keyframe_display_mode == KeyframeDisplayMode::All ||
+        is_overall_preview_mode() || is_selected_final_assembly_node()) {
         show_all_volume_normal_render();
         do_commond_callback("dirty");
         return;
@@ -9497,8 +9528,10 @@ void AssemblyStepsUtils::apply_tree_checked_display_mode(const AssemblyTreeData&
         const bool is_current = checked_vols.count({vol->object_idx(), vol->volume_idx()}) > 0;
         if (highlight)
             apply_glvolume_state(vol, {true, is_current ? 1.f : 0.15f, !is_current});
-        else // OnlyCurrentStep
-            apply_glvolume_state(vol, {is_current, is_current ? 1.f : 0.f, !is_current});
+        else // OnlyCurrentStep: keep filament alpha on visible parts
+            apply_glvolume_state(vol, {is_current,
+                                       is_current ? filament_render_alpha_for_volume(vol) : 0.f,
+                                       !is_current});
     }
     do_commond_callback("dirty");
 }
