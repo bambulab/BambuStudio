@@ -237,6 +237,7 @@ src/libslic3r/PrintObjectSlice.cpp
 src/libslic3r/PlaceholderParser.cpp
 src/libslic3r/Support/TreeSupport.cpp
 src/libslic3r/Model.cpp
+src/libslic3r/PaintReproject.cpp
 src/libslic3r/Format/OBJ.cpp
 src/slic3r/GUI/CalibrationWizardPage.cpp
 src/slic3r/GUI/CalibrationPanel.cpp
@@ -297,3 +298,5 @@ src/slic3r/GUI/ColorDecomposeDialog.cpp
 src/slic3r/GUI/ColorDecomposeSupport.cpp
 src/slic3r/GUI/GradientCurveEditor.cpp
 src/slic3r/GUI/GradientCurveEditor.hpp
+src/slic3r/GUI/AuxiliaryDialog.cpp
+src/slic3r/GUI/Jobs/PlaterWorker.hpp

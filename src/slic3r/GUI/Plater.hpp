@@ -54,6 +54,7 @@ class SLAPrint;
 class PartPlateList;
 class SlicingStatusEvent;
 class HelioCompletionEvent;
+class HelioActionEvent;
 enum SLAPrintObjectStep : unsigned int;
 enum class ConversionType : int;
 class DevAms;
@@ -128,7 +129,7 @@ wxDECLARE_EVENT(EVT_SWITCH_TO_PREPARE_TAB, wxCommandEvent);
 
 // helio
 wxDECLARE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, HelioCompletionEvent);
-wxDECLARE_EVENT(EVT_HELIO_PROCESSING_STARTED, SimpleEvent);
+wxDECLARE_EVENT(EVT_HELIO_PROCESSING_STARTED, HelioActionEvent);
 wxDECLARE_EVENT(EVT_HELIO_INPUT_DLG, SimpleEvent);
 // end helio
 wxDECLARE_EVENT(EVT_GCODE_VIEWER_CHANGED, SimpleEvent);
@@ -420,6 +421,7 @@ public:
     std::map<std::string, std::string> get_bed_texture_maps();
     int                                get_right_icon_offset_bed(int i = 0);
     bool                               get_enable_wrapping_detection();
+    void                               on_show_bed_heat_soak_area_changed();
 
     static wxColour get_next_color_for_filament();
     static wxString get_slice_warning_string(GCodeProcessorResult::SliceWarning& warning);
@@ -706,6 +708,9 @@ public:
     // While set, prepare-side object removals are treated as internal restructuring (split / merge) and
     // are NOT propagated as deletes to the independent assembly model (m_assemble_model).
     void set_suppress_assemble_delete_propagation(bool suppress);
+    // Seed each model-part volume's assemble transform from its current transform (once),
+    // and ensure a stable part GUID. Used when cloning / loading / preparing assembly views.
+    void ensure_model_object_volume_assemble_initialized(ModelObject *object);
     // Prepare-side per-volume delete: drop the assembly volume referencing this part (call before the
     // prepare ModelVolume is destroyed) so the independent assembly model stays consistent immediately,
     // and the persisted assembly_model.json does not keep referencing a part that no longer exists.
@@ -781,6 +786,9 @@ public:
     const Camera& get_camera() const;
     Camera& get_camera();
     void mark_assemble_view_requires_zoom_to_volumes();
+    // True while the assembly view owns Undo/Redo, i.e. snapshots go to the assembly stack
+    // instead of the prepare one.
+    bool is_assemble_undo_stack_active() const;
     const Camera& get_picking_camera() const;
     Camera& get_picking_camera();
 
@@ -873,6 +881,8 @@ public:
                        const std::string   &custom_texture,
                        const std::string   &custom_model,
                        bool                 force_as_custom = false) const;
+    // Generic seam: plate layout / bed state changed
+    void on_plate_layout_changed();
 
 	const NotificationManager* get_notification_manager() const;
 	NotificationManager* get_notification_manager();
@@ -997,6 +1007,8 @@ public:
     wxMenu* instance_menu();
     wxMenu* layer_menu();
     wxMenu* multi_selection_menu();
+    wxMenu* assemble_object_menu();
+    wxMenu* assemble_part_menu();
     wxMenu* assemble_multi_selection_menu();
     wxMenu* filament_action_menu(int active_filament_menu_id);
     int     GetPlateIndexByRightMenuInLeftUI();
@@ -1055,6 +1067,7 @@ private:
     void _calib_pa_select_added_objects();
 
     void on_filament_map_mode_change();
+    void update_bed_heat_soak_notification();
     friend class SuppressBackgroundProcessingUpdate;
 };
 

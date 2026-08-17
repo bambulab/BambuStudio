@@ -8,9 +8,11 @@
 #include "UxProgramTermsDialog.hpp"
 #include "Widgets/StateColor.hpp"
 #include "libslic3r/AppConfig.hpp"
+#include <algorithm>
 #include <cassert>
 #include <string>
 #include <vector>
+#include <wx/tokenzr.h>
 #include <wx/event.h>
 #include <wx/gdicmn.h>
 #include <wx/simplebook.h>
@@ -35,17 +37,135 @@ namespace Slic3r { namespace GUI {
 WX_DEFINE_LIST(RadioSelectorList);
 
 // Raw (pre-DPI) control widths for Preferences rows. Height is -1 (auto) unless
-// noted. Wrap in FromDIP(...) at each use site, e.g. wxSize(FromDIP(TITLE_WIDTH), -1).
-static constexpr int TITLE_WIDTH          = 100; // row label column
-static constexpr int COMBOBOX_WIDTH       = 140;
-static constexpr int LARGE_COMBOBOX_WIDTH = 160;
-static constexpr int INPUT_WIDTH          = 100;
+// noted. Wrap in FromDIP(...) at each use site, e.g. wxSize(FromDIP(COMBOBOX_WIDTH), -1).
+static constexpr int COMBOBOX_WIDTH       = 144;
+static constexpr int INPUT_WIDTH          = 144;
+static constexpr int DUAL_INPUT_WIDTH     = 68; // two inputs + 8px gap == 144 total
 static constexpr int BTN_WIDTH            = 58; // small action button (reset / browse)
 static constexpr int BTN_HEIGHT           = 22;
 static constexpr int TITLE_PADDING        = 48;
 static constexpr int ITEM_LEFT_PADDING    = 48 + 16;
 static constexpr int ITEM_RIGHT_PADDING   = 24;
 static constexpr int ITEM_MIN_HEIGHT      = 24;
+static constexpr int TITLE_CONTROL_GAP    = 20; // min gap between title text and controls
+
+// Wrap width shared by every row title: the space left in the 640-wide dialog
+// after the left padding, title-to-control gap, control column, and right margin.
+static constexpr int TITLE_WIDTH = 640 - ITEM_LEFT_PADDING - TITLE_CONTROL_GAP - COMBOBOX_WIDTH - ITEM_RIGHT_PADDING;
+
+// Re-map a light-mode color to its dark-mode pair at use time.
+static inline wxColour C(const wxColour &light) { return StateColor::darkModeColorFor(light); }
+
+// Build a row's title as a Label word-wrapped to a fixed width.
+static ::Label *make_row_title(wxWindow *parent, const wxString &text, int wrap_width, const wxString &tooltip = {})
+{
+    auto *title = new ::Label(parent, ::Label::Body_14, text);
+    title->SetForegroundColour(ThemeColor::TextPrimary);
+    if (!tooltip.empty()) title->SetToolTip(tooltip);
+    title->Wrap(wrap_width);
+    return title;
+}
+
+// One option row wrapped in a real window so it can paint a hover background.
+class OptionRow : public wxPanel
+{
+public:
+    explicit OptionRow(wxWindow *parent) : wxPanel(parent, wxID_ANY) { SetBackgroundColour(parent->GetBackgroundColour()); }
+
+    // Adopt the controls already built into `row` (currently parented to the
+    // scroll panel), then take ownership of the sizer and arm hover tracking.
+    void adopt(wxSizer *row)
+    {
+        reparent_children(row);
+        SetSizer(row);
+        arm_hover(this);
+    }
+
+    // Adopt an already-built child window (e.g. the download-path row) so it,
+    // too, gets the hover background.
+    void adopt(wxWindow *child)
+    {
+        child->Reparent(this);
+        auto *s = new wxBoxSizer(wxHORIZONTAL);
+        s->Add(child, wxSizerFlags(1).Expand());
+        SetSizer(s);
+        arm_hover(this);
+    }
+
+private:
+    void reparent_children(wxSizer *s)
+    {
+        for (wxSizerItem *item : s->GetChildren()) {
+            if (item->IsWindow())
+                item->GetWindow()->Reparent(this);
+            else if (item->IsSizer())
+                reparent_children(item->GetSizer());
+        }
+    }
+
+    void arm_hover(wxWindow *w)
+    {
+        w->Bind(wxEVT_ENTER_WINDOW, &OptionRow::on_enter, this);
+        w->Bind(wxEVT_LEAVE_WINDOW, &OptionRow::on_leave, this);
+        for (wxWindow *child : w->GetChildren()) arm_hover(child);
+    }
+
+    void set_hover(bool hover)
+    {
+        if (hover == m_hover) return;
+        m_hover           = hover;
+        const wxColour bg = hover ? C(ThemeColor::Grey200) : GetParent()->GetBackgroundColour();
+        SetBackgroundColour(bg);
+        recolor_titles(this, bg); // native static controls paint their own bg, not the parent's
+        Refresh();
+    }
+
+    // Repaint children that inherit the row background so hover shows through:
+    // wxStaticText titles and bare container windows (e.g. the download row's panel).
+    // Owner-drawn controls (combobox/checkbox/switch/TextInput) keep their own paint.
+    static void recolor_titles(wxWindow *w, const wxColour &bg)
+    {
+        for (wxWindow *child : w->GetChildren()) {
+            const std::type_info &t = typeid(*child);
+            if (dynamic_cast<wxStaticText *>(child) || t == typeid(wxWindow) || t == typeid(wxPanel)) {
+                child->SetBackgroundColour(bg);
+                child->Refresh();
+            }
+            recolor_titles(child, bg);
+        }
+    }
+
+    void on_enter(wxMouseEvent &e)
+    {
+        set_hover(true);
+        e.Skip();
+    }
+
+    void on_leave(wxMouseEvent &e)
+    {
+        // Leaving a child for another child of the same row is not a real leave.
+        set_hover(GetClientRect().Contains(ScreenToClient(wxGetMousePosition())));
+        e.Skip();
+    }
+
+    bool m_hover = false;
+};
+
+// Wrap a freshly built option-row sizer in an OptionRow window (for tab layout).
+static wxWindow *wrap_option_row(wxWindow *scrolled, wxSizer *row)
+{
+    auto *panel = new OptionRow(scrolled);
+    panel->adopt(row);
+    return panel;
+}
+
+// Overload for rows that are already a window (e.g. the download-path row).
+static wxWindow *wrap_option_row(wxWindow *scrolled, wxWindow *row)
+{
+    auto *panel = new OptionRow(scrolled);
+    panel->adopt(row);
+    return panel;
+}
 
 // Scrolled panel used for every Preferences tab. wxScrolledWindow's default
 // behavior is to scroll to whatever child receives focus, which makes the
@@ -80,6 +200,12 @@ private:
     bool      m_expanded      = false;
 };
 
+wxSizerFlags PreferencesDialog::row_flags() const
+{
+    static auto flags = wxSizerFlags().Expand().Border(wxTOP, FromDIP(8));
+    return flags;
+}
+
 wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *parent, wxString tooltip)
 {
     wxBoxSizer *m_sizer_title = new wxBoxSizer(wxHORIZONTAL);
@@ -106,7 +232,13 @@ wxBoxSizer *PreferencesDialog::create_item_title(wxString title, wxWindow *paren
     return m_sizer_title;
 }
 
-wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *parent, wxString tooltip, std::string param, const std::vector<wxString>& label_list, const std::vector<std::string>& value_list, std::function<void(int)> callback, int title_width, int combox_width)
+wxBoxSizer *PreferencesDialog::create_item_combobox(wxString                        title,
+                                                    wxWindow                       *parent,
+                                                    wxString                        tooltip,
+                                                    std::string                     param,
+                                                    const std::vector<wxString>    &label_list,
+                                                    const std::vector<std::string> &value_list,
+                                                    std::function<void(int)>        callback)
 {
     assert(label_list.size() == value_list.size());
 
@@ -134,15 +266,10 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
     m_sizer_combox->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
     m_sizer_combox->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
 
-    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, title_width == 0 ? wxSize(FromDIP(TITLE_WIDTH), -1) : wxSize(title_width, -1), 0);
-    combo_title->SetForegroundColour(ThemeColor::TextPrimary);
-    combo_title->SetFont(::Label::Body_13);
-    combo_title->SetToolTip(tooltip);
-    combo_title->Wrap(-1);
-    m_sizer_combox->Add(combo_title, wxSizerFlags().CenterVertical().Proportion(1));
+    auto combo_title = make_row_title(parent, title, FromDIP(TITLE_WIDTH), tooltip);
+    m_sizer_combox->Add(combo_title, wxSizerFlags().CenterVertical().Proportion(1).Border(wxRIGHT, FromDIP(TITLE_CONTROL_GAP)));
 
-    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, combox_width == 0 ? wxSize(FromDIP(LARGE_COMBOBOX_WIDTH), -1) : wxSize(combox_width, -1),
-                                   0, nullptr, wxCB_READONLY);
+    auto combobox                           = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(COMBOBOX_WIDTH), -1), 0, nullptr, wxCB_READONLY);
     m_combobox_list[m_combobox_list.size()] = combobox;
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
@@ -180,14 +307,10 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
     m_sizer_combox->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
     m_sizer_combox->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
 
-    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxSize(FromDIP(TITLE_WIDTH), -1), 0);
-    combo_title->SetForegroundColour(ThemeColor::TextPrimary);
-    combo_title->SetFont(::Label::Body_13);
-    combo_title->SetToolTip(tooltip);
-    combo_title->Wrap(-1);
-    m_sizer_combox->Add(combo_title, wxSizerFlags().CenterVertical().Proportion(1));
+    auto combo_title = make_row_title(parent, title, FromDIP(TITLE_WIDTH), tooltip);
+    m_sizer_combox->Add(combo_title, wxSizerFlags().CenterVertical().Proportion(1).Border(wxRIGHT, FromDIP(TITLE_CONTROL_GAP)));
 
-    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(LARGE_COMBOBOX_WIDTH), -1), 0, nullptr, wxCB_READONLY);
+    auto combobox                           = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(COMBOBOX_WIDTH), -1), 0, nullptr, wxCB_READONLY);
     m_combobox_list[m_combobox_list.size()] = combobox;
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
@@ -345,14 +468,10 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
     m_sizer_combox->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
     m_sizer_combox->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
 
-    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxSize(FromDIP(TITLE_WIDTH), -1), 0);
-    combo_title->SetForegroundColour(ThemeColor::TextPrimary);
-    combo_title->SetFont(::Label::Body_13);
-    combo_title->SetToolTip(tooltip);
-    combo_title->Wrap(-1);
-    m_sizer_combox->Add(combo_title, wxSizerFlags().CenterVertical().Proportion(1));
+    auto combo_title = make_row_title(parent, title, FromDIP(TITLE_WIDTH), tooltip);
+    m_sizer_combox->Add(combo_title, wxSizerFlags().CenterVertical().Proportion(1).Border(wxRIGHT, FromDIP(TITLE_CONTROL_GAP)));
 
-    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(LARGE_COMBOBOX_WIDTH), -1), 0, nullptr, wxCB_READONLY);
+    auto combobox                           = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(COMBOBOX_WIDTH), -1), 0, nullptr, wxCB_READONLY);
     m_combobox_list[m_combobox_list.size()] = combobox;
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
@@ -414,12 +533,8 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxW
     m_sizer_combox->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
     m_sizer_combox->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
 
-    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxSize(FromDIP(TITLE_WIDTH), -1), 0);
-    combo_title->SetForegroundColour(ThemeColor::TextPrimary);
-    combo_title->SetFont(::Label::Body_13);
-    combo_title->SetToolTip(tooltip);
-    combo_title->Wrap(-1);
-    m_sizer_combox->Add(combo_title, wxSizerFlags().CenterVertical().Proportion(1));
+    auto combo_title = make_row_title(parent, title, FromDIP(TITLE_WIDTH), tooltip);
+    m_sizer_combox->Add(combo_title, wxSizerFlags().CenterVertical().Proportion(1).Border(wxRIGHT, FromDIP(TITLE_CONTROL_GAP)));
 
     auto combobox                           = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(COMBOBOX_WIDTH), -1), 0, nullptr, wxCB_READONLY);
     m_combobox_list[m_combobox_list.size()] = combobox;
@@ -437,7 +552,7 @@ wxBoxSizer *PreferencesDialog::create_item_loglevel_combobox(wxString title, wxW
     // save config
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
         auto level = Slic3r::get_string_logging_level(e.GetSelection());
-        Slic3r::set_logging_level(Slic3r::level_string_to_boost(level));
+        wxGetApp().set_severity_level(level);
         app_config->set("severity_level",level);
         app_config->save();
         e.Skip();
@@ -458,12 +573,9 @@ wxBoxSizer *PreferencesDialog::create_item_multiple_combobox(
    m_sizer_tcombox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
    m_sizer_tcombox->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
 
-   auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxSize(FromDIP(TITLE_WIDTH), -1), 0);
-   combo_title->SetToolTip(tooltip);
-   combo_title->Wrap(-1);
-   combo_title->SetForegroundColour(ThemeColor::TextPrimary);
-   combo_title->SetFont(::Label::Body_13);
+   auto combo_title = make_row_title(parent, title, FromDIP(TITLE_WIDTH), tooltip);
    m_sizer_tcombox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
+   m_sizer_tcombox->AddSpacer(FromDIP(TITLE_CONTROL_GAP));
 
    auto combobox_left                      = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(COMBOBOX_WIDTH), -1), 0, nullptr, wxCB_READONLY);
    m_combobox_list[m_combobox_list.size()] = combobox_left;
@@ -512,11 +624,7 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
 {
     wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
     sizer_input->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
-    auto        input_title   = new wxStaticText(parent, wxID_ANY, title);
-    input_title->SetForegroundColour(ThemeColor::TextPrimary);
-    input_title->SetFont(::Label::Body_13);
-    input_title->SetToolTip(tooltip);
-    input_title->Wrap(-1);
+    auto input_title = make_row_title(parent, title, FromDIP(TITLE_WIDTH), tooltip);
 
     auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(INPUT_WIDTH), -1), wxTE_PROCESS_ENTER);
     StateColor input_bg(std::pair<wxColour, int>(ThemeColor::Grey250, StateColor::Disabled), std::pair<wxColour, int>(ThemeColor::White, StateColor::Enabled));
@@ -525,17 +633,11 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
     wxTextValidator validator(wxFILTER_DIGITS);
     input->GetTextCtrl()->SetValidator(validator);
 
-    wxStaticText *second_title = nullptr;
-    if (!title2.empty()) {
-        second_title = new wxStaticText(parent, wxID_ANY, title2, wxDefaultPosition, wxSize(FromDIP(TITLE_WIDTH), -1), 0);
-        second_title->SetForegroundColour(ThemeColor::TextPrimary);
-        second_title->SetFont(::Label::Body_13);
-        second_title->SetToolTip(tooltip);
-        second_title->Wrap(-1);
-    }
+    ::Label *second_title = nullptr;
+    if (!title2.empty()) second_title = make_row_title(parent, title2, FromDIP(TITLE_WIDTH), tooltip);
 
     sizer_input->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
-    sizer_input->Add(input_title, wxSizerFlags().CenterVertical().Proportion(1));
+    sizer_input->Add(input_title, wxSizerFlags().CenterVertical().Proportion(1).Border(wxRIGHT, FromDIP(TITLE_CONTROL_GAP)));
     sizer_input->Add(input, wxSizerFlags().CenterVertical().Border(wxRIGHT, ITEM_RIGHT_PADDING));
     if (second_title) sizer_input->Add(second_title, 0, wxALIGN_CENTER_VERTICAL | wxALL, 3);
 
@@ -563,11 +665,7 @@ wxBoxSizer *PreferencesDialog::create_item_range_input(
 {
     wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
     sizer_input->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
-    auto        input_title = new wxStaticText(parent, wxID_ANY, title);
-    input_title->SetForegroundColour(ThemeColor::TextPrimary);
-    input_title->SetFont(::Label::Body_13);
-    input_title->SetToolTip(tooltip);
-    input_title->Wrap(-1);
+    auto input_title = make_row_title(parent, title, FromDIP(TITLE_WIDTH), tooltip);
 
     auto float_value = std::atof(app_config->get(param).c_str());
     if (float_value < range_min || float_value > range_max) {
@@ -583,7 +681,7 @@ wxBoxSizer *PreferencesDialog::create_item_range_input(
     input->GetTextCtrl()->SetValidator(validator);
 
     sizer_input->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
-    sizer_input->Add(input_title, wxSizerFlags().CenterVertical().Proportion(1));
+    sizer_input->Add(input_title, wxSizerFlags().CenterVertical().Proportion(1).Border(wxRIGHT, FromDIP(TITLE_CONTROL_GAP)));
     sizer_input->Add(input, wxSizerFlags().CenterVertical().Border(wxRIGHT, FromDIP(ITEM_RIGHT_PADDING)));
     auto format_str=[](int keep_digital,float val){
         std::stringstream ss;
@@ -629,11 +727,7 @@ wxBoxSizer *PreferencesDialog::create_item_range_two_input(wxString             
 {
     wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
     sizer_input->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
-    auto        input_title = new wxStaticText(parent, wxID_ANY, title);
-    input_title->SetForegroundColour(ThemeColor::TextPrimary);
-    input_title->SetFont(::Label::Body_13);
-    input_title->SetToolTip(tooltip);
-    input_title->Wrap(-1);
+    auto input_title = make_row_title(parent, title, FromDIP(TITLE_WIDTH), tooltip);
 
     auto float_value = std::atof(app_config->get(param).c_str());
     if (float_value < range_min || float_value > range_max) {
@@ -647,20 +741,20 @@ wxBoxSizer *PreferencesDialog::create_item_range_two_input(wxString             
         app_config->set(param1, std::to_string(range_min));
         app_config->save();
     }
-    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(INPUT_WIDTH), -1), wxTE_PROCESS_ENTER);
+    auto       input = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(DUAL_INPUT_WIDTH), -1), wxTE_PROCESS_ENTER);
     StateColor input_bg(std::pair<wxColour, int>(ThemeColor::Grey250, StateColor::Disabled), std::pair<wxColour, int>(ThemeColor::White, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
     wxTextValidator validator(wxFILTER_NUMERIC);
     input->GetTextCtrl()->SetValidator(validator);
 
-    auto input1 = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(INPUT_WIDTH), -1), wxTE_PROCESS_ENTER);
+    auto input1 = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(DUAL_INPUT_WIDTH), -1), wxTE_PROCESS_ENTER);
     input1->SetBackgroundColor(input_bg);
     input1->GetTextCtrl()->SetValue(app_config->get(param1));
     input1->GetTextCtrl()->SetValidator(validator);
 
     sizer_input->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
-    sizer_input->Add(input_title, wxSizerFlags().CenterVertical().Proportion(1));
+    sizer_input->Add(input_title, wxSizerFlags().CenterVertical().Proportion(1).Border(wxRIGHT, FromDIP(TITLE_CONTROL_GAP)));
     sizer_input->Add(input, 0, wxALIGN_CENTER_VERTICAL, 0);
 
     sizer_input->AddSpacer(FromDIP(8));
@@ -719,11 +813,7 @@ wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxWindow *pare
 {
     wxBoxSizer *m_sizer_switch = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_switch->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
-    auto        switch_title   = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxSize(FromDIP(TITLE_WIDTH), -1), 0);
-    switch_title->SetForegroundColour(ThemeColor::TextPrimary);
-    switch_title->SetFont(::Label::Body_13);
-    switch_title->SetToolTip(tooltip);
-    switch_title->Wrap(-1);
+    auto switch_title = make_row_title(parent, title, FromDIP(TITLE_WIDTH), tooltip);
     auto switchbox = new ::SwitchButton(parent, wxID_ANY);
 
     /*auto index = app_config->get(param);
@@ -754,16 +844,10 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
     checkbox->SetValue((app_config->get(param) == "1") ? true : false);
     m_dark_mode_ckeckbox = checkbox;
 
-    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    checkbox_title->SetForegroundColour(ThemeColor::TextPrimary);
-    checkbox_title->SetFont(::Label::Body_13);
-
-    auto size = checkbox_title->GetTextExtent(title);
-    checkbox_title->SetMinSize(wxSize(size.x + FromDIP(40), -1));
-    checkbox_title->Wrap(-1);
+    auto checkbox_title = make_row_title(parent, title, FromDIP(TITLE_WIDTH), tooltip);
 
     m_sizer_checkbox->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
-    m_sizer_checkbox->Add(checkbox_title, wxSizerFlags().CenterVertical().Proportion(1));
+    m_sizer_checkbox->Add(checkbox_title, wxSizerFlags().CenterVertical().Proportion(1).Border(wxRIGHT, FromDIP(TITLE_CONTROL_GAP)));
     m_sizer_checkbox->Add(checkbox, wxSizerFlags().CenterVertical().Border(wxRIGHT, FromDIP(ITEM_RIGHT_PADDING)));
 
     //// save config
@@ -815,16 +899,10 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
         checkbox->SetValue((app_config->get(param) == "true") ? true : false);
     }
 
-    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    checkbox_title->SetForegroundColour(ThemeColor::TextPrimary);
-    checkbox_title->SetFont(::Label::Body_13);
-
-    auto size = checkbox_title->GetTextExtent(title);
-    checkbox_title->SetMinSize(wxSize(size.x + FromDIP(5), -1));
-    checkbox_title->Wrap(-1);
+    auto checkbox_title = make_row_title(parent, title, FromDIP(TITLE_WIDTH), tooltip);
 
     m_sizer_checkbox->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
-    m_sizer_checkbox->Add(checkbox_title, wxSizerFlags().CenterVertical().Proportion(1));
+    m_sizer_checkbox->Add(checkbox_title, wxSizerFlags().CenterVertical().Proportion(1).Border(wxRIGHT, FromDIP(TITLE_CONTROL_GAP)));
     m_sizer_checkbox->Add(checkbox, wxSizerFlags().CenterVertical().Border(wxRIGHT, FromDIP(ITEM_RIGHT_PADDING)));
 
     //// save config
@@ -852,6 +930,11 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
         if (param == "staff_pick_switch") {
             bool pbool = app_config->get("staff_pick_switch") == "true";
             wxGetApp().switch_staff_pick(pbool);
+        }
+
+        if (param == "show_bed_heat_soak_area") {
+            if (wxGetApp().plater())
+                wxGetApp().plater()->on_show_bed_heat_soak_area_changed();
         }
 
         if (param == "sync_user_preset") {
@@ -1009,14 +1092,9 @@ wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding
     sizer->AddSpacer(FromDIP(ITEM_LEFT_PADDING));
     sizer->SetMinSize(wxSize(-1, FromDIP(ITEM_MIN_HEIGHT)));
 
-    auto m_staticTextTitle = new wxStaticText(item_panel, wxID_ANY, _L("Download path"), wxDefaultPosition, wxDefaultSize, 0);
-    m_staticTextTitle->SetForegroundColour(ThemeColor::TextPrimary);
-    m_staticTextTitle->SetFont(::Label::Body_13);
-    m_staticTextTitle->Wrap(-1);
+    auto m_staticTextTitle = make_row_title(item_panel, _L("Download path"), FromDIP(TITLE_WIDTH));
 
     auto m_staticTextPath = new ::TextInput(item_panel, download_path, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
-    // m_staticTextPath->SetBackgroundColor(ThemeColor::Grey250);
-    // m_staticTextPath->SetBorderColor(ThemeColor::Grey350);
     m_staticTextPath->SetCornerRadius(FromDIP(4));
     m_staticTextPath->GetTextCtrl()->SetFont(::Label::Body_13);
 
@@ -1048,8 +1126,15 @@ wxWindow* PreferencesDialog::create_item_downloads(wxWindow* parent, int padding
         }
         });
 
-    sizer->Add(m_staticTextTitle, wxSizerFlags().CenterVertical().Border(wxRIGHT, FromDIP(8)));
-    sizer->Add(m_staticTextPath, wxSizerFlags().CenterVertical().Proportion(1).Border(wxRIGHT, FromDIP(8)));
+    // Keep title + path together within the title column so the path input's right
+    // edge never crosses the combobox column's left edge.
+    wxBoxSizer *title_path = new wxBoxSizer(wxHORIZONTAL);
+    title_path->SetMinSize(wxSize(FromDIP(TITLE_WIDTH), -1));
+    title_path->Add(m_staticTextTitle, wxSizerFlags().CenterVertical().Border(wxRIGHT, FromDIP(8)));
+    title_path->Add(m_staticTextPath, wxSizerFlags().CenterVertical().Proportion(1));
+
+    sizer->Add(title_path, wxSizerFlags().CenterVertical().Border(wxRIGHT, FromDIP(8)));
+    sizer->AddStretchSpacer();
     sizer->Add(m_button_download, wxSizerFlags().CenterVertical().Border(wxRIGHT, FromDIP(ITEM_RIGHT_PADDING)));
 
     item_panel->SetSizer(sizer);
@@ -1138,10 +1223,11 @@ PreferenceTabbar::PreferenceTabbar(wxWindow *parent) : wxControl(parent, wxID_AN
     SetBackgroundColour(*wxWHITE);
     auto *outer = new wxBoxSizer(wxVERTICAL);
     m_row       = new wxBoxSizer(wxHORIZONTAL);
-    outer->Add(m_row, 0, wxLEFT, FromDIP(8));
+    outer->Add(m_row, wxSizerFlags().Expand().Border(wxLEFT | wxRIGHT, FromDIP(48)));
     auto *line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
     line->SetBackgroundColour(ThemeColor::Grey300);
-    outer->Add(line, 0, wxEXPAND);
+    outer->Add(line, wxSizerFlags().Expand());
+
     SetSizer(outer);
 }
 
@@ -1179,8 +1265,8 @@ void PreferenceTabbar::AddTab(const wxString &label)
 
     m_labels.push_back(text);
     m_underlines.push_back(underline);
-    m_row->AddSpacer(FromDIP(32));
-    m_row->Add(col, wxSizerFlags().Border(wxRIGHT, FromDIP(48)));
+    if (m_row->GetItemCount() != 0) m_row->AddStretchSpacer();
+    m_row->Add(col, wxSizerFlags().CenterHorizontal());
     if (m_selection < 0) SetSelection(0);
 }
 
@@ -1414,27 +1500,25 @@ wxWindow *PreferencesDialog::create_general_tab()
     item_priv_policy->GetItem(1)->SetProportion(0);
     item_priv_policy->Insert(item_priv_policy->GetItemCount() - 1, hyperlink, wxSizerFlags().CenterVertical().Proportion(1));
 
-    // Download path row lives inside the General Settings section (Figma:
-    // "下载地址" as a plain row, no separate "Downloads" section title).
     auto item_downloads = create_item_downloads(scrolled, 50, "download_path");
 
     sizer->Add(title_basic, wxSizerFlags().Expand().Border(wxTOP, FromDIP(24)));
     sizer->AddSpacer(FromDIP(8));
-    auto flags = wxSizerFlags().Expand().Border(wxTOP, FromDIP(4));
+    auto flags = row_flags();
 
-    sizer->Add(item_language, flags);
-    sizer->Add(item_region, flags);
-    sizer->Add(item_currency, flags);
-    sizer->Add(item_auto_flush, flags);
+    sizer->Add(wrap_option_row(scrolled, item_language), flags);
+    sizer->Add(wrap_option_row(scrolled, item_region), flags);
+    sizer->Add(wrap_option_row(scrolled, item_currency), flags);
+    sizer->Add(wrap_option_row(scrolled, item_auto_flush), flags);
 #ifdef _WIN32
-    sizer->Add(item_darkmode, flags);
+    sizer->Add(wrap_option_row(scrolled, item_darkmode), flags);
 #endif
-    sizer->Add(item_single_instance, flags);
-    sizer->Add(item_fila_manager, flags);
-    sizer->Add(item_multi_machine, flags);
-    sizer->Add(item_beta_version_update, flags);
-    sizer->Add(item_priv_policy, flags);
-    sizer->Add(item_downloads, flags);
+    sizer->Add(wrap_option_row(scrolled, item_single_instance), flags);
+    sizer->Add(wrap_option_row(scrolled, item_fila_manager), flags);
+    sizer->Add(wrap_option_row(scrolled, item_multi_machine), flags);
+    sizer->Add(wrap_option_row(scrolled, item_beta_version_update), flags);
+    sizer->Add(wrap_option_row(scrolled, item_priv_policy), flags);
+    sizer->Add(wrap_option_row(scrolled, item_downloads), flags);
     scrolled->SetSizer(sizer);
     scrolled->FitInside();
     return scrolled;
@@ -1481,17 +1565,17 @@ wxWindow *PreferencesDialog::create_user_tab()
 
     sizer->Add(title_user, wxSizerFlags().Expand().Border(wxTOP, FromDIP(24)));
     sizer->AddSpacer(FromDIP(8));
-    auto flags = wxSizerFlags().Expand().Border(wxTOP, FromDIP(4));
+    auto flags = row_flags();
 
-    sizer->Add(item_time_format, flags);
-    sizer->Add(item_bed_type_follow_preset, flags);
-    sizer->Add(item_auto_stop_liveview, flags);
-    sizer->Add(item_auto_transfer, flags);
-    sizer->Add(item_mix_print_high_low_temp, flags);
-    sizer->Add(item_user_sync, flags);
-    sizer->Add(item_system_sync, flags);
+    sizer->Add(wrap_option_row(scrolled, item_time_format), flags);
+    sizer->Add(wrap_option_row(scrolled, item_bed_type_follow_preset), flags);
+    sizer->Add(wrap_option_row(scrolled, item_auto_stop_liveview), flags);
+    sizer->Add(wrap_option_row(scrolled, item_auto_transfer), flags);
+    sizer->Add(wrap_option_row(scrolled, item_mix_print_high_low_temp), flags);
+    sizer->Add(wrap_option_row(scrolled, item_user_sync), flags);
+    sizer->Add(wrap_option_row(scrolled, item_system_sync), flags);
 #ifdef _WIN32
-    sizer->Add(item_webview_auto_fill, flags);
+    sizer->Add(wrap_option_row(scrolled, item_webview_auto_fill), flags);
 #endif
 
     scrolled->SetSizer(sizer);
@@ -1510,16 +1594,14 @@ wxWindow *PreferencesDialog::create_3d_tab()
                                                    _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
 
     std::vector<wxString> assemble_view_preview_options = {_L("Auto"), _L("Open"), _L("Close")};
-    auto                  enable_assemble_view_preview  = create_item_combobox(
-        _L("Display overview"), scrolled, _L("Display overview"), "enable_assemble_view_preview", assemble_view_preview_options, {"Auto", "Open", "Close"},
-        [](int idx) {
-            wxGetApp().app_config->set("enable_assemble_view_preview", idx == 0 ? "Auto" : idx == 1 ? "Open" : "Close");
-            if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Auto")
-                wxGetApp().app_config->set_bool("enable_bvh", true);
-            else if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Open")
-                wxGetApp().app_config->set_bool("enable_bvh", false);
-        },
-        FromDIP(150), FromDIP(120));
+    auto                  enable_assemble_view_preview  = create_item_combobox(_L("Display overview"), scrolled, _L("Display overview"), "enable_assemble_view_preview",
+                                                                               assemble_view_preview_options, {"Auto", "Open", "Close"}, [](int idx) {
+                                                                 wxGetApp().app_config->set("enable_assemble_view_preview", idx == 0 ? "Auto" : idx == 1 ? "Open" : "Close");
+                                                                 if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Auto")
+                                                                     wxGetApp().app_config->set_bool("enable_bvh", true);
+                                                                 else if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Open")
+                                                                     wxGetApp().app_config->set_bool("enable_bvh", false);
+                                                             });
 
     float range_min = 1.0f, range_max = 2.5f;
     auto  item_grabber_size = create_item_range_input(_L("Grabber scale"), scrolled,
@@ -1547,6 +1629,10 @@ wxWindow *PreferencesDialog::create_3d_tab()
                                                  _L("Always show shells or not in preview view tab. If you change this value, you should reslice."), 50,
                                                  "show_shells_in_preview");
 
+    auto item_show_heat_soak_area = create_item_checkbox(_L("Show Thermal Preconditioning Area"), scrolled,
+                                                         _L("Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."), 50,
+                                                         "show_bed_heat_soak_area");
+
     auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), scrolled,
                                                        _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
 
@@ -1568,32 +1654,33 @@ wxWindow *PreferencesDialog::create_3d_tab()
 
     sizer->Add(title_3d, wxSizerFlags().Expand().Border(wxTOP, FromDIP(24)));
     sizer->AddSpacer(FromDIP(8));
-    auto flags = wxSizerFlags().Expand().Border(wxTOP, FromDIP(4));
+    auto flags = row_flags();
 
-    sizer->Add(enable_assemble_view_preview, flags);
-    sizer->Add(item_grabber_size, flags);
-    sizer->Add(item_tooltip_offset, flags);
-    sizer->Add(item_toolbar_style, flags);
-    sizer->Add(item_zoom_to_mouse, flags);
-    sizer->Add(item_show_shells, flags);
+    sizer->Add(wrap_option_row(scrolled, enable_assemble_view_preview), flags);
+    sizer->Add(wrap_option_row(scrolled, item_grabber_size), flags);
+    sizer->Add(wrap_option_row(scrolled, item_tooltip_offset), flags);
+    sizer->Add(wrap_option_row(scrolled, item_toolbar_style), flags);
+    sizer->Add(wrap_option_row(scrolled, item_zoom_to_mouse), flags);
+    sizer->Add(wrap_option_row(scrolled, item_show_shells), flags);
+    sizer->Add(wrap_option_row(scrolled, item_show_heat_soak_area), flags);
 #if !BBL_RELEASE_TO_PUBLIC
     auto item_show_bvh_bounds = create_item_checkbox(_L("Show assembly BVH primary bounds"), scrolled, _L("Display the BVH primary bounding box wireframe in assembly view."), 50,
                                                      "show_assembly_bvh_bounds");
-    sizer->Add(item_show_bvh_bounds, flags);
+    sizer->Add(wrap_option_row(scrolled, item_show_bvh_bounds), flags);
 #endif
-    sizer->Add(item_step_mesh_setting, flags);
-    sizer->Add(item_import_svg, flags);
-    sizer->Add(item_gamma_obj, flags);
-    sizer->Add(item_enable_record_gcodeviewer, flags);
-    sizer->Add(item_enable_lod, flags);
-    sizer->Add(item_advanced_gcode, flags);
+    sizer->Add(wrap_option_row(scrolled, item_step_mesh_setting), flags);
+    sizer->Add(wrap_option_row(scrolled, item_import_svg), flags);
+    sizer->Add(wrap_option_row(scrolled, item_gamma_obj), flags);
+    sizer->Add(wrap_option_row(scrolled, item_enable_record_gcodeviewer), flags);
+    sizer->Add(wrap_option_row(scrolled, item_enable_lod), flags);
+    sizer->Add(wrap_option_row(scrolled, item_advanced_gcode), flags);
 
     // [refactor-review] Not in Figma v2 3D tab; camera-fullscreen kept here (a 3D/
     // viewport-adjacent toggle). Reviewer: confirm placement.
     auto item_camera_fullscreen = create_item_checkbox(_L("Open full screen camera view on active monitor only."), scrolled,
                                                        _L("When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."), 50,
                                                        "camera_fullscreen_active_monitor_only");
-    sizer->Add(item_camera_fullscreen, flags); // [refactor-review]
+    sizer->Add(wrap_option_row(scrolled, item_camera_fullscreen), flags); // [refactor-review]
 
     sizer->AddSpacer(FromDIP(20));
     scrolled->SetSizer(sizer);
@@ -1627,11 +1714,11 @@ wxWindow *PreferencesDialog::create_other_tab()
 
     sizer->Add(title_project, wxSizerFlags().Expand().Border(wxTOP, FromDIP(16)));
     sizer->AddSpacer(FromDIP(8));
-    auto flags = wxSizerFlags().Expand().Border(wxTOP, FromDIP(4));
+    auto flags = row_flags();
 
-    sizer->Add(item_max_recent_count, flags);
-    sizer->Add(item_auto_backup, flags);
-    sizer->Add(item_gcodes_warning, flags);
+    sizer->Add(wrap_option_row(scrolled, item_max_recent_count), flags);
+    sizer->Add(wrap_option_row(scrolled, item_auto_backup), flags);
+    sizer->Add(wrap_option_row(scrolled, item_gcodes_warning), flags);
 
     // ---- Online Models (visible only when has_model_mall()) ----
     auto title_modelmall   = create_item_title(_L("Online Models"), scrolled, _L("Online Models"));
@@ -1640,8 +1727,8 @@ wxWindow *PreferencesDialog::create_other_tab()
     auto item_show_history = create_item_checkbox(_L("Show history on the home page"), scrolled, _L("Show history on the home page"), 50, "show_print_history");
 
     auto title_modelmall_item   = sizer->Add(title_modelmall, wxSizerFlags().Expand().Border(wxTOP, FromDIP(16)));
-    auto item_modelmall_item    = sizer->Add(item_modelmall, flags);
-    auto item_show_history_item = sizer->Add(item_show_history, flags);
+    auto item_modelmall_item    = sizer->Add(wrap_option_row(scrolled, item_modelmall), flags);
+    auto item_show_history_item = sizer->Add(wrap_option_row(scrolled, item_show_history), flags);
 
     auto update_modelmall = [scrolled, title_modelmall_item, item_modelmall_item, item_show_history_item](wxEvent &) {
         bool has_model_mall = wxGetApp().has_model_mall();
@@ -1658,9 +1745,13 @@ wxWindow *PreferencesDialog::create_other_tab()
     auto title_dev           = create_item_title(_L("Developer Mode"), scrolled, _L("Developer Mode"));
     auto item_dev_mode       = create_item_checkbox(_L("Develop mode"), scrolled, _L("Develop mode"), 50, "developer_mode");
     auto item_skip_blacklist = create_item_checkbox(_L("Skip AMS blacklist check"), scrolled, _L("Skip AMS blacklist check"), 50, "skip_ams_blacklist_check");
+    auto item_webview_devtools = create_item_checkbox(
+        _L("Enable DevTools For Webview") + " (" + _L("Take effect after restarting Studio") + ")", scrolled,
+        _L("Enable DevTools For Webview"), 50, "enable_webview_devtools");
     sizer->Add(title_dev, wxSizerFlags().Expand().Border(wxTOP, FromDIP(16)));
-    sizer->Add(item_dev_mode, flags);
-    sizer->Add(item_skip_blacklist, flags);
+    sizer->Add(wrap_option_row(scrolled, item_dev_mode), flags);
+    sizer->Add(wrap_option_row(scrolled, item_skip_blacklist), flags);
+    sizer->Add(wrap_option_row(scrolled, item_webview_devtools), flags);
 
 #ifdef _WIN32
     // ---- Associate Files To Bambu Studio (Windows only) ----
@@ -1672,9 +1763,9 @@ wxWindow *PreferencesDialog::create_other_tab()
     auto item_associate_step  = create_item_checkbox(_L("Associate .step/.stp files to Bambu Studio"), scrolled,
                                                      _L("If enabled, sets Bambu Studio as default application to open .step files"), 50, "associate_step");
     sizer->Add(title_associate_file, wxSizerFlags().Expand().Border(wxTOP, FromDIP(16)));
-    sizer->Add(item_associate_3mf, flags);
-    sizer->Add(item_associate_stl, flags);
-    sizer->Add(item_associate_step, flags);
+    sizer->Add(wrap_option_row(scrolled, item_associate_3mf), flags);
+    sizer->Add(wrap_option_row(scrolled, item_associate_stl), flags);
+    sizer->Add(wrap_option_row(scrolled, item_associate_step), flags);
 #endif
 
     sizer->AddSpacer(FromDIP(20));
@@ -1697,10 +1788,10 @@ wxWindow *PreferencesDialog::create_developer_tab()
     auto item_log   = create_item_loglevel_combobox(_L("Log Level"), scrolled, _L("Log Level"), log_levels);
     sizer->Add(title_log, wxSizerFlags().Expand().Border(wxTOP, FromDIP(24)));
     sizer->AddSpacer(FromDIP(8));
-    auto flags = wxSizerFlags().Expand().Border(wxTOP, FromDIP(4));
+    auto flags = row_flags();
 
     sizer->AddSpacer(FromDIP(4));
-    sizer->Add(item_log, flags);
+    sizer->Add(wrap_option_row(scrolled, item_log), flags);
 
     auto title_dev         = create_item_title(_L("Developer Tools"), scrolled, _L("Developer Tools"));
     auto item_internal_dev = create_item_checkbox(_L("Internal developer mode"), scrolled, _L("Internal developer mode"), 50, "internal_developer_mode");
@@ -2024,6 +2115,7 @@ void PreferencesDialog::on_reset_preferences()
         "show_print_history",
         "developer_mode",
         "skip_ams_blacklist_check",
+        "enable_webview_devtools",
         "severity_level",
     };
     for (const char *k : kPrefKeys) app_config->erase("app", k);

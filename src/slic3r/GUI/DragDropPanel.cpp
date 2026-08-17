@@ -112,12 +112,12 @@ void ColorPanel::OnLeftUp(wxMouseEvent &event) { m_parent->set_is_draging(false)
 void ColorPanel::OnPaint(wxPaintEvent &event)
 {
     wxPaintDC dc(this);
-    wxSize   size  = GetSize();
+    wxSize    size = GetSize();
     // If it matches the parent's width, it will not be displayed completely
-    int svg_size = size.GetWidth();
-    int type_label_height = FromDIP(10);
+    int      svg_size          = size.GetWidth();
+    int      type_label_height = FromDIP(10);
     wxString type_label(m_type);
-    int type_label_margin = FromDIP(3);
+    int      type_label_margin = FromDIP(3);
 
     // Derive the filament's color set from its id (the project config is the single source of truth).
     std::vector<wxColour> colors;
@@ -125,44 +125,27 @@ void ColorPanel::OnPaint(wxPaintEvent &event)
     get_filament_colors_by_id(m_filament_id - 1, colors, is_gradient); // m_filament_id is 1-based
     if (colors.empty()) colors.push_back(*wxBLACK);
 
-    if (colors.size() > 1) {
-        // Gradient / dual / multi-color filament: render the full swatch.
-        wxBitmap swatch = create_filament_bitmap(colors, wxSize(svg_size, svg_size), is_gradient);
-        if (swatch.IsOk()) dc.DrawBitmap(swatch, wxPoint(0, 0));
-    } else {
-        std::string replace_color = colors.front().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-        std::string svg_name      = "outlined_rect";
-        if (replace_color == "#FFFFFF00") { svg_name = "outlined_rect_transparent"; }
-        static Slic3r::GUI::BitmapCache cache;
-        wxBitmap                       *bmp = cache.load_svg(svg_name, 0, svg_size, false, false, replace_color, 0.f);
-        // wxBitmap bmp = ScalableBitmap(this, svg_name, svg_size, false, false, false, { replace_color }).bmp();
-        //  ScalableBitmap is not drawn at position (0, 0) by default, why?
-        dc.DrawBitmap(*bmp, wxPoint(0, 0));
-    }
-
-    //dc.SetPen(wxPen(*wxBLACK, 1));
-    //dc.DrawRectangle(0, 0, svg_size, svg_size);
+    wxBitmap swatch = create_filament_bitmap(colors, wxSize(svg_size, svg_size), is_gradient);
+    if (swatch.IsOk()) dc.DrawBitmap(swatch, wxPoint(0, 0));
 
     wxString label = wxString::Format(wxT("%d"), m_filament_id);
     dc.SetTextForeground(colors.front().GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK); // set text color
     dc.DrawLabel(label, wxRect(0, 0, svg_size, svg_size), wxALIGN_CENTER);
 
-    if(m_parent)
+    if (m_parent)
         dc.SetTextForeground(this->m_parent->GetBackgroundColour().GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
     else
         dc.SetTextForeground(*wxBLACK);
     if (type_label.length() > 4) {
         // text is too long
         wxString first = type_label.Mid(0, 4);
-        wxString rest = type_label.Mid(4);
+        wxString rest  = type_label.Mid(4);
         dc.DrawLabel(first, wxRect(0, svg_size + type_label_margin, svg_size, type_label_height), wxALIGN_CENTER);
         dc.DrawLabel(rest, wxRect(0, svg_size + type_label_height + type_label_margin, svg_size, type_label_height), wxALIGN_CENTER);
-    }else {
+    } else {
         dc.DrawLabel(type_label, wxRect(0, svg_size + type_label_margin, svg_size, type_label_height), wxALIGN_CENTER);
     }
 }
-///////////////   ColorPanel  end ////////////////////////
-
 
 // Save the source object information to m_data when dragging
 class ColorDropSource : public wxDropSource

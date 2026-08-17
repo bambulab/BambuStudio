@@ -46,6 +46,7 @@
 
 #include "Widgets/Label.hpp"
 #include "Widgets/TabCtrl.hpp"
+#include "Widgets/TextInput.hpp"
 #include "MarkdownTip.hpp"
 #include "Search.hpp"
 #include "BedShapeDialog.hpp"
@@ -1862,6 +1863,18 @@ static wxString pad_combo_value_for_config(const DynamicPrintConfig &config)
     return config.opt_bool("pad_enable") ? (config.opt_bool("pad_around_object") ? _("Around object") : _("Below object")) : _("None");
 }
 
+// The same suggestion text is used for the support base and the support interface, so that both dialogs read alike
+static wxString soluble_support_suggestion_text(bool with_bottom_z_distance)
+{
+    if (with_bottom_z_distance)
+        return _L("When using soluble material for the support, We recommend the following settings:\n"
+                  "0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+                  "pattern, disable independent support layer height and use soluble materials for both support interface and support base");
+    return _L("When using soluble material for the support, We recommend the following settings:\n"
+              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+              "independent support layer height and use soluble materials for both support interface and support base");
+}
+
 // 生成参数描述文案
 static wxString generate_support_param_description(const std::string& key, const ConfigOption* opt)
 {
@@ -1871,6 +1884,22 @@ static wxString generate_support_param_description(const std::string& key, const
     wxString label = def->label.empty() ? wxString::FromUTF8(key) : _L(def->label);
     if (key == "support_interface_speed") {
         label = _L("Support interface speed");
+    }
+    // Filament slots are shown as "<slot index> <filament type>", the same way as in the support filament combo box
+    if (key == "support_filament" || key == "support_interface_filament") {
+        auto *int_opt = dynamic_cast<const ConfigOptionInt *>(opt);
+        if (!int_opt) return wxString();
+        if (int_opt->value <= 0) return wxString::Format("%s: %s", label, _L("Default"));
+
+        wxString slot_str         = wxString::Format("%d", int_opt->value);
+        auto    &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+        auto    &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
+        if (int_opt->value <= static_cast<int>(filament_presets.size())) {
+            Slic3r::Preset *filament = filaments.find_preset(filament_presets[int_opt->value - 1]);
+            if (filament)
+                slot_str += " " + wxString::FromUTF8(filament->config.option<ConfigOptionStrings>("filament_type")->values[0]);
+        }
+        return wxString::Format("%s: %s", label, slot_str);
     }
     wxString value_str;
 
@@ -1911,6 +1940,130 @@ static wxString generate_support_param_description(const std::string& key, const
     return wxString::Format("%s: %s%s", label, value_str, unit_str);
 }
 
+static bool is_zero_gap_distance(double distance)
+{
+    return std::abs(distance) <= EPSILON;
+}
+
+static std::string filament_type_of_index(int filament_idx_0based)
+{
+    auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+    auto &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
+    if (filament_idx_0based < 0 || filament_idx_0based >= static_cast<int>(filament_presets.size()))
+        return {};
+    Slic3r::Preset *filament = filaments.find_preset(filament_presets[filament_idx_0based]);
+    if (!filament)
+        return {};
+    auto *type_opt = filament->config.option<ConfigOptionStrings>("filament_type");
+    if (!type_opt || type_opt->values.empty())
+        return {};
+    return type_opt->values[0];
+}
+
+// True when support interface material differs from the model body, or is a dedicated support/soluble filament.
+// Note: do not rely on has_filaments() alone - volumes with default extruder (0) are often omitted there,
+// which would miss common cases like PETG model + PLA interface.
+static bool is_dissimilar_or_support_interface_filament(int interface_filament_id)
+{
+    if (interface_filament_id < 0)
+        return false;
+    if (is_support_filament(interface_filament_id, false) || is_soluble_filament(interface_filament_id))
+        return true;
+
+    const std::string interface_type = filament_type_of_index(interface_filament_id);
+    if (interface_type.empty())
+        return false;
+
+    if (!Slic3r::GUI::wxGetApp().plater())
+        return false;
+
+    for (const ModelObject *mo : Slic3r::GUI::wxGetApp().plater()->model().objects) {
+        if (!mo)
+            continue;
+        for (const ModelVolume *vol : mo->volumes) {
+            if (!vol || !vol->is_model_part())
+                continue;
+            // extruder_id() already falls back to object/default filament (1-based).
+            const int eid = vol->extruder_id();
+            if (eid <= 0)
+                continue;
+            const std::string model_type = filament_type_of_index(eid - 1);
+            if (!model_type.empty() && model_type != interface_type)
+                return true;
+        }
+    }
+    return false;
+}
+
+// Zero-gap support interface that uses a dissimilar / support / soluble material as the contact surface.
+static bool is_zero_gap_dissimilar_support_interface(const DynamicPrintConfig &config)
+{
+    if (!config.has("enable_support") || !config.has("support_top_z_distance") ||
+        !config.has("support_interface_filament") || !config.has("enforce_support_layers"))
+        return false;
+
+    const bool support_enabled =
+        config.opt_bool("enable_support") || config.opt_int("enforce_support_layers") > 0;
+    if (!support_enabled)
+        return false;
+    if (!is_zero_gap_distance(config.opt_float("support_top_z_distance")))
+        return false;
+
+    const int interface_filament_id = config.opt_int("support_interface_filament") - 1;
+    return is_dissimilar_or_support_interface_filament(interface_filament_id);
+}
+
+// When applying a zero-gap support recommendation, also turn off thick bridges to avoid a
+// follow-up Suggestion dialog (paragraph-style dialogs cannot list this key).
+static void append_disable_thick_bridges_if_needed(DynamicPrintConfig &conf, const DynamicPrintConfig &current)
+{
+    if (current.has("thick_bridges") && current.opt_bool("thick_bridges"))
+        conf.set_key_value("thick_bridges", new ConfigOptionBool(false));
+}
+
+static bool should_suggest_disable_thick_bridges(const DynamicPrintConfig &config)
+{
+    return config.has("thick_bridges") && config.opt_bool("thick_bridges") &&
+           is_zero_gap_dissimilar_support_interface(config);
+}
+
+// Show Suggestion dialog recommending thick_bridges = Off. Returns true if the dialog was shown.
+static bool suggest_disable_thick_bridges_if_needed(DynamicPrintConfig *config, ConfigManipulation &config_manipulation)
+{
+    if (!config || !should_suggest_disable_thick_bridges(*config))
+        return false;
+
+    DynamicPrintConfig recommended_conf;
+    recommended_conf.set_key_value("thick_bridges", new ConfigOptionBool(false));
+
+    DynamicPrintConfig filtered_conf;
+    for (const auto &key : recommended_conf.keys()) {
+        const ConfigOption *current_opt = config->option(key);
+        const ConfigOption *new_opt     = recommended_conf.option(key);
+        if (current_opt && new_opt && current_opt->serialize() != new_opt->serialize())
+            filtered_conf.set_key_value(key, new_opt->clone());
+    }
+    if (filtered_conf.empty())
+        return false;
+
+    wxString msg_text = _L("When using support material for the support interface, We recommend the following settings:");
+    msg_text += "\n\n";
+    for (const auto &key : filtered_conf.keys()) {
+        const ConfigOption *opt = filtered_conf.option(key);
+        if (!opt)
+            continue;
+        wxString desc = generate_support_param_description(key, opt);
+        if (!desc.empty())
+            msg_text += "  \u2022 " + desc + "\n";
+    }
+    msg_text += "\n" + _L("Do you want to apply these settings?");
+
+    MessageDialog dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
+    if (dialog.ShowModal() == wxID_YES)
+        config_manipulation.apply(config, &filtered_conf);
+    wxGetApp().plater()->update();
+    return true;
+}
 
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
@@ -2096,6 +2249,20 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
     // reload scene to update timelapse wipe tower
     if (opt_key == "timelapse_type") {
+        // Smooth timelapse parks the nozzle on the prime tower every layer, so it needs a tower on
+        // every layer. That is exactly what "No sparse layers" removes, and the two together also
+        // break the tower brim/chamfer geometry. Drop "No sparse layers" and tell the user.
+        if (boost::any_cast<int>(value) == (int) TimelapseType::tlSmooth && m_config->opt_bool("wipe_tower_no_sparse_layers")) {
+            MessageDialog dlg(wxGetApp().plater(),
+                              _L("Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". "
+                                 "\"No sparse layers\" has been turned off."),
+                              _L("Warning"), wxICON_WARNING | wxOK);
+            dlg.ShowModal();
+            DynamicPrintConfig new_conf = *m_config;
+            new_conf.set_key_value("wipe_tower_no_sparse_layers", new ConfigOptionBool(false));
+            m_config_manipulation.apply(m_config, &new_conf);
+        }
+
         bool wipe_tower_enabled = m_config->option<ConfigOptionBool>("enable_prime_tower")->value;
         if (!wipe_tower_enabled && boost::any_cast<int>(value) == (int)TimelapseType::tlSmooth) {
             MessageDialog dlg(wxGetApp().plater(), _L("Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"),
@@ -2107,6 +2274,23 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 wxGetApp().plater()->update();
             }
         } else {
+            wxGetApp().plater()->update();
+        }
+    }
+
+    // Mirror of the timelapse_type branch above: enabling "No sparse layers" while smooth timelapse
+    // is active would leave the tower on every layer anyway, so fall back to traditional timelapse.
+    if (opt_key == "wipe_tower_no_sparse_layers" && boost::any_cast<bool>(value)) {
+        auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
+        if (timelapse_type && timelapse_type->value == TimelapseType::tlSmooth) {
+            MessageDialog dlg(wxGetApp().plater(),
+                              _L("\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. "
+                                 "Timelapse has been switched to traditional mode."),
+                              _L("Warning"), wxICON_WARNING | wxOK);
+            dlg.ShowModal();
+            DynamicPrintConfig new_conf = *m_config;
+            new_conf.set_key_value("timelapse_type", new ConfigOptionEnum<TimelapseType>(TimelapseType::tlTraditional));
+            m_config_manipulation.apply(m_config, &new_conf);
             wxGetApp().plater()->update();
         }
     }
@@ -2136,16 +2320,26 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     }
 
     if (opt_key == "support_filament") {
+        // Skip the suggestion dialog when this call cascades from the apply() of the
+        // support_interface_filament handler, otherwise two dialogs pop up for one user action
+        auto const &applying = m_config_manipulation.applying_keys();
+        if (std::find(applying.begin(), applying.end(), "support_filament") != applying.end()) {
+            return;
+        }
+
         int filament_id           = m_config->opt_int("support_filament") - 1; // the displayed id is based from 1, while internal id is based from 0
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1;
         auto           &filament_presets      = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
         auto           &filaments             = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
         bool            support_TPU           = false;
+        // PVA supporting PLA additionally requires 0 bottom z distance, no matter which printer is selected
+        bool            support_PVA_for_PLA   = false;
         if (filament_id >= 0 && filament_id < filament_presets.size()) {
             Slic3r::Preset *filament      = filaments.find_preset(filament_presets[filament_id]);
             if (filament) {
                 std::string filament_type = filament->config.option<ConfigOptionStrings>("filament_type")->values[0];
                 support_TPU               = filament_type == "PLA" && has_filaments({"TPU", "TPU-AMS"});
+                support_PVA_for_PLA       = filament_type == "PVA" && has_filaments({"PLA"});
             }
         }
         if (is_support_filament(filament_id, false) && !is_soluble_filament(filament_id) && !has_filaments({"TPU", "TPU-AMS"})) {
@@ -2163,6 +2357,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         if ((is_soluble_filament(filament_id) || support_TPU) &&
             !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
               m_config->opt_float("support_object_xy_distance") == 0 /*&& m_config->opt_bool("top_z_overrides_xy_distance")*/ &&
+              (!support_PVA_for_PLA || m_config->opt_float("support_bottom_z_distance") == 0) &&
               m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced &&
               filament_id == interface_filament_id)) {
             wxString msg_text;
@@ -2171,9 +2366,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                               "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
                               "independent support layer height and use PLA for both support interface and support base");
             else
-                msg_text = _L("When using soluble material for the support, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-                              "independent support layer height and use soluble materials for both support interface and support base");
+                msg_text = soluble_support_suggestion_text(support_PVA_for_PLA);
             msg_text += "\n\n" + _L("Change these settings automatically? \n"
                                     "Yes - Change these settings automatically\n"
                                     "No  - Do not change these settings for me");
@@ -2183,11 +2376,15 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
+                if (support_PVA_for_PLA)
+                    new_conf.set_key_value("support_bottom_z_distance", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_pattern",
                                        new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
                 //new_conf.set_key_value("top_z_overrides_xy_distance", new ConfigOptionBool(true));
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
                 new_conf.set_key_value("support_interface_filament", new ConfigOptionInt(filament_id + 1));
+                // Paragraph dialog cannot list thick_bridges; apply together to avoid a second popup.
+                append_disable_thick_bridges_if_needed(new_conf, *m_config);
                 m_config_manipulation.apply(m_config, &new_conf);
             }
             wxGetApp().plater()->update();
@@ -2284,6 +2481,10 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             }
         }
 
+        // Soluble supports reuse the same paragraph as the support base dialog instead of the parameter list
+        bool soluble_suggestion   = false;
+        bool soluble_bottom_z     = false;
+
         // JSON 没找到，走硬编码路径
         if (!found_recommendation) {
             bool support_TPU          = interface_filament_type == "PLA" && has_filaments({"TPU", "TPU-AMS"});
@@ -2299,10 +2500,14 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 recommended_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
                 found_recommendation = true;
             } else if (soluble_interface) {
-                support_material_display_name = "soluble material";
+                soluble_suggestion = true;
                 recommended_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
                 recommended_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
                 recommended_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
+                // PVA supporting PLA additionally requires 0 bottom z distance, no matter which printer is selected
+                soluble_bottom_z = interface_filament_type == "PVA" && has_filaments({"PLA"});
+                if (soluble_bottom_z)
+                    recommended_conf.set_key_value("support_bottom_z_distance", new ConfigOptionFloat(0));
                 recommended_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
                 recommended_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
                 found_recommendation = true;
@@ -2316,6 +2521,30 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             }
         }
 
+        // The interface filament is recommended for the support base as well, matching what the suggestion text promises
+        if (found_recommendation && (soluble_suggestion || interface_filament_type == "PVA"))
+            recommended_conf.set_key_value("support_filament", new ConfigOptionInt(interface_filament_id + 1));
+
+        // Zero-gap support interface + thick bridges: also recommend turning thick bridges off
+        // so it appears in the same Suggestion dialog instead of a second popup.
+        // For soluble_suggestion (paragraph dialog), still record the intent and apply on Yes
+        // via filtered_conf / append helper, then skip the follow-up popup.
+        bool thick_bridges_in_recommendation = false;
+        if (found_recommendation && m_config->has("thick_bridges") && m_config->opt_bool("thick_bridges")) {
+            bool will_be_zero_gap = false;
+            if (const ConfigOptionFloat *top_z_opt =
+                    recommended_conf.option<ConfigOptionFloat>("support_top_z_distance"))
+                will_be_zero_gap = is_zero_gap_distance(top_z_opt->value);
+            else if (m_config->has("support_top_z_distance"))
+                will_be_zero_gap = is_zero_gap_distance(m_config->opt_float("support_top_z_distance"));
+            if (will_be_zero_gap) {
+                if (!soluble_suggestion)
+                    recommended_conf.set_key_value("thick_bridges", new ConfigOptionBool(false));
+                thick_bridges_in_recommendation = true;
+            }
+        }
+
+        bool thick_bridges_handled_in_dialog = false;
         if (found_recommendation && !recommended_conf.empty()) {
             // 过滤掉当前配置已经是推荐值的参数
             DynamicPrintConfig filtered_conf;
@@ -2328,35 +2557,63 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             }
 
             if (!filtered_conf.empty()) {
-                wxString msg_header;
-                if (from_json) {
-                    // JSON 推荐：显示支撑料名称和匹配的主体料
-                    msg_header = wxString::Format(_L("When using %s to support %s, We recommend the following settings:"), wxString::FromUTF8(support_material_display_name), wxString::FromUTF8(model_material_display_name));
-                } else if (support_material_display_name == "PLA" && has_filaments({"TPU", "TPU-AMS"})) {
-                    msg_header = _L("When using PLA to support TPU, We recommend the following settings:");
-                } else if (support_material_display_name == "soluble material") {
-                    msg_header = _L("When using soluble material for the support interface, We recommend the following settings:");
+                wxString msg_text;
+                if (soluble_suggestion) {
+                    msg_text = soluble_support_suggestion_text(soluble_bottom_z);
+                    msg_text += "\n\n" + _L("Change these settings automatically? \n"
+                                            "Yes - Change these settings automatically\n"
+                                            "No  - Do not change these settings for me");
                 } else {
-                    msg_header = _L("When using support material for the support interface, We recommend the following settings:");
-                }
-
-                wxString msg_text = msg_header + "\n\n";
-                for (const auto& key : filtered_conf.keys()) {
-                    const ConfigOption* opt = filtered_conf.option(key);
-                    if (!opt) continue;
-                    wxString desc = generate_support_param_description(key, opt);
-                    if (!desc.empty()) {
-                        msg_text += "  \u2022 " + desc + "\n";
+                    wxString msg_header;
+                    if (from_json) {
+                        // JSON 推荐：显示支撑料名称和匹配的主体料
+                        msg_header = wxString::Format(_L("When using %s to support %s, We recommend the following settings:"), wxString::FromUTF8(support_material_display_name), wxString::FromUTF8(model_material_display_name));
+                    } else if (support_material_display_name == "PLA" && has_filaments({"TPU", "TPU-AMS"})) {
+                        msg_header = _L("When using PLA to support TPU, We recommend the following settings:");
+                    } else {
+                        msg_header = _L("When using support material for the support interface, We recommend the following settings:");
                     }
+
+                    msg_text = msg_header + "\n\n";
+                    for (const auto& key : filtered_conf.keys()) {
+                        const ConfigOption* opt = filtered_conf.option(key);
+                        if (!opt) continue;
+                        wxString desc = generate_support_param_description(key, opt);
+                        if (!desc.empty()) {
+                            msg_text += "  \u2022 " + desc + "\n";
+                        }
+                    }
+                    msg_text += "\n" + _L("Do you want to apply these settings?");
                 }
-                msg_text += "\n" + _L("Do you want to apply these settings?");
 
                 MessageDialog dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
                 if (dialog.ShowModal() == wxID_YES) {
+                    if (soluble_suggestion && thick_bridges_in_recommendation)
+                        append_disable_thick_bridges_if_needed(filtered_conf, *m_config);
                     m_config_manipulation.apply(m_config, &filtered_conf);
+                    // List dialog showed thick_bridges, or soluble Yes applied it silently.
+                    if (thick_bridges_in_recommendation)
+                        thick_bridges_handled_in_dialog = true;
+                } else if (!soluble_suggestion && thick_bridges_in_recommendation) {
+                    // User already declined a list that included thick_bridges: Off.
+                    thick_bridges_handled_in_dialog = true;
                 }
                 wxGetApp().plater()->update();
             }
+        }
+
+        // Standalone thick-bridges suggestion when not already answered/applied above.
+        if (!thick_bridges_handled_in_dialog)
+            suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation);
+    }
+
+    // Suggest disabling thick bridges for zero-gap support-material interface
+    if (opt_key == "thick_bridges" || opt_key == "support_top_z_distance" || opt_key == "enable_support" ||
+        opt_key == "enforce_support_layers" || opt_key == "support_filament") {
+        if (!m_postpone_update_ui) {
+            auto const &applying = m_config_manipulation.applying_keys();
+            if (std::find(applying.begin(), applying.end(), opt_key) == applying.end())
+                suggest_disable_thick_bridges_if_needed(m_config, m_config_manipulation);
         }
     }
 
@@ -3230,6 +3487,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_rib_width","parameter/prime-tower#rib-wall");
         optgroup->append_single_option_line("prime_tower_fillet_wall","parameter/prime-tower");
         optgroup->append_single_option_line("enable_tower_interface_features", "parameter/prime-tower");
+        optgroup->append_single_option_line("wipe_tower_no_sparse_layers", "parameter/prime-tower");
 
         optgroup = page->new_optgroup(L("Flush options"), L"param_flush");
         optgroup->append_single_option_line("flush_into_infill", "reduce-wasting-during-filament-change#wipe-into-infill");
@@ -5023,7 +5281,8 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("machine_unload_filament_time");
         optgroup->append_single_option_line("machine_switch_extruder_time");
         optgroup->append_single_option_line("machine_hotend_change_time");
-
+        optgroup = page->new_optgroup(L("AMS filament load/unload time"));
+        build_ams_filament_time_options(optgroup);
         optgroup = page->new_optgroup(L("Extruder Clearance"));
         optgroup->append_single_option_line("extruder_clearance_max_radius");
         optgroup->append_single_option_line("extruder_clearance_dist_to_rod");
@@ -5726,6 +5985,142 @@ void TabPrinter::clear_pages()
     m_reset_to_filament_color = nullptr;
 }
 
+// Backing list for the read-only "default_ams_type" dropdown. It resolves the AMS timing types
+// the current machine supports (see current_types). Standard Choice + DynamicList gives us
+// dirty/undo icons, visibility and layout without shared-widget changes.
+static struct DynamicAmsTimeTypeList : DynamicList
+{
+    std::vector<std::pair<wxString, int>> items; // label -> AmsTimeType enum value
+
+    // The machine JSON (printers/<code>.json, support_ams_list) and the machine profile (the
+    // timing options) are two separate files. When support_ams_list is missing, fall back to the
+    // types that actually carry a non-zero timing in the preset: the timings are a machine-level
+    // capability and the estimation code only ever looks at the preset, so the UI must not hide a
+    // configured timing just because the device JSON has not declared the AMS list.
+    std::vector<int> current_types() const
+    {
+        PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+        Preset       &printer       = preset_bundle->printers.get_edited_preset();
+        const std::string printer_type = printer.get_printer_type(preset_bundle);
+        std::vector<int> types = get_supported_ams_time_types(DevPrinterConfigUtil::get_supported_ams_names(printer_type));
+        if (!types.empty())
+            return types;
+
+        const std::vector<double> load_times   = get_ams_load_times(printer.config);
+        const std::vector<double> unload_times = get_ams_unload_times(printer.config);
+        for (const int ams_type : get_ams_time_types()) {
+            const size_t idx = static_cast<size_t>(ams_type);
+            if (load_times[idx] > 0. || unload_times[idx] > 0.)
+                types.push_back(ams_type);
+        }
+        return types;
+    }
+
+    // Pure data refresh from the current preset config. This never touches any widget
+    // and never calls back into apply_on(), so there is no reentrancy/recursion risk.
+    void reload_items()
+    {
+        items.clear();
+        for (const int ams_type : current_types()) {
+            const std::string display_name = get_ams_type_display_name(ams_type);
+            if (display_name.empty())
+                continue;
+            items.push_back({wxString::FromUTF8(display_name.c_str()), ams_type});
+        }
+    }
+
+    // Re-apply the current items to every registered dropdown.
+    void refresh() { DynamicList::update(); }
+
+    void apply_on(Choice *c) override
+    {
+        if (!c)
+            return;
+        auto cb = dynamic_cast<ComboBox *>(c->window);
+        if (!cb)
+            return;
+        // Rebuild from the live config on every apply. Because reload_items() is pure
+        // data (no widget callbacks), the empty-list case simply yields an empty combo
+        // instead of recursing like a lazy "if (items.empty()) update()" would.
+        const auto &config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+        const auto *selected_opt = config.option<ConfigOptionInt>("default_ams_type");
+        const int selected_type = selected_opt ? selected_opt->value : -1;
+        reload_items();
+        cb->Clear();
+        for (const auto &it : items)
+            cb->Append(it.first);
+        cb->SetSelection(index_of(wxString::Format("%d", selected_type)));
+    }
+    wxString get_value(int index) override
+    {
+        if (index >= 0 && index < (int) items.size())
+            return wxString::Format("%d", items[index].second);
+        return "-1";
+    }
+    int index_of(wxString value) override
+    {
+        long n = 0;
+        if (!value.ToLong(&n))
+            return -1;
+        for (int i = 0; i < (int) items.size(); ++i)
+            if (items[i].second == (int) n)
+                return i;
+        return -1;
+    }
+} dynamic_ams_type_list;
+
+void TabPrinter::build_ams_filament_time_options(ConfigOptionsGroupShp optgroup)
+{
+    // default_ams_type is a plain read-only Choice Field backed by dynamic_ams_type_list.
+    // Registering the list makes the Choice read-only regardless of gui_type (see
+    // Choice::BUILD) and fills its items at runtime, so we reuse the standard Field
+    // machinery for dirty marks, undo and visibility without touching shared widgets.
+    Choice::register_dynamic_list("default_ams_type", &dynamic_ams_type_list);
+
+    optgroup->append_single_option_line("default_ams_type");
+
+    // Same-technology preset switches do not rebuild these pages. Prebuild every timing type,
+    // then show only the current machine's supported types. Each type has its own pair of
+    // scalar options, so the AMS type is carried by the option key and never by an index.
+    for (const int ams_type : get_ams_time_types()) {
+        const std::string display_name = get_ams_type_display_name(ams_type);
+        const std::string load_key     = get_ams_load_time_key(ams_type);
+        const std::string unload_key   = get_ams_unload_time_key(ams_type);
+        if (display_name.empty() || load_key.empty() || unload_key.empty())
+            continue;
+
+        // The AMS type is already the line label, so shorten the per-option labels.
+        Line line{wxString::FromUTF8(display_name.c_str()), wxString()};
+        Option load_option = optgroup->get_option(load_key);
+        load_option.opt.label = L("Load time");
+        line.append_option(load_option);
+        Option unload_option = optgroup->get_option(unload_key);
+        unload_option.opt.label = L("Unload time");
+        line.append_option(unload_option);
+        optgroup->append_line(line);
+    }
+}
+
+void TabPrinter::toggle_ams_filament_time_options()
+{
+    const std::vector<int> supported_types = dynamic_ams_type_list.current_types();
+    const bool show_ams_time_ui = !supported_types.empty();
+    // Refresh the dropdown items from the (possibly just-switched) preset config.
+    dynamic_ams_type_list.refresh();
+    for (const int ams_type : get_ams_time_types()) {
+        const std::string load_key = get_ams_load_time_key(ams_type);
+        if (load_key.empty())
+            continue;
+        const bool show_row = show_ams_time_ui &&
+                              std::find(supported_types.begin(), supported_types.end(), ams_type) != supported_types.end();
+        // Both times of a type share one Line, so toggling the load option covers the row.
+        toggle_line(load_key, show_row);
+    }
+    toggle_line("default_ams_type", show_ams_time_ui);
+    toggle_line("machine_load_filament_time", !show_ams_time_ui);
+    toggle_line("machine_unload_filament_time", !show_ams_time_ui);
+}
+
 void TabPrinter::toggle_options()
 {
     if (!m_active_page || m_presets->get_edited_preset().printer_technology() == ptSLA)
@@ -5762,6 +6157,7 @@ void TabPrinter::toggle_options()
         toggle_option("use_firmware_retraction", !is_BBL_printer);
         toggle_line("support_air_filtration", !m_config->opt_bool("support_cooling_filter") && is_BBL_printer);
         toggle_line("cooling_filter_enabled", m_config->opt_bool("support_cooling_filter") && is_BBL_printer);
+        toggle_ams_filament_time_options();
         toggle_option("print_in_clockwise", !is_BBL_printer);
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
@@ -5899,6 +6295,8 @@ void TabPrinter::update_fff()
     }
 
     toggle_options();
+    if (m_active_page)
+        m_active_page->update_visibility(m_mode, true);
 }
 
 void TabPrinter::update_sla()
@@ -6517,7 +6915,7 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     struct SearcherModeGuard {
         ~SearcherModeGuard() { wxGetApp().sidebar().update_searcher(); }
     } searcher_mode_guard;
-    wxGetApp().sidebar().update_searcher(comAdvanced);
+    wxGetApp().sidebar().update_searcher(comDevelop);
 
     UnsavedChangesDialog dlg(m_type, presets, new_printer_name, no_transfer);
 

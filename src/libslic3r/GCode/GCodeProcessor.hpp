@@ -96,6 +96,8 @@ namespace Slic3r {
         //BBS: the flush amount of every filament
         std::map<size_t, double>                            flush_per_filament;
         std::map<ExtrusionRole, std::pair<double, double>>  used_filaments_per_role;
+        std::map<size_t, double>                            load_time_per_filament;
+        std::map<size_t, double>                            unload_time_per_filament;
 
         std::array<Mode, static_cast<size_t>(ETimeMode::Count)> modes;
         unsigned int                                        total_flush_filament_changes;
@@ -115,6 +117,8 @@ namespace Slic3r {
             total_volumes_per_extruder.clear();
             flush_per_filament.clear();
             used_filaments_per_role.clear();
+            load_time_per_filament.clear();
+            unload_time_per_filament.clear();
             total_flush_filament_changes = 0;
             total_filament_changes = 0;
         }
@@ -248,6 +252,13 @@ namespace Slic3r {
             bool use_for_support{false};
         };
 
+        struct PausePrintInfo
+        {
+            int percent{0};
+            int remaining_time{0}; // min
+            unsigned int layer_id{0};
+        };
+
         std::string filename;
         unsigned int id;
         std::vector<MoveVertex> moves;
@@ -263,6 +274,7 @@ namespace Slic3r {
         bool toolpath_outside;
         //BBS: add object_label_enabled
         bool label_object_enabled;
+        bool support_material_on_wipe_tower{false};
         //BBS : extra retraction when change filament,experiment func
         bool long_retraction_when_cut {0};
         int timelapse_warning_code {0};
@@ -294,6 +306,7 @@ namespace Slic3r {
         std::vector<unsigned int> nozzle_change_sequence;
         std::vector<unsigned int> filament_change_sequence;
         std::vector<int> optimal_assignment;
+        std::vector<PausePrintInfo> pause_printing;
         // first key stores `from` filament, second keys stores the `to` filament
         std::map<std::pair<int,int>, int > filament_change_count_map;
 
@@ -302,6 +315,9 @@ namespace Slic3r {
         BedType bed_type = BedType::btCount;
 
         std::vector<FilamentUseInfo> used_filaments;
+        // 0-based mixed (virtual) filament slots actually used on this plate.
+        // Recorded before resolve_mixed_filaments expands them to physical components.
+        std::vector<unsigned int> used_mixed_filaments;
 #if ENABLE_GCODE_VIEWER_STATISTICS
         int64_t time{ 0 };
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
@@ -320,6 +336,7 @@ namespace Slic3r {
             wrapping_exclude_area = other.wrapping_exclude_area;
             toolpath_outside = other.toolpath_outside;
             label_object_enabled = other.label_object_enabled;
+            support_material_on_wipe_tower = other.support_material_on_wipe_tower;
             update_imgui_flag         = other.update_imgui_flag;
             is_helio_gcode            = other.is_helio_gcode;
             long_retraction_when_cut = other.long_retraction_when_cut;
@@ -345,9 +362,11 @@ namespace Slic3r {
             filament_change_sequence = other.filament_change_sequence;
             nozzle_change_sequence = other.nozzle_change_sequence;
             optimal_assignment = other.optimal_assignment;
+            pause_printing = other.pause_printing;
             skippable_part_time = other.skippable_part_time;
             initial_layer_time = other.initial_layer_time;
             used_filaments = other.used_filaments;
+            used_mixed_filaments = other.used_mixed_filaments;
 #if ENABLE_GCODE_VIEWER_STATISTICS
             time = other.time;
 #endif
@@ -649,8 +668,10 @@ namespace Slic3r {
             {
                 unsigned int g1_line_id;
                 float elapsed_time;
+                unsigned int layer_id{0};
             };
             std::vector<StopTime> stop_times;
+            std::vector<StopTime> pause_times;
             std::string line_m73_main_mask;
             std::string line_m73_stop_mask;
             State curr;

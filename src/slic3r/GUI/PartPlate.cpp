@@ -20,6 +20,7 @@
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Tesselate.hpp"
+#include "libslic3r/GCode/BedExcludeChecker.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Print.hpp"
@@ -72,6 +73,27 @@ const float N9_WIPE_TOWER_DEFAULT_Y_POS = 160.;
 
 const float I3_WIPE_TOWER_DEFAULT_X_POS = 0.;
 const float I3_WIPE_TOWER_DEFAULT_Y_POS = 250.; // Max y
+
+namespace {
+
+// Heat-soak zones are two nested rectangles: inner rect first (points [0, 4)),
+// then outer rect (points [4, 8)).
+constexpr size_t HEAT_SOAK_POINTS_PER_RECT = 4;
+constexpr size_t HEAT_SOAK_TOTAL_POINTS    = HEAT_SOAK_POINTS_PER_RECT * 2;
+
+std::array<Slic3r::Polygon, 2> make_heat_soak_polygons(const Slic3r::Pointfs &heat_soak_area)
+{
+	std::array<Slic3r::Polygon, 2> polygons;
+	for (size_t polygon_idx = 0; polygon_idx < polygons.size(); ++polygon_idx) {
+		const size_t begin = polygon_idx * HEAT_SOAK_POINTS_PER_RECT;
+		for (size_t i = begin; i < begin + HEAT_SOAK_POINTS_PER_RECT && i < heat_soak_area.size(); ++i)
+			polygons[polygon_idx].append({scale_(heat_soak_area[i].x()), scale_(heat_soak_area[i].y())});
+	}
+	return polygons;
+}
+
+} // namespace
+
 
 std::array<unsigned char, 4>  PlateTextureForeground = {0x0, 0xae, 0x42, 0xff};
 
@@ -341,7 +363,7 @@ void PartPlate::set_spiral_vase_mode(bool spiral_mode, bool as_global)
 	}
 }
 
-bool PartPlate::valid_instance(int obj_id, int instance_id)
+bool PartPlate::valid_instance(int obj_id, int instance_id) const
 {
 	if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
 	{
@@ -565,17 +587,12 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
                     return;
                 }
             } else if (boost::algorithm::iends_with(m_partplate_list->m_logo_texture_filename, ".png")) {
-                // generate a temporary lower resolution texture to show while no main texture levels have been compressed
-                /* if (temp_texture->get_id() == 0 || temp_texture->get_source() != m_logo_texture_filename) {
-                    if (!temp_texture->load_from_file(m_logo_texture_filename, false, GLTexture::None, false)) {
-                        render_default(bottom, false);
-                        return;
-                    }
-                    canvas.request_extra_frame();
-                }*/
-
-                // starts generating the main texture, compression will run asynchronously
-                if (!m_partplate_list->m_logo_texture.load_from_file(m_partplate_list->m_logo_texture_filename, true, GLTexture::MultiThreaded, true)) {
+                // Upload uncompressed RGBA immediately.
+                // MultiThreaded DXT used to allocate an empty compressed texture and fill it
+                // asynchronously; the temporary preview path (see 3DBed) was removed, so large /
+                // fully-opaque custom bed PNGs often stayed black until compress+upload finished
+                // (and without request_extra_frame they could stay black forever when idle).
+                if (!m_partplate_list->m_logo_texture.load_from_file(m_partplate_list->m_logo_texture_filename, true, GLTexture::None, true)) {
                     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": load logo texture from %1% failed!") % m_partplate_list->m_logo_texture_filename;
                     return;
                 }
@@ -683,7 +700,13 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
 
 void PartPlate::render_height_limit(PartPlate::HeightLimitMode mode)
 {
-	if (m_print && m_print->config().print_sequence == PrintSequence::ByObject && mode != HEIGHT_LIMIT_NONE)
+	// A compacted prime tower drags the nozzle back down to the plate on every toolchange, so the rod
+	// and the lid limit how tall a neighbouring object may be exactly as they do in sequential printing.
+	// The reference lines are just as useful there, so they are not tied to the print sequence alone.
+	const bool relevant_for_print_mode = m_print && (m_print->config().print_sequence == PrintSequence::ByObject ||
+	                                                 (m_print->config().print_sequence == PrintSequence::ByLayer &&
+	                                                  wipe_tower_sparse_layers_skipped(m_print->config()) && m_print->has_wipe_tower()));
+	if (relevant_for_print_mode && mode != HEIGHT_LIMIT_NONE)
 	{
 		// draw lower limit
 		const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
@@ -1574,6 +1597,7 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
 
     std::vector<int> used_filaments = get_extruders(true);  // 1 base
     auto fil_preset_names = wxGetApp().preset_bundle->filament_presets;
+    const PresetCollection& fil_collection = wxGetApp().preset_bundle->filaments;
 
     // Non-manual modes: only auto filament-map modes need an extra gate below.
     if (mode != fmmManual) {
@@ -1612,21 +1636,15 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
                 continue;
             std::string fil_name = fil_preset->alias;
 
-            std::set<NozzleVolumeType> filament_volume_types;
             std::vector<std::string>   filament_variants;
             if (fil_preset->config.has("filament_extruder_variant"))
                 filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
             else
                 filament_variants = {"Direct Drive Standard"};
-            for (const auto &variant : filament_variants) {
-                NozzleVolumeType nvt = convert_to_nvt_type(variant);
-                if (nvt != nvtHybrid && nvt <= nvtMaxNozzleVolumeType)
-                    filament_volume_types.insert(nvt);
-            }
 
             bool compatible = false;
             for (NozzleVolumeType machine_nvt : machine_volume_types) {
-                if (filament_volume_types.count(machine_nvt) > 0) {
+                if (is_nozzle_printable_for_filament(machine_nvt, filament_variants, fil_collection.is_bbl_brand_filament(*fil_preset))) {
                     compatible = true;
                     break;
                 }
@@ -1634,18 +1652,16 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
             if (compatible)
                 continue;
 
-            // List all configured machine nozzle types that are incompatible with this filament.
+            // Every configured machine nozzle is incompatible at this point, so list them all.
             wxString incompatible_nozzles;
             for (NozzleVolumeType machine_nvt : machine_volume_types) {
-                if (filament_volume_types.count(machine_nvt) > 0)
-                    continue;
                 if (machine_nvt >= (NozzleVolumeType) volume_names.size())
                     continue;
                 if (!incompatible_nozzles.empty())
                     incompatible_nozzles += "/";
                 incompatible_nozzles += _L(volume_names.at(machine_nvt));
             }
-            error_message = wxString::Format(_L("%s is not compatible with %s nozzle."), fil_name, incompatible_nozzles);
+            error_message = wxString::Format(_L("The %s nozzle can not print %s."), incompatible_nozzles, fil_name);
             return false;
         }
 
@@ -1689,10 +1705,9 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
             auto extruder_variant_opt = config.option<ConfigOptionStrings>("printer_extruder_variant");
             if (!extruder_variant_opt || extruder_idx < 0 || extruder_idx >= (int)extruder_variant_opt->values.size())
                 continue;
-            std::unordered_set<std::string> filament_variants_set(filament_variants.begin(), filament_variants.end());
-            std::string                     extruder_variant = extruder_variant_opt->values.at(extruder_idx);
-            if (filament_variants_set.count(extruder_variant) == 0) {
-                NozzleVolumeType variant_name = convert_to_nvt_type(extruder_variant);
+            std::string      extruder_variant = extruder_variant_opt->values.at(extruder_idx);
+            NozzleVolumeType variant_name     = convert_to_nvt_type(extruder_variant);
+            if (!is_nozzle_printable_for_filament(variant_name, filament_variants, fil_collection.is_bbl_brand_filament(*fil_preset))) {
                 auto             volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
                 std::string      volume       = volume_names.at(variant_name);
                 error_message                 = wxString::Format(_L("The %s nozzle can not print %s."), _L(volume), fil_name);
@@ -1755,6 +1770,22 @@ bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
         return false;
 
     return true;
+}
+
+bool PartPlate::check_brittle_filament(const DynamicPrintConfig &config) const
+{
+    const ConfigOptionStrings *filament_types = config.option<ConfigOptionStrings>("filament_type");
+    if (filament_types == nullptr) return false;
+
+    for (int filament_idx : get_extruders(true)) {
+        int filament_id = filament_idx - 1;
+        if (filament_id < 0 || filament_id >= (int) filament_types->values.size()) continue;
+
+        const std::string &filament_type = filament_types->values.at(filament_id);
+        if (filament_type == "PPS-CF" || filament_type == "PPA-CF") return true;
+    }
+
+    return false;
 }
 
 bool PartPlate::check_mixture_filament_compatible(const DynamicPrintConfig &config, std::string &error_msg)
@@ -1893,6 +1924,8 @@ bool PartPlate::check_flow_compatible_of_nozzle_and_filament(const DynamicPrintC
     auto extruder_variants = config.option<ConfigOptionStrings>("printer_extruder_variant")->values;
     if (extruder_variants.size() != 1 || used_filaments.empty()) return true;
 
+    const PresetCollection &fil_collection = wxGetApp().preset_bundle->filaments;
+
     std::string extruder_variant = extruder_variants[0];
     for (auto fil_idx : used_filaments){
         int fil_id = fil_idx - 1;
@@ -1908,9 +1941,8 @@ bool PartPlate::check_flow_compatible_of_nozzle_and_filament(const DynamicPrintC
         else
             filament_variants = {"Direct Drive Standard"};
 
-        std::unordered_set<std::string> filament_variants_set(filament_variants.begin(), filament_variants.end());
-        if (filament_variants_set.find(extruder_variant) == filament_variants_set.end()){
-            NozzleVolumeType variant_name = convert_to_nvt_type(extruder_variant);
+        NozzleVolumeType variant_name = convert_to_nvt_type(extruder_variant);
+        if (!is_nozzle_printable_for_filament(variant_name, filament_variants, fil_collection.is_bbl_brand_filament(*fil_preset))) {
             auto volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
             std::string volume = volume_names.at(variant_name);
             error_msg = GUI::format(_L("The %s nozzle can not print %s."), _L(volume), fil_name);
@@ -2399,6 +2431,25 @@ Vec3d PartPlate::get_center_origin()
 	} else {
 		origin(0) = (m_bounding_box.min(0) + m_bounding_box.max(0)) / 2;//m_origin.x() + m_width / 2;
 		origin(1) = (m_bounding_box.min(1) + m_bounding_box.max(1)) / 2; //m_origin.y() + m_depth / 2;
+	}
+	origin(2) = m_origin.z();
+
+	return origin;
+}
+
+//get the plate's top-left corner origin
+Vec3d PartPlate::get_topleft_origin()
+{
+	Vec3d origin;
+
+	// Mirrors get_center_origin(): virtual/unprintable plate has no m_shape,
+	// fall back to origin+size; real plates use the bbox for non-rect beds.
+	if (m_shape.empty()) {
+		origin(0) = m_origin.x();
+		origin(1) = m_origin.y() + m_depth;
+	} else {
+		origin(0) = m_bounding_box.min(0);
+		origin(1) = m_bounding_box.max(1);
 	}
 	origin(2) = m_origin.z();
 
@@ -3123,8 +3174,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 {
 	auto compute_exclude_points = [&exclude_polygon](Vec2d& center, double radius, double start_angle, double stop_angle, int count)
 	{
-		double angle, angle_steps;
-		angle_steps = (stop_angle - start_angle) / (count - 1);
+		double angle_steps = (stop_angle - start_angle) / (count - 1);
 		for(int j = 0; j < count; j++ )
 		{
 			double angle = start_angle + j * angle_steps;
@@ -3142,7 +3192,7 @@ void PartPlate::generate_exclude_polygon(ExPolygon &exclude_polygon)
 			{
 				const Vec2d& p = m_exclude_area[i];
 				Vec2d center;
-				double start_angle, stop_angle, angle_steps, radius_x, radius_y, radius;
+				double start_angle, stop_angle, radius;
 				switch (i) {
 					case 0:
                         radius = 8.f;
@@ -3251,6 +3301,88 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, co
 	release_opengl_resource();
 
 	return true;
+}
+
+void PartPlate::set_heat_soak_areas(const Pointfs &heat_soak_areas, Vec2d position)
+{
+	m_heat_soak_area.clear();
+	m_heat_soak_toolpath_level = 0;
+	m_heat_soak_area.reserve(heat_soak_areas.size());
+	for (const Vec2d &p : heat_soak_areas)
+		m_heat_soak_area.emplace_back(p.x() + position.x(), p.y() + position.y());
+}
+
+int PartPlate::get_heat_soak_level() const
+{
+	if (m_heat_soak_area.size() < HEAT_SOAK_TOTAL_POINTS)
+		return 0;
+
+	const std::array<Polygon, 2> rects = make_heat_soak_polygons(m_heat_soak_area);
+	const Polygon &inner = rects[0];
+	const Polygon &outer = rects[1];
+	if (inner.size() < 3 || outer.size() < 3)
+		return 0;
+
+	// Level of a single footprint: outside the outer rect => 2, outside the inner
+	// rect (but inside the outer) => 1, otherwise 0.
+	auto check_level = [&](const Polygon &hull) -> int {
+		if (hull.size() < 3)
+			return 0;
+		if (!diff(hull, outer).empty())
+			return 2;
+		if (!diff(hull, inner).empty())
+			return 1;
+		return 0;
+	};
+
+	// Seed from the sliced toolpaths (covers wipe tower / brim / skirt reach).
+	int max_level = m_slice_result_valid ? m_heat_soak_toolpath_level : 0;
+	if (max_level >= 2 || !m_model)
+		return max_level;
+
+	for (const auto &pair : obj_to_instance_set) {
+		const int obj_id      = pair.first;
+		const int instance_id = pair.second;
+		if (!valid_instance(obj_id, instance_id))
+			continue;
+
+		ModelInstance *instance = m_model->objects[obj_id]->instances[instance_id];
+		max_level = std::max(max_level, check_level(instance->convex_hull_2d()));
+		if (max_level >= 2)
+			return max_level;
+	}
+
+	if (m_plater != nullptr) {
+		if (const GLCanvas3D *canvas = m_plater->get_view3D_canvas3D()) {
+			for (GLVolume *vol : canvas->get_volumes().volumes) {
+				if (vol == nullptr || !vol->is_wipe_tower || vol->composite_id.object_id - 1000 != m_plate_index)
+					continue;
+
+				max_level = std::max(max_level, check_level(vol->transformed_convex_hull_bounding_box().polygon(true)));
+				break;
+			}
+		}
+	}
+
+	return max_level;
+}
+
+void PartPlate::update_toolpath_heat_soak_level(const GCodeProcessorResult &gcode_result)
+{
+	m_heat_soak_toolpath_level = 0;
+	if (m_heat_soak_area.size() < HEAT_SOAK_TOTAL_POINTS)
+		return;
+
+	const std::array<Polygon, 2> rects = make_heat_soak_polygons(m_heat_soak_area);
+	const Polygon &inner = rects[0];
+	const Polygon &outer = rects[1];
+	if (inner.size() < 3 || outer.size() < 3)
+		return;
+
+	if (toolpath_exceeds_boundary_2d(gcode_result, outer))
+		m_heat_soak_toolpath_level = 2;
+	else if (toolpath_exceeds_boundary_2d(gcode_result, inner))
+		m_heat_soak_toolpath_level = 1;
 }
 
 const BoundingBox PartPlate::get_bounding_box_crd()
@@ -4204,6 +4336,67 @@ void PartPlateList::calc_exclude_triangles(const ExPolygon &poly)
 		BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create plate triangles\n";
 }
 
+void PartPlateList::calc_heat_soak_lines()
+{
+    m_heat_soak_inner_lines.reset();
+    m_heat_soak_outer_lines.reset();
+    if (m_heat_soak_areas.size() < HEAT_SOAK_TOTAL_POINTS)
+        return;
+
+    const std::array<Polygon, 2> rects = make_heat_soak_polygons(m_heat_soak_areas);
+    const Polygon &inner = rects[0];
+    const Polygon &outer = rects[1];
+
+    if (!inner.empty() && !m_heat_soak_inner_lines.init_model_from_lines(to_lines(inner), GROUND_Z))
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create heat soak inner lines\n";
+    if (!outer.empty() && !m_heat_soak_outer_lines.init_model_from_lines(to_lines(outer), GROUND_Z))
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create heat soak outer lines\n";
+}
+
+void PartPlateList::apply_heat_soak_to_plates()
+{
+    for (unsigned int i = 0; i < (unsigned int) m_plate_list.size(); ++i) {
+        PartPlate *plate = m_plate_list[i];
+        if (!plate)
+            continue;
+
+        Vec2d pos = compute_shape_position(i, m_plate_cols);
+        plate->set_heat_soak_areas(m_heat_soak_areas, pos);
+    }
+}
+
+void PartPlateList::set_heat_soak_areas(const Pointfs &heat_soak_areas)
+{
+    if (!heat_soak_areas.empty() &&
+        (heat_soak_areas.size() < HEAT_SOAK_TOTAL_POINTS || heat_soak_areas.size() % HEAT_SOAK_POINTS_PER_RECT != 0))
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": ignoring malformed bed_heat_soak_area with "
+                                   << heat_soak_areas.size() << " points (expected a multiple of "
+                                   << HEAT_SOAK_POINTS_PER_RECT << ", at least " << HEAT_SOAK_TOTAL_POINTS << ")";
+
+    m_heat_soak_areas = heat_soak_areas;
+    apply_heat_soak_to_plates();
+    if (m_plater != nullptr)
+        calc_heat_soak_lines();
+}
+
+int PartPlateList::get_cur_plate_soak_level() const
+{
+    if (m_plate_list.empty() || m_current_plate < 0 || m_current_plate >= (int) m_plate_list.size())
+        return 0;
+
+    return m_plate_list[m_current_plate]->get_heat_soak_level();
+}
+
+void PartPlateList::set_heat_soak_visible(bool visible)
+{
+    m_heat_soak_visible = visible;
+}
+
+bool PartPlateList::is_heat_soak_visible() const
+{
+    return m_heat_soak_visible;
+}
+
 void PartPlateList::calc_triangles_from_polygon(const ExPolygon &poly, GLModel &render_model){
     if (poly.empty()) {
         render_model.reset();
@@ -4803,6 +4996,7 @@ void PartPlateList::reinit()
 	//reset plate 0's position
 	Vec2d pos = compute_shape_position(0, m_plate_cols);
 	m_plate_list[0]->set_shape(m_shape, m_exclude_areas, m_extruder_areas, m_extruder_heights, pos, m_height_to_lid, m_height_to_rod);
+	m_plate_list[0]->set_heat_soak_areas(m_heat_soak_areas, pos);
 	//reset unprintable plate's position
 	Vec3d origin2 = compute_origin_for_unprintable();
 	unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, false);
@@ -4862,6 +5056,7 @@ int PartPlateList::create_plate(bool adjust_position)
 	plate->set_index(new_index);
 	Vec2d pos = compute_shape_position(new_index, cols);
 	plate->set_shape(m_shape, m_exclude_areas, m_extruder_areas, m_extruder_heights, pos, m_height_to_lid, m_height_to_rod);
+	plate->set_heat_soak_areas(m_heat_soak_areas, pos);
 	m_plate_list.emplace_back(plate);
 	update_plate_cols();
 	if (old_cols != cols)
@@ -5018,6 +5213,7 @@ int PartPlateList::delete_plate(int index)
 		//update render shapes
 		Vec2d pos = compute_shape_position(i, m_plate_cols);
 		plate->set_shape(m_shape, m_exclude_areas, m_extruder_areas, m_extruder_heights, pos, m_height_to_lid, m_height_to_rod);
+		plate->set_heat_soak_areas(m_heat_soak_areas, pos);
 	}
 
 	//update current_plate if delete current
@@ -5191,6 +5387,7 @@ int PartPlateList::select_plate(int index)
 	if (m_intialized && m_plater) {
 		Vec2d pos = compute_shape_position(index, m_plate_cols);
         m_plater->set_bed_position(pos);
+		m_plater->on_plate_layout_changed();
 		//wxQueueEvent(m_plater, new SimpleEvent(EVT_GLCANVAS_PLATE_SELECT));
 	}
 
@@ -5442,6 +5639,16 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 	PartPlate* plate = NULL;
 	ModelObject* object = NULL;
 
+	struct HeatSoakNotifyGuard
+	{
+		PartPlateList *self;
+		~HeatSoakNotifyGuard()
+		{
+			if (self && self->m_plater)
+				self->m_plater->on_plate_layout_changed();
+		}
+	} heat_soak_guard{this};
+
 	if ((obj_id >= 0) && (obj_id < m_model->objects.size()))
 	{
 		object = m_model->objects[obj_id];
@@ -5621,6 +5828,9 @@ int PartPlateList::notify_instance_removed(int obj_id, int instance_id)
 	if (m_plater)
 		m_plater->mark_plate_toolbar_image_dirty();
 
+	if (m_plater)
+		m_plater->on_plate_layout_changed();
+
 	return 0;
 }
 
@@ -5691,9 +5901,12 @@ int PartPlateList::reload_all_objects(bool except_locked, int plate_index)
 			// a brand-new real plate's bbox.
 			if (sticky_virtual.count(std::make_pair((int)i, (int)j)))
 			{
-				Vec3d center = unprintable_plate.get_center_origin();
-				center.z() = instance->get_transformation().get_offset(Z);
-				instance->set_offset(center);
+				const Vec3d topleft = unprintable_plate.get_topleft_origin();
+				BoundingBoxf3 cur_hull = object->instance_convex_hull_bounding_box(j);
+				const Vec3d cur_off = instance->get_offset();
+				instance->set_offset(Vec3d(cur_off.x() + (topleft.x() - cur_hull.min(0)),
+					cur_off.y() + (topleft.y() - cur_hull.max(1)),
+					cur_off.z()));
 				object->invalidate_bounding_box();
 				BoundingBoxf3 new_bbox = object->instance_convex_hull_bounding_box(j);
 				unprintable_plate.add_instance(i, j, false, &new_bbox);
@@ -5772,9 +5985,12 @@ int PartPlateList::construct_objects_list_for_new_plate(int plate_index)
 			// Re-park sticky-virtual instances first; re-snap to the virtual centre.
 			if (sticky_virtual.count(std::make_pair((int)i, (int)j)))
 			{
-				Vec3d center = unprintable_plate.get_center_origin();
-				center.z() = instance->get_transformation().get_offset(Z);
-				instance->set_offset(center);
+				const Vec3d topleft = unprintable_plate.get_topleft_origin();
+				BoundingBoxf3 cur_hull = object->instance_convex_hull_bounding_box(j);
+				const Vec3d cur_off = instance->get_offset();
+				instance->set_offset(Vec3d(cur_off.x() + (topleft.x() - cur_hull.min(0)),
+					cur_off.y() + (topleft.y() - cur_hull.max(1)),
+					cur_off.z()));
 				object->invalidate_bounding_box();
 				BoundingBoxf3 new_bbox = object->instance_convex_hull_bounding_box(j);
 				unprintable_plate.add_instance(i, j, false, &new_bbox);
@@ -6112,7 +6328,8 @@ void PartPlateList::postprocess_arrange_polygon(arrangement::ArrangePolygon& arr
 	{
 		if (arrange_polygon.bed_idx == -1)
 		{
-			// outarea for large object
+			// outarea for large object: reset to the bin-local top-left corner,
+			// then fall through to the normal row/col stride offset below.
 			arrange_polygon.bed_idx = m_plate_list.size();
 			BoundingBox apbox = get_extents(arrange_polygon.transformed_poly());  // the item may have been rotated
 			auto        apbox_size = apbox.size();
@@ -6161,6 +6378,7 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
             shader->set_uniform("projection_matrix", proj_mat);
             if (!bottom) { // draw background
                 render_exclude_area(force_background_color); // for selected_plate
+                render_heat_soak_area(force_background_color);
                 if(wxGetApp().plater()->get_enable_wrapping_detection()){
                     if(!m_wrapping_detection_triangles.is_initialized()){
                         auto points = get_plate_wrapping_detection_area();
@@ -6320,6 +6538,29 @@ void PartPlateList::render_exclude_area(bool force_default_color)
     // draw exclude area
     m_exclude_triangles.set_color(select_color);
     m_exclude_triangles.render_geometry();
+}
+
+void PartPlateList::render_heat_soak_area(bool force_default_color)
+{
+    if (force_default_color || !m_heat_soak_visible)
+        return;
+
+    // Draw the heat-soak zone boundaries as thick, bright outlines so they stand
+    // out against the dark bed and the lighter grid lines.
+    const ColorRGBA line_color{0.95f, 0.95f, 0.95f, 0.35f};
+    const auto &p_ogl_manager = wxGetApp().get_opengl_manager();
+    p_ogl_manager->set_line_width(4.0f * m_scale_factor);
+
+    auto draw = [&](GLModel &model) {
+        if (!model.is_initialized())
+            return;
+
+        model.set_color(line_color);
+        model.render_geometry();
+    };
+
+    draw(m_heat_soak_outer_lines);
+    draw(m_heat_soak_inner_lines);
 }
 
 void PartPlateList::render_instance_exclude_area(bool force_default_color)
@@ -6522,6 +6763,8 @@ bool PartPlateList::set_shapes(const Pointfs              &shape,
 		ExPolygon exclude_poly;
         generate_exclude_polygon(exclude_poly);
         calc_exclude_triangles(exclude_poly);
+        apply_heat_soak_to_plates();
+        calc_heat_soak_lines();
 
         const BoundingBox &pp_bbox = poly.contour.bounding_box();
         calc_gridlines(poly, pp_bbox);
@@ -6944,6 +7187,7 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
  					plate_data_item->filament_change_sequence = m_plate_list[i]->m_gcode_result->filament_change_sequence;
                     plate_data_item->nozzle_change_sequence = m_plate_list[i]->m_gcode_result->nozzle_change_sequence;
                     plate_data_item->optimal_assignment = m_plate_list[i]->m_gcode_result->optimal_assignment;
+                    plate_data_item->pause_printing = m_plate_list[i]->m_gcode_result->pause_printing;
                     plate_data_item->first_layer_time = std::to_string(m_plate_list[i]->cali_bboxes_data.first_layer_time);
 					Print *print                      = nullptr;
 					m_plate_list[i]->get_print((PrintBase **) &print, nullptr, nullptr);
@@ -6954,11 +7198,37 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 							plate_data_item->gcode_weight =wxString::Format("%.2f", ps.total_weight).ToStdString();
 						}
 						plate_data_item->is_support_used = print->is_support_used();
+						plate_data_item->support_material_on_wipe_tower = print->support_material_on_wipe_tower();
 					} else {
 						BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("print is null!");
 					}
 					//parse filament info
 					plate_data_item->parse_filament_info(m_plate_list[i]->get_slice_result());
+
+					// Record mixed (virtual) filaments actually used on this plate.
+					// Source is ToolOrdering::used_mixed_filaments (slots that appeared in
+					// layer tools before resolve), persisted on GCodeProcessorResult / Print —
+					// not print->extruders() which only reflects assignment.
+					{
+						std::vector<unsigned int> used_mixed;
+						if (auto *slice_result = m_plate_list[i]->get_slice_result())
+							used_mixed = slice_result->used_mixed_filaments;
+						if (used_mixed.empty() && print)
+							used_mixed = print->get_slice_used_mixed_filaments();
+						if (!used_mixed.empty() && print) {
+							const auto &fila_types  = print->config().filament_type.values;
+							const auto &fila_colors = print->config().filament_colour.values;
+							const auto &fila_comps  = print->config().filament_mixed_components.values;
+							for (unsigned int fid : used_mixed) {
+								PlateMixedFilamentInfo mixed_info;
+								mixed_info.id = (int) fid + 1;
+								if (fid < fila_types.size())  mixed_info.type       = fila_types[fid];
+								if (fid < fila_colors.size()) mixed_info.color      = fila_colors[fid];
+								if (fid < fila_comps.size())  mixed_info.components = fila_comps[fid];
+								plate_data_item->mixed_filaments_info.push_back(mixed_info);
+							}
+						}
+					}
 				} else {
 					BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "slice result = " << m_plate_list[i]->get_slice_result()
 										<< ", result valid = " << m_plate_list[i]->is_slice_result_valid();
@@ -7052,13 +7322,22 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 		ps.total_used_filament *= 1000; //koef
 		gcode_result->toolpath_outside = plate_data_list[i]->toolpath_outside;
 		gcode_result->label_object_enabled = plate_data_list[i]->is_label_object_enabled;
+        gcode_result->support_material_on_wipe_tower = plate_data_list[i]->support_material_on_wipe_tower;
         gcode_result->timelapse_warning_code = plate_data_list[i]->timelapse_warning_code;
 		gcode_result->filament_change_sequence = plate_data_list[i]->filament_change_sequence;
 		gcode_result->nozzle_change_sequence   = plate_data_list[i]->nozzle_change_sequence;
+		gcode_result->pause_printing            = plate_data_list[i]->pause_printing;
         m_plate_list[index]->set_timelapse_warning_code(plate_data_list[i]->timelapse_warning_code);
 		m_plate_list[index]->slice_filaments_info = plate_data_list[i]->slice_filaments_info;
 		gcode_result->warnings = plate_data_list[i]->warnings;
         gcode_result->filament_maps = plate_data_list[i]->filament_maps;
+		gcode_result->used_mixed_filaments.clear();
+		for (const auto &mixed_info : plate_data_list[i]->mixed_filaments_info) {
+			if (mixed_info.id > 0)
+				gcode_result->used_mixed_filaments.push_back(static_cast<unsigned int>(mixed_info.id - 1));
+		}
+		if (Print *print = dynamic_cast<Print*>(fff_print))
+			print->set_slice_used_mixed_filaments(gcode_result->used_mixed_filaments);
 
 		std::vector<int> nozzle_volume_type_values = parse_values(
 			plate_data_list[i]->nozzle_volume_types,
@@ -7260,7 +7539,57 @@ void PartPlateList::BedTextureInfo::reset()
         parts[i].reset();
 }
 
-void PartPlateList::init_bed_type_info()
+void PartPlateList::BedTextureInfo::apply_bottom_texture(
+    TexturePart &               part,
+    const std::string &         left_bottom_base,
+    const std::string &         bottom_base,
+    const std::string &         bind_name,
+    const std::string &         bottom_texture_end_name,
+    const std::array<float, 4> &bottom_rect,
+    const std::array<float, 4> &bottom_rect_longer,
+    BedType                     bed_type,
+    const std::vector<std::string> &longer_ignore_list)
+{
+    bool ignore_longer = false; //  Skip bottom_texture_rect_longer when current bed type is in the ignore list.
+    if (!longer_ignore_list.empty()) {
+        const t_config_enum_values &enum_keys_map = ConfigOptionEnum<BedType>::get_enum_values();
+        std::string                 plate_name;
+        for (const auto &elem : enum_keys_map) {
+            if (elem.second == bed_type) {
+                plate_name = elem.first;
+                break;
+            }
+        }
+        if (!plate_name.empty())
+            ignore_longer = std::find(longer_ignore_list.begin(), longer_ignore_list.end(), plate_name) != longer_ignore_list.end();
+    }
+    if (!bind_name.empty()) {//bind machine logic
+        // Highest priority: independent SVG keyed by resource_bind_name.
+        std::string name = left_bottom_base + "_" + bind_name + ".svg";
+        if (!ignore_longer && bottom_rect_longer[2] > 0.f) {
+            part = TexturePart(bottom_rect_longer[0], bottom_rect_longer[1],
+                               bottom_rect_longer[2], bottom_rect_longer[3], name);
+        } else if (bottom_rect[2] > 0.f) {
+            part = TexturePart(bottom_rect[0], bottom_rect[1],
+                               bottom_rect[2], bottom_rect[3], name);
+        } else {
+            part.update_file(name);
+        }
+        return;
+    }
+    //old logic
+    if (!bottom_texture_end_name.empty() && bottom_rect[2] > 0.f) {
+        std::string name = bottom_base + "_" + bottom_texture_end_name + ".svg";
+        part = TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], name);
+    } else if (!ignore_longer && bottom_rect_longer[2] > 0.f) {
+        part.update_pos(bottom_rect_longer[0], bottom_rect_longer[1],
+                        bottom_rect_longer[2], bottom_rect_longer[3]);
+    } else if (bottom_rect[2] > 0.f) {
+        part.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
+    }
+}
+
+void PartPlateList::init_bed_type_info(const VendorProfile::PrinterModel *printer_model, int current_extruder_count)
 {
     BedTextureInfo::TexturePart st_part1(10, 52, 8.393f, 192, "bbl_bed_st_left.svg");
     BedTextureInfo::TexturePart st_part2(74, -10, 148, 12, "bbl_bed_st_bottom.svg");
@@ -7272,7 +7601,7 @@ void PartPlateList::init_bed_type_info()
     BedTextureInfo::TexturePart pei_part2(74, -10, 148, 12, "bbl_bed_pei_bottom.svg");
     BedTextureInfo::TexturePart pte_part1(10, 52, 8.393f, 192, "bbl_bed_pte_left.svg");
     BedTextureInfo::TexturePart pte_part2(74, -10, 148, 12, "bbl_bed_pte_bottom.svg");
-    auto bed_texture_maps        = wxGetApp().plater()->get_bed_texture_maps();
+    auto bed_texture_maps = printer_model ? printer_model->get_bed_texture_maps() : wxGetApp().plater()->get_bed_texture_maps();
     std::string bottom_texture_end_name = bed_texture_maps.find("bottom_texture_end_name") != bed_texture_maps.end() ? bed_texture_maps["bottom_texture_end_name"] : "";
     std::string bottom_texture_rect_str = bed_texture_maps.find("bottom_texture_rect") != bed_texture_maps.end() ? bed_texture_maps["bottom_texture_rect"] : "";
     std::string bottom_texture_rect_longer_str = bed_texture_maps.find("bottom_texture_rect_longer") != bed_texture_maps.end() ? bed_texture_maps["bottom_texture_rect_longer"] : "";
@@ -7309,74 +7638,63 @@ void PartPlateList::init_bed_type_info()
             }
         }
     }
-    auto is_single_extruder = wxGetApp().preset_bundle->get_printer_extruder_count() == 1;
+    auto is_single_extruder = current_extruder_count > 0 ? current_extruder_count == 1 : wxGetApp().preset_bundle->get_printer_extruder_count() == 1;
     bool use_double_extruder_texture = !is_single_extruder || use_double_extruder_default_texture == "true";
     if (use_double_extruder_texture) {
+        const VendorProfile::PrinterModel *pm_for_bind = printer_model;
+        if (!pm_for_bind && wxGetApp().plater())
+            pm_for_bind = wxGetApp().plater()->get_curr_printer_model();
+        const std::string bind_name = pm_for_bind ? pm_for_bind->resource_bind_name : std::string();
+        static const std::vector<std::string> empty_longer_ignore_list;
+        const std::vector<std::string> &longer_ignore_list =
+            pm_for_bind ? pm_for_bind->bottom_texture_rect_longer_ignore_list : empty_longer_ignore_list;
+        auto &bottom_rect        = bottom_texture_rect;
+        auto &bottom_rect_longer = bottom_texture_rect_longer;
+        auto &middle_rect        = middle_texture_rect;
+
         pte_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pte_middle.svg");
-        auto &middle_rect = middle_texture_rect;
         if (middle_rect[2] > 0.f) {
             pte_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_pte_middle.svg");
         }
         pte_part2 = BedTextureInfo::TexturePart(45, -14.5, 70, 8, "bbl_bed_pte_left_bottom.svg");
-        auto &bottom_rect = bottom_texture_rect;
-        auto &bottom_rect_longer = bottom_texture_rect_longer;
-        if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
-            std::string pte_part2_name = "bbl_bed_pte_bottom_" + bottom_texture_end_name + ".svg";
-            pte_part2 = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], pte_part2_name);
-        } else if (bottom_rect[2] > 0.f) {
-            pte_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
-        }
+        BedTextureInfo::apply_bottom_texture(pte_part2, "bbl_bed_pte_left_bottom", "bbl_bed_pte_bottom",
+                                             bind_name, bottom_texture_end_name, bottom_rect, bottom_rect_longer,
+                                             btPTE, longer_ignore_list);
 
         pei_part1  = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pei_middle.svg");
         if (middle_rect[2] > 0.f) {
             pei_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_pei_middle.svg");
         }
         pei_part2  = BedTextureInfo::TexturePart(45, -14.5, 70, 8, "bbl_bed_pei_left_bottom.svg");
-        if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
-            std::string pei_part2_name = "bbl_bed_pei_bottom_" + bottom_texture_end_name + ".svg";
-            pei_part2                  = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], pei_part2_name);
-        } else if (bottom_rect[2] > 0.f) {
-            pei_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
-        }
+        BedTextureInfo::apply_bottom_texture(pei_part2, "bbl_bed_pei_left_bottom", "bbl_bed_pei_bottom",
+                                             bind_name, bottom_texture_end_name, bottom_rect, bottom_rect_longer,
+                                             btPEI, longer_ignore_list);
 
         st_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_st_middle.svg");
         if (middle_rect[2] > 0.f) {
             st_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_st_middle.svg");
         }
         st_part2 = BedTextureInfo::TexturePart(45, -14.5, 260, 8, "bbl_bed_st_left_bottom.svg");
-        if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
-            std::string st_part2_name = "bbl_bed_st_bottom_" + bottom_texture_end_name + ".svg";
-            st_part2                   = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], st_part2_name);
-        } else if (bottom_rect_longer[2] > 0.f) {
-            st_part2.update_pos(bottom_rect_longer[0], bottom_rect_longer[1], bottom_rect_longer[2], bottom_rect_longer[3]);
-        } else if (bottom_rect[2] > 0.f) {
-            st_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
-        }
+        BedTextureInfo::apply_bottom_texture(st_part2, "bbl_bed_st_left_bottom", "bbl_bed_st_bottom",
+                                             bind_name, bottom_texture_end_name, bottom_rect, bottom_rect_longer,
+                                             btSuperTack, longer_ignore_list);
 
         ep_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_ep_middle.svg");
         if (middle_rect[2] > 0.f) {
             ep_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_ep_middle.svg");
         }
         ep_part2 = BedTextureInfo::TexturePart(45, -14.5, 260, 8, "bbl_bed_ep_left_bottom.svg");
-        if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
-            std::string ep_part2_name = "bbl_bed_ep_bottom_" + bottom_texture_end_name + ".svg";
-            ep_part2                   = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], ep_part2_name);
-        } else if (bottom_rect_longer[2] > 0.f) {
-            ep_part2.update_pos(bottom_rect_longer[0], bottom_rect_longer[1], bottom_rect_longer[2], bottom_rect_longer[3]);
-        } else if (bottom_rect[2] > 0.f) {
-            ep_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
-        }
+        BedTextureInfo::apply_bottom_texture(ep_part2, "bbl_bed_ep_left_bottom", "bbl_bed_ep_bottom",
+                                             bind_name, bottom_texture_end_name, bottom_rect, bottom_rect_longer,
+                                             btEP, longer_ignore_list);
 
         pc_part1 = BedTextureInfo::TexturePart(57, 300, 236.12f, 10.f, "bbl_bed_pc_middle.svg");
         if (middle_rect[2] > 0.f) {
             pc_part1 = BedTextureInfo::TexturePart(middle_rect[0], middle_rect[1], middle_rect[2], middle_rect[3], "bbl_bed_pc_middle.svg"); }
         pc_part2 = BedTextureInfo::TexturePart(45, -14.5, 70, 8, "bbl_bed_pc_left_bottom.svg");
-        if (bottom_texture_end_name.size() > 0 && bottom_rect[2] > 0.f) {
-            std::string pc_part2_name = "bbl_bed_pc_bottom_" + bottom_texture_end_name + ".svg";
-            pc_part2                  = BedTextureInfo::TexturePart(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3], pc_part2_name);
-        } else if (bottom_rect[2] > 0.f) {
-            pc_part2.update_pos(bottom_rect[0], bottom_rect[1], bottom_rect[2], bottom_rect[3]);
-        }
+        BedTextureInfo::apply_bottom_texture(pc_part2, "bbl_bed_pc_left_bottom", "bbl_bed_pc_bottom",
+                                             bind_name, bottom_texture_end_name, bottom_rect, bottom_rect_longer,
+                                             btPC, longer_ignore_list);
 
         m_allow_bed_type_in_double_nozzle.clear();
         auto bed_types = wxGetApp().plater()->sidebar().get_cur_combox_bed_types();
@@ -7523,11 +7841,11 @@ bool PartPlateList::init_extruder_only_area_info()
     return true;
 }
 
-void PartPlateList::load_bedtype_textures()
+void PartPlateList::load_bedtype_textures(const VendorProfile::PrinterModel *printer_model, int current_extruder_count)
 {
 	if (PartPlateList::is_load_bedtype_textures) return;
 
-	init_bed_type_info();
+    init_bed_type_info(printer_model, current_extruder_count);
 	GLint max_tex_size = OpenGLManager::get_gl_info().get_max_tex_size();
 	GLint logo_tex_size = (max_tex_size < 2048) ? max_tex_size : 2048;
 	for (int i = 0; i < (unsigned int)btCount; ++i) {

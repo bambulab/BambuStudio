@@ -2925,6 +2925,8 @@ void ImGuiWrapper::init_input()
             mac_ime_set_caret(view, x, y, 0);
     };
 #endif
+    // Windows: keep imgui's default ImeSetInputScreenPosFn (ImmSetCompositionWindow).
+    // It needs io.ImeWindowHandle = canvas HWND, set in GLCanvas3D focus / ImGui click.
 
     // Setup clipboard interaction callbacks
     io.SetClipboardTextFn = clipboard_set;
@@ -3206,6 +3208,65 @@ static ImU32 wxcolour_to_imu32(const wxColour& c)
     return IM_COL32(c.Red(), c.Green(), c.Blue(), c.Alpha());
 }
 
+// Draw a checkerboard pattern into draw_list over the inset rect, mirroring
+// FilamentBitmapUtils::draw_checkerboard.
+static void draw_checkerboard_swatch(ImDrawList* draw_list, const ImVec2& p_min, const ImVec2& p_max,
+                                     ImU32 color_light, ImU32 color_dark, float inset)
+{
+    const float x0 = p_min.x + inset, y0 = p_min.y + inset;
+    const float x1 = p_max.x - inset, y1 = p_max.y - inset;
+    const float square = std::max(6.f, std::min(x1 - x0, y1 - y0) / 8.f);
+
+    int iy = 0;
+    for (float y = y0; y < y1; y += square, ++iy) {
+        int ix = 0;
+        for (float x = x0; x < x1; x += square, ++ix) {
+            const bool  is_light = (ix + iy) % 2 == 0;
+            const float xr = std::min(x + square, x1);
+            const float yr = std::min(y + square, y1);
+            draw_list->AddRectFilled(ImVec2(x, y), ImVec2(xr, yr), is_light ? color_light : color_dark);
+        }
+    }
+}
+
+// Draw a single-color filament swatch into draw_list over [p_min, p_max], mirroring
+// create_single_filament_bitmap: transparent -> gray checkerboard, semi-transparent ->
+// two-shade checkerboard blended over white, opaque -> solid fill; borders match the bitmap.
+static void draw_single_color_swatch(ImDrawList* draw_list, const ImVec2& p_min, const ImVec2& p_max,
+                                     const wxColour& color)
+{
+    const bool is_dark_mode = wxGetApp().dark_mode();
+
+    // Fully transparent: white/gray checkerboard, gray border in light mode only.
+    if (color.Alpha() == 0) {
+        const float inset = is_dark_mode ? 0.f : 1.f;
+        draw_checkerboard_swatch(draw_list, p_min, p_max,
+                                 IM_COL32(255, 255, 255, 255), IM_COL32(217, 217, 217, 255), inset);
+        if (!is_dark_mode)
+            draw_list->AddRect(p_min, p_max, IM_COL32(130, 130, 128, 255));
+        return;
+    }
+
+    // Semi-transparent: checkerboard of the color blended over white, solid-color border.
+    if (color.Alpha() != wxALPHA_OPAQUE) {
+        auto blend = [](wxByte c, double a) -> int {
+            return (int) (c * a + 255.0 * (1.0 - a) + 0.5);
+        };
+        const ImU32 light_clr = IM_COL32(blend(color.Red(), 0.45), blend(color.Green(), 0.45), blend(color.Blue(), 0.45), 255);
+        const ImU32 dark_clr  = IM_COL32(blend(color.Red(), 0.70), blend(color.Green(), 0.70), blend(color.Blue(), 0.70), 255);
+        draw_checkerboard_swatch(draw_list, p_min, p_max, light_clr, dark_clr, 1.f);
+        draw_list->AddRect(p_min, p_max, IM_COL32(color.Red(), color.Green(), color.Blue(), 255));
+        return;
+    }
+
+    // Opaque: solid fill, with a contrasting border for near-white / near-black colors.
+    draw_list->AddRectFilled(p_min, p_max, IM_COL32(color.Red(), color.Green(), color.Blue(), 255));
+    if (!is_dark_mode && color.Red() > 224 && color.Green() > 224 && color.Blue() > 224)
+        draw_list->AddRect(p_min, p_max, IM_COL32(130, 130, 128, 255));
+    else if (is_dark_mode && color.Red() < 45 && color.Green() < 45 && color.Blue() < 45)
+        draw_list->AddRect(p_min, p_max, IM_COL32(207, 207, 207, 255));
+}
+
 // Draw a multi-color filament swatch into draw_list over [p_min, p_max], mirroring
 // create_filament_bitmap's layout: dual = left/right split, triple = vertical thirds,
 // quad = 2x2, gradient (and 5+ colors) = horizontal gradient segments. Assumes colors.size() > 1.
@@ -3251,7 +3312,6 @@ void ImGuiWrapper::filament_group(const std::string& filament_type, const char* 
     //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     std::string id = std::to_string(static_cast<unsigned int> (filament_id + 1));
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    static ImTextureID transparent;
     ImVec2             text_size = ImGui::CalcTextSize(filament_type.c_str());
     // BBS image sizing based on text width (DPI scaling)
     float         img_width = ImGui::CalcTextSize("ABC").x;
@@ -3270,19 +3330,14 @@ void ImGuiWrapper::filament_group(const std::string& filament_type, const char* 
     unsigned char rgba[4];
     rgba[3] = 0xff;
     Slic3r::GUI::BitmapCache::parse_color4(primary_color, rgba);
-    std::string svg_path = "/images/outlined_rect.svg";
-    if (rgba[3] == 0x00) {
-        svg_path = "/images/outlined_rect_transparent.svg";
-    }
-    if (!is_multi_color)
-        BitmapCache::load_from_svg_file_change_color(Slic3r::resources_dir() + svg_path, img_size.x, img_size.y, transparent, primary_color.c_str());
     ImGui::BeginGroup();
     {
         ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
+        const ImVec2 swatch_max = { cursor_pos.x + img_size.x, cursor_pos.y + img_size.y };
         if (is_multi_color)
-            draw_multi_color_swatch(draw_list, cursor_pos, { cursor_pos.x + img_size.x, cursor_pos.y + img_size.y }, multi_colors, is_gradient);
+            draw_multi_color_swatch(draw_list, cursor_pos, swatch_max, multi_colors, is_gradient);
         else
-            draw_list->AddImage(transparent, cursor_pos, { cursor_pos.x + img_size.x, cursor_pos.y + img_size.y }, { 0, 0 }, { 1, 1 }, ImGui::GetColorU32(ImVec4(1.f, 1.f, 1.f, 1.f)));
+            draw_single_color_swatch(draw_list, cursor_pos, swatch_max, wxColour(rgba[0], rgba[1], rgba[2], rgba[3]));
         // image border test
         // draw_list->AddRect(cursor_pos, {cursor_pos.x + img_size.x, cursor_pos.y + img_size.y}, IM_COL32(0, 0, 0, 255));
         ImVec2 current_cursor = ImGui::GetCursorPos();

@@ -5,6 +5,8 @@
 #include "wgtFilaManagerStore.h"
 
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/Utils/NetworkAgent.hpp"
 
 #include <wx/app.h>
@@ -441,8 +443,9 @@ void wgtFilaManagerCloudDispatcher::run_push_delete_op(const std::vector<std::st
             wxTheApp->CallAfter([this, spool_ids]() {
                 BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_delete ok";
                 if (auto* store = wxGetApp().fila_manager_store()) {
-                    for (const auto& spool_id : spool_ids)
+                    for (const auto& spool_id : spool_ids) {
                         store->remove_spool(spool_id);
+                    }
                 }
                 update_last_synced_now();
                 wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher push_delete finished",
@@ -460,6 +463,54 @@ void wgtFilaManagerCloudDispatcher::run_push_delete_op(const std::vector<std::st
                                                "Queued delete push failed",
                                                {{"spool_id", rep}, {"code", code}, {"error", err}});
                 if (m_on_push_failed) m_on_push_failed(rep, "delete", code, err);
+                on_op_done();
+            });
+        });
+}
+
+void wgtFilaManagerCloudDispatcher::enqueue_sync_ams(
+    BBL::AmsSyncParams params, std::function<void()> on_cloud_ok)
+{
+    wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher enqueue sync_ams",
+                                   "An AMS sync operation was queued",
+                                   {{"item_count", static_cast<int>(params.items.size())}});
+    m_queue.push_back([this, p = std::move(params), on_cloud_ok]() mutable {
+        run_sync_ams_op(std::move(p), on_cloud_ok);
+    });
+    schedule_next();
+}
+
+void wgtFilaManagerCloudDispatcher::run_sync_ams_op(
+    BBL::AmsSyncParams params, std::function<void()> on_cloud_ok)
+{
+    if (!m_sync || !is_user_logged_in() || !m_client) {
+        on_op_done();
+        return;
+    }
+    BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] sync_ams (" << params.items.size() << ")";
+    wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher sync_ams started",
+                                   "Queued AMS sync started running",
+                                   {{"item_count", static_cast<int>(params.items.size())}});
+
+    m_client->sync_ams(std::move(params),
+        [this, on_cloud_ok](const nlohmann::json& /*resp*/) {
+            wxTheApp->CallAfter([this, on_cloud_ok]() {
+                BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] sync_ams ok";
+                update_last_synced_now();
+                wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher sync_ams finished",
+                                               "Queued AMS sync completed successfully", {});
+                if (m_on_push_done) m_on_push_done(std::string(), "sync_ams");
+                if (on_cloud_ok) on_cloud_ok();
+                on_op_done();
+            });
+        },
+        [this](int code, const std::string& err) {
+            wxTheApp->CallAfter([this, code, err]() {
+                record_error(code, err);
+                wxGetApp().emit_fila_debug_log("data", "error", "Dispatcher sync_ams failed",
+                                               "Queued AMS sync failed",
+                                               {{"code", code}, {"error", err}});
+                if (m_on_push_failed) m_on_push_failed(std::string(), "sync_ams", code, err);
                 on_op_done();
             });
         });

@@ -26,6 +26,7 @@
 #include "slic3r/GUI/UnsavedChangesDialog.hpp"
 #include "../Utils/PrintHost.hpp"
 #include "slic3r/GUI/GLEnums.hpp"
+#include "slic3r/Utils/VersionPolicyManager.hpp"
 
 #include <wx/app.h>
 #include <wx/timer.h>
@@ -587,12 +588,67 @@ public:
     void            report_consent(std::string expand);
     void            check_track_enable();
 
+    /**
+     * @brief Asks the cloud version policy about a check point.
+     *
+     * Only answers what the policy says. Showing a VersionPolicyDialog and
+     * deciding what its buttons do is left to the caller, since what a hit
+     * means differs per check point.
+     *
+     * @param point Check point to evaluate.
+     * @return The hits, if any. An empty result means the caller may carry on
+     *         silently, which is also what any failure below resolves to.
+     * @note Does not throw and performs no network I/O.
+     */
+    PolicyCheckResult check_version_policy(PolicyCheckPoint point);
+
+    /**
+     * @brief Shows the policy that matched at startup, if any.
+     *
+     * Quits the application on a block: such a version must not reach the
+     * workspace at all.
+     */
+    void            check_startup_version_policy();
+
+    /**
+     * @brief Shows the policy that guards slicing, if any.
+     *
+     * Call it on an explicit slice request, before any slicing work starts.
+     *
+     * @return true when slicing may go ahead: nothing matched, or the user
+     *         chose to continue through a warning. A block always returns false.
+     */
+    bool            check_slice_version_policy();
+
+    /**
+     * @brief Silent (no dialog) test of whether the current version is hard-blocked
+     *        from slicing by the cloud policy.
+     *
+     * Use it to short-circuit expensive pre-slice work (AMS sync checks, first-time
+     * tutorial popups) without raising the policy dialog. The single user-facing
+     * dialog is still raised by check_slice_version_policy() at the actual slice.
+     *
+     * @return true only when a BeforeSlice policy of severity "block" matches; a
+     *         warning-only match or no match returns false.
+     */
+    bool            is_slice_version_blocked();
+
+    /**
+     * @brief Shows the policy that guards printing, if any.
+     *
+     * Call it right before the send to printer dialog would come up.
+     *
+     * @return true when the dialog may come up: nothing matched, or the user
+     *         chose to continue through a warning. A block always returns false.
+     */
+    bool            check_send_print_version_policy();
+
     static bool     catch_error(std::function<void()> cb, const std::string& err);
 
     //for helio slice
     bool            is_helio_enable();
     static void     request_helio_pat(std::function<void(std::string)> func);
-    static void     request_helio_supported_data();
+    static void     request_helio_supported_data(bool force_refresh = false);
 	//static std::vector<Slic3r::HelioQuery::SupportedPrinters> get_helio_support_printer_model();
 
     void                                               persist_window_geometry(wxTopLevelWindow *window, bool default_maximized = false);
@@ -781,6 +837,11 @@ public:
     const ColorRGB& get_picking_color() const;
 
     void update_log_sink_region();
+
+    // Apply a "severity_level" string (fatal/error/warning/info/debug/trace) to
+    // both the Boost.Log and wx logging verbosity, keeping them in sync. Single
+    // entry point used at init and by the preference combobox.
+    void set_severity_level(const std::string &level);
 
 private:
     int             updating_bambu_networking();

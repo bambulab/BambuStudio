@@ -332,6 +332,10 @@ wxSize Label::DoGetBestClientSize() const
 
 void Label::Wrap(int width)
 {
+    // Measuring text needs a valid HDC; a not-yet-realized window has none and
+    // the base extent path derefs a null font. LB_AUTO_WRAP re-wraps on EVT_SIZE.
+    if (!GetHandle()) return;
+
     wxLabelWrapper2 wrapper;
     wrapper.Wrap(this, m_text, width);
     m_skip_size_evt = true;

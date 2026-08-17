@@ -260,4 +260,19 @@ void wgtFilaManagerCloudClient::sync_ams(
                            std::move(on_ok), std::move(on_err));
 }
 
+void wgtFilaManagerCloudClient::sync_slot_mappings(
+    BBL::SlotMappingsSyncParams params, SuccessFn on_ok, ErrorFn on_err)
+{
+    if (!check_login(on_err)) return;
+
+    dispatch_agent_request("sync_slot_mappings",
+                           {{"method", "POST"}, {"dev_id", params.devId},
+                            {"mapping_count", (int) params.mappings.size()}},
+                           [params = std::move(params)](NetworkAgent* agent,
+                                                        std::string& response_body) mutable {
+                               return agent->sync_slot_mappings(params, &response_body);
+                           },
+                           std::move(on_ok), std::move(on_err));
+}
+
 }} // namespace Slic3r::GUI

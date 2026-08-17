@@ -158,18 +158,19 @@ enum class NotificationType
     BBLSliceMultiExtruderHeightOutside,
 	BBLBedFilamentIncompatible,
     BBLMixUsePLAAndPETG,
+    BBLBrittleFilament,
     BBLMixedFilamentBroken,
     BBLMultiFilaNoWipeTower,
 	BBLNozzleFilamentIncompatible,
 	BBLTpuNozzleHasMultiFilament,
     BBLHighTempNeedWrappingDetection,
     BBLPrintedWeightOverLimitWarn,
+    BBLBedHeatSoakInfo,
     BBLSingleExtruderMixedFilamentRisk,
     AssemblyWarning,
     AssemblyInfo,
     BBLIsolatedVolumeInfo,
     BBLAssemblyFarFromOrigin,
-    SelectObjectInWhichStep,
     BBLIntersectsVolumeInfo,
 	BBLArcFittingInfo,
     BBLCalibExtruderMismatch,
@@ -257,12 +258,18 @@ public:
 	// Closes error or warning of the same text
 	void close_plater_error_notification(const std::string& text);
 	void close_plater_warning_notification(const std::string& text);
+	// Soft prompt when models leave nested heated-bed heat soak zones (A2L).
+	void push_bed_heat_soak_notification(const std::string& text);
+	void close_bed_heat_soak_notification();
 	//The flushing volume matrix has zero values in its off-diagonal elements
     void push_flushing_volume_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext = "", std::function<bool(wxEvtHandler *)> callback  = std::function<bool(wxEvtHandler *)>());
     void close_flushing_volume_error_notification(NotificationType type, NotificationLevel level);
 	// GCode exceeds the printing range of the extruder
     void push_slicing_customize_error_notification(NotificationType type, NotificationLevel level, const std::string &text, const std::string &hypertext = "", std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
     void close_slicing_customize_error_notification(NotificationType type, NotificationLevel level);
+    // Brittle-filament (PPS-CF / PPA-CF) warning
+    void show_brittle_filament_notification(const std::string &text, const std::string &hypertext, std::function<bool(wxEvtHandler *)> callback);
+    void close_brittle_filament_notification();
 
     void push_assembly_warning_notification(const std::string& text);
     void close_assembly_warning_notification(const std::string& text);
@@ -905,8 +912,8 @@ private:
 	//timestamps used for slicing finished - notification could be gone so it needs to be stored here
 	std::unordered_set<int>      m_used_timestamps;
 	GLCanvas3D::ECanvasType m_canvas_type { GLCanvas3D::ECanvasType::CanvasView3D };
-	// True if the layer editing is enabled in Plater, so that the notifications are shifted left of it.
-	bool                         m_move_from_overlay { false };
+    // True if the layer editing is enabled in Plater, so that the notifications are shifted left of it.
+    bool                         m_move_from_overlay { false };
 	// Timestamp of last rendering
 	int64_t						 m_last_render { 0LL };
 	// Notification types that can be shown multiple types at once (compared by text)

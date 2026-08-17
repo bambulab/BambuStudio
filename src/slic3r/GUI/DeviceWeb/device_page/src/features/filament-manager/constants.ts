@@ -65,13 +65,15 @@ export function formatSlotLocation(
   trayLabel?: string
 ): string | null {
   if (!deviceName) return null;
-  const amsTypeName = amsType != null && amsType >= 0
+  const amsTypeName = (amsType != null && amsType >= 0 && slotId !== '255')
     ? (AMS_TYPE_NAMES[amsType] ?? `AMS(${amsType})`)
     : null;
   const slotLabel = trayLabel
     ? trayLabel
-    : (slotId != null && slotId !== ''
-      ? t('Slot {{n}}', { n: Number(slotId) + 1 })
-      : null);
+    : slotId === '255'
+      ? t('External Spool')
+      : (slotId != null && slotId !== ''
+        ? t('Slot {{n}}', { n: Number(slotId) + 1 })
+        : null);
   return [deviceName, amsTypeName, slotLabel].filter(Boolean).join(' · ');
 }

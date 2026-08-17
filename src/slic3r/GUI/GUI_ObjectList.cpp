@@ -688,7 +688,8 @@ ModelConfig& ObjectList::get_item_config(const wxDataViewItem& item) const
         return s_empty_config;
 
     const int obj_idx = m_objects_model->GetObjectIdByItem(item);
-    const int vol_idx = type & itVolume ? m_objects_model->GetVolumeIdByItem(item) : -1;
+    // Translate it back to the real index
+    const int vol_idx = type & itVolume ? m_objects_model->get_real_volume_index_in_3d(obj_idx, m_objects_model->GetVolumeIdByItem(item)) : -1;
 
     assert(obj_idx >= 0 || ((type & itVolume) && vol_idx >=0));
     return type & itVolume ?(*m_objects)[obj_idx]->volumes[vol_idx]->config :
@@ -1212,6 +1213,45 @@ void ObjectList::sync_name_from_model(int obj_idx, int vol_idx)
         return;
 
     m_objects_model->SetName(new_name, item);
+}
+
+void ObjectList::sync_filament_from_model()
+{
+    if (m_objects_model == nullptr || m_objects == nullptr)
+        return;
+
+    auto extruder_str = [](const ModelConfig &cfg, int fallback) {
+        if (!cfg.has("extruder"))
+            return wxString::Format("%d", fallback);
+        const int e = cfg.extruder();
+        return wxString::Format("%d", e <= 0 ? fallback : e);
+    };
+
+    for (size_t i = 0; i < m_objects->size(); ++i) {
+        ModelObject *object = (*m_objects)[i];
+        if (object == nullptr)
+            continue;
+        wxDataViewItem obj_item = m_objects_model->GetItemById(static_cast<int>(i));
+        if (!obj_item)
+            continue;
+        const wxString obj_ext = extruder_str(object->config, 1);
+        m_objects_model->SetExtruder(obj_ext, obj_item);
+
+        if (object->volumes.size() <= 1)
+            continue;
+        const int obj_ext_n = wxAtoi(obj_ext);
+        for (size_t id = 0; id < object->volumes.size(); ++id) {
+            ModelVolume *mv = object->volumes[id];
+            if (mv == nullptr)
+                continue;
+            const int ui_vol = m_objects_model->get_real_volume_index_in_ui(static_cast<int>(i), static_cast<int>(id));
+            wxDataViewItem vol_item = m_objects_model->GetItemByVolumeId(static_cast<int>(i), ui_vol);
+            if (!vol_item)
+                continue;
+            m_objects_model->SetExtruder(extruder_str(mv->config, obj_ext_n), vol_item);
+        }
+    }
+    Refresh();
 }
 
 void ObjectList::selection_changed()
@@ -2374,6 +2414,9 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
         // Centered around 0, sitting on the print bed.
         // The cylinder has the same volume as the box above.
         mesh = TriangleMesh(its_make_cylinder(0.5 * side, side));
+    else if (type_name == "Hexagonal Prism")
+        // Centered around 0, sitting on the print bed.
+        mesh = TriangleMesh(its_make_cylinder(0.5 * side, side, PI / 3));
     else if (type_name == "Sphere")
         // Centered around 0, half the sphere below the print bed, half above.
         // The sphere has the same volume as the box above.
@@ -2391,6 +2434,8 @@ static TriangleMesh create_mesh(const std::string& type_name, const BoundingBoxf
         mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/torus.stl").c_str(), true, nullptr);
     else if (type_name == "Rounded Rectangle")
         mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/rounded_rectangle.stl").c_str(), true, nullptr);
+    else if (type_name == "TearDrop")
+        mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/TearDrop.stl").c_str(), true, nullptr);
     else if (type_name == "Bambu Cube")
         mesh.ReadSTLFile((Slic3r::resources_dir() + "/model/Bambu_Cube.stl").c_str(), true, nullptr);
     else if (type_name == "Bambu Cube V2")
@@ -2569,6 +2614,7 @@ void GUI::ObjectList::add_new_model_object_from_old_object() {
     new_object->ensure_on_bed();
     // BBS init assmeble transformation
     new_object->get_model()->set_assembly_pos(new_object);
+    wxGetApp().plater()->ensure_model_object_volume_assemble_initialized(new_object);
     object_idxs.push_back(model.objects.size() - 1);
     paste_objects_into_list(object_idxs);
     wxGetApp().mainframe->update_title();
@@ -2656,6 +2702,9 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
 
     //BBS init assmeble transformation
     new_object->get_model()->set_assembly_pos(new_object);
+    // Seed per-volume assemble + stable GUID so the assembly-view thumbnail can
+    // resolve poses before the user ever enters the assembly view (derive/ensure_part_guid).
+    wxGetApp().plater()->ensure_model_object_volume_assemble_initialized(new_object);
 
     object_idxs.push_back(model.objects.size() - 1);
 #ifdef _DEBUG
@@ -3991,7 +4040,7 @@ void ObjectList::part_selection_changed()
                     }
                     else if (parent_type & itVolume) {
                         og_name   = _L("Part Settings to modify");
-                        volume_id = m_objects_model->GetVolumeIdByItem(parent);
+                        volume_id = m_objects_model->get_real_volume_index_in_3d(obj_idx, m_objects_model->GetVolumeIdByItem(parent));
                         m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     }
                     else if (parent_type & itLayer) {
@@ -4002,7 +4051,7 @@ void ObjectList::part_selection_changed()
                 }
                 else if (type & itVolume) {
                     og_name = _L("Part manipulation");
-                    volume_id = m_objects_model->GetVolumeIdByItem(item);
+                    volume_id = m_objects_model->get_real_volume_index_in_3d(obj_idx, m_objects_model->GetVolumeIdByItem(item));
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                     update_and_show_manipulations = true;
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
@@ -6391,10 +6440,6 @@ void ObjectList::fix_through_netfabb()
     if (!wxGetApp().plater()->get_view3D_canvas3D()->get_gizmos_manager().check_gizmos_closed_except(GLGizmosManager::Undefined))
         return;
 
-    // BBS: repair rebuilds the mesh; warn that painting is transferred approximately.
-    if (!wxGetApp().confirm_mesh_paint_warning())
-        return;
-
     //          model_name
     std::vector<std::string>                           succes_models;
     //                   model_name     failing reason
@@ -6429,6 +6474,32 @@ void ObjectList::fix_through_netfabb()
                 model_names.push_back(obj->volumes[vol_idx]->name);
         }
     }
+
+    // BBS: repair rebuilds the mesh; painting is transferred approximately.
+    // Only warn about it when the models actually being repaired carry painted
+    // color/support/seam/fuzzy-skin data.
+    bool has_paint = false;
+    if (vol_idxs.empty()) {
+        for (int obj_idx : obj_idxs) {
+            const ModelObject *o = object(obj_idx);
+            if (o && (o->is_mm_painted() || o->is_fuzzy_skin_painted() ||
+                      o->is_fdm_support_painted() || o->is_seam_painted())) {
+                has_paint = true;
+                break;
+            }
+        }
+    } else if (const ModelObject *o = object(obj_idxs.front())) {
+        for (int vol_idx : vol_idxs) {
+            const ModelVolume *v = o->volumes[vol_idx];
+            if (v && (v->is_mm_painted() || v->is_fuzzy_skin_facets_painted() ||
+                      v->is_fdm_support_painted() || v->is_seam_painted())) {
+                has_paint = true;
+                break;
+            }
+        }
+    }
+    if (has_paint && !wxGetApp().confirm_mesh_paint_warning())
+        return;
 
     auto plater = wxGetApp().plater();
 

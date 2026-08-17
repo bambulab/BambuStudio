@@ -31,6 +31,7 @@ public:
 
     void on_retry();
     void dismiss_filament_hint(const std::string& ams_id, const std::string& slot_id);
+    void set_new_filament_hint(const std::string& ams_id, const std::string& slot_id, bool show);
 
 protected:
     std::string  m_current_ams;

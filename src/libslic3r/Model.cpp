@@ -11,6 +11,7 @@
 #include "TriangleMeshSlicer.hpp"
 #include "TriangleSelector.hpp"
 #include "AABBTreeIndirect.hpp"
+#include "PaintReproject.hpp"
 #include <queue>
 
 #include "Format/AMF.hpp"
@@ -200,6 +201,15 @@ void Model::update_links_bottom_up_recursive()
 	}
 }
 
+void Model::clear_assembly_artifacts()
+{
+    m_assembly_tree_data.clear();
+    m_assembly_tree_json_str.clear();
+    m_assembly_steps_tree_data.clear();
+    m_assembly_steps_json_str.clear();
+    m_assembly_model_json_str.clear();
+}
+
 Model::~Model()
 {
     this->clear_objects();
@@ -340,31 +350,51 @@ Model Model::read_from_file(const std::string&                                  
                         mtl_data, obj_dir, *tex_mesh)) {
                     model.texture_mesh = tex_mesh;
                 }
-            } else {
-                ObjDialogInOut in_out;
-                in_out.model = &model;
-                in_out.lost_material_name = obj_info.lost_material_name;
-                in_out.ml_region          = obj_info.ml_region;
-                in_out.ml_name            = obj_info.ml_name;
-                in_out.ml_id              = obj_info.ml_id;
+            } else if (!model.objects.empty() && !model.objects.back()->volumes.empty()) {
+                auto build_tex_mesh_geometry = [&]() {
+                    auto tex_mesh = std::make_shared<TexturedMesh>();
+                    const auto& its = model.objects.back()->volumes[0]->mesh().its;
+                    tex_mesh->vertices.resize(its.vertices.size());
+                    for (size_t i = 0; i < its.vertices.size(); ++i)
+                        tex_mesh->vertices[i] = {its.vertices[i].x(), its.vertices[i].y(), its.vertices[i].z()};
+                    tex_mesh->indices.resize(its.indices.size());
+                    for (size_t i = 0; i < its.indices.size(); ++i)
+                        tex_mesh->indices[i] = {its.indices[i][0], its.indices[i][1], its.indices[i][2]};
+                    return tex_mesh;
+                };
                 if (obj_info.vertex_colors.size() > 0) {
-                    if (objFn) {
-                        in_out.input_colors      = std::move(obj_info.vertex_colors);
-                        in_out.is_single_color   = false;
-                        in_out.deal_vertex_color = true;
-                        objFn(in_out);
+                    auto tex_mesh = build_tex_mesh_geometry();
+                    const auto& its = model.objects.back()->volumes[0]->mesh().its;
+                    tex_mesh->precomputed_face_colors.resize(its.indices.size());
+                    for (size_t i = 0; i < its.indices.size(); ++i) {
+                        const auto& f = its.indices[i];
+                        auto avg = [&](int ch) -> std::size_t {
+                            float v = (obj_info.vertex_colors[f[0]][ch]
+                                     + obj_info.vertex_colors[f[1]][ch]
+                                     + obj_info.vertex_colors[f[2]][ch]) / 3.0f * 255.0f;
+                            return (std::size_t) std::clamp(v, 0.0f, 255.0f);
+                        };
+                        tex_mesh->precomputed_face_colors[i] = {avg(0), avg(1), avg(2)};
                     }
+                    tex_mesh->precomputed_vertex_colors = obj_info.vertex_colors;
+                    model.texture_mesh = tex_mesh;
                 } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) {
-                    if (objFn) {
-                        in_out.input_colors      = std::move(obj_info.face_colors);
-                        in_out.mtl_colors        = std::move(obj_info.mtl_colors);
-                        in_out.mtl_color_names   = std::move(obj_info.mtl_color_names);
-                        in_out.first_time_using_makerlab = obj_info.first_time_using_makerlab;
-                        in_out.is_single_color   = obj_info.is_single_mtl;
-                        in_out.usemtls           = obj_info.usemtls;
-                        in_out.deal_vertex_color = false;
-                        objFn(in_out);
+                    auto tex_mesh = build_tex_mesh_geometry();
+                    const size_t nf = tex_mesh->indices.size();
+                    tex_mesh->precomputed_face_colors.resize(nf);
+                    for (size_t i = 0; i < nf; ++i) {
+                        if (i < obj_info.face_colors.size()) {
+                            const auto& c = obj_info.face_colors[i];
+                            tex_mesh->precomputed_face_colors[i] = {
+                                (std::size_t) std::clamp(c[0] * 255.0f, 0.0f, 255.0f),
+                                (std::size_t) std::clamp(c[1] * 255.0f, 0.0f, 255.0f),
+                                (std::size_t) std::clamp(c[2] * 255.0f, 0.0f, 255.0f)
+                            };
+                        } else {
+                            tex_mesh->precomputed_face_colors[i] = {128, 128, 128};
+                        }
                     }
+                    model.texture_mesh = tex_mesh;
                 }
             }
         }
@@ -3192,102 +3222,60 @@ void ModelVolume::reset_extra_facets() {
 }
 
 // ---- BBS: best-effort paint re-projection across mesh-rebuilding ops ----------
-// Walk a TriangleSelector's split tree for source face s; return the first
-// non-NONE leaf state (collapses sub-triangle painting to the dominant intent).
-static EnforcerBlockerType reproj_first_leaf(TriangleSelector &sel, int root_idx)
+bool ModelVolume::reproject_paint_keep(const TriangleMesh &new_mesh,
+                                       PaintKeepPrepared &out,
+                                       const std::function<void(int, const char *)> &progress,
+                                       const std::function<bool()> &cancel) const
 {
-    const auto &tris = sel.get_triangles();
-    if (root_idx < 0 || root_idx >= (int)tris.size()) return EnforcerBlockerType::NONE;
-    std::queue<int> q;
-    q.push(root_idx);
-    while (!q.empty()) {
-        int i = q.front(); q.pop();
-        const auto &t = tris[i];
-        if (!t.valid()) continue;
-        if (!t.is_split()) {
-            if (t.get_state() != EnforcerBlockerType::NONE)
-                return t.get_state();
-        } else {
-            for (int c : t.children) if (c >= 0) q.push(c);
-        }
-    }
-    return EnforcerBlockerType::NONE;
+    // Repair rebuilds the triangulation in place: the old and new meshes share the
+    // volume-local frame, so re-project the four painted annotation layers onto the
+    // new mesh with area-error driven subdivision (nearest source face + nearest 3D
+    // point sampling).
+    //
+    // Read-only: reproject into out's annotation fields against new_mesh WITHOUT
+    // touching this volume, so the caller can compute several volumes and only
+    // commit once they all succeed. A cancellation mid-reprojection therefore
+    // leaves every volume completely unchanged ("cancel == revert").
+    const TriangleMesh &old_mesh = this->mesh();
+    // Keeps the subdivision floor a real millimeter distance on a scaled volume. Mirrors the
+    // painting gizmo, which measures against instance x volume without the instance offset;
+    // instance 0 stands in for the selection the gizmo would have used, and only its scaling
+    // matters here.
+    const ModelInstance *instance = (this->object != nullptr && !this->object->instances.empty())
+        ? this->object->instances.front() : nullptr;
+    const Transform3d dst_world_matrix =
+        (instance != nullptr ? instance->get_transformation().get_matrix_no_offset() : Transform3d::Identity()) *
+        this->get_matrix();
+    return reproject_paint_geometric(
+        old_mesh, this->supported_facets, this->seam_facets,
+        this->mmu_segmentation_facets, this->fuzzy_skin_facets,
+        new_mesh, Transform3d::Identity(),
+        out.supported, out.seam, out.mmu, out.fuzzy,
+        progress, cancel, &dst_world_matrix);
 }
 
-// Per-face dominant state of one annotation layer over `mesh`.
-static void reproj_per_face_states(const TriangleMesh &mesh, const FacetsAnnotation &ann,
-                                   std::vector<EnforcerBlockerType> &out)
+void ModelVolume::commit_mesh_keep_paint(PaintKeepPrepared &&prepared)
 {
-    out.assign(mesh.its.indices.size(), EnforcerBlockerType::NONE);
-    if (ann.empty() || mesh.its.indices.empty()) return;
-    TriangleSelector sel(mesh);
-    sel.deserialize(ann.get_data(), true);
-    for (int f = 0; f < (int)mesh.its.indices.size(); ++f)
-        out[f] = reproj_first_leaf(sel, f);
+    // Commit. assign() transfers only the annotation payload and bumps the
+    // timestamp, preserving each layer's stable ObjectID (which the undo/redo
+    // stack keys on) instead of replacing the whole object.
+    this->set_mesh(std::move(prepared.mesh));
+    this->supported_facets.assign(std::move(prepared.supported));
+    this->seam_facets.assign(std::move(prepared.seam));
+    this->mmu_segmentation_facets.assign(std::move(prepared.mmu));
+    this->fuzzy_skin_facets.assign(std::move(prepared.fuzzy));
 }
 
-// Write per-face states onto `mesh`'s annotation layer (NONE entries skipped).
-static void reproj_apply_states(const TriangleMesh &mesh,
-                                const std::vector<EnforcerBlockerType> &states,
-                                FacetsAnnotation &out)
+bool ModelVolume::set_mesh_keep_paint(TriangleMesh &&mesh_in,
+                                      const std::function<void(int, const char *)> &progress,
+                                      const std::function<bool()> &cancel)
 {
-    out.reset();
-    bool any = false;
-    TriangleSelector sel(mesh);
-    const int n = std::min<int>((int)states.size(), (int)mesh.its.indices.size());
-    for (int f = 0; f < n; ++f) {
-        if (states[f] != EnforcerBlockerType::NONE) { sel.set_facet(f, states[f]); any = true; }
-    }
-    if (any) out.set(sel);
-}
-
-// Map each face of new_mesh to the nearest face of old_mesh (by centroid), then
-// transfer the four precomputed old per-face state vectors onto new annotations.
-static void reproj_transfer(const TriangleMesh &old_mesh, const TriangleMesh &new_mesh,
-                            const std::vector<EnforcerBlockerType> &o_sup,
-                            const std::vector<EnforcerBlockerType> &o_seam,
-                            const std::vector<EnforcerBlockerType> &o_mmu,
-                            const std::vector<EnforcerBlockerType> &o_fuzzy,
-                            FacetsAnnotation &d_sup, FacetsAnnotation &d_seam,
-                            FacetsAnnotation &d_mmu, FacetsAnnotation &d_fuzzy)
-{
-    d_sup.reset(); d_seam.reset(); d_mmu.reset(); d_fuzzy.reset();
-    if (old_mesh.its.indices.empty() || new_mesh.its.indices.empty()) return;
-    auto tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
-        old_mesh.its.vertices, old_mesh.its.indices);
-    const int nf = (int)new_mesh.its.indices.size();
-    std::vector<EnforcerBlockerType> n_sup(nf, EnforcerBlockerType::NONE), n_seam = n_sup, n_mmu = n_sup, n_fuzzy = n_sup;
-    for (int f = 0; f < nf; ++f) {
-        const Vec3i &idx = new_mesh.its.indices[f];
-        Vec3f c = (new_mesh.its.vertices[idx[0]] + new_mesh.its.vertices[idx[1]] + new_mesh.its.vertices[idx[2]]) / 3.f;
-        size_t hit = size_t(-1);
-        Vec3f hp;
-        double d2 = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
-            old_mesh.its.vertices, old_mesh.its.indices, tree, c, hit, hp);
-        if (d2 < 0. || hit == size_t(-1) || hit >= o_sup.size()) continue;
-        n_sup[f]   = o_sup[hit];
-        n_seam[f]  = o_seam[hit];
-        n_mmu[f]   = o_mmu[hit];
-        n_fuzzy[f] = o_fuzzy[hit];
-    }
-    reproj_apply_states(new_mesh, n_sup,   d_sup);
-    reproj_apply_states(new_mesh, n_seam,  d_seam);
-    reproj_apply_states(new_mesh, n_mmu,   d_mmu);
-    reproj_apply_states(new_mesh, n_fuzzy, d_fuzzy);
-}
-
-void ModelVolume::set_mesh_keep_paint(TriangleMesh &&mesh_in)
-{
-    const TriangleMesh old_mesh = this->mesh(); // copy before replacing
-    std::vector<EnforcerBlockerType> o_sup, o_seam, o_mmu, o_fuzzy;
-    reproj_per_face_states(old_mesh, this->supported_facets,        o_sup);
-    reproj_per_face_states(old_mesh, this->seam_facets,             o_seam);
-    reproj_per_face_states(old_mesh, this->mmu_segmentation_facets, o_mmu);
-    reproj_per_face_states(old_mesh, this->fuzzy_skin_facets,       o_fuzzy);
-    this->set_mesh(std::move(mesh_in));
-    reproj_transfer(old_mesh, this->mesh(), o_sup, o_seam, o_mmu, o_fuzzy,
-                    this->supported_facets, this->seam_facets,
-                    this->mmu_segmentation_facets, this->fuzzy_skin_facets);
+    PaintKeepPrepared prepared;
+    if (!this->reproject_paint_keep(mesh_in, prepared, progress, cancel))
+        return false;
+    prepared.mesh = std::move(mesh_in);
+    this->commit_mesh_keep_paint(std::move(prepared));
+    return true;
 }
 // ------------------------------------------------------------------------------
 
@@ -3451,7 +3439,18 @@ void ModelVolume::update_extruder_count_when_delete_filament(size_t extruder_cou
         }
     }
     size_t eid = extruder_id();
-    if (eid > extruder_count) {
+    // Judge out-of-range against the post-remap id, mirroring update_filament_values_for_items_when_delete_filament.
+    // Using the pre-remap eid would wrongly erase a high extruder that should remap (e.g. 5 -> 4 after
+    // deleting filament 1); update_filament_values_for_items_when_delete_filament would then skip it
+    // (!has("extruder")) and the volume would fall back to the object default color.
+    size_t remapped = eid;
+    if (eid == filament_id)
+        remapped = (replace_filament_id > 0) ? (size_t)replace_filament_id : 1;
+    else if (eid > filament_id)
+        remapped = eid - 1;
+    if (remapped > extruder_count) {
+        // filament_is_mixed is the pre-delete snapshot; index it with the ORIGINAL eid (1-based),
+        // not remapped, so we check whether this volume's current slot is a mixed slot.
         bool is_mixed = !filament_is_mixed.empty() && eid >= 1 && (eid - 1) < filament_is_mixed.size() && filament_is_mixed[eid - 1];
         if (!is_mixed)
             this->config.erase("extruder");

@@ -93,7 +93,7 @@ function Set_RecentFile_MouseRightBtn_Event()
 				//鼠标点击了中键
 			}else if(e.which == 1){
 				//鼠标点击了左键
-				OnOpenRecentFile( encodeURI(RightBtnFilePath) );
+				OnOpenRecentFile( RightBtnFilePath );
 			}
 		});
 
@@ -448,7 +448,8 @@ function OnOpenRecentFile( strPath )
 		tSend['sequence_id']=Math.round(new Date() / 1000);
 		tSend['command']="homepage_open_recentfile";
 		tSend['data']={};
-		tSend['data']['path']=decodeURI(strPath);
+		// strPath is the raw filesystem path, decodeURI() would throw on names containing "%".
+		tSend['data']['path']=strPath;
 	
 		SendWXMessage( JSON.stringify(tSend) );	
 	}
@@ -522,7 +523,8 @@ function OnExploreRecentFile( )
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="homepage_explore_recentfile";
 	tSend['data']={};
-	tSend['data']['path']=decodeURI(RightBtnFilePath);
+	// RightBtnFilePath is the raw filesystem path, decodeURI() would throw on names containing "%".
+	tSend['data']['path']=RightBtnFilePath;
 	
 	SendWXMessage( JSON.stringify(tSend) );	
 	

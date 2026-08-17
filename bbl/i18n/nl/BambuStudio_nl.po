@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 20:35+0800\n"
+"POT-Creation-Date: 2026-08-14 16:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -950,6 +950,9 @@ msgstr "Wijs het onderdeel toe aan de andere kant"
 msgid "Cut"
 msgstr "Knippen"
 
+msgid "Cutting model object"
+msgstr "Modelobject snijden"
+
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr "Open randen kunnen zijn veroorzaakt door het snijgereedschap. Wilt u dit nu herstellen?"
 
@@ -1323,6 +1326,9 @@ msgstr "Parallelle_afstand:"
 
 msgid "Flip by Face 2"
 msgstr "Flip om zijde 2"
+
+msgid "Rotate the object on selected Face 2 around the perpendicular line of the selected plane"
+msgstr "Draai het object op het geselecteerde vlak 2 rond de loodlijn op het geselecteerde vlak"
 
 msgid "Assemble"
 msgstr "Monteren"
@@ -2049,6 +2055,12 @@ msgstr "The Bambu Studio version is too old to enable cloud service. Please down
 msgid "Your software certificate has been revoked, please update Bambu Studio software."
 msgstr "Uw softwarecertificaat is ingetrokken; gelieve Bambu Studio bij te werken."
 
+msgid "Got it"
+msgstr "Ik heb het"
+
+msgid "Continue"
+msgstr "Ga verder"
+
 msgid "Retrieving printer information, please try again later."
 msgstr "Printergegevens ophalen, probeer het later opnieuw."
 
@@ -2239,6 +2251,9 @@ msgstr "Kubus"
 msgid "Cylinder"
 msgstr "Cilinder"
 
+msgid "Hexagonal Prism"
+msgstr "Zeshoekig prisma"
+
 msgid "Cone"
 msgstr "Kegel"
 
@@ -2253,6 +2268,9 @@ msgstr "Torus"
 
 msgid "Rounded Rectangle"
 msgstr "Afgeronde rechthoek"
+
+msgid "TearDrop"
+msgstr ""
 
 msgid "Bambu Cube"
 msgstr "Bambu Cube"
@@ -2454,7 +2472,7 @@ msgid "Delete this filament"
 msgstr "Verwijder dit filament"
 
 msgid "Decompose Color"
-msgstr ""
+msgstr "Ontleed kleur"
 
 msgid "Merge with"
 msgstr "Samenvoegen met"
@@ -2508,7 +2526,7 @@ msgid "Split to objects"
 msgstr "Opsplitsen in objecten"
 
 msgid "Split the selected objects into multiple objects"
-msgstr ""
+msgstr "Splits de geselecteerde objecten op in meerdere objecten"
 
 msgid "Clone"
 msgstr "Dupliceren"
@@ -2984,6 +3002,10 @@ msgstr "Het type filament dat nodig is om deze actie uit te voeren, is onbekend.
 msgid "/"
 msgstr "/"
 
+msgctxt "AMS filament"
+msgid "loading"
+msgstr ""
+
 msgid "Confirm"
 msgstr "Bevestigen"
 
@@ -3185,6 +3207,21 @@ msgstr "Stap"
 msgid "Install parts"
 msgstr "Onderdelen installeren"
 
+msgid "Inherited Step"
+msgstr "Overgenomen stap"
+
+msgid "start frame"
+msgstr ""
+
+msgid "Final assembly"
+msgstr "Eindmontage"
+
+msgid "Merged Step"
+msgstr "Samengevoegde stap"
+
+msgid "end frame"
+msgstr "eindframe"
+
 msgid "Apply the final assembly pose to the objects or parts added in the current step?"
 msgstr "De eindmontagepositie toepassen op de objecten of onderdelen die in de huidige stap zijn toegevoegd?"
 
@@ -3225,25 +3262,19 @@ msgid "Saving project will automatically switch to end frame"
 msgstr "Als u het project opslaat, schakelt het automatisch over naar het eindframe"
 
 msgid "Are you sure you want to delete all assembly steps?"
-msgstr ""
+msgstr "Weet je zeker dat je alle montagestappen wilt verwijderen?"
 
 msgid "Delete all steps"
-msgstr ""
+msgstr "Verwijder alle stappen"
 
 msgid "New Step"
 msgstr "Nieuwe stap"
 
-msgid "Final assembly"
-msgstr "Eindmontage"
-
-msgid "end frame"
-msgstr "eindframe"
+msgid "Overall preview"
+msgstr "Volledige voorbeeldweergave"
 
 msgid "Assembly Structure"
 msgstr "Montagestructuur"
-
-msgid "Start your assembly journey from Add Step"
-msgstr "Begin uw montageproces bij Stap toevoegen"
 
 msgctxt "AssemblyStructure"
 msgid "Default"
@@ -3273,22 +3304,17 @@ msgstr "Stap verwijderen"
 msgid "Model"
 msgstr "Model"
 
-msgid "start frame"
-msgstr ""
-
 msgid "transition frame"
 msgstr "overgangsframe"
 
-#, c-format, boost-format
-msgid "Step %d"
+msgid "Label"
 msgstr ""
 
-msgid "not used in any assembly step"
-msgstr ""
+msgid "Explosion"
+msgstr "Explosie"
 
-#, boost-format
-msgid "Plate %1%"
-msgstr "Plaat %1%"
+msgid "Unassembled"
+msgstr "Niet geassembleerd"
 
 msgid "Assembly Step"
 msgstr "Montagestap"
@@ -3309,10 +3335,13 @@ msgid "step"
 msgstr "stap"
 
 msgid "Show Current Step Parts Only"
-msgstr ""
+msgstr "Toon alleen de onderdelen van de huidige stap"
 
 msgid "X-Ray Other Parts"
-msgstr ""
+msgstr "Toon andere onderdelen in röntgenweergave"
+
+msgid "Play from the current step."
+msgstr "Afspelen vanaf de huidige stap."
 
 msgid "Play all frames for all steps."
 msgstr "Speel alle frames af voor alle stappen."
@@ -3329,8 +3358,17 @@ msgstr "Speel het volgende frame af."
 msgid "Display Mode"
 msgstr "Weergavemodus"
 
-msgid "Set export file parameters"
-msgstr "Exportbestandsparameters instellen"
+msgid "Show world axes"
+msgstr "Wereldassen tonen"
+
+msgid "Show explosion state column"
+msgstr "Kolom voor explosiestatus tonen"
+
+msgid "Allow modify text note foreground"
+msgstr "Voorgrond van tekstnotitie wijzigen toestaan"
+
+msgid "Allow modify text note background"
+msgstr "Achtergrond van tekstnotitie wijzigen toestaan"
 
 msgid "Camera margin factor for the current frame. The larger the value, the more margin."
 msgstr "Cameramargefactor voor het huidige frame. Hoe groter de waarde, hoe meer marge."
@@ -3347,12 +3385,6 @@ msgstr "Stap ervoor invoegen"
 msgid "Insert step after"
 msgstr "Stap erna invoegen"
 
-msgid "Tip"
-msgstr ""
-
-msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
-msgstr "Er is momenteel geen stapkaart geselecteerd. Positieveranderende bewerkingen, zoals het verplaatsen van de gizmo, hebben invloed op de daadwerkelijke uiteindelijke assemblageweergave."
-
 msgid "Expand"
 msgstr "Uitbreiden"
 
@@ -3362,11 +3394,26 @@ msgstr "Instorten"
 msgid "Options"
 msgstr "Opties"
 
+msgid "Delete all assembly steps"
+msgstr "Alle montagestappen verwijderen"
+
+msgid "There’s no step to delete"
+msgstr "Er zijn geen stappen om te verwijderen"
+
 msgid "Go to Wiki"
 msgstr "Ga naar Wiki"
 
-msgid "Copy current step"
-msgstr "Huidige stap kopiëren"
+msgid "Inherit the state of Step"
+msgstr "Status van stap overnemen"
+
+msgid "Assembled parts are not exploded"
+msgstr "Geassembleerde onderdelen zijn niet geëxplodeerd"
+
+msgid "Copy and inherit this step"
+msgstr "Deze stap kopiëren en overnemen"
+
+msgid "Add objects to this step before copying"
+msgstr "Voeg objecten toe aan deze stap voordat je ze kopieert"
 
 msgid "Delete current step"
 msgstr "Huidige stap verwijderen"
@@ -3374,27 +3421,27 @@ msgstr "Huidige stap verwijderen"
 msgid "Add some objects to current step"
 msgstr "Enkele objecten toevoegen aan de huidige stap"
 
-msgid "Copy Step"
-msgstr "Stap kopiëren"
-
-msgid "Add Step"
-msgstr "Stap toevoegen"
-
 #, boost-format
 msgid "No more than %1% steps are allowed."
 msgstr "Niet meer dan %1% stappen zijn toegestaan."
 
-msgid "Only copy steps. This is independent of the selected objects on the canvas."
-msgstr "Alleen stappen kopiëren. Dit is onafhankelijk van de geselecteerde objecten op het canvas."
+msgid "Add Step"
+msgstr "Stap toevoegen"
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr "Alleen lege stappen toevoegen. Dit heeft niets te maken met de geselecteerde objecten op het canvas."
 
-msgid "Delete all assembly steps except the final assembly."
-msgstr ""
+msgid "Merge and add steps."
+msgstr "Voeg stappen samen en toe."
 
-msgid "Exit the assembly step editing, you can also press the Esc button to exit"
-msgstr ""
+msgid "Click to exit assembly step editing, or press Esc."
+msgstr "Klik om het bewerken van montagestappen af te sluiten, of druk op Esc."
+
+msgid "Not"
+msgstr "Niet"
+
+msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
+msgstr "Klik eerst op Bevestigen. Nadat de labels op het canvas zijn gegenereerd, kan dit bedieningselement worden gebruikt."
 
 msgid "Click to add Cyber Brick"
 msgstr "Klik om Cyber Brick toe te voegen"
@@ -3410,6 +3457,9 @@ msgstr "Markdown exporteren"
 
 msgid "Export MP4"
 msgstr "MP4 exporteren"
+
+msgid "Set export file parameters"
+msgstr "Exportbestandsparameters instellen"
 
 msgid "After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF."
 msgstr "Nadat u het Markdown-document hebt geëxporteerd, kunt u het bewerken in software van derden, zoals Zettlr, en het vervolgens exporteren naar PDF."
@@ -3432,11 +3482,11 @@ msgstr "Eén label per modelobject weergeven."
 msgid "Show one label per model part."
 msgstr "Eén label per modelonderdeel weergeven."
 
-msgid "Label"
-msgstr ""
-
 msgid "Label settings"
 msgstr "Labelinstellingen"
+
+msgid "Reset all closed labels"
+msgstr "Reset alle gesloten labels"
 
 msgid "Show Object/Part labels"
 msgstr "Object-/onderdeellabels weergeven"
@@ -3466,31 +3516,16 @@ msgid "Display mode"
 msgstr "Weergavemodus"
 
 msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
-msgstr ""
+msgstr "Automatisch labels op object- of onderdeelniveau selecteren: een volledig gebruikt object dat al in eerdere stappen is weergegeven, wordt samengevoegd tot één objectlabel; gedeeltelijke objecten en eerste voorkomens worden per afzonderlijk onderdeel gelabeld."
+
+msgid "Please create an assembly step before exporting."
+msgstr "Maak een montagestap aan voordat je exporteert."
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "Montagehandleiding exporteren als PDF, Markdown of MP4"
 
 msgid "Screw"
 msgstr "Schroef"
-
-msgid "Note"
-msgstr "Notitie"
-
-msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
-msgstr "Positieveranderingen (bijv. het verplaatsen van de gizmo) die in het keyframe van de eindmontagestap worden aangebracht, hebben invloed op de uiteindelijke assemblageweergave."
-
-msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
-msgstr "Positieveranderingen (bijv. het verplaatsen van de gizmo) die in het keyframe van deze stap worden aangebracht, hebben geen invloed op de werkelijke assemblageweergave."
-
-msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
-msgstr "Indien nodig kunt u een relatief goede positie herstellen door nu op de knop \"werkelijke assemblagepositie toepassen\" te drukken."
-
-msgid "undoing these edits is not yet supported and will be added in a later version."
-msgstr "het ongedaan maken van deze wijzigingen wordt momenteel nog niet ondersteund en wordt in een latere versie toegevoegd."
-
-msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
-msgstr "Sommige objecten zijn in een eerder keyframe van de huidige stap gebruikt en worden hier niet uit elkaar gehaald. U kunt ze handmatig uit elkaar halen met het verplaatsingsgereedschap."
 
 msgid "Connection Type"
 msgstr "Verbindingstype"
@@ -3540,14 +3575,20 @@ msgstr "Alle frames voor de huidige stap afspelen"
 msgid "At least two keyframes are required to play."
 msgstr "Er zijn minimaal twee keyframes nodig om het af te spelen."
 
-msgid "Automatically explode all objects."
-msgstr "Alle objecten automatisch exploderen."
+msgid "Add the selected object or part to the current step first"
+msgstr "Voeg het geselecteerde object of onderdeel toe aan de huidige stap"
 
-msgid "Automatically explode all parts."
-msgstr "Alle onderdelen automatisch exploderen."
+msgid "Add a new object to the current step first"
+msgstr "Voeg een nieuw object toe aan de huidige stap"
 
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
 msgstr "Pas de eindmontagepositie toe op het momenteel geselecteerde object of onderdeel (als er niets is geselecteerd, pas deze dan toe op alle objecten die in het huidige frame zijn toegevoegd)"
+
+msgid "Automatically explode objects that are new to this step. Objects already assembled in earlier steps stay together."
+msgstr "Explodeer automatisch objecten die nieuw zijn voor deze stap. Objecten die al in eerdere stappen zijn geassembleerd, blijven bij elkaar."
+
+msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
+msgstr "Explodeer automatisch nieuwe onderdelen. Overgenomen of reeds geassembleerde objecten in eerdere stappen blijven als één geheel behouden."
 
 msgid "Apply current camera angle to all frames of the current step"
 msgstr "Huidige camerahoek toepassen op alle frames van de huidige stap"
@@ -3570,17 +3611,26 @@ msgstr "Assemblageboom"
 msgid "Search"
 msgstr "Zoeken"
 
+msgid "Expand all objects"
+msgstr "Vouw alle objecten uit"
+
+msgid "Collapse all objects"
+msgstr "Vouw alle objecten samen"
+
 msgid "List"
 msgstr "Lijst"
 
 msgid "Assembly list"
-msgstr ""
+msgstr "Montagelijst"
 
-msgid "Expand all objects"
-msgstr ""
+msgid "Show all objects"
+msgstr "Toon alle objecten"
 
-msgid "Collapse all objects"
-msgstr ""
+msgid "Show unassembled only"
+msgstr "Toon alleen ongemonteerde objecten"
+
+msgid "Object name"
+msgstr "Objectnaam"
 
 msgid "Select all parts in a step"
 msgstr "Alle onderdelen in een stap selecteren"
@@ -3787,22 +3837,22 @@ msgid "Remaining time: %dmin%ds"
 msgstr "Resterende tijd: %dmin%ds"
 
 msgid "One-click CMYW auto-mix"
-msgstr ""
+msgstr "Automatische CMYW-mix met één klik"
 
 msgid "One-click RYBW auto-mix"
-msgstr ""
+msgstr "Automatische RYBW-mix met één klik"
 
 msgid "Project Physical Filaments"
-msgstr ""
-
-msgid "Project Mixed Filaments"
-msgstr ""
+msgstr "Project fysieke filamenten"
 
 msgid "New Physical Filaments"
-msgstr ""
+msgstr "Nieuwe fysieke filamenten"
+
+msgid "Project Mixed Filaments"
+msgstr "Project gemengde filamenten"
 
 msgid "New Mixed Filaments"
-msgstr ""
+msgstr "Nieuwe gemengde filamenten"
 
 msgid "+ Add Material"
 msgstr "+ Materiaal toevoegen"
@@ -3845,10 +3895,10 @@ msgid "Filament Mapping"
 msgstr "Filamentkartering"
 
 msgid "Reset filament mapping to the state before one-click mixing"
-msgstr ""
+msgstr "Zet de filamenttoewijzing terug naar de staat van vóór het mengen met één klik"
 
 msgid "Choose the one-click auto-mix mode for texture color import"
-msgstr ""
+msgstr "Kies de automatische mengmodus met één klik voor het importeren van textuurkleuren"
 
 msgid "Auto-merge same filament"
 msgstr "Automatisch samenvoegen van hetzelfde filament"
@@ -3888,9 +3938,6 @@ msgstr "Houd er rekening mee dat het mesh niet-manifold geometrie of open grenze
 
 msgid "Mesh issue"
 msgstr "Mesh-probleem"
-
-msgid "Continue"
-msgstr "Ga verder"
 
 msgid "Choose SLA archive:"
 msgstr "Kies het SLA-archief:"
@@ -4066,7 +4113,7 @@ msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Voer een geldige waarde in (K in %.1f~%.1f, N in %.1f~%.1f)"
 
 msgid "Remark"
-msgstr ""
+msgstr "Opmerking"
 
 msgid "Other"
 msgstr "Anders"
@@ -4075,31 +4122,34 @@ msgid "Filament Manager"
 msgstr "Filamentbeheer"
 
 msgid "In printer"
-msgstr ""
+msgstr "In de printer"
 
 #, c-format, boost-format
 msgid "In printer: %s"
-msgstr ""
+msgstr "In de printer: %s"
 
 msgctxt "Filament Manager"
 msgid "Note"
 msgstr "Notitie"
 
 msgid "Unsupported Filaments"
-msgstr ""
+msgstr "Niet-ondersteunde filamenten"
 
 msgctxt "Unsupported Filaments"
 msgid "Note"
 msgstr "Notitie"
 
 msgid "No unsupported filaments"
-msgstr ""
+msgstr "Geen niet-ondersteunde filamenten"
 
 msgid "No filaments"
-msgstr ""
+msgstr "Geen filamenten"
 
 msgid "System presets"
 msgstr "Systeem voorinstellingen"
+
+msgid "Recently used"
+msgstr "Recent gebruikt"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4122,22 +4172,22 @@ msgid "Custom Color"
 msgstr "Aangepaste kleur"
 
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS heeft een nieuw officieel filament gedetecteerd. Wilt u dit toevoegen aan Filament Manager?"
 
 msgid "Add as new filament"
-msgstr ""
+msgstr "Toevoegen als nieuw filament"
 
 msgid "Link to existing filament"
-msgstr ""
+msgstr "Koppelen aan bestaand filament"
 
 msgid "Not now"
-msgstr ""
+msgstr "Nu niet"
 
 msgid "Please select"
-msgstr ""
+msgstr "Selecteer alstublieft"
 
 msgid "No matching filament"
-msgstr ""
+msgstr "Geen overeenkomend filament"
 
 msgid "Dynamic flow calibration"
 msgstr "Dynamische flow kalibratie"
@@ -4645,11 +4695,11 @@ msgstr ""
 "Terugzetten naar 0.2mm"
 
 msgid ""
-"Should not large than layer height.\n"
+"Should not be larger than layer height.\n"
 "Reset to 10%"
 msgstr ""
-"Mag niet groter zijn dan de laaghoogte.\n"
-"Teruggezet naar 10%"
+"Mag niet groter zijn dan de laagdikte.\n"
+"Reset naar 10%"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5623,22 +5673,6 @@ msgstr "De volgende objecten worden over de grens van de plaat gelegd of oversch
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Los het probleem op door het volledig op of van de plaat te verplaatsen en te bevestigen dat de hoogte binnen het bouwvolume valt.\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "Het begrenzingsvak van de assembly is te groot (maximale grootte >= %1% in ), wat weergaveproblemen kan veroorzaken.\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "Het begrenzingsvak van de assemblage is te groot (maximale grootte >= %1% mm), wat renderingproblemen kan veroorzaken.\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "De volgende objecten zijn te ver ( afstand >= %1% in ) van het origineel van het wereldcoördinatensysteem:\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "De volgende objecten zijn te ver ( afstand >= %1% mm ) van het origineel van het wereldcoördinatenstelsel:\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "De positie of grootte van sommige modellen overschrijdt het printbereik van %s."
@@ -5778,6 +5812,12 @@ msgstr "Montage terug"
 msgid "return"
 msgstr "terug"
 
+msgid "Exit current gizmo editing"
+msgstr "Sluit het bewerken van de huidige gizmo af"
+
+msgid "Return to prepare view"
+msgstr "Ga terug naar de voorbereidingsweergave"
+
 msgid "Fit camera"
 msgstr "Camera passen"
 
@@ -5880,6 +5920,9 @@ msgstr "filamenten %s kunnen niet rechtstreeks op het oppervlak van deze plaat w
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "PLA- en PETG-filamenten gedetecteerd in het mengsel. Pas de parameters aan volgens Wiki om de afdrukkwaliteit te garanderen."
 
+msgid "Detected brittle filament (e.g., PPS-CF). Please place the models at the center of the heated bed. Printing near the edge may cause the filament to bend excessively and break inside the tube."
+msgstr "Broos filament gedetecteerd (bijv. PPS-CF). Plaats de modellen in het midden van het verwarmde printbed. Afdrukken aan de rand kan ertoe leiden dat het filament te veel buigt en in de buis breekt."
+
 msgid "The prime tower improves multi-color print quality and is recommended."
 msgstr "De prime tower verbetert de afdrukkwaliteit bij meerkleurige prints en wordt aanbevolen."
 
@@ -5891,6 +5934,9 @@ msgstr "De gedeeltelijke spoelvolume is ingesteld op 0. Meerkleurig printen kan 
 
 msgid "Click Wiki for help."
 msgstr "Klik op Wiki voor hulp."
+
+msgid "Click Wiki for details."
+msgstr "Klik op Wiki voor meer informatie."
 
 msgid "Jump to: Prime tower"
 msgstr "Ga naar: prime tower"
@@ -6195,6 +6241,12 @@ msgstr "Bewaar project als"
 
 msgid "Save current project as"
 msgstr "Bewaar huidig project als"
+
+msgid "Show Project in Folder"
+msgstr "Toon het project in de map"
+
+msgid "Show current project in folder"
+msgstr "Toon het huidige project in de map"
 
 msgid "Import 3MF/STL/STEP/SVG/OBJ/AMF"
 msgstr "3MF/STL/STEP/SVG/OBJ/AMF importeren"
@@ -6737,8 +6789,8 @@ msgstr "Mislukt bij het ophalen van modelgegevens van de printer."
 msgid "Failed to parse model information."
 msgstr "Mislukt bij het parsen van modelinformatie."
 
-msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
-msgstr "Het .gcode.3mf bestand bevat geen G-code gegevens. Snijd het bestand in met BambuStudio en exporteer een nieuw .gcode.3mf bestand."
+msgid "The .gcode.3mf file contains no G-code data. Please slice it with Bambu Studio and export a new .gcode.3mf file."
+msgstr "Het .gcode.3mf-bestand bevat geen G-codegegevens. Slice het met Bambu Studio en exporteer een nieuw .gcode.3mf-bestand."
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -7482,6 +7534,9 @@ msgstr "Open link voor meer info"
 msgid "Warning:"
 msgstr "Waarschuwing:"
 
+msgid "Wiki for details."
+msgstr ""
+
 msgid "Export successfully."
 msgstr "Succesvol exporteren."
 
@@ -7757,10 +7812,10 @@ msgid "Printer settings"
 msgstr "Printer instellingen"
 
 msgid "At least one plate is required"
-msgstr ""
+msgstr "Er is minimaal één plaat nodig"
 
 msgid "Remove current plate"
-msgstr ""
+msgstr "Verwijder de huidige plaat"
 
 msgid "Auto orient objects on current plate"
 msgstr "Objecten automatisch oriënteren op de huidige plaat"
@@ -7782,10 +7837,6 @@ msgstr "Huidige plaatnaam bewerken"
 
 msgid "Customize current plate"
 msgstr "Huidig plaat aanpassen"
-
-#, c-format, boost-format
-msgid "%s is not compatible with %s nozzle."
-msgstr ""
 
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
@@ -8048,11 +8099,14 @@ msgstr "Zijbalk samenvouwen"
 msgid "Loading file: %s"
 msgstr "Bestand laden: %s"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "De 3mf is niet van Bambu Lab, laadt alleen geometriegegevens."
+msgid "The 3mf file has invalid config, load geometry data only"
+msgstr "Het 3mf-bestand bevat een ongeldige configuratie; alleen de geometriegegevens worden geladen"
 
 msgid "Load 3mf"
 msgstr "Laad 3mf"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data only."
+msgstr "De 3mf is niet van Bambu Lab, laadt alleen geometriegegevens."
 
 msgid "The Config can not be loaded."
 msgstr "De configuratie kan niet worden geladen."
@@ -8308,9 +8362,6 @@ msgstr "Je hebt meerdere materialen geselecteerd: %s"
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
 msgstr "Opmerking: niet-ondersteunde materialen gebruiken het geselecteerde referentiemateriaal voor simulatie."
 
-msgid "True multi-material support will be added in a future update."
-msgstr "Echte ondersteuning voor meerdere materialen wordt in een toekomstige update toegevoegd."
-
 msgid "Option 1: Proceed using a single filament type"
 msgstr "Optie 1: Doorgaan met het gebruik van één type filament"
 
@@ -8337,6 +8388,12 @@ msgstr "Zie de ondersteunde materialen"
 
 msgid "Go Back"
 msgstr "Ga terug"
+
+msgid "Option 3: Enable multi-material optimization"
+msgstr "Optie 3: Optimalisatie van meerdere materialen inschakelen"
+
+msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
+msgstr "Klik op het pictogram van derden → Schakel Helio Additive in → Vink de optie \"Experimenteel: ondersteuning voor meerdere materialen inschakelen\" aan"
 
 msgid "Unsupported Materials Detected"
 msgstr "Niet-ondersteunde materialen gedetecteerd"
@@ -8373,6 +8430,15 @@ msgstr "Gegevens synchroniseren"
 
 msgid "Refreshing printer and material data..."
 msgstr "Printer- en materiaalgegevens vernieuwen..."
+
+msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
+msgstr "Helio kon niet alle printer- en materiaalgegevens vernieuwen. De vorige volledige gegevens blijven wel beschikbaar."
+
+msgid "Helio could not load complete printer and material data. Matching remains paused."
+msgstr "Helio kon de volledige printer- en materiaalgegevens niet laden. Het matchen wordt gepauzeerd."
+
+msgid "Helio Data Refresh Failed"
+msgstr "Helio-gegevens konden niet worden vernieuwd"
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Een Helio-simulatie- of optimalisatietaak is bezig."
@@ -8496,6 +8562,12 @@ msgstr "Zie ondersteunde printers"
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "Klik op de knop Optimaliseren/Verbeteren om je eerste optimalisatie te starten."
 
+msgid "Previous Helio action is still stopping; try again shortly"
+msgstr "De vorige actie van Helio wordt nog afgerond; probeer het later opnieuw"
+
+msgid "Helio Additive"
+msgstr "Helio-additief"
+
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
@@ -8520,6 +8592,12 @@ msgstr "De printerlijst en materiaal lijst worden gesynchroniseerd. Probeer het 
 
 msgid "Synchronizing Helio"
 msgstr "Helio synchroniseren"
+
+msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
+msgstr "Helio kon de lijsten met ondersteunde printers en materialen niet laden. Het matchen is gepauzeerd om te voorkomen dat onbeschikbare gegevens als niet-ondersteund materiaal worden behandeld."
+
+msgid "Helio Data Load Failed"
+msgstr "Helio-gegevens konden niet worden geladen"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Los aub de slicing fouten op en publiceer opnieuw."
@@ -8724,10 +8802,10 @@ msgid "Negative parts detected. Would you like to perform mesh boolean before ex
 msgstr "Negatieve delen gedetecteerd. Wil je mesh booleaans uitvoeren voordat je exporteert?"
 
 msgid "Failed to save the project: an invalid setting value was found while writing the file."
-msgstr ""
+msgstr "Project opslaan mislukt: ongeldige instellingswaarde gevonden tijdens het schrijven van het bestand."
 
 msgid "Please check your settings and try again."
-msgstr ""
+msgstr "Controleer je instellingen en probeer het opnieuw."
 
 msgid ""
 "Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
@@ -8743,6 +8821,9 @@ msgstr "Het wordt niet aanbevolen om PVA-filamenten met nozzles van 0,2 mm te ge
 
 msgid "Are you sure to use them? \n"
 msgstr "Weet u zeker dat u ze gaat gebruiken? \n"
+
+msgid "When thermal preconditioning is enabled, duration auto-adjusts to the model's position for optimal first-layer quality; the farther from the center, the longer it takes. White boxes mark the boundary lines. To disable the guidelines and this warning, go to Preferences > 3D."
+msgstr ""
 
 msgid "Send G-code"
 msgstr "Verstuur G-code"
@@ -8920,7 +9001,7 @@ msgstr ""
 "Doorgaan met het inschakelen van deze functie?"
 
 msgid "Download path"
-msgstr ""
+msgstr "Downloadpad"
 
 msgid "Choose Download Directory"
 msgstr "Kies Downloadmap"
@@ -8942,7 +9023,7 @@ msgid "Other"
 msgstr "Anders"
 
 msgid "Developer Tools"
-msgstr ""
+msgstr "Ontwikkelaarstools"
 
 msgid "General Settings"
 msgstr "Algemene instellingen"
@@ -9024,7 +9105,7 @@ msgid "Learn more"
 msgstr "Leer meer"
 
 msgid "User Settings"
-msgstr ""
+msgstr "Gebruikersinstellingen"
 
 msgid "Auto plate type"
 msgstr "Type automatische plaat"
@@ -9033,13 +9114,13 @@ msgid "Studio will remember build plate selected last time for certain printer m
 msgstr "Studio will remember build plate selected last time for certain printer models."
 
 msgid "12-hour"
-msgstr ""
+msgstr "12-uurs"
 
 msgid "24-hour"
-msgstr ""
+msgstr "24-uurs"
 
 msgid "time format for print progress"
-msgstr ""
+msgstr "tijdformaat voor afdrukvoortgang"
 
 msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
 msgstr "Toontijd in 12-uursnotatie met AM/PM in plaats van 24-uursnotatie"
@@ -9119,6 +9200,12 @@ msgstr "Shells altijd weergeven in preview"
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Hiermee geeft u aan of shells altijd wel of niet worden weergegeven in het voorbeeldtabblad. Als u deze waarde wijzigt, moet u opnieuw slicen."
 
+msgid "Show Thermal Preconditioning Area"
+msgstr "Thermisch voorverwarmingsgebied tonen"
+
+msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
+msgstr "Waarschuw als een model buiten het thermische voorverwarmingsgebied uitsteekt. Alleen beschikbaar op printers die deze functie ondersteunen."
+
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Het dialoogvenster voor het instellen van de stapmaasparameter weergeven."
 
@@ -9138,7 +9225,7 @@ msgid "Perform gamma correction on color after importing the obj model."
 msgstr "Voer een gammacorrectie uit op kleur na het importeren van het obj-model."
 
 msgid "Remember last used color scheme"
-msgstr "Laat laatste gebruikte kleurenschema onthouden"
+msgstr "Onthoud laatst gebruikte kleurenschema"
 
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "Wanneer ingeschakeld, wordt het laatst gebruikte kleurenschema (bijv. Lijntype, Snelheid) automatisch toegepast bij de volgende opstart."
@@ -9177,31 +9264,31 @@ msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "No warnings when loading 3MF with modified G-code"
 
 msgid "10 seconds"
-msgstr ""
+msgstr "10 seconden"
 
 msgid "20 seconds"
-msgstr ""
+msgstr "20 seconden"
 
 msgid "30 seconds"
-msgstr ""
+msgstr "30 seconden"
 
 msgid "1 minute"
-msgstr ""
+msgstr "1 minuut"
 
 msgid "2 minutes"
-msgstr ""
+msgstr "2 minuten"
 
 msgid "5 minutes"
-msgstr ""
+msgstr "5 minuten"
 
 msgid "10 minutes"
-msgstr ""
+msgstr "10 minuten"
 
 msgid "30 minutes"
-msgstr ""
+msgstr "30 minuten"
 
 msgid "never"
-msgstr ""
+msgstr "nooit"
 
 msgid "Auto-Backup"
 msgstr "Automatisch backup maken"
@@ -9219,13 +9306,16 @@ msgid "Show history on the home page"
 msgstr "Geschiedenis weergeven op de startpagina"
 
 msgid "Developer Mode"
-msgstr ""
+msgstr "Ontwikkelaarsmodus"
 
 msgid "Develop mode"
 msgstr "Ontwikkelmodus"
 
 msgid "Skip AMS blacklist check"
 msgstr "De controle op de zwarte lijst van AMS overslaan"
+
+msgid "Enable DevTools For Webview"
+msgstr ""
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Bestanden koppelen aan Bambu Studio"
@@ -9306,16 +9396,16 @@ msgid "Switch cloud environment, Please login again!"
 msgstr "Wissel cloudomgeving, Log opnieuw in!"
 
 msgid "Reset all warning dialogs"
-msgstr ""
+msgstr "Alle waarschuwingsvensters resetten"
 
 msgid "Reset preferences"
-msgstr ""
+msgstr "Voorkeuren opnieuw instellen"
 
 msgid "All warning dialogs that you have disabled by checking \"Don't show again\" are now re-enabled and will show next time they apply."
-msgstr ""
+msgstr "Alle waarschuwingsvensters die u hebt uitgeschakeld door \"Niet meer weergeven\" aan te vinken, zijn nu weer ingeschakeld en worden de volgende keer dat ze van toepassing zijn, weergegeven."
 
 msgid "Check details"
-msgstr ""
+msgstr "Controleer de details"
 
 msgid ""
 "- Sync printer presets after loading a file\n"
@@ -9325,9 +9415,15 @@ msgid ""
 "- Unsaved projects.\n"
 "- Mixed color sublayer with variable layer height warning"
 msgstr ""
+"- Printervoorinstellingen synchroniseren na het laden van een bestand\n"
+"- Instellingen in het dialoogvenster \"3MF laden\"\n"
+"- Nabewerkingsscripts uitvoeren\n"
+"- Melding met aanbeveling voor ondersteuningsstructuur\n"
+"- Niet-opgeslagen projecten.\n"
+"- Waarschuwing voor gemengde kleursublaag met variabele laagdikte"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
-msgstr ""
+msgstr "Weet u zeker dat u alle voorkeuren wilt resetten? De wijzigingen worden na een herstart van kracht."
 
 msgid "User presets"
 msgstr "Gebruikersvoorinstellingen"
@@ -9604,6 +9700,9 @@ msgstr "Bambu Koelplaat SuperTack"
 msgid "Send print job"
 msgstr "Afdruktaak verzenden"
 
+msgid "The current estimated time has been recalculated based on the actual filament mapping."
+msgstr "De huidige geschatte tijd is herberekend op basis van de werkelijke filamenttoewijzing."
+
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Niet tevreden met de groepering van filamenten? Hergroepeer en snijd in plakjes ->"
 
@@ -9829,20 +9928,8 @@ msgstr "Wacht even alstublieft..."
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
 msgstr "De printkop en het hot-end rek zijn vol. Verwijder minimaal één hot-end voordat u gaat printen."
 
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "De instelling van het nozzle debiet van %s(%s) komt niet overeen met het snijbestand(%s). Controleer of de geïnstalleerde nozzle overeenkomt met de instellingen in de printer en stel vervolgens de bijbehorende voorinstelling van de printer in tijdens het slicen."
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "Tips: Als je de nozzle van je printer onlangs hebt gewijzigd, ga dan naar 'Apparaat -> Printeronderdelen' om de instelling van de nozzle te wijzigen."
-
-#, c-format, boost-format
-msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr "De %s diameter (%.1f mm) van de huidige printer komt niet overeen met het snijbestand (%.1f mm). Controleer of de geïnstalleerde nozzle overeenkomt met de instellingen in de printer en stel vervolgens de bijbehorende voorinstelling van de printer in tijdens het slicen."
-
-#, c-format, boost-format
-msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr "De huidige nozzle diameter (%.1fmm) komt niet overeen met het snijbestand (%.1fmm). Controleer of de geïnstalleerde nozzle overeenkomt met de instellingen in de printer en stel vervolgens de corresponderende voorinstelling van de printer in tijdens het slicen."
+msgid "The nozzle type doesn't match. Please re-slice."
+msgstr "Het nozzle-type komt niet overeen. Voer de slicing opnieuw uit."
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "De filamentwisselaar die op de printer is geïnstalleerd, komt niet overeen met het slicingbestand. Snijd opnieuw om problemen met de printkwaliteit te voorkomen."
@@ -9883,7 +9970,7 @@ msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the 
 msgstr "Als 'Dynamische flowkalibratie' is ingesteld op Auto/Aan, gebruikt het systeem de handmatige kalibratiewaarde of de standaardwaarde en slaat het de flowkalibratie over. Je kunt een handmatige flowkalibratie voor TPU-filament uitvoeren op de pagina 'Kalibratie'."
 
 msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-msgstr ""
+msgstr "Het filament in de AMS kan ontoereikend zijn voor deze print. Vul het alstublieft bij of vervang het."
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Sommige filamenten kunnen tijdens het printen wisselen tussen extruders. Handmatige K-waarde kalibratie kan niet gedurende de gehele print worden toegepast, wat de printkwaliteit kan beïnvloeden. Het inschakelen van Kalibratie van de doorvoerdynamica wordt aanbevolen."
@@ -9906,8 +9993,11 @@ msgstr "Koel (Supertack)"
 msgid "Click here if you can't connect to the printer"
 msgstr "Klik hier als je geen verbinding kunt maken met de printer"
 
-msgid "Sliced file"
-msgstr "Gesliced bestand"
+msgid "Slice file"
+msgstr "Bestand slicen"
+
+msgid "The connected printer"
+msgstr "De aangesloten printer"
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Geen login-account, alleen printers in LAN-modus worden weergegeven"
@@ -10173,8 +10263,32 @@ msgstr "Klik om meer te lezen"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Klik om alle instellingen terug te zetten naar de laatst opgeslagen voorinstelling."
 
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+"Bij gebruik van oplosbaar supportmateriaal raden we de volgende instellingen aan:\n"
+"top-z-afstand op 0, bodem-z-afstand op 0, interface-afstand op 0, support/object-xy-afstand op 0; verstrengeld rechthoekig \n"
+"patroon, schakel onafhankelijke support-laaghoogte uit, en gebruik oplosbare materialen voor zowel de support-interface als de support-basis"
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+"Als je oplosbaar materiaal gebruikt voor de support, raden we de volgende instellingen aan:\n"
+"0 top z afstand, 0 interface afstand, 0 support/object xy afstand, interlaced rectilinear patroon, schakel uit \n"
+"onafhankelijke laaghoogte voor support en gebruik oplosbare materialen voor zowel support interface als support basis"
+
 msgid "Support interface speed"
 msgstr "Support-interface snelheid"
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr "Wanneer u support-materiaal gebruikt voor de support-interface, raden we de volgende instellingen aan:"
+
+msgid "Do you want to apply these settings?"
+msgstr "Wilt u deze instellingen toepassen?"
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Prime tower is vereist voor het wisselen van de nozzle. Er kunnen fouten in het model zitten zonder prime tower. Weet je zeker dat je prime tower wilt uitschakelen?"
@@ -10199,8 +10313,14 @@ msgstr ""
 "De geselecteerde printer heeft een maximale bedtemperatuur van %d°C.\n"
 "Het instellen van een hogere bedtemperatuur kan de printer beschadigen."
 
+msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
+msgstr "Soepele timelapse vereist een prime tower op elke laag, wat niet compatibel is met \"No sparse layers\". \"No sparse layers\" is uitgeschakeld."
+
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "De prime tower is vereist voor een vloeiende timelapse. Zonder prime tower kunnen er fouten in het model zitten. Wil je prime tower inschakelen?"
+
+msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
+msgstr "\"No sparse layers\" is niet compatibel met soepele timelapse, waarvoor een prime tower op elke laag nodig is. Timelapse is overgeschakeld op de traditionele modus."
 
 msgid "Still print by object?"
 msgstr "Print je nog steeds per object?"
@@ -10221,15 +10341,6 @@ msgstr ""
 "0 top z-afstand, 0 interfaceafstand, 0 support/object xy-afstand, interlaced rectilinear-patroon, schakel onafhankelijke supportlaaghoogte uit en gebruik PLA voor zowel supportinterface als supportbasis"
 
 msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"Als je oplosbaar materiaal gebruikt voor de support, raden we de volgende instellingen aan:\n"
-"0 top z afstand, 0 interface afstand, 0 support/object xy afstand, interlaced rectilinear patroon, schakel uit \n"
-"onafhankelijke laaghoogte voor support en gebruik oplosbare materialen voor zowel support interface als support basis"
-
-msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
@@ -10245,15 +10356,6 @@ msgstr "Bij gebruik van %s ter ondersteuning van %s raden we de volgende instell
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "Bij gebruik van PLA ter ondersteuning van TPU raden we de volgende instellingen aan:"
 
-msgid "When using soluble material for the support interface, We recommend the following settings:"
-msgstr "Wanneer oplosbaar materiaal wordt gebruikt voor de support-interface, raden we de volgende instellingen aan:"
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr "Wanneer u support-materiaal gebruikt voor de support-interface, raden we de volgende instellingen aan:"
-
-msgid "Do you want to apply these settings?"
-msgstr "Wilt u deze instellingen toepassen?"
-
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -10261,8 +10363,8 @@ msgstr ""
 "Laaghoogte is te klein.\n"
 "Het wordt ingesteld op min_layer_height\n"
 
-msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
-msgstr "De laaghoogte overschrijdt de limiet in Printerinstellingen -> Extruder -> Laaghoogtelimieten, dit kan problemen met de afdrukkwaliteit veroorzaken."
+msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
+msgstr "De laagdikte overschrijdt de limiet in Printerinstellingen -> Extruder -> Laagdiktelimieten. Dit kan problemen met de afdrukkwaliteit veroorzaken."
 
 msgid "Adjust to the set range automatically? \n"
 msgstr "Automatisch aanpassen aan het ingestelde bereik? \n"
@@ -10326,7 +10428,7 @@ msgid "This is the speed for various overhang degrees. Overhang degrees are expr
 msgstr "Dit is de snelheid voor diverse overhanggraden. Overhanggraden worden uitgedrukt als een percentage van de laag breedte. 0 betekend dat er niet afgeremd wordt voor overhanggraden en dat dezelfde snelheid als voor wanden gebruikt wordt."
 
 msgid "Travel speed"
-msgstr "Verplaatsing-snelheid"
+msgstr "Verplaatsing-sneleheid"
 
 msgid "Acceleration"
 msgstr "Versnelling"
@@ -10546,6 +10648,9 @@ msgstr "Spoelmodus: Snel"
 msgid "Printable space"
 msgstr "Ruimte waarbinnen geprint kan worden"
 
+msgid "AMS filament load/unload time"
+msgstr "AMS filament laad-/lostijd"
+
 msgid "Extruder Clearance"
 msgstr "Extruder ruimte"
 
@@ -10611,6 +10716,12 @@ msgstr "Limieten voor laaghoogte"
 
 msgid "Retraction when switching material"
 msgstr "Terugtrekken (retraction) bij het wisselen van filament"
+
+msgid "Load time"
+msgstr "Laadtijd"
+
+msgid "Unload time"
+msgstr "Lostijd"
 
 msgid ""
 "The Wipe option is not available when using the Firmware Retraction mode.\n"
@@ -10948,6 +11059,9 @@ msgstr "Textuurimport is tijdelijk niet beschikbaar, gedeeltelijke inkleuring wo
 msgid " And "
 msgstr " En "
 
+msgid "Note"
+msgstr "Notitie"
+
 msgid "The color has been selected, you can choose OK to continue or manually adjust it."
 msgstr "De kleur is geselecteerd; u kunt OK kiezen om door te gaan of handmatig aan te passen."
 
@@ -11029,6 +11143,9 @@ msgstr ""
 msgid "Use AMS"
 msgstr "Gebruik AMS"
 
+msgid "Tip"
+msgstr ""
+
 msgid "Only synchronize filament type and color, not including AMS slot information."
 msgstr "Alleen het type en de kleur van het filament synchroniseren, niet de informatie over AMS-sleuven."
 
@@ -11068,6 +11185,10 @@ msgstr "Alleen het type en de kleur van de gloeidraad synchroniseren, niet de in
 msgid "Ext spool"
 msgstr "Ext spoel"
 
+#, c-format, boost-format
+msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+msgstr "De instelling van het nozzle debiet van %s(%s) komt niet overeen met het snijbestand(%s). Controleer of de geïnstalleerde nozzle overeenkomt met de instellingen in de printer en stel vervolgens de bijbehorende voorinstelling van de printer in tijdens het slicen."
+
 msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
 msgstr "Controleer of het nozzletype van het apparaat hetzelfde is als het vooraf ingestelde nozzletype."
 
@@ -11080,6 +11201,9 @@ msgstr "Timelapse wordt niet ondersteund omdat Afdruksequentie is ingesteld op \
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
 msgstr "In een extruder heb je tegelijkertijd extern en AMS-filament geselecteerd; U moet het externe filament handmatig wijzigen."
+
+msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+msgstr "Tips: Als je de nozzle van je printer onlangs hebt gewijzigd, ga dan naar 'Apparaat -> Printeronderdelen' om de instelling van de nozzle te wijzigen."
 
 msgid "Successfully synchronized nozzle information."
 msgstr "Succesvol gesynchroniseerde nozzle-informatie."
@@ -11457,11 +11581,11 @@ msgstr "Waar vind je het IP-adres en de toegangscode van je printer?"
 msgid "Connect"
 msgstr "Verbinden"
 
-msgid "IP and Access Code Verified! You may close the window"
-msgstr "IP en toegangscode geverifieerd! U kunt het venster sluiten"
-
 msgid "connecting..."
 msgstr "verbinden..."
+
+msgid "IP and Access Code Verified! You may close the window"
+msgstr "IP en toegangscode geverifieerd! U kunt het venster sluiten"
 
 msgid "Failed to connect to printer."
 msgstr "Kan geen verbinding maken met de printer."
@@ -11548,9 +11672,6 @@ msgstr "Verwijder Helio Additive"
 msgid "Legal & Activation Terms"
 msgstr "Juridische en activeringsvoorwaarden"
 
-msgid "Got it"
-msgstr "Ik heb het"
-
 msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
 msgstr "Kon Helio PAT niet verkrijgen, klik op Vernieuwen om het opnieuw te verkrijgen."
 
@@ -11565,9 +11686,6 @@ msgstr "Software Servicevoorwaarden & Condities"
 
 msgid "^"
 msgstr ""
-
-msgid "Helio Additive"
-msgstr "Helio-additief"
 
 msgid "Helio Additive Privacy Agreement"
 msgstr "Privacyovereenkomst van Helio Additive"
@@ -11960,6 +12078,9 @@ msgstr "Verbeter snelheid en kwaliteit"
 msgid "Applies Helio's optimized speed/flow/fan strategy."
 msgstr "Past Helio's geoptimaliseerde snelheid/doorvoer/ventilator-strategie toe."
 
+msgid "Save the simulated sliced 3MF locally"
+msgstr "Sla de gesimuleerde geslicede 3MF lokaal op"
+
 msgid "✅ Will Print"
 msgstr "✅ Zal printen"
 
@@ -12179,6 +12300,12 @@ msgstr "Open G-code bestand:"
 msgid "Print task sending times out."
 msgstr "Het verzenden van de printtaak loopt uit."
 
+msgid "Sending print job with LAN acceleration"
+msgstr "Printtaak versneld verzenden via LAN"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "Verzenden via cloudservice mislukt. Printtaak wordt via LAN verzonden, zonder de printgeschiedenis."
+
 msgid "Sending print configuration"
 msgstr "Print configuratie verzenden"
 
@@ -12189,6 +12316,9 @@ msgstr "Succesvol verzonden. Springt automatisch naar de apparaatpagina in %ss"
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Succesvol verzonden. Springt automatisch naar de volgende pagina in %ss"
+
+msgid "Refreshing printer access code"
+msgstr "Toegangscode voor printer vernieuwen"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "Het volgende object heeft een lege beginlaag en kan niet worden afgedrukt. Knip de bodem bij of schakel ondersteuningen in."
@@ -12537,6 +12667,9 @@ msgstr "Skirt en brim worden gegenereerd"
 
 msgid "Generating G-code"
 msgstr "Genereer G-code"
+
+msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
+msgstr "De relatieve positie van het model en de prime tower voldoet niet aan de vereisten van de functie 'Geen dunne lagen'. Pas hun relatieve posities aan, verlaag de modelhoogte, of schakel 'Geen dunne lagen' uit."
 
 msgid "Failed processing of the filename_format template."
 msgstr "Mislukte verwerking van de bestandsnaam_opmaak sjabloon."
@@ -13409,6 +13542,48 @@ msgstr "Tijd die nodig is om filament te ontladen"
 
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "Tijd om oud filament te ontladen wanneer het filament wordt gewisseld. Alleen voor statistieken"
+
+msgid "AMS filament load time"
+msgstr "AMS filament laadtijd"
+
+msgid "Filament load time when printing with an AMS. For statistics only"
+msgstr "Filament laadtijd bij printen met een AMS. Uitsluitend voor statistische doeleinden"
+
+msgid "AMS Lite filament load time"
+msgstr "AMS Lite filament laadtijd"
+
+msgid "Filament load time when printing with an AMS Lite. For statistics only"
+msgstr "Filament laadtijd bij printen met een AMS Lite. Uitsluitend voor statistische doeleinden"
+
+msgid "N3F/N3S filament load time"
+msgstr "N3F/N3S filament laadtijd"
+
+msgid "Filament load time when printing with an N3F or N3S. For statistics only"
+msgstr "Filament laadtijd bij printen met een N3F of N3S. Uitsluitend voor statistische doeleinden"
+
+msgid "AMS filament unload time"
+msgstr "AMS filament lostijd"
+
+msgid "Filament unload time when printing with an AMS. For statistics only"
+msgstr "Filament lostijd bij printen met een AMS. Uitsluitend voor statistische doeleinden"
+
+msgid "AMS Lite filament unload time"
+msgstr "AMS Lite filament lostijd"
+
+msgid "Filament unload time when printing with an AMS Lite. For statistics only"
+msgstr "Filament lostijd bij printen met een AMS Lite. Uitsluitend voor statistische doeleinden"
+
+msgid "N3F/N3S filament unload time"
+msgstr "N3F/N3S filament lostijd"
+
+msgid "Filament unload time when printing with an N3F or N3S. For statistics only"
+msgstr "Filament lostijd bij printen met een N3F of N3S. Uitsluitend voor statistische doeleinden"
+
+msgid "Default AMS type"
+msgstr "Standaard AMS-type"
+
+msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
+msgstr "Het standaard AMS-type dat wordt gebruikt voor het schatten van de filament laad-/lostijd, wordt opgeslagen als de enum-waarde van het AMS-timingtype. Deze waarde is afkomstig uit printerpreset en geeft niet weer welke AMS momenteel op de machine is aangesloten."
 
 msgid "Extruder switch time"
 msgstr "Schakeltijd extruder"
@@ -14875,6 +15050,12 @@ msgstr "Start G-code bij het starten van de hele print"
 msgid "Start G-code when start the printing of this filament"
 msgstr "Start G-code bij het starten van het printen van dit filament"
 
+msgid "No sparse layers (experimental)"
+msgstr "Geen spaarzame lagen (experimenteel)"
+
+msgid "If enabled, the wipe tower will not be printed on layers with no toolchanges. On layers with a toolchange, extruder will travel downward to print the wipe tower. User is responsible for ensuring there is no collision with the print."
+msgstr "Indien ingeschakeld, wordt de wipe tower niet afgedrukt op lagen zonder toolwissel. Op lagen met een toolwissel beweegt de extruder naar beneden om de wipe tower af te drukken. De gebruiker is verantwoordelijk voor het voorkomen van botsingen met de afdruk."
+
 msgid "Slice gap closing radius"
 msgstr "Sluitingsradius van de gap"
 
@@ -15568,9 +15749,6 @@ msgid ""
 "XY Size compensation cannot be combined with fuzzy skin painting."
 msgstr "Een object heeft XY-formaatcompensatie ingeschakeld, maar deze wordt niet gebruikt omdat het ook een fuzzy skin-tekening heeft. XY-formaatcompensatie kan niet worden gecombineerd met fuzzy skin-tekening."
 
-msgid "Object name"
-msgstr "Objectnaam"
-
 msgid "Loading of a model file failed."
 msgstr "Het laden van een modelbestand is mislukt."
 
@@ -15591,6 +15769,21 @@ msgstr "Onbekend bestandsformaat: het invoerbestand moet de extensie.3mf of .zip
 
 msgid "Canceled"
 msgstr "Geannuleerd"
+
+msgid "Restoring support painting"
+msgstr "Supportbeschildering herstellen"
+
+msgid "Restoring seam painting"
+msgstr "Naadbeschildering herstellen"
+
+msgid "Restoring paint color"
+msgstr "Verfkleur herstellen"
+
+msgid "Restoring fuzzy skin"
+msgstr "Fuzzy skin herstellen"
+
+msgid "Restoring painting"
+msgstr "Beschildering herstellen"
 
 msgid "load_obj: failed to parse"
 msgstr "load_obj: kon niet parseren"
@@ -16935,7 +17128,7 @@ msgid "Need select printer"
 msgstr "Printer selecteren"
 
 msgid "Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid."
-msgstr ""
+msgstr "Het laden van de kalibratievoorinstellingen is mislukt. Controleer of de geselecteerde printer, nozzle en printprofielen geldig zijn."
 
 msgid "The start, end or step is not valid value."
 msgstr "Het begin, einde of stap is geen geldige waarde."
@@ -17280,20 +17473,53 @@ msgstr "Sterkteprofiel voor nozzle van 0,8 mm, waarbij kracht voorop staat."
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Standaardprofiel voor nozzle van 0,8 mm, waarbij snelheid voorop staat."
 
-msgid "Failed to create GCodeV2"
-msgstr "Kon GCodeV2 niet aanmaken"
+msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
+msgstr "Profiel met lagere acceleratie voor de 0,4mm nozzle. Gebruik dit als de printer op een wiebelig bureau of schap staat"
+
+msgid "Helio GCode status response is incomplete"
+msgstr "Reactie van Helio GCode-status is onvolledig"
+
+msgid "Helio GCode status response parse failed"
+msgstr "Reactie van Helio GCode-status kon niet worden geparseerd"
+
+msgid "Helio action canceled"
+msgstr "Helio-actie is geannuleerd"
+
+msgid "Helio GCode creation response is incomplete"
+msgstr "Reactie van Helio GCode-aanmaak is onvolledig"
 
 msgid "Failed to parse response"
 msgstr "Kon antwoord niet ontleden"
 
-msgid "Failed to create GCodeV3"
-msgstr "Kon GCodeV3 niet aanmaken"
+msgid "Helio GCode status check failed"
+msgstr "Helio GCode-statuscontrole is mislukt"
+
+msgid "Helio GCode creation timed out while checking status"
+msgstr "Helio GCode-aanmaak heeft een time-out gehad tijdens de statuscontrole"
+
+msgid "Failed to create Simulation"
+msgstr "Simulatie kon niet worden aangemaakt"
+
+msgid "Helio simulation response is incomplete"
+msgstr "Reactie van Helio-simulatie is onvolledig"
 
 msgid "Helio simulation task failed"
 msgstr "Helio simulatie taak mislukt"
 
+msgid "Helio simulation response parse failed"
+msgstr "Reactie van Helio-simulatie kon niet worden geparseerd"
+
+msgid "Failed to create Optimization"
+msgstr "Optimalisatie kon niet worden aangemaakt"
+
+msgid "Helio optimization response is incomplete"
+msgstr "Reactie van Helio-optimalisatie is onvolledig"
+
 msgid "Helio optimization task failed"
 msgstr "Helio optimalisatietaak mislukt"
+
+msgid "Helio optimization response parse failed"
+msgstr "Reactie van Helio-optimalisatie kon niet worden geparseerd"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API-eindpunt is leeg, controleer de configuratie alstublieft."
@@ -17310,8 +17536,8 @@ msgstr "Helio: bestand succesvol geüpload"
 msgid "Helio: file upload failed"
 msgstr "Helio: bestand upload mislukt"
 
-msgid "Please make sure you have the corrent API key set in preferences."
-msgstr "Zorg ervoor dat u de juiste API-sleutel in de voorkeuren hebt ingesteld."
+msgid "Please make sure you have the correct API key set in preferences."
+msgstr "Zorg ervoor dat de juiste API‑sleutel in de voorkeuren staat ingesteld."
 
 msgid "Helio: GCode created successfully"
 msgstr "Helio: GCode succesvol aangemaakt"
@@ -17319,14 +17545,14 @@ msgstr "Helio: GCode succesvol aangemaakt"
 msgid "Helio: simulation successfully created"
 msgstr "Helio: simulatie succesvol aangemaakt"
 
-msgid "Helio: simulation working"
-msgstr "Helio: simulatie actief"
+msgid "transient progress checks did not recover"
+msgstr "tijdelijke voortgangscontroles zijn niet hersteld"
 
 msgid "Helio: simulation failed"
 msgstr "Helio: simulatie mislukt"
 
-msgid "Helio: Simulation check failed"
-msgstr "Helio: simulatiecontrole mislukt"
+msgid "Helio: simulation working"
+msgstr "Helio: simulatie actief"
 
 msgid "Helio: Failed to create Simulation"
 msgstr "Helio: Simulatie kan niet worden gemaakt"
@@ -17337,17 +17563,11 @@ msgstr "Helio: Het is niet gelukt om GCode te maken"
 msgid "Helio: optimization successfully created"
 msgstr "Helio: optimalisatie succesvol aangemaakt"
 
-msgid "Helio: optimization working"
-msgstr "Helio: optimalisatie actief"
-
 msgid "Helio: optimization failed"
 msgstr "Helio: optimalisatie mislukt"
 
-msgid "Helio: Optimzaion check failed"
-msgstr "Helio: Optimzaion-controle mislukt"
-
-msgid "Helio: Failed to create Optimization"
-msgstr "Helio: Het is niet gelukt om optimalisatie aan te maken"
+msgid "Helio: optimization working"
+msgstr "Helio: optimalisatie actief"
 
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: GCode succesvol gedownload"
@@ -17985,12 +18205,6 @@ msgstr "Aanbevelingen voor het mengen"
 msgid "-- Select --"
 msgstr "-- Selecteer --"
 
-msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr "Voor het verloopeffect moet de optie 'Sublaag gemengde kleuren' zijn ingeschakeld. Wilt u deze nu inschakelen?"
-
-msgid "Mixed Color Sublayer"
-msgstr "Sublaag met gemengde kleur"
-
 #, c-format, boost-format
 msgid "Slot %s (%s)"
 msgstr ""
@@ -18014,56 +18228,62 @@ msgid "Remove the third material"
 msgstr "Verwijder het derde materiaal."
 
 msgid "Project Filament List"
-msgstr ""
+msgstr "Lijst met projectfilamenten"
 
 msgid "Standard Mode Recommendations"
-msgstr ""
+msgstr "Aanbevelingen voor de standaardmodus"
 
 msgid "Target Color"
-msgstr ""
+msgstr "Doelkleur"
 
 msgid "Select Color Decomposition"
-msgstr ""
+msgstr "Selecteer kleurontbinding"
 
 msgid "Arbitrary Mode"
-msgstr ""
+msgstr "Vrije modus"
 
 msgid "Material List"
-msgstr ""
+msgstr "Materiaallijst"
 
 msgid "Standard Mode"
 msgstr "Standaardmodus"
 
 msgid "At least two filaments of the same material type are required for decomposition"
-msgstr ""
+msgstr "Voor ontbinding zijn minstens twee filamenten van hetzelfde materiaaltype nodig"
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
-msgstr ""
+msgstr "De materiaallijst ondersteunt maximaal %1% kleuren. Na %2% ontbinding zou het aantal materialen %1% overschrijden. Verwijder ongebruikte filamenten op het hoofdscherm vóór het ontbinden."
 
 msgid "Cyan"
-msgstr ""
+msgstr "Cyaan"
 
 msgid "Magenta"
 msgstr ""
 
 msgid "Yellow"
-msgstr ""
+msgstr "Geel"
 
 msgid ", "
 msgstr ""
 
 msgid "The current filament list does not contain "
-msgstr ""
+msgstr "De huidige filamentlijst bevat geen "
 
 msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
-msgstr ""
+msgstr "Een projectfilament dat nodig is voor het gemengde filament wordt na ontbinding automatisch aangemaakt."
 
 msgid "Material Ratio"
 msgstr "Materiaalverhouding"
 
 msgid "Model Height"
 msgstr "Modelhoogte"
+
+msgid "Auxiliaries"
+msgstr "Hulpstructuren"
+
+msgid "An unexpected error occurred"
+msgstr "Onverwachte fout opgetreden"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -18360,6 +18580,160 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#~ msgid "Air Purifier"
+#~ msgstr "Luchtreiniger"
+
+#~ msgctxt "AirPurifier"
+#~ msgid "Max"
+#~ msgstr "Maximum"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "Het begrenzingsvak van de assembly is te groot (maximale grootte >= %1% in ), wat weergaveproblemen kan veroorzaken.\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "Het begrenzingsvak van de assemblage is te groot (maximale grootte >= %1% mm), wat renderingproblemen kan veroorzaken.\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "De volgende objecten zijn te ver ( afstand >= %1% in ) van het origineel van het wereldcoördinatensysteem:\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "De volgende objecten zijn te ver ( afstand >= %1% mm ) van het origineel van het wereldcoördinatenstelsel:\n"
+
+#~ msgid "Print queue"
+#~ msgstr "Afdrukwachtrij"
+
+#~ msgid "Add to queue"
+#~ msgstr "Toevoegen aan wachtrij"
+
+#~ msgid "Only the current sliced plate can be added to the print queue."
+#~ msgstr "Alleen de huidige gesneden plaat kan worden toegevoegd aan de printwachtrij."
+
+#~ msgid "Print immediately"
+#~ msgstr "Direct printen"
+
+#, c-format, boost-format
+#~ msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+#~ msgstr "Succesvol toegevoegd aan de printwachtrij. Springt automatisch naar de printwachtrijpagina in %ss"
+
+#~ msgid "Adding print job to queue"
+#~ msgstr "Printtaak toevoegen aan wachtrij"
+
+#, boost-format
+#~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+#~ msgstr "%1% is te dicht bij een gecompacteerde prime tower. De nozzle daalt af naar de tower op Z %2% mm terwijl het object al Z %3% mm bereikt, en de printkop heeft %4% mm horizontale speling nodig om erlangs te passeren, maar er is slechts %5% mm over. Schakel \"Geen spaarzame lagen\" uit, verplaats de prime tower, of verlaag het object."
+
+#, boost-format
+#~ msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
+#~ msgstr "%1% is te hoog om samen met een gecompacteerde prime tower te printen. De nozzle daalt af naar de tower op Z %2% mm terwijl het object al Z %3% mm bereikt, wat de speling van %4% mm overschrijdt. Schakel \"Geen spaarzame lagen\" uit of verlaag het object."
+
+#, boost-format
+#~ msgid "Plate %1%"
+#~ msgstr "Plaat %1%"
+
+#~ msgid "For more details, see the Wiki."
+#~ msgstr "Zie de Wiki voor meer informatie."
+
+#, c-format, boost-format
+#~ msgid "%s is not compatible with %s nozzle."
+#~ msgstr "%s is niet compatibel met %s nozzle."
+
+#~ msgid "True multi-material support will be added in a future update."
+#~ msgstr "Echte ondersteuning voor meerdere materialen wordt in een toekomstige update toegevoegd."
+
+#~ msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
+#~ msgstr "Wanneer Thermal Preconditioning for First Layer Optimization is ingeschakeld op de A2L-printer, wordt de voorconditioneringstijd automatisch aangepast op basis van de voetafdruk van het model om de beste eerste laag-kwaliteit te bereiken. Grotere voetafdrukken vereisen langere voorconditioneringstijden. De witte vakken geven de grenzen tussen verschillende voorconditioneringstijden aan."
+
+#~ msgid "Failed to create GCodeV2"
+#~ msgstr "Kon GCodeV2 niet aanmaken"
+
+#~ msgid "Failed to create GCodeV3"
+#~ msgstr "Kon GCodeV3 niet aanmaken"
+
+#~ msgid "Please make sure you have the corrent API key set in preferences."
+#~ msgstr "Zorg ervoor dat u de juiste API-sleutel in de voorkeuren hebt ingesteld."
+
+#~ msgid "Helio: Simulation check failed"
+#~ msgstr "Helio: simulatiecontrole mislukt"
+
+#~ msgid "Helio: Optimzaion check failed"
+#~ msgstr "Helio: Optimzaion-controle mislukt"
+
+#~ msgid "Helio: Failed to create Optimization"
+#~ msgstr "Helio: Het is niet gelukt om optimalisatie aan te maken"
+
+#~ msgid "Start your assembly journey from Add Step"
+#~ msgstr "Begin uw montageproces bij Stap toevoegen"
+
+#~ msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
+#~ msgstr "Er is momenteel geen stapkaart geselecteerd. Positieveranderende bewerkingen, zoals het verplaatsen van de gizmo, hebben invloed op de daadwerkelijke uiteindelijke assemblageweergave."
+
+#~ msgid "Copy current step"
+#~ msgstr "Huidige stap kopiëren"
+
+#~ msgid "Copy Step"
+#~ msgstr "Stap kopiëren"
+
+#~ msgid "Only copy steps. This is independent of the selected objects on the canvas."
+#~ msgstr "Alleen stappen kopiëren. Dit is onafhankelijk van de geselecteerde objecten op het canvas."
+
+#~ msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
+#~ msgstr "Positieveranderingen (bijv. het verplaatsen van de gizmo) die in het keyframe van de eindmontagestap worden aangebracht, hebben invloed op de uiteindelijke assemblageweergave."
+
+#~ msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
+#~ msgstr "Positieveranderingen (bijv. het verplaatsen van de gizmo) die in het keyframe van deze stap worden aangebracht, hebben geen invloed op de werkelijke assemblageweergave."
+
+#~ msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
+#~ msgstr "Indien nodig kunt u een relatief goede positie herstellen door nu op de knop \"werkelijke assemblagepositie toepassen\" te drukken."
+
+#~ msgid "undoing these edits is not yet supported and will be added in a later version."
+#~ msgstr "het ongedaan maken van deze wijzigingen wordt momenteel nog niet ondersteund en wordt in een latere versie toegevoegd."
+
+#~ msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
+#~ msgstr "Sommige objecten zijn in een eerder keyframe van de huidige stap gebruikt en worden hier niet uit elkaar gehaald. U kunt ze handmatig uit elkaar halen met het verplaatsingsgereedschap."
+
+#~ msgid "Automatically explode all objects."
+#~ msgstr "Alle objecten automatisch exploderen."
+
+#~ msgid "Automatically explode all parts."
+#~ msgstr "Alle onderdelen automatisch exploderen."
+
+#~ msgid ""
+#~ "Should not large than layer height.\n"
+#~ "Reset to 10%"
+#~ msgstr ""
+#~ "Mag niet groter zijn dan de laaghoogte.\n"
+#~ "Teruggezet naar 10%"
+
+#~ msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
+#~ msgstr "Het .gcode.3mf bestand bevat geen G-code gegevens. Snijd het bestand in met BambuStudio en exporteer een nieuw .gcode.3mf bestand."
+
+#, c-format, boost-format
+#~ msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+#~ msgstr "De %s diameter (%.1f mm) van de huidige printer komt niet overeen met het snijbestand (%.1f mm). Controleer of de geïnstalleerde nozzle overeenkomt met de instellingen in de printer en stel vervolgens de bijbehorende voorinstelling van de printer in tijdens het slicen."
+
+#, c-format, boost-format
+#~ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+#~ msgstr "De huidige nozzle diameter (%.1fmm) komt niet overeen met het snijbestand (%.1fmm). Controleer of de geïnstalleerde nozzle overeenkomt met de instellingen in de printer en stel vervolgens de corresponderende voorinstelling van de printer in tijdens het slicen."
+
+#~ msgid "Sliced file"
+#~ msgstr "Gesliced bestand"
+
+#~ msgid "When using soluble material for the support interface, We recommend the following settings:"
+#~ msgstr "Wanneer oplosbaar materiaal wordt gebruikt voor de support-interface, raden we de volgende instellingen aan:"
+
+#~ msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
+#~ msgstr "De laaghoogte overschrijdt de limiet in Printerinstellingen -> Extruder -> Laaghoogtelimieten, dit kan problemen met de afdrukkwaliteit veroorzaken."
+
+#~ msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+#~ msgstr "Voor het verloopeffect moet de optie 'Sublaag gemengde kleuren' zijn ingeschakeld. Wilt u deze nu inschakelen?"
+
+#~ msgid "Mixed Color Sublayer"
+#~ msgstr "Sublaag met gemengde kleur"
 
 #~ msgid "Show Current Step Objects Only"
 #~ msgstr "Alleen de objecten van de huidige stap weergeven"

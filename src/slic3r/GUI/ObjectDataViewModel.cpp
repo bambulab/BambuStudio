@@ -206,11 +206,13 @@ void ObjectDataViewModelNode::set_printable_icon(PrintIndicator printable)
                        create_scaled_bitmap(m_printable == piPrintable ? "check_on" : "check_off_focused");
 }
 
-void ObjectDataViewModelNode::set_variable_height_icon(VaryHeightIndicator vari_height) {
-    if (m_variable_height == vari_height)
-        return;
+bool ObjectDataViewModelNode::set_variable_height_icon(VaryHeightIndicator vari_height)
+{
+    if (m_variable_height == vari_height) return false;
+
     m_variable_height = vari_height;
     m_variable_height_icon = m_variable_height == hiUnVariable ? m_empty_bmp : create_scaled_bitmap("toolbar_variable_layer_height", nullptr, 20);
+    return true;
 }
 
 void ObjectDataViewModelNode::set_action_icon(bool enable)
@@ -2327,10 +2329,12 @@ wxDataViewItem ObjectDataViewModel::SetObjectPrintableState(
 wxDataViewItem ObjectDataViewModel::SetObjectVariableHeightState(VaryHeightIndicator vari_height, wxDataViewItem obj_item) {
 
     ObjectDataViewModelNode* node = static_cast<ObjectDataViewModelNode*>(obj_item.GetID());
-    if (!node)
-        return wxDataViewItem(0);
-    node->set_variable_height_icon(vari_height);
-    ItemChanged(obj_item);
+    if (!node) return wxDataViewItem(0);
+
+    // Only notify the view when the icon actually changed. On macOS ItemChanged
+    // forces NSOutlineView to reload and re-autosize every row, which dominates
+    // the main thread during arrow-key object moves where the state is unchanged.
+    if (node->set_variable_height_icon(vari_height)) ItemChanged(obj_item);
 
     return obj_item;
 }

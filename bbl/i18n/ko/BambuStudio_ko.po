@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 20:35+0800\n"
+"POT-Creation-Date: 2026-08-14 16:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -950,6 +950,9 @@ msgstr "다른 쪽에 파트 할당"
 msgid "Cut"
 msgstr "자르기"
 
+msgid "Cutting model object"
+msgstr "모델 객체 자르는 중"
+
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr "절삭 공구로 인해 가장자리가 벌어질 수 있습니다. 지금 수정하시겠어요?"
 
@@ -1323,6 +1326,9 @@ msgstr "평행 거리:"
 
 msgid "Flip by Face 2"
 msgstr "면 2 기준 뒤집기"
+
+msgid "Rotate the object on selected Face 2 around the perpendicular line of the selected plane"
+msgstr "선택한 평면에 수직인 선을 중심으로 선택한 면 2 위의 객체를 회전시킵니다."
 
 msgid "Assemble"
 msgstr "결합"
@@ -2049,6 +2055,12 @@ msgstr "Bambu Studio 버전이 너무 오래되어 클라우드 서비스를 사
 msgid "Your software certificate has been revoked, please update Bambu Studio software."
 msgstr "소프트웨어 인증서가 해지되었으니 Bambu Studio 소프트웨어를 업데이트하세요."
 
+msgid "Got it"
+msgstr "알겠습니다"
+
+msgid "Continue"
+msgstr "계속"
+
 msgid "Retrieving printer information, please try again later."
 msgstr "프린터 정보를 검색하는 중입니다. 나중에 다시 시도하세요."
 
@@ -2239,6 +2251,9 @@ msgstr "큐브"
 msgid "Cylinder"
 msgstr "원기둥"
 
+msgid "Hexagonal Prism"
+msgstr "육각기둥"
+
 msgid "Cone"
 msgstr "원뿔"
 
@@ -2253,6 +2268,9 @@ msgstr "토러스"
 
 msgid "Rounded Rectangle"
 msgstr "둥근 사각형"
+
+msgid "TearDrop"
+msgstr ""
 
 msgid "Bambu Cube"
 msgstr "Bambu 큐브"
@@ -2454,7 +2472,7 @@ msgid "Delete this filament"
 msgstr "이 필라멘트 삭제"
 
 msgid "Decompose Color"
-msgstr ""
+msgstr "색상 분해"
 
 msgid "Merge with"
 msgstr "와 합치다"
@@ -2508,7 +2526,7 @@ msgid "Split to objects"
 msgstr "객체로 분할"
 
 msgid "Split the selected objects into multiple objects"
-msgstr ""
+msgstr "선택한 객체를 여러 객체로 분할"
 
 msgid "Clone"
 msgstr "복제"
@@ -2978,6 +2996,10 @@ msgstr "이 작업을 수행하는 데 필요한 필라멘트 유형을 알 수 
 msgid "/"
 msgstr "/"
 
+msgctxt "AMS filament"
+msgid "loading"
+msgstr ""
+
 msgid "Confirm"
 msgstr "확인"
 
@@ -3179,6 +3201,21 @@ msgstr "단계"
 msgid "Install parts"
 msgstr "부품 설치"
 
+msgid "Inherited Step"
+msgstr "상속된 단계"
+
+msgid "start frame"
+msgstr "시작 프레임"
+
+msgid "Final assembly"
+msgstr "최종 조립"
+
+msgid "Merged Step"
+msgstr "병합된 단계"
+
+msgid "end frame"
+msgstr "엔드 프레임"
+
 msgid "Apply the final assembly pose to the objects or parts added in the current step?"
 msgstr "현재 단계에서 추가된 객체 또는 부품에 최종 조립 포즈를 적용하시겠습니까?"
 
@@ -3219,25 +3256,19 @@ msgid "Saving project will automatically switch to end frame"
 msgstr "프로젝트를 저장하면 자동으로 마지막 프레임으로 전환됩니다."
 
 msgid "Are you sure you want to delete all assembly steps?"
-msgstr ""
+msgstr "조립 단계를 모두 삭제하시겠습니까?"
 
 msgid "Delete all steps"
-msgstr ""
+msgstr "모든 단계 삭제"
 
 msgid "New Step"
 msgstr "새로운 단계"
 
-msgid "Final assembly"
-msgstr "최종 조립"
-
-msgid "end frame"
-msgstr "엔드 프레임"
+msgid "Overall preview"
+msgstr "전체 미리보기"
 
 msgid "Assembly Structure"
 msgstr "조립 구조"
-
-msgid "Start your assembly journey from Add Step"
-msgstr "'단계 추가'에서 조립 여정 시작"
 
 msgctxt "AssemblyStructure"
 msgid "Default"
@@ -3267,22 +3298,17 @@ msgstr "단계 삭제"
 msgid "Model"
 msgstr "모델"
 
-msgid "start frame"
-msgstr "시작 프레임"
-
 msgid "transition frame"
 msgstr "전환 프레임"
 
-#, c-format, boost-format
-msgid "Step %d"
-msgstr ""
+msgid "Label"
+msgstr "라벨"
 
-msgid "not used in any assembly step"
-msgstr ""
+msgid "Explosion"
+msgstr "분해"
 
-#, boost-format
-msgid "Plate %1%"
-msgstr "플레이트 %1%"
+msgid "Unassembled"
+msgstr "조립되지 않음"
 
 msgid "Assembly Step"
 msgstr "조립 단계"
@@ -3303,10 +3329,13 @@ msgid "step"
 msgstr "단계"
 
 msgid "Show Current Step Parts Only"
-msgstr ""
+msgstr "현재 단계의 부품만 표시"
 
 msgid "X-Ray Other Parts"
-msgstr ""
+msgstr "기타 부품 X-Ray 표시"
+
+msgid "Play from the current step."
+msgstr "현재 단계부터 재생합니다."
 
 msgid "Play all frames for all steps."
 msgstr "모든 단계에 대해 모든 프레임을 재생합니다."
@@ -3323,8 +3352,17 @@ msgstr "다음 프레임을 재생합니다."
 msgid "Display Mode"
 msgstr "표시 모드"
 
-msgid "Set export file parameters"
-msgstr "파일 내보내기 매개변수 설정"
+msgid "Show world axes"
+msgstr "월드 축 표시"
+
+msgid "Show explosion state column"
+msgstr "분해 상태 열 표시"
+
+msgid "Allow modify text note foreground"
+msgstr "텍스트 메모 전경 수정 허용"
+
+msgid "Allow modify text note background"
+msgstr "텍스트 메모 배경 수정 허용"
 
 msgid "Camera margin factor for the current frame. The larger the value, the more margin."
 msgstr "현재 프레임에 대한 카메라 마진 계수입니다. 값이 클수록 마진이 커집니다."
@@ -3341,12 +3379,6 @@ msgstr "앞에 단계 삽입"
 msgid "Insert step after"
 msgstr "뒤에 단계 삽입"
 
-msgid "Tip"
-msgstr "도움말"
-
-msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
-msgstr "현재 선택된 단계 카드가 없습니다. 기즈모 이동과 같은 포즈 변경 작업은 실제 최종 조립 화면에 영향을 미칩니다."
-
 msgid "Expand"
 msgstr "확장"
 
@@ -3356,11 +3388,26 @@ msgstr "접기"
 msgid "Options"
 msgstr "옵션"
 
+msgid "Delete all assembly steps"
+msgstr "모든 조립 단계를 삭제하세요"
+
+msgid "There’s no step to delete"
+msgstr "삭제할 단계가 없습니다"
+
 msgid "Go to Wiki"
 msgstr "Wiki로 가기"
 
-msgid "Copy current step"
-msgstr "현재 단계 복사"
+msgid "Inherit the state of Step"
+msgstr "단계의 상태 상속"
+
+msgid "Assembled parts are not exploded"
+msgstr "조립된 부품이 분해되지 않았습니다"
+
+msgid "Copy and inherit this step"
+msgstr "이 단계 복사 및 상속"
+
+msgid "Add objects to this step before copying"
+msgstr "복사하기 전에 이 단계에 객체를 추가하세요"
 
 msgid "Delete current step"
 msgstr "현재 단계 삭제"
@@ -3368,27 +3415,27 @@ msgstr "현재 단계 삭제"
 msgid "Add some objects to current step"
 msgstr "현재 단계에 개체 추가"
 
-msgid "Copy Step"
-msgstr "단계 복사"
-
-msgid "Add Step"
-msgstr "단계 추가"
-
 #, boost-format
 msgid "No more than %1% steps are allowed."
 msgstr "%1% 단계까지만 허용됩니다."
 
-msgid "Only copy steps. This is independent of the selected objects on the canvas."
-msgstr "단계만 복사합니다. 이는 캔버스에서 선택된 개체와는 무관합니다."
+msgid "Add Step"
+msgstr "단계 추가"
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr "빈 단계만 추가합니다. 이는 캔버스에서 선택된 개체와는 무관합니다."
 
-msgid "Delete all assembly steps except the final assembly."
-msgstr ""
+msgid "Merge and add steps."
+msgstr "단계를 병합하고 추가하세요."
 
-msgid "Exit the assembly step editing, you can also press the Esc button to exit"
-msgstr ""
+msgid "Click to exit assembly step editing, or press Esc."
+msgstr "조립 단계 편집을 종료하려면 클릭하거나 Esc 키를 누르십시오."
+
+msgid "Not"
+msgstr "아님"
+
+msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
+msgstr "먼저 확인을 클릭하세요. 캔버스에 레이블이 생성된 후 이 레이블 컨트롤을 사용할 수 있습니다."
 
 msgid "Click to add Cyber Brick"
 msgstr "클릭하여 Cyber Brick을 추가하세요."
@@ -3404,6 +3451,9 @@ msgstr "마크다운 내보내기"
 
 msgid "Export MP4"
 msgstr "MP4 내보내기"
+
+msgid "Set export file parameters"
+msgstr "파일 내보내기 매개변수 설정"
 
 msgid "After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF."
 msgstr "마크다운 문서를 내보낸 후 Zettlr과 같은 타사 소프트웨어에서 편집하고 다시 PDF로 내보낼 수 있습니다."
@@ -3426,11 +3476,11 @@ msgstr "모델 객체당 하나의 라벨을 표시합니다."
 msgid "Show one label per model part."
 msgstr "모델 부품당 하나의 라벨을 표시합니다."
 
-msgid "Label"
-msgstr "라벨"
-
 msgid "Label settings"
 msgstr "라벨 설정"
+
+msgid "Reset all closed labels"
+msgstr "닫힌 레이블 모두 재설정"
 
 msgid "Show Object/Part labels"
 msgstr "객체/부품 라벨 표시"
@@ -3460,31 +3510,16 @@ msgid "Display mode"
 msgstr "표시 모드"
 
 msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
-msgstr ""
+msgstr "객체 또는 부품 수준의 레이블을 자동으로 선택합니다. 이전 단계에서 이미 표시되었으며 모든 부품이 사용된 객체는 하나의 객체 레이블로 통합되고, 일부 부품만 사용된 객체와 처음 표시되는 객체에는 각 부품에 레이블이 지정됩니다."
+
+msgid "Please create an assembly step before exporting."
+msgstr "내보내기 전에 조립 단계를 만드세요."
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "조립 설명서를 PDF, Markdown 또는 MP4로 내보내기"
 
 msgid "Screw"
 msgstr "나사"
-
-msgid "Note"
-msgstr "메모"
-
-msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
-msgstr "최종 조립 단계의 키프레임에서 수행된 포즈 변경(예: 기즈모 이동)은 실제 조립 화면 표시에 영향을 미칩니다."
-
-msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
-msgstr "이 단계의 키프레임에서 수행된 포즈 변경(예: 기즈모 이동)은 실제 조립 화면 표시에는 영향을 미치지 않습니다."
-
-msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
-msgstr "필요한 경우, 현재 \"실제 조립 포즈 적용\" 버튼을 눌러 비교적 양호한 위치로 복원할 수 있습니다."
-
-msgid "undoing these edits is not yet supported and will be added in a later version."
-msgstr "이러한 편집 내용을 되돌리는 기능은 현재 지원되지 않으며, 추후 버전에서 추가될 예정입니다."
-
-msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
-msgstr "일부 객체는 현재 단계의 이전 키프레임에서 사용되었기 때문에 여기서는 분해되지 않았습니다. 이동 도구를 사용하여 수동으로 분해할 수 있습니다."
 
 msgid "Connection Type"
 msgstr "연결 유형"
@@ -3534,14 +3569,20 @@ msgstr "현재 단계의 모든 프레임을 재생합니다."
 msgid "At least two keyframes are required to play."
 msgstr "재생하려면 최소 두 개의 키프레임이 필요합니다."
 
-msgid "Automatically explode all objects."
-msgstr "모든 객체를 자동으로 분해합니다."
+msgid "Add the selected object or part to the current step first"
+msgstr "먼저 선택한 객체 또는 부품을 현재 단계에 추가하세요."
 
-msgid "Automatically explode all parts."
-msgstr "모든 부품을 자동으로 분해합니다."
+msgid "Add a new object to the current step first"
+msgstr "먼저 현재 단계에 새 객체를 추가하세요"
 
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
 msgstr "현재 선택된 객체 또는 부품에 최종 조립 포즈를 적용합니다(선택된 객체가 없으면 현재 프레임에 추가된 모든 객체에 적용합니다)."
+
+msgid "Automatically explode objects that are new to this step. Objects already assembled in earlier steps stay together."
+msgstr "이 단계에 새로 추가된 객체는 자동으로 분해됩니다. 이전 단계에서 이미 조립된 객체는 함께 유지됩니다."
+
+msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
+msgstr "새 부품은 자동으로 분해됩니다. 이전 단계에서 상속되었거나 이미 조립된 객체는 하나의 전체로 유지됩니다."
 
 msgid "Apply current camera angle to all frames of the current step"
 msgstr "현재 카메라 각도를 현재 단계의 모든 프레임에 적용합니다."
@@ -3564,17 +3605,26 @@ msgstr "조립 트리"
 msgid "Search"
 msgstr "검색 "
 
+msgid "Expand all objects"
+msgstr "모든 객체 펼치기"
+
+msgid "Collapse all objects"
+msgstr "모든 객체 접기"
+
 msgid "List"
 msgstr "목록"
 
 msgid "Assembly list"
-msgstr ""
+msgstr "조립 목록"
 
-msgid "Expand all objects"
-msgstr ""
+msgid "Show all objects"
+msgstr "모든 객체 표시"
 
-msgid "Collapse all objects"
-msgstr ""
+msgid "Show unassembled only"
+msgstr "조립되지 않은 객체만 표시"
+
+msgid "Object name"
+msgstr "물체 이름"
 
 msgid "Select all parts in a step"
 msgstr "단계에서 모든 부품 선택"
@@ -3781,22 +3831,22 @@ msgid "Remaining time: %dmin%ds"
 msgstr "남은 시간: %d분%d초"
 
 msgid "One-click CMYW auto-mix"
-msgstr ""
+msgstr "원클릭 CMYW 자동 믹싱"
 
 msgid "One-click RYBW auto-mix"
-msgstr ""
+msgstr "원클릭 RYBW 자동 믹싱"
 
 msgid "Project Physical Filaments"
-msgstr ""
-
-msgid "Project Mixed Filaments"
-msgstr ""
+msgstr "프로젝트 실물 필라멘트"
 
 msgid "New Physical Filaments"
-msgstr ""
+msgstr "새 실물 필라멘트"
+
+msgid "Project Mixed Filaments"
+msgstr "프로젝트 혼합 필라멘트"
 
 msgid "New Mixed Filaments"
-msgstr ""
+msgstr "새 혼합 필라멘트"
 
 msgid "+ Add Material"
 msgstr "+ 재료 추가"
@@ -3839,10 +3889,10 @@ msgid "Filament Mapping"
 msgstr "필라멘트 매핑"
 
 msgid "Reset filament mapping to the state before one-click mixing"
-msgstr ""
+msgstr "원클릭 믹싱 이전 상태로 필라멘트 매핑을 재설정합니다."
 
 msgid "Choose the one-click auto-mix mode for texture color import"
-msgstr ""
+msgstr "텍스처 색상을 가져오기 위한 원클릭 자동 혼합 모드를 선택하세요."
 
 msgid "Auto-merge same filament"
 msgstr "동일한 필라멘트 자동 병합"
@@ -3882,9 +3932,6 @@ msgstr "메쉬에 비매니폴드 지오메트리 또는 열린 경계가 있습
 
 msgid "Mesh issue"
 msgstr "메쉬 문제"
-
-msgid "Continue"
-msgstr "계속"
 
 msgid "Choose SLA archive:"
 msgstr "SLA 아카이브 선택:"
@@ -4060,7 +4107,7 @@ msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "유효한 값을 입력하세요(K는 %.1f~%.1f, N은 %.1f~%.1f)"
 
 msgid "Remark"
-msgstr ""
+msgstr "참고"
 
 msgid "Other"
 msgstr "기타"
@@ -4069,31 +4116,34 @@ msgid "Filament Manager"
 msgstr "필라멘트 관리자"
 
 msgid "In printer"
-msgstr ""
+msgstr "프린터에서"
 
 #, c-format, boost-format
 msgid "In printer: %s"
-msgstr ""
+msgstr "프린터에서: %s"
 
 msgctxt "Filament Manager"
 msgid "Note"
 msgstr "메모"
 
 msgid "Unsupported Filaments"
-msgstr ""
+msgstr "지원되지 않는 필라멘트"
 
 msgctxt "Unsupported Filaments"
 msgid "Note"
 msgstr "메모"
 
 msgid "No unsupported filaments"
-msgstr ""
+msgstr "지원되지 않는 필라멘트 없음"
 
 msgid "No filaments"
-msgstr ""
+msgstr "필라멘트 없음"
 
 msgid "System presets"
 msgstr "시스템 프리셋"
+
+msgid "Recently used"
+msgstr "최근 사용됨"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4116,22 +4166,22 @@ msgid "Custom Color"
 msgstr "커스텀 색상"
 
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS에서 새로운 공식 필라멘트를 감지했습니다. 필라멘트 관리자에 추가할까요?"
 
 msgid "Add as new filament"
-msgstr ""
+msgstr "새 필라멘트로 추가"
 
 msgid "Link to existing filament"
-msgstr ""
+msgstr "기존 필라멘트에 연결"
 
 msgid "Not now"
-msgstr ""
+msgstr "나중에"
 
 msgid "Please select"
-msgstr ""
+msgstr "선택해 주세요."
 
 msgid "No matching filament"
-msgstr ""
+msgstr "일치하는 필라멘트가 없습니다"
 
 msgid "Dynamic flow calibration"
 msgstr "동적 압출량 캘리브레이션"
@@ -4639,11 +4689,11 @@ msgstr ""
 "0.2로 재설정됨"
 
 msgid ""
-"Should not large than layer height.\n"
+"Should not be larger than layer height.\n"
 "Reset to 10%"
 msgstr ""
 "레이어 높이보다 커서는 안 됩니다.\n"
-"10%로 재설정"
+"10%로 재설정하세요."
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5623,22 +5673,6 @@ msgstr "다음 물체가 플레이트의 경계에 놓이거나 높이 제한을
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "플레이트 위 또는 아래로 완전히 움직여 높이가 빌드 볼륨 내에 있는지 확인하여 문제를 해결하세요.\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "어셈블리의 경계 상자가 너무 커서(최대 크기 &gt;= %1% 인치) 렌더링 문제가 발생할 수 있습니다.\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "어셈블리의 경계 상자가 너무 커서(최대 크기 &gt;= %1% mm) 렌더링 문제가 발생할 수 있습니다.\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "다음 물체는 표준 좌표계의 원래 좌표계에서 너무 멀리 떨어져 있습니다 (거리 >= %1% in).\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "다음 물체는 표준 좌표계의 원래 좌표계에서 너무 멀리 떨어져 있습니다 (거리 >= %1% mm).\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "일부 모델의 위치 또는 크기가 %s의 출력 가능 범위를 초과합니다."
@@ -5778,6 +5812,12 @@ msgstr "이전으로 돌아가기"
 msgid "return"
 msgstr "이전화면"
 
+msgid "Exit current gizmo editing"
+msgstr "현재 기즈모 편집을 종료합니다."
+
+msgid "Return to prepare view"
+msgstr "준비 화면으로 돌아가기"
+
 msgid "Fit camera"
 msgstr "카메라 맞춤"
 
@@ -5880,6 +5920,9 @@ msgstr "필라멘트 %s는 이 플레이트 표면에 직접 출력할 수 없�
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "혼합물에서 PLA 및 PETG 필라멘트가 감지되었습니다. 위키에 따라 매개변수를 조정하여 출력 품질을 보장합니다."
 
+msgid "Detected brittle filament (e.g., PPS-CF). Please place the models at the center of the heated bed. Printing near the edge may cause the filament to bend excessively and break inside the tube."
+msgstr "취성이 강한 필라멘트(예: PPS-CF)가 감지되었습니다. 모델을 히트베드 중앙에 배치하십시오. 가장자리 근처에서 출력하면 필라멘트가 과도하게 휘어 튜브 내부에서 끊어질 수 있습니다."
+
 msgid "The prime tower improves multi-color print quality and is recommended."
 msgstr "프라임 타워는 다색 출력 품질을 향상시키며 권장됩니다."
 
@@ -5891,6 +5934,9 @@ msgstr "부분 플러싱 용량이 0으로 설정되었습니다. 다색 출력 
 
 msgid "Click Wiki for help."
 msgstr "위키를 클릭하여 도움을 받습니다."
+
+msgid "Click Wiki for details."
+msgstr "자세한 내용은 Wiki를 클릭하세요."
 
 msgid "Jump to: Prime tower"
 msgstr "바로가기: 프라임 타워"
@@ -6195,6 +6241,12 @@ msgstr "다른 이름으로 프로젝트 저장"
 
 msgid "Save current project as"
 msgstr "현재 프로젝트를 다른 이름으로 저장"
+
+msgid "Show Project in Folder"
+msgstr "폴더에서 프로젝트 보기"
+
+msgid "Show current project in folder"
+msgstr "폴더에서 현재 프로젝트 보기"
 
 msgid "Import 3MF/STL/STEP/SVG/OBJ/AMF"
 msgstr "3MF/STL/STEP/SVG/OBJ/AMF 가져오기"
@@ -6734,8 +6786,8 @@ msgstr "프린터에서 모델 정보를 가져오지 못했습니다."
 msgid "Failed to parse model information."
 msgstr "모델 정보를 구문 분석하지 못했습니다."
 
-msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
-msgstr ".gcode.3mf 파일에는 G코드 데이터가 포함되어 있지 않으므로 BambuStudio로 슬라이스한 후 새 .gcode.3mf 파일을 내보내세요."
+msgid "The .gcode.3mf file contains no G-code data. Please slice it with Bambu Studio and export a new .gcode.3mf file."
+msgstr ".gcode.3mf 파일에는 G-code 데이터가 포함되어 있지 않습니다. Bambu Studio를 사용하여 슬라이싱한 후 새 .gcode.3mf 파일을 내보내십시오."
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -7475,6 +7527,9 @@ msgstr "자세한 정보는 링크를 열어주세요"
 msgid "Warning:"
 msgstr "경고:"
 
+msgid "Wiki for details."
+msgstr ""
+
 msgid "Export successfully."
 msgstr "내보내기 성공"
 
@@ -7750,10 +7805,10 @@ msgid "Printer settings"
 msgstr "프린터 설정"
 
 msgid "At least one plate is required"
-msgstr ""
+msgstr "최소 한 개의 플레이트가 필요합니다."
 
 msgid "Remove current plate"
-msgstr ""
+msgstr "현재 플레이트를 제거하세요."
 
 msgid "Auto orient objects on current plate"
 msgstr "현재 플레이트 위의 물체 자동 정렬"
@@ -7775,10 +7830,6 @@ msgstr "현재 플레이트 이름 편집"
 
 msgid "Customize current plate"
 msgstr "현재 플레이트 사용자 정의"
-
-#, c-format, boost-format
-msgid "%s is not compatible with %s nozzle."
-msgstr ""
 
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
@@ -8043,11 +8094,14 @@ msgstr "사이드바 축소"
 msgid "Loading file: %s"
 msgstr "파일 불러오기 중: %s"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "이 3mf는 Bambu lab 에서 만들어진게 아닙니다. 형상 데이터만 불러옵니다."
+msgid "The 3mf file has invalid config, load geometry data only"
+msgstr "3mf 파일 설정이 올바르지 않습니다. 형상 데이터만 로드합니다."
 
 msgid "Load 3mf"
 msgstr "3mf 불러오기"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data only."
+msgstr "이 3mf는 Bambu lab 에서 만들어진게 아닙니다. 형상 데이터만 불러옵니다."
 
 msgid "The Config can not be loaded."
 msgstr "설정을 불러올 수 없습니다."
@@ -8303,9 +8357,6 @@ msgstr "여러 재료를 선택하셨습니다: %s"
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
 msgstr "참고: 지원되지 않는 재료는 시뮬레이션을 위해 선택한 참조 재료를 사용합니다."
 
-msgid "True multi-material support will be added in a future update."
-msgstr "진정한 다중 재료 지원은 향후 업데이트에서 추가될 예정입니다."
-
 msgid "Option 1: Proceed using a single filament type"
 msgstr "옵션 1: 단일 필라멘트 유형만 사용하여 진행히기"
 
@@ -8332,6 +8383,12 @@ msgstr "지원되는 재료 보기"
 
 msgid "Go Back"
 msgstr "뒤로 가기"
+
+msgid "Option 3: Enable multi-material optimization"
+msgstr "옵션 3: 다중 소재 최적화 활성화"
+
+msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
+msgstr "제3자 아이콘 클릭 → Helio Additive 활성화 → \"실험: 다중 소재 지원 활성화\" 체크"
 
 msgid "Unsupported Materials Detected"
 msgstr "지원되지 않는 재료 감지됨"
@@ -8368,6 +8425,15 @@ msgstr "데이터 동기화"
 
 msgid "Refreshing printer and material data..."
 msgstr "프린터 및 재료 데이터 새로고침 중..."
+
+msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
+msgstr "Helio가 모든 프린터 및 소재 데이터를 새로고침하지 못했습니다. 이전의 전체 데이터는 계속 사용할 수 있습니다."
+
+msgid "Helio could not load complete printer and material data. Matching remains paused."
+msgstr "Helio가 전체 프린터 및 소재 데이터를 로드하지 못했습니다. 매칭이 일시 중지되었습니다."
+
+msgid "Helio Data Refresh Failed"
+msgstr "Helio 데이터 새로고침 실패"
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Helio 시뮬레이션 또는 최적화 작업이 진행 중입니다."
@@ -8491,6 +8557,12 @@ msgstr "지원되는 프린터 보기"
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "최적화/향상 버튼을 클릭하여 첫 번째 최적화를 시작하세요."
 
+msgid "Previous Helio action is still stopping; try again shortly"
+msgstr "이전 Helio 작업이 아직 중단되는 중입니다. 잠시 후 다시 시도하세요."
+
+msgid "Helio Additive"
+msgstr ""
+
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
@@ -8515,6 +8587,12 @@ msgstr "프린터 목록과 재료 목록이 동기화 중입니다. 잠시 후 
 
 msgid "Synchronizing Helio"
 msgstr "Helio 동기화"
+
+msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
+msgstr "Helio가 지원되는 프린터 및 소재 목록을 로드하지 못했습니다. 사용할 수 없는 데이터가 지원되지 않는 소재로 간주되지 않도록 매칭이 일시 중지되었습니다."
+
+msgid "Helio Data Load Failed"
+msgstr "Helio 데이터 로드 실패"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "슬라이싱 오류를 해결하고 다시 게시하십시오."
@@ -8719,10 +8797,10 @@ msgid "Negative parts detected. Would you like to perform mesh boolean before ex
 msgstr "음량 부분이 감지되었습니다. 내보내기 전에 메시 비우기를 수행하시겠습니까?"
 
 msgid "Failed to save the project: an invalid setting value was found while writing the file."
-msgstr ""
+msgstr "프로젝트를 저장하지 못했습니다. 파일에 쓰는 중 잘못된 설정값이 발견되었습니다."
 
 msgid "Please check your settings and try again."
-msgstr ""
+msgstr "설정을 확인하신 후 다시 시도해 주세요."
 
 msgid ""
 "Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
@@ -8740,6 +8818,9 @@ msgstr "0.2mm 노즐에는 PVA 필라멘트를 사용하는 것은 권장하지 
 
 msgid "Are you sure to use them? \n"
 msgstr "정말로 사용하시겠습니까? \n"
+
+msgid "When thermal preconditioning is enabled, duration auto-adjusts to the model's position for optimal first-layer quality; the farther from the center, the longer it takes. White boxes mark the boundary lines. To disable the guidelines and this warning, go to Preferences > 3D."
+msgstr ""
 
 msgid "Send G-code"
 msgstr "G 코드 보내기"
@@ -8919,7 +9000,7 @@ msgstr ""
 "이 기능을 계속 사용하시겠습니까?"
 
 msgid "Download path"
-msgstr ""
+msgstr "다운로드 경로"
 
 msgid "Choose Download Directory"
 msgstr "다운로드 디렉터리 선택"
@@ -8941,7 +9022,7 @@ msgid "Other"
 msgstr "기타"
 
 msgid "Developer Tools"
-msgstr ""
+msgstr "개발자 도구"
 
 msgid "General Settings"
 msgstr "일반 설정"
@@ -9023,7 +9104,7 @@ msgid "Learn more"
 msgstr "더 보기"
 
 msgid "User Settings"
-msgstr ""
+msgstr "사용자 설정"
 
 msgid "Auto plate type"
 msgstr "자동 플레이트 유형"
@@ -9032,13 +9113,13 @@ msgid "Studio will remember build plate selected last time for certain printer m
 msgstr "Studio는 특정 프린터 모델에 대해 지난번에 선택한 빌드 플레이트를 기억합니다."
 
 msgid "12-hour"
-msgstr ""
+msgstr "12시간"
 
 msgid "24-hour"
-msgstr ""
+msgstr "24시간"
 
 msgid "time format for print progress"
-msgstr ""
+msgstr "출력 진행률 시간 형식"
 
 msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
 msgstr "24시간 형식 대신 오전/오후가 표시된 12시간 형식으로 시간 표시"
@@ -9118,6 +9199,12 @@ msgstr "항상 셸을 미리 보기로 표시"
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "미리 보기 탭에서 셸을 항상 표시할지 여부를 선택합니다. 이 값을 변경하는 경우 다시 슬라이스해야 합니다."
 
+msgid "Show Thermal Preconditioning Area"
+msgstr "예열 영역 표시"
+
+msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
+msgstr "모델이 예열 영역을 벗어나면 경고합니다. 이 기능을 지원하는 프린터에서만 사용할 수 있습니다."
+
 msgid "Show the step mesh parameter setting dialog."
 msgstr "스텝 메시 매개변수 설정 대화 상자를 표시합니다."
 
@@ -9140,7 +9227,7 @@ msgid "Remember last used color scheme"
 msgstr "마지막으로 사용한 색상 구성 기억하기"
 
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
-msgstr "활성화하면 마지막으로 사용한 색상 구성(예: Line Type, 속도)이 다음 시작 시 자동으로 적용됩니다."
+msgstr "활성화하면 마지막으로 사용한 색상 구성(예: 라인 유형, 속도)이 다음 시작 시 자동으로 적용됩니다."
 
 msgid "Improve rendering performance by lod"
 msgstr "로드별 렌더링 성능 향상"
@@ -9176,31 +9263,31 @@ msgid "No warnings when loading 3MF with modified G-codes"
 msgstr "수정된 G-코드로 3MF를 로드할 때 경고 없음"
 
 msgid "10 seconds"
-msgstr ""
+msgstr "10초"
 
 msgid "20 seconds"
-msgstr ""
+msgstr "20초"
 
 msgid "30 seconds"
-msgstr ""
+msgstr "30초"
 
 msgid "1 minute"
-msgstr ""
+msgstr "1분"
 
 msgid "2 minutes"
-msgstr ""
+msgstr "2분"
 
 msgid "5 minutes"
-msgstr ""
+msgstr "5분"
 
 msgid "10 minutes"
-msgstr ""
+msgstr "10분"
 
 msgid "30 minutes"
-msgstr ""
+msgstr "30분"
 
 msgid "never"
-msgstr ""
+msgstr "사용하지 않음"
 
 msgid "Auto-Backup"
 msgstr "자동 백업"
@@ -9218,13 +9305,16 @@ msgid "Show history on the home page"
 msgstr "홈 페이지에 기록 표시"
 
 msgid "Developer Mode"
-msgstr ""
+msgstr "개발자 모드"
 
 msgid "Develop mode"
 msgstr "개발자 모드"
 
 msgid "Skip AMS blacklist check"
 msgstr "AMS 블랙리스트 확인 건너뛰기"
+
+msgid "Enable DevTools For Webview"
+msgstr ""
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Bambu Studio에 파일 연결"
@@ -9248,7 +9338,7 @@ msgid "If enabled, sets Bambu Studio as default application to open .step files"
 msgstr "활성화된 경우, .step 파일을 여는 기본 애플리케이션으로 Bambu Studio를 설정합니다"
 
 msgid "Log"
-msgstr ""
+msgstr "로그"
 
 msgid "fatal"
 msgstr "치명적인"
@@ -9305,16 +9395,16 @@ msgid "Switch cloud environment, Please login again!"
 msgstr "클라우드 환경이 전환되었습니다. 다시 로그인하세요!"
 
 msgid "Reset all warning dialogs"
-msgstr ""
+msgstr "모든 경고 대화 상자 초기화"
 
 msgid "Reset preferences"
-msgstr ""
+msgstr "환경 설정 초기화"
 
 msgid "All warning dialogs that you have disabled by checking \"Don't show again\" are now re-enabled and will show next time they apply."
-msgstr ""
+msgstr "\"다시 표시하지 않음\"을 선택하여 비활성화했던 모든 경고 대화 상자가 이제 다시 활성화되어 다음에 적용될 때 표시됩니다."
 
 msgid "Check details"
-msgstr ""
+msgstr "세부 정보를 확인하세요."
 
 msgid ""
 "- Sync printer presets after loading a file\n"
@@ -9324,9 +9414,15 @@ msgid ""
 "- Unsaved projects.\n"
 "- Mixed color sublayer with variable layer height warning"
 msgstr ""
+"- 파일 로딩 후 프린터 사전 설정 동기화\n"
+"- \"3MF 로드\" 대화 상자 설정\n"
+"- 후처리 스크립트 실행\n"
+"- 지원 구조 권장 메시지\n"
+"- 저장되지 않은 프로젝트\n"
+"- 가변 레이어 높이를 가진 혼합 색상 하위 레이어 경고"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
-msgstr ""
+msgstr "모든 설정을 초기화할까요? 변경 사항은 재시작 후 적용됩니다."
 
 msgid "User presets"
 msgstr "사용자 프리셋"
@@ -9603,6 +9699,9 @@ msgstr "Bambu 쿨 플레이트 슈퍼택"
 msgid "Send print job"
 msgstr "출력 작업 보내기"
 
+msgid "The current estimated time has been recalculated based on the actual filament mapping."
+msgstr "현재 예상 시간이 실제 필라멘트 매핑을 기준으로 다시 계산되었습니다."
+
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "필라멘트 그룹화가 만족스럽지 않으신가요? 재그룹화 및 슬라이스 ->"
 
@@ -9828,20 +9927,8 @@ msgstr "잠시만 기다려주세요..."
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
 msgstr "툴헤드 및 핫엔드 랙이 가득 찼습니다. 출력 전에 핫엔드 하나 이상을 제거해 주세요."
 
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "%s(%s)의 노즐 유량 설정이 슬라이싱 파일(%s)과 일치하지 않습니다. 설치된 노즐이 프린터의 설정과 일치하는지 확인한 다음 슬라이싱하는 동안 해당 프린터 프리셋을 설정하세요."
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "팁: 최근에 프린터의 노즐을 변경한 경우 '장치 -> 프린터 부품'으로 이동하여 노즐 설정을 변경하세요."
-
-#, c-format, boost-format
-msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr "현재 프린터의 %s 직경(%.1fmm)이 슬라이싱 파일(%.1fmm)과 일치하지 않습니다. 설치된 노즐이 프린터의 설정과 일치하는지 확인한 다음 슬라이싱할 때 해당 프린터 프리셋을 설정하세요."
-
-#, c-format, boost-format
-msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr "현재 노즐 직경(%.1fmm)이 슬라이싱 파일(%.1fmm)과 일치하지 않습니다. 설치된 노즐이 프린터의 설정과 일치하는지 확인한 다음 슬라이싱할 때 해당 프린터 프리셋을 설정하세요."
+msgid "The nozzle type doesn't match. Please re-slice."
+msgstr "노즐 타입이 일치하지 않습니다. 다시 슬라이스하세요."
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "프린터에 설치된 필라멘트 트랙 스위치가 슬라이싱 파일과 일치하지 않습니다. 출력 품질 문제를 방지하려면 다시 슬라이싱하십시오."
@@ -9882,7 +9969,7 @@ msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the 
 msgstr "'동적 유량 보정'이 '자동/켜짐'으로 설정된 경우, 시스템은 수동 보정값 또는 기본값을 사용하고 유량 보정 과정을 건너뜁니다. TPU 필라멘트에 대한 수동 유량 보정은 '보정' 페이지에서 수행할 수 있습니다."
 
 msgid "The filament in the AMS may be insufficient for this print. Please refill or replace it."
-msgstr ""
+msgstr "AMS에 들어 있는 필라멘트가 이 출력에 부족할 수 있습니다. 보충하거나 교체하세요."
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "일부 필라멘트는 출력 중에 압출기 간에 전환될 수 있습니다. 수동 K값 보정은 전체 출력 과정에 적용할 수 없으며, 이로 인해 출력 품질이 저하될 수 있습니다. 유동 역학 보정 기능을 활성화하는 것이 좋습니다."
@@ -9905,8 +9992,11 @@ msgstr "쿨(슈퍼스택)"
 msgid "Click here if you can't connect to the printer"
 msgstr "프린터에 연결할 수 없는 경우 여기를 클릭하세요"
 
-msgid "Sliced file"
-msgstr "슬라이스된 파일"
+msgid "Slice file"
+msgstr "슬라이스 파일"
+
+msgid "The connected printer"
+msgstr "연결된 프린터"
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "로그인 계정 없음, LAN 모드의 프린터만 표시됨"
@@ -10172,8 +10262,32 @@ msgstr "더 알아보려면 클릭하세요"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "모든 설정을 마지막으로 저장한 프리셋으로 재설정하려면 클릭합니다."
 
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+"지지대에 용해성 소재를 사용하는 경우, 다음 설정을 권장합니다:\n"
+"0 상단 z 거리, 0 하단 z 거리, 0 인터페이스 간격, 0 지지대/객체 xy 거리, 인터레이스된 직선 패턴,\n"
+"독립적인 지지대 레이어 높이 비활성화 및 지지대 인터페이스와 지지대 베이스 모두에 용해성 소재 사용"
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+"용해성 소재를 지지대로 사용하는 경우 다음 설정을 권장합니다:\n"
+"0 상단 z 거리, 0 인터페이스 간격, 0 지지대/물체 xy 거리, 인터레이스된 직선 패턴, 비활성화 \n"
+"독립적인 지지대 레이어 높이 및 지지대 접촉과 지지대 베이스 모두에 용해성 재료 사용"
+
 msgid "Support interface speed"
 msgstr "지지대 인터페이스 속도"
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr "지지대 인터페이스에 지지대 재료를 사용할 경우, 다음 설정을 권장합니다:"
+
+msgid "Do you want to apply these settings?"
+msgstr "이 설정을 적용하시겠습니까?"
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "노즐 교체를 위해 프라임 타워가 필요합니다. 프라임 타워가 없으면 모델에 결함이 있을 수 있습니다. 프라임 타워를 비활성화하시겠습니까?"
@@ -10198,8 +10312,14 @@ msgstr ""
 "선택한 프린터의 베드 온도 제한은 %d°C입니다.\n"
 "더 높은 베드 온도를 설정하면 프린터가 손상될 수 있습니다."
 
+msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
+msgstr "부드러운 타임랩스에는 모든 레이어에 프라임 타워가 필요하며, 이는 \"희소 레이어 없음\"과 호환되지 않습니다. \"희소 레이어 없음\"이 꺼졌습니다."
+
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "smooth 타임랩스 모드를 위해서는 프라임 타워가 필요합니다. 프라임 타워가 없는 모델에는 결함이 있을 수 있습니다. 프라임 타워를 활성화하시겠습니까?"
+
+msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
+msgstr "\"희소 레이어 없음\"은 모든 레이어에 프라임 타워가 필요한 부드러운 타임랩스와 호환되지 않습니다. 타임랩스가 일반 모드로 전환되었습니다."
 
 msgid "Still print by object?"
 msgstr "여전히 개체별로 출력하시나요?"
@@ -10220,15 +10340,6 @@ msgstr ""
 "상단 Z 거리 0, 인터페이스 간격 0, 지지대/모델 XY 거리 0, 인터레이스 직선 패턴, 독립 지지대 레이어 높이 비활성화 및 지지대 접촉과 지지대 베이스 모두에 PLA 사용"
 
 msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"용해성 소재를 지지대로 사용하는 경우 다음 설정을 권장합니다:\n"
-"0 상단 z 거리, 0 인터페이스 간격, 0 지지대/물체 xy 거리, 인터레이스된 직선 패턴, 비활성화 \n"
-"독립적인 지지대 레이어 높이 및 지지대 접촉과 지지대 베이스 모두에 용해성 재료 사용"
-
-msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
@@ -10244,15 +10355,6 @@ msgstr "%s 를 사용하여 %s를 지지하는 경우, 다음 설정을 권장�
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "PLA를 지지대로 사용하여 TPU를 출력할 때, 다음 설정을 권장합니다:"
 
-msgid "When using soluble material for the support interface, We recommend the following settings:"
-msgstr "지지대 인터페이스에 용해성 재료를 사용할 때, 다음 설정을 권장합니다:"
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr "지지대 인터페이스에 지지대 재료를 사용할 경우, 다음 설정을 권장합니다:"
-
-msgid "Do you want to apply these settings?"
-msgstr "이 설정을 적용하시겠습니까?"
-
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -10260,8 +10362,8 @@ msgstr ""
 "레이어 높이가 너무 작습니다.\n"
 "최소 레이어 높이로 설정됩니다\n"
 
-msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
-msgstr "레이어 높이가 프린터 설정 -> 압출기 -> 레이어 높이 제한의 제한을 초과하면 출력 품질 문제가 발생할 수 있습니다."
+msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
+msgstr "레이어 높이가 프린터 설정 -> 압출기 -> 레이어 높이 제한에 설정된 한도를 초과했습니다. 이로 인해 출력 품질 문제가 발생할 수 있습니다."
 
 msgid "Adjust to the set range automatically? \n"
 msgstr "설정된 범위로 자동 조정 하시겠습니까? \n"
@@ -10542,6 +10644,9 @@ msgstr "퍼지 모드: 고속"
 msgid "Printable space"
 msgstr "출력 가능 공간"
 
+msgid "AMS filament load/unload time"
+msgstr "AMS 필라멘트 로드/언로드 시간"
+
 msgid "Extruder Clearance"
 msgstr "압출기 클리어런스"
 
@@ -10607,6 +10712,12 @@ msgstr "레이어 높이 제한"
 
 msgid "Retraction when switching material"
 msgstr "필라멘트 전환시 리트렉션"
+
+msgid "Load time"
+msgstr "로드 시간"
+
+msgid "Unload time"
+msgstr "언로드 시간"
 
 msgid ""
 "The Wipe option is not available when using the Firmware Retraction mode.\n"
@@ -10942,6 +11053,9 @@ msgstr "텍스처 가져오기가 일시적으로 불가능하며, 부분 색칠
 msgid " And "
 msgstr " 및 "
 
+msgid "Note"
+msgstr "메모"
+
 msgid "The color has been selected, you can choose OK to continue or manually adjust it."
 msgstr "색상이 선택되었으면 계속하려면 확인을 선택하거나 수동으로 조정할 수 있습니다."
 
@@ -11023,6 +11137,9 @@ msgstr ""
 msgid "Use AMS"
 msgstr "AMS 사용"
 
+msgid "Tip"
+msgstr "도움말"
+
 msgid "Only synchronize filament type and color, not including AMS slot information."
 msgstr "필라멘트 유형과 색상만 동기화하며, AMS 슬롯 정보는 포함하지 않습니다."
 
@@ -11062,6 +11179,10 @@ msgstr "슬롯 정보는 포함하지 않고 필라멘트 유형과 색상만 �
 msgid "Ext spool"
 msgstr "외부 스풀"
 
+#, c-format, boost-format
+msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+msgstr "%s(%s)의 노즐 유량 설정이 슬라이싱 파일(%s)과 일치하지 않습니다. 설치된 노즐이 프린터의 설정과 일치하는지 확인한 다음 슬라이싱하는 동안 해당 프린터 프리셋을 설정하세요."
+
 msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
 msgstr "장치의 노즐 유형이 사전 설정된 노즐 유형과 동일한지 확인하세요."
 
@@ -11074,6 +11195,9 @@ msgstr "출력 순서가 \"개체별\"로 설정되어 있으므로 타임랩스
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
 msgstr "압출기에서 외부 필라멘트와 AMS 필라멘트를 동시에 선택한 경우 외부 필라멘트를 수동으로 변경해야 합니다."
+
+msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+msgstr "팁: 최근에 프린터의 노즐을 변경한 경우 '장치 -> 프린터 부품'으로 이동하여 노즐 설정을 변경하세요."
 
 msgid "Successfully synchronized nozzle information."
 msgstr "노즐 정보를 성공적으로 동기화했습니다."
@@ -11451,11 +11575,11 @@ msgstr "프린터의 IP 및 액세스 코드는 어디서 찾을 수 있습니�
 msgid "Connect"
 msgstr "연결"
 
-msgid "IP and Access Code Verified! You may close the window"
-msgstr "IP 및 액세스 코드가 확인되었습니다! 창을 닫을 수 있습니다"
-
 msgid "connecting..."
 msgstr "연결 중..."
+
+msgid "IP and Access Code Verified! You may close the window"
+msgstr "IP 및 액세스 코드가 확인되었습니다! 창을 닫을 수 있습니다"
 
 msgid "Failed to connect to printer."
 msgstr "프린터에 연결하지 못했습니다."
@@ -11542,9 +11666,6 @@ msgstr "Helio Additive 설치 제거"
 msgid "Legal & Activation Terms"
 msgstr "법적 및 활성화 약관"
 
-msgid "Got it"
-msgstr "알겠습니다"
-
 msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
 msgstr "Helio PAT 획득 실패. 다시 얻으려면 새로 고침을 클릭하세요."
 
@@ -11558,9 +11679,6 @@ msgid "Software Service Terms && Conditions"
 msgstr "소프트웨어 서비스 이용약관"
 
 msgid "^"
-msgstr ""
-
-msgid "Helio Additive"
 msgstr ""
 
 msgid "Helio Additive Privacy Agreement"
@@ -11956,6 +12074,9 @@ msgstr "속도 및 품질 향상"
 msgid "Applies Helio's optimized speed/flow/fan strategy."
 msgstr "Helio의 최적화된 속도/유량/팬 전략을 적용합니다."
 
+msgid "Save the simulated sliced 3MF locally"
+msgstr "시뮬레이션된 슬라이스 3MF를 로컬에 저장"
+
 msgid "✅ Will Print"
 msgstr "✅ 출력 가능함"
 
@@ -12175,6 +12296,12 @@ msgstr "G-코드 파일 열기:"
 msgid "Print task sending times out."
 msgstr "출력 작업 전송 시간 초과."
 
+msgid "Sending print job with LAN acceleration"
+msgstr "LAN 가속을 사용해 출력 작업 전송 중"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "클라우드 서비스 전송에 실패했습니다. 출력 기록 없이 LAN을 통해 출력 작업을 전송합니다."
+
 msgid "Sending print configuration"
 msgstr "출력 설정 보내기"
 
@@ -12185,6 +12312,9 @@ msgstr "성공적으로 전송되었습니다. %ss의 장치 페이지로 자동
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "성공적으로 전송되었습니다. %ss의 다음 페이지로 자동으로 이동합니다"
+
+msgid "Refreshing printer access code"
+msgstr "프린터 액세스 코드 새로고침 중"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "다음 개체의 초기 레이어가 비어 있어 출력할 수 없습니다. 하단을 잘라내거나 지지대를 사용하세요."
@@ -12533,6 +12663,9 @@ msgstr "스커트 및 브림 생성"
 
 msgid "Generating G-code"
 msgstr "G 코드 생성"
+
+msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
+msgstr "모델과 프라임 타워의 상대적 위치가 \"희박 레이어 없음\" 기능의 요구 사항을 충족하지 않습니다. 상대적 위치를 조정하거나, 모델 높이를 낮추거나, \"희박 레이어 없음\" 기능을 끄십시오."
 
 msgid "Failed processing of the filename_format template."
 msgstr "파일 이름 형식 템플릿 처리에 실패했습니다."
@@ -13404,6 +13537,48 @@ msgstr "필라멘트 언로드 시간"
 
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "필라멘트 전환 시 오래된 필라멘트 언로드 시간입니다. 통계 전용"
+
+msgid "AMS filament load time"
+msgstr "AMS 필라멘트 로드 시간"
+
+msgid "Filament load time when printing with an AMS. For statistics only"
+msgstr "AMS로 프린트할 때의 필라멘트 로드 시간입니다. 통계용으로만 사용됩니다."
+
+msgid "AMS Lite filament load time"
+msgstr "AMS Lite 필라멘트 로드 시간"
+
+msgid "Filament load time when printing with an AMS Lite. For statistics only"
+msgstr "AMS Lite로 프린트할 때의 필라멘트 로드 시간입니다. 통계용으로만 사용됩니다."
+
+msgid "N3F/N3S filament load time"
+msgstr "N3F/N3S 필라멘트 로드 시간"
+
+msgid "Filament load time when printing with an N3F or N3S. For statistics only"
+msgstr "N3F 또는 N3S로 프린트할 때의 필라멘트 로드 시간입니다. 통계용으로만 사용됩니다."
+
+msgid "AMS filament unload time"
+msgstr "AMS 필라멘트 언로드 시간"
+
+msgid "Filament unload time when printing with an AMS. For statistics only"
+msgstr "AMS로 프린트할 때의 필라멘트 언로드 시간입니다. 통계용으로만 사용됩니다."
+
+msgid "AMS Lite filament unload time"
+msgstr "AMS Lite 필라멘트 언로드 시간"
+
+msgid "Filament unload time when printing with an AMS Lite. For statistics only"
+msgstr "AMS Lite로 프린트할 때의 필라멘트 언로드 시간입니다. 통계용으로만 사용됩니다."
+
+msgid "N3F/N3S filament unload time"
+msgstr "N3F/N3S 필라멘트 언로드 시간"
+
+msgid "Filament unload time when printing with an N3F or N3S. For statistics only"
+msgstr "N3F 또는 N3S로 프린트할 때의 필라멘트 언로드 시간입니다. 통계용으로만 사용됩니다."
+
+msgid "Default AMS type"
+msgstr "기본 AMS 유형"
+
+msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
+msgstr "필라멘트 로드/언로드 시간을 추정하는 데 사용되는 기본 AMS 유형입니다. AMS 타이밍 유형 enum 값으로 저장되며, 프린터 프리셋에서 가져옵니다. 현재 기기에 연결된 AMS 상태를 반영하지 않습니다."
 
 msgid "Extruder switch time"
 msgstr "압출기 전환 시간"
@@ -14870,6 +15045,12 @@ msgstr "전체 출력이 시작될 때 시작 G-코드"
 msgid "Start G-code when start the printing of this filament"
 msgstr "이 필라멘트의 출력이 시작될 때 시작 G-코드"
 
+msgid "No sparse layers (experimental)"
+msgstr "희소 레이어 사용 안 함(실험적)"
+
+msgid "If enabled, the wipe tower will not be printed on layers with no toolchanges. On layers with a toolchange, extruder will travel downward to print the wipe tower. User is responsible for ensuring there is no collision with the print."
+msgstr "이 옵션을 활성화하면 툴체인지가 없는 레이어에는 와이프 타워가 출력되지 않습니다. 툴체인지가 있는 레이어에서는 압출기가 아래쪽으로 이동하여 와이프 타워를 출력합니다. 출력물과 충돌하지 않도록 확인할 책임은 사용자에게 있습니다."
+
 msgid "Slice gap closing radius"
 msgstr "슬라이스 간격 폐쇄 반경"
 
@@ -15565,9 +15746,6 @@ msgstr ""
 "물체가 XY 크기 교정을 활성화했으며, 이 교정도 솜털 표면이 페인팅되었기 때문에 사용되지 않습니다.\n"
 "XY 크기 교정은 솜털 표면 페인팅과 결합할 수 없습니다."
 
-msgid "Object name"
-msgstr "물체 이름"
-
 msgid "Loading of a model file failed."
 msgstr "모델 파일 로드에 실패했습니다."
 
@@ -15588,6 +15766,21 @@ msgstr "알 수 없는 파일 형식: 입력 파일의 확장자는.3mf 또는.z
 
 msgid "Canceled"
 msgstr "취소됨"
+
+msgid "Restoring support painting"
+msgstr "서포트 페인팅 복원 중"
+
+msgid "Restoring seam painting"
+msgstr "이음새 페인팅 복원 중"
+
+msgid "Restoring paint color"
+msgstr "페인트 색상 복원 중"
+
+msgid "Restoring fuzzy skin"
+msgstr "퍼지 스킨 복원 중"
+
+msgid "Restoring painting"
+msgstr "페인팅 복원 중"
 
 msgid "load_obj: failed to parse"
 msgstr "load_obj: 구문 분석에 실패"
@@ -16933,7 +17126,7 @@ msgid "Need select printer"
 msgstr "프린터 선택 필요"
 
 msgid "Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid."
-msgstr ""
+msgstr "보정 사전 설정을 로드하지 못했습니다. 선택한 프린터, 노즐 및 출력 프로필이 유효한지 확인하세요."
 
 msgid "The start, end or step is not valid value."
 msgstr "시작, 끝 또는 단계가 유효하지 않은 값입니다."
@@ -17278,20 +17471,53 @@ msgstr "강도를 우선시하는 0.8mm 노즐의 강도 프로필."
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "속도를 우선시하는 0.8mm 노즐의 표준 프로필."
 
-msgid "Failed to create GCodeV2"
-msgstr "GCodeV2 생성 실패"
+msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
+msgstr "0.4mm 노즐용 저가속 프로파일입니다. 프린터가 흔들리는 책상이나 선반 위에 놓여 있을 때 사용하세요."
+
+msgid "Helio GCode status response is incomplete"
+msgstr "Helio G코드 상태 응답이 불완전합니다."
+
+msgid "Helio GCode status response parse failed"
+msgstr "Helio G코드 상태 응답 구문 분석에 실패했습니다."
+
+msgid "Helio action canceled"
+msgstr "Helio 작업이 취소되었습니다."
+
+msgid "Helio GCode creation response is incomplete"
+msgstr "Helio G코드 생성 응답이 불완전합니다."
 
 msgid "Failed to parse response"
 msgstr "응답 구문 분석 실패"
 
-msgid "Failed to create GCodeV3"
-msgstr "GCodeV3 생성 실패"
+msgid "Helio GCode status check failed"
+msgstr "Helio G코드 상태 확인 실패"
+
+msgid "Helio GCode creation timed out while checking status"
+msgstr "상태 확인 중 Helio G코드 생성 시간 초과"
+
+msgid "Failed to create Simulation"
+msgstr "시뮬레이션 생성 실패"
+
+msgid "Helio simulation response is incomplete"
+msgstr "Helio 시뮬레이션 응답이 불완전합니다."
 
 msgid "Helio simulation task failed"
 msgstr "Helio 시뮬레이션 작업 실패"
 
+msgid "Helio simulation response parse failed"
+msgstr "Helio 시뮬레이션 응답 구문 분석에 실패했습니다."
+
+msgid "Failed to create Optimization"
+msgstr "최적화 생성 실패"
+
+msgid "Helio optimization response is incomplete"
+msgstr "Helio 최적화 응답이 불완전합니다."
+
 msgid "Helio optimization task failed"
 msgstr "Helio 최적화 작업 실패"
+
+msgid "Helio optimization response parse failed"
+msgstr "Helio 최적화 응답 구문 분석에 실패했습니다."
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API 엔드포인트가 비어 있습니다. 구성을 확인하세요."
@@ -17308,8 +17534,8 @@ msgstr "Helio: 파일이 성공적으로 업로드되었습니다."
 msgid "Helio: file upload failed"
 msgstr "Helio: 파일 업로드 실패"
 
-msgid "Please make sure you have the corrent API key set in preferences."
-msgstr "설정에서 올바른 API 키가 설정되어 있는지 확인하십시오."
+msgid "Please make sure you have the correct API key set in preferences."
+msgstr "설정에서 올바른 API 키가 설정되어 있는지 확인하세요."
 
 msgid "Helio: GCode created successfully"
 msgstr "Helio: GCode 생성 성공"
@@ -17317,14 +17543,14 @@ msgstr "Helio: GCode 생성 성공"
 msgid "Helio: simulation successfully created"
 msgstr "Helio: 시뮬레이션 생성 성공"
 
-msgid "Helio: simulation working"
-msgstr "Helio: 시뮬레이션 작동 중"
+msgid "transient progress checks did not recover"
+msgstr "일시적인 진행 상황 확인에서 복구하지 못했습니다."
 
 msgid "Helio: simulation failed"
 msgstr "Helio: 시뮬레이션 실패"
 
-msgid "Helio: Simulation check failed"
-msgstr "Helio: 시뮬레이션 검사 실패"
+msgid "Helio: simulation working"
+msgstr "Helio: 시뮬레이션 작동 중"
 
 msgid "Helio: Failed to create Simulation"
 msgstr "Helio: 시뮬레이션 생성 실패"
@@ -17335,17 +17561,11 @@ msgstr "Helio: GCode 생성 실패"
 msgid "Helio: optimization successfully created"
 msgstr "Helio: 최적화 생성 성공"
 
-msgid "Helio: optimization working"
-msgstr "Helio: 최적화 작업 중"
-
 msgid "Helio: optimization failed"
 msgstr "Helio: 최적화 실패"
 
-msgid "Helio: Optimzaion check failed"
-msgstr "Helio: 최적화 검사 실패"
-
-msgid "Helio: Failed to create Optimization"
-msgstr "Helio: 최적화 생성 실패"
+msgid "Helio: optimization working"
+msgstr "Helio: 최적화 작업 중"
 
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: G코드 다운로드 성공"
@@ -17983,12 +18203,6 @@ msgstr "권장 혼합"
 msgid "-- Select --"
 msgstr "-- 선택 --"
 
-msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr "그라디언트 효과를 사용하려면 '혼합 색상 하위 레이어'를 활성화해야 합니다. 지금 활성화하시겠습니까?"
-
-msgid "Mixed Color Sublayer"
-msgstr "혼합 색상 하위  레이어"
-
 #, c-format, boost-format
 msgid "Slot %s (%s)"
 msgstr "슬롯 %s (%s)"
@@ -18012,56 +18226,62 @@ msgid "Remove the third material"
 msgstr "세 번째 재료를 제거하세요"
 
 msgid "Project Filament List"
-msgstr ""
+msgstr "프로젝트 필라멘트 목록"
 
 msgid "Standard Mode Recommendations"
-msgstr ""
+msgstr "표준 모드 권장 사항"
 
 msgid "Target Color"
-msgstr ""
+msgstr "목표 색상"
 
 msgid "Select Color Decomposition"
-msgstr ""
+msgstr "색상 분해 선택"
 
 msgid "Arbitrary Mode"
-msgstr ""
+msgstr "임의 모드"
 
 msgid "Material List"
-msgstr ""
+msgstr "재료 목록"
 
 msgid "Standard Mode"
 msgstr "표준 모드"
 
 msgid "At least two filaments of the same material type are required for decomposition"
-msgstr ""
+msgstr "분해하려면 동일한 재료 유형의 필라멘트가 두 개 이상 필요합니다."
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
-msgstr ""
+msgstr "재료 목록은 최대 %1%가지 색상을 지원합니다. %2% 분해 후 재료 수가 %1%을 초과하게 됩니다. 분해하기 전에 메인 스크린에서 사용하지 않는 필라멘트를 삭제해 주세요."
 
 msgid "Cyan"
-msgstr ""
+msgstr "시안"
 
 msgid "Magenta"
-msgstr ""
+msgstr "마젠타"
 
 msgid "Yellow"
-msgstr ""
+msgstr "옐로우"
 
 msgid ", "
 msgstr ""
 
 msgid "The current filament list does not contain "
-msgstr ""
+msgstr "현재 필라멘트 목록에 포함되어 있지 않습니다. "
 
 msgid ". A project filament required by the mixed filament will be created automatically after decomposition."
-msgstr ""
+msgstr ". 혼합 필라멘트에 필요한 프로젝트 필라멘트는 분해 후 자동으로 생성됩니다."
 
 msgid "Material Ratio"
 msgstr "재료 비율"
 
 msgid "Model Height"
 msgstr "모델 높이"
+
+msgid "Auxiliaries"
+msgstr "보조 기능"
+
+msgid "An unexpected error occurred"
+msgstr "예기치 않은 오류가 발생했습니다"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -18358,6 +18578,160 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#~ msgid "Air Purifier"
+#~ msgstr "공기 청정기"
+
+#~ msgctxt "AirPurifier"
+#~ msgid "Max"
+#~ msgstr "최대"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "어셈블리의 경계 상자가 너무 커서(최대 크기 &gt;= %1% 인치) 렌더링 문제가 발생할 수 있습니다.\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "어셈블리의 경계 상자가 너무 커서(최대 크기 &gt;= %1% mm) 렌더링 문제가 발생할 수 있습니다.\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "다음 물체는 표준 좌표계의 원래 좌표계에서 너무 멀리 떨어져 있습니다 (거리 >= %1% in).\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "다음 물체는 표준 좌표계의 원래 좌표계에서 너무 멀리 떨어져 있습니다 (거리 >= %1% mm).\n"
+
+#~ msgid "Print queue"
+#~ msgstr "출력 대기열"
+
+#~ msgid "Add to queue"
+#~ msgstr "대기열에 추가"
+
+#~ msgid "Only the current sliced plate can be added to the print queue."
+#~ msgstr "현재 슬라이스된 플레이트만 출력 대기열에 추가할 수 있습니다."
+
+#~ msgid "Print immediately"
+#~ msgstr "즉시 출력"
+
+#, c-format, boost-format
+#~ msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+#~ msgstr "출력 대기열에 성공적으로 추가되었습니다. %ss 후에 출력 대기열 페이지로 자동 이동합니다."
+
+#~ msgid "Adding print job to queue"
+#~ msgstr "출력 작업 대기열에 추가 중"
+
+#, boost-format
+#~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+#~ msgstr "%1%이(가) 압축된 프라임 타워에 너무 가깝습니다. 노즐이 Z %2% mm에서 타워로 내려가는 동안 개체는 이미 Z %3% mm에 도달했으며, 툴헤드가 옆을 지나가려면 %4% mm의 수평 여유 공간이 필요하지만 %5% mm만 남아 있습니다. \"희소 레이어 없음\"을 끄거나, 프라임 타워를 멀리 옮기거나, 개체를 낮추세요."
+
+#, boost-format
+#~ msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
+#~ msgstr "%1%이(가) 너무 높아 압축된 프라임 타워와 함께 인쇄할 수 없습니다. 노즐이 Z %2% mm에서 타워로 내려가는 동안 개체는 이미 Z %3% mm에 도달했으며, 이는 %4% mm의 여유 공간을 초과합니다. \"희소 레이어 없음\"을 끄거나 개체를 낮추세요."
+
+#, boost-format
+#~ msgid "Plate %1%"
+#~ msgstr "플레이트 %1%"
+
+#~ msgid "For more details, see the Wiki."
+#~ msgstr "자세한 내용은 Wiki를 참조하세요."
+
+#, c-format, boost-format
+#~ msgid "%s is not compatible with %s nozzle."
+#~ msgstr "%s는 %s 노즐과 호환되지 않습니다."
+
+#~ msgid "True multi-material support will be added in a future update."
+#~ msgstr "진정한 다중 재료 지원은 향후 업데이트에서 추가될 예정입니다."
+
+#~ msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
+#~ msgstr "A2L 프린터에서 첫 레이어 최적화를 위한 열전 사전 컨디셔닝이 활성화되면, 최상의 첫 레이어 품질을 달성하기 위해 모델의 풋프린트를 기반으로 사전 컨디셔닝 기간이 자동으로 조정됩니다. 더 큰 풋프린트일수록 더 긴 사전 컨디셔닝 시간이 필요합니다. 흰색 상자는 다른 사전 컨디셔닝 기간의 경계를 나타냅니다."
+
+#~ msgid "Failed to create GCodeV2"
+#~ msgstr "GCodeV2 생성 실패"
+
+#~ msgid "Failed to create GCodeV3"
+#~ msgstr "GCodeV3 생성 실패"
+
+#~ msgid "Please make sure you have the corrent API key set in preferences."
+#~ msgstr "설정에서 올바른 API 키가 설정되어 있는지 확인하십시오."
+
+#~ msgid "Helio: Simulation check failed"
+#~ msgstr "Helio: 시뮬레이션 검사 실패"
+
+#~ msgid "Helio: Optimzaion check failed"
+#~ msgstr "Helio: 최적화 검사 실패"
+
+#~ msgid "Helio: Failed to create Optimization"
+#~ msgstr "Helio: 최적화 생성 실패"
+
+#~ msgid "Start your assembly journey from Add Step"
+#~ msgstr "'단계 추가'에서 조립 여정 시작"
+
+#~ msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
+#~ msgstr "현재 선택된 단계 카드가 없습니다. 기즈모 이동과 같은 포즈 변경 작업은 실제 최종 조립 화면에 영향을 미칩니다."
+
+#~ msgid "Copy current step"
+#~ msgstr "현재 단계 복사"
+
+#~ msgid "Copy Step"
+#~ msgstr "단계 복사"
+
+#~ msgid "Only copy steps. This is independent of the selected objects on the canvas."
+#~ msgstr "단계만 복사합니다. 이는 캔버스에서 선택된 개체와는 무관합니다."
+
+#~ msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
+#~ msgstr "최종 조립 단계의 키프레임에서 수행된 포즈 변경(예: 기즈모 이동)은 실제 조립 화면 표시에 영향을 미칩니다."
+
+#~ msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
+#~ msgstr "이 단계의 키프레임에서 수행된 포즈 변경(예: 기즈모 이동)은 실제 조립 화면 표시에는 영향을 미치지 않습니다."
+
+#~ msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
+#~ msgstr "필요한 경우, 현재 \"실제 조립 포즈 적용\" 버튼을 눌러 비교적 양호한 위치로 복원할 수 있습니다."
+
+#~ msgid "undoing these edits is not yet supported and will be added in a later version."
+#~ msgstr "이러한 편집 내용을 되돌리는 기능은 현재 지원되지 않으며, 추후 버전에서 추가될 예정입니다."
+
+#~ msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
+#~ msgstr "일부 객체는 현재 단계의 이전 키프레임에서 사용되었기 때문에 여기서는 분해되지 않았습니다. 이동 도구를 사용하여 수동으로 분해할 수 있습니다."
+
+#~ msgid "Automatically explode all objects."
+#~ msgstr "모든 객체를 자동으로 분해합니다."
+
+#~ msgid "Automatically explode all parts."
+#~ msgstr "모든 부품을 자동으로 분해합니다."
+
+#~ msgid ""
+#~ "Should not large than layer height.\n"
+#~ "Reset to 10%"
+#~ msgstr ""
+#~ "레이어 높이보다 커서는 안 됩니다.\n"
+#~ "10%로 재설정"
+
+#~ msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
+#~ msgstr ".gcode.3mf 파일에는 G코드 데이터가 포함되어 있지 않으므로 BambuStudio로 슬라이스한 후 새 .gcode.3mf 파일을 내보내세요."
+
+#, c-format, boost-format
+#~ msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+#~ msgstr "현재 프린터의 %s 직경(%.1fmm)이 슬라이싱 파일(%.1fmm)과 일치하지 않습니다. 설치된 노즐이 프린터의 설정과 일치하는지 확인한 다음 슬라이싱할 때 해당 프린터 프리셋을 설정하세요."
+
+#, c-format, boost-format
+#~ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+#~ msgstr "현재 노즐 직경(%.1fmm)이 슬라이싱 파일(%.1fmm)과 일치하지 않습니다. 설치된 노즐이 프린터의 설정과 일치하는지 확인한 다음 슬라이싱할 때 해당 프린터 프리셋을 설정하세요."
+
+#~ msgid "Sliced file"
+#~ msgstr "슬라이스된 파일"
+
+#~ msgid "When using soluble material for the support interface, We recommend the following settings:"
+#~ msgstr "지지대 인터페이스에 용해성 재료를 사용할 때, 다음 설정을 권장합니다:"
+
+#~ msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
+#~ msgstr "레이어 높이가 프린터 설정 -> 압출기 -> 레이어 높이 제한의 제한을 초과하면 출력 품질 문제가 발생할 수 있습니다."
+
+#~ msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+#~ msgstr "그라디언트 효과를 사용하려면 '혼합 색상 하위 레이어'를 활성화해야 합니다. 지금 활성화하시겠습니까?"
+
+#~ msgid "Mixed Color Sublayer"
+#~ msgstr "혼합 색상 하위  레이어"
 
 #~ msgid "Show Current Step Objects Only"
 #~ msgstr "현재 단계 객체만 표시"

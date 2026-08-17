@@ -34,6 +34,15 @@ enum DevFilaColorType : int
 class DevAmsTray
 {
 public:
+    enum class RemainFetchStatus : int
+    {
+        Done         = 0,
+        Refreshing   = 1,
+        CloudTimeout = 2,
+        CloudNoData  = 3,
+        Initializing = 4,
+    };
+
     DevAmsTray(std::string tray_id)
     {
         is_bbl = false;
@@ -63,7 +72,8 @@ public:
     DevFilaColorType         ctype = DevFilaColorType::CTYPE_SINGLE;
     float                    k        = 0.0f; // k range: 0 ~ 0.5
     float                    n        = 0.0f; // k range: 0.6 ~ 2.0
-    int                      cali_idx = -1;   // - 1 means default
+    int                      cali_idx             = -1;  // - 1 means default
+    RemainFetchStatus        remain_fetch_status  = RemainFetchStatus::Done; // bits[5-7] of MQTT "state" field
 
     wxColour        wx_color;
     bool            is_bbl;

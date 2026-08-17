@@ -15,6 +15,21 @@
 @interface MacDarkMode : NSObject {}
 @end
 
+// 完整 interface 必须在使用点（WKWebView_setCrashHandler）之前可见，否则编译器
+// 无法识别其 property 与 <WKNavigationDelegate> 协议遵循（原 @class 前向声明不够）。
+// 注意：本文件为 MRC（-fno-objc-arc），Clang 拒绝 synthesize weak property，
+// 故 originalDelegate 用 unsafe_unretained。安全前提：proxy 作为 WKWebView 的
+// navigationDelegate 时，wxWebView（持有原始 delegate）必然存活；且 ~DeviceWebHost
+// 会在 wxWebView 仍存活时显式注销 proxy，故 _originalDelegate 在 proxy 活跃期内
+// 始终有效，不会成为悬垂指针。
+@interface BBLWKCrashProxy : NSObject <WKNavigationDelegate>
+@property (nonatomic, unsafe_unretained) id<WKNavigationDelegate> originalDelegate;
+@property (nonatomic, assign) void (*crashCallback)(void*);
+@property (nonatomic, assign) void *crashContext;
+@end
+
+static const char kBBLCrashProxyKey = 0;
+
 @implementation MacDarkMode
 
 namespace Slic3r {
@@ -120,10 +135,58 @@ void openFolderForFile(wxString const & file)
     NSArray *fileURLs = [NSArray arrayWithObjects:wxCFStringRef(file).AsNSString(), /* ... */ nil];
     [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:fileURLs];
 }
-    
+
+void WKWebView_setCrashHandler(void* web, void (*callback)(void*), void* context)
+{
+    WKWebView* webView = (WKWebView*)web;
+    if (!webView) return;
+
+    if (!callback) {
+        // 注销：恢复原始 delegate，释放代理对象
+        BBLWKCrashProxy* existing = (BBLWKCrashProxy*)
+            objc_getAssociatedObject(webView, &kBBLCrashProxyKey);
+        if (existing) {
+            webView.navigationDelegate = existing.originalDelegate;
+            objc_setAssociatedObject(webView, &kBBLCrashProxyKey,
+                                     nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+        }
+        return;
+    }
+
+    // 必须在 webView->Create() 之后调用，此时 wx 的 m_navigationDelegate 已设好
+    id<WKNavigationDelegate> original = webView.navigationDelegate;
+    BBLWKCrashProxy* proxy = [[BBLWKCrashProxy alloc] init];
+    proxy.originalDelegate = original;
+    proxy.crashCallback    = callback;
+    proxy.crashContext     = context;
+    // RETAIN 语义：代理生命周期与 WKWebView 绑定，WKWebView 释放时自动释放代理
+    objc_setAssociatedObject(webView, &kBBLCrashProxyKey,
+                             proxy, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    [proxy release];
+    webView.navigationDelegate = proxy;
+}
+
 }
 }
 
+@end
+
+// ---------------------------------------------------------------------------
+// BBLWKCrashProxy — 将所有 WKNavigationDelegate 消息转发给 wx 原始 delegate，
+// 同时拦截 webViewWebContentProcessDidTerminate:。
+// （interface 已前移至文件顶部，以在使用点之前可见。）
+// ---------------------------------------------------------------------------
+@implementation BBLWKCrashProxy
+- (void)webViewWebContentProcessDidTerminate:(WKWebView *)webView {
+    if (_crashCallback) _crashCallback(_crashContext);
+}
+- (BOOL)respondsToSelector:(SEL)aSelector {
+    return [super respondsToSelector:aSelector] ||
+           [_originalDelegate respondsToSelector:aSelector];
+}
+- (id)forwardingTargetForSelector:(SEL)aSelector {
+    return [_originalDelegate respondsToSelector:aSelector] ? _originalDelegate : nil;
+}
 @end
 
 /* WKWebView */

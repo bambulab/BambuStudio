@@ -761,7 +761,7 @@ namespace Slic3r
         }
     }
 
-    void DeviceManager::parse_user_print_info(std::string body)
+    bool DeviceManager::parse_user_print_info(std::string body)
     {
         if (device_subseries.size() <= 0) {
             device_subseries = DevPrinterConfigUtil::get_all_subseries();
@@ -865,21 +865,34 @@ namespace Slic3r
         catch (std::exception& e)
         {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " exception=" << e.what();
+            return false;
         }
+
+        return true;
     }
 
-    void DeviceManager::update_user_machine_list_info()
+    void DeviceManager::update_user_machine_list_info(std::function<void(bool)> on_completed)
     {
-        if (!m_agent) return;
+        if (!m_agent) {
+            if (on_completed) {
+                Slic3r::GUI::wxGetApp().CallAfter([on_completed]() { on_completed(false); });
+            }
+            return;
+        }
 
         BOOST_LOG_TRIVIAL(debug) << "update_user_machine_list_info";
         unsigned int http_code;
         std::string body;
         int result = m_agent->get_user_print_info(&http_code, &body);
         if (result == 0) {
-            Slic3r::GUI::wxGetApp().CallAfter([this, body]() {
-                parse_user_print_info(body);
+            Slic3r::GUI::wxGetApp().CallAfter([this, body, on_completed]() {
+                const bool parsed = parse_user_print_info(body);
+                if (on_completed) {
+                    on_completed(parsed);
+                }
             });
+        } else if (on_completed) {
+            Slic3r::GUI::wxGetApp().CallAfter([on_completed]() { on_completed(false); });
         }
     }
 
@@ -906,16 +919,14 @@ namespace Slic3r
 
     void DeviceManager::load_last_machine()
     {
-        if (userMachineList.empty()) return;
-        else if (userMachineList.size() == 1) {
-            this->set_selected_machine(userMachineList.begin()->second->get_dev_id());
+        const auto my_machine_list = get_my_machine_list();
+        if (my_machine_list.empty()) return;
+
+        const auto& last_monitor_machine = get_user_last_machine();
+        if (my_machine_list.find(last_monitor_machine) != my_machine_list.end()) {
+            set_selected_machine(last_monitor_machine);
         } else {
-            const auto& last_monitor_machine = get_user_last_machine();
-            if (userMachineList.find(last_monitor_machine) != userMachineList.end()) {
-                set_selected_machine(last_monitor_machine);
-            } else {
-                this->set_selected_machine(userMachineList.begin()->second->get_dev_id());
-            }
+            set_selected_machine(my_machine_list.begin()->second->get_dev_id());
         }
     }
 

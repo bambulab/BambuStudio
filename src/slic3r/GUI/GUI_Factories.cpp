@@ -597,9 +597,9 @@ wxMenu* MenuFactory::append_submenu_add_generic(wxMenu* menu, ModelVolumeType ty
         sub_menu->AppendSeparator();
     }
 
-    std::vector<std::string> icons = {"Cube", "Cylinder", "Sphere", "Cone", "double_tear_romboid_cylinder", "Disc", "Torus", "rounded_rectangle"};
+    std::vector<std::string> icons = {"Cube", "Cylinder", "hexagonal_prism", "Sphere", "Cone", "double_tear_romboid_cylinder", "Disc", "Torus", "rounded_rectangle", "TearDrop"};
     size_t i = 0;
-    for (auto &item : {L("Cube"), L("Cylinder"), L("Sphere"), L("Cone"), L("Double Tear Romboid Cylinder"), L("Disc"), L("Torus"), L("Rounded Rectangle")})
+    for (auto &item : {L("Cube"), L("Cylinder"), L("Hexagonal Prism"), L("Sphere"), L("Cone"), L("Double Tear Romboid Cylinder"), L("Disc"), L("Torus"), L("Rounded Rectangle"), L("TearDrop")})
     {
         append_menu_item(sub_menu, wxID_ANY, _(item), "",
             [type, item](wxCommandEvent&) { obj_list()->load_generic_subobject(item, type); }, Slic3r::resources_dir() + "/model/" + icons[i++] + ".png", menu);
@@ -1404,6 +1404,7 @@ void MenuFactory::create_part_menu()
     wxMenu* menu = &m_part_menu;
     append_menu_item_rename(menu);
     append_menu_item_delete(menu);
+    append_menu_item_clone(menu);
     append_menu_item_reload_from_disk(menu);
     append_menu_item_export_stl(menu);
     append_menu_item_fix_through_netfabb(menu);
@@ -1461,6 +1462,7 @@ void MenuFactory::create_bbl_part_menu()
 {
     wxMenu* menu = &m_part_menu;
 
+    append_menu_item_clone(menu);
     append_menu_item_delete(menu);
     append_menu_item_edit_text(menu);
     append_menu_item_fix_through_netfabb(menu);
@@ -1946,10 +1948,10 @@ wxMenu* MenuFactory::assemble_object_menu()
 wxMenu* MenuFactory::assemble_part_menu()
 {
     wxMenu* menu = new MenuWithSeparators();
-
+    append_menu_items_assembly_steps(menu);
     //append_menu_item_delete(menu);
     //append_menu_item_simplify(menu);
-    //menu->AppendSeparator();
+    menu->AppendSeparator();
 
     append_menu_item_change_extruder(menu);
     //append_menu_item_per_object_settings(menu);

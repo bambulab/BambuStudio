@@ -70,7 +70,6 @@ using namespace nlohmann;
 #include "libslic3r/Orient.hpp"
 #include "libslic3r/PNGReadWrite.hpp"
 #include "libslic3r/ObjColorUtils.hpp"
-#include "libslic3r/FilamentMixer.hpp"
 
 #include "BambuStudio.hpp"
 //BBS: add exception handler for win32
@@ -89,6 +88,14 @@ using namespace nlohmann;
 
 #ifdef __WXGTK__
 #include <X11/Xlib.h>
+#endif
+
+// BBS: for the out-of-memory new-handler (bbl_out_of_memory_handler)
+#include <new> // std::set_new_handler
+#if defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h> // CFUserNotificationDisplayNotice
+#elif !defined(_MSC_VER) && !defined(__MINGW32__)
+#include <unistd.h> // write(), STDERR_FILENO
 #endif
 
 #ifdef SLIC3R_GUI
@@ -1351,15 +1358,6 @@ static bool is_preset_compatible_with_printer(const std::vector<std::string> &co
     return std::find(compatible_printers.begin(), compatible_printers.end(), printer_system_name) != compatible_printers.end();
 }
 
-// todo: temp modify: P1P/P1S share filament presets loosely; skip compatible_printers validation for them.
-static bool is_p1p_or_p1s_printer(const std::string &printer_model_name, const std::string &printer_system_name)
-{
-    if (printer_model_name == "Bambu Lab P1P" || printer_model_name == "Bambu Lab P1S")
-        return true;
-    return printer_system_name.find("P1P") != std::string::npos
-        || printer_system_name.find("P1S") != std::string::npos;
-}
-
 // For estimate_mode: given a source filament preset name (e.g. "Bambu PLA Basic @BBL P1S 0.4 nozzle")
 // and the new machine's BBL tag (e.g. "X2D 0.4 nozzle"), construct the target filament preset name
 // (e.g. "Bambu PLA Basic @BBL X2D 0.4 nozzle") and verify it exists in filament_full_dir.
@@ -1675,7 +1673,7 @@ int CLI::run(int argc, char **argv)
     std::vector<plate_obj_size_info_t> plate_obj_size_infos;
     //int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0, current_extruder_count = 1, new_extruder_count = 1, current_printer_variant_count = 1, current_print_variant_count = 1, new_printer_variant_count = 1;
-    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false, has_support = false, estimate_mode = false;
+    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false, has_support = false, estimate_mode = false, check_preset = false;
     bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false, allow_mix_temp = false, enable_wrapping_detect = false;
     Semver file_version;
     Slic3r::GUI::Camera::ViewAngleType camera_view = Slic3r::GUI::Camera::ViewAngleType::Iso;
@@ -1747,6 +1745,10 @@ int CLI::run(int argc, char **argv)
     ConfigOptionBool* estimate_mode_option = m_config.option<ConfigOptionBool>("estimate_mode");
     if (estimate_mode_option)
         estimate_mode = estimate_mode_option->value;
+
+    ConfigOptionBool* check_preset_option = m_config.option<ConfigOptionBool>("check_preset");
+    if (check_preset_option)
+        check_preset = check_preset_option->value;
 
     ConfigOptionInt* camera_view_option = m_config.option<ConfigOptionInt>("camera_view");
     if (camera_view_option)
@@ -1954,13 +1956,6 @@ int CLI::run(int argc, char **argv)
                                 record_exit_reson(outfile_dir, CLI_POSTPROCESS_NOT_SUPPORTED, 0, cli_errors[CLI_POSTPROCESS_NOT_SUPPORTED], sliced_info);
                                 flush_and_exit(CLI_POSTPROCESS_NOT_SUPPORTED);
                             }
-                        }
-
-                        ConfigOptionBools* filament_is_mixed = config.option<ConfigOptionBools>("filament_is_mixed");
-                        if (filament_is_mixed && has_any_mixed_filament(filament_is_mixed->values)) {
-                            BOOST_LOG_TRIVIAL(error) << "normative_check: mixed filament is not supported";
-                            record_exit_reson(outfile_dir, CLI_3MF_FEATURE_NOT_SUPPORTED, 0, cli_errors[CLI_3MF_FEATURE_NOT_SUPPORTED], sliced_info);
-                            flush_and_exit(CLI_3MF_FEATURE_NOT_SUPPORTED);
                         }
                     }
 
@@ -3010,33 +3005,29 @@ int CLI::run(int argc, char **argv)
     }
 
     // Validate compatible_printers for externally loaded filament presets.
-    // {
-    //     std::string effective_printer_system_name;
-    //     if (!new_printer_system_name.empty())
-    //         effective_printer_system_name = new_printer_system_name;
-    //     else
-    //         effective_printer_system_name = current_printer_system_name;
-    //
-    //     const std::string effective_printer_model = !printer_model.empty() ? printer_model : current_printer_model;
-    //
-    //     if (!is_p1p_or_p1s_printer(effective_printer_model, effective_printer_system_name)
-    //         && !effective_printer_system_name.empty()) {
-    //         for (size_t index = 0; index < load_filaments_config.size(); ++index) {
-    //             const auto *compatible_printers_opt = load_filaments_config[index].option<ConfigOptionStrings>("compatible_printers");
-    //             if (!compatible_printers_opt)
-    //                 continue;
-    //             const std::vector<std::string> &compatible_printers = compatible_printers_opt->values;
-    //             if (is_preset_compatible_with_printer(compatible_printers, effective_printer_system_name))
-    //                 continue;
-    //
-    //             const std::string &filament_name = (index < load_filaments_name.size()) ? load_filaments_name[index] : "";
-    //             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" %1%: filament preset %2% (slot %3%) is not compatible with printer %4%.")
-    //                 % __LINE__ % filament_name % (index + 1) % effective_printer_system_name;
-    //             record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
-    //             flush_and_exit(CLI_CONFIG_FILE_ERROR);
-    //         }
-    //     }
-    // }
+    if (check_preset) {
+        std::string effective_printer_system_name;
+        if (!new_printer_system_name.empty())
+            effective_printer_system_name = new_printer_system_name;
+        else
+            effective_printer_system_name = current_printer_system_name;
+
+        if (!effective_printer_system_name.empty()) {
+            for (size_t index = 0; index < load_filaments_config.size(); ++index) {
+                const auto *compatible_printers_opt = load_filaments_config[index].option<ConfigOptionStrings>("compatible_printers");
+                if (!compatible_printers_opt) continue;
+                const std::vector<std::string> &compatible_printers = compatible_printers_opt->values;
+                if (is_preset_compatible_with_printer(compatible_printers, effective_printer_system_name)) continue;
+
+                const std::string &filament_name = (index < load_filaments_name.size()) ? load_filaments_name[index] : "";
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                                         << boost::format(" %1%: filament preset %2% (slot %3%) is not compatible with printer %4%.") % __LINE__ % filament_name % (index + 1) %
+                                                effective_printer_system_name;
+                record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                flush_and_exit(CLI_CONFIG_FILE_ERROR);
+            }
+        }
+    }
 
     if (estimate_mode && (new_printer_name.empty() || current_printer_name.empty() || (new_printer_name == current_printer_name))) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" %1%: estimate_mode requires a machine switch via --load_settings") % __LINE__;
@@ -4107,7 +4098,7 @@ int CLI::run(int argc, char **argv)
     2. 判断是否切换了机型，若机型切换，则需要重新设置默认值（此时会将默认参数修复）
     3. 判断是否切换了流量，若流量切换，重新设置对应流量，并复制原先的喷嘴数量
     */
-    bool has_extruder_nozzle_stats = m_print_config.has("extruder_nozzle_stats");
+    bool has_extruder_nozzle_stats = m_print_config.has("extruder_nozzle_stats_new") || m_print_config.has("extruder_nozzle_stats");
     ExtruderNozzleStat nozzle_stats_obj;
 
     // Synchronize the default parameters and the ones received on the command line.
@@ -4157,8 +4148,11 @@ int CLI::run(int argc, char **argv)
         nozzle_stats_obj.on_printer_model_change_cli(curr_volume_map_value, max_nozzle_count);
     }
     else {
-        auto nozzle_stat_str = m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats")->values;
-        nozzle_stats_obj.set_raw_stat(get_extruder_nozzle_stats(nozzle_stat_str));
+        const auto *nozzle_stats_opt = m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats_new");
+        if (nozzle_stats_opt == nullptr || nozzle_stats_opt->values.empty())
+            nozzle_stats_opt = m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats");
+        if (nozzle_stats_opt != nullptr)
+            nozzle_stats_obj.set_raw_stat(get_extruder_nozzle_stats(nozzle_stats_opt->values));
     }
 
 
@@ -8633,6 +8627,52 @@ LONG WINAPI VectoredExceptionHandler(PEXCEPTION_POINTERS pExceptionInfo)
     return EXCEPTION_CONTINUE_SEARCH;
 }*/
 
+// BBS: out-of-memory new-handler, installed on every platform
+#define BBL_OOM_TITLE "Bambu Studio - Out of Memory"
+#define BBL_OOM_BODY \
+    "Bambu Studio has run out of memory and must close.\n\n" \
+    "Your project may be too large for the available memory. " \
+    "Try closing other applications, reducing the model complexity " \
+    "or plate count, and restart."
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+// Windows: raw Win32 MessageBoxW with static wide literals; no wx, no allocation.
+static void bbl_oom_notify_windows() { ::MessageBoxW(nullptr, L"" BBL_OOM_BODY, L"" BBL_OOM_TITLE, MB_OK | MB_ICONERROR | MB_TOPMOST | MB_SETFOREGROUND); }
+#elif defined(__APPLE__)
+// macOS: CFUserNotification works without a running event loop and takes static
+// CFString literals (no heap use beyond CF internals). Best-effort.
+static void bbl_oom_notify_macos()
+{ CFUserNotificationDisplayNotice(0.0, kCFUserNotificationStopAlertLevel, nullptr, nullptr, nullptr, CFSTR(BBL_OOM_TITLE), CFSTR(BBL_OOM_BODY), nullptr); }
+#else
+// Linux: no allocation-free GUI primitive is safe under OOM (GTK allocates; fork+exec
+// of zenity can itself fail when memory is gone). Emit an async-signal-safe message to
+// stderr instead of a dialog.
+static void bbl_oom_notify_linux()
+{
+    const char msg[] = "\n" BBL_OOM_TITLE "\n" BBL_OOM_BODY "\n\n";
+    ssize_t    n     = ::write(STDERR_FILENO, msg, sizeof(msg) - 1);
+    (void) n;
+}
+#endif
+
+static void bbl_out_of_memory_handler()
+{
+    // Notify once; if new keeps failing (or fails on another thread), avoid stacking
+    // dialogs or recursing.
+    static volatile long s_reported = 0;
+#if defined(_MSC_VER) || defined(__MINGW32__)
+    if (::InterlockedCompareExchange(&s_reported, 1, 0) == 0) bbl_oom_notify_windows();
+#elif defined(__APPLE__)
+    if (__sync_val_compare_and_swap(&s_reported, 0, 1) == 0) bbl_oom_notify_macos();
+#else
+    if (__sync_val_compare_and_swap(&s_reported, 0, 1) == 0) bbl_oom_notify_linux();
+#endif
+
+    // Fall through: crash so a dump is still generated.
+    int *a = nullptr;
+    *a     = 0;
+}
+
 #if defined(_MSC_VER) || defined(__MINGW32__)
 extern "C" {
     __declspec(dllexport) int __stdcall bambustu_main(int argc, wchar_t **argv)
@@ -8652,10 +8692,7 @@ extern "C" {
         //AddVectoredExceptionHandler(1, CBaseException::UnhandledExceptionFilter);
         //SET_DEFULTER_HANDLER();
 #endif
-        std::set_new_handler([]() {
-            int *a = nullptr;
-            *a     = 0;
-            });
+        std::set_new_handler(bbl_out_of_memory_handler);
         // Call the UTF8 main.
         return CLI().run(argc, argv_ptrs.data());
     }
@@ -8663,6 +8700,7 @@ extern "C" {
 #else /* _MSC_VER */
 int main(int argc, char **argv)
 {
+    std::set_new_handler(bbl_out_of_memory_handler);
     return CLI().run(argc, argv);
 }
 #endif /* _MSC_VER */

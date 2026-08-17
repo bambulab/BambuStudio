@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 20:35+0800\n"
+"POT-Creation-Date: 2026-08-14 16:02+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -292,7 +292,7 @@ msgid "TPU High Flow"
 msgstr "TPU高流量"
 
 msgid "E3D High Flow"
-msgstr "E3D 高流量"
+msgstr "E3D高流量"
 
 msgid "Unknown"
 msgstr "未知"
@@ -952,6 +952,9 @@ msgstr "将零件指定给另一侧"
 msgid "Cut"
 msgstr "剪切"
 
+msgid "Cutting model object"
+msgstr "正在切割模型对象"
+
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr "因切割产生了开放边，您是否想现在修复？"
 
@@ -1323,6 +1326,9 @@ msgstr "平行距离:"
 
 msgid "Flip by Face 2"
 msgstr "通过面2翻转"
+
+msgid "Rotate the object on selected Face 2 around the perpendicular line of the selected plane"
+msgstr "围绕所选平面法线，在所选面 2 上旋转对象"
 
 msgid "Assemble"
 msgstr "装配"
@@ -2044,6 +2050,12 @@ msgstr "当前BambuStudio的版本过低导致云端服务不可用,请从官网
 msgid "Your software certificate has been revoked, please update Bambu Studio software."
 msgstr "您的软件证书已失效。请升级Bambu Studio软件"
 
+msgid "Got it"
+msgstr "知道了"
+
+msgid "Continue"
+msgstr "继续"
+
 msgid "Retrieving printer information, please try again later."
 msgstr "正在获取打印机信息，请稍后重试"
 
@@ -2234,6 +2246,9 @@ msgstr "立方体"
 msgid "Cylinder"
 msgstr "圆柱体"
 
+msgid "Hexagonal Prism"
+msgstr "六棱柱"
+
 msgid "Cone"
 msgstr "锥体"
 
@@ -2248,6 +2263,9 @@ msgstr "圆环"
 
 msgid "Rounded Rectangle"
 msgstr "圆角矩形"
+
+msgid "TearDrop"
+msgstr "水滴形"
 
 msgid "Bambu Cube"
 msgstr "Bambu方块"
@@ -2972,6 +2990,10 @@ msgstr "执行此操作的耗材类型未知。请设置槽位信息。"
 msgid "/"
 msgstr ""
 
+msgctxt "AMS filament"
+msgid "loading"
+msgstr "加载中"
+
 msgid "Confirm"
 msgstr "确定"
 
@@ -3173,6 +3195,21 @@ msgstr "步骤"
 msgid "Install parts"
 msgstr "安装零件"
 
+msgid "Inherited Step"
+msgstr "继承步骤"
+
+msgid "start frame"
+msgstr "起始帧"
+
+msgid "Final assembly"
+msgstr "总装"
+
+msgid "Merged Step"
+msgstr "合并步骤"
+
+msgid "end frame"
+msgstr "结束帧"
+
 msgid "Apply the final assembly pose to the objects or parts added in the current step?"
 msgstr "将当前步骤中添加的对象或零件应用最终装配姿态？"
 
@@ -3221,17 +3258,11 @@ msgstr "删除所有步骤"
 msgid "New Step"
 msgstr "新步骤"
 
-msgid "Final assembly"
-msgstr "总装"
-
-msgid "end frame"
-msgstr "结束帧"
+msgid "Overall preview"
+msgstr "整体预览"
 
 msgid "Assembly Structure"
 msgstr "装配结构"
-
-msgid "Start your assembly journey from Add Step"
-msgstr "从添加步骤开始您的组装之旅"
 
 msgctxt "AssemblyStructure"
 msgid "Default"
@@ -3261,22 +3292,17 @@ msgstr "删除步骤"
 msgid "Model"
 msgstr "模型"
 
-msgid "start frame"
-msgstr "起始帧"
-
 msgid "transition frame"
 msgstr "过渡帧"
 
-#, c-format, boost-format
-msgid "Step %d"
-msgstr "第 %d 步"
+msgid "Label"
+msgstr "标签"
 
-msgid "not used in any assembly step"
-msgstr "未在任何组装步骤中使用"
+msgid "Explosion"
+msgstr "爆炸"
 
-#, boost-format
-msgid "Plate %1%"
-msgstr "盘 %1%"
+msgid "Unassembled"
+msgstr "未组装"
 
 msgid "Assembly Step"
 msgstr "组装步骤"
@@ -3302,6 +3328,9 @@ msgstr "仅显示当前步骤零件"
 msgid "X-Ray Other Parts"
 msgstr "X-Ray其它零件"
 
+msgid "Play from the current step."
+msgstr "从当前步骤开始播放。"
+
 msgid "Play all frames for all steps."
 msgstr "播放所有步骤的所有帧。"
 
@@ -3317,8 +3346,17 @@ msgstr "播放下一帧"
 msgid "Display Mode"
 msgstr "显示模式"
 
-msgid "Set export file parameters"
-msgstr "设置导出文件参数"
+msgid "Show world axes"
+msgstr "显示世界坐标轴"
+
+msgid "Show explosion state column"
+msgstr "显示爆炸状态列"
+
+msgid "Allow modify text note foreground"
+msgstr "允许修改文本注释前景"
+
+msgid "Allow modify text note background"
+msgstr "允许修改文本注释背景"
 
 msgid "Camera margin factor for the current frame. The larger the value, the more margin."
 msgstr "当前帧的相机边距系数。值越大，边距越大。"
@@ -3335,12 +3373,6 @@ msgstr "在此步骤前插入"
 msgid "Insert step after"
 msgstr "在此步骤后插入"
 
-msgid "Tip"
-msgstr "提示"
-
-msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
-msgstr "当前未选中任何步骤卡。诸如移动工具之类的姿态更改操作将影响实际的最终装配视图。"
-
 msgid "Expand"
 msgstr "展开"
 
@@ -3350,11 +3382,26 @@ msgstr "收起"
 msgid "Options"
 msgstr "选项"
 
+msgid "Delete all assembly steps"
+msgstr "删除所有步骤"
+
+msgid "There’s no step to delete"
+msgstr "没有可删除的步骤"
+
 msgid "Go to Wiki"
 msgstr "查看Wiki"
 
-msgid "Copy current step"
-msgstr "复制当前步骤"
+msgid "Inherit the state of Step"
+msgstr "继承步骤的状态"
+
+msgid "Assembled parts are not exploded"
+msgstr "已组装的部件未爆炸"
+
+msgid "Copy and inherit this step"
+msgstr "复制并继承此步骤"
+
+msgid "Add objects to this step before copying"
+msgstr "请先添加对象到此步骤再复制"
 
 msgid "Delete current step"
 msgstr "删除当前步骤"
@@ -3362,27 +3409,27 @@ msgstr "删除当前步骤"
 msgid "Add some objects to current step"
 msgstr "将一些对象添加到当前步骤"
 
-msgid "Copy Step"
-msgstr "复制步骤"
-
-msgid "Add Step"
-msgstr "添加步骤"
-
 #, boost-format
 msgid "No more than %1% steps are allowed."
 msgstr "最多允许 %1% 步。"
 
-msgid "Only copy steps. This is independent of the selected objects on the canvas."
-msgstr "仅复制步骤。此操作与画布上选定的对象无关。"
+msgid "Add Step"
+msgstr "添加步骤"
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr "仅添加空步骤。这与画布上的选定对象无关。"
 
-msgid "Delete all assembly steps except the final assembly."
-msgstr "删除除总装步骤之外的所有装配步骤。"
+msgid "Merge and add steps."
+msgstr "合并并添加步骤。"
 
-msgid "Exit the assembly step editing, you can also press the Esc button to exit"
-msgstr "退出装配步骤编辑，您也可以按 Esc 键退出"
+msgid "Click to exit assembly step editing, or press Esc."
+msgstr "点击退出装配步骤编辑，或按 Esc。"
+
+msgid "Not"
+msgstr "未"
+
+msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
+msgstr "请先点击确认。在画布上生成标签后，就可以使用此标签控件。"
 
 msgid "Click to add Cyber Brick"
 msgstr "点击添加 Cyber Brick"
@@ -3398,6 +3445,9 @@ msgstr "导出Markdown"
 
 msgid "Export MP4"
 msgstr "导出MP4"
+
+msgid "Set export file parameters"
+msgstr "设置导出文件参数"
 
 msgid "After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF."
 msgstr "导出 Markdown 文档后，您可以使用 Zettlr 等第三方软件对其进行编辑，然后将其导出为 PDF。"
@@ -3420,11 +3470,11 @@ msgstr "为每个模型对象显示一个标签。"
 msgid "Show one label per model part."
 msgstr "为模型的每个零件显示一个标签。"
 
-msgid "Label"
-msgstr "标签"
-
 msgid "Label settings"
 msgstr "标签设置"
+
+msgid "Reset all closed labels"
+msgstr "重置所有关闭的标签"
 
 msgid "Show Object/Part labels"
 msgstr "显示对象/零件标签"
@@ -3456,29 +3506,14 @@ msgstr "显示模式"
 msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
 msgstr "自动选择对象或零件级别的标签：在先前步骤中已完全使用的对象将折叠为单个对象标签；部分对象和首次出现的对象将按单个零件进行标记。"
 
+msgid "Please create an assembly step before exporting."
+msgstr "请先创建一个装配步骤再导出。"
+
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "导出装配指南 PDF、Markdown 或 MP4"
 
 msgid "Screw"
 msgstr "螺丝"
-
-msgid "Note"
-msgstr "提示"
-
-msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
-msgstr "在最终装配步骤的关键帧上进行的姿态更改（例如平移工具）将影响实际的装配显示。"
-
-msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
-msgstr "在此步骤的关键帧上进行的姿势更改（例如平移工具）不会影响实际组装显示。"
-
-msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
-msgstr "如有必要，可以通过按下“应用实际装配姿态”按钮来恢复一个相对较好的位置。"
-
-msgid "undoing these edits is not yet supported and will be added in a later version."
-msgstr "此编辑的撤销尚不支持，将在后续版本中添加。"
-
-msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
-msgstr "某些对象在当前步骤的先前关键帧中使用过，因此此处未将其分解。您可以使用移动工具手动分解它们。"
 
 msgid "Connection Type"
 msgstr "连接类型"
@@ -3528,14 +3563,20 @@ msgstr "播放当前步骤的所有帧"
 msgid "At least two keyframes are required to play."
 msgstr "至少需要两个关键帧才能播放。"
 
-msgid "Automatically explode all objects."
-msgstr "自动爆炸所有对象。"
+msgid "Add the selected object or part to the current step first"
+msgstr "请先将选定的对象或部件添加到当前步骤"
 
-msgid "Automatically explode all parts."
-msgstr "自动爆炸所有零件。"
+msgid "Add a new object to the current step first"
+msgstr "请先将一个新对象添加到当前步骤"
 
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
 msgstr "将最终装配姿态应用于当前选定的对象或零件（如果未选择任何内容，则将其应用于当前帧中添加的所有对象）"
+
+msgid "Automatically explode objects that are new to this step. Objects already assembled in earlier steps stay together."
+msgstr "自动爆炸本步骤中新增的对象。先前步骤中已组装的对象将保持在一起。"
+
+msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
+msgstr "自动爆炸新部件。先前继承或已组装的对象将作为一个整体保持在一起。"
 
 msgid "Apply current camera angle to all frames of the current step"
 msgstr "将当前相机角度应用于当前步骤的所有帧"
@@ -3558,17 +3599,26 @@ msgstr "装配树"
 msgid "Search"
 msgstr "搜索"
 
+msgid "Expand all objects"
+msgstr "展开所有对象"
+
+msgid "Collapse all objects"
+msgstr "折叠所有对象"
+
 msgid "List"
 msgstr "列表"
 
 msgid "Assembly list"
 msgstr "装配列表"
 
-msgid "Expand all objects"
-msgstr "展开所有对象"
+msgid "Show all objects"
+msgstr "显示所有对象"
 
-msgid "Collapse all objects"
-msgstr "折叠所有对象"
+msgid "Show unassembled only"
+msgstr "仅显示未组装的"
+
+msgid "Object name"
+msgstr "对象名称"
 
 msgid "Select all parts in a step"
 msgstr "选择步骤中的所有零件"
@@ -3655,7 +3705,7 @@ msgid "Filling"
 msgstr "正在填充"
 
 msgid "Bed filling aborted: invalid bed shape."
-msgstr ""
+msgstr "底板填充已中止：底板形状无效。"
 
 msgid "Bed filling canceled."
 msgstr "填充热床已取消。"
@@ -3781,11 +3831,11 @@ msgstr "一键RYBW自动混色"
 msgid "Project Physical Filaments"
 msgstr "项目耗材列表"
 
-msgid "Project Mixed Filaments"
-msgstr "项目混色列表"
-
 msgid "New Physical Filaments"
 msgstr "新增耗材"
+
+msgid "Project Mixed Filaments"
+msgstr "项目混色列表"
 
 msgid "New Mixed Filaments"
 msgstr "新增混色耗材"
@@ -3874,9 +3924,6 @@ msgstr "请注意，网格具有非流形或开放边界。"
 
 msgid "Mesh issue"
 msgstr "网格故障"
-
-msgid "Continue"
-msgstr "继续"
 
 msgid "Choose SLA archive:"
 msgstr "选择SLA存档："
@@ -4077,13 +4124,16 @@ msgid "Note"
 msgstr "提示"
 
 msgid "No unsupported filaments"
-msgstr ""
+msgstr "无不支持的耗材"
 
 msgid "No filaments"
 msgstr "暂无耗材"
 
 msgid "System presets"
 msgstr "系统配置"
+
+msgid "Recently used"
+msgstr "最近使用"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4488,7 +4538,7 @@ msgid "Running post-processing scripts"
 msgstr "运行后处理脚本"
 
 msgid "Updating preview with post-processed G-code"
-msgstr ""
+msgstr "正在使用后处理的 G-code 更新预览"
 
 msgid "Successfully executed post-processing script"
 msgstr "成功执行后处理脚本"
@@ -4623,9 +4673,11 @@ msgid ""
 msgstr "层高过大。将重置为0.2"
 
 msgid ""
-"Should not large than layer height.\n"
+"Should not be larger than layer height.\n"
 "Reset to 10%"
-msgstr "起始高度不应大于层高度。重置为10%"
+msgstr ""
+"起始高度不应大于层高度。\n"
+"重置为10%"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5598,22 +5650,6 @@ msgstr "以下物体位于盘的边界上或超过了高度限制：\n"
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "请通过将物体完全移动到盘上或移出盘来解决问题，并确认其高度在构建范围内。\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "装配体的边界框过大（最大尺寸 >= %1% 英寸），这可能会导致渲染问题。\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "装配体的边界框过大（最大尺寸 >= %1% mm），这可能会导致渲染问题。\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "以下对象距离世界坐标系原点过远（距离 >= %1% 英寸）：\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "以下对象距离世界坐标系原点过远（距离 >= %1% mm）：\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "一些模型的位置或者尺寸超出了%s的可打印范围。"
@@ -5754,6 +5790,12 @@ msgstr "退出装配体视图"
 msgid "return"
 msgstr "返回"
 
+msgid "Exit current gizmo editing"
+msgstr "退出当前 Gizmo 编辑"
+
+msgid "Return to prepare view"
+msgstr "返回准备视图"
+
 msgid "Fit camera"
 msgstr "相机适配"
 
@@ -5856,6 +5898,9 @@ msgstr "材料 %s 不能在直接在当前打印板上打印。"
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "检测到 PLA 和 PETG 同时打印，请根据 Wiki 中的建议调整打印参数来确保打印质量。"
 
+msgid "Detected brittle filament (e.g., PPS-CF). Please place the models at the center of the heated bed. Printing near the edge may cause the filament to bend excessively and break inside the tube."
+msgstr "检测到易碎耗材（例如 PPS-CF）。请将模型放置在加热床的中心。在边缘附近打印可能导致耗材过度弯曲并在管内断裂。"
+
 msgid "The prime tower improves multi-color print quality and is recommended."
 msgstr "擦料塔可提升多色打印质量，建议启用。"
 
@@ -5867,6 +5912,9 @@ msgstr "部分冲刷体积设置为0，多色打印可能导致模型混色，�
 
 msgid "Click Wiki for help."
 msgstr "点击Wiki寻求帮助。"
+
+msgid "Click Wiki for details."
+msgstr "点击 Wiki 获取详细信息。"
 
 msgid "Jump to: Prime tower"
 msgstr "转跳到：擦料塔"
@@ -6171,6 +6219,12 @@ msgstr "项目另存为"
 
 msgid "Save current project as"
 msgstr "项目另存为"
+
+msgid "Show Project in Folder"
+msgstr "在文件夹中显示项目"
+
+msgid "Show current project in folder"
+msgstr "在文件夹中显示当前项目"
 
 msgid "Import 3MF/STL/STEP/SVG/OBJ/AMF"
 msgstr "导入 3MF/STL/STEP/SVG/OBJ/AMF"
@@ -6707,7 +6761,7 @@ msgstr "无法从打印机获取模型信息。"
 msgid "Failed to parse model information."
 msgstr "解析模型信息失败。"
 
-msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
+msgid "The .gcode.3mf file contains no G-code data. Please slice it with Bambu Studio and export a new .gcode.3mf file."
 msgstr ".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新的.gcode.3mf文件。"
 
 #, c-format, boost-format
@@ -7442,6 +7496,9 @@ msgstr "打开链接获取更多信息"
 msgid "Warning:"
 msgstr "警告："
 
+msgid "Wiki for details."
+msgstr "详情查看Wiki"
+
 msgid "Export successfully."
 msgstr "导出成功。"
 
@@ -7742,10 +7799,6 @@ msgid "Customize current plate"
 msgstr "自定义当前盘"
 
 #, c-format, boost-format
-msgid "%s is not compatible with %s nozzle."
-msgstr "%s耗材不支持使用%s类型喷嘴打印"
-
-#, c-format, boost-format
 msgid "The %s nozzle can not print %s."
 msgstr "%s喷嘴不可以打印%s"
 
@@ -8006,11 +8059,14 @@ msgstr "收起侧边栏"
 msgid "Loading file: %s"
 msgstr "加载文件：%s"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "该3mf文件不是来自Bambu Lab，将只加载几何数据。"
+msgid "The 3mf file has invalid config, load geometry data only"
+msgstr "3mf 文件配置无效，仅加载几何数据"
 
 msgid "Load 3mf"
 msgstr "加载3mf"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data only."
+msgstr "该3mf文件不是来自Bambu Lab，将只加载几何数据。"
 
 msgid "The Config can not be loaded."
 msgstr "配置无法加载。"
@@ -8262,9 +8318,6 @@ msgstr "你已选择多种材料：%s"
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
 msgstr "注意：不支持的材料将使用所选参考材料进行仿真。"
 
-msgid "True multi-material support will be added in a future update."
-msgstr "真正的多材料支持将在后续更新中加入。"
-
 msgid "Option 1: Proceed using a single filament type"
 msgstr "选项 1：继续使用单一耗材类型"
 
@@ -8291,6 +8344,12 @@ msgstr "查看支持的材料"
 
 msgid "Go Back"
 msgstr "返回"
+
+msgid "Option 3: Enable multi-material optimization"
+msgstr "选项 3：启用多材料优化"
+
+msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
+msgstr "点击第三方图标 → 启用 Helio Additive → 勾选“实验性：启用多材料支持”"
 
 msgid "Unsupported Materials Detected"
 msgstr "检测到不支持的材料"
@@ -8327,6 +8386,15 @@ msgstr "同步数据"
 
 msgid "Refreshing printer and material data..."
 msgstr "正在刷新打印机和材料数据……"
+
+msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
+msgstr "Helio 无法刷新所有打印机和材料数据。先前完整的可用数据仍保留。"
+
+msgid "Helio could not load complete printer and material data. Matching remains paused."
+msgstr "Helio 无法加载完整的打印机和材料数据。匹配已暂停。"
+
+msgid "Helio Data Refresh Failed"
+msgstr "Helio 数据刷新失败"
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Helio 仿真或优化任务正在进行中。"
@@ -8450,6 +8518,12 @@ msgstr "查看支持的打印机"
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "点击优化/增强按钮开始您的第一次优化。"
 
+msgid "Previous Helio action is still stopping; try again shortly"
+msgstr "上一个 Helio 操作仍在进行中，请稍后重试"
+
+msgid "Helio Additive"
+msgstr ""
+
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
@@ -8474,6 +8548,12 @@ msgstr "打印机列表和材料列表正在同步中。请稍后再试。"
 
 msgid "Synchronizing Helio"
 msgstr "正在同步 Helio"
+
+msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
+msgstr "Helio 无法加载支持的打印机和材料列表。匹配已暂停，以避免将不可用数据视为不支持的材料。"
+
+msgid "Helio Data Load Failed"
+msgstr "Helio 数据加载失败"
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "请解决切片错误后再重新发布。"
@@ -8675,7 +8755,7 @@ msgid "Negative parts detected. Would you like to perform mesh boolean before ex
 msgstr "检测到负零件。在导出前，您是否想执行网格布尔运算？"
 
 msgid "Failed to save the project: an invalid setting value was found while writing the file."
-msgstr ""
+msgstr "保存项目失败：写入文件时发现了无效的设置值。"
 
 msgid "Please check your settings and try again."
 msgstr "请检查您的设置并重试."
@@ -8696,6 +8776,9 @@ msgstr "不建议使用0.2毫米喷嘴来打印PVA材料"
 
 msgid "Are you sure to use them? \n"
 msgstr "您确定要使用它吗？ \n"
+
+msgid "When thermal preconditioning is enabled, duration auto-adjusts to the model's position for optimal first-layer quality; the farther from the center, the longer it takes. White boxes mark the boundary lines. To disable the guidelines and this warning, go to Preferences > 3D."
+msgstr "开启热床保温后，保温时长会随模型摆放位置自动调整（距离中心越远时间越久），以保证最佳首层质量；白色方框标示不同保温时长的边界。如需关闭辅助标线与本警告，请前往 偏好设置 -> 3D。"
 
 msgid "Send G-code"
 msgstr "发送 G 代码"
@@ -9072,6 +9155,12 @@ msgstr "在预览界面总是显示透明壳"
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "始终在预览视图选项卡中显示或不显示壳。如果更改值，您应该重新切片。"
 
+msgid "Show Thermal Preconditioning Area"
+msgstr "显示热床保温区域"
+
+msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
+msgstr "当模型超出热床保温区域时发出警告。仅支持此功能的打印机可用。"
+
 msgid "Show the step mesh parameter setting dialog."
 msgstr "显示step参数设置对话框。"
 
@@ -9179,6 +9268,9 @@ msgstr "开发者模式"
 
 msgid "Skip AMS blacklist check"
 msgstr "跳过AMS黑名单检查"
+
+msgid "Enable DevTools For Webview"
+msgstr "启用Webview的调试工具"
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Bambu Studio文件关联"
@@ -9563,6 +9655,9 @@ msgstr "增稳低温打印板"
 msgid "Send print job"
 msgstr "发送打印任务"
 
+msgid "The current estimated time has been recalculated based on the actual filament mapping."
+msgstr "根据实际耗材映射重新计算了当前估计时间。"
+
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "对耗材左右分组不满意？重新分组并切片 ->"
 
@@ -9707,7 +9802,7 @@ msgid "Cancel Timelapse & Print"
 msgstr "取消延时摄影，继续打印"
 
 msgid "Clean Up"
-msgstr ""
+msgstr "清理"
 
 msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "自动：如果主挤出机的耗材/喷嘴未更改，将复用上次的校准值。辅助挤出机将使用系统默认值。"
@@ -9781,25 +9876,13 @@ msgid "Refreshing information of hotends(%d/%d)."
 msgstr "正在刷新喷嘴信息(%d/%d)。"
 
 msgid "Please wait a moment..."
-msgstr "请稍等片刻……"
+msgstr "请稍等片刻..."
 
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
 msgstr "工具头和热端挂架已满，请卸下至少一个热端后再打印。"
 
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "%s的流量设置（%s）和切片文件（%s）不一致，无法发起打印。请确保打印机上安装喷嘴类型和机器设置中一致，并在切片时设置对应的喷嘴类型。"
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "注意: 如果您最近更换了喷嘴，请去“设备-打印机零件”更改设置"
-
-#, c-format, boost-format
-msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr "当前打印机的%s直径（%.1fmm）和切片文件（%.1fmm）不一致，无法发起打印。请确保打印机上安装的喷嘴直径和机器设置中一致，并在切片时设置相同的喷嘴直径。"
-
-#, c-format, boost-format
-msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr "当前喷嘴直径（%.1fmm）和切片文件（%.1fmm）不一致，无法发起打印。请确保打印机上安装喷嘴直径和机器设置中一致，并在切片时设置对应的喷嘴直径。"
+msgid "The nozzle type doesn't match. Please re-slice."
+msgstr "喷嘴类型不匹配。请重新切片。"
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "打印机上安装的耗材变轨器与切片文件不匹配。请重新切片以避免打印质量问题。"
@@ -9858,13 +9941,16 @@ msgid "High Temp"
 msgstr ""
 
 msgid "Cool(Supertack)"
-msgstr ""
+msgstr "增稳低温打印板"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "如果您无法连接打印机，请点击这里"
 
-msgid "Sliced file"
+msgid "Slice file"
 msgstr "切片文件"
+
+msgid "The connected printer"
+msgstr "已连接的打印机"
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "未登录账号，仅显示局域网模式的打印机"
@@ -10128,8 +10214,30 @@ msgstr "点击了解更多"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "点击以将所有设置还原到最后一次保存的版本。"
 
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+"当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
+"0 顶部 Z 距离，0 底部 Z 距离，0 接触面间距，0 支撑/模型 XY 距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+"当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
+"0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
+
 msgid "Support interface speed"
 msgstr "支撑面"
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr "当使用支撑材料作为支撑接触面时，我们推荐配置以下参数："
+
+msgid "Do you want to apply these settings?"
+msgstr "是否应用这些配置？"
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "切换喷嘴需要擦料塔，否则打印件上可能会有瑕疵。您确定要关闭擦料塔吗？"
@@ -10151,9 +10259,17 @@ msgid ""
 "The selected printer has a bed temperature limit of %d°C.\n"
 "Setting a higher bed temperature may cause damage to the printer."
 msgstr ""
+"所选打印机的热床温度限制为 %d°C。\n"
+"设置更高的热床温度可能会损坏打印机。"
+
+msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
+msgstr "平滑延时摄影需要在每一层都生成装料塔，这与“无稀疏层”不兼容。“无稀疏层”已被关闭。"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您想打开擦料塔吗？"
+
+msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
+msgstr "“无稀疏层”与需要每一层都生成擦料塔的平滑延时摄影不兼容。延时摄影已切换到传统模式。"
 
 msgid "Still print by object?"
 msgstr "仍然按对象打印吗？"
@@ -10174,14 +10290,6 @@ msgstr ""
 "0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将PLA同时用于支撑接触面和支撑主体"
 
 msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
-"0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
-
-msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
@@ -10197,15 +10305,6 @@ msgstr "当使用%s作为支撑料支撑%s时，我们推荐配置以下参数�
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "当使用PLA作为支撑材料支撑TPU时，我们推荐配置以下参数："
 
-msgid "When using soluble material for the support interface, We recommend the following settings:"
-msgstr "当使用可溶性材料作为支撑接触面时，我们推荐配置以下参数："
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr "当使用支撑材料作为支撑接触面时，我们推荐配置以下参数："
-
-msgid "Do you want to apply these settings?"
-msgstr "是否应用这些配置？"
-
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -10213,8 +10312,8 @@ msgstr ""
 "层高太小，\n"
 "将自动设置为最小层高的值。\n"
 
-msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
-msgstr "层高超出了打印机设置->挤出机->层高限制中的范围，这可能导致打印质量问题。"
+msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
+msgstr "层高超过了“打印设置 -> 挤出机 -> 层高限制”中的限值，这可能会导致打印质量问题。"
 
 msgid "Adjust to the set range automatically? \n"
 msgstr "是否自动调整到范围内？\n"
@@ -10495,6 +10594,9 @@ msgstr "冲刷模式：快速"
 msgid "Printable space"
 msgstr "可打印区域"
 
+msgid "AMS filament load/unload time"
+msgstr "AMS 耗材进/退料时间"
+
 msgid "Extruder Clearance"
 msgstr "挤出机避让空间"
 
@@ -10561,6 +10663,12 @@ msgstr "层高限制"
 msgid "Retraction when switching material"
 msgstr "切换材料时的回抽量"
 
+msgid "Load time"
+msgstr "进料时间"
+
+msgid "Unload time"
+msgstr "退料时间"
+
 msgid ""
 "The Wipe option is not available when using the Firmware Retraction mode.\n"
 "\n"
@@ -10580,7 +10688,7 @@ msgid "The current preset is embedded in the 3MF project file. Please save chang
 msgstr "当前预设是3MF文件内的项目预设，修改后请直接保存，不支持另存为新预设。"
 
 msgid "Unable to save preset"
-msgstr ""
+msgstr "无法保存预设"
 
 #, c-format, boost-format
 msgid "%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."
@@ -10624,11 +10732,11 @@ msgid "No modifications need to be copied."
 msgstr "没有需要拷贝的参数修改。"
 
 msgid "Copy parameters"
-msgstr ""
+msgstr "复制参数"
 
 #, c-format, boost-format
 msgid "Modify parameters of %s"
-msgstr ""
+msgstr "修改 %s 的参数"
 
 #, c-format, boost-format
 msgid "Do you want to modify the following parameters of the %s to that of the %s?"
@@ -10895,6 +11003,9 @@ msgstr "纹理导入暂时不可用，部分着色将自动替换为默认颜色
 msgid " And "
 msgstr " 并且"
 
+msgid "Note"
+msgstr "提示"
+
 msgid "The color has been selected, you can choose OK to continue or manually adjust it."
 msgstr "颜色已经默认匹配好了，您可以选中确认继续或手动修改它。"
 
@@ -10974,6 +11085,9 @@ msgstr ""
 msgid "Use AMS"
 msgstr "使用AMS"
 
+msgid "Tip"
+msgstr "提示"
+
 msgid "Only synchronize filament type and color, not including AMS slot information."
 msgstr "仅同步耗材类型和颜色，不包含AMS槽位信息。"
 
@@ -11013,6 +11127,10 @@ msgstr "仅同步耗材类型和颜色，不包含槽位信息。"
 msgid "Ext spool"
 msgstr "外挂"
 
+#, c-format, boost-format
+msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+msgstr "%s的流量设置（%s）和切片文件（%s）不一致，无法发起打印。请确保打印机上安装喷嘴类型和机器设置中一致，并在切片时设置对应的喷嘴类型。"
+
 msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
 msgstr "请检查设备的喷嘴类型是否与预设的喷嘴类型相同。"
 
@@ -11025,6 +11143,9 @@ msgstr "切片参数中开启了逐件打印，无法支持延时摄影。"
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
 msgstr "您在同一挤出机中同时选择了外部和AMS耗材，您需要手动更换外部耗材。"
+
+msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+msgstr "注意: 如果您最近更换了喷嘴，请去“设备-打印机零件”更改设置"
 
 msgid "Successfully synchronized nozzle information."
 msgstr "喷嘴信息同步成功。"
@@ -11098,16 +11219,16 @@ msgid "Open in browser"
 msgstr "在浏览器中打开"
 
 msgid "View Source"
-msgstr ""
+msgstr "查看源文件"
 
 msgid "View Text"
 msgstr "查看文本"
 
 msgid "Handle Navigation"
-msgstr ""
+msgstr "处理导航"
 
 msgid "Handle New Windows"
-msgstr ""
+msgstr "处理新窗口"
 
 msgid "Edit Mode"
 msgstr "编辑模式"
@@ -11116,28 +11237,28 @@ msgid "Run Script"
 msgstr "运行脚本"
 
 msgid "Add user script"
-msgstr ""
+msgstr "添加用户脚本"
 
 msgid "Set custom user agent"
-msgstr ""
+msgstr "设置自定义用户代理"
 
 msgid "Clear Selection"
-msgstr ""
+msgstr "取消选择"
 
 msgid "Delete Selection"
-msgstr ""
+msgstr "删除选定内容"
 
 msgid "Custom Scheme Example"
-msgstr ""
+msgstr "自定义方案示例"
 
 msgid "Memory File System Example"
-msgstr ""
+msgstr "内存文件系统示例"
 
 msgid "Enable Context Menu"
-msgstr ""
+msgstr "启用上下文菜单"
 
 msgid "Enable Dev Tools"
-msgstr ""
+msgstr "启用开发者工具"
 
 msgid "Toolbar"
 msgstr "工具栏"
@@ -11402,11 +11523,11 @@ msgstr "在哪里可以找到打印机的IP和访问代码?"
 msgid "Connect"
 msgstr "连接"
 
-msgid "IP and Access Code Verified! You may close the window"
-msgstr "IP地址和访问码验证成功！您可以关闭此窗口。"
-
 msgid "connecting..."
 msgstr "连接中..."
+
+msgid "IP and Access Code Verified! You may close the window"
+msgstr "IP地址和访问码验证成功！您可以关闭此窗口。"
 
 msgid "Failed to connect to printer."
 msgstr "无法连接到打印机"
@@ -11493,9 +11614,6 @@ msgstr "卸载 Helio Additive"
 msgid "Legal & Activation Terms"
 msgstr "法律与激活条款"
 
-msgid "Got it"
-msgstr "知道了"
-
 msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
 msgstr "获取 Helio-PAT 失败，点击刷新重新获取。"
 
@@ -11509,9 +11627,6 @@ msgid "Software Service Terms && Conditions"
 msgstr "软件服务条款与条件"
 
 msgid "^"
-msgstr ""
-
-msgid "Helio Additive"
 msgstr ""
 
 msgid "Helio Additive Privacy Agreement"
@@ -11696,7 +11811,7 @@ msgid "Environment Settings"
 msgstr "环境设置"
 
 msgid "Optional. Uses the chamber temperature from Filament settings when available; you can override it here."
-msgstr ""
+msgstr "可选。使用耗材设置中的腔室温度；您可以在此处覆盖。"
 
 msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
 msgstr "若可用，则使用耗材设置中的腔体温度；否则根据热床温度进行估算。"
@@ -11904,6 +12019,9 @@ msgstr "增强速度与质量"
 msgid "Applies Helio's optimized speed/flow/fan strategy."
 msgstr "应用 Helio 优化的速度/流量/风扇策略。"
 
+msgid "Save the simulated sliced 3MF locally"
+msgstr "保存仿真切片后的 3MF 文件"
+
 msgid "✅ Will Print"
 msgstr "✅ 可打印"
 
@@ -11995,7 +12113,7 @@ msgid "Why use the Beta version?"
 msgstr "为什么要使用测试版？"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
-msgstr "通过使用测试版并分享反馈、错误报告和建议,您可以帮助Bamibu Lab在正式发布前改进稳定性、兼容性和未来功能。"
+msgstr "通过使用测试版并分享反馈、错误报告和建议,您可以帮助Bambu Lab在正式发布前改进稳定性、兼容性和未来功能。"
 
 msgid "How to change settings?"
 msgstr "如何更改设置？"
@@ -12123,6 +12241,12 @@ msgstr "打开G-code文件："
 msgid "Print task sending times out."
 msgstr "发送打印任务超时。"
 
+msgid "Sending print job with LAN acceleration"
+msgstr "通过局域网加速发送打印任务"
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr "云服务发送失败。通过局域网发送打印任务，无打印历史记录。"
+
 msgid "Sending print configuration"
 msgstr "正在发送打印配置"
 
@@ -12133,6 +12257,9 @@ msgstr "已发送完成，即将自动跳转到设备页面（%s秒）"
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "已成功发送。将在%ss后自动跳转到下一页。"
+
+msgid "Refreshing printer access code"
+msgstr "正在刷新打印机访问码"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "模型出现空层无法打印。请切掉底部或打开支撑。"
@@ -12481,6 +12608,9 @@ msgstr "正在生成skirt和brim"
 
 msgid "Generating G-code"
 msgstr "正在生成G-code"
+
+msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
+msgstr "模型与擦拭塔相对位置不符合料塔无稀疏层功能要求，请移动相对位置、降低模型高度或关闭‘无稀疏层’功能"
 
 msgid "Failed processing of the filename_format template."
 msgstr "处理文件名格式模板失败。"
@@ -13234,7 +13364,7 @@ msgid "Enable pressure advance"
 msgstr "启用压力提前补偿"
 
 msgid "Enable pressure advance, auto calibration result will be overwritten once enabled. Useless for Bambu Printer"
-msgstr ""
+msgstr "启用压力提前补偿，启用后自动校准结果将被覆盖。对于 Bambu 打印机无效"
 
 msgid "Pressure advance(Klipper) AKA Linear advance factor(Marlin). Useless for Bambu Printer"
 msgstr "压力提前补偿（Klipper）也称为线性提前补偿因子（Marlin）。对于Bambu打印机无效。"
@@ -13352,6 +13482,48 @@ msgstr "卸载耗材丝的时间"
 
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "切换耗材丝时，卸载旧的耗材丝所需时间。只用于统计信息。"
+
+msgid "AMS filament load time"
+msgstr "AMS 耗材进料时间"
+
+msgid "Filament load time when printing with an AMS. For statistics only"
+msgstr "使用 AMS 打印时的耗材进料时间。仅用于统计"
+
+msgid "AMS Lite filament load time"
+msgstr "AMS Lite 耗材进料时间"
+
+msgid "Filament load time when printing with an AMS Lite. For statistics only"
+msgstr "使用 AMS Lite 打印时的耗材进料时间。仅用于统计"
+
+msgid "N3F/N3S filament load time"
+msgstr "N3F/N3S 耗材进料时间"
+
+msgid "Filament load time when printing with an N3F or N3S. For statistics only"
+msgstr "使用 N3F 或 N3S 打印时的耗材进料时间。仅用于统计"
+
+msgid "AMS filament unload time"
+msgstr "AMS 耗材退料时间"
+
+msgid "Filament unload time when printing with an AMS. For statistics only"
+msgstr "使用 AMS 打印时耗材退料时间。仅用于统计"
+
+msgid "AMS Lite filament unload time"
+msgstr "AMS Lite 耗材退料时间"
+
+msgid "Filament unload time when printing with an AMS Lite. For statistics only"
+msgstr "使用 AMS Lite 打印时耗材退料时间。仅用于统计"
+
+msgid "N3F/N3S filament unload time"
+msgstr "N3F/N3S 耗材退料时间"
+
+msgid "Filament unload time when printing with an N3F or N3S. For statistics only"
+msgstr "使用 N3F 或 N3S 打印时耗材退料时间。仅用于统计"
+
+msgid "Default AMS type"
+msgstr "默认 AMS 类型"
+
+msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
+msgstr "用于估算耗材进/退料时间的默认 AMS 类型，存储为 AMS 定时类型枚举值。它来自打印机预设，并不反映当前连接到机器的 AMS。"
 
 msgid "Extruder switch time"
 msgstr "挤出机切换时间"
@@ -13494,13 +13666,13 @@ msgid "Mixed filament components"
 msgstr "混色耗材组成"
 
 msgid "Comma-separated 1-based indices of component filaments, e.g. \"1,3\""
-msgstr ""
+msgstr "逗号分隔的 1 基索引的组件耗材，例如“1,3”"
 
 msgid "Mixed filament sublayer ratios"
 msgstr "混色耗材子层比例"
 
 msgid "Comma-separated ratio values summing to 1.0, e.g. \"0.7,0.3\""
-msgstr ""
+msgstr "逗号分隔的比例值，总和为 1.0，例如“0.7,0.3”"
 
 msgid "Mixed filament gradient"
 msgstr "混色耗材渐变"
@@ -13512,13 +13684,13 @@ msgid "Mixed filament gradient range"
 msgstr "混色耗材渐变范围"
 
 msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
-msgstr ""
+msgstr "渐变模式下第一个组件的开始和结束比例。逗号分隔的对，例如“0.10,0.90”表示 10% 到 90%。"
 
 msgid "Mixed filament gradient curve"
-msgstr ""
+msgstr "混色耗材渐变曲线"
 
 msgid "Optional Photoshop-style custom curve mapping Z progress to the first component ratio. Encoded as pipe-separated control points, either \"x,y\" (legacy) or \"x,y,m_in,m_out\" when a tangent override is needed (empty token or \"nan\" means use PCHIP default). x in [0,1]; y is clamped to the configured ratio range, e.g. \"0,0.15|0.5,0.50|1,0.85\". When empty, the linear gradient_range is used instead."
-msgstr ""
+msgstr "可选的 Photoshop 风格自定义曲线，将 Z 进度映射到第一个组件比例。使用管道分隔的控制点进行编码，可以是“x,y”（旧版）或“x,y,m_in,m_out”（需要切线覆盖）（空标记或“nan”表示使用 PCHIP 默认值）。x 在 [0,1] 范围内；y 被限制在配置的比例范围内，例如“0,0.15|0.5,0.50|1,0.85”。如果为空，则使用线性 gradient_range。"
 
 msgid "Mixed filament per-part gradient"
 msgstr "混色耗材单个零件渐变"
@@ -13536,7 +13708,7 @@ msgid "Filament-extruder compatibility"
 msgstr "耗材-挤出机兼容性"
 
 msgid "A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). 0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved"
-msgstr ""
+msgstr "一个 32 位整数，用于编码耗材在所有挤出机（最多 10 台）上的兼容性级别。每 3 位代表一个挤出机（挤出机 i 的位为 [3*i, 3*i+2]）。0：可打印，1：错误，2：严重警告，3：警告，4-7：保留"
 
 msgid "Filament change"
 msgstr "耗材丝更换"
@@ -13548,10 +13720,10 @@ msgid "The volume of material required to prime the extruder for a hotend change
 msgstr "换热端所需的擦料塔上的清理量。"
 
 msgid "Preheat temperature delta"
-msgstr ""
+msgstr "预热温度差"
 
 msgid "Temperature delta applied during pre-heating before tool change."
-msgstr ""
+msgstr "在工具更换前的预热过程中应用的温度差。"
 
 msgid "Wipe tower cooling"
 msgstr "擦料塔冷却"
@@ -14256,10 +14428,10 @@ msgid "This G-code will be used as a custom code"
 msgstr "该G-code是定制化指令"
 
 msgid "Support fast purge mode"
-msgstr ""
+msgstr "支持快速冲刷模式"
 
 msgid "Whether this printer supports fast purge mode with optimized temperature and multiplier."
-msgstr ""
+msgstr "此打印机是否支持具有优化温度和乘数的快速冲刷模式。"
 
 msgid "Maximum speed X"
 msgstr "X最大速度"
@@ -14337,28 +14509,28 @@ msgid "Maximum jerk of the E axis"
 msgstr "E轴最大抖动"
 
 msgid "Maximum force of the Y axis"
-msgstr ""
+msgstr "Y 轴最大力"
 
 msgid "The allowed maximum output force of Y axis"
-msgstr ""
+msgstr "Y 轴允许的最大输出力"
 
 msgid "N"
 msgstr ""
 
 msgid "Bed mass of the Y axis"
-msgstr ""
+msgstr "Y 轴的底板质量"
 
 msgid "The machine bed mass load of Y axis"
-msgstr ""
+msgstr "Y 轴的机器底板质量负载"
 
 msgid "g"
-msgstr ""
+msgstr "克"
 
 msgid "The allowed max printed mass"
-msgstr ""
+msgstr "允许的最大打印质量"
 
 msgid "The allowed max printed mass on a plate"
-msgstr ""
+msgstr "打印板上允许的最大打印质量"
 
 msgid "Minimum speed for extruding"
 msgstr "最小挤出速度"
@@ -14744,10 +14916,10 @@ msgid "Distance from skirt to brim or object"
 msgstr "从skirt到模型或者brim的距离"
 
 msgid "Skirt per object"
-msgstr ""
+msgstr "每个对象的裙边"
 
 msgid "Generate independent skirt around each object in sequential printing mode. When disabled, a single skirt is drawn around all objects."
-msgstr ""
+msgstr "在顺序打印模式下，为每个对象生成独立的裙边。禁用时，会在所有对象周围绘制一个裙边。"
 
 msgid "Skirt height"
 msgstr "Skirt高度"
@@ -14804,10 +14976,10 @@ msgid "Traditional"
 msgstr "传统模式"
 
 msgid "Farthest point timelapse"
-msgstr ""
+msgstr "最远点延时摄影"
 
 msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
-msgstr ""
+msgstr "启用时，延时摄影快照将在远离摄像头的最远点拍摄，而不是移动到清洗塔或废料槽。仅在非 I3 打印机的传统延时摄影模式下有效。"
 
 msgid "Temperature variation"
 msgstr "软化温度"
@@ -14820,6 +14992,12 @@ msgstr "整个打印开始前的起始G-code"
 
 msgid "Start G-code when start the printing of this filament"
 msgstr "开始使用这个耗材丝打印的起始G-code"
+
+msgid "No sparse layers (experimental)"
+msgstr "无稀疏层（实验性）"
+
+msgid "If enabled, the wipe tower will not be printed on layers with no toolchanges. On layers with a toolchange, extruder will travel downward to print the wipe tower. User is responsible for ensuring there is no collision with the print."
+msgstr "启用后，在没有工具更换的层上将不会打印擦拭塔。在有工具更换的层上，挤出机会向下移动以打印擦拭塔。用户有责任确保与打印件没有碰撞。"
 
 msgid "Slice gap closing radius"
 msgstr "切片间隙闭合半径"
@@ -15300,10 +15478,10 @@ msgid "The actual flushing volumes is equal to the flush multiplier multiplied b
 msgstr "实际冲刷量等于冲刷量乘数乘以表格单元中的冲刷量"
 
 msgid "Flush multiplier (Fast mode)"
-msgstr ""
+msgstr "冲刷系数（快速模式）"
 
 msgid "The flush multiplier used in fast purge mode."
-msgstr ""
+msgstr "在快速冲刷模式下使用的冲刷系数。"
 
 msgid "Width of prime tower"
 msgstr "擦料塔宽度"
@@ -15516,9 +15694,6 @@ msgstr ""
 "物体启用了 XY 大小补偿，该补偿将不予使用，因为它也是绒毛表面绘制的。\n"
 "XY 尺寸补偿不能与绒毛表面绘制结合使用。"
 
-msgid "Object name"
-msgstr "对象名称"
-
 msgid "Loading of a model file failed."
 msgstr "加载模型文件失败。"
 
@@ -15540,6 +15715,21 @@ msgstr "未知的文件格式。输入文件的扩展名必须为.3mf或.zip .am
 msgid "Canceled"
 msgstr "已取消"
 
+msgid "Restoring support painting"
+msgstr "正在恢复支撑绘制"
+
+msgid "Restoring seam painting"
+msgstr "正在恢复接缝绘制"
+
+msgid "Restoring paint color"
+msgstr "正在恢复涂色"
+
+msgid "Restoring fuzzy skin"
+msgstr "正在恢复绒毛表面"
+
+msgid "Restoring painting"
+msgstr "正在恢复绘制"
+
 msgid "load_obj: failed to parse"
 msgstr "加载对象：无法分析"
 
@@ -15547,7 +15737,7 @@ msgid "load mtl in obj: failed to parse"
 msgstr "在 obj 中加载 mtl：无法解析"
 
 msgid "The file contains polygons with less than 3 vertices."
-msgstr ""
+msgstr "该文件包含顶点少于 3 个的多边形。"
 
 msgid "The file contains invalid vertex index."
 msgstr "文件包含无效的顶点索引。"
@@ -16871,7 +17061,7 @@ msgid "Need select printer"
 msgstr "需要选择打印机"
 
 msgid "Failed to load calibration presets. Please check whether the selected printer, nozzle and print profiles are valid."
-msgstr ""
+msgstr "加载校准预设失败。请检查所选的打印机、喷嘴和打印配置文件是否有效。"
 
 msgid "The start, end or step is not valid value."
 msgstr "起始、结束或者步长输入值无效。"
@@ -16970,7 +17160,7 @@ msgid "Could not connect to Duet"
 msgstr "无法连接到 Duet 控制器。"
 
 msgid "Unknown error occurred"
-msgstr ""
+msgstr "发生未知错误"
 
 msgid "Wrong password"
 msgstr "密码错误。"
@@ -17209,20 +17399,53 @@ msgstr "0.8mm喷嘴的高强度打印参数，强度优先。"
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "0.8mm喷嘴的默认参数，速度优先。"
 
-msgid "Failed to create GCodeV2"
-msgstr "无法创建 GCode"
+msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
+msgstr "适配0.4mm喷嘴的低加速度配置，适用于打印机放置在晃动的桌面或置物架上的场景"
+
+msgid "Helio GCode status response is incomplete"
+msgstr "Helio GCode 状态响应不完整"
+
+msgid "Helio GCode status response parse failed"
+msgstr "Helio GCode 状态响应解析失败"
+
+msgid "Helio action canceled"
+msgstr "Helio 操作已取消"
+
+msgid "Helio GCode creation response is incomplete"
+msgstr "Helio GCode 创建响应不完整"
 
 msgid "Failed to parse response"
 msgstr "解析响应失败"
 
-msgid "Failed to create GCodeV3"
-msgstr ""
+msgid "Helio GCode status check failed"
+msgstr "Helio GCode 状态检查失败"
+
+msgid "Helio GCode creation timed out while checking status"
+msgstr "Helio GCode 创建在检查状态时超时"
+
+msgid "Failed to create Simulation"
+msgstr "创建仿真失败"
+
+msgid "Helio simulation response is incomplete"
+msgstr "Helio 仿真响应不完整"
 
 msgid "Helio simulation task failed"
 msgstr "Helio仿真任务失败"
 
+msgid "Helio simulation response parse failed"
+msgstr "Helio 仿真响应解析失败"
+
+msgid "Failed to create Optimization"
+msgstr "创建优化失败"
+
+msgid "Helio optimization response is incomplete"
+msgstr "Helio 优化响应不完整"
+
 msgid "Helio optimization task failed"
 msgstr "Helio 优化任务失败"
+
+msgid "Helio optimization response parse failed"
+msgstr "Helio 优化响应解析失败"
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API 端点为空，请检查配置。"
@@ -17234,12 +17457,12 @@ msgid "Helio: Presigned URL Created"
 msgstr "Helio：预签名URL已创建"
 
 msgid "Helio: file successfully uploaded"
-msgstr ""
+msgstr "Helio：文件已成功上传"
 
 msgid "Helio: file upload failed"
 msgstr "Helio：文件上传失败"
 
-msgid "Please make sure you have the corrent API key set in preferences."
+msgid "Please make sure you have the correct API key set in preferences."
 msgstr "请确保您已在偏好设置中正确设置了 API 密钥。"
 
 msgid "Helio: GCode created successfully"
@@ -17248,14 +17471,14 @@ msgstr "Helio：G代码已成功创建"
 msgid "Helio: simulation successfully created"
 msgstr "Helio：仿真创建成功"
 
-msgid "Helio: simulation working"
-msgstr "Helio：仿真运行中"
+msgid "transient progress checks did not recover"
+msgstr "瞬时进度检查未能恢复"
 
 msgid "Helio: simulation failed"
 msgstr "Helio：仿真失败"
 
-msgid "Helio: Simulation check failed"
-msgstr "Helio：仿真检测失败"
+msgid "Helio: simulation working"
+msgstr "Helio：仿真运行中"
 
 msgid "Helio: Failed to create Simulation"
 msgstr "Helio: 创建仿真失败"
@@ -17266,17 +17489,11 @@ msgstr "Helio: 创建GCode失败"
 msgid "Helio: optimization successfully created"
 msgstr "Helio：优化创建成功"
 
-msgid "Helio: optimization working"
-msgstr "Helio：优化运行中"
-
 msgid "Helio: optimization failed"
 msgstr "Helio：优化失败"
 
-msgid "Helio: Optimzaion check failed"
-msgstr "Helio：优化检查失败"
-
-msgid "Helio: Failed to create Optimization"
-msgstr "Helio: 创建优化失败"
+msgid "Helio: optimization working"
+msgstr "Helio：优化运行中"
 
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio：G代码下载成功"
@@ -17420,15 +17637,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Printer presets (%d)"
-msgstr ""
+msgstr "打印机预设 (%d)"
 
 #, c-format, boost-format
 msgid "Filament presets (%d)"
-msgstr ""
+msgstr "耗材预设 (%d)"
 
 #, c-format, boost-format
 msgid "Process presets (%d)"
-msgstr ""
+msgstr "工艺预设 (%d)"
 
 #, c-format, boost-format
 msgid "%u Selected"
@@ -17885,7 +18102,7 @@ msgid "Print Outcome: "
 msgstr "打印结果： "
 
 msgid "Click to edit ratio"
-msgstr ""
+msgstr "点击编辑比例"
 
 msgid "Edit Mixed Filament"
 msgstr "编辑混色耗材"
@@ -17913,12 +18130,6 @@ msgstr "混色推荐"
 
 msgid "-- Select --"
 msgstr "-- 请选择 --"
-
-msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr "渐变效果需要启用「混色子层」功能，是否立即启用？"
-
-msgid "Mixed Color Sublayer"
-msgstr "混色子层"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
@@ -17964,11 +18175,11 @@ msgid "Standard Mode"
 msgstr "标准模式"
 
 msgid "At least two filaments of the same material type are required for decomposition"
-msgstr ""
+msgstr "分解需要至少两种相同材质类型的耗材"
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
-msgstr ""
+msgstr "材质列表最多支持 %1% 种颜色。分解 %2% 后，材质数量将超过 %1%。请在分解前删除主屏幕上未使用的耗材。"
 
 msgid "Cyan"
 msgstr "青色"
@@ -17980,7 +18191,7 @@ msgid "Yellow"
 msgstr "黄色"
 
 msgid ", "
-msgstr ""
+msgstr "，"
 
 msgid "The current filament list does not contain "
 msgstr "当前耗材列表中不包含 "
@@ -17993,6 +18204,12 @@ msgstr "耗材比例"
 
 msgid "Model Height"
 msgstr "模型高度"
+
+msgid "Auxiliaries"
+msgstr "附件"
+
+msgid "An unexpected error occurred"
+msgstr "发生意外错误"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -18289,6 +18506,171 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Air Purifier"
+#~ msgstr "空气净化器"
+
+#~ msgctxt "AirPurifier"
+#~ msgid "Max"
+#~ msgstr "强效"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "装配体的边界框过大（最大尺寸 >= %1% 英寸），这可能会导致渲染问题。\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "装配体的边界框过大（最大尺寸 >= %1% mm），这可能会导致渲染问题。\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "以下对象距离世界坐标系原点过远（距离 >= %1% 英寸）：\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "以下对象距离世界坐标系原点过远（距离 >= %1% mm）：\n"
+
+#~ msgid "Print queue"
+#~ msgstr "打印队列"
+
+#~ msgid "Add to queue"
+#~ msgstr "添加到队列"
+
+#~ msgid "Only the current sliced plate can be added to the print queue."
+#~ msgstr "只能将当前切片的工作台添加到打印队列。"
+
+#~ msgid "Print immediately"
+#~ msgstr "立即打印"
+
+#, c-format, boost-format
+#~ msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+#~ msgstr "已成功添加到打印队列。将在%ss后自动跳转到打印队列页面"
+
+#~ msgid "Adding print job to queue"
+#~ msgstr "正在将打印任务添加到队列"
+
+#, boost-format
+#~ msgid "%1% is too close to a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, and the toolhead needs %4% mm of horizontal clearance to pass beside it, but only %5% mm is left. Turn off \"No sparse layers\", move the prime tower away, or lower the object."
+#~ msgstr "%1% 离压缩的擦料塔太近了。喷嘴在 Z %2% mm 处下降到擦料塔，而物体已达到 Z %3% mm，工具头需要 %4% mm 的水平间隙才能从旁边通过，但仅剩 %5% mm。请关闭“无稀疏层”选项、移动擦料塔或降低物体高度。"
+
+#, boost-format
+#~ msgid "%1% is too tall to be printed together with a compacted prime tower. The nozzle descends to the tower at Z %2% mm while the object already reaches Z %3% mm, which exceeds the clearance of %4% mm. Turn off \"No sparse layers\" or lower the object."
+#~ msgstr "%1% 太高，无法与压缩的擦拭塔一起打印。喷嘴在 Z %2% mm 处下降到擦拭塔，而物体已达到 Z %3% mm，这超出了 %4% mm 的间隙。请关闭“无稀疏层”选项或降低物体高度。"
+
+#, boost-format
+#~ msgid "Plate %1%"
+#~ msgstr "盘 %1%"
+
+#~ msgid "For more details, see the Wiki."
+#~ msgstr "更多详情，请参阅 Wiki。"
+
+#, c-format, boost-format
+#~ msgid "%s is not compatible with %s nozzle."
+#~ msgstr "%s耗材不支持使用%s类型喷嘴打印"
+
+#~ msgid "True multi-material support will be added in a future update."
+#~ msgstr "真正的多材料支持将在后续更新中加入。"
+
+#~ msgid "When Thermal Preconditioning for First Layer Optimization is enabled on the A2L printer, the preconditioning duration is automatically adjusted based on the model's footprint to achieve the best first-layer quality. Larger footprints require longer preconditioning times. The white boxes indicate the boundaries between different preconditioning durations."
+#~ msgstr "当在 A2L 打印机上启用“首层优化热预处理”时，预处理时长将根据模型占地面积自动调整，以获得最佳的首层质量。较大的占地面积需要更长的预处理时间。白色框表示不同预处理时长的边界。"
+
+#~ msgid "Failed to create GCodeV2"
+#~ msgstr "无法创建 GCode"
+
+#~ msgid "Failed to create GCodeV3"
+#~ msgstr "无法创建 GCodeV3"
+
+#~ msgid "Please make sure you have the corrent API key set in preferences."
+#~ msgstr "请确保您已在偏好设置中正确设置了 API 密钥。"
+
+#~ msgid "Helio: Simulation check failed"
+#~ msgstr "Helio：仿真检测失败"
+
+#~ msgid "Helio: Optimzaion check failed"
+#~ msgstr "Helio：优化检查失败"
+
+#~ msgid "Helio: Failed to create Optimization"
+#~ msgstr "Helio: 创建优化失败"
+
+#~ msgid "Start your assembly journey from Add Step"
+#~ msgstr "从添加步骤开始您的组装之旅"
+
+#, c-format, boost-format
+#~ msgid "Step %d"
+#~ msgstr "第 %d 步"
+
+#~ msgid "not used in any assembly step"
+#~ msgstr "未在任何组装步骤中使用"
+
+#~ msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
+#~ msgstr "当前未选中任何步骤卡。诸如移动工具之类的姿态更改操作将影响实际的最终装配视图。"
+
+#~ msgid "Copy current step"
+#~ msgstr "复制当前步骤"
+
+#~ msgid "Copy Step"
+#~ msgstr "复制步骤"
+
+#~ msgid "Only copy steps. This is independent of the selected objects on the canvas."
+#~ msgstr "仅复制步骤。此操作与画布上选定的对象无关。"
+
+#~ msgid "Delete all assembly steps except the final assembly."
+#~ msgstr "删除除总装步骤之外的所有装配步骤。"
+
+#~ msgid "Exit the assembly step editing, you can also press the Esc button to exit"
+#~ msgstr "退出装配步骤编辑，您也可以按 Esc 键退出"
+
+#~ msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
+#~ msgstr "在最终装配步骤的关键帧上进行的姿态更改（例如平移工具）将影响实际的装配显示。"
+
+#~ msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
+#~ msgstr "在此步骤的关键帧上进行的姿势更改（例如平移工具）不会影响实际组装显示。"
+
+#~ msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
+#~ msgstr "如有必要，可以通过按下“应用实际装配姿态”按钮来恢复一个相对较好的位置。"
+
+#~ msgid "undoing these edits is not yet supported and will be added in a later version."
+#~ msgstr "此编辑的撤销尚不支持，将在后续版本中添加。"
+
+#~ msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
+#~ msgstr "某些对象在当前步骤的先前关键帧中使用过，因此此处未将其分解。您可以使用移动工具手动分解它们。"
+
+#~ msgid "Automatically explode all objects."
+#~ msgstr "自动爆炸所有对象。"
+
+#~ msgid "Automatically explode all parts."
+#~ msgstr "自动爆炸所有零件。"
+
+#~ msgid ""
+#~ "Should not large than layer height.\n"
+#~ "Reset to 10%"
+#~ msgstr "起始高度不应大于层高度。重置为10%"
+
+#~ msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
+#~ msgstr ".gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新的.gcode.3mf文件。"
+
+#, c-format, boost-format
+#~ msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+#~ msgstr "当前打印机的%s直径（%.1fmm）和切片文件（%.1fmm）不一致，无法发起打印。请确保打印机上安装的喷嘴直径和机器设置中一致，并在切片时设置相同的喷嘴直径。"
+
+#, c-format, boost-format
+#~ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+#~ msgstr "当前喷嘴直径（%.1fmm）和切片文件（%.1fmm）不一致，无法发起打印。请确保打印机上安装喷嘴直径和机器设置中一致，并在切片时设置对应的喷嘴直径。"
+
+#~ msgid "Sliced file"
+#~ msgstr "切片文件"
+
+#~ msgid "When using soluble material for the support interface, We recommend the following settings:"
+#~ msgstr "当使用可溶性材料作为支撑接触面时，我们推荐配置以下参数："
+
+#~ msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
+#~ msgstr "层高超出了打印机设置->挤出机->层高限制中的范围，这可能导致打印质量问题。"
+
+#~ msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+#~ msgstr "渐变效果需要启用「混色子层」功能，是否立即启用？"
+
+#~ msgid "Mixed Color Sublayer"
+#~ msgstr "混色子层"
 
 #~ msgid "Show Current Step Objects Only"
 #~ msgstr "仅显示当前步骤对象"
@@ -24647,9 +25029,6 @@ msgstr ""
 #~ msgid "The following preset was modified"
 #~ msgid_plural "The following presets were modified"
 #~ msgstr[0] "修改了以下预设"
-
-#~ msgid "Explosion"
-#~ msgstr "爆炸图"
 
 #~ msgid "Show daily tip on startup"
 #~ msgstr "启动时显示每日小贴士"

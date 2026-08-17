@@ -10,8 +10,16 @@
 #include <wx/sizer.h>
 
 #include <algorithm>
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+
+#include <boost/log/trivial.hpp>
+#include <boost/thread.hpp>
+
 #include "GLGizmosCommon.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/GUI_Utils.hpp"
 #include "slic3r/GUI/format.hpp"
 #include "slic3r/GUI/Plater.hpp"
 #include "libslic3r/AppConfig.hpp"
@@ -1112,10 +1120,38 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
     Plater *     plater = wxGetApp().plater();
     ModelObject *mo     = plater->model().objects[object_idx];
     if (!mo) return;
+
+    // Cutting rebuilds/splits the mesh; painted color, supports, seam and
+    // fuzzy-skin may not transfer cleanly. Warn the user when any exist.
+    if (mo->is_mm_painted() || mo->is_fuzzy_skin_painted() ||
+        mo->is_fdm_support_painted() || mo->is_seam_painted()) {
+        if (!wxGetApp().confirm_mesh_paint_warning())
+            return;
+    }
+
     // deactivate CutGizmo and than perform a cut
     m_parent.reset_all_gizmos();
     // m_cut_z is the distance from the bed. Subtract possible SLA elevation.
     // const GLVolume* first_glvolume = selection.get_volume(*selection.get_volume_idxs().begin());
+
+    // Shared with the worker below. Declared outside the snapshot scope, together with a guard
+    // that rolls the model back once the snapshot is closed: baking the connectors into the model
+    // and stamping the cut id already modified it, so a cancel is not just "don't commit".
+    //
+    // Roll back to an absolute point in the undo stack rather than one step back: the main thread
+    // pumps the event loop while the worker runs, so a CallAfter or a background notification can
+    // push snapshots of its own in between, and undo() would then land on the wrong state and
+    // leave the baked connectors and the stamped cut_id behind.
+    const size_t      pre_cut_snapshot_time = plater->get_active_snapshot_time();
+    std::atomic<bool> canceled(false);
+    ScopeGuard        cut_rollback([plater, pre_cut_snapshot_time, &canceled]() {
+        if (!canceled)
+            return;
+        if (plater->get_active_snapshot_time() != pre_cut_snapshot_time + 1)
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": snapshots were taken while the cut was running, "
+                                       << "rolling back to " << pre_cut_snapshot_time;
+        plater->undo_redo_to(pre_cut_snapshot_time);
+    });
 
     // perform cut
     {
@@ -1140,8 +1176,6 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         // update connectors pos as offset of its center before cut performing
         apply_connectors_in_model(cut_mo, dowels_count);
 
-        wxBusyCursor wait;
-
         ModelObjectCutAttributes attributes = only_if(has_connectors ? true : m_keep_upper, ModelObjectCutAttribute::KeepUpper) |
                                               only_if(has_connectors ? true : m_keep_lower, ModelObjectCutAttribute::KeepLower) |
                                               only_if(has_connectors ? false : m_cut_to_parts, ModelObjectCutAttribute::CutToParts) |
@@ -1155,10 +1189,122 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         update_object_cut_id(cut_mo->cut_id, attributes, dowels_count);
 
         Cut cut(cut_mo, instance_idx, get_cut_matrix(selection), attributes);
-        cut.set_offset_for_two_part        = true;
-        const ModelObjectPtrs &new_objects = cut_by_contour  ? cut.perform_by_contour(m_part_selection->get_cut_parts(), dowels_count) :
-                                             cut_with_groove ? cut.perform_with_groove(m_groove, m_rotate_matrix) :
-                                                               cut.perform_with_plane();
+        cut.set_offset_for_two_part = true;
+
+        // reset_all_gizmos() above posted a CallAfter() that replaces m_part_selection, which owns
+        // cut_mo when cutting by contour. The event loop runs while we wait for the worker below, so
+        // that replacement can happen mid-cut: read everything still needed from cut_mo here, on the
+        // main thread, and never touch it again afterwards. The Cut already holds its own deep copy.
+        const std::vector<Cut::Part> cut_parts = cut_by_contour ? m_part_selection->get_cut_parts() : std::vector<Cut::Part>();
+        // Snapshot the groove parameters too, for the same reason: the worker must not read gizmo
+        // state that the pumped event loop could change under it.
+        const Groove      groove        = m_groove;
+        const Transform3d rotate_matrix = m_rotate_matrix;
+        // save cut_id to post update synchronization
+        const CutObjectBase cut_id = cut_mo->cut_id;
+
+        const ModelObjectPtrs *new_objects_ptr = nullptr;
+        {
+            // Structured like fix_model_by_win10_sdk_gui(): the cut runs in a worker while the main
+            // thread keeps pumping the event loop, so the window stays responsive and the Cancel
+            // click is never missed. Scoped so this dialog is gone before the repair dialog below
+            // opens its own app-modal one.
+            std::mutex              mutex;
+            std::condition_variable condition;
+            struct Progress {
+                std::string message;
+                int         percent = 0;
+                bool        updated = false;
+            } progress;
+            std::atomic<bool> finished(false);
+            std::string       cut_error;
+
+            cut.set_progress(
+                [&mutex, &condition, &progress](int percent, const char *message) {
+                    std::lock_guard<std::mutex> lock(mutex);
+                    // Geometry steps always pass "Cutting model object"; paint steps pass the
+                    // Restoring labels. Null only bumps the percent and leaves the label alone.
+                    if (message)
+                        progress.message = message;
+                    // Each nesting level maps onto its own slice of the range, but keep the bar
+                    // monotonic even if a level reports the start of its slice late.
+                    if (percent > progress.percent)
+                        progress.percent = percent;
+                    progress.updated = true;
+                    condition.notify_all();
+                },
+                [&canceled]() { return canceled.load(); });
+
+            ProgressDialog progress_dlg(_L("Cutting model object"), "", 100, find_toplevel_parent(plater),
+                                        wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT, true);
+            progress_dlg.EnableYield(true);
+
+            boost::thread worker_thread([&]() {
+                try {
+                    new_objects_ptr = &(cut_by_contour  ? cut.perform_by_contour(cut_parts, dowels_count) :
+                                        cut_with_groove ? cut.perform_with_groove(groove, rotate_matrix) :
+                                                          cut.perform_with_plane());
+                } catch (std::exception &ex) {
+                    cut_error = ex.what();
+                } catch (...) {
+                    // Anything escaping a boost::thread function terminates the process, so the
+                    // catch-all has to stay even though nothing here is expected to throw one.
+                    cut_error = "unknown exception";
+                }
+                {
+                    // Set under the lock: the waiter evaluates its predicate while holding it, so
+                    // notifying from the outside can slip through the gap and cost a 50ms timeout.
+                    std::lock_guard<std::mutex> lock(mutex);
+                    finished = true;
+                }
+                condition.notify_all();
+            });
+
+            wxString                     last_label;
+            std::unique_lock<std::mutex> lock(mutex);
+            while (!finished) {
+                const std::string message = progress.message;
+                const int         percent = progress.percent;
+                progress.updated          = false;
+                lock.unlock();
+                // Report one percent less so wxPD_AUTO_HIDE does not close the dialog early.
+                const int      dialog_percent = percent > 0 ? percent - 1 : 0;
+                const wxString label          = message.empty() ? _L("Cutting model object") : _L(message);
+                if (progress_dlg.WasCancelled() || !progress_dlg.Update(dialog_percent, label)) {
+                    canceled = true;
+                } else if (label != last_label) {
+                    // Only when the stage label changes: fitting on every tick makes the dialog
+                    // jitter as the width is recomputed 20 times a second.
+                    last_label = label;
+                    progress_dlg.Fit();
+                }
+                lock.lock();
+                condition.wait_for(lock, std::chrono::milliseconds(50),
+                                   [&progress, &finished]() { return progress.updated || finished.load(); });
+            }
+            lock.unlock();
+            worker_thread.join();
+
+            if (!cut_error.empty()) {
+                // Treat a failure like a cancellation: nothing gets written back and the model is
+                // rolled back, rather than letting the exception cross the thread boundary.
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the cut failed: " << cut_error;
+                canceled = true;
+            }
+            if (cut.was_canceled() || new_objects_ptr == nullptr)
+                canceled = true;
+            // The callbacks reference locals of this scope, and cut outlives it because it owns
+            // the resulting objects.
+            cut.set_progress(nullptr, nullptr);
+        }
+
+        if (canceled) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": the cut was canceled, rolling back";
+            // cut_rollback below undoes the snapshot once this scope closes.
+            return;
+        }
+
+        const ModelObjectPtrs &new_objects = *new_objects_ptr;
         check_objects_after_cut(new_objects);// Fix for #11487 - Cut Connectors Broken when assigning part to other side
         // fix_non_manifold_edges
 #ifdef HAS_WIN10SDK
@@ -1213,9 +1359,6 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
         }
  #endif
         // set offset for new_objects
-
-        // save cut_id to post update synchronization
-        const CutObjectBase cut_id = cut_mo->cut_id;
 
         // update cut results on plater and in the model
         plater->apply_cut_object_to_model(object_idx, new_objects);
@@ -1365,7 +1508,12 @@ void GLGizmoAdvancedCut::update_clipper()
 void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
 {
     // plane points is in object coordinate
-    // draw plane
+    const auto& ogl_manager = wxGetApp().get_opengl_manager();
+    if (!ogl_manager) {
+        return;
+    }
+    // Draw cut plane above PartPlate / scene geometry (same idea as grabbers below).
+    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
     glsafe(::glDisable(GL_CULL_FACE));
     glsafe(::glEnable(GL_BLEND));
@@ -1443,12 +1591,11 @@ void GLGizmoAdvancedCut::render_cut_plane_and_grabbers()
 
         p_flat_shader->set_uniform("projection_matrix", proj_matrix);
 
-        const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
-        p_ogl_manager->set_line_width(m_hover_id != -1 ? 2.0f : 1.5f);
+        ogl_manager->set_line_width(m_hover_id != -1 ? 2.0f : 1.5f);
 
         // to do: remove deprecated api: glLineStipple
 #ifdef __APPLE__
-        const auto& gl_info = p_ogl_manager->get_gl_info();
+        const auto &gl_info            = ogl_manager->get_gl_info();
         const auto formated_gl_version = gl_info.get_formated_gl_version();
         if (formated_gl_version < 30)
 #endif
@@ -1669,8 +1816,11 @@ void GLGizmoAdvancedCut::render_cut_line()
     m_cut_line_model.set_color({ 0.0f, 1.0f, 0.0f, 1.0f});
 
 #ifdef __APPLE__
-    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
-    const auto& gl_info = p_ogl_manager->get_gl_info();
+    const auto &ogl_manager = wxGetApp().get_opengl_manager();
+    if (!ogl_manager) {
+        return;
+    }
+    const auto &gl_info            = ogl_manager->get_gl_info();
     const auto formated_gl_version = gl_info.get_formated_gl_version();
     if (formated_gl_version < 30)
 #endif
@@ -2564,8 +2714,19 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     ImGui::SameLine();
     // Cut button
     m_imgui->disabled_begin(!can_perform_cut());
-    if (m_imgui->button(_L("Perform cut")))
-        perform_cut(m_parent.get_selection());
+    if (m_imgui->button(_L("Perform cut")) && !m_perform_cut_requested) {
+        // This window is rendered from inside GLCanvas3D::render(), which refuses to re-enter
+        // itself (m_in_render). perform_cut() then pumps the event loop for its progress dialog,
+        // so every repaint yielded from there would return immediately and leave the 3D view
+        // frozen on a stale frame. Run it from the event loop instead, outside the render pass.
+        m_perform_cut_requested = true;
+        wxGetApp().plater()->CallAfter([this]() {
+            m_perform_cut_requested = false;
+            // The gizmo may have been closed or the selection changed before this ran.
+            if (m_state == On && can_perform_cut())
+                perform_cut(m_parent.get_selection());
+        });
+    }
     m_imgui->disabled_end();
     ImGui::SameLine();
     const bool reset_clicked = m_imgui->button(_L("Reset"));

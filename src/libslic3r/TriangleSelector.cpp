@@ -1,8 +1,11 @@
 #include "TriangleSelector.hpp"
 #include "Model.hpp"
+#include "Utils.hpp"
 
 #include <boost/container/small_vector.hpp>
 #include <boost/log/trivial.hpp>
+#include <algorithm>
+#include <queue>
 
 #ifndef NDEBUG
 //    #define EXPENSIVE_DEBUG_CHECKS
@@ -964,7 +967,7 @@ bool TriangleSelector::select_triangle_recursive(int facet_idx, const Vec3i &nei
         }
 
         if (triangle_splitting)
-            split_triangle(facet_idx, neighbors);
+            split_triangle(facet_idx, neighbors, m_cursor->uniform_scaling ? nullptr : &m_cursor->trafo);
         else if (!m_triangles[facet_idx].is_split())
             m_triangles[facet_idx].set_state(type);
         tr = &m_triangles[facet_idx]; // might have been invalidated by split_triangle().
@@ -993,9 +996,281 @@ void TriangleSelector::set_facet(int facet_idx, EnforcerBlockerType state)
     m_triangles[facet_idx].set_state(state);
 }
 
+TriangleSelector::FacetSubdivisionResult TriangleSelector::set_facets_with_subdivision(
+    const std::vector<int> &facet_indices,
+    const FacetSubdivisionEvaluator &evaluator,
+    size_t node_budget,
+    double relative_error_limit,
+    double absolute_error_epsilon,
+    int max_depth,
+    const FacetSubdivisionCancelCallback &cancel)
+{
+    struct Candidate {
+        int root_idx;
+        int facet_idx;
+        Vec3i neighbors;
+        int depth;
+        FacetSubdivisionMeasurement measurement;
+    };
+    struct CandidateCompare {
+        bool operator()(const Candidate &lhs, const Candidate &rhs) const
+        {
+            if (lhs.measurement.error_area != rhs.measurement.error_area)
+                return lhs.measurement.error_area < rhs.measurement.error_area;
+            if (lhs.root_idx != rhs.root_idx)
+                return lhs.root_idx > rhs.root_idx;
+            return lhs.facet_idx > rhs.facet_idx;
+        }
+    };
+
+    auto triangle_vertices = [this](int facet_idx) {
+        const Triangle &tr = m_triangles[facet_idx];
+        return std::array<Vec3f, 3> {
+            m_vertices[tr.verts_idxs[0]].v,
+            m_vertices[tr.verts_idxs[1]].v,
+            m_vertices[tr.verts_idxs[2]].v
+        };
+    };
+    auto normalize_measurement = [](FacetSubdivisionMeasurement measurement) {
+        measurement.surface_area = std::max(0.0, measurement.surface_area);
+        measurement.error_area = std::clamp(measurement.error_area, 0.0, measurement.surface_area);
+        return measurement;
+    };
+
+    FacetSubdivisionResult result;
+    std::priority_queue<Candidate, std::vector<Candidate>, CandidateCompare> candidates;
+    for (int facet_idx : facet_indices) {
+        if (facet_idx < 0 || facet_idx >= m_orig_size_indices)
+            continue;
+        undivide_triangle(facet_idx);
+        FacetSubdivisionMeasurement measurement =
+            normalize_measurement(evaluator(facet_idx, triangle_vertices(facet_idx)));
+        m_triangles[facet_idx].set_state(measurement.dominant_state);
+        result.surface_area += measurement.surface_area;
+        result.error_area += measurement.error_area;
+        if (measurement.error_area > 0.0)
+            candidates.push({facet_idx, facet_idx, m_neighbors[facet_idx], 0, measurement});
+    }
+
+    const double target_error = std::max(
+        absolute_error_epsilon, relative_error_limit * result.surface_area);
+    size_t iterations_since_cancel_check = 0;
+    while (!candidates.empty() && result.error_area > target_error) {
+        // Poll the cancel callback periodically (not every iteration, to keep the
+        // per-node overhead negligible). A boundary-heavy face can push millions of
+        // candidates, so this bounds worst-case latency to react to cancellation.
+        if (cancel && ++iterations_since_cancel_check >= 1024) {
+            iterations_since_cancel_check = 0;
+            if (cancel()) {
+                result.canceled = true;
+                break;
+            }
+        }
+        Candidate candidate = candidates.top();
+        candidates.pop();
+        if (candidate.depth >= max_depth) {
+            result.depth_limit_reached = true;
+            continue;
+        }
+        if (node_budget < 4) {
+            result.node_budget_exhausted = true;
+            break;
+        }
+
+        Triangle &triangle = m_triangles[candidate.facet_idx];
+        assert(triangle.valid() && !triangle.is_split());
+        assert(this->verify_triangle_neighbors(triangle, candidate.neighbors));
+        result.error_area = std::max(0.0, result.error_area - candidate.measurement.error_area);
+        node_budget -= 4;
+        result.nodes_created += 4;
+        triangle.set_division(3, 0);
+        perform_split(candidate.facet_idx, candidate.neighbors, candidate.measurement.dominant_state);
+
+        for (int child_idx = 0; child_idx < 4; ++child_idx) {
+            const Triangle &parent = m_triangles[candidate.facet_idx];
+            const int child = parent.children[child_idx];
+            const Vec3i neighbors = this->child_neighbors(parent, candidate.neighbors, child_idx);
+            FacetSubdivisionMeasurement measurement =
+                normalize_measurement(evaluator(candidate.root_idx, triangle_vertices(child)));
+            m_triangles[child].set_state(measurement.dominant_state);
+            result.error_area += measurement.error_area;
+            if (measurement.error_area > 0.0)
+                candidates.push({candidate.root_idx, child, neighbors, candidate.depth + 1, measurement});
+        }
+    }
+
+    for (int facet_idx : facet_indices)
+        if (facet_idx >= 0 && facet_idx < m_orig_size_indices)
+            remove_useless_children(facet_idx);
+    result.error_area = std::clamp(result.error_area, 0.0, result.surface_area);
+    return result;
+}
+
+std::array<Vec3f, 3> TriangleSelector::facet_vertices(int facet_idx) const
+{
+    const Triangle &tr = m_triangles[facet_idx];
+    return {
+        m_vertices[tr.verts_idxs[0]].v,
+        m_vertices[tr.verts_idxs[1]].v,
+        m_vertices[tr.verts_idxs[2]].v
+    };
+}
+
+// Cancel is polled once per this many visited nodes: the callback reaches a mutex and an
+// atomic through two std::function hops, so polling per node would cost more than the
+// coverage tests it is guarding, while polling only per seed leaves a whole subdivision
+// tree of AABB traversals between two checks.
+static constexpr size_t RegionPaintCancelPollInterval = 256;
+
+bool TriangleSelector::region_paint_canceled(RegionPaintContext &ctx)
+{
+    if (!ctx.cancel || ++ ctx.steps_since_cancel_check < RegionPaintCancelPollInterval)
+        return false;
+    ctx.steps_since_cancel_check = 0;
+    if (!ctx.cancel())
+        return false;
+    ctx.result.canceled = true;
+    return true;
+}
+
+TriangleSelector::RegionPaintResult TriangleSelector::paint_region(
+    const std::vector<int>        &start_facets,
+    const RegionCoverageEvaluator &coverage,
+    EnforcerBlockerType            new_state,
+    float                          edge_limit,
+    size_t                         node_budget,
+    int                            max_depth,
+    const FacetSubdivisionCancelCallback &cancel,
+    const std::vector<char>       *paintable_facets,
+    const Transform3f             *trafo)
+{
+    if (!coverage || m_orig_size_indices == 0)
+        return RegionPaintResult();
+
+    // Restore on the way out: every caller today owns a throw-away selector, but select_patch()
+    // only refreshes the limit when the cursor radius changed, so leaking ours into a long-lived
+    // selector would silently alter the next brush stroke. m_old_cursor_radius_sqr is left alone
+    // on purpose - it is select_patch()'s own cache and touching it would defeat that refresh.
+    const float saved_edge_limit_sqr = m_edge_limit_sqr;
+    ScopeGuard  restore_edge_limit([this, saved_edge_limit_sqr]() { m_edge_limit_sqr = saved_edge_limit_sqr; });
+    this->set_edge_limit(edge_limit);
+
+    RegionPaintContext ctx { coverage, cancel, trafo, new_state, max_depth, node_budget };
+
+    const auto paintable = [this, paintable_facets](int facet) {
+        return facet >= 0 && facet < m_orig_size_indices &&
+               (paintable_facets == nullptr || (*paintable_facets)[facet] != 0);
+    };
+
+    // Breadth-first walk over the original faces, seeded with every face the
+    // region may touch. Mirrors select_patch()'s neighbor walk, minus the camera
+    // visibility test: a re-projected region has no viewing direction, so nothing
+    // is occluded. The walk lets a coarse seed set still reach the whole region.
+    std::vector<char> visited(m_orig_size_indices, 0);
+    std::vector<int>  facets_to_check;
+    facets_to_check.reserve(start_facets.size() + 16);
+    for (int facet : start_facets)
+        if (paintable(facet))
+            facets_to_check.emplace_back(facet);
+
+    for (int head = 0; head < int(facets_to_check.size()); ++head) {
+        const int facet = facets_to_check[head];
+        if (visited[facet])
+            continue;
+        visited[facet] = 1;
+        if (region_paint_canceled(ctx))
+            return ctx.result;
+        if (!m_triangles[facet].valid())
+            continue;
+        const bool painted = this->paint_region_recursive(facet, m_neighbors[facet], 0, ctx);
+        if (ctx.result.canceled)
+            return ctx.result;
+        if (!painted)
+            continue;
+
+        ++ ctx.result.facets_touched;
+        // Children that all ended up with the same state collapse back into the
+        // parent, so a region interior costs a single node no matter how deep the
+        // refinement had to go along its boundary.
+        remove_useless_children(facet);
+        for (int neighbor : m_neighbors[facet])
+            if (paintable(neighbor) && !visited[neighbor])
+                facets_to_check.emplace_back(neighbor);
+        if (ctx.result.node_budget_exhausted)
+            break;
+    }
+
+    if (2 * m_invalid_triangles > int(m_triangles.size()))
+        garbage_collect();
+    return ctx.result;
+}
+
+bool TriangleSelector::paint_region_recursive(int                 facet_idx,
+                                             const Vec3i        &neighbors,
+                                             int                 depth,
+                                             RegionPaintContext &ctx)
+{
+    assert(facet_idx < int(m_triangles.size()));
+    if (!m_triangles[facet_idx].valid())
+        return false;
+
+    // Polled here rather than only per seed: one coarse seed can carry a whole subdivision
+    // tree, and every level below costs an AABB traversal inside coverage().
+    if (region_paint_canceled(ctx))
+        return false;
+
+    const RegionCoverage region_coverage = ctx.coverage(this->facet_vertices(facet_idx));
+    if (region_coverage == RegionCoverage::None)
+        return false;
+
+    if (region_coverage == RegionCoverage::Full) {
+        // Fully inside the region: discard any subdivision and paint as a whole.
+        undivide_triangle(facet_idx);
+        m_triangles[facet_idx].set_state(ctx.new_state);
+        return true;
+    }
+
+    // Partially covered, so the region boundary crosses this triangle. Refine and
+    // recurse; split_triangle() refuses to split sides already at the edge-length
+    // floor, which is what terminates the recursion.
+    Triangle *tr = &m_triangles[facet_idx];
+    if (!tr->is_split()) {
+        const bool budget_left = ctx.result.nodes_created + 4 <= ctx.node_budget;
+        if (!budget_left)
+            ctx.result.node_budget_exhausted = true;
+        if (depth >= ctx.max_depth || !budget_left) {
+            // Conservative rule: contact wins once refinement has to stop, so a
+            // feature thinner than the leaf is preserved rather than eroded.
+            tr->set_state(ctx.new_state);
+            return true;
+        }
+        split_triangle(facet_idx, neighbors, ctx.trafo);
+        tr = &m_triangles[facet_idx]; // might have been invalidated by split_triangle()
+        if (!tr->is_split()) {
+            // Every side is already at the edge-length floor.
+            tr->set_state(ctx.new_state);
+            return true;
+        }
+        ctx.result.nodes_created += size_t(tr->number_of_split_sides()) + 1;
+    }
+
+    const int num_of_children = tr->number_of_split_sides() + 1;
+    for (int i = 0; i < num_of_children; ++i) {
+        assert(i < int(tr->children.size()));
+        assert(tr->children[i] < int(m_triangles.size()));
+        this->paint_region_recursive(tr->children[i], this->child_neighbors(*tr, neighbors, i), depth + 1, ctx);
+        // The caller discards the whole selector on cancel, so leaving this subtree half
+        // refined is fine; what matters is not walking the rest of it.
+        if (ctx.result.canceled)
+            return true;
+        tr = &m_triangles[facet_idx]; // might have been invalidated
+    }
+    return true;
+}
+
 // called by select_patch()->select_triangle()...select_triangle()
 // to decide which sides of the triangle to split and to actually split it calling set_division() and perform_split().
-void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
+void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors, const Transform3f *trafo)
 {
     if (m_triangles[facet_idx].is_split()) {
         // The triangle is divided already.
@@ -1018,9 +1293,9 @@ void TriangleSelector::split_triangle(int facet_idx, const Vec3i &neighbors)
 
     // In case the object is non-uniformly scaled, transform the
     // points to world coords.
-    if (! m_cursor->uniform_scaling) {
+    if (trafo != nullptr) {
         for (size_t i=0; i<pts.size(); ++i) {
-            pts_transformed[i] = m_cursor->trafo * (*pts[i]);
+            pts_transformed[i] = (*trafo) * (*pts[i]);
             pts[i] = &pts_transformed[i];
         }
     }
@@ -1223,7 +1498,7 @@ void TriangleSelector::remove_useless_children(int facet_idx)
 
     // Call this for all non-leaf children.
     for (int child_idx=0; child_idx<=tr.number_of_split_sides(); ++child_idx) {
-        assert(child_idx < int(m_triangles.size()) && m_triangles[child_idx].valid());
+        assert(tr.children[child_idx] < int(m_triangles.size()) && m_triangles[tr.children[child_idx]].valid());
         if (m_triangles[tr.children[child_idx]].is_split())
             remove_useless_children(tr.children[child_idx]);
     }

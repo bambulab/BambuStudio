@@ -52,6 +52,27 @@ public:
 };
 
 
+//BBS: per-AMS filament load/unload time, exported so the print start flow can replace the
+// estimated time with the actual AMS time according to the real AMS mapping.
+struct AmsLoadUnloadTimeInfo
+{
+    std::string ams_type;
+    double      load_time{0.0};
+    double      unload_time{0.0};
+};
+
+// Mixed (virtual) filament used by a plate. Mixed filaments are virtual slots that get
+// resolved to their physical components before g-code statistics, so they never appear in
+// slice_filaments_info. They are recorded here separately so a plate's mixed-color usage
+// can be recovered from slice_info.
+struct PlateMixedFilamentInfo
+{
+    int         id{0};         // 1-based virtual filament slot id
+    std::string type;
+    std::string color;         // blended display color, "#RRGGBB"
+    std::string components;    // 1-based physical component ids, comma separated, e.g. "1,3"
+};
+
 //BBS: define plate data list related structures
 struct PlateData
 {
@@ -93,12 +114,18 @@ struct PlateData
     std::string     first_layer_time;
     std::string     plate_name;
     std::vector<FilamentInfo> slice_filaments_info;
+    // Mixed (virtual) filaments used by this plate; empty when no mixed filament is used.
+    std::vector<PlateMixedFilamentInfo> mixed_filaments_info;
     std::vector<size_t> skipped_objects;
+    // AMS type used for the load/unload time estimation, and the full per-AMS time matrix of this machine.
+    std::string                       default_ams_type;
+    std::vector<AmsLoadUnloadTimeInfo> ams_list;
     DynamicPrintConfig config;
     bool            is_support_used {false};
     bool            is_sliced_valid = false;
     bool            toolpath_outside {false};
     bool            is_label_object_enabled {false};
+    bool            support_material_on_wipe_tower {false};
     int             timelapse_warning_code = 0; // 1<<0 sprial vase, 1<<1 by object
     std::vector<int>          filament_maps;   // 1 base
     using LayerFilaments = std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>, GCodeProcessorResult::FilamentSequenceHash>;
@@ -106,6 +133,7 @@ struct PlateData
     std::vector<unsigned int> filament_change_sequence;
     std::vector<unsigned int> nozzle_change_sequence;
     std::vector<int> optimal_assignment;
+    std::vector<GCodeProcessorResult::PausePrintInfo> pause_printing;
     std::optional<MultiNozzleUtils::LayeredNozzleGroupResult> nozzle_group_result;
     // Hexadecimal number,
     // the 0th digit corresponds to extruder 1

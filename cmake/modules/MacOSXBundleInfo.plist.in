@@ -134,5 +134,8 @@
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+${MACOSX_BUNDLE_LOCALIZATIONS}	</array>
 </dict>
 </plist>

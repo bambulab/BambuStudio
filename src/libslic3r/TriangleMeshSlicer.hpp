@@ -131,7 +131,12 @@ void cut_mesh(
     indexed_triangle_set            *lower,
     bool                             triangulate_caps = true,
     std::vector<int>                *upper_src_faces = nullptr,
-    std::vector<int>                *lower_src_faces = nullptr);
+    std::vector<int>                *lower_src_faces = nullptr,
+    // Optional progress reporting (percent in [0, 100]) and cancellation for a cut of a
+    // large mesh. On cancel the function returns early, leaving upper/lower partially
+    // built for the caller to discard.
+    const std::function<void(int)>  &progress = nullptr,
+    const std::function<bool()>     &cancel = nullptr);
 
 // BBS
 void cut_mesh(

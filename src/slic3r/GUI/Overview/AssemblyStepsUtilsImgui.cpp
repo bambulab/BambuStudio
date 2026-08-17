@@ -33,6 +33,8 @@
 #include <wx/filedlg.h>
 #include <wx/glcanvas.h>
 #include <imgui/imgui_internal.h>
+#include <cfloat>
+#include <vector>
 
 #define _steps_nodes m_model->get_assembly_steps_tree_data().nodes
 #define _steps_roots m_model->get_assembly_steps_tree_data().roots
@@ -95,6 +97,62 @@ std::string utf8_fit_with_ellipsis(const std::string &s, float max_width)
     }
 
     return best.empty() ? ellipsis : best;
+}
+
+// Label / Explosion / Assemble columns added to the assembly tree. Widths are shared
+// by the header row and per-row content so titles stay centered over icons / status text.
+struct AssemblyTreeStateColMetrics {
+    float label_icon_sz{0.f};
+    float label_col_w{0.f};
+    float explosion_col_w{0.f};
+    float assembly_col_w{0.f};
+    float col_gap{0.f};
+    // Extra window width to reserve so the Object-name column keeps its pre-column width.
+    float extra_window_w{0.f};
+};
+
+static AssemblyTreeStateColMetrics calc_assembly_tree_state_col_metrics(float sc,
+                                                                       bool show_label,
+                                                                       bool show_explosion,
+                                                                       bool show_assembly)
+{
+    AssemblyTreeStateColMetrics m;
+    m.label_icon_sz = 16.0f * sc;
+    m.col_gap       = 12.0f * sc;
+    if (!show_label && !show_explosion && !show_assembly)
+        return m;
+
+    const std::string label_title     = _u8L("Label");
+    const std::string explosion_title = _u8L("Explosion");
+    const std::string assemble_title  = _u8L("Assemble");
+    const std::string not_assembled   = _u8L("Unassembled");
+    const std::string step_prefix     = _u8L("Step");
+    m.label_col_w = std::max(m.label_icon_sz, ImGui::CalcTextSize(label_title.c_str()).x);
+    m.explosion_col_w = std::max(m.label_icon_sz, ImGui::CalcTextSize(explosion_title.c_str()).x);
+    m.assembly_col_w = std::max({
+        ImGui::CalcTextSize(assemble_title.c_str()).x,
+        ImGui::CalcTextSize(not_assembled.c_str()).x,
+        ImGui::CalcTextSize((step_prefix + "99").c_str()).x,
+        40.0f * sc});
+    auto append_col = [&](float col_w, bool more_after) {
+        m.extra_window_w += col_w + (more_after ? m.col_gap : 0.f);
+    };
+    if (show_label)
+        append_col(m.label_col_w, show_explosion || show_assembly);
+    if (show_explosion)
+        append_col(m.explosion_col_w, show_assembly);
+    if (show_assembly)
+        append_col(m.assembly_col_w, false);
+    return m;
+}
+
+// Full ImGui window width for render_assembly_tree_ui: base panel_w plus the
+// Label/Explosion/Assemble columns. Scrollbar appears only on overflow and is not reserved.
+static float calc_assembly_tree_window_w(float panel_w, float sc, bool show_label, bool show_explosion, bool show_assembly)
+{
+    const AssemblyTreeStateColMetrics cols =
+        calc_assembly_tree_state_col_metrics(sc, show_label, show_explosion, show_assembly);
+    return panel_w + cols.extra_window_w;
 }
 
 // Shared vertical scrollbar thumb. grab_w is the visible thumb thickness
@@ -327,6 +385,9 @@ void AssemblyStepsUtils::refresh_guide_show_part_numbers_from_current()
 
 void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
     if (!m_camera || !m_volumes || !m_model) { return;}
+    // Frame tick for per-frame query caches (see is_selection_added_to_current_step()).
+    ++m_ui_frame_index;
+    flush_coalesced_steps_save_if_stale();
     auto &sc = m_imgui_scale;
     //logic
     play_cur_keyframe_logic();
@@ -350,7 +411,9 @@ void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
             m_last_fit_viewport_ = vp;
         if (want_refit) {
             m_refit_camera_pending_ = false;
-            if (KeyFrameEntry *entry = get_selected_keyframe_entry()) {
+            if (is_overall_preview_mode()) {
+                //do nothing
+            } else if (KeyFrameEntry *entry = get_selected_keyframe_entry()) {
                 // A user-framed keyframe must keep its stored camera across a viewport
                 if (entry->data.camera_user_defined) {
                     apply_camera(entry->data);
@@ -392,8 +455,7 @@ void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
         m_panel_rect_guide_min = m_panel_rect_guide_max = ImVec2(0, 0);
     }
     // Bottom-centered play bar (Figma node 732:22413). Keep it visible for
-    // normal playback, including "play all frames"; hide it only for exports.
-    if (!is_export_mode()) {
+    if (!is_export_mode() && !is_overall_preview_mode()) {
         const float assemble_control_clearance = (has_selected_step_node() ? 30.0f : 95.0f) * sc;
         const float play_bar_bottom_y          = canvas_h - assemble_control_clearance;
         render_assemble_play_bar(canvas_w, play_bar_bottom_y);
@@ -489,20 +551,20 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     auto &sc = m_imgui_scale;
     // Step folders still provide the display label, while the progress bar is
     // driven by every playable keyframe.
-    const std::vector<int> step_node_idxs = sorted_step_nodes();
     const int total_frames = static_cast<int>(m_play_frame_refs.size());
     if (total_frames <= 0)
         return;
 
-    // Locate the current step (1-based) from the current global play frame's parent folder.
+    // Locate the current step from the current global play frame's parent folder.
+    // Circle marker uses the 1-based global frame index (same number as the tip's
+    // "Frame N"); node.step is only used for the step name / label below the bar.
     const int cur_global = std::clamp(m_assembly_play_index, 1, total_frames);
     const PlayFrameRef &cur_ref = m_play_frame_refs[cur_global - 1];
     const int cur_node_idx = cur_ref.node_idx;
     const bool disable_play_controls = m_keyframe_playing;
-    int cur_step_1based = 1;
-    for (int i = 0; i < static_cast<int>(step_node_idxs.size()); ++i) {
-        if (step_node_idxs[i] == cur_node_idx) { cur_step_1based = i + 1; break; }
-    }
+    int cur_step_num = 1;
+    if (cur_node_idx >= 0 && cur_node_idx < static_cast<int>(_steps_nodes.size()))
+        cur_step_num = _steps_nodes[cur_node_idx].step;
 
     std::string cur_step_name;
     std::string cur_frame_kind;
@@ -520,11 +582,11 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
         }
     }
     if (cur_step_name.empty())
-        cur_step_name = std::to_string(cur_step_1based);
+        cur_step_name = std::to_string(cur_step_num);
     if (cur_frame_kind.empty())
         cur_frame_kind = _u8L("Frame");
 
-    std::string cur_label = _u8L("step") + " " + std::to_string(cur_step_1based);
+    std::string cur_label = _u8L("step") + " " + std::to_string(cur_step_num);
     if (cur_node_idx >= 0 && cur_node_idx < static_cast<int>(_steps_nodes.size()) && cur_ref.frame_idx >= 0 &&
         cur_ref.frame_idx < static_cast<int>(_steps_nodes[cur_node_idx].kf_data.entries.size())) {
         const auto &cur_entries = _steps_nodes[cur_node_idx].kf_data.entries;
@@ -535,16 +597,19 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
             cur_label += "(" + _u8L("End frame") + ")";
     }
 
-    // Speed multiplier shown in the pill. m_play_transition_duration is the time per
-    // frame; speed = 1 / duration. Clicking the pill cycles 1.0x -> 0.5x -> 1.5x -> 2.0x.
-    const float speed_mult = static_cast<float>(m_play_transition_duration > 0.0 ? (m_play_transition_expect_duration / m_play_transition_duration): 1.0);
+    // Speed multiplier shown in the pill; the frame duration is derived from it.
+    // Clicking the pill cycles 1.0x -> 0.5x -> 1.5x -> 2.0x.
+    const float speed_mult = static_cast<float>(get_play_speed_multiplier());
     char speed_text[16];
     std::snprintf(speed_text, sizeof(speed_text), "%.1fx", speed_mult);
 
     // ---- Layout constants (all match Figma node 732:22413, scaled by `sc`) ----
-    const float PLAY_BTN_SZ      = 24.0f * sc;
+    // Play / pause is the primary action of the bar, so it is drawn at 1.5x the
+    // Figma spec (24 -> 36 box, 20 -> 30 icon) to stand out from the nav buttons.
+    const float PLAY_BTN_SCALE   = 1.5f;
+    const float PLAY_BTN_SZ      = 24.0f * sc * PLAY_BTN_SCALE;
     // Visually match the nav buttons: their 16px arrows fill a 24px dark box,
-    const float PLAY_ICON_SZ     = 20.0f * sc;
+    const float PLAY_ICON_SZ     = 20.0f * sc * PLAY_BTN_SCALE;
     // Use the same font size as render_assembly_guide_export_button so the
     // Export button "Export" label, the speed pill "1.0x", the step number
     // inside the circle, and the step name below all read at the same scale.
@@ -560,7 +625,10 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     // starts to look pinched. Scale the gaps with the font so the speed pill
     // and the nav buttons stop hugging the progress track at system fonts.
     const float GAP_S1_TO_BAR    = std::max(12.0f * sc, BAR_FONT_PX + 4.0f * sc); // section1 -> progress
-    const float PROGRESS_W       = 558.0f * sc;
+    // Ideal track width from Figma; may shrink below when the Assembly Structure
+    // panel leaves too little room (high-DPI macOS often hits this).
+    const float PROGRESS_W_IDEAL = std::min(558.0f * sc, canvas_w * 0.22f);
+    const float PROGRESS_W_MIN   = 180.0f * sc;
     const float BAR_H            = 6.0f * sc;
     // Circle must comfortably hold the step number at BAR_FONT_PX. Figma spec is
     // 18 (Figma 11px font); we grow it just enough to keep a margin around the
@@ -575,7 +643,13 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     const float NAV_BTN_ROUND    = 5.333f * sc;
     const float NAV_GAP          = 8.0f * sc;
     // Display Mode combo after nav (no visible label; tip on hover).
+    // Hidden while a gizmo that disallows X-Ray is active (see is_allow_x_ray_in_assembly).
     const float DM_GAP           = NAV_GAP;
+    bool show_display_mode = true;
+    if (wxGetApp().plater()) {
+        if (GLCanvas3D *ac = wxGetApp().plater()->get_assmeble_canvas3D())
+            show_display_mode = ac->get_gizmos_manager().is_allow_x_ray_in_assembly();
+    }
     const std::vector<std::string> display_modes = {
         _u8L("Show Current Step Parts Only"),
         _u8L("X-Ray Other Parts")
@@ -588,6 +662,7 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     const float dm_arrow_sz        = ImGui::GetFrameHeight();
     const float dm_combo_visible_w = dm_arrow_sz + display_mode_max_text_w + 2.0f * ImGui::GetStyle().FramePadding.x;
     const float dm_combo_item_w    = dm_combo_visible_w + 2.0f * dm_arrow_sz;
+    const float dm_slot_w          = show_display_mode ? (DM_GAP + dm_combo_visible_w) : 0.0f;
 
     // Pre-measure speed badge so total width is correct.
     ImFont *font = ImGui::GetFont();
@@ -596,10 +671,31 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
         : ImVec2(24.0f * sc, 16.0f * sc);
     const float SPEED_BADGE_W = std::max(SPEED_BADGE_H, speed_text_sz.x + 2.0f * SPEED_PAD_X);
 
-    const float TOTAL_W = PLAY_BTN_SZ + GAP_SECTION1 + SPEED_BADGE_W
-                        + GAP_S1_TO_BAR + PROGRESS_W
+    // Width without the progress track. Track width is chosen next so the bar
+    // can still sit fully to the right of the Assembly Structure panel on
+    // high-DPI displays (macOS 26+ ContentScale) where 558*sc no longer fits.
+    const float FIXED_W = PLAY_BTN_SZ + GAP_SECTION1 + SPEED_BADGE_W
+                        + GAP_S1_TO_BAR
                         + GAP_BAR_TO_NAV + NAV_BTN_SZ + NAV_GAP + NAV_BTN_SZ
-                        + DM_GAP + dm_combo_visible_w;
+                        + dm_slot_w;
+    // Prefer the live panel rect (actual ImGui window) over the layout constant
+    // so a DPI / AutoResize mismatch cannot leave play under the white panel.
+    const float structure_right = std::max(m_assembly_structure_right_x,
+        m_panel_rect_structure_max.x);
+    const float structure_gap = 12.0f * sc;
+    const float right_margin  = 12.0f * sc;
+    const float left_clear    = (structure_right > 0.0f)
+        ? (structure_right + structure_gap)
+        : right_margin;
+    const float progress_avail = canvas_w - left_clear - right_margin - FIXED_W;
+    float PROGRESS_W = PROGRESS_W_IDEAL;
+    if (progress_avail >= PROGRESS_W_IDEAL)
+        PROGRESS_W = PROGRESS_W_IDEAL;
+    else if (progress_avail >= PROGRESS_W_MIN)
+        PROGRESS_W = progress_avail;
+    else
+        PROGRESS_W = PROGRESS_W_MIN;
+    const float TOTAL_W = FIXED_W + PROGRESS_W;
     // main_cy is the vertical center of the top row (play, speed, progress, nav).
     // It must be at least half the tallest element so nothing clips above the window.
     const float top_half = std::max({PLAY_BTN_SZ * 0.5f, SPEED_BADGE_H * 0.5f, CIRCLE_D * 0.5f, dm_arrow_sz * 0.5f});
@@ -608,7 +704,21 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     const float TOTAL_H = top_half + std::max(top_half + 4.0f * sc, 21.74f * sc + LABEL_FONT_PX + 4.0f * sc);
 
     // Window position: centered horizontally, anchored so its bottom edge sits at `bottom_y`.
-    const float win_x = canvas_w * 0.5f - TOTAL_W * 0.5f;
+    // Always keep the play/pause control clear of the left Assembly Structure panel.
+    // Previously a right-edge clamp could undo that push when TOTAL_W was large
+    // (Retina / macOS high scale), leaving play under the panel after pause.
+    float win_x = canvas_w * 0.5f - TOTAL_W * 0.5f;
+    if (win_x < left_clear)
+        win_x = left_clear;
+    const float max_x = canvas_w - TOTAL_W - right_margin;
+    if (max_x >= left_clear) {
+        if (win_x > max_x)
+            win_x = max_x;
+    } else {
+        // Even the shrunk bar is wider than the free span: keep play clear of
+        // the structure panel and allow the right side to clip past the margin.
+        win_x = left_clear;
+    }
     const float win_y = bottom_y - TOTAL_H + 15;
 
     ImGui::SetNextWindowPos(ImVec2(win_x, win_y), ImGuiCond_Always);
@@ -619,11 +729,30 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
 
+    // Do NOT use NoBringToFrontOnFocus here. When the sidebar is expanded the
+    // canvas shrinks and this centered bar's left (play/pause) overlaps the
+    // Assembly Structure panel; with NoBringToFrontOnFocus the structure panel
+    // stays above this bar for hit-testing, so play has no hover/click while the
+    // right-side nav buttons (outside that overlap) still work.
     m_imgui->begin(std::string("##assembly_play_bar"),
         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
-        ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoBringToFrontOnFocus);
+        ImGuiWindowFlags_NoBackground);
+    // Structure panel is re-created after pause and can steal display order on
+    // some macOS builds, so the bar has to be forced above it. Do that only while the
+    // two actually overlap: an unconditional bring-to-front also lifts the bar above
+    // the notifications, which render after it, and then the bar silently swallows
+    // the clicks on their hyperlinks. win_x is normally pushed clear of the panel by
+    // left_clear, so the overlap only happens when that rect turns out stale or wrong.
+    // The panel renders before this bar, so its rect is current.
+    const bool overlaps_structure_panel =
+        m_panel_rect_structure_max.x > m_panel_rect_structure_min.x &&
+        m_panel_rect_structure_max.y > m_panel_rect_structure_min.y &&
+        win_x < m_panel_rect_structure_max.x && win_x + TOTAL_W > m_panel_rect_structure_min.x &&
+        win_y < m_panel_rect_structure_max.y && win_y + TOTAL_H > m_panel_rect_structure_min.y;
+    if (overlaps_structure_panel)
+        ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
 
     m_panel_rect_playbar_min = ImVec2(win_x, win_y);
     m_panel_rect_playbar_max = ImVec2(win_x + TOTAL_W, win_y + TOTAL_H);
@@ -655,22 +784,18 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
                             b0.y + (PLAY_BTN_SZ - PLAY_ICON_SZ) * 0.5f);
             dl->AddImage(tex, i0, ImVec2(i0.x + PLAY_ICON_SZ, i0.y + PLAY_ICON_SZ));
         }
-        if (clicked) {
-            if (m_keyframe_playing) pause_playback();
-            else if (m_playback_paused) resume_playback();
-            else {
-                // Fresh play: start from the frame the progress bar is currently
-                if (cur_global <= 1 || cur_global >= total_frames)
-                    start_playback_with_intro();
-                else
-                    play_global_frame(true);
-            }
-        }
+        if (clicked)
+            toggle_global_playback();
         if (hovered) {
-            // unified message for both play and pause states). Window has zero
-            // WindowPadding, so the tooltip needs its own padding back.
+            // Match the icon: pause tip while playing, otherwise play-from-here / play-all.
+            // Window has zero WindowPadding, so the tooltip needs its own padding back.
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f * sc, 6.0f * sc));
-            m_imgui->tooltip(_u8L("Play all frames for all steps."), 20.0f * m_imgui->scaled(1.0f));
+            const std::string play_tip = m_keyframe_playing
+                ? _u8L("Pause")
+                : (cur_step_num != 1
+                    ? _u8L("Play from the current step.")
+                    : _u8L("Play all frames for all steps."));
+            m_imgui->tooltip(play_tip, 20.0f * m_imgui->scaled(1.0f));
             ImGui::PopStyleVar();
         }
         cursor_x += PLAY_BTN_SZ + GAP_SECTION1;
@@ -698,14 +823,13 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
         }
         if (clicked) {
             // Cycle order matches the Figma "1.0x" default first: 1.0 -> 0.5 -> 1.5 -> 2.0.
-            const double cur        = (m_play_transition_duration > 0.0 ? m_play_transition_expect_duration / m_play_transition_duration : 1.0);
+            const double cur        = get_play_speed_multiplier();
             double next_speed = 1.0;
             if      (std::abs(cur - 1.0) < 1e-3) next_speed = 0.5;
             else if (std::abs(cur - 0.5) < 1e-3) next_speed = 1.5;
             else if (std::abs(cur - 1.5) < 1e-3) next_speed = 2.0;
             else                                  next_speed = 1.0;
-            m_play_transition_duration = m_play_transition_expect_duration / next_speed;
-            m_play_interval_step_to_step = m_play_interval_step_to_step_expect / next_speed;
+            set_play_speed_multiplier(next_speed);
         }
         if (hovered) {
             // Window has zero WindowPadding; the tooltip needs its own padding back.
@@ -777,7 +901,7 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
                     tick_col, TICK_W);
     }
 
-    // Current step circular marker + step number inside it + label below.
+    // Current-frame circular marker + global frame number inside it + step label below.
     {
         const float cx = progress_x0 + PROGRESS_W * progress_frac;
         const float cy = bar_cy;
@@ -796,13 +920,13 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
         if (ImGui::IsItemHovered())
             show_current_frame_tooltip();
 
-        char step_text[16];
-        std::snprintf(step_text, sizeof(step_text), "%d", cur_global);
+        char frame_text[16];
+        std::snprintf(frame_text, sizeof(frame_text), "%d", cur_global);
         if (font) {
-            const ImVec2 ts = font->CalcTextSizeA(LABEL_FONT_PX, FLT_MAX, 0.0f, step_text);
+            const ImVec2 ts = font->CalcTextSizeA(LABEL_FONT_PX, FLT_MAX, 0.0f, frame_text);
             dl->AddText(font, LABEL_FONT_PX,
                         ImVec2(cx - ts.x * 0.5f, cy - ts.y * 0.5f),
-                        IM_COL32(0x32, 0x3A, 0x3D, 255), step_text);
+                        IM_COL32(0x32, 0x3A, 0x3D, 255), frame_text);
         }
 
         if (font && !cur_label.empty()) {
@@ -885,12 +1009,14 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
             goto_global_frame(cur_global + 1);
         }
         m_imgui->disabled_end();
-        cursor_x += NAV_BTN_SZ + DM_GAP;
+        cursor_x += NAV_BTN_SZ;
     }
 
     // ====== Display Mode combo (label hidden; tip on hover) ======
     // Match the speed-pill dark translucent mask so light/dark canvas both read well.
+    if (show_display_mode)
     {
+        cursor_x += DM_GAP;
         const int display_idx = static_cast<int>(keyframe_display_mode());
         const char *selected_str =
             (display_idx >= 0 && display_idx < (int) display_modes.size())
@@ -1157,6 +1283,8 @@ void AssemblyStepsUtils::render_part_number_labels_on_canvas(
 
     for (int i = 0; i < (int)labels.size(); ++i) {
         PartNumberLabel &lbl = labels[i];
+        if (!lbl.visible)
+            continue;
 
         const bool renaming = editable && (
             (!lbl.part_guid.empty() && lbl.part_guid == m_pn_label_rename_guid) ||
@@ -1190,6 +1318,7 @@ void AssemblyStepsUtils::render_part_number_labels_on_canvas(
             draw_crisp_large_text(fg, font, font_sz, text_pos, txt_col, lbl.part_name);
         }
 
+        bool pill_hovered = false;
         if (editable && renaming) {
             // Defer the actual edit field; just remember this pill's geometry.
             rename_active_this_frame = true;
@@ -1207,6 +1336,7 @@ void AssemblyStepsUtils::render_part_number_labels_on_canvas(
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             if (ImGui::Begin(drag_id, nullptr, drag_flags)) {
                 ImGui::InvisibleButton("##hit", ImVec2(pill_w, pill_h));
+                pill_hovered = ImGui::IsItemHovered();
                 if (ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
                     ImVec2 delta = ImGui::GetIO().MouseDelta;
                     lbl.arrow_end_offset.x() += delta.x;
@@ -1225,6 +1355,48 @@ void AssemblyStepsUtils::render_part_number_labels_on_canvas(
             ImGui::End();
             ImGui::PopStyleColor(2);
             ImGui::PopStyleVar();
+        }
+
+        // Hover close (clip/arrow_svg style): top-right X hides this label
+        // (visible=false) and immediately persists so the tree "标签" column updates.
+        if (editable && !renaming) {
+            const float close_r = 8.0f * sc;
+            ImVec2 close_center(pill_max.x + close_r + 2.0f * sc, pill_min.y);
+            const ImVec2 mouse = ImGui::GetIO().MousePos;
+            const float dx = mouse.x - close_center.x;
+            const float dy = mouse.y - close_center.y;
+            const bool near_close = (dx * dx + dy * dy) <= (close_r + 4.0f * sc) * (close_r + 4.0f * sc);
+            if (pill_hovered || near_close) {
+                char close_win_id[64];
+                snprintf(close_win_id, sizeof(close_win_id), "##pn_close_win_%d", i);
+                ImGui::SetNextWindowPos(ImVec2(close_center.x - close_r, close_center.y - close_r), ImGuiCond_Always);
+                ImGui::SetNextWindowSize(ImVec2(close_r * 2.0f, close_r * 2.0f), ImGuiCond_Always);
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+                ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+                if (ImGui::Begin(close_win_id, nullptr, drag_flags)) {
+                    fg->AddCircleFilled(close_center, close_r, IM_COL32(200, 60, 60, 230));
+                    const float cross = close_r * 0.45f;
+                    fg->AddLine(ImVec2(close_center.x - cross, close_center.y - cross),
+                                ImVec2(close_center.x + cross, close_center.y + cross),
+                                IM_COL32(255, 255, 255, 255), 2.0f);
+                    fg->AddLine(ImVec2(close_center.x + cross, close_center.y - cross),
+                                ImVec2(close_center.x - cross, close_center.y + cross),
+                                IM_COL32(255, 255, 255, 255), 2.0f);
+                    ImGui::SetCursorScreenPos(ImVec2(close_center.x - close_r, close_center.y - close_r));
+                    if (ImGui::InvisibleButton("##pn_close", ImVec2(close_r * 2.0f, close_r * 2.0f))) {
+                        lbl.visible = false;
+                        any_changed = true;
+                        set_selection_origin(SelectionOrigin::ImGuiNote);
+                    }
+                    if (ImGui::IsItemHovered())
+                        set_cursor(AssemblyNoteCursorType::Hand);
+                }
+                ImGui::End();
+                ImGui::PopStyleColor(2);
+                ImGui::PopStyleVar(2);
+            }
         }
 
         // Draggable start handle near the volume. Following the PlainArrowNote
@@ -1363,6 +1535,67 @@ ImVec2 AssemblyStepsUtils::nearest_rect_anchor(const ImVec2 &rect_min, const ImV
     return best;
 }
 
+void AssemblyStepsUtils::assign_rect_anchors(const ImVec2 &rect_min, const ImVec2 &rect_max,
+                                             const std::vector<ImVec2> &from_pts, bool include_corners,
+                                             std::vector<ImVec2> &out_anchors)
+{
+    out_anchors.assign(from_pts.size(), ImVec2(0, 0));
+    if (from_pts.empty())
+        return;
+
+    float cx = (rect_min.x + rect_max.x) * 0.5f;
+    float cy = (rect_min.y + rect_max.y) * 0.5f;
+    std::vector<ImVec2> candidates = {
+        {cx, rect_min.y}, {cx, rect_max.y},
+        {rect_min.x, cy}, {rect_max.x, cy},
+    };
+    if (include_corners) {
+        candidates.push_back({rect_min.x, rect_min.y});
+        candidates.push_back({rect_max.x, rect_min.y});
+        candidates.push_back({rect_min.x, rect_max.y});
+        candidates.push_back({rect_max.x, rect_max.y});
+    }
+
+    const size_t n = from_pts.size();
+    const size_t k = candidates.size();
+    if (n == 1 || n > k) {
+        for (size_t i = 0; i < n; ++i)
+            out_anchors[i] = nearest_rect_anchor(rect_min, rect_max, from_pts[i], include_corners);
+        return;
+    }
+
+    // Brute-force injection: pick distinct candidates minimizing sum of squared distances.
+    // K<=8 and N<=K keeps the search small (P(8,4)=1680).
+    std::vector<int> best_assign(n, -1);
+    float            best_cost = FLT_MAX;
+    std::vector<int> cur(n, -1);
+    std::vector<char> used(k, 0);
+    auto dist2 = [](const ImVec2 &a, const ImVec2 &b) {
+        float dx = a.x - b.x, dy = a.y - b.y;
+        return dx * dx + dy * dy;
+    };
+    auto dfs = [&](auto &&self, size_t depth, float cost) -> void {
+        if (cost >= best_cost)
+            return;
+        if (depth == n) {
+            best_cost   = cost;
+            best_assign = cur;
+            return;
+        }
+        for (size_t c = 0; c < k; ++c) {
+            if (used[c])
+                continue;
+            used[c]    = 1;
+            cur[depth] = (int)c;
+            self(self, depth + 1, cost + dist2(from_pts[depth], candidates[c]));
+            used[c] = 0;
+        }
+    };
+    dfs(dfs, 0, 0.0f);
+    for (size_t i = 0; i < n; ++i)
+        out_anchors[i] = candidates[best_assign[i]];
+}
+
 void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_screen_center)
 {
     if (!m_camera || is_show_video_title_mode()) {
@@ -1433,9 +1666,14 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     // --- Pass 1: collect screen positions & batch-draw all arrow lines ---
     struct ArrowScreenData { ImVec2 start; ImVec2 end; };
     struct ColoredLine { std::pair<ImVec2, ImVec2> line; std::array<float, 4> color; bool draw_arrowhead{false}; };
-    std::vector<ArrowScreenData> screen_data(count);
+    std::vector<std::vector<ArrowScreenData>> screen_data(count);
     std::vector<ColoredLine> line_pairs;
-    line_pairs.reserve(count + plain_arrow_count + (has_pn ? (int)pn_labels.size() : 0));
+    {
+        size_t ray_total = 0;
+        for (const auto &a : arrow_svgs)
+            ray_total += std::max<size_t>(1, a.rays.size());
+        line_pairs.reserve(ray_total + plain_arrow_count + (has_pn ? (int)pn_labels.size() : 0));
+    }
 
     for (int ni = 0; ni < count; ++ni) {
         ArrowSvgNote &arrow = arrow_svgs[ni];
@@ -1443,23 +1681,48 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
         const double svg_min_dim = 32.0 * sc;
         arrow.label_size.x() = std::max(arrow.label_size.x(), svg_min_dim);
         arrow.label_size.y() = std::max(arrow.label_size.y(), svg_min_dim);
-        // Anchor to the bound volumes' on-screen bbox center (falls back to the.
-        const Vec2d arrow_center = compute_arrow_svg_anchor_center(arrow, obj_center);
-        Vec2d start_pos = arrow_center + arrow.arrow_start_offset;
-        Vec2d end_pos   = start_pos  + arrow.arrow_end_offset;
-        screen_data[ni].start = ImVec2((float)start_pos.x(), (float)start_pos.y());
-        screen_data[ni].end   = ImVec2((float)end_pos.x(),   (float)end_pos.y());
-        // Anchor the line tip to the SVG icon's bbox edge (same trick used by
-        ImVec2 icon_min((float)(end_pos.x() - arrow.label_size.x() * 0.5),
-                        (float)(end_pos.y() - arrow.label_size.y() * 0.5));
-        ImVec2 icon_max((float)(end_pos.x() + arrow.label_size.x() * 0.5),
-                        (float)(end_pos.y() + arrow.label_size.y() * 0.5));
-        ImVec2 from_pt((float)start_pos.x(), (float)start_pos.y());
-        ImVec2 anchor  = nearest_rect_anchor(icon_min, icon_max, from_pt,true);
-        line_pairs.push_back({{
-            ImVec2((float)start_pos.x(), vp_height - (float)start_pos.y()),
-            ImVec2(anchor.x,             vp_height - anchor.y)},
-            note_color_to_float_array(arrow.color)});
+        if (arrow.rays.empty())
+            arrow.rays.emplace_back();
+
+        // Shared SVG icon: rays[0] owns the absolute icon center; every ray's
+        // line tip attaches to an optimally assigned point on that one rect.
+        std::vector<ImVec2> ray_starts;
+        ray_starts.reserve(arrow.rays.size());
+        for (ArrowSvgRay &ray : arrow.rays) {
+            const Vec2d arrow_center = compute_arrow_svg_anchor_center(ray, obj_center);
+            const Vec2d start_pos    = arrow_center + ray.arrow_start_offset;
+            ray_starts.emplace_back((float)start_pos.x(), (float)start_pos.y());
+        }
+        const Vec2d icon_center_v =
+            Vec2d(ray_starts.front().x, ray_starts.front().y) + arrow.rays.front().arrow_end_offset;
+        const ImVec2 icon_center((float)icon_center_v.x(), (float)icon_center_v.y());
+        const ImVec2 icon_min((float)(icon_center_v.x() - arrow.label_size.x() * 0.5),
+                              (float)(icon_center_v.y() - arrow.label_size.y() * 0.5));
+        const ImVec2 icon_max((float)(icon_center_v.x() + arrow.label_size.x() * 0.5),
+                              (float)(icon_center_v.y() + arrow.label_size.y() * 0.5));
+
+        // Keep secondary rays' end offsets aligned to the shared absolute icon center
+        // (legacy fanned multi-icon notes + start-drag of other rays stay consistent).
+        for (size_t ri = 1; ri < arrow.rays.size(); ++ri) {
+            arrow.rays[ri].arrow_end_offset =
+                icon_center_v - Vec2d(ray_starts[ri].x, ray_starts[ri].y);
+        }
+
+        std::vector<ImVec2> anchors;
+        assign_rect_anchors(icon_min, icon_max, ray_starts, /*include_corners=*/true, anchors);
+
+        screen_data[ni].reserve(arrow.rays.size());
+        for (size_t ri = 0; ri < arrow.rays.size(); ++ri) {
+            ArrowScreenData sd;
+            sd.start = ray_starts[ri];
+            sd.end   = icon_center; // shared icon center for hit-test / drag
+            screen_data[ni].push_back(sd);
+            const ImVec2 &anchor = anchors[ri];
+            line_pairs.push_back({{
+                ImVec2(ray_starts[ri].x, vp_height - ray_starts[ri].y),
+                ImVec2(anchor.x,         vp_height - anchor.y)},
+                note_color_to_float_array(arrow.color)});
+        }
     }
     std::vector<ArrowScreenData> plain_arrow_screen_data(plain_arrow_count);
     for (int ni = 0; ni < plain_arrow_count; ++ni) {
@@ -1523,13 +1786,16 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
                 record_camera(cur_entry.data);
                 cur_entry.data.is_camera_define = true;
                 cur_entry.need_save = true;
-                save_assembly_steps_json_to_model();
             }
             m_pn_autolayout_pending = false;
+            // Final persist for auto-explode / apply-pose (skip was held open for us).
+            flush_assembly_steps_json_to_model();
         }
 
         for (int i = 0; i < (int)pn_labels.size(); ++i) {
             const PartNumberLabel &lbl = pn_labels[i];
+            if (!lbl.visible)
+                continue;
             Vec2d center = pn_vol_center(lbl.object_idx, lbl.volume_idx);
             pn_screen_centers_[i] = center;
             Vec2d arrow_start = center + lbl.arrow_start_offset;
@@ -1745,63 +2011,80 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     for (int ni = 0; ni < count; ++ni) {
         ArrowSvgNote &arrow = arrow_svgs[ni];
         clamp_note_size(arrow.label_size, 32.0 * sc, 32.0 * sc);
-        const ImVec2 &arrow_start = screen_data[ni].start;
-        const ImVec2 &arrow_end   = screen_data[ni].end;
+        if (arrow.rays.empty())
+            arrow.rays.emplace_back();
+        if (screen_data[ni].size() != arrow.rays.size())
+            continue;
+
         ImVec2 icon_box_sz((float)arrow.label_size.x(), (float)arrow.label_size.y());
         bool arrow_selected = is_note_selected(AssemblyNoteSelectionType::ArrowSvg, ni);
-
         ImTextureID tex = get_arrow_svg_icon(arrow.svg_name);
-        draw_arrow_svg_icon(ni, arrow_end, icon_box_sz, tex, arrow_selected);
 
-        // Draggable handle for arrow start (transparent ImGui window)
-        if (arrow_selected) {
-            char start_win[64];
-            snprintf(start_win, sizeof(start_win), "##arrow_start_%d", ni);
-            float drag_sz = handle_sz * 2;
-            ImGui::SetNextWindowPos(ImVec2(arrow_start.x - handle_sz, arrow_start.y - handle_sz), ImGuiCond_Always);
-            ImGui::SetNextWindowSize(ImVec2(drag_sz, drag_sz));
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-            ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
-            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-            if (ImGui::Begin(start_win, nullptr, drag_flags)) {
-                ImGui::PushID(ni * 2);
-                ImGui::InvisibleButton("##sd", ImVec2(drag_sz, drag_sz));
-                if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
-                    set_cursor(AssemblyNoteCursorType::Move);
-                    note_cursor_requested = true;
-                }
-                if (ImGui::IsItemClicked(0))
-                    activate_note_edit_controls(AssemblyNoteSelectionType::ArrowSvg, ni);
-                if (ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
-                    ImVec2 delta = ImGui::GetIO().MouseDelta;
-                    // Move only the start anchor; keep the SVG icon (end) in place
-                    arrow.arrow_start_offset.x() += delta.x;
-                    arrow.arrow_start_offset.y() += delta.y;
-                    arrow.arrow_end_offset.x()   -= delta.x;
-                    arrow.arrow_end_offset.y()   -= delta.y;
-                    any_changed = true;
-                }
-                ImGui::PopID();
+        // One shared SVG icon (screen_data[*].end is the shared icon center).
+        const ImVec2 &icon_center = screen_data[ni].front().end;
+        draw_arrow_svg_icon(ni, icon_center, icon_box_sz, tex, arrow_selected);
+
+        auto apply_icon_delta = [&](float dx, float dy) {
+            for (ArrowSvgRay &r : arrow.rays) {
+                r.arrow_end_offset.x() += dx;
+                r.arrow_end_offset.y() += dy;
             }
-            ImGui::End();
-            ImGui::PopStyleColor(2);
-            ImGui::PopStyleVar(2);
-            draw_list->AddCircleFilled(arrow_start, handle_sz * 0.6f, IM_COL32(0, 200, 80, 150));
+        };
+
+        for (int ri = 0; ri < (int)arrow.rays.size(); ++ri) {
+            ArrowSvgRay &ray = arrow.rays[ri];
+            const ImVec2 &arrow_start = screen_data[ni][ri].start;
+
+            // Draggable handle for arrow start (transparent ImGui window)
+            if (arrow_selected) {
+                char start_win[64];
+                snprintf(start_win, sizeof(start_win), "##arrow_start_%d_%d", ni, ri);
+                float drag_sz = handle_sz * 2;
+                ImGui::SetNextWindowPos(ImVec2(arrow_start.x - handle_sz, arrow_start.y - handle_sz), ImGuiCond_Always);
+                ImGui::SetNextWindowSize(ImVec2(drag_sz, drag_sz));
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+                ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+                if (ImGui::Begin(start_win, nullptr, drag_flags)) {
+                    ImGui::PushID(ni * 128 + ri * 2);
+                    ImGui::InvisibleButton("##sd", ImVec2(drag_sz, drag_sz));
+                    if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
+                        set_cursor(AssemblyNoteCursorType::Move);
+                        note_cursor_requested = true;
+                    }
+                    if (ImGui::IsItemClicked(0))
+                        activate_note_edit_controls(AssemblyNoteSelectionType::ArrowSvg, ni);
+                    if (ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
+                        ImVec2 delta = ImGui::GetIO().MouseDelta;
+                        // Move only this ray's start; keep the shared SVG icon fixed.
+                        ray.arrow_start_offset.x() += delta.x;
+                        ray.arrow_start_offset.y() += delta.y;
+                        ray.arrow_end_offset.x()   -= delta.x;
+                        ray.arrow_end_offset.y()   -= delta.y;
+                        any_changed = true;
+                    }
+                    ImGui::PopID();
+                }
+                ImGui::End();
+                ImGui::PopStyleColor(2);
+                ImGui::PopStyleVar(2);
+                draw_list->AddCircleFilled(arrow_start, handle_sz * 0.6f, IM_COL32(0, 200, 80, 150));
+            }
         }
 
-        // Draggable for arrow end (icon area, transparent ImGui window)
+        // Shared icon drag / resize / close (once per note).
         {
             char end_win[64];
             snprintf(end_win, sizeof(end_win), "##arrow_end_%d", ni);
-            ImGui::SetNextWindowPos(ImVec2(arrow_end.x - icon_box_sz.x * 0.5f, arrow_end.y - icon_box_sz.y * 0.5f), ImGuiCond_Always);
+            ImGui::SetNextWindowPos(ImVec2(icon_center.x - icon_box_sz.x * 0.5f, icon_center.y - icon_box_sz.y * 0.5f), ImGuiCond_Always);
             ImGui::SetNextWindowSize(icon_box_sz);
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
             ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
             if (ImGui::Begin(end_win, nullptr, drag_flags)) {
-                ImGui::PushID(ni * 2 + 1);
+                ImGui::PushID(ni * 128 + 1);
                 ImGui::InvisibleButton("##ed", icon_box_sz);
                 if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
                     set_cursor(AssemblyNoteCursorType::Move);
@@ -1811,8 +2094,7 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
                     activate_note_edit_controls(AssemblyNoteSelectionType::ArrowSvg, ni);
                 if (arrow_selected && ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
                     ImVec2 delta = ImGui::GetIO().MouseDelta;
-                    arrow.arrow_end_offset.x() += delta.x;
-                    arrow.arrow_end_offset.y() += delta.y;
+                    apply_icon_delta(delta.x, delta.y);
                     any_changed = true;
                 }
                 ImGui::PopID();
@@ -1823,16 +2105,9 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
         }
 
         if (arrow_selected) {
-            ImVec2 box_min(arrow_end.x - icon_box_sz.x * 0.5f, arrow_end.y - icon_box_sz.y * 0.5f);
-            ImVec2 box_max(arrow_end.x + icon_box_sz.x * 0.5f, arrow_end.y + icon_box_sz.y * 0.5f);
+            ImVec2 box_min(icon_center.x - icon_box_sz.x * 0.5f, icon_center.y - icon_box_sz.y * 0.5f);
+            ImVec2 box_max(icon_center.x + icon_box_sz.x * 0.5f, icon_center.y + icon_box_sz.y * 0.5f);
 
-            // 4 corner resize handles in the same layout as TextLabelNote
-            // (corner index: 0=tl, 1=tr, 2=bl, 3=br). The icon stays centered
-            // on arrow_end, so dragging any corner shifts arrow_end_offset by
-            // half the mouse delta (the box center moves half of the corner
-            // movement when the opposite corner is anchored) while label_size
-            // changes by the full delta with per-axis sign:
-            //   tl: -dx, -dy   tr: +dx, -dy   bl: -dx, +dy   br: +dx, +dy
             auto drag_svg_resize_handle = [&](const char *id, const ImVec2 &handle_center, int corner) {
                 ImVec2 handle_min = draw_note_resize_handle(handle_center);
                 ImGui::SetNextWindowPos(handle_min, ImGuiCond_Always);
@@ -1850,8 +2125,7 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
                     }
                     if (ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
                         ImVec2 delta = ImGui::GetIO().MouseDelta;
-                        arrow.arrow_end_offset.x() += delta.x * 0.5;
-                        arrow.arrow_end_offset.y() += delta.y * 0.5;
+                        apply_icon_delta(delta.x * 0.5f, delta.y * 0.5f);
                         const float sx = (corner == 1 || corner == 3) ? 1.0f : -1.0f;
                         const float sy = (corner == 2 || corner == 3) ? 1.0f : -1.0f;
                         arrow.label_size.x() += sx * delta.x;
@@ -1874,9 +2148,6 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
             snprintf(resize_win_id, sizeof(resize_win_id), "##arrow_svg_resize_br_%d", ni);
             drag_svg_resize_handle(resize_win_id, box_max, 3);
 
-            // Close button sits OUTSIDE the tr resize handle (matches
-            // TextLabelNote's layout: tr-handle | gap | close-button) so it
-            // never overlaps with the newly-added tr handle.
             ImVec2 close_center(box_max.x + resize_sz + close_r + 2.0f * sc, box_min.y);
             char close_win_id[64];
             snprintf(close_win_id, sizeof(close_win_id), "##arrow_svg_close_win_%d", ni);
@@ -1900,8 +2171,17 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     static std::vector<float> s_text_label_wrap_widths;
     if (s_text_label_wrap_widths.size() < text_labels.size())
         s_text_label_wrap_widths.resize(text_labels.size(), 0.0f);
-    // Recomputed below from the selected label's InputText active state.
-    m_note_text_caret_active = false;
+    // Press state of the static label body: a click only enters edit when the label
+    // was already selected and the press did not turn into a move drag.
+    static int  s_text_body_press_idx      = -1;
+    static bool s_text_body_press_selected = false;
+    static bool s_text_body_dragged        = false;
+    // Keep last-frame caret so a label selected for moving stays non-editable; only
+    // an explicit focus request (or continuing an active edit) enables typing.
+    const bool prev_note_text_caret_active = m_note_text_edit.caret_active;
+    const int  prev_note_text_caret_idx =
+        (m_note_selected_type == AssemblyNoteSelectionType::TextLabel) ? m_note_selected_idx : -1;
+    m_note_text_edit.caret_active = false;
     for (int ni = 0; ni < (int)text_labels.size(); ++ni) {
         TextLabelNote &label = text_labels[ni];
         clamp_note_size(label.size, 80.0 * sc, 48.0 * sc);
@@ -1946,86 +2226,127 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
                 bool  move_cursor_to_end;
                 std::string (*wrap_fn)(const std::string &, float);
             };
-            const bool focus_request = (m_note_text_focus_request == ni);
-            // A normal focus request (entering edit mode) drops the caret at the end of
-            const bool focus_keep_cursor = focus_request && m_note_text_focus_keep_cursor;
-            TextWrapCB cb_data;
-            cb_data.cur_wrap_width     = wrap_width;
-            cb_data.move_cursor_to_end = focus_request && !focus_keep_cursor;
-            cb_data.wrap_fn            = wrap_text_to_width;
-            ImGuiInputTextCallback text_wrap_callback = [](ImGuiInputTextCallbackData *data) -> int {
-                TextWrapCB *cb = (TextWrapCB *)data->UserData;
-                std::string cur(data->Buf, data->BufTextLen);
-                std::string wrapped = cb->wrap_fn(cur, cb->cur_wrap_width);
-                if (wrapped != cur) {
-                    int visible_before = 0;
-                    for (int i = 0; i < data->CursorPos && i < (int)cur.size(); ++i)
-                        if (cur[i] != '\n')
-                            ++visible_before;
-                    data->DeleteChars(0, data->BufTextLen);
-                    data->InsertChars(0, wrapped.c_str());
-                    int new_pos = 0, seen = 0;
-                    while (new_pos < (int)wrapped.size() && seen < visible_before) {
-                        if (wrapped[new_pos] != '\n')
-                            ++seen;
-                        ++new_pos;
+            const bool focus_request = (m_note_text_edit.focus_request == ni);
+            // Caret mode is entered only through an explicit focus request. A merely
+            // selected label renders static text instead of an InputText: a ReadOnly
+            // InputText still grabs the active id on click and shows a text caret,
+            // which looked like edit mode.
+            const bool allow_text_edit = focus_request ||
+                (text_selected && prev_note_text_caret_active && prev_note_text_caret_idx == ni);
+            bool text_changed = false;
+            bool text_active  = false;
+            if (allow_text_edit) {
+                // A normal focus request (entering edit mode) drops the caret at the end of
+                const bool focus_keep_cursor = focus_request && m_note_text_edit.keep_cursor;
+                TextWrapCB cb_data;
+                cb_data.cur_wrap_width     = wrap_width;
+                cb_data.move_cursor_to_end = focus_request && !focus_keep_cursor;
+                cb_data.wrap_fn            = wrap_text_to_width;
+                ImGuiInputTextCallback text_wrap_callback = [](ImGuiInputTextCallbackData *data) -> int {
+                    TextWrapCB *cb = (TextWrapCB *)data->UserData;
+                    std::string cur(data->Buf, data->BufTextLen);
+                    std::string wrapped = cb->wrap_fn(cur, cb->cur_wrap_width);
+                    if (wrapped != cur) {
+                        int visible_before = 0;
+                        for (int i = 0; i < data->CursorPos && i < (int)cur.size(); ++i)
+                            if (cur[i] != '\n')
+                                ++visible_before;
+                        data->DeleteChars(0, data->BufTextLen);
+                        data->InsertChars(0, wrapped.c_str());
+                        int new_pos = 0, seen = 0;
+                        while (new_pos < (int)wrapped.size() && seen < visible_before) {
+                            if (wrapped[new_pos] != '\n')
+                                ++seen;
+                            ++new_pos;
+                        }
+                        data->CursorPos = data->SelectionStart = data->SelectionEnd = new_pos;
                     }
-                    data->CursorPos = data->SelectionStart = data->SelectionEnd = new_pos;
-                }
-                if (cb->move_cursor_to_end)
-                    data->CursorPos = data->SelectionStart = data->SelectionEnd = data->BufTextLen;
-                return 0;
-            };
+                    if (cb->move_cursor_to_end)
+                        data->CursorPos = data->SelectionStart = data->SelectionEnd = data->BufTextLen;
+                    return 0;
+                };
 
-            ImGuiInputTextFlags text_flags = ImGuiInputTextFlags_Multiline | ImGuiInputTextFlags_NoHorizontalScroll;
-            if (text_selected)
-                text_flags |= ImGuiInputTextFlags_CallbackAlways;
-            else
-                text_flags |= ImGuiInputTextFlags_ReadOnly;
+                // NoUndoRedo: Ctrl+Z/Y must leave caret mode and hit the assemble
+                // plater undo stack (see GLCanvas3D::on_char), not stb_textedit.
+                ImGuiInputTextFlags text_flags = ImGuiInputTextFlags_Multiline | ImGuiInputTextFlags_NoHorizontalScroll
+                    | ImGuiInputTextFlags_CallbackAlways | ImGuiInputTextFlags_NoUndoRedo;
 
-            // Only grab keyboard focus on the frame(s) where a focus request is pending (right after the activating click).
-            if (focus_request)
-                ImGui::SetKeyboardFocusHere();
-            bool text_changed = ImGui::InputTextMultiline("##label_text", &label.text, text_size, text_flags,
-                                                          text_selected ? text_wrap_callback : nullptr, &cb_data);
-            bool text_active = ImGui::IsItemActive();
-            // Remember caret mode for the selected label so the Delete shortcut can
-            // tell "typing in the label" apart from "label merely selected".
-            if (text_selected)
-                m_note_text_caret_active = text_active;
-            if (focus_request && (text_active || ImGui::IsItemFocused())) {
-                m_note_text_focus_request     = -1;
-                m_note_text_focus_keep_cursor = false;
-            }
-            // ImGui deactivates an active InputText whenever a mouse click happens while
-            // it is active. PowerPoint-like behavior: a click on the inner text area
-            if (text_selected && ImGui::IsItemDeactivated() && ImGui::IsMouseClicked(0)) {
-                const ImVec2 m = ImGui::GetIO().MousePos;
-                const float edge = 6.0f * sc;
-                const bool inside_inner = m.x >= pos.x + edge && m.x <= pos.x + size.x - edge &&
-                                          m.y >= pos.y + edge && m.y <= pos.y + size.y - edge;
-                if (inside_inner) {
-                    m_note_text_focus_request     = ni;
-                    m_note_text_focus_keep_cursor = true;
+                // Only grab keyboard focus on the frame(s) where a focus request is pending (right after the activating click).
+                if (focus_request)
+                    ImGui::SetKeyboardFocusHere();
+                text_changed = ImGui::InputTextMultiline("##label_text", &label.text, text_size, text_flags,
+                                                         text_wrap_callback, &cb_data);
+                text_active = ImGui::IsItemActive();
+                // Remember caret mode for the selected label so the Delete shortcut can
+                // tell "typing in the label" apart from "label merely selected".
+                if (text_selected)
+                    m_note_text_edit.caret_active = text_active;
+                if (focus_request && (text_active || ImGui::IsItemFocused()))
+                    m_note_text_edit.clear_focus_request();
+                // ImGui deactivates an active InputText on mouse click; re-enter caret
+                // when the click stays inside the text body.
+                if (text_selected && ImGui::IsItemDeactivated() && ImGui::IsMouseClicked(0)) {
+                    const ImVec2 m = ImGui::GetIO().MousePos;
+                    const float edge = 6.0f * sc;
+                    const bool inside_inner = m.x >= pos.x + edge && m.x <= pos.x + size.x - edge &&
+                                              m.y >= pos.y + edge && m.y <= pos.y + size.y - edge;
+                    if (inside_inner)
+                        m_note_text_edit.request_focus(ni, /*keep_caret=*/true);
                 }
-            }
-            if (ImGui::IsItemClicked(0)) {
-                if (!text_selected) {
-                    m_note_text_focus_request     = ni;
-                    m_note_text_focus_keep_cursor = false;
+            } else {
+                // Static (non-caret) body. Click interaction:
+                // 1) Unselected -> select only; the body acts as a move handle.
+                // 2) Already selected -> a further click (on release, without drag) enters edit.
+                // 3) Double-click always enters edit.
+                const ImVec2 body_pos = ImGui::GetCursorScreenPos();
+                ImGui::InvisibleButton("##label_body", text_size);
+                mark_imgui_note_click();
+                const bool body_hovered = ImGui::IsItemHovered();
+                if (body_hovered) {
+                    set_cursor(AssemblyNoteCursorType::Move);
+                    note_cursor_requested = true;
                 }
-                activate_note_edit_controls(AssemblyNoteSelectionType::TextLabel, ni);
-            }
-            // Re-enter caret mode: clicking the inner text area of an already-
-            if (text_selected && !text_active && ImGui::IsMouseClicked(0)) {
-                const ImVec2 m = ImGui::GetIO().MousePos;
-                const float edge = 6.0f * sc;
-                const bool inside_inner = m.x >= pos.x + edge && m.x <= pos.x + size.x - edge &&
-                                          m.y >= pos.y + edge && m.y <= pos.y + size.y - edge;
-                if (inside_inner) {
-                    m_note_text_focus_request     = ni;
-                    m_note_text_focus_keep_cursor = true;
+                if (ImGui::IsItemClicked(0)) {
+                    s_text_body_press_idx      = ni;
+                    s_text_body_press_selected = text_selected;
+                    s_text_body_dragged        = false;
+                    activate_note_edit_controls(AssemblyNoteSelectionType::TextLabel, ni);
                 }
+                if (ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
+                    const ImVec2 delta = ImGui::GetIO().MouseDelta;
+                    if (delta.x != 0.0f || delta.y != 0.0f) {
+                        label.pos_offset.x() += delta.x;
+                        label.pos_offset.y() += delta.y;
+                        any_changed = true;
+                    }
+                    s_text_body_dragged = true;
+                }
+                if (s_text_body_press_idx == ni && ImGui::IsMouseReleased(0)) {
+                    if (!s_text_body_dragged && s_text_body_press_selected && body_hovered) {
+                        // The InputText only exists from the next frame on, so ImGui
+                        // cannot map this click to a caret position: start at the end.
+                        m_note_text_edit.request_focus(ni, /*keep_caret=*/false);
+                    }
+                    s_text_body_press_idx = -1;
+                }
+                if (body_hovered && ImGui::IsMouseDoubleClicked(0)) {
+                    activate_note_edit_controls(AssemblyNoteSelectionType::TextLabel, ni);
+                    m_note_text_edit.request_focus(ni, /*keep_caret=*/false);
+                    s_text_body_press_idx = -1;
+                }
+
+                // Match the multiline InputText glyph origin: it nests a child frame
+                // whose window padding is FramePadding and then offsets the draw
+                // position by FramePadding again, so entering edit mode does not
+                // shift the text.
+                ImDrawList  *win_dl   = ImGui::GetWindowDrawList();
+                const ImVec2 pad      = ImGui::GetStyle().FramePadding;
+                const ImVec2 text_pos(body_pos.x + pad.x * 2.0f, body_pos.y + pad.y * 2.0f);
+                win_dl->PushClipRect(body_pos, ImVec2(body_pos.x + text_size.x, body_pos.y + text_size.y), true);
+                win_dl->AddText(ImGui::GetFont(), ImGui::GetFontSize(), text_pos,
+                                ImGui::ColorConvertFloat4ToU32(ImVec4(text_color[0], text_color[1], text_color[2], text_color[3])),
+                                label.text.c_str(), label.text.c_str() + label.text.size(), wrap_width);
+                win_dl->PopClipRect();
             }
             if (text_changed)
                 any_changed = true;
@@ -2204,6 +2525,15 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
         char win_id[64];
         snprintf(win_id, sizeof(win_id), "##circle_note_%d", ni);
 
+        // Outline-only hit: the bbox InvisibleButton would otherwise swallow clicks
+        // over the hollow interior and block overlapping text labels underneath.
+        // Keep inputs only on the stroke (or while this circle is mid-drag).
+        ImVec2 mouse_pos = ImGui::GetIO().MousePos;
+        bool on_circle_line = is_point_on_ellipse_outline(mouse_pos, center, radius, line_hit_tol);
+        ImGuiWindowFlags circle_flags = drag_flags;
+        if (!on_circle_line && s_circle_line_drag_idx != ni)
+            circle_flags |= ImGuiWindowFlags_NoInputs;
+
         // Moving uses the full circle bounds, while close/resize get their own
         // small overlay windows so they are not swallowed by the move hit area.
         ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
@@ -2212,11 +2542,9 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-        if (ImGui::Begin(win_id, nullptr, drag_flags)) {
+        if (ImGui::Begin(win_id, nullptr, circle_flags)) {
             ImGui::PushID(ni);
             ImGui::InvisibleButton("##circle_move", size);
-            ImVec2 mouse_pos = ImGui::GetIO().MousePos;
-            bool on_circle_line = is_point_on_ellipse_outline(mouse_pos, center, radius, line_hit_tol);
             if (ImGui::IsItemHovered() && on_circle_line) {
                 set_cursor(AssemblyNoteCursorType::Move);
                 note_cursor_requested = true;
@@ -2350,17 +2678,23 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
 
         char win_id[64];
         snprintf(win_id, sizeof(win_id), "##rect_note_%d", ni);
+        // Outline-only hit: pass through hollow interior so overlapping text
+        // labels remain selectable. Keep inputs while mid-drag.
+        ImVec2 mouse_pos = ImGui::GetIO().MousePos;
+        bool on_rect_line = is_point_on_rect_outline(mouse_pos, pos, max_pt, line_hit_tol);
+        ImGuiWindowFlags rect_flags = drag_flags;
+        if (!on_rect_line && s_rect_line_drag_idx != ni)
+            rect_flags |= ImGuiWindowFlags_NoInputs;
+
         ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
         ImGui::SetNextWindowSize(size, ImGuiCond_Always);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-        if (ImGui::Begin(win_id, nullptr, drag_flags)) {
+        if (ImGui::Begin(win_id, nullptr, rect_flags)) {
             ImGui::PushID(ni);
             ImGui::InvisibleButton("##rect_move", size);
-            ImVec2 mouse_pos = ImGui::GetIO().MousePos;
-            bool on_rect_line = is_point_on_rect_outline(mouse_pos, pos, max_pt, line_hit_tol);
             if (ImGui::IsItemHovered() && on_rect_line) {
                 set_cursor(AssemblyNoteCursorType::Move);
                 note_cursor_requested = true;
@@ -2496,6 +2830,13 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
                             std::max(line_body_start.y, line_body_end.y) + hit_tol);
             ImVec2 line_size(std::max(1.0f, line_max.x - line_min.x),
                              std::max(1.0f, line_max.y - line_min.y));
+            // Line AABB can be large for diagonal arrows; only capture input on
+            // the stroke itself so overlapping text labels stay clickable.
+            bool on_arrow_line = distance_to_segment(mouse_pos, line_body_start, line_body_end) <= hit_tol;
+            ImGuiWindowFlags line_flags = drag_flags;
+            if (!on_arrow_line && s_plain_arrow_line_drag_idx != ni)
+                line_flags |= ImGuiWindowFlags_NoInputs;
+
             char line_win_id[64];
             snprintf(line_win_id, sizeof(line_win_id), "##plain_arrow_line_%d", ni);
             ImGui::SetNextWindowPos(line_min, ImGuiCond_Always);
@@ -2504,9 +2845,8 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
             ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-            if (ImGui::Begin(line_win_id, nullptr, drag_flags)) {
+            if (ImGui::Begin(line_win_id, nullptr, line_flags)) {
                 ImGui::InvisibleButton("##plain_arrow_line_drag", line_size);
-                bool on_arrow_line = distance_to_segment(mouse_pos, line_body_start, line_body_end) <= hit_tol;
                 if (ImGui::IsItemHovered() && on_arrow_line) {
                     set_cursor(AssemblyNoteCursorType::Move);
                     note_cursor_requested = true;
@@ -2604,7 +2944,7 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     // move/resize handle item can still be the active ImGui item for a frame,
     // which would wrongly swallow the Delete key.
     const bool typing_in_selected_label =
-        m_note_selected_type == AssemblyNoteSelectionType::TextLabel && m_note_text_caret_active;
+        m_note_selected_type == AssemblyNoteSelectionType::TextLabel && m_note_text_edit.caret_active;
     if (is_note_edit_controls_visible() && m_note_selected_idx >= 0 &&
         !typing_in_selected_label && ImGui::IsKeyPressedMap(ImGuiKey_Delete, false)) {
         switch (m_note_selected_type) {
@@ -2714,10 +3054,11 @@ void AssemblyStepsUtils::render_assembly_structure_option_menu(
             if (const KeyFrameEntry *cur = get_selected_keyframe_entry())
                 m_margin_factor_camera_for_not_last_frame = (float) cur->data.camera_margin_factor;
         }
-
-        if (ImGui::MenuItem(_u8L("Set export file parameters").c_str()))
-            show_pdf_export_settings_dialog();
 #if !BBL_RELEASE_TO_PUBLIC
+        ImGui::MenuItem(_u8L("Show world axes").c_str(), nullptr, &m_force_show_world_axes);
+        ImGui::MenuItem(_u8L("Show explosion state column").c_str(), nullptr, &m_view_is_in_explosion_state);
+        ImGui::MenuItem(_u8L("Allow modify text note foreground").c_str(), nullptr, &m_allow_modify_text_note_foreground);
+        ImGui::MenuItem(_u8L("Allow modify text note background").c_str(), nullptr, &m_allow_modify_text_note_background);
         ImGui::Separator();
         {
             const float       margin_slider_w = 120.0f * sc;
@@ -2904,11 +3245,9 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
     const float panel_y        = 17.0f * sc;
     const float panel_w        = 384.0f * sc;       // 1.5x of original 256*sc
     const float panel_radius   = 4.0f * sc;
-    // Header height tracks the title + subtitle text instead of a fixed *sc
-    // value, which left a large empty gap under the subtitle on macOS (the imgui
-    // font is smaller relative to the Retina scale). Mirrors the draw positions:
-    // 6*sc top pad + title line + 4*sc gap + subtitle line + 8*sc bottom pad.
-    const float header_h       = 6.0f * sc + fs_title + 4.0f * sc + fs_small + 8.0f * sc;
+    // Header height tracks the title line (subtitle removed):
+    // 6*sc top pad + title line + 8*sc bottom pad.
+    const float header_h       = 6.0f * sc + fs_title + 8.0f * sc;
     const float side_pad       = 8.0f * sc;
     const float card_gap       = 12.0f * sc;
     const float card_pad       = 8.0f * sc;
@@ -2945,7 +3284,6 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
     // Colors -----------------------------------------------------------------
     const ImU32 col_white      = m_is_dark ? IM_COL32(55, 55, 59, 255) : IM_COL32(255, 255, 255, 255);
     const ImU32 col_header_top = m_is_dark ? IM_COL32(48, 48, 52, 255) : IM_COL32(0xF8, 0xF8, 0xF8, 255);
-    const ImU32 col_header_bot = m_is_dark ? IM_COL32(42, 42, 46, 255) : IM_COL32(0xF1, 0xF1, 0xF1, 255);
     const ImU32 col_text_dark  = m_is_dark ? IM_COL32(0xE0, 0xE0, 0xE0, 255) : IM_COL32(0x26, 0x2E, 0x30, 255);
     const ImU32 col_text_mid   = m_is_dark ? IM_COL32(0xA0, 0xA0, 0xA0, 255) : IM_COL32(0x6B, 0x6B, 0x6B, 255);
     const ImU32 col_text_light = m_is_dark ? IM_COL32(0x80, 0x80, 0x80, 255) : IM_COL32(0xAC, 0xAC, 0xAC, 255);
@@ -2962,8 +3300,6 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
 
     // Footer hint shown when no step card is selected: editing object pose
     std::string footer_hint_str;
-    if (!has_selected_node())
-        footer_hint_str = _u8L("Tip") + ":" + _u8L("No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view.");
     const float footer_hint_wrap = panel_w - 2.0f * side_pad;
     const ImVec2 footer_hint_size = footer_hint_str.empty()
         ? ImVec2(0.0f, 0.0f)
@@ -2978,13 +3314,19 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
     for (const auto &c : data.cards)
         cards_total += card_h_of(c) + card_gap;
     const float scroll_content_h = card_gap + cards_total;
-    // Overall panel budget mirrors the guide panel: keep clear of the 3D
-    // navigator (rect published by _render_3d_navigator, 0 when hidden) and leave
-    // a 50px gap. The card scroll region gets whatever is left after the fixed
-    // chrome (header + action row + footer hint), instead of an arbitrary
-    // half-canvas cap, so the panel fills the available height.
+    // Overall panel budget: keep clear of the 3D navigator (rect published by
+    // _render_3d_navigator, 0 when hidden) AND of the bottom play bar. Relying
+    // on nav_h alone is unsafe: on the pause frame the navigator may still
+    // report 0 (it renders after assembly UI), which previously let the panel
+    // grow over the play/pause control (reproduced on macOS 26).
+    // Subtract panel_y so panel_y + overall_max_h stays above the reserved bottom.
     const float nav_h = std::max(0.0f, m_overlay_rect_navigator_max.y - m_overlay_rect_navigator_min.y);
-    const float overall_max_h = std::max(header_h, canvas_h - nav_h - 50.0f * sc);
+    const float nav_reserve = nav_h + 50.0f * sc;
+    const float play_bar_clearance = (has_selected_step_node() ? 30.0f : 95.0f) * sc;
+    const float play_bar_h_reserve = 64.0f * sc;
+    const float play_bar_reserve = play_bar_clearance + play_bar_h_reserve + 8.0f * sc;
+    const float bottom_reserve = std::max(nav_reserve, play_bar_reserve);
+    const float overall_max_h = std::max(header_h, canvas_h - panel_y - bottom_reserve);
     const float non_scroll_h  = header_h + action_h + bottom_pad + card_gap + footer_hint_extra_h;
     const float max_scroll_region_h = std::max(0.0f, overall_max_h - non_scroll_h);
     const float scroll_region_h_target = std::min(scroll_content_h, max_scroll_region_h);
@@ -2997,7 +3339,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
     imgui.set_next_window_pos(panel_x, panel_y, ImGuiCond_Always);
     imgui.set_next_window_size(panel_w, panel_h, ImGuiCond_Always);
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, panel_radius);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
 
@@ -3023,8 +3365,9 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
     // ---- Header ----------------------------------------------------------
     const ImVec2 hd_min = win_min;
     const ImVec2 hd_max = ImVec2(win_max.x, win_min.y + header_h);
-    dl->AddRectFilledMultiColor(hd_min, hd_max, col_header_top, col_header_top,
-                                 col_header_bot, col_header_bot);
+    dl->AddRectFilled(hd_min, hd_max, col_header_top, panel_radius,
+                      m_structure_panel_collapsed ? ImDrawFlags_RoundCornersAll
+                                                   : ImDrawFlags_RoundCornersTop);
 
     // Left icon: collapse / expand toggle (vertically centered on title line).
     const float title_line_cy = win_min.y + 6.f * sc + fs_title * 0.5f;
@@ -3032,8 +3375,8 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         const ImVec2 toggle_min(win_min.x + 8.f * sc,
                                 title_line_cy - icon_sz_hdr * 0.5f);
         const ImVec2 toggle_max(toggle_min.x + icon_sz_hdr, toggle_min.y + icon_sz_hdr);
-        ImTextureID toggle_icon = m_structure_panel_collapsed ? m_panel_expand_icon
-                                                              : m_panel_collapse_icon;
+        ImTextureID toggle_icon = m_structure_panel_collapsed ? s_assembly_tree_icons.expand_external
+                                                              : s_assembly_tree_icons.collapse_external;
         if (toggle_icon)
             dl->AddImage(toggle_icon, toggle_min, toggle_max);
         ImGui::SetCursorScreenPos(toggle_min);
@@ -3048,9 +3391,17 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         ImGui::PopID();
     }
 
+    // Header right icons: pack from the right edge so hidden icons leave no gap.
+#if !BBL_RELEASE_TO_PUBLIC
+    const bool show_structure_option_icon = true;
+#else
+    const bool show_structure_option_icon = false;
+#endif
+    const float hdr_icon_gap = 8.f * sc;
+    float hdr_right_x = win_max.x - 8.f * sc;
     // Far-right icon: option (tree_option.svg).
-    {
-        const ImVec2 opt_min(win_max.x - 8.f * sc - icon_sz_hdr,
+    if (show_structure_option_icon) {
+        const ImVec2 opt_min(hdr_right_x - icon_sz_hdr,
                              title_line_cy - icon_sz_hdr * 0.5f);
         const ImVec2 opt_max(opt_min.x + icon_sz_hdr, opt_min.y + icon_sz_hdr);
         ImTextureID option_icon = (m_is_dark && m_structure_option_icon_dark) ?
@@ -3068,14 +3419,39 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         }
         render_assembly_structure_option_menu(imgui, sc, m_is_dark);
         ImGui::PopID();
+        hdr_right_x = opt_min.x - hdr_icon_gap;
     }
-
-    // Title + help icon (view_help.svg right after title text) + subtitle.
+    // Delete all step (tree_delete_all.svg), immediately left of Options (or at
+    // the far-right slot when Options is hidden). Match the per-step copy /
+    // inherit action icon size (step_icon_sz = 20*sc) rather than the smaller
+    // header chrome icons (toggle / help at icon_sz_hdr = 16*sc).
+    {
+        const float del_icon_sz = 20.0f * sc;
+        const ImVec2 del_min(hdr_right_x - del_icon_sz,
+                             title_line_cy - del_icon_sz * 0.5f);
+        const ImVec2 del_max(del_min.x + del_icon_sz, del_min.y + del_icon_sz);
+        ImTextureID delete_icon = (m_is_dark && m_structure_step_delete_all_icon_dark) ?
+            m_structure_step_delete_all_icon_dark : m_structure_step_delete_all_icon;
+        const bool can_delete_step = !has_only_overall_preview_step_card();
+        m_imgui->disabled_begin(!can_delete_step);
+        if (delete_icon)
+            dl->AddImage(delete_icon, del_min, del_max);
+        ImGui::SetCursorScreenPos(del_min);
+        ImGui::PushID("##asp_header_delete");
+        ImGui::InvisibleButton("##d", ImVec2(del_icon_sz, del_icon_sz));
+        if (ImGui::IsItemClicked(0) && can_delete_step)
+            clear_all_assembly_steps();
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+            dl->AddRectFilled(del_min, del_max, IM_COL32(38, 46, 48, 18), 3.0f * sc);
+            render_panel_tooltip(can_delete_step ? _u8L("Delete all assembly steps") : _u8L("There’s no step to delete"));
+        }
+        ImGui::PopID();
+        m_imgui->disabled_end();
+    }
+    // Title + help icon (view_help.svg right after title text).
     {
         const float title_left = win_min.x + 8.f * sc + icon_sz_hdr + 6.f * sc;
         const float title_y    = win_min.y + 6.f * sc;
-        const float title_right = win_max.x - 8.f * sc - icon_sz_hdr - 6.f * sc;
-        const float title_max_w = title_right - title_left;
 
         dl->AddText(font, fs_title,
                     ImVec2(title_left, title_y),
@@ -3102,48 +3478,59 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
             }
             ImGui::PopID();
         }
-
-        // Subtitle: starts at the same x as the collapse icon (left-aligned to panel edge).
-        const float sub_left = win_min.x + 8.f * sc;
-        const float sub_y    = title_y + fs_title + 4.f * sc;
-        const float sub_max_w = panel_w - 16.f * sc;
-        const float sub_full_w = text_w_fn(fs_small, data.subtitle);
-        if (sub_full_w <= sub_max_w) {
-            dl->AddText(font, fs_small,
-                        ImVec2(sub_left, sub_y),
-                        col_text_mid, data.subtitle.c_str());
-        } else {
-            std::string clipped = data.subtitle;
-            while (!clipped.empty()) {
-                std::string trial = clipped + "...";
-                if (text_w_fn(fs_small, trial) <= sub_max_w)
-                    break;
-                size_t i = clipped.size();
-                while (i > 0 && (static_cast<unsigned char>(clipped[i - 1]) & 0xC0) == 0x80)
-                    --i;
-                if (i > 0) --i;
-                clipped.resize(i);
-            }
-            const std::string display_sub = clipped + "...";
-            dl->AddText(font, fs_small,
-                        ImVec2(sub_left, sub_y),
-                        col_text_mid, display_sub.c_str());
-            const ImVec2 sub_min_pos(sub_left, sub_y);
-            ImGui::SetCursorScreenPos(sub_min_pos);
-            ImGui::PushID("##asp_subtitle");
-            ImGui::InvisibleButton("##sub", ImVec2(sub_max_w, fs_small + 4.f * sc));
-            if (ImGui::IsItemHovered())
-                ImGui::SetTooltip("%s", data.subtitle.c_str());
-            ImGui::PopID();
-        }
     }
+
+    // Right-side read-only Assembly list. Independent of the Structure panel
+    // expand/collapse: collapsing Structure must not hide this list (Overall
+    // Preview / no step selected). Kept as a lambda so the collapsed early-out
+    // and the expanded path share one call site.
+    auto render_standalone_assembly_list = [&]() {
+        if (has_selected_node() || is_render_assembly_tree_ui_open())
+            return;
+        // Base content width (Object-name column). Label/Assemble columns are
+        // added inside render_assembly_tree_ui — compute the final window width
+        // first, then right-align so the panel stays fully on-canvas.
+        const float list_base_w = 310.0f * sc;
+        const bool  list_show_label     = false; // show_checkbox == false
+        const bool  list_show_explosion = false;
+        const bool  list_show_assembly  = true;  // matches render_assembly_tree_ui
+        const float list_w = calc_assembly_tree_window_w(list_base_w, sc, list_show_label, list_show_explosion, list_show_assembly);
+        const float list_x = canvas_w - list_w - 12.0f * sc;
+        // The Export button is drawn to the left of the list and top-aligned with it,
+        // where it can land on the gizmo toolbar. Drop both below the toolbar.
+        const float list_y = panel_y + calc_export_button_toolbar_offset(list_x, panel_y, sc);
+        // Keep clear of whatever bottom overlay actually sits under this column, plus the
+        // assembly-info notification: it pops up in the bottom-right corner right under
+        // this list. It renders after the panels so it stays readable on top, but leave
+        // room so the two do not visually collide. NotificationManager publishes no rect,
+        // so this is a fixed budget sized for the usual two-line notification.
+        const float notification_reserve = 50.0f * sc;
+        const float list_h = std::max(180.0f * sc,
+            calc_canvas_panel_bottom_limit(canvas_h, sc, list_x, list_x + list_w) - list_y - notification_reserve);
+        render_assembly_tree_ui(list_x, list_y, list_base_w, list_h, sc, /*show_checkbox*/ false);
+        // Nothing to export as long as the Overall Preview card is the only one:
+        // the export needs at least one Normal / FinalAssembly step. Keep the
+        // Export button beside the tree so its disabled state and guidance remain
+        // visible. The tree is right-aligned using its final width above; passing
+        // list_x positions the button immediately to its left.
+        render_assembly_guide_export_button(list_x, list_y, sc,
+                                            /*disabled=*/has_only_overall_preview_step_card(),
+                                            /*use_corner_mode=*/false);
+    };
 
     // When collapsed, only the header is visible.
     if (m_structure_panel_collapsed) {
+        // Prefer the live ImGui window bounds so play-bar clearance stays correct
+        // if DPI / style scaling ever expands the window past panel_w.
+        const ImVec2 wp = ImGui::GetWindowPos();
+        const ImVec2 ws = ImGui::GetWindowSize();
+        m_assembly_structure_right_x = std::max(panel_x + panel_w, wp.x + ws.x);
+        m_panel_rect_structure_min = wp;
+        m_panel_rect_structure_max = ImVec2(wp.x + ws.x, wp.y + ws.y);
         imgui.end();
         ImGui::PopStyleVar(3);
         ImGui::PopStyleColor(1);
-        m_assembly_structure_right_x = panel_x + panel_w;
+        render_standalone_assembly_list();
         return;
     }
 
@@ -3206,7 +3593,10 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         const ImVec2 card_max(card_x + card_w, card_screen_y + card_h);
         bool suppress_card_click = false;
 
-        cdl->AddRectFilled(card_min, card_max, c.is_final_assembly ? col_card_bg : col_white, card_radius);
+        // Only OverallPreview uses the gray card fill; FinalAssembly / Normal stay white.
+        cdl->AddRectFilled(card_min, card_max,
+                           c.is_final_assembly == AssemblyStepKind::OverallPreview ? col_card_bg : col_white,
+                           card_radius);
         cdl->AddRect(card_min, card_max, c.selected ? col_brand : col_card_border, card_radius, 0, 1.0f);
 
         // Tag pill.
@@ -3221,17 +3611,73 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                     ImVec2(tag_min.x + tag_h_pad, tag_min.y + (tag_h - fs_small) * 0.5f),
                     tag_txt, c.tag_text.c_str());
 
+        // Inheritance marker: drawn to the right of the tag pill on the inheriting
+        // (child) step; hovering shows the parent step it inherited from (resolved
+        // live so it stays correct after steps are reordered).
+        if (c.is_final_assembly == AssemblyStepKind::Normal && c.node_idx >= 0 &&
+            m_structure_step_inheritance_icon) {
+            const int parent_step_num = inherited_parent_step_number(c.node_idx);
+            if (parent_step_num > 0) {
+                const float  inh_sz = 16.0f * sc;
+                const ImVec2 inh_min(tag_max.x + 6.0f * sc, tag_min.y + (tag_h - inh_sz) * 0.5f);
+                const ImVec2 inh_max(inh_min.x + inh_sz, inh_min.y + inh_sz);
+                cdl->AddImage(m_structure_step_inheritance_icon, inh_min, inh_max);
+                ImGui::SetCursorScreenPos(inh_min);
+                ImGui::InvisibleButton((std::string("##asp_step_inh_") + std::to_string(ci)).c_str(),
+                                       ImVec2(inh_sz, inh_sz));
+                if (ImGui::IsItemHovered()) {
+                    suppress_card_click = true;
+                    // parent_step_num is resolved live from inherited_from_step_id, so
+                    // dragging/reordering the parent still yields the correct Step N.
+                    render_panel_tooltip(
+                        _u8L("Inherit the state of Step") +" "+ std::to_string(parent_step_num) + "\n"
+                            + _u8L("Assembled parts are not exploded"));
+                }
+            }
+        }
+
         // Step action icons (top-right): copy / delete / add-objects. Replaces the
         // former single "..." option menu (figma 4090:10976).
-        const float step_icon_sz  = 16.0f * sc;
+        // FinalAssembly (kind == 1): same three icons; copy clones into a Normal step.
+        // OverallPreview: no action icons / no merge checkbox.
+        // Merge mode: replace action icons with a selection checkbox (except OverallPreview).
+        const bool is_overall_preview_card =
+            c.is_final_assembly == AssemblyStepKind::OverallPreview;
+        const bool is_final_assembly_card =
+            c.is_final_assembly == AssemblyStepKind::FinalAssembly;
+        const bool show_merge_checkbox = m_structure_merge_mode && !is_overall_preview_card && c.node_idx >= 0;
+        const bool show_step_action_icons = !m_structure_merge_mode &&
+            (c.show_add_button || is_final_assembly_card);
+        const float step_icon_sz  = 20.0f * sc;//16.0f * sc;
         const float step_icon_gap = 8.0f * sc;
-        const float step_icons_w  = 3.0f * step_icon_sz + 2.0f * step_icon_gap;
-        if (c.show_add_button) {
+        const float merge_cb_sz   = 20.0f * sc;
+        const int   step_icon_count = show_step_action_icons ? 3 : 0;
+        const float step_icons_w = show_merge_checkbox ? merge_cb_sz :
+            (step_icon_count > 0
+                ? (float) step_icon_count * step_icon_sz + (float) (step_icon_count - 1) * step_icon_gap
+                : 0.0f);
+        if (show_merge_checkbox) {
+            const float icon_cy = tag_min.y + (tag_h - merge_cb_sz) * 0.5f;
+            const float cb_x = card_max.x - card_pad - merge_cb_sz;
+            bool checked = m_structure_merge_checked.count(c.node_idx) > 0;
+            if (render_checkbox(cdl, cb_x, icon_cy, merge_cb_sz, &checked,
+                                (std::string("##asp_merge_cb_") + std::to_string(ci)).c_str(), sc)) {
+                suppress_card_click = true;
+                if (checked)
+                    m_structure_merge_checked.insert(c.node_idx);
+                else
+                    m_structure_merge_checked.erase(c.node_idx);
+            } else if (ImGui::IsItemHovered()) {
+                suppress_card_click = true;
+            }
+        } else if (show_step_action_icons) {
             const float icon_cy = tag_min.y + (tag_h - step_icon_sz) * 0.5f;
-            // Right-aligned, left->right order: copy, delete, object-tree.
+            // Right-aligned: [copy?] delete object-tree.
             const float obj_x = card_max.x - card_pad - step_icon_sz;
             const float del_x = obj_x - step_icon_gap - step_icon_sz;
             const float cpy_x = del_x - step_icon_gap - step_icon_sz;
+            // Popup sits just right of the object-tree icon, top-aligned with it.
+            const ImVec2 obj_tree_anchor(obj_x + step_icon_sz + 8.0f * sc, icon_cy);
 
             auto pick_step_icon = [&](ImTextureID light, ImTextureID dark) -> ImTextureID {
                 return (m_is_dark && dark) ? dark : light;
@@ -3245,7 +3691,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                 ImGui::SetCursorScreenPos(mn);
                 const std::string id = std::string("##asp_step_") + id_suffix + std::to_string(ci);
                 ImGui::InvisibleButton(id.c_str(), ImVec2(step_icon_sz, step_icon_sz));
-                if (ImGui::IsItemHovered()) {
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
                     suppress_card_click = true;
                     render_panel_tooltip(tip);
                 }
@@ -3255,27 +3701,43 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                 return clicked && c.node_idx >= 0;
             };
 
-            const bool step_actions_enabled = c.selected && c.node_idx >= 0;
-            m_imgui->disabled_begin(!step_actions_enabled);
+            // Click selects this step first (same idea as the empty-card placeholder
+            // operating on "the current step"), then runs the action so the button
+            // always targets the card it sits on — even when that card was not selected.
+            // Empty steps have nothing to inherit; keep the icon visible but disabled.
+            const bool copy_enabled = !is_empty_structure_step(c.node_idx);
+            m_imgui->disabled_begin(!copy_enabled);
             if (step_icon_button(cpy_x, pick_step_icon(m_structure_step_copy_icon, m_structure_step_copy_icon_dark),
-                                 "copy_", _u8L("Copy current step"))) {
+                                 "copy_",
+                                 copy_enabled ? _u8L("Copy and inherit this step")
+                                              : _u8L("Add objects to this step before copying"))) {
                 select_steps_tree_node_for_canvas(c.node_idx);
-                copy_assembly_step();
+                inherit_assembly_step();
             }
+            m_imgui->disabled_end();
             if (step_icon_button(del_x, pick_step_icon(m_structure_step_delete_icon, m_structure_step_delete_icon_dark),
                                  "delete_", _u8L("Delete current step"))) {
+                select_steps_tree_node_for_canvas(c.node_idx);
                 delete_structure_step(c.node_idx);
             }
             if (step_icon_button(obj_x, pick_step_icon(m_structure_step_object_tree_icon, m_structure_step_object_tree_icon_dark),
                                  "objtree_", _u8L("Add some objects to current step"))) {
-                open_structure_add_tree(static_cast<int>(ci), c.node_idx,
-                                        ImVec2(obj_x + step_icon_sz + 8.0f * sc, icon_cy));
+                select_steps_tree_node_for_canvas(c.node_idx);
+                open_structure_add_tree(static_cast<int>(ci), c.node_idx, obj_tree_anchor);
             }
-            m_imgui->disabled_end();
-            // Deferred auto-open requested right after this step was created.
+            // Deferred auto-open after Add Step: open once the card's live icon
+            // rect is known. Keep re-anchoring while open so scroll-to-node /
+            // content reflow cannot leave the popup stuck at a stale Y (e.g.
+            // still aligned with Step 1 after the new Step 2 card moves).
+            if (c.node_idx >= 0 &&
+                (c.node_idx == m_structure_add_tree_pending_node ||
+                 c.node_idx == m_structure_add_tree_step_node)) {
+                m_structure_add_tree_pos = obj_tree_anchor;
+                if (c.node_idx == m_structure_add_tree_step_node)
+                    m_structure_add_tree_card = static_cast<int>(ci);
+            }
             if (c.node_idx >= 0 && c.node_idx == m_structure_add_tree_pending_node) {
-                open_structure_add_tree(static_cast<int>(ci), c.node_idx,
-                                        ImVec2(obj_x + step_icon_sz + 8.0f * sc, icon_cy));
+                open_structure_add_tree(static_cast<int>(ci), c.node_idx, obj_tree_anchor);
                 m_structure_add_tree_pending_node = -1;
             }
         }
@@ -3284,7 +3746,8 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         // Holding the left button here and moving past a small threshold starts
         // a drag that reorders the non-final step cards. A plain click (no drag)
         // keeps the previous behavior of selecting the step.
-        const bool is_reorderable_card = c.show_add_button && !c.is_final_assembly && c.node_idx >= 0;
+        const bool is_reorderable_card = !m_structure_merge_mode && c.show_add_button &&
+            c.is_final_assembly == AssemblyStepKind::Normal && c.node_idx >= 0;
         if (is_reorderable_card) {
             step_geoms.push_back({c.node_idx, card_screen_y, card_screen_y + card_h});
 
@@ -3363,8 +3826,8 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
             const bool clicked_outside = ImGui::IsMouseClicked(0) &&
                 !ImGui::IsMouseHoveringRect(edit_min, edit_max, true);
             if (confirmed || lost_focus || clicked_outside) {
-                if (m_structure_step_rename_node >= 0 && m_structure_step_rename_node < (int) _steps_nodes.size() &&
-                    m_structure_step_rename_buf[0] != '\0') {
+                if (m_structure_step_rename_node >= 0 && m_structure_step_rename_node < (int) _steps_nodes.size() && m_structure_step_rename_buf[0] != '\0' &&
+                        _steps_nodes[m_structure_step_rename_node].name != m_structure_step_rename_buf) {
                     _steps_nodes[m_structure_step_rename_node].name = m_structure_step_rename_buf;
                     save_assembly_steps_json_to_model();
                     do_commond_callback("dirty");
@@ -3397,6 +3860,10 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
             if (c.node_idx >= 0) {
                 // Hover hot-zone spans the full title row width; on hover, show a
                 // rounded grey "editable" border (figma 4092:11532).
+                // OverallPreview is not renamable: title click must match card-body
+                // behavior (exit editing), not select_steps_tree_node_for_canvas.
+                const bool is_overall_preview_card =
+                    c.is_final_assembly == AssemblyStepKind::OverallPreview;
                 const ImVec2 title_hit_min(card_x + card_pad, title_y - 3.0f * sc);
                 const float  title_hit_w = std::max(1.0f, title_control_start_x - (card_x + card_pad));
                 const ImVec2 title_hit_size(title_hit_w, title_fs + 6.0f * sc);
@@ -3405,20 +3872,26 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                 const bool title_hovered = ImGui::IsItemHovered();
                 if (title_hovered) {
                     suppress_card_click = true;
-                    cdl->AddRect(title_hit_min,
-                                 ImVec2(title_hit_min.x + title_hit_size.x, title_hit_min.y + title_hit_size.y),
-                                 col_card_border, 2.0f * sc, 0, 1.0f);
+                    if (!is_overall_preview_card)
+                        cdl->AddRect(title_hit_min,
+                                     ImVec2(title_hit_min.x + title_hit_size.x, title_hit_min.y + title_hit_size.y),
+                                     col_card_border, 2.0f * sc, 0, 1.0f);
                     if (display_title != c.title)
                         render_panel_tooltip(c.title);
                 }
                 const bool title_clicked = ImGui::IsItemClicked(0);
-                const bool title_double_clicked = title_hovered && ImGui::IsMouseDoubleClicked(0);
-                if (!c.selected && title_clicked) {
-                    select_steps_tree_node_for_canvas(c.node_idx);
-                    suppress_card_click = true;
-                } else if (c.selected && (title_clicked || title_double_clicked)) {
-                    begin_structure_step_rename(c.node_idx, c.title);
-                    suppress_card_click = true;
+                //const bool title_double_clicked = title_hovered && ImGui::IsMouseDoubleClicked(0);
+                if (title_clicked) {
+                    if (is_overall_preview_card) {
+                        exit_assembly_steps_editing();
+                        suppress_card_click = true;
+                    } else if (!c.selected) {
+                        select_steps_tree_node_for_canvas(c.node_idx);
+                        suppress_card_click = true;
+                    } else if (c.selected) {
+                        begin_structure_step_rename(c.node_idx, c.title);
+                        suppress_card_click = true;
+                    }
                 }
             }
         }
@@ -3571,7 +4044,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                                (ph_min.y + ph_max.y - fs_chip) * 0.5f),
                         col_text_light, c.placeholder_text.c_str());
 
-            if (c.selected && c.node_idx >= 0) {
+            if (c.node_idx >= 0) {
                 ImGui::SetCursorScreenPos(ph_min);
                 const std::string ph_id = std::string("##asp_placeholder_add_") + std::to_string(ci);
                 ImGui::InvisibleButton(ph_id.c_str(), ImVec2(ph_max.x - ph_min.x, ph_max.y - ph_min.y));
@@ -3580,6 +4053,8 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                     render_panel_tooltip(_u8L("Add object to current step"));
                 }*/
                 if (ImGui::IsItemClicked()) {
+                    // Select this step first so "current step" matches the card clicked.
+                    select_steps_tree_node_for_canvas(c.node_idx);
                     open_structure_add_tree(static_cast<int>(ci), c.node_idx, ImVec2(ph_max.x + 8.0f * sc, ph_min.y));
                     suppress_card_click = true;
                 }
@@ -3589,12 +4064,15 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
 
         if (!suppress_card_click &&
             ImGui::IsMouseHoveringRect(card_min, card_max, true) && ImGui::IsMouseClicked(0)) {
-            int click_node = c.node_idx;
-            if (click_node < 0 && c.tag_style == AssemblyStructureCard::TagStyle::Default) {
-                click_node = ensure_final_assembly_folder();
-            }
-            if (click_node >= 0) {
-                select_steps_tree_node_for_canvas(click_node);
+            // Overall preview equals the previous exit-button behavior.
+            if (c.is_final_assembly == AssemblyStepKind::OverallPreview) {
+                if (c.node_idx < 0)
+                    ensure_overall_preview_folder();
+                exit_assembly_steps_editing();
+            } else {
+                int click_node = c.node_idx;
+                if (click_node >= 0)
+                    select_steps_tree_node_for_canvas(click_node);
             }
         }
 
@@ -3651,132 +4129,197 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         const float tree_w = 310.0f * sc;
         // Height is auto-fit to the content inside render_assembly_tree_ui; pass the
         // remaining on-screen height as the upper clamp so it never runs off canvas.
-        const float tree_h_avail = std::max(180.0f * sc, canvas_h - m_structure_add_tree_pos.y - 12.0f * sc);
-        const float tree_x = panel_x + panel_w + 10.0f * sc;
-        render_assembly_tree_ui(tree_x, m_structure_add_tree_pos.y, tree_w, tree_h_avail, sc);
+        // Clamp against the bottom overlays rather than the raw canvas height: a step
+        // with many items grows the tree until it covers the play bar, which happens
+        // on macOS well before Windows because the larger font inflates both the tree
+        // rows and the play bar itself. Pass the widest possible window so the overlap
+        // test errs towards reserving.
+        const float tree_x     = panel_x + panel_w + 10.0f * sc;
+        const float tree_max_w = calc_assembly_tree_window_w(tree_w, sc, true, true, true);
+        // The anchor icon scrolls with its card, so it leaves the visible card region once
+        // the list is scrolled far enough. Following it there would drag the popup over the
+        // panel header (or off the canvas) while the step it belongs to is not even on
+        // screen, so pin the anchor to the region and let the side arrow park at the
+        // matching window edge instead.
+        const float anchor_icon_sz = 20.0f * sc; // step_icon_sz in the card layout
+        const float anchor_min_y   = scroll_region_y;
+        const float anchor_max_y   = std::max(anchor_min_y, scroll_region_y + scroll_region_h - anchor_icon_sz);
+        const float anchor_y       = std::clamp(m_structure_add_tree_pos.y, anchor_min_y, anchor_max_y);
+        m_structure_add_tree_anchor_clipped = m_structure_add_tree_pos.y < anchor_min_y - 0.5f ||
+                                              m_structure_add_tree_pos.y > anchor_max_y + 0.5f;
+        // Pass the raw icon-to-bottom slot. render_assembly_tree_ui keeps the
+        // default top-align with the object-tree icon, and only lifts the window
+        // (min of 500*sc and 2/3 canvas height + side arrow) when that slot is too short.
+        const float tree_h_avail =
+            calc_canvas_panel_bottom_limit(canvas_h, sc, tree_x, tree_x + tree_max_w) - anchor_y;
+        render_assembly_tree_ui(tree_x, anchor_y, tree_w, tree_h_avail, sc);
     }
 
     // ---- Action buttons --------------------------------------------------
     {
         const float btn_w   = 86.0f * sc;
-        const float btn_gap = 12.0f * sc;
         const float btn_pad_x = 14.0f * sc;
-        // Exit icon sizing (Figma node 732:22424: 8px gap before a 20px icon).
-        // Declared here so the icon is part of the centered group width below.
+        // Exit / merge icon sizing (Figma node 732:22424: 8px gap before a 20px icon).
         const float exit_sz  = 24.0f * sc;
         const float exit_gap = 8.0f * sc;
-        const float copy_w = std::max(btn_w, ImGui::CalcTextSize(_u8L("Copy Step").c_str()).x + 2.0f * btn_pad_x);
-        const float add_w  = std::max(btn_w, ImGui::CalcTextSize(_u8L("Add Step").c_str()).x + 2.0f * btn_pad_x);
-        const float total_w = copy_w + btn_gap + add_w;
-        bool has_non_final_steps = false;
-        for (int root_idx : _steps_roots) {
-            if (root_idx >= 0 && root_idx < (int)_steps_nodes.size() &&
-                _steps_nodes[root_idx].type == AssemblyStepsTreeNode::Type::Folder &&
-                !_steps_nodes[root_idx].is_final_assembly) {
-                has_non_final_steps = true;
-                break;
-            }
-        }
-        // Center the whole group (Copy + Add buttons + clear-all + exit icons) within the
-        // panel window width (panel_w), matching the Figma layout where the row
-        // is centered as a single flex container.
-        const float clear_all_slot_w = has_non_final_steps ? (exit_gap + exit_sz) : 0.0f;
-        const float group_w = total_w + clear_all_slot_w + exit_gap + exit_sz;
-        const float bx0     = win_min.x + (panel_w - group_w) * 0.5f;
         // Anchor the button row to the bottom of the scrollable card region
         const float by      = scroll_region_y + scroll_region_h + card_gap;
-        const ImVec2 copy_btn_size(copy_w, action_h);
-        const ImVec2 add_btn_size(add_w, action_h);
-        const int selected_folder = find_parent_folder(m_selected_node);
-        const bool selected_final_assembly = selected_folder >= 0 && selected_folder < (int) _steps_nodes.size() && _steps_nodes[selected_folder].is_final_assembly;
-        // can_add_non_final_assembly_step() also caches the limit state into
-        // m_non_final_assembly_step_limit_reached, which the tooltips read below.
-        const bool reached_step_limit = !can_add_non_final_assembly_step();
-        const bool copy_disabled = selected_folder < 0 || selected_final_assembly || reached_step_limit;
-        const bool add_disabled  = reached_step_limit;
-        // Extra warning appended when the step cap is hit. The cap counts non-final
-        // steps (MAX) plus the single final-assembly step, hence MAX + 1 total.
-        const std::string step_over_limit_tip = (boost::format(_u8L("No more than %1% steps are allowed.")) % (MAX_NON_FINAL_ASSEMBLY_STEPS + 1)).str();
+        const float side_pad_x = ImGui::GetStyle().WindowPadding.x;
 
-        imgui.disabled_begin(copy_disabled);
-        if (render_footer_button("##asp_btn_copy", _u8L("Copy Step"), ImVec2(bx0, by), copy_btn_size, false, sc))
-            copy_assembly_step();
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-            std::string copy_tip = _u8L("Only copy steps. This is independent of the selected objects on the canvas.");
-            if (m_non_final_assembly_step_limit_reached)
-                copy_tip += "\n" + step_over_limit_tip;
-            render_panel_tooltip(copy_tip);
-        }
-        imgui.disabled_end();
+        if (m_structure_merge_mode) {
+            // Merge mode: right-aligned Select All + Cancel + Confirm.
+            const ImVec2 cancel_size(86.0f * sc, action_h);
+            const ImVec2 ok_size(86.0f * sc, action_h);
+            const float  button_gap = 12.0f * sc;
+            const float  cb_sz = 20.0f * sc;
+            const float  cb_gap = 8.0f * sc;
+            const std::string select_all_label = _u8L("Select All");
+            const ImVec2 select_text_sz = ImGui::CalcTextSize(select_all_label.c_str());
+            const float  select_all_w = cb_sz + cb_gap + select_text_sz.x;
 
-        imgui.disabled_begin(add_disabled);
-        if (render_footer_button("##asp_btn_add", _u8L("Add Step"), ImVec2(bx0 + copy_w + btn_gap, by), add_btn_size, true, sc)) {
-            add_assembly_step();
-            auto_open_add_tree_for_selected_step();
-        }
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-            std::string add_tip = _u8L("Only add empty steps. This has nothing to do with the selected objects on the canvas.");
-            if (m_non_final_assembly_step_limit_reached)
-                add_tip += "\n" + step_over_limit_tip;
-            render_panel_tooltip(add_tip);
-        }
-        imgui.disabled_end();
+            std::vector<int> mergeable_nodes;
+            for (const auto &card : data.cards) {
+                if (card.node_idx < 0 || card.is_final_assembly == AssemblyStepKind::OverallPreview)
+                    continue;
+                mergeable_nodes.push_back(card.node_idx);
+            }
+            std::vector<int> checked_nodes;
+            for (int ni : mergeable_nodes) {
+                if (m_structure_merge_checked.count(ni))
+                    checked_nodes.push_back(ni);
+            }
+            const bool all_checked = !mergeable_nodes.empty() &&
+                                     checked_nodes.size() == mergeable_nodes.size();
+            bool select_all = all_checked;
+            // Only a merge that gathers every part of the model produces a final
+            // assembly, which is the case that does not consume a Normal step slot.
+            const bool merged_is_final = merged_steps_cover_whole_model(checked_nodes);
 
-        // Clear-all icon (tree_clear_all.svg) deletes all regular steps while keeping the final assembly.
-        if (has_non_final_steps) {
-            const ImVec2 clear_min(bx0 + total_w + exit_gap,
-                                   by + (action_h - exit_sz) * 0.5f);
-            const ImVec2 clear_max(clear_min.x + exit_sz, clear_min.y + exit_sz);
-            // tree_clear_all.svg is authored as 16x16 while tree_exit.svg is 20x20. Draw it a bit
-            // larger inside the same 24px button box so the visible icon matches the exit icon size.
-            const float clear_icon_sz = exit_sz * 20.0f / 16.0f;
-            const ImVec2 clear_icon_min(clear_min.x + (exit_sz - clear_icon_sz) * 0.5f,
-                                        clear_min.y + (exit_sz - clear_icon_sz) * 0.5f);
-            const ImVec2 clear_icon_max(clear_icon_min.x + clear_icon_sz, clear_icon_min.y + clear_icon_sz);
-            ImTextureID clear_icon = (m_is_dark && m_structure_clear_all_icon_dark) ?
-                m_structure_clear_all_icon_dark : m_structure_clear_all_icon;
-            if (clear_icon)
-                dl->AddImage(clear_icon, clear_icon_min, clear_icon_max);
-            ImGui::SetCursorScreenPos(clear_min);
-            ImGui::PushID("##asp_btn_clear_all");
-            ImGui::InvisibleButton("##clear", ImVec2(exit_sz, exit_sz));
-            if (ImGui::IsItemClicked(0))
-                clear_non_final_assembly_steps();
+            // Extra 10px inset so Confirm is not flush against the panel edge.
+            const float right_inset = side_pad_x + 10.0f * sc;
+            const float buttons_x = win_min.x + panel_w - right_inset - cancel_size.x - button_gap - ok_size.x;
+            const float select_x  = buttons_x - button_gap - select_all_w;
+            const float select_cy = by + (action_h - cb_sz) * 0.5f;
+
+            if (render_checkbox(dl, select_x, select_cy, cb_sz, &select_all, "##asp_merge_select_all", sc)) {
+                m_structure_merge_checked.clear();
+                if (select_all) {
+                    for (int ni : mergeable_nodes)
+                        m_structure_merge_checked.insert(ni);
+                }
+            }
+            dl->AddText(ImVec2(select_x + cb_sz + cb_gap,
+                               by + (action_h - select_text_sz.y) * 0.5f),
+                        m_is_dark ? IM_COL32(0xE0, 0xE0, 0xE0, 255) : IM_COL32(38, 46, 48, 255),
+                        select_all_label.c_str());
+
+            if (render_footer_button("##asp_merge_cancel", _u8L("Cancel"),
+                                     ImVec2(buttons_x, by), cancel_size, false, sc))
+                exit_structure_merge_mode();
+
+            const bool confirm_enabled = m_structure_merge_checked.size() >= 2 &&
+                (merged_is_final || can_add_non_final_assembly_step());
+            m_imgui->disabled_begin(!confirm_enabled);
+            const bool confirm_clicked = render_footer_button("##asp_merge_confirm", _u8L("Confirm"),
+                                     ImVec2(buttons_x + cancel_size.x + button_gap, by),
+                                     ok_size, true, sc);
+            const bool confirm_hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled);
+            m_imgui->disabled_end();
+            if (confirm_clicked)
+                merge_checked_assembly_steps();
+            if (!confirm_enabled && m_structure_merge_checked.size() >= 2 &&
+                !merged_is_final && m_non_final_assembly_step_limit_reached && confirm_hovered) {
+                render_panel_tooltip((boost::format(_u8L("No more than %1% steps are allowed.")) %
+                                      (MAX_NON_FINAL_ASSEMBLY_STEPS + 1)).str());
+            }
+        } else {
+            const float add_w  = std::max(btn_w, ImGui::CalcTextSize(_u8L("Add Step").c_str()).x + 2.0f * btn_pad_x);
+            const float total_w = add_w;
+            // Hide exit / merge while OverallPreview is active (including "only preview card" empty projects).
+            const bool hide_exit_icon = is_overall_preview_mode();
+            const bool show_merge_icon = !hide_exit_icon && can_enter_structure_merge_mode();
+            // Center the whole group (Add button + merge + exit icons) within the
+            // panel window width (panel_w), matching the Figma layout where the row
+            // is centered as a single flex container.
+            const float merge_slot_w = show_merge_icon ? (exit_gap + exit_sz) : 0.0f;
+            const float exit_slot_w = hide_exit_icon ? 0.0f : (exit_gap + exit_sz);
+            const float group_w = total_w + merge_slot_w + exit_slot_w;
+            const float bx0     = win_min.x + (panel_w - group_w) * 0.5f;
+            const ImVec2 add_btn_size(add_w, action_h);
+            // can_add_non_final_assembly_step() also caches the limit state into
+            // m_non_final_assembly_step_limit_reached, which the tooltips read below.
+            const bool reached_step_limit = !can_add_non_final_assembly_step();
+            const bool add_disabled  = reached_step_limit;
+            // Extra warning appended when the step cap is hit. The cap counts non-final
+            // steps (MAX) plus the single final-assembly step, hence MAX + 1 total.
+            const std::string step_over_limit_tip = (boost::format(_u8L("No more than %1% steps are allowed.")) % (MAX_NON_FINAL_ASSEMBLY_STEPS + 1)).str();
+
+            imgui.disabled_begin(add_disabled);
+            if (render_footer_button("##asp_btn_add", _u8L("Add Step"), ImVec2(bx0, by), add_btn_size, true, sc)) {
+                add_assembly_step();
+                auto_open_add_tree_for_selected_step();
+            }
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-                dl->AddRectFilled(clear_min, clear_max, IM_COL32(38, 46, 48, 18), 3.0f * sc);
-                render_panel_tooltip(_u8L("Delete all assembly steps except the final assembly."));
+                std::string add_tip = _u8L("Only add empty steps. This has nothing to do with the selected objects on the canvas.");
+                if (m_non_final_assembly_step_limit_reached)
+                    add_tip += "\n" + step_over_limit_tip;
+                render_panel_tooltip(add_tip);
             }
-            ImGui::PopID();
-        }
+            imgui.disabled_end();
 
-        // Exit icon (tree_exit.svg) drawn to the right of the Add Step button,
-        // vertically centered with the button row. Part of the centered group.
-        {
-            const ImVec2 exit_min(bx0 + total_w + clear_all_slot_w + exit_gap,
-                                  by + (action_h - exit_sz) * 0.5f);
-            const ImVec2 exit_max(exit_min.x + exit_sz, exit_min.y + exit_sz);
-            ImTextureID exit_icon = (m_is_dark && m_structure_exit_icon_dark) ?
-                m_structure_exit_icon_dark : m_structure_exit_icon;
-            if (exit_icon)
-                dl->AddImage(exit_icon, exit_min, exit_max);
-            ImGui::SetCursorScreenPos(exit_min);
-            ImGui::PushID("##asp_btn_exit");
-            ImGui::InvisibleButton("##e", ImVec2(exit_sz, exit_sz));
-            if (ImGui::IsItemClicked(0))
-                exit_assembly_steps_editing();
-            if (ImGui::IsItemHovered()) {
-                dl->AddRectFilled(exit_min, exit_max, IM_COL32(38, 46, 48, 18), 3.0f * sc);
-                render_panel_tooltip(_u8L("Exit the assembly step editing, you can also press the Esc button to exit"));
+            // Merge icon (tree_merge.svg): enter multi-step merge mode.
+            // Hidden when fewer than two mergeable steps exist. OverallPreview cards
+            // never participate (no checkbox on that card).
+            if (show_merge_icon) {
+                const ImVec2 merge_min(bx0 + total_w + exit_gap,
+                                       by + (action_h - exit_sz) * 0.5f);
+                const ImVec2 merge_max(merge_min.x + exit_sz, merge_min.y + exit_sz);
+                ImTextureID merge_icon = (m_is_dark && m_structure_merge_icon_dark) ?
+                    m_structure_merge_icon_dark : m_structure_merge_icon;
+                if (merge_icon)
+                    dl->AddImage(merge_icon, merge_min, merge_max);
+                ImGui::SetCursorScreenPos(merge_min);
+                ImGui::PushID("##asp_btn_merge");
+                ImGui::InvisibleButton("##merge", ImVec2(exit_sz, exit_sz));
+                if (ImGui::IsItemClicked(0))
+                    enter_structure_merge_mode();
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+                    dl->AddRectFilled(merge_min, merge_max, IM_COL32(38, 46, 48, 18), 3.0f * sc);
+                    render_panel_tooltip(_u8L("Merge and add steps."));
+                }
+                ImGui::PopID();
             }
-            ImGui::PopID();
+
+            // Exit icon (tree_exit.svg) drawn to the right of the Add Step button,
+            // vertically centered with the button row. Part of the centered group.
+            // Hidden in OverallPreview mode (Add Step / merge stay centered).
+            if (!hide_exit_icon) {
+                const ImVec2 exit_min(bx0 + total_w + merge_slot_w + exit_gap,
+                                      by + (action_h - exit_sz) * 0.5f);
+                const ImVec2 exit_max(exit_min.x + exit_sz, exit_min.y + exit_sz);
+                ImTextureID exit_icon = (m_is_dark && m_structure_exit_icon_dark) ?
+                    m_structure_exit_icon_dark : m_structure_exit_icon;
+                if (exit_icon)
+                    dl->AddImage(exit_icon, exit_min, exit_max);
+                ImGui::SetCursorScreenPos(exit_min);
+                ImGui::PushID("##asp_btn_exit");
+                ImGui::InvisibleButton("##e", ImVec2(exit_sz, exit_sz));
+                if (ImGui::IsItemClicked(0))
+                    exit_assembly_steps_editing();
+                if (ImGui::IsItemHovered()) {
+                    dl->AddRectFilled(exit_min, exit_max, IM_COL32(38, 46, 48, 18), 3.0f * sc);
+                    render_panel_tooltip(_u8L("Click to exit assembly step editing, or press Esc."));
+                }
+                ImGui::PopID();
+            }
         }
 
         // Footer hint (no-step-selected variant). Drawn directly via the
         // window draw list so we can wrap-render at the panel font size
         // without disturbing the centered button row above. Position is
-        // immediately under the Copy/Add button row, with the wrap height
+        // immediately under the Add button row, with the wrap height
         // already accounted for in full_h above.
-        if (!footer_hint_str.empty()) {
+        if (!footer_hint_str.empty() && !m_structure_merge_mode) {
             const float hint_y = by + action_h + 8.0f * sc;
             dl->AddText(ImGui::GetFont(), fs,
                 ImVec2(win_min.x + side_pad, hint_y),
@@ -3784,26 +4327,24 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         }
     }
 
+    // Capture live bounds before End(); play-bar clearance must not underestimate
+    // the painted panel if DPI / style scaling expands the window past panel_w.
+    {
+        const ImVec2 wp = ImGui::GetWindowPos();
+        const ImVec2 ws = ImGui::GetWindowSize();
+        m_assembly_structure_right_x = std::max(panel_x + panel_w, wp.x + ws.x);
+        m_panel_rect_structure_min = wp;
+        m_panel_rect_structure_max = ImVec2(wp.x + ws.x, wp.y + ws.y);
+    }
+
     imgui.end();
     ImGui::PopStyleVar(3);
     ImGui::PopStyleColor(1);
 
-    m_assembly_structure_right_x = panel_x + panel_w;
-    m_panel_rect_structure_min = ImVec2(panel_x, panel_y);
-    m_panel_rect_structure_max = ImVec2(panel_x + panel_w, panel_y + panel_h);
-
     // ---- Standalone assembly tree list (canvas right side) ------------------
-    // A read-only mirror of the assembly tree. It is shown only while no step
-    // card row is selected (has_selected_node() == false) and the editable
-    // add-object popup is closed, so it never overlaps the step-editing list.
-    // Reuses render_assembly_tree_ui() with checkboxes / footer disabled.
-    if (!has_selected_node() && !is_render_assembly_tree_ui_open()) {
-        const float list_w = 310.0f * sc;
-        const float list_x = canvas_w - list_w - 12.0f * sc;
-        const float list_y = panel_y;
-        const float list_h = std::max(180.0f * sc, canvas_h - list_y - 12.0f * sc);
-        render_assembly_tree_ui(list_x, list_y, list_w, list_h, sc, /*show_checkbox*/ false);
-    }
+    // A read-only mirror of the assembly tree. Same path as the Structure-collapsed
+    // early-out above so expand/collapse of Structure never hides this list.
+    render_standalone_assembly_list();
 
     if (!m_save_project_tip_text.empty()) {
         if (std::chrono::steady_clock::now() >= m_save_project_tip_until) {
@@ -3871,8 +4412,7 @@ void AssemblyStepsUtils::init_tree_icons()
     IMTexture::load_from_svg_file(m_images_dir + "cross_dark.svg",  icon_sz, icon_sz, m_tree_icon_cross_dark);
     IMTexture::load_from_svg_file(m_images_dir + "tree_set.svg",       icon_sz, icon_sz, m_tree_icon_set);
     IMTexture::load_from_svg_file(m_images_dir + "tree_set_hover.svg", icon_sz, icon_sz, m_tree_icon_set_hover);
-    IMTexture::load_from_svg_file(m_images_dir + "panel_collapse.svg", icon_sz, icon_sz, m_panel_collapse_icon);
-    IMTexture::load_from_svg_file(m_images_dir + "panel_expand.svg", icon_sz, icon_sz, m_panel_expand_icon);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_reset.svg",     icon_sz, icon_sz, m_tree_icon_reset);
     IMTexture::load_from_svg_file(m_images_dir + "view_help.svg", icon_sz, icon_sz, m_structure_help_icon);
     IMTexture::load_from_svg_file(m_images_dir + "tree_option.svg", icon_sz, icon_sz, m_structure_option_icon);
     IMTexture::load_from_svg_file(m_images_dir + "tree_option_dark.svg", icon_sz, icon_sz, m_structure_option_icon_dark);
@@ -3881,6 +4421,8 @@ void AssemblyStepsUtils::init_tree_icons()
     IMTexture::load_from_svg_file(m_images_dir + "tree_copy_dark.svg",        icon_sz, icon_sz, m_structure_step_copy_icon_dark);
     IMTexture::load_from_svg_file(m_images_dir + "tree_delete.svg",           icon_sz, icon_sz, m_structure_step_delete_icon);
     IMTexture::load_from_svg_file(m_images_dir + "tree_delete_dark.svg",      icon_sz, icon_sz, m_structure_step_delete_icon_dark);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_delete_all.svg",       icon_sz, icon_sz, m_structure_step_delete_all_icon);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_delete_all_dark.svg",  icon_sz, icon_sz, m_structure_step_delete_all_icon_dark);
     IMTexture::load_from_svg_file(m_images_dir + "tree_object_tree.svg",      icon_sz, icon_sz, m_structure_step_object_tree_icon);
     IMTexture::load_from_svg_file(m_images_dir + "tree_object_tree_dark.svg", icon_sz, icon_sz, m_structure_step_object_tree_icon_dark);
     IMTexture::load_from_svg_file(m_images_dir + "tree_unedit.svg",   icon_sz, icon_sz, m_structure_step_add_icon_unedit);
@@ -3892,10 +4434,59 @@ void AssemblyStepsUtils::init_tree_icons()
     IMTexture::load_from_svg_file(m_images_dir + "play_right.svg",  icon_sz, icon_sz, m_play_right_icon);
     IMTexture::load_from_svg_file(m_images_dir + "tree_clear_all.svg",      icon_sz, icon_sz, m_structure_clear_all_icon);
     IMTexture::load_from_svg_file(m_images_dir + "tree_clear_all_dark.svg", icon_sz, icon_sz, m_structure_clear_all_icon_dark);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_merge.svg",          icon_sz, icon_sz, m_structure_merge_icon);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_merge_dark.svg",     icon_sz, icon_sz, m_structure_merge_icon_dark);
     IMTexture::load_from_svg_file(m_images_dir + "tree_exit.svg",      icon_sz, icon_sz, m_structure_exit_icon);
     IMTexture::load_from_svg_file(m_images_dir + "tree_exit_dark.svg", icon_sz, icon_sz, m_structure_exit_icon_dark);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_inheritance.svg", icon_sz, icon_sz, m_structure_step_inheritance_icon);
     load_assembly_tree_icons(m_imgui_scale > 0.0f ? m_imgui_scale : 1.0f);
     m_tree_icons_loaded = true;
+}
+
+bool AssemblyStepsUtils::load_assembly_tree_icons(float sc)
+{
+    if (s_assembly_tree_icons.loaded)
+        return true;
+
+    const std::string image_path = Slic3r::resources_dir() + "/images/";
+    const unsigned tree_icon_texture_size = static_cast<unsigned>(std::round(28.0f * sc));
+    const unsigned select_icon_texture_size = static_cast<unsigned>(std::round(24.0f * sc));
+    // Same texture resolution as the former m_panel_collapse_icon / m_panel_expand_icon loads.
+    const unsigned panel_toggle_texture_size = 64;
+    s_assembly_tree_icons.loaded = IMTexture::load_from_svg_file(image_path + "tree_expand.svg", tree_icon_texture_size, tree_icon_texture_size,
+                                                                  s_assembly_tree_icons.expand) &&
+                                   IMTexture::load_from_svg_file(image_path + "tree_collapse.svg", tree_icon_texture_size, tree_icon_texture_size,
+                                                                  s_assembly_tree_icons.collapse) &&
+                                   IMTexture::load_from_svg_file(image_path + "tree_select.svg", select_icon_texture_size, select_icon_texture_size,
+                                                                  s_assembly_tree_icons.select) &&
+                                   IMTexture::load_from_svg_file(image_path + "tree_search.svg", select_icon_texture_size, select_icon_texture_size,
+                                                                  s_assembly_tree_icons.search);
+    // Best-effort extras: missing files must not flip `loaded`.
+    IMTexture::load_from_svg_file(image_path + "tree_filter.svg", select_icon_texture_size, select_icon_texture_size,
+                                  s_assembly_tree_icons.filter);
+    IMTexture::load_from_svg_file(image_path + "tree_filter_ok.svg", select_icon_texture_size, select_icon_texture_size,
+                                  s_assembly_tree_icons.filter_ok);
+    IMTexture::load_from_svg_file(image_path + "tree_label_visible.svg", select_icon_texture_size, select_icon_texture_size,
+                                  s_assembly_tree_icons.label_visible);
+    IMTexture::load_from_svg_file(image_path + "tree_label_unvisible.svg", select_icon_texture_size, select_icon_texture_size,
+                                  s_assembly_tree_icons.label_unvisible);
+    IMTexture::load_from_svg_file(image_path + "tree_explosion.svg", select_icon_texture_size, select_icon_texture_size,
+                                  s_assembly_tree_icons.explosion);
+    IMTexture::load_from_svg_file(image_path + "tree_explosion_dark.svg", select_icon_texture_size, select_icon_texture_size,
+                                  s_assembly_tree_icons.explosion_dark);
+    // Dark variants are best-effort: a missing file must not flip `loaded`.
+    IMTexture::load_from_svg_file(image_path + "tree_expand_dark.svg", tree_icon_texture_size, tree_icon_texture_size,
+                                  s_assembly_tree_icons.expand_dark);
+    IMTexture::load_from_svg_file(image_path + "tree_collapse_dark.svg", tree_icon_texture_size, tree_icon_texture_size,
+                                  s_assembly_tree_icons.collapse_dark);
+    IMTexture::load_from_svg_file(image_path + "tree_search_dark.svg", select_icon_texture_size, select_icon_texture_size,
+                                  s_assembly_tree_icons.search_dark);
+    // Shared panel / list header toggle (replaces m_panel_collapse_icon / m_panel_expand_icon).
+    IMTexture::load_from_svg_file(image_path + "panel_expand.svg", panel_toggle_texture_size, panel_toggle_texture_size,
+                                  s_assembly_tree_icons.expand_external);
+    IMTexture::load_from_svg_file(image_path + "panel_collapse.svg", panel_toggle_texture_size, panel_toggle_texture_size,
+                                  s_assembly_tree_icons.collapse_external);
+    return s_assembly_tree_icons.loaded;
 }
 
 ImTextureID AssemblyStepsUtils::get_arrow_svg_icon(const std::string &svg_name)
@@ -3925,6 +4516,26 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
         return result;
 
     load_assembly_tree_icons(sc);
+
+    // A right-click that had to move the row selection first defers its menu:
+    // frame N applies the selection, frame N+1 draws (and presents) the new
+    // highlight, frame N+2 opens the wx menu. PopupMenu() runs a modal loop that
+    // blocks canvas repaints, so opening it any earlier would show the menu on top
+    // of the stale highlight.
+    if (m_assembly_tree_context_menu_frame >= 0) {
+        if (ImGui::GetFrameCount() > m_assembly_tree_context_menu_frame + 1) {
+            m_assembly_tree_context_menu_frame = -1;
+            popup_assemble_context_menu();
+        } else {
+            do_commond_callback("request_extra_frame");
+        }
+    }
+    // Right-press edge, detected once per tree frame from the raw button state:
+    // ImGui::IsItemClicked(1) only fires on the frame that saw the up->down
+    // transition, which the wx event pump can skip when a frame is already open.
+    const bool right_mouse_is_down  = ImGui::GetIO().MouseDown[1];
+    const bool right_mouse_pressed  = options.enable_row_select && right_mouse_is_down && !m_assembly_tree_right_mouse_down;
+    m_assembly_tree_right_mouse_down = right_mouse_is_down;
 
     const ImU32 text_col      = m_is_dark ? IM_COL32(0xE0, 0xE0, 0xE0, 255) : IM_COL32(38, 46, 48, 255);
     const ImU32 sub_text_col  = m_is_dark ? IM_COL32(0x90, 0x90, 0x90, 255) : IM_COL32(144, 144, 144, 255);
@@ -3958,6 +4569,32 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
         }
         return false;
     };
+
+    // Unassembled-only filter (tree_filter / tree_filter_ok toggle).
+    const bool filter_unassembled = m_assembly_tree_filter_unassembled;
+    std::function<bool(int)> node_matches_unassembled;
+    node_matches_unassembled = [this, &tree, filter_unassembled, &node_matches_unassembled](int node_id) {
+        if (!filter_unassembled)
+            return true;
+        if (node_id < 0 || node_id >= static_cast<int>(tree.nodes.size()))
+            return false;
+        const auto &node = tree.nodes[node_id];
+        if (node.object_idx >= 0 && is_assembly_tree_item_unassembled(node.object_idx, node.volume_idx))
+            return true;
+        for (int child_id : node.children) {
+            if (node_matches_unassembled(child_id))
+                return true;
+        }
+        return false;
+    };
+
+    auto node_matches_visible = [&node_matches_search, &node_matches_unassembled](int node_id) {
+        return node_matches_search(node_id) && node_matches_unassembled(node_id);
+    };
+    // Force-expand only while searching so matches stay reachable. Unassembled
+    // filter keeps the normal single-volume collapse (object with one ModelVolume
+    // shows the parent row only — same as "Show all objects").
+    const bool force_expand_matches = !search_text_lc.empty();
 
     auto node_checkable = [&tree, &options](int node_id) {
         if (node_id < 0 || node_id >= static_cast<int>(tree.nodes.size()))
@@ -4039,10 +4676,10 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
     };
 
     std::function<void(int)> count_leaves;
-    count_leaves = [&tree, &checked, &node_checkable, &has_selectable_descendant, &node_matches_search, &count_leaves, &result](int node_id) {
+    count_leaves = [&tree, &checked, &node_checkable, &has_selectable_descendant, &node_matches_visible, &count_leaves, &result](int node_id) {
         if (node_id < 0 || node_id >= static_cast<int>(tree.nodes.size()))
             return;
-        if (!node_matches_search(node_id))
+        if (!node_matches_visible(node_id))
             return;
         const auto& node = tree.nodes[node_id];
         if (node_checkable(node_id) && !has_selectable_descendant(node_id)) {
@@ -4063,6 +4700,153 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
     const float indent_step = 26.0f * sc;
     const float checkbox_size = 20.0f * sc;
     const float arrow_size = 14.0f * sc;
+    const AssemblyTreeStateColMetrics state_cols = calc_assembly_tree_state_col_metrics(
+        sc, options.show_label_state, options.show_explosion_state, options.show_assembly_state);
+    const float label_icon_sz    = state_cols.label_icon_sz;
+    const float label_col_w      = state_cols.label_col_w;
+    const float explosion_col_w  = state_cols.explosion_col_w;
+    const float assembly_col_w   = state_cols.assembly_col_w;
+    const float state_col_gap    = state_cols.col_gap;
+    const float state_cols_w     = state_cols.extra_window_w;
+    const std::string not_assembled_str = _u8L("Unassembled");
+    const std::string step_prefix_str   = _u8L("Step");
+
+    // Current-keyframe part-number labels drive the "标签" column.
+    const std::vector<PartNumberLabel> *pn_labels_src = nullptr;
+    if (options.show_label_state) {
+        if (auto *entries = get_current_kf_entries();
+            entries && m_keyframe_selected >= 0 && m_keyframe_selected < (int) entries->size())
+            pn_labels_src = &(*entries)[m_keyframe_selected].data.assembly_note.part_number_labels;
+    }
+    auto part_number_label_visible = [&](int object_idx, int volume_idx) -> bool {
+        if (!pn_labels_src)
+            return false;
+        const PartNumberLabel *exact  = nullptr;
+        const PartNumberLabel *obj_lvl = nullptr;
+        bool any_visible = false;
+        bool found       = false;
+        for (const PartNumberLabel &lbl : *pn_labels_src) {
+            if (lbl.object_idx != object_idx)
+                continue;
+            found = true;
+            if (lbl.visible)
+                any_visible = true;
+            if (lbl.volume_idx == volume_idx)
+                exact = &lbl;
+            else if (lbl.volume_idx < 0)
+                obj_lvl = &lbl;
+        }
+        if (volume_idx < 0)
+            return found && any_visible;
+        if (exact)
+            return exact->visible;
+        if (obj_lvl)
+            return obj_lvl->visible;
+        return false;
+    };
+    // True when the current keyframe already has a PartNumberLabel for this
+    // object/volume. Newly checked rows wait until Confirm rebuilds labels.
+    auto part_number_label_exists = [&](int object_idx, int volume_idx) -> bool {
+        if (!pn_labels_src)
+            return false;
+        for (const PartNumberLabel &lbl : *pn_labels_src) {
+            if (lbl.object_idx != object_idx)
+                continue;
+            if (volume_idx < 0)
+                return true;
+            if (lbl.volume_idx == volume_idx || lbl.volume_idx < 0)
+                return true;
+        }
+        return false;
+    };
+    auto part_in_explosion_state = [&](int object_idx, int volume_idx) -> bool {
+        // Live GLVolume vs ModelVolume matrix compare is the display source of truth.
+        return is_glvolume_in_explosion_state(object_idx, volume_idx);
+    };
+    auto short_step_label = [&](int step) -> std::string {
+        // Figma: "step 1" — step index only, no folder name.
+        return step_prefix_str + std::to_string(step);
+    };
+    // Cache per-folder volume membership once for this tree paint (rows × steps).
+    struct FolderStepVols {
+        int                          step{0};
+        std::set<std::pair<int, int>> vols;
+    };
+    std::vector<FolderStepVols> folder_step_vols;
+    // Only active roots: delete_structure_step soft-deletes by unlinking from
+    // _steps_roots while keeping the node in _steps_nodes; scanning all nodes
+    // would keep stale volume membership after a step is deleted.
+    folder_step_vols.reserve(_steps_roots.size());
+    for (int ni : _steps_roots) {
+        if (ni < 0 || ni >= (int) _steps_nodes.size())
+            continue;
+        const auto &n = _steps_nodes[ni];
+        if (n.type != AssemblyStepsTreeNode::Type::Folder || n.is_final_assembly != AssemblyStepKind::Normal)
+            continue;
+        folder_step_vols.push_back({n.step, collect_folder_volume_pairs(ni)});
+    }
+    auto collect_volume_steps = [&](int object_idx, int volume_idx) -> std::vector<int> {
+        std::vector<int> steps;
+        for (const auto &fv : folder_step_vols) {
+            if (fv.vols.count({object_idx, volume_idx}) == 0)
+                continue;
+            steps.push_back(fv.step);
+        }
+        std::sort(steps.begin(), steps.end());
+        steps.erase(std::unique(steps.begin(), steps.end()), steps.end());
+        return steps;
+    };
+    auto join_step_labels = [&](const std::vector<int> &steps) -> std::string {
+        if (steps.empty())
+            return {};
+        // Single step keeps "step N"; multiple steps use compact "1/2/3".
+        if (steps.size() == 1)
+            return short_step_label(steps[0]);
+        std::string text;
+        for (int step : steps) {
+            if (!text.empty())
+                text += '/';
+            text += std::to_string(step);
+        }
+        return text;
+    };
+    // Assemble column: all steps the object/volume belongs to, joined as "step 1/step2".
+    auto assembly_state_text = [&](int object_idx, int volume_idx) -> std::pair<std::string, bool> {
+        // returns {text, is_warning_orange}
+        if (object_idx < 0)
+            return {not_assembled_str, true};
+        if (volume_idx >= 0) {
+            const std::vector<int> steps = collect_volume_steps(object_idx, volume_idx);
+            if (steps.empty())
+                return {not_assembled_str, true};
+            return {join_step_labels(steps), false};
+        }
+        // Object row: fully assembled → step labels; partial → "1/2/Not".
+        if (!m_model || object_idx >= (int) m_model->objects.size() || !m_model->objects[object_idx])
+            return {not_assembled_str, true};
+        const ModelObject *obj = m_model->objects[object_idx];
+        int total = 0, assembled = 0;
+        std::vector<int> steps;
+        for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+            if (!obj->volumes[vi])
+                continue;
+            ++total;
+            const std::vector<int> vol_steps = collect_volume_steps(object_idx, vi);
+            if (vol_steps.empty())
+                continue;
+            ++assembled;
+            steps.insert(steps.end(), vol_steps.begin(), vol_steps.end());
+        }
+        if (total == 0 || assembled == 0)
+            return {not_assembled_str, true};
+        std::sort(steps.begin(), steps.end());
+        steps.erase(std::unique(steps.begin(), steps.end()), steps.end());
+        std::string text = join_step_labels(steps);
+        if (assembled < total)
+            // Partial: union of child steps + "Not" → "1/2/Not" (Unassembled-count).
+            text += "/" + _u8L("Not");
+        return {std::move(text), assembled < total};
+    };
 
     auto draw_checkbox = [sc, checkbox_size, green_col, border_col, checkbox_bg_col](ImDrawList* target_draw_list, const ImRect& rect, AssemblyTreeCheckState state) {
         const bool checked_state = state == AssemblyTreeCheckState::All;
@@ -4088,14 +4872,18 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    // Flush the child to the parent window's right edge so the scrollbar track
-    // sits on the right. Zero the child's own WindowPadding — inherited 14px
-    // padding would leave a dead strip to the right of the scrollbar.
-    const float child_left = ImGui::GetCursorScreenPos().x;
-    const float win_right  = ImGui::GetWindowPos().x + ImGui::GetWindowSize().x;
-    const float child_w    = std::max(0.0f, win_right - child_left);
+    // Child width matches the parent content region (same as the column-title row
+    // above). State columns (Label / Assemble) use a shared screen-space right edge
+    // with the header, always leaving a scrollbar gutter so titles and cell content
+    // stay horizontally centered together whether or not the child is scrolling.
+    const float scrollbar_gutter = ImGui::GetStyle().ScrollbarSize;
+    const float child_w = std::max(0.0f, ImGui::GetContentRegionAvail().x);
+    const float state_cols_right_x =
+        ImGui::GetCursorScreenPos().x + child_w - scrollbar_gutter;
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::BeginChild(options.child_id, ImVec2(child_w, options.show_footer ? -footer_h : 0), false, ImGuiWindowFlags_NoBackground);
+    // Scrollbar only when content overflows (same as pre-column-patch behavior).
+    ImGui::BeginChild(options.child_id, ImVec2(child_w, options.show_footer ? -footer_h : 0), false,
+                      ImGuiWindowFlags_NoBackground);
     // A node whose only child is a leaf duplicates that child (e.g. an object
     // with a single volume, or a group with a single object), so the lone child
     // is not shown - the parent row represents it. This collapses the redundant
@@ -4126,21 +4914,27 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
     std::vector<VisibleAssemblyTreeRow> visible_rows;
     visible_rows.reserve(tree.nodes.size());
     std::function<void(int, int, bool)> collect_visible_row;
-    collect_visible_row = [&tree, &node_matches_search, &has_only_collapsible_child,
-                           &collect_visible_row, &visible_rows, search_text_lc]
+    collect_visible_row = [&tree, &node_matches_visible, &has_only_collapsible_child,
+                           &collect_visible_row, &visible_rows, force_expand_matches, this]
                           (int node_id, int depth, bool is_last) {
         if (node_id < 0 || node_id >= static_cast<int>(tree.nodes.size()))
             return;
-        if (!node_matches_search(node_id))
+        if (!node_matches_visible(node_id))
             return;
         const auto& node = tree.nodes[node_id];
+        if (node.volume_idx >= 0 && m_model) {
+            const ModelObject* obj = node.object_idx >= 0 && static_cast<size_t>(node.object_idx) < m_model->objects.size()
+                                     ? m_model->objects[node.object_idx] : nullptr;
+            if (obj && static_cast<size_t>(node.volume_idx) < obj->volumes.size() && !obj->volumes[node.volume_idx]->is_model_part())
+                return;
+        }
         visible_rows.push_back({node_id, depth, is_last});
 
-        const bool collapse_single_leaf = search_text_lc.empty() && has_only_collapsible_child(node_id);
+        const bool collapse_single_leaf = !force_expand_matches && has_only_collapsible_child(node_id);
         const bool has_children = !node.children.empty() && !collapse_single_leaf;
         auto open_it = s_assembly_tree_open_nodes.find(node.uid);
         const bool open = open_it == s_assembly_tree_open_nodes.end() ? true : open_it->second;
-        if ((open || !search_text_lc.empty()) && has_children) {
+        if ((open || force_expand_matches) && has_children) {
             for (size_t child_idx = 0; child_idx < node.children.size(); ++child_idx)
                 collect_visible_row(node.children[child_idx], depth + 1, child_idx + 1 == node.children.size());
         }
@@ -4149,10 +4943,14 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
         collect_visible_row(tree.roots[root_idx], 0, root_idx + 1 == tree.roots.size());
 
     auto render_row = [this, &tree, &checked, &node_checkable, &set_subtree_checked, &get_subtree_state,
-                       &has_only_collapsible_child, &any_row_hovered, search_text_lc, row_h, indent_step,
+                       &has_only_collapsible_child, &any_row_hovered, &visible_rows, force_expand_matches, row_h, indent_step,
                        checkbox_size, arrow_size, line_col, text_col, row_select_col, row_hover_border_col,
-                       draw_checkbox, sc, options, &result]
-                      (const VisibleAssemblyTreeRow& row) {
+                       draw_checkbox, sc, options, &result, right_mouse_pressed, state_cols_w, label_icon_sz, label_col_w, explosion_col_w, assembly_col_w,
+                       state_col_gap, state_cols_right_x, &part_number_label_visible, &part_number_label_exists, &part_in_explosion_state, &assembly_state_text]
+                      (int row_idx) {
+        if (row_idx < 0 || row_idx >= (int) visible_rows.size())
+            return;
+        const VisibleAssemblyTreeRow &row = visible_rows[row_idx];
         const int node_id = row.node_id;
         const int depth = row.depth;
         const bool is_last = row.is_last;
@@ -4176,7 +4974,12 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
         const bool hovered = ImGui::IsItemHovered();
         // Capture the row's click state now, before any InputText (rename editor)
         // is submitted below - otherwise IsItemClicked() would refer to that field.
-        const bool row_clicked        = ImGui::IsItemClicked();
+        const bool row_clicked        = ImGui::IsItemClicked(0);
+        // Hit-test the row rect directly instead of IsItemClicked(1): the press edge
+        // comes from right_mouse_pressed, and IsItemHovered() can be suppressed
+        // (active item / nav state) right after a click on another row.
+        const bool row_right_clicked  = right_mouse_pressed &&
+                                        (hovered || ImGui::IsMouseHoveringRect(row_min, row_max));
         const bool row_double_clicked = hovered && ImGui::IsMouseDoubleClicked(0);
         // Inline-rename mode for this row (mirrors the part-number label editor).
         const bool row_renaming = options.enable_row_select && node.object_idx >= 0 &&
@@ -4215,10 +5018,24 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
 
         const float center_y = row_min.y + row_h * 0.5f;
         const float content_x = row_min.x + depth * indent_step;
-        if (depth > 0) {
+        // depth 0 = root (一级), 1 = second-level, 2+ = third-level+.
+        // Second-level connectors are off by default (see m_show_assembly_tree_second_level_tree_lines).
+        const bool draw_tree_lines =
+            depth >= 2 || (depth == 1 && m_show_assembly_tree_second_level_tree_lines);
+        if (draw_tree_lines) {
             const float line_x = content_x - indent_step * 0.50f;
-            child_draw_list->AddLine(ImVec2(line_x, row_min.y), ImVec2(line_x, is_last ? center_y : row_max.y), line_col, 2.0f * sc);
-            child_draw_list->AddLine(ImVec2(line_x, center_y), ImVec2(content_x - 5.0f * sc, center_y), line_col, 2.0f * sc);
+            const float line_thickness = 1.0f * sc;
+            // Bridge ImGui ItemSpacing between rows so sibling spines stay continuous
+            // (fig2). First child also extends upward through the gap under the parent
+            // so the stem continues above its horizontal tick (red-box region).
+            const float spacing_y = ImGui::GetStyle().ItemSpacing.y;
+            const bool first_sibling = (row_idx <= 0) || visible_rows[row_idx - 1].depth < depth;
+            const float v_top = first_sibling ? (row_min.y - spacing_y) : row_min.y;
+            const float v_bot = is_last ? center_y : (row_max.y + spacing_y);
+            if (v_bot > v_top + 0.5f)
+                child_draw_list->AddLine(ImVec2(line_x, v_top), ImVec2(line_x, v_bot), line_col, line_thickness);
+            child_draw_list->AddLine(ImVec2(line_x, center_y), ImVec2(content_x - 5.0f * sc, center_y),
+                                     line_col, line_thickness);
         }
 
         const ImRect checkbox_rect(ImVec2(content_x, center_y - checkbox_size * 0.5f),
@@ -4226,8 +5043,12 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
         if (checkable)
             draw_checkbox(child_draw_list, checkbox_rect, state);
 
-        const bool collapse_single_leaf = search_text_lc.empty() && has_only_collapsible_child(node_id);
+        const bool collapse_single_leaf = !force_expand_matches && has_only_collapsible_child(node_id);
         const bool has_children = !node.children.empty() && !collapse_single_leaf;
+        // Arrow position: to the right of the checkbox (or content-left if no
+        // checkbox), sharing the same 10*sc gap. Text always starts after the
+        // reserved arrow slot so labels stay vertically aligned across sibling
+        // rows regardless of whether they have a dropdown arrow.
         const float arrow_x = checkable ? checkbox_rect.Max.x + 10.0f * sc : content_x;
         const ImVec2 arrow_min(arrow_x, center_y - arrow_size * 0.5f);
         const ImRect arrow_rect(arrow_min, ImVec2(arrow_min.x + arrow_size, arrow_min.y + arrow_size));
@@ -4238,10 +5059,12 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
             child_draw_list->AddImage(arrow_tex, arrow_rect.Min, arrow_rect.Max);
         }
 
-        const float text_x = has_children
-            ? arrow_rect.Max.x + 10.0f * sc
-            : (checkable ? checkbox_rect.Max.x + 10.0f * sc : content_x);
-        const float text_max_x = row_max.x - 8.0f * sc;
+        const float text_x = arrow_x + arrow_size + 10.0f * sc;
+        // Keep the name column clear of Label/Assemble, using the same right edge
+        // as the header so icons / "step N" stay centered under their titles.
+        const float text_max_x = (state_cols_w > 0.0f)
+            ? (state_cols_right_x - 8.0f * sc - state_cols_w)
+            : (row_max.x - 8.0f * sc);
         const float text_avail_w = std::max(0.0f, text_max_x - text_x);
 
         if (row_renaming) {
@@ -4263,20 +5086,12 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
                 ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
             const bool entered     = ImGui::InputText("##tree_item_rename", &m_tree_item_rename_buf, input_flags);
             const bool deactivated = ImGui::IsItemDeactivated();
-            if (entered || deactivated) {
-                std::string guid;
-                if (node.volume_idx >= 0 && m_model && node.object_idx >= 0 && node.object_idx < (int) m_model->objects.size()) {
-                    const ModelObject *obj = m_model->objects[node.object_idx];
-                    if (obj && node.volume_idx < (int) obj->volumes.size() && obj->volumes[node.volume_idx])
-                        guid = obj->volumes[node.volume_idx]->ensure_part_guid();
-                }
-                if (!guid.empty())
-                    rename_model_item_from_label(guid, -1, m_tree_item_rename_buf);
-                else
-                    rename_model_item_from_label("", node.object_idx, m_tree_item_rename_buf);
-                m_tree_item_rename_object_idx = -1;
-                m_tree_item_rename_volume_idx = -1;
-            }
+            // entered    : Enter pressed.
+            // deactivated: ImGui dropped focus (click onto another ImGui widget).
+            // A click on the bare 3D canvas (deselect) routes through
+            // set_selection_origin(None) -> commit_tree_item_rename() instead.
+            if (entered || deactivated)
+                commit_tree_item_rename();
             ImGui::PopStyleVar(2);
             ImGui::PopStyleColor(3);
         } else {
@@ -4288,13 +5103,108 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
             child_draw_list->PushClipRect(text_pos, ImVec2(text_max_x, text_pos.y + text_size.y), true);
             child_draw_list->AddText(text_pos, text_col, display_begin, display_end);
             child_draw_list->PopClipRect();
-            if (hovered && display_label != node.label)
-                render_panel_tooltip(node.label);
+            // Ellipsis tooltip: only the name column (not the whole row / icon columns).
+            if (display_label != node.label) {
+                const ImRect text_hit(ImVec2(text_x, row_min.y), ImVec2(text_max_x, row_max.y));
+                if (text_hit.Contains(ImGui::GetIO().MousePos))
+                    render_panel_tooltip(node.label);
+            }
+        }
+
+        // Right-side state columns (Figma): Label / Explosion icons + Assembly status.
+        // Layout (right → left): [assembly] gap [explosion?] gap [label?], same as the header.
+        // Use the shared header right edge (not row_max.x) so centering survives
+        // child scrollbar width changes.
+        ImRect label_icon_rect(ImVec2(0, 0), ImVec2(0, 0));
+        ImRect explosion_icon_rect(ImVec2(0, 0), ImVec2(0, 0));
+        bool   has_label_icon_hit = false;
+        bool   has_explosion_icon_hit = false;
+        if (node.object_idx >= 0 &&
+            (options.show_label_state || options.show_explosion_state || options.show_assembly_state)) {
+            float col_right = state_cols_right_x;
+            if (options.show_assembly_state) {
+                const auto asm_state = assembly_state_text(node.object_idx, node.volume_idx);
+                const ImU32 asm_col = asm_state.second
+                    ? IM_COL32(0xFF, 0x6F, 0x00, 255)
+                    : IM_COL32(0x90, 0x90, 0x90, 255);
+                const ImVec2 asm_col_min(col_right - assembly_col_w, row_min.y);
+                const ImVec2 asm_col_max(col_right, row_max.y);
+                const std::string asm_display = utf8_fit_with_ellipsis(asm_state.first, assembly_col_w);
+                const ImVec2 tsz = ImGui::CalcTextSize(asm_display.c_str());
+                const float ax = col_right - assembly_col_w + (assembly_col_w - tsz.x) * 0.5f;
+                const float ay = center_y - tsz.y * 0.5f;
+                child_draw_list->PushClipRect(asm_col_min, asm_col_max, true);
+                child_draw_list->AddText(ImVec2(ax, ay), asm_col, asm_display.c_str());
+                child_draw_list->PopClipRect();
+                // Ellipsis / multi-step: hover the Assemble cell for the full text.
+                if (asm_display != asm_state.first &&
+                    ImRect(asm_col_min, asm_col_max).Contains(ImGui::GetIO().MousePos))
+                    render_panel_tooltip(asm_state.first);
+                col_right -= assembly_col_w + state_col_gap;
+            }
+            if (options.show_explosion_state) {
+                const bool exploded = part_in_explosion_state(node.object_idx, node.volume_idx);
+                ImTextureID tex = (m_is_dark && s_assembly_tree_icons.explosion_dark) ?
+                    s_assembly_tree_icons.explosion_dark : s_assembly_tree_icons.explosion;
+                const float ix = col_right - explosion_col_w + (explosion_col_w - label_icon_sz) * 0.5f;
+                const ImVec2 icon_min(ix, center_y - label_icon_sz * 0.5f);
+                const ImVec2 icon_max(icon_min.x + label_icon_sz, icon_min.y + label_icon_sz);
+                explosion_icon_rect = ImRect(ImVec2(col_right - explosion_col_w, row_min.y),
+                                             ImVec2(col_right, row_max.y));
+                has_explosion_icon_hit = true;
+                if (tex) {
+                    // Dimmed when not exploded so the column stays readable without a second asset.
+                    const ImU32 tint = exploded ? IM_COL32(255, 255, 255, 255) : IM_COL32(255, 255, 255, 70);
+                    child_draw_list->AddImage(tex, icon_min, icon_max, ImVec2(0, 0), ImVec2(1, 1), tint);
+                }
+                if (hovered && checkable && state != AssemblyTreeCheckState::None &&
+                    explosion_icon_rect.Contains(ImGui::GetIO().MousePos))
+                    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+                col_right -= explosion_col_w + state_col_gap;
+            }
+            if (options.show_label_state) {
+                // Only rows that are in the current step (checked) expose the
+                // label visibility control. Unchecked rows leave the cell empty
+                // instead of showing a disabled icon.
+                if (checkable && state != AssemblyTreeCheckState::None) {
+                    // Newly checked parts have no PartNumberLabel until Confirm
+                    // rebuilds them: still draw the unvisible icon (same look as a
+                    // hidden label) and explain via tooltip; clicks stay ignored.
+                    const bool has_label = part_number_label_exists(node.object_idx, node.volume_idx);
+                    const bool vis = has_label && part_number_label_visible(node.object_idx, node.volume_idx);
+                    ImTextureID tex = vis ? s_assembly_tree_icons.label_visible : s_assembly_tree_icons.label_unvisible;
+                    const float ix = col_right - label_col_w + (label_col_w - label_icon_sz) * 0.5f;
+                    const ImVec2 icon_min(ix, center_y - label_icon_sz * 0.5f);
+                    const ImVec2 icon_max(icon_min.x + label_icon_sz, icon_min.y + label_icon_sz);
+                    // Hit area is the full label column so clicks are easier to land.
+                    label_icon_rect = ImRect(ImVec2(col_right - label_col_w, row_min.y),
+                                             ImVec2(col_right, row_max.y));
+                    has_label_icon_hit = true;
+                    if (tex)
+                        child_draw_list->AddImage(tex, icon_min, icon_max);
+                    if (hovered && label_icon_rect.Contains(ImGui::GetIO().MousePos)) {
+                        if (has_label)
+                            ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+                        else
+                            render_panel_tooltip(_u8L("Please click Confirm first. After labels are generated on the canvas, this label control can be used."));
+                    }
+                }
+            }
         }
 
         if (row_clicked && !row_renaming) {
             const ImVec2 mouse_pos = ImGui::GetIO().MousePos;
-            if (!options.readonly && checkable && checkbox_rect.Contains(mouse_pos)) {
+            if (has_explosion_icon_hit && explosion_icon_rect.Contains(mouse_pos)) {
+                if (!options.readonly && checkable && state != AssemblyTreeCheckState::None)
+                    toggle_part_number_label_in_explosion_state(node.object_idx, node.volume_idx);
+            } else if (has_label_icon_hit && label_icon_rect.Contains(mouse_pos)) {
+                // Checked item with a canvas label: toggle PartNumberLabel visibility.
+                // Checked but not yet confirmed (no label): ignore the click.
+                // Unchecked item: ignore clicks on the label icon (no row select).
+                if (!options.readonly && checkable && state != AssemblyTreeCheckState::None &&
+                    part_number_label_exists(node.object_idx, node.volume_idx))
+                    toggle_part_number_label_visible(node.object_idx, node.volume_idx);
+            } else if (!options.readonly && checkable && checkbox_rect.Contains(mouse_pos)) {
                 set_subtree_checked(node_id, state != AssemblyTreeCheckState::All);
                 result.changed = true;
             } else if (has_children && arrow_rect.Contains(mouse_pos)) {
@@ -4302,23 +5212,91 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
             } else if (options.enable_row_select && node.object_idx >= 0) {
                 const std::pair<int, int> key(node.object_idx, node.volume_idx);
                 if (row_double_clicked) {
-                    // Double-click: keep the row selected (undo the first click's
-                    // toggle if needed) and enter inline rename.
+                    // Double-click: keep the row selected and enter inline rename.
                     m_assembly_tree_selected_items.insert(key);
+                    m_assembly_tree_selection_anchor = key;
                     apply_tree_items_selection_to_canvas();
                     begin_tree_item_rename(node.object_idx, node.volume_idx, node.label);
                     ImGui::PopID();
                     return;
                 }
-                // Plain click toggles selection (green highlight) and mirrors it
-                // onto the canvas. Several objects/parts can be selected with
-                // plain clicks; clicking an already selected row deselects it.
-                auto it = m_assembly_tree_selected_items.find(key);
-                if (it != m_assembly_tree_selected_items.end())
-                    m_assembly_tree_selected_items.erase(it);
-                else
+
+                const ImGuiIO &io    = ImGui::GetIO();
+                const bool     ctrl  = io.KeyCtrl || io.KeySuper;
+                const bool     shift = io.KeyShift;
+
+                if (shift && m_assembly_tree_selection_anchor.first >= 0) {
+                    // Shift+click: select the contiguous visible-row range from the
+                    // selection anchor to this row. Without Ctrl the previous
+                    // selection is replaced; with Ctrl the range is added.
+                    int idx_a = -1;
+                    int idx_b = -1;
+                    for (int i = 0; i < (int) visible_rows.size(); ++i) {
+                        const int nid = visible_rows[i].node_id;
+                        if (nid < 0 || nid >= (int) tree.nodes.size())
+                            continue;
+                        const auto &n = tree.nodes[nid];
+                        if (n.object_idx < 0)
+                            continue;
+                        const std::pair<int, int> k(n.object_idx, n.volume_idx);
+                        if (k == m_assembly_tree_selection_anchor)
+                            idx_a = i;
+                        if (k == key)
+                            idx_b = i;
+                    }
+                    if (idx_a >= 0 && idx_b >= 0) {
+                        if (!ctrl)
+                            m_assembly_tree_selected_items.clear();
+                        const int lo = std::min(idx_a, idx_b);
+                        const int hi = std::max(idx_a, idx_b);
+                        for (int i = lo; i <= hi; ++i) {
+                            const int nid = visible_rows[i].node_id;
+                            if (nid < 0 || nid >= (int) tree.nodes.size())
+                                continue;
+                            const auto &n = tree.nodes[nid];
+                            if (n.object_idx >= 0)
+                                m_assembly_tree_selected_items.emplace(n.object_idx, n.volume_idx);
+                        }
+                    } else {
+                        // Anchor not in the current visible list: fall back to exclusive select.
+                        m_assembly_tree_selected_items.clear();
+                        m_assembly_tree_selected_items.insert(key);
+                        m_assembly_tree_selection_anchor = key;
+                    }
+                } else if (ctrl) {
+                    // Ctrl/Cmd+click: toggle this row in/out of the multi-selection.
+                    auto it = m_assembly_tree_selected_items.find(key);
+                    if (it != m_assembly_tree_selected_items.end())
+                        m_assembly_tree_selected_items.erase(it);
+                    else
+                        m_assembly_tree_selected_items.insert(key);
+                    m_assembly_tree_selection_anchor = key;
+                } else {
+                    // Plain click: exclusive single select (deselect all others).
+                    m_assembly_tree_selected_items.clear();
                     m_assembly_tree_selected_items.insert(key);
+                    m_assembly_tree_selection_anchor = key;
+                }
                 apply_tree_items_selection_to_canvas();
+            }
+        }
+
+        // Right-click: reuse Plater assemble-view wx menus (object / part / multi).
+        if (row_right_clicked && !row_renaming && node.object_idx >= 0) {
+            const std::pair<int, int> key(node.object_idx, node.volume_idx);
+            if (m_assembly_tree_selected_items.count(key) > 0) {
+                // Already selected: keep the (possibly multi-row) selection so the
+                // menu acts on all of it (same UX as ObjectList) and open it now.
+                popup_assemble_context_menu();
+            } else {
+                // Not selected yet: switch the selection exactly like a plain left
+                // click, then let the deferred path above open the menu once that
+                // highlight has been drawn.
+                m_assembly_tree_selected_items.clear();
+                m_assembly_tree_selected_items.insert(key);
+                m_assembly_tree_selection_anchor = key;
+                apply_tree_items_selection_to_canvas();
+                m_assembly_tree_context_menu_frame = ImGui::GetFrameCount();
             }
         }
 
@@ -4330,7 +5308,7 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
     clipper.Begin(row_count, row_stride);
     while (clipper.Step()) {
         for (int row_idx = clipper.DisplayStart; row_idx < clipper.DisplayEnd; ++row_idx)
-            render_row(visible_rows[row_idx]);
+            render_row(row_idx);
     }
     // No row hovered this frame: clear the cached hover target once.
     if (options.enable_row_select && !any_row_hovered && m_assembly_tree_hover_id != -1)
@@ -4338,14 +5316,9 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
     ImGuiWindow *tree_child = ImGui::GetCurrentWindow();
     ImGui::EndChild();
     ImGui::PopStyleVar(); // WindowPadding
-    // Restore prior tree thumb width: 1px gap each side of the track (was OK before
-    // the shared 6px token thinned this list). Structure panel keeps 6*sc.
-    float tree_sb_grab_w = 12.0f * sc;
-    if (tree_child && tree_child->ScrollbarY) {
-        const float track_w = ImGui::GetWindowScrollbarRect(tree_child, ImGuiAxis_Y).GetWidth();
-        tree_sb_grab_w = std::max(1.0f * sc, track_w - 2.0f * sc);
-    }
-    draw_assembly_scrollbar_y_thumb(tree_child, sc, m_is_dark, tree_sb_grab_w);
+    // Same thin thumb as the structure panel (6*sc in a 14*sc track). A near-full
+    // track grab looked like a thick gray bar and clipped the Assemble column text.
+    draw_assembly_scrollbar_y_thumb(tree_child, sc, m_is_dark, 6.0f * sc);
 
     if (!options.show_footer)
         return result;
@@ -4692,6 +5665,10 @@ bool AssemblyStepsUtils::render_note_tool_btn(
 
 bool AssemblyStepsUtils::render_note_color_control(ImDrawList *dl, float x, float y, float sc)
 {
+    // Text labels keep a separate sticky palette from shape / arrow notes.
+    int &color_selected = (m_note_selected_type == AssemblyNoteSelectionType::TextLabel)
+                              ? m_text_note_color_selected
+                              : m_guide_note_color_selected;
     const float swatch_sz = 14.4f * sc;
     const float gap       = 4.8f * sc;
     const float pad_x     = 8.0f * sc;
@@ -4716,7 +5693,7 @@ bool AssemblyStepsUtils::render_note_color_control(ImDrawList *dl, float x, floa
         dl->AddRectFilled(smin, smax, note_color_to_im_u32(item.color), swatch_rounding);
         if (item.has_border)
             dl->AddRect(smin, smax, m_is_dark ? IM_COL32(100, 100, 104, 255) : IM_COL32(172, 172, 172, 255), swatch_rounding);
-        if (m_guide_note_color_selected == i)
+        if (color_selected == i)
             dl->AddRect(ImVec2(smin.x - 2.4f * sc, smin.y - 2.4f * sc),
                 ImVec2(smax.x + 2.4f * sc, smax.y + 2.4f * sc),
                 IM_COL32(0, 174, 66, 255), swatch_rounding + 2.4f * sc, 0, 1.8f * sc);
@@ -4727,8 +5704,8 @@ bool AssemblyStepsUtils::render_note_color_control(ImDrawList *dl, float x, floa
         if (ImGui::IsItemClicked(0)) {
             set_selection_origin(SelectionOrigin::NoteColorControl);
         }
-        if (ImGui::IsItemClicked(0) && m_guide_note_color_selected != i) {
-            m_guide_note_color_selected = i;
+        if (ImGui::IsItemClicked(0) && color_selected != i) {
+            color_selected = i;
             auto *entries = get_current_kf_entries();
             if (entries && m_keyframe_selected >= 0 && m_keyframe_selected < (int)entries->size()) {
                 KeyFrameEntry &cur_entry = (*entries)[m_keyframe_selected];
@@ -4880,20 +5857,24 @@ void AssemblyStepsUtils::render_export_menu_popup(const char* popup_id, float sc
     static const int kExportItemCount = 3;
     const std::string labels[] = { _u8L("Export PDF"), _u8L("Export Markdown"), _u8L("Export MP4") };
     const ExportType types[] = { ExportType::PDF, ExportType::MarkDown, ExportType::MP4 };
+    const std::string settings_label = _u8L("Set export file parameters");
     const std::string markdown_tooltip = _u8L("After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF.");
     const float row_height = 28.0f * sc;
     const float row_spacing = 2.0f * sc;
     const float win_padding = 12.0f * sc;
     const float row_pad_x = 8.0f * sc;
     const float text_right_margin = 8.0f * sc;
+    // Export formats + "Set export file parameters" after Export MP4.
+    const int total_rows = kExportItemCount + 1;
 
     float max_text_width = 0.0f;
     for (int i = 0; i < kExportItemCount; ++i)
         max_text_width = std::max(max_text_width, ImGui::CalcTextSize(labels[i].c_str()).x);
+    max_text_width = std::max(max_text_width, ImGui::CalcTextSize(settings_label.c_str()).x);
 
     const float menu_width = std::max(128.0f * sc,
         2.0f * win_padding + row_pad_x + max_text_width + text_right_margin);
-    const float menu_height = win_padding * 2.0f + row_height * kExportItemCount + row_spacing * (kExportItemCount - 1);
+    const float menu_height = win_padding * 2.0f + row_height * total_rows + row_spacing * (total_rows - 1);
     ImGui::SetNextWindowSize(ImVec2(menu_width, menu_height), ImGuiCond_Always);
 
     ImGui::PushStyleColor(ImGuiCol_PopupBg, m_is_dark ? ImVec4(45 / 255.0f, 45 / 255.0f, 49 / 255.0f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -4911,12 +5892,13 @@ void AssemblyStepsUtils::render_export_menu_popup(const char* popup_id, float sc
         }
 
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        for (int i = 0; i < kExportItemCount; ++i) {
-            ImGui::PushID(i);
+        auto draw_menu_row = [&](int id, const std::string &label, const std::function<void()> &on_click,
+                                 const std::string *hover_tip = nullptr) {
+            ImGui::PushID(id);
             ImVec2 row_pos = ImGui::GetCursorScreenPos();
             const float row_content_w = ImGui::GetContentRegionAvail().x;
             if (ImGui::InvisibleButton("##assembly_export_item", ImVec2(row_content_w, row_height))) {
-                on_export(types[i]);
+                on_click();
                 ImGui::CloseCurrentPopup();
             }
 
@@ -4924,17 +5906,22 @@ void AssemblyStepsUtils::render_export_menu_popup(const char* popup_id, float sc
             if (hovered) {
                 const ImU32 bg = m_is_dark ? IM_COL32(55, 55, 59, 255) : IM_COL32(240, 240, 240, 255);
                 draw_list->AddRectFilled(row_pos, ImVec2(row_pos.x + row_content_w, row_pos.y + row_height), bg, 4.0f * sc);
-                if (types[i] == ExportType::MarkDown)
-                    render_panel_tooltip(markdown_tooltip, false);
+                if (hover_tip)
+                    render_panel_tooltip(*hover_tip, false);
             }
 
-            const ImVec2 text_size = ImGui::CalcTextSize(labels[i].c_str());
+            const ImVec2 text_size = ImGui::CalcTextSize(label.c_str());
             draw_list->AddText(ImVec2(row_pos.x + row_pad_x, row_pos.y + (row_height - text_size.y) * 0.5f),
-                               ImGui::GetColorU32(ImGuiCol_Text), labels[i].c_str());
+                               ImGui::GetColorU32(ImGuiCol_Text), label.c_str());
             ImGui::PopID();
-            if (i + 1 < kExportItemCount)
-                ImGui::Dummy(ImVec2(0.0f, row_spacing));
+        };
+
+        for (int i = 0; i < kExportItemCount; ++i) {
+            const std::string *tip = (types[i] == ExportType::MarkDown) ? &markdown_tooltip : nullptr;
+            draw_menu_row(i, labels[i], [this, t = types[i]]() { on_export(t); }, tip);
+            ImGui::Dummy(ImVec2(0.0f, row_spacing));
         }
+        draw_menu_row(kExportItemCount, settings_label, [this]() { show_pdf_export_settings_dialog(); });
         ImGui::EndPopup();
     }
 
@@ -5038,6 +6025,8 @@ bool AssemblyStepsUtils::render_checkbox(
     const ImU32 grey400 = IM_COL32(206, 206, 206, 255);
     const ImU32 brand   = IM_COL32(0, 174, 66, 255);
     const float rounding = 2.0f * sc;
+    // One extra pixel on every stroke so the box reads clearly at small sizes.
+    const float stroke_bump = 1.0f * sc;
 
     const ImVec2 cb_min(x, y);
     const ImVec2 cb_max(x + sz, y + sz);
@@ -5049,11 +6038,11 @@ bool AssemblyStepsUtils::render_checkbox(
         const float a_x = x + sz * 0.22f, a_y = y + sz * 0.52f;
         const float b_x = x + sz * 0.43f, b_y = y + sz * 0.72f;
         const float c_x = x + sz * 0.78f, c_y = y + sz * 0.32f;
-        dl->AddLine(ImVec2(a_x, a_y), ImVec2(b_x, b_y), white_c, 1.5f * sc);
-        dl->AddLine(ImVec2(b_x, b_y), ImVec2(c_x, c_y), white_c, 1.5f * sc);
+        dl->AddLine(ImVec2(a_x, a_y), ImVec2(b_x, b_y), white_c, 1.5f * sc + stroke_bump);
+        dl->AddLine(ImVec2(b_x, b_y), ImVec2(c_x, c_y), white_c, 1.5f * sc + stroke_bump);
     } else {
         dl->AddRectFilled(cb_min, cb_max, white_c, rounding);
-        dl->AddRect(cb_min, cb_max, grey400, rounding, 0, 1.0f * sc);
+        dl->AddRect(cb_min, cb_max, grey400, rounding, 0, 1.0f * sc + stroke_bump);
     }
 
     ImGui::SetCursorScreenPos(cb_min);
@@ -5108,6 +6097,23 @@ void AssemblyStepsUtils::render_assembly_label_settings_section(
     // bare popup_id used by BeginPopup in render_assembly_label_settings_popup().
     if (gear_clicked)
         ImGui::OpenPopup(popup_id);
+
+    // Reset closed labels (tree_reset.svg) on the far right of the title row.
+    // Only shown when the current keyframe has at least one closed label.
+    if (has_closed_part_number_labels()) {
+        const float reset_x = card_min.x + card_w - pad_x - gear_sz;
+        const float reset_y = gear_y;
+        if (m_tree_icon_reset)
+            draw_list->AddImage(m_tree_icon_reset, ImVec2(reset_x, reset_y),
+                                ImVec2(reset_x + gear_sz, reset_y + gear_sz));
+        ImGui::SetCursorScreenPos(ImVec2(reset_x, reset_y));
+        ImGui::PushID("##label_reset_closed");
+        if (ImGui::InvisibleButton("##reset", ImVec2(gear_sz, gear_sz)))
+            reset_closed_part_number_labels();
+        if (ImGui::IsItemHovered())
+            render_panel_tooltip(_u8L("Reset all closed labels"));
+        ImGui::PopID();
+    }
 
     // Row 1: "Show Object/Part labels" + checkbox. Drives the actual part-number
     // labels (same state/action as the old "Show Part Numbers" card).
@@ -5393,7 +6399,8 @@ bool AssemblyStepsUtils::is_part_number_label_layout_overlapped(const ImVec2 &re
     return false;
 }
 
-void AssemblyStepsUtils::render_assembly_guide_export_button(float panel_x, float panel_y, float sc)
+void AssemblyStepsUtils::render_assembly_guide_export_button(float panel_x, float panel_y, float sc,
+                                                              bool disabled, bool use_corner_mode)
 {
     if (!m_imgui)
         return;
@@ -5425,7 +6432,7 @@ void AssemblyStepsUtils::render_assembly_guide_export_button(float panel_x, floa
     const float  btn_h  = btn_sz.y;
 
     float btn_x, btn_y;
-    if (m_export_btn_corner_mode) {
+    if (use_corner_mode && m_export_btn_corner_mode) {
         // Overlapping the gizmo toolbar at the default spot: relocate to the canvas
         // top-right corner, right-aligned with the guide panel's right edge and
         // TOP-aligned with the gizmo toolbar's top. The button card is taller than the
@@ -5460,12 +6467,14 @@ void AssemblyStepsUtils::render_assembly_guide_export_button(float panel_x, floa
 
     // Hit area first so we can paint a hover overlay over the base card.
     ImGui::SetCursorScreenPos(win_min);
+    m_imgui->disabled_begin(disabled);
     ImGui::InvisibleButton("##t", ImVec2(btn_w, btn_h));
-    const bool hovered = ImGui::IsItemHovered();
-    const bool clicked = ImGui::IsItemClicked(0);
+    const bool hovered = ImGui::IsItemHovered(disabled ? ImGuiHoveredFlags_AllowWhenDisabled : 0);
+    const bool clicked = !disabled && ImGui::IsItemClicked(0);
+    m_imgui->disabled_end();
 
     // Base card: rgba(0,0,0,0.3) - alpha 0.3 = 77/255.
-    dl->AddRectFilled(win_min, win_max, IM_COL32(0, 0, 0, 77), rounding);
+    dl->AddRectFilled(win_min, win_max, IM_COL32(0, 0, 0, disabled ? 46 : 77), rounding);
     if (hovered) {
         // Subtle hover lift: slightly darker card.
         dl->AddRectFilled(win_min, win_max, IM_COL32(0, 0, 0, 38), rounding);
@@ -5482,7 +6491,9 @@ void AssemblyStepsUtils::render_assembly_guide_export_button(float panel_x, floa
     if (m_btn_icon_export) {
         dl->AddImage(m_btn_icon_export,
                      ImVec2(icon_x, icon_y),
-                     ImVec2(icon_x + icon_body_sz, icon_y + icon_body_sz));
+                     ImVec2(icon_x + icon_body_sz, icon_y + icon_body_sz),
+                     ImVec2(0, 0), ImVec2(1, 1),
+                     disabled ? IM_COL32(255, 255, 255, 102) : IM_COL32(255, 255, 255, 255));
     }
 
     // Label "Export": white, centered horizontally within the label band.
@@ -5490,7 +6501,8 @@ void AssemblyStepsUtils::render_assembly_guide_export_button(float panel_x, floa
     const float text_x = win_min.x + (btn_w - text_sz.x) * 0.5f;
     const float text_y = icon_box_y + icon_sz + (label_line - text_sz.y) * 0.5f;
     dl->AddText(ImGui::GetFont(), label_fs, ImVec2(text_x, text_y),
-                IM_COL32(255, 255, 255, 255), label_str.c_str());
+                disabled ? IM_COL32(255, 255, 255, 102) : IM_COL32(255, 255, 255, 255),
+                label_str.c_str());
     const char *export_popup_id = "##assembly_export_menu";
     if (clicked) {
         update_final_assembly_step_number_to_max();
@@ -5501,7 +6513,8 @@ void AssemblyStepsUtils::render_assembly_guide_export_button(float panel_x, floa
     if (hovered) {
         // Tooltip restores non-zero WindowPadding so the popup has margin.
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f * sc, 6.0f * sc));
-        m_imgui->tooltip(_u8L("Export assembly guide PDF, Markdown or MP4"),
+        m_imgui->tooltip(disabled ? _u8L("Please create an assembly step before exporting.")
+                                  : _u8L("Export assembly guide PDF, Markdown or MP4"),
                          20.0f * m_imgui->scaled(1.0f));
         ImGui::PopStyleVar();
     }
@@ -5599,11 +6612,16 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
     const bool show_connection_color_control = is_note_edit_controls_visible() &&
         m_note_selected_type == AssemblyNoteSelectionType::ArrowSvg;
     // Color control for the Add-Notes tools (rect / circle / arrow / text).
-    const bool show_note_color_control = is_note_edit_controls_visible() &&
+    const bool has_note_color_control = is_note_edit_controls_visible() &&
         note_tool_index_from_selection(m_note_selected_type) >= 0;
+    const bool is_text_label_note = m_note_selected_type == AssemblyNoteSelectionType::TextLabel;
+    // Both TextLabel color rows are behind their own structure-panel option, so a
+    // text note can expose the text row, the background row, both or neither.
+    const bool  show_note_color_control = has_note_color_control &&
+        (!is_text_label_note || m_allow_modify_text_note_foreground);
     // The background-color row only applies to TextLabel notes.
-    const bool  show_note_bg_color_control = show_note_color_control &&
-        m_note_selected_type == AssemblyNoteSelectionType::TextLabel;
+    const bool  show_note_bg_color_control = has_note_color_control && is_text_label_note &&
+        m_allow_modify_text_note_background;
     const float card_h_ct   = title_h_ct + ct_cont_h + 8.0f * sc +
         (show_connection_color_control ? color_row_gap_an + color_row_h_an : 0.0f);
     const float card_h_an   = title_h_an + btn_sz_an +
@@ -5621,9 +6639,6 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
 
     // Endframe tip: surfaced under the timeline thumbs whenever the user has
     std::string endframe_tip_str;
-    // Separate transient tip for the "kept whole" auto-explode hint. Kept apart from
-    // endframe_tip_str so it is not swallowed by that tip's 3-line truncation.
-    std::string collapse_note_str;
     {
         const int   tip_folder      = find_parent_folder(m_selected_node);
         auto       *tip_entries     = sp_entries;
@@ -5633,18 +6648,14 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
             tip_entries != nullptr &&
             m_keyframe_selected >= 0 && m_keyframe_selected < (int)tip_entries->size() &&
             (*tip_entries)[m_keyframe_selected].is_last();
-        if (endframe_selected) {
-            endframe_tip_str = tip_step_nodes[tip_folder].is_final_assembly ?
+        /*if (endframe_selected) {
+            endframe_tip_str = tip_step_nodes[tip_folder].is_final_assembly != AssemblyStepKind::Normal ?
                                    (_u8L("Note") + ":" + _u8L("Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display.")) :
                                    (_u8L("Note") + ":" + _u8L("Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display.") +
                                     _u8L("If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present.") +
                                                        _u8L("undoing these edits is not yet supported and will be added in a later version."));
-        }
-        // Auto-explode kept some objects whole because they were already used in an
-        if (std::chrono::steady_clock::now() < m_explode_collapsed_note_until) {
-            collapse_note_str = _u8L("Note") + ":" +
-                _u8L("Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool.");
-        }
+        }*/
+
     }
     const float endframe_tip_wrap = card_w - 16.0f * sc;
     ImVec2      endframe_tip_size = endframe_tip_str.empty()
@@ -5690,22 +6701,13 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
                                            ? 0.0f
                                            : (endframe_tip_size.y + 8.0f * sc);
 
-    // Standalone collapse tip: full text (no truncation), measured for its own height.
-    ImVec2 collapse_note_size = collapse_note_str.empty()
-                                    ? ImVec2(0.0f, 0.0f)
-                                    : ImGui::GetFont()->CalcTextSizeA(small_fs, FLT_MAX, endframe_tip_wrap,
-                                                                       collapse_note_str.c_str(), nullptr, nullptr);
-    const float collapse_note_extra_h = collapse_note_str.empty()
-                                            ? 0.0f
-                                            : (collapse_note_size.y + 8.0f * sc);
-
     // Row under the frame labels for the "save / update" pill (Figma 4098:10831):
     // gap above the button + pill height + gap below. Kept in sync with the render.
     const float kf_to_btn_gap      = 18.0f * sc;
     const float save_btn_h         = 22.0f * sc;
     const float save_btn_below_gap = 8.0f * sc;
     const float save_btn_row_h     = kf_to_btn_gap + save_btn_h + save_btn_below_gap;
-    const float card_h_tl   = font_sz + 12.0f * sc + thumb_h_tl + small_fs + save_btn_row_h + 8.0f * sc + endframe_tip_extra_h + collapse_note_extra_h;
+    const float card_h_tl   = font_sz + 12.0f * sc + thumb_h_tl + small_fs + save_btn_row_h + 8.0f * sc + endframe_tip_extra_h;
 
     const float total_content = 8.0f * sc
         + card_h_ct + section_gap
@@ -5749,10 +6751,8 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
         const ImVec2 header_min = win_pos;
         const ImVec2 header_max(win_pos.x + panel_w, win_pos.y + header_h);
         const ImU32 grad_top = is_dark ? IM_COL32(48, 48, 52, 255) : IM_COL32(248, 248, 248, 255);
-        const ImU32 grad_bot = is_dark ? IM_COL32(42, 42, 46, 255) : IM_COL32(241, 241, 241, 255);
         draw_list->AddRectFilled(header_min, header_max, grad_top, 4.0f * sc,
             m_guide_panel_collapsed ? ImDrawFlags_RoundCornersAll : ImDrawFlags_RoundCornersTop);
-        draw_list->AddRectFilledMultiColor(header_min, header_max, grad_top, grad_top, grad_bot, grad_bot);
 
         // Collapse / expand toggle button on the LEFT of the title (Figma node 691:17048).
         const float toggle_sz   = 16.0f * sc;
@@ -5761,8 +6761,8 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
                                 win_pos.y + (header_h - toggle_sz) * 0.5f);
         const ImVec2 toggle_max(toggle_min.x + toggle_sz, toggle_min.y + toggle_sz);
 
-        ImTextureID toggle_icon = m_guide_panel_collapsed ? m_panel_expand_icon
-                                                          : m_panel_collapse_icon;
+        ImTextureID toggle_icon = m_guide_panel_collapsed ? s_assembly_tree_icons.expand_external
+                                                          : s_assembly_tree_icons.collapse_external;
         if (toggle_icon) {
             draw_list->AddImage(toggle_icon, toggle_min, toggle_max);
         } else {
@@ -5935,13 +6935,13 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
         m_guide_note_tool_selected = is_note_edit_controls_visible()
             ? note_tool_index_from_selection(m_note_selected_type)
             : -1;
-        if (show_note_color_control) {
+        if (has_note_color_control) {
             auto *entries = get_current_kf_entries();
             if (entries && m_keyframe_selected >= 0 && m_keyframe_selected < (int)entries->size()) {
                 const AssemblyNote &note = (*entries)[m_keyframe_selected].data.assembly_note;
                 if (m_note_selected_type == AssemblyNoteSelectionType::TextLabel &&
                     m_note_selected_idx >= 0 && m_note_selected_idx < (int)note.text_labels.size()) {
-                    m_guide_note_color_selected    = note_palette_index_from_color(note.text_labels[m_note_selected_idx].color);
+                    m_text_note_color_selected     = note_palette_index_from_color(note.text_labels[m_note_selected_idx].color);
                     m_guide_note_bg_color_selected = note_palette_index_from_color(note.text_labels[m_note_selected_idx].background_color);
                 } else if (m_note_selected_type == AssemblyNoteSelectionType::Circle &&
                          m_note_selected_idx >= 0 && m_note_selected_idx < (int)note.circle_notes.size())
@@ -5975,11 +6975,11 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
             }
             btn_x += btn_sz_an + btn_gap;
         }
-        if (show_note_color_control) {
+        if (show_note_color_control || show_note_bg_color_control) {
             const float color_row_y = tools_y + btn_sz_an + color_row_gap_an;
             const float palette_left_x = card_min.x + 8.0f * sc;
 
-            if (show_note_bg_color_control) {
+            if (show_note_color_control && show_note_bg_color_control) {
                 // Text label tool gets two color rows; prefix each row with a
                 // small "Text" / "Background" caption so the user can tell them
                 // apart. Reserve the larger of the two label widths so the two
@@ -6004,8 +7004,12 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
 
                 render_note_color_control(draw_list, palette_x, color_row_y, sc);
                 render_note_bg_color_control(draw_list, palette_x, bg_row_y, sc);
-            } else {
+            } else if (show_note_color_control) {
                 render_note_color_control(draw_list, palette_left_x, color_row_y, sc);
+            } else {
+                // Only the background row survived the options: no caption needed,
+                // so it takes the single-row layout.
+                render_note_bg_color_control(draw_list, palette_left_x, color_row_y, sc);
             }
         }
 
@@ -6057,14 +7061,8 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
             ImGui::PushID("##tl_play_inline");
             imgui.disabled_begin(!can_play_current_node);
             ImGui::InvisibleButton("##p", ImVec2(btn_sz, btn_sz));
-            if (ImGui::IsItemClicked(0)) {
-                if (m_keyframe_playing)
-                    pause_playback();
-                else if (m_playback_paused)
-                    resume_playback();
-                else
-                    play_all_keyframes_for_current_node();
-            }
+            if (ImGui::IsItemClicked(0))
+                toggle_play_all_keyframes_for_current_node();
             if (ImGui::IsItemHovered())
                 render_panel_tooltip(can_play_current_node ? (m_keyframe_playing ? _u8L("Pause") : _u8L("Play all frames for current step")) :
                     _u8L("At least two keyframes are required to play."));
@@ -6082,40 +7080,52 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
         const bool auto_explode_is_final =
             auto_explode_folder >= 0 &&
             auto_explode_folder < static_cast<int>(auto_explode_nodes.size()) &&
-            auto_explode_nodes[auto_explode_folder].is_final_assembly;
-        const bool auto_explode_is_end =
-            auto_explode_entries != nullptr &&
-            m_keyframe_selected >= 0 &&
-            m_keyframe_selected < static_cast<int>(auto_explode_entries->size()) &&
-            (*auto_explode_entries)[m_keyframe_selected].is_last();
+            auto_explode_nodes[auto_explode_folder].is_final_assembly != AssemblyStepKind::Normal;
         ImTextureID auto_explode_icon = (m_is_dark && m_tree_icon_auto_explode_dark) ?
             m_tree_icon_auto_explode_dark : m_tree_icon_auto_explode;
-        const bool show_auto_explode =
+        const bool can_auto_explode =
             auto_explode_icon != nullptr &&
             auto_explode_folder >= 0 &&
             auto_explode_entries != nullptr &&
             m_keyframe_selected >= 0 &&
-            m_keyframe_selected < static_cast<int>(auto_explode_entries->size()) &&
-            (!auto_explode_is_final || !auto_explode_is_end);
+            m_keyframe_selected < static_cast<int>(auto_explode_entries->size());
 
         const int   from_fae_folder = find_parent_folder(m_selected_node);
         auto       *from_fae_entries = get_current_kf_entries();
         const auto &fae_nodes        = m_model->get_assembly_steps_tree_data().nodes;
         ImTextureID from_fae_icon = (m_is_dark && m_tree_icon_from_assembly_end_frame_dark) ?
             m_tree_icon_from_assembly_end_frame_dark : m_tree_icon_from_assembly_end_frame;
-        const bool show_from_fae =
+        const bool on_final_non_end =
+            from_fae_folder >= 0 && from_fae_folder < (int) fae_nodes.size() &&
+            fae_nodes[from_fae_folder].is_final_assembly == AssemblyStepKind::FinalAssembly &&
+            from_fae_entries != nullptr &&
+            m_keyframe_selected >= 0 &&
+            m_keyframe_selected < (int) from_fae_entries->size() &&
+            !(*from_fae_entries)[m_keyframe_selected].is_last();
+        const bool can_from_fae =
             from_fae_icon != nullptr &&
             from_fae_folder >= 0 && from_fae_folder < (int)fae_nodes.size() &&
-            !fae_nodes[from_fae_folder].is_final_assembly &&
+            (fae_nodes[from_fae_folder].is_final_assembly == AssemblyStepKind::Normal || on_final_non_end) &&
             from_fae_entries != nullptr &&
             m_keyframe_selected >= 0 &&
             m_keyframe_selected < (int)from_fae_entries->size();
+
+        // Drive the shared icon: when the current pose already matches the final-
+        // assembly end frame, show auto-explode; otherwise show from-fae (apply).
+        // FinalAssembly start/mid frames use the same toggle (restore to end pose).
+        const bool matches_fae_end = current_keyframe_matches_final_assembly_transforms();
+        const bool draw_from_fae_in_slot = can_from_fae && !matches_fae_end;
+        const bool draw_auto_explode_in_slot = can_auto_explode && !draw_from_fae_in_slot;
+        const bool show_shared_explode_fae_slot =
+            draw_from_fae_in_slot || draw_auto_explode_in_slot;
+        const bool selection_in_current_step = is_selection_added_to_current_step();
 
         ImTextureID apply_camera_icon = (m_is_dark && m_tree_icon_apply_camera_dark) ?
             m_tree_icon_apply_camera_dark : m_tree_icon_apply_camera;
         const bool show_apply_camera = apply_camera_icon != nullptr;
 
-        const int right_btn_count = (show_auto_explode ? 1 : 0) + (show_from_fae ? 1 : 0) + (show_apply_camera ? 1 : 0);
+        const int right_btn_count =
+            (show_shared_explode_fae_slot ? 1 : 0) + (show_apply_camera ? 1 : 0);
         float right_btn_x = right_btn_count > 0
             ? card_min.x + card_w - 8.0f * sc - right_btn_count * right_btn_sz - (right_btn_count - 1) * right_btn_gap
             : 0.0f;
@@ -6125,58 +7135,69 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
             return x;
         };
 
-        // "Auto explode" button: pushes the current frame's objects/parts
-        // outward by their dominant direction from the current overall bbox.
-        {
-            if (show_auto_explode) {
-                const ImVec2 title_sz = ImGui::GetFont()->CalcTextSizeA(font_sz,
-                    FLT_MAX, 0.0f, tl_title.c_str());
-                const float btn_sz = right_btn_sz;
-                const float btn_x  = take_right_btn_x();
-                const float btn_y  = card_min.y + 6.0f * sc + (title_sz.y - btn_sz) * 0.5f;
+        // Shared title-row slot: auto-explode <-> apply-from-final-assembly-end.
+        if (show_shared_explode_fae_slot) {
+            const ImVec2 title_sz = ImGui::GetFont()->CalcTextSizeA(font_sz,
+                FLT_MAX, 0.0f, tl_title.c_str());
+            const float btn_sz = right_btn_sz;
+            const float btn_x  = take_right_btn_x();
+            const float btn_y  = card_min.y + 6.0f * sc + (title_sz.y - btn_sz) * 0.5f;
+            // Two reasons to dim the icon and drop the click: the step only inherited
+            // objects (nothing new to explode / restore), or the canvas selection does
+            // not belong to this step yet. slot_enabled is the single gate on purpose:
+            // ImGuiItemFlags_Disabled would also kill IsItemHovered(), so the tooltip
+            // telling the user what to do first could never be read.
+            const bool  slot_enabled = step_has_new_objects(auto_explode_folder) && selection_in_current_step;
+            const ImU32 slot_tint    = slot_enabled ? IM_COL32(255, 255, 255, 255)
+                                                    : IM_COL32(255, 255, 255, 70);
+            const std::string slot_disabled_tip = !selection_in_current_step
+                ? _u8L("Add the selected object or part to the current step first")
+                : _u8L("Add a new object to the current step first");
 
-                draw_list->AddImage(auto_explode_icon,
-                    ImVec2(btn_x, btn_y), ImVec2(btn_x + btn_sz, btn_y + btn_sz));
-
-                ImGui::SetCursorScreenPos(ImVec2(btn_x, btn_y));
-                ImGui::PushID("##tl_auto_explode");
-                ImGui::InvisibleButton("##ae", ImVec2(btn_sz, btn_sz));
-                if (ImGui::IsItemClicked(0))
-                    auto_explode_current_keyframe();
-                if (ImGui::IsItemHovered())
-                    render_panel_tooltip(auto_explode_is_final ?
-                        _u8L("Automatically explode all objects.") :
-                        _u8L("Automatically explode all parts."));//Excluding some previously appeared objects
-                ImGui::PopID();
-            }
-        }
-
-        // "Apply from final-assembly end frame": pulls the live assembled
-        {
-            if (show_from_fae) {
-                const ImVec2 title_sz = ImGui::GetFont()->CalcTextSizeA(font_sz,
-                    FLT_MAX, 0.0f, tl_title.c_str());
-                const float btn_sz = right_btn_sz;
-                const float btn_x  = take_right_btn_x();
-                const float btn_y  = card_min.y + 6.0f * sc + (title_sz.y - btn_sz) * 0.5f;
-
-                // Greyed out when the current keyframe's pose already
-                const bool  fae_disabled = current_keyframe_matches_final_assembly_end_frame_transforms();
-                const ImU32 fae_tint     = fae_disabled
-                    ? IM_COL32(255, 255, 255, 128)
-                    : IM_COL32_WHITE;
+            if (draw_from_fae_in_slot) {
                 draw_list->AddImage(from_fae_icon,
                     ImVec2(btn_x, btn_y), ImVec2(btn_x + btn_sz, btn_y + btn_sz),
-                    ImVec2(0, 0), ImVec2(1, 1), fae_tint);
+                    ImVec2(0, 0), ImVec2(1, 1), slot_tint);
 
                 ImGui::SetCursorScreenPos(ImVec2(btn_x, btn_y));
-                ImGui::PushID("##tl_apply_from_assembly_end");
+                ImGui::PushID("##tl_shared_explode_fae");
                 ImGui::InvisibleButton("##fae", ImVec2(btn_sz, btn_sz));
-                if (!fae_disabled && ImGui::IsItemClicked(0))
-                    apply_final_assembly_end_frame_transforms_to_current_keyframe();
+                if (slot_enabled && ImGui::IsItemClicked(0))
+                    apply_final_assembly_to_current_keyframe();
                 if (ImGui::IsItemHovered()) {
-                    // Localized counterpart in zh_CN should read along the
-                    render_panel_tooltip(_u8L("Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"));
+                    render_panel_tooltip(slot_enabled ?
+                        _u8L("Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)") :
+                        slot_disabled_tip);
+                }
+                ImGui::PopID();
+            } else {
+                draw_list->AddImage(auto_explode_icon,
+                    ImVec2(btn_x, btn_y), ImVec2(btn_x + btn_sz, btn_y + btn_sz),
+                    ImVec2(0, 0), ImVec2(1, 1), slot_tint);
+
+                ImGui::SetCursorScreenPos(ImVec2(btn_x, btn_y));
+                ImGui::PushID("##tl_shared_explode_fae");
+                ImGui::InvisibleButton("##ae", ImVec2(btn_sz, btn_sz));
+                if (slot_enabled && ImGui::IsItemClicked(0))
+                    auto_explode_current_keyframe();
+                if (ImGui::IsItemHovered() && !slot_enabled) {
+                    render_panel_tooltip(slot_disabled_tip);
+                } else if (ImGui::IsItemHovered()) {
+                    std::string tip = auto_explode_is_final ?
+                        _u8L("Automatically explode objects that are new to this step. Objects already assembled in earlier steps stay together.") :
+                        _u8L("Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole.");
+#if !BBL_RELEASE_TO_PUBLIC
+                    const std::vector<std::string> mismatch_names = collect_current_keyframe_assemble_pose_mismatch_names();
+                    if (!mismatch_names.empty()) {
+                        tip += "\n";
+                        for (size_t i = 0; i < mismatch_names.size(); ++i) {
+                            if (i > 0)
+                                tip += ", ";
+                            tip += mismatch_names[i];
+                        }
+                    }
+#endif
+                    render_panel_tooltip(tip);
                 }
                 ImGui::PopID();
             }
@@ -6207,8 +7228,8 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
                         // won't be overwritten by automatic camera seeding later.
                         entry.data.camera_user_defined = true;
                         entry.need_save = true;
-                        save_assembly_steps_json_to_model();
                     }
+                    save_assembly_steps_json_to_model();
                 }
             }
             if (ImGui::IsItemHovered())
@@ -6438,12 +7459,6 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
             }
             next_tip_y += endframe_tip_size.y + 8.0f * sc;
         }
-        // Standalone "kept whole" tip: its own line, full text, no truncation.
-        if (!collapse_note_str.empty()) {
-            draw_list->AddText(ImGui::GetFont(), small_fs,
-                ImVec2(tip_x, next_tip_y),
-                grey500, collapse_note_str.c_str(), nullptr, endframe_tip_wrap);
-        }
 
         ImGui::SetCursorScreenPos(ImVec2(card_min.x, card_min.y + card_h_tl));
         ImGui::Dummy(ImVec2(card_w, 0));
@@ -6649,16 +7664,25 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
 
     ImGuiWrapper& imgui = *m_imgui;
 
-    // Auto-fit the panel height to the number of visible rows, capped at 800*sc
-    // (then the row list scrolls). panel_h is the on-screen upper clamp.
-    const float adaptive_h = [&]() {
+    // Keep in sync with the standalone-list call site (show_checkbox == false).
+    const bool show_label_state     = show_checkbox;
+    const bool show_explosion_state = show_checkbox && m_view_is_in_explosion_state;
+    const bool show_assembly_state  = true;
+
+    // Unclamped content height (chrome + visible rows). Used to decide whether
+    // the icon-aligned slot would overflow and need the min-height + arrow rule.
+    const float content_h = [&]() {
         auto to_lower_ascii = [](std::string v) {
             std::transform(v.begin(), v.end(), v.begin(),
                 [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
             return v;
         };
         const std::string search_lc = to_lower_ascii(m_assembly_tree_search_text);
-        std::function<bool(int)> matches = [&](int nid) -> bool {
+        const bool filter_unassembled = m_assembly_tree_filter_unassembled;
+        // Same as render_assembly_tree_selector: only search forces expand; filter
+        // keeps single-volume object collapse.
+        const bool force_expand_matches = !search_lc.empty();
+        std::function<bool(int)> matches_search = [&](int nid) -> bool {
             if (search_lc.empty())
                 return true;
             if (nid < 0 || nid >= static_cast<int>(tree->nodes.size()))
@@ -6666,22 +7690,36 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
             if (to_lower_ascii(tree->nodes[nid].label).find(search_lc) != std::string::npos)
                 return true;
             for (int c : tree->nodes[nid].children)
-                if (matches(c))
+                if (matches_search(c))
                     return true;
             return false;
         };
+        std::function<bool(int)> matches_unassembled = [&](int nid) -> bool {
+            if (!filter_unassembled)
+                return true;
+            if (nid < 0 || nid >= static_cast<int>(tree->nodes.size()))
+                return false;
+            const auto &n = tree->nodes[nid];
+            if (n.object_idx >= 0 && is_assembly_tree_item_unassembled(n.object_idx, n.volume_idx))
+                return true;
+            for (int c : n.children)
+                if (matches_unassembled(c))
+                    return true;
+            return false;
+        };
+        auto matches = [&](int nid) { return matches_search(nid) && matches_unassembled(nid); };
         std::function<int(int)> count_visible = [&](int nid) -> int {
             if (nid < 0 || nid >= static_cast<int>(tree->nodes.size()) || !matches(nid))
                 return 0;
             const auto &n = tree->nodes[nid];
             int rows = 1;
-            const bool collapse_single_leaf = search_lc.empty() && n.children.size() == 1 &&
+            const bool collapse_single_leaf = !force_expand_matches && n.children.size() == 1 &&
                 n.children[0] >= 0 && n.children[0] < static_cast<int>(tree->nodes.size()) &&
                 tree->nodes[n.children[0]].children.empty();
             const bool has_children = !n.children.empty() && !collapse_single_leaf;
             auto it = s_assembly_tree_open_nodes.find(n.uid);
             const bool open = it == s_assembly_tree_open_nodes.end() ? true : it->second;
-            if ((open || !search_lc.empty()) && has_children)
+            if ((open || force_expand_matches) && has_children)
                 for (int c : n.children)
                     rows += count_visible(c);
             return rows;
@@ -6695,23 +7733,79 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
         // Each row is a separate ImGui item, so ItemSpacing.y is inserted between
         // them - account for it (plus a small buffer) so the last row isn't clipped.
         const float row_spacing = ImGui::GetStyle().ItemSpacing.y;
-        // window padding (14*2) + header (36) + separator/spacing (14) + footer (58).
-        const float chrome_h = 28.0f * sc + 36.0f * sc + 14.0f * sc + 58.0f * sc;
-        const float content_h = chrome_h + visible_rows * (row_h + row_spacing) + 8.0f * sc;
-        float h = std::min(content_h, 800.0f * sc);
-        if (panel_h > 0.0f)
-            h = std::min(h, panel_h);
-        return h;
+        // window padding (14*2) + header (36) + separator/spacing (14)
+        // + optional column titles (20+8) + footer (58 when checkboxes).
+        float chrome_h = 28.0f * sc + 36.0f * sc + 14.0f * sc;
+        if (show_label_state || show_explosion_state || show_assembly_state)
+            chrome_h += 20.0f * sc + 8.0f * sc; // Object name / Label / Explosion / Assembly row
+        if (show_checkbox)
+            chrome_h += 58.0f * sc; // footer
+        return chrome_h + visible_rows * (row_h + row_spacing) + 8.0f * sc;
     }();
 
-    ImGui::SetNextWindowPos(ImVec2(panel_x, panel_y), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
-    ImGui::SetNextWindowSize(ImVec2(panel_w, adaptive_h), ImGuiCond_Always);
+    // Label/Explosion/Assemble are *added* columns: grow the window so Object-name keeps the
+    // caller's original panel_w (310*sc). Callers that right-align (Assembly list)
+    // must use calc_assembly_tree_window_w() when choosing panel_x. Resolved before the
+    // vertical layout because the top limit below only reserves overlays that share
+    // columns with [panel_x, panel_x + window_w].
+    const float window_w = calc_assembly_tree_window_w(panel_w, sc, show_label_state, show_explosion_state, show_assembly_state);
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f * sc);
+    // Auto-fit the panel height to the number of visible rows, capped at 800*sc
+    // (then the row list scrolls). panel_h is the on-screen upper clamp from the
+    // icon-aligned top down to the play-bar / overlay limit.
+    const float k_tree_max_h = 800.0f * sc;
+    // Tunable: when the icon-aligned slot overflows and is shorter than this,
+    // lift the window to this minimum and point a side arrow at the icon.
+    const float canvas_h = ImGui::GetIO().DisplaySize.y;
+    const float k_tree_min_popup_h = std::min(500.0f * sc, canvas_h * (2.0f / 3.0f));
+    const float desired_h = std::min(content_h, k_tree_max_h);
+    // Lifting grows the window upwards from the bottom limit, so it needs a hard top stop:
+    // the return toolbar sits in the same column and must stay clickable, and without a
+    // stop a tall step list would also push the window past the top of the canvas.
+    const float top_min = calc_canvas_panel_top_limit(sc, panel_x, panel_x + window_w);
+
+    float window_y = panel_y;
+    float window_h = desired_h;
+    bool  draw_icon_anchor_arrow = false;
+    if (show_checkbox) {
+        const float avail_from_icon = panel_h;
+        const bool  content_overflows = desired_h > avail_from_icon + 0.5f;
+        if (content_overflows && avail_from_icon < k_tree_min_popup_h) {
+            draw_icon_anchor_arrow = true;
+            const float bottom_limit = panel_y + panel_h;
+            window_h = std::max(k_tree_min_popup_h, desired_h);
+            window_y = bottom_limit - window_h;
+            if (window_y < top_min) {
+                window_y = top_min;
+                window_h = std::max(1.0f, bottom_limit - window_y);
+            }
+            if (window_y + 0.5f >= panel_y)
+                draw_icon_anchor_arrow = false;
+        } else if (panel_h > 0.0f) {
+            window_h = std::min(desired_h, panel_h);
+        }
+    } else if (panel_h > 0.0f) {
+        window_h = std::min(desired_h, panel_h);
+    }
+    // A pinned anchor has no on-screen icon left to align with, so keep the side arrow even
+    // when the window is not lifted: its tip is clamped to the window, which parks it at the
+    // start or end edge and points back towards the scrolled-out step.
+    if (show_checkbox && m_structure_add_tree_anchor_clipped)
+        draw_icon_anchor_arrow = true;
+    const float adaptive_h = window_h;
+
+    const AssemblyTreeStateColMetrics state_cols =
+        calc_assembly_tree_state_col_metrics(sc, show_label_state, show_explosion_state, show_assembly_state);
+    const float scrollbar_track_w = 14.0f * sc;
+
+    ImGui::SetNextWindowPos(ImVec2(panel_x, window_y), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
+    ImGui::SetNextWindowSize(ImVec2(window_w, adaptive_h), ImGuiCond_Always);
+
+    const float tree_panel_radius = 4.0f * sc;
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, tree_panel_radius);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14.0f * sc, 14.0f * sc));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     // Same scrollbar metrics as render_assembly_structure_panel / draw_assembly_scrollbar_y_thumb.
-    const float scrollbar_track_w = 14.0f * sc;
     ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbar_track_w);
     ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, 2.0f * sc);
     ImGui::PushStyleColor(ImGuiCol_WindowBg, m_is_dark ? ImVec4(45 / 255.0f, 45 / 255.0f, 49 / 255.0f, 0.98f) : ImVec4(1.0f, 1.0f, 1.0f, 0.98f));
@@ -6739,12 +7833,48 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
     const ImVec2 tree_window_min = ImGui::GetWindowPos();
     const ImVec2 tree_window_max(tree_window_min.x + ImGui::GetWindowSize().x,
                                  tree_window_min.y + ImGui::GetWindowSize().y);
+    if (draw_icon_anchor_arrow) {
+        // Left-pointing caret on the popup edge, vertically aimed at the step
+        // card's object-tree icon (panel_y is that icon's top).
+        const float icon_sz = 20.0f * sc;
+        const float tri_w   = 8.0f * sc;
+        const float tri_h   = 14.0f * sc;
+        // A pinned anchor sits outside the card region, so aim from its true (unclamped)
+        // position: the clamp below then parks the tip on whichever window edge the step
+        // scrolled out towards, instead of on the side the pinned anchor happens to be.
+        const float aim_y = (show_checkbox && m_structure_add_tree_anchor_clipped)
+            ? m_structure_add_tree_pos.y + icon_sz * 0.5f
+            : panel_y + icon_sz * 0.5f;
+        const float tip_y   = std::clamp(aim_y,
+                                         tree_window_min.y + tri_h * 0.5f,
+                                         tree_window_max.y - tri_h * 0.5f);
+        const ImVec2 tip(tree_window_min.x - tri_w + 1.0f * sc, tip_y);
+        const ImVec2 top(tree_window_min.x + 1.0f * sc, tip_y - tri_h * 0.5f);
+        const ImVec2 bot(tree_window_min.x + 1.0f * sc, tip_y + tri_h * 0.5f);
+        const ImU32  tri_col = m_is_dark ? IM_COL32(45, 45, 49, 250) : IM_COL32(255, 255, 255, 250);
+        ImGui::GetForegroundDrawList()->AddTriangleFilled(tip, top, bot, tri_col);
+    }
+    ImFont *font = ImGui::GetFont();
+    const float fs_title = ImGui::GetFontSize();
+    // Match Assembly Structure panel header / title styling.
+    const ImU32 col_header_top = m_is_dark ? IM_COL32(48, 48, 52, 255) : IM_COL32(0xF8, 0xF8, 0xF8, 255);
+    const ImU32 col_text_dark  = m_is_dark ? IM_COL32(0xE0, 0xE0, 0xE0, 255) : IM_COL32(0x26, 0x2E, 0x30, 255);
     {
         const ImVec2 header_min = ImGui::GetCursorScreenPos();
         const float header_w = ImGui::GetContentRegionAvail().x;
         const float header_h = 36.0f * sc;
         const float search_h = 28.0f * sc;
         const float icon_sz = 24.0f * sc;
+
+        // The tree window uses 14px content padding. Override its content clip for
+        // the header so the background reaches both window edges, matching Assembly
+        // Structure instead of leaving white gutters beside the title row.
+        draw_list->PushClipRect(tree_window_min, tree_window_max, false);
+        draw_list->AddRectFilled(
+            tree_window_min,
+            ImVec2(tree_window_max.x, header_min.y + header_h),
+            col_header_top, tree_panel_radius, ImDrawFlags_RoundCornersTop);
+        draw_list->PopClipRect();
 
         if (m_assembly_tree_search_active) {
             const ImVec2 search_min(header_min.x, header_min.y + (header_h - search_h) * 0.5f);
@@ -6780,20 +7910,19 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
             ImGui::PopStyleVar(2);
             ImGui::PopStyleColor(4);
         } else {
-            const std::string title      = show_checkbox ? _u8L("List") : _u8L("Assembly list");
-            const ImVec2 title_size = ImGui::CalcTextSize(title.c_str());
-            draw_list->AddText(ImVec2(header_min.x, header_min.y + (header_h - title_size.y) * 0.5f),
-                m_is_dark ? IM_COL32(0xE0, 0xE0, 0xE0, 255) : IM_COL32(38, 46, 48, 255), title.c_str());
-
+            // Layout: [expand/collapse] list .............. [filter] [search]
+            float left_x = header_min.x;
             {
-                const ImVec2 toggle_min(header_min.x + title_size.x + 8.0f * sc, header_min.y + (header_h - icon_sz) * 0.5f);
+                // Same on-screen size as the structure / guide panel toggles (16*sc).
+                const float toggle_sz = 16.0f * sc;
+                const ImVec2 toggle_min(left_x, header_min.y + (header_h - toggle_sz) * 0.5f);
                 ImTextureID toggle_tex = m_assembly_tree_list_collapsed
-                    ? (m_is_dark && s_assembly_tree_icons.collapse_dark ? s_assembly_tree_icons.collapse_dark : s_assembly_tree_icons.collapse)
-                    : (m_is_dark && s_assembly_tree_icons.expand_dark ? s_assembly_tree_icons.expand_dark : s_assembly_tree_icons.expand);
+                    ? s_assembly_tree_icons.expand_external
+                    : s_assembly_tree_icons.collapse_external;
                 if (toggle_tex)
-                    draw_list->AddImage(toggle_tex, toggle_min, ImVec2(toggle_min.x + icon_sz, toggle_min.y + icon_sz));
+                    draw_list->AddImage(toggle_tex, toggle_min, ImVec2(toggle_min.x + toggle_sz, toggle_min.y + toggle_sz));
                 ImGui::SetCursorScreenPos(toggle_min);
-                ImGui::InvisibleButton("##assembly_tree_collapse_toggle", ImVec2(icon_sz, icon_sz));
+                ImGui::InvisibleButton("##assembly_tree_collapse_toggle", ImVec2(toggle_sz, toggle_sz));
                 if (ImGui::IsItemHovered()) {
                     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f * sc, 6.0f * sc));
                     m_imgui->tooltip(m_assembly_tree_list_collapsed ? _u8L("Expand all objects") : _u8L("Collapse all objects"),
@@ -6802,21 +7931,52 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
                 }
                 if (ImGui::IsItemClicked(0)) {
                     const bool make_open = m_assembly_tree_list_collapsed;
+                    // Toggle every expandable row (model root, STEP groups, multi-volume
+                    // objects). Object-only toggling is a no-op when
+                    // has_only_collapsible_child already hides the sole volume child, and
+                    // it never closes intermediate group nodes in a STEP hierarchy.
                     if (tree)
                         for (const auto &n : tree->nodes)
-                            // Toggle only ModelObject-level nodes (object node = has an object but no
-                            if (n.object_idx >= 0 && n.volume_idx < 0)
+                            if (!n.children.empty())
                                 s_assembly_tree_open_nodes[n.uid] = make_open;
                     m_assembly_tree_list_collapsed = !m_assembly_tree_list_collapsed;
                 }
+                left_x = toggle_min.x + toggle_sz + 6.0f * sc;
             }
 
-            const ImVec2 icon_min(header_min.x + header_w - icon_sz, header_min.y + (header_h - icon_sz) * 0.5f);
+            // Same title draw path as Assembly Structure: explicit font size + col_text_dark.
+            const std::string title = show_checkbox ? _u8L("List") : _u8L("Assembly list");
+            const float title_y = header_min.y + (header_h - fs_title) * 0.5f;
+            draw_list->AddText(font, fs_title, ImVec2(left_x, title_y), col_text_dark, title.c_str());
+
+            const ImVec2 search_min(header_min.x + header_w - icon_sz, header_min.y + (header_h - icon_sz) * 0.5f);
+            // Filter: toggle "unassembled only" (tree_filter.svg ↔ tree_filter_ok.svg).
+            {
+                const ImVec2 filter_min(search_min.x - 8.0f * sc - icon_sz, search_min.y);
+                ImTextureID filter_tex = m_assembly_tree_filter_unassembled
+                    ? (s_assembly_tree_icons.filter_ok ? s_assembly_tree_icons.filter_ok : s_assembly_tree_icons.filter)
+                    : s_assembly_tree_icons.filter;
+                if (filter_tex)
+                    draw_list->AddImage(filter_tex, filter_min,
+                        ImVec2(filter_min.x + icon_sz, filter_min.y + icon_sz));
+                ImGui::SetCursorScreenPos(filter_min);
+                ImGui::InvisibleButton("##assembly_tree_filter", ImVec2(icon_sz, icon_sz));
+                if (ImGui::IsItemHovered()) {
+                    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f * sc, 6.0f * sc));
+                    m_imgui->tooltip(m_assembly_tree_filter_unassembled
+                                         ? _u8L("Show all objects")
+                                         : _u8L("Show unassembled only"),
+                                     20.0f * m_imgui->scaled(1.0f));
+                    ImGui::PopStyleVar();
+                }
+                if (ImGui::IsItemClicked(0))
+                    toggle_assembly_tree_unassembled_filter();
+            }
             ImTextureID list_search_tex = m_is_dark && s_assembly_tree_icons.search_dark ? s_assembly_tree_icons.search_dark : s_assembly_tree_icons.search;
             if (list_search_tex)
-                draw_list->AddImage(list_search_tex, icon_min,
-                    ImVec2(icon_min.x + icon_sz, icon_min.y + icon_sz));
-            ImGui::SetCursorScreenPos(icon_min);
+                draw_list->AddImage(list_search_tex, search_min,
+                    ImVec2(search_min.x + icon_sz, search_min.y + icon_sz));
+            ImGui::SetCursorScreenPos(search_min);
             ImGui::InvisibleButton("##assembly_tree_search_open", ImVec2(icon_sz, icon_sz));
             if (ImGui::IsItemHovered()) {
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f * sc, 6.0f * sc));
@@ -6833,6 +7993,54 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
     ImVec2 separator_start = ImGui::GetCursorScreenPos();
     draw_list->AddLine(separator_start, ImVec2(separator_start.x + ImGui::GetContentRegionAvail().x, separator_start.y), separator_col, 1.0f * sc);
     ImGui::Dummy(ImVec2(0.0f, 14.0f * sc));
+
+    // Column title row (Figma 5158:14847): Object Name / Label / Explosion / Assemble.
+    // Temporarily gated the same way as checkboxes (editable list only).
+    if (show_label_state || show_explosion_state || show_assembly_state) {
+        const ImVec2 col_min = ImGui::GetCursorScreenPos();
+        const float  col_w   = ImGui::GetContentRegionAvail().x;
+        const float  col_h   = 20.0f * sc;
+        const ImU32  col_txt = IM_COL32(0x85, 0x85, 0x85, 255);
+        const std::string name_title      = _u8L("Object name");
+        const std::string label_title     = _u8L("Label");
+        const std::string explosion_title = _u8L("Explosion");
+        const std::string assemble_title  = _u8L("Assemble");
+        {
+            const ImVec2 tsz = ImGui::CalcTextSize(name_title.c_str());
+            draw_list->AddText(ImVec2(col_min.x, col_min.y + (col_h - tsz.y) * 0.5f),
+                               col_txt, name_title.c_str());
+        }
+        // Titles centered in each state column. Always reserve the scrollbar gutter
+        // so the right edge matches row content (state_cols_right_x in the child).
+        float right = col_min.x + col_w - scrollbar_track_w;
+        if (show_assembly_state) {
+            const ImVec2 tsz = ImGui::CalcTextSize(assemble_title.c_str());
+            draw_list->AddText(ImVec2(right - state_cols.assembly_col_w +
+                                          (state_cols.assembly_col_w - tsz.x) * 0.5f,
+                                      col_min.y + (col_h - tsz.y) * 0.5f),
+                               col_txt, assemble_title.c_str());
+            right -= state_cols.assembly_col_w + state_cols.col_gap;
+        }
+        if (show_explosion_state) {
+            const ImVec2 tsz = ImGui::CalcTextSize(explosion_title.c_str());
+            draw_list->AddText(ImVec2(right - state_cols.explosion_col_w +
+                                          (state_cols.explosion_col_w - tsz.x) * 0.5f,
+                                      col_min.y + (col_h - tsz.y) * 0.5f),
+                               col_txt, explosion_title.c_str());
+            right -= state_cols.explosion_col_w + state_cols.col_gap;
+        }
+        if (show_label_state) {
+            const ImVec2 tsz = ImGui::CalcTextSize(label_title.c_str());
+            draw_list->AddText(ImVec2(right - state_cols.label_col_w +
+                                          (state_cols.label_col_w - tsz.x) * 0.5f,
+                                      col_min.y + (col_h - tsz.y) * 0.5f),
+                               col_txt, label_title.c_str());
+        }
+        ImGui::Dummy(ImVec2(0.0f, col_h));
+        ImVec2 col_sep = ImGui::GetCursorScreenPos();
+        draw_list->AddLine(col_sep, ImVec2(col_sep.x + ImGui::GetContentRegionAvail().x, col_sep.y), separator_col, 1.0f * sc);
+        ImGui::Dummy(ImVec2(0.0f, 8.0f * sc));
+    }
 
     std::unordered_map<std::string, bool> dummy_checked;
     std::unordered_map<std::string, bool>& checked = m_active_assembly_tree_checked != nullptr
@@ -6869,7 +8077,7 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
             if (root_idx < 0 || root_idx >= static_cast<int>(steps_tree.nodes.size()))
                 continue;
             const auto &root = steps_tree.nodes[root_idx];
-            if (root.type != AssemblyStepsTreeNode::Type::Folder || root.is_final_assembly)
+            if (root.type != AssemblyStepsTreeNode::Type::Folder || root.is_final_assembly != AssemblyStepKind::Normal)
                 continue;
             const std::string label = assembly_step_display_name(root);
             const ImVec2 text_size = ImGui::CalcTextSize(label.c_str());
@@ -6910,6 +8118,9 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
     // Confirm/Cancel footer and becomes read-only; it is purely a browsable tree.
     render_options.allow_object_check = show_checkbox;
     render_options.allow_volume_check = show_checkbox;
+    render_options.show_label_state = show_label_state;
+    render_options.show_explosion_state = show_explosion_state;
+    render_options.show_assembly_state = show_assembly_state;
     render_options.show_footer = show_checkbox;
     render_options.readonly = !show_checkbox;
     // Rows are individually selectable: clicking a row (away from its checkbox /
@@ -6944,19 +8155,31 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
         bool step_changed = (active_step_node >= 0 && m_active_assembly_tree_checked != nullptr &&
                              checked != m_assembly_tree_ui_original_checked);
         if (step_changed) {
+            // One Undo for the whole confirm: membership commit + per-keyframe label rebuild.
+            begin_coalesced_steps_save();
             bool step_was_empty = is_empty_structure_step(active_step_node);
             apply_assembly_tree_checked_to_step(active_step_node, *tree, checked);
-            if (step_was_empty) {
-                if (has_checked && m_guide_show_part_numbers)
-                    toggle_part_number_labels();
-            } else {
-                if (m_guide_show_part_numbers) {
-                    if (auto *entries = get_current_kf_entries();
-                        entries && m_keyframe_selected >= 0 && m_keyframe_selected < (int) entries->size())
-                        toggle_part_number_labels_to_keyframe((*entries)[m_keyframe_selected],
-                                                               /*user_initiated*/ true, /*reframe_camera*/ false);
+            // Membership changed: rebuild part-number labels on every keyframe of
+            // this step. Previously only the selected frame was updated, so the
+            // other frame(s) kept stale / missing labels until revisited.
+            const bool should_rebuild_labels =
+                m_guide_show_part_numbers && (step_was_empty ? has_checked : true);
+            if (should_rebuild_labels) {
+                if (auto *entries = get_current_kf_entries()) {
+                    for (int i = 0; i < (int) entries->size(); ++i) {
+                        const bool is_selected = (i == m_keyframe_selected);
+                        // Only the visible frame triggers auto-layout; other frames
+                        // still get a full label rebuild (radial defaults) so they
+                        // are not left empty when the user switches to them.
+                        toggle_part_number_labels_to_keyframe((*entries)[i],
+                                                               /*user_initiated*/ is_selected,
+                                                               /*reframe_camera*/ false);
+                    }
                 }
             }
+            // Persist once here, unless part-number auto-layout will flush on the next frame.
+            if (!m_pn_autolayout_pending)
+                flush_assembly_steps_json_to_model();
         } else {
             // Membership unchanged, but OK still clears the preview selection when
             // m_select_all_when_click_in_step_card is false (default).

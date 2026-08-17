@@ -295,7 +295,42 @@ wxString WebView::BuildEdgeUserDataPath()
 #endif
 }
 
-wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
+void on_webview_evt(wxWebView *webview)
+{
+    webview->Bind(wxEVT_WEBVIEW_NAVIGATING, [webview](wxWebViewEvent &e) {
+        wxLogMessage("NAVIGATING: %s", e.GetURL());
+        BOOST_LOG_TRIVIAL(info) << webview->GetName() << " [WebView] navigating " << e.GetURL();
+        e.Skip();
+    });
+
+    webview->Bind(wxEVT_WEBVIEW_NAVIGATED, [webview](wxWebViewEvent &e) {
+        BOOST_LOG_TRIVIAL(info) << webview->GetName() << " [WebView] navigated: " << e.GetURL();
+        e.Skip();
+    });
+
+    webview->Bind(wxEVT_WEBVIEW_LOADED, [webview](wxWebViewEvent &e) {
+        BOOST_LOG_TRIVIAL(info) << webview->GetName() << " [WebView] loaded: " << e.GetURL();
+        e.Skip();
+    });
+
+    webview->Bind(wxEVT_WEBVIEW_ERROR, [webview](wxWebViewEvent &e) {
+        BOOST_LOG_TRIVIAL(info) << webview->GetName()
+                                << wxString::Format(" [WebView] error: url=%s, code=%d, description=%s", e.GetURL(), static_cast<int>(e.GetInt()), e.GetString().utf8_string());
+        e.Skip();
+    });
+
+    webview->Bind(wxEVT_WEBVIEW_TITLE_CHANGED, [webview](wxWebViewEvent &e) {
+        BOOST_LOG_TRIVIAL(info) << webview->GetName() << wxString::Format(" [WebView] title changed: %s", e.GetString().utf8_string());
+        e.Skip();
+    });
+
+    webview->Bind(wxEVT_WEBVIEW_NEWWINDOW, [webview](wxWebViewEvent &e) {
+        BOOST_LOG_TRIVIAL(info) << webview->GetName() << wxString::Format(" [WebView] new window: %s", e.GetString());
+        e.Skip();
+    });
+}
+
+wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxString const &name)
 {
 #if wxUSE_WEBVIEW_EDGE
     // Check if a fixed version of edge is present in
@@ -330,6 +365,8 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     auto webView = wxWebView::New();
 #endif
     if (webView) {
+        on_webview_evt(webView);
+
         webView->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
 
         wxString language_code = Slic3r::GUI::wxGetApp().current_language_code().BeforeFirst('_');
@@ -339,6 +376,7 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
                                                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.52 BBL-Slicer/v%s (%s) BBL-Language/%s",
                                                SLIC3R_VERSION, Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light", language_code.mb_str()));
         webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        if (!name.empty()) webView->SetName(name);
         // We register the wxfs:// protocol for testing purposes
         webView->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("bbl")));
         // And the memory: file system
@@ -383,16 +421,26 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
                 g_delay_webviews.push_back(webView);
             } else {
                 addScriptMessageHandler(webView);
+                // AddScriptMessageHandler pumps a nested event loop (RunScriptSync ->
+                // wxYieldFor). While the adding-flag is set, other webviews' deferred
+                // CallAfter lambdas dispatched by that nested loop take the guarded
+                // branch above and queue themselves here, so drain them now. Any webview
+                // torn down while queued (e.g. a language-switch GUI rebuild) is skipped:
+                // ~WebViewRef removes it from g_webviews, so the find() below filters it
+                // out instead of dereferencing freed memory.
                 while (!g_delay_webviews.empty()) {
-                    auto views = std::move(g_delay_webviews);
-                    for (auto wv : views)
-                        addScriptMessageHandler(wv);
+                    auto wv = g_delay_webviews.front();
+                    g_delay_webviews.erase(g_delay_webviews.begin());
+                    if (std::find(g_webviews.begin(), g_webviews.end(), wv) == g_webviews.end()) continue;
+                    addScriptMessageHandler(wv);
                 }
             }
 #ifndef __WIN32__
         });
 #endif
-        webView->EnableContextMenu(false);
+        const bool enable_devtools = Slic3r::GUI::wxGetApp().app_config && Slic3r::GUI::wxGetApp().app_config->get("enable_webview_devtools") == "true";
+        webView->EnableContextMenu(enable_devtools);
+        webView->EnableAccessToDevTools(enable_devtools);
     } else {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": failed. Use fake web view.";
         webView = new FakeWebView;

@@ -100,6 +100,12 @@ private:
 
     wxBitmap make_swatch_bitmap(size_t idx);
 
+    // Reserves the same width on every material row label so the combo boxes line up.
+    static void apply_uniform_label_width(wxStaticText* lbl);
+    // Appends one "Filament N" label + combo row to m_material_rows_sizer.  N follows the
+    // number of rows already there, so callers must not renumber anything themselves.
+    void append_material_row();
+
     // Helpers for component/ratio access
     size_t          num_components() const { return m_result.components.size(); }
     unsigned int    comp(size_t i) const { return (i < m_result.components.size()) ? m_result.components[i] : 1; }

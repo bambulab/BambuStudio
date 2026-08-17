@@ -1401,6 +1401,33 @@ ExPolygons PrintObject::_shrink_contour_holes(double contour_delta, double hole_
     return union_ex(new_ex_polys);
 }
 
+double PrintObject::support_shrinkage_scale() const
+{
+    const Print *print = this->print();
+    if (print == nullptr || this->num_printing_regions() == 0)
+        return 1.;
+    const std::vector<double> &shrink = print->config().filament_shrink.values;
+    if (shrink.empty())
+        return 1.;
+
+    double shrink_percent = 0.;
+    bool   found          = false;
+    for (size_t i = 0; i < this->num_printing_regions(); ++i) {
+        const int filament_id = this->printing_region(i).extruder(FlowRole::frPerimeter) - 1;
+        if (filament_id < 0 || filament_id >= int(shrink.size()))
+            continue;
+        if (!found) {
+            shrink_percent = shrink[filament_id];
+            found          = true;
+        } else if (shrink[filament_id] != shrink_percent) {
+            break;
+        }
+    }
+    if (!found || shrink_percent == 0. || shrink_percent == 100.)
+        return 1.;
+    return 100. / shrink_percent; // == 1 / (shrink_percent * 0.01)
+}
+
 std::vector<Polygons> PrintObject::slice_support_volumes(const ModelVolumeType model_volume_type) const
 {
     auto it_volume     = this->model_object()->volumes.begin();
@@ -1449,6 +1476,13 @@ std::vector<Polygons> PrintObject::slice_support_volumes(const ModelVolumeType m
                     for (size_t i = range.begin(); i < range.end(); ++ i)
                         *to_merge[i] = union_(*to_merge[i]);
             });
+        }
+
+        // Align the support-volume slices with the filament_shrink-compensated object contours.
+        if (const double shrink_scale = this->support_shrinkage_scale(); shrink_scale != 1.) {
+            for (Polygons &polys : slices)
+                for (Polygon &poly : polys)
+                    poly.scale(shrink_scale);
         }
     }
     return slices;

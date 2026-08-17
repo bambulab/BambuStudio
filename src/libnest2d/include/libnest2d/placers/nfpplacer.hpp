@@ -636,23 +636,33 @@ private:
         __parallel::enumerate(items_.begin(), items_.end(),
                               [&nfps, &trsh](const Item& sh, size_t n)
         {
-            auto& fixedp = sh.transformedShape();
-            auto& orbp = trsh.transformedShape();
+            // BBS: bed-flush items use the inflated contour for part-vs-part
+            // spacing, keeping the expected gap despite the raw bed contour.
+            auto& fixedp = sh.useRawShape() ? sh.expectedInflTransShape() : sh.transformedShape();
+            auto& orbp   = trsh.useRawShape() ? trsh.expectedInflTransShape() : trsh.transformedShape();
             auto subnfp_r = noFitPolygon<NfpLevel::CONVEX_ONLY>(fixedp, orbp);
-            correctNfpPosition(subnfp_r, sh, trsh);
+            correctNfpPosition(subnfp_r, fixedp, trsh);
             nfps[n] = subnfp_r.first;
         });
+
+        // BBS: nfps above track trsh's inflated-contour rightmostTop, but
+        // innerNfp/item.referenceVertex() track its raw one. Re-anchor so
+        // subtract() combines them in the same reference frame.
+        if (trsh.useRawShape()) {
+            Vertex rawRmt = trsh.rightmostTopVertex();
+            Vertex inflRmt = nfp::rightmostUpVertex(trsh.expectedInflTransShape());
+            Vertex offset = rawRmt - inflRmt;
+            for (auto& nfp : nfps) shapelike::translate(nfp, offset);
+        }
 
         RawShape innerNfp = nfpInnerRectBed(bed, trsh.transformedShape()).first;
         if (innerNfp.empty()) {
             return {};
         }
 
-        // Degenerate inner NFP: rotated item's bbox matches the bed
-        // inner rect on one or both axes. Treat point and segment
-        // collapse separately so the result fed to EdgeCache never
-        // has a zero-length edge (which would yield atan2(0,0) -> NaN
-        // -> INT32_MIN UB and the ~21km fly-away placement).
+        // Degenerate inner NFP (bbox matches bed rect on some axis):
+        // handle point/segment collapse separately so EdgeCache never
+        // sees a zero-length edge (atan2(0,0) -> NaN -> UB fly-away).
         if (innerNfp.area() == 0) {
             auto innerBB = sl::boundingBox(innerNfp);
             auto minCorner = innerBB.minCorner();
@@ -666,17 +676,24 @@ private:
                 return { innerNfp };
             }
 
-            // NFP collapsed to an axis-aligned segment.
+            // NFP collapsed to a segment; a 2-point shape has no edges/
+            // interior for isInside()/projection_onto, so offset it into
+            // a thin band (kept well under SceneEpsilon's plate tolerance).
             Slic3r::Polylines lines = Slic3r::diff_pl(
                 Slic3r::Polylines{ Slic3r::Polyline(minCorner, maxCorner) }, nfps);
+            const float band_delta = float(SCALED_EPSILON) / 10.f;
             Shapes NFP;
             NFP.reserve(lines.size());
             for (Slic3r::Polyline& line : lines) {
                 if (line.points.size() < 2) continue;
                 if (line.points.front() == line.points.back()) continue;
-                Slic3r::ExPolygon expoly;
-                expoly.contour.points = std::move(line.points);
-                NFP.push_back(std::move(expoly));
+                Slic3r::Polygons band = Slic3r::offset(line, band_delta);
+                for (Slic3r::Polygon& p : band) {
+                    if (p.points.size() < 3) continue;
+                    Slic3r::ExPolygon expoly;
+                    expoly.contour = std::move(p);
+                    NFP.push_back(std::move(expoly));
+                }
             }
             return NFP;
         }
@@ -795,6 +812,7 @@ private:
         Vertex final_tr = {0, 0};
         Radians final_rot = initial_rot;
         Coord   final_infl  = item.inflation();
+        bool    final_use_raw_shape = false;
         Shapes nfps;
 
         auto& bin = bin_;
@@ -853,14 +871,23 @@ private:
 
             Pile merged_pile = merged_pile_;
             for (auto [rot, infl] : item.allowed_rotations) {
+                // BBS: infl==0 means this item is bed-flush on some axis.
+                // useRawShape marks it so part-vs-part NFP still uses the
+                // expected inflation for spacing (cached below).
                 item.inflation(infl);
                 item.translation(initial_tr);
                 item.rotation(initial_rot + rot);
+                item.useRawShape(infl == 0 && initial_infl > 0);
                 item.boundingBox(); // fill the bb cache
 
                 // place the new item outside of the print bed to make sure
                 // it is disjunct from the current merged pile
                 placeOutsideOfBin(item);
+                // BBS: cache after placeOutsideOfBin (also moves translation_)
+                // so the cached pose isn't stale.
+                if (item.useRawShape()) {
+                    item.cacheExpectedInflTransShape(initial_infl);
+                }
                 nfps = calcnfp(item, binbb, Lvl<MaxNfpLevel::value>());
 
                 if (nfps.empty()) {
@@ -1002,6 +1029,7 @@ private:
                     final_tr = d;
                     final_rot = initial_rot + rot;
                     final_infl   = infl;
+                    final_use_raw_shape = item.useRawShape();
                     can_pack = true;
                     global_score = best_score;
                 }
@@ -1011,17 +1039,23 @@ private:
         if (config_.save_svg) saveSVG(binbb, nfps, item, global_score, can_pack);
 
         if(can_pack) {
-            if (initial_infl != item.inflation()) {
-                item.inflation(initial_infl);
-            }
+            // BBS: keep the winning rotation's degraded infl (not initial_infl)
+            // so merged_pile_ uses the contour that actually fit the bed;
+            // restoring brim inflation can overflow a full-bed-width item.
+            item.inflation(final_infl);
             item.translation(final_tr);
             item.rotation(final_rot);
+            item.useRawShape(final_use_raw_shape);
+            // BBS: re-cache after final trans/rot (those invalidated it).
+            if (item.useRawShape())
+                item.cacheExpectedInflTransShape(initial_infl);
             ret = PackResult(item);
             ret.score_ = global_score;
         } else {
             item.inflation(initial_infl);
             item.translation(initial_tr);
             item.rotation(initial_rot);
+            item.useRawShape(false);
             ret = PackResult(std::numeric_limits<double>::max());
         }
 
@@ -1226,30 +1260,95 @@ private:
         auto d = cb - ci;
 
         // BBS make sure the item won't clash with excluded regions
-        size_t n_objs = 0;
-        std::vector<RawShape> objs,excludes;
+        std::vector<RawShape> objsBed, objsExcl, excludes;
         for (Item &item : items_) {
             if (item.isFixed()) {
                 excludes.push_back(item.transformedShape());
+                continue;
             }
-            else {
-                // better center a single large object without any inflation
-                if (n_objs == 1)
-                    item.inflation(0);
-                objs.push_back(item.transformedShape());
-            }
+            // BBS: objsBed mirrors _trypack's bed NFP contour; objsExcl uses
+            // the inflated contour for useRawShape items so excludes-spacing
+            // is preserved even though their bed contour degraded to raw.
+            objsBed.push_back(item.transformedShape());
+            objsExcl.push_back(item.useRawShape() ? item.expectedInflTransShape() : item.transformedShape());
         }
-        if (objs.empty())
+        if (objsBed.empty())
             return;
         { // find a best position inside NFP of fixed items (excluded regions), so the center of pile is cloest to bed center
-            RawShape objs_convex_hull = sl::convexHull(objs);
-            auto   nfps = calcnfp(objs_convex_hull, excludes, bbin, Lvl<MaxNfpLevel::value>());
+            using namespace nfp;
+            RawShape hullBed  = sl::convexHull(objsBed);
+            RawShape hullExcl = sl::convexHull(objsExcl);
+
+            // BBS: hullExcl (inflated, for spacing) is used against excludes;
+            // hullBed against the bed. Excludes-NFP is re-anchored from
+            // hullExcl's rightmostTop into hullBed's reference frame.
+            auto calcExclNfp = [&]() -> Shapes {
+                Shapes nfps(excludes.size());
+                Item   slidingItem(hullExcl);
+                slidingItem.transformedShape();
+                __parallel::enumerate(excludes.begin(), excludes.end(), [&nfps, &hullExcl, &slidingItem](const RawShape &stationary, size_t n) {
+                    auto subnfp_r = noFitPolygon<NfpLevel::CONVEX_ONLY>(stationary, hullExcl);
+                    correctNfpPosition(subnfp_r, stationary, slidingItem);
+                    nfps[n] = subnfp_r.first;
+                });
+                if (!nfps.empty()) {
+                    Vertex offset = nfp::rightmostUpVertex(hullBed) - nfp::rightmostUpVertex(hullExcl);
+                    for (auto& nfp : nfps) shapelike::translate(nfp, offset);
+                }
+                return nfps;
+            };
+
+            Shapes nfps = calcExclNfp();
+            RawShape innerNfp = nfpInnerRectBed(bbin, hullBed).first;
+            if (innerNfp.empty()) {
+                return;
+            }
+
+            // See the calcnfp Item-based overload above for the degeneracy rationale.
+            if (innerNfp.area() == 0) {
+                auto innerBB = sl::boundingBox(innerNfp);
+                auto minCorner = innerBB.minCorner();
+                auto maxCorner = innerBB.maxCorner();
+
+                if (getX(minCorner) == getX(maxCorner) && getY(minCorner) == getY(maxCorner)) {
+                    for (const RawShape& nfp : nfps) {
+                        if (sl::isInside(minCorner, nfp)) return;
+                    }
+                    nfps = { innerNfp };
+                } else {
+                    // Offset the collapsed segment into a thin band (see
+                    // calcnfp Item-based overload above) so isInside()/
+                    // projection_onto below don't fail on a zero-width contour.
+                    Slic3r::Polylines lines = Slic3r::diff_pl(
+                        Slic3r::Polylines{ Slic3r::Polyline(minCorner, maxCorner) }, nfps);
+                    const float band_delta = float(SCALED_EPSILON) / 10.f;
+                    Shapes NFP;
+                    NFP.reserve(lines.size());
+                    for (Slic3r::Polyline& line : lines) {
+                        if (line.points.size() < 2) continue;
+                        if (line.points.front() == line.points.back()) continue;
+                        Slic3r::Polygons band = Slic3r::offset(line, band_delta);
+                        for (Slic3r::Polygon& p : band) {
+                            if (p.points.size() < 3) continue;
+                            Slic3r::ExPolygon expoly;
+                            expoly.contour = std::move(p);
+                            NFP.push_back(std::move(expoly));
+                        }
+                    }
+                    nfps = std::move(NFP);
+                }
+            } else {
+                nfps = nfp::subtract({innerNfp}, nfps);
+            }
+
             if (nfps.empty()) {
                 return;
             }
-            Item   objs_convex_hull_item(objs_convex_hull);
-            Vertex objs_convex_hull_ref = objs_convex_hull_item.referenceVertex();
-            Vertex diff                 = objs_convex_hull_ref - sl::boundingBox(objs_convex_hull).center();
+            // BBS: reference point uses hullBed (calcExclNfp already
+            // re-anchored the excludes-NFP into hullBed's frame above).
+            Item   hullBedItem(hullBed);
+            Vertex hullBedRef = hullBedItem.referenceVertex();
+            Vertex diff       = hullBedRef - sl::boundingBox(hullBed).center();
             Vertex ref_aligned = cb + diff;  // reference point when pile center aligned with bed center
             bool ref_aligned_is_ok = std::any_of(nfps.begin(), nfps.end(), [&ref_aligned](auto& nfp) {return sl::isInside(ref_aligned, nfp); });
             if (!ref_aligned_is_ok) {

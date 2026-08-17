@@ -12,6 +12,8 @@
         "10",
         "10",
         "10",
+        "10",
+        "10",
         "10"
     ],
     "filament_extruder_compatibility": [
@@ -21,9 +23,13 @@
         "0.52",
         "0.52",
         "0.52",
+        "0.52",
+        "0.52",
         "0.52"
     ],
     "filament_max_volumetric_speed": [
+        "3",
+        "12",
         "3",
         "12",
         "12",
@@ -33,9 +39,13 @@
         "0",
         "0",
         "0",
+        "0",
+        "0",
         "0"
     ],
     "filament_retraction_length": [
+        "1.5",
+        "1.5",
         "1.5",
         "1.5",
         "1.5",
@@ -48,18 +58,24 @@
         "5",
         "5",
         "5",
+        "5",
+        "5",
         "5"
     ],
     "filament_z_hop_types": [
         "Normal Lift",
         "Normal Lift",
         "Normal Lift",
+        "Normal Lift",
+        "Normal Lift",
         "Normal Lift"
     ],
     "include": [
-        "fdm_filament_template_direct_bowden"
+        "fdm_filament_template_direct_bowden_e3d"
     ],
     "nozzle_temperature": [
+        "270",
+        "270",
         "270",
         "270",
         "270",
@@ -69,15 +85,21 @@
         "270",
         "270",
         "270",
+        "270",
+        "270",
         "270"
     ],
     "retraction_distances_when_ec": [
         "6",
         "3",
+        "6",
+        "4",
         "4",
         "4"
     ],
     "slow_down_min_speed": [
+        "20",
+        "20",
         "20",
         "20",
         "20",

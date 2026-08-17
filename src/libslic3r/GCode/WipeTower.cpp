@@ -24,6 +24,29 @@ static constexpr int    arc_fit_size = 20;
 enum class LimitFlow { None, LimitPrintFlow, LimitRammingFlow, LimitRammingFlowNC};//nc:nozzle change
 static const std::map<float, float> nozzle_diameter_to_nozzle_change_width{{0.2f, 0.5f}, {0.4f, 1.0f}, {0.6f, 1.2f}, {0.8f, 1.4f}};
 
+bool wipe_tower_sparse_layers_skipped(const PrintConfig &config)
+{
+    return config.wipe_tower_no_sparse_layers.value && config.timelapse_type.value != TimelapseType::tlSmooth &&
+           ! config.enable_wrapping_detection.value;
+}
+
+bool wipe_tower_layer_is_sparse(const std::vector<WipeTower::ToolChangeResult> &layer_tool_changes)
+{
+    return layer_tool_changes.size() == 1 && layer_tool_changes.front().initial_tool == layer_tool_changes.front().new_tool;
+}
+
+std::vector<float> compute_compacted_wipe_tower_z(const std::vector<std::vector<WipeTower::ToolChangeResult>> &tool_changes)
+{
+    std::vector<float> tower_z(tool_changes.size(), 0.f);
+    float              last = 0.f;
+    for (size_t i = 0; i < tool_changes.size(); ++i) {
+        if (! tool_changes[i].empty() && ! wipe_tower_layer_is_sparse(tool_changes[i]))
+            last += tool_changes[i].front().layer_height;
+        tower_z[i] = last;
+    }
+    return tower_z;
+}
+
 inline float align_round(float value, float base)
 {
     return std::round(value / base) * base;
@@ -1325,10 +1348,12 @@ public:
         }
     }
 
-    WipeTowerWriter &format_line_M104(int target_temp, int target_extruder, bool wait_for_moves = true, const std::string &comment = std::string())
+    WipeTowerWriter &format_line_M104(int target_temp, int target_extruder, bool is_heating, bool wait_for_moves = true, const std::string &comment = std::string())
     {
         std::string buffer;
-        if (wait_for_moves)
+        // Only wait before cooling: G1 is non-blocking, so M104 cool-down must not start mid-travel.
+        // Heating can start early and does not need M400.
+        if (wait_for_moves && !is_heating)
             buffer += "M400\n";
         buffer += "M104";
         if (target_extruder != -1)
@@ -1734,7 +1759,7 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_z_pos(0.f),
     //m_bridging(float(config.wipe_tower_bridging)),
     m_bridging(10.f),
-    m_no_sparse_layers(config.wipe_tower_no_sparse_layers),
+    m_sparse_layers_skipped(wipe_tower_sparse_layers_skipped(config)),
     m_gcode_flavor(config.gcode_flavor),
     m_travel_speed(config.travel_speed.get_at(get_process_config_idx(config, (unsigned int)initial_tool))),
     m_current_tool(initial_tool),
@@ -2838,7 +2863,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool
 
     // Ask our writer about how much material was consumed.
     // Skip this in case the layer is sparse and config option to not print sparse layers is enabled.
-    if (! m_no_sparse_layers || toolchanges_on_layer)
+    if (! m_sparse_layers_skipped || toolchanges_on_layer)
         if (m_current_tool < m_used_filament_length.size())
             m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
@@ -2882,7 +2907,7 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
 	if (m_plan.empty() || m_plan.back().z + WT_EPSILON < z_par) // if we moved to a new layer, we'll add it to m_plan first
 		m_plan.push_back(WipeTowerInfo(z_par, layer_height_par));
 
-    if (m_first_layer_idx == size_t(-1) && (! m_no_sparse_layers || old_tool != new_tool))
+    if (m_first_layer_idx == size_t(-1) && (! m_sparse_layers_skipped || old_tool != new_tool))
         m_first_layer_idx = m_plan.size() - 1;
 
     if (old_tool == new_tool)	// new layer without toolchanges - we are done
@@ -3423,7 +3448,7 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
                                 ? get_nozzle_id(new_filament_id, m_cur_layer_id) : -1;
         writer.append(format_line_M632(new_filament_id, new_nozzle_id));
         if (m_filpar[m_current_tool].precool_target_temp.second != 0) {
-            writer.format_line_M104(m_filpar[m_current_tool].precool_target_temp.second, get_extruder_id(m_current_tool, m_cur_layer_id))
+            writer.format_line_M104(m_filpar[m_current_tool].precool_target_temp.second, get_extruder_id(m_current_tool, m_cur_layer_id), false, true, "Wipe tower nozzle change pre cooling")
                 .append(format_line_M106());
         }
         writer.append(format_line_M633());
@@ -3690,8 +3715,11 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
         } else {
             // limit max chamfer width to 3 mm
             int chamfer_loops_num = (int) (max_chamfer_width / spacing);
+            // A layer below m_first_layer_idx yields a negative distance, which would turn the
+            // subtraction below into hundreds of ever-expanding loops. Such a layer sits under the
+            // first tower layer and must not get a chamfer at all.
             int dist_to_1st       = m_layer_info - m_plan.begin() - m_first_layer_idx;
-            loops_num             = std::min(loops_num, chamfer_loops_num) - dist_to_1st;
+            loops_num             = dist_to_1st < 0 ? 0 : std::min(loops_num, chamfer_loops_num) - dist_to_1st;
         }
     }
 
@@ -3733,7 +3761,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
 
     // Ask our writer about how much material was consumed.
     // Skip this in case the layer is sparse and config option to not print sparse layers is enabled.
-    if (!m_no_sparse_layers || toolchanges_on_layer)
+    if (!m_sparse_layers_skipped || toolchanges_on_layer)
         if (m_current_tool < m_used_filament_length.size())
             m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
@@ -3843,7 +3871,7 @@ WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block,
 
     // Ask our writer about how much material was consumed.
     // Skip this in case the layer is sparse and config option to not print sparse layers is enabled.
-    if (!m_no_sparse_layers || toolchanges_on_layer)
+    if (!m_sparse_layers_skipped || toolchanges_on_layer)
         if (filament_id < m_used_filament_length.size())
             m_used_filament_length[filament_id] += writer.get_and_reset_used_filament_length();
 
@@ -3950,7 +3978,9 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
             writer.extrude(writer.x(), writer.y()+spacing*(up_to_down?-1:1), feedrate);
         }
         if (layer_type == WipeTowerLayerType::Contact && m_enable_tower_interface_features && m_filpar[m_current_tool].filament_tower_interface_print_temp != m_filpar[m_current_tool].nozzle_temperature)
-            writer.format_line_M104(m_filpar[m_current_tool].nozzle_temperature, get_extruder_id(m_current_tool, m_cur_layer_id));
+            writer.format_line_M104(m_filpar[m_current_tool].nozzle_temperature, get_extruder_id(m_current_tool, m_cur_layer_id),
+                                    m_filpar[m_current_tool].nozzle_temperature > m_filpar[m_current_tool].filament_tower_interface_print_temp,
+                                    true, "Wipe tower interface layer leave restore");
         writer.append("; CP EMPTY GRID END\n"
                       ";------------------\n\n\n\n\n\n\n");
     }
@@ -3959,7 +3989,7 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
 
     // Ask our writer about how much material was consumed.
     // Skip this in case the layer is sparse and config option to not print sparse layers is enabled.
-    if (!m_no_sparse_layers || toolchanges_on_layer)
+    if (!m_sparse_layers_skipped || toolchanges_on_layer)
         if (filament_id < m_used_filament_length.size())
             m_used_filament_length[filament_id] += writer.get_and_reset_used_filament_length();
 
@@ -4041,7 +4071,7 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
         if (m_filpar[m_current_tool].filament_cooling_before_tower < EPSILON) return;
         if (!should_heating) return;
         float target_temp = is_first_layer() ? m_filpar[m_current_tool].nozzle_temperature_initial_layer : m_filpar[m_current_tool].nozzle_temperature;
-        writer.format_line_M104(target_temp, get_extruder_id(m_current_tool, m_cur_layer_id));
+        writer.format_line_M104(target_temp, get_extruder_id(m_current_tool, m_cur_layer_id), true, true, "Wipe tower reheat before wipe");
     };
     float speed_factor = 1.f;
     if (should_heating)
@@ -4084,7 +4114,9 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
         float ironing_length = 3.;
 
         if (should_cooling_before_object && i == cooling_begin_line) {
-            writer.format_line_M104(m_filpar[m_current_tool].nozzle_temperature, get_extruder_id(m_current_tool, m_cur_layer_id));
+            writer.format_line_M104(m_filpar[m_current_tool].nozzle_temperature, get_extruder_id(m_current_tool, m_cur_layer_id),
+                                    m_filpar[m_current_tool].nozzle_temperature > m_filpar[m_current_tool].filament_tower_interface_print_temp,
+                                    true, "Wipe tower pre object cooling");
         }
 
         if (i == 0 && m_use_gap_wall) { // BBS: add ironing after extruding start
@@ -5000,7 +5032,7 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
 
     // Ask our writer about how much material was consumed.
     // Skip this in case the layer is sparse and config option to not print sparse layers is enabled.
-    if (!m_no_sparse_layers || toolchanges_on_layer)
+    if (!m_sparse_layers_skipped || toolchanges_on_layer)
         if (m_current_tool < m_used_filament_length.size()) m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
     return construct_tcr(writer, false, old_tool, true, false, 0.f, false);

@@ -24,7 +24,7 @@ PrinterWebView::PrinterWebView(wxWindow *parent)
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
 
       // Create the webview
-    m_browser = WebView::CreateWebView(this, "");
+    m_browser = WebView::CreateWebView(this, "", "DeivcePage");
     if (m_browser == nullptr) {
         wxLogError("Could not init m_browser");
         return;

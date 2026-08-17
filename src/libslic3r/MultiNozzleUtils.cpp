@@ -2,6 +2,8 @@
 #include "ProjectTask.hpp"
 #include "Utils.hpp"
 #include "Print.hpp"
+#include "GCode/GCodeProcessor.hpp"
+#include "PrintConfig.hpp"
 #include <chrono>
 #include <unordered_map>
 #include <unordered_set>
@@ -985,6 +987,197 @@ std::optional<NozzleGroupInfo> NozzleGroupInfo::deserialize(const std::string &s
     } catch (const std::exception &) {
         return std::nullopt;
     }
+}
+
+// ==================== 按实际映射重算打印预估时间 ====================
+
+bool resolve_ams_load_unload(const std::vector<double>& loads,
+                             const std::vector<double>& unloads,
+                             int                        ams_type,
+                             float                      legacy_load,
+                             float                      legacy_unload,
+                             float&                     out_load,
+                             float&                     out_unload)
+{
+    out_load   = legacy_load;
+    out_unload = legacy_unload;
+    if (ams_type < 0)
+        return false;
+
+    const size_t idx = static_cast<size_t>(ams_type);
+    if (idx >= loads.size() || idx >= unloads.size()) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": ams_type=" << ams_type
+                                   << " is out of range of the AMS load/unload time table, "
+                                   << "fallback to legacy machine_load/unload_filament_time";
+        return false;
+    }
+
+    out_load   = static_cast<float>(loads[idx]);
+    out_unload = static_cast<float>(unloads[idx]);
+    return true;
+}
+
+namespace {
+
+// Internal-only: hardware topology and the fully-expanded recalc input.
+// Not exposed in the header — callers use the estimate_mapped_print_time overload
+// that builds this from the slice result + printer config.
+enum class Topology {
+    Unknown = 0,
+    SingleExtruderAms,
+    Selector,
+    ToolRack,
+};
+
+struct PrintTimeRecalcInput {
+    Topology topology{Topology::Unknown};
+    float    sliced_total_seconds{0.f};
+
+    // Filament ids in slice order; adjacent pairs drive change time.
+    std::vector<int> filament_change_sequence;
+
+    // Single AMS type assumed at slice time (must be >= 0 for SingleExtruderAms).
+    int sliced_ams_type{-1};
+
+    // Index == logical filament id; unused entries may be -1.
+    // Every filament id that appears in filament_change_sequence must be valid (>= 0).
+    std::vector<int> actual_ams_type_per_filament;
+
+    // Same printer-preset tables used when slicing (caller-supplied).
+    std::vector<double> ams_filament_load_times;
+    std::vector<double> ams_filament_unload_times;
+    float legacy_load{0.f};
+    float legacy_unload{0.f};
+};
+
+bool lookup_filament_ams_type(const std::vector<int>& types, int filament_id, int& out_type)
+{
+    if (filament_id < 0 || static_cast<size_t>(filament_id) >= types.size())
+        return false;
+    out_type = types[filament_id];
+    return out_type >= 0;
+}
+
+PrintTimeRecalcResult recalc_single_extruder_ams(const PrintTimeRecalcInput& in)
+{
+    PrintTimeRecalcResult r;
+    if (in.sliced_total_seconds < 0.f) {
+        r.reason = FailReason::InconsistentInput;
+        return r;
+    }
+    if (in.sliced_ams_type < 0 || in.ams_filament_load_times.empty() || in.ams_filament_unload_times.empty()) {
+        r.reason = FailReason::MissingTimeParams;
+        return r;
+    }
+
+    for (int fid : in.filament_change_sequence) {
+        int t = -1;
+        if (!lookup_filament_ams_type(in.actual_ams_type_per_filament, fid, t)) {
+            r.reason = FailReason::InvalidMapping;
+            return r;
+        }
+    }
+
+    float sliced_load   = 0.f;
+    float sliced_unload = 0.f;
+    resolve_ams_load_unload(in.ams_filament_load_times, in.ams_filament_unload_times, in.sliced_ams_type,
+                            in.legacy_load, in.legacy_unload, sliced_load, sliced_unload);
+
+    float sliced_change = 0.f;
+    float actual_change = 0.f;
+    const auto& seq = in.filament_change_sequence;
+    for (size_t i = 0; i + 1 < seq.size(); ++i) {
+        const int id_a = seq[i];
+        const int id_b = seq[i + 1];
+
+        int type_a = -1;
+        int type_b = -1;
+        lookup_filament_ams_type(in.actual_ams_type_per_filament, id_a, type_a);
+        lookup_filament_ams_type(in.actual_ams_type_per_filament, id_b, type_b);
+
+        sliced_change += sliced_unload + sliced_load;
+
+        float load_a_ignored   = 0.f;
+        float unload_a         = 0.f;
+        float load_b           = 0.f;
+        float unload_b_ignored = 0.f;
+        resolve_ams_load_unload(in.ams_filament_load_times, in.ams_filament_unload_times, type_a,
+                                in.legacy_load, in.legacy_unload, load_a_ignored, unload_a);
+        resolve_ams_load_unload(in.ams_filament_load_times, in.ams_filament_unload_times, type_b,
+                                in.legacy_load, in.legacy_unload, load_b, unload_b_ignored);
+        actual_change += unload_a + load_b;
+    }
+
+    r.gap_seconds = actual_change - sliced_change;
+    float total   = in.sliced_total_seconds + r.gap_seconds;
+    if (total < 0.f)
+        total = 0.f;
+    r.total_seconds = total;
+    r.reason        = FailReason::Ok;
+    return r;
+}
+
+PrintTimeRecalcInput build_input_from_slice(const GCodeProcessorResult& slice_result,
+                                            const DynamicPrintConfig&   printer_config,
+                                            const std::vector<int>&     actual_ams_type_per_filament)
+{
+    PrintTimeRecalcInput in;
+    in.topology                     = Topology::SingleExtruderAms;
+    in.actual_ams_type_per_filament = actual_ams_type_per_filament;
+
+    const size_t normal = static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal);
+    if (normal < slice_result.print_statistics.modes.size())
+        in.sliced_total_seconds = slice_result.print_statistics.modes[normal].time;
+
+    in.filament_change_sequence.reserve(slice_result.filament_change_sequence.size());
+    for (unsigned int fid : slice_result.filament_change_sequence)
+        in.filament_change_sequence.push_back(static_cast<int>(fid));
+
+    if (const auto* opt = printer_config.option<ConfigOptionInt>("default_ams_type"))
+        in.sliced_ams_type = opt->value;
+
+    in.ams_filament_load_times   = get_ams_load_times(printer_config);
+    in.ams_filament_unload_times = get_ams_unload_times(printer_config);
+
+    if (const auto* opt = printer_config.option<ConfigOptionFloat>("machine_load_filament_time"))
+        in.legacy_load = static_cast<float>(opt->value);
+    if (const auto* opt = printer_config.option<ConfigOptionFloat>("machine_unload_filament_time"))
+        in.legacy_unload = static_cast<float>(opt->value);
+
+    return in;
+}
+
+// Topology dispatch. P0: SingleExtruderAms only; other topologies fall back to the
+// sliced total time via UnsupportedTopology.
+PrintTimeRecalcResult estimate_mapped_print_time_impl(const PrintTimeRecalcInput& in)
+{
+    switch (in.topology) {
+    case Topology::SingleExtruderAms:
+        return recalc_single_extruder_ams(in);
+    case Topology::Selector:
+    case Topology::ToolRack:
+    case Topology::Unknown:
+    default: {
+        PrintTimeRecalcResult r;
+        r.reason = FailReason::UnsupportedTopology;
+        return r;
+    }
+    }
+}
+
+} // namespace
+
+PrintTimeRecalcResult estimate_mapped_print_time(const GCodeProcessorResult* slice_result,
+                                                 const DynamicPrintConfig*   printer_config,
+                                                 const std::vector<int>&     actual_ams_type_per_filament)
+{
+    PrintTimeRecalcResult r;
+    if (!slice_result || !printer_config) {
+        r.reason = FailReason::InconsistentInput;
+        return r;
+    }
+    return estimate_mapped_print_time_impl(
+        build_input_from_slice(*slice_result, *printer_config, actual_ams_type_per_filament));
 }
 
 }} // namespace Slic3r::MultiNozzleUtils

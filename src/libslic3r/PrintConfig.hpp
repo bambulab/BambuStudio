@@ -20,6 +20,7 @@
 #include "CommonDefs.hpp"
 #include "Config.hpp"
 #include "Polygon.hpp"
+#include <atomic>
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
@@ -32,6 +33,8 @@
 
 namespace Slic3r {
 
+class DynamicPrintConfig;
+
 enum GCodeFlavor : unsigned char {
     gcfMarlinLegacy, gcfKlipper, gcfRepRapSprinter, gcfRepRapFirmware, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlinFirmware, gcfSailfish, gcfMach3, gcfMachinekit,
     gcfSmoothie, gcfNoExtrusion
@@ -41,6 +44,14 @@ enum FilamentUsageType {
     SupportOnly,
     ModelOnly,
     Hybrid
+};
+
+// AMS load/unload timing-vector indices. Values stay aligned with the existing
+// preset layout; index 0 is reserved for the legacy external-spool slot.
+enum class AmsTimeType : int {
+    Ams     = 1,
+    AmsLite = 2,
+    N3SF    = 3,
 };
 
 enum class FuzzySkinType {
@@ -407,6 +418,22 @@ static std::set<NozzleVolumeType> get_valid_nozzle_volume_type() {
 
 std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type);
 
+// Canonical AMS timing type name used in slice_info (default_ams_type / ams_type).
+extern std::string get_ams_type_name(int ams_type);
+extern std::string get_ams_type_display_name(int ams_type);
+extern const std::vector<int>& get_ams_time_types();
+// Each AMS timing type owns a dedicated scalar option, so no option key needs an index
+// suffix. Returns an empty string for types without a timing option (e.g. external spool).
+extern std::string get_ams_load_time_key(int ams_type);
+extern std::string get_ams_unload_time_key(int ams_type);
+// The per-type scalar options gathered into AmsTimeType-indexed tables. Always large enough
+// to be indexed by any value from get_ams_time_types() without a bounds check. Index 0 is
+// the external spool, which has no AMS timing and therefore stays 0.
+extern std::vector<double> get_ams_load_times(const ConfigBase &config);
+extern std::vector<double> get_ams_unload_times(const ConfigBase &config);
+// Resolve machine-declared canonical AMS names to timing type enum values.
+extern std::vector<int> get_supported_ams_time_types(const std::vector<std::string> &supported_names);
+
 static std::string bed_type_to_gcode_string(const BedType type)
 {
     std::string type_str;
@@ -482,8 +509,11 @@ extern bool is_filament_extruder_override_key(const std::string &opt_key);
 extern std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::string> &strs);
 extern std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std::map<int, int>> &extruder_ams_count);
 extern NozzleVolumeType convert_to_nvt_type(const std::string& variant_str);
+extern bool is_nozzle_printable_for_filament(NozzleVolumeType machine_nvt, const std::vector<std::string>& filament_variants, bool variants_are_complete);
 extern std::vector<std::map<NozzleVolumeType, int>> get_extruder_nozzle_stats(const std::vector<std::string> & strs);
 extern std::vector<std::string> save_extruder_nozzle_stats_to_string(const std::vector<std::map<NozzleVolumeType, int>> &extruder_nozzle_stats);
+extern NozzleVolumeType legacy_fallback_nozzle_volume_type(NozzleVolumeType nozzle_volume_type);
+extern void split_nozzle_stats_for_export(DynamicPrintConfig &config);
 
 #define CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NAME) \
     template<> const t_config_enum_names& ConfigOptionEnum<NAME>::get_enum_names(); \
@@ -1254,6 +1284,13 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             print_extruder_variant))
     ((ConfigOptionFloat,               machine_load_filament_time))
     ((ConfigOptionFloat,               machine_unload_filament_time))
+    ((ConfigOptionFloat,               ams_filament_load_time_ams))
+    ((ConfigOptionFloat,               ams_filament_load_time_ams_lite))
+    ((ConfigOptionFloat,               ams_filament_load_time_n3f_s))
+    ((ConfigOptionFloat,               ams_filament_unload_time_ams))
+    ((ConfigOptionFloat,               ams_filament_unload_time_ams_lite))
+    ((ConfigOptionFloat,               ams_filament_unload_time_n3f_s))
+    ((ConfigOptionInt,                 default_ams_type))
     ((ConfigOptionFloat,               machine_switch_extruder_time))
     ((ConfigOptionFloat,               machine_hotend_change_time))
     ((ConfigOptionBool,                group_algo_with_time))
@@ -1376,6 +1413,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPointsGroups,       extruder_printable_area))
     //BBS: add bed_exclude_area
     ((ConfigOptionPoints,             bed_exclude_area))
+    // Nested heat-soak zones on bed (inner rectangle first).
+    ((ConfigOptionPoints,             bed_heat_soak_area))
     ((ConfigOptionPoints,             head_wrap_detect_zone))
     // BBS
     ((ConfigOptionString,             bed_custom_texture))
@@ -1923,7 +1962,6 @@ public:
     // from the timestmap of the object at the top of the Undo / Redo stack.
     virtual uint64_t    timestamp() const throw() { return m_timestamp; }
     bool                timestamp_matches(const ModelConfig &rhs) const throw() { return m_timestamp == rhs.m_timestamp; }
-    // Not thread safe! Should not be called from other than the main thread!
     void                touch() { m_timestamp = ++ s_last_timestamp; }
     bool operator==(const ModelConfig &other) const {
         return m_data == other.m_data;
@@ -1936,7 +1974,9 @@ private:
     uint64_t                    m_timestamp { 1 };
     DynamicPrintConfig          m_data;
 
-    static uint64_t             s_last_timestamp;
+    // Atomic because touch() is reached from a worker thread: a cut copies each source volume's
+    // config onto the volumes of its own private clone.
+    static std::atomic<uint64_t> s_last_timestamp;
 };
 
 // const std::vector<double> &fv_matrix:  origin matrix from json

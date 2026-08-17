@@ -2075,6 +2075,7 @@ namespace Slic3r
                             columns_offsets.push_back({ travel_percent, offsets[2] });
                             append_item(EItemType::Rect, Travel_Colors[0], columns_offsets, true, visible, [this, item, visible]() {
                                 set_move_type_visible(item, !visible);
+                                refresh(*m_gcode_result, wxGetApp().plater()->get_extruder_colors_from_plater_config(m_gcode_result));
                                 on_visibility_changed();
                                 });
                         }

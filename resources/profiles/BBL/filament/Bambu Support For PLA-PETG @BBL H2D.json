@@ -11,6 +11,12 @@
     "eng_plate_temp_initial_layer": [
         "60"
     ],
+    "fan_max_speed": [
+        "15"
+    ],
+    "fan_min_speed": [
+        "10"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10",
@@ -40,12 +46,12 @@
         "fdm_filament_template_direct_dual_e3d"
     ],
     "nozzle_temperature": [
-        "210",
+        "220",
         "210",
         "210"
     ],
     "nozzle_temperature_initial_layer": [
-        "210",
+        "220",
         "210",
         "210"
     ],

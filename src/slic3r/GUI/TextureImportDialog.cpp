@@ -489,7 +489,8 @@ public:
                         std::function<void(wxColour)>            on_add_filament,
                         std::function<void()>                    on_decompose_color,
                         std::function<bool()>                    can_add_filament,
-                        std::function<void(bool)>                on_close)
+                        std::function<void(bool)>                on_close,
+                        std::vector<int>                         display_numbers)
         : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
         , m_entries(entries)
         , m_colors_rgba(colors_rgba)
@@ -501,6 +502,7 @@ public:
         , m_on_decompose_color(std::move(on_decompose_color))
         , m_can_add_filament(std::move(can_add_filament))
         , m_on_close(std::move(on_close))
+        , m_display_numbers(std::move(display_numbers))
     {
         wxColour pop_bg = dark_or(*wxWHITE, wxColour(0x2D, 0x2D, 0x31));
         SetBackgroundColour(pop_bg);
@@ -548,9 +550,12 @@ public:
             }
         };
 
+        // Section order matches compute_display_numbers() so the visible IDs
+        // ascend monotonically (ExistingPhysical -> NewPhysical -> ExistingMixed
+        // -> NewMixed) instead of jumping (e.g. 1,2 -> 7 -> 3,4,5,6 -> 8,9,10).
         add_section(_L("Project Physical Filaments"), TextureFilamentKind::ExistingPhysical);
-        add_section(_L("Project Mixed Filaments"), TextureFilamentKind::ExistingMixed);
         add_section(_L("New Physical Filaments"), TextureFilamentKind::NewPhysical);
+        add_section(_L("Project Mixed Filaments"), TextureFilamentKind::ExistingMixed);
         add_section(_L("New Mixed Filaments"), TextureFilamentKind::NewMixed);
 
         auto* decompose_label = new wxStaticText(this, wxID_ANY, _L("Decompose Color"));
@@ -680,7 +685,7 @@ private:
             : wxColour(128, 128, 128);
 
         wxString name_str = (idx < m_names.size()) ? filament_name_to_wx_string(m_names[idx])
-                                                    : wxString::Format("Filament %d", (int)(idx + 1));
+                                                    : wxString::Format("Filament %d", display_number((int)idx));
         row->SetToolTip(name_str);
 
         row->Bind(wxEVT_PAINT, [this, idx, sq, sq_r, sq_x, gap1, fil_clr, name_str, row_bg, hover_bg, name_fg](wxPaintEvent& e) {
@@ -709,7 +714,7 @@ private:
                 nf.SetPointSize(9);
                 dc.SetFont(nf);
                 dc.SetTextForeground(paint_clr.GetLuminance() < 0.6 ? *wxWHITE : texture_import_gray9000());
-                wxString ns = wxString::Format("%d", (int)(idx + 1));
+                wxString ns = wxString::Format("%d", display_number((int)idx));
                 wxSize tsz = dc.GetTextExtent(ns);
                 dc.DrawText(ns, sq_x + (sq - tsz.x) / 2, sq_y + (sq - tsz.y) / 2);
             }
@@ -765,7 +770,7 @@ private:
         row->SetBackgroundColour(row_bg);
         row->SetBackgroundStyle(wxBG_STYLE_PAINT);
         row->SetCursor(wxCursor(wxCURSOR_HAND));
-        row->SetToolTip(entry.name.empty() ? wxString::Format("Filament %d", idx + 1) : filament_name_to_wx_string(entry.name));
+        row->SetToolTip(entry.name.empty() ? wxString::Format("Filament %d", display_number(idx)) : filament_name_to_wx_string(entry.name));
 
         row->Bind(wxEVT_PAINT, [this, entry, idx, row_bg, hover_bg, name_fg, plus_fg](wxPaintEvent& e) {
             auto* p = static_cast<wxPanel*>(e.GetEventObject());
@@ -808,7 +813,7 @@ private:
                 dc.DrawRoundedRectangle(x, y, sw, sw, sw_r);
                 draw_filament_swatch_border(dc, comp_clr, x, y, sw, sw, sw_r);
 
-                wxString num = wxString::Format("%u", comp_id);
+                wxString num = wxString::Format("%d", display_number(comp_dialog_idx));
                 wxSize nsz = dc.GetTextExtent(num);
                 dc.SetTextForeground(comp_clr.GetLuminance() < 0.6 ? *wxWHITE : texture_import_gray9000());
                 dc.DrawText(num, x + (sw - nsz.x) / 2, y + (sw - nsz.y) / 2);
@@ -856,9 +861,19 @@ private:
     std::function<void()>                      m_on_decompose_color;
     std::function<bool()>                      m_can_add_filament;
     std::function<void(bool)>                  m_on_close;
+    // 1-based display number per dialog_index, mirroring the post-apply
+    // sidebar ordering (ExistingPhysical, NewPhysical, ExistingMixed, NewMixed).
+    std::vector<int>                           m_display_numbers;
     int                                        m_hover_idx = -1;
     bool                                       m_closing_from_action = false;
     bool                                       m_destroy_scheduled = false;
+
+    // Returns the display number for a dialog_index, falling back to idx + 1
+    // when no mapping is available (e.g. index out of range).
+    int display_number(int idx) const {
+        return (idx >= 0 && idx < (int)m_display_numbers.size() && m_display_numbers[idx] > 0)
+            ? m_display_numbers[idx] : idx + 1;
+    }
 };
 
 // ============================================================
@@ -1731,8 +1746,11 @@ TextureImportDialog::TextureImportDialog(
 
     m_preview_canvas->set_mesh_data(m_textured_mesh.vertices, m_textured_mesh.indices);
 
-    // Prepare texture rendering data for the Original tab
-    if (!m_textured_mesh.textures.empty()) {
+    // Pre-computed face colors (OBJ vertex colors / MTL face colors):
+    // use them directly as the Original preview, skip texture decode.
+    if (!m_textured_mesh.precomputed_face_colors.empty()) {
+        m_preview_canvas->set_original_face_colors(m_textured_mesh.precomputed_face_colors);
+    } else if (!m_textured_mesh.textures.empty()) {
         std::vector<std::vector<unsigned char>> tex_pixels_rgb;
         std::vector<int> tex_widths, tex_heights;
         tex_pixels_rgb.reserve(m_textured_mesh.textures.size());
@@ -2418,7 +2436,13 @@ void TextureImportDialog::start_computation(bool auto_color, bool initial)
         auto worker_settings = settings;
         bool mesh_repair_decision_required = false;
         worker_settings.mesh_repair_decision_required = &mesh_repair_decision_required;
-        bool ok = Slic3r::texture_to_painting(mesh_copy, result, worker_settings, progress_cb, cancel_cb);
+        bool ok;
+        if (!mesh_copy.precomputed_face_colors.empty()) {
+            ok = Slic3r::face_colors_to_painting(
+                mesh_copy, result, worker_settings, progress_cb, cancel_cb);
+        } else {
+            ok = Slic3r::texture_to_painting(mesh_copy, result, worker_settings, progress_cb, cancel_cb);
+        }
 
         if (m_cancel_flag.load()) {
             wxQueueEvent(handler, new wxCommandEvent(EVT_TEXTURE_COMPUTE_ERROR));
@@ -3049,6 +3073,54 @@ void TextureImportDialog::compact_used_virtual_filaments()
     }
 }
 
+std::vector<int> TextureImportDialog::compute_display_numbers() const
+{
+    // Assigns each entry a 1-based display number in the order the sidebar will
+    // show after apply: ExistingPhysical, NewPhysical, ExistingMixed, NewMixed.
+    // This keeps the dialog's visible IDs in sync with the post-apply sidebar,
+    // instead of the raw dialog_index (which interleaves physicals and mixeds
+    // by processing order and causes e.g. CMYW to show 4,5,6,8 instead of 3,4,5,6).
+    // MUST mirror ordering in apply_textured_mesh_import_result (Plater.cpp:9896):
+    //   - ExistingPhysical keeps its project_config_index
+    //   - NewPhysical is inserted at existing_physical_count + new_order
+    //   - ExistingMixed shifts to project_config_index + new_physical_count
+    //   - NewMixed is appended after all existing mixeds
+    std::vector<int> result(m_filament_entries.size(), 0);
+    int next = 1;
+
+    auto assign_group = [&](TextureFilamentKind kind, bool by_project_config_index) {
+        if (by_project_config_index) {
+            std::vector<const TextureFilamentEntry*> group;
+            for (const auto& e : m_filament_entries)
+                if (e.kind == kind)
+                    group.push_back(&e);
+            std::sort(group.begin(), group.end(),
+                      [](const TextureFilamentEntry* a, const TextureFilamentEntry* b) {
+                          return a->project_config_index < b->project_config_index;
+                      });
+            for (const auto* e : group) {
+                if (e->dialog_index >= 0 && e->dialog_index < (int)result.size())
+                    result[e->dialog_index] = next;
+                ++next;
+            }
+        } else {
+            for (const auto& e : m_filament_entries) {
+                if (e.kind != kind)
+                    continue;
+                if (e.dialog_index >= 0 && e.dialog_index < (int)result.size())
+                    result[e.dialog_index] = next;
+                ++next;
+            }
+        }
+    };
+
+    assign_group(TextureFilamentKind::ExistingPhysical, true);
+    assign_group(TextureFilamentKind::NewPhysical,      false);
+    assign_group(TextureFilamentKind::ExistingMixed,    true);
+    assign_group(TextureFilamentKind::NewMixed,         false);
+    return result;
+}
+
 void TextureImportDialog::dismiss_filament_popup()
 {
     if (!m_filament_popup) {
@@ -3403,7 +3475,13 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
         dismiss_filament_popup();
     }
 
-    auto on_select = [this, row_index](int idx) {
+    const auto display_numbers = compute_display_numbers();
+    auto display_number = [display_numbers](int idx) -> int {
+        return (idx >= 0 && idx < (int)display_numbers.size() && display_numbers[idx] > 0)
+            ? display_numbers[idx] : idx + 1;
+    };
+
+    auto on_select = [this, row_index, display_number](int idx) {
         if (row_index >= m_mapping_rows.size()) return;
         m_mapping_rows[row_index].target_filament_idx = idx;
         if (row_index < m_current_matches.size())
@@ -3411,7 +3489,7 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
         if (m_mapping_rows[row_index].target_panel) {
             wxString label = (idx >= 0 && idx < (int)m_filament_names.size())
                 ? filament_name_to_wx_string(m_filament_names[idx])
-                : wxString::Format("Filament %d", idx + 1);
+                : wxString::Format("Filament %d", display_number(idx));
             m_mapping_rows[row_index].target_panel->SetToolTip(label);
             m_mapping_rows[row_index].target_panel->Refresh();
         }
@@ -3464,7 +3542,8 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
         m_existing_filament_count, tp->GetSize().x, tp, on_select, on_add_filament,
         on_decompose_color,
         [this]() { return can_add_virtual_filament(); },
-        on_close);
+        on_close,
+        display_numbers);
 
     wxPoint pos = tp->ClientToScreen(wxPoint(0, tp->GetSize().y));
     wxRect display_rect;
@@ -3647,10 +3726,16 @@ void TextureImportDialog::rebuild_mapping_rows()
         return wxColour(128, 128, 128);
     };
 
-    auto get_filament_label = [this](int idx) -> wxString {
+    const auto display_numbers = compute_display_numbers();
+    auto display_number = [display_numbers](int idx) -> int {
+        return (idx >= 0 && idx < (int)display_numbers.size() && display_numbers[idx] > 0)
+            ? display_numbers[idx] : idx + 1;
+    };
+
+    auto get_filament_label = [this, display_number](int idx) -> wxString {
         if (idx >= 0 && idx < (int)m_filament_names.size())
             return filament_name_to_wx_string(m_filament_names[idx]);
-        return wxString::Format("Filament %d", idx + 1);
+        return wxString::Format("Filament %d", display_number(idx));
     };
 
     const wxColour dash_clr   = dark_or(wxColour(179, 179, 179), wxColour(100, 100, 106));
@@ -3778,7 +3863,7 @@ void TextureImportDialog::rebuild_mapping_rows()
         row.target_panel->SetCursor(wxCursor(wxCURSOR_HAND));
 
         row.target_panel->Bind(wxEVT_PAINT, [this, ci, get_target_wxcolor, get_filament_label,
-                                              card_bg, card_bd, name_fg, chev_clr](wxPaintEvent& e) {
+                                              display_number, card_bg, card_bd, name_fg, chev_clr](wxPaintEvent& e) {
             auto* p = static_cast<wxPanel*>(e.GetEventObject());
             wxAutoBufferedPaintDC dc(p);
             wxSize sz = p->GetClientSize();
@@ -3830,7 +3915,7 @@ void TextureImportDialog::rebuild_mapping_rows()
                     dc.DrawRoundedRectangle(x, sw_y, sw, sw, sw_r);
                     draw_filament_swatch_border(dc, comp_clr, x, sw_y, sw, sw, sw_r);
 
-                    wxString num_str = wxString::Format("%u", comp_id);
+                    wxString num_str = wxString::Format("%d", display_number(comp_idx));
                     wxSize nsz = dc.GetTextExtent(num_str);
                     dc.SetTextForeground(comp_clr.GetLuminance() < 0.6 ? *wxWHITE : texture_import_gray9000());
                     dc.DrawText(num_str, x + (sw - nsz.x) / 2, sw_y + (sw - nsz.y) / 2);
@@ -3871,7 +3956,7 @@ void TextureImportDialog::rebuild_mapping_rows()
                 num_font.SetPointSize(10);
                 dc.SetFont(num_font);
                 dc.SetTextForeground(fil_clr.GetLuminance() < 0.6 ? *wxWHITE : texture_import_gray9000());
-                wxString num_str = wxString::Format("%d", fil_idx + 1);
+                wxString num_str = wxString::Format("%d", display_number(fil_idx));
                 wxSize nsz = dc.GetTextExtent(num_str);
                 dc.DrawText(num_str, sq_x + (sq - nsz.x) / 2, sq_y + (sq - nsz.y) / 2);
             }

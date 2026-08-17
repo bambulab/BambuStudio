@@ -950,6 +950,9 @@ msgstr "Parçayı diğer tarafa atayın"
 msgid "Cut"
 msgstr "Kes"
 
+msgid "Cutting model object"
+msgstr ""
+
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr "Açık kenarlar kesme aracından kaynaklanıyor olabilir, şimdi düzeltmek ister misiniz?"
 
@@ -1323,6 +1326,9 @@ msgstr "Paralel_mesafe:"
 
 msgid "Flip by Face 2"
 msgstr "Yüzey 2'ye Göre Çevir"
+
+msgid "Rotate the object on selected Face 2 around the perpendicular line of the selected plane"
+msgstr ""
 
 msgid "Assemble"
 msgstr "Birleştir"
@@ -2051,6 +2057,12 @@ msgstr "Bambu Studio sürümü bulut hizmetini etkinleştirmek için çok eski. 
 msgid "Your software certificate has been revoked, please update Bambu Studio software."
 msgstr "Yazılım sertifikanız iptal edildi, lütfen Bambu Studio yazılımını güncelleyin."
 
+msgid "Got it"
+msgstr "Git"
+
+msgid "Continue"
+msgstr "Devam et"
+
 msgid "Retrieving printer information, please try again later."
 msgstr "Yazıcı bilgileri alınıyor, lütfen daha sonra tekrar deneyin."
 
@@ -2241,6 +2253,9 @@ msgstr "Küp"
 msgid "Cylinder"
 msgstr "Silindir"
 
+msgid "Hexagonal Prism"
+msgstr ""
+
 msgid "Cone"
 msgstr "Koni"
 
@@ -2255,6 +2270,9 @@ msgstr "Simit"
 
 msgid "Rounded Rectangle"
 msgstr "Yuvarlatılmış Dikdörtgen"
+
+msgid "TearDrop"
+msgstr ""
 
 msgid "Bambu Cube"
 msgstr "Bambu Küp"
@@ -2986,6 +3004,10 @@ msgstr "Bu işlemi gerçekleştirmek için gereken filament türü bilinmiyor. L
 msgid "/"
 msgstr "/"
 
+msgctxt "AMS filament"
+msgid "loading"
+msgstr ""
+
 msgid "Confirm"
 msgstr "Onayla"
 
@@ -3187,6 +3209,21 @@ msgstr "Adım"
 msgid "Install parts"
 msgstr "Parçaları tak"
 
+msgid "Inherited Step"
+msgstr ""
+
+msgid "start frame"
+msgstr ""
+
+msgid "Final assembly"
+msgstr ""
+
+msgid "Merged Step"
+msgstr ""
+
+msgid "end frame"
+msgstr ""
+
 msgid "Apply the final assembly pose to the objects or parts added in the current step?"
 msgstr "Nihai montaj pozu, geçerli adımda eklenen nesnelere veya parçalara uygulansın mı?"
 
@@ -3316,6 +3353,9 @@ msgstr "Yalnızca Geçerli Adımın Parçalarını Göster"
 msgid "X-Ray Other Parts"
 msgstr "Diğer Parçaları Saydam Göster"
 
+msgid "Play from the current step."
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr "Tüm adımların tüm karelerini oynat."
 
@@ -3363,6 +3403,12 @@ msgstr "Daralt"
 
 msgid "Options"
 msgstr "Seçenekler"
+
+msgid "Delete all assembly steps"
+msgstr ""
+
+msgid "There’s no step to delete"
+msgstr ""
 
 msgid "Go to Wiki"
 msgstr "Wiki'ye git"
@@ -3412,6 +3458,9 @@ msgstr "Markdown Olarak Dışa Aktar"
 
 msgid "Export MP4"
 msgstr "MP4 Olarak Dışa Aktar"
+
+msgid "Set export file parameters"
+msgstr ""
 
 msgid "After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF."
 msgstr "Markdown belgesini dışa aktardıktan sonra Zettlr gibi üçüncü taraf yazılımlarda düzenleyip PDF olarak dışa aktarabilirsiniz."
@@ -3551,6 +3600,12 @@ msgstr "Tüm parçaları otomatik olarak patlat."
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
 msgstr "Nihai montaj pozu, seçili nesneye veya parçaya uygulansın mı (hiçbiri seçili değilse geçerli karede eklenen tüm nesnelere uygulanır)"
 
+msgid "Automatically explode objects that are new to this step. Objects already assembled in earlier steps stay together."
+msgstr ""
+
+msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
+msgstr ""
+
 msgid "Apply current camera angle to all frames of the current step"
 msgstr "Geçerli kamera açısını geçerli adımın tüm karelerine uygula"
 
@@ -3572,6 +3627,12 @@ msgstr "Montaj ağacı"
 msgid "Search"
 msgstr "Ara"
 
+msgid "Expand all objects"
+msgstr ""
+
+msgid "Collapse all objects"
+msgstr ""
+
 msgid "List"
 msgstr "Liste"
 
@@ -3583,6 +3644,9 @@ msgstr "Tüm nesneleri genişlet"
 
 msgid "Collapse all objects"
 msgstr "Tüm nesneleri daralt"
+
+msgid "Object name"
+msgstr "Nesne adı"
 
 msgid "Select all parts in a step"
 msgstr "Bir adımdaki tüm parçaları seç"
@@ -3891,9 +3955,6 @@ msgstr "Lütfen dikkat: mesh, manifold olmayan geometri veya açık sınırlar i
 msgid "Mesh issue"
 msgstr "Mesh sorunu"
 
-msgid "Continue"
-msgstr "Devam et"
-
 msgid "Choose SLA archive:"
 msgstr "SLA arşivini seçin:"
 
@@ -4102,6 +4163,9 @@ msgstr "Filament yok"
 
 msgid "System presets"
 msgstr "Sistem ön ayarları"
+
+msgid "Recently used"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4647,11 +4711,9 @@ msgstr ""
 "0,2'ye sıfırlayın"
 
 msgid ""
-"Should not large than layer height.\n"
+"Should not be larger than layer height.\n"
 "Reset to 10%"
 msgstr ""
-"Katman yüksekliğinden büyük olmamalıdır.\n"
-"%10’a sıfırla"
 
 msgid ""
 "Too small ironing spacing.\n"
@@ -5631,22 +5693,6 @@ msgstr "Aşağıdaki nesneler plaka sınırının üzerine yerleştirilir veya y
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Lütfen sorunu tamamen plakanın üzerine veya dışına hareket ettirerek ve yüksekliğin yapım hacmi dahilinde olduğunu doğrulayarak çözün.\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr "Assembly'nin sınırlayıcı kutusu çok büyük ( maksimum boyut >= %1% inç ), bu da render sorunlarına neden olabilir.\n"
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr "Assembly'nin sınırlayıcı kutusu çok büyük (maksimum boyut >= %1% mm), bu da render sorunlarına neden olabilir.\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr "Aşağıdaki nesneler dünya koordinat sisteminin orijinalinden çok uzakta ( mesafe >= %1% inç ):\n"
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr "Aşağıdaki nesneler dünya koordinat sisteminin orijinalinden çok uzakta ( mesafe >= %1% mm ):\n"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "Bazı modellerin konumu veya boyutu %s'nin yazdırılabilir aralığını aşıyor."
@@ -5786,6 +5832,12 @@ msgstr "Montaj İptali"
 msgid "return"
 msgstr "geri dön"
 
+msgid "Exit current gizmo editing"
+msgstr ""
+
+msgid "Return to prepare view"
+msgstr ""
+
 msgid "Fit camera"
 msgstr "Kamerayı sığdır"
 
@@ -5888,6 +5940,9 @@ msgstr "%s filamentleri bu plakanın yüzeyine doğrudan basılamaz."
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "Karışımda PLA ve PETG filamentleri tespit edildi. Baskı kalitesini sağlamak için parametreleri Wiki'ye göre ayarlayın."
 
+msgid "Detected brittle filament (e.g., PPS-CF). Please place the models at the center of the heated bed. Printing near the edge may cause the filament to bend excessively and break inside the tube."
+msgstr ""
+
 msgid "The prime tower improves multi-color print quality and is recommended."
 msgstr "Prime kulesi çok renkli baskı kalitesini artırır ve kullanılması önerilir."
 
@@ -5899,6 +5954,9 @@ msgstr "Kısmi temizleme miktarı 0 olarak ayarlanmıştır. Çok renkli baskı,
 
 msgid "Click Wiki for help."
 msgstr "Yardım için Wiki'ye tıklayın."
+
+msgid "Click Wiki for details."
+msgstr ""
 
 msgid "Jump to: Prime tower"
 msgstr "Şuraya git: Prime kulesi"
@@ -6203,6 +6261,12 @@ msgstr "Projeyi farklı kaydet"
 
 msgid "Save current project as"
 msgstr "Mevcut projeyi farklı kaydet"
+
+msgid "Show Project in Folder"
+msgstr ""
+
+msgid "Show current project in folder"
+msgstr ""
 
 msgid "Import 3MF/STL/STEP/SVG/OBJ/AMF"
 msgstr "3MF/STL/STEP/SVG/OBJ/AMF'yi içe aktar"
@@ -6745,8 +6809,8 @@ msgstr "Yazıcıdan model bilgisi alınamadı."
 msgid "Failed to parse model information."
 msgstr "Model bilgileri ayrıştırılamadı."
 
-msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
-msgstr ".gcode.3mf dosyası G kodu verisi içermiyor. Lütfen Bambu Studio ile dilimleyin ve yeni bir .gcode.3mf dosyası dışa aktarın."
+msgid "The .gcode.3mf file contains no G-code data. Please slice it with Bambu Studio and export a new .gcode.3mf file."
+msgstr ""
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -7488,6 +7552,9 @@ msgstr "Daha fazla bilgi için bağlantıyı aç"
 msgid "Warning:"
 msgstr "Uyarı:"
 
+msgid "Wiki for details."
+msgstr ""
+
 msgid "Export successfully."
 msgstr "Başarıyla dışarı aktarıldı."
 
@@ -8056,11 +8123,14 @@ msgstr "Kenar çubuğunu daralt"
 msgid "Loading file: %s"
 msgstr "Dosya yükleniyor: %s"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "3mf Bambu Lab'dan değil, sadece geometri verilerini yükleyin."
+msgid "The 3mf file has invalid config, load geometry data only"
+msgstr ""
 
 msgid "Load 3mf"
 msgstr "3mf yükle"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data only."
+msgstr "3mf Bambu Lab'dan değil, sadece geometri verilerini yükleyin."
 
 msgid "The Config can not be loaded."
 msgstr "Yapılandırma yüklenemiyor."
@@ -8346,6 +8416,12 @@ msgstr "Desteklenen malzemeleri gör"
 msgid "Go Back"
 msgstr "Geri Dön"
 
+msgid "Option 3: Enable multi-material optimization"
+msgstr ""
+
+msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
+msgstr ""
+
 msgid "Unsupported Materials Detected"
 msgstr "Desteklenmeyen Malzemeler Algılandı"
 
@@ -8381,6 +8457,15 @@ msgstr "Veriler Senkronize Ediliyor"
 
 msgid "Refreshing printer and material data..."
 msgstr "Yazıcı ve malzeme verileri yenileniyor..."
+
+msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
+msgstr ""
+
+msgid "Helio could not load complete printer and material data. Matching remains paused."
+msgstr ""
+
+msgid "Helio Data Refresh Failed"
+msgstr ""
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Bir Helio simülasyonu veya optimizasyon görevi devam ediyor."
@@ -8504,6 +8589,12 @@ msgstr "Desteklenen yazıcıları gör"
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "İlk optimizasyonunuzu başlatmak için Optimize Et/Geliştir düğmesine tıklayın."
 
+msgid "Previous Helio action is still stopping; try again shortly"
+msgstr ""
+
+msgid "Helio Additive"
+msgstr "Helio Additive"
+
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
@@ -8528,6 +8619,12 @@ msgstr "Yazıcı listesi ve malzeme listesi senkronize ediliyor. Lütfen daha so
 
 msgid "Synchronizing Helio"
 msgstr "Helio'yu Senkronize Et"
+
+msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
+msgstr ""
+
+msgid "Helio Data Load Failed"
+msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
 msgstr "Lütfen dilimleme hatalarını giderip tekrar yayınlayın."
@@ -8753,6 +8850,9 @@ msgstr "PVA filamentlerinin 0,2 mm nozullarla kullanılması tavsiye edilmez."
 
 msgid "Are you sure to use them? \n"
 msgstr "Bunları kullanacağından emin misin? \n"
+
+msgid "When thermal preconditioning is enabled, duration auto-adjusts to the model's position for optimal first-layer quality; the farther from the center, the longer it takes. White boxes mark the boundary lines. To disable the guidelines and this warning, go to Preferences > 3D."
+msgstr ""
 
 msgid "Send G-code"
 msgstr "G-kodu gönder"
@@ -9131,6 +9231,12 @@ msgstr "Kabukları her zaman önizlemede göster"
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Kabukları her zaman önizleme görünümü sekmesinde gösterin veya göstermeyin, değeri değiştirirseniz yeniden dilimlemeniz gerekir."
 
+msgid "Show Thermal Preconditioning Area"
+msgstr ""
+
+msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
+msgstr ""
+
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Adım ağı parametre ayarı iletişim kutusunu gösterir."
 
@@ -9238,6 +9344,9 @@ msgstr "Geliştirici Modu"
 
 msgid "Skip AMS blacklist check"
 msgstr "AMS kara liste kontrolünü atla"
+
+msgid "Enable DevTools For Webview"
+msgstr ""
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Bambu Stüdyosuna Ortak Dosyalar"
@@ -9622,6 +9731,9 @@ msgstr "Bambu Soğuk Plaka SuperTack"
 msgid "Send print job"
 msgstr "Yazdırma işini şuraya gönder"
 
+msgid "The current estimated time has been recalculated based on the actual filament mapping."
+msgstr ""
+
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Filamentlerin gruplandırılmasından memnun değil misiniz? Yeniden gruplandırın ve dilimleyin ->"
 
@@ -9845,20 +9957,8 @@ msgstr "Lütfen biraz bekleyin..."
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
 msgstr "Baskı kafası ve hotend rafı dolu. Lütfen yazdırmadan önce en az bir hotend çıkarın."
 
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "%s(%s) nozul akış ayarı dilimleme dosyası (%s) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "İpuçları: Yazıcınızın nozülünü yakın zamanda değiştirdiyseniz, nozül ayarınızı değiştirmek için lütfen 'Cihaz -> Yazıcı parçaları' bölümüne gidin."
-
-#, c-format, boost-format
-msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr "Mevcut yazıcının %s çapı (%.1fmm) dilimleme dosyası (%.1fmm) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
-
-#, c-format, boost-format
-msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr "Mevcut nozul çapı (%.1fmm) dilimleme dosyası (%.1fmm) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
+msgid "The nozzle type doesn't match. Please re-slice."
+msgstr ""
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
 msgstr "Yazıcıya takılı Filament Yolu Anahtarı dilimleme dosyasıyla eşleşmiyor. Baskı kalitesi sorunlarını önlemek için lütfen yeniden dilimleyin."
@@ -10187,8 +10287,29 @@ msgstr "Daha fazla bilgi için tıklayın"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Tüm ayarları en son kaydedilen ön ayara sıfırlamak için tıklayın."
 
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+"Destek için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
+"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
+"bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
+
 msgid "Support interface speed"
 msgstr "Destek arayüzü hızı"
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "Do you want to apply these settings?"
+msgstr ""
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Nozul değişimi için prime kulesi gereklidir. Prime kulesi olmadan modelde kusurlar oluşabilir. Prime kulesini devre dışı bırakmak istediğinizden emin misiniz?"
@@ -10213,8 +10334,14 @@ msgstr ""
 "Seçilen yazıcının yatak sıcaklığı sınırı %d°C'dir.\n"
 "Daha yüksek bir yatak sıcaklığı ayarlamak yazıcıya zarar verebilir."
 
+msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
+msgstr ""
+
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Sorunsuz hızlandırılmış çekim için Prime Tower gereklidir. Prime kulesi olmayan modelde kusurlar olabilir. Prime kulesi'ı etkinleştirmek istiyor musunuz?"
+
+msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
+msgstr ""
 
 msgid "Still print by object?"
 msgstr "Hala nesneye göre yazdırıyor musunuz?"
@@ -10234,15 +10361,6 @@ msgstr ""
 "TPU'yu desteklemek için PLA kullanırken, aşağıdaki ayarları öneririz:\n"
 "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
 "bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için PLA kullanın"
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"Destek için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
-"bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -10276,8 +10394,8 @@ msgstr ""
 "Katman yüksekliği çok küçük.\n"
 "min_layer_height olarak ayarlanacak\n"
 
-msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
-msgstr "Katman yüksekliği, Yazıcı Ayarları -> Ekstruder -> Katman yüksekliği sınırları bölümündeki sınırı aşıyor bu durum baskı kalitesi sorunlarına neden olabilir."
+msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
+msgstr ""
 
 msgid "Adjust to the set range automatically? \n"
 msgstr "Ayarlanan aralığa otomatik olarak ayarlansın mı? \n"
@@ -10561,6 +10679,9 @@ msgstr "Temizleme Modu: Hızlı"
 msgid "Printable space"
 msgstr "Tabla Ayarı"
 
+msgid "AMS filament load/unload time"
+msgstr ""
+
 msgid "Extruder Clearance"
 msgstr "Ekstruder Boşluğu"
 
@@ -10626,6 +10747,12 @@ msgstr "Katman Yüksekliği Sınırları"
 
 msgid "Retraction when switching material"
 msgstr "Malzemeyi Değiştirirken Geri Çekme"
+
+msgid "Load time"
+msgstr ""
+
+msgid "Unload time"
+msgstr ""
 
 msgid ""
 "The Wipe option is not available when using the Firmware Retraction mode.\n"
@@ -10963,6 +11090,9 @@ msgstr "Doku içe aktarımı geçici olarak kullanılamıyor; kısmi renklendirm
 msgid " And "
 msgstr " Ve "
 
+msgid "Note"
+msgstr "Not"
+
 msgid "The color has been selected, you can choose OK to continue or manually adjust it."
 msgstr "Renk seçildi; devam etmek için Tamam'ı seçebilir veya elle ayarlayabilirsiniz."
 
@@ -11044,6 +11174,9 @@ msgstr ""
 msgid "Use AMS"
 msgstr "AMS kullanın"
 
+msgid "Tip"
+msgstr "İpucu"
+
 msgid "Only synchronize filament type and color, not including AMS slot information."
 msgstr "Yalnızca filament türünü ve rengini senkronize edin, AMS yuvası bilgilerini dahil etmeyin."
 
@@ -11083,6 +11216,10 @@ msgstr "Sadece filament tipini ve rengini senkronize eder, yuva bilgilerini içe
 msgid "Ext spool"
 msgstr "Harici Makara"
 
+#, c-format, boost-format
+msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+msgstr "%s(%s) nozul akış ayarı dilimleme dosyası (%s) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
+
 msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
 msgstr "Lütfen cihazın nozul tipinin önceden ayarlanmış nozul tipiyle aynı olup olmadığını kontrol edin."
 
@@ -11095,6 +11232,9 @@ msgstr "Timelapse desteklenmiyor çünkü Baskı sıralaması \"Nesneye\" göre 
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
 msgstr "Bir ekstrüderde harici ve AMS filamenti aynı anda seçtiyseniz, harici filamenti manuel olarak değiştirmeniz gerekecektir."
+
+msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+msgstr "İpuçları: Yazıcınızın nozülünü yakın zamanda değiştirdiyseniz, nozül ayarınızı değiştirmek için lütfen 'Cihaz -> Yazıcı parçaları' bölümüne gidin."
 
 msgid "Successfully synchronized nozzle information."
 msgstr "Nozul bilgileri başarıyla senkronize edildi."
@@ -11472,11 +11612,11 @@ msgstr "Yazıcınızın IP'sini ve Erişim Kodunu nerede bulabilirsiniz?"
 msgid "Connect"
 msgstr "Bağlan"
 
-msgid "IP and Access Code Verified! You may close the window"
-msgstr "IP ve Erişim Kodu Doğrulandı! Pencereyi kapatabilirsin"
-
 msgid "connecting..."
 msgstr "bağlanıyor..."
+
+msgid "IP and Access Code Verified! You may close the window"
+msgstr "IP ve Erişim Kodu Doğrulandı! Pencereyi kapatabilirsin"
 
 msgid "Failed to connect to printer."
 msgstr "Yazıcıya bağlanılamadı."
@@ -11563,9 +11703,6 @@ msgstr "Helio Additive'i Kaldır"
 msgid "Legal & Activation Terms"
 msgstr "Yasal Bilgiler ve Etkinleştirme Koşulları"
 
-msgid "Got it"
-msgstr "Git"
-
 msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
 msgstr "Helio PAT alınamadı, tekrar almak için Yenile'ye tıklayın."
 
@@ -11580,9 +11717,6 @@ msgstr "Yazılım Hizmeti Şartları && Koşulları"
 
 msgid "^"
 msgstr "^"
-
-msgid "Helio Additive"
-msgstr "Helio Additive"
 
 msgid "Helio Additive Privacy Agreement"
 msgstr "Helio Additive Gizlilik Sözleşmesi"
@@ -11977,6 +12111,9 @@ msgstr "Hızı ve Kaliteyi Geliştir"
 msgid "Applies Helio's optimized speed/flow/fan strategy."
 msgstr "Helio'nun optimize edilmiş hız/akış/fan stratejisini uygular."
 
+msgid "Save the simulated sliced 3MF locally"
+msgstr ""
+
 msgid "✅ Will Print"
 msgstr "✅ Yazdırılabilir"
 
@@ -12196,6 +12333,12 @@ msgstr "G kodu dosyasını açın:"
 msgid "Print task sending times out."
 msgstr "Yazdırma görevi gönderimi zaman aşımına uğradı."
 
+msgid "Sending print job with LAN acceleration"
+msgstr ""
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr ""
+
 msgid "Sending print configuration"
 msgstr "Yazdırma yapılandırması gönderiliyor"
 
@@ -12206,6 +12349,9 @@ msgstr "Başarıyla gönderildi. %ss'de otomatik olarak cihaz sayfasına atlayac
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Başarıyla gönderildi. %ss'de otomatik olarak bir sonraki sayfaya atlayacak"
+
+msgid "Refreshing printer access code"
+msgstr ""
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "Aşağıdaki nesne(ler) boş başlangıç katmanına sahip ve yazdırılamıyor. Lütfen alt kısmı kesin veya destekleri etkinleştirin."
@@ -12554,6 +12700,9 @@ msgstr "Etek ve kenar oluşturma"
 
 msgid "Generating G-code"
 msgstr "G kodu oluşturuluyor"
+
+msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
+msgstr ""
 
 msgid "Failed processing of the filename_format template."
 msgstr "Dosyaadı_format şablonunun işlenmesi başarısız oldu."
@@ -13424,6 +13573,48 @@ msgstr "Filament çıkartma süresi"
 
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "Filamenti değiştirdiğinizde eski filamenti çıkartma zamanı. Yalnızca istatistikler için"
+
+msgid "AMS filament load time"
+msgstr ""
+
+msgid "Filament load time when printing with an AMS. For statistics only"
+msgstr ""
+
+msgid "AMS Lite filament load time"
+msgstr ""
+
+msgid "Filament load time when printing with an AMS Lite. For statistics only"
+msgstr ""
+
+msgid "N3F/N3S filament load time"
+msgstr ""
+
+msgid "Filament load time when printing with an N3F or N3S. For statistics only"
+msgstr ""
+
+msgid "AMS filament unload time"
+msgstr ""
+
+msgid "Filament unload time when printing with an AMS. For statistics only"
+msgstr ""
+
+msgid "AMS Lite filament unload time"
+msgstr ""
+
+msgid "Filament unload time when printing with an AMS Lite. For statistics only"
+msgstr ""
+
+msgid "N3F/N3S filament unload time"
+msgstr ""
+
+msgid "Filament unload time when printing with an N3F or N3S. For statistics only"
+msgstr ""
+
+msgid "Default AMS type"
+msgstr ""
+
+msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
+msgstr ""
 
 msgid "Extruder switch time"
 msgstr "Ekstrüder değiştirme süresi"
@@ -14888,6 +15079,12 @@ msgstr "Baskı başladığında çalışacak G Kodu"
 msgid "Start G-code when start the printing of this filament"
 msgstr "Bu filament ile baskı başladığında çalıştırılacak G-Kod"
 
+msgid "No sparse layers (experimental)"
+msgstr ""
+
+msgid "If enabled, the wipe tower will not be printed on layers with no toolchanges. On layers with a toolchange, extruder will travel downward to print the wipe tower. User is responsible for ensuring there is no collision with the print."
+msgstr ""
+
 msgid "Slice gap closing radius"
 msgstr "Dilim aralığı kapanma yarıçapı"
 
@@ -15583,9 +15780,6 @@ msgstr ""
 "Bir nesne XY Boyutu telafisini etkinleştirmiştir, ancak bu nesne aynı zamanda bulanık dış görünüm boyalı olduğu için kullanılmayacaktır.\n"
 "XY Boyutu telafisi bulanık dış görünüm boyama ile birleştirilemez."
 
-msgid "Object name"
-msgstr "Nesne adı"
-
 msgid "Loading of a model file failed."
 msgstr "Model dosyasının yüklenmesi başarısız oldu."
 
@@ -15606,6 +15800,21 @@ msgstr "Bilinmeyen dosya formatı. Giriş dosyası .3mf veya .zip.amf uzantılı
 
 msgid "Canceled"
 msgstr "İptal edildi"
+
+msgid "Restoring support painting"
+msgstr ""
+
+msgid "Restoring seam painting"
+msgstr ""
+
+msgid "Restoring paint color"
+msgstr ""
+
+msgid "Restoring fuzzy skin"
+msgstr ""
+
+msgid "Restoring painting"
+msgstr ""
 
 msgid "load_obj: failed to parse"
 msgstr "load_obj: ayrıştırılamadı"
@@ -17297,8 +17506,20 @@ msgstr "Mukavemete öncelik veren 0,8 mm nozul için mukavemet profili."
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr "Hıza öncelik veren 0,8 mm nozul için standart profil."
 
-msgid "Failed to create GCodeV2"
-msgstr "GCodeV2 oluşturulamadı"
+msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
+msgstr ""
+
+msgid "Helio GCode status response is incomplete"
+msgstr ""
+
+msgid "Helio GCode status response parse failed"
+msgstr ""
+
+msgid "Helio action canceled"
+msgstr ""
+
+msgid "Helio GCode creation response is incomplete"
+msgstr ""
 
 msgid "Failed to parse response"
 msgstr "Yanıt ayrıştırılamadı"
@@ -17309,8 +17530,20 @@ msgstr "GCodeV3 oluşturulamadı"
 msgid "Helio simulation task failed"
 msgstr "Helio simülasyon görevi başarısız oldu"
 
+msgid "Helio simulation response parse failed"
+msgstr ""
+
+msgid "Failed to create Optimization"
+msgstr ""
+
+msgid "Helio optimization response is incomplete"
+msgstr ""
+
 msgid "Helio optimization task failed"
 msgstr "Helio optimizasyon görevi başarısız oldu"
+
+msgid "Helio optimization response parse failed"
+msgstr ""
 
 msgid "Helio API endpoint is empty, please check the configuration."
 msgstr "Helio API uç noktası boş, lütfen yapılandırmayı kontrol edin."
@@ -17327,8 +17560,8 @@ msgstr "Helio: dosya başarıyla yüklendi"
 msgid "Helio: file upload failed"
 msgstr "Helio: dosya yükleme başarısız oldu"
 
-msgid "Please make sure you have the corrent API key set in preferences."
-msgstr "Tercihlerinizde doğru API anahtarının ayarlandığından emin olun."
+msgid "Please make sure you have the correct API key set in preferences."
+msgstr ""
 
 msgid "Helio: GCode created successfully"
 msgstr "Helio: GCode başarıyla oluşturuldu"
@@ -17336,14 +17569,14 @@ msgstr "Helio: GCode başarıyla oluşturuldu"
 msgid "Helio: simulation successfully created"
 msgstr "Helio: simülasyon başarıyla oluşturuldu"
 
-msgid "Helio: simulation working"
-msgstr "Helio: simülasyon çalışıyor"
+msgid "transient progress checks did not recover"
+msgstr ""
 
 msgid "Helio: simulation failed"
 msgstr "Helio: simülasyon başarısız oldu"
 
-msgid "Helio: Simulation check failed"
-msgstr "Helio: Simülasyon kontrolü başarısız"
+msgid "Helio: simulation working"
+msgstr "Helio: simülasyon çalışıyor"
 
 msgid "Helio: Failed to create Simulation"
 msgstr "Helio: Simülasyon oluşturulamadı"
@@ -17354,17 +17587,11 @@ msgstr "Helio: GCode oluşturulamadı"
 msgid "Helio: optimization successfully created"
 msgstr "Helio: optimizasyon başarıyla oluşturuldu"
 
-msgid "Helio: optimization working"
-msgstr "Helio: optimizasyon çalışıyor"
-
 msgid "Helio: optimization failed"
 msgstr "Helio: optimizasyon başarısız oldu"
 
-msgid "Helio: Optimzaion check failed"
-msgstr "Helio: Optimizasyon kontrolü başarısız oldu"
-
-msgid "Helio: Failed to create Optimization"
-msgstr "Helio: Optimizasyon oluşturulamadı"
+msgid "Helio: optimization working"
+msgstr "Helio: optimizasyon çalışıyor"
 
 msgid "Helio: GCode downloaded successfully"
 msgstr "Helio: GCode başarıyla indirildi"
@@ -18082,6 +18309,12 @@ msgstr "Malzeme Oranı"
 msgid "Model Height"
 msgstr "Model Yüksekliği"
 
+msgid "Auxiliaries"
+msgstr ""
+
+msgid "An unexpected error occurred"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -18371,6 +18604,58 @@ msgid ""
 msgstr ""
 "İlk Seferde Doğru Güvenilirlik\n"
 "Daha az takip, daha öngörülebilir çıktı. Örnek: PETG parçalar üreten küçük bir üretim atölyesi, '6. saatte hata' sürprizlerinden kaçınır ve partileri zamanında tamamlar."
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
+#~ msgstr "Assembly'nin sınırlayıcı kutusu çok büyük ( maksimum boyut >= %1% inç ), bu da render sorunlarına neden olabilir.\n"
+
+#, boost-format
+#~ msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
+#~ msgstr "Assembly'nin sınırlayıcı kutusu çok büyük (maksimum boyut >= %1% mm), bu da render sorunlarına neden olabilir.\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
+#~ msgstr "Aşağıdaki nesneler dünya koordinat sisteminin orijinalinden çok uzakta ( mesafe >= %1% inç ):\n"
+
+#, boost-format
+#~ msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
+#~ msgstr "Aşağıdaki nesneler dünya koordinat sisteminin orijinalinden çok uzakta ( mesafe >= %1% mm ):\n"
+
+#~ msgid "Failed to create GCodeV2"
+#~ msgstr "GCodeV2 oluşturulamadı"
+
+#~ msgid "Please make sure you have the corrent API key set in preferences."
+#~ msgstr "Tercihlerinizde doğru API anahtarının ayarlandığından emin olun."
+
+#~ msgid "Helio: Simulation check failed"
+#~ msgstr "Helio: Simülasyon kontrolü başarısız"
+
+#~ msgid "Helio: Optimzaion check failed"
+#~ msgstr "Helio: Optimizasyon kontrolü başarısız oldu"
+
+#~ msgid "Helio: Failed to create Optimization"
+#~ msgstr "Helio: Optimizasyon oluşturulamadı"
+
+#~ msgid ""
+#~ "Should not large than layer height.\n"
+#~ "Reset to 10%"
+#~ msgstr ""
+#~ "Katman yüksekliğinden büyük olmamalıdır.\n"
+#~ "%10’a sıfırla"
+
+#~ msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
+#~ msgstr ".gcode.3mf dosyası G kodu verisi içermiyor. Lütfen Bambu Studio ile dilimleyin ve yeni bir .gcode.3mf dosyası dışa aktarın."
+
+#, c-format, boost-format
+#~ msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+#~ msgstr "Mevcut yazıcının %s çapı (%.1fmm) dilimleme dosyası (%.1fmm) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
+
+#, c-format, boost-format
+#~ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+#~ msgstr "Mevcut nozul çapı (%.1fmm) dilimleme dosyası (%.1fmm) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
+
+#~ msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
+#~ msgstr "Katman yüksekliği, Yazıcı Ayarları -> Ekstruder -> Katman yüksekliği sınırları bölümündeki sınırı aşıyor bu durum baskı kalitesi sorunlarına neden olabilir."
 
 #~ msgid "Second"
 #~ msgstr "Saniye"

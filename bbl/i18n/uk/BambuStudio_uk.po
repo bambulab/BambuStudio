@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 20:35+0800\n"
+"POT-Creation-Date: 2026-08-14 16:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -950,6 +950,9 @@ msgstr "Призначити деталь на інший бік"
 msgid "Cut"
 msgstr "Вирізати"
 
+msgid "Cutting model object"
+msgstr ""
+
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr ""
 
@@ -1323,6 +1326,9 @@ msgstr "Паралельна відстань:"
 
 msgid "Flip by Face 2"
 msgstr "Перевернути за Гранню 2"
+
+msgid "Rotate the object on selected Face 2 around the perpendicular line of the selected plane"
+msgstr ""
 
 msgid "Assemble"
 msgstr "Зібрати"
@@ -2038,6 +2044,12 @@ msgstr "Версія Bambu Studio застаріла для використан
 msgid "Your software certificate has been revoked, please update Bambu Studio software."
 msgstr ""
 
+msgid "Got it"
+msgstr ""
+
+msgid "Continue"
+msgstr ""
+
 msgid "Retrieving printer information, please try again later."
 msgstr ""
 
@@ -2228,6 +2240,9 @@ msgstr "Куб"
 msgid "Cylinder"
 msgstr "Циліндр"
 
+msgid "Hexagonal Prism"
+msgstr ""
+
 msgid "Cone"
 msgstr "Конус"
 
@@ -2242,6 +2257,9 @@ msgstr "Торус"
 
 msgid "Rounded Rectangle"
 msgstr "Прямокутник з закругленими"
+
+msgid "TearDrop"
+msgstr ""
 
 msgid "Bambu Cube"
 msgstr "Bambu Cube"
@@ -2975,6 +2993,10 @@ msgstr ""
 msgid "/"
 msgstr "/"
 
+msgctxt "AMS filament"
+msgid "loading"
+msgstr ""
+
 msgid "Confirm"
 msgstr "Прийняти"
 
@@ -3176,6 +3198,21 @@ msgstr "Крок"
 msgid "Install parts"
 msgstr ""
 
+msgid "Inherited Step"
+msgstr ""
+
+msgid "start frame"
+msgstr ""
+
+msgid "Final assembly"
+msgstr ""
+
+msgid "Merged Step"
+msgstr ""
+
+msgid "end frame"
+msgstr ""
+
 msgid "Apply the final assembly pose to the objects or parts added in the current step?"
 msgstr ""
 
@@ -3224,16 +3261,10 @@ msgstr ""
 msgid "New Step"
 msgstr ""
 
-msgid "Final assembly"
-msgstr ""
-
-msgid "end frame"
+msgid "Overall preview"
 msgstr ""
 
 msgid "Assembly Structure"
-msgstr ""
-
-msgid "Start your assembly journey from Add Step"
 msgstr ""
 
 msgctxt "AssemblyStructure"
@@ -3264,21 +3295,16 @@ msgstr ""
 msgid "Model"
 msgstr "Модель"
 
-msgid "start frame"
-msgstr ""
-
 msgid "transition frame"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Step %d"
+msgid "Label"
 msgstr ""
 
-msgid "not used in any assembly step"
+msgid "Explosion"
 msgstr ""
 
-#, boost-format
-msgid "Plate %1%"
+msgid "Unassembled"
 msgstr ""
 
 msgid "Assembly Step"
@@ -3305,6 +3331,9 @@ msgstr ""
 msgid "X-Ray Other Parts"
 msgstr ""
 
+msgid "Play from the current step."
+msgstr ""
+
 msgid "Play all frames for all steps."
 msgstr ""
 
@@ -3320,7 +3349,16 @@ msgstr ""
 msgid "Display Mode"
 msgstr ""
 
-msgid "Set export file parameters"
+msgid "Show world axes"
+msgstr ""
+
+msgid "Show explosion state column"
+msgstr ""
+
+msgid "Allow modify text note foreground"
+msgstr ""
+
+msgid "Allow modify text note background"
 msgstr ""
 
 msgid "Camera margin factor for the current frame. The larger the value, the more margin."
@@ -3338,12 +3376,6 @@ msgstr ""
 msgid "Insert step after"
 msgstr ""
 
-msgid "Tip"
-msgstr ""
-
-msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
-msgstr ""
-
 msgid "Expand"
 msgstr ""
 
@@ -3353,10 +3385,25 @@ msgstr "Згорнути"
 msgid "Options"
 msgstr "Параметри"
 
+msgid "Delete all assembly steps"
+msgstr ""
+
+msgid "There’s no step to delete"
+msgstr ""
+
 msgid "Go to Wiki"
 msgstr ""
 
-msgid "Copy current step"
+msgid "Inherit the state of Step"
+msgstr ""
+
+msgid "Assembled parts are not exploded"
+msgstr ""
+
+msgid "Copy and inherit this step"
+msgstr ""
+
+msgid "Add objects to this step before copying"
 msgstr ""
 
 msgid "Delete current step"
@@ -3365,26 +3412,26 @@ msgstr ""
 msgid "Add some objects to current step"
 msgstr ""
 
-msgid "Copy Step"
+#, boost-format
+msgid "No more than %1% steps are allowed."
 msgstr ""
 
 msgid "Add Step"
 msgstr ""
 
-#, boost-format
-msgid "No more than %1% steps are allowed."
-msgstr ""
-
-msgid "Only copy steps. This is independent of the selected objects on the canvas."
-msgstr ""
-
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr ""
 
-msgid "Delete all assembly steps except the final assembly."
+msgid "Merge and add steps."
 msgstr ""
 
-msgid "Exit the assembly step editing, you can also press the Esc button to exit"
+msgid "Click to exit assembly step editing, or press Esc."
+msgstr ""
+
+msgid "Not"
+msgstr ""
+
+msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
 msgstr ""
 
 msgid "Click to add Cyber Brick"
@@ -3400,6 +3447,9 @@ msgid "Export Markdown"
 msgstr ""
 
 msgid "Export MP4"
+msgstr ""
+
+msgid "Set export file parameters"
 msgstr ""
 
 msgid "After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF."
@@ -3423,10 +3473,10 @@ msgstr ""
 msgid "Show one label per model part."
 msgstr ""
 
-msgid "Label"
+msgid "Label settings"
 msgstr ""
 
-msgid "Label settings"
+msgid "Reset all closed labels"
 msgstr ""
 
 msgid "Show Object/Part labels"
@@ -3459,28 +3509,13 @@ msgstr ""
 msgid "Automatically choose object-or-part-level labels: a fully-used object already shown in earlier steps is collapsed into a single object label; partial objects and first appearances are labeled per individual part."
 msgstr ""
 
+msgid "Please create an assembly step before exporting."
+msgstr ""
+
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr ""
 
 msgid "Screw"
-msgstr ""
-
-msgid "Note"
-msgstr ""
-
-msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
-msgstr ""
-
-msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
-msgstr ""
-
-msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
-msgstr ""
-
-msgid "undoing these edits is not yet supported and will be added in a later version."
-msgstr ""
-
-msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
 msgstr ""
 
 msgid "Connection Type"
@@ -3531,13 +3566,19 @@ msgstr ""
 msgid "At least two keyframes are required to play."
 msgstr ""
 
-msgid "Automatically explode all objects."
+msgid "Add the selected object or part to the current step first"
 msgstr ""
 
-msgid "Automatically explode all parts."
+msgid "Add a new object to the current step first"
 msgstr ""
 
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
+msgstr ""
+
+msgid "Automatically explode objects that are new to this step. Objects already assembled in earlier steps stay together."
+msgstr ""
+
+msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
 msgstr ""
 
 msgid "Apply current camera angle to all frames of the current step"
@@ -3561,16 +3602,25 @@ msgstr ""
 msgid "Search"
 msgstr "Пошук"
 
+msgid "Expand all objects"
+msgstr ""
+
+msgid "Collapse all objects"
+msgstr ""
+
 msgid "List"
 msgstr ""
 
 msgid "Assembly list"
 msgstr ""
 
-msgid "Expand all objects"
+msgid "Show all objects"
 msgstr ""
 
-msgid "Collapse all objects"
+msgid "Show unassembled only"
+msgstr ""
+
+msgid "Object name"
 msgstr ""
 
 msgid "Select all parts in a step"
@@ -3786,10 +3836,10 @@ msgstr ""
 msgid "Project Physical Filaments"
 msgstr ""
 
-msgid "Project Mixed Filaments"
+msgid "New Physical Filaments"
 msgstr ""
 
-msgid "New Physical Filaments"
+msgid "Project Mixed Filaments"
 msgstr ""
 
 msgid "New Mixed Filaments"
@@ -3878,9 +3928,6 @@ msgid "Please note that the mesh has non-manifold geometry or open boundaries."
 msgstr ""
 
 msgid "Mesh issue"
-msgstr ""
-
-msgid "Continue"
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -4099,6 +4146,9 @@ msgstr ""
 
 msgid "System presets"
 msgstr "Системні пресети"
+
+msgid "Recently used"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4638,7 +4688,7 @@ msgstr ""
 "Скинути на 0,2"
 
 msgid ""
-"Should not large than layer height.\n"
+"Should not be larger than layer height.\n"
 "Reset to 10%"
 msgstr ""
 
@@ -5597,22 +5647,6 @@ msgstr "Наступні об'єкти перекривають межі пла�
 msgid "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.\n"
 msgstr "Будь ласка, передвиньте це повністю на чи з пластини, та переконайтеся, що висота знаходиться у межах області друку.\n"
 
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
-msgstr ""
-
-#, boost-format
-msgid "Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"
-msgstr ""
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"
-msgstr ""
-
-#, boost-format
-msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
-msgstr ""
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr ""
@@ -5752,6 +5786,12 @@ msgstr "Повернення збірки"
 msgid "return"
 msgstr "повернення"
 
+msgid "Exit current gizmo editing"
+msgstr ""
+
+msgid "Return to prepare view"
+msgstr ""
+
 msgid "Fit camera"
 msgstr ""
 
@@ -5854,6 +5894,9 @@ msgstr "філаменти %s не можуть бути надруковані 
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr ""
 
+msgid "Detected brittle filament (e.g., PPS-CF). Please place the models at the center of the heated bed. Printing near the edge may cause the filament to bend excessively and break inside the tube."
+msgstr ""
+
 msgid "The prime tower improves multi-color print quality and is recommended."
 msgstr ""
 
@@ -5865,6 +5908,9 @@ msgstr ""
 
 msgid "Click Wiki for help."
 msgstr "Натисніть Wiki для допомоги."
+
+msgid "Click Wiki for details."
+msgstr ""
 
 msgid "Jump to: Prime tower"
 msgstr ""
@@ -6161,6 +6207,12 @@ msgstr "Зберегти проєкт як"
 
 msgid "Save current project as"
 msgstr "Зберегти поточний проєкт як"
+
+msgid "Show Project in Folder"
+msgstr ""
+
+msgid "Show current project in folder"
+msgstr ""
 
 msgid "Import 3MF/STL/STEP/SVG/OBJ/AMF"
 msgstr "Імпорт 3MF/STL/STEP/SVG/OBJ/AMF"
@@ -6704,8 +6756,8 @@ msgstr "Не вдалося отримати інформацію про мод�
 msgid "Failed to parse model information."
 msgstr "Не вдалося розібрати інформацію про модель."
 
-msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
-msgstr "Файл .gcode.3mf не містить даних G-коду. Будь ласка, розріжте його з використанням Bambu Studio та експортуйте новий файл .gcode.3mf."
+msgid "The .gcode.3mf file contains no G-code data. Please slice it with Bambu Studio and export a new .gcode.3mf file."
+msgstr ""
 
 #, c-format, boost-format
 msgid "File '%s' was lost! Please download it again."
@@ -7447,6 +7499,9 @@ msgstr ""
 msgid "Warning:"
 msgstr "Попередження:"
 
+msgid "Wiki for details."
+msgstr ""
+
 msgid "Export successfully."
 msgstr "Експорт успішно."
 
@@ -7749,10 +7804,6 @@ msgid "Customize current plate"
 msgstr ""
 
 #, c-format, boost-format
-msgid "%s is not compatible with %s nozzle."
-msgstr ""
-
-#, c-format, boost-format
 msgid "The %s nozzle can not print %s."
 msgstr ""
 
@@ -8011,11 +8062,14 @@ msgstr ""
 msgid "Loading file: %s"
 msgstr "Завантаження файлу: %s"
 
-msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "3mf не від Bambu Studio, завантажуйте лише дані геометрії."
+msgid "The 3mf file has invalid config, load geometry data only"
+msgstr ""
 
 msgid "Load 3mf"
 msgstr "Завантажити 3mf"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data only."
+msgstr "3mf не від Bambu Studio, завантажуйте лише дані геометрії."
 
 msgid "The Config can not be loaded."
 msgstr "Конфіг не завантажується."
@@ -8270,9 +8324,6 @@ msgstr ""
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
 msgstr ""
 
-msgid "True multi-material support will be added in a future update."
-msgstr ""
-
 msgid "Option 1: Proceed using a single filament type"
 msgstr ""
 
@@ -8298,6 +8349,12 @@ msgid "See supported materials"
 msgstr ""
 
 msgid "Go Back"
+msgstr ""
+
+msgid "Option 3: Enable multi-material optimization"
+msgstr ""
+
+msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
 msgstr ""
 
 msgid "Unsupported Materials Detected"
@@ -8334,6 +8391,15 @@ msgid "Syncing Data"
 msgstr ""
 
 msgid "Refreshing printer and material data..."
+msgstr ""
+
+msgid "Helio could not refresh all printer and material data. The previous complete data remains available."
+msgstr ""
+
+msgid "Helio could not load complete printer and material data. Matching remains paused."
+msgstr ""
+
+msgid "Helio Data Refresh Failed"
 msgstr ""
 
 msgid "A Helio simulation or optimization task is in progress."
@@ -8436,6 +8502,12 @@ msgstr ""
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr ""
 
+msgid "Previous Helio action is still stopping; try again shortly"
+msgstr ""
+
+msgid "Helio Additive"
+msgstr ""
+
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
 "Please request a new Helio-PAT."
@@ -8457,6 +8529,12 @@ msgid "The printer list and material list are being synchronized. Please try aga
 msgstr ""
 
 msgid "Synchronizing Helio"
+msgstr ""
+
+msgid "Helio could not load the supported printer and material lists. Matching has been paused so unavailable data is not treated as an unsupported material."
+msgstr ""
+
+msgid "Helio Data Load Failed"
 msgstr ""
 
 msgid "Please resolve the slicing errors and publish again."
@@ -8671,6 +8749,9 @@ msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr ""
 
 msgid "Are you sure to use them? \n"
+msgstr ""
+
+msgid "When thermal preconditioning is enabled, duration auto-adjusts to the model's position for optimal first-layer quality; the farther from the center, the longer it takes. White boxes mark the boundary lines. To disable the guidelines and this warning, go to Preferences > 3D."
 msgstr ""
 
 msgid "Send G-code"
@@ -9042,6 +9123,12 @@ msgstr "Завжди показувати оболонки в попереднь
 msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Завжди показувати оболонки або ні у вкладці попереднього перегляду. Якщо змінити значення, потрібно повторно нарізати."
 
+msgid "Show Thermal Preconditioning Area"
+msgstr ""
+
+msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
+msgstr ""
+
 msgid "Show the step mesh parameter setting dialog."
 msgstr ""
 
@@ -9149,6 +9236,9 @@ msgstr "Режим розробки"
 
 msgid "Skip AMS blacklist check"
 msgstr "Пропустити перевірку чорного списку AMS"
+
+msgid "Enable DevTools For Webview"
+msgstr ""
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Асоціювати файли з Bambu Studio"
@@ -9523,6 +9613,9 @@ msgstr "Bambu Cool Plate SuperTack"
 msgid "Send print job"
 msgstr ""
 
+msgid "The current estimated time has been recalculated based on the actual filament mapping."
+msgstr ""
+
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr ""
 
@@ -9736,19 +9829,7 @@ msgstr ""
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
 msgstr ""
 
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr ""
-
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr ""
-
-#, c-format, boost-format
-msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr ""
-
-#, c-format, boost-format
-msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+msgid "The nozzle type doesn't match. Please re-slice."
 msgstr ""
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
@@ -9813,7 +9894,10 @@ msgstr ""
 msgid "Click here if you can't connect to the printer"
 msgstr "Клацніть тут, якщо ви не можете підключитися до принтера"
 
-msgid "Sliced file"
+msgid "Slice file"
+msgstr ""
+
+msgid "The connected printer"
 msgstr ""
 
 msgid "No login account, only printers in LAN mode are displayed"
@@ -10077,7 +10161,25 @@ msgstr ""
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Натисніть, щоб скинути всі налаштування до останньої збереженої попередньої установки."
 
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 bottom z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear \n"
+"pattern, disable independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+
+msgid ""
+"When using soluble material for the support, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
+msgstr ""
+
 msgid "Support interface speed"
+msgstr ""
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "Do you want to apply these settings?"
 msgstr ""
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
@@ -10101,8 +10203,14 @@ msgid ""
 "Setting a higher bed temperature may cause damage to the printer."
 msgstr ""
 
+msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
+msgstr ""
+
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Для плавного таймлапсу потрібно Prime Tower. Можуть бути недоліки в моделіБез головної вежі. Ви хочете включити головну вежу?"
+
+msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
+msgstr ""
 
 msgid "Still print by object?"
 msgstr "Ви все ще друкуєте за об’єктом?"
@@ -10116,12 +10224,6 @@ msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
 "independent support layer height and use PLA for both support interface and support base"
-msgstr ""
-
-msgid ""
-"When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -10140,15 +10242,6 @@ msgstr ""
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr ""
 
-msgid "When using soluble material for the support interface, We recommend the following settings:"
-msgstr ""
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr ""
-
-msgid "Do you want to apply these settings?"
-msgstr ""
-
 msgid ""
 "Layer height is too small.\n"
 "It will set to min_layer_height\n"
@@ -10156,8 +10249,8 @@ msgstr ""
 "Висота шару занадто мала.\n"
 "Вона буде встановлена на min_layer_height.\n"
 
-msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
-msgstr "Висота шару перевищує ліміт у Налаштуваннях принтера -> Екструдер -> Ліміти висоти шару, це може призвести до проблем з якістю друку."
+msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits, this may cause printing quality issues."
+msgstr ""
 
 msgid "Adjust to the set range automatically? \n"
 msgstr "Автоматично налаштувати на встановлений діапазон? \n"
@@ -10445,6 +10538,9 @@ msgstr ""
 msgid "Printable space"
 msgstr "Місце для друку"
 
+msgid "AMS filament load/unload time"
+msgstr ""
+
 msgid "Extruder Clearance"
 msgstr "Очищення екструдера"
 
@@ -10510,6 +10606,12 @@ msgstr "Обмеження висоти шару"
 
 msgid "Retraction when switching material"
 msgstr "Втягування під час перемикання матеріалу"
+
+msgid "Load time"
+msgstr ""
+
+msgid "Unload time"
+msgstr ""
 
 msgid ""
 "The Wipe option is not available when using the Firmware Retraction mode.\n"
@@ -10843,6 +10945,9 @@ msgstr ""
 msgid " And "
 msgstr ""
 
+msgid "Note"
+msgstr ""
+
 msgid "The color has been selected, you can choose OK to continue or manually adjust it."
 msgstr ""
 
@@ -10918,6 +11023,9 @@ msgstr ""
 msgid "Use AMS"
 msgstr "Використовуйте AMS"
 
+msgid "Tip"
+msgstr ""
+
 msgid "Only synchronize filament type and color, not including AMS slot information."
 msgstr ""
 
@@ -10957,6 +11065,10 @@ msgstr ""
 msgid "Ext spool"
 msgstr ""
 
+#, c-format, boost-format
+msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+msgstr ""
+
 msgid "Please check whether the nozzle type of the device is the same as the preset nozzle type."
 msgstr ""
 
@@ -10968,6 +11080,9 @@ msgid "Timelapse is not supported because Print sequence is set to \"By object\"
 msgstr "Таймлапс не підтримується через те, що послідовність друку встановлена в “За об’єктом”."
 
 msgid "You selected external and AMS filament at the same time in an extruder, you will need manually change external filament."
+msgstr ""
+
+msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
 msgstr ""
 
 msgid "Successfully synchronized nozzle information."
@@ -11346,11 +11461,11 @@ msgstr "Де знайти IP-адресу та код доступу вашог�
 msgid "Connect"
 msgstr "Підключити"
 
-msgid "IP and Access Code Verified! You may close the window"
-msgstr "IP-адреса та доступний код перевірено! Ви можете закрити вікно"
-
 msgid "connecting..."
 msgstr "підключення…"
+
+msgid "IP and Access Code Verified! You may close the window"
+msgstr "IP-адреса та доступний код перевірено! Ви можете закрити вікно"
 
 msgid "Failed to connect to printer."
 msgstr "Не вдалося підключитися до принтера."
@@ -11437,9 +11552,6 @@ msgstr ""
 msgid "Legal & Activation Terms"
 msgstr ""
 
-msgid "Got it"
-msgstr ""
-
 msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
 msgstr ""
 
@@ -11453,9 +11565,6 @@ msgid "Software Service Terms && Conditions"
 msgstr ""
 
 msgid "^"
-msgstr ""
-
-msgid "Helio Additive"
 msgstr ""
 
 msgid "Helio Additive Privacy Agreement"
@@ -11833,6 +11942,9 @@ msgstr ""
 msgid "Applies Helio's optimized speed/flow/fan strategy."
 msgstr ""
 
+msgid "Save the simulated sliced 3MF locally"
+msgstr ""
+
 msgid "✅ Will Print"
 msgstr ""
 
@@ -12052,6 +12164,12 @@ msgstr "Відкрийте файл G-коду:"
 msgid "Print task sending times out."
 msgstr "Час відправлення завдання на друк закінчився."
 
+msgid "Sending print job with LAN acceleration"
+msgstr ""
+
+msgid "Cloud service sending failed. Sending print job over LAN without print history."
+msgstr ""
+
 msgid "Sending print configuration"
 msgstr "Надсилання конфігурації друку"
 
@@ -12062,6 +12180,9 @@ msgstr "Успішно надіслано. Автоматично перейде
 #, c-format, boost-format
 msgid "Successfully sent. Will automatically jump to the next page in %ss"
 msgstr "Успішно відправлено. Автоматично перейдеться на наступну сторінку через %s с"
+
+msgid "Refreshing printer access code"
+msgstr ""
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "Наступний(і) об’єкт(и) мають порожній початковий шар і не можуть бути надруковані. Будь ласка, обріжте дно або увімкніть підтримку."
@@ -12409,6 +12530,9 @@ msgstr "Створення спідниці та кайми"
 
 msgid "Generating G-code"
 msgstr "Генерація G-code"
+
+msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
+msgstr ""
 
 msgid "Failed processing of the filename_format template."
 msgstr "Не вдалося обробити шаблон filename_format."
@@ -13267,6 +13391,48 @@ msgstr "Час вивантаження філаменту"
 
 msgid "Time to unload old filament when switch filament. For statistics only"
 msgstr "Час вивантаження нового філаменту при перемиканні філаменту. Тільки для статистики"
+
+msgid "AMS filament load time"
+msgstr ""
+
+msgid "Filament load time when printing with an AMS. For statistics only"
+msgstr ""
+
+msgid "AMS Lite filament load time"
+msgstr ""
+
+msgid "Filament load time when printing with an AMS Lite. For statistics only"
+msgstr ""
+
+msgid "N3F/N3S filament load time"
+msgstr ""
+
+msgid "Filament load time when printing with an N3F or N3S. For statistics only"
+msgstr ""
+
+msgid "AMS filament unload time"
+msgstr ""
+
+msgid "Filament unload time when printing with an AMS. For statistics only"
+msgstr ""
+
+msgid "AMS Lite filament unload time"
+msgstr ""
+
+msgid "Filament unload time when printing with an AMS Lite. For statistics only"
+msgstr ""
+
+msgid "N3F/N3S filament unload time"
+msgstr ""
+
+msgid "Filament unload time when printing with an N3F or N3S. For statistics only"
+msgstr ""
+
+msgid "Default AMS type"
+msgstr ""
+
+msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
+msgstr ""
 
 msgid "Extruder switch time"
 msgstr ""
@@ -14723,6 +14889,12 @@ msgstr "Стартовий G-code під час запуску всієї печ
 msgid "Start G-code when start the printing of this filament"
 msgstr "Стартовий G-code при запуску друку цим філаментом"
 
+msgid "No sparse layers (experimental)"
+msgstr ""
+
+msgid "If enabled, the wipe tower will not be printed on layers with no toolchanges. On layers with a toolchange, extruder will travel downward to print the wipe tower. User is responsible for ensuring there is no collision with the print."
+msgstr ""
+
 msgid "Slice gap closing radius"
 msgstr "Радіус закриття пробілів під час нарізування"
 
@@ -15414,9 +15586,6 @@ msgid ""
 "XY Size compensation cannot be combined with fuzzy skin painting."
 msgstr ""
 
-msgid "Object name"
-msgstr ""
-
 msgid "Loading of a model file failed."
 msgstr "Не вдалося завантажити файл моделі."
 
@@ -15437,6 +15606,21 @@ msgstr "Невідомий формат файлу: вхідний файл по
 
 msgid "Canceled"
 msgstr "Скасовано"
+
+msgid "Restoring support painting"
+msgstr ""
+
+msgid "Restoring seam painting"
+msgstr ""
+
+msgid "Restoring paint color"
+msgstr ""
+
+msgid "Restoring fuzzy skin"
+msgstr ""
+
+msgid "Restoring painting"
+msgstr ""
 
 msgid "load_obj: failed to parse"
 msgstr "помилка завантаження файлу OBJ: не вдалося розпізнати формат"
@@ -17098,19 +17282,52 @@ msgstr ""
 msgid "Standard profile for 0.8mm nozzle, prioritizing speed."
 msgstr ""
 
-msgid "Failed to create GCodeV2"
+msgid "Lower-acceleration profile for the 0.4mm nozzle. Use it when the printer sits on a wobbly desk or shelf"
+msgstr ""
+
+msgid "Helio GCode status response is incomplete"
+msgstr ""
+
+msgid "Helio GCode status response parse failed"
+msgstr ""
+
+msgid "Helio action canceled"
+msgstr ""
+
+msgid "Helio GCode creation response is incomplete"
 msgstr ""
 
 msgid "Failed to parse response"
 msgstr ""
 
-msgid "Failed to create GCodeV3"
+msgid "Helio GCode status check failed"
+msgstr ""
+
+msgid "Helio GCode creation timed out while checking status"
+msgstr ""
+
+msgid "Failed to create Simulation"
+msgstr ""
+
+msgid "Helio simulation response is incomplete"
 msgstr ""
 
 msgid "Helio simulation task failed"
 msgstr ""
 
+msgid "Helio simulation response parse failed"
+msgstr ""
+
+msgid "Failed to create Optimization"
+msgstr ""
+
+msgid "Helio optimization response is incomplete"
+msgstr ""
+
 msgid "Helio optimization task failed"
+msgstr ""
+
+msgid "Helio optimization response parse failed"
 msgstr ""
 
 msgid "Helio API endpoint is empty, please check the configuration."
@@ -17128,7 +17345,7 @@ msgstr ""
 msgid "Helio: file upload failed"
 msgstr ""
 
-msgid "Please make sure you have the corrent API key set in preferences."
+msgid "Please make sure you have the correct API key set in preferences."
 msgstr ""
 
 msgid "Helio: GCode created successfully"
@@ -17137,13 +17354,13 @@ msgstr ""
 msgid "Helio: simulation successfully created"
 msgstr ""
 
-msgid "Helio: simulation working"
+msgid "transient progress checks did not recover"
 msgstr ""
 
 msgid "Helio: simulation failed"
 msgstr ""
 
-msgid "Helio: Simulation check failed"
+msgid "Helio: simulation working"
 msgstr ""
 
 msgid "Helio: Failed to create Simulation"
@@ -17155,16 +17372,10 @@ msgstr ""
 msgid "Helio: optimization successfully created"
 msgstr ""
 
-msgid "Helio: optimization working"
-msgstr ""
-
 msgid "Helio: optimization failed"
 msgstr ""
 
-msgid "Helio: Optimzaion check failed"
-msgstr ""
-
-msgid "Helio: Failed to create Optimization"
+msgid "Helio: optimization working"
 msgstr ""
 
 msgid "Helio: GCode downloaded successfully"
@@ -17795,12 +18006,6 @@ msgstr ""
 msgid "-- Select --"
 msgstr ""
 
-msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr ""
-
-msgid "Mixed Color Sublayer"
-msgstr ""
-
 #, c-format, boost-format
 msgid "Slot %s (%s)"
 msgstr ""
@@ -17873,6 +18078,12 @@ msgid "Material Ratio"
 msgstr ""
 
 msgid "Model Height"
+msgstr ""
+
+msgid "Auxiliaries"
+msgstr ""
+
+msgid "An unexpected error occurred"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
@@ -18153,6 +18364,12 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
+#~ msgstr "Файл .gcode.3mf не містить даних G-коду. Будь ласка, розріжте його з використанням Bambu Studio та експортуйте новий файл .gcode.3mf."
+
+#~ msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
+#~ msgstr "Висота шару перевищує ліміт у Налаштуваннях принтера -> Екструдер -> Ліміти висоти шару, це може призвести до проблем з якістю друку."
 
 #~ msgid "Second"
 #~ msgstr "Секунд"

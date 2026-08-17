@@ -39,7 +39,8 @@ namespace Slic3r
         struct MachineFilamentInfo: public FilamentInfo {
             int extruder_id;
             bool is_extended;
-            bool operator<(const MachineFilamentInfo& other) const;
+            std::string filament_id;            // 材料类 ID（tray_info_idx），可区分同 filament_type 下的耗材小类，如 GFA17（PLA Translucent）与 GFL99（Generic PLA）。
+            bool operator<(const MachineFilamentInfo& other) const;            // 不比较 filament_id，使同类型、同色但小类不同的耗材进入同一候选集合。
         };
 
         class FilamentGroupException: public std::exception {

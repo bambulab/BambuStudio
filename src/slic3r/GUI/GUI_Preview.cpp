@@ -840,7 +840,6 @@ bool AssembleView::init(wxWindow* parent, Bed3D& bed, Model* model, DynamicPrint
     m_canvas->enable_slope(false);
     //BBS: GUI refactor: GLToolbar
     m_canvas->enable_return_toolbar(true);
-    //m_canvas->set_show_world_axes(true);//wait for GitHub users to see if they have this requirement
     // BBS: set volume_selection_mode to Volume
     //same to 3d //m_canvas->get_selection().set_volume_selection_mode(Selection::Instance);
     //m_canvas->get_selection().lock_volume_selection_mode();

@@ -1,5 +1,6 @@
 #include <wx/dcmemory.h>
 #include <wx/graphics.h>
+#include <wx/image.h>
 #include <algorithm>
 #include <cmath>
 
@@ -8,6 +9,7 @@
 #include "GUI_App.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/PrintConfig.hpp"
+#include "libslic3r/FilamentMixer.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -25,10 +27,6 @@ struct BitmapDC {
         dc.SetPen(*wxTRANSPARENT_PEN);
     }
 };
-
-static BitmapDC init_bitmap_dc(const wxSize& size) {
-    return BitmapDC(size);
-}
 
 void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const wxColour& from, const wxColour& to)
 {
@@ -50,46 +48,147 @@ void fill_gradient_rect_east(wxDC& dc, const wxRect& rect, const wxColour& from,
     }
 }
 
-// Check if a color is transparent (alpha == 0)
-static bool is_transparent_color(const wxColour& color) {
-    return color.Alpha() == 0;
+// Draw a 1px solid border around the full bitmap rectangle
+static void draw_border(wxDC& dc, const wxSize& size, const wxColour& color) {
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    dc.SetPen(wxPen(color, 1, wxPENSTYLE_SOLID));
+    dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
+}
+
+// Draw checkerboard pattern into dc. inset: pixels reserved on each side for border.
+static void draw_checkerboard(wxDC& dc, const wxSize& size,
+                              const wxColour& color_light, const wxColour& color_dark,
+                              int inset)
+{
+    int x0 = inset, y0 = inset;
+    int x1 = size.GetWidth()  - inset;
+    int y1 = size.GetHeight() - inset;
+    int square_size = std::max(6, std::min(x1 - x0, y1 - y0) / 8);
+
+    for (int x = x0; x < x1; x += square_size) {
+        for (int y = y0; y < y1; y += square_size) {
+            bool is_light = ((x / square_size) + (y / square_size)) % 2 == 0;
+            dc.SetBrush(wxBrush(is_light ? color_light : color_dark));
+            int w = std::min(square_size, x1 - x);
+            int h = std::min(square_size, y1 - y);
+            dc.DrawRectangle(x, y, w, h);
+        }
+    }
+}
+
+void get_translucent_checker_colors(const wxColour& color, wxColour& light_out, wxColour& dark_out)
+{
+    auto blend = [](wxByte c, double a) -> wxByte {
+        return (wxByte) (c * a + 255.0 * (1.0 - a) + 0.5);
+    };
+    light_out = wxColour(blend(color.Red(), 0.45), blend(color.Green(), 0.45), blend(color.Blue(), 0.45));
+    dark_out  = wxColour(blend(color.Red(), 0.70), blend(color.Green(), 0.70), blend(color.Blue(), 0.70));
+}
+
+static unsigned char disc_coverage_alpha(double px, double py, double cx, double cy, double radius)
+{
+    const double dx   = px - cx;
+    const double dy   = py - cy;
+    const double dist = std::sqrt(dx * dx + dy * dy);
+    double cover = radius - dist;
+    cover = std::max(0.0, std::min(1.0, cover));
+    return (unsigned char) (cover * 255.0 + 0.5);
+}
+
+wxBitmap create_translucent_circle_bitmap(const wxColour& color, int diameter, int border_width)
+{
+    if (diameter <= 0) return wxNullBitmap;
+
+    wxColour light_clr, dark_clr;
+    get_translucent_checker_colors(color, light_clr, dark_clr);
+
+    wxBitmap bitmap(diameter, diameter);
+    {
+        wxMemoryDC dc(bitmap);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        draw_checkerboard(dc, wxSize(diameter, diameter), light_clr, dark_clr, 0);
+        if (border_width > 0) {
+            const int inset = (border_width + 1) / 2;
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.SetPen(wxPen(wxColour(color.Red(), color.Green(), color.Blue()), border_width, wxPENSTYLE_SOLID));
+            dc.DrawEllipse(inset, inset, diameter - 2 * inset, diameter - 2 * inset);
+        }
+        dc.SelectObject(wxNullBitmap);
+    }
+
+    wxImage img = bitmap.ConvertToImage();
+    if (!img.IsOk()) return bitmap;
+    img.InitAlpha();
+    if (unsigned char* alpha = img.GetAlpha()) {
+        const double r = diameter / 2.0;
+        for (int y = 0; y < diameter; ++y)
+            for (int x = 0; x < diameter; ++x)
+                alpha[y * diameter + x] = disc_coverage_alpha(x + 0.5, y + 0.5, r, r, r);
+    }
+    return wxBitmap(img);
+}
+
+wxBitmap create_translucent_round_rect_bitmap(const wxColour& color, const wxSize& size, double radius)
+{
+    const int w = size.GetWidth();
+    const int h = size.GetHeight();
+    if (w <= 0 || h <= 0) return wxNullBitmap;
+
+    wxColour light_clr, dark_clr;
+    get_translucent_checker_colors(color, light_clr, dark_clr);
+
+    wxBitmap bitmap(w, h);
+    {
+        wxMemoryDC dc(bitmap);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        draw_checkerboard(dc, wxSize(w, h), light_clr, dark_clr, 0);
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.SetPen(wxPen(wxColour(color.Red(), color.Green(), color.Blue()), 1, wxPENSTYLE_SOLID));
+        dc.DrawRoundedRectangle(0, 0, w, h, radius);
+        dc.SelectObject(wxNullBitmap);
+    }
+
+    wxImage img = bitmap.ConvertToImage();
+    if (!img.IsOk()) return bitmap;
+    img.InitAlpha();
+    unsigned char* alpha = img.GetAlpha();
+    if (alpha && radius > 0.0) {
+        const double rad = std::min(radius, std::min(w, h) / 2.0);
+        for (int y = 0; y < h; ++y) {
+            for (int x = 0; x < w; ++x) {
+                double cx = -1.0, cy = -1.0;
+                if (x < rad          && y < rad)          { cx = rad;         cy = rad; }
+                else if (x >= w - rad && y < rad)          { cx = w - rad;     cy = rad; }
+                else if (x < rad      && y >= h - rad)     { cx = rad;         cy = h - rad; }
+                else if (x >= w - rad && y >= h - rad)     { cx = w - rad;     cy = h - rad; }
+                if (cx >= 0.0)
+                    alpha[y * w + x] = disc_coverage_alpha(x + 0.5, y + 0.5, cx, cy, rad);
+            }
+        }
+    }
+    return wxBitmap(img);
 }
 
 // Create transparent bitmap
 static wxBitmap create_transparent_bitmap(const wxSize& size) {
-    BitmapDC bdc = init_bitmap_dc(size);
+    BitmapDC bdc(size);
     if (!bdc.dc.IsOk()) return wxNullBitmap;
 
     // Create checkerboard pattern
-    wxColour light_gray(217, 217, 217);  // #D9D9D9
-    wxColour white(255, 255, 255);
-
     bool is_dark_mode = wxGetApp().dark_mode();
 
     // Calculate parameters based on mode
-    int start_pos = is_dark_mode ? 0 : 1;
-    int end_width = is_dark_mode ? size.GetWidth() : size.GetWidth() - 1;
-    int end_height = is_dark_mode ? size.GetHeight() : size.GetHeight() - 1;
-    int square_size = std::max(6, std::min(end_width - start_pos, end_height - start_pos) / 8);
+    int inset = is_dark_mode ? 0 : 1;
 
     // Draw checkerboard
-    for (int x = start_pos; x < end_width; x += square_size) {
-        for (int y = start_pos; y < end_height; y += square_size) {
-            bool is_light = ((x / square_size) + (y / square_size)) % 2 == 0;
-            bdc.dc.SetBrush(wxBrush(is_light ? white : light_gray));
-
-            int width = std::min(square_size, size.GetWidth() - x);
-            int height = std::min(square_size, size.GetHeight() - y);
-            bdc.dc.DrawRectangle(x, y, width, height);
-        }
-    }
+    draw_checkerboard(bdc.dc, size,
+                      wxColour(255, 255, 255),
+                      wxColour(217, 217, 217),
+                      inset);
 
     // Add border only in light mode
-    if (!is_dark_mode) {
-        bdc.dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxPENSTYLE_SOLID));
-        bdc.dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        bdc.dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
-    }
+    if (!is_dark_mode)
+        draw_border(bdc.dc, size, wxColour(130, 130, 128));
 
     bdc.dc.SelectObject(wxNullBitmap);
     return bdc.bitmap;
@@ -110,12 +209,28 @@ static void sort_colors_by_hsv(std::vector<wxColour>& colors) {
 
 static wxBitmap create_single_filament_bitmap(const wxColour& color, const wxSize& size)
 {
-    // Check if color is transparent
-    if (is_transparent_color(color)) {
+    const unsigned char alpha = color.Alpha();
+
+    // Fully transparent: fixed light checkerboard (RGB ignored).
+    if (alpha == 0)
         return create_transparent_bitmap(size);
+
+    // Semi-transparent: tinted checkerboard from the filament color blended over white.
+    if (alpha != wxALPHA_OPAQUE) {
+        BitmapDC bdc(size);
+        if (!bdc.dc.IsOk()) return wxNullBitmap;
+
+        wxColour light_clr, dark_clr;
+        get_translucent_checker_colors(color, light_clr, dark_clr);
+        draw_checkerboard(bdc.dc, size, light_clr, dark_clr, 1);
+        draw_border(bdc.dc, size, wxColour(color.Red(), color.Green(), color.Blue()));
+
+        bdc.dc.SelectObject(wxNullBitmap);
+        return bdc.bitmap;
     }
 
-    BitmapDC bdc = init_bitmap_dc(size);
+    // Opaque: solid fill; optional border for very light / very dark swatches.
+    BitmapDC bdc(size);
     if (!bdc.dc.IsOk()) return wxNullBitmap;
 
     bdc.dc.SetBackground(wxBrush(color));
@@ -124,18 +239,12 @@ static wxBitmap create_single_filament_bitmap(const wxColour& color, const wxSiz
     bdc.dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
 
     // Add gray border for light colors (similar to wxExtensions.cpp logic) - only in light mode
-    if (!wxGetApp().dark_mode() && color.Red() > 224 && color.Blue() > 224 && color.Green() > 224) {
-        bdc.dc.SetPen(wxPen(wxColour(130, 130, 128), 1, wxPENSTYLE_SOLID));
-        bdc.dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        bdc.dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
-    }
+    if (!wxGetApp().dark_mode() && color.Red() > 224 && color.Blue() > 224 && color.Green() > 224)
+        draw_border(bdc.dc, size, wxColour(130, 130, 128));
 
     // Add white border for dark colors - only in dark mode
-    if(wxGetApp().dark_mode() && color.Red() < 45 && color.Blue() < 45 && color.Green() < 45) {
-        bdc.dc.SetPen(wxPen(wxColour(207, 207, 207), 1, wxPENSTYLE_SOLID));
-        bdc.dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        bdc.dc.DrawRectangle(0, 0, size.GetWidth(), size.GetHeight());
-    }
+    if (wxGetApp().dark_mode() && color.Red() < 45 && color.Blue() < 45 && color.Green() < 45)
+        draw_border(bdc.dc, size, wxColour(207, 207, 207));
 
     bdc.dc.SelectObject(wxNullBitmap);
     return bdc.bitmap;
@@ -143,7 +252,7 @@ static wxBitmap create_single_filament_bitmap(const wxColour& color, const wxSiz
 
 static wxBitmap create_dual_filament_bitmap(const wxColour& color1, const wxColour& color2, const wxSize& size)
 {
-    BitmapDC bdc = init_bitmap_dc(size);
+    BitmapDC bdc(size);
 
     int half_width = size.GetWidth() / 2;
 
@@ -159,7 +268,7 @@ static wxBitmap create_dual_filament_bitmap(const wxColour& color1, const wxColo
 
 static wxBitmap create_triple_filament_bitmap(const std::vector<wxColour>& colors, const wxSize& size)
 {
-    BitmapDC bdc = init_bitmap_dc(size);
+    BitmapDC bdc(size);
 
     int third_width = size.GetWidth() / 3;
     int remaining_width = size.GetWidth() - (third_width * 2);
@@ -180,16 +289,16 @@ static wxBitmap create_triple_filament_bitmap(const std::vector<wxColour>& color
 
 static wxBitmap create_quadruple_filament_bitmap(const std::vector<wxColour>& colors, const wxSize& size)
 {
-    BitmapDC bdc = init_bitmap_dc(size);
+    BitmapDC bdc(size);
 
     int half_width = (size.GetWidth() + 1) / 2;
     int half_height = (size.GetHeight() + 1) / 2;
 
     const int rects[4][4] = {
-        {0, 0, half_width, half_height},                    // Top left
-        {half_width, 0, size.GetWidth() - half_width, half_height},           // Top right
-        {0, half_height, half_width, size.GetHeight() - half_height},         // Bottom left
-        {half_width, half_height, size.GetWidth() - half_width, size.GetHeight() - half_height}  // Bottom right
+        {0, 0, half_width, half_height},                                                            // Top left
+        {half_width, 0, size.GetWidth() - half_width, half_height},                                // Top right
+        {0, half_height, half_width, size.GetHeight() - half_height},                              // Bottom left
+        {half_width, half_height, size.GetWidth() - half_width, size.GetHeight() - half_height}    // Bottom right
     };
 
     for (int i = 0; i < 4; i++) {
@@ -203,19 +312,15 @@ static wxBitmap create_quadruple_filament_bitmap(const std::vector<wxColour>& co
 
 static wxBitmap create_gradient_filament_bitmap(const std::vector<wxColour>& colors, const wxSize& size)
 {
-    BitmapDC bdc = init_bitmap_dc(size);
-
-    if (colors.size() == 1) {
-        return create_single_filament_bitmap(colors[0], size);
-    }
+    BitmapDC bdc(size);
 
     // use segment gradient, make transition more natural
-    wxDC& dc = bdc.dc;
+    wxDC &dc = bdc.dc;
     int total_width = size.GetWidth();
     int height = size.GetHeight();
 
     // calculate segment count
-    int segment_count = colors.size() - 1;
+    int segment_count = (int)colors.size() - 1;
     double segment_width = (double)total_width / segment_count;
 
     int left = 0;
@@ -299,6 +404,67 @@ void get_filament_colors_by_id(int filament_index, std::vector<wxColour>& out_co
     if (auto* colour_type_opt = proj_config.option<ConfigOptionStrings>("filament_colour_type");
         colour_type_opt && filament_index < (int) colour_type_opt->values.size())
         out_is_gradient = (colour_type_opt->values[filament_index] == "0");
+}
+
+void recompute_mixed_slot_colors(std::vector<wxColour>& colors,
+                                 const Slic3r::DynamicPrintConfig& cfg)
+{
+    const auto* is_mixed_opt = cfg.option<ConfigOptionBools>("filament_is_mixed");
+    const auto* comp_opt     = cfg.option<ConfigOptionStrings>("filament_mixed_components");
+    const auto* ratio_opt    = cfg.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios");
+    const auto* grad_opt     = cfg.option<ConfigOptionBools>("filament_mixed_gradient");
+    if (!is_mixed_opt || !comp_opt) return;
+
+    const size_t n = is_mixed_opt->values.size();
+    if (colors.size() < n) colors.resize(n);
+
+    const auto* colour_opt = cfg.option<ConfigOptionStrings>("filament_colour");
+    const auto  kFallback  = wxColour(128, 128, 128, 255);
+
+    for (size_t i = 0; i < n; ++i) {
+        if (!is_mixed_opt->values[i]) continue;
+
+        if (i >= comp_opt->values.size()) { colors[i] = kFallback; continue; }
+        auto comp_ids = Slic3r::parse_mixed_components(comp_opt->values[i]);
+        if (comp_ids.empty()) { colors[i] = kFallback; continue; }
+
+        bool is_gradient = grad_opt && i < grad_opt->values.size() && grad_opt->values[i];
+        std::vector<unsigned int> use_ids = comp_ids;
+        std::vector<int>          weights;
+
+        if (is_gradient && comp_ids.size() >= 2) {
+            use_ids = { comp_ids.front(), comp_ids.back() };
+            weights = { 5000, 5000 };
+        } else {
+            auto ratios_d = Slic3r::parse_mixed_ratios(
+                (ratio_opt && i < ratio_opt->values.size()) ? ratio_opt->values[i] : std::string{},
+                comp_ids.size());
+            weights.reserve(comp_ids.size());
+            for (double r : ratios_d)
+                weights.push_back(static_cast<int>(std::lround(r * 10000.0)));
+        }
+
+        std::vector<std::string> hex_colors;
+        hex_colors.reserve(use_ids.size());
+        bool any_invalid = false;
+        for (unsigned int id : use_ids) {
+            if (id == 0 || id > colors.size()) { any_invalid = true; break; }
+            wxColour c = colors[id - 1];
+            if (c.IsOk() && (c.Red() > 0 || c.Green() > 0 || c.Blue() > 0)) {
+                hex_colors.push_back(wxString::Format("#%02X%02X%02X", c.Red(), c.Green(), c.Blue()).ToStdString());
+            } else if (colour_opt && (id - 1) < colour_opt->values.size()) {
+                hex_colors.push_back(colour_opt->values[id - 1]);
+            } else {
+                any_invalid = true; break;
+            }
+        }
+        if (any_invalid) { colors[i] = kFallback; continue; }
+
+        std::string hex = Slic3r::blend_color_multi(hex_colors, weights);
+        wxColour blended(hex);
+        if (!blended.IsOk()) blended = kFallback;
+        colors[i] = wxColour(blended.Red(), blended.Green(), blended.Blue(), 255);
+    }
 }
 
 }} // namespace Slic3r::GUI

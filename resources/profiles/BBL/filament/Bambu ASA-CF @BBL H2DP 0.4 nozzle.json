@@ -27,6 +27,10 @@
         "0",
         "0"
     ],
+    "filament_retraction_length": [
+        "1.2",
+        "1.2"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],

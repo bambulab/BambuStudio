@@ -134,6 +134,8 @@ void AppConfig::set_defaults()
             set_bool("single_instance", false);
         if (get("import_3mf_as_project").empty())
             set_bool("import_3mf_as_project", true);
+        if (get("show_bed_heat_soak_area").empty())
+            set_bool("show_bed_heat_soak_area", true);
 #ifdef SUPPORT_REMEMBER_OUTPUT_PATH
         if (get("remember_output_path").empty())
             set_bool("remember_output_path", true);
@@ -292,6 +294,9 @@ void AppConfig::set_defaults()
 
     if (get("internal_developer_mode").empty())
         set_bool("internal_developer_mode", false);
+
+    if (get("enable_webview_devtools").empty())
+        set_bool("enable_webview_devtools", false);
 
     if (get("disable_auto_flow_cali_tips").empty())
         set_bool("disable_auto_flow_cali_tips", false);

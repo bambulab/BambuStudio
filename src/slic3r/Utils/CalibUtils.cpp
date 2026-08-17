@@ -998,6 +998,12 @@ void CalibUtils::calib_pa_pattern(const MachineObject *obj, const CalibInfo &cal
 
 void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &calib_infos, DynamicPrintConfig &full_config, Model &model)
 {
+    assert(!calib_infos.empty());
+    if (calib_infos.empty()) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": calib_infos is empty, skip auto PA model/config setup";
+        return;
+    }
+
     DynamicPrintConfig print_config    = calib_infos[0].print_prest->config;
 
     float nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
@@ -1130,6 +1136,12 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
 
 bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_infos, wxString &error_message)
 {
+    if (calib_infos.empty()) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": calib_infos is empty, abort auto PA calibration";
+        error_message = _L("Please select filament to calibrate.");
+        return false;
+    }
+
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) {
         error_message = _L("Need select printer");
@@ -2333,6 +2345,12 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
 
 void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxString &error_message, int flow_ratio_mode)
 {
+    if (calib_infos.empty()) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": calib_infos is empty, abort sending calibration job";
+        error_message = _L("Please select filament to calibrate.");
+        return;
+    }
+
     std::string                        dev_id      = calib_infos[0].dev_id;
     std::shared_ptr<ProgressIndicator> process_bar = calib_infos[0].process_bar;
     BedType                            bed_type    = calib_infos[0].bed_type;

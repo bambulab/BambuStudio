@@ -124,6 +124,10 @@ namespace FilamentGroupUtils
                     tray_name = tray_ptr->get_at(0);
                 if (auto support_ptr = item.option<ConfigOptionBools>("filament_is_support"); support_ptr)
                     is_support_filament = support_ptr->get_at(0);
+                if (auto id_ptr = item.option<ConfigOptionStrings>("filament_id"); id_ptr && !id_ptr->values.empty()) {
+                    // filament_id 由 AMS tray_info_idx 写入，用于区分耗材小类。
+                    temp.filament_id = id_ptr->get_at(0);
+                }
 
                 if (color.empty() || type.empty() || tray_name.empty())
                     continue;

@@ -12,6 +12,16 @@
     "printer_variant": "0.4",
     "auxiliary_fan": "0",
     "bed_exclude_area": [],
+    "bed_heat_soak_area": [
+        "102x93.4",
+        "228x93.4",
+        "228x226.6",
+        "102x226.6",
+        "60x49",
+        "270x49",
+        "270x271",
+        "60x271"
+    ],
     "default_filament_profile": [
         "Bambu PLA Basic @BBL A2L 0.4 nozzle"
     ],
@@ -100,5 +110,12 @@
     "support_object_skip_flush": "1",
     "upward_compatible_machine": [
         "Bambu Lab H2S 0.4 nozzle"
-    ]
+    ],
+    "default_ams_type": "2",
+    "ams_filament_load_time_ams": "23",
+    "ams_filament_load_time_ams_lite": "11",
+    "ams_filament_load_time_n3f_s": "18",
+    "ams_filament_unload_time_ams": "21",
+    "ams_filament_unload_time_ams_lite": "12",
+    "ams_filament_unload_time_n3f_s": "19"
 }

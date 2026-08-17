@@ -118,3 +118,16 @@ void PopupWindow::topWindowShow(wxShowEvent &event)
         Dismiss();
 }
 #endif
+
+#ifdef __WIN32__
+// Windows delivers WM_ACTIVATEAPP to every top-level window of the thread when
+// the app loses foreground, including a transient popup that wx neither
+// activated nor re-raised wxEVT_ACTIVATE_APP for. Handling the raw message on
+// the popup's own HWND is the reliable dismiss path the wx events miss.
+WXLRESULT PopupWindow::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+{
+    if (nMsg == WM_ACTIVATEAPP && wParam == FALSE && IsShown())
+        DismissAndNotify();
+    return wxPopupTransientWindow::MSWWindowProc(nMsg, wParam, lParam);
+}
+#endif

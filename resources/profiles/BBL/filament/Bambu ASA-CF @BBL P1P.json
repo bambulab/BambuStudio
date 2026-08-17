@@ -6,7 +6,7 @@
     "setting_id": "GFSB51_02",
     "instantiation": "true",
     "filament_flow_ratio": [
-        "0.9",
+        "0.89",
         "0.9"
     ],
     "filament_max_volumetric_speed": [
@@ -16,6 +16,10 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_retraction_length": [
+        "1.2",
+        "1.2"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -31,6 +35,12 @@
     "nozzle_temperature_initial_layer": [
         "275",
         "275"
+    ],
+    "overhang_fan_speed": [
+        "90"
+    ],
+    "pre_start_fan_time": [
+        "3"
     ],
     "retraction_distances_when_ec": [
         "0",

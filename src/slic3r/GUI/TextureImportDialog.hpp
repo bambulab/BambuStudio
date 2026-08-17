@@ -275,6 +275,14 @@ private:
     void update_drop_warning_visibility();
     void compact_used_virtual_filaments();
     int  find_closest_filament_index(const std::array<std::size_t, 3>& color) const;
+    // Returns a vector indexed by dialog_index whose value is the 1-based
+    // display number that mirrors the final sidebar ordering produced by
+    // apply_textured_mesh_import_result (Plater.cpp): ExistingPhysical,
+    // NewPhysical, ExistingMixed, NewMixed. Used so the dialog shows the
+    // same IDs the sidebar will show after OK, instead of the raw
+    // dialog_index + 1 (which interleaves physicals and mixeds).
+    // MUST mirror ordering in apply_textured_mesh_import_result (Plater.cpp:9896).
+    std::vector<int> compute_display_numbers() const;
 
     void on_color_preset_clicked(wxCommandEvent& evt);
     void on_color_slider_changed(wxCommandEvent& evt);

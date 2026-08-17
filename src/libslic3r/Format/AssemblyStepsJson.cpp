@@ -48,6 +48,26 @@ static bool json_get_bool(const nlohmann::json &j, const char *key, bool &value)
     return true;
 }
 
+// Read is_final_assembly as int.
+// Legacy bool true → FinalAssembly (1) so old Default/final-assembly data is kept.
+// OverallPreview (2) is runtime UI-only and must not appear in persisted JSON;
+// if an older mid-migration file still has 2, callers skip it on restore.
+static bool json_get_assembly_step_kind(const nlohmann::json &j, const char *key, int &value)
+{
+    if (!j.contains(key))
+        return false;
+    const auto &v = j[key];
+    if (v.is_boolean()) {
+        value = v.get<bool>() ? AssemblyStepKind::FinalAssembly : AssemblyStepKind::Normal;
+        return true;
+    }
+    if (v.is_number_integer()) {
+        value = v.get<int>();
+        return true;
+    }
+    return false;
+}
+
 static bool json_get_double(const nlohmann::json &j, const char *key, double &value)
 {
     if (!j.contains(key) || !j[key].is_number())
@@ -145,34 +165,66 @@ static Transform3d transform3d_from_json(const nlohmann::json &j)
     }
     return t;
 }
+// ---- ArrowSvgRay ----
+void ArrowSvgRay::to_json(nlohmann::json &j) const
+{
+    bound_volumes_to_json(j, "bound_volumes", bound_volumes);
+    j["arrow_start_offset"] = {arrow_start_offset.x(), arrow_start_offset.y()};
+    j["arrow_end_offset"]   = {arrow_end_offset.x(), arrow_end_offset.y()};
+}
+
+void ArrowSvgRay::from_json(const nlohmann::json &j)
+{
+    bound_volumes_from_json(j, "bound_volumes", bound_volumes);
+    json_get_vec2d(j, "arrow_start_offset", arrow_start_offset);
+    json_get_vec2d(j, "arrow_end_offset", arrow_end_offset);
+}
+
 // ---- ArrowSvgNote ----
 void ArrowSvgNote::to_json(nlohmann::json &j) const
 {
-    j["svg_name"]           = svg_name;
-    nlohmann::json bv = nlohmann::json::array();
-    for (const auto &p : bound_volumes)
-        bv.push_back({p.first, p.second});
-    j["bound_volumes"]      = bv;
-    j["arrow_start_offset"] = {arrow_start_offset.x(), arrow_start_offset.y()};
-    j["arrow_end_offset"]   = {arrow_end_offset.x(), arrow_end_offset.y()};
-    j["label_size"]         = {label_size.x(), label_size.y()};
+    j["svg_name"] = svg_name;
+    j["label_size"] = {label_size.x(), label_size.y()};
     color_to_json(j, "color", color);
+
+    nlohmann::json rays_arr = nlohmann::json::array();
+    for (const auto &ray : rays) {
+        nlohmann::json rj;
+        ray.to_json(rj);
+        rays_arr.push_back(std::move(rj));
+    }
+    j["rays"] = std::move(rays_arr);
+
+    // Mirror the first ray into the legacy flat fields so older readers that
+    // only know bound_volumes / arrow_*_offset still get a usable single arrow.
+    if (!rays.empty()) {
+        bound_volumes_to_json(j, "bound_volumes", rays.front().bound_volumes);
+        j["arrow_start_offset"] = {rays.front().arrow_start_offset.x(), rays.front().arrow_start_offset.y()};
+        j["arrow_end_offset"]   = {rays.front().arrow_end_offset.x(), rays.front().arrow_end_offset.y()};
+    }
 }
 
 void ArrowSvgNote::from_json(const nlohmann::json &j)
 {
     json_get_string(j, "svg_name", svg_name);
-    bound_volumes.clear();
-    if (j.contains("bound_volumes") && j["bound_volumes"].is_array()) {
-        for (const auto &item : j["bound_volumes"]) {
-            if (item.is_array() && item.size() == 2 && item[0].is_number_integer() && item[1].is_number_integer())
-                bound_volumes.emplace_back(item[0].get<int>(), item[1].get<int>());
-        }
-    }
-    json_get_vec2d(j, "arrow_start_offset", arrow_start_offset);
-    json_get_vec2d(j, "arrow_end_offset", arrow_end_offset);
     json_get_vec2d(j, "label_size", label_size);
     color_from_json(j, "color", color);
+
+    rays.clear();
+    if (j.contains("rays") && j["rays"].is_array() && !j["rays"].empty()) {
+        for (const auto &rj : j["rays"]) {
+            ArrowSvgRay ray;
+            ray.from_json(rj);
+            rays.push_back(std::move(ray));
+        }
+    } else {
+        // Legacy single-arrow JSON: one combined ray from flat fields.
+        ArrowSvgRay ray;
+        bound_volumes_from_json(j, "bound_volumes", ray.bound_volumes);
+        json_get_vec2d(j, "arrow_start_offset", ray.arrow_start_offset);
+        json_get_vec2d(j, "arrow_end_offset", ray.arrow_end_offset);
+        rays.push_back(std::move(ray));
+    }
 }
 
 // ---- TextLabelNote ----
@@ -256,6 +308,8 @@ void PartNumberLabel::to_json(nlohmann::json &j) const
     j["uuid"]          = part_guid;
     j["arrow_start_offset"] = {arrow_start_offset.x(), arrow_start_offset.y()};
     j["arrow_end_offset"]   = {arrow_end_offset.x(), arrow_end_offset.y()};
+    j["visible"]            = visible;
+    j["in_explosion_state"] = in_explosion_state;
 }
 
 void PartNumberLabel::from_json(const nlohmann::json &j)
@@ -266,6 +320,12 @@ void PartNumberLabel::from_json(const nlohmann::json &j)
     json_get_string(j, "uuid", part_guid);
     json_get_vec2d(j, "arrow_start_offset", arrow_start_offset);
     json_get_vec2d(j, "arrow_end_offset", arrow_end_offset);
+    // Default true for legacy JSON that predates the per-label switch.
+    if (!json_get_bool(j, "visible", visible))
+        visible = true;
+    // Default false for legacy JSON that predates the explosion column.
+    if (!json_get_bool(j, "in_explosion_state", in_explosion_state))
+        in_explosion_state = false;
 }
 
 // ---- AssemblyNote ----
@@ -420,6 +480,9 @@ void KeyFrame::to_json(nlohmann::json &j) const
         auto it = volume_names.find(p.first);
         if (it != volume_names.end())
             item["volume_name"] = it->second;
+        auto git = volume_guids.find(p.first);
+        if (git != volume_guids.end() && !git->second.empty())
+            item["uuid"] = git->second;
         item["transformation"] = transform3d_to_json(p.second.get_matrix());
         vt_arr.push_back(item);
     }
@@ -466,6 +529,7 @@ void KeyFrame::from_json(const nlohmann::json &j)
 
     volume_transformations.clear();
     volume_names.clear();
+    volume_guids.clear();
     if (j.contains("volume_transformations") && j["volume_transformations"].is_array()) {
         for (const auto &item : j["volume_transformations"]) {
             int obj_id = -1;
@@ -481,6 +545,9 @@ void KeyFrame::from_json(const nlohmann::json &j)
             std::string volume_name;
             if (json_get_string(item, "volume_name", volume_name))
                 volume_names[key] = volume_name;
+            std::string volume_guid;
+            if (json_get_string(item, "uuid", volume_guid) && !volume_guid.empty())
+                volume_guids[key] = volume_guid;
         }
     }
 
@@ -566,6 +633,14 @@ void AssembleSub::to_json(nlohmann::json &j) const
         j["id"] = id;
     j["step"] = step;
     j["is_final_assembly"] = is_final_assembly;
+    if (inherited_from_step_id >= 0)
+        j["inherited_from_step_id"] = inherited_from_step_id;
+    if (!inherited_object_ids.empty()) {
+        nlohmann::json arr = nlohmann::json::array();
+        for (size_t oid : inherited_object_ids)
+            arr.push_back(oid);
+        j["inherited_object_ids"] = std::move(arr);
+    }
     if (assembly_tree_checked) {
         nlohmann::json checked = nlohmann::json::object();
         for (const auto& item : *assembly_tree_checked)
@@ -587,7 +662,18 @@ void AssembleSub::from_json(const nlohmann::json &j)
     AssembleBaseInfo::from_json(j);
     json_get_int(j, "id", id);
     json_get_int(j, "step", step);
-    json_get_bool(j, "is_final_assembly", is_final_assembly);
+    json_get_assembly_step_kind(j, "is_final_assembly", is_final_assembly);
+    inherited_from_step_id = -1;
+    json_get_int(j, "inherited_from_step_id", inherited_from_step_id);
+    inherited_object_ids.clear();
+    if (j.contains("inherited_object_ids") && j["inherited_object_ids"].is_array()) {
+        for (const auto &v : j["inherited_object_ids"]) {
+            if (v.is_number_unsigned())
+                inherited_object_ids.push_back(v.get<size_t>());
+            else if (v.is_number_integer())
+                inherited_object_ids.push_back(static_cast<size_t>(v.get<long long>()));
+        }
+    }
     assembly_tree_checked.reset();
     if (j.contains("assembly_tree_checked") && j["assembly_tree_checked"].is_object()) {
         assembly_tree_checked.emplace();
@@ -752,6 +838,8 @@ std::string AssemblyStepsTreeData::to_json_string() const
             sub->is_final_assembly = node.is_final_assembly;
             sub->id                = node.id;
             sub->step              = node.step;
+            sub->inherited_from_step_id = node.inherited_from_step_id;
+            sub->inherited_object_ids   = node.inherited_object_ids;
             sub->assembly_tree_checked = node.assembly_tree_checked;
             // Mirror legacy AssemblyStepsUtils::build_steps_json_string — all entries
             for (const auto& kf : node.kf_data.entries)
@@ -776,6 +864,11 @@ std::string AssemblyStepsTreeData::to_json_string() const
     std::vector<std::shared_ptr<AssembleBaseInfo>> items;
     items.reserve(roots.size());
     for (int root_idx : roots) {
+        // OverallPreview is a runtime-only UI sentinel and must not be persisted.
+        if (root_idx >= 0 && root_idx < (int) nodes.size() &&
+            nodes[root_idx].type == AssemblyStepsTreeNode::Type::Folder &&
+            nodes[root_idx].is_final_assembly == AssemblyStepKind::OverallPreview)
+            continue;
         if (auto item = build_item(root_idx))
             items.push_back(std::move(item));
     }
@@ -954,6 +1047,8 @@ bool AssemblyStepsTreeData::from_json_string(
                 folder.step            = sub->step;
                 folder.name            = sub->name;
                 folder.is_final_assembly = sub->is_final_assembly;
+                folder.inherited_from_step_id = sub->inherited_from_step_id;
+                folder.inherited_object_ids   = sub->inherited_object_ids;
                 folder.assembly_tree_checked = sub->assembly_tree_checked;
                 folder.kf_data.node_idx   = folder_idx;
                 folder.kf_data.object_idx = folder.object_idx;
@@ -985,6 +1080,11 @@ bool AssemblyStepsTreeData::from_json_string(
         };
 
         for (const auto& item : json_doc.get_items()) {
+            // OverallPreview is runtime UI-only; drop it if an older file still contains it.
+            if (const auto *sub = dynamic_cast<const AssembleSub *>(item.get())) {
+                if (sub->is_final_assembly == AssemblyStepKind::OverallPreview)
+                    continue;
+            }
             const int idx = restore_item(item);
             if (idx >= 0)
                 parsed.roots.push_back(idx);
@@ -1014,50 +1114,12 @@ bool AssemblyStepsTreeData::from_json_string(
                 continue;
             for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
                 const ModelVolume *volume = obj->volumes[vi];
-                if (volume)
+                if (volume && volume->is_model_part())
                     parsed.loaded_recorded_volumes.insert(volume->ensure_part_guid());
             }
         }
-        // Only trust the snapshot as a baseline when the final-assembly step's end
-        // frame actually covers the same volumes as the loaded model. If they don't
-        // line up (stale steps data vs model), leave the flag false so the runtime
-        // re-syncs instead of skipping it on this loaded baseline.
-        bool baseline_matches_end_frame = false;
-        {
-            const KeyFrame *end_kf = nullptr;
-            for (const auto &node : parsed.nodes) {
-                if (node.type != AssemblyStepsTreeNode::Type::Folder || !node.is_final_assembly)
-                    continue;
-                for (const auto &e : node.kf_data.entries) {
-                    if (e.is_last()) {
-                        end_kf = &e.data;
-                        break;
-                    }
-                }
-                break;
-            }
-            if (end_kf != nullptr) {
-                // Resolve the end frame's index-keyed pose maps into part GUIDs.
-                std::set<std::string> end_volumes;
-                bool keys_valid = true;
-                for (const auto &p : end_kf->volume_transformations) {
-                    const int oi = p.first.first;
-                    const int vi = p.first.second;
-                    if (oi < 0 || oi >= object_count || model.objects[oi] == nullptr ||
-                        vi < 0 || vi >= (int) model.objects[oi]->volumes.size() ||
-                        model.objects[oi]->volumes[vi] == nullptr) {
-                        keys_valid = false;
-                        break;
-                    }
-                    end_volumes.insert(model.objects[oi]->volumes[vi]->ensure_part_guid());
-                }
-                if (keys_valid &&
-                    end_volumes == parsed.loaded_recorded_volumes) {
-                    baseline_matches_end_frame = true;
-                }
-            }
-        }
-        parsed.has_loaded_recorded_baseline = baseline_matches_end_frame;
+        // As long as it's read from JSON, it's definitely a new project.
+        parsed.has_loaded_recorded_baseline = true;
 
         tree = std::move(parsed);
         return true;

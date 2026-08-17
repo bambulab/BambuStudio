@@ -954,6 +954,17 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
     // process ams
     std::map<int, DevFirmwareVersionInfo> ver_list = obj->get_ams_version();
 
+    // The AMS Lite unit is already shown by the dedicated panel above, while
+    // get_ams_version() also reports it (Drop it here, otherwise it is listed twice.).
+    if (extra_ams_it != obj->module_vers.end()) {
+        for (auto iter = ver_list.begin(); iter != ver_list.end(); ++iter) {
+            if (iter->second.name == extra_ams_it->first) {
+                ver_list.erase(iter);
+                break;
+            }
+        }
+    }
+
     if (ver_list.size() > 0) {
         if (ver_list.size() != m_amspanel_list.size()) {
             int add_count = ver_list.size() - m_amspanel_list.size();

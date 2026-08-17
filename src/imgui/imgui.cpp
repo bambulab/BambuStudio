@@ -10857,6 +10857,15 @@ static void ImeSetInputScreenPosFn_DefaultImpl(int x, int y)
             cf.ptCurrentPos.y = y;
             cf.dwStyle = CFS_FORCE_POSITION;
             ::ImmSetCompositionWindow(himc, &cf);
+            // Chinese IMEs often place the candidate list via ImmSetCandidateWindow;
+            // composition alone can leave the popup far from the caret.
+            CANDIDATEFORM cand;
+            cand.dwIndex = 0;
+            cand.dwStyle = CFS_CANDIDATEPOS;
+            cand.ptCurrentPos.x = x;
+            cand.ptCurrentPos.y = y;
+            cand.rcArea = {};
+            ::ImmSetCandidateWindow(himc, &cand);
             ::ImmReleaseContext(hwnd, himc);
         }
 }

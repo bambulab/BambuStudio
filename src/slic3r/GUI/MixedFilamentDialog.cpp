@@ -258,6 +258,46 @@ wxBitmap MixedFilamentDialog::make_swatch_bitmap(size_t idx)
     });
 }
 
+void MixedFilamentDialog::apply_uniform_label_width(wxStaticText* lbl)
+{
+    // A material row places the combo right after the label, so the combo x follows the label
+    // width and the rows drift apart with fonts that render digits at different advances (which
+    // is what macOS does).  Reserve the width of the widest row label on every row instead.
+    // The label itself is used as the measuring device on purpose: SetMinSize overrides the
+    // control's own best size rather than being merged with it, and on macOS the native cell is
+    // wider than the plain text extent, so a wxDC-measured width would clip the text.
+    const wxString text = lbl->GetLabel();
+    int w = 0;
+    for (int i = 1; i <= MAX_COMPONENTS; ++i) {
+        lbl->SetLabel(wxString::Format(_L("Filament %d"), i));
+        lbl->InvalidateBestSize();
+        w = std::max(w, lbl->GetBestSize().x);
+    }
+    lbl->SetLabel(text);
+    lbl->InvalidateBestSize();
+    lbl->SetMinSize(wxSize(w, -1));
+}
+
+void MixedFilamentDialog::append_material_row()
+{
+    auto* row = new wxBoxSizer(wxHORIZONTAL);
+    auto* lbl = new wxStaticText(this, wxID_ANY,
+                                 wxString::Format(_L("Filament %d"), (int)(m_combo_filaments.size() + 1)));
+    lbl->SetFont(::Label::Body_12);
+    apply_uniform_label_width(lbl);
+    row->Add(lbl, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
+
+    auto* combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
+                               wxSize(FromDIP(166), FromDIP(24)), 0, nullptr, wxCB_READONLY);
+    combo->SetKeepDropArrow(true);
+    combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { on_filament_changed(); });
+    row->Add(combo, 1, wxALIGN_CENTER_VERTICAL);
+
+    m_combo_filaments.push_back(combo);
+    m_combo_to_physical.push_back({});
+    m_material_rows_sizer->Add(row, 0, wxEXPAND | wxTOP, FromDIP(9));
+}
+
 void MixedFilamentDialog::reset_manual_ratio_state()
 {
     m_ratio_manual_order.clear();
@@ -444,13 +484,18 @@ void MixedFilamentDialog::start_ratio_editor(size_t idx, wxWindow* anchor, const
         m_ratio_editor->SetBackgroundColour(bg);
         m_ratio_editor->SetForegroundColour(fg);
         // Default wxTextCtrl best width (~140px) is too wide for the sizer to
-        // shrink, which would push the "%" suffix out of the panel.  Cap the
-        // editor's min width to the digits only (ratios are always two digits).
+        // shrink, which would push the "%" suffix out of the panel.  Size the
+        // editor for the *widest* three digits rather than the largest accepted
+        // value: SetMaxLength above lets anything up to "888" be typed, and the
+        // macOS system font renders digits at different advances, so "100" is
+        // narrower than what the user can actually enter.  GetSizeFromTextSize()
+        // then adds the platform's own text field margins; on macOS those margins
+        // are what clipped the digits.
         {
             wxClientDC mdc(m_ratio_editor);
             mdc.SetFont(::Label::Body_10);
-            int digits_w = mdc.GetTextExtent(wxT("88")).GetWidth();
-            m_ratio_editor->SetMinSize(wxSize(digits_w + FromDIP(2), -1));
+            int digits_w = mdc.GetTextExtent(wxT("888")).GetWidth();
+            m_ratio_editor->SetMinSize(m_ratio_editor->GetSizeFromTextSize(digits_w));
         }
 
         auto* pct_label = new wxStaticText(m_ratio_editor_panel, wxID_ANY, wxT("%"));
@@ -494,11 +539,21 @@ void MixedFilamentDialog::start_ratio_editor(size_t idx, wxWindow* anchor, const
 
     wxPoint pos = anchor->GetPosition() + anchor_rect.GetTopLeft();
     // Match the editor to the label (hover box) size so the inline editor and
-    // the hover state look identical.  A small floor keeps the "%" suffix from
-    // being squeezed out on very narrow labels.
+    // the hover state look identical, but never go below what the digits and
+    // the "%" suffix need: the sizer takes any missing width out of the
+    // stretchable editor, which would clip the value.
+    wxSize needed = m_ratio_editor_panel->ClientToWindowSize(
+        m_ratio_editor_panel->GetSizer()->CalcMin());
     wxSize size = anchor->GetSize();
-    size.SetWidth(std::max(size.GetWidth(), FromDIP(30)));
-    size.SetHeight(std::max(size.GetHeight(), FromDIP(18)));
+    size.SetWidth(std::max(size.GetWidth(), needed.GetWidth()));
+    size.SetHeight(std::max(size.GetHeight(), needed.GetHeight()));
+    // An editor wider than the label must still stay inside its parent, or the
+    // corner labels of the triangle picker would have it clipped at the edge.
+    if (wxWindow* editor_parent = m_ratio_editor_panel->GetParent()) {
+        wxSize avail = editor_parent->GetClientSize();
+        pos.x = std::clamp(pos.x, 0, std::max(0, avail.GetWidth()  - size.GetWidth()));
+        pos.y = std::clamp(pos.y, 0, std::max(0, avail.GetHeight() - size.GetHeight()));
+    }
     m_ratio_editor_panel->SetSize(wxRect(pos, size));
     m_ratio_editor_panel->Layout();
     m_ratio_editor->SetValue(wxString::Format(wxT("%d"), ratio(idx)));
@@ -769,23 +824,8 @@ wxBoxSizer* MixedFilamentDialog::create_material_selection()
 
     m_combo_filaments.clear();
     m_combo_to_physical.clear();
-    for (size_t i = 0; i < m_result.components.size(); ++i) {
-        auto* row = new wxBoxSizer(wxHORIZONTAL);
-        wxString lbl_text = wxString::Format(_L("Filament %d"), (int)(i + 1));
-        auto* lbl = new wxStaticText(this, wxID_ANY, lbl_text);
-        lbl->SetFont(::Label::Body_12);
-        row->Add(lbl, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
-
-        auto* combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
-                                   wxSize(FromDIP(166), FromDIP(24)), 0, nullptr, wxCB_READONLY);
-        combo->SetKeepDropArrow(true);
-        combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { on_filament_changed(); });
-        row->Add(combo, 1, wxALIGN_CENTER_VERTICAL);
-
-        m_combo_filaments.push_back(combo);
-        m_combo_to_physical.push_back({});
-        m_material_rows_sizer->Add(row, 0, wxEXPAND | wxTOP, FromDIP(9));
-    }
+    for (size_t i = 0; i < m_result.components.size(); ++i)
+        append_material_row();
 
     sizer->Add(m_material_rows_sizer, 0, wxEXPAND);
 
@@ -1455,26 +1495,6 @@ void MixedFilamentDialog::on_ratio_changed(int new_ratio_a)
 
 void MixedFilamentDialog::on_gradient_toggled()
 {
-    bool checked = m_chk_gradient->GetValue();
-
-    if (checked) {
-        auto& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-        if (!print_config.opt_bool("enable_mixed_color_sublayer")) {
-            wxMessageDialog dlg(this,
-                _L("Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"),
-                _L("Mixed Color Sublayer"),
-                wxYES_NO | wxICON_QUESTION);
-            if (dlg.ShowModal() == wxID_YES) {
-                DynamicPrintConfig new_conf;
-                new_conf.set_key_value("enable_mixed_color_sublayer", new ConfigOptionBool(true));
-                wxGetApp().get_tab(Preset::TYPE_PRINT)->load_config(new_conf);
-            } else {
-                m_chk_gradient->SetValue(false);
-                return;
-            }
-        }
-    }
-
     m_result.gradient_enabled = m_chk_gradient->GetValue();
 
     if (m_ratio_sizer)
@@ -1572,21 +1592,7 @@ void MixedFilamentDialog::on_add_material()
     }
     reset_manual_ratio_state();
 
-    auto* row = new wxBoxSizer(wxHORIZONTAL);
-    wxString lbl_text = wxString::Format(_L("Filament %d"), (int)(n + 1));
-    auto* lbl = new wxStaticText(this, wxID_ANY, lbl_text);
-    lbl->SetFont(::Label::Body_12);
-    row->Add(lbl, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
-
-    auto* combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
-                               wxSize(FromDIP(166), FromDIP(24)), 0, nullptr, wxCB_READONLY);
-    combo->SetKeepDropArrow(true);
-    combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { on_filament_changed(); });
-    row->Add(combo, 1, wxALIGN_CENTER_VERTICAL);
-
-    m_combo_filaments.push_back(combo);
-    m_combo_to_physical.push_back({});
-    m_material_rows_sizer->Add(row, 0, wxEXPAND | wxTOP, FromDIP(9));
+    append_material_row();
 
     rebuild_all_combos();
     refresh_curve_editor_colors();
@@ -1670,24 +1676,8 @@ void MixedFilamentDialog::on_recommendation_clicked_triple(unsigned int a, unsig
     // Ensure we have exactly 3 combo rows
     if (num_components() < 3) {
         // Need to add a 3rd combo row
-        while (m_combo_filaments.size() < 3) {
-            size_t idx = m_combo_filaments.size();
-            auto* row = new wxBoxSizer(wxHORIZONTAL);
-            wxString lbl_text = wxString::Format(_L("Filament %d"), (int)(idx + 1));
-            auto* lbl = new wxStaticText(this, wxID_ANY, lbl_text);
-            lbl->SetFont(::Label::Body_12);
-            row->Add(lbl, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
-
-            auto* combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
-                                       wxSize(FromDIP(166), FromDIP(24)), 0, nullptr, wxCB_READONLY);
-            combo->SetKeepDropArrow(true);
-            combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { on_filament_changed(); });
-            row->Add(combo, 1, wxALIGN_CENTER_VERTICAL);
-
-            m_combo_filaments.push_back(combo);
-            m_combo_to_physical.push_back({});
-            m_material_rows_sizer->Add(row, 0, wxEXPAND | wxTOP, FromDIP(9));
-        }
+        while (m_combo_filaments.size() < 3)
+            append_material_row();
     } else if (num_components() > 3) {
         while (m_material_rows_sizer->GetItemCount() > 3) {
             auto* sizer_item = m_material_rows_sizer->GetItem(m_material_rows_sizer->GetItemCount() - 1);
@@ -1813,7 +1803,11 @@ void MixedFilamentDialog::update_ok_button_state()
                 parts += wxString::Format(_L("Slot %s (%s)"), slots, wxString::FromUTF8(it->first));
             }
             m_type_mismatch_msg = parts + " " + _L("cannot be mixed. Please select the same filament type.");
+        } else {
+            m_type_mismatch_msg.clear();
         }
+    } else {
+        m_type_mismatch_msg.clear();
     }
 
     bool has_unselected = false;
@@ -1839,6 +1833,10 @@ void MixedFilamentDialog::update_ok_button_state()
 
     if (m_warning_panel) {
         m_warning_panel->Show(has_type_mismatch);
+        // Force a repaint: when the panel is already visible and only the
+        // mismatch text changes (e.g. PETG -> ABS), Show()/Layout() do not
+        // generate a paint event, so paint_warning_panel keeps the stale text.
+        m_warning_panel->Refresh();
         Layout();
     }
 }

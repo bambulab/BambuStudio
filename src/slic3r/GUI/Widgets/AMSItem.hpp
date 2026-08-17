@@ -497,9 +497,11 @@ protected:
     ScalableBitmap  m_bitmap_editable_light;
     ScalableBitmap  m_bitmap_readonly;
     ScalableBitmap  m_bitmap_readonly_light;
+
     ScalableBitmap  m_bitmap_transparent;
     ScalableBitmap  m_bitmap_transparent_def;
     ScalableBitmap  m_bitmap_transparent_lite;
+    wxBitmap        m_bitmap_transparent_blend;
 
     ScalableBitmap  m_bitmap_extra_tray_left;
     ScalableBitmap  m_bitmap_extra_tray_right;
@@ -529,7 +531,6 @@ protected:
     bool m_view_only{ false };
     bool m_pass_road{ false };
     bool m_show_new_filament_hint{ false };
-    bool m_slot_was_empty{ false };
     ScalableBitmap  m_bitmap_new_filament_hint;
 
     void on_enter_window(wxMouseEvent &evt);

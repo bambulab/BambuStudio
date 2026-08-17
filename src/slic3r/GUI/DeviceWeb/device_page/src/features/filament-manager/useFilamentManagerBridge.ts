@@ -580,9 +580,12 @@ export function useFilamentManagerBridge() {
       if (typeof payload.selected_dev_id === 'string') {
         setSelectedMachineDevId(payload.selected_dev_id);
       }
-      return payload.machines ?? [];
+      // Return selected_dev_id alongside machines so callers (switchToAms)
+      // can use the freshly-fetched value directly instead of relying on the
+      // Zustand store mirror, which may not yet be flushed in the same tick.
+      return { machines: payload.machines ?? [], selectedDevId: payload.selected_dev_id ?? '' };
     }
-    return [] as MachineItem[];
+    return { machines: [] as MachineItem[], selectedDevId: '' };
   }, [request, setMachines, setSelectedMachineDevId]);
 
   // Ask a specific (or the currently selected) printer to resend its full

@@ -38,6 +38,18 @@ struct TexturedMesh {
     std::vector<std::array<int,3>>    uv_indices;   // per-face UV indices into uv_coords
 
     bool has_face_uvs() const { return !uv_indices.empty() && !uv_coords.empty(); }
+
+    // Pre-computed per-face colors (e.g. from OBJ vertex colors or MTL Kd).
+    // When non-empty, the pipeline skips texture decode/sample/oversample and
+    // consumes these instead of sampling a texture.
+    // Each entry is {R, G, B} in [0..255].
+    std::vector<std::array<std::size_t,3>> precomputed_face_colors;
+
+    // Per-vertex colors from OBJ (RGBA, [0..1]), indexed by vertex index.
+    // On a low-poly mesh these are quantized into a small palette and the mesh is
+    // split along the resulting cluster boundaries, so color borders stay sharp
+    // instead of being averaged away into a single color per face.
+    std::vector<std::array<float,4>> precomputed_vertex_colors;
 };
 
 struct PaintedMesh {
@@ -79,6 +91,16 @@ struct FilamentMatch {
 
 bool texture_to_painting(
     const TexturedMesh& textured,
+    PaintedMesh& painted,
+    const TexturePaintingSettings& settings = {},
+    PaintProgressCallback progress = nullptr,
+    PaintCancelCallback cancel = nullptr);
+
+// Turn pre-computed per-face colors into a painted mesh, skipping texture decode
+// and UV sampling. A low-poly mesh that also carries precomputed_vertex_colors is
+// split along quantized color boundaries, which replaces its geometry.
+bool face_colors_to_painting(
+    const TexturedMesh& mesh,
     PaintedMesh& painted,
     const TexturePaintingSettings& settings = {},
     PaintProgressCallback progress = nullptr,

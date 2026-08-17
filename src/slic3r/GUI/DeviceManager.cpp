@@ -931,28 +931,20 @@ bool MachineObject::check_version_valid()
 
 std::map<int, DevFirmwareVersionInfo> MachineObject::get_ams_version()
 {
-    std::vector<std::string> multi_tray_ams_type = {"ams", "n3f"};
     std::map<int, DevFirmwareVersionInfo> result;
-    for (int i = 0; i < 8; i++) {
-        std::string ams_id;
-        for (auto type : multi_tray_ams_type)
-        {
-            ams_id = type + "/" + std::to_string(i);
-            auto it = module_vers.find(ams_id);
-            if (it != module_vers.end()) {
-                result.emplace(std::pair(i, it->second));
-            }
-        }
-    }
+    for (const auto &module : module_vers) {
+        const std::string &key       = module.first;
+        auto               slash_pos = key.find('/');
+        if (slash_pos == std::string::npos) continue;
 
-    std::string single_tray_ams_type = "n3s";
-    int n3s_start_id = 128;
-    for (int i = n3s_start_id; i < n3s_start_id + 8; i++) {
-        std::string ams_id;
-        ams_id = single_tray_ams_type + "/" + std::to_string(i);
-        auto it = module_vers.find(ams_id);
-        if (it != module_vers.end()) {
-            result.emplace(std::pair(i, it->second));
+        std::string type = key.substr(0, slash_pos);
+        if (type != "ams" && type != "ams_f1" && type != "n3f" && type != "n3s") continue;
+
+        try {
+            int ams_id = std::stoi(key.substr(slash_pos + 1));
+            result.emplace(ams_id, module.second);
+        } catch (...) {
+            continue;
         }
     }
     return result;
@@ -1291,6 +1283,47 @@ int MachineObject::command_get_access_code() {
     j["system"]["command"] = "get_access_code";
 
     return this->publish_json(j);
+}
+
+std::string MachineObject::request_access_code(AccessCodeRefreshCallback callback)
+{
+    if (!callback)
+        return {};
+
+    json j;
+    const std::string sequence_id = std::to_string(MachineObject::m_sequence_id++);
+    j["system"]["sequence_id"] = sequence_id;
+    j["system"]["command"] = "get_access_code";
+
+    {
+        std::lock_guard<std::mutex> lock(m_access_code_refresh_mutex);
+        if (m_access_code_refresh_callback)
+            return {};
+        m_access_code_refresh_sequence_id = sequence_id;
+        m_access_code_refresh_callback = std::move(callback);
+    }
+
+    if (this->publish_json(j) != 0) {
+        AccessCodeRefreshCallback failed_callback;
+        {
+            std::lock_guard<std::mutex> lock(m_access_code_refresh_mutex);
+            failed_callback = std::move(m_access_code_refresh_callback);
+            m_access_code_refresh_sequence_id.clear();
+        }
+        if (failed_callback)
+            failed_callback(false, {}, print_status);
+    }
+
+    return sequence_id;
+}
+
+void MachineObject::cancel_access_code_request(const std::string& sequence_id)
+{
+    std::lock_guard<std::mutex> lock(m_access_code_refresh_mutex);
+    if (m_access_code_refresh_sequence_id == sequence_id) {
+        m_access_code_refresh_sequence_id.clear();
+        m_access_code_refresh_callback = nullptr;
+    }
 }
 
 
@@ -2305,6 +2338,7 @@ void MachineObject::reset()
     m_plate_index = -1;
     device_cert_installed = false;
     clear_auto_nozzle_mapping();// reset nozzle mapping
+    m_printTaskInfo.reset();
 
     // reset print_json
     json empty_j;
@@ -2597,12 +2631,35 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
         }
         if (j_pre.contains("system")) {
             if (j_pre["system"].contains("command")) {
-                if (j_pre["system"]["command"].get<std::string>() == "get_access_code") {
+                std::string system_command = j_pre["system"]["command"].get<std::string>();
+                if (system_command == "get_access_code") {
+                    std::string access_code;
                     if (j_pre["system"].contains("access_code")) {
-                        std::string access_code = j_pre["system"]["access_code"].get<std::string>();
+                        access_code = j_pre["system"]["access_code"].get<std::string>();
                         if (!access_code.empty()) {
                             set_access_code(access_code);
                             set_user_access_code(access_code);
+                        }
+                    }
+                    if (j_pre["system"].contains("sequence_id")) {
+                        std::string sequence_id;
+                        if (j_pre["system"]["sequence_id"].is_string())
+                            sequence_id = j_pre["system"]["sequence_id"].get<std::string>();
+                        else if (j_pre["system"]["sequence_id"].is_number_integer())
+                            sequence_id = std::to_string(j_pre["system"]["sequence_id"].get<long long>());
+
+                        AccessCodeRefreshCallback callback;
+                        {
+                            std::lock_guard<std::mutex> lock(m_access_code_refresh_mutex);
+                            if (sequence_id == m_access_code_refresh_sequence_id) {
+                                callback = std::move(m_access_code_refresh_callback);
+                                m_access_code_refresh_sequence_id.clear();
+                            }
+                        }
+                        if (callback)
+                        {
+                            const bool has_access_code = !access_code.empty();
+                            callback(has_access_code, std::move(access_code), print_status);
                         }
                     }
                 }
@@ -2780,6 +2837,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
         if (j.contains("print")) {
             json jj = j["print"];
+            m_printTaskInfo.parse(jj);
             int sequence_id = 0;
             if (jj.contains("sequence_id")) {
                 if (jj["sequence_id"].is_string()) {

@@ -27,6 +27,7 @@ public:
     bool is_ok();
     void send_new_filament_to_ui();
     void cancel_paint_color();
+    void apply_volume_filament_ids();
     void update_filament_ids();
     Slic3r::ObjDialogInOut::FormatType get_input_type() const { return m_obj_in_out.input_type; }
     struct ButtonState
@@ -57,6 +58,7 @@ private:
     void deal_algo(char cluster_number,bool redraw_ui =false);
     void deal_default_strategy();
     void deal_thumbnail();
+    int  filament_id_for_color(const Slic3r::RGBA &color) const;
     void generate_thumbnail();
     void generate_origin_thumbnail();
     void set_view_angle_type(int);

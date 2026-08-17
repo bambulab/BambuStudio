@@ -13,6 +13,7 @@
 #include "ClipperUtils.hpp"
 #include "EdgeGrid.hpp"
 #include "Fill/Fill.hpp"
+#include "Fill/Lightning/Generator.hpp"
 #include "Layer.hpp"
 #include "Print.hpp"
 #include "MultiPoint.hpp"
@@ -26,7 +27,6 @@
 
 #include <cassert>
 #include <chrono>
-#include <fstream>
 #include <optional>
 #include <stdio.h>
 #include <string>
@@ -57,6 +57,11 @@
 #endif
 
  //#define TREESUPPORT_DEBUG_SVG
+ //#define LIGHTNING_INFILL_DEBUG
+
+#ifdef LIGHTNING_INFILL_DEBUG
+#include "SVG.hpp"
+#endif
 
 namespace Slic3r
 {
@@ -3417,8 +3422,12 @@ static std::pair<int, int> discretize_polygon(const Vec3f& center, const Polygon
     return { begin, int(pts.size()) };
 }
 
-// Returns Z span of the generated mesh.
-static std::pair<float, float> extrude_branch(
+// Returns Z span of the generated mesh. Generates one closed tube (bottom hemisphere,
+// bisector-normal section circles connected by zig-zag strips, top hemisphere) for the
+// given continuous path. This is the original extrude_branch body, now a reusable piece
+// generator invoked by extrude_branch(), which may split a path into self-intersection-free
+// pieces before calling this.
+static std::pair<float, float> extrude_branch_tube(
     const std::vector<const SupportElement*>&path,
     const TreeSupportSettings               &config,
     const SlicingParameters                 &slicing_params,
@@ -3499,17 +3508,116 @@ static std::pair<float, float> extrude_branch(
 //            sprintf(fname, "d:\\temp\\meshes\\tree-partial-%d.obj", ++irun);
 //            its_write_obj(result, fname);
         }
-#if 0
-        if (circles_intersect(p1, nprev, support_element_radius(settings, prev), p2, ncurrent, support_element_radius(settings, current))) {
-            // Cannot connect previous and current slice using a simple zig-zag triangulation,
-            // because the two circles intersect.
-
-        } else {
-            // Continue with chaining.
-
-        }
-#endif
     }
+
+    return std::make_pair(zmin, zmax);
+}
+
+// Geometrically correct section-circle intersection test (the file-scope circles_intersect
+// above is incomplete dead code). Two oriented section discs (p1,n1,r1) and (p2,n2,r2)
+// intersect only when each disc crosses the other's plane AND their chords on the shared
+// plane-intersection line overlap. Near-parallel normals mean cleanly stacked circles
+// (a straight tube segment) -> not intersecting.
+static bool section_circles_intersect(
+    const Vec3d &p1, const Vec3d &n1, const double r1,
+    const Vec3d &p2, const Vec3d &n2, const double r2)
+{
+    const double cos_tilt = std::clamp(n1.dot(n2), -1.0, 1.0);
+    const double sin_tilt = std::sqrt(std::max(0.0, 1.0 - cos_tilt * cos_tilt)); // sin of tilt angle
+    if (sin_tilt < 1e-4)
+        return false;
+    const Vec3d  delta = p1 - p2;
+    // Signed distance of each center to the other section's plane; a disc reaches the other
+    // plane only if this does not exceed the disc's projected extent (r * sin_tilt).
+    const double dist1 = n2.dot(delta);
+    const double dist2 = n1.dot(delta);
+    if (std::abs(dist1) > r1 * sin_tilt || std::abs(dist2) > r2 * sin_tilt)
+        return false;
+    // Both discs cross the plane-intersection line, but they truly intersect only if their
+    // chords on that line overlap. e = n1 x n2 runs along the line with |e| = sin_tilt; h1/h2
+    // are the chord half-lengths, axial is the gap between the two chord midpoints.
+    const Vec3d  e     = n1.cross(n2);
+    const double axial = std::abs(e.dot(delta)) / sin_tilt;
+    const double h1    = std::sqrt(std::max(0.0, r1 * r1 - (dist1 / sin_tilt) * (dist1 / sin_tilt)));
+    const double h2    = std::sqrt(std::max(0.0, r2 * r2 - (dist2 / sin_tilt) * (dist2 / sin_tilt)));
+    return axial <= h1 + h2;
+}
+
+// Safe-joints wrapper around extrude_branch_tube. When consecutive section circles
+// intersect in 3D, the zig-zag triangulation self-folds and slicing drops that area
+// (a gap / missing slice in the sliced layers). In that case split the path at the
+// offending edges and emit each unsafe edge as a standalone closed capsule. Adjacent
+// pieces overlap at the shared node; the resulting overlapping (but valid, same-winding)
+// section contours are merged downstream by the non-zero fill clipping (diff_clipped /
+// intersection), same as the branch-to-branch endpoint overlaps in the original code.
+static std::pair<float, float> extrude_branch(
+    const std::vector<const SupportElement*>&path,
+    const TreeSupportSettings               &config,
+    const SlicingParameters                 &slicing_params,
+    const std::vector<SupportElements>      &move_bounds,
+    indexed_triangle_set                    &result)
+{
+    const size_t n = path.size();
+    if (n < 3)
+        return extrude_branch_tube(path, config, slicing_params, move_bounds, result);
+
+    // Per-node section circle: interior nodes use the bisector normal (matches
+    // extrude_branch_tube's mid-tube sections), endpoints use the segment direction.
+    std::vector<Vec3d>  node_pos(n);
+    std::vector<double> node_radius(n);
+    std::vector<Vec3d>  node_normal(n);
+    for (size_t i = 0; i < n; ++ i) {
+        node_pos[i] = to_3d(unscaled<double>(path[i]->state.result_on_layer),
+                            layer_z(slicing_params, config, path[i]->state.layer_idx));
+        node_radius[i] = unscaled<double>(support_element_radius(config, *path[i]));
+    }
+    node_normal[0]     = (node_pos[1] - node_pos[0]).normalized();
+    node_normal[n - 1] = (node_pos[n - 1] - node_pos[n - 2]).normalized();
+    for (size_t i = 1; i + 1 < n; ++ i) {
+        const Vec3d v1 = (node_pos[i]     - node_pos[i - 1]).normalized();
+        const Vec3d v2 = (node_pos[i + 1] - node_pos[i]    ).normalized();
+        node_normal[i] = (v1 + v2).normalized();
+    }
+
+    // Mark unsafe edges.
+    std::vector<char> edge_unsafe(n - 1, 0);
+    bool any_unsafe = false;
+    for (size_t k = 0; k + 1 < n; ++ k)
+        if (section_circles_intersect(node_pos[k], node_normal[k], node_radius[k],
+                                      node_pos[k + 1], node_normal[k + 1], node_radius[k + 1])) {
+            edge_unsafe[k] = 1;
+            any_unsafe     = true;
+        }
+
+    if (! any_unsafe)
+        return extrude_branch_tube(path, config, slicing_params, move_bounds, result);
+
+    // Split into ordered pieces: maximal safe runs + isolated unsafe single-edge capsules.
+    // Adjacent pieces share the boundary node; their closed hemispheres overlap there and
+    // are merged by the downstream non-zero fill clipping (no 3D boolean needed).
+    float zmin =  std::numeric_limits<float>::max();
+    float zmax = -std::numeric_limits<float>::max();
+    std::vector<const SupportElement*> piece_path;
+    indexed_triangle_set               piece_mesh;
+    auto emit_piece = [&](size_t begin, size_t end) {
+        piece_path.assign(path.begin() + begin, path.begin() + end + 1);
+        piece_mesh.clear();
+        const std::pair<float, float> span =
+            extrude_branch_tube(piece_path, config, slicing_params, move_bounds, piece_mesh);
+        zmin = std::min(zmin, span.first);
+        zmax = std::max(zmax, span.second);
+        its_merge(result, piece_mesh);
+    };
+    size_t run_start = 0;
+    for (size_t k = 0; k + 1 < n; ++ k)
+        if (edge_unsafe[k]) {
+            if (run_start < k)
+                emit_piece(run_start, k); // safe run [run_start, k]
+            emit_piece(k, k + 1);         // unsafe edge as its own capsule
+            run_start = k + 1;
+        }
+    if (run_start < n - 1)
+        emit_piece(run_start, n - 1);     // trailing safe run [run_start, n-1]
 
     return std::make_pair(zmin, zmax);
 }
@@ -4022,6 +4130,280 @@ void slice_branches(
  * \param storage The data storage where the mesh data is gotten from and
  * where the resulting support areas are stored.
  */
+/*!
+ * \brief Lightning-infill style pass for internal voids in the organic tree support.
+ *
+ * Organic tree branches print perimeters only (no infill). When branches union into a trunk during the
+ * top-down draw pass, the trunk cross-section can develop an interior hole - a vertical void inside
+ * otherwise solid support. Where such a void first appears over a solid column one layer below, the
+ * newly hollowed area has nothing beneath it, so the support wall printed above sags ("internal floating").
+ *
+ * This pass:
+ *  1) Reconstructs the real solid cross-section per layer (union of the tree base with its top/
+ *     bottom contacts, since intermediate_layers has had those subtracted and would otherwise show
+ *     spurious holes).
+ *  2) Detects newly opened interior holes in an area window (~0.02-50 mm^2):
+ *         overhang[L] = intersection(diff(holes[L], holes[L-1]), solid[L-1])
+ *  3) Feeds those voids to FillLightning::Generator with the same-layer cross-section (holes included)
+ *     as the grounding contour, so each void can ground onto the surrounding support ring.
+ *  4) Turns the generated lines into thin strips, clips them against the zero-radius model collision,
+ *     and stores them in lightning_infill_areas. They are NOT merged into intermediate_layers: the organic
+ *     tree base is toolpathed sheath-only (hollow), so generate_support_toolpaths() emits these strips
+ *     as real interior support extrusions (ipRectilinear at density 1.0). The Lightning Generator only
+ *     decides where to ground; the final toolpath pattern is solid rectilinear, not lightning.
+ *
+ * Always enabled for organic trees (no separate config). Full adaptation of support_base_pattern for
+ * whole-base organic fill is a separate concern.
+ *
+ * Because every void lies inside its own cross-section, the lightning DistanceField always terminates.
+ * This runs after organic_draw_branches() (which already called volumes.clear_all_but_object_collision()),
+ * therefore only the radius-0 collision cache and m_bed_area are relied upon here.
+ *
+ * Define LIGHTNING_INFILL_DEBUG (see top of this file) to enable diagnostics:
+ * BOOST_LOG info summaries plus SVG exports under debug_out_path() ({data_dir}/SVG/).
+ */
+static void organic_lightning_infill(
+    PrintObject                     &print_object,
+    TreeModelVolumes                &volumes,
+    const TreeSupportSettings       &config,
+    SupportGeneratorLayersPtr       &bottom_contacts,
+    SupportGeneratorLayersPtr       &top_contacts,
+    SupportGeneratorLayersPtr       &intermediate_layers,
+    std::vector<ExPolygons>         &lightning_infill_areas,
+    std::function<void()>            throw_on_cancel)
+{
+    const size_t num_layers = intermediate_layers.size();
+    if (num_layers == 0)
+        return;
+
+    const coord_t line_width = config.support_line_width;
+    // Scaled^2 area per 1 mm^2, used to express the hole-area window in real units.
+    const double  area_scaled_per_mm2 = sqr(scaled<double>(1.));
+    // Hole-area acceptance window for the internal-void ("floating") detection. A support cross-section
+    // hole smaller than this is extrusion noise; larger than this is a genuine gap rather than the thin
+    // hollowing this pass repairs. Defaults ~0.02 - 50 mm^2 for newly opened holes over solid support.
+    const double  min_hole_area = 0.02 * area_scaled_per_mm2;
+    const double  max_hole_area = 50.0 * area_scaled_per_mm2;
+
+    // Per-layer grounding contours (the full solid support cross-section, holes included) and the
+    // internal-void overhang to fill.
+    std::vector<Polygons> contours(num_layers);
+    std::vector<Polygons> lightning_overhangs(num_layers);
+
+    auto tree_base_at = [&](size_t layer_idx) -> Polygons {
+        return (layer_idx < num_layers && intermediate_layers[layer_idx]) ? intermediate_layers[layer_idx]->polygons : Polygons{};
+    };
+    auto roof_at = [&](size_t layer_idx) -> Polygons {
+        return (layer_idx < top_contacts.size() && top_contacts[layer_idx]) ? top_contacts[layer_idx]->polygons : Polygons{};
+    };
+    auto bottom_at = [&](size_t layer_idx) -> Polygons {
+        return (layer_idx < bottom_contacts.size() && bottom_contacts[layer_idx]) ? bottom_contacts[layer_idx]->polygons : Polygons{};
+    };
+
+    // Reconstruct the real solid support cross-section at a layer. intermediate_layers has already had
+    // the top/bottom contacts subtracted (see organic_draw_branches), which would otherwise introduce
+    // spurious holes; unioning the base with its contacts restores the actual printed cross-section.
+    auto support_at = [&](size_t layer_idx) -> ExPolygons {
+        Polygons s = tree_base_at(layer_idx);
+        append(s, bottom_at(layer_idx));
+        append(s, roof_at(layer_idx));
+        return union_ex(s);
+    };
+    // Interior holes of a cross-section, returned as positively-oriented region polygons and filtered to
+    // the hole-area window. These are candidate internal voids that may float when newly opened.
+    auto holes_of = [&](const ExPolygons &expolys) -> Polygons {
+        Polygons out;
+        for (const ExPolygon &ep : expolys)
+            for (const Polygon &h : ep.holes) {
+                const double a = std::abs(h.area());
+                if (a < min_hole_area || a > max_hole_area)
+                    continue;
+                Polygon p = h;
+                p.make_counter_clockwise();
+                out.emplace_back(std::move(p));
+            }
+        return out;
+    };
+    // The filled outer boundary of a cross-section (holes removed): the solid support material footprint.
+    auto solid_of = [&](const ExPolygons &expolys) -> Polygons {
+        Polygons out;
+        for (const ExPolygon &ep : expolys)
+            out.emplace_back(ep.contour);
+        return union_(out);
+    };
+
+    // Per-layer solid cross-section (ExPolygons) reused by both the contour and the detection below.
+    // contours[L] carries the outer boundary and the hole rims, so a hole-interior overhang sample
+    // grounds onto the surrounding support ring (Layer::getBestGroundingLocation scans every ring).
+    std::vector<ExPolygons> support_ex(num_layers);
+    for (size_t layer_idx = 0; layer_idx < num_layers; ++ layer_idx) {
+        support_ex[layer_idx] = support_at(layer_idx);
+        contours[layer_idx]   = to_polygons(support_ex[layer_idx]);
+        throw_on_cancel();
+    }
+
+    // ---- Internal-void ("floating") detection -------------------------------------------------------
+    // For every layer L>=1 take the interior holes of the solid cross-section and keep the part that sits
+    // directly over solid support material one layer below:
+    //     overhang[L] = intersection( diff(holes[L], holes[L-1]), solid[L-1] )
+    // diff(holes[L], holes[L-1]) drops voids that merely continue a void already open below (so a cavity
+    // is only handled where it is newly opened), and intersecting with solid[L-1] guarantees the removed
+    // material had a solid column beneath it (voids reaching down to the plate are left alone). Because
+    // every kept region lies inside the cross-section, its samples fall within contours[L]'s bounding
+    // box, so the lightning DistanceField always terminates (no hang).
+#ifdef LIGHTNING_INFILL_DEBUG
+    // Areas are reported in mm^2. SCALING_FACTOR is 1e-5 here, so area scale is 1e10.
+    auto to_mm2 = [](double a) -> double { return a * 1e-10; };
+    double dbg_new_hole_area = 0.; int dbg_new_hole_layers = 0;
+#endif
+    for (size_t layer_idx = 1; layer_idx < num_layers; ++ layer_idx) {
+        throw_on_cancel();
+        Polygons holes_here = holes_of(support_ex[layer_idx]);
+        if (holes_here.empty())
+            continue;
+        Polygons holes_below = holes_of(support_ex[layer_idx - 1]);
+        Polygons newly_opened = holes_below.empty() ? holes_here : diff(holes_here, holes_below);
+        if (newly_opened.empty())
+            continue;
+        Polygons solid_below = solid_of(support_ex[layer_idx - 1]);
+        if (solid_below.empty())
+            continue;
+        Polygons overhang = intersection(newly_opened, solid_below);
+        if (overhang.empty() || area(overhang) < min_hole_area)
+            continue;
+#ifdef LIGHTNING_INFILL_DEBUG
+        dbg_new_hole_area += area(overhang); ++ dbg_new_hole_layers;
+#endif
+        append(lightning_overhangs[layer_idx], std::move(overhang));
+    }
+
+#ifdef LIGHTNING_INFILL_DEBUG
+    BOOST_LOG_TRIVIAL(info) << "Lightning infill newly-opened hole detection done. num_layers=" << num_layers
+        << " hole_area_window(mm2)=[" << to_mm2(min_hole_area) << "," << to_mm2(max_hole_area) << "]"
+        << " new_hole_layers=" << dbg_new_hole_layers << " new_hole_area(mm2)=" << to_mm2(dbg_new_hole_area);
+#endif
+
+    // Critical safety clamp: the lightning DistanceField samples the overhang but erases supported
+    // samples only within the bounding box of the same-layer contour (see DistanceField::update, which
+    // clips its erase grid to m_unsupported_points_bbox == get_extents(current_outlines)). Any overhang
+    // sample lying outside that contour bounding box can never be erased, so tryGetNextPoint would keep
+    // returning it forever and generateNewTrees would loop indefinitely. The detected voids already lie
+    // inside the cross-section, but clip every fed overhang to its own layer's contour bounding box as a
+    // defensive guarantee that the field always terminates.
+    int fed_layers = 0;
+    for (size_t layer_idx = 0; layer_idx < num_layers; ++ layer_idx) {
+        if (lightning_overhangs[layer_idx].empty())
+            continue;
+        const BoundingBox cb = get_extents(contours[layer_idx]);
+        if (contours[layer_idx].empty() || ! cb.defined) {
+            lightning_overhangs[layer_idx].clear();
+            continue;
+        }
+        lightning_overhangs[layer_idx] = intersection(lightning_overhangs[layer_idx], Polygons{ cb.polygon() });
+        if (! lightning_overhangs[layer_idx].empty())
+            ++ fed_layers;
+    }
+
+#ifdef LIGHTNING_INFILL_DEBUG
+    {
+        double dbg_fed_area = 0.;
+        double dbg_max_fed_z = 0.;
+        for (size_t layer_idx = 0; layer_idx < num_layers; ++ layer_idx) {
+            if (lightning_overhangs[layer_idx].empty())
+                continue;
+            dbg_fed_area += area(lightning_overhangs[layer_idx]);
+            if (intermediate_layers[layer_idx])
+                dbg_max_fed_z = std::max(dbg_max_fed_z, intermediate_layers[layer_idx]->print_z);
+            const double z = intermediate_layers[layer_idx] ? intermediate_layers[layer_idx]->print_z : 0.;
+            SVG::export_expolygons(debug_out_path("lightning_infill_new_hole_%d_%.2f.svg", int(layer_idx), z), {
+                { support_ex[layer_idx], { "support", "gray", 0.5f } },
+                { union_ex(lightning_overhangs[layer_idx]), { "newly_opened", "red", 0.5f } }
+            });
+        }
+        BOOST_LOG_TRIVIAL(info) << "Lightning infill after bbox-clip: fed_layers=" << fed_layers
+            << " fed_area(mm2)=" << to_mm2(dbg_fed_area) << " max_fed_z(mm)=" << dbg_max_fed_z;
+    }
+#endif
+
+    if (fed_layers == 0) {
+#ifdef LIGHTNING_INFILL_DEBUG
+        BOOST_LOG_TRIVIAL(info) << "Lightning infill: nothing to fill, returning.";
+#endif
+        return;
+    }
+
+    // Density mirrors the legacy hybrid lightning reuse (TreeSupport::generate_toolpaths): derived
+    // from the support base pattern spacing. The generator clamps it to at least 0.15.
+    const PrintObjectConfig &obj_cfg = print_object.config();
+    const double line_width_mm       = unscaled<double>(line_width);
+    const double support_spacing_mm  = obj_cfg.support_base_pattern_spacing.value + line_width_mm;
+    double       density             = support_spacing_mm > EPSILON ? std::min(1.0, line_width_mm / support_spacing_mm * 2.0) : 0.15;
+    density = std::max(0.15, density);
+
+    FillLightning::Generator generator(&print_object, contours, lightning_overhangs, throw_on_cancel, float(density));
+
+    // Clip the generated lines to a valid outline. intersection_pl() drops everything against an empty
+    // limit, so fall back to a generous bounding box when the bed polygon is unavailable.
+    Polygons line_limit;
+    if (volumes.m_bed_area.is_valid())
+        line_limit = Polygons{ volumes.m_bed_area };
+    else {
+        BoundingBox bb;
+        for (const Polygons &c : contours)
+            bb.merge(get_extents(c));
+        for (const Polygons &o : lightning_overhangs)
+            bb.merge(get_extents(o));
+        if (bb.defined) {
+            bb.offset(scaled<coord_t>(10.));
+            line_limit = Polygons{ bb.polygon() };
+        }
+    }
+
+    // Store the generated lightning strips per layer as fill regions. They are NOT merged into
+    // intermediate_layers here: the organic tree base is toolpathed sheath-only (hollow), so an area
+    // merge would never be printed as interior support. generate_support_toolpaths turns these regions
+    // into real infill extrusions inside the branch, closing the internal void the tree could not.
+    if (lightning_infill_areas.size() < num_layers)
+        lightning_infill_areas.resize(num_layers);
+#ifdef LIGHTNING_INFILL_DEBUG
+    int    dbg_line_layers = 0, dbg_fill_layers = 0;
+    size_t dbg_total_lines = 0;
+    double dbg_fill_area = 0.;
+#endif
+    for (size_t layer_idx = 0; layer_idx < num_layers; ++ layer_idx) {
+        throw_on_cancel();
+        const FillLightning::Layer &lightning_layer = generator.getTreesForLayer(layer_idx);
+        Polylines lines = lightning_layer.convertToLines(line_limit, 0);
+        if (lines.empty())
+            continue;
+#ifdef LIGHTNING_INFILL_DEBUG
+        ++ dbg_line_layers; dbg_total_lines += lines.size();
+#endif
+        Polygons cols = offset(lines, float(0.5 * line_width));
+        if (cols.empty())
+            continue;
+        // Never let the supplement cross the printed part.
+        cols = diff_clipped(cols, volumes.getCollision(0, LayerIndex(layer_idx), false));
+        if (cols.empty())
+            continue;
+        lightning_infill_areas[layer_idx] = union_ex(cols);
+#ifdef LIGHTNING_INFILL_DEBUG
+        ++ dbg_fill_layers; dbg_fill_area += area(cols);
+        const double z = intermediate_layers[layer_idx] ? intermediate_layers[layer_idx]->print_z : 0.;
+        SVG::export_expolygons(debug_out_path("lightning_infill_fill_%d_%.2f.svg", int(layer_idx), z), {
+            { support_ex[layer_idx], { "support", "gray", 0.5f } },
+            { lightning_infill_areas[layer_idx], { "fill", "blue", 0.5f } }
+        });
+#endif
+    }
+#ifdef LIGHTNING_INFILL_DEBUG
+    BOOST_LOG_TRIVIAL(info) << "Lightning infill generation done. line_layers=" << dbg_line_layers
+        << " total_lines=" << dbg_total_lines
+        << " fill_layers=" << dbg_fill_layers
+        << " fill_area(mm2)=" << to_mm2(dbg_fill_area);
+#endif
+}
+
 static void generate_support_areas(Print &print, TreeSupport* tree_support, const BuildVolume &build_volume, const std::vector<size_t> &print_object_ids, std::function<void()> throw_on_cancel)
 {
     // Settings with the indexes of meshes that use these settings.
@@ -4067,7 +4449,8 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         for (size_t i = 0; i < print_object.layer_count(); i++) {
             for (auto& expoly_type : print_object.get_layer(i)->loverhangs_with_type) {
                 Polygons polys = to_polygons(expoly_type.first);
-                if (expoly_type.second & TreeSupport::SharpTail) { polys = offset(polys, scale_(0.2));
+                if (expoly_type.second & TreeSupport::SharpTail) { 
+                    polys = offset(polys, scale_(0.2));
                 }
                 append(overhangs[i + num_raft_layers], polys);
             }
@@ -4108,7 +4491,6 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
             config.support_pattern = smpNone;
         }
 
-
         SupportGeneratorLayerStorage layer_storage;
         SupportGeneratorLayersPtr    top_contacts;
         SupportGeneratorLayersPtr    bottom_contacts;
@@ -4141,6 +4523,9 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
             layer_storage, top_contacts, interface_layers, base_interface_layers };
 
         std::vector<ExPolygons> cooldown_areas(num_support_layers);
+        // Per-layer lightning infill regions for newly opened internal voids (see organic_lightning_infill /
+        // generate_support_toolpaths). Always generated for organic hollow trunks.
+        std::vector<ExPolygons> lightning_infill_areas(num_support_layers);
         if (has_support) {
             auto t_precalc = std::chrono::high_resolution_clock::now();
             // value is the area where support may be placed. As this is calculated in CreateLayerPathing it is saved and reused in draw_areas
@@ -4189,12 +4574,43 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
                 throw_on_cancel);
 #endif
 
+            // ### Lightning infill for newly opened internal voids in organic hollow trunks (always on).
+            organic_lightning_infill(print_object, volumes, config,
+                bottom_contacts, top_contacts, intermediate_layers, lightning_infill_areas, throw_on_cancel);
+
             //tree_support->move_bounds_to_contact_nodes(move_bounds, print_object, config);
 
             remove_undefined_layers();
 
             std::tie(interface_layers, base_interface_layers) = generate_interface_layers(print_object.config(), support_params,
                 bottom_contacts, top_contacts, interface_layers, base_interface_layers, intermediate_layers, layer_storage);
+
+            // A very low overhang produces roofs that have no tree body underneath. Printing the whole
+            // stack as interface leaves it without an anchor to the bed, so turn the bed-touching interface
+            // layer into a base once the roofs above it are tall enough to spare it. A one- or two-layer
+            // stack stays interface-only, where converting the bed layer would consume the whole support.
+            const coordf_t bed_print_z = print_object.slicing_parameters().object_print_z_min;
+            if (intermediate_layers.empty() && ! interface_layers.empty() &&
+                interface_layers.front()->bottom_z < bed_print_z + EPSILON) {
+                SupportGeneratorLayer *base_layer = interface_layers.front();
+                // Estimate the stack height from every roof whose footprint overlaps this bed interface
+                // layer. Roofs sharing a layer index are merged into one layer object, and a genuine
+                // single-layer overhang lives in top_contacts (dtt_roof == 0), so it is never demoted here;
+                // only a bed interface layer that already carries taller roofs above it gets converted.
+                std::vector<coordf_t> stack_zs;
+                for (const SupportGeneratorLayersPtr *layers : { &interface_layers, &base_interface_layers, &top_contacts })
+                    for (const SupportGeneratorLayer *layer : *layers)
+                        if (layer != nullptr && ! layer->polygons.empty() && overlaps(layer->polygons, base_layer->polygons))
+                            stack_zs.emplace_back(layer->print_z);
+                std::sort(stack_zs.begin(), stack_zs.end());
+                stack_zs.erase(std::unique(stack_zs.begin(), stack_zs.end(),
+                    [](coordf_t l, coordf_t r) { return std::abs(l - r) < EPSILON; }), stack_zs.end());
+                if (stack_zs.size() >= 3) {
+                    base_layer->layer_type = SupporLayerType::sltBase;
+                    intermediate_layers.emplace_back(base_layer);
+                    interface_layers.erase(interface_layers.begin());
+                }
+            }
 
             auto t_draw = std::chrono::high_resolution_clock::now();
             auto dur_pre_gen = 0.001 * std::chrono::duration_cast<std::chrono::microseconds>(t_precalc - t_start).count();
@@ -4232,7 +4648,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
         // Don't fill in the tree supports, make them hollow with just a single sheath line.
         print.set_status(69, _L("Generating support"));
         generate_support_toolpaths(print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
-            raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers, cooldown_areas);
+            raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers, cooldown_areas, lightning_infill_areas);
 
         auto t_end = std::chrono::high_resolution_clock::now();
         BOOST_LOG_TRIVIAL(info) << "Total time of organic tree support: " << 0.001 * std::chrono::duration_cast<std::chrono::microseconds>(t_end - t_start).count() << " ms";
@@ -4513,6 +4929,9 @@ void organic_draw_branches(
                         slices[i] = diff_clipped(slices[i], volumes.getCollision(0, layer_begin + i, true)); // FIXME parent_uses_min || draw_area.element->state.use_min_xy_dist);
                         slices[i] = intersection(slices[i], volumes.m_bed_area);
                     }
+                    // Per-branch model-severed fragment removal is deferred to a tree-level
+                    // connectivity pass (keep_main) that runs after sibling branches are merged,
+                    // so a fragment held up by a sibling branch is not dropped prematurely.
                     size_t num_empty = 0;
                     if (slices.front().empty()) {
                         // Some of the initial layers are empty.
@@ -4534,19 +4953,20 @@ void organic_draw_branches(
                                 std::vector<BottomExtraSlice>   bottom_extra_slices;
                                 Polygons                        rest_support;
                                 coord_t                         bottom_radius = support_element_radius(config, *branch.path.front());
-                                // Don't propagate further than 1.5 * bottom radius.
-                                //LayerIndex                      layers_propagate_max = 2 * bottom_radius / config.layer_height;
-                                LayerIndex                      layers_propagate_max = 5 * bottom_radius / config.layer_height;
-                                LayerIndex                      layer_bottommost = branch.path.front()->state.verylost ?
-                                    // If the tree bottom is hanging in the air, bring it down to some surface.
-                                    0 :
-                                    //FIXME the "verylost" branches should stop when crossing another support.
-                                    std::max(0, layer_begin - layers_propagate_max);
+                                // nofloat (Solution 1): drop the non-gracious "fake root" until it
+                                // wraps onto the model surface (rest area pinched below
+                                // support_area_stop) or reaches the bed, instead of a fixed
+                                // layers_propagate_max budget that left the bottom floating. Sibling
+                                // overlaps are welded later by the per-tree union + keep_main pass.
+                                LayerIndex                      layer_bottommost = 0;
                                 double                          support_area_min_radius = M_PI * sqr(double(config.branch_radius));
                                 double                          support_area_stop = std::max(0.2 * M_PI * sqr(double(bottom_radius)), 0.5 * support_area_min_radius);
                                 // Only propagate until the rest area is smaller than this threshold.
                                //double                          support_area_min = 0.1 * support_area_min_radius;
                                 for (LayerIndex layer_idx = layer_begin - 1; layer_idx >= layer_bottommost; --layer_idx) {
+                                    // Drop is now bounded by the model/bed instead of layers_propagate_max, so poll cancel every 16 layers.
+                                    if (((layer_begin - 1 - layer_idx) & 15) == 15)
+                                        throw_on_cancel();
                                     rest_support = diff_clipped(rest_support.empty() ? slices.front() : rest_support, volumes.getCollision(0, layer_idx, false));
                                     double rest_support_area = area(rest_support);
                                     if (rest_support_area < support_area_stop)
@@ -4652,6 +5072,93 @@ void organic_draw_branches(
                         slice.bottom_contacts = union_(slice.bottom_contacts);
                         slice.num_branches = 1;
                     }
+                // keep_main (tree level): now that sibling branches of this tree are merged per
+                // layer, drop slice components not connected through vertical overlap to any branch
+                // axis of this tree. Running at tree scope (instead of per branch) keeps fragments
+                // held up by a sibling branch, which a per-branch pass cannot see.
+                if (tree.first_layer_id >= 0) {
+                    const LayerIndex base = tree.first_layer_id;
+                    const size_t     n    = tree.slices.size();
+                    // 25 um: treat an axis point on/near a part boundary as inside.
+                    const double axis_touch_tol = scaled<double>(0.025);
+                    std::vector<ExPolygons>        parts(n);
+                    std::vector<std::vector<char>> keep(n);
+                    for (size_t i = 0; i < n; ++i) {
+                        parts[i] = union_ex(tree.slices[i].polygons);
+                        keep[i].assign(parts[i].size(), 0);
+                    }
+                    // Seed with every branch axis node of this tree.
+                    for (const Branch& branch : tree.branches)
+                        for (const SupportElement* el : branch.path) {
+                            const LayerIndex layer = el->state.layer_idx;
+                            if (layer < base || size_t(layer - base) >= n)
+                                continue;
+                            const size_t i = size_t(layer - base);
+                            if (parts[i].empty())
+                                continue;
+                            const Point axis = el->state.result_on_layer;
+                            for (size_t j = 0; j < parts[i].size(); ++j) {
+                                if (keep[i][j])
+                                    continue;
+                                bool ok = parts[i][j].contains(axis);
+                                if (!ok) {
+                                    Point pt = axis;
+                                    move_inside(to_polygons(parts[i][j]), pt, 0);
+                                    ok = (axis - pt).cast<double>().norm() < axis_touch_tol;
+                                }
+                                if (ok)
+                                    keep[i][j] = 1;
+                            }
+                        }
+                    // Cache each layer's kept contour union; invalidated when its keep[] changes.
+                    std::vector<Polygons> kept_cache(n);
+                    std::vector<char>     cache_dirty(n, 1);
+                    auto kept_polys = [&](size_t i) -> const Polygons& {
+                        if (cache_dirty[i]) {
+                            Polygons out;
+                            for (size_t j = 0; j < parts[i].size(); ++j)
+                                if (keep[i][j])
+                                    append(out, to_polygons(parts[i][j]));
+                            kept_cache[i]  = std::move(out);
+                            cache_dirty[i] = 0;
+                        }
+                        return kept_cache[i];
+                    };
+                    // One directional sweep: keep any part overlapping a kept part in the adjacent
+                    // lower (up) / upper (down) layer. Returns whether keep[] changed.
+                    auto sweep = [&](bool up) {
+                        bool changed = false;
+                        for (size_t s = 1; s < n; ++s) {
+                            const size_t i = up ? s : n - 1 - s;
+                            const size_t p = up ? i - 1 : i + 1;
+                            const Polygons &neighbor_polys = kept_polys(p);
+                            if (neighbor_polys.empty())
+                                continue;
+                            for (size_t j = 0; j < parts[i].size(); ++j)
+                                if (!keep[i][j] && !intersection(to_polygons(parts[i][j]), neighbor_polys).empty()) {
+                                    keep[i][j]     = 1;
+                                    cache_dirty[i] = 1;
+                                    changed        = true;
+                                }
+                        }
+                        return changed;
+                    };
+                    // Iterate to a fixpoint: a single up+down pass is not a connected-component
+                    // computation and would drop fragments linked to an axis through zig-zag
+                    // (multi-direction) layer chains. Keep flags only grow, so this terminates.
+                    bool changed = true;
+                    while (changed) {
+                        const bool up_changed   = sweep(true);
+                        const bool down_changed = sweep(false);
+                        changed = up_changed || down_changed;
+                    }
+                    for (size_t i = 0; i < n; ++i) {
+                        const Polygons kept = kept_polys(i);
+                        tree.slices[i].polygons = kept;
+                        if (!tree.slices[i].bottom_contacts.empty())
+                            tree.slices[i].bottom_contacts = intersection(tree.slices[i].bottom_contacts, kept);
+                    }
+                }
                 throw_on_cancel();
             }
         }, tbb::simple_partitioner());

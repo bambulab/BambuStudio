@@ -1,9 +1,11 @@
 #include "libslic3r/libslic3r.h"
 #include "GLCanvas3D.hpp"
 #include "Overview/AssemblyStepsUtils.hpp"
+#include "Overview/OverviewUtils.hpp"
 
 #include <chrono>
 #include <igl/unproject.h>
+#include <wx/string.h>
 
 #include "libslic3r/BuildVolume.hpp"
 #include "libslic3r/ClipperUtils.hpp"
@@ -180,11 +182,6 @@ std::string& get_object_clashed_text() {
     static std::string object_clashed_text = _u8L("An object is laid over the boundary of plate or exceeds the height limit.\n"
             "Please solve the problem by moving it totally on or off the plate, and confirming that the height is within the build volume.");
     return object_clashed_text;
-}
-
-std::string& get_assembly_too_far_text() {
-    static std::string assembly_warning_too_far{};
-    return assembly_warning_too_far;
 }
 
 std::string& get_left_extruder_unprintable_text() {
@@ -1575,6 +1572,9 @@ void GLCanvas3D::set_type(ECanvasType type)
     if (type != m_canvas_type) {
         m_canvas_type = type;
         if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+            set_show_world_axes(true);
+            set_show_world_grid(true);
+
             m_assembly_steps = std::make_unique<AssemblyStepsUtils>();
             m_assembly_steps->set_commond_callback([this](std::string commond) {
                 std::vector<std::string> parts;
@@ -1847,6 +1847,8 @@ void GLCanvas3D::reset_volumes(bool set_notice)
 
     m_selection.clear();
     m_volumes.clear();
+    // Drop the assembly BVH cache built from the volumes being released.
+    clear_isolated_volumes_cache();
     m_dirty = true;
     if (set_notice) { _set_warning_notification(EWarning::ObjectOutside, false); }
 }
@@ -1887,40 +1889,6 @@ static bool construct_error_string(ObjectFilamentResults& object_result, std::st
         return true;
     }
     return false;
-}
-
-static bool construct_assembly_warning_string(std::vector<std::string>& object_result, std::string& error_string)
-{
-    error_string.clear();
-    if (!object_result.size()) {
-        return false;
-    }
-    bool imperial_units = wxGetApp().app_config->get("use_inches") == "1";
-    double koef = imperial_units ? GizmoObjectManipulation::mm_to_in : 1.0f;
-    float distance_limit = 10000.0f;
-    if (imperial_units) {
-        distance_limit *= koef;
-    }
-    if (imperial_units) {
-        error_string += (boost::format(_utf8(L("Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"))) % distance_limit).str();
-    }
-    else {
-        error_string += (boost::format(_utf8(L("Assembly's bounding box is too large ( max size >= %1% mm ) which may cause rendering issues.\n"))) % distance_limit).str();
-    }
-    if (!object_result.empty()) {
-        if (imperial_units) {
-            error_string += (boost::format(_utf8(L("Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:\n"))) % distance_limit).str();
-        }
-        else {
-            error_string += (boost::format(_utf8(L("Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"))) % distance_limit).str();
-        }
-        for (const auto& t_name : object_result)
-        {
-            error_string += t_name;
-            error_string += "\n";
-        }
-    }
-    return true;
 }
 
 static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilamentResults& object_result, std::string& left_extruder_unprintable_text, std::string& right_extruder_unprintable_text)
@@ -2052,9 +2020,7 @@ void GLCanvas3D::toggle_selected_volume_visibility(bool selected_visible)
         const Selection::IndicesList &idxs = m_selection.get_volume_idxs();
         if (idxs.size() > 0) {
             for (GLVolume *vol : m_volumes.volumes) {
-                if (vol->composite_id.object_id >= 1000 && vol->composite_id.object_id < 1000 + wxGetApp().plater()->get_partplate_list().get_plate_count())
-                    continue; // the wipe tower
-                if (vol->composite_id.volume_id >= 0) {
+                if (vol->is_wipe_tower || vol->composite_id.volume_id >= 0) {
                     vol->is_active = false;
                 }
             }
@@ -2065,9 +2031,7 @@ void GLCanvas3D::toggle_selected_volume_visibility(bool selected_visible)
         }
     } else { // show all
         for (GLVolume *vol : m_volumes.volumes) {
-            if (vol->composite_id.object_id >= 1000 && vol->composite_id.object_id < 1000 + wxGetApp().plater()->get_partplate_list().get_plate_count())
-                continue; // the wipe tower
-            if (vol->composite_id.volume_id >= 0) {
+            if (vol->is_wipe_tower || vol->composite_id.volume_id >= 0) {
                 vol->is_active = true;
             }
         }
@@ -2142,11 +2106,15 @@ void GLCanvas3D::update_instance_printable_state_for_object(const size_t obj_idx
         ModelInstance* instance = model_object->instances[inst_idx];
 
         for (GLVolume* volume : m_volumes.volumes) {
-            if ((volume->object_idx() == (int)obj_idx) && (volume->instance_idx() == inst_idx))
-                volume->printable = instance->printable;
-                if (!volume->printable) {
+            if ((volume->object_idx() == (int)obj_idx) && (volume->instance_idx() == inst_idx)) {
+                bool vol_printable = true;
+                const int vi = volume->volume_idx();
+                if (vi >= 0 && vi < (int) model_object->volumes.size() && model_object->volumes[vi])
+                    vol_printable = model_object->volumes[vi]->printable();
+                volume->printable = instance->printable && vol_printable;
+                if (!volume->printable)
                     volume->render_color = GLVolume::UNPRINTABLE_COLOR;
-                }
+            }
         }
     }
 }
@@ -2187,6 +2155,24 @@ void GLCanvas3D::active_view() {
         m_assembly_steps->set_input(wxGetApp().imgui(), m_model, &get_active_camera(), &m_selection, &m_volumes, m_gizmos.get_current_type() != GLGizmosManager::Undefined);
         m_assembly_steps->deal_once_when_enter_assembly_view();
     }
+}
+
+void GLCanvas3D::restore_assembly_guide_ui_after_undo(int selected_folder_id, int keyframe_selected)
+{
+    if (!m_assembly_steps)
+        return;
+    m_assembly_steps->set_input(wxGetApp().imgui(), m_model, &get_active_camera(), &m_selection, &m_volumes,
+                                m_gizmos.get_current_type() != GLGizmosManager::Undefined);
+    m_assembly_steps->restore_guide_ui_after_undo(selected_folder_id, keyframe_selected);
+}
+
+void GLCanvas3D::capture_assembly_guide_ui_for_snapshot(int &out_selected_folder_id, int &out_keyframe_selected) const
+{
+    out_selected_folder_id = -1;
+    out_keyframe_selected  = -1;
+    if (!m_assembly_steps)
+        return;
+    m_assembly_steps->capture_guide_ui_for_snapshot(out_selected_folder_id, out_keyframe_selected);
 }
 
 void GLCanvas3D::append_step_import_to_assembly_tree(const std::vector<StepImportTreeNode>& step_nodes,
@@ -2285,7 +2271,7 @@ void GLCanvas3D::append_step_import_to_assembly_tree(const std::vector<StepImpor
 void GLCanvas3D::notify_step_import()
 {
     if (m_assembly_steps)
-        m_assembly_steps->clear_last_recorded_volumes();
+        m_assembly_steps->clear_last_recorded_volumes_guid();
 }
 
 const Selection& GLCanvas3D::get_selection() const
@@ -2334,6 +2320,24 @@ BoundingBoxf3 GLCanvas3D::assembly_view_cur_bounding_box() const {
     return m_model->bounding_box_in_assembly_view();
 }
 
+BoundingBoxf3 GLCanvas3D::assembly_current_step_bounding_box() const
+{
+    BoundingBoxf3 bb;
+    if (m_canvas_type != ECanvasType::CanvasAssembleView || m_assembly_steps == nullptr)
+        return bb;
+    const std::set<int> step_objects = m_assembly_steps->current_step_focus_object_indices();
+    if (step_objects.empty())
+        return bb;
+    for (const GLVolume *volume : m_volumes.volumes) {
+        if (volume == nullptr || !volume->is_active)
+            continue;
+        if (step_objects.count(volume->object_idx()) == 0)
+            continue;
+        bb.merge(volume->transformed_bounding_box());
+    }
+    return bb;
+}
+
 BoundingBoxf3 GLCanvas3D::volumes_bounding_box(bool limit_to_expand_plate) const
 {
     BoundingBoxf3 bb;
@@ -2351,7 +2355,10 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box(bool limit_to_expand_plate) const
             const auto v_bb     = volume->transformed_bounding_box();
             if (is_limit && !expand_part_plate_list_box.overlap(v_bb))
                 continue;
-            if (v_bb.max_size() > 100000) {//unit::mm more than 100m
+            // Skip absurdly large meshes and objects parked far from the world origin.
+            // Far-but-small AABBs (max_size OK, center.norm huge) still poison zoom /
+            // apply_projection (Camera::calc_tight_frustrum_zs_around → set_distance).
+            if (v_bb.max_size() > 10000 || v_bb.center().norm() >= 10000) {//unit::mm more than 10m
                 continue;
             }
             bb.merge(v_bb);
@@ -2590,8 +2597,15 @@ void GLCanvas3D::zoom_to_fit()
 
     select_view("plate");
     if (m_selection.is_empty()) {
-        if (m_canvas_type == ECanvasType::CanvasAssembleView)
-            zoom_to_volumes();
+        if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+            // Inside a step card, fit the objects that step has added instead of
+            // the whole model.
+            const BoundingBoxf3 step_box = assembly_current_step_bounding_box();
+            if (step_box.defined)
+                _zoom_to_box(step_box);
+            else
+                zoom_to_volumes();
+        }
         else
             zoom_to_bed();
     }
@@ -2917,8 +2931,16 @@ void GLCanvas3D::render(bool only_init)
     /* assemble render*/
     else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
         //BBS: add outline logic
-        if (m_show_world_axes) {
+        bool hide_axes_in_assembly = m_assembly_steps && m_assembly_steps->should_hide_world_axes();
+        if (m_show_world_axes && !hide_axes_in_assembly) {
             m_axes.render();
+        }
+        if (m_show_world_grid && !hide_axes_in_assembly) {
+            // Grid covers the XY projection of all GLVolumes (slightly expanded, capped at 500mm).
+            m_world_grid.set_from_aabb(volumes_bounding_box(/*limit_to_expand_plate=*/false));
+            m_world_grid.set_dark(m_is_dark);
+            m_world_grid.set_scale_factor(get_scale());
+            m_world_grid.render();
         }
         _render_objects(m_volumes, GLVolumeCollection::ERenderType::Opaque, b_with_stencil_outline);
         //_render_bed(!camera.is_looking_downward(), show_axes);
@@ -3186,6 +3208,12 @@ void GLCanvas3D::exit_gizmo() {
     }
 }
 
+void GLCanvas3D::do_something_after_gizmo_exit()
+{
+    if (m_assembly_steps && get_gizmos_manager().is_allow_x_ray_in_assembly())
+        m_assembly_steps->apply_keyframe_display_mode();
+}
+
 void GLCanvas3D::close_project_and_save_assembly_steps_tree()//dont delete
 {
     if (m_assembly_steps) {
@@ -3219,6 +3247,38 @@ bool GLCanvas3D::can_add_selected_to_assembly_step() const//dont delete
 bool GLCanvas3D::can_add_selected_to_current_assembly_step() const//dont delete
 {
     return m_assembly_steps && m_assembly_steps->can_add_selected_to_current_assembly_step();
+}
+
+bool GLCanvas3D::is_allow_use_gizmo_in_different_view() const
+{
+    // Non-assembly canvases keep normal gizmo behavior.
+    if (m_canvas_type != ECanvasType::CanvasAssembleView || !m_assembly_steps)
+        return true;
+    // OverallPreview: full assemble gizmo set. Normal steps: Move / Rotate only
+    // (via get_special_allow_gizmos).
+    return m_assembly_steps->is_overall_preview_mode() || !get_special_allow_gizmos().empty();
+}
+
+bool GLCanvas3D::is_allow_gizmo_active() const
+{
+    // Non-assembly canvases keep normal gizmo activability.
+    if (m_canvas_type != ECanvasType::CanvasAssembleView || !m_assembly_steps)
+        return true;
+    return m_assembly_steps->is_selection_added_to_current_step();
+}
+
+std::vector<int> GLCanvas3D::get_special_allow_gizmos() const
+{
+    std::vector<int> out;
+    // Non-OverallPreview assemble steps: only Move / Rotate.
+    // OverallPreview returns empty so get_selectable_idxs falls back to the
+    // hardcoded assemble list (Move / Rotate / Measure / Assembly / MmuSegmentation).
+    if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps &&
+        !m_assembly_steps->is_overall_preview_mode()) {
+        out.push_back(static_cast<int>(GLGizmosManager::EType::Move));
+        out.push_back(static_cast<int>(GLGizmosManager::EType::Rotate));
+    }
+    return out;
 }
 
 std::vector<std::pair<int, std::string>> GLCanvas3D::assembly_step_choices() const {//dont delete
@@ -3668,8 +3728,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 				ModelVolumeState key(model_volume.id(), model_instance.id());
 				auto it = std::lower_bound(model_volume_state.begin(), model_volume_state.end(), key, model_volume_state_lower);
 				assert(it != model_volume_state.end() && it->geometry_id == key.geometry_id);
-                auto update_printable_state = [this, &model_instance](GLVolume &volume) {
-                    volume.printable = model_instance.printable;
+                auto update_printable_state = [this, &model_instance, &model_volume](GLVolume &volume) {
+                    volume.printable = model_instance.printable && model_volume.printable();
                 };
                 if (it->new_geometry()) {
                     // New volume.
@@ -3921,6 +3981,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     //BBS:exclude the assmble view
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
         _update_slice_error_status();
+        // covers wipe tower changes with no instance add/remove
+        if (wxGetApp().is_editor())
+            wxGetApp().plater()->on_plate_layout_changed();
         // checks for geometry outside the print volume to render it accordingly
         if (!m_volumes.empty()) {
             ModelInstanceEPrintVolumeState state;
@@ -3960,6 +4023,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             bool mix_pla_and_petg = cur_plate->check_mixture_of_pla_and_petg(full_config_temp);
             _set_warning_notification(EWarning::MixUsePLAAndPETG, !mix_pla_and_petg);
 
+            _update_brittle_filament_warning(cur_plate, full_config_temp);
+
             bool multi_filament_with_wipe_tower = cur_plate->check_multi_filament_without_prime_tower(full_config_temp);
             _set_warning_notification(EWarning::MultiFilaNoWipeTower, !multi_filament_with_wipe_tower);
 
@@ -3996,6 +4061,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
            _set_warning_notification(EWarning::TPUPrintableError, false);
            _set_warning_notification(EWarning::FilamentPrintableError, false);
            _set_warning_notification(EWarning::MixUsePLAAndPETG, false);
+           _set_warning_notification(EWarning::BrittleFilament, false);
            _set_warning_notification(EWarning::MultiFilaNoWipeTower, false);
            _set_warning_notification(EWarning::PrimeTowerOutside, false);
            _set_warning_notification(EWarning::MultiExtruderPrintableError,false);
@@ -4009,53 +4075,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
         }
     }
-    else
-    {
-        bool flag = false;
-        if (!m_volumes.empty()) {
-            std::vector<std::string> object_results;
-            object_results.reserve(10);
-            struct TempVolumeData
-            {
-                BoundingBoxf3 m_aabb;
-                GLVolume* m_p_volume{ nullptr };
-            };
-            std::vector<TempVolumeData> temp_volume_data_list;
-            temp_volume_data_list.reserve(m_volumes.volumes.size());
-            BoundingBoxf3 assembly_bb;
-            for (GLVolume* volume : m_volumes.volumes) {
-                if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes)) {
-                    const auto v_bb = volume->transformed_bounding_box();
-                    assembly_bb.merge(v_bb);
 
-                    TempVolumeData t_volume_data;
-                    t_volume_data.m_aabb = v_bb;
-                    t_volume_data.m_p_volume = volume;
-                    temp_volume_data_list.emplace_back(t_volume_data);
-                }
-            }
-
-            if (assembly_bb.max_size() >= 1e4f) { // 10m
-                for (const auto& t_volume_data : temp_volume_data_list) {
-                    if (!t_volume_data.m_p_volume) {
-                        continue;
-                    }
-                    const auto t_length = t_volume_data.m_aabb.center().norm();
-                    if (t_length >= 1e4f) {
-                        const auto& p_object = (*m_model).objects[t_volume_data.m_p_volume->object_idx()];
-                        if (p_object) {
-                            object_results.emplace_back(p_object->name);
-                        }
-                    }
-                }
-                flag = construct_assembly_warning_string(object_results, get_assembly_too_far_text());
-            }
-        }
-        else {
-            flag = false;
-        }
-        _set_warning_notification(EWarning::AsemblyInvalid, flag);
-    }
 
     refresh_camera_scene_box();
 
@@ -4136,8 +4156,10 @@ void GLCanvas3D::load_gcode_preview(const GCodeProcessorResult& gcode_result, co
         m_initialized, wxGetApp().get_mode(), only_gcode);
 
     if (wxGetApp().is_editor()) {
+        plate->update_toolpath_heat_soak_level(gcode_result);
         //BBS: always load shell at preview, do this in load_shells
         _update_slice_error_status();
+        wxGetApp().plater()->on_plate_layout_changed();
     }
 
     t_gcode_viewer.refresh(gcode_result, str_tool_colors);
@@ -4222,7 +4244,15 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_GESTURE_PAN, &GLCanvas3D::on_gesture, this);
         m_canvas->Bind(wxEVT_GESTURE_ZOOM, &GLCanvas3D::on_gesture, this);
         m_canvas->Bind(wxEVT_GESTURE_ROTATE, &GLCanvas3D::on_gesture, this);
+        // Pan gestures are only registered on Windows, where the touchpad two-finger swipe
+        // has to reach on_gesture(). On macOS the pan recognizer wx installs here also claims
+        // plain left-button drags, so moving an object turns into a camera pan; initGestures()
+        // below already covers the touchpad path there.
+#ifdef __WXMSW__
+        m_canvas->EnableTouchEvents(wxTOUCH_ZOOM_GESTURE | wxTOUCH_ROTATE_GESTURE | wxTOUCH_PAN_GESTURES);
+#else
         m_canvas->EnableTouchEvents(wxTOUCH_ZOOM_GESTURE | wxTOUCH_ROTATE_GESTURE);
+#endif
 #if __WXOSX__
         initGestures(m_canvas->GetHandle(), m_canvas); // for UIPanGestureRecognizer allowedScrollTypesMask
 #endif
@@ -4349,6 +4379,20 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 
     auto imgui = wxGetApp().imgui();
     if (imgui->update_key_data(evt)) {
+        // Text-label notes use an ImGui InputText that sets WantTextInput, which
+        // would otherwise swallow Ctrl+Z/Y here. Forward those shortcuts to the
+        // assemble undo stack after leaving caret mode (InputText uses NoUndoRedo).
+        if (m_canvas_type == CanvasAssembleView && m_assembly_steps &&
+            m_assembly_steps->is_note_text_caret_active() &&
+            (evt.GetModifiers() & ctrlMask) != 0) {
+            const bool is_z = (keyCode == 'z' || keyCode == 'Z' || keyCode == WXK_CONTROL_Z);
+            const bool is_y = (keyCode == 'y' || keyCode == 'Y' || keyCode == WXK_CONTROL_Y);
+            if (is_z || is_y) {
+                m_assembly_steps->exit_note_edit();
+                const bool redo = is_y || ((evt.GetModifiers() & shiftMask) != 0 && is_z);
+                post_event(SimpleEvent(redo ? EVT_GLCANVAS_REDO : EVT_GLCANVAS_UNDO));
+            }
+        }
         render();
         return;
     }
@@ -5143,6 +5187,41 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         }
         return;
     }
+    // On Windows, touchpad two-finger scroll is delivered as WM_MOUSEWHEEL/WM_MOUSEHWHEEL
+    // instead of wxEVT_GESTURE_PAN. Distinguish touchpad from mouse wheel by rotation granularity:
+    // mouse wheel always reports multiples of WHEEL_DELTA (120), touchpad reports smaller values.
+#ifdef __WXMSW__
+    {
+        const bool is_horizontal = (evt.GetWheelAxis() == wxMOUSE_WHEEL_HORIZONTAL);
+        const bool likely_touchpad = (std::abs(evt.GetWheelRotation()) < evt.GetWheelDelta())
+                                    || (evt.GetWheelRotation() % evt.GetWheelDelta() != 0);
+
+        // Once a touchpad event is detected, keep treating subsequent events as touchpad
+        // for a short window to avoid occasional large-rotation events leaking to zoom.
+        const int64_t now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        if (likely_touchpad || is_horizontal) {
+            m_last_touchpad_scroll_ms = now_ms;
+        }
+        const bool in_touchpad_window = (now_ms - m_last_touchpad_scroll_ms) < 500;
+
+        if (is_horizontal || likely_touchpad || in_touchpad_window) {
+            Camera& camera = get_active_camera();
+            const Size cnv_size = get_canvas_size();
+            constexpr double kTouchpadPanSensitivity = 20.0;
+            const double pixels = (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta() * kTouchpadPanSensitivity;
+            double dx = is_horizontal ? pixels : 0.0;
+            double dy = is_horizontal ? 0.0 : -pixels;
+            float z = 0.0f;
+            const Vec3d p1 = _mouse_to_3d(camera, {cnv_size.get_width() * 0.5,        cnv_size.get_height() * 0.5}, &z);
+            const Vec3d p2 = _mouse_to_3d(camera, {cnv_size.get_width() * 0.5 - dx,   cnv_size.get_height() * 0.5 - dy}, &z);
+            camera.set_target(camera.get_target() + p1 - p2);
+            m_dirty = true;
+            return;
+        }
+    }
+#endif // __WXMSW__
+
     // Calculate the zoom delta and apply it to the current zoom factor
 #ifdef SUPPORT_REVERSE_MOUSE_ZOOM
     double direction_factor = (wxGetApp().app_config->get("reverse_mouse_wheel_zoom") == "1") ? -1.0 : 1.0;
@@ -5400,8 +5479,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.ignore_left_up = true;
     m_tooltip.set_in_imgui(false);
     if (imgui->update_mouse_data(evt)) {
-        if (evt.LeftDown() && m_canvas != nullptr)
+        if (evt.LeftDown() && m_canvas != nullptr) {
             m_canvas->SetFocus();
+            // SetFocus may no-op when the canvas already has focus (no SET_FOCUS
+            // event). Always bind the IME HWND/NSView here so CJK candidate UI
+            // can follow the ImGui caret on the first click into InputText.
+            ImGui::GetIO().ImeWindowHandle = m_canvas->GetHandle();
+        }
         m_mouse.position = evt.Leaving() ? Vec2d(-1.0, -1.0) : pos.cast<double>();
         m_tooltip.set_in_imgui(true);
         render();
@@ -5503,6 +5587,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (can_sequential_clearance_show_in_gizmo()) {
                 update_sequential_clearance();
             }
+        }
+        else if (evt.Dragging() && current_printer_technology() == ptFFF && can_sequential_clearance_show_in_gizmo()) {
+            update_compacted_wipe_tower_clearance();
+            show_sinking_contours();
         }
         else if (evt.Dragging()) {
             switch (m_gizmos.get_current_type())
@@ -5781,8 +5869,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 TransformationType trafo_type;
                 trafo_type.set_relative();
                 m_selection.translate(cur_pos - m_mouse.drag.start_position_3D, trafo_type);
-                if (current_printer_technology() == ptFFF && (fff_print()->config().print_sequence == PrintSequence::ByObject))
-                    update_sequential_clearance();
+                if (current_printer_technology() == ptFFF) {
+                    if (fff_print()->config().print_sequence == PrintSequence::ByObject)
+                        update_sequential_clearance();
+                    else
+                        update_compacted_wipe_tower_clearance();
+                }
                 // BBS
                 //wxGetApp().obj_manipul()->set_dirty();
                 m_dirty = true;
@@ -5814,8 +5906,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     //BBS rotate around target
                     Camera& camera = get_active_camera();
                     Vec3d rotate_target = Vec3d::Zero();
+                    // Inside a step card the orbit center follows that step's own
+                    // objects, so rotating does not swing around unrelated geometry.
+                    const BoundingBoxf3 step_box = assembly_current_step_bounding_box();
                     if (!m_selection.is_empty())
                         rotate_target = m_selection.get_bounding_box().center();
+                    else if (step_box.defined)
+                        rotate_target = step_box.center();
                     else
                         rotate_target = volumes_bounding_box(is_volumes_limit_to_expand_plate()).center();
                     //BBS do not limit rotate in assemble view
@@ -5940,9 +6037,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_rectangle_selection.stop_dragging();
         }
         else if (left_click_on_blank) {
-            // deselect and propagate event through callback
-            if (!evt.ShiftDown() && (!any_gizmo_active || !evt.CmdDown()) && m_picking_enabled && m_canvas_type != ECanvasType::CanvasAssembleView)
+            // Deselect on blank canvas click (prepare view and assembly view).
+            // ImGui panels are already filtered out by WantCaptureMouse / toolbar
+            // hit-testing before we reach this path.
+            if (!evt.ShiftDown() && (!any_gizmo_active || !evt.CmdDown()) && m_picking_enabled) {
                 deselect_all();
+                // Keep the assembly tree row highlight in sync with the empty canvas selection.
+                if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps)
+                    m_assembly_steps->sync_tree_ui_selection_from_canvas();
+            }
         }
         //BBS Select plate in this 3D canvas.
         else if (evt.LeftUp() && !m_mouse.rotating && !m_mouse.panning && m_picking_enabled && !m_hover_plate_idxs.empty() && (m_canvas_type == CanvasView3D) && !is_layers_editing_enabled())
@@ -6138,15 +6241,14 @@ void GLCanvas3D::on_paint(wxPaintEvent& evt)
 
 void GLCanvas3D::on_kill_focus(wxFocusEvent &evt)
 {
-#ifdef __APPLE__
-    // Drop the IME target if it points at this canvas, so the imgui IME-position
-    // callback never dereferences a stale native view handle. Deactivate the
-    // context first (the per-frame sync stops running once the handle is gone).
+    // Drop the IME target if it points at this canvas so the OS IME is not left
+    // anchored to a stale HWND/NSView (Windows Imm* / macOS NSTextInputClient).
     if (m_canvas != nullptr && ImGui::GetIO().ImeWindowHandle == m_canvas->GetHandle()) {
+#ifdef __APPLE__
         mac_ime_sync_active(m_canvas->GetHandle(), false);
+#endif
         ImGui::GetIO().ImeWindowHandle = nullptr;
     }
-#endif
     ImGui::SetWindowFocus(nullptr);
     render();
     evt.Skip();
@@ -6158,15 +6260,17 @@ void GLCanvas3D::force_set_focus() {
 
 void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
 {
-#ifdef __APPLE__
-    // Enable CJK IME composition over this canvas (wxWidgets ships only stub
-    // NSTextInputClient methods for custom views, which blocks IME on macOS).
-    // Also route imgui's IME cursor position to this canvas' native view.
+    // Route imgui IME caret position to this canvas' native handle.
+    // Required on Windows so ImmSetCompositionWindow/ImmSetCandidateWindow can
+    // place the CJK candidate UI near the InputText caret (was Apple-only before).
     if (m_canvas != nullptr) {
+#ifdef __APPLE__
+        // Enable CJK IME composition over this canvas (wxWidgets ships only stub
+        // NSTextInputClient methods for custom views, which blocks IME on macOS).
         mac_ime_install(m_canvas->GetHandle(), []() { return ImGui::GetIO().WantTextInput; });
+#endif
         ImGui::GetIO().ImeWindowHandle = m_canvas->GetHandle();
     }
-#endif
     m_tooltip_enabled = false;
     _refresh_if_shown_on_screen();
     m_tooltip_enabled = true;
@@ -7068,6 +7172,103 @@ void GLCanvas3D::update_sequential_clearance()
     set_sequential_print_clearance_polygons(polygons, height_polygons);
 }
 
+// Live preview of the compacted prime tower clearance, the by-layer counterpart of
+// update_sequential_clearance(). Called while the user drags a volume / gizmo; idle visibility
+// matches sequential print (hidden when valid, filled when Print::validate reports a collision).
+// Print::compacted_wipe_tower_clearance_valid() answers the same question authoritatively, but it
+// reads the tower position from the config, which only catches up once do_move() writes it back on
+// mouse release. Recomputing from the volumes here is what makes the keep-out zone follow the tower
+// while it is still under the cursor.
+void GLCanvas3D::update_compacted_wipe_tower_clearance()
+{
+    if (current_printer_technology() != ptFFF)
+        return;
+    const Print *print = fff_print();
+    if (print == nullptr)
+        return;
+    const PrintConfig &config = print->config();
+    if (config.print_sequence != PrintSequence::ByLayer || ! wipe_tower_sparse_layers_skipped(config) || ! print->has_wipe_tower())
+        return;
+
+    PartPlateList &plate_list = wxGetApp().plater()->get_partplate_list();
+    PartPlate     *plate      = plate_list.get_curr_plate();
+    if (plate == nullptr)
+        return;
+    const int plate_id = plate_list.get_curr_plate_index();
+
+    // Once the tower has been generated the scene shows its real mesh with the brim merged in
+    // (load_real_wipe_tower_preview), otherwise it is a bare estimated cube with no brim at all
+    // (load_wipe_tower_preview). Only the latter needs the brim added here. reload_scene picks between
+    // the two on exactly this condition. The brim width comes from WipeTowerData, the same source
+    // load_wipe_tower_preview() sizes the box from, so the zone cannot be padded against a brim the
+    // preview was not built with.
+    const bool   preview_carries_brim = print->is_step_done(psWipeTower) && print->wipe_tower_data().wipe_tower_mesh_data.has_value();
+    const double brim                 = preview_carries_brim ? 0. : double(print->wipe_tower_data(print->extruders().size()).brim_width);
+    const double padding              = compacted_tower_footprint_padding(config, brim);
+
+    // Tower footprint straight from the volume the user sees, so that dragging either the tower or an
+    // object updates the zone on the very next frame.
+    Polygon tower_footprint;
+    for (const GLVolume *v : m_volumes.volumes) {
+        if (! v->is_wipe_tower || v->object_idx() - 1000 != plate_id)
+            continue;
+        const BoundingBoxf3 bbox = v->transformed_convex_hull_bounding_box();
+        tower_footprint = Polygon({ Point(scale_(bbox.min.x() - padding), scale_(bbox.min.y() - padding)),
+                                    Point(scale_(bbox.max.x() + padding), scale_(bbox.min.y() - padding)),
+                                    Point(scale_(bbox.max.x() + padding), scale_(bbox.max.y() + padding)),
+                                    Point(scale_(bbox.min.x() - padding), scale_(bbox.max.y() + padding)) });
+        break;
+    }
+
+    const CompactedTowerZone zone = compacted_wipe_tower_zone(config, tower_footprint);
+    if (zone.empty()) {
+        reset_sequential_print_clearance();
+        return;
+    }
+
+    // While dragging, outline every on-plate instance next to the tower ring, the way sequential print
+    // outlines every object. Both carry half of the clearance, so the two outlines meeting is precisely
+    // the moment that object goes over its limit - which is what makes the pair worth drawing at all.
+    // The tier is per object, so a short object gets the narrow nozzle outline rather than the wide
+    // body one it is not subject to; without that, a 3 mm object parked beside the tower would be drawn
+    // deep inside the keep-out ring while passing the check. Only the instances that already exceed
+    // allowed_rise also get a height limit plane.
+    Polygons                               outlines;
+    std::vector<std::pair<Polygon, float>> height_polygons;
+    bool                                   body_tier_used = false;
+    const BoundingBox                      plate_bb       = plate->get_bounding_box_crd();
+    for (const ModelObject *model_object : m_model->objects) {
+        for (size_t i = 0; i < model_object->instances.size(); ++i) {
+            Geometry::Transformation trafo(model_object->instances[i]->get_transformation());
+            const Vec3d              offset = trafo.get_offset();
+            trafo.set_offset(Vec3d(offset.x(), offset.y(), 0.0));
+            const Polygon inst_hull = model_object->convex_hull_2d(trafo.get_matrix());
+            if (inst_hull.points.empty() || ! plate_bb.overlap(inst_hull.bounding_box()))
+                continue;
+
+            // Same tiers and the same rise measured from the plate as
+            // Print::compacted_wipe_tower_clearance_valid(), so that the preview and the validation
+            // that follows it 500 ms later never contradict each other.
+            const double                  object_top = model_object->get_instance_max_z(i);
+            const CompactedTowerClearance clearance  = compacted_wipe_tower_clearance(config, zone, inst_hull, object_top);
+            body_tier_used                           = body_tier_used || compacted_tower_body_tier(clearance);
+
+            const Polygon outline = compacted_wipe_tower_offender_outline(inst_hull, clearance.body_clearance);
+            outlines.emplace_back(outline);
+            if (object_top <= clearance.allowed_rise + EPSILON)
+                continue;
+            height_polygons.emplace_back(outline, float(clearance.allowed_rise));
+        }
+    }
+
+    Polygons polygons = compacted_wipe_tower_rings(zone, body_tier_used);
+    append(polygons, outlines);
+
+    set_sequential_print_clearance_visible(true);
+    set_sequential_print_clearance_render_fill(false);
+    set_sequential_print_clearance_polygons(polygons, height_polygons);
+}
+
 bool GLCanvas3D::is_object_sinking(int object_idx) const
 {
     for (const GLVolume* v : m_volumes.volumes) {
@@ -7359,10 +7560,14 @@ static const float cameraProjection[16] = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.
 void GLCanvas3D::_render_3d_navigator()
 {
     const bool is_assembly_nav = (m_canvas_type == ECanvasType::CanvasAssembleView) && m_assembly_steps;
-    if (is_assembly_nav)
-        m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::Navigator, ImVec2(0, 0), ImVec2(0, 0));
+    // During play/export the navigator is hidden, but keep the last published
+    // rect. Clearing it here would leave nav_h=0 for the first frame after
+    // pause (assembly UI renders before the navigator republishes), letting
+    // the Assembly Structure panel grow over the play bar — seen on macOS 26.
     if (is_assembly_play_or_export_mode())
         return;
+    if (is_assembly_nav)
+        m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::Navigator, ImVec2(0, 0), ImVec2(0, 0));
     if (!wxGetApp().show_3d_navigator()) {
         return;
     }
@@ -8003,10 +8208,11 @@ bool GLCanvas3D::_update_imgui_select_plate_toolbar()
 bool GLCanvas3D::_update_assembly_view_thumbnail()
 {
     if (!m_assembly_view_thumbnail.is_enabled()) { return false; }
-    if (!wxGetApp().plater()) { return false; }
+    Plater *plater = wxGetApp().plater();
+    if (!plater) { return false; }
 
-    PartPlateList &partplate_list = wxGetApp().plater()->get_partplate_list();
-    auto          curr_plate      = partplate_list.get_curr_plate();
+    PartPlateList &partplate_list               = plater->get_partplate_list();
+    auto           curr_plate                   = partplate_list.get_curr_plate();
     ThumbnailData &thumbnail_assembly_view_data = partplate_list.get_thumbnail_assembly_view_data();
     const size_t   volume_count                 = m_volumes.volumes.size();
     if (m_assembly_view_thumbnail_volume_count != volume_count) {
@@ -8033,9 +8239,16 @@ bool GLCanvas3D::_update_assembly_view_thumbnail()
         glsafe(::glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prev_fbo));
         glsafe(::glGetIntegerv(GL_VIEWPORT, prev_viewport));
 
+        // Feed assemble_model objects when available so assemble poses come from there;
+        // GLVolumes stay on this (prepare) canvas — meshes are shared.
+        Model &am = plater->assemble_model();
+        ModelObjectPtrs &model_objects = !am.objects.empty() ? am.objects : plater->model().objects;
+        std::vector<std::array<float, 4>> colors = plater->get_extruders_colors();
+
         const auto render_thumbnail_begin = std::chrono::steady_clock::now();
-        render_thumbnail(thumbnail_assembly_view_data, curr_plate->plate_thumbnail_width, curr_plate->plate_thumbnail_height, thumbnail_params, Camera::EType::Ortho,
-                         m_assembly_view_preview_angle, false, false, {ThumbnailRenderRype::GLVolumes, ECanvasType::CanvasAssembleView, true});
+        render_thumbnail(thumbnail_assembly_view_data, colors, curr_plate->plate_thumbnail_width, curr_plate->plate_thumbnail_height,
+                         thumbnail_params, model_objects, m_volumes, Camera::EType::Ortho, m_assembly_view_preview_angle, false, false,
+                         {ThumbnailRenderRype::GLVolumes, ECanvasType::CanvasAssembleView, true});
         const auto render_thumbnail_end = std::chrono::steady_clock::now();
 
         glsafe(::glBindFramebuffer(GL_FRAMEBUFFER, prev_fbo));
@@ -9232,6 +9445,10 @@ void GLCanvas3D::_render_main_toolbar()
         return;
     if (is_assembly_play_or_export_mode())
         return;
+    // In assembly view, hide the gizmo toolbar while editing a real step card (OverallPreview keeps it visible).
+    /*if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps &&
+        !m_assembly_steps->is_overall_preview_mode())
+        return;*/
     const auto& t_camera = get_active_camera();
 
     if (m_canvas_type == ECanvasType::CanvasAssembleView) {
@@ -9972,11 +10189,8 @@ void GLCanvas3D::_try_update_selected_keyframe()
 
 void GLCanvas3D::_render_assembly_steps_view()
 {
-    if (m_canvas_type != ECanvasType::CanvasAssembleView) {
-        if (auto *nm = wxGetApp().plater()->get_notification_manager())
-            nm->close_notification_of_type(NotificationType::SelectObjectInWhichStep);
+    if (m_canvas_type != ECanvasType::CanvasAssembleView)
         return;
-    }
     if (!m_model || m_model->objects.empty() || !m_assembly_steps)//limit CanvasAssembleView
         return;
     m_assembly_steps->set_in_assembly_view(m_canvas_type == ECanvasType::CanvasAssembleView);
@@ -10102,8 +10316,25 @@ void GLCanvas3D::_render_return_toolbar()
         if (m_canvas_type == ECanvasType::CanvasView3D) {
             deselect_all();
         } else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
-            _exit_assembly_to_3d_view();
+            if (m_gizmos.get_current_type() != GLGizmosManager::Undefined) {
+                exit_gizmo();
+            } else {
+                _exit_assembly_to_3d_view();
+            }
         }
+    }
+    if (ImGui::IsItemHovered()) {
+        wxString tip;
+        if (m_canvas_type == ECanvasType::CanvasView3D) {
+            tip = _L("Exit current gizmo editing");
+        } else if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+            if (m_gizmos.get_current_type() != GLGizmosManager::Undefined)
+                tip = _L("Exit current gizmo editing");
+            else
+                tip = _L("Return to prepare view");
+        }
+        auto width = ImGui::CalcTextSize(tip.c_str()).x + imgui.scaled(2.0f);
+        imgui.tooltip(tip, width);
     }
     ImGui::PopStyleColor(5);
     ImGui::PopStyleVar(1);
@@ -10228,6 +10459,11 @@ void GLCanvas3D::_render_paint_toolbar() const
         return;
     if (is_assembly_play_or_export_mode())
         return;
+    // Hide filament swatches while a non-OverallPreview step card is selected.
+    if (m_assembly_steps && !m_assembly_steps->is_overall_preview_mode()) {
+        m_paint_toolbar_width = 0.0f;
+        return;
+    }
 #if ENABLE_RETINA_GL
     float f_scale = m_retina_helper->get_scale_factor();
 #else
@@ -12364,6 +12600,29 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
     BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: finished");
 }
 
+void GLCanvas3D::clear_isolated_volumes_cache()
+{
+    s_isolated_volumes.clear();
+    s_isolated_notification_shown        = false;
+    s_intersects_notification_shown      = false;
+    s_far_from_origin_notification_shown = false;
+    s_bvh_primary_bounds.reset();
+    s_bvh_expanded_bounds.reset();
+    s_first_primary_bounds.reset();
+    s_assemble_candidate_volumes_size = 0;
+    s_assemble_ratio                  = 0;
+    s_assemble_volume_ratio           = 0;
+
+    // Close stale notifications whose click handler depended on the cleared cache.
+    if (auto *plater = wxGetApp().plater()) {
+        if (auto *notify_mgr = plater->get_notification_manager()) {
+            notify_mgr->close_notification_of_type(NotificationType::BBLIsolatedVolumeInfo);
+            notify_mgr->close_notification_of_type(NotificationType::BBLAssemblyFarFromOrigin);
+            notify_mgr->close_notification_of_type(NotificationType::BBLIntersectsVolumeInfo);
+        }
+    }
+}
+
 void GLCanvas3D::_show_isolated_volumes_notification()
 {
     if (s_isolated_volumes.empty())
@@ -12373,6 +12632,8 @@ void GLCanvas3D::_show_isolated_volumes_notification()
     if (!plater)
         return;
 
+    // Use the name copied at detection time: the GLVolume may already have been
+    // destroyed by reload_scene / reset_volumes.
     std::string names;
     int count = 0;
     for (const auto& iv : s_isolated_volumes) {
@@ -12380,19 +12641,30 @@ void GLCanvas3D::_show_isolated_volumes_notification()
             names += "...";
             break;
         }
+        if (iv.name.empty() && iv.obj_idx < 0)
+            continue;
         if (!names.empty()) names += ", ";
-        names += iv.vol->name;
+        if (!iv.name.empty()) {
+            // Cap a single name so a corrupted/oversized cached string cannot explode allocation.
+            constexpr size_t k_max_name_chars = 128;
+            names.append(iv.name, 0, std::min(iv.name.size(), k_max_name_chars));
+            if (iv.name.size() > k_max_name_chars)
+                names += "...";
+        } else {
+            names += (boost::format("object_%1%") % iv.obj_idx).str();
+        }
         ++count;
     }
+    if (count == 0)
+        return;
+
     std::string info_text = _u8L("Overview") + ": " + _u8L("Isolated objects detected") + ": " + names + "\n"
                           + _u8L("Click to move them closer to the main body.");
-
-
 
     NotificationManager* notify_mgr = plater->get_notification_manager();
     notify_mgr->push_notification(NotificationType::BBLIsolatedVolumeInfo,
                                   NotificationManager::NotificationLevel::ImportantNotificationLevel,
-                                  info_text, _u8L("Move closer"), &GLCanvas3D::_move_isolated_volumes_closer);
+                                  info_text, _u8L("Move closer"), &OverviewUtils::move_isolated_volumes_closer);
 }
 
 void GLCanvas3D::_check_assembly_far_from_origin()
@@ -12418,105 +12690,10 @@ void GLCanvas3D::_check_assembly_far_from_origin()
         std::string info_text = _u8L("The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?");
         notify_mgr->push_notification(NotificationType::BBLAssemblyFarFromOrigin,
                                       NotificationManager::NotificationLevel::ImportantNotificationLevel,
-                                      info_text, _u8L("Reset to origin"), &GLCanvas3D::_reset_assembly_to_origin);
+                                      info_text, _u8L("Reset to origin"), &OverviewUtils::reset_assembly_to_origin);
     } else {
         notify_mgr->close_notification_of_type(NotificationType::BBLAssemblyFarFromOrigin);
     }
-}
-
-bool GLCanvas3D::_reset_assembly_to_origin(wxEvtHandler*)
-{
-    auto* plater = wxGetApp().plater();
-    if (!plater) return false;
-    Model& model = plater->model();
-
-    plater->take_snapshot("reset all volumes to assembly origin", UndoRedo::SnapshotType::GizmoAction);
-
-    auto reset_assembly_instance_offsets = [](Model& target_model) {
-        for (ModelObject* obj : target_model.objects) {
-            for (ModelInstance* inst : obj->instances) {
-                Geometry::Transformation trafo = inst->get_assemble_transformation();
-                trafo.set_offset(Vec3d::Zero());
-                inst->set_assemble_transformation(trafo);
-            }
-        }
-    };
-    reset_assembly_instance_offsets(model);
-    reset_assembly_instance_offsets(plater->assemble_model());
-    GLCanvas3D* canvas = plater->get_current_canvas3D();
-    if (canvas) {
-        for (GLVolume* gv : canvas->get_volumes().volumes) {
-            gv->set_instance_offset(Vec3d::Zero());
-        }
-        if (canvas->get_canvas_type() == ECanvasType::CanvasAssembleView)
-            canvas->zoom_to_fit();
-    }
-    s_bvh_primary_bounds.reset();
-    s_far_from_origin_notification_shown = false;
-    plater->get_partplate_list().reset_thumbnail_assembly_view_data();
-    plater->update();
-    return false;
-}
-
-bool GLCanvas3D::_move_isolated_volumes_closer(wxEvtHandler*)
-{
-    auto* plater = wxGetApp().plater();
-    if (!plater) return false;
-    Model& model = plater->model();
-
-    const Vec3d  box_center  = s_bvh_primary_bounds.center();
-    const double target_dist = 30.0;
-
-    plater->take_snapshot("Move isolated volumes", UndoRedo::SnapshotType::GizmoAction);
-
-    for (const auto& iv : s_isolated_volumes) {
-        if (!iv.vol || iv.obj_idx < 0 || iv.obj_idx >= (int) model.objects.size()) continue;
-
-        const int inst_idx = iv.vol->instance_idx();
-        ModelObject* obj = model.objects[iv.obj_idx];
-        if (inst_idx < 0 || inst_idx >= (int) obj->instances.size()) continue;
-        ModelInstance* inst = obj->instances[inst_idx];
-
-        const Vec3d world_center = iv.world_box_assembly.center();
-        const Vec3d obj_half    = iv.world_box_assembly.size() * 0.5;
-
-        Vec3d delta = Vec3d::Zero();
-        for (int axis = 0; axis < 3; ++axis) {
-            const double obj_min = world_center(axis) - obj_half(axis);
-            const double obj_max = world_center(axis) + obj_half(axis);
-            const double pri_min = s_bvh_primary_bounds.min(axis);
-            const double pri_max = s_bvh_primary_bounds.max(axis);
-
-            if (obj_max < pri_min - target_dist) {
-                delta(axis) = (pri_min - target_dist - obj_half(axis)) - world_center(axis);
-            } else if (obj_min > pri_max + target_dist) {
-                delta(axis) = (pri_max + target_dist + obj_half(axis)) - world_center(axis);
-            }
-        }
-
-        if (delta.squaredNorm() < 1e-3) continue;
-
-        Geometry::Transformation new_trafo = inst->get_assemble_transformation();
-        new_trafo.set_offset(new_trafo.get_offset() + delta);
-        inst->set_assemble_transformation(new_trafo);
-    }
-
-    GLCanvas3D* canvas = plater->get_current_canvas3D();
-    if (canvas && canvas->get_canvas_type() == ECanvasType::CanvasAssembleView) {
-        Selection& sel = canvas->get_selection();
-        sel.clear();
-        for (const auto& iv : s_isolated_volumes) {
-            if (iv.obj_idx >= 0 && iv.obj_idx < (int) model.objects.size())
-                sel.add_object((unsigned int) iv.obj_idx, false);
-        }
-    }
-
-    s_isolated_volumes.clear();
-    s_isolated_notification_shown = false;
-    s_intersects_notification_shown = false;
-    plater->get_partplate_list().reset_thumbnail_assembly_view_data();
-    plater->update();
-    return false;
 }
 
 static void _collect_bvh_subtree_prims(const tinybvh::BVH& bvh, uint32_t node_idx, std::vector<uint32_t>& prim_indices)
@@ -12632,6 +12809,7 @@ static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
                                          double                             threshold_dist,
                                          const std::vector<GLVolume*>&      candidate_volumes,
                                          const std::vector<BoundingBoxf3>&  candidate_boxes,
+                                         const std::vector<GLCanvas3D::AssemblePoseTarget>& candidate_targets,
                                          std::vector<bool>&                 include_flags)
 {
     if (node_idx == primary_idx) {
@@ -12682,9 +12860,17 @@ static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
                         }
                     }
                     if (!already) {
-                        GLCanvas3D::s_isolated_volumes.push_back({vol, oid, candidate_boxes[pi]});
+                        GLCanvas3D::IsolatedVolumeInfo info;
+                        info.obj_idx            = oid;
+                        info.instance_idx       = vol->instance_idx();
+                        info.name               = vol->name;
+                        info.world_box_assembly = candidate_boxes[pi];
+                        if (pi < candidate_targets.size())
+                            info.target = candidate_targets[pi];
+                        GLCanvas3D::s_isolated_volumes.push_back(std::move(info));
                         const auto &back = GLCanvas3D::s_isolated_volumes.back();
-                        BOOST_LOG_TRIVIAL(info) << boost::format("assembly thumbnail BVH isolated: obj_idx=%1% name=%2% stored_obj_idx=%3%") % oid % vol->name % back.obj_idx;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("assembly thumbnail BVH isolated: obj_idx=%1% name=%2% stored_obj_idx=%3% target_obj_id=%4% target_inst_id=%5% target_guid=%6%")
+                                                       % oid % back.name % back.obj_idx % back.target.object_id % back.target.instance_id % back.target.part_guid;
                     }
                 }
             }
@@ -12692,8 +12878,8 @@ static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
         return;
     }
 
-    _check_and_exclude_bvh_node(bvh, node.leftFirst,     primary_idx, primary_bounds, threshold_dist, candidate_volumes, candidate_boxes, include_flags);
-    _check_and_exclude_bvh_node(bvh, node.leftFirst + 1, primary_idx, primary_bounds, threshold_dist, candidate_volumes, candidate_boxes, include_flags);
+    _check_and_exclude_bvh_node(bvh, node.leftFirst,     primary_idx, primary_bounds, threshold_dist, candidate_volumes, candidate_boxes, candidate_targets, include_flags);
+    _check_and_exclude_bvh_node(bvh, node.leftFirst + 1, primary_idx, primary_bounds, threshold_dist, candidate_volumes, candidate_boxes, candidate_targets, include_flags);
 }
 constexpr double c_bvh_expand_dist = 3.0;
 static void _reclaim_isolated_volumes_by_bvh(
@@ -12763,7 +12949,7 @@ static void _reclaim_isolated_volumes_by_bvh(
                     GLCanvas3D::s_bvh_expanded_bounds = _expand_bounds(GLCanvas3D::s_bvh_primary_bounds, GLCanvas3D::s_expand_bvh_box_dist);
 #if !BBL_RELEASE_TO_PUBLIC
                     BOOST_LOG_TRIVIAL(info) << boost::format("assembly BVH: reclaimed isolated vol obj_idx=%1% name=%2% (bvh pass %3%)")
-                        % oid % GLCanvas3D::s_isolated_volumes[pi].vol->name % iter;
+                        % oid % GLCanvas3D::s_isolated_volumes[pi].name % iter;
 #endif
                 }
                 return;
@@ -12793,6 +12979,7 @@ static void _reclaim_isolated_volumes_by_bvh(
 
 void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<GLVolume*>& assemble_candidate_volumes,
     const std::vector<BoundingBoxf3>&  assemble_candidate_boxes,
+    const std::vector<AssemblePoseTarget>& assemble_candidate_targets,
     bool                               skip_single_volume_bvh,
     bool                               rebuild_bvh,
     std::vector<bool>&                 include_candidate_volumes)
@@ -12886,7 +13073,7 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
     s_bvh_expanded_bounds = _expand_bounds(primary_bounds, s_expand_bvh_box_dist);
 
     _check_and_exclude_bvh_node(volume_bvh, 0, primary_idx, s_bvh_expanded_bounds, threshold_dist,
-                                assemble_candidate_volumes, assemble_candidate_boxes, include_candidate_volumes);
+                                assemble_candidate_volumes, assemble_candidate_boxes, assemble_candidate_targets, include_candidate_volumes);
 
     if (!s_isolated_volumes.empty()) {
         std::unordered_map<int, std::vector<size_t>> obj_to_candidates;
@@ -12984,40 +13171,181 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
     else {
         std::vector<GLVolume *>     assemble_candidate_volumes;
         std::vector<BoundingBoxf3>  assemble_candidate_boxes;
+        std::vector<AssemblePoseTarget> assemble_candidate_targets;
         bool skip_single_volume_bvh = volumes.volumes.size() == 1 && !volumes.volumes.front()->is_modifier && !volumes.volumes.front()->is_wipe_tower;
         if (!s_enable_bvh) {
             skip_single_volume_bvh = true;
         }
         assemble_candidate_volumes.reserve(volumes.volumes.size());
         assemble_candidate_boxes.reserve(volumes.volumes.size());
+        assemble_candidate_targets.reserve(volumes.volumes.size());
+
+        struct AssemblyVolumeRef {
+            ModelObject *object{nullptr};
+            ModelVolume *volume{nullptr};
+        };
+        ModelObjectPtrs &prepare_objects = wxGetApp().plater()->model().objects;
+        const bool using_assemble_model = &model_objects != &prepare_objects && !model_objects.empty();
+
+        std::unordered_map<size_t, AssemblyVolumeRef> target_by_volume_id;
+        std::unordered_map<std::string, AssemblyVolumeRef> target_by_guid;
+        for (ModelObject *object : model_objects) {
+            if (object == nullptr)
+                continue;
+            for (ModelVolume *volume : object->volumes) {
+                if (volume == nullptr || !volume->is_model_part())
+                    continue;
+                AssemblyVolumeRef ref{object, volume};
+                target_by_volume_id.emplace(volume->id().id, ref);
+                if (!volume->assembly_src_guid().empty())
+                    target_by_guid.emplace(volume->assembly_src_guid(), ref);
+                if (!volume->part_guid().empty())
+                    target_by_guid.emplace(volume->part_guid(), ref);
+            }
+        }
+
+        std::unordered_map<size_t, ModelVolume *> prepare_by_volume_id;
+        for (ModelObject *object : prepare_objects) {
+            if (object == nullptr)
+                continue;
+            for (ModelVolume *volume : object->volumes)
+                if (volume != nullptr && volume->is_model_part())
+                    prepare_by_volume_id.emplace(volume->id().id, volume);
+        }
+
+        // Heal missing assemble poses on the prepare model before reading them.
+        // Without this, a freshly added primitive can keep the bed (empty_cell) pose on the
+        // GLVolume when resolve fails, so the assembly thumbnail shows objects far apart.
+        for (ModelObject *po : prepare_objects) {
+            if (po == nullptr || po->instances.empty())
+                continue;
+            bool needs_pos = false;
+            for (ModelInstance *inst : po->instances) {
+                if (inst != nullptr && !inst->is_assemble_initialized()) {
+                    needs_pos = true;
+                    break;
+                }
+            }
+            if (needs_pos)
+                wxGetApp().plater()->model().set_assembly_pos(po);
+            wxGetApp().plater()->ensure_model_object_volume_assemble_initialized(po);
+        }
+
+        auto instance_for_volume = [](ModelObject *object, const GLVolume *vol) -> ModelInstance * {
+            if (object == nullptr || object->instances.empty())
+                return nullptr;
+            for (ModelInstance *instance : object->instances)
+                if (instance != nullptr && instance->id().id == vol->geometry_id.second)
+                    return instance;
+            const int inst_idx = vol->instance_idx();
+            if (inst_idx >= 0 && inst_idx < (int) object->instances.size())
+                return object->instances[inst_idx];
+            return object->instances.front();
+        };
+
+        auto resolve_assembly_volume_ref = [&](const GLVolume *vol) -> AssemblyVolumeRef {
+            auto prepare_it = prepare_by_volume_id.find(vol->geometry_id.first);
+            if (prepare_it != prepare_by_volume_id.end()) {
+                ModelVolume *prepare_volume = prepare_it->second;
+                if (prepare_volume != nullptr)
+                    prepare_volume->ensure_part_guid();//need
+                const std::string &guid = prepare_volume != nullptr && !prepare_volume->assembly_src_guid().empty() ?
+                    prepare_volume->assembly_src_guid() : (prepare_volume ? prepare_volume->part_guid() : std::string());
+                if (!guid.empty()) {
+                    auto target_by_guid_it = target_by_guid.find(guid);
+                    if (target_by_guid_it != target_by_guid.end())
+                        return target_by_guid_it->second;
+                }
+                // Before assemble_model exists, prepare IS the target.
+                if (!using_assemble_model && prepare_volume != nullptr) {
+                    ModelObject *po = prepare_volume->get_object();
+                    if (po != nullptr)
+                        return AssemblyVolumeRef{po, prepare_volume};
+                }
+            }
+
+            auto target_by_id_it = target_by_volume_id.find(vol->geometry_id.first);
+            if (target_by_id_it != target_by_volume_id.end())
+                return target_by_id_it->second;
+
+            // GLVolumes on the prepare canvas always index the prepare model.
+            const int obj_idx = vol->object_idx();
+            const int vol_idx = vol->volume_idx();
+            if (obj_idx >= 0 && obj_idx < (int) prepare_objects.size()) {
+                ModelObject *po = prepare_objects[obj_idx];
+                if (po != nullptr && vol_idx >= 0 && vol_idx < (int) po->volumes.size() && po->volumes[vol_idx] != nullptr) {
+                    ModelVolume *pv = po->volumes[vol_idx];
+                    if (pv->is_model_part()) {
+                        pv->ensure_part_guid();
+                        if (!pv->part_guid().empty()) {
+                            auto git = target_by_guid.find(pv->part_guid());
+                            if (git != target_by_guid.end())
+                                return git->second;
+                        }
+                        if (!using_assemble_model)
+                            return AssemblyVolumeRef{po, pv};
+                    }
+                }
+            }
+            // Last-resort: index into whichever model_objects we were given.
+            if (obj_idx >= 0 && obj_idx < (int) model_objects.size()) {
+                ModelObject *object = model_objects[obj_idx];
+                if (object != nullptr && vol_idx >= 0 && vol_idx < (int) object->volumes.size())
+                    return AssemblyVolumeRef{object, object->volumes[vol_idx]};
+            }
+            return {};
+        };
 
         for (GLVolume *vol : volumes.volumes) {
-            if (vol->is_modifier || vol->is_wipe_tower) {
+            // Match plate-thumbnail path (is_volume_in_plate_boundingbox): skip unprintable
+            // instances so they neither render nor skew BVH / assemble-ratio.
+            if (vol->is_modifier || vol->is_wipe_tower || !vol->printable) {
                 continue;
             }
 
-            const int obj_idx  = vol->object_idx();
-            const int inst_idx = vol->instance_idx();
-            const int vol_idx  = vol->volume_idx();
-            if (obj_idx >= 0 && obj_idx < (int) model_objects.size()) {
-                ModelObject *model_object = model_objects[obj_idx];
-                if (model_object != nullptr && inst_idx >= 0 && inst_idx < (int) model_object->instances.size() && vol_idx >= 0 &&
-                    vol_idx < (int) model_object->volumes.size()) {
-                    assemble_volume_backups.emplace_back(
-                        VolumeTransformBackup{vol, vol->get_instance_transformation(), vol->get_volume_transformation(), vol->get_offset_to_assembly()});
-                    vol->set_instance_transformation(model_object->instances[inst_idx]->get_assemble_transformation());
-                    // BBS: thumbnail render in assembly view uses per-volume assemble matrix (falls back to volume->get_transformation() when not initialized).
-                    vol->set_volume_transformation(model_object->volumes[vol_idx]->get_assemble_transformation());
-                    vol->set_offset_to_assembly(model_object->instances[inst_idx]->get_offset_to_assembly());
-                }
+            AssemblyVolumeRef ref = resolve_assembly_volume_ref(vol);
+            ModelInstance *instance = instance_for_volume(ref.object, vol);
+            // Never keep the prepare-canvas bed pose in the assembly thumbnail: that is what
+            // makes freshly added primitives appear far apart (empty_cell spacing) until the
+            // user enters the assembly view and derive/sync rebuilds reliable assemble poses.
+            if (ref.volume == nullptr || instance == nullptr) {
+                BOOST_LOG_TRIVIAL(warning) << "assembly thumbnail: failed to resolve assemble pose for GLVolume"
+                    << " obj=" << vol->object_idx() << " vol=" << vol->volume_idx()
+                    << " geometry_id=" << vol->geometry_id.first;
+                continue;
             }
+            if (!instance->is_assemble_initialized()) {
+                // Heal on the Model that owns this object (prepare before first enter,
+                // assemble_model afterwards). Passing an assemble object into prepare
+                // model::set_assembly_pos would walk the wrong object list.
+                if (using_assemble_model)
+                    wxGetApp().plater()->assemble_model().set_assembly_pos(ref.object);
+                else if (ref.object != nullptr)
+                    wxGetApp().plater()->model().set_assembly_pos(ref.object);
+            }
+            if (!ref.volume->is_assemble_initialized())
+                ref.volume->set_assemble_transformation(ref.volume->get_transformation());
+
+            assemble_volume_backups.emplace_back(
+                VolumeTransformBackup{vol, vol->get_instance_transformation(), vol->get_volume_transformation(), vol->get_offset_to_assembly()});
+            vol->set_instance_transformation(instance->get_assemble_transformation());
+            // Assembly thumbnail uses per-volume assemble matrix (falls back when not initialized).
+            vol->set_volume_transformation(ref.volume->get_assemble_transformation());
+            vol->set_offset_to_assembly(instance->get_offset_to_assembly());
             assemble_candidate_volumes.emplace_back(vol);
             assemble_candidate_boxes.emplace_back(vol->transformed_bounding_box());
+            // Record who really owns the assemble pose. This is the only identity that survives the
+            // prepare/assembly object-list divergence; GLVolume indices address the prepare model here.
+            AssemblePoseTarget target;
+            target.object_id   = ref.object->id().id;
+            target.instance_id = instance->id().id;
+            target.part_guid   = !ref.volume->assembly_src_guid().empty() ? ref.volume->assembly_src_guid() : ref.volume->part_guid();
+            assemble_candidate_targets.emplace_back(std::move(target));
         }
         s_assemble_candidate_volumes_size = assemble_candidate_volumes.size();
         std::vector<bool> include_candidate_volumes(assemble_candidate_volumes.size(), true);
         const auto bvh_t0 = std::chrono::steady_clock::now();
-        _filter_assembly_thumbnail_candidates_by_bvh(assemble_candidate_volumes, assemble_candidate_boxes, skip_single_volume_bvh, extra_thumb_data.rebuild_bvh, include_candidate_volumes);
+        _filter_assembly_thumbnail_candidates_by_bvh(assemble_candidate_volumes, assemble_candidate_boxes, assemble_candidate_targets, skip_single_volume_bvh, extra_thumb_data.rebuild_bvh, include_candidate_volumes);
         s_last_bvh_filter_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - bvh_t0).count();
 
         for (size_t i = 0; i < assemble_candidate_volumes.size(); ++i) {
@@ -13340,6 +13668,12 @@ void GLCanvas3D::_render_custom_thumbnail_internal(ThumbnailData &              
     BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: finished");
 }
 
+void GLCanvas3D::_update_brittle_filament_warning(PartPlate *plate, const DynamicPrintConfig &config)
+{
+    bool brittle_present = plate != nullptr && plate->check_brittle_filament(config);
+    _set_warning_notification(EWarning::BrittleFilament, brittle_present);
+}
+
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 {
     using NotificationLevel = NotificationManager::NotificationLevel;
@@ -13349,8 +13683,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         SLICING_SERIOUS_WARNING,
         SLICING_ERROR,
         SLICING_LIMIT_ERROR,
-        SLICING_HEIGHT_OUTSIDE,
-        ASSEMBLY_WARNNING
+        SLICING_HEIGHT_OUTSIDE
     };
     std::string gc2_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
     std::string gc2_dep = DevPrinterConfigUtil::get_toolhead_display_name(gc2_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase);
@@ -13532,17 +13865,16 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::MixUsePLAAndPETG:
         text = _u8L("PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality.");
         break;
+    case EWarning::BrittleFilament:
+        text = _u8L("Detected brittle filament (e.g., PPS-CF). Please place the models at the center of the heated bed. Printing near the edge may cause the filament to bend "
+                    "excessively and break inside the tube.");
+        break;
     case EWarning::MultiFilaNoWipeTower:
         text = _u8L("The prime tower improves multi-color print quality and is recommended.");
         break;
     case EWarning::PrimeTowerOutside:
         text  = _u8L("The prime tower extends beyond the plate boundary.");
         break;
-    case EWarning::AsemblyInvalid:
-    {
-        error = ErrorType::ASSEMBLY_WARNNING;
-        break;
-    }
     case EWarning::NozzleFilamentIncompatible: {
         text = _u8L(get_nozzle_filament_incompatible_text());
         break;
@@ -13595,6 +13927,16 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             }
             else
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLMixUsePLAAndPETG, NotificationLevel::WarningNotificationLevel);
+        } else if (warning == EWarning::BrittleFilament) {
+            if (state) {
+                notification_manager.show_brittle_filament_notification(text, _u8L("Click Wiki for details."), [](wxEvtHandler *) {
+                    std::string language = wxGetApp().app_config->get("language");
+                    wxString    region   = (language.find("zh") == 0) ? "zh" : "en";
+                    wxGetApp().open_browser_with_warning_dialog(wxString::Format("https://wiki.bambulab.com/%s/x2d-pro/manual/PPA-PPS-printing-guide", region));
+                    return false;
+                });
+            } else
+                notification_manager.close_brittle_filament_notification();
         } else if (warning == EWarning::MultiFilaNoWipeTower) {
             if (state) {
                 notification_manager.push_notification(NotificationType::BBLMultiFilaNoWipeTower, NotificationLevel::HintNotificationLevel, text, _u8L("Jump to: Prime tower"),
@@ -13605,16 +13947,14 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             } else {
                 notification_manager.close_notification_of_type(NotificationType::BBLMultiFilaNoWipeTower);
             }
-        }
-        else if (warning == EWarning::NozzleFilamentIncompatible){
+        } else if (warning == EWarning::NozzleFilamentIncompatible) {
             if(state){
                 notification_manager.push_slicing_customize_error_notification(NotificationType::BBLNozzleFilamentIncompatible, NotificationLevel::WarningNotificationLevel, text);
             }
             else{
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLNozzleFilamentIncompatible, NotificationLevel::WarningNotificationLevel);
             }
-        }
-        else if (warning == EWarning::TpuNozzleMultipleFilaments) {
+        } else if (warning == EWarning::TpuNozzleMultipleFilaments) {
             if (state) {
                 notification_manager.push_slicing_customize_error_notification(NotificationType::BBLTpuNozzleHasMultiFilament, NotificationLevel::WarningNotificationLevel, text);
             } else {
@@ -13626,8 +13966,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             } else {
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLPrintedWeightOverLimitWarn, NotificationLevel::WarningNotificationLevel);
             }
-        }
-        else if (warning == EWarning::HighTempNeedWrappingDetection) {
+        } else if (warning == EWarning::HighTempNeedWrappingDetection) {
             if (state) {
                 notification_manager.push_slicing_customize_error_notification(NotificationType::BBLHighTempNeedWrappingDetection, NotificationLevel::WarningNotificationLevel, text,
                     _u8L("Enable Clumping Detection"),
@@ -13644,8 +13983,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             } else {
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLHighTempNeedWrappingDetection, NotificationLevel::WarningNotificationLevel);
             }
-        }
-        else if (warning == EWarning::SingleExtruderMixedFilament) {
+        } else if (warning == EWarning::SingleExtruderMixedFilament) {
             if (state) {
                 notification_manager.push_slicing_customize_error_notification(
                     NotificationType::BBLSingleExtruderMixedFilamentRisk,
@@ -13656,8 +13994,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                     NotificationType::BBLSingleExtruderMixedFilamentRisk,
                     NotificationLevel::WarningNotificationLevel);
             }
-        }
-        else {
+        } else {
             if (state)
                 notification_manager.push_plater_warning_notification(text);
             else
@@ -13767,15 +14104,6 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         else
             notification_manager.close_slicing_customize_error_notification(NotificationType::BBLSliceMultiExtruderHeightOutside, NotificationLevel::ErrorNotificationLevel);
         break;
-    case ASSEMBLY_WARNNING:
-    {
-        text = get_assembly_too_far_text();
-        if (state)
-            notification_manager.push_assembly_warning_notification(text);
-        else
-            notification_manager.close_assembly_warning_notification(text);
-        break;
-    }
     default:
         break;
     }
