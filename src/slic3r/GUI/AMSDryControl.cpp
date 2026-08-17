@@ -1634,31 +1634,9 @@ void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
         }
     }
 
-    if (m_printer_status.m_is_printing && temp_val  > m_ams_info.m_recommand_dry_temp) {
+    if (m_printer_status.m_is_printing && temp_val > m_ams_info.m_recommand_dry_temp) {
         warning_text += _L("This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.") + "\n";
         can_enable_button = false;
-    } else if (preset.has_value()) {
-        // Only check heat distortion temperature when AMS has filament inserted;
-        // empty AMS only needs to respect the device hardware temperature limit.
-        bool has_filament_inserted = false;
-        for (const auto& tray_pair : dev_ams->GetTrays()) {
-            if (!tray_pair.second) continue;
-            int slot_id = 0;
-            try { slot_id = std::stoi(tray_pair.first); } catch (...) { continue; }
-            if (!dev_ams->IsDryableSlot(slot_id)) continue;
-            if (tray_pair.second->is_exists) {
-                has_filament_inserted = true;
-                break;
-            }
-        }
-        if (has_filament_inserted) {
-            auto limit_temperature = preset.value().filament_dev_ams_drying_heat_distortion_temperature[dev_ams->GetAmsType()];
-            if (temp_val > limit_temperature) {
-                warning_text += _L("The temperature shall not exceed the filament's heat distortion temperature") + "(" +
-                    wxString::Format(wxT("%d"), static_cast<int>(limit_temperature)) + wxString::FromUTF8("°C)\n");
-                can_enable_button = false;
-            }
-        }
     }
 
     if (time_val < 1) {
