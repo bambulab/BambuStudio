@@ -296,6 +296,15 @@ void DragDropPanel::UpdateLabel(const wxString &label)
     }
 }
 
+void DragDropPanel::SetGridColumns(int cols)
+{
+    if (cols <= 0 || m_grid_item_sizer->GetCols() == cols)
+        return;
+    m_grid_item_sizer->SetCols(cols);
+    Layout();
+    Fit();
+}
+
 std::vector<int> DragDropPanel::GetAllFilaments() const
 {
     std::vector<int>          filaments;
@@ -487,6 +496,23 @@ void SeparatedDragDropPanel::UpdateLabel(const wxString &label)
         m_label->Refresh();
         Layout();
     }
+}
+
+void SeparatedDragDropPanel::UpdateVolumeTypeCounts(int standard_count, int high_flow_count, int tpu_count)
+{
+    auto with_count = [](const wxString &name, int count) { return wxString::Format("%s: %d", name, count); };
+    m_standard_panel->UpdateLabel(with_count(_L("Standard"), standard_count));
+    m_high_flow_panel->UpdateLabel(with_count(_L("High Flow"), high_flow_count));
+    m_tpu_panel->UpdateLabel(with_count(_L("TPU285"), tpu_count));
+    Layout();
+}
+
+void SeparatedDragDropPanel::SetUnifiedGridColumns(int cols)
+{
+    if (!m_unified_panel)
+        return;
+    m_unified_panel->SetGridColumns(cols);
+    Layout();
 }
 
 void SeparatedDragDropPanel::SetUnifiedContentMaxWidth(int max_width)

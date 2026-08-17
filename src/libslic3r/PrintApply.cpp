@@ -1182,6 +1182,14 @@ static PrintObjectRegions* generate_print_object_regions(
     return out.release();
 }
 
+// 两份 nozzle map 里各耗材是否仍属于同一组；同组内换到哪个具体喷嘴不算变化。
+static bool same_ams_grouping(const std::vector<int> &old_map, const std::vector<int> &new_map, int ams_idx)
+{
+    return old_map.size() == new_map.size() &&
+        std::equal(old_map.begin(), old_map.end(), new_map.begin(),
+                   [ams_idx](int old_nozzle, int new_nozzle) { return (old_nozzle == ams_idx) == (new_nozzle == ams_idx); });
+}
+
 Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_config, bool extruder_applied)
 {
 #ifdef _DEBUG
@@ -1423,19 +1431,22 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             }
         }
         else {
-            print_diff_set.erase("extruder_ams_count");
+            const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(new_full_config);
+            // 该机型靠 extruder_ams_count 判断外接 AMS，手动模式也要同步到 m_config；其余机型只用于自动分组。
+            if (!single_ext_multi_nozzle)
+                print_diff_set.erase("extruder_ams_count");
             if (map_mode == fmmManual) {
-                auto handle_hotend_as_extruder = new_full_config.option<ConfigOptionBool>("handle_hotend_as_extruder");
-                auto extruder_max_nozzle_count = new_full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-                bool single_ext_multi_nozzle = handle_hotend_as_extruder && handle_hotend_as_extruder->value &&
-                    extruder_max_nozzle_count &&
-                    std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int v) { return v > 1; });
                 if (single_ext_multi_nozzle && print_diff_set.find("filament_nozzle_map") != print_diff_set.end()) {
-                    print_diff_set.erase("filament_nozzle_map");
                     ConfigOptionInts* old_opt = m_full_print_config.option<ConfigOptionInts>("filament_nozzle_map", true);
                     ConfigOptionInts* new_opt = new_full_config.option<ConfigOptionInts>("filament_nozzle_map", true);
-                    old_opt->set(new_opt);
-                    m_config.filament_nozzle_map = *new_opt;
+                    // 该机型 filament_map 恒为全 1，AMS 组与固定组的划分只存在于这个 key：
+                    // 手动分组时用户在弹窗里跨组拖动耗材只体现在这里，擦了 psWipeTower 不失效、分组不会重算。
+                    // 组归属没变则只是后端把固定组耗材回写成具体喷嘴号，仍要擦掉，否则每切一次又触发一次。
+                    if (same_ams_grouping(m_config.filament_nozzle_map.values, new_opt->values, get_effective_ams_nozzle_idx(new_full_config))) {
+                        print_diff_set.erase("filament_nozzle_map");
+                        old_opt->set(new_opt);
+                        m_config.filament_nozzle_map = *new_opt;
+                    }
                 } else if (!single_ext_multi_nozzle) {
                     print_diff_set.erase("filament_nozzle_map");
                 }

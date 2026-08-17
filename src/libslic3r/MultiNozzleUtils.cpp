@@ -55,11 +55,7 @@ std::vector<NozzleInfo> build_nozzle_list_from_extruder_nozzles(const PrintConfi
     const bool has_per_slot_diameter = (static_cast<int>(diams.size()) == total);
     const bool has_slot_id           = (static_cast<int>(slots.size()) == total);
 
-    const size_t extruder_nums = print_config.nozzle_diameter.values.size();
-    const bool has_multiple_nozzle = std::any_of(print_config.extruder_max_nozzle_count.values.begin(),
-                                                 print_config.extruder_max_nozzle_count.values.end(),
-                                                 [](int v) { return v > 1; });
-    const bool single_ext_multi_nozzle = print_config.handle_hotend_as_extruder && extruder_nums == 1 && has_multiple_nozzle;
+    const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(print_config);
 
     // List spans every physical slot so that group_id == index == physical slot.
     int list_size = total;

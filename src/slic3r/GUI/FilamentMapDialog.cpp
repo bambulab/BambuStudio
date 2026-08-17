@@ -128,32 +128,37 @@ std::vector<FilamentMapMode> resolve_available_auto_modes(Print* print_obj, cons
     return result;
 }
 
-bool convert_multi_nozzle_manual_maps(const ConfigBase& config, std::vector<int>& filament_maps, size_t filament_count, std::vector<int>& nozzle_maps)
+bool build_multi_nozzle_manual_maps(const ConfigBase       &config,
+                                    const std::vector<int> &dialog_maps,
+                                    std::vector<int>       &out_filament_maps,
+                                    std::vector<int>       &out_nozzle_maps)
 {
-    auto opt_hotend = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
-    auto ext_nozzle_cnt = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-    bool is_multi_nozzle_style = opt_hotend && opt_hotend->value && ext_nozzle_cnt &&
-        std::any_of(ext_nozzle_cnt->values.begin(), ext_nozzle_cnt->values.end(), [](int v) { return v > 1; });
-    if (!is_multi_nozzle_style)
+    if (!is_single_ext_multi_nozzle(config))
         return false;
 
-    if (filament_maps.empty())
-        filament_maps.assign(filament_count, 1);
-
+    auto ext_nozzle_cnt = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
     int total_nozzles = ext_nozzle_cnt->values.empty() ? 0 : ext_nozzle_cnt->values[0];
     int ams_idx = get_effective_ams_nozzle_idx_for_active_diameter(config);
     bool has_ams = (ams_idx >= 0);
 
-    nozzle_maps.assign(filament_maps.size(), 0);
+    out_nozzle_maps.assign(dialog_maps.size(), 0);
     if (has_ams) {
-        const std::vector<int> fixed_nozzle_ids = get_fixed_nozzle_indices(total_nozzles, ams_idx);
-        const int fixed_marker = fixed_nozzle_ids.empty() ? 0 : fixed_nozzle_ids.front();
-        for (size_t i = 0; i < filament_maps.size(); ++i)
-            nozzle_maps[i] = (filament_maps[i] == 1) ? ams_idx : fixed_marker;
+        // 固定组取第一个非 AMS 喷嘴当代表：组内哪个都行，后端会挑兼容的具体喷嘴
+        int fixed_group_nozzle_idx = 0;
+        for (int nozzle = 0; nozzle < total_nozzles; ++nozzle) {
+            if (nozzle != ams_idx) {
+                fixed_group_nozzle_idx = nozzle;
+                break;
+            }
+        }
+
+        // 面板的 1 是 AMS 栏，2 是固定喷嘴栏
+        for (size_t i = 0; i < dialog_maps.size(); ++i)
+            out_nozzle_maps[i] = (dialog_maps[i] == 1) ? ams_idx : fixed_group_nozzle_idx;
     }
 
-    // Single-extruder multi-nozzle machines keep one real extruder; group choice lives in filament_nozzle_map.
-    std::fill(filament_maps.begin(), filament_maps.end(), 1);
+    // 这类机型只有一个真实挤出机，filament_map 恒为全 1，分组只存在 filament_nozzle_map 里
+    out_filament_maps.assign(dialog_maps.size(), 1);
     return true;
 }
 
@@ -206,8 +211,9 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     applied_maps.resize(filament_colors.size(), 1);
     applied_volume_maps.resize(filament_colors.size(), 0);
 
-    // N1X keeps the AMS/fixed split in filament_nozzle_map (filament_map stays all-1). Rebuild the
-    // manual-panel display from it whenever available, regardless of the current mode.
+    // Single-extruder multi-nozzle machines keep the AMS/fixed split in filament_nozzle_map
+    // (filament_map stays all-1). Rebuild the manual-panel display from it whenever available,
+    // regardless of the current mode.
     {
         auto opt_hotend = full_config.option<ConfigOptionBool>("handle_hotend_as_extruder");
         int ams_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_config);
@@ -262,11 +268,13 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
         std::vector<int> new_maps = map_dlg.get_filament_maps();
         std::vector<int> new_volume_maps = map_dlg.get_filament_volume_maps();
 
+        // Backend representation of new_maps, only filled on single-extruder multi-nozzle machines.
+        std::vector<int> backend_filament_maps;
         std::vector<int> new_nozzle_maps;
-        if (new_mode == fmmManual && convert_multi_nozzle_manual_maps(full_config, new_maps, filament_colors.size(), new_nozzle_maps)) {
+        if (new_mode == fmmManual && build_multi_nozzle_manual_maps(full_config, new_maps, backend_filament_maps, new_nozzle_maps)) {
             auto apply_to_plate = [&](PartPlate* plate) {
                 plate->set_filament_map_mode(new_mode);
-                plate->set_filament_maps(new_maps);
+                plate->set_filament_maps(backend_filament_maps);
                 plate->set_filament_volume_maps(new_volume_maps);
                 plate->set_filament_nozzle_maps(new_nozzle_maps);
             };
@@ -361,7 +369,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                           *parent,
 
 
     auto       full_config          = wxGetApp().preset_bundle->full_config();
-    const bool is_multi_nozzle_mode = is_multi_nozzle_single_extruder(full_config);
+    const bool is_multi_nozzle_mode = is_single_ext_multi_nozzle(full_config);
     const bool single_default_mode  = is_multi_nozzle_mode && get_effective_ams_nozzle_idx_for_active_diameter(full_config) < 0;
 
     if (is_auto_filament_map_mode(mode))

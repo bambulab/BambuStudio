@@ -54,15 +54,6 @@ wxString get_fixed_nozzle_label(int total_count, int ams_index_0based)
     }
     return label;
 }
-bool is_multi_nozzle_single_extruder(const ConfigBase &config)
-{
-    auto       opt_hotend                = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
-    auto       nozzle_diameters          = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    auto       extruder_max_nozzle_count = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-    const bool support_multi_nozzle      = extruder_max_nozzle_count &&
-                                      std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int val) { return val > 1; });
-    return opt_hotend && opt_hotend->value && nozzle_diameters && nozzle_diameters->size() == 1 && support_multi_nozzle;
-}
 
 int get_effective_ams_nozzle_idx_for_active_diameter(const ConfigBase& config)
 {
@@ -579,6 +570,11 @@ bool FilamentMapManualPanel::Show(bool show)
 
 // ===================== FilamentMapMultiNozzlePanel =====================
 
+static constexpr int AMS_PANEL_MIN_WIDTH   = 160;
+static constexpr int FIXED_PANEL_MIN_WIDTH = 360;
+// 列宽由盒宽均分，默认 6 列在 AMS 盒宽度下小于图标宽度，图标之间就没有间隙。
+static constexpr int AMS_PANEL_GRID_COLS   = 4;
+
 FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow                       *parent,
                                          const std::vector<std::string> &type,
                                          const std::vector<int>         &filament_list,
@@ -634,10 +630,9 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
     }
 
     if (has_ams) {
-        // 这里不要限制内部网格宽度：AMS（左）盒拖入的耗材数量不定，限制宽度被 6 列网格
-        // 均分到小于图标尺寸后图标会挤在一起没间隙。保持原有均衡尺寸即可。
-        m_left_panel->SetMinSize({FromDIP(160), -1});
-        m_right_panel->SetMinSize({FromDIP(360), -1});
+        m_left_panel->SetUnifiedGridColumns(AMS_PANEL_GRID_COLS);
+        m_left_panel->SetMinSize({FromDIP(AMS_PANEL_MIN_WIDTH), -1});
+        m_right_panel->SetMinSize({FromDIP(FIXED_PANEL_MIN_WIDTH), -1});
         drag_sizer->Add(m_left_panel, 3, wxALIGN_CENTER | wxEXPAND);
         drag_sizer->AddSpacer(FromDIP(12));
         drag_sizer->Add(m_right_panel, 7, wxALIGN_CENTER | wxEXPAND);
@@ -766,8 +761,8 @@ void FilamentMapMultiNozzlePanel::SyncPanelHeights()
     if (!m_right_panel) return;
 
     if (m_left_panel) {
-        m_left_panel->SetMinSize(wxSize(FromDIP(160), -1));
-        m_right_panel->SetMinSize(wxSize(FromDIP(360), -1));
+        m_left_panel->SetMinSize(wxSize(FromDIP(AMS_PANEL_MIN_WIDTH), -1));
+        m_right_panel->SetMinSize(wxSize(FromDIP(FIXED_PANEL_MIN_WIDTH), -1));
 
         m_left_panel->Layout();
         m_left_panel->Fit();
@@ -779,8 +774,8 @@ void FilamentMapMultiNozzlePanel::SyncPanelHeights()
 
         int max_height = std::max(left_best_size.GetHeight(), right_best_size.GetHeight());
 
-        m_left_panel->SetMinSize(wxSize(FromDIP(160), max_height));
-        m_right_panel->SetMinSize(wxSize(FromDIP(360), max_height));
+        m_left_panel->SetMinSize(wxSize(FromDIP(AMS_PANEL_MIN_WIDTH), max_height));
+        m_right_panel->SetMinSize(wxSize(FromDIP(FIXED_PANEL_MIN_WIDTH), max_height));
     } else {
         m_right_panel->Layout();
         m_right_panel->Fit();
@@ -893,6 +888,16 @@ void FilamentMapMultiNozzlePanel::UpdateNozzleCountDisplay()
     };
 
     int total = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0);
+    wxString         ams_label, fixed_label;
+    NozzleVolumeType ams_type = nvtStandard;
+    if (has_ams) {
+        ams_label   = get_ams_nozzle_label(m_ams_nozzle_idx);
+        fixed_label = get_fixed_nozzle_label(m_total_nozzle_count, m_ams_nozzle_idx);
+
+        auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
+        if ((int) full_stats.size() > m_ams_nozzle_idx && !full_stats[m_ams_nozzle_idx].second.empty())
+            ams_type = DevNozzle::ToNozzleVolumeType(full_stats[m_ams_nozzle_idx].second);
+    }
 
     if (m_right_panel->IsUseSeparation()) {
         int standard_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0, NozzleVolumeType::nvtStandard);
@@ -900,49 +905,25 @@ void FilamentMapMultiNozzlePanel::UpdateNozzleCountDisplay()
         int tpu_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0, NozzleVolumeType::nvtTPUHighFlow)
                       + preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0, NozzleVolumeType::nvtTPU285);
 
+        int right_std = standard_count, right_hf = highflow_count, right_tpu = tpu_count;
         if (has_ams) {
-            NozzleVolumeType ams_type = nvtStandard;
-            auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
-            if ((int)full_stats.size() > m_ams_nozzle_idx && !full_stats[m_ams_nozzle_idx].second.empty()) {
-                ams_type = DevNozzle::ToNozzleVolumeType(full_stats[m_ams_nozzle_idx].second);
-            }
+            // 固定组的数量要扣掉被 AMS 占用的那个喷嘴
+            auto fixed_group_count = [&](NozzleVolumeType vt, int all_count, bool taken_by_ams) {
+                return has_full_stat ? fixed_count_of(vt) : (taken_by_ams ? std::max(0, all_count - 1) : all_count);
+            };
+            right_std = fixed_group_count(nvtStandard, standard_count, ams_type == nvtStandard);
+            right_hf  = fixed_group_count(nvtHighFlow, highflow_count, ams_type == nvtHighFlow);
+            right_tpu = fixed_group_count(nvtTPU285, tpu_count, ams_type == nvtTPUHighFlow || ams_type == nvtTPU285);
 
-            wxString ams_label   = get_ams_nozzle_label(m_ams_nozzle_idx);
-            wxString fixed_label = get_fixed_nozzle_label(m_total_nozzle_count, m_ams_nozzle_idx);
-
-            int left_count = m_ams_slot_count;
-            wxString left_title = wxString::Format(ams_label + "(%d) - %s", left_count, get_volume_type_label(ams_type));
-            m_left_panel->UpdateLabel(left_title);
-
-            int right_std = has_full_stat ? fixed_count_of(nvtStandard)
-                                          : ((ams_type == nvtStandard) ? std::max(0, standard_count - 1) : standard_count);
-            int right_hf  = has_full_stat ? fixed_count_of(nvtHighFlow)
-                                          : ((ams_type == nvtHighFlow) ? std::max(0, highflow_count - 1) : highflow_count);
-            int right_tpu = has_full_stat ? fixed_count_of(nvtTPU285)
-                                          : ((ams_type == nvtTPUHighFlow || ams_type == nvtTPU285) ? std::max(0, tpu_count - 1) : tpu_count);
-
-            wxString right_title;
-            if (tpu_count > 0)
-                right_title = wxString::Format(fixed_label + "(Std: %d, HF: %d, TPU285: %d)", right_std, right_hf, right_tpu);
-            else
-                right_title = wxString::Format(fixed_label + "(Std: %d, HF: %d)", right_std, right_hf);
-            m_right_panel->UpdateLabel(right_title);
-        } else {
-            wxString title;
-            if (tpu_count > 0)
-                title = wxString::Format(_L("Nozzle (%d) - Std: %d, HF: %d, TPU285: %d"), m_total_nozzle_count, standard_count, highflow_count, tpu_count);
-            else
-                title = wxString::Format(_L("Nozzle (%d) - Std: %d, HF: %d"), m_total_nozzle_count, standard_count, highflow_count);
-            m_right_panel->UpdateLabel(title);
+            m_left_panel->UpdateLabel(wxString::Format(ams_label + "(%d) - %s", m_ams_slot_count, get_volume_type_label(ams_type)));
         }
+
+        // 主标题只保留喷嘴编号，各流量类型的数量挂到次级标题上
+        m_right_panel->UpdateLabel(has_ams ? fixed_label : wxString::Format(_L("Nozzle (%d)"), m_total_nozzle_count));
+        m_right_panel->UpdateVolumeTypeCounts(right_std, right_hf, right_tpu);
     } else {
         if (has_ams) {
-            wxString ams_label   = get_ams_nozzle_label(m_ams_nozzle_idx);
-            wxString fixed_label = get_fixed_nozzle_label(m_total_nozzle_count, m_ams_nozzle_idx);
-
-            int left_count = m_ams_slot_count;
-            wxString left_title = wxString::Format(ams_label + "(%d)", left_count);
-            m_left_panel->UpdateLabel(left_title);
+            m_left_panel->UpdateLabel(wxString::Format(ams_label + "(%d)", m_ams_slot_count));
 
             int right_count = 0;
             if (has_full_stat)
@@ -954,7 +935,7 @@ void FilamentMapMultiNozzlePanel::UpdateNozzleCountDisplay()
         } else {
             // 单挤出机多喷嘴且只有一种流量类型时：统一喷嘴组用机型 AMS
             // 名称标注，而非喷嘴数量/流量类型。
-            std::string model_id = is_multi_nozzle_single_extruder(full_cfg)
+            std::string model_id = is_single_ext_multi_nozzle(full_cfg)
                                        ? preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle)
                                        : std::string();
             wxString title;

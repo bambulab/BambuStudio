@@ -35,23 +35,9 @@ static bool should_pop_up()
     return (nozzle_diameters && nozzle_diameters->size() > 1) || support_multi_nozzle;
 }
 
-static bool is_multi_nozzle_single_extruder()
-{
-    const auto &full_config = wxGetApp().preset_bundle->full_config();
-    auto opt_hotend = full_config.option<ConfigOptionBool>("handle_hotend_as_extruder");
-    auto nozzle_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    auto extruder_max_nozzle_count = full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-    bool support_multi_nozzle = extruder_max_nozzle_count
-        && std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(),
-                       [](int val) { return val > 1; });
-    return opt_hotend && opt_hotend->value
-        && nozzle_diameters && nozzle_diameters->size() == 1
-        && support_multi_nozzle;
-}
-
 static void get_nozzle_group_names(wxString &left_name, wxString &right_name)
 {
-    if (is_multi_nozzle_single_extruder(wxGetApp().preset_bundle->full_config())) {
+    if (is_single_ext_multi_nozzle(wxGetApp().preset_bundle->full_config())) {
         const auto &full_config = wxGetApp().preset_bundle->full_config();
         auto nozzle_count_opt = full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
         int total = (nozzle_count_opt && !nozzle_count_opt->values.empty()) ? nozzle_count_opt->values[0] : 1;
@@ -322,7 +308,7 @@ void FilamentGroupPopup::UpdateNozzleLabels()
     wxString deputy_nozzle_lower, main_nozzle_lower;
     get_nozzle_group_names(deputy_nozzle_lower, main_nozzle_lower);
 
-    const bool single_ext_multi_nozzle = is_multi_nozzle_single_extruder(wxGetApp().preset_bundle->full_config());
+    const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(wxGetApp().preset_bundle->full_config());
     const bool no_ams = single_ext_multi_nozzle
         && get_effective_ams_nozzle_idx_for_active_diameter(wxGetApp().preset_bundle->full_config()) < 0;
 
@@ -483,7 +469,7 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice
         this->m_slice_all = slice_all;
 
         std::vector<FilamentMapMode> new_available_modes;
-        if (is_multi_nozzle_single_extruder(wxGetApp().preset_bundle->full_config())
+        if (is_single_ext_multi_nozzle(wxGetApp().preset_bundle->full_config())
             && get_effective_ams_nozzle_idx_for_active_diameter(wxGetApp().preset_bundle->full_config()) < 0) {
 
             new_available_modes = connect_status ? std::vector<FilamentMapMode>{ fmmAutoForMatch, fmmManual } :

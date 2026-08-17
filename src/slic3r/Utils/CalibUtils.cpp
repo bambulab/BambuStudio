@@ -520,8 +520,7 @@ static void init_multi_extruder_params_for_cali(DynamicPrintConfig& config, cons
         return;
 
     const auto& max_nozzle_counts = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count", true)->values;
-    const bool has_multiple_nozzle = std::any_of(max_nozzle_counts.begin(), max_nozzle_counts.end(), [](int v) { return v > 1; });
-    const bool single_ext_multi_nozzle = config.opt_bool("handle_hotend_as_extruder") && extruder_count == 1 && has_multiple_nozzle;
+    const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(config);
 
     if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported() || single_ext_multi_nozzle) {
         int nozzle_map = get_filament_nozzle_map_value(obj, calib_info.nozzle_pos_id);

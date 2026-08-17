@@ -1453,7 +1453,7 @@ FilamentGroupContext build_filament_group_context(
     // Single-extruder multi-nozzle (N1X): one physical extruder driving several nozzles. AMS presence
     // is a separate runtime fact: ams_nozzle_idx_ctx >= 0 means the AMS-fed nozzle exists at that slot;
     // when no AMS is connected every nozzle is a dedicated fixed nozzle (one filament each, no flush).
-    bool single_ext_multi_nozzle = print_config.handle_hotend_as_extruder && extruder_nums == 1 && has_multiple_nozzle;
+    bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(print_config);
 
     // 收集不可打印限制
     std::vector<std::set<int>> ext_unprintable_filaments(2);
@@ -2051,7 +2051,7 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
         print_config.extruder_max_nozzle_count.values.end(),
         [](int v) { return v>1;});
     bool has_multiple_extruder = extruder_nums > 1;
-    bool single_ext_multi_nozzle = print_config.handle_hotend_as_extruder && extruder_nums == 1 && has_multiple_nozzle;
+    bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(print_config);
 
     // N1X fmmManual stores only AMS/fixed grouping; the backend assigns concrete compatible nozzles.
     // fmmNozzleManual remains an explicit filament -> logical nozzle map.

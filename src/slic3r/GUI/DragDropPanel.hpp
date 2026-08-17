@@ -30,6 +30,7 @@ public:
     void RemoveColorBlock(ColorPanel *panel, bool update_ui = true);
     void DoDragDrop(ColorPanel *panel, const std::string &type, int filament_id);
     void UpdateLabel(const wxString &label);
+    void SetGridColumns(int cols);
 
     std::vector<int> GetAllFilaments() const;
 
@@ -93,6 +94,10 @@ public:
     bool IsUseSeparation() const { return m_use_separation; }
     void ClearAllBlocks();
     void UpdateLabel(const wxString &label);
+    // 把各流量类型的喷嘴数量挂到次级标题上，主标题只保留喷嘴编号。
+    void UpdateVolumeTypeCounts(int standard_count, int high_flow_count, int tpu_count);
+    // 列数决定 unified（非分隔）网格的列宽，列宽小于图标宽度时图标之间就没有间隙。
+    void SetUnifiedGridColumns(int cols);
     // 限制 unified（非分隔）耗材网格宽度，使外层拖放盒被拉宽时图标仍保持紧凑间距。
     void SetUnifiedContentMaxWidth(int max_width);
 

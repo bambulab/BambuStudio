@@ -3108,8 +3108,7 @@ void Print::resolve_manual_nozzle_map(const std::vector<unsigned int>& used_fila
     const bool has_multiple_nozzle = std::any_of(m_config.extruder_max_nozzle_count.values.begin(),
                                                  m_config.extruder_max_nozzle_count.values.end(),
                                                  [](int v) { return v > 1; });
-    const bool single_ext_multi_nozzle =
-        m_config.handle_hotend_as_extruder && m_config.nozzle_diameter.size() == 1 && has_multiple_nozzle;
+    const bool single_ext_multi_nozzle = is_single_ext_multi_nozzle(m_config);
     if (m_config.filament_map_mode.value != FilamentMapMode::fmmNozzleManual || !has_multiple_nozzle || single_ext_multi_nozzle)
         return;
 

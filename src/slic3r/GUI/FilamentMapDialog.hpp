@@ -29,7 +29,22 @@ class SmartFilamentPanel;
 */
 bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref, bool force_pop_up = false);
 std::vector<FilamentMapMode> resolve_available_auto_modes(Print *print_obj, const std::vector<FilamentMapMode> &requested_modes, bool machine_synced);
-bool convert_multi_nozzle_manual_maps(const ConfigBase& config, std::vector<int>& filament_maps, size_t filament_count, std::vector<int>& nozzle_maps);
+/**
+ * @brief Translate a custom-panel result into the maps the backend expects.
+ *
+ * On single-extruder multi-nozzle machines filament_map stays all-1 (there is only one real extruder)
+ * and the panel's AMS/fixed choice (1 = AMS nozzle, 2 = fixed nozzle) moves into filament_nozzle_map.
+ *
+ * @param dialog_maps       What the custom panel returned
+ * @param out_filament_maps Receives the all-1 filament map
+ * @param out_nozzle_maps   Receives the per filament nozzle index
+ * @return false on any other machine, where dialog_maps is already the extruder id and the outputs are
+ *         left untouched
+ */
+bool build_multi_nozzle_manual_maps(const ConfigBase       &config,
+                                    const std::vector<int> &dialog_maps,
+                                    std::vector<int>       &out_filament_maps,
+                                    std::vector<int>       &out_nozzle_maps);
 
 class FilamentMapDialog : public wxDialog
 {

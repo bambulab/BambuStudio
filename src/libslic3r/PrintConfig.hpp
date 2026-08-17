@@ -542,6 +542,7 @@ extern std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<
 // Effective AMS nozzle slot: the configured ams_nozzle_idx when an AMS is actually present
 // (extruder_ams_count has a non-zero slot), otherwise -1 (treat the machine as all fixed nozzles).
 extern int get_effective_ams_nozzle_idx(const ConfigBase &config);
+extern bool is_single_ext_multi_nozzle(const ConfigBase &config);
 extern std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std::map<int, int>> &extruder_ams_count);
 extern NozzleVolumeType convert_to_nvt_type(const std::string& variant_str);
 extern bool is_nozzle_printable_for_filament(NozzleVolumeType machine_nvt, const std::vector<std::string>& filament_variants, bool variants_are_complete);

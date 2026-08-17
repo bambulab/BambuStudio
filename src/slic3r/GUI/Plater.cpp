@@ -27366,8 +27366,7 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     bool need_slice = value ==1;  // If from gcode view, should slice
 
     auto preset_bundle = wxGetApp().preset_bundle;
-    // Make sure the per-slot nozzle snapshot exists before the panel reads it (it is otherwise only
-    // populated on printer model change / 3mf load, so the first open could show empty nozzle info).
+    // 预生成槽位快照
     if (preset_bundle->extruder_full_stat.empty())
         preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
     const auto& project_config = wxGetApp().preset_bundle->project_config;
@@ -27382,9 +27381,8 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     if (plate_filament_volume_maps.size() != filament_colors.size())
         plate_filament_volume_maps.resize(filament_colors.size(), 0);
 
-    // N1X keeps the AMS/fixed split in filament_nozzle_map (filament_map stays all-1). Rebuild the
-    // manual-panel display from it whenever available, regardless of the current mode, so a prior auto
-    // grouping result is also reflected when the user switches to the custom panel.
+    // FilamentMapDialog构造函数参数赋值，plate_filament_maps=1/2 区分左右面板
+    // 单挤出机多喷嘴机型用filament_nozzle_map 记录分组信息(对应plate_filament_maps=1 为AMS组，=2时为固定喷嘴组)
     {
         auto full_cfg = preset_bundle->full_config();
         auto opt_hotend = full_cfg.option<ConfigOptionBool>("handle_hotend_as_extruder");
@@ -27419,7 +27417,7 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     );
 
     if (filament_dlg.ShowModal() == wxID_OK) {
-        std::vector<int> new_filament_maps = filament_dlg.get_filament_maps();
+        const std::vector<int> dialog_filament_maps = filament_dlg.get_filament_maps();//记录用户面板上选择
         std::vector<int> old_filament_maps = curr_plate->get_real_filament_maps(project_config);
 
         FilamentMapMode  old_map_mode = curr_plate->get_filament_map_mode();
@@ -27427,7 +27425,7 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 
         std::vector<int> new_filament_volume_maps = filament_dlg.get_filament_volume_maps();
         std::vector<int> old_filament_volume_maps = curr_plate->get_real_filament_volume_maps(project_config);
-        std::vector<int> old_nozzle_maps = curr_plate->get_filament_nozzle_maps();
+        std::vector<int> new_filament_maps;// 进入后端参数，单挤出机多喷嘴机型全为1，其余机型值等同于dialog_filament_maps
         std::vector<int> new_nozzle_maps;
 
         if (new_map_mode != old_map_mode) {
@@ -27439,17 +27437,18 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
                 new_filament_volume_maps.assign(filament_colors.size(), 0);
 
             auto full_cfg = preset_bundle->full_config();
-            if (convert_multi_nozzle_manual_maps(full_cfg, new_filament_maps, filament_colors.size(), new_nozzle_maps)) {
-                curr_plate->set_filament_maps(new_filament_maps);
-                curr_plate->set_filament_volume_maps(new_filament_volume_maps);
-                curr_plate->set_filament_nozzle_maps(new_nozzle_maps);
+            if (build_multi_nozzle_manual_maps(full_cfg, dialog_filament_maps, new_filament_maps, new_nozzle_maps)) {
+                curr_plate->set_filament_maps(new_filament_maps);//filament_map 恒为全 1
+                curr_plate->set_filament_nozzle_maps(new_nozzle_maps);//记录分组信息
             } else {
+                new_filament_maps = dialog_filament_maps;
                 curr_plate->set_filament_maps(new_filament_maps);
-                curr_plate->set_filament_volume_maps(new_filament_volume_maps);
             }
+            curr_plate->set_filament_volume_maps(new_filament_volume_maps);
         }
 
         bool need_invalidate = (old_map_mode != new_map_mode ||
+                                plate_filament_maps != dialog_filament_maps || //左右面板选择是否发生变化
                                 old_filament_maps != new_filament_maps ||
                                 old_filament_volume_maps != new_filament_volume_maps);
 

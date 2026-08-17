@@ -831,6 +831,19 @@ int get_effective_ams_nozzle_idx(const ConfigBase& config)
     return -1;
 }
 
+bool is_single_ext_multi_nozzle(const ConfigBase& config)
+{
+    const auto* hotend_as_extruder = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+    if (!hotend_as_extruder || !hotend_as_extruder->value)
+        return false;
+    const auto* nozzle_diameters = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (!nozzle_diameters || nozzle_diameters->size() != 1)
+        return false;
+    const auto* max_nozzle_count = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    return max_nozzle_count && std::any_of(max_nozzle_count->values.begin(), max_nozzle_count->values.end(),
+                                           [](int v) { return v > 1; });
+}
+
 std::vector<std::map<NozzleVolumeType,int>> get_extruder_nozzle_stats(const std::vector<std::string>& strs)
 {
     std::vector<std::map<NozzleVolumeType,int>> extruder_nozzle_counts;
