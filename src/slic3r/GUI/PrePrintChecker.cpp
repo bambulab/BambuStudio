@@ -88,6 +88,7 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusAmsSlotNotLoadedWarning: return "PrintStatusAmsSlotNotLoadedWarning";
     case PrintStatusRackAmsNeedManualUnloadWarning: return "PrintStatusRackAmsNeedManualUnloadWarning";
     case PrintStatusRackAmsMixExtAmsWarning: return "PrintStatusRackAmsMixExtAmsWarning";
+    case PrintStatusFilamentWarningHotendLowTempResidue: return "PrintStatusFilamentWarningHotendLowTempResidue";
     case PrintStatusReadingFinished: return "PrintStatusReadingFinished";
     case PrintStatusSendingCanceled: return "PrintStatusSendingCanceled";
     case PrintStatusAmsMappingSuccess: return "PrintStatusAmsMappingSuccess";
@@ -125,6 +126,7 @@ wxString PrePrintChecker::get_pre_state_msg(PrintDialogStatus status)
     case PrintStatusTimelapseNoSdcard: return _L("Storage needs to be inserted to record timelapse.");
     case PrintStatusMixAmsAndVtSlotWarning: return _L("You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing.");
     case PrintStatusRackAmsNeedManualUnloadWarning: return _L("The hotend is loaded with AMS filament that cannot be unloaded automatically. Unloading it manually first is recommended.");
+    case PrintStatusFilamentWarningHotendLowTempResidue: return _L("Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first.");
     case PrintStatusTPUUnsupportAutoCali: 
         return _L("TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. "
                   "If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process.");

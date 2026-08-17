@@ -44,6 +44,8 @@
 
 #include "DeviceCore/DevUtilBackend.h"
 
+#include "libslic3r/Print.hpp"
+
 #include "../Utils/BBLUtil.hpp"
 
 #include <wx/display.h>
@@ -54,6 +56,7 @@
 #include <miniz.h>
 #include <algorithm>
 #include <set>
+#include <unordered_set>
 #include "Plater.hpp"
 #include "Notebook.hpp"
 #include "BitmapCache.hpp"
@@ -2291,6 +2294,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintStatusRackAmsNeedManualUnloadWarning ||
                status == PrintStatusRackAmsMixExtAmsWarning) {
         // Advisory only: the print still runs, it just needs a manual swap.
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
+    } else if (status == PrintStatusFilamentWarningHotendLowTempResidue) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     }
@@ -4856,6 +4862,12 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
                 _get_ext_loc_str(unknown_fila_soften_extruders, obj_->GetExtderSystem()->GetTotalExtderCount()));
             show_status(PrintDialogStatus::PrintStatusFilamentWarningUnknownHighChamberTempSoft, std::vector<wxString> {msg});
             if (PrePrintChecker::is_error(PrintDialogStatus::PrintStatusFilamentWarningUnknownHighChamberTempSoft)) { return; }
+        }
+
+        wxString hotend_residue_msg;
+        if (!CheckWarningHotendLowTempResidue(obj_, hotend_residue_msg)) {
+            show_status(PrintDialogStatus::PrintStatusFilamentWarningHotendLowTempResidue, {hotend_residue_msg});
+            if (PrePrintChecker::is_error(PrintDialogStatus::PrintStatusFilamentWarningHotendLowTempResidue)) { return; }
         }
     }
 
@@ -7997,6 +8009,114 @@ bool SelectMachineDialog::CheckWarningRackAmsMixExtAms(MachineObject* obj_, wxSt
     }
 
     return true;
+}
+
+bool SelectMachineDialog::CheckWarningHotendLowTempResidue(MachineObject* obj_, wxString& warning_msg)
+{
+    warning_msg.clear();
+    if (!obj_ || m_print_type != PrintFromType::FROM_NORMAL) {
+        return true;
+    }
+
+    const auto rack_type = obj_->GetNozzleRack()->GetRackType();
+    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B) {
+        return true;
+    }
+
+    const auto& print = m_plater->get_partplate_list().get_current_fff_print();
+    const auto& print_cfg = print.config();
+    const auto* type_opt = print_cfg.option<ConfigOptionStrings>("filament_type");
+    if (!type_opt) {
+        return true;
+    }
+
+    std::vector<int> used_fila_ids;
+    const auto mapping = obj_->get_nozzle_mapping_result();
+    if (!mapping || !mapping->HasSliceContext()) {
+        return true;
+    }
+    for (unsigned int fid : mapping->GetUsedFilaments()) {
+        used_fila_ids.push_back(static_cast<int>(fid));
+    }
+    if (used_fila_ids.empty()) {
+        return true;
+    }
+
+    bool has_high_temp = false;
+    int max_chamber_temp = 0;
+    const auto& chamber_temps = print_cfg.chamber_temperatures;
+    for (int fid : used_fila_ids) {
+        if (fid < 0) {
+            continue;
+        }
+        if (fid < static_cast<int>(type_opt->size()) &&
+            Print::get_filament_temp_type(type_opt->get_at(fid)) == FilamentTempType::HighTemp) {
+            has_high_temp = true;
+        }
+        if (fid < static_cast<int>(chamber_temps.size())) {
+            max_chamber_temp = std::max(max_chamber_temp, chamber_temps.get_at(fid));
+        }
+    }
+    if (!has_high_temp || max_chamber_temp < 40) {
+        return true;
+    }
+
+    if (mapping->GetFilamentChangeSequence().empty()) {
+        return true;
+    }
+    const int first_fila_id = static_cast<int>(mapping->GetFilamentChangeSequence().front());
+
+    const auto first_mapped = get_mapped_nozzles(first_fila_id);
+    if (first_mapped.empty()) {
+        return true;
+    }
+
+    std::unordered_set<int> skip_pos_ids;
+    for (const auto& [pos_id, _] : first_mapped) {
+        skip_pos_ids.insert(pos_id);
+    }
+
+    std::set<int> residue_display_ids;
+    for (int fid : used_fila_ids) {
+        for (const auto& [pos_id, nozzle] : get_mapped_nozzles(fid)) {
+            if (skip_pos_ids.count(pos_id) || !nozzle.HasFilamentAtNozzleInlet()) {
+                continue;
+            }
+
+            std::string fila_type;
+            if (const auto slot = nozzle.GetSlotNowId(); slot.has_value()) {
+                fila_type = obj_->get_filament_type(std::to_string(slot->first), std::to_string(slot->second));
+            }
+            if (fila_type.empty() && !nozzle.GetFilamentId().empty()) {
+                if (auto info = wxGetApp().preset_bundle->get_filament_by_filament_id(nozzle.GetFilamentId())) {
+                    fila_type = info->filament_type;
+                }
+            }
+            if (Print::get_filament_temp_type(fila_type) != FilamentTempType::LowTemp) {
+                continue;
+            }
+
+            const int display_id = (pos_id >= HOTEND_RACK_INTERNAL_ID_OFFSET)
+                ? pos_id - HOTEND_RACK_INTERNAL_ID_OFFSET + kNozzleDisplayOffset
+                : pos_id + kNozzleDisplayOffset;
+            residue_display_ids.insert(display_id);
+        }
+    }
+    if (residue_display_ids.empty()) {
+        return true;
+    }
+
+    wxString nums;
+    for (int id : residue_display_ids) {
+        if (!nums.empty()) {
+            nums += ",";
+        }
+        nums += wxString::Format("%d", id);
+    }
+    warning_msg = wxString::Format(
+        _L("Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."),
+        nums);
+    return false;
 }
 
 bool SelectMachineDialog::CheckWarningPrintTimeEstimate(MachineObject* obj_, const std::vector<FilamentInfo>& ams_mapping_result)

@@ -549,6 +549,10 @@ public:
     // unload itself. Returns true if no warning; otherwise fills warning_msg.
     bool CheckWarningRackAmsMixExtAms(MachineObject* obj_, wxString& warning_msg);
 
+    // High-temp print with low-temp residue in used hotends (except the first
+    // mapped physical nozzle). Returns true if no warning; otherwise fills warning_msg.
+    bool CheckWarningHotendLowTempResidue(MachineObject* obj_, wxString& warning_msg);
+
     void update_best_pos_dialog(wxCommandEvent &evt);
     void update_ams_check(MachineObject* obj);
     void update_filament_change_count();
