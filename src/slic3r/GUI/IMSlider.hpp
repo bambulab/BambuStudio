@@ -186,6 +186,9 @@ private:
 
     SelectedSlider m_selection;
     bool m_is_one_layer       = false;
+    // Span saved when entering one-layer mode, restored on exit.
+    int  m_pre_one_layer_lower  = 0;
+    int  m_pre_one_layer_higher = 0;
     bool m_menu_enable        = true; //menu
     bool m_show_menu          = false; //menu
     bool m_show_custom_gcode_window = false; //menu

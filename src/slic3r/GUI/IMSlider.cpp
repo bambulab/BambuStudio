@@ -446,11 +446,36 @@ bool IMSlider::switch_one_layer_mode()
     if (m_show_custom_gcode_window)
         return false;
 
-    m_is_one_layer = !m_is_one_layer;
     if (!m_is_one_layer) {
-        SetLowerValue(m_min_value);
-        SetHigherValue(m_max_value);
+        m_pre_one_layer_lower  = m_lower_value;
+        m_pre_one_layer_higher = m_higher_value;
+        m_is_one_layer         = true;
+    } else {
+        m_is_one_layer = false;
+        // In one-layer mode both handles sit on the same tick; the selected handle
+        // is the one the user was driving (top = ssHigher, bottom = ssLower).
+        const int current = (m_selection == ssLower) ? m_lower_value : m_higher_value;
+
+        int restore_lower  = m_pre_one_layer_lower;
+        int restore_higher = m_pre_one_layer_higher;
+        if (restore_lower < m_min_value || restore_higher > m_max_value || restore_lower > restore_higher) {
+            restore_lower  = m_min_value;
+            restore_higher = m_max_value;
+        }
+
+        if (m_selection == ssLower) {
+            m_lower_value  = current;
+            m_higher_value = std::max(current, restore_higher);
+        } else {
+            m_higher_value = current;
+            m_lower_value  = std::min(current, restore_lower);
+        }
+        m_lower_value  = std::max(m_lower_value, m_min_value);
+        m_higher_value = std::min(m_higher_value, m_max_value);
+        if (m_lower_value > m_higher_value)
+            m_lower_value = m_higher_value;
     }
+
     m_selection == ssLower ? correct_lower_value() : correct_higher_value();
     if (m_selection == ssUndef) m_selection = ssHigher;
     set_as_dirty();
