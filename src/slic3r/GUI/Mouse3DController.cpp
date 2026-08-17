@@ -345,7 +345,11 @@ bool Mouse3DController::State::apply(const Mouse3DController::Params &params, Ca
             Vec3d rot = params.rotation.scale * input_queue_item.vector * (PI / 180.);
             if (params.swap_yz)
                 rot = Vec3d(rot.x(), -rot.z(), rot.y());
-            camera.rotate_local_around_target(Vec3d(rot.x(), - rot.z(), rot.y()));
+            // With the horizon locked, orbit on a sphere instead and drop the roll component.
+            if (params.lock_horizon)
+                camera.rotate_on_sphere(- rot.z(), rot.x(), true);
+            else
+                camera.rotate_local_around_target(Vec3d(rot.x(), - rot.z(), rot.y()));
 	    } else {
 	    	assert(input_queue_item.is_buttons());
 	        switch (input_queue_item.type_or_buttons) {
@@ -373,12 +377,14 @@ void Mouse3DController::load_config(const AppConfig &appconfig)
 	    float  rotation_deadzone 	= Params::DefaultRotationDeadzone;
 	    double zoom_speed 			= 2.0;
         bool   swap_yz              = false;
+        bool   lock_horizon         = false;
         appconfig.get_mouse_device_translation_speed(device_name, translation_speed);
 	    appconfig.get_mouse_device_translation_deadzone(device_name, translation_deadzone);
 	    appconfig.get_mouse_device_rotation_speed(device_name, rotation_speed);
 	    appconfig.get_mouse_device_rotation_deadzone(device_name, rotation_deadzone);
 	    appconfig.get_mouse_device_zoom_speed(device_name, zoom_speed);
         appconfig.get_mouse_device_swap_yz(device_name, swap_yz);
+        appconfig.get_mouse_device_lock_horizon(device_name, lock_horizon);
         // clamp to valid values
 	    Params params;
 	    params.translation.scale = Params::DefaultTranslationScale * std::clamp(translation_speed, Params::MinTranslationScale, Params::MaxTranslationScale);
@@ -387,6 +393,7 @@ void Mouse3DController::load_config(const AppConfig &appconfig)
 	    params.rotation.deadzone = std::clamp(rotation_deadzone, 0.0f, Params::MaxRotationDeadzone);
 	    params.zoom.scale = Params::DefaultZoomScale * std::clamp(zoom_speed, 0.1, 10.0);
         params.swap_yz = swap_yz;
+        params.lock_horizon = lock_horizon;
         m_params_by_device[device_name] = std::move(params);
 	}
 }
@@ -402,7 +409,7 @@ void Mouse3DController::save_config(AppConfig &appconfig) const
 		const Params      &params      = key_value_pair.second;
 	    // Store current device parameters into the config
         appconfig.set_mouse_device(device_name, params.translation.scale / Params::DefaultTranslationScale, params.translation.deadzone,
-            params.rotation.scale / Params::DefaultRotationScale, params.rotation.deadzone, params.zoom.scale / Params::DefaultZoomScale, params.swap_yz);
+            params.rotation.scale / Params::DefaultRotationScale, params.rotation.deadzone, params.zoom.scale / Params::DefaultZoomScale, params.swap_yz, params.lock_horizon);
     }
 }
 
@@ -586,6 +593,21 @@ void Mouse3DController::render_settings_dialog(GLCanvas3D& canvas) const
             if (imgui.bbl_checkbox(_L("Swap Y/Z axes"), swap_yz)) {
                 params_copy.swap_yz = swap_yz;
                 params_changed = true;
+            }
+
+            ImGui::SetCursorPosX(max_left_size + max_slider_txt_size - imgui.get_slider_icon_size().x + space_size);
+            bool lock_horizon = params_copy.lock_horizon;
+            if (imgui.bbl_checkbox(_L("Lock horizon"), lock_horizon)) {
+                params_copy.lock_horizon = lock_horizon;
+                params_changed = true;
+                if (lock_horizon) {
+                    // Level the view, or any roll already accumulated stays frozen in place.
+                    Plater *plater = wxGetApp().plater();
+                    if (plater != nullptr) {
+                        plater->get_camera().recover_from_free_camera();
+                        plater->set_current_canvas_as_dirty();
+                    }
+                }
             }
 
 #if ENABLE_3DCONNEXION_DEVICES_DEBUG_OUTPUT
