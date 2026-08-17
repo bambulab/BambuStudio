@@ -243,6 +243,7 @@ void DevNozzleRack::CtrlRackReadAll(bool gui_check) const
     j["print"]["command"] = "holder_nozzle_refresh";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["id"] = 0xff;
+    j["print"]["mode"] = 1;
     m_nozzle_system->GetOwner()->publish_json(j);
 }
 
