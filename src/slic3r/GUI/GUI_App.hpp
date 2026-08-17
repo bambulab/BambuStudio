@@ -711,7 +711,7 @@ public:
     void            open_preferences();
 
     void            report_consent_common(bool agree, std::string scene, std::string formID);
-    virtual bool OnExceptionInMainLoop() override;
+    virtual bool OnExceptionInMainLoop();
     // Calls wxLaunchDefaultBrowser if user confirms in dialog.
     bool            open_browser_with_warning_dialog(const wxString& url, int flags = 0);
 #ifdef __APPLE__
