@@ -49,9 +49,9 @@ std::string DevicePageFilamentSlotStateResolver::ResolveNozzleState(const std::s
                                                                     bool is_lost)
 {
     namespace SV = AmsHotendSchema::values;
+    if (is_lost) return SV::nozzle_state::lost;
     if (!has_tool) return SV::nozzle_state::none;
     if (is_abnormal || card_state == SV::card_state::error) return SV::nozzle_state::error;
-    if (is_lost) return SV::nozzle_state::lost;
     if (line_state == SV::line_state::loaded || line_state == SV::line_state::loading || line_state == SV::line_state::unloading) {
         return SV::nozzle_state::active;
     }

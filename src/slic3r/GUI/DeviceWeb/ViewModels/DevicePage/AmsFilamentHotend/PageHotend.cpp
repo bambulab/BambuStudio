@@ -205,7 +205,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     // visual; an inserted-but-abnormal tool drives the "Error" visual.
     const bool has_tool = rack_nozzle_opt.has_value() && rack_nozzle_opt->IsExist();
     const bool nozzle_abnormal = has_tool && rack_nozzle_opt->IsAbnormal();
-    const bool nozzle_lost = has_tool && rack_nozzle_opt->IsToolLostInHolder();
+    const bool nozzle_lost = rack_nozzle_opt && rack_nozzle_opt->IsToolLostInHolder();
     const std::string nozzle_tool_kind = has_tool ? tool_kind_for_web(rack_nozzle_opt->GetToolDefs()) : std::string(SV::tool_kind::empty);
     const bool current_filament_changing = IsCurrentFilamentChangingSlot(machine_obj, ams_id, tray_id);
     const bool filament_changing = IsFilamentChangeActive(machine_obj);

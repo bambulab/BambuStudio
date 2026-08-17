@@ -35,6 +35,7 @@ export function SlotColumn({
         state={slot.filament_line.state}
         color={slot.filament_line.filament_color || slot.filament_card.color}
         hasFilamentInNozzle={slot.filament_line.has_filament}
+        useFeedLineDisplay={mode === 'normal'}
       />
       <Nozzle
         nozzleState={slot.filament_nozzle.state}
