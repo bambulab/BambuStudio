@@ -39,6 +39,7 @@ const char* decompose_base_color_en(DecomposeBaseColor color)
     case DecomposeBaseColor::Red:     return "Red";
     case DecomposeBaseColor::Green:   return "Green";
     case DecomposeBaseColor::Blue:    return "Blue";
+    case DecomposeBaseColor::Black:   return "Black";
     default:                          return "";
     }
 }
@@ -83,6 +84,7 @@ wxString decompose_base_color_display(DecomposeBaseColor color)
     case DecomposeBaseColor::Red:     return _L("Red");
     case DecomposeBaseColor::Green:   return _L("Green");
     case DecomposeBaseColor::Blue:    return _L("Blue");
+    case DecomposeBaseColor::Black:   return _L("Black");
     default:                          return wxString();
     }
 }
@@ -97,6 +99,8 @@ std::string decompose_basic_type_from_source(size_t source_config_idx,
             const std::string& filament_id = filament_id_opt->values[source_config_idx];
             if (filament_id == kDecomposePetgFilamentId)
                 return kDecomposePetgBasicType;
+            if (filament_id == kDecomposePlaPaletteFilamentId)
+                return kDecomposePlaPaletteType;
             if (filament_id == kDecomposePlaFilamentId)
                 return kDecomposePlaBasicType;
         }
@@ -106,16 +110,36 @@ std::string decompose_basic_type_from_source(size_t source_config_idx,
         const std::string& type = physical_types[source_physical_idx];
         if (type == kDecomposePetgShortType || type == kDecomposePetgBasicType)
             return kDecomposePetgBasicType;
+        if (type == kDecomposePlaPaletteType)
+            return kDecomposePlaPaletteType;
         if (type == kDecomposePlaShortType || type == kDecomposePlaBasicType)
             return kDecomposePlaBasicType;
     }
     return kDecomposePlaBasicType;
 }
 
+// The series picked in the dialog wins over the source slot's: standard-mode
+// recipes are looked up for the selected series, so components must be created
+// from that same series. Anything that is not an official standard-mode series
+// (e.g. a plain "PLA" project slot) falls back to the source slot.
+static std::string resolve_decompose_basic_type(const std::string& selected_type,
+                                                size_t source_config_idx,
+                                                size_t source_physical_idx,
+                                                const std::vector<std::string>& physical_types)
+{
+    if (selected_type == kDecomposePlaBasicType
+        || selected_type == kDecomposePlaPaletteType
+        || selected_type == kDecomposePetgBasicType)
+        return selected_type;
+    return decompose_basic_type_from_source(source_config_idx, source_physical_idx, physical_types);
+}
+
 std::string decompose_basic_filament_id(const std::string& basic_type)
 {
     if (basic_type == kDecomposePetgBasicType)
         return kDecomposePetgFilamentId;
+    if (basic_type == kDecomposePlaPaletteType)
+        return kDecomposePlaPaletteFilamentId;
     return kDecomposePlaFilamentId;
 }
 
@@ -130,8 +154,10 @@ void set_created_standard_component_metadata(size_t config_idx, const DecomposeO
         }
     }
 
+    // PLA Palette is a PLA series, so it shares the plain "PLA" filament_type.
     const std::string type = component.filament_id == kDecomposePetgFilamentId ? kDecomposePetgShortType :
-                             component.filament_id == kDecomposePlaFilamentId ? kDecomposePlaShortType : "";
+                             (component.filament_id == kDecomposePlaFilamentId ||
+                              component.filament_id == kDecomposePlaPaletteFilamentId) ? kDecomposePlaShortType : "";
     if (!type.empty()) {
         if (auto* type_opt = project_config.option<ConfigOptionStrings>("filament_type")) {
             while (type_opt->values.size() <= config_idx)
@@ -210,8 +236,10 @@ std::string find_decompose_standard_preset_name(size_t source_config_idx, const 
             return preset_name;
     }
 
-    // The series may be absent from the project entirely. Fall back to the
-    // preset library, restricted to what is compatible with the active printer.
+    // The series may be absent from the project entirely -- picking "Bambu PLA
+    // Palette" under the standard-mode recommendations does not require a
+    // palette slot to exist. Fall back to the preset library, restricted to what
+    // is compatible with the active printer.
     for (const Preset& preset : preset_bundle.filaments.get_presets()) {
         if (preset.is_system && preset.is_visible && preset.is_compatible && preset.name.find(prefix) == 0)
             return preset.name;
@@ -262,6 +290,8 @@ bool ensure_official_series_installed(const std::string& basic_type)
 
 std::string official_basic_type_from_preset_name(const std::string& preset_name)
 {
+    if (preset_name.find(std::string(kDecomposeBambuPresetPrefix) + kDecomposePlaPaletteType) != std::string::npos)
+        return kDecomposePlaPaletteType;
     if (preset_name.find(std::string(kDecomposeBambuPresetPrefix) + kDecomposePlaBasicType) != std::string::npos)
         return kDecomposePlaBasicType;
     if (preset_name.find(std::string(kDecomposeBambuPresetPrefix) + kDecomposePetgBasicType) != std::string::npos)
@@ -284,8 +314,13 @@ std::string filament_type_for_color_decompose(Preset* preset)
     return ft;
 }
 
-// The source slot is eligible: a 100% official base (or a mix that uses that
-// base) should reuse the existing filament instead of duplicating it.
+static bool is_official_decompose_filament_id(const std::string& id)
+{
+    return id == kDecomposePlaFilamentId
+        || id == kDecomposePlaPaletteFilamentId
+        || id == kDecomposePetgFilamentId;
+}
+
 int find_existing_decompose_component(
     const DecomposeOfficialComponent& component,
     const std::vector<std::string>& physical_colors,
@@ -297,7 +332,11 @@ int find_existing_decompose_component(
     const PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
     const size_t num_physical = physical_colors.size();
     const std::string expected_basic_type = component.filament_id == kDecomposePetgFilamentId ? kDecomposePetgBasicType :
+                                            component.filament_id == kDecomposePlaPaletteFilamentId ? kDecomposePlaPaletteType :
                                             component.filament_id == kDecomposePlaFilamentId ? kDecomposePlaBasicType : "";
+    // PLA Palette shares filament_type "PLA" with PLA Basic, so it intentionally has
+    // no short type here: matching on "PLA" would let the two series reuse each
+    // other's slots. Only filament_id and the preset name identify PLA Palette.
     const std::string expected_short_type = expected_basic_type == kDecomposePetgBasicType ? kDecomposePetgShortType :
                                             expected_basic_type == kDecomposePlaBasicType ? kDecomposePlaShortType : "";
     const std::string expected_preset_part = expected_basic_type.empty() ? "" : std::string(kDecomposeBambuPresetPrefix) + expected_basic_type;
@@ -308,6 +347,14 @@ int find_existing_decompose_component(
         const std::string slot_type = (type_opt && config_idx < type_opt->values.size()) ? type_opt->values[config_idx] : "";
         const std::string preset_name = config_idx < preset_bundle.filament_presets.size() ? preset_bundle.filament_presets[config_idx] : "";
         if (slot_color != component.color_hex) {
+            continue;
+        }
+
+        // Two official series must never reuse each other's slots, even when the
+        // colors happen to be identical.
+        if (!component.filament_id.empty() && !slot_filament_id.empty()
+            && slot_filament_id != component.filament_id
+            && is_official_decompose_filament_id(slot_filament_id)) {
             continue;
         }
 
@@ -350,11 +397,12 @@ bool prepare_decompose_mixed_result(
         return false;
     }
 
-    const bool standard_mode = result.mode == DecomposeMode::CMYW || result.mode == DecomposeMode::RYBW;
+    const bool standard_mode = result.mode == DecomposeMode::CMYW || result.mode == DecomposeMode::RYBW || result.mode == DecomposeMode::CMYKW;
     std::string basic_type;
     std::string preset_name;
     if (standard_mode) {
-        basic_type = kDecomposePlaBasicType;
+        basic_type = resolve_decompose_basic_type(result.material_type, source_config_idx,
+                                                  source_physical_idx, physical_types);
         preset_name = find_decompose_standard_preset_name(source_config_idx, basic_type);
     }
 
@@ -406,9 +454,7 @@ size_t count_decompose_new_physical_filaments(
     size_t source_physical_idx,
     const std::vector<size_t>* physical_config_indices)
 {
-    (void)physical_types;
-    (void)source_physical_idx;
-    if (result.mode != DecomposeMode::CMYW && result.mode != DecomposeMode::RYBW)
+    if (result.mode != DecomposeMode::CMYW && result.mode != DecomposeMode::RYBW && result.mode != DecomposeMode::CMYKW)
         return 0;
 
     std::vector<size_t> fallback_indices;
@@ -420,7 +466,12 @@ size_t count_decompose_new_physical_filaments(
         indices = &fallback_indices;
     }
 
-    const std::string basic_type = kDecomposePlaBasicType;
+    size_t source_config_idx = size_t(-1);
+    if (source_physical_idx < indices->size())
+        source_config_idx = (*indices)[source_physical_idx];
+
+    const std::string basic_type = resolve_decompose_basic_type(result.material_type, source_config_idx,
+                                                                source_physical_idx, physical_types);
 
     size_t missing_count = 0;
     for (const DecomposeComponent& comp : result.components) {

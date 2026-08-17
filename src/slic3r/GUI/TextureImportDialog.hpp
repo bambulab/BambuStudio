@@ -324,11 +324,13 @@ private:
     void reload_existing_filaments_from_project();
     void rematch_after_project_filament_change();
     bool has_complete_pla_basic_cmyw() const;
+    bool has_complete_pla_palette_cmykw() const;
     std::string preferred_mix_family() const;
     void reset_auto_mix();
     bool add_decomposed_mixed_filament(size_t row_index);
     int  add_virtual_filament(const std::array<float, 4>& rgba, const std::string& hex,
-                              const std::string& preset_name = std::string());
+                              const std::string& preset_name = std::string(),
+                              const std::string& display_name = std::string());
     int  add_virtual_mixed_filament(const std::string& color_hex,
                                     const std::vector<int>& component_dialog_indices,
                                     const std::vector<int>& ratios);
@@ -440,6 +442,9 @@ private:
     std::vector<std::string>           m_new_filament_preset_names; // only virtual, aligned with m_new_filament_colors
     std::vector<TextureNewMixedFilament> m_new_mixed_filaments;
     std::string                        m_default_virtual_filament_preset_name;
+    // Empty when the active printer has no PLA Palette preset; CMYKW auto-mix is
+    // skipped in that case rather than silently falling back to PLA Basic.
+    std::string                        m_palette_virtual_filament_preset_name;
 
     TextureImportState                 m_state = TextureImportState::Idle;
     TextureImportWizardStep            m_wizard_step = TextureImportWizardStep::SimplifyColors;

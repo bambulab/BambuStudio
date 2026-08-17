@@ -49,6 +49,13 @@ static const wxColour RYBW_YELLOW(255, 255, 0);
 static const wxColour RYBW_BLUE(0, 0, 255);
 static const wxColour RYBW_WHITE(255, 255, 255);
 
+// Standard CMYKW base colors (must match filaments_color_codes.json GFA20 entries)
+static const wxColour CMYKW_CYAN(0, 144, 218);
+static const wxColour CMYKW_MAGENTA(226, 69, 133);
+static const wxColour CMYKW_YELLOW(252, 227, 0);
+static const wxColour CMYKW_BLACK(0, 0, 0);
+static const wxColour CMYKW_WHITE(255, 255, 255);
+
 static size_t mode_index(DecomposeMode mode)
 {
     return static_cast<size_t>(mode);
@@ -83,6 +90,7 @@ static DecomposeBaseColor standard_base_color_from_key(const std::string& key)
     if (key == "Red")     return DecomposeBaseColor::Red;
     if (key == "Green")   return DecomposeBaseColor::Green;
     if (key == "Blue")    return DecomposeBaseColor::Blue;
+    if (key == "Black")   return DecomposeBaseColor::Black;
     return DecomposeBaseColor::None;
 }
 
@@ -95,6 +103,7 @@ static wxColour pure_color_for_base(DecomposeBaseColor base)
     case DecomposeBaseColor::White:   return CMYW_WHITE;
     case DecomposeBaseColor::Red:     return RYBW_RED;
     case DecomposeBaseColor::Blue:    return RYBW_BLUE;
+    case DecomposeBaseColor::Black:   return CMYKW_BLACK;
     default:                          return *wxBLACK;
     }
 }
@@ -111,6 +120,12 @@ static DecomposeBaseColor standard_base_color_for(DecomposeMode mode, const wxCo
         if (same_rgb(color, RYBW_YELLOW))  return DecomposeBaseColor::Yellow;
         if (same_rgb(color, RYBW_BLUE))    return DecomposeBaseColor::Blue;
         if (same_rgb(color, RYBW_WHITE))   return DecomposeBaseColor::White;
+    } else if (mode == DecomposeMode::CMYKW) {
+        if (same_rgb(color, CMYKW_CYAN))    return DecomposeBaseColor::Cyan;
+        if (same_rgb(color, CMYKW_MAGENTA)) return DecomposeBaseColor::Magenta;
+        if (same_rgb(color, CMYKW_YELLOW))  return DecomposeBaseColor::Yellow;
+        if (same_rgb(color, CMYKW_BLACK))   return DecomposeBaseColor::Black;
+        if (same_rgb(color, CMYKW_WHITE))   return DecomposeBaseColor::White;
     }
     return DecomposeBaseColor::None;
 }
@@ -685,6 +700,7 @@ wxPanel* ColorDecomposeDialog::create_mode_card(wxWindow* parent, DecomposeMode 
     case DecomposeMode::MaterialList: m_chk_material_list = chk; break;
     case DecomposeMode::CMYW:         m_chk_cmyw = chk; break;
     case DecomposeMode::RYBW:         m_chk_rybw = chk; break;
+    case DecomposeMode::CMYKW:        m_chk_cmykw = chk; break;
     }
     chk->Bind(wxEVT_TOGGLEBUTTON, [this, mode](wxCommandEvent& e) {
         select_mode(mode);
@@ -794,7 +810,10 @@ wxBoxSizer* ColorDecomposeDialog::create_mode_selection_section()
         cards_sizer->Add(m_card_cmyw, 0, wxRIGHT, FromDIP(12));
 
         m_card_rybw = create_mode_card(m_std_column_panel, DecomposeMode::RYBW, "RYBW");
-        cards_sizer->Add(m_card_rybw, 0);
+        cards_sizer->Add(m_card_rybw, 0, wxRIGHT, FromDIP(12));
+
+        m_card_cmykw = create_mode_card(m_std_column_panel, DecomposeMode::CMYKW, "CMYKW");
+        cards_sizer->Add(m_card_cmykw, 0);
 
         std_col->Add(cards_sizer, 0, wxEXPAND);
     }
@@ -908,6 +927,7 @@ void ColorDecomposeDialog::update_card_styles()
     if (m_card_material_list) m_card_material_list->Refresh();
     if (m_card_cmyw)          m_card_cmyw->Refresh();
     if (m_card_rybw)          m_card_rybw->Refresh();
+    if (m_card_cmykw)         m_card_cmykw->Refresh();
 
     if (m_chk_material_list)
         m_chk_material_list->SetValue(m_selected_mode == DecomposeMode::MaterialList);
@@ -915,31 +935,36 @@ void ColorDecomposeDialog::update_card_styles()
         m_chk_cmyw->SetValue(m_selected_mode == DecomposeMode::CMYW);
     if (m_chk_rybw)
         m_chk_rybw->SetValue(m_selected_mode == DecomposeMode::RYBW);
+    if (m_chk_cmykw)
+        m_chk_cmykw->SetValue(m_selected_mode == DecomposeMode::CMYKW);
 }
 
 void ColorDecomposeDialog::update_card_visibility()
 {
     const bool is_pla = (m_preferred_family == kDecomposePlaShortType);
-    const bool show_arb  = can_mix_material_list();
-    const bool show_cmyw = is_pla;
-    const bool show_rybw = is_pla;
+    const bool show_arb   = can_mix_material_list();
+    const bool show_cmyw  = is_pla;
+    const bool show_rybw  = is_pla;
+    const bool show_cmykw = is_pla;
 
     if (m_arb_column_panel)   m_arb_column_panel->Show(show_arb);
     if (m_card_material_list) m_card_material_list->Show(show_arb);
-    if (m_std_column_panel)   m_std_column_panel->Show(show_cmyw || show_rybw);
+    if (m_std_column_panel)   m_std_column_panel->Show(show_cmyw || show_rybw || show_cmykw);
     if (m_card_cmyw)          m_card_cmyw->Show(show_cmyw);
     if (m_card_rybw)          m_card_rybw->Show(show_rybw);
+    if (m_card_cmykw)         m_card_cmykw->Show(show_cmykw);
 
-    bool any_visible = show_arb || show_cmyw || show_rybw;
+    bool any_visible = show_arb || show_cmyw || show_rybw || show_cmykw;
     if (any_visible) {
         bool cur_visible = false;
-        if (m_selected_mode == DecomposeMode::MaterialList && show_arb)  cur_visible = true;
-        if (m_selected_mode == DecomposeMode::CMYW && show_cmyw)         cur_visible = true;
-        if (m_selected_mode == DecomposeMode::RYBW && show_rybw)         cur_visible = true;
+        if (m_selected_mode == DecomposeMode::MaterialList && show_arb)   cur_visible = true;
+        if (m_selected_mode == DecomposeMode::CMYW && show_cmyw)          cur_visible = true;
+        if (m_selected_mode == DecomposeMode::RYBW && show_rybw)          cur_visible = true;
+        if (m_selected_mode == DecomposeMode::CMYKW && show_cmykw)        cur_visible = true;
         if (!cur_visible) {
-            if (show_arb)       select_mode(DecomposeMode::MaterialList);
-            else if (show_cmyw) select_mode(DecomposeMode::CMYW);
-            else                select_mode(DecomposeMode::RYBW);
+            if (show_arb)        select_mode(DecomposeMode::MaterialList);
+            else if (show_cmyw)  select_mode(DecomposeMode::CMYW);
+            else if (show_cmykw) select_mode(DecomposeMode::CMYKW);
         }
     }
 
@@ -1045,6 +1070,7 @@ void ColorDecomposeDialog::update_filament_limit_warning()
     switch (m_selected_mode) {
     case DecomposeMode::CMYW:         mode_name = "CMYW"; break;
     case DecomposeMode::RYBW:         mode_name = "RYBW"; break;
+    case DecomposeMode::CMYKW:        mode_name = "CMYKW"; break;
     case DecomposeMode::MaterialList: mode_name = _L("Material List"); break;
     }
 
@@ -1176,6 +1202,7 @@ void ColorDecomposeDialog::update_mode_card_contents()
     update_mode_card_content(DecomposeMode::MaterialList);
     update_mode_card_content(DecomposeMode::CMYW);
     update_mode_card_content(DecomposeMode::RYBW);
+    update_mode_card_content(DecomposeMode::CMYKW);
     Layout();
 }
 
@@ -1286,8 +1313,8 @@ void ColorDecomposeDialog::update_matched_color_display()
 
 bool ColorDecomposeDialog::try_build_single_base_result(DecomposeMode mode, ColorDecomposeResult& out) const
 {
-    // Gate by family, matching card visibility: CMYW and RYBW only for PLA.
-    if (mode == DecomposeMode::CMYW || mode == DecomposeMode::RYBW) {
+    // Gate by family, matching card visibility: all standard cards are PLA only.
+    if (mode == DecomposeMode::CMYW || mode == DecomposeMode::RYBW || mode == DecomposeMode::CMYKW) {
         if (m_preferred_family != kDecomposePlaShortType)
             return false;
     } else {
@@ -1302,10 +1329,28 @@ bool ColorDecomposeDialog::try_build_single_base_result(DecomposeMode mode, Colo
         DecomposeBaseColor::Red, DecomposeBaseColor::Yellow,
         DecomposeBaseColor::Blue, DecomposeBaseColor::White
     };
-    const DecomposeBaseColor* bases = (mode == DecomposeMode::CMYW) ? cmyw_bases : rybw_bases;
-    const size_t base_count = (mode == DecomposeMode::CMYW)
-        ? sizeof(cmyw_bases) / sizeof(cmyw_bases[0])
-        : sizeof(rybw_bases) / sizeof(rybw_bases[0]);
+    static const DecomposeBaseColor cmykw_bases[] = {
+        DecomposeBaseColor::Cyan, DecomposeBaseColor::Magenta,
+        DecomposeBaseColor::Yellow, DecomposeBaseColor::Black, DecomposeBaseColor::White
+    };
+    const DecomposeBaseColor* bases = nullptr;
+    size_t base_count = 0;
+    switch (mode) {
+    case DecomposeMode::CMYW:
+        bases = cmyw_bases;
+        base_count = sizeof(cmyw_bases) / sizeof(cmyw_bases[0]);
+        break;
+    case DecomposeMode::RYBW:
+        bases = rybw_bases;
+        base_count = sizeof(rybw_bases) / sizeof(rybw_bases[0]);
+        break;
+    case DecomposeMode::CMYKW:
+        bases = cmykw_bases;
+        base_count = sizeof(cmykw_bases) / sizeof(cmykw_bases[0]);
+        break;
+    default:
+        return false;
+    }
 
     const std::string target_hex = decompose_normalize_color_hex(
         m_target_color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
@@ -1313,7 +1358,7 @@ bool ColorDecomposeDialog::try_build_single_base_result(DecomposeMode mode, Colo
     for (size_t i = 0; i < base_count; ++i) {
         const DecomposeBaseColor base = bases[i];
         DecomposeOfficialComponent official =
-            lookup_decompose_official_component(kDecomposePlaBasicType, base, pure_color_for_base(base));
+            lookup_decompose_official_component(standard_card_basic_type(mode), base, pure_color_for_base(base));
         if (decompose_normalize_color_hex(official.color_hex) != target_hex)
             continue;
 
@@ -1427,6 +1472,23 @@ void ColorDecomposeDialog::compute_decomposition()
                 {RYBW_BLUE,   50, -1, DecomposeBaseColor::Blue}
             });
     }
+
+    if (try_build_single_base_result(DecomposeMode::CMYKW, single_base)) {
+        m_mode_results[mode_index(DecomposeMode::CMYKW)] = single_base;
+    } else {
+        auto cmykw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::CMYKW, m_preferred_type);
+        m_mode_results[mode_index(DecomposeMode::CMYKW)] = cmykw_recipe.valid
+            ? to_dialog_result(cmykw_recipe, m_target_color)
+            : fallback_result(DecomposeMode::CMYKW, {
+                {CMYKW_YELLOW,  50, -1, DecomposeBaseColor::Yellow},
+                {CMYKW_CYAN,    50, -1, DecomposeBaseColor::Cyan}
+            });
+    }
+
+    // Recipes above were all looked up for the selected material, so tag every
+    // result with it: downstream component creation must use the same series.
+    for (ColorDecomposeResult& mode_result : m_mode_results)
+        mode_result.material_type = m_preferred_type;
 
     m_result = m_mode_results[mode_index(m_selected_mode)];
     update_mode_card_contents();

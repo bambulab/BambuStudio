@@ -54,6 +54,7 @@ namespace Slic3r {
 const std::vector<std::string> &get_filament_orders()
 {
     static std::vector<std::string> orders = {"Bambu PLA Basic",
+                                              "Bambu PLA Palette",
                                               "Bambu PLA Matte",
                                               "Bambu PLA Pure",
                                               "Bambu PLA Lite",

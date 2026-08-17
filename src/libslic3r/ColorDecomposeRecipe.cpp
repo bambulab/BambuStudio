@@ -103,11 +103,19 @@ static double delta_e76(const LabColor& a, const LabColor& b)
     return std::sqrt(std::pow(a.l - b.l, 2.0) + std::pow(a.a - b.a, 2.0) + std::pow(a.b - b.b, 2.0));
 }
 
+// Series-level match, used to pick standard recipe entries. Keeps distinct
+// official series ("PLA Basic" vs "PLA Palette") from sharing measured data.
 static bool material_matches(const std::string& a, const std::string& b)
 {
     if (a.empty() || b.empty())
         return false;
     return a == b || a == b + " Basic" || b == a + " Basic";
+}
+
+static std::string material_family(const std::string& type)
+{
+    const size_t sp = type.find(' ');
+    return sp == std::string::npos ? type : type.substr(0, sp);
 }
 
 static std::vector<std::vector<int>> ratio_grid(size_t n)
@@ -131,6 +139,8 @@ static ColorDecomposeRecipeMode parse_mode(const std::string& s)
 {
     if (s == "RYBW" || s == "RGBY")
         return ColorDecomposeRecipeMode::RYBW;
+    if (s == "CMYKW")
+        return ColorDecomposeRecipeMode::CMYKW;
     return ColorDecomposeRecipeMode::CMYW;
 }
 
@@ -248,8 +258,8 @@ static const std::unordered_map<std::string, std::vector<MeasuredBlendAnchor>>& 
         for (const StandardRecipeEntry& entry : standard_entries()) {
             if (entry.source != "measured" && entry.source != "interpolated")
                 continue;
-            std::string         key;
-            MeasuredBlendAnchor anchor;
+            std::string          key;
+            MeasuredBlendAnchor  anchor;
             if (!canonicalize_blend_components(entry.component_hexes, entry.ratios, key, anchor.ratios))
                 continue;
             anchor.lab = entry.measured_lab;
@@ -294,6 +304,13 @@ static void evaluate_candidate(const ColorDecomposeRgb& target,
 
 } // namespace
 
+bool color_decompose_material_family_matches(const std::string& a, const std::string& b)
+{
+    if (a.empty() || b.empty())
+        return false;
+    return material_family(a) == material_family(b);
+}
+
 std::string color_decompose_rgb_to_hex(const ColorDecomposeRgb& rgb)
 {
     char buf[8];
@@ -324,7 +341,7 @@ ColorDecomposeRecipeResult recommend_from_physical_filaments(
         ColorDecomposeRgb ignored;
         if (!color_decompose_hex_to_rgb(filament.color_hex, ignored))
             continue;
-        if (preferred_material_type.empty() || material_matches(filament.type, preferred_material_type))
+        if (preferred_material_type.empty() || color_decompose_material_family_matches(filament.type, preferred_material_type))
             candidates.push_back(filament);
     }
 
@@ -472,26 +489,35 @@ std::string lookup_measured_blend_color(const std::vector<std::string>& componen
         }
     }
 
-    // Fall back to polynomial model for ratios outside the measured range.
-    {
-        bool out_of_range = false;
-        if (n == 2) {
-            for (int r : in_ratios)
-                if (r < 20 || r > 80) { out_of_range = true; break; }
-        } else {
-            for (int r : in_ratios)
-                if (r < 20) { out_of_range = true; break; }
-        }
-        if (out_of_range)
-            return {};
-    }
-
     // Stage 2: anchors sharing the component set; try exact ratio match.
     const auto& index = measured_blend_index();
     const auto  it    = index.find(in_key);
     if (it == index.end())
         return {};
     const std::vector<MeasuredBlendAnchor>& anchors = it->second;
+
+    // Dynamic range check: reject if any input ratio falls outside the
+    // measured range for this component set. This prevents extrapolation
+    // and ensures older recipes (CMYW/RYBW with min 20%) are unaffected
+    // while CMYKW (min 15%) still benefits from measured data.
+    if (n == 2) {
+        int min_r0 = std::numeric_limits<int>::max();
+        int max_r0 = std::numeric_limits<int>::min();
+        for (const auto& a : anchors) {
+            min_r0 = std::min(min_r0, a.ratios[0]);
+            max_r0 = std::max(max_r0, a.ratios[0]);
+        }
+        if (in_ratios[0] < min_r0 || in_ratios[0] > max_r0)
+            return {};
+    } else {
+        for (size_t dim = 0; dim < n; ++dim) {
+            int measured_min = std::numeric_limits<int>::max();
+            for (const auto& a : anchors)
+                measured_min = std::min(measured_min, a.ratios[dim]);
+            if (in_ratios[dim] < measured_min)
+                return {};
+        }
+    }
 
     for (const MeasuredBlendAnchor& a : anchors)
         if (a.ratios == in_ratios)

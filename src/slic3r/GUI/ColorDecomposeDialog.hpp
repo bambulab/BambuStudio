@@ -31,7 +31,8 @@ enum class DecomposeBaseColor {
     White,
     Red,
     Green,
-    Blue
+    Blue,
+    Black
 };
 
 struct DecomposeComponent {
@@ -45,6 +46,11 @@ struct ColorDecomposeResult {
     DecomposeMode                  mode{DecomposeMode::MaterialList};
     wxColour                       matched_color;
     std::vector<DecomposeComponent> components;
+    // Official series the standard-mode recipe was looked up for, as picked in
+    // the material combo ("PLA Basic" / "PLA Palette" / "PETG Basic"). Consumers
+    // must create components from this series rather than the source slot's, and
+    // fall back to the source slot when it is empty.
+    std::string                    material_type;
 };
 
 // Predicted 1-based IDs for decompose dialog swatches.
@@ -125,8 +131,8 @@ private:
     };
 
     ColorDecomposeResult        m_result;
-    std::array<ColorDecomposeResult, 3> m_mode_results;
-    std::array<ModeCardControls, 3>     m_mode_cards;
+    std::array<ColorDecomposeResult, 4> m_mode_results;
+    std::array<ModeCardControls, 4>     m_mode_cards;
     int                         m_filament_idx{-1};
     wxColour                    m_target_color;
     std::vector<std::string>    m_physical_colors;
@@ -159,11 +165,13 @@ private:
     wxPanel*                    m_card_material_list{nullptr};
     wxPanel*                    m_card_cmyw{nullptr};
     wxPanel*                    m_card_rybw{nullptr};
+    wxPanel*                    m_card_cmykw{nullptr};
     wxPanel*                    m_arb_column_panel{nullptr};
     wxPanel*                    m_std_column_panel{nullptr};
     CheckBox*                   m_chk_material_list{nullptr};
     CheckBox*                   m_chk_cmyw{nullptr};
     CheckBox*                   m_chk_rybw{nullptr};
+    CheckBox*                   m_chk_cmykw{nullptr};
     DecomposeMode               m_selected_mode{DecomposeMode::MaterialList};
 
     // Yellow warning: fewer than two filaments of the selected family

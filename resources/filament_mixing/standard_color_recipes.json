@@ -14700,6 +14700,8156 @@
       ],
       "measured_rgb": "#65974D",
       "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        15,
+        15,
+        70
+      ],
+      "measured_lab": [
+        62.11,
+        0.23,
+        54.24
+      ],
+      "measured_rgb": "#B1932F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        70,
+        15,
+        15
+      ],
+      "measured_lab": [
+        43.7,
+        -10.26,
+        -6.33
+      ],
+      "measured_rgb": "#4D6D71",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        15,
+        70,
+        15
+      ],
+      "measured_lab": [
+        42.55,
+        41.11,
+        0.12
+      ],
+      "measured_rgb": "#A14666",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        15,
+        20,
+        65
+      ],
+      "measured_lab": [
+        60.16,
+        2.66,
+        50.33
+      ],
+      "measured_rgb": "#AE8D34",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        65,
+        15,
+        20
+      ],
+      "measured_lab": [
+        44.17,
+        -10.13,
+        -0.18
+      ],
+      "measured_rgb": "#556D68",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        20,
+        65,
+        15
+      ],
+      "measured_lab": [
+        41.81,
+        37.66,
+        -0.02
+      ],
+      "measured_rgb": "#9A4764",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        15,
+        30,
+        55
+      ],
+      "measured_lab": [
+        54.35,
+        13.06,
+        35.94
+      ],
+      "measured_rgb": "#A97844",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        55,
+        15,
+        30
+      ],
+      "measured_lab": [
+        46.72,
+        -11.2,
+        10.76
+      ],
+      "measured_rgb": "#62745C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        30,
+        55,
+        15
+      ],
+      "measured_lab": [
+        40.65,
+        29.76,
+        -1.68
+      ],
+      "measured_rgb": "#8C4C63",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        15,
+        40,
+        45
+      ],
+      "measured_lab": [
+        52.17,
+        20.67,
+        28.3
+      ],
+      "measured_rgb": "#AB6E4D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        45,
+        15,
+        40
+      ],
+      "measured_lab": [
+        49.49,
+        -7.69,
+        22.4
+      ],
+      "measured_rgb": "#77784F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        40,
+        45,
+        15
+      ],
+      "measured_lab": [
+        40.0,
+        21.93,
+        -3.83
+      ],
+      "measured_rgb": "#7E5165",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        20,
+        30,
+        50
+      ],
+      "measured_lab": [
+        52.74,
+        10.25,
+        33.57
+      ],
+      "measured_rgb": "#9F7644",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        50,
+        20,
+        30
+      ],
+      "measured_lab": [
+        45.96,
+        -4.41,
+        11.81
+      ],
+      "measured_rgb": "#6D6E59",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        30,
+        50,
+        20
+      ],
+      "measured_lab": [
+        41.95,
+        22.27,
+        2.85
+      ],
+      "measured_rgb": "#87555F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        20,
+        40,
+        40
+      ],
+      "measured_lab": [
+        48.77,
+        17.06,
+        22.67
+      ],
+      "measured_rgb": "#9A684E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        40,
+        20,
+        40
+      ],
+      "measured_lab": [
+        49.33,
+        -3.16,
+        21.94
+      ],
+      "measured_rgb": "#7D7650",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        40,
+        40,
+        20
+      ],
+      "measured_lab": [
+        42.09,
+        15.0,
+        2.65
+      ],
+      "measured_rgb": "#7D5A5F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        15,
+        70
+      ],
+      "measured_lab": [
+        23.81,
+        4.5,
+        -2.71
+      ],
+      "measured_rgb": "#3E373D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        70,
+        15,
+        15
+      ],
+      "measured_lab": [
+        40.26,
+        2.96,
+        -25.73
+      ],
+      "measured_rgb": "#475F89",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        70,
+        15
+      ],
+      "measured_lab": [
+        40.1,
+        39.06,
+        -6.84
+      ],
+      "measured_rgb": "#94426B",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        20,
+        65
+      ],
+      "measured_lab": [
+        25.24,
+        7.26,
+        -4.37
+      ],
+      "measured_rgb": "#443843",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        65,
+        15,
+        20
+      ],
+      "measured_lab": [
+        38.5,
+        3.81,
+        -23.05
+      ],
+      "measured_rgb": "#495A80",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        20,
+        65,
+        15
+      ],
+      "measured_lab": [
+        39.28,
+        36.97,
+        -8.19
+      ],
+      "measured_rgb": "#8E436B",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        30,
+        55
+      ],
+      "measured_lab": [
+        29.34,
+        15.09,
+        -6.85
+      ],
+      "measured_rgb": "#573D50",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        55,
+        15,
+        30
+      ],
+      "measured_lab": [
+        35.92,
+        3.76,
+        -18.86
+      ],
+      "measured_rgb": "#495472",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        30,
+        55,
+        15
+      ],
+      "measured_lab": [
+        37.74,
+        30.19,
+        -12.06
+      ],
+      "measured_rgb": "#7F466D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        40,
+        45
+      ],
+      "measured_lab": [
+        31.98,
+        20.5,
+        -7.08
+      ],
+      "measured_rgb": "#653F57",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        45,
+        15,
+        40
+      ],
+      "measured_lab": [
+        32.53,
+        5.74,
+        -14.13
+      ],
+      "measured_rgb": "#4A4B63",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        40,
+        45,
+        15
+      ],
+      "measured_lab": [
+        37.0,
+        24.7,
+        -15.55
+      ],
+      "measured_rgb": "#734970",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        20,
+        30,
+        50
+      ],
+      "measured_lab": [
+        29.67,
+        14.75,
+        -8.11
+      ],
+      "measured_rgb": "#573E53",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        50,
+        20,
+        30
+      ],
+      "measured_lab": [
+        34.91,
+        8.06,
+        -17.34
+      ],
+      "measured_rgb": "#514F6E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        30,
+        50,
+        20
+      ],
+      "measured_lab": [
+        36.45,
+        25.14,
+        -12.89
+      ],
+      "measured_rgb": "#74476B",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        20,
+        40,
+        40
+      ],
+      "measured_lab": [
+        32.21,
+        19.72,
+        -8.96
+      ],
+      "measured_rgb": "#64415A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        40,
+        20,
+        40
+      ],
+      "measured_lab": [
+        32.72,
+        6.93,
+        -13.55
+      ],
+      "measured_rgb": "#4D4A62",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        40,
+        40,
+        20
+      ],
+      "measured_lab": [
+        35.9,
+        19.4,
+        -15.25
+      ],
+      "measured_rgb": "#684A6D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        15,
+        70
+      ],
+      "measured_lab": [
+        62.16,
+        16.78,
+        -14.9
+      ],
+      "measured_rgb": "#A88DB1",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        70,
+        15,
+        15
+      ],
+      "measured_lab": [
+        44.17,
+        4.93,
+        -31.69
+      ],
+      "measured_rgb": "#4C689D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        70,
+        15
+      ],
+      "measured_lab": [
+        42.75,
+        43.79,
+        -5.69
+      ],
+      "measured_rgb": "#A24470",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        20,
+        65
+      ],
+      "measured_lab": [
+        60.36,
+        19.21,
+        -14.15
+      ],
+      "measured_rgb": "#A887AB",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        65,
+        15,
+        20
+      ],
+      "measured_lab": [
+        44.86,
+        7.38,
+        -30.54
+      ],
+      "measured_rgb": "#56699D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        65,
+        15
+      ],
+      "measured_lab": [
+        42.25,
+        41.64,
+        -7.47
+      ],
+      "measured_rgb": "#9D4571",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        30,
+        55
+      ],
+      "measured_lab": [
+        54.37,
+        27.33,
+        -12.49
+      ],
+      "measured_rgb": "#A77198",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        55,
+        15,
+        30
+      ],
+      "measured_lab": [
+        47.43,
+        8.05,
+        -28.57
+      ],
+      "measured_rgb": "#616EA0",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        55,
+        15
+      ],
+      "measured_lab": [
+        40.82,
+        34.38,
+        -13.16
+      ],
+      "measured_rgb": "#8C4A76",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        40,
+        45
+      ],
+      "measured_lab": [
+        52.87,
+        31.84,
+        -10.23
+      ],
+      "measured_rgb": "#AB6A90",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        45,
+        15,
+        40
+      ],
+      "measured_lab": [
+        50.82,
+        10.37,
+        -24.48
+      ],
+      "measured_rgb": "#7475A3",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        45,
+        15
+      ],
+      "measured_lab": [
+        40.22,
+        28.8,
+        -17.89
+      ],
+      "measured_rgb": "#7F4E7C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        30,
+        50
+      ],
+      "measured_lab": [
+        53.05,
+        24.62,
+        -14.18
+      ],
+      "measured_rgb": "#9E7097",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        50,
+        20,
+        30
+      ],
+      "measured_lab": [
+        46.67,
+        12.33,
+        -25.42
+      ],
+      "measured_rgb": "#6D6A99",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        50,
+        20
+      ],
+      "measured_lab": [
+        41.92,
+        30.97,
+        -15.21
+      ],
+      "measured_rgb": "#89507C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        40,
+        40
+      ],
+      "measured_lab": [
+        49.08,
+        28.73,
+        -13.27
+      ],
+      "measured_rgb": "#9A638C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        20,
+        40
+      ],
+      "measured_lab": [
+        50.35,
+        13.56,
+        -23.34
+      ],
+      "measured_rgb": "#7B72A0",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        40,
+        20
+      ],
+      "measured_lab": [
+        42.79,
+        23.93,
+        -19.93
+      ],
+      "measured_rgb": "#7D5886",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        15,
+        70
+      ],
+      "measured_lab": [
+        26.51,
+        -4.3,
+        5.78
+      ],
+      "measured_rgb": "#3C4036",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        70,
+        15,
+        15
+      ],
+      "measured_lab": [
+        47.84,
+        -30.87,
+        1.46
+      ],
+      "measured_rgb": "#227F6E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        70,
+        15
+      ],
+      "measured_lab": [
+        64.72,
+        -19.97,
+        57.94
+      ],
+      "measured_rgb": "#98A52A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        20,
+        65
+      ],
+      "measured_lab": [
+        29.58,
+        -6.37,
+        9.3
+      ],
+      "measured_rgb": "#414837",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        65,
+        15,
+        20
+      ],
+      "measured_lab": [
+        46.51,
+        -27.39,
+        3.55
+      ],
+      "measured_rgb": "#327A67",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        20,
+        65,
+        15
+      ],
+      "measured_lab": [
+        63.2,
+        -21.58,
+        54.66
+      ],
+      "measured_rgb": "#90A22F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        30,
+        55
+      ],
+      "measured_lab": [
+        37.86,
+        -11.64,
+        19.97
+      ],
+      "measured_rgb": "#525E38",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        55,
+        15,
+        30
+      ],
+      "measured_lab": [
+        42.43,
+        -22.82,
+        5.26
+      ],
+      "measured_rgb": "#396E5B",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        30,
+        55,
+        15
+      ],
+      "measured_lab": [
+        59.43,
+        -24.84,
+        46.47
+      ],
+      "measured_rgb": "#7D9938",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        40,
+        45
+      ],
+      "measured_lab": [
+        44.25,
+        -13.61,
+        29.11
+      ],
+      "measured_rgb": "#636E37",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        45,
+        15,
+        40
+      ],
+      "measured_lab": [
+        39.02,
+        -18.39,
+        8.08
+      ],
+      "measured_rgb": "#3F644E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        40,
+        45,
+        15
+      ],
+      "measured_lab": [
+        56.06,
+        -27.6,
+        37.39
+      ],
+      "measured_rgb": "#6A9242",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        20,
+        30,
+        50
+      ],
+      "measured_lab": [
+        39.98,
+        -13.67,
+        22.31
+      ],
+      "measured_rgb": "#556439",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        50,
+        20,
+        30
+      ],
+      "measured_lab": [
+        43.59,
+        -23.17,
+        11.05
+      ],
+      "measured_rgb": "#427154",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        30,
+        50,
+        20
+      ],
+      "measured_lab": [
+        55.06,
+        -23.76,
+        38.38
+      ],
+      "measured_rgb": "#708D3E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        20,
+        40,
+        40
+      ],
+      "measured_lab": [
+        45.05,
+        -15.93,
+        28.3
+      ],
+      "measured_rgb": "#60713A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        40,
+        20,
+        40
+      ],
+      "measured_lab": [
+        40.57,
+        -18.61,
+        12.32
+      ],
+      "measured_rgb": "#46674B",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        40,
+        40,
+        20
+      ],
+      "measured_lab": [
+        52.41,
+        -25.94,
+        30.44
+      ],
+      "measured_rgb": "#618847",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        15,
+        70
+      ],
+      "measured_lab": [
+        76.73,
+        -26.13,
+        25.3
+      ],
+      "measured_rgb": "#9CCA8E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        70,
+        15,
+        15
+      ],
+      "measured_lab": [
+        54.89,
+        -42.13,
+        4.74
+      ],
+      "measured_rgb": "#00957A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        70,
+        15
+      ],
+      "measured_lab": [
+        72.56,
+        -24.12,
+        67.97
+      ],
+      "measured_rgb": "#AABC22",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        20,
+        65
+      ],
+      "measured_lab": [
+        76.5,
+        -25.64,
+        27.04
+      ],
+      "measured_rgb": "#9EC98A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        65,
+        15,
+        20
+      ],
+      "measured_lab": [
+        56.75,
+        -42.14,
+        8.55
+      ],
+      "measured_rgb": "#109A78",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        65,
+        15
+      ],
+      "measured_lab": [
+        71.02,
+        -26.5,
+        64.02
+      ],
+      "measured_rgb": "#A0B92A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        30,
+        55
+      ],
+      "measured_lab": [
+        74.86,
+        -27.35,
+        39.12
+      ],
+      "measured_rgb": "#9EC46E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        55,
+        15,
+        30
+      ],
+      "measured_lab": [
+        59.47,
+        -40.34,
+        10.73
+      ],
+      "measured_rgb": "#32A17B",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        55,
+        15
+      ],
+      "measured_lab": [
+        66.97,
+        -31.68,
+        53.95
+      ],
+      "measured_rgb": "#87B03A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        40,
+        45
+      ],
+      "measured_lab": [
+        75.31,
+        -24.94,
+        45.8
+      ],
+      "measured_rgb": "#A8C462",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        45,
+        15,
+        40
+      ],
+      "measured_lab": [
+        63.78,
+        -37.23,
+        16.84
+      ],
+      "measured_rgb": "#55AB7B",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        45,
+        15
+      ],
+      "measured_lab": [
+        63.37,
+        -35.61,
+        43.12
+      ],
+      "measured_rgb": "#70A848",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        30,
+        50
+      ],
+      "measured_lab": [
+        72.74,
+        -28.54,
+        35.96
+      ],
+      "measured_rgb": "#94BF6F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        50,
+        20,
+        30
+      ],
+      "measured_lab": [
+        61.23,
+        -39.21,
+        19.27
+      ],
+      "measured_rgb": "#4BA570",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        50,
+        20
+      ],
+      "measured_lab": [
+        66.32,
+        -32.99,
+        46.96
+      ],
+      "measured_rgb": "#7FAF48",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        40,
+        40
+      ],
+      "measured_lab": [
+        71.52,
+        -28.77,
+        41.94
+      ],
+      "measured_rgb": "#94BC60",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        20,
+        40
+      ],
+      "measured_lab": [
+        65.63,
+        -36.42,
+        20.55
+      ],
+      "measured_rgb": "#61B079",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        40,
+        20
+      ],
+      "measured_lab": [
+        64.19,
+        -36.01,
+        36.93
+      ],
+      "measured_rgb": "#6DAB57",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        15,
+        70
+      ],
+      "measured_lab": [
+        67.69,
+        -8.17,
+        -9.23
+      ],
+      "measured_rgb": "#8BAAB5",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        70,
+        15,
+        15
+      ],
+      "measured_lab": [
+        49.49,
+        -16.59,
+        -26.65
+      ],
+      "measured_rgb": "#0480A2",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        70,
+        15
+      ],
+      "measured_lab": [
+        29.12,
+        -2.47,
+        -3.79
+      ],
+      "measured_rgb": "#3D464A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        20,
+        65
+      ],
+      "measured_lab": [
+        64.97,
+        -7.45,
+        -8.48
+      ],
+      "measured_rgb": "#86A2AC",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        65,
+        15,
+        20
+      ],
+      "measured_lab": [
+        50.41,
+        -16.21,
+        -24.69
+      ],
+      "measured_rgb": "#1F82A1",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        65,
+        15
+      ],
+      "measured_lab": [
+        29.82,
+        -3.21,
+        -4.38
+      ],
+      "measured_rgb": "#3D484D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        30,
+        55
+      ],
+      "measured_lab": [
+        56.0,
+        -5.84,
+        -7.1
+      ],
+      "measured_rgb": "#748A92",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        55,
+        15,
+        30
+      ],
+      "measured_lab": [
+        52.32,
+        -15.59,
+        -22.74
+      ],
+      "measured_rgb": "#3286A3",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        55,
+        15
+      ],
+      "measured_lab": [
+        33.12,
+        -5.38,
+        -7.38
+      ],
+      "measured_rgb": "#3D5159",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        40,
+        45
+      ],
+      "measured_lab": [
+        50.31,
+        -4.25,
+        -5.59
+      ],
+      "measured_rgb": "#6B7A81",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        45,
+        15,
+        40
+      ],
+      "measured_lab": [
+        54.86,
+        -13.52,
+        -18.52
+      ],
+      "measured_rgb": "#4D8BA3",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        45,
+        15
+      ],
+      "measured_lab": [
+        37.03,
+        -7.81,
+        -11.31
+      ],
+      "measured_rgb": "#3C5C69",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        30,
+        50
+      ],
+      "measured_lab": [
+        54.75,
+        -6.62,
+        -8.19
+      ],
+      "measured_rgb": "#6E8791",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        50,
+        20,
+        30
+      ],
+      "measured_lab": [
+        50.03,
+        -13.02,
+        -18.53
+      ],
+      "measured_rgb": "#417F96",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        50,
+        20
+      ],
+      "measured_lab": [
+        36.72,
+        -6.2,
+        -8.66
+      ],
+      "measured_rgb": "#425A64",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        40,
+        40
+      ],
+      "measured_lab": [
+        47.39,
+        -5.83,
+        -7.62
+      ],
+      "measured_rgb": "#5E747D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        20,
+        40
+      ],
+      "measured_lab": [
+        54.68,
+        -12.73,
+        -16.42
+      ],
+      "measured_rgb": "#538A9F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        40,
+        20
+      ],
+      "measured_lab": [
+        42.08,
+        -9.08,
+        -12.14
+      ],
+      "measured_rgb": "#446977",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        15,
+        70
+      ],
+      "measured_lab": [
+        27.73,
+        3.91,
+        4.72
+      ],
+      "measured_rgb": "#4A3F3A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        70,
+        15,
+        15
+      ],
+      "measured_lab": [
+        44.17,
+        44.12,
+        5.27
+      ],
+      "measured_rgb": "#AB4661",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        70,
+        15
+      ],
+      "measured_lab": [
+        61.99,
+        8.12,
+        54.63
+      ],
+      "measured_rgb": "#BC8E2F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        20,
+        65
+      ],
+      "measured_lab": [
+        30.03,
+        5.0,
+        7.3
+      ],
+      "measured_rgb": "#53443C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        65,
+        15,
+        20
+      ],
+      "measured_lab": [
+        42.23,
+        39.39,
+        5.03
+      ],
+      "measured_rgb": "#A0465D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        20,
+        65,
+        15
+      ],
+      "measured_lab": [
+        59.16,
+        11.99,
+        49.24
+      ],
+      "measured_rgb": "#B88535",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        30,
+        55
+      ],
+      "measured_lab": [
+        36.74,
+        5.02,
+        16.8
+      ],
+      "measured_rgb": "#67533C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        55,
+        15,
+        30
+      ],
+      "measured_lab": [
+        39.4,
+        33.82,
+        3.06
+      ],
+      "measured_rgb": "#904559",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        30,
+        55,
+        15
+      ],
+      "measured_lab": [
+        55.1,
+        17.58,
+        40.34
+      ],
+      "measured_rgb": "#B2773E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        40,
+        45
+      ],
+      "measured_lab": [
+        42.77,
+        3.95,
+        26.05
+      ],
+      "measured_rgb": "#79623A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        45,
+        15,
+        40
+      ],
+      "measured_lab": [
+        36.57,
+        24.18,
+        4.69
+      ],
+      "measured_rgb": "#7C464F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        40,
+        45,
+        15
+      ],
+      "measured_lab": [
+        51.51,
+        24.29,
+        30.65
+      ],
+      "measured_rgb": "#AF6947",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        20,
+        30,
+        50
+      ],
+      "measured_lab": [
+        38.55,
+        7.2,
+        18.02
+      ],
+      "measured_rgb": "#70563E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        50,
+        20,
+        30
+      ],
+      "measured_lab": [
+        40.41,
+        28.26,
+        8.72
+      ],
+      "measured_rgb": "#8E4C52",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        30,
+        50,
+        20
+      ],
+      "measured_lab": [
+        51.56,
+        17.17,
+        33.73
+      ],
+      "measured_rgb": "#A66F41",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        20,
+        40,
+        40
+      ],
+      "measured_lab": [
+        43.59,
+        7.79,
+        25.59
+      ],
+      "measured_rgb": "#80613D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        40,
+        20,
+        40
+      ],
+      "measured_lab": [
+        38.12,
+        22.54,
+        8.98
+      ],
+      "measured_rgb": "#804B4C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        40,
+        40,
+        20
+      ],
+      "measured_lab": [
+        49.3,
+        23.77,
+        27.38
+      ],
+      "measured_rgb": "#A76448",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        15,
+        70
+      ],
+      "measured_lab": [
+        69.29,
+        26.66,
+        18.74
+      ],
+      "measured_rgb": "#E19689",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        70,
+        15,
+        15
+      ],
+      "measured_lab": [
+        49.8,
+        56.02,
+        11.67
+      ],
+      "measured_rgb": "#CD4565",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        70,
+        15
+      ],
+      "measured_lab": [
+        68.08,
+        21.55,
+        62.69
+      ],
+      "measured_rgb": "#E3952D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        20,
+        65
+      ],
+      "measured_lab": [
+        69.32,
+        26.17,
+        21.73
+      ],
+      "measured_rgb": "#E29683",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        65,
+        15,
+        20
+      ],
+      "measured_lab": [
+        50.94,
+        53.96,
+        13.7
+      ],
+      "measured_rgb": "#CF4B65",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        65,
+        15
+      ],
+      "measured_lab": [
+        65.58,
+        25.94,
+        56.97
+      ],
+      "measured_rgb": "#E18B35",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        30,
+        55
+      ],
+      "measured_lab": [
+        67.65,
+        26.44,
+        31.63
+      ],
+      "measured_rgb": "#E1916D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        55,
+        15,
+        30
+      ],
+      "measured_lab": [
+        52.54,
+        51.86,
+        13.86
+      ],
+      "measured_rgb": "#D15268",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        55,
+        15
+      ],
+      "measured_lab": [
+        61.91,
+        31.51,
+        48.31
+      ],
+      "measured_rgb": "#DC7D40",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        40,
+        45
+      ],
+      "measured_lab": [
+        68.5,
+        23.57,
+        39.38
+      ],
+      "measured_rgb": "#E29561",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        45,
+        15,
+        40
+      ],
+      "measured_lab": [
+        57.11,
+        43.99,
+        17.02
+      ],
+      "measured_rgb": "#D5676E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        45,
+        15
+      ],
+      "measured_lab": [
+        58.14,
+        38.62,
+        37.5
+      ],
+      "measured_rgb": "#D76E4C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        30,
+        50
+      ],
+      "measured_lab": [
+        66.36,
+        27.92,
+        30.6
+      ],
+      "measured_rgb": "#DF8D6C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        50,
+        20,
+        30
+      ],
+      "measured_lab": [
+        55.28,
+        45.91,
+        19.83
+      ],
+      "measured_rgb": "#D36065",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        50,
+        20
+      ],
+      "measured_lab": [
+        61.17,
+        33.55,
+        43.05
+      ],
+      "measured_rgb": "#DB7A48",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        40,
+        40
+      ],
+      "measured_lab": [
+        65.77,
+        27.56,
+        38.04
+      ],
+      "measured_rgb": "#DF8B5D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        20,
+        40
+      ],
+      "measured_lab": [
+        58.25,
+        42.13,
+        19.65
+      ],
+      "measured_rgb": "#D76C6C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        40,
+        20
+      ],
+      "measured_lab": [
+        58.33,
+        39.26,
+        34.12
+      ],
+      "measured_rgb": "#D86E53",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        15,
+        70
+      ],
+      "measured_lab": [
+        62.52,
+        21.79,
+        -6.88
+      ],
+      "measured_rgb": "#B88AA4",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        70,
+        15,
+        15
+      ],
+      "measured_lab": [
+        44.2,
+        47.92,
+        -1.08
+      ],
+      "measured_rgb": "#AE426C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        70,
+        15
+      ],
+      "measured_lab": [
+        29.0,
+        11.8,
+        -4.31
+      ],
+      "measured_rgb": "#543E4B",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        20,
+        65
+      ],
+      "measured_lab": [
+        60.48,
+        19.78,
+        -6.96
+      ],
+      "measured_rgb": "#AF869F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        65,
+        15,
+        20
+      ],
+      "measured_lab": [
+        44.91,
+        46.16,
+        -1.79
+      ],
+      "measured_rgb": "#AD466F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        65,
+        15
+      ],
+      "measured_lab": [
+        29.44,
+        13.08,
+        -4.31
+      ],
+      "measured_rgb": "#563E4C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        30,
+        55
+      ],
+      "measured_lab": [
+        52.41,
+        15.93,
+        -6.21
+      ],
+      "measured_rgb": "#947488",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        55,
+        15,
+        30
+      ],
+      "measured_lab": [
+        46.26,
+        43.44,
+        -2.96
+      ],
+      "measured_rgb": "#AD4D74",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        55,
+        15
+      ],
+      "measured_lab": [
+        32.52,
+        19.54,
+        -5.02
+      ],
+      "measured_rgb": "#674155",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        40,
+        45
+      ],
+      "measured_lab": [
+        47.71,
+        12.76,
+        -5.74
+      ],
+      "measured_rgb": "#836A7B",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        45,
+        15,
+        40
+      ],
+      "measured_lab": [
+        49.36,
+        35.75,
+        -5.01
+      ],
+      "measured_rgb": "#AA5D7F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        45,
+        15
+      ],
+      "measured_lab": [
+        35.57,
+        26.89,
+        -5.2
+      ],
+      "measured_rgb": "#79435D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        30,
+        50
+      ],
+      "measured_lab": [
+        51.18,
+        17.27,
+        -6.22
+      ],
+      "measured_rgb": "#937085",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        50,
+        20,
+        30
+      ],
+      "measured_lab": [
+        45.26,
+        35.86,
+        -4.65
+      ],
+      "measured_rgb": "#9F5274",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        50,
+        20
+      ],
+      "measured_lab": [
+        35.49,
+        20.83,
+        -5.45
+      ],
+      "measured_rgb": "#70475D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        40,
+        40
+      ],
+      "measured_lab": [
+        44.88,
+        16.06,
+        -5.84
+      ],
+      "measured_rgb": "#806174",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        20,
+        40
+      ],
+      "measured_lab": [
+        49.09,
+        32.91,
+        -5.25
+      ],
+      "measured_rgb": "#A55F7E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        40,
+        20
+      ],
+      "measured_lab": [
+        39.26,
+        27.19,
+        -5.21
+      ],
+      "measured_rgb": "#834B66",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        15,
+        70
+      ],
+      "measured_lab": [
+        72.3,
+        -8.42,
+        23.27
+      ],
+      "measured_rgb": "#B2B587",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        70,
+        15,
+        15
+      ],
+      "measured_lab": [
+        71.1,
+        -10.3,
+        67.57
+      ],
+      "measured_rgb": "#BDB121",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        70,
+        15
+      ],
+      "measured_lab": [
+        33.07,
+        -5.5,
+        12.72
+      ],
+      "measured_rgb": "#4D503A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        20,
+        65
+      ],
+      "measured_lab": [
+        69.88,
+        -8.56,
+        22.46
+      ],
+      "measured_rgb": "#ABAE82",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        65,
+        15,
+        20
+      ],
+      "measured_lab": [
+        70.51,
+        -10.2,
+        63.67
+      ],
+      "measured_rgb": "#BBAF2C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        65,
+        15
+      ],
+      "measured_lab": [
+        34.9,
+        -5.8,
+        14.82
+      ],
+      "measured_rgb": "#52543A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        30,
+        55
+      ],
+      "measured_lab": [
+        60.05,
+        -7.13,
+        17.63
+      ],
+      "measured_rgb": "#909372",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        55,
+        15,
+        30
+      ],
+      "measured_lab": [
+        70.34,
+        -10.34,
+        58.36
+      ],
+      "measured_rgb": "#B9AF3A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        55,
+        15
+      ],
+      "measured_lab": [
+        41.44,
+        -7.84,
+        23.29
+      ],
+      "measured_rgb": "#62643B",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        40,
+        45
+      ],
+      "measured_lab": [
+        53.67,
+        -6.15,
+        13.64
+      ],
+      "measured_rgb": "#7F8369",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        45,
+        15,
+        40
+      ],
+      "measured_lab": [
+        69.25,
+        -10.33,
+        46.34
+      ],
+      "measured_rgb": "#B2AC52",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        45,
+        15
+      ],
+      "measured_lab": [
+        49.41,
+        -9.75,
+        34.56
+      ],
+      "measured_rgb": "#787939",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        30,
+        50
+      ],
+      "measured_lab": [
+        59.9,
+        -7.66,
+        20.02
+      ],
+      "measured_rgb": "#90936D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        50,
+        20,
+        30
+      ],
+      "measured_lab": [
+        65.24,
+        -10.45,
+        47.36
+      ],
+      "measured_rgb": "#A7A246",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        50,
+        20
+      ],
+      "measured_lab": [
+        45.67,
+        -8.29,
+        25.17
+      ],
+      "measured_rgb": "#6D6F41",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        40,
+        40
+      ],
+      "measured_lab": [
+        52.91,
+        -6.99,
+        17.92
+      ],
+      "measured_rgb": "#7E815F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        20,
+        40
+      ],
+      "measured_lab": [
+        67.13,
+        -9.99,
+        40.91
+      ],
+      "measured_rgb": "#AAA758",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        40,
+        20
+      ],
+      "measured_lab": [
+        53.74,
+        -9.81,
+        35.65
+      ],
+      "measured_rgb": "#848441",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        }
+      ],
+      "ratios": [
+        15,
+        85
+      ],
+      "measured_lab": [
+        42.81,
+        44.22,
+        -4.5
+      ],
+      "measured_rgb": "#A4436E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        }
+      ],
+      "ratios": [
+        20,
+        80
+      ],
+      "measured_lab": [
+        41.45,
+        40.66,
+        -7.18
+      ],
+      "measured_rgb": "#9A446F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        }
+      ],
+      "ratios": [
+        25,
+        75
+      ],
+      "measured_lab": [
+        40.28,
+        34.76,
+        -11.03
+      ],
+      "measured_rgb": "#8D4872",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        }
+      ],
+      "ratios": [
+        30,
+        70
+      ],
+      "measured_lab": [
+        39.94,
+        33.22,
+        -12.14
+      ],
+      "measured_rgb": "#894873",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        }
+      ],
+      "ratios": [
+        40,
+        60
+      ],
+      "measured_lab": [
+        39.27,
+        26.94,
+        -16.16
+      ],
+      "measured_rgb": "#7B4D77",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        }
+      ],
+      "ratios": [
+        50,
+        50
+      ],
+      "measured_lab": [
+        39.15,
+        21.31,
+        -19.79
+      ],
+      "measured_rgb": "#6F517D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        }
+      ],
+      "ratios": [
+        60,
+        40
+      ],
+      "measured_lab": [
+        39.45,
+        16.57,
+        -23.06
+      ],
+      "measured_rgb": "#655583",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        }
+      ],
+      "ratios": [
+        70,
+        30
+      ],
+      "measured_lab": [
+        40.36,
+        11.54,
+        -26.4
+      ],
+      "measured_rgb": "#5A5B8A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        }
+      ],
+      "ratios": [
+        75,
+        25
+      ],
+      "measured_lab": [
+        41.28,
+        8.25,
+        -28.35
+      ],
+      "measured_rgb": "#525F90",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        }
+      ],
+      "ratios": [
+        80,
+        20
+      ],
+      "measured_lab": [
+        42.69,
+        4.49,
+        -30.22
+      ],
+      "measured_rgb": "#496597",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        }
+      ],
+      "ratios": [
+        85,
+        15
+      ],
+      "measured_lab": [
+        44.16,
+        1.08,
+        -32.17
+      ],
+      "measured_rgb": "#3F6B9E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        15,
+        85
+      ],
+      "measured_lab": [
+        73.27,
+        -22.36,
+        69.89
+      ],
+      "measured_rgb": "#B0BD1D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        20,
+        80
+      ],
+      "measured_lab": [
+        70.43,
+        -26.16,
+        63.81
+      ],
+      "measured_rgb": "#9FB729",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        25,
+        75
+      ],
+      "measured_lab": [
+        67.28,
+        -30.06,
+        55.88
+      ],
+      "measured_rgb": "#8CB036",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        30,
+        70
+      ],
+      "measured_lab": [
+        65.94,
+        -31.58,
+        52.69
+      ],
+      "measured_rgb": "#84AD3A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        40,
+        60
+      ],
+      "measured_lab": [
+        62.04,
+        -35.93,
+        40.68
+      ],
+      "measured_rgb": "#6AA54A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        50,
+        50
+      ],
+      "measured_lab": [
+        58.86,
+        -38.99,
+        29.79
+      ],
+      "measured_rgb": "#519E57",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        60,
+        40
+      ],
+      "measured_lab": [
+        56.56,
+        -40.76,
+        20.87
+      ],
+      "measured_rgb": "#3A9962",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        70,
+        30
+      ],
+      "measured_lab": [
+        54.94,
+        -41.52,
+        13.61
+      ],
+      "measured_rgb": "#22956B",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        75,
+        25
+      ],
+      "measured_lab": [
+        54.28,
+        -41.75,
+        10.06
+      ],
+      "measured_rgb": "#0D936F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        80,
+        20
+      ],
+      "measured_lab": [
+        53.41,
+        -40.59,
+        3.14
+      ],
+      "measured_rgb": "#009179",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        85,
+        15
+      ],
+      "measured_lab": [
+        53.11,
+        -37.63,
+        -5.08
+      ],
+      "measured_rgb": "#009086",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        85
+      ],
+      "measured_lab": [
+        24.06,
+        -0.65,
+        -1.7
+      ],
+      "measured_rgb": "#373A3C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        20,
+        80
+      ],
+      "measured_lab": [
+        26.13,
+        -1.33,
+        -3.23
+      ],
+      "measured_rgb": "#393F43",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        25,
+        75
+      ],
+      "measured_lab": [
+        28.6,
+        -2.24,
+        -5.14
+      ],
+      "measured_rgb": "#3B454B",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        30,
+        70
+      ],
+      "measured_lab": [
+        29.3,
+        -2.69,
+        -5.72
+      ],
+      "measured_rgb": "#3B474E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        40,
+        60
+      ],
+      "measured_lab": [
+        32.46,
+        -4.51,
+        -8.79
+      ],
+      "measured_rgb": "#3C4F5A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        50,
+        50
+      ],
+      "measured_lab": [
+        35.67,
+        -6.57,
+        -11.95
+      ],
+      "measured_rgb": "#3A5867",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        60,
+        40
+      ],
+      "measured_lab": [
+        39.09,
+        -9.04,
+        -15.59
+      ],
+      "measured_rgb": "#366175",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        70,
+        30
+      ],
+      "measured_lab": [
+        42.3,
+        -11.39,
+        -19.18
+      ],
+      "measured_rgb": "#2F6B83",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        75,
+        25
+      ],
+      "measured_lab": [
+        44.38,
+        -12.92,
+        -21.59
+      ],
+      "measured_rgb": "#28718C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        80,
+        20
+      ],
+      "measured_lab": [
+        46.22,
+        -14.25,
+        -24.18
+      ],
+      "measured_rgb": "#1D7695",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        85,
+        15
+      ],
+      "measured_lab": [
+        48.28,
+        -15.51,
+        -26.76
+      ],
+      "measured_rgb": "#097C9F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        85
+      ],
+      "measured_lab": [
+        79.78,
+        -13.22,
+        -14.42
+      ],
+      "measured_rgb": "#98CEE0",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        80
+      ],
+      "measured_lab": [
+        76.69,
+        -15.41,
+        -18.11
+      ],
+      "measured_rgb": "#84C7DE",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        25,
+        75
+      ],
+      "measured_lab": [
+        73.39,
+        -17.27,
+        -21.78
+      ],
+      "measured_rgb": "#6EBFDB",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        70
+      ],
+      "measured_lab": [
+        71.93,
+        -17.53,
+        -23.08
+      ],
+      "measured_rgb": "#66BBDA",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        60
+      ],
+      "measured_lab": [
+        68.01,
+        -19.0,
+        -27.03
+      ],
+      "measured_rgb": "#49B2D6",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        50,
+        50
+      ],
+      "measured_lab": [
+        64.77,
+        -19.83,
+        -30.07
+      ],
+      "measured_rgb": "#2AAAD2",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        60,
+        40
+      ],
+      "measured_lab": [
+        61.82,
+        -20.34,
+        -32.71
+      ],
+      "measured_rgb": "#00A2CE",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        70,
+        30
+      ],
+      "measured_lab": [
+        59.41,
+        -20.39,
+        -34.56
+      ],
+      "measured_rgb": "#009CCB",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        75,
+        25
+      ],
+      "measured_lab": [
+        58.16,
+        -20.37,
+        -35.49
+      ],
+      "measured_rgb": "#0099C9",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        80,
+        20
+      ],
+      "measured_lab": [
+        56.85,
+        -20.22,
+        -36.37
+      ],
+      "measured_rgb": "#0095C7",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Cyan",
+          "rgb": "#0090DA"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        85,
+        15
+      ],
+      "measured_lab": [
+        55.9,
+        -19.86,
+        -36.84
+      ],
+      "measured_rgb": "#0093C5",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        15,
+        85
+      ],
+      "measured_lab": [
+        70.26,
+        16.91,
+        66.44
+      ],
+      "measured_rgb": "#E49E28",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        20,
+        80
+      ],
+      "measured_lab": [
+        67.19,
+        22.09,
+        60.95
+      ],
+      "measured_rgb": "#E1922F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        25,
+        75
+      ],
+      "measured_lab": [
+        64.2,
+        26.83,
+        54.53
+      ],
+      "measured_rgb": "#DD8738",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        30,
+        70
+      ],
+      "measured_lab": [
+        63.04,
+        28.5,
+        52.1
+      ],
+      "measured_rgb": "#DC833A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        40,
+        60
+      ],
+      "measured_lab": [
+        59.15,
+        35.11,
+        42.2
+      ],
+      "measured_rgb": "#D77345",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        50,
+        50
+      ],
+      "measured_lab": [
+        55.23,
+        42.9,
+        30.91
+      ],
+      "measured_rgb": "#D26251",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        60,
+        40
+      ],
+      "measured_lab": [
+        53.27,
+        46.34,
+        25.65
+      ],
+      "measured_rgb": "#D05A56",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        70,
+        30
+      ],
+      "measured_lab": [
+        51.21,
+        50.57,
+        19.44
+      ],
+      "measured_rgb": "#CD505C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        75,
+        25
+      ],
+      "measured_lab": [
+        50.59,
+        52.21,
+        17.08
+      ],
+      "measured_rgb": "#CD4C5E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        80,
+        20
+      ],
+      "measured_lab": [
+        49.78,
+        53.37,
+        14.3
+      ],
+      "measured_rgb": "#CB4961",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        }
+      ],
+      "ratios": [
+        85,
+        15
+      ],
+      "measured_lab": [
+        49.05,
+        55.07,
+        11.24
+      ],
+      "measured_rgb": "#CA4464",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        85
+      ],
+      "measured_lab": [
+        24.04,
+        3.84,
+        -1.73
+      ],
+      "measured_rgb": "#3E373C",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        20,
+        80
+      ],
+      "measured_lab": [
+        25.73,
+        7.12,
+        -3.07
+      ],
+      "measured_rgb": "#463942",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        25,
+        75
+      ],
+      "measured_lab": [
+        27.64,
+        10.36,
+        -4.0
+      ],
+      "measured_rgb": "#4E3C48",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        30,
+        70
+      ],
+      "measured_lab": [
+        28.26,
+        12.1,
+        -4.1
+      ],
+      "measured_rgb": "#523C49",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        40,
+        60
+      ],
+      "measured_lab": [
+        31.03,
+        18.09,
+        -4.94
+      ],
+      "measured_rgb": "#613F51",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        50,
+        50
+      ],
+      "measured_lab": [
+        33.55,
+        23.94,
+        -4.97
+      ],
+      "measured_rgb": "#6F4057",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        60,
+        40
+      ],
+      "measured_lab": [
+        36.25,
+        30.1,
+        -4.47
+      ],
+      "measured_rgb": "#7F415D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        70,
+        30
+      ],
+      "measured_lab": [
+        38.94,
+        36.13,
+        -3.46
+      ],
+      "measured_rgb": "#8F4262",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        75,
+        25
+      ],
+      "measured_lab": [
+        40.47,
+        39.57,
+        -2.66
+      ],
+      "measured_rgb": "#984265",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        80,
+        20
+      ],
+      "measured_lab": [
+        41.73,
+        42.5,
+        -1.83
+      ],
+      "measured_rgb": "#A04267",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        85,
+        15
+      ],
+      "measured_lab": [
+        43.54,
+        46.64,
+        -0.65
+      ],
+      "measured_rgb": "#AB426A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        85
+      ],
+      "measured_lab": [
+        71.97,
+        29.54,
+        -4.38
+      ],
+      "measured_rgb": "#E19DB9",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        80
+      ],
+      "measured_lab": [
+        68.76,
+        33.66,
+        -4.01
+      ],
+      "measured_rgb": "#DF91B0",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        25,
+        75
+      ],
+      "measured_lab": [
+        65.15,
+        38.34,
+        -3.18
+      ],
+      "measured_rgb": "#DC83A5",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        70
+      ],
+      "measured_lab": [
+        64.36,
+        38.7,
+        -2.96
+      ],
+      "measured_rgb": "#DA81A3",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        60
+      ],
+      "measured_lab": [
+        59.94,
+        44.49,
+        -1.38
+      ],
+      "measured_rgb": "#D77094",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        50,
+        50
+      ],
+      "measured_lab": [
+        56.74,
+        48.41,
+        0.06
+      ],
+      "measured_rgb": "#D4638A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        60,
+        40
+      ],
+      "measured_lab": [
+        54.28,
+        51.42,
+        1.35
+      ],
+      "measured_rgb": "#D15981",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        70,
+        30
+      ],
+      "measured_lab": [
+        52.02,
+        54.03,
+        2.68
+      ],
+      "measured_rgb": "#CE4F7A",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        75,
+        25
+      ],
+      "measured_lab": [
+        50.86,
+        55.46,
+        3.45
+      ],
+      "measured_rgb": "#CD4A75",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        80,
+        20
+      ],
+      "measured_lab": [
+        49.97,
+        56.5,
+        4.25
+      ],
+      "measured_rgb": "#CC4672",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Magenta",
+          "rgb": "#E24585"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        85,
+        15
+      ],
+      "measured_lab": [
+        49.16,
+        57.13,
+        4.76
+      ],
+      "measured_rgb": "#CB426F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        15,
+        85
+      ],
+      "measured_lab": [
+        25.11,
+        -2.27,
+        4.37
+      ],
+      "measured_rgb": "#3B3C35",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        20,
+        80
+      ],
+      "measured_lab": [
+        28.8,
+        -4.33,
+        8.58
+      ],
+      "measured_rgb": "#424537",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        25,
+        75
+      ],
+      "measured_lab": [
+        33.05,
+        -6.32,
+        13.4
+      ],
+      "measured_rgb": "#4C5038",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        30,
+        70
+      ],
+      "measured_lab": [
+        34.72,
+        -6.8,
+        15.77
+      ],
+      "measured_rgb": "#505438",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        40,
+        60
+      ],
+      "measured_lab": [
+        40.91,
+        -8.79,
+        23.9
+      ],
+      "measured_rgb": "#606439",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        50,
+        50
+      ],
+      "measured_lab": [
+        46.62,
+        -9.8,
+        32.04
+      ],
+      "measured_rgb": "#707237",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        60,
+        40
+      ],
+      "measured_lab": [
+        52.5,
+        -10.14,
+        40.31
+      ],
+      "measured_rgb": "#828135",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        70,
+        30
+      ],
+      "measured_lab": [
+        58.41,
+        -10.3,
+        48.73
+      ],
+      "measured_rgb": "#949031",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        75,
+        25
+      ],
+      "measured_lab": [
+        62.22,
+        -10.25,
+        54.41
+      ],
+      "measured_rgb": "#A1992E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        80,
+        20
+      ],
+      "measured_lab": [
+        65.82,
+        -10.08,
+        59.98
+      ],
+      "measured_rgb": "#ACA329",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        }
+      ],
+      "ratios": [
+        85,
+        15
+      ],
+      "measured_lab": [
+        70.17,
+        -9.71,
+        66.75
+      ],
+      "measured_rgb": "#BBAE21",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        85
+      ],
+      "measured_lab": [
+        88.48,
+        -9.51,
+        40.31
+      ],
+      "measured_rgb": "#E7E190",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        80
+      ],
+      "measured_lab": [
+        88.07,
+        -9.48,
+        46.07
+      ],
+      "measured_rgb": "#E9E084",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        25,
+        75
+      ],
+      "measured_lab": [
+        87.58,
+        -9.11,
+        53.36
+      ],
+      "measured_rgb": "#EBDE73",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        70
+      ],
+      "measured_lab": [
+        87.22,
+        -8.58,
+        55.03
+      ],
+      "measured_rgb": "#ECDD6F",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        60
+      ],
+      "measured_lab": [
+        86.52,
+        -7.74,
+        63.91
+      ],
+      "measured_rgb": "#EEDA59",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        50,
+        50
+      ],
+      "measured_lab": [
+        86.0,
+        -6.81,
+        68.49
+      ],
+      "measured_rgb": "#F0D84D",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        60,
+        40
+      ],
+      "measured_lab": [
+        85.52,
+        -6.04,
+        73.37
+      ],
+      "measured_rgb": "#F1D63E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        70,
+        30
+      ],
+      "measured_lab": [
+        85.18,
+        -5.28,
+        79.29
+      ],
+      "measured_rgb": "#F2D429",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        75,
+        25
+      ],
+      "measured_lab": [
+        85.05,
+        -4.86,
+        82.32
+      ],
+      "measured_rgb": "#F3D41B",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        80,
+        20
+      ],
+      "measured_lab": [
+        84.78,
+        -4.41,
+        85.71
+      ],
+      "measured_rgb": "#F4D300",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Yellow",
+          "rgb": "#FCE300"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        85,
+        15
+      ],
+      "measured_lab": [
+        84.52,
+        -4.0,
+        87.67
+      ],
+      "measured_rgb": "#F4D200",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        15,
+        85
+      ],
+      "measured_lab": [
+        72.47,
+        -0.99,
+        -2.04
+      ],
+      "measured_rgb": "#AEB2B5",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        20,
+        80
+      ],
+      "measured_lab": [
+        68.17,
+        -0.91,
+        -2.12
+      ],
+      "measured_rgb": "#A3A7AA",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        25,
+        75
+      ],
+      "measured_lab": [
+        62.54,
+        -0.79,
+        -2.14
+      ],
+      "measured_rgb": "#94989B",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        30,
+        70
+      ],
+      "measured_lab": [
+        60.11,
+        -0.79,
+        -2.34
+      ],
+      "measured_rgb": "#8D9195",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        40,
+        60
+      ],
+      "measured_lab": [
+        52.67,
+        -0.7,
+        -2.44
+      ],
+      "measured_rgb": "#7A7E82",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        50,
+        50
+      ],
+      "measured_lab": [
+        46.54,
+        -0.64,
+        -2.58
+      ],
+      "measured_rgb": "#6B6F73",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        60,
+        40
+      ],
+      "measured_lab": [
+        40.48,
+        -0.49,
+        -2.53
+      ],
+      "measured_rgb": "#5D6063",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        70,
+        30
+      ],
+      "measured_lab": [
+        34.73,
+        -0.4,
+        -2.39
+      ],
+      "measured_rgb": "#4F5255",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        75,
+        25
+      ],
+      "measured_lab": [
+        31.86,
+        -0.22,
+        -2.01
+      ],
+      "measured_rgb": "#494B4E",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        80,
+        20
+      ],
+      "measured_lab": [
+        28.63,
+        -0.12,
+        -1.47
+      ],
+      "measured_rgb": "#424446",
+      "source": "measured"
+    },
+    {
+      "mode": "CMYKW",
+      "material": "PLA Palette",
+      "components": [
+        {
+          "key": "Black",
+          "rgb": "#000000"
+        },
+        {
+          "key": "White",
+          "rgb": "#FFFFFF"
+        }
+      ],
+      "ratios": [
+        85,
+        15
+      ],
+      "measured_lab": [
+        25.76,
+        -0.01,
+        -0.91
+      ],
+      "measured_rgb": "#3C3D3E",
+      "source": "measured"
     }
   ]
 }
