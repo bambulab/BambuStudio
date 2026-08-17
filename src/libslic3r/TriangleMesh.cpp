@@ -57,6 +57,7 @@ static void fill_initial_stats(const indexed_triangle_set &its, TriangleMeshStat
     out.open_edges            = static_cast<int>(nm_stats.open_edges);
     out.non_manifold_edges    = static_cast<int>(nm_stats.non_manifold_edges);
     out.non_manifold_vertices = static_cast<int>(nm_stats.non_manifold_vertices);
+    out.has_reversed_faces    = nm_stats.has_reversed_faces;
 }
 
 TriangleMesh::TriangleMesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3i> &faces) : its { faces, vertices }
@@ -371,6 +372,9 @@ void TriangleMesh::flip_triangles()
 {
     its_flip_triangles(its);
     m_stats.volume = - m_stats.volume;
+    // A global flip preserves local same-direction conflicts (layer 1) but
+    // inverts the outward test (layer 2), so re-evaluate reversed faces.
+    m_stats.has_reversed_faces = its_edge_diagnostics(its).has_reversed_faces;
 }
 
 void TriangleMesh::align_to_origin()

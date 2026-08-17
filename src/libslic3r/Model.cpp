@@ -3182,6 +3182,7 @@ TriangleMeshStats ModelObject::get_object_stl_stats() const
         full_stats.open_edges              += stats.open_edges;
         full_stats.non_manifold_edges      += stats.non_manifold_edges;
         full_stats.non_manifold_vertices   += stats.non_manifold_vertices;
+        full_stats.has_reversed_faces       = full_stats.has_reversed_faces || stats.has_reversed_faces;
         full_stats.repaired_errors.merge(stats.repaired_errors);
 
         // another used satistics value

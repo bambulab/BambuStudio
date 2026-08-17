@@ -90,11 +90,12 @@ struct MeshErrorsInfo
 
 struct MeshIssueCounts
 {
-    int non_manifold_edges    = 0;
-    int non_manifold_vertices = 0;
-    int open_edges            = 0;
+    int  non_manifold_edges    = 0;
+    int  non_manifold_vertices = 0;
+    int  open_edges            = 0;
+    bool has_reversed_faces    = false;
 
-    bool has_error() const { return non_manifold_edges > 0 || non_manifold_vertices > 0; }
+    bool has_error() const { return non_manifold_edges > 0 || non_manifold_vertices > 0 || has_reversed_faces; }
     bool has_info() const { return open_edges > 0; }
     bool has_any_issue() const { return has_error() || has_info(); }
 };

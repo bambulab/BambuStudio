@@ -515,7 +515,7 @@ int ObjectList::get_repaired_errors_count(const int obj_idx, const int vol_idx /
 
 static std::string get_warning_icon_name(const TriangleMeshStats& stats)
 {
-    return (!stats.manifold() || stats.has_open_edges() || stats.repaired()) ? "obj_warning" : "";
+    return (stats.has_any_issue() || stats.repaired()) ? "obj_warning" : "";
 }
 
 MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol_idx /*= -1*/, wxString* sidebar_info /*= nullptr*/, MeshIssueCounts* issue_counts) const
@@ -531,6 +531,7 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
     issues.non_manifold_edges    = stats.non_manifold_edges;
     issues.non_manifold_vertices = stats.non_manifold_vertices;
     issues.open_edges            = stats.open_edges;
+    issues.has_reversed_faces    = stats.has_reversed_faces;
     if (issue_counts)
         *issue_counts = issues;
 
@@ -538,7 +539,7 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
         return { {}, {} }; // hide tooltip
     }
 
-    wxString tooltip, auto_repaired_info, error_info, open_info;
+    wxString tooltip, auto_repaired_info, error_info, open_info, reversed_info;
 
     // Create tooltip string, if there are errors
     if (stats.repaired()) {
@@ -547,7 +548,7 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
         tooltip += auto_repaired_info + "\n";
     }
 
-    if (issues.has_error()) {
+    if (issues.non_manifold_edges > 0 || issues.non_manifold_vertices > 0) {
         if (issues.non_manifold_edges > 0 && issues.non_manifold_vertices > 0)
             error_info = format_wxstr(_L("Error: %1$d non-manifold edges, %2$d non-manifold vertices"),
                                       issues.non_manifold_edges, issues.non_manifold_vertices);
@@ -561,6 +562,11 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
         tooltip += error_info + "\n";
     }
 
+    if (issues.has_reversed_faces) {
+        reversed_info = _L("Error: reversed faces detected, which may affect rendering");
+        tooltip += reversed_info + "\n";
+    }
+
     if (issues.has_info()) {
         open_info = format_wxstr(_L_PLURAL("Info: %1$d open edge", "Info: %1$d open edges", issues.open_edges), issues.open_edges);
         tooltip += open_info + "\n";
@@ -570,13 +576,22 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
         wxString info;
         if (!open_info.empty())
             info += open_info;
-        if (!error_info.empty()) {
-            if (!info.empty())
-                info += "\n";
-            info += "<Error>" + error_info + "</Error>";
-        }
         if (stats.repaired())
             info += info.empty() ? auto_repaired_info : ("\n" + auto_repaired_info);
+
+        wxString errors;
+        if (!error_info.empty())
+            errors += error_info;
+        if (!reversed_info.empty()) {
+            if (!errors.empty())
+                errors += "\n";
+            errors += reversed_info;
+        }
+        if (!errors.empty()) {
+            if (!info.empty())
+                info += "\n";
+            info += "<Error>" + errors + "</Error>";
+        }
         *sidebar_info = info;
     }
 
