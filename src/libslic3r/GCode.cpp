@@ -4572,9 +4572,9 @@ void GCode::compute_farthest_point(const std::vector<LayerToPrint> &layers, int 
 
     if (max_dist_sq > 0) {
         m_farthest_point_timelapse.farthest_gcode_pos = unscale(m_farthest_point_timelapse.farthest_point);
-        // Single nozzle with AMS: all virtual extruders share one physical nozzle,
-        // so the nozzle is always the photo head regardless of which filament is used.
-        bool single_nozzle = (m_config.nozzle_diameter.size() <= 1);
+        // Single nozzle and hotend-as-extruder machines always use the photo head
+        // regardless of which filament is used.
+        bool single_nozzle = (m_config.nozzle_diameter.size() <= 1) || m_config.handle_hotend_as_extruder;
         m_farthest_point_timelapse.farthest_is_photo_head = single_nozzle || (m_farthest_point_timelapse.farthest_extruder_id == most_used_extruder);
     }
 }
