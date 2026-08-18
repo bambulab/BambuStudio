@@ -1402,6 +1402,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<BedTempFormula>, bed_temperature_formula))
     ((ConfigOptionInts,                physical_extruder_map))
     ((ConfigOptionFloatsNullable,      hotend_cooling_rate))
+    ((ConfigOptionFloatsNullable,      hotend_cooling_rate_on_rack))
     ((ConfigOptionFloatsNullable,      hotend_heating_rate))
     ((ConfigOptionFloats,              max_temperature_drop_when_ec))
     ((ConfigOptionIntsNullable,        nozzle_flush_dataset))

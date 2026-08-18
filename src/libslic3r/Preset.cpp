@@ -1187,7 +1187,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "printhost_cafile","printhost_port","printhost_authorization_type",
     "printhost_user", "printhost_password", "printhost_ssl_ignore_revoke",
     "use_relative_e_distances", "extruder_type","use_firmware_retraction",
-    "grab_length","machine_switch_extruder_time","hotend_cooling_rate","hotend_heating_rate","enable_pre_heating", "support_object_skip_flush","physical_extruder_map",
+    "grab_length","machine_switch_extruder_time","hotend_cooling_rate","hotend_cooling_rate_on_rack","hotend_heating_rate","enable_pre_heating", "support_object_skip_flush","physical_extruder_map",
     "bed_temperature_formula","machine_prepare_compensation_time", "nozzle_flush_dataset",
     "group_algo_with_time","extruder_max_nozzle_count", "ams_nozzle_idx", "handle_hotend_as_extruder", "max_temperature_drop_when_ec","support_fast_purge_mode"
 };

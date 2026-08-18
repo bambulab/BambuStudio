@@ -1222,6 +1222,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             context.has_filament_switcher,
             context.pre_cooling_temp,
             context.cooling_rate,
+            context.cooling_rate_on_rack,
             context.heating_rate,
             skippable_blocks,
             context.extruder_max_nozzle_count,
@@ -1981,6 +1982,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
 
     m_nozzle_diameter = config.nozzle_diameter.values;
     m_hotend_cooling_rate = config.hotend_cooling_rate.values;
+    m_hotend_cooling_rate_on_rack = config.hotend_cooling_rate_on_rack.values;
     m_hotend_heating_rate = config.hotend_heating_rate.values;
     m_max_temperature_drop_when_ec = config.max_temperature_drop_when_ec.values;
     m_filament_pre_cooling_temp = config.filament_pre_cooling_temperature.values;
@@ -2124,6 +2126,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionFloatsNullable* hotend_cooling_rate = config.option<ConfigOptionFloatsNullable>("hotend_cooling_rate");
     if (hotend_cooling_rate != nullptr) {
         m_hotend_cooling_rate = hotend_cooling_rate->values;
+    }
+
+    const ConfigOptionFloatsNullable* hotend_cooling_rate_on_rack = config.option<ConfigOptionFloatsNullable>("hotend_cooling_rate_on_rack");
+    if (hotend_cooling_rate_on_rack != nullptr) {
+        m_hotend_cooling_rate_on_rack = hotend_cooling_rate_on_rack->values;
     }
 
     const ConfigOptionFloatsNullable* hotend_heating_rate = config.option<ConfigOptionFloatsNullable>("hotend_heating_rate");
@@ -2566,6 +2573,7 @@ void GCodeProcessor::reset()
     m_enable_pre_heating = false;
     m_has_filament_switcher = false;
     m_hotend_cooling_rate = m_hotend_heating_rate = { 2.f };
+    m_hotend_cooling_rate_on_rack = { 2.f };
     m_max_temperature_drop_when_ec = { 0.f };
 
     m_thermal_index    = ThermalIndex(0.0, 0.0, 0.0);
@@ -2782,6 +2790,7 @@ void GCodeProcessor::finalize(bool post_process)
             m_physical_extruder_map,
             m_layer_id,
             m_hotend_cooling_rate,
+            m_hotend_cooling_rate_on_rack,
             m_hotend_heating_rate,
             m_max_temperature_drop_when_ec,
             m_filament_pre_cooling_temp,
@@ -6705,7 +6714,10 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
 
     int extruder_id = get_valid_extruder_id(block.last_nozzle_id);
     float ext_heating_rate = heating_rate[extruder_id];
-    float ext_cooling_rate = cooling_rate[extruder_id];
+    // Cooling right after extruding differs from cooling once the hotend is completely free: printers that
+    // park it away from the toolhead cool down slower there. The two rates are equal on the other printers.
+    float ext_cooling_rate_post_extrusion = cooling_rate[extruder_id];
+    float ext_cooling_rate_when_free = cooling_rate_on_rack[extruder_id];
 
     auto add_M104_lines = [&](int gcode_id, int target_extruder, int target_temp, int target_filament, bool skippable, int next_filament_idx, int next_nozzle_id, bool is_heating, TimeProcessor::InsertLineType type,const std::string& comment = std::string()){
 
@@ -6767,7 +6779,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
 
     if (apply_cooling_when_partial_free) {
         float min_temperature = get_filament_min_temperature_when_ec(block.last_filament_id);
-        float max_cooling_temp = std::min(curr_temp, std::min(get_partial_free_cooling_thres(block.last_filament_id), partial_free_time_gap * ext_cooling_rate));
+        float max_cooling_temp = std::min(curr_temp, std::min(get_partial_free_cooling_thres(block.last_filament_id), partial_free_time_gap * ext_cooling_rate_post_extrusion));
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": partial cooling for %1% %2%") % max_cooling_temp % curr_temp;
         curr_temp = std::max(min_temperature, curr_temp - max_cooling_temp); // set the temperature after doing cooling when post-extruding
         add_M104_lines(block.partial_free_lower_id, extruder_id, curr_temp, block.last_filament_id, false, block.next_filament_id, block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling in post extrusion");
@@ -6806,7 +6818,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     float max_temperature_drop = get_max_temperature_drop_when_ec(block.last_filament_id);
     float cooling_thres = get_filament_min_temperature_when_ec(block.last_filament_id); // 计算最低降温温度
     // 计算中间温度，保证不低于最低降温温度
-    float mid_temp = std::max(cooling_thres, (curr_temp * ext_heating_rate + target_temp * ext_cooling_rate - complete_free_time_gap * ext_cooling_rate * ext_heating_rate) / (ext_cooling_rate + ext_heating_rate));
+    float mid_temp = std::max(cooling_thres, (curr_temp * ext_heating_rate + target_temp * ext_cooling_rate_when_free - complete_free_time_gap * ext_cooling_rate_when_free * ext_heating_rate) / (ext_cooling_rate_when_free + ext_heating_rate));
     float heating_temp = target_temp - mid_temp;
     float heating_start_time = move_iter_upper->time[valid_machine_id] - heating_temp / ext_heating_rate;
     auto heating_move_iter = std::upper_bound(move_iter_lower, move_iter_upper + 1, heating_start_time, [valid_machine_id = this->valid_machine_id](float time, const GCodeProcessorResult::MoveVertex& a) {return time < a.time[valid_machine_id]; });
@@ -6828,7 +6840,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
 
     // get the insert pos of heat cmd and recalculate time gap and delta temp
     float real_cooling_time = heating_move_iter->time[valid_machine_id] - move_iter_lower->time[valid_machine_id]; // 计算实际降温时间
-    int real_delta_temp = real_cooling_time * ext_cooling_rate;
+    int real_delta_temp = real_cooling_time * ext_cooling_rate_when_free;
     if(max_temperature_drop >= 0)
         real_delta_temp = std::min(real_delta_temp, (int)(max_temperature_drop));
     int cooling_temp = std::max((int)cooling_thres, (int)curr_temp - real_delta_temp);

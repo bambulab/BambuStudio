@@ -47,6 +47,12 @@
         "3.4",
         "3.4"
     ],
+    "hotend_cooling_rate_on_rack": [
+        "1.6",
+        "1.6",
+        "3.4",
+        "3.4"
+    ],
     "hotend_heating_rate": [
         "3.5",
         "3.5",

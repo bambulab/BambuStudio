@@ -2797,6 +2797,10 @@ void PrintConfigDef::init_fff_params()
     def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{2});
 
+    def = this->add("hotend_cooling_rate_on_rack", coFloats);
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{2});
+
     def = this->add("hotend_heating_rate", coFloats);
     def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{2});
@@ -8120,6 +8124,7 @@ std::set<std::string> printer_options_with_variant_1 = {
     "printer_extruder_id",
     "printer_extruder_variant",
     "hotend_cooling_rate",
+    "hotend_cooling_rate_on_rack",
     "hotend_heating_rate",
     "nozzle_flush_dataset"
 };

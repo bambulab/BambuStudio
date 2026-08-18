@@ -29,6 +29,10 @@
         "2",
         "2"
     ],
+    "hotend_cooling_rate_on_rack": [
+        "0.8",
+        "0.8"
+    ],
     "hotend_heating_rate": [
         "2",
         "2"

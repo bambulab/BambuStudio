@@ -782,7 +782,8 @@ namespace Slic3r {
             MultiNozzleUtils::LayeredNozzleGroupResult nozzle_group_result;
 
             size_t total_layer_num;
-            std::vector<double> cooling_rate{ 2.f }; // Celsius degree per second
+            std::vector<double> cooling_rate{ 2.f }; // Celsius degree per second, right after extruding
+            std::vector<double> cooling_rate_on_rack{ 2.f }; // Celsius degree per second, once the hotend is completely free
             std::vector<double> heating_rate{ 2.f }; // Celsius degree per second
             std::vector<double> filament_preheat_temperature_delta{0.f}; // temperature delta applied during pre-heating
             std::vector<double> filament_max_temperature_drop_when_ec {0.f}; // max temperature drop when extruder change
@@ -804,6 +805,7 @@ namespace Slic3r {
                 const std::vector<int>& physical_extruder_map_,
                 const size_t total_layer_num_,
                 const std::vector<double>& cooling_rate_,
+                const std::vector<double>& cooling_rate_on_rack_,
                 const std::vector<double>& heating_rate_,
                 const std::vector<double>& filament_max_temperature_drop_when_ec_,
                 const std::vector<int>& pre_cooling_temp_,
@@ -824,6 +826,7 @@ namespace Slic3r {
                 physical_extruder_map(physical_extruder_map_),
                 total_layer_num(total_layer_num_),
                 cooling_rate(cooling_rate_),
+                cooling_rate_on_rack(cooling_rate_on_rack_),
                 heating_rate(heating_rate_),
                 filament_max_temperature_drop_when_ec(filament_max_temperature_drop_when_ec_),
                 pre_cooling_temp(pre_cooling_temp_),
@@ -934,6 +937,7 @@ namespace Slic3r {
                 bool has_filament_switcher_,
                 const std::vector<int> & pre_cooling_temp_,
                 const std::vector<double>& cooling_rate_,
+                const std::vector<double>& cooling_rate_on_rack_,
                 const std::vector<double>& heating_rate_,
                 const std::vector<std::pair<unsigned int,unsigned int>>& skippable_blocks_,
                 const std::vector<int>& extruder_max_nozzle_count_,
@@ -956,6 +960,7 @@ namespace Slic3r {
                 has_filament_switcher(has_filament_switcher_),
                 filament_pre_cooling_temps(pre_cooling_temp_),
                 cooling_rate(cooling_rate_),
+                cooling_rate_on_rack(cooling_rate_on_rack_),
                 heating_rate(heating_rate_),
                 skippable_blocks(skippable_blocks_),
                 extruder_max_nozzle_count(extruder_max_nozzle_count_),
@@ -981,6 +986,7 @@ namespace Slic3r {
             const bool handle_hotend_as_extruder;
             const bool has_filament_switcher;
             const std::vector<double>& cooling_rate;
+            const std::vector<double>& cooling_rate_on_rack;
             const std::vector<double>& heating_rate;
             const std::vector<int>& filament_pre_cooling_temps; // target cooling temp during post extrusion
             const std::vector<std::pair<unsigned int, unsigned int>>& skippable_blocks;
@@ -1162,6 +1168,7 @@ namespace Slic3r {
         std::vector<std::string> m_filament_types;
         std::vector<double> m_nozzle_diameter;
         std::vector<double> m_hotend_cooling_rate{ 2.f };
+        std::vector<double> m_hotend_cooling_rate_on_rack{ 2.f };
         std::vector<double> m_hotend_heating_rate{ 2.f };
         std::vector<double> m_max_temperature_drop_when_ec {0.f};
         std::vector<int> m_filament_pre_cooling_temp{ 0 };
