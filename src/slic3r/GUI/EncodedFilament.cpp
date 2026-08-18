@@ -40,7 +40,7 @@ Slic3r::FilamentColorCode* FilamentColorCodeQuery::GetFilaInfo(const wxString& f
     if (color_info_map && !color_info_map->GetColorCode(colors))
     {
         wxString clr_strs;
-        for (const auto& clr : colors.m_colors)
+        for (const auto& clr : colors.GetColors())
         {
             clr_strs += " ";
             clr_strs += _ColourToString(clr);
@@ -61,7 +61,7 @@ Slic3r::FilamentColorCode* FilamentColorCodeQuery::GetFilaInfo(const wxString& f
     FilamentColor colors;
     for (const auto& hex : hex_colors) {
         if (!hex.empty())
-            colors.m_colors.emplace(wxColour(hex));
+            colors.AddColor(wxColour(hex));
     }
     colors.EndSet(color_type);
     return GetFilaInfo(fila_id, colors);
@@ -105,12 +105,12 @@ void FilamentColorCodeQuery::LoadFromLocal()
                     const auto& fila_color_strs = json_data_item["fila_color"].get<std::vector<wxString>>();
                     for (const auto& color_str : fila_color_strs) {
                         if (color_str.size() > 3) /* Skip the value like "#0"*/{
-                            fila_color.m_colors.emplace(wxColour(color_str));
+                            fila_color.AddColor(wxColour(color_str));
                         }
                     }
                 }
 
-                if (fila_color.m_colors.empty()) {
+                if (fila_color.GetColors().empty()) {
                     BOOST_LOG_TRIVIAL(warning) << "FilamentColorCodeQuery::LoadFromLocal: No colors found for fila_color_code: " << fila_color_code;
                     continue; // Skip if no colors are defined
                 };
@@ -198,7 +198,7 @@ void FilamentColorCode::Debug(const char* prefix)
                              << ", Color Code: " << m_color_code
                              << ", Colors: " << m_fila_color.ColorCount()
                              << ", Type: " << static_cast<int>(m_fila_color.m_color_type);
-    for (const auto& color : m_fila_color.m_colors) { BOOST_LOG_TRIVIAL(debug) << prefix << "  Color: " << _ColourToString(color); }
+    for (const auto& color : m_fila_color.GetColors()) { BOOST_LOG_TRIVIAL(debug) << prefix << "  Color: " << _ColourToString(color); }
     //for (const auto& name_pair : m_fila_color_names) { BOOST_LOG_TRIVIAL(debug) << prefix << "  Color Name [" << name_pair.first << "]: " << name_pair.second;}
 }
 
@@ -219,7 +219,17 @@ FilamentColorCodes::~FilamentColorCodes()
 Slic3r::FilamentColorCode* FilamentColorCodes::GetColorCode(const FilamentColor& colors) const
 {
     const auto& it = m_fila_colors_map->find(colors);
-    return (it != m_fila_colors_map->end()) ? it->second : nullptr;
+    if (it != m_fila_colors_map->end()) {
+        return it->second;
+    }
+
+    // Fallback: ignore insertion order and match the same color set.
+    for (const auto& pair : *m_fila_colors_map) {
+        if (pair.first.MatchesColorSet(colors))
+            return pair.second;
+    }
+
+    return nullptr;
 }
 
 void FilamentColorCodes::AddColorCode(FilamentColorCode* code)

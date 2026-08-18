@@ -643,7 +643,7 @@ nlohmann::json FilamentManagerVM::HandleColors(const std::string& action, const 
             item["color_type"] = from_filament_color_type(fc.m_color_type);
 
             nlohmann::json hex_arr = nlohmann::json::array();
-            for (const auto& c : fc.m_colors) {
+            for (const auto& c : fc.GetColors()) {
                 hex_arr.push_back(
                     wxString::Format("#%02X%02X%02X%02X", c.Red(), c.Green(), c.Blue(), c.Alpha()).utf8_string());
             }
@@ -793,13 +793,13 @@ nlohmann::json FilamentManagerVM::build_spool_list()
             for (const auto& hex : sp_json["colors"]) {
                 if (!hex.is_string()) continue;
                 const std::string h = hex.get<std::string>();
-                if (h.size() > 3) fc.m_colors.emplace(wxColour(wxString::FromUTF8(h)));
+                if (h.size() > 3) fc.AddColor(wxColour(wxString::FromUTF8(h)));
             }
         } else {
             const std::string code = sp_json.value("color_code", std::string());
-            if (code.size() > 3) fc.m_colors.emplace(wxColour(wxString::FromUTF8(code)));
+            if (code.size() > 3) fc.AddColor(wxColour(wxString::FromUTF8(code)));
         }
-        if (fc.m_colors.empty()) continue;
+        if (fc.GetColors().empty()) continue;
 
         fc.m_color_type = to_filament_color_type(sp_json.value("color_type", 2), fc.ColorCount());
 

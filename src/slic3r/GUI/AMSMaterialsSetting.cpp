@@ -593,14 +593,14 @@ std::vector<ColorPickerPopup::ColorItem> AMSMaterialsSetting::get_preset_color_i
     for (const auto& color_pair : *color_codes->GetFilamentColor2CodeMap()) {
         const FilamentColor& fila_color = color_pair.first;
         FilamentColorCode* color_code = color_pair.second;
-        if (!color_code || fila_color.m_colors.empty()) continue;
+        if (!color_code || fila_color.GetColors().empty()) continue;
 
         ColorPickerPopup::ColorItem item;
         item.ctype = filament_color_type_to_ams_ctype(fila_color.m_color_type, fila_color.ColorCount());
         item.name = color_code->GetFilaColorName();
 
         std::string key = std::to_string(item.ctype);
-        for (const wxColour& color : fila_color.m_colors) {
+        for (const wxColour& color : fila_color.GetColors()) {
             item.colors.emplace_back(color);
             key += "|" + colour_to_ams_string(color);
         }
@@ -1241,7 +1241,7 @@ void AMSMaterialsSetting::set_color(wxColour color)
     m_clr_picker->set_color(color);
 
     FilamentColor fila_color;
-    fila_color.m_colors.insert(color);
+    fila_color.AddColor(color);
     fila_color.EndSet(m_clr_picker->ctype);
     auto clr_query = GUI::wxGetApp().get_filament_color_code_query();
     m_clr_name->SetLabelText(clr_query->GetFilaColorName(ams_filament_id, fila_color));
@@ -1263,7 +1263,7 @@ void AMSMaterialsSetting::set_colors(std::vector<wxColour> colors)
     if (!colors.empty())
     {
         FilamentColor fila_color;
-        for (const auto& clr : colors) { fila_color.m_colors.insert(clr); }
+        for (const auto& clr : colors) { fila_color.AddColor(clr); }
         fila_color.EndSet(m_clr_picker->ctype);
         auto clr_query = GUI::wxGetApp().get_filament_color_code_query();
         m_clr_name->SetLabelText(clr_query->GetFilaColorName(ams_filament_id, fila_color));

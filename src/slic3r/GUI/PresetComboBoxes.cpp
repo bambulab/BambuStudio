@@ -890,10 +890,10 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
                     FilamentColor fila_color = dialog.GetSelectedFilamentColor();
 
                     // Check if we have valid color data
-                    if (!fila_color.m_colors.empty()) {
+                    if (!fila_color.GetColors().empty()) {
                         // Convert to storage format
                         std::vector<std::string> colors;
-                        for (const wxColour& color : fila_color.m_colors) {
+                        for (const wxColour& color : fila_color.GetColors()) {
                             colors.push_back(color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
                         }
 
@@ -1486,7 +1486,7 @@ FilamentColor PlaterPresetComboBox::get_cur_color_info()
         if (!color_str.empty()) {
             wxColour color(color_str);
             if (color.IsOk()) {
-                fila_color.m_colors.insert(color);
+                fila_color.AddColor(color);
             }
         }
     }

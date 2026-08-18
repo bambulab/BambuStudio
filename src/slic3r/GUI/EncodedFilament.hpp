@@ -80,14 +80,27 @@ struct FilamentColor
     };
 
     ColorType m_color_type = ColorType::SINGLE_CLR; // default to single color
-    std::set<wxColour, wxColorSorter> m_colors;
 
 public:
-    size_t ColorCount() const noexcept { return m_colors.size(); }
+    const std::vector<wxColour>& GetColors() const noexcept { return m_color_list; }
+    size_t ColorCount() const noexcept { return m_color_list.size(); }
+
+    // True when color type and the unordered color set are the same.
+    bool MatchesColorSet(const FilamentColor& other) const
+    {
+        return m_color_type == other.m_color_type && m_colors == other.m_colors;
+    }
+
+    void AddColor(const wxColour& color)
+    {
+        if (m_colors.insert(color).second) {
+            m_color_list.push_back(color);
+        }
+    }
 
     void EndSet(int ctype)
     {
-        if (m_colors.size() < 2)
+        if (m_color_list.size() < 2)
         {
             m_color_type = ColorType::SINGLE_CLR;
         }
@@ -108,29 +121,26 @@ public:
     bool operator<(const FilamentColor& other) const { 
         if (ColorCount() != other.ColorCount()) { return ColorCount() < other.ColorCount(); };
         if (m_color_type != other.m_color_type) { return m_color_type < other.m_color_type; }
-        if (m_colors == other.m_colors) { return false;}
 
-        // Compare colors in HSV format
-        auto lhs_it = m_colors.begin();
-        auto rhs_it = other.m_colors.begin();
-        while ((lhs_it != m_colors.end()))
+        // Compare colors in insertion order by RGBA.
+        const std::vector<wxColour>& lhs_colors = m_color_list;
+        const std::vector<wxColour>& rhs_colors = other.m_color_list;
+        for (size_t i = 0; i < lhs_colors.size(); ++i)
         {
-            ColourHSV ha = wxColourToHSV(*lhs_it);
-            ColourHSV hb = wxColourToHSV(*rhs_it);
-            if (ha.h != hb.h) return ha.h < hb.h;
-            if (ha.s != hb.s) return ha.s < hb.s;
-            if (ha.v != hb.v) return ha.v < hb.v;
-
-            int lhs_alpha = lhs_it->Alpha();
-            int rhs_alpha = rhs_it->Alpha();
-            if (lhs_alpha != rhs_alpha) return lhs_alpha < rhs_alpha;
-
-            lhs_it++;
-            rhs_it++;
+            const wxColour& lhs = lhs_colors[i];
+            const wxColour& rhs = rhs_colors[i];
+            if (lhs.Red() != rhs.Red()) return lhs.Red() < rhs.Red();
+            if (lhs.Green() != rhs.Green()) return lhs.Green() < rhs.Green();
+            if (lhs.Blue() != rhs.Blue()) return lhs.Blue() < rhs.Blue();
+            if (lhs.Alpha() != rhs.Alpha()) return lhs.Alpha() < rhs.Alpha();
         }
 
         return false;
     }
+
+private:
+    std::set<wxColour, wxColorSorter> m_colors;
+    std::vector<wxColour> m_color_list;
 };
 
 // Compare function for EncodedFilaColor
