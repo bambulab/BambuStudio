@@ -4246,15 +4246,7 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_GESTURE_PAN, &GLCanvas3D::on_gesture, this);
         m_canvas->Bind(wxEVT_GESTURE_ZOOM, &GLCanvas3D::on_gesture, this);
         m_canvas->Bind(wxEVT_GESTURE_ROTATE, &GLCanvas3D::on_gesture, this);
-        // Pan gestures are only registered on Windows, where the touchpad two-finger swipe
-        // has to reach on_gesture(). On macOS the pan recognizer wx installs here also claims
-        // plain left-button drags, so moving an object turns into a camera pan; initGestures()
-        // below already covers the touchpad path there.
-#ifdef __WXMSW__
-        m_canvas->EnableTouchEvents(wxTOUCH_ZOOM_GESTURE | wxTOUCH_ROTATE_GESTURE | wxTOUCH_PAN_GESTURES);
-#else
         m_canvas->EnableTouchEvents(wxTOUCH_ZOOM_GESTURE | wxTOUCH_ROTATE_GESTURE);
-#endif
 #if __WXOSX__
         initGestures(m_canvas->GetHandle(), m_canvas); // for UIPanGestureRecognizer allowedScrollTypesMask
 #endif
@@ -5189,38 +5181,23 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         }
         return;
     }
-    // On Windows, touchpad two-finger scroll is delivered as WM_MOUSEWHEEL/WM_MOUSEHWHEEL
-    // instead of wxEVT_GESTURE_PAN. Distinguish touchpad from mouse wheel by rotation granularity:
-    // mouse wheel always reports multiples of WHEEL_DELTA (120), touchpad reports smaller values.
+    // Shift + scroll wheel/touchpad: pan the camera instead of zooming.
+    // This allows touchpad users to pan vertically/horizontally by holding Shift.
+    // Note: Ctrl is not used because Windows touchpad drivers send Ctrl+Wheel for pinch-to-zoom.
 #ifdef __WXMSW__
-    {
+    if (evt.ShiftDown()) {
         const bool is_horizontal = (evt.GetWheelAxis() == wxMOUSE_WHEEL_HORIZONTAL);
-        const bool likely_touchpad = (std::abs(evt.GetWheelRotation()) < evt.GetWheelDelta())
-                                    || (evt.GetWheelRotation() % evt.GetWheelDelta() != 0);
-
-        // Once a touchpad event is detected, keep treating subsequent events as touchpad
-        // for a short window to avoid occasional large-rotation events leaking to zoom.
-        const int64_t now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count();
-        if (likely_touchpad || is_horizontal) {
-            m_last_touchpad_scroll_ms = now_ms;
-        }
-        const bool in_touchpad_window = (now_ms - m_last_touchpad_scroll_ms) < 500;
-
-        if (is_horizontal || likely_touchpad || in_touchpad_window) {
-            Camera& camera = get_active_camera();
-            const Size cnv_size = get_canvas_size();
-            constexpr double kTouchpadPanSensitivity = 20.0;
-            const double pixels = (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta() * kTouchpadPanSensitivity;
-            double dx = is_horizontal ? pixels : 0.0;
-            double dy = is_horizontal ? 0.0 : -pixels;
-            float z = 0.0f;
-            const Vec3d p1 = _mouse_to_3d(camera, {cnv_size.get_width() * 0.5,        cnv_size.get_height() * 0.5}, &z);
-            const Vec3d p2 = _mouse_to_3d(camera, {cnv_size.get_width() * 0.5 - dx,   cnv_size.get_height() * 0.5 - dy}, &z);
-            camera.set_target(camera.get_target() + p1 - p2);
-            m_dirty = true;
-            return;
-        }
+        Camera& camera = get_active_camera();
+        const Size cnv_size = get_canvas_size();
+        const double pixels = (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta() * 20.0;
+        double dx = is_horizontal ? pixels : 0.0;
+        double dy = is_horizontal ? 0.0 : -pixels;
+        float z = 0.0f;
+        const Vec3d p1 = _mouse_to_3d(camera, {cnv_size.get_width() * 0.5,        cnv_size.get_height() * 0.5}, &z);
+        const Vec3d p2 = _mouse_to_3d(camera, {cnv_size.get_width() * 0.5 - dx,   cnv_size.get_height() * 0.5 - dy}, &z);
+        camera.set_target(camera.get_target() + p1 - p2);
+        m_dirty = true;
+        return;
     }
 #endif // __WXMSW__
 
