@@ -4153,6 +4153,9 @@ void Sidebar::add_filament() {
     if (p->combos_filament.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
     wxColour    new_col        = Plater::get_next_color_for_filament();
     add_custom_filament(new_col);
+    // Reveal the just-added filament: it is appended at the end of the physical
+    // filament list, which may sit below the fold when the scroll area is capped.
+    scroll_filament_area_to_bottom();
 }
 
 void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
@@ -4330,6 +4333,22 @@ void Sidebar::add_custom_filament(wxColour new_col, const std::string& preset_na
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     auto_calc_flushing_volumes(insert_pos);
+}
+
+void Sidebar::scroll_filament_area_to_bottom()
+{
+    auto* sw = p->m_physical_scroll_area;
+    if (!sw) return;
+    // Defer until after the pending layout pass so the virtual size reflects the new row.
+    sw->CallAfter([sw]() {
+        int ppu_x = 0, ppu_y = 0;
+        sw->GetScrollPixelsPerUnit(&ppu_x, &ppu_y);
+        if (ppu_y <= 0) return;
+        int virtual_h = sw->GetVirtualSize().GetHeight();
+        int client_h  = sw->GetClientSize().GetHeight();
+        int max_units = std::max(0, (virtual_h - client_h + ppu_y - 1) / ppu_y);
+        sw->Scroll(0, max_units);
+    });
 }
 
 bool Sidebar::is_new_project_in_gcode3mf()
