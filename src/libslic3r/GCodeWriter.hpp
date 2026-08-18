@@ -126,6 +126,7 @@ public:
     void set_current_position_clear(bool clear) { m_is_current_pos_clear = clear; };
     bool is_current_position_clear() const { return m_is_current_pos_clear; };
     void set_is_bbl_printer(bool is_bbl_printer) { m_is_bbl_printer = is_bbl_printer; };
+    void set_avoid_z_descent_travel(bool v) { m_avoid_z_descent_travel = v; }
     //BBS:
     static const bool full_gcode_comment;
     //Radian threshold of slope for lazy lift and spiral lift;
@@ -166,6 +167,7 @@ private:
     //A example that of the first move, the m_pos is zero, but the real position of extruder doesn't
     //Pos must be clear after the first xyz travel move
     bool            m_is_current_pos_clear = false;
+    bool            m_avoid_z_descent_travel = false;
     //BBS: x, y offset for gcode generated
     double          m_x_offset{ 0 };
     double          m_y_offset{ 0 };

@@ -5566,6 +5566,7 @@ GCode::LayerResult GCode::process_layer(
             m_sub_layer_flow_ratio = default_sub_h / lh;
             m_sub_layer_height     = default_sub_h;
             m_nominal_z            = default_sub_z;
+            m_writer.set_avoid_z_descent_travel(true);
 
             std::string set_ext_gcode = this->set_extruder(extruder_id, default_sub_z);
             gcode += set_ext_gcode;
@@ -5826,6 +5827,7 @@ GCode::LayerResult GCode::process_layer(
 
             m_sub_layer_flow_ratio = 0.0;
             m_sub_layer_height     = 0.0;
+            m_writer.set_avoid_z_descent_travel(false);
         }
         // Flush any pending object end label before leaving the sublayer block,
         // otherwise the wipe tower's add_object_end_labels may consume it into a
