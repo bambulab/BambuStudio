@@ -610,6 +610,10 @@ private:
 
     // BBS
     SupportNecessaryType is_support_necessary();
+    // Warn about overhangs the tree support generator meant to cover but produced nothing for.
+    void                 warn_uncovered_overhangs();
+    // Union of what the support generator actually produced on one support layer.
+    ExPolygons           collected_support_areas(const SupportLayer *support_layer) const;
     void                 merge_layer_node(const size_t layer_id, int &max_merged_id, std::map<int, std::vector<std::pair<int, int>>> &node_record);
     // XYZ in scaled coordinates
     Vec3crd									m_size;

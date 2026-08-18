@@ -12,6 +12,7 @@
 #include "ParamsPanel.hpp"
 #include "MainFrame.hpp"
 #include "libslic3r/Config.hpp"
+#include "libslic3r/PrintBase.hpp"
 #include "format.hpp"
 
 #include <boost/algorithm/string.hpp>
@@ -1842,20 +1843,45 @@ void NotificationManager::push_helio_error_notification(const std::string &text)
 
 void NotificationManager::push_slicing_warning_notification(const std::string& text, bool gray, ModelObject const * obj, ObjectID oid, int warning_step, int warning_msg_id, NotificationLevel level/* = NotificationLevel::WarningNotificationLevel*/)
 {
+	std::string jump_opt_key;
+	std::string jump_link;
+	if (warning_msg_id == PrintStateBase::SlicingSupportIncompleteOnBuildPlate) {
+		jump_opt_key = "support_on_build_plate_only";
+		jump_link    = _u8L("Jump to: Support on build plate only");
+	} else if (warning_msg_id == PrintStateBase::SlicingSupportIncomplete) {
+		jump_opt_key = "support_type";
+		jump_link    = _u8L("Jump to: Support");
+	}
+
 	std::function<bool(wxEvtHandler*)> callback;
-	if (obj) {
-		callback = [id = obj->id()](wxEvtHandler*) {
+	if (obj || !jump_opt_key.empty()) {
+		callback = [id = obj ? obj->id() : ObjectID(), jump_opt_key](wxEvtHandler*) {
 			auto& objects = wxGetApp().model().objects;
-			auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
+			auto iter = id.id ? std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; }) : objects.end();
 			if (iter != objects.end()) {
 				wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
 				wxGetApp().obj_list()->select_items({ {*iter, nullptr} });
 			}
+			if (!jump_opt_key.empty()) {
+				// Object overrides must open the object tab; otherwise stay on the global process page
+				// so toggling the option does not silently create a per-object override.
+				if (iter != objects.end() && (*iter)->config.has(jump_opt_key))
+					wxGetApp().params_panel()->switch_to_object();
+				else
+					wxGetApp().params_panel()->switch_to_global();
+				wxGetApp().sidebar().jump_to_option(jump_opt_key, Preset::TYPE_PRINT, L"");
+			}
 			return false;
 		};
 	}
-    auto link = callback ? _u8L("Jump to") : "";
-    if (obj) link += std::string(" [") + obj->name + "]";
+	std::string link;
+	if (!jump_link.empty())
+		link = jump_link;
+	else if (callback) {
+		link = _u8L("Jump to");
+		if (obj)
+			link += std::string(" [") + obj->name + "]";
+	}
 	NotificationData data { NotificationType::SlicingWarning, level, 0,  _u8L("Warning:") + "\n" + text, link, callback };
 
 	data.sub_msg_id = warning_msg_id;

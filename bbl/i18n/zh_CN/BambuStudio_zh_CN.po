@@ -5919,6 +5919,12 @@ msgstr "点击 Wiki 获取详细信息。"
 msgid "Jump to: Prime tower"
 msgstr "转跳到：擦料塔"
 
+msgid "Jump to: Support on build plate only"
+msgstr "跳转到：仅在打印板上生成支撑"
+
+msgid "Jump to: Support"
+msgstr "跳转到：支撑"
+
 msgid "Enable Clumping Detection"
 msgstr "启用触碰裹头检测"
 
@@ -15661,6 +15667,22 @@ msgstr "大面积悬空"
 #, c-format, boost-format
 msgid "It seems object %s has %s. Please re-orient the object or enable support generation."
 msgstr "似乎对象%s有%s。请重新调整对象的方向或启用支撑生成。"
+
+#, boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
+msgstr ""
+"检测到悬空部分未加支撑\n"
+"模型“%1%”有 %2% 处悬空区域，由于开启了“仅在打印板上生成支撑”，支撑无法生长到热床上。建议关闭该选项"
+
+#, boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
+msgstr ""
+"检测到悬空部分未加支撑\n"
+"模型“%1%”有 %2% 处悬空区域未能生成支撑。可尝试调整支撑参数或模型朝向"
 
 msgid "Generating support"
 msgstr "正在生成支撑"
