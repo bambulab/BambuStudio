@@ -61,7 +61,9 @@
     ],
     "filament_dev_ams_drying_ams_limitations": [
         "1",
-        "0"
+        "0",
+        "2",
+        "3"
     ],
     "filament_dev_ams_drying_heat_distortion_temperature": [
         "60"
