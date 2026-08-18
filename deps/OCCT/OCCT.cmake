@@ -16,6 +16,11 @@ bambustudio_add_cmake_project(OCCT
     #DEPENDS dep_FREETYPE
     CMAKE_ARGS
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+        # OCCT 7.6 only sets -std=c++0x when the compiler id is "Clang"; Apple Xcode reports
+        # "AppleClang", so it falls through with no C++ standard and fails to parse nested
+        # template closes (>>). Force C++11 explicitly to match OCCT's intended standard.
+        -DCMAKE_CXX_STANDARD=11
+        -DCMAKE_CXX_STANDARD_REQUIRED=ON
         -DBUILD_LIBRARY_TYPE=${library_build_type}
         -DUSE_TK=OFF
         -DUSE_TBB=OFF
