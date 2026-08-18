@@ -574,6 +574,8 @@ static constexpr int AMS_PANEL_MIN_WIDTH   = 160;
 static constexpr int FIXED_PANEL_MIN_WIDTH = 360;
 // 列宽由盒宽均分，默认 6 列在 AMS 盒宽度下小于图标宽度，图标之间就没有间隙。
 static constexpr int AMS_PANEL_GRID_COLS   = 4;
+static constexpr int PANEL_MIN_WIDTH       = 580;
+static constexpr int DRAG_BOX_MARGIN       = 15;
 
 FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow                       *parent,
                                          const std::vector<std::string> &type,
@@ -637,10 +639,9 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
         drag_sizer->AddSpacer(FromDIP(12));
         drag_sizer->Add(m_right_panel, 7, wxALIGN_CENTER | wxEXPAND);
     } else {
-        // 让拖放盒横跨对话框宽度（避免列表太窄），但内部耗材网格宽度限制挤出机宽度，使图标保持紧凑间距而不被拉散。
         m_right_panel->SetMinSize({FromDIP(460), -1});
-        m_right_panel->SetUnifiedContentMaxWidth(FromDIP(260));
-        drag_sizer->Add(m_right_panel, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
+        m_right_panel->SetUnifiedGridWidth(FromDIP(PANEL_MIN_WIDTH - 2 * DRAG_BOX_MARGIN));
+        drag_sizer->Add(m_right_panel, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(DRAG_BOX_MARGIN));
     }
 
     top_sizer->Add(drag_sizer, 0, wxEXPAND);
@@ -665,7 +666,7 @@ FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow               
     Bind(wxEVT_DRAG_DROP_COMPLETED, &FilamentMapMultiNozzlePanel::OnDragDropCompleted, this);
 
     SetSizer(top_sizer);
-    SetMinSize(wxSize(FromDIP(580), -1));
+    SetMinSize(wxSize(FromDIP(PANEL_MIN_WIDTH), -1));
     Layout();
     Fit();
     GUI::wxGetApp().UpdateDarkUIWin(this);
@@ -1293,19 +1294,11 @@ FilamentMapSavingPanel::FilamentMapSavingPanel(wxWindow *parent, const wxString 
     }
 
     if (custom_text) {
-        // 占位文案需自适应宽度 + 上限 + 超长末尾省略号。自定义 Label 不支持
-        // wxST_ELLIPSIZE_END，改用原生 wxStaticText（与仓库其它省略号标签一致）。
-        auto desc_label = new wxStaticText(this, wxID_ANY, desc_text, wxDefaultPosition, wxDefaultSize,
-                                           wxST_ELLIPSIZE_END | wxALIGN_CENTER_HORIZONTAL);
+        // 换行而非省略号：长文案 / 本地化文案保持完整可读，面板高度随行数增长。
+        auto desc_label = new Label(this, desc_text, wxALIGN_CENTER_HORIZONTAL);
         desc_label->SetFont(Label::Body_14);
-        desc_label->SetBackgroundColour(GetBackgroundColour());
         desc_label->SetForegroundColour(wxColour("#6B6B6B"));
-        // 用标签自身（已生效）字体测量：短文案按内容自适应，长/本地化文案受上限约束。
-        const int desc_max_width  = FromDIP(460);
-        const int desc_text_width = desc_label->GetTextExtent(desc_text).GetWidth() + FromDIP(8);
-        const int desc_width      = std::min(desc_text_width, desc_max_width);
-        desc_label->SetMinSize(wxSize(desc_width, -1));
-        desc_label->SetMaxSize(wxSize(desc_width, -1));
+        desc_label->Wrap(FromDIP(460));
         saving_sizer->Add(desc_label, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(50));
     } else {
         auto desc_label = new Label(this, desc_text);

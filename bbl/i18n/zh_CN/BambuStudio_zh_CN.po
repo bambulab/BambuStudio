@@ -18620,6 +18620,18 @@ msgstr "优先保证打印质量，并自动生成节省材料%s和%s的分组�
 msgid "Manually assign filament to the %s or %s"
 msgstr "手动分配耗材给%s或%s"
 
+msgid "Automatically and intelligently assigns filaments to minimize filament time consumption"
+msgstr "自动计算智能分配材料，使耗材耗时最少"
+
+msgid "Intelligently assigns filaments based on the filaments currently installed in the printer's AMS"
+msgstr "根据打印机AMS中当前安装的耗材，智能分配耗材"
+
+msgid "Intelligently assigns filaments based on the filaments currently loaded in the printer's nozzles"
+msgstr "根据打印机喷嘴上当前装载的耗材，智能分配耗材"
+
+msgid "Manually assign filaments to the printhead"
+msgstr "手动分配耗材给工具头"
+
 msgid "Global settings"
 msgstr "全局设置"
 

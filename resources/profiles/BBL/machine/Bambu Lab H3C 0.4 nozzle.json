@@ -12,7 +12,7 @@
     "farthest_point_timelapse": "1",
     "printer_variant": "0.4",
     "ams_nozzle_idx": [
-        "4"
+        "0"
     ],
     "bed_exclude_area": [],
     "bed_temperature_formula": "by_highest_temp",

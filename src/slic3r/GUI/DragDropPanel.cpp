@@ -195,6 +195,13 @@ wxDragResult ColorDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 ///////////////   ColorDropTarget  end ////////////////////////
 
 
+// 顶层（非流量分组）耗材网格的尺寸参数。
+static constexpr int GRID_ITEM_GAP = 8;
+static constexpr int GRID_BORDER   = 8;
+// 双挤出机对话框的参考布局，其列距决定图标间距。
+static constexpr int GRID_REF_PANEL_W = 260;
+static constexpr int GRID_REF_COLS    = 6;
+
 DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_auto, bool has_title, bool is_sub)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
     , m_is_auto(is_auto)
@@ -224,8 +231,8 @@ DragDropPanel::DragDropPanel(wxWindow *parent, const wxString &label, bool is_au
         m_grid_item_sizer = new wxGridSizer(0, 3, FromDIP(6), FromDIP(6));
         m_sizer->Add(m_grid_item_sizer, 0, wxEXPAND);
     } else {
-        m_grid_item_sizer = new wxGridSizer(0, 6, FromDIP(8), FromDIP(8)); // row = 0, col = 3,  10 10 is space
-        m_sizer->Add(m_grid_item_sizer, 0, wxEXPAND | wxALL, FromDIP(8));
+        m_grid_item_sizer = new wxGridSizer(0, 6, FromDIP(GRID_ITEM_GAP), FromDIP(GRID_ITEM_GAP));
+        m_sizer->Add(m_grid_item_sizer, 0, wxEXPAND | wxALL, FromDIP(GRID_BORDER));
     }
 
     // set droptarget
@@ -303,6 +310,24 @@ void DragDropPanel::SetGridColumns(int cols)
     m_grid_item_sizer->SetCols(cols);
     Layout();
     Fit();
+}
+
+void DragDropPanel::SetGridColumnsForWidth(int panel_width)
+{
+    const int gap    = FromDIP(GRID_ITEM_GAP);
+    const int border = FromDIP(GRID_BORDER);
+    // wxGridSizer 把区域均分为等宽单元格加间隙，参考列宽按同样方式反推；列距即相邻图标的间隔。
+    const int ref_cell_w = (FromDIP(GRID_REF_PANEL_W) - 2 * border - (GRID_REF_COLS - 1) * gap) / GRID_REF_COLS;
+    const int pitch      = ref_cell_w + gap;
+
+    const int available = panel_width - 2 * border;
+    if (available + gap < pitch)
+        return;
+
+    const int cols = (available + gap) / pitch;
+    // 必须钉死宽度，否则网格会把多余宽度摊到各单元格上，间距被拉散。
+    SetMaxSize({cols * pitch - gap + 2 * border, -1});
+    SetGridColumns(cols);
 }
 
 std::vector<int> DragDropPanel::GetAllFilaments() const
@@ -515,13 +540,12 @@ void SeparatedDragDropPanel::SetUnifiedGridColumns(int cols)
     Layout();
 }
 
-void SeparatedDragDropPanel::SetUnifiedContentMaxWidth(int max_width)
+void SeparatedDragDropPanel::SetUnifiedGridWidth(int box_width)
 {
-    if (!m_unified_panel)
+    // 分流量类型时各分组沿用自己调好的固定列数与间距。
+    if (!m_unified_panel || m_use_separation)
         return;
-    // unified 面板以 wxEXPAND 加入布局，限制其最大宽度可让内部网格保持紧凑，
-    // 外层盒子仍可拉伸，多出宽度作为拖放区。
-    m_unified_panel->SetMaxSize({max_width, -1});
+    m_unified_panel->SetGridColumnsForWidth(box_width);
     Layout();
 }
 

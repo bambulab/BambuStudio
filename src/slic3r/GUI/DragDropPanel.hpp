@@ -31,6 +31,7 @@ public:
     void DoDragDrop(ColorPanel *panel, const std::string &type, int filament_id);
     void UpdateLabel(const wxString &label);
     void SetGridColumns(int cols);
+    void SetGridColumnsForWidth(int panel_width);
 
     std::vector<int> GetAllFilaments() const;
 
@@ -98,8 +99,7 @@ public:
     void UpdateVolumeTypeCounts(int standard_count, int high_flow_count, int tpu_count);
     // 列数决定 unified（非分隔）网格的列宽，列宽小于图标宽度时图标之间就没有间隙。
     void SetUnifiedGridColumns(int cols);
-    // 限制 unified（非分隔）耗材网格宽度，使外层拖放盒被拉宽时图标仍保持紧凑间距。
-    void SetUnifiedContentMaxWidth(int max_width);
+    void SetUnifiedGridWidth(int box_width);
 
 private:
     void UpdateLayout();
