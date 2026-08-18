@@ -1,5 +1,6 @@
 #include "DeviceWebHost.hpp"
 
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModel.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "libslic3r/Utils.hpp"
@@ -63,6 +64,9 @@ void DeviceWebHost::EnsureBuilt()
     if (!wxGetApp().is_fila_manager_disabled() &&
         (m_mode == DeviceWebHostMode::FilamentManager || m_mode == DeviceWebHostMode::AllForDebug)) {
         m_device_web_mgr->Register(std::make_unique<FilamentManagerVM>());
+    }
+    if (m_mode == DeviceWebHostMode::DevicePageAmsControlWeb || m_mode == DeviceWebHostMode::AllForDebug) {
+        m_device_web_mgr->Register(std::make_unique<DevicePageAmsControlWebVM>());
     }
     m_device_web_mgr->SetBridge(m_device_web_bridge.get());
     m_device_web_bridge->SetManager(m_device_web_mgr.get());
@@ -284,6 +288,14 @@ void DeviceWebHost::NotifyFilamentMachineChanged()
         return;
 
     m_device_web_mgr->NotifyState("filament", "machine", "selected_changed");
+}
+
+void DeviceWebHost::NotifyAmsControlWebChanged()
+{
+    if (!m_device_web_mgr || !CanBuildDeviceState())
+        return;
+
+    m_device_web_mgr->NotifyState("device_page_ams_control_web", "state", "changed");
 }
 
 void DeviceWebHost::on_sys_color_changed()

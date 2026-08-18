@@ -17,6 +17,7 @@ namespace GUI {
 
 enum class DeviceWebHostMode {
     FilamentManager,
+    DevicePageAmsControlWeb,
     AllForDebug
 };
 
@@ -45,6 +46,7 @@ public:
     void NotifyFilamentMachineChanged();
     void NotifyDeviceFilamentChanged();
     void NotifyAmsMappingChanged();
+    void NotifyAmsControlWebChanged();
     // Dispatch a JSON-RPC command directly to the matching ViewModel (fire-and-forget).
     // body must contain: module, submod, action, payload.
     void DispatchCommand(const nlohmann::json& body);

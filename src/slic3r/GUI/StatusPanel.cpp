@@ -58,6 +58,9 @@
 #include "DeviceCore/DevPrintTaskInfo.h"
 #include "DeviceCore/DevPrintOptions.h"
 #include "DeviceTab/wgtDeviceNozzleRack.h"
+#if BBL_ENABLE_AMS_CONTROL_WEB
+#include "DeviceTab/AmsControl/wgtAmsControlWebPanel.h"
+#endif
 
 
 
@@ -2294,11 +2297,26 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     m_ams_rack_switch->Hide();
     m_ams_rack_switch->Bind(wxCUSTOMEVT_SWITCH_POS, &StatusBasePanel::on_ams_rack_switch, this);
 
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    m_ams_control_web_switch = new SwitchBoard(parent, "AMS C++", "AMS Web", wxSize(FromDIP(160), FromDIP(26)));
+    m_ams_control_web_switch->updateState("left");
+    m_ams_control_web_switch->Hide();
+    m_ams_control_web_switch->Bind(wxCUSTOMEVT_SWITCH_POS, &StatusBasePanel::on_ams_control_web_switch, this);
+#endif
+
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(8));
     bSizer_control->Add(temp_axis_ctrl_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
     bSizer_control->Add(m_ams_rack_switch, 0, wxALIGN_CENTRE | wxTOP, FromDIP(6));
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    bSizer_control->Add(m_ams_control_web_switch, 0, wxALIGN_CENTRE | wxTOP, FromDIP(6));
+#endif
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(6));
     bSizer_control->Add(ams_rack_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    m_ams_control_web_panel = new wgtAmsControlWebPanel(parent);
+    m_ams_control_web_panel->Hide();
+    bSizer_control->Add(m_ams_control_web_panel, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
+#endif
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(6));
     bSizer_control->Add(m_filament_load_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(4));
@@ -2869,6 +2887,36 @@ void StatusBasePanel::show_ams_group(bool show)
 
     if (show && m_ams_rack_switch->IsShown() && (m_ams_rack_switch->switch_left != true)) { return; }
 
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    if (m_ams_control_web_switch && m_ams_control_web_switch->IsShown() != show) {
+        m_ams_control_web_switch->Show(show);
+    }
+    if (!show) {
+        if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown()) {
+            m_ams_control_web_panel->HideAndSuspend();
+        }
+    } else if (m_ams_control_web_active) {
+        bool refresh_layout = false;
+        if (m_ams_control_box->IsShown()) {
+            m_ams_control_box->Show(false);
+            refresh_layout = true;
+        }
+        if (m_ams_control_web_panel && !m_ams_control_web_panel->IsShown()) {
+            m_ams_control_web_panel->ShowAndLoad();
+            m_ams_control_web_panel->UpdateByMachine(obj);
+            refresh_layout = true;
+        }
+        if (refresh_layout) {
+            Layout();
+            Fit();
+            wxGetApp().mainframe->m_monitor->Layout();
+        }
+        return;
+    } else if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown()) {
+        m_ams_control_web_panel->HideAndSuspend();
+    }
+#endif
+
     if (m_ams_control_box->IsShown() != show) {
         m_ams_control_box->Show(show);
         m_ams_control->Layout();
@@ -2907,6 +2955,14 @@ void StatusBasePanel::jump_to_Rack()
     if (obj && obj->GetNozzleRack()->IsSupported()) {
         m_ams_rack_switch->updateState("right");
         m_ams_control_box->Show(false);
+#if BBL_ENABLE_AMS_CONTROL_WEB
+        if (m_ams_control_web_switch) {
+            m_ams_control_web_switch->Show(false);
+        }
+        if (m_ams_control_web_panel) {
+            m_ams_control_web_panel->HideAndSuspend();
+        }
+#endif
         m_panel_nozzle_rack->Show(true);
         Layout();
     }
@@ -2915,10 +2971,37 @@ void StatusBasePanel::jump_to_Rack()
 void StatusBasePanel::on_ams_rack_switch(wxCommandEvent &e)
 {
     if (!m_ams_control_box->IsShown() && e.GetInt() == 1) {
+#if BBL_ENABLE_AMS_CONTROL_WEB
+        if (m_ams_control_web_switch) {
+            m_ams_control_web_switch->Show(true);
+        }
+        if (m_ams_control_web_active) {
+            m_ams_control_box->Show(false);
+            m_panel_nozzle_rack->Show(false);
+            if (m_ams_control_web_panel) {
+                m_ams_control_web_panel->ShowAndLoad();
+                m_ams_control_web_panel->UpdateByMachine(obj);
+            }
+            Layout();
+            e.Skip();
+            return;
+        }
+        if (m_ams_control_web_panel) {
+            m_ams_control_web_panel->HideAndSuspend();
+        }
+#endif
         m_ams_control_box->Show(e.GetInt() == 1);
         m_panel_nozzle_rack->Show(e.GetInt() == 0);
         Layout();
     } else if (!m_panel_nozzle_rack->IsShown() && e.GetInt() == 0) {
+#if BBL_ENABLE_AMS_CONTROL_WEB
+        if (m_ams_control_web_switch) {
+            m_ams_control_web_switch->Show(false);
+        }
+        if (m_ams_control_web_panel) {
+            m_ams_control_web_panel->HideAndSuspend();
+        }
+#endif
         m_ams_control_box->Show(e.GetInt() == 1);
         m_panel_nozzle_rack->Show(e.GetInt() == 0);
         Layout();
@@ -2926,6 +3009,33 @@ void StatusBasePanel::on_ams_rack_switch(wxCommandEvent &e)
 
     e.Skip();
 }
+
+#if BBL_ENABLE_AMS_CONTROL_WEB
+void StatusBasePanel::on_ams_control_web_switch(wxCommandEvent &e)
+{
+    m_ams_control_web_active = (e.GetInt() == 0);
+    if (m_ams_control_web_active) {
+        if (m_ams_control_box) {
+            m_ams_control_box->Show(false);
+        }
+        if (m_ams_control_web_panel) {
+            m_ams_control_web_panel->ShowAndLoad();
+            m_ams_control_web_panel->UpdateByMachine(obj);
+        }
+    } else {
+        if (m_ams_control_web_panel) {
+            m_ams_control_web_panel->HideAndSuspend();
+        }
+        if (m_ams_control_box) {
+            m_ams_control_box->Show(true);
+        }
+    }
+    Layout();
+    Fit();
+    wxGetApp().mainframe->m_monitor->Layout();
+    e.Skip();
+}
+#endif
 
 void StatusPanel::update_camera_state(MachineObject *obj)
 {
@@ -3991,6 +4101,12 @@ void StatusPanel::update_ams(MachineObject *obj)
             m_ams_control->show_auto_refill(true);
         }
     }
+
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown()) {
+        m_ams_control_web_panel->UpdateByMachine(obj);
+    }
+#endif
 
     if (m_filament_setting_dlg) m_filament_setting_dlg->update();
 

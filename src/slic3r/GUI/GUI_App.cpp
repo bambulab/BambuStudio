@@ -5,6 +5,7 @@
 #include "GUI_ObjectList.hpp"
 #include "GUI_Factories.hpp"
 #include "slic3r/GUI/DeviceWeb/DeviceWebPage.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModel.hpp"
 #include "slic3r/GUI/UserManager.hpp"
 #include "slic3r/GUI/TaskManager.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
@@ -3673,6 +3674,10 @@ bool GUI_App::on_init_inner()
 
 void GUI_App::notify_new_rfid_filament(const std::string& ams_id, const std::string& slot_id)
 {
+    // The Web AMS panel tracks the hint on its own, so record it before the
+    // classic monitor check: the Web page may be up while the monitor is not.
+    DevicePageAmsControlWebVM::NotifyNewRfidFilament(ams_id, slot_id);
+
     if (!mainframe || !mainframe->m_monitor) return;
     auto* sp = mainframe->m_monitor->get_status_panel();
     if (sp) sp->show_ams_filament_hint(ams_id, slot_id);
