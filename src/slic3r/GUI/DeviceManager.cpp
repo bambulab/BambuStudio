@@ -931,6 +931,21 @@ std::map<int, DevFirmwareVersionInfo> MachineObject::get_ams_version()
             continue;
         }
     }
+    if (auto fila_sys = GetFilaSystem(); !hotend_ams_type.empty()) {
+        auto mod_it = module_vers.find(hotend_ams_type);
+        if (mod_it != module_vers.end()) {
+            for (const auto& [ams_id_str, ams_ptr] : fila_sys->GetAmsList()) {
+                if (!ams_ptr) continue;
+                const DevAmsType t = ams_ptr->GetAmsType();
+                if (t != DevAmsType::ZMULTI_A && t != DevAmsType::ZMULTI_B) continue;
+                try {
+                    int ams_id = std::stoi(ams_id_str);
+                    result.emplace(ams_id, mod_it->second);
+                } catch (...) {}
+            }
+        }
+    }
+
     return result;
 }
 

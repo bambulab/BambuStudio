@@ -1253,7 +1253,8 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
     if (!save_pa_profile_selection())
         return;
 
-    if (can_edit_filament_weight() && filament_weight_changed(total_weight, remain_weight)) {
+    const bool weight_changed = can_edit_filament_weight() && filament_weight_changed(total_weight, remain_weight);
+    if (weight_changed) {
         obj->GetFilaSystem()->CtrlSetFilamentWeight(ams_id, slot_id, total_weight, remain_weight);
     }
 
@@ -2530,6 +2531,22 @@ void AMSMaterialsSetting::apply_filament_selection()
                 set_colors(cols);
             } else if (!sp->color_code.empty()) {
                 set_color(parse_hex_color(sp->color_code));
+            }
+
+            if (support_filament_remain_edit()) {
+                const int total_g = static_cast<int>(std::round(sp->effective_total_net_weight()));
+                int remain_g = 0;
+                if (sp->net_weight > 0.0)
+                    remain_g = static_cast<int>(std::round(sp->net_weight));
+                else if (total_g > 0)
+                    remain_g = static_cast<int>(total_g * std::max(0, std::min(100, sp->remain_percent)) / 100.0);
+
+                if (total_g > 0) {
+                    m_input_total_weight->GetTextCtrl()->SetValue(wxString::Format("%d", total_g));
+                    m_input_remain_weight->GetTextCtrl()->SetValue(
+                        remain_g > 0 ? wxString::Format("%d", remain_g) : wxString());
+                    m_has_initial_filament_weight = false;
+                }
             }
         }
     } else if (preset_bundle) {

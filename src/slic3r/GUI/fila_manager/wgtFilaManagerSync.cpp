@@ -3,6 +3,7 @@
 #include "wgtFilaManagerCloudSync.h"
 #include "wgtFilaManagerCloudClient.h"
 #include "wgtFilaManagerCloudDispatcher.h"
+#include "nlohmann/json.hpp"
 #include "AmsAutoPushThrottle.h"
 
 #include "slic3r/GUI/GUI_App.hpp"
@@ -293,6 +294,7 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         updated.bound_dev_id   = dev_id;
         updated.bound_ams_id   = ams_id;
 
+        const bool nw_changed = (static_cast<double>(net_weight_g) != matched->net_weight);
         if (m_store->update_spool_if_changed(updated)) {
             any_changed = true;
             const bool manual_rfid_bind =
@@ -304,7 +306,8 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
                 changed.push_back({
                     matched->spool_id,
                     tag,
-                    net_weight_g
+                    net_weight_g,
+                    nw_changed
                 });
             }
         }
@@ -335,6 +338,21 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
         }
     }
 
+    // Extenal spool netweight changed
+    if (!changed.empty()) {
+        if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
+            for (const auto& item : changed) {
+                if (!item.net_weight_changed) continue;
+                const FilamentSpool* sp = m_store->get_spool(item.spool_id);
+                if (!sp || sp->ams_type != static_cast<int>(DevAmsType::EXT_SPOOL)) continue;
+                nlohmann::json w_patch;
+                w_patch["net_weight"] = static_cast<double>(item.net_weight);
+                disp->enqueue_push_update(item.spool_id, w_patch);
+            }
+        }
+    }
+
+    // 拔出事件由路径 C 独占，从路径 B 列表中排除，避免同时发两个接口
     if (!ejected_snapshots.empty()) {
         std::set<std::string> ejected_ids;
         for (const auto& snap : ejected_snapshots)
