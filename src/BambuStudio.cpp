@@ -7812,7 +7812,8 @@ int CLI::run(int argc, char **argv)
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s thumbnail, need to regenerate")%(i+1);
                                     Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(p_opengl_mgr, *thumbnail_data,
                                         thumbnail_width, thumbnail_height, thumbnail_params,
-                                        partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho);
+                                        partplate_list, model.objects, glvolume_collection, colors_out, shader, Slic3r::GUI::Camera::EType::Ortho,
+                                        Slic3r::GUI::Camera::ViewAngleType::Iso_3);
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s thumbnail,finished rendering")%(i+1);
                                 }
                             }
@@ -7846,7 +7847,7 @@ int CLI::run(int argc, char **argv)
                                     Slic3r::GUI::GLCanvas3D::render_thumbnail_framebuffer(p_opengl_mgr, *no_light_thumbnail,
                                         thumbnail_width, thumbnail_height, thumbnail_params,
                                         partplate_list, model.objects, glvolume_collection, colors_out, shader,
-                                        Slic3r::GUI::Camera::EType::Ortho, Slic3r::GUI::Camera::ViewAngleType::Iso,
+                                        Slic3r::GUI::Camera::EType::Ortho, Slic3r::GUI::Camera::ViewAngleType::Iso_3,
                                         false, true);
                                     plate_data->no_light_thumbnail_file = "valid_no_light";
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%'s no_light thumbnail,finished rendering")%(i+1);
