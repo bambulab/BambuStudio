@@ -5165,15 +5165,13 @@ void TabFilament::toggle_options()
         toggle_option("filament_prime_volume", prime_volume_editable, 256 + (unsigned int) (m_variant_combo->GetSelection()));
         toggle_option("filament_prime_volume_nc", prime_volume_editable, 256 + (unsigned int) (m_variant_combo->GetSelection()));
 
-        std::string printer_model = m_preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
-        bool is_tower_interface_supported = (printer_model.find("H2C") != std::string::npos ||
-                                             printer_model.find("H2D") != std::string::npos ||
-                                             printer_model.find("X2D") != std::string::npos);
+        const auto &printer_config = m_preset_bundle->printers.get_edited_preset().config;
+        bool handle_hotend_as_extruder = printer_config.opt_bool("handle_hotend_as_extruder");
+        bool is_tower_interface_supported = handle_hotend_as_extruder || is_multi_extruder;
         for (auto el : {"filament_tower_interface_pre_extrusion_dist", "filament_tower_interface_pre_extrusion_length",
                         "filament_tower_interface_purge_volume", "filament_tower_interface_print_temp"})
             toggle_line(el, is_tower_interface_supported);
 
-        bool handle_hotend_as_extruder = m_preset_bundle->printers.get_edited_preset().config.opt_bool("handle_hotend_as_extruder");
         toggle_line("filament_cooling_before_tower", !handle_hotend_as_extruder, 0);
         toggle_line("filament_idle_travel_cooling_enabled", handle_hotend_as_extruder);
         m_active_page->update_visibility(m_mode, true);

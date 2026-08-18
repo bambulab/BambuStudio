@@ -1129,10 +1129,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     }
 
     {
-        std::string printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
-        bool is_tower_interface_supported = (printer_model.find("H2C") != std::string::npos ||
-                                             printer_model.find("H2D") != std::string::npos ||
-                                             printer_model.find("X2D") != std::string::npos);
+        // Enable tower interface on N1x-style machines (handle_hotend_as_extruder)
+        // and on multi-extruder printers (nozzle_diameter.size() > 1).
+        const auto &printer_config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+        bool handle_hotend_as_extruder = printer_config.opt_bool("handle_hotend_as_extruder");
+        bool is_multi_extruder = printer_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->size() > 1;
+        bool is_tower_interface_supported = handle_hotend_as_extruder || is_multi_extruder;
         toggle_line("enable_tower_interface_features", have_prime_tower && is_tower_interface_supported);
     }
 
