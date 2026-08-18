@@ -5617,7 +5617,7 @@ void PresetBundle::update_multi_material_filament_presets(size_t to_delete_filam
     }
 }
 
-void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_print_if_incompatible, PresetSelectCompatibleType select_other_filament_if_incompatible)
+void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_print_if_incompatible, PresetSelectCompatibleType select_other_filament_if_incompatible, const std::string &prefered_print_profile_override)
 {
     const Preset					&printer_preset					    = this->printers.get_edited_preset();
 	const PresetWithVendorProfile    printer_preset_with_vendor_profile = this->printers.get_preset_with_vendor_profile(printer_preset);
@@ -5738,8 +5738,13 @@ void PresetBundle::update_compatible(PresetSelectCompatibleType select_other_pri
 		assert(printer_preset.config.has("default_print_profile"));
 		assert(printer_preset.config.has("default_filament_profile"));
         const std::vector<std::string> &prefered_filament_profiles = printer_preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
+        // BBS: prefer the caller-supplied process profile (e.g. the last one used with this printer)
+        // over the printer's default_print_profile, so switching printers restores the remembered
+        // process instead of dropping to the system base.
+        const std::string prefered_print_profile = prefered_print_profile_override.empty() ?
+            printer_preset.config.opt_string("default_print_profile") : prefered_print_profile_override;
         this->prints.update_compatible(printer_preset_with_vendor_profile, nullptr, select_other_print_if_incompatible,
-            PreferedPrintProfileMatch(this->prints.get_selected_idx() == size_t(-1) ? nullptr : &this->prints.get_edited_preset(), printer_preset.config.opt_string("default_print_profile")));
+            PreferedPrintProfileMatch(this->prints.get_selected_idx() == size_t(-1) ? nullptr : &this->prints.get_edited_preset(), prefered_print_profile));
         const PresetWithVendorProfile   print_preset_with_vendor_profile = this->prints.get_edited_preset_with_vendor_profile();
         // Remember whether the filament profiles were compatible before updating the filament compatibility.
         std::vector<char> 				filament_preset_was_compatible(this->filament_presets.size(), false);

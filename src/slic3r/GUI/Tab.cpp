@@ -6825,10 +6825,16 @@ bool Tab::select_preset(
         	       on_page                                ? PresetSelectCompatibleType::Never  :
         	       show_incompatible_presets              ? PresetSelectCompatibleType::OnlyIfWasCompatible : PresetSelectCompatibleType::Always;
         };
+        // BBS: when switching printer (not deleting), prefer the process profile last used with the
+        // newly-selected printer over the system base, so the process isn't reset on every switch.
+        std::string prefered_process_override;
+        if (printer_tab && !delete_current)
+            prefered_process_override = app_config->get("last_process_per_printer", preset_name);
         if (current_dirty || delete_current || print_tab || printer_tab)
             m_preset_bundle->update_compatible(
             	update_compatible_type(technology_changed, print_tab,   (print_tab ? this : wxGetApp().get_tab(Preset::TYPE_PRINT))->m_show_incompatible_presets),
-            	update_compatible_type(technology_changed, false, 		wxGetApp().get_tab(Preset::TYPE_FILAMENT)->m_show_incompatible_presets));
+            	update_compatible_type(technology_changed, false, 		wxGetApp().get_tab(Preset::TYPE_FILAMENT)->m_show_incompatible_presets),
+            	prefered_process_override);
         // Initialize the UI from the current preset.
         if (printer_tab)
             static_cast<TabPrinter*>(this)->update_pages();
@@ -6854,6 +6860,15 @@ bool Tab::select_preset(
         apply_config_from_cache();
 
         load_current_preset();
+
+        // BBS: remember the process profile chosen for the currently-active printer, so switching
+        // back to this printer later restores it instead of resetting to the system base.
+        if (m_type == Preset::TYPE_PRINT) {
+            const std::string cur_printer = m_preset_bundle->printers.get_selected_preset_name();
+            const std::string cur_process = m_preset_bundle->prints.get_selected_preset_name();
+            if (!cur_printer.empty() && !cur_process.empty())
+                app_config->set("last_process_per_printer", cur_printer, cur_process);
+        }
 
         if (delete_third_printer) {
             wxGetApp().CallAfter([filament_presets, process_presets]() {

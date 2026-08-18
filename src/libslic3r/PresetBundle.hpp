@@ -392,7 +392,10 @@ public:
     // Also updates the is_visible flag of each preset.
     // If select_other_if_incompatible is true, then the print or filament preset is switched to some compatible
     // preset if the current print or filament preset is not compatible.
-    void                        update_compatible(PresetSelectCompatibleType select_other_print_if_incompatible, PresetSelectCompatibleType select_other_filament_if_incompatible);
+    // BBS: prefered_print_profile_override, when non-empty, takes precedence over the printer's
+    // default_print_profile when picking a compatible process profile (used to restore the
+    // last-used process for a printer instead of always falling back to the system base).
+    void                        update_compatible(PresetSelectCompatibleType select_other_print_if_incompatible, PresetSelectCompatibleType select_other_filament_if_incompatible, const std::string &prefered_print_profile_override = std::string());
     void                        update_compatible(PresetSelectCompatibleType select_other_if_incompatible) { this->update_compatible(select_other_if_incompatible, select_other_if_incompatible); }
 
     // Set the is_visible flag for printer vendors, printer models and printer variants
