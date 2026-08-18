@@ -22,6 +22,7 @@
 #include "MutablePolygon.hpp"
 #include "ShortestPath.hpp"
 #include "SupportCommon.hpp"
+#include "Time.hpp"
 #include "TriangleMeshSlicer.hpp"
 #include "TreeSupport.hpp"
 #include "I18N.hpp"
@@ -4844,6 +4845,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 #if 1
         // use smart overhang detection
         std::vector<Polygons>        overhangs;
+        const long long support_detect_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
         tree_support->detect_overhangs();
         const int       num_raft_layers = int(config.raft_layers.size());
         const int       num_layers = int(print_object.layer_count()) + num_raft_layers;
@@ -4873,6 +4875,8 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
                 }
             }
         }
+        print_object.support_stage_times().detect +=
+            Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_detect_begin_time;
 #else
         std::vector<Polygons>        overhangs = generate_overhangs(config, *print.get_object(processing.second.front()), throw_on_cancel);
 #endif
@@ -5024,8 +5028,11 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
             }
             remove_undefined_layers();
 
+            const long long support_interface_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
             std::tie(interface_layers, base_interface_layers) = generate_interface_layers(print_object.config(), support_params,
                 bottom_contacts, top_contacts, interface_layers, base_interface_layers, intermediate_layers, layer_storage);
+            print_object.support_stage_times().interface_generate +=
+                Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_interface_begin_time;
 
             // A very low overhang produces roofs that have no tree body underneath. Printing the whole
             // stack as interface leaves it without an anchor to the bed, so turn the bed-touching interface
@@ -5089,9 +5096,12 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 
         // Don't fill in the tree supports, make them hollow with just a single sheath line.
         print.set_status(69, _L("Generating support"));
+        const long long support_toolpath_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
         generate_support_toolpaths(print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
             raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers,
             cooldown_areas, &lightning_infill_lines, floating_column_areas);
+        print_object.support_stage_times().toolpath_generate +=
+            Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_toolpath_begin_time;
 
         auto t_end = std::chrono::high_resolution_clock::now();
         BOOST_LOG_TRIVIAL(info) << "Total time of organic tree support: " << 0.001 * std::chrono::duration_cast<std::chrono::microseconds>(t_end - t_start).count() << " ms";

@@ -205,6 +205,7 @@ typedef struct  _sliced_plate_info{
     size_t make_perimeters_time {0};
     size_t infill_time {0};
     size_t generate_support_material_time {0};
+    std::unordered_map<std::string, long long> slice_stage_times;
     size_t triangle_count{0};
     std::string warning_message;
 
@@ -231,6 +232,10 @@ typedef struct _sliced_info {
     std::vector<sliced_plate_info_t> sliced_plates;
     size_t prepare_time;
     size_t export_time;
+    size_t export_3mf_time {0};
+    size_t export_slicedata_time {0};
+    size_t load_slicedata_time {0};
+    size_t import_time {0};
     float  layer_height{0.f};
     float  sparse_infill_density{0.f};
     int    wall_loops{0};
@@ -501,8 +506,15 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
         j["plate_index"] = plate_id;
         j["return_code"] = code;
         j["error_string"] = error_message;
-        j["prepare_time"] = sliced_info.prepare_time;
-        j["export_time"] = sliced_info.export_time;
+        json task_times = json::object();
+        task_times["prepare_time"] = sliced_info.prepare_time;
+        task_times["export_time"] = sliced_info.export_time;
+        task_times["export_3mf_time"] = sliced_info.export_3mf_time;
+        task_times["export_slicedata_time"] = sliced_info.export_slicedata_time;
+        task_times["load_slicedata_time"] = sliced_info.load_slicedata_time;
+        task_times["import_time"] = sliced_info.import_time;
+        j["times"] = std::move(task_times);
+        j["peak_rss_mb"] = Slic3r::get_peak_rss_mb();
         j["layer_height"] = sliced_info.layer_height;
         j["wall_loops"] = sliced_info.wall_loops;
         j["sparse_infill_density"] = sliced_info.sparse_infill_density;
@@ -519,11 +531,37 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
             json plate_json;
             sliced_plate_info_t& sliced_plate_info = sliced_info.sliced_plates[index];
             plate_json["id"] = sliced_plate_info.plate_id;
-            plate_json["sliced_time"] = sliced_plate_info.sliced_time;
-            plate_json["sliced_time_with_cache"] = sliced_plate_info.sliced_time_with_cache;
-            plate_json["make_perimeters_time"] = sliced_plate_info.make_perimeters_time;
-            plate_json["infill_time"] = sliced_plate_info.infill_time;
-            plate_json["generate_support_material_time"] = sliced_plate_info.generate_support_material_time;
+            const auto stage_time = [&sliced_plate_info](const char *key) {
+                const auto it = sliced_plate_info.slice_stage_times.find(key);
+                return it == sliced_plate_info.slice_stage_times.end() ? 0LL : it->second;
+            };
+            json plate_times = json::object();
+            plate_times["sliced_time"] = sliced_plate_info.sliced_time;
+            plate_times["sliced_time_with_cache"] = sliced_plate_info.sliced_time_with_cache;
+            plate_times["make_perimeters_time"] = sliced_plate_info.make_perimeters_time;
+            plate_times[TIME_SLICE_LAYERS] = stage_time(TIME_SLICE_LAYERS);
+            plate_times[TIME_REGION_SPLIT] = stage_time(TIME_REGION_SPLIT);
+            plate_times[TIME_MM_SEGMENT_2D] = stage_time(TIME_MM_SEGMENT_2D);
+            plate_times[TIME_WALL] = stage_time(TIME_WALL);
+            plate_times["infill_time"] = sliced_plate_info.infill_time;
+            plate_times[TIME_PREPARE_INFILL] = stage_time(TIME_PREPARE_INFILL);
+            plate_times[TIME_INFILL_GENERATE] = stage_time(TIME_INFILL_GENERATE);
+            plate_times[TIME_IRONING] = stage_time(TIME_IRONING);
+            plate_times["generate_support_material_time"] = sliced_plate_info.generate_support_material_time;
+            plate_times[TIME_SUPPORT_DETECT] = stage_time(TIME_SUPPORT_DETECT);
+            plate_times[TIME_SUPPORT_TREE_GENERATE] = stage_time(TIME_SUPPORT_TREE_GENERATE);
+            plate_times[TIME_SUPPORT_NORMAL_GENERATE] = stage_time(TIME_SUPPORT_NORMAL_GENERATE);
+            plate_times[TIME_SUPPORT_INTERFACE] = stage_time(TIME_SUPPORT_INTERFACE);
+            plate_times[TIME_SUPPORT_TOOLPATH] = stage_time(TIME_SUPPORT_TOOLPATH);
+            plate_times[TIME_DETECT_OVERHANGS] = stage_time(TIME_DETECT_OVERHANGS);
+            plate_times[TIME_SKIRT_BRIM] = stage_time(TIME_SKIRT_BRIM);
+            plate_times[TIME_WIPE_TOWER] = stage_time(TIME_WIPE_TOWER);
+            plate_times[TIME_FLUSH_PLAN] = stage_time(TIME_FLUSH_PLAN);
+            plate_times[TIME_CONFLICT_CHECK] = stage_time(TIME_CONFLICT_CHECK);
+            plate_times[TIME_TOOLPATH] = stage_time(TIME_TOOLPATH);
+            plate_times[TIME_EXPORT_GCODE] = stage_time(TIME_EXPORT_GCODE);
+            plate_times[TIME_OTHER_SLICE] = stage_time(TIME_OTHER_SLICE);
+            plate_json["times"] = std::move(plate_times);
             plate_json["triangle_count"] = sliced_plate_info.triangle_count;
             plate_json["warning_message"] = sliced_plate_info.warning_message;
 
@@ -1665,7 +1703,7 @@ int CLI::run(int argc, char **argv)
         }
     }
 
-    global_begin_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+    global_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     BOOST_LOG_TRIVIAL(warning) << boost::format("cli mode, Current BambuStudio Version %1%")%SLIC3R_VERSION;
 
     //BBS: add plate data related logic
@@ -1864,6 +1902,8 @@ int CLI::run(int argc, char **argv)
             //BBS: add plate related logic
             //bool load_aux = false;
             BOOST_LOG_TRIVIAL(info) << "read model file:" << file << "\n";
+            const long long import_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
+            bool import_time_recorded = false;
             try {
                 // When loading an AMF or 3MF, config is imported as well, including the printer technology.
                 DynamicPrintConfig config;
@@ -1889,6 +1929,8 @@ int CLI::run(int argc, char **argv)
                 //LoadStrategy strategy = LoadStrategy::LoadModel | LoadStrategy::LoadConfig|LoadStrategy::AddDefaultInstances;
                 //if (load_aux) strategy = strategy | LoadStrategy::LoadAuxiliary;
                 model = Model::read_from_file(file, &config, &config_substitutions, strategy, &plate_data_src, &project_presets, &is_bbl_3mf, &file_version, nullptr, nullptr, nullptr, plate_to_slice);
+                sliced_info.import_time += (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - import_begin_time);
+                import_time_recorded = true;
                 if (is_bbl_3mf)
                 {
                     if (!first_file)
@@ -2147,6 +2189,9 @@ int CLI::run(int argc, char **argv)
                 input_index++;
             }
             catch (std::exception& e) {
+                if (!import_time_recorded)
+                    sliced_info.import_time +=
+                        (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - import_begin_time);
                 boost::nowide::cerr << file << ": " << e.what() << std::endl;
                 record_exit_reson(outfile_dir, CLI_DATA_FILE_ERROR, 0, cli_errors[CLI_DATA_FILE_ERROR], sliced_info);
                 flush_and_exit(CLI_DATA_FILE_ERROR);
@@ -2161,9 +2206,12 @@ int CLI::run(int argc, char **argv)
     else {
         //parse the json and assemble object here
         Model model;
+        const long long import_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
 
         int ret = load_assemble_plate_list(load_assemble_list, assemble_plate_info_list);
         if (ret) {
+            sliced_info.import_time +=
+                (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - import_begin_time);
             record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
             flush_and_exit(ret);
         }
@@ -2171,17 +2219,23 @@ int CLI::run(int argc, char **argv)
         try {
             ret = construct_assemble_list(assemble_plate_info_list, model, plate_data_src, input_obj_colours);
             if (ret) {
+                sliced_info.import_time +=
+                    (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - import_begin_time);
                 record_exit_reson(outfile_dir, ret, 0, cli_errors[ret], sliced_info);
                 flush_and_exit(ret);
             }
         }
         catch (std::exception& e) {
+            sliced_info.import_time +=
+                (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - import_begin_time);
             boost::nowide::cerr << construct_assemble_list << ": " << e.what() << std::endl;
             record_exit_reson(outfile_dir, CLI_DATA_FILE_ERROR, 0, cli_errors[CLI_DATA_FILE_ERROR], sliced_info);
             flush_and_exit(CLI_DATA_FILE_ERROR);
         }
         model.add_default_instances();
         m_models.push_back(std::move(model));
+        sliced_info.import_time +=
+            (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - import_begin_time);
     }
 
     if (!is_bbl_3mf && plate_to_slice > 0)
@@ -6197,7 +6251,7 @@ int CLI::run(int argc, char **argv)
     std::vector<bool> plate_has_skips(partplate_list.get_plate_count(), false);
     std::vector<std::vector<size_t>> plate_skipped_objects(partplate_list.get_plate_count());
 
-    global_current_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+    global_current_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     sliced_info.prepare_time = (size_t) (global_current_time - global_begin_time);
     global_begin_time = global_current_time;
 
@@ -6494,7 +6548,11 @@ int CLI::run(int argc, char **argv)
                         slice_time[TIME_INFILL] = 0;
                         slice_time[TIME_GENERATE_SUPPORT] = 0;
 
-                        start_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+                        start_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
+                        long long plate_other_ms = 0;
+                        auto add_plate_other = [&plate_other_ms](long long begin) {
+                            plate_other_ms += Slic3r::Utils::get_current_milliseconds_time_monotonic() - begin;
+                        };
                         //get the current partplate
                         Slic3r::GUI::PartPlate* part_plate = partplate_list.get_plate(index);
                         part_plate->get_print(&print, &gcode_result, &print_index);
@@ -6520,7 +6578,9 @@ int CLI::run(int argc, char **argv)
 #else
                         BuildVolume build_volume(part_plate->get_shape(), print_height, part_plate->get_extruder_areas(), current_extruder_print_heights);
                         //model.update_print_volume_state(build_volume);
+                        const long long volume_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                         unsigned int count = model.update_print_volume_state(build_volume);
+                        add_plate_other(volume_begin_time);
 
                         if (count == 0) {
                             BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": Nothing to be sliced, Either the print is empty or no object is fully inside the print volume before apply." << std::endl;
@@ -6999,12 +7059,16 @@ int CLI::run(int argc, char **argv)
                             part_plate->set_filament_volume_maps(final_volume_maps);
                         }
 
+                        const long long apply_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                         print->apply(model, new_print_config);
+                        add_plate_other(apply_begin_time);
                         BOOST_LOG_TRIVIAL(info) << boost::format("set no_check to %1%:")%no_check;
                         print->set_no_check_flag(no_check);//BBS
                         StringObjectException warning;
                         print_fff->set_check_multi_filaments_compatibility(!allow_mix_temp);
+                        const long long validate_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                         auto err = print->validate(&warning);
+                        add_plate_other(validate_begin_time);
                         if (!err.string.empty()) {
                             if ((STRING_EXCEPT_LAYER_HEIGHT_EXCEEDS_LIMIT == err.type) && no_check) {
                                 BOOST_LOG_TRIVIAL(warning) << "got warnings: "<< err.string << std::endl;
@@ -7095,15 +7159,20 @@ int CLI::run(int argc, char **argv)
 
                                 //update information for brim
                                 const PrintConfig& print_config = print_fff->config();
+                                const long long brim_info_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                                 Model::setExtruderParams(m_print_config, filament_count);
                                 Model::setPrintSpeedTable(m_print_config, print_config);
+                                add_plate_other(brim_info_begin_time);
                                 if (load_slicedata) {
                                     std::string plate_dir = load_slice_data_dir+"/"+std::to_string(index+1);
+                                    const long long load_slicedata_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                                     int ret = print->load_cached_data(plate_dir);
+                                    sliced_info.load_slicedata_time +=
+                                        (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - load_slicedata_begin_time);
                                     if (ret) {
                                         BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": load Slicing data error, ret=" << ret;
                                         BOOST_LOG_TRIVIAL(warning) << "plate "<< index+1<< ": switch normal slicing";
-                                        print->process();
+                                        print->process(&slice_time);
                                     }
                                     else {
                                         BOOST_LOG_TRIVIAL(info) << "plate "<< index+1<< ": load cached data success, go on.";
@@ -7121,6 +7190,7 @@ int CLI::run(int argc, char **argv)
                                     print->process(&slice_time);
                                     BOOST_LOG_TRIVIAL(info) << "print::process: first time_using_cache is " << slice_time[TIME_USING_CACHE] << " secs.";
                                 }
+                                slice_time[TIME_OTHER_SLICE] += plate_other_ms;
                                 if (printer_technology == ptFFF) {
                                     FilamentMapMode current_map_mode = print_fff->config().filament_map_mode.value;
                                     if (is_auto_filament_map_mode(current_map_mode)) {
@@ -7200,7 +7270,7 @@ int CLI::run(int argc, char **argv)
                                         part_plate->set_tmp_gcode_path(outfile);
                                     }
                                     BOOST_LOG_TRIVIAL(info) << "process finished, will export gcode temporily to " << outfile << std::endl;
-                                    temp_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+                                    temp_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                                     if (is_bbl_vendor_preset) {
                                         outfile = print_fff->export_gcode(outfile, gcode_result, nullptr);
                                     }
@@ -7209,7 +7279,10 @@ int CLI::run(int argc, char **argv)
                                             opengl_valid = init_opengl_and_colors(model, colors);
                                         outfile = opengl_valid ? print_fff->export_gcode(outfile, gcode_result, cli_generate_thumbnails) : print_fff->export_gcode(outfile, gcode_result, nullptr);
                                     }
-                                    slice_time[TIME_USING_CACHE] = slice_time[TIME_USING_CACHE] + ((long long)Slic3r::Utils::get_current_milliseconds_time_utc() - temp_time);
+                                    const long long export_gcode_time =
+                                        Slic3r::Utils::get_current_milliseconds_time_monotonic() - temp_time;
+                                    slice_time[TIME_USING_CACHE] += export_gcode_time;
+                                    slice_time[TIME_EXPORT_GCODE] = export_gcode_time;
                                     BOOST_LOG_TRIVIAL(info) << "export_gcode finished: time_using_cache update to " << slice_time[TIME_USING_CACHE] << " secs.";
 
                                     if (gcode_result && gcode_result->gcode_check_result.error_code) {
@@ -7272,7 +7345,10 @@ int CLI::run(int argc, char **argv)
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% will export Slicing data to %2%")%(index+1) %export_slice_data_dir;
                                     std::string plate_dir = export_slice_data_dir+"/"+std::to_string(index+1);
                                     bool with_space = (get_logging_level() >= 4)?true:false;
+                                    const long long export_slicedata_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                                     int ret = print->export_cached_data(plate_dir, sliced_plate_info.obj_cached_cnt, with_space);
+                                    sliced_info.export_slicedata_time +=
+                                        (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - export_slicedata_begin_time);
                                     if (ret) {
                                         BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": export Slicing data error, ret=" << ret;
                                         export_slicedata_error = true;
@@ -7283,12 +7359,13 @@ int CLI::run(int argc, char **argv)
                                     }
                                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% exported %2% objects")%(index+1) %(sliced_plate_info.obj_cached_cnt);
                                 }
-                                end_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+                                end_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
                                 sliced_plate_info.sliced_time = end_time - start_time;
                                 sliced_plate_info.sliced_time_with_cache = slice_time[TIME_USING_CACHE];
                                 sliced_plate_info.make_perimeters_time = slice_time[TIME_MAKE_PERIMETERS];
                                 sliced_plate_info.infill_time = slice_time[TIME_INFILL];
                                 sliced_plate_info.generate_support_material_time = slice_time[TIME_GENERATE_SUPPORT];
+                                sliced_plate_info.slice_stage_times = slice_time;
 
                                 //get predication and filament change
                                 PrintEstimatedStatistics& print_estimated_stat = gcode_result->print_statistics;
@@ -7499,7 +7576,7 @@ int CLI::run(int argc, char **argv)
         }
     }
 
-    global_begin_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+    global_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     if (export_to_3mf) {
         //BBS: export as bbl 3mf
         std::vector<ThumbnailData *> thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails;
@@ -8178,8 +8255,13 @@ int CLI::run(int argc, char **argv)
             }
         }
 
-        if (!this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails,
-                                calibration_thumbnails, plate_bboxes, &m_print_config, minimum_save, plate_to_slice - 1))
+        const long long export_3mf_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
+        const bool export_3mf_success =
+            this->export_project(&m_models[0], export_3mf_file, plate_data_list, project_presets, thumbnails, no_light_thumbnails, top_thumbnails, pick_thumbnails,
+                                 calibration_thumbnails, plate_bboxes, &m_print_config, minimum_save, plate_to_slice - 1);
+        sliced_info.export_3mf_time =
+            (size_t) (Slic3r::Utils::get_current_milliseconds_time_monotonic() - export_3mf_begin_time);
+        if (!export_3mf_success)
         {
             release_PlateData_list(plate_data_list);
             record_exit_reson(outfile_dir, CLI_EXPORT_3MF_ERROR, 0, cli_errors[CLI_EXPORT_3MF_ERROR], sliced_info);
@@ -8279,7 +8361,7 @@ int CLI::run(int argc, char **argv)
     }
     //BBS: flush logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", Finished" << std::endl;
-    global_current_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
+    global_current_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     sliced_info.export_time = (size_t) (global_current_time - global_begin_time);
 
     //record the duplicate here

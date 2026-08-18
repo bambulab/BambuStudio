@@ -47,6 +47,38 @@ class ExtrusionLayers;
 #define TIME_MAKE_PERIMETERS "make_perimeters_time"
 #define TIME_INFILL "infill_time"
 #define TIME_GENERATE_SUPPORT "generate_support_material_time"
+#define TIME_SLICE_LAYERS "slice_layers_time"
+#define TIME_REGION_SPLIT "region_split_time"
+#define TIME_MM_SEGMENT_2D "multifilament_segment_2d_time"
+#define TIME_WALL "wall_time"
+#define TIME_PREPARE_INFILL "prepare_infill_time"
+#define TIME_INFILL_GENERATE "infill_generate_time"
+#define TIME_TOOLPATH "toolpath_time"
+#define TIME_EXPORT_GCODE "export_gcode_time"
+#define TIME_IRONING "ironing_time"
+#define TIME_DETECT_OVERHANGS "detect_overhangs_time"
+#define TIME_SKIRT_BRIM "skirt_brim_time"
+#define TIME_WIPE_TOWER "wipe_tower_time"
+#define TIME_FLUSH_PLAN "flush_plan_time"
+#define TIME_CONFLICT_CHECK "conflict_check_time"
+#define TIME_OTHER_SLICE "other_slice_time"
+#define TIME_SUPPORT_DETECT "support_detect_time"
+#define TIME_SUPPORT_TREE_GENERATE "support_tree_generate_time"
+#define TIME_SUPPORT_NORMAL_GENERATE "support_normal_generate_time"
+#define TIME_SUPPORT_INTERFACE "support_interface_time"
+#define TIME_SUPPORT_TOOLPATH "support_toolpath_time"
+
+struct SupportStageTimes
+{
+    long long detect {0};
+    long long tree_generate {0};
+    long long normal_generate {0};
+    long long interface_generate {0};
+    long long toolpath_generate {0};
+
+    void reset() { *this = {}; }
+    long long total() const { return detect + tree_generate + normal_generate + interface_generate + toolpath_generate; }
+};
 
 // BBS: move from PrintObjectSlice.cpp
 struct VolumeSlices
@@ -492,6 +524,8 @@ public:
     bool                        has_support()           const { return m_config.enable_support || m_config.enforce_support_layers > 0; }
     bool                        has_raft()              const { return m_config.raft_layers > 0; }
     bool                        has_support_material()  const { return this->has_support() || this->has_raft(); }
+    SupportStageTimes&          support_stage_times() { return m_support_stage_times; }
+    const SupportStageTimes&    support_stage_times() const { return m_support_stage_times; }
     // Checks if the model object is painted using the multi-material painting gizmo.
     bool                        is_mm_painted()         const { return this->model_object()->is_mm_painted(); }
     // Checks if the model object is painted using the fuzzy skin painting gizmo.
@@ -585,7 +619,7 @@ private:
 
     std::unordered_map<int, std::unordered_map<int,double>> calc_estimated_filament_print_time() const;
 
-    void slice_volumes();
+    void slice_volumes(long long *region_split_ms_out = nullptr, long long *mm_segment_ms_out = nullptr);
     //BBS
     ExPolygons _shrink_contour_holes(double contour_delta, double hole_delta, const ExPolygons& polys) const;
     // BBS
@@ -635,6 +669,7 @@ private:
     SlicingParameters                       m_slicing_params;
     LayerPtrs                               m_layers;
     SupportLayerPtrs                        m_support_layers;
+    SupportStageTimes                       m_support_stage_times;
     // BBS
     std::shared_ptr<TreeSupportData>        m_tree_support_preview_cache;
 
@@ -1238,6 +1273,7 @@ private:
     bool              m_has_auto_filament_map_result{false};
 
     std::set<PrintObject*> m_reslicing_objects;
+    std::unordered_map<std::string, long long>* m_slice_time {nullptr};
 
     std::vector<std::set<int>> m_geometric_unprintable_filaments;
     std::unordered_map<int, std::unordered_map<int, double>> m_filament_print_time;

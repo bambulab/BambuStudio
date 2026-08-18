@@ -5,6 +5,8 @@
 #include "Print.hpp"
 #include "ClipperUtils.hpp"
 #include "Interlocking/InterlockingGenerator.hpp"
+#include "Time.hpp"
+#include "Utils.hpp"
 //BBS
 #include "ShortestPath.hpp"
 
@@ -805,6 +807,13 @@ void PrintObject::slice()
 {
     if (! this->set_started(posSlice))
         return;
+
+    long long slice_begin_time = 0;
+    long long region_split_time = 0;
+    long long mm_segment_time = 0;
+    if (m_print->m_slice_time)
+        slice_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
+
     //BBS: add flag to reload scene for shell rendering
     m_print->set_status(5, L("Slicing mesh"), PrintBase::SlicingStatus::RELOAD_SCENE);
     std::vector<coordf_t> layer_height_profile;
@@ -818,7 +827,7 @@ void PrintObject::slice()
     m_typed_slices = false;
     this->clear_layers();
     m_layers = new_layers(this, generate_object_layers(m_slicing_params, layer_height_profile, m_config.precise_z_height.value));
-    this->slice_volumes();
+    this->slice_volumes(&region_split_time, &mm_segment_time);
     m_print->throw_if_canceled();
     int firstLayerReplacedBy = 0;
 
@@ -854,6 +863,11 @@ void PrintObject::slice()
         });
     if (m_layers.empty())
         throw Slic3r::SlicingError(L("No layers were detected. You might want to repair your STL file(s) or check their size or thickness and retry.\n"));
+
+    if (m_print->m_slice_time) {
+        const long long elapsed = Slic3r::Utils::get_current_milliseconds_time_monotonic() - slice_begin_time;
+        (*m_print->m_slice_time)[TIME_SLICE_LAYERS] += std::max(0LL, elapsed - region_split_time - mm_segment_time);
+    }
 
     // BBS
     this->set_done(posSlice);
@@ -1102,7 +1116,7 @@ template<typename ThrowOnCancel> void apply_fuzzy_skin_segmentation(PrintObject 
 // Resulting expolygons of layer regions are marked as Internal.
 //
 // this should be idempotent
-void PrintObject::slice_volumes()
+void PrintObject::slice_volumes(long long *region_split_ms_out, long long *mm_segment_ms_out)
 {
     BOOST_LOG_TRIVIAL(info) << "Slicing volumes..." << log_memory_info();
     const Print *print                      = this->print();
@@ -1136,6 +1150,7 @@ void PrintObject::slice_volumes()
     //applyNegtiveVolumes(this->model_object()->volumes, objSliceByVolume, firstLayerObjSliceByGroups, scaled_resolution);
     firstLayerObjSliceByVolume = objSliceByVolume;
 
+    const long long region_split_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     std::vector<std::vector<ExPolygons>> region_slices = slices_to_regions(this->model_object()->volumes, *m_shared_regions, slice_zs,
         std::move(objSliceByVolume),
         PrintObject::clip_multipart_objects,
@@ -1148,6 +1163,12 @@ void PrintObject::slice_volumes()
             m_layers[layer_id]->regions()[region_id]->slices.append(std::move(by_layer[layer_id]), stInternal);
     }
     region_slices.clear();
+    const long long region_split_time =
+        Slic3r::Utils::get_current_milliseconds_time_monotonic() - region_split_begin_time;
+    if (region_split_ms_out)
+        *region_split_ms_out += region_split_time;
+    if (m_print->m_slice_time)
+        (*m_print->m_slice_time)[TIME_REGION_SPLIT] += region_split_time;
 
     BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - removing top empty layers";
     while (! m_layers.empty()) {
@@ -1177,7 +1198,14 @@ void PrintObject::slice_volumes()
         }
 
         BOOST_LOG_TRIVIAL(debug) << "Slicing volumes - MMU segmentation";
+        const long long mm_segment_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
         apply_mm_segmentation(*this, [print]() { print->throw_if_canceled(); });
+        const long long mm_segment_elapsed =
+            Slic3r::Utils::get_current_milliseconds_time_monotonic() - mm_segment_begin_time;
+        if (mm_segment_ms_out)
+            *mm_segment_ms_out += mm_segment_elapsed;
+        if (m_print->m_slice_time)
+            (*m_print->m_slice_time)[TIME_MM_SEGMENT_2D] += mm_segment_elapsed;
     }
 
      // Is any ModelVolume fuzzy skin painted?

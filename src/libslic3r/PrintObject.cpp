@@ -12,6 +12,7 @@
 #include "Surface.hpp"
 #include "Slicing.hpp"
 #include "Tesselate.hpp"
+#include "Time.hpp"
 #include "TriangleMeshSlicer.hpp"
 #include "Utils.hpp"
 #include "Fill/FillAdaptive.hpp"
@@ -467,6 +468,10 @@ void PrintObject::make_perimeters()
     if (! this->set_started(posPerimeters))
         return;
 
+    const bool record_wall_time = m_print->m_slice_time != nullptr;
+    const long long wall_begin_time =
+        record_wall_time ? Slic3r::Utils::get_current_milliseconds_time_monotonic() : 0;
+
     m_print->set_status(15, L("Generating walls"));
     BOOST_LOG_TRIVIAL(info) << "Generating walls..." << log_memory_info();
 
@@ -627,6 +632,10 @@ void PrintObject::make_perimeters()
         BOOST_LOG_TRIVIAL(debug) << "Recrod cooling_node id for each extrusion in parallel - end";
     }
     this->set_done(posPerimeters);
+
+    if (record_wall_time)
+        (*m_print->m_slice_time)[TIME_WALL] +=
+            Slic3r::Utils::get_current_milliseconds_time_monotonic() - wall_begin_time;
 }
 
 namespace {
@@ -843,6 +852,9 @@ void PrintObject::prepare_infill()
 {
     if (! this->set_started(posPrepareInfill))
         return;
+    const bool record_prepare_infill_time = m_print->m_slice_time != nullptr;
+    const long long prepare_infill_begin_time =
+        record_prepare_infill_time ? Slic3r::Utils::get_current_milliseconds_time_monotonic() : 0;
     m_print->set_status(25, L("Generating infill regions"));
     if (m_typed_slices) {
         // To improve robustness of detect_surfaces_type() when reslicing (working with typed slices), see GH issue #7442.
@@ -993,6 +1005,10 @@ void PrintObject::prepare_infill()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
     this->set_done(posPrepareInfill);
+
+    if (record_prepare_infill_time)
+        (*m_print->m_slice_time)[TIME_PREPARE_INFILL] +=
+            Slic3r::Utils::get_current_milliseconds_time_monotonic() - prepare_infill_begin_time;
 }
 
 void PrintObject::infill()
@@ -1001,6 +1017,9 @@ void PrintObject::infill()
     this->prepare_infill();
 
     if (this->set_started(posInfill)) {
+        const bool record_infill_generate_time = m_print->m_slice_time != nullptr;
+        const long long infill_generate_begin_time =
+            record_infill_generate_time ? Slic3r::Utils::get_current_milliseconds_time_monotonic() : 0;
         m_print->set_status(35, L("Generating infill toolpath"));
 
         const auto& adaptive_fill_octree = this->m_adaptive_fill_octrees.first;
@@ -1022,6 +1041,10 @@ void PrintObject::infill()
         ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
         */
         this->set_done(posInfill);
+
+        if (record_infill_generate_time)
+            (*m_print->m_slice_time)[TIME_INFILL_GENERATE] +=
+                Slic3r::Utils::get_current_milliseconds_time_monotonic() - infill_generate_begin_time;
     }
 }
 
@@ -3962,6 +3985,10 @@ void PrintObject::combine_infill()
 
 void PrintObject::_generate_support_material()
 {
+    const long long support_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
+    const long long child_time_before =
+        m_support_stage_times.detect + m_support_stage_times.interface_generate + m_support_stage_times.toolpath_generate;
+
     if (is_tree(m_config.support_type.value)) {
         TreeSupport tree_support(*this, m_slicing_params);
         tree_support.throw_on_cancel = [this]() { this->throw_if_canceled(); };
@@ -3971,6 +3998,16 @@ void PrintObject::_generate_support_material()
         PrintObjectSupportMaterial support_material(this, m_slicing_params);
         support_material.generate(*this);
     }
+
+    const long long support_elapsed =
+        Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_begin_time;
+    const long long child_time_after =
+        m_support_stage_times.detect + m_support_stage_times.interface_generate + m_support_stage_times.toolpath_generate;
+    const long long generate_time = std::max(0LL, support_elapsed - (child_time_after - child_time_before));
+    if (is_tree(m_config.support_type.value))
+        m_support_stage_times.tree_generate += generate_time;
+    else
+        m_support_stage_times.normal_generate += generate_time;
 }
 
 // Overhang islands below this area are detection noise, or slivers a single branch tip covers anyway.

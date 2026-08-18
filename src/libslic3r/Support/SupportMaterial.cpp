@@ -5,6 +5,7 @@
 #include "Print.hpp"
 #include "SupportMaterial.hpp"
 #include "SupportCommon.hpp"
+#include "Time.hpp"
 #include "Geometry.hpp"
 #include "Point.hpp"
 #include "MutablePolygon.hpp"
@@ -384,6 +385,7 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     SupportGeneratorLayerStorage layer_storage;
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Creating top contacts";
+    const long long support_detect_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
 
     // Per object layer projection of the object below the layer into print bed.
     std::vector<Polygons> buildplate_covered = this->buildplate_covered(object);
@@ -395,6 +397,8 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     // that it will be effective, regardless of how it's built below.
     // If raft is to be generated, the 1st top_contact layer will contain the 1st object layer silhouette without holes.
     SupportGeneratorLayersPtr top_contacts = this->top_contact_layers(object, buildplate_covered, layer_storage);
+    object.support_stage_times().detect +=
+        Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_detect_begin_time;
     if (top_contacts.empty())
         // Nothing is supported, no supports are generated.
         return;
@@ -476,8 +480,11 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
 
     // Propagate top / bottom contact layers to generate interface layers 
     // and base interface layers (for soluble interface / non souble base only)
+    const long long support_interface_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
 	SupportGeneratorLayersPtr empty_layers;
     auto [interface_layers, base_interface_layers] = generate_interface_layers(*m_object_config, m_support_params, bottom_contacts, top_contacts, empty_layers, empty_layers, intermediate_layers, layer_storage);
+    object.support_stage_times().interface_generate +=
+        Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_interface_begin_time;
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Creating raft";
 
@@ -552,7 +559,10 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
 #endif /* SLIC3R_DEBUG */
 
     // Generate the actual toolpaths and save them into each layer.
+    const long long support_toolpath_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
     generate_support_toolpaths(object.support_layers(), *m_object_config, m_support_params, m_slicing_params, raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers);
+    object.support_stage_times().toolpath_generate +=
+        Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_toolpath_begin_time;
 
 #ifdef SLIC3R_DEBUG
     {
