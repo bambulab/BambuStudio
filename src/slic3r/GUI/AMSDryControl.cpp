@@ -1018,7 +1018,7 @@ wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
     info_section->Add(fila_section, 0, wxEXPAND | wxALL, FromDIP(5));
 
     // Part 4: Circular toggle with description
-#if BBL_RELEASE_TO_PUBLIC == 1
+#if !BBL_INTERNAL_TESTING
     wxBoxSizer* toggle_section = new wxBoxSizer(wxHORIZONTAL);
 
     m_rotate_spool_toggle = new wxCheckBox(parent, wxID_ANY, "");
@@ -1148,7 +1148,7 @@ void AMSDryCtrWin::start_sending_drying_command()
     }
 
     bool rotate_spool = false;
-#if BBL_RELEASE_TO_PUBLIC == 1
+#if !BBL_INTERNAL_TESTING
     rotate_spool = m_rotate_spool_toggle->GetValue();
 #endif
 
