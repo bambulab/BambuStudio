@@ -10948,9 +10948,14 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
     else
         invalidated = background_process.apply(this->model, preset_bundle->full_config(false));
 
-    if ((invalidated == Print::APPLY_STATUS_CHANGED) || (invalidated == Print::APPLY_STATUS_INVALIDATED))
+    if ((invalidated == Print::APPLY_STATUS_CHANGED) || (invalidated == Print::APPLY_STATUS_INVALIDATED)) {
         // BBS: add only gcode mode
         q->set_only_gcode(false);
+        // A real slice-affecting change (only possible with printable model) means the
+        // imported .gcode.3mf is no longer the payload; clear it so send re-exports.
+        if (!model.objects.empty())
+            q->set_using_exported_file(false);
+    }
 
     //BBS: add slicing related logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": background process apply result=%1%")%invalidated;

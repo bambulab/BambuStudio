@@ -2511,6 +2511,8 @@ bool MainFrame::get_enable_print_status()
 	}
 	else if (m_print_select == eSendToPrinter)
 	{
+        if (m_plater->only_gcode_mode() || m_plater->using_exported_file())
+            return true;
 		if (!current_plate->is_slice_result_ready_for_print())
 		{
 			enable = false;
@@ -2519,6 +2521,8 @@ bool MainFrame::get_enable_print_status()
 	}
     else if (m_print_select == eSendToPrinterAll)
     {
+        if (m_plater->only_gcode_mode() || m_plater->using_exported_file())
+            return true;
         if (!part_plate_list.is_all_slice_results_ready_for_print())
         {
             enable = false;
