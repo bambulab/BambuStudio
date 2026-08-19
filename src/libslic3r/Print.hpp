@@ -1378,6 +1378,14 @@ Polygons compacted_wipe_tower_rings(const CompactedTowerZone &zone, bool any_bod
 // it ends up buried inside the mesh.
 Polygon compacted_wipe_tower_offender_outline(const Polygon &inst_hull, double body_clearance);
 
+// Whether the plater has to show the rod / lid reference lines for this print. A compacted prime tower
+// drags the nozzle back down to the plate on every toolchange, so the rod and the lid limit how tall a
+// neighbouring object may be exactly as they do in sequential printing. Every caller that reacts to the
+// lines existing must ask this one question: besides drawing them, the camera has to grow its scene
+// bounding box up to extruder_clearance_height_to_lid, otherwise the tight near plane
+// (Camera::calc_tight_frustrum_zs_around) clips away the part of the box closest to the viewer.
+bool should_show_height_limit_lines(const Print &print);
+
 } /* slic3r_Print_hpp_ */
 
 #endif

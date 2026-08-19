@@ -3587,6 +3587,16 @@ Polygon compacted_wipe_tower_offender_outline(const Polygon &inst_hull, double b
     return grown.empty() ? inst_hull : grown.front();
 }
 
+bool should_show_height_limit_lines(const Print &print)
+{
+    const PrintConfig &config = print.config();
+    if (config.print_sequence == PrintSequence::ByObject)
+        return true;
+    // Same condition compacted_wipe_tower_clearance_valid() runs on, so the lines are shown for exactly
+    // the plates whose layout that check judges against the rod and the lid.
+    return config.print_sequence == PrintSequence::ByLayer && wipe_tower_sparse_layers_skipped(config) && print.has_wipe_tower();
+}
+
 // Shared user-facing message for every compacted-tower clearance failure. Height-limit and too-close
 // are the same class of layout violation under "No sparse layers", so they share one wording.
 static std::string compacted_wipe_tower_clearance_error()

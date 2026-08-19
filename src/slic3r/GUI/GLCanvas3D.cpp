@@ -8356,7 +8356,12 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box(bool include_gizmos, bool include_be
             bb.merge(t_gcode_viewer.get_shell_bounding_box());
     }
 
-    if ((m_canvas_type == CanvasView3D) && (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
+    // The limit box stands 141.5 mm off the plate on a P2S and is therefore the geometry closest to a
+    // downward looking camera. calc_tight_frustrum_zs_around() puts the near plane 10 mm in front of
+    // this box, so leaving the lid height out of it clips the top ring away. That has to happen
+    // wherever the lines are drawn, not only in sequential printing.
+    const Print *print = fff_print();
+    if ((m_canvas_type == CanvasView3D) && print != nullptr && should_show_height_limit_lines(*print)) {
         float height_to_lid, height_to_rod;
         wxGetApp().plater()->get_partplate_list().get_height_limits(height_to_lid, height_to_rod);
         bb.max.z() = std::max(bb.max.z(), (double)height_to_lid);
