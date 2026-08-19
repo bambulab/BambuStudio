@@ -9,6 +9,7 @@ import { SpoolColorChip } from './SpoolColorChip';
 import useStore from '../../store/AppStore';
 import { useDeviceBridge } from '../../hooks/Bridge';
 import { buildVendorOptions } from './vendorOptions';
+import { CustomSelectDropdown } from './CustomSelectDropdown';
 // STUDIO-18114: shared draft -> commit helper for the custom color picker so
 // the OK/Cancel popover and the existing edit-dialog state stay aligned.
 import { commitCustomColorSelection } from './customColorSelection';
@@ -172,10 +173,15 @@ export function AddEditDialog({
   // AMS-tab printer and to follow external changes made via
   // DeviceManager::OnSelectedMachineChanged.
   const globalSelectedDev = useStore((s) => s.filament.selectedMachineDevId);
+  const [customBrands, setCustomBrands] = useState<string[]>([]);
+  const [customTypes,  setCustomTypes]  = useState<string[]>([]);
+
   const mergedVendorNames = useMemo(() => {
     const cloudVendors = Array.isArray(cloudConfig?.vendors) ? cloudConfig.vendors : undefined;
-    return buildVendorOptions(presets, cloudVendors, spools);
-  }, [presets, cloudConfig, spools]);
+    const base = buildVendorOptions(presets, cloudVendors, spools);
+    const set = new Set([...base, ...customBrands]);
+    return [...set].sort();
+  }, [presets, cloudConfig, spools, customBrands]);
 
   // Dialog mode
   const [mode, setMode] = useState<'manual' | 'ams'>('manual');
@@ -461,6 +467,11 @@ export function AddEditDialog({
     });
     return [...set].sort();
   }, [brand, cloudConfig, presets, getCloudSettingDisplayName]);
+
+  const finalTypeSeriesOptions = useMemo(() => {
+    const set = new Set([...typeSeriesOptions, ...customTypes]);
+    return [...set].sort();
+  }, [typeSeriesOptions, customTypes]);
 
   // Split a combined "PLA Basic" string back into (type, series) using the
   // vendor's known types as anchors (longest-first to tolerate types with
@@ -894,13 +905,14 @@ export function AddEditDialog({
     userTouchedColorRef.current = true;
   }, []);
 
-  // 下拉切换时：
-  //  - series 直接存下拉选中的完整 filamentName（例如 "PLA Basic"）。这与
-  //    云端 PUT/POST 的 filamentName 字段语义一致，避免本地短名上云后丢类型前缀。
-  //  - material_type 优先从云端 filamentSettings 查该 filamentName 对应的
-  //    filamentType（云端是权威来源，能覆盖形如 "PLA-S Support For PLA/PETG"
-  //    这种本地 anchor 匹配会误切的复杂名称）。云端没命中再退回本地 preset
-  //    的前缀 anchor 匹配。
+  const handleAddBrand = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed || mergedVendorNames.includes(trimmed)) return;
+    setCustomBrands(prev => [...prev, trimmed]);
+    setBrand(trimmed);
+    if (!lockMaterial) { setMaterialType(''); setSeries(''); }
+  };
+
   const handleTypeSeriesChange = (full: string) => {
     const name = (full || '').trim();
     let type = '';
@@ -932,6 +944,13 @@ export function AddEditDialog({
     }
     setMaterialType(type);
     setSeries(name);
+  };
+
+  const handleAddType = (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed || finalTypeSeriesOptions.includes(trimmed)) return;
+    setCustomTypes(prev => [...prev, trimmed]);
+    handleTypeSeriesChange(trimmed);
   };
 
   // F4.5: validation no longer depends on `series` — the combined type field
@@ -2220,48 +2239,34 @@ export function AddEditDialog({
               <div className="flex gap-[12px]">
                 <div className="flex flex-col gap-[4px] flex-1 pb-[24px]">
                   <label className="text-[12px] leading-[19px] text-fm-text-secondary"><span className="text-[#ff2b00]">*</span> {t('Brand')}</label>
-                  <select
+                  <CustomSelectDropdown
                     data-testid="filament-brand"
-                    className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] fm-select-arrow cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                     value={brand}
+                    options={mergedVendorNames}
+                    placeholder={t('Select Brand')}
+                    addPlaceholder={t('Enter brand name')}
+                    duplicateTooltip={t('Brand already exists')}
                     disabled={lockBrand}
-                    onChange={(e) => {
-                      setBrand(e.target.value);
-                      if (!lockMaterial) {
-                        setMaterialType('');
-                        setSeries('');
-                      }
+                    onSelect={(v) => {
+                      setBrand(v);
+                      if (!lockMaterial) { setMaterialType(''); setSeries(''); }
                     }}
-                  >
-                    <option value="">{t('Select Brand')}</option>
-                    {mergedVendorNames.map((n) => <option key={n} value={n}>{n}</option>)}
-                  </select>
+                    onAddOption={handleAddBrand}
+                  />
                 </div>
                 <div className="flex flex-col gap-[4px] flex-1 pb-[24px]">
                   <label className="text-[12px] leading-[19px] text-fm-text-secondary"><span className="text-[#ff2b00]">*</span> {t('Material Type')}</label>
-                  {/* F4.3: Must pick a brand first.  When brand is empty the
-                      options list would be the union of all vendors' types
-                      and that confuses users into thinking they can pick
-                      before a brand is set — disable the control instead and
-                      show a hint placeholder. */}
-                  <select
+                  <CustomSelectDropdown
                     data-testid="filament-material"
-                    className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] fm-select-arrow cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                     value={typeSeriesFull}
-                    onChange={(e) => handleTypeSeriesChange(e.target.value)}
+                    options={finalTypeSeriesOptions}
+                    placeholder={!brand ? t('Select Brand First') : t('Select Type')}
+                    addPlaceholder={t('Enter type name')}
+                    duplicateTooltip={t('Type already exists')}
                     disabled={!brand || lockMaterial}
-                  >
-                    <option value="">{!brand ? t('Select Brand First') : t('Select Type')}</option>
-                    {/* Edit 场景兜底：本地 spool 的 material_type/series 组合可能来源于
-                        AMS 同步、自定义添加、或更早版本的 presets 数据，不一定出现在当前
-                        brand 的 typeSeriesOptions 里。没有这个 fallback option 时 <select>
-                        找不到匹配项会回落到 placeholder "Select Type"，造成编辑时看上去
-                        "耗材类型未展示"。把当前值单独补一条，保证可回显、可修改。*/}
-                    {typeSeriesFull && !typeSeriesOptions.includes(typeSeriesFull) && (
-                      <option value={typeSeriesFull}>{typeSeriesFull}</option>
-                    )}
-                    {typeSeriesOptions.map((n) => <option key={n} value={n}>{n}</option>)}
-                  </select>
+                    onSelect={handleTypeSeriesChange}
+                    onAddOption={handleAddType}
+                  />
                 </div>
               </div>
 
@@ -2535,7 +2540,18 @@ export function AddEditDialog({
               </div>
             </div>
 
-            {/* 备注 — 唯一与云端同步的扩展字段，直接显示，不再折叠在高级设置里 */}
+            {matchedCloudFilamentId === '' && matchedPresetItem === null && !!brand && !!series && (
+              <div className="text-[12px] leading-[19px] text-fm-warning">
+                {t('Hint: No preset for this filament type in the app. Create a preset to use it.')}
+                <button
+                  type="button"
+                  className="text-fm-warning underline cursor-pointer bg-transparent border-none p-0 ml-[4px] hover:opacity-80"
+                >
+                  {t('Create Now')}
+                </button>
+              </div>
+            )}
+
             <div className="flex flex-col gap-[4px]">
               <label className="text-[12px] leading-[19px] text-fm-text-secondary">{t('Note')}</label>
               <div className="relative">
