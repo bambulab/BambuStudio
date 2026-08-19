@@ -57,6 +57,7 @@ void DevConfig::ParsePrintOptionsConfig(const json& print_json)
     DevJsonValParser::ParseVal(print_json, "support_print_all", m_support_print_all);
     DevJsonValParser::ParseVal(print_json, "support_fdm_cut_mode_compat", m_support_fdm_cut_mode_compat);
     DevJsonValParser::ParseVal(print_json, "support_filament_remain_edit", m_support_filament_remain_edit);
+    DevJsonValParser::ParseVal(print_json, "support_filament_remain_edit_rfid", m_support_filament_remain_edit_rfid);
 }
 
 void DevConfig::ParseCalibrationConfig(const json& print_json)

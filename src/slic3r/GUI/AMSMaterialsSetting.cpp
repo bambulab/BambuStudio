@@ -630,7 +630,11 @@ bool AMSMaterialsSetting::support_filament_remain_edit() const
 
 bool AMSMaterialsSetting::can_edit_filament_weight() const
 {
-    return support_filament_remain_edit() && !m_filament_type.empty() && !m_view_only && m_is_third;
+    if (!support_filament_remain_edit() || m_filament_type.empty() || m_view_only)
+        return false;
+    // Third-party trays are always editable when remain-edit is supported.
+    // Official RFID trays need an extra printer capability flag
+    return m_is_third || obj->GetConfig()->SupportFilamentRemainEditRfid();
 }
 
 #define DEFAULT_TOTAL_WEIGHT 1000

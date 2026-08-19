@@ -40,6 +40,7 @@ public:
 
     // filament
     bool SupportFilamentRemainEdit() const { return m_support_filament_remain_edit; }
+    bool SupportFilamentRemainEditRfid() const { return m_support_filament_remain_edit_rfid; }
 
     // calibration options
     bool SupportCalibrationLidar() const { return m_support_calibration_lidar; }
@@ -80,6 +81,7 @@ private:
     bool m_support_print_all = false;
     bool m_support_fdm_cut_mode_compat = false;
     bool m_support_filament_remain_edit = false;
+    bool m_support_filament_remain_edit_rfid = false;
 
     // calibration options
     bool m_support_calibration_lidar = false;
