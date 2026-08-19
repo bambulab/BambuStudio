@@ -326,26 +326,29 @@ int find_existing_decompose_component(
     const std::vector<std::string>& physical_colors,
     const std::vector<size_t>& physical_config_indices)
 {
-    auto& project_config = wxGetApp().preset_bundle->project_config;
-    auto* filament_id_opt = project_config.option<ConfigOptionStrings>("filament_id");
-    auto* type_opt = project_config.option<ConfigOptionStrings>("filament_type");
-    const PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
     const size_t num_physical = physical_colors.size();
     const std::string expected_basic_type = component.filament_id == kDecomposePetgFilamentId ? kDecomposePetgBasicType :
                                             component.filament_id == kDecomposePlaPaletteFilamentId ? kDecomposePlaPaletteType :
                                             component.filament_id == kDecomposePlaFilamentId ? kDecomposePlaBasicType : "";
-    // PLA Palette shares filament_type "PLA" with PLA Basic, so it intentionally has
-    // no short type here: matching on "PLA" would let the two series reuse each
-    // other's slots. Only filament_id and the preset name identify PLA Palette.
+    // PLA Palette shares filament_type "PLA" with PLA Basic, so it has no short
+    // type here: matching on "PLA" would let the two series reuse each other's
+    // slots. Identify Palette by filament_id, official series name, and preset
+    // name. expected_short_type is empty for Palette on purpose; the type check
+    // below must not treat empty == empty as a match, or any same-color slot
+    // (e.g. PETG after the user switched 1-5) would be reused.
     const std::string expected_short_type = expected_basic_type == kDecomposePetgBasicType ? kDecomposePetgShortType :
                                             expected_basic_type == kDecomposePlaBasicType ? kDecomposePlaShortType : "";
     const std::string expected_preset_part = expected_basic_type.empty() ? "" : std::string(kDecomposeBambuPresetPrefix) + expected_basic_type;
     for (size_t i = 0; i < num_physical && i < physical_config_indices.size(); ++i) {
         const size_t config_idx = physical_config_indices[i];
         const std::string slot_color = decompose_normalize_color_hex(physical_colors[i]);
-        const std::string slot_filament_id = (filament_id_opt && config_idx < filament_id_opt->values.size()) ? filament_id_opt->values[config_idx] : "";
-        const std::string slot_type = (type_opt && config_idx < type_opt->values.size()) ? type_opt->values[config_idx] : "";
         const std::string preset_name = config_idx < preset_bundle.filament_presets.size() ? preset_bundle.filament_presets[config_idx] : "";
+        // filament_id / filament_type are preset fields, not project_config keys.
+        // Read the live preset so a later type switch (PLA Palette -> PETG) is visible.
+        Preset* preset = preset_name.empty() ? nullptr : preset_bundle.filaments.find_preset(preset_name);
+        const std::string slot_filament_id = (preset && !preset->filament_id.empty()) ? preset->filament_id : "";
+        const std::string slot_type = filament_type_for_color_decompose(preset);
         if (slot_color != component.color_hex) {
             continue;
         }
@@ -362,7 +365,10 @@ int find_existing_decompose_component(
             return static_cast<int>(config_idx + 1);
         }
 
-        if (!expected_basic_type.empty() && (slot_type == expected_basic_type || slot_type == expected_short_type)) {
+        const bool type_matches =
+            (!expected_basic_type.empty() && slot_type == expected_basic_type) ||
+            (!expected_short_type.empty() && slot_type == expected_short_type);
+        if (type_matches) {
             return static_cast<int>(config_idx + 1);
         }
 
