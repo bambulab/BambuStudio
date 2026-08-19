@@ -441,6 +441,13 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
         const bool enable_devtools = Slic3r::GUI::wxGetApp().app_config && Slic3r::GUI::wxGetApp().app_config->get("enable_webview_devtools") == "true";
         webView->EnableContextMenu(enable_devtools);
         webView->EnableAccessToDevTools(enable_devtools);
+#ifdef __WXMAC__
+        // EnableAccessToDevTools only flips the legacy developerExtrasEnabled preference.
+        // Since macOS 13.3 / Safari 16.4 WKWebView is not inspectable unless setInspectable:YES
+        // is called, so without this the view never shows up in Safari's Develop menu.
+        if (WKWebView *wkWebView = (WKWebView *) webView->GetNativeBackend())
+            Slic3r::GUI::WKWebView_setInspectable(wkWebView, enable_devtools);
+#endif
     } else {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": failed. Use fake web view.";
         webView = new FakeWebView;

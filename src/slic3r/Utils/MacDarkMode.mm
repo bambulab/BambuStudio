@@ -30,6 +30,12 @@
 
 static const char kBBLCrashProxyKey = 0;
 
+// -[WKWebView setInspectable:] 自 macOS 13.3 / Safari 16.4 起提供。显式声明分类，
+// 使旧 SDK 下也能编译；运行期以 respondsToSelector: 兜底，旧系统不会调用。
+@interface WKWebView (BBLInspectable)
+- (void)setInspectable:(BOOL)inspectable;
+@end
+
 @implementation MacDarkMode
 
 namespace Slic3r {
@@ -113,6 +119,14 @@ void WKWebView_setTransparentBackground(void * web)
     WKWebView * webView = (WKWebView*)web;
     [webView layer].backgroundColor = [NSColor clearColor].CGColor;
     [webView registerForDraggedTypes: @[NSFilenamesPboardType]];
+}
+
+void WKWebView_setInspectable(void * web, bool enable)
+{
+    WKWebView * webView = (WKWebView*)web;
+    if (@available(macOS 13.3, *)) {
+        [webView setInspectable:(enable ? YES : NO)];
+    }
 }
 
 void WKWebView_clearBambulabTokenCookies()
