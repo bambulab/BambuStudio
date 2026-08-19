@@ -6612,6 +6612,15 @@ bool Tab::select_preset(
     assert(! delete_current || (m_presets->get_edited_preset().name != preset_name && (m_presets->get_edited_preset().is_user() || m_presets->get_edited_preset().is_project_embedded)));
     //assert(! delete_current || (m_presets->get_edited_preset().name != preset_name && m_presets->get_edited_preset().is_user()));
     bool current_dirty = ! delete_current && m_presets->current_is_dirty();
+
+    // No-op reselection backstop: re-selecting the already-active, clean preset would still run
+    // the full update_compatible + load_current_preset + full_config rebuild for no change. Skip
+    // it so a redundant reselection (e.g. driven by device pushes) can't saturate the UI thread.
+    if (!delete_current && !force_select && !preset_name.empty() && m_presets->get_selected_preset().name == preset_name && !current_dirty) {
+        BOOST_LOG_TRIVIAL(warning) << "trying to select the already selected preset, skip: " << preset_name;
+        return true;
+    }
+
     bool print_tab     = m_presets->type() == Preset::TYPE_PRINT || m_presets->type() == Preset::TYPE_SLA_PRINT;
     bool printer_tab   = m_presets->type() == Preset::TYPE_PRINTER;
     bool canceled      = false;

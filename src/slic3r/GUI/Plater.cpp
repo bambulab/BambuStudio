@@ -1,4 +1,5 @@
 #include "Plater.hpp"
+#include "PerfTrace.hpp"
 #include <array>
 #include <boost/format/format_fwd.hpp>
 #include <cstddef>
@@ -1890,6 +1891,8 @@ void ExtruderGroup::sync_ams(MachineObject const *obj, std::vector<DevAms *> con
 
 bool Sidebar::priv::switch_diameter(bool single)
 {
+    PERF_TRACE("switch diameter");
+
     wxString diameter;
     if (single) {
         diameter = single_extruder->combo_diameter->GetValue();
