@@ -647,12 +647,16 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
             tooltip = _(L("Click the icon to reset all settings of the object"));
 #endif //__WXMSW__
     }
-    else if (col->GetModelColumn() == (unsigned int)colPrint)
+    else if (col->GetModelColumn() == (unsigned int)colPrint) {
+        if (node->IsPrintable() == piUnprintable)
+            tooltip = _(L("Unprintable object"));
+        else
 #ifdef __WXOSX__
-        tooltip = _(L("Right button click the icon to drop the object printable property"));
+            tooltip = _(L("Right button click the icon to drop the object printable property"));
 #else
-        tooltip = _(L("Click the icon to toggle printable property of the object"));
+            tooltip = _(L("Click the icon to toggle printable property of the object"));
 #endif //__WXMSW__
+    }
     // BBS
     else if (col->GetModelColumn() == (unsigned int)colSupportPaint) {
         if (node->HasSupportPainting())

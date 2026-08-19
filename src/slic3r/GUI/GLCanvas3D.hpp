@@ -424,7 +424,8 @@ class GLCanvas3D
         TpuNozzleMultipleFilaments,
         HighTempNeedWrappingDetection,
         SingleExtruderMixedFilament,
-        BrittleFilament
+        BrittleFilament,
+        AllObjectsUnprintable
     };
 
     class RenderStats
@@ -887,6 +888,8 @@ public:
     void toggle_model_objects_visibility(bool visible, const ModelObject* mo = nullptr, int instance_idx = -1, const ModelVolume* mv = nullptr);
     void update_instance_printable_state_for_object(size_t obj_idx);
     void update_instance_printable_state_for_objects(const std::vector<size_t>& object_idxs);
+    // Warn when every instance on the current plate is marked unprintable.
+    void update_all_objects_unprintable_warning();
 
     void set_config(const DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);

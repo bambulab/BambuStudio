@@ -2118,6 +2118,7 @@ void GLCanvas3D::update_instance_printable_state_for_object(const size_t obj_idx
             }
         }
     }
+    update_all_objects_unprintable_warning();
 }
 
 void GLCanvas3D::update_instance_printable_state_for_objects(const std::vector<size_t>& object_idxs)
@@ -3047,6 +3048,16 @@ void GLCanvas3D::render(bool only_init)
 
 	    if (tooltip.empty())
             tooltip = wxGetApp().plater()->get_collapse_toolbar().get_tooltip();
+
+        // Show tip when hovering an unprintable object volume.
+        if (tooltip.empty() && !m_hover_volume_idxs.empty()) {
+            const int volume_idx = get_first_hover_volume_idx();
+            if (volume_idx >= 0 && volume_idx < (int)m_volumes.volumes.size()) {
+                const GLVolume *volume = m_volumes.volumes[volume_idx];
+                if (volume != nullptr && !volume->is_wipe_tower && !volume->printable)
+                    tooltip = _u8L("Unprintable object");
+            }
+        }
 
         // BBS
 #if 0
@@ -4051,6 +4062,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
             bool single_extruder_mixed_risk = cur_plate->check_single_extruder_mixed_filament_risk(full_config_temp, get_single_extruder_mixed_filament_warning_text());
             _set_warning_notification(EWarning::SingleExtruderMixedFilament, single_extruder_mixed_risk);
+
+            update_all_objects_unprintable_warning();
         }
         else {
             _set_warning_notification(EWarning::ObjectOutside, false);
@@ -4073,6 +4086,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
            _set_warning_notification(EWarning::TpuNozzleMultipleFilaments, false);
            _set_warning_notification(EWarning::HighTempNeedWrappingDetection, false);
            _set_warning_notification(EWarning::SingleExtruderMixedFilament, false);
+           _set_warning_notification(EWarning::AllObjectsUnprintable, false);
 
            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
         }
@@ -13579,6 +13593,18 @@ void GLCanvas3D::_update_brittle_filament_warning(PartPlate *plate, const Dynami
     _set_warning_notification(EWarning::BrittleFilament, brittle_present);
 }
 
+void GLCanvas3D::update_all_objects_unprintable_warning()
+{
+    if (m_canvas_type == ECanvasType::CanvasAssembleView)
+        return;
+    if (!wxGetApp().plater())
+        return;
+
+    PartPlate *cur_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    const bool show = cur_plate != nullptr && !cur_plate->empty() && cur_plate->is_all_instances_unprintable();
+    _set_warning_notification(EWarning::AllObjectsUnprintable, show);
+}
+
 void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
 {
     using NotificationLevel = NotificationManager::NotificationLevel;
@@ -13805,6 +13831,9 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         text = _u8L(get_single_extruder_mixed_filament_warning_text());
         break;
     }
+    case EWarning::AllObjectsUnprintable:
+        text = _u8L("All objects on the current plate are unprintable. Slicing will produce an empty result. Please check.");
+        break;
     case EWarning::FlushingVolumeZero:
         text = _u8L("Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings.");
         error = ErrorType::SLICING_ERROR;

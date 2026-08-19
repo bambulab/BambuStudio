@@ -15826,6 +15826,8 @@ void Plater::priv::on_plate_selected(SimpleEvent&)
 {
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received plate selected event\n" ;
     sidebar->obj_list()->on_plate_selected(partplate_list.get_curr_plate_index());
+    if (view3D && view3D->get_canvas3d())
+        view3D->get_canvas3d()->update_all_objects_unprintable_warning();
 }
 
 void Plater::priv::on_action_request_model_id(wxCommandEvent& evt)
