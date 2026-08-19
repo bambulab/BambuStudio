@@ -6352,7 +6352,10 @@ void GLCanvas3D::do_move(const std::string &snapshot_type,bool force_volume_move
         ModelObject* m = m_model->objects[i.first];
         const double shift_z = m->get_instance_min_z(i.second);
         //BBS: don't call translate if the z is zero
-        if ((current_printer_technology() == ptSLA || shift_z > SINKING_Z_THRESHOLD) && (shift_z != 0.0f)) {
+        // Sub-micron residuals come from the limited precision of the transforms stored in the 3mf.
+        // Re-dropping for those would rewrite Z with an equivalent but different float value, which
+        // is enough to flip float32 slicing decisions on faces that sit on a slicing plane.
+        if ((current_printer_technology() == ptSLA || shift_z > SINKING_Z_THRESHOLD) && std::abs(shift_z) > EPSILON) {
             const Vec3d shift(0.0, 0.0, -shift_z);
             m_selection.translate(i.first, i.second, shift);
             m->translate_instance(i.second, shift);
