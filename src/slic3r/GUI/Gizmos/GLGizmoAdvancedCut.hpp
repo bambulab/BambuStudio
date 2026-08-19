@@ -45,7 +45,9 @@ public:
     void         toggle_selection(const Vec2d &mouse_pos);
     void         toggle_selection(int id);
     void         turn_over_selection();
+    bool         is_mouse_over_part(const Vec2d &mouse_pos) const;
     ModelObject* model_object() { return m_model.objects.front(); }
+    const ModelObject* model_object() const { return m_model.objects.front(); }
     bool         valid() const { return m_valid; }
     bool         is_one_object() const;
 
@@ -67,6 +69,7 @@ private:
     std::vector<Vec3d>              m_contour_points; // Debugging
     std::vector<std::vector<Vec3d>> m_debug_pts;      // Debugging
     void                            add_object(const ModelObject *object);
+    int                             pick_part_id(const Vec2d &mouse_pos) const;
 };
 
 class GLGizmoAdvancedCut : public GLGizmoRotate3D
@@ -341,6 +344,7 @@ private:
     void reset_cut_by_contours();
     void render_flip_plane_button(bool disable_pred = false);
     void process_contours();
+    void ensure_part_selection_for_hover();
     void toggle_model_objects_visibility(bool show_in_3d = false);
     void deal_connector_pos_by_type(Vec3d &pos, float &height, CutConnectorType, CutConnectorStyle, bool looking_forward, bool is_edit, const Vec3d &clp_normal);
     void update_bb();
