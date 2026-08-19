@@ -1156,9 +1156,9 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
         nozzle_volume_types[extruder_id] = (int)calib_info.nozzle_volume_type;
     }
 
-    // filament map transform to 1 base
-    std::vector<int> &filament_maps = full_config.option<ConfigOptionInts>("filament_map", true)->values;
-    std::transform(filament_maps.begin(), filament_maps.end(), filament_maps.begin(), [](int value) { return value + 1; });
+    // filament_map 到此处已是 1 based：calib_generic_auto_pa_cali 按 extruder_idx + 1 填充，
+    // construct_full_config 原样存入。此处不可再加 1，否则无喷嘴架机型走 fmmManual 分组时会把
+    // 耗材映射到不存在的挤出机，导致 G-code 导出阶段崩溃。
 
     std::vector<std::string> &filament_colors = full_config.option<ConfigOptionStrings>("filament_colour")->values;
     filament_colors.resize(sorted_calib_infos.size(), "#000000");
