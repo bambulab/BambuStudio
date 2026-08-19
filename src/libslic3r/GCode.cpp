@@ -7651,11 +7651,16 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
     bool could_be_wipe_disabled       = false;
     // Save state of use_external_mp_once for the case that will be needed to call twice m_avoid_crossing_perimeters.travel_to.
     const bool used_external_mp_once  = m_avoid_crossing_perimeters.used_external_mp_once();
+    // Custom gcode blocks (timelapse, wrapping detection, filament change, machine start gcode) may move
+    // the head on their own, after which the writer flags the position as unknown. last_pos() is stale
+    // then, so a detour planned from it would emit its first hop back at the stale point and drag the
+    // nozzle across what was just printed. Fall back to a single straight move to the destination.
+    const bool can_plan_detour = m_config.reduce_crossing_wall && m_writer.is_current_position_clear();
 
     // if a retraction would be needed, try to use reduce_crossing_wall to plan a
     // multi-hop travel path inside the configuration space
     // if (
-    if (m_config.reduce_crossing_wall && !m_avoid_crossing_perimeters.disabled_once() && travel.length() > scale_(FILAMENT_CONFIG(retraction_minimum_travel)))
+    if (can_plan_detour && !m_avoid_crossing_perimeters.disabled_once() && travel.length() > scale_(FILAMENT_CONFIG(retraction_minimum_travel)))
     // BBS: don't generate detour travel paths when current position is very close to the last position(travel lenght too short)
     {
         travel = m_avoid_crossing_perimeters.travel_to(*this, point, &could_be_wipe_disabled);
@@ -7677,7 +7682,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         // When "Wipe while retracting" is enabled, then extruder moves to another position, and travel from this position can cross perimeters.
         // Because of it, it is necessary to call avoid crossing perimeters again with new starting point after calling retraction()
         // FIXME Lukas H.: Try to predict if this second calling of avoid crossing perimeters will be needed or not. It could save computations.
-        if (last_post_before_retract != this->last_pos() && m_config.reduce_crossing_wall) {
+        if (last_post_before_retract != this->last_pos() && can_plan_detour) {
             // If in the previous call of m_avoid_crossing_perimeters.travel_to was use_external_mp_once set to true restore this value for next call.
             if (used_external_mp_once)
                 m_avoid_crossing_perimeters.use_external_mp_once();
