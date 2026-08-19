@@ -1017,29 +1017,6 @@ wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
     wxBoxSizer* fila_section = create_guide_info_filament(parent);
     info_section->Add(fila_section, 0, wxEXPAND | wxALL, FromDIP(5));
 
-    // Part 4: Circular toggle with description
-#if !BBL_INTERNAL_TESTING
-    wxBoxSizer* toggle_section = new wxBoxSizer(wxHORIZONTAL);
-
-    m_rotate_spool_toggle = new wxCheckBox(parent, wxID_ANY, "");
-    m_rotate_spool_toggle->SetValue(false);
-
-    m_rotate_spool_toggle->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) {
-        bool is_checked = event.IsChecked();
-        // Add toggle behavior logic here
-    });
-
-    toggle_section->Add(m_rotate_spool_toggle, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
-
-    // Toggle description
-    Label* toggle_description = new Label(parent, _L("Rotate spool when drying"), LB_AUTO_WRAP);
-    toggle_description->SetForegroundColour(*wxBLACK);
-    toggle_description->SetFont(Label::Body_12);
-    toggle_section->Add(toggle_description, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, 0);
-
-    info_section->Add(toggle_section, 0, wxEXPAND | wxALL, FromDIP(5));
-#endif
-
     return info_section;
 }
 
@@ -1148,9 +1125,6 @@ void AMSDryCtrWin::start_sending_drying_command()
     }
 
     bool rotate_spool = false;
-#if !BBL_INTERNAL_TESTING
-    rotate_spool = m_rotate_spool_toggle->GetValue();
-#endif
 
     fila_system->CtrlAmsStartDryingHour(std::stoi(m_ams_info.m_ams_id), 0, get_drying_filament_type_for_command(m_tray_ids[tray_index]),
         temperature, time, rotate_spool, cooling_temp, false);
