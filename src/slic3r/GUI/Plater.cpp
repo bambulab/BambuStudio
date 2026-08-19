@@ -2108,7 +2108,17 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
 
     // set nozzle volume type after switching prset, so this value can override the old value stored in conf
     auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
+    auto *nozzle_sys = obj->GetNozzleSystem();
     for (size_t idx = 0; idx < target_types.size(); ++idx) {
+        // When syncing, the connected machine is the source of truth for the nozzle count.
+        // For single-nozzle extruders on_volume_type_switch only carries the previous count
+        // forward and never refreshes it, so read presence straight from the machine here:
+        // 1 if the extruder actually has a nozzle installed, 0 otherwise.
+        if (!support_multi_nozzle && nozzle_sys) {
+            int  physical_extruder_id = extruder_map[idx];
+            bool nozzle_installed     = !nozzle_sys->GetExtNozzle(physical_extruder_id).IsEmpty();
+            preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(idx, target_types[idx], int(nozzle_installed), true);
+        }
         printer_tab->set_extruder_volume_type(idx, target_types[idx]);
     }
 
