@@ -3,7 +3,6 @@
     "name": "0.16mm Standard @BBL H3C",
     "inherits": "fdm_process_single_0.16",
     "from": "system",
-    "prime_tower_side_scrape": "1",
     "setting_id": "GP266",
     "instantiation": "true",
     "description": "Standard profile for 0.16mm layer height, prioritizing speed.",
@@ -38,6 +37,7 @@
         "500",
         "500"
     ],
+    "initial_layer_infill_line_width": "0.6",
     "initial_layer_infill_speed": [
         "105",
         "105",
@@ -110,6 +110,7 @@
     "prime_tower_feedrate_factor": "0.82",
     "prime_tower_line_ironing": "0",
     "prime_tower_line_width": "0.8",
+    "prime_tower_side_scrape": "1",
     "prime_tower_width": "60",
     "print_extruder_id": [
         "2",

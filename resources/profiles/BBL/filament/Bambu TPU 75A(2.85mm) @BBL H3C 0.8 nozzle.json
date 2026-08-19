@@ -8,6 +8,9 @@
     "additional_cooling_fan_speed": [
         "80"
     ],
+    "close_optional_fan_first_x_layers": [
+        "1"
+    ],
     "eng_plate_temp": [
         "35"
     ],
@@ -54,7 +57,7 @@
         "nil"
     ],
     "filament_max_volumetric_speed": [
-        "10"
+        "15"
     ],
     "filament_overhang_1_4_speed": [
         "0"
@@ -131,13 +134,7 @@
     "filament_z_hop_types": [
         "Spiral Lift"
     ],
-    "close_optional_fan_first_x_layers": [
-        "1"
-    ],
     "first_x_layer_optional_fan_speed": [
-        "0"
-    ],
-    "optional_fan_full_speed_layer": [
         "0"
     ],
     "include": [
@@ -155,6 +152,9 @@
     ],
     "optional_cooling_fan_speed": [
         "75"
+    ],
+    "optional_fan_full_speed_layer": [
+        "0"
     ],
     "override_process_overhang_speed": [
         "1"

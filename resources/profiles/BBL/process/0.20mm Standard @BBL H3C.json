@@ -3,7 +3,6 @@
     "name": "0.20mm Standard @BBL H3C",
     "inherits": "fdm_process_single_0.20",
     "from": "system",
-    "prime_tower_side_scrape": "1",
     "setting_id": "GP259",
     "instantiation": "true",
     "description": "It has a general layer height, and results in general layer lines and printing quality. It is suitable for most general printing cases.",
@@ -38,6 +37,7 @@
         "500",
         "500"
     ],
+    "initial_layer_infill_line_width": "0.6",
     "initial_layer_infill_speed": [
         "105",
         "105",
@@ -108,6 +108,7 @@
     "prime_tower_acceleration": "20000",
     "prime_tower_line_ironing": "0",
     "prime_tower_line_width": "0.8",
+    "prime_tower_side_scrape": "1",
     "prime_tower_width": "60",
     "print_extruder_id": [
         "1",

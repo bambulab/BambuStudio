@@ -8,6 +8,9 @@
     "additional_cooling_fan_speed": [
         "80"
     ],
+    "close_optional_fan_first_x_layers": [
+        "1"
+    ],
     "eng_plate_temp": [
         "35"
     ],
@@ -42,7 +45,7 @@
         "Direct Drive TPU285"
     ],
     "filament_flow_ratio": [
-        "1.08"
+        "1.16"
     ],
     "filament_flush_temp": [
         "0"
@@ -111,7 +114,7 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "2.3"
+        "2"
     ],
     "filament_retraction_minimum_travel": [
         "nil"
@@ -131,13 +134,7 @@
     "filament_z_hop_types": [
         "Auto Lift"
     ],
-    "close_optional_fan_first_x_layers": [
-        "1"
-    ],
     "first_x_layer_optional_fan_speed": [
-        "0"
-    ],
-    "optional_fan_full_speed_layer": [
         "0"
     ],
     "include": [
@@ -158,6 +155,9 @@
     ],
     "optional_cooling_fan_speed": [
         "75"
+    ],
+    "optional_fan_full_speed_layer": [
+        "0"
     ],
     "override_process_overhang_speed": [
         "1"

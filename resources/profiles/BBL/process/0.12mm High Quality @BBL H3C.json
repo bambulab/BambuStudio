@@ -3,7 +3,6 @@
     "name": "0.12mm High Quality @BBL H3C",
     "inherits": "fdm_process_single_0.12",
     "from": "system",
-    "prime_tower_side_scrape": "1",
     "setting_id": "GP264",
     "instantiation": "true",
     "bridge_speed": [
@@ -37,6 +36,7 @@
         "500",
         "500"
     ],
+    "initial_layer_infill_line_width": "0.6",
     "initial_layer_infill_speed": [
         "105",
         "105",
@@ -109,6 +109,7 @@
     "prime_tower_feedrate_factor": "0.6",
     "prime_tower_line_ironing": "0",
     "prime_tower_line_width": "0.8",
+    "prime_tower_side_scrape": "1",
     "prime_tower_width": "60",
     "print_extruder_id": [
         "2",
