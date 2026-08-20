@@ -2807,6 +2807,9 @@ void GLCanvas3D::render(bool only_init)
     camera.apply_projection(_max_bounding_box(true, true, true,is_volumes_limit_to_expand_plate()));
     camera.update_frustum();
 
+    //BBS update gizmo camera scaling (inv_zoom + perspective depth correction)
+    GLGizmoBase::update_camera_scaling(camera, m_selection);
+
     m_frame_callback_list.clear();
 
     const std::array<int, 4>& viewport = camera.get_viewport();
@@ -9428,8 +9431,6 @@ void GLCanvas3D::_render_volumes_for_picking() const
 
 void GLCanvas3D::_render_current_gizmo() const
 {
-    //BBS update inv_zoom
-    GLGizmoBase::INV_ZOOM = (float)get_active_camera().get_inv_zoom();
     m_gizmos.render_current_gizmo();
 }
 

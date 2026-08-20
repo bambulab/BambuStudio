@@ -2872,9 +2872,11 @@ Transform3d get_screen_scalling_matrix()
     if (p_ogl_manager) {
         if (p_ogl_manager->is_gizmo_keep_screen_size_enabled()) {
             const auto& t_zoom = camera.get_zoom();
-            screen_scalling_matrix.data()[0 * 4 + 0] = 5.0f / t_zoom;
-            screen_scalling_matrix.data()[1 * 4 + 1] = 5.0f / t_zoom;
-            screen_scalling_matrix.data()[2 * 4 + 2] = 5.0f / t_zoom;
+            // Same perspective correction the gizmos get, so the hints stay the same length as the gizmo arrows.
+            const double t_scale = 5.0 * (double)GLGizmoBase::DEPTH_CORRECTION / t_zoom;
+            screen_scalling_matrix.data()[0 * 4 + 0] = t_scale;
+            screen_scalling_matrix.data()[1 * 4 + 1] = t_scale;
+            screen_scalling_matrix.data()[2 * 4 + 2] = t_scale;
         }
     }
     return screen_scalling_matrix;
