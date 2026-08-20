@@ -916,14 +916,26 @@ std::map<int, DevFirmwareVersionInfo> MachineObject::get_ams_version()
 
     const std::string hotend_ams_type = DevPrinterConfigUtil::get_hotend_ams_type_string(printer_type);
 
-    for (const auto &module : module_vers) {
-        const std::string &key       = module.first;
-        auto               slash_pos = key.find('/');
-        if (slash_pos == std::string::npos) continue;
+    /* The module name may come with or without the "/index" suffix */
+    const auto is_ams_module = [&hotend_ams_type](const std::string &name) {
+        const std::string type = name.substr(0, name.find('/'));
+        return type == "ams" || type == "ams_f1" || type == "n3f" || type == "n3s" ||
+               (!hotend_ams_type.empty() && type == hotend_ams_type);
+    };
 
-        std::string type = key.substr(0, slash_pos);
-        if (type != "ams" && type != "ams_f1" && type != "n3f" && type != "n3s" &&
-            !(!hotend_ams_type.empty() && type == hotend_ams_type)) continue;
+    for (const auto &module : module_vers) {
+        const std::string &key = module.first;
+        if (!is_ams_module(key)) continue;
+
+        /* Prefer the id reported by firmware, which is the only source when the name has no suffix */
+        if (module.second.hasValidId()) {
+            result.emplace(module.second.id, module.second);
+            continue;
+        }
+
+        /* Legacy firmware: take the index from the name suffix */
+        auto slash_pos = key.find('/');
+        if (slash_pos == std::string::npos) continue;
 
         try {
             int ams_id = std::stoi(key.substr(slash_pos + 1));
@@ -2900,6 +2912,8 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             ver_info.hw_ver = (*it)["hw_ver"].get<std::string>();
                         if((*it).contains("flag"))
                             ver_info.firmware_flag= (*it)["flag"].get<int>();
+                        if ((*it).contains("id"))
+                            ver_info.id = (*it)["id"].get<int>();
 
                         store_version_info(ver_info);
 

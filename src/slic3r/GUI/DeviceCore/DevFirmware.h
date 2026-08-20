@@ -32,9 +32,13 @@ public:
     std::string sw_ver;
     std::string sw_new_ver;
     int         firmware_flag = 0;
+    int         id            = -1;// module index reported by firmware, negative when not reported
 
 public:
     bool isValid() const { return !sn.empty(); }
+
+    /* whether the firmware reports the module index explicitly */
+    bool hasValidId() const { return id >= 0; }
 
     /*type check*/
     bool isAirPump() const { return product_name.Contains("Air Pump"); }
