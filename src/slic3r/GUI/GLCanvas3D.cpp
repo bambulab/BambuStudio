@@ -13937,7 +13937,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         break;
     }
     case EWarning::AllObjectsUnprintable:
-        text = _u8L("All objects on the current plate are unprintable. Slicing will produce an empty result. Please check.");
+        text = _u8L("All objects on the plate are unprintable, please check the printable settings in the object list.");
         break;
     case EWarning::FlushingVolumeZero:
         text = _u8L("Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings.");
