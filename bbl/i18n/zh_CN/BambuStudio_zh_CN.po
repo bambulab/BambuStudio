@@ -5501,6 +5501,10 @@ msgstr "从"
 msgid "Slicing Result"
 msgstr "切片结果"
 
+#, boost-format
+msgid "No.%1%"
+msgstr "%1%号"
+
 msgid "Color Scheme"
 msgstr "颜色方案"
 

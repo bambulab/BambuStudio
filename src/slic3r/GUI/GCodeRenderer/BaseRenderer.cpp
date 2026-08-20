@@ -1773,7 +1773,7 @@ namespace Slic3r
                     };
                     std::string label = nz->diameter + " " + vol_abbr(nz->volume_type);
                     if (m_ams_nozzle_idx >= 0 && nz->group_id == m_ams_nozzle_idx)
-                        label += " (" + std::to_string(nz->group_id + 1) + _u8L("号") + ")";
+                        label += " (" + (boost::format(_u8L("No.%1%")) % (nz->group_id + 1)).str() + ")";
                     return label;
                     };
                 //BBS Slicing Result title
