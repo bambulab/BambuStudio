@@ -1,81 +1,9 @@
 #include "EncodedFilament.hpp"
 
 #include "GUI_App.hpp"
-#include "libslic3r/Utils.hpp"
 
 namespace Slic3r
 {
-
-// Reconciles filament_colour / filament_multi_colour in preset_bundle->project_config
-// against the color order authored in filaments_color_codes.json, for multi-color /
-// gradient filaments.
-//
-// Needed because project_config predates JSON-defined color ordering: filament_colour/
-// filament_multi_colour saved before that requirement existed (old 3mf projects,
-// AppConfig-restored sessions) may carry colors in HSV-sort order instead of JSON order.
-// Current-session writes (color picker dialogs, etc.) already resolve the order via
-// GetFilaInfo, so this is purely legacy-data reconciliation on load, not an ongoing
-// source of truth.
-void align_project_filament_primary_colors_with_json(PresetBundle* preset_bundle)
-{
-    if (preset_bundle == nullptr)
-        return;
-
-    auto* color_query = Slic3r::GUI::wxGetApp().get_filament_color_code_query();
-    if (color_query == nullptr)
-        return;
-
-    DynamicPrintConfig&   proj_cfg             = preset_bundle->project_config;
-    ConfigOptionStrings*  filament_color       = proj_cfg.option<ConfigOptionStrings>("filament_colour");
-    ConfigOptionStrings*  filament_multi_color = proj_cfg.option<ConfigOptionStrings>("filament_multi_colour");
-    ConfigOptionStrings*  filament_color_type  = proj_cfg.option<ConfigOptionStrings>("filament_colour_type");
-    if (filament_color == nullptr || filament_multi_color == nullptr || filament_color_type == nullptr)
-        return;
-
-    const size_t filament_count = filament_color->values.size();
-    for (size_t i = 0; i < filament_count; ++i) {
-        if (i >= filament_multi_color->values.size() ||
-            i >= filament_color_type->values.size() ||
-            i >= preset_bundle->filament_presets.size())
-            continue;
-
-        // Only multi / gradient filaments need an order fix.
-        std::vector<std::string> stored_colors = Slic3r::split_string(filament_multi_color->values[i], ' ');
-        if (stored_colors.size() < 2)
-            continue;
-
-        // Resolve filament_id for JSON lookup.
-        const Preset* preset = preset_bundle->filaments.find_preset(preset_bundle->filament_presets[i]);
-        if (preset == nullptr || preset->filament_id.empty())
-            continue;
-
-        // Match against filaments_color_codes.json by color set + type.
-        std::vector<wxString> hex_colors;
-        hex_colors.reserve(stored_colors.size());
-        for (const auto& hex : stored_colors)
-            hex_colors.emplace_back(wxString::FromUTF8(hex));
-
-        const int color_type = (filament_color_type->values[i] == "0") ? 0 : 1;
-        FilamentColorCode* color_code = color_query->GetFilaInfo(wxString::FromUTF8(preset->filament_id), hex_colors, color_type);
-        if (color_code == nullptr)
-            continue;
-
-        // Rewrite the full list in the JSON-authored order (not just the primary).
-        const FilamentColor& matched_color = color_code->GetFilaColor();
-        const std::vector<wxColour>& ordered_colors = matched_color.GetColors();
-        if (ordered_colors.empty())
-            continue;
-
-        std::string multi_pack;
-        for (const wxColour& color : ordered_colors) {
-            if (!multi_pack.empty())
-                multi_pack += ' ';
-            multi_pack += color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-        }
-        filament_color->values[i]       = ordered_colors.front().GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-        filament_multi_color->values[i] = multi_pack;
-    }
-}
 
 static wxString _ColourToString(const wxColour& color)
 {
@@ -238,6 +166,7 @@ void FilamentColorCodeQuery::CreateFilaCode(const wxString& fila_id,
     color_codes->AddColorCode(fila_code);
 }
 // End of class EncodedFilamentQuery
+
 
 wxString FilamentColorCode::GetFilaColorName() const
 {

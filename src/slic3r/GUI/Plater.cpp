@@ -154,7 +154,6 @@
 #include "ParamsDialog.hpp"
 #include "ImageDPIFrame.hpp"
 #include "FilamentBitmapUtils.hpp"
-#include "EncodedFilament.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/RadioBox.hpp"
@@ -8984,12 +8983,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                             }
                                         }
                                     }
-
-                                    // Old projects may use HSV-set first color as main; align to JSON[0].
-                                    Slic3r::align_project_filament_primary_colors_with_json(preset_bundle);
-                                    // Align only wrote project_config; object GLVolumes read p->config
-                                    // (filled earlier by on_filament_count_change). Sync before load_model_objects.
-                                    q->update_filament_colors_in_full_config();
                                 }
                             }
                             // Update filament combobox after loading config
@@ -19106,8 +19099,6 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
             //FIXME Why are we reloading the whole preset bundle here? Please document. This is fishy and it is unnecessarily expensive.
             // Anyways, don't report any config value substitutions, they have been already reported to the user at application start up.
             wxGetApp().preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilent);
-            // AppConfig-restored filament colors may predate the JSON primary-color alignment.
-            Slic3r::align_project_filament_primary_colors_with_json(wxGetApp().preset_bundle);
             // load_current_presets() calls Tab::load_current_preset() -> TabPrint::update() -> Object_list::update_and_show_object_settings_item(),
             // but the Object list still keeps pointer to the old Model. Avoid a crash by removing selection first.
             this->sidebar->obj_list()->unselect_objects();
