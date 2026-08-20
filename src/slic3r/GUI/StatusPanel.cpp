@@ -4530,7 +4530,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
             m_project_task_panel->update_stage_value_with_machine(obj->get_curr_stage().IsEmpty()? prepare_text : obj->get_curr_stage(), 0, obj);
             m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
             m_project_task_panel->update_left_time(NA_STR);
-            m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
+            m_project_task_panel->update_layers_num(obj->is_support_layer_num, wxString::Format(_L("Layer: %s"), NA_STR));
             m_project_task_panel->update_subtask_name(wxString::Format("%s", GUI::from_u8(obj->subtask_name)));
 
             if (obj->get_modeltask() && obj->get_modeltask()->design_id > 0) {
@@ -4552,12 +4552,12 @@ void StatusPanel::update_subtask(MachineObject *obj)
             if (obj->subtask_) {
                 m_project_task_panel->update_stage_value_with_machine(obj->get_curr_stage(), obj->subtask_->task_progress, obj);
                 m_project_task_panel->update_progress_percent(wxString::Format("%d", obj->subtask_->task_progress), "%");
-                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %d/%d"), obj->curr_layer, obj->total_layers));
+                m_project_task_panel->update_layers_num(obj->is_support_layer_num, wxString::Format(_L("Layer: %d/%d"), obj->curr_layer, obj->total_layers));
 
             } else {
                 m_project_task_panel->update_stage_value_with_machine(obj->get_curr_stage(), 0, obj);
                 m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
-                m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
+                m_project_task_panel->update_layers_num(obj->is_support_layer_num, wxString::Format(_L("Layer: %s"), NA_STR));
             }
 
             if (obj->is_printing_finished()) {
