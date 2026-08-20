@@ -81,8 +81,8 @@ export function visibleFilamentColor(color: string): string {
 
 // Feed-line-only display on the normal Filament tab. Nozzle / batch modes
 // keep `visibleFilamentColor`. Handles unknown sentinel, fully transparent
-// filament, near-white (stay opaque after the grey tint), and 50% alpha for
-// other fully opaque colours.
+// filament, and near-white (grey tint). Opaque colours keep their own alpha so
+// a black spool paints a black line instead of reading as grey.
 export function visibleFeedLineColor(color?: string): string {
   if (!color || isUnknownSentinel(color)) return STANDBY_COLOR;
 
@@ -100,7 +100,5 @@ export function visibleFeedLineColor(color?: string): string {
     return withAlpha(tintedRgb, alpha);
   }
 
-  if (isLightColor(color)) return tintedRgb;
-
-  return withAlpha(tintedRgb, OPAQUE_LINE_ALPHA);
+  return tintedRgb;
 }

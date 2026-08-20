@@ -73,6 +73,7 @@ std::string DevicePageFilamentSlotStateResolver::ResolveNozzleState(const std::s
 int DevicePageFilamentSlotStateResolver::ResolveDisplayRemain(const DevAmsTray* tray)
 {
     if (!tray) return 100;
+    if (tray->remain_g == 0) return 5;
     if (tray->remain_g > 0 && tray->remain < 5) return 5;
     if (tray->remain >= 5 && tray->remain <= 100) return tray->remain;
     return 100;
