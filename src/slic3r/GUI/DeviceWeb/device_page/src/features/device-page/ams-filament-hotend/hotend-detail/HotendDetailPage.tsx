@@ -121,23 +121,23 @@ export function HotendDetailPage() {
             {toolImage ? <img src={toolImage} alt="" /> : <span className="hotend-detail-empty">--</span>}
           </div>
           <InfoLine label="SN" value={textOrDash(detail.serial_number)} />
-          <InfoLine label="Usedtime" value={formatUsedTime(detail.used_time_hours)} />
-          <InfoLine label="Switch Count" value={formatSwitchCount(detail.switch_count)} />
+          <InfoLine label={t('Usedtime')} value={formatUsedTime(detail.used_time_hours)} />
+          <InfoLine label={t('Switch Count')} value={formatSwitchCount(detail.switch_count)} />
         </aside>
 
         <section className="hotend-detail-info">
           {showFilament && (
-            <InfoBlock label="Nozzle Filament">
+            <InfoBlock label={t('Nozzle Filament')}>
               <div className="hotend-detail-filament">
                 <span className="hotend-detail-color" style={{ backgroundColor: detail.filament_color || '#D9D9D9' }} />
                 <span>{textOrDash(detail.filament_name)}</span>
               </div>
             </InfoBlock>
           )}
-          <InfoBlock label="Type">
+          <InfoBlock label={t('Type')}>
             <span>{textOrDash(toolTypeText)}</span>
           </InfoBlock>
-          <InfoBlock label="Version">
+          <InfoBlock label={t('Version')}>
             <span>{textOrDash(detail.firmware_version)}</span>
           </InfoBlock>
         </section>

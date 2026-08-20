@@ -227,23 +227,28 @@ void DevicePageAmsFilamentHotendVM::OnSysColorChanged()
     m_bridge->ReportMsg(MakeResponse(GetModule(), "init", "theme_changed", 0, "", data));
 }
 
-std::string DevicePageAmsFilamentHotendVM::ResolveFilamentCardText(const DevAmsTray* tray, const std::string& fallback_type) const
+std::string DevicePageAmsFilamentHotendVM::ResolveFilamentCardText(const std::string& filament_id, const std::string& fallback_type) const
 {
-    if (!tray) return fallback_type;
-    if (!tray->sub_brands.empty()) return tray->sub_brands;
-
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
-        if (auto fila_item = preset_bundle->get_filament_by_filament_id(tray->get_filament_id(), "", true); fila_item.has_value()) {
+        if (auto fila_item = preset_bundle->get_filament_by_filament_id(filament_id, "", true); fila_item.has_value()) {
             return StripFilamentVendorPrefix(fila_item->filament_name, fila_item->vendor, fallback_type);
         }
 
-        if (auto fila_item = preset_bundle->get_filament_by_filament_id(tray->get_filament_id(), "", false); fila_item.has_value()) {
+        if (auto fila_item = preset_bundle->get_filament_by_filament_id(filament_id, "", false); fila_item.has_value()) {
             return StripFilamentVendorPrefix(fila_item->filament_name, fila_item->vendor, fallback_type);
         }
     }
 
     return fallback_type;
+}
+
+std::string DevicePageAmsFilamentHotendVM::ResolveFilamentCardText(const DevAmsTray* tray, const std::string& fallback_type) const
+{
+    if (!tray) return fallback_type;
+    if (!tray->sub_brands.empty()) return tray->sub_brands;
+
+    return ResolveFilamentCardText(tray->get_filament_id(), fallback_type);
 }
 
 nlohmann::json DevicePageAmsFilamentHotendVM::HandleAction(const std::string& action, const nlohmann::json& payload)

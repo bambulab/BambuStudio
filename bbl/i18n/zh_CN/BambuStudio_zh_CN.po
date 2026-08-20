@@ -28581,3 +28581,183 @@ msgstr "无可用喷嘴"
 
 msgid "Nozzle NO. "
 msgstr "喷嘴编号 "
+
+msgid "Switch extruder"
+msgstr "切换挤出机"
+
+msgid "Switch hotend"
+msgstr "切换热端"
+
+msgid "Batch pull back the filaments"
+msgstr "批量抽回耗材"
+
+msgid "Other filaments are info-only"
+msgstr "其他耗材仅供查看"
+
+msgid "Filament not removed"
+msgstr "耗材未拔出"
+
+msgid "Hotend rack moving"
+msgstr "热端挂架移动中"
+
+msgid "Homing Induction Hotend Rack"
+msgstr "热端挂架回中"
+
+msgid "Homing Toolhead"
+msgstr "工具头回中"
+
+msgid "Calibrating Hotend Rack"
+msgstr "校准热端架位置"
+
+msgid "Waiting for hotend to heat"
+msgstr "等待热端升温"
+
+msgid "Cutting Filament"
+msgstr "切料"
+
+msgid "Unlocking Hotend"
+msgstr "解锁热端"
+
+msgid "Lifting Hotend Rack"
+msgstr "热端挂架抬升"
+
+msgid "Placing Hotend"
+msgstr "放置热端"
+
+msgid "Taking Hotend"
+msgstr "取用热端"
+
+msgid "Locking Hotend"
+msgstr "上锁热端"
+
+msgid "Moving Hotend Rack"
+msgstr "刀架移动中"
+
+msgid "Refreshing Hotend Info"
+msgstr "刷新热端信息"
+
+msgid "Running"
+msgstr "运行中"
+
+#, boost-format
+msgid "Reading (%1% / %2%)"
+msgstr "读取中 (%1% / %2%)"
+
+#, boost-format
+msgid "Reading Hotend %1%"
+msgstr "读取热端 %1%"
+
+msgid "Please wait..."
+msgstr "请稍后..."
+
+msgid "Empty slot"
+msgstr "槽位为空"
+
+msgid "RFID is being read"
+msgstr "正在读取 RFID"
+
+msgid "Filament change in progress"
+msgstr "正在换料"
+
+msgid "Slot is in error state"
+msgstr "槽位状态异常"
+
+msgid "Filament already loaded"
+msgstr "耗材已进料"
+
+msgid "Ready to load"
+msgstr "可进料"
+
+msgid "Loaded"
+msgstr "已进料"
+
+msgid "Unknown filament"
+msgstr "未知耗材"
+
+msgid "Other batch mode active"
+msgstr "其他批量模式正在进行"
+
+msgid "External filament already loaded into hotend"
+msgstr "外挂耗材已进料至热端"
+
+msgid "The current tool is not a nozzle"
+msgstr "当前工具头不是喷嘴"
+
+msgid "There are no nozzle installed"
+msgstr "未安装喷嘴"
+
+msgid "Nozzle is in error state"
+msgstr "喷嘴状态异常"
+
+msgid "Nozzle has been detached"
+msgstr "喷嘴已卸下"
+
+msgid "Slot not loaded"
+msgstr "槽位未进料"
+
+msgid "Ext AMS Operation"
+msgstr "外挂 AMS 操作"
+
+msgid "AMS Bridge Debug"
+msgstr ""
+
+msgid "Cannot read all while printing or upgrading"
+msgstr "打印或固件升级过程中无法全部读取"
+
+msgid "The printer is busy on other job"
+msgstr "打印机正忙于其他任务"
+
+msgid "Cannot stop filament change while printing or calibrating"
+msgstr "打印或校准过程中无法停止换料"
+
+msgid "No slots selected for batch run"
+msgstr "未选择需要批量操作的槽位"
+
+msgid "All selected slots are invalid"
+msgstr "所选槽位均无效"
+
+msgid "MQTT publish failed for multi_slot_ams_change_filament"
+msgstr "multi_slot_ams_change_filament 的 MQTT 下发失败"
+
+msgid "Hotend Details"
+msgstr "热端详情"
+
+msgid "Hotend rack is busy"
+msgstr "热端架忙碌中"
+
+msgid "Hotend rack cannot read all"
+msgstr "热端挂架无法全部读取"
+
+msgid "Invalid hotend display_index"
+msgstr "热端序号无效"
+
+msgid "Invalid hotend temperature payload"
+msgstr "热端温度参数无效"
+
+msgid "No hotend rack"
+msgstr "无热端挂架"
+
+msgid "Hotend cannot set temperature"
+msgstr "该热端不支持设置温度"
+
+msgid "Loading/Unloading"
+msgstr "进/退料"
+
+msgid "Checking"
+msgstr "检测中"
+
+msgid "Heat fault"
+msgstr "加热异常"
+
+msgid "Self test"
+msgstr "自检"
+
+msgid "No selected machine"
+msgstr "未选择设备"
+
+msgid "loading/unloading"
+msgstr "进/退料"
+
+#, boost-format
+msgid "Slot %1% filament %2% in progress"
+msgstr "槽位 %1% 耗材%2%中"

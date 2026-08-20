@@ -302,8 +302,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         hotend[SK::hotend::tool_kind] = has_tool ? tool_kind_for_web(tool_defs) : SV::tool_kind::empty;
         hotend[SK::hotend::nozzle_label] = is_nozzle_tool ? wx_to_utf8(rack_nozzle_opt->GetNozzleDiameterStr()) : tool_label_for_web(tool_defs);
         hotend[SK::hotend::nozzle_subtext] = is_nozzle_tool ? nozzle_flow_short_name(rack_nozzle_opt->GetNozzleFlowType()) : "";
-        hotend_detail_dialog[SK::hotend_detail_dialog::filament_name] = slot_filament_name;
-        hotend_detail_dialog[SK::hotend_detail_dialog::filament_color] = slot_color;
+        hotend_detail_dialog[SK::hotend_detail_dialog::filament_name] = ResolveFilamentCardText(rack_nozzle_opt->GetFilamentId(), std::string());
+        hotend_detail_dialog[SK::hotend_detail_dialog::filament_color] = rack_nozzle_opt->GetFilamentColor();
         hotend_detail_dialog[SK::hotend_detail_dialog::show_filament] = is_nozzle_tool;
         hotend_detail_dialog[SK::hotend_detail_dialog::tool_image_name] = detail_tool_image_name(tool_defs);
         hotend_detail_dialog[SK::hotend_detail_dialog::tool_type] = is_nozzle_tool
@@ -440,14 +440,13 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
 
     // filament_in_nozzle differs from filament_in_slot_spool.
     std::string nozzle_filament_color;
-    const bool nozzle_has_filament = rack_nozzle_opt.has_value() && rack_nozzle_opt->HasFilamentInNozzle();
-    if (nozzle_has_filament && rack_nozzle_opt.has_value()) {
+    if (rack_nozzle_opt.has_value()) {
         nozzle_filament_color = normalize_hex_for_web(rack_nozzle_opt->GetFilamentColor());
     }
 
     const nlohmann::json nozzle_section = {
         {SK::filament_nozzle::state, nozzle_state},
-        {SK::filament_nozzle::has_filament, nozzle_has_filament},
+        {SK::filament_nozzle::has_filament, !nozzle_filament_color.empty()},
         {SK::filament_nozzle::filament_color, nozzle_filament_color},
         {SK::filament_nozzle::on_extruder, is_on_extruder},
         {SK::filament_nozzle::tool_kind, nozzle_tool_kind}

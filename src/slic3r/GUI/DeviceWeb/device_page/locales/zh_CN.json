@@ -298,5 +298,10 @@
   "Unload the external filament manually before feeding to enable selection.": "",
   "Reread": "重读",
   "Dry": "烘干",
-  "More": "更多"
+  "More": "更多",
+  "Nozzle Filament": "喷嘴耗材",
+  "Switch Count": "切换次数",
+  "Type": "类型",
+  "Usedtime": "使用时长",
+  "Version": "固件版本"
 }

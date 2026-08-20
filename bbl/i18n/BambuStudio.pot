@@ -19315,3 +19315,208 @@ msgstr ""
 
 msgid "Nozzle NO. "
 msgstr ""
+
+msgid "Switch extruder"
+msgstr ""
+
+msgid "Switch hotend"
+msgstr ""
+
+msgid "Batch pull back the filaments"
+msgstr ""
+
+#, possible-boost-format
+msgid "Please manually pull out the filament from slot %1%."
+msgstr ""
+
+#, possible-boost-format
+msgid "Please manually pull out the filament from hotend %1% on the toolhead."
+msgstr ""
+
+#, possible-boost-format
+msgid "Please manually insert the filament into the loading port of hotend %1% on the toolhead until it cannot be pushed any further."
+msgstr ""
+
+#, possible-boost-format
+msgid "Please manually insert the filament from slot %1% into the extruder loading port until it cannot be pushed any further."
+msgstr ""
+
+msgid "Other filaments are info-only"
+msgstr ""
+
+msgid "Filament not removed"
+msgstr ""
+
+msgid "Hotend rack moving"
+msgstr ""
+
+msgid "Homing Induction Hotend Rack"
+msgstr ""
+
+msgid "Homing Toolhead"
+msgstr ""
+
+msgid "Calibrating Hotend Rack"
+msgstr ""
+
+msgid "Waiting for hotend to heat"
+msgstr ""
+
+msgid "Cutting Filament"
+msgstr ""
+
+msgid "Unlocking Hotend"
+msgstr ""
+
+msgid "Lifting Hotend Rack"
+msgstr ""
+
+msgid "Placing Hotend"
+msgstr ""
+
+msgid "Taking Hotend"
+msgstr ""
+
+msgid "Locking Hotend"
+msgstr ""
+
+msgid "Moving Hotend Rack"
+msgstr ""
+
+msgid "Refreshing Hotend Info"
+msgstr ""
+
+msgid "Running"
+msgstr ""
+
+#, possible-boost-format
+msgid "Reading (%1% / %2%)"
+msgstr ""
+
+#, possible-boost-format
+msgid "Reading Hotend %1%"
+msgstr ""
+
+msgid "Please wait..."
+msgstr ""
+
+msgid "Empty slot"
+msgstr ""
+
+msgid "RFID is being read"
+msgstr ""
+
+msgid "Filament change in progress"
+msgstr ""
+
+msgid "Slot is in error state"
+msgstr ""
+
+msgid "Filament already loaded"
+msgstr ""
+
+msgid "Ready to load"
+msgstr ""
+
+msgid "Loaded"
+msgstr ""
+
+msgid "Unknown filament"
+msgstr ""
+
+msgid "Other batch mode active"
+msgstr ""
+
+msgid "External filament already loaded into hotend"
+msgstr ""
+
+msgid "The current tool is not a nozzle"
+msgstr ""
+
+msgid "There are no nozzle installed"
+msgstr ""
+
+msgid "Nozzle is in error state"
+msgstr ""
+
+msgid "Nozzle has been detached"
+msgstr ""
+
+msgid "Slot not loaded"
+msgstr ""
+
+msgid "Ext AMS Operation"
+msgstr ""
+
+msgid "AMS Bridge Debug"
+msgstr ""
+
+msgid "Cannot read all while printing or upgrading"
+msgstr ""
+
+msgid "The printer is busy on other job"
+msgstr ""
+
+msgid "Cannot stop filament change while printing or calibrating"
+msgstr ""
+
+msgid "No slots selected for batch run"
+msgstr ""
+
+msgid "All selected slots are invalid"
+msgstr ""
+
+msgid "MQTT publish failed for multi_slot_ams_change_filament"
+msgstr ""
+
+msgid "Hotend Details"
+msgstr ""
+
+msgid "Hotend rack is busy"
+msgstr ""
+
+msgid "Hotend rack cannot read all"
+msgstr ""
+
+msgid "Invalid hotend display_index"
+msgstr ""
+
+msgid "Invalid hotend temperature payload"
+msgstr ""
+
+msgid "No hotend rack"
+msgstr ""
+
+msgid "Hotend cannot set temperature"
+msgstr ""
+
+msgid "Loading/Unloading"
+msgstr ""
+
+msgid "Checking"
+msgstr ""
+
+msgid "Heat fault"
+msgstr ""
+
+msgid "Self test"
+msgstr ""
+
+msgid "No selected machine"
+msgstr ""
+
+msgid "loading/unloading"
+msgstr ""
+
+#, possible-boost-format
+msgid "Slot %1% filament %2% in progress"
+msgstr ""
+
+msgid "The system has created auto-refill groups based on material type, color, and brand."
+msgstr ""
+
+msgid "When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one."
+msgstr ""
+
+msgid "Drag spools to adjust their priority."
+msgstr ""

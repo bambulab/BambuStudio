@@ -300,5 +300,10 @@
   "Unload the external filament manually before feeding to enable selection.": "",
   "Unlocking Hotend": "",
   "Waiting for hotend to heat": "",
-  "Reread": "Reread"
+  "Reread": "Reread",
+  "Nozzle Filament": "Nozzle Filament",
+  "Switch Count": "Switch Count",
+  "Type": "Type",
+  "Usedtime": "Usedtime",
+  "Version": "Version"
 }

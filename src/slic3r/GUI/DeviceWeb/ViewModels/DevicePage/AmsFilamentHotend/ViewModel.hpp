@@ -34,6 +34,7 @@ public:
     void ReportState(const std::string& submod, const std::string& action) override;
     void OnSysColorChanged() override;
     std::string ResolveFilamentCardText(const Slic3r::DevAmsTray* tray, const std::string& fallback_type) const;
+    std::string ResolveFilamentCardText(const std::string& filament_id, const std::string& fallback_type) const;
 
 private:
     nlohmann::json BuildDefaultState() const;
