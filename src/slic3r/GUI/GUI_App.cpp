@@ -2231,6 +2231,7 @@ void GUI_App::init_networking_callbacks()
                     obj->is_tunnel_mqtt = tunnel;
                     obj->command_request_push_all(true);
                     obj->command_get_version();
+                    obj->command_set_sntp();
                     obj->erase_user_access_code();
                     obj->command_get_access_code();
                     if (m_agent)
@@ -2274,6 +2275,7 @@ void GUI_App::init_networking_callbacks()
                             if (state == ConnectStatus::ConnectStatusOk) {
                                 obj->command_request_push_all(true);
                                 obj->command_get_version();
+                                obj->command_set_sntp();
                                 event.SetInt(0);
                                 event.SetString(obj->get_dev_id());
                                 obj->record_user_access_dev_ip();// only record access_dev_ip when lan mode

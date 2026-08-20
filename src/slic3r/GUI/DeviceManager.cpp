@@ -32,6 +32,7 @@
 #include <boost/stacktrace.hpp>
 
 #include <wx/dir.h>
+#include <wx/datetime.h>
 #include "fast_float/fast_float.h"
 
 #include "DeviceCore/DevAxis.h"
@@ -1286,6 +1287,23 @@ int MachineObject::command_get_access_code() {
     j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     j["system"]["command"] = "get_access_code";
 
+    return this->publish_json(j);
+}
+
+int MachineObject::command_set_sntp()
+{
+    const auto us_since_epoch = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    const wxDateTime::TimeZone local_tz(wxDateTime::Local);
+    const std::string          tz = get_timezone_utc_hm(local_tz.GetOffset());
+
+    json j;
+    j["system"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["system"]["command"]     = "sntp";
+    j["system"]["second"]      = static_cast<uint64_t>(us_since_epoch / 1000000);
+    j["system"]["us"]          = static_cast<uint32_t>(us_since_epoch % 1000000);
+    j["system"]["tz"]          = tz;
+    j["system"]["src"]         = 1; /* 1 for studio */
+    j["system"]["path"]        = is_lan_mode_printer() ? 2 : 1; /* 1: internet, 2: lan only, 3: usb wired */
     return this->publish_json(j);
 }
 
@@ -3141,9 +3159,13 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                 {
                     // add DevUtil::is_cloud_cmd for cloud print error code
                     if ((DevUtil::is_studio_cmd(sequence_id) || DevUtil::is_cloud_cmd(sequence_id)) && jj.contains("command") && jj.contains("err_code")) {
-                        if (jj["err_code"].is_number()) {
-                            json action_json = jj.contains("err_index") ? jj : json();/* proceed action*/
-                            add_command_error_code_dlg(jj["err_code"].get<int>(), action_json);
+                        if (jj["command"].get<std::string>() == "sntp") {
+                            // DO Nothing
+                        } else {
+                            if (jj["err_code"].is_number()) {
+                                json action_json = jj.contains("err_index") ? jj : json();/* proceed action*/
+                                add_command_error_code_dlg(jj["err_code"].get<int>(), action_json);
+                            }
                         }
                     }
                 }

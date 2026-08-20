@@ -675,6 +675,7 @@ public:
     int command_set_printer_nozzle(std::string nozzle_type, float diameter);
     int command_set_printer_nozzle2(int id, std::string nozzle_type, float diameter);
     int command_get_access_code();
+    int command_set_sntp();
     std::string request_access_code(AccessCodeRefreshCallback callback);
     void cancel_access_code_request(const std::string& sequence_id);
     int command_ack_proceed(json& proceed);
