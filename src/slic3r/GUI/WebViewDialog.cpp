@@ -1830,6 +1830,8 @@ bool WebViewPanel::IsAllowedScriptCommand(wxWebViewEvent& evt)
         "homepage_makerlab_open_3mf_binary",
         "homepage_makerlab_stl_download",
         "common_openurl",  // MakerLab pages use this to open external links (e.g. "Support Creator", "open in browser")
+        "makerworld_model_open",
+        "homepage_login_or_register",
     };
     static const std::set<std::string> kMakerWorldAllowed = {
         "makerworld_model_open",
@@ -1839,6 +1841,8 @@ bool WebViewPanel::IsAllowedScriptCommand(wxWebViewEvent& evt)
         // Used by the MakerWorld search page "back to model library" button to
         // notify the left-menu panel to switch back to the home/online view.
         "homepage_leftmenu_switch",
+        "get_web_shortcut",
+        "homepage_login_or_register",
     };
 
     // Avoid full JSON parse here — MakerLab STL/3mf payloads can be multi-MB base64.
