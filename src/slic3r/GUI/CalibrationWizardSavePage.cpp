@@ -211,6 +211,13 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
     m_grid_panel->Show();
     m_multi_extruder_grid_panel->Hide();
 
+    /* Rack machines can produce far more results than the ~4 that fit as columns. */
+    auto rack = m_obj ? m_obj->GetNozzleRack() : nullptr;
+    if (rack && rack->IsSupported() && (rack->GetRackType() == DevNozzleRack::RackType_A || rack->GetRackType() == DevNozzleRack::RackType_B)) {
+        sync_cali_result_for_single_rack(cali_result);
+        return;
+    }
+
     m_calib_results.clear();
     for (auto& item : cali_result) {
         if (item.confidence == 0)
@@ -369,6 +376,111 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
         }
     }
     else {
+        m_complete_text_panel->Show();
+        m_part_failed_panel->Hide();
+    }
+
+    wxGetApp().UpdateDarkUIWin(this);
+
+    Layout();
+}
+
+void CaliPASaveAutoPanel::sync_cali_result_for_single_rack(const std::vector<PACalibResult>& cali_result)
+{
+    if (!m_obj) return;
+
+    m_calib_results.clear();
+    for (auto& item : cali_result) {
+        if (item.confidence == 0)
+            m_calib_results.push_back(item);
+    }
+
+    m_grid_panel->DestroyChildren();
+
+    const int COLUMN_GAP = FromDIP(20);
+    const int ROW_GAP    = FromDIP(8);
+
+    /* One row per result, so extra results extend downward instead of off-screen. */
+    auto* grid_sizer = new wxFlexGridSizer(3, ROW_GAP, COLUMN_GAP);
+
+    {
+        auto* slot_title = new Label(m_grid_panel, _L("Nozzle ID"));
+        slot_title->SetFont(Label::Head_14);
+        grid_sizer->Add(slot_title, 0, wxALIGN_CENTER_VERTICAL);
+
+        auto* k_title = new Label(m_grid_panel, _L("Factor K"));
+        k_title->SetFont(Label::Head_14);
+        grid_sizer->Add(k_title, 0, wxALIGN_CENTER_VERTICAL);
+
+        auto* name_title = new Label(m_grid_panel, _L("Name"));
+        name_title->SetFont(Label::Head_14);
+        grid_sizer->Add(name_title, 0, wxALIGN_CENTER_VERTICAL);
+    }
+
+    m_is_all_failed  = true;
+    bool part_failed = false;
+    if (cali_result.empty())
+        part_failed = true;
+
+    std::vector<std::pair<int, std::string>> preset_names;
+    for (auto& info : m_obj->GetCalib()->GetSelectedCalibPreset()) {
+        preset_names.push_back({info.tray_id, info.name});
+    }
+    preset_names = default_naming(preset_names);
+
+    std::vector<PACalibResult> sorted_cali_result = cali_result;
+    std::sort(sorted_cali_result.begin(), sorted_cali_result.end(), [](const PACalibResult& left, const PACalibResult& right) { return left.tray_id < right.tray_id; });
+
+    for (auto& item : sorted_cali_result) {
+        bool result_failed = (item.confidence != 0);
+        if (result_failed)
+            part_failed = true;
+        else
+            m_is_all_failed = false;
+
+        auto* slot_text = new Label(m_grid_panel, m_obj->GetFilaSystem()->GetTrayNameByTrayId(item.tray_id));
+        slot_text->SetFont(Label::Body_14);
+        grid_sizer->Add(slot_text, 0, wxALIGN_CENTER_VERTICAL);
+
+        if (result_failed) {
+            grid_sizer->Add(new Label(m_grid_panel, _L("Failed")), 0, wxALIGN_CENTER_VERTICAL);
+            grid_sizer->Add(new Label(m_grid_panel, " - "), 0, wxALIGN_CENTER_VERTICAL);
+            continue;
+        }
+
+        /* col_idx/extruder_id must match the result so save_to_result_from_widgets() can find it back. */
+        auto* k_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_NUMBER_INPUT_SIZE, item.tray_id,
+                                         GridTextInputType::K, item.extruder_id);
+        k_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+        k_value->GetTextCtrl()->SetValue(wxString::Format("%.3f", item.k_value));
+        grid_sizer->Add(k_value, 0, wxALIGN_CENTER_VERTICAL);
+
+        auto* comboBox_tray_name = new GridComboBox(m_grid_panel, CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, item.extruder_id);
+
+        wxArrayString selections;
+        if (!item.filament_id.empty()) {
+            PaHistoryFilter pa_history_filter = m_obj->GetCalib()->GetPaHistoryFilter();
+            for (const auto &history : pa_history_filter.set_filament_id(item.filament_id).get())
+                selections.push_back(from_u8(history.name));
+        }
+        comboBox_tray_name->Set(selections);
+
+        for (auto& name : preset_names) {
+            if (item.tray_id == name.first) {
+                comboBox_tray_name->SetValue(from_u8(name.second));
+                break;
+            }
+        }
+        grid_sizer->Add(comboBox_tray_name, 0, wxALIGN_CENTER_VERTICAL);
+    }
+
+    m_grid_panel->SetSizer(grid_sizer, true);
+    m_grid_panel->Bind(wxEVT_LEFT_DOWN, [this](auto& e) { SetFocusIgnoringChildren(); });
+
+    if (part_failed) {
+        m_part_failed_panel->Show();
+        m_complete_text_panel->Show(!m_is_all_failed);
+    } else {
         m_complete_text_panel->Show();
         m_part_failed_panel->Hide();
     }

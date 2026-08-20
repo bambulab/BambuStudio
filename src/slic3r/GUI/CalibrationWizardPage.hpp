@@ -211,6 +211,8 @@ private:
     void NotifySubAmsClick();
     // Update the hover highlight of the sub-AMS panel border (forced off when disabled).
     void SetSubAmsHover(bool hover);
+    /* Re-apply the radio/checkbox enabled state; call after m_nozzle_selectable or the selection changes. */
+    void SyncSelectionEnableState();
 
     int       m_nozzle_id{-1};
     int       m_nozzle_pos_id{-1};
@@ -226,6 +228,7 @@ private:
     bool      m_subams_mode{false};
     bool      m_subams_enabled{true};
     bool      m_subams_hover{false};
+    bool      m_nozzle_selectable{true};
     std::map<int, SelectedFilamentInfo> m_subams_selection;
     std::map<int, wxBitmap> m_subams_picker_bitmaps;
     std::set<DevAmsSlotId> m_subams_slot_set;  // cached (ams_id, slot_id) union for the shared popup

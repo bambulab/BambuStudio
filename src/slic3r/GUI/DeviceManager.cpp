@@ -2114,7 +2114,10 @@ int MachineObject::command_get_pa_calibration_result(float nozzle_diameter)
     json j;
     j["print"]["command"]         = "extrusion_cali_get_result";
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(nozzle_diameter);
+
+    /* A negative diameter means "every diameter": send nozzle_diameter empty. It cannot go through
+       to_string_nozzle_diameter(), which maps unmatched values to the string "0" rather than "". */
+    j["print"]["nozzle_diameter"] = nozzle_diameter < 0.0f ? std::string() : to_string_nozzle_diameter(nozzle_diameter);
 
     return this->publish_json(j);
 }

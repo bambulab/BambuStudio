@@ -569,6 +569,7 @@ void FilamentExtendComboBox::SetSubAmsMode(bool enable, const wxString& text)
             m_comboBox->Show();
         }
     }
+    SyncSelectionEnableState();
     Layout();
     if (auto* sizer = GetSizer()) sizer->Fit(this);
 }
@@ -657,18 +658,21 @@ void FilamentExtendComboBox::SetSubAmsSelected(int tray_id, const SelectedFilame
     m_subams_selection[tray_id] = info;
     if (picker_bmp.IsOk())
         m_subams_picker_bitmaps[tray_id] = picker_bmp;
+    SyncSelectionEnableState();
 }
 
 void FilamentExtendComboBox::ClearSubAmsSelected(int tray_id)
 {
     m_subams_selection.erase(tray_id);
     m_subams_picker_bitmaps.erase(tray_id);
+    SyncSelectionEnableState();
 }
 
 void FilamentExtendComboBox::ClearSubAmsSelection(bool refresh)
 {
     m_subams_selection.clear();
     m_subams_picker_bitmaps.clear();
+    SyncSelectionEnableState();
     if (refresh)
         RefreshSubAmsLabel(_L("Not Selected"));
 }
@@ -750,12 +754,21 @@ void FilamentExtendComboBox::SetSubAmsHover(bool hover)
     if (m_subams_panel) m_subams_panel->Refresh();
 }
 
+void FilamentExtendComboBox::SyncSelectionEnableState()
+{
+    const bool can_select = m_nozzle_selectable && (!m_subams_mode || !m_subams_selection.empty());
+
+    if (!can_select) SetValue(false);
+    if (m_radioBox) can_select ? m_radioBox->Enable() : m_radioBox->Disable();
+    if (m_checkBox) m_checkBox->Enable(can_select);
+}
+
 bool FilamentExtendComboBox::Enable(bool enable)
 {
     /* Disable interactive children individually instead of disabling the whole panel. */
-    if (!enable) SetValue(false);
-    if (m_radioBox)  m_radioBox->Enable(enable);
-    if (m_checkBox)  m_checkBox->Enable(enable);
+    m_nozzle_selectable = enable;
+    SyncSelectionEnableState();
+
     if (m_comboBox)  m_comboBox->Enable(enable);
     if (m_nozzle_combo) {
         m_nozzle_combo->Enable(enable);
