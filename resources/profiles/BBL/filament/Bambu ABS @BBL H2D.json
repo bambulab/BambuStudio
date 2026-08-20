@@ -23,6 +23,9 @@
     "fan_max_speed": [
         "60"
     ],
+    "filament_change_length": [
+        "4"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10",
@@ -31,12 +34,10 @@
     "filament_max_volumetric_speed": [
         "20",
         "35",
-        "35"
-    ],
-    "filament_preheat_temperature_delta": [
-        "20",
-        "20",
         "20"
+    ],
+    "filament_prime_volume": [
+        "30"
     ],
     "filament_ramming_travel_time": [
         "0",

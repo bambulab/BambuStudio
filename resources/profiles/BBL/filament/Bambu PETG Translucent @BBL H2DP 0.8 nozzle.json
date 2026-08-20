@@ -12,7 +12,7 @@
         "20"
     ],
     "filament_change_length": [
-        "4"
+        "10"
     ],
     "filament_cooling_before_tower": [
         "10",
@@ -35,7 +35,7 @@
         "16"
     ],
     "filament_prime_volume": [
-        "30"
+        "45"
     ],
     "filament_ramming_travel_time": [
         "0",

@@ -29,11 +29,6 @@
         "12",
         "12"
     ],
-    "filament_preheat_temperature_delta": [
-        "20",
-        "20",
-        "20"
-    ],
     "filament_ramming_travel_time": [
         "0",
         "0",

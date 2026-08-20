@@ -98,6 +98,9 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
     "include": [
         "fdm_filament_template_direct_dual_e3d"
     ],

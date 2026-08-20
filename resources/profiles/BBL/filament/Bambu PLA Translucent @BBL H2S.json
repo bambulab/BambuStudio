@@ -15,6 +15,9 @@
     "eng_plate_temp_initial_layer": [
         "60"
     ],
+    "filament_change_length": [
+        "4"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10",
@@ -29,6 +32,9 @@
         "12",
         "12",
         "12"
+    ],
+    "filament_prime_volume": [
+        "30"
     ],
     "filament_ramming_travel_time": [
         "0",
