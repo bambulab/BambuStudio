@@ -7722,6 +7722,9 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
 
         if (m_spiral_vase) {
             // No lazy z lift for spiral vase mode
+            const double target_z = z == DBL_MAX ? m_nominal_z : z;
+            if (std::abs(m_writer.get_position().z() - target_z) > EPSILON)
+                gcode += m_writer.travel_to_z(target_z, "restore spiral vase layer Z");
             for (size_t i = 1; i < travel.size(); ++i)
                 gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment, use_short_travel_accel);
         } else {
