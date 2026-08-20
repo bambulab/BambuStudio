@@ -33,6 +33,12 @@ bool is_same_nozzle_config(const std::map<int, std::vector<DevNozzle>> &config1,
 std::string serialize_nozzle_option(const NozzleOption &option);
 std::optional<NozzleOption> deserialize_nozzle_option(const std::string &option_str);
 
+// get the best diameter for given extruder
+// priority:
+// diameter with the most nozzle count
+// 0.4 -> 0.2 -> 0.6 -> 0.8
+float get_best_diameter(MachineObject *obj, int extruder_index);
+
 } // namespace GUI
 } // namespace Slic3r
 

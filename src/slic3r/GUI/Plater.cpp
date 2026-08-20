@@ -2,6 +2,7 @@
 #include "libslic3r/PerfTrace.hpp"
 #include "DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
+#include "slic3r/GUI/ExtruderHelpers.hpp"
 #include <array>
 #include <boost/format/format_fwd.hpp>
 #include <cassert>
@@ -2508,8 +2509,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     std::vector<float> nozzle_diameters;
     nozzle_diameters.resize(extruder_nums);
     for (size_t index = 0; index < extruder_nums; ++index) {
-        int physical_extruder_id = extruder_map[index]; // physical extruder id
-        nozzle_diameters[index]  = nozzle_option ? string_to_double_decimal_point(nozzle_option->diameter) : obj->GetExtderSystem()->GetNozzleDiameter(physical_extruder_id);
+        nozzle_diameters[index] = nozzle_option ? string_to_double_decimal_point(nozzle_option->diameter) : get_best_diameter(obj, index);
     }
 
     // key:(logical_extruder_id, slot_num) val: count

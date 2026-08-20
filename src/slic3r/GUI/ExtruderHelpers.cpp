@@ -8,6 +8,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>
 
+#include "DeviceCore/DevNozzleSystem.h"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
 #include "libslic3r/LocalesUtils.hpp"
@@ -16,6 +17,7 @@
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 
 namespace Slic3r { namespace GUI {
 
@@ -303,6 +305,43 @@ std::optional<NozzleOption> deserialize_nozzle_option(const std::string& option_
     }
 
     return option;
+}
+
+float get_best_diameter(MachineObject *obj, int extruder_index)
+{
+    int                  physical_idx = DevExtder::to_physical_extruder_id(obj->GetExtderSystem()->GetTotalExtderCount(), extruder_index);
+    std::map<float, int> diameter_cnt;
+    auto                 nozzle_system = obj->GetNozzleSystem();
+    for (const auto &nozzles : {nozzle_system->GetRackNozzles(), nozzle_system->GetExtNozzles()}) {
+        for (const auto &[_, nozzle] : nozzles) {
+            if (nozzle.IsEmpty() || nozzle.IsAbnormal() || !nozzle.IsHotend()) continue;
+            if (nozzle.GetExtruderId() != physical_idx) continue;
+            diameter_cnt[nozzle.GetNozzleDiameter()] += 1;
+        }
+    }
+
+    // the most available diameter
+    if (diameter_cnt.empty()) return 0.4;
+
+    // when counts tie, prefer diameter in this order: 0.4 > 0.2 > 0.6 > 0.8 > others
+    auto priority = [](float d) -> int {
+        if (std::abs(d - 0.4f) < EPSILON) return 0;
+        if (std::abs(d - 0.2f) < EPSILON) return 1;
+        if (std::abs(d - 0.6f) < EPSILON) return 2;
+        if (std::abs(d - 0.8f) < EPSILON) return 3;
+        return 4;
+    };
+
+    float best_diameter = 0.0f;
+    int   best_count    = -1;
+    for (const auto &[diameter, count] : diameter_cnt) {
+        if (count > best_count || (count == best_count && priority(diameter) < priority(best_diameter))) {
+            best_count    = count;
+            best_diameter = diameter;
+        }
+    }
+
+    return best_diameter;
 }
 
 }} // namespace Slic3r::GUI
