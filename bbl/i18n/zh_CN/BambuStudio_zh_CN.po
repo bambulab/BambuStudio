@@ -19498,6 +19498,10 @@ msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
 
+msgctxt "air_duct"
+msgid "Right(Heating)"
+msgstr "右侧（加热）"
+
 #~ msgid "Adjust filament matching"
 #~ msgstr "调整耗材匹配"
 
