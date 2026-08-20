@@ -583,7 +583,11 @@ static inline bool trafos_differ_in_rotation_by_z_and_mirroring_by_xy_only(const
 
 static PrintObjectRegions::BoundingBox transformed_its_bbox2d(const indexed_triangle_set &its, const Transform3f &m, float offset)
 {
-    assert(! its.indices.empty());
+    // Text / modifier volumes can briefly have no triangles (e.g. unrecognized
+    // glyphs reduced to "??" then deleted). indices.front() on an empty vector
+    // is a null deref in MSVC release builds.
+    if (its.indices.empty() || its.vertices.empty())
+        return PrintObjectRegions::BoundingBox();
 
     PrintObjectRegions::BoundingBox bbox(m * its.vertices[its.indices.front()(0)]);
     for (const stl_triangle_vertex_indices &tri : its.indices)
@@ -910,9 +914,13 @@ void update_volume_bboxes(
                     auto it = lower_bound_by_predicate(volumes_old.begin(), volumes_old.end(), [model_volume](PrintObjectRegions::VolumeExtents &l) { return l.volume_id < model_volume->id(); });
                     if (it != volumes_old.end() && it->volume_id == model_volume->id())
                         layer_range.volumes.emplace_back(*it);
-                } else
+                } else {
+                    const indexed_triangle_set &its = model_volume->mesh().its;
+                    if (its.indices.empty() || its.vertices.empty())
+                        continue;
                     layer_range.volumes.push_back({ model_volume->id(),
-                        transformed_its_bbox2d(model_volume->mesh().its, trafo_for_bbox(object_trafo, model_volume->get_matrix(false)), offset) });
+                        transformed_its_bbox2d(its, trafo_for_bbox(object_trafo, model_volume->get_matrix(false)), offset) });
+                }
             }
     } else {
         std::vector<std::vector<PrintObjectRegions::VolumeExtents>> volumes_old;
