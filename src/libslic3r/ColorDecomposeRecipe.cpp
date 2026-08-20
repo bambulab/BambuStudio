@@ -496,29 +496,6 @@ std::string lookup_measured_blend_color(const std::vector<std::string>& componen
         return {};
     const std::vector<MeasuredBlendAnchor>& anchors = it->second;
 
-    // Dynamic range check: reject if any input ratio falls outside the
-    // measured range for this component set. This prevents extrapolation
-    // and ensures older recipes (CMYW/RYBW with min 20%) are unaffected
-    // while CMYKW (min 15%) still benefits from measured data.
-    if (n == 2) {
-        int min_r0 = std::numeric_limits<int>::max();
-        int max_r0 = std::numeric_limits<int>::min();
-        for (const auto& a : anchors) {
-            min_r0 = std::min(min_r0, a.ratios[0]);
-            max_r0 = std::max(max_r0, a.ratios[0]);
-        }
-        if (in_ratios[0] < min_r0 || in_ratios[0] > max_r0)
-            return {};
-    } else {
-        for (size_t dim = 0; dim < n; ++dim) {
-            int measured_min = std::numeric_limits<int>::max();
-            for (const auto& a : anchors)
-                measured_min = std::min(measured_min, a.ratios[dim]);
-            if (in_ratios[dim] < measured_min)
-                return {};
-        }
-    }
-
     for (const MeasuredBlendAnchor& a : anchors)
         if (a.ratios == in_ratios)
             return a.hex;
@@ -528,7 +505,10 @@ std::string lookup_measured_blend_color(const std::vector<std::string>& componen
 
     // Stage 3: interpolation in Lab space.
     if (n == 2) {
-        // 1D linear interpolation along ratio[0].
+        // 1D linear interpolation along ratio[0]. t may fall outside [0, 1]:
+        // 14/86 uses the 15–20 segment with t = -0.2, i.e. the 20→15 Lab
+        // delta applied once more beyond 15, instead of dropping to the
+        // polynomial model (which caused a preview jump at the hull edge).
         std::vector<const MeasuredBlendAnchor*> by_ratio;
         by_ratio.reserve(anchors.size());
         for (const MeasuredBlendAnchor& a : anchors)
@@ -549,6 +529,8 @@ std::string lookup_measured_blend_color(const std::vector<std::string>& componen
     }
 
     // 3+ color: IDW (p=2) with 3 nearest anchors in the (ratio[0], ratio[1]) plane.
+    // Queries slightly outside the measured hull (e.g. a 10% component) still
+    // use nearby measured anchors instead of falling back to the polynomial.
     const double ra = static_cast<double>(in_ratios[0]);
     const double rb = static_cast<double>(in_ratios[1]);
     std::vector<std::pair<double, const MeasuredBlendAnchor*>> dists;

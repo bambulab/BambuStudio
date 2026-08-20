@@ -54,9 +54,11 @@ ColorDecomposeRecipeResult lookup_standard_recipe(
     ColorDecomposeRecipeMode mode,
     const std::string& preferred_material_type);
 
-// Look up the measured blend color for an exact (component_hexes, ratios) match
-// in the standard color recipe table. Returns the measured hex color if found
-// with reliable source data ("measured" or "interpolated"), empty string otherwise.
+// Look up the measured blend color for (component_hexes, ratios) in the
+// standard color recipe table. Exact grid hits return measured_rgb; off-grid
+// ratios interpolate in Lab (2-color may extrapolate a short way past the
+// measured hull, e.g. 14/86 from the 15/85 and 20/80 anchors). Returns empty
+// when the component set is not in the table.
 std::string lookup_measured_blend_color(const std::vector<std::string>& component_hexes,
                                        const std::vector<int>& ratios);
 
