@@ -1018,7 +1018,7 @@ static std::vector<std::string> s_Preset_print_options {
     "smooth_speed_discontinuity_area","smooth_coefficient", "seam_position", "seam_placement_away_from_overhangs", "wall_sequence", "is_infill_first", "sparse_infill_density", "fill_multiline",
     "sparse_infill_pattern", "sparse_infill_anchor", "sparse_infill_anchor_max", "top_surface_pattern", "monotonic_travel_into_wall",
     "locked_skin_infill_pattern", "locked_skeleton_infill_pattern",
-    "bottom_surface_pattern", "internal_solid_infill_pattern", "infill_direction", "bridge_angle", "infill_shift_step", "skeleton_infill_density", "infill_lock_depth", "skin_infill_depth", "skin_infill_density",
+    "bottom_surface_pattern", "bridge_bottom_surface_pattern", "internal_solid_infill_pattern", "infill_direction", "bridge_angle", "infill_shift_step", "skeleton_infill_density", "infill_lock_depth", "skin_infill_depth", "skin_infill_density",
     "infill_rotate_step","top_surface_density", "bottom_surface_density",
     "symmetric_infill_y_axis","sparse_infill_lattice_angle_1","sparse_infill_lattice_angle_2",
     "minimum_sparse_infill_area", "reduce_infill_retraction_mode", "ironing_pattern", "ironing_type",

@@ -91,6 +91,19 @@ enum InfillPattern : int {
     ipCount,
 };
 
+// Pattern choices for bridge_bottom_surface_pattern. Default is setting behaviour, not a fill algorithm.
+enum BridgeBottomSurfacePattern {
+    bbspDefault,
+    bbspConcentric,
+    bbspRectilinear,
+    bbspMonotonic,
+    bbspMonotonicLine,
+    bbspAlignedRectilinear,
+    bbspHilbertCurve,
+    bbspArchimedeanChords,
+    bbspOctagramSpiral,
+};
+
 enum EnsureVerticalThicknessLevel{
     evtDisabled,
     evtPartial,
@@ -1072,6 +1085,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<EnsureVerticalThicknessLevel>, ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>, top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, bottom_surface_pattern))
+    ((ConfigOptionEnum<BridgeBottomSurfacePattern>, bridge_bottom_surface_pattern))
     ((ConfigOptionPercent, monotonic_travel_into_wall))
     ((ConfigOptionPercent, top_surface_density))
     ((ConfigOptionPercent, bottom_surface_density))

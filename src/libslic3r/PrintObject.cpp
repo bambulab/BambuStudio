@@ -1256,6 +1256,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "top_surface_density"
             || opt_key == "monotonic_travel_into_wall"
             || opt_key == "bottom_surface_pattern"
+            || opt_key == "bridge_bottom_surface_pattern"
             || opt_key == "bottom_surface_density"
             || opt_key == "internal_solid_infill_pattern"
             || opt_key == "external_fill_link_max_length"

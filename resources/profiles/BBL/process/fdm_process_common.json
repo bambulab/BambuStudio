@@ -8,6 +8,7 @@
     "bottom_color_penetration_layers": "3",
     "bottom_shell_thickness": "0",
     "bottom_surface_pattern": "monotonic",
+    "bridge_bottom_surface_pattern": "default",
     "bottom_surface_density": "100",
     "bridge_flow": "0.95",
     "bridge_no_support": "0",
