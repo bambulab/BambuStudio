@@ -50,11 +50,6 @@
         "40",
         "31"
     ],
-    "filament_preheat_temperature_delta": [
-        "20",
-        "20",
-        "20"
-    ],
     "filament_prime_volume": [
         "30"
     ],

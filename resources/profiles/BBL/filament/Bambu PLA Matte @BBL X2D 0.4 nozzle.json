@@ -34,7 +34,7 @@
     "filament_flow_ratio": [
         "1.006",
         "0.98",
-        "0.98",
+        "1.006",
         "0.98",
         "0.98",
         "0.98"
@@ -42,10 +42,10 @@
     "filament_max_volumetric_speed": [
         "22",
         "40",
-        "40",
+        "22",
         "22",
         "25",
-        "25"
+        "22"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -64,10 +64,10 @@
         "10"
     ],
     "filament_retraction_length": [
+        "0.4",
+        "0.4",
+        "0.4",
         "nil",
-        "nil",
-        "nil",
-        "3.5",
         "nil",
         "nil"
     ],
@@ -75,28 +75,28 @@
         "220"
     ],
     "filament_wipe": [
-        "nil",
-        "nil",
-        "nil",
         "1",
-        "nil",
-        "nil"
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
     ],
     "filament_wipe_distance": [
-        "nil",
-        "nil",
-        "nil",
         "1",
-        "nil",
-        "nil"
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
     ],
     "filament_z_hop_types": [
-        "nil",
-        "nil",
-        "nil",
         "Spiral Lift",
-        "nil",
-        "nil"
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift"
     ],
     "first_x_layer_fan_speed": [
         "40"
@@ -139,9 +139,6 @@
         "4",
         "4",
         "4"
-    ],
-    "slow_down_layer_time": [
-        "8"
     ],
     "slow_down_min_speed": [
         "20",

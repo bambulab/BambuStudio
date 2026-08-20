@@ -58,7 +58,7 @@
     "filament_retraction_length": [
         "1",
         "nil",
-        "nil",
+        "1",
         "nil",
         "nil",
         "nil"
@@ -69,18 +69,18 @@
     "filament_wipe": [
         "1",
         "nil",
-        "nil",
+        "1",
         "1",
         "nil",
-        "nil"
+        "1"
     ],
     "filament_wipe_distance": [
         "1",
         "nil",
-        "nil",
+        "1",
         "1",
         "nil",
-        "nil"
+        "1"
     ],
     "hole_coef_2": [
         "-0.0051"

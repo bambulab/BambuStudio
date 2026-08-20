@@ -15,7 +15,7 @@
         "55"
     ],
     "filament_change_length": [
-        "4"
+        "10"
     ],
     "filament_cooling_before_tower": [
         "10",
@@ -38,15 +38,15 @@
         "0.98"
     ],
     "filament_flush_temp": [
-        "200",
-        "200"
+        "0",
+        "0"
     ],
     "filament_max_volumetric_speed": [
         "12",
         "12"
     ],
     "filament_prime_volume": [
-        "30"
+        "45"
     ],
     "filament_ramming_travel_time": [
         "0",

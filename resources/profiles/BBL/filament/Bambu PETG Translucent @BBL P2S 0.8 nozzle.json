@@ -43,6 +43,9 @@
         "0.2",
         "0.2"
     ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],

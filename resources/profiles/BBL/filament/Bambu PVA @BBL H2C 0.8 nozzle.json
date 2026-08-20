@@ -63,6 +63,9 @@
         "1",
         "1"
     ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
@@ -90,5 +93,8 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
+    ],
+    "temperature_vitrification": [
+        "40"
     ]
 }

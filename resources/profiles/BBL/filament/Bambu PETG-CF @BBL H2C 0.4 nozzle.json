@@ -63,6 +63,9 @@
     "filament_change_length_nc": [
         "4"
     ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
     "hole_coef_2": [
         "-0.0014"
     ],
@@ -101,6 +104,9 @@
     ],
     "supertack_plate_temp_initial_layer": [
         "60"
+    ],
+    "temperature_vitrification": [
+        "55"
     ],
     "compatible_printers": [
         "Bambu Lab H2C 0.4 nozzle"

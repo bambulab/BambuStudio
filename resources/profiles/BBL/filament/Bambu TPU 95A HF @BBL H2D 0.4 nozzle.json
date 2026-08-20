@@ -11,6 +11,12 @@
         "50",
         "10"
     ],
+    "filament_preheat_temperature_delta": [
+        "10",
+        "10",
+        "10",
+        "10"
+    ],
     "filament_retraction_length": [
         "2",
         "2",

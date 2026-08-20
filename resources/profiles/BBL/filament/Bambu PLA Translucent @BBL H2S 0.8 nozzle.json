@@ -105,5 +105,11 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \n"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
+    "filament_prime_volume": [
+        "30"
     ]
 }
