@@ -10063,7 +10063,7 @@ msgid "Enable SSL(FTP)"
 msgstr "启用SSL（FTP）"
 
 msgid "Host Setting"
-msgstr ""
+msgstr "主机设置"
 
 msgid "DEV host: api-dev.bambu-lab.com/v1"
 msgstr ""
@@ -28519,3 +28519,65 @@ msgstr "喷嘴（%d） - %s"
 
 msgid "TPU"
 msgstr "TPU"
+
+#, c-format, boost-format
+msgid "Nozzle %d "
+msgstr "喷嘴 %d "
+
+msgid "Unknown Filament"
+msgstr "未知耗材"
+
+msgid "Hotend status is abnormal and not available. Click to update firmware."
+msgstr "热端状态异常，当前不可用。点击更新固件。"
+
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr "热端信息未知。请先刷新喷嘴信息后再使用。"
+
+msgid "4-slot AMS"
+msgstr "4槽AMS"
+
+msgid "1-slot AMS"
+msgstr "单槽AMS"
+
+msgid "Remove this AMS"
+msgstr "移除此AMS"
+
+msgid "Extruder Settings"
+msgstr "挤出机设置"
+
+msgid "Select Nozzle Diameter"
+msgstr "选择喷嘴直径"
+
+msgid "Configure Nozzle Settings"
+msgstr "配置喷嘴设置"
+
+msgid "Hotend status is abnormal. Please update the firmware."
+msgstr "热端状态异常。请更新固件。"
+
+msgid "Update Firmware"
+msgstr "更新固件"
+
+msgid "Note: BambuStudio does not support mixed-diameter slicing."
+msgstr "注意：Bambu Studio 不支持混合喷嘴直径切片。"
+
+msgid "Nozzles have different diameter from print setting and cannot be used during slicing/printing."
+msgstr "喷嘴直径与打印设置不同，切片/打印时不可用。"
+
+msgid "Empty nozzles cannot be used during slicing/printing."
+msgstr "空喷嘴在切片/打印时不可用。"
+
+msgid "Set nozzle diameter"
+msgstr "设置喷嘴直径"
+
+#, c-format, boost-format
+msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+msgstr "请先在下方为打印机设置 %smm 直径喷嘴，然后再使用该直径进行切片。"
+
+msgid "BambuStudio does not support slicing with mixed diameters. Extruders with diffenrent diameters from the printing diameter are not available. If you want to use this extruder, you can either modify nozzle diameter or click to adjust extruder settings."
+msgstr "Bambu Studio 不支持混合直径切片。与打印直径不同的挤出机不可用。若要使用该挤出机，可修改喷嘴直径，或点击调整挤出机设置。"
+
+msgid "No Available Nozzle"
+msgstr "无可用喷嘴"
+
+msgid "Nozzle NO. "
+msgstr "喷嘴编号 "

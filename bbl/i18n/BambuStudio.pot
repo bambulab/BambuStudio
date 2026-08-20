@@ -18836,3 +18836,478 @@ msgstr ""
 #: resources/data/helio_hints.ini: [hint: First-Time-Right Reliability]
 msgid "First-Time-Right Reliability\nLess babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+msgid "TPU285"
+msgstr ""
+
+msgid "Air Purifier"
+msgstr ""
+
+msgctxt "AirPurifier"
+msgid "Max"
+msgstr ""
+
+msgctxt "air_duct_chamber"
+msgid "Chamber"
+msgstr ""
+
+msgid "One-click CMYKW auto-mix"
+msgstr ""
+
+msgid "Weight"
+msgstr ""
+
+msgid "Total Weight"
+msgstr ""
+
+msgid "Remain Weight"
+msgstr ""
+
+msgid "Please enter valid filament weights."
+msgstr ""
+
+msgid "Please select the filament to match."
+msgstr ""
+
+msgid "Ext"
+msgstr ""
+
+msgid "Automatically refresh unloaded filaments"
+msgstr ""
+
+msgid "For official filaments, the filament type is automatically refreshed when entering the Device page. To avoid frequent refreshes, automatic refreshes occur no more than once per minute."
+msgstr ""
+
+#, possible-boost-format
+msgid "No.%1%"
+msgstr ""
+
+msgid "AMS nozzle"
+msgstr ""
+
+msgid "Your printer does not support a prime tower with different support material. The slicing has automatically switched to the heat preservation wall solution."
+msgstr ""
+
+msgid "Live Camera Recording"
+msgstr ""
+
+msgid "Visual Enhancement Camera Recording"
+msgstr ""
+
+msgid "Switch to the auxiliary live camera view"
+msgstr ""
+
+msgid "Switch to the main live camera view"
+msgstr ""
+
+msgid "Switch live camera view"
+msgstr ""
+
+msgid "Current camera is abnormal"
+msgstr ""
+
+msgid "Unclamped"
+msgstr ""
+
+msgid "Print queue"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There is no %smm diameter in your configured nozzle types, so you cannot use %smm diameter for slicing."
+msgstr ""
+
+msgid "Configure Nozzle diameter"
+msgstr ""
+
+msgid "Modify Nozzle Type"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The currently connected printer is not available, please check the status of %s before syncing."
+msgstr ""
+
+msgid "Show heat-soak area"
+msgstr ""
+
+msgid "Show the heat-soak zone frames and prompt when a model exceeds them (takes effect on supported printers)."
+msgstr ""
+
+msgid "Unavailable Nozzles"
+msgstr ""
+
+msgid "No PrintTool available. Please install a compatible tool and try again."
+msgstr ""
+
+msgid "PrintTool detached. Please install before printing."
+msgstr ""
+
+msgid "CutTool detached. Please install before printing."
+msgstr ""
+
+msgid "DrawTool detached. Please install before printing."
+msgstr ""
+
+msgid "None of the current tools have completed Docking Calibration. Please calibrate and try again."
+msgstr ""
+
+msgid "Add to queue"
+msgstr ""
+
+msgid "Only the current sliced plate can be added to the print queue."
+msgstr ""
+
+msgid "PrintToolRack moving, please wait."
+msgstr ""
+
+msgid "Pen"
+msgstr ""
+
+msgid "Cutter"
+msgstr ""
+
+msgid "Laser"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Filament in slots %s may not have been properly loaded to the PrintTool. Please see the loading guide."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Low-temperature filament residue detected in Hotend %s. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
+msgid "Filament on external spool is not loaded. Printing may pause for filament change. Please load the filament before printing."
+msgstr ""
+
+msgid "Low-temperature filament residue detected in Hotend. High chamber temperature printing may cause nozzle clogging. Please load filament first."
+msgstr ""
+
+msgid "The currently connected printer does not support printing supports in a different material from the model using the wipe tower. Please re-slice the model."
+msgstr ""
+
+msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
+msgstr ""
+
+msgid "Support ring"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Successfully added to print queue. Will automatically jump to the print queue page in %ss"
+msgstr ""
+
+msgid "Adding print job to queue"
+msgstr ""
+
+msgid "Nozzle assignment error: no compatible fixed nozzle is available for the fixed filament group. Please check the nozzle setup or regroup."
+msgstr ""
+
+msgid "Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."
+msgstr ""
+
+msgid "Nozzle assignment error: per-filament nozzle map points to an empty or unavailable nozzle."
+msgstr ""
+
+msgid "Different nozzle diameters are not allowed when the support ring is enabled."
+msgstr ""
+
+msgid "Different nozzle diameters are not allowed when prime tower is enabled."
+msgstr ""
+
+msgid "The support ring is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
+msgstr ""
+
+msgid "Ooze prevention is currently not supported with the support ring enabled."
+msgstr ""
+
+msgid "The support ring is not supported in \"By object\" print. Switch to \"By layer\" or disable the support ring."
+msgstr ""
+
+msgid "The support ring requires that all objects have the same layer heights"
+msgstr ""
+
+msgid "The support ring requires that all objects are printed over the same number of raft layers"
+msgstr ""
+
+msgid "The support ring requires that all objects are sliced with the same layer heights."
+msgstr ""
+
+msgid "The support ring is only supported if all objects have the same variable layer height"
+msgstr ""
+
+msgid "Failed to assign filaments to nozzles for the support ring."
+msgstr ""
+
+msgid "The support ring extends outside the area both nozzles can reach. Move the affected object closer to the center of the plate."
+msgstr ""
+
+msgid "Idle travel cooling"
+msgstr ""
+
+msgid "When filament change length is zero, perform idle travel cooling to help the nozzle cool down. Disabling this will turn off the heater directly without idle travel, which saves print time but may cause stringing for some materials."
+msgstr ""
+
+msgid "Prime tower speed factor curve"
+msgstr ""
+
+msgid "Controls the speed factor ramp when priming on the wipe tower after a tool change. Enter comma-separated multipliers of the target speed, one per wipe line. For example: \"0.33,0.375,0.458,0.875,0.875\" means the 1st line runs at 33%, the 2nd at 37.5%, and so on. If fewer than 5 values are given, the last value is reused for remaining lines. Each value is clamped to 0.01 ~ 5.0. Leave empty to use the built-in default curve (0.33, 0.375, 0.458, 0.875, 0.875)."
+msgstr ""
+
+msgid "Fin extrude safe temperature"
+msgstr ""
+
+msgid "Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp."
+msgstr ""
+
+msgid "Default wipe tower position"
+msgstr ""
+
+msgid "Normalized default position of the wipe tower, each axis in [0,1] relative to bed width/depth."
+msgstr ""
+
+msgid "Sync auxiliary fan to second fan"
+msgstr ""
+
+msgid "Enable this if the printer has a second auxiliary part cooling fan that should use the same speed as the auxiliary fan"
+msgstr ""
+
+msgid "Generate a ring around the object. Tree supports may land on the ring. Cannot be combined with the prime tower."
+msgstr ""
+
+msgid "Support ring object gap"
+msgstr ""
+
+msgid "Horizontal distance between the projected model boundary and the innermost support ring path."
+msgstr ""
+
+msgid "Support ring notch width"
+msgstr ""
+
+msgid "Width of the gap left in the support ring so the chamber camera can see the object. Every ring of the structure leaves it at the same bearing, and tree supports keep branches out of it. Wipe length lost to the notch grows with this value; 0 closes the ring completely and blocks the timelapse view."
+msgstr ""
+
+msgid "Support ring skip points"
+msgstr ""
+
+msgid "Leave gaps in the support ring outer wall at each wipe entry so the nozzle can reach the wipe path from outside the ring, and travel around the ring contour instead of crossing the model."
+msgstr ""
+
+msgid "Support ring infill gap"
+msgstr ""
+
+msgid "Radial spacing between sparse wipe rings, as a percentage of line width. 100% packs neighbouring rings so they touch; larger values leave a gap."
+msgstr ""
+
+msgid "Prime tower feedrate factor"
+msgstr ""
+
+msgid "Feedrate scaling factor for prime/wipe tower extrusion when hotends are handled as extruders. It does not affect all tower travel moves. 1.0 means no change; values below 1.0 slow down, above 1.0 speed up."
+msgstr ""
+
+msgid "Tail speed factor"
+msgstr ""
+
+msgid "Scale the printing speed of the last section printed each time before the toolhead leaves the prime tower (the length is set by the tail slowdown volume) relative to the tower printing speed. That trailing section may be the outer wall, a tool-change wipe or infill, whichever comes last. Lower values slow it down to soften the flow change when moving back to the model. Does not affect the first layer."
+msgstr ""
+
+msgid "Tail slowdown volume"
+msgstr ""
+
+msgid "Only the final part printed each time before the toolhead leaves the prime tower, measured as this extruded volume, is slowed down by the tail speed factor; the rest keeps the normal tower speed. That trailing part may be the outer wall, a tool-change wipe or infill. Set to 0 to slow down the whole tower path of each visit. Does not affect the first layer."
+msgstr ""
+
+msgid "The acceleration used for prime tower extrusions. Does not affect the first layer. 0 means using the global default acceleration."
+msgstr ""
+
+msgid "Line width for prime tower normal wiping paths. 0 means auto-calculated from nozzle diameter."
+msgstr ""
+
+msgid "Ramming line width"
+msgstr ""
+
+msgid "Line width for prime tower nozzle-change (ramming) paths. 0 means using the default mapping table."
+msgstr ""
+
+msgid "The speed of wipe movement before printing on the prime tower during tool change. 0 means using prime tower max speed."
+msgstr ""
+
+msgid "Wipe distance"
+msgstr ""
+
+msgid "The wipe path distance during tool change. 0 means using the filament-level wipe distance."
+msgstr ""
+
+msgid "Flat ironing"
+msgstr ""
+
+msgid "Enable flat ironing for prime tower to smooth the top surface after wiping"
+msgstr ""
+
+msgid "Line ironing"
+msgstr ""
+
+msgid "Enable line ironing for prime tower wipe paths"
+msgstr ""
+
+msgid "Speed of prime tower ironing movements"
+msgstr ""
+
+msgid "Side scrape after tool change"
+msgstr ""
+
+msgid "After a tool change and before the wipe line, move the nozzle to the prime tower side wall and do a diagonal lift scrape (travel only, no extrusion). This scrapes the oozed filament stub onto the side wall instead of letting it pile up on the prime tower top surface."
+msgstr ""
+
+msgid "Side scrape walls"
+msgstr ""
+
+msgid "Which pair of opposite prime tower walls the diagonal scrape runs on. Note that enabling the side scrape always disables depth shrinkage of the prime tower (the outer wall stays at the full depth on every layer), regardless of this setting, so that the scrape can descend safely outside the walls."
+msgstr ""
+
+msgid "Left and right"
+msgstr ""
+
+msgid "Front and back"
+msgstr ""
+
+msgid "Side scrape length"
+msgstr ""
+
+msgid "Horizontal distance the nozzle travels inward from the prime tower side wall during the diagonal scrape."
+msgstr ""
+
+msgid "Side scrape lift height"
+msgstr ""
+
+msgid "How far the nozzle descends below the current wipe-tower top before the diagonal scrape. The actual descent is clamped so the nozzle stays above the wipe tower's brim and first layer (avoids hitting the brim or the bed when the tower is still short). Layers with no room left for a descent get no scrape."
+msgstr ""
+
+msgid "Side scrape speed"
+msgstr ""
+
+msgid "Movement speed of the diagonal side scrape."
+msgstr ""
+
+msgid "Side scrape wall gap"
+msgstr ""
+
+msgid "Distance kept between the diagonal side scrape line and the prime tower outer wall. A positive value keeps the scrape outside the wall; the outer wall position is taken as the outermost of the current and previous layer walls at the scrape location so the scrape never cuts into the tower."
+msgstr ""
+
+msgid "Side scrape point spacing"
+msgstr ""
+
+msgid "Target distance between consecutive side scrape start points along one side wall. Scrape starts are spread over both side walls so the ooze stubs do not pile up at a single spot. The number of points is derived from this spacing and the length of the straight part of the side wall, so the effective spacing can be smaller than requested when the straight part is short."
+msgstr ""
+
+msgid "Side scrape along-wall length"
+msgstr ""
+
+msgid "Upper bound for the empty travel along the side wall performed right after the diagonal scrape, before the nozzle moves to the wipe line start. It smears the ooze stub further along the wall. The travel never leaves the straight part of the side wall, so the actual length is only the room left between the scrape start and the end of that straight part. On a rib prime tower the straight part can be just a few millimetres, in which case the travel is much shorter than the value set here."
+msgstr ""
+
+msgid "Nozzle Type and Diameter"
+msgstr ""
+
+msgid "Not Selected"
+msgstr ""
+
+msgid "PrintTool"
+msgstr ""
+
+msgid "Set filament placement"
+msgstr ""
+
+msgid "Automatically and intelligently assigns filaments to minimize filament time consumption"
+msgstr ""
+
+msgid "Intelligently assigns filaments based on the filaments currently loaded in the printer's nozzles"
+msgstr ""
+
+msgid "Intelligently assigns filaments based on the filaments currently installed in the printer's AMS"
+msgstr ""
+
+msgid "Manually assign filaments to the printhead"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Nozzle %d"
+msgstr ""
+
+msgid "Nozzle "
+msgstr ""
+
+msgid "We will slice according to this arrangement:"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Nozzle (%d)"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Nozzle (%d) - %s"
+msgstr ""
+
+msgid "TPU"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Nozzle %d "
+msgstr ""
+
+msgid "Unknown Filament"
+msgstr ""
+
+msgid "Hotend status is abnormal and not available. Click to update firmware."
+msgstr ""
+
+msgid "Hotend information is unknown. Please refresh nozzle information before use."
+msgstr ""
+
+msgid "4-slot AMS"
+msgstr ""
+
+msgid "1-slot AMS"
+msgstr ""
+
+msgid "Remove this AMS"
+msgstr ""
+
+msgid "Extruder Settings"
+msgstr ""
+
+msgid "Select Nozzle Diameter"
+msgstr ""
+
+msgid "Configure Nozzle Settings"
+msgstr ""
+
+msgid "Hotend status is abnormal. Please update the firmware."
+msgstr ""
+
+msgid "Update Firmware"
+msgstr ""
+
+msgid "Note: BambuStudio does not support mixed-diameter slicing."
+msgstr ""
+
+msgid "Nozzles have different diameter from print setting and cannot be used during slicing/printing."
+msgstr ""
+
+msgid "Empty nozzles cannot be used during slicing/printing."
+msgstr ""
+
+msgid "Set nozzle diameter"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Please set a %smm diameter nozzle for the printer in the section below first before using this diameter for slicing."
+msgstr ""
+
+msgid "BambuStudio does not support slicing with mixed diameters. Extruders with diffenrent diameters from the printing diameter are not available. If you want to use this extruder, you can either modify nozzle diameter or click to adjust extruder settings."
+msgstr ""
+
+msgid "No Available Nozzle"
+msgstr ""
+
+msgid "Nozzle NO. "
+msgstr ""
