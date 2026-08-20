@@ -49,9 +49,6 @@ private:
     // `ams_operation.units` so the AMS Operation dialog can read straight from
     // the slot without re-querying.
     nlohmann::json BuildAmsUnitJson(Slic3r::MachineObject* machine_obj, const Slic3r::DevAms* ams_unit) const;
-    bool IsSlotLoadedInExtruder(Slic3r::MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const;
-    bool IsSlotLoadedInNozzle(Slic3r::MachineObject* machine_obj, int addr_id, const std::string& ams_id, const std::string& slot_id) const;
-    bool IsSlotTargetForExtruder(Slic3r::MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const;
     bool IsCurrentFilamentChangingSlot(Slic3r::MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const;
     bool IsFilamentChangeActive(Slic3r::MachineObject* machine_obj) const;
     bool IsNozzleOnExtruder(Slic3r::MachineObject* machine_obj, int addr_id) const;

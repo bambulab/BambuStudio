@@ -33,6 +33,8 @@ public:
                                           bool is_lost);
     static int ResolveDisplayRemain(const DevAmsTray* tray);
     static std::string ResolveStatusText(const std::string& card_state);
+
+    static bool IsTraySlotLoadedInNozzle(MachineObject* obj_, const DevAmsTray* tray);
 };
 
 }} // namespace Slic3r::GUI

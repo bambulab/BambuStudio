@@ -82,28 +82,12 @@ nlohmann::json make_select_action(const std::string& card_state, const nlohmann:
     return BatchModeCommon::make_select_action(can_select, reason);
 }
 
-bool is_ams_slot_loaded_in_hotend(MachineObject* machine_obj, const DevAmsTray* tray)
-{
-    if (machine_obj && tray) {
-        if (auto nozzle_addr_opt = tray->get_nozzle_addr_id(machine_obj); nozzle_addr_opt.has_value()) {
-            auto nozzle_opt = machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(nozzle_addr_opt.value());
-            if (nozzle_opt.has_value()){
-                try {
-                    return nozzle_opt->HasFilamentInNozzle() && nozzle_opt->IsInBindAmsSlots(std::stoi(tray->ams_id), std::stoi(tray->id));
-                } catch(...){ }
-            }
-        }
-    }
-
-    return false;
-}
-
 std::string resolve_ams_slot_card_state(MachineObject* machine_obj, const DevAmsTray* tray)
 {
     if (!tray || !tray->is_exists) return SV::card_state::empty;
     if (machine_obj && tray->is_reading(machine_obj->tray_reading_bits)) return SV::card_state::reading;
     if (tray->setting_id.empty() || tray->m_fila_type.empty()) return SV::card_state::unknown;
-    if (is_ams_slot_loaded_in_hotend(machine_obj, tray)) return SV::card_state::ready_to_use;
+    if (DevicePageFilamentSlotStateResolver::IsTraySlotLoadedInNozzle(machine_obj, tray)) return SV::card_state::ready_to_use;
     return SV::card_state::ready_to_load;
 }
 

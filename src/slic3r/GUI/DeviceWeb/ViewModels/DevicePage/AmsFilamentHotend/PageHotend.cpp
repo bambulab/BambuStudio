@@ -209,7 +209,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     const std::string nozzle_tool_kind = has_tool ? tool_kind_for_web(rack_nozzle_opt->GetToolDefs()) : std::string(SV::tool_kind::empty);
     const bool current_filament_changing = IsCurrentFilamentChangingSlot(machine_obj, ams_id, tray_id);
     const bool filament_changing = IsFilamentChangeActive(machine_obj);
-    const bool loaded_in_nozzle = IsSlotLoadedInNozzle(machine_obj, addr_id, ams_id, tray_id);
+    const bool loaded_in_nozzle = DevicePageFilamentSlotStateResolver::IsTraySlotLoadedInNozzle(machine_obj, tray);
     const bool tray_reading = tray && machine_obj && tray->is_reading(machine_obj->tray_reading_bits);
     const std::string card_state = DevicePageFilamentSlotStateResolver::ResolveCardState(machine_obj, tray, rack_nozzle_opt, filament_changing, current_filament_changing, tray_reading, loaded_in_nozzle);
     const std::string line_state = DevicePageFilamentSlotStateResolver::ResolveLineState(card_state, has_hotend_slot, filament_changing, current_filament_changing, loaded_in_nozzle);

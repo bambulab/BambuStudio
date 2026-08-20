@@ -19,22 +19,6 @@ namespace SV = AmsHotendSchema::values;
 
 namespace {
 
-bool is_ext_slot_loaded(MachineObject* machine_obj, std::optional<DevAmsTray> ext_tray_opt)
-{
-    if (machine_obj && ext_tray_opt.has_value()) {
-        if (auto nozzle_addr_opt = ext_tray_opt->get_nozzle_addr_id(machine_obj); nozzle_addr_opt.has_value()) {
-            auto nozzle_opt = machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(nozzle_addr_opt.value());
-            if (nozzle_opt.has_value()){
-                try {
-                    return nozzle_opt->HasFilamentInNozzle() && nozzle_opt->IsInBindAmsSlots(std::stoi(ext_tray_opt->id), 0);
-                } catch(...){ }
-            }
-        }
-    }
-
-    return false;
-}
-
 nlohmann::json make_select_action(bool can_select, std::string reason)
 {
     // Manual external-spool mode shows the EXT badge on every nozzle card
@@ -90,7 +74,7 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
         if (fila_system) {
             ext_tray_opt = fila_system->GetVirtualTray(ext_tray_id);
         }
-        const bool is_loaded = is_ext_slot_loaded(machine_obj, ext_tray_opt);
+        const bool is_loaded = ext_tray_opt.has_value() && DevicePageFilamentSlotStateResolver::IsTraySlotLoadedInNozzle(machine_obj, &ext_tray_opt.value());
 
         std::string card_state = SV::card_state::unknown;
         std::string color = "#D9D9D9";

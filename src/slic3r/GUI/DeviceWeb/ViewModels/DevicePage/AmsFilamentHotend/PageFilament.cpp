@@ -184,7 +184,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildAmsUnitJson(MachineObject* ma
 
         const std::string tray_ams_id = ams_unit->GetAmsId();
         const bool is_reading_now = machine_obj && tray->is_reading(machine_obj->tray_reading_bits);
-        const bool tray_is_loaded = IsSlotLoadedInExtruder(machine_obj, tray_ams_id, tray_id);
+        const bool tray_is_loaded = DevicePageFilamentSlotStateResolver::IsTraySlotLoadedInNozzle(machine_obj, tray);
         const bool tray_has_filament = tray->is_exists && tray_state != SV::tray_state::empty;
         const char* tray_read_label = (tray_state == SV::tray_state::unknown) ? SV::read_label::read : SV::read_label::reread; // Unknown filament type shows "Read"; known type shows "Reread".
         const nlohmann::json tray_actions = {
@@ -217,42 +217,6 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildAmsUnitJson(MachineObject* ma
         {SK::ams_unit::dry_status,   ams_unit->GetDryStatus().has_value() ? dry_status_short_name(*ams_unit->GetDryStatus()) : ""},
         {SK::ams_unit::trays,        trays}
     };
-}
-
-bool DevicePageAmsFilamentHotendVM::IsSlotLoadedInExtruder(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const
-{
-    if (!machine_obj || ams_id.empty() || slot_id.empty()) return false;
-    for (const auto& ext : machine_obj->GetExtderSystem()->GetExtruders()) {
-        if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id && ext.HasFilamentInExt()) return true;
-    }
-    return false;
-}
-
-bool DevicePageAmsFilamentHotendVM::IsSlotLoadedInNozzle(Slic3r::MachineObject* machine_obj, int addr_id, const std::string& ams_id, const std::string& slot_id) const
-{
-    if (machine_obj) {
-        auto nozzle_opt = machine_obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id);
-        if (nozzle_opt && nozzle_opt->HasFilamentInNozzle()) {
-            const auto& slots = nozzle_opt->GetBindAmsSlots();
-            for (auto slot : slots) {
-                if (std::to_string(slot.first) == ams_id && std::to_string(slot.second) == slot_id) {
-                    return true;
-                }
-            }
-        }
-    }
-
-    return false;
-}
-
-bool DevicePageAmsFilamentHotendVM::IsSlotTargetForExtruder(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const
-{
-    if (!machine_obj || ams_id.empty() || slot_id.empty()) return false;
-    for (const auto& ext : machine_obj->GetExtderSystem()->GetExtruders()) {
-        const auto& target = ext.GetSlotTarget();
-        if (target.ams_id == ams_id && target.slot_id == slot_id) return true;
-    }
-    return false;
 }
 
 bool DevicePageAmsFilamentHotendVM::IsCurrentFilamentChangingSlot(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const

@@ -35,20 +35,7 @@ std::string DevicePageFilamentSlotStateResolver::ResolveCardState(MachineObject*
         return loaded_in_nozzle ? SV::card_state::unloading : SV::card_state::loading;//TODO
     }
 
-    if (nozzle_opt && nozzle_opt->GetSlotNowId().has_value()) {
-        auto slot_now = nozzle_opt->GetSlotNowId().value();
-        if (tray->ams_type != DevAmsType::EXT_SPOOL) {
-            if (std::to_string(slot_now.first) == tray->ams_id && std::to_string(slot_now.second) == tray->id) {
-                return SV::card_state::ready_to_use;
-            }
-        } else {
-            if (std::to_string(slot_now.first) == tray->ams_id) {
-                return SV::card_state::ready_to_use;
-            }
-        }
-    }
-
-    return SV::card_state::ready_to_load;
+    return loaded_in_nozzle ? SV::card_state::ready_to_use : SV::card_state::ready_to_load;
 }
 
 std::string DevicePageFilamentSlotStateResolver::ResolveLineState(const std::string& card_state,
@@ -102,6 +89,29 @@ std::string DevicePageFilamentSlotStateResolver::ResolveStatusText(const std::st
     if (card_state == SV::card_state::unknown) return _u8L("Unknown filament");
     if (card_state == SV::card_state::error) return _u8L("Error");
     return "";
+}
+
+bool DevicePageFilamentSlotStateResolver::IsTraySlotLoadedInNozzle(MachineObject* obj_, const DevAmsTray* tray)
+{
+    if (obj_ && tray) {
+        if (auto nozzle_addr_opt = tray->get_nozzle_addr_id(obj_); nozzle_addr_opt.has_value()) {
+            auto nozzle_opt = obj_->GetNozzleSystem()->GetNozzleOptByAddrId(nozzle_addr_opt.value());
+            if (nozzle_opt && nozzle_opt->GetSlotNowId().has_value()) {
+                auto slot_now = nozzle_opt->GetSlotNowId().value();
+                if (tray->ams_type != DevAmsType::EXT_SPOOL) {
+                    if (std::to_string(slot_now.first) == tray->ams_id && std::to_string(slot_now.second) == tray->id) {
+                        return true;
+                    }
+                } else {
+                    if (std::to_string(slot_now.first) == tray->ams_id || std::to_string(slot_now.first) == tray->id) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
 }
 
 }} // namespace Slic3r::GUI
