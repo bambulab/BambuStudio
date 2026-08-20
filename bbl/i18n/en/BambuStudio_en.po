@@ -3096,6 +3096,10 @@ msgid "Right(Filter)"
 msgstr ""
 
 msgctxt "air_duct"
+msgid "Right(Heating)"
+msgstr ""
+
+msgctxt "air_duct"
 msgid "Left(Aux)"
 msgstr ""
 
