@@ -8,6 +8,8 @@
 namespace Slic3r {
 namespace GUI {
 
+// Determines whether a downloaded 3MF replaces the current project or imports
+// only its model geometry into the current project.
 enum class RemoteModelAction : unsigned char
 {
     OpenProject,
