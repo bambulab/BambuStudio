@@ -341,6 +341,14 @@ endif ()
 if (APPLE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=partial-availability -Werror=unguarded-availability -Werror=unguarded-availability-new")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=partial-availability -Werror=unguarded-availability -Werror=unguarded-availability-new")
+
+    # Release 默认没有 -g，补上调试信息，让 Release 产出独立的 .dSYM 符号文件
+    string(APPEND CMAKE_C_FLAGS_RELEASE   " -g")
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -g")
+
+    # Xcode generator：只让 Release 配置生成独立 .dSYM，Debug 保持原速
+    set(CMAKE_XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+    set(CMAKE_XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT[variant=Release] "dwarf-with-dsym")
 endif ()
 
 if(MSVC)

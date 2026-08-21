@@ -210,6 +210,20 @@ if (SLIC3R_GUI AND TARGET device_page_build)
     endif()
 endif()
 
+# On non-Xcode generators (Ninja / Unix Makefiles) CMake does not create a
+# .dSYM bundle automatically. Run dsymutil so builds still get standalone symbols.
+if (APPLE AND NOT XCODE)
+    if (CMAKE_MACOSX_BUNDLE)
+        set(_bbl_dsym_out "$<TARGET_BUNDLE_DIR:BambuStudio>.dSYM")
+    else ()
+        set(_bbl_dsym_out "$<TARGET_FILE:BambuStudio>.dSYM")
+    endif ()
+    add_custom_command(TARGET BambuStudio POST_BUILD
+        COMMAND dsymutil "$<TARGET_FILE:BambuStudio>" -o "${_bbl_dsym_out}"
+        COMMENT "Generating standalone dSYM"
+        VERBATIM)
+endif()
+
 # Link the resources dir to where Slic3r GUI expects it
 set(output_dlls_Release "")
 set(output_dlls_Debug "")
@@ -328,4 +342,13 @@ else ()
         install(FILES ${output_sos_${build_type}} DESTINATION "${CMAKE_INSTALL_PREFIX}")
     endif()
     install(TARGETS BambuStudio RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" BUNDLE DESTINATION ${CMAKE_INSTALL_BINDIR})
+    # Install the standalone .dSYM next to the app bundle
+    if (APPLE AND CMAKE_MACOSX_BUNDLE)
+        if (CMAKE_CONFIGURATION_TYPES)
+            set(_bbl_dsym_install "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/BambuStudio.app.dSYM")
+        else ()
+            set(_bbl_dsym_install "${CMAKE_CURRENT_BINARY_DIR}/BambuStudio.app.dSYM")
+        endif ()
+        install(DIRECTORY "${_bbl_dsym_install}" DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    endif ()
 endif ()
