@@ -2253,7 +2253,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         std::string strRegion = wxGetApp().app_config->get_country_code();
         wxString    MakerSupplyUrl;
         if (strRegion == "CN")
-            MakerSupplyUrl = "https://bambulab.tmall.com/category-1761686934.htm?from=bambustudio&from=mw_homepage_ms";
+            MakerSupplyUrl = "https://mall.jd.com/view_search-2380482-25151560-99-1-20-1.html";
         else
             MakerSupplyUrl = "https://store.bambulab.com/collections/makers-supply?from=bambustudio&from=mw_homepage_ms";
 
