@@ -527,7 +527,8 @@ void PrintJob::process()
                                 curr_percent = (StagePercentPoint[stage + 1] - StagePercentPoint[stage]) * code / 100 + StagePercentPoint[stage];
                             }
                         }
-                        curr_percent = map_route_progress(curr_percent);
+                        if (stage != BBL::SendingPrintJobStage::PrintingStageFinished)
+                            curr_percent = map_route_progress(curr_percent);
 
                         //get errors
                         if (code > 100 || code < 0 || stage == BBL::SendingPrintJobStage::PrintingStageERROR) {
