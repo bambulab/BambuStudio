@@ -615,6 +615,49 @@ inline LayerIndex layer_idx_floor(const SlicingParameters &slicing_params, const
         std::max<LayerIndex>(0, floor((z - slicing_params.object_print_z_min - slicing_params.first_object_layer_height) / slicing_params.layer_height));
 }
 
+// Mid-plane Z used when slicing organic tubes: 0.5 * (bottom_z + print_z).
+inline double layer_mid_z(const SlicingParameters &slicing_params, const TreeSupportSettings &config, const LayerIndex layer_idx)
+{
+    const double print_z  = layer_z(slicing_params, config, size_t(layer_idx));
+    const double bottom_z = layer_idx > 0 ? layer_z(slicing_params, config, size_t(layer_idx - 1)) : 0.;
+    return 0.5 * (bottom_z + print_z);
+}
+
+// Lowest layer whose mid-plane is >= z. Prefer this over layer_idx_ceil when the caller
+// slices at mid-planes (organic_draw_branches); print-z ceil/floor can miss the last/first layer.
+inline LayerIndex layer_idx_mid_ceil(
+    const SlicingParameters   &slicing_params,
+    const TreeSupportSettings &config,
+    const double               z,
+    const LayerIndex           layer_count)
+{
+    if (layer_count <= 0)
+        return 0;
+    LayerIndex L = std::min(std::max(layer_idx_ceil(slicing_params, config, z), LayerIndex(0)), layer_count);
+    while (L > 0 && layer_mid_z(slicing_params, config, L - 1) >= z - EPSILON)
+        -- L;
+    while (L < layer_count && layer_mid_z(slicing_params, config, L) < z - EPSILON)
+        ++ L;
+    return L;
+}
+
+// Highest layer whose mid-plane is <= z, or -1 if none.
+inline LayerIndex layer_idx_mid_floor(
+    const SlicingParameters   &slicing_params,
+    const TreeSupportSettings &config,
+    const double               z,
+    const LayerIndex           layer_count)
+{
+    if (layer_count <= 0)
+        return -1;
+    LayerIndex L = std::min(std::max(layer_idx_floor(slicing_params, config, z), LayerIndex(0)), layer_count - 1);
+    while (L + 1 < layer_count && layer_mid_z(slicing_params, config, L + 1) <= z + EPSILON)
+        ++ L;
+    while (L >= 0 && layer_mid_z(slicing_params, config, L) > z + EPSILON)
+        -- L;
+    return L;
+}
+
 inline SupportGeneratorLayer& layer_initialize(
     SupportGeneratorLayer     &layer_new,
     const SlicingParameters   &slicing_params,

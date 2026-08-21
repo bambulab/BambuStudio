@@ -7,6 +7,9 @@
 // CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "TreeSupport3D.hpp"
+#include <algorithm>
+#include <cmath>
+#include <cstdlib>
 #include "AABBTreeIndirect.hpp"
 #include "AABBTreeLines.hpp"
 #include "BuildVolume.hpp"
@@ -3468,8 +3471,28 @@ static std::pair<int, int> discretize_polygon(const Vec3f& center, const Polygon
     return { begin, int(pts.size()) };
 }
 
-// Returns Z span of the generated mesh. Generates one closed tube (bottom hemisphere,
-// bisector-normal section circles connected by zig-zag strips, top hemisphere) for the
+// End treatment of a tube piece. HemisphereMesh is the original closed cap.
+// FlatDisk is used at 61563 split joints: close the frustum in the section plane
+// without a polar hemisphere; the missing hemisphere is injected later as 2D slices.
+enum class TubeEndCap { HemisphereMesh, FlatDisk };
+
+// TREE_SUPPORT_SPLIT_CAP_MODE:
+//   analytic (default) — FlatDisk + hemisphere_slice_polygon() injection
+//   mesh               — 61563-style 3D hemispheres at split joints (no 2D inject)
+static bool split_cap_use_mesh_hemispheres()
+{
+    static const bool use_mesh = [] {
+        if (const char *env = std::getenv("TREE_SUPPORT_SPLIT_CAP_MODE")) {
+            const std::string v(env);
+            return v == "mesh" || v == "3d" || v == "Mesh" || v == "MESH";
+        }
+        return false;
+    }();
+    return use_mesh;
+}
+
+// Returns Z span of the generated mesh. Generates one closed tube (bottom cap,
+// bisector-normal section circles connected by zig-zag strips, top cap) for the
 // given continuous path. This is the original extrude_branch body, now a reusable piece
 // generator invoked by extrude_branch(), which may split a path into self-intersection-free
 // pieces before calling this.
@@ -3478,7 +3501,9 @@ static std::pair<float, float> extrude_branch_tube(
     const TreeSupportSettings               &config,
     const SlicingParameters                 &slicing_params,
     const std::vector<SupportElements>      &move_bounds,
-    indexed_triangle_set                    &result)
+    indexed_triangle_set                    &result,
+    TubeEndCap                               bottom_cap = TubeEndCap::HemisphereMesh,
+    TubeEndCap                               top_cap    = TubeEndCap::HemisphereMesh)
 {
     Vec3d p1, p2, p3;
     Vec3d v1, v2;
@@ -3487,8 +3512,7 @@ static std::pair<float, float> extrude_branch_tube(
     assert(path.size() >= 2);
     static constexpr const float eps = 0.015f;
     std::pair<int, int> prev_strip;
-    float zmin = 0;
-    float zmax = 0;
+    const size_t vertex_begin = result.vertices.size();
 
     for (size_t ipath = 1; ipath < path.size(); ++ ipath) {
         const SupportElement &prev    = *path[ipath - 1];
@@ -3499,48 +3523,56 @@ static std::pair<float, float> extrude_branch_tube(
         v1 = (p2 - p1).normalized();
         if (ipath == 1) {
             nprev = v1;
-            // Extrude the bottom half sphere.
-            float radius     = unscaled<float>(support_element_radius(config, prev));
-            float angle_step = 2. * acos(1. - eps / radius);
-            auto  nsteps     = int(ceil(M_PI / (2. * angle_step)));
-            angle_step       = M_PI / (2. * nsteps);
-            int   ifan       = int(result.vertices.size());
-            result.vertices.emplace_back((p1 - nprev * radius).cast<float>());
-            zmin = result.vertices.back().z();
-            float angle = angle_step;
+            float radius = unscaled<float>(support_element_radius(config, prev));
+            if (bottom_cap == TubeEndCap::FlatDisk) {
+                // Section-plane disk at p1; no polar vertices, so mesh Z stays inside the frustum.
+                int ifan = int(result.vertices.size());
+                result.vertices.emplace_back(p1.cast<float>());
+                prev_strip = discretize_circle(p1.cast<float>(), nprev.cast<float>(), radius, eps, result.vertices);
+                triangulate_fan<false>(result, ifan, prev_strip.first, prev_strip.second);
+            } else {
+                // Extrude the bottom half sphere.
+                float angle_step = 2. * acos(1. - eps / radius);
+                auto  nsteps     = int(ceil(M_PI / (2. * angle_step)));
+                angle_step       = M_PI / (2. * nsteps);
+                int   ifan       = int(result.vertices.size());
+                result.vertices.emplace_back((p1 - nprev * radius).cast<float>());
+                float angle = angle_step;
                 for (int i = 1; i < nsteps; ++i, angle += angle_step) {
-                std::pair<int, int> strip = discretize_circle((p1 - nprev * radius * cos(angle)).cast<float>(), nprev.cast<float>(), radius * sin(angle), eps, result.vertices);
+                    std::pair<int, int> strip = discretize_circle((p1 - nprev * radius * cos(angle)).cast<float>(), nprev.cast<float>(), radius * sin(angle), eps, result.vertices);
                     if (i == 1)
                         triangulate_fan<false>(result, ifan, strip.first, strip.second);
                     else
                         triangulate_strip(result, prev_strip.first, prev_strip.second, strip.first, strip.second);
-                    //                sprintf(fname, "d:\\temp\\meshes\\tree-partial-%d.obj", ++ irun);
-                    //                its_write_obj(result, fname);
                     prev_strip = strip;
+                }
             }
         }
         if (ipath + 1 == path.size()) {
             // End of the tube.
             ncurrent = v1;
-            // Extrude the top half sphere.
             float radius = unscaled<float>(support_element_radius(config, current));
-            float angle_step = 2. * acos(1. - eps / radius);
-            auto  nsteps = int(ceil(M_PI / (2. * angle_step)));
-            angle_step = M_PI / (2. * nsteps);
-            auto angle = float(M_PI / 2.);
+            if (top_cap == TubeEndCap::FlatDisk) {
+                std::pair<int, int> strip = discretize_circle(p2.cast<float>(), ncurrent.cast<float>(), radius, eps, result.vertices);
+                triangulate_strip(result, prev_strip.first, prev_strip.second, strip.first, strip.second);
+                int ifan = int(result.vertices.size());
+                result.vertices.emplace_back(p2.cast<float>());
+                triangulate_fan<true>(result, ifan, strip.first, strip.second);
+            } else {
+                // Extrude the top half sphere.
+                float angle_step = 2. * acos(1. - eps / radius);
+                auto  nsteps = int(ceil(M_PI / (2. * angle_step)));
+                angle_step = M_PI / (2. * nsteps);
+                auto angle = float(M_PI / 2.);
                 for (int i = 0; i < nsteps; ++i, angle -= angle_step) {
-                std::pair<int, int> strip = discretize_circle((p2 + ncurrent * radius * cos(angle)).cast<float>(), ncurrent.cast<float>(), radius * sin(angle), eps, result.vertices);
+                    std::pair<int, int> strip = discretize_circle((p2 + ncurrent * radius * cos(angle)).cast<float>(), ncurrent.cast<float>(), radius * sin(angle), eps, result.vertices);
                     triangulate_strip(result, prev_strip.first, prev_strip.second, strip.first, strip.second);
-                    //                sprintf(fname, "d:\\temp\\meshes\\tree-partial-%d.obj", ++ irun);
-                    //                its_write_obj(result, fname);
                     prev_strip = strip;
                 }
                 int ifan = int(result.vertices.size());
                 result.vertices.emplace_back((p2 + ncurrent * radius).cast<float>());
-                zmax = result.vertices.back().z();
                 triangulate_fan<true>(result, ifan, prev_strip.first, prev_strip.second);
-                //            sprintf(fname, "d:\\temp\\meshes\\tree-partial-%d.obj", ++ irun);
-                //            its_write_obj(result, fname);
+            }
         } else {
             const SupportElement &next = *path[ipath + 1];
             assert(current.state.layer_idx + 1 == next.state.layer_idx);
@@ -3551,11 +3583,18 @@ static std::pair<float, float> extrude_branch_tube(
             std::pair<int, int> strip = discretize_circle(p2.cast<float>(), ncurrent.cast<float>(), radius, eps, result.vertices);
             triangulate_strip(result, prev_strip.first, prev_strip.second, strip.first, strip.second);
             prev_strip = strip;
-//            sprintf(fname, "d:\\temp\\meshes\\tree-partial-%d.obj", ++irun);
-//            its_write_obj(result, fname);
         }
     }
 
+    // A tilted hemisphere reaches farther in Z than its axis pole. Compute the
+    // span from every generated vertex so callers slice the complete mesh.
+    assert(result.vertices.size() > vertex_begin);
+    float zmin =  std::numeric_limits<float>::max();
+    float zmax = -std::numeric_limits<float>::max();
+    for (size_t i = vertex_begin; i < result.vertices.size(); ++ i) {
+        zmin = std::min(zmin, result.vertices[i].z());
+        zmax = std::max(zmax, result.vertices[i].z());
+    }
     return std::make_pair(zmin, zmax);
 }
 
@@ -3593,15 +3632,24 @@ static bool section_circles_intersect(
 // intersect in 3D, the zig-zag triangulation self-folds and slicing drops that area
 // (a gap / missing slice in the sliced layers). In that case split the path at the
 // offending edges and emit each unsafe edge as a standalone closed capsule. Adjacent
-// pieces overlap at the shared node; the resulting overlapping (but valid, same-winding)
-// section contours are merged downstream by the non-zero fill clipping (diff_clipped /
-// intersection), same as the branch-to-branch endpoint overlaps in the original code.
+// pieces meet at a FlatDisk in the shared node's section plane; the missing hemispheres
+// are injected later as analytic 2D slices and merged by the downstream non-zero fill
+// clipping (diff_clipped / intersection), same as the original overlapping end-caps.
+// Split-joint hemisphere descriptors for analytic 2D injection.
+struct ExtrudeSplitCap {
+    Vec3d      center { Vec3d::Zero() };
+    Vec3d      normal { Vec3d::UnitZ() };
+    double     radius { 0. };
+    bool       is_bottom { false };
+};
+
 static std::pair<float, float> extrude_branch(
     const std::vector<const SupportElement*>&path,
     const TreeSupportSettings               &config,
     const SlicingParameters                 &slicing_params,
     const std::vector<SupportElements>      &move_bounds,
-    indexed_triangle_set                    &result)
+    indexed_triangle_set                    &result,
+    std::vector<ExtrudeSplitCap>            *split_caps = nullptr)
 {
     const size_t n = path.size();
     if (n < 3)
@@ -3639,20 +3687,48 @@ static std::pair<float, float> extrude_branch(
         return extrude_branch_tube(path, config, slicing_params, move_bounds, result);
 
     // Split into ordered pieces: maximal safe runs + isolated unsafe single-edge capsules.
-    // Adjacent pieces share the boundary node; their closed hemispheres overlap there and
-    // are merged by the downstream non-zero fill clipping (no 3D boolean needed).
+    // Adjacent pieces share the boundary node and close with FlatDisks there; analytic
+    // hemispheres are injected as 2D slices and merged by downstream clipping.
     float zmin =  std::numeric_limits<float>::max();
     float zmax = -std::numeric_limits<float>::max();
     std::vector<const SupportElement*> piece_path;
     indexed_triangle_set               piece_mesh;
+    // Original path ends keep a 3D hemisphere. Split joints: FlatDisk + later 2D
+    // inject (default), or HemisphereMesh when TREE_SUPPORT_SPLIT_CAP_MODE=mesh.
+    const bool                         mesh_caps = split_cap_use_mesh_hemispheres();
     auto emit_piece = [&](size_t begin, size_t end) {
         piece_path.assign(path.begin() + begin, path.begin() + end + 1);
         piece_mesh.clear();
+        const TubeEndCap bottom_cap = (begin > 0)
+            ? (mesh_caps ? TubeEndCap::HemisphereMesh : TubeEndCap::FlatDisk)
+            : TubeEndCap::HemisphereMesh;
+        const TubeEndCap top_cap = (end < n - 1)
+            ? (mesh_caps ? TubeEndCap::HemisphereMesh : TubeEndCap::FlatDisk)
+            : TubeEndCap::HemisphereMesh;
         const std::pair<float, float> span =
-            extrude_branch_tube(piece_path, config, slicing_params, move_bounds, piece_mesh);
+            extrude_branch_tube(piece_path, config, slicing_params, move_bounds, piece_mesh, bottom_cap, top_cap);
         zmin = std::min(zmin, span.first);
         zmax = std::max(zmax, span.second);
         its_merge(result, piece_mesh);
+        // Descriptors for analytic hemispheres at piece ends that are not the original path ends.
+        if (split_caps && end > begin) {
+            if (begin > 0) {
+                split_caps->push_back({
+                    node_pos[begin],
+                    (node_pos[begin + 1] - node_pos[begin]).normalized(),
+                    node_radius[begin],
+                    true
+                });
+            }
+            if (end < n - 1) {
+                split_caps->push_back({
+                    node_pos[end],
+                    (node_pos[end] - node_pos[end - 1]).normalized(),
+                    node_radius[end],
+                    false
+                });
+            }
+        }
     };
     size_t run_start = 0;
     for (size_t k = 0; k + 1 < n; ++ k)
@@ -5142,6 +5218,168 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 }
 
 // Organic specific: Smooth branches and produce one cummulative mesh to be sliced.
+// Same sagitta as discretize_circle (eps=0.015). nsteps is taken from the full
+// hemisphere radius so every layer of one cap uses an identical vertex count.
+static int hemisphere_circle_nsteps(double radius)
+{
+    static constexpr double eps = 0.015;
+    const double r = std::max(radius, eps);
+    const double angle_step = 2. * std::acos(std::clamp(1. - eps / r, -1., 1.));
+    return std::max(3, int(std::ceil(2. * M_PI / std::max(angle_step, 1e-6))));
+}
+
+// XY basis for make_oriented_disk_xy / prepared caps. Matches discretize_circle's
+// local x-axis (n × (0,-1,0)) projected to XY, so phase is constant across layers.
+static void hemisphere_disk_xy_basis(const Vec3d &normal, Vec2d &x2, Vec2d &y2)
+{
+    Vec3d x3 = normal.cross(Vec3d(0., -1., 0.));
+    if (x3.squaredNorm() < 1e-12)
+        x3 = normal.cross(Vec3d(1., 0., 0.));
+    x2 = Vec2d(x3.x(), x3.y());
+    if (x2.squaredNorm() < 1e-12)
+        x2 = Vec2d(1., 0.);
+    else
+        x2.normalize();
+    y2 = Vec2d(-x2.y(), x2.x());
+}
+
+// Horizontal n-gon of radius rho using a precomputed XY basis.
+static Polygon make_oriented_disk_xy(
+    const Vec3d &center, const Vec2d &x2, const Vec2d &y2, double rho, int nsteps)
+{
+    Polygon poly;
+    poly.points.reserve(nsteps);
+    const double da = 2. * M_PI / double(nsteps);
+    for (int i = 0; i < nsteps; ++i) {
+        const double a  = da * double(i);
+        const double px = center.x() + rho * (x2.x() * std::cos(a) + y2.x() * std::sin(a));
+        const double py = center.y() + rho * (x2.y() * std::cos(a) + y2.y() * std::sin(a));
+        poly.points.emplace_back(scaled<coord_t>(px), scaled<coord_t>(py));
+    }
+    return poly;
+}
+
+// Convex clip: keep ax*x + ay*y <= c (unscaled XY). Inserts edge-line hits so the
+// cut does not go through Clipper's large half-plane quad.
+static Polygon clip_convex_polygon_halfplane(const Polygon &in, double ax, double ay, double c)
+{
+    if (in.size() < 3)
+        return {};
+    auto side = [ax, ay, c](const Point &p) {
+        return ax * unscaled<double>(p.x()) + ay * unscaled<double>(p.y()) - c;
+    };
+    auto hit = [](const Point &p, const Point &q, double sp, double sq) {
+        // Inside is sp <= EPSILON, so sp may be slightly positive here and sp - sq
+        // arbitrarily small. Clamp to keep the hit on the segment; t == 0 then yields p,
+        // which is exactly the intended EPSILON overlap past the clip line.
+        const double t = std::clamp(sp / (sp - sq), 0., 1.);
+        const double x = unscaled<double>(p.x()) + t * (unscaled<double>(q.x()) - unscaled<double>(p.x()));
+        const double y = unscaled<double>(p.y()) + t * (unscaled<double>(q.y()) - unscaled<double>(p.y()));
+        return Point(scaled<coord_t>(x), scaled<coord_t>(y));
+    };
+
+    Polygon out;
+    out.points.reserve(in.size() + 2);
+    const size_t n = in.size();
+    for (size_t i = 0; i < n; ++i) {
+        const Point  &p  = in.points[i];
+        const Point  &q  = in.points[(i + 1) % n];
+        const double  sp = side(p);
+        const double  sq = side(q);
+        const bool    pin = sp <= EPSILON;
+        const bool    qin = sq <= EPSILON;
+        if (pin && qin) {
+            out.points.emplace_back(q);
+        } else if (pin && !qin) {
+            out.points.emplace_back(hit(p, q, sp, sq));
+        } else if (!pin && qin) {
+            out.points.emplace_back(hit(p, q, sp, sq));
+            out.points.emplace_back(q);
+        }
+    }
+    if (out.size() < 3)
+        return {};
+    if (out.area() < 0)
+        out.make_counter_clockwise();
+    return out;
+}
+
+// Horizontal cross-section of a hemisphere: disk of radius sqrt(r^2-dz^2) clipped to the
+// half-plane of the section. Used to inject 61563 split-joint caps into production slices.
+static bool hemisphere_slice_polygon(
+    const Vec3d &center, const Vec3d &normal, double radius, bool is_bottom,
+    double slice_z, int nsteps, const Vec2d &x2, const Vec2d &y2, Polygon &out)
+{
+    const double dz = slice_z - center.z();
+    if (std::abs(dz) >= radius - EPSILON)
+        return false;
+
+    const double rho = std::sqrt(std::max(0., radius * radius - dz * dz));
+    if (rho < 1e-4)
+        return false;
+
+    Polygon disk = make_oriented_disk_xy(center, x2, y2, rho, nsteps);
+
+    const double nxy = std::hypot(normal.x(), normal.y());
+    if (nxy > 1e-6) {
+        // Half-plane in XY from plane equation n·(q-p) ≥ 0 with q.z = slice_z.
+        // n.x*(x-cx) + n.y*(y-cy) + n.z*dz  ≥  0
+        const double rhs = normal.x() * center.x() + normal.y() * center.y() - normal.z() * dz;
+        // bottom: n.xy · r <= rhs ; top: n.xy · r >= rhs  <=>  (-n.xy)·r <= -rhs
+        disk = is_bottom
+            ? clip_convex_polygon_halfplane(disk, normal.x(), normal.y(), rhs)
+            : clip_convex_polygon_halfplane(disk, -normal.x(), -normal.y(), -rhs);
+        if (disk.size() < 3)
+            return false;
+    } else {
+        // Vertical axis: keep only the hemisphere side of the equator.
+        if (is_bottom && dz > EPSILON)
+            return false;
+        if (!is_bottom && dz < -EPSILON)
+            return false;
+    }
+
+    out = std::move(disk);
+    return true;
+}
+
+// Production-slice cache for one ExtrudeSplitCap: valid mid-Z layer range, circle
+// discretization and XY basis so injection walks O(H) layers per cap instead of O(S).
+struct PreparedSplitCap {
+    const ExtrudeSplitCap *cap { nullptr };
+    LayerIndex             layer_begin { 0 };
+    LayerIndex             layer_end { 0 };
+    int                    nsteps { 0 };
+    Vec2d                  x2 { 1., 0. };
+    Vec2d                  y2 { 0., 1. };
+};
+
+static PreparedSplitCap prepare_split_cap(
+    const ExtrudeSplitCap     &sc,
+    const SlicingParameters   &slicing_params,
+    const TreeSupportSettings &config,
+    LayerIndex                 num_layers)
+{
+    PreparedSplitCap out;
+    out.cap         = &sc;
+    out.nsteps      = hemisphere_circle_nsteps(sc.radius);
+    hemisphere_disk_xy_basis(sc.normal, out.x2, out.y2);
+    // Write the hemisphere as m·(q-c) <= 0. It crosses the horizontal plane through its
+    // own center whenever the axis is tilted, still reaching r * sqrt(1 - m.z^2) on the
+    // far side; bounding the scan at that plane instead would drop the very band this
+    // injection restores. Bounding it by the full sphere only wastes layers.
+    const Vec3d  m     = sc.is_bottom ? sc.normal : Vec3d(-sc.normal);
+    const double mz    = std::clamp(m.z(), -1., 1.);
+    const double reach = sc.radius * std::sqrt(std::max(0., 1. - mz * mz));
+    const double z_lo  = sc.center.z() - (mz < 0. ? reach : sc.radius);
+    const double z_hi  = sc.center.z() + (mz > 0. ? reach : sc.radius);
+    out.layer_begin = layer_idx_mid_ceil(slicing_params, config, z_lo, num_layers);
+    out.layer_end   = layer_idx_mid_floor(slicing_params, config, z_hi, num_layers) + 1;
+    out.layer_begin = std::max(out.layer_begin, LayerIndex(0));
+    out.layer_end   = std::min(out.layer_end, num_layers);
+    return out;
+}
+
 void organic_draw_branches(
     PrintObject& print_object,
     TreeModelVolumes& volumes,
@@ -5357,25 +5595,85 @@ void organic_draw_branches(
             indexed_triangle_set    partial_mesh;
             std::vector<float>      slice_z;
             std::vector<Polygons>   bottom_contacts;
+            const bool              mesh_split_caps = split_cap_use_mesh_hemispheres();
             for (size_t tree_id = range.begin(); tree_id < range.end(); ++tree_id) {
                 Tree& tree = trees[tree_id];
                 for (const Branch& branch : tree.branches) {
                     // Triangulate the tube.
                     partial_mesh.clear();
-                    std::pair<float, float> zspan = extrude_branch(branch.path, config, slicing_params, move_bounds, partial_mesh);
-                    LayerIndex layer_begin = branch.has_root ?
+                    std::vector<ExtrudeSplitCap> split_caps;
+                    std::pair<float, float> zspan = extrude_branch(
+                        branch.path, config, slicing_params, move_bounds, partial_mesh,
+                        mesh_split_caps ? nullptr : &split_caps);
+                    // Slice planes are layer mid-Z (not print_z). Map mesh/cap spans with
+                    // layer_idx_mid_* so the last/first mid-plane inside the span is not skipped.
+                    const LayerIndex num_layers = LayerIndex(move_bounds.size());
+                    LayerIndex mesh_begin = branch.has_root ?
                         branch.path.front()->state.layer_idx :
-                        std::min(branch.path.front()->state.layer_idx, layer_idx_ceil(slicing_params, config, zspan.first));
-                    LayerIndex layer_end = (branch.has_tip ?
+                        std::min(branch.path.front()->state.layer_idx,
+                                 layer_idx_mid_ceil(slicing_params, config, zspan.first, num_layers));
+                    LayerIndex mesh_end = (branch.has_tip ?
                         branch.path.back()->state.layer_idx :
-                        std::max(branch.path.back()->state.layer_idx, layer_idx_floor(slicing_params, config, zspan.second))) + 1;
-                    slice_z.clear();
-                    for (LayerIndex layer_idx = layer_begin; layer_idx < layer_end; ++layer_idx) {
-                        const double print_z = layer_z(slicing_params, config, layer_idx);
-                        const double bottom_z = layer_idx > 0 ? layer_z(slicing_params, config, layer_idx - 1) : 0.;
-                        slice_z.emplace_back(float(0.5 * (bottom_z + print_z)));
+                        std::max(branch.path.back()->state.layer_idx,
+                                 layer_idx_mid_floor(slicing_params, config, zspan.second, num_layers))) + 1;
+                    // Analytic mode: mesh Z excludes split-joint hemispheres; expand the output
+                    // layer range so 2D caps can be injected. Mesh mode already includes them in zspan.
+                    LayerIndex layer_begin = mesh_begin;
+                    LayerIndex layer_end   = mesh_end;
+                    std::vector<PreparedSplitCap> prepared_caps;
+                    if (! split_caps.empty()) {
+                        prepared_caps.reserve(split_caps.size());
+                        for (const ExtrudeSplitCap &sc : split_caps) {
+                            PreparedSplitCap pc = prepare_split_cap(sc, slicing_params, config, num_layers);
+                            if (pc.layer_begin >= pc.layer_end)
+                                continue;
+                            layer_begin = std::min(layer_begin, pc.layer_begin);
+                            layer_end   = std::max(layer_end, pc.layer_end);
+                            prepared_caps.emplace_back(std::move(pc));
+                        }
                     }
-                    std::vector<Polygons> slices = slice_mesh(partial_mesh, slice_z, mesh_slicing_params, throw_on_cancel);
+                    if (branch.has_root)
+                        layer_begin = std::max(layer_begin, branch.path.front()->state.layer_idx);
+                    if (branch.has_tip)
+                        layer_end = std::min(layer_end, branch.path.back()->state.layer_idx + 1);
+                    layer_begin = std::max(layer_begin, LayerIndex(0));
+                    layer_end   = std::min(layer_end, num_layers);
+                    if (layer_begin >= layer_end)
+                        continue;
+                    slice_z.clear();
+                    for (LayerIndex layer_idx = layer_begin; layer_idx < layer_end; ++layer_idx)
+                        slice_z.emplace_back(float(layer_mid_z(slicing_params, config, layer_idx)));
+                    std::vector<Polygons> slices;
+                    // Fast path: no analytic inject needed — slice the full mid-Z range once.
+                    if (prepared_caps.empty()) {
+                        slices = slice_mesh(partial_mesh, slice_z, mesh_slicing_params, throw_on_cancel);
+                    } else {
+                        const LayerIndex clip_mesh_begin = std::max(mesh_begin, layer_begin);
+                        const LayerIndex clip_mesh_end   = std::min(mesh_end, layer_end);
+                        std::vector<float> mesh_slice_z;
+                        if (clip_mesh_begin < clip_mesh_end)
+                            mesh_slice_z.assign(
+                                slice_z.begin() + (clip_mesh_begin - layer_begin),
+                                slice_z.begin() + (clip_mesh_end - layer_begin));
+                        std::vector<Polygons> mesh_slices = mesh_slice_z.empty() ?
+                            std::vector<Polygons>{} :
+                            slice_mesh(partial_mesh, mesh_slice_z, mesh_slicing_params, throw_on_cancel);
+                        slices.assign(slice_z.size(), {});
+                        for (size_t i = 0; i < mesh_slices.size(); ++i)
+                            slices[size_t(clip_mesh_begin - layer_begin) + i] = std::move(mesh_slices[i]);
+                        // Cap-driven inject: each prepared cap only walks its mid-Z [begin,end).
+                        for (const PreparedSplitCap &pc : prepared_caps) {
+                            const LayerIndex inj_begin = std::max(pc.layer_begin, layer_begin);
+                            const LayerIndex inj_end   = std::min(pc.layer_end, layer_end);
+                            for (LayerIndex layer_idx = inj_begin; layer_idx < inj_end; ++layer_idx) {
+                                Polygon poly;
+                                if (hemisphere_slice_polygon(pc.cap->center, pc.cap->normal, pc.cap->radius,
+                                                             pc.cap->is_bottom, double(slice_z[size_t(layer_idx - layer_begin)]),
+                                                             pc.nsteps, pc.x2, pc.y2, poly))
+                                    slices[size_t(layer_idx - layer_begin)].emplace_back(std::move(poly));
+                            }
+                        }
+                    }
                     bottom_contacts.clear();
                     //FIXME parallelize?
                     for (LayerIndex i = 0; i < LayerIndex(slices.size()); ++i) {
