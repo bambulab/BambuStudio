@@ -6,6 +6,7 @@
 #include "libslic3r/AppConfig.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/EncodedFilament.hpp"
 #include "libslic3r_version.h"
 
 #include <wx/sizer.h>
@@ -974,6 +975,8 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
             { preferred_model, preferred_variant, first_added_filament, std::string() });
         if (!errors_cummulative.empty())
             show_error(nullptr, errors_cummulative);
+        // AppConfig-restored filament colors may predate the JSON primary-color alignment.
+        Slic3r::align_project_filament_primary_colors_with_json(preset_bundle);
     }
 
     // Update the selections from the compatibilty.
@@ -1033,6 +1036,8 @@ bool GuideFrame::run(bool& config_applied)
                 PresetBundle::BBL_DEFAULT_PRINTER_MODEL, PresetBundle::BBL_DEFAULT_PRINTER_VARIANT, "true");
             app.app_config->clear_section(AppConfig::SECTION_FILAMENTS);
             app.preset_bundle->load_selections(*app.app_config, {PresetBundle::BBL_DEFAULT_PRINTER_MODEL, PresetBundle::BBL_DEFAULT_PRINTER_VARIANT, PresetBundle::BBL_DEFAULT_FILAMENT, std::string()});
+            // AppConfig-restored filament colors may predate the JSON primary-color alignment.
+            Slic3r::align_project_filament_primary_colors_with_json(app.preset_bundle);
 
             app.app_config->set_legacy_datadir(false);
             app.update_mode();

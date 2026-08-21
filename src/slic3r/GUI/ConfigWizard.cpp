@@ -38,6 +38,7 @@
 #include "libslic3r/Model.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "EncodedFilament.hpp"
 #include "GUI_Utils.hpp"
 #include "I18N.hpp"
 #include "Field.hpp"
@@ -2577,9 +2578,12 @@ bool ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 
     app_config->set_vendors(appconfig_new);
 
-    if (check_unsaved_preset_changes)
+    if (check_unsaved_preset_changes) {
         preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem, 
                                     {preferred_model, preferred_variant, first_added_filament, first_added_sla_material});
+        // AppConfig-restored filament colors may predate the JSON primary-color alignment.
+        Slic3r::align_project_filament_primary_colors_with_json(preset_bundle);
+    }
 
     if (!only_sla_mode && page_custom->custom_wanted()) {
         // if unsaved changes was not cheched till this moment

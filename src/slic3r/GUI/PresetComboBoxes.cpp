@@ -891,7 +891,8 @@ PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset
 
                     // Check if we have valid color data
                     if (!fila_color.GetColors().empty()) {
-                        // Convert to storage format
+                        // Convert to storage format. GetColors() is already ordered with the
+                        // primary color first.
                         std::vector<std::string> colors;
                         for (const wxColour& color : fila_color.GetColors()) {
                             colors.push_back(color.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
