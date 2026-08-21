@@ -321,8 +321,10 @@ static bool is_bbl_vendor_config(const DynamicPrintConfig &config_loaded, Preset
 // Returns true when consistent, false on the first size mismatch.
 static bool check_project_config(const DynamicPrintConfig &config_loaded)
 {
+    if(config_loaded.empty()) return true;
+
     auto *nd = config_loaded.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    if (!nd) return false;
+    if (!nd) return true;
 
     const size_t extruder_count = nd->size();
     if (extruder_count <= 1) return true;
