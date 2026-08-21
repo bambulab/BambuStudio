@@ -229,8 +229,11 @@ struct TreeSupportMeshGroupSettings {
     // How tall a branch has to be if it is placed on the model. Prevents small blobs of support. This setting is ignored when a branch is supporting a support roof.
     // minimum: 0, maximum warning: 5
     coord_t                         support_tree_min_height_to_model        { scaled<coord_t>(1.0) };
-    // Tree Support Inital Layer Diameter
-    // Diameter every branch tries to achieve when reaching the buildplate. Improves bed adhesion.
+    // Tree Support Initial Layer Diameter
+    // Plate-foot cap diameter; the cap radius is this value / 2. NOTE: not wired to the
+    // process config in this build - the ctor never assigns it, so it stays at the
+    // hard-coded 7.5mm diameter (cap radius 3.75mm), not a user setting. Branches already
+    // wider than that are not expanded.
     // minimum: 0, maximum warning: 20
     coord_t                         support_tree_bp_diameter                { scaled<coord_t>(7.5) };
     // Tree Support Branch Density
@@ -274,6 +277,8 @@ struct TreeSupportSettings
           support_rests_on_model(! mesh_group_settings.support_material_buildplate_only),
           xy_distance(mesh_group_settings.support_xy_distance),
           xy_min_distance(std::min(mesh_group_settings.support_xy_distance, mesh_group_settings.support_xy_distance_overhang)),
+          // Plate-foot cap radius = support_tree_bp_diameter / 2. That field is not read from
+          // config here, so this is a fixed 3.75mm (7.5mm diameter), not a user setting.
           bp_radius(mesh_group_settings.support_tree_bp_diameter / 2),
           bp_radius_increase_per_layer(std::min(tan(0.7) * layer_height, 0.5 * support_line_width)),
           z_distance_bottom_layers(size_t(round(double(mesh_group_settings.support_bottom_distance) / double(layer_height)))),

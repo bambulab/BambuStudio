@@ -1577,19 +1577,13 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
         }
         radius = support_element_collision_radius(config, current_elem);
 
-        const coord_t foot_radius_increase = std::max(config.bp_radius_increase_per_layer - config.branch_radius_increase_per_layer, 0.0);
-        // Is nearly all of the time 1, but sometimes an increase of 1 could cause the radius to become bigger than recommendedMinRadius,
-        // which could cause the radius to become bigger than precalculated.
-        double planned_foot_increase = std::min(1.0, double(config.recommendedMinRadius(layer_idx - 1) - support_element_radius(config, current_elem)) / foot_radius_increase);
-//FIXME
-        bool increase_bp_foot = planned_foot_increase > 0 && current_elem.to_buildplate;
-//        bool increase_bp_foot = false;
-
-        if (increase_bp_foot && support_element_radius(config, current_elem) >= config.branch_radius && support_element_radius(config, current_elem) >= config.increase_radius_until_radius)
-            if (validWithRadius(config.getRadius(current_elem.effective_radius_height, current_elem.elephant_foot_increases + planned_foot_increase))) {
-                current_elem.elephant_foot_increases += planned_foot_increase;
-                radius = support_element_collision_radius(config, current_elem);
-            }
+        // Plate foot is applied as 2D slices after extrude (append_organic_plate_foot_slices).
+        // Do not grow elephant_foot_increases here: inflating the node radius would also
+        // enlarge self-intersection repair hemispheres into a circular blob.
+        // NOTE: with pathing-time growth removed, elephant_foot_increases now stays 0
+        // everywhere (merge_support_element_states recomputes it back to 0), so the
+        // elephant_foot term in getRadius() is currently inert and kept only for merge
+        // continuity. Removing that dead path is left to a separate cleanup commit.
 
         if (ceil_radius_before != volumes.ceilRadius(radius, settings.use_min_distance)) {
             if (current_elem.to_buildplate)
@@ -1730,16 +1724,6 @@ static void increase_areas_one_layer(
                 // if a guaranteed radius increase is not possible, only increase the slow speed
                 // Ensure that the slow movement distance can not become larger than the fast one.
                 extra_slow_speed += std::min(projected_radius_delta, (config.maximum_move_distance + extra_speed) - (config.maximum_move_distance_slow + extra_slow_speed));
-
-            if (config.layer_start_bp_radius > layer_idx &&
-                config.recommendedMinRadius(layer_idx - 1) < config.getRadius(elem.effective_radius_height + 1, elem.elephant_foot_increases)) {
-                // can guarantee elephant foot radius increase
-                if (ceiled_parent_radius == volumes.ceilRadius(config.getRadius(parent.state.effective_radius_height + 1, parent.state.elephant_foot_increases + 1), parent.state.use_min_xy_dist))
-                    extra_speed += config.bp_radius_increase_per_layer;
-                else
-                    extra_slow_speed += std::min(coord_t(config.bp_radius_increase_per_layer),
-                                                 config.maximum_move_distance - (config.maximum_move_distance_slow + extra_slow_speed));
-            }
 
             const coord_t fast_speed = config.maximum_move_distance + extra_speed;
             const coord_t slow_speed = config.maximum_move_distance_slow + extra_speed + extra_slow_speed;
@@ -5217,6 +5201,84 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 //   storage.support.generated = true;
 }
 
+// Widen the single plate trunk in 2D after the tube is sliced.
+// Extrude still uses the original branch radius, so self-intersection repair hemispheres
+// do not grow. The plate cap radius is config.bp_radius (= support_tree_bp_diameter / 2).
+// NOTE: support_tree_bp_diameter is not read from the process config in this build
+// (TreeSupportMeshGroupSettings' ctor never assigns it), so it stays at the hard-coded
+// 7.5mm diameter, i.e. a fixed 3.75mm cap radius, not a user setting. Trunks already at
+// or above that radius are left unchanged. If the trunk is shorter than the slope needs,
+// the cone simply does not reach the cap.
+//
+// The added circles are only merged with the tube by the downstream union in
+// diff_clipped()/intersection() (non-zero fill), so a cone circle that is smaller
+// than the tube on some layer never carves into it; the foot only widens.
+//
+// The foot slices are clipped by the same getCollision(0, .., min_xy_dist) + bed
+// intersection as the tube itself. Intentional trade-off: near the model the foot keeps
+// only the min-xy gap (not the full support_xy_distance) and may be trimmed to a crescent,
+// and adjacent plate trunks may merge on the bed to favour adhesion.
+static void append_organic_plate_foot_slices(
+    const std::vector<const SupportElement*> &path,
+    const TreeSupportSettings                &config,
+    const LayerIndex                          layer_begin,
+    std::vector<Polygons>                    &slices)
+{
+    if (path.size() < 2 || slices.empty())
+        return;
+    const SupportElement &root = *path.front();
+    if (! root.state.to_buildplate || ! root.state.result_on_layer_is_set())
+        return;
+    const double slope = config.bp_radius_increase_per_layer;
+    if (slope <= 0.)
+        return;
+    const coord_t r_base = support_element_radius(config, root);
+    const coord_t r_cap  = config.bp_radius;
+    // Already as wide as (or wider than) the plate cap (config.bp_radius): no extra flare.
+    if (r_base <= 0 || r_cap <= 0 || r_base >= r_cap)
+        return;
+    // layers_needed only estimates how many layers the cone spans (from r_base up to
+    // r_cap at this slope). It is used as an upper bound for the path index below; the
+    // real interpolation anchor is r0 at el_top, not r_base. If a path element covers
+    // more than one layer the index bound is conservative (cone may be a little shorter),
+    // but organic trunks keep roughly one element per layer.
+    const size_t layers_needed = size_t(std::ceil(double(r_cap - r_base) / slope));
+    if (layers_needed == 0)
+        return;
+    const size_t top = std::min(layers_needed, path.size() - 1);
+    if (top == 0)
+        return;
+
+    // el_top is the top of the cone; r0 is its actual tube radius so the flare blends
+    // into the existing tube instead of stepping. r_plate_target extrapolates r0 down to
+    // the plate at the given slope, capped at the legacy plate radius.
+    const SupportElement &el_top = *path[top];
+    const coord_t         r0     = support_element_radius(config, el_top);
+    const LayerIndex      z0     = root.state.layer_idx;
+    const LayerIndex      z1     = el_top.state.layer_idx;
+    if (z1 <= z0)
+        return;
+    const coord_t r_plate_target = std::min(r_cap, coord_t(std::lround(double(r0) + double(z1 - z0) * slope)));
+    if (r_plate_target <= r_base)
+        return;
+
+    for (size_t k = 0; k <= top; ++ k) {
+        const SupportElement &el = *path[k];
+        if (! el.state.result_on_layer_is_set())
+            continue;
+        const int si = int(el.state.layer_idx) - int(layer_begin);
+        if (si < 0 || si >= int(slices.size()))
+            continue;
+        const double  t      = double(el.state.layer_idx - z0) / double(z1 - z0);
+        const coord_t target = coord_t(std::lround(double(r_plate_target) + t * double(r0 - r_plate_target)));
+        if (target <= 0)
+            continue;
+        Polygon circle = make_circle(target, std::max(double(target) / 100., 1.));
+        circle.translate(el.state.result_on_layer);
+        slices[size_t(si)].emplace_back(std::move(circle));
+    }
+}
+
 // Organic specific: Smooth branches and produce one cummulative mesh to be sliced.
 // Same sagitta as discretize_circle (eps=0.015). nsteps is taken from the full
 // hemisphere radius so every layer of one cap uses an identical vertex count.
@@ -5674,6 +5736,11 @@ void organic_draw_branches(
                             }
                         }
                     }
+
+                    // Plate cone on the single trunk only. Must not change extrude radii.
+                    if (branch.has_root)
+                        append_organic_plate_foot_slices(branch.path, config, layer_begin, slices);
+
                     bottom_contacts.clear();
                     //FIXME parallelize?
                     for (LayerIndex i = 0; i < LayerIndex(slices.size()); ++i) {
