@@ -29,58 +29,58 @@ msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Filament modeli bilinmiyor. Rastgele bir filament ön ayarı kullanılacaktır."
 
 msgid "Main Extruder"
-msgstr ""
+msgstr "Ana Ekstruder"
 
 msgid "Main extruder"
-msgstr ""
+msgstr "Ana ekstruder"
 
 msgid "main extruder"
-msgstr ""
+msgstr "ana ekstruder"
 
 msgid "Auxiliary Extruder"
-msgstr ""
+msgstr "Yardımcı Ekstruder"
 
 msgid "Auxiliary extruder"
-msgstr ""
+msgstr "Yardımcı ekstruder"
 
 msgid "auxiliary extruder"
-msgstr ""
+msgstr "yardımcı ekstruder"
 
 msgid "Left Extruder"
-msgstr "Sol Ekstrüder"
+msgstr "Sol Ekstruder"
 
 msgid "Left extruder"
-msgstr "Sol ekstrüder"
+msgstr "Sol ekstruder"
 
 msgid "left extruder"
 msgstr "sol ekstruder"
 
 msgid "Right Extruder"
-msgstr "Sağ Ekstrüder"
+msgstr "Sağ Ekstruder"
 
 msgid "Right extruder"
-msgstr "Sağ ekstrüder"
+msgstr "Sağ ekstruder"
 
 msgid "right extruder"
 msgstr "sağ ekstruder"
 
 msgid "Main Nozzle"
-msgstr ""
+msgstr "Ana Nozul"
 
 msgid "Main nozzle"
-msgstr ""
+msgstr "Ana nozul"
 
 msgid "main nozzle"
-msgstr ""
+msgstr "ana nozul"
 
 msgid "Auxiliary Nozzle"
-msgstr ""
+msgstr "Yardımcı Nozul"
 
 msgid "Auxiliary nozzle"
-msgstr ""
+msgstr "Yardımcı nozul"
 
 msgid "auxiliary nozzle"
-msgstr ""
+msgstr "yardımcı nozul"
 
 msgid "Left Nozzle"
 msgstr "Sol nozul"
@@ -137,16 +137,16 @@ msgid "right hotend"
 msgstr ""
 
 msgid "main"
-msgstr ""
+msgstr "ana"
 
 msgid "auxiliary"
-msgstr ""
+msgstr "yardımcı"
 
 msgid "Main"
-msgstr ""
+msgstr "Ana"
 
 msgid "Auxiliary"
-msgstr ""
+msgstr "Yardımcı"
 
 msgid "left"
 msgstr "sol"
@@ -170,32 +170,32 @@ msgid "AMS does not support 'Bambu Lab PET-CF'."
 msgstr "AMS, 'Bambu Lab PET-CF'yi desteklemiyor."
 
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
-msgstr ""
+msgstr "Mevcut filament, E3D yüksek akışlı nozulu desteklemiyor ve kullanılamıyor."
 
 #, c-format, boost-format
 msgid "When using %s on the right extruder, it can only be used as support material."
-msgstr ""
+msgstr "Sağ ekstrüderde %s kullanıldığında, yalnızca destek malzemesi olarak kullanılabilir."
 
 msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
-msgstr ""
+msgstr "Mevcut filament TPU yüksek akışlı nozulu desteklemiyor ve kullanılamıyor."
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
-msgstr ""
+msgstr "TPU filament için otomatik dinamik akış kalibrasyonu desteklenmemektedir."
 
 msgid "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
-msgstr ""
+msgstr "Bambu TPU 85A, 0,4 mm Standart veya Yüksek Akışlı nozullarla baskı için desteklenmemektedir."
 
 msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
-msgstr ""
+msgstr "Sağ ekstrüderde ABS/ASA/PETG HF kullanılırken, bu malzeme yalnızca destek malzemesi olarak kullanılabilir."
 
 msgid "How to feed TPU filament."
-msgstr ""
+msgstr "TPU filament nasıl beslenir."
 
 msgid "How to feed TPU filament on X2D."
-msgstr ""
+msgstr "X2D'de TPU filament nasıl beslenir."
 
 msgid "Using non-bambu filament may have printing quality issues."
-msgstr ""
+msgstr "Bambu dışı filament kullanmak baskı kalitesi sorunlarına yol açabilir."
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Tıkanmayı önlemek için TPU'yu yazdırmadan önce lütfen filamenti soğuduktan sonra çekin. Yazıcıda soğuk çekme bakımını kullanabilirsiniz."
@@ -213,26 +213,26 @@ msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF kırılgandır ve Baskı Kafasının üzerindeki bükülmüş PTFE tüp içinde kırılabilir."
 
 msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
-msgstr ""
+msgstr "PLA Glow, AMS birinci kademe besleyiciyi aşındırabilir. Bunun yerine harici bir makara kullanın."
 
 msgid "Default settings may affect print quality. Adjust as needed for best results."
-msgstr ""
+msgstr "Varsayılan ayarlar baskı kalitesini etkileyebilir. En iyi sonuçlar için gerektiği gibi ayarlayın."
 
 #, c-format, boost-format
 msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
-msgstr ""
+msgstr "%s, 0,4 mm yüksek akışlı nozullar kullanıldığında nozul tıkanması riski taşır. Dikkatli kullanın."
 
 #, c-format, boost-format
 msgid "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
-msgstr ""
+msgstr "%s filamentler sert ve kırılgandır ve AMS'de kırılabilir; ayrıca 0,4 mm yüksek akışlı nozullar kullanıldığında nozul tıkanması riski de vardır. Dikkatli kullanın."
 
 #, c-format, boost-format
 msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
-msgstr ""
+msgstr "%s, 0.4, 0.6 ve 0.8 mm yüksek akışlı nozullar kullanıldığında nozul tıkanma riski taşır. Dikkatli kullanın."
 
 #, c-format, boost-format
 msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
-msgstr ""
+msgstr "Filament İzleme Anahtarı nedeniyle %s yükleme veya boşaltma işlemi başarısız olabilir. Devam etmek istiyorsanız."
 
 #, c-format, boost-format
 msgid "%s is not supported by %s extruder."
@@ -240,67 +240,67 @@ msgstr "%s, %s ekstrüder tarafından desteklenmiyor."
 
 #, c-format, boost-format
 msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
-msgstr ""
+msgstr "'%s' Bowden ekstrüderi ile '%s' yazdırırken kritik baskı kalitesi sorunları yaşanabilir. Dikkatli kullanın!"
 
 #, c-format, boost-format
 msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
-msgstr ""
+msgstr "'%s' malzemesini '%s' ekstrüderiyle yazdırırken baskı kalitesinde ciddi sorunlar yaşanabilir. Dikkatli kullanın!"
 
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
-msgstr ""
+msgstr "'%s' Bowden ekstrüderi ile '%s' yazdırırken baskı kalitesi sorunları yaşanabilir. Dikkatli kullanın."
 
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
-msgstr ""
+msgstr "'%s' karakterini '%s' ekstrüderiyle yazdırırken baskı kalitesi sorunları yaşanabilir. Dikkatli kullanın."
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
-msgstr ""
+msgstr "Takım başlığı ve ısıtıcı ucu hareket edebilir. Lütfen ellerinizi hazneye yaklaştırmayın."
 
 msgid "Warning"
 msgstr "Uyarı"
 
 msgid "Hotend information may be inaccurate. Would you like to re-read the hotend? (Hotend information may change during power-off)."
-msgstr ""
+msgstr "Isıtıcı uç bilgileri hatalı olabilir. Isıtıcı uç bilgilerini tekrar okumak ister misiniz? (Isıtıcı uç bilgileri, cihaz kapalıyken değişebilir.)"
 
 msgid "I confirm all"
-msgstr ""
+msgstr "Hepsini onaylıyorum"
 
 msgid "Re-read all"
-msgstr ""
+msgstr "Hepsini tekrar okuyun"
 
 msgid "Reading the hotends, please wait."
-msgstr ""
+msgstr "Hotendler okunuyor, lütfen bekleyin."
 
 msgid "During the hotend upgrade, the toolhead will move. Don't reach into the chamber."
-msgstr ""
+msgstr "Hotend uç yükseltmesi sırasında, takım başlığı hareket edecektir. Haznenin içine elinizi sokmayın."
 
 msgid "Update"
 msgstr "Güncelle"
 
 msgid "High Flow"
-msgstr "Yüksek akış"
+msgstr "Yüksek Akış"
 
 msgid "Standard"
 msgstr "Standart"
 
 msgid "TPU High Flow"
-msgstr ""
+msgstr "TPU Yüksek Akış"
 
 msgid "E3D High Flow"
-msgstr ""
+msgstr "E3D Yüksek Akış"
 
 msgid "Unknown"
 msgstr "Bilinmeyen"
 
 msgid "Hybrid"
-msgstr ""
+msgstr "Hibrit"
 
 msgid "Hardened Steel"
-msgstr "Güçlendirilmiş çelik"
+msgstr "Güçlendirilmiş Çelik"
 
 msgid "Stainless Steel"
-msgstr "Paslanmaz çelik"
+msgstr "Paslanmaz Çelik"
 
 msgid "Tungsten Carbide"
 msgstr "Tungsten Karbür"
@@ -340,32 +340,32 @@ msgid "%d ℃"
 msgstr "%d ℃"
 
 msgid "Filament Inlet A"
-msgstr ""
+msgstr "Filament Girişi A"
 
 msgid "Filament Inlet B"
-msgstr ""
+msgstr "Filament Girişi B"
 
 msgid "Filament Track Switch"
-msgstr ""
+msgstr "Filament Takip Anahtarı"
 
 msgid "Suggested rearrangement"
-msgstr ""
+msgstr "Önerilen yeniden düzenleme"
 
 msgid "How to save time?→"
-msgstr ""
+msgstr "Zaman nasıl tasarruf edilir?→"
 
 msgid "Filament Status:"
-msgstr ""
+msgstr "Filament Durumu:"
 
 msgid "Position adjustment required"
-msgstr ""
+msgstr "Pozisyon ayarlaması gereklidir."
 
 msgctxt "FilamentTrack"
 msgid "OK"
 msgstr ""
 
 msgid "Unused"
-msgstr ""
+msgstr "Kullanılmamış"
 
 msgid "Refresh"
 msgstr "Yenile"
@@ -2323,7 +2323,7 @@ msgid "Export as one STL"
 msgstr "STL olarak dışa aktar"
 
 msgid "Export as STLs"
-msgstr "STLs olarak dışa aktar"
+msgstr "STLler olarak dışa aktar"
 
 msgid "Reload from disk"
 msgstr "Diskten yeniden yükle"
@@ -2822,7 +2822,7 @@ msgid " "
 msgstr " "
 
 msgid "Layer height"
-msgstr "Katman Yüksekliği"
+msgstr "Katman yüksekliği"
 
 msgid "Wall loops"
 msgstr "Duvar döngüleri"
@@ -3951,7 +3951,7 @@ msgid "Import profile only"
 msgstr "Yalnızca profili içe aktar"
 
 msgid "Import model only"
-msgstr "Modeli içe aktar"
+msgstr "Yalnızca modeli içe aktar"
 
 msgid "Accurate"
 msgstr "Doğru"
@@ -4118,7 +4118,7 @@ msgid "Other"
 msgstr "Diğer"
 
 msgid "Filament Manager"
-msgstr ""
+msgstr "Filament Yönetimi"
 
 msgid "In printer"
 msgstr ""
@@ -6039,16 +6039,16 @@ msgid "Preview"
 msgstr "Ön İzleme"
 
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
-msgstr ""
+msgstr "Bu sayfada kaydedilmemiş değişiklikler bulunmaktadır. Düzenlemeye devam edebilir veya ayrılmadan önce kaydetmeyi/silmeyi seçebilirsiniz."
 
 msgid "Home"
-msgstr ""
+msgstr "Ana Sayfa"
 
 msgid "Device"
 msgstr "Yazıcı"
 
 msgid "Multi-device"
-msgstr "Çoklu cihaz"
+msgstr "Çoklu Cihaz"
 
 msgid "Project"
 msgstr "Proje"
@@ -6198,7 +6198,7 @@ msgid "Start a new window"
 msgstr "Yeni pencere"
 
 msgid "New Project"
-msgstr "Yeni proje"
+msgstr "Yeni Proje"
 
 msgid "Start a new project"
 msgstr "Yeni bir proje başlat"
@@ -6213,7 +6213,7 @@ msgid "Save current project to file"
 msgstr "Mevcut projeyi dosyaya kaydet"
 
 msgid "Save Project as"
-msgstr "Projeyi farklı kaydet"
+msgstr "Projeyi Farklı Kaydet"
 
 msgid "Save current project as"
 msgstr "Mevcut projeyi farklı kaydet"
@@ -6273,7 +6273,7 @@ msgid "Export current configuration to files"
 msgstr "Geçerli yapılandırmayı dosyalara aktar"
 
 msgid "Publish to MakerWorld"
-msgstr "MakerWorld'de yayınlayın"
+msgstr "MakerWorld'de Yayınlayın"
 
 msgid "Batch Preset Management"
 msgstr "Toplu Ön Ayar Yönetimi"
@@ -8948,14 +8948,14 @@ msgstr ""
 "Bu özelliği etkinleştirmeye devam ediyor musunuz?"
 
 msgid "Download path"
-msgstr ""
+msgstr "İndirme yolu"
 
 msgid "Choose Download Directory"
 msgstr "İndirme Dizini seçin"
 
 msgctxt "Preference"
 msgid "General"
-msgstr ""
+msgstr "Genel"
 
 msgctxt "Preference"
 msgid "User"
@@ -8967,10 +8967,10 @@ msgstr ""
 
 msgctxt "Preference"
 msgid "Other"
-msgstr ""
+msgstr "Diğer"
 
 msgid "Developer Tools"
-msgstr ""
+msgstr "Geliştirici Araçları"
 
 msgid "General Settings"
 msgstr "Genel Ayarlar"
@@ -9061,16 +9061,16 @@ msgid "Studio will remember build plate selected last time for certain printer m
 msgstr "Studio, belirli yazıcı modeli için en son seçilen yapı plakasını hatırlayacaktır."
 
 msgid "12-hour"
-msgstr ""
+msgstr "12 saat"
 
 msgid "24-hour"
-msgstr ""
+msgstr "24 saat"
 
 msgid "time format for print progress"
-msgstr ""
+msgstr "Yazdırma ilerlemesi için zaman formatı"
 
 msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
+msgstr "Zaman 24 saatlik format yerine 12 saatlik formatta AM/PM belirtilerek gösterilir."
 
 msgid "Keep liveview when printing."
 msgstr "Yazdırırken canlı görünümü koruyun."
@@ -10326,7 +10326,7 @@ msgid "Precision"
 msgstr "Hassasiyet"
 
 msgid "Wall generator"
-msgstr "Duvar Türü"
+msgstr "Duvar türü"
 
 msgid "Walls"
 msgstr "Duvarlar"
@@ -13180,10 +13180,10 @@ msgid "Octagram Spiral"
 msgstr "Sekizgen spiral"
 
 msgid "Top surface density"
-msgstr ""
+msgstr "Üst yüzey yoğunluğu"
 
 msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
-msgstr ""
+msgstr "Üst yüzey dolgu yoğunluğu, %100 tamamen dolu bir üst katman anlamına gelir. Daha düşük değerler dokulu bir üst yüzey oluşturur, %0'da ise üst katmanda yalnızca duvarlar oluşturulur. Estetik veya işlevsel amaçlar için tasarlanmıştır, aşırı ekstrüzyon gibi sorunları gidermek için değildir."
 
 msgid "Monotonic line travel extend"
 msgstr ""
@@ -13198,11 +13198,11 @@ msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Köprü dolgusu değil, alt yüzey dolgusunun çizgi deseni"
 
 msgid "Bottom surface density"
-msgstr ""
+msgstr "Alt yüzey yoğunluğu"
 
 #, c-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
-msgstr ""
+msgstr "Alt yüzey dolgusunun yoğunluğu, %100 tamamen dolu bir üst katman anlamına gelir. Daha düşük değerler dokulu bir alt yüzey oluşturur. Estetik veya işlevsel amaçlar içindir, aşırı ekstrüzyon gibi sorunları gidermek için değildir. UYARI: Bu değeri düşürmek yatak yapışmasını olumsuz etkileyebilir."
 
 msgid "Internal solid infill pattern"
 msgstr "İç dolgu deseni"
@@ -13760,10 +13760,10 @@ msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "İç boş dolgu yoğunluğu, 100 yüz katıdır, yani tamamen doludur"
 
 msgid "Fill multiline"
-msgstr ""
+msgstr "Çoklu satır doldurma"
 
 msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
-msgstr ""
+msgstr "Dolgu deseni tarafından destekleniyorsa, dolgu deseni için birden fazla çizgi kullanılabilir."
 
 msgid "Sparse infill pattern"
 msgstr "Dolgu deseni"
@@ -13874,7 +13874,7 @@ msgid "Jerk of top surface"
 msgstr "Üst yüzey için JERK değeri"
 
 msgid "First layer"
-msgstr "İlk Katman"
+msgstr "İlk katman"
 
 msgid "Jerk of first layer"
 msgstr "İlk katmanın JERK değeri"
@@ -14589,16 +14589,16 @@ msgid "Number of walls of every layer"
 msgstr "Her katmanın duvar sayısı"
 
 msgid "Embedding the wall into the infill"
-msgstr ""
+msgstr "Duvarı dolgu malzemesine göm"
 
 msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
-msgstr ""
+msgstr "Duvarın, duvar kıvrımlarının bulunmadığı kısımlara gömülmesi, duvarın dolgu malzemesine kusursuz bir şekilde bağlanmasını sağlar."
 
 msgid "Alternate extra wall"
-msgstr ""
+msgstr "Alternatif ek duvar"
 
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
-msgstr ""
+msgstr "Katmanlar arası bağlantıyı ve parça mukavemetini artırmak için, kalıcı bir ek duvarın tam maliyetine katlanmadan, alternatif katmanlara ek bir duvar ekleyin."
 
 msgid "Post-processing Scripts"
 msgstr "İşlem Sonrası Komut Dosyaları"
@@ -15247,13 +15247,13 @@ msgid "The number of top solid layers is increased when slicing if the thickness
 msgstr "Üst kabuk katmanları tarafından hesaplanan kalınlık bu değerden daha ince ise dilimleme sırasında üst katı katmanların sayısı artırılır. Bu, katman yüksekliği küçük olduğunda kabuğun çok ince olmasını önleyebilir. 0, bu ayarın devre dışı olduğu ve üst kabuğun kalınlığının kesinlikle üst kabuk katmanları tarafından belirlendiği anlamına gelir"
 
 msgid "Top paint penetration layers"
-msgstr "Üst yüzey deki kaplama katmanları"
+msgstr "Üst yüzeydeki kaplama katmanları"
 
 msgid "This is  the number of layers of top paint penetration."
-msgstr "Bu,   üst yüzey deki kaplama katmanlarının sayısıdır."
+msgstr "Bu,   üst yüzeydeki kaplama katmanlarının sayısıdır."
 
 msgid "Bottom paint penetration layers"
-msgstr "Alt yüzey deki kaplama katmanları"
+msgstr "Alt yüzeydeki kaplama katmanları"
 
 msgid "This is the number of layers of bottom paint penetration."
 msgstr ""
@@ -15292,7 +15292,7 @@ msgid "Describe how long the nozzle will move along the last path when retractin
 msgstr "Nozulun geri çekilirken son yol boyunca ne kadar süre hareket edeceğini tanımlayın"
 
 msgid "Mixed color sublayer"
-msgstr ""
+msgstr "Karışık renkli alt katman"
 
 msgid "Enable mixed color sublayer splitting. When enabled, layers containing mixed color filaments will be split into sub-layers to achieve color mixing effects."
 msgstr ""
@@ -15732,7 +15732,7 @@ msgid "Flow Dynamics"
 msgstr "Akış Dinamiği"
 
 msgid "Flow Rate"
-msgstr "Akış hızı"
+msgstr "Akış Hızı"
 
 msgid "The name cannot be empty."
 msgstr "Ad boş olamaz."
@@ -19088,7 +19088,7 @@ msgstr ""
 #~ msgstr "Arayüz çizgilerinin aralığı. Sıfır, sağlam arayüz anlamına gelir"
 
 #~ msgid "This is  the number of layers of top bottom penetration."
-#~ msgstr "Bu,   alt yüzey deki kaplama katmanlarının sayısıdır."
+#~ msgstr "Bu,   alt yüzeydeki kaplama katmanlarının sayısıdır."
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"
