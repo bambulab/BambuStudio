@@ -5,6 +5,7 @@
 #include "slic3r/GUI/GUI_App.hpp"
 
 #include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "slic3r/GUI/DeviceCore/DevHMSQuery.h"
 
 namespace Slic3r {
 namespace GUI {
@@ -119,7 +120,7 @@ void BindJob::process()
             try
             {
                 error_code = stoi(result_info);
-                wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(m_dev_id, error_code);
+                wxString error_msg = wxGetApp().get_hms_query_mgr()->query_error(m_dev_id, error_code).text;
                 result_info = error_msg.ToStdString();
             }
             catch (...) {

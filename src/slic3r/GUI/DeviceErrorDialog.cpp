@@ -235,40 +235,82 @@ wxString DeviceErrorDialog::parse_error_level(int error_code)
 }
 
 static const std::unordered_set<string> s_jump_liveview_error_codes = { "0300-8003", "0300-8002", "0300-800A"};
-wxString DeviceErrorDialog::show_error_code(int error_code)
+
+void DeviceErrorDialog::apply_result(const HMSResult& r)
 {
-    if (m_error_code == error_code) { return wxEmptyString;}
-    if (wxGetApp().get_hms_query()->is_internal_error(m_obj, error_code)) { return wxEmptyString;}
+    const std::string error_str   = m_obj->get_error_code_str(m_error_code);
+    const wxString    error_level = parse_error_level(m_error_code);
 
-    /* error code str*/
-    std::string error_str = m_obj->get_error_code_str(error_code);
-    m_error_code = error_code;
+    wxString error_msg = r.text;
+    if (r.status == HMSStatus::Loading)      error_msg = _L("Loading error details ...");
+    else if (r.status == HMSStatus::Failed)  error_msg = _L("Unable to load error details.");
+    else if (error_msg.IsEmpty())            error_msg = _L("Unknown error.");
 
-    /* error code message*/
-    wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(m_obj, error_code);
-    if (error_msg.IsEmpty()) { error_msg = _L("Unknown error.");}
-
-    /* parse error level */
-    wxString error_level = parse_error_level(error_code);
-
-    /* error_str is old error code*/
     if (message_containing_retry.count(error_str)) {
-        /* convert old error code to pseudo buttons*/
         std::vector<int> pseudo_button = convert_to_pseudo_buttons(error_str);
-
-        /* do update*/
         update_contents(error_level, error_msg, error_str, wxEmptyString, pseudo_button);
     } else {
-        /* action buttons*/
         std::vector<int> used_button;
-        wxString         error_image_url = wxGetApp().get_hms_query()->query_print_image_action(m_obj, error_code, used_button);
+        wxString         error_image_url;
+        if (r.status == HMSStatus::Ready) {
+            HMSResult action    = wxGetApp().get_hms_query_mgr()->query_action(m_obj->get_dev_id(), m_error_code);
+            used_button         = action.actions;
+            error_image_url     = action.image_url;
+        }
         if (s_jump_liveview_error_codes.count(error_str)) { used_button.emplace_back(DeviceErrorDialog::JUMP_TO_LIVEVIEW); } // special case
-
-        /* do update*/
         update_contents(error_level, error_msg, error_str, error_image_url, used_button);
     }
 
     wxGetApp().UpdateDlgDarkUI(this);
+}
+
+void DeviceErrorDialog::apply_loading()
+{
+    const std::string error_str = m_obj->get_error_code_str(m_error_code);
+    const wxString    show_time = wxDateTime::Now().Format("%H%M%d");
+
+    m_error_code_label->SetMaxSize(wxSize(FromDIP(300), -1));
+    m_error_code_label->SetMinSize(wxSize(FromDIP(300), -1));
+    m_error_code_label->SetLabelText(wxString::Format("[%S %S]", wxString::FromUTF8(error_str), show_time));
+
+    m_error_msg_label->SetMaxSize(wxSize(FromDIP(300), -1));
+    m_error_msg_label->SetMinSize(wxSize(FromDIP(300), -1));
+    m_error_msg_label->SetLabelText(_L("Loading error details ..."));
+
+    SetTitle(parse_error_level(m_error_code));
+
+    const bool reserve_image = m_obj && !m_obj->m_print_error_img_id.empty();
+    if (m_error_picture) {
+        if (reserve_image) {
+            m_error_picture->SetBitmap(get_default_loading_image());
+            m_error_picture->Show();
+        } else {
+            m_error_picture->Hide();
+        }
+    }
+
+    m_scroll_area->Layout();
+    const int text_h = m_error_msg_label->GetBestSize().y;
+    if (text_h < FromDIP(360)) {
+        const int extra = reserve_image ? FromDIP(220) : FromDIP(50);
+        m_scroll_area->SetMinSize(wxSize(FromDIP(320), text_h + extra));
+    } else {
+        m_scroll_area->SetMinSize(wxSize(FromDIP(320), FromDIP(340)));
+    }
+
+    Layout();
+    Fit();
+}
+
+void DeviceErrorDialog::handle_hms_result(const HMSResult& r)
+{
+    if (r.status == HMSStatus::Ready && r.is_internal) { Close(); return; }
+
+    if (r.status == HMSStatus::Loading)
+        apply_loading();
+    else
+        apply_result(r);
+
     Show();
     Raise();
 
@@ -277,8 +319,22 @@ wxString DeviceErrorDialog::show_error_code(int error_code)
 #endif
 
     this->RequestUserAttention(wxUSER_ATTENTION_ERROR);
+}
 
-    return error_msg;
+wxString DeviceErrorDialog::show_error_code(int error_code)
+{
+    if (m_error_code == error_code) { return wxEmptyString; }
+    m_error_code = error_code;
+
+    HMSResult r = wxGetApp().get_hms_query_mgr()->query_error(
+        m_obj->get_dev_id(), error_code, [this](const HMSResult& r) { handle_hms_result(r); }, m_hms_sub);
+
+    // fail-open: suppress only a KNOWN internal error (Ready). m_hms_sub is empty here, so
+    // nothing is subscribed and the dialog is never shown.
+    if (r.status == HMSStatus::Ready && r.is_internal) { return wxEmptyString; }
+
+    handle_hms_result(r);
+    return r.text;
 }
 
 std::vector<int> DeviceErrorDialog::convert_to_pseudo_buttons(std::string error_str)
@@ -409,7 +465,7 @@ bool DeviceErrorDialog::get_fail_snapshot_from_local(const wxString& image_url)
         return false;
     }
 
-    const wxImage& img = wxGetApp().get_hms_query()->query_image_from_local(image_url);
+    const wxImage& img = wxGetApp().get_hms_query_mgr()->query_image_from_local(image_url);
     if (!img.IsOk() && image_url.Contains("http"))
     {
         web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);

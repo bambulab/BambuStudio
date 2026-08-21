@@ -95,7 +95,7 @@ class ParamsPanel;
 class NotificationManager;
 struct GUI_InitParams;
 class ParamsDialog;
-class HMSQuery;
+class HMSQueryMgr;
 class ModelMallDialog;
 class PingCodeBindDialog;
 class NetworkErrorDialog;
@@ -360,7 +360,7 @@ private:
     VersionInfo version_info;
     VersionInfo privacy_version_info;
     static std::string version_display;
-    HMSQuery    *hms_query { nullptr };
+    HMSQueryMgr *hms_query_mgr { nullptr };
     FilamentColorCodeQuery* m_filament_color_code_query{ nullptr };
 
     boost::thread    m_sync_update_thread;
@@ -425,7 +425,7 @@ public:
                              const std::string& title,
                              const std::string& summary,
                              const nlohmann::json& detail = nlohmann::json::object());
-    HMSQuery* get_hms_query() { return hms_query; }
+    HMSQueryMgr* get_hms_query_mgr() { return hms_query_mgr; }
     NetworkAgent* getAgent() { return m_agent; }
     FilamentColorCodeQuery* get_filament_color_code_query();
     bool is_editor() const { return m_app_mode == EAppMode::Editor; }
