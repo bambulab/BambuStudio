@@ -2301,8 +2301,19 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (cut_object_info != m_cut_object_infos.end()) {
                 model_object->cut_id = cut_object_info->second.id;
 
-                for (auto connector : cut_object_info->second.connectors) {
-                    assert(0 <= connector.volume_id && connector.volume_id <= int(model_object->volumes.size()));
+                for (const auto &connector : cut_object_info->second.connectors) {
+                    // volume_id and type come straight out of Metadata/cut_information.xml, i.e. from
+                    // untrusted file content. They must be range-checked before use: assert() is compiled
+                    // out in release builds, so a crafted or corrupted 3MF would index ModelObject::volumes
+                    // out of bounds and write a CutInfo through the resulting garbage pointer.
+                    if (connector.volume_id < 0 || connector.volume_id >= int(model_object->volumes.size())) {
+                        add_error("Invalid cut connector volume_id " + std::to_string(connector.volume_id));
+                        continue;
+                    }
+                    if (connector.type < 0 || connector.type > int(CutConnectorType::Undef)) {
+                        add_error("Invalid cut connector type " + std::to_string(connector.type));
+                        continue;
+                    }
                     model_object->volumes[connector.volume_id]->cut_info =
                         ModelVolume::CutInfo(CutConnectorType(connector.type), connector.radius, connector.height, connector.r_tolerance, connector.h_tolerance, true);
                 }
