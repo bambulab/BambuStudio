@@ -320,5 +320,22 @@
   "Print failed": "打印失败",
   "Printing": "打印中",
   "Task list": "任务列表",
-  "View details": "查看详情"
+  "View details": "查看详情",
+  "Associated AMS slots: {{count}}": "关联 AMS 槽位：{{count}}",
+  "Batch pull back the filaments": "批量抽回耗材",
+  "Check filament location": "检查耗材位置",
+  "Cut filament": "切断耗材",
+  "Grab new filament": "咬入耗材",
+  "Heat the nozzle": "加热热端",
+  "Idling...": "空闲...",
+  "Pause": "暂停",
+  "Pull back current filament": "抽回耗材",
+  "Pull back current filament at Filament Track Switch": "退变轨器处当前使用料",
+  "Purge old filament": "冲刷旧耗材",
+  "Push new filament into extruder": "送出新耗材到挤出机",
+  "Switch current filament at Filament Track Switch": "切换变轨器的当前耗材",
+  "Switch extruder": "切换挤出机",
+  "Switch hotend": "切换热端",
+  "Switch track at Filament Track Switch": "变轨器开关切换",
+  "Wait for AMS cooling": "等待 AMS 冷却"
 }

@@ -1,16 +1,19 @@
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import type { AmsFilamentHotendSlotViewModel, FilamentPageMode } from '../types';
 
 // Mode-specific commit-action labels. The Web side does not know the
 // underlying machine command — it just labels the button per mode and
 // relays the click + selected-slot list to C++ which dispatches the
-// matching MQTT command.
-const COMMIT_LABEL: Record<FilamentPageMode, string> = {
-  normal: '',
-  batch_ams_load: 'Auto Load',
-  batch_ext_load: 'Load External Spool',
-  batch_unload: 'Unload',
-};
+// matching MQTT command. Literal t() so i18next-parser can extract keys.
+function batchCommitLabel(mode: FilamentPageMode, t: TFunction): string {
+  switch (mode) {
+    case 'batch_ams_load': return t('Auto Load');
+    case 'batch_ext_load': return t('Load External Spool');
+    case 'batch_unload': return t('Unload');
+    default: return t('Confirm');
+  }
+}
 
 export function BatchModeFooter({
   mode,
@@ -46,7 +49,7 @@ export function BatchModeFooter({
   const canCommit = selectedCount > 0;
   const showEdit = mode === 'batch_ext_load' || mode === 'batch_ams_load';
 
-  const commitLabel = t(COMMIT_LABEL[mode] || 'Confirm');
+  const commitLabel = batchCommitLabel(mode, t);
 
   return (
     <footer

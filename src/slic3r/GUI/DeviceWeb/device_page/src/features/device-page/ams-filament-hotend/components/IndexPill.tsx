@@ -24,11 +24,11 @@ export function IndexPill({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
           data-testid={`ams-hotend-slot-ext-${slot.display_index}`}
           title={t('External spool')}
         >
-          {t('Ext')}
+          {'Ext'}
         </span>
       )}
       {bindCount > 0 && (
-        <span className="ams-bind-badge" title={`Associated AMS slots: ${bindCount}`}>
+        <span className="ams-bind-badge" title={t('Associated AMS slots: {{count}}', { count: bindCount })}>
           <AmsBindIcon />
           <span>+{bindCount}</span>
         </span>

@@ -12,12 +12,14 @@ const STEP_PULL_CURR_FILAMENT = 0x04;
 const STEP_PUSH_NEW_FILAMENT = 0x05;
 const STEP_GRAB_NEW_FILAMENT = 0x06;
 const STEP_PURGE_OLD_FILAMENT = 0x07;
+const STEP_CHECK_POSITION = 0x08;
 const STEP_SWITCH_EXTRUDER = 0x09;
 const STEP_SWITCH_HOTEND = 0x0A;
 const STEP_AMS_FILA_COOLING = 0x0B;
 const STEP_PUSH_SWITCHER_FILA = 0x0C;
 const STEP_PULL_SWITCHER_FILA = 0x0D;
 const STEP_SWITCHER_SWITCH = 0x0E;
+const STEP_BATCH_PULL_FILA = 0x0F;
 
 const MANUAL_CARD_STEP_STYLES = new Set(['manual_load', 'maunal_unload']);
 
@@ -29,24 +31,29 @@ interface DisplayStep {
   step_text?: string;
 }
 
-// Step label keys in English; resolved via t() at render time so the
-// i18next instance is guaranteed to be initialized.
-const STEP_LABEL_KEYS: Record<number, string> = {
-  [STEP_IDLE]: 'Idle',
-  [STEP_PAUSE]: 'Paused',
-  [STEP_HEAT_NOZZLE]: 'Heating nozzle',
-  [STEP_CUT_FILAMENT]: 'Cutting filament',
-  [STEP_PULL_CURR_FILAMENT]: 'Manually retract filament',
-  [STEP_PUSH_NEW_FILAMENT]: 'Pushing new filament to extruder',
-  [STEP_GRAB_NEW_FILAMENT]: 'Grabbing new filament',
-  [STEP_PURGE_OLD_FILAMENT]: 'Purging old filament',
-  [STEP_SWITCH_EXTRUDER]: 'Switching extruder',
-  [STEP_SWITCH_HOTEND]: 'Switching hotend',
-  [STEP_AMS_FILA_COOLING]: 'Waiting for AMS to cool down',
-  [STEP_PUSH_SWITCHER_FILA]: 'Pushing filament to switcher',
-  [STEP_PULL_SWITCHER_FILA]: 'Retracting filament from switcher',
-  [STEP_SWITCHER_SWITCH]: 'Switching filament track',
-};
+// Literal t() calls so i18next-parser can extract keys. Copy matches
+// C++ filament_step_label() / gettext catalog.
+function filamentStepLabel(stepId: number, t: TFunction): string {
+  switch (stepId) {
+    case STEP_IDLE: return t('Idling...');
+    case STEP_PAUSE: return t('Pause');
+    case STEP_HEAT_NOZZLE: return t('Heat the nozzle');
+    case STEP_CUT_FILAMENT: return t('Cut filament');
+    case STEP_PULL_CURR_FILAMENT: return t('Pull back current filament');
+    case STEP_PUSH_NEW_FILAMENT: return t('Push new filament into extruder');
+    case STEP_GRAB_NEW_FILAMENT: return t('Grab new filament');
+    case STEP_PURGE_OLD_FILAMENT: return t('Purge old filament');
+    case STEP_CHECK_POSITION: return t('Check filament location');
+    case STEP_SWITCH_EXTRUDER: return t('Switch extruder');
+    case STEP_SWITCH_HOTEND: return t('Switch hotend');
+    case STEP_AMS_FILA_COOLING: return t('Wait for AMS cooling');
+    case STEP_PUSH_SWITCHER_FILA: return t('Switch current filament at Filament Track Switch');
+    case STEP_PULL_SWITCHER_FILA: return t('Pull back current filament at Filament Track Switch');
+    case STEP_SWITCHER_SWITCH: return t('Switch track at Filament Track Switch');
+    case STEP_BATCH_PULL_FILA: return t('Batch pull back the filaments');
+    default: return '';
+  }
+}
 
 function operationText(t: TFunction, _operation?: FilamentChangeStatus['operation'] | 'load' | 'unload') {
   // Data layer uses unified `change` semantics; UI label is the same regardless.
@@ -73,10 +80,9 @@ function resolveSteps(t: TFunction, status: FilamentChangeStatus): DisplayStep[]
     const stepStyle = typeof step === 'number' ? undefined : step.step_style;
     const stepStyleText = typeof step === 'number' ? undefined : step.step_style_text;
     const stepText = typeof step === 'number' ? undefined : step.step_text;
-    const key = STEP_LABEL_KEYS[stepId];
     return {
       id: stepId,
-      label: (key ? t(key) : '')
+      label: filamentStepLabel(stepId, t)
         || status.step_labels?.[index]
         || stepLabel
         || (stepId === status.current_step ? status.current_step_name : '')
