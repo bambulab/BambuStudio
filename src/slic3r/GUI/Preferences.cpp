@@ -510,6 +510,11 @@ wxBoxSizer *PreferencesDialog::create_item_region_combobox(wxString title, wxWin
 
     combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this, combobox, current_region, local_regions](wxCommandEvent &e) {
         auto region_index = e.GetSelection();
+        if (region_index == current_region) {
+            // Re-selecting the region already in use: no change, do not prompt/log out.
+            e.Skip();
+            return;
+        }
         auto region       = local_regions[region_index];
 
         combobox->SetSelection(region_index);
