@@ -380,6 +380,21 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_POLISH)) {
             language_name = wxString::FromUTF8("Polski");
         }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_THAI)) {
+            language_name = wxString::FromUTF8("\xE0\xB9\x84\xE0\xB8\x97\xE0\xB8\xA2"); // ไทย
+        }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_ROMANIAN)) {
+            language_name = wxString::FromUTF8("Rom\xC3\xA2n\xC4\x83"); // Română
+        }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_GREEK)) {
+            language_name = wxString::FromUTF8("\xCE\x95\xCE\xBB\xCE\xBB\xCE\xB7\xCE\xBD\xCE\xB9\xCE\xBA\xCE\xAC"); // Ελληνικά
+        }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_INDONESIAN)) {
+            language_name = wxString::FromUTF8("Bahasa Indonesia");
+        }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_VIETNAMESE)) {
+            language_name = wxString::FromUTF8("Ti\xE1\xBA\xBFng Vi\xE1\xBB\x87t"); // Tiếng Việt
+        }
 
         if (language == vlist[i]->CanonicalName) {
             m_current_language_selected = i;
