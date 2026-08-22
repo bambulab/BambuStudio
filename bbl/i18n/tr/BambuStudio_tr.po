@@ -375,10 +375,10 @@ msgstr "Kapat"
 
 #, c-format, boost-format
 msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
-msgstr ""
+msgstr "Aşağıdaki şemaya göre, en iyi sonuçları elde etmek ve yaklaşık %s tasarruf sağlamak için yazıcı üzerindeki filamentleri yeniden düzenleyin."
 
 msgid "Summary:"
-msgstr ""
+msgstr "Özet"
 
 msgid "AMS on Filament Inlet A"
 msgstr ""
@@ -388,13 +388,13 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
-msgstr ""
+msgstr "'%d' numaralı dilimleme filamenti '%s' ile eşleştirilmiştir. Bunu '%s'ye atamak baskı süresinden tasarruf sağlayabilir."
 
 msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
-msgstr ""
+msgstr "*İpucu: Makinedeki makara konumunu değiştirdiyseniz, lütfen bu sayfayı kapatın ve filamenti yeniden eşleştirin."
 
 msgid "Summary: This is currently the most suitable position for placement."
-msgstr ""
+msgstr "Özet: Şu anda yerleştirme için en uygun pozisyon budur."
 
 msgid "?"
 msgstr "?"
@@ -412,13 +412,13 @@ msgid "Latest version"
 msgstr "Son sürüm"
 
 msgid "Row A"
-msgstr ""
+msgstr "Satır A"
 
 msgid "Row B"
-msgstr ""
+msgstr "Satır B"
 
 msgid "Toolhead"
-msgstr ""
+msgstr "Takım başlığı"
 
 msgid "Empty"
 msgstr "Boş"
@@ -433,40 +433,40 @@ msgid "Hotends Info"
 msgstr ""
 
 msgid "Read All"
-msgstr ""
+msgstr "Hepsini Oku"
 
 msgid "Reading "
-msgstr ""
+msgstr "Okunuyor "
 
 msgid "Please wait"
-msgstr ""
+msgstr "Lütfen bekleyin"
 
 msgid "Reading"
-msgstr ""
+msgstr "Okunuyor"
 
 msgid "Running..."
-msgstr ""
+msgstr "Çalışıyor..."
 
 msgid "Raised"
 msgstr ""
 
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
-msgstr ""
+msgstr "Isıtıcı uç anormal bir durumda ve şu anda kullanılamıyor. Lütfen aygıt yazılımını güncellemek için 'Cihaz -> Yükselt' bölümüne gidin."
 
 msgid "Abnormal Hotend"
-msgstr ""
+msgstr "Anormal Hotend"
 
 msgid "Cancel"
 msgstr "İptal"
 
 msgid "Jump to the upgrade page"
-msgstr ""
+msgstr "Güncelleme sayfasına git"
 
 msgid "Refreshing"
 msgstr "Yenileniyor"
 
 msgid "Hotend status abnormal, unavailable at present. Please upgrade the firmware and try again."
-msgstr ""
+msgstr "Hotend durumu anormal, şu anda kullanılamıyor. Lütfen cihaz yazılımını güncelleyip tekrar deneyin."
 
 msgid "SN"
 msgstr "SN"
@@ -476,22 +476,22 @@ msgstr "Sürüm"
 
 #, c-format, boost-format
 msgid "Used Time: %s"
-msgstr ""
+msgstr "Kullanılan Süre: %s"
 
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
-msgstr ""
+msgstr "Dinamik nozullar mevcut plakaya atandı. Hotend seçimi desteklenmemektedir."
 
 msgid "Hotend Rack"
-msgstr ""
+msgstr "Hotend Rafı"
 
 msgid "ToolHead"
-msgstr ""
+msgstr "Alet Başlığı"
 
 msgid "Nozzle information needs to be read"
-msgstr ""
+msgstr "Nozul bilgilerinin okunması gerekiyor"
 
 msgid "Note:"
-msgstr ""
+msgstr "Note:"
 
 msgid "Supports Painting"
 msgstr "Destek Boyama"
@@ -752,16 +752,16 @@ msgid "Fixed step drag"
 msgstr "Sabit adım sürükle"
 
 msgid "Keep holding down Ctrl"
-msgstr ""
+msgstr "Ctrl tuşunu basılı tutmaya devam edin"
 
 msgid "Select multiple objects"
 msgstr "Birden fazla nesne seç"
 
 msgid "Keep holding down Alt"
-msgstr ""
+msgstr "Alt tuşunu basılı tutmaya devam edin"
 
 msgid "Select multiple parts"
-msgstr ""
+msgstr "Çoklu parça seç"
 
 msgid "Single sided scaling"
 msgstr "Tek taraflı ölçeklendirme"
@@ -806,16 +806,16 @@ msgid "World coordinates"
 msgstr "Dünya koordinatları"
 
 msgid "Align selected"
-msgstr ""
+msgstr "Seçilenleri hizala"
 
 msgid "Translate(Relative)"
 msgstr "Çevir(Göreceli)"
 
 msgid "Align Object"
-msgstr ""
+msgstr "Objeleri Hizala"
 
 msgid "Align Plate"
-msgstr ""
+msgstr "Tablayı Hizala"
 
 msgid "Align top-bottom center"
 msgstr ""
@@ -2894,7 +2894,7 @@ msgid "Custom G-code:"
 msgstr "Özel G kodu:"
 
 msgid "Toggle path view to current layer/all layers"
-msgstr ""
+msgstr "Geçerli katman/tüm katmanlar için yol görünümünü aç/kapat"
 
 msgid "Custom G-code"
 msgstr "Özel G kodu"
@@ -3584,76 +3584,76 @@ msgid "Apply the final assembly pose to the currently selected object or part(if
 msgstr ""
 
 msgid "Automatically explode objects that are new to this step. Objects already assembled in earlier steps stay together."
-msgstr ""
+msgstr "Bu adımda yeni olan nesneler otomatik olarak patlar. Daha önceki adımlarda bir araya getirilmiş nesneler bir arada kalır."
 
 msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
-msgstr ""
+msgstr "Yeni parçalar otomatik olarak patlatılır. Önceki adımlarda devralınan veya zaten bir araya getirilmiş nesneler tek bir bütün olarak kalır."
 
 msgid "Apply current camera angle to all frames of the current step"
-msgstr ""
+msgstr "Geçerli kamera açısını, geçerli adımın tüm karelerine uygulayın"
 
 msgid "Add keyframe"
-msgstr ""
+msgstr "Anahtar kare ekle"
 
 msgid "Click to select this frame"
-msgstr ""
+msgstr "Bu kareyi seçmek için tıklayın"
 
 msgid "Save update"
-msgstr ""
+msgstr "GÜncellemeyi kaydet"
 
 msgid "Save current frame"
-msgstr ""
+msgstr "Mevcut kareyi kaydet"
 
 msgid "Assembly tree"
-msgstr ""
+msgstr "Montaj ağacı"
 
 msgid "Search"
 msgstr "Ara"
 
 msgid "Expand all objects"
-msgstr ""
+msgstr "Tüm nesneleri genişlet"
 
 msgid "Collapse all objects"
-msgstr ""
+msgstr "Tüm nesneleri daralt"
 
 msgid "List"
-msgstr ""
+msgstr "Liste"
 
 msgid "Assembly list"
-msgstr ""
+msgstr "Montaj Listesi"
 
 msgid "Show all objects"
-msgstr ""
+msgstr "Tüm nesneleri göster"
 
 msgid "Show unassembled only"
-msgstr ""
+msgstr "Sadece montajlanmamışları göster"
 
 msgid "Object name"
 msgstr "Nesne adı"
 
 msgid "Select all parts in a step"
-msgstr ""
+msgstr "Bir adımda tüm parçaları seç"
 
 msgid "Red"
-msgstr ""
+msgstr "Kırmızı"
 
 msgid "Orange"
-msgstr ""
+msgstr "Turuncu"
 
 msgid "Green"
-msgstr ""
+msgstr "Yeşil"
 
 msgid "Blue"
-msgstr ""
+msgstr "Mavi"
 
 msgid "Black"
-msgstr ""
+msgstr "Siyah"
 
 msgid "Grey"
-msgstr ""
+msgstr "Gri"
 
 msgid "White"
-msgstr ""
+msgstr "Beyaz"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -3718,7 +3718,7 @@ msgid "Filling"
 msgstr "Dolduruluyor"
 
 msgid "Bed filling aborted: invalid bed shape."
-msgstr ""
+msgstr "Yatak doldurma işlemi iptal edildi: geçersiz yatak şekli."
 
 msgid "Bed filling canceled."
 msgstr "Yatak dolumu iptal edildi."
@@ -4121,34 +4121,34 @@ msgid "Filament Manager"
 msgstr ""
 
 msgid "In printer"
-msgstr ""
+msgstr "Yazıcıda"
 
 #, c-format, boost-format
 msgid "In printer: %s"
-msgstr ""
+msgstr "Yazıcıda: %s"
 
 msgctxt "Filament Manager"
 msgid "Note"
-msgstr ""
+msgstr "Not"
 
 msgid "Unsupported Filaments"
-msgstr ""
+msgstr "Desteklenmeyen Filamentler"
 
 msgctxt "Unsupported Filaments"
 msgid "Note"
-msgstr ""
+msgstr "Not"
 
 msgid "No unsupported filaments"
-msgstr ""
+msgstr "Desteklenmeyen filamentler yok"
 
 msgid "No filaments"
-msgstr ""
+msgstr "Filament yok"
 
 msgid "System presets"
 msgstr "Sistem ön ayarları"
 
 msgid "Recently used"
-msgstr ""
+msgstr "En son kullanılan "
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4488,7 +4488,7 @@ msgid "Save Project"
 msgstr "Projeyi Kaydet"
 
 msgid "Undo"
-msgstr "Geri al"
+msgstr "Geri Al"
 
 msgid "Redo"
 msgstr "İleri Al"
@@ -5400,7 +5400,7 @@ msgid "Volumetric flow rate (mm³/s)"
 msgstr "Hacimsel akış hızı (mm³/s)"
 
 msgid "Nozzles"
-msgstr ""
+msgstr "Nozullar"
 
 msgid "Travel"
 msgstr "Seyahat"
@@ -5436,7 +5436,7 @@ msgid "Filament change times"
 msgstr "Filament değişim süreleri"
 
 msgid "View Summary"
-msgstr ""
+msgstr "Özeti görüntüle"
 
 msgid "Color change"
 msgstr "Renk değişimi"
@@ -5754,13 +5754,13 @@ msgid "Click to Collapse"
 msgstr "Daraltmak için Tıklayın"
 
 msgid "Overview"
-msgstr ""
+msgstr "Genel bakış"
 
 msgid "Select Plate"
 msgstr "Plaka Seç"
 
 msgid "Change camera perspective"
-msgstr ""
+msgstr "Kamera perspektifini değiştir"
 
 #, boost-format
 msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
@@ -5768,19 +5768,19 @@ msgstr ""
 
 msgctxt "Camera"
 msgid "Top"
-msgstr ""
+msgstr "Yukarı"
 
 msgctxt "Camera"
 msgid "Bottom"
-msgstr ""
+msgstr "Aşağı"
 
 msgctxt "Camera"
 msgid "Front"
-msgstr ""
+msgstr "Ön"
 
 msgctxt "Camera"
 msgid "Back"
-msgstr ""
+msgstr "Arka"
 
 msgctxt "Camera"
 msgid "Isometric"
@@ -6158,23 +6158,23 @@ msgid "Download Models"
 msgstr "Modelleri İndir"
 
 msgid "Default View"
-msgstr "Varsayılan görünüm"
+msgstr "Varsayılan Görünüm"
 
 msgid "Top View"
-msgstr "Üstten görünüm"
+msgstr "Üstten Görünüm"
 
 #. TRN To be shown in the main menu View->Bottom
 msgid "Bottom"
 msgstr "Alt"
 
 msgid "Bottom View"
-msgstr "Alttan görünüm"
+msgstr "Alttan Görünüm"
 
 msgid "Front"
 msgstr "Ön"
 
 msgid "Front View"
-msgstr "Önden görünüm"
+msgstr "Önden Görünüm"
 
 msgid "Rear"
 msgstr "Arka"
@@ -6192,13 +6192,13 @@ msgid "Isometric View"
 msgstr "İzometrik Görünüm"
 
 msgid "Fit Camera"
-msgstr ""
+msgstr "Kamerayı Sığdır"
 
 msgid "Start a new window"
-msgstr "Yeni pencere"
+msgstr "Yeni bir pencere başlat"
 
 msgid "New Project"
-msgstr "Yeni proje"
+msgstr "Yeni Proje"
 
 msgid "Start a new project"
 msgstr "Yeni bir proje başlat"
@@ -6213,16 +6213,16 @@ msgid "Save current project to file"
 msgstr "Mevcut projeyi dosyaya kaydet"
 
 msgid "Save Project as"
-msgstr "Projeyi farklı kaydet"
+msgstr "Projeyi Farklı Kaydet"
 
 msgid "Save current project as"
 msgstr "Mevcut projeyi farklı kaydet"
 
 msgid "Show Project in Folder"
-msgstr ""
+msgstr "Projeyi Klasörde Göster"
 
 msgid "Show current project in folder"
-msgstr ""
+msgstr "Mevcut projeyi klasörde göster"
 
 msgid "Import 3MF/STL/STEP/SVG/OBJ/AMF"
 msgstr "3MF/STL/STEP/SVG/OBJ/AMF'yi içe aktar"
@@ -6327,13 +6327,13 @@ msgid "Deselects all objects"
 msgstr "Tüm nesnelerin seçimini kaldırır"
 
 msgid "Enter Camera Full Screen"
-msgstr ""
+msgstr "Kamerayı Tam Ekrana Al"
 
 msgid "Show the Device camera in full screen"
-msgstr ""
+msgstr "Cihaz kamerasını tam ekran modunda göster"
 
 msgid "Exit Camera Full Screen"
-msgstr ""
+msgstr "Kamerayı Tam Ekrandan Çıkartın"
 
 msgid "Use Perspective View"
 msgstr "Perspektif Görünüm"
@@ -7786,31 +7786,31 @@ msgid "Printer settings"
 msgstr "Yazıcı Ayarları"
 
 msgid "At least one plate is required"
-msgstr ""
+msgstr "En az bir tabla gereklidir"
 
 msgid "Remove current plate"
-msgstr ""
+msgstr "Mevcut tablayı kaldır"
 
 msgid "Auto orient objects on current plate"
-msgstr ""
+msgstr "Mevcut plaka üzerindeki nesneleri otomatik olarak yönlendir"
 
 msgid "Arrange objects on current plate"
-msgstr ""
+msgstr "Nesneleri mevcut plaka üzerine yerleştirin"
 
 msgid "Unlock current plate"
-msgstr ""
+msgstr "Mevcut plakanın kilidini aç"
 
 msgid "Lock current plate"
-msgstr ""
+msgstr "Mevcut plakayı kilitle"
 
 msgid "Edit filament grouping"
-msgstr ""
+msgstr "Filament gruplandırmasını düzenle"
 
 msgid "Edit current plate name"
-msgstr ""
+msgstr "Mevcut plaka adını düzenle"
 
 msgid "Customize current plate"
-msgstr ""
+msgstr "Mevcut plakayı kişiselleştir"
 
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
