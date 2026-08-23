@@ -57,6 +57,14 @@
     #define _MSW_DARK_MODE            1
 #endif // _MSW_DARK_MODE
 
+#ifndef BBS_NATIVE_MENUBAR
+    #if defined(__APPLE__) || defined(__linux__)
+        #define BBS_NATIVE_MENUBAR 1
+    #else
+        #define BBS_NATIVE_MENUBAR 0
+    #endif
+#endif
+
 class wxMenuItem;
 class wxMenuBar;
 class wxTopLevelWindow;
