@@ -913,7 +913,8 @@ static std::vector<wxLanguage> s_supported_languages = {
     wxLANGUAGE_UKRAINIAN,
     wxLANGUAGE_PORTUGUESE_BRAZILIAN,
     wxLANGUAGE_TURKISH,
-    wxLANGUAGE_POLISH
+    wxLANGUAGE_POLISH,
+    wxLANGUAGE_GREEK
 };
 } // namespace GUI
 } // Slic3r

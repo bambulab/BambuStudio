@@ -53,6 +53,11 @@
 				"type": "po",
 				"pattern": "bbl/i18n/ja/BambuStudio_ko.po",
 				"lang": "ko"
+			},
+			{
+				"type": "po",
+				"pattern": "bbl/i18n/el/BambuStudio_el.po",
+				"lang": "el"
 			}
 		]
 	},

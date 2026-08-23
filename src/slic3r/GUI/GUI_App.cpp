@@ -8029,6 +8029,7 @@ wxString GUI_App::current_language_code_safe() const
         { "tr",     "tr_TR", },
         { "pt",     "pt_BR", },
         { "hu",     "hu_HU", },
+        { "el",     "el_GR", },
 	};
 	wxString language_code = this->current_language_code().BeforeFirst('_');
 	auto it = mapping.find(language_code);
