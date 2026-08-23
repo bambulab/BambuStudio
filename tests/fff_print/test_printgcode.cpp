@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
 #include "libslic3r/libslic3r.h"
+#include "libslic3r/GCode/ToolOrdering.hpp"
 #include "libslic3r/GCodeReader.hpp"
 
 #include "test_data.hpp"
@@ -14,6 +15,34 @@ using namespace Slic3r::Test;
 boost::regex perimeters_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; perimeter");
 boost::regex infill_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; infill");
 boost::regex skirt_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; skirt");
+
+namespace {
+
+DynamicPrintConfig mixed_filament_config(bool gradient_enabled)
+{
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_num_filaments(3);
+    config.option<ConfigOptionBools>("filament_is_mixed")->values[2] = true;
+    config.option<ConfigOptionStrings>("filament_mixed_components")->values[2] = "1,2";
+    config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios")->values[2] = "0.5,0.5";
+    config.option<ConfigOptionBools>("filament_mixed_gradient")->values[2] = gradient_enabled;
+    config.option<ConfigOptionStrings>("filament_mixed_gradient_range")->values[2] = "0.10,0.90";
+    config.set_key_value("enable_mixed_color_sublayer", new ConfigOptionBool(false));
+    config.set_key_value("wall_filament", new ConfigOptionInt(3));
+    config.set_key_value("sparse_infill_filament", new ConfigOptionInt(3));
+    config.set_key_value("solid_infill_filament", new ConfigOptionInt(3));
+    config.set_key_value("layer_height", new ConfigOptionFloat(0.2));
+    config.set_key_value("initial_layer_print_height", new ConfigOptionFloat(0.2));
+    return config;
+}
+
+void init_mixed_filament_print(Print &print, Model &model, bool gradient_enabled)
+{
+    init_print({make_cube(10., 10., 4.)}, print, model, mixed_filament_config(gradient_enabled));
+    print.process();
+}
+
+} // namespace
 
 SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
     GIVEN("A default configuration and a print test object") {
@@ -268,4 +297,56 @@ SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
 			}
         }
     }
+}
+
+TEST_CASE("mixed filament gradient enables sublayer resolution", "[PrintGCode][MixedFilament]")
+{
+    Print print;
+    Model model;
+    init_mixed_filament_print(print, model, true);
+    ToolOrdering ordering(print, unsigned(-1));
+    ordering.sort_and_build_data(print, unsigned(-1));
+    const std::vector<LayerTools> &layers = ordering.layer_tools();
+
+    REQUIRE(layers.size() > 3);
+    CHECK(layers.front().mixed_sub_layer_groups.empty());
+    REQUIRE(layers.front().mixed_filament_resolution.count(2) == 1);
+
+    std::vector<const LayerTools::MixedSubLayerGroup *> gradient_groups;
+    for (const LayerTools &layer : layers) {
+        for (const LayerTools::MixedSubLayerGroup &group : layer.mixed_sub_layer_groups) {
+            REQUIRE(group.mixed_slot_0based == 2);
+            REQUIRE(group.is_gradient);
+            REQUIRE((group.components_0based == std::vector<unsigned int>{0, 1}));
+            REQUIRE(group.sub_heights.size() == 2);
+            CHECK(group.sub_heights[0] >= 0.);
+            CHECK(group.sub_heights[1] >= 0.);
+            CHECK(group.sub_heights[0] <= group.layer_height);
+            CHECK(group.sub_heights[1] <= group.layer_height);
+            CHECK(group.sub_heights[0] + group.sub_heights[1] == Approx(group.layer_height));
+            gradient_groups.push_back(&group);
+        }
+    }
+
+    REQUIRE(gradient_groups.size() > 1);
+    CHECK(gradient_groups.front()->sub_heights[0] < gradient_groups.back()->sub_heights[0]);
+}
+
+TEST_CASE("non-gradient mixed filament keeps per-layer resolution", "[PrintGCode][MixedFilament]")
+{
+    Print print;
+    Model model;
+    init_mixed_filament_print(print, model, false);
+    ToolOrdering ordering(print, unsigned(-1));
+    ordering.sort_and_build_data(print, unsigned(-1));
+
+    std::set<unsigned int> resolved_components;
+    for (const LayerTools &layer : ordering.layer_tools()) {
+        CHECK(layer.mixed_sub_layer_groups.empty());
+        REQUIRE(layer.mixed_filament_resolution.count(2) == 1);
+        const unsigned int component = layer.mixed_filament_resolution.at(2);
+        CHECK((component == 0 || component == 1));
+        resolved_components.insert(component);
+    }
+    CHECK((resolved_components == std::set<unsigned int>{0, 1}));
 }
