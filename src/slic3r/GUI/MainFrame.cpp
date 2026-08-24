@@ -507,7 +507,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
         // BBS: close save project
         int result;
-        if (event.CanVeto() && ((result = m_plater->close_with_confirm(check)) == wxID_CANCEL)) {
+        if (((result = m_plater->close_with_confirm(check, event.CanVeto())) == wxID_CANCEL) && event.CanVeto()) {
             event.Veto();
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "cancelled by close_with_confirm selection";
             return;

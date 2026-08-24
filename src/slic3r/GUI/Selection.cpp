@@ -794,6 +794,11 @@ void Selection::clear()
 #endif
 
     // #et_FIXME fake KillFocus from sidebar
+    // While the app is closing the sidebar and the current canvas are being torn
+    // down; reaching into plater()->canvas3D() here use-after-frees the destroyed
+    // view3D during ~GLCanvas3D. There is nothing to focus when closing.
+    if (wxGetApp().is_closing()) return;
+
     wxGetApp().plater()->canvas3D()->handle_sidebar_focus_event("", false);
 }
 

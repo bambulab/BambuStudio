@@ -22102,7 +22102,7 @@ void Plater::reset_with_confirm()
 }
 
 // BBS: save logic
-int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
+int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check, bool allow_cancel)
 {
     auto restore_assemble_sidebar = [this]() {
         if (p->m_pre_assemble_sidebar_collapsed.has_value()) {
@@ -22118,11 +22118,20 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
         return wxID_NO;
     }
 
+    // A caller that must close no matter what (a version blocked at startup)
+    // passes allow_cancel = false: the user may only save or discard, never keep
+    // an unusable app open.
+    long style = wxYES_NO | wxYES_DEFAULT | wxCENTRE;
+    if (allow_cancel) style |= wxCANCEL;
     MessageDialog dlg(static_cast<wxWindow*>(this), _L("The current project has unsaved changes, save it before continue?"),
-        wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE);
+        wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Save"), style);
     dlg.show_dsa_button(_L("Remember my choice."));
-    auto choise = wxGetApp().app_config->get("save_project_choise");
-    auto result = choise.empty() ? dlg.ShowModal() : choise == "yes" ? wxID_YES : wxID_NO;
+    auto choice = wxGetApp().app_config->get("save_project_choise");
+    auto result = choice.empty() ? dlg.ShowModal() : choice == "yes" ? wxID_YES : wxID_NO;
+    // With no Cancel offered, closing the dialog (Esc / window close) means discard.
+    if (!allow_cancel && result == wxID_CANCEL)
+        result = wxID_NO;
+
     if (result == wxID_CANCEL)
         return result;
     else {
@@ -22132,7 +22141,7 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
             restore_assemble_sidebar();
             result = save_project();
             if (result == wxID_CANCEL) {
-                if (choise.empty())
+                if (choice.empty())
                     return result;
                 else
                     result = wxID_NO;

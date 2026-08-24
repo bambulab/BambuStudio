@@ -5619,11 +5619,7 @@ void GUI_App::check_startup_version_policy()
         // would tear the main frame down while the dialog is still on the
         // stack, hence the hop to the next turn of the event loop.
         if (result.blocked()) {
-            CallAfter([this] {
-                if (mainframe) {
-                    wxGetApp().ExitMainLoop();
-                }
-            });
+            if(mainframe) mainframe->Close(true);
         }
     }
 }
