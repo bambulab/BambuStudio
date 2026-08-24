@@ -725,7 +725,7 @@ void DropDown::mouseMove(wxMouseEvent &event)
             return;
         }
     }
-    if (!pressedDown || hover_item >= 0) {
+    if (rowSize.y > 0 && (!pressedDown || hover_item >= 0)) {
         int hover = (pt.y - offset.y) / rowSize.y;
         if (hover >= (int) count) hover = -1;
         if (hover == hover_item) return;
