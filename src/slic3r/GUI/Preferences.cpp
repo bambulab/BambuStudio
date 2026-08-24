@@ -1618,10 +1618,17 @@ wxWindow *PreferencesDialog::create_3d_tab()
     auto        scrolled = new ScrollPanel(m_book);
     wxBoxSizer *sizer    = new wxBoxSizer(wxVERTICAL);
 
-    auto title_3d = create_item_title(_L("3D Settings"), scrolled, _L("3D Settings"));
+    auto title_3d     = create_item_title(_L("3D Settings"), scrolled, _L("3D Settings"));
+    auto title_mouse  = create_item_title(_L("Mouse Settings"), scrolled, _L("Mouse Settings"));
+    auto title_import = create_item_title(_L("Import Settings"), scrolled, _L("Import Settings"));
 
     auto item_zoom_to_mouse = create_item_checkbox(_L("Zoom to mouse position"), scrolled,
                                                    _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50, "zoom_to_mouse");
+    auto item_reverse_mouse_wheel_zoom = create_item_checkbox(_L("Reverse direction of zoom with mouse wheel"), scrolled,
+                                                              _L("If enabled, reverses the direction of zoom with mouse wheel."), 50, "reverse_mouse_wheel_zoom");
+    auto item_drag_to_move = create_item_checkbox(_L("Drag with left mouse button to move"), scrolled,
+                                                   _L("If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."), 50,
+                                                   "canvas_drag_to_move");
 
     std::vector<wxString> assemble_view_preview_options = {_L("Auto"), _L("Open"), _L("Close")};
     auto                  enable_assemble_view_preview  = create_item_combobox(_L("Display overview"), scrolled, _L("Display overview"), "enable_assemble_view_preview",
@@ -1686,11 +1693,11 @@ wxWindow *PreferencesDialog::create_3d_tab()
     sizer->AddSpacer(FromDIP(8));
     auto flags = row_flags();
 
+    // ---- 3D Settings ----
     sizer->Add(wrap_option_row(scrolled, enable_assemble_view_preview), flags);
     sizer->Add(wrap_option_row(scrolled, item_grabber_size), flags);
     sizer->Add(wrap_option_row(scrolled, item_tooltip_offset), flags);
     sizer->Add(wrap_option_row(scrolled, item_toolbar_style), flags);
-    sizer->Add(wrap_option_row(scrolled, item_zoom_to_mouse), flags);
     sizer->Add(wrap_option_row(scrolled, item_show_shells), flags);
     sizer->Add(wrap_option_row(scrolled, item_show_heat_soak_area), flags);
 #if !BBL_RELEASE_TO_PUBLIC
@@ -1698,9 +1705,6 @@ wxWindow *PreferencesDialog::create_3d_tab()
                                                      "show_assembly_bvh_bounds");
     sizer->Add(wrap_option_row(scrolled, item_show_bvh_bounds), flags);
 #endif
-    sizer->Add(wrap_option_row(scrolled, item_step_mesh_setting), flags);
-    sizer->Add(wrap_option_row(scrolled, item_import_svg), flags);
-    sizer->Add(wrap_option_row(scrolled, item_gamma_obj), flags);
     sizer->Add(wrap_option_row(scrolled, item_enable_record_gcodeviewer), flags);
     sizer->Add(wrap_option_row(scrolled, item_enable_lod), flags);
     sizer->Add(wrap_option_row(scrolled, item_advanced_gcode), flags);
@@ -1711,6 +1715,20 @@ wxWindow *PreferencesDialog::create_3d_tab()
                                                        _L("When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."), 50,
                                                        "camera_fullscreen_active_monitor_only");
     sizer->Add(wrap_option_row(scrolled, item_camera_fullscreen), flags); // [refactor-review]
+
+    // ---- Mouse Settings ----
+    sizer->Add(title_mouse, wxSizerFlags().Expand().Border(wxTOP, FromDIP(24)));
+    sizer->AddSpacer(FromDIP(8));
+    sizer->Add(wrap_option_row(scrolled, item_zoom_to_mouse), flags);
+    sizer->Add(wrap_option_row(scrolled, item_reverse_mouse_wheel_zoom), flags);
+    sizer->Add(wrap_option_row(scrolled, item_drag_to_move), flags);
+
+    // ---- Import Settings ----
+    sizer->Add(title_import, wxSizerFlags().Expand().Border(wxTOP, FromDIP(24)));
+    sizer->AddSpacer(FromDIP(8));
+    sizer->Add(wrap_option_row(scrolled, item_step_mesh_setting), flags);
+    sizer->Add(wrap_option_row(scrolled, item_import_svg), flags);
+    sizer->Add(wrap_option_row(scrolled, item_gamma_obj), flags);
 
     sizer->AddSpacer(FromDIP(20));
     scrolled->SetSizer(sizer);
@@ -2127,6 +2145,8 @@ void PreferencesDialog::on_reset_preferences()
         "sync_system_preset",
         "disable_fins_extrude_safe_temp",
         "zoom_to_mouse",
+        "reverse_mouse_wheel_zoom",
+        "canvas_drag_to_move",
         "enable_assemble_view_preview",
         "grabber_size_factor",
         "3d_middle_tooltip_offset_x",

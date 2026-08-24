@@ -5,6 +5,7 @@
 #include <memory>
 #include <chrono>
 #include <cstdint>
+#include <optional>
 #include <stack>
 #include <vector>
 
@@ -1375,6 +1376,9 @@ private:
 
     void _zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultCameraZoomToBoxMarginFactor);
     void _update_camera_zoom(double zoom);
+    // Selection bbox center, else current plate center. Nullopt if neither is available.
+    std::optional<Vec3d> _get_camera_orbit_target() const;
+    bool _allow_canvas_drag_move() const;
     void _refresh_if_shown_on_screen();
     // Shared body of the idle-driven UI-state refresh + render. Returns true if
     // another frame is wanted (camera/imgui/3d-mouse still animating). Driven by

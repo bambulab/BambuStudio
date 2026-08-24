@@ -169,10 +169,8 @@ void AppConfig::set_defaults()
         set_bool("use_free_camera", false);
 #endif
 
-#ifdef SUPPORT_REVERSE_MOUSE_ZOOM
     if (get("reverse_mouse_wheel_zoom").empty())
         set_bool("reverse_mouse_wheel_zoom", false);
-#endif
     if (get("enable_append_color_by_sync_ams").empty())
         set_bool("enable_append_color_by_sync_ams", true);
     if (get("enable_merge_color_by_sync_ams").empty())
@@ -186,7 +184,9 @@ void AppConfig::set_defaults()
         set_bool("export_sources_full_pathnames", false);
 
     if (get("zoom_to_mouse").empty())
-        set_bool("zoom_to_mouse", false);
+        set_bool("zoom_to_mouse", true);
+    if (get("canvas_drag_to_move").empty())
+        set_bool("canvas_drag_to_move", true);
     if (get("show_shells_in_preview").empty())
         set_bool("show_shells_in_preview", true);
     if (get("enable_text_styles").empty())

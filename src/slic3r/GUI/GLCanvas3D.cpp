@@ -5194,13 +5194,9 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
 #endif // __WXMSW__
 
     // Calculate the zoom delta and apply it to the current zoom factor
-#ifdef SUPPORT_REVERSE_MOUSE_ZOOM
-    double direction_factor = (wxGetApp().app_config->get("reverse_mouse_wheel_zoom") == "1") ? -1.0 : 1.0;
-#else
-    double direction_factor = 1.0;
-#endif
+    double direction_factor = wxGetApp().app_config->get_bool("reverse_mouse_wheel_zoom") ? -1.0 : 1.0;
     auto delta = direction_factor * (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta();
-    bool zoom_to_mouse = wxGetApp().app_config->get("zoom_to_mouse") == "true";
+    bool zoom_to_mouse = wxGetApp().app_config->get_bool("zoom_to_mouse");
     if (!zoom_to_mouse) {// zoom to center
         _update_camera_zoom(delta);
     }
@@ -5408,15 +5404,14 @@ void GLCanvas3D::on_gesture(wxGestureEvent &evt)
             zoom_start = camera.get_zoom();
         camera.set_zoom(zoom_start * static_cast<wxZoomGestureEvent&>(evt).GetZoomFactor());
     } else if (evt.GetEventType() == wxEVT_GESTURE_ROTATE) {
-        PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
         bool rotate_limit = current_printer_technology() != ptSLA;
         static double last_rotate = 0;
         if (evt.IsGestureStart())
             last_rotate = 0;
         auto rotate = static_cast<wxRotateGestureEvent&>(evt).GetRotationAngle() - last_rotate;
         last_rotate += rotate;
-        if (plate)
-            camera.rotate_on_sphere_with_target(-rotate, 0, rotate_limit, plate->get_bounding_box().center());
+        if (const std::optional<Vec3d> orbit_target = _get_camera_orbit_target())
+            camera.rotate_on_sphere_with_target(-rotate, 0, rotate_limit, *orbit_target);
         else
             camera.rotate_on_sphere(-rotate, 0, rotate_limit);
     }
@@ -5774,7 +5769,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
 
                 if (!m_hover_volume_idxs.empty()) {
-                    if (evt.LeftDown() && m_moving_enabled && m_mouse.drag.move_volume_idx == -1) {
+                    if (evt.LeftDown() && m_moving_enabled && m_mouse.drag.move_volume_idx == -1 && _allow_canvas_drag_move()) {
                         // Only accept the initial position, if it is inside the volume bounding box.
                         if (!any_gizmo_active || !evt.CmdDown()) {
                             int volume_idx = get_first_hover_volume_idx();
@@ -5876,16 +5871,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 if (this->m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.is_paint_gizmo()) {
                     //BBS rotate around target
                     Camera& camera = get_active_camera();
-                    Vec3d rotate_target = Vec3d::Zero();
                     // Inside a step card the orbit center follows that step's own
                     // objects, so rotating does not swing around unrelated geometry.
-                    const BoundingBoxf3 step_box = assembly_current_step_bounding_box();
-                    if (!m_selection.is_empty())
-                        rotate_target = m_selection.get_bounding_box().center();
-                    else if (step_box.defined)
-                        rotate_target = step_box.center();
-                    else
-                        rotate_target = volumes_bounding_box(is_volumes_limit_to_expand_plate()).center();
+                    const Vec3d rotate_target = _get_camera_orbit_target().value_or(Vec3d::Zero());
                     //BBS do not limit rotate in assemble view
                     camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
                     //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), false, rotate_target);
@@ -5904,7 +5892,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         Camera& camera = get_active_camera();
 
                         bool rotate_limit = current_printer_technology() != ptSLA;
-                        Vec3d rotate_target = m_selection.get_bounding_box().center();
 
                         camera.recover_from_free_camera();
                         //BBS modify rotation
@@ -5913,18 +5900,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                                 auto canvas_w = float(get_canvas_size().get_width());
                                 auto canvas_h = float(get_canvas_size().get_height());
                                 Point screen_center(canvas_w/2, canvas_h/2);
-                                //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, wxGetApp().plater()->get_partplate_list().get_bounding_box().center());
                                 m_rotation_center = _mouse_to_3d(camera, screen_center);
                                 m_rotation_center(2) = 0.f;
                             }
                             camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, m_rotation_center);
+                        } else if (const std::optional<Vec3d> orbit_target = _get_camera_orbit_target()) {
+                            camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, *orbit_target);
                         } else {
-                            //BBS rotate with current plate center
-                            PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-                            if (plate)
-                                camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, plate->get_bounding_box().center());
-                            else
-                                camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
+                            camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
                         }
 #ifdef SUPPORT_FEEE_CAMERA
                     }
@@ -7603,7 +7586,10 @@ void GLCanvas3D::_render_3d_navigator()
         }
         // Rotate back
         m = m * (coord_mapping_transform.inverse());
-        camera.set_rotation(m);
+        if (const std::optional<Vec3d> pivot = _get_camera_orbit_target())
+            camera.set_rotation(m, *pivot);
+        else
+            camera.set_rotation(m);
 
         request_extra_frame();
     }
@@ -8386,6 +8372,37 @@ void GLCanvas3D::_update_camera_zoom(double zoom)
 {
     get_active_camera().update_zoom(zoom);
     m_dirty = true;
+}
+
+std::optional<Vec3d> GLCanvas3D::_get_camera_orbit_target() const
+{
+    if (!m_selection.is_empty())
+        return m_selection.get_bounding_box().center();
+
+    // Assembly view (and paint gizmo) orbit around the current step's parts, or
+    // the whole model when no step is active, instead of the build plate.
+    if (m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.is_paint_gizmo()) {
+        const BoundingBoxf3 step_box = assembly_current_step_bounding_box();
+        if (step_box.defined)
+            return step_box.center();
+        return volumes_bounding_box(is_volumes_limit_to_expand_plate()).center();
+    }
+
+    if (wxGetApp().plater() == nullptr)
+        return std::nullopt;
+
+    PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    if (plate)
+        return plate->get_bounding_box().center();
+
+    return std::nullopt;
+}
+
+bool GLCanvas3D::_allow_canvas_drag_move() const
+{
+    if (wxGetApp().app_config->get_bool("canvas_drag_to_move"))
+        return true;
+    return m_gizmos.get_current_type() == GLGizmosManager::EType::Move;
 }
 
 Camera &GLCanvas3D::get_active_camera()
