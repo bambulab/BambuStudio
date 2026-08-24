@@ -301,6 +301,10 @@ function handleRequest(pkt: RequestPacket) {
       dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, amsControlWebMockState));
       return;
     }
+    if (submod === 'action' && (action === 'open_filament_mgr_hint' || action === 'dismiss_filament_mgr_hint' || action === 'open_humidity')) {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, amsControlWebMockState));
+      return;
+    }
     if (submod === 'debug') {
       dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, {
         created_ts: Date.now(),

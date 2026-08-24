@@ -4299,6 +4299,7 @@ DevAmsTray MachineObject::parse_vt_tray(json vtray)
         vt_tray.binded_extruder_set = { DEPUTY_EXTRUDER_ID };
     }
 
+    vt_tray.ams_id = vt_tray.id;
     return vt_tray;
 }
 

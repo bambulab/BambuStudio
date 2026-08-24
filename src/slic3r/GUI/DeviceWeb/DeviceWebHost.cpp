@@ -11,6 +11,7 @@
 
 #include <wx/sizer.h>
 #include <boost/log/trivial.hpp>
+#include <algorithm>
 #include <chrono>
 
 namespace Slic3r { namespace GUI {
@@ -58,6 +59,9 @@ void DeviceWebHost::EnsureBuilt()
     m_device_web_bridge = std::make_unique<DeviceWebBridge>(m_device_webview->GetWebView());
     m_device_web_bridge->SetReportEnabledHandler([this]() {
         return CanReportToWeb();
+    });
+    m_device_web_bridge->SetHostContentSizeHandler([this](int width, int height) {
+        OnWebContentSizeChanged(width, height);
     });
 
     m_device_web_mgr = std::make_unique<DeviceWebManager>();
@@ -296,6 +300,94 @@ void DeviceWebHost::NotifyAmsControlWebChanged()
         return;
 
     m_device_web_mgr->NotifyState("device_page_ams_control_web", "state", "changed");
+}
+
+// Locked host width (DIP) of the StatusPanel-embedded AmsControlWeb panel. The
+// page is laid out width:100%, so its reported width only echoes the container.
+static constexpr int kAmsControlWebWidthDip = 586;
+
+void DeviceWebHost::ApplyAmsControlWebHostSize(int height_dip)
+{
+    constexpr int kMinHeightDip = 220;
+    constexpr int kMaxHeightDip = 360;
+    height_dip = std::clamp(height_dip, kMinHeightDip, kMaxHeightDip);
+
+    m_last_logical_content_size = wxSize(kAmsControlWebWidthDip, height_dip);
+    wxSize content_size(FromDIP(kAmsControlWebWidthDip), FromDIP(height_dip));
+
+    if (m_last_reported_content_size != wxDefaultSize) {
+        const int jitter = FromDIP(8);
+        const int dh = content_size.GetHeight() - m_last_reported_content_size.GetHeight();
+        if (dh > -jitter && dh < jitter)
+            return;
+    }
+    if (content_size == m_last_reported_content_size)
+        return;
+
+    m_last_reported_content_size = content_size;
+    SetMinSize(content_size);
+    SetMaxSize(content_size);
+    SetSize(content_size);
+    if (m_device_webview) {
+        m_device_webview->SetMinSize(content_size);
+        m_device_webview->SetMaxSize(content_size);
+        m_device_webview->SetSize(content_size);
+    }
+    if (m_content_size_changed_handler)
+        m_content_size_changed_handler(content_size);
+
+    Layout();
+    if (auto* parent = GetParent()) {
+        parent->Layout();
+        parent->SendSizeEvent();
+    }
+}
+
+void DeviceWebHost::OnWebContentSizeChanged(int width, int height)
+{
+    // StatusPanel-embedded AmsControlWeb: width is locked because the page is
+    // width:100% and would echo the container. Height is content-driven
+    // (preview / switcher / setup hint) so small machines without a preview
+    // strip do not keep the 340 DIP gutter of the tallest layout.
+    if (m_mode == DeviceWebHostMode::DevicePageAmsControlWeb) {
+        ApplyAmsControlWebHostSize(height);
+        return;
+    }
+
+    constexpr int min_width = 560;
+    constexpr int min_height = 260;
+    constexpr int max_width = 2000;
+    constexpr int max_height = 2000;
+
+    width = std::clamp(width, min_width, max_width);
+    height = std::clamp(height, min_height, max_height);
+
+    // Cache the DPI-independent (CSS px) size so the min size can be rebuilt at
+    // the current DPI on show.
+    m_last_logical_content_size = wxSize(width, height);
+
+    // The web page reports its size in DIP/CSS pixels, so FromDIP() is the
+    // correct conversion to the physical pixels wxWindow::SetMinSize() expects.
+    wxSize content_size(FromDIP(width), FromDIP(height));
+    if (content_size == m_last_reported_content_size) {
+        return;
+    }
+
+    m_last_reported_content_size = content_size;
+
+    SetMinSize(content_size);
+    if (m_device_webview) {
+        m_device_webview->SetMinSize(content_size);
+    }
+    if (m_content_size_changed_handler) {
+        m_content_size_changed_handler(content_size);
+    }
+
+    Layout();
+    if (auto* parent = GetParent()) {
+        parent->Layout();
+        parent->SendSizeEvent();
+    }
 }
 
 void DeviceWebHost::on_sys_color_changed()

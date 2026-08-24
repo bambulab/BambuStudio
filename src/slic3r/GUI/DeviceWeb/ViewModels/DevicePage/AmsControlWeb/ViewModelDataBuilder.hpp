@@ -20,9 +20,14 @@ struct LoadedSlot
     std::string slot_id;
 };
 
-// Mirrors the device source into `data`. The loaded slot falls out of the same
-// pass over the trays, so it is returned rather than searched for again.
+// Mirrors the device source into `data`. The first loaded slot falls out of the
+// same pass over the trays and is used as a selection fallback; dual-nozzle
+// printers can have more than one, so display code must not treat it as unique.
 LoadedSlot Build(MachineObject* machine_obj, AmsControlWebSchema::format::AmsListData& data);
+
+// True when any extruder throat currently holds this slot (`HasFilamentInExt`
+// plus `GetSlotNow`). Dual-nozzle machines can answer true for two slots.
+bool IsSlotLoaded(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id);
 
 const AmsControlWebSchema::format::Tray* FindTray(const AmsControlWebSchema::format::AmsListData& data,
                                                  const std::string& ams_id,

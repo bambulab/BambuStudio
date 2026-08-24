@@ -29,6 +29,7 @@ private:
     std::atomic<std::uint64_t> m_seq{0};
     wxWebView*         m_web{nullptr};
     DeviceWebManager*  m_vm_mgr{nullptr};
+    std::function<void(int width, int height)> m_host_content_size_handler;
     std::function<bool()> m_report_enabled_handler;
 
     static inline std::uint64_t TimeNowMs() {
@@ -60,6 +61,7 @@ public:
     ~DeviceWebBridge();
 
     void SetManager(DeviceWebManager* mgr) { m_vm_mgr = mgr; }
+    void SetHostContentSizeHandler(std::function<void(int width, int height)> handler) { m_host_content_size_handler = std::move(handler); }
     void SetReportEnabledHandler(std::function<bool()> handler) { m_report_enabled_handler = std::move(handler); }
 
     /* C++ → Web: report state change */

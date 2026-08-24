@@ -100,6 +100,9 @@ function slotView(
     reading: item.reading,
     show_rfid: !isExt,
     show_unknown: unknown,
+    k_text: '',
+    k_loading: false,
+    k_loading_text: '',
     menu_actions: {
       show_edit: hasSpool && !showRead,
       show_read: hasSpool && showRead,
@@ -120,22 +123,32 @@ function slotLink(item: AmsListTray, loaded: { amsId: string; slotId: string }):
   };
 }
 
-// One extruder in the mock, so everything shares one column: a cell per AMS
-// unit, then a cell per external spool.
 function buildLayout(activeAmsId: string): PanelLayout {
+  const leftGroups = mockData.ams_units.map((unit) => ({ ams_ids: [unit.ams_id] }));
+  const rightGroups = mockData.ext_slots.map((item) => ({ ams_ids: [item.ams_id] }));
+  const leftIds = leftGroups.flatMap((group) => group.ams_ids);
+  const rightIds = rightGroups.flatMap((group) => group.ams_ids);
+  const both = leftGroups.length > 0 && rightGroups.length > 0;
+  const panels: PanelLayout['panels'] = [];
+  if (leftGroups.length > 0) {
+    panels.push({
+      pos: both ? 'left' : 'single',
+      visible: true,
+      active_ams_id: leftIds.includes(activeAmsId) ? activeAmsId : (leftIds[0] ?? ''),
+      groups: leftGroups,
+    });
+  }
+  if (rightGroups.length > 0) {
+    panels.push({
+      pos: both ? 'right' : 'single',
+      visible: true,
+      active_ams_id: rightIds.includes(activeAmsId) ? activeAmsId : (rightIds[0] ?? ''),
+      groups: rightGroups,
+    });
+  }
   return {
-    layout_style: 'single',
-    panels: [
-      {
-        pos: 'single',
-        visible: true,
-        active_ams_id: activeAmsId,
-        groups: [
-          ...mockData.ams_units.map((unit) => ({ ams_ids: [unit.ams_id] })),
-          ...mockData.ext_slots.map((item) => ({ ams_ids: [item.ams_id] })),
-        ],
-      },
-    ],
+    layout_style: both ? 'left_right' : 'single',
+    panels,
   };
 }
 
@@ -143,7 +156,6 @@ function buildDisplay(
   selected: { amsId: string; slotId: string },
   loaded: { amsId: string; slotId: string },
 ): AmsControlDisplay {
-  // An external spool owns a cell of its own, so it can be the open one too.
   const cellIds = [
     ...mockData.ams_units.map((unit) => unit.ams_id),
     ...mockData.ext_slots.map((item) => item.ams_id),
@@ -191,6 +203,7 @@ function buildDisplay(
     },
     ams_ext_area: {
       visible: true,
+      lite_style: false,
       layout,
       units: mockData.ams_units.map((unit) => ({
         ams_id: unit.ams_id,
@@ -204,6 +217,7 @@ function buildDisplay(
           display_idx: unit.humidity_level,
           drying: false,
           left_dry_time: 0,
+          support_drying: unit.ams_type_name === 'N3F' || unit.ams_type_name === 'N3S',
         },
         slots: unit.trays.map((item) => slotView(item, false, selected, loaded)),
       })),
@@ -231,14 +245,13 @@ function buildDisplay(
           state: 'active',
           has_filament: !!loadedTray,
           filament_color: loadedTray?.color ?? '',
+          icon: 'single_nozzle_xp',
         },
       ],
     },
   };
 }
 
-// Which slot the machine has loaded is a C++ input rather than part of the payload,
-// so the mock pins one down here the way the printer would report it.
 const MOCK_LOADED = { amsId: '0', slotId: '0' };
 
 export const mockAmsControlWebState: AmsControlWebViewModel = {

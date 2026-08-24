@@ -60,6 +60,8 @@
 
 html, body, #root {
   @apply h-full m-0 p-0;
+  /* Fill leftover WebView space; default canvas is white. */
+  background-color: var(--ams-page-bg);
 }
 
 /* .container {

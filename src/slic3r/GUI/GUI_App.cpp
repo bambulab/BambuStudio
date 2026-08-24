@@ -3683,6 +3683,13 @@ void GUI_App::notify_new_rfid_filament(const std::string& ams_id, const std::str
     if (sp) sp->show_ams_filament_hint(ams_id, slot_id);
 }
 
+void GUI_App::open_new_official_filament_hint(const std::string& ams_id, const std::string& slot_id)
+{
+    if (!mainframe || !mainframe->m_monitor) return;
+    auto* sp = mainframe->m_monitor->get_status_panel();
+    if (sp) sp->open_new_official_filament_hint(ams_id, slot_id);
+}
+
 void GUI_App::copy_network_if_available()
 {
     if (app_config->get("update_network_plugin") != "true")

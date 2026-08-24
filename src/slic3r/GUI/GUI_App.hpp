@@ -412,6 +412,7 @@ public:
     wgtFilaManagerCloudDispatcher*  fila_manager_cloud_disp()   { return m_fila_manager_cloud_disp; }
     bool                            is_fila_manager_disabled() const { return m_disable_fila_manager; }
     void notify_new_rfid_filament(const std::string& ams_id, const std::string& slot_id);
+    void open_new_official_filament_hint(const std::string& ams_id, const std::string& slot_id);
 #if !BBL_RELEASE_TO_PUBLIC
     void set_fila_debug_sink(std::function<void(const nlohmann::json&)> sink)
     {

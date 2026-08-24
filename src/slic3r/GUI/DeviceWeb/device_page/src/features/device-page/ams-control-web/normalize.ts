@@ -49,6 +49,7 @@ export const emptyAmsControlWebState: AmsControlWebViewModel = {
     ams_preview_area: { visible: false, layout: emptyPanelLayout(), items: [] },
     ams_ext_area: {
       visible: false,
+      lite_style: false,
       layout: emptyPanelLayout(),
       units: [],
       ext_slots: [],
@@ -207,6 +208,9 @@ function normalizeSlotView(raw: unknown): SlotView {
     reading: !!item.reading,
     show_rfid: !!item.show_rfid,
     show_unknown: !!item.show_unknown,
+    k_text: asString(item.k_text),
+    k_loading: !!item.k_loading,
+    k_loading_text: asString(item.k_loading_text),
     menu_actions: normalizeMenuActions(item.menu_actions),
   };
 }
@@ -219,6 +223,7 @@ function normalizeHumidityView(raw: Partial<HumidityView> | undefined): Humidity
     display_idx: asNumber(raw?.display_idx, -1),
     drying: !!raw?.drying,
     left_dry_time: asNumber(raw?.left_dry_time, 0),
+    support_drying: !!raw?.support_drying,
   };
 }
 
@@ -291,6 +296,7 @@ function normalizePreviewArea(raw: Partial<AmsPreviewArea> | undefined): AmsPrev
 function normalizeAmsExtArea(raw: Partial<AmsExtArea> | undefined): AmsExtArea {
   return {
     visible: !!raw?.visible,
+    lite_style: !!raw?.lite_style,
     layout: normalizePanelLayout(raw?.layout),
     units: asList(raw?.units, normalizeUnitView),
     ext_slots: asList(raw?.ext_slots, normalizeSlotView),
@@ -333,6 +339,7 @@ function normalizeExtruderView(raw: unknown): ExtruderView {
     state: asExtruderState(item.state),
     has_filament: !!item.has_filament,
     filament_color: asString(item.filament_color),
+    icon: asString(item.icon),
   };
 }
 

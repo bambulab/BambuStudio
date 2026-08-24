@@ -59,7 +59,11 @@ namespace slot_view {
     inline constexpr const char* show_rfid    = "show_rfid";
     inline constexpr const char* menu_actions = "menu_actions";
     // Spool is in but its info is not trustworthy yet: the card shows "?".
-    inline constexpr const char* show_unknown = "show_unknown";
+    inline constexpr const char* show_unknown    = "show_unknown";
+    // PA Factor K on generic AMS / Ext cards. Empty when Lite or C++ would hide it.
+    inline constexpr const char* k_text          = "k_text";
+    inline constexpr const char* k_loading       = "k_loading";
+    inline constexpr const char* k_loading_text  = "k_loading_text";
 } // namespace slot_view
 
 namespace menu_actions {
@@ -80,6 +84,7 @@ namespace humidity {
     inline constexpr const char* display_idx   = "display_idx";
     inline constexpr const char* drying        = "drying";
     inline constexpr const char* left_dry_time = "left_dry_time";
+    inline constexpr const char* support_drying = "support_drying";
 } // namespace humidity
 
 namespace unit_view {
@@ -123,10 +128,12 @@ namespace preview_area {
 } // namespace preview_area
 
 namespace ams_ext_area {
-    inline constexpr const char* visible   = "visible";
-    inline constexpr const char* layout    = "layout";
-    inline constexpr const char* units     = "units";
-    inline constexpr const char* ext_slots = "ext_slots";
+    inline constexpr const char* visible    = "visible";
+    // True when StatusPanel would set ext_type to LITE_EXT (AMS_LITE / f1).
+    inline constexpr const char* lite_style = "lite_style";
+    inline constexpr const char* layout     = "layout";
+    inline constexpr const char* units      = "units";
+    inline constexpr const char* ext_slots  = "ext_slots";
 } // namespace ams_ext_area
 
 namespace line_area {
@@ -150,7 +157,8 @@ namespace slot_link {
     inline constexpr const char* color         = "color";
 } // namespace slot_link
 
-// Classic AMSControl::m_switcher plus its setup warning banner.
+// Classic AMSControl::m_switcher (between DownRoad and the extruder row).
+// The uninitialized banner is AMSControl::tipPanel, under the nozzles.
 namespace switcher_area {
     inline constexpr const char* visible         = "visible";
     inline constexpr const char* installed       = "installed";
@@ -173,6 +181,8 @@ namespace extruder_view {
     inline constexpr const char* state          = "state";
     inline constexpr const char* has_filament   = "has_filament";
     inline constexpr const char* filament_color = "filament_color";
+    // Asset key from AMSextruder::updateNozzleNum: left/right or single_n / single_xp.
+    inline constexpr const char* icon           = "icon";
 } // namespace extruder_view
 
 namespace values {
@@ -211,6 +221,13 @@ namespace values {
         inline constexpr const char* active  = "active";
         inline constexpr const char* loading = "loading";
     } // namespace extruder_state
+
+    namespace extruder_icon {
+        inline constexpr const char* left_nozzle      = "left_nozzle";
+        inline constexpr const char* right_nozzle     = "right_nozzle";
+        inline constexpr const char* single_nozzle_n  = "single_nozzle_n";
+        inline constexpr const char* single_nozzle_xp = "single_nozzle_xp";
+    } // namespace extruder_icon
 } // namespace values
 
 namespace format {
@@ -240,16 +257,20 @@ struct SlotView
     bool                     show_rfid    = false;
     bool                     show_unknown = false;
     MenuActions              menu_actions;
+    std::string              k_text;
+    bool                     k_loading      = false;
+    std::string              k_loading_text;
 };
 
 struct HumidityView
 {
-    std::string display_type  = values::humidity_display_type::none;
-    int         level         = -1;
-    int         percent       = -1;
-    int         display_idx   = -1;
-    bool        drying        = false;
-    int         left_dry_time = 0; // minutes
+    std::string display_type   = values::humidity_display_type::none;
+    int         level          = -1;
+    int         percent        = -1;
+    int         display_idx    = -1;
+    bool        drying         = false;
+    int         left_dry_time  = 0; // minutes
+    bool        support_drying = false;
 };
 
 struct UnitView
@@ -307,7 +328,8 @@ struct AmsPreviewArea
 
 struct AmsExtArea
 {
-    bool                  visible = false;
+    bool                  visible    = false;
+    bool                  lite_style = false;
     PanelLayout           layout;
     std::vector<UnitView> units;
     std::vector<SlotView> ext_slots;
@@ -347,6 +369,7 @@ struct ExtruderView
     std::string state        = values::extruder_state::idle;
     bool        has_filament = false;
     std::string filament_color;
+    std::string icon         = values::extruder_icon::single_nozzle_xp;
 };
 
 struct ExtruderArea
@@ -391,20 +414,24 @@ inline void to_json(nlohmann::json& j, const SlotView& v)
         {slot_view::loaded,       v.loaded},
         {slot_view::reading,      v.reading},
         {slot_view::show_rfid,    v.show_rfid},
-        {slot_view::show_unknown, v.show_unknown},
-        {slot_view::menu_actions, v.menu_actions},
+        {slot_view::show_unknown,    v.show_unknown},
+        {slot_view::menu_actions,    v.menu_actions},
+        {slot_view::k_text,          v.k_text},
+        {slot_view::k_loading,       v.k_loading},
+        {slot_view::k_loading_text,  v.k_loading_text},
     };
 }
 
 inline void to_json(nlohmann::json& j, const HumidityView& v)
 {
     j = {
-        {humidity::display_type,  v.display_type},
-        {humidity::level,         v.level},
-        {humidity::percent,       v.percent},
-        {humidity::display_idx,   v.display_idx},
-        {humidity::drying,        v.drying},
-        {humidity::left_dry_time, v.left_dry_time},
+        {humidity::display_type,   v.display_type},
+        {humidity::level,          v.level},
+        {humidity::percent,        v.percent},
+        {humidity::display_idx,    v.display_idx},
+        {humidity::drying,         v.drying},
+        {humidity::left_dry_time,  v.left_dry_time},
+        {humidity::support_drying, v.support_drying},
     };
 }
 
@@ -478,10 +505,11 @@ inline void to_json(nlohmann::json& j, const AmsPreviewArea& v)
 inline void to_json(nlohmann::json& j, const AmsExtArea& v)
 {
     j = {
-        {ams_ext_area::visible,   v.visible},
-        {ams_ext_area::layout,    v.layout},
-        {ams_ext_area::units,     v.units},
-        {ams_ext_area::ext_slots, v.ext_slots},
+        {ams_ext_area::visible,    v.visible},
+        {ams_ext_area::lite_style, v.lite_style},
+        {ams_ext_area::layout,     v.layout},
+        {ams_ext_area::units,      v.units},
+        {ams_ext_area::ext_slots,  v.ext_slots},
     };
 }
 
@@ -523,6 +551,7 @@ inline void to_json(nlohmann::json& j, const ExtruderView& v)
         {extruder_view::state,          v.state},
         {extruder_view::has_filament,   v.has_filament},
         {extruder_view::filament_color, v.filament_color},
+        {extruder_view::icon,           v.icon},
     };
 }
 

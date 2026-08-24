@@ -51,6 +51,7 @@
 #include "DeviceCore/DevStatus.h"
 
 #include "DeviceWeb/DeviceWebPage.hpp"
+#include "DeviceWeb/ViewModels/DevicePage/AmsControlWeb/ViewModel.hpp"
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevInfo.h"
@@ -4102,12 +4103,6 @@ void StatusPanel::update_ams(MachineObject *obj)
         }
     }
 
-#if BBL_ENABLE_AMS_CONTROL_WEB
-    if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown()) {
-        m_ams_control_web_panel->UpdateByMachine(obj);
-    }
-#endif
-
     if (m_filament_setting_dlg) m_filament_setting_dlg->update();
 
     std::vector<AMSinfo> ams_info;
@@ -4135,6 +4130,12 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     if (auto* sync = wxGetApp().fila_manager_sync())
         sync->drain_filament_hints(obj->get_dev_id());
+
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown()) {
+        m_ams_control_web_panel->UpdateByMachine(obj);
+    }
+#endif
 
     last_tray_exist_bits  = obj->tray_exist_bits;
     last_ams_exist_bits   = obj->ams_exist_bits;
@@ -5431,6 +5432,11 @@ void StatusPanel::dismiss_filament_hint_ui(const std::string& dev_id, const std:
         sync->dismiss_pending_badge(dev_id, ams_id, slot_id);
     if (m_ams_control && obj && obj->get_dev_id() == dev_id)
         m_ams_control->dismiss_filament_hint(ams_id, slot_id);
+    DevicePageAmsControlWebVM::DismissFilamentMgrHint(ams_id, slot_id);
+#if BBL_ENABLE_AMS_CONTROL_WEB
+    if (m_ams_control_web_panel && m_ams_control_web_panel->IsShown())
+        m_ams_control_web_panel->UpdateByMachine(obj);
+#endif
 }
 
 void StatusPanel::show_new_official_filament_dlg(
@@ -5492,9 +5498,11 @@ void StatusPanel::show_new_official_filament_dlg(
 
 void StatusPanel::on_new_official_filament_hint(wxCommandEvent &event)
 {
-    std::string ams_id  = std::to_string(event.GetInt());
-    std::string slot_id = event.GetString().ToStdString();
+    open_new_official_filament_hint(std::to_string(event.GetInt()), event.GetString().ToStdString());
+}
 
+void StatusPanel::open_new_official_filament_hint(const std::string& ams_id, const std::string& slot_id)
+{
     if (!m_new_official_filament_dlg)
         m_new_official_filament_dlg = new AMSNewOfficialFilamentDlg(this);
     m_new_official_filament_dlg->SetTrayContext(obj, ams_id, slot_id);

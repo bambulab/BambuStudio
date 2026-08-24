@@ -63,9 +63,6 @@ void open_ams_control_web_debug_dialog()
     dlg.ShowModal();
 }
 
-// Port of the static sGetSwitchInfo() in StatusPanel.cpp. An empty reason means
-// the button is enabled, and the order of the checks decides which reason the
-// user gets to see.
 void get_switch_info(MachineObject* machine_obj,
                      const SchemaFormat::State& state,
                      std::string& load_error_info,
@@ -127,7 +124,6 @@ void get_switch_info(MachineObject* machine_obj,
         }
     }
 
-    // Past this point load and unload are judged separately.
     if (!switch_installed && extder_system) {
         for (const auto& ext : extder_system->GetExtruders()) {
             if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id && ext.HasFilamentInExt())
@@ -168,9 +164,11 @@ nlohmann::json DevicePageAmsControlWebVM::OnCommand(const std::string& submod,
         if (submod == "action") {
             return HandleAction(action, payload);
         }
+#if !BBL_RELEASE_TO_PUBLIC
         if (submod == "debug") {
             return HandleDebug(action, payload);
         }
+#endif
     } catch (const std::exception& e) {
         BOOST_LOG_TRIVIAL(error) << "DevicePageAmsControlWebVM::OnCommand exception: " << e.what();
         return MakeResponse(GetModule(), submod, action, 2, e.what(), BuildState());
@@ -267,7 +265,14 @@ void DevicePageAmsControlWebVM::ReportState(const std::string& submod, const std
 
 void DevicePageAmsControlWebVM::OnSysColorChanged()
 {
-    ReportState("state", "theme_changed");
+    // Same as AmsFilamentHotendVM: do not route theme through ReportState("state"),
+    // which is de-duped against the last device snapshot and can drop a theme-only
+    // toggle. Emit init/theme_changed so <html data-theme> updates independently.
+    if (!m_bridge) return;
+    const bool dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+    nlohmann::json data;
+    data["theme"] = dark ? "dark" : "light";
+    m_bridge->ReportMsg(MakeResponse(GetModule(), "init", "theme_changed", 0, "", data));
 }
 
 void DevicePageAmsControlWebVM::NotifyNewRfidFilament(const std::string& ams_id, const std::string& slot_id)
@@ -304,9 +309,6 @@ nlohmann::json DevicePageAmsControlWebVM::BuildState() const
 
 void DevicePageAmsControlWebVM::ResolveSelection(SchemaFormat::State& state) const
 {
-    // Nothing picked is a state of its own, so it survives to the page rather than
-    // being treated as a stale pick and filled in. get_switch_info turns it into the
-    // "choose a slot" tip on both footer buttons.
     if (m_selected_ams_id.empty()) {
         state.selected_ams_id.clear();
         state.selected_slot_id.clear();
@@ -316,8 +318,6 @@ void DevicePageAmsControlWebVM::ResolveSelection(SchemaFormat::State& state) con
     std::string ams_id  = m_selected_ams_id;
     std::string slot_id = m_selected_slot_id;
 
-    // The picked slot can disappear when the AMS is unplugged; fall back to the
-    // loaded slot, then to the first slot there is.
     if (!AmsControlWebData::FindTray(state.data, ams_id, slot_id)) {
         if (!state.loaded_ams_id.empty()) {
             ams_id  = state.loaded_ams_id;
@@ -344,8 +344,10 @@ void DevicePageAmsControlWebVM::FillActions(MachineObject* machine_obj, SchemaFo
     const bool has_connected_ams = !fila_system->GetAmsList().empty() && machine_obj->ams_exist_bits != 0;
     // The auto-refill entry lives in the AMS settings dialog on this branch, so the
     // footer keeps the button hidden.
+    (void) has_connected_ams;
     state.actions.show_auto_refill = false;
-    state.actions.show_settings    = has_connected_ams;
+    // Settings stay on the option row in ext-only mode; only auto-refill is AMS-gated.
+    state.actions.show_settings    = true;
 
     get_switch_info(machine_obj, state, state.actions.load_tips, state.actions.unload_tips);
     state.actions.can_load   = state.actions.load_tips.empty();

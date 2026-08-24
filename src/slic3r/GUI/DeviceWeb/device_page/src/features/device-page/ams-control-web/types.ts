@@ -27,16 +27,12 @@ export type HumidityDisplayType = 'none' | 'level' | 'percent';
 export interface AmsListUnit {
   ams_id: string;
   ams_type: number;
-  // DevAmsType enumerator name, e.g. 'N3F'.
   ams_type_name: string;
-  // The N9 AMS-Lite variant reports itself as AMS_LITE, so only this flag tells
-  // it apart. It drives the single-extruder layout.
+  // N9 AMS-Lite reports itself as AMS_LITE; only this flag tells it apart.
   is_ams_lite_mixed: boolean;
   humidity_level: number;
   humidity_percent: number;
   humidity_display_type: HumidityDisplayType;
-  // Extruders the whole unit can feed, and the switch port it is wired to.
-  // Reported per unit, which is what decides the column it is drawn in.
   binded_extruder_ids: number[];
   switcher_port: string;
   trays: AmsListTray[];
@@ -55,13 +51,10 @@ export interface AmsControlActions {
   show_settings: boolean;
   can_load: boolean;
   can_unload: boolean;
-  // Reason the matching button is disabled, empty when it is enabled.
   load_tips: string;
   unload_tips: string;
 }
 
-// `display` carries every rendering decision already resolved in C++; the page
-// renders from it and only reads `data` for things it sends back.
 export type SlotState = 'none' | 'brand' | 'third_brand' | 'empty' | 'virtual';
 export type LinkState = 'idle' | 'loaded' | 'loading' | 'unloading';
 export type LayoutStyle = 'single' | 'left_right';
@@ -91,6 +84,10 @@ export interface SlotView {
   show_rfid: boolean;
   // The spool is in but its info is not trustworthy yet, so the card shows '?'.
   show_unknown: boolean;
+  // PA Factor K. Empty / false on Lite cards and when C++ would hide the line.
+  k_text: string;
+  k_loading: boolean;
+  k_loading_text: string;
   menu_actions: MenuActions;
 }
 
@@ -98,10 +95,12 @@ export interface HumidityView {
   display_type: HumidityDisplayType;
   level: number;
   percent: number;
-  // 1..5 humidity icon index (5 = driest), -1 when unknown.
+  // 1..5, 5 = driest, -1 unknown.
   display_idx: number;
   drying: boolean;
   left_dry_time: number;
+  // Hardware can dry; independent of `drying`.
+  support_drying: boolean;
 }
 
 export interface UnitView {
@@ -128,9 +127,6 @@ export interface PreviewItem {
   cubes: PreviewCube[];
 }
 
-// One cell of a column, the classic AmsItem. A four-slot unit fills a cell on
-// its own, single-slot units share one two at a time. An id resolves against
-// `AmsExtArea.units`, or against its `ext_slots` for an external spool.
 export interface PanelGroup {
   ams_ids: string[];
 }
@@ -138,14 +134,10 @@ export interface PanelGroup {
 export interface PanelView {
   pos: PanelPos;
   visible: boolean;
-  // The unit this column has open, empty when the column holds no AMS unit.
   active_ams_id: string;
   groups: PanelGroup[];
 }
 
-// How the units and ext slots spread over columns: one column per extruder, so
-// a single extruder machine stacks everything into one. The preview strip and
-// the slot cards always share the same arrangement.
 export interface PanelLayout {
   layout_style: LayoutStyle;
   panels: PanelView[];
@@ -159,18 +151,18 @@ export interface AmsPreviewArea {
 
 export interface AmsExtArea {
   visible: boolean;
+  // C++ AMS_LITE / f1: Ext cards use Lite spool art even with no AMS unit.
+  lite_style: boolean;
   layout: PanelLayout;
   units: UnitView[];
   ext_slots: SlotView[];
 }
 
-// Where one slot's filament goes, and what that line carries right now.
 export interface SlotLink {
   ams_id: string;
   slot_id: string;
-  // Filament switch port, empty when the slot reaches its extruders directly.
   switcher_port: string;
-  // Empty means the slot has no line to draw at all.
+  // Empty means no line to draw.
   extruder_ids: number[];
   state: LinkState;
   color: string;
@@ -181,8 +173,6 @@ export interface FilamentLineArea {
   links: SlotLink[];
 }
 
-// Per-port routing is not carried here: SlotLink.switcher_port already says which
-// input every slot reaches the switch through.
 export interface SwitcherArea {
   visible: boolean;
   installed: boolean;
@@ -191,13 +181,14 @@ export interface SwitcherArea {
   setup_hint: string;
 }
 
-// The id doubles as the side the extruder sits on: 0 is the main extruder on
-// the right, 1 the deputy one on the left.
+// 0 = main extruder on the right, 1 = deputy on the left.
 export interface ExtruderView {
   id: number;
   state: ExtruderState;
   has_filament: boolean;
   filament_color: string;
+  // C++ AMSextruder::updateNozzleNum asset key.
+  icon: string;
 }
 
 export interface ExtruderArea {
@@ -206,7 +197,6 @@ export interface ExtruderArea {
 }
 
 export interface AmsControlDisplay {
-  // False hides the whole AMS panel, as an A / B nozzle rack does.
   visible: boolean;
   ams_preview_area: AmsPreviewArea;
   ams_ext_area: AmsExtArea;

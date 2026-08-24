@@ -127,6 +127,20 @@ void DeviceWebBridge::DispatchWebCommand(const nlohmann::json& header, const nlo
     if (head.type != MsgType::Request) return;
     if (!ValidateHeader(head)) return;
 
+    if (body.value("module", std::string()) == "device_host" &&
+        body.value("submod", std::string()) == "layout" &&
+        body.value("action", std::string()) == "content_size") {
+        if (m_host_content_size_handler && body.contains("payload") && body["payload"].is_object()) {
+            const auto& payload = body["payload"];
+            const int width = payload.value("width", 0);
+            const int height = payload.value("height", 0);
+            if (width > 0 && height > 0) {
+                m_host_content_size_handler(width, height);
+            }
+        }
+        return;
+    }
+
 #if !BBL_RELEASE_TO_PUBLIC
     if (body.value("module", std::string()) == "filament") {
         wxGetApp().emit_fila_debug_log(

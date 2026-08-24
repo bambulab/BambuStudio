@@ -2,9 +2,11 @@
 
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
+#include "slic3r/GUI/DeviceCore/DevCalib.h"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSwitch.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/Utils/CalibUtils.hpp"
 
 #include <optional>
 #include <utility>
@@ -120,6 +122,15 @@ SchemaFormat::Tray build_tray(MachineObject* machine_obj,
         color = normalize_hex_for_web(color);
     if (out.colors.empty())
         out.colors.push_back(out.color);
+
+    out.cali_idx = tray->cali_idx;
+    if (tray->is_tray_info_ready() && machine_obj && machine_obj->GetCalib() &&
+        machine_obj->GetCalib()->IsVersionInited()) {
+        CalibUtils::get_pa_k_n_value_by_cali_idx(machine_obj, tray->cali_idx, out.k, out.n);
+    } else {
+        out.k = tray->k;
+        out.n = tray->n;
+    }
     return out;
 }
 
@@ -160,7 +171,9 @@ SchemaFormat::FilaSwitchData build_fila_switch(MachineObject* machine_obj)
     return out;
 }
 
-bool is_slot_loaded(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id)
+} // namespace
+
+bool IsSlotLoaded(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id)
 {
     if (!machine_obj || !machine_obj->GetExtderSystem() || ams_id.empty() || slot_id.empty())
         return false;
@@ -170,8 +183,6 @@ bool is_slot_loaded(MachineObject* machine_obj, const std::string& ams_id, const
     }
     return false;
 }
-
-} // namespace
 
 LoadedSlot Build(MachineObject* machine_obj, SchemaFormat::AmsListData& data)
 {
@@ -216,7 +227,7 @@ LoadedSlot Build(MachineObject* machine_obj, SchemaFormat::AmsListData& data)
             if (!tray)
                 continue;
 
-            if (is_slot_loaded(machine_obj, unit.ams_id, slot_id) && loaded.ams_id.empty()) {
+            if (IsSlotLoaded(machine_obj, unit.ams_id, slot_id) && loaded.ams_id.empty()) {
                 loaded.ams_id  = unit.ams_id;
                 loaded.slot_id = slot_id;
             }
@@ -238,7 +249,7 @@ LoadedSlot Build(MachineObject* machine_obj, SchemaFormat::AmsListData& data)
         if (tray_label == "Ext-L" || tray_label == "Ext-R")
             tray_label = "Ext";
 
-        if (is_slot_loaded(machine_obj, ams_id, slot_id) && loaded.ams_id.empty()) {
+        if (IsSlotLoaded(machine_obj, ams_id, slot_id) && loaded.ams_id.empty()) {
             loaded.ams_id  = ams_id;
             loaded.slot_id = slot_id;
         }

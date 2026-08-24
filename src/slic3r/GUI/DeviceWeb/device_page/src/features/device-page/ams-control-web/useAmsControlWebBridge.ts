@@ -5,6 +5,8 @@ import { mockAmsControlWebState } from './mockData';
 import type { AmsControlWebViewModel, BridgeResponseBody } from './types';
 
 const MODULE = 'device_page_ams_control_web';
+// Shield extra edit/view clicks. Duration matches wxSYS_DCLICK_MSEC (typically 500ms).
+const FILAMENT_DLG_SHIELD_MS = 500;
 
 function hasNativeHost() {
   const w = window as Window & {
@@ -60,9 +62,6 @@ export function useAmsControlWebBridge() {
     }
   }, [applyState, request]);
 
-  // Every action answers with the fresh state, so the page never has to guess
-  // what the command changed. Failures surface the reason C++ refused with,
-  // which for load and unload is the same text the button tooltip carries.
   const sendAction = useCallback(async (action: string, payload?: Record<string, unknown>) => {
     const resp = await request<ReturnType<typeof makeBody>, BridgeResponseBody<AmsControlWebViewModel>>(
       makeBody('action', action, payload),
@@ -85,13 +84,47 @@ export function useAmsControlWebBridge() {
 
   const switchAms = useCallback((amsId: string) => sendAction('switch_ams', { ams_id: amsId }), [sendAction]);
 
-  const editSlot = useCallback(
-    (amsId: string, slotId: string) => sendAction('edit_slot', { ams_id: amsId, slot_id: slotId }),
+  const filamentDlgBusyRef = useRef(false);
+  const filamentDlgClosedAtRef = useRef(0);
+
+  const openFilamentDialog = useCallback(
+    (action: 'edit_slot' | 'view_slot', amsId: string, slotId: string) => {
+      const now = Date.now();
+      if (filamentDlgBusyRef.current) return;
+      if (now - filamentDlgClosedAtRef.current < FILAMENT_DLG_SHIELD_MS) return;
+      filamentDlgBusyRef.current = true;
+      void sendAction(action, { ams_id: amsId, slot_id: slotId }).finally(() => {
+        window.setTimeout(() => {
+          filamentDlgBusyRef.current = false;
+          filamentDlgClosedAtRef.current = Date.now();
+        }, FILAMENT_DLG_SHIELD_MS);
+      });
+    },
     [sendAction],
+  );
+
+  const editSlot = useCallback(
+    (amsId: string, slotId: string) => openFilamentDialog('edit_slot', amsId, slotId),
+    [openFilamentDialog],
   );
 
   const readSlot = useCallback(
     (amsId: string, slotId: string) => sendAction('read_slot', { ams_id: amsId, slot_id: slotId }),
+    [sendAction],
+  );
+
+  const viewSlot = useCallback(
+    (amsId: string, slotId: string) => openFilamentDialog('view_slot', amsId, slotId),
+    [openFilamentDialog],
+  );
+
+  const openFilamentHint = useCallback(
+    (amsId: string, slotId: string) => sendAction('open_filament_mgr_hint', { ams_id: amsId, slot_id: slotId }),
+    [sendAction],
+  );
+
+  const openHumidity = useCallback(
+    (amsId: string) => sendAction('open_humidity', { ams_id: amsId }),
     [sendAction],
   );
 
@@ -117,6 +150,8 @@ export function useAmsControlWebBridge() {
       const detail = (e as CustomEvent).detail;
       const body = detail?.body;
       if (!isAmsControlWebBody(body) || detail.head?.type !== 'report') return;
+      // Theme reports only carry a theme field; do not overwrite the view model.
+      if (body.submod === 'init') return;
       if (body.payload) {
         applyState(body.payload);
         setError('');
@@ -162,6 +197,9 @@ export function useAmsControlWebBridge() {
     switchAms,
     editSlot,
     readSlot,
+    viewSlot,
+    openFilamentHint,
+    openHumidity,
     openSettings,
     openAutoRefill,
     loadFilament,

@@ -3,8 +3,11 @@
 #include "ViewModel.hpp"
 
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/DevicePageDialogHelpers.h"
+#include "slic3r/GUI/AMSDryControl.hpp"
 #include "slic3r/GUI/AMSSetting.hpp"
+#include "slic3r/GUI/AmsMappingPopup.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/DeviceTab/uiAmsHumidityPopup.h"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
@@ -13,6 +16,7 @@
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSwitch.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevInfo.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/Widgets/AMSItem.hpp"
 
@@ -38,6 +42,104 @@ void open_ams_settings()
     dlg.ShowModal();
 }
 
+int humidity_display_idx_of(const DevAms* ams)
+{
+    if (!ams) return -1;
+    if (ams->GetAmsType() == DevAmsType::AMS) {
+        const int level = ams->GetHumidityLevel();
+        return (level > 0 && level < 6) ? level : -1;
+    }
+    const int percent = ams->GetHumidityPercent();
+    if (percent < 0)       return -1;
+    if (percent < 20)      return 5;
+    if (percent < 40)      return 4;
+    if (percent < 60)      return 3;
+    if (percent < 80)      return 2;
+    return 1;
+}
+
+// Same widget AMSControl pops for DevAmsType::AMS. PopupWindow must outlive
+// Popup(), so keep one instance for the process.
+void show_ams_level_humidity_tip(int humidity_value)
+{
+    wxWindow* parent = wxGetApp().mainframe;
+    if (!parent) return;
+
+    static AmsHumidityTipPopup* popup = nullptr;
+    if (!popup)
+        popup = new AmsHumidityTipPopup(parent);
+
+    if (humidity_value > 0 && humidity_value <= 5)
+        popup->set_humidity_level(humidity_value);
+
+    popup->Layout();
+    popup->Fit();
+    wxGetApp().UpdateDarkUIWin(popup);
+
+    const wxSize  sz     = popup->GetSize();
+    const wxRect  screen = parent->GetScreenRect();
+    const wxPoint pos(screen.x + (screen.width - sz.GetWidth()) / 2,
+                      screen.y + (screen.height - sz.GetHeight()) / 2);
+    popup->Position(pos, wxSize(0, 0));
+    popup->Popup();
+}
+
+// AMSDryCtrWin has no static modal entry on this branch, so drive it the way
+// AMSControl does: seed the ams id, push one state update, then run it modal.
+// The dialog is a modal here (not an AMSControl member) so it gets no periodic
+// refresh; the single update before ShowModal is what fills it.
+void show_ams_dry_ctr_win(MachineObject* machine_obj, const std::string& ams_id)
+{
+    wxWindow* parent = wxGetApp().mainframe;
+    if (!parent) return;
+
+    auto fila_system = machine_obj->GetFilaSystem();
+    if (!fila_system) return;
+
+    AMSDryCtrWin dlg(parent);
+    dlg.set_ams_id(ams_id);
+    dlg.update(fila_system, machine_obj);
+    dlg.ShowModal();
+}
+
+void open_humidity(const std::string& ams_id)
+{
+    auto*          dev_mgr     = wxGetApp().getDeviceManager();
+    MachineObject* machine_obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+    if (!machine_obj || ams_id.empty()) return;
+
+    auto fila_system = machine_obj->GetFilaSystem();
+    DevAms* ams = fila_system ? fila_system->GetAmsById(ams_id) : nullptr;
+    if (!ams) return;
+
+    const DevAmsType type = ams->GetAmsType();
+    // Mirrors AMSControl::EVT_AMS_SHOW_HUMIDITY_TIPS: classic AMS uses the
+    // A/B/C/D/E droplet tip; N3 with remote dry uses the dryer window;
+    // everything else uses the percent / remaining-time dialog.
+    if (type == DevAmsType::AMS) {
+        show_ams_level_humidity_tip(humidity_display_idx_of(ams));
+        return;
+    }
+
+    if (machine_obj->is_support_remote_dry &&
+        (type == DevAmsType::N3F || type == DevAmsType::N3S)) {
+        show_ams_dry_ctr_win(machine_obj, ams_id);
+        return;
+    }
+
+    uiAmsHumidityInfo info;
+    info.ams_id               = ams_id;
+    info.ams_type             = type;
+    info.humidity_display_idx = humidity_display_idx_of(ams);
+    info.humidity_percent     = ams->GetHumidityPercent();
+    info.left_dry_time        = ams->GetLeftDryTime();
+    info.current_temperature  = ams->GetCurrentTemperature();
+
+    uiAmsPercentHumidityDryPopup dlg(wxGetApp().mainframe);
+    dlg.Update(&info);
+    dlg.ShowModal();
+}
+
 // Temperature the classic load / unload commands carry, -1 when unknown.
 int nozzle_temp_mid(const DevAmsTray* tray)
 {
@@ -45,9 +147,8 @@ int nozzle_temp_mid(const DevAmsTray* tray)
     return (atoi(tray->nozzle_temp_min.c_str()) + atoi(tray->nozzle_temp_max.c_str())) / 2;
 }
 
-// Switch branch of StatusPanel::on_ams_load_curr: with the switch installed the
-// target extruder is ambiguous, so the user picks it in the native dialog.
-// Returns false when the load must not go ahead.
+// With the filament switch installed the target extruder is ambiguous; the user
+// picks it in a modal dialog. Returns false when the load must not go ahead.
 bool resolve_load_extruder(MachineObject*      machine_obj,
                           const std::string&  ams_id,
                           const std::string&  slot_id,
@@ -80,8 +181,7 @@ bool resolve_load_extruder(MachineObject*      machine_obj,
     return true;
 }
 
-// Port of StatusPanel::on_ams_load_curr. Must run on the UI thread: the switch
-// path is modal.
+// Must run on the UI thread: resolve_load_extruder is modal.
 void command_load(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id)
 {
     std::optional<int> extruder_id;
@@ -92,8 +192,7 @@ void command_load(MachineObject* machine_obj, const std::string& ams_id, const s
     const int  old_temp    = nozzle_temp_mid(machine_obj->get_curr_tray());
 
     if (devPrinterUtil::IsVirtualSlot(ams_id)) {
-        // The single ext slot is always "0", and the legacy protocol addresses the
-        // spool itself by the fixed 254 id.
+        // Legacy protocol addresses the ext spool by the fixed 254 id.
         const bool        np_protocol = machine_obj->is_enable_np || machine_obj->is_enable_ams_np;
         const std::string vt_ams_id   = np_protocol ? ams_id : std::string("254");
         machine_obj->command_ams_change_filament(true, vt_ams_id, "0", old_temp, new_temp, extruder_id);
@@ -103,8 +202,8 @@ void command_load(MachineObject* machine_obj, const std::string& ams_id, const s
     machine_obj->command_ams_change_filament(true, ams_id, slot_id, old_temp, new_temp, extruder_id);
 }
 
-// Port of StatusPanel::on_ams_unload: slot 255 marks the unload target. On the
-// new protocol the slot has to be the one actually sitting in an extruder.
+// Slot 255 marks the unload target. On the new protocol the slot must already
+// be sitting in an extruder.
 void command_unload(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id)
 {
     if (!machine_obj->is_enable_np) {
@@ -123,7 +222,6 @@ void command_unload(MachineObject* machine_obj, const std::string& ams_id, const
     }
 }
 
-// Port of StatusPanel::on_ams_refresh_rfid. External slots have no reader.
 void command_read_slot(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id)
 {
     auto fila_system = machine_obj->GetFilaSystem();
@@ -132,6 +230,28 @@ void command_read_slot(MachineObject* machine_obj, const std::string& ams_id, co
     DevAms* ams = fila_system->GetAmsById(ams_id);
     if (!ams || ams->GetTrays().count(slot_id) == 0) {
         BOOST_LOG_TRIVIAL(trace) << "ams control web: read slot " << ams_id << ":" << slot_id << " not found";
+        return;
+    }
+
+    // Mirror StatusPanel::on_ams_refresh_rfid: the reader cannot work while
+    // filament sits at the toolhead, so block with the same dialog instead of
+    // silently dropping the command.
+    bool has_filament_at_extruder = false;
+    if (machine_obj->is_enable_np || machine_obj->is_enable_ams_np) {
+        auto extder_system = machine_obj->GetExtderSystem();
+        auto current_extruder_id = ams->GetCurrentExtruderId();
+        if (extder_system && current_extruder_id.has_value())
+            has_filament_at_extruder = extder_system->HasFilamentInExt(current_extruder_id.value());
+    } else {
+        has_filament_at_extruder = machine_obj->is_filament_at_extruder();
+    }
+    if (has_filament_at_extruder) {
+        // Modal dialogs must run on the UI thread; the bridge may call us inline.
+        wxGetApp().CallAfter([]() {
+            MessageDialog msg_dlg(nullptr, _L("Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."), wxEmptyString,
+                                  wxICON_WARNING | wxYES);
+            msg_dlg.ShowModal();
+        });
         return;
     }
 
@@ -159,17 +279,14 @@ std::optional<nlohmann::json> AmsControlWebActionHandler::TryHandle(DevicePageAm
         return vm.MakeResponse(vm.GetModule(), "action", action, code, message, vm.BuildState());
     };
 
-    // Selection-only actions: no device command, so they answer without a printer.
     if (action == "select_slot") {
         vm.SetSelectedSlot(ams_id, slot_id);
-        // Picking a slot also opens its unit in whichever column owns it.
         vm.PromoteActiveAms(ams_id);
         return respond(0, "");
     }
 
     if (action == "switch_ams") {
-        // AMSControl::SwitchAms only moves which unit the column shows. The pick is
-        // dropped with it, so it can never name a slot the column stopped drawing.
+        // Switching the open unit drops the pick so it cannot name a hidden slot.
         vm.PromoteActiveAms(ams_id);
         vm.ClearSelectedSlot();
         return respond(0, "");
@@ -182,7 +299,9 @@ std::optional<nlohmann::json> AmsControlWebActionHandler::TryHandle(DevicePageAm
     }
 
     const bool is_device_action = action == "settings" || action == "load" ||
-                                  action == "unload" || action == "edit_slot" || action == "read_slot";
+                                  action == "unload" || action == "edit_slot" || action == "read_slot" ||
+                                  action == "view_slot" || action == "open_filament_mgr_hint" ||
+                                  action == "open_humidity";
     if (!is_device_action) return std::nullopt;
 
     if (!machine_obj) return respond(3, _u8L("Please select a printer"));
@@ -194,8 +313,6 @@ std::optional<nlohmann::json> AmsControlWebActionHandler::TryHandle(DevicePageAm
 
     if (action == "edit_slot") {
         if (ams_id.empty() || slot_id.empty()) return respond(1, "edit_slot needs ams_id and slot_id");
-        // The dialog writes to the device asynchronously, so report once the modal
-        // returns rather than waiting for the device echo.
         wxGetApp().CallAfter([vm_ptr = &vm, ams_id, slot_id]() {
             OpenAmsMaterialsSetting(ams_id, slot_id);
             vm_ptr->ReportState("state", "changed");
@@ -209,8 +326,31 @@ std::optional<nlohmann::json> AmsControlWebActionHandler::TryHandle(DevicePageAm
         return respond(0, "");
     }
 
-    // Re-run the gate the footer buttons are drawn from, so a stale button or a
-    // direct bridge call is refused with the same reason the page would show.
+    if (action == "view_slot") {
+        if (ams_id.empty() || slot_id.empty()) return respond(1, "view_slot needs ams_id and slot_id");
+        const bool view_only = machine_obj->GetInfo() && !machine_obj->GetInfo()->IsFdmMode();
+        wxGetApp().CallAfter([vm_ptr = &vm, ams_id, slot_id, view_only]() {
+            OpenAmsMaterialsSetting(ams_id, slot_id, view_only);
+            vm_ptr->ReportState("state", "changed");
+        });
+        return respond(0, "");
+    }
+
+    if (action == "open_filament_mgr_hint") {
+        if (ams_id.empty() || slot_id.empty())
+            return respond(1, "open_filament_mgr_hint needs ams_id and slot_id");
+        wxGetApp().CallAfter([ams_id, slot_id]() {
+            wxGetApp().open_new_official_filament_hint(ams_id, slot_id);
+        });
+        return respond(0, "");
+    }
+
+    if (action == "open_humidity") {
+        if (ams_id.empty()) return respond(1, "open_humidity needs ams_id");
+        wxGetApp().CallAfter([ams_id]() { open_humidity(ams_id); });
+        return respond(0, "");
+    }
+
     const bool           is_load = action == "load";
     const nlohmann::json state   = vm.BuildState();
     const nlohmann::json gate    = state.value(SchemaKeys::actions, nlohmann::json::object());
@@ -221,15 +361,12 @@ std::optional<nlohmann::json> AmsControlWebActionHandler::TryHandle(DevicePageAm
     if (!gate.value(can_key, false))
         return vm.MakeResponse(vm.GetModule(), "action", action, 3, gate.value(tips_key, std::string()), state);
 
-    // The page passes the selected slot back so the command cannot drift from what
-    // the user sees; fall back to the selection this view model holds.
     const std::string target_ams_id  = ams_id.empty() ? vm.SelectedAmsId() : ams_id;
     const std::string target_slot_id = slot_id.empty() ? vm.SelectedSlotId() : slot_id;
     if (target_ams_id.empty()) return respond(1, "no slot selected");
 
     if (is_load) {
-        // Re-resolve the machine inside the callback: the modal switch dialog gives
-        // the user time to unplug or switch printers.
+        // Re-resolve the machine after the modal: the user may have switched printers.
         wxGetApp().CallAfter([vm_ptr = &vm, target_ams_id, target_slot_id]() {
             auto* dev_mgr = wxGetApp().getDeviceManager();
             if (MachineObject* obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr)

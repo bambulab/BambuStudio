@@ -63,6 +63,8 @@ public:
 
 private:
     wxString BuildUrl(const std::string& path) const;
+    void OnWebContentSizeChanged(int width, int height);
+    void ApplyAmsControlWebHostSize(int height_dip);
     // Deferred construction: build webview + bridge + manager + LoadUrl on first use.
     void EnsureBuilt();
     bool CanReportToWeb() const;

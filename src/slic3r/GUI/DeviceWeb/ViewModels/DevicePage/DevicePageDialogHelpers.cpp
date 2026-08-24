@@ -10,7 +10,7 @@
 
 namespace Slic3r { namespace GUI {
 
-std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams_id, const std::string& slot_id)
+std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams_id, const std::string& slot_id, bool view_only)
 {
     auto* dev_mgr = wxGetApp().getDeviceManager();
     MachineObject* machine_obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
@@ -33,6 +33,7 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
     dlg.obj = machine_obj;
     dlg.ams_id = ams_id_int;
     dlg.slot_id = slot_id_int;
+    dlg.m_view_only = view_only;
 
     std::string filament;
     std::string sn_number;

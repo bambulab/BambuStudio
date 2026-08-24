@@ -1,0 +1,214 @@
+.ams-control-web-page {
+  --ams-web-brand: #00ae42;
+  --ams-web-gray700: #6b6b6b;
+  --ams-web-gray800: #323a3d;
+  --ams-web-gray500: #acacac;
+  --ams-web-border: #cecece;
+  --ams-web-slot-frame: #828280;
+  --ams-web-block-bg: #eeeeee;
+  --ams-web-lib-bg: #f8f8f8;
+  /* Lite AMSLib uses darkModeColorFor(#F8F8F8) = Grey200. Generic remain canvas does not. */
+  --ams-web-lite-lib-bg: #f8f8f8;
+  --ams-web-chip-bg: #f7f7f7;
+  --ams-web-disabled: #cecece;
+  --ams-web-disabled-text: #909090;
+  --ams-web-surface: #ffffff;
+  /* C++ paints *wxWHITE / AMS_CONTROL_DEF_LIB_BK_COLOUR without darkModeColorFor. */
+  --ams-web-white: #ffffff;
+  --ams-web-text: #1f1f1f;
+  --ams-web-warn: #f5a623;
+  --ams-web-humidity: #3b9ae1;
+  --ams-web-humidity-track: #e5e5e5;
+  --ams-web-road-nub: #c2c2c2;
+  --ams-web-outline: #262e30;
+  --ams-web-btn-green-hover: #3dcb73;
+  --ams-web-btn-green-press: #1b8844;
+  --ams-web-nozzle-shell: #9a9a9a;
+  --ams-web-nozzle-body: #b0b0b0;
+  --ams-web-nozzle-tip: #8e8e8e;
+  --ams-web-tip-bg: #ffffff;
+  --ams-web-tip-text: #323a3d;
+  --ams-web-tip-shadow: 0 1px 4px rgba(0, 0, 0, 0.28);
+
+  background: var(--ams-web-surface);
+  color: var(--ams-web-text);
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+[data-theme='dark'] .ams-control-web-page {
+  --ams-web-gray700: #a6a9aa;
+  --ams-web-gray800: #d8dcdd;
+  --ams-web-gray500: #6e7375;
+  --ams-web-border: #4a4f51;
+  --ams-web-slot-frame: #9a9a98;
+  /* StateColor Grey300 (#EEEEEE) -> #4C4C55; humidity capsule and AMS block. */
+  --ams-web-block-bg: #4c4c55;
+  --ams-web-chip-bg: #383d40;
+  --ams-web-lite-lib-bg: #36363c;
+  --ams-web-disabled: #3a3f41;
+  --ams-web-disabled-text: #75797b;
+  --ams-web-surface: #1c1f21;
+  --ams-web-text: #e5e5e5;
+  --ams-web-humidity-track: #3a3f41;
+  --ams-web-road-nub: #5a5f61;
+  --ams-web-outline: #d8dcdd;
+  --ams-web-nozzle-shell: #6f7476;
+  --ams-web-nozzle-body: #84898b;
+  --ams-web-nozzle-tip: #5f6466;
+  --ams-web-tip-bg: #2d3234;
+  --ams-web-tip-text: #e5e5e5;
+  --ams-web-tip-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.ams-control-web-page .ams-preview-chip {
+  /* Outline does not shrink the 52x32 canvas. A 1px border + box-border
+     scaled the overlay to 50px and let the 4th ts_bitmap_cube (12px at x=34)
+     stick out past the tray flange. */
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+}
+
+.ams-control-web-page .ams-preview-chip:hover,
+.ams-control-web-page .ams-preview-chip.active {
+  outline-color: var(--ams-web-brand);
+}
+
+.ams-control-web-page .ams-btn-white {
+  background: var(--ams-web-surface);
+  border-color: var(--ams-web-outline);
+  color: var(--ams-web-outline);
+}
+
+.ams-control-web-page .ams-btn-white:hover:not(:disabled) {
+  background: var(--ams-web-block-bg);
+}
+
+.ams-control-web-page .ams-btn-white:active:not(:disabled) {
+  background: var(--ams-web-disabled);
+}
+
+.ams-control-web-page .ams-btn-white:disabled {
+  background: var(--ams-web-disabled);
+  border-color: var(--ams-web-disabled);
+  color: var(--ams-web-disabled-text);
+  cursor: default;
+}
+
+.ams-control-web-page .ams-btn-green {
+  background: var(--ams-web-brand);
+  color: #ffffff;
+}
+
+.ams-control-web-page .ams-btn-green:hover:not(:disabled) {
+  background: var(--ams-web-btn-green-hover);
+}
+
+.ams-control-web-page .ams-btn-green:active:not(:disabled) {
+  background: var(--ams-web-btn-green-press);
+}
+
+.ams-control-web-page .ams-btn-green:disabled {
+  background: var(--ams-web-disabled);
+  color: var(--ams-web-disabled-text);
+  cursor: default;
+}
+
+/* ::after keeps the idle frame above the remain fill. */
+.ams-control-web-page .ams-slot-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  border: 1px solid var(--ams-web-slot-frame);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.ams-control-web-page .ams-slot-card:hover::after,
+.ams-control-web-page .ams-slot-card.is-selected::after {
+  border: 3px solid var(--ams-web-brand);
+}
+
+/* wx SetToolTip: pin at the cursor's top-right on enter, do not track moves. */
+.ams-control-web-page .ams-slot-cursor-tip {
+  position: fixed;
+  z-index: 30;
+  padding: 2px 8px;
+  border-radius: 2px;
+  background: var(--ams-web-tip-bg);
+  color: var(--ams-web-tip-text);
+  font-size: 12px;
+  line-height: 18px;
+  white-space: pre;
+  box-shadow: var(--ams-web-tip-shadow);
+  pointer-events: none;
+}
+
+.ams-control-web-page .ams-img-dark {
+  display: none;
+}
+
+[data-theme='dark'] .ams-control-web-page .ams-img-light {
+  display: none;
+}
+
+[data-theme='dark'] .ams-control-web-page .ams-img-dark {
+  display: block;
+}
+
+/* ams-icon-swap-press is opt-in so hover-only cards are not blanked while pressed. */
+.ams-control-web-page .ams-icon-hover,
+.ams-control-web-page .ams-icon-active {
+  display: none;
+}
+
+.ams-control-web-page .ams-icon-swap:hover .ams-icon-hover {
+  display: block;
+}
+
+.ams-control-web-page .ams-icon-swap:hover .ams-icon-base {
+  display: none;
+}
+
+.ams-control-web-page .ams-icon-swap-press:active .ams-icon-active {
+  display: block;
+}
+
+.ams-control-web-page .ams-icon-swap-press:active .ams-icon-base,
+.ams-control-web-page .ams-icon-swap-press:active .ams-icon-hover {
+  display: none;
+}
+
+/* BitmapCache.cpp: no dedicated dark SVG, so "#262E30" -> "#EFEFF0". */
+[data-theme='dark'] .ams-control-web-page .ams-setting-btn img {
+  filter: brightness(0) invert(0.937);
+}
+
+/* BitmapCache does not remap tray #EEEEEE / #F8F8F8; flanges stay light in dark mode. */
+.ams-control-web-page .ams-lite-tray {
+  color: #eeeeee;
+}
+
+.ams-control-web-page .ams-lite-tray svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes ams-rfid-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.ams-control-web-page .ams-rfid-spinning {
+  animation: ams-rfid-spin 0.8s linear infinite;
+  transform-origin: center;
+  will-change: transform;
+  backface-visibility: hidden;
+}

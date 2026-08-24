@@ -8,7 +8,11 @@ namespace Slic3r::GUI {
 
 namespace {
 constexpr int kMinWidthDip  = 586;
-constexpr int kMinHeightDip = 260;
+// Initial height before the page reports. The host then follows content
+// (no-preview machines drop the 44+10 preview band). 340 is the tallest stack:
+// preview 44 + gap 10 + unit body 174 + down road 10 + switcher band 16
+// + footer 37 + setup hint 37 + 8 page padding + rounding slack.
+constexpr int kMinHeightDip = 340;
 constexpr const char* kRoute = "/device_page/ams_control_web";
 } // namespace
 
@@ -23,8 +27,22 @@ wgtAmsControlWebPanel::wgtAmsControlWebPanel(wxWindow* parent)
                                      kRoute,
                                      /*allow_lazy=*/true);
     m_device_web->SetMinSize(wxSize(FromDIP(kMinWidthDip), FromDIP(kMinHeightDip)));
+    m_device_web->SetContentSizeChangedHandler([this](const wxSize& content_size) {
+        SetMinSize(content_size);
+        SetMaxSize(content_size);
+        SetSize(content_size);
+        Layout();
+        if (auto* parent = GetParent()) {
+            parent->Layout();
+            parent->SendSizeEvent();
+            if (auto* gp = parent->GetParent()) {
+                gp->Layout();
+                gp->SendSizeEvent();
+            }
+        }
+    });
 
-    root->Add(m_device_web, 1, wxEXPAND, 0);
+    root->Add(m_device_web, 0, wxEXPAND, 0);
     SetSizer(root);
     Layout();
 }

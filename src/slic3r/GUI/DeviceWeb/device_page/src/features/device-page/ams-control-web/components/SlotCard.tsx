@@ -1,115 +1,379 @@
+import { useLayoutEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { COLORS, SLOT_LIB, SLOT_LIB_LITE, TRAY_ICON, px } from '../dip';
+import { LITE_COLOR_INSET, LITE_EXT_COLOR_INSET } from '../geometry';
 import type { SlotView } from '../types';
-import { remainPercent, cn, isLightColor, slotFill } from './style';
+import {
+  amsEditableLightUrl,
+  amsEditableUrl,
+  amsFilamentHintUrl,
+  amsReadonlyLightUrl,
+  amsReadonlyUrl,
+  trayLeftHoverSvg,
+  trayLeftSelectedSvg,
+  trayLeftSvg,
+  trayMidHoverSvg,
+  trayMidSelectedSvg,
+  trayMidSvg,
+  trayRightHoverSvg,
+  trayRightSelectedSvg,
+  trayRightSvg,
+} from '../assets';
+import { cn, clearCheckerStyle, colorBandRects, filamentAlphaKind, slotContrast, slotFill, slotFillRatio, translucentCheckerStyle, type FilamentAlphaKind } from './style';
 
-function PencilIcon({ className }: { className?: string }) {
+export type SlotCardVariant = 'generic' | 'lite' | 'lite-ext' | 'ext';
+
+interface TrayArtwork {
+  base: string;
+  hover: string;
+  selected: string;
+  width: number;
+}
+
+function trayArtwork(slot: SlotView, variant: SlotCardVariant): TrayArtwork {
+  if (variant === 'lite-ext') {
+    return { base: trayMidSvg, hover: trayMidHoverSvg, selected: trayMidSelectedSvg, width: TRAY_ICON.midWidth };
+  }
+  const left = slot.slot_id === '0' || slot.slot_id === '1';
+  return left
+    ? { base: trayLeftSvg, hover: trayLeftHoverSvg, selected: trayLeftSelectedSvg, width: TRAY_ICON.sideWidth }
+    : { base: trayRightSvg, hover: trayRightHoverSvg, selected: trayRightSelectedSvg, width: TRAY_ICON.sideWidth };
+}
+
+const CURSOR_TIP_OFFSET = { x: 16, y: 8 } as const;
+
+function CursorTip({ text, origin }: { text: string; origin: { x: number; y: number } }) {
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    let left = origin.x + CURSOR_TIP_OFFSET.x;
+    let top = origin.y - rect.height - CURSOR_TIP_OFFSET.y;
+    const maxLeft = window.innerWidth - rect.width - 4;
+    if (left > maxLeft) left = Math.max(4, maxLeft);
+    if (left < 4) left = 4;
+    if (top < 4) top = origin.y + CURSOR_TIP_OFFSET.y;
+    el.style.left = `${left}px`;
+    el.style.top = `${top}px`;
+    el.style.visibility = 'visible';
+  }, [origin.x, origin.y, text]);
+
   return (
-    <svg viewBox="0 0 16 16" className={className} fill="none" aria-hidden>
-      <path d="M11.3 2.3a1 1 0 0 1 1.4 0l1 1a1 1 0 0 1 0 1.4L6.2 12.2 3 13l.8-3.2 7.5-7.5Z" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
+    <span
+      ref={ref}
+      className="ams-slot-cursor-tip"
+      style={{ left: origin.x + CURSOR_TIP_OFFSET.x, top: origin.y, visibility: 'hidden' }}
+    >
+      {text}
+    </span>
   );
 }
 
-function EyeIcon({ className }: { className?: string }) {
+function TrayMark({
+  svg,
+  className,
+  width,
+  height,
+  cardWidth,
+  cardHeight,
+}: {
+  svg: string;
+  className?: string;
+  width: number;
+  height: number;
+  cardWidth: number;
+  cardHeight: number;
+}) {
   return (
-    <svg viewBox="0 0 16 16" className={className} fill="none" aria-hidden>
-      <path d="M1.5 8S3.9 4 8 4s6.5 4 6.5 4-2.4 4-6.5 4S1.5 8 1.5 8Z" stroke="currentColor" strokeWidth="1.2" />
-      <circle cx="8" cy="8" r="1.8" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
+    <span
+      className={cn('ams-lite-tray pointer-events-none absolute', className)}
+      style={{
+        left: px(Math.trunc((cardWidth - width) / 2)),
+        top: px(Math.trunc((cardHeight - height) / 2)),
+        width: px(width),
+        height: px(height),
+      }}
+      aria-hidden
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
   );
 }
 
-function RfidIcon({ spinning }: { spinning?: boolean }) {
-  return (
-    <svg viewBox="0 0 20 20" className={cn('h-5 w-5', spinning && 'animate-spin')} fill="none" aria-hidden>
-      <circle cx="10" cy="10" r="7.25" stroke="#8A8A8A" strokeWidth="1.4" />
-      <path d="M10 5.2v3.1l2.1-1.2" stroke="#8A8A8A" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+function SlotSwatchFill({
+  slot,
+  kind,
+  solid,
+  bandWidth,
+}: {
+  slot: SlotView;
+  kind: FilamentAlphaKind;
+  solid: boolean;
+  bandWidth: number;
+}) {
+  const colors = slot.colors.length > 0 ? slot.colors : [slot.color];
+  if (solid && slot.color_type === 1 && colors.length >= 2) {
+    return (
+      <span className="absolute inset-0">
+        {colorBandRects(colors.length, bandWidth).map((rect, i) => (
+          <span
+            key={i}
+            className="absolute top-0 bottom-0"
+            style={{ left: px(rect.x), width: px(rect.width), background: colors[i] }}
+          />
+        ))}
+      </span>
+    );
+  }
+  if (solid) {
+    return <span className="absolute inset-0" style={{ background: slotFill(slot) }} />;
+  }
+  if (kind === 'clear') {
+    // Tile to the lib size. The SVG asset is 48x68 and WebView2 will not
+    // stretch an <img> to the 52x80 card, which left a white band under Ext.
+    return <span className="absolute inset-0" style={clearCheckerStyle()} />;
+  }
+  return <span className="absolute inset-0" style={translucentCheckerStyle(slot.color)} />;
 }
 
-// Bundled so the panels in between do not have to thread three callbacks each.
-export interface SlotHandlers {
-  onSelect: (slot: SlotView) => void;
-  onEdit: (slot: SlotView) => void;
-  onRead: (slot: SlotView) => void;
+function SlotSwatch({
+  slot,
+  lite,
+  liteExt,
+  fillRatio,
+}: {
+  slot: SlotView;
+  lite: boolean;
+  liteExt: boolean;
+  fillRatio: number;
+}) {
+  const multi = slot.color_type !== 2 && slot.colors.length > 1;
+  const kind = filamentAlphaKind(slot.color);
+  const solid = multi || kind === 'opaque';
+  const inset = liteExt ? LITE_EXT_COLOR_INSET : LITE_COLOR_INSET;
+  const bandWidth = lite
+    ? SLOT_LIB_LITE.width - inset.left - inset.right
+    : SLOT_LIB.width;
+  const fill = <SlotSwatchFill slot={slot} kind={kind} solid={solid} bandWidth={bandWidth} />;
+
+  // Lite colour sits inside the tray flange. Generic / Ext match the opaque
+  // remain fill: full-bleed to the card edge, border painted by ::after.
+  if (lite) {
+    return (
+      <span
+        className="absolute overflow-hidden"
+        style={{
+          left: px(inset.left),
+          top: px(inset.top),
+          right: px(inset.right),
+          bottom: px(inset.bottom),
+        }}
+      >
+        {fill}
+      </span>
+    );
+  }
+
+  // C++ AMSLib draws the clear / translucent checker over the whole lib
+  // (DrawBitmap at DIP 2,2). Remain height only clips opaque / multi fills.
+  if (!solid) {
+    return <span className="absolute inset-0 overflow-hidden">{fill}</span>;
+  }
+
+  return (
+    <span
+      className="absolute inset-x-0 bottom-0 overflow-hidden"
+      style={{ height: `${fillRatio * 100}%` }}
+    >
+      {fill}
+    </span>
+  );
 }
 
 export function SlotCard({
   slot,
-  handlers,
+  variant,
+  onSelect,
+  onEdit,
+  onView,
+  onFilamentHint,
 }: {
   slot: SlotView;
-  handlers: SlotHandlers;
+  variant: SlotCardVariant;
+  onSelect: (slot: SlotView) => void;
+  onEdit: (slot: SlotView) => void;
+  onView: (slot: SlotView) => void;
+  onFilamentHint: (slot: SlotView) => void;
 }) {
+  const { t } = useTranslation();
+  const liteExt = variant === 'lite-ext';
+  const lite = variant === 'lite' || liteExt;
+  const liteInset = liteExt ? LITE_EXT_COLOR_INSET : LITE_COLOR_INSET;
+  const size = lite ? SLOT_LIB_LITE : SLOT_LIB;
+  const glyphBottom = lite ? 20 : 15;
   const empty = slot.slot_state === 'empty' || slot.slot_state === 'none';
-  const fill = empty ? '#E8E8E8' : slotFill(slot);
-  const light = empty || isLightColor(slot.color);
-  const textColor = light ? '#1F1F1F' : '#FFFFFF';
-  const { menu_actions: menu } = slot;
+  const showEmptySlash = lite && slot.slot_state === 'empty';
+  const showEmptyLabel = !lite && slot.slot_state === 'empty';
+  const pale = empty || slot.show_unknown;
+  const contrast = slotContrast({
+    color: slot.color,
+    remain: slot.remain,
+    showRemain: slot.show_remain,
+    pale,
+  });
+  const fillRatio = slotFillRatio(slot.remain, slot.show_remain);
+  const showEdit = slot.menu_actions.show_edit;
+  const showRead = slot.menu_actions.show_read;
+  const glyph = showEdit
+    ? contrast.light
+      ? amsEditableLightUrl
+      : amsEditableUrl
+    : contrast.light
+      ? amsReadonlyLightUrl
+      : amsReadonlyUrl;
+  const tray = lite ? trayArtwork(slot, variant) : null;
+  const showK = !lite && (!!slot.k_text || slot.k_loading);
+  const kTip = slot.k_loading
+    ? (slot.k_loading_text ? `K ${slot.k_loading_text}` : 'K')
+    : slot.k_text;
+  const tip = !empty && !slot.show_unknown && slot.fila_type
+    ? (showK && kTip ? `${slot.fila_type}\n${kTip}` : slot.fila_type)
+    : undefined;
+  const [tipOrigin, setTipOrigin] = useState<{ x: number; y: number } | null>(null);
 
   return (
-    <div className="flex w-[3.25rem] flex-col items-center">
-      <div className="flex h-6 flex-col items-center justify-end">
-        {slot.show_rfid ? (
-          <button
-            type="button"
-            className="text-[#8A8A8A]"
-            aria-label="Read RFID"
-            disabled={slot.reading}
-            onClick={() => handlers.onRead(slot)}
-          >
-            <RfidIcon spinning={slot.reading} />
-          </button>
-        ) : null}
-      </div>
-      <div className="text-[11px] leading-4 text-[#6B6B6B]">{slot.label}</div>
-      <div className="relative mt-0.5">
+    <div
+      className="relative shrink-0"
+      style={{ width: px(size.width), height: px(size.height) }}
+      onMouseEnter={(event) => {
+        if (tip) setTipOrigin({ x: event.clientX, y: event.clientY });
+      }}
+      onMouseLeave={() => setTipOrigin(null)}
+    >
+      {tip && tipOrigin ? <CursorTip text={tip} origin={tipOrigin} /> : null}
+    <div
+      role="button"
+      tabIndex={0}
+      data-testid={`ams-slot-${slot.ams_id}-${slot.slot_id}`}
+      aria-label={tip ? `${slot.label} ${tip}` : slot.label}
+      onClick={() => onSelect(slot)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') onSelect(slot);
+      }}
+      className={cn(
+        'ams-icon-swap relative size-full cursor-default',
+        lite
+          ? 'overflow-visible rounded-[6px]'
+          : 'ams-slot-card box-border overflow-hidden rounded-[4px]',
+        !lite && slot.selected && 'is-selected',
+      )}
+      style={{
+        background: lite ? COLORS.liteLibBg : COLORS.libBg,
+      }}
+    >
+      {!pale ? (
+        <SlotSwatch slot={slot} lite={lite} liteExt={liteExt} fillRatio={fillRatio} />
+      ) : showEmptySlash ? (
+        <span
+          className="absolute block"
+          style={{
+            left: px(liteInset.left),
+            top: px(liteInset.top),
+            right: px(liteInset.right),
+            bottom: px(liteInset.bottom),
+            background: COLORS.white,
+          }}
+        />
+      ) : null}
+
+      {showEdit || showRead ? (
         <button
           type="button"
-          data-testid={`ams-slot-${slot.ams_id}-${slot.slot_id}`}
-          onClick={() => handlers.onSelect(slot)}
-          className={cn(
-            'relative block h-[5rem] w-[2.75rem] overflow-hidden rounded-[4px] border',
-            slot.selected ? 'border-[#00AE42] ring-1 ring-[#00AE42]' : 'border-[#D0D0D0]',
-            slot.loaded && 'shadow-[inset_0_0_0_2px_rgba(0,174,66,0.35)]',
-          )}
-          style={{ background: fill }}
+          aria-label={showEdit ? 'Edit filament' : 'View filament'}
+          className="absolute left-1/2 z-[1] -translate-x-1/2 cursor-default"
+          style={{ bottom: px(glyphBottom), marginLeft: lite ? 3 : 0 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!slot.selected) onSelect(slot);
+            if (showEdit) onEdit(slot);
+            else onView(slot);
+          }}
         >
-          {empty ? null : (
-            <>
-              <span className="absolute inset-x-0 top-5 text-center text-[11px] font-medium" style={{ color: textColor }}>
-                {slot.show_unknown ? '?' : slot.fila_type}
-              </span>
-              {menu.show_filament_mgr_hint ? (
-                <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#00AE42]" title="New filament" />
-              ) : null}
-              {slot.show_remain ? (
-                <span className="absolute inset-x-1 bottom-1.5 h-[3px] rounded-full bg-black/20">
-                  <span
-                    className="block h-full rounded-full bg-black/45"
-                    style={{ width: `${Math.max(8, remainPercent(slot.remain))}%` }}
-                  />
-                </span>
-              ) : (
-                <span className="absolute bottom-1.5 left-1/2 h-0.5 w-3 -translate-x-1/2 rounded-full bg-black/25" />
-              )}
-            </>
-          )}
+          <img src={glyph} alt="" aria-hidden style={{ height: px(14) }} />
         </button>
-        {/* Sits over the slot rather than inside it: both are buttons, and this
-            one opens the filament dialog instead of selecting the slot. */}
-        {!empty && (menu.show_edit || menu.show_read) ? (
-          <button
-            type="button"
-            aria-label={menu.show_edit ? 'Edit filament' : 'View filament'}
-            className="absolute bottom-5 left-1/2 -translate-x-1/2"
-            style={{ color: textColor }}
-            onClick={() => handlers.onEdit(slot)}
-          >
-            {menu.show_edit ? <PencilIcon className="h-3.5 w-3.5" /> : <EyeIcon className="h-3.5 w-3.5" />}
-          </button>
-        ) : null}
-      </div>
+      ) : null}
+
+      {tray ? (
+        slot.selected ? (
+          <TrayMark svg={tray.selected} width={tray.width} height={TRAY_ICON.height} cardWidth={size.width} cardHeight={size.height} />
+        ) : (
+          <>
+            <TrayMark className="ams-icon-base" svg={tray.base} width={tray.width} height={TRAY_ICON.height} cardWidth={size.width} cardHeight={size.height} />
+            <TrayMark className="ams-icon-hover" svg={tray.hover} width={tray.width} height={TRAY_ICON.height} cardWidth={size.width} cardHeight={size.height} />
+          </>
+        )
+      ) : null}
+
+      {showEmptySlash ? (
+        <span
+          className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center text-[13px] leading-[17px]"
+          style={{ color: '#323A3D' }}
+        >
+          /
+        </span>
+      ) : showEmptyLabel ? (
+        <span
+          className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center text-[13px] leading-[17px]"
+          style={{ color: contrast.textColor }}
+        >
+          {t('Empty')}
+        </span>
+      ) : (
+        <span
+          className={
+            lite
+              ? 'pointer-events-none absolute inset-x-0 top-[20px] z-[1] block px-[2px] text-center text-[10px] leading-[12px]'
+              : showK
+                ? 'pointer-events-none absolute inset-x-0 top-[6px] z-[1] block px-[2px] text-center text-[13px] leading-[17px]'
+                : 'absolute inset-x-0 top-[28px] z-[1] block px-[2px] text-center text-[13px] leading-[17px]'
+          }
+          style={{ color: contrast.textColor, transform: lite ? 'translateX(3px)' : undefined }}
+        >
+          {slot.show_unknown ? '?' : slot.fila_type}
+        </span>
+      )}
+
+      {showK ? (
+        <span
+          className="pointer-events-none absolute inset-x-0 top-[24px] z-[1] block px-[2px] text-center text-[11px] leading-[14px]"
+          style={{ color: contrast.textColor }}
+        >
+          {slot.k_loading ? (
+            <>
+              <span className="block">K</span>
+              <span className="block">{slot.k_loading_text || 'loading'}</span>
+            </>
+          ) : (
+            slot.k_text
+          )}
+        </span>
+      ) : null}
+
+      {slot.menu_actions.show_filament_mgr_hint ? (
+        <button
+          type="button"
+          aria-label="New filament"
+          className="absolute right-0 top-0 z-[1] cursor-default"
+          onClick={(e) => {
+            e.stopPropagation();
+            onFilamentHint(slot);
+          }}
+        >
+          <img src={amsFilamentHintUrl} alt="" aria-hidden style={{ width: px(14), height: px(14) }} />
+        </button>
+      ) : null}
+    </div>
     </div>
   );
 }

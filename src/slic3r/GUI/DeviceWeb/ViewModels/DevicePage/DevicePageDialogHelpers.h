@@ -32,7 +32,8 @@ struct EditedFilamentInfo {
 //
 // Returns the applied filament info only when the user confirmed the dialog;
 // std::nullopt on cancel or when the dialog could not be shown.
-std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams_id, const std::string& slot_id);
+// `view_only` locks the dialog (2D laser/cut mode).
+std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams_id, const std::string& slot_id, bool view_only = false);
 
 }} // namespace Slic3r::GUI
 

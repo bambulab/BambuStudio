@@ -77,6 +77,9 @@ namespace tray {
     inline constexpr const char* binded_extruder_ids = "binded_extruder_ids";
     inline constexpr const char* current_extruder_id = "current_extruder_id";
     inline constexpr const char* switcher_port       = "switcher_port";
+    inline constexpr const char* cali_idx            = "cali_idx";
+    inline constexpr const char* k                   = "k";
+    inline constexpr const char* n                   = "n";
 } // namespace tray
 
 namespace values {
@@ -125,6 +128,12 @@ struct Tray
     int                      current_extruder_id = -1;
     std::vector<int>         binded_extruder_ids;
     std::string              switcher_port;
+
+    // PA Factor K: cali_idx -1 is the printer default. k/n are resolved from
+    // PA history when the calib table is inited, otherwise the tray report.
+    int                      cali_idx = -1;
+    float                    k        = 0.f;
+    float                    n        = 0.f;
 };
 
 struct Unit
@@ -191,6 +200,9 @@ inline void to_json(nlohmann::json& j, const Tray& v)
         {tray::binded_extruder_ids, v.binded_extruder_ids},
         {tray::current_extruder_id, v.current_extruder_id},
         {tray::switcher_port,       v.switcher_port},
+        {tray::cali_idx,            v.cali_idx},
+        {tray::k,                   v.k},
+        {tray::n,                   v.n},
     };
 }
 

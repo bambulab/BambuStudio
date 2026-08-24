@@ -860,6 +860,7 @@ protected:
 public:
     void update_error_message();
     void show_ams_filament_hint(const std::string& ams_id, const std::string& slot_id);
+    void open_new_official_filament_hint(const std::string& ams_id, const std::string& slot_id);
 
 public:
     StatusPanel(wxWindow *      parent,
