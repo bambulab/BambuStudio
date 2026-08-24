@@ -12,6 +12,7 @@
 #include <cassert>
 #include <string>
 #include <vector>
+#include <wx/string.h>
 #include <wx/tokenzr.h>
 #include <wx/event.h>
 #include <wx/gdicmn.h>
@@ -238,6 +239,7 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString                    
                                                     std::string                     param,
                                                     const std::vector<wxString>    &label_list,
                                                     const std::vector<std::string> &value_list,
+                                                    const std::vector<wxString>    &tooltip_list,
                                                     std::function<void(int)>        callback)
 {
     assert(label_list.size() == value_list.size());
@@ -274,9 +276,14 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString                    
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
 
-    std::vector<wxString>::iterator iter;
-    for (auto label : label_list)
-        combobox->Append(label);
+    for (auto label : label_list) combobox->Append(label);
+
+    assert(tooltip_list.empty() || tooltip_list.size() == label_list.size());
+    for (int i = 0; i < static_cast<int>(tooltip_list.size()); ++i) { combobox->SetItemTooltip(i, tooltip_list[i]); }
+
+    // Let the dropdown grow to fit the widest item (never narrower than the combobox),
+    // clamped at min(comboWidth * 1.5, 400dip) so long labels aren't ellipsized.
+    combobox->GetDropDown().SetUseContentWidth(true, true);
 
     auto old_value = app_config->get(param);
     if (!old_value.empty()) {
@@ -1476,9 +1483,12 @@ wxWindow *PreferencesDialog::create_general_tab()
     auto item_darkmode = create_item_darkmode_checkbox(_L("Enable dark mode"), scrolled, _L("Enable dark mode"), 50, "dark_color_mode");
 #endif
 
-    std::vector<wxString>    FlushOptionLabels = {_L("All"), _L("Color change"), _L("Disabled")};
-    std::vector<std::string> FlushOptionValues = {"all", "color change", "disabled"};
-    auto item_auto_flush = create_item_combobox(_L("Auto Flush"), scrolled, _L("Auto calculate flush volumes"), "auto_calculate_flush", FlushOptionLabels, FlushOptionValues);
+    std::vector<wxString>    FlushOptionLabels{_L("All related changes"), _L("When color changes"), _L("Turn off auto calculate")};
+    std::vector<std::string> FlushOptionValues{"all", "color change", "disabled"};
+    std::vector<wxString>    FlushOptionTooltips{_L("Auto calculate when color changes, type or configuration changes"), _L("Auto calculate when sync or modify filament colors"),
+                                                 _L("Keep current flush volumes, trigger manually when needed")};
+    auto item_auto_flush = create_item_combobox(_L("Auto Calculate Flush Volume"), scrolled, _L("Auto calculate flush volumes"), "auto_calculate_flush", FlushOptionLabels,
+                                                FlushOptionValues, FlushOptionTooltips);
 
     auto item_single_instance = create_item_checkbox(_L("Keep only one Bambu Studio instance"), scrolled,
 #if __APPLE__
@@ -1615,13 +1625,13 @@ wxWindow *PreferencesDialog::create_3d_tab()
 
     std::vector<wxString> assemble_view_preview_options = {_L("Auto"), _L("Open"), _L("Close")};
     auto                  enable_assemble_view_preview  = create_item_combobox(_L("Display overview"), scrolled, _L("Display overview"), "enable_assemble_view_preview",
-                                                                               assemble_view_preview_options, {"Auto", "Open", "Close"}, [](int idx) {
+                                                                               assemble_view_preview_options, {"Auto", "Open", "Close"}, {}, [](int idx) {
                                                                  wxGetApp().app_config->set("enable_assemble_view_preview", idx == 0 ? "Auto" : idx == 1 ? "Open" : "Close");
                                                                  if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Auto")
                                                                      wxGetApp().app_config->set_bool("enable_bvh", true);
                                                                  else if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Open")
                                                                      wxGetApp().app_config->set_bool("enable_bvh", false);
-                                                             });
+                                                                               });
 
     float range_min = 1.0f, range_max = 2.5f;
     auto  item_grabber_size = create_item_range_input(_L("Grabber scale"), scrolled,
@@ -1640,7 +1650,7 @@ wxWindow *PreferencesDialog::create_3d_tab()
                                                            "3d_middle_tooltip_offset_x", "3d_middle_tooltip_offset_y", range_min, range_max, 1, nullptr, nullptr);
 
     std::vector<wxString> toolbar_style = {_L("Collapsible"), _L("Uncollapsible")};
-    auto item_toolbar_style = create_item_combobox(_L("Toolbar Style"), scrolled, _L("Toolbar Style"), "toolbar_style", toolbar_style, {"0", "1"}, [](int idx) -> void {
+    auto item_toolbar_style = create_item_combobox(_L("Toolbar Style"), scrolled, _L("Toolbar Style"), "toolbar_style", toolbar_style, {"0", "1"}, {}, [](int idx) -> void {
         const auto &p_ogl_manager = wxGetApp().get_opengl_manager();
         p_ogl_manager->set_toolbar_rendering_style(idx);
     });
@@ -1724,7 +1734,7 @@ wxWindow *PreferencesDialog::create_other_tab()
     std::vector<wxString>    backup_labels = {_L("10 seconds"), _L("20 seconds"), _L("30 seconds"), _L("1 minute"), _L("2 minutes"),
                                               _L("5 minutes"),  _L("10 minutes"), _L("30 minutes"), _L("never")};
     std::vector<std::string> backup_values = {"10", "20", "30", "60", "120", "300", "600", "1800", "0"};
-    auto item_auto_backup = create_item_combobox(_L("Auto-Backup"), scrolled, _L("The peroid of backup in seconds."), "backup_interval", backup_labels, backup_values,
+    auto item_auto_backup = create_item_combobox(_L("Auto-Backup"), scrolled, _L("The peroid of backup in seconds."), "backup_interval", backup_labels, backup_values, {},
                                                  [this](int) {
                                                      m_backup_interval_time = app_config->get("backup_interval");
                                                      long backup_interval   = 0;
