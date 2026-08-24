@@ -1,14 +1,22 @@
 #include "UnsavedChangesDialog.hpp"
 
+#include <algorithm>
 #include <cstddef>
+#include <functional>
+#include <iterator>
 #include <string>
 #include <vector>
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
 #include <boost/nowide/convert.hpp>
 
+#include <wx/dataview.h>
+#include <wx/gdicmn.h>
+#include <wx/string.h>
 #include <wx/tokenzr.h>
+#include <wx/simplebook.h>
 
+#include "Widgets/StateColor.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "format.hpp"
@@ -29,6 +37,7 @@
 #include "PresetComboBoxes.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/CheckBox.hpp"
+#include "Widgets/TextTabbar.hpp"
 
 using boost::optional;
 
@@ -54,10 +63,6 @@ static const std::map<Preset::Type, std::string> type_icon_names = {
     {Preset::TYPE_PRINTER,      "printer"       },
 };
 
-static std::string get_icon_name(Preset::Type type, PrinterTechnology pt) {
-    return pt == ptSLA && type == Preset::TYPE_PRINTER ? "sla_printer" : type_icon_names.at(type);
-}
-
 static std::string def_text_color()
 {
     wxColour def_colour = wxGetApp().get_label_clr_default();//wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
@@ -81,34 +86,29 @@ static void make_string_bold(wxString& str)
 #endif
 }
 
-// preset(root) node
-ModelNode::ModelNode(Preset::Type preset_type, wxWindow* parent_win, const wxString& text, const std::string& icon_name) :
-    m_parent_win(parent_win),
-    m_parent(nullptr),
-    m_preset_type(preset_type),
-    m_icon_name(icon_name),
-    m_text(text)
+static void markup_string(wxString &category_name, wxString &group_name, wxString &option_name)
 {
-    UpdateIcons();
+    // "color" strings
+    color_string(category_name, def_text_color());
+    color_string(group_name, def_text_color());
+    color_string(option_name, def_text_color());
+
+    // "make" strings bold
+    make_string_bold(category_name);
+    make_string_bold(group_name);
 }
 
-// category node
-ModelNode::ModelNode(ModelNode* parent, const wxString& text, const std::string& icon_name) :
-    m_parent_win(parent->m_parent_win),
-    m_parent(parent),
-    m_icon_name(icon_name),
-    m_text(text)
+// top-level category node (the categories are the tree's roots; no parent node)
+ModelNode::ModelNode(wxWindow *parent_win, const wxString &text, const std::string &icon_name) : m_parent_win(parent_win), m_parent(nullptr), m_icon_name(icon_name), m_text(text)
 {
+    m_kind = NodeKind::Category;
     UpdateIcons();
 }
 
 // group node
-ModelNode::ModelNode(ModelNode* parent, const wxString& text) :
-    m_parent_win(parent->m_parent_win),
-    m_parent(parent),
-    m_text(text),
-    m_icon_name("node_dot")
+ModelNode::ModelNode(ModelNode *parent, const wxString &text) : m_parent_win(parent->m_parent_win), m_parent(parent), m_icon_name("node_dot"), m_text(text)
 {
+    m_kind = NodeKind::Group;
     UpdateIcons();
 }
 
@@ -140,15 +140,16 @@ wxBitmap ModelNode::get_bitmap(const wxString& color)
 }
 
 // option node
-ModelNode::ModelNode(ModelNode* parent, const wxString& text, const wxString& old_value, const wxString& new_value) :
-    m_parent(parent),
-    m_old_color(old_value.StartsWith("#") ? old_value : ""),
-    m_new_color(new_value.StartsWith("#") ? new_value : ""),
-    m_container(false),
-    m_text(text),
-    m_icon_name("empty"),
-    m_old_value(old_value),
-    m_new_value(new_value)
+ModelNode::ModelNode(ModelNode *parent, const wxString &text, const wxString &old_value, const wxString &new_value, bool is_container, const std::string &icon_name)
+    : m_parent_win(parent->m_parent_win)
+    , m_parent(parent)
+    , m_icon_name(icon_name)
+    , m_old_color(old_value.StartsWith("#") ? old_value : "")
+    , m_new_color(new_value.StartsWith("#") ? new_value : "")
+    , m_text(text)
+    , m_old_value(old_value)
+    , m_new_value(new_value)
+    , m_container(is_container)
 {
     // check if old/new_value is color
     if (m_old_color.IsEmpty()) {
@@ -230,82 +231,89 @@ DiffModel::DiffModel(wxWindow* parent) :
 {
 }
 
-wxDataViewItem DiffModel::AddPreset(Preset::Type type, wxString preset_name, PrinterTechnology pt)
+wxDataViewItem DiffModel::AddPreset(Preset::Type type)
 {
-    // "color" strings
-    color_string(preset_name, def_text_color());
-    make_string_bold(preset_name);
-
-    auto preset = new ModelNode(type, m_parent_win, preset_name, get_icon_name(type, pt));
-    m_preset_nodes.emplace_back(preset);
-
-    wxDataViewItem child((void*)preset);
-    wxDataViewItem parent(nullptr);
-
-    ItemAdded(parent, child);
-    return child;
+    m_type = type;
+    return wxDataViewItem(nullptr);
 }
 
-ModelNode* DiffModel::AddOption(ModelNode* group_node, wxString option_name, wxString old_value, wxString new_value)
+ModelNode *DiffModel::GetCategory(wxString category_name, const std::string &category_icon_name)
 {
-    group_node->Append(std::make_unique<ModelNode>(group_node, option_name, old_value, new_value));
-    ModelNode* option = group_node->GetChildren().back().get();
-    wxDataViewItem group_item = wxDataViewItem((void*)group_node);
-    ItemAdded(group_item, wxDataViewItem((void*)option));
+    auto category = std::find_if(m_preset_nodes.begin(), m_preset_nodes.end(), [&category_name](const auto &category) { return category->text() == category_name; });
+    if (category != m_preset_nodes.end()) return (*category).get();
+
+    m_preset_nodes.emplace_back(std::make_unique<ModelNode>(m_parent_win, category_name, category_icon_name));
+    ModelNode *category_node = m_preset_nodes.back().get();
+    ItemAdded(wxDataViewItem(nullptr), wxDataViewItem((void *) category_node));
+
+    return category_node;
+}
+
+ModelNode *DiffModel::GetGroup(ModelNode *category_node, wxString group_name)
+{
+    auto &groups = category_node->GetChildren();
+    auto  group  = std::find_if(groups.begin(), groups.end(), [group_name](const std::unique_ptr<ModelNode> &group) { return group->text() == group_name; });
+    if (group != groups.end()) return (*group).get();
+
+    category_node->Append(std::make_unique<ModelNode>(category_node, group_name));
+    ModelNode *group_node = category_node->GetChildren().back().get();
+    ItemAdded(wxDataViewItem((void *) category_node), wxDataViewItem((void *) group_node));
+
+    return group_node;
+}
+
+// category->group->option
+ModelNode *DiffModel::AddOption(ModelNode *group_node, wxString option_name, wxString old_value, wxString new_value, std::string icon)
+{
+    group_node->Append(std::make_unique<ModelNode>(group_node, option_name, old_value, new_value, !icon.empty(), icon));
+    ModelNode     *option     = group_node->GetChildren().back().get();
+    wxDataViewItem group_item = wxDataViewItem((void *) group_node);
+    ItemAdded(group_item, wxDataViewItem((void *) option));
 
     m_ctrl->Expand(group_item);
     return option;
 }
 
-ModelNode* DiffModel::AddOptionWithGroup(ModelNode* category_node, wxString group_name, wxString option_name, wxString old_value, wxString new_value)
+// category->group->option
+wxDataViewItem DiffModel::AddOption(wxString           category_name,
+                                    const std::string &category_icon_name,
+                                    wxString           group_name,
+                                    wxString           option_name,
+                                    wxString           old_value,
+                                    wxString           new_value,
+                                    const std::string &option_icon)
 {
-    category_node->Append(std::make_unique<ModelNode>(category_node, group_name));
-    ModelNode* group_node = category_node->GetChildren().back().get();
-    ItemAdded(wxDataViewItem((void*)category_node), wxDataViewItem((void*)group_node));
+    auto *category = GetCategory(category_name, category_icon_name);
+    auto *group    = GetGroup(category, group_name);
 
-    return AddOption(group_node, option_name, old_value, new_value);
+    return wxDataViewItem((void *) AddOption(group, option_name, old_value, new_value, option_icon));
 }
 
-ModelNode* DiffModel::AddOptionWithGroupAndCategory(ModelNode* preset_node, wxString category_name, wxString group_name,
-                                            wxString option_name, wxString old_value, wxString new_value, const std::string category_icon_name)
+// category->group->option
+//                  variant1
+//                  variant2
+//                  variant3
+wxDataViewItem DiffModel::AddVariantOption(wxString                     category_name,
+                                           wxString                     group_name,
+                                           wxString                     option_name,
+                                           wxString                     old_value,
+                                           wxString                     new_value,
+                                           const std::string            category_icon_name,
+                                           const std::vector<wxString> &variant_labels,
+                                           const std::vector<wxString> &variant_old_values,
+                                           const std::vector<wxString> &variant_new_values)
 {
-    preset_node->Append(std::make_unique<ModelNode>(preset_node, category_name, category_icon_name));
-    ModelNode* category_node = preset_node->GetChildren().back().get();
-    ItemAdded(wxDataViewItem((void*)preset_node), wxDataViewItem((void*)category_node));
+    markup_string(category_name, group_name, option_name);
+    auto *category = GetCategory(category_name, category_icon_name);
+    auto *group    = GetGroup(category, group_name);
 
-    return AddOptionWithGroup(category_node, group_name, option_name, old_value, new_value);
-}
+    ModelNode     *parent = AddOption(group, option_name, old_value, new_value, "diff_multi_value");
+    wxDataViewItem parent_item(parent);
 
-wxDataViewItem DiffModel::AddOption(Preset::Type type, wxString category_name, wxString group_name, wxString option_name,
-                                              wxString old_value, wxString new_value, const std::string category_icon_name)
-{
-    // "color" strings
-    color_string(category_name, def_text_color());
-    color_string(group_name,    def_text_color());
-    color_string(option_name,   def_text_color());
+    // per-variant child rows
+    for (size_t i = 0; i < variant_labels.size(); i++) { AddOption(parent, variant_labels[i], variant_old_values[i], variant_new_values[i]); }
 
-    // "make" strings bold
-    make_string_bold(category_name);
-    make_string_bold(group_name);
-
-    // add items
-    for (std::unique_ptr<ModelNode>& preset : m_preset_nodes)
-        if (preset->type() == type)
-        {
-            for (std::unique_ptr<ModelNode> &category : preset->GetChildren())
-                if (category->text() == category_name)
-                {
-                    for (std::unique_ptr<ModelNode> &group : category->GetChildren())
-                        if (group->text() == group_name)
-                            return wxDataViewItem((void*)AddOption(group.get(), option_name, old_value, new_value));
-
-                    return wxDataViewItem((void*)AddOptionWithGroup(category.get(), group_name, option_name, old_value, new_value));
-                }
-
-            return wxDataViewItem((void*)AddOptionWithGroupAndCategory(preset.get(), category_name, group_name, option_name, old_value, new_value, category_icon_name));
-        }
-
-    return wxDataViewItem(nullptr);
+    return parent_item;
 }
 
 static void update_children(ModelNode* parent)
@@ -389,6 +397,25 @@ void DiffModel::GetValue(wxVariant& variant, const wxDataViewItem& item, unsigne
     default:
         wxLogError("DiffModel::GetValue: wrong column %d", col);
     }
+}
+
+bool DiffModel::GetAttr(const wxDataViewItem &item, unsigned int /*col*/, wxDataViewItemAttr &attr) const
+{
+    if (!item.IsOk()) return false;
+    ModelNode *node = static_cast<ModelNode *>(item.GetID());
+
+    // Shade category rows so they read as headers: a grey surface with bold text. Pick the shade by
+    // the current theme so it reads correctly in both modes (light surface in light mode, dark
+    // surface in dark mode). Option rows stay plain.
+    if (node->kind() == ModelNode::NodeKind::Category) {
+        attr.SetBackgroundColour(wxGetApp().dark_mode() ? StateColor::darkModeColorFor(ThemeColor::Grey300) : ThemeColor::Grey300);
+        attr.SetBold(true);
+        return true;
+    } else {
+        attr.SetBackgroundColour(wxGetApp().dark_mode() ? StateColor::darkModeColorFor(ThemeColor::Grey200) : ThemeColor::Grey200);
+        return true;
+    }
+    return false;
 }
 
 bool DiffModel::SetValue(const wxVariant& variant, const wxDataViewItem& item, unsigned int col)
@@ -584,13 +611,17 @@ static std::string get_pure_opt_key(std::string opt_key)
 //                  DiffViewCtrl
 // ----------------------------------------------------------------------------
 
-DiffViewCtrl::DiffViewCtrl(wxWindow* parent, wxSize size)
-    : wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, size, wxDV_VARIABLE_LINE_HEIGHT | wxDV_ROW_LINES
+DiffViewCtrl::DiffViewCtrl(wxWindow *parent, wxSize size)
+    : wxDataViewCtrl(parent,
+                     wxID_ANY,
+                     wxDefaultPosition,
+                     size,
+                     wxDV_VARIABLE_LINE_HEIGHT | wxDV_HORIZ_RULES
 #ifdef _WIN32
-        | wxBORDER_SIMPLE
+                         | wxBORDER_SIMPLE
 #endif
-    ),
-    m_em_unit(em_unit(parent))
+                     )
+    , m_em_unit(em_unit(parent))
 {
     wxGetApp().UpdateDVCDarkUI(this);
 
@@ -616,10 +647,15 @@ void DiffViewCtrl::AppendBmpTextColumn(const wxString& label, unsigned model_col
 #ifdef SUPPORTS_MARKUP
     rd->EnableMarkup(true);
 #endif
-    wxDataViewColumn* column = new wxDataViewColumn(label, rd, model_column, width * m_em_unit, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE | wxDATAVIEW_CELL_INERT);
 #else
-    wxDataViewColumn* column = new wxDataViewColumn(label, new BitmapTextRenderer(true, wxDATAVIEW_CELL_INERT), model_column, width * m_em_unit, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE);
+    wxDataViewRenderer *rd = new BitmapTextRenderer(true, wxDATAVIEW_CELL_INERT);
 #endif //__linux__
+    // Left-align + vertically center the cell text (lines up with the dark header labels), and
+    // ellipsize overlong values at the end ("abc…") rather than the default middle ("a…c").
+    rd->SetAlignment(wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
+    rd->EnableEllipsize(wxELLIPSIZE_END);
+
+    wxDataViewColumn *column = new wxDataViewColumn(label, rd, model_column, width * m_em_unit, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE);
     this->AppendColumn(column);
     if (set_expander)
         this->SetExpanderColumn(column);
@@ -644,7 +680,6 @@ void DiffViewCtrl::Rescale(int em /*= 0*/)
     Refresh();
 }
 
-
 void DiffViewCtrl::Append(  const std::string& opt_key, Preset::Type type,
                             wxString category_name, wxString group_name, wxString option_name,
                             wxString old_value, wxString new_value, const std::string category_icon_name)
@@ -656,8 +691,34 @@ void DiffViewCtrl::Append(  const std::string& opt_key, Preset::Type type,
     if (old_val != item_data.old_val || new_val != item_data.new_val)
         item_data.is_long = true;
 
-    m_items_map.emplace(model->AddOption(type, category_name, group_name, option_name, old_val, new_val, category_icon_name), item_data);
+    m_items_map.emplace(model->AddOption(category_name, category_icon_name, group_name, option_name, old_val, new_val, {}), item_data);
+}
 
+void DiffViewCtrl::AppendVariant(const std::string           &opt_key,
+                                 Preset::Type                 type,
+                                 wxString                     category_name,
+                                 wxString                     group_name,
+                                 wxString                     option_name,
+                                 wxString                     old_value,
+                                 wxString                     new_value,
+                                 const std::string            category_icon_name,
+                                 const std::vector<wxString> &variant_labels,
+                                 const std::vector<wxString> &variant_old_values,
+                                 const std::vector<wxString> &variant_new_values)
+{
+    ItemData item_data = {opt_key, option_name, old_value, new_value, type};
+
+    wxString old_val = get_short_string(item_data.old_val);
+    wxString new_val = get_short_string(item_data.new_val);
+    if (old_val != item_data.old_val || new_val != item_data.new_val) item_data.is_long = true;
+
+    std::vector<wxString> child_old, child_new;
+    child_old.reserve(variant_old_values.size());
+    child_new.reserve(variant_new_values.size());
+    for (const wxString &v : variant_old_values) child_old.push_back(get_short_string(v));
+    for (const wxString &v : variant_new_values) child_new.push_back(get_short_string(v));
+
+    m_items_map.emplace(model->AddVariantOption(category_name, group_name, option_name, old_val, new_val, category_icon_name, variant_labels, child_old, child_new), item_data);
 }
 
 void DiffViewCtrl::Clear()
@@ -668,18 +729,13 @@ void DiffViewCtrl::Clear()
 
 wxString DiffViewCtrl::get_short_string(wxString full_string)
 {
-    size_t max_len = 30;
-    if (full_string.IsEmpty() || full_string.StartsWith("#") ||
-        (full_string.Find("\n") == wxNOT_FOUND && full_string.Length() < max_len))
-        return full_string;
+    if (full_string.IsEmpty() || full_string.StartsWith("#")) return full_string;
+
+    const int n_pos = full_string.Find("\n");
+    if (n_pos == wxNOT_FOUND) return full_string;
 
     m_has_long_strings = true;
-
-    int n_pos = full_string.Find("\n");
-    if (n_pos != wxNOT_FOUND && n_pos < (int)max_len)
-        max_len = n_pos;
-
-    full_string.Truncate(max_len);
+    full_string.Truncate(n_pos);
     return full_string + dots;
 }
 
@@ -1384,6 +1440,14 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
             out = double_to_string(opt->value) + (opt->percent ? "%" : "");
         return out;
     }
+    case coFloatsOrPercents: {
+        const ConfigOptionFloatsOrPercents *opt = config.opt<ConfigOptionFloatsOrPercents>(opt_key);
+        if (opt && opt_idx < opt->size()) {
+            const FloatOrPercent &val = opt->get_at(opt_idx);
+            out                       = double_to_string(val.value) + (val.percent ? "%" : "");
+        }
+        return out;
+    }
     case coEnum: {
         return get_string_from_enum(opt_key, config,
             opt_key == "top_surface_pattern" ||
@@ -1437,6 +1501,77 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
         break;
     }
     return out;
+}
+
+// Returns the number of sub-values stored per extruder variant for opt_key:
+// 2 for options in printer_options_with_variant_2 (e.g. normal/stealth mode), 1 otherwise.
+static int get_variant_stride(const std::string &opt_key) { return printer_options_with_variant_2.count(get_pure_opt_key(opt_key)) > 0 ? 2 : 1; }
+
+// Returns the displayed value of a single extruder variant of a (possibly stride-2) vector option.
+// For stride 2 the two sub-values of the variant are joined with ',' (e.g. "normal,stealth").
+// A variant index beyond the stored range renders as "N/A".
+static wxString get_variant_string_value(const std::string &opt_key, const DynamicPrintConfig &config, int variant_idx, int stride)
+{
+    const std::string   pure_key   = get_pure_opt_key(opt_key);
+    const ConfigOption *option     = config.option(pure_key);
+    auto                opt_vector = dynamic_cast<const ConfigOptionVectorBase *>(option);
+    const int           size       = opt_vector ? (int) opt_vector->size() : 0;
+
+    wxString out;
+    for (int sub = 0; sub < stride; sub++) {
+        const int raw_idx = variant_idx * stride + sub;
+        wxString  sub_val = raw_idx < size ? get_string_value(pure_key + "#" + std::to_string(raw_idx), config) : _L("N/A");
+        out += sub == 0 ? sub_val : "," + sub_val;
+    }
+    return out;
+}
+
+static wxString get_collapsed_variant_value(const std::vector<wxString> &variant_values)
+{
+    if (variant_values.empty()) return {};
+
+    wxString joined;
+    bool     is_same = true;
+    for (size_t v = 0; v < variant_values.size(); v++) {
+        if (v != 0 && variant_values[v] != variant_values[v - 1]) is_same = false;
+        joined += v == 0 ? variant_values[v] : "/" + variant_values[v];
+    }
+    return is_same ? variant_values[0] : joined;
+}
+
+// Splits a raw extruder-variant string (e.g. "Direct Drive Standard") into a localized
+// "Drive: Nozzle" label. The split logic mirrors Tab::generate_extruder_options but is
+// project-independent so it can label variants of any two compared presets.
+static wxString get_variant_label(const std::string &variant)
+{
+    std::string drive, nozzle;
+
+    static std::vector<std::string> known_nozzle_types;
+    if (known_nozzle_types.empty()) {
+        for (auto nvt : get_valid_nozzle_volume_type()) known_nozzle_types.push_back(get_nozzle_volume_type_string(nvt));
+        std::sort(known_nozzle_types.begin(), known_nozzle_types.end(), [](const std::string &a, const std::string &b) { return a.size() > b.size(); });
+    }
+
+    bool found = false;
+    for (const auto &nozzle_type : known_nozzle_types) {
+        if (variant.size() > nozzle_type.size() && variant.substr(variant.size() - nozzle_type.size()) == nozzle_type && variant[variant.size() - nozzle_type.size() - 1] == ' ') {
+            drive  = variant.substr(0, variant.size() - nozzle_type.size() - 1);
+            nozzle = nozzle_type;
+            found  = true;
+            break;
+        }
+    }
+    if (!found) {
+        size_t pos = variant.rfind(' ');
+        if (pos != std::string::npos) {
+            drive  = variant.substr(0, pos);
+            nozzle = variant.substr(pos + 1);
+        } else {
+            drive  = variant;
+            nozzle = "";
+        }
+    }
+    return nozzle.empty() ? _L(drive) : wxString::Format(_L("%s: %s"), _L(drive), _L(nozzle));
 }
 
 void UnsavedChangesDialog::update(Preset::Type type, PresetCollection* dependent_presets, const std::string& new_selected_preset, const wxString& header)
@@ -1955,12 +2090,233 @@ static PresetCollection* get_preset_collection(Preset::Type type, PresetBundle* 
             nullptr;
 }
 
-//------------------------------------------
-//          DiffPresetDialog
-//------------------------------------------
+/**
+ * \brief Centered illustration-plus-hint placeholder shown in DiffPresetDialog when there is
+ *        nothing to compare (the two presets are equal, or no distinct pair is selected).
+ */
+class EmptyStatePanel : public wxPanel
+{
+public:
+    EmptyStatePanel(wxWindow *parent);
+    ~EmptyStatePanel() {}
+
+    /// \brief Set the centered hint text (used to surface error / "presets are equal" messages here). \param text Hint to display.
+    void set_hint(const wxString &text)
+    {
+        m_hint->SetLabel(text);
+        Layout();
+    }
+
+    /// \brief Reload the illustration bitmap for the current DPI/theme.
+    void Rescale()
+    {
+        m_bmp->SetBitmap(create_scaled_bitmap("diff_empty_state", this, 160));
+        Layout();
+    }
+
+private:
+    wxStaticBitmap *m_bmp{nullptr};
+    wxStaticText   *m_hint{nullptr};
+};
+
+EmptyStatePanel::EmptyStatePanel(wxWindow *parent) : wxPanel(parent, wxID_ANY)
+{
+    const int border = FromDIP(10);
+    m_bmp            = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("diff_empty_state", this, 160));
+    m_hint           = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
+
+    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->AddStretchSpacer();
+    sizer->Add(m_bmp, 0, wxALIGN_CENTER_HORIZONTAL);
+    sizer->Add(m_hint, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, border);
+    sizer->AddStretchSpacer();
+    SetSizer(sizer);
+}
+
+/**
+ * \brief The preset A/B selector area of DiffPresetDialog: two static captions ("Preset A" /
+ *        "Preset B") each above a PresetComboBox, with an "equal" copy button between them.
+ *
+ * Only one preset type is compared at a time (driven by the dialog's tab bar). Because
+ * PresetComboBox fixes its type at construction, the two combos are (re)created for the active
+ * type via set_type() on every tab switch, rather than pre-building one pair per type.
+ */
+class PresetSelectorPanel : public wxPanel
+{
+public:
+    /**
+     * \brief Build the selector layout (labels + empty combo columns + equal button).
+     *
+     * \param parent       Parent window (the DiffPresetDialog).
+     * \param bundle_left  Preset bundle backing the left (Preset A) combo.
+     * \param bundle_right Preset bundle backing the right (Preset B) combo.
+     */
+    PresetSelectorPanel(wxWindow *parent, PresetBundle *bundle_left, PresetBundle *bundle_right);
+    ~PresetSelectorPanel() {}
+
+    /**
+     * \brief Rebuild the two combos for the given preset type and populate them.
+     *
+     * Destroys any existing pair and creates a fresh PresetComboBox pair bound to \p type, wires
+     * their selection callbacks, applies the remembered show-all flag, and repopulates.
+     *
+     * \param type Preset type to compare (Print/Filament/Printer/SLA variants).
+     * \param tech Current printer technology (FFF/SLA), forwarded to combo population.
+     */
+    void set_type(Preset::Type type, PrinterTechnology tech);
+
+    /// \brief Remember the "show incompatible presets" flag and apply it to the live pair. \param show_all True to list incompatible presets.
+    void set_show_all(bool show_all);
+
+    /// \brief Forget all remembered per-type selections (call when the dialog re-syncs its bundles from the app).
+    void forget_selections()
+    {
+        m_last_sel_left.clear();
+        m_last_sel_right.clear();
+    }
+
+    /// \brief Reload combo/button bitmaps for the current DPI/theme.
+    void Rescale();
+
+    PresetComboBox *left() const { return m_combox_left; }
+    PresetComboBox *right() const { return m_combox_right; }
+    Preset::Type    type() const { return m_type; }
+    void            setEqualIcon(std::string icon);
+
+    /// Called after either combo's selection changes (dialog wires this to refresh the diff tree).
+    std::function<void()> on_selection_changed;
+
+    /// Called when a combo selection requires a compatibility refresh (preset_name, type, bundle).
+    std::function<void(const std::string &, Preset::Type, PresetBundle *)> on_compatibility;
+
+private:
+    /**
+     * \brief (Re)build one side's combo for the current m_type.
+     *
+     * Destroys the existing combo (if any) and creates a fresh PresetComboBox in \p column, wired
+     * to \p bundle. The side-specific state is passed in by the caller rather than selected from a
+     * left/right flag, so this method carries no notion of which side it is operating on.
+     *
+     * \param cb     Reference to the member combo pointer for this side; repointed at the new combo.
+     * \param column Sizer column the combo is added to.
+     * \param bundle Preset bundle the combo reads from.
+     * \param memory Per-type last-selection map for this side (read to restore, written on change).
+     */
+    void rebuild_combo(PresetComboBox *&cb, wxBoxSizer *column, PresetBundle *bundle, std::map<Preset::Type, std::string> &memory);
+
+    PresetBundle   *m_bundle_left{nullptr};
+    PresetBundle   *m_bundle_right{nullptr};
+    wxBoxSizer     *m_col_left{nullptr};
+    wxBoxSizer     *m_col_right{nullptr};
+    PresetComboBox *m_combox_left{nullptr};
+    PresetComboBox *m_combox_right{nullptr};
+    ScalableButton *m_equal{nullptr};
+    Preset::Type    m_type{Preset::TYPE_INVALID};
+    bool            m_show_all{false};
+
+    // Per-type, per-side last user selection. Combos are destroyed on every tab switch, so the
+    // chosen preset is remembered here and restored when the pair for that type is rebuilt (a
+    // widget-only selection would otherwise be lost, reverting to the bundle default).
+    std::map<Preset::Type, std::string> m_last_sel_left;
+    std::map<Preset::Type, std::string> m_last_sel_right;
+};
+
 static std::string get_selection(PresetComboBox* preset_combo)
 {
     return into_u8(preset_combo->GetString(preset_combo->GetSelection()));
+}
+
+PresetSelectorPanel::PresetSelectorPanel(wxWindow *parent, PresetBundle *bundle_left, PresetBundle *bundle_right)
+    : wxPanel(parent, wxID_ANY), m_bundle_left(bundle_left), m_bundle_right(bundle_right)
+{
+    SetBackgroundColour(*wxWHITE);
+
+    auto *label_left = new wxStaticText(this, wxID_ANY, _L("Preset A"));
+    m_col_left       = new wxBoxSizer(wxVERTICAL);
+    m_col_left->Add(label_left, 0, wxBOTTOM, 2);
+
+    m_equal = new ScalableButton(this, wxID_ANY, "equal");
+
+    auto *label_right = new wxStaticText(this, wxID_ANY, _L("Preset B"));
+    m_col_right       = new wxBoxSizer(wxVERTICAL);
+    m_col_right->Add(label_right, 0, wxBOTTOM, 2);
+
+    wxBoxSizer *row = new wxBoxSizer(wxHORIZONTAL);
+    row->Add(m_col_left, 1, wxEXPAND);
+    row->Add(m_equal, 0, wxRIGHT | wxLEFT | wxALIGN_BOTTOM, 5);
+    row->Add(m_col_right, 1, wxEXPAND);
+    SetSizer(row);
+
+    // copy left to right
+    m_equal->Bind(wxEVT_BUTTON, [this](wxEvent &) {
+        if (!m_combox_left || !m_combox_right) return;
+        std::string preset_name = get_selection(m_combox_left);
+        m_combox_right->update(preset_name);
+        m_last_sel_right[m_type] = preset_name;
+        if (on_compatibility) on_compatibility(Preset::remove_suffix_modified(preset_name), m_combox_right->get_type(), m_bundle_right);
+        if (on_selection_changed) on_selection_changed();
+    });
+}
+
+void PresetSelectorPanel::setEqualIcon(std::string icon) { m_equal->SetBitmap_(ScalableBitmap(this, icon)); }
+
+void PresetSelectorPanel::rebuild_combo(PresetComboBox *&cb, wxBoxSizer *column, PresetBundle *bundle, std::map<Preset::Type, std::string> &memory)
+{
+    if (cb) {
+        column->Detach(cb);
+        cb->Destroy();
+        cb = nullptr;
+    }
+
+    const int em = em_unit(this);
+    cb           = new PresetComboBox(this, m_type, wxSize(em * 35, -1), bundle);
+
+    // Snapshot the raw pointer into a plain local for the lambda to capture by value: cb is a
+    // reference to the member pointer, which is repointed at a fresh combo on the next rebuild
+    // (tab switch). Capturing this local instead binds the callback to its own combo for good.
+    PresetComboBox *combo = cb;
+    combo->set_selection_changed_function([this, &memory, bundle, combo](int selection) {
+        std::string preset_name = combo->GetString(selection).ToUTF8().data();
+        // Remember the pick so it survives the combo being rebuilt on a later tab switch.
+        memory[m_type] = preset_name;
+        if (on_compatibility) on_compatibility(Preset::remove_suffix_modified(preset_name), m_type, bundle);
+        if (on_selection_changed) on_selection_changed();
+    });
+    if (m_show_all) combo->show_all(true);
+
+    // Restore the last user pick for this type/side; fall back to the bundle's selected preset.
+    auto it = memory.find(m_type);
+    if (it != memory.end()) {
+        combo->update(it->second);
+    } else {
+        const PresetCollection *collection = get_preset_collection(m_type, bundle);
+        if (collection && collection->get_selected_idx() != (size_t) -1) combo->update(collection->get_selected_preset().name);
+    }
+
+    column->Add(combo, 0, wxEXPAND);
+}
+
+void PresetSelectorPanel::set_type(Preset::Type type, PrinterTechnology /*tech*/)
+{
+    m_type = type;
+    rebuild_combo(m_combox_left, m_col_left, m_bundle_left, m_last_sel_left);
+    rebuild_combo(m_combox_right, m_col_right, m_bundle_right, m_last_sel_right);
+    Layout();
+}
+
+void PresetSelectorPanel::set_show_all(bool show_all)
+{
+    m_show_all = show_all;
+    if (m_combox_left) m_combox_left->show_all(show_all);
+    if (m_combox_right) m_combox_right->show_all(show_all);
+}
+
+void PresetSelectorPanel::Rescale()
+{
+    if (m_combox_left) m_combox_left->msw_rescale();
+    if (m_combox_right) m_combox_right->msw_rescale();
+    if (m_equal) m_equal->msw_rescale();
+    Layout();
 }
 
 DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
@@ -1976,227 +2332,207 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
 
     int border = 10;
     int em = em_unit();
-    SetBackgroundColour(*wxWHITE);
+    SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     assert(wxGetApp().preset_bundle);
 
     m_preset_bundle_left  = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
     m_preset_bundle_right = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
 
-    //m_top_info_line = new wxStaticText(this, wxID_ANY, "Select presets to compare");
-    m_top_info_line = new wxStaticText(this, wxID_ANY, _L("Select presets to compare"));
-    m_top_info_line->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
-
-    m_bottom_info_line = new wxStaticText(this, wxID_ANY, "");
-    m_bottom_info_line->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold());
-
-    wxBoxSizer* presets_sizer = new wxBoxSizer(wxVERTICAL);
-
-    for (auto new_type : { Preset::TYPE_PRINT, Preset::TYPE_FILAMENT, Preset::TYPE_SLA_PRINT, Preset::TYPE_SLA_MATERIAL, Preset::TYPE_PRINTER })
-    {
-        const PresetCollection* collection = get_preset_collection(new_type);
-        wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-        PresetComboBox* presets_left;
-        PresetComboBox* presets_right;
-        ScalableButton* equal_bmp = new ScalableButton(this, wxID_ANY, "equal");
-
-        auto add_preset_combobox = [collection, sizer, new_type, em, this](PresetComboBox** cb_, PresetBundle* preset_bundle) {
-            *cb_ = new PresetComboBox(this, new_type, wxSize(em * 35, -1), preset_bundle);
-            PresetComboBox* cb = (*cb_);
-            cb->set_selection_changed_function([this, new_type, preset_bundle, cb](int selection) {
-                if (m_view_type == Preset::TYPE_INVALID) {
-                    std::string preset_name = cb->GetString(selection).ToUTF8().data();
-                    update_compatibility(Preset::remove_suffix_modified(preset_name), new_type, preset_bundle);
-                }
-                update_tree();
-            });
-            if (collection->get_selected_idx() != (size_t)-1)
-                cb->update(collection->get_selected_preset().name);
-
-            sizer->Add(cb, 1);
-            cb->Show(new_type == Preset::TYPE_PRINTER);
-        };
-        add_preset_combobox(&presets_left, m_preset_bundle_left.get());
-        sizer->Add(equal_bmp, 0, wxRIGHT | wxLEFT | wxALIGN_CENTER_VERTICAL, 5);
-        add_preset_combobox(&presets_right, m_preset_bundle_right.get());
-        presets_sizer->Add(sizer, 1, wxTOP, 5);
-        equal_bmp->Show(new_type == Preset::TYPE_PRINTER);
-
-        m_preset_combos.push_back({ presets_left, equal_bmp, presets_right });
-
-        equal_bmp->Bind(wxEVT_BUTTON, [presets_left, presets_right, this](wxEvent&) {
-            std::string preset_name = get_selection(presets_left);
-            presets_right->update(preset_name);
-            if (m_view_type == Preset::TYPE_INVALID)
-                update_compatibility(Preset::remove_suffix_modified(preset_name), presets_right->get_type(), m_preset_bundle_right.get());
-            update_tree();
-        });
-    }
+    // Single preset A/B selector; its combo pair is (re)built for the active type by set_type().
+    m_selector                       = new PresetSelectorPanel(this, m_preset_bundle_left.get(), m_preset_bundle_right.get());
+    m_selector->on_selection_changed = [this]() { update_tree(); };
+    m_selector->on_compatibility     = [this](const std::string &preset_name, Preset::Type type, PresetBundle *bundle) {
+        if (m_opened_generically) update_compatibility(preset_name, type, bundle);
+    };
 
     m_show_all_presets = new wxCheckBox(this, wxID_ANY, _L("Show all presets (including incompatible)"));
-    m_show_all_presets->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
-        bool show_all = m_show_all_presets->GetValue();
-        for (auto preset_combos : m_preset_combos) {
-            if (preset_combos.presets_left->get_type() == Preset::TYPE_PRINTER)
-                continue;
-            preset_combos.presets_left->show_all(show_all);
-            preset_combos.presets_right->show_all(show_all);
-        }
-        if (m_view_type == Preset::TYPE_INVALID)
-            update_tree();
+    m_show_all_presets->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &) {
+        m_selector->set_show_all(m_show_all_presets->GetValue());
+        if (m_opened_generically) update_tree();
     });
 
-    m_tree = new DiffViewCtrl(this, wxSize(em * 65, em * 40));
-    m_tree->AppendBmpTextColumn("",                      DiffModel::colIconText, 35);
-    m_tree->AppendBmpTextColumn("Left Preset Value", DiffModel::colOldValue, 15);
-    m_tree->AppendBmpTextColumn("Right Preset Value",DiffModel::colNewValue, 15);
-    m_tree->Hide();
+    // Page 0 = empty state, page 1 = diff tree.
+    m_content     = new wxSimplebook(this, wxID_ANY);
+    m_empty_state = new EmptyStatePanel(m_content);
 
-    wxBoxSizer* topSizer = new wxBoxSizer(wxVERTICAL);
+    m_tree = new DiffViewCtrl(m_content, wxSize(em * 65, em * 40));
+    m_tree->AppendBmpTextColumn(_L("Options"), DiffModel::colIconText, 35, true);
+    m_tree->AppendBmpTextColumn(_L("Preset A"), DiffModel::colOldValue, 15);
+    m_tree->AppendBmpTextColumn(_L("Preset B"), DiffModel::colNewValue, 15);
 
-    topSizer->Add(m_top_info_line, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, 2 * border);
-    topSizer->Add(presets_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, border);
+    m_content->AddPage(m_empty_state, wxEmptyString); // kPageEmpty
+    m_content->AddPage(m_tree, wxEmptyString);        // kPageTree
+    m_content->SetSelection(kPageEmpty);
+
+    // Process/Filament/Machine tab bar; selecting a tab drives which preset type is compared.
+    m_tabbar = new TextTabbar(this, TextTabbar::Align::Left);
+    rebuild_tabs();
+    m_tabbar->Bind(wxEVT_CHOICE, [this](wxCommandEvent &e) {
+        const int idx = e.GetInt();
+        if (idx < 0 || idx >= (int) m_tab_types.size()) return;
+        m_view_type = m_tab_types[idx];
+        update_controls_visibility(m_view_type);
+        update_tree();
+        Layout();
+    });
+
+    // Build the initial combo pair for the tab selected by rebuild_tabs().
+    m_selector->set_type(m_view_type, m_pr_technology);
+
+    wxBoxSizer *topSizer = new wxBoxSizer(wxVERTICAL);
+    topSizer->AddSpacer(FromDIP(24));
+    topSizer->Add(m_tabbar, 0, wxEXPAND | wxTOP, border);
+    topSizer->AddSpacer(FromDIP(8));
+    topSizer->Add(m_selector, 0, wxEXPAND | wxLEFT | wxRIGHT, border);
+    topSizer->AddSpacer(FromDIP(4));
     topSizer->Add(m_show_all_presets, 0, wxEXPAND | wxALL, border);
-    topSizer->Add(m_bottom_info_line, 0, wxEXPAND | wxALL, 2 * border);
-    topSizer->Add(m_tree, 1, wxEXPAND | wxALL, border);
+    topSizer->AddSpacer(FromDIP(8));
+    topSizer->Add(m_content, 1, wxEXPAND | wxALL, border);
 
-    this->SetMinSize(wxSize(80 * em, 30 * em));
     this->SetSizer(topSizer);
-    topSizer->SetSizeHints(this);
+    // Fixed 800x600 default (DPI-scaled), pinned as the min so preset switches never shrink it.
+    // Deliberately not driven by Fit(): Fit() sizes to the content's best size, which for a
+    // scrolling data-view tree is far smaller than useful and would snap the dialog tiny on every
+    // update. Layout() (not Fit()) is used on the refresh paths to re-flow within this fixed size.
+    this->SetMinSize(FromDIP(wxSize(800, 600)));
+    this->SetSize(FromDIP(wxSize(800, 600)));
     wxGetApp().UpdateDlgDarkUI(this);
+}
+
+void DiffPresetDialog::rebuild_tabs()
+{
+    if (!m_tabbar) return;
+
+    // Tab set depends on printer technology: FFF compares Process/Filament/Machine, SLA compares
+    // SLA Process/SLA Material/Machine. Preserve the current type across a rebuild when possible.
+    const Preset::Type prev_type = (m_tabbar->GetSelection() >= 0 && m_tabbar->GetSelection() < (int) m_tab_types.size()) ? m_tab_types[m_tabbar->GetSelection()] : m_view_type;
+
+    m_tabbar->ClearTabs();
+    m_tab_types.clear();
+
+    auto add = [this](const wxString &label, Preset::Type type) {
+        m_tabbar->AddTab(label);
+        m_tab_types.push_back(type);
+    };
+
+    if (m_pr_technology == ptFFF) {
+        add(_L("Process"), Preset::TYPE_PRINT);
+        add(_L("Filament"), Preset::TYPE_FILAMENT);
+    } else {
+        add(_L("Process"), Preset::TYPE_SLA_PRINT);
+        add(_L("Material"), Preset::TYPE_SLA_MATERIAL);
+    }
+    add(_L("Machine"), Preset::TYPE_PRINTER);
+
+    int sel = 0;
+    for (int i = 0; i < (int) m_tab_types.size(); i++)
+        if (m_tab_types[i] == prev_type) {
+            sel = i;
+            break;
+        }
+    m_tabbar->SetSelection(sel);
+    m_view_type = m_tab_types[sel];
 }
 
 void DiffPresetDialog::update_controls_visibility(Preset::Type type /* = Preset::TYPE_INVALID*/)
 {
-    for (auto preset_combos : m_preset_combos) {
-        Preset::Type cb_type = preset_combos.presets_left->get_type();
-        bool show = type != Preset::TYPE_INVALID    ? type == cb_type :
-                    cb_type == Preset::TYPE_PRINTER ? true :
-                    m_pr_technology == ptFFF        ? cb_type == Preset::TYPE_PRINT || cb_type == Preset::TYPE_FILAMENT :
-                                                      cb_type == Preset::TYPE_SLA_PRINT || cb_type == Preset::TYPE_SLA_MATERIAL;
-        preset_combos.presets_left->Show(show);
-        preset_combos.equal_bmp->Show(show);
-        preset_combos.presets_right->Show(show);
+    const Preset::Type target = type != Preset::TYPE_INVALID ? type : m_view_type;
 
-        if (show) {
-            preset_combos.presets_left->update_from_bundle();
-            preset_combos.presets_right->update_from_bundle();
-        }
+    // Point the single selector at the active type. Rebuild the combo pair only when the type
+    // actually changes; otherwise just refresh the existing pair from the bundles.
+    if (m_selector->type() != target)
+        m_selector->set_type(target, m_pr_technology);
+    else {
+        if (m_selector->left()) m_selector->left()->update_from_bundle();
+        if (m_selector->right()) m_selector->right()->update_from_bundle();
     }
 
-    m_show_all_presets->Show(type != Preset::TYPE_PRINTER);
+    m_show_all_presets->Show(target != Preset::TYPE_PRINTER);
 }
 
 void DiffPresetDialog::update_bundles_from_app()
 {
     *m_preset_bundle_left  = *wxGetApp().preset_bundle;
     *m_preset_bundle_right = *wxGetApp().preset_bundle;
+    m_selector->forget_selections();
 }
 
 void DiffPresetDialog::show(Preset::Type type /* = Preset::TYPE_INVALID*/)
 {
     this->SetTitle(_L("Compare presets"));
-    m_view_type = type;
+    m_opened_generically = (type == Preset::TYPE_INVALID);
 
     update_bundles_from_app();
-    update_controls_visibility(type);
-    if (type == Preset::TYPE_INVALID)
-        Fit();
+
+    // Rebuild tabs for the current technology, then select the requested type's tab (or the first
+    // tab when opened generically). The selected tab is the single visible preset type.
+    rebuild_tabs();
+    if (type != Preset::TYPE_INVALID) {
+        for (int i = 0; i < (int) m_tab_types.size(); i++)
+            if (m_tab_types[i] == type) {
+                m_tabbar->SetSelection(i);
+                m_view_type = type;
+                break;
+            }
+    }
+
+    update_controls_visibility(m_view_type);
+    Layout();
 
     update_tree();
     wxGetApp().UpdateDlgDarkUI(this);
 
     // if this dialog is shown it have to be Hide and show again to be placed on the very Top of windows
-    if (IsShown())
-        Hide();
+    if (IsShown()) Hide();
     Show();
 }
 
 void DiffPresetDialog::update_presets(Preset::Type type)
 {
+    const PrinterTechnology prev_tech = m_pr_technology;
     m_pr_technology = m_preset_bundle_left.get()->printers.get_edited_preset().printer_technology();
 
     update_bundles_from_app();
-    update_controls_visibility(type);
+    // A technology switch changes the tab set (FFF vs SLA); rebuild so the tabs stay valid.
+    if (prev_tech != m_pr_technology) rebuild_tabs();
+    update_controls_visibility(m_view_type);
 
-    if (type == Preset::TYPE_INVALID)
-        for (auto preset_combos : m_preset_combos) {
-            if (preset_combos.presets_left->get_type() == Preset::TYPE_PRINTER) {
-                preset_combos.presets_left->update_from_bundle ();
-                preset_combos.presets_right->update_from_bundle();
-                break;
-            }
-        }
-    else
-        for (auto preset_combos : m_preset_combos) {
-            if (preset_combos.presets_left->get_type() == type) {
-                preset_combos.presets_left->update();
-                preset_combos.presets_right->update();
-                break;
-            }
-        }
+    // update_controls_visibility already refreshed the active pair from the bundles. When a specific
+    // type is requested and it is the one currently shown, do a full update() (re-sorts/repopulates).
+    if (type != Preset::TYPE_INVALID && m_selector->type() == type) {
+        if (m_selector->left()) m_selector->left()->update();
+        if (m_selector->right()) m_selector->right()->update();
+    }
 
     update_tree();
 }
 
-void DiffPresetDialog::update_tree()
+void DiffPresetDialog::on_empty(wxString message, std::string icon)
 {
-    Search::OptionsSearcher& searcher = wxGetApp().sidebar().get_searcher();
+    m_selector->setEqualIcon(icon);
+
+    m_empty_state->set_hint(message);
+    m_content->SetSelection(kPageEmpty);
+
+    Layout();
+    Refresh();
+}
+
+void DiffPresetDialog::do_update_tree(const Preset *left_preset, const Preset *right_preset, std::vector<std::string> &dirty_options)
+{
+    Preset::Type             type    = m_selector->type();
+    const PrinterTechnology &left_pt = left_preset->printer_technology();
+
+    const DynamicPrintConfig &left_config  = left_preset->config;
+    const DynamicPrintConfig &right_congig = right_preset->config;
+
+    Search::OptionsSearcher &searcher = wxGetApp().sidebar().get_searcher();
     searcher.sort_options_by_key();
 
     m_tree->Clear();
-    wxString bottom_info = "";
-    bool show_tree = false;
 
-    for (auto preset_combos : m_preset_combos)
-    {
-        if (!preset_combos.presets_left->IsShown())
-            continue;
-        Preset::Type type = preset_combos.presets_left->get_type();
-
-        const PresetCollection* presets = get_preset_collection(type);
-        const Preset* left_preset  = presets->find_preset(get_selection(preset_combos.presets_left));
-        const Preset* right_preset = presets->find_preset(get_selection(preset_combos.presets_right));
-        if (!left_preset || !right_preset) {
-            bottom_info = "One of the presets does not exist";
-            preset_combos.equal_bmp->SetBitmap_(ScalableBitmap(this, "question"));
-            preset_combos.equal_bmp->SetToolTip(bottom_info);
-            continue;
-        }
-
-        const DynamicPrintConfig& left_config   = left_preset->config;
-        const PrinterTechnology&  left_pt       = left_preset->printer_technology();
-        const DynamicPrintConfig& right_congig  = right_preset->config;
-
-        if (left_pt != right_preset->printer_technology()) {
-            bottom_info = "Compared presets has different printer technology";
-            preset_combos.equal_bmp->SetBitmap_(ScalableBitmap(this, "question"));
-            preset_combos.equal_bmp->SetToolTip(bottom_info);
-            continue;
-        }
-
-        // Collect dirty options.
-        const bool deep_compare = (type == Preset::TYPE_PRINTER || type == Preset::TYPE_SLA_MATERIAL);
-        auto dirty_options = type == Preset::TYPE_PRINTER && left_pt == ptFFF &&
-                             left_config.opt<ConfigOptionStrings>("extruder_colour")->values.size() < right_congig.opt<ConfigOptionStrings>("extruder_colour")->values.size() ?
-                             presets->dirty_options(right_preset, left_preset, deep_compare) :
-                             presets->dirty_options(left_preset, right_preset, deep_compare);
-
-        if (dirty_options.empty()) {
-            //bottom_info = _L("Presets are the same");
-            bottom_info = wxEmptyString;
-            preset_combos.equal_bmp->SetBitmap_(ScalableBitmap(this, "equal"));
-            preset_combos.equal_bmp->SetToolTip(bottom_info);
-            continue;
-        }
-
-        show_tree = true;
-        preset_combos.equal_bmp->SetBitmap_(ScalableBitmap(this, "not_equal"));
-        /*preset_combos.equal_bmp->SetToolTip(_L("Presets are different.\n"
-                                               "Click this button to select the same preset for the right and left preset."));*/
-
-        preset_combos.equal_bmp->SetToolTip(wxEmptyString);
-
-        m_tree->model->AddPreset(type, "\"" + from_u8(left_preset->name) + "\" vs \"" + from_u8(right_preset->name) + "\"", left_pt);
+    do {
+        m_tree->model->AddPreset(type);
 
         const std::map<wxString, std::string>& category_icon_map = wxGetApp().get_tab(type)->get_category_icon_map();
 
@@ -2210,39 +2546,141 @@ void DiffPresetDialog::update_tree()
             m_tree->Append("extruders_count", type, "General", "Capabilities", local_label, left_val, right_val, category_icon_map.at("Basic information"));
         }
 
-        for (const std::string& opt_key : dirty_options) {
-            wxString left_val = get_string_value(opt_key, left_config);
-            wxString right_val = get_string_value(opt_key, right_congig);
+        // Extruder-variant key sets for this preset type. Options in these sets store one value
+        // (or two, for key_set2) per extruder variant and are shown expanded, one child per variant.
+        std::string            extruder_id_name, extruder_variant_name;
+        std::set<std::string> *key_set1 = nullptr;
+        std::set<std::string> *key_set2 = nullptr;
+        Preset::get_extruder_names_and_keysets(type, extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
 
-            Search::Option option = searcher.get_option(opt_key, get_full_label(opt_key, left_config), type);
-            if (option.opt_key() != opt_key || (option.category.empty() && option.group.empty())) {
+        // Each preset carries its own variant-name list; variants are paired across presets by name.
+        auto read_variants = [&extruder_variant_name](const DynamicPrintConfig &cfg) {
+            std::vector<std::string> out;
+            if (!extruder_variant_name.empty())
+                if (auto opt = cfg.opt<ConfigOptionStrings>(extruder_variant_name)) out = opt->values;
+            return out;
+        };
+        const std::vector<std::string> left_variants  = read_variants(left_config);
+        const std::vector<std::string> right_variants = read_variants(right_congig);
+
+        // Physical extruder side per variant (parallel to the variant-name list): 1 = left, else right.
+        // Empty for preset types without an extruder-id key (e.g. filament), which drops the side prefix.
+        auto read_extruder_ids = [&extruder_id_name](const DynamicPrintConfig &cfg) {
+            std::vector<int> out;
+            if (!extruder_id_name.empty())
+                if (auto opt = cfg.opt<ConfigOptionInts>(extruder_id_name)) out = opt->values;
+            return out;
+        };
+        const std::vector<int> left_ids  = read_extruder_ids(left_config);
+        const std::vector<int> right_ids = read_extruder_ids(right_congig);
+
+        // Normalize deep_diff's per-index keys (opt_key#N) down to one bare key per option.
+        std::vector<std::string> bare_options;
+        {
+            std::set<std::string> seen_keys;
+            for (const std::string &opt_key : dirty_options) {
+                std::string bare = get_pure_opt_key(opt_key);
+                if (seen_keys.insert(bare).second) bare_options.emplace_back(bare);
+            }
+        }
+
+        for (const std::string &bare_key : bare_options) {
+            const bool in_variant_keyset = bare_key != extruder_variant_name && bare_key != extruder_id_name &&
+                                           ((key_set1 && key_set1->count(bare_key) > 0) || (key_set2 && key_set2->count(bare_key) > 0));
+
+            const size_t variant_count = std::max(left_variants.size(), right_variants.size());
+
+            // An option is shown expanded only when it belongs to a variant key set AND there are
+            // at least two variants to compare; with a single variant it degenerates to a plain row.
+            const bool is_variant_option = in_variant_keyset && variant_count >= 2;
+
+            Search::Option option       = searcher.get_option(bare_key, get_full_label(bare_key, left_config), type);
+            const bool     option_found = get_pure_opt_key(option.opt_key()) == bare_key && !(option.category.empty() && option.group.empty());
+
+            if (is_variant_option) {
+                const int stride = get_variant_stride(bare_key);
+
+                std::vector<wxString> labels, child_left, child_right;
+                for (size_t idx = 0; idx < variant_count; idx++) {
+                    const bool has_left  = idx < left_variants.size();
+                    const bool has_right = idx < right_variants.size();
+                    // Label from whichever preset has this index (prefer left); they share ordering.
+                    const std::vector<std::string> &src_variants = has_left ? left_variants : right_variants;
+                    const std::vector<int>         &src_ids      = has_left ? left_ids : right_ids;
+                    wxString label = get_variant_label(src_variants[idx]);
+                    // Prefix with the physical extruder side so two variants that share a drive/nozzle
+                    // label (one per extruder) stay distinguishable.
+                    if (idx < src_ids.size())
+                        label = (src_ids[idx] == 1 ? _L("Left: ") : _L("Right: ")) + label;
+                    labels.push_back(label);
+                    child_left.push_back(has_left ? get_variant_string_value(bare_key, left_config, (int) idx, stride) : _L("N/A"));
+                    child_right.push_back(has_right ? get_variant_string_value(bare_key, right_congig, (int) idx, stride) : _L("N/A"));
+                }
+
+                // Collapse from the paired child vectors so parent and children never disagree.
+                wxString left_val  = get_collapsed_variant_value(child_left);
+                wxString right_val = get_collapsed_variant_value(child_right);
+
+                if (option_found)
+                    m_tree->AppendVariant(bare_key, type, option.category_local, option.group_local, option.label_local, left_val, right_val,
+                                          category_icon_map.at(option.category), labels, child_left, child_right);
+                else
+                    m_tree->AppendVariant(bare_key, type, "Undef category", "Undef group", bare_key, left_val, right_val, "question", labels, child_left, child_right);
+                continue;
+            }
+
+            wxString left_val  = get_string_value(bare_key, left_config);
+            wxString right_val = get_string_value(bare_key, right_congig);
+
+            if (!option_found) {
                 // temporary solution, just for testing
-                m_tree->Append(opt_key, type, "Undef category", "Undef group", opt_key, left_val, right_val, "question");
+                m_tree->Append(bare_key, type, "Undef category", "Undef group", bare_key, left_val, right_val, "question");
                 // When founded option isn't the correct one.
                 // It can be for dirty_options: "default_print_profile", "printer_model", "printer_settings_id",
                 // because of they don't exist in searcher
                 continue;
             }
-            m_tree->Append(opt_key, type, option.category_local, option.group_local, option.label_local,
-                left_val, right_val, category_icon_map.at(option.category));
+            m_tree->Append(bare_key, type, option.category_local, option.group_local, option.label_local, left_val, right_val, category_icon_map.at(option.category));
         }
-    }
+    } while (false);
 
-    bool tree_was_shown = m_tree->IsShown();
-    m_tree->Show(show_tree);
-    if (!show_tree)
-        m_bottom_info_line->SetLabel(bottom_info);
-    m_bottom_info_line->Show(!show_tree);
+    m_selector->setEqualIcon("not_equal");
+    m_content->SetSelection(kPageTree);
 
-    if (tree_was_shown == m_tree->IsShown())
-        Layout();
-    else {
-        Fit();
-        Refresh();
-    }
+    Layout();
+    Refresh();
 
     // Revert sort of searcher back
     searcher.sort_options_by_label();
+}
+
+void DiffPresetDialog::update_tree()
+{
+    Preset::Type            type    = m_selector->type();
+    const PresetCollection *presets = get_preset_collection(type);
+
+    const Preset *left_preset  = presets->find_preset(get_selection(m_selector->left()));
+    const Preset *right_preset = presets->find_preset(get_selection(m_selector->right()));
+
+    if (!left_preset || !right_preset) { return on_empty(L"One of the presets does not exist", "question"); }
+
+    const PrinterTechnology &left_pt = left_preset->printer_technology();
+    if (left_pt != right_preset->printer_technology()) { return on_empty(L"Compared presets has different printer technology", "question"); }
+
+    // Collect dirty options.
+
+    const DynamicPrintConfig &left_config   = left_preset->config;
+    const DynamicPrintConfig &right_congig  = right_preset->config;
+    const bool                deep_compare  = (type == Preset::TYPE_PRINTER || type == Preset::TYPE_SLA_MATERIAL);
+    auto                      dirty_options = type == Preset::TYPE_PRINTER && left_pt == ptFFF &&
+                                                      left_config.opt<ConfigOptionStrings>("extruder_colour")->values.size() <
+                                                          right_congig.opt<ConfigOptionStrings>("extruder_colour")->values.size() ?
+                                                  presets->dirty_options(right_preset, left_preset, deep_compare) :
+                                                  presets->dirty_options(left_preset, right_preset, deep_compare);
+
+    if (dirty_options.empty()) { return on_empty(_L("Please select two different presets A and B to compare"), "equal"); }
+
+    do_update_tree(left_preset, right_preset, dirty_options);
 }
 
 void DiffPresetDialog::on_dpi_changed(const wxRect&)
@@ -2251,36 +2689,32 @@ void DiffPresetDialog::on_dpi_changed(const wxRect&)
 
     msw_buttons_rescale(this, em, { wxID_CANCEL});
 
-    const wxSize& size = wxSize(80 * em, 30 * em);
-    SetMinSize(size);
+    SetMinSize(FromDIP(wxSize(800, 600)));
 
-    for (auto preset_combos : m_preset_combos) {
-        preset_combos.presets_left->msw_rescale();
-        preset_combos.equal_bmp->msw_rescale();
-        preset_combos.presets_right->msw_rescale();
-    }
+    m_selector->Rescale();
 
     m_tree->Rescale(em);
+    m_empty_state->Rescale();
 
-    Fit();
+    // Re-assert the fixed size at the new DPI (FromDIP re-scales) rather than Fit()-ing to content.
+    SetSize(FromDIP(wxSize(800, 600)));
     Refresh();
 }
 
 void DiffPresetDialog::on_sys_color_changed()
 {
 #ifdef _WIN32
-    wxGetApp().UpdateAllStaticTextDarkUI(this);
-    wxGetApp().UpdateDarkUI(m_show_all_presets);
+    // Re-theme the whole dialog tree — mirrors the ctor's UpdateDlgDarkUI so a live light/dark
+    // switch also reaches the tab bar and A/B selector (both hardcode a white background); the
+    // narrower UpdateAllStaticTextDarkUI(this) only covered direct children and missed them.
+    wxGetApp().UpdateDlgDarkUI(this);
     wxGetApp().UpdateDVCDarkUI(m_tree);
 #endif
 
-    for (auto preset_combos : m_preset_combos) {
-        preset_combos.presets_left->msw_rescale();
-        preset_combos.equal_bmp->msw_rescale();
-        preset_combos.presets_right->msw_rescale();
-    }
+    m_selector->Rescale();
     // msw_rescale updates just icons, so use it
     m_tree->Rescale();
+    m_empty_state->Rescale();
     Refresh();
 }
 
@@ -2319,10 +2753,11 @@ void DiffPresetDialog::update_compatibility(const std::string& preset_name, Pres
     bool is_left_presets = preset_bundle == m_preset_bundle_left.get();
     PrinterTechnology pr_tech = preset_bundle->printers.get_selected_preset().printer_technology();
 
-    // update preset comboboxes
-    for (auto preset_combos : m_preset_combos)
-    {
-        PresetComboBox* cb = is_left_presets ? preset_combos.presets_left : preset_combos.presets_right;
+    // Refresh the active combo on the changed side if its type is affected by this compatibility
+    // change. With a single active pair, a combo for a different (currently hidden) type does not
+    // exist; it is (re)built fresh - and thus already current - when its tab is next selected.
+    PresetComboBox *cb = is_left_presets ? m_selector->left() : m_selector->right();
+    if (cb) {
         Preset::Type presets_type = cb->get_type();
         if ((print_tab && (
                 (pr_tech == ptFFF && presets_type == Preset::TYPE_FILAMENT) ||
@@ -2338,7 +2773,8 @@ void DiffPresetDialog::update_compatibility(const std::string& preset_name, Pres
         m_preset_bundle_right.get()->printers.get_selected_preset().printer_technology())
     {
         m_pr_technology = m_preset_bundle_left.get()->printers.get_edited_preset().printer_technology();
-        update_controls_visibility();
+        rebuild_tabs();
+        update_controls_visibility(m_view_type);
     }
 }
 

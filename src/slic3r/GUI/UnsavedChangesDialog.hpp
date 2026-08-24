@@ -1,21 +1,27 @@
-#ifndef slic3r_UnsavedChangesDialog_hpp_
-#define slic3r_UnsavedChangesDialog_hpp_
+#pragma once
 
+#include <string>
 #include <wx/dataview.h>
 #include <map>
 #include <vector>
+#include <wx/string.h>
 
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/ScrolledWindow.hpp"
+#include "libslic3r/CommonDefs.hpp"
 
 class ScalableButton;
 class wxStaticText;
+class wxStaticBitmap;
+class wxBoxSizer;
+class wxSimplebook;
 
-namespace Slic3r {
-namespace GUI{
+namespace Slic3r ::GUI {
+
+class TextTabbar;
 
 // ----------------------------------------------------------------------------
 //                  ModelNode: a node inside DiffModel
@@ -34,12 +40,16 @@ using ModelNodePtrArray = std::vector<std::unique_ptr<ModelNode>>;
 // GTK - wxDataViewIconText (wxWidgets for GTK renderer wxIcon + wxString, supported Markup text)
 class ModelNode
 {
+public:
+    /// \brief Row kind, used to pick the per-row border style (category/group = solid, option = dashed).
+    enum class NodeKind { Category, Group, Option };
+
+private:
     wxWindow*           m_parent_win{ nullptr };
 
     ModelNode*          m_parent;
     ModelNodePtrArray   m_children;
     wxBitmap            m_empty_bmp;
-    Preset::Type        m_preset_type {Preset::TYPE_INVALID};
 
     std::string         m_icon_name;
     // saved values for colors if they exist
@@ -79,23 +89,33 @@ public:
     // would be added to the control)
     bool                m_container {true};
 
-    // preset(root) node
-    ModelNode(Preset::Type preset_type, wxWindow* parent_win, const wxString& text, const std::string& icon_name);
+    // Row kind for per-row border styling; defaults to Option and is set explicitly in the
+    // category/group constructors.
+    NodeKind m_kind{NodeKind::Option};
 
-    // category node
-    ModelNode(ModelNode* parent, const wxString& text, const std::string& icon_name);
+    // category node (no parent node; the categories are the tree's roots)
+    ModelNode(wxWindow *parent_win, const wxString &text, const std::string &icon_name);
 
     // group node
     ModelNode(ModelNode* parent, const wxString& text);
 
-    // option node
-    ModelNode(ModelNode* parent, const wxString& text, const wxString& old_value, const wxString& new_value);
+    /**
+     * \brief Construct an general node
+     *
+     * \param parent        Parent node this row is appended under.
+     * \param text          Localized option label shown in the option column.
+     * \param old_value     Preset A value; a leading '#' is treated as a color swatch.
+     * \param new_value     Preset B value; a leading '#' is treated as a color swatch.
+     * \param is_container  True for an expandable parent row that aggregates per-variant children.
+     * \param icon_name     Icon name for the row (e.g. the multi-value marker on a container).
+     */
+    ModelNode(ModelNode *parent, const wxString &text, const wxString &old_value, const wxString &new_value, bool is_container = false, const std::string &icon_name = "empty");
 
     bool                IsContainer() const         { return m_container; }
+    NodeKind            kind() const { return m_kind; }
     bool                IsToggled() const           { return m_toggle; }
     void                Toggle(bool toggle = true)  { m_toggle = toggle; }
-    bool                IsRoot() const              { return m_parent == nullptr; }
-    Preset::Type        type() const                { return m_preset_type; }
+    bool                IsRoot() const { return m_parent == nullptr; }
     const wxString&     text() const                { return m_text; }
 
     ModelNode*          GetParent()                 { return m_parent; }
@@ -118,25 +138,29 @@ class DiffModel : public wxDataViewModel
 {
     wxWindow*               m_parent_win { nullptr };
     ModelNodePtrArray       m_preset_nodes;
+    Preset::Type            m_type{Preset::TYPE_INVALID};
 
     wxDataViewCtrl*         m_ctrl{ nullptr };
 
-    ModelNode *AddOption(ModelNode *group_node,
-                         wxString   option_name,
-                         wxString   old_value,
-                         wxString   new_value);
-    ModelNode *AddOptionWithGroup(ModelNode *category_node,
-                                  wxString   group_name,
-                                  wxString   option_name,
-                                  wxString   old_value,
-                                  wxString   new_value);
-    ModelNode *AddOptionWithGroupAndCategory(ModelNode *preset_node,
-                                             wxString   category_name,
-                                             wxString   group_name,
-                                             wxString   option_name,
-                                             wxString   old_value,
-                                             wxString   new_value,
-                                             const std::string category_icon_name);
+    /**
+     * \brief Get the Category with name \p category_name, create if needed
+     *
+     * \param category_name
+     * \param category_icon_name
+     * \return ModelNode*
+     */
+    ModelNode *GetCategory(wxString category_name, const std::string &category_icon_name);
+
+    /**
+     * \brief Get the Group in \p category with group_name, create if needed
+     *
+     * \param category_node
+     * \param group_name
+     * \return ModelNode*
+     */
+    ModelNode *GetGroup(ModelNode *category_node, wxString group_name);
+
+    ModelNode *AddOption(ModelNode *group_node, wxString option_name, wxString old_value, wxString new_value, std::string icon = "");
 
 public:
     enum {
@@ -152,9 +176,37 @@ public:
 
     void            SetAssociatedControl(wxDataViewCtrl* ctrl) { m_ctrl = ctrl; }
 
-    wxDataViewItem  AddPreset(Preset::Type type, wxString preset_name, PrinterTechnology pt);
-    wxDataViewItem  AddOption(Preset::Type type, wxString category_name, wxString group_name, wxString option_name,
-                              wxString old_value, wxString new_value, const std::string category_icon_name);
+    wxDataViewItem AddPreset(Preset::Type type);
+    wxDataViewItem AddOption(wxString           category_name,
+                             const std::string &category_icon_name,
+                             wxString           group_name,
+                             wxString           option_name,
+                             wxString           old_value,
+                             wxString           new_value,
+                             const std::string &option_icon);
+
+    /**
+     * \brief Add an expandable option row whose collapsed value aggregates every extruder variant,
+     *        with one child row per variant.
+     *
+     * \param category_name       Localized category (top-level tree node) the option is grouped under.
+     * \param group_name          Localized group (sub-node) the option is grouped under.
+     * \param option_name         Localized option label shown on the parent row.
+     * \param category_icon_name  Icon name for the category node.
+     * \param variant_labels      Per-variant row labels, in variant order.
+     * \param variant_old_values  Per-variant Preset A values, parallel to variant_labels; use "N/A" where a variant is absent.
+     * \param variant_new_values  Per-variant Preset B values, parallel to variant_labels; use "N/A" where a variant is absent.
+     * \return The parent (option) item.
+     */
+    wxDataViewItem AddVariantOption(wxString                     category_name,
+                                    wxString                     group_name,
+                                    wxString                     option_name,
+                                    wxString                     old_value,
+                                    wxString                     new_value,
+                                    const std::string            category_icon_name,
+                                    const std::vector<wxString> &variant_labels,
+                                    const std::vector<wxString> &variant_old_values,
+                                    const std::vector<wxString> &variant_new_values);
 
     void            UpdateItemEnabling(wxDataViewItem item);
     bool            IsEnabledItem(const wxDataViewItem& item);
@@ -174,6 +226,8 @@ public:
 
     bool IsEnabled(const wxDataViewItem& item, unsigned int col) const override;
     bool IsContainer(const wxDataViewItem& item) const override;
+    // Shade category/group rows (whole-row background) so they read as section headers.
+    bool GetAttr(const wxDataViewItem &item, unsigned int col, wxDataViewItemAttr &attr) const override;
     // Is the container just a header or an item with all columns
     // In our case it is an item with all columns
     bool HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override { return true; }
@@ -215,6 +269,19 @@ public:
     void    Rescale(int em = 0);
     void    Append(const std::string& opt_key, Preset::Type type, wxString category_name, wxString group_name, wxString option_name,
                    wxString old_value, wxString new_value, const std::string category_icon_name);
+    // Appends an expandable option row with per-extruder-variant child rows. The old/new_value pair
+    // is the collapsed aggregate; the parallel variant_* arrays carry one entry per variant.
+    void    AppendVariant(const std::string           &opt_key,
+                          Preset::Type                 type,
+                          wxString                     category_name,
+                          wxString                     group_name,
+                          wxString                     option_name,
+                          wxString                     old_value,
+                          wxString                     new_value,
+                          const std::string            category_icon_name,
+                          const std::vector<wxString> &variant_labels,
+                          const std::vector<wxString> &variant_old_values,
+                          const std::vector<wxString> &variant_new_values);
     void    Clear();
 
     wxString    get_short_string(wxString full_string);
@@ -414,16 +481,35 @@ public:
     ~FullCompareDialog(){};
 };
 
+// EmptyStatePanel and PresetSelectorPanel are private implementation details of DiffPresetDialog,
+// defined in UnsavedChangesDialog.cpp (anonymous namespace). Forward-declared here only because
+// DiffPresetDialog holds pointers to them.
+class EmptyStatePanel;
+class PresetSelectorPanel;
 
 //------------------------------------------
 //          DiffPresetDialog
 //------------------------------------------
 class DiffPresetDialog : public DPIDialog
 {
-    DiffViewCtrl*           m_tree              { nullptr };
-    wxStaticText*           m_top_info_line     { nullptr };
-    wxStaticText*           m_bottom_info_line  { nullptr };
+    DiffViewCtrl           *m_tree{nullptr};
     wxCheckBox*             m_show_all_presets  { nullptr };
+    // The content region is a wxSimplebook with two mutually-exclusive pages that share one slot:
+    // the empty-state placeholder (also used to surface error / "presets are equal" messages via
+    // its hint text) and the diff tree. Switch with m_content->SetSelection(kPageEmpty/kPageTree).
+    wxSimplebook        *m_content{nullptr};
+    EmptyStatePanel     *m_empty_state{nullptr};
+    static constexpr int kPageEmpty = 0;
+    static constexpr int kPageTree  = 1;
+    // Process/Filament/Machine tab bar; m_tab_types maps a tab index to its Preset::Type. Both
+    // are rebuilt when the printer technology changes (FFF vs SLA have different tab sets).
+    TextTabbar               *m_tabbar{nullptr};
+    std::vector<Preset::Type> m_tab_types;
+    void                      rebuild_tabs();
+    // True when the dialog was opened without a fixed preset type (from the Compare menu), so the
+    // user can switch types via the tab bar and per-type compatibility filtering should run. This
+    // used to be inferred from m_view_type == TYPE_INVALID, which the tab bar no longer leaves set.
+    bool m_opened_generically{true};
 
     Preset::Type            m_view_type         { Preset::TYPE_INVALID };
     PrinterTechnology       m_pr_technology;
@@ -435,14 +521,13 @@ class DiffPresetDialog : public DPIDialog
     void                    update_controls_visibility(Preset::Type type = Preset::TYPE_INVALID);
     void                    update_compatibility(const std::string& preset_name, Preset::Type type, PresetBundle* preset_bundle);
 
-    struct DiffPresets
-    {
-        PresetComboBox* presets_left    { nullptr };
-        ScalableButton* equal_bmp       { nullptr };
-        PresetComboBox* presets_right   { nullptr };
-    };
+    void on_empty(wxString message, std::string icon);
 
-    std::vector<DiffPresets> m_preset_combos;
+    // Single preset A/B selector for the active tab's type; the combo pair is recreated on tab
+    // switch (see PresetSelectorPanel). Replaces the former per-type vector of combo pairs.
+    PresetSelectorPanel *m_selector{nullptr};
+    void                 do_update_tree(const Preset *left, const Preset *right, std::vector<std::string> &dirty_options);
+    void                 make_variant_row();
 
 public:
     DiffPresetDialog(MainFrame* mainframe);
@@ -458,7 +543,4 @@ protected:
     friend class MainFrame;  // for on_sys_color_changed()
 };
 
-}
-}
-
-#endif //slic3r_UnsavedChangesDialog_hpp_
+} // namespace Slic3r::GUI

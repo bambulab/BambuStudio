@@ -41,7 +41,7 @@ public:
 WX_DECLARE_LIST(RadioSelector, RadioSelectorList);
 class CheckBox;
 class TextInput;
-class PreferenceTabbar;
+class TextTabbar;
 
 class PreferencesDialog : public DPIDialog
 {
@@ -49,7 +49,7 @@ private:
     AppConfig *app_config;
 
 protected:
-    PreferenceTabbar *m_tabbar = nullptr;
+    TextTabbar       *m_tabbar = nullptr;
     wxSimplebook *    m_book   = nullptr;
 
     bool m_seq_top_layer_only_changed{false};

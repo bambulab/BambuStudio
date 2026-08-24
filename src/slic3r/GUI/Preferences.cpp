@@ -20,6 +20,7 @@
 #include "OG_CustomCtrl.hpp"
 #include "fila_manager/wgtFilaManagerFeature.h"
 #include "slic3r/GUI/Widgets/Label.hpp"
+#include "slic3r/GUI/Widgets/TextTabbar.hpp"
 #include "wx/graphics.h"
 
 #include <wx/listimpl.cpp>
@@ -1224,101 +1225,6 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
         });
 }
 
-//  PreferenceTabbar — plain-text top tabs matching the Preferences Figma:
-//  a horizontal row of labels (active = bold dark, inactive = regular grey) with
-//  a green underline under the selected tab, over a 1px divider line. Emits the
-//  standard wxEVT_CHOICE (int = selected index) when the user clicks a tab.
-class PreferenceTabbar : public wxControl
-{
-public:
-    PreferenceTabbar(wxWindow *parent);
-    void AddTab(const wxString &label);
-    void SetSelection(int sel);
-    int  GetSelection() const { return m_selection; }
-    void Rescale();
-
-private:
-    void                        render();
-    std::vector<wxStaticText *> m_labels;
-    std::vector<wxWindow *>     m_underlines; // green indicator under each tab
-    wxBoxSizer                 *m_row       = nullptr;
-    int                         m_selection = -1;
-};
-
-PreferenceTabbar::PreferenceTabbar(wxWindow *parent) : wxControl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
-{
-    SetBackgroundColour(*wxWHITE);
-    auto *outer = new wxBoxSizer(wxVERTICAL);
-    m_row       = new wxBoxSizer(wxHORIZONTAL);
-    outer->Add(m_row, wxSizerFlags().Expand().Border(wxLEFT | wxRIGHT, FromDIP(48)));
-    auto *line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1));
-    line->SetBackgroundColour(ThemeColor::Grey300);
-    outer->Add(line, wxSizerFlags().Expand());
-
-    SetSizer(outer);
-}
-
-void PreferenceTabbar::AddTab(const wxString &label)
-{
-    const int index = (int) m_labels.size();
-
-    // Each tab is a column: the label on top and a 2px underline below it that
-    // turns ThemeColor::BrandGreen when the tab is selected.
-    auto *col  = new wxBoxSizer(wxVERTICAL);
-    auto *text = new wxStaticText(this, wxID_ANY, label);
-    text->SetFont(::Label::Body_14);
-
-    auto *underline = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(2)));
-    underline->SetBackgroundColour(this->GetBackgroundColour());
-
-    auto on_click = [this, index](wxMouseEvent &) {
-        SetSelection(index);
-        wxCommandEvent evt(wxEVT_CHOICE, GetId());
-        evt.SetEventObject(this);
-        evt.SetInt(index);
-        wxPostEvent(this, evt);
-    };
-    text->Bind(wxEVT_LEFT_DOWN, on_click);
-    underline->Bind(wxEVT_LEFT_DOWN, on_click);
-    text->Bind(wxEVT_ENTER_WINDOW, [text](wxMouseEvent &e) {
-        text->SetCursor(wxCURSOR_HAND);
-        e.Skip();
-    });
-
-    col->AddStretchSpacer();
-    col->Add(text);
-    col->AddStretchSpacer();
-    col->Add(underline, 0, wxEXPAND);
-
-    m_labels.push_back(text);
-    m_underlines.push_back(underline);
-    if (m_row->GetItemCount() != 0) m_row->AddStretchSpacer();
-    m_row->Add(col, wxSizerFlags().CenterHorizontal());
-    if (m_selection < 0) SetSelection(0);
-}
-
-void PreferenceTabbar::SetSelection(int sel)
-{
-    if (sel < 0 || sel >= (int) m_labels.size()) return;
-
-    m_selection = sel;
-    render();
-}
-
-void PreferenceTabbar::render()
-{
-    for (int i = 0; i < (int) m_labels.size(); ++i) {
-        const bool active = (i == m_selection);
-        m_labels[i]->SetFont(active ? Label::Head_14 : Label::Body_14);
-        m_underlines[i]->SetBackgroundColour(active ? ThemeColor::BrandGreen : GetBackgroundColour());
-        m_underlines[i]->Refresh();
-    }
-    Layout();
-    Refresh();
-}
-
-void PreferenceTabbar::Rescale() { render(); }
-
 void PreferencesDialog::create()
 {
     app_config             = get_app_config();
@@ -1337,7 +1243,7 @@ void PreferencesDialog::create()
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_tabbar = new PreferenceTabbar(this);
+    m_tabbar = new TextTabbar(this);
     m_book   = new wxSimplebook(this, wxID_ANY);
 
     auto add_tab = [this](const wxString &label, wxWindow *page) {

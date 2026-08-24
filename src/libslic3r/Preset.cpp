@@ -2832,6 +2832,11 @@ const Preset *PresetCollection::get_preset_base(const Preset &child) const
     if (child.inherits().empty())
         return &child; // this is user root
     auto inherits = find_preset(child.inherits());
+
+    // Guard against a self-referential "inherits" (corrupt data where inherits == own name):
+    // find_preset() resolves back to child, so recursing would loop forever. Treat it as its own root.
+    if (inherits == &child) return &child;
+
     return inherits ? get_preset_base(*inherits) : nullptr;
 }
 
@@ -3303,16 +3308,24 @@ std::vector<std::string> PresetCollection::merge_presets(PresetCollection &&othe
     return duplicates;
 }
 
+void inline static sync_vendor_ptr(const VendorMap &new_vendors, Preset &preset)
+{
+    if (!preset.vendor) return;
+
+    auto it = new_vendors.find(preset.vendor->id);
+    assert(it != new_vendors.end());
+    preset.vendor = &it->second;
+}
+
 void PresetCollection::update_vendor_ptrs_after_copy(const VendorMap &new_vendors)
 {
-    for (Preset &preset : m_presets)
-        if (preset.vendor != nullptr) {
-            assert(! preset.is_default && ! preset.is_external);
-            // Re-assign a pointer to the vendor structure in the new PresetBundle.
-            auto it = new_vendors.find(preset.vendor->id);
-            assert(it != new_vendors.end());
-            preset.vendor = &it->second;
-        }
+    for (Preset &preset : m_presets) {
+        assert(preset.vendor == nullptr || (!preset.is_default && !preset.is_external));
+        sync_vendor_ptr(new_vendors, preset);
+    }
+
+    sync_vendor_ptr(new_vendors, m_edited_preset);
+    sync_vendor_ptr(new_vendors, m_saved_preset);
 }
 
 void PresetCollection::update_map_alias_to_profile_name()

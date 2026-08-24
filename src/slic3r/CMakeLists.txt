@@ -60,6 +60,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/StateHandler.hpp
     GUI/Widgets/TabCtrl.cpp
     GUI/Widgets/TabCtrl.hpp
+    GUI/Widgets/TextTabbar.cpp
+    GUI/Widgets/TextTabbar.hpp
     GUI/Widgets/TextInput.cpp
     GUI/Widgets/TextInput.hpp
     GUI/Widgets/TempInput.cpp
