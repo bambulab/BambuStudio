@@ -30,6 +30,8 @@ endif()
 set(lisbslic3r_sources
     ArcFitter.cpp
     ArcFitter.hpp
+    PerfTrace.cpp
+    PerfTrace.hpp
     pchheader.cpp
     pchheader.hpp
     AABBTreeIndirect.hpp

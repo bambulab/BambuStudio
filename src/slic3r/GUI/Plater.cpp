@@ -1,5 +1,5 @@
 #include "Plater.hpp"
-#include "PerfTrace.hpp"
+#include "libslic3r/PerfTrace.hpp"
 #include <array>
 #include <boost/format/format_fwd.hpp>
 #include <cstddef>
@@ -9940,6 +9940,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z,
                                                      bool split_object, LoadProgressCallback progress_callback)
 {
+    PERF_TRACE("load_model_objects");
     const Vec3d bed_size = Slic3r::to_3d(this->bed.build_volume().bounding_volume2d().size(), 1.0) - 2.0 * Vec3d::Ones();
     auto update_load_progress = [&progress_callback](int percent, const wxString& message) {
         return !progress_callback || progress_callback(std::clamp(percent, 0, 100), message);
@@ -10091,7 +10092,10 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", after add_objects_to_list");
     if (!update_load_progress(90, _L("Updating 3D view...")))
         return obj_idxs;
-    update();
+    {
+        PERF_TRACE("Rendering Object loaded");
+        update();
+    }
     // Update InfoItems in ObjectList after update() to use of a correct value of the GLCanvas3D::is_sinking(),
     // which is updated after a view3D->reload_scene(false, flags & (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH) call
     for (const size_t idx : obj_idxs)
@@ -20412,6 +20416,8 @@ int Plater::load_project(wxString const &filename2,
     if (wx_dlg_id == wxID_CANCEL) {
         return wx_dlg_id;
     }
+    // we got the real file from here
+    PERF_TRACE("load_project");
 
     // Same as new_project: stop playback / clear assembly runtime before the
     // incoming 3mf replaces the model, otherwise play-mode chrome can linger.
@@ -20542,6 +20548,9 @@ int Plater::save_project(bool saveAs)
         return wxID_NO;
     if (filename == "<cancel>")
         return wxID_CANCEL;
+
+    // we got the real file from here
+    PERF_TRACE("save_project");
 
     if (auto *assemble_canvas = get_assmeble_canvas3D())
         assemble_canvas->prepare_assembly_steps_for_project_save();
@@ -23836,6 +23845,9 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     if (!path.Lower().EndsWith(".3mf"))
         return -1;
 
+    const bool perf_trace_export = !(strategy & SaveStrategy::Backup);
+    PERF_TRACE_IF(perf_trace_export, "export_3mf");
+
     // Serializing the project config can throw (e.g. a non-nullable float option holding a NaN,
     // which throws Slic3r::ConfigurationError "Serializing NaN" deep inside store_bbs_3mf). Such a
     // ConfigurationError is a CriticalException and must never reach the wx main loop: if it does,
@@ -23869,6 +23881,7 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
     std::vector<PlateBBoxData*> plate_bboxes;
     // BBS: backup
     if (!(strategy & SaveStrategy::Backup)) {
+        PERF_TRACE("export_3mf: generate thumbnails");
         for (int i = 0; i < p->partplate_list.get_plate_count(); i++) {
             ThumbnailData* thumbnail_data = &p->partplate_list.get_plate(i)->thumbnail_data;
             if (p->partplate_list.get_plate(i)->thumbnail_data.is_valid() &&  using_exported_file()) {
@@ -23943,7 +23956,10 @@ int Plater::export_3mf(const boost::filesystem::path& output_path, SaveStrategy 
 
     //BBS: add bbs 3mf logic
     PlateDataPtrs plate_data_list;
-    p->partplate_list.store_to_3mf_structure(plate_data_list, (strategy & SaveStrategy::WithGcode || strategy & SaveStrategy::WithSliceInfo), export_plate_idx);
+    {
+        PERF_TRACE_IF(perf_trace_export, "export_3mf: collect plate data");
+        p->partplate_list.store_to_3mf_structure(plate_data_list, (strategy & SaveStrategy::WithGcode || strategy & SaveStrategy::WithSliceInfo), export_plate_idx);
+    }
 
     // BBS: backup
     PresetBundle& preset_bundle = *wxGetApp().preset_bundle;

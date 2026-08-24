@@ -9,7 +9,7 @@
 #include "slic3r/GUI/UserManager.hpp"
 #include "slic3r/GUI/TaskManager.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
-#include "slic3r/GUI/PerfTrace.hpp"
+#include "libslic3r/PerfTrace.hpp"
 #include "format.hpp"
 #include <wx/language.h>
 #include <wx/string.h>

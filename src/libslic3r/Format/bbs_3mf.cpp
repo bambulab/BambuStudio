@@ -12,6 +12,7 @@
 
 #include "../I18N.hpp"
 #include "../FilamentMixer.hpp"
+#include "../PerfTrace.hpp"
 
 #include "bbs_3mf.hpp"
 
@@ -6470,6 +6471,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         m_use_loaded_id = store_params.strategy & SaveStrategy::UseLoadedId;
 
+        // Mirrors the "read archive" trace on the load side. Auto-backup saves run on a timer
+        // (10 s by default) and share this path, so they are excluded to keep the log readable.
+        PERF_TRACE_IF(!m_from_backup_save, std::string("write archive ") + PathSanitizer::sanitize(std::string(store_params.path)));
+
         if (auto info = store_params.model->model_info) {
             if (auto iter = info->metadata_items.find("Thumbnail_Small"); iter != info->metadata_items.end())
                 m_thumbnail_small = iter->second;
@@ -6622,6 +6627,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         //BBS: add thumbnail for each plate
         if (!m_skip_static) {
+            PERF_TRACE_IF(!m_from_backup_save, "3mf: add thumbnails");
             std::vector<bool> thumbnail_status(plate_data_list.size(), false);
             std::vector<bool> no_light_thumbnail_status(plate_data_list.size(), false);
             std::vector<bool> top_thumbnail_status(plate_data_list.size(), false);
@@ -7018,10 +7024,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             return false;
         }
 
-        if (!mz_zip_writer_finalize_archive(&archive)) {
-            add_error("Unable to finalize the archive");
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to finalize the archive\n");
-            return false;
+        {
+            // Writes the zip central directory and flushes everything staged above.
+            PERF_TRACE_IF(!m_from_backup_save, "3mf: finalize archive");
+            if (!mz_zip_writer_finalize_archive(&archive)) {
+                add_error("Unable to finalize the archive");
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", Unable to finalize the archive\n");
+                return false;
+            }
         }
 
         //BBS progress point
@@ -7278,6 +7288,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     {
         bool sub_model = !objects_data.empty();
         bool write_object = sub_model || !m_split_model;
+
+        PERF_TRACE_IF(!m_from_backup_save && !sub_model, "3mf: add model and meshes");
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", filename %1%, m_split_model %2%,  sub_model %3%") % PathSanitizer::sanitize(filename) % m_split_model % sub_model;
 
@@ -8333,6 +8345,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     bool _BBS_3MF_Exporter::_add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const ObjectToObjectDataMap &objects_data, int export_plate_idx, bool save_gcode, bool use_loaded_id)
     {
+        PERF_TRACE_IF(!m_from_backup_save, "3mf: add model config");
+
         std::stringstream stream;
         // Store mesh transformation in full precision, as the volumes are stored transformed and they need to be transformed back
         // when loaded as accurately as possible.
@@ -8765,6 +8779,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     bool _BBS_3MF_Exporter::_add_slice_info_config_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, const ObjectToObjectDataMap &objects_data, const DynamicPrintConfig& config)
     {
+        PERF_TRACE_IF(!m_from_backup_save, "3mf: add slice info");
+
         std::stringstream stream;
         // Store mesh transformation in full precision, as the volumes are stored transformed and they need to be transformed back
         // when loaded as accurately as possible.
@@ -9146,6 +9162,8 @@ bool _BBS_3MF_Exporter::_add_custom_gcode_per_print_z_file_to_archive(mz_zip_arc
 
 bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, const std::string &aux_dir, PackingTemporaryData &data)
 {
+    PERF_TRACE_IF(!m_from_backup_save, "3mf: add auxiliaries");
+
     bool result = true;
 
     if (aux_dir.empty()) {

@@ -1,4 +1,5 @@
 #include "Model.hpp"
+#include "PerfTrace.hpp"
 #include "libslic3r.h"
 #include "BuildVolume.hpp"
 #include "ClipperUtils.hpp"
@@ -477,6 +478,7 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
         PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, Semver* file_version, Import3mfProgressFn proFn, BBLProject *project,
         std::map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data)
 {
+    PERF_TRACE(std::string("read archive ") + input_file);
     assert(config != nullptr);
     assert(config_substitutions != nullptr);
 

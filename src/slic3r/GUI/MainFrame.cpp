@@ -52,7 +52,7 @@
 #include <string_view>
 
 #include "GUI_App.hpp"
-#include "slic3r/GUI/PerfTrace.hpp"
+#include "libslic3r/PerfTrace.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "MsgDialog.hpp"
 #include "Notebook.hpp"
