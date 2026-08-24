@@ -25,6 +25,11 @@ namespace Slic3r { namespace GUI {
 const int AMS_DRY_STATUS_IMAGE_SIZE = 96;
 const int AMS_DRY_STATUS_IMAGE_SIZE_ZMULTI = 200;
 
+// Drying duration range accepted by the input box. The validation message and
+// the input hint are both derived from these bounds so they cannot drift apart.
+const int AMS_DRY_MIN_HOUR = 1;
+const int AMS_DRY_MAX_HOUR = 72;
+
 static std::string get_humidity_level_img_path(int humidity_percent)
 {
     const int num_levels = 5;
@@ -1613,11 +1618,11 @@ void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
         can_enable_button = false;
     }
 
-    if (time_val < 1) {
-        warning_text += _L("Minimum time value cannot be less than 1.") + "\n";
+    if (time_val < AMS_DRY_MIN_HOUR) {
+        warning_text += wxString::Format(_L("Minimum time value cannot be less than %d."), AMS_DRY_MIN_HOUR) + "\n";
         can_enable_button = false;
-    } else if (time_val > 24) {
-        warning_text += _L("Maximum time value cannot be greater than 24.") + "\n";
+    } else if (time_val > AMS_DRY_MAX_HOUR) {
+        warning_text += wxString::Format(_L("Maximum time value cannot be greater than %d."), AMS_DRY_MAX_HOUR) + "\n";
         can_enable_button = false;
     }
 
@@ -1831,7 +1836,7 @@ int AMSDryCtrWin::update_ams_change(DevAms* dev_ams)
         m_temperature_input->SetHint("45-85" + wxString::FromUTF8("°C"));
     }
 
-    m_time_input->SetHint("1-24 h");
+    m_time_input->SetHint(wxString::Format("%d-%d h", AMS_DRY_MIN_HOUR, AMS_DRY_MAX_HOUR));
 
     return 0;
 }
