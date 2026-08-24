@@ -7412,7 +7412,7 @@ msgid "Update"
 msgstr "지금 업데이트"
 
 msgid "Not for now"
-msgstr "지금은 안 함"
+msgstr "나중에"
 
 msgid "Server Exception"
 msgstr "서버 예외"
@@ -15234,7 +15234,7 @@ msgid "Rectilinear grid"
 msgstr "직선형 격자"
 
 msgid "Hollow"
-msgstr "중공"
+msgstr "구멍"
 
 msgid "Interface pattern"
 msgstr "인터페이스 패턴"
@@ -16345,7 +16345,7 @@ msgid "End temp: "
 msgstr "종료 온도: "
 
 msgid "Temp step: "
-msgstr "온도 간격: "
+msgstr "임시 간격: "
 
 msgid "Supported range: 180°C - 350°C"
 msgstr "지원 범위: 180°C - 350°C"
