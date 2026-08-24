@@ -748,8 +748,8 @@ struct Sidebar::priv
     int m_menu_filament_id = -1;
     wxPanel*          m_panel_filament_subtitle{nullptr};  // "Filament" subtitle row with +/-/AMS/set buttons
     wxPanel*          m_filament_area_wrapper{nullptr};   // Wrapper panel for collapse/expand
-    wxScrolledWindow* m_physical_scroll_area{nullptr};    // Scroll area for physical filaments (max 3 rows when total > 12)
-    wxScrolledWindow* m_mixed_scroll_area{nullptr};       // Scroll area for mixed filaments (max 3 rows when total > 12)
+    wxScrolledWindow* m_physical_scroll_area{nullptr};    // Scroll area for physical filaments (max 6 rows, scrolls when exceeded)
+    wxScrolledWindow* m_mixed_scroll_area{nullptr};       // Scroll area for mixed filaments (max 6 rows, scrolls when exceeded)
     wxPanel*          m_panel_filament_content{nullptr};
     wxStaticLine* m_staticline2;
     wxPanel* m_panel_project_title;
@@ -5070,7 +5070,7 @@ void Sidebar::udpate_combos_filament_badge() {
 
 // ---- Mixed Filament sidebar methods ----
 
-static constexpr int kMaxFilamentScrollRows  = 3;
+static constexpr int kMaxFilamentScrollRows  = 6;
 static constexpr int kScrollCapThreshold     = 12;
 
 void Sidebar::recalc_filament_scroll_sizes()
