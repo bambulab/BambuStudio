@@ -1346,7 +1346,7 @@ bool query_support_recommended_params_for_combination(int support_filament_index
     std::string support_name = support_preset->alias;
 
     // 按优先级尝试多种 key 组合查询推荐参数
-    // support_recommended_params_map 的 key 格式为 "support_material|model_material"
+    // support_recommended_params_map 的 key 格式为 "support_material|model_material|printer_model"
     // 其中 support_material 可能是 name 或 type，model_material 也可能是 name 或 type
     // model_material_name 或 model_material_type 可能为空（当盘内模型不满足同名/同类型条件时）
     struct QueryPair { std::string support_key; std::string model_key; };
@@ -1373,7 +1373,9 @@ bool query_support_recommended_params_for_combination(int support_filament_index
 // 根据支撑材料和主体材料，构建推荐配置到 DynamicPrintConfig
 bool build_support_recommended_config(const std::string& support_material, const std::string& model_material, DynamicPrintConfig& out_config)
 {
-    auto rec_params_opt = Slic3r::GUI::wxGetApp().preset_bundle->get_support_recommended_params(support_material, model_material);
+    const PresetBundle *preset_bundle = Slic3r::GUI::wxGetApp().preset_bundle;
+    auto rec_params_opt = preset_bundle->get_support_recommended_params(support_material, model_material,
+                                                                       preset_bundle->printers.get_edited_preset().config.opt_string("printer_model"));
     if (!rec_params_opt.has_value() || !rec_params_opt->params.hasRecommendedParams()) {
         return false;
     }

@@ -2400,11 +2400,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         bool found_recommendation = false;
         bool from_json = false;
 
-        // 根据机型判断是否尝试 JSON 推荐参数查询（仅 X2D）
-        const Preset &current_printer = m_preset_bundle->printers.get_edited_preset();
-        bool support_json_recommendation = current_printer.config.opt_string("printer_model") == "Bambu Lab X2D";
-
-        if (support_json_recommendation) {
+        // 机型范围由 support_recommended_params.json 的 printer_models 决定，这里不再按机型设闸门
+        {
             // 收集当前盘所有模型使用的所有耗材类型和名称
             auto &plate_list = Slic3r::GUI::wxGetApp().plater()->get_partplate_list();
             auto *curr_plate = plate_list.get_curr_plate();

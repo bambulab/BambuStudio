@@ -6277,12 +6277,23 @@ void PresetBundle::load_support_recommended_params()
                     rec_params.support_material_type = "type";
                 }
 
+                // Load printer_models (array)
+                if (combo.contains("printer_models") && combo["printer_models"].is_array()) {
+                    for (const auto &pm : combo["printer_models"]) {
+                        if (pm.is_string()) {
+                            rec_params.printer_models.push_back(pm.get<std::string>());
+                        }
+                    }
+                }
+
                 // Load priority (default to 0)
                 if (combo.contains("priority") && combo["priority"].is_number_integer()) {
                     rec_params.priority = combo["priority"].get<int>();
                 }
 
-                if (rec_params.model_material.empty() || rec_params.support_material_list.empty()) {
+                // An entry without printer_models would apply to every machine, including those it was
+                // never validated on, so require the scope to be explicit.
+                if (rec_params.model_material.empty() || rec_params.support_material_list.empty() || rec_params.printer_models.empty()) {
                     continue;
                 }
 
@@ -6320,10 +6331,12 @@ void PresetBundle::load_support_recommended_params()
                     }
                 }
 
-                // Create key for each support_material: "support_material|model_material"
+                // Create key for each (support_material, printer_model): "support_material|model_material|printer_model"
                 for (const auto &support_mat : rec_params.support_material_list) {
-                    std::string map_key = support_mat + "|" + rec_params.model_material;
-                    support_recommended_params_map[map_key] = rec_params;
+                    for (const auto &printer_model : rec_params.printer_models) {
+                        std::string map_key = support_mat + "|" + rec_params.model_material + "|" + printer_model;
+                        support_recommended_params_map[map_key] = rec_params;
+                    }
                 }
             }
         }
@@ -6335,9 +6348,9 @@ void PresetBundle::load_support_recommended_params()
     }
 }
 
-std::optional<SupportRecommendedParams> PresetBundle::get_support_recommended_params(const std::string& support_material, const std::string& model_material) const
+std::optional<SupportRecommendedParams> PresetBundle::get_support_recommended_params(const std::string& support_material, const std::string& model_material, const std::string& printer_model) const
 {
-    std::string key = support_material + "|" + model_material;
+    std::string key = support_material + "|" + model_material + "|" + printer_model;
     auto it = support_recommended_params_map.find(key);
     if (it != support_recommended_params_map.end()) {
         return it->second;
