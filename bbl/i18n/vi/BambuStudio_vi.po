@@ -18839,11 +18839,13 @@ msgstr "AMS này đang in. Để đảm bảo chất lượng in, nhiệt độ 
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr "Nhiệt độ không được vượt quá nhiệt độ biến dạng nhiệt của sợi nhựa"
 
-msgid "Minimum time value cannot be less than 1."
-msgstr "Giá trị thời gian tối thiểu không thể nhỏ hơn 1."
+#, c-format, boost-format
+msgid "Minimum time value cannot be less than %d."
+msgstr ""
 
-msgid "Maximum time value cannot be greater than 24."
-msgstr "Giá trị thời gian tối đa không thể lớn hơn 24."
+#, c-format, boost-format
+msgid "Maximum time value cannot be greater than %d."
+msgstr ""
 
 msgid "Insufficient power"
 msgstr "Không đủ nguồn điện"

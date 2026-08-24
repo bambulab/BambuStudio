@@ -18841,11 +18841,13 @@ msgstr "Denna AMS används för närvarande. För att säkerställa utskriftskva
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr "Temperaturen får inte överstiga filamentets värme förvrängnings temperatur"
 
-msgid "Minimum time value cannot be less than 1."
-msgstr "Minsta tidsvärde får inte vara mindre än 1."
+#, c-format, boost-format
+msgid "Minimum time value cannot be less than %d."
+msgstr "Minsta tidsvärde får inte vara mindre än %d."
 
-msgid "Maximum time value cannot be greater than 24."
-msgstr "Maximalt tidsvärde får inte vara större än 24."
+#, c-format, boost-format
+msgid "Maximum time value cannot be greater than %d."
+msgstr "Maximalt tidsvärde får inte vara större än %d."
 
 msgid "Insufficient power"
 msgstr "Otillräcklig effekt"

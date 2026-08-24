@@ -18355,10 +18355,12 @@ msgstr ""
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr ""
 
-msgid "Minimum time value cannot be less than 1."
+#, possible-c-format, possible-boost-format
+msgid "Minimum time value cannot be less than %d."
 msgstr ""
 
-msgid "Maximum time value cannot be greater than 24."
+#, possible-c-format, possible-boost-format
+msgid "Maximum time value cannot be greater than %d."
 msgstr ""
 
 msgid "Insufficient power"

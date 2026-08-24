@@ -18844,11 +18844,13 @@ msgstr "Deze AMS is momenteel aan het printen. Om de printkwaliteit te waarborge
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr "De temperatuur mag niet hoger zijn dan de vervormingstemperatuur van het filament"
 
-msgid "Minimum time value cannot be less than 1."
-msgstr "De minimale tijdwaarde kan niet minder zijn dan 1."
+#, c-format, boost-format
+msgid "Minimum time value cannot be less than %d."
+msgstr "De minimale tijdwaarde kan niet minder zijn dan %d."
 
-msgid "Maximum time value cannot be greater than 24."
-msgstr "De maximale tijdwaarde kan niet groter zijn dan 24."
+#, c-format, boost-format
+msgid "Maximum time value cannot be greater than %d."
+msgstr "De maximale tijdwaarde kan niet groter zijn dan %d."
 
 msgid "Insufficient power"
 msgstr "Onvoldoende vermogen"

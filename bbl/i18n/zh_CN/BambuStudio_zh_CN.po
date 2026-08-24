@@ -18852,11 +18852,13 @@ msgstr "此AMS当前正在打印。为确保打印质量，烘干温度不得超
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr "温度不得超过耗材的压溃温度"
 
-msgid "Minimum time value cannot be less than 1."
-msgstr "时间最小值不能小于 1。"
+#, c-format, boost-format
+msgid "Minimum time value cannot be less than %d."
+msgstr "时间最小值不能小于 %d。"
 
-msgid "Maximum time value cannot be greater than 24."
-msgstr "时间最大值不能大于 24。"
+#, c-format, boost-format
+msgid "Maximum time value cannot be greater than %d."
+msgstr "时间最大值不能大于 %d。"
 
 msgid "Insufficient power"
 msgstr "功率不足"

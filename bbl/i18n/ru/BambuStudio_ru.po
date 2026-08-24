@@ -19125,11 +19125,13 @@ msgstr "Этот AMS сейчас используется для печати. 
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr "Температура не должна превышать температуру тепловой деформации филамента"
 
-msgid "Minimum time value cannot be less than 1."
-msgstr "Минимальное значение времени не может быть меньше 1."
+#, c-format, boost-format
+msgid "Minimum time value cannot be less than %d."
+msgstr ""
 
-msgid "Maximum time value cannot be greater than 24."
-msgstr "Максимальное значение времени не может превышать 24."
+#, c-format, boost-format
+msgid "Maximum time value cannot be greater than %d."
+msgstr ""
 
 msgid "Insufficient power"
 msgstr "Недостаточная мощность питания"

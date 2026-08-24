@@ -18808,11 +18808,13 @@ msgstr "この AMS は現在造形中です。造形品質を確保するため�
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr "温度はフィラメントの耐熱変形温度を超えないようにしてください。"
 
-msgid "Minimum time value cannot be less than 1."
-msgstr "最小時間は 1 未満に設定できません。"
+#, c-format, boost-format
+msgid "Minimum time value cannot be less than %d."
+msgstr "最小時間は %d 未満に設定できません。"
 
-msgid "Maximum time value cannot be greater than 24."
-msgstr "最大時間は 24 を超えて設定できません。"
+#, c-format, boost-format
+msgid "Maximum time value cannot be greater than %d."
+msgstr "最大時間は %d を超えて設定できません。"
 
 msgid "Insufficient power"
 msgstr "電力不足"

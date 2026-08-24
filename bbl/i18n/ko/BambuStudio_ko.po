@@ -18849,11 +18849,13 @@ msgstr "이 AMS는 현재 출력 중입니다. 출력 품질을 보장하기 위
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr "온도는 필라멘트의 열 변형 온도를 초과해서는 안 됩니다."
 
-msgid "Minimum time value cannot be less than 1."
-msgstr "최소 시간은 1보다 작을 수 없습니다."
+#, c-format, boost-format
+msgid "Minimum time value cannot be less than %d."
+msgstr "최소 시간은 %d보다 작을 수 없습니다."
 
-msgid "Maximum time value cannot be greater than 24."
-msgstr "최대 시간은 24를 초과할 수 없습니다."
+#, c-format, boost-format
+msgid "Maximum time value cannot be greater than %d."
+msgstr "최대 시간은 %d를 초과할 수 없습니다."
 
 msgid "Insufficient power"
 msgstr "전력 부족"

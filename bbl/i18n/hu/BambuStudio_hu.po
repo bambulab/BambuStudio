@@ -18841,11 +18841,13 @@ msgstr "Ez az AMS jelenleg nyomtat. A nyomtatási minőség biztosítása érdek
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr "A hőmérséklet nem haladhatja meg a filament deformációs hőmérsékletét"
 
-msgid "Minimum time value cannot be less than 1."
-msgstr "A minimális érték nem lehet kisebb, mint 1."
+#, c-format, boost-format
+msgid "Minimum time value cannot be less than %d."
+msgstr "A minimális érték nem lehet kisebb, mint %d."
 
-msgid "Maximum time value cannot be greater than 24."
-msgstr "A maximális érték nem lehet nagyobb, mint 24."
+#, c-format, boost-format
+msgid "Maximum time value cannot be greater than %d."
+msgstr "A maximális érték nem lehet nagyobb, mint %d."
 
 msgid "Insufficient power"
 msgstr "Elégtelen teljesítmény"

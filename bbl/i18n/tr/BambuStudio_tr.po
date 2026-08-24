@@ -18840,11 +18840,13 @@ msgstr "Bu AMS şu anda baskı işleminde kullanılıyor. Baskı kalitesini sağ
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr "Sıcaklık, filamentin ısı altında deformasyon sıcaklığını aşmamalıdır."
 
-msgid "Minimum time value cannot be less than 1."
-msgstr "Minimum süre değeri 1'den az olamaz."
+#, c-format, boost-format
+msgid "Minimum time value cannot be less than %d."
+msgstr ""
 
-msgid "Maximum time value cannot be greater than 24."
-msgstr "Maksimum süre değeri 24'ten büyük olamaz."
+#, c-format, boost-format
+msgid "Maximum time value cannot be greater than %d."
+msgstr ""
 
 msgid "Insufficient power"
 msgstr "Yetersiz güç"

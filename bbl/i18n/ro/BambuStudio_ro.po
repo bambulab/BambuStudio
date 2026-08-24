@@ -18868,11 +18868,13 @@ msgstr "Acest AMS imprimă în prezent. Pentru a asigura calitatea imprimării, 
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr "Temperatura nu trebuie să depășească temperatura de distorsiune termică a filamentului"
 
-msgid "Minimum time value cannot be less than 1."
-msgstr "Valoarea minimă a timpului nu poate fi mai mică de 1."
+#, c-format, boost-format
+msgid "Minimum time value cannot be less than %d."
+msgstr ""
 
-msgid "Maximum time value cannot be greater than 24."
-msgstr "Valoarea maximă a timpului nu poate fi mai mare de 24."
+#, c-format, boost-format
+msgid "Maximum time value cannot be greater than %d."
+msgstr ""
 
 msgid "Insufficient power"
 msgstr "Putere insuficientă"

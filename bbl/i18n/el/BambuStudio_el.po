@@ -18854,11 +18854,13 @@ msgstr "Αυτό το AMS εκτυπώνει αυτήν τη στιγμή. Γι�
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr "Η θερμοκρασία δεν πρέπει να υπερβαίνει τη θερμοκρασία θερμικής παραμόρφωσης του νήματος"
 
-msgid "Minimum time value cannot be less than 1."
-msgstr "Η ελάχιστη χρονική τιμή δεν μπορεί να είναι μικρότερη από 1."
+#, c-format, boost-format
+msgid "Minimum time value cannot be less than %d."
+msgstr ""
 
-msgid "Maximum time value cannot be greater than 24."
-msgstr "Η μέγιστη χρονική τιμή δεν μπορεί να είναι μεγαλύτερη από 24."
+#, c-format, boost-format
+msgid "Maximum time value cannot be greater than %d."
+msgstr ""
 
 msgid "Insufficient power"
 msgstr "Ανεπαρκής ισχύς"

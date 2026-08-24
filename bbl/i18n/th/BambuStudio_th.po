@@ -18838,11 +18838,13 @@ msgstr "AMS นี้กำลังพิมพ์ เพื่อรักษ�
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr "อุณหภูมิจะต้องไม่เกินอุณหภูมิการบิดงอจากความร้อนของเส้นวัสดุ"
 
-msgid "Minimum time value cannot be less than 1."
-msgstr "ค่าเวลาขั้นต่ำต้องไม่น้อยกว่า 1"
+#, c-format, boost-format
+msgid "Minimum time value cannot be less than %d."
+msgstr ""
 
-msgid "Maximum time value cannot be greater than 24."
-msgstr "ค่าเวลาสูงสุดต้องไม่เกิน 24"
+#, c-format, boost-format
+msgid "Maximum time value cannot be greater than %d."
+msgstr ""
 
 msgid "Insufficient power"
 msgstr "กำลังไฟไม่เพียงพอ"

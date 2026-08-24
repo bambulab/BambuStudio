@@ -18837,11 +18837,13 @@ msgstr "AMS ini sedang mencetak. Untuk memastikan kualitas cetak, suhu pengering
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr "Suhu tidak boleh melebihi suhu distorsi panas filamen"
 
-msgid "Minimum time value cannot be less than 1."
-msgstr "Nilai waktu minimum tidak boleh kurang dari 1."
+#, c-format, boost-format
+msgid "Minimum time value cannot be less than %d."
+msgstr ""
 
-msgid "Maximum time value cannot be greater than 24."
-msgstr "Nilai waktu maksimum tidak boleh lebih dari 24."
+#, c-format, boost-format
+msgid "Maximum time value cannot be greater than %d."
+msgstr ""
 
 msgid "Insufficient power"
 msgstr "Daya tidak mencukupi"

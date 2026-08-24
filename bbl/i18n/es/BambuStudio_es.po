@@ -18859,11 +18859,13 @@ msgstr "Este AMS se está imprimiendo ahora. Para garantizar la calidad de impre
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr "La temperatura no debe exceder la temperatura de distorsión térmica del filamento"
 
-msgid "Minimum time value cannot be less than 1."
-msgstr "El valor mínimo del tiempo no puede ser menor que 1."
+#, c-format, boost-format
+msgid "Minimum time value cannot be less than %d."
+msgstr "El valor mínimo del tiempo no puede ser menor que %d."
 
-msgid "Maximum time value cannot be greater than 24."
-msgstr "El valor de tiempo máximo no puede ser mayor que 24."
+#, c-format, boost-format
+msgid "Maximum time value cannot be greater than %d."
+msgstr "El valor de tiempo máximo no puede ser mayor que %d."
 
 msgid "Insufficient power"
 msgstr "Potencia insuficiente"
