@@ -3987,6 +3987,8 @@ wxWindow* AssemblyStepsUtils::assembly_export_progress_anchor() const
 void AssemblyStepsUtils::show_assembly_export_progress(ExportType type, const std::string &path, int value, int maximum)
 {
     update_assembly_export_progress(type, path, value, maximum);
+    if (m_export_progress_window)
+        m_export_progress_window->enable_cancel(true);
 }
 
 void AssemblyStepsUtils::update_assembly_export_progress(ExportType type, const std::string &path, int value, int maximum)
@@ -3995,8 +3997,10 @@ void AssemblyStepsUtils::update_assembly_export_progress(ExportType type, const 
     if (!anchor)
         return;
 
-    if (!m_export_progress_window)
+    if (!m_export_progress_window) {
         m_export_progress_window = std::make_unique<AssemblyExportProgressWindow>(wxGetApp().mainframe);
+        m_export_progress_window->set_cancel_callback([this]() { cancel_assembly_export(); });
+    }
 
     const wxString filename = path.empty()
         ? wxString()
@@ -4012,6 +4016,54 @@ void AssemblyStepsUtils::hide_assembly_export_progress()
 {
     if (m_export_progress_window)
         m_export_progress_window->Hide();
+}
+
+void AssemblyStepsUtils::cancel_assembly_export()
+{
+    if (!m_steps_export_active && !m_steps_video_export_active)
+        return;
+
+    BOOST_LOG_TRIVIAL(info) << "assembly steps export: cancelled";
+
+    if (m_steps_video_export_active) {
+        if (m_mp4_recorder && m_mp4_recorder->is_recording())
+            m_mp4_recorder->stop();
+        m_video_recording               = false;
+        m_video_export_skip_first_frame = false;
+        m_steps_video_export_active     = false;
+        m_is_export_mode                = false;
+        pause_global_frame();
+        if (!m_steps_video_export_path.empty()) {
+            boost::system::error_code ec;
+            boost::filesystem::remove(m_steps_video_export_path, ec);
+            m_steps_video_export_path.clear();
+        }
+    }
+
+    if (m_steps_export_active) {
+        m_steps_export_active     = false;
+        m_steps_export_wait_frame = false;
+        m_is_export_mode          = false;
+
+        const int orig = m_steps_export_original_play_index;
+        if (orig >= 1 && orig <= m_steps_export_total)
+            goto_global_frame(orig);
+        else {
+            m_selected_node     = m_steps_export_original_selected_node;
+            m_keyframe_selected = -1;
+            on_selected_node_changed();
+        }
+
+        m_steps_export_total = 0;
+        m_steps_export_images.clear();
+        m_steps_export_titles.clear();
+        m_steps_export_step_indices.clear();
+        m_steps_export_output_path.clear();
+    }
+
+    hide_assembly_export_progress();
+    do_commond_callback("dirty");
+    do_commond_callback("request_extra_frame");
 }
 
 void AssemblyStepsUtils::on_export_pdf(std::string path)
@@ -4304,6 +4356,8 @@ void AssemblyStepsUtils::process_assembly_steps_export()
 
 void AssemblyStepsUtils::finalize_steps_export()
 {
+    if (m_export_progress_window)
+        m_export_progress_window->enable_cancel(false);
     update_assembly_export_progress(m_steps_export_type, m_steps_export_output_path, m_steps_export_total, m_steps_export_total);
     wxBusyCursor busy;
     if (m_steps_export_type == ExportType::MarkDown) {
