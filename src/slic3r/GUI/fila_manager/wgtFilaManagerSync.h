@@ -20,7 +20,7 @@ public:
     explicit wgtFilaManagerSync(wgtFilaManagerStore* store);
     ~wgtFilaManagerSync() = default;
 
-    // 返回 true 表示在位字段发生变化（调用方据此决定是否刷 UI）。
+    // 返回 true 表示耗材会话状态发生变化（在位 / 余量本地扣减），调用方据此刷 UI。
     bool on_device_update(MachineObject* obj);
     bool sync_all_trays(MachineObject* obj);
 
@@ -51,6 +51,7 @@ private:
     void notify_new_filament_hint(const std::string& ams_id,
                                   const std::string& slot_id,
                                   bool               show);
+    bool check_print_finished_and_deduct(MachineObject* obj);
 
     wgtFilaManagerStore* m_store;
 
@@ -66,6 +67,7 @@ private:
     std::set<std::string>        m_skipped_uuids;
     // key 格式与 m_prev_tray_exists 相同；value 为该槽位当前被 skip 的 uuid。
     std::map<std::string, std::string> m_slot_skipped_uuid;
+    std::map<std::string, std::string> m_prev_print_status;
 
 };
 

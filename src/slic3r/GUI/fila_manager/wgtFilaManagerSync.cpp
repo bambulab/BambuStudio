@@ -53,7 +53,9 @@ bool wgtFilaManagerSync::on_device_update(MachineObject* obj)
     if (!obj || !m_store) return false;
     if (!obj->is_online()) return false;  // 离线不处理，保留在位字段
     check_new_filament_hint(obj);
-    return sync_all_trays(obj);
+    const bool sync_changed   = sync_all_trays(obj);
+    const bool deduct_changed = check_print_finished_and_deduct(obj);
+    return sync_changed || deduct_changed;
 }
 
 bool wgtFilaManagerSync::on_device_disconnect(const std::string& dev_id,
@@ -69,6 +71,7 @@ bool wgtFilaManagerSync::on_device_disconnect(const std::string& dev_id,
         else
             ++it;
     }
+    m_prev_print_status.erase(dev_id);
     // 空 present_now → was_our_hold 的 spool 全部清字段
     const std::map<std::string, MountUpdate> empty;
     return m_store->apply_mount_diff(dev_id, dev_name, empty);
@@ -306,6 +309,51 @@ bool wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
     }
 
     return mount_changed;
+}
+
+bool wgtFilaManagerSync::check_print_finished_and_deduct(MachineObject* obj)
+{
+    if (!obj || !m_store) return false;
+
+    const std::string dev_id       = obj->get_dev_id();
+    const std::string print_status = obj->print_status;
+    const std::string prev_status  = m_prev_print_status[dev_id];
+    m_prev_print_status[dev_id]    = print_status;
+
+    if (print_status != "FINISH" || prev_status == "FINISH")
+        return false;
+
+    auto pending = m_store->take_pending_consumption(dev_id);
+    if (!pending.has_value())
+        return false;
+
+    bool any_changed = false;
+    for (const auto& [slot_key, used_g] : pending->per_slot_used_g) {
+        if (used_g <= 0.0) continue;
+
+        const FilamentSpool* matched = m_store->find_by_slot(dev_id, slot_key.first, slot_key.second);
+        if (!matched) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "[FilaManager] finish deduction skip: no spool bound to dev="
+                << dev_id << " ams_id=" << slot_key.first
+                << " slot_id=" << slot_key.second
+                << " job_key=" << pending->job_key;
+            continue;
+        }
+
+        const std::string spool_id = matched->spool_id;
+        if (!m_store->deduct_consumption(spool_id, used_g, pending->job_key))
+            continue;
+
+        any_changed = true;
+        BOOST_LOG_TRIVIAL(info)
+            << "[FilaManager] deducted used_g=" << used_g
+            << " spool_id=" << spool_id
+            << " dev_id=" << dev_id
+            << " job_key=" << pending->job_key;
+    }
+
+    return any_changed;
 }
 
 const FilamentSpool* wgtFilaManagerSync::match_tray(const DevAmsTray& tray,

@@ -52,6 +52,12 @@ inline std::string err_body_tail(const std::string& err)
 #endif
 }
 
+bool filament_exists_by_filament_id(const std::string& filament_id)
+{
+    return wxGetApp().preset_bundle
+        && wxGetApp().preset_bundle->get_filament_by_filament_id(filament_id).has_value();
+}
+
 bool filament_is_support_by_setting_id(const std::string& setting_id)
 {
     bool is_support = false;
@@ -100,6 +106,48 @@ std::string tray_id_name_by_filament_color(const FilamentSpool& s)
 
     const std::string color_code = color_info->GetColorCode().utf8_string();
     return color_code.empty() ? std::string{} : s.setting_id.substr(2) + "-" + color_code;
+}
+
+struct SettingIdMigrationResult {
+    bool        attempted        = false;
+    bool        repaired         = false;
+    std::string original_setting_id;
+};
+
+SettingIdMigrationResult migrate_manual_spool_setting_id(FilamentSpool& s)
+{
+    SettingIdMigrationResult result;
+    if (s.entry_method != "manual")
+        return result;
+    if (s.setting_id_migration_version >= kFilamentSpoolSettingIdMigrationVersion)
+        return result;
+
+    auto* bundle = wxGetApp().preset_bundle;
+    if (!bundle)
+        return result;
+    if (filament_exists_by_filament_id(s.setting_id))
+        return result;
+
+    result.attempted           = true;
+    result.original_setting_id = s.setting_id;
+
+    bool exact_match = false;
+    auto resolved = bundle->resolve_filament_for_spool(s.setting_id,
+                                                       s.brand,
+                                                       s.material_type,
+                                                       &exact_match);
+    s.setting_id_migration_version = kFilamentSpoolSettingIdMigrationVersion;
+    if (!resolved.has_value() || resolved->filament_id.empty())
+        return result;
+
+    s.setting_id = resolved->filament_id;
+    result.repaired = true;
+    BOOST_LOG_TRIVIAL(info)
+        << "[FilaCloudSync] repaired manual spool setting_id spool_id=" << s.spool_id
+        << " old_setting_id=" << result.original_setting_id
+        << " new_setting_id=" << s.setting_id
+        << " exact_match=" << (exact_match ? 1 : 0);
+    return result;
 }
 
 } // namespace
@@ -393,13 +441,32 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                         return obj && obj->is_online();
                     };
 
+                    auto* dispatcher = wxGetApp().fila_manager_cloud_disp();
                     for (const auto& item : list) {
                         FilamentSpool cloud_spool = cloud_json_to_spool(item);
                         if (cloud_spool.spool_id.empty()) continue;
+                        const FilamentSpool* existing = m_store->get_spool(cloud_spool.spool_id);
+                        // setting_id_migration_version is local-only bookkeeping.
+                        // While a repaired cloud PUT is still queued/in flight,
+                        // keep the already-attempted local state instead of
+                        // reintroducing the raw broken cloud id on the next pull.
+                        const bool keep_existing_migration_state = existing
+                            && existing->entry_method == "manual"
+                            && existing->setting_id_migration_version >= kFilamentSpoolSettingIdMigrationVersion
+                            && !filament_exists_by_filament_id(cloud_spool.setting_id)
+                            && (filament_exists_by_filament_id(existing->setting_id)
+                                || (existing->setting_id == cloud_spool.setting_id
+                                    && existing->brand == cloud_spool.brand
+                                    && existing->material_type == cloud_spool.material_type));
+                        if (keep_existing_migration_state) {
+                            cloud_spool.setting_id = existing->setting_id;
+                            cloud_spool.setting_id_migration_version = existing->setting_id_migration_version;
+                        }
+                        const SettingIdMigrationResult migration = migrate_manual_spool_setting_id(cloud_spool);
                         cloud_spool.cloud_synced = true;
                         cloud_ids.insert(cloud_spool.spool_id);
 
-                        if (const FilamentSpool* existing = m_store->get_spool(cloud_spool.spool_id)) {
+                        if (existing) {
                             // 判断本地是否有来自该机器的实时 MQTT 数据。
                             // 条件：existing->dev_id 对应的机器当前在线。
                             // 不单独判断 in_printer==true，因为断连后该值仍可能为 true。
@@ -420,6 +487,12 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                             m_store->update_spool(cloud_spool);
                         } else {
                             m_store->add_spool(cloud_spool);
+                        }
+
+                        if (migration.repaired && dispatcher) {
+                            dispatcher->enqueue_push_update(
+                                cloud_spool.spool_id,
+                                nlohmann::json{{"setting_id", cloud_spool.setting_id}});
                         }
                     }
 

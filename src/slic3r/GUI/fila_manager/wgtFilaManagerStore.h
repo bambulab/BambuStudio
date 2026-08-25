@@ -2,7 +2,9 @@
 #define slic3r_wgtFilaManagerStore_h_
 
 #include <map>
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 #include "nlohmann/json.hpp"
 
@@ -24,6 +26,13 @@ struct EjectedSlotSnapshot {
     int         ams_type = -1;
     std::string slot_id;
 };
+
+struct PendingConsumption {
+    std::string job_key;
+    std::map<std::pair<std::string, std::string>, double> per_slot_used_g;
+};
+
+inline constexpr int kFilamentSpoolSettingIdMigrationVersion = 1;
 
 struct FilamentSpool {
     std::string spool_id;
@@ -80,10 +89,13 @@ struct FilamentSpool {
 
     bool        favorite          = false;
     double      net_weight        = 0;
+    std::string last_deducted_job_key;
 
     // Cloud synchronization marker. Cloud is the source of truth: this flag
     // is true iff the spool was present in the latest cloud pull.
     bool        cloud_synced      = false;
+    // Internal bookkeeping for GitHub #11937 manual-spool setting_id repair.
+    int         setting_id_migration_version = 0;
 
     nlohmann::json to_json() const;
     // to_json_with_runtime: 持久化字段 + 运行时在位快照，供 spools_to_json() 推送前端。
@@ -123,7 +135,8 @@ public:
     //
     // 为防御 sync 路径污染 identity 字段（设计 Q5 + STUDIO-18117 教训），
     // 该方法**强制**用 store 既有 spool 的 identity 字段（spool_id / tag_uid /
-    // color_code / colors / color_type / setting_id / entry_method / created_at / cloud_synced）
+    // color_code / colors / color_type / setting_id / entry_method / created_at /
+    // cloud_synced / setting_id_migration_version）
     // 覆盖输入 sp 中的对应字段，再做比较与写入。即便 sync 误塞 identity，
     // store 也不会被改写。
     //
@@ -132,8 +145,9 @@ public:
     bool update_spool_if_changed(const FilamentSpool& sp);
     // Selectively merge user-editable fields from `patch` into the existing
     // spool without touching system-managed metadata (spool_id / tag_uid /
-    // entry_method / created_at / bound_* / cloud_synced). Returns true if an
-    // existing spool was updated.
+    // entry_method / created_at / bound_* / cloud_synced /
+    // setting_id_migration_version). Returns true if an existing spool was
+    // updated.
     bool apply_patch(const std::string& spool_id, const nlohmann::json& patch);
     void remove_spool(const std::string& spool_id);
     const FilamentSpool* get_spool(const std::string& spool_id) const;
@@ -159,6 +173,19 @@ public:
     // STUDIO-18155：返回所有 spool 的 id 拷贝（不暴露内部 map），调用方可
     // 配合 get_spool 遍历做 push_all_now / 全量同步等批量操作。
     std::vector<std::string> all_spool_ids() const;
+
+    // 本地打印完成后的扣减入口。与 AMS 自动同步分离，避免复用
+    // update_spool_if_changed() 误碰 identity 防线（STUDIO-18117）。
+    bool deduct_consumption(const std::string& spool_id,
+                            double             used_g,
+                            const std::string& job_key);
+
+    // 待扣减账本仅保存在内存：覆盖同 dev_id 的旧任务，默认假设单机同一时刻只有
+    // 一个待完成打印。跨进程重启中的在途任务不做恢复。
+    void set_pending_consumption(const std::string&                           dev_id,
+                                 const std::map<std::pair<std::string, std::string>, double>& per_slot_used_g,
+                                 const std::string&                           job_key);
+    std::optional<PendingConsumption> take_pending_consumption(const std::string& dev_id);
 
     bool is_dirty() const { return m_dirty; }
     void set_dirty()      { m_dirty = true; }
@@ -197,6 +224,7 @@ private:
     std::string get_storage_path() const;
 
     std::map<std::string, FilamentSpool> m_spools;
+    std::map<std::string, PendingConsumption> m_pending_consumption;
     bool                                 m_dirty = false;
 };
 

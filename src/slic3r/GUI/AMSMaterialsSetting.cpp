@@ -769,7 +769,17 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
         auto* store = wxGetApp().fila_manager_store();
         const FilamentSpool* sp = store ? store->get_spool(m_selected_spool_id) : nullptr;
         if (sp) {
-            filament_item.filament_id = sp->setting_id;
+            // GitHub #11937: resolve through filament_id > setting_id >
+            // vendor+type > "Generic <type>" instead of assuming
+            // sp->setting_id is already a valid Preset::filament_id, so a
+            // spool with a cloud user-settings id or a free-typed brand can
+            // still be confirmed into the AMS slot.
+            std::string resolved_filament_id = sp->setting_id;
+            if (auto* bundle = wxGetApp().preset_bundle) {
+                if (auto info = bundle->resolve_filament_for_spool(sp->setting_id, sp->brand, sp->material_type))
+                    resolved_filament_id = info->filament_id;
+            }
+            filament_item.filament_id = resolved_filament_id;
             filament_item.setting_id  = sp->setting_id;
             filament_item.spool_id    = sp->spool_id;
         }
@@ -1554,8 +1564,14 @@ static void _populate_filament_combobox_grouped(
         for (const auto& spool_id : store->all_spool_ids()) {
             const Slic3r::GUI::FilamentSpool* sp = store->get_spool(spool_id);
             if (!sp) continue;
+            // GitHub #11937: a manually-added spool may carry a cloud
+            // user-settings id (or nothing, for a free-typed third-party
+            // brand) in setting_id instead of a real Preset::filament_id.
+            // Fall back through vendor+type and "Generic <type>" so those
+            // spools become selectable instead of being bucketed as
+            // "Unsupported Filaments" forever.
             bool has_preset = bundle &&
-                bundle->get_filament_by_filament_id(sp->setting_id).has_value();
+                bundle->resolve_filament_for_spool(sp->setting_id, sp->brand, sp->material_type).has_value();
             if (has_preset) {
                 wxString brand = sp->brand.empty() ? other_bucket : wxString::FromUTF8(sp->brand);
                 lib_brand_to_spools[brand].push_back(*sp);
@@ -2457,7 +2473,10 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         auto* store = wxGetApp().fila_manager_store();
         const FilamentSpool* sp = store ? store->get_spool(m_selected_spool_id) : nullptr;
         if (sp && preset_bundle) {
-            auto fila_info = preset_bundle->get_filament_by_filament_id(sp->setting_id);
+            // GitHub #11937: same tolerant resolution as on_select_ok() —
+            // sp->setting_id may be a cloud user-settings id or empty
+            // rather than a real Preset::filament_id.
+            auto fila_info = preset_bundle->resolve_filament_for_spool(sp->setting_id, sp->brand, sp->material_type);
             if (fila_info.has_value()) {
                 ams_filament_id = fila_info->filament_id;
                 ams_setting_id  = fila_info->setting_id;
