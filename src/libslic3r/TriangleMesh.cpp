@@ -58,6 +58,23 @@ static void fill_initial_stats(const indexed_triangle_set &its, TriangleMeshStat
     out.non_manifold_edges    = static_cast<int>(nm_stats.non_manifold_edges);
     out.non_manifold_vertices = static_cast<int>(nm_stats.non_manifold_vertices);
     out.has_reversed_faces    = nm_stats.has_reversed_faces;
+    BOOST_LOG_TRIVIAL(info)
+        << "reversed-faces: mesh-stats faces=" << out.number_of_facets
+        << " verts=" << its.vertices.size()
+        << " parts=" << out.number_of_parts
+        << " volume=" << out.volume
+        << " open_edges=" << out.open_edges
+        << " nm_edges=" << out.non_manifold_edges
+        << " nm_verts=" << out.non_manifold_vertices
+        << " has_reversed_faces=" << (out.has_reversed_faces ? 1 : 0);
+    if (out.has_reversed_faces)
+        BOOST_LOG_TRIVIAL(info)
+            << "reversed-faces: FLAG mesh-stats faces=" << out.number_of_facets
+            << " verts=" << its.vertices.size()
+            << " parts=" << out.number_of_parts
+            << " volume=" << out.volume
+            << " open_edges=" << out.open_edges
+            << " nm_edges=" << out.non_manifold_edges;
 }
 
 TriangleMesh::TriangleMesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3i> &faces) : its { faces, vertices }

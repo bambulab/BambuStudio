@@ -23,19 +23,33 @@ struct MeshDiagnosticStats {
 //                        (e.g. butterfly / bowtie vertex).
 //   Reversed faces:     existence only (no face count). Detected in three layers:
 //                       1) same-direction half-edges on one undirected edge;
-//                       2) if layer 1 misses, an outward test per face-connected
-//                          component (shell / patch, same unit as
+//                       2) if layer 1 misses, an orientation test per
+//                          face-connected component (shell / patch, same unit as
 //                          its_number_of_patches). Closed components use signed
 //                          volume; open components use an area-weighted centroid
 //                          test. Values whose magnitude is below a relative
 //                          epsilon are treated as inconclusive (near-planar
-//                          sheets) and do not set the flag. One inward component
-//                          among several outward ones is enough. Layer 2 returns
-//                          as soon as an inward component is found;
-//                       3) if layers 1–2 miss and the mesh is closed with no
-//                          non-manifold edges, first-hit rays from outside the
-//                          AABB. A back-facing first hit is a visible reversed
-//                          face (self-intersection / fold that topology misses).
+//                          sheets) and do not set the flag. Which orientation is
+//                          correct depends on nesting depth: even depth faces
+//                          outward, odd depth bounds a cavity and faces inward.
+//                          Shells whose bounds cannot contain one another are all
+//                          at depth 0, so any inward shell sets the flag; once
+//                          containment is possible, depth parity comes from ray
+//                          crossings against the other closed shells and only a
+//                          shell disagreeing with its depth sets the flag. A
+//                          depth that no ray could resolve unambiguously is left
+//                          to layer 3;
+//                       3) if layers 1-2 miss and the mesh is closed with no
+//                          non-manifold edges, rays from outside the AABB using
+//                          all hits. A closed mesh must yield an even hit count;
+//                          an odd count is discarded (parity leak). Rays whose
+//                          two smallest t values fall within a threshold
+//                          relative to the AABB are discarded as coincident, as
+//                          are rays whose outermost hit is a sliver, lands on an
+//                          edge/vertex, or is grazing. A back-facing outermost
+//                          hit is a visible reversed face (self-intersection /
+//                          fold that topology misses). Layer 3 walks every ray
+//                          for logging; one such backface still sets the flag.
 //
 // Each defect is counted exactly once regardless of how many anomalies
 // overlap on it.
