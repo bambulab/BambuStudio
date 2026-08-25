@@ -342,9 +342,14 @@ if (APPLE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=partial-availability -Werror=unguarded-availability -Werror=unguarded-availability-new")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=partial-availability -Werror=unguarded-availability -Werror=unguarded-availability-new")
 
-    # Release 默认没有 -g，补上调试信息，让 Release 产出独立的 .dSYM 符号文件
-    string(APPEND CMAKE_C_FLAGS_RELEASE   " -g")
-    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -g")
+    # Release 默认没有调试信息，补上调试信息以便产出独立的 .dSYM 符号文件；
+    # 原先开启了-g（完整调试信息），libslic3r_gui又是模板重度的静态库，.o里的DWARF调试段被大量重复实例化的模板符号撑大；
+    # 在低版本（macOS 12.7+xcode14.2）打包机工具链上，Mach-O文件大小上限为4个G；高版本（macOS26.x+xcode26.x）可以突破4G限制
+    # 原先-g配置下，单架构的libslic3r_gui.a就超出了4个G，双架构直接到8个G以上，导致编译失败；
+    # 现调整为用-gline-tables-only而非完整-g：只保留“地址 -> 文件:行号”的行号表，足够对崩溃栈做符号化；
+    # 但体积比完整-g大幅减少，实际测试libslic3r_gui.a大小为之前的十分之一，最终的.dSYM符号文件约为之前的五分之一。
+    string(APPEND CMAKE_C_FLAGS_RELEASE   " -gline-tables-only")
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " -gline-tables-only")
 
     # Xcode generator：只让 Release 配置生成独立 .dSYM，Debug 保持原速
     set(CMAKE_XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
