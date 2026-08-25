@@ -137,6 +137,13 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         evt.Skip();
     });
 
+    m_cb_air_printing_detection->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
+        if (obj) {
+            obj->GetPrintOptions()->command_non_visual_airprinting_detection(m_cb_air_printing_detection->GetValue());
+        }
+        evt.Skip();
+    });
+
     m_cb_save_remote_print_file_to_storage->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt)
     {
         if (obj) { obj->command_set_save_remote_print_file_to_storage(m_cb_save_remote_print_file_to_storage->GetValue());}
@@ -769,6 +776,12 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         text_non_visual_airprinting_detection->Hide();
     }
 
+    const bool support_air_printing_detection = obj_->GetPrintOptions()
+        ->GetDetectionOption(PrintOptionEnum::NonVisual_AirPrinting_Detection)->is_support_detect;
+    m_cb_air_printing_detection->Show(support_air_printing_detection);
+    text_air_printing_detection->Show(support_air_printing_detection);
+    text_air_printing_detection_caption->Show(support_air_printing_detection);
+
     UpdateOptionSavePrintFileToStorage(obj_);
     UpdateOptionOpenDoorCheck(obj_);
     UpdateOptionSnapshot(obj_);
@@ -795,6 +808,8 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     m_cb_plate_type->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection)->current_detect_value);
     m_cb_plate_align->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection)->current_detect_value);
     m_cb_non_visual_airprinting_detection->SetValue(obj_->ams_air_print_status);
+    m_cb_air_printing_detection->SetValue(
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NonVisual_AirPrinting_Detection)->current_detect_value);
 
     m_cb_ai_monitoring->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AI_Monitoring)->current_detect_value);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
@@ -1490,6 +1505,30 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(m_cb_non_visual_airprinting_detection, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     line_sizer->Add(text_non_visual_airprinting_detection, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+
+    //air printing detection, the non-visual one driven by fun2[32] / cfg[41]
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_air_printing_detection = new CheckBox(parent);
+    text_air_printing_detection = new Label(parent, _L("Air Printing Detection"));
+    text_air_printing_detection->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_air_printing_detection, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_air_printing_detection, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    text_air_printing_detection_caption = new Label(parent, _L("Detects air printing caused by nozzle clogging, filament tangling, or filament grinding."));
+    text_air_printing_detection_caption->SetFont(Label::Body_12);
+    text_air_printing_detection_caption->Wrap(FromDIP(400));
+    text_air_printing_detection_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    line_sizer->Add(FromDIP(30), 0, 0, 0);
+    line_sizer->Add(text_air_printing_detection_caption, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
+    m_cb_air_printing_detection->Hide();
+    text_air_printing_detection->Hide();
+    text_air_printing_detection_caption->Hide();
 
     //Open Door Detection
     line_sizer = new wxBoxSizer(wxHORIZONTAL);

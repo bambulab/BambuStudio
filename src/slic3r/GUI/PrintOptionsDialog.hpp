@@ -97,6 +97,11 @@ protected:
     CheckBox* m_cb_open_door;
     CheckBox* m_cb_purify_air_at_print_end;
     CheckBox *m_cb_non_visual_airprinting_detection;
+    // Non-visual air printing detection: fun2[32] / cfg[41] / air_printing_detection.
+    // Do not confuse with m_cb_airprinting_detection, the xcam vision-based one.
+    CheckBox* m_cb_air_printing_detection{nullptr};
+    Label*    text_air_printing_detection{nullptr};
+    Label*    text_air_printing_detection_caption{nullptr};
     CheckBox* m_cb_fod_check;
     CheckBox* m_cb_displacement_detection;
     Label* text_first_layer;
