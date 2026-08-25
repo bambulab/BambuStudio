@@ -1630,6 +1630,34 @@ FilamentGroupContext build_filament_group_context(
             // AMS slot) by the time slicing runs. The aggregate-count offline fallback was removed; if
             // this path is ever reached the per-slot data is genuinely broken, so fail loudly instead of
             // silently building a semantically wrong multi-extruder list.
+            // There are four distinct ways to land here: empty extruder_nozzle_count, a volume-type
+            // list whose length differs from the summed nozzle count, an out-of-range slot id (all
+            // three make build_nozzle_list_from_extruder_nozzles() return an empty list), or an AMS
+            // slot carrying no nozzle. They share one message, so dump the raw inputs to tell them
+            // apart from a field log.
+            {
+                auto join = [](const auto &values) {
+                    std::ostringstream oss;
+                    for (size_t i = 0; i < values.size(); ++i)
+                        oss << (i ? "," : "") << values[i];
+                    return oss.str();
+                };
+                const auto &counts = print_config.extruder_nozzle_count.values;
+                int         count_sum = 0;
+                for (int c : counts)
+                    count_sum += c;
+                BOOST_LOG_TRIVIAL(error)
+                    << __FUNCTION__ << ": no valid nozzle."
+                    << " ordered_size=" << ordered.size()
+                    << " ams_slot_ok=" << ams_slot_ok
+                    << " ams_nozzle_idx=" << ams_nozzle_idx_ctx
+                    << " nozzle_count=[" << join(counts) << "]"
+                    << " nozzle_count_sum=" << count_sum
+                    << " volume_type=[" << join(print_config.extruder_nozzle_volume_type.values) << "]"
+                    << " slot=[" << join(print_config.extruder_nozzle_slot.values) << "]"
+                    << " slot_diameter=[" << join(print_config.extruder_nozzle_diameter.values) << "]"
+                    << " extruder_diameter=[" << join(print_config.nozzle_diameter.values) << "]";
+            }
             throw Slic3r::RuntimeError(_L("No valid nozzle found. Please check nozzle count."));
         }
         else {
