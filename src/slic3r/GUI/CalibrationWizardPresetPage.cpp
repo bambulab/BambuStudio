@@ -1218,6 +1218,7 @@ wxSizer* CalibrationPresetPage::create_rack_items_sizer(wxPanel* rack_items_pane
 
         fcb->Bind(EVT_CALI_TRAY_CHANGED, &CalibrationPresetPage::on_select_tray, this);
         radio_btn->Bind(wxEVT_TOGGLEBUTTON, [this, fcb](wxCommandEvent& evt) {
+            /* Ensure manual calibration uses exactly one selected filament across all nozzle panels. */
             manage_filament_radio_btn(fcb);
 
             // SINGLE: clear every sub-AMS selection (data). With a single shared popup, only that one
@@ -1266,6 +1267,7 @@ void CalibrationPresetPage::manage_filament_radio_btn(FilamentComboBox* selected
     update_radio_list(m_filament_comboBox_list);
     update_radio_list(m_main_filament_comboBox_list);
     update_radio_list(m_deputy_filament_comboBox_list);
+    update_radio_list(m_rack_filament_comboBox_list);
 }
 
 void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *parent)
@@ -3480,7 +3482,7 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
         /* Persist selection to the owning FilamentExtendComboBox and notify the page on radio click
            so it can enforce page-wide single-selection. tray_id lives on the fcb itself
            (set by load_tray_from_ams in SetData; reset to -1 for unused rows). */
-        radio_btn->Bind(wxEVT_TOGGLEBUTTON, [this, fcb](wxCommandEvent&) {
+        radio_btn->Bind(wxEVT_TOGGLEBUTTON, [this, fcb](wxCommandEvent& evt) {
             if (!m_owner) return;
             const int tray_id = fcb->get_tray_id();
             if (tray_id < 0) return;
@@ -3503,10 +3505,11 @@ SubAmsPopup::SubAmsPopup(wxWindow* parent)
                 other->GetRadioBox()->SetValue(other == fcb);
             }
 
-            wxCommandEvent evt(EVT_SUBAMS_RADIO_SELECTED);
-            evt.SetEventObject(m_owner);
-            evt.SetInt(tray_id);
-            wxPostEvent(m_owner, evt);
+            wxCommandEvent sel_evt(EVT_SUBAMS_RADIO_SELECTED);
+            sel_evt.SetEventObject(m_owner);
+            sel_evt.SetInt(tray_id);
+            wxPostEvent(m_owner, sel_evt);
+            evt.Skip();
         });
         check_box->Bind(wxEVT_TOGGLEBUTTON, [this, fcb, check_box](wxCommandEvent& evt) {
             if (!m_owner) return;
