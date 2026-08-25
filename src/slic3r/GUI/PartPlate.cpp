@@ -1162,7 +1162,7 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 	int glb_sparse_infill_extr = glb_config.opt_int("sparse_infill_filament");
 	int glb_solid_infill_extr = glb_config.opt_int("solid_infill_filament");
 	bool glb_support = glb_config.opt_bool("enable_support");
-    glb_support |= glb_config.opt_int("raft_layers") > 0;
+	int glb_raft_layers = glb_config.opt_int("raft_layers");
 
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
 		if (!contain_instance_totally(obj_idx, 0))
@@ -1222,19 +1222,20 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
                 plate_extruders.push_back(glb_solid_infill_extr);
         }
 
-		bool obj_support = false;
+		// enable_support and raft_layers each fall back to the global value on their own. An object
+		// that overrides raft_layers only must keep the global enable_support, otherwise its support
+		// filament is dropped from the plate and the prime tower silently disappears. A raft alone
+		// still consumes the support filament, so raft_layers > 0 counts as support as well.
+		bool obj_support = glb_support;
+		int obj_raft_layers = glb_raft_layers;
 		const ConfigOption* obj_support_opt = mo->config.option("enable_support");
-        const ConfigOption *obj_raft_opt    = mo->config.option("raft_layers");
-		if (obj_support_opt != nullptr || obj_raft_opt != nullptr) {
-            if (obj_support_opt != nullptr)
-				obj_support = obj_support_opt->getBool();
-            if (obj_raft_opt != nullptr)
-				obj_support |= obj_raft_opt->getInt() > 0;
-        }
-		else
-			obj_support = glb_support;
+		const ConfigOption* obj_raft_opt    = mo->config.option("raft_layers");
+		if (obj_support_opt != nullptr)
+			obj_support = obj_support_opt->getBool();
+		if (obj_raft_opt != nullptr)
+			obj_raft_layers = obj_raft_opt->getInt();
 
-		if (!obj_support)
+		if (!obj_support && obj_raft_layers <= 0)
 			continue;
 
 		int obj_support_intf_extr = 0;
@@ -1302,7 +1303,7 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
     int  glb_sparse_infill_extr = full_config.opt_int("sparse_infill_filament");
     int  glb_solid_infill_extr  = full_config.opt_int("solid_infill_filament");
     bool glb_support = full_config.opt_bool("enable_support");
-    glb_support |= full_config.opt_int("raft_layers") > 0;
+    int  glb_raft_layers = full_config.opt_int("raft_layers");
 
     for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
     {
@@ -1377,19 +1378,19 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
                 }
             }
 
-            bool obj_support = false;
+            // Same independent fallback as get_extruders(): an object overriding raft_layers only
+            // must not lose the global enable_support, or its support filament never reaches the
+            // plate. raft_layers > 0 keeps counting as support because a raft uses that filament.
+            bool obj_support = glb_support;
+            int  obj_raft_layers = glb_raft_layers;
             const ConfigOption* obj_support_opt = object->config.option("enable_support");
-            const ConfigOption *obj_raft_opt    = object->config.option("raft_layers");
-            if (obj_support_opt != nullptr || obj_raft_opt != nullptr) {
-                if (obj_support_opt != nullptr)
-                    obj_support = obj_support_opt->getBool();
-                if (obj_raft_opt != nullptr)
-                    obj_support |= obj_raft_opt->getInt() > 0;
-            }
-            else
-                obj_support = glb_support;
+            const ConfigOption* obj_raft_opt    = object->config.option("raft_layers");
+            if (obj_support_opt != nullptr)
+                obj_support = obj_support_opt->getBool();
+            if (obj_raft_opt != nullptr)
+                obj_raft_layers = obj_raft_opt->getInt();
 
-            if (!obj_support)
+            if (!obj_support && obj_raft_layers <= 0)
                 continue;
 
             int obj_support_intf_extr = 0;
