@@ -191,9 +191,9 @@ export function AddEditDialog({
   // path. Both fields mirror FilamentSpool.colors / .color_type (swagger
   // semantics: 0=gradient / 1=multicolor / 2=single). They stay in sync with
   // colorCode: picking a candidate from FilamentColorCodeQuery seeds all
-  // four (color_code, colors[], color_type, color_name); picking a plain
-  // custom hex via the "+" picker resets colors=[] and color_type=2 so the
-  // outgoing spool is unambiguously single-colour.
+  // four (color_code, colors[], color_type, color_name); the "+" picker can
+  // either commit a plain custom hex as single-colour or assemble a custom
+  // multicolour palette and persist it into colors[] / color_type.
   const [colors, setColors] = useState<string[]>([]);
   const [colorType, setColorType] = useState<0 | 1 | 2>(2);
   // STUDIO-17977 F1.3: BBL 官方耗材代码（如 "Q01B00" / "13903"），来自
@@ -298,6 +298,8 @@ export function AddEditDialog({
     setAmsLockedFields({ brand: false, material: false, color: false, weight: false });
     setAmsData(null);
     setAmsError('');
+    setColorPickerOpen(false);
+    setCustomPaletteDraft([]);
     // STUDIO-17977 F1.3: forget the previous dialog session's fila_id so
     // the alignment effect treats this open as a fresh first observation
     // and does not snap colours that the parent just seeded via initSpool
@@ -518,20 +520,50 @@ export function AddEditDialog({
     return null;
   }, [presets, brand, materialType, series]);
 
+  // GitHub #11937: when nothing above resolves a real Preset::filament_id
+  // (free-typed third-party brand, or a brand/series combination with no
+  // matching preset item at all), fall back to the shipped
+  // "Generic <materialType>" system preset. This is what makes a hand-typed
+  // third-party filament usable in the AMS: without it, setting_id is
+  // persisted empty, which is indistinguishable on the C++ side from "no
+  // filament_id at all" and renders the spool as unselectable "Unsupported
+  // Filaments" in the AMS slot dialog.
+  const genericFallbackFilamentId = useMemo(() => {
+    if (!materialType) return '';
+    const genericName = `generic ${materialType}`.toLowerCase();
+    for (const vendor of presets) {
+      for (const tp of vendor.types) {
+        if (tp.name !== materialType) continue;
+        for (const item of tp.items || []) {
+          if (item.is_user) continue;
+          const name = (item.name || '').toLowerCase();
+          if (name.startsWith(genericName) && item.filament_id) return item.filament_id;
+        }
+      }
+    }
+    return '';
+  }, [presets, materialType]);
+
   // STUDIO-17977 / Task 10: drive the colour palette from
   // `filament.colors.query_for_id`. The same fila_id resolution as
-  // handleSubmit (cloud filamentId > preset setting_id > preset filament_id)
-  // is reused here so the candidate query keys off whatever the spool will
-  // actually serialise as `setting_id` on save.
+  // handleSubmit (cloud filamentId > preset filament_id > preset setting_id
+  // > Generic <type> fallback) is reused here so the candidate query keys
+  // off whatever the spool will actually serialise as `setting_id` on save.
+  //
+  // GitHub #11937: filament_id now takes priority over setting_id — a
+  // preset's setting_id is a cloud user-settings id that never matches
+  // Preset::filament_id on the C++ side, whereas filament_id is exactly
+  // what get_filament_by_filament_id() / the AMS gate compare against.
   const filaId = useMemo(
     () => (
       matchedCloudFilamentId
-      || matchedPresetItem?.setting_id
       || matchedPresetItem?.filament_id
+      || matchedPresetItem?.setting_id
       || initSpool?.setting_id
+      || genericFallbackFilamentId
       || ''
     ),
-    [matchedCloudFilamentId, matchedPresetItem, initSpool?.setting_id],
+    [matchedCloudFilamentId, matchedPresetItem, initSpool?.setting_id, genericFallbackFilamentId],
   );
   const candidatesByFilaId = useStore((s) => s.filament.candidatesByFilaId);
   const setColorCandidates = useStore((s) => s.filament.setColorCandidates);
@@ -973,45 +1005,92 @@ export function AddEditDialog({
   // which the native picker fires while the user is still dragging the hue
   // slider. That overwrote the form's color_code (and dirtied customColors)
   // long before the user actually decided on a color.
-  // Now the popover holds a local `draftColor`; only OK calls
-  // commitCustomColorSelection() to write it back to the form. Cancel and
-  // ESC discard the draft. Outside clicks intentionally keep the popover open
-  // so users do not lose a selected custom color by clicking blank space.
+  // Now the popover holds a local `draftColor`; OK still commits a plain
+  // single colour, while "Add to palette" / "Done" can assemble a custom
+  // multicolour set. Cancel and ESC discard the draft. Outside clicks
+  // intentionally keep the popover open so users do not lose a selected
+  // custom color by clicking blank space.
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [draftColor, setDraftColor] = useState('#000000');
+  const [customPaletteDraft, setCustomPaletteDraft] = useState<string[]>([]);
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const nativeColorInputRef = useRef<HTMLInputElement>(null);
+
+  const applySingleCustomColor = useCallback((value: string) => {
+    const next = commitCustomColorSelection(value, customColors, BAMBU_COLORS);
+    setColorCode(next.colorCode);
+    setCustomColors(next.customColors);
+    // Single-colour commit intentionally clears any prior gradient /
+    // multicolor payload so the saved spool matches the swatch the user
+    // just confirmed.
+    setColors([]);
+    setColorType(2);
+    // A freshly hand-picked colour has no preset name or BBL official code;
+    // clear both so the preview row reflects the free-picker selection.
+    setColorName('');
+    setFilaColorCode('');
+    userTouchedColorRef.current = true;
+    setCustomPaletteDraft([]);
+    setColorPickerOpen(false);
+  }, [customColors]);
+
+  const addDraftColorToPalette = useCallback(() => {
+    const next = commitCustomColorSelection(draftColor, customColors, BAMBU_COLORS);
+    if (!next.colorCode) return;
+    setCustomColors(next.customColors);
+    setCustomPaletteDraft((prev) => (
+      prev.some((c) => c.toUpperCase() === next.colorCode.toUpperCase())
+        ? prev
+        : [...prev, next.colorCode]
+    ));
+  }, [draftColor, customColors]);
+
+  const removeDraftPaletteColor = useCallback((hex: string) => {
+    setCustomPaletteDraft((prev) => prev.filter((c) => c.toUpperCase() !== hex.toUpperCase()));
+  }, []);
+
+  const commitCustomPaletteDraft = useCallback(() => {
+    if (customPaletteDraft.length === 0) return;
+    if (customPaletteDraft.length === 1) {
+      applySingleCustomColor(customPaletteDraft[0]);
+      return;
+    }
+    const nextCustomColors = customPaletteDraft.reduce<string[]>(
+      (acc, hex) => commitCustomColorSelection(hex, acc, BAMBU_COLORS).customColors,
+      customColors,
+    );
+    setColorCode(customPaletteDraft[0]);
+    setCustomColors(nextCustomColors);
+    setColors([...customPaletteDraft]);
+    setColorType(1);
+    setColorName('');
+    setFilaColorCode('');
+    userTouchedColorRef.current = true;
+    setCustomPaletteDraft([]);
+    setColorPickerOpen(false);
+  }, [customPaletteDraft, customColors, applySingleCustomColor]);
+
+  const draftPaletteContainsColor = customPaletteDraft.some(
+    (c) => c.toUpperCase() === (draftColor || '').toUpperCase(),
+  );
 
   // The trigger button is rendered with `disabled={lockColor}` so a locked
   // AMS color cannot start a draft session in the first place; we therefore
   // don't need to re-check lockColor here.
   const openColorPicker = useCallback(() => {
-    setDraftColor(colorCode || '#000000');
+    setDraftColor(colorCode || colors[0] || '#000000');
+    setCustomPaletteDraft(colors.length > 1 ? [...colors] : []);
     setColorPickerOpen(true);
-  }, [colorCode]);
+  }, [colorCode, colors]);
 
   const cancelCustomColor = useCallback(() => {
+    setCustomPaletteDraft([]);
     setColorPickerOpen(false);
   }, []);
 
   const confirmCustomColor = useCallback(() => {
-    const next = commitCustomColorSelection(draftColor, customColors, BAMBU_COLORS);
-    setColorCode(next.colorCode);
-    setCustomColors(next.customColors);
-    // Custom-picker is single-colour only: drop any prior gradient /
-    // multicolor selection so the saved spool matches the swatch the user
-    // just confirmed.
-    setColors([]);
-    setColorType(2);
-    // STUDIO-17977 F1.3: a freshly hand-picked colour has no preset name
-    // or BBL official code; clear both so the preview row reflects the
-    // free-picker selection. Resolver effect upgrades them back if the
-    // hex happens to coincide with a single-colour candidate.
-    setColorName('');
-    setFilaColorCode('');
-    userTouchedColorRef.current = true;
-    setColorPickerOpen(false);
-  }, [draftColor, customColors]);
+    applySingleCustomColor(draftColor);
+  }, [draftColor, applySingleCustomColor]);
 
   // Esc key is treated as Cancel; outside clicks do not dismiss the picker
   // because that made the chosen color disappear before users could confirm.
@@ -1089,11 +1168,11 @@ export function AddEditDialog({
       net_weight: currentNetWeight,
       remain_percent: remainPct,
       note,
-      setting_id: matchedCloudFilamentId
-        || matchedPresetItem?.setting_id
-        || matchedPresetItem?.filament_id
-        || initSpool?.setting_id
-        || '',
+      // GitHub #11937: reuse the same resolution order as `filaId` above
+      // (cloud filamentId > preset filament_id > preset setting_id >
+      // Generic <type> fallback) so setting_id is never persisted empty for
+      // a hand-typed third-party brand.
+      setting_id: filaId,
     };
 
     // STUDIO-18340: emit `colors: []` for single-colour edits so an AMS-read
@@ -2268,7 +2347,7 @@ export function AddEditDialog({
                 <div data-testid="color-candidate-panel" className={`flex flex-wrap gap-[6px] items-center ${lockColor ? 'pointer-events-none opacity-60' : ''}`}>
                   {/* STUDIO-18114: Custom-color picker — click "+" to open a
                       draft popover; the form's color is only updated after
-                      the user explicitly confirms with OK. */}
+                      the user explicitly confirms with OK / Done. */}
                   <div ref={colorPickerRef} className="relative">
                     <button
                       type="button"
@@ -2287,7 +2366,7 @@ export function AddEditDialog({
                       <div
                         role="dialog"
                         aria-label={t('Pick Custom Color')}
-                        className="absolute left-0 top-[calc(100%+8px)] z-[1100] w-[224px] flex flex-col gap-[12px] rounded-[10px] border border-fm-border bg-fm-base p-[14px] shadow-[0_12px_32px_rgba(0,0,0,0.5)]"
+                        className="absolute left-0 top-[calc(100%+8px)] z-[1100] w-[272px] flex flex-col gap-[12px] rounded-[10px] border border-fm-border bg-fm-base p-[14px] shadow-[0_12px_32px_rgba(0,0,0,0.5)]"
                       >
                         {/* STUDIO-18137: on macOS WKWebView the system
                             color picker is anchored to the <input
@@ -2327,7 +2406,37 @@ export function AddEditDialog({
                             </span>
                           </div>
                         </div>
-                        <div className="flex justify-end gap-[8px]">
+                        {customPaletteDraft.length > 0 && (
+                          <div className="flex flex-col gap-[8px]">
+                            <span className="text-[10px] leading-[12px] text-fm-text-detail uppercase tracking-wider">
+                              {t('Palette')}
+                            </span>
+                            <div className="flex flex-wrap gap-[6px]">
+                              {customPaletteDraft.map((hex) => (
+                                <div
+                                  key={`palette-${hex}`}
+                                  className="inline-flex items-center gap-[6px] rounded-[6px] bg-fm-inner2 pl-[6px] pr-[4px] py-[4px]"
+                                >
+                                  <SpoolColorChip colorCode={hex} size={14} radius={3} border={false} />
+                                  <span className="text-[11px] leading-[16px] text-fm-text-primary font-mono">
+                                    {hex.toUpperCase()}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="size-[16px] rounded-[4px] border-none bg-transparent p-0 text-fm-text-detail hover:text-fm-text-strong disabled:cursor-not-allowed disabled:opacity-50"
+                                    disabled={lockColor}
+                                    aria-label={t('Remove color from palette')}
+                                    title={t('Remove color from palette')}
+                                    onClick={() => removeDraftPaletteColor(hex)}
+                                  >
+                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 2l6 6M8 2 2 8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex flex-wrap justify-end gap-[8px]">
                           <button
                             type="button"
                             className="h-[28px] px-[14px] rounded-[6px] cursor-pointer text-[12px] leading-[19px] bg-fm-input text-fm-text-primary border-none hover:bg-fm-hover"
@@ -2335,9 +2444,23 @@ export function AddEditDialog({
                           >{t('Cancel')}</button>
                           <button
                             type="button"
+                            className="h-[28px] px-[14px] rounded-[6px] border border-fm-border-focus cursor-pointer text-[12px] leading-[19px] bg-transparent text-fm-text-primary hover:bg-fm-hover disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={draftPaletteContainsColor}
+                            onClick={addDraftColorToPalette}
+                          >{t('Add to palette')}</button>
+                          <button
+                            type="button"
                             className="h-[28px] px-[14px] rounded-[6px] border-none cursor-pointer text-[12px] leading-[19px] font-medium bg-fm-brand text-white hover:bg-fm-brand-hover"
                             onClick={confirmCustomColor}
                           >{t('OK')}</button>
+                          {customPaletteDraft.length > 0 && (
+                            <button
+                              type="button"
+                              className="h-[28px] px-[14px] rounded-[6px] border-none cursor-pointer text-[12px] leading-[19px] font-medium bg-fm-brand text-white hover:bg-fm-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
+                              disabled={lockColor}
+                              onClick={commitCustomPaletteDraft}
+                            >{t('Done')}</button>
+                          )}
                         </div>
                       </div>
                     )}

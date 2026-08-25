@@ -2283,20 +2283,26 @@ void GUI_App::init_networking_callbacks()
 
                 if (MachineObject* obj = this->m_device_manager->get_user_machine(dev_id)) {
                     auto sel = this->m_device_manager->get_selected_machine();
-                    if (sel && sel->get_dev_id() == dev_id) {
-                        obj->parse_json("cloud", msg);
+                    const bool is_selected = sel && sel->get_dev_id() == dev_id;
+                    obj->parse_json("cloud", msg, !is_selected);
+                    if (is_selected) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
-                        // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
-                        // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
-                        bool fila_mount_changed = false;
-                        if (auto* sync = wxGetApp().fila_manager_sync())
-                            fila_mount_changed = sync->on_device_update(obj);
-                        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
-                            if (fila_mount_changed)
-                                mainframe->web_device()->NotifyFilamentSessionState();
-                        }
-                    } else {
-                        obj->parse_json("cloud", msg, true);
+                    }
+                    // GitHub #11937: fila sync (and, in particular, the print-FINISH
+                    // consumption deduction it drives) must run for *every* device
+                    // update, not only the currently-selected machine — otherwise a
+                    // print finishing on a printer the user isn't currently viewing
+                    // never gets its filament weight deducted, since the FINISH
+                    // transition is only observed while on_device_update() is
+                    // actually called for that dev_id.
+                    // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
+                    // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
+                    bool fila_mount_changed = false;
+                    if (auto* sync = wxGetApp().fila_manager_sync())
+                        fila_mount_changed = sync->on_device_update(obj);
+                    if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
+                        if (fila_mount_changed)
+                            mainframe->web_device()->NotifyFilamentSessionState();
                     }
                 }
 
@@ -2343,17 +2349,21 @@ void GUI_App::init_networking_callbacks()
 
                 if (MachineObject* obj = m_device_manager->get_my_machine(dev_id)) {
                     obj->parse_json("lan", msg);
-                    if (this->m_device_manager->get_selected_machine() == obj) {
+                    const bool is_selected = this->m_device_manager->get_selected_machine() == obj;
+                    if (is_selected) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
-                        // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
-                        // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
-                        bool fila_mount_changed = false;
-                        if (auto* sync = wxGetApp().fila_manager_sync())
-                            fila_mount_changed = sync->on_device_update(obj);
-                        if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
-                            if (fila_mount_changed)
-                                mainframe->web_device()->NotifyFilamentSessionState();
-                        }
+                    }
+                    // GitHub #11937: same reasoning as the cloud-message handler
+                    // above — fila sync must run for every device, not only the
+                    // one currently selected in the UI.
+                    // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
+                    // 仅在在位字段实际变化时才推 spool list，避免每条 MQTT 都整体重渲。
+                    bool fila_mount_changed = false;
+                    if (auto* sync = wxGetApp().fila_manager_sync())
+                        fila_mount_changed = sync->on_device_update(obj);
+                    if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
+                        if (fila_mount_changed)
+                            mainframe->web_device()->NotifyFilamentSessionState();
                     }
                 }
 
@@ -3497,6 +3507,13 @@ bool GUI_App::on_init_inner()
                                                                          m_fila_manager_cloud_client);
             BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud dispatcher initialized";
         }
+
+        // Populate the spool store on startup so print weight tracking works
+        // even if the user never opens the Filament Manager page this run.
+        // The dispatcher skips the pull silently when no login token is
+        // available (e.g. LAN-only mode); FM page open and fresh login also
+        // trigger pulls, and duplicate pulls are deduped by the queue.
+        m_fila_manager_cloud_disp->enqueue_pull();
     }
 
     BOOST_LOG_TRIVIAL(info) << "create the main window";

@@ -48,6 +48,8 @@
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>
 
+#include <map>
+
 #define  PRINT_OPT_BG_GRAY       0xF8F8F8
 #define  PRINT_OPT_ITEM_BG_GRAY  0xEEEEEE
 
@@ -654,6 +656,7 @@ private:
     // enbale or disable external change assist
     bool is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result);
 
+    bool build_slot_consumption_map(std::map<std::pair<std::string, std::string>, double>& used_by_slot) const;
 
 
     // update time

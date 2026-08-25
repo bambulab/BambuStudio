@@ -9,7 +9,9 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
+#include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
@@ -68,7 +70,9 @@ nlohmann::json FilamentSpool::to_json() const
         {"note",            note},
         {"favorite",        favorite},
         {"net_weight",      net_weight},
+        {"last_deducted_job_key", last_deducted_job_key},
         {"cloud_synced",    cloud_synced},
+        {"setting_id_migration_version", setting_id_migration_version},
         {"in_printer",      in_printer},
         {"dev_id",          dev_id},
         {"ams_sn",          ams_sn},
@@ -121,7 +125,9 @@ FilamentSpool FilamentSpool::from_json(const nlohmann::json& j)
     get("note",            s.note);
     get("favorite",        s.favorite);
     get("net_weight",      s.net_weight);
+    get("last_deducted_job_key", s.last_deducted_job_key);
     get("cloud_synced",    s.cloud_synced);
+    get("setting_id_migration_version", s.setting_id_migration_version);
     get("in_printer",      s.in_printer);
     get("dev_id",          s.dev_id);
     get("ams_sn",          s.ams_sn);
@@ -184,6 +190,11 @@ void wgtFilaManagerStore::update_spool(const FilamentSpool& spool)
     auto it = m_spools.find(spool.spool_id);
     if (it == m_spools.end()) return;
     FilamentSpool s = spool;
+    if (s.setting_id_migration_version < it->second.setting_id_migration_version)
+        s.setting_id_migration_version = it->second.setting_id_migration_version;
+    // weight_push_pending is local-only bookkeeping; cloud data carries no
+    // such concept, so it must survive a wholesale pull-merge overwrite.
+    s.weight_push_pending = it->second.weight_push_pending;
     s.updated_at    = now_iso8601();
     it->second      = std::move(s);
     m_dirty         = true;
@@ -203,7 +214,8 @@ bool wgtFilaManagerStore::update_spool_if_changed(const FilamentSpool& sp)
     FilamentSpool& cur = it->second;
 
     // 仅比较"sync 关心字段"。identity 字段（spool_id / tag_uid / color_code /
-    // setting_id / entry_method / created_at / cloud_synced）和元字段
+    // setting_id / entry_method / created_at / cloud_synced /
+    // setting_id_migration_version）和元字段
     // （brand / material_type / series / color_name / diameter /
     // initial_weight / spool_weight / total_net_weight / note / favorite）
     // 由 sync 完全不动，比较时直接忽略输入 sp 的对应字段。
@@ -235,8 +247,9 @@ bool wgtFilaManagerStore::apply_patch(const std::string& spool_id, const nlohman
     FilamentSpool& s = it->second;
 
     // 仅合并用户可编辑字段；不接受 null（表示"未提供"）。系统字段 spool_id /
-    // tag_uid / entry_method / created_at / bound_* / cloud_synced 故意不在此处
-    // 合并，避免前端 patch 清掉它们（见 STUDIO-17964 Problem A）。
+    // tag_uid / entry_method / created_at / bound_* / cloud_synced /
+    // setting_id_migration_version 故意不在此处合并，避免前端 patch 清掉它们
+    // （见 STUDIO-17964 Problem A）。
     auto get_if = [&](const char* key, auto& dst) {
         if (!patch.contains(key)) return;
         const auto& v = patch.at(key);
@@ -306,6 +319,83 @@ std::vector<std::string> wgtFilaManagerStore::all_spool_ids() const
     ids.reserve(m_spools.size());
     for (auto& [id, _] : m_spools) ids.push_back(id);
     return ids;
+}
+
+bool wgtFilaManagerStore::deduct_consumption(const std::string& spool_id,
+                                             double             used_g,
+                                             const std::string& job_key)
+{
+    if (spool_id.empty() || job_key.empty() || used_g <= 0.0) return false;
+
+    auto it = m_spools.find(spool_id);
+    if (it == m_spools.end()) return false;
+
+    FilamentSpool& s = it->second;
+    if (s.last_deducted_job_key == job_key) {
+        BOOST_LOG_TRIVIAL(info)
+            << "[FilaManager] skip duplicate deduction spool_id=" << spool_id
+            << " job_key=" << job_key;
+        return false;
+    }
+
+    const double prev_net_weight = s.net_weight;
+    const int    prev_remain     = s.remain_percent;
+    const std::string prev_status = s.status;
+
+    s.net_weight = std::max(0.0, s.net_weight - used_g);
+
+    const double total_nw = s.effective_total_net_weight();
+    if (total_nw > 0.0) {
+        const double pct = std::max(0.0, std::min(100.0, s.net_weight / total_nw * 100.0));
+        s.remain_percent = static_cast<int>(std::round(pct));
+    }
+
+    if (s.status != "archived") {
+        if (s.net_weight <= 0.0)
+            s.status = "empty";
+        else if (s.remain_percent < 20)
+            s.status = "low";
+        else
+            s.status = "active";
+    }
+
+    s.last_deducted_job_key = job_key;
+    s.updated_at            = now_iso8601();
+    // Weight changed locally but is not on the cloud yet — mark it so the
+    // next pull_from_cloud() merge keeps this value instead of reverting to
+    // the stale cloud net_weight, until the dispatcher confirms the push.
+    s.weight_push_pending   = true;
+    m_dirty                 = true;
+
+    return prev_net_weight != s.net_weight
+        || prev_remain     != s.remain_percent
+        || prev_status     != s.status;
+}
+
+void wgtFilaManagerStore::clear_weight_push_pending(const std::string& spool_id)
+{
+    auto it = m_spools.find(spool_id);
+    if (it == m_spools.end()) return;
+    it->second.weight_push_pending = false;
+}
+
+void wgtFilaManagerStore::set_pending_consumption(
+    const std::string& dev_id,
+    const std::map<std::pair<std::string, std::string>, double>& per_slot_used_g,
+    const std::string& job_key)
+{
+    if (dev_id.empty() || job_key.empty() || per_slot_used_g.empty()) return;
+    m_pending_consumption[dev_id] = PendingConsumption{job_key, per_slot_used_g};
+}
+
+std::optional<PendingConsumption> wgtFilaManagerStore::take_pending_consumption(const std::string& dev_id)
+{
+    auto it = m_pending_consumption.find(dev_id);
+    if (it == m_pending_consumption.end()) return std::nullopt;
+
+    PendingConsumption pending = std::move(it->second);
+    m_pending_consumption.erase(it);
+    return pending;
 }
 
 const FilamentSpool* wgtFilaManagerStore::find_by_setting_and_color(

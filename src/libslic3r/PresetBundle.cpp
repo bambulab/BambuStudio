@@ -695,6 +695,135 @@ std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const 
     return std::nullopt;
 }
 
+// GitHub #11937 helper: populate FilamentBaseInfo from a preset. Mirrors the field extraction in
+// get_filament_by_filament_id() so both lookups report identical data for the same preset.
+static FilamentBaseInfo make_filament_base_info(const Preset& filament_preset)
+{
+    const auto& config = filament_preset.config;
+    FilamentBaseInfo info;
+    info.filament_id   = filament_preset.filament_id;
+    info.is_system     = filament_preset.is_system;
+    info.filament_name = filament_preset.alias;
+    info.setting_id    = filament_preset.setting_id;
+    if (config.has("filament_is_support"))
+        info.is_support = config.option<ConfigOptionBools>("filament_is_support")->values[0];
+    if (config.has("filament_type"))
+        info.filament_type = config.option<ConfigOptionStrings>("filament_type")->values[0];
+    if (config.has("filament_vendor"))
+        info.vendor = config.option<ConfigOptionStrings>("filament_vendor")->values[0];
+    if (config.has("nozzle_temperature_range_high"))
+        info.nozzle_temp_range_high = config.option<ConfigOptionInts>("nozzle_temperature_range_high")->values[0];
+    if (config.has("nozzle_temperature_range_low"))
+        info.nozzle_temp_range_low = config.option<ConfigOptionInts>("nozzle_temperature_range_low")->values[0];
+    if (config.has("temperature_vitrification"))
+        info.temperature_vitrification = config.option<ConfigOptionInts>("temperature_vitrification")->values[0];
+    if (config.has("filament_printable"))
+        info.filament_printable = config.option<ConfigOptionInts>("filament_printable")->values[0];
+    if (config.has("filament_extruder_compatibility"))
+        info.set_filament_extruder_compatibility(config.option<ConfigOptionInts>("filament_extruder_compatibility")->values[0]);
+    return info;
+}
+
+std::optional<FilamentBaseInfo> PresetBundle::resolve_filament_for_spool(const std::string& stored_id,
+                                                                         const std::string& vendor,
+                                                                         const std::string& material_type,
+                                                                         bool*              exact_match) const
+{
+    if (exact_match)
+        *exact_match = false;
+
+    // Step 1 — the normal case: the spool stored a real Preset::filament_id.
+    if (!stored_id.empty()) {
+        if (auto info = get_filament_by_filament_id(stored_id)) {
+            if (exact_match)
+                *exact_match = true;
+            return info;
+        }
+    }
+
+    // Step 2 — the spool stored a setting_id (cloud user-settings id) instead of a filament_id.
+    // Prefer a preset that actually carries a filament_id so downstream AMS commands have
+    // something meaningful to send.
+    if (!stored_id.empty()) {
+        const Preset* setting_hit = nullptr;
+        for (auto iter = filaments.begin(); iter != filaments.end(); ++iter) {
+            const Preset& preset = *iter;
+            if (preset.setting_id != stored_id)
+                continue;
+            if (!preset.filament_id.empty()) {
+                setting_hit = &preset;
+                break;
+            }
+            if (!setting_hit)
+                setting_hit = &preset;
+        }
+        if (setting_hit) {
+            if (exact_match)
+                *exact_match = true;
+            return make_filament_base_info(*setting_hit);
+        }
+    }
+
+    // Steps 3 and 4 need a material type to work with.
+    if (material_type.empty())
+        return std::nullopt;
+
+    auto preset_type_of = [](const Preset& preset) -> std::string {
+        if (!preset.config.has("filament_type"))
+            return std::string();
+        const auto& values = preset.config.option<ConfigOptionStrings>("filament_type")->values;
+        return values.empty() ? std::string() : values.front();
+    };
+    auto preset_vendor_of = [](const Preset& preset) -> std::string {
+        if (!preset.config.has("filament_vendor"))
+            return std::string();
+        const auto& values = preset.config.option<ConfigOptionStrings>("filament_vendor")->values;
+        return values.empty() ? std::string() : values.front();
+    };
+
+    // Step 3 — same vendor and material type. Prefer a system preset, but accept a user preset
+    // (which inherits its base's filament_id) when that is all the user has.
+    if (!vendor.empty()) {
+        const Preset* fallback = nullptr;
+        for (auto iter = filaments.begin(); iter != filaments.end(); ++iter) {
+            const Preset& preset = *iter;
+            if (preset.filament_id.empty())
+                continue;
+            if (preset_vendor_of(preset) != vendor || preset_type_of(preset) != material_type)
+                continue;
+            if (preset.is_system)
+                return make_filament_base_info(preset);
+            if (!fallback)
+                fallback = &preset;
+        }
+        if (fallback)
+            return make_filament_base_info(*fallback);
+    }
+
+    // Step 4 — last resort: the shipped "Generic <type>" system preset. This is what makes a
+    // hand-typed third-party filament usable in the AMS at all: the printer only needs sane
+    // temperature/type parameters for the slot, which the Generic profile provides.
+    const std::string generic_name = "Generic " + material_type;
+    const Preset*     generic_any  = nullptr;
+    for (auto iter = filaments.begin(); iter != filaments.end(); ++iter) {
+        const Preset& preset = *iter;
+        if (preset.filament_id.empty())
+            continue;
+        if (preset_type_of(preset) != material_type)
+            continue;
+        const bool name_is_generic = boost::istarts_with(preset.name, generic_name) ||
+                                     boost::istarts_with(preset.alias, generic_name);
+        if (name_is_generic && preset.is_system)
+            return make_filament_base_info(preset);
+        if (name_is_generic && !generic_any)
+            generic_any = &preset;
+    }
+    if (generic_any)
+        return make_filament_base_info(*generic_any);
+
+    return std::nullopt;
+}
+
 //BBS: load project embedded presets
 PresetsConfigSubstitutions PresetBundle::load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule)
 {

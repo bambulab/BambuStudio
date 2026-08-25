@@ -364,6 +364,10 @@ void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_
                 if (auto* store = wxGetApp().fila_manager_store()) {
                     store->apply_patch(spool_id, local_patch);
                     store->mark_synced(spool_id, true);
+                    // A weight push landing means the cloud now holds the
+                    // locally deducted value — pulls may overwrite again.
+                    if (local_patch.contains("net_weight"))
+                        store->clear_weight_push_pending(spool_id);
                 }
                 update_last_synced_now();
                 wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher push_update finished",
@@ -373,18 +377,23 @@ void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_
                 on_op_done();
             });
         },
-        [this, spool_id, create_body](int code, const std::string& err) {
+        [this, spool_id, create_body, local_patch](int code, const std::string& err) {
             if (code == 404) {
                 // Fallback to create for the common "cloud has no record of
                 // this local spool yet" case (e.g. the local row was created
                 // while offline and the first update is effectively a create).
                 BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_update 404, fallback create " << spool_id;
                 m_client->create_spool(create_body,
-                    [this, spool_id](const nlohmann::json&) {
-                        wxTheApp->CallAfter([this, spool_id]() {
+                    [this, spool_id, local_patch](const nlohmann::json&) {
+                        wxTheApp->CallAfter([this, spool_id, local_patch]() {
                             BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_update fallback create ok " << spool_id;
                             if (auto* store = wxGetApp().fila_manager_store()) {
                                 store->mark_synced(spool_id, true);
+                                // The full create body carries the current
+                                // (deducted) netWeight — same as a direct
+                                // weight push succeeding.
+                                if (local_patch.contains("net_weight"))
+                                    store->clear_weight_push_pending(spool_id);
                             }
                             update_last_synced_now();
                             wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher push_update fallback create finished",
