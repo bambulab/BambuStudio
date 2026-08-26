@@ -1622,11 +1622,30 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
 
 void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
 {
+    if (is_empty() || m_mode == Volume)
+        return;
+
+    // One snapshot for the dummy measure scale, the real scale, and the bed centering
+    // move. Inner do_scale/do_move must not create extra undo steps.
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), std::string("Scale To Fit"));
+
+    // Dual-toolhead machines publish one height per extruder; scale against the shorter one
+    // so the result stays printable for both heads.
+    auto scale_print_height = [](const BuildVolume &bv) {
+        double h = bv.printable_height();
+        const auto &hs = bv.extruder_heights();
+        if (hs.size() >= 2) {
+            for (double eh : hs) {
+                if (eh > 0.0)
+                    h = std::min(h, eh);
+            }
+        }
+        return h;
+    };
+
     auto fit = [this](double s, Vec3d offset) {
         if (s <= 0.0 || s == 1.0)
             return;
-
-        wxGetApp().plater()->take_snapshot(std::string("Scale To Fit"));
 
         TransformationType type;
         type.set_world();
@@ -1650,7 +1669,7 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
         //wxGetApp().obj_manipul()->set_dirty();
     };
 
-    auto fit_rectangle = [this, fit](const BuildVolume& build_volume) {
+    auto fit_rectangle = [this, fit, scale_print_height](const BuildVolume& build_volume) {
         BoundingBoxf3 print_volume = build_volume.bounding_volume();
         auto                exclude_area = wxGetApp().plater()->get_partplate_list().get_exclude_area();
         auto          plate        = wxGetApp().plater()->get_partplate_list().get_curr_plate();
@@ -1694,6 +1713,7 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
             print_volume.merge(temp_min);
             print_volume.merge(temp_max);
         }
+        print_volume.max.z() = scale_print_height(build_volume);
         const Vec3d print_volume_size = print_volume.size();
 
          // adds 1/100th of a mm on both xy sides to avoid false out of print volume detections due to floating-point roundings
@@ -1714,7 +1734,7 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
         return fit(std::min(sx, std::min(sy, sz)), print_volume.center() - get_bounding_box().center());
     };
 
-    auto fit_circle = [this, fit](const BuildVolume& volume) {
+    auto fit_circle = [this, fit, scale_print_height](const BuildVolume& volume) {
         const Geometry::Circled& print_circle = volume.circle();
         double print_circle_radius = unscale<double>(print_circle.radius);
 
@@ -1742,15 +1762,13 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
         if (circle_radius == 0.0 || max_z == 0.0)
             return;
 
-        const double s = std::min(print_circle_radius / circle_radius, volume.printable_height() / max_z);
+        const double print_h = scale_print_height(volume);
+        const double s = std::min(print_circle_radius / circle_radius, print_h / max_z);
         const Vec3d sel_center = get_bounding_box().center();
         const Vec3d offset = s * (Vec3d(unscale<double>(circle.center.x()), unscale<double>(circle.center.y()), 0.5 * max_z) - sel_center);
-        const Vec3d print_center = { unscale<double>(print_circle.center.x()), unscale<double>(print_circle.center.y()), 0.5 * volume.printable_height() };
+        const Vec3d print_center = { unscale<double>(print_circle.center.x()), unscale<double>(print_circle.center.y()), 0.5 * print_h };
         fit(s, print_center - (sel_center + offset));
     };
-
-    if (is_empty() || m_mode == Volume)
-        return;
 
     switch (volume.type())
     {
@@ -1780,7 +1798,7 @@ void Selection::scale_to_fit_print_volume(const DynamicPrintConfig& config)
         {
             double s = std::min(sx, std::min(sy, sz));
             if (s != 1.0) {
-                wxGetApp().plater()->take_snapshot("Scale To Fit");
+                Plater::TakeSnapshot snapshot(wxGetApp().plater(), std::string("Scale To Fit"));
 
                 TransformationType type;
                 type.set_world();
