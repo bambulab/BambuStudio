@@ -6766,6 +6766,17 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
             inserted_operation_lines[gcode_id].emplace_back(line, type);
     };
 
+    // handle_hotend_as_extruder printers never reach the wipe-tower NC preamble that emits M106 S255
+    // with the cooldown. Turn the part fan full for the ramming so the nozzle actually cools at the
+    // on-toolhead rate. The change-filament macro turns it back off.
+    auto add_M106_full_part_fan = [&](unsigned int gcode_id, TimeProcessor::InsertLineType type, const std::string &comment) {
+        std::string line = "M106 S255";
+        if (!comment.empty())
+            line += " ;" + comment;
+        line += '\n';
+        inserted_operation_lines[gcode_id].emplace_back(std::move(line), type);
+    };
+
     constexpr float room_temperature = 25.f;
     auto get_filament_min_temperature_when_ec = [&](int filament_id) -> float {
         float min_temperature = handle_hotend_as_extruder ? 0.f : room_temperature;
@@ -6779,10 +6790,24 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
 
     if (apply_cooling_when_partial_free) {
         float min_temperature = get_filament_min_temperature_when_ec(block.last_filament_id);
-        float max_cooling_temp = std::min(curr_temp, std::min(get_partial_free_cooling_thres(block.last_filament_id), partial_free_time_gap * ext_cooling_rate_post_extrusion));
+        float cooling_budget = get_partial_free_cooling_thres(block.last_filament_id);
+        // PVA-only: unload uses a one-shot long cut retract. Start cooling during ram
+        // (configured M104 S + full part fan) so the break forms lower in the heatbreak as a
+        // tip, which reduces sticking. Do not cap S to ram duration — PVA does not wait for
+        // the nozzle to actually reach the target. Other filaments still cap S so the command
+        // matches what ram time can achieve.
+        const bool command_only_active = handle_hotend_as_extruder &&
+            block.last_filament_id >= 0 &&
+            block.last_filament_id < (int)filament_types.size() &&
+            filament_types[block.last_filament_id] == "PVA";
+        if (!command_only_active)
+            cooling_budget = std::min(cooling_budget, partial_free_time_gap * ext_cooling_rate_post_extrusion);
+        float max_cooling_temp = std::min(curr_temp, cooling_budget);
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": partial cooling for %1% %2%") % max_cooling_temp % curr_temp;
         curr_temp = std::max(min_temperature, curr_temp - max_cooling_temp); // set the temperature after doing cooling when post-extruding
         add_M104_lines(block.partial_free_lower_id, extruder_id, curr_temp, block.last_filament_id, false, block.next_filament_id, block.next_nozzle_id, false, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling in post extrusion");
+        if (command_only_active)
+            add_M106_full_part_fan(block.partial_free_lower_id, TimeProcessor::InsertLineType::PreCooling, "Multi extruder pre cooling fan on");
     }
 
     if (pre_cooling && !pre_heating) {

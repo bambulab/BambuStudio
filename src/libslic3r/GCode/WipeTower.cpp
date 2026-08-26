@@ -3763,7 +3763,11 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
         float precool_t_first_layer = extruder_change ? m_filpar[m_current_tool].precool_t_first_layer.first[extruder_id] :
                                                         m_filpar[m_current_tool].precool_t_first_layer.second[extruder_id];
         float per_cooling_max_speed = nozzle_change_speed;
-        if (extruder_change) {
+        // PVA-only: keep volumetric ram speed (do not stretch to precool_t). Stretching ram to
+        // wait for temperature would delay the one-shot long cut retract and keep the melt zone
+        // higher in the heatbreak. Other filaments still stretch F so ram lasts ~precool_t.
+        const bool command_only_active = m_handle_hotend_as_extruder && m_filpar[m_current_tool].material == "PVA";
+        if (extruder_change && !command_only_active) {
             if (is_first_layer() && precool_t_first_layer > EPSILON)
                 per_cooling_max_speed = ramming_length / precool_t_first_layer * 60.f;
             else if (precool_t > EPSILON)
