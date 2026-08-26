@@ -2946,6 +2946,7 @@ Sidebar::Sidebar(Plater *parent)
         del_btn->SetToolTip(_L("Remove last filament"));
         del_btn->Bind(wxEVT_BUTTON, [this, scrolled_sizer](wxCommandEvent& e) {
             delete_filament();
+            scroll_filament_area_to_bottom();
         });
         p->m_bpButton_del_filament = del_btn;
         subtitle_sizer->Add(del_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
