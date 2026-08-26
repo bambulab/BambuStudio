@@ -8,6 +8,9 @@
     "additional_cooling_fan_speed": [
         "80"
     ],
+    "close_optional_fan_first_x_layers": [
+        "1"
+    ],
     "eng_plate_temp": [
         "35"
     ],
@@ -15,7 +18,7 @@
         "35"
     ],
     "fan_max_speed": [
-        "60"
+        "65"
     ],
     "filament_change_length": [
         "0"
@@ -53,13 +56,7 @@
     "fins_extrude_safe_temp": [
         "55"
     ],
-    "close_optional_fan_first_x_layers": [
-        "1"
-    ],
     "first_x_layer_optional_fan_speed": [
-        "0"
-    ],
-    "optional_fan_full_speed_layer": [
         "0"
     ],
     "include": [
@@ -83,6 +80,9 @@
     ],
     "optional_cooling_fan_speed": [
         "75"
+    ],
+    "optional_fan_full_speed_layer": [
+        "0"
     ],
     "pre_start_fan_time": [
         "2"

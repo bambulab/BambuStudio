@@ -8,6 +8,9 @@
     "additional_cooling_fan_speed": [
         "60"
     ],
+    "close_optional_fan_first_x_layers": [
+        "1"
+    ],
     "eng_plate_temp": [
         "55"
     ],
@@ -25,8 +28,8 @@
         "0"
     ],
     "filament_flow_ratio": [
-        "0.98",
-        "0.98"
+        "1.01",
+        "1.01"
     ],
     "filament_idle_travel_cooling_enabled": "0",
     "filament_max_volumetric_speed": [
@@ -59,13 +62,7 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
-    "close_optional_fan_first_x_layers": [
-        "1"
-    ],
     "first_x_layer_optional_fan_speed": [
-        "0"
-    ],
-    "optional_fan_full_speed_layer": [
         "0"
     ],
     "include": [
@@ -89,6 +86,9 @@
     ],
     "optional_cooling_fan_speed": [
         "75"
+    ],
+    "optional_fan_full_speed_layer": [
+        "0"
     ],
     "pre_start_fan_time": [
         "2"

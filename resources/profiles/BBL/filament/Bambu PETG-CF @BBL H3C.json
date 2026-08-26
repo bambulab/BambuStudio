@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSG50_24",
     "instantiation": "true",
+    "close_optional_fan_first_x_layers": [
+        "1"
+    ],
     "fan_cooling_layer_time": [
         "30"
     ],
@@ -26,8 +29,8 @@
     ],
     "filament_idle_travel_cooling_enabled": "0",
     "filament_max_volumetric_speed": [
-        "11.5",
-        "11.5"
+        "6",
+        "6"
     ],
     "filament_prime_tower_speed_factor_curve": [
         "0.5,1,1,1,0.5"
@@ -36,16 +39,7 @@
         "0",
         "0"
     ],
-    "close_optional_fan_first_x_layers": [
-        "1"
-    ],
     "first_x_layer_optional_fan_speed": [
-        "0"
-    ],
-    "optional_cooling_fan_speed": [
-        "0"
-    ],
-    "optional_fan_full_speed_layer": [
         "0"
     ],
     "include": [
@@ -67,8 +61,18 @@
         "255",
         "255"
     ],
+    "optional_cooling_fan_speed": [
+        "0"
+    ],
+    "optional_fan_full_speed_layer": [
+        "0"
+    ],
     "overhang_fan_speed": [
-        "100"
+        "50"
+    ],
+    "override_process_overhang_speed": [
+        "1",
+        "1"
     ],
     "compatible_printers": [
         "Bambu Lab H3C 0.4 nozzle",
