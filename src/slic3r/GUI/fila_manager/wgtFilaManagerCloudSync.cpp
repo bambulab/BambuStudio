@@ -444,8 +444,8 @@ void wgtFilaManagerCloudSync::fetch_all_spool_pages(int offset, std::shared_ptr<
     };
 
     m_client->list_spools(query,
-        [this, offset, accumulated](const nlohmann::json& data) {
-            wxTheApp->CallAfter([this, offset, accumulated, data]() {
+        [this, offset, accumulated, kPageSize](const nlohmann::json& data) {
+            wxTheApp->CallAfter([this, offset, accumulated, data, kPageSize]() {
                 nlohmann::json page = extract_cloud_list(data);
                 const size_t   page_size = page.size();
                 for (auto& item : page)
