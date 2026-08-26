@@ -31,28 +31,85 @@ on:
             description: 'Only build dependencies (bypasses caching)'
             type: boolean
             default: false
+        ubuntu-22-04:
+            description: 'Ubuntu 22.04'
+            type: boolean
+            default: true
+        ubuntu-24-04:
+            description: 'Ubuntu 24.04'
+            type: boolean
+            default: true
+        ubuntu-26-04:
+            description: 'Ubuntu 26.04'
+            type: boolean
+            default: true
+        windows:
+            description: 'Windows'
+            type: boolean
+            default: true
+        macos-intel:
+            description: 'macOS 15 (Intel, x86_64)'
+            type: boolean
+            default: true
+        macos-15-arm:
+            description: 'macOS 15 (Apple Silicon, arm64)'
+            type: boolean
+            default: true
+        macos-26-arm:
+            description: 'macOS 26 (Apple Silicon, arm64)'
+            type: boolean
+            default: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  prepare_matrix:
+    name: Prepare Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set_matrix.outputs.matrix }}
+    steps:
+      - name: Build matrix selection
+        id: set_matrix
+        shell: bash
+        run: |
+          is_dispatch="${{ github.event_name == 'workflow_dispatch' }}"
+
+          include() {
+            # $1 = input name, used only for workflow_dispatch runs. Non-dispatch
+            # triggers (push/pull_request) always build everything.
+            if [ "$is_dispatch" != "true" ]; then
+              echo true
+            else
+              echo "$1"
+            fi
+          }
+
+          entries="[]"
+          add() {
+            entries=$(echo "$entries" | jq -c --arg os "$1" --arg arch "$2" '. + [({"os": $os} + (if $arch != "" then {"arch": $arch} else {} end))]')
+          }
+
+          [ "$(include '${{ inputs.ubuntu-22-04 }}')" = "true" ] && add "ubuntu-22.04" ""
+          [ "$(include '${{ inputs.ubuntu-24-04 }}')" = "true" ] && add "ubuntu-24.04" ""
+          [ "$(include '${{ inputs.ubuntu-26-04 }}')" = "true" ] && add "ubuntu-26.04" ""
+          [ "$(include '${{ inputs.windows }}')" = "true" ] && add "windows-latest" ""
+          [ "$(include '${{ inputs.macos-intel }}')" = "true" ] && add "macos-15-intel" "x86_64"
+          [ "$(include '${{ inputs.macos-15-arm }}')" = "true" ] && add "macos-15" "arm64"
+          [ "$(include '${{ inputs.macos-26-arm }}')" = "true" ] && add "macos-26" "arm64"
+
+          echo "matrix={\"include\":$entries}" >> "$GITHUB_OUTPUT"
+          echo "Selected matrix: $entries"
+
   build_all:
     name: Build All
+    needs: prepare_matrix
+    if: needs.prepare_matrix.outputs.matrix != '{"include":[]}'
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-22.04
-          - os: ubuntu-24.04
-          - os: ubuntu-26.04
-          - os: windows-latest
-          - os: macos-15-intel
-            arch: x86_64
-          - os: macos-15
-            arch: arm64
-          - os: macos-26
-            arch: arm64
+      matrix: ${{ fromJson(needs.prepare_matrix.outputs.matrix) }}
     uses: ./.github/workflows/build_check_cache.yml
     with:
       os: ${{ matrix.os }}
