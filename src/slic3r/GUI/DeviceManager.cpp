@@ -36,7 +36,6 @@
 
 #include "DeviceCore/DevAxis.h"
 #include "DeviceCore/DevChamber.h"
-#include "DeviceCore/DevHMSQuery.h"
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevFilaSwitch.h"
 #include "DeviceCore/DevExtensionTool.h"
@@ -4963,10 +4962,7 @@ std::string MachineObject::get_error_code_str(int error_code)
 void MachineObject::add_command_error_code_dlg(int command_err, json action_json)
 {
     BOOST_LOG_TRIVIAL(error) << __FUNCTION__  << command_err;
-
-    GUI::HMSResult hms_res = Slic3r::GUI::wxGetApp().get_hms_query_mgr()->query_error(get_dev_id(), command_err);
-    bool suppress = (hms_res.status == GUI::HMSStatus::Ready) && hms_res.is_internal;
-    if (command_err > 0 && !suppress)
+    if (command_err > 0 && !Slic3r::GUI::wxGetApp().get_hms_query()->is_internal_error(this, command_err))
     {
         GUI::wxGetApp().CallAfter([this, command_err, action_json, token = std::weak_ptr<int>(m_token)]
         {

@@ -86,7 +86,6 @@
 #include "EncodedFilament.hpp"
 
 #include "DeviceCore/DevManager.h"
-#include "DeviceCore/DevHMSQuery.h"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/VersionPolicyManager.hpp"
@@ -1452,7 +1451,7 @@ GUI_App::GUI_App()
     , m_app_mode(EAppMode::Editor)
     , m_em_unit(10)
     , m_imgui(new ImGuiWrapper())
-    , hms_query_mgr(new HMSQueryMgr())
+    , hms_query(new HMSQuery())
 	, m_removable_drive_manager(std::make_unique<RemovableDriveManager>())
 	, m_other_instance_message_handler(std::make_unique<OtherInstanceMessageHandler>())
 {
@@ -2387,11 +2386,6 @@ GUI_App::~GUI_App()
     }
 
     StaticBambuLib::release();
-
-    if (hms_query_mgr != nullptr) {
-        delete hms_query_mgr;
-        hms_query_mgr = nullptr;
-    }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": exit");
 }
@@ -3559,7 +3553,7 @@ bool GUI_App::on_init_inner()
     }
     else
         load_current_presets();
-
+    
     if (plater_ != nullptr) {
         plater_->reset_project_dirty_initial_presets();
         plater_->update_project_dirty_from_presets();
@@ -4367,6 +4361,9 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
 
     obj_list()->set_min_height();
     update_mode();
+
+    // clear previous hms query, so that the hms info can use different language
+    if (hms_query) hms_query->clear_hms_info();
 
     //BBS: trigger restore project logic here, and skip confirm
     plater_->trigger_restore_project(1);

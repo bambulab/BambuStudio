@@ -6,7 +6,6 @@
 
 #include "GUI_Utils.hpp"
 #include "Widgets/StateColor.hpp"
-#include "DeviceCore/DevHMSQuery.h"
 #include <nlohmann/json.hpp>
 
 class Label;
@@ -78,10 +77,6 @@ public:
     void     set_action_json(const nlohmann::json &action_json) { m_action_json = action_json; }
 
 protected:
-    void apply_result(const HMSResult& r);
-    void apply_loading();
-    void handle_hms_result(const HMSResult& r);
-
     void init_button_list();
     void init_button(ActionButton style, wxString buton_text);
 
@@ -104,7 +99,6 @@ private:
     MachineObject* m_obj;
 
     int m_error_code = 0;
-    HMSSubscription m_hms_sub;
     std::unordered_set<Button*> m_used_button;
 
     wxWebRequest web_request;

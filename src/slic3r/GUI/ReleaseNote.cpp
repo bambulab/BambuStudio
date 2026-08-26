@@ -6,7 +6,6 @@
 #include "libslic3r/Thread.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
-#include "DeviceCore/DevHMSQuery.h"
 #include "GUI_Preview.hpp"
 #include "MainFrame.hpp"
 #include "format.hpp"
@@ -993,7 +992,7 @@ void PrintErrorDialog::update_text_image(const wxString& text, const wxString& e
     m_vebview_release_note->SetSizer(sizer_text_release_note);
 
     if (!image_url.empty()) {
-        const wxImage& img = wxGetApp().get_hms_query_mgr()->query_image_from_local(image_url);
+        const wxImage& img = wxGetApp().get_hms_query()->query_image_from_local(image_url);
         if (!img.IsOk() && image_url.Contains("http"))
         {
             web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);

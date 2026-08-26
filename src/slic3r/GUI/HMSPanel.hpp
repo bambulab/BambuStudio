@@ -55,6 +55,7 @@ protected:
     void append_hms_panel(const std::string& dev_id, DevHMSItem &item);
     void delete_hms_panels();
 
+
 public:
     HMSPanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
     ~HMSPanel();
