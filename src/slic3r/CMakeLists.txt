@@ -218,6 +218,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/AMSDryControl.hpp
     GUI/AMSMaterialsSetting.cpp
     GUI/AMSMaterialsSetting.hpp
+    GUI/AMSRFIDMaterialView.cpp
+    GUI/AMSRFIDMaterialView.hpp
+    GUI/FilamentSelectDialog.cpp
+    GUI/FilamentSelectDialog.hpp
     GUI/ExtrusionCalibration.cpp
     GUI/ExtrusionCalibration.hpp
     GUI/PresetHints.cpp

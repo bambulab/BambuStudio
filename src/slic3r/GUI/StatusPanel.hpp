@@ -21,6 +21,7 @@
 #include "PrintOptionsDialog.hpp"
 #include "SafetyOptionsDialog.hpp"
 #include "AMSMaterialsSetting.hpp"
+#include "AMSRFIDMaterialView.hpp"
 #include "ExtrusionCalibration.hpp"
 #include "ReleaseNote.hpp"
 #include "Widgets/SwitchButton.hpp"
@@ -667,6 +668,7 @@ protected:
     std::string          m_task_lock_setup_handled_dev_id;
     std::string          m_task_lock_verify_handled_dev_id;
     AMSMaterialsSetting *m_filament_setting_dlg{nullptr};
+    AMSRFIDMaterialView *m_rfid_view_dlg{nullptr};
     AMSNewOfficialFilamentDlg *m_new_official_filament_dlg{nullptr};
     SoftMatchPendingResponse   m_soft_match_pending;
 
@@ -764,6 +766,13 @@ protected:
     void on_new_official_filament_hint(wxCommandEvent &event);
     void show_new_official_filament_dlg(const std::string& ams_id, const std::string& slot_id);
     void on_ext_spool_edit(wxCommandEvent &event);
+    void open_rfid_view(int ams_id, int slot_id,
+                        const std::string& setting_id, int ctype,
+                        const wxString& filament, const wxColour& color,
+                        const std::vector<wxColour>& cols,
+                        const std::string& temp_min, const std::string& temp_max,
+                        const std::string& sn_number, const wxString& k_val,
+                        wxPoint pos);
     void on_filament_extrusion_cali(wxCommandEvent &event);
     void on_ams_refresh_rfid(wxCommandEvent &event);
     void on_ams_selected(wxCommandEvent &event);

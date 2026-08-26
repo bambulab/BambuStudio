@@ -39,7 +39,7 @@ bool StaticBox::Create(wxWindow* parent, wxWindowID id, const wxPoint& pos, cons
 {
     if (style & wxBORDER_NONE)
         border_width = 0;
-    wxWindow::Create(parent, id, pos, size, style);
+    wxWindow::Create(parent, id, pos, size, style | wxFULL_REPAINT_ON_RESIZE);
     state_handler.attach({&border_color, &background_color, &background_color2});
     state_handler.update_binds();
     SetBackgroundColour(GetParentBackgroundColor(parent));

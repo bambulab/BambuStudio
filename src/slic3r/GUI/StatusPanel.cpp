@@ -23,6 +23,7 @@
 #include "libslic3r/Thread.hpp"
 #include "DeviceErrorDialog.hpp"
 
+#include "EncodedFilament.hpp"
 #include "RecenterDialog.hpp"
 #include "CalibUtils.hpp"
 #include "BBLUtil.hpp"
@@ -3920,6 +3921,12 @@ void StatusPanel::update_ams(MachineObject *obj)
             m_filament_setting_dlg->TryRefreshPAProfiles();
         }
     }
+    if (m_rfid_view_dlg) {
+        m_rfid_view_dlg->obj = obj;
+        if (m_rfid_view_dlg->IsShown()) {
+            m_rfid_view_dlg->TryRefreshPAProfiles();
+        }
+    }
 
     if (obj && obj->GetCalib()->IsVersionExpired() && obj->is_security_control_ready()) {
         obj->GetCalib()->SyncCalibVersion();
@@ -5127,60 +5134,110 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
     }
 }
 
+void StatusPanel::open_rfid_view(int ams_id, int slot_id,
+                                 const std::string& setting_id, int ctype,
+                                 const wxString& filament, const wxColour& color,
+                                 const std::vector<wxColour>& cols,
+                                 const std::string& temp_min, const std::string& temp_max,
+                                 const std::string& sn_number, const wxString& k_val,
+                                 wxPoint pos)
+{
+    if (!m_rfid_view_dlg)
+        m_rfid_view_dlg = new AMSRFIDMaterialView((wxWindow*)this, wxID_ANY);
+    wxString color_name;
+    if (!setting_id.empty()) {
+        if (auto* clr_query = wxGetApp().get_filament_color_code_query()) {
+            FilamentColor fila_color;
+            if (!cols.empty()) {
+                for (const auto& c : cols) fila_color.AddColor(c);
+            } else {
+                fila_color.AddColor(color);
+            }
+            fila_color.EndSet(ctype);
+            color_name = clr_query->GetFilaColorName(wxString::FromUTF8(setting_id), fila_color);
+        }
+    }
+    m_rfid_view_dlg->Move(pos);
+    m_rfid_view_dlg->Popup(obj, ams_id, slot_id,
+                            filament, color_name, color, cols, ctype,
+                            temp_min, temp_max, sn_number, k_val);
+}
+
 void StatusPanel::on_filament_edit(wxCommandEvent &event)
 {
-    // update params
-    if (!m_filament_setting_dlg) m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *) this, wxID_ANY);
-
     int  current_position_x = m_ams_control->GetScreenPosition().x;
     int  current_position_y = m_ams_control->GetScreenPosition().y - FromDIP(40);
     auto drect              = wxDisplay(GetParent()).GetGeometry().GetHeight() - FromDIP(50);
-    current_position_y = current_position_y + m_filament_setting_dlg->GetSize().GetHeight() > drect ? drect - m_filament_setting_dlg->GetSize().GetHeight() : current_position_y;
+    current_position_y = current_position_y + FromDIP(503) > drect ? drect - FromDIP(503) : current_position_y;
 
     if (obj) {
-        m_filament_setting_dlg->obj = obj;
-        // 2D mode (laser/cut) only allows viewing filament info, not editing.
-        m_filament_setting_dlg->m_view_only = !obj->GetInfo()->IsFdmMode();
-
         int ams_id  = event.GetInt();
-        int slot_id = event.GetString().IsEmpty() ? 0 : std::stoi(event.GetString().ToStdString());
+        long slot_id_long = 0;
+        event.GetString().ToLong(&slot_id_long);
+        int slot_id = static_cast<int>(slot_id_long);
 
         try {
-            m_filament_setting_dlg->ams_id  = ams_id;
-            m_filament_setting_dlg->slot_id = slot_id;
-
             std::string sn_number;
             std::string filament;
             std::string temp_max;
             std::string temp_min;
             wxString    k_val;
             wxString    n_val;
+            wxString    total_weight;
+            wxString    remain_weight;
 
             auto tray = obj->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
             if (tray) {
                 k_val         = wxString::Format("%.3f", tray->k);
                 n_val         = wxString::Format("%.3f", tray->n);
                 wxColor color = DevAmsTray::decode_color(tray->color);
-                // m_filament_setting_dlg->set_color(color);
 
                 std::vector<wxColour> cols;
                 for (auto col : tray->cols) { cols.push_back(DevAmsTray::decode_color(col)); }
+
+                const bool is_third = DevFilaSystem::IsBBL_Filament(tray->tag_uid) ? false : true;
+                if (tray->tag_uid.size() == 16 && tray->tag_uid.substr(12, 2) == "01") {
+                    sn_number = tray->uuid;
+                }
+                if (!is_third) {
+                    filament  = tray->sub_brands;
+                    temp_max  = tray->nozzle_temp_max;
+                    temp_min  = tray->nozzle_temp_min;
+                }
+
+                if (!tray->setting_id.empty()) {
+                    if (tray->weight != "-1") {
+                        total_weight = wxString::FromUTF8(tray->weight.c_str());
+                    }
+
+                    if (auto weight = tray->get_filament_remain_weight(); weight.has_value() && weight.value() >= 0) {
+                        remain_weight = wxString::Format("%d", *weight);
+                    }
+                }
+
+                // RFID filament: open the view-only dialog instead of the editable one.
+                if (!is_third) {
+                    open_rfid_view(ams_id, slot_id, tray->setting_id,
+                                   static_cast<int>(tray->ctype),
+                                   filament, color, cols,
+                                   temp_min, temp_max, sn_number, k_val,
+                                   wxPoint(current_position_x, current_position_y));
+                    return;
+                }
+
+                if (!m_filament_setting_dlg) m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *) this, wxID_ANY);
+                m_filament_setting_dlg->obj       = obj;
+                m_filament_setting_dlg->m_view_only = !obj->GetInfo()->IsFdmMode();
+                m_filament_setting_dlg->ams_id    = ams_id;
+                m_filament_setting_dlg->slot_id   = slot_id;
+                m_filament_setting_dlg->m_is_third = is_third;
                 m_filament_setting_dlg->set_ctype(tray->ctype);
                 m_filament_setting_dlg->ams_filament_id = tray->setting_id;
-
                 if (m_filament_setting_dlg->ams_filament_id.empty()) {
                     m_filament_setting_dlg->set_empty_color(color);
                 } else {
                     m_filament_setting_dlg->set_color(color);
                     m_filament_setting_dlg->set_colors(cols);
-                }
-
-                m_filament_setting_dlg->m_is_third = !DevFilaSystem::IsBBL_Filament(tray->tag_uid);
-                if (!m_filament_setting_dlg->m_is_third) {
-                    sn_number = tray->uuid;
-                    filament  = tray->sub_brands;
-                    temp_max  = tray->nozzle_temp_max;
-                    temp_min  = tray->nozzle_temp_min;
                 }
             }
 
@@ -5385,25 +5442,20 @@ void StatusPanel::on_new_official_filament_hint(wxCommandEvent &event)
 
 void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
 {
-    // update params
-    if (!m_filament_setting_dlg) m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *) this, wxID_ANY);
-
     int  current_position_x = m_ams_control->GetScreenPosition().x;
     int  current_position_y = m_ams_control->GetScreenPosition().y - FromDIP(40);
     auto drect              = wxDisplay(GetParent()).GetGeometry().GetHeight() - FromDIP(50);
-    current_position_y = current_position_y + m_filament_setting_dlg->GetSize().GetHeight() > drect ? drect - m_filament_setting_dlg->GetSize().GetHeight() : current_position_y;
+    current_position_y = current_position_y + FromDIP(503) > drect ? drect - FromDIP(503) : current_position_y;
 
     if (obj) {
-        m_filament_setting_dlg->obj = obj;
-        // 2D mode (laser/cut) only allows viewing filament info, not editing.
-        m_filament_setting_dlg->m_view_only = !obj->GetInfo()->IsFdmMode();
-
         int ams_id  = event.GetInt();
-        int slot_id = event.GetString().IsEmpty() ? 0 : std::stoi(event.GetString().ToStdString());
+        long slot_id_long = 0;
+        event.GetString().ToLong(&slot_id_long);
+        int slot_id = static_cast<int>(slot_id_long);
 
-        m_filament_setting_dlg->ams_id  = ams_id;
-        m_filament_setting_dlg->slot_id = slot_id;
-        int nozzle_index                = ams_id == VIRTUAL_TRAY_MAIN_ID ? 0 : 1;
+        if (obj->vt_slot.empty()) return;
+        int vt_idx = (ams_id == VIRTUAL_TRAY_DEPUTY_ID && obj->vt_slot.size() > 1) ? 1 : 0;
+        const DevAmsTray* vt_tray = &obj->vt_slot[vt_idx];
 
         try {
             std::string sn_number;
@@ -5412,28 +5464,52 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
             std::string temp_min;
             wxString    k_val;
             wxString    n_val;
-            k_val                                   = wxString::Format("%.3f", obj->vt_slot[nozzle_index].k);
-            n_val                                   = wxString::Format("%.3f", obj->vt_slot[nozzle_index].n);
-            wxColor color                           = DevAmsTray::decode_color(obj->vt_slot[nozzle_index].color);
-            m_filament_setting_dlg->ams_filament_id = obj->vt_slot[nozzle_index].setting_id;
+            wxString    total_weight;
+            wxString    remain_weight;
+            k_val         = wxString::Format("%.3f", vt_tray->k);
+            n_val         = wxString::Format("%.3f", vt_tray->n);
+            wxColor color = DevAmsTray::decode_color(vt_tray->color);
 
             std::vector<wxColour> cols;
-            for (auto col : obj->vt_slot[nozzle_index].cols) { cols.push_back(DevAmsTray::decode_color(col)); }
-            m_filament_setting_dlg->set_ctype(obj->vt_slot[nozzle_index].ctype);
+            for (const auto &col : vt_tray->cols) { cols.push_back(DevAmsTray::decode_color(col)); }
 
+            const bool is_third = DevFilaSystem::IsBBL_Filament(vt_tray->tag_uid) ? false : true;
+            if (vt_tray->tag_uid.size() == 16 && vt_tray->tag_uid.substr(12, 2) == "01") {
+                sn_number = vt_tray->uuid;
+            }
+            if (!is_third) {
+                filament  = vt_tray->sub_brands;
+                temp_max  = vt_tray->nozzle_temp_max;
+                temp_min  = vt_tray->nozzle_temp_min;
+            }
+            total_weight = wxString::FromUTF8(vt_tray->weight.c_str());
+            if (auto weight = vt_tray->get_filament_remain_weight()) {
+                remain_weight = wxString::Format("%d", *weight);
+            }
+
+            // RFID filament: open the view-only dialog instead of the editable one.
+            if (!is_third) {
+                open_rfid_view(ams_id, slot_id, vt_tray->setting_id,
+                               static_cast<int>(vt_tray->ctype),
+                               filament, color, cols,
+                               temp_min, temp_max, sn_number, k_val,
+                               wxPoint(current_position_x, current_position_y));
+                return;
+            }
+
+            if (!m_filament_setting_dlg) m_filament_setting_dlg = new AMSMaterialsSetting((wxWindow *) this, wxID_ANY);
+            m_filament_setting_dlg->obj        = obj;
+            m_filament_setting_dlg->m_view_only = !obj->GetInfo()->IsFdmMode();
+            m_filament_setting_dlg->ams_id     = ams_id;
+            m_filament_setting_dlg->slot_id    = slot_id;
+            m_filament_setting_dlg->m_is_third = is_third;
+            m_filament_setting_dlg->ams_filament_id = vt_tray->setting_id;
+            m_filament_setting_dlg->set_ctype(vt_tray->ctype);
             if (m_filament_setting_dlg->ams_filament_id.empty()) {
                 m_filament_setting_dlg->set_empty_color(color);
             } else {
                 m_filament_setting_dlg->set_color(color);
                 m_filament_setting_dlg->set_colors(cols);
-            }
-
-            m_filament_setting_dlg->m_is_third = !DevFilaSystem::IsBBL_Filament(obj->vt_slot[nozzle_index].tag_uid);
-            if (!m_filament_setting_dlg->m_is_third) {
-                sn_number = obj->vt_slot[nozzle_index].uuid;
-                filament  = obj->vt_slot[nozzle_index].sub_brands;
-                temp_max  = obj->vt_slot[nozzle_index].nozzle_temp_max;
-                temp_min  = obj->vt_slot[nozzle_index].nozzle_temp_min;
             }
 
             m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
