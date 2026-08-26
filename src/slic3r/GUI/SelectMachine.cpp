@@ -6438,7 +6438,15 @@ bool SelectMachineDialog::build_slot_consumption_map(
     if (!m_plater) return true;
 
     GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result();
-    if (!gcode_result) return true;
+    if (!gcode_result) {
+        // GitHub #11937: this is a known, silent gap — reprints / cloud-only
+        // resends without a fresh local slice have no gcode result to derive
+        // grams-used from, so no pending consumption gets recorded for this
+        // send. Log at info level so this is diagnosable instead of the
+        // Filament Manager weight just silently never updating.
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " no current gcode result available, skipping consumption recording";
+        return true;
+    }
 
     auto full_config         = wxGetApp().preset_bundle->full_config();
     auto filament_densities  = full_config.option<ConfigOptionFloats>("filament_density");
