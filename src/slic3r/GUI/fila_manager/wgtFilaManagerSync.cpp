@@ -351,6 +351,22 @@ bool wgtFilaManagerSync::check_print_finished_and_deduct(MachineObject* obj)
             << " spool_id=" << spool_id
             << " dev_id=" << dev_id
             << " job_key=" << pending->job_key;
+
+        // The deduction is local-only until pushed — without this push the
+        // next pull_from_cloud() reverts net_weight to the stale cloud value.
+        // Enqueue immediately so the dispatcher FIFO lands the new weight
+        // before any subsequently queued pull. Safe when logged out: the op
+        // no-ops and the weight_push_pending flag keeps pulls from
+        // overwriting the local deduction in the meantime.
+        if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
+            disp->enqueue_push_update(spool_id, nlohmann::json{
+                {"net_weight",       matched->net_weight},
+                {"total_net_weight", matched->effective_total_net_weight()},
+            });
+            BOOST_LOG_TRIVIAL(info)
+                << "[FilaManager] enqueued weight push spool_id=" << spool_id
+                << " net_weight=" << matched->net_weight;
+        }
     }
 
     return any_changed;

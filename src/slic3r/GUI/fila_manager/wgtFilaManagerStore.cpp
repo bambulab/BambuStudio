@@ -192,6 +192,9 @@ void wgtFilaManagerStore::update_spool(const FilamentSpool& spool)
     FilamentSpool s = spool;
     if (s.setting_id_migration_version < it->second.setting_id_migration_version)
         s.setting_id_migration_version = it->second.setting_id_migration_version;
+    // weight_push_pending is local-only bookkeeping; cloud data carries no
+    // such concept, so it must survive a wholesale pull-merge overwrite.
+    s.weight_push_pending = it->second.weight_push_pending;
     s.updated_at    = now_iso8601();
     it->second      = std::move(s);
     m_dirty         = true;
@@ -358,11 +361,22 @@ bool wgtFilaManagerStore::deduct_consumption(const std::string& spool_id,
 
     s.last_deducted_job_key = job_key;
     s.updated_at            = now_iso8601();
+    // Weight changed locally but is not on the cloud yet — mark it so the
+    // next pull_from_cloud() merge keeps this value instead of reverting to
+    // the stale cloud net_weight, until the dispatcher confirms the push.
+    s.weight_push_pending   = true;
     m_dirty                 = true;
 
     return prev_net_weight != s.net_weight
         || prev_remain     != s.remain_percent
         || prev_status     != s.status;
+}
+
+void wgtFilaManagerStore::clear_weight_push_pending(const std::string& spool_id)
+{
+    auto it = m_spools.find(spool_id);
+    if (it == m_spools.end()) return;
+    it->second.weight_push_pending = false;
 }
 
 void wgtFilaManagerStore::set_pending_consumption(

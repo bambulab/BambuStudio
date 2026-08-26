@@ -3507,6 +3507,13 @@ bool GUI_App::on_init_inner()
                                                                          m_fila_manager_cloud_client);
             BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud dispatcher initialized";
         }
+
+        // Populate the spool store on startup so print weight tracking works
+        // even if the user never opens the Filament Manager page this run.
+        // The dispatcher skips the pull silently when no login token is
+        // available (e.g. LAN-only mode); FM page open and fresh login also
+        // trigger pulls, and duplicate pulls are deduped by the queue.
+        m_fila_manager_cloud_disp->enqueue_pull();
     }
 
     BOOST_LOG_TRIVIAL(info) << "create the main window";
