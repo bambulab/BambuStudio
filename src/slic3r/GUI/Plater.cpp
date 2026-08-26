@@ -19881,14 +19881,9 @@ int Plater::load_project(wxString const &filename2,
 
     m_only_gcode = false;
     m_exported_file = false;
-    get_notification_manager()->bbl_close_plateinfo_notification();
-    get_notification_manager()->bbl_close_preview_only_notification();
-    get_notification_manager()->bbl_close_3mf_warn_notification();
-    get_notification_manager()->close_notification_of_type(NotificationType::PlaterError);
-    get_notification_manager()->close_notification_of_type(NotificationType::PlaterWarning);
-    get_notification_manager()->close_notification_of_type(NotificationType::SlicingError);
-    get_notification_manager()->close_notification_of_type(NotificationType::SlicingSeriousWarning);
-    get_notification_manager()->close_notification_of_type(NotificationType::SlicingWarning);
+    // Same as new_project: the incoming 3mf replaces the current document, so
+    // leftover toasts (simplify, slice errors, plate info, ...) must not linger.
+    get_notification_manager()->clear_all();
 
     auto path     = into_path(filename);
 
