@@ -103,14 +103,14 @@ jobs:
       - name: pack mac app
         if: github.ref != 'refs/heads/main' && (inputs.os == 'macos-15-intel' || inputs.os == 'macos-15' || inputs.os == 'macos-26')
         working-directory: ${{ github.workspace }}
-        run: zip -r BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}.zip ${{ github.workspace }}/build
+        run: zip -r BambuStudio_Mac_${{inputs.arch}}_${{inputs.os}}_${{ env.ver }}.zip ${{ github.workspace }}/build
 
       - name: Upload artifacts mac
         if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15' || inputs.os == 'macos-26'
         uses: actions/upload-artifact@v6
         with:
-          name: BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}
-          path: ${{ github.workspace }}/BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}.zip
+          name: BambuStudio_Mac_${{inputs.arch}}_${{inputs.os}}_${{ env.ver }}
+          path: ${{ github.workspace }}/BambuStudio_Mac_${{inputs.arch}}_${{inputs.os}}_${{ env.ver }}.zip
 
   # Windows
       - name: setup MSVC
