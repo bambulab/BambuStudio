@@ -1,0 +1,200 @@
+name: Sync Upstream & Release
+
+on:
+  schedule:
+    # Check every 6 hours for new upstream releases
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  sync:
+    name: Sync with upstream
+    runs-on: ubuntu-latest
+    outputs:
+      new-release: ${{ steps.check.outputs.new-release }}
+      upstream-tag: ${{ steps.check.outputs.upstream-tag }}
+      release-name: ${{ steps.check.outputs.release-name }}
+      release-body: ${{ steps.check.outputs.release-body }}
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/bambulab/BambuStudio.git || true
+          git fetch upstream --tags
+
+      - name: Check for new upstream release
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get latest upstream release tag
+          LATEST_RELEASE=$(gh release view --repo bambulab/BambuStudio --json tagName,name,body -q '.' 2>/dev/null || echo "")
+          if [ -z "$LATEST_RELEASE" ]; then
+            echo "No upstream release found"
+            echo "new-release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          UPSTREAM_TAG=$(echo "$LATEST_RELEASE" | jq -r '.tagName')
+          RELEASE_NAME=$(echo "$LATEST_RELEASE" | jq -r '.name')
+          RELEASE_BODY=$(echo "$LATEST_RELEASE" | jq -r '.body')
+
+          echo "Upstream latest tag: $UPSTREAM_TAG"
+
+          # Check if we already have a release for this tag
+          if gh release view "$UPSTREAM_TAG" --repo "$GITHUB_REPOSITORY" &>/dev/null; then
+            echo "Release $UPSTREAM_TAG already exists in fork, skipping"
+            echo "new-release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "New upstream release detected: $UPSTREAM_TAG"
+          echo "new-release=true" >> "$GITHUB_OUTPUT"
+          echo "upstream-tag=$UPSTREAM_TAG" >> "$GITHUB_OUTPUT"
+          echo "release-name=$RELEASE_NAME" >> "$GITHUB_OUTPUT"
+
+          # Write body to file to handle multiline
+          {
+            echo 'release-body<<RELEASE_BODY_EOF'
+            echo "> 🛠️ **JaKuBisz Fork** — This build includes custom features on top of the official BambuStudio release."
+            echo "> Check out the fork: [JaKuBisz/BambuStudio](https://github.com/JaKuBisz/BambuStudio)"
+            echo ""
+            echo "---"
+            echo ""
+            echo "$RELEASE_BODY"
+            echo 'RELEASE_BODY_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Merge upstream into fork
+        if: steps.check.outputs.new-release == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          UPSTREAM_TAG="${{ steps.check.outputs.upstream-tag }}"
+
+          echo "Merging upstream tag $UPSTREAM_TAG into master..."
+          git merge "$UPSTREAM_TAG" --no-edit -m "Merge upstream release $UPSTREAM_TAG" || {
+            echo "::error::Merge conflict detected! Manual intervention required."
+            echo "Run: git fetch upstream --tags && git merge $UPSTREAM_TAG"
+            exit 1
+          }
+
+          git push origin master
+          echo "Successfully merged and pushed $UPSTREAM_TAG"
+
+  # The push to master triggers "Build all" automatically.
+  # Wait for it to finish, then collect artifacts and create a full release.
+  wait-for-build:
+    name: Wait for Build
+    needs: sync
+    if: needs.sync.outputs.new-release == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      build-run-id: ${{ steps.wait.outputs.run-id }}
+    steps:
+      - name: Wait for Build all workflow to complete
+        id: wait
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Waiting for 'Build all' workflow to start and complete..."
+          # Give it a moment to trigger
+          sleep 30
+
+          # Find the latest "Build all" run on master
+          for i in $(seq 1 180); do  # up to 3 hours
+            RUN=$(gh run list --repo "$GITHUB_REPOSITORY" \
+              --workflow "Build all" --branch master \
+              --json databaseId,status,conclusion \
+              --limit 1 -q '.[0]' 2>/dev/null || echo "")
+
+            if [ -z "$RUN" ]; then
+              echo "No run found yet, waiting... ($i)"
+              sleep 60
+              continue
+            fi
+
+            STATUS=$(echo "$RUN" | jq -r '.status')
+            CONCLUSION=$(echo "$RUN" | jq -r '.conclusion')
+            RUN_ID=$(echo "$RUN" | jq -r '.databaseId')
+
+            if [ "$STATUS" = "completed" ]; then
+              if [ "$CONCLUSION" = "success" ]; then
+                echo "Build completed successfully! Run ID: $RUN_ID"
+                echo "run-id=$RUN_ID" >> "$GITHUB_OUTPUT"
+                exit 0
+              else
+                echo "::error::Build failed with conclusion: $CONCLUSION"
+                exit 1
+              fi
+            fi
+
+            echo "Build status: $STATUS (attempt $i/180)"
+            sleep 60
+          done
+
+          echo "::error::Timed out waiting for build"
+          exit 1
+
+  release:
+    name: Create Full Release
+    needs: [sync, wait-for-build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v6
+        with:
+          run-id: ${{ needs.wait-for-build.outputs.build-run-id }}
+          path: artifacts/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Collect release assets
+        run: |
+          mkdir -p release-assets
+          find artifacts/ -type f \( -name "*.zip" -o -name "*.AppImage" -o -name "*.dmg" -o -name "*.7z" -o -name "*.exe" \) -exec cp {} release-assets/ \;
+          echo "Release assets:"
+          ls -la release-assets/
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ needs.sync.outputs.upstream-tag }}"
+          RELEASE_NAME="${{ needs.sync.outputs.release-name }}"
+
+          # Create tag if it doesn't exist
+          git tag "$TAG" 2>/dev/null || true
+          git push origin "$TAG" 2>/dev/null || true
+
+          ASSETS=""
+          for file in release-assets/*; do
+            if [ -f "$file" ]; then
+              ASSETS="$ASSETS $file"
+            fi
+          done
+
+          if [ -n "$ASSETS" ]; then
+            gh release create "$TAG" \
+              --title "$RELEASE_NAME" \
+              --notes "${{ needs.sync.outputs.release-body }}" \
+              $ASSETS
+          else
+            gh release create "$TAG" \
+              --title "$RELEASE_NAME" \
+              --notes "${{ needs.sync.outputs.release-body }}"
+          fi
+
+          echo "✅ Release $TAG created successfully"

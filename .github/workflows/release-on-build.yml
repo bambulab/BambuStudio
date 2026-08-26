@@ -1,0 +1,116 @@
+name: Publish Build Artifacts
+
+on:
+  workflow_run:
+    workflows: ["Build all"]
+    types:
+      - completed
+    branches:
+      - master
+      - feature/filament-brand-freetype-and-profile-picker
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  prerelease:
+    name: Publish Prerelease
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Get version from version.inc
+        id: version
+        run: |
+          VER=$(grep 'set(SLIC3R_VERSION' version.inc | sed 's/.*"\(.*\)".*/\1/')
+          SHORT_SHA=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)
+          RUN_NUM="${{ github.event.workflow_run.run_number }}"
+          PRETAG="v${VER}-build.${RUN_NUM}"
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "pretag=$PRETAG" >> "$GITHUB_OUTPUT"
+          echo "short-sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+          echo "Prerelease tag: $PRETAG"
+
+      - name: Skip if a full release already exists for this version
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VER="${{ steps.version.outputs.version }}"
+          # Check common tag formats for a full (non-prerelease) release
+          for tag in "v$VER" "$VER"; do
+            RELEASE=$(gh release view "$tag" --json isPrerelease -q '.isPrerelease' 2>/dev/null || echo "")
+            if [ "$RELEASE" = "false" ]; then
+              echo "Full release already exists for $tag, skipping prerelease"
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Download all build artifacts
+        if: steps.check.outputs.skip != 'true'
+        uses: actions/download-artifact@v6
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          path: artifacts/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Collect release assets
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          mkdir -p release-assets
+          find artifacts/ -type f \( -name "*.zip" -o -name "*.AppImage" -o -name "*.dmg" -o -name "*.7z" -o -name "*.exe" \) -exec cp {} release-assets/ \;
+          echo "Release assets:"
+          ls -la release-assets/
+
+      - name: Create prerelease
+        if: steps.check.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PRETAG="${{ steps.version.outputs.pretag }}"
+          VER="${{ steps.version.outputs.version }}"
+          SHORT_SHA="${{ steps.version.outputs.short-sha }}"
+
+          # Create tag
+          git tag "$PRETAG" 2>/dev/null || true
+          git push origin "$PRETAG" 2>/dev/null || true
+
+          # Delete existing prerelease with same tag if any
+          gh release delete "$PRETAG" --yes 2>/dev/null || true
+
+          ASSETS=""
+          for file in release-assets/*; do
+            if [ -f "$file" ]; then
+              ASSETS="$ASSETS $file"
+            fi
+          done
+
+          BODY=$(cat <<EOF
+          > 🔧 **Prerelease Build** — [JaKuBisz/BambuStudio](https://github.com/JaKuBisz/BambuStudio) fork
+          >
+          > Version: \`$VER\` • Commit: \`$SHORT_SHA\` • Build: \`#${{ github.event.workflow_run.run_number }}\`
+
+          ⚠️ This is an automated prerelease build and may contain untested changes.
+          EOF
+          )
+
+          if [ -n "$ASSETS" ]; then
+            gh release create "$PRETAG" \
+              --title "BambuStudio $VER (Build #${{ github.event.workflow_run.run_number }})" \
+              --notes "$BODY" \
+              --prerelease \
+              $ASSETS
+          else
+            gh release create "$PRETAG" \
+              --title "BambuStudio $VER (Build #${{ github.event.workflow_run.run_number }})" \
+              --notes "$BODY" \
+              --prerelease
+          fi
+
+          echo "✅ Prerelease $PRETAG created successfully"
