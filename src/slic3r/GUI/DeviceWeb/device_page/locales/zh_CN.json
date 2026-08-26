@@ -248,7 +248,6 @@
   "+ Add similar": "+ 添加同类耗材",
   "+ Add similar filament": "+ 添加同类耗材",
   "Add material group": "添加耗材组",
-  "AMS Operation": "AMS 操作",
   "Auto-refill management": "自动续料管理",
   "Batch Add ({{count}})_other": "",
   "Batch filament {{op}} in progress": "批量耗材{{op}}中",
@@ -263,7 +262,7 @@
   "Edit": "编辑",
   "Edit color": "编辑颜色",
   "Error": "异常",
-  "Ext": "外挂",
+  "Ext": "Ext",
   "Ext AMS Details": "外挂 AMS 详情",
   "External spool": "外挂料卷",
   "Filament not removed": "耗材未拔出",
@@ -337,5 +336,6 @@
   "Switch extruder": "切换挤出机",
   "Switch hotend": "切换热端",
   "Switch track at Filament Track Switch": "变轨器开关切换",
-  "Wait for AMS cooling": "等待 AMS 冷却"
+  "Wait for AMS cooling": "等待 AMS 冷却",
+  "Connected Slots": "查看已连接耗材"
 }

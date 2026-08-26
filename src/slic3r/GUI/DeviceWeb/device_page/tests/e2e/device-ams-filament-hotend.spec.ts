@@ -106,7 +106,7 @@ test.describe('AMS filament hotend page', () => {
     });
 
     await page.getByTestId('ams-hotend-slot-5').getByLabel('slot menu').click();
-    await expect(page.getByRole('menuitem', { name: 'AMS操作' })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: /Connected Slots|查看已连接耗材/ })).toBeVisible();
   });
 
   test('renders unknown filament independently from loading state', async ({ page }) => {

@@ -171,6 +171,9 @@ void DeviceWebHost::EnsureBuilt()
     if (m_mode == DeviceWebHostMode::DevicePageAutoRefillRefillInfo || m_mode == DeviceWebHostMode::AllForDebug) {
         m_device_web_mgr->Register(std::make_unique<AutoRefillRefillInfoVM>());
     }
+    if (m_mode == DeviceWebHostMode::DevicePageConnectedSlots || m_mode == DeviceWebHostMode::AllForDebug) {
+        m_device_web_mgr->Register(std::make_unique<ConnectedSlotsVM>());
+    }
     m_device_web_mgr->SetBridge(m_device_web_bridge.get());
     m_device_web_bridge->SetManager(m_device_web_mgr.get());
     m_host_hidden = !IsShownOnScreen();
@@ -600,7 +603,12 @@ void DeviceWebHost::NotifyDeviceFilamentChanged()
     if (!m_device_web_mgr)
         return;
 
-    m_device_web_mgr->NotifyState("device_page_ams_filament_hotend", "state", "changed");
+    if (m_device_web_mgr->Find("device_page_ams_filament_hotend")) {
+        m_device_web_mgr->NotifyState("device_page_ams_filament_hotend", "state", "changed");
+    }
+    if (m_device_web_mgr->Find("device_page_connected_slots")) {
+        m_device_web_mgr->NotifyState("device_page_connected_slots", "state", "changed");
+    }
 }
 
 void DeviceWebHost::NotifyAmsControlWebChanged()
@@ -672,6 +680,13 @@ AutoRefillRefillInfoVM* DeviceWebHost::GetAutoRefillRefillInfoVM() const
     if (!m_device_web_mgr) return nullptr;
     return dynamic_cast<AutoRefillRefillInfoVM*>(
         m_device_web_mgr->Find("device_page_auto_refill_refill_info"));
+}
+
+ConnectedSlotsVM* DeviceWebHost::GetConnectedSlotsVM() const
+{
+    if (!m_device_web_mgr) return nullptr;
+    return dynamic_cast<ConnectedSlotsVM*>(
+        m_device_web_mgr->Find("device_page_connected_slots"));
 }
 
 // Design width (in DIP/logical px) of the AMS mapping hotend popup. The page is

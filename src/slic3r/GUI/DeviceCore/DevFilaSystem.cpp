@@ -454,7 +454,7 @@ static unordered_map<DevAmsType, wxString> s_ams_display_formats = {
     {DevAmsType::AMS_LITE, "AMS Lite(%d)"},
     {DevAmsType::N3F,      "AMS 2 Pro(%d)"},
     {DevAmsType::N3S,      "AMS HT(%d)"},
-    {DevAmsType::ZMULTI_A, "AMS-A"},
+    {DevAmsType::ZMULTI_A, "AMS-H3"},
     {DevAmsType::ZMULTI_B, "AMS-B"},
 };
 

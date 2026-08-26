@@ -19,6 +19,7 @@
 #include "ViewModels/DevicePage/AmsFilamentHotend/ViewModel.hpp"
 #include "ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.hpp"
 #include "ViewModels/DevicePage/AutoRefill_RefillInfo/ViewModel.hpp"
+#include "ViewModels/DevicePage/ConnectedSlots/ViewModel.hpp"
 #include "slic3r/GUI/PrinterWebView.hpp"
 #include "slic3r/GUI/Widgets/WebViewWatcher.hpp"
 
@@ -31,6 +32,7 @@ enum class DeviceWebHostMode {
     DevicePageAmsFilamentHotend,
     DevicePageAmsMappingHotend,
     DevicePageAutoRefillRefillInfo,
+    DevicePageConnectedSlots,
     AllForDebug
 };
 
@@ -73,6 +75,10 @@ public:
     // Access the registered RefillInfo auto-refill VM so the host dialog can
     // push a fresh snapshot before the Web side requests state/get.
     AutoRefillRefillInfoVM* GetAutoRefillRefillInfoVM() const;
+
+    // Access the registered Connected Slots VM so the host dialog can push a
+    // fresh snapshot before the Web side requests state/get.
+    ConnectedSlotsVM* GetConnectedSlotsVM() const;
 
     void on_sys_color_changed();
     void msw_rescale();

@@ -399,14 +399,14 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     bool can_load_filament = !filament_changing && line_state == SV::line_state::no_filament && card_state != SV::card_state::empty &&
                              (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);
     bool can_unload_filament = !filament_changing && line_state == SV::line_state::loaded && (hotend_op_state == SV::hotend_op_state::idle || hotend_op_state == SV::hotend_op_state::heating || hotend_op_state == SV::hotend_op_state::cooling);
-    bool can_ams_operation = bind_ams_slot_count > 0;
+    bool can_ams_operation = card_state != SV::card_state::empty && hotend_tool_kind == SV::tool_kind::nozzle && machine_obj->GetFilaSystem()->GetAmsList().size() > 0;
     const nlohmann::json menu_actions = {
         {SK::menu_actions::can_edit, can_edit_filament},
         {SK::menu_actions::can_load, can_load_filament },
         {SK::menu_actions::can_unload, can_unload_filament},
         {SK::menu_actions::can_read, can_read_filament },
         {SK::menu_actions::read_label, filament_read_label},
-        {SK::menu_actions::can_ams_operation, can_ams_operation}
+        {SK::menu_actions::can_ams_operation, can_ams_operation }
     };
 
     const nlohmann::json card_section = {

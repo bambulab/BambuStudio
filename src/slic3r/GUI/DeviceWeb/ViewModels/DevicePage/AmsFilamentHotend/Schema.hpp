@@ -56,10 +56,7 @@ namespace hotend_page {
     inline constexpr const char* hotend_slots       = "hotend_slots";
 }
 
-// state.ams_ext_operation_page - data source for the Ext AMS operation dialog.
-// It mirrors the visible hotend slots that can open the dialog, but carries the
-// complete AMS-unit payload directly so Web does not need to reconstruct it
-// from slot.bind_ams or URL query fallbacks.
+// state.ams_ext_operation_page - Ext AMS operation dialog.
 namespace ams_ext_operation_page {
     inline constexpr const char* slots = "slots";
 }

@@ -1,0 +1,386 @@
+.cs-page {
+  position: relative;
+  box-sizing: border-box;
+  width: 508px;
+  min-height: 316px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--ams-page-bg, #fff);
+  font-family: 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+  color: var(--ams-text-strong, #1f1f1f);
+  /* AMS silhouette body / base, mirroring the wx {four,single}_slot_ams_item assets. */
+  --cs-ams-shell: #eeeeee;
+  --cs-ams-base: #cecece;
+}
+
+.cs-page[data-theme='dark'],
+[data-theme='dark'] .cs-page {
+  --cs-ams-shell: #bfbfbf;
+  --cs-ams-base: #767676;
+}
+
+.cs-page__error {
+  font-size: 12px;
+  line-height: 20px;
+  color: #d0021b;
+}
+
+/* Overlaid instead of appended to the flow: the host dialog is a fixed
+   508x316 and the schematic bar plus stage already fill it exactly. */
+.cs-copy-report {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--ams-border, #c2c2c2);
+  border-radius: 12px;
+  background: var(--ams-card-text-bg, #fff);
+  color: var(--ams-text-secondary, #5c5c5c);
+  font: inherit;
+  font-size: 12px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.cs-copy-report:hover {
+  background: var(--ams-soft-border, #ebebeb);
+}
+
+.cs-schematic-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 484px;
+}
+
+.cs-hotend-slot-schematic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 104px;
+}
+
+.cs-hotend-slot-schematic__body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 40px;
+  padding: 4px;
+  border-radius: 5px;
+  background: var(--ams-soft-border, #ebebeb);
+  box-sizing: border-box;
+}
+
+.cs-hotend-slot-schematic__grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 4px;
+  background: var(--ams-card-text-bg, #fff);
+}
+
+.cs-hotend-slot-schematic__row {
+  display: flex;
+  gap: 2px;
+}
+
+.cs-hotend-slot-schematic__chip {
+  width: 6px;
+  height: 8px;
+  border-radius: 1px;
+  background: var(--ams-text-disabled, #c2c2c2);
+}
+
+/* The rack position this dialog was opened for. */
+.cs-hotend-slot-schematic__chip--current {
+  background: var(--ams-brand, #00ae42);
+}
+
+.cs-connected-source-schematic {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+  padding: 4px;
+  border-radius: 5px;
+  background: var(--ams-soft-border, #ebebeb);
+  box-sizing: border-box;
+}
+
+.cs-ext-source-item,
+.cs-ams-source-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 60px;
+  height: 32px;
+  padding: 3px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--ams-card-text-bg, #fff);
+  box-sizing: border-box;
+  font: inherit;
+  cursor: pointer;
+}
+
+.cs-ext-source-item--selected,
+.cs-ams-source-item--selected {
+  border: 1px solid var(--ams-brand, #50a90b);
+  border-radius: 5px;
+}
+
+.cs-ext-source-item--empty {
+  opacity: 0.7;
+}
+
+.cs-ext-source-item__bar {
+  width: 5px;
+  height: 10px;
+  border-radius: 30px;
+}
+
+.cs-ext-source-item__label {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ams-text-strong, #1f1f1f);
+}
+
+.cs-ams-source-item__mini {
+  display: block;
+}
+
+.cs-body {
+  position: relative;
+  width: 484px;
+  min-height: 244px;
+}
+
+.cs-boards {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+/* Each board centres inside its own half so the two columns stay symmetric
+   about the hotend no matter how many trays either side has. */
+.cs-boards__left,
+.cs-boards__right {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+}
+
+.cs-ams-unit-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--ams-soft-border, #ebebeb);
+  box-sizing: border-box;
+}
+
+.cs-ams-unit-board__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
+.cs-ams-unit-board__name {
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--ams-text-strong, #1f1f1f);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cs-ams-climate-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--ams-border, #c2c2c2);
+  border-radius: 20px;
+  color: var(--ams-text-muted, #a3a3a3);
+  font-size: 12px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.cs-ams-climate-status__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.cs-ams-climate-status__split {
+  width: 1px;
+  height: 12px;
+  background: var(--ams-border, #c2c2c2);
+}
+
+.cs-ams-unit-board__trays {
+  display: flex;
+  gap: 4px;
+}
+
+.cs-ams-tray-card {
+  position: relative;
+  width: 80px;
+  height: 105px;
+  padding-top: 4px;
+  border-radius: 4px;
+  background: var(--ams-card-text-bg, #fff);
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* Right-click is the only affordance on a tray, so the cursor advertises it and
+   the ring is drawn as a box-shadow to avoid shifting the 80x105 card box. */
+.cs-ams-tray-card--has-menu {
+  cursor: context-menu;
+}
+
+.cs-ams-tray-card--has-menu:hover {
+  box-shadow: 0 0 0 1px var(--ams-brand, #00ae42);
+}
+
+.cs-ams-tray-card .spool {
+  display: block;
+  width: 52px;
+  height: 52px;
+  margin: 14px auto 4px;
+}
+
+.cs-tray-index-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--ams-index-bg, #dbdbdb);
+  font-size: 12px;
+  line-height: 14px;
+}
+
+/* Transport indicator, mirroring the card-head right slot of the filament page.
+   Opposite corner from the index badge so the two never collide. */
+.cs-tray-loading-arc {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
+/* This page does not import ams-filament-hotend.css, so the rotation the shared
+   SpoolDisc / LoadingArcIcon rely on has to be declared here as well. */
+.cs-page .spool-loading-rotor {
+  animation: cs-spool-loading-spin 0.8s linear infinite;
+  transform-box: view-box;
+}
+
+@keyframes cs-spool-loading-spin {
+  from {
+    transform: rotate(-90deg);
+  }
+
+  to {
+    transform: rotate(270deg);
+  }
+}
+
+/* Portalled to <body>, so it cannot rely on .cs-page for the theme variables;
+   <html data-theme> feeds the shared --ams-popover-* tokens instead. */
+.cs-tray-context-menu {
+  z-index: 1100;
+  min-width: 101px;
+  width: max-content;
+  padding: 6px 0;
+  border: 1px solid var(--ams-popover-border, #dedede);
+  border-radius: 4px;
+  background: var(--ams-popover-bg, #fff);
+  box-shadow: var(--ams-popover-shadow, 0 2px 8px rgba(0, 0, 0, 0.16));
+  font-family: 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', sans-serif;
+}
+
+.cs-tray-context-menu button {
+  display: block;
+  width: 100%;
+  height: 24px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: var(--ams-text-strong, #1f1f1f);
+  font-size: 12px;
+  line-height: 24px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cs-tray-context-menu button:hover {
+  background: var(--ams-popover-hover-bg, #f5f5f5);
+}
+
+.cs-tray-filament-label {
+  display: block;
+  padding: 0 4px;
+  overflow: hidden;
+  color: var(--ams-text-secondary, #5c5c5c);
+  font-size: 12px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cs-tray-filament-label--unknown {
+  color: var(--ams-text-strong, #1f1f1f);
+  font-weight: 500;
+}
+
+.cs-hotend-filament-path {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.cs-hotend-filament-path__routes {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Figma 2440:143981 puts the hotend at y 181..229 inside the 244px stage. */
+.cs-hotend-filament-path__nozzle {
+  position: absolute;
+  left: 50%;
+  bottom: 15px;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 48px;
+}
+
+.cs-hotend-filament-path__nozzle .nozzle {
+  display: block;
+  width: 24px;
+  height: 48px;
+}

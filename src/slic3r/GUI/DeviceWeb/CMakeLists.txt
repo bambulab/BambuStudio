@@ -275,11 +275,14 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/SchemaData.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/SchemaDisplay.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ViewModel.cpp
-    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/PageExtAms.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/PageFilament.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/PageHotend.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ViewModel.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ActionHandlerExtAms.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ActionHandlerExtAms.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ExtFilamentEditDialog.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ExtFilamentEditDialog.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BridgeDebugDialog.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ActionHandlerFilament.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderHotendRackProgressStatus.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderHotendRackProgressStatus.hpp
@@ -319,5 +322,13 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/ViewModel.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/ViewModel.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/Schema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/ViewModel.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/ViewModel.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/ViewModelState.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/ViewModelActions.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/ViewModelActions.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/PageConnectedSlots.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/PageConnectedSlots.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/Schema.hpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)

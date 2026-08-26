@@ -365,9 +365,6 @@ export interface AmsUnitInfo {
   ams_id: string;
   ams_type?: string;
   slot_count?: number;
-  // Only `humidity_raw` (0..100 percent) and `dry_status` are surfaced; the
-  // 0..5 humidity level, `temp`, `dry_time`, `dry_sub_status` and `exist`
-  // were never consumed by any component so they no longer travel on the wire.
   humidity_raw?: number;
   dry_status?: string;
   trays: AmsTrayInfo[];
