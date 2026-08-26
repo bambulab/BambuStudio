@@ -17,6 +17,7 @@
 #include <wx/tokenzr.h>
 #include <boost/algorithm/string/predicate.hpp>
 #include "OG_CustomCtrl.hpp"
+#include "ParamTooltip.hpp"
 #include "MsgDialog.hpp"
 #include "BitmapComboBox.hpp"
 
@@ -167,23 +168,12 @@ void Field::toggle(bool en) { en && !m_opt.readonly ? enable() : disable(); }
 
 wxString Field::get_tooltip_text(const wxString &default_string)
 {
-	wxString tooltip_text("");
-#ifdef NDEBUG
-	wxString tooltip = _(m_opt.tooltip);
-    edit_tooltip(tooltip);
-
-    std::string opt_id = m_opt_id;
-    auto hash_pos = opt_id.find("#");
-    if (hash_pos != std::string::npos) {
-        opt_id.replace(hash_pos, 1,"[");
-        opt_id += "]";
-    }
-
-	if (tooltip.length() > 0)
-        tooltip_text = tooltip + "\n" +
-        _(L("parameter name")) + "\t: " + opt_id;
- #endif
-	return tooltip_text;
+    // Deliberately empty: by product decision the edit controls carry no native tooltip. The rich
+    // ParamTooltip card shown on the option label is the single source for the parameter
+    // description (and, in developer mode, the opt_key pill), so a second tip on the control would
+    // duplicate it. All the SetToolTip(get_tooltip_text(...)) call sites are kept so the control
+    // tip can be reinstated by returning text here if that decision changes.
+    return wxString();
 }
 
 bool Field::is_matched(const std::string& string, const std::string& pattern)
@@ -1226,6 +1216,9 @@ void Choice::BUILD()
                 } else {
                     temp->Append(_(el));
                 }
+                // Per-value tip shown when hovering this dropdown item
+                const wxString item_tip = ParamTooltip::ItemTooltip(m_opt_id, m_opt.enum_values[i]);
+                if (!item_tip.IsEmpty()) temp->SetItemTooltip(i, item_tip);
                 ++i;
             }
 		}

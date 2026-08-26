@@ -4634,12 +4634,14 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Embedding the wall into the infill");
     def->category = L("Strength");
     def->tooltip  = L("Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill.");
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("alternate_extra_wall", coBool);
     def->label = L("Alternate extra wall");
     def->category = L("Strength");
     def->tooltip  = L("Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall.");
+    def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("post_process", coStrings);
@@ -5335,7 +5337,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("timelapse_type", coEnum);
     def->label = L("Timelapse");
-    def->tooltip = L("If smooth or traditional mode is selected, a timelapse video will be generated for each print. "
+    def->tooltip = L("If smooth or instant mode is selected, a timelapse video will be generated for each print. "
                      "After each layer is printed, a snapshot is taken with the chamber camera. "
                      "All of these snapshots are composed into a timelapse video when printing completes. "
                      "If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed "
@@ -5345,7 +5347,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_keys_map = &ConfigOptionEnum<TimelapseType>::get_enum_values();
     def->enum_values.emplace_back("0");
     def->enum_values.emplace_back("1");
-    def->enum_labels.emplace_back(L("Traditional"));
+    def->enum_labels.emplace_back(L("Instant"));
     def->enum_labels.emplace_back(L("Smooth"));
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<TimelapseType>(tlTraditional));
@@ -5354,7 +5356,7 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Farthest point timelapse");
     def->tooltip = L("When enabled, the timelapse snapshot is taken at the farthest point from camera "
                      "instead of traveling to the wipe tower or excess chute. "
-                     "Only effective in traditional timelapse mode on non-I3 printers.");
+                     "Only effective in instant timelapse mode on non-I3 printers.");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -6311,7 +6313,7 @@ void PrintConfigDef::init_fff_params()
     def->label   = L("Rib wall");
     def->tooltip = L("The wall of prime tower will add four ribs and make its "
                      "cross-section as close to a square as possible, so the width will be fixed.");
-    def->mode    = comSimple;
+    def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
     def          = this->add("prime_tower_fillet_wall", coBool);

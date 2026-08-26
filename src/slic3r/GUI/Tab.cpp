@@ -2285,7 +2285,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         if (timelapse_type && timelapse_type->value == TimelapseType::tlSmooth) {
             MessageDialog dlg(wxGetApp().plater(),
                               _L("\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. "
-                                 "Timelapse has been switched to traditional mode."),
+                                 "Timelapse has been switched to instant mode."),
                               _L("Warning"), wxICON_WARNING | wxOK);
             dlg.ShowModal();
             DynamicPrintConfig new_conf = *m_config;
@@ -2298,7 +2298,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "print_sequence" && m_config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject) {
         auto printer_structure_opt = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
         if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
-            wxString msg_text = _(L("The current printer does not support timelapse in Traditional Mode when printing By-Object."));
+            wxString msg_text = _(L("The current printer does not support timelapse in Instant Mode when printing By-Object."));
             msg_text += "\n\n" + _(L("Still print by object?"));
 
             MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);

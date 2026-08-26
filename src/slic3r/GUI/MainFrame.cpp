@@ -60,6 +60,7 @@
 #include "GUI_ObjectList.hpp"
 #include "NotificationManager.hpp"
 #include "MarkdownTip.hpp"
+#include "ParamTooltip.hpp"
 #include "NetworkTestDialog.hpp"
 #include "ConfigWizard.hpp"
 #include "Widgets/WebView.hpp"
@@ -1108,6 +1109,14 @@ void MainFrame::update_layout()
 void MainFrame::shutdown()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "MainFrame::shutdown enter";
+
+    // The rich parameter tooltip is a wxPopupTransientWindow parented to this frame. Both teardown
+    // paths funnel through here (app close, and the language-switch GUI rebuild via recreate_GUI),
+    // so destroy it and null its singleton before the frame goes away — otherwise the dangling
+    // s_self is a use-after-free on the next hover. Reset also rebuilds the store in the new
+    // language after a switch.
+    ParamTooltip::Shutdown();
+
     // BBS: backup
     Slic3r::set_backup_callback(nullptr);
 #ifdef _WIN32
