@@ -25,6 +25,7 @@
 #include "wx/textctrl.h"
 #include <wx/timer.h>
 
+#include "Widgets/WebViewWatcher.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -32,19 +33,21 @@ namespace GUI {
 
 class PrinterWebView : public wxPanel {
 public:
-    PrinterWebView(wxWindow *parent);
+    PrinterWebView(wxWindow *parent, const wxString &view_name = "DevicePage",
+                   WebViewProtectionMode mode = WebViewProtectionMode::DiagnosticsOnly);
     virtual ~PrinterWebView();
 
     void load_url(const wxString& url);
     wxWebView* GetWebView() const { return m_browser; }
+    bool IsHealthMonitoringAvailable() const { return m_health_monitoring_available; }
     void UpdateState();
     void OnClose(wxCloseEvent& evt);
-    void OnError(wxWebViewEvent& evt);
 
 private:
 
     wxWebView* m_browser;
     long m_zoomFactor;
+    bool m_health_monitoring_available{false};
 
     // DECLARE_EVENT_TABLE()
 };
