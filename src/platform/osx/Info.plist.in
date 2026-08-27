@@ -126,6 +126,134 @@
       <string>Alternate</string>
     </dict>
   </array>
+  <!-- Register named UTIs for formats that macOS otherwise resolves to a per-machine
+       dynamic UTI (dyn.*). Without this, these files are filtered out in Spotlight-backed
+       virtual folders (Smart Folders / Recents / Tags) of the Open panel, even though they
+       show fine in normal directories. Formats with a system UTI (stl/obj/svg/ply/usd*/abc)
+       need no entry here. -->
+  <key>UTImportedTypeDeclarations</key>
+  <array>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>com.bambulab.3mf</string>
+      <key>UTTypeDescription</key>
+      <string>3MF Model</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.data</string>
+      </array>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key>
+        <array>
+          <string>3mf</string>
+        </array>
+      </dict>
+    </dict>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>com.bambulab.step</string>
+      <key>UTTypeDescription</key>
+      <string>STEP Model</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.data</string>
+      </array>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key>
+        <array>
+          <string>stp</string>
+          <string>step</string>
+        </array>
+      </dict>
+    </dict>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>com.bambulab.amf</string>
+      <key>UTTypeDescription</key>
+      <string>AMF Model</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.data</string>
+      </array>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key>
+        <array>
+          <string>amf</string>
+        </array>
+      </dict>
+    </dict>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>com.bambulab.oltp</string>
+      <key>UTTypeDescription</key>
+      <string>OLTP Model</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.data</string>
+      </array>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key>
+        <array>
+          <string>oltp</string>
+        </array>
+      </dict>
+    </dict>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>com.bambulab.gltf</string>
+      <key>UTTypeDescription</key>
+      <string>glTF Model</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.data</string>
+      </array>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key>
+        <array>
+          <string>gltf</string>
+        </array>
+      </dict>
+    </dict>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>com.bambulab.glb</string>
+      <key>UTTypeDescription</key>
+      <string>glTF Binary Model</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.data</string>
+      </array>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key>
+        <array>
+          <string>glb</string>
+        </array>
+      </dict>
+    </dict>
+    <dict>
+      <key>UTTypeIdentifier</key>
+      <string>com.bambulab.fbx</string>
+      <key>UTTypeDescription</key>
+      <string>FBX Model</string>
+      <key>UTTypeConformsTo</key>
+      <array>
+        <string>public.data</string>
+      </array>
+      <key>UTTypeTagSpecification</key>
+      <dict>
+        <key>public.filename-extension</key>
+        <array>
+          <string>fbx</string>
+        </array>
+      </dict>
+    </dict>
+  </array>
   <key>LSMinimumSystemVersion</key>
   <string>10.10</string>
   <key>NSPrincipalClass</key>
