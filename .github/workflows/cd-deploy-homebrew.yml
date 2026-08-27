@@ -46,7 +46,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Version: $VERSION"
 
-      - name: Get macOS asset checksums
+      - name: Get macOS asset checksum
         id: checksums
         timeout-minutes: 20
         run: |
@@ -56,19 +56,14 @@ jobs:
           UPSTREAM_VER="${VER%-bj.*}"    # strip distributor suffix for filename
           BASE="https://github.com/${{ github.repository }}/releases/download/${TAG}"
 
-          # This fork ships universal macOS .dmg assets (not the upstream arm64/x86_64
-          # .zip). The universal dmg covers both architectures; use it as the cask URL.
-          # NOTE: these filenames don't currently match what build_bambu.yml
-          # produces (OpenStudio_Mac_<arch>_<os>_V<ver>.dmg, with arch being
-          # x86_64 or arm64 -- there is no "universal" dmg asset produced).
-          # This appears to predate the current naming scheme and needs to be
-          # reconciled with the actual release asset names, or this Homebrew
-          # cask update will fail to download a matching asset.
-          URL_ARM="${BASE}/OpenStudio_macos-15_universal_V${UPSTREAM_VER}.dmg"
-          URL_INTEL="${BASE}/OpenStudio_macos-15-intel_x86_64_V${UPSTREAM_VER}.dmg"
+          # build_all.yml runs BuildMac.sh with `-a universal` for the macos-15 job,
+          # which lipo-combines both arm64 and x86_64 into a single binary (see
+          # BuildMac.sh's build_universal()). That one .dmg covers every Mac, so
+          # the cask only needs this single download -- there's no separate
+          # Intel-only cask asset to track any more.
+          URL="${BASE}/OpenStudio_Mac_universal_macos-15_V${UPSTREAM_VER}.dmg"
 
-          echo "URL_ARM=$URL_ARM" >> $GITHUB_ENV
-          echo "URL_INTEL=$URL_INTEL" >> $GITHUB_ENV
+          echo "URL=$URL" >> $GITHUB_ENV
 
           # Function to fetch asset with retries
           fetch_with_retry() {
@@ -93,16 +88,11 @@ jobs:
           }
 
           # Download and hash
-          ARM_DATA=$(fetch_with_retry "$URL_ARM" "universal macOS DMG")
-          INTEL_DATA=$(fetch_with_retry "$URL_INTEL" "intel macOS DMG")
+          DATA=$(fetch_with_retry "$URL" "universal macOS DMG")
+          SHA=$(echo "$DATA" | sha256sum | cut -d' ' -f1)
 
-          SHA_ARM=$(echo "$ARM_DATA" | sha256sum | cut -d' ' -f1)
-          SHA_INTEL=$(echo "$INTEL_DATA" | sha256sum | cut -d' ' -f1)
-
-          echo "url_arm=$URL_ARM" >> "$GITHUB_OUTPUT"
-          echo "sha_arm=$SHA_ARM" >> "$GITHUB_OUTPUT"
-          echo "url_intel=$URL_INTEL" >> "$GITHUB_OUTPUT"
-          echo "sha_intel=$SHA_INTEL" >> "$GITHUB_OUTPUT"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
       - name: Update Homebrew Cask via PR
         uses: mislav/bump-homebrew-formula-action@ccf2332299a883f6af50a1d2d41e5df7904dd769  # v4
         with:
@@ -110,7 +100,7 @@ jobs:
           formula-path: Casks/bambu-studio.rb
           homebrew-tap: ${{ github.repository_owner }}/homebrew-tap
           tag-name: v${{ steps.version.outputs.version }}
-          download-url: ${{ steps.checksums.outputs.url_arm }}
+          download-url: ${{ steps.checksums.outputs.url }}
           commit-message: "update bambu-studio to {{version}}"
         env:
           COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
