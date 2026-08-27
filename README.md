@@ -1,5 +1,7 @@
 # OpenStudio
 
+[![Build all](https://github.com/JaKuBisz/BambuStudio/actions/workflows/build_all.yml/badge.svg)](../../actions/workflows/build_all.yml)
+
 **OpenStudio** is a community fork of [Bambu Studio](https://github.com/bambulab/BambuStudio) that stays continuously synced with official Bambu Lab releases, while adding extra features, fixes, and quality-of-life improvements on top.
 
 - 🔄 **Kept up to date automatically** — a scheduled job checks for new official BambuStudio releases and merges them into this fork within hours, so you're never far behind upstream.
