@@ -4082,7 +4082,11 @@ void Model::setPrintSpeedTable(const DynamicPrintConfig& config, const PrintConf
             exclude_poly.points.clear();
         }
     }
-    printSpeedMap.bed_poly = diff({ printSpeedMap.bed_poly }, exclude_polys)[0];
+    Polygons available_bed = diff({printSpeedMap.bed_poly}, exclude_polys);
+    if (!available_bed.empty())
+        printSpeedMap.bed_poly = std::move(available_bed.front());
+    else
+        printSpeedMap.bed_poly.points.clear();
 }
 
 // find temperature of heatend and bed and matierial of an given extruder

@@ -584,26 +584,30 @@ void ArrangeJob::prepare()
                 exclude_poly.points.clear();
             }
         }
-        bed_poly = diff({ bed_poly }, exclude_polys)[0];
+        Polygons available_bed = diff({bed_poly}, exclude_polys);
+        if (!available_bed.empty())
+            bed_poly = std::move(available_bed.front());
     }
 
-    BoundingBox bbox = bed_poly.bounding_box();
-    Point center = bbox.center();
-    auto polys_to_draw = m_selected;
-    for (auto it = polys_to_draw.begin(); it != polys_to_draw.end(); it++) {
-        it->poly.translate(center);
-        bbox.merge(get_extents(it->poly));
-    }
-    SVG svg("SVG/arrange_poly.svg", bbox);
-    if (svg.is_opened()) {
-        svg.draw_outline(bed_poly);
-        //svg.draw_grid(bbox, "gray", scale_(0.05));
-        std::vector<std::string> color_array = { "red","black","yellow","gree","blue" };
+    if (!bed_poly.points.empty()) {
+        BoundingBox bbox = bed_poly.bounding_box();
+        Point center = bbox.center();
+        auto polys_to_draw = m_selected;
         for (auto it = polys_to_draw.begin(); it != polys_to_draw.end(); it++) {
-            std::string color = color_array[(it - polys_to_draw.begin()) % color_array.size()];
-            svg.add_comment(it->name);
-            svg.draw_text(get_extents(it->poly).min, it->name.c_str(), color.c_str());
-            svg.draw_outline(it->poly, color);
+            it->poly.translate(center);
+            bbox.merge(get_extents(it->poly));
+        }
+        SVG svg("SVG/arrange_poly.svg", bbox);
+        if (svg.is_opened()) {
+            svg.draw_outline(bed_poly);
+            //svg.draw_grid(bbox, "gray", scale_(0.05));
+            std::vector<std::string> color_array = { "red","black","yellow","gree","blue" };
+            for (auto it = polys_to_draw.begin(); it != polys_to_draw.end(); it++) {
+                std::string color = color_array[(it - polys_to_draw.begin()) % color_array.size()];
+                svg.add_comment(it->name);
+                svg.draw_text(get_extents(it->poly).min, it->name.c_str(), color.c_str());
+                svg.draw_outline(it->poly, color);
+            }
         }
     }
 #endif

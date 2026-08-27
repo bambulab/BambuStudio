@@ -10280,6 +10280,8 @@ Polygon get_shared_poly(const std::vector<Pointfs>& extruder_polys)
             Polygon extruer_poly;
             extruer_poly.points = to_points(extruder_area);
             Polygons result_polygon = intersection(extruer_poly, result);
+            if (result_polygon.empty())
+                return {};
             result = result_polygon[0];
         }
     }
@@ -10304,6 +10306,8 @@ Points get_bed_shape(const DynamicPrintConfig &config, bool use_share)
         if (extruder_area_opt && (extruder_area_opt->size() > 0)) {
             const std::vector<Pointfs>& extruder_areas = extruder_area_opt->values;
             bed_poly = get_shared_poly(extruder_areas);
+            if (bed_poly.points.empty())
+                bed_poly.points = to_points(bed_shape_opt->values);
         }
         else
             bed_poly.points = to_points(bed_shape_opt->values);
@@ -10321,6 +10325,8 @@ Points get_bed_shape(const PrintConfig &cfg, bool use_share)
         const std::vector<Pointfs>& extruder_areas = cfg.extruder_printable_area.values;
         if (extruder_areas.size() > 0) {
             bed_poly = get_shared_poly(extruder_areas);
+            if (bed_poly.points.empty())
+                bed_poly.points = to_points(cfg.printable_area.values);
         }
         else
             bed_poly.points = to_points(cfg.printable_area.values);
