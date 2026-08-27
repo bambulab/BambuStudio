@@ -2656,6 +2656,15 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
+    // Paint penetration may not reach the sparse infill. Checked after the layer_height block above
+    // so that a corrected layer height is used to resolve the shell thickness into layers.
+    if (!m_postpone_update_ui &&
+        (opt_key == "top_color_penetration_layers" || opt_key == "bottom_color_penetration_layers" ||
+         opt_key == "top_shell_layers" || opt_key == "bottom_shell_layers" ||
+         opt_key == "top_shell_thickness" || opt_key == "bottom_shell_thickness" ||
+         opt_key == "layer_height"))
+        m_config_manipulation.check_color_penetration_layers(m_config, opt_key);
+
     string opt_key_without_idx = opt_key.substr(0, opt_key.find('#'));
 
     if (opt_key_without_idx == "long_retractions_when_cut") {

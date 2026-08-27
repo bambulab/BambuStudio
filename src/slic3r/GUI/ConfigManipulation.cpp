@@ -201,6 +201,70 @@ void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
     }
 }
 
+// The top/bottom shell keeps growing until both the layer count and the thickness criteria are
+// satisfied (see PrintObject::discover_vertical_shells), so the shell that really gets printed is
+// the larger of the two. A zero thickness disables the thickness criterion.
+static int effective_shell_layers(const DynamicPrintConfig *config, const char *layers_key, const char *thickness_key)
+{
+    const int shell_layers = config->opt_int(layers_key);
+    if (shell_layers <= 0)
+        return 0;
+    const double thickness    = config->opt_float(thickness_key);
+    const double layer_height = config->opt_float("layer_height");
+    // Mirrors the "print_z difference < thickness - EPSILON" test the slicer uses to stop growing.
+    const int    layers_from_thickness = (thickness > EPSILON && layer_height > EPSILON) ?
+        int(std::ceil((thickness - EPSILON) / layer_height)) : 0;
+    return std::max(shell_layers, layers_from_thickness);
+}
+
+// Painted top/bottom color is projected into the shell layer by layer, so a penetration deeper
+// than the printed shell would color the sparse infill and fail to print.
+// Use the actual printed shell depth, which is the larger of the configured layer count and the
+// thickness-derived layer count.
+void ConfigManipulation::check_color_penetration_layers(DynamicPrintConfig *config, const std::string &edited_key)
+{
+    struct ShellSide {
+        const char *penetration_key;
+        const char *layers_key;
+        const char *thickness_key;
+    };
+    static const ShellSide shell_sides[] = {
+        {"top_color_penetration_layers",    "top_shell_layers",    "top_shell_thickness"},
+        {"bottom_color_penetration_layers", "bottom_shell_layers", "bottom_shell_thickness"},
+    };
+
+    DynamicPrintConfig new_conf = *config;
+    bool               clamped  = false;
+    bool               show_dlg = false;
+    int                dlg_max_layers = 0;
+    wxString           dlg_label;
+    for (const ShellSide &side : shell_sides) {
+        if (!config->has(side.penetration_key) || !config->has(side.layers_key))
+            continue;
+        const int max_layers = effective_shell_layers(config, side.layers_key, side.thickness_key);
+        // An open top/bottom has no solid shell to penetrate into, leave the value alone.
+        if (max_layers <= 0 || config->opt_int(side.penetration_key) <= max_layers)
+            continue;
+        new_conf.set_key_value(side.penetration_key, new ConfigOptionInt(max_layers));
+        clamped = true;
+        // Warn on any user edit that breaks the pair, including shrinking the shell.
+        if (edited_key == side.penetration_key || edited_key == side.layers_key ||
+            edited_key == side.thickness_key || edited_key == "layer_height") {
+            show_dlg       = true;
+            dlg_max_layers = max_layers;
+            dlg_label      = _(print_config_def.get(side.penetration_key)->label);
+        }
+    }
+
+    if (clamped)
+        apply(config, &new_conf);
+    if (show_dlg)
+        show_error(m_msg_dlg_parent, _L("Value is out of range.") + "\n" +
+            GUI::format_wxstr(_L("%1% cannot exceed the shell layers (%2%), otherwise the painted color would "
+                                 "reach the sparse infill."),
+                              dlg_label, dlg_max_layers));
+}
+
 void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config, const bool is_plate_config)
 {
     // #ys_FIXME_to_delete
