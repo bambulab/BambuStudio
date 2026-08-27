@@ -132,16 +132,21 @@ DecomposeOfficialComponent lookup_decompose_official_component(
     if (base_color == DecomposeBaseColor::Blue && basic_type == kDecomposePetgBasicType)
         candidate_names.emplace_back("Reflex Blue");
 
-    std::ifstream ifs(resources_dir() + "/profiles/BBL/filament/filaments_color_codes.json");
-    if (!ifs)
-        return result;
-
-    json root = json::parse(ifs, nullptr, false);
-    if (root.is_discarded() || !root.contains("data") || !root["data"].is_array())
-        return result;
+    static json s_color_codes;
+    static bool s_color_codes_ok = false;
+    if (!s_color_codes_ok) {
+        std::ifstream ifs(resources_dir() + "/profiles/BBL/filament/filaments_color_codes.json");
+        if (!ifs)
+            return result;
+        json parsed = json::parse(ifs, nullptr, false);
+        if (parsed.is_discarded() || !parsed.contains("data") || !parsed["data"].is_array())
+            return result;
+        s_color_codes = std::move(parsed);
+        s_color_codes_ok = true;
+    }
 
     for (const std::string& candidate : candidate_names) {
-        for (const auto& item : root["data"]) {
+        for (const auto& item : s_color_codes["data"]) {
             if (!item.is_object() || item.value("fila_type", "") != basic_type)
                 continue;
             if (!item.contains("fila_color_name"))
@@ -200,11 +205,12 @@ std::string filament_type_for_color_decompose(Preset* preset)
     return ft;
 }
 
+// The source slot is eligible: a 100% official base (or a mix that uses that
+// base) should reuse the existing filament instead of duplicating it.
 int find_existing_decompose_component(
     const DecomposeOfficialComponent& component,
     const std::vector<std::string>& physical_colors,
-    const std::vector<size_t>& physical_config_indices,
-    size_t source_config_idx)
+    const std::vector<size_t>& physical_config_indices)
 {
     auto& project_config = wxGetApp().preset_bundle->project_config;
     auto* filament_id_opt = project_config.option<ConfigOptionStrings>("filament_id");
@@ -222,9 +228,6 @@ int find_existing_decompose_component(
         const std::string slot_filament_id = (filament_id_opt && config_idx < filament_id_opt->values.size()) ? filament_id_opt->values[config_idx] : "";
         const std::string slot_type = (type_opt && config_idx < type_opt->values.size()) ? type_opt->values[config_idx] : "";
         const std::string preset_name = config_idx < preset_bundle.filament_presets.size() ? preset_bundle.filament_presets[config_idx] : "";
-        if (config_idx == source_config_idx) {
-            continue;
-        }
         if (slot_color != component.color_hex) {
             continue;
         }
@@ -260,6 +263,8 @@ bool prepare_decompose_mixed_result(
     MixedFilamentResult& out_result,
     std::vector<DecomposeMissingComponent>& missing)
 {
+    (void)source_physical_idx;
+    (void)physical_types;
     out_result = {};
     missing.clear();
     if (result.components.size() < 2) {
@@ -270,7 +275,7 @@ bool prepare_decompose_mixed_result(
     std::string basic_type;
     std::string preset_name;
     if (standard_mode) {
-        basic_type = decompose_basic_type_from_source(source_config_idx, source_physical_idx, physical_types);
+        basic_type = kDecomposePlaBasicType;
         preset_name = find_decompose_standard_preset_name(source_config_idx, basic_type);
     }
 
@@ -295,7 +300,7 @@ bool prepare_decompose_mixed_result(
         DecomposeOfficialComponent official_component =
             lookup_decompose_official_component(basic_type, comp.base_color, comp.colour);
         int existing_idx = find_existing_decompose_component(official_component, physical_colors,
-                                                             physical_config_indices, source_config_idx);
+                                                             physical_config_indices);
         if (existing_idx > 0) {
             out_result.components.push_back(static_cast<unsigned int>(existing_idx));
             continue;
@@ -322,6 +327,8 @@ size_t count_decompose_new_physical_filaments(
     size_t source_physical_idx,
     const std::vector<size_t>* physical_config_indices)
 {
+    (void)physical_types;
+    (void)source_physical_idx;
     if (result.mode != DecomposeMode::CMYW && result.mode != DecomposeMode::RYBW)
         return 0;
 
@@ -334,12 +341,7 @@ size_t count_decompose_new_physical_filaments(
         indices = &fallback_indices;
     }
 
-    size_t source_config_idx = size_t(-1);
-    if (source_physical_idx < indices->size())
-        source_config_idx = (*indices)[source_physical_idx];
-
-    const std::string basic_type =
-        decompose_basic_type_from_source(source_config_idx, source_physical_idx, physical_types);
+    const std::string basic_type = kDecomposePlaBasicType;
 
     size_t missing_count = 0;
     for (const DecomposeComponent& comp : result.components) {
@@ -348,11 +350,82 @@ size_t count_decompose_new_physical_filaments(
         DecomposeOfficialComponent official_component =
             lookup_decompose_official_component(basic_type, comp.base_color, comp.colour);
         int existing_idx = find_existing_decompose_component(official_component, physical_colors,
-                                                             *indices, source_config_idx);
+                                                             *indices);
         if (existing_idx <= 0)
             ++missing_count;
     }
     return missing_count;
+}
+
+static int physical_to_sidebar_id(int filament_index_1based, const std::vector<size_t>& indices)
+{
+    if (filament_index_1based <= 0)
+        return 0;
+    const size_t physical_idx = static_cast<size_t>(filament_index_1based - 1);
+    if (physical_idx < indices.size())
+        return static_cast<int>(indices[physical_idx] + 1);
+    return filament_index_1based;
+}
+
+DecomposePreviewIds preview_decompose_filament_ids(
+    const ColorDecomposeResult& result,
+    int source_physical_idx,
+    size_t current_filament_count,
+    const std::vector<std::string>& physical_colors,
+    const std::vector<std::string>& physical_types,
+    const std::vector<size_t>& physical_config_indices)
+{
+    DecomposePreviewIds out;
+
+    std::vector<size_t> fallback_indices;
+    const std::vector<size_t>* indices = &physical_config_indices;
+    if (indices->empty()) {
+        fallback_indices.resize(physical_colors.size());
+        for (size_t i = 0; i < fallback_indices.size(); ++i)
+            fallback_indices[i] = i;
+        indices = &fallback_indices;
+    }
+
+    if (source_physical_idx >= 0)
+        out.source_id = physical_to_sidebar_id(source_physical_idx + 1, *indices);
+
+    const bool standard_mode = result.mode == DecomposeMode::CMYW || result.mode == DecomposeMode::RYBW;
+    (void)physical_types;
+
+    size_t missing_count = 0;
+    out.component_ids.reserve(result.components.size());
+
+    if (!standard_mode) {
+        for (const DecomposeComponent& comp : result.components)
+            out.component_ids.push_back(physical_to_sidebar_id(comp.filament_index, *indices));
+    } else {
+        const std::string basic_type = kDecomposePlaBasicType;
+        int next_new_id = static_cast<int>(physical_colors.size()) + 1;
+        for (const DecomposeComponent& comp : result.components) {
+            if (comp.base_color == DecomposeBaseColor::None) {
+                out.component_ids.push_back(physical_to_sidebar_id(comp.filament_index, *indices));
+                continue;
+            }
+            DecomposeOfficialComponent official_component =
+                lookup_decompose_official_component(basic_type, comp.base_color, comp.colour);
+            int existing_idx = find_existing_decompose_component(official_component, physical_colors,
+                                                                 *indices);
+            if (existing_idx > 0) {
+                out.component_ids.push_back(existing_idx);
+            } else {
+                out.component_ids.push_back(next_new_id);
+                ++next_new_id;
+                ++missing_count;
+            }
+        }
+    }
+
+    if (result.components.size() >= 2)
+        out.mixed_id = static_cast<int>(current_filament_count + missing_count + 1);
+    else if (!out.component_ids.empty())
+        out.mixed_id = out.component_ids.front();
+
+    return out;
 }
 
 bool confirm_create_decompose_missing_components(wxWindow* parent, const std::vector<DecomposeMissingComponent>& missing)

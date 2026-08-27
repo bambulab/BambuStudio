@@ -47,6 +47,14 @@ struct ColorDecomposeResult {
     std::vector<DecomposeComponent> components;
 };
 
+// Predicted 1-based IDs for decompose dialog swatches.
+// 0 means "no ID" (e.g. texture-import source with no existing slot).
+struct DecomposePreviewIds {
+    int              source_id{0};
+    int              mixed_id{0};
+    std::vector<int> component_ids;
+};
+
 class ColorDecomposeDialog : public DPIDialog
 {
 public:
@@ -69,6 +77,11 @@ public:
     // that cannot see not-yet-committed virtual base colors.
     void set_missing_physical_calculator(std::function<size_t(const ColorDecomposeResult&)> fn);
 
+    // Override swatch IDs. Texture import supplies its own calculator so the
+    // numbers match compute_display_numbers() after write-back (including
+    // virtual official-basic filaments the default sidebar preview cannot see).
+    void set_preview_id_calculator(std::function<DecomposePreviewIds(const ColorDecomposeResult&)> fn);
+
 protected:
     void on_dpi_changed(const wxRect& suggested_rect) override;
 
@@ -88,8 +101,13 @@ private:
     void update_matched_color_display();
     void update_ok_button_state();
     void update_filament_limit_warning();
+    void update_basic_support_warning();
+    int  mixable_family_count() const;
+    bool can_mix_material_list() const;
+    bool has_usable_card() const;
 
     void compute_decomposition();
+    DecomposePreviewIds preview_ids_for(const ColorDecomposeResult& result) const;
 
     // When the target color is exactly one of the standard base colors for the
     // preferred type, the standard card should show that base at 100% instead of
@@ -109,20 +127,21 @@ private:
     std::vector<std::string>    m_physical_colors;
     std::vector<std::string>    m_filament_names;
     std::vector<std::string>    m_filament_types;
-    std::vector<std::string>    m_project_types;
-    std::string                 m_preferred_type;
-    // Dropdown selectable item index -> material type string
-    std::vector<std::string>    m_combo_item_types;
+    // Dropdown family key, e.g. "PLA" / "PETG". Displayed as "Bambu PLA".
+    std::string                 m_preferred_family;
+    std::vector<std::string>    m_combo_item_families;
     size_t                      m_current_filament_count{0};
     size_t                      m_max_filament_count{32};
     std::vector<size_t>         m_physical_config_indices;
     std::function<size_t(const ColorDecomposeResult&)> m_missing_calculator;
+    std::function<DecomposePreviewIds(const ColorDecomposeResult&)> m_preview_id_calculator;
 
     // UI controls
     ComboBox*                   m_type_combo{nullptr};
-    wxPanel*                    m_target_swatch{nullptr};
+    wxStaticBitmap*             m_target_swatch{nullptr};
     wxStaticText*               m_target_rgb_text{nullptr};
-    wxPanel*                    m_matched_swatch{nullptr};
+    wxStaticText*               m_result_arrow{nullptr};
+    wxStaticBitmap*             m_matched_swatch{nullptr};
     wxStaticText*               m_matched_rgb_text{nullptr};
 
     // Mode cards
@@ -130,13 +149,19 @@ private:
     wxPanel*                    m_card_cmyw{nullptr};
     wxPanel*                    m_card_rybw{nullptr};
     wxPanel*                    m_arb_column_panel{nullptr};
+    wxPanel*                    m_std_column_panel{nullptr};
     CheckBox*                   m_chk_material_list{nullptr};
     CheckBox*                   m_chk_cmyw{nullptr};
     CheckBox*                   m_chk_rybw{nullptr};
     DecomposeMode               m_selected_mode{DecomposeMode::MaterialList};
 
-    // Hint shown when no mode card is visible
-    wxStaticText*               m_no_card_hint{nullptr};
+    // Yellow warning: fewer than two filaments of the selected family
+    wxPanel*                    m_no_card_warning_panel{nullptr};
+    wxStaticText*               m_no_card_warning_text{nullptr};
+
+    // Informational note: CMYW / RYBW use PLA Basic (not a warning)
+    wxPanel*                    m_basic_warning_panel{nullptr};
+    wxStaticText*               m_basic_warning_text{nullptr};
 
     // Warning shown when decomposition would exceed filament limit
     wxPanel*                    m_limit_warning_panel{nullptr};

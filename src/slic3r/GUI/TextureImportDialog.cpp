@@ -393,6 +393,23 @@ static bool texture_entry_official_basic(const TextureFilamentEntry& entry)
     return false;
 }
 
+// Dialog index of an existing or virtual official-basic physical with this
+// color, or -1. Shared by the 32-slot pre-check, preview IDs, and write-back.
+static int find_texture_decompose_reuse_by_color(const std::vector<TextureFilamentEntry>& entries,
+                                                 const std::string& color_hex)
+{
+    const std::string normalized = texture_normalize_color_hex(color_hex);
+    for (const auto& entry : entries) {
+        if (!texture_entry_is_physical(entry.kind))
+            continue;
+        if (texture_normalize_color_hex(entry.color_hex) != normalized)
+            continue;
+        if (texture_entry_official_basic(entry))
+            return entry.dialog_index;
+    }
+    return -1;
+}
+
 static Slic3r::ColorDecomposeRecipeMode texture_recipe_mode(TextureAutoMixMode mode)
 {
     return mode == TextureAutoMixMode::CMYW ? Slic3r::ColorDecomposeRecipeMode::CMYW :
@@ -3460,21 +3477,59 @@ bool TextureImportDialog::add_decomposed_mixed_filament(size_t row_index)
                 continue; // reuses a physical slot passed to the dialog, no new filament
             const std::string comp_hex = texture_normalize_color_hex(
                 comp.colour.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
-            bool found = false;
-            for (const auto& entry : m_filament_entries) {
-                if (!texture_entry_is_physical(entry.kind))
-                    continue;
-                if (texture_normalize_color_hex(entry.color_hex) != comp_hex)
-                    continue;
-                if (texture_entry_official_basic(entry)) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
+            if (find_texture_decompose_reuse_by_color(m_filament_entries, comp_hex) < 0)
                 ++missing;
         }
         return missing;
+    });
+    dlg.set_preview_id_calculator([this, physical_dialog_indices](const ColorDecomposeResult& result) -> DecomposePreviewIds {
+        DecomposePreviewIds out;
+        const auto display = compute_display_numbers();
+        auto display_of = [&](int dialog_idx) -> int {
+            return (dialog_idx >= 0 && dialog_idx < (int)display.size() && display[dialog_idx] > 0)
+                ? display[dialog_idx] : dialog_idx + 1;
+        };
+
+        size_t n_existing_phys = 0, n_new_phys = 0, n_existing_mixed = 0, n_new_mixed = 0;
+        for (const auto& entry : m_filament_entries) {
+            switch (entry.kind) {
+            case TextureFilamentKind::ExistingPhysical: ++n_existing_phys; break;
+            case TextureFilamentKind::NewPhysical:      ++n_new_phys; break;
+            case TextureFilamentKind::ExistingMixed:    ++n_existing_mixed; break;
+            case TextureFilamentKind::NewMixed:         ++n_new_mixed; break;
+            }
+        }
+
+        int new_physical_this_run = 0;
+        out.component_ids.reserve(result.components.size());
+        for (const DecomposeComponent& comp : result.components) {
+            if (comp.filament_index > 0) {
+                const size_t physical_idx = (size_t)(comp.filament_index - 1);
+                if (physical_idx < physical_dialog_indices.size()) {
+                    out.component_ids.push_back(display_of(physical_dialog_indices[physical_idx]));
+                    continue;
+                }
+            }
+
+            const std::string comp_hex = texture_normalize_color_hex(
+                comp.colour.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
+            const int existing_idx = find_texture_decompose_reuse_by_color(m_filament_entries, comp_hex);
+            if (existing_idx >= 0) {
+                out.component_ids.push_back(display_of(existing_idx));
+                continue;
+            }
+
+            ++new_physical_this_run;
+            out.component_ids.push_back(static_cast<int>(n_existing_phys + n_new_phys + new_physical_this_run));
+        }
+
+        if (result.components.size() >= 2) {
+            out.mixed_id = static_cast<int>(n_existing_phys + n_new_phys + new_physical_this_run
+                                            + n_existing_mixed + n_new_mixed + 1);
+        } else if (!out.component_ids.empty()) {
+            out.mixed_id = out.component_ids.front();
+        }
+        return out;
     });
     if (dlg.ShowModal() != wxID_OK)
         return false;
@@ -3493,17 +3548,7 @@ bool TextureImportDialog::add_decomposed_mixed_filament(size_t row_index)
         }
 
         const std::string comp_hex = texture_normalize_color_hex(comp.colour.GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
-        int existing_idx = -1;
-        for (const auto& entry : m_filament_entries) {
-            if (!texture_entry_is_physical(entry.kind))
-                continue;
-            if (texture_normalize_color_hex(entry.color_hex) != comp_hex)
-                continue;
-            if (texture_entry_official_basic(entry)) {
-                existing_idx = entry.dialog_index;
-                break;
-            }
-        }
+        int existing_idx = find_texture_decompose_reuse_by_color(m_filament_entries, comp_hex);
         if (existing_idx < 0) {
             std::array<float, 4> rgba = parse_color_string(comp_hex);
             existing_idx = add_virtual_filament(rgba, comp_hex);

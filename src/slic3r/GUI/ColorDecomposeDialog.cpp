@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include <set>
+#include <string>
 #include <wx/sizer.h>
 #include <wx/dcclient.h>
 #include <wx/dcbuffer.h>
@@ -155,11 +156,25 @@ static void match_parent_bg(wxWindow* w, const wxColour& bg)
     w->SetBackgroundColour(bg);
 }
 
-static bool material_type_matches(const std::string& a, const std::string& b)
+// "PLA Basic" / "PLA Silk" / "PLA" -> "PLA"; "PETG Basic" -> "PETG"
+static std::string filament_family(const std::string& type)
 {
-    if (a.empty() || b.empty())
-        return false;
-    return a == b || a == b + " Basic" || b == a + " Basic";
+    if (type.empty())
+        return {};
+    const auto space = type.find(' ');
+    if (space == std::string::npos)
+        return type;
+    return type.substr(0, space);
+}
+
+static bool family_matches(const std::string& type, const std::string& family)
+{
+    return !family.empty() && filament_family(type) == family;
+}
+
+static wxString family_display_label(const std::string& family)
+{
+    return wxString::FromUTF8(std::string(kDecomposeBambuPresetPrefix) + family);
 }
 
 
@@ -183,23 +198,18 @@ ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
     , m_max_filament_count(max_filament_count)
     , m_physical_config_indices(std::move(physical_config_indices))
 {
-    for (const auto& t : m_filament_types) {
-        if (std::find(m_project_types.begin(), m_project_types.end(), t) == m_project_types.end())
-            m_project_types.push_back(t);
-    }
-
     if (m_filament_idx >= 0 && static_cast<size_t>(m_filament_idx) < m_filament_types.size())
-        m_preferred_type = m_filament_types[m_filament_idx];
-    else if (!m_project_types.empty())
-        m_preferred_type = m_project_types.front();
+        m_preferred_family = filament_family(m_filament_types[m_filament_idx]);
+    if (m_preferred_family.empty()) {
+        for (const auto& t : m_filament_types) {
+            m_preferred_family = filament_family(t);
+            if (!m_preferred_family.empty())
+                break;
+        }
+    }
 
     build_ui();
     wxGetApp().UpdateDlgDarkUI(this);
-    // Restore target swatch after dark mode color remapping
-    if (m_target_swatch) {
-        m_target_swatch->SetBackgroundColour(m_target_color);
-        m_target_swatch->Refresh();
-    }
 
     update_card_visibility();
     Fit();
@@ -211,6 +221,8 @@ ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
 void ColorDecomposeDialog::on_dpi_changed(const wxRect& suggested_rect)
 {
     (void)suggested_rect;
+    update_matched_color_display();
+    update_mode_card_contents();
     Fit();
     Refresh();
 }
@@ -251,64 +263,33 @@ wxBoxSizer* ColorDecomposeDialog::create_filament_selector()
                                 wxSize(-1, FromDIP(36)), 0, nullptr, wxCB_READONLY);
     m_type_combo->SetFont(Label::Body_13);
 
-    m_combo_item_types.clear();
+    m_combo_item_families.clear();
     int default_sel = -1;
-
-    // --- Group 1: Project filament list (deduplicated by type) ---
-    m_type_combo->Append(_L("Project Filament List"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM | DD_ITEM_STYLE_DISABLED);
-    m_combo_item_types.push_back(std::string());
-
-    std::set<std::string> seen_types;
-    for (size_t i = 0; i < m_filament_names.size(); ++i) {
-        const std::string& type = (i < m_filament_types.size()) ? m_filament_types[i] : "PLA";
-        if (!seen_types.insert(type).second)
+    std::set<std::string> seen_families;
+    for (const auto& type : m_filament_types) {
+        const std::string family = filament_family(type.empty() ? "PLA" : type);
+        if (family.empty() || !seen_families.insert(family).second)
             continue;
-        int idx = m_type_combo->Append(wxString::FromUTF8(m_filament_names[i]));
-        m_combo_item_types.push_back(type);
-        if (type == m_preferred_type && default_sel < 0)
+        int idx = m_type_combo->Append(family_display_label(family));
+        m_combo_item_families.push_back(family);
+        if (family == m_preferred_family && default_sel < 0)
             default_sel = idx;
     }
 
-    // --- Group 2: Standard mode material recommendations ---
-    static const char* kStandardTypes[] = {
-        kDecomposePlaBasicType
-    };
-
-    m_type_combo->Append(_L("Standard Mode Recommendations"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM | DD_ITEM_STYLE_DISABLED);
-    m_combo_item_types.push_back(std::string());
-
-    for (size_t s = 0; s < sizeof(kStandardTypes) / sizeof(kStandardTypes[0]); ++s) {
-        // Always show standard recommendations, even if the same type already
-        // appears in the project filament list above.
-        const std::string label = std::string(kDecomposeBambuPresetPrefix) + kStandardTypes[s];
-        int idx = m_type_combo->Append(wxString::FromUTF8(label));
-        m_combo_item_types.push_back(kStandardTypes[s]);
-        if (kStandardTypes[s] == m_preferred_type && default_sel < 0)
-            default_sel = idx;
-    }
-
-    if (default_sel < 0) {
-        for (int i = 0; i < static_cast<int>(m_combo_item_types.size()); ++i) {
-            if (!m_combo_item_types[i].empty()) {
-                default_sel = i;
-                break;
-            }
-        }
-    }
+    if (default_sel < 0 && !m_combo_item_families.empty())
+        default_sel = 0;
 
     if (default_sel >= 0) {
         m_type_combo->SetSelection(default_sel);
-        if (!m_combo_item_types[default_sel].empty())
-            m_preferred_type = m_combo_item_types[default_sel];
+        if (static_cast<size_t>(default_sel) < m_combo_item_families.size())
+            m_preferred_family = m_combo_item_families[default_sel];
     }
 
     m_type_combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt) {
         evt.StopPropagation();
         int sel = m_type_combo->GetSelection();
-        if (sel >= 0 && static_cast<size_t>(sel) < m_combo_item_types.size()
-            && !m_combo_item_types[sel].empty()) {
-            m_preferred_type = m_combo_item_types[sel];
-        }
+        if (sel >= 0 && static_cast<size_t>(sel) < m_combo_item_families.size())
+            m_preferred_family = m_combo_item_families[sel];
         update_card_visibility();
         compute_decomposition();
         update_matched_color_display();
@@ -319,32 +300,29 @@ wxBoxSizer* ColorDecomposeDialog::create_filament_selector()
     return sizer;
 }
 
-static wxPanel* create_color_swatch(wxWindow* parent, const wxColour& color, int size)
+static std::string colour_to_hex(const wxColour& color)
 {
-    auto* panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(size, size));
-    panel->SetBackgroundColour(color);
-    panel->SetMinSize(wxSize(size, size));
-    panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
-    panel->Bind(wxEVT_PAINT, [panel](wxPaintEvent&) {
-        wxAutoBufferedPaintDC dc(panel);
-        wxSize sz = panel->GetClientSize();
-        wxColour c = panel->GetBackgroundColour();
-        dc.SetPen(*wxTRANSPARENT_PEN);
-        dc.SetBrush(wxBrush(c));
-        dc.DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
-        // Mirror sidebar (FilamentBitmapUtils::create_single_filament_bitmap):
-        // gray border for near-white in light mode so white swatches stay
-        // visible on a white background; light border for near-black in dark mode.
-        const bool light_mode = !wxGetApp().dark_mode();
-        if ((light_mode && c.Red() > 224 && c.Green() > 224 && c.Blue() > 224) ||
-            (!light_mode && c.Red() < 45 && c.Green() < 45 && c.Blue() < 45)) {
-            dc.SetBrush(*wxTRANSPARENT_BRUSH);
-            dc.SetPen(wxPen(light_mode ? wxColour(130, 130, 128) : wxColour(207, 207, 207),
-                            1, wxPENSTYLE_SOLID));
-            dc.DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
-        }
-    });
-    return panel;
+    return wxString::Format("#%02X%02X%02X", color.Red(), color.Green(), color.Blue()).ToStdString();
+}
+
+static void set_swatch_bitmap(wxStaticBitmap* bmp, const wxColour& color, int size, int filament_id)
+{
+    if (!bmp)
+        return;
+    const std::string label = filament_id > 0 ? std::to_string(filament_id) : std::string();
+    wxBitmap* icon = get_extruder_color_icon(colour_to_hex(color), label, size, size);
+    if (icon && icon->IsOk())
+        bmp->SetBitmap(*icon);
+    bmp->SetMinSize(wxSize(size, size));
+    bmp->SetMaxSize(wxSize(size, size));
+    bmp->SetSize(wxSize(size, size));
+}
+
+static wxStaticBitmap* create_color_swatch(wxWindow* parent, const wxColour& color, int size, int filament_id)
+{
+    auto* bmp = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(size, size));
+    set_swatch_bitmap(bmp, color, size, filament_id);
+    return bmp;
 }
 
 wxBoxSizer* ColorDecomposeDialog::create_target_color_section()
@@ -356,7 +334,10 @@ wxBoxSizer* ColorDecomposeDialog::create_target_color_section()
     label->SetForegroundColour(StateColor::darkModeColorFor(COLOR_TEXT_DARK));
     sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(19));
 
-    m_target_swatch = create_color_swatch(this, m_target_color, FromDIP(28));
+    const int swatch_sz = FromDIP(24);
+    const auto preview = preview_ids_for(m_result);
+
+    m_target_swatch = create_color_swatch(this, m_target_color, swatch_sz, preview.source_id);
     sizer->Add(m_target_swatch, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
 
     m_target_rgb_text = new wxStaticText(this, wxID_ANY,
@@ -367,9 +348,10 @@ wxBoxSizer* ColorDecomposeDialog::create_target_color_section()
 
     auto* arrow_text = new wxStaticText(this, wxID_ANY, wxString::FromUTF8("\xe2\x86\x92"));
     arrow_text->SetForegroundColour(StateColor::darkModeColorFor(COLOR_TEXT_DARK));
-    sizer->Add(arrow_text, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
+    m_result_arrow = arrow_text;
+    sizer->Add(m_result_arrow, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
 
-    m_matched_swatch = create_color_swatch(this, m_target_color, FromDIP(28));
+    m_matched_swatch = create_color_swatch(this, m_target_color, swatch_sz, preview.mixed_id);
     sizer->Add(m_matched_swatch, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
 
     m_matched_rgb_text = new wxStaticText(this, wxID_ANY,
@@ -485,7 +467,7 @@ wxBoxSizer* ColorDecomposeDialog::create_mode_selection_section()
     auto* arb_col = new wxBoxSizer(wxVERTICAL);
     {
         auto* arb_header_sizer = new wxBoxSizer(wxHORIZONTAL);
-        arb_header_sizer->Add(create_mode_group_label(m_arb_column_panel, _L("Arbitrary Mode")),
+        arb_header_sizer->Add(create_mode_group_label(m_arb_column_panel, _L("Project Filament")),
                               0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(5));
         arb_header_sizer->Add(create_h_divider(m_arb_column_panel, FromDIP(88)), 0, wxALIGN_CENTER_VERTICAL);
         arb_col->Add(arb_header_sizer, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
@@ -498,35 +480,59 @@ wxBoxSizer* ColorDecomposeDialog::create_mode_selection_section()
     modes_sizer->Add(m_arb_column_panel, 0, wxEXPAND | wxRIGHT, FromDIP(16));
 
     // --- Standard mode column ---
+    m_std_column_panel = new wxPanel(this, wxID_ANY);
+    m_std_column_panel->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     auto* std_col = new wxBoxSizer(wxVERTICAL);
     {
         auto* std_header_sizer = new wxBoxSizer(wxHORIZONTAL);
-        std_header_sizer->Add(create_mode_group_label(this, _L("Standard Mode")),
+        std_header_sizer->Add(create_mode_group_label(m_std_column_panel, _L("Standard Palette")),
                               0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(5));
-        std_header_sizer->Add(create_h_divider(this), 1, wxALIGN_CENTER_VERTICAL);
+        std_header_sizer->Add(create_h_divider(m_std_column_panel), 1, wxALIGN_CENTER_VERTICAL);
         std_col->Add(std_header_sizer, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
 
         auto* cards_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-        m_card_cmyw = create_mode_card(this, DecomposeMode::CMYW, "CMYW");
+        m_card_cmyw = create_mode_card(m_std_column_panel, DecomposeMode::CMYW, "CMYW");
         cards_sizer->Add(m_card_cmyw, 0, wxRIGHT, FromDIP(12));
 
-        m_card_rybw = create_mode_card(this, DecomposeMode::RYBW, "RYBW");
+        m_card_rybw = create_mode_card(m_std_column_panel, DecomposeMode::RYBW, "RYBW");
         cards_sizer->Add(m_card_rybw, 0);
 
         std_col->Add(cards_sizer, 0, wxEXPAND);
     }
-    modes_sizer->Add(std_col, 0, wxEXPAND);
+    m_std_column_panel->SetSizer(std_col);
+    modes_sizer->Add(m_std_column_panel, 0, wxEXPAND);
 
     sizer->Add(modes_sizer, 0, wxEXPAND);
 
-    m_no_card_hint = new wxStaticText(this, wxID_ANY,
+    m_no_card_warning_panel = new wxPanel(this, wxID_ANY);
+    m_no_card_warning_panel->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    auto* no_card_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto* no_card_bmp = new wxStaticBitmap(m_no_card_warning_panel, wxID_ANY,
+        create_scaled_bitmap("obj_warning", m_no_card_warning_panel, 16),
+        wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
+    m_no_card_warning_text = new wxStaticText(m_no_card_warning_panel, wxID_ANY,
         _L("At least two filaments of the same material type are required for decomposition"));
-    m_no_card_hint->SetFont(Label::Body_13);
-    m_no_card_hint->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#909090")));
-    m_no_card_hint->Wrap(FromDIP(400));
-    m_no_card_hint->Hide();
-    sizer->Add(m_no_card_hint, 0, wxTOP, FromDIP(8));
+    m_no_card_warning_text->SetFont(Label::Body_13);
+    m_no_card_warning_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#E6A817")));
+    m_no_card_warning_text->Wrap(FromDIP(400));
+    no_card_sizer->Add(no_card_bmp, 0, wxALIGN_TOP | wxRIGHT, FromDIP(6));
+    no_card_sizer->Add(m_no_card_warning_text, 1, wxEXPAND);
+    m_no_card_warning_panel->SetSizer(no_card_sizer);
+    m_no_card_warning_panel->Hide();
+    sizer->Add(m_no_card_warning_panel, 0, wxEXPAND | wxTOP, FromDIP(8));
+
+    m_basic_warning_panel = new wxPanel(this, wxID_ANY);
+    m_basic_warning_panel->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    auto* basic_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_basic_warning_text = new wxStaticText(m_basic_warning_panel, wxID_ANY, wxEmptyString);
+    m_basic_warning_text->SetFont(Label::Body_13);
+    m_basic_warning_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#6B6B6B")));
+    m_basic_warning_text->Wrap(FromDIP(400));
+    basic_sizer->Add(m_basic_warning_text, 1, wxEXPAND);
+    m_basic_warning_panel->SetSizer(basic_sizer);
+    m_basic_warning_panel->Hide();
+    sizer->Add(m_basic_warning_panel, 0, wxEXPAND | wxTOP, FromDIP(8));
 
     m_limit_warning_panel = new wxPanel(this, wxID_ANY);
     m_limit_warning_panel->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
@@ -586,6 +592,7 @@ void ColorDecomposeDialog::select_mode(DecomposeMode mode)
     m_result = m_mode_results[mode_index(mode)];
     update_card_styles();
     update_matched_color_display();
+    update_basic_support_warning();
     update_ok_button_state();
 }
 
@@ -605,29 +612,18 @@ void ColorDecomposeDialog::update_card_styles()
 
 void ColorDecomposeDialog::update_card_visibility()
 {
-    // Count physical filaments of the same type (excluding the source filament)
-    int same_type_count = 0;
-    for (size_t i = 0; i < m_filament_types.size(); ++i) {
-        if (static_cast<int>(i) == m_filament_idx)
-            continue;
-        if (material_type_matches(m_filament_types[i], m_preferred_type))
-            ++same_type_count;
-    }
-
-    bool show_arb  = (same_type_count >= 2);
-    bool show_cmyw = (m_preferred_type == kDecomposePlaBasicType);
-    bool show_rybw = (m_preferred_type == kDecomposePlaBasicType);
+    const bool is_pla = (m_preferred_family == kDecomposePlaShortType);
+    const bool show_arb  = can_mix_material_list();
+    const bool show_cmyw = is_pla;
+    const bool show_rybw = is_pla;
 
     if (m_arb_column_panel)   m_arb_column_panel->Show(show_arb);
     if (m_card_material_list) m_card_material_list->Show(show_arb);
+    if (m_std_column_panel)   m_std_column_panel->Show(show_cmyw || show_rybw);
     if (m_card_cmyw)          m_card_cmyw->Show(show_cmyw);
     if (m_card_rybw)          m_card_rybw->Show(show_rybw);
 
     bool any_visible = show_arb || show_cmyw || show_rybw;
-    if (m_no_card_hint)
-        m_no_card_hint->Show(!any_visible);
-
-    // Auto-select a visible mode when current selection becomes hidden
     if (any_visible) {
         bool cur_visible = false;
         if (m_selected_mode == DecomposeMode::MaterialList && show_arb)  cur_visible = true;
@@ -640,8 +636,63 @@ void ColorDecomposeDialog::update_card_visibility()
         }
     }
 
+    update_basic_support_warning();
     Layout();
     update_ok_button_state();
+}
+
+int ColorDecomposeDialog::mixable_family_count() const
+{
+    int count = 0;
+    for (size_t i = 0; i < m_filament_types.size(); ++i) {
+        if (static_cast<int>(i) == m_filament_idx)
+            continue;
+        if (family_matches(m_filament_types[i], m_preferred_family))
+            ++count;
+    }
+    return count;
+}
+
+bool ColorDecomposeDialog::can_mix_material_list() const
+{
+    return mixable_family_count() >= 2;
+}
+
+bool ColorDecomposeDialog::has_usable_card() const
+{
+    return (m_card_material_list && m_card_material_list->IsShown())
+        || (m_card_cmyw && m_card_cmyw->IsShown())
+        || (m_card_rybw && m_card_rybw->IsShown());
+}
+
+void ColorDecomposeDialog::update_basic_support_warning()
+{
+    if (!m_basic_warning_panel || !m_basic_warning_text)
+        return;
+
+    const bool show = (m_preferred_family == kDecomposePlaShortType)
+        && (m_selected_mode == DecomposeMode::CMYW || m_selected_mode == DecomposeMode::RYBW);
+    const bool was_shown = m_basic_warning_panel->IsShown();
+    if (!show) {
+        if (was_shown) {
+            m_basic_warning_panel->Hide();
+            Layout();
+        }
+        return;
+    }
+
+    const wxString text = (m_selected_mode == DecomposeMode::CMYW)
+        ? _L("A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically.")
+        : _L("A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically.");
+    m_basic_warning_text->SetLabel(text);
+    m_basic_warning_panel->Show();
+    Layout();
+    const int avail = m_basic_warning_text->GetClientSize().x;
+    if (avail > FromDIP(50))
+        m_basic_warning_text->Wrap(avail);
+    Layout();
+    if (!was_shown)
+        Fit();
 }
 
 void ColorDecomposeDialog::update_filament_limit_warning()
@@ -713,15 +764,45 @@ void ColorDecomposeDialog::set_missing_physical_calculator(std::function<size_t(
     update_ok_button_state();
 }
 
+void ColorDecomposeDialog::set_preview_id_calculator(std::function<DecomposePreviewIds(const ColorDecomposeResult&)> fn)
+{
+    m_preview_id_calculator = std::move(fn);
+    update_matched_color_display();
+    update_mode_card_contents();
+}
+
+DecomposePreviewIds ColorDecomposeDialog::preview_ids_for(const ColorDecomposeResult& result) const
+{
+    if (m_preview_id_calculator)
+        return m_preview_id_calculator(result);
+    return preview_decompose_filament_ids(
+        result, m_filament_idx, m_current_filament_count,
+        m_physical_colors, m_filament_types, m_physical_config_indices);
+}
+
 void ColorDecomposeDialog::update_ok_button_state()
 {
     if (!m_btn_ok) return;
     update_filament_limit_warning();
-    bool any_card_visible = (m_card_material_list && m_card_material_list->IsShown())
-                         || (m_card_cmyw && m_card_cmyw->IsShown())
-                         || (m_card_rybw && m_card_rybw->IsShown());
+    const bool any_card_visible = has_usable_card();
     const bool blocked = m_limit_warning_panel && m_limit_warning_panel->IsShown();
-    m_btn_ok->Enable(any_card_visible && !blocked);
+    const bool mode_usable = (m_selected_mode != DecomposeMode::MaterialList) || can_mix_material_list();
+    const bool show_no_card = !any_card_visible
+        || (m_selected_mode == DecomposeMode::MaterialList && !mode_usable);
+    if (m_no_card_warning_panel) {
+        const bool was_shown = m_no_card_warning_panel->IsShown();
+        m_no_card_warning_panel->Show(show_no_card);
+        if (show_no_card && m_no_card_warning_text) {
+            Layout();
+            const int avail = m_no_card_warning_text->GetClientSize().x;
+            if (avail > FromDIP(50))
+                m_no_card_warning_text->Wrap(avail);
+            if (!was_shown)
+                Fit();
+        }
+    }
+    m_btn_ok->Enable(any_card_visible && mode_usable && !blocked);
+    update_matched_color_display();
     Layout();
 }
 
@@ -752,9 +833,12 @@ void ColorDecomposeDialog::update_mode_card_content(DecomposeMode mode)
         w->SetCursor(wxCursor(wxCURSOR_HAND));
     };
 
+    const auto preview = preview_ids_for(m_mode_results[mode_index(mode)]);
+
     for (size_t i = 0; i < count; ++i) {
         auto* col = new wxBoxSizer(wxVERTICAL);
-        auto* swatch = create_color_swatch(card, components[i].colour, swatch_sz);
+        const int filament_id = (i < preview.component_ids.size()) ? preview.component_ids[i] : 0;
+        auto* swatch = create_color_swatch(card, components[i].colour, swatch_sz, filament_id);
         bind_select(swatch);
         col->Add(swatch, 0, wxALIGN_CENTER_HORIZONTAL);
         auto* ratio_text = new wxStaticText(card, wxID_ANY, wxString::Format("%d%%", components[i].ratio));
@@ -809,21 +893,31 @@ void ColorDecomposeDialog::update_matched_color_display()
     if (!m_result.matched_color.IsOk())
         m_result.matched_color = m_target_color;
 
-    if (m_matched_swatch) {
-        m_matched_swatch->SetBackgroundColour(m_result.matched_color);
-        m_matched_swatch->Refresh();
-    }
+    const auto preview = preview_ids_for(m_result);
+
+    const int swatch_sz = FromDIP(24);
+    set_swatch_bitmap(m_target_swatch, m_target_color, swatch_sz, preview.source_id);
+    set_swatch_bitmap(m_matched_swatch, m_result.matched_color, swatch_sz, preview.mixed_id);
+
     if (m_matched_rgb_text) {
         m_matched_rgb_text->SetLabel(wxString::Format("RGB: %d, %d, %d",
             m_result.matched_color.Red(), m_result.matched_color.Green(), m_result.matched_color.Blue()));
     }
+
+    const bool has_result = has_usable_card();
+    if (m_result_arrow)
+        m_result_arrow->Show(has_result);
+    if (m_matched_swatch)
+        m_matched_swatch->Show(has_result);
+    if (m_matched_rgb_text)
+        m_matched_rgb_text->Show(has_result);
 }
 
 bool ColorDecomposeDialog::try_build_single_base_result(DecomposeMode mode, ColorDecomposeResult& out) const
 {
-    // Gate by preferred type, matching card visibility: CMYW and RYBW only for PLA Basic.
+    // Gate by family, matching card visibility: CMYW and RYBW only for PLA.
     if (mode == DecomposeMode::CMYW || mode == DecomposeMode::RYBW) {
-        if (m_preferred_type != kDecomposePlaBasicType)
+        if (m_preferred_family != kDecomposePlaShortType)
             return false;
     } else {
         return false;
@@ -848,7 +942,7 @@ bool ColorDecomposeDialog::try_build_single_base_result(DecomposeMode mode, Colo
     for (size_t i = 0; i < base_count; ++i) {
         const DecomposeBaseColor base = bases[i];
         DecomposeOfficialComponent official =
-            lookup_decompose_official_component(m_preferred_type, base, pure_color_for_base(base));
+            lookup_decompose_official_component(kDecomposePlaBasicType, base, pure_color_for_base(base));
         if (decompose_normalize_color_hex(official.color_hex) != target_hex)
             continue;
 
@@ -905,19 +999,28 @@ void ColorDecomposeDialog::compute_decomposition()
         physical_filaments.push_back(std::move(filament));
     }
 
+    std::vector<ColorDecomposePhysicalFilament> family_filaments;
+    family_filaments.reserve(physical_filaments.size());
+    for (const auto& filament : physical_filaments) {
+        if (family_matches(filament.type, m_preferred_family))
+            family_filaments.push_back(filament);
+    }
+
     const ColorDecomposeRgb target_rgb = wx_colour_to_recipe_rgb(m_target_color);
 
-    auto material_recipe = recommend_from_physical_filaments(target_rgb, physical_filaments, m_preferred_type);
+    // Empty preferred type: family_filaments is already filtered, so the
+    // recipe fallback (candidates < 2 -> use the passed list) cannot mix PETG into PLA.
+    auto material_recipe = recommend_from_physical_filaments(target_rgb, family_filaments, std::string());
     if (material_recipe.valid) {
         m_mode_results[mode_index(DecomposeMode::MaterialList)] =
             to_dialog_result(material_recipe, m_target_color);
     } else {
         std::vector<DecomposeComponent> components;
-        for (size_t i = 0; i < std::min<size_t>(2, physical_filaments.size()); ++i) {
+        for (size_t i = 0; i < std::min<size_t>(2, family_filaments.size()); ++i) {
             DecomposeComponent comp;
-            comp.colour = wxColour(physical_filaments[i].color_hex);
+            comp.colour = wxColour(family_filaments[i].color_hex);
             comp.ratio = 50;
-            comp.filament_index = static_cast<int>(physical_filaments[i].filament_index);
+            comp.filament_index = static_cast<int>(family_filaments[i].filament_index);
             components.push_back(comp);
         }
         if (components.empty()) {
@@ -933,7 +1036,7 @@ void ColorDecomposeDialog::compute_decomposition()
     if (try_build_single_base_result(DecomposeMode::CMYW, single_base)) {
         m_mode_results[mode_index(DecomposeMode::CMYW)] = single_base;
     } else {
-        auto cmyw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::CMYW, m_preferred_type);
+        auto cmyw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::CMYW, kDecomposePlaBasicType);
         m_mode_results[mode_index(DecomposeMode::CMYW)] = cmyw_recipe.valid
             ? to_dialog_result(cmyw_recipe, m_target_color)
             : fallback_result(DecomposeMode::CMYW, {
@@ -945,7 +1048,7 @@ void ColorDecomposeDialog::compute_decomposition()
     if (try_build_single_base_result(DecomposeMode::RYBW, single_base)) {
         m_mode_results[mode_index(DecomposeMode::RYBW)] = single_base;
     } else {
-        auto rybw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::RYBW, m_preferred_type);
+        auto rybw_recipe = lookup_standard_recipe(target_rgb, ColorDecomposeRecipeMode::RYBW, kDecomposePlaBasicType);
         m_mode_results[mode_index(DecomposeMode::RYBW)] = rybw_recipe.valid
             ? to_dialog_result(rybw_recipe, m_target_color)
             : fallback_result(DecomposeMode::RYBW, {
