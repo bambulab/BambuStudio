@@ -968,6 +968,15 @@ msgstr ""
 msgid "Flip cut plane"
 msgstr ""
 
+msgid "Pick face"
+msgstr ""
+
+msgid "Click a face of the model."
+msgstr ""
+
+msgid "Click a face of the model to set the cut plane. The plane lands flush with that face; use Movement to offset it."
+msgstr ""
+
 msgid "Planar"
 msgstr ""
 

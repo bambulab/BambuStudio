@@ -122,6 +122,16 @@ private:
     mutable Grabber m_move_z_grabber;
     mutable Grabber m_move_x_grabber;
 
+    // Pick-face mode: click a triangular facet of the model to set the cut plane.
+    bool               m_pick_face_mode{false};
+    int                m_hit_facet{-1};
+    int                m_last_hit_facet{-1};
+    const ModelVolume *m_hit_volume{nullptr};
+    Transform3d        m_hit_trafo{Transform3d::Identity()};
+    Vec3d              m_hit_world_pos{Vec3d::Zero()};
+    Vec3d              m_hit_world_normal{Vec3d::Zero()};
+    GLModel            m_hovered_tri;
+
     bool m_connectors_editing{false};
     bool m_localized_cut_editing = true;
     Vec3d m_localized_cut_pos = Vec3d::Zero();
@@ -311,6 +321,11 @@ private:
     void render_localized_cut_shadow();
     void render_clipper_cut();
     void render_cut_line();
+    // pick-face mode
+    bool update_facet_pick_cache(const Vec2d &mouse_position);
+    void render_hovered_facet();
+    void clear_facet_pick_cache();
+    bool apply_picked_facet();
 
     void clear_selection();
     void init_connector_shapes();
