@@ -105,17 +105,6 @@ static void rotate_z_3d(std::array<Vec3d, 4>& verts, float radian_angle)
 
 namespace {
 
-// The mesh normal returned by MeshRaycaster::unproject_on_mesh is in mesh-local
-// coordinates. Transforming it needs the inverse-transpose of the linear part,
-// not the linear part itself, or a non-uniformly scaled instance yields a normal
-// that is visibly not perpendicular to the facet.
-Vec3d facet_world_normal(const Transform3d &trafo, const Vec3f &mesh_normal)
-{
-    const Vec3d  n   = trafo.linear().inverse().transpose() * mesh_normal.cast<double>();
-    const double len = n.norm();
-    return (len < EPSILON) ? Vec3d::Zero() : Vec3d(n / len);
-}
-
 // Rotation taking +Z onto `normal`, which must be unit length. Eigen's
 // setFromTwoVectors handles the antipodal case (normal == -Z) by picking an
 // arbitrary perpendicular axis, which is what we want: the plane's X direction
@@ -171,14 +160,11 @@ bool GLGizmoAdvancedCut::gizmo_event(SLAGizmoEventType action, const Vec2d &mous
         // ignored on purpose: the wanted face is often behind the translucent plane, and
         // gating on m_hover_id made those faces unclickable. gizmo_event runs before the
         // manager's grabber handling, so returning true here suppresses the drag.
-        if (m_pick_face_mode && !m_connectors_editing) {
-            update_facet_pick_cache(mouse_position);
-            if (apply_picked_facet()) {
-                m_pick_face_mode = false; // one-shot: press the button again to pick another
-                clear_facet_pick_cache();
-                return true;
-            }
-            return true; // stay armed on a miss rather than starting a rotate/pan
+        if (m_facet_picker.is_active() && !m_connectors_editing) {
+            m_facet_picker.update(mouse_position, m_c, m_parent.get_selection(), wxGetApp().plater()->get_camera());
+            if (apply_picked_facet())
+                m_facet_picker.set_active(false); // one-shot: press the button again to pick another
+            return true; // on a miss, stay armed rather than starting a rotate/pan
         }
         if (m_hover_id == c_plate_move_id) {
             Vec3d pos;
@@ -390,143 +376,16 @@ bool GLGizmoAdvancedCut::unproject_on_cut_plane(const Vec2d &mouse_pos, Vec3d &p
     return true;
 }
 
-void GLGizmoAdvancedCut::clear_facet_pick_cache()
-{
-    m_hit_facet        = -1;
-    m_last_hit_facet   = -1;
-    m_hit_volume       = nullptr;
-    m_hit_world_normal = Vec3d::Zero();
-    m_hovered_tri.reset();
-}
-
-bool GLGizmoAdvancedCut::update_facet_pick_cache(const Vec2d &mouse_position)
-{
-    m_hit_facet = -1;
-
-    if (!m_c || !m_c->raycaster() || !m_c->selection_info())
-        return false;
-
-    const ModelObject *mo           = m_c->selection_info()->model_object();
-    const int          instance_idx = m_parent.get_selection().get_instance_idx();
-    if (!mo || instance_idx < 0 || instance_idx >= int(mo->instances.size()))
-        return false;
-
-    // Raycaster builds one MeshRaycaster per model-part volume, in mo->volumes
-    // order, so build the matching transform list the same way.
-    const ModelInstance *mi        = mo->instances[instance_idx];
-    const double         sla_shift = m_c->selection_info()->get_sla_shift();
-
-    std::vector<Transform3d>         trafo_matrices;
-    std::vector<const ModelVolume *> part_volumes;
-    for (const ModelVolume *mv : mo->volumes) {
-        if (mv->is_model_part()) {
-            trafo_matrices.emplace_back(Geometry::translation_transform(sla_shift * Vec3d::UnitZ()) *
-                                        mi->get_transformation().get_matrix() * mv->get_matrix());
-            part_volumes.emplace_back(mv);
-        }
-    }
-
-    const std::vector<const MeshRaycaster *> raycasters = m_c->raycaster()->raycasters();
-    if (raycasters.size() != trafo_matrices.size())
-        return false; // hollowed-mesh or stale-cache case; skip this frame rather than mis-index
-
-    const Camera &camera = wxGetApp().plater()->get_camera();
-
-    Vec3f  hit = Vec3f::Zero(), normal = Vec3f::Zero();
-    Vec3f  closest_hit = Vec3f::Zero(), closest_normal = Vec3f::Zero();
-    double closest_sq    = std::numeric_limits<double>::max();
-    int    closest_id    = -1;
-    size_t closest_facet = 0;
-
-    for (int mesh_id = 0; mesh_id < int(trafo_matrices.size()); ++mesh_id) {
-        size_t facet = 0;
-        if (raycasters[mesh_id]->unproject_on_mesh(mouse_position, trafo_matrices[mesh_id], camera, hit, normal, nullptr, &facet)) {
-            const double sq = (camera.get_position() - trafo_matrices[mesh_id] * hit.cast<double>()).squaredNorm();
-            if (sq < closest_sq) {
-                closest_sq     = sq;
-                closest_id     = mesh_id;
-                closest_hit    = hit;
-                closest_normal = normal;
-                // Captured inside the nearest-hit branch on purpose. GLGizmoFlatten
-                // captures it after the loop, so on a multi-volume object it can index
-                // the last-tested volume's facet into the nearest volume's mesh.
-                closest_facet  = facet;
-            }
-        }
-    }
-
-    if (closest_id < 0)
-        return false;
-
-    const ModelVolume *mv = part_volumes[closest_id];
-    if (closest_facet >= mv->mesh().its.indices.size())
-        return false;
-
-    const Vec3d world_normal = facet_world_normal(trafo_matrices[closest_id], closest_normal);
-    if (world_normal.isZero())
-        return false; // degenerate facet
-
-    m_hit_facet        = int(closest_facet);
-    m_hit_volume       = mv;
-    m_hit_trafo        = trafo_matrices[closest_id];
-    m_hit_world_pos    = trafo_matrices[closest_id] * closest_hit.cast<double>();
-    m_hit_world_normal = world_normal;
-    return true;
-}
-
-void GLGizmoAdvancedCut::render_hovered_facet()
-{
-    if (m_hit_facet < 0 || m_hit_volume == nullptr)
-        return;
-
-    // Rebuild only when the hovered facet actually changes.
-    if (m_last_hit_facet != m_hit_facet) {
-        m_last_hit_facet = m_hit_facet;
-        m_hovered_tri.reset();
-
-        const indexed_triangle_set &its = m_hit_volume->mesh().its;
-        const auto                 &tri = its.indices[m_hit_facet];
-        // Lift off the surface so the highlight wins the depth test against the model.
-        const Vec3d bias = m_hit_world_normal * 0.05;
-
-        indexed_triangle_set temp_its;
-        for (int i = 0; i < 3; ++i) {
-            const Vec3d v = m_hit_trafo * its.vertices[tri[i]].cast<double>() + bias;
-            temp_its.vertices.push_back(v.cast<float>());
-        }
-        temp_its.indices.push_back({0, 1, 2});
-        m_hovered_tri.init_from(temp_its);
-    }
-
-    if (!m_hovered_tri.is_initialized())
-        return;
-
-    const auto &p_flat_shader = wxGetApp().get_shader("flat");
-    if (!p_flat_shader)
-        return;
-
-    const Camera &camera = wxGetApp().plater()->get_camera();
-    glsafe(::glEnable(GL_DEPTH_TEST));
-    glsafe(::glDisable(GL_CULL_FACE));
-    wxGetApp().bind_shader(p_flat_shader);
-    p_flat_shader->set_uniform("projection_matrix", camera.get_projection_matrix());
-    // Vertices are already in world space, so the model part of the matrix is identity.
-    p_flat_shader->set_uniform("view_model_matrix", camera.get_view_matrix());
-    m_hovered_tri.set_color(GLGizmoBase::FLATTEN_HOVER_COLOR);
-    m_hovered_tri.render_geometry();
-    wxGetApp().unbind_shader();
-    glsafe(::glEnable(GL_CULL_FACE));
-}
-
 bool GLGizmoAdvancedCut::apply_picked_facet()
 {
-    if (m_hit_facet < 0 || m_hit_world_normal.isZero())
+    const FacetPicker::Hit &picked = m_facet_picker.hit();
+    if (!picked.valid() || picked.world_normal.isZero())
         return false;
 
-    const Transform3d m = rotation_from_plane_normal(m_hit_world_normal);
+    const Transform3d m = rotation_from_plane_normal(picked.world_normal);
 
     // Plane lands flush with the facet; the user offsets it afterwards with Movement.
-    const Vec3d new_plane_center = m_hit_world_pos;
+    const Vec3d new_plane_center = picked.world_pos;
 
     const auto new_tbb = transformed_bounding_box(new_plane_center, m);
 
@@ -794,8 +653,7 @@ void GLGizmoAdvancedCut::on_set_state()
         }
         m_hover_id           = -1;
         m_connectors_editing = false;
-        m_pick_face_mode     = false;
-        clear_facet_pick_cache();
+        m_facet_picker.set_active(false);
 
         update_bb();
         reset_cut_plane();//according to boundingbox
@@ -1030,8 +888,8 @@ void GLGizmoAdvancedCut::on_render()
     if (!m_connectors_editing) {
         render_cut_plane_and_grabbers();
     }
-    if (m_pick_face_mode && !m_connectors_editing)
-        render_hovered_facet();
+    if (m_facet_picker.is_active() && !m_connectors_editing)
+        m_facet_picker.render(wxGetApp().plater()->get_camera());
     // render_clipper_cut for get the cut plane result
     render_clipper_cut();
     // render a cut line on screen by shift key and mouse move
@@ -1045,13 +903,13 @@ void GLGizmoAdvancedCut::on_render()
 
 bool GLGizmoAdvancedCut::on_mouse(const wxMouseEvent &mouse_event)
 {
-    if (m_pick_face_mode && !m_connectors_editing) {
+    if (m_facet_picker.is_active() && !m_connectors_editing) {
         if (mouse_event.Moving() || mouse_event.Dragging()) {
-            if (!update_facet_pick_cache(Vec2d(mouse_event.GetX(), mouse_event.GetY())))
-                clear_facet_pick_cache();
+            m_facet_picker.update(Vec2d(mouse_event.GetX(), mouse_event.GetY()), m_c, m_parent.get_selection(),
+                                  wxGetApp().plater()->get_camera());
             m_parent.request_extra_frame();
         } else if (mouse_event.Leaving()) {
-            clear_facet_pick_cache();
+            m_facet_picker.reset();
         }
     }
 
@@ -2111,10 +1969,8 @@ void GLGizmoAdvancedCut::set_connectors_editing(bool connectors_editing)
         return;
 
     m_connectors_editing = connectors_editing;
-    if (m_connectors_editing) {
-        m_pick_face_mode = false;
-        clear_facet_pick_cache();
-    }
+    if (m_connectors_editing)
+        m_facet_picker.set_active(false);
     m_c->object_clipper()->set_behaviour(m_connectors_editing, m_connectors_editing, double(m_contour_width));
     m_parent.request_extra_frame();
     // todo: zhimin need a better method
@@ -2345,10 +2201,8 @@ void GLGizmoAdvancedCut::switch_to_mode(CutMode new_mode) {
     if (m_cut_mode == CutMode::cutTongueAndGroove) {
         m_cut_to_parts = false;//into Groove function,cancel m_cut_to_parts
     }
-    if (m_cut_mode != CutMode::cutPlanar) {
-        m_pick_face_mode = false;
-        clear_facet_pick_cache();
-    }
+    if (m_cut_mode != CutMode::cutPlanar)
+        m_facet_picker.set_active(false);
     apply_color_clip_plane_colors();
     if (auto oc = m_c->object_clipper()) {
         m_contour_width = m_cut_mode == CutMode::cutTongueAndGroove ? 0.f : 0.4f;
@@ -2767,19 +2621,17 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     m_imgui->disabled_begin(!pick_face_available);
     // Keep the button looking pressed while armed - it is a mode, and the only other
     // cue that it is on is the facet highlight, which needs the cursor over the model.
-    if (m_pick_face_mode)
+    const bool picking = m_facet_picker.is_active();
+    if (picking)
         ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonActive));
-    if (m_imgui->button(_L("Pick face"))) {
-        m_pick_face_mode = !m_pick_face_mode;
-        if (!m_pick_face_mode)
-            clear_facet_pick_cache();
-    }
-    if (m_pick_face_mode)
+    if (m_imgui->button(_L("Pick face")))
+        m_facet_picker.set_active(!picking);
+    if (picking)
         ImGui::PopStyleColor();
     m_imgui->disabled_end();
     if (ImGui::IsItemHovered())
         m_imgui->tooltip(_L("Click a face of the model to set the cut plane. The plane lands flush with that face; use Movement to offset it."), ImGui::GetFontSize() * 20.0f);
-    if (m_pick_face_mode) {
+    if (m_facet_picker.is_active()) {
         ImGui::SameLine();
         m_imgui->text(_L("Click a face of the model."));
     }
