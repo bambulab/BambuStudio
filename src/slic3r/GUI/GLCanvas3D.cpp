@@ -8490,6 +8490,7 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
 
 void GLCanvas3D::_picking_pass()
 {
+    m_hover_volume_idx_before_gizmo = -1;
     if (m_picking_enabled && !m_mouse.dragging && m_mouse.position != Vec2d(DBL_MAX, DBL_MAX)) {
 
         // Render the object for picking.
@@ -8525,6 +8526,17 @@ void GLCanvas3D::_picking_pass()
 
         m_camera_clipping_plane = m_gizmos.get_clipping_plane();
         _render_volumes_for_picking();
+
+        // Preserve the volume hit before gizmo rendering overwrites the picking pixel.
+        if (m_gizmos.get_current_type() == GLGizmosManager::Cut && !m_tooltip.is_in_imgui()) {
+            GLubyte color[4] = { 0, 0, 0, 0 };
+            p_ogl_manager->read_pixel(OpenGLManager::s_picking_frame, 0, 0, 1, 1, EPixelFormat::RGBA, EPixelDataType::UByte, (void *) color);
+            if (picking_checksum_alpha_channel(color[0], color[1], color[2]) == color[3]) {
+                const int volume_id = color[0] + (color[1] << 8) + (color[2] << 16);
+                if (0 <= volume_id && volume_id < int(m_volumes.volumes.size()))
+                    m_hover_volume_idx_before_gizmo = volume_id;
+            }
+        }
 
         //BBS: remove the bed picking logic
         //_render_bed_for_picking(!get_active_camera().is_looking_downward());

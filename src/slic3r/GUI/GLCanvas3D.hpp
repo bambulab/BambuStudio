@@ -692,6 +692,7 @@ private:
 
     //BBS:add plate related logic
     mutable std::vector<int> m_hover_volume_idxs;
+    int m_hover_volume_idx_before_gizmo{ -1 };
     std::vector<int> m_hover_plate_idxs;
     //BBS if explosion_ratio is changed, need to update volume bounding box
     mutable float m_explosion_ratio = 1.0;
@@ -1226,6 +1227,7 @@ public:
 
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
     int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }
+    int get_hover_volume_idx_before_gizmo() const { return m_hover_volume_idx_before_gizmo; }
     void set_selected_extruder(int extruder) { m_selected_extruder = extruder;}
 
     class WipeTowerInfo {

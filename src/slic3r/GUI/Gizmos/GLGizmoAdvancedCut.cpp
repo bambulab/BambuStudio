@@ -266,10 +266,8 @@ std::string GLGizmoAdvancedCut::get_tooltip() const
         return tooltip;
     }
 
-    // Part hover wins over the cut-plane handle when both overlap.
-    if (!m_dragging && m_cut_mode == CutMode::cutPlanar && !m_connectors_editing && m_part_selection && m_part_selection->valid()
-        && !m_part_selection->is_one_object()
-        && m_part_selection->is_mouse_over_part(m_parent.get_local_mouse_position()))
+    if (!m_dragging && m_cut_mode == CutMode::cutPlanar && !m_connectors_editing
+        && m_parent.get_hover_volume_idx_before_gizmo() >= 0)
         return _u8L("Right-click a part to assign it to the other side");
 
     if (!m_dragging && m_hover_id == c_plate_move_id)
@@ -871,7 +869,6 @@ void GLGizmoAdvancedCut::on_render()
     // check objects visibility
     toggle_model_objects_visibility();
     update_clipper();
-    ensure_part_selection_for_hover();
     init_picking_models();
 
     // Show placed connectors
@@ -2316,9 +2313,6 @@ void GLGizmoAdvancedCut::reset_cut_by_contours()
         if (m_dragging || m_groove_editing || !has_valid_groove())
             return;
         process_contours();
-    } else if (!m_dragging && !m_is_dragging && m_c && m_c->object_clipper()) {
-        // Rebuild cut parts after the plane moves so part hover and right-click keep working.
-        process_contours();
     } else {
         toggle_model_objects_visibility();
     }
@@ -2351,18 +2345,6 @@ void GLGizmoAdvancedCut::process_contours()
     }
 
     toggle_model_objects_visibility();
-}
-
-void GLGizmoAdvancedCut::ensure_part_selection_for_hover()
-{
-    // on_set_state runs before update_clipper(); defer contour processing until the clipper is ready.
-    if (m_connectors_editing || m_cut_mode != CutMode::cutPlanar || m_dragging || m_is_dragging)
-        return;
-    if (!m_part_selection || m_part_selection->valid())
-        return;
-    if (!m_c || !m_c->object_clipper())
-        return;
-    process_contours();
 }
 
 void GLGizmoAdvancedCut::render_flip_plane_button(bool disable_pred /*=false*/)
@@ -3542,10 +3524,10 @@ bool PartSelection::has_modified_cut_parts()
     return false;
 }
 
-int PartSelection::pick_part_id(const Vec2d &mouse_pos) const
+void PartSelection::toggle_selection(const Vec2d &mouse_pos)
 {
     if (!valid())
-        return -1;
+        return;
 
     const Camera &camera     = wxGetApp().plater()->get_camera();
     const Vec3d & camera_pos = camera.get_position();
@@ -3555,30 +3537,18 @@ int PartSelection::pick_part_id(const Vec2d &mouse_pos) const
 
     std::vector<std::pair<size_t, double>> hits_id_and_sqdist;
 
-    // Use the same transform as part_render() so hover matches what is drawn.
     for (size_t id = 0; id < m_cut_parts.size(); ++id) {
         const Transform3d &tr = m_cut_parts[id].trans;
         if (m_cut_parts[id].raycaster->unproject_on_mesh(mouse_pos, tr, camera, pos, normal))
-            hits_id_and_sqdist.emplace_back(id, (camera_pos - tr * (pos.cast<double>())).squaredNorm());
+            hits_id_and_sqdist.emplace_back(id, (camera_pos - tr * pos.cast<double>()).squaredNorm());
     }
     if (hits_id_and_sqdist.empty())
-        return -1;
+        return;
 
-    return int(std::min_element(hits_id_and_sqdist.begin(), hits_id_and_sqdist.end(), [](const std::pair<size_t, double> &a, const std::pair<size_t, double> &b) {
-                   return a.second < b.second;
-               })->first);
-}
-
-bool PartSelection::is_mouse_over_part(const Vec2d &mouse_pos) const
-{
-    return pick_part_id(mouse_pos) >= 0;
-}
-
-void PartSelection::toggle_selection(const Vec2d &mouse_pos)
-{
-    const int id = pick_part_id(mouse_pos);
-    if (id >= 0)
-        toggle_selection(id);
+    const size_t id = std::min_element(hits_id_and_sqdist.begin(), hits_id_and_sqdist.end(), [](const std::pair<size_t, double> &a, const std::pair<size_t, double> &b) {
+                          return a.second < b.second;
+                      })->first;
+    toggle_selection(int(id));
 }
 
 void PartSelection::toggle_selection(int id)

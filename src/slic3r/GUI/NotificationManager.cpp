@@ -2146,12 +2146,13 @@ void NotificationManager::close_and_delete_self(PopNotification * self)
     }
 }
 
-void NotificationManager::remove_notification_of_type(const NotificationType type) {
+void NotificationManager::remove_notification_of_type(const NotificationType type, bool remove_all) {
     for (auto it = m_pop_notifications.begin(); it != m_pop_notifications.end();) {
         std::unique_ptr<PopNotification> &notification = *it;
         if (notification->get_type() == type) {
             it = m_pop_notifications.erase(it);
-            break;
+            if (!remove_all)
+                break;
         } else
             ++it;
     }
@@ -2169,7 +2170,7 @@ bool NotificationManager::has_notification_of_type(const NotificationType type) 
 void NotificationManager::clear_all()
 {
     for (size_t i = 0; i < size_t(NotificationType::NotificationTypeCount); i++) {
-        remove_notification_of_type((NotificationType)i);
+        remove_notification_of_type((NotificationType)i, true);
     }
 }
 
