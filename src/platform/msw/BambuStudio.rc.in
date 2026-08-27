@@ -6,7 +6,7 @@ PRODUCTVERSION @SLIC3R_COMMA_SEPARATED_VERSION@
  {
   BLOCK "040904E4"
   {
-   VALUE "CompanyName", "Bambu Research"
+   VALUE "CompanyName", "@SLIC3R_APP_NAME@ (community fork)"
    VALUE "FileDescription", "@SLIC3R_APP_NAME@"
    VALUE "FileVersion", "@SLIC3R_VERSION@"
    VALUE "ProductName", "@SLIC3R_APP_NAME@"
