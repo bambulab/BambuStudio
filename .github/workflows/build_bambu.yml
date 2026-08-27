@@ -103,7 +103,16 @@ jobs:
       - name: pack mac app
         if: github.ref != 'refs/heads/main' && (inputs.os == 'macos-15-intel' || inputs.os == 'macos-15' || inputs.os == 'macos-26')
         working-directory: ${{ github.workspace }}
-        run: zip -r BambuStudio_Mac_${{inputs.arch}}_${{inputs.os}}_${{ env.ver }}.zip ${{ github.workspace }}/build
+        run: |
+          # Only package the final .app bundle, not the whole raw CMake build
+          # tree (object files, static libs, intermediate per-arch builds),
+          # which previously bloated this artifact to ~2GB.
+          if [ "${{ inputs.os }}" == "macos-15-intel" ]; then
+            APP_DIR="build/x86_64/BambuStudio"
+          else
+            APP_DIR="build/universal/BambuStudio"
+          fi
+          zip -r BambuStudio_Mac_${{inputs.arch}}_${{inputs.os}}_${{ env.ver }}.zip "$APP_DIR/BambuStudio.app"
 
       - name: Upload artifacts mac
         if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15' || inputs.os == 'macos-26'
