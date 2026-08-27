@@ -10,6 +10,7 @@
 #include "fila_manager/wgtFilaManagerStore.h"
 
 #include <map>
+#include <set>
 #include <unordered_map>
 #include <vector>
 #include <wx/arrstr.h>
@@ -41,7 +42,8 @@ public:
     void Popup(const wxArrayString&                          filament_items,
                const std::unordered_map<wxString, wxString>& vendors,
                const std::unordered_map<wxString, wxString>& types,
-               const wxString&                               current_alias = wxString());
+               const wxString&                               current_alias = wxString(),
+               std::set<std::string>                         printer_names = {});
 
     const SelectionResult& get_result() const { return m_result; }
 
@@ -68,6 +70,7 @@ private:
     wxArrayString                             m_filament_items;
     std::unordered_map<wxString, wxString>    m_vendors;
     std::unordered_map<wxString, wxString>    m_types;
+    std::set<std::string>                     m_printer_names;
     std::map<wxString, std::vector<wxString>> m_brand_to_aliases;
     std::vector<wxString>                     m_ordered_brands;
     wxString                                  m_checked_alias;

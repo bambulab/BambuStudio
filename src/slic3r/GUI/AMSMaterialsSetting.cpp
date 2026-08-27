@@ -566,7 +566,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         if (!m_selected_spool_id.empty()) {
             auto* store = wxGetApp().fila_manager_store();
             const FilamentSpool* sp = store ? store->get_spool(m_selected_spool_id) : nullptr;
-            if (sp) filament_id = sp->setting_id;
+            if (sp) filament_id = sp->filament_id;
         }
         if (filament_id.empty()) {
             auto it = map_filament_items.find(into_u8(m_current_filament_alias));
@@ -785,7 +785,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
                 auto* store = wxGetApp().fila_manager_store();
                 if (store) {
                     FilamentSpool new_spool;
-                    new_spool.setting_id   = ams_filament_id;
+                    new_spool.filament_id  = ams_filament_id;
                     new_spool.entry_method = "manual";
                     new_spool.color_type   = m_clr_picker->ctype;
 
@@ -877,8 +877,8 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
         auto* store = wxGetApp().fila_manager_store();
         const FilamentSpool* sp = store ? store->get_spool(m_selected_spool_id) : nullptr;
         if (sp) {
-            filament_item.filament_id = sp->setting_id;
-            filament_item.setting_id  = sp->setting_id;
+            filament_item.filament_id = sp->filament_id;
+            filament_item.setting_id  = sp->filament_id;
             filament_item.spool_id    = sp->spool_id;
         }
     }
@@ -1617,8 +1617,14 @@ void AMSMaterialsSetting::on_open_filament_select_dialog()
     if (m_selected_spool_id.empty())
         current_alias = m_current_filament_alias;
 
+    std::set<std::string> printer_names;
+    if (PresetBundle* preset_bundle = wxGetApp().preset_bundle)
+        printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(
+            DevPrinterConfigUtil::get_printer_display_name(obj->printer_type), nozzle_diameter_str);
+
     FilamentSelectDialog dlg(this);
-    dlg.Popup(filament_items, query_filament_vendors, query_filament_types, current_alias);
+    dlg.Popup(filament_items, query_filament_vendors, query_filament_types, current_alias,
+              std::move(printer_names));
 
     const auto& res = dlg.get_result();
     if (!res.is_valid()) return;
@@ -2350,7 +2356,7 @@ void AMSMaterialsSetting::apply_filament_selection()
         auto* store = wxGetApp().fila_manager_store();
         const FilamentSpool* sp = store ? store->get_spool(m_selected_spool_id) : nullptr;
         if (sp && preset_bundle) {
-            auto fila_info = preset_bundle->get_filament_by_filament_id(sp->setting_id);
+            auto fila_info = preset_bundle->get_filament_by_filament_id(sp->filament_id);
             if (fila_info.has_value()) {
                 ams_filament_id = fila_info->filament_id;
                 ams_setting_id  = fila_info->setting_id;

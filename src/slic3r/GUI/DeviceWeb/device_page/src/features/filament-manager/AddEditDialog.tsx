@@ -1120,7 +1120,6 @@ export function AddEditDialog({
       remain_percent: remainPct,
       note,
       setting_id: matchedCloudFilamentId
-        || matchedPresetItem?.setting_id
         || matchedPresetItem?.filament_id
         || initSpool?.setting_id
         || '',

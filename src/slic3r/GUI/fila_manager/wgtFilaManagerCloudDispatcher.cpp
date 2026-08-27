@@ -110,7 +110,7 @@ void wgtFilaManagerCloudDispatcher::enqueue_push_create(const FilamentSpool& spo
 {
     wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher enqueue push_create",
                                    "A create push operation was queued",
-                                   {{"setting_id", spool.setting_id}});
+                                   {{"setting_id", spool.filament_id}});
     m_queue.push_back([this, spool]() { run_push_create_op(spool); });
     schedule_next();
 }
@@ -285,7 +285,7 @@ void wgtFilaManagerCloudDispatcher::run_push_create_op(const FilamentSpool& spoo
     BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_create";
     wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher push_create started",
                                    "Queued create push started running",
-                                   {{"setting_id", spool.setting_id}});
+                                   {{"setting_id", spool.filament_id}});
     if (!m_client) { on_op_done(); return; }
 
     nlohmann::json body = wgtFilaManagerCloudSync::spool_to_cloud_json(spool);

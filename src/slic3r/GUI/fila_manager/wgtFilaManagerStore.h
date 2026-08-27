@@ -71,7 +71,7 @@ struct SoftMatchPendingResponse {
 
 struct FilamentSpool {
     std::string spool_id;
-    std::string setting_id;
+    std::string filament_id;
     std::string tag_uid;
     std::string tray_id_name;
 

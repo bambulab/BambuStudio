@@ -447,7 +447,7 @@ bool wgtFilaManagerSync::slot_pin_still_valid(const FilamentSpool& sp,
     // AMS 侧 tray.sub_brands 对应 series；tray.m_fila_type 对应 material_type；
     // 品牌无独立 tray 字段（tray.setting_id 前 3 位间接表达），因此若品牌被改，
     // setting_id 会随之变，用 setting_id 兜底品牌变化即可。
-    if (!tray.setting_id.empty() && sp.setting_id != tray.setting_id) return false;
+    if (!tray.setting_id.empty() && sp.filament_id != tray.setting_id) return false;
     if (!tray.sub_brands.empty()  && !sp.series.empty()
         && sp.series != tray.sub_brands) return false;
     if (!tray.m_fila_type.empty() && !sp.material_type.empty()

@@ -45,7 +45,7 @@ nlohmann::json FilamentSpool::to_json() const
 {
     return nlohmann::json{
         {"spool_id",        spool_id},
-        {"setting_id",      setting_id},
+        {"setting_id",      filament_id},
         {"tag_uid",         tag_uid},
         {"tray_id_name",    tray_id_name},
         {"brand",           brand},
@@ -151,7 +151,7 @@ FilamentSpool FilamentSpool::from_json(const nlohmann::json& j)
         if (j.contains(key)) j.at(key).get_to(dst);
     };
     get("spool_id",        s.spool_id);
-    get("setting_id",      s.setting_id);
+    get("setting_id",      s.filament_id);
     get("tag_uid",         s.tag_uid);
     get("tray_id_name",    s.tray_id_name);
     get("brand",           s.brand);
@@ -301,7 +301,7 @@ bool wgtFilaManagerStore::apply_patch(const std::string& spool_id, const nlohman
         if (v.is_null()) return;
         try { v.get_to(dst); } catch (...) {}
     };
-    get_if("setting_id",      s.setting_id);
+    get_if("setting_id",      s.filament_id);
     get_if("brand",           s.brand);
     get_if("material_type",   s.material_type);
     get_if("series",          s.series);
@@ -386,7 +386,7 @@ const FilamentSpool* wgtFilaManagerStore::find_by_setting_and_color(
     const FilamentSpool* match = nullptr;
     int count = 0;
     for (auto& [id, spool] : m_spools) {
-        if (spool.setting_id == setting_id && normalize(spool.color_code) == norm_color) {
+        if (spool.filament_id == setting_id && normalize(spool.color_code) == norm_color) {
             match = &spool;
             ++count;
         }

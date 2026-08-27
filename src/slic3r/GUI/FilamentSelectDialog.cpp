@@ -453,11 +453,13 @@ wxWindow* FilamentSelectDialog::build_default_page(wxWindow* parent)
 void FilamentSelectDialog::Popup(const wxArrayString&                          filament_items,
                                  const std::unordered_map<wxString, wxString>& vendors,
                                  const std::unordered_map<wxString, wxString>& types,
-                                 const wxString&                               current_alias)
+                                 const wxString&                               current_alias,
+                                 std::set<std::string>                         printer_names)
 {
     m_filament_items = filament_items;
     m_vendors        = vendors;
     m_types          = types;
+    m_printer_names  = std::move(printer_names);
     if (!current_alias.IsEmpty()) {
         m_checked_alias = current_alias;
     } else {
@@ -493,8 +495,15 @@ void FilamentSelectDialog::fill_manager_tab()
         for (const auto& id : store->all_spool_ids()) {
             const FilamentSpool* sp = store->get_spool(id);
             if (!sp) continue;
-            const bool has_preset =
-                bundle && bundle->get_filament_by_filament_id(sp->setting_id).has_value();
+            bool has_preset = false;
+            if (bundle && !sp->filament_id.empty()) {
+                for (const auto& printer_name : m_printer_names) {
+                    if (bundle->get_filament_by_filament_id(sp->filament_id, printer_name).has_value()) {
+                        has_preset = true;
+                        break;
+                    }
+                }
+            }
             if (has_preset) {
                 const wxString b = sp->brand.empty() ? other : wxString::FromUTF8(sp->brand);
                 brand_to_spools[b].push_back(*sp);
