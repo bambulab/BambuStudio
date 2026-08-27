@@ -100,7 +100,7 @@ jobs:
           brew pin cmake@3.31.0
           ./BuildMac.sh -s -x -a universal -t 10.15 -1
 
-      - name: pack mac app
+      - name: pack mac dmg
         if: github.ref != 'refs/heads/main' && (inputs.os == 'macos-15-intel' || inputs.os == 'macos-15' || inputs.os == 'macos-26')
         working-directory: ${{ github.workspace }}
         run: |
@@ -112,14 +112,29 @@ jobs:
           else
             APP_DIR="build/universal/BambuStudio"
           fi
-          zip -r BambuStudio_Mac_${{inputs.arch}}_${{inputs.os}}_${{ env.ver }}.zip "$APP_DIR/BambuStudio.app"
+
+          # Ad-hoc self-sign the app. This fork has no paid Apple Developer ID
+          # certificate to notarize with, so Gatekeeper will still warn "Apple
+          # could not verify this app is free of malware" on first launch.
+          # Ad-hoc signing at least prevents "app is damaged" failures and
+          # lets users get past the warning via right-click > Open (or
+          # System Settings > Privacy & Security > Open Anyway, or
+          # `xattr -cr BambuStudio.app` after downloading).
+          codesign --force --deep --sign - "$APP_DIR/BambuStudio.app"
+
+          DMG_NAME="BambuStudio_Mac_${{inputs.arch}}_${{inputs.os}}_${{ env.ver }}.dmg"
+          STAGE_DIR=$(mktemp -d)
+          cp -R "$APP_DIR/BambuStudio.app" "$STAGE_DIR/"
+          ln -s /Applications "$STAGE_DIR/Applications"
+          hdiutil create -volname "BambuStudio" -srcfolder "$STAGE_DIR" -ov -format UDZO "$DMG_NAME"
+          rm -rf "$STAGE_DIR"
 
       - name: Upload artifacts mac
         if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15' || inputs.os == 'macos-26'
         uses: actions/upload-artifact@v6
         with:
-          name: BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}
-          path: ${{ github.workspace }}/BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}.zip
+          name: BambuStudio_Mac_${{inputs.arch}}_${{inputs.os}}_${{ env.ver }}
+          path: ${{ github.workspace }}/BambuStudio_Mac_${{inputs.arch}}_${{inputs.os}}_${{ env.ver }}.dmg
 
   # Windows
       - name: setup MSVC
