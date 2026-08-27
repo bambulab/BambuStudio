@@ -58,8 +58,14 @@ jobs:
 
           # This fork ships universal macOS .dmg assets (not the upstream arm64/x86_64
           # .zip). The universal dmg covers both architectures; use it as the cask URL.
-          URL_ARM="${BASE}/BambuStudio_macos-15_universal_V${UPSTREAM_VER}.dmg"
-          URL_INTEL="${BASE}/BambuStudio_macos-15-intel_x86_64_V${UPSTREAM_VER}.dmg"
+          # NOTE: these filenames don't currently match what build_bambu.yml
+          # produces (OpenStudio_Mac_<arch>_<os>_V<ver>.dmg, with arch being
+          # x86_64 or arm64 -- there is no "universal" dmg asset produced).
+          # This appears to predate the current naming scheme and needs to be
+          # reconciled with the actual release asset names, or this Homebrew
+          # cask update will fail to download a matching asset.
+          URL_ARM="${BASE}/OpenStudio_macos-15_universal_V${UPSTREAM_VER}.dmg"
+          URL_INTEL="${BASE}/OpenStudio_macos-15-intel_x86_64_V${UPSTREAM_VER}.dmg"
 
           echo "URL_ARM=$URL_ARM" >> $GITHUB_ENV
           echo "URL_INTEL=$URL_INTEL" >> $GITHUB_ENV
