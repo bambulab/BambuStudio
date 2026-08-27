@@ -3203,7 +3203,52 @@ void TextureImportDialog::apply_auto_standard_mix(TextureAutoMixMode mode)
 {
     if (m_mapping_rows.empty())
         return;
+
+    const bool dropped_before_mix = m_filaments_dropped;
     m_filaments_dropped = false;
+
+    const auto recipe_mode = texture_recipe_mode(mode);
+    std::vector<Slic3r::ColorDecomposeRecipeResult> recipes(m_mapping_rows.size());
+    bool has_mixable = false;
+    for (size_t row_index = 0; row_index < m_mapping_rows.size(); ++row_index) {
+        Slic3r::ColorDecomposeRgb target_rgb;
+        if (!Slic3r::color_decompose_hex_to_rgb(m_mapping_rows[row_index].source_hex, target_rgb))
+            continue;
+        recipes[row_index] = Slic3r::lookup_standard_recipe(target_rgb, recipe_mode, DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE);
+        if (recipes[row_index].valid && recipes[row_index].components.size() >= 2)
+            has_mixable = true;
+    }
+    if (!has_mixable)
+        return;
+
+    // Snapshot pre-mix state so a complete miss (no mixed slot added, e.g. already
+    // at ExtruderMax) can restore a no-op instead of re-running do_auto_match().
+    const auto snapshot_matches = m_current_matches;
+    const auto snapshot_colors = m_filament_colors_rgba;
+    const auto snapshot_color_strs = m_filament_color_strs;
+    const auto snapshot_names = m_filament_names;
+    const auto snapshot_entries = m_filament_entries;
+    const auto snapshot_new_colors = m_new_filament_colors;
+    const auto snapshot_new_preset_names = m_new_filament_preset_names;
+    const auto snapshot_new_mixed = m_new_mixed_filaments;
+
+    // Baseline matching may have filled the dialog with one virtual per cluster.
+    // Mixed slots are added on top, so existing + cluster virtuals + bases +
+    // mixed easily exceeds max_filament_count() (ExtruderMax). Unbind mixable
+    // rows first and compact so those virtuals free their slots before bases /
+    // mixed filaments are created. compact remaps dialog_index, so base lookup
+    // must happen after this, never inside a mid-loop compact.
+    // After this compact, m_mapping_rows[].target_filament_idx is stale until
+    // rebuild_mapping_rows(); look up bases via m_filament_entries /
+    // m_current_matches only.
+    for (size_t row_index = 0; row_index < m_mapping_rows.size(); ++row_index) {
+        if (!recipes[row_index].valid || recipes[row_index].components.size() < 2)
+            continue;
+        m_mapping_rows[row_index].target_filament_idx = -1;
+        if (row_index < m_current_matches.size())
+            m_current_matches[row_index].filament_index = -1;
+    }
+    compact_used_virtual_filaments();
 
     auto find_or_add_base_physical = [this](const std::string& color_hex) -> int {
         const std::string normalized = texture_normalize_color_hex(color_hex);
@@ -3244,14 +3289,17 @@ void TextureImportDialog::apply_auto_standard_mix(TextureAutoMixMode mode)
         return -1;
     };
 
-    bool changed = false;
-    const auto recipe_mode = texture_recipe_mode(mode);
-    for (size_t row_index = 0; row_index < m_mapping_rows.size(); ++row_index) {
-        Slic3r::ColorDecomposeRgb target_rgb;
-        if (!Slic3r::color_decompose_hex_to_rgb(m_mapping_rows[row_index].source_hex, target_rgb))
-            continue;
+    auto refresh_after_mix = [this]() {
+        update_filament_color_map();
+        rebuild_mapping_rows();
+        update_drop_warning_visibility();
+        update_auto_mix_reset_visibility();
+        update_confirm_button_state();
+    };
 
-        auto recipe = Slic3r::lookup_standard_recipe(target_rgb, recipe_mode, DEFAULT_VIRTUAL_FILAMENT_BASIC_TYPE);
+    bool changed = false;
+    for (size_t row_index = 0; row_index < m_mapping_rows.size(); ++row_index) {
+        const auto& recipe = recipes[row_index];
         if (!recipe.valid || recipe.components.size() < 2)
             continue;
 
@@ -3287,15 +3335,44 @@ void TextureImportDialog::apply_auto_standard_mix(TextureAutoMixMode mode)
         changed = true;
     }
 
-    if (!changed)
+    if (!changed) {
+        // No mixed slot was added (typically already at the filament cap).
+        // Restore the pre-unbind snapshot so the click is a no-op.
+        m_current_matches = snapshot_matches;
+        m_filament_colors_rgba = snapshot_colors;
+        m_filament_color_strs = snapshot_color_strs;
+        m_filament_names = snapshot_names;
+        m_filament_entries = snapshot_entries;
+        m_new_filament_colors = snapshot_new_colors;
+        m_new_filament_preset_names = snapshot_new_preset_names;
+        m_new_mixed_filaments = snapshot_new_mixed;
+        m_filaments_dropped = dropped_before_mix;
+        refresh_after_mix();
         return;
+    }
 
     m_auto_mix_applied = true;
     compact_used_virtual_filaments();
-    update_filament_color_map();
-    rebuild_mapping_rows();
-    update_drop_warning_visibility();
-    update_auto_mix_reset_visibility();
+
+    // Rows that failed to get a mixed slot (filament cap) stay at -1 after
+    // compact, which the UI renders as "Filament 0". Bind them to the closest
+    // already-created filament instead of leaving the row unmapped.
+    for (size_t row_index = 0; row_index < m_mapping_rows.size(); ++row_index) {
+        if (row_index >= m_current_matches.size())
+            continue;
+        if (m_current_matches[row_index].filament_index >= 0)
+            continue;
+        const int fallback = find_closest_filament_index(m_current_matches[row_index].cluster_color);
+        if (fallback < 0)
+            continue;
+        m_mapping_rows[row_index].target_filament_idx = fallback;
+        m_current_matches[row_index].filament_index = fallback;
+        m_current_matches[row_index].filament_color = m_filament_colors_rgba[fallback];
+        m_current_matches[row_index].delta_e = Slic3r::compute_delta_e(
+            m_current_matches[row_index].cluster_color, m_current_matches[row_index].filament_color);
+    }
+
+    refresh_after_mix();
 }
 
 void TextureImportDialog::reset_auto_mix()
@@ -3326,6 +3403,7 @@ void TextureImportDialog::reset_auto_mix()
     rebuild_mapping_rows();
     update_drop_warning_visibility();
     update_auto_mix_reset_visibility();
+    update_confirm_button_state();
 }
 
 void TextureImportDialog::update_auto_mix_reset_visibility()
