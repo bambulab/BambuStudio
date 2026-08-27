@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=Bambu GCode viewer
+Name=OpenStudio GCode viewer
 Exec=bambu-studio --gcodeviewer %F
 Icon=BambuStudio-gcodeviewer
 Terminal=false

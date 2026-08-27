@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=BambuStudio
+Name=OpenStudio
 GenericName=3D Printing Software
 Icon=BambuStudio
 Exec=bambu-studio %U
