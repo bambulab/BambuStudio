@@ -7692,6 +7692,9 @@ void DynamicPrintConfig::normalize_fdm()
         // Resolution will be above 1um.
         opt_gcode_resolution->value = std::max(opt_gcode_resolution->value, 0.001);
 
+    // Repair nil/invalid filament_max_volumetric_speed entries carried by corrupted/legacy
+    // project files, before they propagate NaN into slicing speeds (the -35791396 bug).
+    this->repair_nil_filament_max_volumetric_speed();
 }
 
 //BBS:divide normalize_fdm to 2 steps and call them one by one in Print::Apply
