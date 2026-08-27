@@ -91,6 +91,14 @@ struct FilamentSpool {
     double      net_weight        = 0;
     std::string last_deducted_job_key;
 
+    // In-memory only (never serialized): set by deduct_consumption() when a
+    // local print-FINISH deduction changed net_weight, cleared by the cloud
+    // dispatcher once the new weight has been pushed successfully. While set,
+    // pull_from_cloud() must NOT overwrite net_weight / remain_percent /
+    // status with stale cloud values — otherwise a pull landing between the
+    // deduction and its push silently reverts the tracked weight.
+    bool        weight_push_pending = false;
+
     // Cloud synchronization marker. Cloud is the source of truth: this flag
     // is true iff the spool was present in the latest cloud pull.
     bool        cloud_synced      = false;
@@ -179,6 +187,10 @@ public:
     bool deduct_consumption(const std::string& spool_id,
                             double             used_g,
                             const std::string& job_key);
+
+    // Clear the weight_push_pending flag once the deducted weight has been
+    // pushed to the cloud successfully (see FilamentSpool::weight_push_pending).
+    void clear_weight_push_pending(const std::string& spool_id);
 
     // 待扣减账本仅保存在内存：覆盖同 dev_id 的旧任务，默认假设单机同一时刻只有
     // 一个待完成打印。跨进程重启中的在途任务不做恢复。

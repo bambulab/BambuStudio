@@ -539,6 +539,22 @@ void wgtFilaManagerCloudSync::merge_pulled_spools(const nlohmann::json& list)
                     cloud_spool.device_name = existing->device_name;
                 }
                 // local_is_live==false：云端在位字段直接作为历史数据落地
+                // GitHub #11937 weight tracking: a local print-FINISH
+                // deduction that hasn't been pushed yet must not be reverted
+                // by the stale cloud net_weight (this was the "weight never
+                // updates" symptom: deduct → pull 12s later → overwrite).
+                if (existing->weight_push_pending) {
+                    if (existing->net_weight != cloud_spool.net_weight) {
+                        BOOST_LOG_TRIVIAL(info)
+                            << "[FilaCloudSync] keeping locally deducted weight over cloud spool_id="
+                            << existing->spool_id
+                            << " local_net_weight=" << existing->net_weight
+                            << " cloud_net_weight=" << cloud_spool.net_weight;
+                    }
+                    cloud_spool.net_weight     = existing->net_weight;
+                    cloud_spool.remain_percent = existing->remain_percent;
+                    cloud_spool.status         = existing->status;
+                }
                 m_store->update_spool(cloud_spool);
             } else {
                 m_store->add_spool(cloud_spool);
