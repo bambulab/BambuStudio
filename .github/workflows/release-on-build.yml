@@ -7,6 +7,7 @@ on:
       - completed
     branches:
       - master
+      - dev
       - feature/filament-brand-freetype-and-profile-picker
 
 permissions:
@@ -29,10 +30,17 @@ jobs:
           VER=$(grep 'set(SLIC3R_VERSION' version.inc | sed 's/.*"\(.*\)".*/\1/')
           SHORT_SHA=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)
           RUN_NUM="${{ github.event.workflow_run.run_number }}"
-          PRETAG="v${VER}-build.${RUN_NUM}"
+          BRANCH="${{ github.event.workflow_run.head_branch }}"
+          if [ "$BRANCH" = "dev" ]; then
+            LABEL="dev"
+          else
+            LABEL="build"
+          fi
+          PRETAG="v${VER}-${LABEL}.${RUN_NUM}"
           echo "version=$VER" >> "$GITHUB_OUTPUT"
           echo "pretag=$PRETAG" >> "$GITHUB_OUTPUT"
           echo "short-sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+          echo "label=$LABEL" >> "$GITHUB_OUTPUT"
           echo "Prerelease tag: $PRETAG"
 
       - name: Skip if a full release already exists for this version
@@ -76,6 +84,8 @@ jobs:
           PRETAG="${{ steps.version.outputs.pretag }}"
           VER="${{ steps.version.outputs.version }}"
           SHORT_SHA="${{ steps.version.outputs.short-sha }}"
+          LABEL="${{ steps.version.outputs.label }}"
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
 
           # Create tag
           git tag "$PRETAG" 2>/dev/null || true
@@ -92,24 +102,39 @@ jobs:
           done
 
           BODY=$(cat <<EOF
-          > 🔧 **Prerelease Build** — [JaKuBisz/BambuStudio](https://github.com/JaKuBisz/BambuStudio) fork
+          > 🔧 **Prerelease Build ($LABEL)** — [${{ github.repository }}]($REPO_URL) fork
           >
           > Version: \`$VER\` • Commit: \`$SHORT_SHA\` • Build: \`#${{ github.event.workflow_run.run_number }}\`
 
           ⚠️ This is an automated prerelease build and may contain untested changes.
+
+          ## Running the macOS app
+
+          The macOS build is ad-hoc signed (not notarized by Apple), so Gatekeeper will
+          warn that it "cannot be verified" or "is malware" on first launch. To run it:
+
+          1. Open the \`.dmg\` and drag the app to \`/Applications\`.
+          2. Try to open it once (it will be blocked) — then go to
+             **System Settings > Privacy & Security > Open Anyway**, or
+          3. Alternatively, run this once from Terminal after installing:
+             \`xattr -cr /Applications/OpenStudio.app\`
           EOF
           )
 
+          # Create the release first, then append GitHub's auto-generated
+          # commit/PR changelog so we don't have to hand-maintain one.
           if [ -n "$ASSETS" ]; then
             gh release create "$PRETAG" \
-              --title "BambuStudio $VER (Build #${{ github.event.workflow_run.run_number }})" \
+              --title "OpenStudio $VER (Build #${{ github.event.workflow_run.run_number }})" \
               --notes "$BODY" \
+              --generate-notes \
               --prerelease \
               $ASSETS
           else
             gh release create "$PRETAG" \
-              --title "BambuStudio $VER (Build #${{ github.event.workflow_run.run_number }})" \
+              --title "OpenStudio $VER (Build #${{ github.event.workflow_run.run_number }})" \
               --notes "$BODY" \
+              --generate-notes \
               --prerelease
           fi
 

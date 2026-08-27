@@ -62,11 +62,24 @@ jobs:
           echo "upstream-tag=$UPSTREAM_TAG" >> "$GITHUB_OUTPUT"
           echo "release-name=$RELEASE_NAME" >> "$GITHUB_OUTPUT"
 
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+
           # Write body to file to handle multiline
           {
             echo 'release-body<<RELEASE_BODY_EOF'
-            echo "> 🛠️ **JaKuBisz Fork** — This build includes custom features on top of the official BambuStudio release."
-            echo "> Check out the fork: [JaKuBisz/BambuStudio](https://github.com/JaKuBisz/BambuStudio)"
+            echo "> 🛠️ **OpenStudio** — [${{ github.repository }}]($REPO_URL) fork of BambuStudio with extra features."
+            echo "> This release is kept in sync with the official [bambulab/BambuStudio](https://github.com/bambulab/BambuStudio) releases."
+            echo ""
+            echo "## Running the macOS app"
+            echo ""
+            echo "The macOS build is ad-hoc signed (not notarized by Apple), so Gatekeeper will"
+            echo "warn that it \"cannot be verified\" or \"is malware\" on first launch. To run it:"
+            echo ""
+            echo "1. Open the \`.dmg\` and drag the app to \`/Applications\`."
+            echo "2. Try to open it once (it will be blocked) — then go to"
+            echo "   **System Settings > Privacy & Security > Open Anyway**, or"
+            echo "3. Alternatively, run this once from Terminal after installing:"
+            echo "   \`xattr -cr /Applications/OpenStudio.app\`"
             echo ""
             echo "---"
             echo ""
@@ -190,11 +203,13 @@ jobs:
             gh release create "$TAG" \
               --title "$RELEASE_NAME" \
               --notes "${{ needs.sync.outputs.release-body }}" \
+              --generate-notes \
               $ASSETS
           else
             gh release create "$TAG" \
               --title "$RELEASE_NAME" \
-              --notes "${{ needs.sync.outputs.release-body }}"
+              --notes "${{ needs.sync.outputs.release-body }}" \
+              --generate-notes
           fi
 
           echo "✅ Release $TAG created successfully"
