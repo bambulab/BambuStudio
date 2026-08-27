@@ -52,7 +52,7 @@ static void fill_initial_stats(const indexed_triangle_set &its, TriangleMeshStat
     const std::vector<Vec3i> face_neighbors = its_face_neighbors(its);
     out.number_of_parts = its_number_of_patches(its, face_neighbors);
 
-    const auto nm_stats       = its_edge_diagnostics(its);
+    const auto nm_stats       = its_quick_diagnostics(its);
     assert(nm_stats.open_edges <= INT_MAX && nm_stats.non_manifold_edges <= INT_MAX && nm_stats.non_manifold_vertices <= INT_MAX);
     out.open_edges            = static_cast<int>(nm_stats.open_edges);
     out.non_manifold_edges    = static_cast<int>(nm_stats.non_manifold_edges);
@@ -389,9 +389,9 @@ void TriangleMesh::flip_triangles()
 {
     its_flip_triangles(its);
     m_stats.volume = - m_stats.volume;
-    // A global flip preserves local same-direction conflicts (layer 1) but
-    // inverts the outward test (layer 2), so re-evaluate reversed faces.
-    m_stats.has_reversed_faces = its_edge_diagnostics(its).has_reversed_faces;
+    // A global flip inverts outward orientation; re-run quick diagnostics so
+    // the watertight ray test sees the new winding.
+    m_stats.has_reversed_faces = its_quick_diagnostics(its).has_reversed_faces;
 }
 
 void TriangleMesh::align_to_origin()
