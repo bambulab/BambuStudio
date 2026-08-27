@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-14 16:02+0800\n"
+"POT-Creation-Date: 2026-08-27 15:05+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -903,12 +903,10 @@ msgstr ""
 msgid "Object"
 msgstr ""
 
-msgid "Drag to move the cut plane"
+msgid "Right-click a part to assign it to the other side"
 msgstr ""
 
-msgid ""
-"Drag to move the cut plane\n"
-"Right-click a part to assign it to the other side"
+msgid "Drag to move the cut plane"
 msgstr ""
 
 msgid "Left click"
@@ -2595,6 +2593,9 @@ msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "Error: reversed faces detected, which may affect rendering"
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
@@ -2608,6 +2609,9 @@ msgid "Right button click the icon to drop the object settings"
 msgstr ""
 
 msgid "Click the icon to reset all settings of the object"
+msgstr ""
+
+msgid "Unprintable object"
 msgstr ""
 
 msgid "Right button click the icon to drop the object printable property"
@@ -4021,22 +4025,10 @@ msgstr ""
 msgid "Colour"
 msgstr ""
 
-msgid ""
-"Nozzle\n"
-"Temperature"
-msgstr ""
-
-msgid "max"
-msgstr ""
-
-msgid "min"
-msgstr ""
-
-#, possible-boost-format
-msgid "The input value should be greater than %1% and less than %2%"
-msgstr ""
-
 msgid "Factors of Flow Dynamics Calibration"
+msgstr ""
+
+msgid "View Wiki for details"
 msgstr ""
 
 msgid "Nozzle Type"
@@ -4051,6 +4043,11 @@ msgstr ""
 msgid "Factor N"
 msgstr ""
 
+msgid ""
+"Nozzle\n"
+"Temperature"
+msgstr ""
+
 msgid "Setting AMS slot information while printing is not supported"
 msgstr ""
 
@@ -4058,6 +4055,18 @@ msgid "Setting Virtual slot information while printing is not supported"
 msgstr ""
 
 msgid "Are you sure you want to clear the filament information?"
+msgstr ""
+
+msgid "Add to Filament Library?"
+msgstr ""
+
+msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
+msgstr ""
+
+msgid "Add to Filament Library"
+msgstr ""
+
+msgid "Save Only"
 msgstr ""
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
@@ -4069,51 +4078,14 @@ msgstr ""
 msgid "You need to select the material type and color first."
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgid "Please select a color"
 msgstr ""
 
 msgid "Remark"
 msgstr ""
 
-msgid "Other"
-msgstr ""
-
-msgid "Filament Manager"
-msgstr ""
-
-msgid "In printer"
-msgstr ""
-
 #, possible-c-format, possible-boost-format
-msgid "In printer: %s"
-msgstr ""
-
-msgctxt "Filament Manager"
-msgid "Note"
-msgstr ""
-
-msgid "Unsupported Filaments"
-msgstr ""
-
-msgctxt "Unsupported Filaments"
-msgid "Note"
-msgstr ""
-
-msgid "No unsupported filaments"
-msgstr ""
-
-msgid "No filaments"
-msgstr ""
-
-msgid "System presets"
-msgstr ""
-
-msgid "Recently used"
+msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -4125,15 +4097,6 @@ msgid ""
 "'Device -> Print parts'"
 msgstr ""
 
-msgid "AMS"
-msgstr ""
-
-msgid "Other Color"
-msgstr ""
-
-msgid "Custom Color"
-msgstr ""
-
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
 msgstr ""
 
@@ -4143,13 +4106,16 @@ msgstr ""
 msgid "Link to existing filament"
 msgstr ""
 
-msgid "Not now"
-msgstr ""
-
 msgid "Please select"
 msgstr ""
 
 msgid "No matching filament"
+msgstr ""
+
+msgid "New Filament"
+msgstr ""
+
+msgid "New filament information has been recorded."
 msgstr ""
 
 msgid "Dynamic flow calibration"
@@ -4199,6 +4165,10 @@ msgid "Calibrating... %d%%"
 msgstr ""
 
 msgid "Calibration completed"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -4339,6 +4309,9 @@ msgid "DRY"
 msgstr ""
 
 msgid "WET"
+msgstr ""
+
+msgid "AMS"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -5806,6 +5779,9 @@ msgstr ""
 msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
+msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+msgstr ""
+
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr ""
 
@@ -5942,6 +5918,9 @@ msgid "Multi-device"
 msgstr ""
 
 msgid "Project"
+msgstr ""
+
+msgid "Filament Manager"
 msgstr ""
 
 msgid "Yes"
@@ -7368,6 +7347,12 @@ msgstr ""
 msgid "Open link for more info"
 msgstr ""
 
+msgid "Jump to: Support on build plate only"
+msgstr ""
+
+msgid "Jump to: Support"
+msgstr ""
+
 msgid "Warning:"
 msgstr ""
 
@@ -7850,6 +7835,30 @@ msgid "Mixed filament has invalid or mismatched components. Please re-edit affec
 msgstr ""
 
 msgid "Search plate, object and part."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ", and %d more"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "model \"%s\""
+msgstr ""
+
+msgid "support filament"
+msgstr ""
+
+msgid "custom G-code"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+msgstr ""
+
+msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+msgstr ""
+
+msgid "Delete Filament"
 msgstr ""
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
@@ -8826,13 +8835,25 @@ msgstr ""
 msgid "Enable dark mode"
 msgstr ""
 
-msgid "All"
+msgid "All related changes"
 msgstr ""
 
-msgid "Disabled"
+msgid "When color changes"
 msgstr ""
 
-msgid "Auto Flush"
+msgid "Turn off auto calculate"
+msgstr ""
+
+msgid "Auto calculate when color changes, type or configuration changes"
+msgstr ""
+
+msgid "Auto calculate when sync or modify filament colors"
+msgstr ""
+
+msgid "Keep current flush volumes, trigger manually when needed"
+msgstr ""
+
+msgid "Auto Calculate Flush Volume"
 msgstr ""
 
 msgid "Auto calculate flush volumes"
@@ -8929,10 +8950,28 @@ msgstr ""
 msgid "3D Settings"
 msgstr ""
 
+msgid "Mouse Settings"
+msgstr ""
+
+msgid "Import Settings"
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr ""
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
+msgstr ""
+
+msgid "Reverse direction of zoom with mouse wheel"
+msgstr ""
+
+msgid "If enabled, reverses the direction of zoom with mouse wheel."
+msgstr ""
+
+msgid "Drag with left mouse button to move"
+msgstr ""
+
+msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
 msgstr ""
 
 msgid "Display overview"
@@ -9181,10 +9220,14 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
+msgstr ""
+
+msgid "System presets"
 msgstr ""
 
 msgid "User presets"
@@ -10490,6 +10533,9 @@ msgstr ""
 msgid "Are you sure to %1% the selected preset?"
 msgstr ""
 
+msgid "All"
+msgstr ""
+
 msgid "Set"
 msgstr ""
 
@@ -10636,10 +10682,19 @@ msgstr ""
 msgid "Right: "
 msgstr ""
 
-msgid "Select presets to compare"
+msgid "Preset A"
+msgstr ""
+
+msgid "Preset B"
 msgstr ""
 
 msgid "Show all presets (including incompatible)"
+msgstr ""
+
+msgid "Material"
+msgstr ""
+
+msgid "Please select two different presets A and B to compare"
 msgstr ""
 
 msgid "Add File"
@@ -12889,6 +12944,9 @@ msgstr ""
 msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)"
 msgstr ""
 
+msgid "Disabled"
+msgstr ""
+
 msgid "Partial"
 msgstr ""
 
@@ -12975,6 +13033,12 @@ msgid "Internal solid infill pattern"
 msgstr ""
 
 msgid "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area."
+msgstr ""
+
+msgid "Sub-top surface pattern"
+msgstr ""
+
+msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
 msgstr ""
 
 msgid "Line width of outer wall"
@@ -13650,6 +13714,12 @@ msgstr ""
 msgid "Line width of initial layer"
 msgstr ""
 
+msgid "Initial layer infill"
+msgstr ""
+
+msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
+msgstr ""
+
 msgid "Initial layer height"
 msgstr ""
 
@@ -13657,9 +13727,6 @@ msgid "Height of initial layer. Making initial layer height thick slightly can i
 msgstr ""
 
 msgid "Speed of initial layer except the solid infill part"
-msgstr ""
-
-msgid "Initial layer infill"
 msgstr ""
 
 msgid "Speed of solid infill part of initial layer"
@@ -14699,6 +14766,9 @@ msgstr ""
 msgid "Slicing Mode"
 msgstr ""
 
+msgid "Other"
+msgstr ""
+
 msgid "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
 msgstr ""
 
@@ -15355,6 +15425,18 @@ msgid "Generating support"
 msgstr ""
 
 msgid "Optimizing toolpath"
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
 msgstr ""
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
@@ -16588,9 +16670,6 @@ msgstr ""
 msgid "+ Add Preset"
 msgstr ""
 
-msgid "Delete Filament"
-msgstr ""
-
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament information for that slot."
@@ -17378,6 +17457,9 @@ msgid "This action cannot be undone. Continue?"
 msgstr ""
 
 msgid "Skipping objects."
+msgstr ""
+
+msgid "Custom Color"
 msgstr ""
 
 msgid "Null Color"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-14 16:02+0800\n"
+"POT-Creation-Date: 2026-08-27 15:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -898,15 +898,11 @@ msgstr "Pieza"
 msgid "Object"
 msgstr "Objeto"
 
+msgid "Right-click a part to assign it to the other side"
+msgstr "Haz clic con el botón derecho en una pieza para asignarla al otro lado"
+
 msgid "Drag to move the cut plane"
 msgstr "Arrastre para mover el plano de corte"
-
-msgid ""
-"Drag to move the cut plane\n"
-"Right-click a part to assign it to the other side"
-msgstr ""
-"Arrastre para mover el plano de corte\n"
-"Haga clic con el botón derecho en una pieza para asignarla al otro lado"
 
 msgid "Left click"
 msgstr "Clic izquierdo"
@@ -951,7 +947,7 @@ msgid "Cut"
 msgstr "Cortar"
 
 msgid "Cutting model object"
-msgstr "Objeto de modelo de corte"
+msgstr "Objeto modelo de corte"
 
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr "Los bordes abiertos pueden deberse a la herramienta de corte, ¿desea corregirlo ahora?"
@@ -2616,6 +2612,9 @@ msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "Error: reversed faces detected, which may affect rendering"
+msgstr "Error: se han detectado caras invertidas, lo que podría afectar el renderizado"
+
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
@@ -2630,6 +2629,9 @@ msgstr "Haga clic con el botón derecho del ratón en el icono para ajustar la c
 
 msgid "Click the icon to reset all settings of the object"
 msgstr "Haga clic en el icono para restablecer todos los ajustes del objeto"
+
+msgid "Unprintable object"
+msgstr "Objeto no imprimible"
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "Haga clic con el botón derecho en el icono para soltar la característica imprimible del objeto"
@@ -3359,13 +3361,13 @@ msgid "Display Mode"
 msgstr "Modo de visualización"
 
 msgid "Show world axes"
-msgstr "Mostrar ejes del mundo"
+msgstr "Mostrar ejes mundiales"
 
 msgid "Show explosion state column"
 msgstr "Mostrar columna de estado de descomposición"
 
 msgid "Allow modify text note foreground"
-msgstr "Permite modificar el primer plano de la nota de texto"
+msgstr "Permitir modificar el primer plano de notas de texto"
 
 msgid "Allow modify text note background"
 msgstr "Permitir modificar el fondo de la nota de texto"
@@ -3441,7 +3443,7 @@ msgid "Not"
 msgstr "No"
 
 msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
-msgstr "Haz clic primero en Confirmar. Después de que las etiquetas se generen en el lienzo, este control de etiquetas se puede usar."
+msgstr "Haz clic primero en Confirmar. Después de que las etiquetas se generen en el lienzo, este control de etiquetas se puede utilizar."
 
 msgid "Click to add Cyber Brick"
 msgstr "Haga clic para añadir Cyber Brick"
@@ -4054,25 +4056,11 @@ msgstr "Configuración de materiales AMS"
 msgid "Colour"
 msgstr "Color"
 
-msgid ""
-"Nozzle\n"
-"Temperature"
-msgstr ""
-"Boquilla\n"
-"Temperatura"
-
-msgid "max"
-msgstr "max"
-
-msgid "min"
-msgstr "min"
-
-#, boost-format
-msgid "The input value should be greater than %1% and less than %2%"
-msgstr "El valor de entrada debe ser mayor que %1% y menor que %2%"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Factores de calibración del flujo dinámico"
+
+msgid "View Wiki for details"
+msgstr ""
 
 msgid "Nozzle Type"
 msgstr "Tipo de boquilla"
@@ -4086,6 +4074,13 @@ msgstr "Factor K"
 msgid "Factor N"
 msgstr "Factor N"
 
+msgid ""
+"Nozzle\n"
+"Temperature"
+msgstr ""
+"Boquilla\n"
+"Temperatura"
+
 msgid "Setting AMS slot information while printing is not supported"
 msgstr "No es posible configurar la información de la ranura AMS durante la impresión."
 
@@ -4094,6 +4089,18 @@ msgstr "No se admite la configuración virtual de la información de la ranura d
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "¿Está seguro de borrar la información del filamento?"
+
+msgid "Add to Filament Library?"
+msgstr "¿Añadir a la biblioteca de filamentos?"
+
+msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
+msgstr "Modificar el tipo o color de filamento eliminará la vinculación con la biblioteca de filamentos. ¿Desea añadir este filamento como una nueva bobina?"
+
+msgid "Add to Filament Library"
+msgstr "Añadir a la biblioteca de filamentos"
+
+msgid "Save Only"
+msgstr "Solo guardar"
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
 msgstr "El TPU requiere diferentes rutas de alimentación y procedimientos de carga. De lo contrario, puede ocurrir un bloqueo. Lea el tutorial antes de usar el TPU."
@@ -4104,52 +4111,15 @@ msgstr "Ir a Verificar"
 msgid "You need to select the material type and color first."
 msgstr "Primero debe seleccionar el tipo de material y el color."
 
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr "Por favor, introduzca un valor válido (K en%.1f ~%.1f )"
-
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr "Por favor, introduzca un valor válido (K en %.1f ~%.1f, N en %.1f ~%.1f)"
+msgid "Please select a color"
+msgstr ""
 
 msgid "Remark"
 msgstr "Observación"
 
-msgid "Other"
-msgstr "Otro"
-
-msgid "Filament Manager"
-msgstr "Gestor de filamentos"
-
-msgid "In printer"
-msgstr "En la impresora"
-
 #, c-format, boost-format
-msgid "In printer: %s"
-msgstr "En la impresora: %s"
-
-msgctxt "Filament Manager"
-msgid "Note"
-msgstr "Nota"
-
-msgid "Unsupported Filaments"
-msgstr "Filamentos no admitidos"
-
-msgctxt "Unsupported Filaments"
-msgid "Note"
-msgstr "Nota"
-
-msgid "No unsupported filaments"
-msgstr "Sin filamentos no admitidos"
-
-msgid "No filaments"
-msgstr "Sin filamentos"
-
-msgid "System presets"
-msgstr "Ajustes del sistema"
-
-msgid "Recently used"
-msgstr "Usados recientemente"
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "Por favor, introduzca un valor válido (K en%.1f ~%.1f )"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4162,15 +4132,6 @@ msgstr ""
 "El flujo de la boquilla no está ajustado. Configure el caudal de la boquilla antes de editar el filamento.\n"
 "'Dispositivo -> Imprimir piezas'"
 
-msgid "AMS"
-msgstr "AMS"
-
-msgid "Other Color"
-msgstr "Otro color"
-
-msgid "Custom Color"
-msgstr "Color personalizado"
-
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
 msgstr "El AMS ha detectado un nuevo filamento oficial. ¿Desea añadirlo al Gestor de filamentos?"
 
@@ -4180,14 +4141,17 @@ msgstr "Añadir como filamento nuevo"
 msgid "Link to existing filament"
 msgstr "Vincular al filamento existente"
 
-msgid "Not now"
-msgstr "Ahora no"
-
 msgid "Please select"
 msgstr "Seleccione"
 
 msgid "No matching filament"
 msgstr "Ningún filamento coincidente"
+
+msgid "New Filament"
+msgstr "Nuevo filamento"
+
+msgid "New filament information has been recorded."
+msgstr "Se ha registrado la información del nuevo filamento."
 
 msgid "Dynamic flow calibration"
 msgstr "Calibración dinámica de flujo"
@@ -4237,6 +4201,10 @@ msgstr "Calibrando... %d%%"
 
 msgid "Calibration completed"
 msgstr "Calibración finalizada"
+
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "Por favor, introduzca un valor válido (K en %.1f ~%.1f, N en %.1f ~%.1f)"
 
 #, c-format, boost-format
 msgid "%s does not support %s"
@@ -4388,6 +4356,9 @@ msgstr "SECO"
 
 msgid "WET"
 msgstr "MOJADO"
+
+msgid "AMS"
+msgstr "AMS"
 
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
@@ -5935,6 +5906,9 @@ msgstr "La torre de cebado mejora la calidad de impresión multicapa y se recomi
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "La torre principal se extiende más allá del límite de la placa."
 
+msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+msgstr "Todos los objetos en la placa actual no se pueden imprimir. El rebanado producirá un resultado vacío. Por favor, verifique."
+
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "Volumen de vaciado parcial establecido en 0. La impresión multicolor puede causar mezcla de colores en los modelos. Por favor, reajuste los ajustes de vaciado."
 
@@ -6078,6 +6052,9 @@ msgstr "Multidispositivo"
 
 msgid "Project"
 msgstr "Proyecto"
+
+msgid "Filament Manager"
+msgstr "Gestor de filamentos"
 
 msgid "Yes"
 msgstr "Sí"
@@ -7537,6 +7514,12 @@ msgstr "Error:"
 msgid "Open link for more info"
 msgstr "Abra enlace para más información"
 
+msgid "Jump to: Support on build plate only"
+msgstr "Ir a: Soporte solo en la placa de construcción"
+
+msgid "Jump to: Support"
+msgstr "Ir a: Soporte"
+
 msgid "Warning:"
 msgstr "Advertencia:"
 
@@ -8027,6 +8010,30 @@ msgstr "El filamento mixto contiene componentes inválidos o incompatibles. Por 
 
 msgid "Search plate, object and part."
 msgstr "Buscar placa, objeto y pieza."
+
+#, c-format, boost-format
+msgid ", and %d more"
+msgstr ", y %d más"
+
+#, c-format, boost-format
+msgid "model \"%s\""
+msgstr "modelo \"%s\""
+
+msgid "support filament"
+msgstr "filamento de soporte"
+
+msgid "custom G-code"
+msgstr "código G personalizado"
+
+#, c-format, boost-format
+msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+msgstr "El filamento que está eliminando es utilizado por %s. Después de la eliminación, su asignación de filamento se restablecerá."
+
+msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+msgstr "Nota: para sustituirlo por otro filamento, utilice la función \"Combinar con\" haciendo clic derecho en el filamento."
+
+msgid "Delete Filament"
+msgstr "Borrar filamento"
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "El filamento mixto de destino utiliza este filamento físico como componente. La fusión eliminará este filamento físico y podría invalidar el filamento mixto. ¿Continuar?"
@@ -9070,14 +9077,26 @@ msgstr "Unidades"
 msgid "Enable dark mode"
 msgstr "Habilitar modo oscuro"
 
-msgid "All"
-msgstr "Todo"
+msgid "All related changes"
+msgstr "Todos los cambios relacionados"
 
-msgid "Disabled"
-msgstr "Deshabilitado"
+msgid "When color changes"
+msgstr "Cuando cambian los colores"
 
-msgid "Auto Flush"
-msgstr "Lavado automático"
+msgid "Turn off auto calculate"
+msgstr "Desactivar cálculo automático"
+
+msgid "Auto calculate when color changes, type or configuration changes"
+msgstr "Calcular automáticamente cuando cambian los colores, el tipo o la configuración"
+
+msgid "Auto calculate when sync or modify filament colors"
+msgstr "Calcular automáticamente al sincronizar o modificar los colores del filamento"
+
+msgid "Keep current flush volumes, trigger manually when needed"
+msgstr "Mantener los volúmenes de purga actuales, activar manualmente cuando sea necesario"
+
+msgid "Auto Calculate Flush Volume"
+msgstr "Cálculo automático de volumen de purga"
 
 msgid "Auto calculate flush volumes"
 msgstr "Calcular automáticamente los volúmenes de descarga"
@@ -9173,11 +9192,29 @@ msgstr "Completar automáticamente cuentas en las que se inició sesión previam
 msgid "3D Settings"
 msgstr "Configuración 3D"
 
+msgid "Mouse Settings"
+msgstr "Configuración del ratón"
+
+msgid "Import Settings"
+msgstr "Configuración de importación"
+
 msgid "Zoom to mouse position"
 msgstr "Acercar a la posición del ratón"
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr "Amplíe el zoom hacia la posición del puntero del ratón en la vista 3D, en lugar del centro de la ventana 2D."
+
+msgid "Reverse direction of zoom with mouse wheel"
+msgstr "Invertir dirección del zoom con la rueda del ratón"
+
+msgid "If enabled, reverses the direction of zoom with mouse wheel."
+msgstr "Si está activado, invierte la dirección del zoom con la rueda del ratón."
+
+msgid "Drag with left mouse button to move"
+msgstr "Arrastrar con el botón izquierdo del ratón para mover"
+
+msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
+msgstr "Si está activado, el botón izquierdo del ratón puede mover modelos arrastrando; si está desactivado, el botón izquierdo solo selecciona o hace clic."
 
 msgid "Display overview"
 msgstr "Descripción general de la pantalla"
@@ -9216,7 +9253,7 @@ msgid "Show Thermal Preconditioning Area"
 msgstr "Mostrar área de preacondicionamiento térmico"
 
 msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
-msgstr "Advertir si un modelo se extiende más allá del área de preacondicionamiento térmico. Disponible solo en impresoras que admitan esta función."
+msgstr "Advertir si un modelo se extiende más allá del área de preacondicionamiento térmico. Disponible solo en impresoras que sean compatibles con esta característica."
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Mostrar el cuadro de diálogo de configuración de parámetros de malla escalonada."
@@ -9327,7 +9364,7 @@ msgid "Skip AMS blacklist check"
 msgstr "Omitir la verificación de la lista negra de AMS"
 
 msgid "Enable DevTools For Webview"
-msgstr ""
+msgstr "Habilitar herramientas de desarrollo para Webview"
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Asociar archivos a Bambu Studio"
@@ -9425,17 +9462,22 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
 "- Sincronizar los ajustes preestablecidos de la impresora después de cargar un archivo\n"
 "- Configuración del cuadro de diálogo \"Cargar 3MF\"\n"
 "- Ejecución de scripts de posprocesamiento\n"
-"- Mensaje de recomendación de estructura de soporte\n"
-"- Proyectos no guardados\n"
-"- Advertencia de subcapa de color mixto con altura de la capa variable"
+"- Aviso de recomendación de estructura de soporte\n"
+"- Proyectos no guardados.\n"
+"- Advertencia de subcapa de color mixto con altura de la capa variable\n"
+"- Eliminar un filamento utilizado por un modelo"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "¿Está seguro de que desea restablecer todas las preferencias? Los cambios surtirán efecto después de reiniciar."
+
+msgid "System presets"
+msgstr "Ajustes del sistema"
 
 msgid "User presets"
 msgstr "Ajustes de usuario"
@@ -10788,6 +10830,9 @@ msgstr ""
 msgid "Are you sure to %1% the selected preset?"
 msgstr "¿Está seguro de %1% el preajuste seleccionado?"
 
+msgid "All"
+msgstr "Todo"
+
 msgid "Set"
 msgstr "Ajuste"
 
@@ -10942,11 +10987,20 @@ msgstr "Izquierda:"
 msgid "Right: "
 msgstr "Derecha: "
 
-msgid "Select presets to compare"
-msgstr "Seleccione los ajustes preestablecidos para comparar"
+msgid "Preset A"
+msgstr "Preajuste A"
+
+msgid "Preset B"
+msgstr "Preajuste B"
 
 msgid "Show all presets (including incompatible)"
 msgstr "Mostrar todos los ajustes preestablecidos (incluidos los incompatibles)"
+
+msgid "Material"
+msgstr ""
+
+msgid "Please select two different presets A and B to compare"
+msgstr "Seleccione dos preajustes A y B diferentes para comparar"
 
 msgid "Add File"
 msgstr "Agregar archivo"
@@ -12682,7 +12736,7 @@ msgid "Generating G-code"
 msgstr "Generando G-code"
 
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
-msgstr "La posición relativa del modelo y la torre de purgado no cumple los requisitos de la función \"Sin capas dispersas\". Ajuste sus posiciones relativas, reduzca la altura del modelo o desactive \"Sin capas dispersas\"."
+msgstr "La posición relativa del modelo y la torre principal no cumple con los requisitos de la característica \"Sin capas dispersas\". Ajusta sus posiciones relativas, reduce la altura del modelo o desactiva \"Sin capas dispersas\"."
 
 msgid "Failed processing of the filename_format template."
 msgstr "Fallo al procesar la plantilla filename_format."
@@ -13250,6 +13304,9 @@ msgstr "Asegure el grosor vertical de los perimetros de la impresion"
 msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)"
 msgstr "Añada un relleno sólido cerca de las superficies inclinadas para garantizar el grosor vertical de la capa (capas sólidas superior/inferior)."
 
+msgid "Disabled"
+msgstr "Deshabilitado"
+
 msgid "Partial"
 msgstr "Parcial"
 
@@ -13337,6 +13394,12 @@ msgstr "Patrón interno de relleno sólido"
 
 msgid "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area."
 msgstr "Patrón de líneas del relleno sólido interno: si la opción «Detectar relleno sólido interno estrecho» está habilitada, el patrón concéntrico se utilizará para áreas pequeñas."
+
+msgid "Sub-top surface pattern"
+msgstr "Patrón de la subsuperficie superior"
+
+msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
+msgstr "Patrón de línea de la capa sólida interna inmediatamente debajo de una superficie superior visible. El relleno monotónico reduce las rayas de extrusión que se transparentan a través de la capa superior."
 
 msgid "Line width of outer wall"
 msgstr "Ancho de línea de la pared exterior"
@@ -13594,7 +13657,7 @@ msgid "Default AMS type"
 msgstr "Tipo de AMS predeterminado"
 
 msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
-msgstr "El tipo de AMS predeterminado usado para estimar el tiempo de carga/descarga de filamento se guarda como el valor de enumeración del tipo de temporización del AMS. Proviene del preajuste de la impresora y no refleja el AMS actualmente conectado a la máquina."
+msgstr "El tipo de AMS predeterminado utilizado para estimar el tiempo de carga/descarga de filamento se guarda como el valor de enumeración del tipo de temporización del AMS. Proviene del preajuste de la impresora y no refleja el AMS actualmente conectado a la máquina."
 
 msgid "Extruder switch time"
 msgstr "Tiempo de cambio del extrusor"
@@ -14013,6 +14076,12 @@ msgstr "Tirón de viajes"
 msgid "Line width of initial layer"
 msgstr "Ancho de línea de la capa inicial"
 
+msgid "Initial layer infill"
+msgstr "Relleno de la capa inicial"
+
+msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
+msgstr "Anchura de la línea del relleno de la capa inicial, incluyendo el relleno disperso, el relleno sólido y la superficie superior. Las paredes, el soporte y todo lo demás de la capa inicial no se ven afectados y siguen usando la anchura de la línea de la capa inicial. Cero significa usar la anchura de la línea de la capa inicial."
+
 msgid "Initial layer height"
 msgstr "Altura de la capa inicial"
 
@@ -14021,9 +14090,6 @@ msgstr "Altura de la capa inicial. Si la altura de la capa inicial es ligerament
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr "Velocidad de la capa inicial excepto la parte sólida de relleno"
-
-msgid "Initial layer infill"
-msgstr "Relleno de la capa inicial"
 
 msgid "Speed of solid infill part of initial layer"
 msgstr "Velocidad del relleno sólido de la parte de la capa inicial"
@@ -15076,6 +15142,9 @@ msgstr "Durante el corte de la malla triangular se rellenan las grietas de tama�
 msgid "Slicing Mode"
 msgstr "Modo de corte"
 
+msgid "Other"
+msgstr "Otro"
+
 msgid "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
 msgstr "Utilice la opción «Par-impar» para los modelos de aviones de 3DLabPrint. Utilice la opción «Cerrar orificios» para cerrar todos los orificios del modelo."
 
@@ -15735,6 +15804,22 @@ msgstr "Generar soporte"
 
 msgid "Optimizing toolpath"
 msgstr "Optimización de la trayectoria de la herramienta"
+
+#, boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
+msgstr ""
+"Se detectaron voladizos sin soporte.\n"
+"El modelo \"%1%\" tiene %2% región(es) de voladizo. Dado que \"Soporte solo en la placa de construcción\" está habilitado, los soportes no pueden extenderse hasta la placa de construcción. Intenta desactivar esta opción."
+
+#, boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
+msgstr ""
+"Se detectaron voladizos sin soporte.\n"
+"El modelo \"%1%\" tiene %2% región(es) de voladizo que no pudieron obtener soporte. Intenta ajustar los ajustes de soporte o reorientar el objeto."
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "Las capas vacías del fondo se sustituyen por las capas normales más cercanas."
@@ -17048,9 +17133,6 @@ msgstr "Borrar Perfil"
 msgid "+ Add Preset"
 msgstr "+ Agregar preajuste"
 
-msgid "Delete Filament"
-msgstr "Borrar filamento"
-
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament information for that slot."
@@ -17501,7 +17583,7 @@ msgid "Helio action canceled"
 msgstr "Acción de Helio cancelada"
 
 msgid "Helio GCode creation response is incomplete"
-msgstr "La respuesta de creación del GCode de Helio está incompleta"
+msgstr "La respuesta de creación de GCode de Helio está incompleta"
 
 msgid "Failed to parse response"
 msgstr "No se pudo analizar la respuesta"
@@ -17864,6 +17946,9 @@ msgstr "Esta acción no se puede deshacer. ¿Desea continuar?"
 
 msgid "Skipping objects."
 msgstr "Omitir objetos."
+
+msgid "Custom Color"
+msgstr "Color personalizado"
 
 msgid "Null Color"
 msgstr "Color nulo"
@@ -18593,6 +18678,77 @@ msgid ""
 msgstr ""
 "Fiabilidad a la primera\n"
 "Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
+
+#~ msgid ""
+#~ "Drag to move the cut plane\n"
+#~ "Right-click a part to assign it to the other side"
+#~ msgstr ""
+#~ "Arrastre para mover el plano de corte\n"
+#~ "Haga clic con el botón derecho en una pieza para asignarla al otro lado"
+
+#~ msgid "max"
+#~ msgstr "max"
+
+#~ msgid "min"
+#~ msgstr "min"
+
+#, boost-format
+#~ msgid "The input value should be greater than %1% and less than %2%"
+#~ msgstr "El valor de entrada debe ser mayor que %1% y menor que %2%"
+
+#~ msgid "In printer"
+#~ msgstr "En la impresora"
+
+#, c-format, boost-format
+#~ msgid "In printer: %s"
+#~ msgstr "En la impresora: %s"
+
+#~ msgctxt "Filament Manager"
+#~ msgid "Note"
+#~ msgstr "Nota"
+
+#~ msgid "Unsupported Filaments"
+#~ msgstr "Filamentos no admitidos"
+
+#~ msgctxt "Unsupported Filaments"
+#~ msgid "Note"
+#~ msgstr "Nota"
+
+#~ msgid "No unsupported filaments"
+#~ msgstr "Sin filamentos no admitidos"
+
+#~ msgid "No filaments"
+#~ msgstr "Sin filamentos"
+
+#~ msgid "Recently used"
+#~ msgstr "Usados recientemente"
+
+#~ msgid "Other Color"
+#~ msgstr "Otro color"
+
+#~ msgid "Not now"
+#~ msgstr "Ahora no"
+
+#~ msgid "Auto Flush"
+#~ msgstr "Lavado automático"
+
+#~ msgid ""
+#~ "- Sync printer presets after loading a file\n"
+#~ "- \"Load 3MF\" dialog settings\n"
+#~ "- Executing post-processing scripts\n"
+#~ "- Support structure recommendation prompt\n"
+#~ "- Unsaved projects.\n"
+#~ "- Mixed color sublayer with variable layer height warning"
+#~ msgstr ""
+#~ "- Sincronizar los ajustes preestablecidos de la impresora después de cargar un archivo\n"
+#~ "- Configuración del cuadro de diálogo \"Cargar 3MF\"\n"
+#~ "- Ejecución de scripts de posprocesamiento\n"
+#~ "- Mensaje de recomendación de estructura de soporte\n"
+#~ "- Proyectos no guardados\n"
+#~ "- Advertencia de subcapa de color mixto con altura de la capa variable"
+
+#~ msgid "Select presets to compare"
+#~ msgstr "Seleccione los ajustes preestablecidos para comparar"
 
 #~ msgid "Air Purifier"
 #~ msgstr "Purificador de aire"

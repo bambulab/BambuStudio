@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-14 16:02+0800\n"
+"POT-Creation-Date: 2026-08-27 15:05+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -902,13 +902,11 @@ msgstr "零件"
 msgid "Object"
 msgstr "对象"
 
+msgid "Right-click a part to assign it to the other side"
+msgstr ""
+
 msgid "Drag to move the cut plane"
 msgstr "拖动切割平面可移动"
-
-msgid ""
-"Drag to move the cut plane\n"
-"Right-click a part to assign it to the other side"
-msgstr "拖动切割平面可移动；在零件上单击鼠标右键以将其指定给另一侧"
 
 msgid "Left click"
 msgstr "左击"
@@ -2608,6 +2606,9 @@ msgid "Error: %1$d non-manifold vertex"
 msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] "错误：%1$d 非流形顶点"
 
+msgid "Error: reversed faces detected, which may affect rendering"
+msgstr "存在反向面片，可能导致渲染异常"
+
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
@@ -2621,6 +2622,9 @@ msgstr "右键点击此图标以舍弃对象的设置"
 
 msgid "Click the icon to reset all settings of the object"
 msgstr "点击此图标可重置对象的所有设置"
+
+msgid "Unprintable object"
+msgstr ""
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "右键点击此图标以舍弃对象的可打印属性"
@@ -4040,23 +4044,11 @@ msgstr "材料设置"
 msgid "Colour"
 msgstr "颜色"
 
-msgid ""
-"Nozzle\n"
-"Temperature"
-msgstr "挤出头温度"
-
-msgid "max"
-msgstr "最大"
-
-msgid "min"
-msgstr "最小"
-
-#, boost-format
-msgid "The input value should be greater than %1% and less than %2%"
-msgstr "输入的范围在 %1% 和 %2% 之间"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "动态流量校准系数"
+
+msgid "View Wiki for details"
+msgstr ""
 
 msgid "Nozzle Type"
 msgstr "喷嘴类型"
@@ -4070,6 +4062,11 @@ msgstr "系数K"
 msgid "Factor N"
 msgstr "系数N"
 
+msgid ""
+"Nozzle\n"
+"Temperature"
+msgstr "挤出头温度"
+
 msgid "Setting AMS slot information while printing is not supported"
 msgstr "不支持在打印时设置AMS槽位信息"
 
@@ -4078,6 +4075,18 @@ msgstr "不支持在打印时设置虚拟槽位信息"
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "您确定要清除耗材丝信息吗？"
+
+msgid "Add to Filament Library?"
+msgstr ""
+
+msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
+msgstr ""
+
+msgid "Add to Filament Library"
+msgstr ""
+
+msgid "Save Only"
+msgstr ""
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
 msgstr "TPU 需采用特殊的进料路径和流程，否则可能导致堵塞或卡料。请在使用前阅读教程。"
@@ -4088,52 +4097,15 @@ msgstr "前往查看"
 msgid "You need to select the material type and color first."
 msgstr "您需要先选择材料类型和颜色。"
 
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr "请输入有效的数值（K的范围为%.1f~%.1f）"
-
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr "请输入有效的数值（K的范围为%.1f~%.1f，N的范围为%.1f~%.1f）"
+msgid "Please select a color"
+msgstr ""
 
 msgid "Remark"
 msgstr "备注"
 
-msgid "Other"
-msgstr "其他"
-
-msgid "Filament Manager"
-msgstr "耗材管理"
-
-msgid "In printer"
-msgstr "机内耗材"
-
 #, c-format, boost-format
-msgid "In printer: %s"
-msgstr "机内耗材：%s"
-
-msgctxt "Filament Manager"
-msgid "Note"
-msgstr "提示"
-
-msgid "Unsupported Filaments"
-msgstr "不支持的耗材"
-
-msgctxt "Unsupported Filaments"
-msgid "Note"
-msgstr "提示"
-
-msgid "No unsupported filaments"
-msgstr "无不支持的耗材"
-
-msgid "No filaments"
-msgstr "暂无耗材"
-
-msgid "System presets"
-msgstr "系统配置"
-
-msgid "Recently used"
-msgstr "最近使用"
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "请输入有效的数值（K的范围为%.1f~%.1f）"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4146,15 +4118,6 @@ msgstr ""
 "喷嘴的流量未设置，无法编辑材料，请设置喷嘴流量后再操作。\n"
 "'设备页面->打印机零件'"
 
-msgid "AMS"
-msgstr "AMS"
-
-msgid "Other Color"
-msgstr "其他颜色"
-
-msgid "Custom Color"
-msgstr "自定义颜色"
-
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
 msgstr "AMS识别到新的官方耗材，是否录入到耗材管理？"
 
@@ -4164,14 +4127,17 @@ msgstr "作为新耗材录入"
 msgid "Link to existing filament"
 msgstr "关联已录入的耗材"
 
-msgid "Not now"
-msgstr "暂不录入"
-
 msgid "Please select"
 msgstr "请选择"
 
 msgid "No matching filament"
 msgstr "暂无匹配的耗材"
+
+msgid "New Filament"
+msgstr ""
+
+msgid "New filament information has been recorded."
+msgstr ""
 
 msgid "Dynamic flow calibration"
 msgstr "动态流量校准"
@@ -4221,6 +4187,10 @@ msgstr "校准中... %d%%"
 
 msgid "Calibration completed"
 msgstr "校准已完成"
+
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "请输入有效的数值（K的范围为%.1f~%.1f，N的范围为%.1f~%.1f）"
 
 #, c-format, boost-format
 msgid "%s does not support %s"
@@ -4372,6 +4342,9 @@ msgstr ""
 
 msgid "WET"
 msgstr ""
+
+msgid "AMS"
+msgstr "AMS"
 
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
@@ -5907,6 +5880,9 @@ msgstr "擦料塔可提升多色打印质量，建议启用。"
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "料塔超出了打印版边界。"
 
+msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+msgstr ""
+
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "部分冲刷体积设置为0，多色打印可能导致模型混色，请重新调整冲刷值。"
 
@@ -5918,12 +5894,6 @@ msgstr "点击 Wiki 获取详细信息。"
 
 msgid "Jump to: Prime tower"
 msgstr "转跳到：擦料塔"
-
-msgid "Jump to: Support on build plate only"
-msgstr "跳转到：仅在打印板上生成支撑"
-
-msgid "Jump to: Support"
-msgstr "跳转到：支撑"
 
 msgid "Enable Clumping Detection"
 msgstr "启用触碰裹头检测"
@@ -6056,6 +6026,9 @@ msgstr "多设备"
 
 msgid "Project"
 msgstr "项目"
+
+msgid "Filament Manager"
+msgstr "耗材管理"
 
 msgid "Yes"
 msgstr "是"
@@ -7499,6 +7472,12 @@ msgstr "错误："
 msgid "Open link for more info"
 msgstr "打开链接获取更多信息"
 
+msgid "Jump to: Support on build plate only"
+msgstr "跳转到：仅在打印板上生成支撑"
+
+msgid "Jump to: Support"
+msgstr "跳转到：支撑"
+
 msgid "Warning:"
 msgstr "警告："
 
@@ -7985,6 +7964,30 @@ msgstr "不支持不同类型的耗材进行混色打印，请到软件左侧的
 
 msgid "Search plate, object and part."
 msgstr "搜索盘、模型和零件。"
+
+#, c-format, boost-format
+msgid ", and %d more"
+msgstr ""
+
+#, c-format, boost-format
+msgid "model \"%s\""
+msgstr ""
+
+msgid "support filament"
+msgstr ""
+
+msgid "custom G-code"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+msgstr ""
+
+msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+msgstr ""
+
+msgid "Delete Filament"
+msgstr "删除材料"
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "该物理耗材已被混色耗材引用。合并后该物理耗材将被移除，可能导致相关混色耗材失效。是否继续？"
@@ -9019,14 +9022,26 @@ msgstr "单位"
 msgid "Enable dark mode"
 msgstr "开启深色模式"
 
-msgid "All"
-msgstr "所有"
+msgid "All related changes"
+msgstr ""
 
-msgid "Disabled"
-msgstr "关闭"
+msgid "When color changes"
+msgstr ""
 
-msgid "Auto Flush"
-msgstr "自动冲刷计算"
+msgid "Turn off auto calculate"
+msgstr ""
+
+msgid "Auto calculate when color changes, type or configuration changes"
+msgstr ""
+
+msgid "Auto calculate when sync or modify filament colors"
+msgstr ""
+
+msgid "Keep current flush volumes, trigger manually when needed"
+msgstr ""
+
+msgid "Auto Calculate Flush Volume"
+msgstr ""
 
 msgid "Auto calculate flush volumes"
 msgstr "自动计算冲刷体积"
@@ -9122,11 +9137,29 @@ msgstr "自动填充历史账户信息"
 msgid "3D Settings"
 msgstr "3D设置"
 
+msgid "Mouse Settings"
+msgstr ""
+
+msgid "Import Settings"
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "放大到鼠标位置"
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr "在3D视角放大到鼠标位置，而不是2D窗口的中心。"
+
+msgid "Reverse direction of zoom with mouse wheel"
+msgstr ""
+
+msgid "If enabled, reverses the direction of zoom with mouse wheel."
+msgstr ""
+
+msgid "Drag with left mouse button to move"
+msgstr ""
+
+msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
+msgstr ""
 
 msgid "Display overview"
 msgstr "显示整体视图"
@@ -9374,17 +9407,15 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
-"- 清除加载文件后同步打印机预设的设置\n"
-"- 清除”加载3mf“对话框设置\n"
-"- 清除执行后处理脚本的设置\n"
-"- 清除禁用支撑参数推荐的设置\n"
-"- 清除对未保存的项目的选择\n"
-"- 带有可变层高的混合颜色子层警告"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "确定重置所有首选项设置吗?下次重新启动之后生效。"
+
+msgid "System presets"
+msgstr "系统配置"
 
 msgid "User presets"
 msgstr "用户配置"
@@ -10727,6 +10758,9 @@ msgstr ""
 msgid "Are you sure to %1% the selected preset?"
 msgstr "确定要%1%所选预设吗？"
 
+msgid "All"
+msgstr "所有"
+
 msgid "Set"
 msgstr "设置"
 
@@ -10881,11 +10915,20 @@ msgstr "左: "
 msgid "Right: "
 msgstr "右:"
 
-msgid "Select presets to compare"
-msgstr "选择要比较的预设"
+msgid "Preset A"
+msgstr ""
+
+msgid "Preset B"
+msgstr ""
 
 msgid "Show all presets (including incompatible)"
 msgstr "显示所有预设(包括不兼容的)"
+
+msgid "Material"
+msgstr "材料"
+
+msgid "Please select two different presets A and B to compare"
+msgstr ""
 
 msgid "Add File"
 msgstr "添加文件"
@@ -13185,6 +13228,9 @@ msgstr "确保垂直外壳厚度"
 msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)"
 msgstr "在斜面表面附近添加实心填充，以保证垂直外壳厚度（顶部+底部实心层）"
 
+msgid "Disabled"
+msgstr "关闭"
+
 msgid "Partial"
 msgstr "部分"
 
@@ -13272,6 +13318,12 @@ msgstr "内部实心填充图案"
 
 msgid "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area."
 msgstr "内部实心填充的线型图案。如果启用了检测狭窄的内部实心填充，将使用同心圆图案来填充小区域。"
+
+msgid "Sub-top surface pattern"
+msgstr ""
+
+msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
+msgstr ""
 
 msgid "Line width of outer wall"
 msgstr "外墙的线宽"
@@ -13951,6 +14003,12 @@ msgstr "行程抖动"
 msgid "Line width of initial layer"
 msgstr "首层的线宽"
 
+msgid "Initial layer infill"
+msgstr "首层填充"
+
+msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
+msgstr ""
+
 msgid "Initial layer height"
 msgstr "首层层高"
 
@@ -13959,9 +14017,6 @@ msgstr "初始层高度。使初始层高度略厚可以提高建筑板的附着
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr "首层除实心填充之外的其他部分的打印速度"
-
-msgid "Initial layer infill"
-msgstr "首层填充"
 
 msgid "Speed of solid infill part of initial layer"
 msgstr "首层实心填充的打印速度"
@@ -15014,6 +15069,9 @@ msgstr "在三角形网格切片过程中，小于2倍间隙闭合半径的裂�
 msgid "Slicing Mode"
 msgstr "切片模式"
 
+msgid "Other"
+msgstr "其他"
+
 msgid "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
 msgstr "对3DLabPrint的飞机模型使用 \"奇偶\"。使用 \"闭孔 \"来关闭模型上的所有孔。"
 
@@ -15668,6 +15726,12 @@ msgstr "大面积悬空"
 msgid "It seems object %s has %s. Please re-orient the object or enable support generation."
 msgstr "似乎对象%s有%s。请重新调整对象的方向或启用支撑生成。"
 
+msgid "Generating support"
+msgstr "正在生成支撑"
+
+msgid "Optimizing toolpath"
+msgstr "正在优化走线"
+
 #, boost-format
 msgid ""
 "Unsupported overhangs were detected.\n"
@@ -15683,12 +15747,6 @@ msgid ""
 msgstr ""
 "检测到悬空部分未加支撑\n"
 "模型“%1%”有 %2% 处悬空区域未能生成支撑。可尝试调整支撑参数或模型朝向"
-
-msgid "Generating support"
-msgstr "正在生成支撑"
-
-msgid "Optimizing toolpath"
-msgstr "正在优化走线"
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "底部出现空层，已被最近的正常层替换。"
@@ -16992,9 +17050,6 @@ msgstr "删除预设"
 msgid "+ Add Preset"
 msgstr "+ 添加预设"
 
-msgid "Delete Filament"
-msgstr "删除材料"
-
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament information for that slot."
@@ -17798,6 +17853,9 @@ msgstr "此操作无法撤销，是否继续？"
 msgid "Skipping objects."
 msgstr ""
 
+msgid "Custom Color"
+msgstr "自定义颜色"
+
 msgid "Null Color"
 msgstr ""
 
@@ -18425,7 +18483,7 @@ msgid ""
 "Flush into support/objects/infill\n"
 "Did you know that you can save the wasted filament by flushing them into support/objects/infill during filament change?"
 msgstr ""
-"冲刷到支持/对象/填充中\n"
+"冲刷到支撑/对象/填充中\n"
 "您知道吗？您可以在换料时将它们冲入支撑/对象/填充，以节省浪费的料丝。"
 
 #: resources/data/hints.ini: [hint:Improve strength]
@@ -18528,6 +18586,75 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid ""
+#~ "Drag to move the cut plane\n"
+#~ "Right-click a part to assign it to the other side"
+#~ msgstr "拖动切割平面可移动；在零件上单击鼠标右键以将其指定给另一侧"
+
+#~ msgid "max"
+#~ msgstr "最大"
+
+#~ msgid "min"
+#~ msgstr "最小"
+
+#, boost-format
+#~ msgid "The input value should be greater than %1% and less than %2%"
+#~ msgstr "输入的范围在 %1% 和 %2% 之间"
+
+#~ msgid "In printer"
+#~ msgstr "机内耗材"
+
+#, c-format, boost-format
+#~ msgid "In printer: %s"
+#~ msgstr "机内耗材：%s"
+
+#~ msgctxt "Filament Manager"
+#~ msgid "Note"
+#~ msgstr "提示"
+
+#~ msgid "Unsupported Filaments"
+#~ msgstr "不支持的耗材"
+
+#~ msgctxt "Unsupported Filaments"
+#~ msgid "Note"
+#~ msgstr "提示"
+
+#~ msgid "No unsupported filaments"
+#~ msgstr "无不支持的耗材"
+
+#~ msgid "No filaments"
+#~ msgstr "暂无耗材"
+
+#~ msgid "Recently used"
+#~ msgstr "最近使用"
+
+#~ msgid "Other Color"
+#~ msgstr "其他颜色"
+
+#~ msgid "Not now"
+#~ msgstr "暂不录入"
+
+#~ msgid "Auto Flush"
+#~ msgstr "自动冲刷计算"
+
+#~ msgid ""
+#~ "- Sync printer presets after loading a file\n"
+#~ "- \"Load 3MF\" dialog settings\n"
+#~ "- Executing post-processing scripts\n"
+#~ "- Support structure recommendation prompt\n"
+#~ "- Unsaved projects.\n"
+#~ "- Mixed color sublayer with variable layer height warning"
+#~ msgstr ""
+#~ "- 清除加载文件后同步打印机预设的设置\n"
+#~ "- 清除”加载3mf“对话框设置\n"
+#~ "- 清除执行后处理脚本的设置\n"
+#~ "- 清除禁用支撑参数推荐的设置\n"
+#~ "- 清除对未保存的项目的选择\n"
+#~ "- 带有可变层高的混合颜色子层警告"
+
+#~ msgid "Select presets to compare"
+#~ msgstr "选择要比较的预设"
 
 #~ msgid "Air Purifier"
 #~ msgstr "空气净化器"
@@ -23112,9 +23239,6 @@ msgstr ""
 
 #~ msgid "Pressure Advance"
 #~ msgstr "压力提升"
-
-#~ msgid "Material"
-#~ msgstr "材料"
 
 #~ msgid "Edit plate settings"
 #~ msgstr "编辑盘设置"

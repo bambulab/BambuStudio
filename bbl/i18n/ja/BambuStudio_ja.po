@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-14 16:02+0800\n"
+"POT-Creation-Date: 2026-08-27 15:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -898,15 +898,11 @@ msgstr "パーツ"
 msgid "Object"
 msgstr "OBJ"
 
+msgid "Right-click a part to assign it to the other side"
+msgstr "パーツを右クリックし、反対側に割り当てます"
+
 msgid "Drag to move the cut plane"
 msgstr "カットプレーンを移動するにはドラッグしてください。"
-
-msgid ""
-"Drag to move the cut plane\n"
-"Right-click a part to assign it to the other side"
-msgstr ""
-"カットプレーンをドラッグしてモデルを2つに分割してください。  \n"
-"パーツを右クリックして、反対側に割り当てることができます。"
 
 msgid "Left click"
 msgstr "左クリック"
@@ -2611,6 +2607,9 @@ msgid "Error: %1$d non-manifold vertex"
 msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] ""
 
+msgid "Error: reversed faces detected, which may affect rendering"
+msgstr "エラー：面の反転が検出されました。レンダリングに影響する可能性があります"
+
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
@@ -2624,6 +2623,9 @@ msgstr "アイコンを右クリックして、オブジェクトの設定を削
 
 msgid "Click the icon to reset all settings of the object"
 msgstr "オブジェクトへの編集をリセットします"
+
+msgid "Unprintable object"
+msgstr "造形不可オブジェクト"
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "アイコンを右クリックして、オブジェクトの造形属性を削除します。"
@@ -4040,23 +4042,11 @@ msgstr "AMS素材設定"
 msgid "Colour"
 msgstr "色"
 
-msgid ""
-"Nozzle\n"
-"Temperature"
-msgstr "ノズル温度"
-
-msgid "max"
-msgstr "最大"
-
-msgid "min"
-msgstr "最小"
-
-#, boost-format
-msgid "The input value should be greater than %1% and less than %2%"
-msgstr "入力値範囲は %1% ～ %2%"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "動的流量キャリブレーションの要因"
+
+msgid "View Wiki for details"
+msgstr ""
 
 msgid "Nozzle Type"
 msgstr "ノズルタイプ"
@@ -4070,6 +4060,11 @@ msgstr "係数K"
 msgid "Factor N"
 msgstr "係数N"
 
+msgid ""
+"Nozzle\n"
+"Temperature"
+msgstr "ノズル温度"
+
 msgid "Setting AMS slot information while printing is not supported"
 msgstr "造形中に、AMSスロットを設定できません。"
 
@@ -4078,6 +4073,18 @@ msgstr "印刷中の仮想スロット情報の設定には対応していませ
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "フィラメント情報をクリアしてもよろしいですか?"
+
+msgid "Add to Filament Library?"
+msgstr "フィラメントライブラリに追加しますか？"
+
+msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
+msgstr "フィラメントの種類または色を変更すると、フィラメントライブラリとの紐付けが解除されます。このフィラメントを新しいスプールとして追加しますか？"
+
+msgid "Add to Filament Library"
+msgstr "フィラメントライブラリに追加"
+
+msgid "Save Only"
+msgstr "保存のみ"
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
 msgstr "TPU は通常とは異なる供給経路およびロード手順が必要です。適切に行わないと、詰まりやジャムが発生する可能性があります。使用前にチュートリアルをお読みください。"
@@ -4088,52 +4095,15 @@ msgstr "確認へ"
 msgid "You need to select the material type and color first."
 msgstr "最初に素材の種類と色を選択する必要があります。"
 
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr "有効な値を入力してください（K: %.1f〜%.1f）"
-
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr "有効な値を入力してください（K: %.1f〜%.1f、N: %.1f〜%.1f）"
+msgid "Please select a color"
+msgstr ""
 
 msgid "Remark"
 msgstr "備考"
 
-msgid "Other"
-msgstr "その他"
-
-msgid "Filament Manager"
-msgstr "フィラメントマネージャー"
-
-msgid "In printer"
-msgstr "プリンター内"
-
 #, c-format, boost-format
-msgid "In printer: %s"
-msgstr "プリンター内：%s"
-
-msgctxt "Filament Manager"
-msgid "Note"
-msgstr "メモ"
-
-msgid "Unsupported Filaments"
-msgstr "サポートされていないフィラメント"
-
-msgctxt "Unsupported Filaments"
-msgid "Note"
-msgstr "メモ"
-
-msgid "No unsupported filaments"
-msgstr "サポートされていないフィラメントはありません"
-
-msgid "No filaments"
-msgstr "フィラメントなし"
-
-msgid "System presets"
-msgstr "システム プリセット"
-
-msgid "Recently used"
-msgstr "最近使用したもの"
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "有効な値を入力してください（K: %.1f〜%.1f）"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4146,15 +4116,6 @@ msgstr ""
 "ノズル流量が設定されていません。フィラメントを編集する前にノズル流量を設定してください。\n"
 "「デバイス ->プリントパーツ」"
 
-msgid "AMS"
-msgstr "AMS"
-
-msgid "Other Color"
-msgstr "その他の色"
-
-msgid "Custom Color"
-msgstr "カスタムカラー"
-
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
 msgstr "AMSが新しい純正フィラメントを検出しました。フィラメントマネージャーに追加しますか？"
 
@@ -4164,14 +4125,17 @@ msgstr "新規フィラメントとして追加"
 msgid "Link to existing filament"
 msgstr "既存フィラメントにリンク"
 
-msgid "Not now"
-msgstr "今はしない"
-
 msgid "Please select"
 msgstr "選択してください"
 
 msgid "No matching filament"
 msgstr "一致するフィラメントはありません"
+
+msgid "New Filament"
+msgstr "新規フィラメント"
+
+msgid "New filament information has been recorded."
+msgstr "新しいフィラメント情報が登録されました。"
 
 msgid "Dynamic flow calibration"
 msgstr "流量キャリブレーション"
@@ -4221,6 +4185,10 @@ msgstr "キャリブレーション中...%d%%"
 
 msgid "Calibration completed"
 msgstr "キャリブレーション完了"
+
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "有効な値を入力してください（K: %.1f〜%.1f、N: %.1f〜%.1f）"
 
 #, c-format, boost-format
 msgid "%s does not support %s"
@@ -4372,6 +4340,9 @@ msgstr "乾燥"
 
 msgid "WET"
 msgstr "湿った"
+
+msgid "AMS"
+msgstr "AMS"
 
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
@@ -5912,6 +5883,9 @@ msgstr "プライムタワーは多色造形の品質を向上させるため、
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "プライムタワーがプレートの境界をはみ出しています。"
 
+msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+msgstr "現在のプレート上のすべてのオブジェクトは印刷できません。スライス結果は空になります。ご確認ください。"
+
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "部分フラッシング量が0に設定されています。マルチカラー造形では、モデル内で色が混ざる可能性があります。フラッシング設定を再調整してください。"
 
@@ -6049,6 +6023,9 @@ msgstr "複数デバイス"
 
 msgid "Project"
 msgstr "プロジェクト"
+
+msgid "Filament Manager"
+msgstr "フィラメントマネージャー"
 
 msgid "Yes"
 msgstr "はい"
@@ -7492,6 +7469,12 @@ msgstr "エラー:"
 msgid "Open link for more info"
 msgstr "詳細はこちら"
 
+msgid "Jump to: Support on build plate only"
+msgstr "ジャンプ先：ビルドプレート上のみサポート"
+
+msgid "Jump to: Support"
+msgstr "ジャンプ先：サポート"
+
 msgid "Warning:"
 msgstr "警告"
 
@@ -7982,6 +7965,30 @@ msgstr "混合フィラメントの構成要素に不正または不一致があ
 
 msgid "Search plate, object and part."
 msgstr "プレート、オブジェクト、パーツを検索"
+
+#, c-format, boost-format
+msgid ", and %d more"
+msgstr "、その他%d件"
+
+#, c-format, boost-format
+msgid "model \"%s\""
+msgstr "モデル「%s」"
+
+msgid "support filament"
+msgstr "サポート用フィラメント"
+
+msgid "custom G-code"
+msgstr "カスタムG-code"
+
+#, c-format, boost-format
+msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+msgstr "削除しようとしているフィラメントは%sで利用されています。削除後、そのフィラメントの割り当てはリセットされます。"
+
+msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+msgstr "注: 代わりに別のフィラメントを使用する場合は、フィラメントを右クリックして「結合」機能を使用してください。"
+
+msgid "Delete Filament"
+msgstr "フィラメントを削除"
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "対象の混合フィラメントは、この物理フィラメントを構成要素として使用しています。マージを行うと、この物理フィラメントは削除され、混合フィラメントが無効になる可能性があります。続行しますか？"
@@ -9014,14 +9021,26 @@ msgstr "単位"
 msgid "Enable dark mode"
 msgstr "ダークモードを有効にする"
 
-msgid "All"
-msgstr "すべて"
+msgid "All related changes"
+msgstr "関連する変更をすべて"
 
-msgid "Disabled"
-msgstr "無効化"
+msgid "When color changes"
+msgstr "色変更時"
 
-msgid "Auto Flush"
-msgstr "自動フラッシュ"
+msgid "Turn off auto calculate"
+msgstr "自動計算をオフにする"
+
+msgid "Auto calculate when color changes, type or configuration changes"
+msgstr "色、タイプ、または構成の変更時に自動計算"
+
+msgid "Auto calculate when sync or modify filament colors"
+msgstr "フィラメントの色の同期または変更時に自動計算"
+
+msgid "Keep current flush volumes, trigger manually when needed"
+msgstr "現在のフラッシュボリュームを維持し、必要に応じて手動でトリガー"
+
+msgid "Auto Calculate Flush Volume"
+msgstr "フラッシュボリュームを自動計算"
 
 msgid "Auto calculate flush volumes"
 msgstr "フラッシュボリュームの自動計算"
@@ -9117,11 +9136,29 @@ msgstr "以前にログインしたアカウントを自動入力します。"
 msgid "3D Settings"
 msgstr "3D 設定"
 
+msgid "Mouse Settings"
+msgstr "マウス設定"
+
+msgid "Import Settings"
+msgstr "設定をインポート"
+
 msgid "Zoom to mouse position"
 msgstr "マウス位置にズーム"
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr "2Dウィンドウの中心ではなく、3Dビューのマウスポインタの位置に向かってズームインします。"
+
+msgid "Reverse direction of zoom with mouse wheel"
+msgstr "マウスホイールでのズーム方向を反転"
+
+msgid "If enabled, reverses the direction of zoom with mouse wheel."
+msgstr "有効にすると、マウスホイールによるズーム方向が反転します。"
+
+msgid "Drag with left mouse button to move"
+msgstr "左マウスボタンをドラッグして移動"
+
+msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
+msgstr "有効にすると、左マウスボタンのドラッグでモデルを移動できます。無効にすると、左ボタンは選択またはクリックのみになります。"
 
 msgid "Display overview"
 msgstr "概要を表示"
@@ -9157,10 +9194,10 @@ msgid "Always show shells or not in preview view tab. If you change this value, 
 msgstr "プレビュービュータブでシェルを常に表示するかどうかを設定します。この値を変更した場合は、再スライスしてください。"
 
 msgid "Show Thermal Preconditioning Area"
-msgstr "熱プレコンディショニングエリアを表示"
+msgstr "予熱エリアを表示"
 
 msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
-msgstr "モデルが熱プレコンディショニングエリアからはみ出す場合に警告します。この機能は、対応プリンターでのみ利用可能です。"
+msgstr "モデルが予熱エリアからはみ出している場合に警告します。本機能に対応したプリンターでのみ利用可能です。"
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "ステップメッシュパラメータ設定ダイアログを表示"
@@ -9271,7 +9308,7 @@ msgid "Skip AMS blacklist check"
 msgstr "AMSブラックリストチェックをスキップ"
 
 msgid "Enable DevTools For Webview"
-msgstr ""
+msgstr "WebView用の開発者ツールを有効化"
 
 msgid "Associate Files To Bambu Studio"
 msgstr "ファイルを Bambu Studio に関連付ける"
@@ -9369,17 +9406,22 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
-"- ファイル読み込み後にプリンタープリセットを同期する\n"
-"- 「3MF読み込み」ダイアログ設定\n"
+"- ファイルロード後にプリンタープリセットを同期する\n"
+"- 「3MFロード」ダイアログ設定\n"
 "- 後処理スクリプトの実行\n"
-"- サポート構造の推奨プロンプト\n"
+"- サポート構造推奨プロンプト\n"
 "- 未保存のプロジェクト\n"
-"- 可変積層ピッチでの混色サブレイヤー警告"
+"- 可変積層ピッチでの混色サブレイヤー警告\n"
+"- モデルで使用されているフィラメントを削除する"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "すべての環境設定をリセットしてもよろしいですか？変更は再起動後に有効になります。"
+
+msgid "System presets"
+msgstr "システム プリセット"
 
 msgid "User presets"
 msgstr "ユーザープリセット"
@@ -10730,6 +10772,9 @@ msgstr ""
 msgid "Are you sure to %1% the selected preset?"
 msgstr "選択したプリセットを %1% しますか?"
 
+msgid "All"
+msgstr "すべて"
+
 msgid "Set"
 msgstr "設定"
 
@@ -10880,11 +10925,20 @@ msgstr "左:"
 msgid "Right: "
 msgstr "右: "
 
-msgid "Select presets to compare"
-msgstr "比較するプリセットを選択"
+msgid "Preset A"
+msgstr "プリセット A"
+
+msgid "Preset B"
+msgstr "プリセット B"
 
 msgid "Show all presets (including incompatible)"
 msgstr "全てのプリセットを表示"
+
+msgid "Material"
+msgstr "材質"
+
+msgid "Please select two different presets A and B to compare"
+msgstr "比較する2つの異なるプリセットAとBを選択してください"
 
 msgid "Add File"
 msgstr "ファイルを追加"
@@ -12615,7 +12669,7 @@ msgid "Generating G-code"
 msgstr "G-codeを生成"
 
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
-msgstr "モデルとプライムタワーの相対位置が、「疎な層なし」機能の要件を満たしていません。相対位置を調整するか、モデルの高さを下げるか、「疎な層なし」機能をオフにしてください。"
+msgstr "モデルとプライムタワーの相対位置が「スパースレイヤーなし」機能の要件を満たしていません。相対位置を調整するか、モデルの高さを下げるか、または「スパースレイヤーなし」を無効にしてください。"
 
 msgid "Failed processing of the filename_format template."
 msgstr "ファイル名フォーマットテンプレートの処理ができませんでした。"
@@ -13183,6 +13237,9 @@ msgstr "壁の厚さを確保"
 msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)"
 msgstr "傾斜面付近にソリッドインフィルを追加して、垂直シェルの厚さ（トップおよびボトムのソリッド層）を保証します。"
 
+msgid "Disabled"
+msgstr "無効化"
+
 msgid "Partial"
 msgstr "部分的な"
 
@@ -13272,6 +13329,12 @@ msgstr "内部ソリッドインフィルパターン"
 
 msgid "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area."
 msgstr "内部ソリッドインフィルのラインパターン：「狭い内部ソリッドインフィルを検出」が有効になっている場合、小さなエリアには同心円パターンが使用されます。"
+
+msgid "Sub-top surface pattern"
+msgstr "サブ上面パターン"
+
+msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
+msgstr "目に見える上面直下の内部ソリッド層の線パターン。モノトニックフィルは、上面に現れる押し出し縞を減らします。"
 
 msgid "Line width of outer wall"
 msgstr "外壁の線幅"
@@ -13499,7 +13562,7 @@ msgid "AMS Lite filament load time"
 msgstr "AMS Liteフィラメントのロード時間"
 
 msgid "Filament load time when printing with an AMS Lite. For statistics only"
-msgstr "N3FまたはN3Sを使用した造形時のフィラメントロード時間です（統計目的にのみ使用）"
+msgstr "AMS Lite使用時の造形中のフィラメントロード時間です（統計目的のみ）"
 
 msgid "N3F/N3S filament load time"
 msgstr "N3F/N3Sフィラメントのロード時間"
@@ -13959,6 +14022,12 @@ msgstr "移動のジャーク"
 msgid "Line width of initial layer"
 msgstr "1層目の線幅"
 
+msgid "Initial layer infill"
+msgstr "1層目のインフィル"
+
+msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
+msgstr "初期レイヤーのインフィル（疎なインフィル、ソリッドインフィル、およびトップ表面を含む）の線幅です。初期レイヤーのウォール、サポート、その他すべてには影響せず、初期レイヤーの線幅が引き続き使用されます。ゼロに設定すると、初期レイヤーの線幅が使用されます。"
+
 msgid "Initial layer height"
 msgstr "1層目の高さ"
 
@@ -13967,9 +14036,6 @@ msgstr "初層の積層ピッチ。初層の高さをやや厚くすることで
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr "1層目を造形時に、ソリッド インフィル以外の部分の造形速度"
-
-msgid "Initial layer infill"
-msgstr "1層目のインフィル"
 
 msgid "Speed of solid infill part of initial layer"
 msgstr "1層目のソリッド インフィルの造形速度"
@@ -15027,6 +15093,9 @@ msgstr "Cracks smaller than 2x gap closing radius are being filled during the tr
 msgid "Slicing Mode"
 msgstr "スライシングモード"
 
+msgid "Other"
+msgstr "その他"
+
 msgid "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
 msgstr "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
 
@@ -15690,6 +15759,22 @@ msgstr "サポートを生成"
 
 msgid "Optimizing toolpath"
 msgstr "ツールパスを最適化"
+
+#, boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
+msgstr ""
+"サポートされていないオーバーハングが検出されました。\n"
+"モデル「%1%」に %2% か所のオーバーハング領域があります。「ビルドプレート上のみサポート」が有効になっているため、ビルドプレートまでサポートを生成できません。このオプションを無効にしてみてください。"
+
+#, boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
+msgstr ""
+"サポートされていないオーバーハングが検出されました。\n"
+"モデル「%1%」にサポートを生成できないオーバーハング領域が %2% か所あります。サポート設定を調整するか、オブジェクトの配置方向を変更してみてください。"
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "底面との隙間があります、レイヤーを入れ替えました"
@@ -16997,9 +17082,6 @@ msgstr "プリセットを削除"
 msgid "+ Add Preset"
 msgstr "+ プリセットを追加"
 
-msgid "Delete Filament"
-msgstr "フィラメントを削除"
-
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament information for that slot."
@@ -17812,6 +17894,9 @@ msgstr "このアクションは元に戻せません。続けますか?"
 msgid "Skipping objects."
 msgstr "オブジェクトをスキップします。"
 
+msgid "Custom Color"
+msgstr "カスタムカラー"
+
 msgid "Null Color"
 msgstr "未設定の色"
 
@@ -18539,6 +18624,77 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid ""
+#~ "Drag to move the cut plane\n"
+#~ "Right-click a part to assign it to the other side"
+#~ msgstr ""
+#~ "カットプレーンをドラッグしてモデルを2つに分割してください。  \n"
+#~ "パーツを右クリックして、反対側に割り当てることができます。"
+
+#~ msgid "max"
+#~ msgstr "最大"
+
+#~ msgid "min"
+#~ msgstr "最小"
+
+#, boost-format
+#~ msgid "The input value should be greater than %1% and less than %2%"
+#~ msgstr "入力値範囲は %1% ～ %2%"
+
+#~ msgid "In printer"
+#~ msgstr "プリンター内"
+
+#, c-format, boost-format
+#~ msgid "In printer: %s"
+#~ msgstr "プリンター内：%s"
+
+#~ msgctxt "Filament Manager"
+#~ msgid "Note"
+#~ msgstr "メモ"
+
+#~ msgid "Unsupported Filaments"
+#~ msgstr "サポートされていないフィラメント"
+
+#~ msgctxt "Unsupported Filaments"
+#~ msgid "Note"
+#~ msgstr "メモ"
+
+#~ msgid "No unsupported filaments"
+#~ msgstr "サポートされていないフィラメントはありません"
+
+#~ msgid "No filaments"
+#~ msgstr "フィラメントなし"
+
+#~ msgid "Recently used"
+#~ msgstr "最近使用したもの"
+
+#~ msgid "Other Color"
+#~ msgstr "その他の色"
+
+#~ msgid "Not now"
+#~ msgstr "今はしない"
+
+#~ msgid "Auto Flush"
+#~ msgstr "自動フラッシュ"
+
+#~ msgid ""
+#~ "- Sync printer presets after loading a file\n"
+#~ "- \"Load 3MF\" dialog settings\n"
+#~ "- Executing post-processing scripts\n"
+#~ "- Support structure recommendation prompt\n"
+#~ "- Unsaved projects.\n"
+#~ "- Mixed color sublayer with variable layer height warning"
+#~ msgstr ""
+#~ "- ファイル読み込み後にプリンタープリセットを同期する\n"
+#~ "- 「3MF読み込み」ダイアログ設定\n"
+#~ "- 後処理スクリプトの実行\n"
+#~ "- サポート構造の推奨プロンプト\n"
+#~ "- 未保存のプロジェクト\n"
+#~ "- 可変積層ピッチでの混色サブレイヤー警告"
+
+#~ msgid "Select presets to compare"
+#~ msgstr "比較するプリセットを選択"
 
 #~ msgid "Air Purifier"
 #~ msgstr "空気清浄機"
