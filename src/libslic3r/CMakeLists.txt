@@ -595,8 +595,9 @@ if(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN)
         endif()
     endif()
     if(GMP_LIBRARIES AND MPFR_LIBRARIES)
-        # Define must be visible to MeshBoolean.cpp in libslic3r (dispatch + stub guard).
+        # MeshBoolean.cpp is compiled in libslic3r_cgal, not libslic3r.
         target_compile_definitions(libslic3r PUBLIC SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN=1)
+        target_compile_definitions(libslic3r_cgal PRIVATE SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN=1)
         target_sources(libslic3r_cgal PRIVATE MeshBooleanOpenMeshCraft.cpp)
         target_link_libraries(libslic3r_cgal PRIVATE
             OpenMeshCraftBoolean

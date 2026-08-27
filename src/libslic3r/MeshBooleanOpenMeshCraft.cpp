@@ -112,6 +112,7 @@ void append_oriented_result(TriangleMesh &&mesh, std::vector<TriangleMesh> &dst_
 void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const BooleanCancelCB& cancel_cb, const BooleanProgressCB& progress_cb, const BooleanFailedCB& failed_cb)
 {
     try {
+        BOOST_LOG_TRIVIAL(info) << "Mesh boolean backend: OpenMeshCraft, op='" << boolean_opts << "'";
         if (progress_cb)
             progress_cb(5.0f);
         if (cancel_cb && cancel_cb())

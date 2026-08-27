@@ -851,29 +851,29 @@ bool do_boolean_single(McutMesh &srcMesh, const McutMesh &cutMesh, const std::st
 
 bool do_boolean(McutMesh& srcMesh, const McutMesh& cutMesh, const std::string& boolean_opts, const BooleanCancelCB& cancel_cb, const BooleanProgressCB& progress_cb, const BooleanFailedCB& failed_cb)
 {
-    if (openmeshcraft::is_enabled()) {
-        TriangleMesh tri_src = mcut_to_triangle_mesh(srcMesh);
-        TriangleMesh tri_cut = mcut_to_triangle_mesh(cutMesh);
+#if SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN
+    // Compile-time exclusive: do not fall back to MCUT if OpenMeshCraft fails.
+    TriangleMesh tri_src = mcut_to_triangle_mesh(srcMesh);
+    TriangleMesh tri_cut = mcut_to_triangle_mesh(cutMesh);
 
-        if (tri_src.empty() && boolean_opts == "UNION") {
-            srcMesh = cutMesh;
-            return true;
-        }
-        if (tri_cut.empty())
-            return true;
-
-        std::vector<TriangleMesh> result_meshes;
-        openmeshcraft::make_boolean(tri_src, tri_cut, result_meshes, boolean_opts, cancel_cb, progress_cb, failed_cb);
-        if (result_meshes.empty())
-            return false;
-
-        indexed_triangle_set result_its;
-        for (const TriangleMesh &mesh : result_meshes)
-            its_merge(result_its, mesh.its);
-        srcMesh = *triangle_mesh_to_mcut(result_its);
+    if (tri_src.empty() && boolean_opts == "UNION") {
+        srcMesh = cutMesh;
         return true;
     }
+    if (tri_cut.empty())
+        return true;
 
+    std::vector<TriangleMesh> result_meshes;
+    openmeshcraft::make_boolean(tri_src, tri_cut, result_meshes, boolean_opts, cancel_cb, progress_cb, failed_cb);
+    if (result_meshes.empty())
+        return false;
+
+    indexed_triangle_set result_its;
+    for (const TriangleMesh &mesh : result_meshes)
+        its_merge(result_its, mesh.its);
+    srcMesh = *triangle_mesh_to_mcut(result_its);
+    return true;
+#else
     try {
         TriangleMesh                      tri_src   = mcut_to_triangle_mesh(srcMesh);
         std::vector<indexed_triangle_set> src_parts = its_split(tri_src.its);
@@ -942,15 +942,14 @@ bool do_boolean(McutMesh& srcMesh, const McutMesh& cutMesh, const std::string& b
         BOOST_LOG_TRIVIAL(error) << "check error:" << e.what();
         return false;
     }
+#endif
 }
 
 void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, std::vector<TriangleMesh> &dst_mesh, const std::string &boolean_opts, const BooleanCancelCB& cancel_cb, const BooleanProgressCB& progress_cb, const BooleanFailedCB& failed_cb)
 {
-    if (openmeshcraft::is_enabled()) {
-        openmeshcraft::make_boolean(src_mesh, cut_mesh, dst_mesh, boolean_opts, cancel_cb, progress_cb, failed_cb);
-        return;
-    }
-
+#if SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN
+    openmeshcraft::make_boolean(src_mesh, cut_mesh, dst_mesh, boolean_opts, cancel_cb, progress_cb, failed_cb);
+#else
     McutMesh srcMesh, cutMesh;
     triangle_mesh_to_mcut(src_mesh, srcMesh);
     triangle_mesh_to_mcut(cut_mesh, cutMesh);
@@ -984,6 +983,7 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, st
     if (progress_cb) {
         progress_cb(100.0f);
     }
+#endif
 }
 
 } // namespace mcut
