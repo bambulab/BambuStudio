@@ -48,6 +48,11 @@ static const char *ViewNameForMode(DeviceWebHostMode mode)
 {
     switch (mode) {
     case DeviceWebHostMode::FilamentManager: return "FilamentManager";
+    case DeviceWebHostMode::DevicePageAmsControlWeb: return "AmsControlWeb";
+    case DeviceWebHostMode::DevicePageAmsFilamentHotend: return "AmsFilamentHotend";
+    case DeviceWebHostMode::DevicePageAmsMappingHotend: return "AmsMappingHotend";
+    case DeviceWebHostMode::DevicePageAutoRefillRefillInfo: return "AutoRefillRefillInfo";
+    case DeviceWebHostMode::DevicePageConnectedSlots: return "ConnectedSlots";
     case DeviceWebHostMode::AllForDebug: return "DeviceWebDebug";
     default: return "DeviceWeb";
     }
