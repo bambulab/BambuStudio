@@ -3,303 +3,212 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="max-age=0" />
-<title>引导_P21</title>
-<link rel="stylesheet" type="text/css" href="../css/common.css" />	
+<title>配置向导</title>
+<link rel="stylesheet" type="text/css" href="../css/common.css" />
 <link rel="stylesheet" type="text/css" href="23.css" />
-<link rel="stylesheet" type="text/css" href="../css/dark.css" />	
+<link rel="stylesheet" type="text/css" href="../css/dark.css" />
 <script type="text/javascript" src="../js/jquery-3.6.0.min.js"></script>
-<script type="text/javascript" src="../js/json2.js"></script>	
-<script type="text/javascript" src="../../data/text.js"></script>	
-<script type="text/javascript" src="../js/globalapi.js"></script>	
+<script type="text/javascript" src="../js/json2.js"></script>
+<script type="text/javascript" src="../../data/text.js"></script>
+<script type="text/javascript" src="../js/globalapi.js"></script>
 <script type="text/javascript" src="../js/common.js"></script>
-<script type="text/javascript" src="./23.js"></script>	
+<script type="text/javascript" src="./23.js"></script>
 </head>
+<script>
+(function() {
+    var qs = location.search;
+    var isWizard = qs.indexOf('wizard=1') !== -1 || qs.indexOf('target=23') !== -1;
+    if (!isWizard) return;
+    document.addEventListener('DOMContentLoaded', function() {
+        // Replace tab bar with centered title matching guide/22 style
+        var title = document.getElementById('Title');
+        if (title) {
+            title.innerHTML = '<div class="trans" tid="t14">选择材料</div>';
+            // Override guide/23 tab styles: centered, large green text, no border
+            title.style.cssText = 'height:12%;display:flex;flex-direction:column;justify-content:center;text-align:center;border-bottom:none;padding:20px 0 0;';
+            title.querySelector('div').style.cssText = 'font-size:28px;line-height:28px;color:#00AE42;cursor:default;font-weight:400;margin-right:0;padding:0 10mm;border-bottom:none;';
+        }
+
+        // Hide custom filaments area, show system filaments
+        var cust = document.getElementById('CustomFilamentsArea');
+        if (cust) cust.style.display = 'none';
+        var sys = document.getElementById('SystemFilamentsArea');
+        if (sys) sys.style.display = 'flex';
+
+        // Reset AcceptArea to common.css style (same as guide/22)
+        var acceptArea = document.getElementById('AcceptArea');
+        if (acceptArea) {
+            acceptArea.style.cssText = 'height:12%;padding:0 10mm 16px;display:flex;justify-content:flex-end;align-items:flex-end;';
+        }
+        // 上一步（GrayBtn）左边，结束（NormalBtn）右边，两个靠右排列
+        var preBtn = document.getElementById('PreBtn');
+        if (preBtn) {
+            preBtn.className = 'GrayBtn trans';
+            preBtn.setAttribute('tid', 't8');
+            preBtn.textContent = 'Back';
+            preBtn.removeAttribute('style');
+            preBtn.onclick = function() { window.open('../21/index.html', '_self'); };
+        }
+        var acceptBtn = document.getElementById('AcceptBtn');
+        if (acceptBtn) {
+            acceptBtn.className = 'NormalBtn trans';
+            acceptBtn.setAttribute('tid', 't25');
+            acceptBtn.textContent = 'Finish';
+            acceptBtn.removeAttribute('style');
+        }
+        // Move PreBtn before AcceptBtn in DOM so order is: 上一步 | 结束
+        if (preBtn && acceptBtn && acceptBtn.parentNode) {
+            acceptBtn.parentNode.insertBefore(preBtn, acceptBtn);
+        }
+    });
+})();
+</script>
 <body onLoad="OnInit()">
+
+<div id="pageWrapper">
+<!-- Tab Header -->
 <div id="Title">
-	<div id="SystemFilamentBtn" class="TitleSelected trans" tid="t109" onClick="OnSelectMenu(1)">System Filaments</div>
-	<div id="CustomFilamentBtn" class="TitleUnselected trans" tid="t110" onClick="OnSelectMenu(2)">Custom Filaments</div>
+	<div id="SystemFilamentBtn" class="TitleSelected trans" tid="t109" onClick="OnSelectMenu(1)">系统材料</div>
+	<div id="CustomFilamentBtn" class="TitleUnselected trans" tid="t110" onClick="OnSelectMenu(2)">自定义材料</div>
 </div>
-<div id="Content" class="ZScrol">
-	
+
+<div id="Content">
+
+<!-- ========== System Filaments Area ========== -->
 <div id="SystemFilamentsArea">
-	<div id="leftBlock" class="ChooseBlock">
-    <div id="printerShow">
-      <div id="printerBtn" class="CNameBlock">
-        <img class="inlineAlign CNameIcon" src="../img/printer.svg" />
-        <span class="trans inlineAlign" tid="t15">printer</span>
-        <div class="CArrow inlineAlign"></div>
-      </div>
-      <div id="MachineList" class="CValues">
-        <div class="checkboxText"><input type="checkbox" mode="all" onClick="ChooseAllMachine()" /><span class="trans" tid="t11">all</span></div>
-        <!-- <div class="checkboxText"><input class="inputIndent" type="checkbox" mode="-normal" />Bambulab BBL-3DP-001-V5-normal</div>
-        <div class="checkboxText"><input class="inputIndent" type="checkbox" mode="-normal" />Bambulab BBL-3DP-001-V5-normal</div>
-        <div class="checkboxText"><input class="inputIndent" type="checkbox" mode="-normal" />Bambulab BBL-3DP-001-V5-normal</div>
-        <div class="checkboxText"><input class="inputIndent" type="checkbox" mode="-normal" />Bambulab BBL-3DP-001-V5-normal</div> -->
-      </div>
-    </div>
-    <div id="vendorShow">
-      <div id="vendorBtn" class="CNameBlock">
-        <img class="inlineAlign CNameIcon" src="../img/vendor.svg" />
-        <span class="trans inlineAlign" tid="t17">vendor</span>
-        <div class="CArrow inlineAlign"></div>
-      </div>
-      <div id="VendorList" class="CValues">
-        <div class="checkboxText"><input type="checkbox" mode="all" onClick="ChooseAllVendor()" /><span class="trans" tid="t11">all</span></div>
-        <!-- <div class="checkboxText"><input class="inputIndent" type="checkbox" />BBL</div>
-        <div class="checkboxText"><input class="inputIndent" type="checkbox" />eSUN</div>
-        <div class="checkboxText"><input class="inputIndent" type="checkbox" />Kexcelled</div>
-        <div class="checkboxText"><input class="inputIndent" type="checkbox" />Unknown</div> -->
-      </div>
-    </div>
-    <div id="filatypeShow">
-      <div id="filatypeBtn" class="CNameBlock">
-        <img class="inlineAlign CNameIcon" src="../img/filament.svg" />
-        <span class="trans inlineAlign" tid="t16">filament type</span>
-        <div class="CArrow inlineAlign"></div>
-      </div>
-      <div id="FilatypeList" class="CValues">
-        <div class="checkboxText"><input type="checkbox" mode="all" onClick="ChooseAllFilament()" /><span class="trans" tid="t11">all</span></div>
-        <!-- <div class="checkboxText"><input class="inputIndent" type="checkbox" />PET</div>
-        <div class="checkboxText"><input class="inputIndent" type="checkbox" />ABS</div>
-        <div class="checkboxText"><input class="inputIndent" type="checkbox" />TPU</div>
-        <div class="checkboxText"><input class="inputIndent" type="checkbox" />PA6+CF</div> -->
-      </div>
-    </div>
-  </div>
-  <div id="rightBlock" class="ChooseBlock">
-    <div class="SelectAll"><input id="SelectAllCheckbox" type="checkbox" /><span class="trans" tid="t150">Select All</span></div>
-    <div id="ItemBlockArea" class="ZScrol">
-      <!-- <div><input type="checkbox" />BBL PA-CF</div>	
-      <div><input type="checkbox" />Geneic ABS</div>
-      <div><input type="checkbox" />Geneic PETG</div>	
-      <div><input type="checkbox" />Geneic PLA</div>
-      <div><input type="checkbox" />Geneic TPU</div>
-      <div><input type="checkbox" />Geneic TPU83</div>	
-      <div class="MItem"><input type="checkbox" />Geneic TPU87</div>
-      <div class="MItem"><input type="checkbox" />Geneic TPU90</div>
-      <div class="MItem"><input type="checkbox" />Geneic TPU95</div>	
-      <div class="MItem"><input type="checkbox" />K5 ABS</div>
-      <div class="MItem"><input type="checkbox" />K5 ASA</div>
-      <div class="MItem"><input type="checkbox" />K5 PETG</div>
-      <div class="MItem"><input type="checkbox" />K5 PLA~</div>
-      <div class="MItem"><input type="checkbox" />K5 Silk PLA</div>
-      <div class="MItem"><input type="checkbox" />K5 Sparkle PLA</div>
-      <div class="MItem"><input type="checkbox" />K5M PLA~</div>
-      <div class="MItem"><input type="checkbox" />K5P PLA~</div>
-      <div class="MItem"><input type="checkbox" />K5P PLA~</div>
-      <div class="MItem"><input type="checkbox" />ALL PLA EXPSilk</div>
-      <div class="MItem"><input type="checkbox" />ALL PLA Silk</div>
-      <div class="MItem"><input type="checkbox" />BBL PA-CF</div>	
-      <div class="MItem"><input type="checkbox" />Geneic ABS</div>
-      <div class="MItem"><input type="checkbox" />Geneic PETG</div>	
-      <div class="MItem"><input type="checkbox" />Geneic PLA</div>
-      <div class="MItem"><input type="checkbox" />Geneic TPU</div>
-      <div class="MItem"><input type="checkbox" />Geneic TPU83</div>	
-      <div class="MItem"><input type="checkbox" />Geneic TPU87</div>
-      <div class="MItem"><input type="checkbox" />Geneic TPU90</div>
-      <div class="MItem"><input type="checkbox" />Geneic TPU95</div>	
-      <div class="MItem"><input type="checkbox" />K5 ABS</div>
-      <div class="MItem"><input type="checkbox" />K5 ASA</div>
-      <div class="MItem"><input type="checkbox" />K5 PETG</div>
-      <div class="MItem"><input type="checkbox" />K5 PLA~</div>
-      <div class="MItem"><input type="checkbox" />K5 Silk PLA</div>
-      <div class="MItem"><input type="checkbox" />K5 Sparkle PLA</div>
-      <div class="MItem"><input type="checkbox" />K5M PLA~</div>
-      <div class="MItem"><input type="checkbox" />Geneic ABS</div>
-      <div class="MItem"><input type="checkbox" />Geneic PETG</div>	
-      <div class="MItem"><input type="checkbox" />Geneic PLA</div>
-      <div class="MItem"><input type="checkbox" />Geneic TPU</div>
-      <div class="MItem"><input type="checkbox" />Geneic TPU83</div>	
-      <div class="MItem"><input type="checkbox" />Geneic TPU87</div>
-      <div class="MItem"><input type="checkbox" />Geneic TPU90</div>
-      <div class="MItem"><input type="checkbox" />Geneic TPU95</div>	
-      <div class="MItem"><input type="checkbox" />K5 ABS</div>
-      <div class="MItem"><input type="checkbox" />K5 ASA</div>
-      <div class="MItem"><input type="checkbox" />K5 PETG</div>
-      <div class="MItem"><input type="checkbox" />K5 PLA~</div>
-      <div class="MItem"><input type="checkbox" />K5 Silk PLA</div>
-      <div class="MItem"><input type="checkbox" />K5 Sparkle PLA</div> -->
-    </div>
-  </div>
+		<!-- Left: Filter Panel -->
+	<div id="filterPanel">
+		<div class="filter-title trans" tid="t237">Filter</div>
+		<div class="filter-separator"></div>
+
+				<!-- Filament Type -->
+		<div class="filter-section" id="section_filatype">
+			<div class="filter-item" onClick="toggleFilterSection('filatype')">
+				<img class="filter-icon" src="../img/filament.svg" />
+				<span class="filter-label trans" tid="t238">Filament Type</span>
+				<span class="filter-count" id="filatypeCount">(&thinsp;0/0&thinsp;)</span>
+				<span class="filter-arrow">&#x203a;</span>
+			</div>
+			<div class="filter-dropdown" id="dropdown_filatype"></div>
+		</div>
+
+		<!-- Printer -->
+		<div class="filter-section" id="section_printer">
+			<div class="filter-item" onClick="toggleFilterSection('printer')">
+				<img class="filter-icon" src="../img/printer.svg" />
+				<span class="filter-label trans" tid="t239">Printer</span>
+				<span class="filter-count" id="printerCount">(&thinsp;0/0&thinsp;)</span>
+				<span class="filter-arrow">&#x203a;</span>
+			</div>
+			<div class="filter-dropdown" id="dropdown_printer"></div>
+		</div>
+
+		<!-- Vendor -->
+		<div class="filter-section" id="section_vendor">
+			<div class="filter-item" onClick="toggleFilterSection('vendor')">
+				<img class="filter-icon" src="../img/vendor.svg" />
+				<span class="filter-label trans" tid="t240">Vendor</span>
+				<span class="filter-count" id="vendorCount">(&thinsp;0/0&thinsp;)</span>
+				<span class="filter-arrow">&#x203a;</span>
+			</div>
+			<div class="filter-dropdown" id="dropdown_vendor"></div>
+		</div>
+	</div>
+
+	<!-- Right: Main Content -->
+	<div id="mainContent">
+				<!-- Search Tags Area -->
+				<div id="tagsArea">
+					<div id="tagsList"></div>
+				</div>
+
+		<!-- Filter Result Info + Search -->
+		<div id="filterBar">
+			<span id="filterResultText" class="trans" tid="t241">Filter results: 0 matches</span>
+			<label id="selectAllCurrent"><input type="checkbox" id="SelectAllCheckbox" onChange="onSelectAllChange()" /><span class="trans" tid="t150">全选当前筛选结果</span></label>
+		</div>
+				<div id="searchBar">
+			<svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+			<input type="text" id="searchInput" placeholder="Search filament name and type" autocomplete="off" />
+		</div>
+
+		<!-- Filament List (grouped by type) -->
+		<div id="ItemBlockArea" class="ZScrol"></div>
+
+		<!-- Empty State -->
+		<div id="emptyState" style="display:none;">
+			<div class="empty-icon"></div>
+			<div class="empty-text">暂无筛选结果</div>
+		</div>
+	</div>
 </div>
-	
-	
+
+<!-- ========== Custom Filaments Area ========== -->
 <div id="CustomFilamentsArea">
-	<div id="CFilament_Btn_Area">
-		<div class="SmallBtn_Green trans" tid="t111" onClick="OnClickCustomFilamentAdd()">Create New</div>
+	<!-- Header -->
+	<div id="CFilament_Header">
+		<span id="CFilament_Count" class="trans" tid="t242">Custom filaments: 0</span>
+				<select id="CFilament_Sort" onChange="onCustomSortChange()">
+			<option value="desc" class="trans" tid="t243">Time: Newest first</option>
+			<option value="asc" class="trans" tid="t244">Time: Oldest first</option>
+			<option value="type" class="trans" tid="t245">Filament type</option>
+		</select>
 	</div>
-    <div id="CFilament_List" class="ZScrol">
-<!--		<div class="CFilament_Item">
-			<a  class="CFilament_Name" title="New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
+	<!-- List -->
+	<div id="CFilament_List" class="ZScrol"></div>
+		<!-- Empty State -->
+		<div id="CFilament_Empty" style="display:none;">
+			<div class="empty-icon"></div>
+			<div class="empty-text trans" tid="t246">No custom filaments</div>
+			<div class="CFilament_CreateBtn" onClick="OnClickCustomFilamentAdd()">
+				<span class="create-plus">+</span> <span class="trans" tid="t247">+ New custom filament</span>
+			</div>
 		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img onClick="CFEdit()" class="CFilament_EditBtn" src="../../image/edit.svg" />
+		<!-- Create Button (when list has data) -->
+		<div id="CFilament_Btn_Area">
+			<div class="CFilament_CreateBtn" onClick="OnClickCustomFilamentAdd()">
+				<span class="create-plus">+</span> <span class="trans" tid="t247">+ New custom filament</span>
+			</div>
 		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>		
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>	
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>	
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>	
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>	
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>	
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>	
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>	
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>	
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>	
-		<div class="CFilament_Item">
-			<a  class="CFilament_Name">New Custom XXXXXXXXXXXXXXXXXXXXXXXXXX</a><img class="CFilament_EditBtn" src="../../image/edit.svg" />
-		</div>	-->	
-	</div>
 </div>
-	
-</div>
+
+</div><!-- /Content -->
+</div><!-- /pageWrapper -->
+
+<!-- Footer Buttons -->
 <div id="AcceptArea">
-	<div class="NormalBtn trans" tid="t39" id="AcceptBtn"  onclick="ConfirmSelect()">Confirm</div>	
-	<div class="GrayBtn trans" tid="t38" id="PreBtn"  onclick="CancelSelect()">Cancel</div>
+	<div class="NormalBtn trans" tid="t39" id="AcceptBtn" onclick="ConfirmSelect()">Confirm</div>
+	<div class="GrayBtn trans" tid="t38" id="PreBtn" onclick="CancelSelect()">Cancel</div>
 </div>
-<div id="NoticeMask">
-</div>
-	<div id="NoticeBody">
+
+<!-- Notice Dialog -->
+<div id="NoticeMask"></div>
+<div id="NoticeBody">
 	<div id="NoticeBar" class="trans" tid="t18">error</div>
 	<div id="NoticeContent">
-	<div id="NoticeText" class="trans" tid="t19">At least one filament must be selected. </div>
-	<div id="NoticeText" class="trans" tid="t20">Do you want to use default filament ?</div>
-	<div id="NoticeBtns">
-		<div class="SmallBtn trans" tid="t21" onClick="ChooseDefaultFilament()">yes</div>
-		<div class="SmallBtn trans" tid="t22" onClick="ShowNotice(0)">no</div>
+		<div id="NoticeText" class="trans" tid="t19">At least one filament must be selected.</div>
+		<div id="NoticeText" class="trans" tid="t20">Do you want to use default filament ?</div>
+		<div id="NoticeBtns">
+			<div class="SmallBtn trans" tid="t21" onClick="ChooseDefaultFilament()">yes</div>
+			<div class="SmallBtn trans" tid="t22" onClick="ShowNotice(0)">no</div>
+		</div>
 	</div>
-	</div>
-	</div>
+</div>
 
 </body>
 <script>
 	document.onkeydown = function (event) {
 		var e = event || window.event || arguments.callee.caller.arguments[0];
-
-		if (e.keyCode == 27)
+		if (e.keyCode == 27) {
 			ClosePage();
-
-		if (window.event) {
-			try { e.keyCode = 0; } catch (e) { }
-			e.returnValue = false;
+			if (window.event) {
+				e.returnValue = false;
+			}
+			return false;
 		}
 	};
-    window.addEventListener('wheel', function (event) {
-        if (event.ctrlKey === true || event.metaKey) {
-            event.preventDefault();
-        }
-    }, { passive: false });
+	window.addEventListener('wheel', function (event) {
+		if (event.ctrlKey === true || event.metaKey) event.preventDefault();
+	}, { passive: false });
 </script>
 </html>

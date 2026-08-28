@@ -1,225 +1,702 @@
-#leftBlock {
+/* ===================== Layout ===================== */
+html, body {
+  background-color: #fff !important;
+}
+
+#Content {
   flex: 1;
-  padding-left: 9px;
-  padding-right: 9px;
-  border-right: 1px solid #EEEEEE;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-#rightBlock {
-  flex: 2;
-  padding-left: 15px;
-  padding-right: 9px;
+#SystemFilamentsArea {
+  display: none;
+  flex-direction: row;
+  flex: 1;
+  overflow: hidden;
 }
 
-.CNameBlock {
+/* Page Wrapper */
+#pageWrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  margin: 0 26px;
+}
+
+/* ===================== Title / Tabs ===================== */
+#Title {
+  margin: 0;
+  height: auto !important;
+  border-bottom: 1px solid #E0E0E0;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 0 0 0;
+}
+
+#Title div {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 8px;
+  position: relative;
+  margin-right: 24px;
+}
+
+#Title div.TitleSelected {
+  color: #333;
   font-weight: 700;
-  height: 28px;
+  border-bottom: 3px solid #00AE42;
 }
 
-.inlineAlign {
-  display: inline-block;
-  vertical-align: middle;
-  line-height:normal;
+#Title div.TitleUnselected {
+  color: #333;
+  font-weight: 400;
+  border-bottom: 3px solid transparent;
 }
 
-.CNameIcon {
+/* ===================== Filter Panel (Left) ===================== */
+#filterPanel {
+  width: 199px;
+  min-width: 199px;
+  border-right: none;
+  padding: 12px 16px 12px 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
+}
+
+#filterPanel::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 36px;
+  bottom: 0;
+  width: 1px;
+  background: #EEEEEE;
+}
+
+.filter-title {
+  font-size: 12px;
+  color: #999;
+  padding: 4px 0 8px;
+}
+
+.filter-separator {
+  height: 1px;
+  background: #EEEEEE;
+  margin: 0 0 4px;
+}
+
+.filter-section {
+  /* each section is a collapsible group */
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 0;
+  cursor: pointer;
+  transition: background 0.15s;
+  gap: 6px;
+  user-select: none;
+}
+
+.filter-item:hover {
+  background: transparent;
+}
+
+.filter-icon {
   width: 16px;
   height: 16px;
+  flex-shrink: 0;
 }
 
-.CArrow
-{
-  width: 20px;
-  height: 20px;
-  background-image: url(../img/pull.svg);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  float: right;
-  transition: transform 0.3s ease;
+.filter-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.filter-count {
+  font-size: 12px;
+  color: #999;
+}
+
+.filter-arrow {
+  font-size: 18px;
+  color: #999;
+  transition: transform 0.2s;
+  transform: rotate(0deg);
+  margin-left: 4px;
+}
+
+.filter-section.open .filter-arrow {
   transform: rotate(90deg);
 }
-.CArrow.active {
-  transform: rotate(0deg);
+
+/* Filter Dropdown (inline expand) */
+.filter-dropdown {
+  display: none;
+  padding: 4px 0 8px 22px;
 }
 
-.CValues {
-  padding: 8px;
-  background-color: #F8F8F8;
+.filter-section.open .filter-dropdown {
+  display: block;
 }
 
-input {
-	margin-right: 8px;
-	vertical-align: middle;
-  width: 16px;
-  height: 16px;
+.filter-dd-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+  gap: 8px;
+  font-size: 13px;
+  color: #333;
 }
 
-.inputIndent { margin-left: 8px;}
+.filter-dd-item input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  flex-shrink: 0;
+}
 
-.checkboxText {
-  width: 212px;
+.filter-dd-item label {
+  flex: 1;
+  cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  display: inline-block;
 }
 
-/* right block */
-.SelectAll {
-  width: 100%;
-  text-align: right;
-  font-weight: 700;
+.filter-dd-item.select-all {
+  margin-bottom: 2px;
+  padding-bottom: 4px;
 }
 
+.filter-dd-item:not(.select-all) {
+  padding-left: 12px;
+}
+
+/* ===================== Main Content (Right) ===================== */
+#mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0 16px 16px;
+  gap: 12px;
+  overflow: hidden;
+}
+
+/* Tags Area */
+#tagsArea {
+  display: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #F0F0F0;
+}
+
+#tagsArea.has-tags {
+  display: flex;
+}
+
+#tagsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+  align-items: center;
+}
+
+/* Ellipsis indicator when tags overflow */
+.tags-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  height: 21px;
+  background: transparent;
+  border: 1px solid #E0E0E0;
+  border-radius: 12px;
+  font-size: 12px;
+  color: #333;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  height: 21px;
+  background: transparent;
+  border: 1px solid #E0E0E0;
+  border-radius: 12px;
+  font-size: 12px;
+  color: #333;
+  white-space: nowrap;
+}
+
+.tag .tag-close {
+  cursor: pointer;
+  font-size: 14px;
+  color: #999;
+  line-height: 1;
+  margin-left: 2px;
+}
+
+.tag .tag-close:hover {
+  color: #333;
+}
+
+
+
+.tags-clear {
+  font-size: 12px;
+  color: #00AE42;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 4px 0;
+}
+
+.tags-clear:hover {
+  text-decoration: underline;
+}
+
+.tags-collapse {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  height: 21px;
+  background: transparent;
+  border: 1px solid #E0E0E0;
+  border-radius: 12px;
+  font-size: 12px;
+  color: #333;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Filter Bar */
+#filterBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#filterResultText {
+  font-size: 12px;
+  color: #999;
+}
+
+#selectAllCurrent {
+  font-size: 12px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+#selectAllCurrent input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+}
+
+/* Search Bar */
+#searchBar {
+  display: flex;
+  align-items: center;
+  border: 1px solid #E0E0E0;
+  border-radius: 12px;
+  height: 24px;
+  padding: 0 8px;
+  gap: 6px;
+}
+
+#searchBar .search-icon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+#searchInput {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 13px;
+  background: transparent;
+  color: #333;
+  line-height: 20px;
+  padding: 0;
+  -webkit-appearance: none;
+}
+
+/* ===================== Filament List ===================== */
 #ItemBlockArea {
-  column-count: 2;
-  column-gap: 16px;
-  padding-top: 16px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px;
+  border: 1px solid #EEEEEE;
+  border-radius: 8px;
 }
 
-.cols > *{
-  break-inside: avoid;
+.fila-group {
+  margin-bottom: 12px;
 }
 
-
-#NoticeMask
-{
-	background-color: #000;
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	right: 0px;
-	bottom: 0px;
-	opacity: 0.05;
-	display: none;
+.fila-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 4px 0;
+  user-select: none;
 }
 
-#NoticeBody
-{
-	display: none;
-	width: 500px;
-	border-width: 1px;
-	border-style: solid;
-	border-radius: 4px;
-	background-color: inherit;	
-	position: absolute;
-	left: 50%;
-	top: 200px;
-	margin-left: -250px;
+.fila-group-arrow {
+  font-size: 10px;
+  color: #666;
+  transition: transform 0.2s;
 }
 
-#NoticeBar
-{
-	background-color:#00B35C;
-	height: 40px;
-	line-height: 40px;
-	color: #fff;
-	text-align: center;
+.fila-group-arrow.collapsed {
+  transform: rotate(-90deg);
 }
 
-#NoticeContent
-{
-	padding: 4mm 10mm;	
+.fila-group-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
 }
 
-
-#NoticeBtns
-{
-	margin-top: 4mm;
-	display: flex;
-	justify-content:space-around;
+.fila-group-count {
+  font-size: 12px;
+  color: #999;
 }
 
-#SystemFilamentsArea
-{
-	display: none;
-	flex-direction: row;
+.fila-group-items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 16px;
+  padding: 4px 0 4px 18px;
 }
 
-#CFilament_Btn_Area
-{
-	display: flex;
-	align-items: center;
-	height: 30px;
+.fila-group-items.collapsed {
+  display: none;
 }
 
-#Title
-{
-	margin: 0px 40px;
-	border-bottom: 1px solid #000;
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	align-items: center;
+.fila-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  font-size: 13px;
+  color: #333;
 }
 
-#Title div
-{
-	cursor: pointer;
-	font-size: 24px;
+.fila-item input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: #00AE42;
 }
 
-#Title div.TitleSelected
-{
-	height: calc(100% - 6px);
-	display: flex;
-	align-items: center;
-	border-bottom: 6px solid #00AE42;
+.fila-item label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
-#Title div.TitleUnselected
-{
-	height: 100%;
-	display: flex;
-	align-items: center;
-	color: #000;
+/* Empty State */
+#emptyState {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-#CustomFilamentsArea
-{
-	display: flex;
-	flex-direction: column;
-	height: 100%;
+.empty-icon {
+  width: 200px;
+  height: 160px;
+  background: url('../img/no-result.svg') no-repeat center;
+  background-size: contain;
 }
 
-#CFilament_List
-{
-	display:flex;
-	overflow-x:auto;
-	flex-wrap:wrap;
-	flex-direction: column;
-	justify-content:flex-start;
-	align-items: flex-start;
-	align-content:flex-start;
-	line-height: 32px;
-
-	height: 100%;
+.empty-text {
+  font-size: 13px;
+  color: #999;
+  font-weight: 400;
 }
 
-.CFilament_Item
-{
-	display: flex;
-	align-items: center;
-	margin-right: 30px;
+/* ===================== Notice Dialog ===================== */
+#NoticeMask {
+  background-color: #000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.05;
+  display: none;
 }
 
-.CFilament_Name
-{
-	width: 220px;
-	overflow: hidden;
-    white-space: nowrap; /* 防止文字换行 */
-    text-overflow: ellipsis; /* 超出部分显示省略号 */
+#NoticeBody {
+  display: none;
+  width: 500px;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  background-color: #fff;
+  position: absolute;
+  left: 50%;
+  top: 200px;
+  margin-left: -250px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
-.CFilament_EditBtn
-{
-	cursor: pointer;
-	width: 20px;
-	height: 20px;
+#NoticeBar {
+  background-color: #00B35C;
+  height: 40px;
+  line-height: 40px;
+  color: #fff;
+  text-align: center;
+  border-radius: 8px 8px 0 0;
 }
 
-.CFilament_EditBtn:hover
-{
-	
+#NoticeContent {
+  padding: 20px 30px;
+}
+
+#NoticeBtns {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-around;
+}
+
+/* ===================== Custom Filaments ===================== */
+#CustomFilamentsArea {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  overflow: hidden;
+  padding: 16px 0;
+}
+
+#CFilament_Header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 648px;
+  padding: 0 0 12px;
+}
+
+#CFilament_Count {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+#CFilament_Sort {
+  font-size: 12px;
+  border: 1px solid #E0E0E0;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: #333;
+  background: #fff;
+  cursor: pointer;
+}
+
+#CFilament_List {
+  width: 648px;
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid #EEEEEE;
+  border-radius: 8px;
+  background: #F9F9F9;
+}
+
+.CFilament_GroupTitle {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #262E30;
+  padding: 12px 16px 8px;
+  cursor: default;
+  user-select: none;
+}
+
+.CFilament_GroupTitle.collapsible {
+  cursor: pointer;
+}
+
+.CFilament_GroupArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  transition: transform 0.2s;
+}
+
+.CFilament_GroupArrow::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid #999;
+  border-bottom: 1.5px solid #999;
+  transform: rotate(45deg) translateY(-2px);
+}
+
+.CFilament_GroupArrow.collapsed {
+  transform: rotate(-90deg);
+}
+
+.CFilament_GroupItems.collapsed {
+  display: none;
+}
+
+.CFilament_Item {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px 10px 24px;
+  border-bottom: 1px solid #F5F5F5;
+  gap: 12px;
+  background: #fff;
+}
+
+.CFilament_Item:last-child {
+  border-bottom: none;
+}
+
+.CFilament_Name {
+  flex: 1;
+  font-size: 13px;
+  color: #262E30;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.CFilament_Type {
+  font-size: 13px;
+  color: #262E30;
+  width: 137px;
+}
+
+.CFilament_Date {
+  font-size: 13px;
+  color: #262E30;
+  width: 87px;
+}
+
+.CFilament_EditBtn {
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  opacity: 0.6;
+}
+
+.CFilament_EditBtn:hover {
+  opacity: 1;
+}
+
+#CFilament_Empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+#CFilament_Empty .empty-icon {
+  width: 200px;
+  height: 160px;
+}
+
+#CFilament_Btn_Area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 648px;
+  padding: 12px 0 0;
+}
+
+.CFilament_CreateBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 40px;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #262E30;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  gap: 8px;
+}
+
+.create-plus {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.CFilament_CreateBtn:hover {
+  background: #EEEEEE;
+}
+
+/* ===================== Footer ===================== */
+#AcceptArea {
+  height: auto !important;
+  border-top: none;
+  padding: 10px 24px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+#AcceptArea .NormalBtn {
+  padding: 0 16px;
+  height: 32px;
+  line-height: 32px;
+  font-size: 13px;
+  border-radius: 16px;
+  margin-left: 0;
+}
+
+#AcceptArea .GrayBtn {
+  padding: 0 16px;
+  height: 32px;
+  line-height: 32px;
+  font-size: 13px;
+  border-radius: 16px;
+  margin-left: 0;
 }

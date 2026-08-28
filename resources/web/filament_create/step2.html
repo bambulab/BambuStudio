@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>创建自定义耗材 - 步骤2</title>
+    <link rel="stylesheet" href="../guide/css/common.css" />
+    <link rel="stylesheet" href="step1.css" />
+    <link rel="stylesheet" href="step2.css" />
+    <script src="../guide/js/jquery-3.6.0.min.js"></script>
+    <script src="../guide/js/globalapi.js"></script>
+    <script src="../data/text.js"></script>
+    <script src="step2.js"></script>
+</head>
+<body>
+    <div class="window-frame">
+        <div class="page-wrapper">
+            <header class="steps-container">
+                <div class="step-item done">
+                    <div class="step-circle"></div>
+                    <div class="step-label trans" tid="t200">Basic Info</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item active">
+                    <div class="step-circle">2</div>
+                    <div class="step-label trans" tid="t201">Set Parameters</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item">
+                    <div class="step-circle">3</div>
+                    <div class="step-label trans" tid="t202">Complete</div>
+                </div>
+            </header>
+
+            <main class="content-container">
+                <section class="form-section step2-section">
+
+                    <!-- 打印机型号 -->
+                    <div class="info-row">
+                        <span class="info-label required trans" tid="t220">Printer Model:</span>
+                        <span class="info-value trans" id="device-name" tid="t221">Loading...</span>
+                    </div>
+
+                    <!-- 喷嘴直径 -->
+                    <div class="info-row">
+                        <span class="info-label required trans" tid="t222">Nozzle Diameter:</span>
+                        <div class="checkbox-group" id="nozzle-checkboxes"></div>
+                    </div>
+
+                    <!-- 基准材料预设 -->
+                    <div class="info-row" style="margin-top: 8px; position: relative;">
+                        <span class="info-label required trans" tid="t223">Base Filament Preset:</span>
+                        <div class="input-wrapper select-arrow" style="width:314px;">
+                            <input type="text" id="input-base-preset" placeholder="Select preset" data-ph-tid="t224" readonly />
+                        </div>
+                        <div id="base-preset-dropdown" class="dropdown-list hidden" style="left:140px; top:30px; width:314px;">
+                            <div id="base-preset-options"></div>
+                        </div>
+                    </div>
+
+                    <!-- 参数区域 -->
+                    <div class="parameters-area" id="parameters-area">
+                        <div class="nozzle-tabs" id="nozzle-tabs"></div>
+                        <div class="param-categories" id="param-categories"></div>
+                        <div class="param-list scrollable" id="param-list">
+                            <div class="param-row" style="color:#999">Please select a base preset first</div>
+                        </div>
+                    </div>
+
+                </section>
+            </main>
+
+            <footer class="footer-actions">
+                <button id="btn-prev" class="btn-secondary trans" tid="t8">Back</button>
+                <button id="btn-next" class="btn-primary trans" tid="t9" disabled>Next</button>
+                <button id="btn-cancel" class="btn-secondary trans" tid="t38">Cancel</button>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>

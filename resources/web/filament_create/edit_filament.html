@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edit Filament</title>
+    <link rel="stylesheet" href="../guide/css/common.css" />
+    <link rel="stylesheet" href="../guide/23/23.css" />
+    <link rel="stylesheet" href="edit_filament.css" />
+    <script src="../guide/js/jquery-3.6.0.min.js"></script>
+    <script src="../guide/js/globalapi.js"></script>
+    <script src="../data/text.js"></script>
+    <script src="edit_filament.js"></script>
+</head>
+<body>
+    <div class="ef-wrapper">
+
+        <!-- Header -->
+        <div class="ef-header">
+            <div class="ef-title-row">
+                <span class="ef-label trans" tid="t231">Filament Name:</span>
+                <span class="ef-filament-name" id="ef-filament-name">—</span>
+            </div>
+            <div class="ef-title-row" style="margin-top: 12px;">
+                <span class="ef-label trans" tid="t234">Filament Presets:</span>
+                <button class="ef-btn-add trans" id="btn-add-preset" tid="t235">Add Preset</button>
+            </div>
+        </div>
+
+        <!-- Preset List -->
+        <div class="ef-list-container">
+            <div id="ef-preset-list"></div>
+            <div id="ef-empty" class="ef-empty" style="display:none">
+                <span class="trans" tid="t236">No presets</span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="ef-footer">
+            <button class="ef-btn-primary trans" id="btn-ok" tid="t229">Confirm</button>
+            <button class="ef-btn-secondary trans" id="btn-cancel" tid="t38">Cancel</button>
+        </div>
+
+    </div>
+</body>
+</html>

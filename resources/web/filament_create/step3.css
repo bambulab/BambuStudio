@@ -1,0 +1,98 @@
+/* Step 3 specific styles */
+
+/* Checked state for step 1 & 2 */
+.step-item.done .step-circle {
+    background: var(--color-brand);
+    color: transparent;
+    position: relative;
+}
+.step-item.done .step-circle::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 12px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg) translate(-1px, -2px);
+}
+.step-item.done .step-label {
+    color: var(--color-text-main);
+}
+
+.step3-section {
+    width: 663px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 16px;
+}
+
+.s3-row {
+    display: flex;
+    align-items: baseline;
+    font-size: 16px;
+}
+
+.s3-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: #262E30;
+    white-space: nowrap;
+}
+
+.s3-count {
+    font-size: 14px;
+    font-weight: 400;
+    color: #262E30;
+}
+
+.s3-value {
+    font-size: 16px;
+    font-weight: 400;
+    color: #5C5C5C;
+}
+
+/* Preset list: 2 columns, inline-flex, gap 10px */
+.s3-preset-list {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px;
+    width: 610px;
+    margin-top: 12px;
+}
+
+.success-area {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 0;
+    gap: 10px;
+}
+
+.success-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-text-main);
+}
+
+.success-name {
+    font-size: 14px;
+    color: var(--color-brand);
+    font-weight: 600;
+}
+
+.success-desc {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+}
+
+.s3-preset-item {
+    width: calc(50% - 5px); /* 2 columns */
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 21px;
+    color: #262E30;
+    box-sizing: border-box;
+}

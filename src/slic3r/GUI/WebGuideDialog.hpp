@@ -52,7 +52,7 @@ public:
 
     //Web Function
     void load_url(wxString &url);
-    wxString SetStartPage(GuidePage startpage=BBL_WELCOME, bool load = true);
+    wxString SetStartPage(GuidePage startpage=BBL_WELCOME, bool load = true, bool default_custom_tab = false);
 
     void UpdateState();
     void OnIdle(wxIdleEvent &evt);

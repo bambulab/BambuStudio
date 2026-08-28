@@ -584,6 +584,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/SafetyOptionsDialog.cpp
     GUI/CreatePresetsDialog.hpp
     GUI/CreatePresetsDialog.cpp
+    GUI/CreateFilamentWebDialog.hpp
+    GUI/CreateFilamentWebDialog.cpp
+    GUI/EditFilamentWebDialog.hpp
+    GUI/EditFilamentWebDialog.cpp
     Utils/json_diff.hpp
     Utils/json_diff.cpp
     GUI/KBShortcutsDialog.hpp

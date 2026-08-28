@@ -1,0 +1,66 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>创建自定义耗材 - 步骤3</title>
+    <link rel="stylesheet" href="../guide/css/common.css" />
+    <link rel="stylesheet" href="step1.css" />
+    <link rel="stylesheet" href="step3.css" />
+    <script src="../guide/js/jquery-3.6.0.min.js"></script>
+    <script src="../guide/js/globalapi.js"></script>
+    <script src="../data/text.js"></script>
+    <script src="step3.js"></script>
+</head>
+<body>
+    <div class="window-frame">
+<div class="page-wrapper">
+            <!-- Steps Header -->
+            <header class="steps-container">
+                <div class="step-item done">
+                    <div class="step-circle"></div>
+                    <div class="step-label trans" tid="t200">Basic Info</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item done">
+                    <div class="step-circle"></div>
+                    <div class="step-label trans" tid="t201">Set Parameters</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item active">
+                    <div class="step-circle">3</div>
+                    <div class="step-label trans" tid="t202">Complete</div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="content-container">
+                <section class="form-section step3-section">
+
+                    <!-- 材料名称 -->
+                    <div class="s3-row">
+                        <span class="s3-label trans" tid="t231">Filament Name:</span>
+                        <span class="s3-value" id="s3-filament-name"></span>
+                    </div>
+
+                    <!-- 支持的打印机预设 -->
+                    <div class="s3-row" style="align-items: flex-start; margin-top: 16px;">
+                        <span class="s3-label"><span class="trans" tid="t232">Printer Presets for this Filament</span><span class="s3-count" id="s3-count"></span>:</span>
+                    </div>
+
+                    <!-- Preset List -->
+                    <div class="s3-preset-list" id="s3-preset-list"></div>
+
+                </section>
+            </main>
+
+            <!-- Footer Actions -->
+            <footer class="footer-actions">
+                <button id="btn-prev" class="btn-secondary trans" tid="t8">Back</button>
+                <button id="btn-confirm" class="btn-primary trans" tid="t229">Confirm</button>
+                <button id="btn-cancel" class="btn-secondary trans" tid="t38">Cancel</button>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>

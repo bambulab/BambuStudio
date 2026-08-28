@@ -1,0 +1,141 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>创建自定义耗材 - 步骤1</title>
+    <link rel="stylesheet" href="../guide/css/common.css" />
+    <link rel="stylesheet" href="step1.css" />
+    <script src="../guide/js/jquery-3.6.0.min.js"></script>
+    <script src="../guide/js/globalapi.js"></script>
+    <script src="../data/text.js"></script>
+    <script src="step1.js"></script>
+</head>
+<body>
+    <div class="window-frame">
+<div class="page-wrapper">
+            <!-- Steps Header -->
+            <header class="steps-container">
+                <div class="step-item active">
+                    <div class="step-circle">1</div>
+                    <div class="step-label trans" tid="t200">Basic Info</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item">
+                    <div class="step-circle">2</div>
+                    <div class="step-label trans" tid="t201">Set Parameters</div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item">
+                    <div class="step-circle">3</div>
+                    <div class="step-label trans" tid="t202">Complete</div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="content-container">
+                <!-- Section 1: Basic Info -->
+                <section class="form-section">
+                    <div class="section-title trans" tid="t200">Basic Info</div>
+                    <div class="form-group">
+                        <div class="form-row">
+                            <label class="required trans" tid="t203">Vendor</label>
+                            <div class="input-wrapper select-arrow">
+                                <input type="text" id="input-vendor" placeholder="Select vendor" data-ph-tid="t204" readonly />
+                                <!-- Dropdown List -->
+                                <div id="vendor-dropdown-list" class="dropdown-list hidden">
+                                    <div id="vendor-options" class="dropdown-options"></div>
+                                    <div class="dropdown-footer">
+                                        <button id="add-vendor-btn" class="add-btn"><span class="icon-plus">+</span> <span class="trans" tid="t205">Add vendor brand</span></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label class="required trans" tid="t206">Type</label>
+                            <div class="input-wrapper select-arrow">
+                                <input type="text" id="input-type" placeholder="Select material type" data-ph-tid="t207" readonly />
+                                <!-- Dropdown List -->
+                                <div id="type-dropdown-list" class="dropdown-list hidden">
+                                    <div id="type-options" class="dropdown-options"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <label class="required trans" tid="t208">Series</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="input-series" placeholder="e.g. Basic, Matte, Silk, Marble" data-ph-tid="t209" />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 2: Creation Mode -->
+                <section class="form-section">
+                    <div class="section-title required trans" tid="t210">Creation Method</div>
+                    <div class="radio-group" id="creation-mode-group">
+                        <label class="radio-card disabled" id="opt-current-printer">
+                            <div class="radio-indicator"></div>
+                            <div class="radio-content">
+                                <div class="radio-title trans" tid="t211">Create for my connected printer only</div>
+                                <div class="radio-desc trans" tid="t212">The filament will only be available for the currently connected printer.</div>
+                            </div>
+                            <input type="radio" name="creation_mode" value="current_printer" disabled />
+                        </label>
+
+                        <label class="radio-card active">
+                            <div class="radio-indicator"></div>
+                            <div class="radio-content">
+                                <div class="radio-title trans" tid="t213">Create based on filament type</div>
+                                <div class="radio-desc trans" tid="t214">Select a filament preset of the current type, compatible with multiple printers.</div>
+                            </div>
+                            <input type="radio" name="creation_mode" value="based_on_type" checked />
+                        </label>
+
+                        <label class="radio-card">
+                            <div class="radio-indicator"></div>
+                            <div class="radio-content">
+                                <div class="radio-title trans" tid="t215">Copy current filament type preset</div>
+                                <div class="radio-desc trans" tid="t216">For each printer preset of the current type, select a filament preset to copy.</div>
+                            </div>
+                            <input type="radio" name="creation_mode" value="copy_presets" />
+                        </label>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Footer Actions -->
+            <footer class="footer-actions">
+                <button id="btn-next" class="btn-primary trans" tid="t9" disabled>Next</button>
+                <button id="btn-cancel" class="btn-secondary trans" tid="t38">Cancel</button>
+            </footer>
+        </div>
+    </div>
+    
+    <!-- Add Vendor Dialog -->
+    <div id="vendor-dialog-mask" class="dialog-mask hidden"></div>
+    <div id="vendor-dialog" class="dialog-body hidden" style="width: 480px;">
+        <header class="dialog-header">
+            <div class="dialog-title-left">
+                <img src="img/logo.svg" style="width:14px; margin-right:8px;"/> <span class="trans" tid="t217">Create Vendor Brand</span>
+            </div>
+            <div class="dialog-close" id="vendor-dialog-close">
+                <img src="img/close.svg" style="width:18px;" />
+            </div>
+        </header>
+        <div class="dialog-content">
+            <div style="text-align: left; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #262E30;" class="trans" tid="t218">Vendor Brand Name</div>
+            <div class="dialog-input-wrapper">
+                <input type="text" id="new-vendor-input" placeholder="Enter name" maxlength="50" />
+                <span class="char-count" id="vendor-char-count">0/50</span>
+            </div>
+            <div id="new-vendor-error" class="error-msg hidden">Max 50 characters</div>
+            
+            <div class="dialog-footer">
+                <button id="vendor-btn-cancel" class="btn-secondary" style="height:32px; line-height:32px;">Cancel</button>
+                <button id="vendor-btn-confirm" class="btn-primary" style="height:32px; line-height:32px;">Confirm</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

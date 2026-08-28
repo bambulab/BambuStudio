@@ -58,8 +58,15 @@ static wxString update_custom_filaments()
         temp_filament_id_to_presets[preset.filament_id].push_back(&preset);
     }
 
-    std::vector<std::pair<std::string, std::string>>   need_sort;
-    bool                                             need_delete_some_filament = false;
+    struct CustomFilaData {
+        std::string name;
+        std::string id;
+        std::string type;
+        std::string time;
+    };
+    std::vector<CustomFilaData> custom_filas;
+    bool need_delete_some_filament = false;
+
     for (std::pair<std::string, std::vector<Preset const *>> filament_id_to_presets : temp_filament_id_to_presets) {
         std::string filament_id = filament_id_to_presets.first;
         if (filament_id.empty()) continue;
@@ -69,6 +76,9 @@ static wxString update_custom_filaments()
         bool filament_with_base_id = false;
         bool not_need_show = false;
         std::string filament_name;
+        std::string filament_type;
+        std::string create_time;
+
         for (const Preset *preset : filament_id_to_presets.second) {
             if (preset->is_system || preset->is_project_embedded) {
                 not_need_show = true;
@@ -87,26 +97,57 @@ static wxString update_custom_filaments()
                 size_t      index_at    = preset_name.find(" @");
                 if (std::string::npos != index_at) { preset_name = preset_name.substr(0, index_at); }
                 filament_name = preset_name;
+                
+                auto opt_type = dynamic_cast<ConfigOptionStrings *>(const_cast<Preset *>(preset)->config.option("filament_type", false));
+                if (opt_type && opt_type->values.size() > 0) {
+                    filament_type = opt_type->values[0];
+                }
+                
+                try {
+                    if (boost::filesystem::exists(preset->file)) {
+                        std::time_t t = boost::filesystem::last_write_time(preset->file);
+                        char buf[100];
+                        struct tm tm_info;
+#ifdef _WIN32
+                        localtime_s(&tm_info, &t);
+#else
+                        localtime_r(&t, &tm_info);
+#endif
+                        std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm_info);
+                        create_time = buf;
+                    }
+                } catch (...) {}
             }
         }
         if (not_need_show) continue;
         if (!filament_name.empty()) {
+            CustomFilaData data;
             if (filament_with_base_id) {
-                need_sort.push_back(std::make_pair("[Action Required] " + filament_name, filament_id));
+                data.name = "[Action Required] " + filament_name;
             } else {
-
-                need_sort.push_back(std::make_pair(filament_name, filament_id));
+                data.name = filament_name;
             }
+            data.id = filament_id;
+            data.type = filament_type;
+            data.time = create_time;
+            custom_filas.push_back(data);
         }
     }
-    std::sort(need_sort.begin(), need_sort.end(), [](const std::pair<std::string, std::string> &a, const std::pair<std::string, std::string> &b) { return a.first < b.first; });
+    std::sort(custom_filas.begin(), custom_filas.end(), [](const CustomFilaData &a, const CustomFilaData &b) { return a.name < b.name; });
+
     if (need_delete_some_filament) {
-        need_sort.push_back(std::make_pair("[Action Required]", "null"));
+        CustomFilaData data;
+        data.name = "[Action Required]";
+        data.id = "null";
+        custom_filas.push_back(data);
     }
+
     json temp_j;
-    for (std::pair<std::string, std::string> &filament_name_to_id : need_sort) {
-        temp_j["name"] = filament_name_to_id.first;
-        temp_j["id"]   = filament_name_to_id.second;
+    for (const CustomFilaData &data : custom_filas) {
+        temp_j["name"] = data.name;
+        temp_j["id"]   = data.id;
+        temp_j["type"] = data.type;
+        temp_j["create_time"] = data.time;
         m_CustomFilaments.push_back(temp_j);
     }
     m_Res["data"]  = m_CustomFilaments;
@@ -220,7 +261,7 @@ void GuideFrame::load_url(wxString &url)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< " exit";
 }
 
-wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
+wxString GuideFrame::SetStartPage(GuidePage startpage, bool load, bool default_custom_tab)
 {
     m_page = startpage;
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" enter, load=%1%, start_page=%2%")%load%int(startpage);
@@ -249,6 +290,11 @@ wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
     } else if (startpage == BBL_FILAMENT_ONLY) {
         SetTitle("");
         TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/0/index.html?target=23").make_preferred().string());
+        // Reopening right after creating/editing a custom filament (see Plater::priv::
+        // on_create_filament / on_modify_filament) should land on the Custom tab instead
+        // of the default System tab used by the first-run wizard and other entry points.
+        if (default_custom_tab)
+            TargetUrl = wxString::Format("%s&custom=1", TargetUrl);
     } else if (startpage == BBL_MODELS_ONLY) {
         SetTitle("");
         TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/0/index.html?target=24").make_preferred().string());

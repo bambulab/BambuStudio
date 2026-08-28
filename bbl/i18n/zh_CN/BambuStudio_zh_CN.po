@@ -17022,6 +17022,9 @@ msgstr "请选择一个您想导出的类型"
 msgid "Failed to create temporary folder, please try Export Configs again."
 msgstr "无法创建临时文件夹，请再次尝试导出配置。"
 
+msgid "Create Custom Filament"
+msgstr "创建自定义耗材"
+
 msgid "Edit Filament"
 msgstr "编辑材料"
 

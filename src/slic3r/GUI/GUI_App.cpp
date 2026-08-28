@@ -8125,10 +8125,13 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
 
     GuideFrame wizard(this, pStyle);
     auto page = start_page == ConfigWizard::SP_WELCOME ? GuideFrame::BBL_WELCOME :
-                start_page == ConfigWizard::SP_FILAMENTS ? GuideFrame::BBL_FILAMENT_ONLY :
+                (start_page == ConfigWizard::SP_FILAMENTS || start_page == ConfigWizard::SP_CUSTOM) ? GuideFrame::BBL_FILAMENT_ONLY :
                 start_page == ConfigWizard::SP_PRINTERS ? GuideFrame::BBL_MODELS_ONLY :
                 GuideFrame::BBL_MODELS;
-    wizard.SetStartPage(page);
+    // SP_CUSTOM: reused (it's unused by the legacy ConfigWizard code path, which is
+    // dead since this webview-based GuideFrame replaced it) to mean "reopen straight
+    // to the Custom filaments tab" for the create/edit-custom-filament flow.
+    wizard.SetStartPage(page, true, start_page == ConfigWizard::SP_CUSTOM);
 
     bool config_applied = false;
     bool       res = wizard.run(config_applied);
