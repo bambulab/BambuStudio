@@ -241,6 +241,8 @@ std::vector<std::set<int>> PrintObject::detect_extruder_geometric_unprintables()
         for (auto& poly : polys) {
             poly.translate(-m_instances.front().shift_without_plate_offset());
         }
+        // 禁区略内收，避免层片与禁区只共边时被当成相交
+        polys = shrink(polys, float(SCALED_EPSILON));
         unprintable_area_bbox.emplace_back(get_extents(polys));
     }
 
