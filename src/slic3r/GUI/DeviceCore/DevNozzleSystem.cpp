@@ -1023,31 +1023,33 @@ void DevNozzleSystemParser::sTraverseBindAmsSlot(DevNozzleSystem* system, DevNoz
         nozzle_obj.m_bind_ams_slots.clear();
 
         // using the slot now value
-        if (nozzle_obj.m_slot_now.has_value()) {
+        if (nozzle_obj.m_slot_now.has_value() &&  nozzle_obj.IsHotend()) {
             if (system->GetOwner()->get_tray(std::to_string(nozzle_obj.m_slot_now->first), std::to_string(nozzle_obj.m_slot_now->second))) {
                 nozzle_obj.m_bind_ams_slots = { nozzle_obj.m_slot_now.value() };
                 return;
             }
         };
-        
-        // using the rack ams slot
-        for (const auto& ams_item : ams_list) {
-            if (ams_item.second->GetSlotCount() == rack->GetTotalRackNozzleCount()) {
-                DevAmsSlotId ams_slot_id;
-                ams_slot_id.first = ams_item.second->GetAmdIdInt();
-                ams_slot_id.second = nozzle_obj.GetNozzlePosId() - 16;
-                if (auto ams_tray = fila_sys->GetAmsTray(std::to_string(ams_slot_id.first), std::to_string(ams_slot_id.second))) {
-                    nozzle_obj.m_bind_ams_slots = { ams_slot_id };
-                    return;
+
+        if (nozzle_obj.GetAddrId().has_value()) {
+            // using the rack ams slot
+            for (const auto& ams_item : ams_list) {
+                if (ams_item.second->GetSlotCount() == rack->GetTotalRackNozzleCount()) {
+                    DevAmsSlotId ams_slot_id;
+                    ams_slot_id.first = ams_item.second->GetAmdIdInt();
+                    ams_slot_id.second = nozzle_obj.GetAddrId().value();
+                    if (auto ams_tray = fila_sys->GetAmsTray(std::to_string(ams_slot_id.first), std::to_string(ams_slot_id.second))) {
+                        nozzle_obj.m_bind_ams_slots = { ams_slot_id };
+                        return;
+                    }
                 }
             }
-        }
 
-        // using the external slot
-        int default_exteral_spool_id = 255 - nozzle_obj.GetNozzlePosId() + 16;
-        if (fila_sys->GetVirtualTray(default_exteral_spool_id).has_value()) {
-            nozzle_obj.m_bind_ams_slots = { DevAmsSlotId { default_exteral_spool_id, 0 } };
-            return;
+            // using the external slot
+            int default_exteral_spool_id = 255 - nozzle_obj.GetAddrId().value();
+            if (fila_sys->GetVirtualTray(default_exteral_spool_id).has_value()) {
+                nozzle_obj.m_bind_ams_slots = { DevAmsSlotId { default_exteral_spool_id, 0 } };
+                return;
+            }
         }
     }
 }
