@@ -6,10 +6,12 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <numeric>
 #include <vector>
 
 #include <boost/log/trivial.hpp>
+#include <tbb/parallel_sort.h>
 
 namespace Slic3r {
 
@@ -62,8 +64,11 @@ static bool face_vertices_valid(const indexed_triangle_set &its, const stl_trian
 
 // A hit whose smallest barycentric coordinate is this close to 0 sits on a
 // triangle edge or vertex, where neighbouring faces answer the same query
-// differently. The watertight ray test discards such hits instead of guessing.
-constexpr double k_bary_eps = 1e-4;
+// differently. AABBTreeIndirect may also place a near-edge crossing slightly
+// inside one triangle; CGAL often collapsed those to coincident hits and
+// discarded the ray. 0.02 stays below the interior barycentric of known
+// reversed-face samples (~0.06) while covering those near-edge false hits.
+constexpr double k_bary_eps = 0.02;
 
 // True if the hit lies on a triangle edge or vertex (barycentric coord ~ 0).
 // RayMeshHit uses P = (1-u-v)*v0 + u*v1 + v*v2.
@@ -226,10 +231,12 @@ static bool detect_visible_backfaces(const indexed_triangle_set &its)
         if (ndot < -backface) {
             ++n_back;
             if (n_back <= k_log_back_hits) {
+                const double w = 1.0 - hit.u - hit.v;
                 BOOST_LOG_TRIVIAL(info)
                     << "reversed-faces: layer3 backface#" << n_back
                     << " face=" << hit.face
                     << " t=" << hit.t
+                    << " uvw=[" << hit.u << "," << hit.v << "," << w << "]"
                     << " ndot=" << ndot
                     << " n_dot_ray=" << n_ray_dot
                     << " dir=[" << dir.x() << "," << dir.y() << "," << dir.z() << "]"
@@ -284,7 +291,8 @@ static void log_reversed_face_decision(const char                 *src,
 
 } // namespace
 
-void its_detect_reversed_faces(const indexed_triangle_set &its, MeshDiagnosticStats &stats)
+static void detect_reversed_faces_impl(const indexed_triangle_set &its,
+                                       MeshDiagnosticStats        &stats)
 {
     if (stats.non_manifold_edges != 0 || stats.same_direction_edges != 0) {
         stats.has_reversed_faces = true;
@@ -305,10 +313,15 @@ void its_detect_reversed_faces(const indexed_triangle_set &its, MeshDiagnosticSt
     log_reversed_face_decision("detect", its, stats);
 }
 
-MeshDiagnosticStats its_quick_diagnostics(const indexed_triangle_set &its)
+void its_detect_reversed_faces(const indexed_triangle_set &its, MeshDiagnosticStats &stats)
 {
-    MeshDiagnosticStats stats = its_edge_diagnostics(its);
-    its_detect_reversed_faces(its, stats);
+    detect_reversed_faces_impl(its, stats);
+}
+
+MeshDiagnosticStats its_quick_diagnostics(const indexed_triangle_set &its, std::vector<Vec3i> *neighbors)
+{
+    MeshDiagnosticStats stats = its_edge_diagnostics(its, neighbors);
+    detect_reversed_faces_impl(its, stats);
     return stats;
 }
 
@@ -441,7 +454,7 @@ MeshDiagnosticStats its_mesh_diagnostics(const indexed_triangle_set &its)
     return result;
 }
 
-MeshDiagnosticStats its_edge_diagnostics(const indexed_triangle_set &its)
+MeshDiagnosticStats its_edge_diagnostics(const indexed_triangle_set &its, std::vector<Vec3i> *neighbors)
 {
     MeshDiagnosticStats result;
     const size_t num_vertices = its.vertices.size();
@@ -450,21 +463,30 @@ MeshDiagnosticStats its_edge_diagnostics(const indexed_triangle_set &its)
     if (num_faces == 0)
         return result;
 
-    struct DirectedEdge {
-        size_t lo = 0;
-        size_t hi = 0;
-        bool   forward = true;
-        bool operator<(const DirectedEdge &rhs) const
+    if (neighbors) {
+        neighbors->assign(num_faces, Vec3i(-1, -1, -1));
+        if (num_faces > UINT32_MAX)
+            neighbors = nullptr;
+    }
+
+    struct HalfEdge {
+        uint64_t key     = 0;
+        uint32_t face    = 0;
+        uint8_t  slot    = 0;
+        uint8_t  forward = 0;
+        bool operator<(const HalfEdge &rhs) const
         {
-            return lo < rhs.lo || (lo == rhs.lo && hi < rhs.hi);
-        }
-        bool same_undirected(const DirectedEdge &rhs) const
-        {
-            return lo == rhs.lo && hi == rhs.hi;
+            if (key != rhs.key)
+                return key < rhs.key;
+            if (face != rhs.face)
+                return face < rhs.face;
+            if (slot != rhs.slot)
+                return slot < rhs.slot;
+            return forward < rhs.forward;
         }
     };
 
-    std::vector<DirectedEdge> edges;
+    std::vector<HalfEdge> edges;
     edges.reserve(num_faces * 3);
 
     for (size_t fid = 0; fid < num_faces; ++fid) {
@@ -473,7 +495,7 @@ MeshDiagnosticStats its_edge_diagnostics(const indexed_triangle_set &its)
         if (face[0] == face[1] || face[1] == face[2] || face[2] == face[0])
             continue;
 
-        size_t v[3] = {
+        const size_t v[3] = {
             static_cast<size_t>(face[0]),
             static_cast<size_t>(face[1]),
             static_cast<size_t>(face[2])
@@ -483,34 +505,51 @@ MeshDiagnosticStats its_edge_diagnostics(const indexed_triangle_set &its)
             size_t va = v[i], vb = v[(i + 1) % 3];
             if (va >= num_vertices || vb >= num_vertices)
                 continue;
-            const bool forward = va < vb;
+            const uint8_t forward = va < vb ? 1 : 0;
             if (!forward)
                 std::swap(va, vb);
-            edges.push_back({ va, vb, forward });
+            edges.push_back({ (uint64_t(va) << 32) | uint64_t(vb), static_cast<uint32_t>(fid), static_cast<uint8_t>(i),
+                              forward });
         }
     }
 
-    std::sort(edges.begin(), edges.end());
+    tbb::parallel_sort(edges.begin(), edges.end());
+
+    std::vector<uint32_t> plus_ids;
+    std::vector<uint32_t> minus_ids;
+    plus_ids.reserve(4);
+    minus_ids.reserve(4);
 
     for (size_t i = 0; i < edges.size();) {
         size_t j = i + 1;
-        while (j < edges.size() && edges[j].same_undirected(edges[i]))
+        while (j < edges.size() && edges[j].key == edges[i].key)
             ++j;
 
         const size_t count = j - i;
-        size_t plus = 0, minus = 0;
+        plus_ids.clear();
+        minus_ids.clear();
         for (size_t k = i; k < j; ++k) {
             if (edges[k].forward)
-                ++plus;
+                plus_ids.push_back(static_cast<uint32_t>(k));
             else
-                ++minus;
+                minus_ids.push_back(static_cast<uint32_t>(k));
         }
-        if (plus >= 2 || minus >= 2)
+        if (plus_ids.size() >= 2 || minus_ids.size() >= 2)
             ++result.same_direction_edges;
         if (count == 1)
             ++result.open_edges;
         else if (count > 2)
             ++result.non_manifold_edges;
+
+        if (neighbors) {
+            const size_t n_pairs = std::min(plus_ids.size(), minus_ids.size());
+            for (size_t p = 0; p < n_pairs; ++p) {
+                const HalfEdge &a = edges[plus_ids[p]];
+                const HalfEdge &b = edges[minus_ids[p]];
+                (*neighbors)[a.face][a.slot] = static_cast<int>(b.face);
+                (*neighbors)[b.face][b.slot] = static_cast<int>(a.face);
+            }
+        }
 
         i = j;
     }

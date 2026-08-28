@@ -49,10 +49,9 @@ static void fill_initial_stats(const indexed_triangle_set &its, TriangleMeshStat
     out.volume              = its_volume(its);
     update_bounding_box(its, out);
 
-    const std::vector<Vec3i> face_neighbors = its_face_neighbors(its);
-    out.number_of_parts = its_number_of_patches(its, face_neighbors);
-
-    const auto nm_stats       = its_quick_diagnostics(its);
+    std::vector<Vec3i> face_neighbors;
+    const auto         nm_stats = its_quick_diagnostics(its, &face_neighbors);
+    out.number_of_parts         = static_cast<int>(its_number_of_patches(its, face_neighbors));
     assert(nm_stats.open_edges <= INT_MAX && nm_stats.non_manifold_edges <= INT_MAX && nm_stats.non_manifold_vertices <= INT_MAX);
     out.open_edges            = static_cast<int>(nm_stats.open_edges);
     out.non_manifold_edges    = static_cast<int>(nm_stats.non_manifold_edges);
@@ -229,10 +228,9 @@ bool TriangleMesh::from_stl(stl_file& stl, bool repair)
 #endif
 
     stl_generate_shared_vertices(&stl, this->its);
+    if (its_volume(this->its) < 0.)
+        its_flip_triangles(this->its);
     fill_initial_stats(this->its, this->m_stats);
-    if (m_stats.volume < 0) {
-        flip_triangles();
-    }
     return true;
 }
 
@@ -389,9 +387,15 @@ void TriangleMesh::flip_triangles()
 {
     its_flip_triangles(its);
     m_stats.volume = - m_stats.volume;
-    // A global flip inverts outward orientation; re-run quick diagnostics so
-    // the watertight ray test sees the new winding.
-    m_stats.has_reversed_faces = its_quick_diagnostics(its).has_reversed_faces;
+    // Topology is unchanged by a global flip; reuse edge counts and only
+    // re-run the reversed-face test. same_direction_edges is not stored on
+    // TriangleMeshStats: watertight meshes with same-dir edges fall through
+    // to the ray test instead of the shortcut.
+    MeshDiagnosticStats st;
+    st.open_edges         = static_cast<size_t>(std::max(0, m_stats.open_edges));
+    st.non_manifold_edges = static_cast<size_t>(std::max(0, m_stats.non_manifold_edges));
+    its_detect_reversed_faces(its, st);
+    m_stats.has_reversed_faces = st.has_reversed_faces;
 }
 
 void TriangleMesh::align_to_origin()

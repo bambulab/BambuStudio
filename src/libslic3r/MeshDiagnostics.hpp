@@ -3,6 +3,8 @@
 
 #include <admesh/stl.h>
 
+#include <vector>
+
 namespace Slic3r {
 
 struct MeshDiagnosticStats {
@@ -17,8 +19,9 @@ struct MeshDiagnosticStats {
 // (undirected face count > 2), and same-direction half-edges (one
 // undirected edge with at least two half-edges in the same winding).
 // Does not inspect vertices, does not run ray tests, and leaves
-// has_reversed_faces false.
-MeshDiagnosticStats its_edge_diagnostics(const indexed_triangle_set &its);
+// has_reversed_faces false. If neighbors is non-null, it is resized to
+// the face count and filled with opposite-winding partners (-1 if none).
+MeshDiagnosticStats its_edge_diagnostics(const indexed_triangle_set &its, std::vector<Vec3i> *neighbors = nullptr);
 
 // Set has_reversed_faces from already-computed edge stats:
 //   non-manifold edges or same-direction edges -> true, no rays;
@@ -35,7 +38,8 @@ void its_detect_reversed_faces(const indexed_triangle_set &its, MeshDiagnosticSt
 // Import-path diagnostics: its_edge_diagnostics followed by
 // its_detect_reversed_faces. Skips non-manifold vertex detection;
 // non_manifold_vertices in the returned stats is always 0.
-MeshDiagnosticStats its_quick_diagnostics(const indexed_triangle_set &its);
+// Optional neighbors is forwarded to its_edge_diagnostics.
+MeshDiagnosticStats its_quick_diagnostics(const indexed_triangle_set &its, std::vector<Vec3i> *neighbors = nullptr);
 
 // Full diagnostics: open / non-manifold edges, non-manifold vertices, and the
 // same reversed-face test as its_detect_reversed_faces.
