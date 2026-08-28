@@ -5490,7 +5490,11 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
         m_preset_bundle->on_extruders_count_changed(extruders_count, reset_volume_type);
         is_count_changed = true;
 
-        wxGetApp().plater()->get_partplate_list().on_extruder_count_changed((int)m_extruders_count);
+        // Only clear per-plate filament_volume_map on a genuine printer switch, not while loading a project. 
+        // During load, single-extruder plates carry their own filament_volume_map from the 3mf; 
+        // clearing it forces a nozzle_volume_type default that differs from the loaded value, which puts filament_volume_map into
+        // full_config_diff and invalidates psGCodeExport, discarding the imported G-code.
+        if (reset_volume_type) wxGetApp().plater()->get_partplate_list().on_extruder_count_changed((int)m_extruders_count);
     }
     // BBS
 #if 1
