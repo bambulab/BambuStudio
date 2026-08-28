@@ -392,6 +392,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ImageMessageDialog.cpp
     GUI/DeviceManager.hpp
     GUI/DeviceManager.cpp
+    GUI/DiscordPresenceSnapshot.hpp
+    GUI/DiscordPresenceSnapshot.cpp
     GUI/DeviceErrorDialog.hpp
     GUI/DeviceErrorDialog.cpp
     GUI/UserManager.hpp
@@ -605,6 +607,10 @@ set(SLIC3R_GUI_SOURCES
     Utils/EmbossStyleManager.hpp
     Utils/Http.cpp
     Utils/Http.hpp
+    Utils/DiscordIPC.cpp
+    Utils/DiscordIPC.hpp
+    Utils/DiscordPresence.cpp
+    Utils/DiscordPresence.hpp
     Utils/FixModelByWin10.cpp
     Utils/FixModelByWin10.hpp
     Utils/Bonjour.cpp
