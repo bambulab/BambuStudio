@@ -579,6 +579,10 @@ int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_ty
     for (int index = 0; index < int(variant_list.size()); ++index) {
         if (extruder_variant == variant_list[index] && variant_ids_1based[index] == variant_id_1based) { return index; }
     }
+    // index 是同一套耗材参数数组的行下标；找不到当前喷嘴流量时，返回该耗材已有行的下标（一般为 Standard）。
+    for (int index = 0; index < int(variant_list.size()); ++index) {
+        if (variant_ids_1based[index] == variant_id_1based) { return index; }
+    }
     // BOOST_LOG_TRIVIAL(error) << __FUNCTION__
     //                          << boost::format(", Line %1%: could not found the parameter corresponding to extruder_and_nozzle_type %2%, variant_id %3%") % __LINE__ %
     //                                 extruder_variant % variant_id_1based;
