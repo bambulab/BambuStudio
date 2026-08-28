@@ -14023,7 +14023,7 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                 notification_manager.bbl_close_bed_filament_incompatible_notification();
             }
         }
-        if (warning == EWarning::FilamentPrintableError) {
+        else if (warning == EWarning::FilamentPrintableError) {
             if (state){
                 auto callback = [](wxEvtHandler*) {
                     auto plater = wxGetApp().plater();
