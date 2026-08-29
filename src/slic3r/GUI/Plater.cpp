@@ -22749,7 +22749,15 @@ TriangleMesh Plater::combine_mesh_fff(const ModelObject& mo, int instance_id, st
         csg::mpartsPositive | csg::mpartsNegative);
     csg::BooleanFailReason fail_reason;
     std::string fail_msg = check_boolean_possible(mo.const_volumes(), fail_reason);
-    if (fail_msg.empty() || fail_reason == csg::BooleanFailReason::NotBoundAVolume) {
+    // The pre-check runs CGAL, which rejects a self-intersecting part outright, while the
+    // boolean below runs mcut, which copes with far messier meshes. A CGAL verdict alone
+    // should not block the attempt: try mcut anyway. It is wrapped in try/catch and its
+    // result is only accepted when non-empty, so a mesh mcut cannot handle still falls
+    // through to the merge fallback and warning below, exactly as before. This turns former
+    // hard failures into successes without changing what already worked.
+    if (fail_msg.empty()
+        || fail_reason == csg::BooleanFailReason::NotBoundAVolume
+        || fail_reason == csg::BooleanFailReason::SelfIntersect) {
         try {
             MeshBoolean::mcut::McutMeshPtr meshPtr = csg::perform_csgmesh_booleans_mcut(Range{std::begin(csgmesh), std::end(csgmesh)});
             mesh                                   = MeshBoolean::mcut::mcut_to_triangle_mesh(*meshPtr);
