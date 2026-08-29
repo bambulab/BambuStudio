@@ -19,6 +19,14 @@ if (MSVC)
     )
 
 else ()
+    set(_ffmpeg_version "7.0.2")
+    set(_ffmpeg_sha256 "5EB46D18D664A0CCADF7B0ADEE03BD3B7FA72893D667F36C69E202A807E6D533")
+
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(_ffmpeg_version "7.1.5")
+        set(_ffmpeg_sha256 "e3963a50831c985933e1a625ed566ec4c7adb5c012c34fa9f84438e1d61bdacc")
+    endif()
+
     set(_extra_cmd "--pkg-config-flags=\"--static\"")
     string(APPEND _extra_cmd "--extra-cflags=\"-I ${DESTDIR}/usr/local/include\"")
     string(APPEND _extra_cmd "--extra-ldflags=\"-I ${DESTDIR}/usr/local/lib\"")
@@ -52,8 +60,8 @@ else ()
     endif()
 
     ExternalProject_Add(dep_FFMPEG
-        URL https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n7.0.2.tar.gz
-        URL_HASH SHA256=5EB46D18D664A0CCADF7B0ADEE03BD3B7FA72893D667F36C69E202A807E6D533
+        URL https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n${_ffmpeg_version}.tar.gz
+        URL_HASH SHA256=${_ffmpeg_sha256}
         DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/FFMPEG
         CONFIGURE_COMMAND ${_conf_cmd}
             ${_cross_cmd}
