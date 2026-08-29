@@ -5493,34 +5493,34 @@ msgid "Tips:"
 msgstr "提示："
 
 msgid "Current grouping of slice result is not optimal."
-msgstr "當前材料分組不是最優結果。"
+msgstr "目前的切片耗材分組並非最佳結果。"
 
 #, boost-format
 msgid "Increase %1%g filament and %2% nozzle purges compared to optimal grouping."
-msgstr "如果使用最優分組可多節省%1%g耗材和%2%次沖刷。"
+msgstr "相較於最佳分組，會多使用 %1% g 耗材，並增加 %2% 次噴嘴沖刷。"
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% nozzle purges compared to optimal grouping."
-msgstr "相較於最優分組，多使用%1%g耗材，減少%2%次換料。"
+msgstr "相較於最佳分組，會多使用 %1% g 耗材，但可減少 %2% 次噴嘴沖刷。"
 
 #, boost-format
 msgid "Save %1%g filament and increase %2% nozzle purges compared to optimal grouping."
-msgstr "相較於最優分組，節省%1%g耗材，增加%2%次沖刷。"
+msgstr "相較於最佳分組，可節省 %1% g 耗材，但會增加 %2% 次噴嘴沖刷。"
 
 #, boost-format
 msgid "Save %1%g filament and %2% nozzle purges compared to a printer with one nozzle."
-msgstr "相較於單頭印表機可節省%1%g耗材和%2%次沖刷。"
+msgstr "相較於單噴嘴印表機，可節省 %1% g 耗材及 %2% 次噴嘴沖刷。"
 
 #, boost-format
 msgid "Save %1%g filament and increase %2% nozzle purges compared to a printer with one nozzle."
-msgstr "相較於單頭印表機，節省%1%g耗材，增加%2%次沖刷。"
+msgstr "相較於單噴嘴印表機，可節省 %1% g 耗材，但會增加 %2% 次噴嘴沖刷。"
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% nozzle purges compared to a printer with one nozzle."
-msgstr "相較於單頭印表機，多使用%1%g耗材，減少%2%次沖刷。"
+msgstr "相較於單噴嘴印表機，會多使用 %1% g 耗材，但可減少 %2% 次噴嘴沖刷。"
 
 msgid "Set to Optimal"
-msgstr "設定為最優"
+msgstr "設為最佳分組"
 
 msgid "Regroup filament"
 msgstr "重新分組"
