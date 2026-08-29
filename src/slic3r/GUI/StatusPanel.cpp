@@ -1583,6 +1583,7 @@ void PrintingTaskPanel::reset_printing_value()
     this->set_plate_index(-1);
     update_pausing_state(false);
     update_stopping_state(false);
+    update_finish_time_display(NA_STR);
 }
 
 void PrintingTaskPanel::enable_partskip_button(MachineObject *obj, bool enable)
@@ -1717,59 +1718,72 @@ void PrintingTaskPanel::update_progress_percent(wxString percent, wxString icon)
 
 void PrintingTaskPanel::update_left_time(wxString time) { m_staticText_progress_left->SetLabelText(time); }
 
-void PrintingTaskPanel::update_finish_time(wxString finish_time)
+void PrintingTaskPanel::update_finish_time_display(const wxString &text, const wxString &day_text)
 {
-    if (finish_time == "Finished") {
-        m_staticText_finish_time->SetLabelText(_L("Finished"));
-        if (m_staticText_finish_day->IsShown()) m_staticText_finish_day->Hide();
-    } else {
-        if (!finish_time.Contains('+')) {
-            if (m_staticText_finish_day->IsShown()) m_staticText_finish_day->Hide();
-        } else {
-            int      index = finish_time.find_last_of('+');
-            wxString day   = finish_time.Mid(index);
-            finish_time    = finish_time.Mid(0, index);
-            m_staticText_finish_day->setText(day);
-            if (!day.empty()) { m_staticText_finish_day->Show(); }
-        }
+    const bool show_day_text = !day_text.empty();
+    const bool text_changed = m_staticText_finish_time->GetLabelText() != text;
+    const bool day_text_changed = m_staticText_finish_day->getText() != day_text;
+    const bool day_visibility_changed = m_staticText_finish_day->IsShown() != show_day_text;
+    if (!text_changed && !day_text_changed && !day_visibility_changed) return;
 
-        wxString finish_time_str = _L("Estimated finish time: ") + finish_time;
-
-#ifdef _WIN32
-        finish_time_str += '\0'; /*github#5028 the problem occurs stable on BODY_13. Maybe this is a BUG of some fonts or windows OS. Add '0' will walk around it. FIXME*/
-#endif
-
-        if (m_staticText_finish_time->GetLabelText() != finish_time_str) {
-            m_staticText_finish_time->SetLabelText(finish_time_str);
-            m_staticText_finish_time->Wrap(-1);
-            BOOST_LOG_TRIVIAL(info) << "PrintingTaskPanel::update_finish_time: " << finish_time_str << " Result: " << m_staticText_finish_time->GetLabelText();
-            Layout();
-        }
+    if (text_changed) {
+        m_staticText_finish_time->SetLabelText(text);
+        m_staticText_finish_time->Wrap(-1);
     }
+    if (day_text_changed) m_staticText_finish_day->setText(day_text);
+    if (day_visibility_changed) m_staticText_finish_day->Show(show_day_text);
+    Layout();
 }
 
-void PrintingTaskPanel::update_left_time(int mc_left_time)
+void PrintingTaskPanel::update_finish_state(int mc_left_time, bool is_printing_finished,
+                                            const BBLFinishTime &estimated_finish_time)
+{
+    if (is_printing_finished) {
+        update_finish_time_display(_L("Finished"));
+        return;
+    }
+
+    if (mc_left_time <= 0) {
+        update_finish_time_display(_L("Almost complete"));
+        return;
+    }
+
+    wxString text = _L("Estimated finish time: ") + from_u8(estimated_finish_time.time);
+    wxString day_text;
+    if (estimated_finish_time.day_offset != 0)
+        day_text = wxString::Format("+%d", estimated_finish_time.day_offset);
+
+#ifdef _WIN32
+    text += '\0'; /*github#5028 the problem occurs stable on BODY_13. Maybe this is a BUG of some fonts or windows OS. Add '0' will walk around it. FIXME*/
+#endif
+
+    update_finish_time_display(text, day_text);
+}
+
+void PrintingTaskPanel::update_left_time(int mc_left_time, bool is_printing_finished)
 {
     // update gcode progress
-    wxString left_time;
-    std::string right_time;
+    wxString    left_time;
+    BBLFinishTime finish_time;
     wxString    left_time_text = NA_STR;
 
     try {
         bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
-        left_time  = get_bbl_monitor_time_dhm(mc_left_time);
-        right_time = get_bbl_finish_time_dhm(mc_left_time, use_12h_format);
+        left_time           = get_bbl_monitor_time_dhm(mc_left_time);
+        if (mc_left_time > 0) finish_time = get_bbl_finish_time(mc_left_time, use_12h_format);
     } catch (...) {
         ;
     }
 
     if (!left_time.empty()) left_time_text = wxString::Format("-%s", left_time);
     update_left_time(left_time_text);
-    update_finish_time(right_time);
+
+    update_finish_state(mc_left_time, is_printing_finished, finish_time);
 
     static int s_mc_left_time = 0;
     if (s_mc_left_time != mc_left_time) {
-        BOOST_LOG_TRIVIAL(info) << "PrintingTaskPanel::update_left_time: " << mc_left_time << ", " << left_time_text << ": " << right_time;
+        BOOST_LOG_TRIVIAL(info) << "PrintingTaskPanel::update_left_time: " << mc_left_time << ", " << left_time_text
+                                << ": " << finish_time.time << ", day offset: " << finish_time.day_offset;
         s_mc_left_time = mc_left_time;
     }
 }
@@ -4412,7 +4426,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
 
             m_project_task_panel->enable_partskip_button(obj, true);
             // update printing stage
-            m_project_task_panel->update_left_time(obj->mc_left_time);
+            m_project_task_panel->update_left_time(obj->mc_left_time, obj->is_printing_finished());
             if (obj->subtask_) {
                 m_project_task_panel->update_stage_value_with_machine(obj->get_curr_stage(), obj->subtask_->task_progress, obj);
                 m_project_task_panel->update_progress_percent(wxString::Format("%d", obj->subtask_->task_progress), "%");
@@ -4589,7 +4603,6 @@ void StatusPanel::reset_printing_values()
     m_project_task_panel->get_request_failed_panel()->Hide();
     update_basic_print_data(false);
     m_project_task_panel->update_left_time(NA_STR);
-    m_project_task_panel->update_finish_time(NA_STR);
     m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
     m_project_task_panel->updatePauseNum(false);
     m_project_task_panel->updatePauseMarkers(nullptr);

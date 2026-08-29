@@ -46,6 +46,7 @@ class StepIndicator;
 namespace Slic3r {
 
 class DevExtderSystem;
+struct BBLFinishTime;
 
 namespace GUI {
 
@@ -367,8 +368,7 @@ public:
     // Public interface to update remaining time text in the thermal dialog
     void update_progress_percent(wxString percent, wxString icon);
     void update_left_time(wxString time);
-    void update_finish_time(wxString finish_time);
-    void update_left_time(int mc_left_time);
+    void update_left_time(int mc_left_time, bool is_printing_finished);
     void show_layers_num(bool show) { m_staticText_layers->Show(show); }
     void update_layers_num(bool show, wxString num = wxEmptyString);
     void updatePauseNum(bool show, wxString num = wxEmptyString);
@@ -402,6 +402,8 @@ public:
     void                           set_has_reted_text(bool has_rated);
 
 private:
+    void update_finish_state(int mc_left_time, bool is_printing_finished, const BBLFinishTime &estimated_finish_time);
+    void update_finish_time_display(const wxString &text, const wxString &day_text = wxEmptyString);
     void refreshErrorContents();
     void paint(wxPaintEvent&);
 };
@@ -807,7 +809,6 @@ protected:
     void update(MachineObject* obj);
 
     void show_printing_status(bool ctrl_area = true, bool temp_area = true);
-    void update_left_time(int mc_left_time);
     void update_basic_print_data(bool def = false);
     void update_model_info();
     void update_subtask(MachineObject* obj);
