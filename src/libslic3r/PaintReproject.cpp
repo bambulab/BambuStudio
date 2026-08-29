@@ -1864,4 +1864,293 @@ bool reproject_paint_geometric(const TriangleMesh     &src_mesh,
     return true;
 }
 
+// ---------------------------------------------------------------------------
+// Boolean: merged-source reprojection.
+// ---------------------------------------------------------------------------
+namespace {
+// Append every painted triangle of `src` onto `dst`, shifting its triangle ids by
+// `face_offset`. FacetsAnnotation stores triangle ids strictly increasing, and
+// sources are visited in order with a running offset, so the combined ids also stay
+// strictly increasing (required by set_triangle_from_string).
+// Bake an operand's assigned filament into every unpainted area of its colour map,
+// keeping its brush strokes. A merged/boolean result is one volume with one extruder,
+// so anything left unpainted would take that single colour instead of the part's own.
+static void fill_operand_colour(const TriangleMesh &mesh, const FacetsAnnotation *src_mmu,
+                                int base_filament, FacetsAnnotation &out)
+{
+    TriangleSelector sel(mesh);
+    if (src_mmu != nullptr && ! src_mmu->empty())
+        sel.deserialize(src_mmu->get_data(), false);
+    sel.fill_unpainted(EnforcerBlockerType(base_filament));
+    out.set(sel);
+}
+
+static void append_shifted_annotation(FacetsAnnotation &dst, const FacetsAnnotation &src, int face_offset)
+{
+    if (src.empty())
+        return;
+    for (const std::pair<int, int> &entry : src.get_data().first) {
+        const int         tid = entry.first;
+        const std::string s   = src.get_triangle_as_string(tid);
+        if (! s.empty())
+            dst.set_triangle_from_string(face_offset + tid, s);
+    }
+}
+} // namespace
+
+bool reproject_paint_from_volumes(const TriangleMesh                   &dst_mesh,
+                                  const std::vector<PaintSourceVolume> &sources,
+                                  FacetsAnnotation                     &dst_supported,
+                                  FacetsAnnotation                     &dst_seam,
+                                  FacetsAnnotation                     &dst_mmu,
+                                  FacetsAnnotation                     &dst_fuzzy,
+                                  const PaintReprojectProgressCallback &progress,
+                                  const PaintReprojectCancelCallback   &cancel,
+                                  const Transform3d                    *dst_world_matrix,
+                                  bool                                  concatenated_result)
+{
+    if (cancel && cancel())
+        return false;
+
+    // Merge every painted operand mesh (in the destination frame) and its four
+    // annotation layers into a single combined source. FacetsAnnotation's constructors
+    // are private (ModelVolume-only); PaintKeepPrepared is the public holder provided for
+    // exactly this "build annotations outside a volume" case.
+    PaintKeepPrepared combined;
+    int               face_offset = 0;
+
+    for (const PaintSourceVolume &src : sources) {
+        if (src.mesh == nullptr || src.mesh->its.indices.empty())
+            continue;
+        // Merge annotations first: face_offset is the number of faces already merged.
+        // Each operand's colour is filled in its own frame first, so every operand keeps
+        // its own filament (a fill over the merged map could only use a single one).
+        PaintKeepPrepared        filled;
+        const FacetsAnnotation  *mmu_src = src.mmu;
+        if (src.base_filament > 0) {
+            fill_operand_colour(*src.mesh, src.mmu, src.base_filament, filled.mmu);
+            mmu_src = &filled.mmu;
+        }
+        if (src.supported) append_shifted_annotation(combined.supported, *src.supported, face_offset);
+        if (src.seam)      append_shifted_annotation(combined.seam,      *src.seam,      face_offset);
+        if (mmu_src)       append_shifted_annotation(combined.mmu,       *mmu_src,       face_offset);
+        if (src.fuzzy)     append_shifted_annotation(combined.fuzzy,     *src.fuzzy,     face_offset);
+        TriangleMesh m = *src.mesh;
+        m.transform(src.source_to_destination, true /*fix_left_handed*/);
+        combined.mesh.merge(m);
+        face_offset += int(src.mesh->its.indices.size());
+    }
+
+    if (combined.mesh.its.indices.empty()) {
+        dst_supported.reset();
+        dst_seam.reset();
+        dst_mmu.reset();
+        dst_fuzzy.reset();
+        return true;
+    }
+
+    // Merge fast path: the destination mesh is exactly the operands concatenated in
+    // order, so face f of the result IS face f of the combined source. Copy the paint
+    // by index - nearest-surface sampling is per-triangle ambiguous where the parts
+    // overlap (coincident interior faces), which shows up as a torn/triangulated result.
+    if (concatenated_result && dst_mesh.its.indices.size() == combined.mesh.its.indices.size()) {
+        // Copy face by face. assign() is guarded by a timestamp comparison and silently
+        // does nothing between two freshly built annotations, which would drop the paint.
+        dst_supported.reset();
+        dst_seam.reset();
+        dst_mmu.reset();
+        dst_fuzzy.reset();
+        for (int f = 0; f < int(dst_mesh.its.indices.size()); ++f) {
+            std::string s;
+            if (! (s = combined.supported.get_triangle_as_string(f)).empty()) dst_supported.set_triangle_from_string(f, s);
+            if (! (s = combined.seam.get_triangle_as_string(f)).empty())      dst_seam.set_triangle_from_string(f, s);
+            if (! (s = combined.mmu.get_triangle_as_string(f)).empty())       dst_mmu.set_triangle_from_string(f, s);
+            if (! (s = combined.fuzzy.get_triangle_as_string(f)).empty())     dst_fuzzy.set_triangle_from_string(f, s);
+        }
+        return true;
+    }
+
+    // Boolean: the destination is rebuilt from overlapping operands. A single merged
+    // source makes the sampler mix colours where operands overlap - a result face near
+    // both parts gets subdivided into a jumble of both filaments. Instead, attribute
+    // each destination face to the ONE operand whose surface it lies on (nearest
+    // surface; unambiguous for a boolean result, which keeps only outer surfaces), then
+    // reproject each operand's paint onto the whole destination and keep, per face, only
+    // its attributed operand's result. Single-source-per-operand reprojection has no
+    // overlap ambiguity, so every face is a faithful copy of its own part's paint.
+    struct Operand { TriangleMesh mesh; PaintKeepPrepared ann; int base_filament = 0; };
+    std::vector<Operand> ops;
+    ops.reserve(sources.size());
+    for (const PaintSourceVolume &src : sources) {
+        if (src.mesh == nullptr || src.mesh->its.indices.empty())
+            continue;
+        ops.emplace_back();
+        Operand &op = ops.back();
+        op.mesh = *src.mesh;
+        op.mesh.transform(src.source_to_destination, true /*fix_left_handed*/);
+        op.base_filament = src.base_filament;
+        if (src.supported && ! src.supported->empty()) op.ann.supported.assign(*src.supported);
+        if (src.seam      && ! src.seam->empty())      op.ann.seam.assign(*src.seam);
+        if (src.fuzzy     && ! src.fuzzy->empty())     op.ann.fuzzy.assign(*src.fuzzy);
+        if (src.base_filament > 0)
+            fill_operand_colour(*src.mesh, src.mmu, src.base_filament, op.ann.mmu);
+        else if (src.mmu && ! src.mmu->empty())
+            op.ann.mmu.assign(*src.mmu);
+    }
+
+    dst_supported.reset();
+    dst_seam.reset();
+    dst_mmu.reset();
+    dst_fuzzy.reset();
+    if (ops.empty())
+        return true;
+
+    const int dst_nf = int(dst_mesh.its.indices.size());
+
+    // Distance from every destination face to every operand surface, so a face can be
+    // resolved against the operand it actually lies on, nearest first.
+    std::vector<std::vector<float>> op_distance(ops.size(), std::vector<float>(size_t(dst_nf), 0.f));
+    // Whether an operand actually covers a face, rather than merely lying near it: the
+    // closest point has to fall inside one of its faces, not on that face's edge. Two
+    // parts sharing a plane are a hair away from each other's patches all along the
+    // seam, so distance alone lets one part's colour bleed past its own outline.
+    std::vector<std::vector<char>> op_covers(ops.size(), std::vector<char>(size_t(dst_nf), 1));
+    if (ops.size() > 1) {
+        for (size_t i = 0; i < ops.size(); ++i) {
+            const AABBTreeIndirect::Tree3f tree =
+                AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(
+                    ops[i].mesh.its.vertices, ops[i].mesh.its.indices);
+            for (int f = 0; f < dst_nf; ++f) {
+                const Vec3i &tri = dst_mesh.its.indices[f];
+                const Vec3f  centroid = (dst_mesh.its.vertices[tri[0]] + dst_mesh.its.vertices[tri[1]] +
+                                         dst_mesh.its.vertices[tri[2]]) / 3.0f;
+                // Sample the centroid and the three corners pulled in towards it. Testing the
+                // centroid alone misreads a face that only reaches into this operand with part
+                // of itself, which is exactly what happens where the boolean did not cut along
+                // the seam between two coplanar parts.
+                const Vec3f samples[4] = { centroid,
+                                           centroid + (dst_mesh.its.vertices[tri[0]] - centroid) * 0.75f,
+                                           centroid + (dst_mesh.its.vertices[tri[1]] - centroid) * 0.75f,
+                                           centroid + (dst_mesh.its.vertices[tri[2]] - centroid) * 0.75f };
+                char covers = 0;
+                for (int s = 0; s < 4; ++s) {
+                    size_t hit_face = 0; Vec3f closest;
+                    const double d2 = AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
+                        ops[i].mesh.its.vertices, ops[i].mesh.its.indices, tree, samples[s], hit_face, closest);
+                    if (s == 0)
+                        op_distance[i][size_t(f)] = d2 < 0.0 ? std::numeric_limits<float>::max() : float(d2);
+                    if (covers || d2 < 0.0 || d2 > 1.0e-6 || hit_face >= ops[i].mesh.its.indices.size())
+                        continue;
+                    const Vec3i &sf = ops[i].mesh.its.indices[hit_face];
+                    const Vec3f &A  = ops[i].mesh.its.vertices[sf[0]];
+                    const Vec3f  v0 = ops[i].mesh.its.vertices[sf[1]] - A;
+                    const Vec3f  v1 = ops[i].mesh.its.vertices[sf[2]] - A;
+                    const Vec3f  v2 = closest - A;
+                    const float  d00 = v0.dot(v0), d01 = v0.dot(v1), d11 = v1.dot(v1);
+                    const float  d20 = v2.dot(v0), d21 = v2.dot(v1);
+                    const float  den = d00 * d11 - d01 * d01;
+                    if (std::abs(den) > 0.f) {
+                        const float v = (d11 * d20 - d01 * d21) / den;
+                        const float w = (d00 * d21 - d01 * d20) / den;
+                        const float u = 1.f - v - w;
+                        const float e = 1.0e-4f;
+                        if (u > e && v > e && w > e)
+                            covers = 1;
+                    }
+                }
+                op_covers[i][size_t(f)] = covers;
+            }
+        }
+    }
+    // Surface extent of each operand, used to break ties. Where operand surfaces
+    // coincide - two parts sharing a coplanar face, such as both sitting on the build
+    // plane - the distance cannot tell them apart, and the smaller, more local part is
+    // the one whose colour belongs on that patch.
+    std::vector<double> op_extent(ops.size(), 0.0);
+    for (size_t i = 0; i < ops.size(); ++i)
+        op_extent[i] = ops[i].mesh.bounding_box().size().norm();
+    // Quantized so coincident surfaces compare equal, and so the comparator stays a
+    // strict weak ordering (a raw epsilon test would not be transitive).
+    auto distance_key = [](float d) {
+        return (long long) std::llround(std::min<double>(double(d), 1.0e12) * 1.0e6);
+    };
+    auto operands_nearest_first = [&](int f) {
+        std::vector<int> order(ops.size());
+        for (size_t i = 0; i < ops.size(); ++i) order[i] = int(i);
+        std::sort(order.begin(), order.end(), [&](int a, int b) {
+            const int ca = op_covers[size_t(a)][size_t(f)] ? 0 : 1;
+            const int cb = op_covers[size_t(b)][size_t(f)] ? 0 : 1;
+            if (ca != cb) return ca < cb;
+            const long long ka = distance_key(op_distance[size_t(a)][size_t(f)]);
+            const long long kb = distance_key(op_distance[size_t(b)][size_t(f)]);
+            if (ka != kb) return ka < kb;
+            if (op_extent[size_t(a)] != op_extent[size_t(b)]) return op_extent[size_t(a)] < op_extent[size_t(b)];
+            return a < b;
+        });
+        return order;
+    };
+
+    // Reproject every operand's paint onto the whole destination (single source each,
+    // so no overlap ambiguity), then keep per face only its attributed operand's paint.
+    std::vector<PaintKeepPrepared> per_op(ops.size());
+    for (size_t i = 0; i < ops.size(); ++i) {
+        if (cancel && cancel())
+            return false;
+        // One operand at a time through the accurate geometric path: it refines along
+        // colour boundaries, so brush detail survives however the boolean re-triangulated
+        // the result. Passing every operand as one merged source instead would let one
+        // operand's colour overwrite another's where they overlap; a single source per
+        // call has no such conflict, and faces out of this operand's reach are simply
+        // left unpainted for the nearer operand to fill in below.
+        if (! reproject_paint_geometric(
+                ops[i].mesh, ops[i].ann.supported, ops[i].ann.seam, ops[i].ann.mmu, ops[i].ann.fuzzy,
+                dst_mesh, Transform3d::Identity(),
+                per_op[i].supported, per_op[i].seam, per_op[i].mmu, per_op[i].fuzzy,
+                nullptr, cancel, dst_world_matrix))
+            return false;
+    }
+
+    // Take, per destination face, only its attributed operand's reprojected paint.
+    // Where that operand produced nothing for a face it owns (the sampler culls faces
+    // beyond its reach), fall back to the operand's plain filament so the face still
+    // carries its own part's colour instead of the result volume's single extruder.
+    // Resolve every destination face against the nearest operand that actually has paint
+    // there. Taking only the single nearest operand would blank a face whose nearest
+    // operand is out of sampling reach, even though the other operand covers it.
+    auto take_nearest = [&](const std::vector<int> &order, int f,
+                            FacetsAnnotation PaintKeepPrepared::*layer, FacetsAnnotation &dst) {
+        for (int i : order) {
+            const std::string s = (per_op[size_t(i)].*layer).get_triangle_as_string(f);
+            if (! s.empty()) { dst.set_triangle_from_string(f, s); return i; }
+        }
+        return -1;
+    };
+    std::vector<int> plain_fill(size_t(dst_nf), 0);
+    bool             any_plain_fill = false;
+    for (int f = 0; f < dst_nf; ++f) {
+        const std::vector<int> order = operands_nearest_first(f);
+        take_nearest(order, f, &PaintKeepPrepared::supported, dst_supported);
+        take_nearest(order, f, &PaintKeepPrepared::seam,      dst_seam);
+        take_nearest(order, f, &PaintKeepPrepared::fuzzy,     dst_fuzzy);
+        if (take_nearest(order, f, &PaintKeepPrepared::mmu, dst_mmu) < 0) {
+            // No operand reached this face: give it the nearest operand's plain colour
+            // so it still prints as its own part rather than the result's one extruder.
+            const int filament = ops[size_t(order.front())].base_filament;
+            if (filament > 0) { plain_fill[size_t(f)] = filament; any_plain_fill = true; }
+        }
+    }
+    if (any_plain_fill) {
+        TriangleSelector colour(dst_mesh);
+        if (! dst_mmu.empty())
+            colour.deserialize(dst_mmu.get_data(), false);
+        for (int f = 0; f < dst_nf; ++f)
+            if (plain_fill[size_t(f)] > 0)
+                colour.set_facet(f, EnforcerBlockerType(plain_fill[size_t(f)]));
+        dst_mmu.set(colour);
+    }
+
+
+    return true;
+}
+
 } // namespace Slic3r

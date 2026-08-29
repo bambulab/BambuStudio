@@ -43,6 +43,7 @@
 #include "Gizmos/GLGizmoScale.hpp"
 #include "Gizmos/GLGizmoMeshBoolean.hpp"
 #include "libslic3r/TriangleMeshDeal.hpp"
+#include "libslic3r/PaintReproject.hpp"
 namespace Slic3r
 {
 namespace GUI
@@ -3574,6 +3575,32 @@ void ObjectList::boolean()
     if (new_object->instances.empty())
         new_object->add_instance();
     ModelVolume* new_volume = new_object->add_volume(mesh);
+
+    // Carry the painting onto the boolean result. combine_mesh_fff() unions the object's
+    // parts in world frame, so each part is mapped through its own volume matrix and the
+    // instance transform; add_volume() above would otherwise leave the result unpainted.
+    {
+        const Transform3d instance_matrix = object->instances.empty() ?
+            Transform3d::Identity() : object->instances.front()->get_matrix();
+        std::vector<PaintSourceVolume> sources;
+        for (const ModelVolume *v : object->volumes) {
+            if (v == nullptr || ! v->is_model_part())
+                continue;
+            PaintSourceVolume source;
+            source.mesh                  = &v->mesh();
+            source.supported             = &v->supported_facets;
+            source.seam                  = &v->seam_facets;
+            source.mmu                   = &v->mmu_segmentation_facets;
+            source.fuzzy                 = &v->fuzzy_skin_facets;
+            source.source_to_destination = instance_matrix * v->get_matrix();
+            source.base_filament         = v->extruder_id();
+            sources.push_back(source);
+        }
+        // Result of a cancelled reprojection is discarded, leaving the paint unset.
+        (void) reproject_paint_from_volumes(new_volume->mesh(), sources,
+                                            new_volume->supported_facets, new_volume->seam_facets,
+                                            new_volume->mmu_segmentation_facets, new_volume->fuzzy_skin_facets);
+    }
 
     // BBS: ensure on bed but no need to ensure locate in the center around origin
     new_object->ensure_on_bed();

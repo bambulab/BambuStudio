@@ -38,11 +38,10 @@ using PaintReprojectCancelCallback   = std::function<bool()>;
 //                                    coordinate frame (up to dst_to_src), so
 //                                    provenance and sampling use the nearest
 //                                    source face / nearest 3D point.
-//
-// Boolean is not wired up yet, but reproject_paint_geometric is the intended
-// extension point: pass the boolean result as the destination mesh and each
-// participating operand mesh as a source (nearest-distance source selection or
-// a merged source selector can be layered on later).
+//   * reproject_paint_from_volumes -- boolean/merge: the destination is rebuilt
+//                                    from several operands at once, so it layers
+//                                    nearest-distance source selection over
+//                                    reproject_paint_geometric (see below).
 // ---------------------------------------------------------------------------
 
 // Cutting: provenance from the explicit destination->source face map, measured
@@ -86,6 +85,47 @@ using PaintReprojectCancelCallback   = std::function<bool()>;
                                              const PaintReprojectProgressCallback &progress = nullptr,
                                              const PaintReprojectCancelCallback   &cancel   = nullptr,
                                              const Transform3d      *dst_world_matrix = nullptr);
+
+// One painted operand feeding a boolean result: its mesh, its four annotation
+// layers, and the transform that maps this operand's mesh-local coordinates into
+// the destination (boolean result) mesh-local frame. Any annotation pointer may be
+// null (treated as unpainted for that layer).
+struct PaintSourceVolume {
+    const TriangleMesh     *mesh                  = nullptr;
+    const FacetsAnnotation *supported             = nullptr;
+    const FacetsAnnotation *seam                  = nullptr;
+    const FacetsAnnotation *mmu                   = nullptr;
+    const FacetsAnnotation *fuzzy                 = nullptr;
+    Transform3d             source_to_destination = Transform3d::Identity();
+    // Filament (1-based) this operand is assigned to. When > 0, the operand's bulk
+    // (color-unpainted) faces are baked into the color map as this filament, so a
+    // part's SOLID color survives collapse into one volume (a boolean/merge result
+    // holds only one base filament). 0 = do not bake (color-paint only).
+    int                     base_filament         = 0;
+};
+
+// Boolean/merge: the result is rebuilt from several operands and no per-face source map
+// exists. Each operand is reprojected on its own through reproject_paint_geometric - one
+// source per call, so operands cannot overwrite one another where they overlap - and every
+// destination face then takes the paint of the nearest operand that covers it. An operand
+// covers a face only when the closest point falls inside one of its own faces, which stops
+// paint spreading past a part's outline where two parts share a plane; a tie there goes to
+// the smaller part. A face no operand reached, such as surface newly cut by the boolean,
+// takes the plain filament of its nearest operand.
+//
+// progress / cancel / dst_world_matrix behave as in reproject_paint_geometric.
+// concatenated_result marks a destination that is exactly the operands concatenated (a
+// merge), where the paint is an exact per-face copy rather than a resampling.
+[[nodiscard]] bool reproject_paint_from_volumes(const TriangleMesh                   &dst_mesh,
+                                                const std::vector<PaintSourceVolume> &sources,
+                                                FacetsAnnotation                     &dst_supported,
+                                                FacetsAnnotation                     &dst_seam,
+                                                FacetsAnnotation                     &dst_mmu,
+                                                FacetsAnnotation                     &dst_fuzzy,
+                                                const PaintReprojectProgressCallback &progress = nullptr,
+                                                const PaintReprojectCancelCallback   &cancel   = nullptr,
+                                                const Transform3d                    *dst_world_matrix = nullptr,
+                                                bool                                  concatenated_result = false);
 
 } // namespace Slic3r
 
