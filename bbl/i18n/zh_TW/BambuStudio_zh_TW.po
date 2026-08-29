@@ -8761,7 +8761,7 @@ msgid "Failed to save the project: an invalid setting value was found while writ
 msgstr "儲存專案失敗：寫入檔案時發現了無效的設定值。"
 
 msgid "Please check your settings and try again."
-msgstr "請檢查您的設定並重試."
+msgstr "請檢查您的設定並重試。"
 
 msgid ""
 "Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
