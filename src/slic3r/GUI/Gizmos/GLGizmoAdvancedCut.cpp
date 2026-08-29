@@ -103,6 +103,22 @@ static void rotate_z_3d(std::array<Vec3d, 4>& verts, float radian_angle)
         rotate_point_2d(verts[i](0), verts[i](1), c, s);
 }
 
+namespace {
+
+// Rotation taking +Z onto `normal`, which must be unit length. Eigen's
+// setFromTwoVectors handles the antipodal case (normal == -Z) by picking an
+// arbitrary perpendicular axis, which is what we want: the plane's X direction
+// is unconstrained here, exactly as in process_cut_line().
+Transform3d rotation_from_plane_normal(const Vec3d &normal)
+{
+    Eigen::Quaterniond q;
+    Transform3d        m = Transform3d::Identity();
+    m.matrix().block(0, 0, 3, 3) = q.setFromTwoVectors(Vec3d::UnitZ(), normal).toRotationMatrix();
+    return m;
+}
+
+} // namespace
+
 const double GLGizmoAdvancedCut::Offset = 20.0;
 const double GLGizmoAdvancedCut::Margin = 20.0;
 const std::array<float, 4> GLGizmoAdvancedCut::GrabberColor      = { 1.0, 1.0, 0.0, 1.0 };
@@ -139,6 +155,17 @@ bool GLGizmoAdvancedCut::gizmo_event(SLAGizmoEventType action, const Vec2d &mous
     }
 
     if (action == SLAGizmoEventType::LeftDown) {
+        // Pick-face mode is armed deliberately by the user, so while it is on, a click
+        // means "pick that facet" and nothing else. Grabbers and the cut plane itself are
+        // ignored on purpose: the wanted face is often behind the translucent plane, and
+        // gating on m_hover_id made those faces unclickable. gizmo_event runs before the
+        // manager's grabber handling, so returning true here suppresses the drag.
+        if (m_facet_picker.is_active() && !m_connectors_editing) {
+            m_facet_picker.update(mouse_position, m_c, m_parent.get_selection(), wxGetApp().plater()->get_camera());
+            if (apply_picked_facet())
+                m_facet_picker.set_active(false); // one-shot: press the button again to pick another
+            return true; // on a miss, stay armed rather than starting a rotate/pan
+        }
         if (m_hover_id == c_plate_move_id) {
             Vec3d pos;
             Vec3d pos_world;
@@ -346,6 +373,58 @@ bool GLGizmoAdvancedCut::unproject_on_cut_plane(const Vec2d &mouse_pos, Vec3d &p
     pos       = hit_d;
     pos_world = hit;
 
+    return true;
+}
+
+bool GLGizmoAdvancedCut::apply_picked_facet()
+{
+    const FacetPicker::Hit &picked = m_facet_picker.hit();
+    if (!picked.valid() || picked.world_normal.isZero())
+        return false;
+
+    const Transform3d m = rotation_from_plane_normal(picked.world_normal);
+
+    // Plane lands flush with the facet; the user offsets it afterwards with Movement.
+    const Vec3d new_plane_center = picked.world_pos;
+
+    const auto new_tbb = transformed_bounding_box(new_plane_center, m);
+
+    // transformed_bounding_box() maps a point to R^-1 * (p_world - plane_center), so new_tbb
+    // is the model's bounding box in the cut plane's own frame and the plane is z = 0 there.
+    // The pick is meaningful when the model actually spans that plane, which is exactly the
+    // test set_center_pos() applies before it will accept the new centre. Asking the same
+    // question here is the point: a guard that disagrees with the function it guards would
+    // either reject a good pick or apply the rotation while the position is silently refused.
+    //
+    // Do not reuse process_cut_line()'s containment check here. It tests
+    //   m.inverse() * (plane_center - instance_offset) + new_tbb.center()
+    // which is not the plane's position in this frame. The two terms cancel in X and Y
+    // because an instance origin sits at the model's bounding-box centre in those axes, but
+    // in Z the origin sits at the object's base, so the error is the object's half-height.
+    // process_cut_line() hides that by always cutting through m_bb_center, where the stale Z
+    // still lands inside a tall box. A plane placed flush with a facet - especially on a cut
+    // piece, whose geometry is offset from its instance origin - falls outside and the pick
+    // is silently dropped.
+    const double limit_val = 0.5;
+    if (!(new_tbb.max.z() > -limit_val && new_tbb.min.z() < limit_val))
+        return false;
+
+    Plater::TakeSnapshot snapshot(wxGetApp().plater(), "Cut plane from face");
+
+    m_transformed_bounding_box = new_tbb;
+    set_center(new_plane_center);
+    m_start_dragging_m = m_rotate_matrix = m;
+    m_plane_normal                       = m_rotate_matrix * Vec3d::UnitZ();
+    m_ar_plane_center                    = m_plane_center;
+
+    reset_cut_by_contours();
+
+    // Keep the Rotation / Movement boxes in step with the new plane.
+    m_movement = 0.0;
+    m_rotation = Geometry::extract_euler_angles(m_rotate_matrix);
+    update_buffer_data();
+
+    m_parent.request_extra_frame();
     return true;
 }
 
@@ -574,6 +653,7 @@ void GLGizmoAdvancedCut::on_set_state()
         }
         m_hover_id           = -1;
         m_connectors_editing = false;
+        m_facet_picker.set_active(false);
 
         update_bb();
         reset_cut_plane();//according to boundingbox
@@ -638,7 +718,8 @@ CommonGizmosDataID GLGizmoAdvancedCut::on_get_requirements() const
 {
     return CommonGizmosDataID(int(CommonGizmosDataID::SelectionInfo)
         | int(CommonGizmosDataID::InstancesHider)
-        | int(CommonGizmosDataID::ObjectClipper));
+        | int(CommonGizmosDataID::ObjectClipper)
+        | int(CommonGizmosDataID::Raycaster));
 }
 
 void GLGizmoAdvancedCut::on_start_dragging()
@@ -807,6 +888,8 @@ void GLGizmoAdvancedCut::on_render()
     if (!m_connectors_editing) {
         render_cut_plane_and_grabbers();
     }
+    if (m_facet_picker.is_active() && !m_connectors_editing)
+        m_facet_picker.render(wxGetApp().plater()->get_camera());
     // render_clipper_cut for get the cut plane result
     render_clipper_cut();
     // render a cut line on screen by shift key and mouse move
@@ -820,6 +903,16 @@ void GLGizmoAdvancedCut::on_render()
 
 bool GLGizmoAdvancedCut::on_mouse(const wxMouseEvent &mouse_event)
 {
+    if (m_facet_picker.is_active() && !m_connectors_editing) {
+        if (mouse_event.Moving() || mouse_event.Dragging()) {
+            m_facet_picker.update(Vec2d(mouse_event.GetX(), mouse_event.GetY()), m_c, m_parent.get_selection(),
+                                  wxGetApp().plater()->get_camera());
+            m_parent.request_extra_frame();
+        } else if (mouse_event.Leaving()) {
+            m_facet_picker.reset();
+        }
+    }
+
     // If we are in connector mode and the mouse is hovering...
     if (m_connectors_editing && mouse_event.Moving()) {
         Vec3d pos;
@@ -1876,6 +1969,8 @@ void GLGizmoAdvancedCut::set_connectors_editing(bool connectors_editing)
         return;
 
     m_connectors_editing = connectors_editing;
+    if (m_connectors_editing)
+        m_facet_picker.set_active(false);
     m_c->object_clipper()->set_behaviour(m_connectors_editing, m_connectors_editing, double(m_contour_width));
     m_parent.request_extra_frame();
     // todo: zhimin need a better method
@@ -2106,6 +2201,8 @@ void GLGizmoAdvancedCut::switch_to_mode(CutMode new_mode) {
     if (m_cut_mode == CutMode::cutTongueAndGroove) {
         m_cut_to_parts = false;//into Groove function,cancel m_cut_to_parts
     }
+    if (m_cut_mode != CutMode::cutPlanar)
+        m_facet_picker.set_active(false);
     apply_color_clip_plane_colors();
     if (auto oc = m_c->object_clipper()) {
         m_contour_width = m_cut_mode == CutMode::cutTongueAndGroove ? 0.f : 0.4f;
@@ -2518,6 +2615,27 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     }
     ImGui::Separator();
     m_imgui->disabled_end();
+
+    // Pick-face mode is planar-cut only; the groove mode has its own plane state machine.
+    const bool pick_face_available = (m_cut_mode == CutMode::cutPlanar) && !m_connectors_editing;
+    m_imgui->disabled_begin(!pick_face_available);
+    // Keep the button looking pressed while armed - it is a mode, and the only other
+    // cue that it is on is the facet highlight, which needs the cursor over the model.
+    const bool picking = m_facet_picker.is_active();
+    if (picking)
+        ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetColorU32(ImGuiCol_ButtonActive));
+    if (m_imgui->button(_L("Pick face")))
+        m_facet_picker.set_active(!picking);
+    if (picking)
+        ImGui::PopStyleColor();
+    m_imgui->disabled_end();
+    if (ImGui::IsItemHovered())
+        m_imgui->tooltip(_L("Click a face of the model to set the cut plane. The plane lands flush with that face; use Movement to offset it."), ImGui::GetFontSize() * 20.0f);
+    if (m_facet_picker.is_active()) {
+        ImGui::SameLine();
+        m_imgui->text(_L("Click a face of the model."));
+    }
+    ImGui::Separator();
 
     ImGui::PushItemWidth(caption_size);
     ImGui::Dummy(ImVec2(caption_size, -1));

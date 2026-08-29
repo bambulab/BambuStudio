@@ -3,6 +3,7 @@
 
 #include "GLGizmoBase.hpp"
 #include "GLGizmoRotate.hpp"
+#include "FacetPicker.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/CutUtils.hpp"
 
@@ -121,6 +122,9 @@ private:
 
     mutable Grabber m_move_z_grabber;
     mutable Grabber m_move_x_grabber;
+
+    // Pick-face mode: click a triangular facet of the model to set the cut plane.
+    FacetPicker m_facet_picker;
 
     bool m_connectors_editing{false};
     bool m_localized_cut_editing = true;
@@ -311,6 +315,8 @@ private:
     void render_localized_cut_shadow();
     void render_clipper_cut();
     void render_cut_line();
+    // pick-face mode
+    bool apply_picked_facet();
 
     void clear_selection();
     void init_connector_shapes();
