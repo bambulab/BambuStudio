@@ -34,6 +34,14 @@ echo -n "[9/9] Generating Linux app..."
     # remove unneeded po from resources
     ## find package/resources/localization -name "*.po" -type f -delete ## FIXME: DD - do we need this?
 
+    # copy .desktop file and hicolor icons needed by system package builds
+    cp -f ../src/platform/unix/@SLIC3R_APP_KEY@.desktop package/@SLIC3R_APP_KEY@.desktop
+    for PNG_SIZE in 32 128 192; do
+        mkdir -p package/usr/share/icons/hicolor/${PNG_SIZE}x${PNG_SIZE}/apps
+        cp -f package/resources/images/@SLIC3R_APP_KEY@_${PNG_SIZE}px.png \
+            package/usr/share/icons/hicolor/${PNG_SIZE}x${PNG_SIZE}/apps/@SLIC3R_APP_KEY@.png
+    done
+
     # create bin
 cat << EOF >@SLIC3R_APP_CMD@
 #!/bin/bash
