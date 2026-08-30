@@ -2333,12 +2333,269 @@ void TreeSupport::draw_circles()
     const bool with_lightning_infill = m_support_params.base_fill_pattern == ipLightning;
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
     const coordf_t line_width_scaled                 = scale_(support_extrusion_width);
+    const coord_t buildplate_roof_growth =
+        std::max<coord_t>(1, coord_t(line_width_scaled / 2));
     const float tree_brim_width = config.raft_first_layer_expansion.value;
     const bool bottom_expand_enabled = config.tree_support_wall_count > 1 || config.tree_support_wall_count < 0;
 
     if (m_object->support_layer_count() <= m_raft_layers)
         return;
     BOOST_LOG_TRIVIAL(info) << "draw_circles for object: " << m_object->model_object()->name;
+
+    // Build the same collision region used while drawing a node, but for an
+    // arbitrary node in the surviving tree.
+    auto node_collision = [&](const SupportNode &node) -> ExPolygons {
+        const size_t obj_layer_nr = node.obj_layer_nr;
+        const bool sharp_tail = node.is_sharp_tail && node.distance_to_top <= 0;
+
+        ExPolygons collision = offset_ex(
+            m_ts_data->m_layer_outlines[obj_layer_nr],
+            sharp_tail ?
+                scale_(top_z_distance) :
+                scale_((obj_layer_nr == 0) ?
+                    config.support_object_first_layer_gap :
+                    m_ts_data->m_xy_distance));
+
+        if (top_z_distance > EPSILON) {
+            float accum_height = 0;
+            for (size_t layer_id = obj_layer_nr + 1;
+                 layer_id < m_ts_data->m_layer_outlines.size() &&
+                 (accum_height += m_object->get_layer(layer_id)->height) &&
+                 accum_height <= top_z_distance;
+                 ++layer_id) {
+                collision = union_ex(
+                    collision,
+                    offset_ex(
+                        m_ts_data->m_layer_outlines[layer_id],
+                        scale_(top_z_distance)));
+            }
+        }
+
+        return collision;
+    };
+
+    // Return only the geometry that the surviving node itself would print,
+    // without restoring its original overhang.
+    auto branch_area = [&](const SupportNode &node) -> ExPolygons {
+        const ExPolygons collision = node_collision(node);
+
+        if (node.type == ePolygon ||
+            (node.distance_to_top < 0 && !node.is_sharp_tail)) {
+            ExPolygons area =
+                offset_ex({node.overhang}, scale_(m_ts_data->m_xy_distance));
+            return diff_clipped(area, collision);
+        }
+
+        if (node.radius <= EPSILON || branch_radius <= EPSILON)
+            return {};
+
+        Polygon circle(branch_circle);
+        const double scale = node.radius / branch_radius;
+        const double scaled_radius = scale * branch_radius_scaled;
+
+        if (scaled_radius <= EPSILON)
+            return {};
+
+        const double moveX =
+            node.movement.x() / scaled_radius;
+        const double moveY =
+            node.movement.y() / scaled_radius;
+
+        if (!SQUARE_SUPPORT &&
+            std::abs(moveX) > 0.001 &&
+            std::abs(moveY) > 0.001) {
+            const double vsize_inv =
+                0.5 / (0.01 + std::sqrt(moveX * moveX + moveY * moveY));
+
+            const double matrix[2 * 2] = {
+                scale * (1 + moveX * moveX * vsize_inv),
+                scale * (moveX * moveY * vsize_inv),
+                scale * (moveX * moveY * vsize_inv),
+                scale * (1 + moveY * moveY * vsize_inv),
+            };
+
+            int i = 0;
+            for (auto vertex : branch_circle.points) {
+                vertex = Point(
+                    matrix[0] * vertex.x() + matrix[1] * vertex.y(),
+                    matrix[2] * vertex.x() + matrix[3] * vertex.y());
+                circle.points[i++] = node.position + vertex;
+            }
+        } else {
+            for (size_t i = 0; i < circle.points.size(); ++i)
+                circle.points[i] =
+                    circle.points[i] * scale + node.position;
+        }
+
+        return avoid_object_remove_extra_small_parts(
+            ExPolygon(circle), collision);
+    };
+
+    // Return the interface area requested by this node. In
+    // build-plate-only mode this is clipped later against a support envelope
+    // shared by the complete support layer instead of by an individual tree
+    // branch.
+    auto requested_roof_area = [&](const SupportNode &node) -> ExPolygons {
+        if (node.overhang.empty())
+            return {};
+
+        ExPolygons area;
+        if (node.overhang.contour.size() > 100 ||
+            node.overhang.holes.size() > 1) {
+            area.emplace_back(node.overhang);
+        } else {
+            area =
+                offset_ex({node.overhang}, scale_(m_ts_data->m_xy_distance));
+        }
+
+        area = diff_clipped(area, node_collision(node));
+        area = intersection_ex(area, m_machine_border);
+        return area;
+    };
+
+    auto wants_roof = [&](const SupportNode &node) -> bool {
+        return
+            top_interface_layers > 0 &&
+            (node.support_roof_layers_below > 1 ||
+             (node.support_roof_layers_below >= 0 &&
+              !node.is_sharp_tail));
+    };
+
+    // Collision region for a complete support layer. This mirrors the
+    // non-sharp-tail collision used while drawing normal support on that
+    // layer and allows the cumulative footprint to be calculated before the
+    // per-layer work is distributed to TBB.
+    auto buildplate_layer_collision =
+        [&](size_t layer_nr) -> ExPolygons {
+            const size_t obj_layer_nr =
+                m_ts_data->layer_heights[layer_nr].obj_layer_nr;
+
+            ExPolygons collision = offset_ex(
+                m_ts_data->m_layer_outlines[obj_layer_nr],
+                scale_(
+                    (obj_layer_nr == 0) ?
+                        config.support_object_first_layer_gap :
+                        m_ts_data->m_xy_distance));
+
+            if (top_z_distance > EPSILON) {
+                float accum_height = 0;
+
+                for (size_t layer_id = obj_layer_nr + 1;
+                     layer_id < m_ts_data->m_layer_outlines.size() &&
+                     (accum_height +=
+                          m_object->get_layer(layer_id)->height) &&
+                     accum_height <= top_z_distance;
+                     ++layer_id) {
+                    collision = union_ex(
+                        collision,
+                        offset_ex(
+                            m_ts_data->m_layer_outlines[layer_id],
+                            scale_(top_z_distance)));
+                }
+            }
+
+            return collision;
+        };
+
+    std::vector<ExPolygons> buildplate_supported_limits;
+
+    if (on_buildplate_only) {
+        buildplate_supported_limits.resize(
+            m_ts_data->layer_heights.size());
+
+        ExPolygons printed_below;
+
+        // This pass is deliberately sequential. Each layer depends on the
+        // geometry that will actually be printed on the preceding support
+        // layer, so calculating it inside the parallel draw loop would be
+        // order-dependent.
+        for (size_t layer_nr = 0;
+             layer_nr < contact_nodes.size();
+             ++layer_nr) {
+            if (print->canceled())
+                break;
+
+            ExPolygons branch_support;
+            ExPolygons requested_roof;
+
+            for (const SupportNode *support_node :
+                 contact_nodes[layer_nr]) {
+                if (support_node == nullptr ||
+                    !support_node->valid)
+                    continue;
+
+                const SupportNode &node = *support_node;
+
+                // branch_area() is geometry that the surviving tree itself
+                // prints on this layer, irrespective of whether it will later
+                // be classified as base, roof, transition or roof-gap.
+                append(
+                    branch_support,
+                    branch_area(node));
+
+                // Polygon / virtual nodes retain their existing path. The
+                // recovery applies to the circle-node branch where the normal
+                // full-overhang merge is disabled by build-plate-only mode.
+                const bool circle_node =
+                    node.type != ePolygon &&
+                    !(node.distance_to_top < 0 &&
+                      !node.is_sharp_tail);
+
+                if (circle_node && wants_roof(node)) {
+                    append(
+                        requested_roof,
+                        requested_roof_area(node));
+                }
+            }
+
+            if (!branch_support.empty())
+                branch_support = union_ex(branch_support);
+
+            if (!requested_roof.empty())
+                requested_roof = union_ex(requested_roof);
+
+            ExPolygons printed_here = branch_support;
+
+            // Additional roof on this layer is legal only if the same region
+            // can grow from geometry that was actually printable on the
+            // preceding layer. Because recovered area is added to
+            // printed_here, only that actually requested area can propagate
+            // further on the next iteration.
+            if (!printed_below.empty() &&
+                !requested_roof.empty()) {
+                ExPolygons reachable_from_below =
+                    offset_ex(
+                        printed_below,
+                        buildplate_roof_growth);
+
+                ExPolygons recovered =
+                    intersection_ex(
+                        requested_roof,
+                        reachable_from_below);
+
+                append(printed_here, recovered);
+            }
+
+            if (!printed_here.empty()) {
+                printed_here = union_ex(printed_here);
+
+                printed_here = diff_clipped(
+                    printed_here,
+                    buildplate_layer_collision(layer_nr));
+
+                printed_here = intersection_ex(
+                    printed_here,
+                    m_machine_border);
+
+                printed_here = union_ex(printed_here);
+            }
+
+            buildplate_supported_limits[layer_nr] =
+                printed_here;
+
+            printed_below = std::move(printed_here);
+        }
+    }
 
     tbb::parallel_for(tbb::blocked_range<size_t>(0, m_ts_data->layer_heights.size()),
         [&](const tbb::blocked_range<size_t>& range)
@@ -2397,6 +2654,11 @@ void TreeSupport::draw_circles()
                     return collision;
                 };
 
+                const ExPolygons *buildplate_supported_limit =
+                    on_buildplate_only ?
+                        &buildplate_supported_limits[layer_nr] :
+                        nullptr;
+
                 BOOST_LOG_TRIVIAL(debug) << "circles at layer " << layer_nr << " contact nodes size=" << curr_layer_nodes.size();
                 //Draw the support areas and add the roofs appropriately to the support roof instead of normal areas.
                 ts_layer->support_islands.reserve(curr_layer_nodes.size());
@@ -2428,44 +2690,37 @@ void TreeSupport::draw_circles()
                         }
                     }
                     else {
-                        // merge overhang to get a smoother interface surface
-                        // Do not merge when buildplate_only is on, because some underneath nodes may have been deleted.
-                        if (top_interface_layers > 0 && (node.support_roof_layers_below > 1 || (node.support_roof_layers_below >= 0 && !node.is_sharp_tail)) &&
-                            !on_buildplate_only) {
-                            if (node.overhang.contour.size() > 100 || node.overhang.holes.size() > 1)
-                                area.emplace_back(node.overhang);
-                            else {
-                                area = offset_ex({node.overhang}, scale_(m_ts_data->m_xy_distance));
-                            }
-                        } else {
-                            Polygon circle(branch_circle);
-                            double  scale = node.radius / branch_radius;
-                            double  moveX = node.movement.x() / (scale * branch_radius_scaled);
-                            double  moveY = node.movement.y() / (scale * branch_radius_scaled);
-                            // BOOST_LOG_TRIVIAL(debug) << format("scale,moveX,moveY: %.3f,%.3f,%.3f", scale, moveX, moveY);
+                        const bool node_wants_roof =
+                            wants_roof(node);
 
-                            if (!SQUARE_SUPPORT && std::abs(moveX) > 0.001 && std::abs(moveY) > 0.001) { // draw ellipse along movement direction
-                                const double vsize_inv     = 0.5 / (0.01 + std::sqrt(moveX * moveX + moveY * moveY));
-                                double       matrix[2 * 2] = {
-                                    scale * (1 + moveX * moveX * vsize_inv),
-                                    scale * (0 + moveX * moveY * vsize_inv),
-                                    scale * (0 + moveX * moveY * vsize_inv),
-                                    scale * (1 + moveY * moveY * vsize_inv),
-                                };
-                                int i = 0;
-                                for (auto vertex : branch_circle.points) {
-                                    vertex             = Point(matrix[0] * vertex.x() + matrix[1] * vertex.y(), matrix[2] * vertex.x() + matrix[3] * vertex.y());
-                                    circle.points[i++] = node.position + vertex;
-                                }
-                            } else {
-                                for (int i = 0; i < circle.points.size(); i++) { circle.points[i] = circle.points[i] * scale + node.position; }
+                        if (node_wants_roof && !on_buildplate_only) {
+                            if (node.overhang.contour.size() > 100 ||
+                                node.overhang.holes.size() > 1)
+                                area.emplace_back(node.overhang);
+                            else
+                                area = offset_ex(
+                                    {node.overhang},
+                                    scale_(m_ts_data->m_xy_distance));
+                        } else if (node_wants_roof && on_buildplate_only) {
+                            ExPolygons requested =
+                                requested_roof_area(node);
+
+                            if (!requested.empty() &&
+                                buildplate_supported_limit != nullptr &&
+                                !buildplate_supported_limit->empty()) {
+                                area = intersection_ex(
+                                    requested,
+                                    *buildplate_supported_limit);
                             }
-                            // brim_width = tree_brim_width > 0 ?
-                            //                  tree_brim_width :
-                            //                  std::max(MIN_BRANCH_RADIUS_FIRST_LAYER,
-                            //                           std::min(node.radius + node.dist_mm_to_top / (scale * branch_radius) * 0.5, MAX_BRANCH_RADIUS_FIRST_LAYER) - node.radius);
-                            area = avoid_object_remove_extra_small_parts(ExPolygon(circle), get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
-                            // area = diff_clipped({ ExPolygon(circle) }, get_collision(node.is_sharp_tail && node.distance_to_top <= 0));
+
+                            // The node's normal branch footprint is already
+                            // printable tree support. Keep it even if the
+                            // recovered overhang is empty.
+                            ExPolygons own_branch = branch_area(node);
+                            append(area, own_branch);
+                            area = union_ex(area);
+                        } else {
+                            area = branch_area(node);
                         }
 
                         if (!area.empty()) has_circle_node = true;
@@ -2506,8 +2761,34 @@ void TreeSupport::draw_circles()
                 roof_areas     = diff_clipped(offset2_ex(roof_areas, line_width_scaled, -line_width_scaled), get_collision(z_overrides));
                 roof_areas     = intersection_ex(roof_areas, m_machine_border);
                 roof_areas     = union_ex(roof_areas);
+
+                // Neighbouring interface fragments may be joined, but the
+                // resulting paths must remain inside geometry backed by the
+                // surviving support layer below.
+                if (on_buildplate_only) {
+                    if (buildplate_supported_limit == nullptr ||
+                        buildplate_supported_limit->empty()) {
+                        roof_areas.clear();
+                    } else {
+                        roof_areas = intersection_ex(
+                            roof_areas,
+                            *buildplate_supported_limit);
+                    }
+                }
+
                 roof_1st_layer = diff_clipped(offset2_ex(roof_1st_layer, line_width_scaled, -line_width_scaled),
                                               z_overrides ? offset_ex(get_collision(z_overrides), line_width_scaled / 2) : get_collision(false));
+
+                if (on_buildplate_only) {
+                    if (buildplate_supported_limit == nullptr ||
+                        buildplate_supported_limit->empty()) {
+                        roof_1st_layer.clear();
+                    } else {
+                        roof_1st_layer = intersection_ex(
+                            roof_1st_layer,
+                            *buildplate_supported_limit);
+                    }
+                }
 
                 // roof_1st_layer and roof_areas may intersect, so need to subtract roof_areas from roof_1st_layer
                 roof_1st_layer = diff_ex(roof_1st_layer, ClipperUtils::clip_clipper_polygons_with_subject_bbox(roof_areas,get_extents(roof_1st_layer)));
