@@ -227,6 +227,13 @@ bool DiscordIPC::connect_endpoint(const std::string &path)
         return false;
     }
 
+#ifdef SO_NOSIGPIPE
+    // Discord quitting mid-write would otherwise raise SIGPIPE and kill the
+    // process. Linux has no SO_NOSIGPIPE and uses MSG_NOSIGNAL below.
+    const int nosigpipe = 1;
+    ::setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &nosigpipe, sizeof(nosigpipe));
+#endif
+
     // Non-blocking from here on, so a stalled Discord cannot wedge the worker.
     const int fl = ::fcntl(fd, F_GETFL, 0);
     if (fl >= 0)
@@ -241,8 +248,14 @@ bool DiscordIPC::write_all(const char *src, size_t count)
     size_t written   = 0;
     int    budget_ms = 2000;
 
+#ifdef MSG_NOSIGNAL
+    const int flags = MSG_NOSIGNAL;
+#else
+    const int flags = 0;
+#endif
+
     while (written < count) {
-        const ssize_t n = ::write(m_fd, src + written, count - written);
+        const ssize_t n = ::send(m_fd, src + written, count - written, flags);
         if (n > 0) {
             written += static_cast<size_t>(n);
             continue;

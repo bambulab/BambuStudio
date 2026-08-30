@@ -2854,8 +2854,18 @@ void GUI_App::apply_discord_presence_setting()
     if (!enabled && !m_discord_presence)
         return;
 
+    // Config overrides the compiled-in id, so no rebuild is needed to retarget.
+    std::string application_id = app_config->get("discord_rich_presence_app_id");
+    if (application_id.empty())
+        application_id = Slic3r::discord_default_application_id();
+
+    // The id is fixed for the publisher's lifetime, so a change must replace it.
+    if (m_discord_presence && m_discord_presence->application_id() != application_id)
+        m_discord_presence.reset();
+
     if (!m_discord_presence)
-        m_discord_presence.reset(new Slic3r::DiscordPresence(std::string("Bambu Studio ") + SLIC3R_VERSION));
+        m_discord_presence.reset(
+            new Slic3r::DiscordPresence(application_id, std::string("Bambu Studio ") + SLIC3R_VERSION));
 
     m_discord_presence->set_enabled(enabled);
 }

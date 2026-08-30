@@ -254,3 +254,10 @@ TEST_CASE("Reset makes the next snapshot send again", "[DiscordPresence]")
     throttle.reset();
     CHECK(throttle.should_send(snap, 60'000));
 }
+
+TEST_CASE("Presence stays disabled without an application id", "[DiscordPresence]")
+{
+    DiscordPresence presence("", "Bambu Studio");
+    presence.set_enabled(true);
+    CHECK_FALSE(presence.is_enabled());
+}

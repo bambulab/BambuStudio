@@ -39,6 +39,9 @@ struct PresenceSnapshot
     bool equivalent(const PresenceSnapshot &other) const;
 };
 
+// Empty unless the build sets SLIC3R_DISCORD_APP_ID.
+std::string discord_default_application_id();
+
 // Must match a key uploaded to the Discord application's art assets.
 const char *discord_state_asset_key(PresenceSnapshot::Activity activity);
 
@@ -70,7 +73,7 @@ private:
 class DiscordPresence
 {
 public:
-    explicit DiscordPresence(std::string large_text);
+    DiscordPresence(std::string application_id, std::string large_text);
     ~DiscordPresence();
 
     DiscordPresence(const DiscordPresence &) = delete;
@@ -78,6 +81,8 @@ public:
 
     void set_enabled(bool enabled);
     bool is_enabled() const { return m_enabled.load(); }
+
+    const std::string &application_id() const { return m_application_id; }
 
     // GUI thread. Non-blocking.
     void update(const PresenceSnapshot &snapshot);
@@ -89,6 +94,7 @@ private:
     bool connect_and_handshake();
     void clear_presence();
 
+    const std::string m_application_id;
     const std::string m_large_text;
 
     std::atomic<bool> m_enabled { false };

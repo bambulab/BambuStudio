@@ -20,12 +20,14 @@
     #include <unistd.h>
 #endif
 
+// Supplied by the build; empty leaves the feature inert.
+#ifndef SLIC3R_DISCORD_APP_ID
+    #define SLIC3R_DISCORD_APP_ID ""
+#endif
+
 namespace Slic3r {
 
-// Contributor-registered application, so the feature can be evaluated as-is.
-// The owning account controls the name and artwork every user sees, so this
-// should be re-pointed at an application owned by Bambu Lab before release.
-static const char *DISCORD_APPLICATION_ID = "1542693447339745472";
+std::string discord_default_application_id() { return std::string(SLIC3R_DISCORD_APP_ID); }
 
 // Discord silently rejects presence fields longer than this.
 static const size_t DISCORD_FIELD_MAX_BYTES = 128;
@@ -155,12 +157,20 @@ void PresenceThrottle::reset()
     m_last         = PresenceSnapshot();
 }
 
-DiscordPresence::DiscordPresence(std::string large_text) : m_large_text(std::move(large_text)) {}
+DiscordPresence::DiscordPresence(std::string application_id, std::string large_text)
+    : m_application_id(std::move(application_id)), m_large_text(std::move(large_text))
+{}
 
 DiscordPresence::~DiscordPresence() { stop(); }
 
 void DiscordPresence::set_enabled(bool enabled)
 {
+    // No id means no handshake can ever succeed, so never start a worker.
+    if (enabled && m_application_id.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "DiscordPresence: no application id configured, staying disabled";
+        return;
+    }
+
     if (enabled == m_enabled.load())
         return;
 
@@ -210,7 +220,7 @@ bool DiscordPresence::connect_and_handshake()
 
     nlohmann::json handshake = nlohmann::json::object();
     handshake["v"]           = 1;
-    handshake["client_id"]   = DISCORD_APPLICATION_ID;
+    handshake["client_id"]   = m_application_id;
     if (!m_ipc->write_frame(DiscordOpcode::Handshake, handshake.dump()))
         return false;
 
