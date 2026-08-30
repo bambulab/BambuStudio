@@ -586,6 +586,9 @@ bool StyleManager::set_wx_font(const wxFont &wx_font) {
 bool StyleManager::set_wx_font(const wxFont &wx_font, std::unique_ptr<FontFile> font_file)
 {
     if (font_file == nullptr) return false;
+    // For TrueType collections (macOS .ttc) find which font in the file the
+    // face name selects; always overwrite to drop an index from a previous font.
+    std::optional<unsigned int> collection_number = WxFontUtils::get_collection_index(wx_font, *font_file);
     m_style_cache.wx_font = wx_font; // copy
     m_style_cache.font_file =
         FontFileWithCache(std::move(font_file));
@@ -594,6 +597,7 @@ bool StyleManager::set_wx_font(const wxFont &wx_font, std::unique_ptr<FontFile> 
     style.type = WxFontUtils::get_current_type();
     // update string path
     style.path = WxFontUtils::store_wxFont(wx_font);
+    style.prop.collection_number = collection_number;
     WxFontUtils::update_property(style.prop, wx_font);
     clear_imgui_font();
     return true;

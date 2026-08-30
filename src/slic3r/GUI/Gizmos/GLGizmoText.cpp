@@ -28,6 +28,11 @@
 #include <wx/hashmap.h>
 #include <wx/utils.h>
 
+#ifdef __APPLE__
+#include <CoreText/CoreText.h>
+#include <wx/osx/core/cfstring.h> // wxCFStringRef
+#endif
+
 #include <numeric>
 #include <codecvt>
 #include <boost/log/trivial.hpp>
@@ -598,8 +603,17 @@ EmbossStyles GLGizmoText::create_default_styles()
 
 bool GLGizmoText::select_facename(const wxString &facename, bool update_text)
 {
-    if (!wxFontEnumerator::IsValidFacename(facename))
+    if (!wxFontEnumerator::IsValidFacename(facename)) {
+#ifdef __APPLE__
+        // On macOS the enumerator knows only family names, so weight-qualified
+        // or localized names stored in projects ("Pretendard Black", "나눔고딕")
+        // are rejected here although CoreText resolves them to the correct font
+        // file. Continue and let set_wx_font() decide: when CoreText cannot
+        // resolve the name, the font file lookup fails and false is returned.
+#else
         return false;
+#endif
+    }
     // Select font
     wxFont wx_font(wxFontInfo().FaceName(facename).Encoding(CurFacenames::encoding));
     if (!wx_font.IsOk())
@@ -1670,6 +1684,14 @@ void GLGizmoText::load_init_text(bool first_open_text)
                         }
                     }
                 }
+                // Style recovery above can replace the font by a style-name
+                // match from app config or by a family approximation, although
+                // the volume records the exact face it was created with
+                // (e.g. "Pretendard Black" which get_installed_face_name can
+                // not validate). Re-apply it; when the name cannot be resolved
+                // to a font file the current font is kept.
+                if (!is_old_text_info(text_info) && !m_font_name.empty())
+                    select_facename(wxString::FromUTF8(m_font_name.c_str()), false);
                 if (m_is_serializing) { // undo redo
                     m_style_manager.get_style().angle = calc_angle(selection);
                     m_rotate_angle                    = get_angle_from_current_style();
@@ -3566,6 +3588,49 @@ bool draw_button(const IconManager::VIcons &icons, IconType type, bool disable)
     return Slic3r::GUI::button(get_icon(icons, type, IconState::activable), get_icon(icons, type, IconState::hovered), get_icon(icons, type, IconState::disabled), disable);
 }
 
+#ifdef __APPLE__
+// Windows GDI lists heavier weights as own families ("Pretendard Black",
+// "Apple SD Gothic Neo Heavy") while the macOS enumerator collapses them into
+// one family entry, so those faces would not be selectable at all. Append
+// full names of the extra faces; select_facename()/create_font_file() resolve
+// them through CTFontCreateWithName.
+void append_macos_face_fullnames(wxArrayString &facenames)
+{
+    CTFontCollectionRef collection = CTFontCollectionCreateFromAvailableFonts(nullptr);
+    if (collection == nullptr) return;
+    CFArrayRef descriptors = CTFontCollectionCreateMatchingFontDescriptors(collection);
+    CFRelease(collection);
+    if (descriptors == nullptr) return;
+
+    std::set<wxString> known(facenames.begin(), facenames.end());
+    // styles reachable from the family entry itself (regular + bold/italic buttons)
+    const std::set<wxString> plain_styles = {"Regular", "Bold", "Italic", "Bold Italic", "Oblique", "Bold Oblique"};
+    for (CFIndex i = 0; i < CFArrayGetCount(descriptors); ++i) {
+        CTFontDescriptorRef descriptor = (CTFontDescriptorRef) CFArrayGetValueAtIndex(descriptors, i);
+        CFStringRef family_ref = (CFStringRef) CTFontDescriptorCopyAttribute(descriptor, kCTFontFamilyNameAttribute);
+        if (family_ref == NULL) continue;
+        wxString family = wxCFStringRef::AsString(family_ref);
+        CFRelease(family_ref);
+        if (family.empty() || family[0] == '.') continue; // hidden system fonts
+
+        CTFontRef ct_font = CTFontCreateWithFontDescriptor(descriptor, 0.0, nullptr);
+        if (ct_font == NULL) continue;
+        CFStringRef full_ref = CTFontCopyName(ct_font, kCTFontFullNameKey);
+        CFRelease(ct_font);
+        if (full_ref == NULL) continue;
+        wxString full = wxCFStringRef::AsString(full_ref);
+        CFRelease(full_ref);
+
+        if (full.empty() || full[0] == '.' || full == family) continue;
+        wxString style = full.StartsWith(family + " ") ? full.Mid(family.length() + 1) : full;
+        if (plain_styles.find(style) != plain_styles.end()) continue;
+        if (!known.insert(full).second) continue;
+        facenames.Add(full);
+    }
+    CFRelease(descriptors);
+}
+#endif // __APPLE__
+
 void init_face_names(CurFacenames &face_names)
 {
     Timer t("enumerate_fonts");
@@ -3597,6 +3662,9 @@ void init_face_names(CurFacenames &face_names)
                                 << concat(face_names.bad);
     });
     wxArrayString            facenames = wxFontEnumerator::GetFacenames(face_names.encoding);
+#ifdef __APPLE__
+    append_macos_face_fullnames(facenames);
+#endif
     size_t                   hash      = boost::hash_range(facenames.begin(), facenames.end());
     // Zero value is used as uninitialized hash
     if (hash == 0) hash = 1;
