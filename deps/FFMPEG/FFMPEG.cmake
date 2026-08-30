@@ -16,6 +16,7 @@ if (MSVC)
             COMMAND ${CMAKE_COMMAND} -E copy_directory  "${_source_dir}/bin" "${_dstdir}/bin"
             COMMAND ${CMAKE_COMMAND} -E copy_directory  "${_source_dir}/lib" "${_dstdir}/lib"
             COMMAND ${CMAKE_COMMAND} -E copy_directory  "${_source_dir}/include" "${_dstdir}/include"
+            COMMAND ${CMAKE_COMMAND} -E chdir "${_dstdir}/lib/pkgconfig" perl -0pi -e "s/^prefix=.*/prefix=${_dstdir}/mg" libavcodec.pc libavfilter.pc libavformat.pc libavutil.pc libpostproc.pc libswresample.pc libswscale.pc
     )
 
 else ()
