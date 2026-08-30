@@ -208,8 +208,14 @@ void Slic3r::GUI::BackupFonts::generate_backup_fonts() {
 Slic3r::Emboss::FontFileWithCache Slic3r::GUI::BackupFonts::gener_font_with_cache(const wxString &font_name, const wxFontEncoding &encoding)
 {
     Emboss::FontFileWithCache font_file_with_cache;
-    if (!wxFontEnumerator::IsValidFacename(font_name))
+    if (!wxFontEnumerator::IsValidFacename(font_name)) {
+#ifndef __APPLE__
         return font_file_with_cache;
+#endif
+        // macOS: the enumerator knows only family names; weight-qualified
+        // names ("Pretendard Black") are resolved by CoreText inside
+        // create_font_file() which fails for names it cannot resolve.
+    }
     // Select font
     wxFont wx_font(wxFontInfo().FaceName(font_name).Encoding(encoding));
     if (!wx_font.IsOk()) return font_file_with_cache;
