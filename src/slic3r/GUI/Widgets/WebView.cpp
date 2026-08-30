@@ -9,6 +9,7 @@
 #include <wx/webviewarchivehandler.h>
 #include <wx/webviewfshandler.h>
 #include <wx/dynlib.h>
+#include <wx/timer.h>
 #include <wx/utils.h>
 #if wxUSE_WEBVIEW_EDGE
 #include <wx/msw/webview_edge.h>
@@ -21,6 +22,11 @@
 #endif
 
 #ifdef __WIN32__
+#include <chrono>
+#include <cstdint>
+#include <deque>
+#include <memory>
+#include <unordered_map>
 #include <WebView2.h>
 #include <wrl/client.h>
 #include <wrl/event.h>
@@ -96,22 +102,12 @@ void enable_default_webview2_cdp_for_internal_builds()
 #endif
 }
 
-// BBL_ENABLE_WEBVIEW_DEBUG gate: ProcessFailed log/dialog is enabled when
-// BBL_RELEASE_TO_PUBLIC is false, or env BBL_ENABLE_WEBVIEW_DEBUG is true/1/on/yes.
-bool is_bbl_webview_debug_enabled()
+// Wall-clock time must not be used for the recovery and log windows below: a
+// clock adjustment would either hand out an unlimited retry budget or freeze one.
+int64_t steady_now_ms()
 {
-    static const bool enabled = []() -> bool {
-#if !BBL_RELEASE_TO_PUBLIC
-        return true;
-#else
-        wxString value;
-        if (!wxGetEnv("BBL_ENABLE_WEBVIEW_DEBUG", &value) || value.empty())
-            return false;
-        value.MakeLower();
-        return value == "1" || value == "true" || value == "on" || value == "yes";
-#endif
-    }();
-    return enabled;
+    const auto now = std::chrono::steady_clock::now().time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
 }
 
 // Cookie name to clear and the domain substring it must belong to on logout.
@@ -226,16 +222,19 @@ public:
 
     void DoGetClientSize(int *x, int *y) const override
     {
+        auto thiz = const_cast<WebViewEdge *>(this);
+        // add_ProcessFailed needs the ICoreWebView2 pointer, and GetNativeBackend()
+        // only returns one once the asynchronous WebView2 setup has finished, well
+        // after Create() returned. wx exposes no "backend ready" hook, so this
+        // frequently called override doubles as the polling point; the pending
+        // property flushes below are here for exactly the same reason.
+        thiz->EnsureProcessFailedSubscribed();
         if (!pendingUserAgent.empty()) {
-            auto thiz = const_cast<WebViewEdge *>(this);
-            thiz->EnsureProcessFailedSubscribed();            
             auto userAgent = std::move(thiz->pendingUserAgent);
             thiz->pendingUserAgent.clear();
             thiz->SetUserAgent(userAgent);
         }
         if (pendingColorScheme) {
-            auto thiz = const_cast<WebViewEdge *>(this);
-            thiz->EnsureProcessFailedSubscribed();
             auto colorScheme = pendingColorScheme;
             thiz->pendingColorScheme = COREWEBVIEW2_PREFERRED_COLOR_SCHEME_AUTO;
             thiz->SetColorScheme(colorScheme);
@@ -243,11 +242,84 @@ public:
         wxWebViewEdge::DoGetClientSize(x, y);
     };
 
+    // Create() only reports what it can detect synchronously. The WebView2
+    // environment and controller are built asynchronously afterwards and may still
+    // fail (corrupted user data dir, blocked by policy, GPU init), which wx does not
+    // report anywhere: the control simply never gets a backend and stays blank.
+    void StartBackendWatchdog()
+    {
+        m_backendWatchdog.SetOwner(this);
+        Bind(wxEVT_TIMER, &WebViewEdge::OnBackendWatchdog, this, m_backendWatchdog.GetId());
+        m_backendWatchdog.StartOnce(kBackendReadyTimeoutMs);
+    }
+
 private:
+    // A dead renderer leaves the control on a blank error page that never repaints,
+    // so recovery has to be driven from here. The budget counts recoveries inside a
+    // sliding window rather than consecutive failures: a page that crashes some time
+    // after every successful load would keep clearing a plain counter and reload for
+    // as long as the app is open, without ever telling the user.
+    static constexpr int     kMaxAutoReloadAttempts = 2;
+    static constexpr int64_t kAutoReloadWindowMs    = 60000;
+    // UNRESPONSIVE re-fires for as long as the renderer stays stuck, so cap how often
+    // the kinds we cannot act on reach the log. Actionable kinds are exempt, see the
+    // handler below.
+    static constexpr int64_t kProcessFailedLogWindowMs = 10000;
+    // Generous on purpose: a first-ever WebView2 launch on a slow disk is slow, and
+    // this only writes a log line, so erring towards a late report is harmless.
+    static constexpr int kBackendReadyTimeoutMs = 30000;
+
+    // Returns the attempt number within the current window, or 0 when it is used up.
+    int RecordAutoReload()
+    {
+        const int64_t now_ms = steady_now_ms();
+        while (!m_autoReloads.empty() && now_ms - m_autoReloads.front() >= kAutoReloadWindowMs)
+            m_autoReloads.pop_front();
+        if (static_cast<int>(m_autoReloads.size()) >= kMaxAutoReloadAttempts)
+            return 0;
+        m_autoReloads.push_back(now_ms);
+        return static_cast<int>(m_autoReloads.size());
+    }
+
+    // Only for the kinds we do not act on. The first failure of a kind is always
+    // recorded; the ones that follow inside the window are folded into a count reported
+    // by the next line that gets through, so the frequency survives even though the
+    // individual lines do not.
+    // Returns the number of swallowed events, or -1 when this one must not be logged.
+    int ThrottleProcessFailedLog(COREWEBVIEW2_PROCESS_FAILED_KIND kind)
+    {
+        const int64_t   now_ms = steady_now_ms();
+        LogWindow      &window = m_processFailedLogWindows[static_cast<int>(kind)];
+        if (!window.active) {
+            window.active   = true;
+            window.start_ms = now_ms;
+            return 0;
+        }
+        if (now_ms - window.start_ms < kProcessFailedLogWindowMs) {
+            ++window.suppressed;
+            return -1;
+        }
+        const int suppressed = window.suppressed;
+        window.start_ms      = now_ms;
+        window.suppressed    = 0;
+        return suppressed;
+    }
+
+    void OnBackendWatchdog(wxTimerEvent &)
+    {
+        if (GetNativeBackend())
+            return;
+        // Log only. A dialog here would fire on a merely slow machine, and the
+        // synchronous Create() failure path already covers the deterministic case.
+        BOOST_LOG_TRIVIAL(error)
+            << GetName() << " [WebView] WebView2 backend still unavailable after "
+            << (kBackendReadyTimeoutMs / 1000) << "s; this view will stay blank."
+            << " Suspect the WebView2 runtime or the WebView2Cache user data dir"
+            << " (permissions, disk space, corrupted profile).";
+    }
+
     void EnsureProcessFailedSubscribed()
     {
-        if (!is_bbl_webview_debug_enabled())
-            return;
         if (m_processFailedSubscribed)
             return;
 
@@ -265,6 +337,27 @@ private:
                     COREWEBVIEW2_PROCESS_FAILED_KIND kind =
                         COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED;
                     args->get_ProcessFailedKind(&kind);
+
+                    // A dead renderer can be revived by reloading. A dead browser
+                    // process is terminal for this control, so there is nothing to
+                    // reload. The remaining kinds must not be acted on: UNRESPONSIVE
+                    // means the renderer is stuck rather than gone, and GPU/utility
+                    // exits are restarted by WebView2 itself. They are still recorded,
+                    // because a GPU process that keeps dying is a documented cause of
+                    // blank views; the throttle below is what keeps them readable.
+                    const bool renderer_gone =
+                        kind == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED ||
+                        kind == COREWEBVIEW2_PROCESS_FAILED_KIND_FRAME_RENDER_PROCESS_EXITED;
+                    const bool terminal =
+                        kind == COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED;
+                    const bool actionable = renderer_gone || terminal;
+
+                    // Throttling a crash we react to would cost the only record of it:
+                    // once the retry budget is used up there is no reload line either,
+                    // so the user would get a dialog with nothing in the log behind it.
+                    const int suppressed = actionable ? 0 : ThrottleProcessFailedLog(kind);
+                    if (suppressed < 0)
+                        return S_OK;
 
                     COREWEBVIEW2_PROCESS_FAILED_REASON reason =
                         COREWEBVIEW2_PROCESS_FAILED_REASON_UNEXPECTED;
@@ -294,45 +387,43 @@ private:
                         << " reason=" << process_failed_reason_str(reason)
                         << " (" << static_cast<int>(reason) << ")"
                         << " exitCode=" << exit_code
+                        << " suppressed=" << suppressed
                         << " url=" << url.ToUTF8().data();
 
-                    // Only surface fatal browser/renderer exits to the user.
-                    // UNRESPONSIVE fires repeatedly while stuck; GPU/utility usually auto-recover.
-                    const bool notify_user =
-                        kind == COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED ||
-                        kind == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED;
-                    if (notify_user) {
-                        const wxString detail = wxString::Format(
-                            "kind=%s (%d)\nreason=%s (%d)\nexitCode=%d\nurl=%s",
-                            wxString(process_failed_kind_str(kind)), static_cast<int>(kind),
-                            wxString(process_failed_reason_str(reason)), static_cast<int>(reason),
-                            exit_code, url);
-                        const wxString webview_name = GetName();
-                        // Do not ShowModal inside ProcessFailed (reentrancy). Defer to UI loop.
-                        Slic3r::GUI::wxGetApp().CallAfter([detail, webview_name]() {
-                            auto &app = Slic3r::GUI::wxGetApp();
-                            if (app.is_closing())
-                                return;
+                    if (!actionable)
+                        return S_OK;
 
-                            static bool s_showing = false;
-                            if (s_showing)
-                                return;
-                            s_showing = true;
+                    const wxString detail = wxString::Format(
+                        "kind=%s (%d)\nreason=%s (%d)\nexitCode=%d\nurl=%s",
+                        wxString(process_failed_kind_str(kind)), static_cast<int>(kind),
+                        wxString(process_failed_reason_str(reason)), static_cast<int>(reason),
+                        exit_code, url);
 
-                            wxString reason_block = detail;
-                            if (!webview_name.empty())
-                                reason_block = wxString::Format("name=%s\n%s", webview_name, detail);
-
-                            const wxString message = wxString::Format(
-                                _L("The embedded webpage has crashed. Please contact Bambu Studio.\n\nReason:\n%s"),
-                                reason_block);
-
-                            Slic3r::GUI::MessageDialog dlg(nullptr, message, _L("Embedded Webpage Crashed"),
-                                                           wxOK | wxICON_ERROR);
-                            dlg.ShowModal();
-                            s_showing = false;
-                        });
+                    if (renderer_gone) {
+                        if (const int attempt = RecordAutoReload()) {
+                            BOOST_LOG_TRIVIAL(warning)
+                                << GetName() << " [WebView] reloading after renderer crash, attempt "
+                                << attempt << "/" << kMaxAutoReloadAttempts << " within "
+                                << (kAutoReloadWindowMs / 1000) << "s";
+                            // Reloading inside ProcessFailed re-enters the backend; defer it.
+                            std::weak_ptr<int> weak_alive = m_alive;
+                            Slic3r::GUI::wxGetApp().CallAfter([this, weak_alive]() {
+                                if (weak_alive.expired())
+                                    return;
+                                Reload();
+                            });
+                            return S_OK;
+                        }
                     }
+
+                    // Left with a dead browser process, or a renderer that kept
+                    // crashing through the whole retry budget. Nothing else to try.
+                    BOOST_LOG_TRIVIAL(error)
+                        << GetName() << " [WebView] giving up: "
+                        << (renderer_gone ? "renderer crash retry budget exhausted"
+                                          : "browser process is gone")
+                        << "; the view stays blank, notifying the user";
+                    NotifyCrash(detail);
 
                     return S_OK;
                 })
@@ -359,10 +450,57 @@ private:
         m_processFailedSubscribed = false;
     }
 
+    // Only for crashes we could not recover from: the page is going to stay blank,
+    // so the user needs to know why instead of staring at a white panel.
+    void NotifyCrash(const wxString &detail)
+    {
+        const wxString webview_name = GetName();
+        // Do not ShowModal inside ProcessFailed (reentrancy). Defer to UI loop.
+        Slic3r::GUI::wxGetApp().CallAfter([detail, webview_name]() {
+            auto &app = Slic3r::GUI::wxGetApp();
+            if (app.is_closing())
+                return;
+
+            static bool s_showing = false;
+            if (s_showing)
+                return;
+            s_showing = true;
+
+            wxString reason_block = detail;
+            if (!webview_name.empty())
+                reason_block = wxString::Format("name=%s\n%s", webview_name, detail);
+
+            const wxString message = wxString::Format(
+                _L("The embedded webpage has crashed. Please contact Bambu Studio.\n\nReason:\n%s"),
+                reason_block);
+
+            Slic3r::GUI::MessageDialog dlg(nullptr, message, _L("Embedded Webpage Crashed"),
+                                           wxOK | wxICON_ERROR);
+            dlg.ShowModal();
+            s_showing = false;
+        });
+    }
+
+    struct LogWindow
+    {
+        int64_t start_ms   = 0;
+        int     suppressed = 0;
+        bool    active     = false;
+    };
+
     wxString pendingUserAgent;
     COREWEBVIEW2_PREFERRED_COLOR_SCHEME pendingColorScheme = COREWEBVIEW2_PREFERRED_COLOR_SCHEME_AUTO;
     EventRegistrationToken m_processFailedToken{};
     bool m_processFailedSubscribed{false};
+    // Timestamps of the reloads issued for renderer crashes, trimmed to the window.
+    std::deque<int64_t> m_autoReloads;
+    // One window per COREWEBVIEW2_PROCESS_FAILED_KIND, so a chatty kind cannot hide
+    // the first occurrence of another one.
+    std::unordered_map<int, LogWindow> m_processFailedLogWindows;
+    wxTimer m_backendWatchdog;
+    // Guards the deferred Reload(): the panel owning this view may be torn down
+    // between the crash and the CallAfter running.
+    std::shared_ptr<int> m_alive{std::make_shared<int>(0)};
 };
 
 #elif defined __WXOSX__
@@ -379,6 +517,16 @@ class WebViewWebKit : public wxWebViewWebKit
 
 class FakeWebView : public wxWebView
 {
+public:
+    // The webview API stays a no-op, but the object still has to behave like a real
+    // child window: callers add it to sizers, resize it and show it. Without an
+    // actual control behind it every layout call would run on a null HWND.
+    bool CreatePlaceholder(wxWindow *parent)
+    {
+        return wxControl::Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    }
+
+private:
     virtual bool Create(wxWindow* parent, wxWindowID id, const wxString& url, const wxPoint& pos, const wxSize& size, long style, const wxString& name) override { return false; }
     virtual wxString GetCurrentTitle() const override { return wxString(); }
     virtual wxString GetCurrentURL() const override { return wxString(); }
@@ -436,6 +584,58 @@ public:
     }
     wxWebView *m_webView;
 };
+
+// Every embedded page (home, device, wizard, login, ...) is built through
+// CreateWebView, so a backend that fails to come up turns all of them into blank
+// panels at once. Say so once, instead of leaving the user with white areas and
+// nothing in the UI explaining them.
+static void notify_webview_backend_unavailable()
+{
+    static bool s_notified = false;
+    if (s_notified)
+        return;
+    s_notified = true;
+
+    Slic3r::GUI::wxGetApp().CallAfter([]() {
+        auto &app = Slic3r::GUI::wxGetApp();
+        if (app.is_closing())
+            return;
+#ifdef __WIN32__
+        const wxString message = _L("Failed to start the embedded browser. Pages such as the home page, the device "
+                                    "page and the login window will stay blank.\n\n"
+                                    "Please install or repair the Microsoft Edge WebView2 Runtime, then restart "
+                                    "Bambu Studio.");
+#else
+        const wxString message = _L("Failed to start the embedded browser. Pages such as the home page, the device "
+                                    "page and the login window will stay blank.");
+#endif
+        Slic3r::GUI::MessageDialog dlg(nullptr, message, _L("Embedded Browser Unavailable"), wxOK | wxICON_ERROR);
+        dlg.ShowModal();
+    });
+}
+
+// Hand back an inert view when the native control could not be created, so callers
+// keep a valid pointer whose every call is a no-op. Without this they would go on
+// driving a half-constructed control with a null backend.
+static wxWebView *use_fake_webview(wxWindow *parent, wxWebView *failed)
+{
+    notify_webview_backend_unavailable();
+    // Safe to drop: a view that failed Create() has neither been registered in
+    // g_webviews nor been given a WebViewRef yet.
+    if (failed)
+        failed->Destroy();
+
+    auto *webView = new FakeWebView;
+    // Losing this silently would put us back to the HWND-less window the placeholder
+    // exists to avoid, and the resulting layout damage looks nothing like its cause.
+    if (!webView->CreatePlaceholder(parent))
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                                 << ": placeholder window could not be created; layout may break";
+    webView->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    webView->SetRefData(new WebViewRef(webView));
+    g_webviews.push_back(webView);
+    return webView;
+}
 
 #define BAMBU_LOCK_FILE_NAME "bambu_lockfile"
 wxString WebView::BuildEdgeUserDataPath()
@@ -535,7 +735,8 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
 #ifdef __WIN32__
     enable_default_webview2_cdp_for_internal_builds();
 
-    wxWebView* webView = new WebViewEdge;
+    WebViewEdge* edgeView = new WebViewEdge;
+    wxWebView*   webView  = edgeView;
     webView->SetUserDataPathOption(BuildEdgeUserDataPath());
 #elif defined(__WXOSX__)
     wxWebView *webView = new WebViewWebKit;
@@ -553,8 +754,12 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
         webView->SetUserAgent(wxString::Format("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                                                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.52 BBL-Slicer/v%s (%s) BBL-Language/%s",
                                                SLIC3R_VERSION, Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light", language_code.mb_str()));
-        webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        if (!webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": wxWebView::Create failed for '" << name.ToUTF8().data() << "'";
+            return use_fake_webview(parent, webView);
+        }
         if (!name.empty()) webView->SetName(name);
+        edgeView->StartBackendWatchdog();
         // We register the wxfs:// protocol for testing purposes
         webView->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("bbl")));
         // And the memory: file system
@@ -568,7 +773,10 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
         // And the memory: file system
         webView->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewFSHandler("memory")));
 #endif
-        webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        if (!webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": wxWebView::Create failed for '" << name.ToUTF8().data() << "'";
+            return use_fake_webview(parent, webView);
+        }
         webView->SetUserAgent(wxString::Format("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) BBL-Slicer/v%s (%s) BBL-Language/%s",
                                                SLIC3R_VERSION, Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light", language_code.mb_str()));
 #endif
@@ -627,8 +835,8 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
             Slic3r::GUI::WKWebView_setInspectable(wkWebView, enable_devtools);
 #endif
     } else {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": failed. Use fake web view.";
-        webView = new FakeWebView;
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": no webview backend available. Use fake web view.";
+        return use_fake_webview(parent, nullptr);
     }
     webView->SetRefData(new WebViewRef(webView));
     g_webviews.push_back(webView);
