@@ -43,6 +43,8 @@
 #include "Gizmos/GLGizmoScale.hpp"
 #include "Gizmos/GLGizmoMeshBoolean.hpp"
 #include "libslic3r/TriangleMeshDeal.hpp"
+#include "libslic3r/NSVGUtils.hpp"
+#include "libslic3r/Emboss.hpp"
 namespace Slic3r
 {
 namespace GUI
@@ -2716,6 +2718,211 @@ void ObjectList::load_mesh_object(const TriangleMesh &mesh, const wxString &name
 #ifdef _DEBUG
     check_model_ids_validity(model);
 #endif /* _DEBUG */
+}
+
+void ObjectList::load_svg_color_regions(const std::string &svg_path)
+{
+    // Plain SVG import builds the lines the file draws; this builds the areas they enclose,
+    // each as its own part so it can print in its own filament.
+    std::unique_ptr<std::string> file_data = read_from_disk(svg_path);
+    if (file_data == nullptr) {
+        show_error(nullptr, format_wxstr(_L("File does NOT exist (%1%)."), svg_path));
+        return;
+    }
+
+    // Same 0.1 mm chord error the SVG gizmo flattens curves to, so circles stay round.
+    const double            tolerance_mm = 0.1;
+    NSVGLineParams          params{ (tolerance_mm * tolerance_mm) / (SCALING_FACTOR * SCALING_FACTOR) };
+    const std::string document = prepare_svg(*file_data);
+    NSVGimage_ptr     image    = nsvgParse(document, "mm", 96.0f);
+    if (image == nullptr) {
+        show_error(nullptr, format_wxstr(_L("Nano SVG parser can't load from file (%1%)."), svg_path));
+        return;
+    }
+    const std::vector<ExPolygons> clips = collect_clip_regions(*image, params);
+
+    SvgColorRegions regions = create_color_regions(*image, params, &clips);
+    if (regions.empty()) {
+        show_error(nullptr, _L("No closed, colored outlines were found in this SVG."));
+        return;
+    }
+
+    // 10 mm tall, measured in the scaled units the shapes are already in.
+    const double     depth = 10. / SCALING_FACTOR;
+    Emboss::ProjectZ projection(depth);
+
+    // Match each region to the loaded filament closest to the color it was drawn in,
+    // so the artwork arrives wearing the colors the artist chose rather than whatever
+    // order the regions happened to come out in.
+    // NOTE: the config key is spelled "filament_colour" upstream (inherited from
+    // PrusaSlicer) even though the UI text is American. Do not "correct" it.
+    auto load_filament_rgb = []() {
+        std::vector<std::array<int, 3>> rgbs;
+        if (auto *colors = wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>("filament_colour"))
+            for (const std::string &hex : colors->values) {
+                std::array<int, 3> rgb{ 0, 0, 0 };
+                if (hex.size() >= 7 && hex[0] == '#')
+                    for (int c = 0; c < 3; ++c)
+                        rgb[c] = std::stoi(hex.substr(1 + 2 * c, 2), nullptr, 16);
+                rgbs.push_back(rgb);
+            }
+        return rgbs;
+    };
+    // NanoSVG packs color as 0xAABBGGRR.
+    auto svg_rgb = [](unsigned packed) {
+        return std::array<int, 3>{ int(packed & 0xFF), int((packed >> 8) & 0xFF), int((packed >> 16) & 0xFF) };
+    };
+    auto distance2 = [](const std::array<int, 3> &a, const std::array<int, 3> &b) {
+        const int dr = a[0] - b[0], dg = a[1] - b[1], db = a[2] - b[2];
+        return dr * dr + dg * dg + db * db;
+    };
+
+    std::vector<std::array<int, 3>> filament_rgb = load_filament_rgb();
+
+    // The colors the artwork is actually drawn in, in the order they first appear.
+    std::vector<std::array<int, 3>> svg_colors;
+    for (const SvgColorRegion &region : regions) {
+        const std::array<int, 3> rgb = svg_rgb(region.color);
+        if (std::none_of(svg_colors.begin(), svg_colors.end(),
+                         [&](const std::array<int, 3> &c) { return c == rgb; }))
+            svg_colors.push_back(rgb);
+    }
+
+    // Which of them no loaded filament is close to. Squared distance in RGB; 40 per channel
+    // is about as far apart as two colors can be while still reading as the same one.
+    const int    same_color2 = 3 * 40 * 40;
+    const size_t room        = size_t(EnforcerBlockerType::ExtruderMax) - filament_rgb.size();
+    std::vector<std::array<int, 3>> missing;
+    for (const std::array<int, 3> &c : svg_colors) {
+        const bool matched = std::any_of(filament_rgb.begin(), filament_rgb.end(),
+                                         [&](const std::array<int, 3> &f) { return distance2(c, f) <= same_color2; });
+        if (!matched && missing.size() < room)
+            missing.push_back(c);
+    }
+
+    // Artwork drawn in colors the project does not have would otherwise all collapse onto
+    // the nearest loaded filament - with one filament loaded, onto that single filament.
+    // Adding them is the default; matching what is already loaded stays available.
+    if (!missing.empty()) {
+        InfoDialog dialog(wxGetApp().plater(), _L("Import SVG as color regions"),
+                          format_wxstr(_L("This SVG is drawn in %1% colors and the project has %2% "
+                                          "filaments.\n\n"
+                                          "The %3% missing colors can be added to the project, or every "
+                                          "region can be matched to the filaments already loaded."),
+                                       svg_colors.size(), filament_rgb.size(), missing.size()),
+                          false, wxYES_NO | wxCANCEL | wxCANCEL_DEFAULT | wxICON_INFORMATION);
+        dialog.SetButtonLabel(wxID_YES, format_wxstr(_L("Add %1% colors"), missing.size()), true);
+        dialog.SetButtonLabel(wxID_NO, _L("Match loaded filaments"));
+        const int answer = dialog.ShowModal();
+        if (answer == wxID_CANCEL)
+            return;
+        if (answer == wxID_YES) {
+            for (const std::array<int, 3> &c : missing)
+                wxGetApp().plater()->sidebar().add_custom_filament(wxColour(c[0], c[1], c[2]));
+            filament_rgb = load_filament_rgb();   // re-read: the additions changed the list
+        }
+    }
+
+    auto nearest_filament = [&filament_rgb, &svg_rgb, &distance2](unsigned packed) {
+        const std::array<int, 3> rgb = svg_rgb(packed);
+        int best = 1, best_d = std::numeric_limits<int>::max();
+        for (size_t i = 0; i < filament_rgb.size(); ++i) {
+            const int d = distance2(rgb, filament_rgb[i]);
+            if (d < best_d) { best_d = d; best = static_cast<int>(i) + 1; }
+        }
+        return best;
+    };
+    // Settled before anything is built, so the layout can be offered in terms of it.
+    std::vector<int> region_filament(regions.size());
+    for (size_t i = 0; i < regions.size(); ++i)
+        region_filament[i] = nearest_filament(regions[i].color);
+    std::vector<int> distinct = region_filament;
+    std::sort(distinct.begin(), distinct.end());
+    distinct.erase(std::unique(distinct.begin(), distinct.end()), distinct.end());
+
+    // Far fewer colors than regions, so one part per color is much easier to handle -
+    // recoloring is then a click per color. Nothing is lost: the regions of a color stay
+    // separate bodies, so Split to objects recovers them.
+    bool group_by_filament = false;
+    if (distinct.size() < regions.size()) {
+        InfoDialog dialog(wxGetApp().plater(), _L("Import SVG as color regions"),
+                          format_wxstr(_L("This SVG is drawn as %1% regions in %2% colors.\n\n"
+                                          "They can be imported as one part per color, or kept as "
+                                          "one part per region."),
+                                       regions.size(), distinct.size()),
+                          false, wxYES_NO | wxCANCEL | wxCANCEL_DEFAULT | wxICON_INFORMATION);
+        dialog.SetButtonLabel(wxID_YES, _L("One part per color"));
+        dialog.SetButtonLabel(wxID_NO, _L("One part per region"));
+        const int answer = dialog.ShowModal();
+        if (answer == wxID_CANCEL)
+            return;
+        group_by_filament = answer == wxID_YES;
+    }
+
+    Model       &model      = wxGetApp().plater()->model();
+    ModelObject *new_object = model.add_object();
+    std::string object_name = svg_path;
+    if (size_t slash = object_name.find_last_of("/\\"); slash != std::string::npos)
+        object_name = object_name.substr(slash + 1);
+    if (size_t dot = object_name.find_last_of('.'); dot != std::string::npos)
+        object_name = object_name.substr(0, dot);
+    new_object->name = object_name;
+    new_object->add_instance();
+    new_object->config.set_key_value("extruder", new ConfigOptionInt(1));
+
+    auto region_mesh = [&projection](const SvgColorRegion &region) {
+        indexed_triangle_set its = Emboss::polygons2model(region.expoly, projection);
+        // polygons2model works in the shapes' own scaled units; bring it back to mm.
+        for (Vec3f &v : its.vertices)
+            v *= static_cast<float>(SCALING_FACTOR);
+        return its;
+    };
+
+    if (group_by_filament) {
+        // The regions printing in one filament are disjoint islands, so a color's part is
+        // simply their meshes concatenated - none of them overlap, nothing has to be resolved.
+        for (int filament : distinct) {
+            indexed_triangle_set merged;
+            for (size_t i = 0; i < regions.size(); ++i)
+                if (region_filament[i] == filament)
+                    its_merge(merged, region_mesh(regions[i]));
+            if (merged.indices.empty())
+                continue;
+            ModelVolume *volume = new_object->add_volume(TriangleMesh(std::move(merged)));
+            volume->name = "color " + std::to_string(filament);
+            volume->config.set_key_value("extruder", new ConfigOptionInt(filament));
+        }
+    } else {
+        for (size_t i = 0; i < regions.size(); ++i) {
+            indexed_triangle_set its = region_mesh(regions[i]);
+            if (its.indices.empty())
+                continue;
+            ModelVolume *volume = new_object->add_volume(TriangleMesh(std::move(its)));
+            volume->name = "region " + std::to_string(i + 1);
+            volume->config.set_key_value("extruder", new ConfigOptionInt(region_filament[i]));
+        }
+    }
+    if (new_object->volumes.empty()) {
+        model.delete_object(model.objects.size() - 1);
+        show_error(nullptr, _L("The outlines in this SVG did not enclose any printable area."));
+        return;
+    }
+
+    new_object->sort_volumes(true);
+    new_object->invalidate_bounding_box();
+    new_object->center_around_origin();
+
+    // Drop it in the middle of the plate being worked on. Artwork is imported at the size
+    // the file states, which for a large drawing can be far bigger than the plate, and
+    // leaving it at the origin would put most of it off the front left corner.
+    const BoundingBoxf3 plate = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_build_volume();
+    new_object->instances[0]->set_offset(Vec3d(plate.center().x(), plate.center().y(), 0.));
+    new_object->ensure_on_bed();
+    new_object->get_model()->set_assembly_pos(new_object);
+    wxGetApp().plater()->ensure_model_object_volume_assemble_initialized(new_object);
+
+    std::vector<size_t> object_idxs{ model.objects.size() - 1 };
+    paste_objects_into_list(object_idxs);
 }
 
 int ObjectList::load_mesh_part(const TriangleMesh &mesh, const wxString &name, const TextInfo &text_info, bool is_temp)

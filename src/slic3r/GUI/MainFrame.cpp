@@ -3009,6 +3009,19 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { load_config_file(); }, "menu_import", nullptr,
             [this](){return true; }, this);
 
+        append_menu_item(import_menu, wxID_ANY, _L("Import SVG as color regions") + dots,
+            _L("Build a part for every area enclosed by the SVG's colored outlines"),
+            [this](wxCommandEvent&) {
+                if (m_plater == nullptr)
+                    return;
+                wxFileDialog dialog(this, _L("Choose an SVG file:"), from_u8(wxGetApp().app_config->get_last_dir()),
+                                    wxEmptyString, "SVG files (*.svg)|*.svg;*.SVG", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+                if (dialog.ShowModal() != wxID_OK)
+                    return;
+                wxGetApp().obj_list()->load_svg_color_regions(into_u8(dialog.GetPath()));
+            }, "menu_import", nullptr,
+            [this](){return can_add_models(); }, this);
+
         append_submenu(fileMenu, import_menu, wxID_ANY, _L("Import"), "");
 
 
