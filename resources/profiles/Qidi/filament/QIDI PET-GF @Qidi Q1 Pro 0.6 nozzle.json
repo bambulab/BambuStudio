@@ -1,0 +1,27 @@
+{
+    "type": "filament",
+    "filament_id": "GFT01",
+    "setting_id": "GFST01_Qidi_21",
+    "name": "QIDI PET-GF @Qidi Q1 Pro 0.6 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI PET-GF @Qidi",
+    "fan_cooling_layer_time": [
+        "10"
+    ],
+    "nozzle_temperature": [
+        "300"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "300"
+    ],
+    "pressure_advance": [
+        "0.015"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "compatible_printers": [
+        "Qidi Q1 Pro 0.6 nozzle"
+    ]
+}
