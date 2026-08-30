@@ -1458,9 +1458,6 @@ GUI_App::GUI_App()
 
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
     this->init_app_config();
-    if (app_config) {
-        ::Label::initSysFont(app_config->get_language_code(), false);
-    }
     this->init_download_path();
 
 #if defined(__WXOSX__)
@@ -3127,6 +3124,9 @@ bool GUI_App::on_init_inner()
     init_live_view_track_context(app_config);
 
 // initialize label colors and fonts
+    if (app_config) {
+        ::Label::initSysFont(app_config->get_language_code(), false);
+    }
     init_label_colours();
     init_fonts();
     wxGetApp().Update_dark_mode_flag();
