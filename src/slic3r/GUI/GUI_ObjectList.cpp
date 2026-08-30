@@ -2848,6 +2848,16 @@ bool ObjectList::del_object(const int obj_idx, bool refresh_immediately)
     return wxGetApp().plater()->delete_object_from_model(obj_idx, refresh_immediately);
 }
 
+// Returns true when the object still has at least one solid (model) part. A negative volume,
+// modifier or support volume on its own is not printable geometry.
+static bool object_has_solid_part(const ModelObject *object)
+{
+    for (const ModelVolume *v : object->volumes)
+        if (v->is_model_part()) return true;
+
+    return false;
+}
+
 // Delete subobject
 void ObjectList::del_subobject_item(wxDataViewItem& item)
 {
@@ -2876,6 +2886,11 @@ void ObjectList::del_subobject_item(wxDataViewItem& item)
     else if (idx == -1)
         return;
     else if (!del_subobject_from_object(obj_idx, idx, type))
+        return;
+
+    // BBS: if the deleted part was the object's last solid part, only negative / modifier
+    // volumes remain and the object has no printable geometry; remove it entirely.
+    if ((type & itVolume) && del_object_if_no_solid_part(obj_idx))
         return;
 
     // If last volume item with warning was deleted, unmark object item
@@ -3039,16 +3054,6 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
 
     if (type == itVolume) {
         const auto volume = object->volumes[idx];
-
-        // if user is deleting the last solid part, throw error
-        int solid_cnt = 0;
-        for (auto vol : object->volumes)
-            if (vol->is_model_part())
-                ++solid_cnt;
-        if (volume->is_model_part() && solid_cnt == 1) {
-            Slic3r::GUI::show_error(nullptr, _L("Deleting the last solid part is not allowed."));
-            return false;
-        }
         if (object->is_cut() && (volume->is_model_part() || volume->is_negative_volume())) {
             del_from_cut_object(volume->is_cut_connector(), volume->is_model_part(), volume->is_negative_volume());
             // in any case return false to break the deletion
@@ -3104,6 +3109,20 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
 
     changed_object(obj_idx);
 
+    return true;
+}
+
+// If the object at obj_idx has lost its last solid (model) part it has no printable geometry on
+// its own; remove the whole object together with any leftover negative / modifier volumes.
+// Returns true when the object was removed. Cut objects are left to their own delete handling.
+bool ObjectList::del_object_if_no_solid_part(const int obj_idx)
+{
+    if (obj_idx < 0 || obj_idx >= int(m_objects->size())) return false;
+
+    const ModelObject *obj = (*m_objects)[obj_idx];
+    if (obj->is_cut() || object_has_solid_part(obj)) return false;
+
+    if (del_object(obj_idx)) delete_object_from_list(obj_idx);
     return true;
 }
 
@@ -4631,6 +4650,10 @@ void ObjectList::delete_from_model_and_list(const ItemType type, const int obj_i
 
         type == itVolume ? delete_volume_from_list(obj_idx, sub_obj_idx) :
             delete_instance_from_list(obj_idx, sub_obj_idx);
+
+        // BBS: if that was the object's last solid part, drop the whole object (see del_subobject_item)
+        if (type == itVolume)
+            del_object_if_no_solid_part(obj_idx);
     }
 }
 
@@ -4644,6 +4667,7 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
     bool need_update = false;
 
     std::set<size_t> modified_objects_ids;
+    std::set<ModelObject*> orphan_objects;
     for (std::vector<ItemForDelete>::const_reverse_iterator item = items_for_delete.rbegin(); item != items_for_delete.rend(); ++item) {
         if (!(item->type&(itObject | itVolume | itInstance)))
             continue;
@@ -4683,6 +4707,11 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
                 }
 #endif
                 wxGetApp().plater()->canvas3D()->ensure_on_bed(item->obj_idx, printer_technology() != ptSLA);
+
+                // BBS: an object that lost its last solid part has no printable geometry; note it
+                // and remove it after the loop so index shifts don't corrupt this iteration.
+                if (ModelObject *mo = object(item->obj_idx); mo && !mo->is_cut() && !object_has_solid_part(mo))
+                    orphan_objects.insert(mo);
             }
             else
                 m_objects_model->Delete(m_objects_model->GetItemByInstanceId(item->obj_idx, item->sub_obj_idx));
@@ -4698,6 +4727,15 @@ void ObjectList::delete_from_model_and_list(const std::vector<ItemForDelete>& it
 
     for (size_t id : modified_objects_ids) {
         update_info_items(id);
+    }
+
+    // BBS: remove objects whose last solid part was just deleted (only negative / modifier
+    // volumes remain). Delete by pointer since removing an object shifts the list indices.
+    for (ModelObject *mo : orphan_objects) {
+        int idx = -1;
+        for (int i = 0; i < int(m_objects->size()); ++i)
+            if ((*m_objects)[i] == mo) { idx = i; break; }
+        del_object_if_no_solid_part(idx);
     }
 
     m_prevent_list_events = true;

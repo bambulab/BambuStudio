@@ -330,6 +330,7 @@ public:
     void                del_layers_from_object(const int obj_idx);
     bool                del_from_cut_object(bool is_connector, bool is_model_part = false, bool is_negative_volume = false);
     bool                del_subobject_from_object(const int obj_idx, const int idx, const int type);
+    bool                del_object_if_no_solid_part(const int obj_idx);
     void                del_info_item(const int obj_idx, InfoItemType type);
     void                split(bool ignore_warning = false);
     // Split every selected whole object into objects, reusing the single-object "To objects" path.
