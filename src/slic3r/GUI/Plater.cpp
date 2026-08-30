@@ -22169,8 +22169,6 @@ void Plater::remove_selected()
 
 void Plater::increase_instances(size_t num)
 {
-    // BBS
-#if 0
     if (! can_increase_instances()) { return; }
 
     Plater::TakeSnapshot snapshot(this, "Increase Instances");
@@ -22203,13 +22201,10 @@ void Plater::increase_instances(size_t num)
 
     p->selection_changed();
     this->p->schedule_background_process();
-#endif
 }
 
 void Plater::decrease_instances(size_t num)
 {
-    // BBS
-#if 0
     if (! can_decrease_instances()) { return; }
 
     Plater::TakeSnapshot snapshot(this, "Decrease Instances");
@@ -22226,6 +22221,7 @@ void Plater::decrease_instances(size_t num)
     }
     else {
         remove(obj_idx);
+        return;
     }
 
     if (!model_object->instances.empty())
@@ -22233,7 +22229,6 @@ void Plater::decrease_instances(size_t num)
 
     p->selection_changed();
     this->p->schedule_background_process();
-#endif
 }
 
 static long GetNumberFromUser(  const wxString& msg,
@@ -22264,12 +22259,10 @@ void Plater::set_number_of_copies(/*size_t num*/)
 
     ModelObject* model_object = p->model.objects[obj_idx];
 
-    const int num = GetNumberFromUser( " ", _L("Number of copies:"),
-                                    _L("Copies of the selected object"), model_object->instances.size(), 0, 1000, this );
+    const int num = GetNumberFromUser( " ", _L("Number of instances:"),
+                                    _L("Instances of the selected object"), model_object->instances.size(), 1, 1000, this );
     if (num < 0)
         return;
-
-    Plater::TakeSnapshot snapshot(this, (boost::format("Set numbers of copies to %1%")%num).str());
 
     int diff = num - (int)model_object->instances.size();
     if (diff > 0)
