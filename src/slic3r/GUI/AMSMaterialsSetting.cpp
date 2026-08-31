@@ -2652,7 +2652,7 @@ void ColorPicker::doRender(wxDC& dc)
             dc.DrawCircle(center.x, center.y, radius);
             for (int i = 0; i < m_cols.size(); i++) {
                 dc.SetBrush(m_cols[i]);
-                float startAngle = 270.0f + i * ev_angle;
+                float startAngle = 90.0f + i * ev_angle;
                 float endAngle = startAngle + ev_angle;
                 dc.DrawEllipticArc(center.x - radius, center.y - radius, 2 * radius, 2 * radius, startAngle - overlap, endAngle + overlap);
             }
