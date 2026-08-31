@@ -802,32 +802,32 @@ function(bambustudio_copy_sos target config postfix output_sos)
     else()
         file(COPY ${CMAKE_PREFIX_PATH}/lib/libavcodec.so
                   ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61
-                  ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61.3.100
+                  ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61.19.101
                   ${CMAKE_PREFIX_PATH}/lib/libavutil.so
                   ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59
-                  ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59.8.100
+                  ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59.39.100
                   ${CMAKE_PREFIX_PATH}/lib/libswscale.so
                   ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8
-                  ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8.1.100
+                  ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8.3.100
                   ${CMAKE_PREFIX_PATH}/lib/libswresample.so
                   ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5
-                  ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5.1.100
+                  ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5.3.100
              DESTINATION ${_out_dir})
     endif()
 
     set(${output_dlls}
         ${_out_dir}/libavcodec.so
         ${_out_dir}/libavcodec.so.61
-        ${_out_dir}/libavcodec.so.61.3.100
+        ${_out_dir}/libavcodec.so.61.19.101
         ${_out_dir}/libavutil.so
         ${_out_dir}/libavutil.so.59
-        ${_out_dir}/libavutil.so.59.8.100
+        ${_out_dir}/libavutil.so.59.39.100
         ${_out_dir}/libswscale.so
         ${_out_dir}/libswscale.so.8
-        ${_out_dir}/libswscale.so.8.1.100
+        ${_out_dir}/libswscale.so.8.3.100
         ${_out_dir}/libswresample.so
         ${_out_dir}/libswresample.so.5
-        ${_out_dir}/libswresample.so.5.1.100
+        ${_out_dir}/libswresample.so.5.3.100
         PARENT_SCOPE
     )
 endfunction()
@@ -889,13 +889,13 @@ endif ()
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT FLATPAK)
     set(LIBRARY_FILES
     ${LIBDIR_BIN}/libavcodec.so.61
-    ${LIBDIR_BIN}/libavcodec.so.61.3.100
+    ${LIBDIR_BIN}/libavcodec.so.61.19.101
     ${LIBDIR_BIN}/libavutil.so.59
-    ${LIBDIR_BIN}/libavutil.so.59.8.100
+    ${LIBDIR_BIN}/libavutil.so.59.39.100
     ${LIBDIR_BIN}/libswresample.so.5
-    ${LIBDIR_BIN}/libswresample.so.5.1.100
+    ${LIBDIR_BIN}/libswresample.so.5.3.100
     ${LIBDIR_BIN}/libswscale.so.8
-    ${LIBDIR_BIN}/libswscale.so.8.1.100
+    ${LIBDIR_BIN}/libswscale.so.8.3.100
     )
     install(FILES ${LIBRARY_FILES} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
 endif ()
