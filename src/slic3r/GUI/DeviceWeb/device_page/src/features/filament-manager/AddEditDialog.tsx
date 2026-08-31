@@ -520,13 +520,12 @@ export function AddEditDialog({
 
   // STUDIO-17977 / Task 10: drive the colour palette from
   // `filament.colors.query_for_id`. The same fila_id resolution as
-  // handleSubmit (cloud filamentId > preset setting_id > preset filament_id)
+  // handleSubmit (cloud filamentId > preset filament_id)
   // is reused here so the candidate query keys off whatever the spool will
   // actually serialise as `setting_id` on save.
   const filaId = useMemo(
     () => (
       matchedCloudFilamentId
-      || matchedPresetItem?.setting_id
       || matchedPresetItem?.filament_id
       || initSpool?.setting_id
       || ''
@@ -1090,7 +1089,6 @@ export function AddEditDialog({
       remain_percent: remainPct,
       note,
       setting_id: matchedCloudFilamentId
-        || matchedPresetItem?.setting_id
         || matchedPresetItem?.filament_id
         || initSpool?.setting_id
         || '',
