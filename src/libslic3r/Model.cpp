@@ -2840,26 +2840,27 @@ ModelObjectPtrs ModelObject::merge_volumes(std::vector<int>& vol_indeces)
 
 #if 1
     TriangleMesh mesh;
-    // BBS: preserve painting across the merge. its_merge() appends faces in
-    // order (only vertex indices are offset), so face f of the merged mesh maps
-    // exactly to the captured per-part triangles below. Capture before
-    // reset_mesh() empties the source volumes.
-    std::vector<std::string> merged_supported, merged_seam, merged_mmu, merged_fuzzy;
+    // Preserve painting across the merge. Each part is collected in object frame with
+    // the filament it prints in, so a part that is unpainted but assigned a different
+    // filament keeps its color once the parts share a single volume. The copy itself
+    // stays an exact per-face one, the merged mesh being the parts concatenated.
+    // Source meshes are released only after the copy has read them (see below).
+    std::vector<PaintSourceVolume> paint_sources;
     for (int i : vol_indeces) {
         auto volume = volumes[i];
         if (!volume->mesh().empty()) {
-            const size_t nf = volume->mesh().its.indices.size();
-            for (size_t f = 0; f < nf; ++f) {
-                merged_supported.emplace_back(volume->supported_facets.get_triangle_as_string((int)f));
-                merged_seam.emplace_back(volume->seam_facets.get_triangle_as_string((int)f));
-                merged_mmu.emplace_back(volume->mmu_segmentation_facets.get_triangle_as_string((int)f));
-                merged_fuzzy.emplace_back(volume->fuzzy_skin_facets.get_triangle_as_string((int)f));
-            }
-            const auto volume_matrix = volume->get_matrix();
-            TriangleMesh mesh_(volume->mesh());
-            mesh_.transform(volume_matrix, true);
-            volume->reset_mesh();
+            PaintSourceVolume s;
+            s.mesh                  = &volume->mesh();
+            s.supported             = &volume->supported_facets;
+            s.seam                  = &volume->seam_facets;
+            s.mmu                   = &volume->mmu_segmentation_facets;
+            s.fuzzy                 = &volume->fuzzy_skin_facets;
+            s.source_to_destination = volume->get_matrix();
+            s.base_filament         = volume->extruder_id(); // bake solid part color into paint
+            paint_sources.push_back(s);
 
+            TriangleMesh mesh_(volume->mesh());
+            mesh_.transform(volume->get_matrix(), true);
             mesh.merge(mesh_);
         }
     }
@@ -2874,13 +2875,18 @@ ModelObjectPtrs ModelObject::merge_volumes(std::vector<int>& vol_indeces)
 #endif
 
     ModelVolume* vol = upper->add_volume(mesh);
-    // BBS: re-apply the painting captured above onto the merged volume.
-    for (size_t f = 0; f < merged_mmu.size() && f < mesh.its.indices.size(); ++f) {
-        if (!merged_supported[f].empty()) vol->supported_facets.set_triangle_from_string((int)f, merged_supported[f]);
-        if (!merged_seam[f].empty())      vol->seam_facets.set_triangle_from_string((int)f, merged_seam[f]);
-        if (!merged_mmu[f].empty())       vol->mmu_segmentation_facets.set_triangle_from_string((int)f, merged_mmu[f]);
-        if (!merged_fuzzy[f].empty())     vol->fuzzy_skin_facets.set_triangle_from_string((int)f, merged_fuzzy[f]);
-    }
+    // Reproject the source paint (brush strokes + baked solid part color) onto the
+    // merged mesh, then free the source meshes (deferred so the reproject could read
+    // them). base_filament on each source bakes the part's solid color into paint so
+    // it survives the collapse into this single volume.
+    if (!paint_sources.empty())
+        (void) reproject_paint_from_volumes(vol->mesh(), paint_sources,
+            vol->supported_facets, vol->seam_facets,
+            vol->mmu_segmentation_facets, vol->fuzzy_skin_facets,
+            nullptr, nullptr, nullptr, /*concatenated_result=*/true);
+    for (int i : vol_indeces)
+        if (!volumes[i]->mesh().empty())
+            volumes[i]->reset_mesh();
     for (int i = 0; i < volumes.size();i++) {
         if (std::find(vol_indeces.begin(), vol_indeces.end(), i) != vol_indeces.end()) {
             vol->name = "Merged Parts";

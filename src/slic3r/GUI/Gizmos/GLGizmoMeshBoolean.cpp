@@ -1,6 +1,7 @@
 #include "GLGizmoMeshBoolean.hpp"
 #include "slic3r/GUI/UIHelpers/MeshBooleanUI.hpp"
 #include "libslic3r/MeshBoolean.hpp"
+#include "libslic3r/PaintReproject.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_ObjectList.hpp"
@@ -1151,6 +1152,59 @@ void BooleanOperationEngine::update_delete_list(BooleanOperationResult& result,
     }
 }
 
+// Shared paint reprojection for boolean results. Maps each operand's paint into the
+// result volume's local frame (source_to_destination = dst_world^-1 * operand_world)
+// and reprojects it via the geometric sampler. Used by BOTH the sync
+// (apply_result_to_model) and the async completion paths - the async path is the
+// default and creates result volumes directly, bypassing apply_result_to_model, so
+// without this call there the boolean result loses all paint.
+static void reproject_boolean_paint(ModelVolume *new_volume,
+                                    const Transform3d &dst_world,
+                                    const std::vector<std::pair<ModelVolume *, Transform3d>> &operands)
+{
+    if (new_volume == nullptr || operands.empty())
+        return;
+    // Nothing to carry when no operand is painted and they all print in one filament: the
+    // result volume's own extruder already stands for them. A part that is unpainted but
+    // assigned a different filament still has to be carried, or it loses its colour.
+    bool any_paint = false, mixed_filament = false;
+    int  first_filament = -1;
+    for (const auto &op : operands) {
+        if (op.first == nullptr)
+            continue;
+        if (! op.first->mmu_segmentation_facets.empty() || ! op.first->supported_facets.empty() ||
+            ! op.first->seam_facets.empty() || ! op.first->fuzzy_skin_facets.empty())
+            any_paint = true;
+        const int filament = op.first->extruder_id();
+        if (first_filament < 0)
+            first_filament = filament;
+        else if (filament != first_filament)
+            mixed_filament = true;
+    }
+    if (! any_paint && ! mixed_filament)
+        return;
+    const Transform3d dst_world_inv = dst_world.inverse();
+    std::vector<PaintSourceVolume> sources;
+    sources.reserve(operands.size());
+    for (const auto &op : operands) {
+        if (op.first == nullptr)
+            continue;
+        PaintSourceVolume s;
+        s.mesh                  = &op.first->mesh();
+        s.supported             = &op.first->supported_facets;
+        s.seam                  = &op.first->seam_facets;
+        s.mmu                   = &op.first->mmu_segmentation_facets;
+        s.fuzzy                 = &op.first->fuzzy_skin_facets;
+        s.source_to_destination = dst_world_inv * op.second;
+        s.base_filament         = op.first->extruder_id(); // bake solid part color into paint
+        sources.push_back(s);
+    }
+    (void) reproject_paint_from_volumes(new_volume->mesh(), sources,
+        new_volume->supported_facets, new_volume->seam_facets,
+        new_volume->mmu_segmentation_facets, new_volume->fuzzy_skin_facets,
+        nullptr, nullptr, &dst_world);
+}
+
 //NOTE: keep watching
 void BooleanOperationEngine::apply_result_to_model(const BooleanOperationResult& result,
                                                   ModelObject* target_object,
@@ -1229,6 +1283,33 @@ void BooleanOperationEngine::apply_result_to_model(const BooleanOperationResult&
         return true;
     };
 
+    // Carry painting (colour / support / seam / fuzzy skin) from the boolean operands onto
+    // each rebuilt result volume. For a difference only the A group contributes: the B tool
+    // carves new surface, which belongs to the part that remains, not to the tool.
+    auto instance_matrix_of = [](const ModelObject *obj) -> Transform3d {
+        return (obj != nullptr && !obj->instances.empty() && obj->instances[0]) ?
+            obj->instances[0]->get_matrix(false) : Transform3d::Identity();
+    };
+    auto reproject_paint_onto = [&](ModelVolume *new_volume) {
+        if (new_volume == nullptr)
+            return;
+        std::vector<std::pair<ModelVolume *, Transform3d>> operands;
+        auto add_object_parts = [&](ModelObject *o) {
+            if (o == nullptr)
+                return;
+            for (ModelVolume *v : o->volumes)
+                if (v != nullptr && v != new_volume && v->is_model_part())
+                    operands.emplace_back(v, instance_matrix_of(o) * v->get_matrix());
+        };
+        if (settings.target_mode == BooleanTargetMode::Part)
+            add_object_parts(target_object);
+        else if (mode == MeshBooleanOperation::Difference)
+            for (ModelObject *o : a_group_objects) add_object_parts(o);
+        else
+            for (ModelObject *o : participating_objects) add_object_parts(o);
+        reproject_boolean_paint(new_volume, instance_matrix_of(target_object) * new_volume->get_matrix(), operands);
+    };
+
     // ===== STEP 2: Create new result volumes =====
     // Collect sources that need to be replaced (deleted after new volumes are created)
     std::vector<ModelVolume*> sources_to_replace;
@@ -1243,6 +1324,9 @@ void BooleanOperationEngine::apply_result_to_model(const BooleanOperationResult&
         ModelVolume* new_volume = create_result_volume(target_object, result.result_meshes[i], source_volume);
         if (!new_volume) continue;
         new_volume->set_type(ModelVolumeType::MODEL_PART);
+
+        // Preserve the operands' painting on the rebuilt result.
+        reproject_paint_onto(new_volume);
 
         // Mark source for replacement if policy allows
         if (should_replace_source(source_volume)) {
@@ -2731,6 +2815,28 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
             // Force result to be MODEL_PART (same as sync version)
             new_volume->set_type(ModelVolumeType::MODEL_PART);
 
+            // Preserve operand paint on the async boolean result (this path bypasses
+            // apply_result_to_model). Operand world transforms come straight from the
+            // job data - exactly what the boolean engine baked.
+            {
+                Transform3d target_inst = Transform3d::Identity();
+                if (target_object && !target_object->instances.empty() && target_object->instances[0])
+                    target_inst = target_object->instances[0]->get_matrix(false);
+                const Transform3d dst_world = target_inst * new_volume->get_matrix();
+                std::vector<std::pair<ModelVolume *, Transform3d>> operands;
+                auto add_grp = [&](const auto &grp) {
+                    for (const auto &vd : grp) {
+                        ModelObject *o  = find_object_by_volume_id(vd.volume_id);
+                        ModelVolume *ov = o ? find_volume_in_object(o, vd.volume_id) : nullptr;
+                        if (ov && ov != new_volume) operands.emplace_back(ov, vd.transformation);
+                    }
+                };
+                add_grp(job_data.volumes_a);
+                if (job_data.operation_mode != MeshBooleanOperation::Difference)
+                    add_grp(job_data.volumes_b);
+                reproject_boolean_paint(new_volume, dst_world, operands);
+            }
+
             // Determine if source should be replaced based on operation mode
             bool should_replace = false;
             if (job_data.operation_mode == MeshBooleanOperation::Difference) {
@@ -2874,6 +2980,24 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
             if (new_volume) {
                 // Force result to be MODEL_PART
                 new_volume->set_type(ModelVolumeType::MODEL_PART);
+
+                // Preserve operand paint on the async (object-mode) boolean result.
+                Transform3d new_inst = Transform3d::Identity();
+                if (!new_obj->instances.empty() && new_obj->instances[0])
+                    new_inst = new_obj->instances[0]->get_matrix(false);
+                const Transform3d dst_world = new_inst * new_volume->get_matrix();
+                std::vector<std::pair<ModelVolume *, Transform3d>> operands;
+                auto add_grp = [&](const auto &grp) {
+                    for (const auto &vd : grp) {
+                        ModelObject *o  = find_object_by_volume_id(vd.volume_id);
+                        ModelVolume *ov = o ? find_volume_in_object(o, vd.volume_id) : nullptr;
+                        if (ov && ov != new_volume) operands.emplace_back(ov, vd.transformation);
+                    }
+                };
+                add_grp(job_data.volumes_a);
+                if (job_data.operation_mode != MeshBooleanOperation::Difference)
+                    add_grp(job_data.volumes_b);
+                reproject_boolean_paint(new_volume, dst_world, operands);
             }
         }
 

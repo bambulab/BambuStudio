@@ -2296,6 +2296,16 @@ void TriangleSelector::seed_fill_apply_on_triangles(EnforcerBlockerType new_stat
         }
 }
 
+void TriangleSelector::fill_unpainted(EnforcerBlockerType state)
+{
+    for (Triangle &triangle : m_triangles) {
+        if (triangle.is_split() || !triangle.valid())
+            continue;
+        if (triangle.get_state() == EnforcerBlockerType::NONE)
+            triangle.set_state(state);
+    }
+}
+
 void TriangleSelector::shift_states_above(EnforcerBlockerType threshold, int delta)
 {
     for (Triangle &triangle : m_triangles) {
