@@ -5203,21 +5203,21 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 
 // Widen the single plate trunk in 2D after the tube is sliced.
 // Extrude still uses the original branch radius, so self-intersection repair hemispheres
-// do not grow. The plate cap radius is config.bp_radius (= support_tree_bp_diameter / 2).
-// NOTE: support_tree_bp_diameter is not read from the process config in this build
-// (TreeSupportMeshGroupSettings' ctor never assigns it), so it stays at the hard-coded
-// 7.5mm diameter, i.e. a fixed 3.75mm cap radius, not a user setting. Trunks already at
-// or above that radius are left unchanged. If the trunk is shorter than the slope needs,
-// the cone simply does not reach the cap.
+// do not grow.
 //
-// The added circles are only merged with the tube by the downstream union in
-// diff_clipped()/intersection() (non-zero fill), so a cone circle that is smaller
-// than the tube on some layer never carves into it; the foot only widens.
+// Soft foot (not a hard push to bp_radius):
+//   r_plate = min(bp_radius, r_trunk + brim_extra)
+// bp_radius stays the hard cap (legacy 7.5mm diameter / 3.75mm radius). Thin trunks get
+// trunk+brim; thick trunks already near the cap get little or no extra flare.
+// Profile uses ease-out so the flare is flatter near the trunk and opens toward the plate.
+// Mean radial flare angle is limited to ~12deg (gentler than the legacy ~40deg
+// bp_radius_increase). The quadratic ease-out is steepest at the plate and becomes
+// tangent to the trunk at the blend point.
+// Short trunks shrink the flare instead of exceeding the mean angle limit.
 //
-// The foot slices are clipped by the same getCollision(0, .., min_xy_dist) + bed
-// intersection as the tube itself. Intentional trade-off: near the model the foot keeps
-// only the min-xy gap (not the full support_xy_distance) and may be trimmed to a crescent,
-// and adjacent plate trunks may merge on the bed to favour adhesion.
+// Circles merge with the tube via downstream non-zero union in diff_clipped()/intersection(),
+// so a circle smaller than the tube never carves into it. Same getCollision(0,..,min_xy_dist)
+// + bed clip as the tube: intentional crescent trim / neighbour merge near the model.
 static void append_organic_plate_foot_slices(
     const std::vector<const SupportElement*> &path,
     const TreeSupportSettings                &config,
@@ -5229,37 +5229,44 @@ static void append_organic_plate_foot_slices(
     const SupportElement &root = *path.front();
     if (! root.state.to_buildplate || ! root.state.result_on_layer_is_set())
         return;
-    const double slope = config.bp_radius_increase_per_layer;
-    if (slope <= 0.)
-        return;
-    const coord_t r_base = support_element_radius(config, root);
+
+    const coord_t r_root = support_element_radius(config, root);
     const coord_t r_cap  = config.bp_radius;
-    // Already as wide as (or wider than) the plate cap (config.bp_radius): no extra flare.
-    if (r_base <= 0 || r_cap <= 0 || r_base >= r_cap)
+    if (r_root <= 0 || r_cap <= 0 || r_root >= r_cap)
         return;
-    // layers_needed only estimates how many layers the cone spans (from r_base up to
-    // r_cap at this slope). It is used as an upper bound for the path index below; the
-    // real interpolation anchor is r0 at el_top, not r_base. If a path element covers
-    // more than one layer the index bound is conservative (cone may be a little shorter),
-    // but organic trunks keep roughly one element per layer.
-    const size_t layers_needed = size_t(std::ceil(double(r_cap - r_base) / slope));
+
+    // Fixed radial extension beyond the blend-in trunk radius; hard-capped by bp_radius.
+    constexpr double k_brim_mm              = 1.2;
+    constexpr double k_mean_flare_angle_rad = 12. * M_PI / 180.;
+    const coord_t brim_extra = scaled<coord_t>(k_brim_mm);
+    // config.layer_height is already scaled, matching bp_radius_increase_per_layer units.
+    const double mean_flare_per_layer = std::tan(k_mean_flare_angle_rad) * double(config.layer_height);
+    if (mean_flare_per_layer <= 0. || brim_extra <= 0)
+        return;
+
+    const coord_t max_flare = std::min(brim_extra, coord_t(r_cap - r_root));
+    if (max_flare <= 0)
+        return;
+    // Upper bound on cone height from the gentler slope (not the legacy ~40deg).
+    const size_t layers_needed = size_t(std::ceil(double(max_flare) / mean_flare_per_layer));
     if (layers_needed == 0)
         return;
     const size_t top = std::min(layers_needed, path.size() - 1);
     if (top == 0)
         return;
 
-    // el_top is the top of the cone; r0 is its actual tube radius so the flare blends
-    // into the existing tube instead of stepping. r_plate_target extrapolates r0 down to
-    // the plate at the given slope, capped at the legacy plate radius.
-    const SupportElement &el_top = *path[top];
-    const coord_t         r0     = support_element_radius(config, el_top);
+    const SupportElement &el_top  = *path[top];
+    const coord_t         r_trunk = support_element_radius(config, el_top);
     const LayerIndex      z0     = root.state.layer_idx;
     const LayerIndex      z1     = el_top.state.layer_idx;
     if (z1 <= z0)
         return;
-    const coord_t r_plate_target = std::min(r_cap, coord_t(std::lround(double(r0) + double(z1 - z0) * slope)));
-    if (r_plate_target <= r_base)
+
+    // Relative to trunk at the blend point; never force a full 3.75mm when trunk+brim is enough.
+    coord_t r_plate = std::min(r_cap, coord_t(r_trunk + brim_extra));
+    // Keep the mean radial flare angle within the limit: short trunks reduce the flare.
+    r_plate = std::min(r_plate, coord_t(std::lround(double(r_trunk) + double(z1 - z0) * mean_flare_per_layer)));
+    if (r_plate <= r_root || r_plate <= r_trunk)
         return;
 
     for (size_t k = 0; k <= top; ++ k) {
@@ -5269,8 +5276,10 @@ static void append_organic_plate_foot_slices(
         const int si = int(el.state.layer_idx) - int(layer_begin);
         if (si < 0 || si >= int(slices.size()))
             continue;
-        const double  t      = double(el.state.layer_idx - z0) / double(z1 - z0);
-        const coord_t target = coord_t(std::lround(double(r_plate_target) + t * double(r0 - r_plate_target)));
+        // t=0 at plate, t=1 at trunk blend. Ease-out: s = 1-(1-t)^2 → flatter near the trunk.
+        const double t = double(el.state.layer_idx - z0) / double(z1 - z0);
+        const double s = 1. - (1. - t) * (1. - t);
+        const coord_t target = coord_t(std::lround(double(r_plate) + s * double(r_trunk - r_plate)));
         if (target <= 0)
             continue;
         Polygon circle = make_circle(target, std::max(double(target) / 100., 1.));
