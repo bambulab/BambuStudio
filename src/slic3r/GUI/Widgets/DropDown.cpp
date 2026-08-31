@@ -418,7 +418,8 @@ int DropDown::hoverIndex()
 {
     if (hover_item < 0)
         return -1;
-    if (count == items.size())
+    // Counts also match when every group holds one item, so check has_groups too
+    if (count == items.size() && !has_groups)
         return hover_item;
     int index = -1;
     std::set<wxString> groups;
@@ -446,7 +447,7 @@ int DropDown::selectedItem()
 {
     if (selection < 0)
         return -1;
-    if (count == items.size())
+    if (count == items.size() && !has_groups)
         return selection;
     auto & sel = items[selection];
     if (group.IsEmpty() ? !sel.group.IsEmpty() : sel.group != group)
@@ -559,6 +560,7 @@ void DropDown::messureSize()
     // Gtk has a wrapper window for popup widget
     gtk_window_resize (GTK_WINDOW (m_widget), szContent.x, szContent.y);
 #endif
+    has_groups = !groups.empty();
     if (!groups.empty() && subDropDown == nullptr) {
         subDropDown = new DropDown(items);
         subDropDown->mainDropDown = this;
@@ -715,7 +717,7 @@ void DropDown::mouseMove(wxMouseEvent &event)
         if (hover == hover_item) return;
         hover_item = hover;
         int index  = hoverIndex();
-        if (index < -1) {
+        if (index < -1 && subDropDown) {
             auto & drop = *subDropDown;
             drop.group  = items[-index - 2].group;
             drop.need_sync = true;
