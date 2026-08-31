@@ -719,6 +719,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             if (wxGetApp().check_slice_version_policy() && m_slice_enable) {
                 wxGetApp().plater()->update(true, true);
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
+                if (m_tabpanel && m_tabpanel->GetSelection() != (int) tpPreview) {
+                    m_tabpanel->ChangeSelection(tpPreview);
+                    m_last_selected_tab = tpPreview;
+                }
             }
             return;
         }
