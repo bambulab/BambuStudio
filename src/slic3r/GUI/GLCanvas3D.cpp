@@ -5256,25 +5256,9 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     }
 #endif // __WXMSW__
 
-    // Calculate the zoom delta and apply it to the current zoom factor
     double direction_factor = wxGetApp().app_config->get_bool("reverse_mouse_wheel_zoom") ? -1.0 : 1.0;
     auto delta = direction_factor * (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta();
-    bool zoom_to_mouse = wxGetApp().app_config->get_bool("zoom_to_mouse");
-    if (!zoom_to_mouse) {// zoom to center
-        _update_camera_zoom(delta);
-    }
-    else {
-        auto cnv_size = get_canvas_size();
-        Camera& camera = get_active_camera();
-        auto screen_center_3d_pos = _mouse_to_3d(camera, { cnv_size.get_width() * 0.5, cnv_size.get_height() * 0.5 });
-        auto mouse_3d_pos = _mouse_to_3d(camera, {evt.GetX(), evt.GetY()});
-        Vec3d displacement = mouse_3d_pos - screen_center_3d_pos;
-        camera.translate(displacement);
-        auto origin_zoom = camera.get_zoom();
-        _update_camera_zoom(delta);
-        auto new_zoom = camera.get_zoom();
-        camera.translate((-displacement) / (new_zoom / origin_zoom));
-    }
+    _update_camera_zoom(get_active_camera().calc_zoom_from_delta(delta), { evt.GetX(), evt.GetY() });
 #if defined(__WXOSX__)
     // macOS: keep zoom responsive even if wxEVT_IDLE is starved by a busy
     // WKWebView tab (no-op elsewhere).
@@ -5465,7 +5449,16 @@ void GLCanvas3D::on_gesture(wxGestureEvent &evt)
         static float zoom_start = 1;
         if (evt.IsGestureStart())
             zoom_start = camera.get_zoom();
-        camera.set_zoom(zoom_start * static_cast<wxZoomGestureEvent&>(evt).GetZoomFactor());
+        float factor = static_cast<wxZoomGestureEvent&>(evt).GetZoomFactor();
+        // Match the mouse-wheel preferences on Mac trackpad pinch.
+        if (wxGetApp().app_config->get_bool("reverse_mouse_wheel_zoom"))
+            factor = 1.f / std::max(factor, 1e-3f);
+        const double mx = m_mouse.position.x();
+        const double my = m_mouse.position.y();
+        const Size cnv_size = get_canvas_size();
+        if (mx < 0.f || my < 0.f || mx >= cnv_size.get_width() || my >= cnv_size.get_height())
+            return;
+        _update_camera_zoom(zoom_start * factor, { (int)mx, (int)my });
     } else if (evt.GetEventType() == wxEVT_GESTURE_ROTATE) {
         bool rotate_limit = current_printer_technology() != ptSLA;
         static double last_rotate = 0;
@@ -8438,9 +8431,22 @@ void GLCanvas3D::_zoom_to_box(const BoundingBoxf3& box, double margin_factor)
     m_dirty = true;
 }
 
-void GLCanvas3D::_update_camera_zoom(double zoom)
+void GLCanvas3D::_update_camera_zoom(double target_zoom, const Point& anchor)
 {
-    get_active_camera().update_zoom(zoom);
+    Camera& camera = get_active_camera();
+    if (!wxGetApp().app_config->get_bool("zoom_to_mouse")) {
+        camera.set_zoom(target_zoom);
+    } else {
+        auto cnv_size = get_canvas_size();
+        auto screen_center_3d_pos = _mouse_to_3d(camera, { cnv_size.get_width() * 0.5, cnv_size.get_height() * 0.5 });
+        auto anchor_3d_pos = _mouse_to_3d(camera, anchor);
+        Vec3d displacement = anchor_3d_pos - screen_center_3d_pos;
+        camera.translate(displacement);
+        auto origin_zoom = camera.get_zoom();
+        camera.set_zoom(target_zoom);
+        auto new_zoom = camera.get_zoom();
+        camera.translate((-displacement) / (new_zoom / origin_zoom));
+    }
     m_dirty = true;
 }
 

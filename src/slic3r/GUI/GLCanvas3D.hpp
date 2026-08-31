@@ -1377,7 +1377,7 @@ private:
     BoundingBoxf3 _max_bounding_box(bool include_gizmos, bool include_bed_model, bool include_plates, bool volumes_limit_to_expand_plate) const;
 
     void _zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultCameraZoomToBoxMarginFactor);
-    void _update_camera_zoom(double zoom);
+    void _update_camera_zoom(double target_zoom, const Point& anchor);
     // Selection bbox center, else current plate center. Nullopt if neither is available.
     std::optional<Vec3d> _get_camera_orbit_target() const;
     bool _allow_canvas_drag_move() const;
