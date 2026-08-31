@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-27 15:05+0800\n"
+"POT-Creation-Date: 2026-08-14 16:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -898,11 +898,15 @@ msgstr "Деталь"
 msgid "Object"
 msgstr "Об'єкт"
 
-msgid "Right-click a part to assign it to the other side"
-msgstr ""
-
 msgid "Drag to move the cut plane"
 msgstr "Перетягніть, щоб перемістити площину різу"
+
+msgid ""
+"Drag to move the cut plane\n"
+"Right-click a part to assign it to the other side"
+msgstr ""
+"Перетягніть, щоб перемістити площину різу\n"
+"Клацніть правою кнопкою миші по деталі, щоб призначити її на інший бік"
 
 msgid "Left click"
 msgstr "Клацніть лівою кнопкою миші"
@@ -2601,9 +2605,6 @@ msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Error: reversed faces detected, which may affect rendering"
-msgstr ""
-
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
@@ -2618,9 +2619,6 @@ msgstr "Клацніть правою кнопкою миші значок, що
 
 msgid "Click the icon to reset all settings of the object"
 msgstr "Натисніть іконку, щоб скинути всі налаштування об'єкта"
-
-msgid "Unprintable object"
-msgstr ""
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "Клацніть правою кнопкою миші значок, щоб видалити властивість об'єкта для друку"
@@ -4055,11 +4053,25 @@ msgstr "Налаштування матеріалів AMS"
 msgid "Colour"
 msgstr "Колір"
 
+msgid ""
+"Nozzle\n"
+"Temperature"
+msgstr ""
+"Температура\n"
+"сопла"
+
+msgid "max"
+msgstr "макс"
+
+msgid "min"
+msgstr "мін"
+
+#, boost-format
+msgid "The input value should be greater than %1% and less than %2%"
+msgstr "Вхідне значення має бути більше %1% і менше %2%"
+
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Фактори калібрування динаміки потоку"
-
-msgid "View Wiki for details"
-msgstr ""
 
 msgid "Nozzle Type"
 msgstr "Тип насадки"
@@ -4073,13 +4085,6 @@ msgstr "Фактор K"
 msgid "Factor N"
 msgstr "Фактор N"
 
-msgid ""
-"Nozzle\n"
-"Temperature"
-msgstr ""
-"Температура\n"
-"сопла"
-
 msgid "Setting AMS slot information while printing is not supported"
 msgstr "Встановлення інформації про слот AMS під час друку не підтримується"
 
@@ -4088,18 +4093,6 @@ msgstr "Встановлення інформації про віртуальн�
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Ви впевнені, що хочете видалити інформацію про нитки?"
-
-msgid "Add to Filament Library?"
-msgstr ""
-
-msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
-msgstr ""
-
-msgid "Add to Filament Library"
-msgstr ""
-
-msgid "Save Only"
-msgstr ""
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
 msgstr ""
@@ -4110,15 +4103,52 @@ msgstr ""
 msgid "You need to select the material type and color first."
 msgstr "Спочатку потрібно вибрати тип матеріалу та колір."
 
-msgid "Please select a color"
-msgstr ""
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "Будь ласка, введіть допустиме значення (K у межах %.1f~%.1f)"
+
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "Будь ласка, введіть допустиме значення (K у межах %.1f~%.1f, N у межах %.1f~%.1f)"
 
 msgid "Remark"
 msgstr ""
 
+msgid "Other"
+msgstr "Інший"
+
+msgid "Filament Manager"
+msgstr ""
+
+msgid "In printer"
+msgstr ""
+
 #, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr "Будь ласка, введіть допустиме значення (K у межах %.1f~%.1f)"
+msgid "In printer: %s"
+msgstr ""
+
+msgctxt "Filament Manager"
+msgid "Note"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr ""
+
+msgctxt "Unsupported Filaments"
+msgid "Note"
+msgstr ""
+
+msgid "No unsupported filaments"
+msgstr ""
+
+msgid "No filaments"
+msgstr ""
+
+msgid "System presets"
+msgstr "Системні пресети"
+
+msgid "Recently used"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4129,6 +4159,15 @@ msgid ""
 "'Device -> Print parts'"
 msgstr ""
 
+msgid "AMS"
+msgstr "AMS"
+
+msgid "Other Color"
+msgstr "Інший колір"
+
+msgid "Custom Color"
+msgstr "Спеціальний колір"
+
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
 msgstr ""
 
@@ -4138,16 +4177,13 @@ msgstr ""
 msgid "Link to existing filament"
 msgstr ""
 
+msgid "Not now"
+msgstr ""
+
 msgid "Please select"
 msgstr ""
 
 msgid "No matching filament"
-msgstr ""
-
-msgid "New Filament"
-msgstr ""
-
-msgid "New filament information has been recorded."
 msgstr ""
 
 msgid "Dynamic flow calibration"
@@ -4201,10 +4237,6 @@ msgstr "Калібрування... %d%%"
 
 msgid "Calibration completed"
 msgstr "Калібрування завершено"
-
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr "Будь ласка, введіть допустиме значення (K у межах %.1f~%.1f, N у межах %.1f~%.1f)"
 
 #, c-format, boost-format
 msgid "%s does not support %s"
@@ -4345,9 +4377,6 @@ msgstr "СУХО"
 
 msgid "WET"
 msgstr "ВОЛОГО"
-
-msgid "AMS"
-msgstr "AMS"
 
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
@@ -5874,9 +5903,6 @@ msgstr ""
 msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
-msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
-msgstr ""
-
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr ""
 
@@ -6016,9 +6042,6 @@ msgstr "Багато пристроїв"
 
 msgid "Project"
 msgstr "Проєкт"
-
-msgid "Filament Manager"
-msgstr ""
 
 msgid "Yes"
 msgstr "Так"
@@ -7473,12 +7496,6 @@ msgstr "Помилка:"
 msgid "Open link for more info"
 msgstr ""
 
-msgid "Jump to: Support on build plate only"
-msgstr ""
-
-msgid "Jump to: Support"
-msgstr ""
-
 msgid "Warning:"
 msgstr "Попередження:"
 
@@ -7964,30 +7981,6 @@ msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Пошук плити, об’єкта і деталі."
-
-#, c-format, boost-format
-msgid ", and %d more"
-msgstr ""
-
-#, c-format, boost-format
-msgid "model \"%s\""
-msgstr ""
-
-msgid "support filament"
-msgstr ""
-
-msgid "custom G-code"
-msgstr ""
-
-#, c-format, boost-format
-msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
-msgstr ""
-
-msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
-msgstr ""
-
-msgid "Delete Filament"
-msgstr "Видалити Філамент"
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr ""
@@ -8988,25 +8981,13 @@ msgstr "Одиниці"
 msgid "Enable dark mode"
 msgstr "Увімкнути темний режим"
 
-msgid "All related changes"
-msgstr ""
+msgid "All"
+msgstr "Всі"
 
-msgid "When color changes"
-msgstr ""
+msgid "Disabled"
+msgstr "Вимкнено"
 
-msgid "Turn off auto calculate"
-msgstr ""
-
-msgid "Auto calculate when color changes, type or configuration changes"
-msgstr ""
-
-msgid "Auto calculate when sync or modify filament colors"
-msgstr ""
-
-msgid "Keep current flush volumes, trigger manually when needed"
-msgstr ""
-
-msgid "Auto Calculate Flush Volume"
+msgid "Auto Flush"
 msgstr ""
 
 msgid "Auto calculate flush volumes"
@@ -9103,29 +9084,11 @@ msgstr ""
 msgid "3D Settings"
 msgstr "Налаштування 3D"
 
-msgid "Mouse Settings"
-msgstr ""
-
-msgid "Import Settings"
-msgstr ""
-
 msgid "Zoom to mouse position"
 msgstr "Збільшити до позиції миші"
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr "Наблизьтеся до положення покажчика миші у 3D-виді, а не до центру 2D вікна."
-
-msgid "Reverse direction of zoom with mouse wheel"
-msgstr ""
-
-msgid "If enabled, reverses the direction of zoom with mouse wheel."
-msgstr ""
-
-msgid "Drag with left mouse button to move"
-msgstr ""
-
-msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
-msgstr ""
 
 msgid "Display overview"
 msgstr ""
@@ -9373,15 +9336,11 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning\n"
-"- Delete a filament used by a model"
+"- Mixed color sublayer with variable layer height warning"
 msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr ""
-
-msgid "System presets"
-msgstr "Системні пресети"
 
 msgid "User presets"
 msgstr "Користувацькі пресети"
@@ -10708,9 +10667,6 @@ msgstr ""
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Ви впевнені, що %1% вибраної установки?"
 
-msgid "All"
-msgstr "Всі"
-
 msgid "Set"
 msgstr "Вибір"
 
@@ -10861,20 +10817,11 @@ msgstr ""
 msgid "Right: "
 msgstr ""
 
-msgid "Preset A"
-msgstr ""
-
-msgid "Preset B"
-msgstr ""
+msgid "Select presets to compare"
+msgstr "Виберіть налаштування для порівняння"
 
 msgid "Show all presets (including incompatible)"
 msgstr "Показати всі налаштування (включаючи несумісні)"
-
-msgid "Material"
-msgstr ""
-
-msgid "Please select two different presets A and B to compare"
-msgstr ""
 
 msgid "Add File"
 msgstr "Додати файл"
@@ -13141,9 +13088,6 @@ msgstr "Забезпечення вертикальної товщини обо�
 msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)"
 msgstr "Додавання заповнення твердого тіла поблизу похилих поверхонь для Гарантії товщини вертикальної оболонки (верхній + нижній шари твердого тіла)"
 
-msgid "Disabled"
-msgstr "Вимкнено"
-
 msgid "Partial"
 msgstr ""
 
@@ -13231,12 +13175,6 @@ msgstr "Внутрішній малюнок заповнення суцільн�
 
 msgid "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area."
 msgstr "Шаблон ліній внутрішнього заповнення. Якщо вмикати виявлення вузького внутрішнього заповнення, для маленької ділянки буде використано концентричний шаблон."
-
-msgid "Sub-top surface pattern"
-msgstr ""
-
-msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
-msgstr ""
 
 msgid "Line width of outer wall"
 msgstr "Ширина лінії зовнішньої стінки"
@@ -13913,12 +13851,6 @@ msgstr "Ривок переміщення"
 msgid "Line width of initial layer"
 msgstr "Ширина лінії початкового шару"
 
-msgid "Initial layer infill"
-msgstr "Початкове заповнення шару"
-
-msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
-msgstr ""
-
 msgid "Initial layer height"
 msgstr "Висота початкового шару"
 
@@ -13927,6 +13859,9 @@ msgstr "Висота початкового шару. Якщо зробити в
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr "Швидкість першого шару, за винятком суцільної заповнювальної частини"
+
+msgid "Initial layer infill"
+msgstr "Початкове заповнення шару"
 
 msgid "Speed of solid infill part of initial layer"
 msgstr "Швидкість суцільної заповнювальної частини вихідного шару"
@@ -14969,9 +14904,6 @@ msgstr "Під час розрізання тріщини на трикутну 
 msgid "Slicing Mode"
 msgstr "Режим нарізки"
 
-msgid "Other"
-msgstr "Інший"
-
 msgid "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
 msgstr "Використовуйте «парний-непарний» для моделей літаків 3DLabPrint. Використовуйте «Закрити отвори», щоб закрити всі отвори в моделі."
 
@@ -15629,18 +15561,6 @@ msgstr "Генерація підтримки"
 
 msgid "Optimizing toolpath"
 msgstr "Оптимізація траєкторії інструменту"
-
-#, boost-format
-msgid ""
-"Unsupported overhangs were detected.\n"
-"Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
-msgstr ""
-
-#, boost-format
-msgid ""
-"Unsupported overhangs were detected.\n"
-"Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
-msgstr ""
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "Порожні шари навколо дна замінюються найближчими нормальними шарами."
@@ -16932,6 +16852,9 @@ msgstr "Видалити пресет"
 msgid "+ Add Preset"
 msgstr "+ Додати пресет"
 
+msgid "Delete Filament"
+msgstr "Видалити Філамент"
+
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament information for that slot."
@@ -17736,9 +17659,6 @@ msgstr ""
 msgid "Skipping objects."
 msgstr ""
 
-msgid "Custom Color"
-msgstr "Спеціальний колір"
-
 msgid "Null Color"
 msgstr ""
 
@@ -18444,29 +18364,6 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
-
-#~ msgid ""
-#~ "Drag to move the cut plane\n"
-#~ "Right-click a part to assign it to the other side"
-#~ msgstr ""
-#~ "Перетягніть, щоб перемістити площину різу\n"
-#~ "Клацніть правою кнопкою миші по деталі, щоб призначити її на інший бік"
-
-#~ msgid "max"
-#~ msgstr "макс"
-
-#~ msgid "min"
-#~ msgstr "мін"
-
-#, boost-format
-#~ msgid "The input value should be greater than %1% and less than %2%"
-#~ msgstr "Вхідне значення має бути більше %1% і менше %2%"
-
-#~ msgid "Other Color"
-#~ msgstr "Інший колір"
-
-#~ msgid "Select presets to compare"
-#~ msgstr "Виберіть налаштування для порівняння"
 
 #~ msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
 #~ msgstr "Файл .gcode.3mf не містить даних G-коду. Будь ласка, розріжте його з використанням Bambu Studio та експортуйте новий файл .gcode.3mf."

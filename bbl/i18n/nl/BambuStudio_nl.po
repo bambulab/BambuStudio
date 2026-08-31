@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-27 15:05+0800\n"
+"POT-Creation-Date: 2026-08-14 16:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -898,11 +898,15 @@ msgstr "Onderdeel"
 msgid "Object"
 msgstr "Voorwerp"
 
-msgid "Right-click a part to assign it to the other side"
-msgstr "Klik met de rechtermuisknop op een onderdeel om het aan de andere kant toe te wijzen"
-
 msgid "Drag to move the cut plane"
 msgstr "Verslepen om het snijvlak te verplaatsen"
+
+msgid ""
+"Drag to move the cut plane\n"
+"Right-click a part to assign it to the other side"
+msgstr ""
+"Slepen om het snijvlak te verplaatsen\n"
+"Klik met de rechtermuisknop op een onderdeel om het aan de andere kant toe te wijzen"
 
 msgid "Left click"
 msgstr "Secundaire muisknop"
@@ -2612,9 +2616,6 @@ msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Error: reversed faces detected, which may affect rendering"
-msgstr "Fout: omgekeerde vlakken gedetecteerd – dit kan de weergave beïnvloeden"
-
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
@@ -2629,9 +2630,6 @@ msgstr "Klik met de rechtermuisknop op het pictogram om de objectinstellingen te
 
 msgid "Click the icon to reset all settings of the object"
 msgstr "Klik op het icoon om alle instellingen van het object terug te zetten"
-
-msgid "Unprintable object"
-msgstr "Onafdrukbaar object"
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "Klik met de rechtermuisknop op het pictogram om de printbare eigenschap van het object te verwijderen"
@@ -4056,11 +4054,25 @@ msgstr "AMS Materiaal instellingen"
 msgid "Colour"
 msgstr "Kleur"
 
+msgid ""
+"Nozzle\n"
+"Temperature"
+msgstr ""
+"Nozzle\n"
+"temperatuur"
+
+msgid "max"
+msgstr "max"
+
+msgid "min"
+msgstr "min"
+
+#, boost-format
+msgid "The input value should be greater than %1% and less than %2%"
+msgstr "De invoerwaarde moet groter zijn dan %1% en kleiner dan %2%"
+
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Factoren van Flow Dynamics Calibration"
-
-msgid "View Wiki for details"
-msgstr ""
 
 msgid "Nozzle Type"
 msgstr "Type nozzle"
@@ -4074,13 +4086,6 @@ msgstr "Factor K"
 msgid "Factor N"
 msgstr "Factor N"
 
-msgid ""
-"Nozzle\n"
-"Temperature"
-msgstr ""
-"Nozzle\n"
-"temperatuur"
-
 msgid "Setting AMS slot information while printing is not supported"
 msgstr "Het instellen van AMS slot informatie tijdens het printen wordt niet ondersteund."
 
@@ -4089,18 +4094,6 @@ msgstr "Het instellen van informatie over de virtuele sleuf tijdens het afdrukke
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Weet je zeker dat je de filament informatie wilt wissen?"
-
-msgid "Add to Filament Library?"
-msgstr "Toevoegen aan de filamentbibliotheek?"
-
-msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
-msgstr "Bij wijziging van het type of de kleur van het filament wordt de koppeling met de filamentbibliotheek opgeheven. Wil je dit filament toevoegen als nieuwe spoel?"
-
-msgid "Add to Filament Library"
-msgstr "Toevoegen aan de filamentbibliotheek"
-
-msgid "Save Only"
-msgstr "Alleen opslaan"
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
 msgstr "TPU heeft een ander toevoerpad en laadprocedure nodig. Anders kan er een verstopping of vastlopen optreden. Lees de tutorial voordat u TPU gebruikt."
@@ -4111,15 +4104,52 @@ msgstr "Ga naar controleren"
 msgid "You need to select the material type and color first."
 msgstr "Je dient eerst het materiaaltype en de kleur te selecteren."
 
-msgid "Please select a color"
-msgstr ""
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "Voer een geldige waarde in (K in %.1f~%.1f)"
+
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "Voer een geldige waarde in (K in %.1f~%.1f, N in %.1f~%.1f)"
 
 msgid "Remark"
 msgstr "Opmerking"
 
+msgid "Other"
+msgstr "Anders"
+
+msgid "Filament Manager"
+msgstr "Filamentbeheer"
+
+msgid "In printer"
+msgstr "In de printer"
+
 #, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr "Voer een geldige waarde in (K in %.1f~%.1f)"
+msgid "In printer: %s"
+msgstr "In de printer: %s"
+
+msgctxt "Filament Manager"
+msgid "Note"
+msgstr "Notitie"
+
+msgid "Unsupported Filaments"
+msgstr "Niet-ondersteunde filamenten"
+
+msgctxt "Unsupported Filaments"
+msgid "Note"
+msgstr "Notitie"
+
+msgid "No unsupported filaments"
+msgstr "Geen niet-ondersteunde filamenten"
+
+msgid "No filaments"
+msgstr "Geen filamenten"
+
+msgid "System presets"
+msgstr "Systeem voorinstellingen"
+
+msgid "Recently used"
+msgstr "Recent gebruikt"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4132,6 +4162,15 @@ msgstr ""
 "De nozzledebiet is niet ingesteld. Stel het debiet van de nozzle in voordat u het filament bewerkt.\n"
 "'Apparaat -> Onderdelen printen'"
 
+msgid "AMS"
+msgstr "AMS"
+
+msgid "Other Color"
+msgstr "Andere kleur"
+
+msgid "Custom Color"
+msgstr "Aangepaste kleur"
+
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
 msgstr "AMS heeft een nieuw officieel filament gedetecteerd. Wilt u dit toevoegen aan Filament Manager?"
 
@@ -4141,17 +4180,14 @@ msgstr "Toevoegen als nieuw filament"
 msgid "Link to existing filament"
 msgstr "Koppelen aan bestaand filament"
 
+msgid "Not now"
+msgstr "Nu niet"
+
 msgid "Please select"
 msgstr "Selecteer alstublieft"
 
 msgid "No matching filament"
 msgstr "Geen overeenkomend filament"
-
-msgid "New Filament"
-msgstr "Nieuw filament"
-
-msgid "New filament information has been recorded."
-msgstr "Er zijn nieuwe gegevens over het filament vastgelegd."
 
 msgid "Dynamic flow calibration"
 msgstr "Dynamische flow kalibratie"
@@ -4201,10 +4237,6 @@ msgstr "Kalibreren... %d%%"
 
 msgid "Calibration completed"
 msgstr "Kalibratie voltooid"
-
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr "Voer een geldige waarde in (K in %.1f~%.1f, N in %.1f~%.1f)"
 
 #, c-format, boost-format
 msgid "%s does not support %s"
@@ -4356,9 +4388,6 @@ msgstr "DROOG"
 
 msgid "WET"
 msgstr "NAT"
-
-msgid "AMS"
-msgstr "AMS"
 
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
@@ -5900,9 +5929,6 @@ msgstr "De prime tower verbetert de afdrukkwaliteit bij meerkleurige prints en w
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "De hoofdtoren steekt verder uit dan de plaatgrens."
 
-msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
-msgstr "Alle objecten op de huidige plaat zijn niet afdrukbaar. Slicen zal een leeg resultaat opleveren. Controleer dit alstublieft."
-
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "De gedeeltelijke spoelvolume is ingesteld op 0. Meerkleurig printen kan kleurvermenging in modellen veroorzaken. Stel de spoelinstellingen opnieuw af."
 
@@ -6046,9 +6072,6 @@ msgstr "Meerdere apparaten"
 
 msgid "Project"
 msgstr "Project"
-
-msgid "Filament Manager"
-msgstr "Filamentbeheer"
 
 msgid "Yes"
 msgstr "Ja"
@@ -7508,12 +7531,6 @@ msgstr "Fout:"
 msgid "Open link for more info"
 msgstr "Open link voor meer info"
 
-msgid "Jump to: Support on build plate only"
-msgstr "Ga naar: Alleen ondersteuning op de bouwplaat"
-
-msgid "Jump to: Support"
-msgstr "Ga naar: Ondersteuning"
-
 msgid "Warning:"
 msgstr "Waarschuwing:"
 
@@ -8004,30 +8021,6 @@ msgstr "Gemengd filament heeft ongeldige of verkeerd passende componenten. Bewer
 
 msgid "Search plate, object and part."
 msgstr "Zoek plaat, object en onderdeel."
-
-#, c-format, boost-format
-msgid ", and %d more"
-msgstr ", en %d meer"
-
-#, c-format, boost-format
-msgid "model \"%s\""
-msgstr ""
-
-msgid "support filament"
-msgstr ""
-
-msgid "custom G-code"
-msgstr "Aangepaste G-code"
-
-#, c-format, boost-format
-msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
-msgstr "Het filament dat u verwijdert, wordt gebruikt door %s. Na verwijdering wordt de filamenttoewijzing opnieuw ingesteld."
-
-msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
-msgstr "Opmerking: om in plaats daarvan een ander filament te gebruiken, gebruikt u de functie \"Samenvoegen met\" door met de rechtermuisknop op het filament te klikken."
-
-msgid "Delete Filament"
-msgstr "Draad verwijderen"
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "Het doel gemengde filament gebruikt dit fysieke filament als component. Samenvoegen verwijdert dit fysieke filament en kan het gemengde filament ongeldig maken. Doorgaan?"
@@ -9065,26 +9058,14 @@ msgstr "Eenheden"
 msgid "Enable dark mode"
 msgstr "Donkere modus inschakelen"
 
-msgid "All related changes"
-msgstr "Alle gerelateerde wijzigingen"
+msgid "All"
+msgstr "Alles"
 
-msgid "When color changes"
-msgstr "Wanneer de kleur verandert"
+msgid "Disabled"
+msgstr "Uitgeschakeld"
 
-msgid "Turn off auto calculate"
-msgstr "Automatisch berekenen uitschakelen"
-
-msgid "Auto calculate when color changes, type or configuration changes"
-msgstr "Automatisch berekenen bij kleur-, type- of configuratiewijzigingen"
-
-msgid "Auto calculate when sync or modify filament colors"
-msgstr "Automatisch berekenen bij het synchroniseren of wijzigen van filamentkleuren"
-
-msgid "Keep current flush volumes, trigger manually when needed"
-msgstr "Houd huidige spoelvolumes aan, activeer handmatig indien nodig"
-
-msgid "Auto Calculate Flush Volume"
-msgstr "Automatische berekening van spoelvolume"
+msgid "Auto Flush"
+msgstr "Automatisch spoelen"
 
 msgid "Auto calculate flush volumes"
 msgstr "Automatisch berekenen van spoelvolumes"
@@ -9180,29 +9161,11 @@ msgstr "Auto-invullen van eerder ingelogde accounts."
 msgid "3D Settings"
 msgstr "3D-instellingen"
 
-msgid "Mouse Settings"
-msgstr "Muisinstellingen"
-
-msgid "Import Settings"
-msgstr "Importinstellingen"
-
 msgid "Zoom to mouse position"
 msgstr "Zoom naar muispositie"
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr "Zoom in op de positie van de muisaanwijzer in de 3D-weergave in plaats van in het midden van het 2D-venster."
-
-msgid "Reverse direction of zoom with mouse wheel"
-msgstr "Zoomrichting met muiswiel omkeren"
-
-msgid "If enabled, reverses the direction of zoom with mouse wheel."
-msgstr "Indien ingeschakeld, wordt de zoomrichting van het muiswiel omgekeerd."
-
-msgid "Drag with left mouse button to move"
-msgstr "Slepen met de linkermuisknop om te verplaatsen"
-
-msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
-msgstr "Indien ingeschakeld, kan de linkermuisknop modellen verplaatsen door te slepen; indien uitgeschakeld, selecteert of klikt de linkerknop alleen."
 
 msgid "Display overview"
 msgstr "Weergaveoverzicht"
@@ -9238,10 +9201,10 @@ msgid "Always show shells or not in preview view tab. If you change this value, 
 msgstr "Hiermee geeft u aan of shells altijd wel of niet worden weergegeven in het voorbeeldtabblad. Als u deze waarde wijzigt, moet u opnieuw slicen."
 
 msgid "Show Thermal Preconditioning Area"
-msgstr "Thermische voorconditioneringszone weergeven"
+msgstr "Thermisch voorverwarmingsgebied tonen"
 
 msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
-msgstr "Geef een waarschuwing als een model verder gaat dan de thermische voorconditioneringszone. Alleen beschikbaar op printers die deze functie ondersteunen."
+msgstr "Waarschuw als een model buiten het thermische voorverwarmingsgebied uitsteekt. Alleen beschikbaar op printers die deze functie ondersteunen."
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Het dialoogvenster voor het instellen van de stapmaasparameter weergeven."
@@ -9352,7 +9315,7 @@ msgid "Skip AMS blacklist check"
 msgstr "De controle op de zwarte lijst van AMS overslaan"
 
 msgid "Enable DevTools For Webview"
-msgstr "DevTools voor webweergave inschakelen"
+msgstr ""
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Bestanden koppelen aan Bambu Studio"
@@ -9450,22 +9413,17 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning\n"
-"- Delete a filament used by a model"
+"- Mixed color sublayer with variable layer height warning"
 msgstr ""
 "- Printervoorinstellingen synchroniseren na het laden van een bestand\n"
-"- Instellingen dialoogvenster \"3MF laden\"\n"
+"- Instellingen in het dialoogvenster \"3MF laden\"\n"
 "- Nabewerkingsscripts uitvoeren\n"
 "- Melding met aanbeveling voor ondersteuningsstructuur\n"
 "- Niet-opgeslagen projecten.\n"
-"- Waarschuwing voor gemengde kleursublaag met variabele laaghoogte\n"
-"- Een filament verwijderen dat door een model wordt gebruikt"
+"- Waarschuwing voor gemengde kleursublaag met variabele laagdikte"
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "Weet u zeker dat u alle voorkeuren wilt resetten? De wijzigingen worden na een herstart van kracht."
-
-msgid "System presets"
-msgstr "Systeem voorinstellingen"
 
 msgid "User presets"
 msgstr "Gebruikersvoorinstellingen"
@@ -10819,9 +10777,6 @@ msgstr ""
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Weet u zeker dat u de geselecteerde preset wilt %1%?"
 
-msgid "All"
-msgstr "Alles"
-
 msgid "Set"
 msgstr "Instellen"
 
@@ -10976,20 +10931,11 @@ msgstr "Links: "
 msgid "Right: "
 msgstr "Rechts: "
 
-msgid "Preset A"
-msgstr "Voorinstelling A"
-
-msgid "Preset B"
-msgstr "Voorinstelling B"
+msgid "Select presets to compare"
+msgstr "Selecteer voorinstellingen om te vergelijken"
 
 msgid "Show all presets (including incompatible)"
 msgstr "Toon alle presets (inclusief incompatibele)"
-
-msgid "Material"
-msgstr "Materiaal"
-
-msgid "Please select two different presets A and B to compare"
-msgstr "Selecteer twee verschillende voorinstellingen A en B om te vergelijken"
 
 msgid "Add File"
 msgstr "Bestand toevoegen"
@@ -12723,7 +12669,7 @@ msgid "Generating G-code"
 msgstr "Genereer G-code"
 
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
-msgstr "De relatieve positie van het model en de prime tower voldoet niet aan de vereisten van de functie \"Geen dunne lagen\". Pas hun relatieve posities aan, verlaag de modelhoogte, of schakel \"Geen dunne lagen\" uit."
+msgstr "De relatieve positie van het model en de prime tower voldoet niet aan de vereisten van de functie 'Geen dunne lagen'. Pas hun relatieve posities aan, verlaag de modelhoogte, of schakel 'Geen dunne lagen' uit."
 
 msgid "Failed processing of the filename_format template."
 msgstr "Mislukte verwerking van de bestandsnaam_opmaak sjabloon."
@@ -13291,9 +13237,6 @@ msgstr "Zorg voor een verticale schaaldikte"
 msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)"
 msgstr "Voeg massieve vulling toe in de buurt van hellende oppervlakken om de verticale dikte van de schaal te garanderen (boven+onder massieve lagen)"
 
-msgid "Disabled"
-msgstr "Uitgeschakeld"
-
 msgid "Partial"
 msgstr "Gedeeltelijk"
 
@@ -13383,12 +13326,6 @@ msgstr "Intern massief invulpatroon"
 
 msgid "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area."
 msgstr "Lijnpatroon van interne vaste vulling: Als \"Detect Narrow Internal Solid Infill\" is ingeschakeld, wordt het concentrische patroon gebruikt voor kleine gebieden."
-
-msgid "Sub-top surface pattern"
-msgstr "Patroon sub-bovenste oppervlak"
-
-msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
-msgstr "Lijnpatroon van de interne vaste laag direct onder een zichtbaar bovenvlak. Monotone vulling vermindert extrusiestrepen die door de bovenhuid heen zichtbaar zijn."
 
 msgid "Line width of outer wall"
 msgstr "Lijn dikte van buitenste wand"
@@ -14065,12 +14002,6 @@ msgstr "Jer van travel"
 msgid "Line width of initial layer"
 msgstr "Laag dikte voor eerste laag"
 
-msgid "Initial layer infill"
-msgstr "Eerste laag opvulling"
-
-msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
-msgstr "Lijnbreedte van de vulling van de eerste laag, inclusief dunne vulling, massieve vulling en het bovenoppervlak. Wanden, ondersteuning en alle andere onderdelen van de eerste laag worden niet beïnvloed en blijven de lijnbreedte van de eerste laag gebruiken. Nul betekent dat de lijnbreedte van de eerste laag wordt gebruikt."
-
 msgid "Initial layer height"
 msgstr "Initiële laaghoogte"
 
@@ -14079,6 +14010,9 @@ msgstr "Hoogte van de beginlaag. Een iets dikkere beginlaag kan de hechting van 
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr "Snelheid van de eerste laag behalve het vaste vulgedeelte"
+
+msgid "Initial layer infill"
+msgstr "Eerste laag opvulling"
 
 msgid "Speed of solid infill part of initial layer"
 msgstr "Snelheid van vaste infill deel van beginlaag"
@@ -15131,9 +15065,6 @@ msgstr "Scheuren kleiner dan 2x de sluitradius van de spleet worden opgevuld tij
 msgid "Slicing Mode"
 msgstr "Slicing-modus"
 
-msgid "Other"
-msgstr "Anders"
-
 msgid "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
 msgstr "Gebruik „Even-Oneven” voor 3DLabPrint-vliegtuigmodellen. Gebruik „Gaten sluiten” om alle gaten in het model te sluiten."
 
@@ -15793,22 +15724,6 @@ msgstr "Support genereren"
 
 msgid "Optimizing toolpath"
 msgstr "Optimaliseren van het pad"
-
-#, boost-format
-msgid ""
-"Unsupported overhangs were detected.\n"
-"Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
-msgstr ""
-"Niet-ondersteunde overhangen gedetecteerd.\n"
-"Model \"%1%\" heeft %2% overhangend(e) gebied(en). Omdat \"Alleen ondersteuning op de bouwplaat\" is ingeschakeld, kunnen de ondersteuningen niet vanaf de bouwplaat groeien. Probeer deze optie uit te schakelen."
-
-#, boost-format
-msgid ""
-"Unsupported overhangs were detected.\n"
-"Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
-msgstr ""
-"Niet-ondersteunde overhangen gedetecteerd.\n"
-"Model \"%1%\" heeft %2% overhangend(e) gebied(en) waarvoor geen support kon worden gegenereerd. Probeer de ondersteuningsinstellingen aan te passen of het object opnieuw te oriënteren."
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "Lege lagen in de buurt van de bodem worden vervangen door de dichtsbijzijnde normale lagen."
@@ -17118,6 +17033,9 @@ msgstr "Preset verwijderen"
 msgid "+ Add Preset"
 msgstr "+ Preset toevoegen"
 
+msgid "Delete Filament"
+msgstr "Draad verwijderen"
+
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament information for that slot."
@@ -17932,9 +17850,6 @@ msgstr "Deze actie kan niet ongedaan worden gemaakt. Doorgaan?"
 msgid "Skipping objects."
 msgstr "Objecten overslaan."
 
-msgid "Custom Color"
-msgstr "Aangepaste kleur"
-
 msgid "Null Color"
 msgstr "Nietige kleur"
 
@@ -18665,77 +18580,6 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
-
-#~ msgid ""
-#~ "Drag to move the cut plane\n"
-#~ "Right-click a part to assign it to the other side"
-#~ msgstr ""
-#~ "Slepen om het snijvlak te verplaatsen\n"
-#~ "Klik met de rechtermuisknop op een onderdeel om het aan de andere kant toe te wijzen"
-
-#~ msgid "max"
-#~ msgstr "max"
-
-#~ msgid "min"
-#~ msgstr "min"
-
-#, boost-format
-#~ msgid "The input value should be greater than %1% and less than %2%"
-#~ msgstr "De invoerwaarde moet groter zijn dan %1% en kleiner dan %2%"
-
-#~ msgid "In printer"
-#~ msgstr "In de printer"
-
-#, c-format, boost-format
-#~ msgid "In printer: %s"
-#~ msgstr "In de printer: %s"
-
-#~ msgctxt "Filament Manager"
-#~ msgid "Note"
-#~ msgstr "Notitie"
-
-#~ msgid "Unsupported Filaments"
-#~ msgstr "Niet-ondersteunde filamenten"
-
-#~ msgctxt "Unsupported Filaments"
-#~ msgid "Note"
-#~ msgstr "Notitie"
-
-#~ msgid "No unsupported filaments"
-#~ msgstr "Geen niet-ondersteunde filamenten"
-
-#~ msgid "No filaments"
-#~ msgstr "Geen filamenten"
-
-#~ msgid "Recently used"
-#~ msgstr "Recent gebruikt"
-
-#~ msgid "Other Color"
-#~ msgstr "Andere kleur"
-
-#~ msgid "Not now"
-#~ msgstr "Nu niet"
-
-#~ msgid "Auto Flush"
-#~ msgstr "Automatisch spoelen"
-
-#~ msgid ""
-#~ "- Sync printer presets after loading a file\n"
-#~ "- \"Load 3MF\" dialog settings\n"
-#~ "- Executing post-processing scripts\n"
-#~ "- Support structure recommendation prompt\n"
-#~ "- Unsaved projects.\n"
-#~ "- Mixed color sublayer with variable layer height warning"
-#~ msgstr ""
-#~ "- Printervoorinstellingen synchroniseren na het laden van een bestand\n"
-#~ "- Instellingen in het dialoogvenster \"3MF laden\"\n"
-#~ "- Nabewerkingsscripts uitvoeren\n"
-#~ "- Melding met aanbeveling voor ondersteuningsstructuur\n"
-#~ "- Niet-opgeslagen projecten.\n"
-#~ "- Waarschuwing voor gemengde kleursublaag met variabele laagdikte"
-
-#~ msgid "Select presets to compare"
-#~ msgstr "Selecteer voorinstellingen om te vergelijken"
 
 #~ msgid "Air Purifier"
 #~ msgstr "Luchtreiniger"

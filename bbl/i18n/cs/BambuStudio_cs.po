@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-27 15:05+0800\n"
+"POT-Creation-Date: 2026-08-14 16:02+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -899,11 +899,16 @@ msgstr "Část"
 msgid "Object"
 msgstr "Objekt"
 
-msgid "Right-click a part to assign it to the other side"
-msgstr ""
-
 msgid "Drag to move the cut plane"
 msgstr "Přetažením posuňte řeznou rovinu"
+
+msgid ""
+"Drag to move the cut plane\n"
+"Right-click a part to assign it to the other side"
+msgstr ""
+"Přetažením posuňte řeznou rovinu\n"
+"Klikněte pravým tlačítkem na díl a přiřaďte jej na druhou stranuPřetažením posuňte řeznou rovinu\n"
+"Pravým tlačítkem myši přiřaďte díl na opačnou stranu"
 
 msgid "Left click"
 msgstr "Levé kliknutí"
@@ -2619,9 +2624,6 @@ msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Error: reversed faces detected, which may affect rendering"
-msgstr ""
-
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
@@ -2636,9 +2638,6 @@ msgstr "Klikněte pravým tlačítkem na ikonu pro zrušení nastavení objektu"
 
 msgid "Click the icon to reset all settings of the object"
 msgstr "Klikněte na ikonu pro obnovení všech nastavení objektu"
-
-msgid "Unprintable object"
-msgstr ""
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "Klikněte pravým tlačítkem na ikonu pro zrušení tisknutelnosti objektu"
@@ -4070,11 +4069,23 @@ msgstr "Nastavení materiálů AMS"
 msgid "Colour"
 msgstr "Barva"
 
+msgid ""
+"Nozzle\n"
+"Temperature"
+msgstr "Teplota trysky"
+
+msgid "max"
+msgstr "max"
+
+msgid "min"
+msgstr "min"
+
+#, boost-format
+msgid "The input value should be greater than %1% and less than %2%"
+msgstr "Vstupní hodnota musí být větší než %1% a menší než %2%"
+
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Faktory kalibrace dynamiky průtoku"
-
-msgid "View Wiki for details"
-msgstr ""
 
 msgid "Nozzle Type"
 msgstr "Typ trysky"
@@ -4088,11 +4099,6 @@ msgstr "Faktor K"
 msgid "Factor N"
 msgstr "Faktor N"
 
-msgid ""
-"Nozzle\n"
-"Temperature"
-msgstr "Teplota trysky"
-
 msgid "Setting AMS slot information while printing is not supported"
 msgstr "Nastavení informací o slotu AMS během tisku není podpěrováno"
 
@@ -4101,18 +4107,6 @@ msgstr "Nastavení informací o virtuálním slotu během tisku není podpěrov�
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Opravdu chcete vymazat informace o struně?"
-
-msgid "Add to Filament Library?"
-msgstr ""
-
-msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
-msgstr ""
-
-msgid "Add to Filament Library"
-msgstr ""
-
-msgid "Save Only"
-msgstr ""
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
 msgstr "TPU vyžaduje odlišnou dráhu podávání a postup načítání. Jinak může dojít k ucpání nebo zaseknutí. Před použitím TPU si prosím přečtěte návod."
@@ -4123,15 +4117,52 @@ msgstr "Přejít ke kontrole"
 msgid "You need to select the material type and color first."
 msgstr "Nejprve musíte vybrat typ materiálu a barvu."
 
-msgid "Please select a color"
-msgstr ""
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "Zadejte platnou hodnotu (K v %.1f~%.1f)"
+
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "Zadejte platnou hodnotu (K v %.1f~%.1f, N v %.1f~%.1f)"
 
 msgid "Remark"
 msgstr ""
 
+msgid "Other"
+msgstr "Ostatní"
+
+msgid "Filament Manager"
+msgstr "Filament Manager"
+
+msgid "In printer"
+msgstr ""
+
 #, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr "Zadejte platnou hodnotu (K v %.1f~%.1f)"
+msgid "In printer: %s"
+msgstr ""
+
+msgctxt "Filament Manager"
+msgid "Note"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr ""
+
+msgctxt "Unsupported Filaments"
+msgid "Note"
+msgstr ""
+
+msgid "No unsupported filaments"
+msgstr ""
+
+msgid "No filaments"
+msgstr ""
+
+msgid "System presets"
+msgstr "Systémová přednastavení"
+
+msgid "Recently used"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4145,6 +4176,15 @@ msgstr ""
 "'Zařízení -> Tiskové díly'Průtok trysky není nastaven. Před úpravou filamentu nastavte průtok trysky.\n"
 "„Zařízení -> Tisk části“"
 
+msgid "AMS"
+msgstr "AMS"
+
+msgid "Other Color"
+msgstr "Jiná barva"
+
+msgid "Custom Color"
+msgstr "Vlastní barva"
+
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
 msgstr ""
 
@@ -4154,16 +4194,13 @@ msgstr ""
 msgid "Link to existing filament"
 msgstr ""
 
+msgid "Not now"
+msgstr ""
+
 msgid "Please select"
 msgstr ""
 
 msgid "No matching filament"
-msgstr ""
-
-msgid "New Filament"
-msgstr ""
-
-msgid "New filament information has been recorded."
 msgstr ""
 
 msgid "Dynamic flow calibration"
@@ -4214,10 +4251,6 @@ msgstr "Probíhá kalibrace... %d%%"
 
 msgid "Calibration completed"
 msgstr "Kalibrace byla dokončena"
-
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr "Zadejte platnou hodnotu (K v %.1f~%.1f, N v %.1f~%.1f)"
 
 #, c-format, boost-format
 msgid "%s does not support %s"
@@ -4374,9 +4407,6 @@ msgstr "SUCHÉ"
 
 msgid "WET"
 msgstr "VLHKÝ"
-
-msgid "AMS"
-msgstr "AMS"
 
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
@@ -5952,9 +5982,6 @@ msgstr "Věž pro oddělení trysky zlepšuje kvalitu vícebarevného tisku a je
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "Věž pro oddělení trysky přesahuje okraj podložky."
 
-msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
-msgstr ""
-
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "Částečný objem proplachu je nastaven na 0. Vícebarevný tisk může způsobit míchání barev v modelech. Upravte prosím znovu nastavení proplachu."
 
@@ -6095,9 +6122,6 @@ msgstr "Více zařízení"
 
 msgid "Project"
 msgstr "Projekt"
-
-msgid "Filament Manager"
-msgstr "Filament Manager"
 
 msgid "Yes"
 msgstr "Ano"
@@ -7569,12 +7593,6 @@ msgstr "Chyba:"
 msgid "Open link for more info"
 msgstr "Otevřít odkaz pro více informací"
 
-msgid "Jump to: Support on build plate only"
-msgstr ""
-
-msgid "Jump to: Support"
-msgstr ""
-
 msgid "Warning:"
 msgstr "Varování:"
 
@@ -8067,30 +8085,6 @@ msgstr "Smíšený filament má neplatné nebo neodpovídající složky. Upravt
 
 msgid "Search plate, object and part."
 msgstr "Hledat podložku, objekt a část."
-
-#, c-format, boost-format
-msgid ", and %d more"
-msgstr ""
-
-#, c-format, boost-format
-msgid "model \"%s\""
-msgstr ""
-
-msgid "support filament"
-msgstr ""
-
-msgid "custom G-code"
-msgstr ""
-
-#, c-format, boost-format
-msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
-msgstr ""
-
-msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
-msgstr ""
-
-msgid "Delete Filament"
-msgstr "Smazat filament"
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr "Cílový smíšený filament používá tento fyzický filament jako jednu ze složek. Sloučením bude tento fyzický filament odstraněn a smíšený filament se může stát neplatným. Pokračovat?"
@@ -9143,26 +9137,14 @@ msgstr "Jednotky"
 msgid "Enable dark mode"
 msgstr "Povolit tmavý režim"
 
-msgid "All related changes"
-msgstr ""
+msgid "All"
+msgstr "Vše"
 
-msgid "When color changes"
-msgstr ""
+msgid "Disabled"
+msgstr "Zakázáno"
 
-msgid "Turn off auto calculate"
-msgstr ""
-
-msgid "Auto calculate when color changes, type or configuration changes"
-msgstr ""
-
-msgid "Auto calculate when sync or modify filament colors"
-msgstr ""
-
-msgid "Keep current flush volumes, trigger manually when needed"
-msgstr ""
-
-msgid "Auto Calculate Flush Volume"
-msgstr ""
+msgid "Auto Flush"
+msgstr "Automatické proplachování"
 
 msgid "Auto calculate flush volumes"
 msgstr "Automatický výpočet objemů pro proplach"
@@ -9258,29 +9240,11 @@ msgstr "Automatické vyplnění dříve přihlášených účtů."
 msgid "3D Settings"
 msgstr "3D nastavení"
 
-msgid "Mouse Settings"
-msgstr ""
-
-msgid "Import Settings"
-msgstr ""
-
 msgid "Zoom to mouse position"
 msgstr "Přiblížit na pozici myši"
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr "Přibližovat k pozici kurzoru myši ve 3D zobrazení namísto středu 2D okna."
-
-msgid "Reverse direction of zoom with mouse wheel"
-msgstr ""
-
-msgid "If enabled, reverses the direction of zoom with mouse wheel."
-msgstr ""
-
-msgid "Drag with left mouse button to move"
-msgstr ""
-
-msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
-msgstr ""
 
 msgid "Display overview"
 msgstr "Přehled zobrazení"
@@ -9528,15 +9492,11 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning\n"
-"- Delete a filament used by a model"
+"- Mixed color sublayer with variable layer height warning"
 msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr ""
-
-msgid "System presets"
-msgstr "Systémová přednastavení"
 
 msgid "User presets"
 msgstr "Uživatelská přednastavení"
@@ -10894,9 +10854,6 @@ msgstr ""
 msgid "Are you sure to %1% the selected preset?"
 msgstr "Opravdu chcete %1% vybrané přednastavení?"
 
-msgid "All"
-msgstr "Vše"
-
 msgid "Set"
 msgstr "Nastavit"
 
@@ -11055,20 +11012,11 @@ msgstr "Levá: "
 msgid "Right: "
 msgstr "Pravá: "
 
-msgid "Preset A"
-msgstr ""
-
-msgid "Preset B"
-msgstr ""
+msgid "Select presets to compare"
+msgstr "Vyberte přednastavení k porovnání"
 
 msgid "Show all presets (including incompatible)"
 msgstr "Zobrazit všechna přednastavení (včetně nekompatibilních)"
-
-msgid "Material"
-msgstr ""
-
-msgid "Please select two different presets A and B to compare"
-msgstr ""
 
 msgid "Add File"
 msgstr "Přidat soubor"
@@ -13379,9 +13327,6 @@ msgstr "Zajistit tloušťku svislého pláště"
 msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)"
 msgstr "Přidat pevnou výplň v blízkosti šikmých ploch pro zajištění svislé tloušťky stěny (horní a spodní pevné vrstvy)"
 
-msgid "Disabled"
-msgstr "Zakázáno"
-
 msgid "Partial"
 msgstr "Částečný"
 
@@ -13469,12 +13414,6 @@ msgstr "Vzor vnitřní plné výplně"
 
 msgid "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area."
 msgstr "Vzor čar vnitřní plné výplně. Je-li detekce úzké vnitřní plné výplně povolena, pro malou oblast bude použit koncentrický vzor."
-
-msgid "Sub-top surface pattern"
-msgstr ""
-
-msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
-msgstr ""
 
 msgid "Line width of outer wall"
 msgstr "Šířka čáry vnější stěny"
@@ -14152,12 +14091,6 @@ msgstr "Rychlost změny pohybu přejezdu"
 msgid "Line width of initial layer"
 msgstr "Šířka čáry počáteční vrstvy"
 
-msgid "Initial layer infill"
-msgstr "Výplň počáteční vrstvy"
-
-msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
-msgstr ""
-
 msgid "Initial layer height"
 msgstr "Výška počáteční vrstvy"
 
@@ -14166,6 +14099,9 @@ msgstr "Výška počáteční vrstvy. Mírné zvětšení výšky počáteční 
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr "Rychlost počáteční vrstvy kromě oblasti plné výplně"
+
+msgid "Initial layer infill"
+msgstr "Výplň počáteční vrstvy"
 
 msgid "Speed of solid infill part of initial layer"
 msgstr "Rychlost plné výplně počáteční vrstvy"
@@ -15220,9 +15156,6 @@ msgstr "Praskliny menší než dvojnásobek poloměru uzavírání mezer se běh
 msgid "Slicing Mode"
 msgstr "Režim řezání"
 
-msgid "Other"
-msgstr "Ostatní"
-
 msgid "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
 msgstr "Použijte „sudý-lichý“ pro modely letadel 3DLabPrint. Použijte „Zavřít díry“ pro uzavření všech otvorů v modelu."
 
@@ -15883,18 +15816,6 @@ msgstr "Generování podpěr"
 
 msgid "Optimizing toolpath"
 msgstr "Optimalizace dráhy nástroje"
-
-#, boost-format
-msgid ""
-"Unsupported overhangs were detected.\n"
-"Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
-msgstr ""
-
-#, boost-format
-msgid ""
-"Unsupported overhangs were detected.\n"
-"Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
-msgstr ""
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "Prázdné vrstvy na spodní straně jsou nahrazeny nejbližšími běžnými vrstvami."
@@ -17252,6 +17173,9 @@ msgstr "Smazat přednastavení"
 msgid "+ Add Preset"
 msgstr "+ Přidat přednastavení"
 
+msgid "Delete Filament"
+msgstr "Smazat filament"
+
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament information for that slot."
@@ -18075,9 +17999,6 @@ msgstr "Tuto akci nelze vrátit zpět. Pokračovat?"
 msgid "Skipping objects."
 msgstr "Přeskakují se objekty."
 
-msgid "Custom Color"
-msgstr "Vlastní barva"
-
 msgid "Null Color"
 msgstr "Žádná barva"
 
@@ -18833,33 +18754,6 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
-
-#~ msgid ""
-#~ "Drag to move the cut plane\n"
-#~ "Right-click a part to assign it to the other side"
-#~ msgstr ""
-#~ "Přetažením posuňte řeznou rovinu\n"
-#~ "Klikněte pravým tlačítkem na díl a přiřaďte jej na druhou stranuPřetažením posuňte řeznou rovinu\n"
-#~ "Pravým tlačítkem myši přiřaďte díl na opačnou stranu"
-
-#~ msgid "max"
-#~ msgstr "max"
-
-#~ msgid "min"
-#~ msgstr "min"
-
-#, boost-format
-#~ msgid "The input value should be greater than %1% and less than %2%"
-#~ msgstr "Vstupní hodnota musí být větší než %1% a menší než %2%"
-
-#~ msgid "Other Color"
-#~ msgstr "Jiná barva"
-
-#~ msgid "Auto Flush"
-#~ msgstr "Automatické proplachování"
-
-#~ msgid "Select presets to compare"
-#~ msgstr "Vyberte přednastavení k porovnání"
 
 #, boost-format
 #~ msgid "Assembly's bounding box is too large ( max size >= %1% in ) which may cause rendering issues.\n"
