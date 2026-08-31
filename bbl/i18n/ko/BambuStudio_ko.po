@@ -4,7 +4,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-08-14 16:02+0800\n"
 "PO-Revision-Date: \n"
-"Last-Translator: \n"
+"Last-Translator: Juunini <juuni.ni.i@gmail.com>\n"
 "Language-Team: \n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
@@ -327,10 +327,10 @@ msgid "Temperature"
 msgstr "온도"
 
 msgid "Left Time"
-msgstr "남은 시간: {time}"
+msgstr "남은 시간"
 
 msgid "Drying"
-msgstr "전력 제한으로 인해 출력 중에는 건조를 위해 장치의 전원을 사용할 수 없습니다. 건조를 중단해야 할까요?"
+msgstr "건조 중"
 
 msgid "Idle"
 msgstr "대기중"
@@ -594,7 +594,7 @@ msgid "Mode"
 msgstr "모드"
 
 msgid "Convex hull"
-msgstr "볼록한 선체"
+msgstr "컨벡스 헐"
 
 msgid "Triangular facet"
 msgstr "삼각형 패싯"
@@ -761,7 +761,7 @@ msgid "Keep holding down Alt"
 msgstr "Alt 키를 계속 누르세요"
 
 msgid "Select multiple parts"
-msgstr "여러 객체 선택"
+msgstr "여러 파트 선택"
 
 msgid "Single sided scaling"
 msgstr "단면 스케일링"
@@ -1264,7 +1264,7 @@ msgstr ""
 " 두 점 사이의 거리를 지정합니다."
 
 msgid "Face"
-msgstr "얼굴"
+msgstr "면"
 
 msgid " (Fixed)"
 msgstr " (수정됨)"
@@ -1343,7 +1343,7 @@ msgid "(Moving)"
 msgstr "(이동)"
 
 msgid "Face and face assembly"
-msgstr "얼굴 및 얼굴 조립"
+msgstr "면과 면 조립"
 
 msgid "Point and point assembly"
 msgstr "포인트 및 포인트 어셈블리"
@@ -1354,7 +1354,7 @@ msgid ""
 "and only parts can be lifted."
 msgstr ""
 "먼저 물건을 조립하는 것이 좋습니다,\n"
-"물건이 침대에 고정되어 있고\n"
+"객체가 베드에 고정되어 있고\n"
 "부분만 들어 올릴 수 있으므로 먼저 조립하는 것이 좋습니다."
 
 msgid "Brush size"
@@ -1364,13 +1364,13 @@ msgid "Brush shape"
 msgstr "브러시 모양"
 
 msgid "Enforce seam"
-msgstr "이음새 강제 지정"
+msgstr "심 강제 지정"
 
 msgid "Block seam"
-msgstr "재봉선 제거"
+msgstr "심 차단"
 
 msgid "Seam painting"
-msgstr "재봉선 페인팅"
+msgstr "심 페인팅"
 
 msgid "Remove selection"
 msgstr "선택 제거"
@@ -1488,7 +1488,7 @@ msgid "Cut"
 msgstr "잘라내기"
 
 msgid "Click to change part type into negative volume."
-msgstr "출력물 유형을 음량 볼륨으로 변경하려면 클릭하세요."
+msgstr "파트 유형을 네거티브 볼륨으로 변경하려면 클릭하세요."
 
 msgid "Modifier"
 msgstr "수정자"
@@ -1957,7 +1957,7 @@ msgid ""
 "\n"
 "Do you want to continue?"
 msgstr ""
-"이 작업은 모델의 메쉬를 다시 생성합니다. 페인팅 색상, 지지대, 이음새 및 퍼지 스킨은 최대 근사치로 새 메쉬로 옮겨지지만, 결과가 약간 다를 수 있으며 드물게 도색이 일부 손실될 수도 있습니다.\n"
+"이 작업은 모델의 메시를 다시 생성합니다. 페인팅 색상, 지지대, 심 및 퍼지 스킨은 최대한 비슷하게 새 메시로 옮겨지지만 결과가 약간 다를 수 있으며, 드물게 일부 페인팅이 손실될 수 있습니다.\n"
 "\n"
 "계속하시겠습니까?"
 
@@ -1973,9 +1973,9 @@ msgid ""
 "Please make sure Bambu Studio has permission to delete and write in this directory,\n"
 "and it is not being occupied by the system or other applications."
 msgstr ""
-"프리셋 파일을 %s로 설치하지 못했습니다.\n"
-"Bambu Studio에이 디렉토리를 삭제하고 쓸 수있는 권한이 있는지 확인하십시오.\n"
-"그리고 시스템이나 다른 응용 프로그램에 의해 점유되지 않습니다."
+"프리셋 파일을 %s에 설치하지 못했습니다.\n"
+"Bambu Studio에 이 디렉터리의 파일을 삭제하고 쓸 권한이 있으며,\n"
+"시스템이나 다른 애플리케이션이 디렉터리를 사용 중이지 않은지 확인하세요."
 
 #, c-format, boost-format
 msgid ""
@@ -2183,7 +2183,7 @@ msgid "Add part"
 msgstr "출력물 추가"
 
 msgid "Add negative part"
-msgstr "음량 부품 추가"
+msgstr "네거티브 파트 추가"
 
 msgid "Add modifier"
 msgstr "수정자 추가"
@@ -2198,7 +2198,7 @@ msgid "Add text"
 msgstr "글자 추가"
 
 msgid "Add negative text"
-msgstr "음량 글자 추가"
+msgstr "네거티브 텍스트 추가"
 
 msgid "Add text modifier"
 msgstr "글자 수정자 추가"
@@ -2207,7 +2207,7 @@ msgid "Add SVG part"
 msgstr "SVG 출력물 추가"
 
 msgid "Add negative SVG"
-msgstr "음량 SVG 추가"
+msgstr "네거티브 SVG 추가"
 
 msgid "Add SVG modifier"
 msgstr "SVG 수정자 추가"
@@ -2297,7 +2297,7 @@ msgid "Change type"
 msgstr "유형 변경"
 
 msgid "Negative Part"
-msgstr "음량 부품"
+msgstr "네거티브 파트"
 
 msgid "Support Blocker"
 msgstr "서포트 차단기"
@@ -2606,17 +2606,17 @@ msgstr "오류: 비매니폴드 가장자리 %1$d개, 비매니폴드 꼭짓점 
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge"
 msgid_plural "Error: %1$d non-manifold edges"
-msgstr[0] ""
+msgstr[0] "오류: 비다양체 모서리 %1$d개"
 
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold vertex"
 msgid_plural "Error: %1$d non-manifold vertices"
-msgstr[0] ""
+msgstr[0] "오류: 비다양체 꼭짓점 %1$d개"
 
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
-msgstr[0] ""
+msgstr[0] "정보: 열린 모서리 %1$d개"
 
 msgid "Right click the icon to fix model object"
 msgstr "아이콘을 마우스 오른쪽 버튼으로 클릭하여 모델 객체를 수정합니다."
@@ -2676,7 +2676,7 @@ msgid "Delete solid part from object which is a part of cut"
 msgstr "절단된 객체에서 솔리드 부분 삭제"
 
 msgid "Delete negative volume from object which is a part of cut"
-msgstr "절단 일부인 출력물에서 음량 볼륨 삭제"
+msgstr "절단 객체의 파트에서 네거티브 볼륨 삭제"
 
 msgid "To save cut correspondence you can delete all connectors from all related objects."
 msgstr "컷 대응을 저장하려면 관련된 객체들로부터 모든 커넥터를 삭제하면 됩니다."
@@ -2770,7 +2770,7 @@ msgstr[0] "다음 모델 객체가 복구되었습니다."
 
 msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model object"
-msgstr[0] ""
+msgstr[0] "다음 모델 객체를 복구하지 못했습니다"
 
 msgid "Repairing was canceled"
 msgstr "오류수정이 취소되었습니다"
@@ -2998,7 +2998,7 @@ msgstr "/"
 
 msgctxt "AMS filament"
 msgid "loading"
-msgstr ""
+msgstr "로딩 중"
 
 msgid "Confirm"
 msgstr "확인"
@@ -3041,7 +3041,7 @@ msgid "Full Cooling"
 msgstr "전체 냉각"
 
 msgid "Init"
-msgstr ""
+msgstr "초기화"
 
 msgid "Chamber"
 msgstr "실내 배기 팬"
@@ -3100,7 +3100,7 @@ msgid "Chamber"
 msgstr "실내 배기 팬"
 
 msgid "Hotend"
-msgstr "노즐 마커가 손상되어 오른쪽 핫엔드를 식별할 수 없습니다. 핫엔드 유형을 수동으로 설정하세요."
+msgstr "핫엔드"
 
 msgid "Parts"
 msgstr "출력물"
@@ -3163,10 +3163,10 @@ msgid "Check filament location"
 msgstr "필라멘트 위치 확인"
 
 msgid "The maximum temperature cannot exceed "
-msgstr "최대 온도는 다음을 초과할 수 없습니다"
+msgstr "최대 온도 상한: "
 
 msgid "The minmum temperature should not be less than "
-msgstr "최소 온도는 다음보다 낮지 않아야합니다"
+msgstr "최소 온도 하한: "
 
 msgid "Export file Settings"
 msgstr "파일 내보내기 설정"
@@ -4247,16 +4247,16 @@ msgid ""
 "Lower half area: The filament from original project will be used when unmapped.\n"
 "And you can click it to modify"
 msgstr ""
-"상반신 영역:  원본\n"
-"아래쪽 절반 영역: 매핑을 해제하면 원본 프로젝트의 필라멘트가 사용됩니다.\n"
-"그리고 클릭하여 수정할 수 있습니다"
+"위쪽 절반 영역:  원본\n"
+"아래쪽 절반 영역: 매핑되지 않은 경우 원본 프로젝트의 필라멘트가 사용됩니다.\n"
+"클릭하여 수정할 수 있습니다"
 
 msgid ""
 "Upper half area:  Original\n"
 "Lower half area:  Filament in AMS\n"
 "And you can click it to modify"
 msgstr ""
-"상반신 영역:  원본\n"
+"위쪽 절반 영역:  원본\n"
 "아래쪽 절반 영역:  AMS의 필라멘트\n"
 "클릭하여 수정할 수 있습니다"
 
@@ -4265,7 +4265,7 @@ msgid ""
 "Lower half area:  Filament in AMS\n"
 "And you cannot click it to modify"
 msgstr ""
-"상반신 영역:  원본\n"
+"위쪽 절반 영역:  원본\n"
 "아래쪽 절반 영역:  AMS의 필라멘트\n"
 "클릭하여 수정할 수 없습니다"
 
@@ -4503,10 +4503,10 @@ msgid "click here to see more info"
 msgstr "자세한 정보를 보려면 여기를 클릭하십시오."
 
 msgid "Please home all axes (click "
-msgstr "모든 축을 원위치시키십시오(클릭"
+msgstr "모든 축을 원점 복귀하세요(클릭 "
 
 msgid ") to locate the toolhead's position. This prevents device moving beyond the printable boundary and causing equipment wear."
-msgstr ") to locate the toolhead's position. 출력 가능영역을 넘어 출력하게 됨으로써 발생하는 마모를 방지할 수 있습니다."
+msgstr ")하여 툴헤드 위치를 확인합니다. 장치가 출력 가능 영역을 벗어나 이동하여 마모되는 것을 방지합니다."
 
 msgid "Go Home"
 msgstr "홈으로 이동"
@@ -4641,7 +4641,7 @@ msgid "The recommended minimum temperature cannot be higher than the recommended
 msgstr "권장 최저 온도는 권장 최고 온도보다 높을 수 없습니다.\n"
 
 msgid "Please check.\n"
-msgstr "xcam에 미피 인터럽트가 없으니 하드웨어와 회선 연결을 확인하세요.\n"
+msgstr "확인해 주세요.\n"
 
 msgid ""
 "Nozzle may be blocked when the temperature is out of recommended range.\n"
@@ -4751,7 +4751,7 @@ msgid ""
 msgstr ""
 "코끼리 발 보정이 너무 크면 문제가 됩니다.\n"
 "매우 심각한 코끼리 발 효과의 경우 다른 설정을 확인하세요.\n"
-"예를 들어 침대 온도가 너무 높을 수 있습니다.\n"
+"예를 들어 베드 온도가 너무 높을 수 있습니다.\n"
 "\n"
 "이 값은 0으로 재설정됩니다."
 
@@ -5052,7 +5052,7 @@ msgid "Live View Camera Calibration"
 msgstr "라이브 뷰 카메라 교정"
 
 msgid "Waiting for heatbed to reach target temperature"
-msgstr "히베트드가 목표 온도에 도달할 때까지 기다리고 있습니다."
+msgstr "히트베드가 목표 온도에 도달할 때까지 기다리는 중입니다."
 
 msgid "Auto Check: Material Position"
 msgstr "자동 확인: 재료 위치"
@@ -5426,7 +5426,7 @@ msgid "Travel"
 msgstr "이동"
 
 msgid "Seams"
-msgstr "솔기"
+msgstr "심"
 
 msgid "Retract"
 msgstr "수축"
@@ -5800,7 +5800,7 @@ msgstr "전면"
 
 msgctxt "Camera"
 msgid "Back"
-msgstr ""
+msgstr "뒤로"
 
 msgctxt "Camera"
 msgid "Isometric"
@@ -6545,7 +6545,7 @@ msgstr "디렉토리 선택"
 #, c-format, boost-format
 msgid "There is %d config exported. (Only non-system configs)"
 msgid_plural "There are %d configs exported. (Only non-system configs)"
-msgstr[0] ""
+msgstr[0] "%d개의 설정을 내보냈습니다. (시스템 설정 제외)"
 
 msgid "Export result"
 msgstr "결과 내보내기"
@@ -6556,7 +6556,7 @@ msgstr "불러올 프로파일 선택:"
 #, c-format, boost-format
 msgid "There is %d config imported. (Only non-system and compatible configs)"
 msgid_plural "There are %d configs imported. (Only non-system and compatible configs)"
-msgstr[0] ""
+msgstr[0] "%d개의 설정을 가져왔습니다. (호환되는 비시스템 설정만)"
 
 msgid "Import result"
 msgstr "결과 가져오기"
@@ -6765,7 +6765,7 @@ msgstr "LAN 전용 모드에서는 저장소의 파일 검색이 지원되지 �
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
 msgid_plural "You are going to delete %u files from printer. Are you sure to continue?"
-msgstr[0] ""
+msgstr[0] "프린터에서 파일 %u개를 삭제합니다. 계속하시겠습니까?"
 
 msgid "Delete files"
 msgstr "파일 삭제"
@@ -6969,7 +6969,7 @@ msgid "Quit"
 msgstr "끝내기"
 
 msgid "Switching..."
-msgstr "압출기 전환 모터가 비정상적으로 작동하고 있습니다. 연결 케이블이 느슨한지 확인하십시오."
+msgstr "전환 중..."
 
 msgid "Switching failed"
 msgstr "전환 실패"
@@ -7402,7 +7402,7 @@ msgid "Update your Bambu Studio could enable all functionality in the 3mf file."
 msgstr "Bambu Studio를 업데이트하면 3mf 파일에 있는 모든 기능을 사용할 수 있습니다."
 
 msgid "Current Version: "
-msgstr "현재 버전:"
+msgstr "현재 버전: "
 
 msgid "Latest Version: "
 msgstr "최신 버전: "
@@ -7412,7 +7412,7 @@ msgid "Update"
 msgstr "지금 업데이트"
 
 msgid "Not for now"
-msgstr "지금 확인"
+msgstr "나중에"
 
 msgid "Server Exception"
 msgstr "서버 예외"
@@ -7486,7 +7486,7 @@ msgstr "하드웨어를 안전하게 제거합니다."
 #, c-format, boost-format
 msgid "%1$d Object has custom support."
 msgid_plural "%1$d Objects have custom support."
-msgstr[0] ""
+msgstr[0] "%1$d개 객체에 사용자 지정 지지대가 있습니다."
 
 #, c-format, boost-format
 msgid "%1$d Object has color painting."
@@ -7496,12 +7496,12 @@ msgstr[0] "%1$d 객체에 컬러 페인팅이 있습니다."
 #, c-format, boost-format
 msgid "%1$d Object has fuzzy skin."
 msgid_plural "%1$d Objects have fuzzy skin."
-msgstr[0] ""
+msgstr[0] "%1$d개 객체에 퍼지 스킨이 적용되어 있습니다."
 
 #, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object"
-msgstr[0] ""
+msgstr[0] "%1$d개 객체를 절단 객체의 파트로 불러왔습니다."
 
 msgid "ERROR"
 msgstr "오류"
@@ -7528,7 +7528,7 @@ msgid "Warning:"
 msgstr "경고:"
 
 msgid "Wiki for details."
-msgstr ""
+msgstr "자세한 내용은 위키를 참조하세요."
 
 msgid "Export successfully."
 msgstr "내보내기 성공"
@@ -7844,7 +7844,7 @@ msgstr "노즐"
 
 #, boost-format
 msgid "It is not recommended to print the following filament(s) with %1%: %2%\n"
-msgstr "다음 필라멘트로 출력하지 않는 것이 좋습니다: %1%%2%\n"
+msgstr "%1%로 다음 필라멘트를 출력하지 않는 것이 좋습니다: %2%\n"
 
 msgid "It is not recommended to use the following nozzle and filament combinations:\n"
 msgstr "다음과 같은 노즐과 필라멘트 조합은 사용하지 않는 것이 좋습니다.\n"
@@ -8062,6 +8062,8 @@ msgid ""
 "It seems that you have projects that were not closed properly. Would you like to restore your last unsaved project?\n"
 "If you have a currently opened project and click \"Restore\", the current project will be closed."
 msgstr ""
+"정상적으로 닫히지 않은 프로젝트가 있습니다. 마지막으로 저장하지 않은 프로젝트를 복원하시겠습니까?\n"
+"현재 프로젝트가 열려 있는 상태에서 \"복원\"을 클릭하면 현재 프로젝트가 닫힙니다."
 
 msgid "Restore"
 msgstr "복원"
@@ -8794,7 +8796,7 @@ msgid "Reason: \"%1%\" and another part have no intersection."
 msgstr "이유: \"%1%\"과 다른 부분은 교집합이 없습니다."
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
-msgstr "음량 부분이 감지되었습니다. 내보내기 전에 메시 비우기를 수행하시겠습니까?"
+msgstr "네거티브 파트가 감지되었습니다. 내보내기 전에 메시 불리언 연산을 수행하시겠습니까?"
 
 msgid "Failed to save the project: an invalid setting value was found while writing the file."
 msgstr "프로젝트를 저장하지 못했습니다. 파일에 쓰는 중 잘못된 설정값이 발견되었습니다."
@@ -8820,7 +8822,7 @@ msgid "Are you sure to use them? \n"
 msgstr "정말로 사용하시겠습니까? \n"
 
 msgid "When thermal preconditioning is enabled, duration auto-adjusts to the model's position for optimal first-layer quality; the farther from the center, the longer it takes. White boxes mark the boundary lines. To disable the guidelines and this warning, go to Preferences > 3D."
-msgstr ""
+msgstr "열 사전 조절을 활성화하면 최적의 첫 레이어 품질을 위해 모델 위치에 따라 시간이 자동 조정되며, 중앙에서 멀수록 더 오래 걸립니다. 흰색 상자는 경계선을 나타냅니다. 안내선과 이 경고를 끄려면 환경 설정 > 3D로 이동하세요."
 
 msgid "Send G-code"
 msgstr "G 코드 보내기"
@@ -8982,7 +8984,7 @@ msgid "Enable LOD"
 msgstr "LOD 활성화"
 
 msgid "Bed Temperature Difference Warning"
-msgstr "침대 온도 차이 경고"
+msgstr "베드 온도 차이 경고"
 
 msgid ""
 "Using filaments with significantly different temperatures may cause:\n"
@@ -9314,7 +9316,7 @@ msgid "Skip AMS blacklist check"
 msgstr "AMS 블랙리스트 확인 건너뛰기"
 
 msgid "Enable DevTools For Webview"
-msgstr ""
+msgstr "WebView 개발자 도구 활성화"
 
 msgid "Associate Files To Bambu Studio"
 msgstr "Bambu Studio에 파일 연결"
@@ -9824,7 +9826,7 @@ msgstr "타임랩스 기능을 활성화하면 일반 모드 또는 Smooth 모�
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
-msgstr ""
+msgstr "%s의 여유 공간이 10MB 미만입니다. 타임랩스가 정상적으로 저장되지 않을 수 있습니다. 기능을 끄거나"
 
 msgid "Clean up files"
 msgstr "파일 정리"
@@ -9906,9 +9908,9 @@ msgid ""
 "Lower half area:  Selected nozzle\n"
 "And you can click it to modify"
 msgstr ""
-"상반신 영역:  원본\n"
+"위쪽 절반 영역:  원본\n"
 "중간 영역:  AMS의 필라멘트\n"
-"하반신 영역:  선택한 노즐\n"
+"아래쪽 절반 영역:  선택한 노즐\n"
 "클릭하여 수정할 수 있습니다"
 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
@@ -10397,7 +10399,7 @@ msgid "Line width"
 msgstr "라인 폭"
 
 msgid "Seam"
-msgstr "재봉선"
+msgstr "심"
 
 msgid "Precision"
 msgstr "정밀도"
@@ -10564,7 +10566,7 @@ msgid "The maximum volumetric speed for ramming, where -1 means using the maximu
 msgstr "충돌의 최대 체적 속도이며, 여기서 -1은 최대 체적 속도를 사용함을 의미합니다."
 
 msgid "Filament scarf seam settings"
-msgstr "필라멘트 스카프 솔기 설정"
+msgstr "필라멘트 스카프 심 설정"
 
 msgid "Part cooling fan"
 msgstr "출력물 냉각 팬"
@@ -10724,9 +10726,9 @@ msgid ""
 "\n"
 "Shall I disable it in order to enable Firmware Retraction?"
 msgstr ""
-"펌웨어 철회 모드를 사용할 때는 초기화 옵션을 사용할 수 없습니다.\n"
+"펌웨어 리트랙션 모드에서는 와이프 옵션을 사용할 수 없습니다.\n"
 "\n"
-"펌웨어 되돌리기를 사용하려면 이 옵션을 비활성화해야 하나요?"
+"펌웨어 리트랙션을 활성화하기 위해 와이프 옵션을 비활성화할까요?"
 
 msgid "Firmware Retraction"
 msgstr "펌웨어 리트랙션"
@@ -10749,7 +10751,7 @@ msgstr "다른 프리셋이 상속한 프리셋은 삭제할 수 없습니다!"
 
 msgid "The following presets inherit this preset."
 msgid_plural "The following preset inherits this preset."
-msgstr[0] ""
+msgstr[0] "다음 프리셋이 이 프리셋을 상속합니다."
 
 #. TRN  Remove/Delete
 #, boost-format
@@ -10923,7 +10925,7 @@ msgid "Left: "
 msgstr "왼쪽:"
 
 msgid "Right: "
-msgstr "저작권"
+msgstr "오른쪽: "
 
 msgid "Select presets to compare"
 msgstr "비교할 프리셋 선택"
@@ -11030,7 +11032,7 @@ msgid "Enter or click the adjustment button to modify number again"
 msgstr "숫자를 다시 수정하려면 입력하거나 조정 버튼을 클릭하세요."
 
 msgid "Recommended "
-msgstr "왼쪽 권장"
+msgstr "권장 "
 
 msgid "view"
 msgstr "보기"
@@ -11100,7 +11102,7 @@ msgstr "덮어쓰기 후"
 
 msgctxt "Sync_AMS"
 msgid "Plate"
-msgstr "접시"
+msgstr "플레이트"
 
 msgid "The connected printer does not match the currently selected printer. Please change the selected printer."
 msgstr "연결된 프린터가 현재 선택한 프린터와 일치하지 않습니다. 선택한 프린터를 변경하세요."
@@ -11265,7 +11267,7 @@ msgstr "설정 패키지가 변경됨"
 
 msgctxt "WebView"
 msgid "Back"
-msgstr ""
+msgstr "뒤로"
 
 msgid "Open in browser"
 msgstr "브라우저에서 열기"
@@ -11463,7 +11465,7 @@ msgid "Gizmo SLA support points"
 msgstr "기즈모 SLA 서포트 포인트"
 
 msgid "Gizmo FDM paint-on seam"
-msgstr "기즈모 FDM 페인트온 재봉선"
+msgstr "기즈모 FDM 페인트온 심"
 
 msgid "Plater"
 msgstr "플래터"
@@ -11543,7 +11545,7 @@ msgid "Skip this Version"
 msgstr "이 버전 건너뛰기"
 
 msgid "resume"
-msgstr "압출기가 정상적으로 압출되지 않으니 도우미에게 문의하세요. 문제 해결 후 결함이 허용 가능한 수준이면 '재시작' 버튼을 눌러 출력 작업을 다시 시작하세요."
+msgstr "재개"
 
 msgid "Confirm and Update Nozzle"
 msgstr "노즐 확인 및 업데이트"
@@ -12399,7 +12401,7 @@ msgid "Overhang wall"
 msgstr "오버행 벽"
 
 msgid "Floating vertical shell"
-msgstr "공중 부양 수직 껍질"
+msgstr "떠 있는 수직 쉘"
 
 msgid "Internal solid infill"
 msgstr "내부채움"
@@ -12701,7 +12703,7 @@ msgid "Printable height"
 msgstr "출력 가능 높이"
 
 msgid "Maximum printable height which is limited by mechanism of printer"
-msgstr "프린터 기계장치에 의해 제한되는 최대 출력 기능 높이"
+msgstr "프린터 기구 구조에 의해 제한되는 최대 출력 높이"
 
 msgid "Extruder printable height"
 msgstr "압출기 출력 가능 높이"
@@ -13250,7 +13252,7 @@ msgid "mm/s or %"
 msgstr "mm/s 또는 %"
 
 msgid "Detect floating vertical shells"
-msgstr "공중 부양 수직 껍질 감지"
+msgstr "떠 있는 수직 쉘 감지"
 
 msgid "Detect overhang paths in vertical shells and slow them by bridge speed."
 msgstr "수직 껍질의 돌출부 경로를 감지하고 브리지 속도로 늦춥니다."
@@ -13664,10 +13666,10 @@ msgid "Soluble material is commonly used to print support and support interface"
 msgstr "용해성 재료는 일반적으로 지지대 및 지지대 접촉대 출력에 사용됩니다."
 
 msgid "Scarf seam type"
-msgstr "스카프 솔기 유형"
+msgstr "스카프 심 유형"
 
 msgid "Set scarf seam type for this filament. This setting could minimize seam visibiliy."
-msgstr "이 필라멘트에 스카프 심 유형을 설정합니다. 이 설정은 솔기 표시를 최소화할 수 있습니다."
+msgstr "이 필라멘트에 스카프 심 유형을 설정합니다. 이 설정은 심 표시를 최소화할 수 있습니다."
 
 msgid "Contour"
 msgstr "윤곽"
@@ -13688,7 +13690,7 @@ msgid "Scarf slope gap"
 msgstr "스카프 경사 간격"
 
 msgid "In order to reduce the visiblity of the seam in closed loop, the inner wall and outer wall are shortened by a specified amount."
-msgstr "폐쇄 루프에서 이음새의 가시성을 줄이기 위해 내벽과 외벽이 지정된 양만큼 짧아집니다."
+msgstr "폐쇄 루프에서 심의 가시성을 줄이기 위해 내벽과 외벽이 지정된 양만큼 짧아집니다."
 
 msgid "Scarf length"
 msgstr "스카프 길이"
@@ -13829,7 +13831,7 @@ msgid "Softening temperature"
 msgstr "연화 온도"
 
 msgid "The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings."
-msgstr "이 온도에서는 소재가 부드러워지므로 침대 온도가 이보다 높을 때는 막힘을 방지하기 위해 전면 도어를 열거나 상단 유리를 제거할 것을 적극 권장합니다."
+msgstr "소재는 이 온도에서 부드러워지므로, 베드 온도가 이 온도 이상이면 막힘을 방지하기 위해 전면 도어를 열거나 상단 유리를 제거하는 것이 좋습니다."
 
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "흘러내림을 방지하기 위해 노즐은 래밍이 완료된 후 일정 시간 동안 역방향 이동을 수행합니다. 이 설정은 이동 시간을 정의합니다."
@@ -14207,7 +14209,7 @@ msgid "Best object position"
 msgstr "최적의 출력물 위치"
 
 msgid "Best auto arranging position in range [0,1] w.r.t. bed shape."
-msgstr "w.r.t. 범위 [0,1] 내에서 가장 좋은 자동 정렬 위치입니다. 침대 모양."
+msgstr "베드 형상을 기준으로 [0,1] 범위에서 최적의 자동 배치 위치를 지정합니다."
 
 msgid "Enable this option if machine has auxiliary part cooling fan"
 msgstr "프린터에 보조 냉각 팬이 있는 경우 이 옵션을 활성화하십시오."
@@ -14876,44 +14878,44 @@ msgid "Speed for reloading filament into extruder. Zero means the same speed as 
 msgstr "압출기에 필라멘트를 재장전하는 속도: 0은 수축과 동일한 속도를 의미합니다"
 
 msgid "Seam position"
-msgstr "재봉선 위치"
+msgstr "심 위치"
 
 msgid "The start position to print each part of outer wall"
 msgstr "외벽 각 부분의 출력 시작 위치"
 
 msgid "Nearest"
-msgstr "Nearest"
+msgstr "가장 가까운 위치"
 
 msgid "Aligned"
 msgstr "정렬됨"
 
 msgid "Back"
-msgstr "Back"
+msgstr "뒤쪽"
 
 msgid "Random"
 msgstr "랜덤"
 
 msgid "Seam placement away from overhangs(experimental)"
-msgstr "돌출부를 피해 솔기 배치 (실험적)"
+msgstr "오버행을 피해 심 배치(실험적)"
 
 msgid "Ensure seam placement away from overhangs for alignment and backing modes."
-msgstr "정렬 및 백킹 모드에서 솔기를 오버행에서 멀리 떨어진 곳에 배치하십시오."
+msgstr "정렬 및 뒤쪽 모드에서 심을 오버행에서 멀리 배치합니다."
 
 msgid "Seam gap"
-msgstr "솔기 간격"
+msgstr "심 간격"
 
 msgid ""
 "In order to reduce the visibility of the seam in a closed loop extrusion, the loop is interrupted and shortened by a specified amount.\n"
 "This amount as a percentage of the current extruder diameter. The default value for this parameter is 15"
 msgstr ""
-"폐쇄 루프 압출에서 이음새의 가시성을 줄이기 위해 루프가 중단되고 지정된 양만큼 짧아집니다.\n"
+"폐쇄 루프 압출에서 심의 가시성을 줄이기 위해 루프가 중단되고 지정된 양만큼 짧아집니다.\n"
 "이 양은 현재 압출기 직경의 백분율로 표시됩니다. 이 매개변수의 기본값은 15%입니다"
 
 msgid "Smart scarf seam application"
-msgstr "스마트 스카프 솔기 적용"
+msgstr "스마트 스카프 심 적용"
 
 msgid "Apply scarf joints only to smooth perimeters where traditional seams do not conceal the seams at sharp corners effectively."
-msgstr "기존 솔기가 날카로운 모서리의 솔기를 효과적으로 가리지 못하는 매끄러운 둘레에만 스카프 조인트를 적용하세요."
+msgstr "기존 심이 날카로운 모서리를 효과적으로 가리지 못하는 매끄러운 둘레에만 스카프 조인트를 적용합니다."
 
 msgid "Scarf application angle threshold"
 msgstr "스카프 적용 각도 임계값"
@@ -14922,8 +14924,8 @@ msgid ""
 "This option sets the threshold angle for applying a conditional scarf joint seam.\n"
 "If the seam angle within the perimeter loop exceeds this value (indicating the absence of sharp corners), a scarf joint seam will be used. The default value is 155°."
 msgstr ""
-"이 옵션은 조건부 스카프 이음새를 적용하기 위한 임계값 각도를 설정합니다.\n"
-"경계 루프 내의 이음새 각도가 이 값을 초과하면(날카로운 모서리가 없음을 나타냄) 스카프 조인트 이음새가 사용됩니다. 기본값은 155°입니다."
+"이 옵션은 조건부 스카프 심을 적용하기 위한 임계 각도를 설정합니다.\n"
+"경계 루프 내의 심 각도가 이 값을 초과하면(날카로운 모서리가 없음을 나타냄) 스카프 조인트 심이 사용됩니다. 기본값은 155°입니다."
 
 msgid "Scarf around entire wall"
 msgstr "벽 전체를 감싸는 스카프"
@@ -14944,19 +14946,19 @@ msgid "Use scarf joint for inner walls as well."
 msgstr "내벽에도 스카프 조인트를 사용하세요."
 
 msgid "Override filament scarf seam setting"
-msgstr "필라멘트 스카프 솔기 설정 덮어쓰기"
+msgstr "필라멘트 스카프 심 설정 덮어쓰기"
 
 msgid "Overrider filament scarf seam setting and could control settings by modifier."
-msgstr "오버라이더 필라멘트 스카프 솔기 설정을 변경하고 수정자로 설정을 제어할 수 있습니다."
+msgstr "필라멘트 스카프 심 설정을 덮어쓰고 수정자로 설정을 제어할 수 있습니다."
 
 msgid "Wipe speed"
-msgstr "삭제 속도"
+msgstr "와이프 속도"
 
 msgid "The wipe speed is determined by the speed setting specified in this configuration.If the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above.The default value for this parameter is 80%"
-msgstr "삭제 속도는 이 구성에 지정된 속도 설정에 따라 결정되며, 값이 백분율로 표시되는 경우(예: 80%) 위의 이동 속도 설정에 따라 계산되며, 이 매개변수의 기본값은 80%입니다"
+msgstr "와이프 속도는 이 구성에 지정된 속도 설정에 따라 결정됩니다. 값을 백분율로 지정하면(예: 80%) 위의 이동 속도를 기준으로 계산됩니다. 기본값은 80%입니다."
 
 msgid "Role-based wipe speed"
-msgstr "역할 기반 삭제 속도"
+msgstr "역할별 와이프 속도"
 
 msgid "The wipe speed is determined by speed of current extrusion role. e.g if a wipe action is executed immediately following an outer wall extrusion, the speed of the outer wall extrusion will be utilized for the wipe action."
 msgstr "와이프 속도는 현재 압출 역할의 속도에 따라 결정됩니다. 예를 들어 외벽 압출 직후 와이프 동작이 실행되면 외벽 압출 속도가 와이프 동작에 활용됩니다."
@@ -15007,13 +15009,13 @@ msgid "Speed of internal solid infill, not the top and bottom surface"
 msgstr "상단 및 하단 표면을 제외한 꽉찬 내부 채우기 속도"
 
 msgid "Spiralize smooths out the z moves of the outer contour. And turns a solid model into a single walled print with solid bottom layers. The final generated model has no seam"
-msgstr "나선형 활성화, 외부 윤곽의 Z 이동을 부드럽게 하고 고형물 모델을 견고한 하단 레이어 단일 벽면 프린트로 변환할 수 있습니다. 최종적으로 생성된 모델에는 이음새가 없습니다."
+msgstr "나선형 모드를 활성화하면 외부 윤곽의 Z 이동을 부드럽게 하고 솔리드 모델을 단단한 하단 레이어가 있는 단일 벽 출력으로 변환합니다. 최종 모델에는 심이 없습니다."
 
 msgid "Smooth Spiral"
 msgstr "부드러운 나선형"
 
 msgid "Smooth Spiral smoothes out X and Y moves as wellresulting in no visible seam at all, even in the XY directions on walls that are not vertical"
-msgstr "스무스 스파이럴은 X와 Y의 움직임을 매끄럽게 처리하여 수직이 아닌 벽의 XY 방향에서도 이음새가 전혀 보이지 않습니다"
+msgstr "스무스 스파이럴은 X와 Y 이동을 매끄럽게 처리하여 수직이 아닌 벽의 XY 방향에서도 심이 보이지 않게 합니다."
 
 msgid "Max XY Smoothing"
 msgstr "최대 XY 스무딩"
@@ -15229,7 +15231,7 @@ msgid "Line pattern of support"
 msgstr "서포트의 라인 패턴"
 
 msgid "Rectilinear grid"
-msgstr "Rectilinear grid"
+msgstr "직선형 격자"
 
 msgid "Hollow"
 msgstr "구멍"
@@ -15241,7 +15243,7 @@ msgid "Line pattern of support interface. Default pattern for support interface 
 msgstr "서포트 인터페이스의 선 패턴. 지원 인터페이스의 기본 패턴은 직선 인터레이스입니다"
 
 msgid "Rectilinear Interlaced"
-msgstr "Rectilinear 인터레이스"
+msgstr "직선 교차형"
 
 msgid "Base pattern spacing"
 msgstr "기본 패턴 간격"
@@ -15266,7 +15268,7 @@ msgstr ""
 "트리 서포트의 경우 슬림 스타일은 가지를 더 적극적으로 병합하고 많은 재료를 절약하며, 스트롱 스타일은 더 크고 강한 서포트 구조를 만들고 더 많은 재료를 사용하며, 하이브리드 스타일은 슬림 트리와 일반 서포트의 조합으로 큰 평면 돌출부 아래에 일반 노드를 배치합니다. 오가닉 스타일은 더 유기적인 형태의 트리 구조를 만들고 인터페이스가 적어 쉽게 제거할 수 있습니다. 대부분의 경우 기본 스타일은 오가닉 트리이며, 적응형 레이어 높이 또는 용해성 인터페이스가 활성화된 경우 하이브리드 트리입니다."
 
 msgid "Snug"
-msgstr "Snug"
+msgstr "밀착형"
 
 msgid "Tree Slim"
 msgstr "트리 슬림"
@@ -15389,7 +15391,7 @@ msgid "Using infill instead of top and bottom surfaces."
 msgstr "상단 및 하단 표면 대신 인필 사용함."
 
 msgid "Speed of travel which is faster and without extrusion"
-msgstr "이것은 이동이 완료되는 속도입니다."
+msgstr "압출 없이 빠르게 이동할 때의 속도입니다."
 
 msgid "Use relative E distances"
 msgstr "상대적인 E 거리 사용"
@@ -15398,7 +15400,7 @@ msgid "If your firmware requires relative E values, check this, otherwise leave 
 msgstr "펌웨어에 상대 E 값이 필요한 경우 이 옵션을 선택하고, 그렇지 않은 경우 선택하지 마십시오. Bambu 프린터에 상대 E 거리를 사용해야 합니다"
 
 msgid "Use firmware retraction"
-msgstr "펌웨어 철회"
+msgstr "펌웨어 리트랙션 사용"
 
 msgid "Convert the retraction moves to G10 and G11 gcode"
 msgstr "후퇴 동작을 G10 및 G11 g코드로 변환합니다"
@@ -15434,7 +15436,7 @@ msgid "Auto circle contour-hole compensation"
 msgstr "자동 원 윤곽선 구멍 보정"
 
 msgid "Expirment feature to compensate the circle holes and circle contour. This feature is used to improve the accuracy of the circle holes and contour within the diameter below 50mm. Only support PLA Basic, PLA CF, PET CF, PETG CF and PETG HF."
-msgstr "원 구멍과 원 윤곽을 보정하는 만료 기능. 이 기능은 직경 50mm 미만의 원형 구멍과 윤곽의 정확도를 향상시키는 데 사용됩니다. PLA 기본, PLA CF, PET CF, PETG CF 및 PETG HF만 지원합니다."
+msgstr "원형 구멍과 원형 윤곽을 보정하는 실험적 기능입니다. 직경 50mm 이하인 원형 구멍과 윤곽의 정확도를 높이며 PLA Basic, PLA CF, PET CF, PETG CF 및 PETG HF만 지원합니다."
 
 msgid "User Customized Offset"
 msgstr "사용자 맞춤형 오프셋"
@@ -15443,10 +15445,10 @@ msgid "If you want to have tighter or looser assemble, you can set this value. W
 msgstr "더 꽉 조이거나 더 느슨하게 조립하려면 이 가치를 설정할 수 있습니다. 양수이면 더 꽉 조여지고, 그렇지 않으면 더 느슨하게 조립됩니다."
 
 msgid "Scarf Seam On Compensation Circles"
-msgstr "보정 서클의 스카프 솔기"
+msgstr "보정 원의 스카프 심"
 
 msgid "Scarf seam will be applied on circles for better dimensional accuracy."
-msgstr "스카프 솔기가 원에 적용되어 치수 정확도가 향상됩니다."
+msgstr "치수 정확도를 높이기 위해 원에 스카프 심을 적용합니다."
 
 msgid "Circle Compensation Speed"
 msgstr "원 보정 속도"
@@ -15455,70 +15457,70 @@ msgid "circle_compensation_speed"
 msgstr "서클_보상_속도"
 
 msgid "Counter Coef 1"
-msgstr "카운터 코프 1"
+msgstr "윤곽 계수 1"
 
 msgid "counter_coef_1"
-msgstr ""
+msgstr "counter_coef_1"
 
 msgid "Contour Coef 2"
-msgstr "컨투어 코프 2"
+msgstr "윤곽 계수 2"
 
 msgid "counter_coef_2"
-msgstr ""
+msgstr "counter_coef_2"
 
 msgid "Contour Coef 3"
-msgstr "컨투어 코프 3"
+msgstr "윤곽 계수 3"
 
 msgid "counter_coef_3"
-msgstr ""
+msgstr "counter_coef_3"
 
 msgid "Hole Coef 1"
-msgstr "홀 코프 1"
+msgstr "구멍 계수 1"
 
 msgid "hole_coef_1"
-msgstr "hOLE_COEF_1"
+msgstr "hole_coef_1"
 
 msgid "Hole Coef 2"
-msgstr "홀 코프 2"
+msgstr "구멍 계수 2"
 
 msgid "hole_coef_2"
-msgstr "hOLE_COEF_2"
+msgstr "hole_coef_2"
 
 msgid "Hole Coef 3"
-msgstr "홀 코프 3"
+msgstr "구멍 계수 3"
 
 msgid "hole_coef_3"
-msgstr "hOLE_COEF_3"
+msgstr "hole_coef_3"
 
 msgid "Contour limit min"
 msgstr "윤곽선 제한 최소"
 
 msgid "counter_limit_min"
-msgstr "카운터_제한_분"
+msgstr "counter_limit_min"
 
 msgid "Contour limit max"
 msgstr "윤곽 제한 최대"
 
 msgid "counter_limit_max"
-msgstr "카운터_제한_최대"
+msgstr "counter_limit_max"
 
 msgid "Hole limit min"
 msgstr "홀 제한 최소"
 
 msgid "hole_limit_min"
-msgstr "hOLE_LIMIT_MIN"
+msgstr "hole_limit_min"
 
 msgid "Hole limit max"
 msgstr "최대 홀 제한"
 
 msgid "hole_limit_max"
-msgstr "hOLE_LIMIT_MAX"
+msgstr "hole_limit_max"
 
 msgid "Diameter limit"
 msgstr "직경 제한"
 
 msgid "diameter_limit"
-msgstr "직경_제한"
+msgstr "diameter_limit"
 
 msgid "Purging volumes"
 msgstr "퍼징 볼륨"
@@ -15659,10 +15661,10 @@ msgid "invalid value "
 msgstr "유효하지 않은 값 "
 
 msgid "--use-firmware-retraction is only supported by Marlin, Klipper, Smoothie, RepRapFirmware, Repetier and Machinekit firmware"
-msgstr "--사용-펌웨어-철회는 Marlin, Klipper, Smoothie, RepRap펌웨어, Repetier 및 Machinekit 펌웨어에서만 지원됩니다."
+msgstr "--use-firmware-retraction은 Marlin, Klipper, Smoothie, RepRapFirmware, Repetier 및 Machinekit 펌웨어에서만 지원됩니다."
 
 msgid "--use-firmware-retraction is not compatible with --wipe"
-msgstr "--펌웨어-사용-철회는 --wipe와 호환되지 않습니다."
+msgstr "--use-firmware-retraction은 --wipe와 호환되지 않습니다."
 
 #, c-format, boost-format
 msgid " doesn't work at 100%% density "
@@ -15771,7 +15773,7 @@ msgid "Restoring support painting"
 msgstr "서포트 페인팅 복원 중"
 
 msgid "Restoring seam painting"
-msgstr "이음새 페인팅 복원 중"
+msgstr "심 페인팅 복원 중"
 
 msgid "Restoring paint color"
 msgstr "페인트 색상 복원 중"
@@ -16050,10 +16052,10 @@ msgid "Standard Flow"
 msgstr "표준 유량"
 
 msgid "Please find the best line on your plate"
-msgstr "최고의 대사를 찾아주세요"
+msgstr "플레이트에서 가장 잘 출력된 선을 찾으세요"
 
 msgid "Please find the corner with perfect degree of extrusion"
-msgstr "완벽한 돌출 정도를 가진 코너를 찾아주세요"
+msgstr "압출 상태가 가장 좋은 모서리를 찾으세요"
 
 msgid "Input Value"
 msgstr "값 입력"
@@ -16086,7 +16088,7 @@ msgid "Calibration2"
 msgstr "캘리브레이션2"
 
 msgid "Please find the best object on your plate"
-msgstr "접시에서 최고의 물건을 찾아주세요"
+msgstr "플레이트에서 가장 잘 출력된 객체를 찾으세요"
 
 msgid "Fill in the value above the block with smoothest top surface"
 msgstr "가장 매끄러운 윗면으로 블록 위의 값을 채웁니다"
@@ -16325,7 +16327,7 @@ msgid "End PA: "
 msgstr "종료 압력 보정: "
 
 msgid "PA step: "
-msgstr "PA 단계:"
+msgstr "PA 단계: "
 
 msgid "Print numbers"
 msgstr "번호 출력"
@@ -16343,7 +16345,7 @@ msgid "End temp: "
 msgstr "종료 온도: "
 
 msgid "Temp step: "
-msgstr "임시 단계:"
+msgstr "임시 간격: "
 
 msgid "Supported range: 180°C - 350°C"
 msgstr "지원 범위: 180°C - 350°C"
@@ -16836,10 +16838,10 @@ msgid ""
 "and filament and process presets without the same preset name will be reserve.\n"
 "\tCancel: Do not create a preset, return to the creation interface."
 msgstr ""
-"The printer preset you created already has a preset with the same name. Do you want to overwrite it?\n"
-"\tYes: Overwrite the printer preset with the same name, and filament and process presets with the same preset name will be recreated \n"
-"and filament and process presets without the same preset name will be reserved.\n"
-"\tCancel: Do not create a preset; return to the creation interface."
+"생성한 프린터 프리셋과 같은 이름의 프리셋이 이미 있습니다. 덮어쓰시겠습니까?\n"
+"\t예: 같은 이름의 프린터 프리셋을 덮어쓰며, 이름이 같은 필라멘트 및 프로세스 프리셋은 다시 생성됩니다.\n"
+"이름이 다른 필라멘트 및 프로세스 프리셋은 유지됩니다.\n"
+"\t취소: 프리셋을 생성하지 않고 생성 화면으로 돌아갑니다."
 
 msgid "You need to select at least one filament preset."
 msgstr "필라멘트 프리셋을 하나 이상 선택해야 합니다."
@@ -17017,7 +17019,7 @@ msgstr "다른 프리셋이 상속한 프리셋은 삭제할 수 없습니다"
 
 msgid "The following presets inherits this preset."
 msgid_plural "The following preset inherits this preset."
-msgstr[0] ""
+msgstr[0] "다음 프리셋이 이 프리셋을 상속합니다."
 
 msgid "Delete Preset"
 msgstr "프리셋 삭제"
@@ -17292,8 +17294,8 @@ msgid ""
 "HTTP status: %1%\n"
 "Message body: \"%2%\""
 msgstr ""
-"HTTP status: %1%\n"
-"Massage body: \"%2%\""
+"HTTP 상태: %1%\n"
+"메시지 본문: \"%2%\""
 
 #, boost-format
 msgid ""
@@ -17574,7 +17576,7 @@ msgid "Helio: GCode download failed"
 msgstr "Helio: GCode 다운로드 실패"
 
 msgid "No AMS"
-msgstr "AMS 초기화 프로세스 중에 AMS E 가 오프라인으로 감지되었습니다."
+msgstr "AMS 없음"
 
 msgid "There is no device available to send printing."
 msgstr "출력을 보낼 수 있는 장치가 없습니다."
@@ -17639,7 +17641,7 @@ msgid "The maximum number of printers that can be selected is %d"
 msgstr "선택할 수 있는 최대 프린터 수는 %d개입니다."
 
 msgid "No task"
-msgstr "작업 중지"
+msgstr "작업 없음"
 
 msgid "Edit Printers"
 msgstr "프린터 편집"
@@ -17945,7 +17947,7 @@ msgstr "건조 시 스풀을 회전하세요"
 
 msgctxt "amsdrying"
 msgid "Back"
-msgstr ""
+msgstr "뒤로"
 
 msgid "Drying-Heating"
 msgstr "건조-가열"
@@ -18394,8 +18396,8 @@ msgid ""
 "Z seam location\n"
 "Did you know that you can customize the location of the Z seam, and even paint it on your print, to have it in a less visible location? This improves the overall look of your model. Check it out!"
 msgstr ""
-"Z 재봉선 위치\n"
-"Z 재봉선의 위치를 사용자 정의하고 모델링에 색칠하여 눈에 잘 띄지 않는 위치로 놓을 수 있다는 것을 알고 계셨습니까? 이렇게 하면 모델의 전체적인 모습이 개선됩니다. 확인해 보세요!"
+"Z 심 위치\n"
+"Z 심 위치를 사용자 지정하고 모델에 칠해 눈에 잘 띄지 않는 곳에 배치할 수 있습니다. 이를 통해 모델의 전체적인 외관을 개선할 수 있습니다. 확인해 보세요!"
 
 #: resources/data/hints.ini: [hint:Fine-tuning for flow rate]
 msgid ""
