@@ -2177,14 +2177,6 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
             continue;
         slots[i].ratios = parse_mixed_ratios(
             i < ratio_strs.size() ? ratio_strs[i] : "", slots[i].components.size());
-        if (!sublayer_enabled) {
-            for (double &r : slots[i].ratios)
-                r = snap_to_simple_fraction(r);
-            double sum = 0;
-            for (double r : slots[i].ratios) sum += r;
-            if (sum > 0)
-                for (double &r : slots[i].ratios) r /= sum;
-        }
         slots[i].accum.assign(slots[i].components.size(), 0LL);
     }
 
@@ -2216,6 +2208,23 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
         }
         if (i < gradient_curve_strs.size() && !gradient_curve_strs[i].empty())
             gradient_info[i].curve = parse_gradient_curve(gradient_curve_strs[i]);
+    }
+
+    // A valid two-component gradient always needs sublayer resolution so its
+    // height-dependent ratios can be represented, even when the independent
+    // mixed-color sublayer option is disabled. Non-gradient slots retain the
+    // deficit round-robin normalization in that configuration.
+    std::vector<bool> use_sublayers(slots.size(), sublayer_enabled);
+    for (size_t i = 0; i < slots.size(); ++i) {
+        use_sublayers[i] = use_sublayers[i] || is_gradient[i];
+        if (slots[i].components.empty() || use_sublayers[i])
+            continue;
+        for (double &r : slots[i].ratios)
+            r = snap_to_simple_fraction(r);
+        double sum = 0;
+        for (double r : slots[i].ratios) sum += r;
+        if (sum > 0)
+            for (double &r : slots[i].ratios) r /= sum;
     }
 
     // Pass 1: identify continuous runs for each gradient slot (Per-Run).
@@ -2418,7 +2427,7 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
             auto &s = slots[ext];
 
             // Skip sublayer splitting for the first layer to preserve bed adhesion.
-            if (sublayer_enabled && layer_idx > 0) {
+            if (use_sublayers[ext] && layer_idx > 0) {
                 double lh = calc_slot_lh(ext, lt.print_z);
                 size_t n = s.components.size();
 
