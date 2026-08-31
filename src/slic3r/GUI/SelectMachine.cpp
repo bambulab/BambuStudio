@@ -50,6 +50,7 @@
 #include <wx/mstream.h>
 #include <miniz.h>
 #include <algorithm>
+#include <cstdint>
 #include "Plater.hpp"
 #include "Notebook.hpp"
 #include "BitmapCache.hpp"
@@ -127,6 +128,21 @@ static int to_ams_time_index(DevAmsType type)
     default:
         return -1;
     }
+}
+
+static std::string make_fila_manager_job_key(const MachineObject* obj)
+{
+    static uint64_t s_local_print_seq = 0;
+
+    if (!obj) return {};
+
+    std::string anchor = "local";
+    if (!obj->subtask_id_.empty() && obj->subtask_id_ != "0")
+        anchor = obj->subtask_id_;
+    else if (!obj->job_id_.empty() && obj->job_id_ != "0")
+        anchor = obj->job_id_;
+
+    return obj->get_dev_id() + ":" + anchor + ":" + std::to_string(++s_local_print_seq);
 }
 
 static std::vector<int> build_actual_ams_type_per_filament(const std::vector<FilamentInfo>& mapping, MachineObject* obj)
@@ -3375,6 +3391,26 @@ void SelectMachineDialog::on_send_print()
     BOOST_LOG_TRIVIAL(info) << "print_job: timelapse_option = " << timelapse_option;
     BOOST_LOG_TRIVIAL(info) << "print_job: use_ams = " << m_print_job->task_use_ams;
 
+    if (m_print_type == PrintFromType::FROM_NORMAL) {
+        std::map<std::pair<std::string, std::string>, double> used_by_slot;
+        if (build_slot_consumption_map(used_by_slot)) {
+            if (!used_by_slot.empty()) {
+                if (auto* store = wxGetApp().fila_manager_store()) {
+                    const std::string job_key = make_fila_manager_job_key(obj_);
+                    store->set_pending_consumption(obj_->get_dev_id(), used_by_slot, job_key);
+                    BOOST_LOG_TRIVIAL(info)
+                        << "[FilaManager] recorded pending consumption dev_id=" << obj_->get_dev_id()
+                        << " slots=" << used_by_slot.size()
+                        << " job_key=" << job_key;
+                }
+            }
+        } else {
+            BOOST_LOG_TRIVIAL(warning)
+                << "[FilaManager] failed to record pending print consumption for dev_id="
+                << obj_->get_dev_id();
+        }
+    }
+
     m_print_job->on_success([this]() { finish_mode(); });
 
     m_print_job->on_check_ip_address_fail([this]() {
@@ -6394,6 +6430,46 @@ bool SelectMachineDialog::IsAllAmsSupportAccurateRemain(MachineObject* obj_) con
     return true;
 }
 
+bool SelectMachineDialog::build_slot_consumption_map(
+    std::map<std::pair<std::string, std::string>, double>& used_by_slot) const
+{
+    used_by_slot.clear();
+
+    if (!m_plater) return true;
+
+    GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result();
+    if (!gcode_result) {
+        // GitHub #11937: this is a known, silent gap — reprints / cloud-only
+        // resends without a fresh local slice have no gcode result to derive
+        // grams-used from, so no pending consumption gets recorded for this
+        // send. Log at info level so this is diagnosable instead of the
+        // Filament Manager weight just silently never updating.
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " no current gcode result available, skipping consumption recording";
+        return true;
+    }
+
+    auto full_config         = wxGetApp().preset_bundle->full_config();
+    auto filament_densities  = full_config.option<ConfigOptionFloats>("filament_density");
+    if (!filament_densities) return true;
+
+    const auto& densities   = filament_densities->values;
+    const auto& volumes_map = gcode_result->print_statistics.total_volumes_per_extruder;
+
+    for (const auto& fila : m_ams_mapping_result) {
+        auto vol_it = volumes_map.find(fila.id);
+        if (vol_it == volumes_map.end() || fila.id < 0 || static_cast<size_t>(fila.id) >= densities.size()) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " the list of filament densities can't find " << fila.id;
+            used_by_slot.clear();
+            return false;
+        }
+
+        std::pair<std::string, std::string> key{fila.ams_id, fila.slot_id};
+        used_by_slot[key] += densities[fila.id] * (vol_it->second / 1000.0); // mm^3 -> cm^3
+    }
+
+    return true;
+}
+
 // return true don't warning
 bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
 {
@@ -6404,9 +6480,6 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
     if (!obj_->GetFilaSystem()->IsDetectRemainEnabled() || m_print_type != PrintFromType::FROM_NORMAL) return true;
 
     if (!IsAllAmsSupportAccurateRemain(obj_)) return true;
-
-    auto full_config = wxGetApp().preset_bundle->full_config();
-    auto filament_densities = full_config.option<ConfigOptionFloats>("filament_density");
 
     // key: ams_id slot_id value: remain
     std::map<std::pair<std::string, std::string>, double> fila_remain_map; //collect fila remain info
@@ -6429,31 +6502,23 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
         }
     }
 
-    // collect used filament weight
+    std::map<std::pair<std::string, std::string>, double> used_by_slot;
+    if (!build_slot_consumption_map(used_by_slot))
+        return true;
+
     for (const auto& fila : m_ams_mapping_result) {
-        if (GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result()) {
-            if (filament_densities) {
-                auto densities = filament_densities->values;
-                auto volumes_map = gcode_result->print_statistics.total_volumes_per_extruder;
-                if (volumes_map.find(fila.id) != volumes_map.end() && fila.id >= 0 && fila.id < densities.size()) {
-                    std::pair<std::string, std::string> key{fila.ams_id, fila.slot_id};
-                    double used_g = densities[fila.id] * (volumes_map[fila.id] / 1000); // mm^3 -> cm^3
-                    auto used_it = fila_used_map.find(key);
-                    if (used_it == fila_used_map.end()) {
-                        FilamentInfo info;
-                        info.id = fila.id;
-                        info.used_g = used_g;
-                        fila_used_map[key] = info;
-                    } else {
-                        used_it->second.used_g += used_g;
-                    }
-                    fila_ids_in_slot[key].push_back(fila.id);
-                } else {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "the list of filament densities can't find "<< fila.id;
-                    return true;
-                }
-            }
+        std::pair<std::string, std::string> key{fila.ams_id, fila.slot_id};
+        auto used_it = used_by_slot.find(key);
+        if (used_it == used_by_slot.end()) continue;
+
+        auto fila_it = fila_used_map.find(key);
+        if (fila_it == fila_used_map.end()) {
+            FilamentInfo info;
+            info.id     = fila.id;
+            info.used_g = used_it->second;
+            fila_used_map[key] = info;
         }
+        fila_ids_in_slot[key].push_back(fila.id);
     }
 
     {

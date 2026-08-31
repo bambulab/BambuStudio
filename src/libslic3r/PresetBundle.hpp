@@ -217,6 +217,29 @@ public:
 
     std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name = std::string(), bool only_system = false) const;
 
+    // GitHub #11937: Filament Manager spools store an id in FilamentSpool::setting_id that is
+    // compared against Preset::filament_id everywhere. Spools created through the web
+    // "Add filament" dialog may instead carry a cloud user-settings id, or nothing at all when
+    // the user typed a third-party brand by hand. Those spools used to fail
+    // get_filament_by_filament_id() outright and were rendered as unselectable
+    // "Unsupported Filaments".
+    //
+    // resolve_filament_for_spool() is a tolerant lookup for exactly that situation. Resolution
+    // order, first hit wins:
+    //   1. exact Preset::filament_id match (the normal, correct case)
+    //   2. Preset::setting_id match (spool stored the wrong kind of id)
+    //   3. vendor + filament_type match on a base preset
+    //   4. "Generic <filament_type>" system preset
+    // `exact_match` reports whether step 1 or 2 succeeded, so callers can flag an approximate
+    // resolution to the user without blocking the operation.
+    //
+    // Purely local: never consults the cloud catalogue or RFID data, so it behaves identically
+    // in LAN mode.
+    std::optional<FilamentBaseInfo> resolve_filament_for_spool(const std::string& stored_id,
+                                                               const std::string& vendor,
+                                                               const std::string& material_type,
+                                                               bool*              exact_match = nullptr) const;
+
     // Load support recommended params from JSON file
     void load_support_recommended_params();
     // Get support recommended params by (support_material, model_material)

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <string>
 #include <vector>
 #include "nlohmann/json.hpp"
@@ -94,6 +95,16 @@ public:
     static FilamentSpool cloud_json_to_spool(const nlohmann::json& j);
 
 private:
+    // GitHub #11937: list_spools() is paginated by the cloud API (default
+    // limit=20 — see wgtFilaManagerCloudClient::list_spools). A single
+    // unpaginated call silently truncated any library with more than 20
+    // spools, which also meant the setting_id migration below it never saw
+    // spool #21 onward. fetch_all_spool_pages() walks every page (accumulating
+    // into `accumulated`) before handing the full merged list to
+    // merge_pulled_spools().
+    void fetch_all_spool_pages(int offset, std::shared_ptr<nlohmann::json> accumulated);
+    void merge_pulled_spools(const nlohmann::json& list);
+
     wgtFilaManagerStore*       m_store;
     wgtFilaManagerCloudClient* m_client;
     bool                       m_syncing = false;
