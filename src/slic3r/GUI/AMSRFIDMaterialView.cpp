@@ -2,7 +2,6 @@
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "MsgDialog.hpp"
-#include "wx/hyperlink.h"
 
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevExtruderSystem.h"
@@ -64,25 +63,25 @@ void AMSRFIDMaterialView::create()
     // Middle info panel: temp + SN
     m_panel_info = new StaticBox(this);
     m_panel_info->SetCornerRadius(FromDIP(10));
-    m_panel_info->SetBackgroundColor(StateColor(std::make_pair(wxColour(238, 238, 238), (int)StateColor::Normal)));
-    m_panel_info->SetBorderColor(StateColor(std::make_pair(wxColour(238, 238, 238), (int)StateColor::Normal)));
+    m_panel_info->SetBackgroundColor(StateColor(std::make_pair(wxColour(248, 248, 248), (int)StateColor::Normal)));
+    m_panel_info->SetBorderColor(StateColor(std::make_pair(wxColour(248, 248, 248), (int)StateColor::Normal)));
     m_panel_info->SetMinSize(wxSize(AMS_MATERIALS_SETTING_BODY_WIDTH, -1));
     auto* sizer_info = new wxBoxSizer(wxVERTICAL);
 
     m_lbl_temp = new wxStaticText(m_panel_info, wxID_ANY, wxEmptyString);
     m_lbl_temp->SetFont(Label::Body_13);
-    m_lbl_temp->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
-    m_lbl_temp->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(238, 238, 238)));
+    m_lbl_temp->SetForegroundColour(AMS_MATERIALS_SETTING_GREY700);
+    m_lbl_temp->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(248, 248, 248)));
 
     m_panel_sn = new wxPanel(m_panel_info, wxID_ANY);
-    m_panel_sn->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(238, 238, 238)));
+    m_panel_sn->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(248, 248, 248)));
     auto* sizer_sn = new wxBoxSizer(wxHORIZONTAL);
     auto* lbl_sn_title = new wxStaticText(m_panel_sn, wxID_ANY, _L("SN") + ": ");
     lbl_sn_title->SetFont(Label::Body_13);
-    lbl_sn_title->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
+    lbl_sn_title->SetForegroundColour(AMS_MATERIALS_SETTING_GREY700);
     m_lbl_sn = new wxStaticText(m_panel_sn, wxID_ANY, wxEmptyString);
     m_lbl_sn->SetFont(Label::Body_13);
-    m_lbl_sn->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
+    m_lbl_sn->SetForegroundColour(AMS_MATERIALS_SETTING_GREY700);
     sizer_sn->Add(lbl_sn_title, 0, wxALIGN_CENTER_VERTICAL, 0);
     sizer_sn->Add(m_lbl_sn,     0, wxALIGN_CENTER_VERTICAL, 0);
     m_panel_sn->SetSizer(sizer_sn);
@@ -109,11 +108,15 @@ void AMSRFIDMaterialView::create()
     lbl_kn_title->SetForegroundColour(wxColour(50, 58, 61));
     lbl_kn_title->Wrap(FromDIP(160));
 
-    auto* wiki_ctrl = new wxHyperlinkCtrl(m_panel_kn, wxID_ANY, _L("Click to learn more"), link_url);
-    wiki_ctrl->SetNormalColour(*wxBLUE);
-    wiki_ctrl->SetHoverColour(wxColour(0, 0, 200));
-    wiki_ctrl->SetVisitedColour(*wxBLUE);
+    bool is_zh = (region == "zh");
+    wxString wiki_label = is_zh ? wxString::FromUTF8("\xe8\xaf\xa6\xe6\x83\x85\xe6\x9f\xa5\xe7\x9c\x8bwiki") : _L("Click to learn more");
+    wxColour wiki_colour = wxColour("#00AE42");
+    auto* wiki_ctrl = new Label(m_panel_kn, wiki_label);
     wiki_ctrl->SetFont(Label::Body_13);
+    wiki_ctrl->SetForegroundColour(wiki_colour);
+    wiki_ctrl->Bind(wxEVT_ENTER_WINDOW, [wiki_ctrl](wxMouseEvent &e) { e.Skip(); wiki_ctrl->SetCursor(wxCURSOR_HAND); });
+    wiki_ctrl->Bind(wxEVT_LEAVE_WINDOW, [wiki_ctrl](wxMouseEvent &e) { e.Skip(); wiki_ctrl->SetCursor(wxCURSOR_ARROW); });
+    wiki_ctrl->Bind(wxEVT_LEFT_UP, [link_url](wxMouseEvent &) { wxLaunchDefaultBrowser(link_url); });
 
     auto* sizer_left = new wxBoxSizer(wxVERTICAL);
     sizer_left->Add(lbl_kn_title, 0, wxBOTTOM, FromDIP(4));
@@ -159,8 +162,8 @@ void AMSRFIDMaterialView::create()
     sizer_right->Add(sizer_k,  0, wxEXPAND, 0);
 
     auto* sizer_kn = new wxBoxSizer(wxHORIZONTAL);
-    sizer_kn->Add(sizer_left,  0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(20));
-    sizer_kn->Add(sizer_right, 1, wxALIGN_CENTER_VERTICAL, 0);
+    sizer_kn->Add(sizer_left,  0, wxALIGN_TOP | wxRIGHT, FromDIP(20));
+    sizer_kn->Add(sizer_right, 1, wxALIGN_TOP, 0);
 
     auto* sizer_kn_outer = new wxBoxSizer(wxVERTICAL);
     sizer_kn_outer->Add(0, 0, 0, wxTOP, FromDIP(14));
@@ -205,7 +208,6 @@ void AMSRFIDMaterialView::create()
     sizer_main->Add(m_panel_info, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(24));
     sizer_main->Add(0, 0, 0, wxTOP, FromDIP(16));
     sizer_main->Add(m_panel_kn,   0, wxEXPAND, 0);
-    sizer_main->Add(0, 0, 1, wxEXPAND, 0);
     sizer_main->Add(sizer_btn,    0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(24));
     sizer_main->Add(0, 0, 0, wxTOP, FromDIP(16));
 
@@ -216,8 +218,9 @@ void AMSRFIDMaterialView::create()
 
 void AMSRFIDMaterialView::apply_fixed_size()
 {
-    SetMinSize(FromDIP(wxSize(526, 503)));
-    SetSize(FromDIP(wxSize(526, 503)));
+    SetMinSize(wxSize(FromDIP(526), -1));
+    SetMaxSize(wxSize(FromDIP(526), -1));
+    Fit();
 }
 
 void AMSRFIDMaterialView::Popup(MachineObject* obj_, int ams_id_, int slot_id_,
@@ -304,6 +307,9 @@ void AMSRFIDMaterialView::Popup(MachineObject* obj_, int ams_id_, int slot_id_,
 
     Layout();
     apply_fixed_size();
+    // Re-apply dark UI at show time: the native title bar's dark attribute set in
+    // the ctor doesn't stick until the window is shown (mirrors AMSMaterialsSetting::Show).
+    wxGetApp().UpdateDlgDarkUI(this);
     ShowModal();
 }
 
@@ -321,7 +327,15 @@ void AMSRFIDMaterialView::on_reset()
     if (msg_dlg.ShowModal() != wxID_OK) return;
 
     reset_calibration(ams_filament_id);
-    EndModal(wxID_OK);
+
+    if (should_show_kn_section() && m_comboBox_cali_result) {
+        int sel = CalibUtils::get_selected_calib_idx(m_pa_profile_items, -1);
+        if (sel < 0) sel = 0;
+        m_comboBox_cali_result->SetSelection(sel);
+        float k = m_pa_profile_items.empty() ? -1.0f : m_pa_profile_items[sel].k_value;
+        if (m_input_k_val)
+            m_input_k_val->GetTextCtrl()->SetValue(k >= 0.0f ? wxString::Format("%.3f", k) : wxString());
+    }
 }
 
 void AMSRFIDMaterialView::on_pa_history_ready()

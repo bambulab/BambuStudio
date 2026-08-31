@@ -39,6 +39,8 @@ public:
     explicit FilamentSelectDialog(wxWindow* parent);
     ~FilamentSelectDialog() {}
 
+    static void remember_recent_spool(const wxString& spool_id);
+
     void Popup(const wxArrayString&                          filament_items,
                const std::unordered_map<wxString, wxString>& vendors,
                const std::unordered_map<wxString, wxString>& types,
@@ -118,6 +120,7 @@ private:
     SelectionResult   m_result;
 
     StateColor        m_btn_bg_green;
+    StateColor        m_btn_bg_gray;   // reuses AMSMaterialsSetting gray button style
     wxWindow*         m_selected_row{nullptr};
 };
 

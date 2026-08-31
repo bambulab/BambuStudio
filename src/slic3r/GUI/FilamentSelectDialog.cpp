@@ -179,13 +179,14 @@ StateColor sc(const wxColour& c) { return StateColor(std::make_pair(c, (int)Stat
 inline wxColour dlg_bg()           { return wxGetApp().dark_mode() ? wxColour(0x36,0x38,0x3A) : *wxWHITE; }
 inline wxColour dlg_separator()    { return wxGetApp().dark_mode() ? wxColour(0x50,0x52,0x54) : wxColour(230,230,230); }
 inline wxColour dlg_divider()      { return wxGetApp().dark_mode() ? wxColour(0x50,0x52,0x54) : wxColour(220,220,220); }
-inline wxColour dlg_chip_sel_bg()  { return wxGetApp().dark_mode() ? wxColour(0x2A,0x2C,0x2E) : *wxWHITE; }
-inline wxColour dlg_chip_unsel_bg(){ return wxGetApp().dark_mode() ? wxColour(0x4A,0x4C,0x4E) : wxColour(245,245,245); }
+inline wxColour dlg_chip_sel_bg()  { return wxGetApp().dark_mode() ? wxColour(0x1F,0x35,0x29) : wxColour(0xDB,0xFD,0xE7); }
+inline wxColour dlg_chip_border()  { return wxGetApp().dark_mode() ? wxColour(0x50,0x52,0x54) : wxColour(220,220,220); }
 inline wxColour dlg_row_hl()       { return wxGetApp().dark_mode() ? wxColour(0x1A,0x3A,0x28) : wxColour(238,248,242); }
 inline wxColour dlg_brand_sel_bg() { return wxGetApp().dark_mode() ? wxColour(0x4A,0x4C,0x4E) : wxColour(240,240,240); }
 inline wxColour dlg_badge_bg()     { return wxGetApp().dark_mode() ? wxColour(0x1A,0x2E,0x22) : wxColour(219,244,228); }
-inline wxColour dlg_close_bg()     { return wxGetApp().dark_mode() ? wxColour(0x4A,0x4C,0x4E) : wxColour(248,248,248); }
 inline wxColour dlg_search_border(){ return wxGetApp().dark_mode() ? wxColour(0x50,0x52,0x54) : wxColour(238,238,238); }
+inline wxColour dlg_text_primary()  { return wxGetApp().dark_mode() ? wxColour(0xF0,0xF0,0xF0) : AMS_MATERIALS_SETTING_GREY900; }
+inline wxColour dlg_text_secondary(){ return wxGetApp().dark_mode() ? wxColour(0xC8,0xCA,0xCC) : AMS_MATERIALS_SETTING_GREY800; }
 
 // recently-used spool LRU (Filament Manager spools only)
 
@@ -207,7 +208,9 @@ std::vector<wxString> load_recent_spool_ids()
     return out;
 }
 
-void remember_recent_spool(const wxString& spool_id)
+} // namespace
+
+void FilamentSelectDialog::remember_recent_spool(const wxString& spool_id)
 {
     if (spool_id.IsEmpty()) return;
     auto* cfg = wxGetApp().app_config;
@@ -229,8 +232,6 @@ void remember_recent_spool(const wxString& spool_id)
     cfg->set(SPOOL_RECENT_KEY, out);
 }
 
-} // namespace
-
 FilamentSelectDialog::FilamentSelectDialog(wxWindow* parent)
     : DPIDialog(parent, wxID_ANY, _L("Select Filament"), wxDefaultPosition, wxDefaultSize,
                 wxCAPTION | wxCLOSE_BOX)
@@ -247,6 +248,12 @@ void FilamentSelectDialog::create()
         std::pair<wxColour, int>(wxColour(27,  136, 68),  StateColor::Pressed),
         std::pair<wxColour, int>(wxColour(61,  203, 115), StateColor::Hovered),
         std::pair<wxColour, int>(wxColour(0,   174, 66),  StateColor::Normal));
+
+    m_btn_bg_gray = StateColor(
+        std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+        std::pair<wxColour, int>(*wxWHITE,                StateColor::Focused),
+        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+        std::pair<wxColour, int>(*wxWHITE,                StateColor::Normal));
 
     auto* main = new wxBoxSizer(wxVERTICAL);
 
@@ -299,20 +306,20 @@ void FilamentSelectDialog::create()
     auto* ok = new Button(this, _L("Confirm"));
     ok->SetBackgroundColor(m_btn_bg_green);
     ok->SetBorderColor(sc(wxColour(0, 174, 66)));
-    ok->SetTextColor(sc(*wxWHITE));
-    ok->SetMinSize(wxSize(FromDIP(90), FromDIP(28)));
+    ok->SetTextColor(sc(wxColour("#FFFFFE")));
+    ok->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
     ok->SetCornerRadius(FromDIP(12));
     ok->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_confirm(); });
 
     auto* close = new Button(this, _L("Close"));
-    close->SetBackgroundColor(sc(dlg_close_bg()));
-    close->SetBorderColor(sc(AMS_MATERIALS_SETTING_GREY300));
+    close->SetBackgroundColor(m_btn_bg_gray);
+    close->SetBorderColor(sc(AMS_MATERIALS_SETTING_GREY900));
     close->SetTextColor(sc(AMS_MATERIALS_SETTING_GREY900));
-    close->SetMinSize(wxSize(FromDIP(90), FromDIP(28)));
+    close->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
     close->SetCornerRadius(FromDIP(12));
     close->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { EndModal(wxID_CANCEL); });
 
-    btn_sizer->Add(ok,    0, wxALIGN_CENTER | wxRIGHT, FromDIP(10));
+    btn_sizer->Add(ok,    0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
     btn_sizer->Add(close, 0, wxALIGN_CENTER, 0);
     main->Add(btn_sizer, 0, wxEXPAND | wxALL, FromDIP(12));
 
@@ -569,15 +576,7 @@ void FilamentSelectDialog::fill_manager_tab()
             m_mgr_rows.push_back({row, brand, make_search_key(sp)});
         };
 
-        // Pass 1: AMS in-printer spools first (slot badge shown, dimmed = not selectable)
-        for (auto& [b, sp] : all_supported) {
-            if (!sp.in_printer) continue;
-            auto* row = make_spool_row(m_mgr_list, sp, true /*dimmed*/, false);
-            m_mgr_list_sizer->Add(row, 0, wxEXPAND | wxBOTTOM, FromDIP(1));
-            m_mgr_rows.push_back({row, b, make_search_key(sp)});
-        }
-
-        // Pass 2: recently used (LRU order, newest first), excluding in-printer
+        // Pass 1: recently used (LRU order, newest first), excluding in-printer
         for (const wxString& sid : recent_ids) {
             for (auto& [b, sp] : all_supported) {
                 if (sp.in_printer) continue;
@@ -587,12 +586,20 @@ void FilamentSelectDialog::fill_manager_tab()
             }
         }
 
-        // Pass 3: remaining supported spools (not in-printer, not recently used)
+        // Pass 2: remaining supported spools (not in-printer, not recently used)
         for (auto& [b, sp] : all_supported) {
             if (sp.in_printer) continue;
             const wxString sid = wxString::FromUTF8(sp.spool_id);
             if (std::find(recent_ids.begin(), recent_ids.end(), sid) != recent_ids.end()) continue;
             add_row(b, sp, false);
+        }
+
+        // Pass 3: AMS in-printer spools (slot badge shown, dimmed = not selectable)
+        for (auto& [b, sp] : all_supported) {
+            if (!sp.in_printer) continue;
+            auto* row = make_spool_row(m_mgr_list, sp, true /*dimmed*/, false);
+            m_mgr_list_sizer->Add(row, 0, wxEXPAND | wxBOTTOM, FromDIP(1));
+            m_mgr_rows.push_back({row, b, make_search_key(sp)});
         }
 
         // Pass 4: unsupported section (chip filtering only, always dimmed)
@@ -622,7 +629,6 @@ void FilamentSelectDialog::on_confirm()
         m_result.color_type = sp.color_type;
         m_result.colors     = sp.colors;
         m_result.color_code = sp.color_code;
-        remember_recent_spool(wxString::FromUTF8(sp.spool_id));
 
     } else if (page == 1 && !m_checked_alias.IsEmpty()) {
         // System presets tab: caller resolves filament_id/type/temp from alias
@@ -688,28 +694,48 @@ void FilamentSelectDialog::refresh_chip_visibility()
         }
     }
 
-    // Build ordered list of chips that survive the search filter
-    std::vector<int> vi;   // visible_indices: real chip indices that pass search filter
-    for (int i = 0; i < (int)m_chips.size(); ++i)
+    const int gap = FromDIP(6);
+    const int pad = FromDIP(10) * 2;
+
+    // "All" chip is always pinned visible; measure its width to reserve space.
+    int all_chip_idx = -1;
+    int all_chip_w   = 0;
+    for (int i = 0; i < (int)m_chips.size(); ++i) {
+        if (m_chips[i]->GetLabel() == _L("All")) {
+            all_chip_idx = i;
+            all_chip_w   = m_chips[i]->GetTextRect().width + pad + gap;
+            break;
+        }
+    }
+    if (all_chip_idx >= 0)
+        m_chip_sizer->Show(m_chips[all_chip_idx], true);
+
+    // Build ordered list of non-"All" chips that survive the search filter.
+    // m_chip_offset and the scroll arrows only operate on this sub-list.
+    std::vector<int> vi;
+    for (int i = 0; i < (int)m_chips.size(); ++i) {
+        if (i == all_chip_idx) continue;
         if (chip_has_results[i]) vi.push_back(i);
+    }
 
     // clamp offset into the surviving list
     m_chip_offset = std::max(0, std::min(m_chip_offset, (int)vi.size() - 1));
 
-    // Greedy: show surviving chips from m_chip_offset until they no longer fit
-    const int gap = FromDIP(6);
-    const int pad = FromDIP(10) * 2;
+    // Greedy: show surviving brand chips from m_chip_offset until they no longer fit.
+    // Subtract the pinned "All" chip width from the available space.
+    const int brand_avail = avail - all_chip_w;
     int used = 0;
     int last_vi = m_chip_offset - 1;
     for (int k = m_chip_offset; k < (int)vi.size(); ++k) {
         const int w = m_chips[vi[k]]->GetTextRect().width + pad + gap;
-        if (used + w > avail && last_vi >= m_chip_offset) break;
+        if (used + w > brand_avail && last_vi >= m_chip_offset) break;
         used += w;
         last_vi = k;
     }
 
-    // show/hide: only chips in [m_chip_offset, last_vi] of the surviving list
+    // show/hide brand chips: only those in [m_chip_offset, last_vi] of the surviving list
     std::vector<bool> show_chip(m_chips.size(), false);
+    if (all_chip_idx >= 0) show_chip[all_chip_idx] = true;   // always show "All"
     for (int k = m_chip_offset; k <= last_vi; ++k)
         show_chip[vi[k]] = true;
 
@@ -734,14 +760,13 @@ void FilamentSelectDialog::fill_brand_chips(const std::vector<wxString>& brands)
     auto apply_style = [](Button* b, bool sel) {
         const wxColour green(0, 174, 66);
         if (sel) {
-            b->SetBackgroundColor(StateColor(std::make_pair(dlg_chip_sel_bg(), (int)StateColor::Normal)));
-            b->SetTextColor(StateColor(std::make_pair(green, (int)StateColor::Normal)));
-            b->SetBorderColor(StateColor(std::make_pair(green, (int)StateColor::Normal)));
+            b->SetBackgroundColor(sc(dlg_chip_sel_bg()));            // #DBFDE7 / dark #1F3529
+            b->SetTextColor(sc(green));
+            b->SetBorderColor(sc(green));
         } else {
-            const wxColour unsel_bg = dlg_chip_unsel_bg();
-            b->SetBackgroundColor(StateColor(std::make_pair(unsel_bg, (int)StateColor::Normal)));
-            b->SetTextColor(StateColor(std::make_pair(AMS_MATERIALS_SETTING_GREY800, (int)StateColor::Normal)));
-            b->SetBorderColor(StateColor(std::make_pair(unsel_bg, (int)StateColor::Normal)));
+            b->SetBackgroundColor(sc(dlg_bg()));                    // transparent (matches panel)
+            b->SetTextColor(sc(AMS_MATERIALS_SETTING_GREY800));
+            b->SetBorderColor(sc(dlg_chip_border()));               // light gray frame
         }
         b->Refresh();
     };
@@ -749,7 +774,7 @@ void FilamentSelectDialog::fill_brand_chips(const std::vector<wxString>& brands)
     for (size_t i = 0; i < brands.size(); ++i) {
         auto* chip = new Button(m_chip_scroll, brands[i]);
         chip->SetFont(Label::Body_12);
-        chip->SetCornerRadius(FromDIP(6));   // rounded-rect, not capsule
+        chip->SetCornerRadius(FromDIP(4));   // 4px rounded-rect per design
         chip->SetPaddingSize(wxSize(FromDIP(10), FromDIP(4)));
         apply_style(chip, i == 0);
         chip->Bind(wxEVT_BUTTON, [this, chips, chip, apply_style, label = brands[i]](wxCommandEvent&) {
@@ -895,7 +920,7 @@ void FilamentSelectDialog::fill_default_tab()
 
         auto* lbl = new Label(row, b);
         lbl->SetFont(Label::Body_14);
-        lbl->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
+        lbl->SetForegroundColour(dlg_text_secondary());
         h->Add(lbl, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
 
         wxBitmap arrow_bmp = create_scaled_bitmap("chip_arrow_right", row, 16);
@@ -904,21 +929,6 @@ void FilamentSelectDialog::fill_default_tab()
 
         row->SetMinSize(wxSize(-1, FromDIP(36)));
         row->SetSizer(h);
-
-        row->Bind(wxEVT_PAINT, [row](wxPaintEvent&) {
-            wxPaintDC dc(row);
-            const wxColour sel_bg = dlg_brand_sel_bg();
-            const wxSize sz = row->GetClientSize();
-            dc.SetBackground(wxBrush(dlg_bg()));
-            dc.Clear();
-            if (row->GetBackgroundColour() == sel_bg) {
-                const int margin = row->FromDIP(6);
-                const int radius = row->FromDIP(6);
-                dc.SetPen(*wxTRANSPARENT_PEN);
-                dc.SetBrush(wxBrush(sel_bg));
-                dc.DrawRoundedRectangle(margin, 2, sz.x - 2 * margin, sz.y - 4, radius);
-            }
-        });
 
         const wxString brand = b;
         auto on_click = [this, brand](wxMouseEvent&) { select_brand(brand); };
@@ -960,15 +970,13 @@ void FilamentSelectDialog::select_brand(const wxString& brand)
 
             auto* lbl = new Label(row, alias);
             lbl->SetFont(Label::Body_14);
-            lbl->SetForegroundColour(AMS_MATERIALS_SETTING_GREY900);
+            lbl->SetForegroundColour(dlg_text_primary());
             h->Add(lbl, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(8));
 
-            if (alias == m_checked_alias) {
-                wxBitmap tick_bmp = create_scaled_bitmap("filament_select_tick", row, 16);
-                auto* tick = new wxStaticBitmap(row, wxID_ANY, tick_bmp);
-                h->Add(tick, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
-            }
             row->SetSizer(h);
+            const wxColour row_bg = (alias == m_checked_alias) ? dlg_row_hl() : dlg_bg();
+            row->SetBackgroundColour(row_bg);
+            for (auto* c : row->GetChildren()) c->SetBackgroundColour(row_bg);
 
             const wxString cur_brand = brand;
             auto on_type_click = [this, alias, cur_brand](wxMouseEvent&) {
@@ -997,11 +1005,11 @@ void FilamentSelectDialog::select_brand(const wxString& brand)
         const bool sel     = (row_brand == brand);
         const bool was_sel = (row_brand == prev_brand);
         if (sel == was_sel) continue;
-        const wxColour sel_bg = dlg_brand_sel_bg();
+        const wxColour sel_bg = dlg_row_hl();
         const wxColour unsel_bg = dlg_bg();
         row->SetBackgroundColour(sel ? sel_bg : unsel_bg);
 
-        const wxColour fg = sel ? AMS_MATERIALS_SETTING_GREY900 : AMS_MATERIALS_SETTING_GREY800;
+        const wxColour fg = sel ? dlg_text_primary() : dlg_text_secondary();
         for (auto* c : row->GetChildren()) {
             // Children must stay transparent so the custom-painted bg shows through.
             c->SetBackgroundColour(sel ? sel_bg : unsel_bg);

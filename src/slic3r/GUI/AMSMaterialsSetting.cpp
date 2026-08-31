@@ -175,15 +175,22 @@ void AMSMaterialsSetting::create()
 
     m_sizer_main->Add(m_panel_kn, 0, wxEXPAND, 0);
 
+    wxBoxSizer* m_tip_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_tip_readonly = new Label(this, _L(""));
+    m_tip_readonly->SetForegroundColour(wxColour("#FF6F00"));
+    m_tip_readonly->SetMinSize(wxSize(AMS_MATERIALS_SETTING_TIP_WIDTH, -1));
+    m_tip_readonly->SetMaxSize(wxSize(AMS_MATERIALS_SETTING_TIP_WIDTH, -1));
+    m_tip_readonly->Hide();
+    m_tip_sizer->Add(m_tip_readonly, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(20));
+    m_sizer_main->Add(m_tip_sizer, 0, wxLEFT | wxTOP, FromDIP(20));
+
     m_sizer_main->Add(0, 0, 0, wxTOP, FromDIP(24));
     m_sizer_main->Add(m_sizer_button, 0,  wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
     m_sizer_main->Add(0, 0, 0,  wxTOP, FromDIP(16));
 
     SetSizer(m_sizer_main);
     Layout();
-    Fit();
-    SetMinSize(AMS_MATERIALS_SETTING_DIALOG_SIZE);
-    Fit();
+    apply_dialog_size();
 
     Bind(EVT_SELECTED_COLOR, &AMSMaterialsSetting::on_picker_color, this);
 
@@ -201,15 +208,34 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_title_filament->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_filament->Wrap(-1);
     m_sizer_filament->Add(m_title_filament, 0, wxALIGN_CENTER_VERTICAL, 0);
-    // "Filament" label already takes AMS_MATERIALS_SETTING_LABEL_WIDTH, so only
-    // add the remaining distance to reach the target column indent.
     m_sizer_filament->AddSpacer(std::max(0, AMS_MATERIALS_SETTING_CALI_COL_INDENT - AMS_MATERIALS_SETTING_LABEL_WIDTH));
 
-    m_comboBox_filament = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition,
-        AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
-    m_comboBox_filament->Bind(wxEVT_LEFT_DOWN,
-        [this](wxMouseEvent&) { on_open_filament_select_dialog(); });
-    m_sizer_filament->Add(m_comboBox_filament, 1, wxALIGN_CENTER_VERTICAL, 0);
+    m_filament_box = new StaticBox(parent);
+    m_filament_box->SetMinSize(AMS_MATERIALS_SETTING_COMBOX_WIDTH);
+    m_filament_box->SetCornerRadius(FromDIP(4));
+    m_filament_box->SetBorderColor(StateColor(std::make_pair(wxColour(0xDB, 0xDB, 0xDB), (int)StateColor::Normal)));
+    m_filament_box->SetBackgroundColor(StateColor(std::make_pair(wxColour(0xF0, 0xF0, 0xF1), (int)StateColor::Disabled),
+                                                  std::make_pair(*wxWHITE, (int)StateColor::Normal)));
+
+    auto* box_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_filament_text = new Label(m_filament_box, wxEmptyString);
+    m_filament_text->SetFont(::Label::Body_14);
+    m_filament_text->SetForegroundColour(StateColor::darkModeColorFor(AMS_MATERIALS_SETTING_GREY900));
+    m_filament_text->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));   // match box fill; avoid grey default label bg
+    box_sizer->Add(m_filament_text, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
+
+    m_filament_arrow = new wxStaticBitmap(m_filament_box, wxID_ANY,
+        create_scaled_bitmap("filament_select_arrow", m_filament_box, 10));
+    m_filament_arrow->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    box_sizer->Add(m_filament_arrow, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
+    m_filament_box->SetSizer(box_sizer);
+
+    auto open_filament_dialog = [this](wxMouseEvent&) { on_open_filament_select_dialog(); };
+    m_filament_box->Bind(wxEVT_LEFT_DOWN, open_filament_dialog);
+    m_filament_text->Bind(wxEVT_LEFT_DOWN, open_filament_dialog);
+    m_filament_arrow->Bind(wxEVT_LEFT_DOWN, open_filament_dialog);
+
+    m_sizer_filament->Add(m_filament_box, 1, wxALIGN_CENTER_VERTICAL, 0);
 
 
     wxBoxSizer* m_sizer_colour = new wxBoxSizer(wxHORIZONTAL);
@@ -219,15 +245,13 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_title_colour->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     m_title_colour->Wrap(-1);
     m_sizer_colour->Add(m_title_colour, 0, wxALIGN_CENTER_VERTICAL, 0);
-    // "Colour" label already takes AMS_MATERIALS_SETTING_LABEL_WIDTH, so only
-    // add the remaining distance to reach the target column indent.
     m_sizer_colour->AddSpacer(std::max(0, AMS_MATERIALS_SETTING_CALI_COL_INDENT - AMS_MATERIALS_SETTING_LABEL_WIDTH));
 
     m_clr_picker = new ColorPicker(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_clr_picker->set_show_full(true);
     m_clr_picker->SetBackgroundColour(*wxWHITE);
 
-    m_sizer_colour->Add(m_clr_picker, 0, 0, 0);
+    m_sizer_colour->Add(m_clr_picker, 0, wxRESERVE_SPACE_EVEN_IF_HIDDEN, 0);
     m_clr_name = new Label(parent, wxEmptyString);
     m_clr_name->SetForegroundColour(*wxBLACK);
     m_clr_name->SetBackgroundColour(*wxWHITE);
@@ -242,13 +266,13 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
 
     m_panel_temperature = new StaticBox(parent);
     m_panel_temperature->SetCornerRadius(FromDIP(10));
-    m_panel_temperature->SetBackgroundColor(StateColor(std::make_pair(wxColour(238, 238, 238), (int)StateColor::Normal)));
-    m_panel_temperature->SetBorderColor(StateColor(std::make_pair(wxColour(238, 238, 238), (int)StateColor::Normal)));
+    m_panel_temperature->SetBackgroundColor(StateColor(std::make_pair(wxColour(248, 248, 248), (int)StateColor::Normal)));
+    m_panel_temperature->SetBorderColor(StateColor(std::make_pair(wxColour(248, 248, 248), (int)StateColor::Normal)));
 
     wxBoxSizer* temp_box_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_nozzle_temp_label = new Label(m_panel_temperature, wxEmptyString);
     m_nozzle_temp_label->SetFont(::Label::Body_13);
-    m_nozzle_temp_label->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
+    m_nozzle_temp_label->SetForegroundColour(AMS_MATERIALS_SETTING_GREY700);
     temp_box_sizer->Add(m_nozzle_temp_label, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(8));
     m_panel_temperature->SetSizer(temp_box_sizer);
     m_panel_temperature->Layout();
@@ -279,14 +303,6 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_panel_SN->Fit();
     m_panel_SN->Hide();
 
-    wxBoxSizer* m_tip_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_tip_readonly = new Label(parent, _L(""));
-    m_tip_readonly->SetForegroundColour(*wxBLACK);
-    m_tip_readonly->SetMinSize(wxSize(FromDIP(380), -1));
-    m_tip_readonly->SetMaxSize(wxSize(FromDIP(380), -1));
-    m_tip_readonly->Hide();
-    m_tip_sizer->Add(m_tip_readonly, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(20));
-
     sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
     sizer->Add(m_sizer_filament, 0, wxLEFT | wxRIGHT, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
@@ -301,8 +317,6 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     sizer->Add(m_sizer_color_popup_row, 0, wxLEFT | wxRIGHT | wxEXPAND, FromDIP(20));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
     sizer->Add(m_panel_SN, 0, wxLEFT, FromDIP(20));
-    sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
-    sizer->Add(m_tip_sizer, 0, wxLEFT, FromDIP(20));
     parent->SetSizer(sizer);
 
     update_nozzle_temp_display();
@@ -316,19 +330,32 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_ratio_text   = new wxStaticText(parent, wxID_ANY, _L("Factors of Flow Dynamics Calibration"));
     m_ratio_text->SetForegroundColour(wxColour(50, 58, 61));
     m_ratio_text->SetFont(Label::Head_14);
-    m_ratio_text->SetMaxSize(wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1));
-    m_ratio_text->Wrap(AMS_MATERIALS_SETTING_LABEL_WIDTH);
+    m_ratio_text->SetMaxSize(wxSize(AMS_MATERIALS_SETTING_CALI_COL_INDENT, -1));
+    m_ratio_text->Wrap(AMS_MATERIALS_SETTING_CALI_COL_INDENT);
 
     std::string language = wxGetApp().app_config->get("language");
     wxString    region   = "en";
     if (language.find("zh") == 0)
         region = "zh";
     wxString link_url = wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region);
-    m_wiki_ctrl = new wxHyperlinkCtrl(parent, wxID_ANY, _L("View Wiki for details"), link_url);
-    m_wiki_ctrl->SetNormalColour(wxColour(0, 174, 66));
-    m_wiki_ctrl->SetHoverColour(wxColour(0, 150, 57));
-    m_wiki_ctrl->SetVisitedColour(wxColour(0, 174, 66));
+    m_wiki_ctrl = new Label(parent, _L("Wiki"));
     m_wiki_ctrl->SetFont(Label::Body_13);
+    m_wiki_ctrl->SetForegroundColour(wxColour(0, 174, 66));
+    m_wiki_ctrl->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
+        e.Skip();
+        m_wiki_ctrl->SetForegroundColour(wxColour(0, 150, 57));
+        m_wiki_ctrl->SetCursor(wxCURSOR_HAND);
+        m_wiki_ctrl->Refresh();
+    });
+    m_wiki_ctrl->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &e) {
+        e.Skip();
+        m_wiki_ctrl->SetForegroundColour(wxColour(0, 174, 66));
+        m_wiki_ctrl->SetCursor(wxCURSOR_ARROW);
+        m_wiki_ctrl->Refresh();
+    });
+    m_wiki_ctrl->Bind(wxEVT_LEFT_UP, [link_url](wxMouseEvent &) {
+        wxLaunchDefaultBrowser(link_url);
+    });
 
     wxBoxSizer *m_sizer_nozzle_type = new wxBoxSizer(wxHORIZONTAL);
     // Nozzle Type
@@ -393,23 +420,17 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_n_param->Hide();
     m_input_n_val->Hide();
 
-    // Two-column layout: left = section title + wiki link (stacked),
-    // right = the nozzle-type / PA-profile / Factor-K rows (stacked).
     wxBoxSizer* cali_cols_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     wxBoxSizer* cali_left_sizer = new wxBoxSizer(wxVERTICAL);
     cali_left_sizer->Add(m_ratio_text, 0, 0, 0);
     cali_left_sizer->Add(0, 0, 0, wxTOP, FromDIP(6));
     cali_left_sizer->Add(m_wiki_ctrl, 0, 0, 0);
-    // Pin this column's width so PA Profile / Factor K always start at a known,
-    // constant x — otherwise it floats with m_ratio_text's wrapped-text width
-    // and m_wiki_ctrl's natural width, which is why create_panel_normal's
-    // hardcoded indent kept missing regardless of what value it used.
     cali_left_sizer->Add(AMS_MATERIALS_SETTING_CALI_COL_INDENT, 0);
 
     wxBoxSizer* cali_right_sizer = new wxBoxSizer(wxVERTICAL);
     cali_right_sizer->Add(m_sizer_nozzle_type, 0, wxEXPAND, 0);
-    cali_right_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+    m_nozzle_type_spacer_item = cali_right_sizer->Add(0, FromDIP(10), 0, 0);
     cali_right_sizer->Add(m_sizer_cali_resutl, 0, wxEXPAND, 0);
     cali_right_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     cali_right_sizer->Add(kn_val_sizer, 0, wxEXPAND, 0);
@@ -452,14 +473,14 @@ void AMSMaterialsSetting::update()
 void AMSMaterialsSetting::update_filament_editing(bool is_printing)
 {
     if (is_printing) {
-        m_comboBox_filament->Enable(obj->is_support_filament_setting_inprinting);
+        enable_filament_box(obj->is_support_filament_setting_inprinting);
         m_comboBox_nozzle_type->Enable(obj->is_support_filament_setting_inprinting);
         m_comboBox_cali_result->Enable(obj->is_support_filament_setting_inprinting);
         m_button_confirm->Show(obj->is_support_filament_setting_inprinting);
         m_button_reset->Show(obj->is_support_filament_setting_inprinting);
     }
     else {
-        m_comboBox_filament->Enable(true);
+        enable_filament_box(true);
         m_comboBox_nozzle_type->Enable(true);
         m_comboBox_cali_result->Enable(true);
         m_button_reset->Show(true);
@@ -473,23 +494,21 @@ void AMSMaterialsSetting::update_filament_editing(bool is_printing)
     else {
         if (!obj->is_support_filament_setting_inprinting) {
             if (!is_virtual_tray()) {
-                m_tip_readonly->SetLabelText(_L("Setting AMS slot information while printing is not supported"));
+                m_tip_readonly->SetLabelText(_L("Tip: Setting AMS slot information while printing is not supported"));
             } else {
-                m_tip_readonly->SetLabelText(_L("Setting Virtual slot information while printing is not supported"));
+                m_tip_readonly->SetLabelText(_L("Tip: Setting Virtual slot information while printing is not supported"));
             }
         } else {
             m_tip_readonly->SetLabelText(wxEmptyString);
         }
 
-        m_tip_readonly->Wrap(FromDIP(380));
+        m_tip_readonly->SetForegroundColour(wxColour("#FF6F00"));   // reassert: UpdateDlgDarkUI may recolor labels
+        m_tip_readonly->Wrap(AMS_MATERIALS_SETTING_TIP_WIDTH);
         m_tip_readonly->Show(is_printing);
     }
 
-    // View-only mode (e.g. 2D laser/cut): keep the dialog inspectable but lock
-    // every editable control and hide the apply/reset buttons so nothing can be
-    // committed, regardless of m_is_third.
     if (m_view_only) {
-        m_comboBox_filament->Enable(false);
+        enable_filament_box(false);
         m_comboBox_nozzle_type->Enable(false);
         m_comboBox_cali_result->Enable(false);
         m_input_k_val->Enable(false);
@@ -590,7 +609,7 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         reset_calibration(selected_ams_id);
 
     }
-    Close();
+    trigger_select_filament(std::string(), /*from_printer=*/true, wxEmptyString);
 }
 
 
@@ -1034,6 +1053,8 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
                                                        {m_selected_spool_id},
                                                        /*is_bind=*/true);
                 }
+                FilamentSelectDialog::remember_recent_spool(
+                    wxString::FromUTF8(m_selected_spool_id));
             }
         }
     }
@@ -1116,10 +1137,16 @@ bool AMSMaterialsSetting::colour_editable() const
     return true;
 }
 
+bool AMSMaterialsSetting::colour_palette_visible() const
+{
+    if (!obj) return false;
+    if (m_view_only || !m_is_third) return false;
+    return true;
+}
+
 void AMSMaterialsSetting::apply_dialog_size()
 {
-    const wxSize size = AMS_MATERIALS_SETTING_DIALOG_SIZE;
-    SetMinSize(size);
+    SetMinSize(wxSize(AMS_MATERIALS_SETTING_DIALOG_SIZE.GetWidth(), -1));
     Fit();
 }
 
@@ -1171,6 +1198,7 @@ bool AMSMaterialsSetting::Show(bool show)
         m_wiki_ctrl->Show();
         m_k_param->Show();
         m_input_k_val->Show();
+        m_filament_arrow->SetBitmap(create_scaled_bitmap("filament_select_arrow", m_filament_box, 10));
         Layout();
         apply_dialog_size();
         wxGetApp().UpdateDlgDarkUI(this);
@@ -1592,10 +1620,21 @@ static std::optional<DevNozzle> s_get_nozzle_by_tray(MachineObject* obj_, int am
     return nozzle.IsEmpty() ? std::nullopt : std::make_optional(nozzle);
 }
 
+void AMSMaterialsSetting::set_filament_box_text(const wxString& text)
+{
+    m_filament_text->SetLabel(text);
+    m_filament_box->Layout();
+}
+
+void AMSMaterialsSetting::enable_filament_box(bool enable)
+{
+    m_filament_box_editable = enable;
+}
+
 void AMSMaterialsSetting::on_open_filament_select_dialog()
 {
     if (!obj) return;
-    if (m_view_only || !m_comboBox_filament->IsEnabled()) return;
+    if (m_view_only || !m_filament_box_editable) return;
 
     std::string nozzle_diameter_str;
     if (auto nozzle_opt = s_get_nozzle_by_tray(obj, ams_id, slot_id)) {
@@ -1713,17 +1752,17 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
 
     if (obj) {
         if (!m_is_third) {
-            m_comboBox_filament->Enable(false);
+            enable_filament_box(false);
             wxString display = bambu_filament_name.empty() ? "Bambu " + filament : bambu_filament_name;
             m_current_filament_alias = display;
-            m_comboBox_filament->SetValue(display);
+            set_filament_box_text(display);
 
             m_nozzle_temp_min_str = temp_min;
             m_nozzle_temp_max_str = temp_max;
             update_nozzle_temp_display();
         }
         else {
-            m_comboBox_filament->Enable(true);
+            enable_filament_box(true);
         }
 
         if (obj->GetCalib()->IsVersionInited()) {
@@ -1813,7 +1852,7 @@ void AMSMaterialsSetting::trigger_select_filament(const std::string& spool_id,
     m_pending_spool_id     = spool_id;
     m_pending_from_printer = from_printer;
     m_current_filament_alias = display_text;
-    m_comboBox_filament->SetValue(display_text);
+    set_filament_box_text(display_text);
     apply_filament_selection();
 }
 
@@ -2170,6 +2209,7 @@ void AMSMaterialsSetting::update_nozzle_combo(MachineObject* obj){
     } else{
         m_title_nozzle_type->Hide();
         m_comboBox_nozzle_type->Hide();
+        m_nozzle_type_spacer_item->Show(false);
 
         auto font = m_title_pa_profile->GetFont();
         font.SetUnderlined(false);
@@ -2334,7 +2374,14 @@ void AMSMaterialsSetting::apply_filament_selection()
 
         set_empty_color(*wxWHITE);
         if (m_color_picker_popup) {
-            m_color_picker_popup->Hide();
+            const bool visible  = colour_palette_visible();
+            const bool editable = colour_editable();
+            m_color_picker_popup->Show(visible);
+            m_color_picker_popup->Enable(editable);   // disabled == read-only, palette stays visible
+            if (visible) {
+                m_color_picker_popup->set_ams_colours(collect_ams_color_items(obj->GetFilaSystem().get()));
+                m_color_picker_popup->set_preset_colours({});
+            }
             m_panel_normal->Layout();
             Layout();
             apply_dialog_size();
@@ -2481,11 +2528,17 @@ void AMSMaterialsSetting::apply_filament_selection()
     }
 
     if (m_color_picker_popup) {
+        const bool visible  = colour_palette_visible();
         const bool editable = colour_editable();
-        m_color_picker_popup->Show(editable);
-        if (editable) {
+        m_color_picker_popup->Show(visible);
+        m_color_picker_popup->Enable(editable);   // disabled == read-only, palette stays visible
+        if (visible) {
             m_color_picker_popup->set_ams_colours(collect_ams_color_items(obj->GetFilaSystem().get()));
-            m_color_picker_popup->set_preset_colours(get_preset_color_items(ams_filament_id));
+            // 兜底: fall back to the default palette when read-only (printing), presets when editable
+            if (editable)
+                m_color_picker_popup->set_preset_colours(get_preset_color_items(ams_filament_id));
+            else
+                m_color_picker_popup->set_preset_colours({});
             m_color_picker_popup->set_def_colour(m_clr_picker->m_colour, m_clr_picker->m_cols, m_clr_picker->ctype);
         }
         m_panel_normal->Layout();
@@ -2498,6 +2551,9 @@ void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect)
 {
     m_input_k_val->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     m_clr_picker->msw_rescale();
+    m_filament_box->SetMinSize(AMS_MATERIALS_SETTING_COMBOX_WIDTH);
+    m_filament_box->SetCornerRadius(FromDIP(4));
+    m_filament_arrow->SetBitmap(create_scaled_bitmap("filament_select_arrow", m_filament_box, 10));
     m_button_reset->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
     m_button_reset->SetCornerRadius(FromDIP(12));
     m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
@@ -2511,6 +2567,7 @@ void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect)
 ColorPicker::ColorPicker(wxWindow* parent, wxWindowID id, const wxPoint& pos /*= wxDefaultPosition*/, const wxSize& size /*= wxDefaultSize*/)
 {
     wxWindow::Create(parent, id, pos, size);
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
 
     SetSize(wxSize(FromDIP(25), FromDIP(25)));
     SetMinSize(wxSize(FromDIP(25), FromDIP(25)));
@@ -2585,6 +2642,8 @@ void ColorPicker::render(wxDC& dc)
 void ColorPicker::doRender(wxDC& dc)
 {
     wxSize     size = GetSize();
+    dc.SetBackground(wxBrush(GetBackgroundColour()));
+    dc.Clear();
     auto alpha = m_colour.Alpha();
     // Keep the outer edge inside the bitmap for even pixel sizes produced by DPI scaling.
     const int outer_radius = (std::min(size.x, size.y) - 1) / 2;
@@ -2738,8 +2797,9 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent, wxWindow* evt_target)
 
     m_def_color_box = new StaticBox(this);
     m_def_color_box->SetCornerRadius(FromDIP(10));
-    m_def_color_box->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal)));
-    m_def_color_box->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal)));
+    m_def_color_box->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour(248, 248, 248), StateColor::Normal)));
+    m_def_color_box->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(248, 248, 248), StateColor::Normal)));
+    m_def_color_box->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
 
     // single continuous colour grid: AMS -> other/preset -> "+" custom entry
     m_color_fg_sizer = new wxFlexGridSizer(0, 10, 0, 0);
@@ -2751,7 +2811,7 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent, wxWindow* evt_target)
         cp->set_color(col);
         cp->set_colors({ col });
         cp->set_selected(false);
-        cp->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(238,238,238)));
+        cp->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(248,248,248)));
         m_color_pickers.push_back(cp);
         m_default_color_pickers.push_back(cp);
         cp->Bind(wxEVT_LEFT_DOWN, [this, cp](auto& e) {
@@ -2769,8 +2829,8 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent, wxWindow* evt_target)
     m_custom_cp->SetSize(FromDIP(25), FromDIP(25));
     m_custom_cp->SetMinSize(wxSize(FromDIP(25), FromDIP(25)));
     m_custom_cp->SetMaxSize(wxSize(FromDIP(25), FromDIP(25)));
-    m_custom_cp->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal)));
-    m_custom_cp->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Normal)));
+    m_custom_cp->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour(248, 248, 248), StateColor::Normal)));
+    m_custom_cp->SetBorderColor(StateColor(std::pair<wxColour, int>(wxColour(248, 248, 248), StateColor::Normal)));
     m_custom_cp->Bind(wxEVT_LEFT_DOWN, &ColorPickerPopup::on_custom_clr_picker, this);
     m_custom_cp->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
         SetCursor(wxCURSOR_HAND);
@@ -2779,10 +2839,8 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent, wxWindow* evt_target)
         SetCursor(wxCURSOR_ARROW);
     });
 
-    m_custom_plus = new wxStaticText(m_custom_cp, wxID_ANY, "+", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL);
-    m_custom_plus->SetFont(::Label::Head_16);
-    m_custom_plus->SetForegroundColour(wxColour("#6B6B6B"));
-    m_custom_plus->SetBackgroundColour(wxColour(238, 238, 238));
+    m_custom_plus = new wxStaticBitmap(m_custom_cp, wxID_ANY,
+        ScalableBitmap(m_custom_cp, "color_picker_add", 14).bmp());
     m_custom_plus->Bind(wxEVT_LEFT_DOWN, &ColorPickerPopup::on_custom_clr_picker, this);
     m_custom_plus->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {
         SetCursor(wxCURSOR_HAND);
@@ -2904,7 +2962,7 @@ void ColorPickerPopup::set_ams_colours(const std::vector<ColorItem>& ams)
         cp->ctype = item.colors.size() > 1 ? item.ctype : 2;
         cp->set_selected(false);
         cp->set_label("AMS");
-        cp->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(238,238,238)));
+        cp->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(248,248,248)));
         m_color_pickers.push_back(cp);
         m_ams_color_pickers.push_back(cp);
         cp->Bind(wxEVT_LEFT_DOWN, [this, cp](auto& e) {
@@ -2940,7 +2998,7 @@ void ColorPickerPopup::set_preset_colours(const std::vector<ColorItem>& preset_c
         cp->set_colors(item.colors);
         cp->ctype = item.colors.size() > 1 ? item.ctype : 2;
         cp->set_selected(false);
-        cp->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(238,238,238)));
+        cp->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(248,248,248)));
         if (!item.name.empty()) {
             cp->SetToolTip(item.name);
         }

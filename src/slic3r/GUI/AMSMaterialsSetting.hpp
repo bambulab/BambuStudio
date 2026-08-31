@@ -31,6 +31,8 @@
 #define AMS_MATERIALS_SETTING_BUTTON_SIZE wxSize(FromDIP(90), FromDIP(24))
 #define AMS_MATERIALS_SETTING_INPUT_SIZE wxSize(FromDIP(90), FromDIP(24))
 #define AMS_MATERIALS_SETTING_DIALOG_SIZE wxSize(FromDIP(526), FromDIP(503))
+// Interior width available for the read-only tip: dialog width minus the 20px left + 20px right margins.
+#define AMS_MATERIALS_SETTING_TIP_WIDTH (AMS_MATERIALS_SETTING_DIALOG_SIZE.GetWidth() - FromDIP(40))
 
 namespace Slic3r { namespace GUI {
 
@@ -79,7 +81,7 @@ public:
     };
 
     wxWindow* m_evt_target{nullptr};
-    wxStaticText* m_custom_plus;
+    wxStaticBitmap* m_custom_plus;
     StaticBox* m_custom_cp;
     wxColourData* m_clrData;
     StaticBox* m_def_color_box;
@@ -175,9 +177,7 @@ public:
     std::string    ams_setting_id;
 
     bool           m_is_third;
-    // View-only mode: when set, the dialog can be opened to inspect filament
-    // info but every editing control is disabled and no command is sent.
-    // Used for 2D mode (laser/cut), mirroring the official-spool read-only flow.
+    bool           m_confirmed = false;
     bool           m_view_only = false;
     wxString       m_brand_filament;
     wxString       m_brand_sn;
@@ -205,7 +205,10 @@ protected:
     void on_select_reset(wxCommandEvent &event);
     void on_select_close(wxCommandEvent &event);
     void on_open_filament_select_dialog();
+    void set_filament_box_text(const wxString& text);   // set the filament name shown in the jump box
+    void enable_filament_box(bool enable);              // enable/disable the jump box + grey the text
     bool colour_editable() const;
+    bool colour_palette_visible() const;
     void apply_dialog_size();
     void update_widgets();
 
@@ -240,6 +243,7 @@ protected:
     //wxPanel *           m_panel_body;
     wxStaticText *      m_title_filament;
     wxStaticText *      m_title_nozzle_type;
+    wxSizerItem *       m_nozzle_type_spacer_item { nullptr };
     wxStaticText *      m_title_pa_profile;
     wxStaticText *      m_title_colour;
     wxString            m_nozzle_temp_min_str;
@@ -256,14 +260,17 @@ protected:
 
     wxPanel *           m_panel_kn;
     wxStaticText*       m_ratio_text;
-    wxHyperlinkCtrl *   m_wiki_ctrl;
+    Label*              m_wiki_ctrl;
     wxStaticText*       m_k_param;
     wxStaticText*       m_n_param;
     bool m_has_initial_filament_weight{ false };
     int  m_initial_total_weight{ 0 };
     int  m_initial_remain_weight{ 0 };
 
-    ComboBox*  m_comboBox_filament{nullptr};
+    StaticBox*      m_filament_box{nullptr};    // clickable jump box (was m_comboBox_filament)
+    Label*          m_filament_text{nullptr};   // filament name shown left-aligned in the box
+    wxStaticBitmap* m_filament_arrow{nullptr};  // right-side jump arrow
+    bool            m_filament_box_editable{true};  // gate clicks without disabling native controls (keeps font consistent)
     wxString   m_current_filament_alias;
     ComboBox * m_comboBox_nozzle_type;
 
