@@ -1724,7 +1724,8 @@ TextureImportDialog::TextureImportDialog(
     const Slic3r::TexturedMesh&      textured_mesh,
     const std::vector<TextureFilamentEntry>& filament_entries,
     std::function<bool()>            initial_cancel_callback,
-    std::function<bool(int)>         initial_progress_callback)
+    std::function<bool(int)>         initial_progress_callback,
+    std::function<void(bool)>        initial_progress_visibility_callback)
     : DPIDialog(parent, wxID_ANY, _L("Import Model"),
                 wxDefaultPosition, wxDefaultSize,
                 (wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) & ~(wxMINIMIZE_BOX | wxMAXIMIZE_BOX))
@@ -1732,6 +1733,7 @@ TextureImportDialog::TextureImportDialog(
     , m_filament_entries(filament_entries)
     , m_initial_cancel_callback(std::move(initial_cancel_callback))
     , m_initial_progress_callback(std::move(initial_progress_callback))
+    , m_initial_progress_visibility_callback(std::move(initial_progress_visibility_callback))
 {
     SetSize(wxSize(FromDIP(960), FromDIP(640)));
 
@@ -1876,6 +1878,18 @@ int TextureImportDialog::ShowModal()
         if (m_initial_computation_cancelled || m_initial_computation_failed)
             return wxID_CANCEL;
     }
+
+    // Hide the outer load_files progress dialog while this UI is shown; restore
+    // it when Confirm / Skip Matching / close returns to the import pipeline.
+    struct RestoreProgressVisibility {
+        std::function<void(bool)> cb;
+        explicit RestoreProgressVisibility(std::function<void(bool)> c) : cb(std::move(c)) {
+            if (cb) cb(false);
+        }
+        ~RestoreProgressVisibility() {
+            if (cb) cb(true);
+        }
+    } restore_progress(m_initial_progress_visibility_callback);
 
     ScopedInteractiveBusyCursorSuspender busy_cursor_suspender;
     return DPIDialog::ShowModal();

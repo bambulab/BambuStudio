@@ -6902,7 +6902,8 @@ public:
 
     bool run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, TextureImportResult& result,
                                          std::function<bool()> cancel_callback = {},
-                                         std::function<bool(int)> progress_callback = {});
+                                         std::function<bool(int)> progress_callback = {},
+                                         std::function<void(bool)> progress_visibility_callback = {});
     void apply_textured_mesh_import_result(Slic3r::Model& loaded_model, const std::vector<size_t>& obj_idxs,
                                            const TextureImportResult& result,
                                            LoadProgressCallback progress_callback = {}, bool update_scene = true);
@@ -9519,7 +9520,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     dlg_cont = dlg.Update(mapped_percent, texture_msg);
                     return dlg_cont;
                 };
-                if (!run_textured_mesh_import_dialog(model, texture_import_result, cancel_cb, progress_cb)) {
+                auto progress_visibility_cb = [&dlg](bool visible) {
+                    dlg.Show(visible);
+                    if (visible)
+                        dlg.Raise();
+                };
+                if (!run_textured_mesh_import_dialog(model, texture_import_result, cancel_cb, progress_cb, progress_visibility_cb)) {
                     q->skip_thumbnail_invalid = false;
                     return empty_result;
                 }
@@ -10013,7 +10019,8 @@ void Plater::priv::load_auxiliary_files()
 
 bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, TextureImportResult& result,
                                                    std::function<bool()> cancel_callback,
-                                                   std::function<bool(int)> progress_callback)
+                                                   std::function<bool(int)> progress_callback,
+                                                   std::function<void(bool)> progress_visibility_callback)
 {
     if (!loaded_model.texture_mesh || !has_importable_texture(*loaded_model.texture_mesh)) return false;
 
@@ -10078,7 +10085,8 @@ bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, 
     }
 
     TextureImportDialog dlg(q, *loaded_model.texture_mesh, filament_entries,
-                            std::move(cancel_callback), std::move(progress_callback));
+                            std::move(cancel_callback), std::move(progress_callback),
+                            std::move(progress_visibility_callback));
     if (dlg.ShowModal() != wxID_OK) {
         if (dlg.was_skipped()) {
             BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: user skipped texture matching";
