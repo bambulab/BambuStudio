@@ -266,9 +266,15 @@ std::string GLGizmoAdvancedCut::get_tooltip() const
         return tooltip;
     }
 
-    if (!m_dragging && m_cut_mode == CutMode::cutPlanar && !m_connectors_editing
-        && m_parent.get_hover_volume_idx_before_gizmo() >= 0)
-        return _u8L("Right-click a part to assign it to the other side");
+    if (!m_dragging && m_cut_mode == CutMode::cutPlanar && !m_connectors_editing) {
+        // Hybrid hover: GLVolume picking works before PartSelection hides source volumes;
+        // once cut-part preview is active, raycast cut-part meshes instead (overlay is not pickable).
+        const bool hovering_source_volume = m_parent.get_hover_volume_idx_before_gizmo() >= 0;
+        const bool hovering_cut_part      = m_part_selection && m_part_selection->valid() && !m_part_selection->is_one_object()
+            && m_part_selection->is_mouse_over_part(m_parent.get_local_mouse_position());
+        if (hovering_source_volume || hovering_cut_part)
+            return _u8L("Right-click a part to assign it to the other side");
+    }
 
     if (!m_dragging && m_hover_id == c_plate_move_id)
         return _u8L("Drag to move the cut plane");
@@ -3524,10 +3530,12 @@ bool PartSelection::has_modified_cut_parts()
     return false;
 }
 
-void PartSelection::toggle_selection(const Vec2d &mouse_pos)
+// Read-only hit test shared by hover tooltip and right-click part assignment.
+// Returns the cut-part index under the mouse, or -1 when nothing is hit.
+int PartSelection::pick_part_id(const Vec2d &mouse_pos) const
 {
     if (!valid())
-        return;
+        return -1;
 
     const Camera &camera     = wxGetApp().plater()->get_camera();
     const Vec3d & camera_pos = camera.get_position();
@@ -3543,12 +3551,25 @@ void PartSelection::toggle_selection(const Vec2d &mouse_pos)
             hits_id_and_sqdist.emplace_back(id, (camera_pos - tr * pos.cast<double>()).squaredNorm());
     }
     if (hits_id_and_sqdist.empty())
-        return;
+        return -1;
 
-    const size_t id = std::min_element(hits_id_and_sqdist.begin(), hits_id_and_sqdist.end(), [](const std::pair<size_t, double> &a, const std::pair<size_t, double> &b) {
-                          return a.second < b.second;
-                      })->first;
-    toggle_selection(int(id));
+    return int(std::min_element(hits_id_and_sqdist.begin(), hits_id_and_sqdist.end(), [](const std::pair<size_t, double> &a, const std::pair<size_t, double> &b) {
+                   return a.second < b.second;
+               })->first);
+}
+
+// Hover-only query for tooltip; must not call toggle_selection() which mutates part side.
+bool PartSelection::is_mouse_over_part(const Vec2d &mouse_pos) const
+{
+    return valid() && !is_one_object() && pick_part_id(mouse_pos) >= 0;
+}
+
+void PartSelection::toggle_selection(const Vec2d &mouse_pos)
+{
+    // Reuse the same raycast as hover detection, then flip the picked part side.
+    const int id = pick_part_id(mouse_pos);
+    if (id >= 0)
+        toggle_selection(id);
 }
 
 void PartSelection::toggle_selection(int id)
