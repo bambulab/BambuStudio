@@ -118,7 +118,8 @@ std::optional<int> DevAmsTray::get_filament_remain_weight() const
 {
     // Prefer the accurate per-gram value reported by firmware; -1 means not edited/not provided.
     if (remain_g >= 0) {
-        return remain_g > 0 ? std::optional<int>(remain_g) : std::nullopt;
+        // Zero is a valid, known value: the spool is empty.
+        return remain_g;
     }
 
     if (weight.empty()) {
@@ -133,7 +134,8 @@ std::optional<int> DevAmsTray::get_filament_remain_weight() const
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid filament weight " << weight;
     }
 
-    if (weight_int.has_value() && weight_int.value() > 0) {
+    if (weight_int.has_value() && weight_int.value() >= 0) {
+        // Preserve a calculated zero instead of treating it as unknown.
         return weight_int;
     } else {
         return std::nullopt;
