@@ -130,6 +130,47 @@ DevFilaAutoRefillGroups DevFilaAutoRefillMgr::GetGroupsBySlot(const DevAmsSlotId
     return matches;
 }
 
+std::map<int, DevAmsSlotId> sGetRefillIndexMap(DevFilaSystem* fila_sys)
+{
+    std::map<int, DevAmsSlotId> tray_id_map;
+    for (auto& [virtual_tray_id, virtual_tray_item] : fila_sys->GetVirtualTrays()) {
+        try {
+            int virtual_tray_id_int = stoi(virtual_tray_id);
+            tray_id_map[virtual_tray_id_int] = DevAmsSlotId{ virtual_tray_id_int, 0 };
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " invalid virtual tray id: " << virtual_tray_id;
+        }
+    }
+
+    for (auto& [ams_id, ams_item] : fila_sys->GetAmsList()) {
+        for (auto& [slot_id, slot_item] : ams_item->GetTrays()) {
+            if (ams_item && slot_item) {
+                try {
+                    int ams_id_int = stoi(ams_id);
+                    int slot_id_int = stoi(slot_id);
+                    int tray_index = -1;
+                    if (ams_item->GetAmsType() == DevAmsType::N3S) {
+                        tray_index = ams_id_int - 128 + 16;
+                    } else if (ams_item->GetAmsType() == DevAmsType::AMS_LITE && ams_item->IsAmsLiteMixed()) {
+                        tray_index = 24 + slot_id_int;
+                    } else if (ams_item->GetAmsType() == DevAmsType::ZMULTI_A || ams_item->GetAmsType() == DevAmsType::ZMULTI_B) {
+                        tray_index = 28 + slot_id_int;
+                    } else if (ams_item->GetAmsType() == DevAmsType::ZMULTI_B) {
+                        tray_index = 37 + slot_id_int;
+                    } else {
+                        tray_index = (ams_id_int * 4 + slot_id_int);
+                    }
+                    tray_id_map[tray_index] = { ams_id_int, slot_id_int };
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid ams id: " << ams_id << " or slot id: " << slot_id;
+                }
+            }
+        }
+    }
+
+    return  tray_id_map;
+}
+
 DevFilaAutoRefillGroups DevFilaAutoRefillMgr::GetGroupsByFilaBackup(int extruder_id) const
 {
     if (m_version != RefillVersion::FilaBackup) {
@@ -145,7 +186,7 @@ DevFilaAutoRefillGroups DevFilaAutoRefillMgr::GetGroupsByFilaBackup(int extruder
         return {};
     }
 
-    auto groups = detail::ResolveAutoRefillGroups(extruder->GetFilamBackup(), m_owner->GetTrayIndexMap());
+    auto groups = detail::ResolveAutoRefillGroups(extruder->GetFilamBackup(), sGetRefillIndexMap(m_owner));
     for (auto& group : groups.groups) {
         for (const auto& refill_slot : group.fila_refill_slots) {
             const auto& slot_id = refill_slot.slot_id;
