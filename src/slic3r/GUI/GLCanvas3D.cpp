@@ -1701,6 +1701,14 @@ bool GLCanvas3D::init()
     //    wxGetApp().plater()->enable_wireframe(false);
     m_initialized = true;
 
+    // If model objects were loaded while OpenGL initialization was still
+    // deferred (possible on Wayland, where the GL context only becomes
+    // usable once the canvas is mapped), the reload_scene() calls made
+    // during that load were no-ops. Rebuild the scene now so those objects
+    // get their GLVolumes. Deferred refresh: init() runs inside render().
+    if (m_canvas_type != ECanvasType::CanvasPreview && m_model != nullptr && !m_model->objects.empty())
+        reload_scene(false, true);
+
     return true;
 }
 

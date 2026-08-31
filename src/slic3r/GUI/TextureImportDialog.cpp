@@ -1349,6 +1349,13 @@ void TexturePreviewCanvas::ensure_gl_ready()
 
     glewExperimental = GL_TRUE;
     GLenum err = glewInit();
+#ifdef GLEW_ERROR_NO_GLX_DISPLAY
+    // GLX-built GLEW reports this when there is no GLX display (native
+    // Wayland/EGL). Only GLX extension entry points are missing; core GL is
+    // already resolved, so continue.
+    if (err == GLEW_ERROR_NO_GLX_DISPLAY)
+        err = GLEW_OK;
+#endif
     if (err != GLEW_OK) {
         BOOST_LOG_TRIVIAL(error) << "TexturePreviewCanvas: glewInit failed: "
                                  << glewGetErrorString(err);

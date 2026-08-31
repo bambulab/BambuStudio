@@ -1493,12 +1493,19 @@ int CLI::run(int argc, char **argv)
     save_main_thread_id();
 
 #ifdef __WXGTK__
-    // On Linux, wxGTK has no support for Wayland, and the app crashes on
-    // startup if gtk3 is used. This env var has to be set explicitly to
-    // instruct the window manager to fall back to X server mode.
-    ::setenv("GDK_BACKEND", "x11", /* replace */ true);
+    // On Linux, default to the X11 backend (XWayland on Wayland sessions)
+    // for stability, but honor a user-provided GDK_BACKEND so that
+    // GDK_BACKEND=wayland opts into native Wayland, which the EGL-enabled
+    // wxWidgets build supports.
+    ::setenv("GDK_BACKEND", "x11", /* replace */ false);
 
     ::setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", /* replace */ false);
+
+    // WebKitGTK >= 2.40 renders blank/garbled webviews with its dmabuf
+    // renderer on some Wayland setups (notably NVIDIA and VMs); disable it
+    // there unless the user overrides.
+    if (::getenv("WAYLAND_DISPLAY") != nullptr)
+        ::setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1", /* replace */ false);
 
     // Also on Linux, we need to tell Xlib that we will be using threads,
     // lest we crash when we fire up GStreamer.
