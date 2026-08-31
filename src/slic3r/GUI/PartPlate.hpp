@@ -107,6 +107,9 @@ private:
     bool m_slice_result_valid;
     bool m_apply_invalid {false};
     bool m_helio_apply_invalid {false};
+    // BBS: whether this plate's wipe tower has already been placed once. Survives
+    // undo/redo (included in load()/save() below) but deliberately not written to 3mf.
+    bool m_wipe_tower_placed {false};
     std::unique_ptr<HelioPlateResult> m_helio_result;
     float m_slice_percent;
 
@@ -328,10 +331,17 @@ public:
     ModelInstance* get_instance(int obj_id, int instance_id);
     BoundingBoxf3 get_objects_bounding_box();
 
-    Vec3d get_origin() { return m_origin; }
+    Vec3d get_origin() const { return m_origin; }
     //Vec3d calculate_wipe_tower_size(const DynamicPrintConfig &config, const double w, const double wipe_volume, int plate_extruder_size = 0, bool use_global_objects = false) const;
-    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false, bool enable_wrapping_detection = false) const;
-    arrangement::ArrangePolygon estimate_wipe_tower_polygon(const DynamicPrintConfig & config, int plate_index, Vec3d& wt_pos, Vec3d& wt_size, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false) const;
+    // legacy_behavior: restore the old estimate/placement logic, used only by CLI call
+    // sites so headless output stays unchanged while GUI gets the newer logic.
+    Vec3d estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false, bool enable_wrapping_detection = false, bool legacy_behavior = false) const;
+    arrangement::ArrangePolygon estimate_wipe_tower_polygon(const DynamicPrintConfig & config, int plate_index, Vec3d& wt_pos, Vec3d& wt_size, int extruder_count = 1, int plate_extruder_size = 0, bool use_global_objects = false, bool legacy_behavior = false) const;
+
+    // "Optimal" first position for this plate's wipe tower: hugs the parts' inflated hull
+    // toward the printer's native default direction, then clears forbidden regions. Only
+    // the tower moves. out_pos is plate-local. Returns false if no usable position is found.
+    bool compute_optimal_wipe_tower_pos(const DynamicPrintConfig &config, const Vec3d &wt_size, Vec2d &out_pos) const;
     bool check_objects_empty_and_gcode3mf(std::vector<int> &result) const;
     // get used filaments from config, 1 based idx
     std::vector<int> get_extruders(bool conside_custom_gcode = false) const;
@@ -426,9 +436,9 @@ public:
     const BoundingBoxf3& get_bounding_box(bool extended = false) { return extended ? m_extended_bounding_box : m_bounding_box; }
     const BoundingBox get_bounding_box_crd();
     BoundingBoxf3 get_plate_box() {return get_build_volume();}
-    BoundingBoxf3 get_build_volume(bool use_share = false);
+    BoundingBoxf3 get_build_volume(bool use_share = false) const;
 
-    const std::vector<BoundingBoxf3>& get_exclude_areas() { return m_exclude_bounding_box; }
+    const std::vector<BoundingBoxf3>& get_exclude_areas() const { return m_exclude_bounding_box; }
 
 
     /*status related functions*/
@@ -438,6 +448,11 @@ public:
     //is locked or not
     bool is_locked() const { return m_locked; }
     void lock(bool state) { m_locked = state; }
+
+    // Has this plate's wipe tower already been placed once? Resets to false only when the
+    // plate object itself is freshly constructed (new plate, delete_plate(), or 3mf reload).
+    bool is_wipe_tower_placed() const { return m_wipe_tower_placed; }
+    void set_wipe_tower_placed(bool state) { m_wipe_tower_placed = state; }
 
     //is a printable plate or not
     bool is_printable() const { return m_printable; }
@@ -567,7 +582,7 @@ public:
         std::vector<std::pair<int, int>>	objects_and_instances;
         std::vector<std::pair<int, int>>	instances_outside;
 
-        ar(m_plate_index, m_print_index, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_name);
+        ar(m_plate_index, m_print_index, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_name, m_wipe_tower_placed);
 
         for (std::vector<std::pair<int, int>>::iterator it = objects_and_instances.begin(); it != objects_and_instances.end(); ++it)
             obj_to_instance_set.insert(std::pair(it->first, it->second));
@@ -585,7 +600,7 @@ public:
         for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
             objects_and_instances.emplace_back(it->first, it->second);
 
-        ar(m_plate_index, m_print_index, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable,m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_name);
+        ar(m_plate_index, m_print_index, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable,m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_name, m_wipe_tower_placed);
     }
     /*template<class Archive> void serialize(Archive& ar)
     {
@@ -878,6 +893,10 @@ public:
     // plate size differs from the active one (e.g. STUDIO-15720: 256x256 project
     // reopened on A1 mini 180x180).
     void set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos = false, bool keep_existing = false);
+
+    // The active printer's native default wipe tower position (plate-local, min corner),
+    // before any clamping or forbidden-region avoidance.
+    Vec2d get_machine_default_wipe_tower_pos() const;
 
     //compute the origin for printable plate with index i
     Vec3d get_current_plate_origin() { return compute_origin(m_current_plate, m_plate_cols); }

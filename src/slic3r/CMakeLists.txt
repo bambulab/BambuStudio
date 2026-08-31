@@ -252,6 +252,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Plater.hpp
     GUI/PartPlate.cpp
     GUI/PartPlate.hpp
+    GUI/WipeTowerPlacement.cpp
+    GUI/WipeTowerPlacement.hpp
     GUI/UserNotification.cpp
     GUI/UserNotification.hpp
     GUI/PresetComboBoxes.hpp

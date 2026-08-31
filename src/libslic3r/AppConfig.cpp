@@ -335,6 +335,10 @@ void AppConfig::set_defaults()
         set_bool("enable_high_low_temp_mixed_printing", false);
     }
 
+    if (get("auto_optimize_wipe_tower_placement").empty()) {
+        set_bool("auto_optimize_wipe_tower_placement", true);
+    }
+
     if (get("camera_fullscreen_active_monitor_only").empty()){
         set_bool("camera_fullscreen_active_monitor_only", true);
     }

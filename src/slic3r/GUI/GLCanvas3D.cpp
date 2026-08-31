@@ -1,5 +1,6 @@
 #include "libslic3r/libslic3r.h"
 #include "GLCanvas3D.hpp"
+#include "WipeTowerPlacement.hpp"
 #include "Overview/AssemblyStepsUtils.hpp"
 #include "Overview/OverviewUtils.hpp"
 
@@ -3526,6 +3527,15 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
     int n_plates = ppl.get_plate_count();
     std::vector<int> volume_idxs_wipe_tower_old(n_plates, -1);
 
+    // Snapshot each plate's "tower already placed" flag before reload, to detect
+    // first-time tower materialization vs. an existing tower whose position stays untouched.
+    std::vector<bool> plate_had_wipe_tower(n_plates, false);
+    for (int plate_id = 0; plate_id < n_plates; ++plate_id) {
+        const PartPlate* plate = ppl.get_plate(plate_id);
+        if (plate)
+            plate_had_wipe_tower[plate_id] = plate->is_wipe_tower_placed();
+    }
+
     // Release invalidated volumes to conserve GPU memory in case of delayed refresh (see m_reload_delayed).
     // First initialize model_volumes_new_sorted & model_instances_new_sorted.
     for (int object_idx = 0; object_idx < (int)m_model->objects.size(); ++object_idx) {
@@ -3918,6 +3928,59 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
                 const Print* current_print = part_plate->fff_print();
                 if (!need_wipe_tower && part_plate->get_extruders(true).size() < 2) continue;
                 if (part_plate->get_objects_on_this_plate().empty()) continue;
+
+                // First-time tower materialization on this plate: its position is still a raw
+                // machine default, so run avoidance and persist it. Skipped while loading a
+                // project since the 3mf's tower config isn't fully restored here yet.
+                const bool is_loading_project = wxGetApp().plater()->is_loading_project();
+                if (!plate_had_wipe_tower[plate_id] && !is_loading_project) {
+                    Vec3d avoided_pos, avoided_size;
+                    const DynamicPrintConfig full_cfg_for_avoid = wxGetApp().preset_bundle->full_config();
+                    const int nozzle_nums_for_avoid = wxGetApp().preset_bundle->get_printer_extruder_count();
+                    part_plate->estimate_wipe_tower_polygon(full_cfg_for_avoid, plate_id, avoided_pos, avoided_size,
+                                                             nozzle_nums_for_avoid, 0, false);
+                    if (avoided_size(0) > EPSILON && avoided_size(1) > EPSILON) {
+                        // Prefer seating the tower next to the parts (optimal position) when enabled;
+                        // otherwise fall back to the machine default, avoided via the shared helper.
+                        Vec2d optimal_pos;
+                        if (wipe_tower_optimal_pos_enabled()) {
+                            if (part_plate->compute_optimal_wipe_tower_pos(full_cfg_for_avoid, avoided_size, optimal_pos)) {
+                                avoided_pos(0) = optimal_pos.x();
+                                avoided_pos(1) = optimal_pos.y();
+                            }
+                            // Hug failed: keep estimate_wipe_tower_polygon's avoided_pos; do not use machine default.
+                        } else {
+                            const Vec3d plate_org = part_plate->get_origin();
+                            const Vec2d def_local = ppl.get_machine_default_wipe_tower_pos();
+                            float px = (float) (def_local.x() + plate_org.x());
+                            float py = (float) (def_local.y() + plate_org.y());
+
+                            std::vector<ForbiddenRect2d> forbidden;
+                            for (const BoundingBoxf3 &b : part_plate->get_exclude_areas())
+                                forbidden.push_back({b.min.x(), b.min.y(), b.max.x(), b.max.y()});
+                            if (dynamic_cast<const ConfigOptionBool*>(dconfig.option("enable_wrapping_detection"))->value) {
+                                const Pointfs wrap_pts = ppl.get_wrapping_exclude_area();
+                                if (!wrap_pts.empty()) {
+                                    BoundingBoxf wrap_bb(wrap_pts);
+                                    forbidden.push_back({wrap_bb.min.x() + plate_org.x(), wrap_bb.min.y() + plate_org.y(),
+                                                          wrap_bb.max.x() + plate_org.x(), wrap_bb.max.y() + plate_org.y()});
+                                }
+                            }
+                            const double fallback_brim = wipe_tower_brim_width(full_cfg_for_avoid, avoided_size(2));
+                            wipe_tower_pullback_then_avoid(px, py, Vec2d(avoided_size(0), avoided_size(1)),
+                                                            part_plate->get_build_volume(true), fallback_brim,
+                                                            wipe_tower_line_width(full_cfg_for_avoid), forbidden);
+                            avoided_pos(0) = px - plate_org.x();
+                            avoided_pos(1) = py - plate_org.y();
+                        }
+                        x = (float) avoided_pos(0);
+                        y = (float) avoided_pos(1);
+                        ConfigOptionFloat wt_x_opt(x), wt_y_opt(y);
+                        dynamic_cast<ConfigOptionFloats*>(proj_cfg.option("wipe_tower_x"))->set_at(&wt_x_opt, plate_id, 0);
+                        dynamic_cast<ConfigOptionFloats*>(proj_cfg.option("wipe_tower_y"))->set_at(&wt_y_opt, plate_id, 0);
+                        part_plate->set_wipe_tower_placed(true);
+                    }
+                }
 
                 float brim_width = print->wipe_tower_data(filaments_count).brim_width;
                 const DynamicPrintConfig &print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
@@ -6759,12 +6822,11 @@ GLCanvas3D::WipeTowerInfo GLCanvas3D::get_wipe_tower_info(int plate_idx) const
 
             const BoundingBoxf3& bb = vol->bounding_box();
             if (wt_brim_width < 0) wt_brim_width = WipeTower::get_auto_brim_by_height((float)bb.max.z());
-            wti.m_bb = BoundingBoxf{to_2d(bb.min), to_2d(bb.max)};
-            wti.m_bb.offset(wt_brim_width);
-
-            float brim_width = wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("prime_tower_brim_width");
-            if (brim_width < 0) brim_width = WipeTower::get_auto_brim_by_height((float) bb.max.z());
-            wti.m_bb.offset((brim_width));
+            // Use the same footprint helper as the no-GLVolume estimate path, so both
+            // agree on the tower's occupied geometry for a given wall size + brim.
+            const Vec2d wall_size = to_2d(bb.max) - to_2d(bb.min);
+            wti.m_bb = wipe_tower_nest_footprint(wall_size.x(), wall_size.y(), (double) wt_brim_width);
+            wti.m_bb.translate(to_2d(bb.min));
 
             // BBS: the wipe tower pos might be outside bed
             PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(plate_idx);

@@ -43,6 +43,12 @@ class ArrangeJob : public PlaterJob
 
     void prepare_wipe_tower(bool select = false);
 
+    // Whether the selected items need a wipe tower.
+    bool selected_items_need_wipe_tower() const;
+
+    // Moves each plate's wipe tower to its optimal position after arranging.
+    void apply_optimal_wipe_tower_positions();
+
 protected:
 
     void prepare() override;

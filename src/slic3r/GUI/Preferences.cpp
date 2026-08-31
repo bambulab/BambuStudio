@@ -1489,6 +1489,10 @@ wxWindow *PreferencesDialog::create_user_tab()
                                                              _L("With this option enabled, you can print materials with a large temperature difference together."), 50,
                                                              "enable_high_low_temp_mixed_printing");
 
+    auto item_auto_arrange_wipe_tower_on_switch_printer = create_item_checkbox(_L("Automatically optimize wipe tower placement"), scrolled,
+                                                             _L("With this option enabled, the wipe tower will be placed at its optimal position."), 50,
+                                                             "auto_optimize_wipe_tower_placement");
+
     auto item_user_sync = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), scrolled,
                                                _L("If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."), 50, "sync_user_preset");
 
@@ -1508,6 +1512,7 @@ wxWindow *PreferencesDialog::create_user_tab()
     sizer->Add(wrap_option_row(scrolled, item_auto_stop_liveview), flags);
     sizer->Add(wrap_option_row(scrolled, item_auto_transfer), flags);
     sizer->Add(wrap_option_row(scrolled, item_mix_print_high_low_temp), flags);
+    sizer->Add(wrap_option_row(scrolled, item_auto_arrange_wipe_tower_on_switch_printer), flags);
     sizer->Add(wrap_option_row(scrolled, item_user_sync), flags);
     sizer->Add(wrap_option_row(scrolled, item_system_sync), flags);
 #ifdef _WIN32

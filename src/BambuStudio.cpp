@@ -4528,7 +4528,7 @@ int CLI::run(int argc, char **argv)
         const ConfigOptionBool * wrapping_detection = print_config.option<ConfigOptionBool>("enable_wrapping_detection");
         bool enable_wrapping = (wrapping_detection != nullptr) && wrapping_detection->value;
 
-        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, get_max_element(wipe_volume), new_extruder_count, filaments_cnt, false, enable_wrapping);
+        Vec3d wipe_tower_size = plate->estimate_wipe_tower_size(print_config, plate_obj_size_info.wipe_width, get_max_element(wipe_volume), new_extruder_count, filaments_cnt, false, enable_wrapping, true);
         plate_obj_size_info.wipe_width = wipe_tower_size(0);
         plate_obj_size_info.wipe_depth = wipe_tower_size(1);
 
@@ -5460,7 +5460,7 @@ int CLI::run(int argc, char **argv)
                     wipe_y_option->set_at(&wt_y_opt, i, 0);
 
                     Vec3d wipe_tower_size, wipe_tower_pos;
-                    ArrangePolygon wipe_tower_ap = cur_plate->estimate_wipe_tower_polygon(m_print_config, i, wipe_tower_pos, wipe_tower_size, new_extruder_count, assemble_plate.filaments_count, true);
+                    ArrangePolygon wipe_tower_ap = cur_plate->estimate_wipe_tower_polygon(m_print_config, i, wipe_tower_pos, wipe_tower_size, new_extruder_count, assemble_plate.filaments_count, true, true);
 
                     //update the new wp position
                     wt_x_opt.value = wipe_tower_pos(0);
@@ -5756,7 +5756,7 @@ int CLI::run(int argc, char **argv)
                             }
 
                             Vec3d wipe_tower_size, wipe_tower_pos;
-                            ArrangePolygon wipe_tower_ap = partplate_list.get_plate(plate_index_valid)->estimate_wipe_tower_polygon(m_print_config, plate_index_valid, wipe_tower_pos, wipe_tower_size, new_extruder_count, extruder_size, true);
+                            ArrangePolygon wipe_tower_ap = partplate_list.get_plate(plate_index_valid)->estimate_wipe_tower_polygon(m_print_config, plate_index_valid, wipe_tower_pos, wipe_tower_size, new_extruder_count, extruder_size, true, true);
 
                             //update the new wp position
                             if (bedid < plate_count) {
@@ -5864,7 +5864,7 @@ int CLI::run(int argc, char **argv)
                             const ConfigOptionBool *wrapping_detection = m_print_config.option<ConfigOptionBool>("enable_wrapping_detection");
                             bool   enable_wrapping    = (wrapping_detection != nullptr) && wrapping_detection->value;
 
-                            Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, get_max_element(v), new_extruder_count, filaments_cnt, false, enable_wrapping);
+                            Vec3d wipe_tower_size = cur_plate->estimate_wipe_tower_size(m_print_config, w, get_max_element(v), new_extruder_count, filaments_cnt, false, enable_wrapping, true);
                             Vec3d plate_origin = cur_plate->get_origin();
                             int plate_width, plate_depth, plate_height;
                             partplate_list.get_plate_size(plate_width, plate_depth, plate_height);

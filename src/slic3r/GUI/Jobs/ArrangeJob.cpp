@@ -1,11 +1,13 @@
 #include "ArrangeJob.hpp"
 
 #include "libslic3r/SVG.hpp"
+#include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/VectorFormatter.hpp"
 
 #include "slic3r/GUI/PartPlate.hpp"
 #include "slic3r/GUI/GLCanvas3D.hpp"
+#include "slic3r/GUI/WipeTowerPlacement.hpp"
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/NotificationManager.hpp"
@@ -37,8 +39,12 @@ public:
         apply_wipe_tower();
     }
 
+    // Sets m_pos directly, skipping apply_wipe_tower()'s plate_origin subtraction.
+    void set_pos(const Vec2d &pos) { m_pos = pos; }
+
     ArrangePolygon get_arrange_polygon() const
     {
+        // m_bb is the tower footprint from wipe_tower_nest_footprint(), already in place.
         Polygon ap({
             {scaled(m_bb.min)},
             {scaled(m_bb.max.x()), scaled(m_bb.min.y())},
@@ -66,6 +72,16 @@ public:
 static WipeTower get_wipe_tower(const Plater &plater, int plate_idx)
 {
     return WipeTower{plater.canvas3D()->get_wipe_tower_info(plate_idx)};
+}
+
+// Same as reload_scene()/init_wipe_tower_placed_flag(): ByObject has a tower
+// only when the plate has exactly one printable instance.
+static bool plate_allows_wipe_tower(PartPlate *pl)
+{
+    if (!pl) return false;
+    if (pl->get_real_print_seq() != PrintSequence::ByObject)
+        return true;
+    return pl->printable_instance_size() == 1;
 }
 
 arrangement::ArrangePolygon get_wipetower_arrange_poly(WipeTower* tower)
@@ -266,20 +282,95 @@ void ArrangeJob::prepare_all() {
     plate_list.preprocess_exclude_areas(m_unselected, enable_wrapping, MAX_NUM_PLATES);
 }
 
-arrangement::ArrangePolygon estimate_wipe_tower_info(int plate_index, std::set<int>& extruder_ids)
+// Builds and persists a nest obstacle for a plate with no tower yet.
+static arrangement::ArrangePolygon estimate_wipe_tower_info(int plate_index, std::set<int>& extruder_ids, bool tower_already_placed, bool need_wipe_tower_global)
 {
     PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
-    const auto& full_config = wxGetApp().preset_bundle->full_config();
+    const DynamicPrintConfig& full_config = wxGetApp().preset_bundle->full_config();
+    const DynamicPrintConfig& print_cfg   = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     int plate_count = ppl.get_plate_count();
+    // plate_index may be an about-to-be-created overflow plate; borrow an existing
+    // plate for geometry, but plate_has_own_slot guards its wipe_tower_x/y slot.
     int plate_index_valid = std::min(plate_index, plate_count - 1);
+    PartPlate *plate = ppl.get_plate(plate_index_valid);
+    const bool plate_has_own_slot = plate_index < plate_count;
 
-    // we have to estimate the depth using the extruder number of all plates
-    int extruder_size = extruder_ids.size();
-
-    Vec3d wipe_tower_size, wipe_tower_pos;
+    int extruder_size = extruder_ids.empty() ? 2 : (int) extruder_ids.size();
     int nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
-    auto arrange_poly = ppl.get_plate(plate_index_valid)->estimate_wipe_tower_polygon(full_config, plate_index, wipe_tower_pos, wipe_tower_size, nozzle_nums, extruder_size);
+
+    const float prime_tower_width = print_cfg.opt_float("prime_tower_width");
+    std::vector<double> prime_volumes = full_config.option<ConfigOptionFloats>("filament_prime_volume")->values;
+    if (full_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value == pvmSaving)
+        for (auto &pv : prime_volumes) pv = 15.f;
+    const bool enable_wrapping = full_config.opt_bool("enable_wrapping_detection");
+    const Vec3d wt_size_3d = plate->estimate_wipe_tower_size(print_cfg, prime_tower_width,
+                                                              get_max_element(prime_volumes),
+                                                              nozzle_nums, extruder_size, false, enable_wrapping);
+    const Vec2d tower_size(wt_size_3d.x(), wt_size_3d.y());
+
+    arrangement::ArrangePolygon arrange_poly;
     arrange_poly.bed_idx = plate_index;
+    if ((tower_size.x() <= EPSILON || tower_size.y() <= EPSILON) && !tower_already_placed && !need_wipe_tower_global)
+        return arrange_poly; // no tower needed
+
+    DynamicConfig &proj_cfg = wxGetApp().preset_bundle->project_config;
+    ConfigOptionFloats *wtx = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
+    ConfigOptionFloats *wty = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
+    const Vec3d plate_origin = plate->get_origin();
+
+    float x, y;
+    if (plate_has_own_slot && wtx && wty && plate_index_valid < (int) wtx->values.size() && plate_index_valid < (int) wty->values.size()) {
+        x = (float) wtx->values[plate_index_valid] + (float) plate_origin.x();
+        y = (float) wty->values[plate_index_valid] + (float) plate_origin.y();
+    } else {
+        const Vec2d def_pos = ppl.get_machine_default_wipe_tower_pos();
+        x = (float) def_pos.x() + (float) plate_origin.x();
+        y = (float) def_pos.y() + (float) plate_origin.y();
+    }
+
+    std::vector<ForbiddenRect2d> forbidden;
+    for (const BoundingBoxf3 &b : plate->get_exclude_areas())
+        forbidden.push_back({b.min.x(), b.min.y(), b.max.x(), b.max.y()});
+    if (enable_wrapping) {
+        const Pointfs wpts = ppl.get_wrapping_exclude_area();
+        if (!wpts.empty()) {
+            BoundingBoxf wrap_bb(wpts);
+            forbidden.push_back({wrap_bb.min.x() + plate_origin.x(), wrap_bb.min.y() + plate_origin.y(),
+                                  wrap_bb.max.x() + plate_origin.x(), wrap_bb.max.y() + plate_origin.y()});
+        }
+    }
+
+    const double brim = wipe_tower_brim_width(print_cfg, wt_size_3d.z());
+    if (!tower_already_placed)
+        wipe_tower_pullback_then_avoid(x, y, tower_size, plate->get_build_volume(true), brim,
+                                       wipe_tower_line_width(print_cfg), forbidden);
+
+    const float local_x = x - (float) plate_origin.x();
+    const float local_y = y - (float) plate_origin.y();
+
+    if (plate_has_own_slot && wtx && wty) {
+        ConfigOptionFloat wt_x_opt(local_x);
+        ConfigOptionFloat wt_y_opt(local_y);
+        wtx->set_at(&wt_x_opt, plate_index_valid, 0);
+        wty->set_at(&wt_y_opt, plate_index_valid, 0);
+        Model &model = wxGetApp().plater()->model();
+        if (plate_index_valid < (int) model.wipe_tower.positions.size())
+            model.wipe_tower.positions[plate_index_valid] = Vec2d(wt_x_opt.value, wt_y_opt.value);
+    }
+
+    const BoundingBoxf footprint = wipe_tower_nest_footprint(tower_size.x(), tower_size.y(), brim);
+    Polygon ap({
+        {scaled(footprint.min)},
+        {scaled(footprint.max.x()), scaled(footprint.min.y())},
+        {scaled(footprint.max)},
+        {scaled(footprint.min.x()), scaled(footprint.max.y())}
+        });
+    arrange_poly.poly.contour = std::move(ap);
+    arrange_poly.translation = Vec2crd{scaled(local_x), scaled(local_y)};
+    arrange_poly.setter = NULL; // do not move wipe tower
+    arrange_poly.name = "WipeTower";
+    arrange_poly.is_virt_object = true;
+    arrange_poly.is_wipe_tower = true;
     return arrange_poly;
 }
 
@@ -293,28 +384,25 @@ arrangement::ArrangePolygon estimate_wipe_tower_info(int plate_index, std::set<i
 //    2）打开了支撑，且支撑体与接触面使用的是不同材料
 //    3）允许不同材料落在相同盘，且所有选定对象中使用了多种热床温度相同的材料
 //     （所有对象都是单色的，但不同对象的材料不同，例如：对象A使用红色PLA，对象B使用白色PLA）
-void ArrangeJob::prepare_wipe_tower(bool select)
+bool ArrangeJob::selected_items_need_wipe_tower() const
 {
-    bool need_wipe_tower = false;
-
     // if wipe tower is explicitly disabled, no need to estimate
     DynamicPrintConfig& current_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto                op = current_config.option("enable_prime_tower");
     bool enable_prime_tower = op && op->getBool();
-    if (!enable_prime_tower || params.is_seq_print) return;
+    if (!enable_prime_tower) return false;
 
-    bool smooth_timelapse = false;
     auto sop = current_config.option("timelapse_type");
-    if (sop) { smooth_timelapse = sop->getInt() == TimelapseType::tlSmooth; }
-    if (smooth_timelapse) { need_wipe_tower = true; }
+    if (sop && sop->getInt() == TimelapseType::tlSmooth) return true;
+
+    if (current_config.opt_bool("enable_wrapping_detection")) return true;
 
     // estimate if we need wipe tower for all plates:
     // need wipe tower if some object has multiple extruders (has paint-on colors or support material)
     for (const auto& item : m_selected) {
         if (item.extrude_id_filament_types.size() > 1) {
-            need_wipe_tower = true;
             ARRANGE_LOG(info) << "need wipe tower because object " << item.name << " has multiple extruders (has paint-on colors)";
-            break;
+            return true;
         }
     }
 
@@ -326,12 +414,22 @@ void ArrangeJob::prepare_wipe_tower(bool select)
             for (auto id : item.extrude_id_filament_types) { bedTemp2extruderIds[item.bed_temp].insert(id.first); }
         for (const auto& be : bedTemp2extruderIds) {
             if (be.second.size() > 1) {
-                need_wipe_tower = true;
                 ARRANGE_LOG(info) << "need wipe tower because allow_multi_materials_on_same_plate=true and we have multiple extruders of same type";
-                break;
+                return true;
             }
         }
     }
+    return false;
+}
+
+void ArrangeJob::prepare_wipe_tower(bool select)
+{
+    DynamicPrintConfig& current_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto                op = current_config.option("enable_prime_tower");
+    bool enable_prime_tower = op && op->getBool();
+    if (!enable_prime_tower) return;
+
+    bool need_wipe_tower = selected_items_need_wipe_tower();
     ARRANGE_LOG(info) << "need_wipe_tower=" << need_wipe_tower;
 
 
@@ -342,11 +440,12 @@ void ArrangeJob::prepare_wipe_tower(bool select)
     const GLCanvas3D* canvas3D = static_cast<const GLCanvas3D*>(m_plater->canvas3D());
 
     std::set<int> extruder_ids;
+    for (const auto &item : m_selected)
+        for (const auto &kv : item.extrude_id_filament_types)
+            extruder_ids.insert(kv.first);
+
     PartPlateList& ppl = wxGetApp().plater()->get_partplate_list();
     int plate_count = ppl.get_plate_count();
-    if (!only_on_partplate) {
-        extruder_ids = ppl.get_extruders(true);
-    }
 
     int bedid_unlocked = 0;
     for (int bedid = 0; bedid < MAX_NUM_PLATES; bedid++) {
@@ -354,9 +453,20 @@ void ArrangeJob::prepare_wipe_tower(bool select)
         PartPlate* pl = ppl.get_plate(plate_index_valid);
         if(bedid<plate_count && pl->is_locked())
             continue;
+        if (bedid < plate_count && !plate_allows_wipe_tower(pl))
+            continue;
+        if (bedid < plate_count) {
+            DynamicConfig *proj_cfg_ptr = &wxGetApp().preset_bundle->project_config;
+            auto *wtx = proj_cfg_ptr->opt<ConfigOptionFloats>("wipe_tower_x");
+            auto *wty = proj_cfg_ptr->opt<ConfigOptionFloats>("wipe_tower_y");
+            if (wtx && wty) {
+                const DynamicPrintConfig &fc = wxGetApp().preset_bundle->full_config();
+                ensure_wipe_tower_clears_forbidden_regions(*pl, bedid, m_plater->model(), ppl, *wtx, *wty, fc);
+            }
+        }
         if (auto wti = get_wipe_tower(*m_plater, bedid)) {
-            // wipe tower is already there
             wipe_tower_ap = get_wipetower_arrange_poly(&wti);
+            wipe_tower_ap.setter = NULL;
             wipe_tower_ap.bed_idx = bedid_unlocked;
             wipe_tower_ap.name    = "WipeTower" + std::to_string(bedid_unlocked);
             if (select)
@@ -364,13 +474,8 @@ void ArrangeJob::prepare_wipe_tower(bool select)
             else
                 m_unselected.emplace_back(wipe_tower_ap);
         }
-        else if (need_wipe_tower) {
-            if (only_on_partplate) {
-                auto plate_extruders = pl->get_extruders(true);
-                extruder_ids.clear();
-                extruder_ids.insert(plate_extruders.begin(), plate_extruders.end());
-            }
-            wipe_tower_ap = estimate_wipe_tower_info(bedid, extruder_ids);
+        else if (need_wipe_tower || (bedid < plate_count && pl->is_wipe_tower_placed())) {
+            wipe_tower_ap = estimate_wipe_tower_info(bedid, extruder_ids, bedid < plate_count && pl->is_wipe_tower_placed(), need_wipe_tower);
             wipe_tower_ap.bed_idx = bedid_unlocked;
             m_unselected.emplace_back(wipe_tower_ap);
         }
@@ -431,9 +536,31 @@ void ArrangeJob::prepare_partplate() {
     }
 
     // BBS
-    if (auto wti = get_wipe_tower(*m_plater, current_plate_index)) {
-        ArrangePolygon&& ap = get_wipetower_arrange_poly(&wti);
-        m_unselected.emplace_back(std::move(ap));
+    DynamicPrintConfig& current_config_wt = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto  op_wt = current_config_wt.option("enable_prime_tower");
+    bool  enable_prime_tower_wt = op_wt && op_wt->getBool();
+    if (enable_prime_tower_wt && plate_allows_wipe_tower(plate)) {
+        DynamicConfig *proj_cfg_ptr = &wxGetApp().preset_bundle->project_config;
+        auto *wtx = proj_cfg_ptr->opt<ConfigOptionFloats>("wipe_tower_x");
+        auto *wty = proj_cfg_ptr->opt<ConfigOptionFloats>("wipe_tower_y");
+        if (wtx && wty) {
+            const DynamicPrintConfig &fc = wxGetApp().preset_bundle->full_config();
+            ensure_wipe_tower_clears_forbidden_regions(*plate, current_plate_index, model, plate_list, *wtx, *wty, fc);
+        }
+        if (auto wti = get_wipe_tower(*m_plater, current_plate_index)) {
+            ArrangePolygon&& ap = get_wipetower_arrange_poly(&wti);
+            ap.setter = NULL;
+            m_unselected.emplace_back(std::move(ap));
+        }
+        else {
+            bool need_wipe_tower = selected_items_need_wipe_tower();
+            if (need_wipe_tower || plate->is_wipe_tower_placed()) {
+                auto plate_extruders = plate->get_extruders(true);
+                std::set<int> extruder_ids(plate_extruders.begin(), plate_extruders.end());
+                ArrangePolygon&& ap = estimate_wipe_tower_info(current_plate_index, extruder_ids, plate->is_wipe_tower_placed(), need_wipe_tower);
+                m_unselected.emplace_back(std::move(ap));
+            }
+        }
     }
 
     const DynamicPrintConfig &current_config  = wxGetApp().preset_bundle->prints.get_edited_preset().config;
@@ -739,6 +866,31 @@ static std::string concat_strings(const std::set<std::string> &strings,
         });
 }
 
+void ArrangeJob::apply_optimal_wipe_tower_positions()
+{
+    PartPlateList &plate_list  = m_plater->get_partplate_list();
+    Model         &model       = m_plater->model();
+    DynamicConfig &proj_cfg    = wxGetApp().preset_bundle->project_config;
+    const DynamicPrintConfig &full_config = wxGetApp().preset_bundle->full_config();
+
+    ConfigOptionFloats *wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
+    ConfigOptionFloats *wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
+    if (!wipe_tower_x || !wipe_tower_y)
+        return;
+
+    const int plate_count = static_cast<int>(plate_list.get_plate_count());
+    for (int plate_idx = 0; plate_idx < plate_count; ++plate_idx) {
+        if (only_on_partplate && plate_idx != current_plate_index)
+            continue;
+        PartPlate *plate = plate_list.get_plate(plate_idx);
+        if (!plate)
+            continue;
+        try_optimal_wipe_tower_position_for_plate(*plate, plate_idx, model, plate_list,
+                                                  *wipe_tower_x, *wipe_tower_y,
+                                                  full_config, params);
+    }
+}
+
 void ArrangeJob::finalize()
 {
     // BBS: partplate
@@ -865,6 +1017,28 @@ void ArrangeJob::finalize()
         };
         for (ArrangePolygon& ap : m_selected)    reapply_virtual_bed(ap, /*always_to_virtual_bed=*/false);
         for (ArrangePolygon& ap : m_unprintable) reapply_virtual_bed(ap, /*always_to_virtual_bed=*/true);
+
+        if (wipe_tower_optimal_pos_enabled())
+            apply_optimal_wipe_tower_positions();
+
+        {
+            DynamicConfig &proj_cfg = wxGetApp().preset_bundle->project_config;
+            auto *wtx = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
+            auto *wty = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
+            if (wtx && wty) {
+                const DynamicPrintConfig &fc = wxGetApp().preset_bundle->full_config();
+                const int plate_count_now = static_cast<int>(plate_list.get_plate_count());
+                for (int idx = 0; idx < plate_count_now; ++idx) {
+                    if (only_on_partplate && idx != current_plate_index)
+                        continue;
+                    PartPlate *p = plate_list.get_plate(idx);
+                    if (p) {
+                        ensure_wipe_tower_clears_forbidden_regions(*p, idx, m_plater->model(), plate_list, *wtx, *wty, fc);
+                        init_wipe_tower_placed_flag(*p);
+                    }
+                }
+            }
+        }
 
         // BBS: update slice context and gcode result.
         m_plater->update_slicing_context_to_current_partplate();
