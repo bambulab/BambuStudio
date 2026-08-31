@@ -436,7 +436,7 @@ void HistoryWindow::sync_history_data() {
         delete_button->SetBackgroundColour(*wxWHITE);
         delete_button->SetMinSize(wxSize(-1, FromDIP(24)));
         delete_button->SetCornerRadius(FromDIP(12));
-        delete_button->Bind(wxEVT_BUTTON, [this, gbSizer, i, &result, column_count](auto& e) {
+        delete_button->Bind(wxEVT_BUTTON, [this, gbSizer, i, result, column_count](auto& e) {
             if (m_ui_op_lock) {
                 return;
             } else {
