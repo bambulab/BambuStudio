@@ -3996,7 +3996,7 @@ void PrintObject::discover_sub_top_surfaces()
     if (m_layers.size() < 2)
         return;
 
-    for (size_t idx_layer = 0; idx_layer + 1 < m_layers.size(); ++idx_layer) {
+    auto process_layer = [this](size_t idx_layer) {
         m_print->throw_if_canceled();
         const Layer *upper = m_layers[idx_layer + 1];
         Layer       *layer = m_layers[idx_layer];
@@ -4007,7 +4007,7 @@ void PrintObject::discover_sub_top_surfaces()
                 if (s.surface_type == stTop)
                     top_mask.emplace_back(s.expolygon);
         if (top_mask.empty())
-            continue;
+            return;
         top_mask = union_ex(top_mask);
 
         // Let the perimeters above join the mask: the shadow they cast hugs the top surface
@@ -4021,11 +4021,7 @@ void PrintObject::discover_sub_top_surfaces()
             // layer above cast a shadow that sits under no top surface. A band borders on
             // fill_expolygons and therefore on stTop, so a plain intersection would come
             // out empty and the adjacency test has to reach slightly outwards.
-            const ExPolygons reach = offset_ex(top_mask, float(scale_(0.02)));
-            ExPolygons       adjoining;
-            for (ExPolygon &band : union_ex(upper_bands))
-                if (! intersection_ex(ExPolygons { band }, reach).empty())
-                    adjoining.emplace_back(std::move(band));
+            ExPolygons adjoining = select_within_distance(union_ex(upper_bands), top_mask, float(scale_(0.02)));
             if (! adjoining.empty()) {
                 append(adjoining, std::move(top_mask));
                 top_mask = union_ex(adjoining);
@@ -4052,8 +4048,13 @@ void PrintObject::discover_sub_top_surfaces()
             const ExPolygons claimed = offset_ex(under_top, float(scale_(0.02)));
             ExPolygons       remaining;
             for (ExPolygon &island : opening_ex(diff_ex(solid_ex, under_top), 0.5f * min_width)) {
-                const ExPolygons island_ex { island };
-                if (! is_narrow_infill_area(island) || intersection_ex(island_ex, claimed).empty())
+                if (! is_narrow_infill_area(island)) {
+                    remaining.emplace_back(std::move(island));
+                    continue;
+                }
+                const Polygons local = ClipperUtils::clip_clipper_polygons_with_subject_bbox(
+                    claimed, get_extents(island).inflated(SCALED_EPSILON));
+                if (local.empty() || intersection_ex(island, local).empty())
                     remaining.emplace_back(std::move(island));
             }
             ExPolygons sub_top = diff_ex(solid_ex, remaining);
@@ -4061,6 +4062,18 @@ void PrintObject::discover_sub_top_surfaces()
             layerm->fill_surfaces.append(std::move(remaining), stInternalSolid);
             layerm->fill_surfaces.append(std::move(sub_top), stSubTop);
         }
+    };
+
+    const size_t num_to_process = m_layers.size() - 1;
+    for (size_t parity = 0; parity < 2; ++ parity) {
+        if (num_to_process <= parity)
+            continue;
+        const size_t count = (num_to_process - parity + 1) / 2;
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, count),
+            [&process_layer, parity](const tbb::blocked_range<size_t> &range) {
+                for (size_t k = range.begin(); k < range.end(); ++ k)
+                    process_layer(parity + 2 * k);
+            });
     }
 }
 

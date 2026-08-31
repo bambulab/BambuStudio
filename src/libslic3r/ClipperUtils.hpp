@@ -532,6 +532,7 @@ Slic3r::Polylines  intersection_pl(const Slic3r::Polyline &subject, const Slic3r
 Slic3r::Polylines  intersection_pl(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip);
 Slic3r::Polylines  intersection_pl(const Slic3r::Polylines &subject, const Slic3r::ExPolygons &clip);
 Slic3r::Polylines  intersection_pl(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip);
+Slic3r::ExPolygons select_within_distance(const Slic3r::ExPolygons &subject, const Slic3r::ExPolygons &clip, float distance);
 
 inline Slic3r::Lines intersection_ln(const Slic3r::Lines &subject, const Slic3r::Polygons &clip)
 {
