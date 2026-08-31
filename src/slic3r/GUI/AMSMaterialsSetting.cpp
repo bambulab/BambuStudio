@@ -2764,25 +2764,29 @@ void ColorPicker::doRender(wxDC& dc)
 
     if (m_cols.size() > 1) {
         if (ctype == 0) {
-            const double center_x = size.x / 2.0;
-            const double center_y = size.y / 2.0;
+            const double center_x = size.x / 2;
+            const double center_y = size.y / 2;
             const double draw_radius = radius;
             dc.SetPen(*wxTRANSPARENT_PEN);
             for (int x = 0; x < size.x; ++x) {
                 const double dx = x + 0.5 - center_x;
-                if (std::abs(dx) > draw_radius) continue;
+                if (std::abs(dx) > draw_radius + 1.0) continue;
 
-                const double half_height = std::sqrt(std::max(0.0, draw_radius * draw_radius - dx * dx));
-                const int top = std::max(0, static_cast<int>(std::ceil(center_y - half_height)));
-                const int bottom = std::min(size.y - 1, static_cast<int>(std::floor(center_y + half_height)));
+                const double half_height = std::sqrt(std::max(0.0, (draw_radius + 1.0) * (draw_radius + 1.0) - dx * dx));
+                const int top = std::max(0, static_cast<int>(std::floor(center_y - half_height)));
+                const int bottom = std::min(size.y - 1, static_cast<int>(std::ceil(center_y + half_height)));
                 const double pos = size.x > 1 ? static_cast<double>(x) / (size.x - 1) : 0.0;
                 const double scaled = pos * (m_cols.size() - 1);
                 const size_t idx = std::min(static_cast<size_t>(scaled), m_cols.size() - 2);
-                const double ratio = scaled - idx;
+                const wxColour col = mix_colour(m_cols[idx], m_cols[idx + 1], scaled - idx);
 
-                if (top <= bottom) {
-                    dc.SetBrush(wxBrush(mix_colour(m_cols[idx], m_cols[idx + 1], ratio)));
-                    dc.DrawRectangle(x, top, 1, bottom - top + 1);
+                for (int y = top; y <= bottom; ++y) {
+                    const double dy = y + 0.5 - center_y;
+                    const double cover = std::max(0.0, std::min(1.0, draw_radius + 0.5 - std::sqrt(dx * dx + dy * dy)));
+                    if (cover <= 0.0) continue;
+                    dc.SetBrush(wxBrush(wxColour(col.Red(), col.Green(), col.Blue(),
+                        static_cast<unsigned char>(cover * col.Alpha() + 0.5))));
+                    dc.DrawRectangle(x, y, 1, 1);
                 }
             }
         }
