@@ -765,13 +765,6 @@ void ObjectList::update_filament_values_for_items(const size_t filaments_count)
     wxGetApp().plater()->update();
 }
 
-const std::vector<std::string>& filament_index_object_keys()
-{
-    static const std::vector<std::string> keys{"support_filament", "support_interface_filament",
-                                                "sparse_infill_filament", "solid_infill_filament", "wall_filament"};
-    return keys;
-}
-
 void ObjectList::update_filament_values_for_items_when_delete_filament(const size_t filament_id, const int replace_id)
 {
     int replace_filament_id = replace_id == -1 ? 1 : (replace_id + 1);
@@ -796,7 +789,8 @@ void ObjectList::update_filament_values_for_items_when_delete_filament(const siz
         }
         m_objects_model->SetExtruder(extruder, item);
 
-        const std::vector<std::string>& keys = filament_index_object_keys();
+        static const char *keys[] = {"support_filament", "support_interface_filament",
+            "sparse_infill_filament", "solid_infill_filament", "wall_filament"};
         for (auto key : keys) {
             if (object->config.has(key)) {
                 if(object->config.opt_int(key) == filament_id + 1)

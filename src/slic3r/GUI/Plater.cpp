@@ -4170,115 +4170,6 @@ void Sidebar::add_filament() {
     scroll_filament_area_to_bottom();
 }
 
-// Config keys that pin a filament (1-based) to an object/volume: the base extruder plus the
-// per-feature filament overrides shared with the delete remap (filament_index_object_keys()),
-// so any of them referencing the deleted filament must warn.
-static bool config_uses_filament(const ModelConfig &cfg, int fid1)
-{
-    if (cfg.has("extruder") && cfg.opt_int("extruder") == fid1) return true;
-    for (const std::string &key : filament_index_object_keys())
-        if (cfg.has(key) && cfg.opt_int(key) == fid1) return true;
-
-    return false;
-}
-
-// Distinct model-object names that reference filament_id (0-based) in any way a delete would reset:
-// object/volume base extruder, per-feature filament overrides, Color Painting (MMU), or a height
-// range modifier's extruder.
-static std::vector<wxString> models_using_filament(size_t filament_id)
-{
-    std::vector<wxString> names;
-    const int             fid1 = (int) filament_id + 1;
-    for (ModelObject *mo : wxGetApp().model().objects) {
-        bool used = config_uses_filament(mo->config, fid1);
-        if (!used) {
-            for (ModelVolume *mv : mo->volumes) {
-                if (config_uses_filament(mv->config, fid1)) {
-                    used = true;
-                    break;
-                }
-                // Color Painting (MMU) check reads the compressed paint bitstream only — no mesh walk.
-                if (mv->is_model_part() && mv->mmu_segmentation_facets.has_facets(*mv, EnforcerBlockerType(fid1))) {
-                    used = true;
-                    break;
-                }
-            }
-        }
-        if (!used) {
-            // Height range modifiers can override the extruder for a Z band.
-            for (const auto &[range, cfg] : mo->layer_config_ranges) {
-                if (cfg.has("extruder") && cfg.option("extruder")->getInt() == fid1) {
-                    used = true;
-                    break;
-                }
-            }
-        }
-        if (used) names.push_back(from_u8(mo->name));
-    }
-    return names;
-}
-
-// Global support settings (project print config) can pin a filament; 0 means "Default" (no specific filament).
-static bool global_support_uses_filament(size_t filament_id)
-{
-    const int                 fid1 = (int) filament_id + 1;
-    const DynamicPrintConfig *cfg  = wxGetApp().plater()->config();
-    if (!cfg) return false;
-    for (const char *key : {"support_filament", "support_interface_filament"})
-        if (cfg->has(key) && cfg->opt_int(key) == fid1) return true;
-    return false;
-}
-
-// Manual "change to filament N" tool changes stored per plate in custom G-code.
-static bool custom_gcode_uses_filament(size_t filament_id)
-{
-    const int fid1 = (int) filament_id + 1;
-    for (const auto &[plate_idx, info] : wxGetApp().model().plates_custom_gcodes)
-        for (const CustomGCode::Item &item : info.gcodes)
-            if (item.type == CustomGCode::Type::ToolChange && item.extruder == fid1) return true;
-    return false;
-}
-
-// Warn before deleting a filament that is still referenced: by a model (base extruder, per-feature
-// override, Color Painting, or height range), the global support settings, or a custom G-code tool change.
-// Returns true if the delete should proceed, false if the user cancelled.
-// "Merge with" (replace_filament_id >= 0) is an intentional remap and never warns.
-static bool confirm_delete_used_filament(size_t filament_id, int replace_filament_id)
-{
-    if (replace_filament_id != -1) return true;
-    if (wxGetApp().app_config->get("no_warn_delete_used_filament") == "1") return true;
-
-    // Prefer naming the objects that use it; otherwise fall back to the global/plate-level
-    // usages, which have no owning object to point at.
-    wxString              subject;
-    std::vector<wxString> used_by = models_using_filament(filament_id);
-    if (!used_by.empty()) {
-        wxString     names_str;
-        const size_t show = std::min<size_t>(used_by.size(), 3);
-        for (size_t i = 0; i < show; ++i) {
-            if (i) names_str += ", ";
-            names_str += used_by[i];
-        }
-        if (used_by.size() > show) names_str += wxString::Format(_L(", and %d more"), (int) (used_by.size() - show));
-        subject = wxString::Format(_L("model \"%s\""), names_str);
-    } else if (global_support_uses_filament(filament_id)) {
-        subject = _L("support filament");
-    } else if (custom_gcode_uses_filament(filament_id)) {
-        subject = _L("custom G-code");
-    } else {
-        return true;
-    }
-
-    wxString msg = wxString::Format(_L("The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."), subject) + "\n\n" +
-                   _L("Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament.");
-
-    MessageDialog dlg(nullptr, msg, _L("Delete Filament"), wxICON_WARNING | wxOK | wxCANCEL);
-    dlg.show_dsa_button();
-    int res = dlg.ShowModal();
-    if (dlg.get_checkbox_state()) wxGetApp().app_config->set("no_warn_delete_used_filament", "1");
-    return res == wxID_OK;
-}
-
 void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
     if (is_new_project_in_gcode3mf()) { return; }
     if (p->combos_filament.size() <= 1) return;
@@ -4296,8 +4187,6 @@ void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
         return;
 
     bool is_mixed = (filament_id >= p->combos_filament.size());
-
-    if (!confirm_delete_used_filament(filament_id, replace_filament_id)) return;
 
     if (!is_mixed) {
         if (wxGetApp().preset_bundle->is_the_only_edited_filament(filament_id) || (filament_id == 0)) {

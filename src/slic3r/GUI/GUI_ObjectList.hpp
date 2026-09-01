@@ -59,11 +59,6 @@ wxDECLARE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
 wxDECLARE_EVENT(EVT_PARTPLATE_LIST_PLATE_SELECT, IntEvent);
 class BitmapComboBox;
 
-// Per-object / per-volume config keys (besides "extruder") that store a 1-based filament index.
-// Single source of truth shared by the delete remap (update_filament_values_for_items_when_delete_filament)
-// and the delete warning (models_using_filament), so detection and remap never drift apart.
-const std::vector<std::string>& filament_index_object_keys();
-
 struct ItemForDelete
 {
     ItemType    type;
