@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-14 16:02+0800\n"
+"POT-Creation-Date: 2026-09-01 14:54+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -903,12 +903,10 @@ msgstr ""
 msgid "Object"
 msgstr ""
 
-msgid "Drag to move the cut plane"
+msgid "Right-click a part to assign it to the other side"
 msgstr ""
 
-msgid ""
-"Drag to move the cut plane\n"
-"Right-click a part to assign it to the other side"
+msgid "Drag to move the cut plane"
 msgstr ""
 
 msgid "Left click"
@@ -978,6 +976,15 @@ msgid "Movement:"
 msgstr ""
 
 msgid "Groove Angle"
+msgstr ""
+
+msgid "Pick face"
+msgstr ""
+
+msgid "Click a face of the model to set the cut plane. The plane lands flush with that face; use Movement to offset it."
+msgstr ""
+
+msgid "Click a face of the model."
 msgstr ""
 
 #. TRN - Input label. Be short as possible
@@ -2595,6 +2602,9 @@ msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "Error: reversed faces detected, which may affect rendering"
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
@@ -2608,6 +2618,9 @@ msgid "Right button click the icon to drop the object settings"
 msgstr ""
 
 msgid "Click the icon to reset all settings of the object"
+msgstr ""
+
+msgid "Unprintable object"
 msgstr ""
 
 msgid "Right button click the icon to drop the object printable property"
@@ -2672,9 +2685,6 @@ msgid ""
 msgstr ""
 
 msgid "Delete all connectors"
-msgstr ""
-
-msgid "Deleting the last solid part is not allowed."
 msgstr ""
 
 msgid "The target object contains only one part and can not be split."
@@ -4021,22 +4031,10 @@ msgstr ""
 msgid "Colour"
 msgstr ""
 
-msgid ""
-"Nozzle\n"
-"Temperature"
-msgstr ""
-
-msgid "max"
-msgstr ""
-
-msgid "min"
-msgstr ""
-
-#, possible-boost-format
-msgid "The input value should be greater than %1% and less than %2%"
-msgstr ""
-
 msgid "Factors of Flow Dynamics Calibration"
+msgstr ""
+
+msgid "Wiki"
 msgstr ""
 
 msgid "Nozzle Type"
@@ -4051,13 +4049,30 @@ msgstr ""
 msgid "Factor N"
 msgstr ""
 
-msgid "Setting AMS slot information while printing is not supported"
+msgid ""
+"Nozzle\n"
+"Temperature"
 msgstr ""
 
-msgid "Setting Virtual slot information while printing is not supported"
+msgid "Tip: Setting AMS slot information while printing is not supported"
+msgstr ""
+
+msgid "Tip: Setting Virtual slot information while printing is not supported"
 msgstr ""
 
 msgid "Are you sure you want to clear the filament information?"
+msgstr ""
+
+msgid "Add to Filament Library?"
+msgstr ""
+
+msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
+msgstr ""
+
+msgid "Add to Filament Library"
+msgstr ""
+
+msgid "Save Only"
 msgstr ""
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
@@ -4069,51 +4084,14 @@ msgstr ""
 msgid "You need to select the material type and color first."
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgid "Please select a color"
 msgstr ""
 
 msgid "Remark"
 msgstr ""
 
-msgid "Other"
-msgstr ""
-
-msgid "Filament Manager"
-msgstr ""
-
-msgid "In printer"
-msgstr ""
-
 #, possible-c-format, possible-boost-format
-msgid "In printer: %s"
-msgstr ""
-
-msgctxt "Filament Manager"
-msgid "Note"
-msgstr ""
-
-msgid "Unsupported Filaments"
-msgstr ""
-
-msgctxt "Unsupported Filaments"
-msgid "Note"
-msgstr ""
-
-msgid "No unsupported filaments"
-msgstr ""
-
-msgid "No filaments"
-msgstr ""
-
-msgid "System presets"
-msgstr ""
-
-msgid "Recently used"
+msgid "Please input a valid value (K in %.1f~%.1f)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -4125,15 +4103,6 @@ msgid ""
 "'Device -> Print parts'"
 msgstr ""
 
-msgid "AMS"
-msgstr ""
-
-msgid "Other Color"
-msgstr ""
-
-msgid "Custom Color"
-msgstr ""
-
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
 msgstr ""
 
@@ -4143,13 +4112,16 @@ msgstr ""
 msgid "Link to existing filament"
 msgstr ""
 
-msgid "Not now"
-msgstr ""
-
 msgid "Please select"
 msgstr ""
 
 msgid "No matching filament"
+msgstr ""
+
+msgid "New Filament"
+msgstr ""
+
+msgid "New filament information has been recorded."
 msgstr ""
 
 msgid "Dynamic flow calibration"
@@ -4199,6 +4171,10 @@ msgid "Calibrating... %d%%"
 msgstr ""
 
 msgid "Calibration completed"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -4339,6 +4315,9 @@ msgid "DRY"
 msgstr ""
 
 msgid "WET"
+msgstr ""
+
+msgid "AMS"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -4620,6 +4599,13 @@ msgstr ""
 msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
 msgstr ""
 
+msgid "Value is out of range."
+msgstr ""
+
+#, possible-boost-format
+msgid "%1% cannot exceed the shell layers (%2%), otherwise the painted color would reach the sparse infill."
+msgstr ""
+
 msgid ""
 "Too small layer height.\n"
 "Reset to 0.2"
@@ -4761,7 +4747,7 @@ msgid ""
 "No  - Keep current settings and alternate extra wall enabled"
 msgstr ""
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
 msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -5132,9 +5118,6 @@ msgstr ""
 msgid "default"
 msgstr ""
 
-msgid "parameter name"
-msgstr ""
-
 msgid "N/A"
 msgstr ""
 
@@ -5151,9 +5134,6 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Value %s is out of range. The valid range is from %d to %d."
-msgstr ""
-
-msgid "Value is out of range."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -5806,6 +5786,9 @@ msgstr ""
 msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
+msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+msgstr ""
+
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr ""
 
@@ -5942,6 +5925,9 @@ msgid "Multi-device"
 msgstr ""
 
 msgid "Project"
+msgstr ""
+
+msgid "Filament Manager"
 msgstr ""
 
 msgid "Yes"
@@ -6750,6 +6736,9 @@ msgstr ""
 msgid "Swap Y/Z axes"
 msgstr ""
 
+msgid "Lock horizon"
+msgstr ""
+
 msgid "(LAN)"
 msgstr ""
 
@@ -6891,6 +6880,9 @@ msgid "%ds"
 msgstr ""
 
 msgid "Finished"
+msgstr ""
+
+msgid "Almost complete"
 msgstr ""
 
 msgid "Camera"
@@ -7299,9 +7291,6 @@ msgstr ""
 msgid "New printer config available."
 msgstr ""
 
-msgid "Wiki"
-msgstr ""
-
 msgid "Undo integration failed."
 msgstr ""
 
@@ -7366,6 +7355,12 @@ msgid "Error:"
 msgstr ""
 
 msgid "Open link for more info"
+msgstr ""
+
+msgid "Jump to: Support on build plate only"
+msgstr ""
+
+msgid "Jump to: Support"
 msgstr ""
 
 msgid "Warning:"
@@ -7852,6 +7847,30 @@ msgstr ""
 msgid "Search plate, object and part."
 msgstr ""
 
+#, possible-c-format, possible-boost-format
+msgid ", and %d more"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "model \"%s\""
+msgstr ""
+
+msgid "support filament"
+msgstr ""
+
+msgid "custom G-code"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+msgstr ""
+
+msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+msgstr ""
+
+msgid "Delete Filament"
+msgstr ""
+
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr ""
 
@@ -7905,7 +7924,7 @@ msgstr ""
 msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged."
 msgstr ""
 
-msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
+msgid "Enabling instant timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
 msgstr ""
 
 msgid "\n"
@@ -7930,13 +7949,13 @@ msgstr ""
 msgid "The 3mf file has invalid config, load geometry data only"
 msgstr ""
 
-msgid "Load 3mf"
-msgstr ""
-
 msgid "The 3mf is not from Bambu Lab, load geometry data only."
 msgstr ""
 
 msgid "The Config can not be loaded."
+msgstr ""
+
+msgid "Load 3mf"
 msgstr ""
 
 msgid "Due to the lower version of Bambu Studio, this 3mf file cannot be fully loaded. Please update Bambu Studio to the latest version"
@@ -8826,13 +8845,25 @@ msgstr ""
 msgid "Enable dark mode"
 msgstr ""
 
-msgid "All"
+msgid "All related changes"
 msgstr ""
 
-msgid "Disabled"
+msgid "When color changes"
 msgstr ""
 
-msgid "Auto Flush"
+msgid "Turn off auto calculate"
+msgstr ""
+
+msgid "Auto calculate when color changes, type or configuration changes"
+msgstr ""
+
+msgid "Auto calculate when sync or modify filament colors"
+msgstr ""
+
+msgid "Keep current flush volumes, trigger manually when needed"
+msgstr ""
+
+msgid "Auto Calculate Flush Volume"
 msgstr ""
 
 msgid "Auto calculate flush volumes"
@@ -8911,6 +8942,12 @@ msgstr ""
 msgid "With this option enabled, you can print materials with a large temperature difference together."
 msgstr ""
 
+msgid "Automatically optimize wipe tower placement"
+msgstr ""
+
+msgid "With this option enabled, the wipe tower will be placed at its optimal position."
+msgstr ""
+
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr ""
 
@@ -8929,10 +8966,28 @@ msgstr ""
 msgid "3D Settings"
 msgstr ""
 
+msgid "Mouse Settings"
+msgstr ""
+
+msgid "Import Settings"
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr ""
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
+msgstr ""
+
+msgid "Reverse direction of zoom with mouse wheel"
+msgstr ""
+
+msgid "If enabled, reverses the direction of zoom with mouse wheel."
+msgstr ""
+
+msgid "Drag with left mouse button to move"
+msgstr ""
+
+msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
 msgstr ""
 
 msgid "Display overview"
@@ -9181,10 +9236,14 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
+msgstr ""
+
+msgid "System presets"
 msgstr ""
 
 msgid "User presets"
@@ -9531,7 +9590,7 @@ msgstr ""
 msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr ""
 
-msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
+msgid "The current printer does not support timelapse in Instant Mode when printing By-Object."
 msgstr ""
 
 msgid "Errors"
@@ -9570,7 +9629,7 @@ msgstr ""
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr ""
 
-msgid "After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
+msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -10052,7 +10111,7 @@ msgstr ""
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr ""
 
-msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
+msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to instant mode."
 msgstr ""
 
 msgid "Still print by object?"
@@ -10490,6 +10549,9 @@ msgstr ""
 msgid "Are you sure to %1% the selected preset?"
 msgstr ""
 
+msgid "All"
+msgstr ""
+
 msgid "Set"
 msgstr ""
 
@@ -10636,10 +10698,19 @@ msgstr ""
 msgid "Right: "
 msgstr ""
 
-msgid "Select presets to compare"
+msgid "Preset A"
+msgstr ""
+
+msgid "Preset B"
 msgstr ""
 
 msgid "Show all presets (including incompatible)"
+msgstr ""
+
+msgid "Material"
+msgstr ""
+
+msgid "Please select two different presets A and B to compare"
 msgstr ""
 
 msgid "Add File"
@@ -12889,6 +12960,9 @@ msgstr ""
 msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)"
 msgstr ""
 
+msgid "Disabled"
+msgstr ""
+
 msgid "Partial"
 msgstr ""
 
@@ -12975,6 +13049,12 @@ msgid "Internal solid infill pattern"
 msgstr ""
 
 msgid "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area."
+msgstr ""
+
+msgid "Sub-top surface pattern"
+msgstr ""
+
+msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
 msgstr ""
 
 msgid "Line width of outer wall"
@@ -13650,6 +13730,12 @@ msgstr ""
 msgid "Line width of initial layer"
 msgstr ""
 
+msgid "Initial layer infill"
+msgstr ""
+
+msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
+msgstr ""
+
 msgid "Initial layer height"
 msgstr ""
 
@@ -13657,9 +13743,6 @@ msgid "Height of initial layer. Making initial layer height thick slightly can i
 msgstr ""
 
 msgid "Speed of initial layer except the solid infill part"
-msgstr ""
-
-msgid "Initial layer infill"
 msgstr ""
 
 msgid "Speed of solid infill part of initial layer"
@@ -14660,16 +14743,16 @@ msgstr ""
 msgid "Maximum distance to move points in XY to try to achieve a smooth spiralIf expressed as a %, it will be computed over nozzle diameter"
 msgstr ""
 
-msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
+msgid "If smooth or instant mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
 msgstr ""
 
-msgid "Traditional"
+msgid "Instant"
 msgstr ""
 
 msgid "Farthest point timelapse"
 msgstr ""
 
-msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
+msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in instant timelapse mode on non-I3 printers."
 msgstr ""
 
 msgid "Temperature variation"
@@ -14697,6 +14780,9 @@ msgid "Cracks smaller than 2x gap closing radius are being filled during the tri
 msgstr ""
 
 msgid "Slicing Mode"
+msgstr ""
+
+msgid "Other"
 msgstr ""
 
 msgid "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
@@ -15355,6 +15441,18 @@ msgid "Generating support"
 msgstr ""
 
 msgid "Optimizing toolpath"
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
+msgstr ""
+
+#, possible-boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
 msgstr ""
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
@@ -16588,9 +16686,6 @@ msgstr ""
 msgid "+ Add Preset"
 msgstr ""
 
-msgid "Delete Filament"
-msgstr ""
-
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament information for that slot."
@@ -17380,6 +17475,9 @@ msgstr ""
 msgid "Skipping objects."
 msgstr ""
 
+msgid "Custom Color"
+msgstr ""
+
 msgid "Null Color"
 msgstr ""
 
@@ -17749,28 +17847,28 @@ msgstr ""
 msgid "Remove the third material"
 msgstr ""
 
-msgid "Project Filament List"
-msgstr ""
-
-msgid "Standard Mode Recommendations"
-msgstr ""
-
 msgid "Target Color"
 msgstr ""
 
 msgid "Select Color Decomposition"
 msgstr ""
 
-msgid "Arbitrary Mode"
+msgid "Project Filament"
 msgstr ""
 
 msgid "Material List"
 msgstr ""
 
-msgid "Standard Mode"
+msgid "Standard Palette"
 msgstr ""
 
 msgid "At least two filaments of the same material type are required for decomposition"
+msgstr ""
+
+msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+msgstr ""
+
+msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
 msgstr ""
 
 #, possible-boost-format

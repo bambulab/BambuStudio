@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-14 16:02+0800\n"
+"POT-Creation-Date: 2026-09-01 14:54+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -917,15 +917,11 @@ msgstr "Модель"
 msgid "Object"
 msgstr "Модель "
 
+msgid "Right-click a part to assign it to the other side"
+msgstr ""
+
 msgid "Drag to move the cut plane"
 msgstr "Двигайте, чтобы переместить секущую плоскость"
-
-msgid ""
-"Drag to move the cut plane\n"
-"Right-click a part to assign it to the other side"
-msgstr ""
-"Двигайте, чтобы переместить секущую плоскость.\n"
-"Для переназначения стороны части модели используйте правую кнопку мыши."
 
 msgid "Left click"
 msgstr "Левая кнопка мыши"
@@ -997,6 +993,15 @@ msgstr "Перемещение:"
 
 msgid "Groove Angle"
 msgstr "Угол скоса"
+
+msgid "Pick face"
+msgstr ""
+
+msgid "Click a face of the model to set the cut plane. The plane lands flush with that face; use Movement to offset it."
+msgstr ""
+
+msgid "Click a face of the model."
+msgstr ""
 
 #. TRN - Input label. Be short as possible
 #. Angle between Y axis and text line direction.
@@ -2657,6 +2662,9 @@ msgstr[0] ""
 msgstr[1] ""
 msgstr[2] ""
 
+msgid "Error: reversed faces detected, which may affect rendering"
+msgstr ""
+
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
@@ -2672,6 +2680,9 @@ msgstr "Нажмите правой кнопкой мыши на значок, �
 
 msgid "Click the icon to reset all settings of the object"
 msgstr "Нажмите на значок, чтобы сбросить все настройки модели."
+
+msgid "Unprintable object"
+msgstr ""
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "Нажмите правой кнопкой мыши на значок, чтобы разрешить/запретить печать модели."
@@ -2743,9 +2754,6 @@ msgstr ""
 
 msgid "Delete all connectors"
 msgstr "Удалить все соединения"
-
-msgid "Deleting the last solid part is not allowed."
-msgstr "Удаление последней твердотельной части не допускается."
 
 msgid "The target object contains only one part and can not be split."
 msgstr "Целевая модель едина и не может быть разделена на части."
@@ -4115,25 +4123,11 @@ msgstr "Настройка материалов АСПП"
 msgid "Colour"
 msgstr "Цвет"
 
-msgid ""
-"Nozzle\n"
-"Temperature"
-msgstr ""
-"Температура\n"
-"сопла"
-
-msgid "max"
-msgstr "макс."
-
-msgid "min"
-msgstr "мин."
-
-#, boost-format
-msgid "The input value should be greater than %1% and less than %2%"
-msgstr "Введённое значение должно быть больше %1%, но меньше %2%."
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Коэф. калиб. динам. потока"
+
+msgid "Wiki"
+msgstr "Вики-сайт"
 
 msgid "Nozzle Type"
 msgstr "Тип сопла"
@@ -4147,14 +4141,33 @@ msgstr "Коэф. K"
 msgid "Factor N"
 msgstr "Коэф. N"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "Изменение информации о слотах АСПП во время печати не поддерживается"
+msgid ""
+"Nozzle\n"
+"Temperature"
+msgstr ""
+"Температура\n"
+"сопла"
 
-msgid "Setting Virtual slot information while printing is not supported"
-msgstr "Настройка информации виртуального слота во время печати не поддерживается"
+msgid "Tip: Setting AMS slot information while printing is not supported"
+msgstr ""
+
+msgid "Tip: Setting Virtual slot information while printing is not supported"
+msgstr ""
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Вы уверены, что хотите удалить информацию о пластиковой нити?"
+
+msgid "Add to Filament Library?"
+msgstr ""
+
+msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
+msgstr ""
+
+msgid "Add to Filament Library"
+msgstr ""
+
+msgid "Save Only"
+msgstr ""
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
 msgstr ""
@@ -4165,52 +4178,15 @@ msgstr ""
 msgid "You need to select the material type and color first."
 msgstr "Сначала необходимо выбрать тип материала и цвет."
 
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr "Пожалуйста, введите допустимое значение (K в диапазоне %.1f~%.1f)"
-
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr "Пожалуйста, введите допустимое значение (K в диапазоне %.1f~%.1f, N в диапазоне %.1f~%.1f)"
+msgid "Please select a color"
+msgstr ""
 
 msgid "Remark"
 msgstr ""
 
-msgid "Other"
-msgstr "Прочее"
-
-msgid "Filament Manager"
-msgstr ""
-
-msgid "In printer"
-msgstr ""
-
 #, c-format, boost-format
-msgid "In printer: %s"
-msgstr ""
-
-msgctxt "Filament Manager"
-msgid "Note"
-msgstr ""
-
-msgid "Unsupported Filaments"
-msgstr ""
-
-msgctxt "Unsupported Filaments"
-msgid "Note"
-msgstr ""
-
-msgid "No unsupported filaments"
-msgstr ""
-
-msgid "No filaments"
-msgstr ""
-
-msgid "System presets"
-msgstr "Системные профили"
-
-msgid "Recently used"
-msgstr ""
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "Пожалуйста, введите допустимое значение (K в диапазоне %.1f~%.1f)"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4224,15 +4200,6 @@ msgstr ""
 "Не задан объёмный расход сопла. Пожалуйста, задайте его перед редактированием прутка.\n"
 "Принтер -> Части принтера."
 
-msgid "AMS"
-msgstr "АСПП"
-
-msgid "Other Color"
-msgstr "Другой цвет"
-
-msgid "Custom Color"
-msgstr "Пользовательский цвет"
-
 msgid "AMS detected a new official filament. Add it to Filament Manager?"
 msgstr ""
 
@@ -4242,13 +4209,16 @@ msgstr ""
 msgid "Link to existing filament"
 msgstr ""
 
-msgid "Not now"
-msgstr ""
-
 msgid "Please select"
 msgstr ""
 
 msgid "No matching filament"
+msgstr ""
+
+msgid "New Filament"
+msgstr ""
+
+msgid "New filament information has been recorded."
 msgstr ""
 
 msgid "Dynamic flow calibration"
@@ -4300,6 +4270,10 @@ msgstr "Калибровка... %d%%"
 
 msgid "Calibration completed"
 msgstr "Калибровка завершена"
+
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "Пожалуйста, введите допустимое значение (K в диапазоне %.1f~%.1f, N в диапазоне %.1f~%.1f)"
 
 #, c-format, boost-format
 msgid "%s does not support %s"
@@ -4458,6 +4432,9 @@ msgstr "СУХОЙ"
 
 msgid "WET"
 msgstr "ВЛАЖНЫЙ"
+
+msgid "AMS"
+msgstr "АСПП"
 
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
@@ -4711,10 +4688,10 @@ msgid "Bed Shape"
 msgstr "Форма стола"
 
 msgid "The recommended minimum temperature is less than 190 degree or the recommended maximum temperature is greater than 300 degree.\n"
-msgstr "Минимально рекомендуемая температура меньше 190 градусов или максимально рекомендуемая температура выше 300 градусов.\n"
+msgstr "Рекомендуемая минимальная температура меньше 190 градусов или рекомендуемая максимальная температура больше 300 градусов.\n"
 
 msgid "The recommended minimum temperature cannot be higher than the recommended maximum temperature.\n"
-msgstr "Минимально рекомендуемая температура не может быть выше максимально рекомендуемой.\n"
+msgstr "Рекомендуемая минимальная температура не может быть выше рекомендуемой максимальной температуры.\n"
 
 msgid "Please check.\n"
 msgstr "Пожалуйста, проверьте.\n"
@@ -4747,6 +4724,13 @@ msgstr ""
 #, c-format, boost-format
 msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
 msgstr "Текущая температура внутри термокамеры превышает безопасную температуру для этого материала, что может привести к размягчению материала или засорению экструдера. Безопасная температура текущего материала составляет %d."
+
+msgid "Value is out of range."
+msgstr "Введённое значение вне диапазона."
+
+#, boost-format
+msgid "%1% cannot exceed the shell layers (%2%), otherwise the painted color would reach the sparse infill."
+msgstr ""
 
 msgid ""
 "Too small layer height.\n"
@@ -4925,7 +4909,7 @@ msgid ""
 "No  - Keep current settings and alternate extra wall enabled"
 msgstr ""
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
 msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
@@ -5305,9 +5289,6 @@ msgstr ""
 msgid "default"
 msgstr "По ум."
 
-msgid "parameter name"
-msgstr "Имя параметра"
-
 msgid "N/A"
 msgstr "Н/Д"
 
@@ -5325,9 +5306,6 @@ msgstr "Проверка корректности параметра"
 #, c-format, boost-format
 msgid "Value %s is out of range. The valid range is from %d to %d."
 msgstr "Значение %s выходит за пределы допустимого диапазона. Допустимый диапазон - от %d до %d."
-
-msgid "Value is out of range."
-msgstr "Введённое значение вне диапазона."
 
 #, c-format, boost-format
 msgid ""
@@ -5999,6 +5977,9 @@ msgstr ""
 msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
+msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+msgstr ""
+
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr ""
 
@@ -6147,6 +6128,9 @@ msgstr "Принтеры"
 
 msgid "Project"
 msgstr "Проект"
+
+msgid "Filament Manager"
+msgstr ""
 
 msgid "Yes"
 msgstr "Да"
@@ -6977,6 +6961,9 @@ msgstr "Настройки 3Dconnexion"
 msgid "Swap Y/Z axes"
 msgstr "Поменять местами оси Y/Z"
 
+msgid "Lock horizon"
+msgstr ""
+
 msgid "(LAN)"
 msgstr "(LAN)"
 
@@ -7133,6 +7120,9 @@ msgstr ""
 
 msgid "Finished"
 msgstr "Завершено"
+
+msgid "Almost complete"
+msgstr ""
 
 msgid "Camera"
 msgstr "Камера"
@@ -7554,9 +7544,6 @@ msgstr "Подробности"
 msgid "New printer config available."
 msgstr "Доступен новый профиль принтера."
 
-msgid "Wiki"
-msgstr "Вики-сайт"
-
 msgid "Undo integration failed."
 msgstr "Не удалось отменить интеграцию."
 
@@ -7625,6 +7612,12 @@ msgid "Error:"
 msgstr "Ошибка:"
 
 msgid "Open link for more info"
+msgstr ""
+
+msgid "Jump to: Support on build plate only"
+msgstr ""
+
+msgid "Jump to: Support"
 msgstr ""
 
 msgid "Warning:"
@@ -8122,6 +8115,30 @@ msgstr ""
 msgid "Search plate, object and part."
 msgstr "Поиск печатной пластины, модели или части модели."
 
+#, c-format, boost-format
+msgid ", and %d more"
+msgstr ""
+
+#, c-format, boost-format
+msgid "model \"%s\""
+msgstr ""
+
+msgid "support filament"
+msgstr ""
+
+msgid "custom G-code"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The filament you are deleting is used by %s. After deletion, its filament assignment will be reset."
+msgstr ""
+
+msgid "Note: to substitute another filament instead, use the \"Merge with\" feature by right-clicking the filament."
+msgstr ""
+
+msgid "Delete Filament"
+msgstr "Удалить пруток"
+
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr ""
 
@@ -8178,8 +8195,8 @@ msgstr "Текущая температура стола довольно выс
 msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged."
 msgstr "Твердость сопла, установленного по умолчанию, недостаточна для печати данной пластиковой нитью. Замените сопло на закалённое или смените пластиковую нить. В противном случае сопло будет изношено или повреждено."
 
-msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
-msgstr "Включение обычного режима таймлапса может привести к появлению дефектов поверхности, поэтому рекомендуется изменить режим на плавный."
+msgid "Enabling instant timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
+msgstr ""
 
 msgid "\n"
 msgstr ""
@@ -8203,14 +8220,14 @@ msgstr "Загрузка файла: %s"
 msgid "The 3mf file has invalid config, load geometry data only"
 msgstr ""
 
-msgid "Load 3mf"
-msgstr "Загрузка 3mf"
-
 msgid "The 3mf is not from Bambu Lab, load geometry data only."
 msgstr "Этот 3mf создан не в Bambu Lab, поэтому загрузятся только данные геометрии."
 
 msgid "The Config can not be loaded."
 msgstr "Профиль не может быть загружен."
+
+msgid "Load 3mf"
+msgstr "Загрузка 3mf"
 
 msgid "Due to the lower version of Bambu Studio, this 3mf file cannot be fully loaded. Please update Bambu Studio to the latest version"
 msgstr "Этот 3mf файл не может быть полностью загружен, так как вы используете старую версию Bambu Studio. Пожалуйста, обновите Bambu Studio до последней версии."
@@ -9151,18 +9168,26 @@ msgstr ""
 msgid "Enable dark mode"
 msgstr "Включить тёмную тему"
 
-# ??? в ОРКЕ это ВЕЗДЕ (в Обеспечивать верт. толщину оболочки), а тут же нет выбора?
-msgid "All"
-msgstr "Всегда"
-
-msgid "Disabled"
-msgstr "Отключено"
-
-# длинно Автоочистка от старого материала
-msgid "Auto Flush"
+msgid "All related changes"
 msgstr ""
-"Авторасчёт \n"
-"очистки"
+
+msgid "When color changes"
+msgstr ""
+
+msgid "Turn off auto calculate"
+msgstr ""
+
+msgid "Auto calculate when color changes, type or configuration changes"
+msgstr ""
+
+msgid "Auto calculate when sync or modify filament colors"
+msgstr ""
+
+msgid "Keep current flush volumes, trigger manually when needed"
+msgstr ""
+
+msgid "Auto Calculate Flush Volume"
+msgstr ""
 
 msgid "Auto calculate flush volumes"
 msgstr "Авторасчёт объёма очистки от старого материала"
@@ -9242,6 +9267,12 @@ msgstr "Снять ограничение на смешанную печать �
 msgid "With this option enabled, you can print materials with a large temperature difference together."
 msgstr "Если включено, вы можете одновременно печатать материалами с большой разницей температур."
 
+msgid "Automatically optimize wipe tower placement"
+msgstr ""
+
+msgid "With this option enabled, the wipe tower will be placed at its optimal position."
+msgstr ""
+
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "Автосинхронизация пользовательских профилей (принтера/прутка/процесса)"
 
@@ -9260,11 +9291,29 @@ msgstr ""
 msgid "3D Settings"
 msgstr "Настройки 3D"
 
+msgid "Mouse Settings"
+msgstr ""
+
+msgid "Import Settings"
+msgstr ""
+
 msgid "Zoom to mouse position"
 msgstr "Приближать к положению курсора"
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr "Увеличивать масштаб по направлению к курсору в 3D-виде, а не к центру 2D-окна."
+
+msgid "Reverse direction of zoom with mouse wheel"
+msgstr ""
+
+msgid "If enabled, reverses the direction of zoom with mouse wheel."
+msgstr ""
+
+msgid "Drag with left mouse button to move"
+msgstr ""
+
+msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
+msgstr ""
 
 msgid "Display overview"
 msgstr ""
@@ -9513,11 +9562,15 @@ msgid ""
 "- Executing post-processing scripts\n"
 "- Support structure recommendation prompt\n"
 "- Unsaved projects.\n"
-"- Mixed color sublayer with variable layer height warning"
+"- Mixed color sublayer with variable layer height warning\n"
+"- Delete a filament used by a model"
 msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr ""
+
+msgid "System presets"
+msgstr "Системные профили"
 
 msgid "User presets"
 msgstr "Пользовательские профили"
@@ -9879,8 +9932,8 @@ msgstr "Выбранный принтер (%s) несовместим с кон�
 msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "При включении режима «Спиральная ваза» принтеры с кинематикой I3 не будут писать таймлапс."
 
-msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
-msgstr "Текущий принтер не может записывать таймлапсы в обычном режиме при печати моделей «По очереди»."
+msgid "The current printer does not support timelapse in Instant Mode when printing By-Object."
+msgstr ""
 
 msgid "Errors"
 msgstr "Ошибок"
@@ -9920,7 +9973,7 @@ msgstr "Этот процесс проверяет ровность поверх
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Этот процесс определяет значение динамического потока для улучшения общего качества печати."
 
-msgid "After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
+msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
 msgstr ""
 
 #, c-format, boost-format
@@ -10408,7 +10461,7 @@ msgstr ""
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Для плавного таймлапса требуется черновая башня. На модели без использования черновой башни могут быть дефекты. Вы хотите включить черновую башню?"
 
-msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
+msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to instant mode."
 msgstr ""
 
 msgid "Still print by object?"
@@ -10876,6 +10929,10 @@ msgstr ""
 msgid "Are you sure to %1% the selected preset?"
 msgstr "%1% выбранный профиль?"
 
+# ??? в ОРКЕ это ВЕЗДЕ (в Обеспечивать верт. толщину оболочки), а тут же нет выбора?
+msgid "All"
+msgstr "Всегда"
+
 msgid "Set"
 msgstr "Выбор"
 
@@ -11037,11 +11094,20 @@ msgstr "Левый: "
 msgid "Right: "
 msgstr "Правый: "
 
-msgid "Select presets to compare"
-msgstr "Выберите профили для сравнения"
+msgid "Preset A"
+msgstr ""
+
+msgid "Preset B"
+msgstr ""
 
 msgid "Show all presets (including incompatible)"
 msgstr "Показать все профили (включая несовместимые)"
+
+msgid "Material"
+msgstr ""
+
+msgid "Please select two different presets A and B to compare"
+msgstr ""
 
 msgid "Add File"
 msgstr "Добавить файл"
@@ -13095,7 +13161,7 @@ msgstr "мм/с"
 
 #, c-format, boost-format
 msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
-msgstr ""
+msgstr "Скорость 100%% нависающей стенки, имеющей 0 перекрытия с нижним слоем."
 
 msgid "Slow down by height"
 msgstr ""
@@ -13332,6 +13398,9 @@ msgstr "Сохранение толщины вертикальной оболо�
 msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)"
 msgstr "Добавление сплошного концентрического заполнения вблизи наклонных поверхностей для того чтобы гарантировать заданную толщину оболочки."
 
+msgid "Disabled"
+msgstr "Отключено"
+
 msgid "Partial"
 msgstr "Частично"
 
@@ -13417,13 +13486,19 @@ msgstr ""
 
 #, c-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
-msgstr ""
+msgstr "Плотность заполнения нижней поверхности: 100%% означает полностью сплошной нижний слой. Меньшие значения создают текстурированную нижнюю поверхность. Предназначено для эстетических или функциональных целей, а не для исправления таких проблем, как чрезмерная экструзия. ВНИМАНИЕ: Снижение этого значения может отрицательно сказаться на адгезии к столу."
 
 msgid "Internal solid infill pattern"
 msgstr "Шаблон сплошного заполнения"
 
 msgid "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area."
 msgstr "Шаблон печати внутреннего сплошного заполнения. Если включена функция «Обнаруживать узкую область сплошного заполнения», то для небольшой области будет использоваться концентрический шаблон заполнения."
+
+msgid "Sub-top surface pattern"
+msgstr ""
+
+msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
+msgstr ""
 
 msgid "Line width of outer wall"
 msgstr "Ширина экструзии для внешнего периметра."
@@ -14121,6 +14196,12 @@ msgstr "Рывок при перемещении."
 msgid "Line width of initial layer"
 msgstr "Ширина экструзии для первого слоя."
 
+msgid "Initial layer infill"
+msgstr "Заполнение первого слоя"
+
+msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
+msgstr ""
+
 msgid "Initial layer height"
 msgstr "Высота первого слоя"
 
@@ -14129,9 +14210,6 @@ msgstr "Высота первого слоя. Незначительное ув�
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr "Скорость печати первого слоя, кроме сплошного заполнения."
-
-msgid "Initial layer infill"
-msgstr "Заполнение первого слоя"
 
 msgid "Speed of solid infill part of initial layer"
 msgstr "Скорость печати сплошного заполнения на первом слое."
@@ -15152,16 +15230,16 @@ msgstr "Макс. сглаживание по XY"
 msgid "Maximum distance to move points in XY to try to achieve a smooth spiralIf expressed as a %, it will be computed over nozzle diameter"
 msgstr "Максимальное расстояние перемещения точек по XY для достижения плавной спирали. Если задано в процентах, то значение вычисляется относительно диаметра сопла."
 
-msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-msgstr "Если выбран плавный или обычный режим записи, то при каждой печати будет создаваться ускоренное видео печати. После печати каждого слоя встроенная камера делает снимок и по её завершении все эти снимки объединяются в единое ускоренное видео. Если включён плавный режим, то после печати каждого слоя головка перемещается к лотку для удаления излишков, а уже затем делается снимок. Очистка сопла на черновой башне обязательна, т.к. при плавном режиме возможно вытекание материала из сопла когда делается снимок."
+msgid "If smooth or instant mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
+msgstr ""
 
-msgid "Traditional"
-msgstr "Обычный"
+msgid "Instant"
+msgstr ""
 
 msgid "Farthest point timelapse"
 msgstr ""
 
-msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
+msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in instant timelapse mode on non-I3 printers."
 msgstr ""
 
 msgid "Temperature variation"
@@ -15190,6 +15268,9 @@ msgstr "Часто в импортируемых в программу моде�
 
 msgid "Slicing Mode"
 msgstr "Режим нарезки"
+
+msgid "Other"
+msgstr "Прочее"
 
 msgid "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
 msgstr ""
@@ -15824,7 +15905,7 @@ msgstr "--use-firmware-retraction не совместим с --wipe"
 
 #, c-format, boost-format
 msgid " doesn't work at 100%% density "
-msgstr " не работает при 100%% заполнении "
+msgstr " не работает при плотности 100%% "
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "Недопустимое значение при включенном режиме спиральной вазы: "
@@ -15879,6 +15960,18 @@ msgstr "Генерация поддержки"
 
 msgid "Optimizing toolpath"
 msgstr "Оптимизация траектории инструмента"
+
+#, boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
+msgstr ""
+
+#, boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
+msgstr ""
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "Пустые слои обнаруженные на дне модели были заменены ближайшими нормальными слоями."
@@ -17209,9 +17302,6 @@ msgstr "Удалить профиль"
 msgid "+ Add Preset"
 msgstr "+ Добавить профиль"
 
-msgid "Delete Filament"
-msgstr "Удалить пруток"
-
 msgid ""
 "All the filament presets belong to this filament would be deleted. \n"
 "If you are using this filament on your printer, please reset the filament information for that slot."
@@ -18029,6 +18119,9 @@ msgstr ""
 msgid "Skipping objects."
 msgstr ""
 
+msgid "Custom Color"
+msgstr "Пользовательский цвет"
+
 msgid "Null Color"
 msgstr ""
 
@@ -18398,28 +18491,28 @@ msgstr ""
 msgid "Remove the third material"
 msgstr ""
 
-msgid "Project Filament List"
-msgstr ""
-
-msgid "Standard Mode Recommendations"
-msgstr ""
-
 msgid "Target Color"
 msgstr ""
 
 msgid "Select Color Decomposition"
 msgstr ""
 
-msgid "Arbitrary Mode"
+msgid "Project Filament"
 msgstr ""
 
 msgid "Material List"
 msgstr ""
 
-msgid "Standard Mode"
+msgid "Standard Palette"
 msgstr ""
 
 msgid "At least two filaments of the same material type are required for decomposition"
+msgstr ""
+
+msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+msgstr ""
+
+msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
 msgstr ""
 
 #, boost-format
@@ -18733,6 +18826,59 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid ""
+#~ "Drag to move the cut plane\n"
+#~ "Right-click a part to assign it to the other side"
+#~ msgstr ""
+#~ "Двигайте, чтобы переместить секущую плоскость.\n"
+#~ "Для переназначения стороны части модели используйте правую кнопку мыши."
+
+#~ msgid "Deleting the last solid part is not allowed."
+#~ msgstr "Удаление последней твердотельной части не допускается."
+
+#~ msgid "max"
+#~ msgstr "макс."
+
+#~ msgid "min"
+#~ msgstr "мин."
+
+#, boost-format
+#~ msgid "The input value should be greater than %1% and less than %2%"
+#~ msgstr "Введённое значение должно быть больше %1%, но меньше %2%."
+
+#~ msgid "Setting AMS slot information while printing is not supported"
+#~ msgstr "Изменение информации о слотах АСПП во время печати не поддерживается"
+
+#~ msgid "Setting Virtual slot information while printing is not supported"
+#~ msgstr "Настройка информации виртуального слота во время печати не поддерживается"
+
+#~ msgid "Other Color"
+#~ msgstr "Другой цвет"
+
+#~ msgid "parameter name"
+#~ msgstr "Имя параметра"
+
+#~ msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
+#~ msgstr "Включение обычного режима таймлапса может привести к появлению дефектов поверхности, поэтому рекомендуется изменить режим на плавный."
+
+# длинно Автоочистка от старого материала
+#~ msgid "Auto Flush"
+#~ msgstr ""
+#~ "Авторасчёт \n"
+#~ "очистки"
+
+#~ msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
+#~ msgstr "Текущий принтер не может записывать таймлапсы в обычном режиме при печати моделей «По очереди»."
+
+#~ msgid "Select presets to compare"
+#~ msgstr "Выберите профили для сравнения"
+
+#~ msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
+#~ msgstr "Если выбран плавный или обычный режим записи, то при каждой печати будет создаваться ускоренное видео печати. После печати каждого слоя встроенная камера делает снимок и по её завершении все эти снимки объединяются в единое ускоренное видео. Если включён плавный режим, то после печати каждого слоя головка перемещается к лотку для удаления излишков, а уже затем делается снимок. Очистка сопла на черновой башне обязательна, т.к. при плавном режиме возможно вытекание материала из сопла когда делается снимок."
+
+#~ msgid "Traditional"
+#~ msgstr "Обычный"
 
 #~ msgid "The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file."
 #~ msgstr "Файл .gcode.3mf не содержит данных G-кода. Используя Bambu Studio нарежьте его и экспортируйте в новый файл .gcode.3mf."
