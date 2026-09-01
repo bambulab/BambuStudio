@@ -81,7 +81,8 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
                     {"seam_position", "",3}, {"seam_gap", "",4}, {"wipe_speed", "",5},
                     {"slice_closing_radius", "",6}, {"resolution", "",7},
                     {"xy_hole_compensation", "",8}, {"xy_contour_compensation", "",9}, {"elefant_foot_compensation", "",10},
-                    {"precise_z_height", "",10}
+                    {"precise_z_height", "",10}, {"make_overhang_printable_angle", "",11},
+                    {"make_overhang_printable_hole_size", "",12}
 
                     }},
     { L("Support"), {{"brim_type", "",1},{"brim_width", "",2},{"brim_object_gap", "",3},
@@ -99,7 +100,8 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::OBJECT_C
 
 // todo multi_extruders: Does the following need to be modified?
 std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CATEGORY_SETTINGS=
-    {{L("Quality"), {{"ironing_type", "", 8}, {"ironing_flow", "", 9}, {"ironing_spacing", "", 10}, {"ironing_inset", "", 11}, {"ironing_speed", "", 12}, {"ironing_direction", "",13}
+    {{L("Quality"), {{"ironing_type", "", 8}, {"ironing_flow", "", 9}, {"ironing_spacing", "", 10}, {"ironing_inset", "", 11}, {"ironing_speed", "", 12}, {"ironing_direction", "",13},
+                    {"make_overhang_printable", "",14}
                     }},
     { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", "",1},{"top_shell_thickness", "",1},
                     {"bottom_shell_layers", "",1}, {"bottom_shell_thickness", "",1}, {"sparse_infill_density", "",1},
