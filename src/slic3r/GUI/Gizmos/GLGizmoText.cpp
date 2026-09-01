@@ -1416,6 +1416,13 @@ bool GLGizmoText::get_selection_is_text()
     return false;
 }
 
+// Pick-ray / camera side is the surface the user hit. M*n can already be outward
+// on a left-handed volume; flipping on is_left_handed() alone inverts a good normal.
+static Vec3d flip_normal_toward(const Vec3d &n, const Vec3d &from_hit)
+{
+    return n.dot(from_hit) < 0.0 ? -n : n;
+}
+
 void GLGizmoText::generate_text_tran_in_world(const Vec3d &text_normal_in_world, const Vec3d &text_position_in_world,float rotate_degree, Geometry::Transformation &cur_tran)
 {
     Vec3d  temp_normal        = text_normal_in_world.normalized();
@@ -1473,12 +1480,7 @@ bool GLGizmoText::on_shortcut_key() {
                     auto hit_pos = m_trafo_matrices[m_rr.mesh_id] * m_rr.hit.cast<double>();
                     Geometry::Transformation tran(m_trafo_matrices[m_rr.mesh_id]);
                     auto hit_normal = (tran.get_matrix_no_offset() * m_rr.normal.cast<double>()).normalized();
-                    // Same outward check as update_text_pos_normal (mirrored attach mesh).
-                    if (mv) {
-                        const Vec3d center_world = tran.get_matrix() * mv->mesh().bounding_box().center();
-                        if (hit_normal.dot(hit_pos - center_world) < 0.0)
-                            hit_normal = -hit_normal;
-                    }
+                    hit_normal = flip_normal_toward(hit_normal, wxGetApp().plater()->get_camera().get_position() - hit_pos);
                     Transform3d surface_trmat = create_transformation_onto_surface(hit_pos, hit_normal, UP_LIMIT);
                     if (mv) {
                         auto        instance  = mo->instances[m_parent.get_selection().get_instance_idx()];
@@ -3108,17 +3110,7 @@ void GLGizmoText::update_text_pos_normal() {
     Geometry::Transformation cur_tran(m_trafo_matrices[m_rr.mesh_id]);
     m_text_position_in_world = cur_tran.get_matrix() * m_rr.hit.cast<double>();
     Vec3d n = (cur_tran.get_matrix_no_offset() * m_rr.normal.cast<double>()).normalized();
-    // Mirrored attach meshes can yield an inward world normal; keep emboss +Z
-    // pointing outside the solid (hit lies outside relative to volume center).
-    if (m_object_idx >= 0) {
-        const Selection &selection = m_parent.get_selection();
-        const ModelObject *mo = selection.get_model()->objects[m_object_idx];
-        if (mo != nullptr && m_rr.mesh_id >= 0 && m_rr.mesh_id < (int) mo->volumes.size()) {
-            const Vec3d center_world = cur_tran.get_matrix() * mo->volumes[m_rr.mesh_id]->mesh().bounding_box().center();
-            if (n.dot(m_text_position_in_world - center_world) < 0.0)
-                n = -n;
-        }
-    }
+    n = flip_normal_toward(n, wxGetApp().plater()->get_camera().get_position() - m_text_position_in_world);
     m_text_normal_in_world = n.cast<float>();
 }
 
