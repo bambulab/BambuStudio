@@ -4017,9 +4017,8 @@ void StatusPanel::update_ams(MachineObject *obj)
     m_ams_control->UpdateAms(obj->get_printer_series_str(), obj->printer_type, ams_info, ext_info, *obj->GetExtderSystem(), obj->get_dev_id(), obj, false);
     m_ams_control->UpdateAmsDryControl(obj);
 
-    // m_ams_item_list 已由 UpdateAms 重建完毕，此时可安全补发 RFID 新耗材角标。
     if (auto* sync = wxGetApp().fila_manager_sync())
-        sync->drain_filament_hints();
+        sync->drain_filament_hints(obj->get_dev_id());
 
     last_tray_exist_bits  = obj->tray_exist_bits;
     last_ams_exist_bits   = obj->ams_exist_bits;
@@ -5310,12 +5309,20 @@ static nlohmann::json build_ams_tray_batch_create(DevAmsTray* tray,
     return body;
 }
 
+void StatusPanel::dismiss_filament_hint_ui(const std::string& dev_id, const std::string& ams_id, const std::string& slot_id)
+{
+    if (auto* sync = wxGetApp().fila_manager_sync())
+        sync->dismiss_pending_badge(dev_id, ams_id, slot_id);
+    if (m_ams_control && obj && obj->get_dev_id() == dev_id)
+        m_ams_control->dismiss_filament_hint(ams_id, slot_id);
+}
+
 void StatusPanel::show_new_official_filament_dlg(
-    const std::string& ams_id, const std::string& slot_id)
+    const std::string& dev_id, const std::string& ams_id, const std::string& slot_id)
 {
     int rc = m_new_official_filament_dlg->ShowModal();
     if (rc == wxID_OK) {
-        m_ams_control->dismiss_filament_hint(ams_id, slot_id);
+        dismiss_filament_hint_ui(dev_id, ams_id, slot_id);
         auto choice = m_new_official_filament_dlg->GetChoice();
         if (choice == AMSNewOfficialFilamentDlg::Choice::LinkExisting) {
             const int hit_id  = m_new_official_filament_dlg->GetHitSpoolId();
@@ -5377,9 +5384,13 @@ void StatusPanel::on_new_official_filament_hint(wxCommandEvent &event)
     m_new_official_filament_dlg->SetTrayContext(obj, ams_id, slot_id);
 
     if (!obj) {
-        show_new_official_filament_dlg(ams_id, slot_id);
+        show_new_official_filament_dlg(std::string(), ams_id, slot_id);
         return;
     }
+
+    // 在异步请求发出之前捕获 dev_id：回调触发时用户可能已切换到另一台机器，
+    // 届时 obj 已指向新设备，不能再用它来定位这次角标处理的归属设备。
+    const std::string dev_id = obj->get_dev_id();
 
     std::string ams_sn;
     int ams_id_int = -1;
@@ -5396,7 +5407,7 @@ void StatusPanel::on_new_official_filament_hint(wxCommandEvent &event)
     p.devId = obj->get_dev_id();
     p.amsSn = ams_sn;
     client.get_soft_match_pending(p,
-        [this, ams_id, slot_id](const nlohmann::json& data) {
+        [this, dev_id, ams_id, slot_id](const nlohmann::json& data) {
             m_soft_match_pending = SoftMatchPendingResponse::from_json(data);
             BOOST_LOG_TRIVIAL(info)
                 << "[soft_match_pending] parsed: hits=" << m_soft_match_pending.hits.size()
@@ -5439,17 +5450,17 @@ void StatusPanel::on_new_official_filament_hint(wxCommandEvent &event)
                 }
                 AMSNewFilamentRecordedDlg dlg(this, display_sp);
                 dlg.ShowModal();
-                m_ams_control->dismiss_filament_hint(ams_id, slot_id);
+                dismiss_filament_hint_ui(dev_id, ams_id, slot_id);
             } else {
                 // 情况二/三：有待匹配条目，让用户选择处理方式
                 m_new_official_filament_dlg->SetSoftMatchData(m_soft_match_pending);
-                show_new_official_filament_dlg(ams_id, slot_id);
+                show_new_official_filament_dlg(dev_id, ams_id, slot_id);
             }
         },
-        [this, ams_id, slot_id](int code, const std::string& err) {
+        [this, dev_id, ams_id, slot_id](int code, const std::string& err) {
             BOOST_LOG_TRIVIAL(warning)
                 << "[soft_match_pending] GET failed code=" << code << " err=" << err;
-            show_new_official_filament_dlg(ams_id, slot_id);
+            show_new_official_filament_dlg(dev_id, ams_id, slot_id);
         });
 }
 
