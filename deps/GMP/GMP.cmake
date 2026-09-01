@@ -76,7 +76,15 @@ else ()
         URL https://github.com/bambulab/gmp/archive/refs/tags/6.2.1.tar.gz
         URL_HASH SHA256=705ae57ee2014b2c6fc0f572c85ee43276b99b6b256ee16c1a9d3a8c4e3609d5
         DOWNLOAD_DIR ${DEP_DOWNLOAD_DIR}/GMP
+        # 0001: GCC15 build fix.
+        # 0002: upstream GMP changeset 5f32dbc41afc, replaces the reserved x18
+        #       register in the arm64 mpn assembly. x18 is the platform register on
+        #       Darwin/Apple Silicon, so 6.2.1's arm64 asm silently corrupts it and
+        #       causes intermittent crashes (e.g. __gmpz_gcd / __gmpn_* + __stack_chk_fail)
+        #       in CGAL exact arithmetic. Harmless on non-arm64 targets (files unused)
+        #       and correct on Linux aarch64 too, so it is applied unconditionally here.
         PATCH_COMMAND git apply ${GMP_DIRECTORY_FLAG} --verbose ${CMAKE_CURRENT_LIST_DIR}/0001-GMP_GCC15.patch
+        COMMAND git apply ${GMP_DIRECTORY_FLAG} --verbose ${CMAKE_CURRENT_LIST_DIR}/0002-GMP_arm64_avoid_x18_reserved_on_darwin.patch
         BUILD_IN_SOURCE ON
         CONFIGURE_COMMAND  env "CFLAGS=${_gmp_ccflags}" "CXXFLAGS=${_gmp_ccflags}" ./configure ${_cross_compile_arg} --enable-shared=no --enable-cxx=yes --enable-static=yes "--prefix=${DESTDIR}/usr/local" ${_gmp_build_tgt}
         BUILD_COMMAND     make -j
