@@ -2065,6 +2065,21 @@ static bool suggest_disable_thick_bridges_if_needed(DynamicPrintConfig *config, 
     return true;
 }
 
+// 对象可以通过对象级覆盖单独打开精确 Z 高度，此时全局值仍然是关闭的。这种覆盖破坏料塔 Z 网格的
+// 方式和全局设置完全一样，所以料塔的提示也必须扫一遍对象配置。
+static bool any_object_has_precise_z_height()
+{
+    Plater *plater = wxGetApp().plater();
+    if (plater == nullptr)
+        return false;
+    for (const ModelObject *object : plater->model().objects) {
+        const ConfigOptionBool *opt = object->config.get().option<ConfigOptionBool>("precise_z_height");
+        if (opt != nullptr && opt->value)
+            return true;
+    }
+    return false;
+}
+
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
     if (wxGetApp().plater() == nullptr) {
@@ -2181,7 +2196,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
             }
             wxGetApp().plater()->update();
         }
-        bool is_precise_z_height = m_config->option<ConfigOptionBool>("precise_z_height")->value;
+        bool is_precise_z_height = m_config->option<ConfigOptionBool>("precise_z_height")->value || any_object_has_precise_z_height();
         if (boost::any_cast<bool>(value) && is_precise_z_height) {
             MessageDialog dlg(wxGetApp().plater(), _L("Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"),
                 _L("Warning"), wxICON_WARNING | wxYES | wxNO);
@@ -3982,7 +3997,14 @@ void TabPrintModel::on_value_change(const std::string& opt_id, const boost::any&
         m_null_keys.erase(inull);
     if (m_back_to_sys || set) update_changed_ui();
     m_back_to_sys = false;
+    // 基类可能因为确认框（精确 Z 高度与料塔同时开启）而把值回退掉。当回退后的值恰好和全局值相等时，
+    // reload_config() 不会把这次回退写回对象配置，所以这里必须补上。
+    std::unique_ptr<ConfigOption> value_before(m_config->option(opt_key) ? m_config->option(opt_key)->clone() : nullptr);
     TabPrint::on_value_change(opt_id, value);
+    if (value_before && m_config->option(opt_key) && *m_config->option(opt_key) != *value_before) {
+        for (auto config : m_object_configs)
+            config.second->apply_only(*m_config, {opt_key});
+    }
     for (auto config : m_object_configs) {
         config.second->touch();
         notify_changed(config.first);

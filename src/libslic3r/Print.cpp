@@ -1495,6 +1495,12 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             // Some of the objects has variable layer height applied by painting or by a table.
             bool has_custom_layering = std::any_of(m_objects.begin(), m_objects.end(),
                 [](const PrintObject* object) { return object->model_object()->has_custom_layering(); });
+            // precise_z_height 是造成对象各自 Z 网格的第二个来源：它会微调每个对象顶部若干层，
+            // 使其正好落在该对象自身的高度上，因此高度不同的对象最终会得到对不上的 Z 序列。
+            // 而料塔的层高就是与上一个料塔层的 Z 差值，这种错位会让某个料塔层的层高塌缩到接近 0，
+            // 进而把料塔的占地面积撑爆。所以它必须和手工层高数据一样，去武装下面那段 Z 序列比对。
+            bool has_precise_z_height = std::any_of(m_objects.begin(), m_objects.end(),
+                [](const PrintObject* object) { return object->config().precise_z_height.value; });
 
             const SlicingParameters &slicing_params0 = m_objects.front()->slicing_parameters();
             size_t            tallest_object_idx = 0;
@@ -1514,7 +1520,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
 #endif
                 if (!equal_layering(slicing_params, slicing_params0))
                     return  { L("The prime tower requires that all objects are sliced with the same layer heights."), object };
-                if (has_custom_layering) {
+                if (has_custom_layering || has_precise_z_height) {
                     auto &lh         = layer_height_profile(i);
                     auto &lh_tallest = layer_height_profile(tallest_object_idx);
                     if (*(lh.end()-2) > *(lh_tallest.end()-2))
@@ -1523,7 +1529,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             }
 
             // BBS: remove obsolete logics and _L()
-            if (has_custom_layering) {
+            if (has_custom_layering || has_precise_z_height) {
                 std::vector<std::vector<coordf_t>> layer_z_series;
                 layer_z_series.assign(m_objects.size(), std::vector<coordf_t>());
 
@@ -1544,8 +1550,25 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                         // BBS: remove the break condition, because a variable layer height object and a new object will not be checked when slicing
                         //if (i % 2 == 0 && layer_height_profiles[tallest_object_idx][i] > layer_height_profiles[idx_object][layer_height_profiles[idx_object].size() - 2])
                         //    break;
-                        if (std::abs(layer_z_series[idx_object][i] - layer_z_series[tallest_object_idx][i]) > eps)
+                        if (std::abs(layer_z_series[idx_object][i] - layer_z_series[tallest_object_idx][i]) > eps) {
+                            // 走到这里说明两个对象的 Z 序列对不上。若没有任何对象带手工层高数据，
+                            // 那唯一可能的原因就是 precise_z_height：此时按警告级别上报并让切片继续，
+                            // 与开启该选项时弹出的提示保持同一等级——这个组合是不推荐，而不是禁止。
+                            // 提示也直接指向 precise_z_height，免得用户去找一份自己从没画过的层高数据。
+                            if (has_precise_z_height && ! has_custom_layering) {
+                                if (warning != nullptr) {
+                                    StringObjectException warningtemp;
+                                    warningtemp.string     = L("Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower.");
+                                    warningtemp.object     = m_objects[idx_object];
+                                    warningtemp.opt_key    = "precise_z_height";
+                                    warningtemp.is_warning = true;
+                                    warningtemp.hypetext   = L("Jump to: Precise Z height");
+                                    *warning               = warningtemp;
+                                }
+                                break;
+                            }
                             return {L("The prime tower is only supported if all objects have the same variable layer height")};
+                        }
                         ++i;
                     }
                 }
