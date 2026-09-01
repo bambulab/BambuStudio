@@ -8,6 +8,7 @@
 #include <iterator>
 #include <wx/colordlg.h>
 #include <wx/dcgraph.h>
+#include <wx/display.h>
 #include "CalibUtils.hpp"
 #include "../Utils/ColorSpaceConvert.hpp"
 #include "../Utils/BBLUtil.hpp"
@@ -1662,6 +1663,19 @@ void AMSMaterialsSetting::on_open_filament_select_dialog()
             DevPrinterConfigUtil::get_printer_display_name(obj->printer_type), nozzle_diameter_str);
 
     FilamentSelectDialog dlg(this);
+
+    const int     cascade  = FromDIP(20);
+    const wxPoint base_pos = this->GetScreenPosition();
+    const wxSize  dlg_size = dlg.GetSize();
+    const wxRect  area     = wxDisplay(wxDisplay::GetFromWindow(this)).GetClientArea();
+    int pos_x = base_pos.x + cascade;
+    int pos_y = base_pos.y + cascade;
+    if (pos_x + dlg_size.GetWidth()  > area.GetRight())  pos_x = area.GetRight()  - dlg_size.GetWidth();
+    if (pos_y + dlg_size.GetHeight() > area.GetBottom()) pos_y = area.GetBottom() - dlg_size.GetHeight();
+    if (pos_x < area.GetLeft()) pos_x = area.GetLeft();
+    if (pos_y < area.GetTop())  pos_y = area.GetTop();
+    dlg.Move(wxPoint(pos_x, pos_y));
+
     dlg.Popup(filament_items, query_filament_vendors, query_filament_types, current_alias,
               std::move(printer_names));
 
@@ -3235,11 +3249,9 @@ void AMSNewOfficialFilamentDlg::populate_link_combo()
     m_combo_header_texts.clear();
     m_selected_link_spool_id.clear();
 
-    // 找当前槽位的 32 位 RFID（tray->uuid）
     DevAmsTray* tray = (m_obj ? m_obj->get_ams_tray(m_ams_id, m_slot_id) : nullptr);
     const std::string tray_uuid = (tray && !tray->uuid.empty()) ? tray->uuid : "";
 
-    // 从软匹配响应中找到命中当前槽位 RFID 的 hit 条目
     const SoftMatchFilamentItem* hit_item = nullptr;
     for (const auto& hit : m_soft_match_data.hits) {
         if (hit.rfid == tray_uuid) { hit_item = &hit; break; }
@@ -3256,7 +3268,6 @@ void AMSNewOfficialFilamentDlg::populate_link_combo()
         return;
     }
 
-    // 找该 hit 对应的 candidates
     const std::vector<SoftMatchFilamentItem>* cands = nullptr;
     for (const auto& cand_entry : m_soft_match_data.candidates) {
         if (cand_entry.pending_id == hit_item->id) {
@@ -3265,7 +3276,6 @@ void AMSNewOfficialFilamentDlg::populate_link_combo()
         }
     }
 
-    // 构建待展示列表：hit 在前，candidates 在后
     std::vector<const SoftMatchFilamentItem*> items;
     items.push_back(hit_item);
     if (cands) {
@@ -3298,12 +3308,10 @@ void AMSNewOfficialFilamentDlg::populate_link_combo()
         m_combo_header_texts[idx] = header;
     }
 
-    // 记录 hit 的云端 id
     m_hit_spool_id          = hit_item->id;
     m_selected_candidate_id = 0;
     m_only_hit              = (cands == nullptr || cands->empty());
 
-    // 预选 hit（items[0] 就是 hit，对应 combo index 0）
     if (m_combo_link->GetCount() > 0) {
         m_combo_link->SetSelection(0);
         m_combo_link->SetIcon("drop_down");
@@ -3315,7 +3323,6 @@ void AMSNewOfficialFilamentDlg::populate_link_combo()
             m_selected_link_spool_id = id0->second;
     }
 
-    // only-hit 时下拉框仍可展开查看，但 on_combo_selected 会锁定 index 0 不变
     m_combo_link->Enable(true);
 }
 
