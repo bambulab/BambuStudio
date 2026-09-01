@@ -80,7 +80,6 @@ public:
     void    check_nozzle_temperature_initial_layer_range(DynamicPrintConfig* config);
     void    check_filament_max_volumetric_speed(DynamicPrintConfig *config);
     void    check_filament_scarf_setting(DynamicPrintConfig *config);
-    void    check_chamber_temperature(DynamicPrintConfig* config);
     //BBS: keep the painted top/bottom color inside the solid shell, out of the sparse infill
     void    check_color_penetration_layers(DynamicPrintConfig* config, const std::string& edited_key);
     void    set_is_BBL_Printer(bool is_bbl_printer) { is_BBL_Printer = is_bbl_printer; };

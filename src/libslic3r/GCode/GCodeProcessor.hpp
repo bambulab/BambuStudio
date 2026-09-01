@@ -22,7 +22,6 @@ namespace Slic3r {
 
 // slice warnings enum strings
 #define NOZZLE_HRC_CHECKER                                          "the_actual_nozzle_hrc_smaller_than_the_required_nozzle_hrc"
-#define BED_TEMP_TOO_HIGH_THAN_FILAMENT                             "bed_temperature_too_high_than_filament"
 #define NOT_SUPPORT_TRADITIONAL_TIMELAPSE                           "not_support_traditional_timelapse"
 #define NOT_GENERATE_TIMELAPSE                                      "not_generate_timelapse"
 #define SMOOTH_TIMELAPSE_WITHOUT_PRIME_TOWER                        "smooth_timelapse_without_prime_tower"
@@ -1493,7 +1492,6 @@ namespace Slic3r {
         float get_filament_unload_time(size_t extruder_id);
         float get_extruder_change_time(size_t extruder_id);
         float get_hotend_change_time();
-        int   get_filament_vitrification_temperature(size_t extrude_id);
         void process_custom_gcode_time(CustomGCode::Type code);
         void process_filaments(CustomGCode::Type code);
 
