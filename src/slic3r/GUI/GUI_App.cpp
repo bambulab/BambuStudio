@@ -86,6 +86,7 @@
 #include "EncodedFilament.hpp"
 
 #include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevConfigUtil.h"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/VersionPolicyManager.hpp"
@@ -8680,26 +8681,33 @@ static void sLocalBindFunc(std::string str_ip,
                            std::string str_access_code,
                            std::string sn)
 {
+    // bind_detect is a hint, not a gate. It used to erase the remembered IP whenever the probe was
+    // not conclusive, so a sleeping printer or a transient network hiccup made the device silently
+    // disappear from the list. Keep its data when it answers, otherwise log and connect with the
+    // persisted local info.
     detectResult detectData;
-    auto result = wxGetApp().getAgent()->bind_detect(str_ip, "secure", detectData);
+    const int    result        = wxGetApp().getAgent()->bind_detect(str_ip, "secure", detectData);
+    const char*  reject_reason = nullptr;
     if (result < 0) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": bind_detect failed code=" << result;
-        wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
-        return;
+        reject_reason = "bind_detect failed";
+    } else if (detectData.connect_type != "farm") {
+        if (detectData.bind_state == "occupied") {
+            reject_reason = "the device is already occupied";
+        } else if (detectData.connect_type == "cloud") {
+            reject_reason = "the device is cloud";
+        }
     }
 
-    if (detectData.connect_type != "farm") {
-        if (detectData.bind_state == "occupied") {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is already occupied";
-            wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
-            return;
-        }
+    if (reject_reason) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": " << reject_reason << ", code=" << result
+                                   << ", falling back to the persisted local info";
 
-        if (detectData.connect_type == "cloud") {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is cloud";
-            wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
-            return;
-        }
+        detectData              = detectResult();
+        detectData.dev_id       = sn;
+        detectData.dev_name     = sn;
+        detectData.connect_type = "lan";
+        detectData.bind_state   = "free";
+        detectData.model_id     = DevPrinterConfigUtil::get_model_id_by_dev_id(sn);
     }
 
     wxGetApp().CallAfter([detectData, str_ip, str_access_code]() {

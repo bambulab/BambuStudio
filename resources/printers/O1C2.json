@@ -68,6 +68,7 @@
 			"support_user_first_setup_tpu_check_url": "https://e.bambulab.com/t?c=Db9YyP5qg3MHbSHD"
 		},
 		"model_id": "O1C2",
+		"sn_prefix": "31B",
 		"subseries": [ "O1C2-V2" ],
 		"auto_pa_cali_thumbnail_image": "fd_calibration_auto_multi_extruders_o1c",
 		"support_wrapping_detection": true,

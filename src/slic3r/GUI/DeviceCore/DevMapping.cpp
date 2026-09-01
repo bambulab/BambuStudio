@@ -306,6 +306,8 @@ namespace Slic3r
             result.push_back(info);
         }
 
+
+
         // traverse the mapping
         std::set<int> picked_src;
         std::set<int> picked_tar;
@@ -421,6 +423,8 @@ namespace Slic3r
                 picked_tar.insert(picked_tar_idx);
             }
         }
+
+
 
         //check ams mapping result
         if (DevMappingUtil::is_valid_mapping_result(obj, result, true))
