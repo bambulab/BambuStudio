@@ -468,6 +468,8 @@ public:
 
     void copy_layers_to_clipboard();
     void paste_layers_into_list();
+    bool can_apply_layer_height_to_other_objects() const;
+    void apply_layer_height_to_other_objects();
     void copy_settings_to_clipboard();
     void paste_settings_into_list();
     bool can_paste_settings_into_list();

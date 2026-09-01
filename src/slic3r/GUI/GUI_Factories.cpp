@@ -1367,6 +1367,8 @@ void MenuFactory::create_bbl_object_menu()
     append_menu_item_per_object_process(&m_object_menu);
     // Enter per object parameters
     append_menu_item_per_object_settings(&m_object_menu);
+    // Share the layer heights with the other objects of the plate
+    append_menu_item_apply_layer_height(&m_object_menu);
     m_object_menu.AppendSeparator();
     append_menu_item_reload_from_disk(&m_object_menu);
     append_menu_item_replace_with_stl(&m_object_menu);
@@ -2353,6 +2355,14 @@ void MenuFactory::append_menu_item_per_object_settings(wxMenu* menu)
             Selection& selection = plater()->canvas3D()->get_selection();
             return selection.is_single_full_object() || selection.is_single_full_instance() || selection.is_single_volume();
         }, m_parent);
+}
+
+void MenuFactory::append_menu_item_apply_layer_height(wxMenu* menu)
+{
+    append_menu_item(menu, wxID_ANY, _L("Apply layer height to other objects"),
+        _L("Slice the other objects of this plate with the layer heights of the selected object, as required by the prime tower"),
+        [](wxCommandEvent&) { obj_list()->apply_layer_height_to_other_objects(); }, "", nullptr,
+        []() { return obj_list()->can_apply_layer_height_to_other_objects(); }, m_parent);
 }
 
 void MenuFactory::append_menu_item_change_filament(wxMenu* menu)

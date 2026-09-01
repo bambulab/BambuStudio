@@ -1350,6 +1350,53 @@ void ObjectList::paste_layers_into_list()
 #endif //no __WXOSX__
 }
 
+bool ObjectList::can_apply_layer_height_to_other_objects() const
+{
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    return get_selected_obj_idx() >= 0 && plate->get_obj_idxs_on_this_plate().size() > 1;
+}
+
+void ObjectList::apply_layer_height_to_other_objects()
+{
+    const int obj_idx = get_selected_obj_idx();
+    if (obj_idx < 0 || (size_t)obj_idx >= m_objects->size())
+        return;
+
+    take_snapshot("Apply layer height to other objects");
+
+    PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    const ModelObject* from_object = object(obj_idx);
+    const ConfigOption* layer_height_option = from_object->config.option("layer_height");
+    const coordf_t layer_height = layer_height_option ? layer_height_option->getFloat() :
+        wxGetApp().preset_bundle->prints.get_edited_preset().config.opt_float("layer_height");
+
+    std::vector<size_t> changed_idxs;
+    for (int idx : plate->get_obj_idxs_on_this_plate()) {
+        if (idx == obj_idx)
+            continue;
+
+        ModelObject* to_object = object(idx);
+        if (layer_height_option)
+            to_object->config.set_key_value("layer_height", layer_height_option->clone());
+        else
+            to_object->config.erase("layer_height");
+        to_object->layer_config_ranges = from_object->layer_config_ranges;
+        to_object->layer_height_profile.set(layer_height_profile_from_other_object(from_object->layer_height_profile.get(),
+            to_object->bounding_box().max.z(), layer_height));
+
+        const wxDataViewItem object_item = m_objects_model->GetItemById(idx);
+        if (wxDataViewItem layers_item = m_objects_model->GetLayerRootItem(object_item))
+            m_objects_model->Delete(layers_item);
+        add_layer_root_item(object_item);
+        add_settings_item(object_item, &to_object->config.get());
+        update_info_items(idx);
+
+        changed_idxs.push_back(idx);
+    }
+
+    wxGetApp().plater()->changed_objects(changed_idxs);
+}
+
 void ObjectList::copy_settings_to_clipboard()
 {
     wxDataViewItem item = GetSelection();
