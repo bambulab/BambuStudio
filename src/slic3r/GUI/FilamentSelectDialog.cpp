@@ -176,7 +176,7 @@ StateColor sc(const wxColour& c) { return StateColor(std::make_pair(c, (int)Stat
 // dark-mode color helpers
 // Evaluated at call time so each data-fill method picks up the current theme.
 
-inline wxColour dlg_bg()           { return wxGetApp().dark_mode() ? wxColour(0x36,0x38,0x3A) : *wxWHITE; }
+inline wxColour dlg_bg()           { return StateColor::darkModeColorFor(*wxWHITE); }
 inline wxColour dlg_separator()    { return wxGetApp().dark_mode() ? wxColour(0x50,0x52,0x54) : wxColour(230,230,230); }
 inline wxColour dlg_divider()      { return wxGetApp().dark_mode() ? wxColour(0x50,0x52,0x54) : wxColour(220,220,220); }
 inline wxColour dlg_chip_sel_bg()  { return wxGetApp().dark_mode() ? wxColour(0x1F,0x35,0x29) : wxColour(0xDB,0xFD,0xE7); }
@@ -642,10 +642,10 @@ void FilamentSelectDialog::on_confirm()
 void FilamentSelectDialog::filter_by_chip(const wxString& chip_label)
 {
     m_active_chip = chip_label;
-    apply_filters();
+    apply_filters(false);
 }
 
-void FilamentSelectDialog::apply_filters()
+void FilamentSelectDialog::apply_filters(bool reset_chip_offset)
 {
     const wxString q = m_search
         ? m_search->GetTextCtrl()->GetValue().Lower().Trim(false).Trim(true)
@@ -662,7 +662,8 @@ void FilamentSelectDialog::apply_filters()
     m_mgr_list->Layout();
     m_mgr_list->Refresh();
 
-    m_chip_offset = 0;
+    if (reset_chip_offset)
+        m_chip_offset = 0;
     refresh_chip_visibility();
 }
 

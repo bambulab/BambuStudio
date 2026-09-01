@@ -307,6 +307,14 @@ public:
     void on_dpi_changed(const wxRect&) override {
         m_btn_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
         m_btn_confirm->SetCornerRadius(FromDIP(12));
+        if (m_btn_record_new) {
+            m_btn_record_new->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+            m_btn_record_new->SetCornerRadius(FromDIP(12));
+        }
+        if (m_combo_link)
+            m_combo_link->SetMinSize(wxSize(FromDIP(360), FromDIP(56)));
+        // Raw-bitmap cards don't auto-rescale; re-render them at the new DPI.
+        if (m_obj) populate_link_combo();
         Fit();
     }
 
@@ -315,16 +323,19 @@ private:
     void populate_link_combo();
     void on_combo_selected(wxCommandEvent&);
     void on_confirm(wxCommandEvent&);
+    void on_record_new(wxCommandEvent&);
 
     Choice    m_choice{ Choice::RecordNew };
-    RadioBox* m_radio_record_new{ nullptr };
-    RadioBox* m_radio_link_existing{ nullptr };
+    wxStaticText*   m_title{ nullptr };
+    wxStaticBitmap* m_hit_card{ nullptr };
+    wxStaticText*   m_match_label{ nullptr };
+    Button*   m_btn_record_new{ nullptr };
     Button*   m_btn_confirm{ nullptr };
 
     ::ComboBox*                m_combo_link{ nullptr };
     wxSizer*                   m_combo_row{ nullptr };
-    std::map<int, std::string> m_combo_idx_to_spool_id;
-    std::map<int, wxString>    m_combo_header_texts;
+    std::map<int, std::string>   m_combo_idx_to_spool_id;
+    std::map<int, FilamentSpool> m_combo_idx_to_spool;
     std::string                m_selected_link_spool_id;
 
     MachineObject* m_obj    { nullptr };

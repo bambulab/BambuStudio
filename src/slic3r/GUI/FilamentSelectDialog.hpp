@@ -60,7 +60,7 @@ private:
     void      fill_manager_tab();
     void      fill_brand_chips(const std::vector<wxString>& brands);
     void      refresh_chip_visibility();
-    void      apply_filters();
+    void      apply_filters(bool reset_chip_offset = true);
     wxWindow* make_spool_row(wxWindow* parent, const FilamentSpool& sp, bool dimmed, bool is_recent = false);
 
     void      fill_default_tab();
