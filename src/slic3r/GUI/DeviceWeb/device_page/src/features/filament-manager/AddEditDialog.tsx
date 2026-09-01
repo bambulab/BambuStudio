@@ -4,7 +4,7 @@ import type {
   Spool, PresetVendor, MachineItem, AmsData, AmsUnit, AmsTray,
   BridgeResponseBody, CandidateColor, FilamentColorCodesResponse,
 } from './types';
-import { BAMBU_COLORS, formatTypeSeries } from './constants';
+import { BAMBU_COLORS, formatTypeSeries, toCreateFilamentPrefill } from './constants';
 import { SpoolColorChip } from './SpoolColorChip';
 import useStore from '../../store/AppStore';
 import { useDeviceBridge } from '../../hooks/Bridge';
@@ -682,10 +682,26 @@ export function AddEditDialog({
   // doubles as a negative cache so a transient C++ error doesn't make the
   // dialog spam the dispatcher on every state tick.
   const requestRpc = useDeviceBridge();
+  // Dedup in-flight color queries. Cache-only guards miss the window between
+  // dispatch and setColorCandidates, so a fallback effect re-run (or a
+  // concurrent primary/fallback kick) would re-issue the same query_for_id.
+  const candidateLoadInflight = useRef<Set<string>>(new Set());
+  const handleCreateNow = useCallback(() => {
+    const prefill = toCreateFilamentPrefill(brand, materialType, series);
+    if (!prefill.vendor) return;
+    void requestRpc<{
+      module: 'filament'; submod: 'preset'; action: 'create_custom';
+      payload: { vendor: string; type: string; serial: string };
+    }, BridgeResponseBody>({
+      module: 'filament', submod: 'preset', action: 'create_custom',
+      payload: prefill,
+    });
+  }, [brand, materialType, series, requestRpc]);
   const loadCandidates = useCallback(async (id: string) => {
     if (!id) return;
     const cur = useStore.getState().filament.candidatesByFilaId;
-    if (cur[id]) return;
+    if (cur[id] || candidateLoadInflight.current.has(id)) return;
+    candidateLoadInflight.current.add(id);
     try {
       const res = await requestRpc<{
         module: 'filament'; submod: 'colors'; action: 'query_for_id';
@@ -722,6 +738,8 @@ export function AddEditDialog({
       const after = useStore.getState().filament.candidatesByFilaId[id];
       if (Array.isArray(after) && after.length > 0) return;
       setColorCandidates(id, []);
+    } finally {
+      candidateLoadInflight.current.delete(id);
     }
   }, [requestRpc, setColorCandidates]);
 
@@ -734,18 +752,21 @@ export function AddEditDialog({
   // material_type matches the current form selection so the type-aggregated
   // fallback panel has data to render. Fires only when the strict per-
   // fila_id panel would otherwise be empty (no filaId, or filaId resolved
-  // but its cached entry is empty). The loader is idempotent (cache-checked
-  // inside), so this is safe to fire on every dependency change.
+  // but its cached entry is empty). Do not subscribe to candidatesByFilaId:
+  // custom brands never get a primary filaId, so each cache write would
+  // re-kick the whole fallback list and storm query_for_id. loadCandidates
+  // already skips cached / in-flight ids.
   useEffect(() => {
     if (!open) return;
-    const primaryHasData = !!filaId && (candidatesByFilaId[filaId]?.length ?? 0) > 0;
+    const cache = useStore.getState().filament.candidatesByFilaId;
+    const primaryHasData = !!filaId && (cache[filaId]?.length ?? 0) > 0;
     if (primaryHasData) return;
     if (fallbackFilaIds.length === 0) return;
     for (const id of fallbackFilaIds) {
       if (id === filaId) continue;
       void loadCandidates(id);
     }
-  }, [open, filaId, fallbackFilaIds, candidatesByFilaId, loadCandidates]);
+  }, [open, filaId, fallbackFilaIds, loadCandidates]);
 
   // Comparing the form's current selection against a candidate. Delegates
   // to `candidateMatchesFormState` from the shared `colors/` module so the
@@ -2279,6 +2300,19 @@ export function AddEditDialog({
                 </div>
               </div>
 
+              {matchedCloudFilamentId === '' && matchedPresetItem === null && !!brand && !!series && (
+                <div className="text-[12px] leading-[19px] text-fm-warning -mt-[8px]">
+                  {t('Hint: No preset for this filament type in the app. Create a preset to use it.')}
+                  <button
+                    type="button"
+                    className="text-fm-warning underline cursor-pointer bg-transparent border-none p-0 ml-[4px] hover:opacity-80"
+                    onClick={handleCreateNow}
+                  >
+                    {t('Create Now')}
+                  </button>
+                </div>
+              )}
+
               {/* Color palette. F4.4 feedback: 自定义颜色需要"可保存 / 能看到已选"。
                   "+" 始终保留为取色入口；新取的自定义色追加到预设色之后。 */}
               <div className="flex flex-col gap-[8px]">
@@ -2548,18 +2582,6 @@ export function AddEditDialog({
                 </div>
               </div>
             </div>
-
-            {matchedCloudFilamentId === '' && matchedPresetItem === null && !!brand && !!series && (
-              <div className="text-[12px] leading-[19px] text-fm-warning">
-                {t('Hint: No preset for this filament type in the app. Create a preset to use it.')}
-                <button
-                  type="button"
-                  className="text-fm-warning underline cursor-pointer bg-transparent border-none p-0 ml-[4px] hover:opacity-80"
-                >
-                  {t('Create Now')}
-                </button>
-              </div>
-            )}
 
             <div className="flex flex-col gap-[4px]">
               <label className="text-[12px] leading-[19px] text-fm-text-secondary">{t('Note')}</label>

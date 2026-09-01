@@ -155,6 +155,13 @@ export function useFilamentManagerBridge() {
         return;
       }
 
+      if (body.submod === 'preset') {
+        if (body.action === 'list' && body.payload) {
+          setPresets(body.payload as unknown as PresetOptions);
+        }
+        return;
+      }
+
       if (body.submod === 'debug' && body.action === 'log') {
         const payload = body.payload as Omit<DebugLogEntry, 'id'> | undefined;
         if (payload) appendDebugLog(payload);
@@ -311,7 +318,7 @@ export function useFilamentManagerBridge() {
       const agg = pushDoneAggRef.current;
       if (agg.timer) { clearTimeout(agg.timer); agg.timer = null; }
     };
-  }, [setSpools, setCloudSync, setCloudConfig, pushToast, appendCloudSyncHistory, appendDebugLog, setMachines, setAmsData, setSelectedMachineDevId, setCloudAutoPushSummary, t, flushPushDoneAgg]);
+  }, [setSpools, setPresets, setCloudSync, setCloudConfig, pushToast, appendCloudSyncHistory, appendDebugLog, setMachines, setAmsData, setSelectedMachineDevId, setCloudAutoPushSummary, t, flushPushDoneAgg]);
 
   // STUDIO-17977: candidate prefetch — runs whenever the spool list changes.
   // Drives the list row tail (colorName + BBL fila code) without waiting on

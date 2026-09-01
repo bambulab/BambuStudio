@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <wx/wx.h>
 #include "GUI_Utils.hpp"
 #include <slic3r/GUI/Widgets/WebView.hpp>
@@ -10,7 +11,10 @@ namespace Slic3r { namespace GUI {
 class CreateFilamentWebDialog : public DPIDialog
 {
 public:
-    explicit CreateFilamentWebDialog(wxWindow *parent);
+    explicit CreateFilamentWebDialog(wxWindow *parent,
+                                     const std::string &vendor = {},
+                                     const std::string &type = {},
+                                     const std::string &serial = {});
     ~CreateFilamentWebDialog();
 
 protected:
@@ -18,6 +22,9 @@ protected:
 
 private:
     wxWebView *m_browser { nullptr };
+    std::string m_prefill_vendor;
+    std::string m_prefill_type;
+    std::string m_prefill_serial;
 
     void OnScriptMessage(wxWebViewEvent &evt);
     void OnDocumentLoaded(wxWebViewEvent &evt);

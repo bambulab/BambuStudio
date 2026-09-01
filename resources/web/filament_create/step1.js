@@ -122,6 +122,26 @@ $(document).ready(function () {
             if (data.command === 'init_data') {
                 TYPE_LIST = data.types || [];
                 renderTypes();
+                var selectedVendor = (data.selected_vendor || '').trim();
+                var selectedType   = (data.selected_type || '').trim();
+                var selectedSerial = (data.selected_serial || '').trim();
+                if (selectedVendor || selectedType || selectedSerial) {
+                    if (selectedVendor) {
+                        var knownVendors = VENDOR_LIST.concat(customVendors);
+                        if (knownVendors.indexOf(selectedVendor) < 0) {
+                            customVendors.push(selectedVendor);
+                            renderVendors();
+                        }
+                    }
+                    if (selectedType && TYPE_LIST.indexOf(selectedType) < 0) {
+                        TYPE_LIST.push(selectedType);
+                        renderTypes();
+                    }
+                    $('#input-vendor').val(selectedVendor);
+                    $('#input-type').val(selectedType);
+                    $('#input-series').val(selectedSerial);
+                    sessionStorage.removeItem('step1');
+                }
                 updateNextBtn();
             } else if (data.command === 'device_status') {
                 if (data.connected) {

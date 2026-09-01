@@ -7,6 +7,8 @@
 #include <boost/log/trivial.hpp>
 
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/CreateFilamentWebDialog.hpp"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
@@ -522,10 +524,27 @@ nlohmann::json FilamentManagerVM::HandleConfig(const std::string& action, const 
     return MakeResp("config", action, -1, "unknown action");
 }
 
-nlohmann::json FilamentManagerVM::HandlePreset(const std::string& action, const nlohmann::json& /*payload*/)
+nlohmann::json FilamentManagerVM::HandlePreset(const std::string& action, const nlohmann::json& payload)
 {
     if (action == "list") {
         return MakeResp("preset", action, 0, "", build_preset_options());
+    }
+    if (action == "create_custom") {
+        const std::string vendor = payload.value("vendor", "");
+        const std::string type   = payload.value("type", "");
+        const std::string serial = payload.value("serial", "");
+        wxGetApp().CallAfter([this, vendor, type, serial]() {
+            CreateFilamentWebDialog dlg(wxGetApp().mainframe, vendor, type, serial);
+            const int res = dlg.ShowModal();
+            if (res == wxID_OK && wxGetApp().mainframe)
+                wxGetApp().mainframe->update_side_preset_ui();
+            if (!m_bridge) return;
+            m_bridge->ReportMsg(MakeResp("preset", "create_custom_done", 0, "",
+                {{"ok", res == wxID_OK}}));
+            if (res == wxID_OK)
+                m_bridge->ReportMsg(MakeResp("preset", "list", 0, "", build_preset_options()));
+        });
+        return MakeResp("preset", action, 0, "pending");
     }
     return MakeResp("preset", action, -1, "unknown action");
 }

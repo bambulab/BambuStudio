@@ -106,12 +106,18 @@ static std::string make_filament_id(const std::string &vendor_type_serial)
 
 // ── Constructor / Destructor ───────────────────────────────────────────────
 
-CreateFilamentWebDialog::CreateFilamentWebDialog(wxWindow *parent)
+CreateFilamentWebDialog::CreateFilamentWebDialog(wxWindow *parent,
+                                                 const std::string &vendor,
+                                                 const std::string &type,
+                                                 const std::string &serial)
     : DPIDialog(parent ? parent : nullptr,
                 wxID_ANY,
                 _L("Create Custom Filament"),
                 wxDefaultPosition, wxDefaultSize,
                 wxCAPTION | wxCLOSE_BOX | wxCENTRE)
+    , m_prefill_vendor(vendor)
+    , m_prefill_type(type)
+    , m_prefill_serial(serial)
 {
     SetBackgroundColour(*wxWHITE);
 
@@ -288,6 +294,9 @@ void CreateFilamentWebDialog::send_init_data(const std::string &filament_type)
     msg["types"]          = types;
     msg["printers"]       = printers;
     msg["system_presets"] = system_presets;
+    if (!m_prefill_vendor.empty()) msg["selected_vendor"] = m_prefill_vendor;
+    if (!m_prefill_type.empty())   msg["selected_type"]   = m_prefill_type;
+    if (!m_prefill_serial.empty()) msg["selected_serial"] = m_prefill_serial;
 
     wxString js = wxString::Format("HandleStudio(%s)",
         wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
