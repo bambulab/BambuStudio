@@ -15,12 +15,16 @@ namespace Slic3r { namespace GUI {
 //
 // Alignment: Center spreads tabs evenly across the full width (Preferences look);
 // Left packs tabs to the left with a fixed gap between them (preset-compare look).
+//
+// tab_gap (Left align only) is the fixed spacing between adjacent tabs, in unscaled
+// DIP; pass a value to widen/tighten it. It is read when tabs are added, so set it
+// (via the ctor) before AddTab()/ClearTabs()+rebuild.
 class TextTabbar : public wxControl
 {
 public:
     enum class Align { Center, Left };
 
-    TextTabbar(wxWindow *parent, Align align = Align::Center);
+    TextTabbar(wxWindow *parent, Align align = Align::Center, int tab_gap = 24);
     void AddTab(const wxString &label);
     void ClearTabs();
     void SetSelection(int sel);
@@ -30,6 +34,7 @@ public:
 private:
     void                        render();
     Align                       m_align;
+    int                         m_tab_gap;  // Left-align inter-tab spacing (DIP)
     std::vector<wxStaticText *> m_labels;
     std::vector<wxWindow *>     m_underlines;
     wxBoxSizer                 *m_row       = nullptr;

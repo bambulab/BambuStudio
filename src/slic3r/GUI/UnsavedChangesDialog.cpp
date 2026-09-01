@@ -11,7 +11,10 @@
 #include <boost/nowide/convert.hpp>
 
 #include <wx/dataview.h>
+#include <wx/headerctrl.h> // complete type for GenericGetHeader()->SetMinSize()
+#include <wx/event.h>
 #include <wx/gdicmn.h>
+#include <wx/layout.h>
 #include <wx/string.h>
 #include <wx/tokenzr.h>
 #include <wx/simplebook.h>
@@ -616,14 +619,13 @@ DiffViewCtrl::DiffViewCtrl(wxWindow *parent, wxSize size)
                      wxID_ANY,
                      wxDefaultPosition,
                      size,
-                     wxDV_VARIABLE_LINE_HEIGHT | wxDV_HORIZ_RULES
-#ifdef _WIN32
-                         | wxBORDER_SIMPLE
-#endif
-                     )
+                     // wxBORDER_NONE: the visible outline is a Grey400 wrapper panel behind a 1px
+                     // inset, which wxBORDER_SIMPLE (a system-coloured, non-themeable line) would
+                     // otherwise double up on. wxDV_HORIZ_RULES still draws the inner row rules.
+                     wxDV_VARIABLE_LINE_HEIGHT | wxDV_HORIZ_RULES | wxBORDER_NONE)
     , m_em_unit(em_unit(parent))
 {
-    wxGetApp().UpdateDVCDarkUI(this);
+    ApplyDarkUI();
 
     model = new DiffModel(parent);
     this->AssociateModel(model);
@@ -655,7 +657,10 @@ void DiffViewCtrl::AppendBmpTextColumn(const wxString& label, unsigned model_col
     rd->SetAlignment(wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
     rd->EnableEllipsize(wxELLIPSIZE_END);
 
-    wxDataViewColumn *column = new wxDataViewColumn(label, rd, model_column, width * m_em_unit, wxALIGN_TOP, wxDATAVIEW_COL_RESIZABLE);
+    // Column alignment drives the HEADER TITLE only (generic: headerctrlg m_labelAlignment; MSW:
+    // HDF_CENTER) - cell content keeps the renderer's left alignment set above. The previous
+    // wxALIGN_TOP is numerically wxALIGN_NOT, i.e. it silently meant "left".
+    wxDataViewColumn *column = new wxDataViewColumn(label, rd, model_column, width * m_em_unit, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
     this->AppendColumn(column);
     if (set_expander)
         this->SetExpanderColumn(column);
@@ -668,8 +673,51 @@ void DiffViewCtrl::AppendToggleColumn_(const wxString& label, unsigned model_col
     AppendToggleColumn(label, model_column, wxDATAVIEW_CELL_ACTIVATABLE, width * m_em_unit);
 }
 
+void DiffViewCtrl::SetHeaderFont(const wxFont &font)
+{
+    m_header_font = font;
+    ApplyDarkUI();
+}
+
+void DiffViewCtrl::SetHeaderHeight(int height)
+{
+    m_header_height = height;
+    ApplyDarkUI();
+}
+
+void DiffViewCtrl::ApplyDarkUI()
+{
+#ifdef __WINDOWS__
+    // UpdateDVCDarkUI() owns the header wxItemAttr on MSW (it also sets the dark text colour), so
+    // the font has to be handed to it rather than applied separately.
+    wxGetApp().UpdateDVCDarkUI(this, /*highlited*/ false, m_header_font.IsOk() ? &m_header_font : nullptr);
+    // ...and it unconditionally forces wxBORDER_SIMPLE back on, which would draw a system-coloured
+    // line inside the Grey400 frame. Strip it again.
+    if (GetBorder() == wxBORDER_SIMPLE) SetWindowStyle(GetWindowStyle() & ~wxBORDER_SIMPLE);
+#else
+    // Elsewhere UpdateDVCDarkUI() is a no-op, so apply the header font directly.
+    if (m_header_font.IsOk()) {
+        wxItemAttr attr;
+        attr.SetFont(m_header_font);
+        SetHeaderAttr(attr);
+    }
+#endif
+
+#ifdef wxHAS_GENERIC_DATAVIEWCTRL
+    // The header sits in the control's sizer at proportion 0, so its height is its effective min
+    // size; a native backend offers no equivalent hook, hence the generic-only guard.
+    if (m_header_height > 0)
+        if (wxHeaderCtrl *header = GenericGetHeader()) header->SetMinSize(wxSize(-1, FromDIP(m_header_height)));
+#endif
+
+    Layout();
+}
+
 void DiffViewCtrl::Rescale(int em /*= 0*/)
 {
+    // A theme or DPI pass rewrites the header attr, so restore our font afterwards.
+    ApplyDarkUI();
+
     if (em > 0) {
         for (auto item : m_columns_width)
             GetColumn(item.first)->SetWidth(item.second * em);
@@ -2232,12 +2280,14 @@ PresetSelectorPanel::PresetSelectorPanel(wxWindow *parent, PresetBundle *bundle_
     SetBackgroundColour(*wxWHITE);
 
     auto *label_left = new wxStaticText(this, wxID_ANY, _L("Preset A"));
+    label_left->SetFont(::Label::Head_14);
     m_col_left       = new wxBoxSizer(wxVERTICAL);
     m_col_left->Add(label_left, 0, wxBOTTOM, 2);
 
     m_equal = new ScalableButton(this, wxID_ANY, "equal");
 
     auto *label_right = new wxStaticText(this, wxID_ANY, _L("Preset B"));
+    label_right->SetFont(::Label::Head_14);
     m_col_right       = new wxBoxSizer(wxVERTICAL);
     m_col_right->Add(label_right, 0, wxBOTTOM, 2);
 
@@ -2330,9 +2380,13 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     this->SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 #endif // __WXMSW__
 
-    int border = 10;
     int em = em_unit();
     SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+
+    // Window/taskbar icon (mirrors UnsavedChangesDialog::build).
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
     assert(wxGetApp().preset_bundle);
 
     m_preset_bundle_left  = std::make_unique<PresetBundle>(*wxGetApp().preset_bundle);
@@ -2355,17 +2409,31 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     m_content     = new wxSimplebook(this, wxID_ANY);
     m_empty_state = new EmptyStatePanel(m_content);
 
-    m_tree = new DiffViewCtrl(m_content, wxSize(em * 65, em * 40));
-    m_tree->AppendBmpTextColumn(_L("Options"), DiffModel::colIconText, 35, true);
+    // The tree's outline is a Grey400 panel showing through a 1px inset on every side; the control
+    // itself is borderless. Only the outline is coloured - the inner row rules stay as drawn by
+    // wxDV_HORIZ_RULES.
+    m_tree_frame = new wxPanel(m_content);
+    m_tree_frame->SetBackgroundColour(StateColor::darkModeColorFor(ThemeColor::Grey400));
+
+    m_tree = new DiffViewCtrl(m_tree_frame, wxSize(em * 65, em * 40));
+    m_tree->AppendBmpTextColumn(_L("Parameters"), DiffModel::colIconText, 35, true);
     m_tree->AppendBmpTextColumn(_L("Preset A"), DiffModel::colOldValue, 15);
     m_tree->AppendBmpTextColumn(_L("Preset B"), DiffModel::colNewValue, 15);
+    // Larger, bolder header than the app default so the Parameters/A/B row reads as a table head.
+    m_tree->SetHeaderFont(::Label::Head_14);
+    m_tree->SetHeaderHeight(40);
+
+    wxBoxSizer *tree_frame_sizer = new wxBoxSizer(wxVERTICAL);
+    tree_frame_sizer->Add(m_tree, 1, wxEXPAND | wxALL, FromDIP(1));
+    m_tree_frame->SetSizer(tree_frame_sizer);
 
     m_content->AddPage(m_empty_state, wxEmptyString); // kPageEmpty
-    m_content->AddPage(m_tree, wxEmptyString);        // kPageTree
+    m_content->AddPage(m_tree_frame, wxEmptyString);  // kPageTree
     m_content->SetSelection(kPageEmpty);
 
     // Process/Filament/Machine tab bar; selecting a tab drives which preset type is compared.
-    m_tabbar = new TextTabbar(this, TextTabbar::Align::Left);
+    // Wider inter-tab gap than the default so the three tabs read as distinct sections.
+    m_tabbar = new TextTabbar(this, TextTabbar::Align::Left, 48);
     rebuild_tabs();
     m_tabbar->Bind(wxEVT_CHOICE, [this](wxCommandEvent &e) {
         const int idx = e.GetInt();
@@ -2379,15 +2447,22 @@ DiffPresetDialog::DiffPresetDialog(MainFrame* mainframe)
     // Build the initial combo pair for the tab selected by rebuild_tabs().
     m_selector->set_type(m_view_type, m_pr_technology);
 
+    // Shared horizontal inset so the selector, "show all" checkbox and the content book keep a
+    // common left/right edge with extra breathing room from the window frame; the content also
+    // gets the same generous inset along the bottom.
+    const int side_margin = FromDIP(36);
+
     wxBoxSizer *topSizer = new wxBoxSizer(wxVERTICAL);
     topSizer->AddSpacer(FromDIP(24));
-    topSizer->Add(m_tabbar, 0, wxEXPAND | wxTOP, border);
+    topSizer->Add(m_tabbar, 0, wxEXPAND | wxLEFT | wxRIGHT, side_margin);
+
+    topSizer->AddSpacer(FromDIP(24));
+    topSizer->Add(m_selector, 0, wxEXPAND | wxLEFT | wxRIGHT, side_margin);
     topSizer->AddSpacer(FromDIP(8));
-    topSizer->Add(m_selector, 0, wxEXPAND | wxLEFT | wxRIGHT, border);
-    topSizer->AddSpacer(FromDIP(4));
-    topSizer->Add(m_show_all_presets, 0, wxEXPAND | wxALL, border);
-    topSizer->AddSpacer(FromDIP(8));
-    topSizer->Add(m_content, 1, wxEXPAND | wxALL, border);
+    topSizer->Add(m_show_all_presets, 0, wxEXPAND | wxLEFT | wxRIGHT, side_margin);
+
+    topSizer->AddSpacer(FromDIP(24));
+    topSizer->Add(m_content, 1, wxEXPAND | wxBOTTOM | wxLEFT | wxRIGHT, side_margin);
 
     this->SetSizer(topSizer);
     // Fixed 800x600 default (DPI-scaled), pinned as the min so preset switches never shrink it.
@@ -2416,13 +2491,13 @@ void DiffPresetDialog::rebuild_tabs()
     };
 
     if (m_pr_technology == ptFFF) {
-        add(_L("Process"), Preset::TYPE_PRINT);
-        add(_L("Filament"), Preset::TYPE_FILAMENT);
+        add(_L("Process Preset"), Preset::TYPE_PRINT);
+        add(_L("Filament Preset"), Preset::TYPE_FILAMENT);
     } else {
-        add(_L("Process"), Preset::TYPE_SLA_PRINT);
-        add(_L("Material"), Preset::TYPE_SLA_MATERIAL);
+        add(_L("Process Preset"), Preset::TYPE_SLA_PRINT);
+        add(_L("Material Preset"), Preset::TYPE_SLA_MATERIAL);
     }
-    add(_L("Machine"), Preset::TYPE_PRINTER);
+    add(_L("Machine Preset"), Preset::TYPE_PRINTER);
 
     int sel = 0;
     for (int i = 0; i < (int) m_tab_types.size(); i++)
@@ -2531,10 +2606,12 @@ void DiffPresetDialog::do_update_tree(const Preset *left_preset, const Preset *r
 
     m_tree->Clear();
 
+    // Rows actually added; options with no Tab page are skipped, so a preset pair can differ
+    // only in internal keys and still produce an empty tree.
+    int shown_count = 0;
+
     do {
         m_tree->model->AddPreset(type);
-
-        const std::map<wxString, std::string>& category_icon_map = wxGetApp().get_tab(type)->get_category_icon_map();
 
         // process changes of extruders count
         if (type == Preset::TYPE_PRINTER && left_pt == ptFFF &&
@@ -2543,7 +2620,8 @@ void DiffPresetDialog::do_update_tree(const Preset *left_preset, const Preset *r
             wxString left_val = from_u8((boost::format("%1%") % left_config.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
             wxString right_val = from_u8((boost::format("%1%") % right_congig.opt<ConfigOptionStrings>("extruder_colour")->values.size()).str());
 
-            m_tree->Append("extruders_count", type, "General", "Capabilities", local_label, left_val, right_val, category_icon_map.at("Basic information"));
+            m_tree->Append("extruders_count", type, "General", "Capabilities", local_label, left_val, right_val, "");
+            shown_count++;
         }
 
         // Extruder-variant key sets for this preset type. Options in these sets store one value
@@ -2621,37 +2699,40 @@ void DiffPresetDialog::do_update_tree(const Preset *left_preset, const Preset *r
                 wxString left_val  = get_collapsed_variant_value(child_left);
                 wxString right_val = get_collapsed_variant_value(child_right);
 
-                if (option_found)
-                    m_tree->AppendVariant(bare_key, type, option.category_local, option.group_local, option.label_local, left_val, right_val,
-                                          category_icon_map.at(option.category), labels, child_left, child_right);
-                else
-                    m_tree->AppendVariant(bare_key, type, "Undef category", "Undef group", bare_key, left_val, right_val, "question", labels, child_left, child_right);
+                // Options with no Tab page (internal plumbing like `inherits`, extruder maps,
+                // print-host credentials) have no category/group to file them under, so they are
+                // skipped rather than dumped into a synthetic "Undef" bucket.
+                if (!option_found) continue;
+
+                m_tree->AppendVariant(bare_key, type, option.category_local, option.group_local, option.label_local, left_val, right_val, "", labels, child_left, child_right);
+                shown_count++;
                 continue;
             }
 
             wxString left_val  = get_string_value(bare_key, left_config);
             wxString right_val = get_string_value(bare_key, right_congig);
 
-            if (!option_found) {
-                // temporary solution, just for testing
-                m_tree->Append(bare_key, type, "Undef category", "Undef group", bare_key, left_val, right_val, "question");
-                // When founded option isn't the correct one.
-                // It can be for dirty_options: "default_print_profile", "printer_model", "printer_settings_id",
-                // because of they don't exist in searcher
-                continue;
-            }
-            m_tree->Append(bare_key, type, option.category_local, option.group_local, option.label_local, left_val, right_val, category_icon_map.at(option.category));
+            // Not on any Tab page => no category/group (e.g. "default_print_profile",
+            // "printer_model", "printer_settings_id"); nothing meaningful to show, so skip it.
+            if (!option_found) continue;
+
+            m_tree->Append(bare_key, type, option.category_local, option.group_local, option.label_local, left_val, right_val, "");
+            shown_count++;
         }
     } while (false);
+
+    // Revert sort of searcher back before any early return.
+    searcher.sort_options_by_label();
+
+    // Every differing option was internal-only: report "no visible differences" rather than
+    // showing an empty table.
+    if (shown_count == 0) return on_empty(_L("These two presets have no visible differences"), "equal");
 
     m_selector->setEqualIcon("not_equal");
     m_content->SetSelection(kPageTree);
 
     Layout();
     Refresh();
-
-    // Revert sort of searcher back
-    searcher.sort_options_by_label();
 }
 
 void DiffPresetDialog::update_tree()
@@ -2708,7 +2789,8 @@ void DiffPresetDialog::on_sys_color_changed()
     // switch also reaches the tab bar and A/B selector (both hardcode a white background); the
     // narrower UpdateAllStaticTextDarkUI(this) only covered direct children and missed them.
     wxGetApp().UpdateDlgDarkUI(this);
-    wxGetApp().UpdateDVCDarkUI(m_tree);
+    m_tree_frame->SetBackgroundColour(StateColor::darkModeColorFor(ThemeColor::Grey400));
+    m_tree->ApplyDarkUI();
 #endif
 
     m_selector->Rescale();

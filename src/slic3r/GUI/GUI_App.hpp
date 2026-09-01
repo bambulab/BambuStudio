@@ -471,7 +471,13 @@ public:
     void            UpdateDlgDarkUI(wxDialog* dlg);
     void            UpdateFrameDarkUI(wxFrame* dlg);
     // update color mode for DataViewControl
-    void            UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited = false);
+    /**
+     * \brief Apply the dark-mode theme to a wxDataViewCtrl and its header.
+     * \param dvc         Control to theme.
+     * \param highlited   Use the highlighted dark background.
+     * \param header_font Optional header font; nullptr keeps the app's normal font.
+     */
+    void            UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited = false, const wxFont* header_font = nullptr);
     // update color mode for panel including all static texts controls
     void            UpdateAllStaticTextDarkUI(wxWindow* parent);
     void            init_fonts();

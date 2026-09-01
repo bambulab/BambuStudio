@@ -2,12 +2,15 @@
 
 #include <wx/panel.h>
 
+#include <algorithm>
+
 #include "Label.hpp"
 #include "StateColor.hpp"
 
 namespace Slic3r { namespace GUI {
 
-TextTabbar::TextTabbar(wxWindow *parent, Align align) : wxControl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), m_align(align)
+TextTabbar::TextTabbar(wxWindow *parent, Align align, int tab_gap)
+    : wxControl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), m_align(align), m_tab_gap(tab_gap)
 {
     SetBackgroundColour(*wxWHITE);
     auto *outer = new wxBoxSizer(wxVERTICAL);
@@ -74,7 +77,7 @@ void TextTabbar::AddTab(const wxString &label)
         m_row->Add(col, wxSizerFlags().CenterHorizontal());
     } else {
         // Left-packed: fixed gap between tabs, trailing stretch pushes them all left.
-        if (m_row->GetItemCount() != 0) m_row->AddSpacer(FromDIP(24));
+        if (m_row->GetItemCount() != 0) m_row->AddSpacer(FromDIP(std::max(0, m_tab_gap)));
         m_row->Add(col);
     }
 

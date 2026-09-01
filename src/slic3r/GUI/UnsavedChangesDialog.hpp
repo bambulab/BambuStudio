@@ -257,6 +257,8 @@ class DiffViewCtrl : public wxDataViewCtrl
     // tree items related to the options
     std::map<wxDataViewItem, ItemData> m_items_map;
     std::map<unsigned int, int>        m_columns_width;
+    wxFont                             m_header_font;    // invalid => keep the app's normal font
+    int                                m_header_height = 0;  // DIP; <= 0 => backend default
 
 public:
     DiffViewCtrl(wxWindow* parent, wxSize size);
@@ -267,6 +269,28 @@ public:
     void    AppendBmpTextColumn(const wxString& label, unsigned model_column, int width, bool set_expander = false);
     void    AppendToggleColumn_(const wxString& label, unsigned model_column, int width);
     void    Rescale(int em = 0);
+    /**
+     * \brief Set the font used for the column-header row.
+     * \param font Header font; applied immediately and re-applied on every theme/DPI refresh.
+     *
+     * Must be routed through here rather than SetHeaderAttr() directly: GUI_App::UpdateDVCDarkUI()
+     * rewrites the whole header wxItemAttr (font included) on each dark-mode pass, so a font set
+     * behind its back is silently reverted.
+     */
+    void    SetHeaderFont(const wxFont& font);
+    /**
+     * \brief Set the height of the column-header row.
+     * \param height Header height in unscaled DIP; <= 0 restores the backend default.
+     *
+     * Generic backends only (MSW): the native wxDataViewCtrl offers no header-height hook.
+     */
+    void    SetHeaderHeight(int height);
+    /**
+     * \brief Re-apply the dark-mode theme together with the stored header font.
+     *
+     * Call instead of GUI_App::UpdateDVCDarkUI() on this control so the header font survives.
+     */
+    void    ApplyDarkUI();
     void    Append(const std::string& opt_key, Preset::Type type, wxString category_name, wxString group_name, wxString option_name,
                    wxString old_value, wxString new_value, const std::string category_icon_name);
     // Appends an expandable option row with per-extruder-variant child rows. The old/new_value pair
@@ -493,6 +517,8 @@ class PresetSelectorPanel;
 class DiffPresetDialog : public DPIDialog
 {
     DiffViewCtrl           *m_tree{nullptr};
+    // Grey400 backing panel; shows through a 1px inset as the tree's outline.
+    wxPanel                *m_tree_frame{nullptr};
     wxCheckBox*             m_show_all_presets  { nullptr };
     // The content region is a wxSimplebook with two mutually-exclusive pages that share one slot:
     // the empty-state placeholder (also used to surface error / "presets are equal" messages via

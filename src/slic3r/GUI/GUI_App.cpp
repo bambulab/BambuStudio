@@ -4093,7 +4093,7 @@ void GUI_App::UpdateFrameDarkUI(wxFrame* dlg)
     update_dark_children_ui(dlg);
 }
 
-void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
+void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/, const wxFont* header_font/* = nullptr*/)
 {
 #ifdef __WINDOWS__
     UpdateDarkUI(dvc, highlited ? dark_mode() : false);
@@ -4105,7 +4105,7 @@ void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
         NppDarkMode::SetDarkListViewHeader(hwnd);
     wxItemAttr attr;
     attr.SetTextColour(NppDarkMode::GetTextColor());
-    attr.SetFont(m_normal_font);
+    attr.SetFont(header_font ? *header_font : m_normal_font);
     dvc->SetHeaderAttr(attr);
 #endif //_MSW_DARK_MODE
     if (dvc->HasFlag(wxDV_ROW_LINES))
