@@ -19,6 +19,11 @@ RUN ./BuildLinux.sh -s -t ${INTERNAL_TESTING} -y ${BUILD_TYPE}
 ENV container=podman
 RUN ./BuildLinux.sh -i
 
+# 收集要导出的产物到 /export；debug 包仅 RelWithDebInfo 生成，Release 下不存在，用 || true 容错
+RUN mkdir -p /export && \
+    cp /BambuStudio/build/BambuStudio_ubu64.AppImage /export/ && \
+    cp /BambuStudio/build/bambu-studio.debug.tar.gz /export/ 2>/dev/null || true
+
 FROM scratch AS export-stage
 
-COPY --from=builder /BambuStudio/build/BambuStudio_ubu64.AppImage /
+COPY --from=builder /export/ /

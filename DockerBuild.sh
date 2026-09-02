@@ -60,9 +60,11 @@ if [[ -n "${BUILD_APPIMAGE}" ]]; then
   if [ "$SYSTEM_VERSION" == "ubu22" ]; then
     docker build -f docker/BuildAppimageDockerfile --build-arg VERSION=studio_dep_22 ${BUILD_BETA} ${BUILD_TYPE_ARG} -o type=local,dest=./build .
     mv build/BambuStudio_ubu64.AppImage build/BambuStudio_ubu22.AppImage
+    mv build/bambu-studio.debug.tar.gz build/bambu-studio.debug.ubu22.tar.gz 2>/dev/null || true
   else
     docker build -f docker/BuildAppimageDockerfile --build-arg VERSION=studio_dep_24 ${BUILD_BETA} ${BUILD_TYPE_ARG} -o type=local,dest=./build .
     mv build/BambuStudio_ubu64.AppImage build/BambuStudio_ubu24.AppImage
+    mv build/bambu-studio.debug.tar.gz build/bambu-studio.debug.ubu24.tar.gz 2>/dev/null || true
   fi
 fi
 
