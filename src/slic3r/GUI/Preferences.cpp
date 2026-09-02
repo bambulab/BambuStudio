@@ -22,6 +22,7 @@
 #include "wx/graphics.h"
 
 #include <wx/listimpl.cpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <map>
 #include <wx/sizer.h>
 #include "Gizmos/GLGizmoBase.hpp"
@@ -295,6 +296,8 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString                    
         if (callback) {
             callback(e.GetSelection());
         }
+        if (boost::starts_with(param, "print_status_window_"))
+            wxGetApp().update_ui_from_settings();
         e.Skip();
     });
     return m_sizer_combox;
@@ -697,6 +700,8 @@ wxBoxSizer *PreferencesDialog::create_item_range_input(
         if (onchange) {
             onchange(str);
         }
+        if (boost::starts_with(param, "print_status_window_"))
+            wxGetApp().update_ui_from_settings();
         input->GetTextCtrl()->SetValue(str);
     };
     input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, set_value_to_app, input](wxCommandEvent &e) {
@@ -926,6 +931,9 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             app_config->set_bool(param, checkbox->GetValue());
             app_config->save();
         }
+
+        if (boost::starts_with(param, "print_status_window_"))
+            wxGetApp().update_ui_from_settings();
 
         if (param == "staff_pick_switch") {
             bool pbool = app_config->get("staff_pick_switch") == "true";
@@ -1563,6 +1571,27 @@ wxWindow *PreferencesDialog::create_user_tab()
     auto item_webview_auto_fill = create_item_checkbox(_L("Auto-fill previously logged-in accounts."), scrolled, _L(""), 50, "webview_auto_fill");
 #endif
 
+    auto title_print_status_window = create_item_title(_L("Print Status Window"), scrolled, _L("Print Status Window"));
+    auto item_print_status_window_auto_show =
+        create_item_checkbox(_L("Auto show on minimize"), scrolled, _L("Automatically show the print status window when the main window is minimized."), 50,
+                             "print_status_window_auto_show_on_minimize");
+#ifndef __APPLE__
+    auto item_print_status_window_close_to_tray = create_item_checkbox(
+        _L("Minimize to system tray when closing the main window"), scrolled,
+        _L("When enabled, closing the main window with the window close button keeps Bambu Studio running in the system tray."), 50,
+        "print_status_window_close_to_tray");
+#endif
+    auto item_print_status_window_always_on_top =
+        create_item_checkbox(_L("Always on top"), scrolled, _L("Keep the print status window above other windows."), 50, "print_status_window_always_on_top");
+    auto item_print_status_window_remember_position = create_item_checkbox(
+        _L("Remember window position"), scrolled, _L("Restore the print status window position on the next launch."), 50, "print_status_window_remember_position");
+    std::vector<wxString>    print_status_window_theme_labels = {_L("Follow app"), _L("Light"), _L("Dark")};
+    std::vector<std::string> print_status_window_theme_values = {"follow_app", "light", "dark"};
+    auto item_print_status_window_theme = create_item_combobox(_L("Theme"), scrolled, _L("Theme for the print status window."), "print_status_window_theme",
+                                                               print_status_window_theme_labels, print_status_window_theme_values);
+    auto item_print_status_window_opacity = create_item_range_input(_L("Opacity"), scrolled, _L("Set the opacity of the print status window. Value range:[40,100]"),
+                                                                    "print_status_window_opacity", 40.0f, 100.0f, 0);
+
     sizer->Add(title_user, wxSizerFlags().Expand().Border(wxTOP, FromDIP(24)));
     sizer->AddSpacer(FromDIP(8));
     auto flags = row_flags();
@@ -1577,6 +1606,16 @@ wxWindow *PreferencesDialog::create_user_tab()
 #ifdef _WIN32
     sizer->Add(wrap_option_row(scrolled, item_webview_auto_fill), flags);
 #endif
+
+    sizer->Add(title_print_status_window, wxSizerFlags().Expand().Border(wxTOP, FromDIP(16)));
+    sizer->Add(wrap_option_row(scrolled, item_print_status_window_auto_show), flags);
+#ifndef __APPLE__
+    sizer->Add(wrap_option_row(scrolled, item_print_status_window_close_to_tray), flags);
+#endif
+    sizer->Add(wrap_option_row(scrolled, item_print_status_window_always_on_top), flags);
+    sizer->Add(wrap_option_row(scrolled, item_print_status_window_remember_position), flags);
+    sizer->Add(wrap_option_row(scrolled, item_print_status_window_theme), flags);
+    sizer->Add(wrap_option_row(scrolled, item_print_status_window_opacity), flags);
 
     scrolled->SetSizer(sizer);
     scrolled->FitInside();
