@@ -5,6 +5,7 @@
 #include <GL/glew.h>
 #include <algorithm>
 
+#include "slic3r/GUI/Camera.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/GUI_Colors.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
@@ -15,6 +16,7 @@ namespace Slic3r {
 namespace GUI {
 
 float GLGizmoBase::INV_ZOOM = 1.0f;
+float GLGizmoBase::DEPTH_CORRECTION = 1.0f;
 
 
 const float GLGizmoBase::Grabber::SizeFactor = 0.05f;
@@ -324,11 +326,51 @@ void GLGizmoBase::render_lines(const std::vector<Vec3d> &points)
     wxGetApp().unbind_shader();
 }
 
+void GLGizmoBase::update_camera_scaling(const Camera& camera, const Selection& selection)
+{
+    INV_ZOOM = (float)camera.get_inv_zoom();
+    DEPTH_CORRECTION = 1.0f;
+
+    if (camera.get_type() != Camera::EType::Perspective)
+        return;
+
+    // Left untouched on purpose: with the flag off the gizmo geometry is anchored to the object
+    // bounding box in world space and only the grabber cubes follow 1/zoom, so that path was never
+    // screen size stable to begin with. Reworking it is out of scope here.
+    const auto& ogl_manager = wxGetApp().get_opengl_manager();
+    if (!ogl_manager || !ogl_manager->is_gizmo_keep_screen_size_enabled())
+        return;
+
+    if (selection.is_empty())
+        return;
+
+    const BoundingBoxf3& box = selection.get_bounding_box();
+    if (!box.defined)
+        return;
+
+    const double near_z    = camera.get_near_z();
+    const double gui_scale = camera.get_gui_scale(); // == near_z / orbit_distance under perspective
+    if (near_z <= EPSILON || gui_scale <= EPSILON)
+        return;
+
+    // Scaling a world space length by 1/zoom keeps it constant on screen only under an orthographic
+    // projection. Under perspective the projected size also scales with orbit_distance / depth, so a
+    // gizmo anchored away from the orbit plane grows or shrinks on its own. Cancel that term here.
+    const double depth = -(camera.get_view_matrix() * box.center()).z(); // eye space depth, positive in front of the camera
+    if (depth <= near_z) // anchor is in front of the near plane, nothing is drawn there anyway
+        return;
+
+    // Clamped on both ends: a large factor inflates the gizmo AABB which feeds back into
+    // Camera::apply_projection, a tiny one makes the grabber model matrix degenerate.
+    const double orbit_distance = near_z / gui_scale;
+    DEPTH_CORRECTION = (float)std::clamp(depth / orbit_distance, 0.1, 8.0);
+}
+
 float GLGizmoBase::get_grabber_size()
 {
     float grabber_size = 8.0f;
     if (GLGizmoBase::INV_ZOOM > 0) {
-        grabber_size = GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::Grabber::GrabberSizeFactor * GLGizmoBase::INV_ZOOM;
+        grabber_size = GLGizmoBase::Grabber::FixedGrabberSize * GLGizmoBase::Grabber::GrabberSizeFactor * GLGizmoBase::INV_ZOOM * GLGizmoBase::DEPTH_CORRECTION;
     }
     return grabber_size;
 }
@@ -688,7 +730,7 @@ void GLGizmoBase::modify_radius(float& radius) const
             uint32_t t_height = 0;
             ogl_manager->get_viewport_size(t_width, t_height);
             radius = 0.2f * std::min(t_width, t_height);
-            radius *= GLGizmoBase::INV_ZOOM;
+            radius *= GLGizmoBase::INV_ZOOM * GLGizmoBase::DEPTH_CORRECTION;
         }
     }
 }
