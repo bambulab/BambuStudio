@@ -1,4 +1,5 @@
 #include "GUI_App.hpp"
+#include "DeepLink.hpp"
 #include "InstanceCheck.hpp"
 #include "Plater.hpp"
 
@@ -370,6 +371,7 @@ bool instance_check(int argc, char** argv, bool app_config_single_instance)
 namespace GUI {
 
 wxDEFINE_EVENT(EVT_LOAD_MODEL_OTHER_INSTANCE, LoadFromOtherInstanceEvent);
+wxDEFINE_EVENT(EVT_DEEP_LINK_OTHER_INSTANCE, DeepLinkFromOtherInstanceEvent);
 wxDEFINE_EVENT(EVT_INSTANCE_GO_TO_FRONT, InstanceGoToFrontEvent);
 
 void OtherInstanceMessageHandler::init(wxEvtHandler* callback_evt_handler)
@@ -498,9 +500,14 @@ void OtherInstanceMessageHandler::handle_message(const std::string& message)
 	}
 
 	std::vector<boost::filesystem::path> paths;
+	std::vector<std::string> deep_links;
 	// Skip the first argument, it is the path to the slicer executable.
 	auto it = args.begin();
 	for (++ it; it != args.end(); ++ it) {
+		if (parse_studio_deep_link(*it)) {
+			deep_links.emplace_back(*it);
+			continue;
+		}
 		boost::filesystem::path p = MessageHandlerInternal::get_path(*it);
 		if (! p.string().empty())
 			paths.emplace_back(p);
@@ -510,6 +517,10 @@ void OtherInstanceMessageHandler::handle_message(const std::string& message)
 		//if (evt_handler) {
 			wxPostEvent(m_callback_evt_handler, LoadFromOtherInstanceEvent(GUI::EVT_LOAD_MODEL_OTHER_INSTANCE, std::vector<boost::filesystem::path>(std::move(paths))));
 		//}
+	}
+	if (!deep_links.empty()) {
+		wxPostEvent(m_callback_evt_handler,
+			DeepLinkFromOtherInstanceEvent(GUI::EVT_DEEP_LINK_OTHER_INSTANCE, std::move(deep_links)));
 	}
 }
 

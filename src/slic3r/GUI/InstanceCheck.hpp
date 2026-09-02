@@ -45,6 +45,9 @@ class MainFrame;
 using LoadFromOtherInstanceEvent = Event<std::vector<boost::filesystem::path>>;
 wxDECLARE_EVENT(EVT_LOAD_MODEL_OTHER_INSTANCE, LoadFromOtherInstanceEvent);
 
+using DeepLinkFromOtherInstanceEvent = Event<std::vector<std::string>>;
+wxDECLARE_EVENT(EVT_DEEP_LINK_OTHER_INSTANCE, DeepLinkFromOtherInstanceEvent);
+
 using InstanceGoToFrontEvent = SimpleEvent;
 wxDECLARE_EVENT(EVT_INSTANCE_GO_TO_FRONT, InstanceGoToFrontEvent);
 

@@ -39,6 +39,7 @@
       <key>CFBundleURLSchemes</key>
       <array>
         <string>bambustudioopen</string>
+        <string>bambustudio</string>
       </array>
     </dict>
   </array>
