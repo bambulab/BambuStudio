@@ -281,6 +281,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     createRotaryWidgets(m_main_left_sizer);
     createFilaTrackSwitchWidgets(m_main_left_sizer);
     createExhaustFan(m_main_left_sizer);
+    createAirPurifierWidgets(m_main_left_sizer);
 
     // nozzle rack widgets
     createNozzleRackWidgets(m_main_left_sizer);
@@ -789,6 +790,7 @@ void MachineInfoPanel::init_bitmaps()
         m_img_extinguish  = ScalableBitmap(this, "extinguish", 160);
         m_img_rotary      = ScalableBitmap(this, "rotary", 160);
         m_img_filatrack   = ScalableBitmap(this, "filament_track_switch", 160);
+        m_img_air_purifier = ScalableBitmap(this, "air_purifier", 160);
         m_img_nozzle_rack = ScalableBitmap(this, "nozzle_rack", 160);
         m_img_exhaustfan  = ScalableBitmap(this, "exhaustfan", 160);
         m_img_amshub      = ScalableBitmap(this, "amshub_N7", 160);
@@ -949,6 +951,7 @@ void MachineInfoPanel::update(MachineObject* obj)
         update_laszer(obj);
         update_extinguish(obj);
         update_filatrack(obj);
+        update_air_purifier(obj);
         update_nozzle_rack(obj);
         update_exhaustfan(obj);
 
@@ -1761,6 +1764,55 @@ void MachineInfoPanel::show_filatrack(bool show)
         m_filatrack_img->Show(show);
         m_filatrack_line_above->Show(show);
         m_filatrack_version->Show(show);
+    }
+}
+
+void MachineInfoPanel::createAirPurifierWidgets(wxBoxSizer* main_left_sizer)
+{
+    m_air_purifier_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_air_purifier_line_above->SetBackgroundColour(wxColour(206, 206, 206));
+    main_left_sizer->Add(m_air_purifier_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
+
+    m_air_purifier_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_air_purifier_img->SetBitmap(m_img_air_purifier.bmp());
+
+    auto        panel_air_purifier = new wxPanel(this);
+    wxBoxSizer *content_sizer_h    = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *content_sizer_v    = new wxBoxSizer(wxVERTICAL);
+
+    m_air_purifier_version = new uiDeviceUpdateVersion(panel_air_purifier, wxID_ANY);
+
+    content_sizer_h->Add(m_air_purifier_version, 0, wxALIGN_CENTER, 0);
+    content_sizer_v->Add(content_sizer_h, 1, wxLEFT, 0);
+
+    panel_air_purifier->SetSizer(content_sizer_v);
+
+    m_air_purifier_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_air_purifier_sizer->Add(m_air_purifier_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_air_purifier_sizer->Add(panel_air_purifier, 1, wxEXPAND, 0);
+
+    main_left_sizer->Add(m_air_purifier_sizer, 0, wxEXPAND, 0);
+}
+
+void MachineInfoPanel::update_air_purifier(MachineObject* obj)
+{
+    if (obj && obj->air_purifier_version_info.isValid()) {
+        DevFirmwareVersionInfo info = obj->air_purifier_version_info;
+        // Older firmware may report the "aps" module without a product name
+        if (info.product_name.empty()) { info.product_name = L("Air Purifier"); }
+        m_air_purifier_version->UpdateInfo(info);
+        show_air_purifier(true);
+    } else {
+        show_air_purifier(false);
+    }
+}
+
+void MachineInfoPanel::show_air_purifier(bool show)
+{
+    if (m_air_purifier_version->IsShown() != show) {
+        m_air_purifier_img->Show(show);
+        m_air_purifier_line_above->Show(show);
+        m_air_purifier_version->Show(show);
     }
 }
 

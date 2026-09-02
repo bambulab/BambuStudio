@@ -164,6 +164,12 @@ protected:
     wxStaticLine*          m_filatrack_line_above = nullptr;
     uiDeviceUpdateVersion* m_filatrack_version = nullptr;
 
+    /* air purifier */
+    wxBoxSizer*            m_air_purifier_sizer = nullptr;
+    wxStaticBitmap*        m_air_purifier_img = nullptr;
+    wxStaticLine*          m_air_purifier_line_above = nullptr;
+    uiDeviceUpdateVersion* m_air_purifier_version = nullptr;
+
     /* nozzle_rack*/
     wxStaticLine * m_nozzle_rack_line_above{nullptr};
     wxStaticBitmap *m_nozzle_rack_img = nullptr;
@@ -207,6 +213,7 @@ protected:
     ScalableBitmap m_img_extinguish;
     ScalableBitmap m_img_rotary;
     ScalableBitmap m_img_filatrack;
+    ScalableBitmap m_img_air_purifier;
     ScalableBitmap upgrade_gray_icon;
     ScalableBitmap upgrade_green_icon;
     ScalableBitmap upgrade_yellow_icon;
@@ -280,6 +287,7 @@ private:
     void createLaserWidgets(wxBoxSizer* main_left_sizer);
     void createExtinguishWidgets(wxBoxSizer* main_left_sizer);
     void createFilaTrackSwitchWidgets(wxBoxSizer* main_left_sizer);
+    void createAirPurifierWidgets(wxBoxSizer* main_left_sizer);
     void createNozzleRackWidgets(wxBoxSizer* main_left_sizer);
     void createRotaryWidgets(wxBoxSizer *main_left_sizer);
     void createExhaustFan(wxBoxSizer *main_left_sizer);
@@ -293,6 +301,7 @@ private:
     void update_extinguish(MachineObject* obj);
     void update_rotary(MachineObject* obj);
     void update_filatrack(MachineObject* obj);
+    void update_air_purifier(MachineObject* obj);
     void update_amshub(MachineObject *obj);
     void update_nozzle_rack(MachineObject *obj);
     void update_exhaustfan(MachineObject *obj);
@@ -305,6 +314,7 @@ private:
     void show_rotary(bool show = true);
     void show_extinguish(bool show = true);
     void show_filatrack(bool show = true);
+    void show_air_purifier(bool show = true);
     void show_amshub(bool show = true);
     void show_nozzle_rack(bool show = true);
     void show_exhaustfan(bool show = true);
