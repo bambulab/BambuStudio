@@ -416,7 +416,7 @@ public:
 public:
     // ctrls
     int  CtrlAmsReset() const;
-    int  CtrlSetFilamentWeight(int ams_id, int slot_id, int total, int remain) const;
+    int  CtrlSetFilamentWeight(int ams_id, int slot_id, int total, int remain);
 
     // crtl
     int  CtrlAmsStartDryingHour(int ams_id, int zone_id, std::string filament_type, int tag_temp, int tag_duration_hour, bool rotate_tray, int cooling_temp, bool close_power_conflict = false) const;

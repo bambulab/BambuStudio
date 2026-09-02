@@ -18,7 +18,37 @@ int DevFilaSystem::CtrlAmsReset() const
     return m_owner->publish_json(jj_command);
 }
 
-int DevFilaSystem::CtrlSetFilamentWeight(int ams_id, int slot_id, int total, int remain) const
+// Mirror the committed weight into the local tray so the AMS view and the device page
+// render it on the next timer tick. Editing a slot hold-guards the tray for
+// HOLD_COUNT_MAX push cycles, which otherwise swallows the remain that firmware echoes
+// back. `remain` is the percentage both views actually render, so it has to move
+// together with the gram values; firmware truncates it, and matching that keeps the
+// optimistic value identical to the one the next push reports.
+static void ApplyLocalFilamentWeight(DevFilaSystem* fila_system, int ams_id, int slot_id, int total, int remain)
+{
+    if (!fila_system || total <= 0 || remain < 0) {
+        return;
+    }
+
+    DevAmsTray*       tray       = nullptr;
+    const std::string ams_id_str = std::to_string(ams_id);
+    if (fila_system->IsVirtualTrayId(ams_id_str)) {
+        tray = fila_system->GetVirtualTrayPtr(ams_id_str);
+    } else if (auto* ams_unit = fila_system->GetAmsById(ams_id_str)) {
+        tray = ams_unit->GetTray(std::to_string(slot_id));
+    }
+
+    if (tray) {
+        int remain_percent = remain * 100 / total;
+        if (remain_percent > 100) { remain_percent = 100; }
+
+        tray->weight   = std::to_string(total);
+        tray->remain_g = remain;
+        tray->remain   = remain_percent;
+    }
+}
+
+int DevFilaSystem::CtrlSetFilamentWeight(int ams_id, int slot_id, int total, int remain)
 {
     const auto validation = DevFilamentWeight::Validate(total, remain);
     if (!validation.valid) {
@@ -34,7 +64,13 @@ int DevFilaSystem::CtrlSetFilamentWeight(int ams_id, int slot_id, int total, int
     jj_command["print"]["total"] = total;
     jj_command["print"]["remain"] = remain;
     jj_command["print"]["src_id"] = 1;
-    return m_owner->publish_json(jj_command);
+
+    const int rtn = m_owner->publish_json(jj_command);
+    if (rtn == 0) {
+        ApplyLocalFilamentWeight(this, ams_id, slot_id, total, remain);
+    }
+
+    return rtn;
 }
 
 int DevFilaSystem::CtrlAmsStartDryingHour(int ams_id,

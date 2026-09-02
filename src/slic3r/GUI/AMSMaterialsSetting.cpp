@@ -674,6 +674,12 @@ bool AMSMaterialsSetting::validate_filament_weight_inputs(bool is_target_bbl, in
         return false;
     }
 
+    if (!m_is_third && remain > 1000) {
+        MessageDialog msg_dlg(nullptr, _L("Please enter valid filament weight within 1000g."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+
 	long total = 0;
 	if (!total_text.ToLong(&total)) {
         total = DEFAULT_TOTAL_WEIGHT;
