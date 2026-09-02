@@ -3,8 +3,10 @@
 #include <wx/popupwin.h>
 #include <wx/timer.h>
 #include <wx/bitmap.h>
+#include <wx/image.h>
 
 #include <string>
+#include <vector>
 
 #include "WindowShadow.hpp"
 
@@ -46,6 +48,18 @@ private:
     int content_width() const; // text/image column width, derived from CARD_WIDTH
 
     void     build_layout();
+    /**
+     * \brief Lay the details text out as a bullet list, one row per newline-separated point.
+     *
+     * Wrapped lines are indented to the text column so each point reads like a rendered
+     * markdown bullet. The whole block collapses when there is no details text.
+     *
+     * \param s    Details text, one point per line.
+     * \param fg   Text color for the current theme.
+     * \param bg   Background color for the current theme.
+     * \param wrap Width available to the block, marker included.
+     */
+    void     set_details(const wxString &s, const wxColour &fg, const wxColour &bg, int wrap);
     wxWindow *build_optkey_row();
     void     Rebuild(const std::string &opt_key, const std::string &wiki_path, bool dark);
     void      update_optkey_row(const std::string &opt_key, bool dark); // dev-mode-only opt_key pill
@@ -57,17 +71,37 @@ private:
     bool DoShowFor(const std::string &opt_key, const std::string &wiki_path, const wxPoint &tip_pos);
     void DoHide(bool now);
 
+    /**
+     * \brief Play the "copied!" confirmation on the copy icon: crossfade to a check mark, hold, fade back.
+     */
+    void start_copy_feedback();
+
     void OnPaint(wxPaintEvent &evt);
     void OnTimer(wxTimerEvent &evt);
+    /**
+     * \brief Drive one frame of the copy-icon confirmation, then re-arm or finish the animation.
+     *
+     * \param evt The copy-animation timer event (unused).
+     */
+    void OnCopyAnim(wxTimerEvent &evt);
 
 private:
     Label          *m_title   = nullptr;
     wxWindow       *m_divider = nullptr;
     Label          *m_desc    = nullptr;
     wxStaticBitmap *m_image   = nullptr;
-    Label          *m_details = nullptr;
+    wxWindow       *m_details = nullptr; // container for the bulleted detail rows
     Label          *m_note    = nullptr;
     Label          *m_wiki    = nullptr;
+
+    /** \brief One bullet of the details block: the marker and the wrapped text beside it. */
+    struct DetailRow
+    {
+        wxSizer *sizer  = nullptr;
+        Label   *marker = nullptr;
+        Label   *text   = nullptr;
+    };
+    std::vector<DetailRow> m_detail_rows; // pooled across rebuilds; unused rows are hidden, not destroyed
 
     wxWindow       *m_optkey_pill = nullptr;
     wxStaticText   *m_optkey      = nullptr;
@@ -85,6 +119,14 @@ private:
     wxTimer *m_timer = nullptr;
     bool     m_hide  = false;
     wxPoint  m_request_pos;
+
+    // "Copied!" confirmation: the two crossfade endpoints, plus the frame counter that walks
+    // copy -> check -> copy. The images are rasterized on first use and dropped on a theme change.
+    wxTimer *m_copy_timer = nullptr;
+    double   m_copy_scale = 1.0; // backing scale m_copy_from/m_copy_to were rasterized at
+    wxImage  m_copy_from;
+    wxImage  m_copy_to;
+    int      m_copy_step = 0;
 
     WindowShadow m_shadow; // soft drop shadow behind the card (Figma-spec defaults)
 };

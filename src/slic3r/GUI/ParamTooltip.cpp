@@ -18,7 +18,9 @@
 #include <wx/stattext.h>
 #include <wx/statbmp.h>
 #include <wx/dcbuffer.h>
+#include <wx/dcclient.h>
 #include <wx/dcmemory.h>
+#include <wx/image.h>
 #include <wx/dcgraph.h>
 #include <wx/graphics.h>
 #include <wx/region.h>
@@ -89,6 +91,15 @@ constexpr int ANCHOR_GAP       = 8; // horizontal gap between the option row and
 
 constexpr int SHOW_DELAY_MS = 200;
 constexpr int HIDE_DELAY_MS = 100;
+
+// Bullet marker prefixed to every line of the details block.
+const wxString BULLET_MARKER = "*";
+
+// Copy-icon "copied!" feedback: crossfade to a check mark, hold, crossfade back.
+constexpr int COPY_ICON_PX    = 14;  // icon side length (DIP)
+constexpr int COPY_FRAME_MS   = 20;  // one crossfade frame
+constexpr int COPY_FADE_STEPS = 6;   // frames per crossfade (~120 ms each way)
+constexpr int COPY_HOLD_MS    = 900; // how long the check mark stays before fading back
 } // namespace
 
 // ----------------------------------------------------------------------------
@@ -419,6 +430,92 @@ ParamTipEntry resolve_entry(const ParamTipEntry *stored, const ConfigOptionDef *
     return r;
 }
 
+/**
+ * \brief Split a details block into its individual bullet points.
+ *
+ * Breaks on either newline character so CRLF translations split the same as LF ones, and trims each
+ * point: a stray CR or trailing space in a .po string would otherwise render as a blank bullet or as
+ * a visible artifact at the end of the line.
+ *
+ * \param s Details text, authored as one point per line (newline-separated).
+ * \return  One entry per non-blank line, trimmed, in order.
+ */
+std::vector<wxString> split_lines(const wxString &s)
+{
+    std::vector<wxString> lines;
+    size_t                from = 0;
+    for (;;) {
+        const size_t nl   = s.find_first_of("\r\n", from);
+        const size_t end  = (nl == wxString::npos) ? s.length() : nl;
+        wxString     line = s.Mid(from, end - from);
+        line.Trim(true).Trim(false);
+        if (!line.IsEmpty()) lines.push_back(line);
+        if (nl == wxString::npos) break;
+        from = nl + 1;
+    }
+    return lines;
+}
+
+/**
+ * \brief Wrap an image in a bitmap that keeps the backing scale its pixels were rasterized for.
+ *
+ * The plain wxBitmap(wxImage) c-tor assumes scale 1, which on Retina shows a 2x-rasterized icon at
+ * twice its intended size. Only the macOS wxBitmap has the scale-aware c-tor; elsewhere scale is
+ * always 1 and the plain c-tor is already correct.
+ *
+ * \param img   Image whose pixels are sized for \p scale.
+ * \param scale Backing scale the pixels were rasterized at.
+ * \return      The bitmap, tagged with \p scale where the platform supports it.
+ */
+static wxBitmap bitmap_at_scale(const wxImage &img, double scale)
+{
+#ifdef __APPLE__
+    // Contrary to intuition, this c-tor's scale argument is not 'scale the image to this' but
+    // 'the image is already sized for this backing scale'.
+    return wxBitmap(img, -1, scale);
+#else
+    (void) scale;
+    return wxBitmap(img);
+#endif
+}
+
+/**
+ * \brief Linearly crossfade two equally sized RGBA images.
+ *
+ * \param a     First image, shown at t == 0.
+ * \param b     Second image, shown at t == 1.
+ * \param t     Blend factor in [0, 1].
+ * \param scale Backing scale both images were rasterized at; carried into the result so the frames
+ *              match the static icon on Retina instead of rendering at double size.
+ * \return      The blended bitmap; the nearer endpoint when the images are unusable or mismatched.
+ */
+wxBitmap blend_bitmaps(const wxImage &a, const wxImage &b, double t, double scale)
+{
+    if (!a.IsOk() || !b.IsOk() || a.GetSize() != b.GetSize()) return bitmap_at_scale(t < 0.5 ? a : b, scale);
+    if (t <= 0.0) return bitmap_at_scale(a, scale);
+    if (t >= 1.0) return bitmap_at_scale(b, scale);
+
+    wxImage out(a.GetSize());
+    out.InitAlpha();
+    const unsigned char *ad = a.GetData(), *bd = b.GetData();
+    const unsigned char *aa = a.HasAlpha() ? a.GetAlpha() : nullptr;
+    const unsigned char *ba = b.HasAlpha() ? b.GetAlpha() : nullptr;
+    unsigned char       *od = out.GetData(), *oa = out.GetAlpha();
+
+    // Weight each color by its own alpha (premultiplied blend); a straight RGB lerp would drag the
+    // undefined color of the fully transparent pixels around each glyph into the result and fringe it.
+    const int n = a.GetWidth() * a.GetHeight();
+    for (int i = 0; i < n; ++i) {
+        const double wa  = (aa ? aa[i] : 255) * (1.0 - t);
+        const double wb  = (ba ? ba[i] : 255) * t;
+        const double sum = wa + wb;
+        oa[i]            = static_cast<unsigned char>(sum + 0.5);
+        for (int c = 0; c < 3; ++c)
+            od[i * 3 + c] = sum > 0.0 ? static_cast<unsigned char>((ad[i * 3 + c] * wa + bd[i * 3 + c] * wb) / sum + 0.5) : 0;
+    }
+    return bitmap_at_scale(out, scale);
+}
+
 // Apply one optional text row: fill + show when it has content, collapse otherwise.
 // t is a Label (not a raw wxStaticText) so Label::Wrap runs — it breaks CJK runs that
 // have no spaces, which the non-virtual wxStaticText::Wrap cannot, and adds the MSW
@@ -456,6 +553,8 @@ ParamTooltip::ParamTooltip() : wxPopupTransientWindow(wxGetApp().mainframe, wxBO
 
     m_timer = new wxTimer;
     m_timer->Bind(wxEVT_TIMER, &ParamTooltip::OnTimer, this);
+    m_copy_timer = new wxTimer;
+    m_copy_timer->Bind(wxEVT_TIMER, &ParamTooltip::OnCopyAnim, this);
     Bind(wxEVT_PAINT, &ParamTooltip::OnPaint, this);
     Bind(wxEVT_SIZE, [this](wxSizeEvent &e) {
         ApplyShape();
@@ -476,6 +575,7 @@ ParamTooltip::~ParamTooltip()
 {
     if (s_self == this) s_self = nullptr; // never leave the singleton pointer dangling if the frame destroys us as its child
     delete m_timer;
+    delete m_copy_timer;
 }
 
 int ParamTooltip::content_width() const { return FromDIP(CARD_WIDTH - 2 * PAD); }
@@ -499,18 +599,24 @@ wxWindow *ParamTooltip::build_optkey_row()
     m_optkey = new Label(m_optkey_pill, Label::Body_12, wxEmptyString, wxST_ELLIPSIZE_END);
 
     // Copy icon (right of the pill): click copies the shown opt_key to the clipboard.
-    m_copy = new wxStaticBitmap(m_optkey_pill, wxID_ANY, create_scaled_bitmap("tooltip_copy", this, 14));
+    m_copy = new wxStaticBitmap(m_optkey_pill, wxID_ANY, create_scaled_bitmap("tooltip_copy", this, COPY_ICON_PX));
     m_copy->SetCursor(wxCursor(wxCURSOR_HAND));
     m_copy->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &) {
         if (m_last_key.empty()) return;
         if (wxTheClipboard->Open()) {
             wxTheClipboard->SetData(new wxTextDataObject(from_u8(m_last_key)));
             wxTheClipboard->Close();
+            start_copy_feedback(); // only for a copy that actually landed on the clipboard
         }
     });
     // Hover feedback: the icon darkens (light) / brightens (dark) while the pointer is over it.
-    m_copy->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &) { m_copy->SetBitmap(create_scaled_bitmap("tooltip_copy_hover", this, 14)); });
-    m_copy->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &) { m_copy->SetBitmap(create_scaled_bitmap("tooltip_copy", this, 14)); });
+    // The copied-animation owns the bitmap while it runs, so hover must not overwrite a frame.
+    m_copy->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &) {
+        if (!m_copy_timer->IsRunning()) m_copy->SetBitmap(create_scaled_bitmap("tooltip_copy_hover", this, COPY_ICON_PX));
+    });
+    m_copy->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &) {
+        if (!m_copy_timer->IsRunning()) m_copy->SetBitmap(create_scaled_bitmap("tooltip_copy", this, COPY_ICON_PX));
+    });
 
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->AddSpacer(FromDIP(4));
@@ -543,9 +649,11 @@ void ParamTooltip::build_layout()
     m_image = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
     col->Add(m_image, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(GAP));
 
-    m_details = new Label(this, Label::Body_13, wxEmptyString);
-    m_details->SetFont(Label::Body_13);
-    col->Add(m_details, 0, wxTOP, FromDIP(GAP));
+    // The details are a bullet list: one row per point, each row [marker][wrapped text], so the
+    // wrapped lines hang under the text column instead of running back under the marker.
+    m_details = new wxWindow(this, wxID_ANY);
+    m_details->SetSizer(new wxBoxSizer(wxVERTICAL));
+    col->Add(m_details, 0, wxEXPAND | wxTOP, FromDIP(GAP));
 
     m_note = new Label(this, Label::Body_13, wxEmptyString);
     m_note->SetFont(Label::Body_13);
@@ -615,7 +723,7 @@ void ParamTooltip::Rebuild(const std::string &opt_key, const std::string &wiki_p
     if (bmp.IsOk()) m_image->SetBitmap(bmp);
     sizer->Show(m_image, bmp.IsOk(), true);
 
-    set_row(sizer, m_details, e.details, p.details, p.card_bg, wrap);
+    set_details(e.details, p.details, p.card_bg, wrap);
     set_row(sizer, m_note, e.note, p.note, p.card_bg, wrap);
 
     // The wiki link uses the caller's live wiki slug (the same one the clickable label opens).
@@ -631,6 +739,57 @@ void ParamTooltip::Rebuild(const std::string &opt_key, const std::string &wiki_p
     sizer->Fit(this);
     SetClientSize(FromDIP(CARD_WIDTH), GetClientSize().GetHeight());
     Layout();
+}
+
+void ParamTooltip::set_details(const wxString &s, const wxColour &fg, const wxColour &bg, int wrap)
+{
+    const std::vector<wxString> lines = split_lines(s);
+    GetSizer()->Show(m_details, !lines.empty(), true);
+    if (lines.empty()) return;
+
+    m_details->SetBackgroundColour(bg);
+    wxSizer *col = m_details->GetSizer();
+
+    // Indent = the marker's own width plus one space, measured in the details font so the text
+    // column lands exactly where a rendered markdown bullet would put it at any DPI or font size.
+    wxClientDC dc(m_details);
+    dc.SetFont(Label::Body_13);
+    const int marker_w = dc.GetTextExtent(BULLET_MARKER).GetWidth();
+    const int marker_gap = dc.GetTextExtent(" ").GetWidth();
+
+    while (m_detail_rows.size() < lines.size()) {
+        DetailRow row;
+        row.marker = new Label(m_details, Label::Body_13, BULLET_MARKER);
+        row.marker->SetFont(Label::Body_13);
+        row.text = new Label(m_details, Label::Body_13, wxEmptyString);
+        row.text->SetFont(Label::Body_13);
+
+        row.sizer = new wxBoxSizer(wxHORIZONTAL);
+        row.sizer->Add(row.marker, 0, wxALIGN_TOP); // the marker sits on the point's first line
+        row.sizer->AddSpacer(marker_gap);
+        row.sizer->Add(row.text, 1, wxEXPAND);
+        // Rows are only ever appended and always filled in order, so this index is the row's
+        // permanent position: only the first one skips the inter-bullet gap.
+        col->Add(row.sizer, 0, wxEXPAND | wxTOP, m_detail_rows.empty() ? 0 : FromDIP(2));
+        m_detail_rows.push_back(row);
+    }
+
+    for (size_t i = 0; i < m_detail_rows.size(); ++i) {
+        const DetailRow &row  = m_detail_rows[i];
+        const bool       used = i < lines.size();
+        col->Show(row.sizer, used, true);
+        if (!used) continue;
+
+        row.marker->SetForegroundColour(fg);
+        row.marker->SetBackgroundColour(bg);
+        row.text->SetForegroundColour(fg);
+        row.text->SetBackgroundColour(bg);
+        row.text->SetLabel(lines[i]);
+        row.text->Wrap(wrap - marker_w - marker_gap);
+    }
+
+    col->Layout();
+    m_details->InvalidateBestSize();
 }
 
 // The opt_key pill (grey chip: option key + copy icon) is a developer aid, shown only in Internal
@@ -649,8 +808,42 @@ void ParamTooltip::update_optkey_row(const std::string &opt_key, bool dark)
     m_optkey->SetBackgroundColour(p.optkey_bg);
     m_optkey->SetLabel(from_u8(opt_key));
     m_copy->SetBackgroundColour(p.optkey_bg);
-    m_copy->SetBitmap(create_scaled_bitmap("tooltip_copy", this, 14)); // refresh for the current theme
+    m_copy_timer->Stop(); // a rebuild swaps the shown option, so any in-flight "copied!" is stale
+    m_copy->SetBitmap(create_scaled_bitmap("tooltip_copy", this, COPY_ICON_PX)); // refresh for the current theme
+    m_copy_from = m_copy_to = wxImage();                                         // re-rasterized for the new theme on the next copy
     m_optkey_pill->Refresh();
+}
+
+void ParamTooltip::start_copy_feedback()
+{
+    if (!m_copy_from.IsOk() || !m_copy_to.IsOk()) {
+        // A click only lands while the pointer is over the icon, so hover art is the resting frame.
+        const wxBitmap from = create_scaled_bitmap("tooltip_copy_hover", this, COPY_ICON_PX);
+        const wxBitmap to   = create_scaled_bitmap("tooltip_copy_checked", this, COPY_ICON_PX);
+        // ConvertToImage drops the backing scale, so keep it to re-tag the blended frames.
+        m_copy_scale = from.IsOk() ? from.GetScaleFactor() : 1.0;
+        m_copy_from  = from.ConvertToImage();
+        m_copy_to    = to.ConvertToImage();
+    }
+    m_copy_step = 0;
+    m_copy_timer->Stop(); // clicking again mid-animation restarts from the copy icon
+    m_copy_timer->StartOnce(COPY_FRAME_MS);
+}
+
+void ParamTooltip::OnCopyAnim(wxTimerEvent &)
+{
+    ++m_copy_step;
+    if (m_copy_step >= 2 * COPY_FADE_STEPS) { // faded all the way back; settle on the resting art
+        const bool hover = m_copy->GetScreenRect().Contains(wxGetMousePosition());
+        m_copy->SetBitmap(create_scaled_bitmap(hover ? "tooltip_copy_hover" : "tooltip_copy", this, COPY_ICON_PX));
+        return;
+    }
+
+    const bool   fading_in = m_copy_step <= COPY_FADE_STEPS;
+    const double t         = fading_in ? double(m_copy_step) / COPY_FADE_STEPS : double(2 * COPY_FADE_STEPS - m_copy_step) / COPY_FADE_STEPS;
+    m_copy->SetBitmap(blend_bitmaps(m_copy_from, m_copy_to, t, m_copy_scale));
+    // Dwell on the check mark at the top of the fade so the confirmation is readable.
+    m_copy_timer->StartOnce(m_copy_step == COPY_FADE_STEPS ? COPY_HOLD_MS : COPY_FRAME_MS);
 }
 
 void ParamTooltip::ApplyShape()
