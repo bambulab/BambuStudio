@@ -104,6 +104,47 @@ static std::string make_filament_id(const std::string &vendor_type_serial)
     return candidate;
 }
 
+// Collect the user's own saved filament presets, reloaded fresh from disk — the live
+// preset_bundle doesn't reliably hold every preset the user has ever saved (see
+// make_filament_id() above for the same need). Matches legacy
+// CreateFilamentPresetDialog::get_all_filament_presets() loop1 (CreatePresetsDialog.cpp:1364-1379),
+// which pulls user presets unconditionally except for a valid filament_id.
+//
+// filament_type: pass empty to skip the type filter entirely (used when the caller only knows
+// a preset's public name, e.g. send_compatible_printers).
+//
+// exclude_derived additionally skips presets that were customized FROM an existing preset
+// (non-empty "inherits" config option), keeping only fully-custom-vendor ones — matching
+// legacy's get_filament_preset_choices() (CreatePresetsDialog.cpp:1180-1183), used by the
+// "pick a base type/preset" dropdown flows. Pass false for the "copy from printer" flows,
+// which don't apply that extra restriction (get_filament_presets_by_machine(),
+// CreatePresetsDialog.cpp:1292-1360).
+static std::vector<Preset> collect_user_filament_presets(const std::string &filament_type, bool exclude_derived)
+{
+    std::vector<Preset> result;
+
+    PresetBundle temp_pb;
+    std::string dir_user = wxGetApp().app_config->get("preset_folder");
+    if (dir_user.empty())
+        temp_pb.load_user_presets(DEFAULT_USER_FOLDER_NAME, ForwardCompatibilitySubstitutionRule::EnableSilent);
+    else
+        temp_pb.load_user_presets(dir_user, ForwardCompatibilitySubstitutionRule::EnableSilent);
+
+    for (const Preset &p : temp_pb.filaments.get_presets()) {
+        if (p.filament_id.empty() || p.filament_id == "null") continue;
+        if (!filament_type.empty()) {
+            auto *ft = dynamic_cast<ConfigOptionStrings *>(const_cast<Preset &>(p).config.option("filament_type", false));
+            if (!ft || ft->values.empty() || ft->values[0] != filament_type) continue;
+        }
+        if (exclude_derived) {
+            auto *inh = dynamic_cast<ConfigOptionString *>(const_cast<Preset &>(p).config.option(BBL_JSON_KEY_INHERITS, false));
+            if (inh && !inh->value.empty()) continue;
+        }
+        result.push_back(p);
+    }
+    return result;
+}
+
 // ── Constructor / Destructor ───────────────────────────────────────────────
 
 CreateFilamentWebDialog::CreateFilamentWebDialog(wxWindow *parent,
@@ -263,6 +304,9 @@ void CreateFilamentWebDialog::send_init_data(const std::string &filament_type)
     if (!filament_type.empty()) {
         std::map<std::string, std::vector<const Preset *>> choice_map;
         for (const Preset &p : pb->filaments.get_presets()) {
+            // Matches legacy CreateFilamentPresetDialog::get_all_filament_presets(), which
+            // requires is_visible for system presets (CreatePresetsDialog.cpp:1388) — a
+            // type with nothing installed (e.g. ABS-GF) should stay unavailable here.
             if (!p.is_system || p.is_project_embedded || !p.is_visible) continue;
             if (p.filament_id.empty() || p.filament_id == "null") continue;
             auto *ft = dynamic_cast<ConfigOptionStrings *>(
@@ -272,6 +316,12 @@ void CreateFilamentWebDialog::send_init_data(const std::string &filament_type)
                 << " is_system=" << p.is_system << " is_visible=" << p.is_visible;
             choice_map[p.filament_id].push_back(&p);
         }
+        // Also offer the user's own from-scratch custom presets (no base preset) as a base —
+        // matches legacy's get_filament_preset_choices() (CreatePresetsDialog.cpp:1180-1183),
+        // which only skips presets DERIVED from an existing one (non-empty "inherits").
+        std::vector<Preset> user_presets = collect_user_filament_presets(filament_type, /*exclude_derived=*/true);
+        for (const Preset &p : user_presets)
+            choice_map[p.filament_id].push_back(&p);
         std::set<std::string> seen_names;
         for (const auto &kv : choice_map) {
             std::set<std::string> name_set;
@@ -313,7 +363,24 @@ void CreateFilamentWebDialog::send_compatible_printers(const std::string &public
     // send back the exact preset name and we can find it without guessing.
     std::map<std::string, std::string> printer_to_filament_preset;
     for (const Preset &p : pb->filaments.get_presets()) {
-        if (!p.is_system || p.is_project_embedded) continue;
+        // See the comment in send_init_data(): matches legacy's is_visible/filament_id gating.
+        if (!p.is_system || p.is_project_embedded || !p.is_visible) continue;
+        if (p.filament_id.empty() || p.filament_id == "null") continue;
+        std::string pub = p.name;
+        size_t at = pub.find(" @");
+        if (at != std::string::npos) pub = pub.substr(0, at);
+        if (pub != public_name) continue;
+        auto *opt = dynamic_cast<ConfigOptionStrings *>(
+            const_cast<Preset &>(p).config.option("compatible_printers", false));
+        if (opt)
+            for (const auto &cp : opt->values)
+                printer_to_filament_preset[cp] = p.name;
+    }
+    // Also match against the user's own from-scratch custom presets (no base preset) —
+    // see the comment in send_init_data(). filament_type isn't known here, so query across
+    // all types and filter by public name below.
+    std::vector<Preset> user_presets = collect_user_filament_presets("", /*exclude_derived=*/true);
+    for (const Preset &p : user_presets) {
         std::string pub = p.name;
         size_t at = pub.find(" @");
         if (at != std::string::npos) pub = pub.substr(0, at);
@@ -409,9 +476,9 @@ void CreateFilamentWebDialog::send_device_info(const std::string &filament_type)
     // Collect nozzle sizes from visible printer presets whose printer_model matches,
     // together with the exact printer preset name for each nozzle so the web side
     // doesn't have to guess it by regex-substituting the nozzle into a template name.
-    std::set<std::string> nozzle_set;
-    std::map<std::string, std::string> nozzle_to_printer; // nozzle -> exact printer preset name
-    std::string printer_preset_base;
+    // This is every nozzle the printer MODEL has a preset for, not yet filtered by
+    // whether the selected filament type actually supports that nozzle (see below).
+    std::map<std::string, std::string> nozzle_to_printer_all; // nozzle -> exact printer preset name
     for (const Preset &p : pb->printers.get_presets()) {
         if (!p.is_visible) continue;
         auto *opt = dynamic_cast<ConfigOptionString *>(
@@ -424,27 +491,31 @@ void CreateFilamentWebDialog::send_device_info(const std::string &filament_type)
             size_t prev = name.rfind(' ', nozzle_pos - 1); // points to "0.4"
             if (prev != std::string::npos) {
                 std::string nozzle_str = name.substr(prev + 1, nozzle_pos - prev - 1);
-                nozzle_set.insert(nozzle_str);
-                nozzle_to_printer[nozzle_str] = name;
-                if (printer_preset_base.empty()) printer_preset_base = name;
+                nozzle_to_printer_all[nozzle_str] = name;
             }
         }
     }
 
-    json nozzles = json::array();
-    for (const auto &n : nozzle_set) nozzles.push_back(n);
-    msg["nozzles"] = nozzles;
-    msg["printer_model_id"] = model_id;
-    msg["printer_preset_base"] = printer_preset_base;
-    json nozzle_printers = json::object();
-    for (const auto &kv : nozzle_to_printer) nozzle_printers[kv.first] = kv.second;
-    msg["nozzle_printers"] = nozzle_printers;
-
-    // Available base filament presets for this machine + type (reuse send_init_data logic)
+    // Available base filament presets for this machine + type (reuse send_init_data logic).
+    // Computed before the nozzle checkbox list below so that list can be restricted to
+    // nozzles that actually have a compatible preset for this type — a printer model can
+    // have preset entries for nozzle sizes it doesn't support this filament on (e.g. an
+    // H2S offering a 0.2 nozzle checkbox with no matching preset), which previously let
+    // the user pick a nozzle that silently failed at creation time (see step2.js #btn-next).
     json system_presets = json::array();
+    std::map<std::string, std::map<std::string, std::string>> nozzle_presets; // nozzle -> pub_name -> exact_filament_preset
     if (!filament_type.empty()) {
         std::map<std::string, std::vector<const Preset *>> choice_map;
+        // For each type-matching preset, remember which nozzle sizes (of this model) it is
+        // actually compatible with — derived from the matched entries in its own
+        // compatible_printers list, not from parsing the preset's own name suffix. Some
+        // presets are nozzle-agnostic in their name (e.g. "Foo @BBL P1S", no nozzle suffix)
+        // even though compatible_printers spans several nozzle-specific printer presets, so
+        // name-suffix parsing would silently drop those nozzles (see send_compatible_printers,
+        // which reads compatible_printers directly and doesn't have this problem).
+        std::map<const Preset *, std::set<std::string>> preset_nozzles;
         for (const Preset &p : pb->filaments.get_presets()) {
+            // See the comment in send_init_data(): matches legacy's is_visible gating.
             if (!p.is_system || p.is_project_embedded || !p.is_visible) continue;
             if (p.filament_id.empty() || p.filament_id == "null") continue;
             auto *ft = dynamic_cast<ConfigOptionStrings *>(
@@ -454,34 +525,61 @@ void CreateFilamentWebDialog::send_device_info(const std::string &filament_type)
             auto *opt = dynamic_cast<ConfigOptionStrings *>(
                 const_cast<Preset &>(p).config.option("compatible_printers", false));
             if (!opt) continue;
-            bool compat = false;
+            std::set<std::string> matched_nozzles;
             for (const auto &cp : opt->values) {
                 Preset *pp = pb->printers.find_preset(cp, false);
                 if (!pp) continue;
                 auto *pm = dynamic_cast<ConfigOptionString *>(
                     const_cast<Preset &>(*pp).config.option("printer_model", false));
-                if (pm && pm->value == model_name) { compat = true; break; }
+                if (!pm || pm->value != model_name) continue;
+                // extract nozzle from the printer preset name, e.g. "Bambu Lab P1S 0.4 nozzle"
+                const std::string &pname = pp->name;
+                size_t nozzle_pos = pname.rfind(' ');
+                if (nozzle_pos == std::string::npos) continue;
+                size_t prev = pname.rfind(' ', nozzle_pos - 1);
+                if (prev == std::string::npos) continue;
+                matched_nozzles.insert(pname.substr(prev + 1, nozzle_pos - prev - 1));
             }
-            if (!compat) continue;
+            if (matched_nozzles.empty()) continue;
             choice_map[p.filament_id].push_back(&p);
+            preset_nozzles[&p] = std::move(matched_nozzles);
+        }
+        // Also offer the user's own from-scratch custom presets (no base preset) for this
+        // machine + type — see the comment in send_init_data(). Same compatible_printers /
+        // printer_model / nozzle-extraction matching as the system-preset loop above.
+        std::vector<Preset> user_presets = collect_user_filament_presets(filament_type, /*exclude_derived=*/true);
+        for (const Preset &p : user_presets) {
+            auto *opt = dynamic_cast<ConfigOptionStrings *>(
+                const_cast<Preset &>(p).config.option("compatible_printers", false));
+            if (!opt) continue;
+            std::set<std::string> matched_nozzles;
+            for (const auto &cp : opt->values) {
+                Preset *pp = pb->printers.find_preset(cp, false);
+                if (!pp) continue;
+                auto *pm = dynamic_cast<ConfigOptionString *>(
+                    const_cast<Preset &>(*pp).config.option("printer_model", false));
+                if (!pm || pm->value != model_name) continue;
+                const std::string &pname = pp->name;
+                size_t nozzle_pos = pname.rfind(' ');
+                if (nozzle_pos == std::string::npos) continue;
+                size_t prev = pname.rfind(' ', nozzle_pos - 1);
+                if (prev == std::string::npos) continue;
+                matched_nozzles.insert(pname.substr(prev + 1, nozzle_pos - prev - 1));
+            }
+            if (matched_nozzles.empty()) continue;
+            choice_map[p.filament_id].push_back(&p);
+            preset_nozzles[&p] = std::move(matched_nozzles);
         }
         // Build nozzle -> (public_name -> exact_filament_preset) map
         // so Web can look up the right preset per nozzle tab.
         // nozzle_presets: { "0.4": { "Bambu ABS": "Bambu ABS @BBL P1S 0.4 nozzle", ... }, ... }
-        std::map<std::string, std::map<std::string, std::string>> nozzle_presets;
         for (const auto &kv : choice_map) {
             for (const Preset *fp : kv.second) {
                 size_t at = fp->name.find(" @");
                 if (at == std::string::npos) continue;
-                std::string pub     = fp->name.substr(0, at);
-                std::string machine = fp->name.substr(at + 2); // e.g. "BBL P1S 0.4 nozzle"
-                // extract nozzle from machine suffix
-                size_t sp2 = machine.rfind(' ');
-                if (sp2 == std::string::npos) continue;
-                size_t sp1 = machine.rfind(' ', sp2 - 1);
-                if (sp1 == std::string::npos) continue;
-                std::string nozzle = machine.substr(sp1 + 1, sp2 - sp1 - 1); // e.g. "0.4"
-                nozzle_presets[nozzle][pub] = fp->name;
+                std::string pub = fp->name.substr(0, at);
+                for (const auto &nozzle : preset_nozzles[fp])
+                    nozzle_presets[nozzle][pub] = fp->name;
             }
         }
 
@@ -511,13 +609,137 @@ void CreateFilamentWebDialog::send_device_info(const std::string &filament_type)
     }
     msg["system_presets"] = system_presets;
 
+    // Nozzle checkbox list: send every nozzle size the printer MODEL has a preset for
+    // (nozzle_to_printer_all), plus which of those are actually usable for the current
+    // filament type (have at least one type-compatible filament preset, nozzle_presets
+    // computed above). The web side keeps the unsupported ones visible but disabled/greyed
+    // out instead of removing them, so the user can see a nozzle exists but isn't offered
+    // for this filament type rather than having it silently vanish.
+    std::set<std::string> supported_nozzle_set;
+    std::map<std::string, std::string> nozzle_to_printer = nozzle_to_printer_all; // nozzle -> exact printer preset name
+    std::string printer_preset_base;
+    for (const auto &kv : nozzle_to_printer_all) {
+        bool supported = filament_type.empty() || nozzle_presets.count(kv.first);
+        if (supported) {
+            supported_nozzle_set.insert(kv.first);
+            if (printer_preset_base.empty()) printer_preset_base = kv.second;
+        }
+    }
+    if (printer_preset_base.empty() && !nozzle_to_printer_all.empty())
+        printer_preset_base = nozzle_to_printer_all.begin()->second;
+
+    json nozzles = json::array();
+    for (const auto &kv : nozzle_to_printer_all) nozzles.push_back(kv.first);
+    msg["nozzles"] = nozzles;
+    json supported_nozzles = json::array();
+    for (const auto &n : supported_nozzle_set) supported_nozzles.push_back(n);
+    msg["supported_nozzles"] = supported_nozzles;
+    msg["printer_model_id"] = model_id;
+    msg["printer_preset_base"] = printer_preset_base;
+    json nozzle_printers = json::object();
+    for (const auto &kv : nozzle_to_printer) nozzle_printers[kv.first] = kv.second;
+    msg["nozzle_printers"] = nozzle_printers;
+
     wxString js = wxString::Format("HandleStudio(%s)",
         wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
     run_script(js);
     BOOST_LOG_TRIVIAL(info) << "send_device_info: model_id=" << model_id
                             << " model_name=" << model_name
-                            << " nozzles=" << nozzle_set.size()
+                            << " nozzles=" << nozzle_to_printer_all.size()
+                            << " supported_nozzles=" << supported_nozzle_set.size()
                             << " presets=" << system_presets.size();
+}
+
+void CreateFilamentWebDialog::send_supported_types()
+{
+    // For the "current_printer" creation mode: which filament types can actually be
+    // created for the connected printer model. Drives step1.js's Type dropdown so the
+    // user can't pick a type the connected printer has no compatible preset for at all.
+    auto *dev = wxGetApp().getDeviceManager();
+    MachineObject *obj = dev ? dev->get_selected_machine() : nullptr;
+
+    json msg;
+    msg["command"] = "supported_types";
+
+    if (!obj || !obj->is_online()) {
+        msg["connected"] = false;
+        msg["types"] = json::array();
+        wxString js = wxString::Format("HandleStudio(%s)",
+            wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
+        run_script(js);
+        return;
+    }
+
+    std::string model_id = obj->get_show_printer_type();
+    PresetBundle *pb = wxGetApp().preset_bundle;
+
+    std::string model_name;
+    for (const auto &vp : pb->vendors) {
+        for (const auto &vm : vp.second.models) {
+            if (vm.model_id == model_id) {
+                model_name = vm.name;
+                break;
+            }
+        }
+        if (!model_name.empty()) break;
+    }
+
+    std::set<std::string> type_set;
+    for (const Preset &p : pb->filaments.get_presets()) {
+        // See the comment in send_init_data(): matches legacy's is_visible gating.
+        if (!p.is_system || p.is_project_embedded || !p.is_visible) continue;
+        if (p.filament_id.empty() || p.filament_id == "null") continue;
+        auto *opt = dynamic_cast<ConfigOptionStrings *>(
+            const_cast<Preset &>(p).config.option("compatible_printers", false));
+        if (!opt) continue;
+        bool compat = false;
+        for (const auto &cp : opt->values) {
+            Preset *pp = pb->printers.find_preset(cp, false);
+            if (!pp) continue;
+            auto *pm = dynamic_cast<ConfigOptionString *>(
+                const_cast<Preset &>(*pp).config.option("printer_model", false));
+            if (pm && pm->value == model_name) { compat = true; break; }
+        }
+        if (!compat) continue;
+        auto *ft = dynamic_cast<ConfigOptionStrings *>(
+            const_cast<Preset &>(p).config.option("filament_type", false));
+        if (ft && !ft->values.empty())
+            type_set.insert(ft->values[0]);
+    }
+    // Also count types covered only by the user's own from-scratch custom presets (no base
+    // preset) — see the comment in send_init_data(). filament_type isn't known here, so query
+    // across all types.
+    std::vector<Preset> user_presets = collect_user_filament_presets("", /*exclude_derived=*/true);
+    for (const Preset &p : user_presets) {
+        auto *opt = dynamic_cast<ConfigOptionStrings *>(
+            const_cast<Preset &>(p).config.option("compatible_printers", false));
+        if (!opt) continue;
+        bool compat = false;
+        for (const auto &cp : opt->values) {
+            Preset *pp = pb->printers.find_preset(cp, false);
+            if (!pp) continue;
+            auto *pm = dynamic_cast<ConfigOptionString *>(
+                const_cast<Preset &>(*pp).config.option("printer_model", false));
+            if (pm && pm->value == model_name) { compat = true; break; }
+        }
+        if (!compat) continue;
+        auto *ft = dynamic_cast<ConfigOptionStrings *>(
+            const_cast<Preset &>(p).config.option("filament_type", false));
+        if (ft && !ft->values.empty())
+            type_set.insert(ft->values[0]);
+    }
+
+    json types = json::array();
+    for (const auto &t : type_set) types.push_back(t);
+    msg["connected"] = true;
+    msg["types"] = types;
+
+    wxString js = wxString::Format("HandleStudio(%s)",
+        wxString::FromUTF8(msg.dump(-1, ' ', false, json::error_handler_t::ignore)));
+    run_script(js);
+    BOOST_LOG_TRIVIAL(info) << "send_supported_types: model_id=" << model_id
+                            << " model_name=" << model_name
+                            << " types=" << type_set.size();
 }
 
 void CreateFilamentWebDialog::send_filament_params(const std::string &preset_name,
@@ -544,12 +766,17 @@ void CreateFilamentWebDialog::send_filament_params(const std::string &preset_nam
         auto *opt = dynamic_cast<ConfigOptionStrings *>(const_cast<Preset &>(*p).config.option(key, false));
         return (opt && !opt->values.empty()) ? opt->values[0] : "";
     };
+    // filament_flow_ratio/filament_max_volumetric_speed/nozzle_temperature/... are all
+    // declared nullable, so at runtime they are ConfigOptionFloatsNullable/IntsNullable —
+    // a sibling template instantiation of ConfigOptionFloats/Ints, not a subclass. Cast to
+    // the common ConfigOptionVector<T> base so both the nullable and non-nullable variants
+    // are handled.
     auto get_float = [&](const char *key) -> double {
-        auto *opt = dynamic_cast<ConfigOptionFloats *>(const_cast<Preset &>(*p).config.option(key, false));
+        auto *opt = dynamic_cast<ConfigOptionVector<double> *>(const_cast<Preset &>(*p).config.option(key, false));
         return (opt && !opt->values.empty()) ? opt->values[0] : 0.0;
     };
     auto get_int = [&](const char *key) -> int {
-        auto *opt = dynamic_cast<ConfigOptionInts *>(const_cast<Preset &>(*p).config.option(key, false));
+        auto *opt = dynamic_cast<ConfigOptionVector<int> *>(const_cast<Preset &>(*p).config.option(key, false));
         return (opt && !opt->values.empty()) ? opt->values[0] : 0;
     };
     auto get_single_str = [&](const char *key) -> std::string {
@@ -573,8 +800,18 @@ void CreateFilamentWebDialog::send_filament_params(const std::string &preset_nam
     params["filament_max_volumetric_speed"]  = get_float("filament_max_volumetric_speed");
     params["nozzle_temperature"]             = get_int("nozzle_temperature");
     params["nozzle_temperature_initial_layer"] = get_int("nozzle_temperature_initial_layer");
-    params["bed_temperature"]                = get_int("bed_temperature");
-    params["bed_temperature_initial_layer"]  = get_int("bed_temperature_initial_layer");
+    // Mirrors the native "Print temperature" group (TabFilament, Tab.cpp) field-for-field:
+    // there is no single generic bed temperature, only a per-plate-type pair.
+    params["supertack_plate_temp"]             = get_int("supertack_plate_temp");
+    params["supertack_plate_temp_initial_layer"] = get_int("supertack_plate_temp_initial_layer");
+    params["cool_plate_temp"]                  = get_int("cool_plate_temp");
+    params["cool_plate_temp_initial_layer"]    = get_int("cool_plate_temp_initial_layer");
+    params["eng_plate_temp"]                   = get_int("eng_plate_temp");
+    params["eng_plate_temp_initial_layer"]     = get_int("eng_plate_temp_initial_layer");
+    params["hot_plate_temp"]                   = get_int("hot_plate_temp");
+    params["hot_plate_temp_initial_layer"]     = get_int("hot_plate_temp_initial_layer");
+    params["textured_plate_temp"]              = get_int("textured_plate_temp");
+    params["textured_plate_temp_initial_layer"] = get_int("textured_plate_temp_initial_layer");
     params["filament_shrink"]                = get_percent_str("filament_shrink");
     params["default_filament_colour"]        = get_str("default_filament_colour");
 
@@ -597,10 +834,22 @@ void CreateFilamentWebDialog::send_all_printers(const std::string &filament_type
     std::set<std::string> printers_with_preset;
     if (!filament_type.empty()) {
         for (const Preset &p : pb->filaments.get_presets()) {
+            // See the comment in send_init_data(): matches legacy's is_visible/filament_id gating.
             if (!p.is_system || p.is_project_embedded || !p.is_visible) continue;
+            if (p.filament_id.empty() || p.filament_id == "null") continue;
             auto *ft = dynamic_cast<ConfigOptionStrings *>(
                 const_cast<Preset &>(p).config.option("filament_type", false));
             if (!ft || ft->values.empty() || ft->values[0] != filament_type) continue;
+            auto *opt = dynamic_cast<ConfigOptionStrings *>(
+                const_cast<Preset &>(p).config.option("compatible_printers", false));
+            if (opt)
+                for (const auto &cp : opt->values)
+                    printers_with_preset.insert(cp);
+        }
+        // Also count the user's own saved presets of this type — matches legacy's
+        // get_filament_presets_by_machine() (CreatePresetsDialog.cpp:1292-1360), which doesn't
+        // exclude presets derived from an existing one (unlike the dropdown flows).
+        for (const Preset &p : collect_user_filament_presets(filament_type, /*exclude_derived=*/false)) {
             auto *opt = dynamic_cast<ConfigOptionStrings *>(
                 const_cast<Preset &>(p).config.option("compatible_printers", false));
             if (opt)
@@ -659,6 +908,7 @@ void CreateFilamentWebDialog::send_presets_by_machine(const std::vector<std::str
         printer_to_presets[pn]; // ensure entry exists
 
     for (const Preset &p : pb->filaments.get_presets()) {
+        // See the comment in send_init_data(): matches legacy's is_visible gating.
         if (!p.is_system || p.is_project_embedded || !p.is_visible) continue;
         if (p.filament_id.empty() || p.filament_id == "null") continue;
         // filter by type
@@ -677,6 +927,26 @@ void CreateFilamentWebDialog::send_presets_by_machine(const std::vector<std::str
             auto it = printer_to_presets.find(cp);
             if (it == printer_to_presets.end()) continue;
             // deduplicate by public name per printer
+            auto &vec = it->second;
+            bool already = false;
+            for (const auto &entry : vec)
+                if (entry.first == pub) { already = true; break; }
+            if (!already)
+                vec.push_back({pub, p.name});
+        }
+    }
+    // Also offer the user's own saved presets of this type — see the comment in
+    // send_all_printers() above.
+    for (const Preset &p : collect_user_filament_presets(filament_type, /*exclude_derived=*/false)) {
+        std::string pub = p.name;
+        size_t at = pub.find(" @");
+        if (at != std::string::npos) pub = pub.substr(0, at);
+        auto *opt = dynamic_cast<ConfigOptionStrings *>(
+            const_cast<Preset &>(p).config.option("compatible_printers", false));
+        if (!opt) continue;
+        for (const std::string &cp : opt->values) {
+            auto it = printer_to_presets.find(cp);
+            if (it == printer_to_presets.end()) continue;
             auto &vec = it->second;
             bool already = false;
             for (const auto &entry : vec)
@@ -772,6 +1042,9 @@ void CreateFilamentWebDialog::OnScriptMessage(wxWebViewEvent &evt)
 
         } else if (cmd == "get_device_info") {
             send_device_info(j.value("type", ""));
+
+        } else if (cmd == "get_supported_types") {
+            send_supported_types();
 
         } else if (cmd == "get_filament_params") {
             send_filament_params(j.value("preset", ""), j.value("printer_preset", ""));

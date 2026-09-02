@@ -36,7 +36,8 @@ $(document).ready(function () {
             var printerName = (deviceInfo.nozzle_printers && deviceInfo.nozzle_printers[nozzle]) || '';
             var filamentPreset = (selectedPreset && selectedPreset.nozzle_presets && selectedPreset.nozzle_presets[nozzle]) || '';
             if (!printerName || !filamentPreset) return;
-            printerNozzles.push({ printer: printerName, base_preset: filamentPreset });
+            var entry = { printer: printerName, base_preset: filamentPreset };
+            printerNozzles.push(entry);
         });
         var payload = {
             command: 'create_filament_confirm',
@@ -80,6 +81,7 @@ $(document).ready(function () {
             printer_model_id: 'BL-P004',
             printer_preset_base: 'Bambu Lab H2D 0.4 nozzle',
             nozzles: ['0.2', '0.4', '0.6', '0.8'],
+            supported_nozzles: ['0.4', '0.6', '0.8'], // mock: 0.2 unsupported for this type, shown disabled
             nozzle_printers: {
                 '0.2': 'Bambu Lab H2D 0.2 nozzle', '0.4': 'Bambu Lab H2D 0.4 nozzle',
                 '0.6': 'Bambu Lab H2D 0.6 nozzle', '0.8': 'Bambu Lab H2D 0.8 nozzle'
@@ -109,12 +111,17 @@ function handleDeviceInfo(data) {
     deviceInfo = data;
     $('#device-name').text(data.device_name || data.printer_model_id || '');
 
-    // 渲染喷嘴复选框（全选）
+    // 渲染喷嘴复选框（全选可用项）。data.nozzles 是打印机型号支持的全部喷嘴，
+    // data.supported_nozzles 是其中当前耗材类型实际可用的子集——不可用的喷嘴仍然
+    // 渲染出来，但置灰、禁用，不计入 selectedNozzles，避免用户能选中一个后续会
+    // 静默失败的喷嘴。
+    var supportedNozzleSet = new Set(data.supported_nozzles || data.nozzles || []);
     var nozzlesHtml = '';
     (data.nozzles || []).forEach(function (n) {
-        selectedNozzles.add(n);
-        nozzlesHtml += '<label class="custom-checkbox">'
-            + '<input type="checkbox" value="' + n + '" checked />'
+        var supported = supportedNozzleSet.has(n);
+        if (supported) selectedNozzles.add(n);
+        nozzlesHtml += '<label class="custom-checkbox' + (supported ? '' : ' disabled') + '">'
+            + '<input type="checkbox" value="' + n + '"' + (supported ? ' checked' : ' disabled') + ' />'
             + '<span class="checkmark"></span>' + n + 'mm</label>';
     });
     $('#nozzle-checkboxes').html(nozzlesHtml);
@@ -148,6 +155,9 @@ function handleDeviceInfo(data) {
         $('#input-base-preset').val(p.name);
         $('#base-preset-dropdown').addClass('hidden');
         updateNextBtn();
+        // Discard cached params from the previous base preset so a nozzle tab the user
+        // doesn't revisit doesn't keep showing stale values from the old template.
+        paramData = {};
         var presetName = (p.nozzle_presets && p.nozzle_presets[activeNozzleTab])
             ? p.nozzle_presets[activeNozzleTab] : p.filament_preset;
         requestFilamentParams(presetName);
@@ -197,22 +207,36 @@ function requestFilamentParams(presetName) {
 
 function handleFilamentParams(data) {
     if (!data.params) return;
+    // C++ sends filament_shrink as a serialized percent string (e.g. "100%") — normalize
+    // to a plain number for consistent display.
+    if (typeof data.params.filament_shrink === 'string') {
+        var n = parseFloat(data.params.filament_shrink);
+        data.params.filament_shrink = isNaN(n) ? 0 : n;
+    }
     paramData[activeNozzleTab || '_current'] = data.params;
     renderParamList();
 }
 
 function refreshParamTabs() {
-    var nozzleArr = Array.from(selectedNozzles).sort();
+    // selectedNozzles only ever holds checked+supported nozzles (see handleDeviceInfo) —
+    // unsupported ones are still shown here as disabled tabs instead of disappearing, so
+    // the user can see the nozzle exists without being able to switch to it.
+    var checkedArr = Array.from(selectedNozzles).sort();
+    var unsupportedArr = ((deviceInfo && deviceInfo.nozzles) || [])
+        .filter(function (n) { return !selectedNozzles.has(n); })
+        .sort();
+    var nozzleArr = checkedArr.concat(unsupportedArr).sort();
     if (!activeNozzleTab || !selectedNozzles.has(activeNozzleTab))
-        activeNozzleTab = nozzleArr[0] || null;
+        activeNozzleTab = checkedArr[0] || null;
 
     var tabHtml = '';
     nozzleArr.forEach(function (n) {
         var active = n === activeNozzleTab ? ' active' : '';
-        tabHtml += '<div class="nozzle-tab' + active + '" data-nozzle="' + n + '">' + n + 'mm</div>';
+        var disabled = selectedNozzles.has(n) ? '' : ' disabled';
+        tabHtml += '<div class="nozzle-tab' + active + disabled + '" data-nozzle="' + n + '">' + n + 'mm</div>';
     });
     $('#nozzle-tabs').html(tabHtml);
-    $('#nozzle-tabs .nozzle-tab').on('click', function () {
+    $('#nozzle-tabs .nozzle-tab:not(.disabled)').on('click', function () {
         activeNozzleTab = $(this).attr('data-nozzle');
         // update active class without re-rendering tabs (avoids destroying event bindings)
         $('#nozzle-tabs .nozzle-tab').removeClass('active');
@@ -238,35 +262,49 @@ function renderParamList() {
     var PARAM_CATS = {
         filament: [
             { key: 'filament_type',                 label: 'Type' },
-            { key: 'filament_vendor',               label: 'Vendor' },
-            { key: 'filament_diameter',             label: 'Diameter (mm)' },
-            { key: 'filament_density',              label: 'Density (g/cm³)' },
-            { key: 'filament_flow_ratio',           label: 'Flow Ratio' },
-            { key: 'filament_max_volumetric_speed', label: 'Max Volumetric Speed' },
-            { key: 'filament_shrink',               label: 'Shrinkage' },
-            { key: 'default_filament_colour',       label: 'Default Color' },
-        ],
-        temperature: [
-            { key: 'nozzle_temperature',              label: 'Nozzle Temp (°C)' },
-            { key: 'nozzle_temperature_initial_layer',label: 'Initial Layer Nozzle Temp (°C)' },
-            { key: 'bed_temperature',                 label: 'Bed Temp (°C)' },
-            { key: 'bed_temperature_initial_layer',   label: 'Initial Layer Bed Temp (°C)' },
+            { key: 'filament_vendor',                label: 'Vendor' },
+            { key: 'filament_diameter',              label: 'Diameter (mm)' },
+            { key: 'filament_density',               label: 'Density (g/cm³)' },
+            { key: 'filament_flow_ratio',             label: 'Flow Ratio' },
+            { key: 'filament_max_volumetric_speed',  label: 'Max Volumetric Speed' },
+            { key: 'filament_shrink',                label: 'Shrinkage (%)' },
+            { key: 'default_filament_colour',        label: 'Default Color' },
         ]
     };
+    // Mirrors the native "Print temperature" group (Tab.cpp TabFilament) row layout:
+    // one row per plate type with "Initial layer" / "Other layers" side by side, instead
+    // of a separate row per key — matches the native "耗材管理" screen more closely and
+    // avoids 12 narrow, wrapping single-value rows.
+    var TEMP_ROWS = [
+        { label: 'Cool Plate SuperTack',                initialKey: 'supertack_plate_temp_initial_layer', otherKey: 'supertack_plate_temp' },
+        { label: 'Cool Plate',                           initialKey: 'cool_plate_temp_initial_layer',      otherKey: 'cool_plate_temp' },
+        { label: 'Engineering Plate',                    initialKey: 'eng_plate_temp_initial_layer',       otherKey: 'eng_plate_temp' },
+        { label: 'Smooth PEI Plate / High Temp Plate',   initialKey: 'hot_plate_temp_initial_layer',       otherKey: 'hot_plate_temp' },
+        { label: 'Textured PEI Plate',                   initialKey: 'textured_plate_temp_initial_layer',  otherKey: 'textured_plate_temp' },
+        { label: 'Nozzle',                               initialKey: 'nozzle_temperature_initial_layer',   otherKey: 'nozzle_temperature' },
+    ];
 
-    var cats = PARAM_CATS[activeParamCat] || PARAM_CATS['filament'];
     var html = '';
-    cats.forEach(function (item) {
-        var val = p[item.key];
-        if (val === undefined || val === null || val === '') val = '—';
-        if (item.key === 'default_filament_colour' && val !== '—') {
-            val = '<span style="display:inline-flex;align-items:center;gap:6px;">'
-                + '<span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:' + val
-                + ';border:1px solid #ccc"></span>' + val + '</span>';
-        }
-        html += '<div class="param-row"><span class="p-name">' + item.label
-              + '</span><span class="p-val">' + val + '</span></div>';
-    });
+    var fmt = function (val) {
+        return (val === undefined || val === null || val === '') ? '—' : val;
+    };
+    var fmtTemp = function (val) {
+        return (val === undefined || val === null || val === '') ? '—' : (val + '°C');
+    };
+    if (activeParamCat === 'temperature') {
+        TEMP_ROWS.forEach(function (row) {
+            html += '<div class="param-row temp-row"><span class="p-name">' + row.label + '</span>'
+                  + '<span class="p-sub"><span class="p-sub-label">Initial layer</span>'
+                  + '<span class="p-sub-val">' + fmtTemp(p[row.initialKey]) + '</span></span>'
+                  + '<span class="p-sub"><span class="p-sub-label">Other layers</span>'
+                  + '<span class="p-sub-val">' + fmtTemp(p[row.otherKey]) + '</span></span></div>';
+        });
+    } else {
+        (PARAM_CATS[activeParamCat] || PARAM_CATS['filament']).forEach(function (item) {
+            html += '<div class="param-row"><span class="p-name">' + item.label
+                  + '</span><span class="p-val">' + fmt(p[item.key]) + '</span></div>';
+        });
+    }
     $('#param-list').html(html);
 
     // 渲染参数分类 tab

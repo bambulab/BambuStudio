@@ -112,6 +112,17 @@ function HandleStudio(pVal) {
         m_ProfileItem = pVal['response'];
         parseProfileData();
         buildUI();
+
+        // Fresh session (no filament carries a saved selection yet): mirror the
+        // legacy ConfigWizard's on-printer-pick auto-default behavior by
+        // pre-checking the recommended default filaments for the selected models.
+        var anySelected = false;
+        for (var i = 0; i < g_filaments.length; i++) {
+            if (g_filaments[i].selected) { anySelected = true; break; }
+        }
+        if (!anySelected && g_models.length > 0) {
+            ChooseDefaultFilament();
+        }
     } else if (strCmd == 'update_custom_filaments') {
         UpdateCustomFilaments(pVal['data']);
     }

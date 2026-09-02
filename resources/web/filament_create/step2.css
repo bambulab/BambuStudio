@@ -98,6 +98,16 @@
     transform: rotate(45deg) translate(-1px, -1px);
 }
 
+.custom-checkbox.disabled {
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.custom-checkbox.disabled .checkmark {
+    background: #f0f0f0;
+}
+
 /* Parameters Area */
 .parameters-area {
     display: flex;
@@ -132,6 +142,12 @@
     color: var(--color-text-main);
     font-weight: 600;
     border-bottom-color: var(--color-brand);
+}
+
+.nozzle-tab.disabled {
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    opacity: 0.5;
 }
 
 .param-categories {
@@ -185,3 +201,32 @@
     display: flex;
     align-items: center;
 }
+
+/* Temperature category: one row per plate type, "Initial layer" / "Other layers"
+   side by side (mirrors the native Print temperature group) instead of wrapping. */
+.param-row.temp-row {
+    white-space: nowrap;
+}
+
+.param-row.temp-row .p-name {
+    width: 240px;
+    flex-shrink: 0;
+}
+
+.param-row.temp-row .p-sub {
+    display: flex;
+    align-items: center;
+    width: 170px;
+    flex-shrink: 0;
+}
+
+.param-row.temp-row .p-sub-label {
+    color: var(--color-text-muted);
+    width: 90px;
+    flex-shrink: 0;
+}
+
+.param-row.temp-row .p-sub-val {
+    color: var(--color-text-main);
+}
+

@@ -37,6 +37,7 @@ private:
     void send_presets_by_machine(const std::vector<std::string> &printer_names, const std::string &filament_type);
     void send_all_printers(const std::string &filament_type);
     void send_device_info(const std::string &filament_type);
+    void send_supported_types();
     void send_filament_params(const std::string &preset_name, const std::string &printer_preset);
 
     // Handle confirmed creation from Web

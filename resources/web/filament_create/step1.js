@@ -1,6 +1,7 @@
 
 const VENDOR_LIST = ['Polymaker', 'OVERTURE', 'Kexcelled', 'HATCHBOX', 'eSUN', 'SUNLU', 'Prusament', 'Creality', 'Protopasta', 'Anycubic', 'Basf', 'ELEGOO', 'INLAND', 'FLASHFORGE', 'FusRock', 'AMOLEN', 'MIKA3D', '3DXTECH', 'Duramic', 'Priline', 'Eryone', '3Dgenius', 'Novamaker', 'Justmaker', 'Giantarm', 'iProspect', 'LDO'];
 var TYPE_LIST = []; // filled dynamically from C++ init_data
+var SUPPORTED_TYPES = null; // filled from C++ get_supported_types; only meaningful for current_printer mode
 let customVendors = [];
 
 function escapeHtml(str) {
@@ -49,6 +50,7 @@ $(document).ready(function () {
         $('.radio-card').removeClass('active');
         $(this).addClass('active');
         $(this).find('input').prop('checked', true);
+        refreshTypeDropdown();
     });
 
     // Close window
@@ -121,7 +123,7 @@ $(document).ready(function () {
             var data = (typeof msg === 'string') ? JSON.parse(msg) : msg;
             if (data.command === 'init_data') {
                 TYPE_LIST = data.types || [];
-                renderTypes();
+                refreshTypeDropdown();
                 var selectedVendor = (data.selected_vendor || '').trim();
                 var selectedType   = (data.selected_type || '').trim();
                 var selectedSerial = (data.selected_serial || '').trim();
@@ -135,7 +137,7 @@ $(document).ready(function () {
                     }
                     if (selectedType && TYPE_LIST.indexOf(selectedType) < 0) {
                         TYPE_LIST.push(selectedType);
-                        renderTypes();
+                        refreshTypeDropdown();
                     }
                     $('#input-vendor').val(selectedVendor);
                     $('#input-type').val(selectedType);
@@ -149,7 +151,15 @@ $(document).ready(function () {
                     $('#opt-current-printer input').prop('disabled', false);
                     var label = $('#opt-current-printer .device-name');
                     if (label.length) label.text(data.device_name || '');
+                    if (typeof SendWXMessage !== 'undefined') {
+                        SendWXMessage(JSON.stringify({ sequence_id: Math.round(Date.now() / 1000), command: 'get_supported_types' }));
+                    }
+                } else {
+                    SUPPORTED_TYPES = null;
                 }
+            } else if (data.command === 'supported_types') {
+                SUPPORTED_TYPES = data.types || [];
+                refreshTypeDropdown();
             }
         } catch(e) { console.error('HandleStudio error', e); }
     };
@@ -164,10 +174,26 @@ $(document).ready(function () {
         updateNextBtn();
     });
 
-    function renderTypes() {
+    function renderTypes(list) {
         var typeHtml = '';
-        TYPE_LIST.forEach(function(t) { typeHtml += '<div class="dropdown-item" data-val="' + t + '">' + t + '</div>'; });
+        (list || TYPE_LIST).forEach(function(t) { typeHtml += '<div class="dropdown-item" data-val="' + t + '">' + t + '</div>'; });
         $('#type-options').html(typeHtml || '<div class="dropdown-item disabled">No data</div>');
+    }
+
+    // Only the current_printer mode is restricted to what the connected printer model
+    // actually supports (see get_supported_types) — other modes browse the full type list.
+    function refreshTypeDropdown() {
+        var mode = $('.radio-card.active').find('input[name="creation_mode"]').val();
+        var list = TYPE_LIST;
+        if (mode === 'current_printer' && SUPPORTED_TYPES !== null) {
+            list = TYPE_LIST.filter(function(t) { return SUPPORTED_TYPES.indexOf(t) !== -1; });
+        }
+        renderTypes(list);
+        var cur = ($('#input-type').val() || '').trim();
+        if (cur && list.indexOf(cur) === -1) {
+            $('#input-type').val('');
+        }
+        updateNextBtn();
     }
 
     $(document).on('click', '#type-options .dropdown-item', function() {
