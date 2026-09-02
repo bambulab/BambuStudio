@@ -1682,6 +1682,11 @@ wxWindow *PreferencesDialog::create_3d_tab()
                                                        "camera_fullscreen_active_monitor_only");
     sizer->Add(wrap_option_row(scrolled, item_camera_fullscreen), flags); // [refactor-review]
 
+    auto item_daily_tip = create_item_checkbox(_L("Show daily tips"), scrolled,
+                                               _L("Show the daily tips panel in the slicing progress window."), 50,
+                                               "show_daily_tips");
+    sizer->Add(item_daily_tip, flags);
+
     sizer->AddSpacer(FromDIP(20));
     scrolled->SetSizer(sizer);
     scrolled->FitInside();
