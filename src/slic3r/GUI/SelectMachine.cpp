@@ -1371,14 +1371,19 @@ void SelectMachineDialog::sync_ams_mapping_result(const std::vector<FilamentInfo
 void print_ams_mapping_result(std::vector<FilamentInfo>& result)
 {
     if (result.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "print_ams_mapping_result: empty";
+        BOOST_LOG_TRIVIAL(info) << "ams_mapping_result: empty";
+        return;
     }
 
-    char buffer[256];
-    for (int i = 0; i < result.size(); i++) {
-        ::sprintf(buffer, "print_ams_mapping: F(%02d) -> A(%02d)", result[i].id+1, result[i].tray_id+1);
-        BOOST_LOG_TRIVIAL(info) << std::string(buffer);
+    // ams_id / slot_id are printed raw: an empty one is what makes the task fall back to 255/255.
+    std::string line;
+    for (const FilamentInfo& item : result) {
+        line += " F" + std::to_string(item.id)
+              + "[tray=" + std::to_string(item.tray_id)
+              + " ams=" + (item.ams_id.empty() ? "<empty>" : item.ams_id)
+              + " slot=" + (item.slot_id.empty() ? "<empty>" : item.slot_id) + "]";
     }
+    BOOST_LOG_TRIVIAL(info) << "ams_mapping_result: count=" << result.size() << line;
 }
 
 bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
