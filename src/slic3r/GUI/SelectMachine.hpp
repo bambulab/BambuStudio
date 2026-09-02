@@ -751,6 +751,7 @@ private:
     std::string         m_printer_type;
     int                 m_total_ext_count = 1;
     bool                m_has_rack = false;
+    bool                m_check_nozzle_count = true;
 
     wxSizer* m_sizer;
 

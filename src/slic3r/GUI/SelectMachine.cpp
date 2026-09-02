@@ -6014,6 +6014,10 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
         }
     }
 
+    // Machines that swap hotends automatically satisfy every slot with a single matching
+    // hotend, so the sliced count must not be compared against the installed count.
+    const bool check_nozzle_count = DevPrinterConfigUtil::support_nozzle_count_check(obj_->printer_type);
+
     for (auto need_nozzle : need_nozzle_map) {
         auto nozzle_info = need_nozzle.first;
         const auto& installed_nozzles = nozzle_sys->CollectNozzles(MAIN_EXTRUDER_ID, nozzle_info.nozzle_flow_type, nozzle_info.nozzle_diameter);
@@ -6026,7 +6030,7 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
         }
 
         // check if enough nozzles installed
-        if (need_nozzle.second > installed_count) {
+        if (check_nozzle_count && need_nozzle.second > installed_count) {
             if (nozzle_sys->GetNozzleRack()->GetCaliStatus() != DevNozzleRack::Rack_CALI_OK) {
                 show_status(PrintStatusRackNozzleNumUnmeetWarning,
                             { (S_RACK_NOZZLE_NOT_ENOUGH + _L(" ") + S_RACK_NOZZLE_SUGEEST_CALI) },
@@ -6044,8 +6048,11 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
             break;
         }
 
-        // check if unreliable nozzle maybe used
-        if (need_nozzle.second > installed_reliable_count && nozzle_sys->HasUnreliableNozzles()) {
+        // check if unreliable nozzle maybe used. Without the count semantics the print can
+        // only be forced onto an unreliable hotend when no reliable one matches at all.
+        const bool unreliable_maybe_used = check_nozzle_count ? (need_nozzle.second > installed_reliable_count)
+                                                              : (installed_reliable_count == 0);
+        if (unreliable_maybe_used && nozzle_sys->HasUnreliableNozzles()) {
             show_status(PrintStatusHasUnreliableNozzleWarning, {}, wxEmptyString,
                         prePrintInfoStyle::BtnNozzleRefresh | prePrintInfoStyle::BtnConfirmNotShowAgain);
         }
@@ -8724,7 +8731,8 @@ static NozzleRowLabels s_create_hcontent(wxWindow* parent,
                                          wxSizer* row_sizer,
                                          const wxString& ext_loc_str,
                                          const NozzleDef& nozzle_info,
-                                         int count)
+                                         int count,
+                                         bool show_count)
 {
     wxString content_str;
     if (!ext_loc_str.IsEmpty()) {
@@ -8738,8 +8746,10 @@ static NozzleRowLabels s_create_hcontent(wxWindow* parent,
     NozzleRowLabels labels;
     labels.whole = s_create_content_label(parent, content_str);
     row_sizer->Add(labels.whole, 0, wxALIGN_CENTER_VERTICAL);
-    row_sizer->AddSpacer(parent->FromDIP(4));
-    row_sizer->Add(s_create_content_label(parent, wxString::Format("x%d", count)), 0, wxALIGN_CENTER_VERTICAL);
+    if (show_count) {
+        row_sizer->AddSpacer(parent->FromDIP(4));
+        row_sizer->Add(s_create_content_label(parent, wxString::Format("x%d", count)), 0, wxALIGN_CENTER_VERTICAL);
+    }
 
     return labels;
 }
@@ -8796,7 +8806,7 @@ void NozzleStatePanel::AppendNozzleRows(wxSizer* vbox, int ext_id, bool slicing_
         vbox->AddSpacer(FromDIP(NOZZLE_STATE_ROW_SPACING));
 
         wxSizer* row_sizer = new wxBoxSizer(wxHORIZONTAL);
-        const NozzleRowLabels labels = m_has_rack ? s_create_hcontent(this, row_sizer, ext_name, item.first, item.second)
+        const NozzleRowLabels labels = m_has_rack ? s_create_hcontent(this, row_sizer, ext_name, item.first, item.second, m_check_nozzle_count)
                                                   : s_create_split_hcontent(this, row_sizer, ext_name, item.first);
         vbox->Add(row_sizer, 0, wxALIGN_LEFT);
         if (slicing_side) {
@@ -8858,13 +8868,22 @@ void NozzleStatePanel::UpdateInfoBy(Plater* plater, MachineObject* obj)
         auto nozzle_sys = obj->GetNozzleSystem();
         m_total_ext_count = ext_sys->GetTotalExtderCount();
         m_has_rack        = nozzle_sys->GetNozzleRack()->IsSupported();
+        m_check_nozzle_count = DevPrinterConfigUtil::support_nozzle_count_check(m_printer_type);
 
         if (m_has_rack) {
             auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(plater);
             if (nozzle_group_res) {
                 ExtruderNozzleInfos slicing_nozzle_infos;
-                slicing_nozzle_infos[MAIN_EXTRUDER_ID]   = DevUtilBackend::CollectNozzleInfo(nozzle_group_res.get(), LOGIC_R_EXTRUDER_ID);
-                slicing_nozzle_infos[DEPUTY_EXTRUDER_ID] = DevUtilBackend::CollectNozzleInfo(nozzle_group_res.get(), LOGIC_L_EXTRUDER_ID);
+                // A single-toolhead machine reports logic id 0, which maps to the main
+                // extruder, not to the deputy one as it does on a dual-extruder machine.
+                // Keying the rows by the wrong extruder makes every lookup in
+                // m_installed_nozzles miss and paints all of them red.
+                for (const int logic_ext_id : { LOGIC_L_EXTRUDER_ID, LOGIC_R_EXTRUDER_ID }) {
+                    const int physical_ext_id = DevExtder::to_physical_extruder_id(m_total_ext_count, logic_ext_id);
+                    for (const auto& item : DevUtilBackend::CollectNozzleInfo(nozzle_group_res.get(), logic_ext_id)) {
+                        slicing_nozzle_infos[physical_ext_id][item.first] += item.second;
+                    }
+                }
                 UpdateInfo(slicing_nozzle_infos, nozzle_sys->GetExtruderNozzleInfo());
                 return;
             }
@@ -8951,7 +8970,7 @@ void NozzleStatePanel::UpdateLabelColour()
                 const int installed = installed_count(ext_id, slicing_item.first);
                 if (installed == 0) {
                     s_set_label_colour(labels->whole, ThemeColor::Danger);
-                } else if (slicing_item.second > installed) {
+                } else if (m_check_nozzle_count && slicing_item.second > installed) {
                     s_set_label_colour(labels->whole, ThemeColor::Warning);
                 } else {
                     s_set_label_colour(labels->whole, WXCOLOUR_GREY700);

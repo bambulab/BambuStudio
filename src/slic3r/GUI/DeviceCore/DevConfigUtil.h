@@ -141,6 +141,10 @@ public:
 
     /*nozzle*/
     static int get_default_nozzle_count(const std::string& type_str);
+    // Auto tool-changing racks reuse a single hotend across many slots, so the per-slot
+    // count from slicing carries no physical meaning and must not be compared or shown.
+    // Defaults to true when the printer config does not declare it.
+    static bool support_nozzle_count_check(const std::string& type_str);
 
 public:
     template<typename T>

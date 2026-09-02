@@ -104,6 +104,7 @@
 		"support_safety_options": true,
 		"filament_load_image": ["filament_load_o_series_ext0"],
 		"hotend_ams_type_string":"n10a",
-		"support_ams_settings_hide_insert_power": true
+		"support_ams_settings_hide_insert_power": true,
+		"support_nozzle_count_check": false
 	}
 }

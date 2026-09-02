@@ -575,4 +575,16 @@ int DevPrinterConfigUtil::get_default_nozzle_count(const std::string& type_str)
     return 1;
 }
 
+bool DevPrinterConfigUtil::support_nozzle_count_check(const std::string& type_str)
+{
+    // get_value_from_config<bool> cannot tell "declared as false" from "not declared",
+    // so the raw value is fetched to keep the default at true.
+    const auto& value = get_value_from_config<json>(type_str, "support_nozzle_count_check");
+    if (value.is_boolean()) {
+        return value.get<bool>();
+    }
+
+    return true;
+}
+
 };
