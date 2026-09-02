@@ -2623,6 +2623,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     ImGui::Separator();
     m_imgui->disabled_end();
 
+#if 0 // hide Pick-face entry
     // Pick-face mode is planar-cut only; the groove mode has its own plane state machine.
     const bool pick_face_available = (m_cut_mode == CutMode::cutPlanar) && !m_connectors_editing;
     m_imgui->disabled_begin(!pick_face_available);
@@ -2643,6 +2644,7 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
         m_imgui->text(_L("Click a face of the model."));
     }
     ImGui::Separator();
+#endif
 
     ImGui::PushItemWidth(caption_size);
     ImGui::Dummy(ImVec2(caption_size, -1));
