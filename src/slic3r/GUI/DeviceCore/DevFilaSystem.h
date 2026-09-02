@@ -417,6 +417,7 @@ public:
     // ctrls
     int  CtrlAmsReset() const;
     int  CtrlSetFilamentWeight(int ams_id, int slot_id, int total, int remain);
+    void CtrlSetFilamentWeightAfter(const std::shared_ptr<DevCtrlToken>& token, int ams_id, int slot_id, int total, int remain);
 
     // crtl
     int  CtrlAmsStartDryingHour(int ams_id, int zone_id, std::string filament_type, int tag_temp, int tag_duration_hour, bool rotate_tray, int cooling_temp, bool close_power_conflict = false) const;
@@ -448,6 +449,10 @@ private:
     DevFilaAutoRefillMgr m_auto_refill_mgr{ this };
     std::shared_ptr<DevAmsSystemFirmwareSwitch> m_ams_firmware_switch = DevAmsSystemFirmwareSwitch::Create(this);
     std::shared_ptr<DevAmsRfidRefreshCtrl> m_ams_rfid_refresh_ctrl = DevAmsRfidRefreshCtrl::Create(this);
+
+    // Tokens whose deferred weight command has not run yet. DevCtrlTokenMgr drops tokens
+    // nobody else references, so the pending ones have to be kept alive here.
+    std::vector<std::shared_ptr<DevCtrlToken>> m_pending_weight_tokens;
 };// class DevFilaSystem
 
 

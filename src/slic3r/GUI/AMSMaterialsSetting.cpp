@@ -20,6 +20,7 @@
 
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevConfigUtil.h"
+#include "DeviceCore/DevCtrlToken.h"
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevFilaBlackList.h"
 #include "DeviceCore/DevFilamentWeight.h"
@@ -1222,8 +1223,9 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 
 
     // set filament
+    std::shared_ptr<DevCtrlToken> fila_setting_token;
     if (m_is_third) {
-        obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, tray_color, m_filament_type, nozzle_temp_min_int,
+        fila_setting_token = obj->command_ams_filament_settings(ams_id, slot_id, ams_filament_id, ams_setting_id, tray_color, m_filament_type, nozzle_temp_min_int,
                                            nozzle_temp_max_int, tray_colors, tray_ctype);
 
         // Optimistic local update: write the new filament info into the tray object
@@ -1261,7 +1263,14 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 
     const bool weight_changed = can_edit_filament_weight() && filament_weight_changed(total_weight, remain_weight);
     if (weight_changed) {
-        obj->GetFilaSystem()->CtrlSetFilamentWeight(ams_id, slot_id, total_weight, remain_weight);
+        // can not set weight for unknown filaments
+        const auto tray_before      = obj->get_tray(ams_id, slot_id);
+        const bool slot_was_unknown = !tray_before.has_value() || tray_before->setting_id.empty() || tray_before->m_fila_type.empty();
+        if (slot_was_unknown && fila_setting_token) {
+            obj->GetFilaSystem()->CtrlSetFilamentWeightAfter(fila_setting_token, ams_id, slot_id, total_weight, remain_weight);
+        } else {
+            obj->GetFilaSystem()->CtrlSetFilamentWeight(ams_id, slot_id, total_weight, remain_weight);
+        }
     }
 
     // When the user picked a Filament Manager spool, immediately update its

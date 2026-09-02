@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <cctype>
+
 #include <nlohmann/json.hpp>
 #include <boost/log/trivial.hpp>
 #include "DevFilaSystem.h"
@@ -71,6 +74,48 @@ int DevFilaSystem::CtrlSetFilamentWeight(int ams_id, int slot_id, int total, int
     }
 
     return rtn;
+}
+
+// Command replies carry a "result" string alongside errno; anything but "success" means
+// the printer refused the command.
+static bool IsReplySuccessful(const std::optional<json>& reply)
+{
+    if (!reply || !reply->contains("result") || !(*reply)["result"].is_string()) {
+        return false;
+    }
+
+    std::string result = (*reply)["result"].get<std::string>();
+    std::transform(result.begin(), result.end(), result.begin(), [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+    return result == "success";
+}
+
+void DevFilaSystem::CtrlSetFilamentWeightAfter(const std::shared_ptr<DevCtrlToken>& token, int ams_id, int slot_id, int total, int remain)
+{
+    if (!token) {
+        CtrlSetFilamentWeight(ams_id, slot_id, total, remain);
+        return;
+    }
+
+    m_pending_weight_tokens.push_back(token);
+
+    // The token reaches exactly one terminal state, so this runs at most once. It is
+    // dispatched via wxTheApp->CallAfter() guarded by a weak_ptr, and the tokens die with
+    // this DevFilaSystem, so `this` cannot dangle here.
+    auto on_settled = [this, ams_id, slot_id, total, remain](const std::shared_ptr<DevCtrlToken>& settled, DevCtrlTokenStatus status) {
+        m_pending_weight_tokens.erase(std::remove(m_pending_weight_tokens.begin(), m_pending_weight_tokens.end(), settled), m_pending_weight_tokens.end());
+
+        if (status != DevCtrlTokenStatus::ReplyReceived || !IsReplySuccessful(settled->GetReply())) {
+            BOOST_LOG_TRIVIAL(warning) << "CtrlSetFilamentWeightAfter: ams_filament_setting did not succeed, dropping set_filament_weight for ams_id=" << ams_id
+                                       << ", slot_id=" << slot_id;
+            return;
+        }
+
+        CtrlSetFilamentWeight(ams_id, slot_id, total, remain);
+    };
+
+    token->SetCallback(DevCtrlTokenStatus::ReplyReceived, on_settled);
+    token->SetCallback(DevCtrlTokenStatus::SendFailed, on_settled);
+    token->SetCallback(DevCtrlTokenStatus::TimedOut, on_settled);
 }
 
 int DevFilaSystem::CtrlAmsStartDryingHour(int ams_id,

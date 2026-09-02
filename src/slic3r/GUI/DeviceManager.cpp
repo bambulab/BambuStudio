@@ -53,6 +53,7 @@
 
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevCtrl.h"
+#include "DeviceCore/DevCtrlToken.h"
 #include "DeviceCore/DevInfo.h"
 #include "DeviceCore/DevPrintOptions.h"
 #include "DeviceCore/DevPrintTaskInfo.h"
@@ -1771,8 +1772,9 @@ int MachineObject::command_ams_calibrate(int ams_id)
     return this->publish_gcode(gcode_cmd);
 }
 
-int MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::string filament_id, std::string setting_id, std::string tray_color, std::string tray_type,
-                                                 int nozzle_temp_min, int nozzle_temp_max, const std::vector<std::string>& tray_colors, int tray_ctype)
+std::shared_ptr<DevCtrlToken> MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::string filament_id, std::string setting_id, std::string tray_color,
+                                                                           std::string tray_type, int nozzle_temp_min, int nozzle_temp_max,
+                                                                           const std::vector<std::string>& tray_colors, int tray_ctype)
 {
     int tag_tray_id = 0;
     int tag_ams_id  = ams_id;
@@ -1784,9 +1786,11 @@ int MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::s
         tag_tray_id = tag_slot_id;
     }
 
+    const std::string sequence_id = std::to_string(MachineObject::m_sequence_id++);
+
     json j;
     j["print"]["command"]       = "ams_filament_setting";
-    j["print"]["sequence_id"]   = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["sequence_id"]   = sequence_id;
     j["print"]["ams_id"]        = tag_ams_id;
     j["print"]["slot_id"]       = tag_slot_id;
     j["print"]["tray_id"]       = tag_tray_id;
@@ -1802,7 +1806,10 @@ int MachineObject::command_ams_filament_settings(int ams_id, int slot_id, std::s
         j["print"]["ctype"] = tray_ctype;
     }
 
-    return this->publish_json(j);
+    // Build the token before publishing so an unusually fast reply cannot arrive first.
+    const auto token = m_ctrl_token_mgr.Build(sequence_id);
+    token->SetSendResult(this->publish_json(j));
+    return token;
 }
 
 int MachineObject::command_ams_refresh_rfid(std::string tray_id)
