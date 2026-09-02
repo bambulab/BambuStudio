@@ -198,7 +198,7 @@ void PrintJob::process()
         else
             curr_plate_idx = m_plater->get_partplate_list().get_curr_plate_index() + 1;
     }
-    else if(m_print_type == "from_sdcard_view") {
+    else if(m_print_type == "from_sdcard_view" || m_print_type == "from_sdcard_transfer") {
         curr_plate_idx = m_print_from_sdc_plate_idx;
     }
 
@@ -217,7 +217,7 @@ void PrintJob::process()
     params.password = m_access_code;
 
     // check access code and ip address
-    if (this->connection_type == "lan" && m_print_type == "from_normal") {
+    if (this->connection_type == "lan" && (m_print_type == "from_normal" || m_print_type == "from_sdcard_transfer")) {
         bool emmc_ok = false;
         bool ftp_ok = false;
         if (could_emmc_print) {
@@ -267,7 +267,8 @@ void PrintJob::process()
     params.connection_type      = this->connection_type;
     params.task_use_ams         = this->task_use_ams;
     params.task_bed_type        = this->task_bed_type;
-    params.print_type           = this->m_print_type;
+    // the network plugin only knows the built-in types; a transferred sdcard file is uploaded like a normal print
+    params.print_type           = (m_print_type == "from_sdcard_transfer") ? "from_normal" : this->m_print_type;
     params.auto_bed_leveling    = this->auto_bed_leveling;
     params.auto_flow_cali       = this->auto_flow_cali;
     params.auto_offset_cali     = this->auto_offset_cali;
@@ -304,7 +305,7 @@ void PrintJob::process()
             catch (...) {}
         }
 
-         if (m_print_type != "from_sdcard_view") {
+         if (m_print_type != "from_sdcard_view" && m_print_type != "from_sdcard_transfer") {
             auto model_name = model_info->metadata_items.find(BBL_DESIGNER_MODEL_TITLE_TAG);
             if (model_name != model_info->metadata_items.end()) {
                 try {

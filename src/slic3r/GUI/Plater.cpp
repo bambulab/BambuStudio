@@ -24246,6 +24246,12 @@ int Plater::update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r
     return p->update_print_required_data(config, model, plate_data_list, file_name, file_path);
 }
 
+void Plater::set_sdcard_print_source(PrinterFileSystem* fs, size_t file_index, const std::string& dev_id)
+{
+    if (!p->m_select_machine_dlg) p->m_select_machine_dlg = new SelectMachineDialog(this);
+    p->m_select_machine_dlg->set_sdcard_print_source(fs, file_index, dev_id);
+}
+
 
 void Plater::undo_redo_topmost_string_getter(const bool is_undo, std::string& out_text)
 {

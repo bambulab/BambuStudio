@@ -19,6 +19,7 @@
 #include "Widgets/Label.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "ConnectPrinter.hpp"
+#include "Printer/PrinterFileSystem.h"
 
 #include "slic3r/Utils/BBLUtil.hpp"
 
@@ -2271,7 +2272,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
     //Check Printer Model Id
     bool is_same_printer_type = is_same_printer_model();
-    if (!is_same_printer_type && (m_print_type == PrintFromType::FROM_NORMAL)) {
+    if (!is_same_printer_type && (m_print_type == PrintFromType::FROM_NORMAL || is_sdcard_cross_printer_send())) {
         confirm_text.push_back(ConfirmBeforeSendInfo(_L("The printer type selected when generating G-Code is not consistent with the currently selected printer. It is recommended that you use the same printer type for slicing.")));
         has_slice_warnings = true;
     }
@@ -3201,6 +3202,7 @@ void SelectMachineDialog::on_send_print()
     m_status_bar->set_prog_block();
     m_status_bar->set_cancel_callback_fina([this]() {
         BOOST_LOG_TRIVIAL(info) << "print_job: enter canceled";
+        release_source_download_binding();
         if (m_print_job) {
             if (m_print_job->is_running()) {
                 BOOST_LOG_TRIVIAL(info) << "print_job: canceled";
@@ -3223,6 +3225,13 @@ void SelectMachineDialog::on_send_print()
     sending_mode();
     if (m_print_job) { m_print_job->reset_print_stage(); }
     m_status_bar->enable_cancel_button();
+
+    // printing the source printer's file on another printer: transfer the file locally first,
+    // on_send_print() is re-entered once the download has finished
+    if (is_sdcard_cross_printer_send() && m_transferred_local_path.empty()) {
+        fetch_file_from_source_printer();
+        return;
+    }
 
     // get ams_mapping_result
     std::string ams_mapping_array;
@@ -3293,9 +3302,19 @@ void SelectMachineDialog::on_send_print()
         m_print_job->set_project_name(m_current_project_name.utf8_string());
     }
     else if(m_print_type == PrintFromType::FROM_SDCARD_VIEW){
-        BOOST_LOG_TRIVIAL(info) << "print_job: m_print_type = from_sdcard_view";
-        m_print_job->m_print_type = "from_sdcard_view";
-        //m_print_job->connection_type = "lan";
+        if (is_sdcard_cross_printer_send() && !m_transferred_local_path.empty()) {
+            // the file has been transferred from the source printer, upload it to the selected printer
+            BOOST_LOG_TRIVIAL(info) << "print_job: m_print_type = from_sdcard_transfer";
+            m_print_job->m_print_type = "from_sdcard_transfer";
+            m_print_job->job_data.is_from_plater = false;
+            m_print_job->job_data._3mf_path        = fs::path(m_transferred_local_path);
+            m_print_job->job_data._3mf_config_path = fs::path(m_transferred_local_path);
+        }
+        else {
+            BOOST_LOG_TRIVIAL(info) << "print_job: m_print_type = from_sdcard_view";
+            m_print_job->m_print_type = "from_sdcard_view";
+            //m_print_job->connection_type = "lan";
+        }
 
         try {
             m_print_job->m_print_from_sdc_plate_idx = m_required_data_plate_data_list[m_print_plate_idx]->plate_index + 1;
@@ -3546,7 +3565,151 @@ int SelectMachineDialog::update_print_required_data(Slic3r::DynamicPrintConfig c
 
     m_required_data_file_name = file_name;
     m_required_data_file_path = file_path;
+
+    // reset the source printer info; it is set again via set_sdcard_print_source() when available
+    release_source_download_binding();
+    m_source_fs.reset();
+    m_source_file_index = size_t(-1);
+    m_source_file_path.clear();
+    m_source_dev_id.clear();
+    m_transferred_local_path.clear();
+
     return m_required_data_plate_data_list.size();
+}
+
+void SelectMachineDialog::set_sdcard_print_source(PrinterFileSystem* fs, size_t file_index, const std::string& dev_id)
+{
+    release_source_download_binding();
+    m_transferred_local_path.clear();
+    m_source_fs.reset();
+    m_source_file_index = size_t(-1);
+    m_source_file_path.clear();
+    m_source_dev_id = dev_id;
+
+    if (!fs || file_index >= fs->GetCount()) return;
+
+    m_source_fs         = boost::weak_ptr<PrinterFileSystem>(fs->shared_from_this());
+    m_source_file_index = file_index;
+    const auto& file    = fs->GetFile(file_index);
+    m_source_file_path  = file.path.empty() ? file.name : file.path;
+}
+
+bool SelectMachineDialog::is_sdcard_cross_printer_send() const
+{
+    return m_print_type == PrintFromType::FROM_SDCARD_VIEW
+        && !m_source_dev_id.empty()
+        && !m_printer_last_select.empty()
+        && m_printer_last_select != m_source_dev_id;
+}
+
+void SelectMachineDialog::release_source_download_binding()
+{
+    if (!m_waiting_source_download) return;
+    m_waiting_source_download = false;
+    if (auto fs = m_source_fs.lock()) {
+        fs->DownloadCancel(m_source_file_index);
+        fs->Unbind(EVT_DOWNLOAD, &SelectMachineDialog::on_source_download_event, this);
+    }
+}
+
+void SelectMachineDialog::fetch_file_from_source_printer()
+{
+    auto fs = m_source_fs.lock();
+    if (!fs) {
+        m_status_bar->set_status_text(_L("Cannot access the source printer's storage. Please reopen the file from the printer's file list."));
+        Enable_Send_Button(true);
+        prepare_mode();
+        return;
+    }
+
+    // the file list may have been refreshed meanwhile, re-find the file by path
+    auto matches = [this](PrinterFileSystem::File const& f) {
+        return !m_source_file_path.empty() && (f.path.empty() ? f.name == m_source_file_path : f.path == m_source_file_path);
+    };
+    size_t index = m_source_file_index;
+    if (index >= fs->GetCount() || !matches(fs->GetFile(index))) {
+        index = size_t(-1);
+        for (size_t i = 0; i < fs->GetCount(); ++i) {
+            if (matches(fs->GetFile(i))) { index = i; break; }
+        }
+    }
+    if (index == size_t(-1)) {
+        m_status_bar->set_status_text(_L("The file no longer exists on the source printer."));
+        Enable_Send_Button(true);
+        prepare_mode();
+        return;
+    }
+    m_source_file_index = index;
+
+    const auto& file = fs->GetFile(index);
+    if (!file.local_path.empty() && fs->DownloadCheckFile(index)) {
+        // already downloaded before, reuse it
+        m_transferred_local_path = file.local_path;
+        CallAfter([this] { on_send_print(); });
+        return;
+    }
+
+    m_waiting_source_download = true;
+    fs->Bind(EVT_DOWNLOAD, &SelectMachineDialog::on_source_download_event, this);
+
+    bool     cancelled = false;
+    wxString msg       = _L("Transferring the print file from the source printer...");
+    m_status_bar->update_status(msg, cancelled, 0, true);
+
+    auto dl_dir = (boost::filesystem::temp_directory_path() / "bambu_sdcard_transfer").string();
+    fs->DownloadFiles(index, dl_dir);
+}
+
+void SelectMachineDialog::on_source_download_event(wxCommandEvent& e)
+{
+    e.Skip();
+    if (!m_waiting_source_download) return;
+    auto fs = m_source_fs.lock();
+    if (!fs) {
+        m_waiting_source_download = false;
+        m_status_bar->set_status_text(_L("Lost connection to the source printer while transferring the file."));
+        Enable_Send_Button(true);
+        prepare_mode();
+        return;
+    }
+    int result = e.GetExtraLong();
+
+    if (result == PrinterFileSystem::SUCCESS) {
+        // the file list may have been refreshed during the download, shifting the index,
+        // so match the completed download by file name as well
+        std::string local_path = e.GetString().utf8_string();
+        std::string source_name = boost::filesystem::path(m_source_file_path).filename().string();
+        if (local_path.empty() || boost::filesystem::path(local_path).filename().string() != source_name)
+            return; // another file's download
+        if (!boost::filesystem::path(local_path).has_parent_path())
+            return; // download-start notification carries the bare file name, not a path
+        if (!boost::filesystem::exists(local_path))
+            return;
+        m_waiting_source_download = false;
+        fs->Unbind(EVT_DOWNLOAD, &SelectMachineDialog::on_source_download_event, this);
+        m_transferred_local_path = local_path;
+        CallAfter([this] { on_send_print(); });
+        return;
+    }
+
+    if ((size_t)e.GetInt() != m_source_file_index) return;
+
+    if (result == PrinterFileSystem::CONTINUE) {
+        const auto& file = fs->GetFile(m_source_file_index);
+        int progress = file.DownloadProgress();
+        if (progress < 0) progress = 0;
+        bool     cancelled = false;
+        wxString msg       = _L("Transferring the print file from the source printer...");
+        m_status_bar->update_status(msg, cancelled, progress, true);
+        return;
+    }
+
+    m_waiting_source_download = false;
+    fs->Unbind(EVT_DOWNLOAD, &SelectMachineDialog::on_source_download_event, this);
+    if (result == PrinterFileSystem::ERROR_CANCEL) return; // handled by the cancel flow
+    m_status_bar->set_status_text(_L("Failed to transfer the print file from the source printer."));
+    Enable_Send_Button(true);
+    prepare_mode();
 }
 
 void  SelectMachineDialog::reset_timeout()
@@ -4070,7 +4233,8 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     }
 
     /*combobox check*/
-    if (m_print_type == PrintFromType::FROM_SDCARD_VIEW) {
+    if (m_print_type == PrintFromType::FROM_SDCARD_VIEW && m_source_fs.expired()) {
+        // no access to the source printer's file system, the file cannot be transferred elsewhere
         m_printer_box->GetPrinterComboBox()->Disable();
     } else {
         if (get_status() == PrintDialogStatus::PrintStatusRefreshingMachineList)
@@ -5487,6 +5651,7 @@ bool SelectMachineDialog::Show(bool show)
 
 SelectMachineDialog::~SelectMachineDialog()
 {
+    release_source_download_binding();
     delete m_refresh_timer;
 }
 
