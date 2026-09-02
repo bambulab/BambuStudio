@@ -6,6 +6,7 @@
 #include "GUI_App.hpp"
 #include "GUI.hpp"
 
+#include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
 
 #include <boost/log/trivial.hpp>
@@ -456,8 +457,7 @@ void Slic3r::GUI::ImageGrid::changedEvent(wxCommandEvent& evt)
 
 void ImageGrid::paintEvent(wxPaintEvent& evt)
 {
-    // depending on your system you may need to look at double-buffered dcs
-    wxPaintDC dc(this);
+    wxAutoBufferedPaintDC dc(this);
     render(dc);
 }
 
