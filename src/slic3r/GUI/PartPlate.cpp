@@ -2225,10 +2225,7 @@ bool PartPlate::check_single_extruder_mixed_filament_risk(const DynamicPrintConf
     if (!nozzle_diameter_opt || nozzle_diameter_opt->values.size() > 1)
         return false;
 
-    std::string printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
-    if (printer_model.find("H2C") != std::string::npos ||
-        printer_model.find("H2D") != std::string::npos ||
-        printer_model.find("X2D") != std::string::npos)
+    if (is_single_ext_multi_nozzle(wxGetApp().preset_bundle->printers.get_edited_preset().config))
         return false;
 
     auto *is_mixed_opt = wxGetApp().preset_bundle->project_config.option<ConfigOptionBools>("filament_is_mixed");
