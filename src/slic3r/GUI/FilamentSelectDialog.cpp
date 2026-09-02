@@ -1,5 +1,6 @@
 #include "FilamentSelectDialog.hpp"
 #include "AMSMaterialsSetting.hpp"  // AMS_MATERIALS_SETTING_GREY* colour constants
+#include "FilamentBitmapUtils.hpp"
 #include "GUI_App.hpp"
 #include "I18N.hpp"
 #include "wxExtensions.hpp"
@@ -36,6 +37,26 @@ std::vector<wxColour> spool_colors(const FilamentSpool& sp)
     }
     if (!sp.color_code.empty()) out.push_back(parse_hex_color(sp.color_code));
     return out;
+}
+
+void draw_checkerboard_gc(wxGraphicsContext* gc, const wxGraphicsPath& path, int size_px,
+                           const wxColour& light, const wxColour& dark)
+{
+    const int square = std::max(6, size_px / 8);
+    gc->SetPen(*wxTRANSPARENT_PEN);
+    for (int y = 0; y < size_px; y += square) {
+        for (int x = 0; x < size_px; x += square) {
+            const bool is_light = ((x / square) + (y / square)) % 2 == 0;
+            const int  w        = std::min(square, size_px - x);
+            const int  h        = std::min(square, size_px - y);
+            gc->PushState();
+            gc->Clip(x, y, w, h);
+            gc->SetBrush(wxBrush(is_light ? light : dark));
+            gc->FillPath(path);
+            gc->ResetClip();
+            gc->PopState();
+        }
+    }
 }
 
 wxBitmap make_spool_color_chip(wxWindow* ctx, const FilamentSpool& sp)
@@ -102,10 +123,22 @@ wxBitmap make_spool_color_chip(wxWindow* ctx, const FilamentSpool& sp)
             }
         }
     } else {
-        const wxColour fill = colors.empty() ? wxColour(0x88, 0x88, 0x88) : colors.front();
-        gc->SetBrush(wxBrush(fill));
+        const wxColour     fill  = colors.empty() ? wxColour(0x88, 0x88, 0x88) : colors.front();
+        const unsigned char alpha = fill.Alpha();
         gc->SetPen(*wxTRANSPARENT_PEN);
-        gc->FillPath(chip_path);
+        if (alpha == wxALPHA_OPAQUE) {
+            gc->SetBrush(wxBrush(fill));
+            gc->FillPath(chip_path);
+        } else {
+            wxColour light_clr, dark_clr;
+            if (alpha == 0) {
+                light_clr = wxColour(255, 255, 255);
+                dark_clr  = wxColour(217, 217, 217);
+            } else {
+                get_translucent_checker_colors(fill, light_clr, dark_clr);
+            }
+            draw_checkerboard_gc(gc, chip_path, size_px, light_clr, dark_clr);
+        }
     }
 
     const bool     dark       = wxGetApp().dark_mode();

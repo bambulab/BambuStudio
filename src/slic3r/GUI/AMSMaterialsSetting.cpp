@@ -339,7 +339,7 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     if (language.find("zh") == 0)
         region = "zh";
     wxString link_url = wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region);
-    m_wiki_ctrl = new Label(parent, _L("Wiki"));
+    m_wiki_ctrl = new Label(parent, _L("View Wiki for details"));
     m_wiki_ctrl->SetFont(Label::Body_13);
     m_wiki_ctrl->SetForegroundColour(wxColour(0, 174, 66));
     m_wiki_ctrl->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &e) {
@@ -3249,13 +3249,27 @@ void AMSNewOfficialFilamentDlg::on_confirm(wxCommandEvent&)
 void AMSNewOfficialFilamentDlg::on_combo_selected(wxCommandEvent& evt)
 {
     const int sel = evt.GetSelection();
+    const int closed_w = m_combo_link->GetSize().GetWidth() - m_combo_link->FromDIP(16);
+
+    // Re-click the already-selected candidate => deselect it, head reverts to the hit.
+    // The widget already ran SetSelection(sel) before this handler, so GetSelection()
+    // can't tell a re-click from a fresh pick — we compare against the index we tracked.
+    if (sel == m_prev_combo_sel) {
+        m_combo_link->SetSelection(-1);   // clears the list checkmark/highlight
+        m_combo_link->SetLabel(wxEmptyString);
+        m_combo_link->SetIcon(_make_filament_card_bitmap(
+            m_combo_link, m_hit_spool, closed_w, /*with_border=*/false, /*with_chevron=*/true, /*gray_bg=*/true));
+        m_prev_combo_sel        = -1;
+        m_selected_candidate_id = 0;
+        m_selected_link_spool_id.clear();
+        return;
+    }
 
     // Dropdown list holds candidates only. Show the selected candidate as a card in
     // the collapsed box (same style as the hit card, chevron on the right), overriding
     // whatever the widget stuffed into the header on selection.
     auto sit = m_combo_idx_to_spool.find(sel);
     if (sit != m_combo_idx_to_spool.end()) {
-        const int closed_w = m_combo_link->GetSize().GetWidth() - m_combo_link->FromDIP(16);
         m_combo_link->SetLabel(wxEmptyString);
         m_combo_link->SetIcon(_make_filament_card_bitmap(
             m_combo_link, sit->second, closed_w, /*with_border=*/false, /*with_chevron=*/true, /*gray_bg=*/true));
@@ -3269,6 +3283,7 @@ void AMSNewOfficialFilamentDlg::on_combo_selected(wxCommandEvent& evt)
     } else {
         m_selected_candidate_id = 0;
     }
+    m_prev_combo_sel = sel;
 }
 
 void AMSNewOfficialFilamentDlg::SetTrayContext(MachineObject* obj,
@@ -3321,6 +3336,7 @@ void AMSNewOfficialFilamentDlg::populate_link_combo()
     m_combo_idx_to_spool_id.clear();
     m_combo_idx_to_spool.clear();
     m_selected_link_spool_id.clear();
+    m_prev_combo_sel = -1;
 
     DevAmsTray* tray = (m_obj ? m_obj->get_ams_tray(m_ams_id, m_slot_id) : nullptr);
     const std::string tray_uuid = (tray && !tray->uuid.empty()) ? tray->uuid : "";
@@ -3362,6 +3378,7 @@ void AMSNewOfficialFilamentDlg::populate_link_combo()
     m_only_hit              = (cands == nullptr || cands->empty());
 
     const FilamentSpool hit_sp = soft_match_item_to_spool(*hit_item);
+    m_hit_spool = hit_sp;   // kept so on_combo_selected can restore the hit head on toggle-off
 
     if (m_only_hit) {
         m_title->SetLabel(

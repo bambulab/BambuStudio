@@ -343,6 +343,8 @@ private:
     std::string    m_slot_id;
 
     SoftMatchPendingResponse m_soft_match_data;
+    FilamentSpool m_hit_spool;              // hit shown in the collapsed box by default
+    int  m_prev_combo_sel{ -1 };            // last picked candidate index (-1 = none); for re-click toggle
     int  m_hit_spool_id{ 0 };
     int  m_selected_candidate_id{ 0 };
     bool m_only_hit{ false };

@@ -109,7 +109,7 @@ void AMSRFIDMaterialView::create()
     lbl_kn_title->Wrap(FromDIP(160));
 
     bool is_zh = (region == "zh");
-    wxString wiki_label = is_zh ? wxString::FromUTF8("\xe8\xaf\xa6\xe6\x83\x85\xe6\x9f\xa5\xe7\x9c\x8bwiki") : _L("Click to learn more");
+    wxString wiki_label = is_zh ? wxString::FromUTF8("\xe8\xaf\xa6\xe6\x83\x85\xe6\x9f\xa5\xe7\x9c\x8bwiki") : _L("View wiki for details");
     wxColour wiki_colour = wxColour("#00AE42");
     auto* wiki_ctrl = new Label(m_panel_kn, wiki_label);
     wiki_ctrl->SetFont(Label::Body_13);
