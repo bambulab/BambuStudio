@@ -11,36 +11,26 @@
 #include <wx/textdlg.h>
 
 #include <slic3r/GUI/Widgets/WebView.hpp>
-#include "DeviceWeb/DeviceWebHealth.hpp"
-#include "Widgets/WebViewTraceLogger.hpp"
 
 namespace pt = boost::property_tree;
 
 namespace Slic3r {
 namespace GUI {
 
-PrinterWebView::PrinterWebView(wxWindow *parent, const wxString &view_name, WebViewProtectionMode mode)
+PrinterWebView::PrinterWebView(wxWindow *parent)
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
 
     wxBoxSizer* topsizer = new wxBoxSizer(wxVERTICAL);
 
       // Create the webview
-    m_browser = WebView::CreateWebView(this, "", view_name, mode);
+    m_browser = WebView::CreateWebView(this, "", "DeivcePage");
     if (m_browser == nullptr) {
         wxLogError("Could not init m_browser");
         return;
     }
-    if (mode == WebViewProtectionMode::DeviceHost) {
-        m_health_monitoring_available =
-            m_browser->AddUserScript(wxString::FromUTF8(DeviceWebHealth::DiagnosticShim()),
-                                     wxWEBVIEW_INJECT_AT_DOCUMENT_START);
-        if (!m_health_monitoring_available) {
-            WebViewTraceLogger::Emit(WebViewTraceLogger::Stage::L4_READY, m_browser->GetName(),
-                                     "shim_injection_failed", WebViewTraceLogger::Fields(),
-                                     WebViewTraceLogger::Severity::Warning);
-        }
-    }
+
+    Bind(wxEVT_WEBVIEW_ERROR, &PrinterWebView::OnError, this);
 
     SetSizer(topsizer);
 
@@ -96,6 +86,40 @@ void PrinterWebView::OnClose(wxCloseEvent& evt)
 {
     this->Hide();
 }
+
+void PrinterWebView::OnError(wxWebViewEvent &evt)
+{
+    auto e = "unknown error";
+    switch (evt.GetInt()) {
+      case wxWEBVIEW_NAV_ERR_CONNECTION:
+        e = "wxWEBVIEW_NAV_ERR_CONNECTION";
+        break;
+      case wxWEBVIEW_NAV_ERR_CERTIFICATE:
+        e = "wxWEBVIEW_NAV_ERR_CERTIFICATE";
+        break;
+      case wxWEBVIEW_NAV_ERR_AUTH:
+        e = "wxWEBVIEW_NAV_ERR_AUTH";
+        break;
+      case wxWEBVIEW_NAV_ERR_SECURITY:
+        e = "wxWEBVIEW_NAV_ERR_SECURITY";
+        break;
+      case wxWEBVIEW_NAV_ERR_NOT_FOUND:
+        e = "wxWEBVIEW_NAV_ERR_NOT_FOUND";
+        break;
+      case wxWEBVIEW_NAV_ERR_REQUEST:
+        e = "wxWEBVIEW_NAV_ERR_REQUEST";
+        break;
+      case wxWEBVIEW_NAV_ERR_USER_CANCELLED:
+        e = "wxWEBVIEW_NAV_ERR_USER_CANCELLED";
+        break;
+      case wxWEBVIEW_NAV_ERR_OTHER:
+        e = "wxWEBVIEW_NAV_ERR_OTHER";
+        break;
+      }
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(": error loading page %1% %2% %3% %4%") %evt.GetURL() %evt.GetTarget() %e %evt.GetString();
+}
+
+
 
 } // GUI
 } // Slic3r
