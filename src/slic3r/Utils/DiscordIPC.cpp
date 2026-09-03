@@ -123,31 +123,74 @@ void DiscordIPC::close()
 {
     if (m_open) {
         ::CloseHandle(static_cast<HANDLE>(m_pipe));
-        m_pipe = nullptr;
-        m_open = false;
+        ::CloseHandle(static_cast<HANDLE>(m_event));
+        m_pipe  = nullptr;
+        m_event = nullptr;
+        m_open  = false;
     }
 }
 
 bool DiscordIPC::connect_endpoint(const std::string &path)
 {
-    HANDLE pipe = ::CreateFileA(path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
+    // Overlapped, so a stalled Discord cannot block the worker thread forever.
+    HANDLE pipe = ::CreateFileA(path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING,
+                                FILE_FLAG_OVERLAPPED, nullptr);
     if (pipe == INVALID_HANDLE_VALUE)
         return false;
 
-    m_pipe = pipe;
-    m_open = true;
+    HANDLE event = ::CreateEventA(nullptr, TRUE, FALSE, nullptr);
+    if (event == nullptr) {
+        ::CloseHandle(pipe);
+        return false;
+    }
+
+    m_pipe  = pipe;
+    m_event = event;
+    m_open  = true;
     return true;
+}
+
+// Runs one overlapped operation to completion, cancelling it if the deadline
+// passes. Only ever called from the worker thread, so sharing m_event is safe.
+static bool await_overlapped(HANDLE pipe, OVERLAPPED &ov, bool pending, DWORD &transferred, ULONGLONG deadline)
+{
+    if (pending) {
+        const ULONGLONG now     = ::GetTickCount64();
+        const DWORD     wait_ms = now >= deadline ? 0 : static_cast<DWORD>(deadline - now);
+        if (::WaitForSingleObject(ov.hEvent, wait_ms) != WAIT_OBJECT_0) {
+            // The blocking wait lets the cancel settle before ov leaves scope.
+            ::CancelIoEx(pipe, &ov);
+            ::GetOverlappedResult(pipe, &ov, &transferred, TRUE);
+            return false;
+        }
+    }
+    // Authoritative even when the call completed synchronously, which is why
+    // the byte count is not taken from the WriteFile/ReadFile out parameter.
+    return ::GetOverlappedResult(pipe, &ov, &transferred, FALSE) != FALSE && transferred > 0;
 }
 
 bool DiscordIPC::write_all(const char *src, size_t count)
 {
+    const ULONGLONG deadline = ::GetTickCount64() + 2000;
+
     size_t written = 0;
     while (written < count) {
-        DWORD chunk = 0;
-        if (!::WriteFile(static_cast<HANDLE>(m_pipe), src + written,
-                         static_cast<DWORD>(count - written), &chunk, nullptr) || chunk == 0)
+        OVERLAPPED ov {};
+        ov.hEvent = static_cast<HANDLE>(m_event);
+        ::ResetEvent(ov.hEvent);
+
+        DWORD      chunk   = 0;
+        const BOOL ok      = ::WriteFile(static_cast<HANDLE>(m_pipe), src + written,
+                                         static_cast<DWORD>(count - written), &chunk, &ov);
+        const bool pending = !ok && ::GetLastError() == ERROR_IO_PENDING;
+        if (!ok && !pending)
             return false;
+        if (!await_overlapped(static_cast<HANDLE>(m_pipe), ov, pending, chunk, deadline))
+            return false;
+
         written += chunk;
+        if (written < count && ::GetTickCount64() >= deadline)
+            return false;
     }
     return true;
 }
@@ -181,9 +224,17 @@ bool DiscordIPC::read_exactly(char *dst, size_t count, int timeout_ms)
             ::Sleep(10);
             continue;
         }
-        DWORD       chunk = 0;
-        const DWORD want  = static_cast<DWORD>(std::min<size_t>(count - got, available));
-        if (!::ReadFile(static_cast<HANDLE>(m_pipe), dst + got, want, &chunk, nullptr) || chunk == 0)
+        OVERLAPPED ov {};
+        ov.hEvent = static_cast<HANDLE>(m_event);
+        ::ResetEvent(ov.hEvent);
+
+        DWORD       chunk   = 0;
+        const DWORD want    = static_cast<DWORD>(std::min<size_t>(count - got, available));
+        const BOOL  ok      = ::ReadFile(static_cast<HANDLE>(m_pipe), dst + got, want, &chunk, &ov);
+        const bool  pending = !ok && ::GetLastError() == ERROR_IO_PENDING;
+        if (!ok && !pending)
+            return false;
+        if (!await_overlapped(static_cast<HANDLE>(m_pipe), ov, pending, chunk, deadline))
             return false;
         got += chunk;
     }

@@ -59,6 +59,7 @@ private:
 
 #ifdef _WIN32
     void *m_pipe { nullptr };   // HANDLE
+    void *m_event { nullptr };  // HANDLE, reused by the overlapped read/write waits
     bool  m_open { false };
 #else
     int   m_fd { -1 };
