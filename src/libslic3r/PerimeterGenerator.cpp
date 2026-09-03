@@ -1517,12 +1517,26 @@ void PerimeterGenerator::process_arachne()
             loop_number++;
 
         bool apply_circle_compensation = true;
-        // Orca: properly adjust offset for the outer wall if precise_outer_wall is enabled.
-        ExPolygons last  = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution),
-                           apply_precise_outer_wall ? -float(ext_perimeter_width - ext_perimeter_spacing) : - float(ext_perimeter_width / 2. - ext_perimeter_spacing / 2.));
-        int new_size = std::accumulate(last.begin(), last.end(), 0, [](int prev, const ExPolygon& expoly) { return prev + expoly.num_contours(); });
-        if (last.size() != 1 || new_size != surface.expolygon.num_contours())
+        ExPolygons last;
+        const float perimeter_offset = apply_precise_outer_wall ?
+            -float(ext_perimeter_width - ext_perimeter_spacing) :
+            -float(ext_perimeter_width / 2 - ext_perimeter_spacing / 2);
+        if (this->multi_nozzle_diameter_mode) {
+            const ExPolygons simplify_islands = surface.expolygon.simplify(surface_simplify_resolution);
+            if (!simplify_islands.empty())
+                last = offset_ex(simplify_islands, perimeter_offset);
+        } else {
+            last = offset_ex(surface.expolygon.simplify_p(surface_simplify_resolution), perimeter_offset);
+        }
+
+        if (!last.empty()) {
+            const int new_size = std::accumulate(last.begin(), last.end(), 0,
+                [](int previous, const ExPolygon& expoly) {return previous + expoly.num_contours();});
+            if (last.size() != 1 || new_size != surface.expolygon.num_contours())
+                apply_circle_compensation = false;
+        } else {
             apply_circle_compensation = false;
+        }
 
         std::vector<int> circle_poly_indices;
         Polygons   last_p;

@@ -159,7 +159,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
             [first_layer_extrusion_width_ptr, extrusion_width, nozzle_diameter, lh, bridging, bridge_speed, bridge_flow, limit_by_first_layer_speed, max_print_speed, &max_flow, &max_flow_extrusion_type]
             (FlowRole flow_role, const ConfigOptionFloatOrPercent &this_extrusion_width, double speed, const char *err_msg) {
             Flow flow = bridging ?
-                Flow::new_from_config_width(flow_role, first_positive(first_layer_extrusion_width_ptr, this_extrusion_width, extrusion_width), nozzle_diameter, lh) :
+                Flow::new_from_config_width(flow_role, first_positive(first_layer_extrusion_width_ptr, this_extrusion_width, extrusion_width), nozzle_diameter, nozzle_diameter, lh, false) :
                 Flow::bridging_flow(nozzle_diameter * bridge_flow, nozzle_diameter);
             double volumetric_flow = flow.mm3_per_mm() * (bridging ? bridge_speed : limit_by_first_layer_speed(speed, max_print_speed));
             if (max_flow < volumetric_flow) {
@@ -227,12 +227,12 @@ std::string PresetHints::recommended_thin_wall_thickness(const PresetBundle &pre
         try {
             Flow external_perimeter_flow = Flow::new_from_config_width(
                 frExternalPerimeter, 
-                *print_config.opt<ConfigOptionFloatOrPercent>("outer_wall_line_width"), 
-                nozzle_diameter, layer_height);
+                *print_config.opt<ConfigOptionFloat>("outer_wall_line_width"),
+                nozzle_diameter, nozzle_diameter, layer_height, false);
             Flow perimeter_flow          = Flow::new_from_config_width(
                 frPerimeter, 
-                *print_config.opt<ConfigOptionFloatOrPercent>("inner_wall_line_width"), 
-                nozzle_diameter, layer_height);
+                *print_config.opt<ConfigOptionFloat>("inner_wall_line_width"),
+                nozzle_diameter, nozzle_diameter, layer_height, false);
 	        double width = external_perimeter_flow.width() + external_perimeter_flow.spacing();
 	        for (int i = 2; i <= num_lines; thin_walls ? ++ i : i += 2) {
 	            if (i > 2)
