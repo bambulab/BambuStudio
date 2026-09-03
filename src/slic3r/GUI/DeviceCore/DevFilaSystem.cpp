@@ -983,19 +983,21 @@ bool DevFilaSystem::CanShowFilamentBackup() const
 
 bool DevFilaSystem::HasSubAms() const
 {
-    // A "sub AMS" is an external unit (N3S / N3F / AMS). The N1x built-in rack
-    // AMS (ZMULTI_A/B) is excluded on purpose.
-    for (const auto& kv : amsList) {
-        const DevAms* ams = kv.second;
-        if (!ams || !ams->IsExist()) {
-            continue;
-        }
-        const DevAmsType type = ams->GetAmsType();
-        if (type == DevAmsType::N3S || type == DevAmsType::N3F || type == DevAmsType::AMS) {
-            return true;
-        }
+    auto* nozzle_sys = m_owner ? m_owner->GetNozzleSystem() : nullptr;
+    if (!nozzle_sys) {
+        return false;
     }
-    return false;
+
+    auto has_bind_ams = [](const std::map<int, DevNozzle>& nozzles) {
+        for (const auto& kv : nozzles) {
+            if (!kv.second.GetBindAms().empty()) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    return has_bind_ams(nozzle_sys->GetRackNozzles()) || has_bind_ams(nozzle_sys->GetExtNozzles());
 }
 
 

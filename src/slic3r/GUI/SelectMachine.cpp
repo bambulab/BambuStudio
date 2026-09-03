@@ -193,7 +193,6 @@ static bool fill_nozzle_info_from_group_result(FilamentInfo &info, const std::sh
 
     std::set<double>           diameters;
     std::set<NozzleVolumeType> volume_types;
-    std::set<int>              group_ids;
     for (const auto &nozzle : nozzles) {
         try {
             diameters.insert(boost::lexical_cast<double>(nozzle.diameter));
@@ -201,12 +200,7 @@ static bool fill_nozzle_info_from_group_result(FilamentInfo &info, const std::sh
             diameters.insert(atof(nozzle.diameter.c_str()));
         }
         volume_types.insert(nozzle.volume_type);
-        if (nozzle.group_id >= 0)
-            group_ids.insert(nozzle.group_id);
     }
-
-    // The print-queue path reads group_id from the 3mf; here only the grouping result has it.
-    info.group_id.assign(group_ids.begin(), group_ids.end());
 
     if (diameters.empty())
         return false;
@@ -1413,11 +1407,6 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
 
     int filament_result = 0;
     const bool check_nozzle_type = check_nozzle_type_for_ams_mapping(obj_, m_print_type);
-    // From the sliced config, not the live preset: it produced the group ids we compare against.
-    // Only names the candidate slot; the mapping layer confirms it against the machine.
-    const int sub_ams_group_id = (m_print_type == FROM_NORMAL && m_plater)
-        ? get_effective_ams_nozzle_idx(m_plater->get_partplate_list().get_current_fff_print().config())
-        : -1;
     std::vector<bool> map_opt;  //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
     if (nozzle_nums > 1){
         //get nozzle property, the extders are same?
@@ -1489,7 +1478,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
                 map_opt[0] = false;
                 map_opt[1] = false;
             }
-            filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, check_nozzle_type, sub_ams_group_id);
+            filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, check_nozzle_type);
         }
         //When filaments cannot be matched automatically, whether to use ext for automatic supply
         //auto_supply_with_ext(obj_->vt_slot);
@@ -1502,7 +1491,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
             map_opt[1] = false;
             map_opt[3] = true;
         }
-        filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, check_nozzle_type, sub_ams_group_id);
+        filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, check_nozzle_type);
         // auto_supply_with_ext(obj_->vt_slot);
     }
 
@@ -2511,7 +2500,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
         // External spools are excluded from the unknown-filament confirmation
         // (STUDIO-16294). Legacy machines tag them with the virtual ams id
-        // (254/255), but hotend-rack machines (N1X) give ext spools their
+        // (254/255), but hotend-rack machines give ext spools their
         // own tray ids, so also match on the tray ams_type == EXT_SPOOL.
         if (devPrinterUtil::IsVirtualSlot(fila.ams_id) ||
             (tray_opt.has_value() && tray_opt->ams_type == DevAmsType::EXT_SPOOL)) {
@@ -6841,7 +6830,7 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
     };
     std::map<int, pExtruderStatus> extruder_ams_ext_status;
 
-    // On nozzle-rack machines (e.g. N1X) a single extruder drives multiple
+    // On nozzle-rack machines a single extruder drives multiple
     // hotends/nozzles, so the "mixed AMS + external spool" hint must be judged
     // per nozzle (pos_id) rather than per extruder; otherwise filaments on
     // different nozzles get lumped together and falsely flagged. Non-rack

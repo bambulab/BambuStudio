@@ -444,14 +444,6 @@
   min-height: 0;
 }
 
-.ams-map-hotend__sub-ams-page__body--flat {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 8px 16px 0;
-}
-
 /* Top warning banner: shown when the checked source is a non-Ext (AMS) slot,
    reminding the user to manually pull the external filament for a change-over. */
 .ams-map-hotend__sub-ams-page__warning {
@@ -492,17 +484,27 @@
 
 .ams-map-hotend__sub-ams-page__groups {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 12px;
   flex: 1;
   min-width: 0;
 }
 
+/* A multi-slot unit (e.g. the 4-slot AMS 2 Pro) always takes a row of its own. */
 .ams-map-hotend__sub-ams-page__group {
+  flex: 0 0 100%;
+  box-sizing: border-box;
   background: var(--color-group-bg);
   border: 1px solid var(--color-group-border);
   border-radius: 7.5px;
   overflow: hidden;
+}
+
+/* Single-slot units (AMS HT) share a row, three at most, each keeping its own
+   border and name label. */
+.ams-map-hotend__sub-ams-page__group[data-single-slot="true"] {
+  flex: 0 0 calc((100% - 24px) / 3);
 }
 
 .ams-map-hotend__sub-ams-page__group-inner {
