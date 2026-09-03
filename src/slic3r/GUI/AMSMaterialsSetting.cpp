@@ -117,7 +117,7 @@ static std::vector<ColorPickerPopup::ColorItem> collect_ams_color_items(DevFilaS
 }
 
 AMSMaterialsSetting::AMSMaterialsSetting(wxWindow *parent, wxWindowID id)
-    : AMSPaEditBase(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : AMSTraySettingBase(parent, id, _L("AMS Materials Setting"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     create();
     wxGetApp().UpdateDlgDarkUI(this);
@@ -1114,14 +1114,14 @@ void AMSMaterialsSetting::apply_dialog_size()
     Fit();
 }
 
-bool AMSPaEditBase::is_virtual_tray()
+bool AMSTraySettingBase::is_virtual_tray()
 {
     if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID)
         return true;
     return false;
 }
 
-void AMSPaEditBase::update_kval_editability()
+void AMSTraySettingBase::update_kval_editability()
 {
     bool editable = !obj || !obj->GetCalib()->IsVersionInited();
     if (m_input_k_val) m_input_k_val->Enable(editable);
@@ -1940,7 +1940,7 @@ void AMSMaterialsSetting::trigger_select_filament(const std::string& spool_id,
     apply_filament_selection();
 }
 
-bool AMSPaEditBase::save_pa_profile_selection()
+bool AMSTraySettingBase::save_pa_profile_selection()
 {
     if (!obj) return false;
 
@@ -2010,11 +2010,11 @@ bool AMSPaEditBase::save_pa_profile_selection()
     return true;
 }
 
-void AMSPaEditBase::TryRefreshPAProfiles()
+void AMSTraySettingBase::TryRefreshPAProfiles()
 {
     if (!m_pa_data_pending || !obj) return;
     if (!obj->GetCalib()->IsPAHistoryReady()) {
-        BOOST_LOG_TRIVIAL(info) << "AMSPaEditBase::TryRefreshPAProfiles PA history not ready yet, dev_id="
+        BOOST_LOG_TRIVIAL(info) << "AMSTraySettingBase::TryRefreshPAProfiles PA history not ready yet, dev_id="
                                  << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
                                  << ", pa_history_status=" << (int)obj->GetCalib()->GetPAHistoryStatus();
         return;
@@ -2022,7 +2022,7 @@ void AMSPaEditBase::TryRefreshPAProfiles()
 
     m_pa_data_pending = false;
 
-    BOOST_LOG_TRIVIAL(info) << "AMSPaEditBase::TryRefreshPAProfiles PA history ready, dev_id="
+    BOOST_LOG_TRIVIAL(info) << "AMSTraySettingBase::TryRefreshPAProfiles PA history ready, dev_id="
                              << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id());
     on_pa_history_ready();
 }
@@ -2037,7 +2037,7 @@ void AMSMaterialsSetting::on_pa_history_ready()
     }
 }
 
-void AMSPaEditBase::reset_calibration(const std::string& selected_filament_id)
+void AMSTraySettingBase::reset_calibration(const std::string& selected_filament_id)
 {
     if (!obj) return;
     if (!obj->GetCalib()->IsVersionInited() && obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
@@ -2055,7 +2055,7 @@ void AMSPaEditBase::reset_calibration(const std::string& selected_filament_id)
     }
 }
 
-void AMSPaEditBase::on_select_cali_result(wxCommandEvent &evt)
+void AMSTraySettingBase::on_select_cali_result(wxCommandEvent &evt)
 {
     m_pa_cali_select_id = evt.GetSelection();
     if (m_pa_cali_select_id >= 0 && m_pa_profile_items.size() > (size_t)m_pa_cali_select_id) {
@@ -2072,7 +2072,7 @@ void AMSPaEditBase::on_select_cali_result(wxCommandEvent &evt)
     }
 }
 
-void AMSMaterialsSetting::on_select_nozzle_pos_id(wxCommandEvent &evt)
+void AMSTraySettingBase::on_select_nozzle_pos_id(wxCommandEvent &evt)
 {
     int selected_id = evt.GetSelection();
 
@@ -2084,7 +2084,7 @@ void AMSMaterialsSetting::on_select_nozzle_pos_id(wxCommandEvent &evt)
     }
 }
 
-void AMSPaEditBase::update_pa_profile_items()
+void AMSTraySettingBase::update_pa_profile_items()
 {
     if (!obj || !obj->GetNozzleSystem()) return;
 
@@ -2113,7 +2113,7 @@ void AMSPaEditBase::update_pa_profile_items()
     std::vector<PACalibResult> cali_history = obj->GetCalib()->GetPAHistory();
     std::sort(cali_history.begin(), cali_history.end(), [](const PACalibResult &left, const PACalibResult &right) { return left.nozzle_pos_id < right.nozzle_pos_id; });
 
-    BOOST_LOG_TRIVIAL(info) << "AMSPaEditBase::update_pa_profile_items dev_id=" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
+    BOOST_LOG_TRIVIAL(info) << "AMSTraySettingBase::update_pa_profile_items dev_id=" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
                              << ", ams_id=" << ams_id << ", ams_filament_id=" << ams_filament_id
                              << ", calib_version_inited=" << obj->GetCalib()->IsVersionInited()
                              << ", pa_history_ready=" << obj->GetCalib()->IsPAHistoryReady()
@@ -2204,7 +2204,7 @@ void AMSPaEditBase::update_pa_profile_items()
     update_kval_editability();
 }
 
-bool AMSMaterialsSetting::get_nozzle_type_override(int extruder_id,
+bool AMSTraySettingBase::get_nozzle_type_override(int extruder_id,
                                                     float& nozzle_diameter,
                                                     NozzleFlowType& nozzle_flow_type)
 {
@@ -2219,8 +2219,9 @@ bool AMSMaterialsSetting::get_nozzle_type_override(int extruder_id,
     return true;
 }
 
-void AMSMaterialsSetting::update_nozzle_combo(MachineObject* obj){
+void AMSTraySettingBase::update_nozzle_combo(MachineObject* obj){
     if(!obj || !obj->GetNozzleSystem()) return;
+    if(!m_comboBox_nozzle_type) return;   // subclass without a nozzle-type combo
 
     auto rack = obj->GetNozzleSystem()->GetNozzleRack();
     auto switcher = obj->GetFilaSwitch();
@@ -2278,27 +2279,29 @@ void AMSMaterialsSetting::update_nozzle_combo(MachineObject* obj){
             item += DevNozzle::GetNozzleFlowTypeStr(pair.second);
             m_comboBox_nozzle_type->Append(item, wxNullBitmap, new std::pair<NozzleDiameterType, NozzleFlowType>(pair));
         }
-        m_title_nozzle_type->Show();
+        if (m_title_nozzle_type) m_title_nozzle_type->Show();
         m_comboBox_nozzle_type->Show();
 
         /* set nozzle pos tooltip */
-        auto font = m_title_pa_profile->GetFont();
-        font.SetUnderlined(true);
-        m_title_pa_profile->SetFont(font);
-        {
+        if (m_title_pa_profile) {
+            auto font = m_title_pa_profile->GetFont();
+            font.SetUnderlined(true);
+            m_title_pa_profile->SetFont(font);
             std::string ams_mat_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
             wxString ams_ext_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(ams_mat_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase));
             m_title_pa_profile->SetToolTip(wxString::Format(_L("Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."), ams_ext_name));
         }
     } else{
-        m_title_nozzle_type->Hide();
+        if (m_title_nozzle_type) m_title_nozzle_type->Hide();
         m_comboBox_nozzle_type->Hide();
-        m_nozzle_type_spacer_item->Show(false);
+        if (m_nozzle_type_spacer_item) m_nozzle_type_spacer_item->Show(false);
 
-        auto font = m_title_pa_profile->GetFont();
-        font.SetUnderlined(false);
-        m_title_pa_profile->SetFont(font);
-        m_title_pa_profile->SetToolTip(wxEmptyString);
+        if (m_title_pa_profile) {
+            auto font = m_title_pa_profile->GetFont();
+            font.SetUnderlined(false);
+            m_title_pa_profile->SetFont(font);
+            m_title_pa_profile->SetToolTip(wxEmptyString);
+        }
     }
 
     Layout();
@@ -2325,6 +2328,22 @@ int AMSMaterialsSetting::get_nozzle_sel_by_sn(MachineObject* obj, const std::str
     }
 
     return -1;
+}
+
+bool AMSTraySettingBase::switch_nozzle_combo_to_target(NozzleVolumeType volume_type, float nozzle_diameter)
+{
+    NozzleFlowType  target_flow     = DevNozzle::ToNozzleFlowType(volume_type);
+    NozzleDiameterType target_diam  = DevNozzle::ToNozzleDiameterType(nozzle_diameter);
+    for (unsigned int i = 0; i < m_comboBox_nozzle_type->GetCount(); ++i) {
+        auto* p = (std::pair<NozzleDiameterType, NozzleFlowType>*)m_comboBox_nozzle_type->GetClientData(i);
+        if (p && p->first == target_diam && p->second == target_flow) {
+            m_comboBox_nozzle_type->SetSelection(i);
+            return true;
+        }
+    }
+    m_comboBox_nozzle_type->SetSelection(-1);
+    m_comboBox_nozzle_type->SetValue(wxEmptyString);
+    return false;
 }
 
 int AMSMaterialsSetting::get_cali_index_by_ams_slot(MachineObject *obj, int ams_id, int slot_id)
@@ -2733,6 +2752,7 @@ void ColorPicker::doRender(wxDC& dc)
     const int outer_radius = (std::min(size.x, size.y) - 1) / 2;
     auto radius = m_show_full ? outer_radius - FromDIP(1) : outer_radius;
     if (m_selected) radius -= FromDIP(1);
+    const int diam = std::max(0, 2 * radius);
 
     auto draw_state = [&]() {
         if (m_selected) {
@@ -2810,20 +2830,24 @@ void ColorPicker::doRender(wxDC& dc)
     }
 
     if (alpha == 0) {
-        wxSize bmp_size = m_bitmap_transparent_def.GetBmpSize();
-        int center_x = (size.x - bmp_size.x) / 2;
-        int center_y = (size.y - bmp_size.y) / 2;
-        dc.DrawBitmap(m_bitmap_transparent_def.bmp(), center_x, center_y);
+        if (diam > 0 && m_bitmap_transparent_def_scaled.GetWidth() != diam)
+            m_bitmap_transparent_def_scaled = scale_bitmap_to_diameter(m_bitmap_transparent_def.bmp(), diam);
+        if (m_bitmap_transparent_def_scaled.IsOk()) {
+            int center_x = (size.x - diam) / 2;
+            int center_y = (size.y - diam) / 2;
+            dc.DrawBitmap(m_bitmap_transparent_def_scaled, center_x, center_y);
+        }
     }
     else if (alpha != 254 && alpha != 255) {
-        if (transparent_changed) {
-            m_bitmap_transparent = create_translucent_circle_bitmap(m_colour, size.x, FromDIP(1));
+        if (diam > 0 && (transparent_changed || m_bitmap_transparent.GetWidth() != diam)) {
+            m_bitmap_transparent = create_translucent_circle_bitmap(m_colour, diam, FromDIP(1));
             transparent_changed = false;
         }
-            wxSize bmp_size = m_bitmap_transparent.GetSize();
-            int center_x = (size.x - bmp_size.x) / 2;
-            int center_y = (size.y - bmp_size.y) / 2;
+        if (m_bitmap_transparent.IsOk()) {
+            int center_x = (size.x - diam) / 2;
+            int center_y = (size.y - diam) / 2;
             dc.DrawBitmap(m_bitmap_transparent, center_x, center_y);
+        }
     }
     else {
         dc.SetPen(wxPen(m_colour));

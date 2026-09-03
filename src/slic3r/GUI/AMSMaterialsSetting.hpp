@@ -42,6 +42,7 @@ public:
     wxBitmap        m_bitmap_border;
     wxBitmap        m_bitmap_border_dark;
     wxBitmap        m_bitmap_transparent;
+    wxBitmap        m_bitmap_transparent_def_scaled; // cached, resized to match current render radius
     ScalableBitmap  m_bitmap_transparent_def; //default transparent material
 
     wxColour        m_colour;
@@ -111,10 +112,10 @@ public:
 };
 
 
-class AMSPaEditBase : public DPIDialog
+class AMSTraySettingBase : public DPIDialog
 {
 public:
-    AMSPaEditBase(wxWindow* parent, wxWindowID id, const wxString& title,
+    AMSTraySettingBase(wxWindow* parent, wxWindowID id, const wxString& title,
                     const wxPoint& pos, const wxSize& size, long style)
         : DPIDialog(parent, id, title, pos, size, style) {}
 
@@ -136,9 +137,15 @@ protected:
 
     void update_kval_editability();
 
-    virtual bool get_nozzle_type_override(int /*extruder_id*/,
-                                          float& /*nozzle_diameter*/,
-                                          NozzleFlowType& /*nozzle_flow_type*/) { return false; }
+    // Nozzle Type combo (shared by both dialogs). The combo drives PA-profile
+    // filtering via get_nozzle_type_override(); a subclass creates the widget
+    // in its own layout and this base owns the behavior.
+    void update_nozzle_combo(MachineObject* obj);
+    bool switch_nozzle_combo_to_target(NozzleVolumeType volume_type, float nozzle_diameter);
+    void on_select_nozzle_pos_id(wxCommandEvent& evt);
+    bool get_nozzle_type_override(int extruder_id,
+                                  float& nozzle_diameter,
+                                  NozzleFlowType& nozzle_flow_type);
 
     virtual void on_pa_history_ready() = 0;
 
@@ -150,10 +157,15 @@ protected:
     TextInput* m_input_k_val{nullptr};
     TextInput* m_input_n_val{nullptr};
 
+    ComboBox*     m_comboBox_nozzle_type{nullptr};
+    wxStaticText* m_title_nozzle_type{nullptr};
+    wxSizerItem*  m_nozzle_type_spacer_item{nullptr};
+    wxStaticText* m_title_pa_profile{nullptr};
+
     void reset_calibration(const std::string& selected_filament_id);
 };
 
-class AMSMaterialsSetting : public AMSPaEditBase
+class AMSMaterialsSetting : public AMSTraySettingBase
 {
 public:
     AMSMaterialsSetting(wxWindow *parent, wxWindowID id);
@@ -200,7 +212,6 @@ protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_select_nozzle_id(wxCommandEvent &evt);
     void apply_filament_selection();
-    void on_select_nozzle_pos_id(wxCommandEvent &evt);
     void on_select_ok(wxCommandEvent &event);
     void on_select_reset(wxCommandEvent &event);
     void on_select_close(wxCommandEvent &event);
@@ -213,7 +224,6 @@ protected:
     void update_widgets();
 
     void update_filament_editing(bool is_printing);
-    void update_nozzle_combo(MachineObject* obj);
     int  get_nozzle_combo_id_code() const;
     int  get_nozzle_sel_by_sn(MachineObject* obj, const std::string& sn);
     int  get_cali_index_by_ams_slot(MachineObject* obj, int ams_id, int slot_id);
@@ -228,10 +238,7 @@ protected:
 
     Preset* get_filament_by_id(const std::string& filament_id, bool is_system);
 
-    // AMSPaEditBase overrides
-    bool get_nozzle_type_override(int extruder_id,
-                                  float& nozzle_diameter,
-                                  NozzleFlowType& nozzle_flow_type) override;
+    // AMSTraySettingBase overrides
     void on_pa_history_ready() override;
 
 protected:
@@ -242,9 +249,6 @@ protected:
     wxStaticText *      m_sn_number;
     //wxPanel *           m_panel_body;
     wxStaticText *      m_title_filament;
-    wxStaticText *      m_title_nozzle_type;
-    wxSizerItem *       m_nozzle_type_spacer_item { nullptr };
-    wxStaticText *      m_title_pa_profile;
     wxStaticText *      m_title_colour;
     wxString            m_nozzle_temp_min_str;
     wxString            m_nozzle_temp_max_str;
@@ -272,7 +276,6 @@ protected:
     wxStaticBitmap* m_filament_arrow{nullptr};  // right-side jump arrow
     bool            m_filament_box_editable{true};  // gate clicks without disabling native controls (keeps font consistent)
     wxString   m_current_filament_alias;
-    ComboBox * m_comboBox_nozzle_type;
 
     std::map<std::string, FilamentInfos> map_filament_items;
     std::string                          m_selected_spool_id;

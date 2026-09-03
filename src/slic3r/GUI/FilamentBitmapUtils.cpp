@@ -127,6 +127,16 @@ wxBitmap create_translucent_circle_bitmap(const wxColour& color, int diameter, i
     return wxBitmap(img);
 }
 
+wxBitmap scale_bitmap_to_diameter(const wxBitmap& src, int diameter)
+{
+    if (diameter <= 0 || !src.IsOk()) return wxNullBitmap;
+    if (src.GetWidth() == diameter && src.GetHeight() == diameter) return src;
+    wxImage img = src.ConvertToImage();
+    if (!img.IsOk()) return src;
+    img.Rescale(diameter, diameter, wxIMAGE_QUALITY_HIGH);
+    return wxBitmap(img);
+}
+
 wxBitmap create_translucent_round_rect_bitmap(const wxColour& color, const wxSize& size, double radius)
 {
     const int w = size.GetWidth();

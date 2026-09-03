@@ -7,10 +7,12 @@
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevFilaSystem.h"
 
+#include <algorithm>
+
 namespace Slic3r { namespace GUI {
 
 AMSRFIDMaterialView::AMSRFIDMaterialView(wxWindow* parent, wxWindowID id)
-    : AMSPaEditBase(parent, id, _L("AMS Materials Setting"),
+    : AMSTraySettingBase(parent, id, _L("AMS Materials Setting"),
                       wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     create();
@@ -122,13 +124,33 @@ void AMSRFIDMaterialView::create()
     sizer_left->Add(lbl_kn_title, 0, wxBOTTOM, FromDIP(4));
     sizer_left->Add(wiki_ctrl,    0, 0, 0);
 
-    // Right column: PA Profile row + Factor K row
+    // Right column: Nozzle Type row + PA Profile row + Factor K row
+
+    // Nozzle Type row
+    m_title_nozzle_type = new wxStaticText(m_panel_kn, wxID_ANY, _L("Nozzle Type"),
+        wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1));
+    m_title_nozzle_type->SetFont(Label::Body_13);
+    m_title_nozzle_type->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
+    m_title_nozzle_type->SetMinSize(wxSize(FromDIP(80), -1));
+    m_title_nozzle_type->SetMaxSize(wxSize(FromDIP(80), -1));
+
+    m_comboBox_nozzle_type = new ComboBox(m_panel_kn, wxID_ANY, wxEmptyString,
+        wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
+    m_comboBox_nozzle_type->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& evt){ on_select_nozzle_pos_id(evt); });
+
+    auto* sizer_nozzle = new wxBoxSizer(wxHORIZONTAL);
+    sizer_nozzle->Add(m_title_nozzle_type,   0, wxALIGN_CENTER_VERTICAL, 0);
+    sizer_nozzle->Add(m_comboBox_nozzle_type, 1, wxALIGN_CENTER_VERTICAL, 0);
+
+    // PA Profile row
     auto* lbl_pa_title = new wxStaticText(m_panel_kn, wxID_ANY, _L("PA Profile"),
         wxDefaultPosition, wxSize(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1));
     lbl_pa_title->SetFont(Label::Body_13);
     lbl_pa_title->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
     lbl_pa_title->SetMinSize(wxSize(FromDIP(80), -1));
     lbl_pa_title->SetMaxSize(wxSize(FromDIP(80), -1));
+    // Expose to base-class PA logic (tooltip/underline in update_nozzle_combo)
+    m_title_pa_profile = lbl_pa_title;
 
     // Assign to base-class pointer so PA logic can operate on it
     m_comboBox_cali_result = new ComboBox(m_panel_kn, wxID_ANY, wxEmptyString,
@@ -158,8 +180,9 @@ void AMSRFIDMaterialView::create()
     sizer_k->Add(m_input_k_val, 1, wxALIGN_CENTER_VERTICAL, 0);
 
     auto* sizer_right = new wxBoxSizer(wxVERTICAL);
-    sizer_right->Add(sizer_pa, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
-    sizer_right->Add(sizer_k,  0, wxEXPAND, 0);
+    sizer_right->Add(sizer_nozzle, 0, wxEXPAND | wxBOTTOM, FromDIP(10));
+    sizer_right->Add(sizer_pa,     0, wxEXPAND | wxBOTTOM, FromDIP(10));
+    sizer_right->Add(sizer_k,      0, wxEXPAND, 0);
 
     auto* sizer_kn = new wxBoxSizer(wxHORIZONTAL);
     sizer_kn->Add(sizer_left,  0, wxALIGN_TOP | wxRIGHT, FromDIP(20));
@@ -273,10 +296,11 @@ void AMSRFIDMaterialView::Popup(MachineObject* obj_, int ams_id_, int slot_id_,
 
     // flow dynamics section
     if (should_show_kn_section()) {
+        // Build the Nozzle Type combo
+        update_nozzle_combo(obj);
         if (obj && obj->GetCalib()->IsVersionInited()) {
             // Set pending flag before populating — PA history may not be ready yet
             m_pa_data_pending = !obj->GetCalib()->IsPAHistoryReady();
-            update_pa_profile_items();
             // Restore tray's current cali_idx selection
             int cur_cali_idx = -1;
             if (!obj->vt_slot.empty() && (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID)) {
@@ -284,6 +308,17 @@ void AMSRFIDMaterialView::Popup(MachineObject* obj_, int ams_id_, int slot_id_,
                 cur_cali_idx = obj->vt_slot[vt_idx].cali_idx;
             } else if (auto* tray = obj->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id)))
                 cur_cali_idx = tray->cali_idx;
+            // Select the nozzle-type matching the saved PA profile (mirrors AMSMaterialsSetting).
+            std::vector<PACalibResult> cali_history = obj->GetCalib()->GetPAHistory();
+            auto iter = std::find_if(cali_history.begin(), cali_history.end(),
+                [cur_cali_idx](const PACalibResult& item){ return item.cali_idx == cur_cali_idx; });
+            if (iter != cali_history.end()) {
+                switch_nozzle_combo_to_target(iter->nozzle_volume_type, iter->nozzle_diameter);
+            } else if (m_comboBox_nozzle_type) {
+                m_comboBox_nozzle_type->SetSelection(-1);
+                m_comboBox_nozzle_type->SetValue(wxEmptyString);
+            }
+            update_pa_profile_items();
             int sel = CalibUtils::get_selected_calib_idx(m_pa_profile_items, cur_cali_idx);
             if (sel < 0) sel = 0;
             m_comboBox_cali_result->SetSelection(sel);

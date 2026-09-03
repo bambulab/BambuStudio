@@ -9,7 +9,7 @@
 
 namespace Slic3r { namespace GUI {
 
-class AMSRFIDMaterialView : public AMSPaEditBase
+class AMSRFIDMaterialView : public AMSTraySettingBase
 {
 public:
     AMSRFIDMaterialView(wxWindow* parent, wxWindowID id);

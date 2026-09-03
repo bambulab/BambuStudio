@@ -32,6 +32,10 @@ void get_translucent_checker_colors(const wxColour& color, wxColour& light_out, 
 
 wxBitmap create_translucent_circle_bitmap(const wxColour& color, int diameter, int border_width = 1);
 
+// Rescale an existing bitmap (e.g. a fixed-size icon asset) to an exact square diameter,
+// so it can be drawn to line up with a circle of that diameter.
+wxBitmap scale_bitmap_to_diameter(const wxBitmap& src, int diameter);
+
 wxBitmap create_translucent_round_rect_bitmap(const wxColour& color, const wxSize& size, double radius);
 
 /**

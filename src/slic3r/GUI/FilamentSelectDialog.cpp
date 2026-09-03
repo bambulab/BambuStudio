@@ -644,6 +644,7 @@ void FilamentSelectDialog::fill_manager_tab()
     }
 
     m_mgr_list->FitInside();
+    m_mgr_list->Layout();
     m_chip_offset = 0;
     refresh_chip_visibility();
 }
@@ -851,9 +852,14 @@ wxWindow* FilamentSelectDialog::make_spool_row(wxWindow* parent, const FilamentS
         name = spool_display_name(sp);
         if (!sp.color_name.empty()) name += " " + wxString::FromUTF8(sp.color_name);
     }
-    auto* name_lbl = new Label(row, name);
+    auto* name_lbl = new Label(row, name, wxST_ELLIPSIZE_END);
     name_lbl->SetFont(Label::Body_14);
     name_lbl->SetForegroundColour(dimmed ? AMS_MATERIALS_SETTING_GREY300 : AMS_MATERIALS_SETTING_GREY900);
+    // Cap the name column's min width so a very long custom filament name cannot
+    // inflate the row (and the scrolled list's virtual width) and push the fixed
+    // weight/badge columns out of the viewport. proportion=1 still lets it grow.
+    name_lbl->SetMinSize(wxSize(FromDIP(120), -1));
+    name_lbl->SetToolTip(name);
     h->Add(name_lbl, 1, wxALIGN_CENTER_VERTICAL, 0);
 
     // weight — fixed min-width so the column edge is consistent across all rows
