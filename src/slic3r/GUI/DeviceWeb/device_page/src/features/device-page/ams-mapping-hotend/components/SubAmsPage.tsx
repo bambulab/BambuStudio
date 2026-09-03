@@ -138,6 +138,9 @@ function ParentCard({
         data-state={sub.state}
         data-checked={sub.checked}
         data-clickable={sub.is_pickable}
+        // A locked preload rack slot keeps state Normal, so the dim has to be
+        // keyed off pickability just like the sub-cards do.
+        data-pickable={sub.is_pickable}
         title={tooltip || undefined}
         role={sub.is_pickable ? 'button' : undefined}
         tabIndex={sub.is_pickable ? 0 : -1}
@@ -196,7 +199,21 @@ function ParentCard({
   );
 }
 
+function WarningBanner({ text }: { text: string }) {
+  return (
+    <div className="ams-map-hotend__sub-ams-page__warning">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="6.5" stroke="#ea6e00" strokeWidth="1.2" />
+        <rect x="7.3" y="6.8" width="1.4" height="5" rx="0.7" fill="#ea6e00" />
+        <circle cx="8" cy="4.6" r="0.9" fill="#ea6e00" />
+      </svg>
+      <span>{text}</span>
+    </div>
+  );
+}
+
 export function SubAmsPage({ slot, materialIndex, onSelect, onEdit, onBack, onOpenWiki }: SubAmsPageProps) {
+  const { t } = useTranslation();
   if (!slot.sub_ams || slot.sub_ams.length === 0) return null;
 
   // The slot itself, projected as a sub-slot so it can be rendered with the
@@ -238,15 +255,15 @@ export function SubAmsPage({ slot, materialIndex, onSelect, onEdit, onBack, onOp
     ? slot.sub_ams.filter((g) => !g.is_preload)
     : slot.sub_ams;
 
-  const warningBanner = bannerVisible ? (
-    <div className="ams-map-hotend__sub-ams-page__warning">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <circle cx="8" cy="8" r="6.5" stroke="#ea6e00" strokeWidth="1.2" />
-        <rect x="7.3" y="6.8" width="1.4" height="5" rx="0.7" fill="#ea6e00" />
-        <circle cx="8" cy="4.6" r="0.9" fill="#ea6e00" />
-      </svg>
-      <span>打印过程中需要手动抽出外挂耗材进行换料操作</span>
-    </div>
+  // Scenario 3: the hotend is already fed by the external spool, so the rack
+  // slot behind it is display-only. Mirror the card's hover tip as a persistent
+  // banner, matching ParentCard's own tooltip condition so both always agree.
+  const preloadLocked = slot.ext && !!rackSlot && !rackSlot.is_pickable;
+
+  const warningBanner = preloadLocked ? (
+    <WarningBanner text={resolvePreloadLockedTooltip(t)} />
+  ) : bannerVisible ? (
+    <WarningBanner text="打印过程中需要手动抽出外挂耗材进行换料操作" />
   ) : null;
 
   const backButton = (
