@@ -11,11 +11,13 @@
 #include <wx/scrolwin.h>
 #include <wx/textctrl.h>
 #include "Widgets/SpinInput.hpp"
-#include <wx/checkbox.h>
+#include "Widgets/CheckBox.hpp"
+#include "Widgets/Label.hpp"
 #include <wx/button.h>
 #include "Widgets/Button.hpp"
 #include <wx/glcanvas.h>
 #include <wx/event.h>
+#include <wx/timer.h>
 
 #include <array>
 #include <atomic>
@@ -34,13 +36,17 @@ namespace Slic3r { namespace GUI {
 wxDECLARE_EVENT(EVT_TEXTURE_COMPUTE_DONE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TEXTURE_COMPUTE_PROGRESS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TEXTURE_COMPUTE_ERROR, wxCommandEvent);
-wxDECLARE_EVENT(EVT_TEXTURE_MESH_REPAIR_DECISION, wxCommandEvent);
 
 enum class TextureImportState {
     Idle,
     Computing,
     Ready,
     Error
+};
+
+enum class TextureImportWizardStep {
+    SimplifyColors,
+    FilamentMatching
 };
 
 enum class TextureAutoMixMode {
@@ -122,7 +128,20 @@ public:
     void set_computing_overlay(bool show);
     void reset_view();
 
+    struct ViewState {
+        float zoom  = 1.0f;
+        float rot_x = -30.0f;
+        float rot_y = 30.0f;
+        float pan_x = 0.0f;
+        float pan_y = 0.0f;
+    };
+    ViewState get_view_state() const;
+    void set_view_state(const ViewState& state, bool notify = true);
+    void set_view_changed_callback(std::function<void(const ViewState&)> cb);
+
 private:
+    void notify_view_changed();
+    void present();
     void on_paint(wxPaintEvent& evt);
     void on_size(wxSizeEvent& evt);
     void on_mouse(wxMouseEvent& evt);
@@ -176,6 +195,8 @@ private:
     std::vector<std::array<std::array<float,2>, 3>> m_face_uvs;
     std::vector<int> m_face_tex_ids;
     bool m_multi_tex_dirty = false;
+    std::map<int, std::vector<size_t>> m_tex_groups;
+    bool m_tex_groups_dirty = true;
 
     std::vector<std::array<float, 3>> m_vertex_normals;
 
@@ -188,6 +209,8 @@ private:
     unsigned int m_reset_icon_dark_hover_tex = 0;
     bool         m_reset_overlay_hovered = false;
     bool         m_reset_overlay_pressed = false;
+    bool         m_computing_overlay     = false;
+    std::function<void(const ViewState&)> m_view_changed_cb;
 };
 
 
@@ -219,6 +242,7 @@ public:
 
 private:
     void build_ui();
+    void build_stepper(wxWindow* parent, wxSizer* sizer);
     void build_preview_panel(wxWindow* parent, wxSizer* sizer);
     void build_params_panel(wxWindow* parent, wxSizer* sizer);
     void build_mapping_panel(wxWindow* parent, wxSizer* sizer);
@@ -226,15 +250,28 @@ private:
 
     void set_state(TextureImportState new_state);
     void update_ui_for_state();
+    void set_wizard_step(TextureImportWizardStep step);
+    void update_wizard_ui();
+    void for_each_preview(const std::function<void(TexturePreviewCanvas*)>& fn);
+    void update_preview_modes();
+    void update_color_captions();
+    void recenter_preview_tags();
+    void update_stepper();
+    void style_primary_button(Button* btn);
+    void style_secondary_button(Button* btn);
 
     void start_computation(bool auto_color = false, bool initial = false);
     void cancel_computation();
+    void capture_compute_snapshot();
+    void restore_compute_snapshot();
+    void schedule_recompute(bool auto_color, int delay_ms);
+    void on_recompute_timer(wxTimerEvent& evt);
     void on_computation_complete(wxCommandEvent& evt);
     void on_computation_progress(wxCommandEvent& evt);
     void on_computation_error(wxCommandEvent& evt);
-    void on_mesh_repair_decision_required(wxCommandEvent& evt);
 
     void rebuild_mapping_rows();
+    void layout_mapping_rows();
     void do_auto_match();
     // Reorder m_current_matches into a canonical, predictable order (ascending
     // filament_index, with unmapped entries pushed to the end). Used right
@@ -266,6 +303,7 @@ private:
     int  add_virtual_mixed_filament(const std::string& color_hex,
                                     const std::vector<int>& component_dialog_indices,
                                     const std::vector<int>& ratios);
+    bool remove_virtual_filament(int dialog_index);
     size_t max_filament_count() const;
     bool can_add_virtual_filament() const;
     // Recomputes m_drop_warning_label visibility from m_filaments_dropped and
@@ -276,6 +314,8 @@ private:
     void update_drop_warning_visibility();
     void compact_used_virtual_filaments();
     int  find_closest_filament_index(const std::array<std::size_t, 3>& color) const;
+    int  find_closest_filament_index(const std::array<std::size_t, 3>& color,
+                                    int skip_index, bool physical_only) const;
     // Returns a vector indexed by dialog_index whose value is the 1-based
     // display number that mirrors the final sidebar ordering produced by
     // apply_textured_mesh_import_result (Plater.cpp): ExistingPhysical,
@@ -292,10 +332,11 @@ private:
     void on_smooth_slider_changed(wxCommandEvent& evt);
     void on_smooth_spin_changed(wxCommandEvent& evt);
     void on_smooth_spin_text_changed(wxCommandEvent& evt);
-    void on_apply_clicked(wxCommandEvent& evt);
     void on_auto_merge_toggled(wxCommandEvent& evt);
-    void highlight_view_button(int view_index);
     void on_skip_clicked(wxCommandEvent& evt);
+    void on_next_clicked(wxCommandEvent& evt);
+    void on_prev_clicked(wxCommandEvent& evt);
+    void on_cancel_clicked(wxCommandEvent& evt);
     void on_ok_clicked(wxCommandEvent& evt);
 
     void set_color_count_value(int value, bool update_spin);
@@ -303,10 +344,8 @@ private:
     void preview_spin_text_value(SpinInput* spin, GreenSlider* slider, int& param,
                                  int min_value, int max_value, const wxString& text,
                                  std::function<void()> on_value_changed = {});
-    void update_color_count_preset_buttons();
 
     bool has_valid_result() const;
-    bool is_params_dirty() const;
     void update_confirm_button_state();
 
     Slic3r::TexturedMesh               m_textured_mesh;
@@ -321,6 +360,7 @@ private:
     std::string                        m_default_virtual_filament_preset_name;
 
     TextureImportState                 m_state = TextureImportState::Idle;
+    TextureImportWizardStep            m_wizard_step = TextureImportWizardStep::SimplifyColors;
     bool                               m_skipped = false;
     bool                               m_fallback_to_geometry_only = false;
     // True iff *the most recent* do_auto_match() ran into the global filament
@@ -339,8 +379,14 @@ private:
 
     std::unique_ptr<std::thread>       m_worker;
     std::atomic<bool>                  m_cancel_flag{false};
+    std::atomic<int>                   m_compute_generation{0};
     std::mutex                         m_result_mutex;
     Slic3r::PaintedMesh               m_pending_result;
+    wxTimer*                           m_recompute_timer = nullptr;
+    bool                               m_pending_auto_color = false;
+    bool                               m_updating_params = false;
+    bool                               m_auto_preset_selected = true;
+    bool                               m_advance_to_matching_when_ready = false;
     std::function<bool()>              m_initial_cancel_callback;
     std::function<bool(int)>           m_initial_progress_callback;
     std::function<void(bool)>          m_initial_progress_visibility_callback;
@@ -350,8 +396,15 @@ private:
     bool                               m_initial_computation_failed = false;
     bool                               m_initial_tooltips_set = false;
     bool                               m_current_computation_auto_color = false;
+    Slic3r::MeshRepairCachePtr         m_mesh_repair_cache;
+    // Windows repairs automatically; other platforms import the mesh as-is.
+#ifdef HAS_WIN10SDK
     Slic3r::TexturePaintingSettings::MeshRepairDecision m_mesh_repair_decision =
-        Slic3r::TexturePaintingSettings::MeshRepairDecision::Ask;
+        Slic3r::TexturePaintingSettings::MeshRepairDecision::RepairAndImport;
+#else
+    Slic3r::TexturePaintingSettings::MeshRepairDecision m_mesh_repair_decision =
+        Slic3r::TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair;
+#endif
 
     Button*      m_btn_color_4    = nullptr;
     Button*      m_btn_color_8    = nullptr;
@@ -361,9 +414,13 @@ private:
     SpinInput*   m_color_spin     = nullptr;
     GreenSlider* m_smooth_slider  = nullptr;
     SpinInput*   m_smooth_spin    = nullptr;
-    Button*      m_btn_apply      = nullptr;
+    wxPanel*              m_params_panel   = nullptr;
+    wxPanel*              m_mapping_panel  = nullptr;
+    wxPanel*              m_preview_container = nullptr;
+    wxPanel*              m_stepper_panel  = nullptr;
 
-    wxCheckBox*           m_auto_merge_cb = nullptr;
+    CheckBox*             m_auto_merge_cb = nullptr;
+    wxWindow*             m_auto_merge_row = nullptr;
     Button*               m_btn_auto_mix  = nullptr;
     Button*               m_btn_mix_reset = nullptr;
     bool                  m_auto_mix_applied = false;
@@ -375,32 +432,64 @@ private:
     int                   m_filament_popup_row = -1;
     int                   m_skip_next_filament_popup_row = -1;
 
-    TexturePreviewCanvas* m_preview_canvas      = nullptr;
-    wxPanel*              m_tab_panel           = nullptr;
-    Button*               m_btn_view_original   = nullptr;
-    Button*               m_btn_view_multicolor = nullptr;
+    TexturePreviewCanvas* m_preview_canvas       = nullptr;
+    TexturePreviewCanvas* m_preview_canvas_right = nullptr;
+    wxPanel*              m_lbl_preview_left_panel  = nullptr;
+    wxPanel*              m_lbl_preview_right_panel = nullptr;
+    wxPanel*              m_updating_overlay        = nullptr;
+    wxStaticText*         m_lbl_caption_left  = nullptr;
+    wxStaticText*         m_lbl_caption_right = nullptr;
+    wxStaticText*         m_lbl_mapping       = nullptr;
 
     ProgressDialog* m_progress_dlg = nullptr;
 
-    Button*       m_btn_skip = nullptr;
-    Button*       m_btn_ok   = nullptr;
+    Button*       m_btn_skip   = nullptr;
+    Button*       m_btn_next   = nullptr;
+    Button*       m_btn_prev   = nullptr;
+    Button*       m_btn_cancel = nullptr;
+    Button*       m_btn_ok     = nullptr;
     wxStaticText* m_drop_warning_label = nullptr;
+    wxBoxSizer*   m_footer_btn_sizer   = nullptr;
 
     int   m_param_color_count = 4;
     int   m_param_smooth      = 5;
 
     int   m_applied_color_count = -1;
     int   m_applied_smooth      = -1;
-    wxStaticText* m_hint_label  = nullptr;
+    bool  m_applied_auto_preset = true;
+    int   m_original_color_count = 0;
+
+    struct ComputeSnapshot {
+        bool valid = false;
+        Slic3r::PaintedMesh painted;
+        std::vector<Slic3r::FilamentMatch> matches;
+        std::vector<std::string> filament_color_strs;
+        std::vector<std::string> filament_names;
+        std::vector<std::array<float, 4>> filament_colors_rgba;
+        std::vector<TextureFilamentEntry> filament_entries;
+        std::vector<std::array<float, 4>> new_filament_colors;
+        std::vector<std::string> new_filament_preset_names;
+        std::vector<TextureNewMixedFilament> new_mixed_filaments;
+        int  param_color_count = 4;
+        int  param_smooth = 5;
+        int  applied_color_count = -1;
+        int  applied_smooth = -1;
+        bool auto_preset_selected = true;
+        bool filaments_dropped = false;
+        bool auto_mix_applied = false;
+        TextureAutoMixMode auto_mix_mode = TextureAutoMixMode::CMYW;
+        TextureImportState state = TextureImportState::Idle;
+    };
+    ComputeSnapshot m_compute_snapshot;
 
     static const int ID_COLOR_4     = wxID_HIGHEST + 200;
     static const int ID_COLOR_8     = wxID_HIGHEST + 201;
     static const int ID_COLOR_16    = wxID_HIGHEST + 202;
     static const int ID_COLOR_AUTO  = wxID_HIGHEST + 203;
-    static const int ID_BTN_APPLY   = wxID_HIGHEST + 204;
     static const int ID_BTN_SKIP    = wxID_HIGHEST + 205;
-    static const int ID_VIEW_ORIGINAL   = wxID_HIGHEST + 206;
-    static const int ID_VIEW_MULTICOLOR = wxID_HIGHEST + 207;
+    static const int ID_BTN_NEXT    = wxID_HIGHEST + 206;
+    static const int ID_BTN_PREV    = wxID_HIGHEST + 207;
+    static const int ID_BTN_CANCEL  = wxID_HIGHEST + 208;
 
     wxDECLARE_EVENT_TABLE();
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <chrono>
 #include <cstddef>
 #include <functional>
 #include <memory>
@@ -13,6 +14,18 @@ namespace Slic3r {
 
 class TriangleMesh;
 class ModelVolume;
+
+namespace tex2color {
+struct MeshRepairCache;
+}
+
+// Incomplete-type helpers so GUI code can own a MeshRepairCache without
+// including TextureToColor.hpp (that header pulls Point.hpp via TriMesh).
+struct MeshRepairCacheDeleter {
+    void operator()(tex2color::MeshRepairCache* p) const;
+};
+using MeshRepairCachePtr = std::unique_ptr<tex2color::MeshRepairCache, MeshRepairCacheDeleter>;
+MeshRepairCachePtr make_mesh_repair_cache();
 
 struct TextureImage {
     int width  = 0;
@@ -72,14 +85,31 @@ struct TexturePaintingSettings {
     double      smooth_weight      = 0.5;
     std::size_t oversampling_iters = 0;
     enum class MeshRepairDecision {
-        Ask,
         ImportWithoutRepair,
         RepairAndImport
     };
     MeshRepairDecision mesh_repair_decision = MeshRepairDecision::ImportWithoutRepair;
-    bool* mesh_repair_decision_required = nullptr;
     PaintMeshRepairCallback mesh_repair_callback;
+    // Max wait for Windows 3D repair. Timed-out repair is cancelled and the
+    // original mesh is kept. Zero disables the timeout (homepage repair).
+    // Texture import sets this to 90s.
+    std::chrono::seconds mesh_repair_timeout{0};
+    tex2color::MeshRepairCache* mesh_repair_cache = nullptr;
 };
+
+// True if the cache holds a prepared mesh matching this input. Mismatched
+// identity clears prepared geometry but keeps win10_attempt.
+bool mesh_repair_cache_can_skip_input(const MeshRepairCachePtr& cache,
+                                      std::size_t input_face_count,
+                                      const TexturePaintingSettings& settings);
+bool mesh_repair_cache_win10_failed(const MeshRepairCachePtr& cache);
+
+// Cluster/smooth a previously prepared cache mesh. Does not read TexturedMesh.
+bool cluster_from_repair_cache(
+    PaintedMesh& painted,
+    const TexturePaintingSettings& settings,
+    PaintProgressCallback progress = nullptr,
+    PaintCancelCallback cancel = nullptr);
 
 struct FilamentMatch {
     int    cluster_index   = -1;
