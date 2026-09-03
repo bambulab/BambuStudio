@@ -11,6 +11,7 @@
 #include "DeviceCore/DevNozzleSystem.h"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
+#include "ExtruderPanel.hpp" // NozzleStatus enumerators
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/MultiNozzleUtils.hpp"
 #include "libslic3r/Utils.hpp"
@@ -129,6 +130,145 @@ bool is_extruder_stat_synced(int target_extruder_id)
         }
     }
     return is_synced;
+}
+
+namespace {
+
+// Put a nozzle in the slot the printer reported for it. The id comes off the wire (addr id, else
+// nozzle id), so it can name a slot the preset's `extruder_max_nozzle_count` does not have; writing
+// it unchecked would run past the end of `nozzles`. An id we cannot place is dropped, leaving the
+// slot empty -- the conservative reading, since an empty slot shows as unknown rather than as a
+// nozzle sitting in the wrong place.
+void place_nozzle(std::vector<const DevNozzle *> &nozzles, int slot, const DevNozzle *nozzle)
+{
+    if (slot < 0 || slot >= (int) nozzles.size()) {
+        BOOST_LOG_TRIVIAL(warning) << "collect_nozzle_configs_from_machine: nozzle slot " << slot << " outside the " << nozzles.size() << " slot(s) this extruder has, ignored";
+        return;
+    }
+    nozzles[slot] = nozzle;
+}
+
+} // namespace
+
+// The nozzles the machine reports for one logical extruder, as slot-ordered configs. Rack nozzles
+// are placed by addr id, then overridden by whatever sits on the extruder itself. Slots the machine
+// cannot describe (absent, unknown, error, not a hotend) come back with an empty diameter, and the
+// result always holds `extruder_nozzle_count` entries.
+std::vector<NozzleConfig> collect_nozzle_configs_from_machine(MachineObject *obj, int extruder_idx, int extruder_nozzle_count)
+{
+    if (!obj || !obj->GetNozzleSystem()) { return {}; }
+    if (extruder_nozzle_count <= 0) { return {}; }
+    auto *nozzle_system = obj->GetNozzleSystem();
+
+    // remove duplicated nozzle, total number of nozzle is no more than `extruder_nozzle_count`
+    std::vector<const DevNozzle *> nozzles;
+    nozzles.resize(extruder_nozzle_count);
+
+    // addr_id is more robust
+    auto id_from_rack = [](const DevNozzle &nozzle) {
+        auto addr_id = nozzle.GetAddrId();
+        if (addr_id) return addr_id.value();
+        return nozzle.GetNozzleId();
+    };
+
+    // where the slot should the nozzle on the extuder be in
+    auto id_from_ext = [&nozzles](const DevNozzle &nozzle) -> int {
+        auto addr_id = nozzle.GetAddrId();
+        if (addr_id) return addr_id.value();
+
+        // the first empty slot
+        for (size_t i = 0; i < nozzles.size(); ++i) {
+            if (!nozzles[i]) return i;
+        }
+        return 0;
+    };
+
+    //
+    // check nozzles on the rack
+    for (const auto &[_, nozzle] : nozzle_system->GetRackNozzles()) {
+        if (nozzle.GetLogicExtruderId() != extruder_idx) continue;
+        place_nozzle(nozzles, id_from_rack(nozzle), &nozzle);
+    }
+
+    // check nozzles on the extruder, override the one on the rack
+    for (const auto &[_, nozzle] : nozzle_system->GetExtNozzles()) {
+        if (nozzle.GetLogicExtruderId() != extruder_idx) continue;
+        place_nozzle(nozzles, id_from_ext(nozzle), &nozzle);
+    }
+
+    auto has_rack = nozzle_system->GetNozzleRack()->IsSupported();
+
+    // only check nozzle is normal and unknown when nozzle rack is supported
+    auto is_normal  = [has_rack](const DevNozzle *nozzle) { return !has_rack || nozzle->IsNormal(); };
+    auto is_unknown = [has_rack](const DevNozzle *nozzle) { return has_rack && nozzle->IsUnknown(); };
+
+    std::vector<NozzleConfig> nozzle_configs;
+    nozzle_configs.reserve(extruder_nozzle_count);
+    for (const auto *nozzle : nozzles) {
+        auto &nozzle_config = nozzle_configs.emplace_back();
+        // A slot the machine reported nothing for keeps the default config: empty diameter and
+        // nsUnknown status, i.e. "the machine cannot describe this slot".
+        if (!nozzle) continue;
+
+        if (extruder_nozzle_count <= 1) {
+            nozzle_config.status = NozzleStatus::nsNormal;
+        } else {
+            if (is_unknown(nozzle)) {
+                nozzle_config.status = NozzleStatus::nsUnknown;
+            } else if (!is_normal(nozzle)) {
+                nozzle_config.status = NozzleStatus::nsError;
+            } else {
+                nozzle_config.status = NozzleStatus::nsNormal;
+            }
+        }
+
+        // A nozzle may be fed by more than one filament: the current feed slot(s) plus a distinct preload slot.
+        nozzle_config.ams_slots = nozzle->GetBindAmsSlots();
+        const auto &main_slots  = nozzle_config.ams_slots;
+        for (const auto &preload : nozzle->GetPreloadBindAmsSlots()) {
+            const bool same_as_main = std::any_of(main_slots.begin(), main_slots.end(), [&preload](const DevAmsSlotId &s) { return s == preload; });
+            if (!same_as_main) nozzle_config.ams_slots.push_back(preload);
+        }
+
+        // External AMS units bound to this nozzle — anchors the AMS attach block in the dialog.
+        nozzle_config.has_bind_ams = !nozzle->GetBindAms().empty();
+
+        if (!nozzle->IsExist() || is_unknown(nozzle) || !is_normal(nozzle) || !nozzle->IsHotend()) continue;
+
+        nozzle_config.diameter = get_diameter_string(nozzle->GetNozzleDiameter());
+        nozzle_config.volume   = DevNozzle::ToNozzleVolumeType(nozzle->GetNozzleFlowType());
+    }
+
+    return nozzle_configs;
+}
+
+// What the printer reports right now, for callers deciding "is this nozzle layout synced".
+MachineNozzleBaseline collect_machine_nozzle_baseline(bool is_dual)
+{
+    MachineNozzleBaseline baseline;
+
+    DeviceManager *dev = wxGetApp().getDeviceManager();
+    MachineObject *obj = dev ? dev->get_selected_machine() : nullptr;
+    if (!obj || !obj->is_info_ready()) return baseline;
+
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle) return baseline;
+
+    const auto *max_nozzle_count = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    if (!max_nozzle_count) return baseline;
+
+    const auto &counts = max_nozzle_count->values;
+    if (is_dual) {
+        if (counts.size() < 2) return baseline;
+        baseline.configs[0] = collect_nozzle_configs_from_machine(obj, LOGIC_L_EXTRUDER_ID, counts[0]);
+        baseline.configs[1] = collect_nozzle_configs_from_machine(obj, LOGIC_R_EXTRUDER_ID, counts[1]);
+    } else {
+        if (counts.empty()) return baseline;
+        baseline.configs[0] = collect_nozzle_configs_from_machine(obj, LOGIC_UNIQUE_EXTRUDER_ID, counts[0]);
+    }
+
+    baseline.synced = true;
+    return baseline;
 }
 
 std::string serialize_nozzle_config(const std::map<int, std::vector<DevNozzle>>& nozzle_cfg_map)

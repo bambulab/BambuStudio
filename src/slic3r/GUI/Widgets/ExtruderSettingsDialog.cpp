@@ -945,9 +945,9 @@ ExtruderSettingsDialog::ExtruderSettingsDialog(wxWindow                        *
     m_ams_snapshot[0] = wxGetApp().preset_bundle->get_ams_count(0);
     if (m_is_dual) m_ams_snapshot[1] = wxGetApp().preset_bundle->get_ams_count(1);
 
-    // Snapshot the machine's configs at open — the synced badge compares edits against these.
-    m_seed_configs[0] = left_seeds;
-    m_seed_configs[1] = right_seeds;
+    // What the printer reports right now — the synced badge compares the edits against this
+    // Must precede create_layout(), which calls update_dialog_state().
+    m_machine_baseline = collect_machine_nozzle_baseline(m_is_dual);
 
     SetBackgroundColour(*wxWHITE);
     create_layout(selected_diameter, left_seeds, right_seeds);
@@ -1147,12 +1147,14 @@ void ExtruderSettingsDialog::update_dialog_state()
     const wxString selected    = m_diameter_panel->GetSelectedDiameter();
     bool           has_warning = false;
     bool           has_empty   = false;
-    bool           all_synced  = true; // machine-wide: every extruder must match
+    // Not synced with the printer means not synced, full stop: no amount of matching
+    // between the edits and the configs we were handed can make it synced.
+    bool all_synced = m_machine_baseline.synced; // machine-wide: every extruder must match
 
     auto scan = [&](NozzleColumn *col, int extruder_idx) {
         if (!col) return;
         col->UpdateWarnings(selected, !GetMultiDiameterMode());
-        if (!extruder_configs_match(col->GetConfigs(), m_seed_configs[extruder_idx])) all_synced = false;
+        if (all_synced && !extruder_configs_match(col->GetConfigs(), m_machine_baseline.configs[extruder_idx])) all_synced = false;
         for (const auto &cfg : col->GetConfigs()) {
             if (cfg.diameter.IsEmpty())
                 has_empty = true;

@@ -28,7 +28,7 @@
 #include "libslic3r/PrintBase.hpp"
 #include "libslic3r/Calib.hpp"
 #include "libslic3r/FlushVolCalc.hpp"
-
+#include "ExtruderHelpers.hpp"
 
 #define FILAMENT_SYSTEM_COLORS_NUM      16
 
@@ -136,25 +136,6 @@ wxDECLARE_EVENT(EVT_HELIO_INPUT_DLG, SimpleEvent);
 wxDECLARE_EVENT(EVT_GCODE_VIEWER_CHANGED, SimpleEvent);
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
-
-enum class NozzleStatus : int;
-struct NozzleConfig
-{
-    wxString         diameter;
-    NozzleVolumeType volume {nvtStandard};
-    NozzleStatus     status{2}; // unknow
-    std::vector<std::pair<int, int>> ams_slots;
-    bool has_bind_ams = false;
-
-    NozzleConfig()          = default;
-    NozzleConfig(const wxString &diameter_, NozzleVolumeType volume_, NozzleStatus status_) : diameter(diameter_), volume(volume_), status(status_) {}
-    NozzleConfig(const wxString &diameter_, NozzleVolumeType volume_) : diameter(diameter_), volume(volume_), status(static_cast<NozzleStatus>(0)) {}
-
-    bool is_empty() const
-    {
-        return diameter.IsEmpty();
-    }
-};
 
 class Sidebar : public wxPanel
 {

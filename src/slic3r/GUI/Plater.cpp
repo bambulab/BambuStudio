@@ -426,6 +426,29 @@ static DynamicPrintConfig build_tray_config(DevAmsTray const &tray, std::string 
     return tray_config;
 }
 
+namespace {
+
+// filaments should be in nozzle index order
+class N1xTrayCollector
+{
+public:
+    void Add(int ams_id, int slot_id, DynamicPrintConfig tray_config);
+
+    const std::map<int, DynamicPrintConfig> &Get() const { return m_trays; }
+
+private:
+    std::set<std::pair<int, int>>     m_seen;
+    std::map<int, DynamicPrintConfig> m_trays;
+};
+
+void N1xTrayCollector::Add(int ams_id, int slot_id, DynamicPrintConfig tray_config)
+{
+    if (!m_seen.emplace(ams_id, slot_id).second) return;
+    m_trays.emplace((int) m_trays.size(), std::move(tray_config));
+}
+
+} // namespace
+
 static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(MachineObject *obj)
 {
     auto *nozzle_system = obj->GetNozzleSystem();
@@ -442,13 +465,12 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(Machine
     for (const auto &[_, n] : nozzle_system->GetRackNozzles()) nozzles_by_id[nozzle_id(n)] = &n;
     for (const auto &[_, n] : nozzle_system->GetExtNozzles()) nozzles_by_id.emplace(nozzle_id(n), &n);
 
-    std::map<int, DynamicPrintConfig>       result;
+    N1xTrayCollector                        trays;
     const static std::array<std::string, 4> bind_ams_name{"A", "B", "C", "D"}; // at most 4 ams can be connected at present
 
     const auto &ams_list = fila_system->GetAmsList();
     for (const auto &[idx, nozzle] : nozzles_by_id) {
-        double nozzle_dia    = nozzle->GetNozzleDiameter();
-        int    extruder_flag = 0; // only one extruder
+        double nozzle_dia = nozzle->GetNozzleDiameter();
 
         // Internal AMS trays via ZMULTI rack binding.
         for (const auto &[ams_id, slot_id] : nozzle->GetBindAmsSlots()) {
@@ -460,14 +482,14 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(Machine
                 if (!v_ams_it) continue;
 
                 auto name = fmt::format("{}-Ext", idx + 1);
-                result.emplace(extruder_flag + (ams_id * 4), build_tray_config(*v_ams_it, name, std::to_string(ams_id), "0", nozzle_dia));
+                trays.Add(ams_id, 0, build_tray_config(*v_ams_it, name, std::to_string(ams_id), "0", nozzle_dia));
                 continue;
             }
 
             DevAmsTray *tray = ams_it->second->GetTray(std::to_string(slot_id));
             if (!tray) continue;
             std::string display = std::to_string(idx + 1);
-            result.emplace(extruder_flag + (ams_id * 4 + slot_id), build_tray_config(*tray, display, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia));
+            trays.Add(ams_id, slot_id, build_tray_config(*tray, display, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia));
         }
 
         // Preload AMS trays — the second filament available on this nozzle.
@@ -487,7 +509,7 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(Machine
             DevAmsTray *tray = ams_it->second->GetTray(std::to_string(slot_id));
             if (!tray) continue;
             std::string display = std::to_string(idx + 1);
-            result.emplace(extruder_flag + (ams_id * 4 + slot_id), build_tray_config(*tray, display, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia));
+            trays.Add(ams_id, slot_id, build_tray_config(*tray, display, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia));
         }
 
         // ams name is A, B, C, D in order
@@ -516,13 +538,13 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(Machine
                 } else {
                     name = fmt::format("{}-{}{}", idx + 1, bind_ams_name[*ams_idx], slot_id + 1);
                 }
-                result.emplace(extruder_flag + (ams_id * 4 + slot_id), build_tray_config(*tray, name, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia));
+                trays.Add(ams_id, slot_id, build_tray_config(*tray, name, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia));
             }
             ++(*ams_idx);
         }
     }
 
-    return result;
+    return trays.Get();
 }
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
@@ -937,7 +959,6 @@ struct Sidebar::priv
     void update_extruder_full_stats(int extruder_id, wxString diameter, const std::vector<NozzleConfig> &configs);
     NozzleVolumeType get_volume_type_from_configs(wxString diameter, const std::vector<NozzleConfig> &configs);
     NozzleVolumeType derive_volume_type_from_full_stat(int extruder_id, const wxString &diameter) const;
-    std::vector<NozzleConfig> collect_nozzle_configs_from_machine(MachineObject *obj, int extruder_idx, int extruder_nozzle_count);
     void reset_all_nozzle_status();
 
     void flush_printer_sync(bool restart = false);
@@ -1776,90 +1797,6 @@ NozzleVolumeType Sidebar::priv::derive_volume_type_from_full_stat(int extruder_i
     if (volume_types.size() == 1) return *volume_types.begin();
     if (volume_types.size() > 1) return NozzleVolumeType::nvtHybrid;
     return NozzleVolumeType::nvtStandard;
-}
-
-std::vector<NozzleConfig> Sidebar::priv::collect_nozzle_configs_from_machine(MachineObject *obj, int extruder_idx, int extruder_nozzle_count)
-{
-    if (!obj || !obj->GetNozzleSystem()) { return {}; }
-    auto *nozzle_system = obj->GetNozzleSystem();
-
-    // remove duplicated nozzle, total number of nozzle is no more than `extruder_nozzle_count`
-    std::vector<const DevNozzle *> nozzles;
-    nozzles.resize(extruder_nozzle_count);
-
-    // addr_id is more robust
-    auto id_from_rack = [](const DevNozzle &nozzle) {
-        auto addr_id = nozzle.GetAddrId();
-        if (addr_id) return addr_id.value();
-        return nozzle.GetNozzleId();
-    };
-
-    // where the slot should the nozzle on the extuder be in
-    auto id_from_ext = [&nozzles](const DevNozzle &nozzle) -> int {
-        auto addr_id = nozzle.GetAddrId();
-        if (addr_id) return addr_id.value();
-
-        // the first empty slot
-        for (size_t i = 0; i < nozzles.size(); ++i) {
-            if (!nozzles[i]) return i;
-        }
-        return 0;
-    };
-
-    // check nozzle on the rack
-    for (const auto &[_, nozzle] : nozzle_system->GetRackNozzles()) {
-        if (nozzle.GetLogicExtruderId() != extruder_idx) continue;
-        nozzles[id_from_rack(nozzle)] = &nozzle;
-    }
-
-    // check nozzles on the extruder, override the one on the rack
-    for (const auto &[_, nozzle] : nozzle_system->GetExtNozzles()) {
-        if (nozzle.GetLogicExtruderId() != extruder_idx) continue;
-        auto id     = id_from_ext(nozzle);
-        nozzles[id] = &nozzle;
-    }
-
-    auto has_rack = nozzle_system->GetNozzleRack()->IsSupported();
-
-    // only check nozzle is normal and unknown when nozzle rack is supported
-    auto is_normal  = [has_rack](const DevNozzle *nozzle) { return !has_rack || nozzle->IsNormal(); };
-    auto is_unknown = [has_rack](const DevNozzle *nozzle) { return has_rack && nozzle->IsUnknown(); };
-
-    std::vector<NozzleConfig> nozzle_configs;
-    nozzle_configs.reserve(extruder_nozzle_count);
-    for (const auto *nozzle : nozzles) {
-        auto &nozzle_config = nozzle_configs.emplace_back();
-
-        if (extruder_nozzle_count <= 1) {
-            nozzle_config.status = NozzleStatus::nsNormal;
-        } else {
-            if (is_unknown(nozzle)) {
-                nozzle_config.status = NozzleStatus::nsUnknown;
-            } else if (!is_normal(nozzle)) {
-                nozzle_config.status = NozzleStatus::nsError;
-            } else {
-                nozzle_config.status = NozzleStatus::nsNormal;
-            }
-        }
-
-        // A nozzle may be fed by more than one filament: the current feed slot(s) plus a distinct preload slot.
-        nozzle_config.ams_slots = nozzle->GetBindAmsSlots();
-        const auto &main_slots  = nozzle_config.ams_slots;
-        for (const auto &preload : nozzle->GetPreloadBindAmsSlots()) {
-            const bool same_as_main = std::any_of(main_slots.begin(), main_slots.end(), [&preload](const DevAmsSlotId &s) { return s == preload; });
-            if (!same_as_main) nozzle_config.ams_slots.push_back(preload);
-        }
-
-        // External AMS units bound to this nozzle — anchors the AMS attach block in the dialog.
-        nozzle_config.has_bind_ams = !nozzle->GetBindAms().empty();
-
-        if (!nozzle->IsExist() || is_unknown(nozzle) || !is_normal(nozzle) || !nozzle->IsHotend()) continue;
-
-        nozzle_config.diameter = get_diameter_string(nozzle->GetNozzleDiameter());
-        nozzle_config.volume   = DevNozzle::ToNozzleVolumeType(nozzle->GetNozzleFlowType());
-    }
-
-    return nozzle_configs;
 }
 
 static void notify_filament_nozzle_diameter_fallback(const std::vector<std::string> &previous_selections)
@@ -21325,8 +21262,6 @@ bool Plater::try_sync_preset_with_connected_printer(int& nozzle_diameter)
     });
     return true;
 }
-
-
 
 // BBS: FIXME, missing resotre logic
 int Plater::load_project(wxString const &filename2,

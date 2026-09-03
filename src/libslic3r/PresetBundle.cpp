@@ -2816,6 +2816,51 @@ void PresetBundle::get_ams_cobox_infos(AMSComboInfo &combox_info, bool skip_ext)
     }
 }
 
+namespace {
+
+// One AMS tray as seen by sync_ams_list, plus the side effects that have to wait until we know
+// whether the tray actually reaches the project filament list.
+struct AmsInfo
+{
+    bool                     valid{false};
+    bool                     is_map{false};
+    std::string              filament_color      = "";
+    std::string              filament_color_type = "";
+    std::string              filament_preset     = "";
+    std::vector<std::string> mutli_filament_color;
+    // The tray config this entry came from, i.e. the same pointer stored in `unknowns`.
+    const DynamicPrintConfig *source{nullptr};
+    // Preset to enable once the tray is known to be synced. Null when the tray reuses a preset
+    // that is already in the project filament list.
+    Preset *install_preset{nullptr};
+    AMSMapInfo mapping;
+};
+
+// Apply the side effects the first pass over the AMS trays deferred. A tray only earns its preset
+// install and its "unknown filament" warning once it has actually reached the project filament
+// list: trays excluded by "add unused filaments to filaments list" (or by the duplicate and slot
+// count limits) would otherwise install a preset the user declined, and be named in a warning
+// about a filament that was never synced.
+// Precondition: the caller must not move or free the presets referenced by
+// `ams_infos[].install_preset`/`.source` between the deferring pass and this call. Both are raw
+// pointers into live containers, so a reallocation in between would leave them dangling.
+void apply_synced_tray_side_effects(const std::vector<AmsInfo>                                &ams_infos,
+                                    const std::set<const DynamicPrintConfig *>                &unsynced,
+                                    std::vector<std::pair<DynamicPrintConfig *, std::string>> &unknowns)
+{
+    for (const auto &info : ams_infos) {
+        if (info.install_preset && unsynced.count(info.source) == 0) info.install_preset->is_visible = true;
+    }
+
+    if (unsynced.empty()) return;
+
+    unknowns.erase(std::remove_if(unknowns.begin(), unknowns.end(),
+                                  [&unsynced](const std::pair<DynamicPrintConfig *, std::string> &unknown) { return unsynced.count(unknown.first) > 0; }),
+                   unknowns.end());
+}
+
+} // namespace
+
 unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfig *, std::string>> &unknowns,
                                          bool                                                       use_map,
                                          std::map<int, AMSMapInfo> &                                maps,
@@ -2831,19 +2876,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
     std::vector<AMSMapInfo>  synced_ams_maps;
     ams_multi_color_filment.clear();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": filament_ams_list size: %1%") % filament_ams_list.size();
-    struct AmsInfo
-    {
-        bool valid{false};
-        bool is_map{false};
-        std::string filament_color  = "";
-        std::string filament_color_type = "";
-        std::string filament_preset = "";
-        std::vector<std::string> mutli_filament_color;
-        AMSMapInfo  mapping;
-    };
-    auto is_double_extruder = get_printer_extruder_count() == 2;
     std::vector<AmsInfo> ams_infos;
-    int                  index = 0;
     std::set<std::pair<std::string, std::string>> added_filaments;
     for (auto &entry : filament_ams_list) {
         auto & ams = entry.second;
@@ -2866,13 +2899,13 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         auto ams_id     = ams.opt_string("ams_id", 0u);
         auto slot_id    = ams.opt_string("slot_id", 0u);
         ams_infos.push_back({filament_id.empty() ? false : true,false, filament_color});
+        ams_infos.back().source = &ams;
         AMSMapInfo temp = {ams_id, slot_id};
         if (const auto *tray_diameters = ams.option<ConfigOptionFloats>("tray_nozzle_diameter");
             tray_diameters != nullptr && !tray_diameters->values.empty() && tray_diameters->values.front() > 0.)
             temp.nozzle_diameter = format_diameter_to_str(tray_diameters->values.front());
         ams_infos.back().mapping = temp;
         ams_array_maps.push_back(temp);
-        index++;
         if (filament_id.empty()) {
             if (use_map) {
                 for (int j = maps.size() - 1; j >= 0; j--) {
@@ -2941,7 +2974,10 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         // A filament that the machine actually uses should be enabled (installed)
         // in Studio even if the user never ticked it in the filament preferences,
         // otherwise it stays hidden in the filament settings dropdown after sync.
-        iter->is_visible = true;
+        // Deferred to apply_synced_tray_side_effects: a tray that the mapping pass below
+        // drops was never synced, so installing its preset here would enable a filament
+        // the user asked not to add.
+        ams_infos.back().install_preset = &(*iter);
         ams_filament_presets.push_back(iter->name);
         ams_filament_colors.push_back(filament_color);
         ams_filament_color_types.push_back(filament_color_type);
@@ -3008,6 +3044,11 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             if (mixed_per_part_opt)   mixed_per_part_opt->values.resize(phys_count);
         }
     }
+
+    // AMS trays that end up excluded from the project filament list, so their deferred side
+    // effects must not be applied. Only the mapping branch can exclude a tray; the overwrite
+    // branch takes every synced tray, so the set stays empty there.
+    std::set<const DynamicPrintConfig *> unsynced_trays;
 
     if (use_map) {
         auto check_has_merge_info = [](std::map<int, AMSMapInfo> &maps, MergeFilamentInfo &merge_info, int exist_colors_size) {
@@ -3078,6 +3119,8 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 ams_infos[i].mutli_filament_color = ams_multi_color_filment[i];
                 if (!ams_infos[i].is_map) {
                     need_append_colors.emplace_back(ams_infos[i]);
+                    // Unmapped: only reaches the list if it is appended below.
+                    unsynced_trays.insert(ams_infos[i].source);
                     ams_filament_colors[i]     = "";
                     ams_filament_color_types[i] = "";
                     ams_filament_presets[i]    = "";
@@ -3116,6 +3159,9 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                     break;
                 }
                 auto idx = get_idx_in_array(exist_filament_presets, exist_colors, need_append_colors[i].filament_preset, need_append_colors[i].filament_color);
+                // Represented in the final list either way: appended just below, or already
+                // present as an identical preset and colour.
+                unsynced_trays.erase(need_append_colors[i].source);
                 if (idx >= 0) {
                     if (maps.find(idx) == maps.end())
                         maps[idx] = need_append_colors[i].mapping;
@@ -3133,8 +3179,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         ams_multi_color_filment = exist_multi_color_filment;
         this->filament_presets = exist_filament_presets;
         filament_map->values.resize(exist_filament_presets.size(), 1);
-    }
-    else {//overwrite;
+    } else { // overwrite;
         filament_color->values = ams_filament_colors;
         filament_color_type->values = ams_filament_color_types;
         this->filament_presets = ams_filament_presets;
@@ -3152,6 +3197,9 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         if (support_interface_filament_opt->value > ams_filament_color_types.size())
             support_interface_filament_opt->value = 0;
     }
+
+
+    apply_synced_tray_side_effects(ams_infos, unsynced_trays, unknowns);
 
     // Re-append mixed filament slots that were stripped before AMS sync
     if (!mixed_snapshots.empty()) {

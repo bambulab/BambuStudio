@@ -5,8 +5,8 @@
 #include <wx/string.h>
 
 #include "slic3r/GUI/GUI_Utils.hpp"
-#include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/ExtruderPanel.hpp"
+#include "slic3r/GUI/ExtruderHelpers.hpp"
 
 class wxBoxSizer;
 class CheckBox;
@@ -20,7 +20,9 @@ class NozzleColumn;
 //
 // Seeded from the caller's maintained in-memory configs (NOT re-collected from a
 // MachineObject): the machine may be absent/disconnected, and the user may have
-// already edited the config, so the passed-in vectors are the source of truth.
+// already edited the config, so the passed-in vectors are the source of truth for what
+// is *displayed*. Whether that is *synced* is a separate question, answered at open by
+// collect_machine_nozzle_baseline() (ExtruderHelpers), which asks the printer.
 class ExtruderSettingsDialog : public DPIDialog
 {
 public:
@@ -59,9 +61,9 @@ private:
     // registry is a live global side-effect of the add/remove popups). Pairs are {n4, n1}.
     std::pair<int, int> m_ams_snapshot[2]{{0, 0}, {0, 0}};
 
-    // The per-extruder configs the dialog opened with (from the machine at open). The
-    // synced badge shows when the edited configs still match these, slot-for-slot.
-    std::vector<NozzleConfig> m_seed_configs[2];
+    // What the printer reported when this dialog opened. The synced badge shows only when the
+    // printer is synced AND the edited configs still match it, slot-for-slot.
+    MachineNozzleBaseline m_machine_baseline;
 
     DiameterButtonPanel *m_diameter_panel{nullptr};
     wxPanel             *m_columns_container{nullptr}; // holds the columns; badge anchors here
