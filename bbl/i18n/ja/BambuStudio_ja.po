@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 19:47+0800\n"
+"POT-Creation-Date: 2026-09-03 21:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -13368,7 +13368,7 @@ msgstr "オーバーハングの冷却閾値"
 
 #, no-c-format, no-boost-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
-msgstr "印刷部分のオーバーハング角度がこの値を超えた場合、冷却ファンを特定の速度で強制的に動作させます。この値は、下のレイヤーからのサポートがない線の幅の割合（%%）として表されます。0%%に設定すると、オーバーハング角度に関係なく、すべての外壁の冷却が強制されます。"
+msgstr "印刷部分のオーバーハング角度がこの値を超えた場合、冷却ファンを特定の速度で強制的に動作させます。この値は、下のレイヤーからのサポートがない線の幅の割合（%%）として表されます。0%に設定すると、オーバーハング角度に関係なく、すべての外壁の冷却が強制されます。"
 
 msgid "Overhang threshold for participating cooling"
 msgstr "冷却に参加するためのオーバーハングしきい値"
@@ -13797,7 +13797,7 @@ msgstr "ボトム表面密度"
 #, no-c-format, no-boost-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr ""
-"ボトム表面のインフィル密度です。100%% ではボトム層が完全にソリッドになり、値を下げるとテクスチャ状の表面になります。これは見た目や機能上の目的のための設定で、押出過多などの問題を解決するためのものではありません。\n"
+"ボトム表面のインフィル密度です。100% ではボトム層が完全にソリッドになり、値を下げるとテクスチャ状の表面になります。これは見た目や機能上の目的のための設定で、押出過多などの問題を解決するためのものではありません。\n"
 "警告：この値を下げると、ベッド密着性が低下する可能性があります。"
 
 msgid "Internal solid infill pattern"
@@ -14370,7 +14370,7 @@ msgstr "充填密度"
 
 #, no-c-format, no-boost-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
-msgstr "内部スパース インフィルの密度です。100%%の場合、全体がソリッドになります。"
+msgstr "内部スパース インフィルの密度です。100%の場合、全体がソリッドになります。"
 
 msgid "Fill multiline"
 msgstr "複数ラインで充填"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 19:47+0800\n"
+"POT-Creation-Date: 2026-09-03 21:56+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -13407,7 +13407,7 @@ msgstr "Överhängs kylningens tröskel"
 
 #, no-c-format, no-boost-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
-msgstr "Tvinga kylfläkten att vara en specifik hastighet när överhängs graden av objektets del överstiger detta värde. Detta uttrycks som en procentsats som anger hur mycket bredden på linjen utan stöd från det nedre lagret. 0%% betyder tvinga kylning för all yttervägg oavsett överhängs grad."
+msgstr "Tvinga kylfläkten att vara en specifik hastighet när överhängs graden av objektets del överstiger detta värde. Detta uttrycks som en procentsats som anger hur mycket bredden på linjen utan stöd från det nedre lagret. 0% betyder tvinga kylning för all yttervägg oavsett överhängs grad."
 
 msgid "Overhang threshold for participating cooling"
 msgstr "Gränsvärde för överhäng vid deltagande kylning"
@@ -13835,7 +13835,7 @@ msgstr "Botten ytans densitet"
 
 #, no-c-format, no-boost-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
-msgstr "Densiteten av botten ytans utfyllnad, 100%% innebär en helt solid fyllt topp skikt. Lägre värden skapar en strukturerad bottenyta, avsedd för estetiska eller funktionella ändamål, inte för att åtgärda problem som över extrudering. VIKTIGT: Att sänka detta värde kan påverka vidhäftningen på bädden."
+msgstr "Densiteten av botten ytans utfyllnad, 100% innebär en helt solid fyllt topp skikt. Lägre värden skapar en strukturerad bottenyta, avsedd för estetiska eller funktionella ändamål, inte för att åtgärda problem som över extrudering. VIKTIGT: Att sänka detta värde kan påverka vidhäftningen på bädden."
 
 msgid "Internal solid infill pattern"
 msgstr "Invändigt mönster för fyllning av solida ytor"
@@ -14396,7 +14396,7 @@ msgstr "Sparsam ifyllnads densitet"
 
 #, no-c-format, no-boost-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
-msgstr "Densiteten av ifyllnad. 100%% betyder att objektet blir solid rakt igenom"
+msgstr "Densiteten av ifyllnad. 100% betyder att objektet blir solid rakt igenom"
 
 msgid "Fill multiline"
 msgstr "Fyll flerradig"

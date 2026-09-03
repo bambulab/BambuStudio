@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 19:47+0800\n"
+"POT-Creation-Date: 2026-09-03 21:56+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4792,6 +4792,8 @@ msgid ""
 "lock depth should smaller than skin depth.\n"
 "Reset to 50% of skin depth"
 msgstr ""
+"互锁深度应该比表皮深度小,\n"
+"重设为表皮深度的一半"
 
 msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
 msgstr "交替额外墙层与旋转花瓶模式不兼容。若要启用交替额外墙层，建议进行以下调整："
@@ -8646,7 +8648,7 @@ msgid "The volume of the object is zero"
 msgstr "对象的体积为零"
 
 msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
-msgstr ""
+msgstr "文件中对象尺寸过小，是否默认转换成毫米单位导入？"
 
 msgid "Object too small"
 msgstr "对象尺寸过小"
@@ -13416,7 +13418,7 @@ msgstr "冷却悬空阈值"
 
 #, no-c-format, no-boost-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
-msgstr "当打印件的悬空程度超过此值时，强制冷却风扇达到特定速度。用百分比表示，表明没有下层支撑的线的宽度是多少。0%%意味着无论悬垂程度如何，都要对所有外壁强制冷却。"
+msgstr "当打印件的悬空程度超过此值时，强制冷却风扇达到特定速度。用百分比表示，表明没有下层支撑的线的宽度是多少。0%意味着无论悬垂程度如何，都要对所有外壁强制冷却。"
 
 msgid "Overhang threshold for participating cooling"
 msgstr "参与冷却降速的悬垂阈值"
@@ -13508,7 +13510,7 @@ msgstr "mm/s"
 
 #, no-c-format, no-boost-format
 msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
-msgstr ""
+msgstr "100% 悬空墙的速度，与下层无重叠。"
 
 msgid "Slow down by height"
 msgstr "随高度降速"
@@ -13845,7 +13847,7 @@ msgstr "底面密度"
 
 #, no-c-format, no-boost-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
-msgstr "底面的填充密度，100%%表示底面为完全实心填充。较低数值会产生纹理化的底面，旨在满足美观或功能需求，而非用于修复诸如过度挤出等问题。警告：降低此值可能会负面影响打印平台附着性。"
+msgstr "底面的填充密度，100%表示底面为完全实心填充。较低数值会产生纹理化的底面，旨在满足美观或功能需求，而非用于修复诸如过度挤出等问题。警告：降低此值可能会负面影响打印平台附着性。"
 
 msgid "Internal solid infill pattern"
 msgstr "内部实心填充图案"
@@ -13854,10 +13856,10 @@ msgid "Line pattern of internal solid infill. if the detect narrow internal soli
 msgstr "内部实心填充的线型图案。如果启用了检测狭窄的内部实心填充，将使用同心圆图案来填充小区域。"
 
 msgid "Sub-top surface pattern"
-msgstr ""
+msgstr "次顶面图案"
 
 msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
-msgstr ""
+msgstr "可见顶面正下方那层内部实心填充的走线图案。单调填充能减少透过顶面表层显现的挤出纹路。"
 
 msgid "Line width of outer wall"
 msgstr "外墙的线宽"
@@ -14409,7 +14411,7 @@ msgstr "稀疏填充密度"
 
 #, no-c-format, no-boost-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
-msgstr "稀疏填充密度, 100%% 意味着完全实心。"
+msgstr "稀疏填充密度, 100% 意味着完全实心。"
 
 msgid "Fill multiline"
 msgstr "填充多线"
@@ -16212,7 +16214,7 @@ msgstr ""
 
 #, no-c-format, no-boost-format
 msgid " doesn't work at 100% density "
-msgstr ""
+msgstr "填充图案不支持 100% 密度"
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "旋转花瓶模式下非法的值"

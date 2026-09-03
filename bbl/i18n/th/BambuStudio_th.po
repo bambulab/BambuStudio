@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 19:47+0800\n"
+"POT-Creation-Date: 2026-09-03 21:56+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -13083,7 +13083,7 @@ msgstr ""
 
 #, no-c-format, no-boost-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
-msgstr "บังคับให้พัดลมระบายความร้อนทำงานที่ความเร็วที่กำหนดเมื่อองศาส่วนยื่นของชิ้นงานพิมพ์เกินค่านี้ แสดงเป็นเปอร์เซ็นต์ที่ระบุความกว้างของเส้นที่ไม่มีการรองรับจากเลเยอร์ด้านล่าง ค่า 0%% หมายถึงการบังคับระบายความร้อนสำหรับผนังด้านนอกทั้งหมด โดยไม่คำนึงถึงองศาส่วนยื่น"
+msgstr "บังคับให้พัดลมระบายความร้อนทำงานที่ความเร็วที่กำหนดเมื่อองศาส่วนยื่นของชิ้นงานพิมพ์เกินค่านี้ แสดงเป็นเปอร์เซ็นต์ที่ระบุความกว้างของเส้นที่ไม่มีการรองรับจากเลเยอร์ด้านล่าง ค่า 0% หมายถึงการบังคับระบายความร้อนสำหรับผนังด้านนอกทั้งหมด โดยไม่คำนึงถึงองศาส่วนยื่น"
 
 msgid "Overhang threshold for participating cooling"
 msgstr ""
@@ -13489,7 +13489,7 @@ msgstr ""
 
 #, no-c-format, no-boost-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
-msgstr "ความหนาแน่นของการเติมพื้นผิวด้านล่าง 100%% หมายถึงชั้นบนที่เติมเต็มทึบทั้งหมด ค่าที่ต่ำกว่าจะสร้างพื้นผิวด้านล่างที่มีลวดลาย มีวัตถุประสงค์เพื่อความสวยงามหรือการใช้งาน ไม่ใช่เพื่อแก้ไขปัญหาเช่นการฉีดมากเกินไป คำเตือน: การลดค่านี้อาจส่งผลเสียต่อการยึดเกาะของฐานพิมพ์"
+msgstr "ความหนาแน่นของการเติมพื้นผิวด้านล่าง 100% หมายถึงชั้นบนที่เติมเต็มทึบทั้งหมด ค่าที่ต่ำกว่าจะสร้างพื้นผิวด้านล่างที่มีลวดลาย มีวัตถุประสงค์เพื่อความสวยงามหรือการใช้งาน ไม่ใช่เพื่อแก้ไขปัญหาเช่นการฉีดมากเกินไป คำเตือน: การลดค่านี้อาจส่งผลเสียต่อการยึดเกาะของฐานพิมพ์"
 
 msgid "Internal solid infill pattern"
 msgstr ""
@@ -14048,7 +14048,7 @@ msgstr ""
 
 #, no-c-format, no-boost-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
-msgstr "ความหนาแน่นของโครงภายในโปร่ง 100%% หมายถึงเนื้อตันตลอด"
+msgstr "ความหนาแน่นของโครงภายในโปร่ง 100% หมายถึงเนื้อตันตลอด"
 
 msgid "Fill multiline"
 msgstr ""
