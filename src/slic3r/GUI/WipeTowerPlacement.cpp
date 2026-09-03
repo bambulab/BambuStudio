@@ -97,11 +97,15 @@ BoundingBoxf wipe_tower_legal_corner_range(const BoundingBoxf3 &build_volume, co
 }
 
 namespace {
+// A push lands exactly on a forbidden edge; storing the result as float can fall a few
+// ulps back inside, so sub-micron overlap must not count. Shared by both overlap checks below.
+static constexpr double WIPE_TOWER_OVERLAP_EPS = 1e-3;
 struct AvoidAABB2d { double minx, miny, maxx, maxy; };
 
 static inline bool avoid_overlap(const AvoidAABB2d &a, const AvoidAABB2d &b) {
-    // Strict overlap (touching edges don't count).
-    return a.minx < b.maxx && a.maxx > b.minx && a.miny < b.maxy && a.maxy > b.miny;
+    // Overlap requires more than WIPE_TOWER_OVERLAP_EPS of penetration on every axis.
+    return a.minx < b.maxx - WIPE_TOWER_OVERLAP_EPS && a.maxx > b.minx + WIPE_TOWER_OVERLAP_EPS &&
+           a.miny < b.maxy - WIPE_TOWER_OVERLAP_EPS && a.maxy > b.miny + WIPE_TOWER_OVERLAP_EPS;
 }
 
 } // namespace
@@ -318,8 +322,9 @@ namespace {
 static inline bool wipe_tower_rect_overlap(double aminx, double aminy, double amaxx, double amaxy,
                                             double bminx, double bminy, double bmaxx, double bmaxy)
 {
-    // Strict overlap (touching edges don't count).
-    return aminx < bmaxx && amaxx > bminx && aminy < bmaxy && amaxy > bminy;
+    // Overlap requires more than WIPE_TOWER_OVERLAP_EPS of penetration on every axis.
+    return aminx < bmaxx - WIPE_TOWER_OVERLAP_EPS && amaxx > bminx + WIPE_TOWER_OVERLAP_EPS &&
+           aminy < bmaxy - WIPE_TOWER_OVERLAP_EPS && amaxy > bminy + WIPE_TOWER_OVERLAP_EPS;
 }
 } // namespace
 
