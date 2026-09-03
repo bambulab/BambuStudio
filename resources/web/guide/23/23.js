@@ -881,6 +881,7 @@ function renderCustomGroup(title, items, isCollapsible) {
                 '<span class="CFilament_Type">' + escapeHtml(F_type) + '</span>' +
                 '<span class="CFilament_Date">' + escapeHtml(F_date) + '</span>' +
                 '<img onClick="CFEdit(\'' + F_id + '\')" class="CFilament_EditBtn" src="../../image/edit.svg" />' +
+                '<img onClick="CFDelete(\'' + F_id + '\',\'' + escapeHtml(F_name).replace(/'/g, '&#39;') + '\')" class="CFilament_DeleteBtn" src="../../image/delete.svg" />' +
                 '</div>';
         }
         html += '</div>';
@@ -899,6 +900,18 @@ function CFEdit(fid) {
     tSend['sequence_id'] = Math.round(new Date() / 1000);
     tSend['command'] = "modify_custom_filament";
     tSend['id'] = fid;
+    SendWXMessage(JSON.stringify(tSend));
+}
+
+function CFDelete(fid, fname) {
+    // C++ side runs the native confirm dialog + actual preset deletion, then re-sends
+    // update_custom_filaments to refresh the list. Passing the name lets C++ display it
+    // in the confirm prompt.
+    var tSend = {};
+    tSend['sequence_id'] = Math.round(new Date() / 1000);
+    tSend['command'] = "delete_custom_filament";
+    tSend['id'] = fid;
+    tSend['name'] = fname || '';
     SendWXMessage(JSON.stringify(tSend));
 }
 

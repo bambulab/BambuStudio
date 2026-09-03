@@ -17017,10 +17017,10 @@ msgstr "You have not selected a printer or preset yet. Please select at least on
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
 "The Filament name %s you created already exists. \n"
-"If you continue, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "Some existing presets have failed to be created, as follows:\n"

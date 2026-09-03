@@ -102,6 +102,40 @@ $(document).ready(function () {
     }
 });
 
+// Render the nozzle checkboxes for the currently selected base preset. Only nozzles
+// covered by `selectedPreset.nozzle_presets` are checkable — the others are shown
+// disabled/greyed so the user can see they exist but understands this preset won't
+// produce anything for them. Also (re)binds the change handler since html() wipes it.
+// keepChecks: optional Set of nozzles the caller wants to preserve as checked (used
+// on Back-restore); when omitted, every covered nozzle starts checked.
+function renderNozzleCheckboxes(keepChecks) {
+    if (!deviceInfo) return;
+    var coverage = new Set(Object.keys(
+        (selectedPreset && selectedPreset.nozzle_presets) || {}
+    ));
+    var html = '';
+    var newSelected = new Set();
+    (deviceInfo.nozzles || []).forEach(function (n) {
+        var covered = coverage.has(n);
+        var shouldCheck = covered && (!keepChecks || keepChecks.has(n));
+        if (shouldCheck) newSelected.add(n);
+        html += '<label class="custom-checkbox' + (covered ? '' : ' disabled') + '">'
+            + '<input type="checkbox" value="' + n + '"'
+            + (shouldCheck ? ' checked' : '')
+            + (covered ? '' : ' disabled') + ' />'
+            + '<span class="checkmark"></span>' + n + 'mm</label>';
+    });
+    $('#nozzle-checkboxes').html(html);
+    selectedNozzles = newSelected;
+    $('#nozzle-checkboxes input[type=checkbox]').on('change', function () {
+        var v = $(this).val();
+        if ($(this).prop('checked')) selectedNozzles.add(v);
+        else selectedNozzles.delete(v);
+        updateNextBtn();
+        refreshParamTabs();
+    });
+}
+
 function handleDeviceInfo(data) {
     if (!data.connected) {
         $('#device-name').text('No printer connected');
@@ -110,28 +144,6 @@ function handleDeviceInfo(data) {
     }
     deviceInfo = data;
     $('#device-name').text(data.device_name || data.printer_model_id || '');
-
-    // 渲染喷嘴复选框（全选可用项）。data.nozzles 是打印机型号支持的全部喷嘴，
-    // data.supported_nozzles 是其中当前耗材类型实际可用的子集——不可用的喷嘴仍然
-    // 渲染出来，但置灰、禁用，不计入 selectedNozzles，避免用户能选中一个后续会
-    // 静默失败的喷嘴。
-    var supportedNozzleSet = new Set(data.supported_nozzles || data.nozzles || []);
-    var nozzlesHtml = '';
-    (data.nozzles || []).forEach(function (n) {
-        var supported = supportedNozzleSet.has(n);
-        if (supported) selectedNozzles.add(n);
-        nozzlesHtml += '<label class="custom-checkbox' + (supported ? '' : ' disabled') + '">'
-            + '<input type="checkbox" value="' + n + '"' + (supported ? ' checked' : ' disabled') + ' />'
-            + '<span class="checkmark"></span>' + n + 'mm</label>';
-    });
-    $('#nozzle-checkboxes').html(nozzlesHtml);
-    $('#nozzle-checkboxes input[type=checkbox]').on('change', function () {
-        var v = $(this).val();
-        if ($(this).prop('checked')) selectedNozzles.add(v);
-        else selectedNozzles.delete(v);
-        updateNextBtn();
-        refreshParamTabs();
-    });
 
     // 渲染基准预设下拉
     var presetsHtml = '';
@@ -154,25 +166,67 @@ function handleDeviceInfo(data) {
         selectedPreset = p;
         $('#input-base-preset').val(p.name);
         $('#base-preset-dropdown').addClass('hidden');
-        updateNextBtn();
+        // Re-render nozzle checkboxes: this preset's coverage decides what's checkable.
+        // A preset that only exists for 0.4 (e.g. Bambu ABS on P1S) must not leave 0.2/
+        // 0.6/0.8 checked — the Next handler would silently drop them (see #btn-next).
+        renderNozzleCheckboxes();
         // Discard cached params from the previous base preset so a nozzle tab the user
         // doesn't revisit doesn't keep showing stale values from the old template.
         paramData = {};
+        refreshParamTabs();
         var presetName = (p.nozzle_presets && p.nozzle_presets[activeNozzleTab])
             ? p.nozzle_presets[activeNozzleTab] : p.filament_preset;
         requestFilamentParams(presetName);
+        updateNextBtn();
     });
+
+    // Restore saved state if user came back from step3 (Back button).
+    // Runs BEFORE the "select first preset" default so we don't waste a param request
+    // on a preset we're about to override.
+    var saved = null;
+    try { saved = JSON.parse(sessionStorage.getItem('step2') || 'null'); } catch (e) {}
+    var hasSaved = !!(saved && saved.mode === 'current_printer');
+
+    // Pick the base preset (restored, or the first one). Nozzle checkboxes are then
+    // rendered against THAT preset's coverage — see renderNozzleCheckboxes() for why.
+    if (hasSaved && saved.base_preset && data.system_presets) {
+        var match = data.system_presets.find(function (p) { return p.name === saved.base_preset; });
+        if (match) {
+            selectedPreset = match;
+            $('#input-base-preset').val(match.name);
+        }
+    }
+    if (!selectedPreset && data.system_presets && data.system_presets.length > 0) {
+        selectedPreset = data.system_presets[0];
+        $('#input-base-preset').val(selectedPreset.name);
+    }
+
+    // Reverse-map saved printer preset names back to nozzle sizes so we can carry the
+    // user's uncheck decisions across the round-trip. Any saved entry that isn't in the
+    // new preset's coverage is silently dropped by renderNozzleCheckboxes.
+    var keepChecks = null;
+    if (hasSaved && saved.printer_nozzles && data.nozzle_printers) {
+        var printerToNozzle = {};
+        Object.keys(data.nozzle_printers).forEach(function (n) {
+            printerToNozzle[data.nozzle_printers[n]] = n;
+        });
+        keepChecks = new Set();
+        saved.printer_nozzles.forEach(function (pn) {
+            var nz = printerToNozzle[pn.printer];
+            if (nz) keepChecks.add(nz);
+        });
+        if (keepChecks.size === 0) keepChecks = null;
+    }
+    renderNozzleCheckboxes(keepChecks);
 
     // 初始化喷嘴 tab（在 selectedNozzles 填好后）
     refreshParamTabs();
 
-    // 默认选第一个预设
-    if (data.system_presets && data.system_presets.length > 0) {
-        var first = data.system_presets[0];
-        selectedPreset = first;
-        $('#input-base-preset').val(first.name);
-        var initPreset = (first.nozzle_presets && first.nozzle_presets[activeNozzleTab])
-            ? first.nozzle_presets[activeNozzleTab] : first.filament_preset;
+    // Kick off the initial param request for the chosen preset + active nozzle tab.
+    if (selectedPreset) {
+        paramData = {};
+        var initPreset = (selectedPreset.nozzle_presets && selectedPreset.nozzle_presets[activeNozzleTab])
+            ? selectedPreset.nozzle_presets[activeNozzleTab] : selectedPreset.filament_preset;
         requestFilamentParams(initPreset);
     }
 

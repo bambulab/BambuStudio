@@ -14,6 +14,9 @@ var selected = {};
 var activePrinter = null;
 var selectedPreset = '';
 var systemPresets = [];
+// 从 step3 Back 返回时暂存的状态，等 compatible_printers 到齐再回填勾选。
+// 见 handleStudio 里 init_data / compatible_printers 分支。
+var pendingRestore = null;
 
 $(document).ready(function () {
     if (typeof TranslatePage === 'function') TranslatePage();
@@ -74,6 +77,19 @@ $(document).ready(function () {
             if (data.command === 'init_data') {
                 systemPresets = data.system_presets || [];
                 renderPresetDropdown();
+                // Restore from step3 Back: if a base preset is remembered, prefill the
+                // input and kick off the compatible_printers request so buildPrinterData
+                // can restore the per-model nozzle picks.
+                try {
+                    var s = JSON.parse(sessionStorage.getItem('step2') || 'null');
+                    if (s && s.mode === 'based_on_type' && s.base_preset
+                        && systemPresets.indexOf(s.base_preset) !== -1) {
+                        pendingRestore = s;
+                        selectedPreset = s.base_preset;
+                        $('#input-base-preset').val(s.base_preset);
+                        loadPrinterList(s.base_preset);
+                    }
+                } catch (e) {}
             } else if (data.command === 'compatible_printers') {
                 // data.printers: [
                 //   { name: 'Bambu Lab A1', presets: ['Bambu Lab A1 0.4 nozzle', 'Bambu Lab A1 0.2 nozzle'] },
@@ -127,7 +143,33 @@ function buildPrinterData(models) {
     models.forEach(function (m) { selected[m.name] = new Set(); });
     activePrinter = models.length > 0 ? models[0].name : null;
 
-    $('#selection-area').show();
+    // Restore from step3 Back: replay each saved (printer, nozzle) pick into
+    // `selected`, skipping any printer preset that no longer exists in `models`
+    // (e.g. the type/preset changed and no longer covers it).
+    if (pendingRestore && pendingRestore.printer_nozzles) {
+        var validPrinters = new Set();
+        models.forEach(function (m) {
+            m.presets.forEach(function (p) { validPrinters.add(p.printer); });
+        });
+        pendingRestore.printer_nozzles.forEach(function (pn) {
+            if (!validPrinters.has(pn.printer)) return;
+            var owning = models.find(function (m) {
+                return m.presets.some(function (p) { return p.printer === pn.printer; });
+            });
+            if (owning) selected[owning.name].add(pn.printer);
+        });
+        pendingRestore = null;
+    }
+
+    if (models.length > 0) {
+        $('#empty-state').hide();
+        $('#selection-area').show();
+    } else {
+        $('#selection-area').hide();
+        $('#empty-state .empty-state-text').attr('tid', 't270');
+        if (typeof TranslatePage === 'function') TranslatePage();
+        $('#empty-state').show();
+    }
     renderPrinterList();
     if (activePrinter) renderNozzleList(activePrinter);
     updateNextBtn();

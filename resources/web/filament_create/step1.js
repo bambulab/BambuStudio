@@ -1,7 +1,10 @@
 
 const VENDOR_LIST = ['Polymaker', 'OVERTURE', 'Kexcelled', 'HATCHBOX', 'eSUN', 'SUNLU', 'Prusament', 'Creality', 'Protopasta', 'Anycubic', 'Basf', 'ELEGOO', 'INLAND', 'FLASHFORGE', 'FusRock', 'AMOLEN', 'MIKA3D', '3DXTECH', 'Duramic', 'Priline', 'Eryone', '3Dgenius', 'Novamaker', 'Justmaker', 'Giantarm', 'iProspect', 'LDO'];
 var TYPE_LIST = []; // filled dynamically from C++ init_data
-var SUPPORTED_TYPES = null; // filled from C++ get_supported_types; only meaningful for current_printer mode
+// Types the connected printer actually has compatible presets for — filled from C++
+// get_supported_types (see send_supported_types in CreateFilamentWebDialog.cpp).
+// Only used in current_printer mode; null means "no signal yet, don't filter".
+var SUPPORTED_TYPES = null;
 let customVendors = [];
 
 function escapeHtml(str) {
@@ -10,8 +13,31 @@ function escapeHtml(str) {
     });
 }
 
+// Hover text for the "为当前打印机创建" radio card:
+//   - No printer connected  → t272 "暂无打印机，请连接打印机" / "No printer connected. Please connect a printer."
+//   - Printer connected     → t273 prefix + printer name
+// Uses the native title attribute so it works even when the card is disabled and
+// pointer-events would normally block interaction on child elements.
+function updateCurrentPrinterTooltip(connected, deviceName) {
+    var lang = (typeof GetQueryString === 'function' ? GetQueryString('lang') : null)
+             || localStorage.getItem('BambuWebLang') || 'en';
+    if (typeof LangText === 'undefined' || !LangText.hasOwnProperty(lang)) lang = 'en';
+    function _t(tid) { return (LangText[lang] && LangText[lang][tid]) || (LangText['en'] && LangText['en'][tid]) || ''; }
+    var tip = connected
+        ? (_t('t273') + (deviceName || ''))
+        : _t('t272');
+    // Use a data attribute + CSS pseudo-element instead of the native `title` so we can
+    // style the tooltip (rounded, no OS-chrome border). See step1.css .tooltip-hint rules.
+    $('#opt-current-printer').attr('data-tooltip', tip);
+}
+
 $(document).ready(function () {
     if (typeof TranslatePage === 'function') TranslatePage();
+
+    // Landing on step1 always drops any lingering step2 selection. That way the step2
+    // restore we do on Back-from-step3 only survives the step3 → step2 round-trip;
+    // any other entry into step2 (fresh open, or step2 → step1 → step2) starts clean.
+    sessionStorage.removeItem('step2');
 
     // ── 下一步按鈕禁用逻辑：vendor + type + serial 全填完才可点 ──
     function updateNextBtn() {
@@ -40,6 +66,8 @@ $(document).ready(function () {
     // Check if printer is connected — disabled by default until C++ confirms
     $('#opt-current-printer').addClass('disabled');
     $('#opt-current-printer input').prop('disabled', true);
+    // Prime the hover tooltip so it says the right thing before device_status arrives.
+    updateCurrentPrinterTooltip(false, '');
 
     // Radio card selection logic
     $('.radio-card').on('click', function(e) {
@@ -106,12 +134,10 @@ $(document).ready(function () {
     function renderVendors() {
         let html = '<div class="dropdown-category">System</div>';
         VENDOR_LIST.forEach(v => { html += `<div class="dropdown-item" data-val="${escapeHtml(v)}">${escapeHtml(v)}</div>`; });
-        html += '<div class="dropdown-category">Customized</div>';
-        if (customVendors.length > 0) {
-            customVendors.forEach(v => { html += `<div class="dropdown-item" data-val="${escapeHtml(v)}">${escapeHtml(v)}</div>`; });
-        } else {
-            html += `<div class="dropdown-item disabled">Custom material</div>`;
-        }
+        // Append any user-added custom vendors flat at the tail — no separate section header,
+        // no placeholder row when empty. "+ 添加供应商品牌" below the list already conveys
+        // where to add more, so the extra "Customized" divider was just visual noise.
+        customVendors.forEach(v => { html += `<div class="dropdown-item" data-val="${escapeHtml(v)}">${escapeHtml(v)}</div>`; });
         $('#vendor-options').html(html);
     }
     renderVendors();
@@ -151,11 +177,26 @@ $(document).ready(function () {
                     $('#opt-current-printer input').prop('disabled', false);
                     var label = $('#opt-current-printer .device-name');
                     if (label.length) label.text(data.device_name || '');
+                    updateCurrentPrinterTooltip(true, data.device_name || '');
+                    // First-visit default: with a printer connected, the "current printer"
+                    // mode is the most useful landing choice. Only preselect it if the user
+                    // has no saved mode from a previous visit — otherwise respect their
+                    // earlier pick (sessionStorage restore ran synchronously at page load).
+                    var savedMode = (JSON.parse(sessionStorage.getItem('step1') || '{}').mode || '');
+                    if (!savedMode) {
+                        $('.radio-card').removeClass('active');
+                        $('.radio-card input[name="creation_mode"]').prop('checked', false);
+                        $('#opt-current-printer').addClass('active');
+                        $('#opt-current-printer input').prop('checked', true);
+                        refreshTypeDropdown();
+                    }
                     if (typeof SendWXMessage !== 'undefined') {
                         SendWXMessage(JSON.stringify({ sequence_id: Math.round(Date.now() / 1000), command: 'get_supported_types' }));
                     }
                 } else {
                     SUPPORTED_TYPES = null;
+                    refreshTypeDropdown();
+                    updateCurrentPrinterTooltip(false, '');
                 }
             } else if (data.command === 'supported_types') {
                 SUPPORTED_TYPES = data.types || [];
@@ -180,8 +221,10 @@ $(document).ready(function () {
         $('#type-options').html(typeHtml || '<div class="dropdown-item disabled">No data</div>');
     }
 
-    // Only the current_printer mode is restricted to what the connected printer model
-    // actually supports (see get_supported_types) — other modes browse the full type list.
+    // Filter the Type dropdown to what the connected printer's compatible presets cover —
+    // only in current_printer mode (the other two modes are printer-agnostic at Type-select
+    // time). NOTE: the C++ side deliberately does NOT gate on preset visibility; hiding a
+    // system material in the panel must not shrink this list. See send_supported_types().
     function refreshTypeDropdown() {
         var mode = $('.radio-card.active').find('input[name="creation_mode"]').val();
         var list = TYPE_LIST;
@@ -211,6 +254,7 @@ $(document).ready(function () {
         $('#vendor-char-count').text('0/50');
         $('#new-vendor-error').text('').addClass('hidden');
         $('#new-vendor-input').removeClass('error');
+        $('#vendor-btn-confirm').prop('disabled', false);
     });
 
     $('#vendor-dialog-close, #vendor-btn-cancel').on('click', function() {
@@ -220,12 +264,18 @@ $(document).ready(function () {
     $('#new-vendor-input').on('input', function() {
         const val = $(this).val();
         $('#vendor-char-count').text(val.length + '/50');
-        if (val.length === 50) {
+        // maxlength on the input is 51, one over the actual limit, so the user gets to
+        // TYPE the 51st char and see explicit feedback ("Max 50 characters" + Confirm
+        // greyed out) that they've overshot. Deleting back to 50 or less makes the
+        // Confirm button usable again without them having to guess "why can't I type".
+        if (val.length > 50) {
             $('#new-vendor-error').text('Max 50 characters').removeClass('hidden');
             $(this).addClass('error');
+            $('#vendor-btn-confirm').prop('disabled', true);
         } else {
             $('#new-vendor-error').addClass('hidden');
             $(this).removeClass('error');
+            $('#vendor-btn-confirm').prop('disabled', false);
         }
     });
 

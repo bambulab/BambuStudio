@@ -17265,10 +17265,10 @@ msgstr "您还没有选择打印机或预设。请至少选择一个。"
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
 "您创建的耗材丝名字%s已经存在。\n"
-"如果您继续创建，您创建的预设将以全名显示。您想继续吗？"
+"如果您继续创建，您创建的预设将保存在已有自定义耗材之内，以预设全名显示区分。您想继续吗？"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "以下一些现有预设未能成功创建：\n"

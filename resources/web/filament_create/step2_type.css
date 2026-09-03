@@ -121,6 +121,28 @@
     background: white;
 }
 
+/* Empty-state placeholder (shown before user picks a base preset, or when
+   no compatible printers are returned). Icon reused from resources/images/preset_empty.svg. */
+.empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 260px;
+    color: var(--color-text-muted);
+}
+.empty-state-img {
+    width: 160px;
+    height: 128px;
+}
+.empty-state-text {
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
 /* Disabled next button */
 #btn-next:disabled {
     background: #CECECE;

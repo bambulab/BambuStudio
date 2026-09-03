@@ -93,8 +93,10 @@ function renderSummary() {
         groups[model].push(nozzleLabel);
     });
 
+    // Per-language count unit (empty in en, "个" in zh_CN — see text.js t271).
+    var unit = _t3('t271') || '';
     var total = printerNozzles.length;
-    $('#s3-count').text(total ? ' (' + total + ')' : '');
+    $('#s3-count').text(total ? ' (' + total + unit + ')' : '');
 
     // 两列布局：每个机型占一个单元格
     var html = '';
@@ -102,7 +104,7 @@ function renderSummary() {
         var nozzles = groups[model];
         var nozzleStr = nozzles.join(' / ');
         html += '<div class="s3-preset-item">'
-              + model + ' (' + nozzles.length + ': ' + nozzleStr + 'mm)'
+              + model + ' (' + nozzles.length + unit + ': ' + nozzleStr + 'mm)'
               + '</div>';
     });
     $('#s3-preset-list').html(html || '<div class="s3-preset-item" style="color:#999">' + (_t3('t259') || 'No data') + '</div>');

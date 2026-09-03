@@ -140,6 +140,18 @@ static std::vector<Preset> collect_user_filament_presets(const std::string &fila
             auto *inh = dynamic_cast<ConfigOptionString *>(const_cast<Preset &>(p).config.option(BBL_JSON_KEY_INHERITS, false));
             if (inh && !inh->value.empty()) continue;
         }
+        // Skip user presets that carry an official Bambu vendor (or "Generic"). Same
+        // rationale as WebGuideDialog::update_custom_filaments's vendor filter: these
+        // are almost always polluted clones from cloud sync or an old wizard that lacked
+        // the reserved-vendor check, not truly user-authored materials. Letting them
+        // through here would let a hidden system preset (e.g. "Bambu ABS-GF") still
+        // appear as a base-preset option in the wizard through user-preset shadowing,
+        // and would give it no viable adapter printer downstream.
+        auto *fv = dynamic_cast<ConfigOptionStrings *>(const_cast<Preset &>(p).config.option("filament_vendor", false));
+        if (fv && !fv->values.empty()) {
+            const std::string &v = fv->values[0];
+            if (v == "Generic" || v == "Bambu" || v == "Bambu Lab" || v == "BBL") continue;
+        }
         result.push_back(p);
     }
     return result;
@@ -654,7 +666,14 @@ void CreateFilamentWebDialog::send_supported_types()
 {
     // For the "current_printer" creation mode: which filament types can actually be
     // created for the connected printer model. Drives step1.js's Type dropdown so the
-    // user can't pick a type the connected printer has no compatible preset for at all.
+    // user gets fast feedback ("this printer can't do carbon fiber") without having to
+    // walk through to step2 and land on an empty base-preset dropdown.
+    //
+    // IMPORTANT: DO NOT add `!p.is_visible` here. The system-material panel's "hide"
+    // action flips is_visible, which is a personal panel preference — coupling the Type
+    // dropdown to it means hiding materials silently shrinks the wizard's Type list,
+    // which is surprising and was the exact bug that caused this filter to be reverted
+    // once already. Filter by compatible_printers/printer_model only.
     auto *dev = wxGetApp().getDeviceManager();
     MachineObject *obj = dev ? dev->get_selected_machine() : nullptr;
 
@@ -686,8 +705,7 @@ void CreateFilamentWebDialog::send_supported_types()
 
     std::set<std::string> type_set;
     for (const Preset &p : pb->filaments.get_presets()) {
-        // See the comment in send_init_data(): matches legacy's is_visible gating.
-        if (!p.is_system || p.is_project_embedded || !p.is_visible) continue;
+        if (!p.is_system || p.is_project_embedded) continue;
         if (p.filament_id.empty() || p.filament_id == "null") continue;
         auto *opt = dynamic_cast<ConfigOptionStrings *>(
             const_cast<Preset &>(p).config.option("compatible_printers", false));
@@ -707,8 +725,8 @@ void CreateFilamentWebDialog::send_supported_types()
             type_set.insert(ft->values[0]);
     }
     // Also count types covered only by the user's own from-scratch custom presets (no base
-    // preset) — see the comment in send_init_data(). filament_type isn't known here, so query
-    // across all types.
+    // preset). collect_user_filament_presets doesn't consult is_visible, so the visibility
+    // decoupling above already extends here.
     std::vector<Preset> user_presets = collect_user_filament_presets("", /*exclude_derived=*/true);
     for (const Preset &p : user_presets) {
         auto *opt = dynamic_cast<ConfigOptionStrings *>(
@@ -1121,7 +1139,7 @@ static bool build_and_validate_filament_name(wxWindow *parent, const json &j,
     PresetBundle *pb = wxGetApp().preset_bundle;
     if (pb->filaments.is_alias_exist(name)) {
         wxString msg = wxString::Format(
-            _L("The Filament name %s you created already exists. \nIf you continue creating, the preset created will be displayed with its full name. Do you want to continue?"),
+            _L("The Filament name %s you created already exists. \nIf you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"),
             wxString::FromUTF8(name));
         MessageDialog dlg(parent, msg, wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES_NO | wxYES_DEFAULT | wxCENTRE);
         if (dlg.ShowModal() != wxID_YES)

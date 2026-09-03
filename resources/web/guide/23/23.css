@@ -168,6 +168,7 @@ html, body {
   height: 14px;
   margin: 0;
   flex-shrink: 0;
+  accent-color: #00AE42;
 }
 
 .filter-dd-item label {
@@ -315,6 +316,7 @@ html, body {
   width: 14px;
   height: 14px;
   margin: 0;
+  accent-color: #00AE42;
 }
 
 /* Search Bar */
@@ -532,7 +534,7 @@ html, body {
   overflow-y: auto;
   border: 1px solid #EEEEEE;
   border-radius: 8px;
-  background: #F9F9F9;
+  background: #fff;
 }
 
 .CFilament_GroupTitle {
@@ -542,6 +544,7 @@ html, body {
   font-weight: 700;
   color: #262E30;
   padding: 12px 16px 8px;
+  background: #F9F9F9;
   cursor: default;
   user-select: none;
 }
@@ -612,14 +615,24 @@ html, body {
   width: 87px;
 }
 
-.CFilament_EditBtn {
+.CFilament_EditBtn,
+.CFilament_DeleteBtn {
   cursor: pointer;
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   opacity: 0.6;
+  /* Source SVGs use their own fill colors. brightness(0) crushes any color to pure
+     black at render time — cleaner than editing the SVG files themselves, which are
+     shared. Combined with the 0.6 opacity above we get a soft dark-gray look. */
+  filter: brightness(0);
 }
 
-.CFilament_EditBtn:hover {
+.CFilament_DeleteBtn {
+  margin-left: 4px;
+}
+
+.CFilament_EditBtn:hover,
+.CFilament_DeleteBtn:hover {
   opacity: 1;
 }
 
@@ -653,6 +666,7 @@ html, body {
   height: 40px;
   border: 1px solid #E0E0E0;
   border-radius: 8px;
+  background: #F9F9F9;
   font-size: 14px;
   font-weight: 500;
   color: #262E30;

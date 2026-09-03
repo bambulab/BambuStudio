@@ -426,8 +426,20 @@ int DropDown::hoverIndex()
 {
     if (hover_item < 0)
         return -1;
-    if (count == items.size())
-        return hover_item;
+    if (count == items.size()) {
+        // Fast path assumes "count == items.size() implies no grouping folded any rows".
+        // That's true when items are truly flat, but a group with exactly one member
+        // makes count and items.size() coincide by accident — in that case we'd need to
+        // encode the group-header row as -i-2, not return it as a positive index. Only
+        // keep the shortcut when the top-level view actually has no group headers.
+        bool any_grouped_at_top_level = false;
+        if (group.IsEmpty()) {
+            for (const auto &item : items)
+                if (!item.group.IsEmpty()) { any_grouped_at_top_level = true; break; }
+        }
+        if (!any_grouped_at_top_level)
+            return hover_item;
+    }
     int index = -1;
     std::set<wxString> groups;
     for (int i = 0; i < items.size(); ++i) {
@@ -679,6 +691,27 @@ void DropDown::mouseReleased(wxMouseEvent& event)
             ReleaseMouse();
         if (hover_item < 0)
             return;
+
+        // If the clicked row is a top-level group header, open (or focus) the drill-down
+        // submenu instead of dismissing the dropdown. Previously this path only fired via
+        // hover in mouseMove — which is flaky for narrow (1-row) groups and unreachable
+        // via keyboard/tap. Clicking on the header is the natural UX for a two-level menu.
+        int idx = hoverIndex();
+        if (idx < -1 && subDropDown) {
+            const wxString &target_group = items[-idx - 2].group;
+            auto &drop = *subDropDown;
+            if (drop.group != target_group) {
+                drop.group     = target_group;
+                drop.need_sync = true;
+                drop.messureSize();
+                drop.autoPosition();
+                drop.paintNow();
+            }
+            if (!drop.IsShown())
+                drop.Popup(&drop);
+            return;
+        }
+
         if (hover_item >= 0 && (subDropDown == nullptr || subDropDown->group.empty())) { // not moved
             sendDropDownEvent();
             if (mainDropDown)

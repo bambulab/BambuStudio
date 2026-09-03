@@ -41,18 +41,27 @@
                         <span class="info-label required trans" tid="t227">Select supported printers:</span>
                         <div class="input-wrapper select-arrow" style="width: 314px; height: 24px;">
                             <input type="text" id="input-printer" placeholder="Select supported printers" data-ph-tid="t228" readonly />
+
+                            <!-- 打印机选择弹出下拉：锚定在 input 下方，不遮盖表格区 -->
+                            <div id="printer-dropdown" class="printer-dropdown hidden">
+                                <div class="selection-area">
+                                    <div class="printer-list" id="printer-list"></div>
+                                    <div class="nozzle-list" id="nozzle-list"></div>
+                                </div>
+                                <div class="dropdown-empty" id="dropdown-empty" style="display:none;">
+                                    <div class="empty-state-text trans" tid="t270">No compatible printers</div>
+                                </div>
+                                <div class="dropdown-confirm-bar">
+                                    <button id="btn-dropdown-confirm" class="btn-primary trans" tid="t229" style="height:28px; padding: 0 16px; font-size:12px;">Confirm</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 打印机选择弹出下拉（同step2_type的双列） -->
-                    <div id="printer-dropdown" class="printer-dropdown hidden">
-                        <div class="selection-area">
-                            <div class="printer-list" id="printer-list"></div>
-                            <div class="nozzle-list" id="nozzle-list"></div>
-                        </div>
-                        <div class="dropdown-confirm-bar">
-                            <button id="btn-dropdown-confirm" class="btn-primary trans" tid="t229" style="height:28px; padding: 0 16px; font-size:12px;">Confirm</button>
-                        </div>
+                    <!-- 空态占位：选完打印机之前显示 -->
+                    <div class="empty-state" id="empty-state">
+                        <img class="empty-state-img" src="img/preset_empty.svg" alt="" />
+                        <div class="empty-state-text trans" tid="t269">Please select supported printers</div>
                     </div>
 
                     <!-- 预设配置表（选完打印机确认后才显示） -->

@@ -11,6 +11,10 @@ var printerData = [];      // [{ name, presets: ['打印机预设名', ...] }]
 var selected = {};         // { modelName: Set<presetName> }
 var activePrinter = null;
 var presetsByMachine = {}; // { printerPresetName: [{name公开名, filament_preset精确名}] }
+// 从 step3 Back 返回时暂存的状态。分两段消化：
+// buildPrinterData → 回填 selected 并触发 get_presets_by_machine；
+// handlePresetsByMachine → 回填每行 <select> 的选中值。
+var pendingRestore = null;
 
 $(document).ready(function () {
     if (typeof TranslatePage === 'function') TranslatePage();
@@ -39,7 +43,12 @@ $(document).ready(function () {
                 .map(function (m) { return m.name; })
                 .join(', ') || ''
         );
-        if (names.length === 0) { $('#preset-table-area').hide(); updateNextBtn(); return; }
+        if (names.length === 0) {
+            $('#preset-table-area').hide();
+            $('#empty-state').show();
+            updateNextBtn();
+            return;
+        }
 
         var step1 = JSON.parse(sessionStorage.getItem('step1') || '{}');
         if (typeof SendWXMessage !== 'undefined') {
@@ -109,6 +118,15 @@ $(document).ready(function () {
         } catch (e) { console.error('HandleStudio error', e); }
     };
 
+    // Check saved state up front so buildPrinterData can consume it. The two-stage
+    // replay lives in buildPrinterData (restore selected printers) and
+    // handlePresetsByMachine (restore each row's preset pick).
+    try {
+        var s0 = JSON.parse(sessionStorage.getItem('step2') || 'null');
+        if (s0 && s0.mode === 'copy_presets' && s0.printer_nozzles && s0.printer_nozzles.length > 0)
+            pendingRestore = s0;
+    } catch (e) {}
+
     if (typeof SendWXMessage !== 'undefined') {
         var _s1 = JSON.parse(sessionStorage.getItem('step1') || '{}');
         SendWXMessage(JSON.stringify({ sequence_id: Math.round(Date.now() / 1000), command: 'get_all_printers', type: _s1.type || '' }));
@@ -126,6 +144,69 @@ function buildPrinterData(models) {
     selected = {};
     printerData.forEach(function (m) { selected[m.name] = new Set(); });
     activePrinter = printerData.length > 0 ? printerData[0].name : null;
+    // Toggle dropdown-internal empty state: when there are no compatible printers
+    // for this filament type, show only the "No compatible printers" text — hide the
+    // selection area AND the Confirm bar so there's nothing to interact with.
+    if (printerData.length === 0) {
+        $('#printer-dropdown .selection-area').hide();
+        $('#printer-dropdown .dropdown-confirm-bar').hide();
+        $('#dropdown-empty').show();
+    } else {
+        $('#dropdown-empty').hide();
+        $('#printer-dropdown .selection-area').show();
+        $('#printer-dropdown .dropdown-confirm-bar').show();
+    }
+
+    // Restore from step3 Back (stage 1/2): replay each saved printer pick into
+    // `selected`, then rehydrate the input label and fire the same request the
+    // Confirm button would have — stage 2 (per-row preset pick) runs in
+    // handlePresetsByMachine once the server responds.
+    if (pendingRestore && pendingRestore.printer_nozzles) {
+        var validPrinters = new Set();
+        models.forEach(function (m) {
+            (m.presets || []).forEach(function (item) {
+                var name = typeof item === 'string' ? item : (item.printer || item);
+                validPrinters.add(name);
+            });
+        });
+        var names = [];
+        pendingRestore.printer_nozzles.forEach(function (pn) {
+            if (!validPrinters.has(pn.printer)) return;
+            var owning = models.find(function (m) {
+                return (m.presets || []).some(function (item) {
+                    var name = typeof item === 'string' ? item : (item.printer || item);
+                    return name === pn.printer;
+                });
+            });
+            if (owning) {
+                selected[owning.name].add(pn.printer);
+                names.push(pn.printer);
+            }
+        });
+        if (names.length > 0) {
+            $('#input-printer').val(
+                models
+                    .filter(function (m) { return selected[m.name] && selected[m.name].size > 0; })
+                    .map(function (m) { return m.name; })
+                    .join(', ') || ''
+            );
+            var step1 = JSON.parse(sessionStorage.getItem('step1') || '{}');
+            if (typeof SendWXMessage !== 'undefined') {
+                SendWXMessage(JSON.stringify({
+                    sequence_id: Math.round(Date.now() / 1000),
+                    command: 'get_presets_by_machine',
+                    printers: names,
+                    type: step1.type || ''
+                }));
+            }
+        } else {
+            // No saved printer picks matched the current all_printers response — drop the
+            // pending restore so stage 2 doesn't try to reapply row preset picks that no
+            // longer belong to any selected row.
+            pendingRestore = null;
+        }
+    }
+
     renderPrinterList();
     if (activePrinter) renderNozzleList(activePrinter);
 }
@@ -215,6 +296,19 @@ function handlePresetsByMachine(data) {
         presetsByMachine[item.printer] = item.filament_presets || [];
     });
     renderPresetTable();
+    // Restore from step3 Back (stage 2/2): after the <select>s exist in the DOM,
+    // reapply each remembered `base_preset` — skipping rows whose remembered value
+    // isn't among the freshly-fetched options.
+    if (pendingRestore && pendingRestore.printer_nozzles) {
+        pendingRestore.printer_nozzles.forEach(function (pn) {
+            if (!pn.base_preset) return;
+            var selectEl = document.getElementById('preset-select-' + pn.printer.replace(/[^a-zA-Z0-9]/g, '_'));
+            if (!selectEl) return;
+            var hasOption = Array.prototype.some.call(selectEl.options, function (o) { return o.value === pn.base_preset; });
+            if (hasOption) selectEl.value = pn.base_preset;
+        });
+        pendingRestore = null;
+    }
     updateNextBtn();
 }
 
@@ -251,8 +345,10 @@ function renderPresetTable() {
     if (hasAny) {
         $('#preset-table').html(html);
         $('#preset-table-area').show();
+        $('#empty-state').hide();
     } else {
         $('#preset-table-area').hide();
+        $('#empty-state').show();
     }
 }
 

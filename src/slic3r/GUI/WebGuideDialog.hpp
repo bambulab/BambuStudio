@@ -84,6 +84,10 @@ public:
     bool apply_config(AppConfig *app_config, PresetBundle *preset_bundle, const PresetUpdater *updater, bool& apply_keeped_changes);
     bool run(bool& config_applied);
 
+    // Delete every user filament preset that shares the given filament_id, after asking
+    // the user to confirm. Triggered by the trash icon in the "自定义材料" list.
+    void delete_custom_filament(const std::string &filament_id, const std::string &filament_name);
+
     void        StrReplace(std::string &strBase, std::string strSrc, std::string strDes);
     std::string w2s(wxString sSrc);
     void        GetStardardFilePath(std::string &FilePath);
