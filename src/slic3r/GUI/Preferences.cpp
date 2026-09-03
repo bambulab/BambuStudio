@@ -947,6 +947,12 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " sync_user_preset: " << (sync ? "true" : "false");
         }
 
+        if (param == "discord_rich_presence") {
+            // Takes effect immediately: enabling starts publishing, disabling
+            // clears the presence from the user's profile.
+            wxGetApp().apply_discord_presence_setting();
+        }
+
         #ifdef __WXMSW__
         if (param == "associate_3mf") {
              bool pbool = app_config->get("associate_3mf") == "true" ? true : false;
@@ -1486,6 +1492,15 @@ wxWindow *PreferencesDialog::create_general_tab()
     auto item_beta_version_update = create_item_checkbox(_L("Support beta version update."), scrolled, _L("With this option enabled, you can receive beta version updates."), 50,
                                                          "enable_beta_version_update");
 
+    auto item_discord_presence = create_item_checkbox(_L("Show current activity on Discord"), scrolled,
+                                                      _L("Publish what you are working on to your Discord profile: the current project, slicing progress, "
+                                                         "and print progress when a printer is connected. Nothing is sent when Discord is not running."),
+                                                      50, "discord_rich_presence");
+
+    auto item_discord_hide_names = create_item_checkbox(_L("Hide project and print job names on Discord"), scrolled,
+                                                        _L("Replace project and print job names with generic wording, while still showing progress and status."),
+                                                        50, "discord_rich_presence_hide_names");
+
     // User Experience Improvement Program + "what data" hyperlink.
     auto  item_priv_policy = create_item_checkbox(_L("Join the User Experience Improvement Program."), scrolled, "", 50, "privacyuse");
     auto *hyperlink        = new Label(scrolled, wxString::FromUTF8(_CTX_utf8(L_CONTEXT("Learn more", "Preferences"), "Preferences")));
@@ -1517,6 +1532,8 @@ wxWindow *PreferencesDialog::create_general_tab()
     sizer->Add(wrap_option_row(scrolled, item_fila_manager), flags);
     sizer->Add(wrap_option_row(scrolled, item_multi_machine), flags);
     sizer->Add(wrap_option_row(scrolled, item_beta_version_update), flags);
+    sizer->Add(wrap_option_row(scrolled, item_discord_presence), flags);
+    sizer->Add(wrap_option_row(scrolled, item_discord_hide_names), flags);
     sizer->Add(wrap_option_row(scrolled, item_priv_policy), flags);
     sizer->Add(wrap_option_row(scrolled, item_downloads), flags);
     scrolled->SetSizer(sizer);

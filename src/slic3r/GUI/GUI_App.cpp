@@ -77,6 +77,8 @@
 
 #include "GUI.hpp"
 #include "GUI_Utils.hpp"
+#include "DiscordPresenceSnapshot.hpp"
+#include "slic3r/Utils/DiscordPresence.hpp"
 #include "3DScene.hpp"
 #include "MainFrame.hpp"
 #include "slic3r/GUI/Widgets/WebView.hpp"
@@ -2852,11 +2854,52 @@ bool GUI_App::OnInit()
     }
 }
 
+void GUI_App::apply_discord_presence_setting()
+{
+    if (!app_config)
+        return;
+
+    const bool enabled = app_config->get_bool("discord_rich_presence");
+
+    // Opted out and never opted in: do not even construct the publisher, so the
+    // feature costs nothing at all for users who do not want it.
+    if (!enabled && !m_discord_presence)
+        return;
+
+    // Config overrides the compiled-in id, so no rebuild is needed to retarget.
+    std::string application_id = app_config->get("discord_rich_presence_app_id");
+    if (application_id.empty())
+        application_id = Slic3r::discord_default_application_id();
+
+    // The id is fixed for the publisher's lifetime, so a change must replace it.
+    if (m_discord_presence && m_discord_presence->application_id() != application_id)
+        m_discord_presence.reset();
+
+    if (!m_discord_presence)
+        m_discord_presence.reset(
+            new Slic3r::DiscordPresence(application_id, std::string("Bambu Studio ") + SLIC3R_VERSION));
+
+    m_discord_presence->set_enabled(enabled);
+}
+
+void GUI_App::update_discord_presence()
+{
+    if (!m_discord_presence || !m_discord_presence->is_enabled())
+        return;
+
+    const bool hide_names = app_config && app_config->get_bool("discord_rich_presence_hide_names");
+    m_discord_presence->update(collect_presence_snapshot(hide_names));
+}
+
 int GUI_App::OnExit()
 {
 #ifdef __APPLE__
     UnRegisterMacPowerCallBack();
 #endif
+
+    // Stop before the device manager goes away: the worker formats state that
+    // was read from it, and its destructor clears the presence from the profile.
+    m_discord_presence.reset();
 
     Slic3r::HelioQuery::shutdown_background_requests();
 
@@ -3628,6 +3671,15 @@ bool GUI_App::on_init_inner()
                 app_config->save();
         }
 
+        // Discord Rich Presence. This only bounds how often the state is read;
+        // the publisher does its own change detection and rate limiting, and
+        // returns immediately when the feature is switched off.
+        {
+            static auto s_last_discord_update = std::chrono::steady_clock::time_point{};
+            if (Slic3r::debounce_elapsed(s_last_discord_update, std::chrono::seconds(1)))
+                update_discord_presence();
+        }
+
         // BBS
         //this->obj_manipul()->update_if_dirty();
 
@@ -3656,6 +3708,8 @@ bool GUI_App::on_init_inner()
 
         }
     });
+
+    apply_discord_presence_setting();
 
     m_initialized = true;
 

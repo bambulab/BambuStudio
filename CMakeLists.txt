@@ -56,6 +56,9 @@ set(OPENVDB_FIND_MODULE_PATH "" CACHE PATH "Path to OpenVDB installation's find 
 
 set(SLIC3R_GTK "2" CACHE STRING "GTK version to use with wxWidgets on Linux")
 
+# Empty leaves Discord Rich Presence inert.
+set(SLIC3R_DISCORD_APP_ID "" CACHE STRING "Discord application id for Rich Presence")
+
 set(IS_CROSS_COMPILE FALSE)
 
 set(FLATPAK FALSE CACHE BOOL "Not copy FFMPEG file")
