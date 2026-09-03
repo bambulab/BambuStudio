@@ -214,25 +214,20 @@ HistoryWindow::~HistoryWindow()
 
 void HistoryWindow::sync_history_result(MachineObject* obj)
 {
-    BOOST_LOG_TRIVIAL(info) << "sync_history_result";
-
     m_calib_results_history.clear();
     if (obj) {
-        auto pa_calib_tab = obj->GetCalib()->GetPAHistory();
-        if (obj->is_multi_extruders()) {
-            for (const PACalibResult &pa_result : pa_calib_tab) {
-                if (pa_result.extruder_id == 0 && m_extruder_switch_btn->GetValue()) {
-                    // left extruder
-                    m_calib_results_history.emplace_back(pa_result);
-                } else if (pa_result.extruder_id == 1 && !m_extruder_switch_btn->GetValue()) {
-                    // right extruder
-                    m_calib_results_history.emplace_back(pa_result);
-                }
-            }
-        }
-        else {
-            m_calib_results_history = pa_calib_tab;
-        }
+        const int sel = m_comboBox_nozzle_dia->GetSelection();
+        const std::optional<NozzleDiameterType> dia = (sel >= 0 && sel < int(nozzle_diameter_list.size())) ? std::optional<NozzleDiameterType>(nozzle_diameter_list[sel]) : std::nullopt;
+        const std::optional<int> extruder_id = obj->is_multi_extruders() ? std::optional<int>(get_extruder_id()) : std::nullopt;
+
+        m_calib_results_history = obj->GetCalib()->GetPaHistoryFilter()
+            .set_nozzle_diameter(dia)
+            .set_extruder_id(extruder_id)
+            .get();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                               << " dia=" << (dia.has_value() ? static_cast<int>(dia.value()) : -1)
+                               << " ext=" << (extruder_id.has_value() ? extruder_id.value() : -1)
+                               << " matched=" << m_calib_results_history.size();
     }
 
     if (m_calib_results_history.empty()) {
@@ -289,14 +284,20 @@ void HistoryWindow::update(MachineObject* obj)
 {
     if (!obj) return;
 
-    if (obj->GetCalib()->IsVersionExpired()) {
-        if (obj->GetCalib()->IsPAHistoryReady()) {
-            reqeust_history_result(obj);
+    auto calib = obj->GetCalib();
+    if (calib->IsVersionExpired()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " version expired, prepare fetch queue";
+        if (calib->PrepareFetchQueue()) {
+            calib->SyncCalibVersion();
         }
     }
 
-    // sync when history is not empty
-    if (obj->GetCalib()->IsPAHistoryReady() && m_calib_results_history.empty()) {
+    calib->SendNextFetch();
+
+    // Combo/extruder change clears the local view; sync once when the fetch queue drains.
+    if (calib->IsPAHistoryReady() && m_pending_sync) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " history ready, sync pending view";
+        m_pending_sync = false;
         sync_history_result(curr_obj);
     }
 }
@@ -315,11 +316,6 @@ void HistoryWindow::on_switch_extruder(wxCommandEvent &evt)
 void HistoryWindow::reqeust_history_result(MachineObject* obj)
 {
     if (curr_obj) {
-        // reset
-        curr_obj->GetCalib()->ResetPAHistory();
-        m_calib_results_history.clear();
-        sync_history_data();
-
         float nozzle_value = get_nozzle_value();
         int extruder_id = get_extruder_id();
         if (nozzle_value > 0) {
@@ -330,7 +326,7 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
             cali_info.use_extruder_id        = false;
             CalibUtils::emit_get_PA_calib_infos(cali_info);
             m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
-            BOOST_LOG_TRIVIAL(info) << "request calib history";
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " request history dia=" << nozzle_value << " extruder_id=" << extruder_id;
         }
     }
 }

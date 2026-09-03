@@ -1154,6 +1154,10 @@ void AMSMaterialsSetting::update_widgets()
 
 bool AMSMaterialsSetting::Show(bool show)
 {
+    if (!show) {
+        m_pa_data_pending = false;
+    }
+
     if (show) {
         m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
         //m_clr_picker->set_color(m_clr_picker->GetParent()->GetBackgroundColour());
@@ -1672,22 +1676,23 @@ Preset* AMSMaterialsSetting::get_filament_by_id(const std::string& filament_id, 
     return nullptr;
 }
 
-static std::optional<DevNozzle> s_get_nozzle_by_tray(MachineObject* obj_, int ams_id, int /*slot_id*/)
+std::optional<DevNozzle> AMSTraySettingBase::get_slot_nozzle() const
 {
-    if (!obj_) {
+    if (!obj)
+        return std::nullopt;
+
+    if (obj->GetFilaSwitch() && obj->GetFilaSwitch()->IsInstalled())
+        return std::nullopt;
+
+    if (auto rack = obj->GetNozzleRack(); rack && rack->IsSupported()) {
         return std::nullopt;
     }
 
-    if (obj_->GetFilaSwitch() && obj_->GetFilaSwitch()->IsInstalled()) {
+    const int extruder_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
+    if (extruder_id != MAIN_EXTRUDER_ID && extruder_id != DEPUTY_EXTRUDER_ID)
         return std::nullopt;
-    }
 
-    const int extruder_id = obj_->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
-    if (extruder_id != MAIN_EXTRUDER_ID && extruder_id != DEPUTY_EXTRUDER_ID) {
-        return std::nullopt;
-    }
-
-    auto nozzle = obj_->get_nozzle_by_id_code(extruder_id);
+    auto nozzle = obj->get_nozzle_by_id_code(extruder_id);
     return nozzle.IsEmpty() ? std::nullopt : std::make_optional(nozzle);
 }
 
@@ -1708,7 +1713,7 @@ void AMSMaterialsSetting::on_open_filament_select_dialog()
     if (m_view_only || !m_filament_box_editable) return;
 
     std::string nozzle_diameter_str;
-    if (auto nozzle_opt = s_get_nozzle_by_tray(obj, ams_id, slot_id)) {
+    if (auto nozzle_opt = get_slot_nozzle()) {
         std::ostringstream stream;
         stream << std::fixed << std::setprecision(1) << nozzle_opt->GetNozzleDiameter();
         nozzle_diameter_str = stream.str();
@@ -1788,17 +1793,16 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     wxString bambu_filament_name;
     wxString hint_filament_name; // the hint type to be selected
 
-    PresetBundle *        preset_bundle = wxGetApp().preset_bundle;
-    std::ostringstream    stream;
-    // TODO: fila_switcher broken the connection of ams->extruder
-    int extruder_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
-    if (!obj->GetExtderSystem()->GetExtderById(extruder_id))
-    {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " get extruder id failed";
-        extruder_id = 0;
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    m_filament_type             = "";
+
+    std::string nozzle_diameter_str;
+    auto nozzle_opt = get_slot_nozzle();
+    if (nozzle_opt) {
+        std::ostringstream stream;
+        stream << std::fixed << std::setprecision(1) << nozzle_opt->GetNozzleDiameter();
+        nozzle_diameter_str = stream.str();
     }
-    stream << std::fixed << std::setprecision(1) << obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
-    std::string nozzle_diameter_str = stream.str();
 
     {
         wxArrayString                          unused_items;
@@ -1892,36 +1896,19 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     if (init_spool_id.empty())
         init_display_text = hint_filament_name;  // preset alias or empty
 
+    // Do not RequestPAHistory here: StatusPanel ticks PrepareFetchQueue/SendNextFetch.
+    // If the cache is not ready yet, TryRefreshPAProfiles rebuilds the PA list when it is.
+    m_pa_data_pending = !obj->GetCalib()->IsPAHistoryReady();
+
+    BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_select_filament pa history"
+                             << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
+                             << ", ams_id=" << ams_id << ", slot_id=" << slot_id
+                             << ", history_ready=" << obj->GetCalib()->IsPAHistoryReady();
+
     m_snap_taken = false;
     trigger_select_filament(init_spool_id, /*from_printer=*/true, init_display_text);
 
     m_clr_picker->Enable(true);
-
-    // Request PA calibration history if not loaded yet — needed for k-profile dropdown
-    if (obj->GetCalib()->IsVersionInited() && !obj->GetCalib()->IsPAHistoryReady()) {
-        PACalibExtruderInfo cali_info;
-        int ext_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
-        if (ext_id >= 0) {
-            cali_info.nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(ext_id);
-            cali_info.use_extruder_id = false;
-            cali_info.use_nozzle_volume_type = false;
-            CalibUtils::emit_get_PA_calib_infos(cali_info);
-            m_pa_data_pending = true;
-            BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_select_filament request PA history, dev_id="
-                                     << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
-                                     << ", ams_id=" << ams_id << ", ext_id=" << ext_id
-                                     << ", nozzle_diameter=" << cali_info.nozzle_diameter;
-        } else {
-            BOOST_LOG_TRIVIAL(warning) << "AMSMaterialsSetting::on_select_filament cannot request PA history, invalid ext_id, dev_id="
-                                        << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id()) << ", ams_id=" << ams_id;
-        }
-    } else {
-        m_pa_data_pending = false;
-        BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_select_filament PA history already ready or version not inited, dev_id="
-                                 << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
-                                 << ", calib_version_inited=" << obj->GetCalib()->IsVersionInited()
-                                 << ", pa_history_ready=" << obj->GetCalib()->IsPAHistoryReady();
-    }
 
     update();
     apply_dialog_size();
@@ -2029,12 +2016,11 @@ void AMSTraySettingBase::TryRefreshPAProfiles()
 
 void AMSMaterialsSetting::on_pa_history_ready()
 {
-    const wxString cur_text = m_current_filament_alias;
-    BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_pa_history_ready re-triggering selection"
-                             << ", text=" << cur_text.ToStdString();
-    if (!cur_text.IsEmpty() || !m_selected_spool_id.empty()) {
-        trigger_select_filament(m_selected_spool_id, /*from_printer=*/true, cur_text);
-    }
+    BOOST_LOG_TRIVIAL(info) << "AMSMaterialsSetting::on_pa_history_ready rebuilding pa profiles"
+                             << ", ams_id=" << ams_id << ", slot_id=" << slot_id
+                             << ", text=" << m_current_filament_alias.ToStdString();
+    const bool from_printer = m_snap_taken && m_selected_spool_id == m_open_spool_id && ams_filament_id == m_open_filament_id;
+    trigger_select_filament(m_selected_spool_id, from_printer, m_current_filament_alias);
 }
 
 void AMSTraySettingBase::reset_calibration(const std::string& selected_filament_id)
@@ -2110,28 +2096,11 @@ void AMSTraySettingBase::update_pa_profile_items()
     auto rack = obj->GetNozzleSystem()->GetNozzleRack();
     auto switcher = obj->GetFilaSwitch();
 
-    std::vector<PACalibResult> cali_history = obj->GetCalib()->GetPAHistory();
-    std::sort(cali_history.begin(), cali_history.end(), [](const PACalibResult &left, const PACalibResult &right) { return left.nozzle_pos_id < right.nozzle_pos_id; });
-
     BOOST_LOG_TRIVIAL(info) << "AMSTraySettingBase::update_pa_profile_items dev_id=" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
                              << ", ams_id=" << ams_id << ", ams_filament_id=" << ams_filament_id
                              << ", calib_version_inited=" << obj->GetCalib()->IsVersionInited()
-                             << ", pa_history_ready=" << obj->GetCalib()->IsPAHistoryReady()
-                             << ", cali_history_size=" << cali_history.size();
+                             << ", pa_history_ready=" << obj->GetCalib()->IsPAHistoryReady();
 
-    {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " AMS Calibration Histtory";
-        for (auto& cali_item : cali_history) {
-            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " cali_item: cali_idx=" << cali_item.cali_idx
-                                       << ", name=" << cali_item.name
-                                       << ", filament_id=" << cali_item.filament_id
-                                       << ", k_value=" << cali_item.k_value
-                                       << ", n_coef=" << cali_item.n_coef
-                                       << ", nozzle_diameter=" << cali_item.nozzle_diameter
-                                       << ", nozzle_pos_id=" << cali_item.nozzle_pos_id
-                                       << ", extruder_id=" << cali_item.extruder_id;
-        }
-    }
     std::set<int> extruder_ids;
     if (ams_id == VIRTUAL_TRAY_MAIN_ID) {
         extruder_ids.insert(MAIN_EXTRUDER_ID);
@@ -2142,7 +2111,7 @@ void AMSTraySettingBase::update_pa_profile_items()
         extruder_ids.insert(extruder_id_set.begin(), extruder_id_set.end());
     }
 
-    // If rack is supported but no nozzle-type override is available, show only Default.
+    // Without a nozzle-type selection there is nothing to filter by, so show only Default.
     if (rack->IsSupported()) {
         float dummy_d = 0.f;
         NozzleFlowType dummy_ft = NozzleFlowType::S_FLOW;
@@ -2157,43 +2126,74 @@ void AMSTraySettingBase::update_pa_profile_items()
         }
     }
 
+    const auto slot_nozzle = get_slot_nozzle();
     for (int extruder_id : extruder_ids) {
         NozzleFlowType   nozzle_flow_type   = obj->GetExtderSystem()->GetNozzleFlowType(extruder_id);
         float            nozzle_diameter    = obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
 
+        if (slot_nozzle && slot_nozzle->GetNozzleDiameter() > 0.f) {
+            nozzle_diameter = slot_nozzle->GetNozzleDiameter();
+            nozzle_flow_type = slot_nozzle->GetNozzleFlowType();
+        }
         // Allow subclass to override nozzle params (e.g. from a nozzle-type combo)
-        if (rack->IsSupported() && (extruder_id == MAIN_EXTRUDER_ID || switcher->IsInstalled())) {
+        else if (rack->IsSupported() && (extruder_id == MAIN_EXTRUDER_ID || switcher->IsInstalled())) {
             get_nozzle_type_override(extruder_id, nozzle_diameter, nozzle_flow_type);
         }
 
-        for (auto cali_item : cali_history) {
-            // filter avaliable cali_item (PA)
-            if (cali_item.filament_id == ams_filament_id
-            && cali_item.nozzle_volume_type == DevNozzle::ToNozzleVolumeType(nozzle_flow_type)
-            && is_approx(cali_item.nozzle_diameter, nozzle_diameter)
-            ) {
-                if (obj->is_multi_extruders() && extruder_id != cali_item.extruder_id) {
-                    continue;
-                }
+        const NozzleDiameterType dia_type = DevNozzle::ToNozzleDiameterType(nozzle_diameter);
+        if (dia_type == NozzleDiameterType::NONE_DIAMETER_TYPE) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " skip unknown nozzle diameter=" << nozzle_diameter << ", extruder_id=" << extruder_id;
+            continue;
+        }
+        // Empty tray filament: no historical profile is offered.
+        if (ams_filament_id.empty()) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " skip empty filament_id, extruder_id=" << extruder_id;
+            continue;
+        }
 
-                if(rack->IsSupported() && extruder_id == MAIN_EXTRUDER_ID)
-                {
-                    if(cali_item.nozzle_pos_id == 0) {
-                        items.push_back(wxString::Format("R | %s", from_u8(cali_item.name)));
-                    } else if(cali_item.nozzle_pos_id == 1) {
-                        items.push_back(wxString::Format("L | %s", from_u8(cali_item.name)));
-                    } else if(cali_item.nozzle_pos_id >= 0x10){
-                        items.push_back(wxString::Format("%d | %s", (cali_item.nozzle_pos_id & 0x0f) + 1, from_u8(cali_item.name)));
-                    } else {
-                        items.push_back(wxString::Format("N/A | %s", from_u8(cali_item.name)));
-                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
-                    }
+        PaHistoryFilter pa_history_filter = obj->GetCalib()->GetPaHistoryFilter();
+        pa_history_filter.set_filament_id(ams_filament_id)
+                .set_nozzle_volume_type(DevNozzle::ToNozzleVolumeType(nozzle_flow_type))
+                .set_nozzle_diameter(dia_type)
+                .set_extruder_id(obj->is_multi_extruders() ? std::optional<int>(extruder_id) : std::nullopt);
+
+        std::vector<PACalibResult> matched = pa_history_filter.get();
+        std::sort(matched.begin(), matched.end(), [](const PACalibResult &left, const PACalibResult &right) { return left.nozzle_pos_id < right.nozzle_pos_id; });
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " PaHistoryFilter extruder_id=" << extruder_id
+                                 << ", nozzle_diameter=" << nozzle_diameter
+                                 << ", filament_id=" << ams_filament_id
+                                 << ", matched=" << matched.size();
+        for (const auto &cali_item : matched) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " cali_item: cali_idx=" << cali_item.cali_idx
+                                     << ", name=" << cali_item.name
+                                     << ", filament_id=" << cali_item.filament_id
+                                     << ", k_value=" << cali_item.k_value
+                                     << ", n_coef=" << cali_item.n_coef
+                                     << ", nozzle_diameter=" << cali_item.nozzle_diameter
+                                     << ", nozzle_volume_type=" << (int) cali_item.nozzle_volume_type
+                                     << ", nozzle_pos_id=" << cali_item.nozzle_pos_id
+                                     << ", extruder_id=" << cali_item.extruder_id;
+        }
+
+        for (auto cali_item : matched) {
+            if(rack->IsSupported())
+            {
+                if(cali_item.nozzle_pos_id == 0) {
+                    items.push_back(wxString::Format("R | %s", from_u8(cali_item.name)));
+                } else if(cali_item.nozzle_pos_id == 1) {
+                    items.push_back(wxString::Format("L | %s", from_u8(cali_item.name)));
+                } else if(cali_item.nozzle_pos_id >= 0x10){
+                    items.push_back(wxString::Format("%d | %s", (cali_item.nozzle_pos_id & 0x0f) + 1, from_u8(cali_item.name)));
                 } else {
-                    items.push_back(wxString::Format("%s", from_u8(cali_item.name)));
+                    items.push_back(wxString::Format("N/A | %s", from_u8(cali_item.name)));
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
                 }
-
-                m_pa_profile_items.push_back(cali_item);
+            } else {
+                items.push_back(wxString::Format("%s", from_u8(cali_item.name)));
             }
+
+            m_pa_profile_items.push_back(cali_item);
         }
     }
 
@@ -2561,17 +2561,15 @@ void AMSMaterialsSetting::apply_filament_selection()
         }
     }
 
-    std::vector<PACalibResult> cali_history = obj->GetCalib()->GetPAHistory();
-    int cur_cali_idx = get_cali_index_by_ams_slot(obj, ams_id, slot_id); // calib_idx == -1 is select default
-    auto iter = std::find_if(cali_history.begin(), cali_history.end(), [cur_cali_idx](const PACalibResult& item){
-        return item.cali_idx == cur_cali_idx;
-    });
-    if (iter != cali_history.end() && !iter->nozzle_sn.empty() && iter->nozzle_sn != "N/A") {
-        int sel = get_nozzle_sel_by_sn(obj, iter->nozzle_sn);
-        m_comboBox_nozzle_type->SetSelection(sel);
-    } else {
-        m_comboBox_nozzle_type->SetSelection(-1);
-        m_comboBox_nozzle_type->SetValue(wxEmptyString);
+    if (!(obj->GetNozzleSystem() && obj->GetNozzleSystem()->GetNozzleRack()->IsSupported())) {
+        PaHistoryFilter pa_history_filter = obj->GetCalib()->GetPaHistoryFilter();
+        int cur_cali_idx = get_cali_index_by_ams_slot(obj, ams_id, slot_id); // calib_idx == -1 is select default
+        if (const PACalibResult *iter = pa_history_filter.find_by_cali_idx(cur_cali_idx)) {
+            switch_nozzle_combo_to_target(iter->nozzle_volume_type, iter->nozzle_diameter);
+        } else {
+            m_comboBox_nozzle_type->SetSelection(-1);
+            m_comboBox_nozzle_type->SetValue(wxEmptyString);
+        }
     }
 
     if (obj->GetCalib()->IsVersionInited()) {

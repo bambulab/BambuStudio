@@ -11,6 +11,7 @@
 
 #include "DeviceCore/DevInfo.h"
 #include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevNozzleSystem.h"
 
 namespace Slic3r { namespace GUI {
 
@@ -629,16 +630,13 @@ void PressureAdvanceWizard::update(MachineObject* obj)
         return;
 
     if (!m_show_result_dialog) {
-        if (obj->GetCalib()->IsVersionExpired()) {
-            obj->GetCalib()->SyncCalibVersion();
-
-            PACalibExtruderInfo cali_info;
-            cali_info.nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(0);
-            cali_info.use_extruder_id        = false;
-            cali_info.use_nozzle_volume_type = false;
-
-            CalibUtils::emit_get_PA_calib_infos(cali_info);
+        if (obj->GetCalib()->IsVersionExpired() && obj->is_security_control_ready()) {
+            if (obj->GetCalib()->PrepareFetchQueue()) {
+                obj->GetCalib()->SyncCalibVersion();
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " calibration: rebuild history fetch queue for device " << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id());
+            }
         }
+        obj->GetCalib()->SendNextFetch();
     }
 }
 
@@ -835,13 +833,17 @@ void PressureAdvanceWizard::on_cali_start()
             cali_page->set_pa_cali_image(int(pa_cali_method));
             curr_obj->GetCalib()->SetManualPaCalibMethod(pa_cali_method);//  manual_pa_cali_method = pa_cali_method;
 
-            if (curr_obj->get_printer_series() != PrinterSeries::SERIES_X1 && curr_obj->GetCalib()->GetPAHistory().size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
-                MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold 16 history results per nozzle. "
-                    "You can delete the existing historical results and then start calibration. "
-                    "Or you can continue the calibration, but you cannot create new calibration historical results. \n"
-                    "Do you still want to continue the calibration?"), MAX_PA_HISTORY_RESULTS_NUMS), wxEmptyString, wxICON_WARNING | wxYES | wxCANCEL);
-                if (msg_dlg.ShowModal() != wxID_YES) {
-                    return;
+            if (curr_obj->get_printer_series() != PrinterSeries::SERIES_X1) {
+                PaHistoryFilter pa_history_filter = curr_obj->GetCalib()->GetPaHistoryFilter();
+                pa_history_filter.set_nozzle_diameter(DevNozzle::ToNozzleDiameterType(calib_info.nozzle_diameter));
+                if (pa_history_filter.count() >= MAX_PA_HISTORY_RESULTS_NUMS) {
+                    MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold 16 history results per nozzle. "
+                        "You can delete the existing historical results and then start calibration. "
+                        "Or you can continue the calibration, but you cannot create new calibration historical results. \n"
+                        "Do you still want to continue the calibration?"), MAX_PA_HISTORY_RESULTS_NUMS), wxEmptyString, wxICON_WARNING | wxYES | wxCANCEL);
+                    if (msg_dlg.ShowModal() != wxID_YES) {
+                        return;
+                    }
                 }
             }
 
@@ -954,18 +956,14 @@ bool PressureAdvanceWizard::can_save_cali_result(const std::vector<PACalibResult
 
     std::string same_pa_names;
     for (auto new_pa_cali_result : new_pa_cali_results) {
-        auto pa_calib_tab = curr_obj->GetCalib()->GetPAHistory();
+        PaHistoryFilter pa_history_filter = curr_obj->GetCalib()->GetPaHistoryFilter();
+        pa_history_filter.set_pa_profile_name(new_pa_cali_result.name)
+                .set_filament_id(new_pa_cali_result.filament_id)
+                .set_nozzle_diameter(DevNozzle::ToNozzleDiameterType(new_pa_cali_result.nozzle_diameter))
+                .set_extruder_id(curr_obj->is_multi_extruders() ? std::optional<int>(new_pa_cali_result.extruder_id) : std::nullopt)
+                .set_nozzle_volume_type(curr_obj->is_multi_extruders() ? std::optional<NozzleVolumeType>(new_pa_cali_result.nozzle_volume_type) : std::nullopt);
 
-        auto iter = std::find_if(pa_calib_tab.begin(), pa_calib_tab.end(), [this, &new_pa_cali_result](const PACalibResult &item) {
-            bool is_same_name = (item.name == new_pa_cali_result.name && item.filament_id == new_pa_cali_result.filament_id &&
-                                 item.nozzle_diameter == new_pa_cali_result.nozzle_diameter);
-            if (curr_obj && curr_obj->is_multi_extruders()) {
-                is_same_name &= (item.extruder_id == new_pa_cali_result.extruder_id && item.nozzle_volume_type == new_pa_cali_result.nozzle_volume_type);
-            }
-            return is_same_name;
-        });
-
-        if (iter != pa_calib_tab.end()) {
+        if (!pa_history_filter.empty()) {
             same_pa_names += new_pa_cali_result.name;
             same_pa_names += ", ";
         }
@@ -985,11 +983,17 @@ bool PressureAdvanceWizard::can_save_cali_result(const std::vector<PACalibResult
             return false;
     }
 
-    if (curr_obj->get_printer_series() != PrinterSeries::SERIES_X1 && curr_obj->GetCalib()->GetPAHistory().size() >= MAX_PA_HISTORY_RESULTS_NUMS) {
-        MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold %d history results per nozzle. This result will not be saved."), MAX_PA_HISTORY_RESULTS_NUMS),
-                              wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
-        return false;
+    if (curr_obj->get_printer_series() != PrinterSeries::SERIES_X1) {
+        PaHistoryFilter pa_history_filter = curr_obj->GetCalib()->GetPaHistoryFilter();
+        for (const auto &result : new_pa_cali_results) {
+            pa_history_filter.set_nozzle_diameter(DevNozzle::ToNozzleDiameterType(result.nozzle_diameter));
+            if (pa_history_filter.count() >= MAX_PA_HISTORY_RESULTS_NUMS) {
+                MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold %d history results per nozzle. This result will not be saved."), MAX_PA_HISTORY_RESULTS_NUMS),
+                                      wxEmptyString, wxICON_WARNING | wxOK);
+                msg_dlg.ShowModal();
+                return false;
+            }
+        }
     }
     return true;
 }

@@ -404,20 +404,6 @@ static wxString _generate_nozzle_id(NozzleVolumeType nozzle_type, const std::str
     return nozzle_id;
 }
 
-NozzleVolumeType convert_to_nozzle_type(const std::string &str)
-{
-    if (str.size() < 8) {
-        assert(false);
-        return NozzleVolumeType::nvtStandard;
-    }
-    NozzleVolumeType res = NozzleVolumeType::nvtStandard;
-    if (str[1] == 'S')
-        res = NozzleVolumeType::nvtStandard;
-    else if (str[1] == 'H')
-        res = NozzleVolumeType::nvtHighFlow;
-    return res;
-}
-
 wxString MachineObject::get_printer_type_display_str() const
 {
     std::string display_name = DevPrinterConfigUtil::get_printer_display_name(printer_type);
@@ -2027,9 +2013,18 @@ int MachineObject::command_delete_pa_calibration(const PACalibIndexInfo& pa_cali
     return this->publish_json(j);
 }
 
+bool MachineObject::supports_full_pa_calib_table() const
+{
+    /* TODO: drive this from the printer json instead of the extruder count */
+    if (is_multi_extruders())
+        return true;
+
+    auto rack = GetNozzleRack();
+    return rack && rack->IsSupported();
+}
+
 int MachineObject::command_get_pa_calibration_tab(const PACalibExtruderInfo &calib_info)
 {
-
     json j;
     j["print"]["command"]         = "extrusion_cali_get";
     j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
@@ -2038,7 +2033,8 @@ int MachineObject::command_get_pa_calibration_tab(const PACalibExtruderInfo &cal
         j["print"]["extruder_id"] = calib_info.extruder_id;
     if (calib_info.use_nozzle_volume_type)
         j["print"]["nozzle_id"] = _generate_nozzle_id(calib_info.nozzle_volume_type, to_string_nozzle_diameter(calib_info.nozzle_diameter)).ToStdString();
-    j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(calib_info.nozzle_diameter);
+    if (calib_info.use_nozzle_diameter)
+        j["print"]["nozzle_diameter"] = to_string_nozzle_diameter(calib_info.nozzle_diameter);
 
     if (calib_info.nozzle_pos_id >= 0) {
         j["print"]["nozzle_pos"] = calib_info.nozzle_pos_id;

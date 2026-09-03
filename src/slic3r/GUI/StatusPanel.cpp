@@ -3597,6 +3597,7 @@ void StatusPanel::update(MachineObject *obj)
     update_temp_ctrl(obj);
     update_misc_ctrl(obj);
 
+    update_calib_history(obj);
     update_ams(obj);
     update_cali(obj);
 
@@ -4038,6 +4039,21 @@ void StatusPanel::update_extruder_status(MachineObject *obj)
     if (!obj) return;
 }
 
+void StatusPanel::update_calib_history(MachineObject *obj)
+{
+    if (!obj)
+        return;
+
+    if (obj->GetCalib()->IsVersionExpired() && obj->is_security_control_ready()) {
+        if (obj->GetCalib()->PrepareFetchQueue()) {
+            obj->GetCalib()->SyncCalibVersion();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " calibration: rebuild history fetch queue for device " << BBLCrossTalk::Crosstalk_DevName(obj->get_dev_name());
+        }
+    }
+
+    obj->GetCalib()->SendNextFetch();
+}
+
 static nlohmann::json build_ams_tray_batch_create(DevAmsTray* tray, const std::string& ams_id, MachineObject* obj);
 
 void StatusPanel::update_ams(MachineObject *obj)
@@ -4055,20 +4071,6 @@ void StatusPanel::update_ams(MachineObject *obj)
         if (m_rfid_view_dlg->IsShown()) {
             m_rfid_view_dlg->TryRefreshPAProfiles();
         }
-    }
-
-    if (obj && obj->GetCalib()->IsVersionExpired() && obj->is_security_control_ready()) {
-        obj->GetCalib()->SyncCalibVersion();
-
-        PACalibExtruderInfo cali_info;
-        cali_info.nozzle_diameter        = obj->GetExtderSystem()->GetNozzleDiameter(0);
-        cali_info.use_extruder_id        = false;
-        cali_info.use_nozzle_volume_type = false;
-        CalibUtils::emit_get_PA_calib_infos(cali_info);
-
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " calibration: sync calib version for device " << BBLCrossTalk::Crosstalk_DevName(obj->get_dev_name());
-    } else if (obj) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " calibration: not sync calib version, IsVersionExpired=" << obj->GetCalib()->IsVersionExpired() << " is_security_control_ready=" << obj->is_security_control_ready();
     }
 
     if (obj && obj->is_security_control_ready()) { obj->check_ams_filament_valid(); }

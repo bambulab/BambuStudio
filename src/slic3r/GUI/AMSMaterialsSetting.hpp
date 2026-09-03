@@ -149,6 +149,8 @@ protected:
 
     virtual void on_pa_history_ready() = 0;
 
+    std::optional<DevNozzle> get_slot_nozzle() const;
+
     std::vector<PACalibResult> m_pa_profile_items;
     int  m_pa_cali_select_id{0};
     bool m_pa_data_pending{false};

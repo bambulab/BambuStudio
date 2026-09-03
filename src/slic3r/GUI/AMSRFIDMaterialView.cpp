@@ -309,14 +309,15 @@ void AMSRFIDMaterialView::Popup(MachineObject* obj_, int ams_id_, int slot_id_,
             } else if (auto* tray = obj->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id)))
                 cur_cali_idx = tray->cali_idx;
             // Select the nozzle-type matching the saved PA profile (mirrors AMSMaterialsSetting).
-            std::vector<PACalibResult> cali_history = obj->GetCalib()->GetPAHistory();
-            auto iter = std::find_if(cali_history.begin(), cali_history.end(),
-                [cur_cali_idx](const PACalibResult& item){ return item.cali_idx == cur_cali_idx; });
-            if (iter != cali_history.end()) {
-                switch_nozzle_combo_to_target(iter->nozzle_volume_type, iter->nozzle_diameter);
-            } else if (m_comboBox_nozzle_type) {
-                m_comboBox_nozzle_type->SetSelection(-1);
-                m_comboBox_nozzle_type->SetValue(wxEmptyString);
+            auto rack = obj->GetNozzleRack();
+            if (!(rack && rack->IsSupported())) {
+                PaHistoryFilter pa_history_filter = obj->GetCalib()->GetPaHistoryFilter();
+                if (const PACalibResult *iter = pa_history_filter.find_by_cali_idx(cur_cali_idx)) {
+                    switch_nozzle_combo_to_target(iter->nozzle_volume_type, iter->nozzle_diameter);
+                } else if (m_comboBox_nozzle_type) {
+                    m_comboBox_nozzle_type->SetSelection(-1);
+                    m_comboBox_nozzle_type->SetValue(wxEmptyString);
+                }
             }
             update_pa_profile_items();
             int sel = CalibUtils::get_selected_calib_idx(m_pa_profile_items, cur_cali_idx);

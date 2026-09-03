@@ -1786,12 +1786,11 @@ bool CalibUtils::get_pa_k_n_value_by_cali_idx(const MachineObject *obj, int cali
     if (!obj)
         return false;
 
-    for (auto pa_calib_info : obj->GetCalib()->GetPAHistory()) {
-        if (pa_calib_info.cali_idx == cali_idx) {
-            out_k = pa_calib_info.k_value;
-            out_n = pa_calib_info.n_coef;
-            return true;
-        }
+    PaHistoryFilter pa_history_filter = obj->GetCalib()->GetPaHistoryFilter();
+    if (const PACalibResult *info = pa_history_filter.find_by_cali_idx(cali_idx)) {
+        out_k = info->k_value;
+        out_n = info->n_coef;
+        return true;
     }
     return false;
 }

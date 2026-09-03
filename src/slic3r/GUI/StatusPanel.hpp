@@ -831,6 +831,7 @@ protected:
     void update_temp_ctrl(MachineObject *obj);
     void update_misc_ctrl(MachineObject *obj);
     void update_ams(MachineObject* obj);
+    void update_calib_history(MachineObject* obj);
     void update_filament_loading_panel(MachineObject* obj);
 
     void update_extruder_status(MachineObject* obj);

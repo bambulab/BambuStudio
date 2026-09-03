@@ -381,6 +381,8 @@ public:
     DevBed *        GetBed()    const { return m_bed; };
     DevStorage*     GetStorage()const { return m_storage; }
     DevCalib*       GetCalib()  const { return m_calib; }
+
+    bool            supports_full_pa_calib_table() const;
     DevStatus*      GetStatus() const { return m_status; }; /* status*/
 
     DevCtrl*   GetCtrl() const { return m_ctrl; }       /* ctrl*/
