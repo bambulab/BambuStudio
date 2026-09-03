@@ -1441,6 +1441,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("overhang_fan_threshold", coEnums);
     def->label = L("Cooling overhang threshold");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. "
                      "Expressed as percentage which indicides how much width of the line without support from lower layer. "
                      "0% means forcing cooling for all outer wall no matter how much overhang degree");
@@ -1629,7 +1630,8 @@ void PrintConfigDef::init_fff_params()
     def->label = L("100%");
     def->category = L("Speed");
     def->full_label = "100%";
-    def->tooltip    = L("Speed of 100%% overhang wall which has 0 overlap with the lower layer.");
+    // xgettext:no-c-format, no-boost-format
+    def->tooltip    = L("Speed of 100% overhang wall which has 0 overlap with the lower layer.");
     def->sidetext = L("mm/s");
     def->min = 0;
     def->mode = comAdvanced;
@@ -2150,6 +2152,7 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("bottom_surface_density", coPercent);
     def->label    = L("Bottom surface density");
     def->category = L("Strength");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip  = L("Density of bottom surface infill, 100% means a fully solid filled top layer."
                        "Lower values create a textured bottom surface, "
                        "Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
@@ -3116,6 +3119,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("sparse_infill_density", coPercent);
     def->label = L("Sparse infill density");
     def->category = L("Strength");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Density of internal sparse infill, 100% means solid throughout");
     def->sidetext = "%";
     def->min = 0;
@@ -9580,7 +9584,8 @@ std::map<std::string, std::string> validate(const FullPrintConfig &cfg, bool und
     // --fill-density
     if (fabs(cfg.sparse_infill_density.value - 100.) < EPSILON &&
         ! print_config_def.get("top_surface_pattern")->has_enum_value(cfg.sparse_infill_pattern.serialize())) {
-        error_message.emplace("sparse_infill_pattern", cfg.sparse_infill_pattern.serialize() + L(" doesn't work at 100%% density "));
+        // xgettext:no-c-format, no-boost-format
+        error_message.emplace("sparse_infill_pattern", cfg.sparse_infill_pattern.serialize() + L(" doesn't work at 100% density "));
     }
 
     // --skirt-height

@@ -233,6 +233,7 @@ ParamTipStore::ParamTipStore()
                     {}, _L("If detection of narrow internal solid infill is enabled, small regions use the concentric pattern automatically."))},
         {"sparse_infill_density",
          make_entry("sparse_infill_density", _L("Controls how dense the model's internal sparse infill is."),
+                    // xgettext:no-c-format, no-boost-format
                     _L("10-15% is recommended for typical models; raise it for functional parts.\n"
                        "100% means fully solid, where only the Concentric, Rectilinear, Monotonic, Monotonic Line, Aligned Rectilinear, Hilbert Curve, Archimedean Chords, and Octagram Spiral patterns are available."))},
         {"fill_multiline", make_entry("fill_multiline", _L("Enables multi-line infill, printing each infill path as several parallel lines side by side."),
