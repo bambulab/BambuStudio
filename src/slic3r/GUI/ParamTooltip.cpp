@@ -92,8 +92,10 @@ constexpr int ANCHOR_GAP       = 8; // horizontal gap between the option row and
 constexpr int SHOW_DELAY_MS = 200;
 constexpr int HIDE_DELAY_MS = 100;
 
-// Bullet marker prefixed to every line of the details block.
-const wxString BULLET_MARKER = "*";
+// Bullet marker prefixed to every line of the details block. The trailing space is part of the
+// marker, not a sizer spacer, so the text column sits exactly one space after the bullet the way a
+// rendered markdown list does, measured in the details font at whatever the current DPI is.
+const wxString BULLET_MARKER = "* ";
 
 // Copy-icon "copied!" feedback: crossfade to a check mark, hold, crossfade back.
 constexpr int COPY_ICON_PX    = 14;  // icon side length (DIP)
@@ -416,17 +418,22 @@ const ParamTipEntry *ParamTipStore::find(const std::string &opt_key) const
     return it == m_map.end() ? nullptr : &it->second;
 }
 
-// The card title always comes from the config: the localized label, or the raw opt_key
-// when the def has no label (or no def exists). It is never curated in the store.
-wxString resolve_title(const std::string &opt_key, const ConfigOptionDef *def)
+// The card title is never curated in the store. It prefers the anchoring row's own label
+// (line_label) — already localized and what the row visibly shows — then the def's localized label,
+// and finally the raw opt_key when neither exists.
+wxString resolve_title(const std::string &opt_key, const ConfigOptionDef *def, const wxString &line_label)
 {
+    if (!line_label.IsEmpty()) return line_label;
     wxString title = def ? _(def->label) : wxString();
     return title.IsEmpty() ? from_u8(opt_key) : title;
 }
 
-ParamTipEntry resolve_entry(const ParamTipEntry *stored, const ConfigOptionDef *def)
+// Description fallback chain: a curated store entry wins; otherwise the anchoring row's own tooltip
+// (line_tooltip, already localized) — the string the old native hover showed — then the def tooltip.
+ParamTipEntry resolve_entry(const ParamTipEntry *stored, const ConfigOptionDef *def, const wxString &line_tooltip)
 {
     ParamTipEntry r = stored ? *stored : ParamTipEntry{};
+    if (r.description.IsEmpty()) r.description = line_tooltip;
     if (r.description.IsEmpty() && def) r.description = _(def->tooltip);
     return r;
 }
@@ -518,9 +525,9 @@ wxBitmap blend_bitmaps(const wxImage &a, const wxImage &b, double t, double scal
 }
 
 // Apply one optional text row: fill + show when it has content, collapse otherwise.
-// t is a Label (not a raw wxStaticText) so Label::Wrap runs — it breaks CJK runs that
-// have no spaces, which the non-virtual wxStaticText::Wrap cannot, and adds the MSW
-// best-size margin that keeps the native STATIC from clipping the wrapped text.
+// t is a Label (not a raw wxStaticText) so Label::Wrap runs — it breaks CJK runs that have no
+// spaces, which the non-virtual wxStaticText::Wrap cannot, and it keeps the wrapped label inside
+// the width passed here, which the native control would otherwise clip rather than re-wrap.
 void set_row(wxSizer *sizer, Label *t, const wxString &s, const wxColour &fg, const wxColour &bg, int wrap)
 {
     const bool has = !s.IsEmpty();
@@ -701,11 +708,11 @@ wxBitmap ParamTooltip::LoadImage(const std::string &image_id, bool dark)
     return bmp;
 }
 
-void ParamTooltip::Rebuild(const std::string &opt_key, const std::string &wiki_path, bool dark)
+void ParamTooltip::Rebuild(const std::string &opt_key, const std::string &wiki_path, bool dark, const wxString &line_label, const wxString &line_tooltip)
 {
     const Palette         &p   = dark ? dark_palette() : light_palette();
     const ConfigOptionDef *def = print_config_def.get(opt_key);
-    const ParamTipEntry    e   = resolve_entry(ParamTipStore::get().find(opt_key), def);
+    const ParamTipEntry    e   = resolve_entry(ParamTipStore::get().find(opt_key), def, line_tooltip);
 
     SetBackgroundColour(p.card_bg);
     wxSizer  *sizer = GetSizer();
@@ -713,7 +720,7 @@ void ParamTooltip::Rebuild(const std::string &opt_key, const std::string &wiki_p
 
     m_title->SetForegroundColour(p.title);
     m_title->SetBackgroundColour(p.card_bg);
-    m_title->SetLabel(resolve_title(opt_key, def));
+    m_title->SetLabel(resolve_title(opt_key, def, line_label));
     m_title->Wrap(wrap); // title wraps to multiple lines when too long
 
     m_divider->SetBackgroundColour(p.divider);
@@ -751,13 +758,6 @@ void ParamTooltip::set_details(const wxString &s, const wxColour &fg, const wxCo
     m_details->SetBackgroundColour(bg);
     wxSizer *col = m_details->GetSizer();
 
-    // Indent = the marker's own width plus one space, measured in the details font so the text
-    // column lands exactly where a rendered markdown bullet would put it at any DPI or font size.
-    wxClientDC dc(m_details);
-    dc.SetFont(Label::Body_13);
-    const int marker_w = dc.GetTextExtent(BULLET_MARKER).GetWidth();
-    const int marker_gap = dc.GetTextExtent(" ").GetWidth();
-
     while (m_detail_rows.size() < lines.size()) {
         DetailRow row;
         row.marker = new Label(m_details, Label::Body_13, BULLET_MARKER);
@@ -767,13 +767,19 @@ void ParamTooltip::set_details(const wxString &s, const wxColour &fg, const wxCo
 
         row.sizer = new wxBoxSizer(wxHORIZONTAL);
         row.sizer->Add(row.marker, 0, wxALIGN_TOP); // the marker sits on the point's first line
-        row.sizer->AddSpacer(marker_gap);
         row.sizer->Add(row.text, 1, wxEXPAND);
         // Rows are only ever appended and always filled in order, so this index is the row's
         // permanent position: only the first one skips the inter-bullet gap.
         col->Add(row.sizer, 0, wxEXPAND | wxTOP, m_detail_rows.empty() ? 0 : FromDIP(2));
         m_detail_rows.push_back(row);
     }
+
+    // Indent = the marker column, i.e. the bullet plus its trailing space. Take it from the marker's
+    // best size, not from a raw text extent: the sizer reserves the former, and on macOS the
+    // difference between the two is enough to push the last word of every point past the text
+    // column, where the native control clips it away instead of re-wrapping it.
+    const int marker_w  = m_detail_rows.front().marker->GetBestSize().GetWidth();
+    const int text_wrap = wrap - marker_w;
 
     for (size_t i = 0; i < m_detail_rows.size(); ++i) {
         const DetailRow &row  = m_detail_rows[i];
@@ -786,7 +792,7 @@ void ParamTooltip::set_details(const wxString &s, const wxColour &fg, const wxCo
         row.text->SetForegroundColour(fg);
         row.text->SetBackgroundColour(bg);
         row.text->SetLabel(lines[i]);
-        row.text->Wrap(wrap - marker_w - marker_gap);
+        row.text->Wrap(text_wrap);
     }
 
     col->Layout();
@@ -894,7 +900,7 @@ void ParamTooltip::place_card(const wxPoint &tip_pos)
 // Sync the drop shadow with the card via the shared WindowShadow component.
 void ParamTooltip::update_shadow(bool show) { m_shadow.Sync(this, show && IsShown()); }
 
-bool ParamTooltip::DoShowFor(const std::string &opt_key, const std::string &wiki_path, const wxPoint &tip_pos)
+bool ParamTooltip::DoShowFor(const std::string &opt_key, const std::string &wiki_path, const wxPoint &tip_pos, const wxString &line_label, const wxString &line_tooltip)
 {
     if (opt_key.empty()) {
         DoHide(false);
@@ -920,7 +926,7 @@ bool ParamTooltip::DoShowFor(const std::string &opt_key, const std::string &wiki
     if (IsShown()) {
         if (changed) {
             Freeze();
-            Rebuild(opt_key, wiki_path, dark);
+            Rebuild(opt_key, wiki_path, dark, line_label, line_tooltip);
             m_last_key  = opt_key;
             m_last_dark = dark;
             place_card(tip_pos);
@@ -933,7 +939,7 @@ bool ParamTooltip::DoShowFor(const std::string &opt_key, const std::string &wiki
 
     // Not visible yet: build off-screen (never a visible morph), position, then show on settle.
     if (changed) {
-        Rebuild(opt_key, wiki_path, dark);
+        Rebuild(opt_key, wiki_path, dark, line_label, line_tooltip);
         m_last_key  = opt_key;
         m_last_dark = dark;
     }
@@ -1003,7 +1009,10 @@ void ParamTooltip::OnPaint(wxPaintEvent &)
     gc->DrawRoundedRectangle(bw, bw, sz.GetWidth() - 2.0 * bw, sz.GetHeight() - 2.0 * bw, ir);
 }
 
-bool ParamTooltip::ShowFor(const std::string &opt_key, const std::string &wiki_path, const wxPoint &tip_pos) { return instance().DoShowFor(opt_key, wiki_path, tip_pos); }
+bool ParamTooltip::ShowFor(const std::string &opt_key, const std::string &wiki_path, const wxPoint &tip_pos, const wxString &line_label, const wxString &line_tooltip)
+{
+    return instance().DoShowFor(opt_key, wiki_path, tip_pos, line_label, line_tooltip);
+}
 
 wxString ParamTooltip::ItemTooltip(const std::string &opt_key, const std::string &value_key)
 {

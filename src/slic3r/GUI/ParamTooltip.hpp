@@ -24,7 +24,11 @@ public:
     // tip_pos is the screen anchor the card is placed beside (the row's right-center).
     // wiki_path is the option's wiki slug (og_line.label_path) — the same one the
     // clickable label uses; it drives the "View Wiki" link, falling back to the store.
-    static bool ShowFor(const std::string &opt_key, const std::string &wiki_path, const wxPoint &tip_pos);
+    // line_label / line_tooltip are the anchoring row's own label and tooltip (og_line.label /
+    // og_line.label_tooltip). A composite or overridden line authors these independently of the
+    // ConfigOptionDef, and they are what the old native hover showed, so the card prefers them over
+    // the def (but below a curated store entry) to stay in sync with the row.
+    static bool ShowFor(const std::string &opt_key, const std::string &wiki_path, const wxPoint &tip_pos, const wxString &line_label = {}, const wxString &line_tooltip = {});
     static void Hide();
     // Destroy the singleton (its popup + shadow) and drop the localized store, so the next hover
     // rebuilds against the current MainFrame in the current language. Must run while the MainFrame
@@ -61,14 +65,14 @@ private:
      */
     void     set_details(const wxString &s, const wxColour &fg, const wxColour &bg, int wrap);
     wxWindow *build_optkey_row();
-    void     Rebuild(const std::string &opt_key, const std::string &wiki_path, bool dark);
+    void     Rebuild(const std::string &opt_key, const std::string &wiki_path, bool dark, const wxString &line_label, const wxString &line_tooltip);
     void      update_optkey_row(const std::string &opt_key, bool dark); // dev-mode-only opt_key pill
     void     ApplyShape();
     void     place_card(const wxPoint &tip_pos);
     void      update_shadow(bool show); // sync the soft-shadow layered window behind the card (Win32)
     wxBitmap LoadImage(const std::string &image_id, bool dark);
 
-    bool DoShowFor(const std::string &opt_key, const std::string &wiki_path, const wxPoint &tip_pos);
+    bool DoShowFor(const std::string &opt_key, const std::string &wiki_path, const wxPoint &tip_pos, const wxString &line_label, const wxString &line_tooltip);
     void DoHide(bool now);
 
     /**
