@@ -23,11 +23,15 @@ if(SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN)
     # Prefer the Config installed by deps/OpenMeshCraft into the dependency
     # prefix (same pattern as CGAL / TBB). No Find module under cmake/modules.
     find_package(OpenMeshCraft QUIET CONFIG)
-    if(OpenMeshCraft_FOUND)
+    if(OpenMeshCraft_FOUND AND (TARGET OpenMeshCraft OR TARGET OpenMeshCraftBoolean))
         set(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN TRUE CACHE INTERNAL "" FORCE)
         message(STATUS "OpenMeshCraft boolean backend enabled.")
+    elseif(SLIC3R_ALLOW_MCUT_BOOLEAN)
+        message(STATUS "OpenMeshCraft package is unavailable; using MCUT (SLIC3R_ALLOW_MCUT_BOOLEAN=ON).")
     else()
-        message(STATUS "OpenMeshCraft package is unavailable for this platform; using MCUT.")
+        message(FATAL_ERROR
+            "OpenMeshCraft is required. "
+            "Install the package into CMAKE_PREFIX_PATH, or pass -DSLIC3R_ALLOW_MCUT_BOOLEAN=ON.")
     endif()
 endif()
 

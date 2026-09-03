@@ -580,7 +580,8 @@ endif()
 target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl mcut)
 if(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN)
     # GMP/MPFR usually come with CGAL/DEP, but may not be visible to find_library
-    # in non-standard layouts. Never REQUIRED here: missing deps must fall back to MCUT.
+    # in non-standard layouts. Missing deps used to fall back to MCUT silently;
+    # that is only allowed with SLIC3R_ALLOW_MCUT_BOOLEAN.
     if(NOT GMP_LIBRARIES)
         if(GMP_LIBRARY_RELEASE)
             set(GMP_LIBRARIES ${GMP_LIBRARY_RELEASE})
@@ -605,9 +606,21 @@ if(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN)
             ${GMP_LIBRARIES}
             ${MPFR_LIBRARIES}
         )
-    else()
+    elseif(SLIC3R_ALLOW_MCUT_BOOLEAN)
         set(SLIC3R_HAS_OPENMESHCRAFT_BOOLEAN FALSE CACHE INTERNAL "" FORCE)
         message(STATUS "OpenMeshCraft boolean disabled: GMP/MPFR not found; using MCUT.")
+    else()
+        message(FATAL_ERROR
+            "OpenMeshCraft boolean is enabled but GMP/MPFR were not found. "
+            "Refusing silent MCUT fallback. Fix GMP/MPFR in the dep prefix.")
+    endif()
+elseif(SLIC3R_ENABLE_OPENMESHCRAFT_BOOLEAN)
+    if(SLIC3R_ALLOW_MCUT_BOOLEAN)
+        message(STATUS "OpenMeshCraft was not packaged; using MCUT (SLIC3R_ALLOW_MCUT_BOOLEAN=ON).")
+    else()
+        message(FATAL_ERROR
+            "OpenMeshCraft was not packaged. "
+            "Refusing an MCUT-only build. Install the prefix package or pass -DSLIC3R_ALLOW_MCUT_BOOLEAN=ON.")
     endif()
 endif()
 
