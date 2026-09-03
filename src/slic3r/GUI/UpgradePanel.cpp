@@ -1163,6 +1163,20 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
         }
     }
 
+    // The hotend integrated AMS has its own panel above too, and get_ams_version() reports it on
+    // purpose because the other callers look up its sn by ams id. Only drop it once that panel is
+    // actually shown, and drop every entry because one module can be mapped to several ams ids.
+    if (obj->hotend_ams_version_info.isValid()) {
+        const std::string& hotend_ams_name = obj->hotend_ams_version_info.name;
+        for (auto iter = ver_list.begin(); iter != ver_list.end();) {
+            if (iter->second.name == hotend_ams_name) {
+                iter = ver_list.erase(iter);
+            } else {
+                ++iter;
+            }
+        }
+    }
+
     if (ver_list.size() > 0) {
         if (ver_list.size() != m_amspanel_list.size()) {
             int add_count = ver_list.size() - m_amspanel_list.size();
