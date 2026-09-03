@@ -2,6 +2,10 @@
 #include "Print.hpp"
 #include "BoundingBox.hpp"
 
+#ifdef SLIC3R_SPARROW_ARRANGE
+#include "ArrangeSparrow.hpp"
+#endif
+
 #include <libnest2d/backends/libslic3r/geometries.hpp>
 #include <libnest2d/optimizers/nlopt/subplex.hpp>
 #include <libnest2d/placers/nfpplacer.hpp>
@@ -76,6 +80,8 @@ namespace bgi = boost::geometry::index;
 using SpatElement = std::pair<Box, unsigned>;
 using SpatIndex = bgi::rtree< SpatElement, bgi::rstar<16, 4> >;
 using ItemGroup = std::vector<std::reference_wrapper<Item>>;
+
+std::atomic<bool> use_true_outline{false};
 
 // A coefficient used in separating bigger items and smaller items.
 const double BIG_ITEM_TRESHOLD = 0.02;
@@ -1190,6 +1196,22 @@ void arrange(ArrangePolygons &      arrangables,
              const ArrangeParams &  params)
 {
     namespace clppr = Slic3r::ClipperLib;
+
+#ifdef SLIC3R_SPARROW_ARRANGE
+    // BBS: sparrow handles rectangular beds only (every Bambu printer); other bed
+    // types and a failed sparrow run fall through to libnest2d. It has no notion of
+    // print order, height or per-plate filament grouping, so sequential print and
+    // "one material per plate" also stay on libnest2d.
+    if (params.use_sparrow && !params.is_seq_print && params.allow_multi_materials_on_same_plate) {
+        if constexpr (std::is_same_v<BedT, BoundingBox>) {
+            if (arrange_sparrow(arrangables, excludes, bed, params))
+                return;
+            BOOST_LOG_TRIVIAL(warning) << "sparrow arrange unavailable, using libnest2d";
+        } else {
+            BOOST_LOG_TRIVIAL(warning) << "sparrow arrange needs a rectangular bed, using libnest2d";
+        }
+    }
+#endif
 
     std::vector<Item> items, fixeditems;
     items.reserve(arrangables.size());

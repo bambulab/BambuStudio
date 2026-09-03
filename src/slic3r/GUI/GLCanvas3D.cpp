@@ -1355,23 +1355,24 @@ const double GLCanvas3D::DefaultCameraZoomToPlateMarginFactor = 1.25;
 
 void GLCanvas3D::load_arrange_settings()
 {
-    std::string dist_fff_str =
-        wxGetApp().app_config->get("arrange", "min_object_distance");
+    // BBS: the popup saves fff keys with the "_fff" postfix but older builds read the
+    // bare key, so try the postfixed key first. JSON booleans come back as "true"/"false".
+    auto cfg = [](const std::string &key, const std::string &postfix) {
+        std::string v = wxGetApp().app_config->get("arrange", key + postfix);
+        return v.empty() && !postfix.empty() ? wxGetApp().app_config->get("arrange", key) : v;
+    };
+    auto to_bool = [](const std::string &v) { return v == "1" || v == "yes" || v == "true"; };
 
-    std::string dist_fff_seq_print_str =
-        wxGetApp().app_config->get("arrange", "min_object_distance_seq_print");
+    std::string dist_fff_str           = cfg("min_object_distance", "_fff");
+    std::string dist_fff_seq_print_str = cfg("min_object_distance", "_fff_seq_print");
+    std::string dist_sla_str           = cfg("min_object_distance", "_sla");
+    std::string en_rot_fff_str         = cfg("enable_rotation", "_fff");
+    std::string en_rot_fff_seqp_str    = cfg("enable_rotation", "_fff_seq_print");
+    std::string en_rot_sla_str         = cfg("enable_rotation", "_sla");
 
-    std::string dist_sla_str =
-        wxGetApp().app_config->get("arrange", "min_object_distance_sla");
-
-    std::string en_rot_fff_str =
-        wxGetApp().app_config->get("arrange", "enable_rotation");
-
-    std::string en_rot_fff_seqp_str =
-        wxGetApp().app_config->get("arrange", "enable_rotation_seq_print");
-
-    std::string en_rot_sla_str =
-        wxGetApp().app_config->get("arrange", "enable_rotation_sla");
+    //BBS: one un-postfixed key, applied to every settings variant
+    std::string use_sparrow_str  = cfg("arrange_use_sparrow", "");
+    std::string sparrow_time_str = cfg("arrange_sparrow_time", "");
 
     if (!dist_fff_str.empty())
         m_arrange_settings_fff.distance = std::stof(dist_fff_str);
@@ -1383,13 +1384,27 @@ void GLCanvas3D::load_arrange_settings()
         m_arrange_settings_sla.distance = std::stof(dist_sla_str);
 
     if (!en_rot_fff_str.empty())
-        m_arrange_settings_fff.enable_rotation = (en_rot_fff_str == "1" || en_rot_fff_str == "yes");
+        m_arrange_settings_fff.enable_rotation = to_bool(en_rot_fff_str);
 
     if (!en_rot_fff_seqp_str.empty())
-        m_arrange_settings_fff_seq_print.enable_rotation = (en_rot_fff_seqp_str == "1" || en_rot_fff_seqp_str == "yes");
+        m_arrange_settings_fff_seq_print.enable_rotation = to_bool(en_rot_fff_seqp_str);
 
     if (!en_rot_sla_str.empty())
-        m_arrange_settings_sla.enable_rotation = (en_rot_sla_str == "1" || en_rot_sla_str == "yes");
+        m_arrange_settings_sla.enable_rotation = to_bool(en_rot_sla_str);
+
+    if (!use_sparrow_str.empty()) {
+        bool use_sparrow = to_bool(use_sparrow_str);
+        m_arrange_settings_fff.arrange_use_sparrow = use_sparrow;
+        m_arrange_settings_fff_seq_print.arrange_use_sparrow = use_sparrow;
+        m_arrange_settings_sla.arrange_use_sparrow = use_sparrow;
+    }
+
+    if (!sparrow_time_str.empty()) {
+        float t = std::stof(sparrow_time_str);
+        m_arrange_settings_fff.arrange_sparrow_time = t;
+        m_arrange_settings_fff_seq_print.arrange_sparrow_time = t;
+        m_arrange_settings_sla.arrange_sparrow_time = t;
+    }
 
     //BBS: add specific arrange settings
     m_arrange_settings_fff_seq_print.is_seq_print = true;
@@ -7446,6 +7461,8 @@ bool GLCanvas3D::_render_arrange_menu(float left, float toolbar_height)
     std::string avoid_extrusion_key = "avoid_extrusion_cali_region";
     std::string align_to_y_axis_key = "align_to_y_axis";
     std::string save_svg_key        = "save_svg";
+    std::string use_sparrow_key     = "arrange_use_sparrow";
+    std::string sparrow_time_key    = "arrange_sparrow_time";
     std::string postfix             = settings.postfix;
     //BBS:
     bool seq_print = settings.is_seq_print;
@@ -7484,6 +7501,31 @@ bool GLCanvas3D::_render_arrange_menu(float left, float toolbar_height)
         settings_out.enable_rotation = settings.enable_rotation;
         appcfg->set("arrange", rot_key.c_str(), settings_out.enable_rotation? "1" : "0");
         settings_changed = true;
+    }
+
+    if (imgui->bbl_checkbox(_L("Use experimental packer"), settings.arrange_use_sparrow)) {
+        settings_out.arrange_use_sparrow = settings.arrange_use_sparrow;
+        appcfg->set("arrange", use_sparrow_key.c_str(), settings_out.arrange_use_sparrow ? "1" : "0");
+        settings_changed = true;
+    }
+
+    if (settings.arrange_use_sparrow) {
+        // Label on its own line: it is wider than "Spacing", whose width sets the slider column.
+        imgui->text(_L("Search time per plate (s)"));
+        ImGui::AlignTextToFramePadding();
+        ImGui::Dummy(ImVec2(0, 0));
+        ImGui::SameLine(1.2 * cursor_slider_left);
+        ImGui::PushItemWidth(window_width - slider_icon_width);
+        bool b_sparrow_time = imgui->bbl_slider_float_style("##SparrowTime", &settings.arrange_sparrow_time, 2.0f, 60.0f, "%.0f");
+        ImGui::SameLine(window_width - slider_icon_width + 1.3 * cursor_slider_left);
+        ImGui::PushItemWidth(1.5 * slider_icon_width);
+        bool b_sparrow_time_input = ImGui::BBLDragFloat("##sparrow_time_input", &settings.arrange_sparrow_time, 1.0f, 0.0f, 0.0f, "%.0f");
+        if (b_sparrow_time || b_sparrow_time_input) {
+            settings.arrange_sparrow_time = std::round(std::min(60.f, std::max(2.f, settings.arrange_sparrow_time)));
+            settings_out.arrange_sparrow_time = settings.arrange_sparrow_time;
+            appcfg->set("arrange", sparrow_time_key.c_str(), float_to_string_decimal_point(settings_out.arrange_sparrow_time));
+            settings_changed = true;
+        }
     }
 
     if (imgui->bbl_checkbox(_L("Allow multiple materials on same plate"), settings.allow_multi_materials_on_same_plate)) {
@@ -7544,6 +7586,8 @@ bool GLCanvas3D::_render_arrange_menu(float left, float toolbar_height)
         appcfg->set("arrange", dist_key, float_to_string_decimal_point(settings_out.distance));
         appcfg->set("arrange", rot_key, settings_out.enable_rotation ? "1" : "0");
         appcfg->set("arrange", align_to_y_axis_key, settings_out.align_to_y_axis ? "1" : "0");
+        appcfg->set("arrange", use_sparrow_key, settings_out.arrange_use_sparrow ? "1" : "0");
+        appcfg->set("arrange", sparrow_time_key, float_to_string_decimal_point(settings_out.arrange_sparrow_time));
         settings_changed = true;
     }
     ImGui::PopStyleVar(1);

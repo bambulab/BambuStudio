@@ -614,6 +614,13 @@ void ArrangeJob::prepare()
         m_plater->get_notification_manager()->push_notification(NotificationType::ArrangeOngoing, NotificationManager::NotificationLevel::RegularNotificationLevel,
                                                                 _u8L("Arranging") + "...");
         m_plater->get_notification_manager()->bbl_close_plateinfo_notification();
+        // After the close above, or the toast is gone before it is seen.
+        if (m_plater->canvas3D()->get_arrange_settings().arrange_use_sparrow && !params.use_sparrow) {
+            wxString why = params.is_seq_print ? _L("print sequence is By Object") : _L("\"Allow multiple materials on same plate\" is off");
+            m_plater->get_notification_manager()->push_notification(NotificationType::BBLPlateInfo,
+                NotificationManager::NotificationLevel::WarningNotificationLevel,
+                into_u8(wxString::Format(_L("Experimental packer skipped: %s.\nUsing the standard arranger."), why)));
+        }
     }
 }
 
@@ -917,6 +924,7 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
     params.nozzle_height                       = print.config().nozzle_height.value;
     params.align_center                        = print_config.best_object_pos.value;
     params.allow_rotations                     = settings.enable_rotation;
+    params.sparrow_time_limit_s                = settings.arrange_sparrow_time;
     params.allow_multi_materials_on_same_plate = settings.allow_multi_materials_on_same_plate;
     params.avoid_extrusion_cali_region         = settings.avoid_extrusion_cali_region;
     params.is_seq_print                        = settings.is_seq_print;
@@ -941,6 +949,13 @@ arrangement::ArrangeParams init_arrange_params(Plater *p)
         params.bed_shrink_x = BED_SHRINK_SEQ_PRINT;
         params.bed_shrink_y = BED_SHRINK_SEQ_PRINT;
     }
+
+    // Decided after is_seq_print is final, so the outline flag and the "packer
+    // skipped" toast in prepare() agree with what arrangement::arrange() runs.
+    params.use_sparrow = settings.arrange_use_sparrow && !params.is_seq_print && params.allow_multi_materials_on_same_plate;
+    // Set before the ArrangePolygons are collected. The flag stays set until the
+    // next arrange, so any get_arrange_polygon() caller in between sees it too.
+    arrangement::use_true_outline.store(params.use_sparrow, std::memory_order_relaxed);
     return params;
 }
 
