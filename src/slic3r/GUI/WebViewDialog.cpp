@@ -1053,7 +1053,7 @@ void WebViewPanel::ShowNetpluginTip()
 
     wxString strJS = wxString::Format("window.postMessage(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
 
-    RunScriptLeft(strJS);
+    RunScriptLeft(strJS, true);
 }
 
 void WebViewPanel::get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback)
@@ -1967,7 +1967,7 @@ void WebViewPanel::RunScript(const wxString& javascript)
     WebView::RunScript(m_browser, javascript);
 }
 
-void WebViewPanel::RunScriptLeft(const wxString &javascript)
+void WebViewPanel::RunScriptLeft(const wxString &javascript, bool force_execute)
 {
     // Remember the script we run in any case, so the next time the user opens
     // the "Run Script" dialog box, it is shown there for convenient updating.
@@ -1975,7 +1975,7 @@ void WebViewPanel::RunScriptLeft(const wxString &javascript)
 
     if (!m_browserLeft) return;
 
-    WebView::RunScript(m_browserLeft, javascript);
+    WebView::RunScript(m_browserLeft, javascript, force_execute);
 }
 
 

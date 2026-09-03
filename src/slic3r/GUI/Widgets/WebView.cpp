@@ -854,7 +854,7 @@ void WebView::LoadUrl(wxWebView * webView, wxString const &url)
     webView->LoadURL(url2);
 }
 
-bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
+bool WebView::RunScript(wxWebView *webView, wxString const &javascript, bool force_execute)
 {
     if (Slic3r::GUI::wxGetApp().app_config->get("internal_developer_mode") == "true"
             && javascript.find("studio_userlogin") == wxString::npos)
@@ -889,8 +889,7 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
     // most state on tab activation, so this is mostly cosmetic, but a
     // future commit could add the same m_has_pending_* defer/replay
     // pattern used by SendDesignStaffpick at WebViewDialog.cpp:763.
-    if (!webView->IsShownOnScreen())
-        return true;
+    if (!force_execute && !webView->IsShownOnScreen()) return true;
 #endif // __WXMAC__
 
     try {
