@@ -19204,6 +19204,43 @@ msgstr "创建自定义耗材"
 msgid "Preset \"%s\" already exists. Overwrite?"
 msgstr "预设“%s”已存在。您想覆盖它吗？"
 
+msgid "Multi-nozzle mode"
+msgstr "多口径模式"
+
+msgid "Print with multiple nozzle diameters on one plate"
+msgstr "在同一盘上使用多种喷嘴直径打印"
+
+#, c-format, boost-format
+msgid "This filament does not support the %smm nozzle, or no matching nozzle is configured."
+msgstr "该耗材不支持 %smm 喷嘴，或尚未配置匹配的喷嘴。"
+
+msgid "This extruder has a different nozzle diameter from the selected printing diameter. Printing with mixed nozzle diameters is experimental."
+msgstr "该挤出机的喷嘴直径与当前所选打印直径不同。混合喷嘴直径打印仍为实验性功能。"
+
+msgid "Caution: Printing with mixed nozzle diameters is experimental. Please verify your print settings (extrusion widths, layer height, etc.) are compatible with all selected nozzle sizes."
+msgstr "注意：混合喷嘴直径打印仍为实验性功能。请确认打印设置（挤出宽度、层高等）与所有已选喷嘴尺寸兼容。"
+
+msgid "The selected nozzle diameter for some filaments is incompatible with the current printer configuration and has been automatically changed to the smallest available diameter."
+msgstr "部分耗材所选喷嘴直径与当前打印机配置不兼容，已自动改为可用的最小直径。"
+
+msgid "Filament nozzle diameters updated"
+msgstr "耗材喷嘴直径已更新"
+
+msgid "Only filaments using the same nozzle diameter can be mixed."
+msgstr "仅可混合使用相同喷嘴直径的耗材。"
+
+msgid "Unable to mix filaments"
+msgstr "无法混合耗材"
+
+msgid "Cannot mix filaments using different nozzle diameters"
+msgstr "无法混合使用不同喷嘴直径的耗材"
+
+msgid "cannot be mixed. Please select filaments using the same nozzle diameter."
+msgstr "不能混合。请选择使用相同喷嘴直径的耗材。"
+
+msgid "unknown nozzle"
+msgstr "未知喷嘴"
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
