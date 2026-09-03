@@ -6951,7 +6951,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 
     if (! wxLocale::IsAvailable(language_info->Language)) {
     	// Loading the language dictionary failed.
-    	wxString message = "Switching Bambu Studio to language " + language_info->CanonicalName + " failed.";
+        wxString message = "Switching Bambu Studio to language " + language_info->CanonicalName + " failed, because your computer is missing the corresponding locale.";
 #if !defined(_WIN32) && !defined(__APPLE__)
         // likely some linux system
         message += "\nYou may need to reconfigure the missing locales, likely by running the \"locale-gen\" and \"dpkg-reconfigure locales\" commands.\n";

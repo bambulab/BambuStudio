@@ -465,15 +465,20 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
 
             m_current_language_selected = combobox->GetSelection();
             if (m_current_language_selected >= 0 && m_current_language_selected < vlist.size()) {
-                app_config->set(param, vlist[m_current_language_selected]->CanonicalName.ToUTF8().data());
-                app_config->save();
-
-                wxGetApp().load_language(vlist[m_current_language_selected]->CanonicalName, false);
-                Close();
-                // Reparent(nullptr);
-                GetParent()->RemoveChild(this);
-                Label::initSysFont(app_config->get_language_code(), false);
-                wxGetApp().recreate_GUI(_L("Changing application language"));
+                auto old_value = app_config->get(param);
+                if (wxGetApp().load_language(vlist[m_current_language_selected]->CanonicalName, false)) {
+                    app_config->set(param, vlist[m_current_language_selected]->CanonicalName.ToUTF8().data());
+                    app_config->save();
+                    Close();
+                    // Reparent(nullptr);
+                    GetParent()->RemoveChild(this);
+                    Label::initSysFont(app_config->get_language_code(), false);
+                    wxGetApp().recreate_GUI(_L("Changing application language"));
+                } else {
+                    app_config->set(param, old_value);
+                    app_config->save();
+                    Close();
+                }
             }
         }
 
