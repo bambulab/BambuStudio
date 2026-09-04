@@ -421,6 +421,10 @@ extern std::string get_extruder_variant_string(ExtruderType extruder_type, Nozzl
 // 最基础的参数idx查找方法，遍历varint list寻找对应的idx
 extern int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_type, int variant_id_1based, const std::vector<std::string>& variant_list, const std::vector<int>& variant_ids_1based);
 
+// Map a filament_extruder_variant string onto printer_extruder_variant.
+// Returns -1 when the printer preset has no matching variant.
+extern int find_printer_variant_index(const DynamicPrintConfig &printer_config, const std::string &filament_variant);
+
 static std::set<NozzleVolumeType> get_valid_nozzle_volume_type() {
     std::set<NozzleVolumeType> type;
     for (int i = 0; i <= nvtMaxNozzleVolumeType; ++i) {

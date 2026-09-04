@@ -626,6 +626,18 @@ int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_ty
     return 0;
 }
 
+int find_printer_variant_index(const DynamicPrintConfig &printer_config, const std::string &filament_variant)
+{
+    const auto *printer_variants = printer_config.option<ConfigOptionStrings>("printer_extruder_variant");
+    if (!printer_variants || filament_variant.empty())
+        return -1;
+    for (size_t i = 0; i < printer_variants->values.size(); ++i) {
+        if (printer_variants->values[i] == filament_variant)
+            return static_cast<int>(i);
+    }
+    return -1;
+}
+
 
 std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type)
 {
