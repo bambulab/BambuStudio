@@ -45,6 +45,8 @@ std::string filament_step_label(DevFilamentStep step)
     case DevFilamentStep::STEP_PULL_SWITCHER_FILA: return _u8L("Pull back current filament at Filament Track Switch");
     case DevFilamentStep::STEP_SWITCHER_SWITCH:    return _u8L("Switch track at Filament Track Switch");
     case DevFilamentStep::STEP_BATCH_PULL_FILA:    return _u8L("Batch pull back the filaments");
+    case DevFilamentStep::STEP_NESTING_PRINT_TOOL: return _u8L("Nesting PrintTool");
+    case DevFilamentStep::STEP_PURGE_FILAMENT:     return _u8L("Purge filament");
     }
     return {};
 }

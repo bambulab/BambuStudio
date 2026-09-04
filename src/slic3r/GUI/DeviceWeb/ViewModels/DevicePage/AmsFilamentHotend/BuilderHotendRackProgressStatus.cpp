@@ -38,18 +38,18 @@ std::string rack_step_label(DevNozzleRack::RackStatus step)
     switch (step) {
     case DevNozzleRack::RACK_STATUS_UNKNOWN:                return _u8L("Hotend rack moving");
     case DevNozzleRack::RACK_STATUS_IDLE:                   return _u8L("Idle");
-    case DevNozzleRack::RACK_STATUS_HOTEND_CENTRE:         return _u8L("Homing Induction Hotend Rack");
+    case DevNozzleRack::RACK_STATUS_HOTEND_CENTRE:         return _u8L("Homing PrintTool Rack");
     case DevNozzleRack::RACK_STATUS_TOOLHEAD_CENTRE:       return _u8L("Homing Toolhead");
-    case DevNozzleRack::RACK_STATUS_CALIBRATE_HOTEND_RACK: return _u8L("Calibrating Hotend Rack");
-    case DevNozzleRack::RACK_STATUS_WAIT_HOTEND_HEATING:   return _u8L("Waiting for hotend to heat");
+    case DevNozzleRack::RACK_STATUS_CALIBRATE_HOTEND_RACK: return _u8L("Calibrating PrintTool Rack Position");
+    case DevNozzleRack::RACK_STATUS_WAIT_HOTEND_HEATING:   return _u8L("Heating Hotend");
     case DevNozzleRack::RACK_STATUS_CUT_MATERIAL:          return _u8L("Cutting Filament");
-    case DevNozzleRack::RACK_STATUS_UNLOCK_HOTEND:         return _u8L("Unlocking Hotend");
-    case DevNozzleRack::RACK_STATUS_LIFT_HOTEND_RACK:      return _u8L("Lifting Hotend Rack");
-    case DevNozzleRack::RACK_STATUS_PLACE_HOTEND:          return _u8L("Placing Hotend");
-    case DevNozzleRack::RACK_STATUS_PICK_HOTEND:           return _u8L("Taking Hotend");
-    case DevNozzleRack::RACK_STATUS_LOCK_HOTEND:           return _u8L("Locking Hotend");
-    case DevNozzleRack::RACK_STATUS_MOVE:                  return _u8L("Moving Hotend Rack");
-    case DevNozzleRack::RACK_STATUS_HOTEND_INFO_REFRESH:   return _u8L("Refreshing Hotend Info");
+    case DevNozzleRack::RACK_STATUS_UNLOCK_HOTEND:         return _u8L("Unlocking Tool");
+    case DevNozzleRack::RACK_STATUS_LIFT_HOTEND_RACK:      return _u8L("Raising PrintTool Rack");
+    case DevNozzleRack::RACK_STATUS_PLACE_HOTEND:          return _u8L("Nesting Tool");
+    case DevNozzleRack::RACK_STATUS_PICK_HOTEND:           return _u8L("Fetching Tool");
+    case DevNozzleRack::RACK_STATUS_LOCK_HOTEND:           return _u8L("Locking Tool");
+    case DevNozzleRack::RACK_STATUS_MOVE:                  return _u8L("Moving PrintTool Rack");
+    case DevNozzleRack::RACK_STATUS_HOTEND_INFO_REFRESH:   return _u8L("Refreshing Hotend");
     case DevNozzleRack::RACK_STATUS_END:
     default:                                               return _u8L("Running");
     }
