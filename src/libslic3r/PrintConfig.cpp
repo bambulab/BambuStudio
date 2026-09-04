@@ -573,6 +573,26 @@ std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolume
     return variant_string;
 }
 
+std::set<NozzleVolumeType> get_extruder_supported_nozzle_volume_types(const DynamicPrintConfig &printer_config, int extruder_id)
+{
+    std::set<NozzleVolumeType> supported_types;
+
+    auto *variant_list   = printer_config.option<ConfigOptionStrings>("extruder_variant_list");
+    auto *extruder_types = printer_config.option<ConfigOptionEnumsGeneric>("extruder_type");
+    if (!variant_list || !extruder_types || extruder_id < 0 ||
+        extruder_id >= (int) variant_list->values.size() || extruder_id >= (int) extruder_types->values.size())
+        return supported_types;
+
+    const ExtruderType extruder_type = ExtruderType(extruder_types->values[extruder_id]);
+    for (NozzleVolumeType volume_type : get_valid_nozzle_volume_type()) {
+        // An unsupported extruder type yields an empty name, which would match any list.
+        const std::string variant = get_extruder_variant_string(extruder_type, volume_type);
+        if (!variant.empty() && variant_list->values[extruder_id].find(variant) != std::string::npos)
+            supported_types.insert(volume_type);
+    }
+    return supported_types;
+}
+
 int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_type, int variant_id_1based, const std::vector<std::string>& variant_list, const std::vector<int>& variant_ids_1based)
 {
     assert(variant_list.size() == variant_ids_1based.size());

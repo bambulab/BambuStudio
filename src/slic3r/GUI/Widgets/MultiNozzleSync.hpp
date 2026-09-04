@@ -9,6 +9,7 @@
 #include "slic3r/GUI/DeviceTab/wgtDeviceNozzleRack.h"
 #include "slic3r/GUI/Widgets/RadioBox.hpp"
 #include <wx/webview.h>
+#include <set>
 
 #define ENABLE_MIX_FLOW_PRINT 1
 
@@ -35,7 +36,9 @@ namespace Slic3r::GUI {
 class ManualNozzleCountDialog : public DPIDialog
 {
 public:
-    ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeType volume_type, int standard_count, int highflow_count, int e3d_count, int max_nozzle_count, bool force_no_zero);
+    // supported_types lists the volume types the extruder physically provides; an empty set means "unknown", in which case no filtering is applied.
+    ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeType volume_type, int standard_count, int highflow_count, int e3d_count, int max_nozzle_count, bool force_no_zero,
+                            const std::set<NozzleVolumeType> &supported_types);
     ~ManualNozzleCountDialog() {};
     virtual void on_dpi_changed(const wxRect& suggested_rect) {};
     int GetNozzleCount(NozzleVolumeType volume_type) const;

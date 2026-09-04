@@ -15,7 +15,8 @@ wxDEFINE_EVENT(EVT_NOZZLE_SELECTED, wxCommandEvent);
 static const int LeftExtruderIdx = 0;
 static const int RightExtruderIdx = 1;
 
-ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeType volume_type, int standard_count, int highflow_count, int e3d_count, int max_nozzle_count, bool force_no_zero)
+ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeType volume_type, int standard_count, int highflow_count, int e3d_count, int max_nozzle_count, bool force_no_zero,
+                                                 const std::set<NozzleVolumeType> &supported_types)
     : GUI::DPIDialog(parent, wxID_ANY, "Set nozzle count", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX), m_volume_type(volume_type)
 {
     this->SetBackgroundColour(*wxWHITE);
@@ -39,9 +40,15 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeT
     wxArrayString nozzle_choices;
     for (int i = 0; i <= max_nozzle_count; ++i) nozzle_choices.Add(wxString::Format("%d", i));
 
-    bool show_standard = (volume_type == nvtStandard || volume_type == nvtHybrid);
-    bool show_highflow = (volume_type == nvtHighFlow || volume_type == nvtHybrid);
-    bool show_e3d      = (volume_type == nvtE3DHighFlow || volume_type == nvtHybrid);
+    // Hybrid mixes several volume types in one extruder, so it must only offer the ones this
+    // extruder actually has. A directly selected volume type is supported by definition.
+    auto supported = [&supported_types](NozzleVolumeType type) {
+        return supported_types.empty() || supported_types.count(type) > 0;
+    };
+
+    bool show_standard = (volume_type == nvtStandard) || (volume_type == nvtHybrid && supported(nvtStandard));
+    bool show_highflow = (volume_type == nvtHighFlow) || (volume_type == nvtHybrid && supported(nvtHighFlow));
+    bool show_e3d      = (volume_type == nvtE3DHighFlow) || (volume_type == nvtHybrid && supported(nvtE3DHighFlow));
 
     if (show_standard) {
         // Standard nozzle choice
@@ -186,7 +193,14 @@ void manuallySetNozzleCount(int extruder_id)
         force_no_zero |= (other_nozzle_count == 0);
     }
 
-    ManualNozzleCountDialog dialog(GUI::wxGetApp().plater(), volume_type, standard_count, highflow_count, e3d_count, extruder_max_nozzle_count->values[extruder_id], force_no_zero);
+    // The printer profile's variant list is the authority on which volume types an extruder
+    // provides. An empty set means the profile could not be read, and the dialog then skips
+    // filtering instead of hiding everything.
+    const std::set<NozzleVolumeType> supported_types =
+        get_extruder_supported_nozzle_volume_types(preset_bundle->printers.get_edited_preset().config, extruder_id);
+
+    ManualNozzleCountDialog dialog(GUI::wxGetApp().plater(), volume_type, standard_count, highflow_count, e3d_count, extruder_max_nozzle_count->values[extruder_id], force_no_zero,
+                                   supported_types);
 
     if (dialog.ShowModal() == wxID_OK) {
         int nozzle_count = dialog.GetNozzleCount(volume_type);

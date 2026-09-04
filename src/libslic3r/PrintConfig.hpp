@@ -21,6 +21,7 @@
 #include "Config.hpp"
 #include "Polygon.hpp"
 #include <atomic>
+#include <set>
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
@@ -416,6 +417,12 @@ static std::set<NozzleVolumeType> get_valid_nozzle_volume_type() {
     }
     return type;
 }
+
+// The nozzle volume types the given extruder physically provides, as declared by the printer
+// profile's extruder_variant_list. An empty set means the profile could not be read and must be
+// treated as "unknown", not as "none". nvtHybrid is never reported: it describes an extruder
+// holding a mix of nozzles, not a nozzle the profile can offer.
+extern std::set<NozzleVolumeType> get_extruder_supported_nozzle_volume_types(const DynamicPrintConfig &printer_config, int extruder_id);
 
 std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type);
 
