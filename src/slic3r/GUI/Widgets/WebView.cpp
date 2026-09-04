@@ -889,7 +889,9 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript, bool for
     // most state on tab activation, so this is mostly cosmetic, but a
     // future commit could add the same m_has_pending_* defer/replay
     // pattern used by SendDesignStaffpick at WebViewDialog.cpp:763.
-    if (!force_execute && !webView->IsShownOnScreen()) return true;
+
+    // 这边隐藏态直接拦截js消息引入了多个业务问题，先注释掉，等0908beta发版之后再考虑pr优化
+    // if (!force_execute && !webView->IsShownOnScreen()) return true;
 #endif // __WXMAC__
 
     try {
