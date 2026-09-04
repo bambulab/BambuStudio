@@ -303,3 +303,4 @@ src/slic3r/GUI/GradientCurveEditor.cpp
 src/slic3r/GUI/GradientCurveEditor.hpp
 src/slic3r/GUI/AuxiliaryDialog.cpp
 src/slic3r/GUI/Jobs/PlaterWorker.hpp
+src/slic3r/GUI/CreateFilamentWebDialog.cpp

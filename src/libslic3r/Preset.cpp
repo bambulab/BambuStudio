@@ -599,6 +599,16 @@ void Preset::save_info(std::string file)
         file = idx_file.string();
     }
 
+    // Symmetric with load_info() above: a freshly-cloned preset arrives here with
+    // updated_time == 0 (clone_presets doesn't stamp it), which then propagates to
+    // the .info file and any UI reading updated_time — so a newly-created custom
+    // filament shows no date until the next app launch (load_info's own fallback
+    // stamps it there). For logged-in users this is masked by the sync flow, which
+    // overwrites updated_time with the server timestamp; offline users see the
+    // empty date. Stamping here fills that gap once, at save time.
+    if (this->updated_time == 0)
+        this->updated_time = (long long)Slic3r::Utils::get_current_time_utc();
+
     boost::nowide::ofstream c;
     c.open(file, std::ios::out | std::ios::trunc);
     std::string sync_info_to_save;
