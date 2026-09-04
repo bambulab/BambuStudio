@@ -22042,7 +22042,6 @@ void Plater::_calib_pa_pattern(const Calib_Params &params)
     for (const auto opt : SuggestedConfigCalibPAPattern().floats_pairs) {
         set_config_values<double, ConfigOptionFloatsNullable>(&print_config, opt.first, opt.second[0]);
     }
-
     for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
     }
