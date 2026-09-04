@@ -124,6 +124,12 @@ struct ExPolygonsWithId
 
     // flag whether expolygons are fully healed(without duplication)
     bool is_healed = true;
+
+    // Color of the SVG path this shape came from, packed the way NanoSVG stores it
+    // (0xAABBGGRR). Zero means the path carried no plain color - it was a gradient,
+    // or the shape did not come from an SVG at all - and the shape is uncolored.
+    // Not serialized: it is derived from the SVG on import.
+    unsigned color = 0;
 };
 using ExPolygonsWithIds = std::vector<ExPolygonsWithId>;
 

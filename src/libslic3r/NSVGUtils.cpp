@@ -1,7 +1,12 @@
 #include "NSVGUtils.hpp"
+#include <algorithm>
+#include <sstream>
+#include <cstring>
+#include <map>
 #include <array>
 #include <charconv> // to_chars
 
+#include <boost/log/trivial.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
 #include "ClipperUtils.hpp"
@@ -22,13 +27,34 @@ HealedExPolygons stroke_to_expolygons(const LinesPath &lines_path, const NSVGsha
 
 namespace Slic3r {
 
-ExPolygonsWithIds create_shape_with_ids(const NSVGimage &image, const NSVGLineParams &param)
+// Mark written onto elements a clip path applies to. The parser keeps an element's id and
+// hands it down to the shapes of a group, so a marked group passes it to all it contains.
+static const char *CLIP_MARK     = "p7clip";
+// Mark on the copies of the clip shapes themselves, so they can be gathered and then
+// left out of the model.
+static const char *CLIP_DEF_MARK = "p7cdef";
+
+// Trim a shape to the clip path marked on it. Returns false when nothing of it survives.
+static bool trim_to_clip(const NSVGshape &shape, const std::vector<ExPolygons> *clips, ExPolygons &area)
+{
+    if (clips == nullptr || strncmp(shape.id, CLIP_MARK, strlen(CLIP_MARK)) != 0)
+        return true;
+    const int index = atoi(shape.id + strlen(CLIP_MARK));
+    if (index < 0 || index >= int(clips->size()) || (*clips)[index].empty())
+        return true;
+    area = intersection_ex(area, (*clips)[index]);
+    return !area.empty();
+}
+
+ExPolygonsWithIds create_shape_with_ids(const NSVGimage &image, const NSVGLineParams &param,
+                                        const std::vector<ExPolygons> *clips)
 {
     ExPolygonsWithIds result;
     size_t shape_id = 0;
     for (NSVGshape *shape_ptr = image.shapes; shape_ptr != NULL; shape_ptr = shape_ptr->next, ++shape_id) {
         const NSVGshape &shape = *shape_ptr;
-        if (!(shape.flags & NSVG_FLAGS_VISIBLE))
+        if (!(shape.flags & NSVG_FLAGS_VISIBLE) ||
+            strncmp(shape.id, CLIP_DEF_MARK, strlen(CLIP_DEF_MARK)) == 0)
             continue;
 
         bool is_fill_used = shape.fill.type != NSVG_PAINT_NONE;
@@ -41,22 +67,338 @@ ExPolygonsWithIds create_shape_with_ids(const NSVGimage &image, const NSVGLinePa
 
         const LinesPath lines_path = linearize_path(shape.paths, param);
 
+        // Keep the path's color with its shape. Only a plain color is meaningful
+        // here; a gradient has no single value, so it is left uncolored.
+        auto plain_color = [](const NSVGpaint &paint) -> unsigned {
+            return paint.type == NSVG_PAINT_COLOR ? paint.color : 0u;
+        };
+
         if (is_fill_used) {
             unsigned unique_id = static_cast<unsigned>(2 * shape_id);
             HealedExPolygons expoly = fill_to_expolygons(lines_path, shape, param);
-            result.push_back({unique_id, expoly.expolygons, expoly.is_healed});
+            if (trim_to_clip(shape, clips, expoly.expolygons))
+                result.push_back({unique_id, expoly.expolygons, expoly.is_healed, plain_color(shape.fill)});
         }
         if (is_stroke_used) {
             unsigned unique_id = static_cast<unsigned>(2 * shape_id + 1);
             HealedExPolygons expoly = stroke_to_expolygons(lines_path, shape, param);
-            result.push_back({unique_id, expoly.expolygons, expoly.is_healed});
+            if (trim_to_clip(shape, clips, expoly.expolygons))
+                result.push_back({unique_id, expoly.expolygons, expoly.is_healed, plain_color(shape.stroke)});
         }
+    }
+
+    // Report the colors the SVG carried, so an import can be checked against the
+    // artwork without stepping through it. NanoSVG packs the color as 0xAABBGGRR.
+    {
+        std::vector<unsigned> distinct;
+        for (const ExPolygonsWithId &shape : result)
+            if (shape.color != 0 && std::find(distinct.begin(), distinct.end(), shape.color) == distinct.end())
+                distinct.push_back(shape.color);
+        std::string colors;
+        for (unsigned c : distinct) {
+            char buf[16];
+            snprintf(buf, sizeof(buf), " #%02X%02X%02X", c & 0xFF, (c >> 8) & 0xFF, (c >> 16) & 0xFF);
+            colors += buf;
+        }
+        BOOST_LOG_TRIVIAL(info) << "SVG import: " << result.size() << " shapes, "
+                                << distinct.size() << " distinct colors:" << colors;
     }
 
     // SVG is used as centered
     // Do not disturb user by settings of pivot position
     center(result);
     return result;
+}
+
+namespace {
+
+// Whitespace as CSS and XML count it.
+static const char *WS = " \t\r\n";
+
+// Value of one declaration, matched as a whole word so that asking for "fill" is not
+// answered with "fill-rule".
+static std::string css_value(const std::string &declarations, const std::string &property)
+{
+    for (size_t at = declarations.find(property); at != std::string::npos;
+         at = declarations.find(property, at + property.size())) {
+        if (at > 0 && (isalnum((unsigned char) declarations[at - 1]) || declarations[at - 1] == '-'))
+            continue;
+        const size_t colon = declarations.find_first_not_of(WS, at + property.size());
+        if (colon == std::string::npos || declarations[colon] != ':')
+            continue;
+        const size_t from = declarations.find_first_not_of(WS, colon + 1);
+        if (from == std::string::npos)
+            break;
+        const size_t to    = declarations.find_first_of(";}\r\n", from);
+        std::string  value = declarations.substr(from, (to == std::string::npos ? declarations.size() : to) - from);
+        while (!value.empty() && isspace((unsigned char) value.back()))
+            value.pop_back();
+        return value;
+    }
+    return {};
+}
+
+// Declarations of every class rule in the document's <style> blocks, by class name.
+static std::map<std::string, std::string> css_rules(const std::string &svg)
+{
+    std::map<std::string, std::string> rules;
+    for (size_t at = svg.find("<style"); at != std::string::npos; at = svg.find("<style", at)) {
+        const size_t open = svg.find('>', at);
+        const size_t end  = svg.find("</style", open == std::string::npos ? at : open);
+        if (open == std::string::npos || end == std::string::npos)
+            break;
+        const std::string css = svg.substr(open + 1, end - open - 1);
+        for (size_t rule = css.find('.'); rule != std::string::npos; rule = css.find('.', rule)) {
+            const size_t body_open  = css.find('{', rule);
+            const size_t body_close = css.find('}', body_open == std::string::npos ? rule : body_open);
+            if (body_open == std::string::npos || body_close == std::string::npos)
+                break;
+            std::string name = css.substr(rule + 1, body_open - rule - 1);
+            while (!name.empty() && isspace((unsigned char) name.back()))
+                name.pop_back();
+            if (!name.empty() && name.find_first_of(" \t\r\n.#,>") == std::string::npos)
+                rules[name] = css.substr(body_open + 1, body_close - body_open - 1);
+            rule = body_close + 1;
+        }
+        at = end + 1;
+    }
+    return rules;
+}
+
+// Value of an attribute on one element, empty when the element does not carry it.
+static std::string attribute(const std::string &element, const std::string &name)
+{
+    const std::string key = name + "=\"";
+    const size_t      at  = element.find(key);
+    if (at == std::string::npos)
+        return {};
+    const size_t end = element.find('"', at + key.size());
+    return end == std::string::npos ? std::string() : element.substr(at + key.size(), end - at - key.size());
+}
+
+// The clip a class or an element names, empty when it names none.
+static std::string clip_reference(const std::string &declarations)
+{
+    const std::string url = css_value(declarations, "clip-path");
+    const size_t      at  = url.find("url(#");
+    if (at == std::string::npos)
+        return {};
+    const size_t end = url.find(')', at);
+    return end == std::string::npos ? std::string() : url.substr(at + 5, end - at - 5);
+}
+
+// Add attributes to an element, after the ones it already carries so they take precedence.
+static void append_attributes(std::string &element, const std::string &attributes)
+{
+    size_t at = element.size() - 1;              // the closing '>'
+    if (at > 0 && element[at - 1] == '/')
+        --at;                                    // an element closed as <tag ... />
+    element.insert(at, attributes);
+}
+
+} // namespace
+
+std::string prepare_svg(const std::string &svg)
+{
+    // The clip paths, by id.
+    std::map<std::string, std::string> clip_body;
+    for (size_t at = svg.find("<clipPath"); at != std::string::npos; at = svg.find("<clipPath", at)) {
+        const size_t open  = svg.find('>', at);
+        const size_t close = svg.find("</clipPath", open == std::string::npos ? at : open);
+        if (open == std::string::npos || close == std::string::npos)
+            break;
+        const std::string id = attribute(svg.substr(at, open - at + 1), "id");
+        if (!id.empty())
+            clip_body[id] = svg.substr(open + 1, close - open - 1);
+        at = close + 1;
+    }
+
+    const std::map<std::string, std::string> rules = css_rules(svg);
+    if (rules.empty() && clip_body.empty())
+        return svg;
+
+    // Walk the document once, giving each element the colors its classes carry and marking
+    // the ones a clip path applies to.
+    std::map<std::string, int> clip_index;
+    std::string                out;
+    out.reserve(svg.size() + svg.size() / 8);
+    size_t copied = 0;
+    for (size_t tag = svg.find('<'); tag != std::string::npos; tag = svg.find('<', tag)) {
+        const size_t tag_end = svg.find('>', tag);
+        if (tag_end == std::string::npos)
+            break;
+        std::string element = svg.substr(tag, tag_end - tag + 1);
+        std::string added;
+
+        // An element may carry several classes; the later ones win, as in CSS. Only what the
+        // element does not state itself is added, so its own attributes still take precedence.
+        std::string fill, stroke, clip = clip_reference(element);
+        const std::string classes = attribute(element, "class");
+        for (size_t at = 0; at < classes.size();) {
+            const size_t end  = classes.find_first_of(WS, at);
+            const auto   rule = rules.find(classes.substr(at, end == std::string::npos ? end : end - at));
+            if (rule != rules.end()) {
+                const std::string rule_fill   = css_value(rule->second, "fill");
+                const std::string rule_stroke = css_value(rule->second, "stroke");
+                const std::string rule_clip   = clip_reference(rule->second);
+                if (!rule_fill.empty())   fill   = rule_fill;
+                if (!rule_stroke.empty()) stroke = rule_stroke;
+                if (!rule_clip.empty())   clip   = rule_clip;
+            }
+            if (end == std::string::npos)
+                break;
+            at = classes.find_first_not_of(WS, end);
+            if (at == std::string::npos)
+                break;
+        }
+        if (!fill.empty() && attribute(element, "fill").empty())
+            added += " fill=\"" + fill + "\"";
+        if (!stroke.empty() && attribute(element, "stroke").empty())
+            added += " stroke=\"" + stroke + "\"";
+
+        // The parser keeps an element's id and hands a group's id down to the shapes inside
+        // it, which is how a clipped group is recognised again once the document is parsed.
+        // Any id the element already carries is written over: nothing here reads it.
+        if (!clip.empty() && clip_body.count(clip) != 0) {
+            auto known = clip_index.find(clip);
+            if (known == clip_index.end())
+                known = clip_index.emplace(clip, int(clip_index.size())).first;
+            added += " id=\"" + std::string(CLIP_MARK) + std::to_string(known->second) + "\"";
+        }
+
+        if (!added.empty()) {
+            append_attributes(element, added);
+            out.append(svg, copied, tag - copied);
+            out.append(element);
+            copied = tag_end + 1;
+        }
+        tag = tag_end + 1;
+    }
+    out.append(svg, copied, std::string::npos);
+
+    if (clip_index.empty())
+        return out;
+
+    // Copy the clip shapes into the drawing, marked so they can be gathered again and then
+    // left out of it. They have to be read alongside the artwork: the parser sizes a document
+    // from what it contains, so a clip path read on its own is measured against its own bounds
+    // and no longer lines up with what it trims.
+    std::string clip_shapes;
+    for (const auto &entry : clip_index) {
+        std::string body = clip_body[entry.first];
+        for (size_t at = body.find('<'); at != std::string::npos; at = body.find('<', at)) {
+            const size_t end = body.find('>', at);
+            if (end == std::string::npos)
+                break;
+            if (body.compare(at, 2, "</") != 0) {
+                std::string element = body.substr(at, end - at + 1);
+                // A clip shape is normally drawn as nothing; give it a fill so it reads as an area.
+                append_attributes(element, " fill=\"#000000\" id=\"" + std::string(CLIP_DEF_MARK) +
+                                               std::to_string(entry.second) + "\"");
+                body.replace(at, end - at + 1, element);
+                at = at + element.size();
+                continue;
+            }
+            at = end + 1;
+        }
+        clip_shapes += body;
+    }
+    const size_t root_close = out.rfind("</svg");
+    if (root_close != std::string::npos)
+        out.insert(root_close, clip_shapes);
+
+    // Drop the definitions now their shapes are part of the drawing.
+    for (size_t at = out.find("<clipPath"); at != std::string::npos; at = out.find("<clipPath", at)) {
+        const size_t close = out.find("</clipPath", at);
+        const size_t end   = close == std::string::npos ? std::string::npos : out.find('>', close);
+        if (end == std::string::npos)
+            break;
+        out.erase(at, end - at + 1);
+    }
+    return out;
+}
+
+std::vector<ExPolygons> collect_clip_regions(const NSVGimage &image, const NSVGLineParams &param)
+{
+    std::vector<ExPolygons> clips;
+    for (NSVGshape *shape = image.shapes; shape != NULL; shape = shape->next) {
+        if (strncmp(shape->id, CLIP_DEF_MARK, strlen(CLIP_DEF_MARK)) != 0)
+            continue;
+        const int index = atoi(shape->id + strlen(CLIP_DEF_MARK));
+        if (index < 0)
+            continue;
+        if (int(clips.size()) <= index)
+            clips.resize(index + 1);
+        append(clips[index], fill_to_expolygons(linearize_path(shape->paths, param), *shape, param).expolygons);
+    }
+    for (ExPolygons &clip : clips)
+        clip = union_ex(clip);
+    return clips;
+}
+
+SvgColorRegions create_color_regions(const NSVGimage &image, const NSVGLineParams &param,
+                                    const std::vector<ExPolygons> *clips)
+{
+    // Every closed path, as the area it encloses plus the color it was drawn in. The
+    // path's own stroke color is what the artist chose, so it wins over any fill.
+    struct Loop {
+        ExPolygons area;
+        unsigned   color = 0;
+    };
+    std::vector<Loop> loops;
+    for (NSVGshape *shape_ptr = image.shapes; shape_ptr != NULL; shape_ptr = shape_ptr->next) {
+        const NSVGshape &shape = *shape_ptr;
+        if (!(shape.flags & NSVG_FLAGS_VISIBLE) ||
+            strncmp(shape.id, CLIP_DEF_MARK, strlen(CLIP_DEF_MARK)) == 0)
+            continue;
+        unsigned color = shape.stroke.type == NSVG_PAINT_COLOR ? shape.stroke.color :
+                        (shape.fill.type   == NSVG_PAINT_COLOR ? shape.fill.color   : 0u);
+        if (color == 0)
+            continue; // gradient or no plain color: nothing to fill with
+
+        // The enclosed area is wanted whether or not the path is filled in the file,
+        // so the path is closed and healed exactly as a fill would be.
+        const LinesPath lines_path = linearize_path(shape.paths, param);
+        HealedExPolygons filled = fill_to_expolygons(lines_path, shape, param);
+        if (filled.expolygons.empty())
+            continue;
+
+        Loop loop;
+        loop.color = color;
+        loop.area  = std::move(filled.expolygons);
+        if (!trim_to_clip(shape, clips, loop.area))
+            continue;
+        double area = 0.;
+        for (const ExPolygon &e : loop.area)
+            area += e.area();
+        if (area > 0.)
+            loops.push_back(std::move(loop));
+    }
+    if (loops.empty())
+        return {};
+
+    // Later shapes are painted over earlier ones, so working back to front each shape is cut
+    // against the union of everything above it. Subtracting only nested shapes would not do:
+    // artwork overlaps freely, and an overlap claimed twice leaves two solids in one place.
+    std::vector<ExPolygons> visible(loops.size());
+    ExPolygons              covered;
+    for (size_t i = loops.size(); i-- > 0;) {
+        visible[i] = covered.empty() ? loops[i].area : diff_ex(loops[i].area, covered);
+        if (i > 0) {
+            append(covered, loops[i].area);
+            covered = union_ex(covered);
+        }
+    }
+
+    SvgColorRegions regions;
+    regions.reserve(loops.size());
+    for (size_t i = 0; i < loops.size(); ++i)
+        if (!visible[i].empty())
+            regions.push_back({std::move(visible[i]), loops[i].color});
+
+    BOOST_LOG_TRIVIAL(info) << "SVG color regions: " << loops.size() << " closed loops -> "
+                            << regions.size() << " regions";
+    return regions;
 }
 
 Polygons to_polygons(const NSVGimage &image, const NSVGLineParams &param)
