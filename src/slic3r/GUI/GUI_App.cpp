@@ -28,6 +28,7 @@
 #include <cstdlib>
 #include <chrono>
 #include <regex>
+#include <set>
 #include <thread>
 #include <string_view>
 #include <boost/algorithm/string/predicate.hpp>
@@ -6245,6 +6246,85 @@ void GUI_App::reload_settings()
         preset_bundle->save_user_presets(*app_config, get_delete_cache_presets());
         mainframe->update_side_preset_ui();
     }
+}
+
+// Reload user presets from disk without restart. Returns counts of newly
+// added presets; the caller decides whether/how to notify the user. The
+// side UI is always refreshed because an in-place edit to an existing
+// preset is invisible to our name-diff, and the user just manually
+// triggered this action so a refresh is the expected behavior.
+PresetReloadResult GUI_App::reload_user_presets_from_disk()
+{
+    PresetReloadResult result;
+    if (!preset_bundle || !mainframe)
+        return result;
+
+    std::string user_id = (m_agent && m_agent->is_user_login())
+        ? m_agent->get_user_id()
+        : DEFAULT_USER_FOLDER_NAME;
+
+    // Snapshot existing user-preset names before reload, to diff afterwards.
+    auto snapshot_user_names = [](const auto& collection) {
+        std::set<std::string> names;
+        for (const auto& p : collection)
+            if (p.is_user()) names.insert(p.name);
+        return names;
+    };
+    const std::set<std::string> old_prints    = snapshot_user_names(preset_bundle->prints);
+    const std::set<std::string> old_filaments = snapshot_user_names(preset_bundle->filaments);
+    const std::set<std::string> old_printers  = snapshot_user_names(preset_bundle->printers);
+
+    BOOST_LOG_TRIVIAL(info) << "Reloading user presets from disk for user: " << user_id;
+    // Match the other programmatic load sites (ConfigWizard, WebGuideDialog,
+    // PresetUpdater): substitute forward-compat values silently. This overload
+    // discards the substitution report anyway, so there is no user-facing
+    // difference vs Enable here; EnableSilentDisableSystem is just the
+    // conventional rule for a non-interactive load.
+    preset_bundle->load_user_presets(user_id, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem);
+
+    // Always refresh the side UI (see function comment).
+    mainframe->update_side_preset_ui();
+
+    // Count added (present now, absent before) and removed (absent now,
+    // present before) user presets for each kind. In-place edits to an
+    // existing preset are invisible to this name-diff by design.
+    auto diff_user_names = [&snapshot_user_names](const auto& collection,
+                                                  const std::set<std::string>& before,
+                                                  int& added, int& removed) {
+        const std::set<std::string> after = snapshot_user_names(collection);
+        for (const auto& name : after)
+            if (before.find(name) == before.end()) ++added;
+        for (const auto& name : before)
+            if (after.find(name) == after.end()) ++removed;
+    };
+    diff_user_names(preset_bundle->prints,    old_prints,    result.new_prints,    result.removed_prints);
+    diff_user_names(preset_bundle->filaments, old_filaments, result.new_filaments, result.removed_filaments);
+    diff_user_names(preset_bundle->printers,  old_printers,  result.new_printers,  result.removed_printers);
+
+    BOOST_LOG_TRIVIAL(info) << build_reload_toast_message(result);
+    return result;
+}
+
+// Reproduce the toast message logic that used to live inline in
+// reload_user_presets_from_disk(). Exported so each call site can decide
+// whether to push a notification.
+std::string build_reload_toast_message(const PresetReloadResult& r)
+{
+    std::string msg = "Presets reloaded";
+    std::vector<std::string> parts;
+    auto add_part = [&parts](int count, const char* label) {
+        if (count > 0)
+            parts.push_back(std::to_string(count) + " " + label);
+    };
+    add_part(r.new_prints,        "new process");
+    add_part(r.new_filaments,     "new filament");
+    add_part(r.new_printers,      "new printer");
+    add_part(r.removed_prints,    "removed process");
+    add_part(r.removed_filaments, "removed filament");
+    add_part(r.removed_printers,  "removed printer");
+    if (!parts.empty())
+        msg += ": " + boost::algorithm::join(parts, ", ");
+    return msg;
 }
 
 //BBS reload when logout
