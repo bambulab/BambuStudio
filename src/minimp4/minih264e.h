@@ -337,7 +337,11 @@ void H264E_set_vbv_state(
 #define MAX_LONG_TERM_FRAMES 8 // Max long-term frames count
 #endif
 
-#if !defined(MINIH264_ONLY_SIMD) && (defined(_M_X64) || defined(_M_ARM64) || defined(__x86_64__) || defined(__aarch64__))
+/* Note: _M_ARM64 (MSVC on Windows ARM64) is deliberately NOT listed. The NEON
+ * implementation below is only enabled for __ARM_NEON/__aarch64__ (GCC/Clang
+ * macros that MSVC does not define), so MSVC ARM64 must keep the generic C
+ * path available or the MINIH264_ONLY_SIMD check below hits #error. */
+#if !defined(MINIH264_ONLY_SIMD) && (defined(_M_X64) || defined(__x86_64__) || defined(__aarch64__))
 /* x64 always have SSE2, arm64 always have neon, no need for generic code */
 #define MINIH264_ONLY_SIMD
 #endif /* SIMD checks... */
