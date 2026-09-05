@@ -6263,12 +6263,16 @@ PresetReloadResult GUI_App::reload_user_presets_from_disk()
         ? m_agent->get_user_id()
         : DEFAULT_USER_FOLDER_NAME;
 
-    // Snapshot existing user-preset names before reload, to count new ones.
-    std::set<std::string> old_prints, old_filaments;
-    for (const auto& p : preset_bundle->prints)
-        if (p.is_user()) old_prints.insert(p.name);
-    for (const auto& p : preset_bundle->filaments)
-        if (p.is_user()) old_filaments.insert(p.name);
+    // Snapshot existing user-preset names before reload, to diff afterwards.
+    auto snapshot_user_names = [](const auto& collection) {
+        std::set<std::string> names;
+        for (const auto& p : collection)
+            if (p.is_user()) names.insert(p.name);
+        return names;
+    };
+    const std::set<std::string> old_prints    = snapshot_user_names(preset_bundle->prints);
+    const std::set<std::string> old_filaments = snapshot_user_names(preset_bundle->filaments);
+    const std::set<std::string> old_printers  = snapshot_user_names(preset_bundle->printers);
 
     BOOST_LOG_TRIVIAL(info) << "Reloading user presets from disk for user: " << user_id;
     preset_bundle->load_user_presets(user_id, ForwardCompatibilitySubstitutionRule::Enable);
@@ -6276,13 +6280,21 @@ PresetReloadResult GUI_App::reload_user_presets_from_disk()
     // Always refresh the side UI (see function comment).
     mainframe->update_side_preset_ui();
 
-    // Count newly added presets.
-    for (const auto& p : preset_bundle->prints)
-        if (p.is_user() && old_prints.find(p.name) == old_prints.end())
-            ++result.new_prints;
-    for (const auto& p : preset_bundle->filaments)
-        if (p.is_user() && old_filaments.find(p.name) == old_filaments.end())
-            ++result.new_filaments;
+    // Count added (present now, absent before) and removed (absent now,
+    // present before) user presets for each kind. In-place edits to an
+    // existing preset are invisible to this name-diff by design.
+    auto diff_user_names = [&snapshot_user_names](const auto& collection,
+                                                  const std::set<std::string>& before,
+                                                  int& added, int& removed) {
+        const std::set<std::string> after = snapshot_user_names(collection);
+        for (const auto& name : after)
+            if (before.find(name) == before.end()) ++added;
+        for (const auto& name : before)
+            if (after.find(name) == after.end()) ++removed;
+    };
+    diff_user_names(preset_bundle->prints,    old_prints,    result.new_prints,    result.removed_prints);
+    diff_user_names(preset_bundle->filaments, old_filaments, result.new_filaments, result.removed_filaments);
+    diff_user_names(preset_bundle->printers,  old_printers,  result.new_printers,  result.removed_printers);
 
     BOOST_LOG_TRIVIAL(info) << build_reload_toast_message(result);
     return result;
@@ -6295,10 +6307,16 @@ std::string build_reload_toast_message(const PresetReloadResult& r)
 {
     std::string msg = "Presets reloaded";
     std::vector<std::string> parts;
-    if (r.new_prints > 0)
-        parts.push_back(std::to_string(r.new_prints) + " new process");
-    if (r.new_filaments > 0)
-        parts.push_back(std::to_string(r.new_filaments) + " new filament");
+    auto add_part = [&parts](int count, const char* label) {
+        if (count > 0)
+            parts.push_back(std::to_string(count) + " " + label);
+    };
+    add_part(r.new_prints,        "new process");
+    add_part(r.new_filaments,     "new filament");
+    add_part(r.new_printers,      "new printer");
+    add_part(r.removed_prints,    "removed process");
+    add_part(r.removed_filaments, "removed filament");
+    add_part(r.removed_printers,  "removed printer");
     if (!parts.empty())
         msg += ": " + boost::algorithm::join(parts, ", ");
     return msg;

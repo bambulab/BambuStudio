@@ -256,12 +256,20 @@ struct TryLoadLastMachine
 };
 
 // Result of GUI_App::reload_user_presets_from_disk(). Exposes counts of
-// newly added presets so callers can decide whether/how to surface a
-// notification, instead of hardcoding the UI side-effect in the reload.
+// added and removed user presets, per preset kind, so callers can decide
+// whether/how to surface a notification instead of hardcoding the UI
+// side-effect in the reload.
 struct PresetReloadResult {
-    int new_prints    = 0;
-    int new_filaments = 0;
-    bool any_change() const { return new_prints || new_filaments; }
+    int new_prints        = 0;
+    int new_filaments     = 0;
+    int new_printers      = 0;
+    int removed_prints    = 0;
+    int removed_filaments = 0;
+    int removed_printers  = 0;
+    bool any_change() const {
+        return new_prints || new_filaments || new_printers
+            || removed_prints || removed_filaments || removed_printers;
+    }
 };
 
 // Build the toast/log message describing a preset reload outcome. Kept
