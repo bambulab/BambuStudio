@@ -6275,7 +6275,12 @@ PresetReloadResult GUI_App::reload_user_presets_from_disk()
     const std::set<std::string> old_printers  = snapshot_user_names(preset_bundle->printers);
 
     BOOST_LOG_TRIVIAL(info) << "Reloading user presets from disk for user: " << user_id;
-    preset_bundle->load_user_presets(user_id, ForwardCompatibilitySubstitutionRule::Enable);
+    // Match the other programmatic load sites (ConfigWizard, WebGuideDialog,
+    // PresetUpdater): substitute forward-compat values silently. This overload
+    // discards the substitution report anyway, so there is no user-facing
+    // difference vs Enable here; EnableSilentDisableSystem is just the
+    // conventional rule for a non-interactive load.
+    preset_bundle->load_user_presets(user_id, ForwardCompatibilitySubstitutionRule::EnableSilentDisableSystem);
 
     // Always refresh the side UI (see function comment).
     mainframe->update_side_preset_ui();
