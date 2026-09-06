@@ -588,7 +588,7 @@ find_package(OpenGL REQUIRED)
 
 # Find glew or use bundled version
 if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_GLEW)
-    set(GLEW_USE_STATIC_LIBS ON)
+    set(GLEW_USE_STATIC_LIBS TRUE)
     set(GLEW_VERBOSE ON)
 endif()
 
