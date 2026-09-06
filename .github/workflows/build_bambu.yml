@@ -101,7 +101,7 @@ jobs:
           ./BuildMac.sh -s -x -a universal -t 10.15 -1
 
       - name: pack mac app
-        if: github.ref != 'refs/heads/main' && (inputs.os == 'macos-15-intel' || inputs.os == 'macos-15' || inputs.os == 'macos-26')
+        if: github.ref != 'refs/heads/master' && (inputs.os == 'macos-15-intel' || inputs.os == 'macos-15' || inputs.os == 'macos-26')
         working-directory: ${{ github.workspace }}
         run: zip -r BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}.zip ${{ github.workspace }}/build
 
@@ -115,7 +115,7 @@ jobs:
   # Windows
       - name: setup MSVC
         if: inputs.os == 'windows-latest'
-        uses: microsoft/setup-msbuild@v2
+        uses: microsoft/setup-msbuild@v3
 
       - name: Install nsis and pkgconfig
         if: inputs.os == 'windows-latest'
