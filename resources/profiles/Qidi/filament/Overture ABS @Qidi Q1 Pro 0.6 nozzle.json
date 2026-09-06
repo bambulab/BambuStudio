@@ -1,0 +1,27 @@
+{
+    "type": "filament",
+    "filament_id": "GFB00",
+    "setting_id": "GFSB00_Qidi_93",
+    "name": "Overture ABS @Qidi Q1 Pro 0.6 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Overture ABS @Qidi",
+    "hot_plate_temp_initial_layer": [
+        "90"
+    ],
+    "nozzle_temperature": [
+        "250"
+    ],
+    "pressure_advance": [
+        "0.012"
+    ],
+    "during_print_exhaust_fan_speed":[
+         "0"
+    ],
+    "filament_flow_ratio": [
+        "0.95"
+    ],
+    "compatible_printers": [
+        "Qidi Q1 Pro 0.6 nozzle"
+	]
+}

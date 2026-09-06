@@ -1,0 +1,24 @@
+{
+    "type": "filament",
+    "filament_id": "GFB00",
+    "setting_id": "GFSB00_Qidi_54",
+    "name": "Bambu ABS @Qidi 0.8 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Bambu ABS @Qidi",
+    "nozzle_temperature": [
+        "260"
+    ],
+    "slow_down_min_speed": [
+        "10"
+    ],
+    "pressure_advance": [
+        "0.011"
+    ],
+	"compatible_printers": [
+        "Qidi X-CF Pro 0.8 nozzle",
+		"Qidi X-Smart 3 0.8 nozzle",
+		"Qidi X-Plus 3 0.8 nozzle",
+		"Qidi X-Max 3 0.8 nozzle"
+	]
+}
