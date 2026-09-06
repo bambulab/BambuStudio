@@ -2040,6 +2040,9 @@ void Selection::rotate(unsigned int object_idx, unsigned int instance_idx, unsig
 //BBS: add partplate related logic
 void Selection::notify_instance_update(int object_idx, int instance_idx)
 {
+    if (object_idx >= 1000)
+        return;
+
     //BBS: notify instance updates to part plater list
     PartPlateList& plate_list = wxGetApp().plater()->get_partplate_list();
 
@@ -2050,6 +2053,9 @@ void Selection::notify_instance_update(int object_idx, int instance_idx)
         for (unsigned int i : list)
         {
             int obj_index = (*m_volumes)[i]->object_idx();
+            if (obj_index >= 1000)
+                continue;
+
             //-1 means all the instance in this object
             if (instance_idx == -1)
             {
