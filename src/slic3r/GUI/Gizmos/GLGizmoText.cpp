@@ -1369,7 +1369,28 @@ std::unique_ptr<Emboss::DataBase> GLGizmoText::create_emboss_data_base(
     base.from_surface = style.distance;
 
     FontFileWithCache &font = style_manager.get_font_file_with_cache();
-    TextConfiguration  tc{static_cast<EmbossStyle>(style), text};
+
+    // Apply auto-wrap / shrink into the shape string; keep UI m_text as the editable source.
+    std::string shape_text = text;
+    if ((m_wrap_text || m_auto_shrink) && font.has_value()) {
+        FontProp fit_prop = style.prop;
+        fit_prop.size_in_mm = m_font_size;
+        shape_text = fit_text_to_box(font, fit_prop, text, m_wrap_width_mm, m_wrap_height_mm, m_wrap_text, m_auto_shrink);
+        style.prop.size_in_mm = fit_prop.size_in_mm;
+        m_font_size           = fit_prop.size_in_mm;
+        m_style_manager.get_font_prop().size_in_mm = fit_prop.size_in_mm;
+    }
+
+    // Multiline placement uses the Emboss 2D layout, so character spacing must live in FontProp.
+    // Single-line text still applies m_text_gap in GenerateTextJob::calc_position_points.
+    if (get_count_lines(shape_text) > 1) {
+        if (std::abs(m_text_gap) > 1e-4f)
+            style.prop.char_gap = static_cast<int>(std::lround(m_text_gap));
+        else
+            style.prop.char_gap.reset();
+    }
+
+    TextConfiguration  tc{static_cast<EmbossStyle>(style), shape_text};
     auto td_ptr = std::make_unique<TextDataBase>(std::move(base), font, std::move(tc), style.projection);
     return td_ptr;
 }
@@ -2358,6 +2379,38 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
 
 
     ImGui::AlignTextToFramePadding();
+    bool wrap_changed = ImGui::Checkbox((_L("Auto wrap")).c_str(), &m_wrap_text);
+    ImGui::SameLine();
+    bool shrink_changed = ImGui::Checkbox((_L("Auto shrink")).c_str(), &m_auto_shrink);
+    if (wrap_changed || shrink_changed)
+        m_need_update_text = true;
+    if (m_wrap_text || m_auto_shrink) {
+        ImGui::AlignTextToFramePadding();
+        m_imgui->text(_L("Wrap width"));
+        ImGui::SameLine(caption_size);
+        ImGui::PushItemWidth(temp_input_width);
+        float old_wrap_w = m_wrap_width_mm;
+        if (ImGui::InputFloat("###text_wrap_width", &m_wrap_width_mm, 0.0f, 0.0f, "%.2f")) {
+            m_wrap_width_mm = ImClamp(m_wrap_width_mm, 1.f, 1000.f);
+            if (old_wrap_w != m_wrap_width_mm)
+                m_need_update_text = true;
+        }
+        ImGui::SameLine();
+        m_imgui->text(_L("Wrap height"));
+        ImGui::SameLine();
+        ImGui::PushItemWidth(temp_input_width);
+        float old_wrap_h = m_wrap_height_mm;
+        if (ImGui::InputFloat("###text_wrap_height", &m_wrap_height_mm, 0.0f, 0.0f, "%.2f")) {
+            m_wrap_height_mm = ImClamp(m_wrap_height_mm, 0.f, 1000.f);
+            if (old_wrap_h != m_wrap_height_mm)
+                m_need_update_text = true;
+        }
+        if (ImGui::IsItemHovered())
+            m_imgui->tooltip(_u8L("Optional max height in mm. 0 means no height limit. With Auto shrink, font size is reduced to fit the box."),
+                             m_gui_cfg->max_tooltip_width);
+    }
+
+    ImGui::AlignTextToFramePadding();
     m_imgui->text(_L("Text Gap"));
     ImGui::SameLine(caption_size);
     ImGui::PushItemWidth(slider_width);
@@ -2522,7 +2575,8 @@ bool GLGizmoText::set_height()
 
 void GLGizmoText::draw_text_input(int caption_width)
 {
-    bool allow_multi_line       = false;
+    // Enter creates a new line; Emboss::text2vshapes + GenerateTextJob baked layout consume '\n'.
+    bool allow_multi_line       = true;
     bool support_backup_fonts = GUI::wxGetApp().app_config->get_bool("support_backup_fonts");
     auto create_range_text_prep    = [&mng = m_style_manager, &text = m_text, &exist_unknown = m_text_contain_unknown_glyph, support_backup_fonts]() {
         if (text.empty()) { return std::string(); }
@@ -2983,6 +3037,34 @@ void GLGizmoText::draw_advanced(float caption_size, float slider_width, float sl
             m_need_update_text = true;
         }
     }
+
+    // Line gap (font points) — used by Emboss::get_line_height for multiline text.
+    std::optional<int> &line_gap = m_style_manager.get_font_prop().line_gap;
+    float               line_gap_value = static_cast<float>(line_gap.value_or(0));
+    const float         min_line_gap   = static_cast<float>(limits.line_gap.min);
+    const float         max_line_gap   = static_cast<float>(limits.line_gap.max);
+    ImGui::AlignTextToFramePadding();
+    m_imgui->text(_L("Line gap"));
+    ImGui::SameLine(caption_size + ad_space_size);
+    ImGui::PushItemWidth(slider_width);
+    if (m_imgui->bbl_slider_float_style("##text_line_gap", &line_gap_value, min_line_gap, max_line_gap, "%.0f", 1.0f, true)) {
+        if (std::abs(line_gap_value) < 0.5f)
+            line_gap.reset();
+        else
+            line_gap = static_cast<int>(std::lround(line_gap_value));
+    }
+    is_stop_sliding = m_imgui->get_last_slider_status().deactivated_after_edit;
+    if (is_stop_sliding)
+        m_need_update_text = true;
+    ImGui::SameLine(drag_left_width + ad_space_size);
+    ImGui::PushItemWidth(1.5 * slider_icon_width);
+    if (ImGui::BBLDragFloat("##text_line_gap_input", &line_gap_value, 1, min_line_gap, max_line_gap, "%.0f")) {
+        if (std::abs(line_gap_value) < 0.5f)
+            line_gap.reset();
+        else
+            line_gap = static_cast<int>(std::lround(line_gap_value));
+        m_need_update_text = true;
+    }
 }
 
 void GLGizmoText::init_font_name_texture()
@@ -3058,6 +3140,10 @@ void GLGizmoText::reset_text_info()
     m_embeded_depth = m_style_manager.get_style().projection.embeded_depth;
     m_rotate_angle    = get_angle_from_current_style();
     m_text_gap        = m_style_manager.get_style().prop.char_gap.value_or(0);
+    m_wrap_text       = false;
+    m_wrap_width_mm   = 40.f;
+    m_wrap_height_mm  = 0.f;
+    m_auto_shrink     = false;
     m_surface_type    = TextInfo::TextType::SURFACE;
     m_rr              = RaycastResult();
     m_last_text_mv = nullptr;
@@ -3361,6 +3447,11 @@ bool GLGizmoText::generate_text_volume()
     input_info.m_thickness                  = m_thickness;
     input_info.m_cut_plane_dir_in_world     = m_cut_plane_dir_in_world;
     input_info.use_surface                  = m_surface_type == TextInfo::TextType::SURFACE_CHAR ? true : false;
+    if (m_style_manager.is_active_font() && m_style_manager.get_font_file_with_cache().has_value()) {
+        input_info.font_file = m_style_manager.get_font_file_with_cache().font_file;
+        input_info.font_prop = m_style_manager.get_font_prop();
+        input_info.font_prop.size_in_mm = m_font_size;
+    }
     TextInfo text_info = get_text_info();
 
     ModelObject *model_object = selection.get_model()->objects[m_object_idx];
@@ -3407,8 +3498,14 @@ TextInfo GLGizmoText::get_text_info()
     text_info.m_rr.mesh_id    = m_rr.mesh_id;
     text_info.m_rotate_angle  = m_rotate_angle;
     text_info.m_text_gap      = m_text_gap;
+    text_info.m_wrap_text     = m_wrap_text;
+    text_info.m_wrap_width_mm = m_wrap_width_mm;
+    text_info.m_wrap_height_mm = m_wrap_height_mm;
+    text_info.m_auto_shrink   = m_auto_shrink;
     text_info.m_surface_type  = m_surface_type;
     text_info.text_configuration = m_ui_text_configuration;
+    text_info.text_configuration.style.prop.line_gap = m_style_manager.get_font_prop().line_gap;
+    text_info.text_configuration.style.prop.char_gap = m_style_manager.get_font_prop().char_gap;
     text_info.m_font_version     = CUR_FONT_VERSION;
     return text_info;
 }
@@ -3432,6 +3529,10 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
     m_rotate_angle = (float) Geometry::rad2deg(limit_angle);
 
     m_text_gap      = text_info.m_text_gap;
+    m_wrap_text     = text_info.m_wrap_text;
+    m_wrap_width_mm = text_info.m_wrap_width_mm;
+    m_wrap_height_mm = text_info.m_wrap_height_mm;
+    m_auto_shrink   = text_info.m_auto_shrink;
     m_surface_type  = (TextInfo::TextType) text_info.m_surface_type;
 
     if (is_old_text_info(text_info)) { // compatible with older versions
@@ -3446,6 +3547,8 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
     }
     m_custom_boldness          = text_info.text_configuration.style.prop.boldness.value_or(0.f);
     m_custom_skew              = text_info.text_configuration.style.prop.skew.value_or(0.f);
+    m_style_manager.get_font_prop().line_gap = text_info.text_configuration.style.prop.line_gap;
+    m_style_manager.get_font_prop().char_gap = text_info.text_configuration.style.prop.char_gap;
     if (is_text_changed) {
         process(true,std::nullopt,false);
     }

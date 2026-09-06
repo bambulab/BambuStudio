@@ -27,8 +27,10 @@ enum class SLAGizmoEventType : unsigned char;
 //2.2 mean v2.2 bambu version(20250815) fix char gap of text
 // 2.3 mean v2.3 bambu version(20250826) add custom boldness and skew
 //2.5 mean v2.3 bambu version(20251130) fix text more accurate layout
+//2.6 mean multiline Text Shape (Enter / line breaks + line gap persistence)
+//2.7 mean auto-wrap / shrink-to-box + multiline surface curve following
 const std::string NEW_FONT_BEGIN_VERSION  = "2.0";
-const std::string CUR_FONT_VERSION        = "2.5";
+const std::string CUR_FONT_VERSION        = "2.7";
 class GLGizmoText : public GLGizmoBase
 {
 private:
@@ -56,6 +58,10 @@ private:
     const float  m_embeded_depth_max = 1000.f;
     float m_rotate_angle = 0;
     float m_text_gap = 0.f;
+    bool  m_wrap_text = false;
+    float m_wrap_width_mm = 40.f;
+    float m_wrap_height_mm = 0.f;
+    bool  m_auto_shrink = false;
     TextConfiguration  m_ui_text_configuration;
     TextInfo::TextType m_surface_type{TextInfo::TextType ::SURFACE};
     bool m_really_use_surface_calc = false;
