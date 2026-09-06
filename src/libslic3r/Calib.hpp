@@ -319,8 +319,8 @@ public:
 protected:
     double speed_first_layer() const { return m_config.option<ConfigOptionFloatsNullable>("initial_layer_speed")->get_at(m_params.extruder_id); };
     double speed_perimeter() const { return m_config.option<ConfigOptionFloatsNullable>("outer_wall_speed")->get_at(m_params.extruder_id); };
-    double line_width_first_layer() const { return m_config.get_abs_value("initial_layer_line_width"); };
-    double line_width() const { return m_config.get_abs_value("line_width"); };
+    double line_width_first_layer() const;
+    double line_width() const;
     int    wall_count() const { return m_config.option<ConfigOptionInt>("wall_loops")->value; };
 
 private:
