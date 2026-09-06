@@ -1418,8 +1418,11 @@ void GenerateTextJob::process(Ctl &ctl)
     m_input.m_text_align_offsets    = m_input.m_text_shape.text_align_offsets;
     m_input.m_align_type = m_input.m_text_shape.align_type;
 
+    // Must fail the job, not return successfully: finalize() bails only on
+    // canceled/eptr, so a silent return here commits m_final_text_mesh while
+    // it is still empty.
     if (m_input.m_chars_mesh_result.empty()) {
-        return;
+        throw JobException(_u8L("Font doesn't have any shape for given text.").c_str());
     }
     if (!update_text_positions(m_input)) {
         throw JobException("update_text_positions fail.");
@@ -2032,7 +2035,7 @@ void  GenerateTextJob::generate_mesh_according_points(InputInfo &input_info)
         SurfaceVolumeData::ModelSource ms;
         ms.mesh = std::make_shared<const TriangleMesh> (input_info.slice_mesh);
         if (ms.mesh->empty()) {
-            return;
+            throw JobException(_u8L("There is no valid surface for text projection.").c_str());
         }
         ms_es.push_back(ms);
         input_db.is_outside = input_info.is_outside;
