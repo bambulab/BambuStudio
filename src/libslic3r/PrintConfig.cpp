@@ -1483,6 +1483,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
+    def = this->add("bridge_density", coPercent);
+    def->label = L("External bridge density");
+    def->category = L("Quality");
+    def->tooltip = L("Controls the spacing of external bridge lines. Higher values place the lines closer together, "
+                     "while lower values increase the spacing. The existing bridge spacing is preserved at 100%.");
+    def->sidetext = "%";
+    def->min = 10;
+    def->max = 125;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(100));
+
     def = this->add("counterbore_hole_bridging", coEnum);
     def->label = L("Bridge counterbore holes");
     def->category = L("Quality");

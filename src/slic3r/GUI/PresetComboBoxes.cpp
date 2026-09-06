@@ -60,6 +60,19 @@ namespace GUI {
 
 #define BORDER_W 10
 
+static constexpr int FILAMENT_DROPDOWN_VISIBLE_ITEMS_DEFAULT = 15;
+static constexpr int FILAMENT_DROPDOWN_VISIBLE_ITEMS_MIN     = 5;
+static constexpr int FILAMENT_DROPDOWN_VISIBLE_ITEMS_MAX     = 30;
+
+static int filament_dropdown_visible_items()
+{
+    long rows = FILAMENT_DROPDOWN_VISIBLE_ITEMS_DEFAULT;
+    const wxString configured = from_u8(wxGetApp().app_config->get("filament_dropdown_visible_items"));
+    if (!configured.ToLong(&rows))
+        rows = FILAMENT_DROPDOWN_VISIBLE_ITEMS_DEFAULT;
+    return std::clamp(static_cast<int>(rows), FILAMENT_DROPDOWN_VISIBLE_ITEMS_MIN, FILAMENT_DROPDOWN_VISIBLE_ITEMS_MAX);
+}
+
 // ---------------------------------
 // ***  PresetComboBox  ***
 // ---------------------------------
@@ -830,10 +843,13 @@ bool PresetComboBox::selection_is_changed_according_to_physical_printers()
 PlaterPresetComboBox::PlaterPresetComboBox(wxWindow *parent, Preset::Type preset_type) :
     PresetComboBox(parent, preset_type, wxSize(25 * wxGetApp().em_unit(), 30 * wxGetApp().em_unit() / 10))
 {
-    GetDropDown().SetUseContentWidth(true,true);
+    // Filament profile names are often longer than the old 400-DIP popup cap.
+    // Size that popup to its content so the full profile name remains visible.
+    GetDropDown().SetUseContentWidth(true, m_type != Preset::TYPE_FILAMENT);
 
     if (m_type == Preset::TYPE_FILAMENT)
     {
+        GetDropDown().SetMaxVisibleRows(filament_dropdown_visible_items(), false);
         // BBS: not show color picker
 #if 0
         Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
@@ -1125,6 +1141,9 @@ wxString PlaterPresetComboBox::get_preset_name(const Preset& preset)
 // If an incompatible preset is selected, it is shown as well.
 void PlaterPresetComboBox::update()
 {
+    if (m_type == Preset::TYPE_FILAMENT)
+        GetDropDown().SetMaxVisibleRows(filament_dropdown_visible_items(), false);
+
     if (m_type == Preset::TYPE_FILAMENT &&
         (m_preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA ||
         m_preset_bundle->filament_presets.size() <= (size_t)m_filament_idx) )
@@ -1381,7 +1400,8 @@ void PlaterPresetComboBox::update()
 
     //BBS: add project embedded preset logic
     add_presets(project_embedded_presets, selected_user_preset, L("Project-inside presets"), _L("Project") + " ");
-    add_presets(nonsys_presets, selected_user_preset, L("User presets"), _L("Custom") + " ");
+    // Keep user filament presets in the main dropdown instead of hiding them in a "Custom" submenu.
+    add_presets(nonsys_presets, selected_user_preset, L("User presets"), wxString());
     // BBS: move system to the end
     add_presets(system_presets, selected_system_preset, L("System presets"), _L("System"));
     add_presets(uncompatible_presets, {}, L("Unsupported presets"), _L("Unsupported") + " ");

@@ -17,6 +17,9 @@
 #include "Widgets/Button.hpp"
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/LinkLabel.hpp"
+
+class SpinInput;
+
 namespace Slic3r { namespace GUI {
 
 class Selector
@@ -100,6 +103,7 @@ public:
     void        set_dark_mode();
     wxWindow* create_item_downloads(wxWindow* parent, int padding_left, std::string param);
     wxBoxSizer *create_item_input(wxString title, wxString title2, wxWindow *parent, wxString tooltip, std::string param, std::function<void(wxString)> onchange = {});
+    wxBoxSizer *create_item_spinctrl(wxString title, wxWindow *parent, wxString tooltip, std::string param, int min, int max, std::function<void(int)> onchange = {});
     wxBoxSizer *create_item_range_input(
         wxString title, wxWindow *parent, wxString tooltip, std::string param, float range_min, float range_max, int keep_digital,std::function<void(wxString)> onchange = {});
     wxBoxSizer *create_item_range_two_input(wxString                      title,
@@ -139,6 +143,7 @@ public:
     std::unordered_map<int, ::CheckBox *> m_checkbox_list;
     std::unordered_map<int, RadioBox *>   m_radiobox_list;
     std::unordered_map<int, ::ComboBox *> m_combobox_list;
+    std::unordered_map<int, ::SpinInput *> m_spin_input_list;
     int                                   m_screen_height;
 
 protected:

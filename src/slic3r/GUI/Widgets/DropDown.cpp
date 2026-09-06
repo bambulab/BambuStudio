@@ -1,6 +1,7 @@
 #include "DropDown.hpp"
 #include "Label.hpp"
 
+#include <algorithm>
 #include <cstdio>
 #include <wx/display.h>
 #include <wx/dcbuffer.h>
@@ -145,12 +146,22 @@ void DropDown::SetSelectorBackgroundColor(StateColor const &color)
 
 void DropDown::SetUseContentWidth(bool use, bool limit_max_content_width)
 {
-    if (use_content_width == use)
+    if (use_content_width == use && this->limit_max_content_width == limit_max_content_width)
         return;
     use_content_width = use;
     this->limit_max_content_width = limit_max_content_width;
     need_sync = true;
     messureSize();
+}
+
+void DropDown::SetMaxVisibleRows(int rows, bool count_split_items)
+{
+    rows = std::max(rows, 1);
+    if (max_visible_rows == rows && count_split_items_in_visible_rows == count_split_items)
+        return;
+    max_visible_rows = rows;
+    count_split_items_in_visible_rows = count_split_items;
+    need_sync = true;
 }
 
 void DropDown::SetAlignIcon(bool align) { align_icon = align; }
@@ -483,6 +494,8 @@ void DropDown::messureSize()
     wxClientDC dc(GetParent() ? GetParent() : this);
     dc.SetFont(GetFont());
     std::set<wxString> groups;
+    size_t visible_items = 0;
+    size_t rows_through_visible_item_limit = 0;
     for (size_t i = 0; i < items.size(); ++i) {
         auto &item = items[i];
         // Skip by group
@@ -498,6 +511,11 @@ void DropDown::messureSize()
                 continue;
         }
         ++count;
+        if (!count_split_items_in_visible_rows && visible_items < (size_t) max_visible_rows) {
+            rows_through_visible_item_limit = count;
+            if (!(item.style & DD_ITEM_STYLE_SPLIT_ITEM))
+                ++visible_items;
+        }
         wxSize size1;
         if (!text_off) {
             auto text = group.IsEmpty()
@@ -523,6 +541,9 @@ void DropDown::messureSize()
         if (size1.x > textSize.x) textSize = size1;
     }
     if (!align_icon) iconSize.x = 0;
+    visible_row_limit = count_split_items_in_visible_rows ?
+        std::min((size_t) max_visible_rows, std::max(count, (size_t) 1)) :
+        std::max(rows_through_visible_item_limit, (size_t) 1);
     wxSize szContent = textSize;
     if (szContent.x < FromDIP(120))
         szContent.x = FromDIP(120);
@@ -534,7 +555,7 @@ void DropDown::messureSize()
     if (iconSize.x > 0) szContent.x += iconSize.x + (text_off ? 0 : 5);
     if (iconSize.y > szContent.y) szContent.y = iconSize.y;
     szContent.y += 10;
-    if (count > (size_t)max_visible_rows) szContent.x += 6;
+    if (count > visible_row_limit) szContent.x += 6;
     if (GetParent() && group.IsEmpty()) {
         auto x = GetParent()->GetSize().x;
         if (x > 0 && (!use_content_width || x > szContent.x))
@@ -552,8 +573,8 @@ void DropDown::messureSize()
             szContent  = rowSize;
         }
     }
-    szContent.y *= std::min((size_t)max_visible_rows, std::max(count, (size_t) 1));
-    szContent.y += items.size() > (size_t)max_visible_rows ? rowSize.y / 2 : 0;
+    szContent.y *= visible_row_limit;
+    szContent.y += count > visible_row_limit ? rowSize.y / 2 : 0;
     wxWindow::SetSize(szContent);
 #ifdef __WXGTK__
     // Gtk has a wrapper window for popup widget
@@ -617,8 +638,8 @@ void DropDown::autoPosition()
     Position(pos, off);
     if (old != GetPosition()) {
         size = rowSize;
-        size.y *= std::min((size_t)max_visible_rows, count);
-        size.y += count > (size_t)max_visible_rows ? rowSize.y / 2 : 0;
+        size.y *= std::min(visible_row_limit, count);
+        size.y += count > visible_row_limit ? rowSize.y / 2 : 0;
         if (size != GetSize()) {
             wxWindow::SetSize(size);
             offset = wxPoint();
@@ -629,7 +650,7 @@ void DropDown::autoPosition()
         // may exceed
         auto drect = wxDisplay(GetParent()).GetGeometry();
         if (GetPosition().y + size.y + 10 > drect.GetBottom()) {
-            if (use_content_width && count <= (size_t)max_visible_rows) size.x += 6;
+            if (use_content_width && count <= visible_row_limit) size.x += 6;
             size.y = drect.GetBottom() - GetPosition().y - 10;
             wxWindow::SetSize(size);
             if (selection >= 0) {
