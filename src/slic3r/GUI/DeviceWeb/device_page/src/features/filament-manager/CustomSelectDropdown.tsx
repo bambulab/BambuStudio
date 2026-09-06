@@ -1,15 +1,26 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+interface CustomInputProps {
+  placeholder?: string;
+  duplicateTooltip?: string;
+  onAdd: (value: string) => void;
+}
+
+interface FooterActionProps {
+  label: string;
+  onClick: () => void;
+  testId?: string;
+}
+
 interface Props {
   value: string;
   options: string[];
   placeholder?: string;
   disabled?: boolean;
-  addPlaceholder?: string;
-  duplicateTooltip?: string;  // tooltip shown on the disabled Add button when input duplicates an existing option
+  customInput?: CustomInputProps;
+  footerAction?: FooterActionProps;
   onSelect: (value: string) => void;
-  onAddOption: (value: string) => void;
   'data-testid'?: string;
 }
 
@@ -18,17 +29,15 @@ export function CustomSelectDropdown({
   options,
   placeholder = '',
   disabled = false,
-  addPlaceholder = '',
-  duplicateTooltip = '',
+  customInput,
+  footerAction,
   onSelect,
-  onAddOption,
   'data-testid': testId,
 }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [inputVal, setInputVal] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -57,8 +66,8 @@ export function CustomSelectDropdown({
   const addDisabled = !trimmed || isDuplicate;
 
   const handleAdd = () => {
-    if (addDisabled) return;
-    onAddOption(trimmed);
+    if (!customInput || addDisabled) return;
+    customInput.onAdd(trimmed);
     setInputVal('');
   };
 
@@ -71,6 +80,11 @@ export function CustomSelectDropdown({
     e.stopPropagation();
   };
 
+  const handleFooterAction = () => {
+    setOpen(false);
+    footerAction?.onClick();
+  };
+
   return (
     <div ref={containerRef} className="relative w-full">
       {/* Trigger */}
@@ -79,6 +93,7 @@ export function CustomSelectDropdown({
         role="combobox"
         aria-expanded={open}
         aria-haspopup="listbox"
+        aria-disabled={disabled}
         tabIndex={disabled ? -1 : 0}
         className={[
           'bg-fm-inner2 rounded-[6px] h-[32px] pl-[8px] pr-[24px] text-[12px] leading-[19px] outline-none w-full',
@@ -147,28 +162,43 @@ export function CustomSelectDropdown({
             )}
           </div>
 
-          {/* Footer: input + add button */}
-          <div className="border-t border-fm-border px-[8px] py-[6px] flex items-center gap-[6px]">
-            <input
-              ref={inputRef}
-              type="text"
-              className="bg-fm-inner rounded-[4px] h-[28px] px-[8px] text-[12px] leading-[19px] text-fm-text-strong outline-none flex-1 min-w-0 placeholder:text-fm-text-detail focus:shadow-[0_0_0_1px_var(--color-fm-brand)] border-none"
-              placeholder={addPlaceholder}
-              value={inputVal}
-              onChange={(e) => setInputVal(e.target.value)}
-              onKeyDown={handleInputKeyDown}
-              onMouseDown={(e) => e.stopPropagation()}
-            />
-            <button
-              type="button"
-              title={isDuplicate ? (duplicateTooltip || t('Already exists')) : undefined}
-              className="text-[12px] leading-[19px] text-fm-brand cursor-pointer shrink-0 bg-transparent border-none p-0 hover:text-fm-brand-hover disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
-              disabled={addDisabled}
-              onMouseDown={(e) => { e.preventDefault(); handleAdd(); }}
-            >
-              + {t('Add Option')}
-            </button>
-          </div>
+          {customInput && (
+            <div className="border-t border-fm-border px-[8px] py-[6px] flex items-center gap-[6px]">
+              <input
+                data-testid={testId ? `${testId}-add-input` : undefined}
+                type="text"
+                className="bg-fm-inner rounded-[4px] h-[28px] px-[8px] text-[12px] leading-[19px] text-fm-text-strong outline-none flex-1 min-w-0 placeholder:text-fm-text-detail focus:shadow-[0_0_0_1px_var(--color-fm-brand)] border-none"
+                placeholder={customInput.placeholder}
+                value={inputVal}
+                onChange={(e) => setInputVal(e.target.value)}
+                onKeyDown={handleInputKeyDown}
+                onMouseDown={(e) => e.stopPropagation()}
+              />
+              <button
+                data-testid={testId ? `${testId}-add-option` : undefined}
+                type="button"
+                title={isDuplicate ? (customInput.duplicateTooltip || t('Already exists')) : undefined}
+                className="text-[12px] leading-[19px] text-fm-brand cursor-pointer shrink-0 bg-transparent border-none p-0 hover:text-fm-brand-hover disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
+                disabled={addDisabled}
+                onMouseDown={(e) => { e.preventDefault(); handleAdd(); }}
+              >
+                + {t('Add Option')}
+              </button>
+            </div>
+          )}
+
+          {footerAction && (
+            <div className="border-t border-fm-border px-[8px] py-[6px]">
+              <button
+                data-testid={footerAction.testId}
+                type="button"
+                className="text-[12px] leading-[19px] text-fm-brand underline cursor-pointer bg-transparent border-none p-0 hover:text-fm-brand-hover"
+                onMouseDown={(e) => { e.preventDefault(); handleFooterAction(); }}
+              >
+                {footerAction.label}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

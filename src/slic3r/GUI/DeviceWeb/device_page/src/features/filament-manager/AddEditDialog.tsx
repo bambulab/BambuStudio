@@ -4,7 +4,7 @@ import type {
   Spool, PresetVendor, MachineItem, AmsData, AmsUnit, AmsTray,
   BridgeResponseBody, CandidateColor, FilamentColorCodesResponse,
 } from './types';
-import { BAMBU_COLORS, formatTypeSeries, toCreateFilamentPrefill } from './constants';
+import { BAMBU_COLORS, formatTypeSeries } from './constants';
 import { SpoolColorChip } from './SpoolColorChip';
 import useStore from '../../store/AppStore';
 import { useDeviceBridge } from '../../hooks/Bridge';
@@ -174,7 +174,6 @@ export function AddEditDialog({
   // DeviceManager::OnSelectedMachineChanged.
   const globalSelectedDev = useStore((s) => s.filament.selectedMachineDevId);
   const [customBrands, setCustomBrands] = useState<string[]>([]);
-  const [customTypes,  setCustomTypes]  = useState<string[]>([]);
 
   const mergedVendorNames = useMemo(() => {
     const cloudVendors = Array.isArray(cloudConfig?.vendors) ? cloudConfig.vendors : undefined;
@@ -475,10 +474,6 @@ export function AddEditDialog({
     return [...set].sort();
   }, [brand, cloudConfig, presets, getCloudSettingDisplayName]);
 
-  const finalTypeSeriesOptions = useMemo(() => {
-    const set = new Set([...typeSeriesOptions, ...customTypes]);
-    return [...set].sort();
-  }, [typeSeriesOptions, customTypes]);
 
   // Split a combined "PLA Basic" string back into (type, series) using the
   // vendor's known types as anchors (longest-first to tolerate types with
@@ -686,17 +681,16 @@ export function AddEditDialog({
   // dispatch and setColorCandidates, so a fallback effect re-run (or a
   // concurrent primary/fallback kick) would re-issue the same query_for_id.
   const candidateLoadInflight = useRef<Set<string>>(new Set());
-  const handleCreateNow = useCallback(() => {
-    const prefill = toCreateFilamentPrefill(brand, materialType, series);
-    if (!prefill.vendor) return;
+  const handleCreateCustomFilament = useCallback(() => {
+    const payload = customBrands.includes(brand) ? { vendor: brand } : {};
     void requestRpc<{
       module: 'filament'; submod: 'preset'; action: 'create_custom';
-      payload: { vendor: string; type: string; serial: string };
+      payload: { vendor?: string };
     }, BridgeResponseBody>({
       module: 'filament', submod: 'preset', action: 'create_custom',
-      payload: prefill,
+      payload,
     });
-  }, [brand, materialType, series, requestRpc]);
+  }, [brand, customBrands, requestRpc]);
   const loadCandidates = useCallback(async (id: string) => {
     if (!id) return;
     const cur = useStore.getState().filament.candidatesByFilaId;
@@ -974,12 +968,6 @@ export function AddEditDialog({
     setSeries(name);
   };
 
-  const handleAddType = (value: string) => {
-    const trimmed = value.trim();
-    if (!trimmed || finalTypeSeriesOptions.includes(trimmed)) return;
-    setCustomTypes(prev => [...prev, trimmed]);
-    handleTypeSeriesChange(trimmed);
-  };
 
   // F4.5: validation no longer depends on `series` — the combined type field
   // covers both, and plenty of materials legitimately have no series (e.g. ABS).
@@ -2274,14 +2262,16 @@ export function AddEditDialog({
                     value={brand}
                     options={mergedVendorNames}
                     placeholder={t('Select Brand')}
-                    addPlaceholder={t('Enter brand name')}
-                    duplicateTooltip={t('Brand already exists')}
                     disabled={lockBrand}
+                    customInput={{
+                      placeholder: t('Enter brand name'),
+                      duplicateTooltip: t('Brand already exists'),
+                      onAdd: handleAddBrand,
+                    }}
                     onSelect={(v) => {
                       setBrand(v);
                       if (!lockMaterial) { setMaterialType(''); setSeries(''); }
                     }}
-                    onAddOption={handleAddBrand}
                   />
                 </div>
                 <div className="flex flex-col gap-[4px] flex-1 pb-[24px]">
@@ -2289,29 +2279,19 @@ export function AddEditDialog({
                   <CustomSelectDropdown
                     data-testid="filament-material"
                     value={typeSeriesFull}
-                    options={finalTypeSeriesOptions}
+                    options={typeSeriesOptions}
                     placeholder={!brand ? t('Select Brand First') : t('Select Type')}
-                    addPlaceholder={t('Enter type name')}
-                    duplicateTooltip={t('Type already exists')}
                     disabled={!brand || lockMaterial}
+                    footerAction={{
+                      label: t('Click to create custom filament'),
+                      onClick: handleCreateCustomFilament,
+                      testId: 'create-custom-filament',
+                    }}
                     onSelect={handleTypeSeriesChange}
-                    onAddOption={handleAddType}
                   />
                 </div>
               </div>
 
-              {matchedCloudFilamentId === '' && matchedPresetItem === null && !!brand && !!series && (
-                <div className="text-[12px] leading-[19px] text-fm-warning -mt-[8px]">
-                  {t('Hint: No preset for this filament type in the app. Create a preset to use it.')}
-                  <button
-                    type="button"
-                    className="text-fm-warning underline cursor-pointer bg-transparent border-none p-0 ml-[4px] hover:opacity-80"
-                    onClick={handleCreateNow}
-                  >
-                    {t('Create Now')}
-                  </button>
-                </div>
-              )}
 
               {/* Color palette. F4.4 feedback: 自定义颜色需要"可保存 / 能看到已选"。
                   "+" 始终保留为取色入口；新取的自定义色追加到预设色之后。 */}
