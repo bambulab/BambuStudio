@@ -88,10 +88,13 @@ protected:
 private:
     void build_ui();
     wxBoxSizer* create_filament_selector();
-    wxBoxSizer* create_target_color_section();
     wxBoxSizer* create_mode_selection_section();
+    wxBoxSizer* create_result_section();
     wxPanel*    create_mode_card(wxWindow* parent, DecomposeMode mode, const wxString& title);
     wxBoxSizer* create_button_panel();
+    // True when preview_id already maps to a physical slot in this dialog's
+    // filament list. Standard-mode components that miss this check get a New badge.
+    bool        is_existing_physical_id(int preview_id) const;
 
     void select_mode(DecomposeMode mode);
     void update_card_styles();
@@ -140,7 +143,12 @@ private:
     ComboBox*                   m_type_combo{nullptr};
     wxStaticBitmap*             m_target_swatch{nullptr};
     wxStaticText*               m_target_rgb_text{nullptr};
-    wxStaticText*               m_result_arrow{nullptr};
+    wxPanel*                    m_filament_card{nullptr};
+    wxPanel*                    m_result_arrow{nullptr};
+    wxStaticText*               m_decomposed_label{nullptr};
+    wxPanel*                    m_decomposed_container{nullptr};
+    wxPanel*                    m_result_v_divider{nullptr};
+    wxBoxSizer*                 m_result_components_sizer{nullptr};
     wxStaticBitmap*             m_matched_swatch{nullptr};
     wxStaticText*               m_matched_rgb_text{nullptr};
 

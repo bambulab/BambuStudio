@@ -40,6 +40,16 @@ struct DecomposeMissingComponent {
 
 struct MixedFilamentResult;
 
+enum class DecomposeColorBlockReason {
+    None,
+    Gradient,
+    Transparent,
+    MultiColor
+};
+
+DecomposeColorBlockReason decompose_color_block_reason(int filament_idx);
+wxString decompose_color_menu_label(DecomposeColorBlockReason reason);
+
 // ---- Functions ----
 
 std::string decompose_normalize_color_hex(std::string color);

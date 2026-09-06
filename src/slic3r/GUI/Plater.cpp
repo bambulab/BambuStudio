@@ -6118,6 +6118,8 @@ void Sidebar::decompose_filament_color(int filament_idx)
         filament_idx = p->m_menu_filament_id;
     if (filament_idx < 0)
         return;
+    if (decompose_color_block_reason(filament_idx) != DecomposeColorBlockReason::None)
+        return;
 
     auto& project_config = wxGetApp().preset_bundle->project_config;
     auto* colours_opt = project_config.option<ConfigOptionStrings>("filament_colour");

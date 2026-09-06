@@ -1,5 +1,6 @@
 #include "ColorDecomposeSupport.hpp"
 #include "MixedFilamentDialog.hpp"
+#include "FilamentBitmapUtils.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
 #include "I18N.hpp"
@@ -38,6 +39,36 @@ const char* decompose_base_color_en(DecomposeBaseColor color)
     case DecomposeBaseColor::Green:   return "Green";
     case DecomposeBaseColor::Blue:    return "Blue";
     default:                          return "";
+    }
+}
+
+DecomposeColorBlockReason decompose_color_block_reason(int filament_idx)
+{
+    std::vector<wxColour> colors;
+    bool is_gradient = false;
+    get_filament_colors_by_id(filament_idx, colors, is_gradient);
+    if (colors.size() >= 2 && is_gradient)
+        return DecomposeColorBlockReason::Gradient;
+    for (const wxColour& c : colors) {
+        if (c.IsOk() && c.Alpha() != wxALPHA_OPAQUE)
+            return DecomposeColorBlockReason::Transparent;
+    }
+    if (colors.size() >= 2)
+        return DecomposeColorBlockReason::MultiColor;
+    return DecomposeColorBlockReason::None;
+}
+
+wxString decompose_color_menu_label(DecomposeColorBlockReason reason)
+{
+    switch (reason) {
+    case DecomposeColorBlockReason::Gradient:
+        return _L("Decompose Color (gradient not supported)");
+    case DecomposeColorBlockReason::Transparent:
+        return _L("Decompose Color (transparent not supported)");
+    case DecomposeColorBlockReason::MultiColor:
+        return _L("Decompose Color (multi-color not supported)");
+    default:
+        return _L("Decompose Color");
     }
 }
 

@@ -7,8 +7,10 @@
 #include <set>
 #include <string>
 #include <wx/sizer.h>
+#include <wx/dc.h>
 #include <wx/dcclient.h>
 #include <wx/dcbuffer.h>
+#include <wx/dcmemory.h>
 #include "wx/graphics.h"
 
 #include "I18N.hpp"
@@ -21,6 +23,7 @@
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/Label.hpp"
 #include "wxExtensions.hpp"
+#include "slic3r/Utils/WxFontUtils.hpp"
 #include "ColorDecomposeSupport.hpp"
 #include "libslic3r/ColorDecomposeRecipe.hpp"
 
@@ -143,6 +146,85 @@ static wxPanel* create_h_divider(wxWindow* parent, int fixed_width = -1)
     return panel;
 }
 
+static wxPanel* create_v_divider(wxWindow* parent)
+{
+    const int w = parent->FromDIP(1);
+    auto* panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(w, -1));
+    panel->SetMinSize(wxSize(w, parent->FromDIP(24)));
+    panel->SetBackgroundColour(StateColor::darkModeColorFor(COLOR_DIVIDER));
+    return panel;
+}
+
+static wxPanel* create_result_arrow(wxWindow* parent)
+{
+    const int w = parent->FromDIP(34);
+    const int h = parent->FromDIP(12);
+    auto* panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(w, h), wxBORDER_NONE);
+    panel->SetMinSize(wxSize(w, h));
+    panel->SetMaxSize(wxSize(w, h));
+    panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    panel->Bind(wxEVT_PAINT, [panel](wxPaintEvent&) {
+        wxPaintDC dc(panel);
+        const wxSize sz = panel->GetClientSize();
+        wxWindow* host = panel->GetParent();
+        dc.SetBackground(wxBrush(host ? host->GetBackgroundColour() : *wxWHITE));
+        dc.Clear();
+        const wxColour c = StateColor::darkModeColorFor(COLOR_LABEL_GREY);
+        const int pen_w = std::max(1, panel->FromDIP(1));
+        dc.SetPen(wxPen(c, pen_w));
+        const int y = sz.y / 2;
+        const int head = panel->FromDIP(4);
+        dc.DrawLine(0, y, sz.x - 1 - head / 2, y);
+        dc.DrawLine(sz.x - 1, y, sz.x - 1 - head, y - head);
+        dc.DrawLine(sz.x - 1, y, sz.x - 1 - head, y + head);
+    });
+    return panel;
+}
+
+static wxString format_rgb(const wxColour& color)
+{
+    return wxString::Format(_L("RGB(%d, %d, %d)"), color.Red(), color.Green(), color.Blue());
+}
+
+static void bind_rounded_card_paint(wxPanel* card)
+{
+    card->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    card->Bind(wxEVT_PAINT, [card](wxPaintEvent&) {
+        wxBufferedPaintDC dc(card);
+        wxSize sz = card->GetClientSize();
+        dc.SetBackground(wxBrush(StateColor::darkModeColorFor(*wxWHITE)));
+        dc.Clear();
+        wxColour border_col = StateColor::darkModeColorFor(COLOR_BORDER_NORMAL);
+        const int border_width = card->FromDIP(1);
+        const double inset = border_width / 2.0;
+        std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
+        if (gc) {
+            gc->SetPen(wxPen(border_col, border_width));
+            gc->SetBrush(wxBrush(StateColor::darkModeColorFor(*wxWHITE)));
+            gc->DrawRoundedRectangle(inset, inset, sz.x - 2 * inset, sz.y - 2 * inset, card->FromDIP(8));
+        } else {
+            dc.SetPen(wxPen(border_col, border_width));
+            dc.SetBrush(wxBrush(StateColor::darkModeColorFor(*wxWHITE)));
+            dc.DrawRoundedRectangle(0, 0, sz.x, sz.y, card->FromDIP(8));
+        }
+    });
+}
+
+static wxPanel* create_rounded_result_card(wxWindow* parent)
+{
+    auto* card = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    bind_rounded_card_paint(card);
+    return card;
+}
+
+static wxStaticText* create_result_caption(wxWindow* parent, const wxString& text)
+{
+    auto* label = new wxStaticText(parent, wxID_ANY, text);
+    label->SetFont(Label::Body_12);
+    label->SetForegroundColour(StateColor::darkModeColorFor(COLOR_LABEL_GREY));
+    return label;
+}
+
 static wxStaticText* create_mode_group_label(wxWindow* parent, const wxString& text)
 {
     auto* label = new wxStaticText(parent, wxID_ANY, text);
@@ -236,21 +318,16 @@ void ColorDecomposeDialog::build_ui()
     const int selector_side_margin = FromDIP(26);
     const int selector_top_gap = FromDIP(22);
     const int content_side_margin = FromDIP(30);
-    const int target_section_top_gap = FromDIP(18);
 
     main_sizer->AddSpacer(selector_top_gap);
     main_sizer->Add(create_filament_selector(), 0, wxEXPAND | wxLEFT | wxRIGHT, selector_side_margin);
-    main_sizer->AddSpacer(target_section_top_gap);
-    main_sizer->Add(create_target_color_section(), 0, wxEXPAND | wxLEFT | wxRIGHT, content_side_margin);
-    main_sizer->AddSpacer(FromDIP(16));
-    main_sizer->Add(create_h_divider(this), 0, wxEXPAND | wxLEFT | wxRIGHT, content_side_margin);
     main_sizer->AddSpacer(FromDIP(16));
     main_sizer->Add(create_mode_selection_section(), 0, wxEXPAND | wxLEFT | wxRIGHT, content_side_margin);
     main_sizer->AddSpacer(FromDIP(16));
     main_sizer->Add(create_button_panel(), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, content_side_margin);
 
     SetSizer(main_sizer);
-    SetMinSize(wxSize(FromDIP(477), FromDIP(380)));
+    SetMinSize(wxSize(FromDIP(477), FromDIP(500)));
     Fit();
     CenterOnParent();
 }
@@ -305,14 +382,51 @@ static std::string colour_to_hex(const wxColour& color)
     return wxString::Format("#%02X%02X%02X", color.Red(), color.Green(), color.Blue()).ToStdString();
 }
 
+// Copy the cached empty-label swatch, then draw the slot number at the
+// 24 DIP icon size (get_extruder_color_icon would fill the full 32 DIP).
+static wxBitmap make_decompose_swatch_bitmap(const wxColour& color, int size, int filament_id)
+{
+    wxBitmap* icon = get_extruder_color_icon(colour_to_hex(color), std::string(), size, size);
+    if (!icon || !icon->IsOk())
+        return wxBitmap();
+    wxBitmap bmp = icon->GetSubBitmap(wxRect(0, 0, icon->GetWidth(), icon->GetHeight()));
+    if (filament_id <= 0)
+        return bmp;
+
+    const wxString text = wxString::Format("%d", filament_id);
+#ifdef __WXMSW__
+    wxClientDC cdc((wxWindow*)wxGetApp().mainframe);
+    wxMemoryDC dc(&cdc);
+    dc.SelectObject(bmp);
+#else
+    wxMemoryDC dc(bmp);
+#endif
+    dc.SetFont(Label::Body_12);
+    // Match the 24 DIP swatch era: fill ~22px, not the full 32 DIP icon.
+    int label_box = size;
+    if (wxWindow* host = (wxWindow*)wxGetApp().mainframe)
+        label_box = host->FromDIP(24) - 2;
+    else
+        label_box = wxMax(1, size * 24 / 32 - 2);
+    WxFontUtils::get_suitable_font_size(label_box, dc);
+    dc.SetBackgroundMode(wxTRANSPARENT);
+    const wxSize ts = dc.GetTextExtent(text);
+    if (color.Alpha() == 0)
+        dc.SetTextForeground(*wxBLACK);
+    else
+        dc.SetTextForeground(color.GetLuminance() < 0.51 ? *wxWHITE : *wxBLACK);
+    dc.DrawText(text, (size - ts.x) / 2, (size - ts.y) / 2);
+    dc.SelectObject(wxNullBitmap);
+    return bmp;
+}
+
 static void set_swatch_bitmap(wxStaticBitmap* bmp, const wxColour& color, int size, int filament_id)
 {
     if (!bmp)
         return;
-    const std::string label = filament_id > 0 ? std::to_string(filament_id) : std::string();
-    wxBitmap* icon = get_extruder_color_icon(colour_to_hex(color), label, size, size);
-    if (icon && icon->IsOk())
-        bmp->SetBitmap(*icon);
+    const wxBitmap icon = make_decompose_swatch_bitmap(color, size, filament_id);
+    if (icon.IsOk())
+        bmp->SetBitmap(icon);
     bmp->SetMinSize(wxSize(size, size));
     bmp->SetMaxSize(wxSize(size, size));
     bmp->SetSize(wxSize(size, size));
@@ -325,41 +439,209 @@ static wxStaticBitmap* create_color_swatch(wxWindow* parent, const wxColour& col
     return bmp;
 }
 
-wxBoxSizer* ColorDecomposeDialog::create_target_color_section()
+static wxWindow* create_result_component_swatch(wxWindow* parent, const wxColour& color,
+                                                int size, int filament_id, bool show_new,
+                                                bool reserve_new_space = false)
 {
-    auto* sizer = new wxBoxSizer(wxHORIZONTAL);
+    if (!show_new && !reserve_new_space)
+        return create_color_swatch(parent, color, size, filament_id);
 
-    auto* label = new wxStaticText(this, wxID_ANY, _L("Target Color"));
-    label->SetFont(Label::Head_14);
-    label->SetForegroundColour(StateColor::darkModeColorFor(COLOR_TEXT_DARK));
-    sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(19));
+    // Keep layout width at `size` so + / % stay aligned with mode cards.
+    // Extra height is only above the swatch so mixed New / reuse rows share one baseline.
+    const int overhang = parent->FromDIP(8);
+    const int wrap_w = size;
+    const int wrap_h = size + overhang;
+    auto* panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(wrap_w, wrap_h));
+    panel->SetMinSize(wxSize(wrap_w, wrap_h));
+    panel->SetMaxSize(wxSize(wrap_w, wrap_h));
+    panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    match_parent_bg(panel, StateColor::darkModeColorFor(*wxWHITE));
 
-    const int swatch_sz = FromDIP(24);
-    const auto preview = preview_ids_for(m_result);
+    const wxBitmap bmp = make_decompose_swatch_bitmap(color, size, filament_id);
 
-    m_target_swatch = create_color_swatch(this, m_target_color, swatch_sz, preview.source_id);
-    sizer->Add(m_target_swatch, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
+    panel->Bind(wxEVT_PAINT, [panel, bmp, overhang, show_new](wxPaintEvent&) {
+        wxBufferedPaintDC dc(panel);
+        dc.SetBackground(wxBrush(panel->GetBackgroundColour()));
+        dc.Clear();
+        if (bmp.IsOk())
+            dc.DrawBitmap(bmp, 0, overhang, true);
+        if (!show_new)
+            return;
+        const wxString text = _L("New");
+        dc.SetFont(Label::Body_8);
+        const wxSize ts = dc.GetTextExtent(text);
+        const int pad_x = panel->FromDIP(3);
+        const int pad_y = panel->FromDIP(1);
+        const int bw = ts.x + pad_x * 2;
+        const int bh = wxMax(ts.y + pad_y * 2, panel->FromDIP(10));
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(StateColor::darkModeColorFor(COLOR_BRAND)));
+        dc.DrawRoundedRectangle(0, 0, bw, bh, panel->FromDIP(6));
+        dc.SetTextForeground(*wxWHITE);
+        dc.DrawText(text, pad_x, (bh - ts.y) / 2);
+    });
+    return panel;
+}
 
-    m_target_rgb_text = new wxStaticText(this, wxID_ANY,
-        wxString::Format("RGB: %d, %d, %d", m_target_color.Red(), m_target_color.Green(), m_target_color.Blue()));
-    m_target_rgb_text->SetFont(Label::Body_13);
-    m_target_rgb_text->SetForegroundColour(StateColor::darkModeColorFor(COLOR_TEXT_DARK));
-    sizer->Add(m_target_rgb_text, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
+static wxPanel* create_component_plus_panel(wxWindow* parent, int plus_gap, int swatch_sz, const wxColour& bg)
+{
+    auto* plus_panel = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(plus_gap, swatch_sz));
+    plus_panel->SetMinSize(wxSize(plus_gap, swatch_sz));
+    plus_panel->SetMaxSize(wxSize(plus_gap, swatch_sz));
+    plus_panel->SetBackgroundColour(bg);
+    auto* plus_sizer = new wxBoxSizer(wxVERTICAL);
+    auto* plus_label = new wxStaticText(plus_panel, wxID_ANY, "+");
+    plus_label->SetFont(Label::Body_13);
+    plus_label->SetForegroundColour(StateColor::darkModeColorFor(COLOR_TEXT_DARK));
+    match_parent_bg(plus_label, bg);
+    plus_sizer->AddStretchSpacer();
+    plus_sizer->Add(plus_label, 0, wxALIGN_CENTER_HORIZONTAL);
+    plus_sizer->AddStretchSpacer();
+    plus_panel->SetSizer(plus_sizer);
+    return plus_panel;
+}
 
-    auto* arrow_text = new wxStaticText(this, wxID_ANY, wxString::FromUTF8("\xe2\x86\x92"));
-    arrow_text->SetForegroundColour(StateColor::darkModeColorFor(COLOR_TEXT_DARK));
-    m_result_arrow = arrow_text;
-    sizer->Add(m_result_arrow, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
+static void append_decompose_component(wxWindow* parent, wxBoxSizer* sizer,
+                                       const wxColour& color, int ratio, int swatch_sz, int filament_id,
+                                       const wxColour& bg, bool show_new,
+                                       const std::function<void(wxWindow*)>& bind_select,
+                                       bool reserve_new_space = false)
+{
+    auto* col = new wxBoxSizer(wxVERTICAL);
+    auto* swatch = create_result_component_swatch(parent, color, swatch_sz, filament_id,
+                                                 show_new, reserve_new_space);
+    match_parent_bg(swatch, bg);
+    if (bind_select)
+        bind_select(swatch);
+    col->Add(swatch, 0, wxALIGN_CENTER_HORIZONTAL);
 
-    m_matched_swatch = create_color_swatch(this, m_target_color, swatch_sz, preview.mixed_id);
-    sizer->Add(m_matched_swatch, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
+    auto* ratio_text = new wxStaticText(parent, wxID_ANY, wxString::Format("%d%%", ratio));
+    ratio_text->SetFont(Label::Body_13);
+    ratio_text->SetForegroundColour(StateColor::darkModeColorFor(COLOR_TEXT_DARK));
+    match_parent_bg(ratio_text, bg);
+    if (bind_select)
+        bind_select(ratio_text);
+    col->Add(ratio_text, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, parent->FromDIP(4));
+    sizer->Add(col, 0, wxALIGN_TOP);
+}
 
-    m_matched_rgb_text = new wxStaticText(this, wxID_ANY,
-        wxString::Format("RGB: %d, %d, %d", m_target_color.Red(), m_target_color.Green(), m_target_color.Blue()));
-    m_matched_rgb_text->SetFont(Label::Head_13);
-    m_matched_rgb_text->SetForegroundColour(StateColor::darkModeColorFor(COLOR_TEXT_DARK));
-    sizer->Add(m_matched_rgb_text, 0, wxALIGN_CENTER_VERTICAL);
+static void append_decompose_plus(wxWindow* parent, wxBoxSizer* sizer, int plus_gap, int swatch_sz,
+                                  const wxColour& bg, bool stretch_around_plus, int plus_top_pad,
+                                  const std::function<void(wxWindow*)>& bind_select)
+{
+    if (stretch_around_plus)
+        sizer->AddStretchSpacer();
+    auto* plus_panel = create_component_plus_panel(parent, plus_gap, swatch_sz, bg);
+    if (bind_select) {
+        bind_select(plus_panel);
+        const wxWindowList& children = plus_panel->GetChildren();
+        for (wxWindowList::compatibility_iterator node = children.GetFirst(); node; node = node->GetNext())
+            bind_select(node->GetData());
+    }
+    sizer->Add(plus_panel, 0, wxALIGN_TOP | wxTOP, plus_top_pad);
+    if (stretch_around_plus)
+        sizer->AddStretchSpacer();
+}
 
+static int decompose_components_inner_width(wxWindow* host, size_t count)
+{
+    const int pad = host->FromDIP(12);
+    const int two_color_card = host->FromDIP(128);
+    if (count <= 2)
+        return two_color_card - 2 * pad;
+
+    // 3+ colors: grow just enough for swatches and pluses. Do not keep the
+    // 2-color stretch slack, or the cards get unnecessarily wide.
+    const int swatch = host->FromDIP(32);
+    const int plus = host->FromDIP(24);
+    const int n = static_cast<int>(count);
+    return n * swatch + (n - 1) * plus;
+}
+
+wxBoxSizer* ColorDecomposeDialog::create_result_section()
+{
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
+
+    auto* title = new wxStaticText(this, wxID_ANY, _L("Decomposition result for this combination"));
+    title->SetFont(Label::Head_14);
+    title->SetForegroundColour(StateColor::darkModeColorFor(COLOR_TEXT_DARK));
+    sizer->Add(title, 0, wxBOTTOM, FromDIP(8));
+
+    auto* row = new wxBoxSizer(wxHORIZONTAL);
+    const int swatch_sz = FromDIP(32);
+    const int pad = FromDIP(12);
+    const wxColour box_bg = StateColor::darkModeColorFor(*wxWHITE);
+
+    auto* src_col = new wxBoxSizer(wxVERTICAL);
+    auto* filament_caption = create_result_caption(this, _L("Filament Color"));
+    src_col->Add(filament_caption, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, FromDIP(8));
+
+    m_filament_card = create_rounded_result_card(this);
+    auto* filament_sizer = new wxBoxSizer(wxVERTICAL);
+    auto* filament_inner = new wxBoxSizer(wxVERTICAL);
+    m_target_swatch = create_color_swatch(m_filament_card, m_target_color, swatch_sz, 0);
+    match_parent_bg(m_target_swatch, box_bg);
+    filament_inner->Add(m_target_swatch, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, FromDIP(4));
+    m_target_rgb_text = new wxStaticText(m_filament_card, wxID_ANY, format_rgb(m_target_color));
+    m_target_rgb_text->SetFont(Label::Body_12);
+    m_target_rgb_text->SetForegroundColour(StateColor::darkModeColorFor(COLOR_LABEL_GREY));
+    match_parent_bg(m_target_rgb_text, box_bg);
+    filament_inner->Add(m_target_rgb_text, 0, wxALIGN_CENTER_HORIZONTAL);
+    filament_sizer->AddSpacer(pad);
+    filament_sizer->AddStretchSpacer(1);
+    filament_sizer->Add(filament_inner, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, pad);
+    filament_sizer->AddStretchSpacer(1);
+    filament_sizer->AddSpacer(pad);
+    m_filament_card->SetSizer(filament_sizer);
+    filament_sizer->SetSizeHints(m_filament_card);
+    src_col->Add(m_filament_card, 0, wxALIGN_CENTER_HORIZONTAL);
+
+    row->Add(src_col, 0, wxALIGN_TOP);
+
+    auto* arrow_col = new wxBoxSizer(wxVERTICAL);
+    const int caption_band = filament_caption->GetBestSize().GetHeight() + FromDIP(8);
+    arrow_col->AddSpacer(caption_band);
+    arrow_col->AddStretchSpacer(1);
+    m_result_arrow = create_result_arrow(this);
+    arrow_col->Add(m_result_arrow, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, FromDIP(16));
+    arrow_col->AddStretchSpacer(1);
+    row->Add(arrow_col, 0, wxEXPAND);
+
+    auto* dst_col = new wxBoxSizer(wxVERTICAL);
+    m_decomposed_label = create_result_caption(this, _L("Decomposed Colors"));
+    dst_col->Add(m_decomposed_label, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, FromDIP(8));
+
+    m_decomposed_container = create_rounded_result_card(this);
+
+    auto* box_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    auto* mixed_col = new wxBoxSizer(wxVERTICAL);
+    m_matched_swatch = create_color_swatch(m_decomposed_container, m_target_color, swatch_sz, 0);
+    match_parent_bg(m_matched_swatch, box_bg);
+    mixed_col->Add(m_matched_swatch, 0, wxALIGN_CENTER_HORIZONTAL | wxBOTTOM, FromDIP(4));
+    m_matched_rgb_text = new wxStaticText(m_decomposed_container, wxID_ANY, format_rgb(m_target_color));
+    m_matched_rgb_text->SetFont(Label::Body_12);
+    m_matched_rgb_text->SetForegroundColour(StateColor::darkModeColorFor(COLOR_LABEL_GREY));
+    match_parent_bg(m_matched_rgb_text, box_bg);
+    mixed_col->Add(m_matched_rgb_text, 0, wxALIGN_CENTER_HORIZONTAL);
+    box_sizer->Add(mixed_col, 0, wxALIGN_CENTER_VERTICAL | wxALL, pad);
+
+    m_result_v_divider = create_v_divider(m_decomposed_container);
+    box_sizer->Add(m_result_v_divider, 0, wxEXPAND | wxTOP | wxBOTTOM, pad);
+
+    const int comp_pad_h = FromDIP(32);
+    m_result_components_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto* components_outer = new wxBoxSizer(wxHORIZONTAL);
+    components_outer->Add(m_result_components_sizer, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, comp_pad_h);
+    box_sizer->Add(components_outer, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, pad);
+
+    m_decomposed_container->SetSizer(box_sizer);
+
+    dst_col->Add(m_decomposed_container, 0, wxALIGN_CENTER_HORIZONTAL);
+    row->Add(dst_col, 0, wxALIGN_TOP);
+    row->AddStretchSpacer(1);
+
+    sizer->Add(row, 0, wxEXPAND);
     return sizer;
 }
 
@@ -406,8 +688,8 @@ wxPanel* ColorDecomposeDialog::create_mode_card(wxWindow* parent, DecomposeMode 
     controls.components_sizer = colors_sizer;
 
     card->SetSizer(card_sizer);
-    card->SetMinSize(wxSize(FromDIP(128), FromDIP(111)));
-    card->SetMaxSize(wxSize(FromDIP(128), FromDIP(111)));
+    card->SetMinSize(wxSize(FromDIP(128), -1));
+    card->SetMaxSize(wxSize(FromDIP(128), -1));
 
     card->Bind(wxEVT_PAINT, [this, card, mode](wxPaintEvent&) {
         wxBufferedPaintDC dc(card);
@@ -533,6 +815,8 @@ wxBoxSizer* ColorDecomposeDialog::create_mode_selection_section()
     m_basic_warning_panel->SetSizer(basic_sizer);
     m_basic_warning_panel->Hide();
     sizer->Add(m_basic_warning_panel, 0, wxEXPAND | wxTOP, FromDIP(8));
+
+    sizer->Add(create_result_section(), 0, wxEXPAND | wxTOP, FromDIP(16));
 
     m_limit_warning_panel = new wxPanel(this, wxID_ANY);
     m_limit_warning_panel->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
@@ -823,9 +1107,8 @@ void ColorDecomposeDialog::update_mode_card_content(DecomposeMode mode)
         return;
     }
 
-    const int swatch_sz = FromDIP(24);
+    const int swatch_sz = FromDIP(32);
     const int plus_gap  = FromDIP(24);
-    const wxFont& ratio_font = Label::Body_13;
     auto bind_select = [this, mode](wxWindow* w) {
         w->Bind(wxEVT_LEFT_UP, [this, mode](wxMouseEvent&) {
             select_mode(mode);
@@ -836,44 +1119,24 @@ void ColorDecomposeDialog::update_mode_card_content(DecomposeMode mode)
     const auto preview = preview_ids_for(m_mode_results[mode_index(mode)]);
 
     for (size_t i = 0; i < count; ++i) {
-        auto* col = new wxBoxSizer(wxVERTICAL);
-        const int filament_id = (i < preview.component_ids.size()) ? preview.component_ids[i] : 0;
-        auto* swatch = create_color_swatch(card, components[i].colour, swatch_sz, filament_id);
-        bind_select(swatch);
-        col->Add(swatch, 0, wxALIGN_CENTER_HORIZONTAL);
-        auto* ratio_text = new wxStaticText(card, wxID_ANY, wxString::Format("%d%%", components[i].ratio));
-        ratio_text->SetFont(ratio_font);
-        ratio_text->SetForegroundColour(StateColor::darkModeColorFor(COLOR_TEXT_DARK));
-        match_parent_bg(ratio_text, StateColor::darkModeColorFor(COLOR_BG_CARD));
-        bind_select(ratio_text);
-        col->Add(ratio_text, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(4));
-        sizer->Add(col, 0, wxALIGN_TOP);
+        const int filament_id = (mode == DecomposeMode::MaterialList && i < preview.component_ids.size())
+            ? preview.component_ids[i] : 0;
+        append_decompose_component(card, sizer, components[i].colour, components[i].ratio,
+                                   swatch_sz, filament_id, StateColor::darkModeColorFor(COLOR_BG_CARD),
+                                   false, bind_select);
 
         if (i + 1 < count) {
-            sizer->AddStretchSpacer();
-            auto* plus_panel = new wxPanel(card, wxID_ANY, wxDefaultPosition, wxSize(plus_gap, swatch_sz));
-            plus_panel->SetMinSize(wxSize(plus_gap, swatch_sz));
-            plus_panel->SetMaxSize(wxSize(plus_gap, swatch_sz));
-            plus_panel->SetBackgroundColour(StateColor::darkModeColorFor(COLOR_BG_CARD));
-            auto* plus_sizer = new wxBoxSizer(wxVERTICAL);
-            auto* plus_label = new wxStaticText(plus_panel, wxID_ANY, "+");
-            plus_label->SetFont(Label::Body_13);
-            plus_label->SetForegroundColour(StateColor::darkModeColorFor(COLOR_TEXT_DARK));
-            match_parent_bg(plus_label, StateColor::darkModeColorFor(COLOR_BG_CARD));
-            bind_select(plus_panel);
-            bind_select(plus_label);
-            plus_sizer->AddStretchSpacer();
-            plus_sizer->Add(plus_label, 0, wxALIGN_CENTER_HORIZONTAL);
-            plus_sizer->AddStretchSpacer();
-            plus_panel->SetSizer(plus_sizer);
-            sizer->Add(plus_panel, 0, wxALIGN_TOP);
-            sizer->AddStretchSpacer();
+            append_decompose_plus(card, sizer, plus_gap, swatch_sz,
+                                  StateColor::darkModeColorFor(COLOR_BG_CARD), true, 0, bind_select);
         }
     }
 
-    const int card_width = FromDIP(128 + (count > 2 ? static_cast<int>(count - 2) * 31 : 0));
-    card->SetMinSize(wxSize(card_width, FromDIP(111)));
-    card->SetMaxSize(wxSize(card_width, FromDIP(111)));
+    const int card_width = decompose_components_inner_width(card, count) + 2 * FromDIP(12);
+    if (wxSizer* card_sizer = card->GetSizer())
+        card_sizer->SetSizeHints(card);
+    const int card_height = wxMax(card->GetBestSize().GetHeight(), card->GetMinHeight());
+    card->SetMinSize(wxSize(card_width, card_height));
+    card->SetMaxSize(wxSize(card_width, -1));
 
     card->Layout();
     card->Refresh();
@@ -888,29 +1151,94 @@ void ColorDecomposeDialog::update_mode_card_contents()
     Fit();
 }
 
+bool ColorDecomposeDialog::is_existing_physical_id(int preview_id) const
+{
+    if (preview_id <= 0)
+        return false;
+    if (m_physical_config_indices.empty())
+        return preview_id >= 1 && static_cast<size_t>(preview_id) <= m_physical_colors.size();
+    for (size_t cfg_idx : m_physical_config_indices) {
+        if (static_cast<int>(cfg_idx + 1) == preview_id)
+            return true;
+    }
+    return false;
+}
+
 void ColorDecomposeDialog::update_matched_color_display()
 {
     if (!m_result.matched_color.IsOk())
         m_result.matched_color = m_target_color;
 
     const auto preview = preview_ids_for(m_result);
-
-    const int swatch_sz = FromDIP(24);
-    set_swatch_bitmap(m_target_swatch, m_target_color, swatch_sz, preview.source_id);
-    set_swatch_bitmap(m_matched_swatch, m_result.matched_color, swatch_sz, preview.mixed_id);
+    const int swatch_sz = FromDIP(32);
+    set_swatch_bitmap(m_target_swatch, m_target_color, swatch_sz, 0);
+    set_swatch_bitmap(m_matched_swatch, m_result.matched_color, swatch_sz, 0);
 
     if (m_matched_rgb_text) {
-        m_matched_rgb_text->SetLabel(wxString::Format("RGB: %d, %d, %d",
-            m_result.matched_color.Red(), m_result.matched_color.Green(), m_result.matched_color.Blue()));
+        m_matched_rgb_text->SetLabel(format_rgb(m_result.matched_color));
+        match_parent_bg(m_matched_rgb_text, StateColor::darkModeColorFor(*wxWHITE));
+    }
+
+    if (m_result_components_sizer && m_decomposed_container) {
+        m_result_components_sizer->Clear(true);
+        const auto& components = m_result.components;
+        const wxColour box_bg = StateColor::darkModeColorFor(*wxWHITE);
+        const int plus_gap = FromDIP(24);
+        bool any_new = false;
+        for (size_t i = 0; i < components.size(); ++i) {
+            const int filament_id = (i < preview.component_ids.size()) ? preview.component_ids[i] : 0;
+            if (filament_id > 0 && !is_existing_physical_id(filament_id))
+                any_new = true;
+        }
+        const int plus_top_pad = any_new ? m_decomposed_container->FromDIP(8) : 0;
+        for (size_t i = 0; i < components.size(); ++i) {
+            const int filament_id = (i < preview.component_ids.size()) ? preview.component_ids[i] : 0;
+            const bool show_new = filament_id > 0 && !is_existing_physical_id(filament_id);
+            append_decompose_component(m_decomposed_container, m_result_components_sizer,
+                                       components[i].colour, components[i].ratio, swatch_sz,
+                                       filament_id, box_bg, show_new, {}, any_new);
+
+            if (i + 1 < components.size()) {
+                append_decompose_plus(m_decomposed_container, m_result_components_sizer,
+                                      plus_gap, swatch_sz, box_bg, true, plus_top_pad, {});
+            }
+        }
+        if (!components.empty())
+            m_result_components_sizer->SetMinSize(
+                decompose_components_inner_width(m_decomposed_container, components.size()), -1);
+        else
+            m_result_components_sizer->SetMinSize(wxDefaultSize);
+        m_decomposed_container->Layout();
+        if (wxSizer* box = m_decomposed_container->GetSizer())
+            box->SetSizeHints(m_decomposed_container);
+        m_decomposed_container->Refresh();
     }
 
     const bool has_result = has_usable_card();
     if (m_result_arrow)
         m_result_arrow->Show(has_result);
-    if (m_matched_swatch)
-        m_matched_swatch->Show(has_result);
-    if (m_matched_rgb_text)
-        m_matched_rgb_text->Show(has_result);
+    if (m_decomposed_label)
+        m_decomposed_label->Show(has_result);
+    if (m_decomposed_container)
+        m_decomposed_container->Show(has_result);
+
+    if (m_filament_card) {
+        if (has_result && m_decomposed_container) {
+            if (wxSizer* fs = m_filament_card->GetSizer())
+                fs->SetSizeHints(m_filament_card);
+            const int w = m_filament_card->GetBestSize().GetWidth();
+            const int h = m_decomposed_container->GetBestSize().GetHeight();
+            m_filament_card->SetMinSize(wxSize(w, h));
+            m_filament_card->SetMaxSize(wxSize(w, h));
+        } else {
+            m_filament_card->SetMinSize(wxDefaultSize);
+            m_filament_card->SetMaxSize(wxDefaultSize);
+            if (wxSizer* fs = m_filament_card->GetSizer())
+                fs->SetSizeHints(m_filament_card);
+        }
+        m_filament_card->Layout();
+        m_filament_card->Refresh();
+    }
 }
 
 bool ColorDecomposeDialog::try_build_single_base_result(DecomposeMode mode, ColorDecomposeResult& out) const
