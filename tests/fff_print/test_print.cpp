@@ -9,6 +9,13 @@
 using namespace Slic3r;
 using namespace Slic3r::Test;
 
+TEST_CASE("Print plate origin starts at zero", "[Print][Regression]")
+{
+    Print print;
+
+    REQUIRE(print.get_plate_origin().isApprox(Vec3d::Zero()));
+}
+
 SCENARIO("PrintObject: Perimeter generation", "[PrintObject]") {
     GIVEN("20mm cube and default config") {
         WHEN("make_perimeters() is called")  {
