@@ -189,6 +189,128 @@ const char *process_failed_reason_str(COREWEBVIEW2_PROCESS_FAILED_REASON reason)
     }
 }
 
+constexpr char kEdgeRuntimeClientDll[] = "EmbeddedBrowserWebView.dll";
+constexpr char kEdgeRuntimeHostExe[]   = "msedgewebview2.exe";
+
+void log_runtime_pin(const wxString &view, const char *event,
+                     const Slic3r::GUI::WebViewTraceLogger::Fields &fields,
+                     Slic3r::GUI::WebViewTraceLogger::Severity severity =
+                         Slic3r::GUI::WebViewTraceLogger::Severity::Info)
+{
+    Slic3r::GUI::WebViewTraceLogger::Emit(Slic3r::GUI::WebViewTraceLogger::Stage::L0_BACKEND,
+                                          view, event, fields, severity);
+}
+
+/// Directories of every WebView2 client DLL currently mapped into the process.
+/// More than one entry means the process already straddles two runtime versions.
+wxArrayString loaded_edge_runtime_dirs()
+{
+    wxArrayString dirs;
+
+    const wxDynamicLibraryDetailsArray modules = wxDynamicLibrary::ListLoaded();
+    for (size_t i = 0; i < modules.GetCount(); ++i) {
+        wxFileName fn(modules[i].GetPath());
+        if (!fn.GetFullName().IsSameAs(kEdgeRuntimeClientDll, false))
+            continue;
+
+        // ...\Application\<version>\EBWebView\x64\EmbeddedBrowserWebView.dll
+        // The directory the loader wants is the one holding <version>.
+        fn.SetFullName(wxString());
+        if (fn.GetDirCount() < 3)
+            continue;
+        fn.RemoveLastDir(); // x64
+        fn.RemoveLastDir(); // EBWebView
+
+        const wxString dir = fn.GetPathWithSep();
+        if (dirs.Index(dir) == wxNOT_FOUND)
+            dirs.Add(dir);
+    }
+    return dirs;
+}
+
+/// Keeps the whole process on a single WebView2 runtime version.
+///
+/// The loader re-resolves the version from the registry on every environment
+/// creation. When Evergreen updates in the background mid-session, WebViews
+/// created afterwards resolve to the new version while the running browser
+/// process still owns WebView2Cache, and a user data folder must never be
+/// shared across versions: those creations fail and the pages stay blank for
+/// the rest of the session. Pinning the directory of the runtime already in
+/// use makes the update a no-op until the next restart.
+///
+/// Safe by construction: every failure path leaves resolution exactly as it is
+/// today. Never let this keep the application from starting.
+void ensure_edge_runtime_pinned(const wxString &view)
+{
+    using Fields = Slic3r::GUI::WebViewTraceLogger::Fields;
+
+    static bool     s_settled = false;
+    static wxString s_pinned_dir;
+
+    if (s_settled) {
+        // Releasing a pin whose directory the updater removed is the lesser
+        // evil: keeping it would fail every later creation outright.
+        if (!s_pinned_dir.empty() && !wxFileName::DirExists(s_pinned_dir)) {
+            wxWebViewEdge::MSWSetBrowserExecutableDir(wxString());
+            s_pinned_dir.clear();
+            log_runtime_pin(view, "runtime_unpinned",
+                            Fields().Add("reason", "pinned_dir_gone"),
+                            Slic3r::GUI::WebViewTraceLogger::Severity::Warning);
+        }
+        return;
+    }
+
+    // An explicit edge_fixed next to the executable wins: it is a deliberate
+    // deployment choice that already gives one version per process.
+    wxFileName fixed_dir(wxStandardPaths::Get().GetExecutablePath());
+    fixed_dir.SetFullName(wxString());
+    fixed_dir.AppendDir("edge_fixed");
+    if (fixed_dir.DirExists()) {
+        wxWebViewEdge::MSWSetBrowserExecutableDir(fixed_dir.GetFullPath());
+        wxLogMessage("Using fixed edge version");
+        s_settled    = true;
+        s_pinned_dir = fixed_dir.GetFullPath();
+        log_runtime_pin(view, "runtime_pinned", Fields().Add("source", "edge_fixed"));
+        return;
+    }
+
+    const wxArrayString dirs = loaded_edge_runtime_dirs();
+    if (dirs.IsEmpty())
+        return; // Runtime not mapped yet; a later creation retries.
+
+    if (dirs.GetCount() > 1) {
+        // Already split. Pinning now could bind new views to the version the
+        // running browser process does not own, which is worse than leaving
+        // the loader alone.
+        s_settled = true;
+        log_runtime_pin(view, "runtime_pin_skipped",
+                        Fields().Add("reason", "already_split")
+                            .Add("versions", static_cast<int>(dirs.GetCount())),
+                        Slic3r::GUI::WebViewTraceLogger::Severity::Warning);
+        return;
+    }
+
+    const wxFileName host(dirs[0], kEdgeRuntimeHostExe);
+    if (!host.FileExists()) {
+        s_settled = true;
+        log_runtime_pin(view, "runtime_pin_skipped",
+                        Fields().Add("reason", "host_exe_missing"),
+                        Slic3r::GUI::WebViewTraceLogger::Severity::Warning);
+        return;
+    }
+
+    wxWebViewEdge::MSWSetBrowserExecutableDir(dirs[0]);
+    s_settled    = true;
+    s_pinned_dir = dirs[0];
+
+    // Log the version only. The full path carries the user name on per-user
+    // runtime installs.
+    const wxFileName pinned = wxFileName::DirName(dirs[0]);
+    log_runtime_pin(view, "runtime_pinned",
+                    Fields().Add("source", "in_use")
+                        .Add("version", pinned.GetDirCount() ? pinned.GetDirs().Last() : wxString()));
+}
+
 } // namespace
 
 class WebViewEdge : public wxWebViewEdge
@@ -738,15 +860,9 @@ wxWebView *WebView::CreateWebView(wxWindow *parent, wxString const &url, wxStrin
 {
     std::optional<Slic3r::GUI::WebViewWatcher::Fault> creation_fault;
 #if wxUSE_WEBVIEW_EDGE
-    // Check if a fixed version of edge is present in
-    // $executable_path/edge_fixed and use it
-    wxFileName edgeFixedDir(wxStandardPaths::Get().GetExecutablePath());
-    edgeFixedDir.SetFullName("");
-    edgeFixedDir.AppendDir("edge_fixed");
-    if (edgeFixedDir.DirExists()) {
-        wxWebViewEdge::MSWSetBrowserExecutableDir(edgeFixedDir.GetFullPath());
-        wxLogMessage("Using fixed edge version");
-    }
+    // Honours $executable_path/edge_fixed first, then falls back to pinning
+    // whichever runtime this process already uses.
+    ensure_edge_runtime_pinned(name);
 
     if(!wxWebView::IsBackendAvailable(wxWebViewBackendEdge)) {
         creation_fault = Slic3r::GUI::WebViewWatcher::Fault::BackendUnavailable;
