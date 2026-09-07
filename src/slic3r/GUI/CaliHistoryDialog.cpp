@@ -1013,7 +1013,7 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
                     continue;
                 }
                 if (idx == head_home_slot && head_nozzle.IsNormal()) {
-                    m_comboBox_nozzle_id->Append(wxString::Format("%d", idx + 1), wxNullBitmap, new int{0x10 | idx});
+                    m_comboBox_nozzle_id->Append(wxString::Format("%d", idx + 1), wxNullBitmap, new int{MAIN_EXTRUDER_ID});
                 }
             }
         } else {
