@@ -1484,6 +1484,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("overhang_threshold_participating_cooling", coEnums);
     def->label = L("Overhang threshold for participating cooling");
+    // xgettext:no-c-format, no-boost-format
     def->tooltip = L("Decide which overhang part join the cooling function to slow down the speed."
                      "Expressed as percentage which indicides how much width of the line without support from lower layer. "
                      "100% means forcing cooling for all outer wall no matter how much overhang degree");
