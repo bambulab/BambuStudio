@@ -230,6 +230,9 @@ static constexpr const char *FILAMENT_USED_FOR_OBJECT      = "used_for_object";
 static constexpr const char *FILAMENT_TOTAL_LOAD_TIME_TAG   = "total_load_time";
 static constexpr const char *FILAMENT_TOTAL_UNLOAD_TIME_TAG = "total_unload_time";
 static constexpr const char *FILAMENT_TRAY_INFO_ID_TAG     = "tray_info_idx";
+static constexpr const char *FILAMENT_LAYER_USAGE_TAG        = "filament_layer_usage";
+static constexpr const char *FILAMENT_LAYER_USAGE_UNIT_TAG   = "unit";
+static constexpr const char *FILAMENT_LAYER_USAGE_VALUES_TAG = "values";
 static constexpr const char *LAYER_FILAMENT_LISTS_TAG      = "layer_filament_lists";
 static constexpr const char *LAYER_FILAMENT_LIST_TAG       = "layer_filament_list";
 static constexpr const char *FILAMENT_NOZZLE_GROUP_ID_TAG    = "group_id";
@@ -572,6 +575,39 @@ std::string join_int_list_comma(const std::vector<int>& values)
     return stream.str();
 }
 
+std::vector<float> parse_float_list(const std::string& value)
+{
+    std::vector<float> out;
+    if (value.empty())
+        return out;
+
+    std::vector<std::string> tokens;
+    boost::split(tokens, value, boost::is_any_of(" ,"), boost::token_compress_on);
+    out.reserve(tokens.size());
+    for (const auto& t : tokens) {
+        if (t.empty())
+            continue;
+        try {
+            out.push_back(static_cast<float>(Slic3r::string_to_double_decimal_point(t)));
+        } catch (...) {
+            // ignore malformed entries
+        }
+    }
+    return out;
+}
+
+std::string join_float_list_comma(const std::vector<float>& values, int precision)
+{
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(precision);
+    for (size_t i = 0; i < values.size(); ++i) {
+        stream << values[i];
+        if (i + 1 < values.size())
+            stream << ",";
+    }
+    return stream.str();
+}
+
 Slic3r::Vec3f get_vec3_from_string(const std::string &pos_str)
 {
     Slic3r::Vec3f pos(0, 0, 0);
@@ -722,6 +758,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         info.id = it->first;
         info.used_g = used_filament_g;
         info.used_m = used_filament_m;
+        auto layers_it = ps.layer_volumes_per_extruder.find(it->first);
+        if (layers_it != ps.layer_volumes_per_extruder.end()) {
+            info.layer_used_g.reserve(layers_it->second.size());
+            for (double layer_volume : layers_it->second)
+                info.layer_used_g.push_back(get_used_filament_from_volume(layer_volume, it->first).second);
+        }
         {
             auto load_it = ps.load_time_per_filament.find(it->first);
             if (load_it != ps.load_time_per_filament.end())
@@ -1373,6 +1415,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         bool _handle_start_config_filament(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_filament();
+        bool _handle_start_config_filament_layer_usage(const char** attributes, unsigned int num_attributes);
 
         bool _handle_start_config_pause(const char** attributes, unsigned int num_attributes);
 
@@ -3689,6 +3732,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_start_config_plater_instance(attributes, num_attributes);
         else if (::strcmp(FILAMENT_TAG, name) == 0)
             res = _handle_start_config_filament(attributes, num_attributes);
+        else if (::strcmp(FILAMENT_LAYER_USAGE_TAG, name) == 0)
+            res = _handle_start_config_filament_layer_usage(attributes, num_attributes);
         else if (::strcmp(PAUSE_TAG, name) == 0)
             res = _handle_start_config_pause(attributes, num_attributes);
         else if (::strcmp(MIXED_FILAMENT_TAG, name) == 0)
@@ -4834,6 +4879,22 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     bool _BBS_3MF_Importer::_handle_end_config_metadata()
     {
         // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_config_filament_layer_usage(const char** attributes, unsigned int num_attributes)
+    {
+        if (m_curr_plater) {
+            std::string id = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_ID_TAG);
+            std::string values = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_LAYER_USAGE_VALUES_TAG);
+            int filament_id = atoi(id.c_str()) - 1;
+            for (FilamentInfo& filament_info : m_curr_plater->slice_filaments_info) {
+                if (filament_info.id == filament_id) {
+                    filament_info.layer_used_g = parse_float_list(values);
+                    break;
+                }
+            }
+        }
         return true;
     }
 
@@ -8778,6 +8839,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                            << FILAMENT_USED_FOR_SUPPORT << "=\"" << it->used_for_support << "\" "
                            << FILAMENT_TOTAL_LOAD_TIME_TAG << "=\"" << it->total_load_time << "\" "
                            << FILAMENT_TOTAL_UNLOAD_TIME_TAG << "=\"" << it->total_unload_time << "\"/>\n";
+                }
+
+                // Cumulative usage per layer, so a consumer that knows the layer a print stopped
+                // at can tell how much of each filament had been extruded by then. Entry 0 is
+                // what was extruded before the first layer; the last entry equals used_g.
+                for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++)
+                {
+                    if (it->layer_used_g.empty())
+                        continue;
+                    stream << "    <" << FILAMENT_LAYER_USAGE_TAG << " " << FILAMENT_ID_TAG << "=\"" << std::to_string(it->id + 1) << "\" "
+                           << FILAMENT_LAYER_USAGE_UNIT_TAG << "=\"g\" "
+                           << FILAMENT_LAYER_USAGE_VALUES_TAG << "=\"" << join_float_list_comma(it->layer_used_g, 2) << "\"/>\n";
                 }
 
                 // Mixed (virtual) filaments used by this plate. These are resolved to physical
