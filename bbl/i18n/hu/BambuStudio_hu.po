@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 10:00+0800\n"
+"POT-Creation-Date: 2026-09-07 20:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2476,9 +2476,6 @@ msgstr "Szerkesztés"
 msgid "Delete this filament"
 msgstr "Törölje ezt a filamentet"
 
-msgid "Decompose Color"
-msgstr "Szín lebontása"
-
 msgid "Merge with"
 msgstr "Összevonás ezzel"
 
@@ -3861,6 +3858,9 @@ msgstr "Projekt – vegyes filamentek"
 
 msgid "New Mixed Filaments"
 msgstr "Új vegyes filamentek"
+
+msgid "Decompose Color"
+msgstr "Szín lebontása"
 
 msgid "+ Add Material"
 msgstr "+ Anyag hozzáadása"
@@ -13445,7 +13445,7 @@ msgstr "Kényszeríti a hűtőventilátort, hogy egy adott fordulatszámot haszn
 msgid "Overhang threshold for participating cooling"
 msgstr "Túlnyúlás hűtésének küszöbértéke"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Eldönti, hogy melyik túlnyúló rész vesz részt a hűtésben a sebesség csökkentése érdekében. Értéke az alátámasztás nélküli vonal szélessége százalékban kifejezve. A 100%% azt jelenti, hogy a hűtést az összes külső falra kényszeríti, függetlenül attól, hogy mennyi a túlnyúlás mértéke."
 
@@ -18809,8 +18809,18 @@ msgstr "Elérted a komponensek maximális számát"
 msgid "Remove the third material"
 msgstr "Harmadik anyag eltávolítása"
 
-msgid "Target Color"
-msgstr "Célszín"
+#, c-format, boost-format
+msgid "RGB(%d, %d, %d)"
+msgstr ""
+
+msgid "Decomposition result for this combination"
+msgstr ""
+
+msgid "Filament Color"
+msgstr ""
+
+msgid "Decomposed Colors"
+msgstr ""
 
 msgid "Select Color Decomposition"
 msgstr "Színbontás kiválasztása"
@@ -18836,6 +18846,15 @@ msgstr ""
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "Az anyaglista legfeljebb %1% színt támogat. %2% lebontást követően az anyagmennyiség meghaladná a következőt:%1%. A lebontás előtt törölje a fel nem használt filamenteket a főképernyőn."
+
+msgid "Decompose Color (gradient not supported)"
+msgstr ""
+
+msgid "Decompose Color (transparent not supported)"
+msgstr ""
+
+msgid "Decompose Color (multi-color not supported)"
+msgstr ""
 
 msgid "Cyan"
 msgstr "Ciánkék"
@@ -19170,6 +19189,9 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "Target Color"
+#~ msgstr "Célszín"
 
 #, c-format, boost-format
 #~ msgid ""

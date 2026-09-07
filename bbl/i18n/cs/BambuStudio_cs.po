@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 10:00+0800\n"
+"POT-Creation-Date: 2026-09-07 20:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -2483,9 +2483,6 @@ msgstr "Upravit"
 msgid "Delete this filament"
 msgstr "Smazat tento filament"
 
-msgid "Decompose Color"
-msgstr ""
-
 msgid "Merge with"
 msgstr "Sloučit s"
 
@@ -3874,6 +3871,9 @@ msgid "Project Mixed Filaments"
 msgstr ""
 
 msgid "New Mixed Filaments"
+msgstr ""
+
+msgid "Decompose Color"
 msgstr ""
 
 msgid "+ Add Material"
@@ -13523,7 +13523,7 @@ msgstr "Vynutí nastavenou rychlost ventilátoru chlazení, pokud míra převisu
 msgid "Overhang threshold for participating cooling"
 msgstr "Práh převisu pro aktivaci chlazení"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Určuje, které části převisů budou zpomalovány kvůli chlazení.Hodnota je vyjádřena v procentech a určuje, jak velká část šířky extruze není podepřena spodní vrstvou. 100%%   znamená vynucené chlazení všech vnějších stěn bez ohledu na velikost převisu"
 
@@ -18954,7 +18954,17 @@ msgstr "Byl dosažen maximální počet komponent"
 msgid "Remove the third material"
 msgstr "Odebrat třetí materiál"
 
-msgid "Target Color"
+#, c-format, boost-format
+msgid "RGB(%d, %d, %d)"
+msgstr ""
+
+msgid "Decomposition result for this combination"
+msgstr ""
+
+msgid "Filament Color"
+msgstr ""
+
+msgid "Decomposed Colors"
 msgstr ""
 
 msgid "Select Color Decomposition"
@@ -18980,6 +18990,15 @@ msgstr ""
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr ""
+
+msgid "Decompose Color (gradient not supported)"
+msgstr ""
+
+msgid "Decompose Color (transparent not supported)"
+msgstr ""
+
+msgid "Decompose Color (multi-color not supported)"
 msgstr ""
 
 msgid "Cyan"

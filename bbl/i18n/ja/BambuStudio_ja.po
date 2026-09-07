@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 10:00+0800\n"
+"POT-Creation-Date: 2026-09-07 20:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2474,9 +2474,6 @@ msgstr "編集"
 msgid "Delete this filament"
 msgstr "このフィラメントを削除"
 
-msgid "Decompose Color"
-msgstr "色分解"
-
 msgid "Merge with"
 msgstr "合併先"
 
@@ -3847,6 +3844,9 @@ msgstr "プロジェクト混合フィラメント"
 
 msgid "New Mixed Filaments"
 msgstr "新規混合フィラメント"
+
+msgid "Decompose Color"
+msgstr "色分解"
 
 msgid "+ Add Material"
 msgstr "+ 材料を追加"
@@ -13389,7 +13389,7 @@ msgstr "印刷部分のオーバーハング角度がこの値を超えた場合
 msgid "Overhang threshold for participating cooling"
 msgstr "冷却に参加するためのオーバーハングしきい値"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "どのオーバーハング部分が冷却機能により速度低下の対象となるかを決定します。これは、下層にサポートがない場合の線幅をパーセンテージで表現しており、100%%の場合はオーバーハングの程度に関係なくすべての外壁が強制的に冷却されることを意味します。"
 
@@ -16902,9 +16902,9 @@ msgid ""
 "Start temp >= End temp + 5)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始温度：350度以下\n"
-"\t•\t終了温度：180度 以上\n"
-"\t•\t開始温度は終了温度より5 度以上高くしてください"
+"	•	開始温度：350度以下\n"
+"	•	終了温度：180度 以上\n"
+"	•	開始温度は終了温度より5 度以上高くしてください"
 
 msgid "Max volumetric speed test"
 msgstr "最大体積速度テスト"
@@ -16924,9 +16924,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始値（start） > 0\n"
-"\t•\tステップサイズ（step） ≥ 0\n"
-"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
+"	•	開始値（start） > 0\n"
+"	•	ステップサイズ（step） ≥ 0\n"
+"	•	終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "VFA test"
 msgstr "VFA テスト"
@@ -16943,9 +16943,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始値（start） > 10\n"
-"\t•\tステップサイズ（step） ≥ 0\n"
-"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
+"	•	開始値（start） > 10\n"
+"	•	ステップサイズ（step） ≥ 0\n"
+"	•	終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "Start retraction length: "
 msgstr "引き込み開始の長さ： "
@@ -18775,8 +18775,18 @@ msgstr "構成要素の上限に達しました。"
 msgid "Remove the third material"
 msgstr "3つ目の材料を削除してください。"
 
-msgid "Target Color"
-msgstr "ターゲットカラー"
+#, c-format, boost-format
+msgid "RGB(%d, %d, %d)"
+msgstr ""
+
+msgid "Decomposition result for this combination"
+msgstr ""
+
+msgid "Filament Color"
+msgstr ""
+
+msgid "Decomposed Colors"
+msgstr ""
 
 msgid "Select Color Decomposition"
 msgstr "色分解を選択"
@@ -18802,6 +18812,15 @@ msgstr ""
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "素材リストは最大%1%色までサポートします。%2%回分解すると、素材数が%1%を超えます。分解する前に、メインスクリーンで未使用のフィラメントを削除してください。"
+
+msgid "Decompose Color (gradient not supported)"
+msgstr ""
+
+msgid "Decompose Color (transparent not supported)"
+msgstr ""
+
+msgid "Decompose Color (multi-color not supported)"
+msgstr ""
 
 msgid "Cyan"
 msgstr "シアン"
@@ -19132,6 +19151,9 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Target Color"
+#~ msgstr "ターゲットカラー"
 
 #, c-format, boost-format
 #~ msgid ""

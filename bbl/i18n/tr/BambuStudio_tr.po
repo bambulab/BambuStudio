@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 10:00+0800\n"
+"POT-Creation-Date: 2026-09-07 20:58+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -2475,9 +2475,6 @@ msgstr "Düzenle"
 msgid "Delete this filament"
 msgstr "Bu filamenti sil"
 
-msgid "Decompose Color"
-msgstr ""
-
 msgid "Merge with"
 msgstr "Birleştir"
 
@@ -3859,6 +3856,9 @@ msgid "Project Mixed Filaments"
 msgstr ""
 
 msgid "New Mixed Filaments"
+msgstr ""
+
+msgid "Decompose Color"
 msgstr ""
 
 msgid "+ Add Material"
@@ -13344,7 +13344,7 @@ msgstr "Basılan parçanın çıkıntı derecesi bu değeri aştığında soğut
 msgid "Overhang threshold for participating cooling"
 msgstr "Soğutma katkısı için sarkma eşik değeri"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Hızı düşürmek için soğutma fonksiyonuna hangi çıkıntı kısmının dahil olacağına karar verir. Alt katmandan destek almadan hattın ne kadar geniş olduğunu gösteren yüzde olarak ifade edilir. %%100, çıkıntı derecesi ne olursa olsun tüm dış duvar için soğutmayı zorunlu kılmak anlamına gelir."
 
@@ -18669,7 +18669,17 @@ msgstr ""
 msgid "Remove the third material"
 msgstr ""
 
-msgid "Target Color"
+#, c-format, boost-format
+msgid "RGB(%d, %d, %d)"
+msgstr ""
+
+msgid "Decomposition result for this combination"
+msgstr ""
+
+msgid "Filament Color"
+msgstr ""
+
+msgid "Decomposed Colors"
 msgstr ""
 
 msgid "Select Color Decomposition"
@@ -18695,6 +18705,15 @@ msgstr ""
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr ""
+
+msgid "Decompose Color (gradient not supported)"
+msgstr ""
+
+msgid "Decompose Color (transparent not supported)"
+msgstr ""
+
+msgid "Decompose Color (multi-color not supported)"
 msgstr ""
 
 msgid "Cyan"

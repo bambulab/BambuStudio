@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 10:00+0800\n"
+"POT-Creation-Date: 2026-09-07 20:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2476,9 +2476,6 @@ msgstr "수정"
 msgid "Delete this filament"
 msgstr "이 필라멘트 삭제"
 
-msgid "Decompose Color"
-msgstr "색상 분해"
-
 msgid "Merge with"
 msgstr "와 합치다"
 
@@ -3855,6 +3852,9 @@ msgstr "프로젝트 혼합 필라멘트"
 
 msgid "New Mixed Filaments"
 msgstr "새 혼합 필라멘트"
+
+msgid "Decompose Color"
+msgstr "색상 분해"
 
 msgid "+ Add Material"
 msgstr "+ 재료 추가"
@@ -13437,7 +13437,7 @@ msgstr "출력된 부품의 오버행 정도가 이 값을 초과하면 냉각 �
 msgid "Overhang threshold for participating cooling"
 msgstr "참여 냉각을 위한 오버행 임계값"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "속도를 늦추기 위해 냉각 기능에 합류할 오버행 부분을 결정합니다. 백분율로 표시되며, 하층의 지지 없이 선의 폭이 얼마나 되는지를 나타냅니다. 100%%는 오버행 정도에 관계없이 모든 외벽에 대해 강제 냉각을 의미합니다"
 
@@ -18809,8 +18809,18 @@ msgstr "최대 구성 요소 수에 도달했습니다."
 msgid "Remove the third material"
 msgstr "세 번째 재료를 제거하세요"
 
-msgid "Target Color"
-msgstr "목표 색상"
+#, c-format, boost-format
+msgid "RGB(%d, %d, %d)"
+msgstr ""
+
+msgid "Decomposition result for this combination"
+msgstr ""
+
+msgid "Filament Color"
+msgstr ""
+
+msgid "Decomposed Colors"
+msgstr ""
 
 msgid "Select Color Decomposition"
 msgstr "색상 분해 선택"
@@ -18836,6 +18846,15 @@ msgstr ""
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "재료 목록은 최대 %1%가지 색상을 지원합니다. %2% 분해 후 재료 수가 %1%을 초과하게 됩니다. 분해하기 전에 메인 스크린에서 사용하지 않는 필라멘트를 삭제해 주세요."
+
+msgid "Decompose Color (gradient not supported)"
+msgstr ""
+
+msgid "Decompose Color (transparent not supported)"
+msgstr ""
+
+msgid "Decompose Color (multi-color not supported)"
+msgstr ""
 
 msgid "Cyan"
 msgstr "시안"
@@ -19169,6 +19188,9 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#~ msgid "Target Color"
+#~ msgstr "목표 색상"
 
 #, c-format, boost-format
 #~ msgid ""

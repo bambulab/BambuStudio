@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 10:00+0800\n"
+"POT-Creation-Date: 2026-09-07 20:58+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2473,9 +2473,6 @@ msgstr "Redigera"
 msgid "Delete this filament"
 msgstr "Radera detta filament"
 
-msgid "Decompose Color"
-msgstr "Separera färg"
-
 msgid "Merge with"
 msgstr "Sammanfoga med"
 
@@ -3858,6 +3855,9 @@ msgstr "Projekt blandade filament"
 
 msgid "New Mixed Filaments"
 msgstr "Nya blandade filament"
+
+msgid "Decompose Color"
+msgstr "Separera färg"
 
 msgid "+ Add Material"
 msgstr "+ Lägg till material"
@@ -13428,7 +13428,7 @@ msgstr "Tvinga kylfläkten att vara en specifik hastighet när överhängs grade
 msgid "Overhang threshold for participating cooling"
 msgstr "Gränsvärde för överhäng vid deltagande kylning"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Bestäm vilken överhängsdel som ansluter till kylfunktionen för att sänka hastigheten. Detta uttrycks som en procentsats som anger hur bred linjen är utan support från ett lägre skikt. 100%% innebär tvingande kylning för hela ytterväggen oavsett graden av överhäng."
 
@@ -18801,8 +18801,18 @@ msgstr "Max antal komponenter uppnått"
 msgid "Remove the third material"
 msgstr "Ta bort det tredje materialet"
 
-msgid "Target Color"
-msgstr "Målfärg"
+#, c-format, boost-format
+msgid "RGB(%d, %d, %d)"
+msgstr ""
+
+msgid "Decomposition result for this combination"
+msgstr ""
+
+msgid "Filament Color"
+msgstr ""
+
+msgid "Decomposed Colors"
+msgstr ""
 
 msgid "Select Color Decomposition"
 msgstr "Välj färgnedbrytning"
@@ -18828,6 +18838,15 @@ msgstr ""
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "Materiallistan stöder högst %1% färger. Efter %2% nedbrytningen, skulle materialantalet överstiga%1%. Ta bort oanvända filament på huvudskärmen innan nedbrytningen."
+
+msgid "Decompose Color (gradient not supported)"
+msgstr ""
+
+msgid "Decompose Color (transparent not supported)"
+msgstr ""
+
+msgid "Decompose Color (multi-color not supported)"
+msgstr ""
 
 msgid "Cyan"
 msgstr "Turkos"
@@ -19159,6 +19178,9 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid "Target Color"
+#~ msgstr "Målfärg"
 
 #, c-format, boost-format
 #~ msgid ""

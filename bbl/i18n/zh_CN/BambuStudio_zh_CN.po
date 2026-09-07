@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 10:00+0800\n"
+"POT-Creation-Date: 2026-09-07 20:58+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -978,13 +978,13 @@ msgid "Groove Angle"
 msgstr "凹槽角"
 
 msgid "Pick face"
-msgstr ""
+msgstr "选择面"
 
 msgid "Click a face of the model to set the cut plane. The plane lands flush with that face; use Movement to offset it."
-msgstr ""
+msgstr "点击模型的一个面以设置切割平面。切割平面将与该面齐平；使用“移动”进行偏移。"
 
 msgid "Click a face of the model."
-msgstr ""
+msgstr "点击模型的面。"
 
 #. TRN - Input label. Be short as possible
 #. Angle between Y axis and text line direction.
@@ -2473,9 +2473,6 @@ msgstr "编辑"
 msgid "Delete this filament"
 msgstr "删除此耗材丝"
 
-msgid "Decompose Color"
-msgstr "拆解颜色"
-
 msgid "Merge with"
 msgstr "合并到"
 
@@ -2633,7 +2630,7 @@ msgid "Click the icon to reset all settings of the object"
 msgstr "点击此图标可重置对象的所有设置"
 
 msgid "Unprintable object"
-msgstr ""
+msgstr "不可打印对象"
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "右键点击此图标以舍弃对象的可打印属性"
@@ -3850,6 +3847,9 @@ msgstr "项目混色列表"
 msgid "New Mixed Filaments"
 msgstr "新增混色耗材"
 
+msgid "Decompose Color"
+msgstr "拆解颜色"
+
 msgid "+ Add Material"
 msgstr "添加耗材"
 
@@ -4054,7 +4054,7 @@ msgid "Factors of Flow Dynamics Calibration"
 msgstr "动态流量校准系数"
 
 msgid "View Wiki for details"
-msgstr ""
+msgstr "详情查看Wiki"
 
 msgid "Nozzle Type"
 msgstr "喷嘴类型"
@@ -4077,7 +4077,7 @@ msgid "Tip: Setting AMS slot information while printing is not supported"
 msgstr "提示：不支持在打印时设置AMS槽位信息"
 
 msgid "Tip: Setting Virtual slot information while printing is not supported"
-msgstr ""
+msgstr "提示：不支持在打印时设置虚拟槽位信息"
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "您确定要清除耗材丝信息吗？"
@@ -4104,7 +4104,7 @@ msgid "You need to select the material type and color first."
 msgstr "您需要先选择材料类型和颜色。"
 
 msgid "Please select a color"
-msgstr ""
+msgstr "请选择颜色"
 
 msgid "Remark"
 msgstr "备注"
@@ -4125,25 +4125,25 @@ msgstr ""
 "'设备页面->打印机零件'"
 
 msgid "Matched filament"
-msgstr ""
+msgstr "可用于匹配的耗材"
 
 msgid "Add as new filament"
 msgstr "作为新耗材录入"
 
 msgid "AMS detected a new filament. Add it to Filament Manager?"
-msgstr ""
+msgstr "AMS检测到新的耗材，是否添加到耗材管理器？"
 
 msgid "A similar filament was found in Filament Manager and matched automatically."
-msgstr ""
+msgstr "耗材管理器中发现一卷相似耗材，已经自动匹配。"
 
 msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
 msgstr "耗材管理器中发现多卷相似耗材，请确认匹配结果"
 
 msgid "New Filament"
-msgstr ""
+msgstr "新耗材录入"
 
 msgid "New filament information has been recorded."
-msgstr ""
+msgstr "新的耗材信息已经被录入。"
 
 msgid "Dynamic flow calibration"
 msgstr "动态流量校准"
@@ -4448,7 +4448,7 @@ msgid "Reset AMS Sequence"
 msgstr "重置AMS序列"
 
 msgid "View wiki for details"
-msgstr ""
+msgstr "详情查看Wiki"
 
 msgid "Nozzle Temperature"
 msgstr "喷嘴温度"
@@ -4648,7 +4648,7 @@ msgstr "值越界。"
 
 #, boost-format
 msgid "%1% cannot exceed the shell layers (%2%), otherwise the painted color would reach the sparse infill."
-msgstr ""
+msgstr "%1% 不能过壳体层数 (%2%)，否则涂色层将会到达稀疏填充区域，导致打印失败"
 
 msgid ""
 "Too small layer height.\n"
@@ -5890,7 +5890,7 @@ msgid "The prime tower extends beyond the plate boundary."
 msgstr "料塔超出了打印版边界。"
 
 msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
-msgstr ""
+msgstr "当前盘上的所有对象都无法打印。切片将生成空结果。请检查。"
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "部分冲刷体积设置为0，多色打印可能导致模型混色，请重新调整冲刷值。"
@@ -6858,7 +6858,7 @@ msgid "Swap Y/Z axes"
 msgstr "交换Y/Z轴"
 
 msgid "Lock horizon"
-msgstr ""
+msgstr "锁定水平"
 
 msgid "(LAN)"
 msgstr "（局域网）"
@@ -7488,7 +7488,7 @@ msgid "Open link for more info"
 msgstr "打开链接获取更多信息"
 
 msgid "Jump to: Support on build plate only"
-msgstr "跳转到：仅在打印板上生成支撑"
+msgstr "跳转到：支撑-仅打印板生成"
 
 msgid "Jump to: Support"
 msgstr "跳转到：支撑"
@@ -7751,7 +7751,7 @@ msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "闲置5分钟后自动停止加热以保障安全。"
 
 msgid "Note: "
-msgstr ""
+msgstr "注意："
 
 msgid "Controls the printed height of each layer."
 msgstr "控制模型每一层的打印高度"
@@ -7917,7 +7917,7 @@ msgstr ""
 "为了避免向下渗透影响到模型的侧面的颜色，向下渗透的区域会逐层缩小"
 
 msgid "Controls how many layers the bottom-surface color penetrates upward, keeping other filament colors inside from showing through."
-msgstr ""
+msgstr "控制底面涂色向上渗透的层数，避免内部其他耗材颜色透出"
 
 msgid ""
 "Fewer layers make color bleed-through more likely.\n"
@@ -9974,7 +9974,7 @@ msgid "Project-inside presets"
 msgstr "项目预设"
 
 msgid "System"
-msgstr ""
+msgstr "跟随系统"
 
 msgid "Unsupported presets"
 msgstr "不支持的预设"
@@ -11442,34 +11442,34 @@ msgid "Right: "
 msgstr "右:"
 
 msgid "Preset A"
-msgstr ""
+msgstr "预设 A"
 
 msgid "Preset B"
-msgstr ""
+msgstr "预设 B"
 
 msgid "Show all presets (including incompatible)"
 msgstr "显示所有预设(包括不兼容的)"
 
 msgid "Parameters"
-msgstr ""
+msgstr "参数"
 
 msgid "Process Preset"
-msgstr ""
+msgstr "工艺预设"
 
 msgid "Filament Preset"
 msgstr "材料预设"
 
 msgid "Material Preset"
-msgstr ""
+msgstr "材料预设"
 
 msgid "Machine Preset"
-msgstr ""
+msgstr "机器预设"
 
 msgid "These two presets have no visible differences"
-msgstr ""
+msgstr "这两个预设没有可见的区别"
 
 msgid "Please select two different presets A and B to compare"
-msgstr ""
+msgstr "请选择两个不同的预设A和B进行比较"
 
 msgid "Add File"
 msgstr "添加文件"
@@ -13182,7 +13182,7 @@ msgid "Precise Z height gives the objects different layer heights, which may gre
 msgstr "精准Z高度会导致对象有不同的层高，这会极大增加擦拭塔尺寸。"
 
 msgid "Jump to: Precise Z height"
-msgstr ""
+msgstr "跳转到：精准Z高度"
 
 msgid "The prime tower is only supported if all objects have the same variable layer height"
 msgstr "各个对象的层高存在差异，无法启用擦料塔"
@@ -13444,7 +13444,7 @@ msgstr "当打印件的悬空程度超过此值时，强制冷却风扇达到特
 msgid "Overhang threshold for participating cooling"
 msgstr "参与冷却降速的悬垂阈值"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "决定多少阈值的悬垂参与冷却降速.用百分比表示超出线宽的范围。"
 
@@ -14564,7 +14564,7 @@ msgid "Initial layer infill"
 msgstr "首层填充"
 
 msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
-msgstr ""
+msgstr "首层填充的线宽，包括稀疏填充、实心填充和顶面。首层的墙、支撑以及其他部分不受影响，仍使用首层线宽。设置为0表示使用首层线宽。"
 
 msgid "Initial layer height"
 msgstr "首层层高"
@@ -17288,8 +17288,9 @@ msgid ""
 "The Filament name %s you created already exists. \n"
 "If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"您创建的耗材丝名字%s已经存在。\n"
-"如果您继续创建，您创建的预设将保存在已有自定义耗材之内，以预设全名显示区分。您想继续吗？"
+"您创建的耗材丝 %s 已经存在。\n"
+"如果您继续创建，您创建的预设将保存在已有的自定义耗材之内，以预设全名显示区分。\n"
+"是否继续？"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "以下一些现有预设未能成功创建：\n"
@@ -18416,16 +18417,16 @@ msgid "More Colors"
 msgstr "其他颜色"
 
 msgid "Search filament"
-msgstr ""
+msgstr "搜索耗材"
 
 msgid "Unsupported Filaments"
 msgstr "不支持的耗材"
 
 msgid "No filaments"
-msgstr "暂无耗材"
+msgstr "无耗材"
 
 msgid "slot"
-msgstr ""
+msgstr "槽"
 
 msgid "Recently used"
 msgstr "最近使用"
@@ -18801,33 +18802,52 @@ msgstr "已达到最大组分数量"
 msgid "Remove the third material"
 msgstr "移除第三种材料"
 
-msgid "Target Color"
-msgstr "目标色"
+#, c-format, boost-format
+msgid "RGB(%d, %d, %d)"
+msgstr ""
+
+msgid "Decomposition result for this combination"
+msgstr ""
+
+msgid "Filament Color"
+msgstr ""
+
+msgid "Decomposed Colors"
+msgstr "拆分后颜色"
 
 msgid "Select Color Decomposition"
 msgstr "请选择拆色组合"
 
 msgid "Project Filament"
-msgstr ""
+msgstr "项目耗材"
 
 msgid "Material List"
 msgstr "材料列表"
 
 msgid "Standard Palette"
-msgstr ""
+msgstr "标准色板"
 
 msgid "At least two filaments of the same material type are required for decomposition"
 msgstr "分解需要至少两种相同材质类型的耗材"
 
 msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr ""
+msgstr "按青、品红、黄、白四种基色计算更接近的混色。当前仅支持 PLA Basic。如果项目中没有匹配的耗材，将自动添加。"
 
 msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
-msgstr ""
+msgstr "按红、黄、蓝、白四种基色计算更接近的混色。当前仅支持 PLA Basic。如果项目中没有匹配的耗材，将自动添加。"
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "材质列表最多支持 %1% 种颜色。分解 %2% 后，材质数量将超过 %1%。请在分解前删除主屏幕上未使用的耗材。"
+
+msgid "Decompose Color (gradient not supported)"
+msgstr "拆解颜色（不支持渐变色）"
+
+msgid "Decompose Color (transparent not supported)"
+msgstr "拆解颜色（不支持透明色）"
+
+msgid "Decompose Color (multi-color not supported)"
+msgstr "拆解颜色（不支持拼色）"
 
 msgid "Cyan"
 msgstr "青色"
@@ -18864,7 +18884,7 @@ msgstr "创建自定义耗材"
 
 #, c-format, boost-format
 msgid "Preset \"%s\" already exists. Overwrite?"
-msgstr ""
+msgstr "预设“%s”已存在。您想覆盖它吗？"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -19161,6 +19181,9 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Target Color"
+#~ msgstr "目标色"
 
 #~ msgid "AMS detected a new official filament. Add it to Filament Manager?"
 #~ msgstr "AMS识别到新的官方耗材，是否录入到耗材管理？"

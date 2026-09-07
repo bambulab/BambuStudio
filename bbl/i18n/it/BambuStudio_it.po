@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 10:00+0800\n"
+"POT-Creation-Date: 2026-09-07 20:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2476,9 +2476,6 @@ msgstr "Modifica"
 msgid "Delete this filament"
 msgstr "Elimina questo filamento"
 
-msgid "Decompose Color"
-msgstr "Scomponi colore"
-
 msgid "Merge with"
 msgstr "Unisci con"
 
@@ -3863,6 +3860,9 @@ msgstr "Filamenti misti del progetto"
 
 msgid "New Mixed Filaments"
 msgstr "Nuovi filamenti misti"
+
+msgid "Decompose Color"
+msgstr "Scomponi colore"
 
 msgid "+ Add Material"
 msgstr "+ Aggiungi Materiale"
@@ -13430,7 +13430,7 @@ msgstr "Forza la ventola di raffreddamento a una velocità specifica quando il g
 msgid "Overhang threshold for participating cooling"
 msgstr "Soglia sporgenze per raffreddamento attivo"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Decidi quale parte a sbalzo si unisce alla funzione raffreddamento per rallentarne la velocità. Questa è espressa come percentuale che indica la larghezza della linea senza il supporto di un layer inferiore. 100%% significa forzare il raffreddamento di tutta la parete esterna, indipendentemente dal grado di sporgenza."
 
@@ -18809,8 +18809,18 @@ msgstr "Numero massimo di componenti raggiunto"
 msgid "Remove the third material"
 msgstr "Rimuovere il terzo materiale"
 
-msgid "Target Color"
-msgstr "Colore di destinazione"
+#, c-format, boost-format
+msgid "RGB(%d, %d, %d)"
+msgstr ""
+
+msgid "Decomposition result for this combination"
+msgstr ""
+
+msgid "Filament Color"
+msgstr ""
+
+msgid "Decomposed Colors"
+msgstr ""
 
 msgid "Select Color Decomposition"
 msgstr "Seleziona la scomposizione cromatica"
@@ -18836,6 +18846,15 @@ msgstr ""
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "L'elenco dei materiali supporta al massimo %1% colori. Dopo %2% la scomposizione, il numero di materiali supererebbe %1%. Prima di eseguire la scomposizione, elimina i filamenti inutilizzati dalla schermata principale."
+
+msgid "Decompose Color (gradient not supported)"
+msgstr ""
+
+msgid "Decompose Color (transparent not supported)"
+msgstr ""
+
+msgid "Decompose Color (multi-color not supported)"
+msgstr ""
 
 msgid "Cyan"
 msgstr "Ciano"
@@ -19169,6 +19188,9 @@ msgid ""
 msgstr ""
 "Affidabilità al Primo Tentativo\n"
 "Meno supervisione, risultati più prevedibili. Ad esempio: una piccola produzione che stampa parti in PETG evita sorprese tipo \"fallimento alla sesta ora\" e mantiene i lotti nei tempi previsti."
+
+#~ msgid "Target Color"
+#~ msgstr "Colore di destinazione"
 
 #, c-format, boost-format
 #~ msgid ""

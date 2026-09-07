@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 10:00+0800\n"
+"POT-Creation-Date: 2026-09-07 20:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -2465,9 +2465,6 @@ msgstr "Редагувати"
 msgid "Delete this filament"
 msgstr ""
 
-msgid "Decompose Color"
-msgstr ""
-
 msgid "Merge with"
 msgstr ""
 
@@ -3851,6 +3848,9 @@ msgid "Project Mixed Filaments"
 msgstr ""
 
 msgid "New Mixed Filaments"
+msgstr ""
+
+msgid "Decompose Color"
 msgstr ""
 
 msgid "+ Add Material"
@@ -13316,7 +13316,7 @@ msgstr "Коли ступінь звису друкарської деталі �
 msgid "Overhang threshold for participating cooling"
 msgstr "Поріг нависання для участі в охолодженні"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Визначте, яка частина нависання приєднується до функції охолодження, щоб зменшити швидкість. Виражається у відсотках, що вказує, яка ширина лінії без підтримки з нижнього шару. 100 відсотків означає примусове охолодження для всіх зовнішніх стінок, незалежно від кута нависання"
 
@@ -18610,7 +18610,17 @@ msgstr ""
 msgid "Remove the third material"
 msgstr ""
 
-msgid "Target Color"
+#, c-format, boost-format
+msgid "RGB(%d, %d, %d)"
+msgstr ""
+
+msgid "Decomposition result for this combination"
+msgstr ""
+
+msgid "Filament Color"
+msgstr ""
+
+msgid "Decomposed Colors"
 msgstr ""
 
 msgid "Select Color Decomposition"
@@ -18636,6 +18646,15 @@ msgstr ""
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr ""
+
+msgid "Decompose Color (gradient not supported)"
+msgstr ""
+
+msgid "Decompose Color (transparent not supported)"
+msgstr ""
+
+msgid "Decompose Color (multi-color not supported)"
 msgstr ""
 
 msgid "Cyan"

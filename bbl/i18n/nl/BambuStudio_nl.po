@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 10:00+0800\n"
+"POT-Creation-Date: 2026-09-07 20:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2476,9 +2476,6 @@ msgstr "Bewerken"
 msgid "Delete this filament"
 msgstr "Verwijder dit filament"
 
-msgid "Decompose Color"
-msgstr "Ontleed kleur"
-
 msgid "Merge with"
 msgstr "Samenvoegen met"
 
@@ -3449,7 +3446,7 @@ msgid "Not"
 msgstr "Niet"
 
 msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
-msgstr "Klik eerst op Bevestigen. Nadat de labels op het canvas zijn gegenereerd, kan dit bedieningselement worden gebruikt."
+msgstr "Klik eerst op 'Bevestigen'. Nadat de labels op het canvas zijn gegenereerd, kan dit bedieningselement worden gebruikt."
 
 msgid "Click to add Cyber Brick"
 msgstr "Klik om Cyber Brick toe te voegen"
@@ -3861,6 +3858,9 @@ msgstr "Project gemengde filamenten"
 
 msgid "New Mixed Filaments"
 msgstr "Nieuwe gemengde filamenten"
+
+msgid "Decompose Color"
+msgstr "Ontleed kleur"
 
 msgid "+ Add Material"
 msgstr "+ Materiaal toevoegen"
@@ -13441,7 +13441,7 @@ msgstr "Laat de koelventilator op een bepaalde snelheid draaien als de mate van 
 msgid "Overhang threshold for participating cooling"
 msgstr "Overhangdrempel voor deelnemende koeling"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Bepaal welk overhangdeel zich aansluit op de koelfunctie om de snelheid te vertragen. Dit wordt uitgedrukt als een percentage dat de breedte van de lijn aangeeft zonder ondersteuning van een lagere laag. 100%% betekent het forceren van koeling voor alle buitenmuren, ongeacht de overhanggraad."
 
@@ -18811,8 +18811,18 @@ msgstr "Maximaal aantal componenten bereikt"
 msgid "Remove the third material"
 msgstr "Verwijder het derde materiaal."
 
-msgid "Target Color"
-msgstr "Doelkleur"
+#, c-format, boost-format
+msgid "RGB(%d, %d, %d)"
+msgstr ""
+
+msgid "Decomposition result for this combination"
+msgstr ""
+
+msgid "Filament Color"
+msgstr ""
+
+msgid "Decomposed Colors"
+msgstr ""
 
 msgid "Select Color Decomposition"
 msgstr "Selecteer kleurontbinding"
@@ -18838,6 +18848,15 @@ msgstr ""
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "De materiaallijst ondersteunt maximaal %1% kleuren. Na %2% ontbinding zou het aantal materialen %1% overschrijden. Verwijder ongebruikte filamenten op het hoofdscherm vóór het ontbinden."
+
+msgid "Decompose Color (gradient not supported)"
+msgstr ""
+
+msgid "Decompose Color (transparent not supported)"
+msgstr ""
+
+msgid "Decompose Color (multi-color not supported)"
+msgstr ""
 
 msgid "Cyan"
 msgstr "Cyaan"
@@ -19171,6 +19190,9 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#~ msgid "Target Color"
+#~ msgstr "Doelkleur"
 
 #, c-format, boost-format
 #~ msgid ""

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 10:00+0800\n"
+"POT-Creation-Date: 2026-09-07 20:58+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2471,9 +2471,6 @@ msgstr "編輯"
 msgid "Delete this filament"
 msgstr "刪除此耗材絲"
 
-msgid "Decompose Color"
-msgstr ""
-
 msgid "Merge with"
 msgstr "合併到"
 
@@ -3846,6 +3843,9 @@ msgid "Project Mixed Filaments"
 msgstr ""
 
 msgid "New Mixed Filaments"
+msgstr ""
+
+msgid "Decompose Color"
 msgstr ""
 
 msgid "+ Add Material"
@@ -13358,7 +13358,7 @@ msgstr "當列印件的懸空程度超過此值時，強制冷卻風扇達到特
 msgid "Overhang threshold for participating cooling"
 msgstr "參與冷卻降速的懸垂閾值"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "決定多少閾值的懸垂參與冷卻降速.用百分比表示超出線寬的範圍。"
 
@@ -18708,7 +18708,17 @@ msgstr "已達到最大組分數量"
 msgid "Remove the third material"
 msgstr "移除第三種材料"
 
-msgid "Target Color"
+#, c-format, boost-format
+msgid "RGB(%d, %d, %d)"
+msgstr ""
+
+msgid "Decomposition result for this combination"
+msgstr ""
+
+msgid "Filament Color"
+msgstr ""
+
+msgid "Decomposed Colors"
 msgstr ""
 
 msgid "Select Color Decomposition"
@@ -18734,6 +18744,15 @@ msgstr ""
 
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
+msgstr ""
+
+msgid "Decompose Color (gradient not supported)"
+msgstr ""
+
+msgid "Decompose Color (transparent not supported)"
+msgstr ""
+
+msgid "Decompose Color (multi-color not supported)"
 msgstr ""
 
 msgid "Cyan"
