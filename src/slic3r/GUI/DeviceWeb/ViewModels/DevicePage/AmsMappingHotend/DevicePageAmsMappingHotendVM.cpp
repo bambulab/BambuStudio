@@ -715,6 +715,20 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
     slot[SK::slot::can_edit]        = ComputeCanEdit(obj, td);
     slot[SK::slot::checked]         = false;
 
+    // External spool really engaged in this hotend, i.e. its filament sits in
+    // the feed path (`slot_now` + filament-in-nozzle), which is the same fact
+    // DevMappingUtil::IsSlotAutoLoadable relies on. `td.ams_type` alone is not
+    // enough: sTraverseBindAmsSlot falls back to the external slot whenever
+    // nothing is fed, so an idle / unloaded external spool still shows up as
+    // the bound source and must not raise the manual-unload warning.
+    bool ext_filament_loaded = false;
+    if (obj && parent_nz.has_value() && parent_nz->HasFilamentInNozzle()) {
+        const auto slot_now = parent_nz->GetSlotNowId();
+        ext_filament_loaded = slot_now.has_value() &&
+                              obj->GetFilaSystem()->GetVirtualTray(slot_now->first).has_value();
+    }
+    slot[SK::slot::ext_filament_loaded] = ext_filament_loaded;
+
     // Mark the checked slot if it appears in the current mapping result.
     for (const auto& mapping_res : m_mapping_result) {
         if (mapping_res.id == m_current_filament_id &&

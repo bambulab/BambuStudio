@@ -239,11 +239,12 @@ export function SubAmsPage({ slot, materialIndex, onSelect, onEdit, onBack, onOp
     multi_colors:  slot.multi_colors,
   };
 
-  // When the currently selected (checked) source is a non-Ext (AMS) source,
-  // warn the user they must manually pull the external filament to change it.
-  const bannerVisible =
-    (slot.checked && !slot.ext) ||
-    slot.sub_ams.some((g) => g.slots.some((s) => s.checked && !s.ext));
+  // An external spool engaged in this hotend cannot be retracted by the
+  // printer, so every other source stays unusable until the user pulls it out
+  // by hand. Warn on entering the page, whatever is currently selected. An
+  // external spool that is merely bound but never fed blocks nothing and stays
+  // silent.
+  const bannerVisible = !!slot.ext_filament_loaded;
 
   // The left card is always the hotend's own rack AMS slot. When the hotend is
   // currently fed by the external spool the main card is that spool, and the

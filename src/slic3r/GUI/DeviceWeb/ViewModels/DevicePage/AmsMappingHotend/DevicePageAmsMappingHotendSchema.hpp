@@ -61,6 +61,7 @@ namespace slot {
     inline constexpr const char* multi_colors  = "multi_colors";
     inline constexpr const char* nozzle        = "nozzle";
     inline constexpr const char* sub_ams       = "sub_ams";
+    inline constexpr const char* ext_filament_loaded = "ext_filament_loaded";
 }
 
 // slot.nozzle — per-slot nozzle info row.

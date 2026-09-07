@@ -94,6 +94,9 @@ export interface AmsMappingHotendSlotViewModel {
   multi_colors: string[];
   nozzle?: AmsMappingHotendNozzleInfo;
   sub_ams?: AmsMappingHotendSubAmsGroupViewModel[];
+  // True only while an external spool is the feed source actually engaged in
+  // this hotend. A bound-but-unloaded external spool reports false.
+  ext_filament_loaded?: boolean;
 }
 
 export interface AmsMappingHotendViewModel {
