@@ -79,6 +79,10 @@
   --ams-tab-bar-empty: #dcdcdc;
   --ams-tab-bar-empty-alt: #f2f2f2;
   --ams-manual-card-bg: #eeeeee;
+  /* Inner panel surfaces stacked on --ams-page-bg (auto-refill slot rows,
+     picker cards, empty state). */
+  --ams-surface-subtle: #f7f7f7;
+  --ams-surface-muted: #f2f2f2;
   --ams-batch-state-running-bg: rgba(0, 174, 66, 0.08);
   --ams-batch-state-running-border: rgba(0, 174, 66, 0.28);
   --ams-batch-state-failed-bg: rgba(217, 80, 71, 0.08);
@@ -91,6 +95,10 @@
   --ams-divider: #dbdbdb;
   --ams-status-bar-border: #c9cdd3;
   --ams-batch-border: #dfe6ee;
+  /* Inset ring over a filament swatch; keeps colours close to the page
+     background from bleeding into it. Must contrast with the page, not with
+     the swatch, so it inverts between themes. */
+  --ams-chip-ring: rgba(0, 0, 0, 0.18);
 
   /* Text */
   --ams-text-strong: #1f1f1f;
@@ -121,6 +129,15 @@
   --ams-danger: #d95047;
   --ams-danger-bg: #fdecea;
   --ams-danger-border: #f0c0bd;
+  --ams-error: #d01b1b;
+  --ams-success: #50a90b;
+  --ams-success-bg: #f5ffe6;
+  /* Brand wash behind small badges (auto-refill "manual" tag). */
+  --ams-brand-tint: rgba(0, 174, 66, 0.1);
+  /* Lighter brand wash filling a hovered / selected card. */
+  --ams-brand-wash: rgba(0, 174, 66, 0.06);
+  /* Warning wash behind informational banners. */
+  --ams-notice-bg: rgba(237, 116, 23, 0.08);
   --ams-debug-btn-text: #9a5a00;
   --ams-debug-btn-bg: #fff7e6;
   --ams-debug-btn-border: #ff9f1a;
@@ -166,6 +183,8 @@
   --ams-tab-bar-empty: rgba(255, 255, 255, 0.18);
   --ams-tab-bar-empty-alt: rgba(255, 255, 255, 0.06);
   --ams-manual-card-bg: rgba(255, 255, 255, 0.06);
+  --ams-surface-subtle: rgba(255, 255, 255, 0.04);
+  --ams-surface-muted: rgba(255, 255, 255, 0.06);
   --ams-batch-state-running-bg: rgba(52, 196, 0, 0.16);
   --ams-batch-state-running-border: rgba(52, 196, 0, 0.4);
   --ams-batch-state-failed-bg: rgba(255, 107, 94, 0.16);
@@ -178,6 +197,7 @@
   --ams-divider: rgba(255, 255, 255, 0.12);
   --ams-status-bar-border: rgba(255, 255, 255, 0.18);
   --ams-batch-border: rgba(255, 255, 255, 0.16);
+  --ams-chip-ring: rgba(255, 255, 255, 0.1);
 
   /* Text */
   --ams-text-strong: #ffffff;
@@ -207,6 +227,12 @@
   --ams-danger: #ff6b5e;
   --ams-danger-bg: rgba(255, 107, 94, 0.12);
   --ams-danger-border: rgba(255, 107, 94, 0.36);
+  --ams-error: #ff6b5e;
+  --ams-success: #34c400;
+  --ams-success-bg: rgba(52, 196, 0, 0.16);
+  --ams-brand-tint: rgba(52, 196, 0, 0.16);
+  --ams-brand-wash: rgba(52, 196, 0, 0.12);
+  --ams-notice-bg: rgba(255, 156, 61, 0.16);
   --ams-debug-btn-text: #ffb763;
   --ams-debug-btn-bg: rgba(255, 159, 26, 0.16);
   --ams-debug-btn-border: rgba(255, 159, 26, 0.5);

@@ -56,6 +56,7 @@ src/slic3r/GUI/DeviceTab/uiAMSBestPositionPopup.hpp
 src/slic3r/GUI/DeviceTab/uiAMSBestPositionPopup.cpp
 src/slic3r/GUI/DeviceTab/uiDeviceUpdateVersion.h
 src/slic3r/GUI/DeviceTab/uiDeviceUpdateVersion.cpp
+src/slic3r/GUI/DeviceTab/wgtDeviceAutoRefillWebDialog.cpp
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRack.h
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRack.cpp
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRackUpdate.h
@@ -63,6 +64,8 @@ src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRackUpdate.cpp
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleSelect.h
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleSelect.cpp
 src/slic3r/GUI/DeviceTab/wgtMsgPanel.cpp
+src/slic3r/GUI/DeviceWeb/DeviceWebHost.cpp
+src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/DevicePageDialogHelpers.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderFilamentChangeStatus.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderFilamentManualPullStatus.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/BuilderHotendRackProgressStatus.cpp
@@ -73,9 +76,12 @@ src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchUnlo
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/PageExtAms.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/PageFilament.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/PageHotend.cpp
+src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverDeviceState.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ResolverSlotState.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/ViewModel.cpp
 src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/ViewModel.cpp
+src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Actions.cpp
+src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Builder.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFlatten.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp

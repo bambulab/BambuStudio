@@ -280,5 +280,14 @@
   "Status Reminders": "",
   "Total Weight": "",
   "Unit Price(/kg)": "",
-  "Usage Records": ""
+  "Usage Records": "",
+  "Removed successfully": "",
+  "Refill group removed successfully": "",
+  "Reset successfully": "",
+  "Moved successfully": "",
+  "Remove refill slot failed": "",
+  "Reset refill group failed": "",
+  "Move refill slot failed": "",
+  "The printer did not respond to the refill command.": "",
+  "Updating...": ""
 }

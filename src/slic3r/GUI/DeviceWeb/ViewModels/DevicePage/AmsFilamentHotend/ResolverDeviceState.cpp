@@ -27,15 +27,17 @@ bool DevicePageDeviceStateResolver::BlockIfBusy(MachineObject* machine_obj)
 {
     if (!IsBusy(machine_obj)) return false;
 
-    auto show = []() {
+    // Always deferred: every caller is a bridge action handler running on the
+    // main thread from the WebView2 message callback, and a modal event loop
+    // started there re-enters that callback and crashes. Callers only use the
+    // return value to abort, so they do not need the prompt to be synchronous.
+    wxGetApp().CallAfter([]() {
         MessageDialog dlg(wxGetApp().mainframe,
                           _L("The printer is busy on other job"),
                           _L("Error"),
                           wxICON_WARNING | wxOK);
         dlg.ShowModal();
-    };
-    if (wxThread::IsMain()) show();
-    else wxGetApp().CallAfter(show);
+    });
     return true;
 }
 

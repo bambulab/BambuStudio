@@ -32,10 +32,12 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevExtruderSystemCtrl.cpp
     GUI/DeviceCore/DevFan.cpp
     GUI/DeviceCore/DevFan.h
-    GUI/DeviceCore/DevFilaAutoRefillMgr.h
-    GUI/DeviceCore/DevFilaAutoRefillMgr.cpp
     GUI/DeviceCore/DevAmsRfidRefreshCtrl.h
     GUI/DeviceCore/DevAmsRfidRefreshCtrl.cpp
+    GUI/DeviceCore/DevFilaAutoRefillEdit.h
+    GUI/DeviceCore/DevFilaAutoRefillMgr.h
+    GUI/DeviceCore/DevFilaAutoRefillMgr.cpp
+    GUI/DeviceCore/DevFilaAutoRefillMgrCtrl.cpp
     GUI/DeviceCore/DevFilaAmsSetting.h
     GUI/DeviceCore/DevFilaAmsSetting.cpp
     GUI/DeviceCore/DevFilaAmsSettingCtrl.cpp

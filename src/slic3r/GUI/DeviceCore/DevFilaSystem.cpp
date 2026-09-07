@@ -239,6 +239,16 @@ std::optional<int> DevAmsTray::get_nozzle_addr_id(MachineObject* obj) const
                 return std::stoi(this->id);
             } else if (ams_type == DevAmsType::EXT_SPOOL) {
                 return 255 - std::stoi(this->id);
+            } else {
+                const auto& nozzle_map = obj->GetNozzleSystem()->GetRackNozzles();
+                for (const auto& [nozzle_id, nozzle] : nozzle_map) {
+                    const auto& bind_ams_list = nozzle.GetBindAms();
+                    for (const auto& bind_ams : bind_ams_list) {
+                        if (std::to_string(bind_ams) == ams_id) {
+                            return nozzle.GetAddrId();
+                        }
+                    }
+                }
             }
         }
     } catch (const std::exception& e) {
@@ -328,7 +338,7 @@ std::string DevAmsTray::get_slot_name(MachineObject* obj) const
         int total_extruder_count = obj->GetExtderSystem()->GetTotalExtderCount();
         int total_external_count = obj->GetFilaSystem()->GetVirtualTrays().size();
         if (total_external_count > total_extruder_count) {
-            return wxString::Format("Ext-%d", 256 - slot_id).ToStdString();
+            return wxString::Format("%d-Ext", 256 - slot_id).ToStdString();// index first
         }
 
         if (total_external_count == 2) {

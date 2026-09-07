@@ -4,12 +4,18 @@
 #include "slic3r/GUI/AMSMaterialsSetting.hpp"
 #include "slic3r/GUI/EncodedFilament.hpp"
 #include "slic3r/GUI/AmsMappingPopup.hpp"
+#include "slic3r/GUI/DeviceWeb/DeviceWebHost.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/GUI_Utils.hpp"
+#include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/Monitor.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
+
+#include <wx/sizer.h>
 
 namespace Slic3r { namespace GUI {
 
@@ -17,6 +23,9 @@ namespace {
 
 // Same cadence as the monitor page refresh (Monitor.cpp REFRESH_INTERVAL).
 constexpr int AMS_DRY_CTR_REFRESH_INTERVAL_MS = 1000;
+
+constexpr int kAutoRefillPickerWidthDip  = 756;
+constexpr int kAutoRefillPickerHeightDip = 623;
 
 // Feeds the ownerless drying dialog with the state of the selected machine,
 // which is what AMSControl::UpdateAmsDryControl does for the AMSControl-owned
@@ -43,6 +52,41 @@ public:
 
 private:
     AMSDryCtrWin* m_dlg;
+};
+
+wxDialog*& active_auto_refill_filaments_dialog()
+{
+    static wxDialog* dialog = nullptr;
+    return dialog;
+}
+
+wxWindow* resolve_auto_refill_dialog_parent()
+{
+    if (auto* active = wxDynamicCast(wxGetActiveWindow(), wxDialog); active && active->IsModal()) {
+        return active;
+    }
+    for (auto node = wxTopLevelWindows.GetLast(); node; node = node->GetPrevious()) {
+        if (auto* dialog = wxDynamicCast(node->GetData(), wxDialog);
+            dialog && dialog->IsShown() && dialog->IsModal()) {
+            return dialog;
+        }
+    }
+    return wxGetApp().mainframe;
+}
+
+class AutoRefillFilamentsDialog : public DPIDialog
+{
+public:
+    AutoRefillFilamentsDialog(wxWindow* parent, const wxString& title)
+        : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize,
+                    wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER)
+    {
+        SetClientSize(wxSize(FromDIP(kAutoRefillPickerWidthDip), FromDIP(kAutoRefillPickerHeightDip)));
+        SetMinClientSize(wxSize(FromDIP(kAutoRefillPickerWidthDip), FromDIP(kAutoRefillPickerHeightDip)));
+    }
+
+protected:
+    void on_dpi_changed(const wxRect& suggested_rect) override { SetSize(suggested_rect.GetSize()); }
 };
 
 } // namespace
@@ -161,6 +205,76 @@ void OpenAmsDryControlDialog(MachineObject* machine_obj, const std::string& ams_
     refresh_timer.Start(AMS_DRY_CTR_REFRESH_INTERVAL_MS);
     dlg.ShowModal();
     refresh_timer.Stop();
+}
+
+void OpenAutoRefillFilamentsDialog(MachineObject*                     machine_obj,
+                                   AutoRefillFilamentsDialogMode      mode,
+                                   const std::optional<DevAmsSlotId>& group_head)
+{
+    if (!machine_obj || (mode == AutoRefillFilamentsDialogMode::AddToGroup && !group_head.has_value())) {
+        return;
+    }
+    if (active_auto_refill_filaments_dialog()) {
+        return;
+    }
+
+    wxWindow* parent = resolve_auto_refill_dialog_parent();
+    std::string route = "/device_page/auto_refill_refill_info?picker=1&mode=";
+    route += mode == AutoRefillFilamentsDialogMode::AddToGroup ? "add_to_group" : "create_group";
+    if (group_head.has_value()) {
+        route += "&ams_id=" + std::to_string(group_head->first);
+        route += "&slot_id=" + std::to_string(group_head->second);
+    }
+
+    const wxString title = mode == AutoRefillFilamentsDialogMode::AddToGroup
+                               ? _L("Add refill filament")
+                               : _L("Add material group");
+    AutoRefillFilamentsDialog dialog(parent, title);
+    active_auto_refill_filaments_dialog() = &dialog;
+
+    auto* host = new DeviceWebHost(&dialog, DeviceWebHostMode::DevicePageAutoRefillRefillInfo, route);
+    host->SetMinSize(wxSize(dialog.FromDIP(kAutoRefillPickerWidthDip),
+                            dialog.FromDIP(kAutoRefillPickerHeightDip)));
+    if (auto* vm = host->GetAutoRefillRefillInfoVM()) {
+        vm->Refresh(machine_obj);
+    }
+
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(host, 1, wxEXPAND);
+    dialog.SetSizer(sizer);
+    dialog.Layout();
+    dialog.CentreOnParent();
+    dialog.ShowModal();
+
+    if (active_auto_refill_filaments_dialog() == &dialog) {
+        active_auto_refill_filaments_dialog() = nullptr;
+    }
+}
+
+void CloseAutoRefillFilamentsDialog(int result)
+{
+    wxDialog* dialog = active_auto_refill_filaments_dialog();
+    if (!dialog) {
+        return;
+    }
+
+    if (dialog->IsModal()) {
+        dialog->EndModal(result);
+    } else {
+        dialog->Close();
+    }
+}
+
+void OpenHmsPanel()
+{
+    auto* main_frame = wxGetApp().mainframe;
+    if (!main_frame) {
+        return;
+    }
+    main_frame->jump_to_monitor();
+    if (main_frame->m_monitor) {
+        main_frame->m_monitor->jump_to_HMS();
+    }
 }
 
 }} // namespace Slic3r::GUI

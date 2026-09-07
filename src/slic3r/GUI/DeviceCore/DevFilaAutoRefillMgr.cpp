@@ -274,6 +274,10 @@ void DevFilaAutoRefillMgr::ParseRefillInfo(const nlohmann::json& print_json)
             tag.filament_id = refill_item["chain_fila"].get<std::string>();
         }
 
+        if (refill_item.contains("tag") && refill_item["tag"].is_string()) {
+            base_group.refill_tag_id = refill_item["tag"].get<std::string>();
+        }
+
         if (refill_item.contains("color") && refill_item["color"].is_object()) {
             const auto& color = refill_item["color"];
             if (color.contains("col") && color["col"].is_array()) {

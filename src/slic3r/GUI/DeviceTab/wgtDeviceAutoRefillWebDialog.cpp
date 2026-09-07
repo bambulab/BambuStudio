@@ -4,6 +4,10 @@
 #include "slic3r/GUI/DeviceWeb/DeviceWebHost.hpp"
 #include "slic3r/GUI/AmsMappingPopup.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
+// DeviceManager.hpp only forward-declares the manager; OnRefreshTimer() needs
+// the definition to call get_selected_machine().
+#include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaAutoRefillMgr.h"
 
@@ -14,13 +18,29 @@
 namespace Slic3r::GUI {
 
 namespace {
-constexpr int kDialogWidthDip  = 640;
-constexpr int kDialogHeightDip = 360;
+// Opening size taken from the add-refill-filaments design: a 724px content
+// column plus the 16px padding of the page root, and 623px of stacked title,
+// units and footer. Keeping it in sync with the pages means the dialog does
+// not visibly grow once SetContentSizeChangedHandler reports the real size.
+constexpr int kDialogWidthDip  = 756;
+constexpr int kDialogHeightDip = 623;
 constexpr int kMinWidthDip     = 480;
 constexpr int kMinHeightDip    = 360;
 constexpr int kMaxWidthDip     = 1100;
 constexpr int kMaxHeightDip    = 850;
 constexpr int kSizeEpsilonDip  = 4;
+// Matches the connected-slots dialog: fast enough that an edit looks immediate,
+// and the state report is deduplicated so idle ticks are free.
+constexpr int kRefreshIntervalMs = 500;
+
+// The dialog is a stack-local modal, so CloseAutoRefillDialog() needs a handle
+// to it. Mirrors active_auto_refill_filaments_dialog() in
+// DevicePageDialogHelpers.cpp, which does the same for the picker.
+wxDialog*& active_auto_refill_dialog()
+{
+    static wxDialog* dialog = nullptr;
+    return dialog;
+}
 } // namespace
 
 wgtDeviceAutoRefillWebDialog::wgtDeviceAutoRefillWebDialog(wxWindow* parent)
@@ -41,8 +61,15 @@ wgtDeviceAutoRefillWebDialog::wgtDeviceAutoRefillWebDialog(wxWindow* parent)
     root->Add(m_device_web, 1, wxEXPAND, 0);
     SetSizer(root);
     Bind(wxEVT_SHOW, &wgtDeviceAutoRefillWebDialog::OnShow, this);
+    m_refresh_timer.SetOwner(this);
+    Bind(wxEVT_TIMER, &wgtDeviceAutoRefillWebDialog::OnRefreshTimer, this);
     Layout();
     CentreOnParent();
+}
+
+wgtDeviceAutoRefillWebDialog::~wgtDeviceAutoRefillWebDialog()
+{
+    m_refresh_timer.Stop();
 }
 
 void wgtDeviceAutoRefillWebDialog::UpdateByMachine(Slic3r::MachineObject* obj)
@@ -57,8 +84,25 @@ void wgtDeviceAutoRefillWebDialog::OnShow(wxShowEvent& event)
 {
     if (event.IsShown()) {
         PushSnapshot();
+        m_refresh_timer.Start(kRefreshIntervalMs);
+    } else {
+        m_refresh_timer.Stop();
     }
     event.Skip();
+}
+
+void wgtDeviceAutoRefillWebDialog::OnRefreshTimer(wxTimerEvent&)
+{
+    if (!m_device_web) {
+        return;
+    }
+    // Re-resolve the machine every tick: it can be switched or dropped while
+    // the dialog is open, which would leave the VM holding a stale pointer.
+    auto* dev_mgr = wxGetApp().getDeviceManager();
+    m_obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+    if (auto* vm = m_device_web->GetAutoRefillRefillInfoVM()) {
+        vm->UpdateByMachine(m_obj);
+    }
 }
 
 void wgtDeviceAutoRefillWebDialog::PushSnapshot()
@@ -128,12 +172,31 @@ void ShowAutoRefillDialog(wxWindow* parent, Slic3r::MachineObject* obj)
     if (is_refill_info) {
         wgtDeviceAutoRefillWebDialog dlg(parent);
         dlg.UpdateByMachine(obj);
+        active_auto_refill_dialog() = &dlg;
         dlg.ShowModal();
+        if (active_auto_refill_dialog() == &dlg) {
+            active_auto_refill_dialog() = nullptr;
+        }
     } else {
         AmsReplaceMaterialDialog dlg(parent);
         dlg.update_machine_obj(obj);
         dlg.ShowModal();
     }
+}
+
+void CloseAutoRefillDialog(int result)
+{
+    wxDialog* dialog = active_auto_refill_dialog();
+    if (!dialog) {
+        return;
+    }
+
+    if (dialog->IsModal()) {
+        dialog->EndModal(result);
+    } else {
+        dialog->Close();
+    }
+    active_auto_refill_dialog() = nullptr;
 }
 
 } // namespace Slic3r::GUI

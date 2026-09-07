@@ -31,6 +31,8 @@ public:
                                           bool has_tool,
                                           bool is_abnormal,
                                           bool is_lost);
+    static std::string ResolveFilamentCardText(const DevAmsTray* tray,
+                                               const std::string& fallback_type);
     static int ResolveDisplayRemain(const DevAmsTray* tray);
     static std::string ResolveStatusText(const std::string& card_state);
 

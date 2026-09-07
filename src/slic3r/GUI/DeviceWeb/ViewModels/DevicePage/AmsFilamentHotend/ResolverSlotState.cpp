@@ -4,11 +4,64 @@
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
+#include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/I18N.hpp"
 
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "libslic3r/PresetBundle.hpp"
+
+#include <algorithm>
+#include <cctype>
+#include <utility>
+#include <vector>
 
 namespace Slic3r { namespace GUI {
+
+namespace {
+
+std::string trim_copy(std::string value)
+{
+    const auto begin = value.find_first_not_of(" \t\r\n");
+    if (begin == std::string::npos) return {};
+    const auto end = value.find_last_not_of(" \t\r\n");
+    return value.substr(begin, end - begin + 1);
+}
+
+std::string remove_spaces_copy(std::string value)
+{
+    value.erase(std::remove_if(value.begin(), value.end(), [](unsigned char ch) { return std::isspace(ch); }), value.end());
+    return value;
+}
+
+std::string strip_filament_vendor_prefix(std::string shown_name,
+                                         const std::string& vendor,
+                                         const std::string& fallback_type)
+{
+    std::string value = trim_copy(std::move(shown_name));
+    if (const auto at_pos = value.find(" @"); at_pos != std::string::npos) {
+        value = trim_copy(value.substr(0, at_pos));
+    }
+    if (value.empty()) return fallback_type;
+
+    std::vector<std::string> aliases;
+    if (!vendor.empty()) {
+        aliases.push_back(vendor);
+        aliases.push_back(remove_spaces_copy(vendor));
+        if (vendor == "Bambu Lab") aliases.push_back("Bambu");
+    }
+    for (const auto& alias : aliases) {
+        if (alias.empty()) continue;
+        if (value == alias) return fallback_type;
+        if (value.rfind(alias + " ", 0) == 0) {
+            value = trim_copy(value.substr(alias.size() + 1));
+            break;
+        }
+    }
+
+    return value.empty() ? fallback_type : value;
+}
+
+} // namespace
 
 std::string DevicePageFilamentSlotStateResolver::ResolveCardState(MachineObject* obj_,
                                                                   const DevAmsTray* tray,
@@ -68,6 +121,27 @@ std::string DevicePageFilamentSlotStateResolver::ResolveNozzleState(const std::s
         return SV::nozzle_state::active;
     }
     return SV::nozzle_state::normal;
+}
+
+std::string DevicePageFilamentSlotStateResolver::ResolveFilamentCardText(
+    const DevAmsTray* tray,
+    const std::string& fallback_type)
+{
+    if (!tray) return fallback_type;
+    if (!tray->sub_brands.empty()) return tray->sub_brands;
+
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle) {
+        const std::string filament_id = tray->get_filament_id();
+        if (auto fila_item = preset_bundle->get_filament_by_filament_id(filament_id, "", true); fila_item.has_value()) {
+            return strip_filament_vendor_prefix(fila_item->filament_name, fila_item->vendor, fallback_type);
+        }
+        if (auto fila_item = preset_bundle->get_filament_by_filament_id(filament_id, "", false); fila_item.has_value()) {
+            return strip_filament_vendor_prefix(fila_item->filament_name, fila_item->vendor, fallback_type);
+        }
+    }
+
+    return fallback_type;
 }
 
 int DevicePageFilamentSlotStateResolver::ResolveDisplayRemain(const DevAmsTray* tray)

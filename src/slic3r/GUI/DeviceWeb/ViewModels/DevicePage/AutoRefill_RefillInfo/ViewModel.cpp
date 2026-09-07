@@ -1,58 +1,128 @@
 /*****************************************************************//**
  * \file   ViewModel.cpp
- * \brief  Implementation of the RefillInfo auto-refill ViewModel.
+ * \brief  Command dispatch and state reporting for the RefillInfo dialog.
  *********************************************************************/
 #include "ViewModel.hpp"
-#include "Schema.hpp"
 
-#include "slic3r/GUI/I18N.hpp"
+#include "refill_info/Actions.hpp"
+#include "refill_info/Builder.hpp"
+#include "refill_info/Schema.hpp"
+#include "add_refill_filaments/Actions.hpp"
+#include "add_refill_filaments/Builder.hpp"
+
 #include "slic3r/GUI/DeviceWeb/DeviceWebBridge.hpp"
-#include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/DevicePageDialogHelpers.h"
 
-#include "slic3r/GUI/DeviceCore/DevDefs.h"
-#include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
+#include "slic3r/GUI/DeviceCore/DevCtrlToken.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaAutoRefillMgr.h"
+#include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
+#include "libslic3r_version.h"
 
 #include <boost/log/trivial.hpp>
+#include <exception>
+#include <utility>
 
 namespace Slic3r { namespace GUI {
 
 namespace {
 
-namespace SV = AutoRefillRefillInfoSchema::values;
-
-const char* create_type_to_string(const std::optional<DevAmsRefillSlot::CreateType>& type)
+/// Stamp the resolved Studio colour mode onto a first-paint response so the
+/// page picks its palette immediately instead of flashing the default theme
+/// while it waits for the separate `init/theme_changed` Report.
+void stamp_theme(nlohmann::json& state)
 {
-    if (!type.has_value()) return SV::create_type::unknown;
-    switch (*type) {
-    case DevAmsRefillSlot::CreateType::Auto:   return SV::create_type::automatic;
-    case DevAmsRefillSlot::CreateType::Manual: return SV::create_type::manual;
-    }
-    return SV::create_type::unknown;
+    const bool dark = wxGetApp().app_config && wxGetApp().app_config->get("dark_color_mode") == "1";
+    state["theme"] = dark ? "dark" : "light";
 }
 
 } // namespace
 
-namespace SchemaFormat = AutoRefillRefillInfoSchema::format;
+AutoRefillRefillInfoVM::~AutoRefillRefillInfoVM()
+{
+    *m_alive = false;
+    ClearAddRefillQuery();
+    ClearRefillEdit();
+}
+
+nlohmann::json AutoRefillRefillInfoVM::BuildDebugSnapshot() const
+{
+    nlohmann::json snapshot;
+    snapshot["session_seq"] = m_session_seq;
+
+    // Raw device reply, kept even when parsing failed
+    snapshot["query_reply"] = m_add_refill_query_reply;
+
+    // The parsed refill_command 5 / 6 reply the pages were built from
+    if (m_add_refill_query_result) {
+        nlohmann::json slots = nlohmann::json::array();
+        for (const auto& slot : m_add_refill_query_result->slots) {
+            nlohmann::json codes = nlohmann::json::array();
+            for (const auto code : slot.block_codes) codes.push_back(static_cast<int>(code));
+            slots.push_back({{"ams_id", slot.slot_id.first},
+                             {"slot_id", slot.slot_id.second},
+                             {"block_codes", codes}});
+        }
+        snapshot["query_result"] = {{"ack_result", static_cast<int>(m_add_refill_query_result->ack_result)},
+                                    {"slots", slots}};
+    } else {
+        snapshot["query_result"] = nullptr;
+    }
+
+    // Picker request replayed into the built state; empty for the initial Query
+    snapshot["query_payload"] = m_add_refill_query_payload;
+
+    // Exactly what the two pages are told to render
+    snapshot["refill_info"] = AutoRefillRefillInfoBuilder::Build(m_obj, m_session_seq);
+    snapshot["add_refill_filaments"] =
+        AutoRefillAddRefillFilamentsBuilder::Build(m_obj, m_session_seq, m_add_refill_query_payload,
+                                                   m_add_refill_query_result ? &*m_add_refill_query_result : nullptr);
+    return snapshot;
+}
 
 nlohmann::json AutoRefillRefillInfoVM::OnCommand(const std::string& submod,
                                                  const std::string& action,
-                                                 const nlohmann::json& /*payload*/)
+                                                 const nlohmann::json& payload)
 {
     try {
         if (submod == "state" && (action == "get" || action == "init")) {
-            return MakeResponse(GetModule(), submod, action, 0, "", BuildState());
+            nlohmann::json state = AutoRefillRefillInfoBuilder::Build(m_obj, m_session_seq);
+            stamp_theme(state);
+            return MakeResponse(GetModule(), submod, action, 0, "", state);
+        }
+        if (submod == "action") {
+            return AutoRefillRefillInfoActions::Handle(*this, m_obj, action, payload);
+        }
+        if (submod == "debug") {
+#if !BBL_RELEASE_TO_PUBLIC
+            if (action == "snapshot") {
+                return MakeResponse(GetModule(), submod, action, 0, "", BuildDebugSnapshot());
+            }
+#endif
+            return MakeResponse(GetModule(), submod, action, 1, "debug is unavailable");
+        }
+        if (submod == "add_refill_filaments") {
+            if (action == "get" || action == "init") {
+                // The picker runs in its own WebView host, so it needs the theme
+                // stamped on its own first-paint response.
+                nlohmann::json state = AutoRefillAddRefillFilamentsBuilder::Build(
+                    m_obj, m_session_seq, payload,
+                    m_add_refill_query_result ? &*m_add_refill_query_result : nullptr);
+                stamp_theme(state);
+                return MakeResponse(GetModule(), submod, action, 0, "", state);
+            }
+            return AutoRefillAddRefillFilamentsActions::Handle(*this, m_obj, action, payload);
         }
     } catch (const std::exception& e) {
         BOOST_LOG_TRIVIAL(error) << "AutoRefillRefillInfoVM::OnCommand exception: " << e.what();
-        return MakeResponse(GetModule(), submod, action, 2, e.what(), BuildState());
+        return MakeResponse(GetModule(), submod, action, 2, e.what(),
+                            AutoRefillRefillInfoBuilder::Build(m_obj, m_session_seq));
     }
 
-    // Phase 1 is read-only. reorder / add / remove are reserved for a later
-    // phase once a device write-back protocol is available.
     return MakeResponse(GetModule(), submod, action, 1,
-                        "unknown auto refill command", BuildState());
+                        "unknown auto refill command",
+                        AutoRefillRefillInfoBuilder::Build(m_obj, m_session_seq));
 }
 
 void AutoRefillRefillInfoVM::ReportState(const std::string& submod, const std::string& action)
@@ -64,10 +134,8 @@ void AutoRefillRefillInfoVM::ReportStateImpl(const std::string& submod, const st
 {
     if (!m_bridge) return;
 
-    nlohmann::json state = BuildState();
+    nlohmann::json state = AutoRefillRefillInfoBuilder::Build(m_obj, m_session_seq);
 
-    // Device data may contain non-UTF-8 bytes; strict dump() throws. Replace
-    // invalid bytes and skip the report on any other failure rather than crash.
     std::string state_key;
     try {
         state_key = state.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
@@ -86,9 +154,313 @@ void AutoRefillRefillInfoVM::ReportStateImpl(const std::string& submod, const st
     }
 }
 
+bool AutoRefillRefillInfoVM::StartAddRefillQuery()
+{
+    ClearAddRefillQuery();
+
+    if (!m_obj || !m_obj->GetFilaSystem()) {
+        return false;
+    }
+
+    return WatchAddRefillQuery(m_obj->GetFilaSystem()->GetAutoRefillMgr().CtrlQuery());
+}
+
+bool AutoRefillRefillInfoVM::StartAddRefillQueryNext(const DevAmsSlotId& to, const nlohmann::json& picker_payload)
+{
+    if (!m_obj || !m_obj->GetFilaSystem()) {
+        return false;
+    }
+
+    // The previous result is about to be replaced, so drop it before the new
+    // command goes out; the selection is kept and replayed when reporting.
+    ClearAddRefillQuery();
+    m_add_refill_query_payload = picker_payload;
+
+    return WatchAddRefillQuery(m_obj->GetFilaSystem()->GetAutoRefillMgr().CtrlQueryNext(to));
+}
+
+bool AutoRefillRefillInfoVM::WatchAddRefillQuery(std::shared_ptr<DevCtrlToken> token)
+{
+    if (!token || token->GetStatus() == DevCtrlTokenStatus::SendFailed) {
+        return false;
+    }
+    m_add_refill_query_token = std::move(token);
+
+    auto on_settled = [this](const std::shared_ptr<DevCtrlToken>& settled, DevCtrlTokenStatus status) {
+        // A newer query, or a machine switch, already replaced this token.
+        if (settled != m_add_refill_query_token) {
+            return;
+        }
+        m_add_refill_query_token.reset();
+
+        if (status != DevCtrlTokenStatus::ReplyReceived || !settled->GetReply()) {
+            ReportAddRefillQuery("query_failed", 1, "refill query got no reply");
+            return;
+        }
+
+        const nlohmann::json& reply = *settled->GetReply();
+        m_add_refill_query_reply    = reply;// kept before parsing for the debug snapshot
+        auto parsed = DevFilaAutoRefillEdit(m_obj->GetFilaSystem().get()).ParseQueryResult(reply);
+        if (!parsed) {
+            const auto ack_result = DevFilaRefillParseAckResult(reply);
+            ReportAddRefillQuery("query_failed", 1,
+                                 ack_result ? DevFilaRefillAckResultMessage(*ack_result)
+                                            : "refill query reply is invalid");
+            return;
+        }
+
+        m_add_refill_query_result = std::move(parsed);
+        ReportAddRefillQuery("query_result", 0, "");
+    };
+
+    m_add_refill_query_token->SetCallback(DevCtrlTokenStatus::ReplyReceived, on_settled);
+    m_add_refill_query_token->SetCallback(DevCtrlTokenStatus::SendFailed, on_settled);
+    m_add_refill_query_token->SetCallback(DevCtrlTokenStatus::TimedOut, on_settled);
+    return true;
+}
+
+void AutoRefillRefillInfoVM::ClearAddRefillQuery()
+{
+    if (m_add_refill_query_token) {
+        m_add_refill_query_token->Reset();
+        m_add_refill_query_token.reset();
+    }
+    m_add_refill_query_result.reset();
+    m_add_refill_query_reply   = nlohmann::json::object();
+    m_add_refill_query_payload = nlohmann::json::object();
+}
+
+void AutoRefillRefillInfoVM::ReportAddRefillQuery(const std::string& action, int code, const std::string& msg)
+{
+    if (!m_bridge) return;
+
+    // Without a query result there is no trustworthy slot list to send, and
+    // the web side only leaves the loading state on the failure itself.
+    const nlohmann::json state = m_add_refill_query_result
+        ? AutoRefillAddRefillFilamentsBuilder::Build(m_obj, m_session_seq, m_add_refill_query_payload,
+                                                     &*m_add_refill_query_result)
+        : nlohmann::json::object();
+
+    // The user is waiting on this result, so it must not be dropped by the
+    // hidden-page gate the periodic state reports rely on.
+    m_bridge->ReportMsgForce(MakeResponse(GetModule(), "add_refill_filaments", action, code, msg, state));
+}
+
+bool AutoRefillRefillInfoVM::StartConfirmAddRefill(const std::vector<DevAmsSlotId>& slots)
+{
+    if (!m_obj || !m_obj->GetFilaSystem() || slots.empty()) {
+        return false;
+    }
+
+    ClearRefillEdit();
+
+    // The first picked spool heads the group; the rest ride along in the same
+    // command, so a single ACK settles the whole creation.
+    const DevAmsSlotId head = slots.front();
+    const std::vector<DevAmsSlotId> members(slots.begin() + 1, slots.end());
+    return WatchRefillEdit(
+        m_obj->GetFilaSystem()->GetAutoRefillMgr().CtrlCreateGroup(head, members),
+        "confirm");
+}
+
+bool AutoRefillRefillInfoVM::StartAddRefillToGroup(const DevAmsSlotId& group_member,
+                                                   const std::vector<DevAmsSlotId>& slots)
+{
+    if (!m_obj || !m_obj->GetFilaSystem() || slots.empty()) {
+        return false;
+    }
+
+    ClearRefillEdit();
+    m_add_to_group_member  = group_member;
+    m_add_to_group_pending = slots;
+    return ContinueAddRefillToGroup();
+}
+
+bool AutoRefillRefillInfoVM::ContinueAddRefillToGroup()
+{
+    if (!m_obj || !m_obj->GetFilaSystem() || !m_add_to_group_member.has_value() ||
+        m_add_to_group_pending.empty()) {
+        return false;
+    }
+
+    const DevAmsSlotId slot = m_add_to_group_pending.front();
+    m_add_to_group_pending.erase(m_add_to_group_pending.begin());
+    return WatchRefillEdit(
+        m_obj->GetFilaSystem()->GetAutoRefillMgr().CtrlPushBack(slot, *m_add_to_group_member),
+        "append");
+}
+
+bool AutoRefillRefillInfoVM::StartResetGroup(const std::string& group_tag)
+{
+    if (!m_obj || !m_obj->GetFilaSystem() || group_tag.empty()) {
+        return false;
+    }
+    return WatchRefillEdit(m_obj->GetFilaSystem()->GetAutoRefillMgr().CtrlReset(group_tag), "reset");
+}
+
+bool AutoRefillRefillInfoVM::StartRemoveSlot(const DevAmsSlotId& slot)
+{
+    if (!m_obj || !m_obj->GetFilaSystem()) {
+        return false;
+    }
+    return WatchRefillEdit(m_obj->GetFilaSystem()->GetAutoRefillMgr().CtrlRemove(slot), "remove");
+}
+
+void AutoRefillRefillInfoVM::FinishResetConfirmation(const std::string& group_tag, bool confirmed)
+{
+    namespace SK = AutoRefillRefillInfoSchema::keys;
+    namespace SV = AutoRefillRefillInfoSchema::values;
+
+    if (!m_bridge) return;
+
+    if (!confirmed) {
+        m_bridge->ReportMsgForce(
+            MakeResponse(GetModule(), "action", SV::action::reset_cancelled, 0, ""));
+        return;
+    }
+
+    // Announce the pending reset before publishing so the page can switch to
+    // the updating state and remember which success toast to show.
+    m_bridge->ReportMsgForce(MakeResponse(GetModule(), "action", SV::action::reset_started, 0, "",
+                                          nlohmann::json{{SK::confirm_remove::toast,
+                                                          "Reset successfully"}}));
+
+    if (!StartResetGroup(group_tag)) {
+        ReportRefillEdit(SV::action::reset, 1, "publish failed");
+    }
+}
+
+void AutoRefillRefillInfoVM::FinishRemoveConfirmation(const DevAmsSlotId& slot,
+                                                      bool               confirmed,
+                                                      const std::string& toast_key)
+{
+    namespace SK = AutoRefillRefillInfoSchema::keys;
+    namespace SV = AutoRefillRefillInfoSchema::values;
+
+    if (!m_bridge) return;
+
+    if (!confirmed) {
+        m_bridge->ReportMsgForce(
+            MakeResponse(GetModule(), "action", SV::action::remove_cancelled, 0, ""));
+        return;
+    }
+
+    // Announce the pending removal before publishing so the page can switch to
+    // the updating state and remember which success toast to show.
+    m_bridge->ReportMsgForce(MakeResponse(GetModule(), "action", SV::action::remove_started, 0, "",
+                                          nlohmann::json{{SK::confirm_remove::toast, toast_key}}));
+
+    if (!StartRemoveSlot(slot)) {
+        ReportRefillEdit(SV::action::remove, 1, "publish failed");
+    }
+}
+
+bool AutoRefillRefillInfoVM::StartMoveSlot(const DevAmsSlotId& slot, const DevAmsSlotId& member, bool as_head)
+{
+    if (!m_obj || !m_obj->GetFilaSystem() || slot == member) {
+        return false;
+    }
+    return WatchRefillEdit(
+        m_obj->GetFilaSystem()->GetAutoRefillMgr().CtrlMove(slot, member, as_head), "edit");
+}
+
+bool AutoRefillRefillInfoVM::WatchRefillEdit(std::shared_ptr<DevCtrlToken> token, const std::string& action)
+{
+    if (m_refill_edit_token) {
+        m_refill_edit_token->Reset();
+        m_refill_edit_token.reset();
+    }
+    if (!token || token->GetStatus() == DevCtrlTokenStatus::SendFailed) {
+        return false;
+    }
+    m_refill_edit_token = std::move(token);
+
+    auto on_settled = [this, action](const std::shared_ptr<DevCtrlToken>& settled, DevCtrlTokenStatus status) {
+        if (settled != m_refill_edit_token) {
+            return;
+        }
+        m_refill_edit_token.reset();
+
+        if (status != DevCtrlTokenStatus::ReplyReceived || !settled->GetReply()) {
+            ReportRefillEdit(action, 1, "refill command got no reply");
+            return;
+        }
+
+        const auto ack_result = DevFilaRefillParseAckResult(*settled->GetReply());
+        if (!ack_result || !DevFilaRefillAckSucceeded(*ack_result)) {
+            ReportRefillEdit(action, 1,
+                             ack_result ? DevFilaRefillAckResultMessage(*ack_result)
+                                        : "refill command reply is invalid");
+            return;
+        }
+
+        if (action == "append" && !m_add_to_group_pending.empty()) {
+            if (!ContinueAddRefillToGroup()) {
+                ReportRefillEdit(action, 1, "failed to append remaining slots");
+            }
+            return;
+        }
+
+        ReportRefillEdit(action, 0, "");
+    };
+
+    m_refill_edit_token->SetCallback(DevCtrlTokenStatus::ReplyReceived, on_settled);
+    m_refill_edit_token->SetCallback(DevCtrlTokenStatus::SendFailed, on_settled);
+    m_refill_edit_token->SetCallback(DevCtrlTokenStatus::TimedOut, on_settled);
+    return true;
+}
+
+void AutoRefillRefillInfoVM::ClearRefillEdit()
+{
+    if (m_refill_edit_token) {
+        m_refill_edit_token->Reset();
+        m_refill_edit_token.reset();
+    }
+    m_add_to_group_member.reset();
+    m_add_to_group_pending.clear();
+}
+
+void AutoRefillRefillInfoVM::ReportRefillEdit(const std::string& action, int code, const std::string& msg)
+{
+    if (!m_bridge) return;
+
+    if (action == "confirm" || action == "append") {
+        m_add_to_group_member.reset();
+        m_add_to_group_pending.clear();
+        if (code == 0) {
+            ClearAddRefillQuery();
+            m_last_report_state.clear();
+            const nlohmann::json state = AutoRefillRefillInfoBuilder::Build(m_obj, m_session_seq);
+            m_bridge->ReportMsgForce(MakeResponse(GetModule(), "add_refill_filaments", "confirm_result", 0, "", state));
+            wxGetApp().CallAfter([]() { CloseAutoRefillFilamentsDialog(wxID_OK); });
+        } else {
+            ReportAddRefillQuery("confirm_failed", code, msg);
+        }
+        return;
+    }
+
+    m_last_report_state.clear();
+    const nlohmann::json state = AutoRefillRefillInfoBuilder::Build(m_obj, m_session_seq);
+    m_bridge->ReportMsgForce(MakeResponse(GetModule(), "action", action, code, msg, state));
+}
+
 void AutoRefillRefillInfoVM::OnSysColorChanged()
 {
-    ReportState("state", "theme_changed");
+    // Theme is global UI state, so it must NOT be routed through ReportState():
+    // that path de-dupes against the last Build() snapshot, and toggling dark
+    // mode leaves the device payload untouched, so the notification would be
+    // dropped. Emit an independent `init/theme_changed` Report instead. One
+    // Report reaches both WebView hosts because they share this module.
+    if (!m_bridge) return;
+    nlohmann::json data;
+    stamp_theme(data);
+    m_bridge->ReportMsg(MakeResponse(GetModule(), "init", "theme_changed", 0, "", data));
+}
+
+void AutoRefillRefillInfoVM::UpdateByMachine(MachineObject* obj)
+{
+    m_obj = obj;
+    ReportState("state", "changed");
 }
 
 void AutoRefillRefillInfoVM::Refresh(MachineObject* obj)
@@ -96,124 +468,11 @@ void AutoRefillRefillInfoVM::Refresh(MachineObject* obj)
     m_obj = obj;
     ++m_session_seq;
 
-    // force=true: Refresh() runs before the dialog is shown, so a visibility-
-    // gated report would be dropped. Clearing the cache guarantees the pushed
-    // state is not suppressed as a duplicate.
+    ClearAddRefillQuery();
+    ClearRefillEdit();
+
     m_last_report_state.clear();
     ReportStateImpl("state", "refresh", /*force=*/true);
-}
-
-nlohmann::json AutoRefillRefillInfoVM::BuildState() const
-{
-    SchemaFormat::State state;
-    state.session_seq = m_session_seq;
-    if (!m_obj) {
-        return state;
-    };
-
-    auto             fila_sys = m_obj->GetFilaSystem();
-    const DevFilaAutoRefillMgr& refill = fila_sys->GetAutoRefillMgr();
-    if (refill.IsSupportManualEdit()) {
-        state.description = _u8L("The system has created auto-refill groups based on material type, color, and brand.")
-            + "\n"
-            + _u8L("When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one.")
-            + "\n"
-            + _u8L("Drag spools to adjust their priority.");
-    } else if (refill.GetGroups().groups.size() > 0) {
-        state.description = _u8L("The system has created auto-refill groups based on material type, color, and brand.")
-            + "\n"
-            + _u8L("When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one.");
-    } else {
-        state.description = _u8L("When printing, after the current spool runs out, the printer automatically switches to the next compatible spool in the group order and loops back to the first spool after the last one.");
-    }
-
-    state.selected_dev_id = m_obj->get_dev_id();
-    state.editable      = refill.IsSupportManualEdit();
-    state.can_add_group = refill.IsSupportManualEdit();
-    DevExtderSystem* ext_sys  = m_obj->GetExtderSystem();
-    for (const auto& extruder : ext_sys->GetExtruders()) {
-        SchemaFormat::RefillExtruder extruder_vm;
-        extruder_vm.extruder_id = extruder.GetExtId();
-        for (const auto& group : refill.GetGroups(extruder_vm.extruder_id).groups) {
-            extruder_vm.groups.push_back(BuildGroup(group));
-        }
-        state.extruders.push_back(std::move(extruder_vm));
-    }
-    return state;
-}
-
-const char* color_type_to_string(DevFilaColorType ctype)
-{
-    switch (ctype) {
-        case DevFilaColorType::CTYPE_GRADIANT: return SV::color_type::gradient;
-        case DevFilaColorType::CTYPE_MULTI:    return SV::color_type::multi;
-        case DevFilaColorType::CTYPE_SINGLE:   return SV::color_type::single;
-    }
-    return SV::color_type::single;
-}
-
-const char* flow_type_to_string(NozzleFlowType flow)
-{
-    switch (flow) {
-        case NozzleFlowType::S_FLOW: return SV::nozzle_flow_type::standard;
-        case NozzleFlowType::H_FLOW: return SV::nozzle_flow_type::high_flow;
-        case NozzleFlowType::U_FLOW: return SV::nozzle_flow_type::ultra;
-        case NozzleFlowType::T_FLOW: return SV::nozzle_flow_type::tough;
-        case NozzleFlowType::E_FLOW: return SV::nozzle_flow_type::elastic;
-        default:                     return "";
-    }
-}
-
-SchemaFormat::RefillGroup AutoRefillRefillInfoVM::BuildGroup(const DevFilaAutoRefillGroup& group) const
-{
-    const auto& tag = group.fila_refill_tag;
-
-    SchemaFormat::RefillGroup group_vm;
-    group_vm.filament_id = tag.filament_id;
-    group_vm.colors      = tag.filament_clr;
-    group_vm.color_type  = color_type_to_string(tag.filament_clr_type);
-    group_vm.nozzle_diameter = tag.nozzle_diameter;
-    if (tag.nozzle_flow_type.has_value()) {
-        group_vm.nozzle_flow_type = flow_type_to_string(*tag.nozzle_flow_type);
-    }
-
-    for (const auto& refill_slot : group.fila_refill_slots) {
-        SchemaFormat::RefillSlot slot_vm = BuildSlot(refill_slot);
-        if (group_vm.filament_type.empty() && !slot_vm.filament_type.empty()) {
-            group_vm.filament_type = slot_vm.filament_type;
-        }
-        group_vm.slots.push_back(std::move(slot_vm));
-    }
-    return group_vm;
-}
-
-SchemaFormat::RefillSlot AutoRefillRefillInfoVM::BuildSlot(const DevAmsRefillSlot& refill_slot) const
-{
-    const DevAmsSlotId& id = refill_slot.slot_id;
-
-    SchemaFormat::RefillSlot slot_vm;
-    slot_vm.ams_id      = id.first;
-    slot_vm.slot_id     = id.second;
-    slot_vm.create_type = create_type_to_string(refill_slot.create_type);
-
-    DevAmsTray* tray = m_obj ? m_obj->GetFilaSystem()->GetAmsTray(std::to_string(id.first), std::to_string(id.second)) : nullptr;
-    if (!tray) {
-        slot_vm.has_filament = false;
-        return slot_vm;
-    }
-
-    std::vector<std::string> colors = tray->cols;
-    if (colors.empty() && !tray->color.empty()) colors.push_back(tray->color);
-
-    slot_vm.has_filament  = tray->is_exists;
-    slot_vm.tray_name     = tray->get_slot_name(m_obj);
-    slot_vm.filament_type = tray->get_display_filament_type();
-    slot_vm.sub_brand     = tray->sub_brands;
-    slot_vm.color         = tray->color;
-    slot_vm.colors        = std::move(colors);
-    slot_vm.color_type    = color_type_to_string(tray->ctype);
-    slot_vm.weight_gram   = tray->get_filament_remain_weight();
-    return slot_vm;
 }
 
 }} // namespace Slic3r::GUI

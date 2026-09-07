@@ -321,7 +321,18 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/ViewModel.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/ViewModel.hpp
-    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/Schema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Schema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Builder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Builder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Actions.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Actions.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/add_refill_filaments/Schema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/add_refill_filaments/Builder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/add_refill_filaments/Builder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/add_refill_filaments/Actions.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/add_refill_filaments/Actions.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/add_refill_filaments/BlockCodeUtil.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/add_refill_filaments/BlockCodeUtil.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/ViewModel.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/ViewModel.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/ConnectedSlots/ViewModelState.cpp

@@ -270,5 +270,14 @@
   "Status Reminders": "",
   "Total Weight": "総重量",
   "Unit Price(/kg)": "",
-  "Usage Records": "利用記録"
+  "Usage Records": "利用記録",
+  "Removed successfully": "",
+  "Refill group removed successfully": "",
+  "Reset successfully": "",
+  "Moved successfully": "",
+  "Remove refill slot failed": "",
+  "Reset refill group failed": "",
+  "Move refill slot failed": "",
+  "The printer did not respond to the refill command.": "",
+  "Updating...": ""
 }

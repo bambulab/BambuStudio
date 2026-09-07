@@ -17,6 +17,7 @@ export const mockAutoRefillRefillInfoState: AutoRefillRefillInfoViewModel = {
       extruder_id: 0,
       groups: [
         {
+          refill_tag_id: 'GFA00_2_1_28F451FF_S_0.4',
           filament_id: 'GFA00',
           filament_type: 'PLA',
           colors: ['#28f451'],
@@ -30,6 +31,7 @@ export const mockAutoRefillRefillInfoState: AutoRefillRefillInfoViewModel = {
           ],
         },
         {
+          refill_tag_id: 'GFB00_2_1_F09425FF_S_0.4',
           filament_id: 'GFB00',
           filament_type: 'PETG',
           colors: ['#f09425'],
@@ -45,6 +47,7 @@ export const mockAutoRefillRefillInfoState: AutoRefillRefillInfoViewModel = {
           ],
         },
         {
+          refill_tag_id: 'GFC00_2_1_4028F3FF_S_0.4',
           filament_id: 'GFC00',
           filament_type: 'ABS',
           colors: ['#4028f3'],

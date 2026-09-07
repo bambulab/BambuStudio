@@ -2,7 +2,7 @@
 //
 // Mirrors AutoRefillRefillInfoVM::BuildState() on the C++ side.
 // C++ Schema (single source of truth for field names and enum values):
-//   src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/Schema.hpp
+//   src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AutoRefill_RefillInfo/refill_info/Schema.hpp
 //
 // Only the RefillVersion::RefillInfo variant is modelled here; the legacy
 // FilaBackup dialog keeps its own native rendering.
@@ -23,6 +23,9 @@ export interface RefillSlotViewModel {
   has_filament: boolean;
   // The fields below are only present when the tray is resolvable.
   tray_name?: string;
+  // Display name resolved by C++ against the local presets ("PLA Basic",
+  // "PLA Matte"); always prefer it over the bare type.
+  filament_name?: string;
   filament_type?: string;
   sub_brand?: string;
   color?: string;
@@ -33,6 +36,10 @@ export interface RefillSlotViewModel {
 
 // A refill group = one filament "chain": ordered slots that back each other up.
 export interface RefillGroupViewModel {
+  // Device-side identity of the chain (e.g. "GFA00_2_1_C12E1FFF_H_0.4"). This
+  // is what `action/reset` must send as `group_tag`; `filament_id` is shared by
+  // every chain of the same filament, whatever its colour or nozzle.
+  refill_tag_id: string;
   filament_id: string;
   filament_type: string;
   colors: string[];
@@ -60,6 +67,13 @@ export interface AutoRefillRefillInfoViewModel {
   editable?: boolean;
   can_add_group?: boolean;
   extruders: RefillExtruderViewModel[];
+}
+
+// Success toast queued after a refill write-back is acknowledged by the
+// printer. `text` is an untranslated key resolved at render time.
+export interface RefillToast {
+  id: number;
+  text: string;
 }
 
 export interface BridgeResponseBody<T> {
