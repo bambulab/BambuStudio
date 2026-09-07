@@ -937,25 +937,6 @@ Slic3r::Polylines intersection_pl(const Slic3r::Polylines &subject, const Slic3r
 Slic3r::Polylines intersection_pl(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip)
     { return _clipper_pl_closed(ClipperLib::ctIntersection, ClipperUtils::PolygonsProvider(subject), ClipperUtils::PolygonsProvider(clip)); }
 
-Slic3r::ExPolygons select_within_distance(const Slic3r::ExPolygons &subject, const Slic3r::ExPolygons &clip, float distance)
-{
-    Slic3r::ExPolygons out;
-    if (subject.empty() || clip.empty())
-        return out;
-
-    const Slic3r::ExPolygons reach = offset_ex(clip, distance);
-    if (reach.empty())
-        return out;
-
-    for (const Slic3r::ExPolygon &s : subject) {
-        const Slic3r::Polygons local = ClipperUtils::clip_clipper_polygons_with_subject_bbox(
-            reach, get_extents(s).inflated(SCALED_EPSILON));
-        if (! local.empty() && ! intersection_ex(s, local).empty())
-            out.emplace_back(s);
-    }
-    return out;
-}
-
 Lines _clipper_ln(ClipperLib::ClipType clipType, const Lines &subject, const Polygons &clip)
 {
     // convert Lines to Polylines

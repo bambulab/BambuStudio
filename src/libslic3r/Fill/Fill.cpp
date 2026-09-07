@@ -160,7 +160,7 @@ struct SurfaceFill {
 };
 
 // BBS: used to judge whether the internal solid infill area is narrow
-bool is_narrow_infill_area(const ExPolygon& expolygon)
+static bool is_narrow_infill_area(const ExPolygon& expolygon)
 {
 	ExPolygons offsets = offset_ex(expolygon, -scale_(NARROW_INFILL_AREA_THRESHOLD));
 	if (offsets.empty())

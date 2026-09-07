@@ -15,7 +15,6 @@
 #include "Time.hpp"
 #include "TriangleMeshSlicer.hpp"
 #include "Utils.hpp"
-#include "Fill/FillBase.hpp"
 #include "Fill/FillAdaptive.hpp"
 #include "Fill/FillLightning.hpp"
 #include "Format/STL.hpp"
@@ -3990,6 +3989,11 @@ void PrintObject::combine_infill()
     }
 }
 
+// A top island that an erosion of this radius wipes out is too narrow to justify a sub-top band
+// underneath it. Eroding rather than measuring the area also rejects long thin slivers, whose area
+// can be large while no part of them is wide enough to matter.
+static constexpr double SUB_TOP_MIN_TOP_EROSION_MM = 1.5;
+
 void PrintObject::discover_sub_top_surfaces()
 {
     BOOST_LOG_TRIVIAL(trace) << "discover_sub_top_surfaces()";
@@ -4008,62 +4012,56 @@ void PrintObject::discover_sub_top_surfaces()
                     top_mask.emplace_back(s.expolygon);
         if (top_mask.empty())
             return;
-        top_mask = union_ex(top_mask);
 
-        // Let the perimeters above join the mask: the shadow they cast hugs the top surface
-        // without ever being covered by it.
-        ExPolygons upper_bands;
-        for (const LayerRegion *upper_region : upper->regions())
-            append(upper_bands, diff_ex(to_expolygons(upper_region->slices.surfaces),
-                                        upper_region->fill_expolygons));
-        if (! upper_bands.empty()) {
-            // Only bands adjoining the top surface qualify - perimeters elsewhere on the
-            // layer above cast a shadow that sits under no top surface. A band borders on
-            // fill_expolygons and therefore on stTop, so a plain intersection would come
-            // out empty and the adjacency test has to reach slightly outwards.
-            ExPolygons adjoining = select_within_distance(union_ex(upper_bands), top_mask, float(scale_(0.02)));
-            if (! adjoining.empty()) {
-                append(adjoining, std::move(top_mask));
-                top_mask = union_ex(adjoining);
-            }
+        const auto    erosion    = float(scale_(SUB_TOP_MIN_TOP_EROSION_MM));
+        const coord_t min_extent = coord_t(scale_(2. * SUB_TOP_MIN_TOP_EROSION_MM));
+        ExPolygons    large_tops;
+        for (ExPolygon &top : union_ex(top_mask)) {
+            // An island narrower than the erosion diameter cannot survive it, and its extents are a
+            // linear scan against a boolean, so check them before paying for the offset.
+            const Point extents = get_extents(top).size();
+            if (extents.x() < min_extent || extents.y() < min_extent)
+                continue;
+            if (! offset_ex(top, - erosion).empty())
+                large_tops.emplace_back(std::move(top));
         }
+        if (large_tops.empty())
+            return;
+        top_mask = std::move(large_tops);
+
+        // The vertex cull below runs once per island of every region, and it walks the points of
+        // every mask polygon. Caching the extents here lets a polygon whose box misses the island
+        // be dropped without touching its points at all.
+        std::vector<BoundingBox> top_extents;
+        top_extents.reserve(top_mask.size());
+        for (const ExPolygon &top : top_mask)
+            top_extents.emplace_back(get_extents(top));
 
         for (LayerRegion *layerm : layer->m_regions) {
-            const ExPolygons solid_ex = to_expolygons(layerm->fill_surfaces.filter_by_type(stInternalSolid));
-            if (solid_ex.empty())
-                continue;
-
-            // Opening drops what only grazes the mask.
-            const float      min_width = float(layerm->flow(frSolidInfill).scaled_spacing());
-            const ExPolygons under_top = opening_ex(
-                intersection_ex(solid_ex, top_mask, ApplySafetyOffset::Yes),
-                0.5f * min_width);
-            if (under_top.empty())
-                continue;
-
-            // An island too narrow for is_narrow_infill_area() gets filled concentrically,
-            // reading as a seam against the stSubTop around it, so hand over the ones
-            // bordering the claimed area; those further away keep the concentric fill that
-            // spares thin features a stream of short segments.
-            const ExPolygons claimed = offset_ex(under_top, float(scale_(0.02)));
-            ExPolygons       remaining;
-            for (ExPolygon &island : opening_ex(diff_ex(solid_ex, under_top), 0.5f * min_width)) {
-                if (! is_narrow_infill_area(island)) {
-                    remaining.emplace_back(std::move(island));
+            const float min_width = float(layerm->flow(frSolidInfill).scaled_spacing());
+            // A claimed island keeps its geometry and every other field, only its type changes, so
+            // retype in place rather than rebuilding the collection.
+            for (Surface &surface : layerm->fill_surfaces.surfaces) {
+                if (surface.surface_type != stInternalSolid)
                     continue;
-                }
-                const Polygons local = ClipperUtils::clip_clipper_polygons_with_subject_bbox(
-                    claimed, get_extents(island).inflated(SCALED_EPSILON));
-                if (local.empty() || intersection_ex(island, local).empty())
-                    remaining.emplace_back(std::move(island));
+                // Trim the mask to the island first, so one island does not have to face the whole
+                // layer's top geometry. Opening then drops what only grazes the mask: an island is
+                // claimed on real overlap, not on a shared edge.
+                const BoundingBox island_bbox = get_extents(surface.expolygon).inflated(SCALED_EPSILON);
+                Polygons          local_mask;
+                for (size_t i = 0; i < top_mask.size(); ++ i)
+                    if (top_extents[i].overlap(island_bbox))
+                        append(local_mask, ClipperUtils::clip_clipper_polygons_with_subject_bbox(top_mask[i], island_bbox));
+                if (! local_mask.empty() &&
+                    ! opening_ex(intersection_ex(surface.expolygon, local_mask, ApplySafetyOffset::Yes), 0.5f * min_width).empty())
+                    surface.surface_type = stSubTop;
             }
-            ExPolygons sub_top = diff_ex(solid_ex, remaining);
-            layerm->fill_surfaces.remove_type(stInternalSolid);
-            layerm->fill_surfaces.append(std::move(remaining), stInternalSolid);
-            layerm->fill_surfaces.append(std::move(sub_top), stSubTop);
         }
     };
 
+    // A layer reads the tops of the layer above and retypes its own fill surfaces, so neighbours
+    // must not run together. Splitting the sweep by parity keeps every pair of concurrent layers
+    // two apart, which leaves the read and write sets disjoint.
     const size_t num_to_process = m_layers.size() - 1;
     for (size_t parity = 0; parity < 2; ++ parity) {
         if (num_to_process <= parity)

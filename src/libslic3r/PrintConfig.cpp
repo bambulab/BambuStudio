@@ -2196,10 +2196,11 @@ void PrintConfigDef::init_fff_params()
     def                = this->add("sub_top_surface_pattern", coEnum);
     def->label         = L("Sub-top surface pattern");
     def->category      = L("Strength");
-    def->tooltip       = L("Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin.");
+    def->tooltip       = L("Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it.");
     def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
     def->enum_values   = def_top_fill_pattern->enum_values;
     def->enum_labels   = def_top_fill_pattern->enum_labels;
+    def->mode          = comAdvanced;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipMonotonic));
 
     def = this->add("outer_wall_line_width", coFloat);

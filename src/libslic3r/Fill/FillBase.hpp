@@ -222,9 +222,6 @@ public:
 //Fill  Multiline 
 void multiline_fill(Polylines& polylines, const FillParams& params, float spacing);
 
-// BBS: used to judge whether the internal solid infill area is narrow
-bool is_narrow_infill_area(const ExPolygon &expolygon);
-
 } // namespace Slic3r
 
 #endif // slic3r_FillBase_hpp_
