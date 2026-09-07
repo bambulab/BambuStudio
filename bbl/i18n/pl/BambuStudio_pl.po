@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 21:56+0800\n"
+"POT-Creation-Date: 2026-09-07 10:00+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4466,6 +4466,12 @@ msgstr "Czy na pewno chcesz zresetować sekwencję identyfikacji podłączonego 
 
 msgid "Reset AMS Sequence"
 msgstr "Zresetuj sekwencję AMS"
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
+msgstr ""
 
 msgid "File"
 msgstr "Plik"
@@ -11811,6 +11817,16 @@ msgstr "Kliknij tutaj, aby ją pobrać."
 msgid "Login"
 msgstr "Zaloguj się"
 
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+"Czy na pewno chcesz usunąć wybrane ustawienia? \n"
+"Jeśli używasz tego filamentu w swojej drukarce, proszę zresetuj informacje o filamencie dla tego gniazda."
+
+msgid "Delete filament"
+msgstr "Usuń filament"
+
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "Pakiet konfiguracyjny został zmieniony na poprzedni Przewodnik konfiguracji"
 
@@ -17301,10 +17317,8 @@ msgstr "Nie wybrałeś jeszcze drukarki ani profilu. Proszę wybrać przynajmnie
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"Nazwa filamentu %s, którą utworzyłeś, już istnieje. \n"
-"Jeśli będziesz kontynuować, utworzony preset będzie wyświetlany pod swoją pełną nazwą. Czy chcesz kontynuować?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "Niektóre istniejące pofile nie zostały utworzone:\n"
@@ -17631,16 +17645,6 @@ msgstr "+ Dodaj Profil"
 
 msgid "Delete Filament"
 msgstr "Usuń Filament"
-
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-"Czy na pewno chcesz usunąć wybrane ustawienia? \n"
-"Jeśli używasz tego filamentu w swojej drukarce, proszę zresetuj informacje o filamencie dla tego gniazda."
-
-msgid "Delete filament"
-msgstr "Usuń filament"
 
 msgid "Add Preset"
 msgstr "Dodaj Profil"
@@ -18461,6 +18465,21 @@ msgstr "Oficjalne filamenty"
 msgid "More Colors"
 msgstr "Więcej kolorów"
 
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr "Filamenty nieobsługiwane"
+
+msgid "No filaments"
+msgstr "Brak filamentów"
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr "Ostatnio używane"
+
 msgid "Please set nozzle count"
 msgstr "Proszę ustawić liczbę dysz"
 
@@ -18890,6 +18909,13 @@ msgstr "Pomocnicze"
 msgid "An unexpected error occurred"
 msgstr "Wystąpił nieoczekiwany błąd"
 
+msgid "Create Custom Filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -19186,6 +19212,14 @@ msgstr ""
 "Niezawodność od pierwszego razu\n"
 "Mniej nadzoru, bardziej przewidywalne wyniki. Przykład: mała farma drukarek 3D produkująca części z PETG unika niespodzianek typu „awaria po 6 godzinach” i utrzymuje harmonogram partii."
 
+#, c-format, boost-format
+#~ msgid ""
+#~ "The Filament name %s you created already exists. \n"
+#~ "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+#~ msgstr ""
+#~ "Nazwa filamentu %s, którą utworzyłeś, już istnieje. \n"
+#~ "Jeśli będziesz kontynuować, utworzony preset będzie wyświetlany pod swoją pełną nazwą. Czy chcesz kontynuować?"
+
 #~ msgid "AMS detected a new official filament. Add it to Filament Manager?"
 #~ msgstr "Moduł AMS wykrył nowy markowy filament. Dodać go do Menedżera filamentów?"
 
@@ -19307,21 +19341,12 @@ msgstr ""
 #~ msgid "Note"
 #~ msgstr "Uwaga"
 
-#~ msgid "Unsupported Filaments"
-#~ msgstr "Filamenty nieobsługiwane"
-
 #~ msgctxt "Unsupported Filaments"
 #~ msgid "Note"
 #~ msgstr "Uwaga"
 
 #~ msgid "No unsupported filaments"
 #~ msgstr "Brak nieobsługiwanych filamentów"
-
-#~ msgid "No filaments"
-#~ msgstr "Brak filamentów"
-
-#~ msgid "Recently used"
-#~ msgstr "Ostatnio używane"
 
 #~ msgid "Other Color"
 #~ msgstr "Inny kolor"

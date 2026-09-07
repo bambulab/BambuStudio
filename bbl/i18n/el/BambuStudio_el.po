@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 21:56+0800\n"
+"POT-Creation-Date: 2026-09-07 10:00+0800\n"
 "PO-Revision-Date: 2026-06-10 10:23+0800\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -4410,6 +4410,12 @@ msgid "Are you sure to reset the ID sequence of the connected AMS?"
 msgstr ""
 
 msgid "Reset AMS Sequence"
+msgstr ""
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
 msgstr ""
 
 msgid "File"
@@ -11489,6 +11495,14 @@ msgstr ""
 msgid "Login"
 msgstr ""
 
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+
+msgid "Delete filament"
+msgstr ""
+
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr ""
 
@@ -16847,7 +16861,7 @@ msgstr ""
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
 
 msgid "Some existing presets have failed to be created, as follows:\n"
@@ -17148,14 +17162,6 @@ msgid "+ Add Preset"
 msgstr ""
 
 msgid "Delete Filament"
-msgstr ""
-
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-
-msgid "Delete filament"
 msgstr ""
 
 msgid "Add Preset"
@@ -17954,6 +17960,21 @@ msgstr ""
 msgid "More Colors"
 msgstr ""
 
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr ""
+
+msgid "No filaments"
+msgstr ""
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr ""
+
 msgid "Please set nozzle count"
 msgstr ""
 
@@ -18373,6 +18394,13 @@ msgid "Auxiliaries"
 msgstr ""
 
 msgid "An unexpected error occurred"
+msgstr ""
+
+msgid "Create Custom Filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]

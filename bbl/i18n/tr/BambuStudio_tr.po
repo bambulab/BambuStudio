@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 21:56+0800\n"
+"POT-Creation-Date: 2026-09-07 10:00+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -4456,6 +4456,12 @@ msgid "Are you sure to reset the ID sequence of the connected AMS?"
 msgstr ""
 
 msgid "Reset AMS Sequence"
+msgstr ""
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
 msgstr ""
 
 msgid "File"
@@ -11707,6 +11713,16 @@ msgstr "İndirmek için buraya tıklayın."
 msgid "Login"
 msgstr "Giriş yap"
 
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+"Bu filamente ait tüm filaman ön ayarları silinecektir. \n"
+"Yazıcınızda bu filamenti kullanıyorsanız lütfen o yuvanın filament bilgisini sıfırlayın."
+
+msgid "Delete filament"
+msgstr "Filamenti sil"
+
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "Yapılandırma paketi önceki Config Guide ile değiştirilir"
 
@@ -17131,10 +17147,8 @@ msgstr "Henüz bir yazıcı veya ön ayar seçmediniz. Lütfen en az birini seç
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"Oluşturduğunuz Filament adı %s zaten mevcut.\n"
-"Oluşturmaya devam ederseniz, oluşturulan ön ayar tam adıyla görüntülenecektir. Devam etmek istiyor musunuz?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "Aşağıdaki gibi bazı mevcut ön ayarlar oluşturulamadı:\n"
@@ -17459,16 +17473,6 @@ msgstr "+ Ön Ayar Ekle"
 
 msgid "Delete Filament"
 msgstr "Filamenti Sil"
-
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-"Bu filamente ait tüm filaman ön ayarları silinecektir. \n"
-"Yazıcınızda bu filamenti kullanıyorsanız lütfen o yuvanın filament bilgisini sıfırlayın."
-
-msgid "Delete filament"
-msgstr "Filamenti sil"
 
 msgid "Add Preset"
 msgstr "Ön Ayar Ekle"
@@ -18287,6 +18291,21 @@ msgstr "Resmi Filament"
 msgid "More Colors"
 msgstr "Daha Fazla Renk"
 
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr ""
+
+msgid "No filaments"
+msgstr ""
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr ""
+
 msgid "Please set nozzle count"
 msgstr ""
 
@@ -18708,6 +18727,13 @@ msgstr ""
 msgid "An unexpected error occurred"
 msgstr ""
 
+msgid "Create Custom Filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -18985,6 +19011,14 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The Filament name %s you created already exists. \n"
+#~ "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+#~ msgstr ""
+#~ "Oluşturduğunuz Filament adı %s zaten mevcut.\n"
+#~ "Oluşturmaya devam ederseniz, oluşturulan ön ayar tam adıyla görüntülenecektir. Devam etmek istiyor musunuz?"
 
 #, c-format, boost-format
 #~ msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"

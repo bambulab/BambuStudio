@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 21:56+0800\n"
+"POT-Creation-Date: 2026-09-07 10:00+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4454,6 +4454,12 @@ msgstr "연결된 AMS의 ID 시퀀스를 재설정하신 것이 맞습니까?"
 
 msgid "Reset AMS Sequence"
 msgstr "AMS 시퀀스 재설정"
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
+msgstr ""
 
 msgid "File"
 msgstr "파일"
@@ -11779,6 +11785,16 @@ msgstr "다운로드하기 위해 여기를 클릭하세요."
 msgid "Login"
 msgstr "로그인"
 
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+"이 필라멘트에 속한 모든 필라멘트 사전 설정이 삭제됩니다.\n"
+"프린터에서 이 필라멘트를 사용 중인 경우 해당 슬롯의 필라멘트 정보를 재설정하세요."
+
+msgid "Delete filament"
+msgstr "필라멘트 삭제"
+
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "설정 패키지가 이전 설정 가이드로 변경되었습니다."
 
@@ -17262,10 +17278,8 @@ msgstr "아직 프린터 또는 프리셋을 선택하지 않았습니다. 하�
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"생성한 필라멘트 이름 %s이 이미 존재합니다.\n"
-"계속하면 생성한 프리셋이 전체 이름과 함께 표시됩니다. 계속하시겠습니까?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "다음과 같이 일부 기존 프리셋을 만들지 못했습니다:\n"
@@ -17588,16 +17602,6 @@ msgid "+ Add Preset"
 msgstr "+ 프리셋 추가"
 
 msgid "Delete Filament"
-msgstr "필라멘트 삭제"
-
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-"이 필라멘트에 속한 모든 필라멘트 사전 설정이 삭제됩니다.\n"
-"프린터에서 이 필라멘트를 사용 중인 경우 해당 슬롯의 필라멘트 정보를 재설정하세요."
-
-msgid "Delete filament"
 msgstr "필라멘트 삭제"
 
 msgid "Add Preset"
@@ -18419,6 +18423,21 @@ msgstr "공식 필라멘트"
 msgid "More Colors"
 msgstr "더 많은 색상"
 
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr "지원되지 않는 필라멘트"
+
+msgid "No filaments"
+msgstr "필라멘트 없음"
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr "최근 사용됨"
+
 msgid "Please set nozzle count"
 msgstr "노즐 수를 설정하세요"
 
@@ -18848,6 +18867,13 @@ msgstr "보조 기능"
 msgid "An unexpected error occurred"
 msgstr "예기치 않은 오류가 발생했습니다"
 
+msgid "Create Custom Filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -19144,6 +19170,14 @@ msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
 
+#, c-format, boost-format
+#~ msgid ""
+#~ "The Filament name %s you created already exists. \n"
+#~ "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+#~ msgstr ""
+#~ "생성한 필라멘트 이름 %s이 이미 존재합니다.\n"
+#~ "계속하면 생성한 프리셋이 전체 이름과 함께 표시됩니다. 계속하시겠습니까?"
+
 #~ msgid "AMS detected a new official filament. Add it to Filament Manager?"
 #~ msgstr "AMS에서 새로운 공식 필라멘트를 감지했습니다. 필라멘트 관리자에 추가할까요?"
 
@@ -19265,21 +19299,12 @@ msgstr ""
 #~ msgid "Note"
 #~ msgstr "메모"
 
-#~ msgid "Unsupported Filaments"
-#~ msgstr "지원되지 않는 필라멘트"
-
 #~ msgctxt "Unsupported Filaments"
 #~ msgid "Note"
 #~ msgstr "메모"
 
 #~ msgid "No unsupported filaments"
 #~ msgstr "지원되지 않는 필라멘트 없음"
-
-#~ msgid "No filaments"
-#~ msgstr "필라멘트 없음"
-
-#~ msgid "Recently used"
-#~ msgstr "최근 사용됨"
 
 #~ msgid "Other Color"
 #~ msgstr "기타 색상"

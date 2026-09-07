@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 21:56+0800\n"
+"POT-Creation-Date: 2026-09-07 10:00+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4083,7 +4083,7 @@ msgid "Are you sure you want to clear the filament information?"
 msgstr "您确定要清除耗材丝信息吗？"
 
 msgid "Add to Filament Library?"
-msgstr ""
+msgstr "是否添加到耗材管理器？"
 
 msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
 msgstr "修改耗材类型或颜色将解除与耗材库的绑定，是否将此耗材作为新的一卷加入耗材库？"
@@ -4446,6 +4446,12 @@ msgstr "您确定要重置已连接AMS的ID序列吗？"
 
 msgid "Reset AMS Sequence"
 msgstr "重置AMS序列"
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
+msgstr "喷嘴温度"
 
 msgid "File"
 msgstr "文件"
@@ -7895,6 +7901,8 @@ msgid ""
 "Set to 0 to disable this and let the layer count alone decide.\n"
 "If the thickness from the layer count is not enough, the slicer adds bottom shell layers automatically."
 msgstr ""
+"设为 0 则关闭此功能，完全由层数决定\n"
+"若按层数算出的厚度不足，切片会自动增加底壳层数"
 
 msgid "Controls how many layers the top-surface color penetrates downward, keeping other filament colors inside from showing through."
 msgstr "控制顶面涂色向下渗透的层数，避免内部的其他耗材颜色透出"
@@ -7916,6 +7924,9 @@ msgid ""
 "More layers reduce bleed-through but increase the number of filament changes.\n"
 "To keep the upward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
 msgstr ""
+"层数越少，越容易透色\n"
+"层数越多，越不容易透色，但换料次数会增加\n"
+"为了避免向上渗透影响到模型的侧面颜色，向上渗透的区域会逐层缩小"
 
 msgid "Controls the toolpath pattern of internal solid infill, applied to the solid layers between the top and bottom shells and to internal solid regions."
 msgstr "控制内部实心填充的走线图案，作用于顶/底壳中间实心层及内部实心区域。"
@@ -8153,7 +8164,7 @@ msgstr ""
 "较小的值会使点更紧密地排列，从而产生更精细、更均匀的纹理，但会增加更多路径点，因此切片和打印速度会变慢，G 代码文件也会变大。"
 
 msgid "If it is too small, the software disables fuzzy skin because the point spacing is too small (to avoid abnormal paths)."
-msgstr ""
+msgstr "过小时软件会因避免点距过小导致路径异常，而禁用绒毛"
 
 msgid "Controls the width of the wall-path jitter when generating fuzzy skin, that is, the depth of the texture."
 msgstr "控制产生绒毛时墙体路径抖动的宽度，也就是纹理的深浅幅度"
@@ -8269,7 +8280,7 @@ msgid "Divides the surface into cells and offsets each as a whole, forming a pat
 msgstr "表面被划成若干单元，每个单元整体偏移，形成拼贴式台阶纹理。"
 
 msgid "View details on Wiki"
-msgstr ""
+msgstr "详细信息查看Wiki"
 
 msgid "Global"
 msgstr "全局"
@@ -9660,7 +9671,7 @@ msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than 
 msgstr "在3D视角放大到鼠标位置，而不是2D窗口的中心。"
 
 msgid "Reverse direction of zoom with mouse wheel"
-msgstr ""
+msgstr "反转鼠标滚轮缩放方向"
 
 msgid "If enabled, reverses the direction of zoom with mouse wheel."
 msgstr "勾选后，反转鼠标滚轮的缩放方向。"
@@ -11783,6 +11794,16 @@ msgstr "点此下载"
 
 msgid "Login"
 msgstr "登录"
+
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+"删除材料之后，附属的材料预设也会被一并删除。\n"
+"如果该材料正在您的打印机上使用，请重新设置该槽位的材料信息。"
+
+msgid "Delete filament"
+msgstr "删除材料"
 
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "参数配置包在之前的配置向导中发生了变更"
@@ -17586,16 +17607,6 @@ msgstr "+ 添加预设"
 msgid "Delete Filament"
 msgstr "删除材料"
 
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-"删除材料之后，附属的材料预设也会被一并删除。\n"
-"如果该材料正在您的打印机上使用，请重新设置该槽位的材料信息。"
-
-msgid "Delete filament"
-msgstr "删除材料"
-
 msgid "Add Preset"
 msgstr "添加预设"
 
@@ -18404,6 +18415,21 @@ msgstr "官方材料"
 msgid "More Colors"
 msgstr "其他颜色"
 
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr "不支持的耗材"
+
+msgid "No filaments"
+msgstr "暂无耗材"
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr "最近使用"
+
 msgid "Please set nozzle count"
 msgstr "请设置喷嘴数量"
 
@@ -18833,6 +18859,13 @@ msgstr "附件"
 msgid "An unexpected error occurred"
 msgstr "发生意外错误"
 
+msgid "Create Custom Filament"
+msgstr "创建自定义耗材"
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -19206,21 +19239,12 @@ msgstr ""
 #~ msgid "Note"
 #~ msgstr "提示"
 
-#~ msgid "Unsupported Filaments"
-#~ msgstr "不支持的耗材"
-
 #~ msgctxt "Unsupported Filaments"
 #~ msgid "Note"
 #~ msgstr "提示"
 
 #~ msgid "No unsupported filaments"
 #~ msgstr "无不支持的耗材"
-
-#~ msgid "No filaments"
-#~ msgstr "暂无耗材"
-
-#~ msgid "Recently used"
-#~ msgstr "最近使用"
 
 #~ msgid "Other Color"
 #~ msgstr "其他颜色"
@@ -19260,9 +19284,6 @@ msgstr ""
 
 #~ msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
 #~ msgstr "启用时，延时摄影快照将在远离摄像头的最远点拍摄，而不是移动到清洗塔或废料槽。仅在非 I3 打印机的传统延时摄影模式下有效。"
-
-#~ msgid "Create Custom Filament"
-#~ msgstr "创建自定义耗材"
 
 #~ msgid "Project Filament List"
 #~ msgstr "项目耗材列表"

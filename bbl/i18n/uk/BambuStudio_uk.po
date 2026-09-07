@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 21:56+0800\n"
+"POT-Creation-Date: 2026-09-07 10:00+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -4448,6 +4448,12 @@ msgid "Are you sure to reset the ID sequence of the connected AMS?"
 msgstr ""
 
 msgid "Reset AMS Sequence"
+msgstr ""
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
 msgstr ""
 
 msgid "File"
@@ -11667,6 +11673,16 @@ msgstr "Натисніть тут, щоб завантажити його."
 msgid "Login"
 msgstr "Логін"
 
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+"Всі набори параметрів філаменту, що належать до цього філаменту, будуть видалені. \n"
+"Якщо ви використовуєте цей філамент на своєму принтері, будь ласка, скиньте інформацію про філамент для цього слоту."
+
+msgid "Delete filament"
+msgstr "Видалити філамент"
+
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "Пакет конфігурації змінено на попередній Керівник конфігурації"
 
@@ -17080,10 +17096,8 @@ msgstr "Ви ще не вибрали принтер або налаштуван
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"Назва філаменту %s, яку ви створили, вже існує. \n"
-"Якщо ви продовжите створення, новий набір параметрів буде відображений з повною назвою. Хочете продовжити?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "Деякі існуючі налаштування не вдалося створити, як показано нижче:\n"
@@ -17408,16 +17422,6 @@ msgstr "+ Додати пресет"
 
 msgid "Delete Filament"
 msgstr "Видалити Філамент"
-
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-"Всі набори параметрів філаменту, що належать до цього філаменту, будуть видалені. \n"
-"Якщо ви використовуєте цей філамент на своєму принтері, будь ласка, скиньте інформацію про філамент для цього слоту."
-
-msgid "Delete filament"
-msgstr "Видалити філамент"
 
 msgid "Add Preset"
 msgstr "Додати пресет"
@@ -18228,6 +18232,21 @@ msgstr ""
 msgid "More Colors"
 msgstr ""
 
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr ""
+
+msgid "No filaments"
+msgstr ""
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr ""
+
 msgid "Please set nozzle count"
 msgstr ""
 
@@ -18649,6 +18668,13 @@ msgstr ""
 msgid "An unexpected error occurred"
 msgstr ""
 
+msgid "Create Custom Filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -18927,6 +18953,14 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The Filament name %s you created already exists. \n"
+#~ "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+#~ msgstr ""
+#~ "Назва філаменту %s, яку ви створили, вже існує. \n"
+#~ "Якщо ви продовжите створення, новий набір параметрів буде відображений з повною назвою. Хочете продовжити?"
 
 #, c-format, boost-format
 #~ msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"

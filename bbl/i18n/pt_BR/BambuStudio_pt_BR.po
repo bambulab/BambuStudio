@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 21:56+0800\n"
+"POT-Creation-Date: 2026-09-07 10:00+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4464,6 +4464,12 @@ msgstr "Tem certeza de que deseja redefinir a sequência de ID do AMS conectado?
 
 msgid "Reset AMS Sequence"
 msgstr "Reiniciar sequência AMS"
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
+msgstr ""
 
 msgid "File"
 msgstr "Arquivo"
@@ -11797,6 +11803,16 @@ msgstr "Clique aqui para fazer o download."
 msgid "Login"
 msgstr "Entrar"
 
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+"Todas as predefinições de filamento pertencentes a esse filamento seriam excluídas. \n"
+"Se você estiver usando esse filamento em sua impressora, redefina as informações de filamento desse slot."
+
+msgid "Delete filament"
+msgstr "Excluir filamento"
+
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "O pacote de configuração foi alterado para o Guia de Configuração anterior"
 
@@ -17277,10 +17293,8 @@ msgstr "Você ainda não selecionou uma impressora ou uma predefinição. Seleci
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"O nome do filamento %s que você criou já existe. \n"
-"Se você continuar criando, a predefinição criada será exibida com seu nome completo. Você quer continuar?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "Algumas predefinições existentes falharam ao serem criadas, como segue:\n"
@@ -17604,16 +17618,6 @@ msgid "+ Add Preset"
 msgstr "Adicionar predefinição"
 
 msgid "Delete Filament"
-msgstr "Excluir filamento"
-
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-"Todas as predefinições de filamento pertencentes a esse filamento seriam excluídas. \n"
-"Se você estiver usando esse filamento em sua impressora, redefina as informações de filamento desse slot."
-
-msgid "Delete filament"
 msgstr "Excluir filamento"
 
 msgid "Add Preset"
@@ -18437,6 +18441,21 @@ msgstr "Filamentos oficiais"
 msgid "More Colors"
 msgstr "Mais cores"
 
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr "Filamentos não compatíveis"
+
+msgid "No filaments"
+msgstr "Nenhum filamento"
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr "Usado recentemente"
+
 msgid "Please set nozzle count"
 msgstr "Por favor, defina a contagem de bicos"
 
@@ -18866,6 +18885,13 @@ msgstr "Auxiliares"
 msgid "An unexpected error occurred"
 msgstr "Ocorreu um erro inesperado"
 
+msgid "Create Custom Filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -19162,6 +19188,14 @@ msgstr ""
 "Confiabilidade na Primeira Tentativa\n"
 "Menos supervisão, saída mais previsível. Exemplo: uma pequena fazenda produzindo peças de PETG evita surpresas de \"falha na hora 6\" e mantém os lotes no cronograma."
 
+#, c-format, boost-format
+#~ msgid ""
+#~ "The Filament name %s you created already exists. \n"
+#~ "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+#~ msgstr ""
+#~ "O nome do filamento %s que você criou já existe. \n"
+#~ "Se você continuar criando, a predefinição criada será exibida com seu nome completo. Você quer continuar?"
+
 #~ msgid "AMS detected a new official filament. Add it to Filament Manager?"
 #~ msgstr "O AMS detectou um novo filamento oficial. Deseja adicioná-lo ao Gerenciador de filamentos?"
 
@@ -19242,21 +19276,12 @@ msgstr ""
 #~ msgid "Note"
 #~ msgstr "Nota"
 
-#~ msgid "Unsupported Filaments"
-#~ msgstr "Filamentos não compatíveis"
-
 #~ msgctxt "Unsupported Filaments"
 #~ msgid "Note"
 #~ msgstr "Nota"
 
 #~ msgid "No unsupported filaments"
 #~ msgstr "Nenhum filamento incompatível"
-
-#~ msgid "No filaments"
-#~ msgstr "Nenhum filamento"
-
-#~ msgid "Recently used"
-#~ msgstr "Usado recentemente"
 
 #~ msgid "Other Color"
 #~ msgstr "Outra cor"

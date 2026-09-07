@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 21:56+0800\n"
+"POT-Creation-Date: 2026-09-07 10:00+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4460,6 +4460,12 @@ msgstr "Biztosan visszaállítod az AMS-sorrendet?"
 
 msgid "Reset AMS Sequence"
 msgstr "AMS-sorrend visszaállítása"
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
+msgstr ""
 
 msgid "File"
 msgstr "Fájl"
@@ -11787,6 +11793,16 @@ msgstr "Kattints ide a letöltéshez."
 msgid "Login"
 msgstr "Bejelentkezés"
 
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+"A filamenthez tartozó összes beállítás törölve lesz. \n"
+"Ha ez a filament jelenleg használatban van a nyomtatón, kérjük, töröld az adott férőhelyen a filamentadatokat."
+
+msgid "Delete filament"
+msgstr "Filament törlése"
+
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "A konfigurációs csomag az előző konfigurációs útmutatóban módosult"
 
@@ -17265,10 +17281,8 @@ msgstr "Még nem választottál nyomtatót vagy beállítást. Kérjük, válass
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"A(z) %s filamentnév már létezik.\n"
-"Ha folytatod, az új beállítás a teljes nevével fog megjelenni. Folytatod?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "Nem sikerült létrehozni a következő beállításokat:\n"
@@ -17588,16 +17602,6 @@ msgid "+ Add Preset"
 msgstr "+ Beállítás hozzáadása"
 
 msgid "Delete Filament"
-msgstr "Filament törlése"
-
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-"A filamenthez tartozó összes beállítás törölve lesz. \n"
-"Ha ez a filament jelenleg használatban van a nyomtatón, kérjük, töröld az adott férőhelyen a filamentadatokat."
-
-msgid "Delete filament"
 msgstr "Filament törlése"
 
 msgid "Add Preset"
@@ -18419,6 +18423,21 @@ msgstr "Hivatalos filamentek"
 msgid "More Colors"
 msgstr "Több szín"
 
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr "Nem támogatott filamentek"
+
+msgid "No filaments"
+msgstr "Nincsenek filamentek"
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr "Legutóbb használt"
+
 msgid "Please set nozzle count"
 msgstr "Kérjük, állítsd be a fúvókaszámot"
 
@@ -18848,6 +18867,13 @@ msgstr "Segédanyagok"
 msgid "An unexpected error occurred"
 msgstr "Váratlan hiba történt"
 
+msgid "Create Custom Filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -19145,6 +19171,14 @@ msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
 
+#, c-format, boost-format
+#~ msgid ""
+#~ "The Filament name %s you created already exists. \n"
+#~ "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+#~ msgstr ""
+#~ "A(z) %s filamentnév már létezik.\n"
+#~ "Ha folytatod, az új beállítás a teljes nevével fog megjelenni. Folytatod?"
+
 #~ msgid "AMS detected a new official filament. Add it to Filament Manager?"
 #~ msgstr "Az AMS új hivatalos filamentet észlelt. Hozzáadja a Filamentkezelőhöz?"
 
@@ -19223,21 +19257,12 @@ msgstr ""
 #~ msgid "Note"
 #~ msgstr "Megjegyzés"
 
-#~ msgid "Unsupported Filaments"
-#~ msgstr "Nem támogatott filamentek"
-
 #~ msgctxt "Unsupported Filaments"
 #~ msgid "Note"
 #~ msgstr "Megjegyzés"
 
 #~ msgid "No unsupported filaments"
 #~ msgstr "Nincsenek nem támogatott filamentek"
-
-#~ msgid "No filaments"
-#~ msgstr "Nincsenek filamentek"
-
-#~ msgid "Recently used"
-#~ msgstr "Legutóbb használt"
 
 #~ msgid "Other Color"
 #~ msgstr "Más szín"

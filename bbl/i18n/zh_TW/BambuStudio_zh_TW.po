@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 21:56+0800\n"
+"POT-Creation-Date: 2026-09-07 10:00+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4442,6 +4442,12 @@ msgstr "您確定要重置已連線AMS的ID序列嗎？"
 
 msgid "Reset AMS Sequence"
 msgstr "重置AMS序列"
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
+msgstr ""
 
 msgid "File"
 msgstr "檔案"
@@ -11706,6 +11712,16 @@ msgstr "點此下載"
 msgid "Login"
 msgstr "登入"
 
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+"刪除材料之後，附屬的材料預設也會被一併刪除。\n"
+"如果該材料正在您的印表機上使用，請重新設定該槽位的材料資訊。"
+
+msgid "Delete filament"
+msgstr "刪除材料"
+
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "引數配置包在之前的配置嚮導中發生了變更"
 
@@ -17179,10 +17195,8 @@ msgstr "您還沒有選擇印表機或預設。請至少選擇一個。"
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"您建立的耗材絲名字%s已經存在。\n"
-"如果您繼續建立，您建立的預設將以全名顯示。您想繼續嗎？"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "以下一些現有預設未能成功建立：\n"
@@ -17498,16 +17512,6 @@ msgid "+ Add Preset"
 msgstr "+ 新增預設"
 
 msgid "Delete Filament"
-msgstr "刪除材料"
-
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-"刪除材料之後，附屬的材料預設也會被一併刪除。\n"
-"如果該材料正在您的印表機上使用，請重新設定該槽位的材料資訊。"
-
-msgid "Delete filament"
 msgstr "刪除材料"
 
 msgid "Add Preset"
@@ -18318,6 +18322,21 @@ msgstr "官方材料"
 msgid "More Colors"
 msgstr "其他顏色"
 
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr ""
+
+msgid "No filaments"
+msgstr ""
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr ""
+
 msgid "Please set nozzle count"
 msgstr "請設定噴嘴數量"
 
@@ -18747,6 +18766,13 @@ msgstr ""
 msgid "An unexpected error occurred"
 msgstr ""
 
+msgid "Create Custom Filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -19040,6 +19066,14 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The Filament name %s you created already exists. \n"
+#~ "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+#~ msgstr ""
+#~ "您建立的耗材絲名字%s已經存在。\n"
+#~ "如果您繼續建立，您建立的預設將以全名顯示。您想繼續嗎？"
 
 #, c-format, boost-format
 #~ msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"

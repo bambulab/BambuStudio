@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 21:56+0800\n"
+"POT-Creation-Date: 2026-09-07 10:00+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4455,6 +4455,12 @@ msgstr "Är du säker på att återställa ID sekvens för anslutna AMS?"
 
 msgid "Reset AMS Sequence"
 msgstr "Återställ AMS sekvens"
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
+msgstr ""
 
 msgid "File"
 msgstr "Fil"
@@ -11773,6 +11779,16 @@ msgstr "Klicka här för att ladda ner den."
 msgid "Login"
 msgstr "Logga in"
 
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+"Alla filament inställningar som hör till detta filament kommer att raderas. \n"
+"Om du använder detta filament i din printer, vänligen återställ filament informationen för den platsen."
+
+msgid "Delete filament"
+msgstr "Ta bort filament"
+
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "Konfigurations paketet ändras till föregående konfigurations guide"
 
@@ -17255,10 +17271,8 @@ msgstr "Du har ännu inte valt någon printer eller inställning. Välj minst en
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"Filamentnamnet %s som du skapade finns redan. \n"
-"Om du fortsätter kommer den skapade inställningen att visas med sitt fullständiga namn. Vill du fortsätta?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "Vissa befintliga inställningar har inte skapats, enligt följande:\n"
@@ -17582,16 +17596,6 @@ msgid "+ Add Preset"
 msgstr "+ Lägg till inställning"
 
 msgid "Delete Filament"
-msgstr "Ta bort filament"
-
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-"Alla filament inställningar som hör till detta filament kommer att raderas. \n"
-"Om du använder detta filament i din printer, vänligen återställ filament informationen för den platsen."
-
-msgid "Delete filament"
 msgstr "Ta bort filament"
 
 msgid "Add Preset"
@@ -18411,6 +18415,21 @@ msgstr "Officiella filament"
 msgid "More Colors"
 msgstr "Fler färger"
 
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr "Filament utan stöd"
+
+msgid "No filaments"
+msgstr "Inga filament"
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr "Nyligen använt"
+
 msgid "Please set nozzle count"
 msgstr "Ange antal nozzle"
 
@@ -18840,6 +18859,13 @@ msgstr "Hjälpmedel"
 msgid "An unexpected error occurred"
 msgstr "Ett oväntat fel uppstod"
 
+msgid "Create Custom Filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -19134,6 +19160,14 @@ msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
 
+#, c-format, boost-format
+#~ msgid ""
+#~ "The Filament name %s you created already exists. \n"
+#~ "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+#~ msgstr ""
+#~ "Filamentnamnet %s som du skapade finns redan. \n"
+#~ "Om du fortsätter kommer den skapade inställningen att visas med sitt fullständiga namn. Vill du fortsätta?"
+
 #~ msgid "AMS detected a new official filament. Add it to Filament Manager?"
 #~ msgstr "AMS upptäckte ett nytt officiellt filament. Lägg till det i Filament Manager?"
 
@@ -19252,21 +19286,12 @@ msgstr ""
 #~ msgid "Note"
 #~ msgstr "Notera"
 
-#~ msgid "Unsupported Filaments"
-#~ msgstr "Filament utan stöd"
-
 #~ msgctxt "Unsupported Filaments"
 #~ msgid "Note"
 #~ msgstr "Notera"
 
 #~ msgid "No unsupported filaments"
 #~ msgstr "Inga filament utan stöd"
-
-#~ msgid "No filaments"
-#~ msgstr "Inga filament"
-
-#~ msgid "Recently used"
-#~ msgstr "Nyligen använt"
 
 #~ msgid "Other Color"
 #~ msgstr "Annan färg"

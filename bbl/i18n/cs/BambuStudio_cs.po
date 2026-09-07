@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 21:56+0800\n"
+"POT-Creation-Date: 2026-09-07 10:00+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -4476,6 +4476,12 @@ msgstr "Opravdu chcete obnovit sekvenci ID připojeného AMS?"
 
 msgid "Reset AMS Sequence"
 msgstr "Obnovit sekvenci AMS"
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
+msgstr ""
 
 msgid "File"
 msgstr "Soubor"
@@ -11867,6 +11873,17 @@ msgstr "Klikněte zde pro stažení."
 msgid "Login"
 msgstr "Přihlášení"
 
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+"Všechna přednastavení tohoto filamentu budou smazána. \n"
+"Pokud tento filament používáte na své tiskárně, resetujte prosím informace o filamentu pro daný slot.Všechna přednastavení filamentu patřící k tomuto filamentu budou smazána. \n"
+"Pokud tento filament používáte ve své tiskárně, nastavte prosím znovu informace o filamentu pro tento slot."
+
+msgid "Delete filament"
+msgstr "Smazat filament"
+
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "Konfigurační balíček byl změněn na předchozího průvodce konfigurací"
 
@@ -17384,10 +17401,8 @@ msgstr "Zatím jste nevybrali tiskárnu ani přednastavení. Vyberte prosím ale
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"Název filamentu %s, který jste vytvořili, již existuje. \n"
-"Pokud budete pokračovat, vytvořené přednastavení se zobrazí pod svým plným názvem. Chcete pokračovat?"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "Některá existující přednastavení se nepodařilo vytvořit, viz níže:\n"
@@ -17724,17 +17739,6 @@ msgid "+ Add Preset"
 msgstr "+ Přidat přednastavení"
 
 msgid "Delete Filament"
-msgstr "Smazat filament"
-
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-"Všechna přednastavení tohoto filamentu budou smazána. \n"
-"Pokud tento filament používáte na své tiskárně, resetujte prosím informace o filamentu pro daný slot.Všechna přednastavení filamentu patřící k tomuto filamentu budou smazána. \n"
-"Pokud tento filament používáte ve své tiskárně, nastavte prosím znovu informace o filamentu pro tento slot."
-
-msgid "Delete filament"
 msgstr "Smazat filament"
 
 msgid "Add Preset"
@@ -18564,6 +18568,21 @@ msgstr "Oficiální filament"
 msgid "More Colors"
 msgstr "Více barev"
 
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr ""
+
+msgid "No filaments"
+msgstr ""
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr ""
+
 msgid "Please set nozzle count"
 msgstr "Nastavte prosím počet trysek"
 
@@ -18993,6 +19012,13 @@ msgstr ""
 msgid "An unexpected error occurred"
 msgstr ""
 
+msgid "Create Custom Filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -19313,6 +19339,14 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The Filament name %s you created already exists. \n"
+#~ "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+#~ msgstr ""
+#~ "Název filamentu %s, který jste vytvořili, již existuje. \n"
+#~ "Pokud budete pokračovat, vytvořené přednastavení se zobrazí pod svým plným názvem. Chcete pokračovat?"
 
 #, c-format, boost-format
 #~ msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"

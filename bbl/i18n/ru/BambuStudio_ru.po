@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 21:56+0800\n"
+"POT-Creation-Date: 2026-09-07 10:00+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -4529,6 +4529,12 @@ msgid "Are you sure to reset the ID sequence of the connected AMS?"
 msgstr ""
 
 msgid "Reset AMS Sequence"
+msgstr ""
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
 msgstr ""
 
 msgid "File"
@@ -11911,6 +11917,14 @@ msgstr "Нажмите здесь, чтобы загрузить его."
 msgid "Login"
 msgstr "Войти"
 
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr "Все профили прутка, относящиеся к этому материалу, будут удалены. Если вы используете этот пруток в принтере, пожалуйста, сбросьте информацию о прутке для этого слота."
+
+msgid "Delete filament"
+msgstr "Удаление прутка"
+
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "Пакет профилей был изменён при предыдущем запуске мастера настройки."
 
@@ -17420,10 +17434,8 @@ msgstr "Выберите хотя бы один принтер или профи
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"Пластиковая нить с таким именем %s уже существует. \n"
-"Если продолжить создание, то созданный профиль будет отображаться с полным именем. Хотите продолжить?"
 
 # ??? Создание некоторых профилей завершилось с ошибкой. Список проблемных профилей:
 msgid "Some existing presets have failed to be created, as follows:\n"
@@ -17761,14 +17773,6 @@ msgstr "+ Добавить профиль"
 
 msgid "Delete Filament"
 msgstr "Удалить пруток"
-
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr "Все профили прутка, относящиеся к этому материалу, будут удалены. Если вы используете этот пруток в принтере, пожалуйста, сбросьте информацию о прутке для этого слота."
-
-msgid "Delete filament"
-msgstr "Удаление прутка"
 
 msgid "Add Preset"
 msgstr "Добавить профиль"
@@ -18594,6 +18598,21 @@ msgstr ""
 msgid "More Colors"
 msgstr ""
 
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr ""
+
+msgid "No filaments"
+msgstr ""
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr ""
+
 msgid "Please set nozzle count"
 msgstr ""
 
@@ -19015,6 +19034,13 @@ msgstr ""
 msgid "An unexpected error occurred"
 msgstr ""
 
+msgid "Create Custom Filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -19292,6 +19318,14 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The Filament name %s you created already exists. \n"
+#~ "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+#~ msgstr ""
+#~ "Пластиковая нить с таким именем %s уже существует. \n"
+#~ "Если продолжить создание, то созданный профиль будет отображаться с полным именем. Хотите продолжить?"
 
 #, c-format, boost-format
 #~ msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
