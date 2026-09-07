@@ -224,6 +224,7 @@ inline wxColour dlg_text_secondary(){ return wxGetApp().dark_mode() ? wxColour(0
 // recently-used spool LRU (Filament Manager spools only)
 
 constexpr size_t      SPOOL_RECENT_MAX = 6;
+constexpr size_t      SPOOL_RECENT_SHOW = 5;
 constexpr const char* SPOOL_RECENT_KEY = "filament_mgr_recent_spools";
 
 std::vector<wxString> load_recent_spool_ids()
@@ -610,11 +611,14 @@ void FilamentSelectDialog::fill_manager_tab()
         };
 
         // Pass 1: recently used (LRU order, newest first), excluding in-printer
+        std::set<std::string> shown_recent;
         for (const wxString& sid : recent_ids) {
+            if (shown_recent.size() >= SPOOL_RECENT_SHOW) break;
             for (auto& [b, sp] : all_supported) {
                 if (sp.in_printer) continue;
                 if (wxString::FromUTF8(sp.spool_id) != sid) continue;
                 add_row(b, sp, true);
+                shown_recent.insert(sp.spool_id);
                 break;
             }
         }
@@ -622,8 +626,7 @@ void FilamentSelectDialog::fill_manager_tab()
         // Pass 2: remaining supported spools (not in-printer, not recently used)
         for (auto& [b, sp] : all_supported) {
             if (sp.in_printer) continue;
-            const wxString sid = wxString::FromUTF8(sp.spool_id);
-            if (std::find(recent_ids.begin(), recent_ids.end(), sid) != recent_ids.end()) continue;
+            if (shown_recent.count(sp.spool_id)) continue;
             add_row(b, sp, false);
         }
 

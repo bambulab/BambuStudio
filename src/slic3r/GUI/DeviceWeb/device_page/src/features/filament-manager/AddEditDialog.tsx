@@ -682,15 +682,15 @@ export function AddEditDialog({
   // concurrent primary/fallback kick) would re-issue the same query_for_id.
   const candidateLoadInflight = useRef<Set<string>>(new Set());
   const handleCreateCustomFilament = useCallback(() => {
-    const payload = customBrands.includes(brand) ? { vendor: brand } : {};
+    const vendor = brand.trim();
     void requestRpc<{
       module: 'filament'; submod: 'preset'; action: 'create_custom';
-      payload: { vendor?: string };
+      payload: { vendor: string };
     }, BridgeResponseBody>({
       module: 'filament', submod: 'preset', action: 'create_custom',
-      payload,
+      payload: { vendor },
     });
-  }, [brand, customBrands, requestRpc]);
+  }, [brand, requestRpc]);
   const loadCandidates = useCallback(async (id: string) => {
     if (!id) return;
     const cur = useStore.getState().filament.candidatesByFilaId;

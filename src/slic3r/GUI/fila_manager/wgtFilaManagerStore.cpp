@@ -438,6 +438,20 @@ bool wgtFilaManagerStore::force_mount_spool(const std::string& spool_id,
         return false;
     }
     FilamentSpool& s = it->second;
+    for (auto& [oid, ospool] : m_spools) {
+        if (oid == spool_id)                          continue;
+        if (!ospool.in_printer)                       continue;
+        if (ospool.dev_id != dev_id)                  continue;
+        if (ospool.ams_id != ams_id)                  continue;
+        if (ospool.slot_id != slot_id)                continue;
+        ospool.in_printer  = false;
+        ospool.dev_id.clear();
+        ospool.device_name.clear();
+        ospool.ams_sn.clear();
+        ospool.ams_id      = -1;
+        ospool.ams_type    = -1;
+        ospool.slot_id.clear();
+    }
     s.in_printer  = true;
     s.dev_id      = dev_id;
     s.device_name = dev_name;
