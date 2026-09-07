@@ -112,6 +112,7 @@ function HandleStudio(pVal) {
         m_ProfileItem = pVal['response'];
         parseProfileData();
         buildUI();
+        UpdateWizardFinishBtnLabel();
 
         // Fresh session (no filament carries a saved selection yet): mirror the
         // legacy ConfigWizard's on-printer-pick auto-default behavior by
@@ -705,6 +706,43 @@ function CancelSelect() {
 function ConfirmSelect() {
     var bRet = ResponseFilamentResult();
     if (bRet) {
+        var tSend = {};
+        tSend['sequence_id'] = Math.round(new Date() / 1000);
+        tSend['command'] = "user_guide_finish";
+        tSend['data'] = {};
+        tSend['data']['action'] = "finish";
+        SendWXMessage(JSON.stringify(tSend));
+    }
+}
+
+function UpdateWizardFinishBtnLabel() {
+    var qs = location.search;
+    var isWizard = qs.indexOf('wizard=1') !== -1 || qs.indexOf('target=23') !== -1;
+    if (!isWizard) return;
+    var acceptBtn = document.getElementById('AcceptBtn');
+    if (!acceptBtn) return;
+    var needNetPlugin = m_ProfileItem && (m_ProfileItem["network_plugin_install"] != '1' ||
+        (m_ProfileItem["network_plugin_install"] == '1' && m_ProfileItem["network_plugin_compability"] == '0'));
+    var tid = needNetPlugin ? 't9' : 't25';
+    acceptBtn.setAttribute('tid', tid);
+    // Translate just this button, not the whole page: calling TranslatePage()
+    // here would also re-stamp #filterResultText (tid t241) with its static
+    // "0 matches" placeholder, clobbering the live count renderFilamentList()
+    // just computed.
+    var lang = localStorage.getItem('BambuWebLang') || 'en';
+    if (!LangText.hasOwnProperty(lang)) lang = 'en';
+    var text = (LangText[lang] && LangText[lang][tid]) || (LangText['en'] && LangText['en'][tid]) || (tid === 't9' ? 'Next' : 'Finish');
+    acceptBtn.textContent = text;
+    acceptBtn.style.visibility = 'visible';
+}
+
+function ConfirmSelectWizard() {
+    var bRet = ResponseFilamentResult();
+    if (!bRet) return;
+    if (m_ProfileItem && (m_ProfileItem["network_plugin_install"] != '1' ||
+        (m_ProfileItem["network_plugin_install"] == '1' && m_ProfileItem["network_plugin_compability"] == '0'))) {
+        window.open('../5/index.html', '_self');
+    } else {
         var tSend = {};
         tSend['sequence_id'] = Math.round(new Date() / 1000);
         tSend['command'] = "user_guide_finish";

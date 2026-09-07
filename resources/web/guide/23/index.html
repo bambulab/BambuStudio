@@ -42,12 +42,17 @@
             acceptArea.style.cssText = 'height:12%;padding:0 10mm 16px;display:flex;justify-content:flex-end;align-items:flex-end;';
         }
         // 上一步（GrayBtn）左边，结束（NormalBtn）右边，两个靠右排列
+        // guide/23's own CSS scopes #AcceptArea .NormalBtn/.GrayBtn to a smaller
+        // size (32px tall) for the standalone material page. In wizard mode we
+        // want the same big buttons as the other wizard pages (guide/21, 22, ...),
+        // so re-apply common.css's original NormalBtn/GrayBtn sizing inline —
+        // inline style wins over that ID-scoped rule since it isn't !important.
         var preBtn = document.getElementById('PreBtn');
         if (preBtn) {
             preBtn.className = 'GrayBtn trans';
             preBtn.setAttribute('tid', 't8');
             preBtn.textContent = 'Back';
-            preBtn.removeAttribute('style');
+            preBtn.style.cssText = 'padding:3mm 9mm;font-size:14px;height:auto;line-height:22px;border-radius:18px;';
             preBtn.onclick = function() { window.open('../21/index.html', '_self'); };
         }
         var acceptBtn = document.getElementById('AcceptBtn');
@@ -55,7 +60,11 @@
             acceptBtn.className = 'NormalBtn trans';
             acceptBtn.setAttribute('tid', 't25');
             acceptBtn.textContent = 'Finish';
-            acceptBtn.removeAttribute('style');
+            acceptBtn.style.cssText = 'padding:3mm 9mm;font-size:14px;height:auto;line-height:22px;border-radius:16px;visibility:hidden;';
+            acceptBtn.onclick = function() { ConfirmSelectWizard(); };
+            // Stays hidden until UpdateWizardFinishBtnLabel() (23.js) picks the
+            // real label once the profile response tells us whether the network
+            // plugin page is needed next — avoids a visible "结束"→"下一步" flash.
         }
         // Move PreBtn before AcceptBtn in DOM so order is: 上一步 | 结束
         if (preBtn && acceptBtn && acceptBtn.parentNode) {
