@@ -276,7 +276,7 @@ ParamTipStore::ParamTipStore()
          make_entry("skirt_loops", _L("Prints detached outline loops (a skirt) around the model to purge the nozzle and stabilize extrusion before printing starts."),
                     _L("More loops purge more thoroughly but use more material; set to 0 to disable the skirt."))},
         {"skirt_height", make_entry("skirt_height", _L("Controls how many layers the skirt is printed."),
-                                    _L("During the first few layers, a taller skirt can partly block cold air around the printer, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
+                                    _L("During the first few layers, a taller skirt can partly block cold air around the model, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
                                        "The default is 1 layer."),
                                     _L("Requires the skirt loop count to be greater than 0."))},
         {"brim_type",
