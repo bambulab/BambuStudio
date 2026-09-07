@@ -14,16 +14,19 @@ function escapeHtml(str) {
     });
 }
 
+function _t(tid) {
+    var lang = (typeof GetQueryString === 'function' ? GetQueryString('lang') : null)
+             || localStorage.getItem('BambuWebLang') || 'en';
+    if (typeof LangText === 'undefined' || !LangText.hasOwnProperty(lang)) lang = 'en';
+    return (LangText[lang] && LangText[lang][tid]) || (LangText['en'] && LangText['en'][tid]) || '';
+}
+
 // Hover text for the "为当前打印机创建" radio card:
 //   - No printer connected  → t272 "暂无打印机，请连接打印机" / "No printer connected. Please connect a printer."
 //   - Printer connected     → t273 prefix + printer name
 // Uses the native title attribute so it works even when the card is disabled and
 // pointer-events would normally block interaction on child elements.
 function updateCurrentPrinterTooltip(connected, deviceName) {
-    var lang = (typeof GetQueryString === 'function' ? GetQueryString('lang') : null)
-             || localStorage.getItem('BambuWebLang') || 'en';
-    if (typeof LangText === 'undefined' || !LangText.hasOwnProperty(lang)) lang = 'en';
-    function _t(tid) { return (LangText[lang] && LangText[lang][tid]) || (LangText['en'] && LangText['en'][tid]) || ''; }
     var tip = connected
         ? (_t('t273') + (deviceName || ''))
         : _t('t272');
@@ -140,7 +143,7 @@ $(document).ready(function () {
     });
 
     function renderVendors() {
-        let html = '<div class="dropdown-category">System</div>';
+        let html = '';
         VENDOR_LIST.forEach(v => { html += `<div class="dropdown-item" data-val="${escapeHtml(v)}">${escapeHtml(v)}</div>`; });
         // Append any user-added custom vendors flat at the tail — no separate section header,
         // no placeholder row when empty. "+ 添加供应商品牌" below the list already conveys
@@ -280,7 +283,7 @@ $(document).ready(function () {
         // greyed out) that they've overshot. Deleting back to 50 or less makes the
         // Confirm button usable again without them having to guess "why can't I type".
         if (val.length > 50) {
-            $('#new-vendor-error').text('Max 50 characters').removeClass('hidden');
+            $('#new-vendor-error').text(_t('t274')).removeClass('hidden');
             $(this).addClass('error');
             $('#vendor-btn-confirm').prop('disabled', true);
         } else {
@@ -295,13 +298,13 @@ $(document).ready(function () {
         const errorEl = $('#new-vendor-error');
         const inputEl = $('#new-vendor-input');
         if (!val) {
-            errorEl.text('Please enter a name').removeClass('hidden');
+            errorEl.text(_t('t275')).removeClass('hidden');
             inputEl.addClass('error');
             return;
         }
         const isDuplicate = VENDOR_LIST.concat(customVendors).some(v => v.toLowerCase() === val.toLowerCase());
         if (isDuplicate) {
-            errorEl.text('Name already exists').removeClass('hidden');
+            errorEl.text(_t('t276')).removeClass('hidden');
             inputEl.addClass('error');
             return;
         }

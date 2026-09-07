@@ -238,7 +238,10 @@ var LangText={
 		"t270": "No compatible printers",
 		"t271": "",
 		"t272": "No printer connected. Please connect a printer.",
-		"t273": "Currently connected printer: "
+		"t273": "Currently connected printer: ",
+		"t274": "Max 50 characters",
+		"t275": "Please enter a name",
+		"t276": "Name already exists"
 	},
 	"zh_CN": {
 		"t1": "欢迎使用Bambu Studio",
@@ -496,7 +499,10 @@ var LangText={
 		"t270": "没有适配的打印机",
 		"t271": "个",
 		"t272": "暂无打印机，请连接打印机",
-		"t273": "当前连接的打印机："
+		"t273": "当前连接的打印机：",
+		"t274": "最多50个字符",
+		"t275": "请输入名称",
+		"t276": "名称已存在"
 	},
 	"ja_JP": {
 		"t1": "Bambu Studioへようこそ",
