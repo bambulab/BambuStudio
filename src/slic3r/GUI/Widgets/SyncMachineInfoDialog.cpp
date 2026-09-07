@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include <wx/dcbuffer.h>
+#include <wx/dcmemory.h>
 #include <wx/gdicmn.h>
 #include <wx/graphics.h>
 #include <wx/sizer.h>
@@ -25,6 +26,8 @@
 #include <wx/timer.h>
 
 namespace Slic3r ::GUI {
+
+enum class NozzleCardState { Normal, Empty, Abnormal, Unknown };
 
 // Data needed to render a single rack hotend column.
 struct HotendEntry
@@ -39,6 +42,7 @@ struct HotendEntry
     wxString                 nozzle_flow_type;     // "Standard" / "High Flow"
     bool                     syncing{false};       // drives the rotating arc in the card header
     bool                     is_hotend{true};
+    NozzleCardState          nozzle_state{NozzleCardState::Normal};
 };
 
 namespace {
@@ -76,6 +80,15 @@ HotendEntry make_hotend(MachineObject *obj, const DevNozzle &n)
     e.nozzle_flow_type = (n.GetNozzleFlowType() == NozzleFlowType::H_FLOW) ? _L("High Flow") : _L("Standard");
     e.is_hotend        = n.IsHotend();
 
+    if (n.IsEmpty())
+        e.nozzle_state = NozzleCardState::Empty;
+    else if (n.IsUnknown())
+        e.nozzle_state = NozzleCardState::Unknown;
+    else if (n.IsAbnormal())
+        e.nozzle_state = NozzleCardState::Abnormal;
+
+    if (e.nozzle_state != NozzleCardState::Normal) { e.filament_loaded = false; }
+
     const auto &slots = n.GetBindAmsSlots();
     if (!slots.empty() && obj) {
         auto tray_opt = obj->get_tray(slots[0].first, slots[0].second);
@@ -94,10 +107,7 @@ HotendEntry make_hotend(MachineObject *obj, const DevNozzle &n)
             e.filament_remain = std::clamp(tray.remain, 1, 100); // floor at 1 so an empty-but-loaded spool still draws a sliver
             if (!tray.cols.empty()) {
                 e.filament_colors = tray.cols;
-                // Enum names lie: CTYPE_MULTI renders as a blended linear gradient
-                // (see AMSMaterialsSetting.cpp:1976) while CTYPE_GRADIANT renders
-                // as pie wedges. We want the gradient flag set on the blended one.
-                e.is_gradient = (tray.ctype == DevFilaColorType::CTYPE_MULTI);
+                e.is_gradient     = (tray.ctype == DevFilaColorType::CTYPE_GRADIANT);
             }
             e.syncing = tray.is_reading(obj->tray_reading_bits);
         }
@@ -137,14 +147,20 @@ std::vector<HotendEntry> CollectHotendEntries(MachineObject *obj)
 
 wxColour ResolveFilamentColor(const std::string &hex_in)
 {
-    if (hex_in.empty()) return C(ThemeColor::Grey400);
+    const wxColour fallback = C(ThemeColor::Grey400);
+    if (hex_in.empty()) return fallback;
 
-    wxString hex = wxString::FromUTF8(hex_in);
-    if (!hex.IsEmpty() && hex[0] != '#') hex.Prepend("#");
-    if (hex.CmpNoCase(kColorFallbackSentinel) == 0) return C(ThemeColor::Grey400);
+    wxString hex = wxString::FromUTF8(hex_in); // empty when hex_in is not valid UTF-8
+    if (hex.IsEmpty()) return fallback;
+    if (hex[0] != '#') hex.Prepend("#");
 
     wxColour parsed;
-    if (!parsed.Set(hex)) return C(ThemeColor::Grey400);
+    if (!parsed.Set(hex)) return fallback;
+
+    // The sentinel arrives alpha-padded ("D9D9D9FF"), so match on RGB alone —
+    // comparing the whole string never fired and let it through as a real grey.
+    const wxColour sentinel(kColorFallbackSentinel);
+    if (parsed.Alpha() == wxALPHA_OPAQUE && parsed.Red() == sentinel.Red() && parsed.Green() == sentinel.Green() && parsed.Blue() == sentinel.Blue()) return fallback;
 
     return parsed;
 }
@@ -162,6 +178,113 @@ wxGraphicsPath DonutWedge(wxGraphicsContext *gc, int cx, int cy, double r1, doub
     return p;
 }
 
+// ---------------------------------------------------------------------------
+// Filament colour policy — a port of the device page's MaterialDonut
+// (web: features/device-page/ams-filament-hotend/components/SpoolGraphic.tsx).
+// Keep the two in sync:
+//   single       flat disc
+//   multi        concentric bands, colors[0] innermost .. colors[N-1] on the rim
+//   gradient     radial blend over that same inner -> outer axis
+//   translucent  any alpha < 255 puts a checkerboard under the paint, and the
+//                paint keeps the firmware alpha (floored so a near-clear spool
+//                still tints the checker instead of vanishing into it)
+//   remain       every one of the above is confined to the remaining wedge
+// ---------------------------------------------------------------------------
+constexpr int    kCheckerTileVB = 6;   // checker tile, in the 52-unit spool viewBox
+constexpr double kMinPaintAlpha = 0.2; // opacity floor for a near-clear spool
+
+const wxColour kCheckerBg{0xDF, 0xEE, 0xE4};
+const wxColour kCheckerFg{0x9E, 0xD3, 0xAE};
+
+// Any partial alpha counts as translucent, not just a fully clear spool.
+bool HasTranslucentColor(const std::vector<wxColour> &colors)
+{
+    return std::any_of(colors.begin(), colors.end(), [](const wxColour &c) { return c.Alpha() < wxALPHA_OPAQUE; });
+}
+
+// Firmware alpha drives the paint opacity, floored so the colour still reads.
+wxColour SpoolPaintColor(const wxColour &c)
+{
+    const double a = std::max(kMinPaintAlpha, c.Alpha() / 255.0);
+    return wxColour(c.Red(), c.Green(), c.Blue(), (unsigned char) std::lround(a * 255.0));
+}
+
+// 2x2 checker tile used as the translucent backdrop, in the device page tones.
+wxBitmap MakeCheckerTile(int tile)
+{
+    const int  half = std::max(1, tile / 2);
+    wxBitmap   bmp(half * 2, half * 2);
+    wxMemoryDC dc(bmp);
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(wxBrush(kCheckerBg));
+    dc.DrawRectangle(0, 0, half * 2, half * 2);
+    dc.SetBrush(wxBrush(kCheckerFg));
+    dc.DrawRectangle(0, 0, half, half);
+    dc.DrawRectangle(half, half, half, half);
+    dc.SelectObject(wxNullBitmap);
+    return bmp;
+}
+
+// Paintable area of the colour donut: the whole [r0, r1] annulus for a full
+// spool, otherwise only the remaining wedge (from 12 o'clock, CW). Filled with
+// the default odd-even rule, so the two circles leave the hub cut out.
+wxGraphicsPath SpoolFillArea(wxGraphicsContext *gc, int cx, int cy, double r1, double r0, int remain)
+{
+    if (remain >= 100) {
+        wxGraphicsPath p = gc->CreatePath();
+        p.AddCircle(cx, cy, r1);
+        p.AddCircle(cx, cy, r0);
+        return p;
+    }
+    const double start = -M_PI / 2;
+    return DonutWedge(gc, cx, cy, r1, r0, start, start + (remain / 100.0) * 2 * M_PI);
+}
+
+// colors[0] is the innermost band. Painted outermost first, each band covering
+// everything inside it, so neighbours share an edge without an antialias seam.
+void FillSpoolBands(wxGraphicsContext *gc, int cx, int cy, double ring_r, double hole_r, int remain, const std::vector<wxColour> &colors)
+{
+    const double band = (ring_r - hole_r) / colors.size();
+    for (size_t i = colors.size(); i-- > 0;) {
+        const double r1 = (i + 1 == colors.size()) ? ring_r : hole_r + band * (i + 1);
+        gc->SetBrush(wxBrush(SpoolPaintColor(colors[i])));
+        gc->FillPath(SpoolFillArea(gc, cx, cy, r1, hole_r, remain));
+    }
+}
+
+// Radial blend anchored so colors[0] lands on the hub edge and colors[N-1] on
+// the rim; spreading the stops over the full radius instead would bury the
+// first ones under the hub. Mirrors gradientStopOffset() on the web.
+void FillSpoolGradient(wxGraphicsContext *gc, int cx, int cy, double ring_r, double hole_r, int remain, const std::vector<wxColour> &colors)
+{
+    const double            inner = ring_r > 0.0 ? hole_r / ring_r : 0.0;
+    wxGraphicsGradientStops stops(SpoolPaintColor(colors.front()), SpoolPaintColor(colors.back()));
+    // The ctor already pins colors[0] at offset 0, which gives the flat lead-in
+    // across the hidden centre; these are the stops on the visible ring.
+    for (size_t i = 0; i + 1 < colors.size(); ++i) stops.Add(SpoolPaintColor(colors[i]), inner + (1.0 - inner) * (double(i) / (colors.size() - 1)));
+
+    gc->SetBrush(gc->CreateRadialGradientBrush(cx, cy, cx, cy, ring_r, stops));
+    gc->FillPath(SpoolFillArea(gc, cx, cy, ring_r, hole_r, remain));
+}
+
+// Checker backdrop plus the colour layers, over the remaining part of the spool.
+void PaintSpoolMaterial(wxGraphicsContext *gc, int cx, int cy, double ring_r, double hole_r, int remain, bool is_gradient, const std::vector<wxColour> &colors)
+{
+    if (colors.empty() || remain <= 0) return;
+
+    if (HasTranslucentColor(colors)) {
+        const int      tile     = std::max(2, (int) std::lround(ring_r * kCheckerTileVB / double(kSpoolRingR)));
+        const wxBitmap tile_bmp = MakeCheckerTile(tile);
+        gc->SetBrush(wxBrush(tile_bmp));
+        gc->FillPath(SpoolFillArea(gc, cx, cy, ring_r, hole_r, remain));
+    }
+
+    if (is_gradient && colors.size() > 1)
+        FillSpoolGradient(gc, cx, cy, ring_r, hole_r, remain, colors);
+    else
+        FillSpoolBands(gc, cx, cy, ring_r, hole_r, remain, colors); // one colour degenerates to a flat disc
+}
+
 // Spool ring renderer
 void PaintSpoolDisc(wxGraphicsContext *gc, int cx, int cy, int outer_r, int hole_r, bool loaded, int remain, bool is_gradient, const std::vector<wxColour> &colors)
 {
@@ -173,32 +296,7 @@ void PaintSpoolDisc(wxGraphicsContext *gc, int cx, int cy, int outer_r, int hole
     gc->DrawEllipse(cx - outer_r, cy - outer_r, 2 * outer_r, 2 * outer_r);
 
     gc->SetPen(*wxTRANSPARENT_PEN);
-    if (colors.size() > 1 && is_gradient) {
-        // Simple linear gradient across the disc (top-left → bottom-right)
-        wxGraphicsGradientStops stops(colors.front(), colors.back());
-        for (size_t i = 1; i + 1 < colors.size(); ++i) stops.Add(colors[i], double(i) / (colors.size() - 1));
-        const double d = ring_r * 0.70711; // ring_r / sqrt(2)
-        gc->SetBrush(gc->CreateLinearGradientBrush(cx - d, cy - d, cx + d, cy + d, stops));
-        gc->DrawEllipse(cx - ring_r, cy - ring_r, 2 * ring_r, 2 * ring_r);
-    } else if (colors.size() > 1) {
-        // Segmented multi
-        gc->SetBrush(*wxTRANSPARENT_BRUSH);
-        const double ring_w = (ring_r - hole_r) / colors.size();
-        for (size_t i = 0; i < colors.size(); ++i) {
-            const double r = ring_r - i * ring_w - ring_w / 2.0;
-            gc->SetPen(wxPen(colors[i], std::max<int>(1, (int) std::lround(ring_w))));
-            gc->DrawEllipse(cx - r, cy - r, 2 * r, 2 * r);
-            gc->SetPen(*wxTRANSPARENT_PEN);
-        }
-    } else if (remain >= 100) {
-        gc->SetBrush(wxBrush(colors[0]));
-        gc->DrawEllipse(cx - ring_r, cy - ring_r, 2 * ring_r, 2 * ring_r);
-    } else {
-        const double start = -M_PI / 2;
-        const double end   = start + (remain / 100.0) * 2 * M_PI;
-        gc->SetBrush(wxBrush(colors[0]));
-        gc->FillPath(DonutWedge(gc, cx, cy, ring_r, hole_r, start, end));
-    }
+    PaintSpoolMaterial(gc, cx, cy, ring_r, hole_r, remain, is_gradient, colors);
 
     // Faint edge over the colored donut, then the hub on top.
     gc->SetBrush(*wxTRANSPARENT_BRUSH);
@@ -277,6 +375,7 @@ public:
     void UpdateEntry(const HotendEntry &entry);
     bool IsSpinning() const { return m_spinning; }
     bool IsFilamentLoaded() const { return m_entry.filament_loaded; }
+    bool IsRefreshable() const { return m_entry.nozzle_state == NozzleCardState::Normal && !m_entry.filament_loaded; }
 
     // Spin starts on user click and runs for kAutoStopMs unless StopSpin() is
     // called sooner (poll observed filament_loaded or dialog tearing down).
@@ -294,11 +393,13 @@ private:
 
     HotendEntry    m_entry;
     bool           m_spinning{false};
-    double         m_spin_angle{0.0}; // radians, advanced while spinning
-    wxTimer        m_anim_timer;      // 33ms tick that advances m_spin_angle
-    wxTimer        m_auto_stop_timer; // single-shot 2s auto-clear
-    ScalableBitmap m_nozzle_bmp;
-    ScalableBitmap m_spinner_bmp; // sync_loading_arc.svg, rotated by m_spin_angle while spinning
+    double         m_spin_angle{0.0};       // radians, advanced while spinning
+    wxTimer        m_anim_timer;            // 33ms tick that advances m_spin_angle
+    wxTimer        m_auto_stop_timer;       // single-shot 2s auto-clear
+    ScalableBitmap m_nozzle_bmp;              // hotend glyph for every state (this dialog's own icon)
+    ScalableBitmap m_nozzle_error_badge_bmp;  // red "!" badge overlaid when abnormal (device-page hotend_error_badge)
+    ScalableBitmap m_nozzle_unknown_badge_bmp;// grey "?" badge overlaid when unknown (device-page hotend_unknown_badge)
+    ScalableBitmap m_spinner_bmp;             // sync_loading_arc.svg, rotated by m_spin_angle while spinning
 };
 
 HotendColumn::HotendColumn(wxWindow *parent, const HotendEntry &entry) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE), m_entry(entry)
@@ -308,8 +409,10 @@ HotendColumn::HotendColumn(wxWindow *parent, const HotendEntry &entry) : wxPanel
     // Without a min size the panel collapses to 0 height in the sizer
     SetMinSize(wxSize(FromDIP(kColW), FromDIP(kColTotalH)));
 
-    m_nozzle_bmp        = ScalableBitmap(this, "dev_rack_nozzle_print_job", 24);
-    m_spinner_bmp       = ScalableBitmap(this, "sync_loading_arc", kLoadingDiam);
+    m_nozzle_bmp               = ScalableBitmap(this, "dev_rack_nozzle_print_job", 24);
+    m_nozzle_error_badge_bmp   = ScalableBitmap(this, "hotend_error_badge", 16);
+    m_nozzle_unknown_badge_bmp = ScalableBitmap(this, "hotend_unknown_badge", 16);
+    m_spinner_bmp              = ScalableBitmap(this, "sync_loading_arc", kLoadingDiam);
     Bind(wxEVT_PAINT, &HotendColumn::OnPaint, this);
 
     m_anim_timer.Bind(wxEVT_TIMER, [this](wxTimerEvent &) {
@@ -375,14 +478,14 @@ void HotendColumn::OnPaint(wxPaintEvent &)
     PaintHeader(gc.get(), wxRect(card_rect.x, y, card_rect.width, FromDIP(kHeaderH)));
     y += FromDIP(kHeaderH);
 
-        PaintSpool(gc.get(), wxRect(card_rect.x, y, card_rect.width, FromDIP(kSpoolZoneH)), palette);
-        y += FromDIP(kSpoolZoneH);
+    PaintSpool(gc.get(), wxRect(card_rect.x, y, card_rect.width, FromDIP(kSpoolZoneH)), palette);
+    y += FromDIP(kSpoolZoneH);
 
-        // Separator between spool and hotend zones
-        gc->SetPen(wxPen(C(ThemeColor::Grey350), 1));
-        gc->StrokeLine(card_rect.x + FromDIP(4), y, card_rect.GetRight() - FromDIP(4), y);
+    // Separator between spool and hotend zones
+    gc->SetPen(wxPen(C(ThemeColor::Grey350), 1));
+    gc->StrokeLine(card_rect.x + FromDIP(4), y, card_rect.GetRight() - FromDIP(4), y);
 
-        if (m_entry.is_hotend) PaintHotend(gc.get(), wxRect(card_rect.x, y, card_rect.width, FromDIP(kHotendZoneH)));
+    if (m_entry.is_hotend || m_entry.nozzle_state != NozzleCardState::Normal) PaintHotend(gc.get(), wxRect(card_rect.x, y, card_rect.width, FromDIP(kHotendZoneH)));
 }
 
 void HotendColumn::PaintHeader(wxGraphicsContext *gc, const wxRect &r)
@@ -394,7 +497,7 @@ void HotendColumn::PaintHeader(wxGraphicsContext *gc, const wxRect &r)
     gc->SetFont(f, C(ThemeColor::TextPrimary));
 
     wxString index = wxString::FromDouble(m_entry.index + 1);
-    double tw = 0, th = 0, descent = 0, leading = 0;
+    double   tw = 0, th = 0, descent = 0, leading = 0;
     gc->GetTextExtent(index, &tw, &th, &descent, &leading);
 
     const int    pad_x  = FromDIP(5);
@@ -438,11 +541,26 @@ void HotendColumn::PaintSpool(wxGraphicsContext *gc, const wxRect &r, const std:
 
     const int diam = FromDIP(kSpoolDiam);
 
+    // The label under the disc doubles as the status line for non-normal nozzles.
+    wxColour label_colour = C(ThemeColor::TextPrimary);
+    wxString raw_name;
+    switch (m_entry.nozzle_state) {
+    case NozzleCardState::Abnormal:
+        raw_name     = _L("Error");
+        label_colour = C(ThemeColor::Danger);
+        break;
+    case NozzleCardState::Unknown:
+        raw_name     = _L("Unknown");
+        label_colour = C(ThemeColor::TextMuted);
+        break;
+    case NozzleCardState::Empty: raw_name = "--"; break;
+    default: raw_name = m_entry.filament_name.empty() ? wxString("--") : wxString::FromUTF8(m_entry.filament_name); break;
+    }
+
     wxFont f = *wxNORMAL_FONT;
     f.SetPointSize(f.GetPointSize() - 1);
-    gc->SetFont(f, C(ThemeColor::TextPrimary));
-    const wxString raw_name = m_entry.filament_name.empty() ? wxString("--") : wxString::FromUTF8(m_entry.filament_name);
-    auto [name, tw, th]     = MeasureNameTruncated(gc, raw_name, r.width - FromDIP(8));
+    gc->SetFont(f, label_colour);
+    auto [name, tw, th] = MeasureNameTruncated(gc, raw_name, r.width - FromDIP(8));
 
     const int gap_disc_name = FromDIP(4);
     const int group_h       = diam + gap_disc_name + th;
@@ -457,27 +575,55 @@ void HotendColumn::PaintSpool(wxGraphicsContext *gc, const wxRect &r, const std:
 
 void HotendColumn::PaintHotend(wxGraphicsContext *gc, const wxRect &r)
 {
+    // The hotend glyph is always this dialog's own icon; abnormal / unknown just
+    // get an error badge overlaid on top (device-page nozzle icons are a
+    // different style and are not reused here).
     const wxBitmap &nb = m_nozzle_bmp.bmp();
     if (!nb.IsOk()) return;
+
+    // An empty rack position has no nozzle, so there is no diameter / flow to
+    // show — collapse the two-line label to a single "--".
+    const bool     empty_nozzle = (m_entry.nozzle_state == NozzleCardState::Empty);
+    const wxString line1        = empty_nozzle ? wxString("--") : m_entry.nozzle_diameter;
+    const wxString line2        = empty_nozzle ? wxString() : m_entry.nozzle_flow_type;
 
     wxFont f = *wxNORMAL_FONT;
     f.SetPointSize(f.GetPointSize() - 1);
     gc->SetFont(f, C(ThemeColor::TextPrimary));
-    double tw_d = 0, tw_f = 0, th = 0, descent = 0, leading = 0;
-    gc->GetTextExtent(m_entry.nozzle_diameter, &tw_d, &th, &descent, &leading);
-    gc->GetTextExtent(m_entry.nozzle_flow_type, &tw_f, &th, &descent, &leading);
-    const double label_w = std::max(tw_d, tw_f);
+    double tw_1 = 0, tw_2 = 0, th = 0, descent = 0, leading = 0;
+    gc->GetTextExtent(line1, &tw_1, &th, &descent, &leading);
+    if (!line2.empty()) gc->GetTextExtent(line2, &tw_2, &th, &descent, &leading);
+    const double label_w = std::max(tw_1, tw_2);
     const int    gap     = FromDIP(4);
     const double group_w = nb.GetWidth() + gap + label_w;
     const double group_x = r.x + (r.width - group_w) / 2.0;
 
-    gc->DrawBitmap(nb, group_x, r.y + (r.height - nb.GetHeight()) / 2.0, nb.GetWidth(), nb.GetHeight());
+    const double nozzle_y = r.y + (r.height - nb.GetHeight()) / 2.0;
+    gc->DrawBitmap(nb, group_x, nozzle_y, nb.GetWidth(), nb.GetHeight());
 
-    const double label_x   = group_x + nb.GetWidth() + gap;
-    const double stack_h   = th * 2 + FromDIP(2);
-    const double stack_top = r.y + (r.height - stack_h) / 2.0;
-    gc->DrawText(m_entry.nozzle_diameter, label_x, stack_top);
-    gc->DrawText(m_entry.nozzle_flow_type, label_x, stack_top + th + FromDIP(2));
+    // Overlay the device-page status badge on the nozzle: red "!" when abnormal,
+    // grey "?" when unknown.
+    const ScalableBitmap *badge_bmp = nullptr;
+    if (m_entry.nozzle_state == NozzleCardState::Abnormal)     badge_bmp = &m_nozzle_error_badge_bmp;
+    else if (m_entry.nozzle_state == NozzleCardState::Unknown) badge_bmp = &m_nozzle_unknown_badge_bmp;
+    if (badge_bmp) {
+        const wxBitmap &badge = badge_bmp->bmp();
+        if (badge.IsOk()) {
+            const double bx = group_x + (nb.GetWidth() - badge.GetWidth()) / 2.0;
+            const double by = nozzle_y + (nb.GetHeight() - badge.GetHeight()) / 2.0;
+            gc->DrawBitmap(badge, bx, by, badge.GetWidth(), badge.GetHeight());
+        }
+    }
+
+    const double label_x = group_x + nb.GetWidth() + gap;
+    if (line2.empty()) {
+        gc->DrawText(line1, label_x, r.y + (r.height - th) / 2.0);
+    } else {
+        const double stack_h   = th * 2 + FromDIP(2);
+        const double stack_top = r.y + (r.height - stack_h) / 2.0;
+        gc->DrawText(line1, label_x, stack_top);
+        gc->DrawText(line2, label_x, stack_top + th + FromDIP(2));
+    }
 }
 
 class SyncMachineInfoDialog : public DPIDialog
@@ -529,7 +675,7 @@ void SyncMachineInfoDialog::OnRefreshClicked()
 
     m_refreshing = true;
     for (auto *col : m_all_columns)
-        if (col && !col->IsFilamentLoaded()) col->StartSpin();
+        if (col && col->IsRefreshable()) col->StartSpin();
 
     for (const auto &group : m_unloaded_groups)
         for (const auto &[ams_id, slot_id] : group) m_obj->command_ams_refresh_rfid2(ams_id, slot_id);
@@ -664,6 +810,7 @@ std::vector<std::vector<DevAmsSlotId>> CollectUnloadedSlotGroups(MachineObject *
     std::vector<std::vector<DevAmsSlotId>> groups;
     for (const auto &[_, nozzle] : nozzles_by_id) {
         if (!nozzle->IsHotend() || nozzle->HasFilamentInNozzle()) continue;
+        if (!nozzle->IsNormal()) continue;
         std::vector<DevAmsSlotId> group;
         for (const auto &slot : nozzle->GetBindAmsSlots()) group.push_back(slot);
         groups.push_back(std::move(group));
@@ -682,16 +829,25 @@ bool tryPopUpSyncMachineInfoDialog(MachineObject *obj)
     std::vector<std::vector<DevAmsSlotId>> unloaded_groups = CollectUnloadedSlotGroups(obj);
 
 #if 0
-    // test cases
+    // clang-format off
     entries = {
-        {wxString("1"), true, {"#FF6B00"}, false, "PLA Basic", 100, "0.4 mm", _L("Standard"), false},
-        {wxString("2"), true, {"#2E7CF6"}, false, "PETG-HF", 75, "0.4 mm", _L("High Flow"), true},
-        {wxString("3"), true, {"#E1007F"}, false, "PolyLite PETG-HF", 25, "0.6 mm", _L("Standard"), false},
-        {wxString("4"), true, {"#FF6B00", "#2E7CF6", "#00AE42", "#E1007F"}, false, "Multi-color", 100, "0.4 mm", _L("Standard"), false},
-        {wxString("5"), true, {"#FF0080", "#FFD400"}, true, "Gradient", 100, "0.4 mm", _L("Standard"), false},
-        {wxString("6"), true, {"#D9D9D9"}, false, "Unknown", 5, "0.2 mm", _L("Standard"), true},
-        {wxString("7"), false, {"#6B6B6B"}, false, "", 100, "0.8 mm", _L("High Flow"), false},
+        {1, false, {}, false, "", 100, "0.4 mm", _L("Standard"), false, false, NozzleCardState::Empty}, // empty / 空 (bug) — keeps any_empty true
+
+        // single colour: opaque / transparent / translucent
+        {2, true, {"#FF6B00"},   false, "Single",      100, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Normal}, // opaque
+        {3, true, {"#00000000"}, false, "Transparent", 100, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Empty}, // α=00 → checkerboard (透明)
+        {4, true, {"#FF6B0080"}, false, "Translucent", 100, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Abnormal}, // α≈50% → tinted checker (半透明)
+
+        // multicolour (拼色): concentric bands, colors[0] innermost
+        {5, true, {"#FF6B00", "#2E7CF6", "#00AE42", "#E1007F"}, false, "Multi x4", 100, "0.6 mm", _L("Standard"), false, true, NozzleCardState::Unknown},          // 4 bands
+        {6, true, {"#FF6B00", "#2E7CF6", "#00AE42", "#E1007F", "#FFD400"}, false, "Multi x5", 40, "0.6 mm", _L("Standard"), false, true, NozzleCardState::Normal}, // N>4 + partial remain
+        {7, true, {"#FF6B0080", "#2E7CF680"}, false, "Multi clear", 100, "0.6 mm", _L("Standard"), false, true, NozzleCardState::Normal},                          // translucent bands (拼色+透明)
+
+        // gradient: smooth radial blend, hub → rim
+        {8, true, {"#FF0080", "#FFD400", "#00AE42"}, true, "Gradient x3", 100, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Normal}, // 3 stops
+        {9, true, {"#FF008080", "#FFD40080"}, true, "Gradient clear", 60, "0.4 mm", _L("Standard"), false, true, NozzleCardState::Normal},      // translucent + partial remain
     };
+    // clang-format on
 #endif
 
     const bool any_empty = std::any_of(entries.begin(), entries.end(), [](const HotendEntry &e) { return !e.filament_loaded; });
