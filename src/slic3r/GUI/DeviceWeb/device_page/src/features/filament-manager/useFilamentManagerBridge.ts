@@ -13,6 +13,7 @@ import type {
   CloudFilamentConfig,
   CloudAutoPushSummary,
   DebugLogEntry,
+  CustomFilamentCreateResult,
 } from './types';
 
 function makeBody(submod: string, action: string, payload?: Record<string, unknown>) {
@@ -72,6 +73,7 @@ export function useFilamentManagerBridge() {
   const request = useDeviceBridge();
   const setSpools    = useStore((s) => s.filament.setSpools);
   const setPresets   = useStore((s) => s.filament.setPresets);
+  const setCustomFilamentCreateResult = useStore((s) => s.filament.setCustomFilamentCreateResult);
   const setMachines  = useStore((s) => s.filament.setMachines);
   const setAmsData   = useStore((s) => s.filament.setAmsData);
   const setSelectedMachineDevId = useStore((s) => s.filament.setSelectedMachineDevId);
@@ -156,7 +158,18 @@ export function useFilamentManagerBridge() {
       }
 
       if (body.submod === 'preset') {
-        if (body.action === 'list' && body.payload) {
+        if (body.action === 'create_custom_done') {
+          const payload = (body.payload ?? {}) as {
+            ok?: boolean;
+            client_request_id?: string;
+            created?: CustomFilamentCreateResult['created'];
+          };
+          setCustomFilamentCreateResult({
+            clientRequestId: String(payload.client_request_id ?? ''),
+            ok: payload.ok === true,
+            created: payload.created,
+          });
+        } else if (body.action === 'list' && body.payload) {
           setPresets(body.payload as unknown as PresetOptions);
         }
         return;

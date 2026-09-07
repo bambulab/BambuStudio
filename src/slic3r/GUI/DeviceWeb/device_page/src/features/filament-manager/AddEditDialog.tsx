@@ -169,6 +169,8 @@ export function AddEditDialog({
   // the user has configured in the cloud but not yet locally.
   const cloudConfig = useStore((s) => s.filament.cloudConfig);
   const spools = useStore((s) => s.filament.spools);
+  const customFilamentCreateResult = useStore((s) => s.filament.customFilamentCreateResult);
+  const setCustomFilamentCreateResult = useStore((s) => s.filament.setCustomFilamentCreateResult);
   // F4.7: mirror of Studio's global selected machine. Used to default the
   // AMS-tab printer and to follow external changes made via
   // DeviceManager::OnSelectedMachineChanged.
@@ -297,6 +299,11 @@ export function AddEditDialog({
     | { kind: 'batch'; creates: Partial<Spool>[]; updates: Partial<Spool>[] }
     | null
   >(null);
+  const customFilamentRequestRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!open) customFilamentRequestRef.current = null;
+  }, [open]);
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -683,14 +690,50 @@ export function AddEditDialog({
   const candidateLoadInflight = useRef<Set<string>>(new Set());
   const handleCreateCustomFilament = useCallback(() => {
     const vendor = brand.trim();
+    if (!vendor) return;
+    const clientRequestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    customFilamentRequestRef.current = clientRequestId;
     void requestRpc<{
       module: 'filament'; submod: 'preset'; action: 'create_custom';
-      payload: { vendor: string };
+      payload: { vendor: string; client_request_id: string };
     }, BridgeResponseBody>({
       module: 'filament', submod: 'preset', action: 'create_custom',
-      payload: { vendor },
+      payload: { vendor, client_request_id: clientRequestId },
+    }).then((res) => {
+      if ((!res.ok || res.value.error_code !== 0) && customFilamentRequestRef.current === clientRequestId) {
+        customFilamentRequestRef.current = null;
+      }
     });
   }, [brand, requestRpc]);
+
+  useEffect(() => {
+    const result = customFilamentCreateResult;
+    if (!result || result.clientRequestId !== customFilamentRequestRef.current) return;
+    if (!result.ok || !result.created) {
+      customFilamentRequestRef.current = null;
+      setCustomFilamentCreateResult(null);
+      return;
+    }
+
+    const { vendor, type, name, filament_id } = result.created;
+    const createdItem = presets.flatMap((presetVendor) =>
+      presetVendor.name === vendor ? presetVendor.types.flatMap((presetType) =>
+        presetType.name === type ? (presetType.items ?? []).map((item) => ({ presetVendor, presetType, item })) : [],
+      ) : [],
+    ).find(({ item }) => item.filament_id === filament_id && item.name === name);
+    if (!open || !createdItem || !createdItem.item.name) return;
+
+    setBrand(vendor);
+    setMaterialType(type);
+    setSeries(normalizePresetFilamentName(
+      createdItem.item.name,
+      createdItem.presetVendor.name,
+      createdItem.presetType.name,
+      createdItem.item.series || '',
+    ));
+    customFilamentRequestRef.current = null;
+    setCustomFilamentCreateResult(null);
+  }, [customFilamentCreateResult, open, presets, setCustomFilamentCreateResult]);
   const loadCandidates = useCallback(async (id: string) => {
     if (!id) return;
     const cur = useStore.getState().filament.candidatesByFilaId;
@@ -971,34 +1014,31 @@ export function AddEditDialog({
 
   // F4.5: validation no longer depends on `series` — the combined type field
   // covers both, and plenty of materials legitimately have no series (e.g. ABS).
-  // Weight rule: both values must be positive and 当前 ≤ 总 so the derived
-  // remain_percent never goes negative / > 100.
-  // STUDIO-17959: also enforce a max cap on both fields so users can't submit
-  // values that the backend silently clamps to 0.
-  const weightError = (() => {
-    if (totalNetWeight <= 0) return '';
+  // Keep the disabled-button explanation and the actual submit guard derived
+  // from this same list so they cannot drift apart.
+  const isAmsBatch = !isEdit && mode === 'ams' && selectedSlotKeys.size >= 2;
+  const confirmInvalidReasons = (() => {
+    if (isAmsBatch) return [];
+
+    const reasons: string[] = [];
+    if (!brand) reasons.push(t('Brand is required'));
+    if (!materialType) reasons.push(t('Material Type is required'));
+    if (!colorCode) reasons.push(t('Color is required'));
+    if (totalNetWeight <= 0) reasons.push(t('Total Net Weight must be greater than 0'));
+    if (currentNetWeight < 0) reasons.push(t('Current Net Weight cannot be negative'));
     if (totalNetWeight > MAX_NET_WEIGHT_GRAMS || currentNetWeight > MAX_NET_WEIGHT_GRAMS) {
-      return t('Weight cannot exceed {{max}}g', { max: MAX_NET_WEIGHT_GRAMS });
+      reasons.push(t('Weight cannot exceed {{max}}g', { max: MAX_NET_WEIGHT_GRAMS }));
     }
     if (currentNetWeight > totalNetWeight) {
-      return t('Current Net Weight cannot exceed Total Net Weight');
+      reasons.push(t('Current Net Weight cannot exceed Total Net Weight'));
     }
-    return '';
+    return reasons;
   })();
-  // STUDIO-18344: in AMS multi-select mode the editable form is hidden, so
-  // the per-field validation above is irrelevant — every payload is built
-  // directly from the AMS tray. The form's `isValid` guard is therefore
-  // skipped and we only require at least one slot to be selected.
-  const isAmsBatch = !isEdit && mode === 'ams' && selectedSlotKeys.size >= 2;
-  const isValid = isAmsBatch
-    ? selectedSlotKeys.size >= 2
-    : !!(
-        brand && materialType && colorCode &&
-        totalNetWeight > 0 && currentNetWeight >= 0 &&
-        totalNetWeight <= MAX_NET_WEIGHT_GRAMS &&
-        currentNetWeight <= MAX_NET_WEIGHT_GRAMS &&
-        currentNetWeight <= totalNetWeight
-      );
+  const isValid = confirmInvalidReasons.length === 0;
+  const weightError = confirmInvalidReasons.find((reason) =>
+    reason === t('Weight cannot exceed {{max}}g', { max: MAX_NET_WEIGHT_GRAMS }) ||
+    reason === t('Current Net Weight cannot exceed Total Net Weight'),
+  ) || '';
 
   // STUDIO-17977 F1.3: the previous F4.4 isCustomColor flag relied on a
   // BAMBU_COLORS hex-membership check, which became stale once the palette
@@ -2537,7 +2577,7 @@ export function AddEditDialog({
                           pure decoration so users don't have to guess
                           whether the field expects grams or kilograms. */}
                       <div className="flex items-center gap-[6px]">
-                        <input className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none flex-1 min-w-0 focus:shadow-[0_0_0_1px_var(--color-fm-brand)] disabled:cursor-not-allowed disabled:opacity-60" type="number" min={0} max={MAX_NET_WEIGHT_GRAMS} step={1} placeholder={t('Input Current Net Weight')} value={currentNetWeight} disabled={lockWeight} onFocus={(e) => e.target.select()} onChange={(e) => setCurrentNetWeight(clampWeight(sanitizeWeightInput(e.target)))} />
+                        <input data-testid="current-net-weight-input" className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none flex-1 min-w-0 focus:shadow-[0_0_0_1px_var(--color-fm-brand)] disabled:cursor-not-allowed disabled:opacity-60" type="number" min={0} max={MAX_NET_WEIGHT_GRAMS} step={1} placeholder={t('Input Current Net Weight')} value={currentNetWeight} disabled={lockWeight} onFocus={(e) => e.target.select()} onChange={(e) => setCurrentNetWeight(clampWeight(sanitizeWeightInput(e.target)))} />
                         <span className="text-[12px] leading-[19px] text-fm-text-secondary shrink-0">g</span>
                       </div>
                     </div>
@@ -2549,7 +2589,7 @@ export function AddEditDialog({
                           tracks consumption over time. Same trailing "g"
                           unit indicator as the sibling input. */}
                       <div className="flex items-center gap-[6px]">
-                        <input className={`bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none flex-1 min-w-0 focus:shadow-[0_0_0_1px_var(--color-fm-brand)] ${isEdit || lockWeight ? 'opacity-60 cursor-not-allowed' : ''}`} type="number" min={0} max={MAX_NET_WEIGHT_GRAMS} step={1} placeholder={t('Input Total Net Weight')} value={totalNetWeight} readOnly={isEdit || lockWeight} disabled={isEdit || lockWeight} onFocus={(e) => e.target.select()} onChange={(e) => setTotalNetWeight(clampWeight(sanitizeWeightInput(e.target)))} />
+                        <input data-testid="total-net-weight-input" className={`bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none flex-1 min-w-0 focus:shadow-[0_0_0_1px_var(--color-fm-brand)] ${isEdit || lockWeight ? 'opacity-60 cursor-not-allowed' : ''}`} type="number" min={0} max={MAX_NET_WEIGHT_GRAMS} step={1} placeholder={t('Input Total Net Weight')} value={totalNetWeight} readOnly={isEdit || lockWeight} disabled={isEdit || lockWeight} onFocus={(e) => e.target.select()} onChange={(e) => setTotalNetWeight(clampWeight(sanitizeWeightInput(e.target)))} />
                         <span className="text-[12px] leading-[19px] text-fm-text-secondary shrink-0">g</span>
                       </div>
                     </div>
@@ -2632,17 +2672,34 @@ export function AddEditDialog({
           {(isEdit || mode !== 'manual') && <div />}
           <div className="flex gap-[12px] items-center">
             <button data-testid="dialog-cancel" className="h-[30px] px-[32px] rounded-[8px] cursor-pointer text-[12px] leading-[19px] whitespace-nowrap transition-colors duration-150 bg-fm-input text-fm-text-primary border-none hover:bg-fm-hover" onClick={onClose}>{t('Cancel')}</button>
-            <button
-              data-testid="dialog-confirm"
-              data-batch={isAmsBatch ? 'true' : 'false'}
-              className="h-[30px] px-[32px] rounded-[8px] border-none cursor-pointer text-[12px] leading-[19px] font-medium whitespace-nowrap transition-colors duration-150 bg-fm-brand text-white hover:bg-fm-brand-hover disabled:opacity-40 disabled:cursor-default"
-              disabled={!isValid}
-              onClick={handleSubmit}
+            <span
+              data-testid="dialog-confirm-tooltip-trigger"
+              className="relative inline-flex group"
+              data-tooltip={isValid ? undefined : confirmInvalidReasons.join('\n')}
             >
-              {isEdit
-                ? t('Save')
-                : (isAmsBatch ? t('Batch Add ({{count}})', { count: slotSelectionCount }) : t('Add'))}
-            </button>
+              <button
+                data-testid="dialog-confirm"
+                data-batch={isAmsBatch ? 'true' : 'false'}
+                aria-describedby={isValid ? undefined : 'dialog-confirm-tooltip'}
+                className="h-[30px] px-[32px] rounded-[8px] border-none cursor-pointer text-[12px] leading-[19px] font-medium whitespace-nowrap transition-colors duration-150 bg-fm-brand text-white hover:bg-fm-brand-hover disabled:opacity-40 disabled:cursor-default"
+                disabled={!isValid}
+                onClick={handleSubmit}
+              >
+                {isEdit
+                  ? t('Save')
+                  : (isAmsBatch ? t('Batch Add ({{count}})', { count: slotSelectionCount }) : t('Add'))}
+              </button>
+              {!isValid && (
+                <span
+                  id="dialog-confirm-tooltip"
+                  role="tooltip"
+                  data-testid="dialog-confirm-tooltip"
+                  className="absolute right-0 bottom-[calc(100%+6px)] z-[60] w-max max-w-[280px] rounded-[6px] bg-fm-base border border-fm-border px-[8px] py-[6px] text-[12px] leading-[18px] text-fm-text-strong whitespace-pre-line shadow-lg opacity-0 pointer-events-none transition-opacity duration-100 group-hover:opacity-100"
+                >
+                  {confirmInvalidReasons.map((reason) => `• ${reason}`).join('\n')}
+                </span>
+              )}
+            </span>
           </div>
         </div>
       </div>

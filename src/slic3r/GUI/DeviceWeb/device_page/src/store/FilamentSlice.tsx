@@ -5,7 +5,7 @@ import type {
   CloudSyncState, CloudToast, CloudFilamentConfig,
   CloudSyncHistoryEntry, CloudAutoPushSummary,
   DebugLogEntry, DebugLogFilter,
-  CandidateColor,
+  CandidateColor, CustomFilamentCreateResult,
 } from '../features/filament-manager/types';
 
 const DEFAULT_SYNC_STATE: CloudSyncState = {
@@ -49,6 +49,7 @@ export interface FilamentState {
   // none available" — used as a negative cache so we don't re-issue the RPC
   // on every dialog re-open for filaments without preset colours.
   candidatesByFilaId: Record<string, CandidateColor[]>;
+  customFilamentCreateResult: CustomFilamentCreateResult | null;
 
   // Keep legacy fields for backward compatibility
   items: Spool[];
@@ -81,6 +82,7 @@ export interface FilamentActions {
   // issued by the dialog (it owns the `useDeviceBridge` hook); the slice only
   // stores the result so the cache survives dialog open/close cycles.
   setColorCandidates: (filaId: string, candidates: CandidateColor[]) => void;
+  setCustomFilamentCreateResult: (result: CustomFilamentCreateResult | null) => void;
 
   // Legacy
   setItems: (items: Spool[]) => void;
@@ -120,6 +122,7 @@ export const createFilamentSlice: StateCreator<
     debugLogs: [],
     debugFilter: 'all',
     candidatesByFilaId: {},
+    customFilamentCreateResult: null,
     items: [],
 
     setSpools: (spools) =>
@@ -242,6 +245,10 @@ export const createFilamentSlice: StateCreator<
         const cur = s.filament.candidatesByFilaId[filaId];
         if (next.length === 0 && Array.isArray(cur) && cur.length > 0) return;
         s.filament.candidatesByFilaId[filaId] = next;
+      }),
+    setCustomFilamentCreateResult: (result) =>
+      set((s) => {
+        s.filament.customFilamentCreateResult = result;
       }),
 
     // Legacy

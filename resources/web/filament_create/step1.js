@@ -6,6 +6,7 @@ var TYPE_LIST = []; // filled dynamically from C++ init_data
 // Only used in current_printer mode; null means "no signal yet, don't filter".
 var SUPPORTED_TYPES = null;
 let customVendors = [];
+let vendorReadonly = false;
 
 function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, function (c) {
@@ -112,9 +113,16 @@ $(document).ready(function () {
         }
     });
 
+    function applyVendorReadonly(readonly) {
+        vendorReadonly = readonly;
+        $('#input-vendor').closest('.input-wrapper').toggleClass('vendor-readonly', readonly);
+        if (readonly) $('#vendor-dropdown-list').addClass('hidden');
+    }
+
     // Dropdown Toggles
     $('#input-vendor').on('click', function(e) {
         e.stopPropagation();
+        if (vendorReadonly) return;
         $('#vendor-dropdown-list').toggleClass('hidden');
         $('#type-dropdown-list').addClass('hidden');
     });
@@ -153,6 +161,7 @@ $(document).ready(function () {
                 var selectedVendor = (data.selected_vendor || '').trim();
                 var selectedType   = (data.selected_type || '').trim();
                 var selectedSerial = (data.selected_serial || '').trim();
+                applyVendorReadonly(data.vendor_readonly === true && !!selectedVendor);
                 if (selectedVendor || selectedType || selectedSerial) {
                     if (selectedVendor) {
                         var knownVendors = VENDOR_LIST.concat(customVendors);
@@ -210,6 +219,7 @@ $(document).ready(function () {
     }
 
     $(document).on('click', '#vendor-options .dropdown-item:not(.disabled)', function() {
+        if (vendorReadonly) return;
         $('#input-vendor').val($(this).data('val'));
         $('#vendor-dropdown-list').addClass('hidden');
         updateNextBtn();
@@ -248,6 +258,7 @@ $(document).ready(function () {
     // Vendor Dialog
     $('#add-vendor-btn').on('click', function(e) {
         e.stopPropagation();
+        if (vendorReadonly) return;
         $('#vendor-dropdown-list').addClass('hidden');
         $('#vendor-dialog-mask, #vendor-dialog').removeClass('hidden');
         $('#new-vendor-input').val('');

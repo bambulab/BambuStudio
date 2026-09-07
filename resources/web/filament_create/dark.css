@@ -49,6 +49,11 @@ html {
     color: var(--color-text-main);
     border-color: #4A4E52;
 }
+.input-wrapper.vendor-readonly input {
+    background: var(--color-bg-disabled);
+    color: var(--color-text-muted);
+    border-color: var(--color-border);
+}
 .input-wrapper input::placeholder,
 .dialog-input-wrapper input::placeholder {
     color: var(--color-text-placeholder);

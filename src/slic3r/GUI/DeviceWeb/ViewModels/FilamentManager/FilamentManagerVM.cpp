@@ -533,15 +533,23 @@ nlohmann::json FilamentManagerVM::HandlePreset(const std::string& action, const 
         const std::string vendor = payload.value("vendor", "");
         const std::string type   = payload.value("type", "");
         const std::string serial = payload.value("serial", "");
-        wxGetApp().CallAfter([this, vendor, type, serial]() {
-            CreateFilamentWebDialog dlg(wxGetApp().mainframe, vendor, type, serial);
+        const std::string client_request_id = payload.value("client_request_id", "");
+        wxGetApp().CallAfter([this, vendor, type, serial, client_request_id]() {
+            CreateFilamentWebDialog dlg(wxGetApp().mainframe, vendor, type, serial, true);
             const int res = dlg.ShowModal();
-            if (res == wxID_OK && wxGetApp().mainframe)
+            const bool ok = res == wxID_OK;
+            if (ok && wxGetApp().mainframe)
                 wxGetApp().mainframe->update_side_preset_ui();
             if (!m_bridge) return;
-            m_bridge->ReportMsg(MakeResp("preset", "create_custom_done", 0, "",
-                {{"ok", res == wxID_OK}}));
-            if (res == wxID_OK)
+
+            nlohmann::json completion = {
+                {"ok", ok},
+                {"client_request_id", client_request_id},
+            };
+            if (ok && !dlg.created_filament().is_null() && !dlg.created_filament().empty())
+                completion["created"] = dlg.created_filament();
+            m_bridge->ReportMsg(MakeResp("preset", "create_custom_done", 0, "", completion));
+            if (ok)
                 m_bridge->ReportMsg(MakeResp("preset", "list", 0, "", build_preset_options()));
         });
         return MakeResp("preset", action, 0, "pending");

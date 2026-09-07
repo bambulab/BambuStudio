@@ -14,8 +14,11 @@ public:
     explicit CreateFilamentWebDialog(wxWindow *parent,
                                      const std::string &vendor = {},
                                      const std::string &type = {},
-                                     const std::string &serial = {});
+                                     const std::string &serial = {},
+                                     bool lock_prefilled_vendor = false);
     ~CreateFilamentWebDialog();
+
+    const nlohmann::json &created_filament() const { return m_created_filament; }
 
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
@@ -25,6 +28,8 @@ private:
     std::string m_prefill_vendor;
     std::string m_prefill_type;
     std::string m_prefill_serial;
+    bool m_lock_prefilled_vendor { false };
+    nlohmann::json m_created_filament;
 
     void OnScriptMessage(wxWebViewEvent &evt);
     void OnDocumentLoaded(wxWebViewEvent &evt);

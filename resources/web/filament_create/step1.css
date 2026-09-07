@@ -74,6 +74,12 @@ html, body {
     content: '›'; position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
     color: #CCC; pointer-events: none; font-size: 16px;
 }
+.input-wrapper.vendor-readonly input {
+    background: #F5F5F5;
+    color: var(--color-text-muted);
+    cursor: default;
+}
+.input-wrapper.vendor-readonly.select-arrow::before { color: var(--color-text-muted); }
 
 /* Dropdowns */
 .dropdown-list {

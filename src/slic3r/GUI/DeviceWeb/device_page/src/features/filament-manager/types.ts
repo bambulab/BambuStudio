@@ -67,6 +67,19 @@ export interface PresetOptions {
   vendors: PresetVendor[];
 }
 
+export interface CreatedFilamentDescriptor {
+  vendor: string;
+  type: string;
+  name: string;
+  filament_id: string;
+}
+
+export interface CustomFilamentCreateResult {
+  clientRequestId: string;
+  ok: boolean;
+  created?: CreatedFilamentDescriptor;
+}
+
 // Machine list
 export interface MachineItem {
   dev_id: string;

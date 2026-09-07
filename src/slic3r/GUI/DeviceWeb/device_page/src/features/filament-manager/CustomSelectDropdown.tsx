@@ -69,6 +69,7 @@ export function CustomSelectDropdown({
     if (!customInput || addDisabled) return;
     customInput.onAdd(trimmed);
     setInputVal('');
+    setOpen(false);
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

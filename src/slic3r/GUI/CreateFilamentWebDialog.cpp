@@ -162,7 +162,8 @@ static std::vector<Preset> collect_user_filament_presets(const std::string &fila
 CreateFilamentWebDialog::CreateFilamentWebDialog(wxWindow *parent,
                                                  const std::string &vendor,
                                                  const std::string &type,
-                                                 const std::string &serial)
+                                                 const std::string &serial,
+                                                 bool lock_prefilled_vendor)
     : DPIDialog(parent ? parent : nullptr,
                 wxID_ANY,
                 _L("Create Custom Filament"),
@@ -171,6 +172,7 @@ CreateFilamentWebDialog::CreateFilamentWebDialog(wxWindow *parent,
     , m_prefill_vendor(vendor)
     , m_prefill_type(type)
     , m_prefill_serial(serial)
+    , m_lock_prefilled_vendor(lock_prefilled_vendor)
 {
     SetBackgroundColour(*wxWHITE);
 
@@ -356,6 +358,7 @@ void CreateFilamentWebDialog::send_init_data(const std::string &filament_type)
     msg["types"]          = types;
     msg["printers"]       = printers;
     msg["system_presets"] = system_presets;
+    msg["vendor_readonly"] = m_lock_prefilled_vendor;
     if (!m_prefill_vendor.empty()) msg["selected_vendor"] = m_prefill_vendor;
     if (!m_prefill_type.empty())   msg["selected_type"]   = m_prefill_type;
     if (!m_prefill_serial.empty()) msg["selected_serial"] = m_prefill_serial;
@@ -1155,7 +1158,8 @@ static bool build_and_validate_filament_name(wxWindow *parent, const json &j,
 // Shared implementation used by both "based_on_type" and "copy_presets" modes.
 // The two modes differ only in semantics conveyed to the user; the preset-cloning
 // logic is identical, so a single implementation avoids divergence.
-static bool do_clone_filament_presets(wxWindow *parent, const json &j, const std::string &log_mode)
+static bool do_clone_filament_presets(wxWindow *parent, const json &j, const std::string &log_mode,
+                                      json *created_filament = nullptr)
 {
     std::string vendor, filament_name, filament_id;
     if (!build_and_validate_filament_name(parent, j, vendor, filament_name, filament_id))
@@ -1202,8 +1206,17 @@ static bool do_clone_filament_presets(wxWindow *parent, const json &j, const std
             any_success = true;
     }
 
-    if (any_success)
+    if (any_success) {
+        if (created_filament) {
+            *created_filament = {
+                {"vendor", vendor},
+                {"type", type},
+                {"name", filament_name},
+                {"filament_id", filament_id},
+            };
+        }
         BOOST_LOG_TRIVIAL(info) << "CreateFilamentWebDialog [" << log_mode << "]: " << filament_name;
+    }
     return any_success;
 }
 
@@ -1211,7 +1224,7 @@ void CreateFilamentWebDialog::handle_create_filament(const json &j)
 {
     std::string mode = j.value("mode", "");
     if (mode == "based_on_type" || mode == "copy_presets" || mode == "current_printer") {
-        bool ok = do_clone_filament_presets(this, j, mode);
+        bool ok = do_clone_filament_presets(this, j, mode, &m_created_filament);
         if (ok) {
             wxGetApp().preset_bundle->update_compatible(PresetSelectCompatibleType::Always);
             // Send success state to Web so step3 can show result inline.
