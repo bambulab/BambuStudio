@@ -669,10 +669,27 @@ void SendToPrinterDialog::update_storage_list(const std::vector<std::string> &st
 
     if (m_storage_radioBox.size() > 0) {
         m_storage_sizer->Add(0, 0, 0, wxEXPAND, FromDIP(6));
-        auto radio = m_storage_radioBox.front();
-        radio->SetValue(true);
-        if (storages.size() > 0)
-           m_selected_storage = storages[0];
+
+        /* Preselect external storage whenever a USB stick is present, instead of
+           whichever entry the printer happened to list first. Firmware answers the
+           media ability query with "emmc" ahead of "udisk", so taking the head
+           always landed on Cache even with a stick in -- and a file in the cache
+           cannot be picked in Bambu Handy, is invisible to anything reading the
+           printer over FTP, and is not offered for a reprint on the printer's own
+           screen. With no stick in, the cache is the only place the file can go, so
+           it stays the default there. The print dialog picks the same way; see
+           SelectMachineDialog::on_send_print in SelectMachine.cpp. (#10481) */
+        const bool want_emmc = !m_if_has_sdcard;
+        size_t     preferred = 0;
+        for (size_t i = 0; i < storages.size(); i++) {
+            if ((storages[i] == "emmc") == want_emmc) {
+                preferred = i;
+                break;
+            }
+        }
+
+        m_storage_radioBox[preferred]->SetValue(true);
+        m_selected_storage = storages[preferred];
     }
 
     m_storage_panel->Layout();
