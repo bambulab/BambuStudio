@@ -7,6 +7,13 @@ function getLangParam() {
     return lang ? '?lang=' + lang : '';
 }
 
+function _t(tid) {
+    var lang = (typeof GetQueryString === 'function' ? GetQueryString('lang') : null)
+             || localStorage.getItem('BambuWebLang') || 'en';
+    if (typeof LangText === 'undefined' || !LangText.hasOwnProperty(lang)) lang = 'en';
+    return (LangText[lang] && LangText[lang][tid]) || (LangText['en'] && LangText['en'][tid]) || '';
+}
+
 // 每个机型对应的喷嘴列表：{ modelName: [printerPresetName, ...] }
 var printerData = [];
 // 勾选状态：{ modelName: Set<printerPresetName> }
@@ -115,7 +122,7 @@ function renderPresetDropdown() {
     systemPresets.forEach(function (p) {
         html += '<div class="dropdown-item" data-val="' + p + '">' + p + '</div>';
     });
-    $('#base-preset-options').html(html || '<div class="dropdown-item disabled">No presets available</div>');
+    $('#base-preset-options').html(html || ('<div class="dropdown-item disabled">' + _t('t294') + '</div>'));
 }
 
 function loadPrinterList(presetName) {

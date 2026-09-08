@@ -15,6 +15,13 @@ var paramData        = {};   // { preset_name: { params } }
 var activeNozzleTab  = null;
 var activeParamCat   = 'filament'; // 当前参数分类
 
+function _t(tid) {
+    var lang = (typeof GetQueryString === 'function' ? GetQueryString('lang') : null)
+             || localStorage.getItem('BambuWebLang') || 'en';
+    if (typeof LangText === 'undefined' || !LangText.hasOwnProperty(lang)) lang = 'en';
+    return (LangText[lang] && LangText[lang][tid]) || (LangText['en'] && LangText['en'][tid]) || '';
+}
+
 $(document).ready(function () {
     if (typeof TranslatePage === 'function') TranslatePage();
 
@@ -138,7 +145,7 @@ function renderNozzleCheckboxes(keepChecks) {
 
 function handleDeviceInfo(data) {
     if (!data.connected) {
-        $('#device-name').text('No printer connected');
+        $('#device-name').text(_t('t293'));
         $('#btn-next').prop('disabled', true);
         return;
     }
@@ -150,7 +157,7 @@ function handleDeviceInfo(data) {
     (data.system_presets || []).forEach(function (p, i) {
         presetsHtml += '<div class="dropdown-item" data-idx="' + i + '">' + p.name + '</div>';
     });
-    $('#base-preset-options').html(presetsHtml || '<div class="dropdown-item disabled">No presets available</div>');
+    $('#base-preset-options').html(presetsHtml || ('<div class="dropdown-item disabled">' + _t('t294') + '</div>'));
 
     $('#input-base-preset').on('click', function (e) {
         e.stopPropagation();
@@ -309,20 +316,19 @@ function refreshParamTabs() {
 function renderParamList() {
     var p = paramData[activeNozzleTab] || paramData['_current'];
     if (!p) {
-        $('#param-list').html('<div class="param-row" style="color:#999">Please select a base preset first</div>');
+        $('#param-list').html('<div class="param-row" style="color:#999">' + _t('t225') + '</div>');
         return;
     }
 
     var PARAM_CATS = {
         filament: [
-            { key: 'filament_type',                 label: 'Type' },
-            { key: 'filament_vendor',                label: 'Vendor' },
-            { key: 'filament_diameter',              label: 'Diameter (mm)' },
-            { key: 'filament_density',               label: 'Density (g/cm³)' },
-            { key: 'filament_flow_ratio',             label: 'Flow Ratio' },
-            { key: 'filament_max_volumetric_speed',  label: 'Max Volumetric Speed' },
-            { key: 'filament_shrink',                label: 'Shrinkage (%)' },
-            { key: 'default_filament_colour',        label: 'Default Color' },
+            { key: 'filament_type',                 label: _t('t206') },
+            { key: 'filament_vendor',                label: _t('t203') },
+            { key: 'filament_diameter',              label: _t('t277') },
+            { key: 'filament_density',               label: _t('t278') },
+            { key: 'filament_flow_ratio',             label: _t('t279') },
+            { key: 'filament_max_volumetric_speed',  label: _t('t280') },
+            { key: 'filament_shrink',                label: _t('t281') },
         ]
     };
     // Mirrors the native "Print temperature" group (Tab.cpp TabFilament) row layout:
@@ -330,12 +336,12 @@ function renderParamList() {
     // of a separate row per key — matches the native "耗材管理" screen more closely and
     // avoids 12 narrow, wrapping single-value rows.
     var TEMP_ROWS = [
-        { label: 'Cool Plate SuperTack',                initialKey: 'supertack_plate_temp_initial_layer', otherKey: 'supertack_plate_temp' },
-        { label: 'Cool Plate',                           initialKey: 'cool_plate_temp_initial_layer',      otherKey: 'cool_plate_temp' },
-        { label: 'Engineering Plate',                    initialKey: 'eng_plate_temp_initial_layer',       otherKey: 'eng_plate_temp' },
-        { label: 'Smooth PEI Plate / High Temp Plate',   initialKey: 'hot_plate_temp_initial_layer',       otherKey: 'hot_plate_temp' },
-        { label: 'Textured PEI Plate',                   initialKey: 'textured_plate_temp_initial_layer',  otherKey: 'textured_plate_temp' },
-        { label: 'Nozzle',                               initialKey: 'nozzle_temperature_initial_layer',   otherKey: 'nozzle_temperature' },
+        { label: _t('t283'),                             initialKey: 'supertack_plate_temp_initial_layer', otherKey: 'supertack_plate_temp' },
+        { label: _t('t284'),                             initialKey: 'cool_plate_temp_initial_layer',      otherKey: 'cool_plate_temp' },
+        { label: _t('t285'),                             initialKey: 'eng_plate_temp_initial_layer',       otherKey: 'eng_plate_temp' },
+        { label: _t('t286'),                             initialKey: 'hot_plate_temp_initial_layer',       otherKey: 'hot_plate_temp' },
+        { label: _t('t287'),                             initialKey: 'textured_plate_temp_initial_layer',  otherKey: 'textured_plate_temp' },
+        { label: _t('t288'),                             initialKey: 'nozzle_temperature_initial_layer',   otherKey: 'nozzle_temperature' },
     ];
 
     var html = '';
@@ -348,9 +354,9 @@ function renderParamList() {
     if (activeParamCat === 'temperature') {
         TEMP_ROWS.forEach(function (row) {
             html += '<div class="param-row temp-row"><span class="p-name">' + row.label + '</span>'
-                  + '<span class="p-sub"><span class="p-sub-label">Initial layer</span>'
+                  + '<span class="p-sub"><span class="p-sub-label">' + _t('t289') + '</span>'
                   + '<span class="p-sub-val">' + fmtTemp(p[row.initialKey]) + '</span></span>'
-                  + '<span class="p-sub"><span class="p-sub-label">Other layers</span>'
+                  + '<span class="p-sub"><span class="p-sub-label">' + _t('t290') + '</span>'
                   + '<span class="p-sub-val">' + fmtTemp(p[row.otherKey]) + '</span></span></div>';
         });
     } else {
@@ -362,7 +368,7 @@ function renderParamList() {
     $('#param-list').html(html);
 
     // 渲染参数分类 tab
-    var catLabels = { filament: 'Filament', temperature: 'Temperature' };
+    var catLabels = { filament: _t('t291'), temperature: _t('t292') };
     var catHtml = '';
     Object.keys(catLabels).forEach(function (k) {
         var active = k === activeParamCat ? ' active' : '';

@@ -7,6 +7,13 @@ function getLangParam() {
     return lang ? '?lang=' + lang : '';
 }
 
+function _t(tid) {
+    var lang = (typeof GetQueryString === 'function' ? GetQueryString('lang') : null)
+             || localStorage.getItem('BambuWebLang') || 'en';
+    if (typeof LangText === 'undefined' || !LangText.hasOwnProperty(lang)) lang = 'en';
+    return (LangText[lang] && LangText[lang][tid]) || (LangText['en'] && LangText['en'][tid]) || '';
+}
+
 var printerData = [];      // [{ name, presets: ['打印机预设名', ...] }]
 var selected = {};         // { modelName: Set<presetName> }
 var activePrinter = null;
@@ -326,7 +333,7 @@ function renderPresetTable() {
 
             var selectHtml = '<select class="preset-input" id="preset-select-' + safeId + '">';
             if (options.length === 0) {
-                selectHtml += '<option value="">（无可用预设）</option>';
+                selectHtml += '<option value="">' + _t('t294') + '</option>';
             } else {
                 options.forEach(function (opt) {
                     selectHtml += '<option value="' + opt.filament_preset + '">' + opt.name + '</option>';
