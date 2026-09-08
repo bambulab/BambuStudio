@@ -384,8 +384,21 @@ void ImGuiWrapper::set_language(const std::string &language)
         0x1EA0, 0x1EF9,
         0,
     };
+    // Same set as GetGlyphRangesOthers() plus the Greek and Coptic block, whose glyphs the
+    // bundled font already provides but the catch-all range never rasterized.
+    static const ImWchar ranges_greek[] =
+    {
+        0x0020, 0x00FF, // Basic Latin + Latin Supplement
+        0x0100, 0x017F, // Latin Extended-A
+        0x0180, 0x024F, // Latin Extended-B
+        0x0370, 0x03FF, // Greek and Coptic
+        0x2000, 0x206F, // General Punctuation
+        0xFF00, 0xFFEF, // Half-width characters
+        0,
+    };
     m_font_cjk = false;
     m_is_korean = false;
+    m_is_thai = false;
     if (lang == "cs" || lang == "pl") {
         ranges = ranges_latin2;
     } else if (lang == "ru" || lang == "uk") {
@@ -412,6 +425,9 @@ void ImGuiWrapper::set_language(const std::string &language)
         m_font_cjk = true;
     } else if (lang == "th") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesThai(); // Default + Thai characters
+        m_is_thai = true;
+    } else if (lang == "el") {
+        ranges = ranges_greek;
     }
     else if (lang == "en") {
         ranges = ImGui::GetIO().Fonts->GetGlyphRangesEnglish(); // Basic Latin
@@ -2696,6 +2712,19 @@ void ImGuiWrapper::init_font(bool compress)
 
     ImFontConfig cfg = ImFontConfig();
     cfg.OversampleH = cfg.OversampleV = 1;
+
+    // None of the bundled UI fonts contains Thai glyphs, and unlike wxWidgets (which gets OS level
+    // font linking for free) ImGui draws every missing codepoint as the '?' fallback. Merge a
+    // Thai-only font on top of the font just added; merged fonts never overwrite glyphs the base
+    // font already provides, so Latin, CJK and the custom icon rects stay untouched.
+    auto merge_thai_font = [&](const char *file_name) {
+        if (!m_is_thai)
+            return;
+        ImFontConfig thai_cfg = cfg;
+        thai_cfg.MergeMode = true;
+        io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + file_name).c_str(), m_font_size, &thai_cfg, ranges.Data);
+    };
+
     //FIXME replace with io.Fonts->AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size, m_font_size, nullptr, ranges.Data);
     //https://github.com/ocornut/imgui/issues/220
     if (m_is_korean)
@@ -2708,6 +2737,7 @@ void ImGuiWrapper::init_font(bool compress)
             throw Slic3r::RuntimeError("ImGui: Could not load deafult font");
         }
     }
+    merge_thai_font("NotoSansThai-Regular.ttf");
 
     if (m_is_korean)
         bold_font = io.Fonts->AddFontFromFileTTF((Slic3r::resources_dir() + "/fonts/" + "NanumGothic-Bold.ttf").c_str(), m_font_size, &cfg, ranges.Data);
@@ -2717,6 +2747,7 @@ void ImGuiWrapper::init_font(bool compress)
         bold_font = io.Fonts->AddFontDefault();
         if (bold_font == nullptr) { throw Slic3r::RuntimeError("ImGui: Could not load deafult font"); }
     }
+    merge_thai_font("NotoSansThai-Bold.ttf");
 
 #ifdef _WIN32
     // Render the text a bit larger (see GLCanvas3D::_resize() and issue #3401), but only if the scale factor
