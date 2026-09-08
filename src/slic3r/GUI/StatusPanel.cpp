@@ -5209,7 +5209,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
 
                 const bool is_third = DevFilaSystem::IsBBL_Filament(tray->tag_uid) ? false : true;
                 if (tray->tag_uid.size() == 16 && tray->tag_uid.substr(12, 2) == "01") {
-                    sn_number = tray->uuid;
+                    sn_number = tray->tag_uid;
                 }
                 if (!is_third) {
                     filament  = tray->sub_brands;
