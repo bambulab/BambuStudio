@@ -77,6 +77,9 @@ endif()
 if(NOT TARGET shewchuk_predicates)
   message(FATAL_ERROR "shewchuk_predicates target is missing; cannot package boolean backend.")
 endif()
+# Rename shewchuk's compress() so it does not clash with zlib's compress().
+# Compile-time -D is the recommended fix; do not use --allow-multiple-definition.
+target_compile_definitions(shewchuk_predicates PRIVATE compress=omc_shewchuk_compress)
 
 add_library(OpenMeshCraftBoolean STATIC
   ${CMAKE_CURRENT_SOURCE_DIR}/bambu_wrapper/OpenMeshCraftBoolean.cpp
