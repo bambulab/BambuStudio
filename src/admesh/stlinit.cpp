@@ -166,7 +166,7 @@ static bool stl_read(stl_file *stl, FILE *fp, int first_facet, bool first, Impor
         rewind(fp);
         try{
             char solid_content[256];
-            int res_solid = fscanf(fp, " solid %[^\n]", solid_content);
+            int res_solid = fscanf(fp, " solid %255[^\n]", solid_content);
             if (res_solid == 1) {
                 /*include ml info*/
                 std::string ext_content(solid_content);
