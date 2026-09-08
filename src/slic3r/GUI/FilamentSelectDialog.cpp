@@ -403,11 +403,15 @@ wxWindow* FilamentSelectDialog::build_manager_page(wxWindow* parent)
     search_box->SetBorderColor(sc(dlg_search_border()));
     search_box->SetCornerRadius(FromDIP(6));
     auto* sbs = new wxBoxSizer(wxHORIZONTAL);
-    m_search = new TextInput(search_box, wxEmptyString, wxEmptyString, "search",
-                             wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_search->GetTextCtrl()->SetHint(_L("Search filament"));
-    m_search->GetTextCtrl()->Bind(wxEVT_TEXT, [this](wxCommandEvent&) { apply_filters(); });
-    sbs->Add(m_search, 1, wxEXPAND | wxALL, FromDIP(2));
+    m_search = new wxTextCtrl(search_box, wxID_ANY, wxEmptyString,
+                               wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    m_search->SetFont(Label::Body_14);
+    const int search_height = m_search->GetBestSize().y;
+    m_search->SetMinSize(wxSize(-1, search_height));
+    search_box->SetMinSize(wxSize(-1, search_height + FromDIP(12)));
+    m_search->SetHint(_L("Search filament"));
+    m_search->Bind(wxEVT_TEXT, [this](wxCommandEvent&) { apply_filters(); });
+    sbs->Add(m_search, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(2));
     search_box->SetSizer(sbs);
     v->Add(search_box, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
 
@@ -685,7 +689,7 @@ void FilamentSelectDialog::filter_by_chip(const wxString& chip_label)
 void FilamentSelectDialog::apply_filters(bool reset_chip_offset)
 {
     const wxString q = m_search
-        ? m_search->GetTextCtrl()->GetValue().Lower().Trim(false).Trim(true)
+        ? m_search->GetValue().Lower().Trim(false).Trim(true)
         : wxString();
     const bool all = m_active_chip.empty() || m_active_chip == _L("All");
 
@@ -715,7 +719,7 @@ void FilamentSelectDialog::refresh_chip_visibility()
 
     // Determine which chips have search results (brand chips only; All/Unsupported always kept)
     const wxString q = m_search
-        ? m_search->GetTextCtrl()->GetValue().Lower().Trim(false).Trim(true)
+        ? m_search->GetValue().Lower().Trim(false).Trim(true)
         : wxString();
 
     std::vector<bool> chip_has_results(m_chips.size(), true);
