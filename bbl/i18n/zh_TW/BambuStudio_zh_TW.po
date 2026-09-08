@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 11:42+0800\n"
+"POT-Creation-Date: 2026-09-08 19:53+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -13788,8 +13788,8 @@ msgstr "內部實心填充的線型圖案。如果啟用了檢測狹窄的內部
 msgid "Sub-top surface pattern"
 msgstr "次頂層表面圖案"
 
-msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
-msgstr "位於可見頂面正下方的內部實體層的線條圖案。單調填充可減少透過頂層外皮顯示的擠出條紋。"
+msgid "Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it."
+msgstr ""
 
 msgid "Line width of outer wall"
 msgstr "外牆的線寬"
@@ -19085,6 +19085,9 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#~ msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
+#~ msgstr "位於可見頂面正下方的內部實體層的線條圖案。單調填充可減少透過頂層外皮顯示的擠出條紋。"
 
 #, c-format, boost-format
 #~ msgid ""
