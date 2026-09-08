@@ -6418,8 +6418,21 @@ std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) co
     return nozzle_map;
 }
 
-// Internal nozzle indices are 0-based; the UI displays them starting from 1.
+// Internal nozzle and slot indices are 0-based; the UI displays them starting from 1.
 static constexpr int kNozzleDisplayOffset = 1;
+static constexpr int kSlotDisplayOffset = 1;
+
+// "1, 3, 4" for a set of display ids.
+static wxString s_join_display_ids(const std::set<int>& display_ids)
+{
+    wxString ids_str;
+    for (int id : display_ids) {
+        if (!ids_str.IsEmpty()) { ids_str += ", "; }
+        ids_str += wxString::Format("%d", id);
+    }
+
+    return ids_str;
+}
 
 // return empty string if not supported
 // return ? if not mapped
@@ -6976,8 +6989,16 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
                     {suspect_engagement_warning_msg});
     }
 
-    if (!CheckWarningExtSpoolNotLoaded(obj_)) {
-        show_status(PrintDialogStatus::PrintStatusExtSpoolNotLoadedWarning);
+    wxString ext_spool_not_loaded_msg;
+    wxString ams_slot_not_loaded_msg;
+    if (!CheckWarningSlotNotLoaded(obj_, ext_spool_not_loaded_msg, ams_slot_not_loaded_msg)) {
+        if (!ext_spool_not_loaded_msg.IsEmpty()) {
+            show_status(PrintDialogStatus::PrintStatusExtSpoolNotLoadedWarning, {ext_spool_not_loaded_msg});
+        }
+
+        if (!ams_slot_not_loaded_msg.IsEmpty()) {
+            show_status(PrintDialogStatus::PrintStatusAmsSlotNotLoadedWarning, {ams_slot_not_loaded_msg});
+        }
     }
 
     return true;
@@ -7385,13 +7406,19 @@ bool SelectMachineDialog::CheckWarningFilamentSuspectEngagement(MachineObject* o
     return false;
 }
 
-bool SelectMachineDialog::CheckWarningExtSpoolNotLoaded(MachineObject* obj_)
+bool SelectMachineDialog::CheckWarningSlotNotLoaded(MachineObject* obj_, wxString& ext_spool_msg, wxString& ams_slot_msg)
 {
+    ext_spool_msg.clear();
+    ams_slot_msg.clear();
+
     if (!obj_) return true;
 
     if (!(obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A
         || obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) 
         return true;
+
+    std::set<int> ext_spool_tool_ids;
+    std::set<int> ams_slot_ids;
 
     // Same predicate as auto-mapping, so it also catches slots the manual panel allowed.
     for (const auto& fila : m_ams_mapping_result) {
@@ -7407,11 +7434,33 @@ bool SelectMachineDialog::CheckWarningExtSpoolNotLoaded(MachineObject* obj_)
 
         const DevAmsType ams_type = devPrinterUtil::IsVirtualSlot(fila.ams_id) ? DevAmsType::EXT_SPOOL
                                                                                : tray_opt->ams_type;
-        if (!DevMappingUtil::IsSlotAutoLoadable(*nozzle_opt, ams_type, DevAmsSlotId{fila.get_ams_id(), fila.get_slot_id()})) {
-            return false; // the user has to push this filament in before printing
+        if (DevMappingUtil::IsSlotAutoLoadable(*nozzle_opt, ams_type, DevAmsSlotId{fila.get_ams_id(), fila.get_slot_id()})) {
+            continue;
+        }
+
+        // The user has to push this filament in before printing; tell him where.
+        if (ams_type == DevAmsType::EXT_SPOOL) {
+            ext_spool_tool_ids.insert(addr_opt.value() + kNozzleDisplayOffset);
+        } else {
+            ams_slot_ids.insert(fila.get_slot_id() + kSlotDisplayOffset);
         }
     }
-    return true;
+
+    if (ext_spool_tool_ids.empty() && ams_slot_ids.empty()) return true;
+
+    if (!ext_spool_tool_ids.empty()) {
+        ext_spool_msg = wxString::Format(_L("Filament are not loaded in PrintTool %s. Printing may pause for filament change. "
+                                            "Please load the filament before printing."),
+                                         s_join_display_ids(ext_spool_tool_ids));
+    }
+
+    if (!ams_slot_ids.empty()) {
+        ams_slot_msg = wxString::Format(_L("Filament are not loaded in Slot %s. Printing may pause for filament change. "
+                                           "Please load the filament before printing."),
+                                        s_join_display_ids(ams_slot_ids));
+    }
+
+    return false;
 }
 
 ShowType SelectMachineDialog::get_filament_mapping_show_type(MachineObject* obj_, int fila_logic_id) const
