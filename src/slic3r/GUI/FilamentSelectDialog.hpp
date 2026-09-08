@@ -6,7 +6,6 @@
 #include "Widgets/Button.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/StaticBox.hpp"
-#include "Widgets/TextInput.hpp"
 #include "fila_manager/wgtFilaManagerStore.h"
 
 #include <map>
@@ -18,6 +17,7 @@
 #include <wx/scrolwin.h>
 #include <wx/simplebook.h>
 #include <wx/statbmp.h>
+#include <wx/textctrl.h>
 
 namespace Slic3r { namespace GUI {
 
@@ -88,7 +88,7 @@ private:
     // sidebar and its GetPageRect() returns zero size inside a dialog.
     wxSimplebook*     m_book{nullptr};
 
-    TextInput*        m_search{nullptr};
+    wxTextCtrl*       m_search{nullptr};
     wxPanel*          m_chip_scroll{nullptr};
     wxBoxSizer*       m_chip_sizer{nullptr};
     wxStaticBitmap*   m_left_arrow{nullptr};
