@@ -4408,7 +4408,7 @@ msgid "AMS filament backup"
 msgstr "AMS自动续料"
 
 msgid "AMS will continue to another spool with the same properties of filament automatically when current filament runs out"
-msgstr "AMS料材丝耗尽后将自动切换到属性完全相同的耗材丝"
+msgstr "AMS耗材丝耗尽后将自动切换到属性完全相同的耗材丝"
 
 msgid "Air Printing Detection"
 msgstr "空打检测"
@@ -5875,7 +5875,7 @@ msgstr "只有正在编辑的对象是可见的。"
 
 #, c-format, boost-format
 msgid "filaments %s cannot be printed directly on the surface of this plate."
-msgstr "材料 %s 不能在直接在当前打印板上打印。"
+msgstr "材料 %s 不能直接在当前打印板上打印。"
 
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "检测到 PLA 和 PETG 同时打印，请根据 Wiki 中的建议调整打印参数来确保打印质量。"
@@ -8066,7 +8066,7 @@ msgid "A larger width improves bed adhesion and resists warping but uses more ma
 msgstr "宽度越大，粘床越好、越不易翘边，但更费料、更难清理；"
 
 msgid "After a color or filament change, the printer purges residual filament and stabilizes nozzle pressure on a separate prime tower before resuming the model, reducing color mixing, starvation, and surface defects."
-msgstr "在换色/换料后，会单独起擦料塔，，再继续打印模型"
+msgstr "在换色/换料后，会单独起擦料塔，再继续打印模型"
 
 msgid ""
 "Off: saves material and takes less bed space, but residual filament during a color change may land on the model and cause color mixing, stringing, or local starvation.\n"
@@ -13318,7 +13318,7 @@ msgid "Avoid crossing wall"
 msgstr "避免跨越外墙"
 
 msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
-msgstr "空驶时绕过外墙以避免在模型外观面产生半点（对距离大于空驶距离阈值的空驶）"
+msgstr "空驶时绕过外墙以避免在模型外观面产生斑点（对距离大于空驶距离阈值的空驶）"
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "平滑z方向外墙速度（实验）"
@@ -16554,7 +16554,7 @@ msgstr ""
 "\n"
 "通常情况下，校准是不必要的。当您开始单色/单材料打印，并在打印开始菜单中勾选了“动态流量校准”选项时，打印机将按照旧的方式，在打印前校准丝料；当您开始多色/多材料打印时，打印机将在每次换丝料时使用默认的补偿参数，这在大多数情况下会产生良好的效果。\n"
 "\n"
-"有几种情况可能导致校准结果不可靠，例如打印板的的附着力不足。清洗打印板或者使用胶水可以增强打印板附着力。您可以在我们的维基上找到更多相关信息。\n"
+"有几种情况可能导致校准结果不可靠，例如打印板的附着力不足。清洗打印板或者使用胶水可以增强打印板附着力。您可以在我们的维基上找到更多相关信息。\n"
 "\n"
 "在我们的测试中，校准结果有约10%的波动，这可能导致每次校准的结果略有不同。我们仍在调查根本原因，并通过新的更新进行改进。"
 
