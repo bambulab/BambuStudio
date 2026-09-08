@@ -10,7 +10,7 @@
 #include <wx/panel.h>
 #include <wx/scrolwin.h>
 #include <wx/textctrl.h>
-#include "Widgets/SpinInput.hpp"
+#include "Widgets/TextInput.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/Label.hpp"
 #include <wx/button.h>
@@ -128,6 +128,18 @@ public:
     void set_computing_overlay(bool show);
     void reset_view();
 
+    enum class ResetOverlayAlign { Hidden, CenterOnRightEdge, CenterOnLeftEdge };
+    void set_reset_overlay_align(ResetOverlayAlign align);
+    void set_reset_overlay_hovered(bool hovered);
+    void set_reset_overlay_hover_callback(std::function<void(bool)> cb);
+
+    // The canvas covers the rounded corners of its container, and child windows
+    // cannot be reshaped portably, so the corners are painted back here in GL.
+    // "inset" is the gap between the container edge and the canvas edge.
+    enum class RoundedCornerSide { None, Left, Right };
+    void set_rounded_corners(RoundedCornerSide side, int radius, int inset,
+                             const wxColour& outside, const wxColour& border);
+
     struct ViewState {
         float zoom  = 1.0f;
         float rot_x = -30.0f;
@@ -150,6 +162,8 @@ private:
     void render_mesh();
     void render_textured_original();
     void render_reset_overlay(const wxSize& logical_size, const wxSize& viewport_size);
+    void render_rounded_corners(const wxSize& logical_size, const wxSize& viewport_size);
+    void ensure_corner_texture(int texture_px);
     void upload_reset_icon_textures();
     unsigned int upload_reset_icon_texture(const std::string& icon_name);
     wxRect reset_overlay_rect() const;
@@ -203,12 +217,23 @@ private:
     std::array<float, 3> m_center = {0, 0, 0};
     float                m_radius = 1.0f;
 
+    ResetOverlayAlign m_reset_overlay_align = ResetOverlayAlign::Hidden;
     unsigned int m_reset_icon_tex        = 0;
     unsigned int m_reset_icon_hover_tex  = 0;
     unsigned int m_reset_icon_dark_tex   = 0;
     unsigned int m_reset_icon_dark_hover_tex = 0;
     bool         m_reset_overlay_hovered = false;
     bool         m_reset_overlay_pressed = false;
+    std::function<void(bool)> m_reset_hover_cb;
+
+    RoundedCornerSide m_corner_side   = RoundedCornerSide::None;
+    int          m_corner_radius      = 0;
+    int          m_corner_inset       = 0;
+    wxColour     m_corner_outside;
+    wxColour     m_corner_border;
+    unsigned int m_corner_tex         = 0;
+    int          m_corner_tex_px      = 0;
+
     bool         m_computing_overlay     = false;
     std::function<void(const ViewState&)> m_view_changed_cb;
 };
@@ -256,6 +281,9 @@ private:
     void update_preview_modes();
     void update_color_captions();
     void recenter_preview_tags();
+    void update_preview_rounded_corners();
+    void clear_param_spin_selection();
+    void update_dialog_min_size();
     void update_stepper();
     void style_primary_button(Button* btn);
     void style_secondary_button(Button* btn);
@@ -273,6 +301,11 @@ private:
     void rebuild_mapping_rows();
     void layout_mapping_rows();
     void do_auto_match();
+    // Drop NewPhysical / NewMixed slots created in this dialog, then rebuild
+    // the baseline mapping with do_auto_match(). Shared by a fresh compute and
+    // the matching-step Reset button.
+    void drop_virtual_filaments_keep_project();
+    void reset_to_project_filaments_and_auto_match();
     // Reorder m_current_matches into a canonical, predictable order (ascending
     // filament_index, with unmapped entries pushed to the end). Used right
     // after the initial computation so the first view the user sees has a
@@ -305,6 +338,10 @@ private:
                                     const std::vector<int>& ratios);
     bool remove_virtual_filament(int dialog_index);
     size_t max_filament_count() const;
+    int    max_color_count() const;
+    void   update_color_count_controls();
+    void   set_color_count_exceeded(bool exceeded);
+    void   update_color_count_warning();
     bool can_add_virtual_filament() const;
     // Recomputes m_drop_warning_label visibility from m_filaments_dropped and
     // m_state. Safe to call whether or not the label has been created yet.
@@ -315,7 +352,8 @@ private:
     void compact_used_virtual_filaments();
     int  find_closest_filament_index(const std::array<std::size_t, 3>& color) const;
     int  find_closest_filament_index(const std::array<std::size_t, 3>& color,
-                                    int skip_index, bool physical_only) const;
+                                    int skip_index, bool physical_only,
+                                    const std::string& family_type = {}) const;
     // Returns a vector indexed by dialog_index whose value is the 1-based
     // display number that mirrors the final sidebar ordering produced by
     // apply_textured_mesh_import_result (Plater.cpp): ExistingPhysical,
@@ -327,23 +365,19 @@ private:
 
     void on_color_preset_clicked(wxCommandEvent& evt);
     void on_color_slider_changed(wxCommandEvent& evt);
-    void on_color_spin_changed(wxCommandEvent& evt);
     void on_color_spin_text_changed(wxCommandEvent& evt);
+    void on_color_spin_commit();
     void on_smooth_slider_changed(wxCommandEvent& evt);
-    void on_smooth_spin_changed(wxCommandEvent& evt);
-    void on_smooth_spin_text_changed(wxCommandEvent& evt);
+    void on_smooth_spin_commit();
     void on_auto_merge_toggled(wxCommandEvent& evt);
     void on_skip_clicked(wxCommandEvent& evt);
     void on_next_clicked(wxCommandEvent& evt);
     void on_prev_clicked(wxCommandEvent& evt);
-    void on_cancel_clicked(wxCommandEvent& evt);
+    void on_reset_clicked(wxCommandEvent& evt);
     void on_ok_clicked(wxCommandEvent& evt);
 
     void set_color_count_value(int value, bool update_spin);
     void set_smooth_value(int value, bool update_spin);
-    void preview_spin_text_value(SpinInput* spin, GreenSlider* slider, int& param,
-                                 int min_value, int max_value, const wxString& text,
-                                 std::function<void()> on_value_changed = {});
 
     bool has_valid_result() const;
     void update_confirm_button_state();
@@ -411,9 +445,9 @@ private:
     Button*      m_btn_color_16   = nullptr;
     Button*      m_btn_color_auto = nullptr;
     GreenSlider* m_color_slider   = nullptr;
-    SpinInput*   m_color_spin     = nullptr;
+    TextInput*   m_color_spin     = nullptr;
     GreenSlider* m_smooth_slider  = nullptr;
-    SpinInput*   m_smooth_spin    = nullptr;
+    TextInput*   m_smooth_spin    = nullptr;
     wxPanel*              m_params_panel   = nullptr;
     wxPanel*              m_mapping_panel  = nullptr;
     wxPanel*              m_preview_container = nullptr;
@@ -434,9 +468,12 @@ private:
 
     TexturePreviewCanvas* m_preview_canvas       = nullptr;
     TexturePreviewCanvas* m_preview_canvas_right = nullptr;
+    wxPanel*              m_preview_divider      = nullptr;
     wxPanel*              m_lbl_preview_left_panel  = nullptr;
     wxPanel*              m_lbl_preview_right_panel = nullptr;
     wxPanel*              m_updating_overlay        = nullptr;
+    wxPanel*              m_color_count_warning     = nullptr;
+    wxPanel*              m_caption_row             = nullptr;
     wxStaticText*         m_lbl_caption_left  = nullptr;
     wxStaticText*         m_lbl_caption_right = nullptr;
     wxStaticText*         m_lbl_mapping       = nullptr;
@@ -446,7 +483,7 @@ private:
     Button*       m_btn_skip   = nullptr;
     Button*       m_btn_next   = nullptr;
     Button*       m_btn_prev   = nullptr;
-    Button*       m_btn_cancel = nullptr;
+    Button*       m_btn_reset  = nullptr;
     Button*       m_btn_ok     = nullptr;
     wxStaticText* m_drop_warning_label = nullptr;
     wxBoxSizer*   m_footer_btn_sizer   = nullptr;
@@ -458,6 +495,7 @@ private:
     int   m_applied_smooth      = -1;
     bool  m_applied_auto_preset = true;
     int   m_original_color_count = 0;
+    bool  m_color_count_exceeded = false;
 
     struct ComputeSnapshot {
         bool valid = false;
@@ -489,7 +527,7 @@ private:
     static const int ID_BTN_SKIP    = wxID_HIGHEST + 205;
     static const int ID_BTN_NEXT    = wxID_HIGHEST + 206;
     static const int ID_BTN_PREV    = wxID_HIGHEST + 207;
-    static const int ID_BTN_CANCEL  = wxID_HIGHEST + 208;
+    static const int ID_BTN_RESET   = wxID_HIGHEST + 208;
 
     wxDECLARE_EVENT_TABLE();
 };

@@ -9933,10 +9933,18 @@ bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, 
         auto& project_config = preset_bundle.project_config;
         auto* colours_opt = project_config.option<ConfigOptionStrings>("filament_colour");
         auto* is_mixed_opt = project_config.option<ConfigOptionBools>("filament_is_mixed");
-        auto* type_opt = project_config.option<ConfigOptionStrings>("filament_type");
         auto* components_opt = project_config.option<ConfigOptionStrings>("filament_mixed_components");
         auto* ratios_opt = project_config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios");
         const size_t total = preset_bundle.filament_presets.size();
+        auto family_type_of = [&preset_bundle](size_t idx) -> std::string {
+            if (idx >= preset_bundle.filament_presets.size())
+                return {};
+            Preset* preset = preset_bundle.filaments.find_preset(preset_bundle.filament_presets[idx]);
+            if (!preset)
+                return {};
+            std::string display_type;
+            return preset->config.get_filament_type(display_type);
+        };
         filament_entries.reserve(total);
         for (size_t i = 0; i < total; ++i) {
             TextureFilamentEntry entry;
@@ -9945,7 +9953,6 @@ bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, 
             entry.dialog_index = (int)filament_entries.size();
             entry.project_config_index = i;
             entry.color_hex = (colours_opt && i < colours_opt->values.size()) ? colours_opt->values[i] : "#808080";
-            entry.type = (type_opt && i < type_opt->values.size()) ? type_opt->values[i] : "";
 
             std::string name;
             if (i < preset_bundle.filament_presets.size()) {
@@ -9954,7 +9961,7 @@ bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, 
                     name = preset->label(false);
             }
             if (name.empty())
-                name = "Filament " + std::to_string(i + 1);
+                name = into_u8(wxString::Format(_L("Filament %d"), (int)i + 1));
             entry.name = name;
 
             if (entry.kind == TextureFilamentKind::ExistingMixed) {
@@ -9966,6 +9973,31 @@ bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, 
                 entry.mixed_ratios.reserve(ratios.size());
                 for (double ratio : ratios)
                     entry.mixed_ratios.push_back((int)std::lround(ratio * 100.0));
+
+                std::string ref;
+                bool found = false;
+                bool mismatch = false;
+                for (unsigned int comp : entry.mixed_components) {
+                    if (comp < 1)
+                        continue;
+                    const std::string ft = family_type_of((size_t)comp - 1);
+                    if (ft.empty())
+                        continue;
+                    if (!found) {
+                        ref = ft;
+                        found = true;
+                    } else if (ft != ref) {
+                        mismatch = true;
+                        break;
+                    }
+                }
+                if (found && !mismatch)
+                    entry.type = ref;
+                else if (!mismatch) {
+                    entry.type = family_type_of(i);
+                }
+            } else {
+                entry.type = family_type_of(i);
             }
             filament_entries.push_back(std::move(entry));
         }
