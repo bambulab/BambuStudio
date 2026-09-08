@@ -51,7 +51,8 @@ public:
     bool isExhaustFan() const { return product_name.Contains("Exhaust Fan"); }
     /* The air purifier(APS) is always reported with the "aps" module name, the product name is kept as a fallback */
     bool isAirPurifier() const { return name == "aps" || product_name.Contains("Air Purifier"); }
-    bool isHmshub() const { return product_name.find("Filament Buffer") != string::npos; }
+    /* The external AMS buffer is always reported with the "ahbc" module name, the product name is kept as a fallback */
+    bool isHmshub() const { return name == "ahbc" || product_name.find("Filament Buffer") != string::npos; }
     bool isFilaTrackSwitch() const { return product_name.find("Filament Track") != string::npos; }
     bool isHotendAms(const std::string& hotend_ams_type_string) const
     {
