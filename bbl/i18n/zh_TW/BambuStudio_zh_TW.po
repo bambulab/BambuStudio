@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 20:58+0800\n"
+"POT-Creation-Date: 2026-09-08 11:42+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -952,7 +952,7 @@ msgid "Cut"
 msgstr "剪下"
 
 msgid "Cutting model object"
-msgstr ""
+msgstr "正在切割模型物件"
 
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr ""
@@ -2252,7 +2252,7 @@ msgid "Cylinder"
 msgstr "圓柱體"
 
 msgid "Hexagonal Prism"
-msgstr ""
+msgstr "六角棱柱"
 
 msgid "Cone"
 msgstr "錐體"
@@ -3201,7 +3201,7 @@ msgid "Install parts"
 msgstr ""
 
 msgid "Inherited Step"
-msgstr ""
+msgstr "繼承步驟"
 
 msgid "start frame"
 msgstr ""
@@ -3352,13 +3352,13 @@ msgid "Display Mode"
 msgstr ""
 
 msgid "Show world axes"
-msgstr ""
+msgstr "顯示世界座標軸"
 
 msgid "Show explosion state column"
 msgstr ""
 
 msgid "Allow modify text note foreground"
-msgstr ""
+msgstr "允許修改文字備註前景"
 
 msgid "Allow modify text note background"
 msgstr ""
@@ -3434,7 +3434,7 @@ msgid "Not"
 msgstr ""
 
 msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
-msgstr ""
+msgstr "請先點擊確認。在畫布上生成標籤後，才能使用此標籤控制項。"
 
 msgid "Click to add Cyber Brick"
 msgstr ""
@@ -3581,7 +3581,7 @@ msgid "Automatically explode objects that are new to this step. Objects already 
 msgstr ""
 
 msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
-msgstr ""
+msgstr "自動分解新零件。從先前步驟繼承或已組裝的物件將作為一個整體保持在一起。"
 
 msgid "Apply current camera angle to all frames of the current step"
 msgstr ""
@@ -7982,7 +7982,7 @@ msgid "Controls how many layers the skirt is printed."
 msgstr ""
 
 msgid ""
-"During the first few layers, a taller skirt can partly block cold air around the printer, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
+"During the first few layers, a taller skirt can partly block cold air around the model, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
 "The default is 1 layer."
 msgstr ""
 
@@ -8798,7 +8798,7 @@ msgid "Option 3: Enable multi-material optimization"
 msgstr ""
 
 msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
-msgstr ""
+msgstr "點擊第三方圖示 → 啟用 Helio Additive → 勾選「實驗性：啟用多材料支撐」"
 
 msgid "Unsupported Materials Detected"
 msgstr "檢測到不支援的材料"
@@ -10743,7 +10743,7 @@ msgid ""
 msgstr ""
 
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
-msgstr ""
+msgstr "平滑縮時攝影需要在每個圖層上建立擦料塔，這與「無稀疏圖層」不相容。「無稀疏圖層」已關閉。"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "平滑模式的延時攝影需要擦料塔，否則列印件上可能會有瑕疵。您想開啟擦料塔嗎？"
@@ -14017,7 +14017,7 @@ msgid "AMS Lite filament load time"
 msgstr ""
 
 msgid "Filament load time when printing with an AMS Lite. For statistics only"
-msgstr ""
+msgstr "使用AMS lite列印時的線材進料時間。僅用於統計。"
 
 msgid "N3F/N3S filament load time"
 msgstr ""
@@ -14047,7 +14047,7 @@ msgid "Default AMS type"
 msgstr ""
 
 msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
-msgstr ""
+msgstr "用於估計線材進料/退料時間的預設AMS類型，儲存為AMS計時類型列舉值。它來自印表機預設值，並不反映目前連接到機器的AMS。"
 
 msgid "Extruder switch time"
 msgstr "擠出機切換時間"
@@ -17943,7 +17943,7 @@ msgid "Helio action canceled"
 msgstr ""
 
 msgid "Helio GCode creation response is incomplete"
-msgstr ""
+msgstr "Helio GCode 建立回應不完整"
 
 msgid "Failed to parse response"
 msgstr "解析響應失敗"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 20:58+0800\n"
+"POT-Creation-Date: 2026-09-08 11:42+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -968,7 +968,7 @@ msgid "Cut"
 msgstr "Разрезать"
 
 msgid "Cutting model object"
-msgstr ""
+msgstr "Разрезка объекта модели"
 
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
 msgstr ""
@@ -2292,7 +2292,7 @@ msgid "Cylinder"
 msgstr "Цилиндр"
 
 msgid "Hexagonal Prism"
-msgstr ""
+msgstr "Шестиугольная призма"
 
 msgid "Cone"
 msgstr "Конус"
@@ -3273,7 +3273,7 @@ msgid "Install parts"
 msgstr ""
 
 msgid "Inherited Step"
-msgstr ""
+msgstr "Унаследованный шаг"
 
 msgid "start frame"
 msgstr ""
@@ -3424,13 +3424,13 @@ msgid "Display Mode"
 msgstr ""
 
 msgid "Show world axes"
-msgstr ""
+msgstr "Показать мировые оси"
 
 msgid "Show explosion state column"
 msgstr ""
 
 msgid "Allow modify text note foreground"
-msgstr ""
+msgstr "Разрешить изменение цвета текста заметки"
 
 msgid "Allow modify text note background"
 msgstr ""
@@ -3506,7 +3506,7 @@ msgid "Not"
 msgstr ""
 
 msgid "Please click Confirm first. After labels are generated on the canvas, this label control can be used."
-msgstr ""
+msgstr "Пожалуйста, сначала нажмите «Подтвердить». После создания меток на холсте этот элемент управления метками можно будет использовать."
 
 msgid "Click to add Cyber Brick"
 msgstr ""
@@ -3653,7 +3653,7 @@ msgid "Automatically explode objects that are new to this step. Objects already 
 msgstr ""
 
 msgid "Automatically explode new parts. Objects inherited or already assembled in earlier steps stay together as one whole."
-msgstr ""
+msgstr "Автоматически разносить новые детали. Объекты, унаследованные или уже собранные на предыдущих шагах, остаются единым целым."
 
 msgid "Apply current camera angle to all frames of the current step"
 msgstr ""
@@ -8133,7 +8133,7 @@ msgid "Controls how many layers the skirt is printed."
 msgstr ""
 
 msgid ""
-"During the first few layers, a taller skirt can partly block cold air around the printer, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
+"During the first few layers, a taller skirt can partly block cold air around the model, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
 "The default is 1 layer."
 msgstr ""
 
@@ -8958,7 +8958,7 @@ msgid "Option 3: Enable multi-material optimization"
 msgstr ""
 
 msgid "Click third-party icon → Enable Helio Additive → Check \"Experimental: Enable multi-material support\""
-msgstr ""
+msgstr "Нажмите на значок стороннего производителя → Включить Helio Additive → Отметьте «Экспериментально: Включить поддержку нескольких материалов»"
 
 msgid "Unsupported Materials Detected"
 msgstr ""
@@ -10901,7 +10901,7 @@ msgid ""
 msgstr ""
 
 msgid "Smooth timelapse needs a prime tower on every layer, which is not compatible with \"No sparse layers\". \"No sparse layers\" has been turned off."
-msgstr ""
+msgstr "Для сглаженного таймлапса требуется башня очистки на каждом слое, что несовместимо с функцией «Без редких слоев». Функция «Без редких слоев» была отключена."
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Для плавного таймлапса требуется черновая башня. На модели без использования черновой башни могут быть дефекты. Вы хотите включить черновую башню?"
@@ -14210,7 +14210,7 @@ msgid "AMS Lite filament load time"
 msgstr ""
 
 msgid "Filament load time when printing with an AMS Lite. For statistics only"
-msgstr ""
+msgstr "Время загрузки филамента при печати с AMS Lite. Только для статистики."
 
 msgid "N3F/N3S filament load time"
 msgstr ""
@@ -14240,7 +14240,7 @@ msgid "Default AMS type"
 msgstr ""
 
 msgid "The default AMS type used to estimate filament load/unload time, stored as the AMS timing type enum value. It comes from the printer preset and does not reflect the AMS currently attached to the machine."
-msgstr ""
+msgstr "Тип AMS по умолчанию, используемый для оценки времени загрузки/выгрузки филамента, хранится как значение перечисления типа времени AMS. Он берется из предустановки принтера и не отражает AMS, подключенный к машине в данный момент."
 
 msgid "Extruder switch time"
 msgstr "Время переключения экструдера"
@@ -18212,7 +18212,7 @@ msgid "Helio action canceled"
 msgstr ""
 
 msgid "Helio GCode creation response is incomplete"
-msgstr ""
+msgstr "Ответ о создании G-кода Helio неполон"
 
 msgid "Failed to parse response"
 msgstr ""
