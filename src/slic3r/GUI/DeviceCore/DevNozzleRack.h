@@ -109,6 +109,8 @@ public:
     DevNozzle GetNozzle(int idx) const;
     const std::map<int, DevNozzle>& GetRackNozzles() const { return m_rack_nozzles; }
 
+    bool        IsDirectConnectedRack() const { return m_rack_type > RackType_AB;}
+
     RackType    GetRackType() const { return m_rack_type; }
     int         GetTotalRackNozzleCount() const;
 

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { AmsFilamentHotendDryerZone, AmsFilamentHotendSlotViewModel, FilamentPageMode } from '../types';
 import { SlotColumn } from './SlotColumn';
 import { DryerChamberDecoration, findDryerRuns } from './DryerChamber';
@@ -5,6 +6,22 @@ import { DryerChamberDecoration, findDryerRuns } from './DryerChamber';
 // Top feed lines cross the lower row before reaching the shared nozzle row.
 export const TOP_LINE_HEIGHT = 167;
 export const BOTTOM_LINE_HEIGHT = 26;
+
+// Slot column width, kept in sync with `.slot-column` / `.filament-card`.
+const COLUMN_WIDTH = 80;
+
+// Horizontal distance between two neighbouring slots, counting both tiers as
+// one evenly spaced sequence (bottom, top, bottom, ...). The outermost columns
+// touch the stage edges, so the pitch depends on the total slot count: with 9
+// slots it is 1/8 of the free width, with 5 slots 1/4 of it. Deriving it here
+// keeps the tiers interleaved for any slot count instead of hard-coding the
+// 9-slot case in CSS. cqw resolves against `.stage` (see the CSS).
+export function stagePitchStyle(totalSlots: number): CSSProperties {
+  const gaps = totalSlots - 1;
+  return {
+    ['--slot-pitch' as never]: gaps > 0 ? `calc((100cqw - ${COLUMN_WIDTH}px) / ${gaps})` : '0px',
+  } as CSSProperties;
+}
 
 // Stable key for the local selection set. Composes ams_id + slot_id so two
 // slots that share a display_index (rare but possible across AMS units) do
@@ -37,7 +54,10 @@ export function Stage({
   const dryerRuns = findDryerRuns(topSlots, amsDryZones);
 
   return (
-    <section className={`stage${hotendMode ? ' hotend-mode' : ''}${mode !== 'normal' ? ' batch-mode' : ''}`}>
+    <section
+      className={`stage${hotendMode ? ' hotend-mode' : ''}${mode !== 'normal' ? ' batch-mode' : ''}`}
+      style={stagePitchStyle(topSlots.length + bottomSlots.length)}
+    >
       <div className="top-tier-row" data-testid="ams-hotend-top-tier">
         {dryerRuns.map((run) => (
           <DryerChamberDecoration

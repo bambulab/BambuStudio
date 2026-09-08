@@ -19,8 +19,9 @@ export function DryerChamberDecoration({
   isDrying?: boolean;
 }) {
   if (totalSlots !== 4) return null;
-  const startStr = `calc((100% - 80px) / 8 + ${startIndex} * (100% - 80px) / 4 - 4px)`;
-  const endStr = `calc((100% - 80px) / 8 + ${endIndex} * (100% - 80px) / 4 + ${COL}px + 4px)`;
+  // Top columns sit at odd multiples of `--slot-pitch` (see Stage.tsx).
+  const startStr = `calc(${1 + 2 * startIndex} * var(--slot-pitch) - 4px)`;
+  const endStr = `calc(${1 + 2 * endIndex} * var(--slot-pitch) + ${COL + 4}px)`;
 
   return (
     <div

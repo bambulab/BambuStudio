@@ -17,6 +17,7 @@
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
+#include "slic3r/GUI/DeviceCore/DevFilaAutoRefillMgr.h"
 #include "libslic3r/PresetBundle.hpp"
 
 #include <algorithm>
@@ -314,9 +315,10 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
         if (!has_connected_ams) {
             fp[SK::filament_page::actions][SK::filament_actions::can_show_load_auto] = false;
         }
-
         fp[SK::filament_page::actions][SK::filament_actions::show_ams_settings] = has_connected_ams;
-        fp[SK::filament_page::actions][SK::filament_actions::show_auto_refill]  = has_connected_ams;
+
+        bool show_auto_refill = fila_system->GetAutoRefillMgr().IsSupported();
+        fp[SK::filament_page::actions][SK::filament_actions::show_auto_refill]  = show_auto_refill;
         // Per-slot ams_operation.units is the canonical source for AMS-unit
         // detail (the AMS Operation dialog reads from there). The Filament tab
         // reads dryer chamber data from `ams_dry_zones` instead ? slots no
