@@ -869,6 +869,7 @@ public://logic
     void                     show_assembly_export_progress(ExportType type, const std::string &path, int value, int maximum);
     void                     update_assembly_export_progress(ExportType type, const std::string &path, int value, int maximum);
     void                     hide_assembly_export_progress();
+    void                     cancel_assembly_export();
     void                     save_existing_project_if_dirty();
     // Reveal a freshly exported file in the system file manager (selects the file on Windows, opens the containing folder on macOS / Linux).
     void                     open_export_output_folder(const std::string &file_path);

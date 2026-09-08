@@ -893,7 +893,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     // enter sending mode
     sending_mode();
 
-    if (wxGetApp().plater()->using_exported_file()) {
+    if (wxGetApp().plater()->using_exported_file() || wxGetApp().plater()->only_gcode_mode()) {
         m_plater->set_print_job_plate_idx(m_print_plate_idx);
         result = 0;
     }
@@ -922,7 +922,7 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     }
 
     // export config 3mf if needed
-    if(!wxGetApp().plater()->using_exported_file() && !obj_->is_lan_mode_printer()) {
+    if(!wxGetApp().plater()->using_exported_file() && !wxGetApp().plater()->only_gcode_mode() && !obj_->is_lan_mode_printer()) {
             result = m_plater->export_config_3mf(m_print_plate_idx);
             if (result < 0) {
                  BOOST_LOG_TRIVIAL(info) << "export_config_3mf failed, result = " << result;
@@ -948,16 +948,8 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
     {
         update_print_status_msg(wxEmptyString, false, false);
 
-        PrintPrepareData print_data;
-
-        m_plater->get_print_job_data(&print_data);
-        std::string project_name = m_current_project_name.utf8_string() + ".gcode.3mf";
-
-        std::string _3mf_path;
-        if (wxGetApp().plater()->using_exported_file())
-            _3mf_path = wxGetApp().plater()->get_3mf_filename();
-        else
-             _3mf_path = print_data._3mf_path.string();
+        std::string project_name = get_send_file_name();
+        std::string _3mf_path    = get_send_file_path();
 
         CreateUploadFileJob(_3mf_path, project_name);
 
@@ -1927,6 +1919,27 @@ void SendToPrinterDialog::CreateMediaAbilityJob()
      } else {
         BOOST_LOG_TRIVIAL(info) << "CreateMediaAbilityJob:: file transfer tunnel is null";
      }
+}
+
+std::string SendToPrinterDialog::get_send_file_path()
+{
+    Plater *plater = wxGetApp().plater();
+    if (plater->using_exported_file())
+        return plater->get_3mf_filename();
+    if (plater->only_gcode_mode())
+        return plater->get_partplate_list().get_curr_plate()->get_gcode_filename();
+
+    PrintPrepareData data;
+    plater->get_print_job_data(&data);
+    return data._3mf_path.string();
+}
+
+std::string SendToPrinterDialog::get_send_file_name()
+{
+    Plater *plater = wxGetApp().plater();
+    if (plater->using_exported_file() || plater->only_gcode_mode())
+        return fs::path(get_send_file_path()).filename().string();
+    return m_current_project_name.utf8_string() + ".gcode.3mf";
 }
 
 void SendToPrinterDialog::CreateUploadFileJob(const std::string &path, const std::string &name)

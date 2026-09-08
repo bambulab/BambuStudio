@@ -98,7 +98,8 @@ public:
 
     double get_zoom() const { return m_zoom; }
     double get_inv_zoom() const { assert(m_zoom != 0.0); return 1.0 / m_zoom; }
-    void update_zoom(double delta_zoom) { set_zoom(m_zoom / (1.0 - std::max(std::min(delta_zoom, 4.0), -4.0) * ZoomUnit)); }
+    double calc_zoom_from_delta(double delta_zoom) const { return m_zoom / (1.0 - std::max(std::min(delta_zoom, 4.0), -4.0) * ZoomUnit); }
+    void update_zoom(double delta_zoom) { set_zoom(calc_zoom_from_delta(delta_zoom)); }
     void set_zoom(double zoom);
 
     const BoundingBoxf3& get_scene_box() const { return m_scene_box; }
@@ -155,6 +156,8 @@ public:
     // rotate the camera around three axes parallel to the camera local axes and passing through m_target
     void rotate_local_around_target(const Vec3d& rotation_rad);
     void set_rotation(const Transform3d &rotation);
+    // Same as above, but keeps "pivot" pinned on screen instead of m_target.
+    void set_rotation(const Transform3d &rotation, const Vec3d &pivot);
     // returns true if the camera z axis (forward) is pointing in the negative direction of the world z axis
     bool is_looking_downward() const { return get_dir_forward().dot(Vec3d::UnitZ()) < 0.0; }
     bool is_looking_front() const { return abs(get_dir_up().dot(Vec3d::UnitZ())-1) < 0.001; }

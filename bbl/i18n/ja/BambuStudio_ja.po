@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-14 16:02+0800\n"
+"POT-Creation-Date: 2026-09-08 19:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -898,15 +898,11 @@ msgstr "パーツ"
 msgid "Object"
 msgstr "OBJ"
 
+msgid "Right-click a part to assign it to the other side"
+msgstr "パーツを右クリックし、反対側に割り当てます"
+
 msgid "Drag to move the cut plane"
 msgstr "カットプレーンを移動するにはドラッグしてください。"
-
-msgid ""
-"Drag to move the cut plane\n"
-"Right-click a part to assign it to the other side"
-msgstr ""
-"カットプレーンをドラッグしてモデルを2つに分割してください。  \n"
-"パーツを右クリックして、反対側に割り当てることができます。"
 
 msgid "Left click"
 msgstr "左クリック"
@@ -976,6 +972,15 @@ msgstr "移動"
 
 msgid "Groove Angle"
 msgstr "溝角度"
+
+msgid "Pick face"
+msgstr "面を選択"
+
+msgid "Click a face of the model to set the cut plane. The plane lands flush with that face; use Movement to offset it."
+msgstr "モデルの面をクリックしてカット平面を設定します。平面はその面に合わせて配置されます。位置をオフセットするには「移動」を使用してください。"
+
+msgid "Click a face of the model."
+msgstr "モデルの面をクリックしてください。"
 
 #. TRN - Input label. Be short as possible
 #. Angle between Y axis and text line direction.
@@ -2469,9 +2474,6 @@ msgstr "編集"
 msgid "Delete this filament"
 msgstr "このフィラメントを削除"
 
-msgid "Decompose Color"
-msgstr "色分解"
-
 msgid "Merge with"
 msgstr "合併先"
 
@@ -2611,6 +2613,9 @@ msgid "Error: %1$d non-manifold vertex"
 msgid_plural "Error: %1$d non-manifold vertices"
 msgstr[0] ""
 
+msgid "Error: reversed faces detected, which may affect rendering"
+msgstr "エラー：面の反転が検出されました。レンダリングに影響する可能性があります"
+
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
@@ -2624,6 +2629,9 @@ msgstr "アイコンを右クリックして、オブジェクトの設定を削
 
 msgid "Click the icon to reset all settings of the object"
 msgstr "オブジェクトへの編集をリセットします"
+
+msgid "Unprintable object"
+msgstr "造形不可オブジェクト"
 
 msgid "Right button click the icon to drop the object printable property"
 msgstr "アイコンを右クリックして、オブジェクトの造形属性を削除します。"
@@ -2692,9 +2700,6 @@ msgstr ""
 
 msgid "Delete all connectors"
 msgstr "すべてのコネクタを削除"
-
-msgid "Deleting the last solid part is not allowed."
-msgstr "最後のソリッドパーツは削除できません。"
 
 msgid "The target object contains only one part and can not be split."
 msgstr "対象オブジェクトには1つのパーツしか含まれておらず、分割できません。"
@@ -3840,6 +3845,9 @@ msgstr "プロジェクト混合フィラメント"
 msgid "New Mixed Filaments"
 msgstr "新規混合フィラメント"
 
+msgid "Decompose Color"
+msgstr "色分解"
+
 msgid "+ Add Material"
 msgstr "+ 材料を追加"
 
@@ -4040,23 +4048,11 @@ msgstr "AMS素材設定"
 msgid "Colour"
 msgstr "色"
 
-msgid ""
-"Nozzle\n"
-"Temperature"
-msgstr "ノズル温度"
-
-msgid "max"
-msgstr "最大"
-
-msgid "min"
-msgstr "最小"
-
-#, boost-format
-msgid "The input value should be greater than %1% and less than %2%"
-msgstr "入力値範囲は %1% ～ %2%"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "動的流量キャリブレーションの要因"
+
+msgid "View Wiki for details"
+msgstr ""
 
 msgid "Nozzle Type"
 msgstr "ノズルタイプ"
@@ -4070,14 +4066,31 @@ msgstr "係数K"
 msgid "Factor N"
 msgstr "係数N"
 
-msgid "Setting AMS slot information while printing is not supported"
-msgstr "造形中に、AMSスロットを設定できません。"
+msgid ""
+"Nozzle\n"
+"Temperature"
+msgstr "ノズル温度"
 
-msgid "Setting Virtual slot information while printing is not supported"
-msgstr "印刷中の仮想スロット情報の設定には対応していません"
+msgid "Tip: Setting AMS slot information while printing is not supported"
+msgstr ""
+
+msgid "Tip: Setting Virtual slot information while printing is not supported"
+msgstr ""
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "フィラメント情報をクリアしてもよろしいですか?"
+
+msgid "Add to Filament Library?"
+msgstr "フィラメントライブラリに追加しますか？"
+
+msgid "Modifying the filament type or color will remove the binding to the Filament Library. Do you want to add this filament as a new spool?"
+msgstr "フィラメントの種類または色を変更すると、フィラメントライブラリとの紐付けが解除されます。このフィラメントを新しいスプールとして追加しますか？"
+
+msgid "Add to Filament Library"
+msgstr "フィラメントライブラリに追加"
+
+msgid "Save Only"
+msgstr "保存のみ"
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
 msgstr "TPU は通常とは異なる供給経路およびロード手順が必要です。適切に行わないと、詰まりやジャムが発生する可能性があります。使用前にチュートリアルをお読みください。"
@@ -4088,52 +4101,15 @@ msgstr "確認へ"
 msgid "You need to select the material type and color first."
 msgstr "最初に素材の種類と色を選択する必要があります。"
 
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f)"
-msgstr "有効な値を入力してください（K: %.1f〜%.1f）"
-
-#, c-format, boost-format
-msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr "有効な値を入力してください（K: %.1f〜%.1f、N: %.1f〜%.1f）"
+msgid "Please select a color"
+msgstr "色を選択してください"
 
 msgid "Remark"
 msgstr "備考"
 
-msgid "Other"
-msgstr "その他"
-
-msgid "Filament Manager"
-msgstr "フィラメントマネージャー"
-
-msgid "In printer"
-msgstr "プリンター内"
-
 #, c-format, boost-format
-msgid "In printer: %s"
-msgstr "プリンター内：%s"
-
-msgctxt "Filament Manager"
-msgid "Note"
-msgstr "メモ"
-
-msgid "Unsupported Filaments"
-msgstr "サポートされていないフィラメント"
-
-msgctxt "Unsupported Filaments"
-msgid "Note"
-msgstr "メモ"
-
-msgid "No unsupported filaments"
-msgstr "サポートされていないフィラメントはありません"
-
-msgid "No filaments"
-msgstr "フィラメントなし"
-
-msgid "System presets"
-msgstr "システム プリセット"
-
-msgid "Recently used"
-msgstr "最近使用したもの"
+msgid "Please input a valid value (K in %.1f~%.1f)"
+msgstr "有効な値を入力してください（K: %.1f〜%.1f）"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -4146,32 +4122,26 @@ msgstr ""
 "ノズル流量が設定されていません。フィラメントを編集する前にノズル流量を設定してください。\n"
 "「デバイス ->プリントパーツ」"
 
-msgid "AMS"
-msgstr "AMS"
-
-msgid "Other Color"
-msgstr "その他の色"
-
-msgid "Custom Color"
-msgstr "カスタムカラー"
-
-msgid "AMS detected a new official filament. Add it to Filament Manager?"
-msgstr "AMSが新しい純正フィラメントを検出しました。フィラメントマネージャーに追加しますか？"
+msgid "Matched filament"
+msgstr ""
 
 msgid "Add as new filament"
 msgstr "新規フィラメントとして追加"
 
-msgid "Link to existing filament"
-msgstr "既存フィラメントにリンク"
+msgid "AMS detected a new filament. Add it to Filament Manager?"
+msgstr ""
 
-msgid "Not now"
-msgstr "今はしない"
+msgid "A similar filament was found in Filament Manager and matched automatically."
+msgstr ""
 
-msgid "Please select"
-msgstr "選択してください"
+msgid "Multiple similar filaments were found in Filament Manager. Please confirm the match."
+msgstr ""
 
-msgid "No matching filament"
-msgstr "一致するフィラメントはありません"
+msgid "New Filament"
+msgstr "新規フィラメント"
+
+msgid "New filament information has been recorded."
+msgstr "新しいフィラメント情報が登録されました。"
 
 msgid "Dynamic flow calibration"
 msgstr "流量キャリブレーション"
@@ -4221,6 +4191,10 @@ msgstr "キャリブレーション中...%d%%"
 
 msgid "Calibration completed"
 msgstr "キャリブレーション完了"
+
+#, c-format, boost-format
+msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
+msgstr "有効な値を入力してください（K: %.1f〜%.1f、N: %.1f〜%.1f）"
 
 #, c-format, boost-format
 msgid "%s does not support %s"
@@ -4373,6 +4347,9 @@ msgstr "乾燥"
 msgid "WET"
 msgstr "湿った"
 
+msgid "AMS"
+msgstr "AMS"
+
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
 msgstr "%sに装着されているフィラメントを選択してください。"
@@ -4465,6 +4442,12 @@ msgstr "接続されている AMS の ID 順をリセットしますか？"
 
 msgid "Reset AMS Sequence"
 msgstr "AMS ID 順をリセット"
+
+msgid "View wiki for details"
+msgstr ""
+
+msgid "Nozzle Temperature"
+msgstr ""
 
 msgid "File"
 msgstr "ファイル"
@@ -4658,9 +4641,12 @@ msgstr ""
 "100%を超えることはできません。\n"
 "デフォルトに戻す"
 
-#, c-format, boost-format
-msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
-msgstr "現在のチャンバー温度は材料の安全温度を超えています。これにより、材料が軟化し、ノズルが詰まる可能性があります。この材料の最大安全温度は%dです。"
+msgid "Value is out of range."
+msgstr "値が範囲外です。"
+
+#, boost-format
+msgid "%1% cannot exceed the shell layers (%2%), otherwise the painted color would reach the sparse infill."
+msgstr "%1% はシェル層数（%2%）以下に設定してください。超えると、ペイント色が内部インフィルに達してしまいます。"
 
 msgid ""
 "Too small layer height.\n"
@@ -4812,13 +4798,11 @@ msgstr ""
 "オブジェクト順で印刷する際、押出機がスカートと衝突する可能性があります。\n"
 "そのため、衝突を避けるためにスカート層を1にリセットしてください。"
 
-#, c-format, boost-format
+#, no-c-format, no-boost-format
 msgid ""
 "lock depth should smaller than skin depth.\n"
-"Reset to 50%% of skin depth"
+"Reset to 50% of skin depth"
 msgstr ""
-"ロック深さはスキン深さより小さくする必要があります。\n"
-"スキン深さの50%%にリセットされます。"
 
 msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
 msgstr "交替追加壁は、スパイラル花瓶モードと互換性がありません。交替追加壁を有効にするには、以下の調整をお勧めします。"
@@ -4858,8 +4842,8 @@ msgstr ""
 "はい - 適用して交替追加壁を有効のままにします\n"
 "いいえ - 現在の設定を維持し、交替追加壁を有効のままにします"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
-msgstr "スパイラルモードは、壁面層数が1、サポートが無効、プロービングによるクランピング検出が無効、トップ面層数が0、疎充填密度が0、タイムラプスタイプが従来型、z方向の壁速度の平滑化が無効、および交替追加壁が無効の場合にのみ機能します。"
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr "しかし、I3構造のマシンはタイムラプスビデオを生成しません。"
@@ -5232,9 +5216,6 @@ msgstr "ネットワークに接続できません"
 msgid "default"
 msgstr "デフォルト"
 
-msgid "parameter name"
-msgstr "パラメータ名"
-
 msgid "N/A"
 msgstr "N/A"
 
@@ -5252,9 +5233,6 @@ msgstr "パラメータ検証"
 #, c-format, boost-format
 msgid "Value %s is out of range. The valid range is from %d to %d."
 msgstr "値%sは範囲外です。有効な範囲は%dから%dまでです。"
-
-msgid "Value is out of range."
-msgstr "値が範囲外です。"
 
 #, c-format, boost-format
 msgid ""
@@ -5912,6 +5890,9 @@ msgstr "プライムタワーは多色造形の品質を向上させるため、
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "プライムタワーがプレートの境界をはみ出しています。"
 
+msgid "All objects on the current plate are unprintable. Slicing will produce an empty result. Please check."
+msgstr "現在のプレート上のオブジェクトはすべて造形不可に設定されています。スライス結果が空になりますのでご確認ください。"
+
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
 msgstr "部分フラッシング量が0に設定されています。マルチカラー造形では、モデル内で色が混ざる可能性があります。フラッシング設定を再調整してください。"
 
@@ -6049,6 +6030,9 @@ msgstr "複数デバイス"
 
 msgid "Project"
 msgstr "プロジェクト"
+
+msgid "Filament Manager"
+msgstr "フィラメントマネージャー"
 
 msgid "Yes"
 msgstr "はい"
@@ -6868,6 +6852,9 @@ msgstr "3Dconnexion設定"
 msgid "Swap Y/Z axes"
 msgstr "Y/Z 軸を交換"
 
+msgid "Lock horizon"
+msgstr "水平ロック"
+
 msgid "(LAN)"
 msgstr "(LAN）"
 
@@ -7012,6 +6999,9 @@ msgstr "%d秒"
 
 msgid "Finished"
 msgstr "完了"
+
+msgid "Almost complete"
+msgstr ""
 
 msgid "Camera"
 msgstr "カメラ"
@@ -7492,6 +7482,12 @@ msgstr "エラー:"
 msgid "Open link for more info"
 msgstr "詳細はこちら"
 
+msgid "Jump to: Support on build plate only"
+msgstr "ジャンプ先：ビルドプレート上のみサポート"
+
+msgid "Jump to: Support"
+msgstr "ジャンプ先：サポート"
+
 msgid "Warning:"
 msgstr "警告"
 
@@ -7750,6 +7746,480 @@ msgstr "アイドル加熱保護"
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "安全のため、5分間操作がないと自動で加熱を停止します。"
+
+msgid "Note: "
+msgstr ""
+
+msgid "Controls the printed height of each layer."
+msgstr ""
+
+msgid ""
+"A larger layer height prints faster but shows more obvious layer lines.\n"
+"A smaller layer height gives finer curved surfaces but takes longer to print.\n"
+"If the layer height is too small while the speed is too high, extrusion can't keep up and the surface is left starved and fuzzy."
+msgstr ""
+
+msgid "Recommended layer height is 20%-70% of the nozzle diameter."
+msgstr ""
+
+msgid "Controls the thickness of the model's first layer extruded onto the heat bed, affecting how well the first layer bonds to the plate."
+msgstr ""
+
+msgid ""
+"Too small, and the first layer is sensitive to bed flatness and prone to print defects.\n"
+"Too large, and the first layer's width-to-height ratio becomes too small, which hurts material adhesion."
+msgstr ""
+
+msgid "Usually set to half the nozzle diameter."
+msgstr ""
+
+msgid "For the mixed-color filament feature. When enabled, layers that use mixed-color filament are split proportionally into thinner sub-layers for a more even color blend."
+msgstr ""
+
+msgid ""
+"When off, colors change per full layer, so the blend is coarser and less even.\n"
+"When on, the sub-layers interleave more densely for a more even blend, but printing takes longer."
+msgstr ""
+
+msgid "Recommended only when using mixed-color filament, to get a better layered-color effect."
+msgstr ""
+
+msgid "Controls where each layer's outer wall starts and ends."
+msgstr ""
+
+msgid "That point can leave a small blob or seam line, so choosing a suitable position reduces the seam's impact on the model's appearance."
+msgstr ""
+
+msgid "Prints only a single wall loop on top surfaces so the top is filled as much as possible by the infill pattern, for a more consistent look."
+msgstr ""
+
+msgid "On sloped or domed surfaces this option worsens the stair-stepping, so it is not recommended there."
+msgstr ""
+
+msgid "Recommended only for flat top surfaces."
+msgstr ""
+
+msgid "Uses only a single wall on the model's first layer (the one touching the bed) so the largest possible area is filled by the first-layer infill pattern, for a more consistent look."
+msgstr ""
+
+msgid ""
+"When off, the first layer uses multiple wall loops.\n"
+"When on, the infill is more continuous and the bottom is flatter, but the first-layer edge outline is slightly weaker."
+msgstr ""
+
+msgid "Controls the number of wall loops in each layer's shell, a key factor in a model's strength."
+msgstr ""
+
+msgid ""
+"More walls give higher strength but use more material and time;\n"
+"fewer walls print faster and save material but reduce strength and may let the infill pattern show through the surface."
+msgstr ""
+
+msgid "2-3 loops is recommended for typical models; increase it for functional parts."
+msgstr ""
+
+msgid "At the boundary between walled and wall-less areas, this embeds the wall into the infill region that has no outer wall on alternating layers, so the wall and infill connect more firmly."
+msgstr ""
+
+msgid ""
+"It only handles boundaries where one side has a wall and the other has zero walls; ordinary wall-to-infill boundaries inside a part are left alone.\n"
+"Embedding every other layer creates a staggered interlock that is stronger than a flush joint."
+msgstr ""
+
+msgid "Use it when a modifier turns a region into wall-less infill that still needs to bond firmly to the surrounding shell. Not needed when both sides print normal walls."
+msgstr ""
+
+msgid "Adds an extra wall loop on odd layers while leaving even layers unchanged."
+msgstr ""
+
+msgid "Adding a wall every other layer strengthens the bond between layers without adding one throughout, improving layer bonding and part strength while avoiding the material and time cost of a full extra wall."
+msgstr ""
+
+msgid "Requires sparse infill; not applicable in vase mode."
+msgstr ""
+
+msgid "The toolpath pattern for the topmost solid infill; it mainly affects the flatness and look of the top surface."
+msgstr ""
+
+msgid "Controls the infill toolpath of the model's bottom surface, affecting bottom texture and flatness."
+msgstr ""
+
+msgid "Bridging areas are not affected by this parameter."
+msgstr ""
+
+msgid "Controls the number of solid top shell layers, including the top surface."
+msgstr ""
+
+msgid ""
+"More layers make the top shell thicker and less likely to reveal the infill beneath.\n"
+"If layers x layer height is less than the top shell thickness, the slicer adds layers automatically."
+msgstr ""
+
+msgid "Sets a minimum thickness for the solid top shell, preventing it from becoming too thin at small layer heights."
+msgstr ""
+
+msgid ""
+"Set to 0 to disable this and let the layer count alone decide.\n"
+"If the thickness from layers x layer height is not enough, the slicer adds top shell layers automatically."
+msgstr ""
+
+msgid "Controls the number of solid bottom shell layers, including the bottom surface."
+msgstr ""
+
+msgid ""
+"More layers make the bottom more solid but take longer.\n"
+"If layer height x layers is less than the bottom shell thickness, the slicer adds layers automatically."
+msgstr ""
+
+msgid "Sets a minimum thickness for the solid bottom shell, preventing it from becoming too thin at small layer heights."
+msgstr ""
+
+msgid ""
+"Set to 0 to disable this and let the layer count alone decide.\n"
+"If the thickness from the layer count is not enough, the slicer adds bottom shell layers automatically."
+msgstr ""
+
+msgid "Controls how many layers the top-surface color penetrates downward, keeping other filament colors inside from showing through."
+msgstr ""
+
+msgid ""
+"Fewer layers make color bleed-through more likely.\n"
+"More layers reduce bleed-through but increase the number of filament changes.\n"
+"To keep the downward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
+msgstr ""
+
+msgid "Controls how many layers the bottom-surface color penetrates upward, keeping other filament colors inside from showing through."
+msgstr ""
+
+msgid ""
+"Fewer layers make color bleed-through more likely.\n"
+"More layers reduce bleed-through but increase the number of filament changes.\n"
+"To keep the upward penetration from affecting the model's side colors, the penetrated area shrinks layer by layer."
+msgstr ""
+
+msgid "Controls the toolpath pattern of internal solid infill, applied to the solid layers between the top and bottom shells and to internal solid regions."
+msgstr ""
+
+msgid "If detection of narrow internal solid infill is enabled, small regions use the concentric pattern automatically."
+msgstr ""
+
+msgid "Controls how dense the model's internal sparse infill is."
+msgstr ""
+
+#, no-c-format, no-boost-format
+msgid ""
+"10-15% is recommended for typical models; raise it for functional parts.\n"
+"100% means fully solid, where only the Concentric, Rectilinear, Monotonic, Monotonic Line, Aligned Rectilinear, Hilbert Curve, Archimedean Chords, and Octagram Spiral patterns are available."
+msgstr ""
+
+msgid "Enables multi-line infill, printing each infill path as several parallel lines side by side."
+msgstr ""
+
+msgid ""
+"Higher values make the infill beams thicker and stronger but use more material and time;\n"
+"1 is ordinary single-line infill."
+msgstr ""
+
+msgid "Supported by patterns such as Line, Grid, Gyroid, Honeycomb, Cubic, and Lightning."
+msgstr ""
+
+msgid "Controls the toolpath structure of the internal sparse infill."
+msgstr ""
+
+msgid "Supports are removable structures printed under overhangs and steep angles to hold up later layers and prevent sagging."
+msgstr ""
+
+msgid ""
+"When enabled, supports are generated for overhangs and steep angles, giving more stable prints, but they must be removed and may leave marks.\n"
+"Recommended when the model has obvious overhangs."
+msgstr ""
+
+msgid "Selects the support shape and how it is generated; Normal (auto) and Tree (auto) are generated automatically based on overhangs."
+msgstr ""
+
+msgid ""
+"Normal supports are more regular and stable; tree supports touch the model less and are easier to remove.\n"
+"Choose a manual mode when you need precise control."
+msgstr ""
+
+msgid "Manual mode is used together with the support-painting tool in the gizmo toolbar."
+msgstr ""
+
+msgid "Generates support for surfaces whose overhang angle is below the threshold; it is customizable in the automatic modes."
+msgstr ""
+
+msgid ""
+"A smaller threshold supports only near-horizontal large overhangs, giving less support but possibly leaving gentle slopes unsupported.\n"
+"A larger threshold also supports more slopes, giving more support."
+msgstr ""
+
+msgid "A common default of 30 degrees balances print stability against the amount of support used."
+msgstr ""
+
+msgid "Generates support only from the build plate, not on the model's surfaces."
+msgstr ""
+
+msgid ""
+"When off, support may grow on model surfaces for more complete coverage but is more likely to leave marks.\n"
+"When on, all support starts from the plate, keeping model surfaces cleaner, but some overhangs may go unsupported."
+msgstr ""
+
+msgid "Recommended when appearance matters."
+msgstr ""
+
+msgid "The support interface is a denser contact layer where support meets the model; it holds the model steady, eases removal, and reduces surface marks. This sets the filament used for that contact surface."
+msgstr ""
+
+msgid ""
+"By default the interface uses the same filament as the model, which can make removal harder.\n"
+"Assigning an easy-release filament makes the contact surface easier to remove and cleaner, but adds filament changes."
+msgstr ""
+
+msgid "The filament used to print the support body and the raft."
+msgstr ""
+
+msgid ""
+"By default the support uses the same filament as the model, matching the model filament of each layer in multi-filament prints.\n"
+"Assigning a different filament can make removal easier or lower cost, but adds filament-change time."
+msgstr ""
+
+msgid "Prints detached outline loops (a skirt) around the model to purge the nozzle and stabilize extrusion before printing starts."
+msgstr ""
+
+msgid "More loops purge more thoroughly but use more material; set to 0 to disable the skirt."
+msgstr ""
+
+msgid "Controls how many layers the skirt is printed."
+msgstr ""
+
+msgid ""
+"During the first few layers, a taller skirt can partly block cold air around the model, keeping a warm microclimate at the base of the model and reducing the early warping risk caused by shrinkage.\n"
+"The default is 1 layer."
+msgstr ""
+
+msgid "Requires the skirt loop count to be greater than 0."
+msgstr ""
+
+msgid "A brim is a single-layer band of material added around the base of the model and joined to its first layer, a reinforcing border that fights warping and keeps adhesion."
+msgstr ""
+
+msgid ""
+"This controls the type of brim (a band joined to the model's first layer) used to improve bed adhesion and reduce warping.\n"
+"The default is Auto."
+msgstr ""
+
+msgid "The distance from the model to the outermost brim line."
+msgstr ""
+
+msgid "A larger width improves bed adhesion and resists warping but uses more material and is harder to clean up."
+msgstr ""
+
+msgid "After a color or filament change, the printer purges residual filament and stabilizes nozzle pressure on a separate prime tower before resuming the model, reducing color mixing, starvation, and surface defects."
+msgstr ""
+
+msgid ""
+"Off: saves material and takes less bed space, but residual filament during a color change may land on the model and cause color mixing, stringing, or local starvation.\n"
+"On: cleaner color transitions and more consistent multi-color prints, but it uses extra material and time and takes up bed space."
+msgstr ""
+
+msgid "Mutually exclusive with by-object printing and independent support layer height."
+msgstr ""
+
+msgid "Controls the horizontal size of the prime tower."
+msgstr ""
+
+msgid "A larger width gives more purge margin and a more stable tower, but uses more material and bed space."
+msgstr ""
+
+msgid "The width cannot be customized when the rib outer wall is enabled."
+msgstr ""
+
+msgid "Adds four corner ribs to the prime tower's outer wall to improve its stability."
+msgstr ""
+
+msgid "Recommended for tall prime towers, stickier materials such as PETG, or frequent color changes; turn it off when bed space is tight and the tower is short so the width can be narrowed."
+msgstr ""
+
+msgid "Uses part of the transition filament after a change to print the object's internal infill, reducing waste and print time."
+msgstr ""
+
+msgid "Enable it on opaque parts to save material; turn it off for transparent or thin-walled parts, or when the internal color matters."
+msgstr ""
+
+msgid "Uses the transition filament after a change to print the model's supports, reducing waste and time."
+msgstr ""
+
+msgid "Enabling it saves material, but the supports may show mixed colors."
+msgstr ""
+
+msgid "Takes effect when printing multiple filaments through the same nozzle."
+msgstr ""
+
+msgid "Chooses whether to print the whole plate layer by layer, or to finish one object before starting the next."
+msgstr ""
+
+msgid "Use By Layer for typical multi-part or multi-color prints; consider By Object for many small parts or to limit the impact of a mid-print failure, and check the clearances and prime-tower restrictions."
+msgstr ""
+
+msgid "Prints in a continuous spiral along the outer contour, building the whole model in one line, usually with no seam on the sides."
+msgstr ""
+
+msgid ""
+"When on, the model has no top shell, no infill, and usually only a single wall, so it is weak and conflicts with support, top shell layers, and several other settings.\n"
+"It is best for single, thin-walled, open-top models."
+msgstr ""
+
+msgid "Requires top shell layers to be 0 and is not compatible with support."
+msgstr ""
+
+msgid "Takes one photo per layer during printing and compiles a timelapse video when the print finishes."
+msgstr ""
+
+msgid "Selects the timelapse mode here; whether the feature actually runs is toggled on the send-to-print page."
+msgstr ""
+
+msgid "Randomly jitters the wall toolpaths so the outer surface takes on a rough, matte, fuzzy texture."
+msgstr ""
+
+msgid ""
+"It affects only walls; the top and bottom surfaces are unchanged.\n"
+"Useful for decorative parts and figure shells; turn it off when dimensions are critical or a smooth surface is needed."
+msgstr ""
+
+msgid "Selects how the fuzzy texture is generated."
+msgstr ""
+
+msgid "There are three generator modes; pick the one that suits your needs."
+msgstr ""
+
+msgid "Determines the randomness of the fuzzy texture, which affects the style of the surface texture."
+msgstr ""
+
+msgid "Several noise types are available; pick the one that suits your needs."
+msgstr ""
+
+msgid "Controls the average distance between the random points inserted along the wall path when generating fuzzy skin."
+msgstr ""
+
+msgid ""
+"A larger value spaces the random points farther apart for a coarser grain, but uses fewer path points, so slicing and printing stay faster and the G-code file stays smaller.\n"
+"A smaller value packs the points closer together for a finer, more even grain, but adds path points, so slicing and printing slow down and the G-code file grows."
+msgstr ""
+
+msgid "If it is too small, the software disables fuzzy skin because the point spacing is too small (to avoid abnormal paths)."
+msgstr ""
+
+msgid "Controls the width of the wall-path jitter when generating fuzzy skin, that is, the depth of the texture."
+msgstr ""
+
+msgid ""
+"A larger value makes the texture deeper and more pronounced with a stronger grain, but the outline expands, dimensional accuracy drops, and the wall may develop gaps and lose strength.\n"
+"The default is about 0.3 mm; keep it below the outer wall's line width."
+msgstr ""
+
+msgid "When it exceeds the line width, the generator's Extrusion and Combined modes stop working and only Displacement is used."
+msgstr ""
+
+msgid "Determines whether the fuzzy effect is also applied to the first layer."
+msgstr ""
+
+msgid ""
+"When on, the first-layer side walls also get the fuzzy texture.\n"
+"Usually keep it off; enable it only when the bottom edge needs a consistent texture and bed adhesion is good."
+msgstr ""
+
+msgid "Places the seam preferentially at concave or convex corners and shortens travel moves; suited to models with distinct edges."
+msgstr ""
+
+msgid "Stacks each layer's seam into one vertical line, keeping the marks concentrated and easy to hide."
+msgstr ""
+
+msgid "Puts the seam on the model's back, suited to display models with a fixed orientation."
+msgstr ""
+
+msgid "Scatters the seam across layers to avoid a vertical line, though small stray bumps may appear on the surface."
+msgstr ""
+
+msgid "All top surfaces print with the normal number of wall loops."
+msgstr ""
+
+msgid "Applies to every flat upward-facing top surface, for the widest coverage."
+msgstr ""
+
+msgid "Applies only to the model's uppermost surface; middle-layer top surfaces are still handled normally."
+msgstr ""
+
+msgid "Analyzes the model and computes the needed brim width and placement; recommended for most models."
+msgstr ""
+
+msgid "Generates a brim only on the outer contour to strengthen outer adhesion."
+msgstr ""
+
+msgid "Generates a brim in inner holes only."
+msgstr ""
+
+msgid "Generates a brim on both the outer contour and inner holes."
+msgstr ""
+
+msgid "Generates the brim by painting or local reinforcement, suited to sharp corners prone to warping."
+msgstr ""
+
+msgid "No brim is generated; the bottom stays cleaner but bed adhesion is weaker."
+msgstr ""
+
+msgid "All objects rise together, layer by layer."
+msgstr ""
+
+msgid "Finishes one object before starting the next; has placement clearance requirements."
+msgstr ""
+
+msgid "A snapshot is taken directly after each layer."
+msgstr ""
+
+msgid "After each layer the toolhead moves to the excess chute before the snapshot for a cleaner shot; filament may leak during the shot, so a prime tower is required to wipe the nozzle and is generated even for single-color jobs."
+msgstr ""
+
+msgid "No fuzzy skin is added automatically, but you can still paint it on locally."
+msgstr ""
+
+msgid "Adds fuzzy skin only to the outermost contour; inner holes stay smooth."
+msgstr ""
+
+msgid "Adds fuzzy skin to both the outer contour and inner holes."
+msgstr ""
+
+msgid "Every wall line jitters, for the strongest effect but possibly larger dimensional deviation."
+msgstr ""
+
+msgid "Turns fuzzy skin fully off; even painting has no effect."
+msgstr ""
+
+msgid "The nozzle shifts sideways to form the texture, giving a strong 3D feel but possible gaps between loops."
+msgstr ""
+
+msgid "The path stays straight and only the extruded amount varies, keeping walls denser."
+msgstr ""
+
+msgid "Displacement plus extrusion; looks close to displacement while filling the gaps between loops."
+msgstr ""
+
+msgid "Uniform random noise with a fine, grainy texture and no clear direction."
+msgstr ""
+
+msgid "Smooth transitions between layers for a more even, continuous texture with soft, regular undulation."
+msgstr ""
+
+msgid "Similar to Perlin but clumpier, with clustered bumps and flat areas, like clouds."
+msgstr ""
+
+msgid "Sharp jagged ridges with peaks and fine grooves, giving a marble-like texture."
+msgstr ""
+
+msgid "Divides the surface into cells and offsets each as a whole, forming a patchwork stepped texture."
+msgstr ""
+
+msgid "View details on Wiki"
+msgstr ""
 
 msgid "Global"
 msgstr "全般"
@@ -8032,14 +8502,11 @@ msgstr ""
 msgid "Restore"
 msgstr "復元"
 
-msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
-msgstr "現在のヒートベッド温度は比較的高いです。このフィラメントを密閉環境で印刷すると、ノズルが詰まる可能性があります。フロントドアを開けるか、上部ガラスを取り外してください。"
-
 msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged."
 msgstr "このフィラメントに必要なノズルの硬度は、プリンタのデフォルトノズルの硬度よりも高くなっています。摩耗や損傷を防ぐために、焼入れノズルまたはフィラメントを交換してください。"
 
-msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
-msgstr "従来のタイムラプス撮影を有効にすると、表面に欠陥が生じる可能性があります。スムーズモードに変更することを推奨します。"
+msgid "Enabling instant timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
+msgstr ""
 
 msgid "\n"
 msgstr ""
@@ -8063,14 +8530,14 @@ msgstr "ファイルを読込む: %s"
 msgid "The 3mf file has invalid config, load geometry data only"
 msgstr "3MFファイルの設定が無効なため、ジオメトリデータのみを読み込みます"
 
-msgid "Load 3mf"
-msgstr "3mfを読込み"
-
 msgid "The 3mf is not from Bambu Lab, load geometry data only."
 msgstr "この3mfファイルはBambu Lab製ではないため、ジオメトリデータのみを読み込みます。"
 
 msgid "The Config can not be loaded."
 msgstr "設定を読み込めませんでした。"
+
+msgid "Load 3mf"
+msgstr "3mfを読込み"
 
 msgid "Due to the lower version of Bambu Studio, this 3mf file cannot be fully loaded. Please update Bambu Studio to the latest version"
 msgstr "古いバージョンのBambu Studioを使用しているため、この3mfファイルは完全に読み込めません。Bambu Studioを最新バージョンに更新してください。"
@@ -8130,11 +8597,8 @@ msgstr "体積が０のオブジェクトを削除しました"
 msgid "The volume of the object is zero"
 msgstr "オブジェクトの体積が0です"
 
-#, c-format, boost-format
-msgid ""
-"The object from file %s is too small, and maybe in meters or inches.\n"
-" Do you want to scale to millimeters?"
-msgstr "ファイル%sからのオブジェクトは小さすぎます。単位はメートルまたはインチの可能性があります。ミリメートルにスケーリングしますか？"
+msgid "The object size in the file is very small. Would you like to import it using millimeters as the default unit?"
+msgstr ""
 
 msgid "Object too small"
 msgstr "オブジェクトが小さすぎます"
@@ -9014,14 +9478,26 @@ msgstr "単位"
 msgid "Enable dark mode"
 msgstr "ダークモードを有効にする"
 
-msgid "All"
-msgstr "すべて"
+msgid "All related changes"
+msgstr "関連するすべての変更"
 
-msgid "Disabled"
-msgstr "無効化"
+msgid "When color changes"
+msgstr "カラー変更時"
 
-msgid "Auto Flush"
-msgstr "自動フラッシュ"
+msgid "Turn off auto calculate"
+msgstr "自動計算をオフにする"
+
+msgid "Auto calculate when color changes, type or configuration changes"
+msgstr "カラー、タイプ、または設定の変更時に自動計算"
+
+msgid "Auto calculate when sync or modify filament colors"
+msgstr "フィラメントカラーの同期または変更時に自動計算"
+
+msgid "Keep current flush volumes, trigger manually when needed"
+msgstr "現在のパージ量を保持（必要な場合のみ手動で実行）"
+
+msgid "Auto Calculate Flush Volume"
+msgstr "パージ量の自動計算"
 
 msgid "Auto calculate flush volumes"
 msgstr "フラッシュボリュームの自動計算"
@@ -9099,6 +9575,12 @@ msgstr "高温フィラメントと低温フィラメントの混合印刷の制
 msgid "With this option enabled, you can print materials with a large temperature difference together."
 msgstr "このオプションを有効にすると、温度差の大きい材料を一緒に印刷することができます。"
 
+msgid "Automatically optimize wipe tower placement"
+msgstr ""
+
+msgid "With this option enabled, the wipe tower will be placed at its optimal position."
+msgstr ""
+
 msgid "Auto sync user presets(Printer/Filament/Process)"
 msgstr "ユーザープリセットの自動同期 (プリンター/フィラメント/プロセス)"
 
@@ -9117,11 +9599,29 @@ msgstr "以前にログインしたアカウントを自動入力します。"
 msgid "3D Settings"
 msgstr "3D 設定"
 
+msgid "Mouse Settings"
+msgstr "マウス設定"
+
+msgid "Import Settings"
+msgstr "設定をインポート"
+
 msgid "Zoom to mouse position"
 msgstr "マウス位置にズーム"
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."
 msgstr "2Dウィンドウの中心ではなく、3Dビューのマウスポインタの位置に向かってズームインします。"
+
+msgid "Reverse direction of zoom with mouse wheel"
+msgstr "マウスホイールのズーム方向を反転"
+
+msgid "If enabled, reverses the direction of zoom with mouse wheel."
+msgstr "有効にすると、マウスホイールでのズーム方向が反転します。"
+
+msgid "Drag with left mouse button to move"
+msgstr "マウスの左ボタンドラッグで移動"
+
+msgid "If enabled, the left mouse button can move models by dragging; if disabled, the left button only selects or clicks."
+msgstr "有効にすると、マウスの左ボタンドラッグでモデルを移動できます。無効にすると、左ボタンは選択またはクリック操作のみになります。"
 
 msgid "Display overview"
 msgstr "概要を表示"
@@ -9157,10 +9657,10 @@ msgid "Always show shells or not in preview view tab. If you change this value, 
 msgstr "プレビュービュータブでシェルを常に表示するかどうかを設定します。この値を変更した場合は、再スライスしてください。"
 
 msgid "Show Thermal Preconditioning Area"
-msgstr "熱プレコンディショニングエリアを表示"
+msgstr "予熱エリアを表示"
 
 msgid "Warn if a model extends beyond the thermal preconditioning area. Available only on printers that support this feature."
-msgstr "モデルが熱プレコンディショニングエリアからはみ出す場合に警告します。この機能は、対応プリンターでのみ利用可能です。"
+msgstr "モデルが予熱エリアからはみ出している場合に警告します。本機能に対応したプリンターでのみ利用可能です。"
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "ステップメッシュパラメータ設定ダイアログを表示"
@@ -9271,7 +9771,7 @@ msgid "Skip AMS blacklist check"
 msgstr "AMSブラックリストチェックをスキップ"
 
 msgid "Enable DevTools For Webview"
-msgstr ""
+msgstr "WebView用の開発者ツールを有効化"
 
 msgid "Associate Files To Bambu Studio"
 msgstr "ファイルを Bambu Studio に関連付ける"
@@ -9380,6 +9880,9 @@ msgstr ""
 
 msgid "Are you sure you want to reset all preferences? Changes will take effect after restart."
 msgstr "すべての環境設定をリセットしてもよろしいですか？変更は再起動後に有効になります。"
+
+msgid "System presets"
+msgstr "システム プリセット"
 
 msgid "User presets"
 msgstr "ユーザープリセット"
@@ -9735,8 +10238,8 @@ msgstr "選択されたプリンタ(%s)は、印刷ファイル設定(%s)と互�
 msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "スパイラルベースモードが有効な場合、I3構造のマシンではタイムラプス動画が生成されません。"
 
-msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
-msgstr "現在のプリンタは、オブジェクト順で印刷する場合、従来モードでタイムラプスをサポートしていません。"
+msgid "The current printer does not support timelapse in Instant Mode when printing By-Object."
+msgstr ""
 
 msgid "Errors"
 msgstr "エラー"
@@ -9774,8 +10277,8 @@ msgstr "これはヒートベッドの平坦度を確認します。レベリン
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "このプロセスでは、全体的な印刷品質を向上させるための動的流量値を決定します。"
 
-msgid "After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
-msgstr "タイムラプス機能を有効にすると、従来モードまたはスムーズモードのどちらを選択しているかに関わらず、プリンターは各ショットの前にビルドプレートとツールヘッドを移動させるため、印刷にかかる総時間が長くなる可能性があります。"
+msgid "After enabling Timelapse, regardless of whether Instant or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -10278,8 +10781,8 @@ msgstr "スムーズタイムラプス機能には全レイヤーでのプライ
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "タイムラプスをスムーズに行うにはプライムタワーが必要です。プライムタワーがない場合、モデルに欠陥がある可能性があります。プライムタワーを有効にしますか？"
 
-msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
-msgstr "「スパースレイヤーなし」は、全レイヤーにプライムタワーを必要とするスムーズタイムラプスと併用できません。タイムラプスを従来モードに切り替えました。"
+msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to instant mode."
+msgstr ""
 
 msgid "Still print by object?"
 msgstr "まだオブジェクト順に印刷しますか？"
@@ -10730,6 +11233,9 @@ msgstr ""
 msgid "Are you sure to %1% the selected preset?"
 msgstr "選択したプリセットを %1% しますか?"
 
+msgid "All"
+msgstr "すべて"
+
 msgid "Set"
 msgstr "設定"
 
@@ -10880,11 +11386,35 @@ msgstr "左:"
 msgid "Right: "
 msgstr "右: "
 
-msgid "Select presets to compare"
-msgstr "比較するプリセットを選択"
+msgid "Preset A"
+msgstr "プリセット A"
+
+msgid "Preset B"
+msgstr "プリセット B"
 
 msgid "Show all presets (including incompatible)"
 msgstr "全てのプリセットを表示"
+
+msgid "Parameters"
+msgstr ""
+
+msgid "Process Preset"
+msgstr ""
+
+msgid "Filament Preset"
+msgstr "フィラメントプリセット"
+
+msgid "Material Preset"
+msgstr ""
+
+msgid "Machine Preset"
+msgstr ""
+
+msgid "These two presets have no visible differences"
+msgstr ""
+
+msgid "Please select two different presets A and B to compare"
+msgstr "比較する異なるプリセットAとBを選択してください"
 
 msgid "Add File"
 msgstr "ファイルを追加"
@@ -11211,6 +11741,16 @@ msgstr "ここをクリックしてダウンロードしてください。"
 
 msgid "Login"
 msgstr "サインイン"
+
+msgid ""
+"All the filament presets belong to this filament would be deleted. \n"
+"If you are using this filament on your printer, please reset the filament information for that slot."
+msgstr ""
+"このフィラメントに属するフィラメントプリセットはすべて削除されます。 \n"
+"このフィラメントをプリンタで使用している場合は、そのスロットのフィラメント情報をリセットしてください。"
+
+msgid "Delete filament"
+msgstr "フィラメントを削除"
 
 msgid "The configuration package is changed to the previous Config Guide"
 msgstr "設定パッケージは以前の設定ガイドに変更されました"
@@ -12583,6 +13123,12 @@ msgstr "プライムタワーを使用するには、すべてのオブジェク
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
 msgstr "プライムタワーを使用するには、すべてのオブジェクトが同じ積層ピッチでスライスされている必要があります。"
 
+msgid "Precise Z height gives the objects different layer heights, which may greatly increase the size of the prime tower."
+msgstr ""
+
+msgid "Jump to: Precise Z height"
+msgstr ""
+
 msgid "The prime tower is only supported if all objects have the same variable layer height"
 msgstr "プライムタワーを使用するには、全てのオブジェクトが同じ積層ピッチを持つ必要があります"
 
@@ -12615,7 +13161,7 @@ msgid "Generating G-code"
 msgstr "G-codeを生成"
 
 msgid "The relative position of the model and the prime tower does not meet the requirements of the \"No sparse layers\" feature. Please adjust their relative positions, lower the model height, or turn off \"No sparse layers\"."
-msgstr "モデルとプライムタワーの相対位置が、「疎な層なし」機能の要件を満たしていません。相対位置を調整するか、モデルの高さを下げるか、「疎な層なし」機能をオフにしてください。"
+msgstr "モデルとプライムタワーの相対位置が「スパースレイヤーなし」機能の要件を満たしていません。相対位置を調整するか、モデルの高さを下げるか、または「スパースレイヤーなし」を無効にしてください。"
 
 msgid "Failed processing of the filename_format template."
 msgstr "ファイル名フォーマットテンプレートの処理ができませんでした。"
@@ -12836,14 +13382,14 @@ msgstr "s"
 msgid "Cooling overhang threshold"
 msgstr "オーバーハングの冷却閾値"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
-msgstr "印刷部分のオーバーハング角度がこの値を超えた場合、冷却ファンを特定の速度で強制的に動作させます。この値は、下のレイヤーからのサポートがない線の幅の割合（%%）として表されます。0%%に設定すると、オーバーハング角度に関係なく、すべての外壁の冷却が強制されます。"
+msgstr "印刷部分のオーバーハング角度がこの値を超えた場合、冷却ファンを特定の速度で強制的に動作させます。この値は、下のレイヤーからのサポートがない線の幅の割合（%%）として表されます。0%に設定すると、オーバーハング角度に関係なく、すべての外壁の冷却が強制されます。"
 
 msgid "Overhang threshold for participating cooling"
 msgstr "冷却に参加するためのオーバーハングしきい値"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "どのオーバーハング部分が冷却機能により速度低下の対象となるかを決定します。これは、下層にサポートがない場合の線幅をパーセンテージで表現しており、100%%の場合はオーバーハングの程度に関係なくすべての外壁が強制的に冷却されることを意味します。"
 
@@ -12927,9 +13473,9 @@ msgstr "このオプションを有効にすると、オーバーハング部分
 msgid "mm/s"
 msgstr "mm/s"
 
-#, c-format, boost-format
-msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
-msgstr "下層と重ならない100%%オーバーハング壁面の造形速度"
+#, fuzzy, no-c-format, no-boost-format
+msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
+msgstr "オーバーハングの角度が線幅100%%を超えるウォール（ブリッジ壁を除く）のライン速度を設定します。"
 
 msgid "Slow down by height"
 msgstr "高さに応じて減速"
@@ -13183,6 +13729,9 @@ msgstr "壁の厚さを確保"
 msgid "Add solid infill near sloping surfaces to guarantee the vertical shell thickness (top+bottom solid layers)"
 msgstr "傾斜面付近にソリッドインフィルを追加して、垂直シェルの厚さ（トップおよびボトムのソリッド層）を保証します。"
 
+msgid "Disabled"
+msgstr "無効化"
+
 msgid "Partial"
 msgstr "部分的な"
 
@@ -13261,10 +13810,10 @@ msgstr "底面のインフィル パターンです、ブリッジインフィ�
 msgid "Bottom surface density"
 msgstr "ボトム表面密度"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr ""
-"ボトム表面のインフィル密度です。100%% ではボトム層が完全にソリッドになり、値を下げるとテクスチャ状の表面になります。これは見た目や機能上の目的のための設定で、押出過多などの問題を解決するためのものではありません。\n"
+"ボトム表面のインフィル密度です。100% ではボトム層が完全にソリッドになり、値を下げるとテクスチャ状の表面になります。これは見た目や機能上の目的のための設定で、押出過多などの問題を解決するためのものではありません。\n"
 "警告：この値を下げると、ベッド密着性が低下する可能性があります。"
 
 msgid "Internal solid infill pattern"
@@ -13272,6 +13821,12 @@ msgstr "内部ソリッドインフィルパターン"
 
 msgid "Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area."
 msgstr "内部ソリッドインフィルのラインパターン：「狭い内部ソリッドインフィルを検出」が有効になっている場合、小さなエリアには同心円パターンが使用されます。"
+
+msgid "Sub-top surface pattern"
+msgstr "サブトップサーフェスパターン"
+
+msgid "Line pattern of the solid layer that supports a visible top surface. Its lines can print through and mark the top, so a monotonic pattern gives the smoothest result. The whole solid area that a top surface reaches uses this pattern, not only the part directly beneath it."
+msgstr ""
 
 msgid "Line width of outer wall"
 msgstr "外壁の線幅"
@@ -13499,7 +14054,7 @@ msgid "AMS Lite filament load time"
 msgstr "AMS Liteフィラメントのロード時間"
 
 msgid "Filament load time when printing with an AMS Lite. For statistics only"
-msgstr "N3FまたはN3Sを使用した造形時のフィラメントロード時間です（統計目的にのみ使用）"
+msgstr "AMS Lite使用時の造形中のフィラメントロード時間です（統計目的のみ）"
 
 msgid "N3F/N3S filament load time"
 msgstr "N3F/N3Sフィラメントのロード時間"
@@ -13829,9 +14384,9 @@ msgstr "スパースインフィルパターンの角度：線の開始または
 msgid "Sparse infill density"
 msgstr "充填密度"
 
-#, c-format
+#, no-c-format, no-boost-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
-msgstr "内部スパース インフィルの密度です。100%%の場合、全体がソリッドになります。"
+msgstr "内部スパース インフィルの密度です。100%の場合、全体がソリッドになります。"
 
 msgid "Fill multiline"
 msgstr "複数ラインで充填"
@@ -13959,6 +14514,12 @@ msgstr "移動のジャーク"
 msgid "Line width of initial layer"
 msgstr "1層目の線幅"
 
+msgid "Initial layer infill"
+msgstr "1層目のインフィル"
+
+msgid "Line width of the infill of initial layer, including sparse infill, solid infill and top surface. Walls, support and everything else of the initial layer are not affected and keep using the line width of initial layer. Zero means to use the line width of initial layer."
+msgstr "1層目のインフィル（内部インフィル、ソリッドインフィル、トップサーフェスを含む）の線幅です。1層目のウォール、サポート、その他すべての要素には影響せず、1層目の線幅が維持されます。「0」を設定すると、1層目の線幅が適用されます。"
+
 msgid "Initial layer height"
 msgstr "1層目の高さ"
 
@@ -13967,9 +14528,6 @@ msgstr "初層の積層ピッチ。初層の高さをやや厚くすることで
 
 msgid "Speed of initial layer except the solid infill part"
 msgstr "1層目を造形時に、ソリッド インフィル以外の部分の造形速度"
-
-msgid "Initial layer infill"
-msgstr "1層目のインフィル"
 
 msgid "Speed of solid infill part of initial layer"
 msgstr "1層目のソリッド インフィルの造形速度"
@@ -14988,17 +15546,17 @@ msgstr "最大XYスムージング"
 msgid "Maximum distance to move points in XY to try to achieve a smooth spiralIf expressed as a %, it will be computed over nozzle diameter"
 msgstr "スムーズなスパイラルを実現するために、XY平面上でポイントを移動できる最大距離を設定します。パーセンテージで指定した場合、ノズル直径を基準に計算されます。"
 
-msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-msgstr "スムーズモードまたは従来のモードが選択されると、各印刷に対してタイムラプス動画が生成されます。各レイヤーの印刷後、チャンバーカメラでスナップショットが撮影され、すべてのスナップショットが印刷完了後にタイムラプス動画として組み合わされます。スムーズモードが選択されている場合、各レイヤー印刷後にツールヘッドが余剰チュートに移動し、その後スナップショットを撮影します。スナップショットを撮る過程でノズルから溶けたフィラメントが漏れる可能性があるため、スムーズモードではノズルの拭き取り用にプライムタワーが必要です。"
+msgid "If smooth or instant mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
+msgstr ""
 
-msgid "Traditional"
-msgstr "通常"
+msgid "Instant"
+msgstr ""
 
 msgid "Farthest point timelapse"
 msgstr "最遠点タイムラプス"
 
-msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
-msgstr "有効にすると、タイムラプスのスナップショットはワイプタワーや排出シュートへ移動する代わりに、カメラから最遠点で撮影されます。I3以外のプリンターで、従来型のタイムラプスモード時にのみ有効です。"
+msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in instant timelapse mode on non-I3 printers."
+msgstr ""
 
 msgid "Temperature variation"
 msgstr "軟化温度"
@@ -15026,6 +15584,9 @@ msgstr "Cracks smaller than 2x gap closing radius are being filled during the tr
 
 msgid "Slicing Mode"
 msgstr "スライシングモード"
+
+msgid "Other"
+msgstr "その他"
 
 msgid "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
 msgstr "Use \"Even-odd\" for 3DLabPrint airplane models. Use \"Close holes\" to close all holes in the model."
@@ -15635,9 +16196,9 @@ msgstr "--use-firmware-retraction は、Marlin、Klipper、Smoothie、RepRapFirm
 msgid "--use-firmware-retraction is not compatible with --wipe"
 msgstr "--use-firmware-retraction は --wipe と互換性がありません。"
 
-#, c-format, boost-format
-msgid " doesn't work at 100%% density "
-msgstr "100%%の密度では動作しません"
+#, no-c-format, no-boost-format
+msgid " doesn't work at 100% density "
+msgstr ""
 
 msgid "Invalid value when spiral vase mode is enabled: "
 msgstr "スパイラルベースモードが有効な場合、無効な値です："
@@ -15690,6 +16251,22 @@ msgstr "サポートを生成"
 
 msgid "Optimizing toolpath"
 msgstr "ツールパスを最適化"
+
+#, boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, supports cannot grow down to the build plate. Try turning this option off."
+msgstr ""
+"サポートされていないオーバーハングが検出されました。\n"
+"モデル「%1%」に %2% か所のオーバーハング領域があります。「ビルドプレート上のみサポート」が有効になっているため、ビルドプレートまでサポートを生成できません。このオプションを無効にしてみてください。"
+
+#, boost-format
+msgid ""
+"Unsupported overhangs were detected.\n"
+"Model \"%1%\" has %2% overhang region(s) that could not get support. Try adjusting the support settings or re-orienting the object."
+msgstr ""
+"サポートされていないオーバーハングが検出されました。\n"
+"モデル「%1%」にサポートを生成できないオーバーハング領域が %2% か所あります。サポート設定を調整するか、オブジェクトの配置方向を変更してみてください。"
 
 msgid "Empty layers around bottom are replaced by nearest normal layers."
 msgstr "底面との隙間があります、レイヤーを入れ替えました"
@@ -16642,9 +17219,6 @@ msgstr "シリアル"
 msgid "e.g. Basic, Matte, Silk, Marble"
 msgstr "例: ベーシック、マット、シルク、マーブル"
 
-msgid "Filament Preset"
-msgstr "フィラメントプリセット"
-
 msgid "Create"
 msgstr "作成"
 
@@ -16678,10 +17252,8 @@ msgstr "プリンタまたはプリセットが選択されていません。少
 #, c-format, boost-format
 msgid ""
 "The Filament name %s you created already exists. \n"
-"If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+"If you continue, the new preset will be saved alongside the existing custom filaments and shown with its full name to distinguish it. Do you want to continue?"
 msgstr ""
-"作成したフィラメント名「%s」はすでに存在します。  \n"
-"続行すると、作成されたプリセットはフルネームで表示されます。続行しますか？"
 
 msgid "Some existing presets have failed to be created, as follows:\n"
 msgstr "以下のように、いくつかの既存のプリセットが作成に失敗しました：\n"
@@ -16998,16 +17570,6 @@ msgid "+ Add Preset"
 msgstr "+ プリセットを追加"
 
 msgid "Delete Filament"
-msgstr "フィラメントを削除"
-
-msgid ""
-"All the filament presets belong to this filament would be deleted. \n"
-"If you are using this filament on your printer, please reset the filament information for that slot."
-msgstr ""
-"このフィラメントに属するフィラメントプリセットはすべて削除されます。 \n"
-"このフィラメントをプリンタで使用している場合は、そのスロットのフィラメント情報をリセットしてください。"
-
-msgid "Delete filament"
 msgstr "フィラメントを削除"
 
 msgid "Add Preset"
@@ -17812,6 +18374,9 @@ msgstr "このアクションは元に戻せません。続けますか?"
 msgid "Skipping objects."
 msgstr "オブジェクトをスキップします。"
 
+msgid "Custom Color"
+msgstr "カスタムカラー"
+
 msgid "Null Color"
 msgstr "未設定の色"
 
@@ -17823,6 +18388,21 @@ msgstr "公式フィラメント"
 
 msgid "More Colors"
 msgstr "その他の色"
+
+msgid "Search filament"
+msgstr ""
+
+msgid "Unsupported Filaments"
+msgstr "サポートされていないフィラメント"
+
+msgid "No filaments"
+msgstr "フィラメントなし"
+
+msgid "slot"
+msgstr ""
+
+msgid "Recently used"
+msgstr "最近使用したもの"
 
 msgid "Please set nozzle count"
 msgstr "ノズル数を設定してください"
@@ -18167,6 +18747,12 @@ msgstr "混合の推奨設定"
 msgid "-- Select --"
 msgstr "-- 選択 --"
 
+msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+msgstr "グラデーション効果を使用するには「混色サブレイヤー」を有効にする必要があります。有効にしますか？"
+
+msgid "Mixed Color Sublayer"
+msgstr "混色サブレイヤー"
+
 #, c-format, boost-format
 msgid "Slot %s (%s)"
 msgstr "スロット %s (%s)"
@@ -18189,33 +18775,52 @@ msgstr "構成要素の上限に達しました。"
 msgid "Remove the third material"
 msgstr "3つ目の材料を削除してください。"
 
-msgid "Project Filament List"
-msgstr "プロジェクトフィラメントリスト"
+#, c-format, boost-format
+msgid "RGB(%d, %d, %d)"
+msgstr ""
 
-msgid "Standard Mode Recommendations"
-msgstr "標準モードに関する推奨事項"
+msgid "Decomposition result for this combination"
+msgstr ""
 
-msgid "Target Color"
-msgstr "ターゲットカラー"
+msgid "Filament Color"
+msgstr ""
+
+msgid "Decomposed Colors"
+msgstr ""
 
 msgid "Select Color Decomposition"
 msgstr "色分解を選択"
 
-msgid "Arbitrary Mode"
-msgstr "任意モード"
+msgid "Project Filament"
+msgstr ""
 
 msgid "Material List"
 msgstr "素材リスト"
 
-msgid "Standard Mode"
-msgstr "標準モード"
+msgid "Standard Palette"
+msgstr ""
 
 msgid "At least two filaments of the same material type are required for decomposition"
 msgstr "分解には、同じ素材タイプのフィラメントが少なくとも2つ必要です"
 
+msgid "A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+msgstr ""
+
+msgid "A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically."
+msgstr ""
+
 #, boost-format
 msgid "The material list supports at most %1% colors. After %2% decomposition, the material count would exceed %1%. Please delete unused filaments on the main screen before decomposing."
 msgstr "素材リストは最大%1%色までサポートします。%2%回分解すると、素材数が%1%を超えます。分解する前に、メインスクリーンで未使用のフィラメントを削除してください。"
+
+msgid "Decompose Color (gradient not supported)"
+msgstr ""
+
+msgid "Decompose Color (transparent not supported)"
+msgstr ""
+
+msgid "Decompose Color (multi-color not supported)"
+msgstr ""
 
 msgid "Cyan"
 msgstr "シアン"
@@ -18246,6 +18851,13 @@ msgstr "補助"
 
 msgid "An unexpected error occurred"
 msgstr "予期しないエラーが発生しました"
+
+msgid "Create Custom Filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Preset \"%s\" already exists. Overwrite?"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -18540,6 +19152,156 @@ msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
 
+#~ msgid "Line pattern of the internal solid layer immediately below a visible top surface. Monotonic fill reduces extrusion stripes showing through the top skin."
+#~ msgstr "外観となるトップサーフェスの直下にある、内部ソリッド層のラインパターンです。モノトニック充填を使用すると、トップサーフェスに透けて見える吐出スジを低減できます。"
+
+#~ msgid "Target Color"
+#~ msgstr "ターゲットカラー"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The Filament name %s you created already exists. \n"
+#~ "If you continue creating, the preset created will be displayed with its full name. Do you want to continue?"
+#~ msgstr ""
+#~ "作成したフィラメント名「%s」はすでに存在します。  \n"
+#~ "続行すると、作成されたプリセットはフルネームで表示されます。続行しますか？"
+
+#~ msgid "AMS detected a new official filament. Add it to Filament Manager?"
+#~ msgstr "AMSが新しい純正フィラメントを検出しました。フィラメントマネージャーに追加しますか？"
+
+#~ msgid "Link to existing filament"
+#~ msgstr "既存フィラメントにリンク"
+
+#~ msgid "Please select"
+#~ msgstr "選択してください"
+
+#~ msgid "No matching filament"
+#~ msgstr "一致するフィラメントはありません"
+
+#, c-format, boost-format
+#~ msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
+#~ msgstr "現在のチャンバー温度は材料の安全温度を超えています。これにより、材料が軟化し、ノズルが詰まる可能性があります。この材料の最大安全温度は%dです。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "lock depth should smaller than skin depth.\n"
+#~ "Reset to 50%% of skin depth"
+#~ msgstr ""
+#~ "ロック深さはスキン深さより小さくする必要があります。\n"
+#~ "スキン深さの50%%にリセットされます。"
+
+#~ msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
+#~ msgstr "現在のヒートベッド温度は比較的高いです。このフィラメントを密閉環境で印刷すると、ノズルが詰まる可能性があります。フロントドアを開けるか、上部ガラスを取り外してください。"
+
+#, c-format, boost-format
+#~ msgid ""
+#~ "The object from file %s is too small, and maybe in meters or inches.\n"
+#~ " Do you want to scale to millimeters?"
+#~ msgstr "ファイル%sからのオブジェクトは小さすぎます。単位はメートルまたはインチの可能性があります。ミリメートルにスケーリングしますか？"
+
+#, c-format, boost-format
+#~ msgid "Speed of 100%% overhang wall which has 0 overlap with the lower layer."
+#~ msgstr "下層と重ならない100%%オーバーハング壁面の造形速度"
+
+#, c-format, boost-format
+#~ msgid " doesn't work at 100%% density "
+#~ msgstr "100%%の密度では動作しません"
+
+#~ msgid ""
+#~ "Drag to move the cut plane\n"
+#~ "Right-click a part to assign it to the other side"
+#~ msgstr ""
+#~ "カットプレーンをドラッグしてモデルを2つに分割してください。  \n"
+#~ "パーツを右クリックして、反対側に割り当てることができます。"
+
+#~ msgid "Deleting the last solid part is not allowed."
+#~ msgstr "最後のソリッドパーツは削除できません。"
+
+#~ msgid "max"
+#~ msgstr "最大"
+
+#~ msgid "min"
+#~ msgstr "最小"
+
+#, boost-format
+#~ msgid "The input value should be greater than %1% and less than %2%"
+#~ msgstr "入力値範囲は %1% ～ %2%"
+
+#~ msgid "Setting AMS slot information while printing is not supported"
+#~ msgstr "造形中に、AMSスロットを設定できません。"
+
+#~ msgid "Setting Virtual slot information while printing is not supported"
+#~ msgstr "印刷中の仮想スロット情報の設定には対応していません"
+
+#~ msgid "In printer"
+#~ msgstr "プリンター内"
+
+#, c-format, boost-format
+#~ msgid "In printer: %s"
+#~ msgstr "プリンター内：%s"
+
+#~ msgctxt "Filament Manager"
+#~ msgid "Note"
+#~ msgstr "メモ"
+
+#~ msgctxt "Unsupported Filaments"
+#~ msgid "Note"
+#~ msgstr "メモ"
+
+#~ msgid "No unsupported filaments"
+#~ msgstr "サポートされていないフィラメントはありません"
+
+#~ msgid "Other Color"
+#~ msgstr "その他の色"
+
+#~ msgid "Not now"
+#~ msgstr "今はしない"
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+#~ msgstr "スパイラルモードは、壁面層数が1、サポートが無効、プロービングによるクランピング検出が無効、トップ面層数が0、疎充填密度が0、タイムラプスタイプが従来型、z方向の壁速度の平滑化が無効、および交替追加壁が無効の場合にのみ機能します。"
+
+#~ msgid "parameter name"
+#~ msgstr "パラメータ名"
+
+#~ msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
+#~ msgstr "従来のタイムラプス撮影を有効にすると、表面に欠陥が生じる可能性があります。スムーズモードに変更することを推奨します。"
+
+#~ msgid "Auto Flush"
+#~ msgstr "自動フラッシュ"
+
+#~ msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
+#~ msgstr "現在のプリンタは、オブジェクト順で印刷する場合、従来モードでタイムラプスをサポートしていません。"
+
+#~ msgid "After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
+#~ msgstr "タイムラプス機能を有効にすると、従来モードまたはスムーズモードのどちらを選択しているかに関わらず、プリンターは各ショットの前にビルドプレートとツールヘッドを移動させるため、印刷にかかる総時間が長くなる可能性があります。"
+
+#~ msgid "\"No sparse layers\" is not compatible with smooth timelapse, which needs a prime tower on every layer. Timelapse has been switched to traditional mode."
+#~ msgstr "「スパースレイヤーなし」は、全レイヤーにプライムタワーを必要とするスムーズタイムラプスと併用できません。タイムラプスを従来モードに切り替えました。"
+
+#~ msgid "Select presets to compare"
+#~ msgstr "比較するプリセットを選択"
+
+#~ msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
+#~ msgstr "スムーズモードまたは従来のモードが選択されると、各印刷に対してタイムラプス動画が生成されます。各レイヤーの印刷後、チャンバーカメラでスナップショットが撮影され、すべてのスナップショットが印刷完了後にタイムラプス動画として組み合わされます。スムーズモードが選択されている場合、各レイヤー印刷後にツールヘッドが余剰チュートに移動し、その後スナップショットを撮影します。スナップショットを撮る過程でノズルから溶けたフィラメントが漏れる可能性があるため、スムーズモードではノズルの拭き取り用にプライムタワーが必要です。"
+
+#~ msgid "Traditional"
+#~ msgstr "通常"
+
+#~ msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
+#~ msgstr "有効にすると、タイムラプスのスナップショットはワイプタワーや排出シュートへ移動する代わりに、カメラから最遠点で撮影されます。I3以外のプリンターで、従来型のタイムラプスモード時にのみ有効です。"
+
+#~ msgid "Project Filament List"
+#~ msgstr "プロジェクトフィラメントリスト"
+
+#~ msgid "Standard Mode Recommendations"
+#~ msgstr "標準モードに関する推奨事項"
+
+#~ msgid "Arbitrary Mode"
+#~ msgstr "任意モード"
+
+#~ msgid "Standard Mode"
+#~ msgstr "標準モード"
+
 #~ msgid "Air Purifier"
 #~ msgstr "空気清浄機"
 
@@ -18687,12 +19449,6 @@ msgstr ""
 
 #~ msgid "Layer height exceeds the limit in Printer Settings -> Extruder -> Layer height limits ,this may cause printing quality issues."
 #~ msgstr "積層ピッチが、プリンタ設定 ->  エクストルーダー  -> 積層ピッチの制限を超えています。これにより印刷品質の問題が発生する可能性があります。"
-
-#~ msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-#~ msgstr "グラデーション効果を使用するには「混色サブレイヤー」を有効にする必要があります。有効にしますか？"
-
-#~ msgid "Mixed Color Sublayer"
-#~ msgstr "混色サブレイヤー"
 
 #~ msgid "Show Current Step Objects Only"
 #~ msgstr "現在のステップのオブジェクトのみ表示"
@@ -19854,10 +20610,6 @@ msgstr ""
 
 #~ msgid "Previous unsaved project detected, do you want to restore it?"
 #~ msgstr "前回の未保存のプロジェクトが検出されました。復元しますか？"
-
-#, fuzzy, c-format, boost-format
-#~ msgid "Speed of 100% overhang wall which has 0 overlap with the lower layer."
-#~ msgstr "オーバーハングの角度が線幅100%%を超えるウォール（ブリッジ壁を除く）のライン速度を設定します。"
 
 #~ msgid "Modern"
 #~ msgstr "モダン"

@@ -2,6 +2,8 @@
 #include "ConfigManipulation.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
+#include "PartPlate.hpp"
 #include "format.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -171,32 +173,69 @@ void ConfigManipulation::check_filament_scarf_setting(DynamicPrintConfig *config
         is_msg_dlg_already_exist = false;
     }
 }
-void ConfigManipulation::check_chamber_temperature(DynamicPrintConfig* config)
+
+// The top/bottom shell keeps growing until both the layer count and the thickness criteria are
+// satisfied (see PrintObject::discover_vertical_shells), so the shell that really gets printed is
+// the larger of the two. A zero thickness disables the thickness criterion.
+static int effective_shell_layers(const DynamicPrintConfig *config, const char *layers_key, const char *thickness_key)
 {
-    const static std::map<std::string, int>recommend_temp_map = {
-        {"PLA",45},
-        {"PLA-CF",45},
-        {"PVA",45},
-        {"TPU",50},
-        {"TPU-AMS",50},
-        {"PETG",55},
-        {"PCTG",55},
-        {"PETG-CF",55}
+    const int shell_layers = config->opt_int(layers_key);
+    if (shell_layers <= 0)
+        return 0;
+    const double thickness    = config->opt_float(thickness_key);
+    const double layer_height = config->opt_float("layer_height");
+    // Mirrors the "print_z difference < thickness - EPSILON" test the slicer uses to stop growing.
+    const int    layers_from_thickness = (thickness > EPSILON && layer_height > EPSILON) ?
+        int(std::ceil((thickness - EPSILON) / layer_height)) : 0;
+    return std::max(shell_layers, layers_from_thickness);
+}
+
+// Painted top/bottom color is projected into the shell layer by layer, so a penetration deeper
+// than the printed shell would color the sparse infill and fail to print.
+// Use the actual printed shell depth, which is the larger of the configured layer count and the
+// thickness-derived layer count.
+void ConfigManipulation::check_color_penetration_layers(DynamicPrintConfig *config, const std::string &edited_key)
+{
+    struct ShellSide {
+        const char *penetration_key;
+        const char *layers_key;
+        const char *thickness_key;
     };
-   bool support_chamber_temp_control=GUI::wxGetApp().preset_bundle->printers.get_selected_preset().config.opt_bool("support_chamber_temp_control");
-    if (support_chamber_temp_control&&config->has("chamber_temperatures")) {
-        std::string filament_type = config->option<ConfigOptionStrings>("filament_type")->get_at(0);
-        auto iter = recommend_temp_map.find(filament_type);
-        if (iter!=recommend_temp_map.end()) {
-            if (iter->second < config->option<ConfigOptionInts>("chamber_temperatures")->get_at(0)) {
-                wxString msg_text = wxString::Format(_L("Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"), iter->second);
-                MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
-                is_msg_dlg_already_exist = true;
-                dialog.ShowModal();
-                is_msg_dlg_already_exist = false;
-            }
+    static const ShellSide shell_sides[] = {
+        {"top_color_penetration_layers",    "top_shell_layers",    "top_shell_thickness"},
+        {"bottom_color_penetration_layers", "bottom_shell_layers", "bottom_shell_thickness"},
+    };
+
+    DynamicPrintConfig new_conf = *config;
+    bool               clamped  = false;
+    bool               show_dlg = false;
+    int                dlg_max_layers = 0;
+    wxString           dlg_label;
+    for (const ShellSide &side : shell_sides) {
+        if (!config->has(side.penetration_key) || !config->has(side.layers_key))
+            continue;
+        const int max_layers = effective_shell_layers(config, side.layers_key, side.thickness_key);
+        // An open top/bottom has no solid shell to penetrate into, leave the value alone.
+        if (max_layers <= 0 || config->opt_int(side.penetration_key) <= max_layers)
+            continue;
+        new_conf.set_key_value(side.penetration_key, new ConfigOptionInt(max_layers));
+        clamped = true;
+        // Warn on any user edit that breaks the pair, including shrinking the shell.
+        if (edited_key == side.penetration_key || edited_key == side.layers_key ||
+            edited_key == side.thickness_key || edited_key == "layer_height") {
+            show_dlg       = true;
+            dlg_max_layers = max_layers;
+            dlg_label      = _(print_config_def.get(side.penetration_key)->label);
         }
     }
+
+    if (clamped)
+        apply(config, &new_conf);
+    if (show_dlg)
+        show_error(m_msg_dlg_parent, _L("Value is out of range.") + "\n" +
+            GUI::format_wxstr(_L("%1% cannot exceed the shell layers (%2%), otherwise the painted color would "
+                                 "reach the sparse infill."),
+                              dlg_label, dlg_max_layers));
 }
 
 void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config, const bool is_plate_config)
@@ -744,7 +783,8 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     // layer_height shouldn't be equal to zero
     float skin_depth = config->opt_float("skin_infill_depth");
     if (config->opt_float("infill_lock_depth") > skin_depth) {
-        const wxString     msg_text = _(L("lock depth should smaller than skin depth.\nReset to 50%% of skin depth"));
+        // xgettext:no-c-format, no-boost-format
+        const wxString     msg_text = _(L("lock depth should smaller than skin depth.\nReset to 50% of skin depth"));
         MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
         DynamicPrintConfig new_conf = *config;
         is_msg_dlg_already_exist    = true;
@@ -911,7 +951,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
     bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
     // solid_infill_filament uses the same logic as in Print::extruders()
-    for (auto el : {"top_surface_pattern", "bottom_surface_pattern", "top_surface_density", "bottom_surface_density", "internal_solid_infill_pattern", "solid_infill_filament"})
+    for (auto el : {"top_surface_pattern", "bottom_surface_pattern", "top_surface_density", "bottom_surface_density", "internal_solid_infill_pattern", "sub_top_surface_pattern", "solid_infill_filament"})
         toggle_field(el, has_solid_infill);
 
     for (auto el : { "infill_direction", "sparse_infill_line_width", "bridge_angle",
@@ -1198,7 +1238,7 @@ void ConfigManipulation::toggle_print_sla_options(DynamicPrintConfig* config)
 
 int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
 {
-    wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."));
+    wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is instant, smoothing wall speed in z direction is false and alternate extra wall is disabled."));
     auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
     if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
         msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));

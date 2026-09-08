@@ -478,9 +478,9 @@ void Preset::normalize(DynamicPrintConfig &config)
 
     handle_legacy_sla(config);
 
-    // Repair nil/invalid filament_max_volumetric_speed entries carried by corrupted/legacy
-    // project files, before they propagate NaN into slicing speeds (the -35791396 bug).
-    config.repair_nil_filament_max_volumetric_speed();
+    // Repair invalid filament extrusion parameters carried by corrupted/legacy project files,
+    // before they propagate NaN into slicing speeds or extrusion amounts.
+    config.repair_invalid_filament_extrusion_parameters();
 }
 
 std::string Preset::remove_invalid_keys(DynamicPrintConfig &config, const DynamicPrintConfig &default_config)
@@ -598,6 +598,16 @@ void Preset::save_info(std::string file)
         idx_file.replace_extension(".info");
         file = idx_file.string();
     }
+
+    // Symmetric with load_info() above: a freshly-cloned preset arrives here with
+    // updated_time == 0 (clone_presets doesn't stamp it), which then propagates to
+    // the .info file and any UI reading updated_time — so a newly-created custom
+    // filament shows no date until the next app launch (load_info's own fallback
+    // stamps it there). For logged-in users this is masked by the sync flow, which
+    // overwrites updated_time with the server timestamp; offline users see the
+    // empty date. Stamping here fills that gap once, at save time.
+    if (this->updated_time == 0)
+        this->updated_time = (long long)Slic3r::Utils::get_current_time_utc();
 
     boost::nowide::ofstream c;
     c.open(file, std::ios::out | std::ios::trunc);
@@ -1018,7 +1028,7 @@ static std::vector<std::string> s_Preset_print_options {
     "smooth_speed_discontinuity_area","smooth_coefficient", "seam_position", "seam_placement_away_from_overhangs", "wall_sequence", "is_infill_first", "sparse_infill_density", "fill_multiline",
     "sparse_infill_pattern", "sparse_infill_anchor", "sparse_infill_anchor_max", "top_surface_pattern", "monotonic_travel_into_wall",
     "locked_skin_infill_pattern", "locked_skeleton_infill_pattern",
-    "bottom_surface_pattern", "internal_solid_infill_pattern", "infill_direction", "bridge_angle", "infill_shift_step", "skeleton_infill_density", "infill_lock_depth", "skin_infill_depth", "skin_infill_density",
+    "bottom_surface_pattern", "internal_solid_infill_pattern", "sub_top_surface_pattern", "infill_direction", "bridge_angle", "infill_shift_step", "skeleton_infill_density", "infill_lock_depth", "skin_infill_depth", "skin_infill_density",
     "infill_rotate_step","top_surface_density", "bottom_surface_density",
     "symmetric_infill_y_axis","sparse_infill_lattice_angle_1","sparse_infill_lattice_angle_2",
     "minimum_sparse_infill_area", "reduce_infill_retraction_mode", "ironing_pattern", "ironing_type",
@@ -1049,7 +1059,8 @@ static std::vector<std::string> s_Preset_print_options {
     "bridge_no_support", "thick_bridges", "max_bridge_length", "print_sequence",
     "filename_format", "wall_filament", "support_bottom_z_distance",
     "sparse_infill_filament", "solid_infill_filament", "support_filament", "support_interface_filament","support_interface_not_for_body",
-    "ooze_prevention", "standby_temperature_delta", "interface_shells", "line_width", "initial_layer_line_width", "inner_wall_line_width",
+    "ooze_prevention", "standby_temperature_delta", "interface_shells", "line_width", "initial_layer_line_width",
+    "initial_layer_infill_line_width", "inner_wall_line_width",
     "outer_wall_line_width", "sparse_infill_line_width", "internal_solid_infill_line_width",
     "skin_infill_line_width","skeleton_infill_line_width",
     "top_surface_line_width", "support_line_width", "infill_wall_overlap", "bridge_flow", "bridge_density", "counterbore_hole_bridging",
@@ -2832,6 +2843,11 @@ const Preset *PresetCollection::get_preset_base(const Preset &child) const
     if (child.inherits().empty())
         return &child; // this is user root
     auto inherits = find_preset(child.inherits());
+
+    // Guard against a self-referential "inherits" (corrupt data where inherits == own name):
+    // find_preset() resolves back to child, so recursing would loop forever. Treat it as its own root.
+    if (inherits == &child) return &child;
+
     return inherits ? get_preset_base(*inherits) : nullptr;
 }
 
@@ -3303,16 +3319,24 @@ std::vector<std::string> PresetCollection::merge_presets(PresetCollection &&othe
     return duplicates;
 }
 
+void inline static sync_vendor_ptr(const VendorMap &new_vendors, Preset &preset)
+{
+    if (!preset.vendor) return;
+
+    auto it = new_vendors.find(preset.vendor->id);
+    assert(it != new_vendors.end());
+    preset.vendor = &it->second;
+}
+
 void PresetCollection::update_vendor_ptrs_after_copy(const VendorMap &new_vendors)
 {
-    for (Preset &preset : m_presets)
-        if (preset.vendor != nullptr) {
-            assert(! preset.is_default && ! preset.is_external);
-            // Re-assign a pointer to the vendor structure in the new PresetBundle.
-            auto it = new_vendors.find(preset.vendor->id);
-            assert(it != new_vendors.end());
-            preset.vendor = &it->second;
-        }
+    for (Preset &preset : m_presets) {
+        assert(preset.vendor == nullptr || (!preset.is_default && !preset.is_external));
+        sync_vendor_ptr(new_vendors, preset);
+    }
+
+    sync_vendor_ptr(new_vendors, m_edited_preset);
+    sync_vendor_ptr(new_vendors, m_saved_preset);
 }
 
 void PresetCollection::update_map_alias_to_profile_name()

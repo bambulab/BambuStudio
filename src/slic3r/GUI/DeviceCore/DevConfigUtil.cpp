@@ -1,5 +1,8 @@
 #include "DevConfigUtil.h"
 
+#include <mutex>
+#include <unordered_map>
+
 #include <wx/dir.h>
 #include <boost/filesystem/operations.hpp>
 #include "../I18N.hpp"
@@ -37,6 +40,112 @@ static void _toolhead_translation_markers()
 }
 
 std::string DevPrinterConfigUtil::m_resource_file_path = "";
+
+namespace
+{
+struct SnPrefixInfo
+{
+    std::string model_id;     // printers/<model_id>.json, ie. the key the other config getters take
+    std::string printer_type; // the printer_type field inside that json
+};
+
+// Looks up the printer whose sn_prefix matches. The index is built lazily by scanning
+// printers/*.json and is rebuilt whenever the resource path changes. The mutex is required
+// because device restore resolves printers from worker threads.
+bool find_printer_by_sn_prefix(const std::string& resource_file_path, const std::string& sn_prefix, SnPrefixInfo& info_out)
+{
+    static std::mutex                                   s_mutex;
+    static std::unordered_map<std::string, SnPrefixInfo> s_sn_prefix_index;
+    static std::string                                  s_cached_resource_path;
+
+    std::lock_guard<std::mutex> lock(s_mutex);
+
+    if (s_sn_prefix_index.empty() || s_cached_resource_path != resource_file_path) {
+        s_sn_prefix_index.clear();
+        s_cached_resource_path = resource_file_path;
+
+        const auto& from_dir = resource_file_path + "/printers/";
+        try {
+            if (!boost::filesystem::exists(from_dir)) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": printers dir does not exist: " << from_dir;
+                return false;
+            }
+
+            for (const auto& entry : boost::filesystem::directory_iterator(from_dir)) {
+                const boost::filesystem::path& file_path = entry.path();
+                if (!boost::filesystem::is_regular_file(file_path) || file_path.extension() != ".json")
+                    continue;
+
+                try {
+                    json jj;
+                    boost::nowide::ifstream json_file(file_path.string());
+                    if (!json_file.is_open())
+                        continue;
+
+                    json_file >> jj;
+                    if (!jj.contains("00.00.00.00"))
+                        continue;
+
+                    json const& printer = jj["00.00.00.00"];
+                    if (!printer.contains("sn_prefix") || !printer.contains("printer_type"))
+                        continue;
+
+                    const std::string prefix       = printer["sn_prefix"].get<std::string>();
+                    const std::string printer_type = printer["printer_type"].get<std::string>();
+                    const std::string model_id     = file_path.stem().string();
+                    if (prefix.empty() || printer_type.empty() || model_id.empty())
+                        continue;
+
+                    auto inserted = s_sn_prefix_index.emplace(prefix, SnPrefixInfo{model_id, printer_type});
+                    if (!inserted.second && inserted.first->second.printer_type != printer_type) {
+                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__
+                            << ": duplicate sn_prefix=" << prefix
+                            << " for printer_type=" << printer_type
+                            << " (kept " << inserted.first->second.printer_type << ")";
+                    }
+                } catch (...) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": failed to load " << file_path.filename().string();
+                }
+            }
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": std::exception: " << e.what();
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unknown exception";
+        }
+    }
+
+    auto it = s_sn_prefix_index.find(sn_prefix);
+    if (it == s_sn_prefix_index.end())
+        return false;
+
+    info_out = it->second;
+    return true;
+}
+} // namespace
+
+std::string DevPrinterConfigUtil::get_model_id_by_dev_id(const std::string& dev_id)
+{
+    if (dev_id.size() < 3 || m_resource_file_path.empty())
+        return std::string();
+
+    SnPrefixInfo info;
+    if (!find_printer_by_sn_prefix(m_resource_file_path, dev_id.substr(0, 3), info))
+        return std::string();
+
+    return info.model_id;
+}
+
+std::string DevPrinterConfigUtil::get_printer_type_by_dev_id(const std::string& dev_id)
+{
+    if (dev_id.size() < 3 || m_resource_file_path.empty())
+        return std::string();
+
+    SnPrefixInfo info;
+    if (!find_printer_by_sn_prefix(m_resource_file_path, dev_id.substr(0, 3), info))
+        return std::string();
+
+    return info.printer_type;
+}
 
 
 std::map<std::string, std::string> DevPrinterConfigUtil::get_all_model_id_with_name()

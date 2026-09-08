@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <array>
+#include <memory>
 
 #include <wx/bitmap.h>
 
@@ -103,7 +104,8 @@ private:
     MenuWithSeparators m_assemble_object_menu;
     MenuWithSeparators m_assemble_part_menu;
 
-    wxMenu m_filament_action_menu;
+    std::unique_ptr<wxMenu>     m_filament_popup_menu;
+    int                         m_filament_menu_active_id{-1};
 
     int object_menu_count{ 0 };
     int part_menu_count{ 0 };
@@ -134,7 +136,7 @@ private:
     void        create_bbl_assemble_part_menu();
     void        create_cut_cutter_menu();
 
-    void        create_filament_action_menu(bool init, int active_filament_menu_id);
+    void        create_filament_action_menu(wxMenu* menu, int active_filament_menu_id);
 
     wxMenu*     append_submenu_add_generic(wxMenu* menu, ModelVolumeType type);
     void        append_menu_item_add_svg(wxMenu *menu, ModelVolumeType type, bool is_submenu_item = true);

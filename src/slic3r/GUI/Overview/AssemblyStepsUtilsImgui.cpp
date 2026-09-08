@@ -13,7 +13,6 @@
 #include "../ImGuiWrapper.hpp"
 #include "../GUI_App.hpp"
 #include "../GUI.hpp"
-#include "../GLCanvas3D.hpp"
 #include "../MainFrame.hpp"
 #include "../Plater.hpp"
 #include "../NotificationManager.hpp"
@@ -646,10 +645,8 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     // Hidden while a gizmo that disallows X-Ray is active (see is_allow_x_ray_in_assembly).
     const float DM_GAP           = NAV_GAP;
     bool show_display_mode = true;
-    if (wxGetApp().plater()) {
-        if (GLCanvas3D *ac = wxGetApp().plater()->get_assmeble_canvas3D())
-            show_display_mode = ac->get_gizmos_manager().is_allow_x_ray_in_assembly();
-    }
+    if (wxGetApp().plater())
+        show_display_mode = wxGetApp().plater()->is_allow_x_ray_in_assembly();
     const std::vector<std::string> display_modes = {
         _u8L("Show Current Step Parts Only"),
         _u8L("X-Ray Other Parts")

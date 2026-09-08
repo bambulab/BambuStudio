@@ -7,6 +7,8 @@
 #include "GLTexture.hpp"
 
 #include "3DScene.hpp"
+#include "Camera.hpp"
+#include "Plater.hpp"
 #include "OpenGLManager.hpp"
 
 #include <GL/glew.h>

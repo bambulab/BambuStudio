@@ -15,7 +15,6 @@
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/GUI_Utils.hpp"
 #include "slic3r/GUI/GUI.hpp"
-#include "slic3r/GUI/GLCanvas3D.hpp"
 #include "slic3r/GUI/GLToolbar.hpp"
 #include "slic3r/GUI/GUI_Preview.hpp"
 #include "slic3r/GUI/IMSlider.hpp"
@@ -351,7 +350,7 @@ namespace Slic3r {
                 }
                 render_sequential_view(canvas_width, canvas_height, right_margin);
 #if ENABLE_GCODE_VIEWER_STATISTICS
-                render_statistics();
+                render_statistics(float(canvas_width));
 #endif // ENABLE_GCODE_VIEWER_STATISTICS
                 //BBS render slider
                 render_slider(canvas_width, canvas_height);
@@ -2389,7 +2388,7 @@ namespace Slic3r {
             }
 
 #if ENABLE_GCODE_VIEWER_STATISTICS
-            void LegacyRenderer::render_statistics()
+            void LegacyRenderer::render_statistics(float canvas_width)
             {
                 static const float offset = 275.0f;
                 ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -2424,7 +2423,7 @@ namespace Slic3r {
                     ImGui::SameLine(offset);
                     imgui.text(std::to_string(counter));
                     };
-                imgui.set_next_window_pos(0.5f * wxGetApp().plater()->get_current_canvas3D()->get_canvas_size().get_width(), 0.0f, ImGuiCond_Once, 0.5f, 0.0f);
+                imgui.set_next_window_pos(0.5f * canvas_width, 0.0f, ImGuiCond_Once, 0.5f, 0.0f);
                 ImGui::SetNextWindowSizeConstraints({ 300.0f, 100.0f }, { 600.0f, 900.0f });
                 imgui.begin(std::string("GCodeViewer Statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize);
                 ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());

@@ -73,7 +73,7 @@ std::string filament_type_by_setting_id(const std::string& setting_id)
 
 std::string tray_id_name_by_filament_color(const FilamentSpool& s)
 {
-    if (s.setting_id.size() <= 2)
+    if (s.filament_id.size() <= 2)
         return {};
 
     auto* clr_query = wxGetApp().get_filament_color_code_query();
@@ -94,12 +94,12 @@ std::string tray_id_name_by_filament_color(const FilamentSpool& s)
 
     const int color_type = to_fila_manager_color_type_int(
         normalize_fila_manager_color_type(s.color_type, hex_colors.size()));
-    auto* color_info = clr_query->GetFilaInfo(wxString::FromUTF8(s.setting_id), hex_colors, color_type);
+    auto* color_info = clr_query->GetFilaInfo(wxString::FromUTF8(s.filament_id), hex_colors, color_type);
     if (!color_info)
         return {};
 
     const std::string color_code = color_info->GetColorCode().utf8_string();
-    return color_code.empty() ? std::string{} : s.setting_id.substr(2) + "-" + color_code;
+    return color_code.empty() ? std::string{} : s.filament_id.substr(2) + "-" + color_code;
 }
 
 } // namespace
@@ -167,7 +167,7 @@ FilamentSpool wgtFilaManagerCloudSync::cloud_json_to_spool(const nlohmann::json&
 
     // Identity / preset linkage (cloud FilamentV2 uses int64 id + camelCase).
     s.spool_id      = str_any({"id", "spool_id"});
-    s.setting_id    = str_any({"filamentId", "setting_id"});
+    s.filament_id   = str_any({"filamentId", "setting_id"});
     s.tag_uid       = str_any({"RFID", "rfid", "tag_uid"});
     s.tray_id_name  = str_any({"trayIdName", "tray_id_name"});
     if (!FilamentSpool::is_valid_tag_uid(s.tag_uid))
@@ -293,8 +293,8 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_json(const FilamentSpool&
     // models only a single-colour spool and may leave `series` empty, so fall
     // back to the material type for the display name and encode monochrome as 2.
     j["filamentName"]   = s.series.empty() ? s.material_type : s.series;
-    j["filamentId"]     = s.setting_id;
-    j["isSupport"]      = filament_is_support_by_setting_id(s.setting_id);
+    j["filamentId"]     = s.filament_id;
+    j["isSupport"]      = filament_is_support_by_setting_id(s.filament_id);
     if (has_valid_rfid)
         j["RFID"]       = s.tag_uid;
     j["color"]          = s.color_code;
@@ -646,9 +646,9 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_json(const Filamen
         FilamentSpool updated = s;
         std::string setting_id = patch_str("setting_id");
         if (setting_id.empty()) setting_id = patch_str("filamentId");
-        if (!setting_id.empty()) updated.setting_id = setting_id;
-        if (!updated.setting_id.empty()) {
-            std::string filament_type = filament_type_by_setting_id(updated.setting_id);
+        if (!setting_id.empty()) updated.filament_id = setting_id;
+        if (!updated.filament_id.empty()) {
+            std::string filament_type = filament_type_by_setting_id(updated.filament_id);
             if (filament_type.empty()) filament_type = updated.material_type;
             if (!filament_type.empty()) j["filamentType"] = filament_type;
         }
@@ -819,7 +819,7 @@ void wgtFilaManagerCloudSync::notify_ams_synced(
             si.filamentVendor = sp->brand;
             si.filamentType   = sp->material_type;
             si.filamentName   = sp->series;
-            si.filamentId     = sp->setting_id;
+            si.filamentId     = sp->filament_id;
             si.trayIdName     = sp->tray_id_name;
             si.color          = sp->color_code;
             si.colorType      = sp->color_type >= 0 ? sp->color_type : 0;
@@ -908,7 +908,7 @@ void wgtFilaManagerCloudSync::push_all_now()
         si.filamentVendor = sp->brand;
         si.filamentType   = sp->material_type;
         si.filamentName   = sp->series;
-        si.filamentId     = sp->setting_id;
+        si.filamentId     = sp->filament_id;
         si.trayIdName     = sp->tray_id_name;
         si.color          = sp->color_code;
         si.colorType      = sp->color_type >= 0 ? sp->color_type : 0;
@@ -1003,7 +1003,7 @@ void wgtFilaManagerCloudSync::sync_ams_to_cloud(
         item.filamentVendor = s->brand;
         item.filamentType   = s->material_type;
         item.filamentName   = s->series;
-        item.filamentId     = s->setting_id;
+        item.filamentId     = s->filament_id;
         item.trayIdName     = s->tray_id_name;
         item.color          = s->color_code;
         item.colorType      = s->color_type >= 0 ? s->color_type : 0;

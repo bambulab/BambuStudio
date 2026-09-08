@@ -3236,6 +3236,401 @@ Points sample_grid_pattern(const Polygons& polygons, coord_t spacing, const Boun
     return sample_grid_pattern(union_ex(polygons), spacing, global_bounding_box);
 }
 
+
+struct MonotonicRoute
+{
+    std::vector<std::vector<size_t>> gaps_at; // gaps_at[i]：第 i-1 条线与第 i 条线之间要打的缝（gaps 下标）
+    std::vector<size_t>              leftover; // 无法插入线序的缝
+};
+
+
+// 在单调线顺序不变的前提下，决定每条缝的插入位置、同一位置内的顺序和缝的走向。
+static MonotonicRoute plan_monotonic_route(const Polylines &lines, ThickPolylines &gaps, double link_max, float scan_angle,
+                                           const std::vector<size_t> &island_end)
+{
+    const size_t n_lines = lines.size();
+    MonotonicRoute route;
+    route.gaps_at.resize(n_lines + 1);
+    if (gaps.empty())
+        return route;
+
+    // 1. 准备距离、折返和扫描坐标转换。
+    // 计算两点连接长度
+    auto link = [](const Point *from, const Point &to) {
+        return from ? (to - *from).cast<double>().norm() : 0.;
+    };
+    // 判断某点是否在at点折返，点积 < 0 → 钝角 → 喷嘴在 at 处掉头压回刚走过的地方
+    auto folds_back = [](const Point *from, const Point &at, const Point *to) {
+        return from && to && (at - *from).cast<double>().dot((*to - at).cast<double>()) < 0.;
+    };
+
+    // fill_surface_by_lines() 生成单调线时，多边形先转 -scan_angle、用竖直线扫描，每条线在该系里 x 为常数（一列）。
+    // to_scan 转回扫描系，单调线保持竖直，用 x 排序定位缝和线的打印顺序。
+    const double scan_cos = std::cos(- double(scan_angle));
+    const double scan_sin = std::sin(- double(scan_angle));
+    auto to_scan = [scan_cos, scan_sin](const Point &p) { return p.rotated(scan_cos, scan_sin); };
+
+    // 2. 构建单调线端点索引，并确定每条缝的插入位置。
+    // 每条单调线的两个端点，用于缝定位。island_idx 为所属独立填充区域编号
+    struct LineEndpoint {
+     Point scan_pos;     // 端点的扫描系坐标
+     size_t line_idx;    // 属于哪条单调线
+     size_t  island_idx; // 属于哪个填充岛
+     bool is_start;      // 是线起点还是末端
+    };
+
+    struct ColumnSpan { coord_t min_x, max_x; }; // 每个岛的列范围
+    std::vector<ColumnSpan> island_spans(
+          std::max<size_t>(island_end.size(), 1),
+          {std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::lowest() });
+    std::vector<LineEndpoint> endpoints;
+    endpoints.reserve(2 * n_lines);
+    size_t isl = 0;
+    for (size_t i = 0; i < n_lines; ++ i) {
+        while (isl + 1 < island_end.size() && i >= island_end[isl])
+            ++ isl;
+        const Point first = to_scan(lines[i].first_point());
+        const Point last  = to_scan(lines[i].last_point());
+        endpoints.push_back({ first, i, isl, true  }); // 登记单调线起点
+        endpoints.push_back({ last,  i, isl, false });
+        island_spans[isl].min_x = std::min({ island_spans[isl].min_x, first.x(), last.x() }); // 本岛列范围
+        island_spans[isl].max_x = std::max({ island_spans[isl].max_x, first.x(), last.x() });
+    }
+
+    // 单调线端点按 x 排序。
+    std::sort(endpoints.begin(), endpoints.end(),
+        [](const LineEndpoint &a, const LineEndpoint &b) { return a.scan_pos.x() < b.scan_pos.x(); });
+
+
+    // 输入缝上的探测点 q，在已按 x 排序的 endpoints 中寻找二维距离最近的线端点，并通过引用返回端点下标out 和距离平方out_d2
+    auto nearest_endpoint = [&endpoints](const Point &q, size_t &out, double &out_d2) {
+        size_t hi = std::lower_bound(endpoints.begin(), endpoints.end(), q.x(),
+            [](const LineEndpoint &p, coord_t x) { return p.scan_pos.x() < x; }) - endpoints.begin();
+        size_t lo = hi;
+        out    = endpoints.size();
+        out_d2 = std::numeric_limits<double>::max();
+        const double qx = double(q.x()), inf = std::numeric_limits<double>::infinity();
+        while (lo > 0 || hi < endpoints.size()) {
+            const double dl = lo > 0                ? qx - double(endpoints[lo - 1].scan_pos.x()) : inf;
+            const double dr = hi < endpoints.size() ? double(endpoints[hi].scan_pos.x()) - qx     : inf;
+            const double dx = std::min(dl, dr);
+            if (! (dx * dx < out_d2))
+                break;
+            const size_t i  = dl <= dr ? -- lo : hi ++;
+            const double d2 = (endpoints[i].scan_pos - q).cast<double>().squaredNorm();
+            if (d2 < out_d2) {
+                out_d2 = d2;
+                out    = i;
+            }
+        }
+    };
+
+    // 每条缝的挂点结果，供同一插入位置内排序。
+    struct GapAttach
+    {
+        bool   at_line_start;
+        double distance_squared;
+    };
+
+    std::vector<GapAttach> attachments(gaps.size());
+
+    for (size_t igap = 0; igap < gaps.size(); ++ igap) {
+        if (gaps[igap].points.size() < 2) // 丢弃无效缝
+            continue;
+        if (n_lines == 0) {
+            route.leftover.push_back(igap); // 仅有缝，没有单调线可匹配
+            continue;
+        }
+
+        const ThickPolyline &gap_line = gaps[igap]; // 当前填缝中轴
+
+        // 探测点。开口缝取两端，环形缝遍历所有不重复顶点。
+        auto for_each_probe = [&gap_line](auto &&fn) {
+            if (gap_line.is_closed()) {
+                for (size_t v = 0; v + 1 < gap_line.points.size(); ++ v)
+                    fn(gap_line.points[v]);
+            } else {
+                fn(gap_line.first_point());
+                fn(gap_line.last_point());
+            }
+        };
+        // 遍历当前缝的探测点，统计扫描方向的 x 范围，找每个探测点最近的线端点，最终选出整条缝距离最近的那个 LineEndpoint。
+        size_t  nearest_endpoint_idx      = endpoints.size();
+        double  nearest_distance_squared  = std::numeric_limits<double>::max();
+        coord_t gap_min_x                 = std::numeric_limits<coord_t>::max();
+        coord_t gap_max_x                 = std::numeric_limits<coord_t>::lowest();
+        for_each_probe([&](const Point &probe_point) {
+            const Point probe_scan_pos = to_scan(probe_point);
+            gap_min_x = std::min(gap_min_x, probe_scan_pos.x());
+            gap_max_x = std::max(gap_max_x, probe_scan_pos.x());
+            size_t endpoint_idx;
+            double distance_squared;
+            nearest_endpoint(probe_scan_pos, endpoint_idx, distance_squared);
+            if (endpoint_idx < endpoints.size() && distance_squared < nearest_distance_squared) {
+                nearest_distance_squared = distance_squared;
+                nearest_endpoint_idx     = endpoint_idx;
+            }
+        });
+
+        const LineEndpoint &endpoint            = endpoints[nearest_endpoint_idx];
+        const size_t        line_idx            = endpoint.line_idx;
+        bool                attach_at_line_start = endpoint.is_start;
+        const ColumnSpan &island_span = island_spans[endpoint.island_idx];
+        const coord_t     endpoint_x  = endpoint.scan_pos.x();
+        const bool gap_center_is_right_of_endpoint =
+            coord_t((int64_t(gap_min_x) + int64_t(gap_max_x)) / 2) > endpoint_x;
+
+        // 边界缝和内部缝常命中同一端点，但正确空档相反：边界缝翻到开口外侧，内部缝留在折返内侧。
+        // 不区分的话，外缘缝会被塞进第一条线后面（打完再挑回），或走廊缝被拽到第一条线前面。
+        const bool is_boundary_gap = gap_center_is_right_of_endpoint
+            ? island_span.max_x <= gap_max_x
+            : island_span.min_x >= gap_min_x; // 本岛沿外扩方向已无更外一列
+
+        if (is_boundary_gap) {
+            auto position_has_line_link = [&](size_t insertion_idx) {
+                return insertion_idx > 0 && insertion_idx < n_lines &&
+                       (lines[insertion_idx].first_point() - lines[insertion_idx - 1].last_point())
+                           .cast<double>().norm() <= link_max;
+            };
+
+            const size_t current_insertion_idx   = attach_at_line_start ? line_idx : line_idx + 1;
+            const size_t alternate_insertion_idx = attach_at_line_start ? line_idx + 1 : line_idx;
+
+            // 当前位置会拆开已有线连接而另一侧不会时，将边界缝移到另一侧。
+            if (position_has_line_link(current_insertion_idx) &&
+                ! position_has_line_link(alternate_insertion_idx)) {
+                attach_at_line_start = ! attach_at_line_start;
+                const Point &new_endpoint = attach_at_line_start ?
+                    lines[line_idx].first_point() : lines[line_idx].last_point();
+                nearest_distance_squared = std::numeric_limits<double>::max();
+                for_each_probe([&](const Point &probe) {
+                    nearest_distance_squared = std::min(
+                        nearest_distance_squared, (probe - new_endpoint).cast<double>().squaredNorm());
+                });
+            }
+        }
+
+        const size_t insertion_idx = attach_at_line_start ? line_idx : line_idx + 1;
+        attachments[igap] = { attach_at_line_start, nearest_distance_squared };
+        route.gaps_at[insertion_idx].push_back(igap);
+    }
+
+    // 3. 确定同一插入位置内多条缝的打印顺序。
+    for (size_t ii = 0; ii <= n_lines; ++ ii) {
+        std::vector<size_t> &placed = route.gaps_at[ii];
+        if (placed.size() < 2)
+            continue;
+        std::stable_sort(placed.begin(), placed.end(), [&attachments](size_t a, size_t b) {
+            const GapAttach &attach_a = attachments[a];
+            const GapAttach &attach_b = attachments[b];
+
+            // 前一条线末端侧排在后一条线起点侧前面
+            if (attach_a.at_line_start != attach_b.at_line_start)
+                return ! attach_a.at_line_start;
+
+            // 同在后一条线起点侧：由远到近。
+            if (attach_a.at_line_start)
+                return attach_a.distance_squared > attach_b.distance_squared;
+            // 同在前一条线末端侧：由近到远。
+            return attach_a.distance_squared < attach_b.distance_squared;
+        });
+    }
+
+    // 4. 没有单调线时，按最近邻排列 leftover 中的缝。
+    if (! route.leftover.empty()) {
+        Point route_end_point;
+        bool  has_route_end = false;
+
+        // 按最近邻顺序重排剩余缝。
+        std::vector<size_t> remaining_gap_indices = std::move(route.leftover);
+        route.leftover.clear();
+        while (! remaining_gap_indices.empty()) {
+            size_t nearest_pool_pos = 0;
+            bool   should_reverse   = false;
+            double nearest_distance = std::numeric_limits<double>::max();
+
+            // 选择入口最靠近当前路径末端的缝。
+            for (size_t pool_pos = 0; pool_pos < remaining_gap_indices.size(); ++ pool_pos) {
+                const ThickPolyline &candidate_gap = gaps[remaining_gap_indices[pool_pos]];
+                for (int reverse = 0; reverse < 2; ++ reverse) {
+                    const Point &entry_point = reverse ? candidate_gap.last_point() : candidate_gap.first_point();
+                    const double distance = has_route_end ?
+                        (entry_point - route_end_point).cast<double>().norm() : 0.;
+                    if (distance < nearest_distance) {
+                        nearest_distance = distance;
+                        nearest_pool_pos = pool_pos;
+                        should_reverse   = reverse != 0;
+                    }
+                }
+            }
+
+            const size_t selected_gap_idx = remaining_gap_indices[nearest_pool_pos];
+            remaining_gap_indices.erase(remaining_gap_indices.begin() + nearest_pool_pos);
+            ThickPolyline &selected_gap = gaps[selected_gap_idx];
+            if (should_reverse && ! selected_gap.is_closed())
+                selected_gap.reverse();
+            route_end_point = selected_gap.last_point();
+            has_route_end   = true;
+            route.leftover.push_back(selected_gap_idx);
+        }
+    }
+
+    // 5. 展开路线，确定每条缝的朝向或闭合缝接缝。
+    // 5.1 把 MonotonicRoute 展开成一维 route_items。
+    struct RouteItem { size_t geometry_idx; bool is_gap_fill; }; // false：lines 下标；true：gaps 下标
+    std::vector<RouteItem> route_items;
+    route_items.reserve(lines.size() + gaps.size());
+    for (size_t insertion_idx = 0; insertion_idx <= n_lines; ++ insertion_idx) {
+        for (size_t gap_idx : route.gaps_at[insertion_idx])
+            route_items.push_back({ gap_idx, true });
+        if (insertion_idx < n_lines)
+            route_items.push_back({ insertion_idx, false });
+    }
+    for (size_t gap_idx : route.leftover)
+        route_items.push_back({ gap_idx, true });
+
+    // 5.2 方向评分：先比折返次数，再比连接长度。
+    struct OrientationScore
+    {
+        int    fold_count;        // 折返次数
+        double total_link_length; // 连接长度
+        bool operator<(const OrientationScore &other) const
+        {
+            if (fold_count != other.fold_count)
+                return fold_count < other.fold_count;
+            return total_link_length < other.total_link_length;
+        }
+    };
+
+    // 保存坐标副本，避免 reverse() 使点数组指针失效。
+    Point        previous_exit_point, next_entry_point;
+    const Point *previous_exit = nullptr, *next_entry = nullptr;
+    bool         can_link_from_previous = false, can_link_to_next = false;
+
+    auto score_orientation = [&](
+        const Point &entry_point,       // 缝入口
+        const Point &point_after_entry, // 入口后的点，表示进入缝时的方向
+        const Point &point_before_exit, // 出口前的点，表示离开缝前的方向
+        const Point &exit_point) {      // 缝出口
+        const double entry_link_length = link(previous_exit, entry_point);
+        const double exit_link_length  = link(next_entry, exit_point);
+        const int entry_folds_back = can_link_from_previous && entry_link_length <= link_max ?
+            int(folds_back(previous_exit, entry_point, &point_after_entry)) : 0;
+        const int exit_folds_back = can_link_to_next && exit_link_length <= link_max ?
+            int(folds_back(&point_before_exit, exit_point, next_entry)) : 0;
+        return OrientationScore {
+            entry_folds_back + exit_folds_back,
+            entry_link_length + exit_link_length
+        };
+    };
+
+    // 5.3 遍历最终序列，确定每条缝的前后邻居。
+    for (size_t item_pos = 0; item_pos < route_items.size(); ++ item_pos) {
+        const RouteItem &item = route_items[item_pos];
+        if (! item.is_gap_fill) {
+            previous_exit_point    = lines[item.geometry_idx].last_point();
+            previous_exit          = &previous_exit_point;
+            can_link_from_previous = true;
+            continue;
+        }
+        ThickPolyline &gap_line = gaps[item.geometry_idx];
+
+        next_entry      = nullptr;
+        can_link_to_next = false;
+        if (item_pos + 1 < route_items.size()) {
+            const RouteItem &next_item = route_items[item_pos + 1];
+            if (! next_item.is_gap_fill)
+                next_entry_point = lines[next_item.geometry_idx].first_point();
+            else {
+                // 下一条缝尚未定向，暂取离当前缝更近的一端作为入口。
+                const ThickPolyline &next_gap_line = gaps[next_item.geometry_idx];
+                auto distance_to_current_gap = [&gap_line](const Point &point) { // 到当前缝两端的最短距离平方
+                    return std::min((point - gap_line.first_point()).cast<double>().squaredNorm(),
+                                    (point - gap_line.last_point()).cast<double>().squaredNorm());
+                };
+                next_entry_point = distance_to_current_gap(next_gap_line.first_point()) <=
+                                   distance_to_current_gap(next_gap_line.last_point()) ?
+                                   next_gap_line.first_point() : next_gap_line.last_point();
+            }
+            next_entry = &next_entry_point;
+            can_link_to_next = ! (next_item.is_gap_fill && gaps[next_item.geometry_idx].is_closed());
+        }
+
+        // 5.4 开口缝选较优朝向，闭合缝预测接缝位置。
+        Point resolved_exit_point;
+        if (gap_line.is_closed()) {
+            const Point *seam_reference = previous_exit ? previous_exit : next_entry;
+            resolved_exit_point = seam_reference ?
+                foot_pt(gap_line.points, *seam_reference).second : gap_line.last_point();
+        } else {
+            const size_t point_count = gap_line.points.size();
+            const OrientationScore forward_score = score_orientation(
+                gap_line.points[0], gap_line.points[1],
+                gap_line.points[point_count - 2], gap_line.points[point_count - 1]);
+            const OrientationScore reverse_score = score_orientation(
+                gap_line.points[point_count - 1], gap_line.points[point_count - 2],
+                gap_line.points[1], gap_line.points[0]);
+            if (reverse_score < forward_score)
+                gap_line.reverse();
+            resolved_exit_point = gap_line.last_point();
+        }
+        previous_exit_point    = resolved_exit_point;
+        previous_exit          = &previous_exit_point;
+        can_link_from_previous = ! gap_line.is_closed();
+    }
+
+    return route;
+}
+
+// 按 plan_monotonic_route() 的顺序装配单调线和填缝。dst 写入 coll_nosort。
+static void append_monotonic_route(
+    ExtrusionEntitiesPtr &dst, const MonotonicRoute &route,
+    Polylines &lines, const ThickPolylines &gaps,
+    ExtrusionRole line_role, double line_mm3_per_mm, float line_width, float line_height,
+    ExtrusionRole gap_role, const Flow &gap_flow, float overlap_gap_compensation_ratio)
+{
+    const float width_tolerance = float(scale_(0.05));
+    dst.reserve(dst.size() + lines.size() + gaps.size());
+    Polylines pending_lines;
+
+    auto add_gap = [&](size_t igap) {
+        // 与原 variable_width 转换规则相同，这里按条转换。
+        ExtrusionPaths paths = thick_polyline_to_extrusion_paths_2(
+            gaps[igap], gap_role, gap_flow, width_tolerance);
+        if (paths.empty())
+            return;
+        // 连续单调线仍走上游装配；遇到缝先提交，避免自造线-缝连接。
+        extrusion_entities_append_paths_with_wipe(
+            dst, std::move(pending_lines), line_role, line_mm3_per_mm, line_width, line_height,
+            gap_flow.nozzle_diameter(), overlap_gap_compensation_ratio);
+        if (paths.front().first_point() == paths.back().last_point())
+            dst.push_back(new ExtrusionLoop(std::move(paths)));
+        else
+            for (ExtrusionPath &path : paths)
+                dst.push_back(new ExtrusionPath(std::move(path)));
+    };
+
+    // 1. 每条线：先打它前面的缝，再把线攒进 pending_lines（先不写 dst）。
+    for (size_t i = 0; i < lines.size(); ++ i) {
+        for (size_t igap : route.gaps_at[i])
+            add_gap(igap);
+        if (lines[i].is_valid())
+            pending_lines.emplace_back(std::move(lines[i]));
+    }
+    // 2. 打末线之后的缝。
+    for (size_t igap : route.gaps_at.back())
+        add_gap(igap);
+    // 3. 打规划没挂上的剩余缝。
+    for (size_t igap : route.leftover)
+        add_gap(igap);
+
+    // 4. 把还没遇到缝的线交给上游 wipe 焊出去。
+    extrusion_entities_append_paths_with_wipe(
+        dst, std::move(pending_lines), line_role, line_mm3_per_mm, line_width, line_height,
+        gap_flow.nozzle_diameter(), overlap_gap_compensation_ratio);
+    dst.shrink_to_fit();
+}
+
 void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, const FillParams& params, ExtrusionEntitiesPtr& out)
 {
     ExtrusionEntityCollection *coll_nosort = new ExtrusionEntityCollection();
@@ -3249,18 +3644,28 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
     //BBS: always don't adjust the spacing of top surface infill
     params2.dont_adjust = true;
 
+    // 1. 按岛生成单调线，记下各岛在 polylines_rectilinear 中的右端点（供规划判定边界缝）。
+    std::vector<size_t> island_end;
+    island_end.reserve(this->no_overlap_expolygons.size());
     //BBS: always use no overlap expolygons to avoid overflow in top surface
     for (const ExPolygon &rectilinear_area : this->no_overlap_expolygons) {
         rectilinear_surface.expolygon = rectilinear_area;
+        const size_t island_begin = polylines_rectilinear.size();
         fill_surface_by_lines(&rectilinear_surface, params2, polylines_rectilinear);
+        // 退化线在这里剔掉，留给规划器剔会让下标和这个分段对不上。
+        polylines_rectilinear.erase(
+            std::remove_if(polylines_rectilinear.begin() + island_begin, polylines_rectilinear.end(),
+                [](const Polyline &pl) { return ! pl.is_valid(); }),
+            polylines_rectilinear.end());
+        island_end.push_back(polylines_rectilinear.size());
     }
     ExPolygons unextruded_areas;
     Flow new_flow = params.flow;
+    // calculate actual flow from spacing (which might have been adjusted by the infill
+    // pattern generator)
+    double flow_mm3_per_mm = params.flow.mm3_per_mm();
+    double flow_width = params.flow.width();
     if (!polylines_rectilinear.empty()) {
-        // calculate actual flow from spacing (which might have been adjusted by the infill
-        // pattern generator)
-        double flow_mm3_per_mm = params.flow.mm3_per_mm();
-        double flow_width = params.flow.width();
         if (params.using_internal_flow) {
             // if we used the internal flow we're not doing a solid infill
             // so we can safely ignore the slight variation that might have
@@ -3272,8 +3677,10 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
             flow_width = new_flow.width();
         }
 
+        // 2. 先按无缝装配进 coll_nosort 并量覆盖；有缝时第 4 步会清空再交错重装。
+        // with_wipe 会吃掉输入，原线还要留给规划，所以传入副本。
         extrusion_entities_append_paths_with_wipe(
-                coll_nosort->entities, std::move(polylines_rectilinear),
+                coll_nosort->entities, Polylines(polylines_rectilinear),
                 params.extrusion_role,
                 flow_mm3_per_mm, float(flow_width), params.flow.height(), params.flow.nozzle_diameter(), this->gap_compensation_ratio);
         unextruded_areas = diff_ex(this->no_overlap_expolygons, union_ex(coll_nosort->polygons_covered_by_spacing(10)));
@@ -3281,7 +3688,8 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
     else
         unextruded_areas = this->no_overlap_expolygons;
 
-    //gapfill
+    // 3. 中轴生成填缝。
+    ThickPolylines gap_polylines;
     ExPolygons gapfill_areas = union_ex(unextruded_areas);
     if (!this->no_overlap_expolygons.empty())
             gapfill_areas = intersection_ex(gapfill_areas, this->no_overlap_expolygons);
@@ -3302,23 +3710,32 @@ void FillMonotonicLineWGapFill::fill_surface_extrusion(const Surface* surface, c
         for (size_t i : order)
             gaps_ex_sorted.emplace_back(std::move(gaps_ex[i]));
 
-        ThickPolylines polylines;
         for (ExPolygon& ex : gaps_ex_sorted) {
             //BBS: Use DP simplify to avoid duplicated points and accelerate medial-axis calculation as well.
             ex.douglas_peucker(SCALED_RESOLUTION * 0.1);
-            ex.medial_axis(min, max, &polylines);
+            ex.medial_axis(min, max, &gap_polylines);
         }
 
-        if (!polylines.empty() && !is_bridge(params.extrusion_role)) {
-            ExtrusionEntityCollection gap_fill;
+        if (!gap_polylines.empty() && !is_bridge(params.extrusion_role)) {
             // OrcaSlicer: filter out tiny gap fills
-            polylines.erase(std::remove_if(polylines.begin(), polylines.end(), [&](const ThickPolyline &p) {
-                return p.length() < scale_(params.filter_out_gap_fill);
-            }), polylines.end());
-
-            variable_width(polylines, erGapFill, params.flow, gap_fill.entities);
-            coll_nosort->append(std::move(gap_fill.entities));
-        }
+            gap_polylines.erase(std::remove_if(gap_polylines.begin(), gap_polylines.end(), [&](const ThickPolyline &p) {
+                // filter 默认 0 时「< 阈值」永不成立；零长缝会占规划空档，装配却会被丢掉。
+                return p.length() <= SCALED_EPSILON || p.length() < scale_(params.filter_out_gap_fill);
+            }), gap_polylines.end());
+        } else
+            // 桥接不做填缝（或中轴为空）：丢掉已写入的缝，避免后面按有缝去重装。
+            gap_polylines.clear();
+    }
+    // 4. 有缝则丢掉仅含线的装配，按规划顺序重装。
+    if (!gap_polylines.empty()) {
+        coll_nosort->clear();
+        const double link_max = 3. * scaled(float(flow_width));
+        const float scan_angle = this->_infill_direction(surface).first;
+        const MonotonicRoute route = plan_monotonic_route(polylines_rectilinear, gap_polylines, link_max, scan_angle, island_end);
+        append_monotonic_route(
+            coll_nosort->entities, route, polylines_rectilinear, gap_polylines,
+            params.extrusion_role, flow_mm3_per_mm, float(flow_width), params.flow.height(),
+            erGapFill, params.flow, this->gap_compensation_ratio);
     }
 
     if (!coll_nosort->empty()) {

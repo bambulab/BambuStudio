@@ -1,6 +1,6 @@
 #include "OG_CustomCtrl.hpp"
 #include "OptionsGroup.hpp"
-#include "MarkdownTip.hpp"
+#include "ParamTooltip.hpp"
 #include "Plater.hpp"
 #include "GUI_App.hpp"
 #include "MsgDialog.hpp"
@@ -373,9 +373,8 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
 {
     const wxPoint pos = event.GetLogicalPosition(wxClientDC(this));
     wxString tooltip;
-    std::string markdowntip;
 
-    // BBS: markdown tip
+    // BBS: rich param tooltip
     CtrlLine* focusedLine = nullptr;
     // BBS
 
@@ -388,11 +387,8 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
             if (!suppress_hyperlinks && !line.og_line.label_path.empty())
                 tooltip = OptionsGroup::get_url(line.og_line.label_path) + "\n\n";
             tooltip += line.og_line.label_tooltip;
-            // BBS: markdown tip
+            // BBS: rich param tooltip
             focusedLine = &line;
-            markdowntip = line.og_line.label.empty()
-                ? line.og_line.get_options().front().opt_id : into_u8(line.og_line.label);
-            markdowntip.erase(0, markdowntip.find_last_of('#') + 1);
             // BBS
             break;
         }
@@ -431,18 +427,21 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
     }
 
     // Set tooltips with information for each icon
-    // BBS: markdown tip
-    if (!markdowntip.empty()) {
-        wxWindow* window = GetGrandParent();
-        assert(focusedLine);
-        wxPoint pos2 = { 250, focusedLine->rect_label.y };
+    // BBS: rich param tooltip
+    if (focusedLine != nullptr) {
+        const std::vector<Option>& focused_opts = focusedLine->og_line.get_options();
+        std::string opt_key = focused_opts.empty() ? std::string() : focused_opts.front().opt_id;
+        auto tag_pos = opt_key.find('#');
+        if (tag_pos != std::string::npos) opt_key.erase(tag_pos);
+        wxPoint pos2 = {focusedLine->rect_label.GetRight() + 16, focusedLine->rect_label.y + focusedLine->rect_label.height / 2};
         pos2 = ClientToScreen(pos2);
-        if (MarkdownTip::ShowTip(markdowntip, into_u8(tooltip), pos2)) {
+        if (!opt_key.empty() && ParamTooltip::ShowFor(opt_key, focusedLine->og_line.label_path, pos2, focusedLine->og_line.label, focusedLine->og_line.label_tooltip))
             tooltip.clear();
-        }
+        else
+            ParamTooltip::Hide();
     }
     else {
-        MarkdownTip::ShowTip(markdowntip, "", {tooltip.empty() ? 0 : 1, 0});
+        ParamTooltip::Hide();
     }
     if (GetToolTipText() != tooltip)
         this->SetToolTip(tooltip);
@@ -503,8 +502,8 @@ void OG_CustomCtrl::OnLeaveWin(wxMouseEvent& event)
     for (CtrlLine& line : ctrl_lines)
         line.is_focused = false;
 
-    // BBS: markdown tip
-    MarkdownTip::ShowTip("", "", {});
+    // BBS: rich param tooltip
+    ParamTooltip::Hide();
 
     Refresh();
     Update();

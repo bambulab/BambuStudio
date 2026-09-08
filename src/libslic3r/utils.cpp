@@ -1423,6 +1423,25 @@ std::string log_memory_info(bool ignore_loglevel)
     return out;
 }
 
+double get_peak_rss_mb()
+{
+#ifdef WIN32
+    PROCESS_MEMORY_COUNTERS pmc {};
+    if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
+        return static_cast<double>(pmc.PeakWorkingSetSize) / (1024.0 * 1024.0);
+#elif defined(__linux__) || defined(__APPLE__)
+    rusage memory_info {};
+    if (getrusage(RUSAGE_SELF, &memory_info) == 0) {
+        size_t peak_rss = static_cast<size_t>(memory_info.ru_maxrss);
+#ifdef __linux__
+        peak_rss *= 1024;
+#endif
+        return static_cast<double>(peak_rss) / (1024.0 * 1024.0);
+    }
+#endif
+    return 0.0;
+}
+
 // Returns the size of physical memory (RAM) in bytes.
 // http://nadeausoftware.com/articles/2012/09/c_c_tip_how_get_physical_memory_size_system
 size_t total_physical_memory()

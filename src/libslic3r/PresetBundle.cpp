@@ -2273,6 +2273,9 @@ void PresetBundle::export_selections(AppConfig &config)
 	assert(this->printers.get_edited_preset().printer_technology() != ptFFF || filament_presets.size() >= 1);
 	//assert(this->printers.get_edited_preset().printer_technology() != ptFFF || filament_presets.size() > 1 || filaments.get_selected_preset_name() == filament_presets.front());
     config.clear_section("presets");
+    // clear_section() above wipes the whole presets section, so any key not re-emitted here is lost on save.
+    // Re-emit the per-extruder AMS counts from the source-of-truth member (mirrors AMSCountPopupWindow::SetAMSCount).
+    config.set("presets", "extruder_ams_count", boost::algorithm::join(save_extruder_ams_count_to_string(this->extruder_ams_counts), ","));
     config.set("presets", PRESET_PRINT_NAME,        prints.get_selected_preset_name());
     config.set("presets", PRESET_FILAMENT_NAME,     filament_presets.front());
     for (unsigned i = 1; i < filament_presets.size(); ++i) {

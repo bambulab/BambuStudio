@@ -364,39 +364,46 @@ namespace Slic3r
             for (const auto& local_access_info : local_access_infos) {
                 if (GUI::wxGetApp().is_closing()) return;
 
+                // bind_detect is a hint, not a gate. It used to skip the device whenever the probe
+                // was not conclusive, so a sleeping printer or a transient network hiccup was
+                // enough to make a remembered LAN printer disappear from the list. Keep its data
+                // when it answers, otherwise log and connect with the persisted local info.
                 detectResult detectData;
-                auto result = agent->bind_detect(local_access_info.dev_ip, "secure", detectData);
+                const int    result        = agent->bind_detect(local_access_info.dev_ip, "secure", detectData);
+                const char*  reject_reason = nullptr;
                 if (result < 0) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": bind_detect failed code=" << result
-                                             << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(local_access_info.dev_id);
-                    continue;
-                }
-
-                if (detectData.dev_id.empty()) {
-                    detectData.dev_id = local_access_info.dev_id;
-                }
-                if (detectData.dev_name.empty()) {
-                    detectData.dev_name = local_access_info.dev_id;
-                }
-                if (detectData.dev_id != local_access_info.dev_id) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": detected dev_id mismatch, config dev_id="
-                                             << BBLCrossTalk::Crosstalk_DevId(local_access_info.dev_id)
-                                             << ", detected dev_id=" << BBLCrossTalk::Crosstalk_DevId(detectData.dev_id);
-                    continue;
-                }
-
-                if (detectData.connect_type != "farm") {
-                    if (detectData.bind_state == "occupied") {
-                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is already occupied, dev_id="
-                                                 << BBLCrossTalk::Crosstalk_DevId(local_access_info.dev_id);
-                        continue;
+                    reject_reason = "bind_detect failed";
+                } else {
+                    if (detectData.dev_id.empty()) {
+                        detectData.dev_id = local_access_info.dev_id;
+                    }
+                    if (detectData.dev_name.empty()) {
+                        detectData.dev_name = local_access_info.dev_id;
                     }
 
-                    if (detectData.connect_type == "cloud") {
-                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is cloud, dev_id="
-                                                 << BBLCrossTalk::Crosstalk_DevId(local_access_info.dev_id);
-                        continue;
+                    if (detectData.dev_id != local_access_info.dev_id) {
+                        reject_reason = "detected dev_id mismatch";
+                    } else if (detectData.connect_type != "farm") {
+                        if (detectData.bind_state == "occupied") {
+                            reject_reason = "the device is already occupied";
+                        } else if (detectData.connect_type == "cloud") {
+                            reject_reason = "the device is cloud";
+                        }
                     }
+                }
+
+                if (reject_reason) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": " << reject_reason << ", code=" << result
+                                               << ", falling back to the persisted local info, dev_id="
+                                               << BBLCrossTalk::Crosstalk_DevId(local_access_info.dev_id)
+                                               << ", detected dev_id=" << BBLCrossTalk::Crosstalk_DevId(detectData.dev_id);
+
+                    detectData              = detectResult();
+                    detectData.dev_id       = local_access_info.dev_id;
+                    detectData.dev_name     = local_access_info.dev_id;
+                    detectData.connect_type = "lan";
+                    detectData.bind_state   = "free";
+                    detectData.model_id     = DevPrinterConfigUtil::get_model_id_by_dev_id(local_access_info.dev_id);
                 }
 
                 GUI::wxGetApp().CallAfter([detectData, local_access_info]() {

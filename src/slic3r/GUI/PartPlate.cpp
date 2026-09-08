@@ -24,6 +24,7 @@
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Print.hpp"
+#include "libslic3r/ModelArrange.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
 
 #include "I18N.hpp"
@@ -36,6 +37,8 @@
 #include "Widgets/Label.hpp"
 #include "3DBed.hpp"
 #include "PartPlate.hpp"
+#include "WipeTowerPlacement.hpp"
+#include "GLCanvas3D.hpp"
 #include "Camera.hpp"
 #include "GUI_Colors.hpp"
 #include "GUI_ObjectList.hpp"
@@ -700,12 +703,7 @@ void PartPlate::render_logo(bool bottom, bool render_cali)
 
 void PartPlate::render_height_limit(PartPlate::HeightLimitMode mode)
 {
-	// A compacted prime tower drags the nozzle back down to the plate on every toolchange, so the rod
-	// and the lid limit how tall a neighbouring object may be exactly as they do in sequential printing.
-	// The reference lines are just as useful there, so they are not tied to the print sequence alone.
-	const bool relevant_for_print_mode = m_print && (m_print->config().print_sequence == PrintSequence::ByObject ||
-	                                                 (m_print->config().print_sequence == PrintSequence::ByLayer &&
-	                                                  wipe_tower_sparse_layers_skipped(m_print->config()) && m_print->has_wipe_tower()));
+	const bool relevant_for_print_mode = m_print && should_show_height_limit_lines(*m_print);
 	if (relevant_for_print_mode && mode != HEIGHT_LIMIT_NONE)
 	{
 		// draw lower limit
@@ -1166,7 +1164,7 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 	int glb_sparse_infill_extr = glb_config.opt_int("sparse_infill_filament");
 	int glb_solid_infill_extr = glb_config.opt_int("solid_infill_filament");
 	bool glb_support = glb_config.opt_bool("enable_support");
-    glb_support |= glb_config.opt_int("raft_layers") > 0;
+	int glb_raft_layers = glb_config.opt_int("raft_layers");
 
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
 		if (!contain_instance_totally(obj_idx, 0))
@@ -1226,19 +1224,20 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
                 plate_extruders.push_back(glb_solid_infill_extr);
         }
 
-		bool obj_support = false;
+		// enable_support and raft_layers each fall back to the global value on their own. An object
+		// that overrides raft_layers only must keep the global enable_support, otherwise its support
+		// filament is dropped from the plate and the prime tower silently disappears. A raft alone
+		// still consumes the support filament, so raft_layers > 0 counts as support as well.
+		bool obj_support = glb_support;
+		int obj_raft_layers = glb_raft_layers;
 		const ConfigOption* obj_support_opt = mo->config.option("enable_support");
-        const ConfigOption *obj_raft_opt    = mo->config.option("raft_layers");
-		if (obj_support_opt != nullptr || obj_raft_opt != nullptr) {
-            if (obj_support_opt != nullptr)
-				obj_support = obj_support_opt->getBool();
-            if (obj_raft_opt != nullptr)
-				obj_support |= obj_raft_opt->getInt() > 0;
-        }
-		else
-			obj_support = glb_support;
+		const ConfigOption* obj_raft_opt    = mo->config.option("raft_layers");
+		if (obj_support_opt != nullptr)
+			obj_support = obj_support_opt->getBool();
+		if (obj_raft_opt != nullptr)
+			obj_raft_layers = obj_raft_opt->getInt();
 
-		if (!obj_support)
+		if (!obj_support && obj_raft_layers <= 0)
 			continue;
 
 		int obj_support_intf_extr = 0;
@@ -1306,7 +1305,7 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
     int  glb_sparse_infill_extr = full_config.opt_int("sparse_infill_filament");
     int  glb_solid_infill_extr  = full_config.opt_int("solid_infill_filament");
     bool glb_support = full_config.opt_bool("enable_support");
-    glb_support |= full_config.opt_int("raft_layers") > 0;
+    int  glb_raft_layers = full_config.opt_int("raft_layers");
 
     for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
     {
@@ -1381,19 +1380,19 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
                 }
             }
 
-            bool obj_support = false;
+            // Same independent fallback as get_extruders(): an object overriding raft_layers only
+            // must not lose the global enable_support, or its support filament never reaches the
+            // plate. raft_layers > 0 keeps counting as support because a raft uses that filament.
+            bool obj_support = glb_support;
+            int  obj_raft_layers = glb_raft_layers;
             const ConfigOption* obj_support_opt = object->config.option("enable_support");
-            const ConfigOption *obj_raft_opt    = object->config.option("raft_layers");
-            if (obj_support_opt != nullptr || obj_raft_opt != nullptr) {
-                if (obj_support_opt != nullptr)
-                    obj_support = obj_support_opt->getBool();
-                if (obj_raft_opt != nullptr)
-                    obj_support |= obj_raft_opt->getInt() > 0;
-            }
-            else
-                obj_support = glb_support;
+            const ConfigOption* obj_raft_opt    = object->config.option("raft_layers");
+            if (obj_support_opt != nullptr)
+                obj_support = obj_support_opt->getBool();
+            if (obj_raft_opt != nullptr)
+                obj_raft_layers = obj_raft_opt->getInt();
 
-            if (!obj_support)
+            if (!obj_support && obj_raft_layers <= 0)
                 continue;
 
             int obj_support_intf_extr = 0;
@@ -2188,17 +2187,9 @@ bool PartPlate::check_single_extruder_mixed_filament_risk(const DynamicPrintConf
     return wipe_tower_size;
 }*/
 
-Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count, int plate_extruder_size, bool use_global_objects, bool enable_wrapping_detection) const
+Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, const double w, const double wipe_volume, int extruder_count, int plate_extruder_size, bool use_global_objects, bool enable_wrapping_detection, bool legacy_behavior) const
 {
-    Vec3d wipe_tower_size;
-    double layer_height = 0.08f; // hard code layer height
-    double max_height = 0.f;
-    wipe_tower_size.setZero();
-
-    const ConfigOption* layer_height_opt = config.option("layer_height");
-    if (layer_height_opt)
-        layer_height = layer_height_opt->getFloat();
-
+    Vec3d wipe_tower_size = Vec3d::Zero();
     // empty plate
     if (plate_extruder_size == 0)
     {
@@ -2208,6 +2199,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     if (plate_extruder_size == 0)
         return wipe_tower_size;
 
+    double max_height = 0.;
     for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
         if (!use_global_objects && !contain_instance_totally(obj_idx, 0))
             continue;
@@ -2218,14 +2210,16 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
         }
     }
     wipe_tower_size(2) = max_height;
+
     //const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto timelapse_type    = config.option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
-    bool need_wipe_tower = (timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false) | enable_wrapping_detection;
+    bool smooth_timelapse = timelapse_type ? (timelapse_type->value == TimelapseType::tlSmooth) : false;
+    bool need_wipe_tower = smooth_timelapse | enable_wrapping_detection;
     double extra_spacing     = config.option("prime_tower_infill_gap")->getFloat() / 100.;
     const ConfigOptionBool* use_rib_wall_opt = config.option<ConfigOptionBool>("prime_tower_rib_wall");
     bool use_rib_wall = use_rib_wall_opt ? use_rib_wall_opt->value: true;
     double rib_width = config.option("prime_tower_rib_width")->getFloat();
-    double depth;
+
     double filament_change_volume=0.;
     {
         std::vector<double>             filament_change_lengths;
@@ -2239,8 +2233,18 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
         diameter = diameters.empty() ? diameter : *std::max_element(diameters.begin(), diameters.end());
         filament_change_volume = length * PI * diameter * diameter / 4.;
     }
-    double volume = wipe_volume * (extruder_count == 2 ? plate_extruder_size : (plate_extruder_size - 1));
+    // Match Print::wipe_tower_data(): a single-colour plate with smooth timelapse still slices
+    // a real, non-zero tower, so the estimate must not stay at 0 either. Wrapping detection alone
+    // does not force this in Print::wipe_tower_data(), so it must not force it here either.
+    int filament_depth_count = extruder_count == 2 ? plate_extruder_size : (plate_extruder_size - 1);
+    if (!legacy_behavior && plate_extruder_size == 1 && smooth_timelapse) filament_depth_count = 1;
+    double volume = wipe_volume * filament_depth_count;
     if (extruder_count == 2) volume += filament_change_volume * (int) (plate_extruder_size / 2);
+
+    const ConfigOption* layer_height_opt = config.option("layer_height");
+    double layer_height = layer_height_opt ? layer_height_opt->getFloat() : 0.08;
+
+    double depth;
     if (use_rib_wall) {
         depth = std::sqrt(volume / layer_height * extra_spacing);
         if (need_wipe_tower || plate_extruder_size > 1) {
@@ -2253,7 +2257,7 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
         }
     }
     else {
-        depth  =  volume/ (layer_height * w) *extra_spacing;
+        depth  =  volume / (layer_height * w) *extra_spacing;
         if (need_wipe_tower || depth > EPSILON) {
             float min_wipe_tower_depth = WipeTower::get_limit_depth_by_height(max_height);
             depth = std::max((double)min_wipe_tower_depth, depth);
@@ -2265,10 +2269,25 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     return wipe_tower_size;
 }
 
-arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const DynamicPrintConfig& config, int plate_index, Vec3d& wt_pos, Vec3d& wt_size, int extruder_count, int plate_extruder_size, bool use_global_objects) const
+arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const DynamicPrintConfig& config, int plate_index, Vec3d& wt_pos, Vec3d& wt_size, int extruder_count, int plate_extruder_size, bool use_global_objects, bool legacy_behavior) const
 {
-	float x = dynamic_cast<const ConfigOptionFloats*>(config.option("wipe_tower_x"))->get_at(plate_index);
-	float y = dynamic_cast<const ConfigOptionFloats*>(config.option("wipe_tower_y"))->get_at(plate_index);
+	const ConfigOptionFloats* wtx_opt = dynamic_cast<const ConfigOptionFloats*>(config.option("wipe_tower_x"));
+	const ConfigOptionFloats* wty_opt = dynamic_cast<const ConfigOptionFloats*>(config.option("wipe_tower_y"));
+	float x, y;
+	if (legacy_behavior) {
+		// An out-of-range plate_index silently falls back to plate 0's stored position.
+		x = wtx_opt->get_at(plate_index);
+		y = wty_opt->get_at(plate_index);
+	} else if (plate_index >= 0 && (size_t)plate_index < wtx_opt->values.size() && (size_t)plate_index < wty_opt->values.size()) {
+		x = wtx_opt->get_at(plate_index);
+		y = wty_opt->get_at(plate_index);
+	} else {
+		// No wipe_tower_x/y entry of its own yet (overflow plate): get_at() would silently
+		// fall back to plate 0's position, so use the machine default instead.
+		Vec2d def_pos = m_partplate_list ? m_partplate_list->get_machine_default_wipe_tower_pos() : Vec2d(0.0, 0.0);
+		x = (float)def_pos.x();
+		y = (float)def_pos.y();
+	}
 	float w = dynamic_cast<const ConfigOptionFloat*>(config.option("prime_tower_width"))->value;
 	//float a = dynamic_cast<const ConfigOptionFloat*>(config.option("wipe_tower_rotation_angle"))->value;
 	std::vector<double> v = dynamic_cast<const ConfigOptionFloats*>(config.option("filament_prime_volume"))->values;
@@ -2278,7 +2297,9 @@ arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const Dynamic
 	}
     const ConfigOptionBool * wrapping_opt = dynamic_cast<const ConfigOptionBool *>(config.option("enable_wrapping_detection"));
 	bool enable_wrapping = (wrapping_opt != nullptr) && wrapping_opt->value;
-	wt_size = estimate_wipe_tower_size(config, w, get_max_element(v), extruder_count, plate_extruder_size, use_global_objects, enable_wrapping);
+	wt_size = estimate_wipe_tower_size(config, w, get_max_element(v), extruder_count, plate_extruder_size, use_global_objects, enable_wrapping, legacy_behavior);
+	if (!legacy_behavior)
+		w = (float) wt_size(0); // rib-wall towers are square (width == depth), not prime_tower_width
 	int plate_width=m_width, plate_depth=m_depth;
 	float depth = wt_size(1);
 	float margin = WIPE_TOWER_MARGIN, wp_brim_width = 0.f;
@@ -2289,8 +2310,36 @@ arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const Dynamic
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("arrange wipe_tower: wp_brim_width %1%") % wp_brim_width;
 	}
 
-	x = std::clamp(x, margin, (float)plate_width - w - margin - wp_brim_width);
-    y = std::clamp(y, margin, (float)plate_depth - depth - margin - wp_brim_width);
+	if (legacy_behavior) {
+		// Legal range pre-subtracts the brim width.
+		x = std::clamp(x, margin, (float)plate_width - w - margin - wp_brim_width);
+		y = std::clamp(y, margin, (float)plate_depth - depth - margin - wp_brim_width);
+	} else {
+		// Same legal range as the pre-slice dragging clamp: margin alone, no brim.
+		x = std::clamp(x, margin, (float)plate_width - w - margin);
+		y = std::clamp(y, margin, (float)plate_depth - depth - margin);
+
+		// Push clear of forbidden regions. CALLER CONTRACT: only persist wt_pos back to config
+		// when the input position was a default, never a user-placed tower (would relocate it).
+		std::vector<ForbiddenRect2d> forbidden;
+		for (const BoundingBoxf3 &b : get_exclude_areas())
+			forbidden.push_back({b.min.x() - m_origin(0), b.min.y() - m_origin(1),
+								  b.max.x() - m_origin(0), b.max.y() - m_origin(1)});
+		if (enable_wrapping && m_partplate_list) {
+			const Pointfs wrap_pts = m_partplate_list->get_wrapping_exclude_area();
+			if (!wrap_pts.empty()) {
+				BoundingBoxf wrap_bb(wrap_pts);
+				forbidden.push_back({wrap_bb.min.x(), wrap_bb.min.y(), wrap_bb.max.x(), wrap_bb.max.y()});
+			}
+		}
+		// Avoid using the tower's brim footprint (2x brim, matching an existing tower's
+		// real bbox convention elsewhere), not just the bare wall.
+		avoid_wipe_tower_with_brim_footprint(x, y, w, depth,
+											  margin, (float)plate_width - w - margin,
+											  margin, (float)plate_depth - depth - margin,
+											  forbidden, wp_brim_width, wipe_tower_line_width(config));
+	}
+
     wt_pos(0) = x;
     wt_pos(1) = y;
     wt_pos(2) = 0.f;
@@ -2313,6 +2362,90 @@ arrangement::ArrangePolygon PartPlate::estimate_wipe_tower_polygon(const Dynamic
 	wipe_tower_ap.is_wipe_tower = true;
 
 	return wipe_tower_ap;
+}
+
+bool PartPlate::compute_optimal_wipe_tower_pos(const DynamicPrintConfig &config, const Vec3d &wt_size, Vec2d &out_pos) const
+{
+    if (wt_size(0) <= EPSILON || wt_size(1) <= EPSILON)
+        return false;
+
+    const Vec2d tower_size(wt_size(0), wt_size(1));
+
+    // 1. Inflated hull of this plate's parts, using the same inflation arrange would apply,
+    //    so the tower ends up as close as a real arrange would have allowed.
+    arrangement::ArrangeParams params;
+    params.min_obj_distance = 0; // auto: let each item's brim/support drive the inflation
+    Polygons inflated_parts;
+    {
+        arrangement::ArrangePolygons aps;
+        for (int obj_idx = 0; obj_idx < (int) m_model->objects.size(); ++obj_idx) {
+            if (!contain_instance_totally(obj_idx, 0))
+                continue;
+            ModelObject *mo = m_model->objects[obj_idx];
+            if (!mo || mo->instances.empty())
+                continue;
+            aps.emplace_back(get_instance_arrange_poly(mo->instances[0], config));
+        }
+        if (aps.empty())
+            return false;
+
+        arrangement::update_selected_items_inflation(aps, config, params);
+        for (const arrangement::ArrangePolygon &ap : aps) {
+            Polygon c = ap.poly.contour;
+            c.translate(ap.translation.x(), ap.translation.y());
+            // Match arrange's effective inflation: process_arrangeable() floors every item at
+            // MIN_SEPARATION after update_selected_items_inflation has run.
+            const coord_t infl = std::max(ap.inflation, scaled(WIPE_TOWER_ARRANGE_GAP));
+            if (infl > 0) {
+                Polygons grown = offset(c, (float) infl);
+                for (Polygon &g : grown) inflated_parts.emplace_back(std::move(g));
+            } else {
+                inflated_parts.emplace_back(std::move(c));
+            }
+        }
+    }
+
+    // 2. Ray from the hull centroid towards the machine's default tower direction, in world coords.
+    const Vec2d def_local = m_partplate_list ? m_partplate_list->get_machine_default_wipe_tower_pos()
+                                             : Vec2d(0.0, 0.0);
+    const Vec2d default_tower_center(m_origin(0) + def_local.x() + tower_size.x() / 2.0,
+                                     m_origin(1) + def_local.y() + tower_size.y() / 2.0);
+    const Vec2d plate_center(m_origin(0) + m_width / 2.0, m_origin(1) + m_depth / 2.0);
+
+    // Hug gap matches nest (2x brim + wipe_tower_side_gap) plus extra optimal-position clearance.
+    const double tower_clearance = wipe_tower_hug_clearance_matching_nest(config, wt_size.z(), params);
+    Vec2d optimal_min_world;
+    if (!compute_optimal_wipe_tower_min(inflated_parts, plate_center, default_tower_center,
+                                             tower_size, tower_clearance, optimal_min_world))
+        return false;
+
+    // 3. Tower-only post-pass: pull back into the reachable area then clear forbidden regions.
+    //    Overlapping a part is fine here, overlapping a forbidden region is not.
+    float x = (float) optimal_min_world.x();
+    float y = (float) optimal_min_world.y();
+
+    const ConfigOptionBool *wrapping_opt = dynamic_cast<const ConfigOptionBool *>(config.option("enable_wrapping_detection"));
+    const bool enable_wrapping = (wrapping_opt != nullptr) && wrapping_opt->value;
+
+    std::vector<ForbiddenRect2d> forbidden;
+    for (const BoundingBoxf3 &b : get_exclude_areas())
+        forbidden.push_back({b.min.x(), b.min.y(), b.max.x(), b.max.y()});
+    if (enable_wrapping && m_partplate_list) {
+        const Pointfs wrap_pts = m_partplate_list->get_wrapping_exclude_area();
+        if (!wrap_pts.empty()) {
+            BoundingBoxf wrap_bb(wrap_pts);
+            forbidden.push_back({wrap_bb.min.x() + m_origin(0), wrap_bb.min.y() + m_origin(1),
+                                 wrap_bb.max.x() + m_origin(0), wrap_bb.max.y() + m_origin(1)});
+        }
+    }
+
+    const double brim = wipe_tower_brim_width(config, wt_size.z());
+    wipe_tower_pullback_then_avoid(x, y, tower_size, get_build_volume(true), brim,
+                                   wipe_tower_line_width(config), forbidden);
+
+    // First-time seating: commit the pulled hug even if still overlapping forbidden.
+    out_pos = Vec2d(x - m_origin(0), y - m_origin(1));
+    return true;
 }
 
 bool PartPlate::operator<(PartPlate& plate) const
@@ -3392,30 +3525,28 @@ const BoundingBox PartPlate::get_bounding_box_crd()
 	return plate_shape.bounding_box();
 }
 
-BoundingBoxf3 PartPlate::get_build_volume(bool use_share)
+BoundingBoxf3 PartPlate::get_build_volume(bool use_share) const
 {
-    auto  eps=Slic3r::BuildVolume::SceneEpsilon;
-	Vec3d up_point;
-	Vec3d low_point;
-	if (use_share && !m_extruder_areas.empty()) {
-		Polygon bed_poly = get_shared_poly(m_extruder_areas);
-		BoundingBox bbox = bed_poly.bounding_box();
+    const auto eps = Slic3r::BuildVolume::SceneEpsilon;
+    Vec3d up_point(m_origin.x() + m_width + eps, m_origin.y() + m_depth + eps, m_origin.z() + m_height + eps);
+    Vec3d low_point(m_origin.x() - eps, m_origin.y() - eps, m_origin.z() - eps);
+    if (!m_raw_shape.empty()) {
+        up_point.x() += m_raw_shape[0].x();
+        up_point.y() += m_raw_shape[0].y();
+        low_point.x() += m_raw_shape[0].x();
+        low_point.y() += m_raw_shape[0].y();
+    }
 
-		up_point = Vec3d(unscale_(bbox.max.x()) + eps,  unscale_(bbox.max.y()) + eps, m_origin.z() + m_height + eps);
-		low_point = Vec3d(unscale_(bbox.min.x()) - eps, unscale_(bbox.min.y()) - eps, m_origin.z() - eps);
-	}
-	else {
-		up_point = Vec3d(m_origin.x() + m_width + eps, m_origin.y() + m_depth + eps, m_origin.z() + m_height + eps);
-		low_point = Vec3d(m_origin.x() - eps, m_origin.y() - eps, m_origin.z() - eps);
-		if (m_raw_shape.size() > 0) {
-			up_point.x() += m_raw_shape[0].x();
-			up_point.y() += m_raw_shape[0].y();
-			low_point.x() += m_raw_shape[0].x();
-			low_point.y() += m_raw_shape[0].y();
-		}
-	}
-    BoundingBoxf3 plate_box(low_point, up_point);
-    return plate_box;
+    if (use_share && !m_extruder_areas.empty()) {
+        const BoundingBox bbox = get_shared_poly(m_extruder_areas).bounding_box();
+        if (bbox.defined) {
+            up_point.x() = unscale_(bbox.max.x()) + eps;
+            up_point.y() = unscale_(bbox.max.y()) + eps;
+            low_point.x() = unscale_(bbox.min.x()) - eps;
+            low_point.y() = unscale_(bbox.min.y()) - eps;
+        }
+    }
+    return BoundingBoxf3(low_point, up_point);
 }
 
 bool PartPlate::contains(const Vec3d& point) const
@@ -4805,6 +4936,27 @@ void PartPlateList::release_icon_textures()
     }
 }
 
+Vec2d PartPlateList::get_machine_default_wipe_tower_pos() const
+{
+    auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+    float x, y;
+    if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
+        x = I3_WIPE_TOWER_DEFAULT_X_POS;
+        y = I3_WIPE_TOWER_DEFAULT_Y_POS;
+    } else {
+        // Default position aligns with print config (left top).
+        x = WIPE_TOWER_DEFAULT_X_POS;
+        y = WIPE_TOWER_DEFAULT_Y_POS;
+    }
+
+    std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    // This printer type overrides the default y regardless of the structure branch above.
+    if (printer_type == "N9")
+        y = N9_WIPE_TOWER_DEFAULT_Y_POS;
+
+    return Vec2d((double) x, (double) y);
+}
+
 void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos, bool keep_existing)
 {
     DynamicConfig &     proj_cfg     = wxGetApp().preset_bundle->project_config;
@@ -4816,38 +4968,25 @@ void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool ini
 
     // Resolve initial wipe tower position in one shot so x/y are never read uninitialised.
     // Each branch in the IIFE must return, guaranteeing both coordinates have a value.
+    bool kept_existing_pos = false;
     auto [x, y] = [&]() -> std::pair<float, float> {
-        if (keep_existing && plate_idx >= 0 && plate_idx < (int)wipe_tower_x->values.size() && plate_idx < (int)wipe_tower_y->values.size())
+        if (keep_existing && plate_idx >= 0 && plate_idx < (int)wipe_tower_x->values.size() && plate_idx < (int)wipe_tower_y->values.size()) {
+            kept_existing_pos = true;
             return { (float)wipe_tower_x->values[plate_idx], (float)wipe_tower_y->values[plate_idx] };
+        }
 
-        auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
-        if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3)
-            return { I3_WIPE_TOWER_DEFAULT_X_POS, I3_WIPE_TOWER_DEFAULT_Y_POS };
-        // Default position aligns with print config (left top).
-        return { WIPE_TOWER_DEFAULT_X_POS, WIPE_TOWER_DEFAULT_Y_POS };
+        const Vec2d def = get_machine_default_wipe_tower_pos();
+        return { (float) def.x(), (float) def.y() };
     }();
 
     std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
 
-    // Note: printer_type == "N9" and printer_structure_opt->value == PrinterStructure::psI3 can both be true
+    // Applied after both branches above so it also overrides an existing kept position.
     if (printer_type == "N9") {
         y = N9_WIPE_TOWER_DEFAULT_Y_POS;
     }
-    const float margin     = WIPE_TOWER_MARGIN;
     PartPlate* part_plate = get_plate(plate_idx);
     Vec3d plate_origin = part_plate->get_origin();
-    BoundingBoxf3  plate_bbox = part_plate->get_bounding_box();
-    BoundingBoxf  plate_bbox_2d(Vec2d(plate_bbox.min(0), plate_bbox.min(1)), Vec2d(plate_bbox.max(0), plate_bbox.max(1)));
-    const std::vector<Pointfs> &extruder_areas = part_plate->get_extruder_areas();
-    for (Pointfs points : extruder_areas) {
-        BoundingBoxf bboxf(points);
-        plate_bbox_2d.min = plate_bbox_2d.min(0) >= bboxf.min(0) ? plate_bbox_2d.min : bboxf.min;
-        plate_bbox_2d.max = plate_bbox_2d.max(0) <= bboxf.max(0) ? plate_bbox_2d.max : bboxf.max;
-    }
-
-    coordf_t plate_bbox_x_min_local_coord = plate_bbox_2d.min(0) - plate_origin(0);
-    coordf_t plate_bbox_x_max_local_coord = plate_bbox_2d.max(0) - plate_origin(0);
-    coordf_t plate_bbox_y_max_local_coord = plate_bbox_2d.max(1) - plate_origin(1);
 
     std::vector<int>   filament_maps = part_plate->get_real_filament_maps(proj_cfg);
     std::vector<int> f_volume_maps = part_plate->get_filament_volume_maps();
@@ -4871,20 +5010,32 @@ void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool ini
         wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums, 2, false, enable_wrapping);
     }
 
-    // update for wipe tower position
-    {
-        bool need_update = false;
-        if (x + margin + wipe_tower_size(0) > plate_bbox_x_max_local_coord) {
-            x = plate_bbox_x_max_local_coord - wipe_tower_size(0) - margin;
-        } else if (x < margin + plate_bbox_x_min_local_coord) {
-            x = margin + plate_bbox_x_min_local_coord;
+    // Pull back into the same legal range dragging allows, then avoid forbidden regions --
+    // but only for a freshly resolved default position (kept-existing positions leave
+    // `forbidden` empty so a saved user position is never relocated). GLCanvas3D::reload_scene
+    // runs a second, idempotent avoidance pass for cases that never reach this function.
+    if (!is_approx(wipe_tower_size(0), 0.0) && !is_approx(wipe_tower_size(1), 0.0)) {
+        std::vector<ForbiddenRect2d> forbidden;
+        if (!kept_existing_pos) {
+            for (const BoundingBoxf3 &b : part_plate->get_exclude_areas())
+                forbidden.push_back({b.min.x(), b.min.y(), b.max.x(), b.max.y()});
+            if (enable_wrapping) {
+                const Pointfs wrap_pts = get_wrapping_exclude_area();
+                if (!wrap_pts.empty()) {
+                    BoundingBoxf wrap_bb(wrap_pts);
+                    forbidden.push_back({wrap_bb.min.x() + plate_origin(0), wrap_bb.min.y() + plate_origin(1),
+                                         wrap_bb.max.x() + plate_origin(0), wrap_bb.max.y() + plate_origin(1)});
+                }
+            }
         }
-
-        if (y + margin + wipe_tower_size(1) > plate_bbox_y_max_local_coord) {
-            y = plate_bbox_y_max_local_coord - wipe_tower_size(1) - margin;
-        } else if (y < margin) {
-            y = margin;
-        }
+        float world_x = x + (float) plate_origin(0);
+        float world_y = y + (float) plate_origin(1);
+        wipe_tower_pullback_then_avoid(world_x, world_y, Vec2d(wipe_tower_size(0), wipe_tower_size(1)),
+                                       part_plate->get_build_volume(true),
+                                       wipe_tower_brim_width(print_cfg, wipe_tower_size.z()),
+                                       wipe_tower_line_width(print_cfg), forbidden);
+        x = world_x - (float) plate_origin(0);
+        y = world_y - (float) plate_origin(1);
     }
 
     ConfigOptionFloat wt_x_opt(x);
@@ -6245,7 +6396,7 @@ void PartPlateList::postprocess_bed_index_for_selected(arrangement::ArrangePolyg
 		else
 		{
 			//judge whether it is at the left side of the plate border
-			if (arrange_polygon.bed_idx <= i)
+			if (arrange_polygon.bed_idx <= (int)i)
 			{
 				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":found in plate_index %1%, bed_idx %2%") % i % arrange_polygon.bed_idx;
 				return;
@@ -6290,7 +6441,7 @@ void PartPlateList::postprocess_bed_index_for_unselected(arrangement::ArrangePol
 		else
 		{
 			//judge whether it is at the left side of the plate border
-			if (arrange_polygon.bed_idx <= i)
+			if (arrange_polygon.bed_idx <= (int)i)
 			{
 				BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":found in plate_index %1%, bed_idx %2%") % i % arrange_polygon.bed_idx;
 				return;
@@ -7433,6 +7584,10 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 	print();
 	ret = reload_all_objects();
 	print();
+
+	// Deliberately do not decide the placed-flag here: needed config isn't fully applied yet
+	// at this point in the 3mf-load sequence. The real decision happens later once config and
+	// wipe_tower_x/y are fully restored.
 
 	return ret;
 }

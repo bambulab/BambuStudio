@@ -54,6 +54,8 @@ using cgalutils::CGALMesh;
 using CGALKernel = cgalutils::Kernel;
 
 static constexpr double TOPO_SMOOTH_WEIGHT_THRESHOLD = 0.3;
+// Skip adaptive clustering when unique colors are already at or below this count.
+static constexpr std::size_t ADAPTIVE_CLUSTER_SKIP_UNIQUE_COUNT = 32;
 
 namespace detail {
 template<typename Mesh>
@@ -1243,7 +1245,9 @@ std::vector<Color> cluster_adaptive(const std::vector<Color>& colors, const Clus
                              << " unique=" << unique_colors.size()
                              << " max_color_distance=" << max_color_distance;
 
-    if (unique_colors.size() <= 1) {
+    if (unique_colors.size() <= ADAPTIVE_CLUSTER_SKIP_UNIQUE_COUNT) {
+        BOOST_LOG_TRIVIAL(debug) << "cluster_adaptive: skip clustering, unique=" << unique_colors.size()
+                                 << " <= " << ADAPTIVE_CLUSTER_SKIP_UNIQUE_COUNT;
         return unique_colors;
     }
 

@@ -1,5 +1,6 @@
 #include "MultiNozzleSync.hpp"
 #include "../GUI_App.hpp"
+#include "../Plater.hpp"
 #include "../DeviceCore/DevConfigUtil.h"
 #include "../DeviceCore/DevManager.h"
 #include "libslic3r/PresetBundle.hpp"
@@ -14,7 +15,8 @@ wxDEFINE_EVENT(EVT_NOZZLE_SELECTED, wxCommandEvent);
 static const int LeftExtruderIdx = 0;
 static const int RightExtruderIdx = 1;
 
-ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeType volume_type, int standard_count, int highflow_count, int max_nozzle_count, bool force_no_zero)
+ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeType volume_type, int standard_count, int highflow_count, int e3d_count, int max_nozzle_count, bool force_no_zero,
+                                                 const std::set<NozzleVolumeType> &supported_types)
     : GUI::DPIDialog(parent, wxID_ANY, "Set nozzle count", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX), m_volume_type(volume_type)
 {
     this->SetBackgroundColour(*wxWHITE);
@@ -38,8 +40,15 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeT
     wxArrayString nozzle_choices;
     for (int i = 0; i <= max_nozzle_count; ++i) nozzle_choices.Add(wxString::Format("%d", i));
 
-    bool show_standard = (volume_type == nvtStandard || volume_type == nvtHybrid);
-    bool show_highflow = (volume_type == nvtHighFlow || volume_type == nvtHybrid);
+    // Hybrid mixes several volume types in one extruder, so it must only offer the ones this
+    // extruder actually has. A directly selected volume type is supported by definition.
+    auto supported = [&supported_types](NozzleVolumeType type) {
+        return supported_types.empty() || supported_types.count(type) > 0;
+    };
+
+    bool show_standard = (volume_type == nvtStandard) || (volume_type == nvtHybrid && supported(nvtStandard));
+    bool show_highflow = (volume_type == nvtHighFlow) || (volume_type == nvtHybrid && supported(nvtHighFlow));
+    bool show_e3d      = (volume_type == nvtE3DHighFlow) || (volume_type == nvtHybrid && supported(nvtE3DHighFlow));
 
     if (show_standard) {
         // Standard nozzle choice
@@ -63,14 +72,33 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeT
         choice_sizer->Add(m_highflow_choice, 0, wxLEFT | wxBOTTOM | wxRIGHT, FromDIP(10));
     }
 
+    if (show_e3d) {
+        // E3D High Flow nozzle choice
+        auto *e3d_label = new wxStaticText(content, wxID_ANY, _L(get_nozzle_volume_type_string(nvtE3DHighFlow)));
+        choice_sizer->Add(e3d_label, 0, wxALL | wxALIGN_LEFT, FromDIP(5));
+
+        m_e3d_choice = new wxChoice(content, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(100), -1), nozzle_choices);
+        m_e3d_choice->SetSelection(e3d_count);
+        m_e3d_choice->SetBackgroundColour(*wxWHITE);
+        choice_sizer->Add(m_e3d_choice, 0, wxLEFT | wxBOTTOM | wxRIGHT, FromDIP(10));
+    }
+
     m_error_label = new Label(this, "");
     m_error_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#E14747")));
     m_error_label->SetFont(Label::Body_12);
     m_error_label->Hide();
 
-    auto update_nozzle_error = [this, force_no_zero, content, max_nozzle_count](int standard_count, int highflow_count) {
-        int total_count = standard_count + highflow_count;
-        if (0 < total_count && total_count <= max_nozzle_count&& m_error_label->IsShown()) {
+    auto get_total = [this]() {
+        int total = 0;
+        if (m_standard_choice) total += m_standard_choice->GetSelection();
+        if (m_highflow_choice) total += m_highflow_choice->GetSelection();
+        if (m_e3d_choice)      total += m_e3d_choice->GetSelection();
+        return total;
+    };
+
+    auto update_nozzle_error = [this, force_no_zero, content, max_nozzle_count, get_total](wxCommandEvent &) {
+        int total_count = get_total();
+        if (0 < total_count && total_count <= max_nozzle_count && m_error_label->IsShown()) {
             m_error_label->Hide();
             m_confirm_btn->Enable();
             content->Freeze();
@@ -95,23 +123,12 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeT
         }
     };
 
-    if (m_standard_choice) {
-        m_standard_choice->Bind(wxEVT_CHOICE, [this, update_nozzle_error](wxCommandEvent &e) {
-            int standard_count = m_standard_choice->GetSelection();
-            int highflow_count = m_highflow_choice ? m_highflow_choice->GetSelection() : 0;
-            update_nozzle_error(standard_count, highflow_count);
-            e.Skip();
-        });
-    }
-
-    if (m_highflow_choice) {
-        m_highflow_choice->Bind(wxEVT_CHOICE, [this, update_nozzle_error](wxCommandEvent &e) {
-            int standard_count = m_standard_choice ? m_standard_choice->GetSelection() : 0;
-            int highflow_count = m_highflow_choice->GetSelection();
-            update_nozzle_error(standard_count, highflow_count);
-            e.Skip();
-        });
-    }
+    if (m_standard_choice)
+        m_standard_choice->Bind(wxEVT_CHOICE, update_nozzle_error);
+    if (m_highflow_choice)
+        m_highflow_choice->Bind(wxEVT_CHOICE, update_nozzle_error);
+    if (m_e3d_choice)
+        m_e3d_choice->Bind(wxEVT_CHOICE, update_nozzle_error);
 
     content_sizer->Add(nozzle_icon, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(15));
     content_sizer->Add(choice_sizer, 0, wxALIGN_CENTRE_VERTICAL);
@@ -143,8 +160,12 @@ int ManualNozzleCountDialog::GetNozzleCount(NozzleVolumeType volume_type) const
         return m_standard_choice ? m_standard_choice->GetSelection() : 0;
     else if(volume_type == nvtHighFlow)
         return m_highflow_choice ? m_highflow_choice->GetSelection() : 0;
-    else if(volume_type == nvtHybrid)
-        return (m_standard_choice ? m_standard_choice->GetSelection() : 0) + (m_highflow_choice ? m_highflow_choice->GetSelection() : 0);
+    else if (volume_type == nvtE3DHighFlow)
+        return m_e3d_choice ? m_e3d_choice->GetSelection() : 0;
+    else if (volume_type == nvtHybrid)
+        return (m_standard_choice ? m_standard_choice->GetSelection() : 0)
+             + (m_highflow_choice ? m_highflow_choice->GetSelection() : 0)
+             + (m_e3d_choice ? m_e3d_choice->GetSelection() : 0);
     return 0;
 }
 
@@ -164,7 +185,7 @@ void manuallySetNozzleCount(int extruder_id)
     double nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[extruder_id];
     int standard_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, nvtStandard);
     int highflow_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, nvtHighFlow);
-
+    int e3d_count      = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(extruder_id, nvtE3DHighFlow);
 
     bool force_no_zero = volume_type == nvtHybrid;
     if(nozzle_volume_type_opt->values.size() > 1){
@@ -172,13 +193,21 @@ void manuallySetNozzleCount(int extruder_id)
         force_no_zero |= (other_nozzle_count == 0);
     }
 
-    ManualNozzleCountDialog dialog(GUI::wxGetApp().plater(), volume_type, standard_count, highflow_count, extruder_max_nozzle_count->values[extruder_id], force_no_zero);
+    // The printer profile's variant list is the authority on which volume types an extruder
+    // provides. An empty set means the profile could not be read, and the dialog then skips
+    // filtering instead of hiding everything.
+    const std::set<NozzleVolumeType> supported_types =
+        get_extruder_supported_nozzle_volume_types(preset_bundle->printers.get_edited_preset().config, extruder_id);
+
+    ManualNozzleCountDialog dialog(GUI::wxGetApp().plater(), volume_type, standard_count, highflow_count, e3d_count, extruder_max_nozzle_count->values[extruder_id], force_no_zero,
+                                   supported_types);
 
     if (dialog.ShowModal() == wxID_OK) {
         int nozzle_count = dialog.GetNozzleCount(volume_type);
         if (volume_type == nvtHybrid) {
             setExtruderNozzleCount(preset_bundle, extruder_id, nvtStandard, dialog.GetNozzleCount(nvtStandard), true);
             setExtruderNozzleCount(preset_bundle, extruder_id, nvtHighFlow, dialog.GetNozzleCount(nvtHighFlow), false);
+            setExtruderNozzleCount(preset_bundle, extruder_id, nvtE3DHighFlow, dialog.GetNozzleCount(nvtE3DHighFlow), false);
         }
         else {
             setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, true);

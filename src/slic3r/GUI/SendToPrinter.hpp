@@ -225,6 +225,10 @@ private:
     void OnConnection(bool is_success, int error_code, std::string error_msg);
     void CreateMediaAbilityJob();
     void CreateUploadFileJob(const std::string &path, const std::string &name);
+    // Imported file (.gcode / .gcode.3mf) -> original path; sliced -> exported print 3mf.
+    std::string get_send_file_path();
+    // Destination name: imported file keeps its original basename; sliced -> project + .gcode.3mf.
+    std::string get_send_file_name();
     void ChangeConnectMethod();
     void UploadFileProgressCallback(int progress);
     void UploadFileRessultCallback(int res, int resp_ec, std::string json_res, std::vector<std::byte> bin_res);

@@ -12,6 +12,7 @@
 #include "Surface.hpp"
 #include "Slicing.hpp"
 #include "Tesselate.hpp"
+#include "Time.hpp"
 #include "TriangleMeshSlicer.hpp"
 #include "Utils.hpp"
 #include "Fill/FillAdaptive.hpp"
@@ -239,6 +240,8 @@ std::vector<std::set<int>> PrintObject::detect_extruder_geometric_unprintables()
         for (auto& poly : polys) {
             poly.translate(-m_instances.front().shift_without_plate_offset());
         }
+        // 禁区略内收，避免层片与禁区只共边时被当成相交
+        polys = shrink(polys, float(SCALED_EPSILON));
         unprintable_area_bbox.emplace_back(get_extents(polys));
     }
 
@@ -467,6 +470,10 @@ void PrintObject::make_perimeters()
     if (! this->set_started(posPerimeters))
         return;
 
+    const bool record_wall_time = m_print->m_slice_time != nullptr;
+    const long long wall_begin_time =
+        record_wall_time ? Slic3r::Utils::get_current_milliseconds_time_monotonic() : 0;
+
     m_print->set_status(15, L("Generating walls"));
     BOOST_LOG_TRIVIAL(info) << "Generating walls..." << log_memory_info();
 
@@ -627,12 +634,229 @@ void PrintObject::make_perimeters()
         BOOST_LOG_TRIVIAL(debug) << "Recrod cooling_node id for each extrusion in parallel - end";
     }
     this->set_done(posPerimeters);
+
+    if (record_wall_time)
+        (*m_print->m_slice_time)[TIME_WALL] +=
+            Slic3r::Utils::get_current_milliseconds_time_monotonic() - wall_begin_time;
 }
+
+namespace {
+
+// Minimum contact extent, mirroring length_thresh_small_overhang in TreeSupport.cpp.
+const coord_t zero_gap_length_thresh = scale_(2);
+
+// Same thresh_angle convention as SupportMaterial::detect_overhangs: +1, clamp 89.
+double zero_gap_threshold_rad(const PrintObjectConfig &config)
+{
+    double thresh_angle = config.support_threshold_angle.value > 0 ? config.support_threshold_angle.value + 1 : 0;
+    thresh_angle = std::min(thresh_angle, 89.);
+    return Geometry::deg2rad(thresh_angle);
+}
+
+// Prefer the real external-perimeter flow width over config.line_width (which may be 0).
+// Max across regions is conservative: a larger guard_r only shrinks the Bottom mask.
+float scaled_external_perimeter_width(const Layer &layer)
+{
+    float fw = 0.f;
+    for (const LayerRegion *layerm : layer.regions())
+        fw = std::max(fw, float(layerm->flow(frExternalPerimeter).scaled_width()));
+    return fw;
+}
+
+// Zero-gap Normal/auto support only: refine stBottomBridge on fill_surfaces where a
+// conservative top-contact candidate exists. Prefer false Bridge over false Bottom.
+// stNormalManual is not covered yet: its contacts come solely from the enforcer branch of
+// detect_contacts, so the geometric overhang mask would not describe them. See GitHub #11540.
+bool should_refine_zero_gap_contact(const PrintObjectConfig &config)
+{
+    return config.enable_support.value
+        && config.support_top_z_distance.value == 0.
+        && config.support_type.value == stNormalAuto
+        && ! config.support_on_build_plate_only.value
+        && ! config.support_critical_regions_only.value
+        // Without interface layers the contact is printed with the sparse base pattern
+        // (see SupportParameters), which is too weak a base for a regular bottom surface.
+        && config.support_interface_top_layers.value > 0
+        // Classic support drops fill bridges from contacts only after process_external_surfaces
+        // assigns bridge_angle. Calling remove_bridges_from_contacts() here cannot see those
+        // surfaces yet; subtracting every stBottomBridge would empty the mask. Keep legacy
+        // Bridge classification whenever bridge_no_support is on.
+        && ! config.bridge_no_support.value;
+}
+
+// Mirror TreeSupport check_small_overhang criterion B: keep pieces whose erosion
+// remains non-empty and whose eroded bbox exceeds the length threshold on at least one axis.
+bool is_significant_contact_piece(const ExPolygon &piece, float erode_r)
+{
+    if (erode_r <= 0.f)
+        return false;
+    ExPolygons eroded = offset_ex(piece, -erode_r);
+    if (eroded.empty())
+        return false;
+    Point bbox_sz = get_extents(eroded).size();
+    return bbox_sz.x() > zero_gap_length_thresh || bbox_sz.y() > zero_gap_length_thresh;
+}
+
+ExPolygons filter_significant_contact_pieces(ExPolygons pieces, float erode_r)
+{
+    ExPolygons out;
+    out.reserve(pieces.size());
+    for (ExPolygon &piece : pieces)
+        if (is_significant_contact_piece(piece, erode_r))
+            out.emplace_back(std::move(piece));
+    return out;
+}
+
+struct ZeroGapContactMask
+{
+    ExPolygons polygons;
+    float      sliver_r = 0.f; // leftover / inset sliver filter, <= the opening radius
+};
+
+// Lightweight zero-gap top-contact candidate. Intentionally conservative vs classic detect_overhangs.
+ZeroGapContactMask compute_zero_gap_contact_mask(
+    const PrintObject &object,
+    const Layer &layer,
+    const Layer &lower_layer,
+    size_t layer_id,
+    const std::vector<Polygons> &blockers,
+    const std::vector<Polygons> &enforcers)
+{
+    ZeroGapContactMask result;
+    const float extrusion_width_scaled = scaled_external_perimeter_width(layer);
+    if (extrusion_width_scaled <= 0.f)
+        return result;
+
+    const PrintObjectConfig &config = object.config();
+    const double threshold_rad = zero_gap_threshold_rad(config);
+    const float  angle_offset  = (threshold_rad > 0.)
+        ? float(scale_(lower_layer.height / tan(threshold_rad)))
+        : 0.5f * extrusion_width_scaled;
+    // Opening radius covering both the threshold angle and the small-overhang lower bound.
+    const float guard_r = std::max(2.5f * extrusion_width_scaled, angle_offset);
+    result.sliver_r = 2.5f * extrusion_width_scaled;
+    if (guard_r <= 0.f)
+        return result;
+
+    const Polygons lower_polygons = to_polygons(lower_layer.lslices);
+
+    // Automatic overhangs, approximating detect_overhangs: the opening drops what the
+    // threshold angle and small-overhang removal would have dropped.
+    ExPolygons mask;
+    {
+        Polygons lower_expanded = (angle_offset > 0.f)
+            ? expand(lower_polygons, angle_offset, ClipperLib::jtSquare, 0.)
+            : lower_polygons;
+        ExPolygons raw = diff_ex(layer.lslices, lower_expanded);
+        if (! raw.empty()) {
+            mask = intersection_ex(opening_ex(raw, guard_r), raw);
+            mask = filter_significant_contact_pieces(std::move(mask), guard_r);
+        }
+    }
+
+    // Support enforcers, mirroring detect_contacts: they enforce support as if the slope were
+    // 90 degrees, so neither the threshold angle nor small-overhang removal applies. Running the
+    // opening here would discard narrow painted strips that do get a contact interface.
+    if (layer_id < enforcers.size() && ! enforcers[layer_id].empty()) {
+        ExPolygons enforced = diff_ex(
+            intersection_ex(layer.lslices, enforcers[layer_id]),
+            expand(lower_polygons, 0.05f * extrusion_width_scaled, ClipperLib::jtSquare, 0.));
+        enforced = filter_significant_contact_pieces(std::move(enforced), result.sliver_r);
+        if (! enforced.empty())
+            mask = mask.empty() ? std::move(enforced) : union_ex(mask, enforced);
+    }
+    if (mask.empty())
+        return result;
+
+    // Support blockers (expand slightly, matching SupportMaterial). Classic support lets an
+    // enforcer win over a blocker; subtracting from the whole mask is stricter on purpose.
+    if (layer_id < blockers.size() && ! blockers[layer_id].empty()) {
+        Polygons blocker = expand(union_(blockers[layer_id]), float(1000. * SCALED_EPSILON));
+        mask = diff_ex(mask, blocker);
+        if (mask.empty())
+            return result;
+    }
+
+    // Negative support_expansion shrinks contacts in classic support; mirror that.
+    // Classic support spares enforcers from it, so applying it here is stricter on purpose.
+    const float xy_expansion = float(scale_(config.support_expansion.value));
+    if (xy_expansion < -SCALED_EPSILON) {
+        mask = offset_ex(mask, xy_expansion);
+        if (mask.empty())
+            return result;
+    }
+
+    // Lateral gap between support and object wall is not covered by the opening;
+    // erode so the unsupported rim stays Bridge.
+    const float xy_gap = float(scale_(config.support_object_xy_distance.value));
+    if (xy_gap > SCALED_EPSILON) {
+        mask = offset_ex(mask, -xy_gap);
+        if (mask.empty())
+            return result;
+    }
+
+    // Re-filter leftover slivers after shrinks. Use sliver_r, not guard_r: the angle
+    // opening already ran, and xy_gap must not apply that radius a second time.
+    result.polygons = filter_significant_contact_pieces(std::move(mask), result.sliver_r);
+    return result;
+}
+
+// Split each stBottomBridge fill surface into supported (stBottom) / unsupported (stBottomBridge).
+// Only significant contact pieces are promoted; everything else of the original surface stays
+// a single Bridge remainder (slivers are merged back, not left as separate islands).
+// slices are left unchanged.
+void refine_fill_surfaces_for_zero_gap_contact(LayerRegion &layerm, const ExPolygons &mask, float sliver_r)
+{
+    if (mask.empty() || sliver_r <= 0.f)
+        return;
+
+    Surfaces out;
+    out.reserve(layerm.fill_surfaces.surfaces.size());
+
+    for (const Surface &surface : layerm.fill_surfaces.surfaces) {
+        if (surface.surface_type != stBottomBridge) {
+            out.emplace_back(surface);
+            continue;
+        }
+
+        // fill_surfaces is already inset by perimeters; do not re-apply the full
+        // overhang opening radius here or a valid contact would fail the bbox test.
+        ExPolygons candidates = intersection_ex(surface.expolygon, mask);
+        ExPolygons promoted;
+        promoted.reserve(candidates.size());
+        for (ExPolygon &expoly : candidates)
+            if (is_significant_contact_piece(expoly, sliver_r))
+                promoted.emplace_back(std::move(expoly));
+
+        if (promoted.empty()) {
+            out.emplace_back(surface);
+            continue;
+        }
+
+        // Remainder must be computed before moving promoted polygons.
+        ExPolygons remainder = diff_ex(surface.expolygon, promoted);
+        for (ExPolygon &expoly : promoted) {
+            Surface refined(surface, std::move(expoly));
+            refined.surface_type = stBottom;
+            out.emplace_back(std::move(refined));
+        }
+        // Original minus promoted: rim, true overhang, and rejected slivers stay Bridge together.
+        for (ExPolygon &expoly : remainder)
+            out.emplace_back(Surface(surface, std::move(expoly)));
+    }
+
+    layerm.fill_surfaces.surfaces = std::move(out);
+}
+
+} // namespace
 
 void PrintObject::prepare_infill()
 {
     if (! this->set_started(posPrepareInfill))
         return;
+    const bool record_prepare_infill_time = m_print->m_slice_time != nullptr;
+    const long long prepare_infill_begin_time =
+        record_prepare_infill_time ? Slic3r::Utils::get_current_milliseconds_time_monotonic() : 0;
     m_print->set_status(25, L("Generating infill regions"));
     if (m_typed_slices) {
         // To improve robustness of detect_surfaces_type() when reslicing (working with typed slices), see GH issue #7442.
@@ -652,6 +876,34 @@ void PrintObject::prepare_infill()
     std::vector<std::vector<SurfaceCollection>> slice_surfaces_cpy;
     this->detect_surfaces_type(slice_surfaces_cpy);
     m_print->throw_if_canceled();
+
+    // Zero-gap Normal support: reclassify fill_surfaces that will be carried by the
+    // support interface as stBottom, keep true overhangs as stBottomBridge (GitHub #11540).
+    // Local masks only; slices stay typed as produced by detect_surfaces_type().
+    if (m_layers.size() > 1 && should_refine_zero_gap_contact(m_config)) {
+        // Both sources must be collected, exactly like SupportAnnotations does: slice_support_*()
+        // only sees blocker / enforcer volumes, painted-on-mesh ones arrive as custom facets.
+        std::vector<Polygons> blockers = this->slice_support_blockers();
+        this->project_and_append_custom_facets(false, EnforcerBlockerType::BLOCKER, blockers);
+        std::vector<Polygons> enforcers = this->slice_support_enforcers();
+        this->project_and_append_custom_facets(false, EnforcerBlockerType::ENFORCER, enforcers);
+        BOOST_LOG_TRIVIAL(debug) << "Refining zero-gap support contacts in parallel - start";
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(1, m_layers.size()),
+            [this, &blockers, &enforcers](const tbb::blocked_range<size_t> &range) {
+                for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) {
+                    m_print->throw_if_canceled();
+                    Layer *layer = m_layers[layer_id];
+                    ZeroGapContactMask mask = compute_zero_gap_contact_mask(
+                        *this, *layer, *m_layers[layer_id - 1], layer_id, blockers, enforcers);
+                    if (mask.polygons.empty())
+                        continue;
+                    for (LayerRegion *layerm : layer->m_regions)
+                        refine_fill_surfaces_for_zero_gap_contact(*layerm, mask.polygons, mask.sliver_r);
+                }
+            });
+        BOOST_LOG_TRIVIAL(debug) << "Refining zero-gap support contacts in parallel - end";
+    }
 
     // Also tiny stInternal surfaces are turned to stInternalSolid.
     BOOST_LOG_TRIVIAL(info) << "Preparing fill surfaces..." << log_memory_info();
@@ -740,6 +992,9 @@ void PrintObject::prepare_infill()
     this->combine_infill();
     m_print->throw_if_canceled();
 
+    this->discover_sub_top_surfaces();
+    m_print->throw_if_canceled();
+
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         for (const Layer *layer : m_layers) {
@@ -755,6 +1010,10 @@ void PrintObject::prepare_infill()
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
     this->set_done(posPrepareInfill);
+
+    if (record_prepare_infill_time)
+        (*m_print->m_slice_time)[TIME_PREPARE_INFILL] +=
+            Slic3r::Utils::get_current_milliseconds_time_monotonic() - prepare_infill_begin_time;
 }
 
 void PrintObject::infill()
@@ -763,6 +1022,9 @@ void PrintObject::infill()
     this->prepare_infill();
 
     if (this->set_started(posInfill)) {
+        const bool record_infill_generate_time = m_print->m_slice_time != nullptr;
+        const long long infill_generate_begin_time =
+            record_infill_generate_time ? Slic3r::Utils::get_current_milliseconds_time_monotonic() : 0;
         m_print->set_status(35, L("Generating infill toolpath"));
 
         const auto& adaptive_fill_octree = this->m_adaptive_fill_octrees.first;
@@ -784,6 +1046,10 @@ void PrintObject::infill()
         ### $_->fill_surfaces->clear for map @{$_->regions}, @{$object->layers};
         */
         this->set_done(posInfill);
+
+        if (record_infill_generate_time)
+            (*m_print->m_slice_time)[TIME_INFILL_GENERATE] +=
+                Slic3r::Utils::get_current_milliseconds_time_monotonic() - infill_generate_begin_time;
     }
 }
 
@@ -895,6 +1161,12 @@ void PrintObject::generate_support_material()
 
             this->_generate_support_material();
             m_print->throw_if_canceled();
+
+            // Gated on enable_support rather than has_support(): with enforce_support_layers alone the
+            // support is confined to the bottom layers by design, while detect_overhangs() still fills
+            // every layer, which would make the check below fire on the whole object.
+            if (m_config.enable_support.value && is_tree(m_config.support_type.value) && !m_print->get_no_check_flag())
+                this->warn_uncovered_overhangs();
         }
         this->set_done(posSupportMaterial);
     }
@@ -1208,6 +1480,10 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "tree_support_branch_diameter_angle"
             || opt_key == "tree_support_wall_count") {
             steps.emplace_back(posSupportMaterial);
+            if (m_config.support_top_z_distance == 0.) {
+                // Zero-gap contact refinement in prepare_infill reads these support settings.
+                steps.emplace_back(posPrepareInfill);
+            }
         } else if (
                opt_key == "bottom_shell_layers"
             || opt_key == "top_shell_layers"
@@ -1259,6 +1535,7 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "bottom_surface_pattern"
             || opt_key == "bottom_surface_density"
             || opt_key == "internal_solid_infill_pattern"
+            || opt_key == "sub_top_surface_pattern"
             || opt_key == "external_fill_link_max_length"
             || opt_key == "sparse_infill_anchor"
             || opt_key == "sparse_infill_anchor_max"
@@ -1490,6 +1767,7 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
             		m_layers.size()),
                 [this, spiral_mode, region_id, interface_shells, &surfaces_new, &slice_surfaces_cpy](const tbb::blocked_range<size_t> &range) {
                 // BBS coconut: can't set to stBottom when soluable support is used, as the support may not be actaully generated, e.g. when "on build plate only" option is enabled. See github #3507.
+                // Zero-gap Normal/auto contacts may later be refined back to stBottom in prepare_infill, see github #11540.
                 SurfaceType surface_type_bottom_other = stBottomBridge;
                 for (size_t idx_layer = range.begin(); idx_layer < range.end(); ++ idx_layer) {
                     m_print->throw_if_canceled();
@@ -3712,8 +3990,98 @@ void PrintObject::combine_infill()
     }
 }
 
+// A top island that an erosion of this radius wipes out is too narrow to justify a sub-top band
+// underneath it. Eroding rather than measuring the area also rejects long thin slivers, whose area
+// can be large while no part of them is wide enough to matter.
+static constexpr double SUB_TOP_MIN_TOP_EROSION_MM = 1.5;
+
+void PrintObject::discover_sub_top_surfaces()
+{
+    BOOST_LOG_TRIVIAL(trace) << "discover_sub_top_surfaces()";
+    if (m_layers.size() < 2)
+        return;
+
+    auto process_layer = [this](size_t idx_layer) {
+        m_print->throw_if_canceled();
+        const Layer *upper = m_layers[idx_layer + 1];
+        Layer       *layer = m_layers[idx_layer];
+
+        ExPolygons top_mask;
+        for (const LayerRegion *upper_region : upper->regions())
+            for (const Surface &s : upper_region->fill_surfaces.surfaces)
+                if (s.surface_type == stTop)
+                    top_mask.emplace_back(s.expolygon);
+        if (top_mask.empty())
+            return;
+
+        const auto    erosion    = float(scale_(SUB_TOP_MIN_TOP_EROSION_MM));
+        const coord_t min_extent = coord_t(scale_(2. * SUB_TOP_MIN_TOP_EROSION_MM));
+        ExPolygons    large_tops;
+        for (ExPolygon &top : union_ex(top_mask)) {
+            // An island narrower than the erosion diameter cannot survive it, and its extents are a
+            // linear scan against a boolean, so check them before paying for the offset.
+            const Point extents = get_extents(top).size();
+            if (extents.x() < min_extent || extents.y() < min_extent)
+                continue;
+            if (! offset_ex(top, - erosion).empty())
+                large_tops.emplace_back(std::move(top));
+        }
+        if (large_tops.empty())
+            return;
+        top_mask = std::move(large_tops);
+
+        // The vertex cull below runs once per island of every region, and it walks the points of
+        // every mask polygon. Caching the extents here lets a polygon whose box misses the island
+        // be dropped without touching its points at all.
+        std::vector<BoundingBox> top_extents;
+        top_extents.reserve(top_mask.size());
+        for (const ExPolygon &top : top_mask)
+            top_extents.emplace_back(get_extents(top));
+
+        for (LayerRegion *layerm : layer->m_regions) {
+            const float min_width = float(layerm->flow(frSolidInfill).scaled_spacing());
+            // A claimed island keeps its geometry and every other field, only its type changes, so
+            // retype in place rather than rebuilding the collection.
+            for (Surface &surface : layerm->fill_surfaces.surfaces) {
+                if (surface.surface_type != stInternalSolid)
+                    continue;
+                // Trim the mask to the island first, so one island does not have to face the whole
+                // layer's top geometry. Opening then drops what only grazes the mask: an island is
+                // claimed on real overlap, not on a shared edge.
+                const BoundingBox island_bbox = get_extents(surface.expolygon).inflated(SCALED_EPSILON);
+                Polygons          local_mask;
+                for (size_t i = 0; i < top_mask.size(); ++ i)
+                    if (top_extents[i].overlap(island_bbox))
+                        append(local_mask, ClipperUtils::clip_clipper_polygons_with_subject_bbox(top_mask[i], island_bbox));
+                if (! local_mask.empty() &&
+                    ! opening_ex(intersection_ex(surface.expolygon, local_mask, ApplySafetyOffset::Yes), 0.5f * min_width).empty())
+                    surface.surface_type = stSubTop;
+            }
+        }
+    };
+
+    // A layer reads the tops of the layer above and retypes its own fill surfaces, so neighbours
+    // must not run together. Splitting the sweep by parity keeps every pair of concurrent layers
+    // two apart, which leaves the read and write sets disjoint.
+    const size_t num_to_process = m_layers.size() - 1;
+    for (size_t parity = 0; parity < 2; ++ parity) {
+        if (num_to_process <= parity)
+            continue;
+        const size_t count = (num_to_process - parity + 1) / 2;
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, count),
+            [&process_layer, parity](const tbb::blocked_range<size_t> &range) {
+                for (size_t k = range.begin(); k < range.end(); ++ k)
+                    process_layer(parity + 2 * k);
+            });
+    }
+}
+
 void PrintObject::_generate_support_material()
 {
+    const long long support_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
+    const long long child_time_before =
+        m_support_stage_times.detect + m_support_stage_times.interface_generate + m_support_stage_times.toolpath_generate;
+
     if (is_tree(m_config.support_type.value)) {
         TreeSupport tree_support(*this, m_slicing_params);
         tree_support.throw_on_cancel = [this]() { this->throw_if_canceled(); };
@@ -3723,6 +4091,166 @@ void PrintObject::_generate_support_material()
         PrintObjectSupportMaterial support_material(this, m_slicing_params);
         support_material.generate(*this);
     }
+
+    const long long support_elapsed =
+        Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_begin_time;
+    const long long child_time_after =
+        m_support_stage_times.detect + m_support_stage_times.interface_generate + m_support_stage_times.toolpath_generate;
+    const long long generate_time = std::max(0LL, support_elapsed - (child_time_after - child_time_before));
+    if (is_tree(m_config.support_type.value))
+        m_support_stage_times.tree_generate += generate_time;
+    else
+        m_support_stage_times.normal_generate += generate_time;
+}
+
+// Overhang islands below this area are detection noise, or slivers a single branch tip covers anyway.
+// Reporting them would bury the cases the user can actually act on.
+static constexpr double MIN_REPORTED_OVERHANG_AREA_MM2 = 3.;
+// A tree branch touches a flat overhang at a few points only, so an island counts as unsupported when
+// there is essentially nothing beneath it, not when the coverage is merely partial.
+static constexpr double MIN_SUPPORTED_OVERHANG_RATIO = 0.05;
+// How much uncovered overhang has to pile up across the object before the user is worth interrupting.
+static constexpr double MIN_TOTAL_UNCOVERED_AREA_MM2 = 20.;
+
+ExPolygons PrintObject::collected_support_areas(const SupportLayer *support_layer) const
+{
+    // Islands are only filled up to brim/skirt height and may miss trunks that live in
+    // base/roof/floor, so always union every source that still has geometry.
+    ExPolygons areas;
+    append(areas, support_layer->support_islands);
+    append(areas, support_layer->base_areas);
+    append(areas, support_layer->roof_areas);
+    append(areas, support_layer->roof_1st_layer);
+    append(areas, support_layer->floor_areas);
+    if (areas.empty()) {
+        if (support_layer->support_fills.empty())
+            return {};
+        return union_ex(support_layer->support_fills.polygons_covered_by_spacing(float(SCALED_EPSILON)));
+    }
+    return union_ex(areas);
+}
+
+// Supports can legitimately fail to grow, most visibly when "Support on build plate only" leaves the
+// branches nowhere to land. Slicing still succeeds and nothing tells the user, so compare what the
+// generator meant to cover against what it produced and report the difference.
+// layer->loverhangs is the "meant to cover" set: detect_overhangs() has already dropped bridgeable
+// regions, small overhangs, painted blockers and everything support_critical_regions_only excludes.
+// It is only refreshed by the tree generators, hence the is_tree() gate at the call site.
+void PrintObject::warn_uncovered_overhangs()
+{
+    // draw_circles() marks the support layers it left empty with a zero print_z and height, which would
+    // break a search over print_z, so index only the layers that carry geometry. Only the heights are
+    // cached here; materializing every layer's areas up front would duplicate the whole support geometry.
+    std::vector<coordf_t> support_zs;
+    std::vector<size_t>   support_layer_indices;
+    support_zs.reserve(m_support_layers.size());
+    support_layer_indices.reserve(m_support_layers.size());
+    for (size_t support_layer_idx = 0; support_layer_idx < m_support_layers.size(); ++ support_layer_idx) {
+        const SupportLayer *support_layer = m_support_layers[support_layer_idx];
+        if (support_layer->height < EPSILON)
+            continue;
+        support_zs.emplace_back(support_layer->print_z);
+        support_layer_indices.emplace_back(support_layer_idx);
+    }
+    assert(std::is_sorted(support_zs.begin(), support_zs.end()));
+    m_print->throw_if_canceled();
+
+    // How far below an overhang its supporting layer may sit: the configured gap, plus slack for
+    // adaptive support layer heights. Erring wide only costs us false negatives.
+    const coordf_t search_depth = m_slicing_params.gap_support_object +
+        2. * std::max(m_slicing_params.max_suport_layer_height, m_slicing_params.layer_height);
+
+    struct LayerStat {
+        double uncovered_area  = 0.;
+        size_t num_uncovered   = 0;
+        size_t num_significant = 0;
+    };
+    std::vector<LayerStat> stats(m_layers.size());
+
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, m_layers.size()),
+        [this, &support_zs, &support_layer_indices, search_depth, &stats](const tbb::blocked_range<size_t> &range) {
+            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                m_print->throw_if_canceled();
+                const Layer *layer = m_layers[layer_idx];
+                if (layer->loverhangs.empty())
+                    continue;
+
+                const coordf_t bottom_z = layer->bottom_z();
+                const auto     it_end   = std::upper_bound(support_zs.begin(), support_zs.end(), bottom_z + EPSILON);
+                const auto     it_begin = std::lower_bound(support_zs.begin(), it_end, bottom_z - search_depth);
+                ExPolygons     support_below;
+                for (auto it = it_begin; it != it_end; ++ it) {
+                    const size_t support_layer_idx = support_layer_indices[it - support_zs.begin()];
+                    append(support_below, this->collected_support_areas(m_support_layers[support_layer_idx]));
+                }
+                if (! support_below.empty())
+                    support_below = union_ex(support_below);
+
+                LayerStat &stat = stats[layer_idx];
+                for (const ExPolygon &island : layer->loverhangs) {
+                    const double island_area = area(island) * SCALING_FACTOR * SCALING_FACTOR;
+                    if (island_area < MIN_REPORTED_OVERHANG_AREA_MM2)
+                        continue;
+                    ++ stat.num_significant;
+                    double covered_area = 0.;
+                    if (! support_below.empty())
+                        covered_area = area(intersection_ex(island, support_below)) * SCALING_FACTOR * SCALING_FACTOR;
+                    if (covered_area < MIN_SUPPORTED_OVERHANG_RATIO * island_area) {
+                        stat.uncovered_area += island_area;
+                        ++ stat.num_uncovered;
+                    }
+                }
+            }
+        });
+
+    double   total_uncovered_area = 0.;
+    size_t   total_uncovered      = 0;
+    size_t   total_significant    = 0;
+    coordf_t lowest_z             = 0.;
+    for (size_t layer_idx = 0; layer_idx < stats.size(); ++ layer_idx) {
+        const LayerStat &stat = stats[layer_idx];
+        total_significant += stat.num_significant;
+        if (stat.num_uncovered == 0)
+            continue;
+        if (total_uncovered == 0)
+            lowest_z = m_layers[layer_idx]->print_z;
+        total_uncovered_area += stat.uncovered_area;
+        total_uncovered      += stat.num_uncovered;
+    }
+
+    if (total_uncovered > 0)
+        BOOST_LOG_TRIVIAL(info) << "Uncovered overhang check on object " << this->model_object()->name << ": "
+                                << total_uncovered << " of " << total_significant << " region(s) uncovered, "
+                                << total_uncovered_area << " mm2, lowest_z=" << lowest_z;
+
+    if (total_uncovered_area < MIN_TOTAL_UNCOVERED_AREA_MM2)
+        return;
+
+    // Name build-plate-only only when the resolved style still walks drop_nodes.
+    // resolve_support_style() matches SupportParameters, including Default / Grid / Snug.
+    const PrintConfig &print_config = this->print()->config();
+    const SupportMaterialStyle resolved_style =
+        resolve_support_style(m_config.support_style.value, m_config.support_type.value,
+                              this->has_variable_layer_heights, m_slicing_params.soluble_interface,
+                              config_flag_or_false(print_config, "heat_preserve_mode"),
+                              config_flag_or_false(print_config, "enable_support_ring"));
+    const bool classic_tree_drop = resolved_style != smsTreeOrganic;
+    std::string warning_message;
+    PrintStateBase::SlicingNotificationType warning_id = PrintStateBase::SlicingSupportIncomplete;
+    if (m_config.support_on_build_plate_only.value && classic_tree_drop) {
+        warning_id = PrintStateBase::SlicingSupportIncompleteOnBuildPlate;
+        warning_message = Slic3r::format(
+            _u8L("Unsupported overhangs were detected.\n"
+                 "Model \"%1%\" has %2% overhang region(s). Because \"Support on build plate only\" is enabled, "
+                 "supports cannot grow down to the build plate. Try turning this option off."),
+            this->model_object()->name, total_uncovered);
+    } else
+        warning_message = Slic3r::format(
+            _u8L("Unsupported overhangs were detected.\n"
+                 "Model \"%1%\" has %2% overhang region(s) that could not get support. "
+                 "Try adjusting the support settings or re-orienting the object."),
+            this->model_object()->name, total_uncovered);
+    this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, warning_id);
 }
 
 // BBS

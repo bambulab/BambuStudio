@@ -7,6 +7,9 @@
 // CuraEngine is released under the terms of the AGPLv3 or higher.
 
 #include "TreeSupport3D.hpp"
+#include <algorithm>
+#include <cmath>
+#include <cstdlib>
 #include "AABBTreeIndirect.hpp"
 #include "AABBTreeLines.hpp"
 #include "BuildVolume.hpp"
@@ -20,7 +23,9 @@
 #include "Polygon.hpp"
 #include "Polyline.hpp"
 #include "MutablePolygon.hpp"
+#include "ShortestPath.hpp"
 #include "SupportCommon.hpp"
+#include "Time.hpp"
 #include "TriangleMeshSlicer.hpp"
 #include "TreeSupport.hpp"
 #include "I18N.hpp"
@@ -61,6 +66,20 @@
 
 #ifdef LIGHTNING_INFILL_DEBUG
 #include "SVG.hpp"
+#include <sstream>
+#include <boost/nowide/cstdio.hpp>
+// Emit one diagnostic line to both the boost log and a file under debug_out_path(). Only the GUI
+// installs a boost log file sink, so a file of our own is what makes CLI batch runs observable.
+#define LIGHTNING_DBG(x) do { \
+    std::ostringstream _os; \
+    _os << x; \
+    const std::string _line = _os.str(); \
+    BOOST_LOG_TRIVIAL(info) << _line; \
+    if (FILE *_f = boost::nowide::fopen(debug_out_path("lightning_summary.txt").c_str(), "a")) { \
+        fprintf(_f, "%s\n", _line.c_str()); \
+        fclose(_f); \
+    } \
+} while (0)
 #endif
 
 namespace Slic3r
@@ -1558,19 +1577,13 @@ static Point move_inside_if_outside(const Polygons &polygons, Point from, int di
         }
         radius = support_element_collision_radius(config, current_elem);
 
-        const coord_t foot_radius_increase = std::max(config.bp_radius_increase_per_layer - config.branch_radius_increase_per_layer, 0.0);
-        // Is nearly all of the time 1, but sometimes an increase of 1 could cause the radius to become bigger than recommendedMinRadius,
-        // which could cause the radius to become bigger than precalculated.
-        double planned_foot_increase = std::min(1.0, double(config.recommendedMinRadius(layer_idx - 1) - support_element_radius(config, current_elem)) / foot_radius_increase);
-//FIXME
-        bool increase_bp_foot = planned_foot_increase > 0 && current_elem.to_buildplate;
-//        bool increase_bp_foot = false;
-
-        if (increase_bp_foot && support_element_radius(config, current_elem) >= config.branch_radius && support_element_radius(config, current_elem) >= config.increase_radius_until_radius)
-            if (validWithRadius(config.getRadius(current_elem.effective_radius_height, current_elem.elephant_foot_increases + planned_foot_increase))) {
-                current_elem.elephant_foot_increases += planned_foot_increase;
-                radius = support_element_collision_radius(config, current_elem);
-            }
+        // Plate foot is applied as 2D slices after extrude (append_organic_plate_foot_slices).
+        // Do not grow elephant_foot_increases here: inflating the node radius would also
+        // enlarge self-intersection repair hemispheres into a circular blob.
+        // NOTE: with pathing-time growth removed, elephant_foot_increases now stays 0
+        // everywhere (merge_support_element_states recomputes it back to 0), so the
+        // elephant_foot term in getRadius() is currently inert and kept only for merge
+        // continuity. Removing that dead path is left to a separate cleanup commit.
 
         if (ceil_radius_before != volumes.ceilRadius(radius, settings.use_min_distance)) {
             if (current_elem.to_buildplate)
@@ -1711,16 +1724,6 @@ static void increase_areas_one_layer(
                 // if a guaranteed radius increase is not possible, only increase the slow speed
                 // Ensure that the slow movement distance can not become larger than the fast one.
                 extra_slow_speed += std::min(projected_radius_delta, (config.maximum_move_distance + extra_speed) - (config.maximum_move_distance_slow + extra_slow_speed));
-
-            if (config.layer_start_bp_radius > layer_idx &&
-                config.recommendedMinRadius(layer_idx - 1) < config.getRadius(elem.effective_radius_height + 1, elem.elephant_foot_increases)) {
-                // can guarantee elephant foot radius increase
-                if (ceiled_parent_radius == volumes.ceilRadius(config.getRadius(parent.state.effective_radius_height + 1, parent.state.elephant_foot_increases + 1), parent.state.use_min_xy_dist))
-                    extra_speed += config.bp_radius_increase_per_layer;
-                else
-                    extra_slow_speed += std::min(coord_t(config.bp_radius_increase_per_layer),
-                                                 config.maximum_move_distance - (config.maximum_move_distance_slow + extra_slow_speed));
-            }
 
             const coord_t fast_speed = config.maximum_move_distance + extra_speed;
             const coord_t slow_speed = config.maximum_move_distance_slow + extra_speed + extra_slow_speed;
@@ -1975,6 +1978,36 @@ static bool merge_influence_areas_two_elements(
     const SupportElementMerging &smaller_rad = dst_radius_bigger ? src : dst;
     const SupportElementMerging &bigger_rad  = dst_radius_bigger ? dst : src;
     const coord_t real_radius_delta = std::abs(support_element_radius(config, bigger_rad.state) - support_element_radius(config, smaller_rad.state));
+    // Cap the lateral merge reach. The merge test below inflates the thin branch by the radius
+    // delta, so a large radius difference lets a thick branch swallow a far-away thin one in a
+    // single layer - the source of the aggressive sideways merge at large diameters.
+    //
+    // Both influence areas grow towards each other by maximum_move_distance per layer, so a gap
+    // closes at twice that rate. Allowing 2 * maximum_move_distance therefore means "merge if the
+    // two branches would have met one layer later", which keeps the merge within the movement
+    // budget the branch angle defines instead of scaling with the radius. The second term keeps a
+    // branch from jumping further than a fraction of its own radius, mirroring the ovalisation
+    // threshold in draw_area(); it only binds for a bigger radius below
+    // 2 * maximum_move_distance / ovalisation_slow_ratio.
+    //
+    // Both lower bounds are sized to stay inactive at sane settings and only catch degenerate
+    // ones, so that they never become the dominant term: half a line width gives a small radius
+    // difference a minimum merge reach when the move budget is tiny (the final clamp below still
+    // caps it at the radius delta, so a zero branch angle keeps the original CuraEngine behaviour),
+    // and max_merge_delay_layers keeps an extreme radius delta from postponing a merge indefinitely.
+    static constexpr const double     ovalisation_slow_ratio = 0.75; // mirrors draw_area()
+    static constexpr const LayerIndex max_merge_delay_layers = 30;
+    // support_tree_angle is only clamped below 90 deg, not to the 60 deg the setting exposes, so a
+    // config that bypasses that bound (hand edited project, command line) can drive
+    // maximum_move_distance close to the coord_t limit. Cap it before doubling to avoid overflow.
+    static constexpr const coord_t    max_sane_move_distance = scaled<coord_t>(10.);
+    const coord_t move_budget = std::min<coord_t>(config.maximum_move_distance, max_sane_move_distance);
+    coord_t merge_reach = std::min<coord_t>(2 * move_budget,
+        coord_t(ovalisation_slow_ratio * support_element_radius(config, bigger_rad.state)));
+    merge_reach = std::max<coord_t>(merge_reach, config.support_line_width / 2);
+    merge_reach = std::max<coord_t>(merge_reach, real_radius_delta - 2 * max_merge_delay_layers * move_budget);
+    // Never exceed the geometric "engulfed by the radius delta" limit this whole test is built on.
+    merge_reach = std::min(merge_reach, real_radius_delta);
     {
         // Testing intersection of bounding boxes.
         // Expand the smaller radius branch bounding box to match the lambda intersect_small_with_bigger() below.
@@ -1982,8 +2015,8 @@ static bool merge_influence_areas_two_elements(
         // is sufficient. On the other side, if a mitered offset was used by the lambda,
         // the bounding box expansion would have to account for the mitered extension of the sharp corners.
         Eigen::AlignedBox<coord_t, 2> smaller_bbox = smaller_rad.bbox();
-        smaller_bbox.min() -= Point{ real_radius_delta, real_radius_delta };
-        smaller_bbox.max() += Point{ real_radius_delta, real_radius_delta };
+        smaller_bbox.min() -= Point{ merge_reach, merge_reach };
+        smaller_bbox.max() += Point{ merge_reach, merge_reach };
         if (! smaller_bbox.intersects(bigger_rad.bbox()))
             return false;
     }
@@ -2033,10 +2066,10 @@ static bool merge_influence_areas_two_elements(
     // Remember that collision radius <= real radius as otherwise this assumption would be false.
     const coord_t   smaller_collision_radius    = support_element_collision_radius(config, smaller_rad.state);
     const Polygons &collision                   = volumes.getCollision(smaller_collision_radius, layer_idx - 1, use_min_radius);
-    auto            intersect_small_with_bigger = [real_radius_delta, smaller_collision_radius, &collision, &config](const Polygons &small, const Polygons &bigger) {
+    auto            intersect_small_with_bigger = [merge_reach, smaller_collision_radius, &collision, &config](const Polygons &small, const Polygons &bigger) {
         return intersection(
             safe_offset_inc(
-                small, real_radius_delta, collision,
+                small, merge_reach, collision,
                 // -3 avoids possible rounding errors
                 2 * (config.xy_distance + smaller_collision_radius - 3), 0, 0),
             bigger);
@@ -3422,8 +3455,28 @@ static std::pair<int, int> discretize_polygon(const Vec3f& center, const Polygon
     return { begin, int(pts.size()) };
 }
 
-// Returns Z span of the generated mesh. Generates one closed tube (bottom hemisphere,
-// bisector-normal section circles connected by zig-zag strips, top hemisphere) for the
+// End treatment of a tube piece. HemisphereMesh is the original closed cap.
+// FlatDisk is used at 61563 split joints: close the frustum in the section plane
+// without a polar hemisphere; the missing hemisphere is injected later as 2D slices.
+enum class TubeEndCap { HemisphereMesh, FlatDisk };
+
+// TREE_SUPPORT_SPLIT_CAP_MODE:
+//   analytic (default) — FlatDisk + hemisphere_slice_polygon() injection
+//   mesh               — 61563-style 3D hemispheres at split joints (no 2D inject)
+static bool split_cap_use_mesh_hemispheres()
+{
+    static const bool use_mesh = [] {
+        if (const char *env = std::getenv("TREE_SUPPORT_SPLIT_CAP_MODE")) {
+            const std::string v(env);
+            return v == "mesh" || v == "3d" || v == "Mesh" || v == "MESH";
+        }
+        return false;
+    }();
+    return use_mesh;
+}
+
+// Returns Z span of the generated mesh. Generates one closed tube (bottom cap,
+// bisector-normal section circles connected by zig-zag strips, top cap) for the
 // given continuous path. This is the original extrude_branch body, now a reusable piece
 // generator invoked by extrude_branch(), which may split a path into self-intersection-free
 // pieces before calling this.
@@ -3432,7 +3485,9 @@ static std::pair<float, float> extrude_branch_tube(
     const TreeSupportSettings               &config,
     const SlicingParameters                 &slicing_params,
     const std::vector<SupportElements>      &move_bounds,
-    indexed_triangle_set                    &result)
+    indexed_triangle_set                    &result,
+    TubeEndCap                               bottom_cap = TubeEndCap::HemisphereMesh,
+    TubeEndCap                               top_cap    = TubeEndCap::HemisphereMesh)
 {
     Vec3d p1, p2, p3;
     Vec3d v1, v2;
@@ -3441,8 +3496,7 @@ static std::pair<float, float> extrude_branch_tube(
     assert(path.size() >= 2);
     static constexpr const float eps = 0.015f;
     std::pair<int, int> prev_strip;
-    float zmin = 0;
-    float zmax = 0;
+    const size_t vertex_begin = result.vertices.size();
 
     for (size_t ipath = 1; ipath < path.size(); ++ ipath) {
         const SupportElement &prev    = *path[ipath - 1];
@@ -3453,48 +3507,56 @@ static std::pair<float, float> extrude_branch_tube(
         v1 = (p2 - p1).normalized();
         if (ipath == 1) {
             nprev = v1;
-            // Extrude the bottom half sphere.
-            float radius     = unscaled<float>(support_element_radius(config, prev));
-            float angle_step = 2. * acos(1. - eps / radius);
-            auto  nsteps     = int(ceil(M_PI / (2. * angle_step)));
-            angle_step       = M_PI / (2. * nsteps);
-            int   ifan       = int(result.vertices.size());
-            result.vertices.emplace_back((p1 - nprev * radius).cast<float>());
-            zmin = result.vertices.back().z();
-            float angle = angle_step;
+            float radius = unscaled<float>(support_element_radius(config, prev));
+            if (bottom_cap == TubeEndCap::FlatDisk) {
+                // Section-plane disk at p1; no polar vertices, so mesh Z stays inside the frustum.
+                int ifan = int(result.vertices.size());
+                result.vertices.emplace_back(p1.cast<float>());
+                prev_strip = discretize_circle(p1.cast<float>(), nprev.cast<float>(), radius, eps, result.vertices);
+                triangulate_fan<false>(result, ifan, prev_strip.first, prev_strip.second);
+            } else {
+                // Extrude the bottom half sphere.
+                float angle_step = 2. * acos(1. - eps / radius);
+                auto  nsteps     = int(ceil(M_PI / (2. * angle_step)));
+                angle_step       = M_PI / (2. * nsteps);
+                int   ifan       = int(result.vertices.size());
+                result.vertices.emplace_back((p1 - nprev * radius).cast<float>());
+                float angle = angle_step;
                 for (int i = 1; i < nsteps; ++i, angle += angle_step) {
-                std::pair<int, int> strip = discretize_circle((p1 - nprev * radius * cos(angle)).cast<float>(), nprev.cast<float>(), radius * sin(angle), eps, result.vertices);
+                    std::pair<int, int> strip = discretize_circle((p1 - nprev * radius * cos(angle)).cast<float>(), nprev.cast<float>(), radius * sin(angle), eps, result.vertices);
                     if (i == 1)
                         triangulate_fan<false>(result, ifan, strip.first, strip.second);
                     else
                         triangulate_strip(result, prev_strip.first, prev_strip.second, strip.first, strip.second);
-                    //                sprintf(fname, "d:\\temp\\meshes\\tree-partial-%d.obj", ++ irun);
-                    //                its_write_obj(result, fname);
                     prev_strip = strip;
+                }
             }
         }
         if (ipath + 1 == path.size()) {
             // End of the tube.
             ncurrent = v1;
-            // Extrude the top half sphere.
             float radius = unscaled<float>(support_element_radius(config, current));
-            float angle_step = 2. * acos(1. - eps / radius);
-            auto  nsteps = int(ceil(M_PI / (2. * angle_step)));
-            angle_step = M_PI / (2. * nsteps);
-            auto angle = float(M_PI / 2.);
+            if (top_cap == TubeEndCap::FlatDisk) {
+                std::pair<int, int> strip = discretize_circle(p2.cast<float>(), ncurrent.cast<float>(), radius, eps, result.vertices);
+                triangulate_strip(result, prev_strip.first, prev_strip.second, strip.first, strip.second);
+                int ifan = int(result.vertices.size());
+                result.vertices.emplace_back(p2.cast<float>());
+                triangulate_fan<true>(result, ifan, strip.first, strip.second);
+            } else {
+                // Extrude the top half sphere.
+                float angle_step = 2. * acos(1. - eps / radius);
+                auto  nsteps = int(ceil(M_PI / (2. * angle_step)));
+                angle_step = M_PI / (2. * nsteps);
+                auto angle = float(M_PI / 2.);
                 for (int i = 0; i < nsteps; ++i, angle -= angle_step) {
-                std::pair<int, int> strip = discretize_circle((p2 + ncurrent * radius * cos(angle)).cast<float>(), ncurrent.cast<float>(), radius * sin(angle), eps, result.vertices);
+                    std::pair<int, int> strip = discretize_circle((p2 + ncurrent * radius * cos(angle)).cast<float>(), ncurrent.cast<float>(), radius * sin(angle), eps, result.vertices);
                     triangulate_strip(result, prev_strip.first, prev_strip.second, strip.first, strip.second);
-                    //                sprintf(fname, "d:\\temp\\meshes\\tree-partial-%d.obj", ++ irun);
-                    //                its_write_obj(result, fname);
                     prev_strip = strip;
                 }
                 int ifan = int(result.vertices.size());
                 result.vertices.emplace_back((p2 + ncurrent * radius).cast<float>());
-                zmax = result.vertices.back().z();
                 triangulate_fan<true>(result, ifan, prev_strip.first, prev_strip.second);
-                //            sprintf(fname, "d:\\temp\\meshes\\tree-partial-%d.obj", ++ irun);
-                //            its_write_obj(result, fname);
+            }
         } else {
             const SupportElement &next = *path[ipath + 1];
             assert(current.state.layer_idx + 1 == next.state.layer_idx);
@@ -3505,11 +3567,18 @@ static std::pair<float, float> extrude_branch_tube(
             std::pair<int, int> strip = discretize_circle(p2.cast<float>(), ncurrent.cast<float>(), radius, eps, result.vertices);
             triangulate_strip(result, prev_strip.first, prev_strip.second, strip.first, strip.second);
             prev_strip = strip;
-//            sprintf(fname, "d:\\temp\\meshes\\tree-partial-%d.obj", ++irun);
-//            its_write_obj(result, fname);
         }
     }
 
+    // A tilted hemisphere reaches farther in Z than its axis pole. Compute the
+    // span from every generated vertex so callers slice the complete mesh.
+    assert(result.vertices.size() > vertex_begin);
+    float zmin =  std::numeric_limits<float>::max();
+    float zmax = -std::numeric_limits<float>::max();
+    for (size_t i = vertex_begin; i < result.vertices.size(); ++ i) {
+        zmin = std::min(zmin, result.vertices[i].z());
+        zmax = std::max(zmax, result.vertices[i].z());
+    }
     return std::make_pair(zmin, zmax);
 }
 
@@ -3547,15 +3616,24 @@ static bool section_circles_intersect(
 // intersect in 3D, the zig-zag triangulation self-folds and slicing drops that area
 // (a gap / missing slice in the sliced layers). In that case split the path at the
 // offending edges and emit each unsafe edge as a standalone closed capsule. Adjacent
-// pieces overlap at the shared node; the resulting overlapping (but valid, same-winding)
-// section contours are merged downstream by the non-zero fill clipping (diff_clipped /
-// intersection), same as the branch-to-branch endpoint overlaps in the original code.
+// pieces meet at a FlatDisk in the shared node's section plane; the missing hemispheres
+// are injected later as analytic 2D slices and merged by the downstream non-zero fill
+// clipping (diff_clipped / intersection), same as the original overlapping end-caps.
+// Split-joint hemisphere descriptors for analytic 2D injection.
+struct ExtrudeSplitCap {
+    Vec3d      center { Vec3d::Zero() };
+    Vec3d      normal { Vec3d::UnitZ() };
+    double     radius { 0. };
+    bool       is_bottom { false };
+};
+
 static std::pair<float, float> extrude_branch(
     const std::vector<const SupportElement*>&path,
     const TreeSupportSettings               &config,
     const SlicingParameters                 &slicing_params,
     const std::vector<SupportElements>      &move_bounds,
-    indexed_triangle_set                    &result)
+    indexed_triangle_set                    &result,
+    std::vector<ExtrudeSplitCap>            *split_caps = nullptr)
 {
     const size_t n = path.size();
     if (n < 3)
@@ -3593,20 +3671,48 @@ static std::pair<float, float> extrude_branch(
         return extrude_branch_tube(path, config, slicing_params, move_bounds, result);
 
     // Split into ordered pieces: maximal safe runs + isolated unsafe single-edge capsules.
-    // Adjacent pieces share the boundary node; their closed hemispheres overlap there and
-    // are merged by the downstream non-zero fill clipping (no 3D boolean needed).
+    // Adjacent pieces share the boundary node and close with FlatDisks there; analytic
+    // hemispheres are injected as 2D slices and merged by downstream clipping.
     float zmin =  std::numeric_limits<float>::max();
     float zmax = -std::numeric_limits<float>::max();
     std::vector<const SupportElement*> piece_path;
     indexed_triangle_set               piece_mesh;
+    // Original path ends keep a 3D hemisphere. Split joints: FlatDisk + later 2D
+    // inject (default), or HemisphereMesh when TREE_SUPPORT_SPLIT_CAP_MODE=mesh.
+    const bool                         mesh_caps = split_cap_use_mesh_hemispheres();
     auto emit_piece = [&](size_t begin, size_t end) {
         piece_path.assign(path.begin() + begin, path.begin() + end + 1);
         piece_mesh.clear();
+        const TubeEndCap bottom_cap = (begin > 0)
+            ? (mesh_caps ? TubeEndCap::HemisphereMesh : TubeEndCap::FlatDisk)
+            : TubeEndCap::HemisphereMesh;
+        const TubeEndCap top_cap = (end < n - 1)
+            ? (mesh_caps ? TubeEndCap::HemisphereMesh : TubeEndCap::FlatDisk)
+            : TubeEndCap::HemisphereMesh;
         const std::pair<float, float> span =
-            extrude_branch_tube(piece_path, config, slicing_params, move_bounds, piece_mesh);
+            extrude_branch_tube(piece_path, config, slicing_params, move_bounds, piece_mesh, bottom_cap, top_cap);
         zmin = std::min(zmin, span.first);
         zmax = std::max(zmax, span.second);
         its_merge(result, piece_mesh);
+        // Descriptors for analytic hemispheres at piece ends that are not the original path ends.
+        if (split_caps && end > begin) {
+            if (begin > 0) {
+                split_caps->push_back({
+                    node_pos[begin],
+                    (node_pos[begin + 1] - node_pos[begin]).normalized(),
+                    node_radius[begin],
+                    true
+                });
+            }
+            if (end < n - 1) {
+                split_caps->push_back({
+                    node_pos[end],
+                    (node_pos[end] - node_pos[end - 1]).normalized(),
+                    node_radius[end],
+                    false
+                });
+            }
+        }
     };
     size_t run_start = 0;
     for (size_t k = 0; k + 1 < n; ++ k)
@@ -4133,43 +4239,42 @@ void slice_branches(
 /*!
  * \brief Lightning-infill style pass for internal voids in the organic tree support.
  *
- * Organic tree branches print perimeters only (no infill). When branches union into a trunk during the
- * top-down draw pass, the trunk cross-section can develop an interior hole - a vertical void inside
- * otherwise solid support. Where such a void first appears over a solid column one layer below, the
- * newly hollowed area has nothing beneath it, so the support wall printed above sags ("internal floating").
+ * Organic tree branches print perimeters only (no infill). The stored cross-section polygons still look
+ * "solid", but their interiors are never extruded - so when branches merge and an interior hole suddenly
+ * appears, the new hole-rim sheath sits over air even if the filled polygon below covers that XY.
  *
  * This pass:
  *  1) Reconstructs the real solid cross-section per layer (union of the tree base with its top/
  *     bottom contacts, since intermediate_layers has had those subtracted and would otherwise show
  *     spurious holes).
- *  2) Detects newly opened interior holes in an area window (~0.02-50 mm^2):
- *         overhang[L] = intersection(diff(holes[L], holes[L-1]), solid[L-1])
- *  3) Feeds those voids to FillLightning::Generator with the same-layer cross-section (holes included)
- *     as the grounding contour, so each void can ground onto the surrounding support ring.
- *  4) Turns the generated lines into thin strips, clips them against the zero-radius model collision,
- *     and stores them in lightning_infill_areas. They are NOT merged into intermediate_layers: the organic
- *     tree base is toolpathed sheath-only (hollow), so generate_support_toolpaths() emits these strips
- *     as real interior support extrusions (ipRectilinear at density 1.0). The Lightning Generator only
- *     decides where to ground; the final toolpath pattern is solid rectilinear, not lightning.
+ *  2) Detects floating sheath (first unsupported printable wall of an internal feature):
+ *         overhang[L] = sheath[L] - offset(sheath[L-1], layer_height tolerance)
+ *     clipped to the interior of the outer contours (so trunk diameter growth is ignored) and
+ *     thickened slightly into the adjacent void for DistanceField sampling. This catches both a
+ *     newly opened void rim and nested islands that appear later inside an already-open void
+ *     (diff(holes[L], holes[L-1]) is empty there because the child is a subset of the parent).
+ *     Continuing hole-over-hole rims rest on the rim below and are not fed again.
+ *  3) Feeds those overhangs to FillLightning::Generator so trees grow downward through the void
+ *     and ground onto the surrounding support ring. Same-layer hole interiors are not filled solid;
+ *     the lightning network is only a vertical scaffold under the floating sheath.
+ *  4) Clips the generated lines to the filled branch footprint minus the model collision (so the
+ *     network can run inside a merge void, but not inside the part), drops sub-mm stubs, chains the
+ *     rest and stores them in lightning_infill_lines. They are NOT merged into intermediate_layers.
+ *     generate_support_toolpaths() looks them up by the compacted intermediate-layer index
+ *     (print_z), not by support_layer_id.
  *
- * Always enabled for organic trees (no separate config). Full adaptation of support_base_pattern for
- * whole-base organic fill is a separate concern.
+ * Always enabled for organic trees (no separate config).
  *
- * Because every void lies inside its own cross-section, the lightning DistanceField always terminates.
- * This runs after organic_draw_branches() (which already called volumes.clear_all_but_object_collision()),
- * therefore only the radius-0 collision cache and m_bed_area are relied upon here.
- *
- * Define LIGHTNING_INFILL_DEBUG (see top of this file) to enable diagnostics:
- * BOOST_LOG info summaries plus SVG exports under debug_out_path() ({data_dir}/SVG/).
+ * Define LIGHTNING_INFILL_DEBUG (see top of this file) to enable diagnostics.
  */
 static void organic_lightning_infill(
     PrintObject                     &print_object,
-    TreeModelVolumes                &volumes,
+    const TreeModelVolumes          &volumes,
     const TreeSupportSettings       &config,
     SupportGeneratorLayersPtr       &bottom_contacts,
     SupportGeneratorLayersPtr       &top_contacts,
     SupportGeneratorLayersPtr       &intermediate_layers,
-    std::vector<ExPolygons>         &lightning_infill_areas,
+    std::vector<Polylines>          &lightning_infill_lines,
     std::function<void()>            throw_on_cancel)
 {
     const size_t num_layers = intermediate_layers.size();
@@ -4177,13 +4282,17 @@ static void organic_lightning_infill(
         return;
 
     const coord_t line_width = config.support_line_width;
-    // Scaled^2 area per 1 mm^2, used to express the hole-area window in real units.
+    // Scaled^2 area per 1 mm^2, used to express the feed-area window in real units.
     const double  area_scaled_per_mm2 = sqr(scaled<double>(1.));
-    // Hole-area acceptance window for the internal-void ("floating") detection. A support cross-section
-    // hole smaller than this is extrusion noise; larger than this is a genuine gap rather than the thin
-    // hollowing this pass repairs. Defaults ~0.02 - 50 mm^2 for newly opened holes over solid support.
-    const double  min_hole_area = 0.02 * area_scaled_per_mm2;
-    const double  max_hole_area = 50.0 * area_scaled_per_mm2;
+    // Feed-area acceptance window for floating-sheath pieces and the void polygons that bound them.
+    // Smaller than this is extrusion noise; larger than this is a genuine gap between separate branches
+    // rather than a merge void.
+    const double  min_feed_area = 0.02 * area_scaled_per_mm2;
+    const double  max_feed_area = 50.0 * area_scaled_per_mm2;
+
+#ifdef LIGHTNING_INFILL_DEBUG
+    LIGHTNING_DBG("Lightning infill start. num_layers=" << num_layers);
+#endif
 
     // Per-layer grounding contours (the full solid support cross-section, holes included) and the
     // internal-void overhang to fill.
@@ -4209,14 +4318,14 @@ static void organic_lightning_infill(
         append(s, roof_at(layer_idx));
         return union_ex(s);
     };
-    // Interior holes of a cross-section, returned as positively-oriented region polygons and filtered to
-    // the hole-area window. These are candidate internal voids that may float when newly opened.
+    // Interior holes of a cross-section within the acceptance window, returned as positively-oriented
+    // region polygons. Used to bound lightning seeds to void interiors when thickening floating sheath.
     auto holes_of = [&](const ExPolygons &expolys) -> Polygons {
         Polygons out;
         for (const ExPolygon &ep : expolys)
             for (const Polygon &h : ep.holes) {
                 const double a = std::abs(h.area());
-                if (a < min_hole_area || a > max_hole_area)
+                if (a < min_feed_area || a > max_feed_area)
                     continue;
                 Polygon p = h;
                 p.make_counter_clockwise();
@@ -4224,14 +4333,6 @@ static void organic_lightning_infill(
             }
         return out;
     };
-    // The filled outer boundary of a cross-section (holes removed): the solid support material footprint.
-    auto solid_of = [&](const ExPolygons &expolys) -> Polygons {
-        Polygons out;
-        for (const ExPolygon &ep : expolys)
-            out.emplace_back(ep.contour);
-        return union_(out);
-    };
-
     // Per-layer solid cross-section (ExPolygons) reused by both the contour and the detection below.
     // contours[L] carries the outer boundary and the hole rims, so a hole-interior overhang sample
     // grounds onto the surrounding support ring (Layer::getBestGroundingLocation scans every ring).
@@ -4243,44 +4344,120 @@ static void organic_lightning_infill(
     }
 
     // ---- Internal-void ("floating") detection -------------------------------------------------------
-    // For every layer L>=1 take the interior holes of the solid cross-section and keep the part that sits
-    // directly over solid support material one layer below:
-    //     overhang[L] = intersection( diff(holes[L], holes[L-1]), solid[L-1] )
-    // diff(holes[L], holes[L-1]) drops voids that merely continue a void already open below (so a cavity
-    // is only handled where it is newly opened), and intersecting with solid[L-1] guarantees the removed
-    // material had a solid column beneath it (voids reaching down to the plate are left alone). Because
-    // every kept region lies inside the cross-section, its samples fall within contours[L]'s bounding
-    // box, so the lightning DistanceField always terminates (no hang).
+    // Organic trunks print a sheath only (outer contour + hole rims). The filled support_ex is a lie
+    // about what is extruded, so "hole opened over solid_of(below)" is the wrong test.
+    //
+    // Correct feed: printable sheath on this layer that is not reached by the sheath below within one
+    // layer-height of lateral tolerance. That catches
+    //   - the first rim of a newly opened void,
+    //   - nested islands / rings that appear later inside an already-open void
+    //     (diff(holes[L], holes[L-1]) is empty for those - the child is a subset of the parent hole,
+    //      and lightning from the parent's earlier feed only exists at/below that feed layer).
+    // Continuing hole-over-hole rims rest on the rim below and produce an empty feed.
+    // Ordinary trunk diameter growth is excluded by intersecting with an inset of the outer contours.
+    const float half_line_width = float(0.5 * line_width);
+    // Fallback when a support layer has no height recorded (e.g. empty placeholder). Prefer the
+    // support layer's own height below so independent_support_layer_height stays accurate.
+    const float fallback_support_tolerance = float(scaled<double>(print_object.config().layer_height.value));
+    auto sheath_of = [&](const ExPolygons &expolys) -> Polygons {
+        if (expolys.empty())
+            return {};
+        return diff(offset(expolys, half_line_width), offset(expolys, -half_line_width));
+    };
+    auto layer_support_tolerance = [&](size_t layer_idx) -> float {
+        if (layer_idx < intermediate_layers.size() && intermediate_layers[layer_idx] &&
+            intermediate_layers[layer_idx]->height > EPSILON)
+            return float(scaled<double>(intermediate_layers[layer_idx]->height));
+        return fallback_support_tolerance;
+    };
 #ifdef LIGHTNING_INFILL_DEBUG
     // Areas are reported in mm^2. SCALING_FACTOR is 1e-5 here, so area scale is 1e10.
     auto to_mm2 = [](double a) -> double { return a * 1e-10; };
-    double dbg_new_hole_area = 0.; int dbg_new_hole_layers = 0;
+    double dbg_feed_area = 0.; int dbg_feed_layers = 0;
 #endif
+    // sheath[L] is sheath_below for layer L+1; keep the previous result instead of recomputing.
+    Polygons sheath_below;
     for (size_t layer_idx = 1; layer_idx < num_layers; ++ layer_idx) {
         throw_on_cancel();
-        Polygons holes_here = holes_of(support_ex[layer_idx]);
-        if (holes_here.empty())
+        Polygons sheath_here = sheath_of(support_ex[layer_idx]);
+        if (sheath_here.empty()) {
+            sheath_below.clear();
             continue;
+        }
+        if (layer_idx == 1 || sheath_below.empty())
+            sheath_below = sheath_of(support_ex[layer_idx - 1]);
+        const float support_tolerance = layer_support_tolerance(layer_idx);
+        Polygons floating = sheath_below.empty()
+            ? sheath_here
+            : diff(sheath_here, offset(sheath_below, support_tolerance));
+        sheath_below = std::move(sheath_here);
+        if (floating.empty())
+            continue;
+
+        // Drop outer-wall growth: keep only floating sheath inside the branch. An empty inset means every
+        // branch on this layer is thinner than two line widths and has no interior to seed into, so the
+        // layer is rejected rather than let through with the outer sheath unfiltered.
+        Polygons branch_interior;
+        for (const ExPolygon &ep : support_ex[layer_idx]) {
+            ExPolygons inset = offset_ex(ExPolygons{ ExPolygon(ep.contour) }, -float(line_width));
+            append(branch_interior, to_polygons(inset));
+        }
+        if (branch_interior.empty())
+            continue;
+        floating = intersection(floating, union_(branch_interior));
+        if (floating.empty())
+            continue;
+
+        // Apply the feed-area window to floating sheath pieces before thickening. Thickening can merge
+        // several valid rims into one polygon larger than max_feed_area; re-applying max afterwards
+        // would drop that whole feed. After thickening only discard crumbs below min_feed_area.
+        {
+            Polygons filtered_floating;
+            filtered_floating.reserve(floating.size());
+            for (Polygon &p : floating) {
+                const double a = std::abs(p.area());
+                if (a < min_feed_area || a > max_feed_area)
+                    continue;
+                filtered_floating.emplace_back(std::move(p));
+            }
+            floating = std::move(filtered_floating);
+            if (floating.empty())
+                continue;
+        }
+
+        // Thicken the unsupported rim slightly into the adjacent void so DistanceField gets enough
+        // samples; clip to this layer's holes (and holes below) so we never seed outside the void.
+        Polygons holes_here  = holes_of(support_ex[layer_idx]);
         Polygons holes_below = holes_of(support_ex[layer_idx - 1]);
-        Polygons newly_opened = holes_below.empty() ? holes_here : diff(holes_here, holes_below);
-        if (newly_opened.empty())
+        Polygons void_region = union_(holes_here, holes_below);
+        Polygons feed        = floating;
+        if (! void_region.empty())
+            feed = union_(floating, intersection(offset(floating, float(line_width)), void_region));
+
+        Polygons filtered;
+        filtered.reserve(feed.size());
+        for (Polygon &p : feed) {
+            if (std::abs(p.area()) < min_feed_area)
+                continue;
+            filtered.emplace_back(std::move(p));
+        }
+        if (filtered.empty())
             continue;
-        Polygons solid_below = solid_of(support_ex[layer_idx - 1]);
-        if (solid_below.empty())
-            continue;
-        Polygons overhang = intersection(newly_opened, solid_below);
-        if (overhang.empty() || area(overhang) < min_hole_area)
-            continue;
+        lightning_overhangs[layer_idx] = std::move(filtered);
 #ifdef LIGHTNING_INFILL_DEBUG
-        dbg_new_hole_area += area(overhang); ++ dbg_new_hole_layers;
+        dbg_feed_area += area(lightning_overhangs[layer_idx]); ++ dbg_feed_layers;
+        LIGHTNING_DBG("[LIGHTNING-DETECT] layer=" << layer_idx
+            << " z=" << (intermediate_layers[layer_idx] ? intermediate_layers[layer_idx]->print_z : 0.)
+            << " floating_sheath(mm2)=" << to_mm2(area(floating))
+            << " fed(mm2)=" << to_mm2(area(lightning_overhangs[layer_idx]))
+            << " status=FED");
 #endif
-        append(lightning_overhangs[layer_idx], std::move(overhang));
     }
 
 #ifdef LIGHTNING_INFILL_DEBUG
-    BOOST_LOG_TRIVIAL(info) << "Lightning infill newly-opened hole detection done. num_layers=" << num_layers
-        << " hole_area_window(mm2)=[" << to_mm2(min_hole_area) << "," << to_mm2(max_hole_area) << "]"
-        << " new_hole_layers=" << dbg_new_hole_layers << " new_hole_area(mm2)=" << to_mm2(dbg_new_hole_area);
+    LIGHTNING_DBG("Lightning infill floating-sheath detection done. num_layers=" << num_layers
+        << " feed_area_window(mm2)=[" << to_mm2(min_feed_area) << "," << to_mm2(max_feed_area) << "]"
+        << " feed_layers=" << dbg_feed_layers << " feed_area(mm2)=" << to_mm2(dbg_feed_area));
 #endif
 
     // Critical safety clamp: the lightning DistanceField samples the overhang but erases supported
@@ -4315,19 +4492,19 @@ static void organic_lightning_infill(
             if (intermediate_layers[layer_idx])
                 dbg_max_fed_z = std::max(dbg_max_fed_z, intermediate_layers[layer_idx]->print_z);
             const double z = intermediate_layers[layer_idx] ? intermediate_layers[layer_idx]->print_z : 0.;
-            SVG::export_expolygons(debug_out_path("lightning_infill_new_hole_%d_%.2f.svg", int(layer_idx), z), {
+            SVG::export_expolygons(debug_out_path("lightning_infill_void_feed_%d_%.2f.svg", int(layer_idx), z), {
                 { support_ex[layer_idx], { "support", "gray", 0.5f } },
-                { union_ex(lightning_overhangs[layer_idx]), { "newly_opened", "red", 0.5f } }
+                { union_ex(lightning_overhangs[layer_idx]), { "feed", "red", 0.5f } }
             });
         }
-        BOOST_LOG_TRIVIAL(info) << "Lightning infill after bbox-clip: fed_layers=" << fed_layers
-            << " fed_area(mm2)=" << to_mm2(dbg_fed_area) << " max_fed_z(mm)=" << dbg_max_fed_z;
+        LIGHTNING_DBG("Lightning infill after bbox-clip: fed_layers=" << fed_layers
+            << " fed_area(mm2)=" << to_mm2(dbg_fed_area) << " max_fed_z(mm)=" << dbg_max_fed_z);
     }
 #endif
 
     if (fed_layers == 0) {
 #ifdef LIGHTNING_INFILL_DEBUG
-        BOOST_LOG_TRIVIAL(info) << "Lightning infill: nothing to fill, returning.";
+        LIGHTNING_DBG("Lightning infill: nothing to fill, returning.");
 #endif
         return;
     }
@@ -4342,66 +4519,352 @@ static void organic_lightning_infill(
 
     FillLightning::Generator generator(&print_object, contours, lightning_overhangs, throw_on_cancel, float(density));
 
-    // Clip the generated lines to a valid outline. intersection_pl() drops everything against an empty
-    // limit, so fall back to a generous bounding box when the bed polygon is unavailable.
-    Polygons line_limit;
-    if (volumes.m_bed_area.is_valid())
-        line_limit = Polygons{ volumes.m_bed_area };
-    else {
-        BoundingBox bb;
-        for (const Polygons &c : contours)
-            bb.merge(get_extents(c));
-        for (const Polygons &o : lightning_overhangs)
-            bb.merge(get_extents(o));
-        if (bb.defined) {
-            bb.offset(scaled<coord_t>(10.));
-            line_limit = Polygons{ bb.polygon() };
-        }
-    }
-
-    // Store the generated lightning strips per layer as fill regions. They are NOT merged into
-    // intermediate_layers here: the organic tree base is toolpathed sheath-only (hollow), so an area
-    // merge would never be printed as interior support. generate_support_toolpaths turns these regions
-    // into real infill extrusions inside the branch, closing the internal void the tree could not.
-    if (lightning_infill_areas.size() < num_layers)
-        lightning_infill_areas.resize(num_layers);
+    // Store the generated lightning network per layer as polylines, the same way the hybrid tree does
+    // (TreeSupport::generate_toolpaths). They are NOT merged into intermediate_layers: the organic tree
+    // base is toolpathed sheath-only (hollow), so an area merge would never be printed as interior
+    // support. generate_support_toolpaths extrudes these polylines directly inside the branch.
+    //
+    // Turning the lines into strips and refilling them with a rectilinear filler instead is what
+    // produced the long straight lines: the filler rasterises the whole strip cluster and, with an
+    // unbounded link_max_length, joins raster ends across the entire cluster.
+    if (lightning_infill_lines.size() < num_layers)
+        lightning_infill_lines.resize(num_layers);
+    // Anything shorter than this is a stub at a branch tip that costs a travel move and supports nothing.
+    const double min_line_length = scaled<double>(1.);
 #ifdef LIGHTNING_INFILL_DEBUG
-    int    dbg_line_layers = 0, dbg_fill_layers = 0;
-    size_t dbg_total_lines = 0;
-    double dbg_fill_area = 0.;
+    int    dbg_line_layers = 0, dbg_kept_layers = 0;
+    size_t dbg_total_lines = 0, dbg_kept_lines = 0;
+    double dbg_kept_length = 0.;
 #endif
     for (size_t layer_idx = 0; layer_idx < num_layers; ++ layer_idx) {
         throw_on_cancel();
-        const FillLightning::Layer &lightning_layer = generator.getTreesForLayer(layer_idx);
-        Polylines lines = lightning_layer.convertToLines(line_limit, 0);
-        if (lines.empty())
+        // Clip to this layer's filled branch footprint minus the model. Filling the holes is required:
+        // that is where the grounding network has to run, and clipping against the holed cross-section
+        // would delete it. Subtracting the radius-0 min_xy collision then drops any path that would
+        // land inside the part (a hole that is the model's silhouette, not a merge void), without
+        // eating wall-hugging min_xy sheath. Same getCollision(0, layer, true) trim as
+        // organic_draw_branches uses on its slices.
+        // Shrink by half a line width so the extrusion axis stays inside the sheath.
+        Polygons footprint;
+        for (const ExPolygon &ep : support_ex[layer_idx])
+            footprint.emplace_back(ep.contour);
+        footprint = offset(union_(footprint), -half_line_width);
+        if (! footprint.empty())
+            footprint = diff_clipped(footprint, volumes.getCollision(0, layer_idx, true));
+        if (footprint.empty())
             continue;
+
+        const FillLightning::Layer &lightning_layer = generator.getTreesForLayer(layer_idx);
+        Polylines lines = lightning_layer.convertToLines(footprint, 0);
+        if (lines.empty()) {
+#ifdef LIGHTNING_INFILL_DEBUG
+            LIGHTNING_DBG("[LIGHTNING-EMIT] layer=" << layer_idx
+                << " z=" << (intermediate_layers[layer_idx] ? intermediate_layers[layer_idx]->print_z : 0.)
+                << " fed_overhang(mm2)=" << to_mm2(area(lightning_overhangs[layer_idx]))
+                << " convertToLines=empty");
+#endif
+            continue;
+        }
 #ifdef LIGHTNING_INFILL_DEBUG
         ++ dbg_line_layers; dbg_total_lines += lines.size();
 #endif
-        Polygons cols = offset(lines, float(0.5 * line_width));
-        if (cols.empty())
+        lines.erase(std::remove_if(lines.begin(), lines.end(),
+                                   [min_line_length](const Polyline &pl) { return pl.length() < min_line_length; }),
+                    lines.end());
+        if (lines.empty())
             continue;
-        // Never let the supplement cross the printed part.
-        cols = diff_clipped(cols, volumes.getCollision(0, LayerIndex(layer_idx), false));
-        if (cols.empty())
-            continue;
-        lightning_infill_areas[layer_idx] = union_ex(cols);
+
+        lightning_infill_lines[layer_idx] = chain_polylines(std::move(lines));
 #ifdef LIGHTNING_INFILL_DEBUG
-        ++ dbg_fill_layers; dbg_fill_area += area(cols);
+        ++ dbg_kept_layers; dbg_kept_lines += lightning_infill_lines[layer_idx].size();
+        double len = 0.;
+        for (const Polyline &pl : lightning_infill_lines[layer_idx])
+            len += pl.length();
+        dbg_kept_length += len;
+        LIGHTNING_DBG("[LIGHTNING-EMIT] layer=" << layer_idx
+            << " z=" << (intermediate_layers[layer_idx] ? intermediate_layers[layer_idx]->print_z : 0.)
+            << " fed_overhang(mm2)=" << to_mm2(area(lightning_overhangs[layer_idx]))
+            << " kept_lines=" << lightning_infill_lines[layer_idx].size()
+            << " kept_length(mm)=" << unscaled<double>(len));
         const double z = intermediate_layers[layer_idx] ? intermediate_layers[layer_idx]->print_z : 0.;
         SVG::export_expolygons(debug_out_path("lightning_infill_fill_%d_%.2f.svg", int(layer_idx), z), {
             { support_ex[layer_idx], { "support", "gray", 0.5f } },
-            { lightning_infill_areas[layer_idx], { "fill", "blue", 0.5f } }
+            { union_ex(offset(lightning_infill_lines[layer_idx], half_line_width)), { "fill", "blue", 0.5f } }
         });
 #endif
     }
 #ifdef LIGHTNING_INFILL_DEBUG
-    BOOST_LOG_TRIVIAL(info) << "Lightning infill generation done. line_layers=" << dbg_line_layers
+    LIGHTNING_DBG("Lightning infill generation done. line_layers=" << dbg_line_layers
         << " total_lines=" << dbg_total_lines
-        << " fill_layers=" << dbg_fill_layers
-        << " fill_area(mm2)=" << to_mm2(dbg_fill_area);
+        << " kept_layers=" << dbg_kept_layers
+        << " kept_lines=" << dbg_kept_lines
+        << " kept_length(mm)=" << unscaled<double>(dbg_kept_length));
+
+    // Approximate the material that is actually printable on each organic base layer: the sheath
+    // around the support contours plus lightning strips clipped to the filled outer footprint. Then
+    // report material that is not reached by the layer below within one layer-height of lateral
+    // tolerance. This is a diagnostic approximation; contact/interface toolpaths are emitted later
+    // and are not included here.
+    {
+        std::vector<ExPolygons> printed_areas(num_layers);
+        double total_printed_area = 0.;
+        double total_floating_area = 0.;
+        int floating_layers = 0;
+
+        for (size_t layer_idx = 0; layer_idx < num_layers; ++ layer_idx) {
+            const ExPolygons outer_band = offset_ex(support_ex[layer_idx], half_line_width);
+            const ExPolygons inner_area = offset_ex(support_ex[layer_idx], -half_line_width);
+            Polygons printed = to_polygons(diff_ex(to_polygons(outer_band), to_polygons(inner_area)));
+
+            if (! lightning_infill_lines[layer_idx].empty())
+                append(printed, offset(lightning_infill_lines[layer_idx], half_line_width));
+
+            printed_areas[layer_idx] = union_ex(printed);
+            total_printed_area += area(printed_areas[layer_idx]);
+            if (layer_idx == 0 || printed_areas[layer_idx].empty())
+                continue;
+
+            const ExPolygons supported_from_below = offset_ex(printed_areas[layer_idx - 1], layer_support_tolerance(layer_idx));
+            ExPolygons floating = diff_ex(to_polygons(printed_areas[layer_idx]), to_polygons(supported_from_below));
+            const double floating_area = area(floating);
+            if (floating_area <= 0.)
+                continue;
+
+            ++ floating_layers;
+            total_floating_area += floating_area;
+            const double z = intermediate_layers[layer_idx] ? intermediate_layers[layer_idx]->print_z : 0.;
+            LIGHTNING_DBG("[LIGHTNING-FLOATING-DIAG] layer=" << layer_idx
+                << " z=" << z
+                << " printed_area(mm2)=" << to_mm2(area(printed_areas[layer_idx]))
+                << " floating_area(mm2)=" << to_mm2(floating_area));
+            SVG::export_expolygons(debug_out_path("lightning_infill_floating_%d_%.2f.svg", int(layer_idx), z), {
+                { printed_areas[layer_idx], { "printed", "gray", 0.5f } },
+                { floating, { "floating", "red", 0.7f } }
+            });
+        }
+
+        LIGHTNING_DBG("[LIGHTNING-FLOATING-DIAG] summary"
+            << " floating_layers=" << floating_layers
+            << " total_printed_area(mm2)=" << to_mm2(total_printed_area)
+            << " total_floating_area(mm2)=" << to_mm2(total_floating_area));
+    }
 #endif
+}
+
+/*!
+ * \brief Close floating organic support faces left by model intrusion.
+ *
+ * After organic_draw_branches(), a model part may poke into a trunk. The overhang
+ * detector puts a roof (interface) under that intruding underside, and the roof ends
+ * up in the middle of the trunk cross section. The trunk polygon is a full disc, but
+ * tree_supports_generate_paths() prints it sheath-only, so the disc interior is air:
+ * the roof is a ceiling over a void even though every polygon test says it is covered.
+ *
+ * Support below a layer is therefore measured on printed material - the sheath wall
+ * band of the base plus the solid interfaces - not on the base polygon. Lightning
+ * void caps are a separate channel and are not consulted here. A thin branch is fully
+ * covered by its own wall band and never triggers.
+ *
+ * This pass:
+ *  1) Takes only the ceiling that sits over the hollow interior of the trunk (roof clipped
+ *     to the trunk core). That is the part the model punched into; the sheath rim and the
+ *     areas held by other branch tips are excluded. Normal tips are kept out by two gates:
+ *     the trunk must extend beyond the roof (a tip has its whole top covered), and a probe
+ *     above the top Z gap must find the trunk carrying on past the face.
+ *  2) Drops that footprint layer by layer, clipped against model collision and the bed.
+ *     At each layer the part overlapping printed material (a bent branch pipe, a solid
+ *     tip, a bottom contact / flange) is subtracted and stops there; the remainder keeps
+ *     descending. With no pipe underneath it runs all the way to the tree bottom / bed.
+ *  3) Unions each layer of the support column into intermediate_layers (so the sheath and
+ *     the SupportCommon intersection at toolpath time keep it) and into floating_column_areas.
+ */
+static void organic_support_floating_faces(
+    PrintObject                     &print_object,
+    TreeModelVolumes                &volumes,
+    const TreeSupportSettings       &config,
+    SupportGeneratorLayersPtr       &bottom_contacts,
+    SupportGeneratorLayersPtr       &top_contacts,
+    SupportGeneratorLayersPtr       &intermediate_layers,
+    SupportGeneratorLayerStorage    &layer_storage,
+    std::vector<ExPolygons>         &floating_column_areas,
+    std::function<void()>            throw_on_cancel)
+{
+    const size_t num_layers = intermediate_layers.size();
+    if (num_layers < 2 || top_contacts.empty())
+        return;
+
+    const double area_scaled_per_mm2 = sqr(scaled<double>(1.));
+    // Ignore sub-extrusion noise; same order as organic_lightning_infill's hole floor.
+    const double min_area = 0.02 * area_scaled_per_mm2;
+    // One extrusion width: sheath band thickness, seating tolerance and sliver filter.
+    const float  line_w = float(std::max<coord_t>(config.support_line_width, scaled<coord_t>(0.1)));
+    // A column stands on printed material at the same layer if it is within ~45 degrees of it.
+    const float  land_tol = float(std::max(config.layer_height, coord_t(1)));
+
+    // Empty fallback so the accessors can hand back a reference for missing layers
+    // instead of copying a whole layer of polygons on every lookup.
+    static const Polygons s_no_polygons;
+    auto base_at = [&](size_t layer_idx) -> const Polygons & {
+        return (layer_idx < num_layers && intermediate_layers[layer_idx]) ? intermediate_layers[layer_idx]->polygons : s_no_polygons;
+    };
+    auto roof_at = [&](size_t layer_idx) -> const Polygons & {
+        return (layer_idx < top_contacts.size() && top_contacts[layer_idx]) ? top_contacts[layer_idx]->polygons : s_no_polygons;
+    };
+    auto bottom_at = [&](size_t layer_idx) -> const Polygons & {
+        return (layer_idx < bottom_contacts.size() && bottom_contacts[layer_idx]) ? bottom_contacts[layer_idx]->polygons : s_no_polygons;
+    };
+
+    // Per-layer column polygons accumulated across all feet, committed after the scan.
+    std::vector<Polygons> column_layers(num_layers);
+
+    // Material actually extruded on a layer: the sheath band of the base (its interior is
+    // air) plus the solid interfaces. Cached, it is rescanned per foot. Lightning strips
+    // are ignored here - they are a separate fill channel, not part of intrusion detection.
+    std::vector<Polygons> printed_static_cache(num_layers);
+    std::vector<char>     printed_static_valid(num_layers, 0);
+    auto printed_static_at = [&](size_t layer_idx) -> const Polygons & {
+        if (! printed_static_valid[layer_idx]) {
+            Polygons printed;
+            const Polygons &base = base_at(layer_idx);
+            if (! base.empty()) {
+                Polygons core = offset(base, - line_w);
+                // Thin branch: wall fills the disc - treat the whole disc as solid pipe.
+                // Thick trunk: only the sheath ring is printed; the core is air.
+                append(printed, core.empty() ? base : diff(base, core));
+            }
+            append(printed, bottom_at(layer_idx));
+            append(printed, roof_at(layer_idx));
+            printed_static_cache[layer_idx] = printed.empty() ? printed : union_(printed);
+            printed_static_valid[layer_idx] = 1;
+        }
+        return printed_static_cache[layer_idx];
+    };
+    // Same, plus support columns already committed by earlier feet. Cached and dirtied
+    // when column_layers grows so the drop loop does not re-union every call.
+    std::vector<Polygons> printed_dyn_cache(num_layers);
+    std::vector<char>     printed_dyn_dirty(num_layers, 1);
+    auto printed_at = [&](size_t layer_idx) -> const Polygons & {
+        if (printed_dyn_dirty[layer_idx]) {
+            Polygons printed = printed_static_at(layer_idx);
+            if (! column_layers[layer_idx].empty()) {
+                append(printed, column_layers[layer_idx]);
+                printed = union_(printed);
+            }
+            printed_dyn_cache[layer_idx] = std::move(printed);
+            printed_dyn_dirty[layer_idx] = 0;
+        }
+        return printed_dyn_cache[layer_idx];
+    };
+
+    for (size_t layer_idx = 1; layer_idx < num_layers; ++ layer_idx) {
+        throw_on_cancel();
+
+        const Polygons &roof = roof_at(layer_idx);
+        if (roof.empty() || area(roof) < min_area)
+            continue;
+
+        const Polygons &trunk_below = base_at(layer_idx - 1);
+        if (trunk_below.empty())
+            continue;
+
+        // Cheapest high-yield gate first: not a branch tip. The trunk must extend beyond the
+        // ceiling - a tip has its whole top covered by the roof, while a through-going branch
+        // the model intruded still has trunk outside the face. Ordinary tips die here before
+        // any offset / intersection is spent on them.
+        if (area(diff(trunk_below, roof)) < min_area)
+            continue;
+
+        // The hollow trunk core one layer down. A ceiling reaching it is an interior face.
+        Polygons trunk_core = offset(trunk_below, - line_w);
+        if (trunk_core.empty())
+            continue;
+
+        // The valve face is only the ceiling sitting over the hollow interior of the trunk -
+        // the part the model punched into. The rest of a top_contact is carried by the sheath
+        // rim or by other branch tips, so it is deliberately excluded. Clipping to the core
+        // (not to the whole trunk) drops the sheath band, which is already printed.
+        Polygons foot = intersection(roof, trunk_core);
+        if (foot.empty() || area(foot) < min_area)
+            continue;
+
+        // What the material below leaves uncarried. Gates the pass - a ceiling already carried
+        // by printed material below needs nothing. Overlap is subtracted per layer on emit.
+        const Polygons &printed_below = printed_at(layer_idx - 1);
+        Polygons unsupported = printed_below.empty() ? foot : diff(foot, printed_below);
+        if (unsupported.empty() || area(unsupported) < min_area)
+            continue;
+
+        // The model punched through the trunk, so the branch wraps around it and carries on:
+        // base is still there above the top Z gap. An ordinary branch tip has nothing above.
+        const size_t probe_idx = layer_idx + config.z_distance_top_layers + 2;
+        if (probe_idx >= num_layers || intersection(offset(foot, line_w), base_at(probe_idx)).empty())
+            continue;
+
+        // Drop until every piece of the footprint has landed on a pipe / bottom contact /
+        // bed flange, or until layer 0. Overlap with printed material at the current layer
+        // is subtracted (lands on that pipe); the remainder keeps falling toward the plate.
+        // Start from the uncarried part - the material below layer_idx-1 already holds the rest.
+        Polygons need = std::move(unsupported);
+        for (LayerIndex k = 1; LayerIndex(layer_idx) >= k; ++ k) {
+            if ((k & 15) == 15)
+                throw_on_cancel();
+
+            const size_t below = size_t(LayerIndex(layer_idx) - k);
+            // Trim collision to the local footprint bbox before the clipper diff.
+            const BoundingBox need_bb = get_extents(need).inflated(SCALED_EPSILON);
+            Polygons collision = ClipperUtils::clip_clipper_polygons_with_subject_bbox(
+                volumes.getCollision(0, LayerIndex(below), false), need_bb);
+            Polygons column = diff_clipped(need, collision);
+            if (volumes.m_bed_area.is_valid())
+                column = intersection(column, Polygons{ volumes.m_bed_area });
+            if (column.empty() || area(column) < min_area)
+                break;
+
+            // Emit only the part that is not already solid at this layer (avoid double-fill
+            // over an existing pipe wall / bottom contact).
+            const Polygons &printed_here = printed_at(below);
+            Polygons emit = printed_here.empty() ? column : diff(column, printed_here);
+            if (! emit.empty() && area(emit) >= min_area) {
+                append(column_layers[below], emit);
+                printed_dyn_dirty[below] = 1;
+            }
+
+            if (below == 0)
+                break;
+
+            // Soft land on a bent pipe / sheath / bottom contact: subtract the overlap
+            // (printed_here already includes bottom contacts), keep the free part.
+            need = printed_here.empty() ? std::move(column) : diff(column, offset(printed_here, land_tol));
+            if (need.empty() || area(need) < min_area)
+                break;
+        }
+    }
+
+    // Commit the columns into the base + sparse-rectilinear fill channel.
+    if (floating_column_areas.size() < num_layers)
+        floating_column_areas.resize(num_layers);
+
+    const SlicingParameters &slicing_params = print_object.slicing_parameters();
+    for (size_t layer_idx = 0; layer_idx < num_layers; ++ layer_idx) {
+        if (column_layers[layer_idx].empty())
+            continue;
+        throw_on_cancel();
+        Polygons col = union_(column_layers[layer_idx]);
+        if (col.empty() || area(col) < min_area)
+            continue;
+
+        // Never let the column enter the printed part.
+        col = diff_clipped(col, volumes.getCollision(0, LayerIndex(layer_idx), false));
+        if (col.empty())
+            continue;
+
+        SupportGeneratorLayer *&base_layer = intermediate_layers[layer_idx];
+        if (base_layer == nullptr)
+            base_layer = &layer_allocate(layer_storage, SupporLayerType::sltBase, slicing_params, config, layer_idx);
+        base_layer->polygons = union_(base_layer->polygons, col);
+
+        floating_column_areas[layer_idx] = union_ex(col);
+    }
 }
 
 static void generate_support_areas(Print &print, TreeSupport* tree_support, const BuildVolume &build_volume, const std::vector<size_t> &print_object_ids, std::function<void()> throw_on_cancel)
@@ -4442,6 +4905,7 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 #if 1
         // use smart overhang detection
         std::vector<Polygons>        overhangs;
+        const long long support_detect_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
         tree_support->detect_overhangs();
         const int       num_raft_layers = int(config.raft_layers.size());
         const int       num_layers = int(print_object.layer_count()) + num_raft_layers;
@@ -4471,6 +4935,8 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
                 }
             }
         }
+        print_object.support_stage_times().detect +=
+            Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_detect_begin_time;
 #else
         std::vector<Polygons>        overhangs = generate_overhangs(config, *print.get_object(processing.second.front()), throw_on_cancel);
 #endif
@@ -4523,9 +4989,12 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
             layer_storage, top_contacts, interface_layers, base_interface_layers };
 
         std::vector<ExPolygons> cooldown_areas(num_support_layers);
-        // Per-layer lightning infill regions for newly opened internal voids (see organic_lightning_infill /
-        // generate_support_toolpaths). Always generated for organic hollow trunks.
-        std::vector<ExPolygons> lightning_infill_areas(num_support_layers);
+        // Filled at the dense layer_idx (same as intermediate_layers before compaction), then
+        // compacted to the non-null intermediate slots so generate_support_toolpaths can look
+        // them up by idx_layer_intermediate (print_z), not by support_layer_id.
+        std::vector<Polylines> lightning_infill_lines(num_support_layers);
+        // Sparse rectilinear columns under floating faces left by model intrusion into a trunk.
+        std::vector<ExPolygons> floating_column_areas(num_support_layers);
         if (has_support) {
             auto t_precalc = std::chrono::high_resolution_clock::now();
             // value is the area where support may be placed. As this is calculated in CreateLayerPathing it is saved and reused in draw_areas
@@ -4576,14 +5045,54 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 
             // ### Lightning infill for newly opened internal voids in organic hollow trunks (always on).
             organic_lightning_infill(print_object, volumes, config,
-                bottom_contacts, top_contacts, intermediate_layers, lightning_infill_areas, throw_on_cancel);
+                bottom_contacts, top_contacts, intermediate_layers, lightning_infill_lines, throw_on_cancel);
+
+            // ### Sparse rectilinear columns under floating faces left by model intrusion into a trunk.
+            organic_support_floating_faces(print_object, volumes, config,
+                bottom_contacts, top_contacts, intermediate_layers, layer_storage,
+                floating_column_areas, throw_on_cancel);
+
+            // floating_column_areas was filled at the same dense layer_idx as intermediate_layers
+            // (including the null slots). Drop the entries whose intermediate row is about to be removed
+            // as undefined, so the two arrays stay 1:1 after compaction. generate_support_toolpaths then
+            // looks them up by idx_layer_intermediate (print_z), not by support_layer_id (which also
+            // numbers raft and contact-only rows).
+            {
+                std::vector<ExPolygons> kept_floating;
+                kept_floating.reserve(intermediate_layers.size());
+                for (size_t i = 0; i < intermediate_layers.size(); ++ i) {
+                    if (intermediate_layers[i] == nullptr)
+                        continue;
+                    kept_floating.emplace_back(i < floating_column_areas.size() ?
+                        std::move(floating_column_areas[i]) : ExPolygons{});
+                }
+                floating_column_areas = std::move(kept_floating);
+            }
 
             //tree_support->move_bounds_to_contact_nodes(move_bounds, print_object, config);
 
+            // lightning_infill_lines was filled at the same dense layer_idx as intermediate_layers
+            // (including empty slots). Drop the matching entries so the two arrays stay aligned
+            // after the nullptrs are removed; generate_support_toolpaths looks them up by the
+            // compacted intermediate index (print_z), not by support_layer_id.
+            {
+                std::vector<Polylines> kept_lightning;
+                kept_lightning.reserve(intermediate_layers.size());
+                for (size_t i = 0; i < intermediate_layers.size(); ++ i) {
+                    if (intermediate_layers[i] == nullptr)
+                        continue;
+                    kept_lightning.emplace_back(i < lightning_infill_lines.size() ?
+                        std::move(lightning_infill_lines[i]) : Polylines{});
+                }
+                lightning_infill_lines = std::move(kept_lightning);
+            }
             remove_undefined_layers();
 
+            const long long support_interface_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
             std::tie(interface_layers, base_interface_layers) = generate_interface_layers(print_object.config(), support_params,
                 bottom_contacts, top_contacts, interface_layers, base_interface_layers, intermediate_layers, layer_storage);
+            print_object.support_stage_times().interface_generate +=
+                Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_interface_begin_time;
 
             // A very low overhang produces roofs that have no tree body underneath. Printing the whole
             // stack as interface leaves it without an anchor to the bed, so turn the bed-touching interface
@@ -4647,8 +5156,12 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 
         // Don't fill in the tree supports, make them hollow with just a single sheath line.
         print.set_status(69, _L("Generating support"));
+        const long long support_toolpath_begin_time = Slic3r::Utils::get_current_milliseconds_time_monotonic();
         generate_support_toolpaths(print_object.support_layers(), print_object.config(), support_params, print_object.slicing_parameters(),
-            raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers, cooldown_areas, lightning_infill_areas);
+            raft_layers, bottom_contacts, top_contacts, intermediate_layers, interface_layers, base_interface_layers,
+            cooldown_areas, &lightning_infill_lines, floating_column_areas);
+        print_object.support_stage_times().toolpath_generate +=
+            Slic3r::Utils::get_current_milliseconds_time_monotonic() - support_toolpath_begin_time;
 
         auto t_end = std::chrono::high_resolution_clock::now();
         BOOST_LOG_TRIVIAL(info) << "Total time of organic tree support: " << 0.001 * std::chrono::duration_cast<std::chrono::microseconds>(t_end - t_start).count() << " ms";
@@ -4688,7 +5201,247 @@ static void generate_support_areas(Print &print, TreeSupport* tree_support, cons
 //   storage.support.generated = true;
 }
 
+// Widen the single plate trunk in 2D after the tube is sliced.
+// Extrude still uses the original branch radius, so self-intersection repair hemispheres
+// do not grow. The plate cap radius is config.bp_radius (= support_tree_bp_diameter / 2).
+// NOTE: support_tree_bp_diameter is not read from the process config in this build
+// (TreeSupportMeshGroupSettings' ctor never assigns it), so it stays at the hard-coded
+// 7.5mm diameter, i.e. a fixed 3.75mm cap radius, not a user setting. Trunks already at
+// or above that radius are left unchanged. If the trunk is shorter than the slope needs,
+// the cone simply does not reach the cap.
+//
+// The added circles are only merged with the tube by the downstream union in
+// diff_clipped()/intersection() (non-zero fill), so a cone circle that is smaller
+// than the tube on some layer never carves into it; the foot only widens.
+//
+// The foot slices are clipped by the same getCollision(0, .., min_xy_dist) + bed
+// intersection as the tube itself. Intentional trade-off: near the model the foot keeps
+// only the min-xy gap (not the full support_xy_distance) and may be trimmed to a crescent,
+// and adjacent plate trunks may merge on the bed to favour adhesion.
+static void append_organic_plate_foot_slices(
+    const std::vector<const SupportElement*> &path,
+    const TreeSupportSettings                &config,
+    const LayerIndex                          layer_begin,
+    std::vector<Polygons>                    &slices)
+{
+    if (path.size() < 2 || slices.empty())
+        return;
+    const SupportElement &root = *path.front();
+    if (! root.state.to_buildplate || ! root.state.result_on_layer_is_set())
+        return;
+    const double slope = config.bp_radius_increase_per_layer;
+    if (slope <= 0.)
+        return;
+    const coord_t r_base = support_element_radius(config, root);
+    const coord_t r_cap  = config.bp_radius;
+    // Already as wide as (or wider than) the plate cap (config.bp_radius): no extra flare.
+    if (r_base <= 0 || r_cap <= 0 || r_base >= r_cap)
+        return;
+    // layers_needed only estimates how many layers the cone spans (from r_base up to
+    // r_cap at this slope). It is used as an upper bound for the path index below; the
+    // real interpolation anchor is r0 at el_top, not r_base. If a path element covers
+    // more than one layer the index bound is conservative (cone may be a little shorter),
+    // but organic trunks keep roughly one element per layer.
+    const size_t layers_needed = size_t(std::ceil(double(r_cap - r_base) / slope));
+    if (layers_needed == 0)
+        return;
+    const size_t top = std::min(layers_needed, path.size() - 1);
+    if (top == 0)
+        return;
+
+    // el_top is the top of the cone; r0 is its actual tube radius so the flare blends
+    // into the existing tube instead of stepping. r_plate_target extrapolates r0 down to
+    // the plate at the given slope, capped at the legacy plate radius.
+    const SupportElement &el_top = *path[top];
+    const coord_t         r0     = support_element_radius(config, el_top);
+    const LayerIndex      z0     = root.state.layer_idx;
+    const LayerIndex      z1     = el_top.state.layer_idx;
+    if (z1 <= z0)
+        return;
+    const coord_t r_plate_target = std::min(r_cap, coord_t(std::lround(double(r0) + double(z1 - z0) * slope)));
+    if (r_plate_target <= r_base)
+        return;
+
+    for (size_t k = 0; k <= top; ++ k) {
+        const SupportElement &el = *path[k];
+        if (! el.state.result_on_layer_is_set())
+            continue;
+        const int si = int(el.state.layer_idx) - int(layer_begin);
+        if (si < 0 || si >= int(slices.size()))
+            continue;
+        const double  t      = double(el.state.layer_idx - z0) / double(z1 - z0);
+        const coord_t target = coord_t(std::lround(double(r_plate_target) + t * double(r0 - r_plate_target)));
+        if (target <= 0)
+            continue;
+        Polygon circle = make_circle(target, std::max(double(target) / 100., 1.));
+        circle.translate(el.state.result_on_layer);
+        slices[size_t(si)].emplace_back(std::move(circle));
+    }
+}
+
 // Organic specific: Smooth branches and produce one cummulative mesh to be sliced.
+// Same sagitta as discretize_circle (eps=0.015). nsteps is taken from the full
+// hemisphere radius so every layer of one cap uses an identical vertex count.
+static int hemisphere_circle_nsteps(double radius)
+{
+    static constexpr double eps = 0.015;
+    const double r = std::max(radius, eps);
+    const double angle_step = 2. * std::acos(std::clamp(1. - eps / r, -1., 1.));
+    return std::max(3, int(std::ceil(2. * M_PI / std::max(angle_step, 1e-6))));
+}
+
+// XY basis for make_oriented_disk_xy / prepared caps. Matches discretize_circle's
+// local x-axis (n × (0,-1,0)) projected to XY, so phase is constant across layers.
+static void hemisphere_disk_xy_basis(const Vec3d &normal, Vec2d &x2, Vec2d &y2)
+{
+    Vec3d x3 = normal.cross(Vec3d(0., -1., 0.));
+    if (x3.squaredNorm() < 1e-12)
+        x3 = normal.cross(Vec3d(1., 0., 0.));
+    x2 = Vec2d(x3.x(), x3.y());
+    if (x2.squaredNorm() < 1e-12)
+        x2 = Vec2d(1., 0.);
+    else
+        x2.normalize();
+    y2 = Vec2d(-x2.y(), x2.x());
+}
+
+// Horizontal n-gon of radius rho using a precomputed XY basis.
+static Polygon make_oriented_disk_xy(
+    const Vec3d &center, const Vec2d &x2, const Vec2d &y2, double rho, int nsteps)
+{
+    Polygon poly;
+    poly.points.reserve(nsteps);
+    const double da = 2. * M_PI / double(nsteps);
+    for (int i = 0; i < nsteps; ++i) {
+        const double a  = da * double(i);
+        const double px = center.x() + rho * (x2.x() * std::cos(a) + y2.x() * std::sin(a));
+        const double py = center.y() + rho * (x2.y() * std::cos(a) + y2.y() * std::sin(a));
+        poly.points.emplace_back(scaled<coord_t>(px), scaled<coord_t>(py));
+    }
+    return poly;
+}
+
+// Convex clip: keep ax*x + ay*y <= c (unscaled XY). Inserts edge-line hits so the
+// cut does not go through Clipper's large half-plane quad.
+static Polygon clip_convex_polygon_halfplane(const Polygon &in, double ax, double ay, double c)
+{
+    if (in.size() < 3)
+        return {};
+    auto side = [ax, ay, c](const Point &p) {
+        return ax * unscaled<double>(p.x()) + ay * unscaled<double>(p.y()) - c;
+    };
+    auto hit = [](const Point &p, const Point &q, double sp, double sq) {
+        // Inside is sp <= EPSILON, so sp may be slightly positive here and sp - sq
+        // arbitrarily small. Clamp to keep the hit on the segment; t == 0 then yields p,
+        // which is exactly the intended EPSILON overlap past the clip line.
+        const double t = std::clamp(sp / (sp - sq), 0., 1.);
+        const double x = unscaled<double>(p.x()) + t * (unscaled<double>(q.x()) - unscaled<double>(p.x()));
+        const double y = unscaled<double>(p.y()) + t * (unscaled<double>(q.y()) - unscaled<double>(p.y()));
+        return Point(scaled<coord_t>(x), scaled<coord_t>(y));
+    };
+
+    Polygon out;
+    out.points.reserve(in.size() + 2);
+    const size_t n = in.size();
+    for (size_t i = 0; i < n; ++i) {
+        const Point  &p  = in.points[i];
+        const Point  &q  = in.points[(i + 1) % n];
+        const double  sp = side(p);
+        const double  sq = side(q);
+        const bool    pin = sp <= EPSILON;
+        const bool    qin = sq <= EPSILON;
+        if (pin && qin) {
+            out.points.emplace_back(q);
+        } else if (pin && !qin) {
+            out.points.emplace_back(hit(p, q, sp, sq));
+        } else if (!pin && qin) {
+            out.points.emplace_back(hit(p, q, sp, sq));
+            out.points.emplace_back(q);
+        }
+    }
+    if (out.size() < 3)
+        return {};
+    if (out.area() < 0)
+        out.make_counter_clockwise();
+    return out;
+}
+
+// Horizontal cross-section of a hemisphere: disk of radius sqrt(r^2-dz^2) clipped to the
+// half-plane of the section. Used to inject 61563 split-joint caps into production slices.
+static bool hemisphere_slice_polygon(
+    const Vec3d &center, const Vec3d &normal, double radius, bool is_bottom,
+    double slice_z, int nsteps, const Vec2d &x2, const Vec2d &y2, Polygon &out)
+{
+    const double dz = slice_z - center.z();
+    if (std::abs(dz) >= radius - EPSILON)
+        return false;
+
+    const double rho = std::sqrt(std::max(0., radius * radius - dz * dz));
+    if (rho < 1e-4)
+        return false;
+
+    Polygon disk = make_oriented_disk_xy(center, x2, y2, rho, nsteps);
+
+    const double nxy = std::hypot(normal.x(), normal.y());
+    if (nxy > 1e-6) {
+        // Half-plane in XY from plane equation n·(q-p) ≥ 0 with q.z = slice_z.
+        // n.x*(x-cx) + n.y*(y-cy) + n.z*dz  ≥  0
+        const double rhs = normal.x() * center.x() + normal.y() * center.y() - normal.z() * dz;
+        // bottom: n.xy · r <= rhs ; top: n.xy · r >= rhs  <=>  (-n.xy)·r <= -rhs
+        disk = is_bottom
+            ? clip_convex_polygon_halfplane(disk, normal.x(), normal.y(), rhs)
+            : clip_convex_polygon_halfplane(disk, -normal.x(), -normal.y(), -rhs);
+        if (disk.size() < 3)
+            return false;
+    } else {
+        // Vertical axis: keep only the hemisphere side of the equator.
+        if (is_bottom && dz > EPSILON)
+            return false;
+        if (!is_bottom && dz < -EPSILON)
+            return false;
+    }
+
+    out = std::move(disk);
+    return true;
+}
+
+// Production-slice cache for one ExtrudeSplitCap: valid mid-Z layer range, circle
+// discretization and XY basis so injection walks O(H) layers per cap instead of O(S).
+struct PreparedSplitCap {
+    const ExtrudeSplitCap *cap { nullptr };
+    LayerIndex             layer_begin { 0 };
+    LayerIndex             layer_end { 0 };
+    int                    nsteps { 0 };
+    Vec2d                  x2 { 1., 0. };
+    Vec2d                  y2 { 0., 1. };
+};
+
+static PreparedSplitCap prepare_split_cap(
+    const ExtrudeSplitCap     &sc,
+    const SlicingParameters   &slicing_params,
+    const TreeSupportSettings &config,
+    LayerIndex                 num_layers)
+{
+    PreparedSplitCap out;
+    out.cap         = &sc;
+    out.nsteps      = hemisphere_circle_nsteps(sc.radius);
+    hemisphere_disk_xy_basis(sc.normal, out.x2, out.y2);
+    // Write the hemisphere as m·(q-c) <= 0. It crosses the horizontal plane through its
+    // own center whenever the axis is tilted, still reaching r * sqrt(1 - m.z^2) on the
+    // far side; bounding the scan at that plane instead would drop the very band this
+    // injection restores. Bounding it by the full sphere only wastes layers.
+    const Vec3d  m     = sc.is_bottom ? sc.normal : Vec3d(-sc.normal);
+    const double mz    = std::clamp(m.z(), -1., 1.);
+    const double reach = sc.radius * std::sqrt(std::max(0., 1. - mz * mz));
+    const double z_lo  = sc.center.z() - (mz < 0. ? reach : sc.radius);
+    const double z_hi  = sc.center.z() + (mz > 0. ? reach : sc.radius);
+    out.layer_begin = layer_idx_mid_ceil(slicing_params, config, z_lo, num_layers);
+    out.layer_end   = layer_idx_mid_floor(slicing_params, config, z_hi, num_layers) + 1;
+    out.layer_begin = std::max(out.layer_begin, LayerIndex(0));
+    out.layer_end   = std::min(out.layer_end, num_layers);
+    return out;
+}
+
 void organic_draw_branches(
     PrintObject& print_object,
     TreeModelVolumes& volumes,
@@ -4904,25 +5657,90 @@ void organic_draw_branches(
             indexed_triangle_set    partial_mesh;
             std::vector<float>      slice_z;
             std::vector<Polygons>   bottom_contacts;
+            const bool              mesh_split_caps = split_cap_use_mesh_hemispheres();
             for (size_t tree_id = range.begin(); tree_id < range.end(); ++tree_id) {
                 Tree& tree = trees[tree_id];
                 for (const Branch& branch : tree.branches) {
                     // Triangulate the tube.
                     partial_mesh.clear();
-                    std::pair<float, float> zspan = extrude_branch(branch.path, config, slicing_params, move_bounds, partial_mesh);
-                    LayerIndex layer_begin = branch.has_root ?
+                    std::vector<ExtrudeSplitCap> split_caps;
+                    std::pair<float, float> zspan = extrude_branch(
+                        branch.path, config, slicing_params, move_bounds, partial_mesh,
+                        mesh_split_caps ? nullptr : &split_caps);
+                    // Slice planes are layer mid-Z (not print_z). Map mesh/cap spans with
+                    // layer_idx_mid_* so the last/first mid-plane inside the span is not skipped.
+                    const LayerIndex num_layers = LayerIndex(move_bounds.size());
+                    LayerIndex mesh_begin = branch.has_root ?
                         branch.path.front()->state.layer_idx :
-                        std::min(branch.path.front()->state.layer_idx, layer_idx_ceil(slicing_params, config, zspan.first));
-                    LayerIndex layer_end = (branch.has_tip ?
+                        std::min(branch.path.front()->state.layer_idx,
+                                 layer_idx_mid_ceil(slicing_params, config, zspan.first, num_layers));
+                    LayerIndex mesh_end = (branch.has_tip ?
                         branch.path.back()->state.layer_idx :
-                        std::max(branch.path.back()->state.layer_idx, layer_idx_floor(slicing_params, config, zspan.second))) + 1;
-                    slice_z.clear();
-                    for (LayerIndex layer_idx = layer_begin; layer_idx < layer_end; ++layer_idx) {
-                        const double print_z = layer_z(slicing_params, config, layer_idx);
-                        const double bottom_z = layer_idx > 0 ? layer_z(slicing_params, config, layer_idx - 1) : 0.;
-                        slice_z.emplace_back(float(0.5 * (bottom_z + print_z)));
+                        std::max(branch.path.back()->state.layer_idx,
+                                 layer_idx_mid_floor(slicing_params, config, zspan.second, num_layers))) + 1;
+                    // Analytic mode: mesh Z excludes split-joint hemispheres; expand the output
+                    // layer range so 2D caps can be injected. Mesh mode already includes them in zspan.
+                    LayerIndex layer_begin = mesh_begin;
+                    LayerIndex layer_end   = mesh_end;
+                    std::vector<PreparedSplitCap> prepared_caps;
+                    if (! split_caps.empty()) {
+                        prepared_caps.reserve(split_caps.size());
+                        for (const ExtrudeSplitCap &sc : split_caps) {
+                            PreparedSplitCap pc = prepare_split_cap(sc, slicing_params, config, num_layers);
+                            if (pc.layer_begin >= pc.layer_end)
+                                continue;
+                            layer_begin = std::min(layer_begin, pc.layer_begin);
+                            layer_end   = std::max(layer_end, pc.layer_end);
+                            prepared_caps.emplace_back(std::move(pc));
+                        }
                     }
-                    std::vector<Polygons> slices = slice_mesh(partial_mesh, slice_z, mesh_slicing_params, throw_on_cancel);
+                    if (branch.has_root)
+                        layer_begin = std::max(layer_begin, branch.path.front()->state.layer_idx);
+                    if (branch.has_tip)
+                        layer_end = std::min(layer_end, branch.path.back()->state.layer_idx + 1);
+                    layer_begin = std::max(layer_begin, LayerIndex(0));
+                    layer_end   = std::min(layer_end, num_layers);
+                    if (layer_begin >= layer_end)
+                        continue;
+                    slice_z.clear();
+                    for (LayerIndex layer_idx = layer_begin; layer_idx < layer_end; ++layer_idx)
+                        slice_z.emplace_back(float(layer_mid_z(slicing_params, config, layer_idx)));
+                    std::vector<Polygons> slices;
+                    // Fast path: no analytic inject needed — slice the full mid-Z range once.
+                    if (prepared_caps.empty()) {
+                        slices = slice_mesh(partial_mesh, slice_z, mesh_slicing_params, throw_on_cancel);
+                    } else {
+                        const LayerIndex clip_mesh_begin = std::max(mesh_begin, layer_begin);
+                        const LayerIndex clip_mesh_end   = std::min(mesh_end, layer_end);
+                        std::vector<float> mesh_slice_z;
+                        if (clip_mesh_begin < clip_mesh_end)
+                            mesh_slice_z.assign(
+                                slice_z.begin() + (clip_mesh_begin - layer_begin),
+                                slice_z.begin() + (clip_mesh_end - layer_begin));
+                        std::vector<Polygons> mesh_slices = mesh_slice_z.empty() ?
+                            std::vector<Polygons>{} :
+                            slice_mesh(partial_mesh, mesh_slice_z, mesh_slicing_params, throw_on_cancel);
+                        slices.assign(slice_z.size(), {});
+                        for (size_t i = 0; i < mesh_slices.size(); ++i)
+                            slices[size_t(clip_mesh_begin - layer_begin) + i] = std::move(mesh_slices[i]);
+                        // Cap-driven inject: each prepared cap only walks its mid-Z [begin,end).
+                        for (const PreparedSplitCap &pc : prepared_caps) {
+                            const LayerIndex inj_begin = std::max(pc.layer_begin, layer_begin);
+                            const LayerIndex inj_end   = std::min(pc.layer_end, layer_end);
+                            for (LayerIndex layer_idx = inj_begin; layer_idx < inj_end; ++layer_idx) {
+                                Polygon poly;
+                                if (hemisphere_slice_polygon(pc.cap->center, pc.cap->normal, pc.cap->radius,
+                                                             pc.cap->is_bottom, double(slice_z[size_t(layer_idx - layer_begin)]),
+                                                             pc.nsteps, pc.x2, pc.y2, poly))
+                                    slices[size_t(layer_idx - layer_begin)].emplace_back(std::move(poly));
+                            }
+                        }
+                    }
+
+                    // Plate cone on the single trunk only. Must not change extrude radii.
+                    if (branch.has_root)
+                        append_organic_plate_foot_slices(branch.path, config, layer_begin, slices);
+
                     bottom_contacts.clear();
                     //FIXME parallelize?
                     for (LayerIndex i = 0; i < LayerIndex(slices.size()); ++i) {

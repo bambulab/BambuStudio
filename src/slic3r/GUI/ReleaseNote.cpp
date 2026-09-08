@@ -1758,6 +1758,8 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     Layout();
     Fit();
 
+    // for some reason Fit() failed its job here so we do this again
+    SetSize(GetBestSize());
     CentreOnParent(wxBOTH);
     Move(wxPoint(GetScreenPosition().x, GetScreenPosition().y - FromDIP(50)));
     wxGetApp().UpdateDlgDarkUI(this);
@@ -1772,11 +1774,10 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
         m_status_bar->reset();
         EndModal(wxID_YES);
     });
-    Bind(wxEVT_CLOSE_WINDOW, [this](auto& e) {
+    Bind(wxEVT_CLOSE_WINDOW, [this](auto &e) {
         on_cancel();
         closeTimer->Stop();
     });
-
 }
 
 void InputIpAddressDialog::switch_input_panel(int index)

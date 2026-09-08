@@ -7,6 +7,8 @@
 #include <boost/log/trivial.hpp>
 
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/CreateFilamentWebDialog.hpp"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
@@ -522,10 +524,35 @@ nlohmann::json FilamentManagerVM::HandleConfig(const std::string& action, const 
     return MakeResp("config", action, -1, "unknown action");
 }
 
-nlohmann::json FilamentManagerVM::HandlePreset(const std::string& action, const nlohmann::json& /*payload*/)
+nlohmann::json FilamentManagerVM::HandlePreset(const std::string& action, const nlohmann::json& payload)
 {
     if (action == "list") {
         return MakeResp("preset", action, 0, "", build_preset_options());
+    }
+    if (action == "create_custom") {
+        const std::string vendor = payload.value("vendor", "");
+        const std::string type   = payload.value("type", "");
+        const std::string serial = payload.value("serial", "");
+        const std::string client_request_id = payload.value("client_request_id", "");
+        wxGetApp().CallAfter([this, vendor, type, serial, client_request_id]() {
+            CreateFilamentWebDialog dlg(wxGetApp().mainframe, vendor, type, serial, true);
+            const int res = dlg.ShowModal();
+            const bool ok = res == wxID_OK;
+            if (ok && wxGetApp().mainframe)
+                wxGetApp().mainframe->update_side_preset_ui();
+            if (!m_bridge) return;
+
+            nlohmann::json completion = {
+                {"ok", ok},
+                {"client_request_id", client_request_id},
+            };
+            if (ok && !dlg.created_filament().is_null() && !dlg.created_filament().empty())
+                completion["created"] = dlg.created_filament();
+            m_bridge->ReportMsg(MakeResp("preset", "create_custom_done", 0, "", completion));
+            if (ok)
+                m_bridge->ReportMsg(MakeResp("preset", "list", 0, "", build_preset_options()));
+        });
+        return MakeResp("preset", action, 0, "pending");
     }
     return MakeResp("preset", action, -1, "unknown action");
 }
@@ -643,7 +670,7 @@ nlohmann::json FilamentManagerVM::HandleColors(const std::string& action, const 
             item["color_type"] = from_filament_color_type(fc.m_color_type);
 
             nlohmann::json hex_arr = nlohmann::json::array();
-            for (const auto& c : fc.m_colors) {
+            for (const auto& c : fc.GetColors()) {
                 hex_arr.push_back(
                     wxString::Format("#%02X%02X%02X%02X", c.Red(), c.Green(), c.Blue(), c.Alpha()).utf8_string());
             }
@@ -793,13 +820,13 @@ nlohmann::json FilamentManagerVM::build_spool_list()
             for (const auto& hex : sp_json["colors"]) {
                 if (!hex.is_string()) continue;
                 const std::string h = hex.get<std::string>();
-                if (h.size() > 3) fc.m_colors.emplace(wxColour(wxString::FromUTF8(h)));
+                if (h.size() > 3) fc.AddColor(wxColour(wxString::FromUTF8(h)));
             }
         } else {
             const std::string code = sp_json.value("color_code", std::string());
-            if (code.size() > 3) fc.m_colors.emplace(wxColour(wxString::FromUTF8(code)));
+            if (code.size() > 3) fc.AddColor(wxColour(wxString::FromUTF8(code)));
         }
-        if (fc.m_colors.empty()) continue;
+        if (fc.GetColors().empty()) continue;
 
         fc.m_color_type = to_filament_color_type(sp_json.value("color_type", 2), fc.ColorCount());
 

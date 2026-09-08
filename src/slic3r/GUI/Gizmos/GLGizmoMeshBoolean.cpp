@@ -867,6 +867,7 @@ BooleanOperationResult BooleanOperationEngine::perform_difference(const VolumeLi
                         b_union = execute_boolean_operation(b_union, bm, MeshBooleanConfig::OP_UNION);
                         if (b_union.empty()) { result.error_message = MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE; return result; }
                     } catch (const std::exception &e) {
+                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << __LINE__ << ": " << e.what();
                         result.error_message = MeshBooleanWarnings::GROUPING;
                         return result;
                     }
@@ -890,6 +891,7 @@ BooleanOperationResult BooleanOperationEngine::perform_difference(const VolumeLi
                 try {
                     accumulated_result = execute_boolean_operation(accumulated_result, b_union, MeshBooleanConfig::OP_DIFFERENCE);
                 } catch (const std::exception& e) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << __LINE__ << ": " << e.what();
                     result.error_message = MeshBooleanWarnings::JOB_FAILED;
                     return result;
                 }
@@ -1585,6 +1587,7 @@ BooleanOperationResult BooleanOperationEngine::part_level_sub(
                     return result;
                 }
             } catch (const std::exception& e) {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << __LINE__ << ": " << e.what();
                 result.error_message = MeshBooleanWarnings::JOB_FAILED;
                 return result;
             }

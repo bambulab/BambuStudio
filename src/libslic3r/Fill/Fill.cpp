@@ -231,6 +231,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 					//FIXME for non-thick bridges, shall we allow a bottom surface pattern?
 					if (surface.is_floating_vertical_shell())
 						params.pattern = InfillPattern::ipFloatingConcentric;
+					else if (surface.is_sub_top())
+                        params.pattern = region_config.sub_top_surface_pattern.value;
 					else if (surface.is_solid_infill())
                         params.pattern = region_config.internal_solid_infill_pattern.value;
                     else if (surface.is_external() && !is_bridge) {
@@ -404,7 +406,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 			if (! surface_fill.expolygons.empty()) {
     			distance_between_surfaces = std::max(distance_between_surfaces, surface_fill.params.flow.scaled_spacing());
 				append((surface_fill.surface.surface_type == stInternalVoid) ? voids : surfaces_polygons, to_polygons(surface_fill.expolygons));
-				if (surface_fill.surface.surface_type == stInternalSolid)
+				if (surface_fill.surface.surface_type == stInternalSolid ||
+				    surface_fill.surface.surface_type == stSubTop)
 					region_internal_infill = (int)surface_fill.region_id;
 				if (surface_fill.surface.is_solid())
 					region_solid_infill = (int)surface_fill.region_id;
@@ -432,11 +435,16 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 			else if (region_some_infill != -1)
 				region_id = region_some_infill;
 			const LayerRegion& layerm = *layer.regions()[region_id];
+	        SurfaceFill *sub_top_fill = nullptr;
 	        for (SurfaceFill &surface_fill : surface_fills)
-	        	if (surface_fill.surface.surface_type == stInternalSolid && std::abs(layer.height - surface_fill.params.flow.height()) < EPSILON) {
-	        		internal_solid_fill = &surface_fill;
-	        		break;
+	        	if (std::abs(layer.height - surface_fill.params.flow.height()) < EPSILON) {
+	        		if (surface_fill.surface.surface_type == stSubTop && sub_top_fill == nullptr)
+	        			sub_top_fill = &surface_fill;
+	        		else if (surface_fill.surface.surface_type == stInternalSolid && internal_solid_fill == nullptr)
+	        			internal_solid_fill = &surface_fill;
 	        	}
+	        if (sub_top_fill != nullptr)
+	        	internal_solid_fill = sub_top_fill;
 	        if (internal_solid_fill == nullptr) {
 	        	// Produce another solid fill.
                 SurfaceFillParams params;
@@ -474,7 +482,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 		}
 		size_t surface_fills_size = surface_fills.size();
 		for (size_t i = 0; i < surface_fills_size; i++) {
-			if (surface_fills[i].surface.surface_type != stInternalSolid)
+			if (surface_fills[i].surface.surface_type != stInternalSolid &&
+			    surface_fills[i].surface.surface_type != stSubTop)
 				continue;
 
 			size_t expolygons_size = surface_fills[i].expolygons.size();
@@ -517,7 +526,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 					params.pattern = ipConcentricInternal;
 					surface_fills.emplace_back(params);
 					surface_fills.back().region_id = surface_fills[i].region_id;
-					surface_fills.back().surface.surface_type = stInternalSolid;
+					surface_fills.back().surface.surface_type = surface_fills[i].surface.surface_type;
 					surface_fills.back().surface.thickness = surface_fills[i].surface.thickness;
 					surface_fills.back().region_id_group = surface_fills[i].region_id_group;
 					surface_fills.back().no_overlap_expolygons = surface_fills[i].no_overlap_expolygons;
@@ -1001,6 +1010,7 @@ void Layer::make_ironing()
     FillParams 			fill_params;
     fill_params.density 	 = 1.;
     fill_params.monotonic    = true;
+    fill_params.extrusion_role = erIroning;
     InfillPattern         f_pattern = ipRectilinear;
     std::unique_ptr<Fill> f         = std::unique_ptr<Fill>(Fill::new_from_type(f_pattern));
     f->set_bounding_box(this->object()->bounding_box());
@@ -1064,7 +1074,7 @@ void Layer::make_ironing()
 					// Add solid fill surfaces. This may not be ideal, as one will not iron perimeters touching these
 					// solid fill surfaces, but it is likely better than nothing.
 					for (const Surface &surface : ironing_params.layerm->fill_surfaces.surfaces)
-						if (surface.surface_type == stInternalSolid)
+						if (surface.surface_type == stInternalSolid || surface.surface_type == stSubTop)
 							polygons_append(infills, surface.expolygon);
 				}
 			}

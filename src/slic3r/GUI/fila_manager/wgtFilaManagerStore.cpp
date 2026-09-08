@@ -45,7 +45,7 @@ nlohmann::json FilamentSpool::to_json() const
 {
     return nlohmann::json{
         {"spool_id",        spool_id},
-        {"setting_id",      setting_id},
+        {"setting_id",      filament_id},
         {"tag_uid",         tag_uid},
         {"tray_id_name",    tray_id_name},
         {"brand",           brand},
@@ -86,6 +86,64 @@ nlohmann::json FilamentSpool::to_json() const
     };
 }
 
+SoftMatchFilamentItem SoftMatchFilamentItem::from_json(const nlohmann::json& j)
+{
+    SoftMatchFilamentItem s;
+    auto get = [&](const char* key, auto& dst) {
+        if (j.contains(key)) j.at(key).get_to(dst);
+    };
+    get("id",              s.id);
+    get("createType",      s.create_type);
+    get("filamentVendor",  s.filament_vendor);
+    get("filamentType",    s.filament_type);
+    get("filamentName",    s.filament_name);
+    get("filamentId",      s.filament_id);
+    get("RFID",            s.rfid);
+    get("color",           s.color);
+    get("colorType",       s.color_type);
+    if (j.contains("colors") && j.at("colors").is_array())
+        j.at("colors").get_to(s.colors);
+    get("netWeight",       s.net_weight);
+    get("totalNetWeight",  s.total_net_weight);
+    get("note",            s.note);
+    get("trayIdName",      s.tray_id_name);
+    get("category",        s.category);
+    get("inPrinter",       s.in_printer);
+    get("devId",           s.dev_id);
+    get("amsSn",           s.ams_sn);
+    get("slotId",          s.slot_id);
+    if (j.contains("amsId") && j.at("amsId").is_number())
+        s.ams_id = j.at("amsId").get<int>();
+    if (j.contains("amsType") && j.at("amsType").is_number())
+        s.ams_type = j.at("amsType").get<int>();
+    if (j.contains("deviceName") && j.at("deviceName").is_string())
+        s.device_name = j.at("deviceName").get<std::string>();
+    get("depleted",        s.depleted);
+    return s;
+}
+
+SoftMatchPendingResponse SoftMatchPendingResponse::from_json(const nlohmann::json& j)
+{
+    SoftMatchPendingResponse r;
+    if (j.contains("hits") && j.at("hits").is_array()) {
+        for (const auto& item : j.at("hits"))
+            r.hits.push_back(SoftMatchFilamentItem::from_json(item));
+    }
+    if (j.contains("candidates") && j.at("candidates").is_array()) {
+        for (const auto& entry : j.at("candidates")) {
+            SoftMatchPendingCandidate c;
+            if (entry.contains("pendingId") && entry.at("pendingId").is_number())
+                c.pending_id = entry.at("pendingId").get<int>();
+            if (entry.contains("candidates") && entry.at("candidates").is_array()) {
+                for (const auto& cand : entry.at("candidates"))
+                    c.candidates.push_back(SoftMatchFilamentItem::from_json(cand));
+            }
+            r.candidates.push_back(std::move(c));
+        }
+    }
+    return r;
+}
+
 FilamentSpool FilamentSpool::from_json(const nlohmann::json& j)
 {
     FilamentSpool s;
@@ -93,7 +151,7 @@ FilamentSpool FilamentSpool::from_json(const nlohmann::json& j)
         if (j.contains(key)) j.at(key).get_to(dst);
     };
     get("spool_id",        s.spool_id);
-    get("setting_id",      s.setting_id);
+    get("setting_id",      s.filament_id);
     get("tag_uid",         s.tag_uid);
     get("tray_id_name",    s.tray_id_name);
     get("brand",           s.brand);
@@ -243,7 +301,7 @@ bool wgtFilaManagerStore::apply_patch(const std::string& spool_id, const nlohman
         if (v.is_null()) return;
         try { v.get_to(dst); } catch (...) {}
     };
-    get_if("setting_id",      s.setting_id);
+    get_if("setting_id",      s.filament_id);
     get_if("brand",           s.brand);
     get_if("material_type",   s.material_type);
     get_if("series",          s.series);
@@ -328,7 +386,7 @@ const FilamentSpool* wgtFilaManagerStore::find_by_setting_and_color(
     const FilamentSpool* match = nullptr;
     int count = 0;
     for (auto& [id, spool] : m_spools) {
-        if (spool.setting_id == setting_id && normalize(spool.color_code) == norm_color) {
+        if (spool.filament_id == setting_id && normalize(spool.color_code) == norm_color) {
             match = &spool;
             ++count;
         }
@@ -380,6 +438,20 @@ bool wgtFilaManagerStore::force_mount_spool(const std::string& spool_id,
         return false;
     }
     FilamentSpool& s = it->second;
+    for (auto& [oid, ospool] : m_spools) {
+        if (oid == spool_id)                          continue;
+        if (!ospool.in_printer)                       continue;
+        if (ospool.dev_id != dev_id)                  continue;
+        if (ospool.ams_id != ams_id)                  continue;
+        if (ospool.slot_id != slot_id)                continue;
+        ospool.in_printer  = false;
+        ospool.dev_id.clear();
+        ospool.device_name.clear();
+        ospool.ams_sn.clear();
+        ospool.ams_id      = -1;
+        ospool.ams_type    = -1;
+        ospool.slot_id.clear();
+    }
     s.in_printer  = true;
     s.dev_id      = dev_id;
     s.device_name = dev_name;

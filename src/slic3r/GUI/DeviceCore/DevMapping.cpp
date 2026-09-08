@@ -123,9 +123,11 @@ namespace Slic3r
     {
         if (filament.filament_id != candidate.filament_id)
             return false;
-        if (candidate.remain <= 0 || picked.remain < 0)
+        if (candidate.remain <= 0)
             return false;
-        return picked.remain == 0 || candidate.remain < picked.remain;
+        if (picked.remain <= 0)
+            return true;
+        return candidate.remain < picked.remain;
     }
 
     int DevMappingUtil::ams_filament_mapping(const MachineObject* obj, const std::vector<FilamentInfo>& filaments, std::vector<FilamentInfo>& result, std::vector<bool> map_opt, std::vector<int> exclude_id, bool nozzle_has_ams_then_ignore_ext)
@@ -304,6 +306,8 @@ namespace Slic3r
             result.push_back(info);
         }
 
+
+
         // traverse the mapping
         std::set<int> picked_src;
         std::set<int> picked_tar;
@@ -419,6 +423,8 @@ namespace Slic3r
                 picked_tar.insert(picked_tar_idx);
             }
         }
+
+
 
         //check ams mapping result
         if (DevMappingUtil::is_valid_mapping_result(obj, result, true))

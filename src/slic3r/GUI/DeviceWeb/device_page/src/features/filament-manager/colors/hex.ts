@@ -83,3 +83,27 @@ export function isTransparentHex(value: string | undefined | null): boolean {
 export function hexMultisetKey(input: readonly (string | undefined | null)[] | undefined): string {
   return canonicalizeHexList(input).slice().sort().join(',');
 }
+
+/**
+ * Extract the alpha byte (0–255) from an 8-char hex string (`#RRGGBBAA` or
+ * `RRGGBBAA`). Returns 255 (fully opaque) when the input is shorter than 8
+ * hex digits or not a valid hex, so callers can treat missing-alpha as opaque.
+ */
+export function getAlphaByte(hex: string | undefined | null): number {
+  const raw = (hex ?? '').trim();
+  const withHash = raw.startsWith('#') ? raw : `#${raw}`;
+  if (!/^#[0-9A-Fa-f]{8}$/.test(withHash)) return 255;
+  return parseInt(withHash.slice(7, 9), 16);
+}
+
+/**
+ * Returns true when the hex value represents a partially-transparent colour
+ * (alpha byte in 1–254). Fully transparent (0x00) is handled by
+ * `isTransparentHex`; fully opaque (0xFF / 0xFE) is the normal case.
+ * Use this to decide whether to render a tinted-checkerboard swatch instead
+ * of a solid fill, matching the prepare-page (C++ ImGui) rendering.
+ */
+export function hasPartialTransparency(hex: string | undefined | null): boolean {
+  const a = getAlphaByte(hex);
+  return a > 0 && a < 255;
+}

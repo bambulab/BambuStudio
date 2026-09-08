@@ -1,5 +1,6 @@
 #include "libslic3r/Technologies.hpp"
 #include "GUI_App.hpp"
+#include "BindDialog.hpp"
 #include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_Factories.hpp"
@@ -85,6 +86,7 @@
 #include "EncodedFilament.hpp"
 
 #include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevConfigUtil.h"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Utils/VersionPolicyManager.hpp"
@@ -3470,6 +3472,10 @@ bool GUI_App::on_init_inner()
             std::tie(init_params->preset_substitutions, errors_cummulative) = preset_bundle->load_presets(*app_config, ForwardCompatibilitySubstitutionRule::EnableSystemSilent);
             if (!errors_cummulative.empty())
                 show_error(nullptr, errors_cummulative);
+            // AppConfig-restored filament colors may predate the JSON primary-color alignment
+            // (see the analogous fix at 3mf project load); re-align once at startup and persist
+            // the corrected order back so stale data doesn't linger in AppConfig.
+            Slic3r::align_project_filament_primary_colors_with_json(preset_bundle);
         }
         catch (const std::exception& ex) {
             show_error(nullptr, ex.what());
@@ -3663,6 +3669,13 @@ bool GUI_App::on_init_inner()
 
     BOOST_LOG_TRIVIAL(info) << "finished the gui app init";
     return true;
+}
+
+void GUI_App::notify_new_rfid_filament(const std::string& ams_id, const std::string& slot_id)
+{
+    if (!mainframe || !mainframe->m_monitor) return;
+    auto* sp = mainframe->m_monitor->get_status_panel();
+    if (sp) sp->show_ams_filament_hint(ams_id, slot_id);
 }
 
 void GUI_App::copy_network_if_available()
@@ -4080,7 +4093,7 @@ void GUI_App::UpdateFrameDarkUI(wxFrame* dlg)
     update_dark_children_ui(dlg);
 }
 
-void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
+void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/, const wxFont* header_font/* = nullptr*/)
 {
 #ifdef __WINDOWS__
     UpdateDarkUI(dvc, highlited ? dark_mode() : false);
@@ -4092,7 +4105,7 @@ void GUI_App::UpdateDVCDarkUI(wxDataViewCtrl* dvc, bool highlited/* = false*/)
         NppDarkMode::SetDarkListViewHeader(hwnd);
     wxItemAttr attr;
     attr.SetTextColour(NppDarkMode::GetTextColor());
-    attr.SetFont(m_normal_font);
+    attr.SetFont(header_font ? *header_font : m_normal_font);
     dvc->SetHeaderAttr(attr);
 #endif //_MSW_DARK_MODE
     if (dvc->HasFlag(wxDV_ROW_LINES))
@@ -5472,14 +5485,13 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 
         GUI::wxGetApp().mainframe->show_sync_dialog();
 
-        // Trigger filament-manager cloud pull on the dispatcher queue; no-op if
-        // already pulling.  Runs after login so auth token is available.
-        if (!m_disable_fila_manager && m_fila_manager_cloud_disp) {
-            m_fila_manager_cloud_disp->enqueue_pull();
-        }
         if (!m_disable_fila_manager && mainframe && mainframe->web_device()) {
             mainframe->web_device()->NotifyFilamentSessionState();
         }
+    }
+
+    if (!m_disable_fila_manager && m_fila_manager_cloud_disp) {
+        m_fila_manager_cloud_disp->enqueue_pull();
     }
 }
 
@@ -5608,11 +5620,7 @@ void GUI_App::check_startup_version_policy()
         // would tear the main frame down while the dialog is still on the
         // stack, hence the hop to the next turn of the event loop.
         if (result.blocked()) {
-            CallAfter([this] {
-                if (mainframe) {
-                    wxGetApp().ExitMainLoop();
-                }
-            });
+            if(mainframe) mainframe->Close(true);
         }
     }
 }
@@ -6943,7 +6951,7 @@ bool GUI_App::load_language(wxString language, bool initial)
 
     if (! wxLocale::IsAvailable(language_info->Language)) {
     	// Loading the language dictionary failed.
-    	wxString message = "Switching Bambu Studio to language " + language_info->CanonicalName + " failed.";
+        wxString message = "Switching Bambu Studio to language " + language_info->CanonicalName + " failed, because your computer is missing the corresponding locale.";
 #if !defined(_WIN32) && !defined(__APPLE__)
         // likely some linux system
         message += "\nYou may need to reconfigure the missing locales, likely by running the \"locale-gen\" and \"dpkg-reconfigure locales\" commands.\n";
@@ -8052,6 +8060,11 @@ wxString GUI_App::current_language_code_safe() const
         { "tr",     "tr_TR", },
         { "pt",     "pt_BR", },
         { "hu",     "hu_HU", },
+        { "th",     "th_TH", },
+        { "ro",     "ro_RO", },
+        { "el",     "el_GR", },
+        { "id",     "id_ID", },
+        { "vi",     "vi_VN", },
 	};
 	wxString language_code = this->current_language_code().BeforeFirst('_');
 	auto it = mapping.find(language_code);
@@ -8113,10 +8126,13 @@ bool GUI_App::run_wizard(ConfigWizard::RunReason reason, ConfigWizard::StartPage
 
     GuideFrame wizard(this, pStyle);
     auto page = start_page == ConfigWizard::SP_WELCOME ? GuideFrame::BBL_WELCOME :
-                start_page == ConfigWizard::SP_FILAMENTS ? GuideFrame::BBL_FILAMENT_ONLY :
+                (start_page == ConfigWizard::SP_FILAMENTS || start_page == ConfigWizard::SP_CUSTOM) ? GuideFrame::BBL_FILAMENT_ONLY :
                 start_page == ConfigWizard::SP_PRINTERS ? GuideFrame::BBL_MODELS_ONLY :
                 GuideFrame::BBL_MODELS;
-    wizard.SetStartPage(page);
+    // SP_CUSTOM: reused (it's unused by the legacy ConfigWizard code path, which is
+    // dead since this webview-based GuideFrame replaced it) to mean "reopen straight
+    // to the Custom filaments tab" for the create/edit-custom-filament flow.
+    wizard.SetStartPage(page, true, start_page == ConfigWizard::SP_CUSTOM);
 
     bool config_applied = false;
     bool       res = wizard.run(config_applied);
@@ -8233,7 +8249,8 @@ const std::shared_ptr<GLShaderProgram>& GUI_App::get_shader(const std::string &s
         return p_ogl_manager->get_shader(shader_name);
     }
 
-    return nullptr;
+    static std::shared_ptr<GLShaderProgram> s_empty_shader{ nullptr };
+    return s_empty_shader;
 }
 
 const std::shared_ptr<GLShaderProgram> GUI_App::get_current_shader() const
@@ -8664,26 +8681,33 @@ static void sLocalBindFunc(std::string str_ip,
                            std::string str_access_code,
                            std::string sn)
 {
+    // bind_detect is a hint, not a gate. It used to erase the remembered IP whenever the probe was
+    // not conclusive, so a sleeping printer or a transient network hiccup made the device silently
+    // disappear from the list. Keep its data when it answers, otherwise log and connect with the
+    // persisted local info.
     detectResult detectData;
-    auto result = wxGetApp().getAgent()->bind_detect(str_ip, "secure", detectData);
+    const int    result        = wxGetApp().getAgent()->bind_detect(str_ip, "secure", detectData);
+    const char*  reject_reason = nullptr;
     if (result < 0) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": bind_detect failed code=" << result;
-        wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
-        return;
+        reject_reason = "bind_detect failed";
+    } else if (detectData.connect_type != "farm") {
+        if (detectData.bind_state == "occupied") {
+            reject_reason = "the device is already occupied";
+        } else if (detectData.connect_type == "cloud") {
+            reject_reason = "the device is cloud";
+        }
     }
 
-    if (detectData.connect_type != "farm") {
-        if (detectData.bind_state == "occupied") {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is already occupied";
-            wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
-            return;
-        }
+    if (reject_reason) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": " << reject_reason << ", code=" << result
+                                   << ", falling back to the persisted local info";
 
-        if (detectData.connect_type == "cloud") {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is cloud";
-            wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
-            return;
-        }
+        detectData              = detectResult();
+        detectData.dev_id       = sn;
+        detectData.dev_name     = sn;
+        detectData.connect_type = "lan";
+        detectData.bind_state   = "free";
+        detectData.model_id     = DevPrinterConfigUtil::get_model_id_by_dev_id(sn);
     }
 
     wxGetApp().CallAfter([detectData, str_ip, str_access_code]() {

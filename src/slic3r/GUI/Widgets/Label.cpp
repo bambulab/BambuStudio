@@ -348,6 +348,23 @@ void Label::Wrap(int width)
     // the base extent path derefs a null font. LB_AUTO_WRAP re-wraps on EVT_SIZE.
     if (!GetHandle()) return;
 
+    DoWrap(width);
+    if (width <= 0) return; // no room to give back; the base class breaks per character here
+
+    // The wrapper breaks lines on the raw text extent, but the width a sizer reserves for the label
+    // is its best size: that extent plus whatever the native control pads around the text (the
+    // margin added above on MSW, the NSTextFieldCell insets on macOS). A line that measured just
+    // inside `width` is therefore laid out just outside it, and macOS drops the overflow rather than
+    // re-wrapping it (see the header for why). Re-wrapping by the measured overflow makes the label
+    // fit the width it was asked for, whatever that padding turns out to be. This converges in one
+    // pass: the narrower break can only reduce the best width, never grow it back past `width`.
+    InvalidateBestSize();
+    const int overflow = GetBestSize().GetWidth() - width;
+    if (overflow > 0) DoWrap(width - overflow);
+}
+
+void Label::DoWrap(int width)
+{
     wxLabelWrapper2 wrapper;
     wrapper.Wrap(this, m_text, width);
     m_skip_size_evt = true;

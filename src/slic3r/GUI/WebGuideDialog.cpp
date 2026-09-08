@@ -6,6 +6,8 @@
 #include "libslic3r/AppConfig.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/EncodedFilament.hpp"
+#include "slic3r/GUI/MsgDialog.hpp"
 #include "libslic3r_version.h"
 
 #include <wx/sizer.h>
@@ -57,8 +59,15 @@ static wxString update_custom_filaments()
         temp_filament_id_to_presets[preset.filament_id].push_back(&preset);
     }
 
-    std::vector<std::pair<std::string, std::string>>   need_sort;
-    bool                                             need_delete_some_filament = false;
+    struct CustomFilaData {
+        std::string name;
+        std::string id;
+        std::string type;
+        std::string time;
+    };
+    std::vector<CustomFilaData> custom_filas;
+    bool need_delete_some_filament = false;
+
     for (std::pair<std::string, std::vector<Preset const *>> filament_id_to_presets : temp_filament_id_to_presets) {
         std::string filament_id = filament_id_to_presets.first;
         if (filament_id.empty()) continue;
@@ -68,6 +77,9 @@ static wxString update_custom_filaments()
         bool filament_with_base_id = false;
         bool not_need_show = false;
         std::string filament_name;
+        std::string filament_type;
+        std::string create_time;
+
         for (const Preset *preset : filament_id_to_presets.second) {
             if (preset->is_system || preset->is_project_embedded) {
                 not_need_show = true;
@@ -78,7 +90,17 @@ static wxString update_custom_filaments()
 
             if (!not_need_show) {
                 auto filament_vendor = dynamic_cast<ConfigOptionStrings *>(const_cast<Preset *>(preset)->config.option("filament_vendor", false));
-                if (filament_vendor && filament_vendor->values.size() && filament_vendor->values[0] == "Generic") not_need_show = true;
+                // Filter out user presets that carry an official Bambu vendor. These are
+                // almost always Bambu system presets that were duplicated/edited via the
+                // native "Save As" flow or an old wizard build that lacked the reserved
+                // vendor check — they visually collide with Bambu's own products and
+                // aren't what users think of as their own "custom" materials. Same
+                // treatment as the existing "Generic" filter above.
+                if (filament_vendor && filament_vendor->values.size()) {
+                    const std::string &v = filament_vendor->values[0];
+                    if (v == "Generic" || v == "Bambu" || v == "Bambu Lab" || v == "BBL")
+                        not_need_show = true;
+                }
             }
 
             if (filament_name.empty()) {
@@ -86,31 +108,123 @@ static wxString update_custom_filaments()
                 size_t      index_at    = preset_name.find(" @");
                 if (std::string::npos != index_at) { preset_name = preset_name.substr(0, index_at); }
                 filament_name = preset_name;
+                
+                auto opt_type = dynamic_cast<ConfigOptionStrings *>(const_cast<Preset *>(preset)->config.option("filament_type", false));
+                if (opt_type && opt_type->values.size() > 0) {
+                    filament_type = opt_type->values[0];
+                }
+                
+                // Prefer Preset::updated_time (persisted in the .info file, sourced from
+                // the cloud's update_time for synced presets) over any filesystem timestamp.
+                // Filesystem times reflect the LOCAL write moment — for a preset synced from
+                // another account they collapse to "when I synced", which puts every synced
+                // preset under "today" regardless of the original author's creation time.
+                // updated_time survives sync intact and stays comparable across accounts.
+                std::time_t t = static_cast<std::time_t>(preset->updated_time);
+                if (t > 0) {
+                    char buf[100];
+                    struct tm tm_info;
+#ifdef _WIN32
+                    localtime_s(&tm_info, &t);
+#else
+                    localtime_r(&t, &tm_info);
+#endif
+                    std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm_info);
+                    create_time = buf;
+                }
             }
         }
         if (not_need_show) continue;
         if (!filament_name.empty()) {
+            CustomFilaData data;
             if (filament_with_base_id) {
-                need_sort.push_back(std::make_pair("[Action Required] " + filament_name, filament_id));
+                data.name = "[Action Required] " + filament_name;
             } else {
-
-                need_sort.push_back(std::make_pair(filament_name, filament_id));
+                data.name = filament_name;
             }
+            data.id = filament_id;
+            data.type = filament_type;
+            data.time = create_time;
+            custom_filas.push_back(data);
         }
     }
-    std::sort(need_sort.begin(), need_sort.end(), [](const std::pair<std::string, std::string> &a, const std::pair<std::string, std::string> &b) { return a.first < b.first; });
+    std::sort(custom_filas.begin(), custom_filas.end(), [](const CustomFilaData &a, const CustomFilaData &b) { return a.name < b.name; });
+
     if (need_delete_some_filament) {
-        need_sort.push_back(std::make_pair("[Action Required]", "null"));
+        CustomFilaData data;
+        data.name = "[Action Required]";
+        data.id = "null";
+        custom_filas.push_back(data);
     }
+
     json temp_j;
-    for (std::pair<std::string, std::string> &filament_name_to_id : need_sort) {
-        temp_j["name"] = filament_name_to_id.first;
-        temp_j["id"]   = filament_name_to_id.second;
+    for (const CustomFilaData &data : custom_filas) {
+        temp_j["name"] = data.name;
+        temp_j["id"]   = data.id;
+        temp_j["type"] = data.type;
+        temp_j["create_time"] = data.time;
         m_CustomFilaments.push_back(temp_j);
     }
     m_Res["data"]  = m_CustomFilaments;
     wxString strJS = wxString::Format("HandleStudio(%s)", wxString::FromUTF8(m_Res.dump(-1, ' ', false, json::error_handler_t::ignore)));
     return strJS;
+}
+
+// Delete every user filament preset that shares the given filament_id (one custom
+// filament in the UI list may span multiple presets — one per printer). Prompts the
+// user for confirmation first, and refreshes the list once the delete is done.
+static void run_delete_all_presets_with_filament_id(const std::string &filament_id)
+{
+    PresetBundle *pb = wxGetApp().preset_bundle;
+    if (!pb) return;
+    PresetCollection &filaments = pb->filaments;
+
+    // Collect names first — mutating m_presets while iterating it is unsafe.
+    std::vector<std::string> to_delete;
+    for (const Preset &p : filaments.get_presets()) {
+        if (!p.is_user() || p.is_project_embedded) continue;
+        if (p.filament_id.empty()) continue;
+        if (p.filament_id == filament_id)
+            to_delete.push_back(p.name);
+    }
+
+    // Push cloud-side delete notifications and wipe the local record for each. Mirrors
+    // CreatePresetsDialog.cpp's delete_filament_preset_by_name path.
+    std::string selected = filaments.get_selected_preset_name();
+    for (const std::string &name : to_delete) {
+        try {
+            Preset *pr = filaments.find_preset(name);
+            if (!pr) continue;
+            if (!pr->setting_id.empty()) {
+                filaments.set_sync_info_and_save(pr->name, pr->setting_id, "delete", 0);
+                wxGetApp().delete_preset_from_cloud(pr->setting_id);
+            }
+            if (filaments.get_edited_preset().name == pr->name)
+                filaments.discard_current_changes();
+            filaments.delete_preset(pr->name);
+        } catch (const std::exception &ex) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " exception deleting " << name << ": " << ex.what();
+        }
+    }
+}
+
+void GuideFrame::delete_custom_filament(const std::string &filament_id, const std::string &filament_name)
+{
+    // Reuse the exact confirm dialog EditFilamentPresetDialog uses for its own
+    // "Delete Material" button (CreatePresetsDialog.cpp:4974): same wording, same
+    // title, same buttons — one canonical confirmation across all delete-material
+    // entry points, no drift between them.
+    WarningDialog dlg(this,
+        _L("All the filament presets belong to this filament would be deleted. \nIf you are using this filament on your printer, please reset the filament information for that slot."),
+        _L("Delete filament"),
+        wxYES | wxCANCEL | wxCANCEL_DEFAULT | wxCENTRE);
+    if (dlg.ShowModal() != wxID_YES) return;
+
+    run_delete_all_presets_with_filament_id(filament_id);
+
+    // Push the refreshed list back to the page so the deleted row disappears.
+    wxString strJS = update_custom_filaments();
+    wxGetApp().CallAfter([this, strJS] { RunScript(strJS); });
 }
 
 GuideFrame::GuideFrame(GUI_App *pGUI, long style)
@@ -219,7 +333,7 @@ void GuideFrame::load_url(wxString &url)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< " exit";
 }
 
-wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
+wxString GuideFrame::SetStartPage(GuidePage startpage, bool load, bool default_custom_tab)
 {
     m_page = startpage;
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< boost::format(" enter, load=%1%, start_page=%2%")%load%int(startpage);
@@ -248,6 +362,11 @@ wxString GuideFrame::SetStartPage(GuidePage startpage, bool load)
     } else if (startpage == BBL_FILAMENT_ONLY) {
         SetTitle("");
         TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/0/index.html?target=23").make_preferred().string());
+        // Reopening right after creating/editing a custom filament (see Plater::priv::
+        // on_create_filament / on_modify_filament) should land on the Custom tab instead
+        // of the default System tab used by the first-run wizard and other entry points.
+        if (default_custom_tab)
+            TargetUrl = wxString::Format("%s&custom=1", TargetUrl);
     } else if (startpage == BBL_MODELS_ONLY) {
         SetTitle("");
         TargetUrl = from_u8((boost::filesystem::path(resources_dir()) / "web/guide/0/index.html?target=24").make_preferred().string());
@@ -435,6 +554,13 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
         } else if (strCmd == "modify_custom_filament") {
             m_editing_filament_id = j["id"];
             this->EndModal(wxID_EDIT);
+        }
+        else if (strCmd == "delete_custom_filament")
+        {
+            std::string del_filament_id = j.value("id", "");
+            std::string del_filament_name = j.value("name", "");
+            if (!del_filament_id.empty())
+                delete_custom_filament(del_filament_id, del_filament_name);
         }
         else if (strCmd == "save_userguide_models")
         {
@@ -974,6 +1100,8 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
             { preferred_model, preferred_variant, first_added_filament, std::string() });
         if (!errors_cummulative.empty())
             show_error(nullptr, errors_cummulative);
+        // AppConfig-restored filament colors may predate the JSON primary-color alignment.
+        Slic3r::align_project_filament_primary_colors_with_json(preset_bundle);
     }
 
     // Update the selections from the compatibilty.
@@ -1033,6 +1161,8 @@ bool GuideFrame::run(bool& config_applied)
                 PresetBundle::BBL_DEFAULT_PRINTER_MODEL, PresetBundle::BBL_DEFAULT_PRINTER_VARIANT, "true");
             app.app_config->clear_section(AppConfig::SECTION_FILAMENTS);
             app.preset_bundle->load_selections(*app.app_config, {PresetBundle::BBL_DEFAULT_PRINTER_MODEL, PresetBundle::BBL_DEFAULT_PRINTER_VARIANT, PresetBundle::BBL_DEFAULT_FILAMENT, std::string()});
+            // AppConfig-restored filament colors may predate the JSON primary-color alignment.
+            Slic3r::align_project_filament_primary_colors_with_json(app.preset_bundle);
 
             app.app_config->set_legacy_datadir(false);
             app.update_mode();
