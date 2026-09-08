@@ -102,7 +102,7 @@ private:
     void update_mode_card_content(DecomposeMode mode);
     void update_mode_card_contents();
     void update_matched_color_display();
-    void update_ok_button_state();
+    void update_ok_button_state(bool refresh_result = true);
     void update_filament_limit_warning();
     void update_basic_support_warning();
     int  mixable_family_count() const;

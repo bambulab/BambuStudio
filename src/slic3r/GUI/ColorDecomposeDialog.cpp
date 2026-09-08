@@ -186,6 +186,16 @@ static wxString format_rgb(const wxColour& color)
     return wxString::Format(_L("RGB(%d, %d, %d)"), color.Red(), color.Green(), color.Blue());
 }
 
+static wxRect result_cards_rect(wxWindow* decomposed, wxWindow* filament)
+{
+    wxRect r;
+    if (decomposed)
+        r.Union(decomposed->GetRect());
+    if (filament)
+        r.Union(filament->GetRect());
+    return r;
+}
+
 static void bind_rounded_card_paint(wxPanel* card)
 {
     card->SetBackgroundStyle(wxBG_STYLE_PAINT);
@@ -293,11 +303,13 @@ ColorDecomposeDialog::ColorDecomposeDialog(wxWindow* parent,
     build_ui();
     wxGetApp().UpdateDlgDarkUI(this);
 
+    // Fill result components before Fit. Fitting while the result sizer is
+    // empty locks a PETG-only dialog too narrow and clips the second swatch.
     update_card_visibility();
-    Fit();
     compute_decomposition();
     update_matched_color_display();
     update_ok_button_state();
+    Fit();
 }
 
 void ColorDecomposeDialog::on_dpi_changed(const wxRect& suggested_rect)
@@ -371,6 +383,7 @@ wxBoxSizer* ColorDecomposeDialog::create_filament_selector()
         compute_decomposition();
         update_matched_color_display();
         update_ok_button_state();
+        Fit();
     });
 
     sizer->Add(m_type_combo, 1, wxEXPAND);
@@ -467,8 +480,9 @@ static wxWindow* create_result_component_swatch(wxWindow* parent, const wxColour
             dc.DrawBitmap(bmp, 0, overhang, true);
         if (!show_new)
             return;
-        const wxString text = _L("New");
-        dc.SetFont(Label::Body_8);
+        // Keep Latin "New": 新建 is too wide for this 32 DIP swatch.
+        const wxString text = "New";
+        dc.SetFont(Label::Body_10);
         const wxSize ts = dc.GetTextExtent(text);
         const int pad_x = panel->FromDIP(3);
         const int pad_y = panel->FromDIP(1);
@@ -874,10 +888,17 @@ void ColorDecomposeDialog::select_mode(DecomposeMode mode)
 {
     m_selected_mode = mode;
     m_result = m_mode_results[mode_index(mode)];
+    wxRect dirty = result_cards_rect(m_decomposed_container, m_filament_card);
     update_card_styles();
     update_matched_color_display();
     update_basic_support_warning();
-    update_ok_button_state();
+    update_ok_button_state(false);
+    Layout();
+    dirty.Union(result_cards_rect(m_decomposed_container, m_filament_card));
+    if (!dirty.IsEmpty()) {
+        dirty.Inflate(FromDIP(4));
+        RefreshRect(dirty, true);
+    }
 }
 
 void ColorDecomposeDialog::update_card_styles()
@@ -969,14 +990,19 @@ void ColorDecomposeDialog::update_basic_support_warning()
         ? _L("A closer mix is calculated from four base colors: cyan, magenta, yellow, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically.")
         : _L("A closer mix is calculated from four base colors: red, yellow, blue, and white. Currently only PLA Basic is supported. If matching filaments are not in the project, they will be added automatically.");
     m_basic_warning_text->SetLabel(text);
+    if (was_shown) {
+        const int avail = m_basic_warning_text->GetClientSize().x;
+        if (avail > FromDIP(50))
+            m_basic_warning_text->Wrap(avail);
+        return;
+    }
     m_basic_warning_panel->Show();
     Layout();
     const int avail = m_basic_warning_text->GetClientSize().x;
     if (avail > FromDIP(50))
         m_basic_warning_text->Wrap(avail);
     Layout();
-    if (!was_shown)
-        Fit();
+    Fit();
 }
 
 void ColorDecomposeDialog::update_filament_limit_warning()
@@ -1064,7 +1090,7 @@ DecomposePreviewIds ColorDecomposeDialog::preview_ids_for(const ColorDecomposeRe
         m_physical_colors, m_filament_types, m_physical_config_indices);
 }
 
-void ColorDecomposeDialog::update_ok_button_state()
+void ColorDecomposeDialog::update_ok_button_state(bool refresh_result)
 {
     if (!m_btn_ok) return;
     update_filament_limit_warning();
@@ -1086,7 +1112,8 @@ void ColorDecomposeDialog::update_ok_button_state()
         }
     }
     m_btn_ok->Enable(any_card_visible && mode_usable && !blocked);
-    update_matched_color_display();
+    if (refresh_result)
+        update_matched_color_display();
     Layout();
 }
 
@@ -1148,7 +1175,6 @@ void ColorDecomposeDialog::update_mode_card_contents()
     update_mode_card_content(DecomposeMode::CMYW);
     update_mode_card_content(DecomposeMode::RYBW);
     Layout();
-    Fit();
 }
 
 bool ColorDecomposeDialog::is_existing_physical_id(int preview_id) const
@@ -1179,7 +1205,10 @@ void ColorDecomposeDialog::update_matched_color_display()
         match_parent_bg(m_matched_rgb_text, StateColor::darkModeColorFor(*wxWHITE));
     }
 
+    wxRect dirty = result_cards_rect(m_decomposed_container, m_filament_card);
+
     if (m_result_components_sizer && m_decomposed_container) {
+        m_decomposed_container->Freeze();
         m_result_components_sizer->Clear(true);
         const auto& components = m_result.components;
         const wxColour box_bg = StateColor::darkModeColorFor(*wxWHITE);
@@ -1211,7 +1240,7 @@ void ColorDecomposeDialog::update_matched_color_display()
         m_decomposed_container->Layout();
         if (wxSizer* box = m_decomposed_container->GetSizer())
             box->SetSizeHints(m_decomposed_container);
-        m_decomposed_container->Refresh();
+        m_decomposed_container->Thaw();
     }
 
     const bool has_result = has_usable_card();
@@ -1238,6 +1267,18 @@ void ColorDecomposeDialog::update_matched_color_display()
         }
         m_filament_card->Layout();
         m_filament_card->Refresh();
+    }
+
+    Layout();
+    // Constructor runs before Show(); Fit so the first paint has the two-swatch
+    // width. After Show, Layout only — Fit would jump the dialog on card switch.
+    if (!IsShown())
+        Fit();
+
+    dirty.Union(result_cards_rect(m_decomposed_container, m_filament_card));
+    if (IsShown() && !dirty.IsEmpty()) {
+        dirty.Inflate(FromDIP(4));
+        RefreshRect(dirty, true);
     }
 }
 
